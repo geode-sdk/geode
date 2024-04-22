@@ -23,7 +23,7 @@ protected:
     CCMenuItemToggler* m_enableToggle = nullptr;
     CCMenuItemSpriteExtra* m_updateBtn = nullptr;
     EventListener<UpdateModListStateFilter> m_updateStateListener;
-    EventListener<PromiseEventFilter<std::optional<server::ServerModUpdate>, server::ServerError>> m_checkUpdateListener;
+    EventListener<server::ServerRequest<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
     std::optional<server::ServerModUpdate> m_availableUpdate;
 
     /**
@@ -34,7 +34,7 @@ protected:
 
     void updateState();
     
-    void onCheckUpdates(PromiseEvent<std::optional<server::ServerModUpdate>, server::ServerError>* event);
+    void onCheckUpdates(typename server::ServerRequest<std::optional<server::ServerModUpdate>>::Event* event);
 
     void onEnable(CCObject*);
     void onView(CCObject*);

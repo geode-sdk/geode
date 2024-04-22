@@ -30,6 +30,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
     bool m_menuDisabled;
     CCSprite* m_geodeButton;
+    Task<std::monostate> m_updateCheckTask;
 
     bool init() {
         if (!MenuLayer::init()) return false;
@@ -152,26 +153,33 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         }
 
         // Check for mod updates
-        ModsLayer::checkInstalledModsForUpdates()
-            .then([this](std::vector<std::string> updatesFound) {
-                if (updatesFound.size() && !m_fields->m_geodeButton->getChildByID("updates-available")) {
-                    log::info("Found updates for mods: {}!", updatesFound);
-                    auto icon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr);
-                    icon->setPosition(
-                        m_fields->m_geodeButton->getContentSize() - CCSize { 10.f, 10.f }
-                    );
-                    icon->setID("updates-available");
-                    icon->setZOrder(99);
-                    icon->setScale(.5f);
-                    m_fields->m_geodeButton->addChild(icon);
+        m_fields->m_updateCheckTask = ModsLayer::checkInstalledModsForUpdates().map(
+            [this](server::ServerRequest<std::vector<std::string>>::Value* result) {
+                if (result->isOk()) {
+                    auto updatesFound = result->unwrap();
+                    if (updatesFound.size() && !m_fields->m_geodeButton->getChildByID("updates-available")) {
+                        log::info("Found updates for mods: {}!", updatesFound);
+                        auto icon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr);
+                        icon->setPosition(
+                            m_fields->m_geodeButton->getContentSize() - CCSize { 10.f, 10.f }
+                        );
+                        icon->setID("updates-available");
+                        icon->setZOrder(99);
+                        icon->setScale(.5f);
+                        m_fields->m_geodeButton->addChild(icon);
+                    }
+                    else {
+                        log::error("No updates found :(");
+                    }
                 }
                 else {
-                    log::error("No updates found :(");
+                    auto error = result->unwrapErr();
+                    log::error("Unable to check for mod updates ({}): {}", error.code, error.details);
                 }
-            })
-            .expect([](server::ServerError error) {
-                log::error("Unable to check for mod updates ({}): {}", error.code, error.details);
-            });
+                return std::monostate();
+            },
+            [](auto) { return std::monostate(); }
+        );
 
         for (auto mod : Loader::get()->getAllMods()) {
             if (mod->getMetadata().usesDeprecatedIDForm()) {

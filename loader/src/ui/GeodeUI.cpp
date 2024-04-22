@@ -87,7 +87,7 @@ class ModLogoSprite : public CCNode {
 protected:
     std::string m_modID;
     CCNode* m_sprite = nullptr;
-    EventListener<PromiseEventFilter<ByteVector, server::ServerError>> m_listener;
+    EventListener<server::ServerRequest<ByteVector>> m_listener;
 
     bool init(std::string const& id, bool fetch) {
         if (!CCNode::init())
@@ -109,7 +109,7 @@ protected:
         // Asynchronously fetch from server
         else {
             this->setSprite(createLoadingCircle(25));
-            m_listener.setFilter(server::ServerResultCache<&server::getModLogo>::shared().get(id).listen());
+            m_listener.setFilter(server::getModLogo(id));
         }
 
         return true;
@@ -131,18 +131,21 @@ protected:
         this->addChildAtPosition(m_sprite, Anchor::Center);
     }
 
-    void onFetch(PromiseEvent<ByteVector, server::ServerError>* event) {
-        // Set default sprite on error
-        if (event->getReject()) {
-            this->setSprite(nullptr);
-        }
-        // Otherwise load downloaded sprite to memory
-        else if (auto data = event->getResolve()) {
-            auto image = Ref(new CCImage());
-            image->initWithImageData(const_cast<uint8_t*>(data->data()), data->size());
+    void onFetch(server::ServerRequest<ByteVector>::Event* event) {
+        if (auto result = event->getValue()) {
+            // Set default sprite on error
+            if (result->isErr()) {
+                this->setSprite(nullptr);
+            }
+            // Otherwise load downloaded sprite to memory
+            else {
+                auto data = result->unwrap();
+                auto image = Ref(new CCImage());
+                image->initWithImageData(const_cast<uint8_t*>(data.data()), data.size());
 
-            auto texture = CCTextureCache::get()->addUIImage(image, m_modID.c_str());
-            this->setSprite(CCSprite::createWithTexture(texture));
+                auto texture = CCTextureCache::get()->addUIImage(image, m_modID.c_str());
+                this->setSprite(CCSprite::createWithTexture(texture));
+            }
         }
     }
 

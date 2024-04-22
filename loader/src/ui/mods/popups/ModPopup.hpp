@@ -30,9 +30,9 @@ protected:
     CCNode* m_rightColumn;
     CCNode* m_currentTabPage = nullptr;
     std::unordered_map<Tab, std::pair<GeodeTabSprite*, Ref<CCNode>>> m_tabs;
-    EventListener<PromiseEventFilter<server::ServerModMetadata, server::ServerError>> m_statsListener;
-    EventListener<PromiseEventFilter<std::unordered_set<std::string>, server::ServerError>> m_tagsListener;
-    EventListener<PromiseEventFilter<std::optional<server::ServerModUpdate>, server::ServerError>> m_checkUpdateListener;
+    EventListener<server::ServerRequest<server::ServerModMetadata>> m_statsListener;
+    EventListener<server::ServerRequest<std::unordered_set<std::string>>> m_tagsListener;
+    EventListener<server::ServerRequest<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
     EventListener<UpdateModListStateFilter> m_updateStateListener;
 
     bool setup(ModSource&& src) override;
@@ -42,9 +42,9 @@ protected:
     void setStatLabel(CCNode* stat, std::string const& value, bool noValue = false, ccColor3B color = ccWHITE);
     void setStatValue(CCNode* stat, std::optional<std::string> const& value);
 
-    void onCheckUpdates(PromiseEvent<std::optional<server::ServerModUpdate>, server::ServerError>* event);
-    void onLoadServerInfo(PromiseEvent<server::ServerModMetadata, server::ServerError>* event);
-    void onLoadTags(PromiseEvent<std::unordered_set<std::string>, server::ServerError>* event);
+    void onLoadServerInfo(typename server::ServerRequest<server::ServerModMetadata>::Event* event);
+    void onLoadTags(typename server::ServerRequest<std::unordered_set<std::string>>::Event* event);
+    void onCheckUpdates(typename server::ServerRequest<std::optional<server::ServerModUpdate>>::Event* event);
     
     void loadTab(Tab tab);
     void onTab(CCObject* sender);

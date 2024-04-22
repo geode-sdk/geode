@@ -35,7 +35,7 @@ public:
     Mod* asMod() const;
     server::ServerModMetadata const* asServer() const;
 
-    server::ServerPromise<server::ServerModMetadata> fetchServerInfo() const;
-    server::ServerPromise<std::unordered_set<std::string>> fetchValidTags() const;
-    server::ServerPromise<std::optional<server::ServerModUpdate>> checkUpdates();
+    server::ServerRequest<server::ServerModMetadata> fetchServerInfo() const;
+    server::ServerRequest<std::unordered_set<std::string>> fetchValidTags() const;
+    server::ServerRequest<std::optional<server::ServerModUpdate>> checkUpdates();
 };

@@ -95,54 +95,64 @@ server::ServerModMetadata const* ModSource::asServer() const {
     return std::get_if<server::ServerModMetadata>(&m_value);
 }
 
-server::ServerPromise<server::ServerModMetadata> ModSource::fetchServerInfo() const {
+server::ServerRequest<server::ServerModMetadata> ModSource::fetchServerInfo() const {
     return std::visit(makeVisitor {
         [](Mod* mod) {
-            return server::ServerResultCache<&server::getMod>::shared().get(mod->getID());
+            return server::getMod(mod->getID());
         },
         [](server::ServerModMetadata const& metadata) {
-            return server::ServerPromise<server::ServerModMetadata>([&metadata](auto resolve, auto) {
-                resolve(metadata);
-            });
+            return server::ServerRequest<server::ServerModMetadata>::immediate(Ok(metadata));
         }
     }, m_value);
 }
-server::ServerPromise<std::unordered_set<std::string>> ModSource::fetchValidTags() const {
+server::ServerRequest<std::unordered_set<std::string>> ModSource::fetchValidTags() const {
     return std::visit(makeVisitor {
         [](Mod* mod) {
-            return server::ServerResultCache<&server::getTags>::shared().get()
-                .then<std::unordered_set<std::string>>([mod](std::unordered_set<std::string> validTags) {
-                    // Filter out invalid tags
-                    auto modTags = mod->getMetadata().getTags();
-                    auto finalTags = std::unordered_set<std::string>();
-                    for (auto& tag : modTags) {
-                        if (validTags.contains(tag)) {
-                            finalTags.insert(tag);
+            return server::getTags().map(
+                [mod](auto* result) -> Result<std::unordered_set<std::string>, server::ServerError> {
+                    if (result->isOk()) {
+                        // Filter out invalid tags
+                        auto modTags = mod->getMetadata().getTags();
+                        auto finalTags = std::unordered_set<std::string>();
+                        for (auto& tag : modTags) {
+                            if (result->unwrap().contains(tag)) {
+                                finalTags.insert(tag);
+                            }
                         }
+                        return Ok(finalTags);
                     }
-                    return finalTags;
-                });
+                    return *result;
+                },
+                [](server::ServerProgress* progress) {
+                    return *progress;
+                }
+            );
         },
         [](server::ServerModMetadata const& metadata) {
             // Server info tags are always certain to be valid since the server has already validated them
-            return server::ServerPromise<std::unordered_set<std::string>>([&metadata](auto resolve, auto) {
-                resolve(metadata.tags);
-            });
+            return server::ServerRequest<std::unordered_set<std::string>>::immediate(Ok(metadata.tags));
         }
     }, m_value);
 }
-server::ServerPromise<std::optional<server::ServerModUpdate>> ModSource::checkUpdates() {
+server::ServerRequest<std::optional<server::ServerModUpdate>> ModSource::checkUpdates() {
     m_availableUpdate = std::nullopt;
-    return server::ServerResultCache<&server::checkUpdates>::shared()
-        .get({ this->getID() })
-        .then<std::optional<server::ServerModUpdate>>([this](auto updates) -> std::optional<server::ServerModUpdate> {
-            if (!updates.empty()) {
-                auto update = std::move(std::move(updates).at(0));
-                if (update.version > this->getMetadata().getVersion()) {
-                    m_availableUpdate = update;
-                    return m_availableUpdate;
+    return server::checkUpdates({ this->getID() }).map(
+        [this](auto* result) -> Result<std::optional<server::ServerModUpdate>, server::ServerError> {
+            if (result->isOk()) {
+                auto updates = result->unwrap();
+                if (!updates.empty()) {
+                    auto update = std::move(std::move(updates).at(0));
+                    if (update.version > this->getMetadata().getVersion()) {
+                        m_availableUpdate = update;
+                        return Ok(m_availableUpdate);
+                    }
                 }
+                return Ok(std::nullopt);
             }
-            return std::nullopt;
-        });
+            return Err(result->unwrapErr());
+        },
+        [](server::ServerProgress* progress) {
+            return *progress;
+        }
+    );
 }

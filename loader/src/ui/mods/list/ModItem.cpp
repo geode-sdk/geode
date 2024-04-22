@@ -136,7 +136,7 @@ bool ModItem::init(ModSource&& source) {
 
     if (m_source.asMod()) {
         m_checkUpdateListener.bind(this, &ModItem::onCheckUpdates);
-        m_checkUpdateListener.setFilter(m_source.checkUpdates().listen());
+        m_checkUpdateListener.setFilter(m_source.checkUpdates());
     }
 
     this->updateState();
@@ -247,8 +247,8 @@ void ModItem::updateSize(float width, bool big) {
     this->updateLayout();
 }
 
-void ModItem::onCheckUpdates(PromiseEvent<std::optional<server::ServerModUpdate>, server::ServerError>* event) {
-    if (auto resolved = event->getResolve()) {
+void ModItem::onCheckUpdates(typename server::ServerRequest<std::optional<server::ServerModUpdate>>::Event* event) {
+    if (event->getValue() && event->getValue()->isOk()) {
         this->updateState();
     }
 }

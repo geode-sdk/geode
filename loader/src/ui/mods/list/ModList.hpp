@@ -27,7 +27,7 @@ protected:
     CCMenuItemSpriteExtra* m_statusDetailsBtn;
     CCNode* m_statusLoadingCircle;
     Slider* m_statusLoadingBar;
-    ModListSource::PageLoadEventListener m_listener;
+    EventListener<ModListSource::PageLoadTask> m_listener;
     CCMenuItemSpriteExtra* m_pagePrevBtn;
     CCMenuItemSpriteExtra* m_pageNextBtn;
     CCNode* m_topContainer;
@@ -37,17 +37,17 @@ protected:
     TextArea* m_updateCountLabel = nullptr;
     TextInput* m_searchInput;
     EventListener<InvalidateCacheFilter> m_invalidateCacheListener;
-    EventListener<PromiseEventFilter<std::vector<std::string>, server::ServerError>> m_checkUpdatesListener;
+    EventListener<server::ServerRequest<std::vector<std::string>>> m_checkUpdatesListener;
     bool m_bigSize = false;
     std::atomic<size_t> m_searchInputThreads = 0;
 
     bool init(ModListSource* src, CCSize const& size);
 
     void updateTopContainer();
-    void onCheckUpdates(PromiseEvent<std::vector<std::string>, server::ServerError>* event);
+    void onCheckUpdates(typename server::ServerRequest<std::vector<std::string>>::Event* event);
     void onInvalidateCache(InvalidateCacheEvent* event);
 
-    void onPromise(ModListSource::PageLoadEvent* event);
+    void onPromise(ModListSource::PageLoadTask::Event* event);
     void onPage(CCObject*);
     void onShowStatusDetails(CCObject*);
     void onFilters(CCObject*);

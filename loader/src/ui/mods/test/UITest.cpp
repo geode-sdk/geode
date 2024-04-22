@@ -128,7 +128,7 @@ protected:
     }
 
     void makeRequest() {
-        auto task = web::WebRequest().send2("GET", "https://api.geode-sdk.org/");
+        auto task = web::WebRequest().get("https://api.geode-sdk.org/");
         m_rawListener.setFilter(task);
         m_strListener.setFilter(task.map(
             [](auto* result) {
@@ -149,14 +149,14 @@ protected:
     }
     void onServerReq(CCObject*) {
         m_cancelServerTaskBtn->setVisible(true);
-        m_serListener.setFilter(server::getMods2(server::ModsQuery()));
-        m_serListener2.setFilter(server::getMods2(server::ModsQuery()));
+        m_serListener.setFilter(server::getMods(server::ModsQuery()));
+        m_serListener2.setFilter(server::getMods(server::ModsQuery()));
     }
     void onServerCancel(CCObject*) {
         m_serListener.getFilter().cancel();
     }
     void onServerCacheClear(CCObject*) {
-        server::clearServerCaches2();
+        server::clearServerCaches();
     }
 
 public:

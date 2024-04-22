@@ -107,7 +107,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     // Check for updates on installed mods, and show an update all button if there are some
     if (typeinfo_cast<InstalledModListSource*>(m_source)) {
         m_checkUpdatesListener.bind(this, &ModList::onCheckUpdates);
-        m_checkUpdatesListener.setFilter(ModsLayer::checkInstalledModsForUpdates().listen());
+        m_checkUpdatesListener.setFilter(ModsLayer::checkInstalledModsForUpdates());
 
         m_updateAllMenu = CCNode::create();
         m_updateAllMenu->ignoreAnchorPointForPosition(false);
@@ -258,33 +258,46 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     return true;
 }
 
-void ModList::onPromise(typename ModListSource::PageLoadEvent* event) {
-    if (auto resolved = event->getResolve()) {
-        // Hide status
-        m_statusContainer->setVisible(false);
+void ModList::onPromise(ModListSource::PageLoadTask::Event* event) {
+    if (event->getValue()) {
+        auto result = event->getValue();
+        if (result->isOk()) {
+            // Hide status
+            m_statusContainer->setVisible(false);
 
-        // Create items
-        bool first = true;
-        for (auto item : *resolved) {
-            // Add separators between items after the first one
-            if (!first) {
-                // auto separator = CCLayerColor::create(
-                //     ColorProvider::get()->define("mod-list-separator"_spr, { 255, 255, 255, 45 })
-                // );
-                // separator->setContentSize({ m_obContentSize.width - 10, .5f });
-                // m_list->m_contentLayer->addChild(separator);
+            auto list = result->unwrap();
+
+            // Create items
+            bool first = true;
+            for (auto item : list) {
+                // Add separators between items after the first one
+                if (!first) {
+                    // auto separator = CCLayerColor::create(
+                    //     ColorProvider::get()->define("mod-list-separator"_spr, { 255, 255, 255, 45 })
+                    // );
+                    // separator->setContentSize({ m_obContentSize.width - 10, .5f });
+                    // m_list->m_contentLayer->addChild(separator);
+                }
+                first = false;
+                m_list->m_contentLayer->addChild(item);
             }
-            first = false;
-            m_list->m_contentLayer->addChild(item);
+            this->updateSize(m_bigSize);
+
+            // Scroll list to top
+            auto listTopScrollPos = -m_list->m_contentLayer->getContentHeight() + m_list->getContentHeight();
+            m_list->m_contentLayer->setPositionY(listTopScrollPos);
+
+            // Update page UI
+            this->updateState();
         }
-        this->updateSize(m_bigSize);
+        else {
+            auto error = result->unwrapErr();
+            this->showStatus(ModListErrorStatus(), error.message, error.details);
+            this->updateState();
+        }
 
-        // Scroll list to top
-        auto listTopScrollPos = -m_list->m_contentLayer->getContentHeight() + m_list->getContentHeight();
-        m_list->m_contentLayer->setPositionY(listTopScrollPos);
-
-        // Update page UI
-        this->updateState();
+        // Clear listener
+        m_listener.setFilter(ModListSource::PageLoadTask());
     }
     else if (auto progress = event->getProgress()) {
         // todo: percentage in a loading bar
@@ -297,14 +310,9 @@ void ModList::onPromise(typename ModListSource::PageLoadEvent* event) {
             this->showStatus(ModListUnkProgressStatus(), "Loading...");
         }
     }
-    else if (auto rejected = event->getReject()) {
-        this->showStatus(ModListErrorStatus(), rejected->message, rejected->details);
+    else if (event->isCancelled()) {
+        this->showStatus(ModListErrorStatus(), "Loading Mods Cancelled");
         this->updateState();
-    }
-
-    if (event->isFinally()) {
-        // Clear listener
-        m_listener.setFilter(ModListSource::PageLoadEventFilter());
     }
 }
 
@@ -332,18 +340,20 @@ void ModList::onShowStatusDetails(CCObject*) {
     m_statusContainer->updateLayout();
 }
 
-void ModList::onCheckUpdates(PromiseEvent<std::vector<std::string>, server::ServerError>* event) {
-    if (auto mods = event->getResolve(); mods && mods->size() > 0) {
-        std::string fmt;
-        if (mods->size() == 1) {
-            fmt = fmt::format("There is <cg>{}</c> update available!", mods->size());
+void ModList::onCheckUpdates(typename server::ServerRequest<std::vector<std::string>>::Event* event) {
+    if (event->getValue() && event->getValue()->isOk()) {
+        if (auto mods = event->getValue()->unwrap(); mods.size() > 0) {
+            std::string fmt;
+            if (mods.size() == 1) {
+                fmt = fmt::format("There is <cg>{}</c> update available!", mods.size());
+            }
+            else {
+                fmt = fmt::format("There are <cg>{}</c> updates available!", mods.size());
+            }
+            m_updateCountLabel->setString(fmt.c_str());
+            m_updateAllMenu->setVisible(true);
+            this->updateTopContainer();
         }
-        else {
-            fmt = fmt::format("There are <cg>{}</c> updates available!", mods->size());
-        }
-        m_updateCountLabel->setString(fmt.c_str());
-        m_updateAllMenu->setVisible(true);
-        this->updateTopContainer();
     }
 }
 
@@ -440,7 +450,7 @@ void ModList::gotoPage(size_t page, bool update) {
     
     // Start loading new page with generic loading message
     this->showStatus(ModListUnkProgressStatus(), "Loading...");
-    m_listener.setFilter(m_source->loadPage(page, update).listen());
+    m_listener.setFilter(m_source->loadPage(page, update));
 
     // Do initial eager update on page UI (to prevent user spamming arrows 
     // to access invalid pages)

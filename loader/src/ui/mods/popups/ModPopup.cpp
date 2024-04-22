@@ -405,13 +405,13 @@ bool ModPopup::setup(ModSource&& src) {
 
     // Load stats from server (or just from the source if it already has them)
     m_statsListener.bind(this, &ModPopup::onLoadServerInfo);
-    m_statsListener.setFilter(m_source.fetchServerInfo().listen());
+    m_statsListener.setFilter(m_source.fetchServerInfo());
     m_tagsListener.bind(this, &ModPopup::onLoadTags);
-    m_tagsListener.setFilter(m_source.fetchValidTags().listen());
+    m_tagsListener.setFilter(m_source.fetchValidTags());
 
     if (m_source.asMod()) {
         m_checkUpdateListener.bind(this, &ModPopup::onCheckUpdates);
-        m_checkUpdateListener.setFilter(m_source.checkUpdates().listen());
+        m_checkUpdateListener.setFilter(m_source.checkUpdates());
     }
 
     // Only listen for updates on this mod specifically
@@ -498,8 +498,9 @@ void ModPopup::setStatValue(CCNode* stat, std::optional<std::string> const& valu
     container->updateLayout();
 }
 
-void ModPopup::onLoadServerInfo(PromiseEvent<server::ServerModMetadata, server::ServerError>* event) {
-    if (auto data = event->getResolve()) {
+void ModPopup::onLoadServerInfo(typename server::ServerRequest<server::ServerModMetadata>::Event* event) {
+    if (event->getValue() && event->getValue()->isOk()) {
+        auto data = event->getValue()->unwrap();
         auto timeToString = [](auto const& time) {
             if (time.has_value()) {
                 return time.value().toAgoString();
@@ -509,16 +510,16 @@ void ModPopup::onLoadServerInfo(PromiseEvent<server::ServerModMetadata, server::
 
         // Update server stats
         for (auto id : std::initializer_list<std::pair<const char*, std::string>> {
-            { "downloads", std::to_string(data->downloadCount) },
-            { "release-date", timeToString(data->createdAt) },
-            { "update-date", timeToString(data->updatedAt) },
+            { "downloads", std::to_string(data.downloadCount) },
+            { "release-date", timeToString(data.createdAt) },
+            { "update-date", timeToString(data.updatedAt) },
         }) {
             if (auto stat = m_stats->getChildByID(id.first)) {
                 this->setStatValue(stat, id.second);
             }
         }
     }
-    else if (auto err = event->getReject()) {
+    else if (event->isCancelled() || (event->getValue() && event->getValue()->isErr())) {
         for (auto child : CCArrayExt<CCNode*>(m_stats->getChildren())) {
             if (child->getUserObject("stats")) {
                 this->setStatValue(child, "N/A");
@@ -527,38 +528,40 @@ void ModPopup::onLoadServerInfo(PromiseEvent<server::ServerModMetadata, server::
     }
 }
 
-void ModPopup::onCheckUpdates(PromiseEvent<std::optional<server::ServerModUpdate>, server::ServerError>* event) {
-    if (auto resolved = event->getResolve()) {
+void ModPopup::onCheckUpdates(typename server::ServerRequest<std::optional<server::ServerModUpdate>>::Event* event) {
+    if (event->getValue() && event->getValue()->isOk()) {
+        auto resolved = event->getValue()->unwrap();
         // Check if this has updates for an installed mod
         auto updatesStat = m_stats->getChildByID("update-check");
-        if (resolved->has_value()) {
+        if (resolved.has_value()) {
             this->setStatIcon(updatesStat, "updates-available.png"_spr);
             this->setStatLabel(updatesStat, "Update Found", false, ccc3(99, 250, 255));
-            this->setStatValue(updatesStat, resolved->value().version.toString());
+            this->setStatValue(updatesStat, resolved.value().version.toString());
         }
         else {
             this->setStatIcon(updatesStat, "GJ_completesIcon_001.png");
             this->setStatLabel(updatesStat, "Up to Date!", true, ccc3(78, 245, 0));
         }
     }
-    else if (auto err = event->getReject()) {
+    else if (event->isCancelled() || (event->getValue() && event->getValue()->isErr())) {
         auto updatesStat = m_stats->getChildByID("update-check");
         this->setStatLabel(updatesStat, "No Updates Found", true, ccc3(125, 125, 125));
     }
 }
 
-void ModPopup::onLoadTags(PromiseEvent<std::unordered_set<std::string>, server::ServerError>* event) {
-    if (auto data = event->getResolve()) {
+void ModPopup::onLoadTags(typename server::ServerRequest<std::unordered_set<std::string>>::Event* event) {
+    if (event->getValue() && event->getValue()->isOk()) {
+        auto data = event->getValue()->unwrap();
         m_tags->removeAllChildren();
         
-        for (auto& tag : *data) {
+        for (auto& tag : data) {
             auto readable = tag;
             readable[0] = std::toupper(readable[0]);
             auto colors = geodeTagColor(tag);
             m_tags->addChild(createGeodeTagLabel(readable));
         }
         
-        if (data->empty()) {
+        if (data.empty()) {
             auto label = CCLabelBMFont::create("No tags found", "bigFont.fnt");
             label->setOpacity(120);
             m_tags->addChild(label);
@@ -566,7 +569,7 @@ void ModPopup::onLoadTags(PromiseEvent<std::unordered_set<std::string>, server::
 
         m_tags->updateLayout();
     }
-    else if (auto err = event->getReject()) {
+    else if (event->isCancelled() || (event->getValue() && event->getValue()->isErr())) {
         m_tags->removeAllChildren();
 
         auto label = CCLabelBMFont::create("No tags found", "bigFont.fnt");

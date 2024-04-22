@@ -125,6 +125,9 @@ public:
         m_cache.add(Query(query), ServerRequest<Value>(f));
         return f;
     }
+    void limit(size_t size) {
+        m_cache.limit(size);
+    }
     void clear() {
         m_cache.clear();
     }
@@ -477,9 +480,9 @@ std::string server::getServerUserAgent() {
     );
 }
 
-ServerRequest<ServerModsList> server::getMods2(ModsQuery const& query, bool useCache) {
+ServerRequest<ServerModsList> server::getMods(ModsQuery const& query, bool useCache) {
     if (useCache) {
-        return getCache<getMods2>().get(query);
+        return getCache<getMods>().get(query);
     }
 
     auto req = web::WebRequest();
@@ -518,7 +521,7 @@ ServerRequest<ServerModsList> server::getMods2(ModsQuery const& query, bool useC
     req.param("page", std::to_string(query.page + 1));
     req.param("per_page", std::to_string(query.pageSize));
 
-    return req.send2("GET", getServerAPIBaseURL() + "/mods").map(
+    return req.get(getServerAPIBaseURL() + "/mods").map(
         [](web::WebResponse* response) -> Result<ServerModsList, ServerError> {
             if (response->ok()) {
                 // Parse payload
@@ -533,13 +536,11 @@ ServerRequest<ServerModsList> server::getMods2(ModsQuery const& query, bool useC
                 }
                 return Ok(list.unwrap());
             }
-            else {
-                // Treat a 404 as empty mods list
-                if (response->code() == 404) {
-                    return Ok(ServerModsList());
-                }
-                return Err(parseServerError(*response));
+            // Treat a 404 as empty mods list
+            if (response->code() == 404) {
+                return Ok(ServerModsList());
             }
+            return Err(parseServerError(*response));
         },
         [](web::WebProgress* progress) {
             return parseServerProgress(*progress, "Downloading mods");
@@ -547,207 +548,141 @@ ServerRequest<ServerModsList> server::getMods2(ModsQuery const& query, bool useC
     );
 }
 
-ServerPromise<ServerModsList> server::getMods(ModsQuery const& query) {
+ServerRequest<ServerModMetadata> server::getMod(std::string const& id, bool useCache) {
+    if (useCache) {
+        return getCache<getMod>().get(id);
+    }
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
-
-    // Always target current GD version and Loader version
-    req.param("gd", GEODE_GD_VERSION_STR);
-    req.param("geode", Loader::get()->getVersion().toString());
-
-    // Add search params
-    if (query.query) {
-        req.param("query", *query.query);
-    }
-    if (query.platforms.size()) {
-        std::string plats = "";
-        bool first = true;
-        for (auto plat : query.platforms) {
-            if (!first) plats += ",";
-            plats += PlatformID::toShortString(plat.m_value);
-            first = false;
-        }
-        req.param("platforms", plats);
-    }
-    if (query.tags.size()) {
-        req.param("tags", ranges::join(query.tags, ","));
-    }
-    if (query.featured) {
-        req.param("featured", query.featured.value() ? "true" : "false");
-    }
-    req.param("sort", sortToString(query.sorting));
-    if (query.developer) {
-        req.param("developer", *query.developer);
-    }
-
-    // Paging (1-based on server, 0-based locally)
-    req.param("page", std::to_string(query.page + 1));
-    req.param("per_page", std::to_string(query.pageSize));
-
-    return req.get(getServerAPIBaseURL() + "/mods")
-        .then<ServerModsList, ServerError>([](auto result) -> Result<ServerModsList, ServerError> {
-            if (result) {
-                auto value = std::move(result).unwrap();
-
-                // Store the code, since the value is moved afterwards
-                auto code = value.code();
-
+    return req.get(getServerAPIBaseURL() + "/mods/" + id).map(
+        [](web::WebResponse* response) -> Result<ServerModMetadata, ServerError> {
+            if (response->ok()) {
                 // Parse payload
-                auto payload = parseServerPayload(std::move(value));
-                if (!payload) {
-                    return Err(payload.unwrapErr());
-                }
-                // Parse response
-                auto list = ServerModsList::parse(payload.unwrap());
-                if (!list) {
-                    return Err(ServerError(code, "Unable to parse response: {}", list.unwrapErr()));
-                }
-                return Ok(list.unwrap());
-            }
-            else {
-                auto error = std::move(result).unwrapErr();
-                // Treat a 404 as empty mods list
-                if (error.code() == 404) {
-                    return Ok(ServerModsList());
-                }
-                return Err(parseServerError(error));
-            }
-        })
-        .progress<ServerProgress>([](auto prog) {
-            return parseServerProgress(prog, "Downloading mods");
-        });
-}
-
-ServerPromise<ServerModMetadata> server::getMod(std::string const& id) {
-    auto req = web::WebRequest();
-    req.userAgent(getServerUserAgent());
-    return req.get(getServerAPIBaseURL() + "/mods/" + id)
-        .then<ServerModMetadata, ServerError>([](auto result) -> Result<ServerModMetadata, ServerError> {
-            if (result) {
-                auto value = result.unwrap();
-
-                // Store the code, since the value is moved afterwards
-                auto code = value.code();
-
-                // Parse payload
-                auto payload = parseServerPayload(std::move(value));
+                auto payload = parseServerPayload(*response);
                 if (!payload) {
                     return Err(payload.unwrapErr());
                 }
                 // Parse response
                 auto list = ServerModMetadata::parse(payload.unwrap());
                 if (!list) {
-                    return Err(ServerError(code, "Unable to parse response: {}", list.unwrapErr()));
+                    return Err(ServerError(response->code(), "Unable to parse response: {}", list.unwrapErr()));
                 }
                 return Ok(list.unwrap());
             }
-            else {
-                return Err(parseServerError(result.unwrapErr()));
+            return Err(parseServerError(*response));
+        },
+        [id](web::WebProgress* progress) {
+            return parseServerProgress(*progress, "Downloading metadata for " + id);
+        }
+    );
+}
+
+ServerRequest<ByteVector> server::getModLogo(std::string const& id, bool useCache) {
+    if (useCache) {
+        return getCache<getModLogo>().get(id);
+    }
+    auto req = web::WebRequest();
+    req.userAgent(getServerUserAgent());
+    return req.get(getServerAPIBaseURL() + "/mods/" + id + "/logo").map(
+        [](web::WebResponse* response) -> Result<ByteVector, ServerError> {
+            if (response->ok()) {
+                return Ok(response->data());
             }
-        })
-        .progress<ServerProgress>([id](auto prog) {
-            return parseServerProgress(prog, "Downloading metadata for " + id);
-        });
+            return Err(parseServerError(*response));
+        },
+        [id](web::WebProgress* progress) {
+            return parseServerProgress(*progress, "Downloading logo for " + id);
+        }
+    );
 }
 
-ServerPromise<ByteVector> server::getModLogo(std::string const& id) {
+ServerRequest<std::unordered_set<std::string>> server::getTags(bool useCache) {
+    if (useCache) {
+        return getCache<getTags>().get();
+    }
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
-    return req.get(getServerAPIBaseURL() + "/mods/" + id + "/logo")
-        .then<ByteVector>([](auto response) {
-            return response.data();
-        })
-        .expect<ServerError>([](auto error) {
-            return parseServerError(error);
-        })
-        .progress<ServerProgress>([id](auto prog) {
-            return parseServerProgress(prog, "Downloading logo for " + id);
-        });
-}
-
-ServerPromise<std::unordered_set<std::string>> server::getTags(std::monostate) {
-    auto req = web::WebRequest();
-    req.userAgent(getServerUserAgent());
-    return req.get(getServerAPIBaseURL() + "/tags")
-        .then<std::unordered_set<std::string>, ServerError>([](auto response) -> Result<std::unordered_set<std::string>, ServerError> {
-            if (response) {
-                auto value = response.unwrap();
-
-                // Store the code, since the value is moved afterwards
-                auto code = value.code();
-                
+    return req.get(getServerAPIBaseURL() + "/tags").map(
+        [](web::WebResponse* response) -> Result<std::unordered_set<std::string>, ServerError> {
+            if (response->ok()) {
                 // Parse payload
-                auto payload = parseServerPayload(std::move(value));
+                auto payload = parseServerPayload(*response);
                 if (!payload) {
                     return Err(payload.unwrapErr());
                 }
                 matjson::Value json = payload.unwrap();
                 if (!json.is_array()) {
-                    return Err(ServerError(code, "Expected a string array"));
+                    return Err(ServerError(response->code(), "Expected a string array"));
                 }
 
                 std::unordered_set<std::string> tags;
                 for (auto item : json.as_array()) {
                     if (!item.is_string()) {
-                        return Err(ServerError(code, "Expected a string array"));
+                        return Err(ServerError(response->code(), "Expected a string array"));
                     }
                     tags.insert(item.as_string());
                 }
                 return Ok(tags);
             }
-            else {
-                return Err(parseServerError(response.unwrapErr()));
-            }
-        })
-        .progress<ServerProgress>([](auto prog) {
-            return parseServerProgress(prog, "Downloading valid tags");
-        });
+            return Err(parseServerError(*response));
+        },
+        [](web::WebProgress* progress) {
+            return parseServerProgress(*progress, "Downloading valid tags");
+        }
+    );
 }
 
-ServerPromise<std::vector<ServerModUpdate>> server::checkUpdates(std::vector<std::string> const& modIDs) {
+ServerRequest<std::vector<ServerModUpdate>> server::checkUpdates(std::vector<std::string> const& modIDs, bool useCache) {
+    if (useCache) {
+        return getCache<checkUpdates>().get(modIDs);
+    }
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
     req.param("platform", GEODE_PLATFORM_SHORT_IDENTIFIER);
     if (modIDs.size()) {
         req.param("ids", ranges::join(modIDs, ";"));
     }
-    return req.get(getServerAPIBaseURL() + "/mods/updates")
-        .then<std::vector<ServerModUpdate>, ServerError>([](auto result) -> Result<std::vector<ServerModUpdate>, ServerError> {
-            if (result) {
-                auto value = result.unwrap();
-
-                // Store the code, since the value is moved afterwards
-                auto code = value.code();
-
+    return req.get(getServerAPIBaseURL() + "/mods/updates").map(
+        [](web::WebResponse* response) -> Result<std::vector<ServerModUpdate>, ServerError> {
+            if (response->ok()) {
                 // Parse payload
-                auto payload = parseServerPayload(std::move(value));
+                auto payload = parseServerPayload(*response);
                 if (!payload) {
                     return Err(payload.unwrapErr());
                 }
                 // Parse response
                 auto list = ServerModUpdate::parseList(payload.unwrap());
                 if (!list) {
-                    return Err(ServerError(code, "Unable to parse response: {}", list.unwrapErr()));
+                    return Err(ServerError(response->code(), "Unable to parse response: {}", list.unwrapErr()));
                 }
                 return Ok(list.unwrap());
             }
-            else {
-                return Err(parseServerError(result.unwrapErr()));
-            }
-        })
-        .progress<ServerProgress>([](auto prog) {
-            return parseServerProgress(prog, "Checking updates for mods");
-        });
+            return Err(parseServerError(*response));
+        },
+        [](web::WebProgress* progress) {
+            return parseServerProgress(*progress, "Checking updates for mods");
+        }
+    );
 }
 
-void server::clearServerCaches2(bool clearGlobalCaches) {
-    getCache<&getMods2>().clear();
-    // getCache<&getMod>().clear();
-    // getCache<&getModLogo>().clear();
+void server::clearServerCaches(bool clearGlobalCaches) {
+    getCache<&getMods>().clear();
+    getCache<&getMod>().clear();
+    getCache<&getModLogo>().clear();
 
     // Only clear global caches if explicitly requested
     if (clearGlobalCaches) {
-        // getCache<&getTags>().clear();
-        // getCache<&checkUpdates>().clear();
+        getCache<&getTags>().clear();
+        getCache<&checkUpdates>().clear();
     }
+}
+
+$execute {
+    listenForSettingChanges<int64_t>("server-cache-size-limit", +[](int64_t size) {
+        getCache<&server::getMods>().limit(size);
+        getCache<&server::getMod>().limit(size);
+        getCache<&server::getModLogo>().limit(size);
+        getCache<&server::getTags>().limit(size);
+        getCache<&server::checkUpdates>().limit(size);
+    });
 }

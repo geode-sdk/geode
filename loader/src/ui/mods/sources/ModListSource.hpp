@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Geode/utils/cocos.hpp>
-#include <Geode/utils/Promise.hpp>
 #include <server/Server.hpp>
 #include "../list/ModItem.hpp"
 
@@ -48,23 +47,20 @@ public:
     };
 
     using Page = std::vector<Ref<ModItem>>;
-    using PageLoadEvent = PromiseEvent<Page, LoadPageError, std::optional<uint8_t>>;
-    using PageLoadEventFilter = PromiseEventFilter<Page, LoadPageError, std::optional<uint8_t>>;
-    using PageLoadEventListener = EventListener<PageLoadEventFilter>;
-    using PagePromise = Promise<Page, LoadPageError, std::optional<uint8_t>>;
+    using PageLoadTask = Task<Result<Page, LoadPageError>, std::optional<uint8_t>>;
 
     struct ProvidedMods {
         std::vector<ModSource> mods;
         size_t totalModCount;
     };
-    using ProviderPromise = Promise<ProvidedMods, LoadPageError, std::optional<uint8_t>>;
+    using ProviderTask = Task<Result<ProvidedMods, LoadPageError>, std::optional<uint8_t>>;
 
 protected:
     std::unordered_map<size_t, Page> m_cachedPages;
     std::optional<size_t> m_cachedItemCount;
 
     virtual void resetQuery() = 0;
-    virtual ProviderPromise fetchPage(size_t page, size_t pageSize) = 0;
+    virtual ProviderTask fetchPage(size_t page, size_t pageSize) = 0;
     virtual void setSearchQuery(std::string const& query) = 0;
 
     ModListSource();
@@ -82,7 +78,7 @@ public:
     virtual void setModTags(std::unordered_set<std::string> const& tags) = 0;
 
     // Load page, uses cache if possible unless `update` is true
-    PagePromise loadPage(size_t page, bool update = false);
+    PageLoadTask loadPage(size_t page, bool update = false);
     std::optional<size_t> getPageCount() const;
     std::optional<size_t> getItemCount() const;
 
@@ -114,7 +110,7 @@ protected:
     InstalledModsQuery m_query;
 
     void resetQuery() override;
-    ProviderPromise fetchPage(size_t page, size_t pageSize) override;
+    ProviderTask fetchPage(size_t page, size_t pageSize) override;
     void setSearchQuery(std::string const& query) override;
 
     InstalledModListSource(bool onlyUpdates);
@@ -144,7 +140,7 @@ protected:
     server::ModsQuery m_query;
 
     void resetQuery() override;
-    ProviderPromise fetchPage(size_t page, size_t pageSize) override;
+    ProviderTask fetchPage(size_t page, size_t pageSize) override;
     void setSearchQuery(std::string const& query) override;
 
     ServerModListSource(ServerModListType type);
@@ -164,7 +160,7 @@ public:
 class ModPackListSource : public ModListSource {
 protected:
     void resetQuery() override;
-    ProviderPromise fetchPage(size_t page, size_t pageSize) override;
+    ProviderTask fetchPage(size_t page, size_t pageSize) override;
     void setSearchQuery(std::string const& query) override;
 
     ModPackListSource();

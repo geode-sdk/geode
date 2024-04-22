@@ -320,18 +320,20 @@ ModsLayer* ModsLayer::scene() {
     return layer;
 }
 
-server::ServerPromise<std::vector<std::string>> ModsLayer::checkInstalledModsForUpdates() {
-    return server::ServerResultCache<&server::checkUpdates>::shared().get(ranges::map<std::vector<std::string>>(
+server::ServerRequest<std::vector<std::string>> ModsLayer::checkInstalledModsForUpdates() {
+    return server::checkUpdates(ranges::map<std::vector<std::string>>(
         Loader::get()->getAllMods(),
-        [](auto mod) { return mod->getID(); })
-    )
-        .then<std::vector<std::string>>([](std::vector<server::ServerModUpdate> list) {
+        [](auto mod) { return mod->getID(); }
+    )).map([](auto* result) -> Result<std::vector<std::string>, server::ServerError> {
+        if (result->isOk()) {
             std::vector<std::string> updatesFound;
-            for (auto& update : list) {
+            for (auto& update : result->unwrap()) {
                 if (update.hasUpdateForInstalledMod()) {
                     updatesFound.push_back(update.id);
                 }
             }
-            return updatesFound;
-        });
+            return Ok(updatesFound);
+        }
+        return Err(result->unwrapErr());
+    });
 }

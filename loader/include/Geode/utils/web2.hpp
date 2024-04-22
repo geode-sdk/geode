@@ -2,7 +2,6 @@
 
 #include <matjson.hpp>
 #include "Result.hpp"
-#include "Promise.hpp"
 #include "Task.hpp"
 #include <chrono>
 
@@ -32,8 +31,6 @@ namespace geode::utils::web {
         std::optional<std::string> header(std::string_view name) const;
     };
 
-    using WebError = WebResponse;
-
     class GEODE_DLL WebProgress final {
     private:
         class Impl;
@@ -56,7 +53,6 @@ namespace geode::utils::web {
     };
 
     using WebTask = Task<WebResponse, WebProgress>;
-    using WebPromise = Promise<WebResponse, WebError, WebProgress>;
 
     class GEODE_DLL WebRequest final {
     private:
@@ -68,13 +64,11 @@ namespace geode::utils::web {
         WebRequest();
         ~WebRequest();
 
-        WebTask send2(std::string_view method, std::string_view url);
-
-        WebPromise send(std::string_view method, std::string_view url);
-        WebPromise post(std::string_view url);
-        WebPromise get(std::string_view url);
-        WebPromise put(std::string_view url);
-        WebPromise patch(std::string_view url);
+        WebTask send(std::string_view method, std::string_view url);
+        WebTask post(std::string_view url);
+        WebTask get(std::string_view url);
+        WebTask put(std::string_view url);
+        WebTask patch(std::string_view url);
 
         WebRequest& header(std::string_view name, std::string_view value);
         WebRequest& param(std::string_view name, std::string_view value);

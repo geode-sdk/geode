@@ -104,21 +104,17 @@ ListenerResult InvalidateCacheFilter::handle(MiniFunction<Callback> fn, Invalida
 
 InvalidateCacheFilter::InvalidateCacheFilter(ModListSource* src) : m_source(src) {}
 
-typename ModListSource::PagePromise ModListSource::loadPage(size_t page, bool update) {
+typename ModListSource::PageLoadTask ModListSource::loadPage(size_t page, bool update) {
     if (!update && m_cachedPages.contains(page)) {
-        return PagePromise([this, page](auto resolve, auto) {
-            Loader::get()->queueInMainThread([this, page, resolve] {
-                resolve(m_cachedPages.at(page));
-            });
-        });
+        return PageLoadTask::immediate(Ok(m_cachedPages.at(page)));
     }
     m_cachedPages.erase(page);
-    return this->fetchPage(page, PER_PAGE)
-        .then<Page, ModListSource::LoadPageError>([page, this](auto result) -> Result<Page, ModListSource::LoadPageError> {
-            if (result) {
-                auto data = result.unwrap();
+    return this->fetchPage(page, PER_PAGE).map(
+        [this, page](Result<ProvidedMods, LoadPageError>* result) -> Result<Page, LoadPageError> {
+            if (result->isOk()) {
+                auto data = result->unwrap();
                 if (data.totalModCount == 0 || data.mods.empty()) {
-                    return Err(ModListSource::LoadPageError("No mods found :("));
+                    return Err(LoadPageError("No mods found :("));
                 }
                 auto pageData = Page();
                 for (auto mod : std::move(data.mods)) {
@@ -129,9 +125,10 @@ typename ModListSource::PagePromise ModListSource::loadPage(size_t page, bool up
                 return Ok(pageData);
             }
             else {
-                return Err(result.unwrapErr());
+                return Err(result->unwrapErr());
             }
-        });
+        }
+    );
 }
 
 std::optional<size_t> ModListSource::getPageCount() const {
@@ -181,49 +178,48 @@ void InstalledModListSource::resetQuery() {
     };
 }
 
-InstalledModListSource::ProviderPromise InstalledModListSource::fetchPage(size_t page, size_t pageSize) {
+InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t page, size_t pageSize) {
     m_query.page = page;
     m_query.pageSize = pageSize;
-    return ModListSource::ProviderPromise([query = m_query](auto resolve, auto, auto, auto const&) {
-        Loader::get()->queueInMainThread([query = std::move(query), resolve = std::move(resolve)] {
-            auto content = ModListSource::ProvidedMods();
-            for (auto& mod : Loader::get()->getAllMods()) {
-                content.mods.push_back(ModSource(mod));
-            }
-            // If we're only checking mods that have updates, we first have to run 
-            // update checks every mod...
-            if (query.onlyUpdates && content.mods.size()) {
-                struct Waiting final {
-                    ModListSource::ProvidedMods content;
-                    std::atomic_size_t waitingFor;
-                };
-                auto waiting = std::make_shared<Waiting>();
-                waiting->waitingFor = content.mods.size();
-                waiting->content = std::move(content);
-                for (auto& src : waiting->content.mods) {
-                    // todo: Promise::finallyOrCancelled
-                    src.checkUpdates().finally([resolve, query, waiting] {
+
+    auto content = ModListSource::ProvidedMods();
+    for (auto& mod : Loader::get()->getAllMods()) {
+        content.mods.push_back(ModSource(mod));
+    }
+    // If we're only checking mods that have updates, we first have to run 
+    // update checks every mod...
+    if (m_query.onlyUpdates && content.mods.size()) {
+        return ProviderTask::runWithCallback([content, query = m_query](auto finish, auto progress, auto hasBeenCancelled) {
+            struct Waiting final {
+                ModListSource::ProvidedMods content;
+                std::atomic_size_t waitingFor;
+                std::vector<Task<std::monostate>> waitingTasks;
+            };
+            auto waiting = std::make_shared<Waiting>();
+            waiting->waitingFor = content.mods.size();
+            waiting->content = std::move(content);
+            waiting->waitingTasks.reserve(content.mods.size());
+            for (auto& src : waiting->content.mods) {
+                // Need to store the created task so it doesn't get destroyed
+                waiting->waitingTasks.emplace_back(src.checkUpdates().map(
+                    [waiting, finish, query](auto* result) {
                         waiting->waitingFor -= 1;
                         if (waiting->waitingFor == 0) {
                             filterModsWithQuery(waiting->content, query);
-                            resolve(std::move(waiting->content));
+                            finish(Ok(std::move(waiting->content)));
                         }
-                    }).cancelled([resolve, query, waiting] {
-                        waiting->waitingFor -= 1;
-                        if (waiting->waitingFor == 0) {
-                            filterModsWithQuery(waiting->content, query);
-                            resolve(std::move(waiting->content));
-                        }
-                    });
-                }
-            }
-            // Otherwise simply construct the result right away
-            else {
-                filterModsWithQuery(content, query);
-                resolve(content);
+                        return std::monostate();
+                    }, 
+                    [](auto*) { return std::monostate(); }
+                ));
             }
         });
-    });
+    }
+    // Otherwise simply construct the result right away
+    else {
+        filterModsWithQuery(content, m_query);
+        return ProviderTask::immediate(Ok(content));
+    }
 }
 
 void InstalledModListSource::setSearchQuery(std::string const& query) {
@@ -281,24 +277,26 @@ void ServerModListSource::resetQuery() {
     }
 }
 
-ServerModListSource::ProviderPromise ServerModListSource::fetchPage(size_t page, size_t pageSize) {
+ServerModListSource::ProviderTask ServerModListSource::fetchPage(size_t page, size_t pageSize) {
     m_query.page = page;
     m_query.pageSize = pageSize;
-    return server::ServerResultCache<&server::getMods>::shared().get(m_query)
-        .then<ModListSource::ProvidedMods>([](server::ServerModsList list) {
-            auto content = ModListSource::ProvidedMods();
-            for (auto&& mod : std::move(list.mods)) {
-                content.mods.push_back(ModSource(std::move(mod)));
+    return server::getMods(m_query).map(
+        [](Result<server::ServerModsList, server::ServerError>* result) -> ProviderTask::Value {
+            if (result->isOk()) {
+                auto list = result->unwrap();
+                auto content = ModListSource::ProvidedMods();
+                for (auto&& mod : std::move(list.mods)) {
+                    content.mods.push_back(ModSource(std::move(mod)));
+                }
+                content.totalModCount = list.totalModCount;
+                return Ok(content);
             }
-            content.totalModCount = list.totalModCount;
-            return content;
-        })
-        .expect<ModListSource::LoadPageError>([](auto error) {
-            return ModListSource::LoadPageError("Error loading mods", error.details);
-        })
-        .progress<std::optional<uint8_t>>([](auto prog) {
-            return prog.percentage;
-        });
+            return Err(LoadPageError("Error loading mods", result->unwrapErr().details));
+        },
+        [](auto* prog) {
+            return prog->percentage;
+        }
+    );
 }
 
 ServerModListSource::ServerModListSource(ServerModListType type)
@@ -357,10 +355,8 @@ bool ServerModListSource::wantsRestart() const {
 }
 
 void ModPackListSource::resetQuery() {}
-ModPackListSource::ProviderPromise ModPackListSource::fetchPage(size_t page, size_t pageSize) {
-    return ProviderPromise([](auto, auto reject) {
-        reject(LoadPageError("Coming soon ;)"));
-    });
+ModPackListSource::ProviderTask ModPackListSource::fetchPage(size_t page, size_t pageSize) {
+    return ProviderTask::immediate(Err(LoadPageError("Coming soon ;)")));
 }
 
 ModPackListSource::ModPackListSource() {}
