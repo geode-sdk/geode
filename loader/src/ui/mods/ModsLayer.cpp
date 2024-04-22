@@ -187,8 +187,6 @@ void ModsLayer::gotoTab(ModListSource* src) {
     if (m_currentSource) {
         m_lists.at(m_currentSource)->removeFromParent();
     }
-    // Update current source
-    m_currentSource = src;
 
     // Lazily create new list and add it to UI
     if (!m_lists.contains(src)) {
@@ -201,6 +199,9 @@ void ModsLayer::gotoTab(ModListSource* src) {
     else {
         this->addChild(m_lists.at(src));
     }
+    
+    // Update current source
+    m_currentSource = src;
 
     // Update the state of the current list
     m_lists.at(m_currentSource)->updateSize(m_bigView);
@@ -266,7 +267,8 @@ void ModsLayer::onBack(CCObject*) {
     CCDirector::get()->replaceScene(CCTransitionFade::create(.5f, MenuLayer::scene(false)));
 
     // To avoid memory overloading, clear caches after leaving the layer
-    server::clearServerCaches();
+    server::clearServerCaches(true);
+    clearAllModListSourceCaches();
 }
 
 void ModsLayer::onGoToPage(CCObject*) {

@@ -173,3 +173,5 @@ public:
 
     bool wantsRestart() const override;
 };
+
+void clearAllModListSourceCaches();

@@ -6,6 +6,8 @@
 #include "../loader/Loader.hpp"
 
 namespace geode {
+    extern std::atomic_size_t TASK_HANDLE_COUNT;
+
     template <std::move_constructible T, std::move_constructible P = std::monostate>
     class [[nodiscard]] Task final {
     public:
@@ -54,11 +56,12 @@ namespace geode {
             std::optional<T> m_resultValue;
             bool m_finalEventPosted = false;
             std::unique_ptr<void, void(*)(void*)> m_mapListener = { nullptr, +[](void*) {} };
+            const char* m_whatIsThis = "Unk";
 
             class PrivateMarker final {};
 
-            static std::shared_ptr<Handle> create() {
-                return std::make_shared<Handle>(PrivateMarker());
+            static std::shared_ptr<Handle> create(const char* whatIsThis) {
+                return std::make_shared<Handle>(PrivateMarker(), whatIsThis);
             }
 
             bool is(Status status) {
@@ -70,7 +73,18 @@ namespace geode {
             friend class Task;
 
         public:
-            Handle(PrivateMarker) {}
+            std::string fmt() {
+                if (!this) return "null";
+                return fmt::format("({} @ {})", fmt::ptr(this), m_whatIsThis);
+            }
+
+            Handle(PrivateMarker, const char* whatIsThis) {
+                m_whatIsThis = whatIsThis;
+                log::info("create handle {}, {}", this->fmt(), ++TASK_HANDLE_COUNT);
+            }
+            ~Handle() {
+                log::info("destroy handle {}, {}", this->fmt(), --TASK_HANDLE_COUNT);
+            }
         };
 
         class Event final : public geode::Event {
@@ -171,16 +185,27 @@ namespace geode {
         friend class Task;
 
     public:
-        Task() : m_handle(nullptr) {}
+        Task() : m_handle(nullptr) {
+            log::info("create Task with handle {}", m_handle->fmt());
+        }
+        ~Task() {
+            log::info("destroy Task with handle {}", m_handle->fmt());
+        }
 
-        Task(Task const& other) : m_handle(other.m_handle) {}
-        Task(Task&& other) : m_handle(std::move(other.m_handle)) {}
+        Task(Task const& other) : m_handle(other.m_handle) {
+            log::info("copy Task with handle {}", m_handle->fmt());
+        }
+        Task(Task&& other) : m_handle(std::move(other.m_handle)) {
+            log::info("move Task with handle {}", m_handle->fmt());
+        }
         Task& operator=(Task const& other) {
             m_handle = other.m_handle;
+            log::info("copy assign Task with handle {}", m_handle->fmt());
             return *this;
         }
         Task& operator=(Task&& other) {
             m_handle = std::move(other.m_handle);
+            log::info("move assign Task with handle {}", m_handle->fmt());
             return *this;
         }
 
@@ -223,12 +248,12 @@ namespace geode {
         }
         
         static Task immediate(T value) {
-            auto task = Task(Handle::create());
+            auto task = Task(Handle::create("Task::immediate"));
             Task::finish(task.m_handle, std::move(value));
             return task;
         }
         static Task run(Run&& body) {
-            auto task = Task(Handle::create());
+            auto task = Task(Handle::create("Task::run"));
             std::thread([handle = std::weak_ptr(task.m_handle), body = std::move(body)] {
                 utils::thread::setName(fmt::format("Task @{}", fmt::ptr(handle.lock())));
                 auto result = body(
@@ -252,7 +277,7 @@ namespace geode {
             return task;
         }
         static Task runWithCallback(RunWithCallback&& body) {
-            auto task = Task(Handle::create());
+            auto task = Task(Handle::create("Task::runWithCallback"));
             std::thread([handle = std::weak_ptr(task.m_handle), body = std::move(body)] {
                 utils::thread::setName(fmt::format("Task (w/ callback) @{}", fmt::ptr(handle.lock())));
                 body(
@@ -283,7 +308,7 @@ namespace geode {
             using T2 = decltype(resultMapper(std::declval<T*>()));
             using P2 = decltype(progressMapper(std::declval<P*>()));
 
-            auto task = Task<T2, P2>(Task<T2, P2>::Handle::create()); 
+            auto task = Task<T2, P2>(Task<T2, P2>::Handle::create("Task::map")); 
 
             // Lock the current task until we have managed to create our new one
             std::unique_lock<std::recursive_mutex> lock(m_handle->m_mutex);

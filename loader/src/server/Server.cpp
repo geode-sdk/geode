@@ -125,6 +125,9 @@ public:
         m_cache.add(Query(query), ServerRequest<Value>(f));
         return f;
     }
+    size_t size() {
+        return m_cache.size();
+    }
     void limit(size_t size) {
         m_cache.limit(size);
     }

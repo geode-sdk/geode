@@ -1,4 +1,4 @@
-#define GEODE_UI_TEST
+// #define GEODE_UI_TEST
 #ifdef GEODE_UI_TEST
 
 #include <Geode/modify/MenuLayer.hpp>

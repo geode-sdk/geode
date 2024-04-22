@@ -376,3 +376,17 @@ void ModPackListSource::setModTags(std::unordered_set<std::string> const& set) {
 bool ModPackListSource::wantsRestart() const {
     return false;
 }
+
+void clearAllModListSourceCaches() {
+    InstalledModListSource::get(false)->clearCache();
+    InstalledModListSource::get(true)->clearCache();
+
+    ServerModListSource::get(ServerModListType::Download)->clearCache();
+    ServerModListSource::get(ServerModListType::Featured)->clearCache();
+    ServerModListSource::get(ServerModListType::Trending)->clearCache();
+    ServerModListSource::get(ServerModListType::Recent)->clearCache();
+
+    ModPackListSource::get()->clearCache();
+}
+
+std::atomic_size_t geode::TASK_HANDLE_COUNT = 0;
