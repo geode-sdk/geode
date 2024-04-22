@@ -5,6 +5,60 @@
 #include <Geode/utils/ColorProvider.hpp>
 #include "ConfirmUninstallPopup.hpp"
 
+class FetchTextArea : public CCNode {
+public:
+    using Request = server::ServerRequest<std::optional<std::string>>;
+
+protected:
+    EventListener<Request> m_listener;
+    MDTextArea* m_textarea;
+    CCNode* m_loading;
+    std::string m_noneText;
+
+    bool init(Request const& req, std::string const& noneText, CCSize const& size) {
+        if (!CCNode::init())
+            return false;
+        
+        this->setAnchorPoint({ .5f, .5f });
+        this->setContentSize(size);
+
+        m_noneText = noneText;
+
+        m_textarea = MDTextArea::create("", size);
+        this->addChildAtPosition(m_textarea, Anchor::Center);
+
+        m_loading = createLoadingCircle(30);
+        this->addChildAtPosition(m_loading, Anchor::Center);
+        
+        m_listener.bind(this, &FetchTextArea::onRequest);
+        m_listener.setFilter(req);
+        
+        return true;
+    }
+
+    void onRequest(Request::Event* event) {
+        if (event->getValue() && event->getValue()->isOk() && event->getValue()->unwrap()) {
+            m_loading->removeFromParent();
+            m_textarea->setString(event->getValue()->unwrap()->c_str());
+        }
+        else if (!event->getProgress()) {
+            m_loading->removeFromParent();
+            m_textarea->setString(m_noneText.c_str());
+        }
+    }
+
+public:
+    static FetchTextArea* create(Request const& req, std::string const& noneText, CCSize const& size) {
+        auto ret = new FetchTextArea();
+        if (ret && ret->init(req, noneText, size)) {
+            ret->autorelease();
+            return ret;
+        }
+        CC_SAFE_DELETE(ret);
+        return nullptr;
+    }
+};
+
 bool ModPopup::setup(ModSource&& src) {
     m_source = std::move(src);
     m_noElasticity = true;
@@ -665,16 +719,18 @@ void ModPopup::loadTab(ModPopup::Tab tab) {
         const float mdScale = .85f;
         switch (tab) {
             case Tab::Details: {
-                m_currentTabPage = MDTextArea::create(
-                    m_source.getAbout().value_or("No description provided"),
+                m_currentTabPage = FetchTextArea::create(
+                    m_source.fetchAbout(),
+                    "No description provided",
                     size / mdScale
                 );
                 m_currentTabPage->setScale(mdScale);
             } break;
 
             case Tab::Changelog: {
-                m_currentTabPage = MDTextArea::create(
-                    m_source.getChangelog().value_or("No changelog provided"),
+                m_currentTabPage = FetchTextArea::create(
+                    m_source.fetchChangelog(),
+                    "No changelog provided",
                     size / mdScale
                 );
                 m_currentTabPage->setScale(mdScale);

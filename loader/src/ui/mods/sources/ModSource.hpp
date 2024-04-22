@@ -17,8 +17,6 @@ public:
 
     std::string getID() const;
     ModMetadata getMetadata() const;
-    std::optional<std::string> getAbout() const;
-    std::optional<std::string> getChangelog() const;
     CCNode* createModLogo() const;
     bool wantsRestart() const;
     // note: be sure to call checkUpdates first...
@@ -36,6 +34,8 @@ public:
     server::ServerModMetadata const* asServer() const;
 
     server::ServerRequest<server::ServerModMetadata> fetchServerInfo() const;
+    server::ServerRequest<std::optional<std::string>> fetchAbout() const;
+    server::ServerRequest<std::optional<std::string>> fetchChangelog() const;
     server::ServerRequest<std::unordered_set<std::string>> fetchValidTags() const;
     server::ServerRequest<std::optional<server::ServerModUpdate>> checkUpdates();
 };

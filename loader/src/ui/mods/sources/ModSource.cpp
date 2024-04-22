@@ -26,28 +26,6 @@ ModMetadata ModSource::getMetadata() const {
         }
     }, m_value);
 }
-std::optional<std::string> ModSource::getAbout() const {
-    return std::visit(makeVisitor {
-        [](Mod* mod) {
-            return mod->getMetadata().getDetails();
-        },
-        [](server::ServerModMetadata const& metadata) {
-            // Versions should be guaranteed to have at least one item
-            return metadata.about;
-        }
-    }, m_value);
-}
-std::optional<std::string> ModSource::getChangelog() const {
-    return std::visit(makeVisitor {
-        [](Mod* mod) {
-            return mod->getMetadata().getChangelog();
-        },
-        [](server::ServerModMetadata const& metadata) {
-            // Versions should be guaranteed to have at least one item
-            return metadata.changelog;
-        }
-    }, m_value);
-}
 CCNode* ModSource::createModLogo() const {
     return std::visit(makeVisitor {
         [](Mod* mod) {
@@ -95,15 +73,45 @@ server::ServerModMetadata const* ModSource::asServer() const {
     return std::get_if<server::ServerModMetadata>(&m_value);
 }
 
-server::ServerRequest<server::ServerModMetadata> ModSource::fetchServerInfo() const {
+server::ServerRequest<std::optional<std::string>> ModSource::fetchAbout() const {
     return std::visit(makeVisitor {
         [](Mod* mod) {
-            return server::getMod(mod->getID());
+            return server::ServerRequest<std::optional<std::string>>::immediate(Ok(mod->getMetadata().getDetails()));
         },
         [](server::ServerModMetadata const& metadata) {
-            return server::ServerRequest<server::ServerModMetadata>::immediate(Ok(metadata));
+            return server::getMod(metadata.id).map(
+                [](auto* result) -> Result<std::optional<std::string>, server::ServerError> {
+                    if (result->isOk()) {
+                        return Ok(result->unwrap().about);
+                    }
+                    return Err(result->unwrapErr());
+                }
+            );
         }
     }, m_value);
+}
+server::ServerRequest<std::optional<std::string>> ModSource::fetchChangelog() const {
+    return std::visit(makeVisitor {
+        [](Mod* mod) {
+            return server::ServerRequest<std::optional<std::string>>::immediate(Ok(mod->getMetadata().getChangelog()));
+        },
+        [](server::ServerModMetadata const& metadata) {
+            return server::getMod(metadata.id).map(
+                [](auto* result) -> Result<std::optional<std::string>, server::ServerError> {
+                    if (result->isOk()) {
+                        return Ok(result->unwrap().changelog);
+                    }
+                    return Err(result->unwrapErr());
+                }
+            );
+        }
+    }, m_value);
+}
+server::ServerRequest<server::ServerModMetadata> ModSource::fetchServerInfo() const {
+    // Request the info even if this is already a server mod because this might 
+    // not have the full details (for example changelog) and the server cache 
+    // should deal with performance issues
+    return server::getMod(this->getID());
 }
 server::ServerRequest<std::unordered_set<std::string>> ModSource::fetchValidTags() const {
     return std::visit(makeVisitor {

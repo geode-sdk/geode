@@ -147,6 +147,9 @@ protected:
                 this->setSprite(CCSprite::createWithTexture(texture));
             }
         }
+        else if (event->isCancelled()) {
+            this->setSprite(nullptr);
+        }
     }
 
 public:
