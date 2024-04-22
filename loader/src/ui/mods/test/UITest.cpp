@@ -6,6 +6,7 @@
 #include <Geode/ui/BasedButtonSprite.hpp>
 #include <Geode/utils/web2.hpp>
 #include <server/Server.hpp>
+#include "../sources/ModListSource.hpp"
 
 using namespace geode::prelude;
 
@@ -156,7 +157,8 @@ protected:
         m_serListener.getFilter().cancel();
     }
     void onServerCacheClear(CCObject*) {
-        server::clearServerCaches();
+        server::clearServerCaches(true);
+        clearAllModListSourceCaches();
     }
 
 public:

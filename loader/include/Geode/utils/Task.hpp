@@ -6,8 +6,6 @@
 #include "../loader/Loader.hpp"
 
 namespace geode {
-    extern std::atomic_size_t TASK_HANDLE_COUNT;
-
     template <std::move_constructible T, std::move_constructible P = std::monostate>
     class [[nodiscard]] Task final {
     public:
@@ -56,12 +54,12 @@ namespace geode {
             std::optional<T> m_resultValue;
             bool m_finalEventPosted = false;
             std::unique_ptr<void, void(*)(void*)> m_mapListener = { nullptr, +[](void*) {} };
-            const char* m_whatIsThis = "Unk";
+            std::string m_name;
 
             class PrivateMarker final {};
 
-            static std::shared_ptr<Handle> create(const char* whatIsThis) {
-                return std::make_shared<Handle>(PrivateMarker(), whatIsThis);
+            static std::shared_ptr<Handle> create(std::string const& name) {
+                return std::make_shared<Handle>(PrivateMarker(), name);
             }
 
             bool is(Status status) {
@@ -73,18 +71,7 @@ namespace geode {
             friend class Task;
 
         public:
-            std::string fmt() {
-                if (!this) return "null";
-                return fmt::format("({} @ {})", fmt::ptr(this), m_whatIsThis);
-            }
-
-            Handle(PrivateMarker, const char* whatIsThis) {
-                m_whatIsThis = whatIsThis;
-                log::info("create handle {}, {}", this->fmt(), ++TASK_HANDLE_COUNT);
-            }
-            ~Handle() {
-                log::info("destroy handle {}, {}", this->fmt(), --TASK_HANDLE_COUNT);
-            }
+            Handle(PrivateMarker, std::string const& name) : m_name(name) {}
         };
 
         class Event final : public geode::Event {
@@ -185,27 +172,16 @@ namespace geode {
         friend class Task;
 
     public:
-        Task() : m_handle(nullptr) {
-            log::info("create Task with handle {}", m_handle->fmt());
-        }
-        ~Task() {
-            log::info("destroy Task with handle {}", m_handle->fmt());
-        }
+        Task() : m_handle(nullptr) {}
 
-        Task(Task const& other) : m_handle(other.m_handle) {
-            log::info("copy Task with handle {}", m_handle->fmt());
-        }
-        Task(Task&& other) : m_handle(std::move(other.m_handle)) {
-            log::info("move Task with handle {}", m_handle->fmt());
-        }
+        Task(Task const& other) : m_handle(other.m_handle) {}
+        Task(Task&& other) : m_handle(std::move(other.m_handle)) {}
         Task& operator=(Task const& other) {
             m_handle = other.m_handle;
-            log::info("copy assign Task with handle {}", m_handle->fmt());
             return *this;
         }
         Task& operator=(Task&& other) {
             m_handle = std::move(other.m_handle);
-            log::info("move assign Task with handle {}", m_handle->fmt());
             return *this;
         }
 
@@ -247,15 +223,15 @@ namespace geode {
             return m_handle && m_handle->is(Status::Cancelled);
         }
         
-        static Task immediate(T value) {
-            auto task = Task(Handle::create("Task::immediate"));
+        static Task immediate(T value, std::string const& name = "<Immediate Task>") {
+            auto task = Task(Handle::create(name));
             Task::finish(task.m_handle, std::move(value));
             return task;
         }
-        static Task run(Run&& body) {
-            auto task = Task(Handle::create("Task::run"));
-            std::thread([handle = std::weak_ptr(task.m_handle), body = std::move(body)] {
-                utils::thread::setName(fmt::format("Task @{}", fmt::ptr(handle.lock())));
+        static Task run(Run&& body, std::string const& name = "<Task>") {
+            auto task = Task(Handle::create(name));
+            std::thread([handle = std::weak_ptr(task.m_handle), name, body = std::move(body)] {
+                utils::thread::setName(fmt::format("Task '{}'", name));
                 auto result = body(
                     [handle](P progress) {
                         Task::progress(handle.lock(), std::move(progress));
@@ -276,10 +252,10 @@ namespace geode {
             }).detach();
             return task;
         }
-        static Task runWithCallback(RunWithCallback&& body) {
-            auto task = Task(Handle::create("Task::runWithCallback"));
-            std::thread([handle = std::weak_ptr(task.m_handle), body = std::move(body)] {
-                utils::thread::setName(fmt::format("Task (w/ callback) @{}", fmt::ptr(handle.lock())));
+        static Task runWithCallback(RunWithCallback&& body, std::string const& name = "<Callback Task>") {
+            auto task = Task(Handle::create(name));
+            std::thread([handle = std::weak_ptr(task.m_handle), name, body = std::move(body)] {
+                utils::thread::setName(fmt::format("Task '{}'", name));
                 body(
                     [handle](Result result) {
                         if (result.isCancelled()) {
@@ -304,11 +280,11 @@ namespace geode {
         }
 
         template <class ResultMapper, class ProgressMapper>
-        auto map(ResultMapper&& resultMapper, ProgressMapper&& progressMapper) {
+        auto map(ResultMapper&& resultMapper, ProgressMapper&& progressMapper, std::string const& name = "<Mapping Task>") {
             using T2 = decltype(resultMapper(std::declval<T*>()));
             using P2 = decltype(progressMapper(std::declval<P*>()));
 
-            auto task = Task<T2, P2>(Task<T2, P2>::Handle::create("Task::map")); 
+            auto task = Task<T2, P2>(Task<T2, P2>::Handle::create(fmt::format("{} <= {}", name, m_handle->m_name))); 
 
             // Lock the current task until we have managed to create our new one
             std::unique_lock<std::recursive_mutex> lock(m_handle->m_mutex);
@@ -352,8 +328,8 @@ namespace geode {
 
         template <class ResultMapper>
             requires std::copy_constructible<P>
-        auto map(ResultMapper&& resultMapper) {
-            return this->map(std::move(resultMapper), +[](P* p) -> P { return *p; });
+        auto map(ResultMapper&& resultMapper, std::string const& name = "<Mapping Task>") {
+            return this->map(std::move(resultMapper), +[](P* p) -> P { return *p; }, name);
         }
 
         ListenerResult handle(utils::MiniFunction<Callback> fn, Event* e) {

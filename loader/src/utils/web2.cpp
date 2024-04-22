@@ -282,7 +282,7 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
 
         // Otherwise resolve with success :-)
         return std::move(responseData.response);
-    });
+    }, fmt::format("{} request to {}", method, url));
 }
 WebTask WebRequest::post(std::string_view url) {
     return this->send("POST", url);

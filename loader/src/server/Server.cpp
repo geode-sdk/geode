@@ -110,6 +110,7 @@ public:
     using Value   = typename Extract::Value;
 
 private:
+    std::mutex m_mutex;
     CacheMap<Query, ServerRequest<Value>> m_cache;
 
 public:
@@ -118,6 +119,7 @@ public:
     FunCache(FunCache&&) = delete;
 
     ServerRequest<Value> get(Query const& query = Query()) {
+        std::unique_lock lock(m_mutex);
         if (auto v = m_cache.get(query)) {
             return *v;
         }
@@ -126,12 +128,15 @@ public:
         return f;
     }
     size_t size() {
+        std::unique_lock lock(m_mutex);
         return m_cache.size();
     }
     void limit(size_t size) {
+        std::unique_lock lock(m_mutex);
         m_cache.limit(size);
     }
     void clear() {
+        std::unique_lock lock(m_mutex);
         m_cache.clear();
     }
 };

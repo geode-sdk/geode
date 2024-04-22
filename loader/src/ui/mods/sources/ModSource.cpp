@@ -150,9 +150,6 @@ server::ServerRequest<std::optional<server::ServerModUpdate>> ModSource::checkUp
                 return Ok(std::nullopt);
             }
             return Err(result->unwrapErr());
-        },
-        [](server::ServerProgress* progress) {
-            return *progress;
         }
     );
 }

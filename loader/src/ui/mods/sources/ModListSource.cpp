@@ -189,6 +189,7 @@ InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t pa
     // If we're only checking mods that have updates, we first have to run 
     // update checks every mod...
     if (m_query.onlyUpdates && content.mods.size()) {
+        // return ProviderTask::immediate(Ok(content));
         return ProviderTask::runWithCallback([content, query = m_query](auto finish, auto progress, auto hasBeenCancelled) {
             struct Waiting final {
                 ModListSource::ProvidedMods content;
@@ -205,6 +206,13 @@ InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t pa
                     [waiting, finish, query](auto* result) {
                         waiting->waitingFor -= 1;
                         if (waiting->waitingFor == 0) {
+                            // Make sure to clear our waiting tasks vector so 
+                            // we don't have a funky lil circular ref and a 
+                            // memory leak!
+                            waiting->waitingTasks.clear();
+
+                            // Filter the results based on the current search 
+                            // query and return them
                             filterModsWithQuery(waiting->content, query);
                             finish(Ok(std::move(waiting->content)));
                         }
@@ -388,5 +396,3 @@ void clearAllModListSourceCaches() {
 
     ModPackListSource::get()->clearCache();
 }
-
-std::atomic_size_t geode::TASK_HANDLE_COUNT = 0;

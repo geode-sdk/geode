@@ -199,7 +199,7 @@ void ModsLayer::gotoTab(ModListSource* src) {
     else {
         this->addChild(m_lists.at(src));
     }
-    
+
     // Update current source
     m_currentSource = src;
 
@@ -260,7 +260,9 @@ void ModsLayer::onTab(CCObject* sender) {
 }
 
 void ModsLayer::onRefreshList(CCObject*) {
-    m_lists.at(m_currentSource)->reloadPage();
+    if (m_currentSource) {
+        m_lists.at(m_currentSource)->reloadPage();
+    }
 }
 
 void ModsLayer::onBack(CCObject*) {
@@ -323,10 +325,11 @@ ModsLayer* ModsLayer::scene() {
 }
 
 server::ServerRequest<std::vector<std::string>> ModsLayer::checkInstalledModsForUpdates() {
-    return server::checkUpdates(ranges::map<std::vector<std::string>>(
+    auto modIDs = ranges::map<std::vector<std::string>>(
         Loader::get()->getAllMods(),
         [](auto mod) { return mod->getID(); }
-    )).map([](auto* result) -> Result<std::vector<std::string>, server::ServerError> {
+    );
+    return server::checkUpdates(modIDs).map([](auto* result) -> Result<std::vector<std::string>, server::ServerError> {
         if (result->isOk()) {
             std::vector<std::string> updatesFound;
             for (auto& update : result->unwrap()) {
