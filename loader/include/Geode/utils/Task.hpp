@@ -25,6 +25,7 @@ namespace geode {
                 return m_value.index() == 1;
             }
 
+            template <std::move_constructible T2, std::move_constructible P2>
             friend class Task;
 
         public:
@@ -65,6 +66,7 @@ namespace geode {
                 return m_status == status;
             }
 
+            template <std::move_constructible T2, std::move_constructible P2>
             friend class Task;
 
         public:
@@ -90,6 +92,7 @@ namespace geode {
                 return Event(handle, std::variant<T*, P*, Cancel>(std::in_place_index<2>, Cancel()));
             }
 
+            template <std::move_constructible T2, std::move_constructible P2>
             friend class Task;
 
         public:
