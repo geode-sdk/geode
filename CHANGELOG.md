@@ -1,5 +1,11 @@
 # Geode Changelog
 
+## v2.0.0-beta.25
+ * Fix updater sometimes skipping releases (18dd0b7)
+ * Fix resources getting downloaded every time (5f571d9)
+ * Modify fields are now done using an explicit `Fields` struct to avoid forgetting `m_fields` (4505b0d)
+ * Fix memory leak on new field containers (db32732)
+
 ## v2.0.0-beta.24
  * CMake error when compiling with Android SDK below 23 (ea34e12)
  * Fix rendering of soft line breaks in MDTextArea (c7f8b5f)
@@ -10,7 +16,7 @@
  * Fix loading bar going out of bounds (e50c3ab)
  * Fix field containers for modified classes that have an inheritance relationship sharing the container (00e971a)
  * Error if mod target geode version doesn't match installed SDK version (2c559f8)
- * Fix dangling pointer in `disownPatch` (4c492c1)
+ * Fix dangling pointer in `disownPatch` (4c492c1)
  * Add a way to access internal setting container (798cacc)
  * Add the crashed thread to Windows crashlog (f84e866)
  * Add Greek, Ukranian, Simplified and Traditional Chinese, French translations for the installer (8002ca0, bd5db26, 33fcd52, c02cc6d)
@@ -752,4 +758,3 @@ Note that from here on, changes to the framework were not tracked by versions as
 
 ## 2021/01/25
  - CacaoSDK started by Camila, based on CappuccinoSDK
-

@@ -32,6 +32,9 @@ private:
 
     virtual ~GeodeNodeMetadata() {
         delete m_fieldContainer;
+        for (auto& [_, container] : m_classFieldContainers) {
+            delete container;
+        }
     }
 
 public:
