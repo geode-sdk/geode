@@ -8,12 +8,11 @@
 using namespace geode::prelude;
 
 ghc::filesystem::path dirs::getGeodeDir() {
-    // TODO: putting the geode folder in the save folder might not be the best idea?
-    return dirs::getSaveDir() / "geode";
+    return dirs::getGameDir() / "geode";
 }
 
 ghc::filesystem::path dirs::getGeodeSaveDir() {
-    return dirs::getSaveDir() / "geode-save";
+    return dirs::getSaveDir() / "geode";
 }
 
 ghc::filesystem::path dirs::getGeodeResourcesDir() {
