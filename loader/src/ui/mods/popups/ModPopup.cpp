@@ -413,6 +413,10 @@ bool ModPopup::setup(ModSource&& src) {
         m_checkUpdateListener.bind(this, &ModPopup::onCheckUpdates);
         m_checkUpdateListener.setFilter(m_source.checkUpdates());
     }
+    else {
+        auto updatesStat = m_stats->getChildByID("update-check");
+        this->setStatLabel(updatesStat, "Not Installed", true, ccc3(125, 125, 125));
+    }
 
     // Only listen for updates on this mod specifically
     m_updateStateListener.setFilter(UpdateModListStateFilter(UpdateModState(m_source.getID())));
