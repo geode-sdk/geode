@@ -50,7 +50,7 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
 
     this->enable(this->addPlatformToggle("Windows", PlatformID::Windows), type);
     this->enable(this->addPlatformToggle("macOS", PlatformID::MacOS), type);
-    //this->enable(this->addPlatformToggle("iOS", PlatformID::iOS), type);
+    this->enable(this->addPlatformToggle("iOS", PlatformID::iOS), type);
     this->enable(this->addPlatformToggle("Android (32-bit)", PlatformID::Android32), type);
     this->enable(this->addPlatformToggle("Android (64-bit)", PlatformID::Android64), type);
 
