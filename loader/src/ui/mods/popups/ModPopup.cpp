@@ -182,9 +182,13 @@ bool ModPopup::setup(ModSource&& src) {
             to3B(ColorProvider::get()->color("mod-list-restart-required-label-bg"_spr))
         }}
     );
-    m_restartRequiredLabel->setLayoutOptions(AxisLayoutOptions::create()->setMaxScale(.75f));
     m_restartRequiredLabel->setScale(.3f);
     manageContainer->addChildAtPosition(m_restartRequiredLabel, Anchor::Right, ccp(0, 0), ccp(1, .5f));
+
+    m_enabledStatusLabel = CCLabelBMFont::create("", "bigFont.fnt");
+    m_enabledStatusLabel->setScale(.25f);
+    m_enabledStatusLabel->setOpacity(140);
+    manageContainer->addChildAtPosition(m_enabledStatusLabel, Anchor::Right, ccp(0, 0), ccp(1, .5f));
 
     leftColumn->addChild(manageContainer);
 
@@ -201,6 +205,17 @@ bool ModPopup::setup(ModSource&& src) {
     m_installMenu->ignoreAnchorPointForPosition(false);
     m_installMenu->setContentSize(installContainer->getContentSize() - ccp(10, 10));
     m_installMenu->setAnchorPoint({ .5f, .5f });
+
+    auto updateModSpr = createGeodeButton(
+        CCSprite::createWithSpriteFrameName("update.png"_spr),
+        "Update",
+        "GE_button_01.png"_spr
+    );
+    updateModSpr->setScale(.5f);
+    m_updateBtn = CCMenuItemSpriteExtra::create(
+        updateModSpr, this, nullptr
+    );
+    m_installMenu->addChild(m_updateBtn);
 
     auto enableModOffSpr = createGeodeButton(
         CCSprite::createWithSpriteFrameName("GJ_completesIcon_001.png"),
@@ -264,6 +279,7 @@ bool ModPopup::setup(ModSource&& src) {
 
     m_installStatusLabel = CCLabelBMFont::create("", "bigFont.fnt");
     m_installStatusLabel->setOpacity(120);
+    m_installStatusLabel->setVisible(false);
     m_installMenu->addChild(m_installStatusLabel);
 
     m_installMenu->setLayout(
@@ -436,6 +452,7 @@ void ModPopup::updateState() {
     m_reenableBtn->toggle(m_enableBtn->isToggled());
     m_reenableBtn->setVisible(asMod && modRequestedActionIsToggle(asMod->getRequestedAction()));
 
+    m_updateBtn->setVisible(m_source.hasUpdates().has_value() && asMod->getRequestedAction() == ModRequestedAction::None);
     m_installBtn->setVisible(asServer);
     m_uninstallBtn->setVisible(asMod && asMod->getRequestedAction() == ModRequestedAction::None);
 
@@ -443,11 +460,48 @@ void ModPopup::updateState() {
     m_installBG->setOpacity(wantsRestart ? 40 : 75);
     m_restartRequiredLabel->setVisible(wantsRestart);
 
+    if (!wantsRestart && asMod) {
+        if (asMod->isEnabled()) {
+            m_enabledStatusLabel->setString("Enabled");
+            m_enabledStatusLabel->setColor(to3B(ColorProvider::get()->color("mod-list-enabled"_spr)));
+        }
+        else {
+            m_enabledStatusLabel->setString("Disabled");
+            m_enabledStatusLabel->setColor(to3B(ColorProvider::get()->color("mod-list-disabled"_spr)));
+        }
+        m_enabledStatusLabel->setVisible(true);
+    }
+    else {
+        m_enabledStatusLabel->setVisible(false);
+    }
+
     if (asMod && modRequestedActionIsUninstall(asMod->getRequestedAction())) {
         m_installStatusLabel->setString("Mod has been uninstalled");
+        m_installStatusLabel->setVisible(true);
     }
     else {
         m_installStatusLabel->setString("");
+        m_installStatusLabel->setVisible(false);
+    }
+
+    if (m_enableBtn->isVisible() && m_updateBtn->isVisible() && m_uninstallBtn->isVisible()) {
+        static_cast<IconButtonSprite*>(m_enableBtn->m_onButton->getNormalImage())->setString("");
+        static_cast<IconButtonSprite*>(m_enableBtn->m_offButton->getNormalImage())->setString("");
+        static_cast<IconButtonSprite*>(m_uninstallBtn->getNormalImage())->setString("");
+    }
+    else {
+        static_cast<IconButtonSprite*>(m_enableBtn->m_onButton->getNormalImage())->setString("Disable");
+        static_cast<IconButtonSprite*>(m_enableBtn->m_offButton->getNormalImage())->setString("Enable");
+        static_cast<IconButtonSprite*>(m_uninstallBtn->getNormalImage())->setString("Uninstall");
+    }
+    m_enableBtn->updateSprite();
+    m_uninstallBtn->updateSprite();
+
+    if (asMod && asMod->isInternal()) {
+        m_enableBtn->setVisible(false);
+        m_uninstallBtn->setVisible(false);
+        m_installStatusLabel->setString("N/A");
+        m_installStatusLabel->setVisible(true);
     }
 
     m_installMenu->updateLayout();
@@ -539,12 +593,19 @@ void ModPopup::onCheckUpdates(typename server::ServerRequest<std::optional<serve
         auto updatesStat = m_stats->getChildByID("update-check");
         if (resolved.has_value()) {
             this->setStatIcon(updatesStat, "updates-available.png"_spr);
-            this->setStatLabel(updatesStat, "Update Found", false, ccc3(99, 250, 255));
+            this->setStatLabel(
+                updatesStat, "Update Found", false,
+                ColorProvider::get()->color3b("mod-list-version-label-updates-available"_spr)
+            );
             this->setStatValue(updatesStat, resolved.value().version.toString());
+            this->updateState();
         }
         else {
             this->setStatIcon(updatesStat, "GJ_completesIcon_001.png");
-            this->setStatLabel(updatesStat, "Up to Date!", true, ccc3(78, 245, 0));
+            this->setStatLabel(
+                updatesStat, "Up to Date!", true,
+                ColorProvider::get()->color3b("mod-list-version-label"_spr)
+            );
         }
     }
     else if (event->isCancelled() || (event->getValue() && event->getValue()->isErr())) {

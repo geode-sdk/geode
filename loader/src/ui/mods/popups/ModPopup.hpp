@@ -24,8 +24,10 @@ protected:
     CCMenuItemToggler* m_reenableBtn;
     CCMenuItemSpriteExtra* m_uninstallBtn;
     CCMenuItemSpriteExtra* m_installBtn;
+    CCMenuItemSpriteExtra* m_updateBtn;
     CCLabelBMFont* m_installStatusLabel;
     CCScale9Sprite* m_installBG;
+    CCLabelBMFont* m_enabledStatusLabel;
     ButtonSprite* m_restartRequiredLabel;
     CCNode* m_rightColumn;
     CCNode* m_currentTabPage = nullptr;
