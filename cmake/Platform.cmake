@@ -34,12 +34,6 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
         OSX_ARCHITECTURES arm64
     )
 
-    find_package(CURL REQUIRED)
-
-    target_include_directories(${PROJECT_NAME} INTERFACE
-        ${CURL_INCLUDE_DIR}
-    )
-
     target_link_libraries(${PROJECT_NAME} INTERFACE
         "-framework OpenGLES"
           "-framework GLKit"
@@ -50,7 +44,7 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
             "-framework Foundation"
               "-framework CoreGraphics"
         #"-framework Cocoa"
-        ${CURL_LIBRARIES}
+        ${GEODE_LOADER_PATH}/include/link/ios/libcurl.a
         #${GEODE_LOADER_PATH}/include/link/libfmod.dylib
     )
 
