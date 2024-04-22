@@ -120,7 +120,8 @@ namespace server {
     ServerRequest<ServerModMetadata> getMod(std::string const& id, bool useCache = true);
     ServerRequest<ByteVector> getModLogo(std::string const& id, bool useCache = true);
     ServerRequest<std::unordered_set<std::string>> getTags(bool useCache = true);
-    ServerRequest<std::vector<ServerModUpdate>> checkUpdates(std::vector<std::string> const& modIDs, bool useCache = true);
+    ServerRequest<std::optional<ServerModUpdate>> checkUpdates(Mod* mod);
+    ServerRequest<std::vector<ServerModUpdate>> checkAllUpdates(bool useCache = true);
 
     void clearServerCaches(bool clearGlobalCaches = false);
 }

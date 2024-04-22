@@ -325,11 +325,7 @@ ModsLayer* ModsLayer::scene() {
 }
 
 server::ServerRequest<std::vector<std::string>> ModsLayer::checkInstalledModsForUpdates() {
-    auto modIDs = ranges::map<std::vector<std::string>>(
-        Loader::get()->getAllMods(),
-        [](auto mod) { return mod->getID(); }
-    );
-    return server::checkUpdates(modIDs).map([](auto* result) -> Result<std::vector<std::string>, server::ServerError> {
+    return server::checkAllUpdates().map([](auto* result) -> Result<std::vector<std::string>, server::ServerError> {
         if (result->isOk()) {
             std::vector<std::string> updatesFound;
             for (auto& update : result->unwrap()) {

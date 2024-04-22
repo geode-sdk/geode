@@ -136,20 +136,21 @@ server::ServerRequest<std::unordered_set<std::string>> ModSource::fetchValidTags
 }
 server::ServerRequest<std::optional<server::ServerModUpdate>> ModSource::checkUpdates() {
     m_availableUpdate = std::nullopt;
-    return server::checkUpdates({ this->getID() }).map(
-        [this](auto* result) -> Result<std::optional<server::ServerModUpdate>, server::ServerError> {
-            if (result->isOk()) {
-                auto updates = result->unwrap();
-                if (!updates.empty()) {
-                    auto update = std::move(std::move(updates).at(0));
-                    if (update.version > this->getMetadata().getVersion()) {
-                        m_availableUpdate = update;
+    return std::visit(makeVisitor {
+        [this](Mod* mod) {
+            return server::checkUpdates(mod).map(
+                [this](auto* result) -> Result<std::optional<server::ServerModUpdate>, server::ServerError> {
+                    if (result->isOk()) {
+                        m_availableUpdate = result->unwrap();
                         return Ok(m_availableUpdate);
                     }
+                    return Err(result->unwrapErr());
                 }
-                return Ok(std::nullopt);
-            }
-            return Err(result->unwrapErr());
+            );
+        },
+        [](server::ServerModMetadata const& metadata) {
+            // Server mods aren't installed so you can't install updates for them
+            return server::ServerRequest<std::optional<server::ServerModUpdate>>::immediate(Ok(std::nullopt));
         }
-    );
+    }, m_value);
 }

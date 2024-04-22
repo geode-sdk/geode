@@ -640,10 +640,32 @@ ServerRequest<std::unordered_set<std::string>> server::getTags(bool useCache) {
     );
 }
 
-ServerRequest<std::vector<ServerModUpdate>> server::checkUpdates(std::vector<std::string> const& modIDs, bool useCache) {
+ServerRequest<std::optional<ServerModUpdate>> server::checkUpdates(Mod* mod) {
+    return checkAllUpdates().map(
+        [mod](Result<std::vector<ServerModUpdate>, ServerError>* result) -> Result<std::optional<ServerModUpdate>, ServerError> {
+            if (result->isOk()) {
+                for (auto& update : result->unwrap()) {
+                    if (update.id == mod->getID() && update.version > mod->getVersion()) {
+                        return Ok(update);
+                    }
+                }
+                return Ok(std::nullopt);
+            }
+            return Err(result->unwrapErr());
+        }
+    );
+}
+
+ServerRequest<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCache) {
     if (useCache) {
-        return getCache<checkUpdates>().get(modIDs);
+        return getCache<checkAllUpdates>().get();
     }
+
+    auto modIDs = ranges::map<std::vector<std::string>>(
+        Loader::get()->getAllMods(),
+        [](auto mod) { return mod->getID(); }
+    );
+    
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
     req.param("platform", GEODE_PLATFORM_SHORT_IDENTIFIER);
@@ -681,7 +703,7 @@ void server::clearServerCaches(bool clearGlobalCaches) {
     // Only clear global caches if explicitly requested
     if (clearGlobalCaches) {
         getCache<&getTags>().clear();
-        getCache<&checkUpdates>().clear();
+        getCache<&checkAllUpdates>().clear();
     }
 }
 
@@ -691,6 +713,6 @@ $execute {
         getCache<&server::getMod>().limit(size);
         getCache<&server::getModLogo>().limit(size);
         getCache<&server::getTags>().limit(size);
-        getCache<&server::checkUpdates>().limit(size);
+        getCache<&server::checkAllUpdates>().limit(size);
     });
 }
