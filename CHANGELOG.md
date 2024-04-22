@@ -3,7 +3,7 @@
 ## v2.0.0-beta.25
  * Fix updater sometimes skipping releases (18dd0b7)
  * Fix resources getting downloaded every time (5f571d9)
- * Implement `Fields` for fields in Modify classes that are not prone to memory error (4505b0d)
+ * Modify fields are now done using an explicit `Fields` struct to avoid forgetting `m_fields` (4505b0d)
  * Fix memory leak on new field containers (db32732)
 
 ## v2.0.0-beta.24
