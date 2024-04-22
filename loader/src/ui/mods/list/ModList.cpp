@@ -114,7 +114,11 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         m_updateAllMenu->setContentSize({ size.width, 30 });
         m_updateAllMenu->setVisible(false);
 
-        auto updateAllBG = CCLayerColor::create(ColorProvider::get()->color("mod-list-updates-available-bg"_spr));
+        auto updateAllBG = CCLayerGradient::create(
+            ColorProvider::get()->color("mod-list-updates-available-bg"_spr),
+            ColorProvider::get()->color("mod-list-updates-available-bg-2"_spr),
+            ccp(1, -.5f)
+        );
         updateAllBG->setContentSize(m_updateAllMenu->getContentSize());
         updateAllBG->ignoreAnchorPointForPosition(false);
         m_updateAllMenu->addChildAtPosition(updateAllBG, Anchor::Center);

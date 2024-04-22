@@ -6,11 +6,12 @@ $execute {
     // todo: these names should probably be shorter so they fit in SSO...
     ColorProvider::get()->define("mod-list-bg"_spr, { 25, 17, 37, 255 });
     ColorProvider::get()->define("mod-list-version-label"_spr, ccc3(112, 235, 41));
-    ColorProvider::get()->define("mod-list-version-label-updates-available"_spr, ccc3(70, 250, 241));
+    ColorProvider::get()->define("mod-list-version-label-updates-available"_spr, ccc3(88, 202, 255));
     ColorProvider::get()->define("mod-list-restart-required-label"_spr, ccc3(153, 245, 245));
     ColorProvider::get()->define("mod-list-restart-required-label-bg"_spr, ccc3(123, 156, 163));
     ColorProvider::get()->define("mod-list-search-bg"_spr, { 83, 65, 109, 255 });
-    ColorProvider::get()->define("mod-list-updates-available-bg"_spr, { 68, 61, 255, 255 });
+    ColorProvider::get()->define("mod-list-updates-available-bg"_spr, { 139, 89, 173, 255 });
+    ColorProvider::get()->define("mod-list-updates-available-bg-2"_spr, { 45, 110, 222, 255 });
     ColorProvider::get()->define("mod-list-tab-selected-bg"_spr, { 168, 147, 185, 255 });
     ColorProvider::get()->define("mod-list-tab-selected-bg-alt"_spr, { 147, 163, 185, 255 });
     ColorProvider::get()->define("mod-list-featured-color"_spr, { 255, 255, 120, 255 });
