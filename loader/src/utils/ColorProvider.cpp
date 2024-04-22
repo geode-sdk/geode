@@ -69,3 +69,6 @@ ccColor4B ColorProvider::color(std::string const& id) const {
         return to4B(ccWHITE);
     }
 }
+ccColor3B ColorProvider::color3b(std::string const& id) const {
+    return to3B(this->color(id));
+}

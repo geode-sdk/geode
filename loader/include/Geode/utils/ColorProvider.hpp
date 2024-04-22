@@ -104,5 +104,11 @@ namespace geode {
          * @returns The value of the color, or ccWHITE if the ID doesn't exist
          */
         cocos2d::ccColor4B color(std::string const& id) const;
+        /**
+         * Get the current value of a color as a ccColor3B
+         * @param id The ID of the color
+         * @returns The value of the color, or ccWHITE if the ID doesn't exist
+         */
+        cocos2d::ccColor3B color3b(std::string const& id) const;
     };
 }
