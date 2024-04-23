@@ -6,9 +6,7 @@
 #include <type_traits>
 
 // without this, typeinfo_cast doesn't compile sometimes
-#ifdef GEODE_IS_IOS
 #include <Geode/platform/ItaniumCast.hpp>
-#endif
 
 namespace geode::cast {
     /**
