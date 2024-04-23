@@ -305,6 +305,12 @@ jobs:
           files: geode-android64/Geode.android64.so geode-android64/Geode.android64.so.sym
           dest: geode-${{ steps.ref.outputs.hash }}-android64.zip
 
+      - name: Zip iOS Artifacts
+        uses: vimtor/action-zip@v1.1
+        with:
+          files: geode-ios/Geode.ios.dylib
+          dest: geode-${{ steps.ref.outputs.hash }}-ios.zip
+
       - name: Zip Resources
         uses: vimtor/action-zip@v1.1
         with:
