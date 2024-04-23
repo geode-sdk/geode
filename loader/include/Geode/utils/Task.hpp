@@ -213,14 +213,17 @@ namespace geode {
         void cancel() {
             Task::cancel(m_handle);
         }
-        bool isPending() {
+        bool isPending() const {
             return m_handle && m_handle->is(Status::Pending);
         }
-        bool isFinished() {
+        bool isFinished() const {
             return m_handle && m_handle->is(Status::Finished);
         }
-        bool isCancelled() {
+        bool isCancelled() const {
             return m_handle && m_handle->is(Status::Cancelled);
+        }
+        bool isNull() const {
+            return m_handle == nullptr;
         }
         
         static Task immediate(T value, std::string const& name = "<Immediate Task>") {
