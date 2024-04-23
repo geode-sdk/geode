@@ -44,6 +44,18 @@ jobs:
           package_cmd: './installer/mac/package.sh ./bin/nightly ./installer/mac/geode-installer-mac.pkg'
           installer_path: './installer/mac/geode-installer-mac.pkg'
 
+        - name: iOS
+          os: macos-latest
+          id: ios
+          host_id: mac
+          extra_flags: >
+            -DGEODE_TARGET_PLATFORM=iOS
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo
+            -DCMAKE_SYSTEM_NAME=iOS
+            -DGEODE_DONT_BUILD_TEST_MODS=ON
+          package_cmd: ''
+          installer_path: ''
+
         - name: Android32
           os: ubuntu-latest
           id: android32
@@ -183,8 +195,8 @@ jobs:
         -DCMAKE_BUILD_TYPE=RelWithDebInfo
         -DCMAKE_C_COMPILER=clang
         -DCMAKE_CXX_COMPILER=clang++
-        -DGEODE_CODEGEN_CMAKE_ARGS="-DCMAKE_C_COMPILER=clang;-DCMAKE_CXX_COMPILER=clang++;-G Ninja"
-        -G Ninja
+        ${{ matrix.config.id == 'ios' && '-DGEODE_CODEGEN_CMAKE_ARGS="-DCMAKE_C_COMPILER=clang;-DCMAKE_CXX_COMPILER=clang++"' || '-DGEODE_CODEGEN_CMAKE_ARGS="-DCMAKE_C_COMPILER=clang;-DCMAKE_CXX_COMPILER=clang++;-G Ninja"' }}
+        ${{ matrix.config.id != 'ios' && '-G Ninja' || '' }}
         ${{ inputs.build-debug-info && '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON' || '' }}
         ${{ matrix.config.extra_flags }}
 
