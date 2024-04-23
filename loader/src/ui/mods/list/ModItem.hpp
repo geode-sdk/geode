@@ -2,6 +2,7 @@
 
 #include <Geode/ui/General.hpp>
 #include <server/Server.hpp>
+#include <server/DownloadManager.hpp>
 #include "../sources/ModSource.hpp"
 #include "../UpdateModListState.hpp"
 
@@ -19,11 +20,15 @@ protected:
     CCNode* m_developers;
     CCLabelBMFont* m_developerLabel;
     ButtonSprite* m_restartRequiredLabel;
+    CCNode* m_downloadWaiting;
+    CCNode* m_downloadBarContainer;
+    Slider* m_downloadBar;
     CCMenu* m_viewMenu;
     CCMenuItemToggler* m_enableToggle = nullptr;
     CCMenuItemSpriteExtra* m_updateBtn = nullptr;
     EventListener<UpdateModListStateFilter> m_updateStateListener;
     EventListener<server::ServerRequest<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
+    EventListener<server::ModDownloadFilter> m_downloadListener;
     std::optional<server::ServerModUpdate> m_availableUpdate;
 
     /**

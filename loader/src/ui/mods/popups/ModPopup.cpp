@@ -267,7 +267,7 @@ bool ModPopup::setup(ModSource&& src) {
     );
     updateModSpr->setScale(.5f);
     m_updateBtn = CCMenuItemSpriteExtra::create(
-        updateModSpr, this, nullptr
+        updateModSpr, this, menu_selector(ModPopup::onInstall)
     );
     m_installMenu->addChild(m_updateBtn);
 
@@ -316,7 +316,7 @@ bool ModPopup::setup(ModSource&& src) {
     );
     installModSpr->setScale(.5f);
     m_installBtn = CCMenuItemSpriteExtra::create(
-        installModSpr, this, nullptr
+        installModSpr, this, menu_selector(ModPopup::onInstall)
     );
     m_installMenu->addChild(m_installBtn);
 
@@ -330,6 +330,17 @@ bool ModPopup::setup(ModSource&& src) {
         uninstallModSpr, this, menu_selector(ModPopup::onUninstall)
     );
     m_installMenu->addChild(m_uninstallBtn);
+
+    auto cancelDownloadSpr = createGeodeButton(
+        CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"),
+        "Cancel",
+        "GE_button_05.png"_spr
+    );
+    cancelDownloadSpr->setScale(.5f);
+    m_cancelBtn = CCMenuItemSpriteExtra::create(
+        cancelDownloadSpr, this, menu_selector(ModPopup::onCancelDownload)
+    );
+    m_installMenu->addChild(m_cancelBtn);
 
     m_installStatusLabel = CCLabelBMFont::create("", "bigFont.fnt");
     m_installStatusLabel->setOpacity(120);
@@ -489,8 +500,11 @@ bool ModPopup::setup(ModSource&& src) {
     }
 
     // Only listen for updates on this mod specifically
-    m_updateStateListener.setFilter(UpdateModListStateFilter(UpdateModState(m_source.getID())));
     m_updateStateListener.bind([this](auto) { this->updateState(); });
+    m_updateStateListener.setFilter(UpdateModListStateFilter(UpdateModState(m_source.getID())));
+
+    m_downloadListener.bind([this](auto) { this->updateState(); });
+    m_downloadListener.setFilter(m_source.getID());
 
     return true;
 }
@@ -499,16 +513,6 @@ void ModPopup::updateState() {
     auto asMod = m_source.asMod();
     auto asServer = m_source.asServer();
     auto wantsRestart = m_source.wantsRestart();
-
-    m_enableBtn->toggle(asMod && asMod->isOrWillBeEnabled());
-    m_enableBtn->setVisible(asMod && asMod->getRequestedAction() == ModRequestedAction::None);
-
-    m_reenableBtn->toggle(m_enableBtn->isToggled());
-    m_reenableBtn->setVisible(asMod && modRequestedActionIsToggle(asMod->getRequestedAction()));
-
-    m_updateBtn->setVisible(m_source.hasUpdates().has_value() && asMod->getRequestedAction() == ModRequestedAction::None);
-    m_installBtn->setVisible(asServer);
-    m_uninstallBtn->setVisible(asMod && asMod->getRequestedAction() == ModRequestedAction::None);
 
     m_installBG->setColor(wantsRestart ? to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)) : ccc3(0, 0, 0));
     m_installBG->setOpacity(wantsRestart ? 40 : 75);
@@ -528,6 +532,18 @@ void ModPopup::updateState() {
     else {
         m_enabledStatusLabel->setVisible(false);
     }
+
+    m_cancelBtn->setVisible(false);
+
+    m_enableBtn->toggle(asMod && asMod->isOrWillBeEnabled());
+    m_enableBtn->setVisible(asMod && asMod->getRequestedAction() == ModRequestedAction::None);
+
+    m_reenableBtn->toggle(m_enableBtn->isToggled());
+    m_reenableBtn->setVisible(asMod && modRequestedActionIsToggle(asMod->getRequestedAction()));
+
+    m_updateBtn->setVisible(m_source.hasUpdates().has_value() && asMod->getRequestedAction() == ModRequestedAction::None);
+    m_installBtn->setVisible(asServer);
+    m_uninstallBtn->setVisible(asMod && asMod->getRequestedAction() == ModRequestedAction::None);
 
     if (asMod && modRequestedActionIsUninstall(asMod->getRequestedAction())) {
         m_installStatusLabel->setString("Mod has been uninstalled");
@@ -556,6 +572,60 @@ void ModPopup::updateState() {
         m_uninstallBtn->setVisible(false);
         m_installStatusLabel->setString("N/A");
         m_installStatusLabel->setVisible(true);
+    }
+
+    auto download = server::ModDownloadManager::get()->getDownload(m_source.getID());
+    if (download) {
+        if (download->isActive()) {
+            m_enableBtn->setVisible(false);
+            m_reenableBtn->setVisible(false);
+            m_updateBtn->setVisible(false);
+            m_installBtn->setVisible(false);
+            m_uninstallBtn->setVisible(false);
+            m_cancelBtn->setVisible(true);
+
+            auto status = download->getStatus();
+            if (auto d = std::get_if<server::DownloadStatusDownloading>(&status)) {
+                m_enabledStatusLabel->setString(fmt::format("Downloading {}%", d->percentage).c_str());
+                m_enabledStatusLabel->setColor(ccWHITE);
+                m_enabledStatusLabel->setVisible(true);
+                // todo: progress bar
+            }
+            else {
+                m_enabledStatusLabel->setString("Preparing");
+                m_enabledStatusLabel->setColor(ccWHITE);
+                m_enabledStatusLabel->setVisible(true);
+                // todo: spinner
+            }
+        }
+        else {
+            std::visit(makeVisitor {
+                [this](server::DownloadStatusError const& e) {
+                    m_enabledStatusLabel->setString("Error");
+                    m_enabledStatusLabel->setColor(to3B(ColorProvider::get()->color("mod-list-disabled"_spr)));
+                    m_enabledStatusLabel->setVisible(true);
+                    // todo: show error details somewhere (like an info button)
+                },
+                [this](server::DownloadStatusCancelled const&) {
+                    m_enabledStatusLabel->setString("Cancelled");
+                    m_enabledStatusLabel->setColor(to3B(ColorProvider::get()->color("mod-list-disabled"_spr)));
+                    m_enabledStatusLabel->setVisible(true);
+                },
+                [this](server::DownloadStatusDone const&) {
+                    m_enableBtn->setVisible(false);
+                    m_reenableBtn->setVisible(false);
+                    m_updateBtn->setVisible(false);
+                    m_installBtn->setVisible(false);
+                    m_uninstallBtn->setVisible(false);
+                    m_cancelBtn->setVisible(false);
+                    
+                    m_installStatusLabel->setString("Mod has been installed");
+                    m_installStatusLabel->setVisible(true);
+                },
+                // rest are unreachable due to the isActive() check
+                [this](auto const&) {},
+            }, download->getStatus());
+        }
     }
 
     m_installMenu->updateLayout();
@@ -765,6 +835,11 @@ void ModPopup::onEnable(CCObject*) {
     UpdateModListStateEvent(UpdateModState(m_source.getID())).post();
 }
 
+void ModPopup::onInstall(CCObject*) {
+    server::ModDownloadManager::get()->startDownload(m_source.getID(), std::nullopt);
+    this->onClose(nullptr);
+}
+
 void ModPopup::onUninstall(CCObject*) {
     if (auto mod = m_source.asMod()) {
         ConfirmUninstallPopup::create(mod)->show();
@@ -775,6 +850,13 @@ void ModPopup::onUninstall(CCObject*) {
             "This mod can not be uninstalled! (It is not installed at all)", 
             "OK"
         )->show();
+    }
+}
+
+void ModPopup::onCancelDownload(CCObject*) {
+    auto download = server::ModDownloadManager::get()->getDownload(m_source.getID());
+    if (download) {
+        download->cancel();
     }
 }
 

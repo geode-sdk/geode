@@ -81,11 +81,6 @@ public:
     PageLoadTask loadPage(size_t page, bool forceUpdate = false);
     std::optional<size_t> getPageCount() const;
     std::optional<size_t> getItemCount() const;
-
-    /**
-     * True if the source consists only of installed mods
-     */
-    virtual bool wantsRestart() const = 0;
 };
 
 template <class T>
@@ -123,8 +118,6 @@ public:
 
     InstalledModsQuery const& getQuery() const;
     InvalidateQueryAfter<InstalledModsQuery> getQueryMut();
-
-    bool wantsRestart() const override;
 };
 
 enum class ServerModListType {
@@ -153,8 +146,6 @@ public:
 
     server::ModsQuery const& getQuery() const;
     InvalidateQueryAfter<server::ModsQuery> getQueryMut();
-
-    bool wantsRestart() const override;
 };
 
 class ModPackListSource : public ModListSource {
@@ -170,8 +161,7 @@ public:
 
     std::unordered_set<std::string> getModTags() const override;
     void setModTags(std::unordered_set<std::string> const& tags) override;
-
-    bool wantsRestart() const override;
 };
 
 void clearAllModListSourceCaches();
+bool isRestartRequired();

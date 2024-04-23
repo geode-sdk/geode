@@ -30,6 +30,79 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_topContainer->setContentWidth(size.width);
     m_topContainer->setAnchorPoint({ .5f, 1.f });
 
+    // Check for updates on installed mods, and show an update all button if there are some
+    if (typeinfo_cast<InstalledModListSource*>(m_source)) {
+        m_checkUpdatesListener.bind(this, &ModList::onCheckUpdates);
+        m_checkUpdatesListener.setFilter(ModsLayer::checkInstalledModsForUpdates());
+
+        m_updateAllContainer = CCNode::create();
+        m_updateAllContainer->ignoreAnchorPointForPosition(false);
+        m_updateAllContainer->setContentSize({ size.width, 30 });
+        m_updateAllContainer->setVisible(false);
+
+        auto updateAllBG = CCLayerGradient::create(
+            "mod-list-updates-available-bg"_cc4b,
+            "mod-list-updates-available-bg-2"_cc4b,
+            ccp(1, -.5f)
+        );
+        updateAllBG->setContentSize(m_updateAllContainer->getContentSize());
+        updateAllBG->ignoreAnchorPointForPosition(false);
+
+        updateAllBG->addChildAtPosition(
+            CCLayerColor::create("mod-list-bg"_cc4b, m_updateAllContainer->getContentWidth(), 1),
+            Anchor::TopLeft
+        );
+        updateAllBG->addChildAtPosition(
+            CCLayerColor::create("mod-list-bg"_cc4b, m_updateAllContainer->getContentWidth(), 1),
+            Anchor::BottomLeft, ccp(0, -1)
+        );
+
+        m_updateAllContainer->addChildAtPosition(updateAllBG, Anchor::Center);
+        
+        m_updateCountLabel = TextArea::create("", "bigFont.fnt", .35f, size.width / 2 - 30, ccp(0, 1), 12.f, false);
+        m_updateAllContainer->addChildAtPosition(m_updateCountLabel, Anchor::Left, ccp(10, 0), ccp(0, 0));
+        
+        m_updateAllMenu = CCMenu::create();
+        m_updateAllMenu->setContentWidth(size.width / 2);
+        m_updateAllMenu->setAnchorPoint({ 1, .5f });
+
+        auto showUpdatesSpr = createGeodeButton(
+            CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
+            "Show Updates", "GE_button_01.png"_spr
+        );
+        auto hideUpdatesSpr = createGeodeButton(
+            CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
+            "Hide Updates", "GE_button_05.png"_spr
+        );
+        m_toggleUpdatesOnlyBtn = CCMenuItemToggler::create(
+            showUpdatesSpr, hideUpdatesSpr, this, menu_selector(ModList::onToggleUpdates)
+        );
+        m_toggleUpdatesOnlyBtn->m_notClickable = true;
+        m_updateAllMenu->addChild(m_toggleUpdatesOnlyBtn);
+
+        auto updateAllSpr = createGeodeButton(
+            CCSprite::createWithSpriteFrameName("update.png"_spr),
+            "Update All", "GE_button_01.png"_spr
+        );
+        m_updateAllBtn = CCMenuItemSpriteExtra::create(
+            updateAllSpr, this, menu_selector(ModList::onUpdateAll)
+        );
+        m_updateAllMenu->addChild(m_updateAllBtn);
+
+        m_updateAllLoadingCircle = createLoadingCircle(32);
+        m_updateAllMenu->addChild(m_updateAllLoadingCircle);
+
+        m_updateAllMenu->setLayout(
+            RowLayout::create()
+                ->setAxisAlignment(AxisAlignment::End)
+                ->setDefaultScaleLimits(.1f, .75f)
+        );
+        m_updateAllMenu->getLayout()->ignoreInvisibleChildren(true);
+        m_updateAllContainer->addChildAtPosition(m_updateAllMenu, Anchor::Right, ccp(-10, 0));
+
+        m_topContainer->addChild(m_updateAllContainer);
+    }
+
     m_searchMenu = CCNode::create();
     m_searchMenu->ignoreAnchorPointForPosition(false);
     m_searchMenu->setContentSize({ size.width, 30 });
@@ -103,65 +176,6 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_searchMenu->addChildAtPosition(searchFiltersMenu, Anchor::Right, ccp(-10, 0));
 
     m_topContainer->addChild(m_searchMenu);
-
-    // Check for updates on installed mods, and show an update all button if there are some
-    if (typeinfo_cast<InstalledModListSource*>(m_source)) {
-        m_checkUpdatesListener.bind(this, &ModList::onCheckUpdates);
-        m_checkUpdatesListener.setFilter(ModsLayer::checkInstalledModsForUpdates());
-
-        m_updateAllMenu = CCNode::create();
-        m_updateAllMenu->ignoreAnchorPointForPosition(false);
-        m_updateAllMenu->setContentSize({ size.width, 30 });
-        m_updateAllMenu->setVisible(false);
-
-        auto updateAllBG = CCLayerGradient::create(
-            ColorProvider::get()->color("mod-list-updates-available-bg"_spr),
-            ColorProvider::get()->color("mod-list-updates-available-bg-2"_spr),
-            ccp(1, -.5f)
-        );
-        updateAllBG->setContentSize(m_updateAllMenu->getContentSize());
-        updateAllBG->ignoreAnchorPointForPosition(false);
-        m_updateAllMenu->addChildAtPosition(updateAllBG, Anchor::Center);
-        
-        m_updateCountLabel = TextArea::create("", "bigFont.fnt", .35f, size.width / 2 - 30, ccp(0, 1), 12.f, false);
-        m_updateAllMenu->addChildAtPosition(m_updateCountLabel, Anchor::Left, ccp(10, 0), ccp(0, 0));
-        
-        auto updateAllMenu = CCMenu::create();
-        updateAllMenu->setContentWidth(size.width / 2);
-        updateAllMenu->setAnchorPoint({ 1, .5f });
-
-        auto showUpdatesSpr = createGeodeButton(
-            CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
-            "Show Updates", "GE_button_01.png"_spr
-        );
-        auto hideUpdatesSpr = createGeodeButton(
-            CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
-            "Hide Updates", "GE_button_05.png"_spr
-        );
-        m_toggleUpdatesOnlyBtn = CCMenuItemToggler::create(
-            showUpdatesSpr, hideUpdatesSpr, this, menu_selector(ModList::onToggleUpdates)
-        );
-        m_toggleUpdatesOnlyBtn->m_notClickable = true;
-        updateAllMenu->addChild(m_toggleUpdatesOnlyBtn);
-
-        auto updateAllSpr = createGeodeButton(
-            CCSprite::createWithSpriteFrameName("update.png"_spr),
-            "Update All", "GE_button_01.png"_spr
-        );
-        auto updateAllBtn = CCMenuItemSpriteExtra::create(
-            updateAllSpr, this, menu_selector(ModList::onUpdateAll)
-        );
-        updateAllMenu->addChild(updateAllBtn);
-
-        updateAllMenu->setLayout(
-            RowLayout::create()
-                ->setAxisAlignment(AxisAlignment::End)
-                ->setDefaultScaleLimits(.1f, 1.f)
-        );
-        m_updateAllMenu->addChildAtPosition(updateAllMenu, Anchor::Right, ccp(-10, 0));
-
-        m_topContainer->addChild(m_updateAllMenu);
-    }
 
     m_topContainer->setLayout(
         ColumnLayout::create()
@@ -255,6 +269,8 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
 
     m_invalidateCacheListener.bind(this, &ModList::onInvalidateCache);
     m_invalidateCacheListener.setFilter(InvalidateCacheFilter(m_source));
+
+    m_downloadListener.bind([this](auto) { this->updateTopContainer(); });
     
     this->gotoPage(0);
     this->updateTopContainer();
@@ -355,7 +371,7 @@ void ModList::onCheckUpdates(typename server::ServerRequest<std::vector<std::str
                 fmt = fmt::format("There are <cg>{}</c> updates available!", mods.size());
             }
             m_updateCountLabel->setString(fmt.c_str());
-            m_updateAllMenu->setVisible(true);
+            m_updateAllContainer->setVisible(true);
             this->updateTopContainer();
         }
     }
@@ -392,6 +408,15 @@ void ModList::updateTopContainer() {
     m_list->m_contentLayer->setPositionY((
         m_list->m_contentLayer->getContentHeight() - m_list->getContentHeight()
     ) * oldPosition);
+
+    // If there are active downloads, hide the Update All button
+    if (m_updateAllContainer) {
+        auto shouldShowLoading = server::ModDownloadManager::get()->hasActiveDownloads();
+        m_updateAllBtn->setEnabled(!shouldShowLoading);
+        static_cast<IconButtonSprite*>(m_updateAllBtn->getNormalImage())->setOpacity(shouldShowLoading ? 90 : 255);
+        m_updateAllLoadingCircle->setVisible(shouldShowLoading);
+        m_updateAllMenu->updateLayout();
+    }
 
     // ModList uses an anchor layout, so this puts the list in the right place
     this->updateLayout();
@@ -504,7 +529,9 @@ void ModList::onToggleUpdates(CCObject*) {
     }
 }
 
-void ModList::onUpdateAll(CCObject*) {}
+void ModList::onUpdateAll(CCObject*) {
+    server::ModDownloadManager::get()->startUpdateAll();
+}
 
 size_t ModList::getPage() const {
     return m_page;

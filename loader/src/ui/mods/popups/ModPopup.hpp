@@ -5,6 +5,7 @@
 #include "../sources/ModSource.hpp"
 #include "../GeodeStyle.hpp"
 #include "../UpdateModListState.hpp"
+#include <server/DownloadManager.hpp>
 
 using namespace geode::prelude;
 
@@ -25,6 +26,7 @@ protected:
     CCMenuItemSpriteExtra* m_uninstallBtn;
     CCMenuItemSpriteExtra* m_installBtn;
     CCMenuItemSpriteExtra* m_updateBtn;
+    CCMenuItemSpriteExtra* m_cancelBtn;
     CCLabelBMFont* m_installStatusLabel;
     CCScale9Sprite* m_installBG;
     CCLabelBMFont* m_enabledStatusLabel;
@@ -36,6 +38,7 @@ protected:
     EventListener<server::ServerRequest<std::unordered_set<std::string>>> m_tagsListener;
     EventListener<server::ServerRequest<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
     EventListener<UpdateModListStateFilter> m_updateStateListener;
+    EventListener<server::ModDownloadFilter> m_downloadListener;
 
     bool setup(ModSource&& src) override;
     void updateState();
@@ -51,7 +54,9 @@ protected:
     void loadTab(Tab tab);
     void onTab(CCObject* sender);
     void onEnable(CCObject*);
+    void onInstall(CCObject*);
     void onUninstall(CCObject*);
+    void onCancelDownload(CCObject*);
 
     void onLink(CCObject*);
     void onSupport(CCObject*);

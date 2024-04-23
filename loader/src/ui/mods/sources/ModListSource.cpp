@@ -1,4 +1,5 @@
 #include "ModListSource.hpp"
+#include <server/DownloadManager.hpp>
 
 #define FTS_FUZZY_MATCH_IMPLEMENTATION
 #include <Geode/external/fts/fts_fuzzy_match.h>
@@ -250,15 +251,6 @@ InvalidateQueryAfter<InstalledModsQuery> InstalledModListSource::getQueryMut() {
     return InvalidateQueryAfter(m_query, this);
 }
 
-bool InstalledModListSource::wantsRestart() const {
-    for (auto mod : Loader::get()->getAllMods()) {
-        if (mod->getRequestedAction() != ModRequestedAction::None) {
-            return true;
-        }
-    }
-    return false;
-}
-
 void ServerModListSource::resetQuery() {
     switch (m_type) {
         case ServerModListType::Download: {
@@ -357,11 +349,6 @@ InvalidateQueryAfter<server::ModsQuery> ServerModListSource::getQueryMut() {
     return InvalidateQueryAfter(m_query, this);
 }
 
-bool ServerModListSource::wantsRestart() const {
-    // todo
-    return false;
-}
-
 void ModPackListSource::resetQuery() {}
 ModPackListSource::ProviderTask ModPackListSource::fetchPage(size_t page, size_t pageSize, bool forceUpdate) {
     return ProviderTask::immediate(Err(LoadPageError("Coming soon ;)")));
@@ -381,10 +368,6 @@ std::unordered_set<std::string> ModPackListSource::getModTags() const {
 }
 void ModPackListSource::setModTags(std::unordered_set<std::string> const& set) {}
 
-bool ModPackListSource::wantsRestart() const {
-    return false;
-}
-
 void clearAllModListSourceCaches() {
     InstalledModListSource::get(false)->clearCache();
     InstalledModListSource::get(true)->clearCache();
@@ -395,4 +378,15 @@ void clearAllModListSourceCaches() {
     ServerModListSource::get(ServerModListType::Recent)->clearCache();
 
     ModPackListSource::get()->clearCache();
+}
+bool isRestartRequired() {
+    for (auto mod : Loader::get()->getAllMods()) {
+        if (mod->getRequestedAction() != ModRequestedAction::None) {
+            return true;
+        }
+    }
+    if (server::ModDownloadManager::get()->wantsRestart()) {
+        return true;
+    }
+    return false;
 }

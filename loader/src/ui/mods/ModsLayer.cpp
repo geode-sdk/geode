@@ -2,7 +2,262 @@
 #include "SwelvyBG.hpp"
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/utils/ColorProvider.hpp>
+#include "popups/ConfirmInstallPopup.hpp"
 #include "GeodeStyle.hpp"
+
+bool ModsStatusNode::init() {
+    if (!CCNode::init())
+        return false;
+    
+    this->ignoreAnchorPointForPosition(false);
+    this->setAnchorPoint({ .5f, 1.f });
+    this->setContentSize({ 300, 35 });
+
+    m_statusBG = CCScale9Sprite::create("black-square.png"_spr);
+    m_statusBG->setContentSize({ 570, 40 });
+    m_statusBG->setScale(.5f);
+
+    m_status = CCLabelBMFont::create("", "bigFont.fnt");
+    m_status->setScale(.8f);
+    m_statusBG->addChildAtPosition(m_status, Anchor::Center);
+
+    m_statusPercentage = CCLabelBMFont::create("", "bigFont.fnt");
+    m_statusPercentage->setScale(.8f);
+    m_statusBG->addChildAtPosition(m_statusPercentage, Anchor::Right, ccp(-25, 0));
+
+    m_loadingCircle = createLoadingCircle(32);
+    m_statusBG->addChildAtPosition(m_loadingCircle, Anchor::Left, ccp(25, 0));
+
+    m_progressBar = Slider::create(nullptr, nullptr);
+    m_progressBar->m_touchLogic->m_thumb->setVisible(false);
+    m_progressBar->setScale(2.f);
+    m_progressBar->setAnchorPoint({ 0, 0 }),
+    m_statusBG->addChildAtPosition(m_progressBar, Anchor::Center);
+
+    this->addChildAtPosition(m_statusBG, Anchor::Bottom);
+
+    m_btnMenu = CCMenu::create();
+    m_btnMenu->setContentWidth(m_obContentSize.width);
+
+    auto restartSpr = createGeodeButton("Restart Now");
+    restartSpr->setScale(.65f);
+    m_restartBtn = CCMenuItemSpriteExtra::create(
+        restartSpr, this, menu_selector(ModsStatusNode::onRestart)
+    );
+    m_btnMenu->addChild(m_restartBtn);
+
+    auto viewSpr = createGeodeButton("View");
+    viewSpr->setScale(.65f);
+    m_viewBtn = CCMenuItemSpriteExtra::create(viewSpr, this, nullptr);
+    m_btnMenu->addChild(m_viewBtn);
+
+    auto cancelSpr = createGeodeButton("Cancel");
+    cancelSpr->setScale(.65f);
+    m_cancelBtn = CCMenuItemSpriteExtra::create(
+        cancelSpr, this, menu_selector(ModsStatusNode::onCancel)
+    );
+    m_btnMenu->addChild(m_cancelBtn);
+
+    m_btnMenu->setLayout(RowLayout::create());
+    m_btnMenu->getLayout()->ignoreInvisibleChildren(true);
+    this->addChildAtPosition(m_btnMenu, Anchor::Center, ccp(0, 5));
+
+    m_updateStateListener.bind([this](auto) { this->updateState(); });
+    m_updateStateListener.setFilter(UpdateModListStateFilter());
+
+    m_downloadListener.bind([this](auto) { this->updateState(); });
+
+    this->updateState();
+    
+    return true;
+}
+
+void ModsStatusNode::updateState() {
+    enum class DownloadState {
+        None,
+        SomeCancelled,
+        AllDone,
+        SomeErrored,
+        SomeToBeConfirmed,
+        SomeFetching,
+        SomeDownloading,
+    };
+    DownloadState state = DownloadState::None;
+    auto upgradeState = [&](DownloadState into) {
+        if (static_cast<int>(state) < static_cast<int>(into)) {
+            state = into;
+        }
+    };
+
+    auto downloads = server::ModDownloadManager::get()->getDownloads();
+    for (auto& download : downloads) {
+        std::visit(makeVisitor {
+            [&](server::DownloadStatusFetching const&) {
+                upgradeState(DownloadState::SomeFetching);
+            },
+            [&](server::DownloadStatusConfirm const&) {
+                upgradeState(DownloadState::SomeToBeConfirmed);
+            },
+            [&](server::DownloadStatusDownloading const&) {
+                upgradeState(DownloadState::SomeDownloading);
+            },
+            [&](server::DownloadStatusDone const&) {
+                upgradeState(DownloadState::AllDone);
+            },
+            [&](server::DownloadStatusError const&) {
+                upgradeState(DownloadState::SomeErrored);
+            },
+            [&](server::DownloadStatusCancelled const&) {
+                upgradeState(DownloadState::SomeCancelled);
+            },
+        }, download.getStatus());
+    }
+
+    // Reset the state to default
+    m_statusBG->setVisible(false);
+    m_status->setVisible(false);
+    m_statusPercentage->setVisible(false);
+    m_loadingCircle->setVisible(false);
+    m_progressBar->setVisible(false);
+    m_restartBtn->setVisible(false);
+    m_cancelBtn->setVisible(false);
+    m_viewBtn->setVisible(false);
+
+    switch (state) {
+        // If there are no downloads happening, just show the restart button if needed
+        case DownloadState::None: {
+            m_restartBtn->setVisible(isRestartRequired());
+        } break;
+
+        // If some downloads were cancelled, show the restart button normally
+        case DownloadState::SomeCancelled: {
+            m_status->setString("Download(s) Cancelled");
+            m_status->setColor(ccWHITE);
+            m_status->setVisible(true);
+
+            m_restartBtn->setVisible(isRestartRequired());
+        } break;
+
+        // If all downloads were finished, show the restart button normally 
+        // but also a "all done" status
+        case DownloadState::AllDone: {
+            m_status->setString(fmt::format("{} Mod(s) Installed/Updated", downloads.size()).c_str());
+            m_status->setColor("mod-list-enabled"_cc3b);
+            m_status->setVisible(true);
+            m_statusBG->setVisible(true);
+            
+            m_restartBtn->setVisible(isRestartRequired());
+        } break;
+
+        case DownloadState::SomeErrored: {
+            m_status->setString("Some Downloads Failed");
+            m_status->setColor("mod-list-disabled"_cc3b);
+            m_status->setVisible(true);
+            m_statusBG->setVisible(true);
+
+            m_viewBtn->setVisible(true);
+            m_viewBtn->setTarget(this, menu_selector(ModsStatusNode::onViewErrors));
+        } break;
+
+        case DownloadState::SomeToBeConfirmed: {
+            size_t totalToConfirm = 0;
+            for (auto& download : downloads) {
+                auto status = download.getStatus();
+                if (auto loading = std::get_if<server::DownloadStatusConfirm>(&status)) {
+                    totalToConfirm += 1;
+                }
+            }
+            m_status->setString(fmt::format("Click to Confirm {} Download(s)", totalToConfirm).c_str());
+            m_status->setColor(ccWHITE);
+            m_status->setVisible(true);
+            m_statusBG->setVisible(true);
+
+            m_viewBtn->setVisible(true);
+            m_viewBtn->setTarget(this, menu_selector(ModsStatusNode::onConfirm));
+        } break;
+
+        case DownloadState::SomeFetching: {
+            m_status->setString("Preparing Download(s)");
+            m_status->setColor(ccWHITE);
+            m_status->setVisible(true);
+            m_loadingCircle->setVisible(true);
+            m_statusBG->setVisible(true);
+
+            m_cancelBtn->setVisible(true);
+        } break;
+
+        case DownloadState::SomeDownloading: {
+            size_t totalProgress = 0;
+            size_t totalDownloading = 0;
+            for (auto& download : downloads) {
+                auto status = download.getStatus();
+                if (auto loading = std::get_if<server::DownloadStatusDownloading>(&status)) {
+                    totalProgress += loading->percentage;
+                    totalDownloading += 1;
+                }
+            }
+            auto percentage = totalProgress / static_cast<float>(totalDownloading);
+
+            m_statusPercentage->setString(fmt::format("{}%", static_cast<size_t>(percentage)).c_str());
+            m_statusPercentage->setVisible(true);
+            m_loadingCircle->setVisible(true);
+            m_statusBG->setVisible(true);
+
+            m_cancelBtn->setVisible(true);
+
+            m_progressBar->setVisible(true);
+            m_progressBar->setValue(percentage / 100.f);
+            m_progressBar->updateBar();
+        } break;
+    }
+
+    m_btnMenu->updateLayout();
+}
+
+void ModsStatusNode::onViewErrors(CCObject*) {
+    auto downloads = server::ModDownloadManager::get()->getDownloads();
+    std::vector<std::string> errors;
+    for (auto& download : downloads) {
+        auto status = download.getStatus();
+        if (auto error = std::get_if<server::DownloadStatusError>(&status)) {
+            errors.push_back(fmt::format("<cr>{}</c>: {}", download.getID(), error->details));
+        }
+    }
+    createQuickPopup(
+        "Download Errors", ranges::join(errors, "\n"),
+        "OK", "Dismiss", 
+        [](auto, bool btn2) {
+            if (btn2) {
+                server::ModDownloadManager::get()->dismissAll();
+            }
+        }
+    );
+}
+void ModsStatusNode::onConfirm(CCObject*) {
+    ConfirmInstallPopup::askForCustomize();
+}
+void ModsStatusNode::onCancel(CCObject*) {
+    server::ModDownloadManager::get()->cancelAll();
+}
+void ModsStatusNode::onRestart(CCObject*) {
+    // Update button state to let user know it's restarting but it might take a bit
+    m_restartBtn->setEnabled(false);
+    static_cast<ButtonSprite*>(m_restartBtn->getNormalImage())->setString("Restarting...");
+    m_restartBtn->updateSprite();
+
+    // Actually restart
+    game::restart();
+}
+
+ModsStatusNode* ModsStatusNode::create() {
+    auto ret = new ModsStatusNode();
+    if (ret && ret->init()) {
+        ret->autorelease();
+        return ret;
+    }
+    CC_SAFE_DELETE(ret);
+    return nullptr;
+}
 
 bool ModsLayer::init() {
     if (!CCLayer::init())
@@ -124,19 +379,9 @@ bool ModsLayer::init() {
     listActionsMenu->setLayout(ColumnLayout::create());
     m_frame->addChildAtPosition(listActionsMenu, Anchor::Left, ccp(-5, 25));
 
-    auto restartMenu = CCMenu::create();
-    restartMenu->setContentWidth(200.f);
-    restartMenu->setAnchorPoint({ .5f, 1.f });
-    restartMenu->setScale(.7f);
-
-    m_restartBtn = CCMenuItemSpriteExtra::create(
-        createGeodeButton("Restart Now"),
-        this, menu_selector(ModsLayer::onRestart)
-    );
-    restartMenu->addChild(m_restartBtn);
-
-    restartMenu->setLayout(RowLayout::create());
-    m_frame->addChildAtPosition(restartMenu, Anchor::Bottom, ccp(0, 0));
+    m_statusNode = ModsStatusNode::create();
+    m_statusNode->setZOrder(4);
+    m_frame->addChildAtPosition(m_statusNode, Anchor::Bottom);
 
     m_pageMenu = CCMenu::create();
     m_pageMenu->setContentWidth(200.f);
@@ -191,13 +436,13 @@ void ModsLayer::gotoTab(ModListSource* src) {
     // Lazily create new list and add it to UI
     if (!m_lists.contains(src)) {
         auto list = ModList::create(src, m_frame->getContentSize() - ccp(30, 0));
-        list->setPosition(m_frame->getPosition());
-        this->addChild(list);
+        list->setPosition(m_frame->getContentSize() / 2);
+        m_frame->addChild(list);
         m_lists.emplace(src, list);
     }
     // Add list to UI
     else {
-        this->addChild(m_lists.at(src));
+        m_frame->addChild(m_lists.at(src));
     }
 
     // Update current source
@@ -245,14 +490,6 @@ void ModsLayer::updateState() {
     else {
         m_pageMenu->setVisible(false);
     }
-
-    // Update visibility of the restart button
-    m_restartBtn->setVisible(false);
-    for (auto& [src, _] : m_lists) {
-        if (src->wantsRestart()) {
-            m_restartBtn->setVisible(true);
-        }
-    }
 }
 
 void ModsLayer::onTab(CCObject* sender) {
@@ -295,15 +532,6 @@ void ModsLayer::onSearch(CCObject*) {
     if (m_currentSource) {
         m_lists.at(m_currentSource)->activateSearch(m_showSearch);
     }
-}
-
-void ModsLayer::onRestart(CCObject*) {
-    // Update button state to let user know it's restarting but it might take a bit
-    m_restartBtn->setEnabled(false);
-    static_cast<ButtonSprite*>(m_restartBtn->getNormalImage())->setString("Restarting...");
-
-    // Actually restart
-    game::restart();
 }
 
 ModsLayer* ModsLayer::create() {

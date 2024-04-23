@@ -6,6 +6,7 @@
 #include <Geode/ui/TextInput.hpp>
 #include "ModItem.hpp"
 #include "../sources/ModListSource.hpp"
+#include <server/DownloadManager.hpp>
 
 using namespace geode::prelude;
 
@@ -32,12 +33,16 @@ protected:
     CCMenuItemSpriteExtra* m_pageNextBtn;
     CCNode* m_topContainer;
     CCNode* m_searchMenu;
-    CCNode* m_updateAllMenu = nullptr;
+    CCNode* m_updateAllContainer = nullptr;
+    CCMenu* m_updateAllMenu = nullptr;
+    CCMenuItemSpriteExtra* m_updateAllBtn = nullptr;
+    CCNode* m_updateAllLoadingCircle = nullptr;
     CCMenuItemToggler* m_toggleUpdatesOnlyBtn = nullptr;
     TextArea* m_updateCountLabel = nullptr;
     TextInput* m_searchInput;
     EventListener<InvalidateCacheFilter> m_invalidateCacheListener;
     EventListener<server::ServerRequest<std::vector<std::string>>> m_checkUpdatesListener;
+    EventListener<server::ModDownloadFilter> m_downloadListener;
     bool m_bigSize = false;
     std::atomic<size_t> m_searchInputThreads = 0;
 

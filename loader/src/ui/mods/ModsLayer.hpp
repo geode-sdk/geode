@@ -7,8 +7,35 @@
 #include "list/ModList.hpp"
 #include "sources/ModListSource.hpp"
 #include "UpdateModListState.hpp"
+#include <server/DownloadManager.hpp>
 
 using namespace geode::prelude;
+
+class ModsStatusNode : public CCNode {
+protected:
+    CCScale9Sprite* m_statusBG;
+    CCLabelBMFont* m_status;
+    CCLabelBMFont* m_statusPercentage;
+    Slider* m_progressBar;
+    CCNode* m_loadingCircle;
+    CCMenu* m_btnMenu;
+    CCMenuItemSpriteExtra* m_viewBtn;
+    CCMenuItemSpriteExtra* m_cancelBtn;
+    CCMenuItemSpriteExtra* m_restartBtn;
+    EventListener<UpdateModListStateFilter> m_updateStateListener;
+    EventListener<server::ModDownloadFilter> m_downloadListener;
+    
+    bool init();
+    void updateState();
+
+    void onRestart(CCObject*);
+    void onViewErrors(CCObject*);
+    void onConfirm(CCObject*);
+    void onCancel(CCObject*);
+
+public:
+    static ModsStatusNode* create();
+};
 
 class ModsLayer : public CCLayer, public SetTextPopupDelegate {
 protected:
@@ -19,7 +46,7 @@ protected:
     CCMenu* m_pageMenu;
     CCLabelBMFont* m_pageLabel;
     CCMenuItemSpriteExtra* m_goToPageBtn;
-    CCMenuItemSpriteExtra* m_restartBtn;
+    ModsStatusNode* m_statusNode;
     EventListener<UpdateModListStateFilter> m_updateStateListener;
     bool m_showSearch = false;
     bool m_bigView = false;
@@ -33,9 +60,8 @@ protected:
     void onBigView(CCObject*);
     void onSearch(CCObject*);
     void onGoToPage(CCObject*);
-    void onBack(CCObject*);
     void onRefreshList(CCObject*);
-    void onRestart(CCObject*);
+    void onBack(CCObject*);
 
     void updateState();
 

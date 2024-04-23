@@ -76,55 +76,48 @@ public:
     }
 };
 
-template <class Q, class V>
-using ServerFuncQ  = V(*)(Q const&, bool);
-template <class V>
-using ServerFuncNQ = V(*)(bool);
-
 template <class F>
 struct ExtractFun;
 
-template <class Q, class V>
-struct ExtractFun<ServerRequest<V>(*)(Q const&, bool)> {
-    using Query = Q;
+template <class V, class... Args>
+struct ExtractFun<ServerRequest<V>(*)(Args...)> {
+    using CacheKey = std::tuple<std::remove_cvref_t<Args>...>;
     using Value = V;
-    static ServerRequest<V> invoke(auto&& func, Query const& query) {
-        return func(query, false);
-    }
-};
 
-template <class V>
-struct ExtractFun<ServerRequest<V>(*)(bool)> {
-    using Query = std::monostate;
-    using Value = V;
-    static ServerRequest<V> invoke(auto&& func, Query const&) {
-        return func(false);
+    template <class... CArgs>
+    static CacheKey key(CArgs const&... args) {
+        return std::make_tuple(args..., false);
+    }
+    template <class... CArgs>
+    static ServerRequest<V> invoke(auto&& func, CArgs const&... args) {
+        return func(args..., false);
     }
 };
 
 template <auto F>
 class FunCache final {
 public:
-    using Extract = ExtractFun<decltype(F)>;
-    using Query   = typename Extract::Query;
-    using Value   = typename Extract::Value;
+    using Extract  = ExtractFun<decltype(F)>;
+    using CacheKey = typename Extract::CacheKey;
+    using Value    = typename Extract::Value;
 
 private:
     std::mutex m_mutex;
-    CacheMap<Query, ServerRequest<Value>> m_cache;
+    CacheMap<CacheKey, ServerRequest<Value>> m_cache;
 
 public:
     FunCache() = default;
     FunCache(FunCache const&) = delete;
     FunCache(FunCache&&) = delete;
 
-    ServerRequest<Value> get(Query const& query = Query()) {
+    template <class... Args>
+    ServerRequest<Value> get(Args const&... args) {
         std::unique_lock lock(m_mutex);
-        if (auto v = m_cache.get(query)) {
+        if (auto v = m_cache.get(Extract::key(args...))) {
             return *v;
         }
-        auto f = Extract::invoke(F, query);
-        m_cache.add(Query(query), ServerRequest<Value>(f));
+        auto f = Extract::invoke(F, args...);
+        m_cache.add(Extract::key(args...), ServerRequest<Value>(f));
         return f;
     }
     size_t size() {
@@ -305,9 +298,15 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
         }
 
         ModMetadata::Dependency dependency;
-        obj.needs("id").validate(MiniFunction<bool(std::string const&)>(&ModMetadata::validateID)).into(dependency.id);
+        obj.needs("mod_id").validate(MiniFunction<bool(std::string const&)>(&ModMetadata::validateID)).into(dependency.id);
         obj.needs("version").into(dependency.version);
         obj.has("importance").into(dependency.importance);
+
+        // Check if this dependency is installed, and if so assign the `mod` member to mark that
+        auto mod = Loader::get()->getInstalledMod(dependency.id);
+        if (mod && dependency.version.compare(mod->getVersion())) {
+            dependency.mod = mod;
+        }
 
         dependencies.push_back(dependency);
     }
@@ -318,9 +317,15 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
         auto obj = incompat.obj();
 
         ModMetadata::Incompatibility incompatibility;
-        obj.needs("id").validate(MiniFunction<bool(std::string const&)>(&ModMetadata::validateID)).into(incompatibility.id);
+        obj.needs("mod_id").validate(MiniFunction<bool(std::string const&)>(&ModMetadata::validateID)).into(incompatibility.id);
         obj.needs("version").into(incompatibility.version);
         obj.has("importance").into(incompatibility.importance);
+
+        // Check if this incompatability is installed, and if so assign the `mod` member to mark that
+        auto mod = Loader::get()->getInstalledMod(incompatibility.id);
+        if (mod && incompatibility.version.compare(mod->getVersion())) {
+            incompatibility.mod = mod;
+        }
 
         incompatibilities.push_back(incompatibility);
     }
@@ -572,6 +577,38 @@ ServerRequest<ServerModMetadata> server::getMod(std::string const& id, bool useC
                 }
                 // Parse response
                 auto list = ServerModMetadata::parse(payload.unwrap());
+                if (!list) {
+                    return Err(ServerError(response->code(), "Unable to parse response: {}", list.unwrapErr()));
+                }
+                return Ok(list.unwrap());
+            }
+            return Err(parseServerError(*response));
+        },
+        [id](web::WebProgress* progress) {
+            return parseServerProgress(*progress, "Downloading metadata for " + id);
+        }
+    );
+}
+
+ServerRequest<ServerModVersion> server::getModVersion(std::string const& id, std::optional<VersionInfo> const& version, bool useCache) {
+    if (useCache) {
+        return getCache<getModVersion>().get(id, version);
+    }
+
+    auto req = web::WebRequest();
+    req.userAgent(getServerUserAgent());
+
+    auto versionURL = version ? version->toString(false) : "latest";
+    return req.get(getServerAPIBaseURL() + "/mods/" + id + "/versions/" + versionURL).map(
+        [](web::WebResponse* response) -> Result<ServerModVersion, ServerError> {
+            if (response->ok()) {
+                // Parse payload
+                auto payload = parseServerPayload(*response);
+                if (!payload) {
+                    return Err(payload.unwrapErr());
+                }
+                // Parse response
+                auto list = ServerModVersion::parse(payload.unwrap());
                 if (!list) {
                     return Err(ServerError(response->code(), "Unable to parse response: {}", list.unwrapErr()));
                 }

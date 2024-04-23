@@ -76,6 +76,34 @@ bool ModItem::init(ModSource&& source) {
     m_restartRequiredLabel->setLayoutOptions(AxisLayoutOptions::create()->setMaxScale(.75f));
     m_infoContainer->addChild(m_restartRequiredLabel);
 
+    m_downloadBarContainer = CCNode::create();
+    m_downloadBarContainer->setContentSize({ 225, 30 });
+    
+    m_downloadBar = Slider::create(nullptr, nullptr);
+    m_downloadBar->m_touchLogic->m_thumb->setVisible(false);
+    m_downloadBar->setLayoutOptions(AxisLayoutOptions::create()->setMaxScale(.35f));
+    m_downloadBarContainer->addChildAtPosition(m_downloadBar, Anchor::Center, ccp(0, 0), ccp(0, 0));
+
+    m_infoContainer->addChild(m_downloadBarContainer);
+
+    m_downloadWaiting = CCNode::create();
+    m_downloadWaiting->setContentSize({ 225, 30 });
+    
+    auto downloadWaitingLabel = CCLabelBMFont::create("Preparing Download...", "bigFont.fnt");
+    downloadWaitingLabel->setScale(.75f);
+    m_downloadWaiting->addChildAtPosition(
+        downloadWaitingLabel, Anchor::Left,
+        ccp(m_downloadWaiting->getContentHeight(), 0), ccp(0, .5f)
+    );
+    
+    auto downloadWaitingSpinner = createLoadingCircle(20);
+    m_downloadWaiting->addChildAtPosition(
+        downloadWaitingSpinner, Anchor::Left,
+        ccp(m_downloadWaiting->getContentHeight() / 2, 0)
+    );
+
+    m_infoContainer->addChild(m_downloadWaiting);
+
     this->addChild(m_infoContainer);
 
     m_viewMenu = CCMenu::create();
@@ -142,16 +170,47 @@ bool ModItem::init(ModSource&& source) {
     this->updateState();
 
     // Only listen for updates on this mod specifically
-    m_updateStateListener.setFilter(UpdateModListStateFilter(UpdateModState(m_source.getID())));
     m_updateStateListener.bind([this](auto) { this->updateState(); });
+    m_updateStateListener.setFilter(UpdateModListStateFilter(UpdateModState(m_source.getID())));
+
+    m_downloadListener.bind([this](auto) { this->updateState(); });
+    m_downloadListener.setFilter(server::ModDownloadFilter(m_source.getID()));
 
     return true;
 }
 
 void ModItem::updateState() {
     auto wantsRestart = m_source.wantsRestart();
-    m_restartRequiredLabel->setVisible(wantsRestart);
-    m_developers->setVisible(!wantsRestart);
+
+    auto download = server::ModDownloadManager::get()->getDownload(m_source.getID());
+
+    // If there is an active download ongoing, show that in place of developer name 
+    if (download && download->isActive()) {
+        m_updateBtn->setVisible(false);
+        m_restartRequiredLabel->setVisible(false);
+        m_developers->setVisible(false);
+
+        auto status = download->getStatus();
+        if (auto prog = std::get_if<server::DownloadStatusDownloading>(&status)) {
+            m_downloadWaiting->setVisible(false);
+            m_downloadBarContainer->setVisible(true);
+            m_downloadBar->setValue(prog->percentage / 100.f);
+            m_downloadBar->updateBar();
+        }
+        else {
+            m_downloadBarContainer->setVisible(false);
+            m_downloadWaiting->setVisible(true);
+            // Make sure the spinner is spinning by ticking its setVisible
+            m_downloadWaiting->getChildByID("loading-spinner")->setVisible(true);
+        }
+    }
+    // Otherwise show "Restart Required" button if needed in place of dev name
+    else {
+        m_restartRequiredLabel->setVisible(wantsRestart);
+        m_developers->setVisible(!wantsRestart);
+        m_downloadBarContainer->setVisible(false);
+        m_downloadWaiting->setVisible(false);
+    }
     m_infoContainer->updateLayout();
 
     // Set default colors based on source to start off with 
@@ -174,7 +233,10 @@ void ModItem::updateState() {
         },
     });
 
-    if (auto update = m_source.hasUpdates()) {
+    if (
+        auto update = m_source.hasUpdates();
+        update && !(download && (download->isActive() || download->isDone()))
+    ) {
         m_updateBtn->setVisible(true);
         auto updateString = m_source.getMetadata().getVersion().toString() + " -> " + update->version.toString();
         m_versionLabel->setString(updateString.c_str());
@@ -276,12 +338,7 @@ void ModItem::onEnable(CCObject*) {
 }
 
 void ModItem::onInstall(CCObject*) {
-    if (auto data = m_source.asServer()) {
-        
-    }
-
-    // Update state of the mod item
-    UpdateModListStateEvent(UpdateModState(m_source.getID())).post();
+    server::ModDownloadManager::get()->startDownload(m_source.getID(), std::nullopt);
 }
 
 ModItem* ModItem::create(ModSource&& source) {

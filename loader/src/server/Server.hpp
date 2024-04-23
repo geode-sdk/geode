@@ -29,6 +29,8 @@ namespace server {
         std::string hash;
         size_t downloadCount;
 
+        bool operator==(ServerModVersion const&) const = default;
+
         static Result<ServerModVersion> parse(matjson::Value const& json);
     };
 
@@ -116,12 +118,15 @@ namespace server {
 
     std::string getServerAPIBaseURL();
     std::string getServerUserAgent();
+
     ServerRequest<ServerModsList> getMods(ModsQuery const& query, bool useCache = true);
     ServerRequest<ServerModMetadata> getMod(std::string const& id, bool useCache = true);
+    ServerRequest<ServerModVersion> getModVersion(std::string const& id, std::optional<VersionInfo> const& version = std::nullopt, bool useCache = true);
     ServerRequest<ByteVector> getModLogo(std::string const& id, bool useCache = true);
     ServerRequest<std::unordered_set<std::string>> getTags(bool useCache = true);
+
     ServerRequest<std::optional<ServerModUpdate>> checkUpdates(Mod* mod);
     ServerRequest<std::vector<ServerModUpdate>> checkAllUpdates(bool useCache = true);
-
+    
     void clearServerCaches(bool clearGlobalCaches = false);
 }

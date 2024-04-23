@@ -238,6 +238,10 @@ namespace geode {
             }
         }
 
+        constexpr VersionInfo getUnderlyingVersion() const {
+            return m_version;
+        }
+
         std::string toString() const;
         friend GEODE_DLL std::string format_as(ComparableVersionInfo const& version);
     };

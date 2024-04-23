@@ -1,5 +1,6 @@
 #include "ModSource.hpp"
 #include <Geode/ui/GeodeUI.hpp>
+#include <server/DownloadManager.hpp>
 
 ModSource::ModSource(Mod* mod) : m_value(mod) {}
 ModSource::ModSource(server::ServerModMetadata&& metadata) : m_value(metadata) {}
@@ -37,12 +38,16 @@ CCNode* ModSource::createModLogo() const {
     }, m_value);
 }
 bool ModSource::wantsRestart() const {
+    // If some download has been done for this mod, always want a restart
+    auto download = server::ModDownloadManager::get()->getDownload(this->getID());
+    if (download && download->isDone()) {
+        return true;
+    }
     return std::visit(makeVisitor {
         [](Mod* mod) {
             return mod->getRequestedAction() != ModRequestedAction::None;
         },
         [](server::ServerModMetadata const& metdata) {
-            // todo: check if the mod has been installed
             return false;
         }
     }, m_value);

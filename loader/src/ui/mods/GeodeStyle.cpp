@@ -109,7 +109,9 @@ public:
 
     void setVisible(bool visible) override {
         CCNode::setVisible(visible);
-        this->spin();
+        if (visible) {
+            this->spin();
+        }
     }
 };
 
