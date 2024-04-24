@@ -141,7 +141,12 @@ void ModsStatusNode::updateState() {
         // If all downloads were finished, show the restart button normally 
         // but also a "all done" status
         case DownloadState::AllDone: {
-            m_status->setString(fmt::format("{} Mod(s) Installed/Updated", downloads.size()).c_str());
+            if (downloads.size() == 1) {
+                m_status->setString(fmt::format("{} Mod Installed/Updated", downloads.size()).c_str());
+            }
+            else {
+                m_status->setString(fmt::format("{} Mods Installed/Updated", downloads.size()).c_str());
+            }
             m_status->setColor("mod-list-enabled"_cc3b);
             m_status->setVisible(true);
             m_statusBG->setVisible(true);
@@ -150,7 +155,7 @@ void ModsStatusNode::updateState() {
         } break;
 
         case DownloadState::SomeErrored: {
-            m_status->setString("Some Downloads Failed");
+            m_status->setString("Some Download(s) Failed");
             m_status->setColor("mod-list-disabled"_cc3b);
             m_status->setVisible(true);
             m_statusBG->setVisible(true);
@@ -167,7 +172,12 @@ void ModsStatusNode::updateState() {
                     totalToConfirm += 1;
                 }
             }
-            m_status->setString(fmt::format("Click to Confirm {} Download(s)", totalToConfirm).c_str());
+            if (totalToConfirm == 1) {
+                m_status->setString(fmt::format("Click to Confirm {} Download", totalToConfirm).c_str());
+            }
+            else {
+                m_status->setString(fmt::format("Click to Confirm {} Downloads", totalToConfirm).c_str());
+            }
             m_status->setColor(ccWHITE);
             m_status->setVisible(true);
             m_statusBG->setVisible(true);
