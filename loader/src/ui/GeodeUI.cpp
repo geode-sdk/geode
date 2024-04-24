@@ -6,6 +6,7 @@
 #include <Geode/utils/web.hpp>
 #include <server/Server.hpp>
 #include "mods/GeodeStyle.hpp"
+#include "mods/settings/ModSettingsPopup.hpp"
 
 void geode::openModsList() {
     ModsLayer::scene();
@@ -78,8 +79,7 @@ void geode::openIndexPopup(Mod* mod) {
 
 void geode::openSettingsPopup(Mod* mod) {
     if (mod->hasSettings()) {
-        #pragma message("todo")
-        // ModSettingsPopup::create(mod)->show();
+        ModSettingsPopup::create(mod)->show();
     }
 }
 

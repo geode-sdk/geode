@@ -58,6 +58,7 @@ protected:
     void onUninstall(CCObject*);
     void onCancelDownload(CCObject*);
 
+    void onSettings(CCObject*);
     void onLink(CCObject*);
     void onSupport(CCObject*);
 

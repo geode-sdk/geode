@@ -4,6 +4,7 @@
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include "ConfirmUninstallPopup.hpp"
+#include "../settings/ModSettingsPopup.hpp"
 
 class FetchTextArea : public CCNode {
 public:
@@ -474,7 +475,7 @@ bool ModPopup::setup(ModSource&& src) {
     auto settingsSpr = createGeodeCircleButton("settings.png"_spr);
     settingsSpr->setScale(.6f);
     auto settingsBtn = CCMenuItemSpriteExtra::create(
-        settingsSpr, this, nullptr
+        settingsSpr, this, menu_selector(ModPopup::onSettings)
     );
     m_buttonMenu->addChildAtPosition(settingsBtn, Anchor::BottomLeft, ccp(28, 25));
 
@@ -857,6 +858,12 @@ void ModPopup::onCancelDownload(CCObject*) {
     auto download = server::ModDownloadManager::get()->getDownload(m_source.getID());
     if (download) {
         download->cancel();
+    }
+}
+
+void ModPopup::onSettings(CCObject*) {
+    if (auto mod = m_source.asMod()) {
+        ModSettingsPopup::create(mod)->show();
     }
 }
 
