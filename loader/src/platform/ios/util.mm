@@ -12,6 +12,7 @@ using namespace geode::prelude;
 #include <Geode/binding/GameManager.hpp>
 #include <Geode/binding/AppDelegate.hpp>
 #include <Geode/binding/MenuLayer.hpp>
+#include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/Utils.hpp>
 #include <objc/runtime.h>
 
@@ -62,6 +63,12 @@ void geode::utils::game::exit() {
 
 void geode::utils::game::restart() {
     log::error("Restarting the game is not implemented on iOS");
+
+    FLAlertLayer::create(
+        "Unavailable",
+        "Restarting is currently <cr>unavailable</c> on iOS. Please <cy>restart the game</c> manually.",
+        "OK"
+    )->show();
 }
 
 void crashlog::setupPlatformHandlerPost() {}
