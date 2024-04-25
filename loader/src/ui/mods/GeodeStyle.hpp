@@ -6,17 +6,30 @@
 
 using namespace geode::prelude;
 
+enum class GeodePopupStyle {
+    Default,
+    Alt,
+    Alt2,
+};
+
 template <class... Args>
 class GeodePopup : public Popup<Args...> {
 protected:
-    bool init(float width, float height, Args... args, bool altBG = false) {
-        if (!Popup<Args...>::initAnchored(width, height, std::forward<Args>(args)..., (altBG ? "GE_square02.png"_spr : "GE_square01.png"_spr)))
+    bool init(float width, float height, Args... args, GeodePopupStyle style = GeodePopupStyle::Default) {
+        const char* bg;
+        switch (style) {
+            default:
+            case GeodePopupStyle::Default: bg = "GE_square01.png"_spr; break;
+            case GeodePopupStyle::Alt:     bg = "GE_square02.png"_spr; break;
+            case GeodePopupStyle::Alt2:    bg = "GE_square03.png"_spr; break;
+        }
+        if (!Popup<Args...>::initAnchored(width, height, std::forward<Args>(args)..., bg))
             return false;
         
         this->setCloseButtonSpr(
             CircleButtonSprite::createWithSpriteFrameName(
                 "close.png"_spr, .85f,
-                (altBG ? CircleBaseColor::DarkAqua : CircleBaseColor::DarkPurple)
+                (style == GeodePopupStyle::Default ? CircleBaseColor::DarkPurple : CircleBaseColor::DarkAqua)
             )
         );
 

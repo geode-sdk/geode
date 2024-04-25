@@ -248,11 +248,30 @@ bool Mod::hasSavedValue(std::string_view const key) {
 bool Mod::hasProblems() const {
     return m_impl->hasProblems();
 }
-
+std::vector<LoadProblem> Mod::getAllProblems() const {
+    return m_impl->getProblems();
+}
+std::vector<LoadProblem> Mod::getProblems() const {
+    return ranges::filter(
+        this->getAllProblems(),
+        [](auto const& problem) {
+            return problem.type != LoadProblem::Type::Recommendation && 
+                problem.type != LoadProblem::Type::Suggestion;
+        }
+    );
+}
+std::vector<LoadProblem> Mod::getRecommendations() const {
+    return ranges::filter(
+        this->getAllProblems(),
+        [](auto const& problem) {
+            return problem.type == LoadProblem::Type::Recommendation || 
+                problem.type == LoadProblem::Type::Suggestion;
+        }
+    );
+}
 bool Mod::shouldLoad() const {
     return m_impl->shouldLoad();
 }
-
 bool Mod::isCurrentlyLoading() const {
     return m_impl->isCurrentlyLoading();
 }

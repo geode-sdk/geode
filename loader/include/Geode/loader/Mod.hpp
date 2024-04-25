@@ -435,6 +435,9 @@ namespace geode {
         void setLoggingEnabled(bool enabled);
 
         bool hasProblems() const;
+        std::vector<LoadProblem> getAllProblems() const;
+        std::vector<LoadProblem> getProblems() const;
+        std::vector<LoadProblem> getRecommendations() const;
         bool shouldLoad() const;
         bool isCurrentlyLoading() const;
 

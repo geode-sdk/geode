@@ -122,6 +122,7 @@ bool ModItem::init(ModSource&& source) {
             ->setAxisAlignment(AxisAlignment::End)
             ->setGap(10)
     );
+    m_viewMenu->getLayout()->ignoreInvisibleChildren(true);
     this->addChildAtPosition(m_viewMenu, Anchor::Right, ccp(-10, 0));
 
     // Handle source-specific stuff
@@ -137,6 +138,16 @@ bool ModItem::init(ModSource&& source) {
                 m_viewMenu->addChild(m_enableToggle);
                 m_viewMenu->updateLayout();
             }
+            if (mod->hasProblems()) {
+                auto viewErrorSpr = CircleButtonSprite::createWithSpriteFrameName(
+                    "exclamation.png"_spr, 1.f,
+                    CircleBaseColor::DarkPurple, CircleBaseSize::Small
+                );
+                auto viewErrorBtn = CCMenuItemSpriteExtra::create(
+                    viewErrorSpr, this, menu_selector(ModItem::onViewError)
+                );
+                m_viewMenu->addChild(viewErrorBtn);
+            }
         },
         [this](server::ServerModMetadata const& metadata) {
             if (metadata.featured) {
@@ -151,6 +162,25 @@ bool ModItem::init(ModSource&& source) {
                 m_titleContainer->addChild(starBG);
             }
         },
+        [this](ModSuggestion const& suggestion) {
+            m_recommendedBy = CCNode::create();
+            m_recommendedBy->setContentWidth(225);
+
+            auto byLabel = CCLabelBMFont::create("Recommended by ", "bigFont.fnt");
+            byLabel->setColor("mod-list-recommended-by"_cc3b);
+            m_recommendedBy->addChild(byLabel);
+
+            auto nameLabel = CCLabelBMFont::create(suggestion.forMod->getName().c_str(), "bigFont.fnt");
+            nameLabel->setColor("mod-list-recommended-by-2"_cc3b);
+            m_recommendedBy->addChild(nameLabel);
+
+            m_recommendedBy->setLayout(
+                RowLayout::create()
+                    ->setDefaultScaleLimits(.1f, 1.f)
+                    ->setAxisAlignment(AxisAlignment::Start)
+            );
+            m_infoContainer->addChild(m_recommendedBy);
+        },
     });
 
     auto updateSpr = CircleButtonSprite::createWithSpriteFrameName(
@@ -160,7 +190,6 @@ bool ModItem::init(ModSource&& source) {
         updateSpr, this, menu_selector(ModItem::onInstall)
     );
     m_viewMenu->addChild(m_updateBtn);
-    m_updateBtn->setVisible(false);
 
     if (m_source.asMod()) {
         m_checkUpdateListener.bind(this, &ModItem::onCheckUpdates);
@@ -217,20 +246,24 @@ void ModItem::updateState() {
     // (possibly overriding later based on state)
     m_source.visit(makeVisitor {
         [this](Mod* mod) {
-            m_bg->setColor({ 255, 255, 255 });
+            m_bg->setColor(ccWHITE);
             m_bg->setOpacity(mod->isOrWillBeEnabled() ? 25 : 10);
             m_titleLabel->setOpacity(mod->isOrWillBeEnabled() ? 255 : 155);
             m_versionLabel->setOpacity(mod->isOrWillBeEnabled() ? 255 : 155);
             m_developerLabel->setOpacity(mod->isOrWillBeEnabled() ? 255 : 155);
         },
         [this](server::ServerModMetadata const& metadata) {
-            m_bg->setColor({ 255, 255, 255 });
+            m_bg->setColor(ccWHITE);
             m_bg->setOpacity(25);
             if (metadata.featured) {
-                m_bg->setColor(to3B(ColorProvider::get()->color("mod-list-featured-color"_spr)));
+                m_bg->setColor("mod-list-featured-color"_cc3b);
                 m_bg->setOpacity(40);
             }
         },
+        [this](ModSuggestion const& suggestion) {
+            m_bg->setColor("mod-list-recommended-bg"_cc3b);
+            m_bg->setOpacity(25);
+        }
     });
 
     if (
@@ -252,6 +285,12 @@ void ModItem::updateState() {
     }
     m_viewMenu->updateLayout();
     m_titleContainer->updateLayout();
+
+    // If there were problems, tint the BG red
+    if (m_source.asMod() && m_source.asMod()->hasProblems()) {
+        m_bg->setColor("mod-list-errors-found"_cc3b);
+        m_bg->setOpacity(40);
+    }
 
     // Highlight item via BG if it wants to restart for extra UI attention
     if (wantsRestart) {
@@ -299,11 +338,16 @@ void ModItem::updateSize(float width, bool big) {
     m_developers->setContentWidth(titleSpace.width / m_infoContainer->getScale());
     m_developers->updateLayout();
 
+    if (m_recommendedBy) {
+        m_recommendedBy->setContentWidth(titleSpace.width / m_infoContainer->getScale());
+        m_recommendedBy->updateLayout();
+    }
+
     m_infoContainer->setPosition(m_obContentSize.height + 10, m_obContentSize.height / 2);
     m_infoContainer->setContentSize(ccp(titleSpace.width, titleSpace.height) / m_infoContainer->getScale());
     m_infoContainer->updateLayout();
 
-    m_viewMenu->setContentWidth(m_obContentSize.width / 2 - 20);
+    m_viewMenu->setContentWidth(m_obContentSize.width / m_viewMenu->getScaleX() / 2 - 20);
     m_viewMenu->updateLayout();
 
     this->updateLayout();
@@ -317,7 +361,21 @@ void ModItem::onCheckUpdates(typename server::ServerRequest<std::optional<server
 
 void ModItem::onView(CCObject*) {
     // Always open up the popup for the installed mod page if that is possible
-    ModPopup::create(m_source.tryConvertToMod())->show();
+    ModPopup::create(m_source.convertForPopup())->show();
+}
+
+void ModItem::onViewError(CCObject*) {
+    if (auto mod = m_source.asMod()) {
+        std::vector<std::string> problems;
+        for (auto problem : mod->getProblems()) {
+            problems.push_back(fmt::format("{} (code {})", problem.message, static_cast<int>(problem.type)));
+        }
+        FLAlertLayer::create(
+            fmt::format("Errors with {}", mod->getName()).c_str(),
+            ranges::join(problems, "\n"),
+            "OK"
+        )->show();
+    }
 }
 
 void ModItem::onEnable(CCObject*) {

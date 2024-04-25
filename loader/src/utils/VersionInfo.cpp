@@ -114,14 +114,20 @@ Result<VersionInfo> VersionInfo::parse(std::string const& string) {
 }
 
 std::string VersionInfo::toString(bool includeTag) const {
+    return this->toVString();
+}
+std::string VersionInfo::toVString(bool includeTag) const {
+    return fmt::format("v{}", this->toNonVString(includeTag));
+}
+std::string VersionInfo::toNonVString(bool includeTag) const {
     if (includeTag && m_tag) {
         return fmt::format(
-            "v{}.{}.{}{}",
+            "{}.{}.{}{}",
             m_major, m_minor, m_patch,
             m_tag.value().toSuffixString()
         );
     }
-    return fmt::format("v{}.{}.{}", m_major, m_minor, m_patch);
+    return fmt::format("{}.{}.{}", m_major, m_minor, m_patch);
 }
 
 std::string geode::format_as(VersionInfo const& version) {

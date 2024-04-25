@@ -95,12 +95,62 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         m_updateAllMenu->setLayout(
             RowLayout::create()
                 ->setAxisAlignment(AxisAlignment::End)
-                ->setDefaultScaleLimits(.1f, .75f)
+                ->setDefaultScaleLimits(.1f, .6f)
         );
         m_updateAllMenu->getLayout()->ignoreInvisibleChildren(true);
         m_updateAllContainer->addChildAtPosition(m_updateAllMenu, Anchor::Right, ccp(-10, 0));
 
         m_topContainer->addChild(m_updateAllContainer);
+
+        if (Loader::get()->getProblems().size()) {
+            m_errorsContainer = CCNode::create();
+            m_errorsContainer->ignoreAnchorPointForPosition(false);
+            m_errorsContainer->setContentSize({ size.width, 30 });
+            m_errorsContainer->setVisible(false);
+
+            auto errorsBG = CCLayerGradient::create(
+                "mod-list-errors-found"_cc4b,
+                "mod-list-errors-found-2"_cc4b,
+                ccp(1, -.5f)
+            );
+            errorsBG->setContentSize(m_errorsContainer->getContentSize());
+            errorsBG->ignoreAnchorPointForPosition(false);
+
+            m_errorsContainer->addChildAtPosition(errorsBG, Anchor::Center);
+            
+            auto errorsLabel = TextArea::create(
+                "There were <cy>errors</c> loading some mods",
+                "bigFont.fnt", .35f, size.width / 2 - 30, ccp(0, 1), 12.f, false
+            );
+            m_errorsContainer->addChildAtPosition(errorsLabel, Anchor::Left, ccp(10, 0), ccp(0, 0));
+            
+            auto errorsMenu = CCMenu::create();
+            errorsMenu->setContentWidth(size.width / 2);
+            errorsMenu->setAnchorPoint({ 1, .5f });
+
+            auto showErrorsSpr = createGeodeButton(
+                CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
+                "Show Errors Only", "GJ_button_06.png"
+            );
+            auto hideErrorsSpr = createGeodeButton(
+                CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
+                "Hide Errors Only", "GE_button_05.png"_spr
+            );
+            m_toggleErrorsOnlyBtn = CCMenuItemToggler::create(
+                showErrorsSpr, hideErrorsSpr, this, menu_selector(ModList::onToggleErrors)
+            );
+            m_toggleErrorsOnlyBtn->m_notClickable = true;
+            errorsMenu->addChild(m_toggleErrorsOnlyBtn);
+
+            errorsMenu->setLayout(
+                RowLayout::create()
+                    ->setAxisAlignment(AxisAlignment::End)
+                    ->setDefaultScaleLimits(.1f, .6f)
+            );
+            m_errorsContainer->addChildAtPosition(errorsMenu, Anchor::Right, ccp(-10, 0));
+
+            m_topContainer->addChild(m_errorsContainer);
+        }
     }
 
     m_searchMenu = CCNode::create();
@@ -418,6 +468,12 @@ void ModList::updateTopContainer() {
         m_updateAllMenu->updateLayout();
     }
 
+    // If there are errors, show the error banner
+    if (m_errorsContainer) {
+        auto noErrors = Loader::get()->getProblems().empty();
+        m_errorsContainer->setVisible(!noErrors);
+    }
+
     // ModList uses an anchor layout, so this puts the list in the right place
     this->updateLayout();
 }
@@ -449,11 +505,14 @@ void ModList::updateSize(bool big) {
 }
 
 void ModList::updateState() {
-    // Update the "Show Updates" button on the updates available banner
-    if (m_toggleUpdatesOnlyBtn) {
-        auto src = typeinfo_cast<InstalledModListSource*>(m_source);
-        if (src) {
-            m_toggleUpdatesOnlyBtn->toggle(src->getQuery().onlyUpdates);
+    // Update the "Show Updates" and "Show Errors" buttons on 
+    // the updates available / errors banners
+    if (auto src = typeinfo_cast<InstalledModListSource*>(m_source)) {
+        if (m_toggleUpdatesOnlyBtn) {
+            m_toggleUpdatesOnlyBtn->toggle(src->getQuery().type == InstalledModListType::OnlyUpdates);
+        }
+        if (m_toggleErrorsOnlyBtn) {
+            m_toggleErrorsOnlyBtn->toggle(src->getQuery().type == InstalledModListType::OnlyErrors);
         }
     }
 
@@ -525,7 +584,19 @@ void ModList::onClearFilters(CCObject*) {
 
 void ModList::onToggleUpdates(CCObject*) {
     if (auto src = typeinfo_cast<InstalledModListSource*>(m_source)) {
-        src->getQueryMut()->onlyUpdates = !src->getQuery().onlyUpdates;
+        auto mut = src->getQueryMut();
+        mut->type = mut->type == InstalledModListType::OnlyUpdates ? 
+            InstalledModListType::All : 
+            InstalledModListType::OnlyUpdates;
+    }
+}
+
+void ModList::onToggleErrors(CCObject*) {
+    if (auto src = typeinfo_cast<InstalledModListSource*>(m_source)) {
+        auto mut = src->getQueryMut();
+        mut->type = mut->type == InstalledModListType::OnlyErrors ? 
+            InstalledModListType::All : 
+            InstalledModListType::OnlyErrors;
     }
 }
 

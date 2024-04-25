@@ -38,6 +38,8 @@ protected:
     CCMenuItemSpriteExtra* m_updateAllBtn = nullptr;
     CCNode* m_updateAllLoadingCircle = nullptr;
     CCMenuItemToggler* m_toggleUpdatesOnlyBtn = nullptr;
+    CCNode* m_errorsContainer = nullptr;
+    CCMenuItemToggler* m_toggleErrorsOnlyBtn = nullptr;
     TextArea* m_updateCountLabel = nullptr;
     TextInput* m_searchInput;
     EventListener<InvalidateCacheFilter> m_invalidateCacheListener;
@@ -59,6 +61,7 @@ protected:
     void onSort(CCObject*);
     void onClearFilters(CCObject*);
     void onToggleUpdates(CCObject*);
+    void onToggleErrors(CCObject*);
     void onUpdateAll(CCObject*);
 
 public:

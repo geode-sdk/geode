@@ -104,6 +104,30 @@ bool ModPopup::setup(ModSource&& src) {
     dev->setAnchorPoint({ .0f, .5f });
     titleContainer->addChildAtPosition(dev, Anchor::BottomLeft, ccp(devAndTitlePos, titleContainer->getContentHeight() * .25f));
 
+    if (auto suggestion = m_source.asSuggestion()) {
+        title->updateAnchoredPosition(Anchor::TopLeft, ccp(devAndTitlePos, -2));
+        dev->updateAnchoredPosition(Anchor::Left, ccp(devAndTitlePos, 0));
+
+        auto recommendedBy = CCNode::create();
+        recommendedBy->setContentWidth(titleContainer->getContentWidth() - devAndTitlePos);
+        recommendedBy->setAnchorPoint({ .0f, .5f });
+
+        auto byLabel = CCLabelBMFont::create("Recommended by ", "bigFont.fnt");
+        byLabel->setColor("mod-list-recommended-by"_cc3b);
+        recommendedBy->addChild(byLabel);
+
+        auto nameLabel = CCLabelBMFont::create(suggestion->forMod->getName().c_str(), "bigFont.fnt");
+        nameLabel->setColor("mod-list-recommended-by-2"_cc3b);
+        recommendedBy->addChild(nameLabel);
+
+        recommendedBy->setLayout(
+            RowLayout::create()
+                ->setDefaultScaleLimits(.1f, 1.f)
+                ->setAxisAlignment(AxisAlignment::Start)
+        );
+        titleContainer->addChildAtPosition(recommendedBy, Anchor::BottomLeft, ccp(devAndTitlePos, 4));
+    }
+
     leftColumn->addChild(titleContainer);
 
     auto idStr = "(ID: " + m_source.getMetadata().getID() + ")";
@@ -512,7 +536,6 @@ bool ModPopup::setup(ModSource&& src) {
 
 void ModPopup::updateState() {
     auto asMod = m_source.asMod();
-    auto asServer = m_source.asServer();
     auto wantsRestart = m_source.wantsRestart();
 
     m_installBG->setColor(wantsRestart ? to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)) : ccc3(0, 0, 0));
@@ -543,7 +566,7 @@ void ModPopup::updateState() {
     m_reenableBtn->setVisible(asMod && modRequestedActionIsToggle(asMod->getRequestedAction()));
 
     m_updateBtn->setVisible(m_source.hasUpdates().has_value() && asMod->getRequestedAction() == ModRequestedAction::None);
-    m_installBtn->setVisible(asServer);
+    m_installBtn->setVisible(m_source.asServer() || m_source.asSuggestion());
     m_uninstallBtn->setVisible(asMod && asMod->getRequestedAction() == ModRequestedAction::None);
 
     if (asMod && modRequestedActionIsUninstall(asMod->getRequestedAction())) {
@@ -878,8 +901,14 @@ void ModPopup::onSupport(CCObject*) {
 
 ModPopup* ModPopup::create(ModSource&& src) {
     auto ret = new ModPopup();
-    bool isServer = src.asServer();
-    if (ret && ret->init(440, 280, std::move(src), isServer)) {
+    GeodePopupStyle style = GeodePopupStyle::Default;
+    if (src.asServer()) {
+        style = GeodePopupStyle::Alt;
+    }
+    else if (src.asSuggestion()) {
+        style = GeodePopupStyle::Alt2;
+    }
+    if (ret && ret->init(440, 280, std::move(src), style)) {
         ret->autorelease();
         return ret;
     }

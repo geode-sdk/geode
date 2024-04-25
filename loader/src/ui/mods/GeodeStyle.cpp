@@ -12,11 +12,16 @@ $execute {
     ColorProvider::get()->define("mod-list-search-bg"_spr, { 83, 65, 109, 255 });
     ColorProvider::get()->define("mod-list-updates-available-bg"_spr, { 139, 89, 173, 255 });
     ColorProvider::get()->define("mod-list-updates-available-bg-2"_spr, { 45, 110, 222, 255 });
+    ColorProvider::get()->define("mod-list-errors-found"_spr, { 235, 35, 112, 255 });
+    ColorProvider::get()->define("mod-list-errors-found-2"_spr, { 245, 27, 27, 255 });
     ColorProvider::get()->define("mod-list-tab-selected-bg"_spr, { 168, 147, 185, 255 });
     ColorProvider::get()->define("mod-list-tab-selected-bg-alt"_spr, { 147, 163, 185, 255 });
     ColorProvider::get()->define("mod-list-featured-color"_spr, { 255, 255, 120, 255 });
     ColorProvider::get()->define("mod-list-enabled"_spr, { 120, 255, 100, 255 });
     ColorProvider::get()->define("mod-list-disabled"_spr, { 255, 120, 100, 255 });
+    ColorProvider::get()->define("mod-list-recommended-bg"_spr, ccc3(25, 255, 167));
+    ColorProvider::get()->define("mod-list-recommended-by"_spr, ccc3(25, 255, 167));
+    ColorProvider::get()->define("mod-list-recommended-by-2"_spr, ccc3(47, 255, 255));
 }
 
 bool GeodeSquareSprite::init(CCSprite* top, bool* state) {

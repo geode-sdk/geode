@@ -5,15 +5,25 @@
 
 using namespace geode::prelude;
 
+struct ModSuggestion final {
+    ModMetadata suggestion;
+    Mod* forMod;
+};
+
+// you can't put these in ModSuggestion itself because of the concepts in Task :sob:
+using LoadModSuggestionTask = Task<std::optional<ModSuggestion>, server::ServerProgress>;
+LoadModSuggestionTask loadModSuggestion(LoadProblem const& problem);
+
 class ModSource final {
 private:
-    std::variant<Mod*, server::ServerModMetadata> m_value;
+    std::variant<Mod*, server::ServerModMetadata, ModSuggestion> m_value;
     std::optional<server::ServerModUpdate> m_availableUpdate;
 
 public:
     ModSource() = default;
     ModSource(Mod* mod);
     ModSource(server::ServerModMetadata&& metadata);
+    ModSource(ModSuggestion&& suggestion);
 
     std::string getID() const;
     ModMetadata getMetadata() const;
@@ -28,10 +38,11 @@ public:
 
     // Returns a new ModSource that is either a copy of the current source or 
     // an installed version of a server mod
-    ModSource tryConvertToMod() const;
+    ModSource convertForPopup() const;
 
     Mod* asMod() const;
     server::ServerModMetadata const* asServer() const;
+    ModSuggestion const* asSuggestion() const;
 
     server::ServerRequest<server::ServerModMetadata> fetchServerInfo() const;
     server::ServerRequest<std::optional<std::string>> fetchAbout() const;

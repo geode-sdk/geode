@@ -598,7 +598,8 @@ ServerRequest<ServerModVersion> server::getModVersion(std::string const& id, std
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
 
-    auto versionURL = version ? version->toString(false) : "latest";
+    auto versionURL = version ? version->toNonVString(false) : "latest";
+    log::info("{}", getServerAPIBaseURL() + "/mods/" + id + "/versions/" + versionURL);
     return req.get(getServerAPIBaseURL() + "/mods/" + id + "/versions/" + versionURL).map(
         [](web::WebResponse* response) -> Result<ServerModVersion, ServerError> {
             if (response->ok()) {

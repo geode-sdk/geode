@@ -26,14 +26,6 @@ public:
     InvalidateCacheFilter(ModListSource* src);
 };
 
-struct InstalledModsQuery final {
-    std::optional<std::string> query;
-    bool onlyUpdates = false;
-    std::unordered_set<std::string> tags = {};
-    size_t page = 0;
-    size_t pageSize = 10;
-};
-
 // Handles loading the entries for the mods list
 class ModListSource {
 public:
@@ -81,6 +73,9 @@ public:
     PageLoadTask loadPage(size_t page, bool forceUpdate = false);
     std::optional<size_t> getPageCount() const;
     std::optional<size_t> getItemCount() const;
+    
+    static void clearAllCaches();
+    static bool isRestartRequired();
 };
 
 template <class T>
@@ -99,25 +94,65 @@ public:
     }
 };
 
+struct LocalModsQueryBase {
+    std::optional<std::string> query;
+    std::unordered_set<std::string> tags = {};
+    size_t page = 0;
+    size_t pageSize = 10;
+};
+
+enum class InstalledModListType {
+    All,
+    OnlyUpdates,
+    OnlyErrors,
+};
+struct InstalledModsQuery final : public LocalModsQueryBase {
+    InstalledModListType type = InstalledModListType::All;
+    bool preCheck(ModSource const& src) const;
+    bool queryCheck(ModSource const& src, double& weighted) const;
+};
+
 class InstalledModListSource : public ModListSource {
 protected:
-    bool m_onlyUpdates;
+    InstalledModListType m_type;
     InstalledModsQuery m_query;
 
     void resetQuery() override;
     ProviderTask fetchPage(size_t page, size_t pageSize, bool forceUpdate) override;
     void setSearchQuery(std::string const& query) override;
 
-    InstalledModListSource(bool onlyUpdates);
+    InstalledModListSource(InstalledModListType type);
 
 public:
-    static InstalledModListSource* get(bool onlyUpdates);
+    static InstalledModListSource* get(InstalledModListType type);
 
     std::unordered_set<std::string> getModTags() const override;
     void setModTags(std::unordered_set<std::string> const& tags) override;
 
     InstalledModsQuery const& getQuery() const;
     InvalidateQueryAfter<InstalledModsQuery> getQueryMut();
+};
+
+struct SuggestedModsQuery final : public LocalModsQueryBase {
+    bool preCheck(ModSource const& src) const;
+    bool queryCheck(ModSource const& src, double& weighted) const;
+};
+
+class SuggestedModListSource : public ModListSource {
+protected:
+    SuggestedModsQuery m_query;
+
+    void resetQuery() override;
+    ProviderTask fetchPage(size_t page, size_t pageSize, bool forceUpdate) override;
+    void setSearchQuery(std::string const& query) override;
+
+    SuggestedModListSource();
+
+public:
+    static SuggestedModListSource* get();
+
+    std::unordered_set<std::string> getModTags() const override;
+    void setModTags(std::unordered_set<std::string> const& tags) override;
 };
 
 enum class ServerModListType {
@@ -163,5 +198,58 @@ public:
     void setModTags(std::unordered_set<std::string> const& tags) override;
 };
 
-void clearAllModListSourceCaches();
-bool isRestartRequired();
+bool weightedFuzzyMatch(std::string const& str, std::string const& kw, double weight, double& out);
+bool modFuzzyMatch(ModMetadata const& metadata, std::string const& kw, double& out);
+
+template <std::derived_from<LocalModsQueryBase> Query>
+void filterModsWithLocalQuery(ModListSource::ProvidedMods& mods, Query const& query) {
+    std::vector<std::pair<ModSource, double>> filtered;
+
+    // Filter installed mods based on query
+    for (auto& src : mods.mods) {
+        double weighted = 0;
+        bool addToList = true;
+        // Do any checks additional this query has to start off with
+        if (!query.preCheck(src)) {
+            addToList = false;
+        }
+        // If some tags are provided, only return mods that match
+        if (addToList && query.tags.size()) {
+            auto compare = src.getMetadata().getTags();
+            for (auto& tag : query.tags) {
+                if (!compare.contains(tag)) {
+                    addToList = false;
+                }
+            }
+        }
+        // Don't bother with unnecessary fuzzy match calculations if this mod isn't going to be added anyway
+        if (addToList && query.query) {
+            addToList = query.queryCheck(src, weighted);
+        }
+        if (addToList) {
+            filtered.push_back({ src, weighted });
+        }
+    }
+
+    // Sort list based on score
+    std::sort(filtered.begin(), filtered.end(), [](auto a, auto b) {
+        // Sort primarily by score
+        if (a.second != b.second) {
+            return a.second > b.second;
+        }
+        // Sort secondarily alphabetically
+        return a.first.getMetadata().getName() < b.first.getMetadata().getName();
+    });
+
+    mods.mods.clear();
+    // Pick out only the mods in the page and page size specified in the query
+    for (
+        size_t i = query.page * query.pageSize;
+        i < filtered.size() && i < (query.page + 1) * query.pageSize;
+        i += 1
+    ) {
+        mods.mods.push_back(filtered.at(i).first);
+    }
+    
+    mods.totalModCount = filtered.size();
+}

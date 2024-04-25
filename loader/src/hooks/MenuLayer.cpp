@@ -14,6 +14,7 @@
 #include <loader/updater.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/modify/LevelSelectLayer.hpp>
+#include <ui/other/FixIssuesPopup.hpp>
 
 using namespace geode::prelude;
 
@@ -82,17 +83,8 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         }
 
         // show if some mods failed to load
-        static bool shownFailedNotif = false;
-        if (!shownFailedNotif) {
-            shownFailedNotif = true;
-            auto problems = Loader::get()->getProblems();
-            if (std::any_of(problems.begin(), problems.end(), [&](auto& item) {
-                    return item.type != LoadProblem::Type::Suggestion && item.type != LoadProblem::Type::Recommendation;
-                })) {
-                Notification::create("There were problems loading some mods", NotificationIcon::Error)->show();
-            }
-        }
-
+        checkLoadingIssues(this);
+        
         // show if the user tried to be naughty and load arbitrary DLLs
         static bool shownTriedToLoadDlls = false;
         if (!shownTriedToLoadDlls) {

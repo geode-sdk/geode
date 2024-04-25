@@ -73,6 +73,7 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 	src/utils/*.cpp
 	src/ui/*.cpp
 	src/ui/nodes/*.cpp
+	src/ui/other/*.cpp
 	src/ui/mods/*.cpp
 	src/ui/mods/list/*.cpp
 	src/ui/mods/popups/*.cpp

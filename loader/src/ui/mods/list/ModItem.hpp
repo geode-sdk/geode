@@ -18,6 +18,7 @@ protected:
     CCLabelBMFont* m_titleLabel;
     CCLabelBMFont* m_versionLabel;
     CCNode* m_developers;
+    CCNode* m_recommendedBy;
     CCLabelBMFont* m_developerLabel;
     ButtonSprite* m_restartRequiredLabel;
     CCNode* m_downloadWaiting;
@@ -43,6 +44,7 @@ protected:
 
     void onEnable(CCObject*);
     void onView(CCObject*);
+    void onViewError(CCObject*);
     void onInstall(CCObject*);
 
 public:

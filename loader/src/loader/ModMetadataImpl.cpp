@@ -678,7 +678,7 @@ std::vector<std::pair<std::string, std::optional<std::string>*>> ModMetadata::ge
 
 ModMetadata::ModMetadata() : m_impl(std::make_unique<Impl>()) {}
 ModMetadata::ModMetadata(std::string id) : m_impl(std::make_unique<Impl>()) { m_impl->m_id = std::move(id); }
-ModMetadata::ModMetadata(ModMetadata const& other) : m_impl(std::make_unique<Impl>(*other.m_impl)) {}
+ModMetadata::ModMetadata(ModMetadata const& other) : m_impl(other.m_impl ? std::make_unique<Impl>(*other.m_impl) : std::make_unique<Impl>()) {}
 ModMetadata::ModMetadata(ModMetadata&& other) noexcept : m_impl(std::move(other.m_impl)) {}
 
 ModMetadata& ModMetadata::operator=(ModMetadata const& other) {

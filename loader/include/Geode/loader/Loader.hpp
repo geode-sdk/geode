@@ -91,7 +91,9 @@ namespace geode {
         bool isModLoaded(std::string const& id) const;
         Mod* getLoadedMod(std::string const& id) const;
         std::vector<Mod*> getAllMods();
+        std::vector<LoadProblem> getAllProblems() const;
         std::vector<LoadProblem> getProblems() const;
+        std::vector<LoadProblem> getRecommendations() const;
 
         /**
          * Returns the available launch argument names.

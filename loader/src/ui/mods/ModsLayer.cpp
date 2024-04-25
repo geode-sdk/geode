@@ -126,7 +126,7 @@ void ModsStatusNode::updateState() {
     switch (state) {
         // If there are no downloads happening, just show the restart button if needed
         case DownloadState::None: {
-            m_restartBtn->setVisible(isRestartRequired());
+            m_restartBtn->setVisible(ModListSource::isRestartRequired());
         } break;
 
         // If some downloads were cancelled, show the restart button normally
@@ -135,7 +135,7 @@ void ModsStatusNode::updateState() {
             m_status->setColor(ccWHITE);
             m_status->setVisible(true);
 
-            m_restartBtn->setVisible(isRestartRequired());
+            m_restartBtn->setVisible(ModListSource::isRestartRequired());
         } break;
 
         // If all downloads were finished, show the restart button normally 
@@ -151,7 +151,7 @@ void ModsStatusNode::updateState() {
             m_status->setVisible(true);
             m_statusBG->setVisible(true);
             
-            m_restartBtn->setVisible(isRestartRequired());
+            m_restartBtn->setVisible(ModListSource::isRestartRequired());
         } break;
 
         case DownloadState::SomeErrored: {
@@ -349,8 +349,8 @@ bool ModsLayer::init() {
     mainTabs->setPosition(m_frame->convertToWorldSpace(tabsTop->getPosition() + ccp(0, 10)));
 
     for (auto item : std::initializer_list<std::tuple<const char*, const char*, ModListSource*>> {
-        { "download.png"_spr, "Installed", InstalledModListSource::get(false) },
-        { "GJ_timeIcon_001.png", "Updates", InstalledModListSource::get(true) },
+        { "download.png"_spr, "Installed", InstalledModListSource::get(InstalledModListType::All) },
+        { "GJ_starsIcon_001.png", "Recommended", SuggestedModListSource::get() },
         { "globe.png"_spr, "Download", ServerModListSource::get(ServerModListType::Download) },
         { "GJ_sTrendingIcon_001.png", "Trending", ServerModListSource::get(ServerModListType::Trending) },
         { "gj_folderBtn_001.png", "Mod Packs", ModPackListSource::get() },
@@ -416,7 +416,7 @@ bool ModsLayer::init() {
     this->addChildAtPosition(m_pageMenu, Anchor::TopRight, ccp(-5, -5), false);
 
     // Go to installed mods list
-    this->gotoTab(InstalledModListSource::get(false));
+    this->gotoTab(InstalledModListSource::get(InstalledModListType::All));
 
     this->setKeypadEnabled(true);
     cocos::handleTouchPriority(this, true);
@@ -517,7 +517,7 @@ void ModsLayer::onBack(CCObject*) {
 
     // To avoid memory overloading, clear caches after leaving the layer
     server::clearServerCaches(true);
-    clearAllModListSourceCaches();
+    ModListSource::clearAllCaches();
 }
 
 void ModsLayer::onGoToPage(CCObject*) {

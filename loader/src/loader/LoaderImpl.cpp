@@ -521,22 +521,35 @@ void Loader::Impl::findProblems() {
         for (auto const& dep : mod->getMetadata().getDependencies()) {
             if (dep.mod && dep.mod->isEnabled() && dep.version.compare(dep.mod->getVersion()))
                 continue;
+
+            auto dismissKey = fmt::format("dismiss-optional-dependency-{}-for-{}", dep.id, id);
+
             switch(dep.importance) {
                 case ModMetadata::Dependency::Importance::Suggested:
-                    this->addProblem({
-                        LoadProblem::Type::Suggestion,
-                        mod,
-                        fmt::format("{} {}", dep.id, dep.version.toString())
-                    });
-                    log::info("{} suggests {} {}", id, dep.id, dep.version);
+                    if (!Mod::get()->template getSavedValue<bool>(dismissKey)) {
+                        this->addProblem({
+                            LoadProblem::Type::Suggestion,
+                            mod,
+                            fmt::format("{} {}", dep.id, dep.version.toString())
+                        });
+                        log::info("{} suggests {} {}", id, dep.id, dep.version);
+                    }
+                    else {
+                        log::info("{} suggests {} {}, but that suggestion was dismissed", id, dep.id, dep.version);
+                    }
                     break;
                 case ModMetadata::Dependency::Importance::Recommended:
-                    this->addProblem({
-                        LoadProblem::Type::Recommendation,
-                        mod,
-                        fmt::format("{} {}", dep.id, dep.version.toString())
-                    });
-                    log::warn("{} recommends {} {}", id, dep.id, dep.version);
+                    if (!Mod::get()->template getSavedValue<bool>(dismissKey)) {
+                        this->addProblem({
+                            LoadProblem::Type::Recommendation,
+                            mod,
+                            fmt::format("{} {}", dep.id, dep.version.toString())
+                        });
+                        log::warn("{} recommends {} {}", id, dep.id, dep.version);
+                    }
+                    else {
+                        log::warn("{} recommends {} {}, but that suggestion was dismissed", id, dep.id, dep.version);
+                    }
                     break;
                 case ModMetadata::Dependency::Importance::Required:
                     if(m_mods.find(dep.id) == m_mods.end()) {

@@ -49,12 +49,44 @@ namespace geode {
 
         class Handle final {
         private:
+            // Handles may contain extra data, for example for holding ownership 
+            // of other Tasks for `Task::map` and `Task::all`. This struct 
+            // provides type erasure for that extra data
+            struct ExtraData final {
+                // Pointer to the owned extra data
+                void* ptr;
+                // Pointer to a function that deletes that extra data
+                // The function MUST have a static lifetime
+                void(*onDestroy)(void*);
+                // Pointer to a function that handles cancelling any tasks within 
+                // that extra data when this task is cancelled. Note that the 
+                // task may not free up the memory associated with itself here 
+                // and this function may not be called if the user uses 
+                // `Task::shallowCancel`. However, this pointer *must* always be 
+                // valid
+                // The function MUST have a static lifetime
+                void(*onCancelled)(void*);
+
+                ExtraData(void* ptr, void(*onDestroy)(void*), void(*onCancelled)(void*))
+                  : ptr(ptr), onDestroy(onDestroy), onCancelled(onCancelled)
+                {}
+                ExtraData(ExtraData const&) = delete;
+                ExtraData(ExtraData&&) = delete;
+
+                ~ExtraData() {
+                    onDestroy(ptr);
+                }
+                void cancel() {
+                    onCancelled(ptr);
+                }
+            };
+
             std::recursive_mutex m_mutex;
             Status m_status = Status::Pending;
             std::optional<T> m_resultValue;
             bool m_finalEventPosted = false;
-            std::unique_ptr<void, void(*)(void*)> m_mapListener = { nullptr, +[](void*) {} };
             std::string m_name;
+            std::unique_ptr<ExtraData> m_extraData = nullptr;
 
             class PrivateMarker final {};
 
@@ -140,6 +172,8 @@ namespace geode {
                 handle->m_status = Status::Finished;
                 handle->m_resultValue.emplace(std::move(value));
                 Loader::get()->queueInMainThread([handle, value = &*handle->m_resultValue]() mutable {
+                    // SAFETY: Task::all() depends on the lifetime of the value pointer
+                    // being as long as the lifetime of the task itself
                     Event::createFinished(handle, value).post();
                     std::unique_lock<std::recursive_mutex> lock(handle->m_mutex);
                     handle->m_finalEventPosted = true;
@@ -155,11 +189,16 @@ namespace geode {
                 });
             }
         }
-        static void cancel(std::shared_ptr<Handle> handle) {
+        static void cancel(std::shared_ptr<Handle> handle, bool shallow = false) {
             if (!handle) return;
             std::unique_lock<std::recursive_mutex> lock(handle->m_mutex);
             if (handle->m_status == Status::Pending) {
                 handle->m_status = Status::Cancelled;
+                // If this task carries extra data, call the extra data's handling method
+                // (unless shallow cancelling was specifically requested)
+                if (!shallow && handle->m_extraData) {
+                    handle->m_extraData->cancel();
+                }
                 Loader::get()->queueInMainThread([handle]() mutable {
                     Event::createCancelled(handle).post();
                     std::unique_lock<std::recursive_mutex> lock(handle->m_mutex);
@@ -212,6 +251,17 @@ namespace geode {
         }
         void cancel() {
             Task::cancel(m_handle);
+        }
+        /**
+         * If this is a Task that owns other Task(s) (for example created 
+         * through `Task::map` or `Task::all`), then this method cancels *only* 
+         * this Task and *not* any of the Task(s) it is built on top of. 
+         * Ownership of the other Task(s) will be released, so if this is the 
+         * only Task listening to them, they will still be destroyed due to a 
+         * lack of listeners
+         */
+        void shallowCancel() {
+            Task::cancel(m_handle, true);
         }
         bool isPending() const {
             return m_handle && m_handle->is(Status::Pending);
@@ -275,17 +325,100 @@ namespace geode {
                         // The task has been cancelled if the user has explicitly cancelled it, 
                         // or if there is no one listening anymore
                         auto lock = handle.lock();
-                        return !(lock && lock->is(Status::Pending));
+                        return !lock || lock->is(Status::Cancelled);
                     }
                 );
             }).detach();
             return task;
         }
+        /**
+         * @warning The result vector may contain nulls if any of the tasks 
+         * were cancelled!
+         */
+        template <std::move_constructible NP>
+        static Task<std::vector<T*>, std::monostate> all(std::vector<Task<T, NP>>&& tasks, std::string const& name = "<Multiple Tasks>") {
+            using AllTask = Task<std::vector<T*>, std::monostate>;
 
-        template <class ResultMapper, class ProgressMapper>
-        auto map(ResultMapper&& resultMapper, ProgressMapper&& progressMapper, std::string const& name = "<Mapping Task>") {
+            // Create a new supervising task for all of the provided tasks
+            auto task = AllTask(AllTask::Handle::create(name));
+
+            // Storage for storing the results received so far & keeping 
+            // ownership of the running tasks
+            struct Waiting final {
+                std::vector<T*> taskResults;
+                std::vector<Task<std::monostate>> taskListeners;
+                size_t taskCount;
+            };
+            task.m_handle->m_extraData = std::make_unique<AllTask::Handle::ExtraData>(
+                // Create the data
+                static_cast<void*>(new Waiting()),
+                // When the task is destroyed
+                +[](void* ptr) {
+                    delete static_cast<Waiting*>(ptr);
+                },
+                // If the task is cancelled
+                +[](void* ptr) {
+                    // The move clears the `taskListeners` vector (important!)
+                    for (auto task : std::move(static_cast<Waiting*>(ptr)->taskListeners)) {
+                        task.cancel();
+                    }
+                }
+            );
+
+            // Store the task count in case some tasks finish immediately during the loop 
+            static_cast<Waiting*>(task.m_handle->m_extraData->ptr)->taskCount = tasks.size();
+
+            // Make sure to only give a weak pointer to avoid circular references!
+            // (Tasks should NEVER own themselves!!)
+            auto markAsDone = [handle = std::weak_ptr(task.m_handle)](T* result) {
+                auto lock = handle.lock();
+
+                // If this task handle has expired, consider the task cancelled
+                // (We don't have to do anything because the lack of a handle 
+                // means all the memory has been freed or is managed by 
+                // something else)
+                if (!lock) return;
+
+                // Get the waiting handle from the task handle
+                auto waiting = static_cast<Waiting*>(lock->m_extraData->ptr);
+
+                // SAFETY: The lifetime of result pointer is the same as the task that 
+                // produced that pointer, so as long as we have an owning reference to 
+                // the tasks through `taskListeners` we can be sure `result` is valid
+                waiting->taskResults.push_back(result);
+
+                // If all tasks are done, finish
+                log::debug("waiting for {}/{} tasks", waiting->taskResults.size(), waiting->taskCount);
+                if (waiting->taskResults.size() >= waiting->taskCount) {
+                    // SAFETY: The task results' lifetimes are tied to the tasks 
+                    // which could have their only owner be `waiting->taskListeners`, 
+                    // but since Waiting is owned by the returned AllTask it should 
+                    // be safe to access as long as it's accessible
+                    AllTask::finish(lock, std::move(waiting->taskResults));
+                }
+            };
+
+            // Iterate the tasks & start listening to them using
+            for (auto& taskToWait : tasks) {
+                static_cast<Waiting*>(task.m_handle->m_extraData->ptr)->taskListeners.emplace_back(taskToWait.map(
+                    [markAsDone](auto* result) {
+                        markAsDone(result);
+                        return std::monostate();
+                    },
+                    [](auto*) { return std::monostate(); },
+                    [markAsDone]() { markAsDone(nullptr); }
+                ));
+            }
+            return task;
+        }
+
+        template <class ResultMapper, class ProgressMapper, class OnCancelled>
+        auto map(ResultMapper&& resultMapper, ProgressMapper&& progressMapper, OnCancelled&& onCancelled, std::string const& name = "<Mapping Task>") const {
             using T2 = decltype(resultMapper(std::declval<T*>()));
             using P2 = decltype(progressMapper(std::declval<P*>()));
+
+            static_assert(std::is_move_constructible_v<T2>, "The type being mapped to must be move-constructible!");
+            static_assert(std::is_move_constructible_v<P2>, "The type being mapped to must be move-constructible!");
 
             auto task = Task<T2, P2>(Task<T2, P2>::Handle::create(fmt::format("{} <= {}", name, m_handle->m_name))); 
 
@@ -294,6 +427,7 @@ namespace geode {
 
             // If the current task is cancelled, cancel the new one immediately
             if (m_handle->m_status == Status::Cancelled) {
+                onCancelled();
                 Task<T2, P2>::cancel(task.m_handle);
             }
             // If the current task is finished, immediately map the value and post that
@@ -302,13 +436,14 @@ namespace geode {
             }
             // Otherwise start listening and waiting for the current task to finish
             else {
-                task.m_handle->m_mapListener = std::unique_ptr<void, void(*)(void*)>(
+                task.m_handle->m_extraData = std::make_unique<Task<T2, P2>::Handle::ExtraData>(
                     static_cast<void*>(new EventListener<Task>(
                         [
                             handle = std::weak_ptr(task.m_handle),
                             resultMapper = std::move(resultMapper),
-                            progressMapper = std::move(progressMapper)
-                        ](Event* event) {
+                            progressMapper = std::move(progressMapper),
+                            onCancelled = std::move(onCancelled)
+                        ](Event* event) mutable {
                             if (auto v = event->getValue()) {
                                 Task<T2, P2>::finish(handle.lock(), std::move(resultMapper(v)));
                             }
@@ -316,6 +451,7 @@ namespace geode {
                                 Task<T2, P2>::progress(handle.lock(), std::move(progressMapper(p)));
                             }
                             else if (event->isCancelled()) {
+                                onCancelled();
                                 Task<T2, P2>::cancel(handle.lock());
                             }
                         },
@@ -323,15 +459,24 @@ namespace geode {
                     )),
                     +[](void* ptr) {
                         delete static_cast<EventListener<Task>*>(ptr);
+                    },
+                    +[](void* ptr) {
+                        // Cancel the mapped task too
+                        static_cast<EventListener<Task>*>(ptr)->getFilter().cancel();
                     }
                 );
             }
             return task;
         }
 
+        template <class ResultMapper, class ProgressMapper>
+        auto map(ResultMapper&& resultMapper, ProgressMapper&& progressMapper, std::string const& name = "<Mapping Task>") const {
+            return this->map(std::move(resultMapper), std::move(progressMapper), +[]() {}, name);
+        }
+
         template <class ResultMapper>
             requires std::copy_constructible<P>
-        auto map(ResultMapper&& resultMapper, std::string const& name = "<Mapping Task>") {
+        auto map(ResultMapper&& resultMapper, std::string const& name = "<Mapping Task>") const {
             return this->map(std::move(resultMapper), +[](P* p) -> P { return *p; }, name);
         }
 
