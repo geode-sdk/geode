@@ -241,6 +241,9 @@ namespace geode {
             }
         }
 
+        constexpr VersionCompare getComparison() const {
+            return m_compare;
+        }
         constexpr VersionInfo getUnderlyingVersion() const {
             return m_version;
         }
