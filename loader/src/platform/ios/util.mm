@@ -71,8 +71,6 @@ void geode::utils::game::restart() {
     )->show();
 }
 
-void crashlog::setupPlatformHandlerPost() {}
-
 void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
     log::error("Launching Geode uninstaller is not supported on iOS");
 }
@@ -170,7 +168,7 @@ Result<void*> geode::hook::replaceObjcMethod(std::string const& className, std::
     auto method = class_getInstanceMethod(cls, sel);
     if (!method)
         return Err("Method not found");
-    
+
     auto oldImp = method_setImplementation(method, (IMP)imp);
 
     return Ok((void*)oldImp);
