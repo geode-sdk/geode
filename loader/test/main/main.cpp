@@ -114,3 +114,26 @@ struct GJGarageLayerTest : Modify<GJGarageLayerTest, GJGarageLayer> {
         return true;
     }
 };
+
+
+#include <Geode/modify/GJGarageLayer.hpp>
+
+struct GJGarageLayerTest2 : Modify<GJGarageLayerTest2, GJGarageLayer> {
+    struct Fields {
+        int myOtherValue = 80085;
+    };
+    
+    bool init() {
+        if (!GJGarageLayer::init()) return false;
+
+        if (m_fields->myOtherValue == 80085) {
+            auto label = CCLabelBMFont::create("Alternate Fields works!", "bigFont.fnt");
+            label->setPosition(100, 60);
+            label->setScale(.4f);
+            label->setZOrder(99999);
+            this->addChild(label);
+        }
+
+        return true;
+    }
+};

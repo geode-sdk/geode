@@ -51,6 +51,11 @@ namespace geode::modifier {
 
     GEODE_DLL size_t getFieldIndexForClass(char const* name);
 
+    template <class Parent>
+    concept HasFields = requires {
+        typename Parent::Fields;
+    };
+
     template <class Parent, class Base>
     class FieldIntermediate {
         using Intermediate = Modify<Parent, Base>;
@@ -62,34 +67,45 @@ namespace geode::modifier {
         // the constructor that constructs the fields.
         // we construct the Parent first,
         static void fieldConstructor(void* offsetField) {
-            std::array<std::byte, sizeof(Parent)> parentContainer;
+            if constexpr (HasFields<Parent>) {
+                (void) new (offsetField) typename Parent::Fields();
+            }
+            else {
+                std::array<std::byte, sizeof(Parent)> parentContainer;
 
-            auto parent = new (parentContainer.data()) Parent();
+                auto parent = new (parentContainer.data()) Parent();
 
-            parent->Intermediate::~Intermediate();
+                parent->Intermediate::~Intermediate();
 
-            std::memcpy(
-                offsetField,
-                std::launder(&parentContainer[sizeof(Intermediate)]),
-                sizeof(Parent) - sizeof(Intermediate)
-            );
+                std::memcpy(
+                    offsetField,
+                    std::launder(&parentContainer[sizeof(Intermediate)]),
+                    sizeof(Parent) - sizeof(Intermediate)
+                );   
+            }
         }
 
         static void fieldDestructor(void* offsetField) {
-            std::array<std::byte, sizeof(Parent)> parentContainer;
+            if constexpr (HasFields<Parent>) {
+                static_cast<typename Parent::Fields*>(offsetField)->~Fields();
+            }
+            else {
+                std::array<std::byte, sizeof(Parent)> parentContainer;
 
-            auto parent = new (parentContainer.data()) Intermediate();
+                auto parent = new (parentContainer.data()) Intermediate();
 
-            std::memcpy(
-                std::launder(&parentContainer[sizeof(Intermediate)]),
-                offsetField,
-                sizeof(Parent) - sizeof(Intermediate)
-            );
+                std::memcpy(
+                    std::launder(&parentContainer[sizeof(Intermediate)]),
+                    offsetField,
+                    sizeof(Parent) - sizeof(Intermediate)
+                );
 
-            static_cast<Parent*>(parent)->Parent::~Parent();
+                static_cast<Parent*>(parent)->Parent::~Parent();
+            }
         }
 
-        operator Parent*() {
+        [[deprecated("Fields are now done using an explicit `Fields` struct. Please refer to https://docs.geode-sdk.org/tutorials/fields/ for more information.")]]
+        auto deprecatedSelf() {
             // get the this pointer of the base
             // field intermediate is the first member of Modify
             // meaning we canget the base from ourself
@@ -119,11 +135,40 @@ namespace geode::modifier {
             );
         }
 
-        Parent* self() {
-            return this->operator Parent*();
+        auto self() {
+            if constexpr (HasFields<Parent>) {
+                // get the this pointer of the base
+                // field intermediate is the first member of Modify
+                // meaning we canget the base from ourself
+                auto node = reinterpret_cast<Parent*>(reinterpret_cast<std::byte*>(this) - sizeof(Base));
+                static_assert(sizeof(Base) == offsetof(Parent, m_fields), "offsetof not correct");
+
+                // generating the container if it doesn't exist
+                auto container = FieldContainer::from(node, typeid(Base).name());
+
+                // the index is global across all mods, so the
+                // function is defined in the loader source
+                static size_t index = getFieldIndexForClass(typeid(Base).name());
+
+                // the fields are actually offset from their original
+                // offset, this is done to save on allocation and space
+                auto offsetField = container->getField(index);
+                if (!offsetField) {
+                    offsetField = container->setField(
+                        index, sizeof(typename Parent::Fields), &FieldIntermediate::fieldDestructor
+                    );
+
+                    FieldIntermediate::fieldConstructor(offsetField);
+                }
+
+                return reinterpret_cast<typename Parent::Fields*>(offsetField);
+            }
+            else {
+                return this->deprecatedSelf();
+            }
         }
 
-        Parent* operator->() {
+        auto operator->() {
             // workaround for "static assertion is not an integral constant expression" in CLion
             // while the solution in https://github.com/microsoft/STL/issues/3311 works, you can't provide
             // cli args to clang-tidy in clion, so we use this workaround instead
@@ -132,9 +177,9 @@ namespace geode::modifier {
             // undefining and re-defining offsetof caused another error further down
             // so we're doing this now
 #ifdef __CLION_IDE__
-            return reinterpret_cast<Parent*>(69420);
+            return reinterpret_cast<typename Parent::Fields*>(69420);
 #else
-            return this->operator Parent*();
+            return this->self();
 #endif
         }
     };
