@@ -18,9 +18,12 @@ bool InstalledModsQuery::preCheck(ModSource const& src) const {
     return true;
 }
 bool InstalledModsQuery::queryCheck(ModSource const& src, double& weighted) const {
-    auto addToList = modFuzzyMatch(src.asMod()->getMetadata(), *query, weighted);
+    bool addToList = true;
+    if (query) {
+        addToList = modFuzzyMatch(src.asMod()->getMetadata(), *query, weighted);
+    }
     // Loader gets boost to ensure it's normally always top of the list
-    if (addToList && src.asMod()->getID() == "geode.loader") {
+    if (addToList && src.asMod()->isInternal()) {
         weighted += 5;
     }
     // todo: favorites

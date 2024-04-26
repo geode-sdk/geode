@@ -223,7 +223,7 @@ void filterModsWithLocalQuery(ModListSource::ProvidedMods& mods, Query const& qu
             }
         }
         // Don't bother with unnecessary fuzzy match calculations if this mod isn't going to be added anyway
-        if (addToList && query.query) {
+        if (addToList) {
             addToList = query.queryCheck(src, weighted);
         }
         if (addToList) {

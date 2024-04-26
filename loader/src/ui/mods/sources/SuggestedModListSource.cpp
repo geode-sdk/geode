@@ -5,10 +5,13 @@ bool SuggestedModsQuery::preCheck(ModSource const& src) const {
     return true;
 }
 bool SuggestedModsQuery::queryCheck(ModSource const& src, double& weighted) const {
-    if (!modFuzzyMatch(src.asSuggestion()->suggestion, *query, weighted)) {
-        return false;
+    if (query) {
+        if (!modFuzzyMatch(src.asSuggestion()->suggestion, *query, weighted)) {
+            return false;
+        }
+        return modFuzzyMatch(src.asSuggestion()->forMod->getMetadata(), *query, weighted);
     }
-    return modFuzzyMatch(src.asSuggestion()->forMod->getMetadata(), *query, weighted);
+    return true;
 }
 
 void SuggestedModListSource::resetQuery() {
