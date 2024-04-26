@@ -225,6 +225,17 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         obj.has("importance").into(dependency.importance);
         obj.checkUnknownKeys();
 
+        if (
+            dependency.version.getComparison() != VersionCompare::MoreEq &&
+            dependency.version.getComparison() != VersionCompare::Any
+        ) {
+            return Err(
+                "[mod.json].dependencies.{}.version must be either a more-than "
+                "comparison for a specific version or a wildcard for any version",
+                dependency.id
+            );
+        }
+
         // if (isDeprecatedIDForm(dependency.id)) {
         //     log::warn(
         //         "Dependency ID '{}' will be rejected in the future - "
