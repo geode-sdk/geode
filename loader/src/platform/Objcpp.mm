@@ -15,6 +15,7 @@ using namespace geode::prelude;
 
 #include "ios/LoaderImpl.mm"
 #include "ios/main.mm"
+#include "ios/crashlog.mm"
 #include "ios/FileWatcher.mm"
 #include "ios/util.mm"
 
