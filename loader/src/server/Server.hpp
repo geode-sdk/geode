@@ -116,12 +116,22 @@ namespace server {
     template <class T>
     using ServerRequest = Task<Result<T, ServerError>, ServerProgress>;
 
+    struct ModVersionLatest final {
+        bool operator==(ModVersionLatest const&) const = default;
+    };
+    struct ModVersionMajor final {
+        size_t major;
+        bool operator==(ModVersionMajor const&) const = default;
+    };
+    using ModVersionSpecific = VersionInfo;
+    using ModVersion = std::variant<ModVersionLatest, ModVersionMajor, ModVersionSpecific>;
+
     std::string getServerAPIBaseURL();
     std::string getServerUserAgent();
 
     ServerRequest<ServerModsList> getMods(ModsQuery const& query, bool useCache = true);
     ServerRequest<ServerModMetadata> getMod(std::string const& id, bool useCache = true);
-    ServerRequest<ServerModVersion> getModVersion(std::string const& id, std::optional<VersionInfo> const& version = std::nullopt, bool useCache = true);
+    ServerRequest<ServerModVersion> getModVersion(std::string const& id, ModVersion const& version = ModVersionLatest(), bool useCache = true);
     ServerRequest<ByteVector> getModLogo(std::string const& id, bool useCache = true);
     ServerRequest<std::unordered_set<std::string>> getTags(bool useCache = true);
 

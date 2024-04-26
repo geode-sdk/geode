@@ -10,8 +10,14 @@ LoadModSuggestionTask loadModSuggestion(LoadProblem const& problem) {
         auto suggestionVersionStr = problem.message.substr(problem.message.find(' ') + 1);
 
         if (auto suggestionVersionRes = ComparableVersionInfo::parse(suggestionVersionStr)) {
-            // todo: should this just always default to installing the latest available version?
-            auto suggestionVersion = suggestionVersionRes->getUnderlyingVersion();
+            server::ModVersion suggestionVersion = server::ModVersionLatest();
+            if (suggestionVersionRes->getComparison() == VersionCompare::MoreEq) {
+                suggestionVersion = server::ModVersionMajor {
+                    .major = suggestionVersionRes->getUnderlyingVersion().getMajor()
+                };
+            }
+            // todo: if mods are allowed to specify other type of version comparisons in the future, 
+            // add support for that here
             
             if (auto mod = std::get_if<Mod*>(&problem.cause)) {
                 return server::getModVersion(suggestionID, suggestionVersion).map(

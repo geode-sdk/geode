@@ -8,6 +8,7 @@ using namespace server;
 #define GEODE_GD_VERSION_STR GEODE_STR(GEODE_GD_VERSION)
 
 template <class K, class V> 
+    requires std::equality_comparable<K> && std::copy_constructible<K>
 class CacheMap final {
 private:
     // I know this looks like a goofy choice over just 
@@ -590,7 +591,7 @@ ServerRequest<ServerModMetadata> server::getMod(std::string const& id, bool useC
     );
 }
 
-ServerRequest<ServerModVersion> server::getModVersion(std::string const& id, std::optional<VersionInfo> const& version, bool useCache) {
+ServerRequest<ServerModVersion> server::getModVersion(std::string const& id, ModVersion const& version, bool useCache) {
     if (useCache) {
         return getCache<getModVersion>().get(id, version);
     }
@@ -598,8 +599,20 @@ ServerRequest<ServerModVersion> server::getModVersion(std::string const& id, std
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
 
-    auto versionURL = version ? version->toNonVString(false) : "latest";
-    log::info("{}", getServerAPIBaseURL() + "/mods/" + id + "/versions/" + versionURL);
+    std::string versionURL;
+    std::visit(makeVisitor {
+        [&](ModVersionLatest const&) {
+            versionURL = "latest";
+        },
+        [&](ModVersionMajor const& ver) {
+            versionURL = "latest";
+            req.param("major", std::to_string(ver.major));
+        },
+        [&](ModVersionSpecific const& ver) {
+            versionURL = ver.toNonVString(false);
+        },
+    }, version);
+
     return req.get(getServerAPIBaseURL() + "/mods/" + id + "/versions/" + versionURL).map(
         [](web::WebResponse* response) -> Result<ServerModVersion, ServerError> {
             if (response->ok()) {

@@ -76,7 +76,8 @@ public:
                 ModDownloadEvent(m_id).post();
             }
         });
-        m_infoListener.setFilter(getModVersion(id, version));
+        auto fetchVersion = version.has_value() ? ModVersion(*version) : ModVersion(ModVersionLatest());
+        m_infoListener.setFilter(getModVersion(id, fetchVersion));
         Loader::get()->queueInMainThread([id = m_id] {
             ModDownloadEvent(id).post();
         });
