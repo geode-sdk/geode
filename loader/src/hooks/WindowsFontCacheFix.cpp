@@ -2,6 +2,8 @@
 
 #ifdef GEODE_IS_WINDOWS
 
+#include <loader/LoaderImpl.hpp>
+
 using namespace geode::prelude;
 
 // https://github.com/cocos2d/cocos2d-x/blob/5a25fe75cb8b26b61b14b070e757ec3b17ff7791/cocos2dx/platform/win32/CCImage.cpp#L96
@@ -33,14 +35,14 @@ static void patchCall(uintptr_t addr, uintptr_t newCall) {
 }
 
 $execute {
-
+    if (LoaderImpl::get()->isForwardCompatMode()) return;
+    
     // BitmapDC::~BitmapDC
     patchCall(0xC9A56, (uintptr_t)&RemoveFontResourceWHook);
 
     // BitmapDC::setFont
     patchCall(0xCB5BC, (uintptr_t)&RemoveFontResourceWHook);
     patchCall(0xCB642, (uintptr_t)&AddFontResourceWHook);
-
 };
 
 #endif
