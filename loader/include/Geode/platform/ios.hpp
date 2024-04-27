@@ -18,7 +18,9 @@ namespace geode::base {
     GEODE_NOINLINE inline uintptr_t get() {
         static uintptr_t base = []() -> uintptr_t {
             for(uint32_t gdii = 0; gdii < _dyld_image_count(); gdii++) {
-                if (strstr(_dyld_get_image_name(gdii), "GeometryJump") != 0) {
+                std::string_view imageName(_dyld_get_image_name(gdii));
+
+                if (imageName.ends_with("GeometryJump")) {
                     return _dyld_get_image_vmaddr_slide(gdii) + 0x100000000;
                 }
             }
