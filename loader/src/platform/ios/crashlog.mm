@@ -268,6 +268,9 @@ static std::string getStacktrace() {
         }
         else {
             std::getline(stream, function);
+
+            // TODO: temp pls uncomment 
+            /*
             cutoff = function.find("+");
             stream = std::stringstream(function.substr(cutoff));
             stream >> offset;
@@ -285,6 +288,8 @@ static std::string getStacktrace() {
             stacktrace << "- " << binary;
             stacktrace << " @ " << std::showbase << std::hex << address << std::dec;
             stacktrace << " (" << function << " + " << offset << ")\n";
+            */
+            stacktrace << "- " << function << "\n";
         }
     }
 
