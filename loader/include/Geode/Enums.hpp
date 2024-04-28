@@ -378,7 +378,13 @@ enum class TextStyleType {
 enum class InputValueType {};
 enum class GJInputStyle {};
 enum class GJDifficultyName {};
-enum class GJFeatureState {};
+enum class GJFeatureState {
+    None = 0,
+    Featured = 1,
+    Epic = 2,
+    Legendary = 3,
+    Mythic = 4
+};
 enum class GJKeyGroup {};
 enum class GJKeyCommand {};
 enum class SelectSettingType {};
