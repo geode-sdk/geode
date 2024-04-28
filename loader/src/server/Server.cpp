@@ -486,10 +486,15 @@ std::string server::getServerAPIBaseURL() {
     return "https://api.geode-sdk.org/v1";
 }
 
+template <class... Args>
+std::string formatServerURL(fmt::format_string<Args...> fmt, Args&&... args) {
+    return getServerAPIBaseURL() + fmt::format(fmt, std::forward<Args>(args)...);
+}
+
 std::string server::getServerUserAgent() {
     // this may change in the future..
     return fmt::format("Geode {}/{}",
-        Loader::get()->getVersion().toString(),
+        Loader::get()->getVersion().toVString(),
         PlatformID::toShortString(GEODE_PLATFORM_TARGET)
     );
 }
@@ -504,7 +509,7 @@ ServerRequest<ServerModsList> server::getMods(ModsQuery const& query, bool useCa
 
     // Always target current GD version and Loader version
     req.param("gd", GEODE_GD_VERSION_STR);
-    req.param("geode", Loader::get()->getVersion().toString());
+    req.param("geode", Loader::get()->getVersion().toVString());
 
     // Add search params
     if (query.query) {
@@ -535,7 +540,7 @@ ServerRequest<ServerModsList> server::getMods(ModsQuery const& query, bool useCa
     req.param("page", std::to_string(query.page + 1));
     req.param("per_page", std::to_string(query.pageSize));
 
-    return req.get(getServerAPIBaseURL() + "/mods").map(
+    return req.get(formatServerURL("/mods")).map(
         [](web::WebResponse* response) -> Result<ServerModsList, ServerError> {
             if (response->ok()) {
                 // Parse payload
@@ -568,7 +573,7 @@ ServerRequest<ServerModMetadata> server::getMod(std::string const& id, bool useC
     }
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
-    return req.get(getServerAPIBaseURL() + "/mods/" + id).map(
+    return req.get(formatServerURL("/mods/{}", id)).map(
         [](web::WebResponse* response) -> Result<ServerModMetadata, ServerError> {
             if (response->ok()) {
                 // Parse payload
@@ -613,7 +618,7 @@ ServerRequest<ServerModVersion> server::getModVersion(std::string const& id, Mod
         },
     }, version);
 
-    return req.get(getServerAPIBaseURL() + "/mods/" + id + "/versions/" + versionURL).map(
+    return req.get(formatServerURL("/mods/{}/versions/{}", id, versionURL)).map(
         [](web::WebResponse* response) -> Result<ServerModVersion, ServerError> {
             if (response->ok()) {
                 // Parse payload
@@ -642,7 +647,7 @@ ServerRequest<ByteVector> server::getModLogo(std::string const& id, bool useCach
     }
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
-    return req.get(getServerAPIBaseURL() + "/mods/" + id + "/logo").map(
+    return req.get(formatServerURL("/mods/{}/logo", id)).map(
         [](web::WebResponse* response) -> Result<ByteVector, ServerError> {
             if (response->ok()) {
                 return Ok(response->data());
@@ -661,7 +666,7 @@ ServerRequest<std::unordered_set<std::string>> server::getTags(bool useCache) {
     }
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
-    return req.get(getServerAPIBaseURL() + "/tags").map(
+    return req.get(formatServerURL("/tags")).map(
         [](web::WebResponse* response) -> Result<std::unordered_set<std::string>, ServerError> {
             if (response->ok()) {
                 // Parse payload
@@ -723,7 +728,7 @@ ServerRequest<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCach
     if (modIDs.size()) {
         req.param("ids", ranges::join(modIDs, ";"));
     }
-    return req.get(getServerAPIBaseURL() + "/mods/updates").map(
+    return req.get(formatServerURL("/mods/updates")).map(
         [](web::WebResponse* response) -> Result<std::vector<ServerModUpdate>, ServerError> {
             if (response->ok()) {
                 // Parse payload
