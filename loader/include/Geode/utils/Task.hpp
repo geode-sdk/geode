@@ -6,11 +6,51 @@
 #include "../loader/Loader.hpp"
 
 namespace geode {
+    /**
+     * Tasks represent an asynchronous operation that will be finished at some 
+     * unknown point in the future. Tasks can report their progress, and will 
+     * end either through finishing into a value, or due to being cancelled. 
+     * Tasks are designed to provide a thread-safe general purpose abstraction 
+     * for dealing with any asynchronous operations.
+     * The `Task` class satisfies `EventFilter` and as such is listened 
+     * to using the Geode events system; tasks may have multiple listeners, and 
+     * even if a listener is attached after the Task has finished it will
+     * receive the finished value. 
+     * Tasks are a very cheap and tiny struct that just have a reference to 
+     * a task Handle; as such, Tasks may (and should) be copied around without
+     * worry. It should be noted that a Task never owns itself - the listener(s) 
+     * of a Task are expected to hold an instance of the Task for as long as 
+     * they intend to listen to it. Usually this is done via just setting 
+     * the Task as the filter to an `EventListener`, as the `EventListener` 
+     * manages the lifetime of its filter
+     * Task itself does not carry a notion of fallibility aside from 
+     * cancellation; it is customary to use the `Result` type in Tasks that 
+     * might finish to a failure value.
+     * Once a Task has finished or has been cancelled, it can no longer be 
+     * revived
+     * @tparam T The type the Task will eventually finish to. This type must be 
+     * move-constructible; though as there is no way to move the value out 
+     * of the Task (because of potentially multiple listeners), one 
+     * should ensure they can reasonably copy the value out in some form if they 
+     * wish to gain ownership of it after the Task is finished
+     * @tparam P The type of the progress values the Task (may) post
+     */
     template <std::move_constructible T, std::move_constructible P = std::monostate>
     class [[nodiscard]] Task final {
     public:
+        /**
+         * A struct used for cancelling Tasks; Tasks may return an instance of
+         * this struct to cancel themselves, or to mark they have handled 
+         * outside cancellation
+         */
         struct [[nodiscard]] Cancel final {};
 
+        /**
+         * A simple holder for the result of this task; holds either the finished 
+         * value or a mark that the Task was cancelled. The Task body must return 
+         * this type (though it is implicitly convertible from T and Cancel 
+         * so the programmer rarely needs to explicitly name it)
+         */
         class Result final {
         private:
             std::variant<T, Cancel> m_value;
@@ -34,19 +74,28 @@ namespace geode {
             Result(T&& value) : m_value(std::in_place_index<0>, std::forward<T>(value)) {}
             Result(Cancel const&) : m_value(std::in_place_index<1>, Cancel()) {}
 
+            // Allow constructing Results using anything that can be used to construct T
             template <class V>
             Result(V&& value) requires std::is_constructible_v<T, V&&>
               : m_value(std::in_place_index<0>, std::forward<V>(value))
             {}
         };
     
-    public:
+        /// The current status of a Task
         enum class Status {
+            /// The task is still running or waiting to start
             Pending,
+            /// The task has succesfully finished
             Finished,
+            /// The task has been cancelled
             Cancelled,
         };
 
+        /**
+         * A handle to a running Task. This is what actually keeps track of 
+         * the state of the current task; the `Task` class is simply an owning 
+         * reference & interface to one of these
+         */
         class Handle final {
         private:
             // Handles may contain extra data, for example for holding ownership 
@@ -106,6 +155,11 @@ namespace geode {
             Handle(PrivateMarker, std::string const& name) : m_name(name) {}
         };
 
+        /**
+         * When the Task progresses,  finishes, or is cancelled, one of these 
+         * is posted; the `Task` class itself is used as an event filter to 
+         * catch the task events for that specific task
+         */
         class Event final : public geode::Event {
         private:
             std::shared_ptr<Handle> m_handle;
@@ -129,21 +183,44 @@ namespace geode {
             friend class Task;
 
         public:
+            /**
+             * Get a reference to the contained finish value, or null if this 
+             * event holds a progress value or represents cancellation instead
+             */
             T* getValue() {
                 return m_value.index() == 0 ? std::get<0>(m_value) : nullptr;
             }
+            /**
+             * Get a reference to the contained finish value, or null if this 
+             * event holds a progress value or represents cancellation instead
+             */  
             T const* getValue() const {
                 return m_value.index() == 0 ? std::get<0>(m_value) : nullptr;
             }
+            /**
+             * Get a reference to the contained progress value, or null if 
+             * this event holds a finish value or represents cancellation instead
+             */   
             P* getProgress() {
                 return m_value.index() == 1 ? std::get<1>(m_value) : nullptr;
             }
+            /**
+             * Get a reference to the contained progress value, or null if 
+             * this event holds a finish value or represents cancellation instead
+             */   
             P const* getProgress() const {
                 return m_value.index() == 1 ? std::get<1>(m_value) : nullptr;
             }
+            /** 
+             * Check if the Task was cancelled
+             */
             bool isCancelled() const {
                 return m_value.index() == 2;
             }
+            /**
+             * Cancel the Task that posted this event. If the task has 
+             * already finished or been cancelled, nothing happens
+             */
             void cancel() {
                 Task::cancel(m_handle);
             }
@@ -211,6 +288,7 @@ namespace geode {
         friend class Task;
 
     public:
+        // Allow default-construction
         Task() : m_handle(nullptr) {}
 
         Task(Task const& other) : m_handle(other.m_handle) {}
@@ -243,12 +321,23 @@ namespace geode {
             return m_handle >= other.m_handle;
         }
 
+        /**
+         * Get the value this Task finished to, if the Task had finished, 
+         * or null otherwise. Note that this is simply a mutable reference to 
+         * the value - *you may not move out of it!*
+         */
         T* getFinishedValue() {
             if (m_handle && m_handle->m_resultValue) {
                 return &*m_handle->m_resultValue;
             }
             return nullptr;
         }
+        /**
+         * Cancel this Task. If this is a Task that owns other Task(s) (for example 
+         * one created through `Task::map`) then that Task is cancelled 
+         * as well. If this is undesirable, use `shallowCancel()`
+         * instead
+         */
         void cancel() {
             Task::cancel(m_handle);
         }
@@ -272,15 +361,32 @@ namespace geode {
         bool isCancelled() const {
             return m_handle && m_handle->is(Status::Cancelled);
         }
+        /** 
+         * Check if this Task doesn't actually do anything (for instance it 
+         * was default-constructed)
+         */
         bool isNull() const {
             return m_handle == nullptr;
         }
         
+        /**
+         * Create a new Task that immediately finishes with the given 
+         * value
+         * @param value The value the Task shall be finished with
+         * @param name The name of the Task; used for debugging
+         */
         static Task immediate(T value, std::string const& name = "<Immediate Task>") {
             auto task = Task(Handle::create(name));
             Task::finish(task.m_handle, std::move(value));
             return task;
         }
+        /**
+         * Create a new Task with a function that returns the finished value. 
+         * See the class description for details about Tasks
+         * @param body The body aka actual code of the Task. Note that this 
+         * function MUST be synchronous - Task creates the thread for you!
+         * @param name The name of the Task; used for debugging
+         */
         static Task run(Run&& body, std::string const& name = "<Task>") {
             auto task = Task(Handle::create(name));
             std::thread([handle = std::weak_ptr(task.m_handle), name, body = std::move(body)] {
@@ -305,6 +411,15 @@ namespace geode {
             }).detach();
             return task;
         }
+        /**
+         * Create a Task using a body that may need to create additional 
+         * threads within itself; for example due to using an external 
+         * library that creates its own thread
+         * @param body The body aka actual code of the Task. The body may 
+         * call its provided finish callback *exactly once* - subsequent 
+         * calls will always be ignored
+         * @param name The name of the Task; used for debugging
+         */
         static Task runWithCallback(RunWithCallback&& body, std::string const& name = "<Callback Task>") {
             auto task = Task(Handle::create(name));
             std::thread([handle = std::weak_ptr(task.m_handle), name, body = std::move(body)] {
@@ -332,6 +447,10 @@ namespace geode {
             return task;
         }
         /**
+         * Create a Task that waits for a list of other Tasks to finish, and then 
+         * finishes with a list of their finish values
+         * @param tasks The tasks to wait for
+         * @param name The name of the Task; used for debugging
          * @warning The result vector may contain nulls if any of the tasks 
          * were cancelled!
          */
@@ -417,6 +536,22 @@ namespace geode {
             return task;
         }
 
+        /**
+         * Create a new Task that listens to this Task and maps the values using 
+         * the provided functions. 
+         * The new Task takes (shared) ownership of this Task, so the new Task 
+         * may very well be its only listener
+         * @param resultMapper Function that converts the finished values of 
+         * the mapped Task to a desired type. Note that the function is only 
+         * given a pointer to the finish value, as `T` is not guaranteed to be 
+         * copiable - the mapper may NOT move out of the value!
+         * @param progressMapper Function that converts the progress values of 
+         * the mapped Task to a desired type
+         * @param onCancelled Function that is called if the mapped Task is 
+         * cancelled
+         * @param name The name of the Task; used for debugging. The name of 
+         * the mapped task is appended to the end
+         */
         template <class ResultMapper, class ProgressMapper, class OnCancelled>
         auto map(ResultMapper&& resultMapper, ProgressMapper&& progressMapper, OnCancelled&& onCancelled, std::string const& name = "<Mapping Task>") const {
             using T2 = decltype(resultMapper(std::declval<T*>()));
@@ -474,12 +609,36 @@ namespace geode {
             return task;
         }
 
-        template <class ResultMapper, class ProgressMapper>
+        /**
+         * Create a new Task that listens to this Task and maps the values using 
+         * the provided functions. 
+         * The new Task takes (shared) ownership of this Task, so the new Task 
+         * may very well be its only listener
+         * @param resultMapper Function that converts the finished values of 
+         * the mapped Task to a desired type. Note that the function is only 
+         * given a pointer to the finish value, as `T` is not guaranteed to be 
+         * copiable - the mapper may NOT move out of the value!
+         * @param progressMapper Function that converts the progress values of 
+         * the mapped Task to a desired type
+         * @param name The name of the Task; used for debugging. The name of 
+         * the mapped task is appended to the end
+         */        template <class ResultMapper, class ProgressMapper>
         auto map(ResultMapper&& resultMapper, ProgressMapper&& progressMapper, std::string const& name = "<Mapping Task>") const {
             return this->map(std::move(resultMapper), std::move(progressMapper), +[]() {}, name);
-        }
-
-        template <class ResultMapper>
+        }
+        /**
+         * Create a new Task that listens to this Task and maps the finish value 
+         * using the provided function. Progress is mapped by copy-constructing 
+         * the value as-is.
+         * The new Task takes (shared) ownership of this Task, so the new Task 
+         * may very well be its only listener
+         * @param resultMapper Function that converts the finished values of 
+         * the mapped Task to a desired type. Note that the function is only 
+         * given a pointer to the finish value, as `T` is not guaranteed to be 
+         * copiable - the mapper may NOT move out of the value!
+         * @param name The name of the Task; used for debugging. The name of 
+         * the mapped task is appended to the end
+         */        template <class ResultMapper>
             requires std::copy_constructible<P>
         auto map(ResultMapper&& resultMapper, std::string const& name = "<Mapping Task>") const {
             return this->map(std::move(resultMapper), +[](P* p) -> P { return *p; }, name);
