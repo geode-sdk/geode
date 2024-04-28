@@ -349,7 +349,7 @@ namespace geode {
                 std::vector<Task<std::monostate>> taskListeners;
                 size_t taskCount;
             };
-            task.m_handle->m_extraData = std::make_unique<AllTask::Handle::ExtraData>(
+            task.m_handle->m_extraData = std::make_unique<typename AllTask::Handle::ExtraData>(
                 // Create the data
                 static_cast<void*>(new Waiting()),
                 // When the task is destroyed
@@ -420,7 +420,7 @@ namespace geode {
             static_assert(std::is_move_constructible_v<T2>, "The type being mapped to must be move-constructible!");
             static_assert(std::is_move_constructible_v<P2>, "The type being mapped to must be move-constructible!");
 
-            auto task = Task<T2, P2>(Task<T2, P2>::Handle::create(fmt::format("{} <= {}", name, m_handle->m_name))); 
+            Task<T2, P2> task = Task<T2, P2>::Handle::create(fmt::format("{} <= {}", name, m_handle->m_name));
 
             // Lock the current task until we have managed to create our new one
             std::unique_lock<std::recursive_mutex> lock(m_handle->m_mutex);
@@ -436,7 +436,7 @@ namespace geode {
             }
             // Otherwise start listening and waiting for the current task to finish
             else {
-                task.m_handle->m_extraData = std::make_unique<Task<T2, P2>::Handle::ExtraData>(
+                task.m_handle->m_extraData = std::make_unique<typename Task<T2, P2>::Handle::ExtraData>(
                     static_cast<void*>(new EventListener<Task>(
                         [
                             handle = std::weak_ptr(task.m_handle),
