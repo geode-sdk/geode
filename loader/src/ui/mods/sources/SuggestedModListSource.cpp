@@ -24,9 +24,6 @@ SuggestedModListSource::ProviderTask SuggestedModListSource::fetchPage(size_t pa
     for (auto problem : Loader::get()->getRecommendations()) {
         tasks.push_back(loadModSuggestion(problem));
     }
-    if (tasks.empty()) {
-        return ProviderTask::immediate(Ok(ProvidedMods()), {});
-    }
     return LoadModSuggestionTask::all(std::move(tasks)).map(
         [query = m_query](auto* results) -> ProviderTask::Value {
             auto content = ProvidedMods();

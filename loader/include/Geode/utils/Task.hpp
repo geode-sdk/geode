@@ -339,6 +339,11 @@ namespace geode {
         static Task<std::vector<T*>, std::monostate> all(std::vector<Task<T, NP>>&& tasks, std::string const& name = "<Multiple Tasks>") {
             using AllTask = Task<std::vector<T*>, std::monostate>;
 
+            // If there are no tasks, return an immediate task that does nothing
+            if (tasks.empty()) {
+                return AllTask::immediate({}, name);
+            }
+
             // Create a new supervising task for all of the provided tasks
             auto task = AllTask(AllTask::Handle::create(name));
 
