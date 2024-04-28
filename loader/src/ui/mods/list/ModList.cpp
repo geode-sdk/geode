@@ -579,6 +579,8 @@ void ModList::onSort(CCObject*) {
 }
 
 void ModList::onClearFilters(CCObject*) {
+    // FIXME: reloads twice
+    m_source->setModTags({});
     m_searchInput->setString("", true);
 }
 
