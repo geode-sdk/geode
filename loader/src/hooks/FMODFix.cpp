@@ -1,5 +1,8 @@
 #include <Geode/Geode.hpp>
 
+// uncomment whenever macos stops complaining about fmod link errors
+#ifndef GEODE_IS_MACOS
+
 using namespace geode::prelude;
 
 auto g_systemInitialized = false;
@@ -63,3 +66,5 @@ struct AndroidFMODFix : Modify<AndroidFMODFix, FMODAudioEngine> {
     }
 };
 */
+
+#endif
