@@ -327,7 +327,7 @@ enum class FMODReverbPreset {
     City = 0x10,
     Mountains = 0x11,
     Quarry = 0x12,
-    PLAIN = 0x13,
+    Plain = 0x13,
     ParkingLot = 0x14,
     SewerPipe = 0x15,
     Underwater = 0x16
