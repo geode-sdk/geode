@@ -20,7 +20,7 @@ BEGIN
             VALUE "FileDescription", "Geode mod loader."
             VALUE "FileVersion", "@PROJECT_VERSION_MAJOR@,@PROJECT_VERSION_MINOR@,@PROJECT_VERSION_PATCH@,0"
             VALUE "InternalName", "@PROJECT_NAME@"
-            VALUE "LegalCopyright", "2022 The Geode Team"
+            VALUE "LegalCopyright", "2024 The Geode Team"
             VALUE "OriginalFilename", "@PROJECT_NAME@.dll"
             VALUE "ProductName", "Geode Loader"
             VALUE "ProductVersion", "@PROJECT_VERSION_MAJOR@,@PROJECT_VERSION_MINOR@,@PROJECT_VERSION_PATCH@,0"
