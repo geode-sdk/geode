@@ -372,6 +372,37 @@ CCNode* geode::cocos::getChildBySpriteFrameName(CCNode* parent, const char* name
     return nullptr;
 }
 
+bool geode::cocos::isSpriteName(CCNode* node, const char* name) {
+    if (!node) return false;
+
+    auto texture = CCTextureCache::sharedTextureCache()->textureForKey(name);
+    if (!texture) return false;
+
+    if (auto* spr = typeinfo_cast<CCSprite*>(node)) {
+        if (spr->getTexture() == texture) {
+            return true;
+        }
+    }
+    else if (auto* btn = typeinfo_cast<CCMenuItemSprite*>(node)) {
+        auto* img = btn->getNormalImage();
+        if (auto* spr = typeinfo_cast<CCSprite*>(img)) {
+            if (spr->getTexture() == texture) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+CCNode* geode::cocos::getChildBySpriteName(CCNode* parent, const char* name) {
+    for (auto child : CCArrayExt<CCNode*>(parent->getChildren())) {
+        if (::isSpriteName(static_cast<CCNode*>(child), name)) {
+            return child;
+        }
+    }
+    return nullptr;
+}
+
 CCRect geode::cocos::calculateNodeCoverage(std::vector<CCNode*> const& nodes) {
     CCRect coverage;
     for (auto child : nodes) {

@@ -377,7 +377,10 @@ enum class TextStyleType {
 };
 enum class InputValueType {};
 enum class GJInputStyle {};
-enum class GJDifficultyName {};
+enum class GJDifficultyName {
+    Short = 0,
+    Long = 1
+};
 enum class GJFeatureState {
     None = 0,
     Featured = 1,
