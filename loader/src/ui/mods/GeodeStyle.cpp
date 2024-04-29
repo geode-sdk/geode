@@ -1,6 +1,7 @@
 #include "GeodeStyle.hpp"
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/ColorProvider.hpp>
+#include <Geode/loader/SettingEvent.hpp>
 
 $execute {
     // todo: these names should probably be shorter so they fit in SSO...
@@ -14,6 +15,7 @@ $execute {
     ColorProvider::get()->define("mod-list-updates-available-bg-2"_spr, { 45, 110, 222, 255 });
     ColorProvider::get()->define("mod-list-errors-found"_spr, { 235, 35, 112, 255 });
     ColorProvider::get()->define("mod-list-errors-found-2"_spr, { 245, 27, 27, 255 });
+    ColorProvider::get()->define("mod-list-tab-deselected-bg"_spr, { 26, 24, 29, 255 });
     ColorProvider::get()->define("mod-list-tab-selected-bg"_spr, { 168, 147, 185, 255 });
     ColorProvider::get()->define("mod-list-tab-selected-bg-alt"_spr, { 147, 163, 185, 255 });
     ColorProvider::get()->define("mod-list-featured-color"_spr, { 255, 255, 120, 255 });
@@ -22,10 +24,35 @@ $execute {
     ColorProvider::get()->define("mod-list-recommended-bg"_spr, ccc3(25, 255, 167));
     ColorProvider::get()->define("mod-list-recommended-by"_spr, ccc3(25, 255, 167));
     ColorProvider::get()->define("mod-list-recommended-by-2"_spr, ccc3(47, 255, 255));
+
+    auto updateColors = +[](bool enabled) {
+        if (enabled) {
+            ColorProvider::get()->reset("mod-list-bg"_spr);
+            ColorProvider::get()->reset("mod-list-search-bg"_spr);
+            ColorProvider::get()->reset("mod-list-tab-deselected-bg"_spr);
+            ColorProvider::get()->reset("mod-list-tab-selected-bg"_spr);
+            ColorProvider::get()->reset("mod-list-tab-selected-bg-alt"_spr);
+            ColorProvider::get()->reset("mod-list-restart-required-label"_spr);
+            ColorProvider::get()->reset("mod-list-restart-required-label-bg"_spr);
+        }
+        else {
+            ColorProvider::get()->override("mod-list-bg"_spr, { 168, 85, 44, 255 });
+            ColorProvider::get()->override("mod-list-search-bg"_spr, { 114, 63, 31, 255 });
+            ColorProvider::get()->override("mod-list-tab-deselected-bg"_spr, { 54, 31, 16, 255 });
+            ColorProvider::get()->override("mod-list-tab-selected-bg"_spr, { 248, 200, 43, 255 });
+            ColorProvider::get()->override("mod-list-tab-selected-bg-alt"_spr, { 156, 185, 147, 255 });
+            ColorProvider::get()->override("mod-list-restart-required-label"_spr, ccc3(10, 226, 255));
+            ColorProvider::get()->override("mod-list-restart-required-label-bg"_spr, ccc3(0, 174, 180));
+        }
+    };
+
+    // Update colors when the theme is changed
+    listenForSettingChanges("enable-geode-theme", updateColors);
+    updateColors(Mod::get()->template getSettingValue<bool>("enable-geode-theme"));
 }
 
 bool GeodeSquareSprite::init(CCSprite* top, bool* state) {
-    if (!CCSprite::initWithFile("GE_button_05.png"_spr))
+    if (!CCSprite::initWithFile(isGeodeTheme() ? "GE_button_05.png"_spr : "GJ_button_01.png"))
         return false;
     
     m_stateSrc = state;
@@ -47,7 +74,8 @@ void GeodeSquareSprite::update(float dt) {
     if (m_stateSrc && m_state != *m_stateSrc) {
         m_state = *m_stateSrc;
         this->setTexture(CCTextureCache::get()->addImage(
-            (m_state ? "GJ_button_02.png" : "GE_button_05.png"_spr), true
+            (m_state ? "GJ_button_02.png" : (isGeodeTheme() ? "GE_button_05.png"_spr : "GJ_button_01.png")),
+            true
         ));
     }
 }
@@ -126,16 +154,41 @@ CCNode* createLoadingCircle(float sideLength, const char* id) {
     return spinner;
 }
 
-IconButtonSprite* createGeodeButton(CCNode* icon, std::string const& text, std::string const& bg) {
-    return IconButtonSprite::create(bg.c_str(), icon, text.c_str(), "bigFont.fnt");
+const char* getGeodeButtonSpriteName(GeodeButtonSprite spr) {
+    if (isGeodeTheme()) {
+        switch (spr) {
+            default:
+            case GeodeButtonSprite::Default: return "GE_button_05.png"_spr;
+            case GeodeButtonSprite::Install: return "GE_button_01.png"_spr;
+            case GeodeButtonSprite::Delete: return "GJ_button_06.png";
+            case GeodeButtonSprite::Enable: return "GJ_button_01.png";
+        }
+    }
+    else {
+        switch (spr) {
+            default:
+            case GeodeButtonSprite::Default: return "GJ_button_01.png";
+            case GeodeButtonSprite::Install: return "GE_button_01.png"_spr;
+            case GeodeButtonSprite::Delete: return "GJ_button_06.png";
+            case GeodeButtonSprite::Enable: return "GJ_button_02.png";
+        }
+    }
 }
 
-ButtonSprite* createGeodeButton(std::string const& text, bool gold, std::string const& bg) {
-    return ButtonSprite::create(text.c_str(), gold ? "goldFont.fnt" : "bigFont.fnt", bg.c_str(), .8f);
+IconButtonSprite* createGeodeButton(CCNode* icon, std::string const& text, GeodeButtonSprite bg) {
+    return IconButtonSprite::create(getGeodeButtonSpriteName(bg), icon, text.c_str(), "bigFont.fnt");
+}
+ButtonSprite* createGeodeButton(std::string const& text, bool gold, GeodeButtonSprite bg) {
+    return ButtonSprite::create(text.c_str(), gold ? "goldFont.fnt" : "bigFont.fnt", getGeodeButtonSpriteName(bg), .8f);
 }
 
-CircleButtonSprite* createGeodeCircleButton(const char* topFrameName) {
-    return CircleButtonSprite::createWithSpriteFrameName(topFrameName, 1.f, CircleBaseColor::DarkPurple);
+CircleButtonSprite* createGeodeCircleButton(CCSprite* top, float scale, CircleBaseSize size, bool altColor) {
+    const auto geodeTheme = isGeodeTheme();
+    auto ret = CircleButtonSprite::create(
+        top, geodeTheme ? (altColor ? CircleBaseColor::DarkAqua : CircleBaseColor::DarkPurple) : CircleBaseColor::Green, size
+    );
+    ret->setTopRelativeScale(scale);
+    return ret;
 }
 
 ButtonSprite* createGeodeTagLabel(std::string const& text, std::optional<std::pair<ccColor3B, ccColor3B>> const& color) {
@@ -165,9 +218,15 @@ std::pair<ccColor3B, ccColor3B> geodeTagColor(std::string_view const& text) {
 
 ListBorders* createGeodeListBorders(CCSize const& size) {
     auto ret = ListBorders::create();
-    ret->setSpriteFrames("geode-list-top.png"_spr, "geode-list-side.png"_spr, 2);
+    if (isGeodeTheme()) {
+        ret->setSpriteFrames("geode-list-top.png"_spr, "geode-list-side.png"_spr, 2);
+    }
     ret->setContentSize(size);
     return ret;
+}
+
+bool isGeodeTheme() {
+    return Mod::get()->template getSettingValue<bool>("enable-geode-theme");
 }
 
 bool GeodeTabSprite::init(const char* iconFrame, const char* text, float width, bool altColor) {
@@ -183,7 +242,7 @@ bool GeodeTabSprite::init(const char* iconFrame, const char* text, float width, 
     m_deselectedBG = CCScale9Sprite::createWithSpriteFrameName("tab-bg.png"_spr);
     m_deselectedBG->setScale(.8f);
     m_deselectedBG->setContentSize(itemSize / .8f);
-    m_deselectedBG->setColor({ 26, 24, 29 });
+    m_deselectedBG->setColor("mod-list-tab-deselected-bg"_cc3b);
     this->addChildAtPosition(m_deselectedBG, Anchor::Center);
 
     m_selectedBG = CCScale9Sprite::createWithSpriteFrameName("tab-bg.png"_spr);

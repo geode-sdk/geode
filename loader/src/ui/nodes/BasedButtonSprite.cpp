@@ -210,6 +210,13 @@ void BasedButtonSprite::setTopOffset(CCPoint const& offset) {
         m_onTop->setPosition(this->getContentSize() / 2 + offset);
     }
 }
+void BasedButtonSprite::setTopRelativeScale(float scale) {
+    m_onTopRelativeScale = scale;
+    if (m_onTop) {
+        limitNodeSize(m_onTop, this->getMaxTopSize(), 999.f, .1f);
+        m_onTop->setScale(m_onTop->getScale() * m_onTopRelativeScale);
+    }
+}
 
 bool BasedButtonSprite::initWithSprite(
     char const* sprName, float sprScale, BaseType type, int size, int color

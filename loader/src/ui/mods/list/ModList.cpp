@@ -68,11 +68,11 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
 
         auto showUpdatesSpr = createGeodeButton(
             CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
-            "Show Updates", "GE_button_01.png"_spr
+            "Show Updates", GeodeButtonSprite::Install
         );
         auto hideUpdatesSpr = createGeodeButton(
             CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
-            "Hide Updates", "GE_button_05.png"_spr
+            "Hide Updates", GeodeButtonSprite::Default
         );
         m_toggleUpdatesOnlyBtn = CCMenuItemToggler::create(
             showUpdatesSpr, hideUpdatesSpr, this, menu_selector(ModList::onToggleUpdates)
@@ -82,7 +82,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
 
         auto updateAllSpr = createGeodeButton(
             CCSprite::createWithSpriteFrameName("update.png"_spr),
-            "Update All", "GE_button_01.png"_spr
+            "Update All", GeodeButtonSprite::Install
         );
         m_updateAllBtn = CCMenuItemSpriteExtra::create(
             updateAllSpr, this, menu_selector(ModList::onUpdateAll)
@@ -130,11 +130,11 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
 
             auto showErrorsSpr = createGeodeButton(
                 CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
-                "Show Errors Only", "GJ_button_06.png"
+                "Show Errors Only", GeodeButtonSprite::Delete
             );
             auto hideErrorsSpr = createGeodeButton(
                 CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
-                "Hide Errors Only", "GE_button_05.png"_spr
+                "Hide Errors Only", GeodeButtonSprite::Default
             );
             m_toggleErrorsOnlyBtn = CCMenuItemToggler::create(
                 showErrorsSpr, hideErrorsSpr, this, menu_selector(ModList::onToggleErrors)

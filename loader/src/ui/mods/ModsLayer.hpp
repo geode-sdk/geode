@@ -61,6 +61,7 @@ protected:
     void onSearch(CCObject*);
     void onGoToPage(CCObject*);
     void onRefreshList(CCObject*);
+    void onTheme(CCObject*);
     void onBack(CCObject*);
 
     void updateState();

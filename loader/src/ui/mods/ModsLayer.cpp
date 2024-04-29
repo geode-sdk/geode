@@ -275,7 +275,14 @@ bool ModsLayer::init() {
 
     auto winSize = CCDirector::get()->getWinSize();
     
-    this->addChild(SwelvyBG::create());
+    const bool geodeTheme = isGeodeTheme();
+    if (geodeTheme) {
+        this->addChild(SwelvyBG::create());
+    }
+    else {
+        this->addChild(createLayerBG());
+        addSideArt(this);
+    }
     
     auto backMenu = CCMenu::create();
     backMenu->setContentWidth(100.f);
@@ -297,9 +304,8 @@ bool ModsLayer::init() {
     actionsMenu->setContentHeight(200.f);
     actionsMenu->setAnchorPoint({ .5f, .0f });
 
-    auto reloadSpr = CircleButtonSprite::create(
-        CCSprite::createWithSpriteFrameName("reload.png"_spr),
-        CircleBaseColor::DarkPurple,
+    auto reloadSpr = createGeodeCircleButton(
+        CCSprite::createWithSpriteFrameName("reload.png"_spr), 1.f,
         CircleBaseSize::Medium
     );
     reloadSpr->setScale(.8f);
@@ -308,6 +314,17 @@ bool ModsLayer::init() {
         reloadSpr, this, menu_selector(ModsLayer::onRefreshList)
     );
     actionsMenu->addChild(reloadBtn);
+
+    auto themeSpr = createGeodeCircleButton(
+        CCSprite::create("GJ_paletaBtn_001.png"), 1.f,
+        CircleBaseSize::Medium
+    );
+    themeSpr->setScale(.8f);
+    themeSpr->setTopOffset(ccp(1, 0));
+    auto themeBtn = CCMenuItemSpriteExtra::create(
+        themeSpr, this, menu_selector(ModsLayer::onTheme)
+    );
+    actionsMenu->addChild(themeBtn);
 
     actionsMenu->setLayout(
         ColumnLayout::create()
@@ -324,20 +341,20 @@ bool ModsLayer::init() {
     frameBG->ignoreAnchorPointForPosition(false);
     m_frame->addChildAtPosition(frameBG, Anchor::Center);
 
-    auto tabsTop = CCSprite::createWithSpriteFrameName("mods-list-top.png"_spr);
+    auto tabsTop = CCSprite::createWithSpriteFrameName(geodeTheme ? "mods-list-top.png"_spr : "mods-list-top-gd.png"_spr);
     tabsTop->setAnchorPoint({ .5f, .0f });
     m_frame->addChildAtPosition(tabsTop, Anchor::Top, ccp(0, -2));
 
-    auto tabsLeft = CCSprite::createWithSpriteFrameName("mods-list-side.png"_spr);
+    auto tabsLeft = CCSprite::createWithSpriteFrameName(geodeTheme ? "mods-list-side.png"_spr : "mods-list-side-gd.png"_spr);
     tabsLeft->setScaleY(m_frame->getContentHeight() / tabsLeft->getContentHeight());
     m_frame->addChildAtPosition(tabsLeft, Anchor::Left, ccp(6, 0));
 
-    auto tabsRight = CCSprite::createWithSpriteFrameName("mods-list-side.png"_spr);
+    auto tabsRight = CCSprite::createWithSpriteFrameName(geodeTheme ? "mods-list-side.png"_spr : "mods-list-side-gd.png"_spr);
     tabsRight->setFlipX(true);
     tabsRight->setScaleY(m_frame->getContentHeight() / tabsRight->getContentHeight());
     m_frame->addChildAtPosition(tabsRight, Anchor::Right, ccp(-6, 0));
 
-    auto tabsBottom = CCSprite::createWithSpriteFrameName("mods-list-bottom.png"_spr);
+    auto tabsBottom = CCSprite::createWithSpriteFrameName(geodeTheme ? "mods-list-bottom.png"_spr : "mods-list-bottom-gd.png"_spr);
     tabsBottom->setAnchorPoint({ .5f, 1.f });
     m_frame->addChildAtPosition(tabsBottom, Anchor::Bottom, ccp(0, 2));
 
@@ -505,13 +522,11 @@ void ModsLayer::updateState() {
 void ModsLayer::onTab(CCObject* sender) {
     this->gotoTab(static_cast<ModListSource*>(static_cast<CCNode*>(sender)->getUserData()));
 }
-
 void ModsLayer::onRefreshList(CCObject*) {
     if (m_currentSource) {
         m_lists.at(m_currentSource)->reloadPage();
     }
 }
-
 void ModsLayer::onBack(CCObject*) {
     CCDirector::get()->replaceScene(CCTransitionFade::create(.5f, MenuLayer::scene(false)));
 
@@ -519,7 +534,6 @@ void ModsLayer::onBack(CCObject*) {
     server::clearServerCaches(true);
     ModListSource::clearAllCaches();
 }
-
 void ModsLayer::onGoToPage(CCObject*) {
     auto popup = SetTextPopup::create("", "Page", 5, "Go to Page", "OK", true, 60.f);
     popup->m_delegate = this;
@@ -527,7 +541,6 @@ void ModsLayer::onGoToPage(CCObject*) {
     popup->setID("go-to-page"_spr);
     popup->show();
 }
-
 void ModsLayer::onBigView(CCObject*) {
     m_bigView = !m_bigView;
     // Make sure to avoid a crash
@@ -535,13 +548,33 @@ void ModsLayer::onBigView(CCObject*) {
         m_lists.at(m_currentSource)->updateSize(m_bigView);
     }
 }
-
 void ModsLayer::onSearch(CCObject*) {
     m_showSearch = !m_showSearch;
     // Make sure to avoid a crash
     if (m_currentSource) {
         m_lists.at(m_currentSource)->activateSearch(m_showSearch);
     }
+}
+void ModsLayer::onTheme(CCObject*) {
+    auto old = Mod::get()->template getSettingValue<bool>("enable-geode-theme");
+    createQuickPopup(
+        "Switch Theme",
+        fmt::format(
+            "Do you want to switch the <cp>color scheme</c> of the Geode menu "
+            "to {}?",
+            (old ? "<cy>GD-style colors</c>" : "<ca>Geode-style colors</c>")
+        ),
+        "Cancel", "Switch",
+        [old](auto*, bool btn2) {
+            if (btn2) {
+                Mod::get()->setSettingValue("enable-geode-theme", !old);
+                // todo: the touch priority on the new scene is screwed up and i can't figure out how to fix it
+                Loader::get()->queueInMainThread([] {
+                    ModsLayer::scene();
+                });
+            }
+        }
+    );
 }
 
 ModsLayer* ModsLayer::create() {

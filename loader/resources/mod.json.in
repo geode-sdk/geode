@@ -82,6 +82,12 @@
             "max": 100,
             "name": "Server Cache Size Limit",
             "description": "Limits the size of the cache used for loading mods. Higher values result in higher memory usage."
+        },
+        "enable-geode-theme": {
+            "type": "bool",
+            "default": true,
+            "name": "Enable Geode-Themed Colors",
+            "description": "When enabled, the Geode menu has a <ca>Geode-themed color scheme</c>. <cy>This does not affect any other menus!</c>"
         }
     },
     "issues": {

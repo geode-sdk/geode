@@ -186,6 +186,7 @@ namespace geode {
          * Set an offset to the top sprite
          */
         void setTopOffset(cocos2d::CCPoint const& offset);
+        void setTopRelativeScale(float scale);
 
         cocos2d::CCNode* getTopNode() const;
     };

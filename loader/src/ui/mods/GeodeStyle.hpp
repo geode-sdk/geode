@@ -16,12 +16,13 @@ template <class... Args>
 class GeodePopup : public Popup<Args...> {
 protected:
     bool init(float width, float height, Args... args, GeodePopupStyle style = GeodePopupStyle::Default) {
+        const bool geodeTheme = Mod::get()->template getSettingValue<bool>("enable-geode-theme");
         const char* bg;
         switch (style) {
             default:
-            case GeodePopupStyle::Default: bg = "GE_square01.png"_spr; break;
-            case GeodePopupStyle::Alt:     bg = "GE_square02.png"_spr; break;
-            case GeodePopupStyle::Alt2:    bg = "GE_square03.png"_spr; break;
+            case GeodePopupStyle::Default: bg = geodeTheme ? "GE_square01.png"_spr : "GJ_square01.png"; break;
+            case GeodePopupStyle::Alt:     bg = geodeTheme ? "GE_square02.png"_spr : "GJ_square02.png"; break;
+            case GeodePopupStyle::Alt2:    bg = geodeTheme ? "GE_square03.png"_spr : "GJ_square02.png"; break;
         }
         if (!Popup<Args...>::initAnchored(width, height, std::forward<Args>(args)..., bg))
             return false;
@@ -29,7 +30,10 @@ protected:
         this->setCloseButtonSpr(
             CircleButtonSprite::createWithSpriteFrameName(
                 "close.png"_spr, .85f,
-                (style == GeodePopupStyle::Default ? CircleBaseColor::DarkPurple : CircleBaseColor::DarkAqua)
+                (geodeTheme ? 
+                    (style == GeodePopupStyle::Default ? CircleBaseColor::DarkPurple : CircleBaseColor::DarkAqua) : 
+                    CircleBaseColor::Green
+                )
             )
         );
 
@@ -56,15 +60,24 @@ public:
 
 CCNode* createLoadingCircle(float sideLength, const char* id = "loading-spinner");
 
-IconButtonSprite* createGeodeButton(CCNode* icon, std::string const& text, std::string const& bg = "GE_button_05.png"_spr);
-ButtonSprite* createGeodeButton(std::string const& text, bool gold = false, std::string const& bg = "GE_button_05.png"_spr);
+enum class GeodeButtonSprite {
+    Default,
+    Install,
+    Delete,
+    Enable,
+};
+const char* getGeodeButtonSpriteName(GeodeButtonSprite spr);
+IconButtonSprite* createGeodeButton(CCNode* icon, std::string const& text, GeodeButtonSprite bg = GeodeButtonSprite::Default);
+ButtonSprite* createGeodeButton(std::string const& text, bool gold = false, GeodeButtonSprite bg = GeodeButtonSprite::Default);
 
-CircleButtonSprite* createGeodeCircleButton(const char* topFrameName);
+CircleButtonSprite* createGeodeCircleButton(CCSprite* top, float scale = 1.f, CircleBaseSize size = CircleBaseSize::Medium, bool altColor = false);
 
 ButtonSprite* createGeodeTagLabel(std::string const& text, std::optional<std::pair<ccColor3B, ccColor3B>> const& color = std::nullopt);
 std::pair<ccColor3B, ccColor3B> geodeTagColor(std::string_view const& text);
 
 ListBorders* createGeodeListBorders(CCSize const& size);
+
+bool isGeodeTheme();
 
 class GeodeTabSprite : public CCNode {
 protected:

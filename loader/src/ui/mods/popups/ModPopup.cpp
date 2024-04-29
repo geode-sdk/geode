@@ -288,7 +288,7 @@ bool ModPopup::setup(ModSource&& src) {
     auto updateModSpr = createGeodeButton(
         CCSprite::createWithSpriteFrameName("update.png"_spr),
         "Update",
-        "GE_button_01.png"_spr
+        GeodeButtonSprite::Install
     );
     updateModSpr->setScale(.5f);
     m_updateBtn = CCMenuItemSpriteExtra::create(
@@ -299,13 +299,13 @@ bool ModPopup::setup(ModSource&& src) {
     auto enableModOffSpr = createGeodeButton(
         CCSprite::createWithSpriteFrameName("GJ_completesIcon_001.png"),
         "Enable",
-        "GJ_button_01.png"
+        GeodeButtonSprite::Enable
     );
     enableModOffSpr->setScale(.5f);
     auto enableModOnSpr = createGeodeButton(
         CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"),
         "Disable",
-        "GJ_button_06.png"
+        GeodeButtonSprite::Delete
     );
     enableModOnSpr->setScale(.5f);
     m_enableBtn = CCMenuItemToggler::create(
@@ -318,13 +318,13 @@ bool ModPopup::setup(ModSource&& src) {
     auto reenableModOffSpr = createGeodeButton(
         CCSprite::createWithSpriteFrameName("reset.png"_spr),
         "Re-Enable",
-        "GE_button_05.png"_spr
+        GeodeButtonSprite::Default
     );
     reenableModOffSpr->setScale(.5f);
     auto reenableModOnSpr = createGeodeButton(
         CCSprite::createWithSpriteFrameName("reset.png"_spr),
         "Re-Disable",
-        "GE_button_05.png"_spr
+        GeodeButtonSprite::Default
     );
     reenableModOnSpr->setScale(.5f);
     m_reenableBtn = CCMenuItemToggler::create(
@@ -337,7 +337,7 @@ bool ModPopup::setup(ModSource&& src) {
     auto installModSpr = createGeodeButton(
         CCSprite::createWithSpriteFrameName("GJ_downloadsIcon_001.png"),
         "Install",
-        "GE_button_01.png"_spr
+        GeodeButtonSprite::Install
     );
     installModSpr->setScale(.5f);
     m_installBtn = CCMenuItemSpriteExtra::create(
@@ -348,7 +348,7 @@ bool ModPopup::setup(ModSource&& src) {
     auto uninstallModSpr = createGeodeButton(
         CCSprite::createWithSpriteFrameName("delete-white.png"_spr),
         "Uninstall",
-        "GE_button_05.png"_spr
+        GeodeButtonSprite::Default
     );
     uninstallModSpr->setScale(.5f);
     m_uninstallBtn = CCMenuItemSpriteExtra::create(
@@ -359,7 +359,7 @@ bool ModPopup::setup(ModSource&& src) {
     auto cancelDownloadSpr = createGeodeButton(
         CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"),
         "Cancel",
-        "GE_button_05.png"_spr
+        GeodeButtonSprite::Default
     );
     cancelDownloadSpr->setScale(.5f);
     m_cancelBtn = CCMenuItemSpriteExtra::create(
@@ -496,7 +496,7 @@ bool ModPopup::setup(ModSource&& src) {
     mainContainer->updateLayout();
     m_mainLayer->addChildAtPosition(mainContainer, Anchor::Center);
 
-    auto settingsSpr = createGeodeCircleButton("settings.png"_spr);
+    auto settingsSpr = createGeodeCircleButton(CCSprite::createWithSpriteFrameName("settings.png"_spr));
     settingsSpr->setScale(.6f);
     auto settingsBtn = CCMenuItemSpriteExtra::create(
         settingsSpr, this, menu_selector(ModPopup::onSettings)

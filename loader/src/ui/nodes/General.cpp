@@ -174,15 +174,11 @@ void ListBorders::setSprites(
 }
 void ListBorders::setContentSize(CCSize const& size) {
     CCNode::setContentSize(size);
+    this->updateLayout();
+
     m_top->setContentWidth(size.width + m_topPadding);
     m_bottom->setContentWidth(size.width + m_bottomPadding);
-    m_left->setScaleY(
-        (size.height - m_top->getScaledContentHeight() - m_bottom->getScaledContentHeight()) / 
-        m_left->getScaledContentHeight()
-    );
-    m_right->setScaleY(
-        (size.height - m_top->getScaledContentHeight() - m_bottom->getScaledContentHeight()) / 
-        m_right->getScaledContentHeight()
-    );
-    this->updateLayout();
+    auto height = m_top->getContentHeight() * 0.75 + m_bottom->getContentHeight() * 0.75;
+    m_left->setScaleY((size.height - height) / m_left->getContentHeight());
+    m_right->setScaleY((size.height - height) / m_right->getContentHeight());
 }

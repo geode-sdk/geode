@@ -139,9 +139,9 @@ bool ModItem::init(ModSource&& source) {
                 m_viewMenu->updateLayout();
             }
             if (mod->hasProblems()) {
-                auto viewErrorSpr = CircleButtonSprite::createWithSpriteFrameName(
-                    "exclamation.png"_spr, 1.f,
-                    CircleBaseColor::DarkPurple, CircleBaseSize::Small
+                auto viewErrorSpr = createGeodeCircleButton(
+                    CCSprite::createWithSpriteFrameName("exclamation.png"_spr), 1.f,
+                    CircleBaseSize::Small
                 );
                 auto viewErrorBtn = CCMenuItemSpriteExtra::create(
                     viewErrorSpr, this, menu_selector(ModItem::onViewError)
@@ -183,8 +183,9 @@ bool ModItem::init(ModSource&& source) {
         },
     });
 
-    auto updateSpr = CircleButtonSprite::createWithSpriteFrameName(
-        "update.png"_spr, 1.15f, CircleBaseColor::DarkAqua
+    auto updateSpr = createGeodeCircleButton(
+        CCSprite::createWithSpriteFrameName("update.png"_spr), 1.15f,
+        CircleBaseSize::Medium, true
     );
     m_updateBtn = CCMenuItemSpriteExtra::create(
         updateSpr, this, menu_selector(ModItem::onInstall)
@@ -246,23 +247,29 @@ void ModItem::updateState() {
     // (possibly overriding later based on state)
     m_source.visit(makeVisitor {
         [this](Mod* mod) {
-            m_bg->setColor(ccWHITE);
-            m_bg->setOpacity(mod->isOrWillBeEnabled() ? 25 : 10);
+            if (isGeodeTheme()) {
+                m_bg->setColor(ccWHITE);
+                m_bg->setOpacity(mod->isOrWillBeEnabled() ? 25 : 10);
+            }
+            else {
+                m_bg->setColor(ccBLACK);
+                m_bg->setOpacity(mod->isOrWillBeEnabled() ? 90 : 60);
+            }
             m_titleLabel->setOpacity(mod->isOrWillBeEnabled() ? 255 : 155);
             m_versionLabel->setOpacity(mod->isOrWillBeEnabled() ? 255 : 155);
             m_developerLabel->setOpacity(mod->isOrWillBeEnabled() ? 255 : 155);
         },
         [this](server::ServerModMetadata const& metadata) {
-            m_bg->setColor(ccWHITE);
-            m_bg->setOpacity(25);
-            if (metadata.featured) {
+            m_bg->setColor(isGeodeTheme() ? ccWHITE : ccBLACK);
+            m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
+            if (isGeodeTheme() && metadata.featured) {
                 m_bg->setColor("mod-list-featured-color"_cc3b);
                 m_bg->setOpacity(40);
             }
         },
         [this](ModSuggestion const& suggestion) {
             m_bg->setColor("mod-list-recommended-bg"_cc3b);
-            m_bg->setOpacity(25);
+            m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
         }
     });
 
@@ -276,7 +283,7 @@ void ModItem::updateState() {
         m_versionLabel->setColor(to3B(ColorProvider::get()->color("mod-list-version-label-updates-available"_spr)));
 
         m_bg->setColor(to3B(ColorProvider::get()->color("mod-list-version-label-updates-available"_spr)));
-        m_bg->setOpacity(40);
+        m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
     }
     else {
         m_updateBtn->setVisible(false);
@@ -289,13 +296,13 @@ void ModItem::updateState() {
     // If there were problems, tint the BG red
     if (m_source.asMod() && m_source.asMod()->hasProblems()) {
         m_bg->setColor("mod-list-errors-found"_cc3b);
-        m_bg->setOpacity(40);
+        m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
     }
 
     // Highlight item via BG if it wants to restart for extra UI attention
     if (wantsRestart) {
-        m_bg->setColor(to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)));
-        m_bg->setOpacity(40);
+        m_bg->setColor("mod-list-restart-required-label"_cc3b);
+        m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
     }
 
     // Update enable toggle state
