@@ -97,6 +97,7 @@ public:
 struct LocalModsQueryBase {
     std::optional<std::string> query;
     std::unordered_set<std::string> tags = {};
+    std::optional<bool> enabledOnly;
     size_t page = 0;
     size_t pageSize = 10;
 };

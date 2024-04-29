@@ -17,6 +17,7 @@ protected:
     bool setup(ModListSource* src) override;
     void updateTags();
 
+    void onToggle(CCObject*);
     void onLoadTags(typename server::ServerRequest<std::unordered_set<std::string>>::Event* event);
     void onResetTags(CCObject*);
     void onSelectTag(CCObject* sender);

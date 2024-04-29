@@ -19,6 +19,9 @@ bool InstalledModsQuery::preCheck(ModSource const& src) const {
 }
 bool InstalledModsQuery::queryCheck(ModSource const& src, double& weighted) const {
     bool addToList = true;
+    if (enabledOnly) {
+        addToList = src.asMod()->isEnabled() == *enabledOnly;
+    }
     if (query) {
         addToList = modFuzzyMatch(src.asMod()->getMetadata(), *query, weighted);
     }

@@ -52,7 +52,58 @@ bool FiltersPopup::setup(ModListSource* src) {
     );
     tagsContainer->addChildAtPosition(tagsTitleMenu, Anchor::Top, ccp(0, 4));
 
-    m_mainLayer->addChildAtPosition(tagsContainer, Anchor::Center, ccp(0, -5));
+    m_mainLayer->addChildAtPosition(tagsContainer, Anchor::Top, ccp(0, -85));
+
+    if (typeinfo_cast<InstalledModListSource*>(m_source)) {
+        auto optionsContainer = CCNode::create();
+        optionsContainer->setContentSize(ccp(160, 35));
+        optionsContainer->setAnchorPoint({ .5f, .5f });
+
+        auto optionsBG = CCScale9Sprite::create("square02b_001.png");
+        optionsBG->setColor({ 0, 0, 0 });
+        optionsBG->setOpacity(75);
+        optionsBG->setScale(.3f);
+        optionsBG->setContentSize(optionsContainer->getContentSize() / optionsBG->getScale());
+        optionsContainer->addChildAtPosition(optionsBG, Anchor::Center);
+
+        auto optionsMenu = CCMenu::create();
+        optionsMenu->setContentSize(optionsContainer->getContentSize() - ccp(10, 10));
+
+        auto enabledOnlyToggle = CCMenuItemToggler::createWithStandardSprites(
+            this, menu_selector(FiltersPopup::onToggle), .6f
+        );
+        enabledOnlyToggle->m_notClickable = true;
+        enabledOnlyToggle->setUserData(+[](ModListSource* src) -> bool {
+            auto mut = static_cast<InstalledModListSource*>(src)->getQueryMut();
+            mut->enabledOnly = mut->enabledOnly.has_value() ? std::nullopt : std::optional(true);
+            return mut->enabledOnly.value_or(false);
+        });
+        enabledOnlyToggle->toggle(static_cast<InstalledModListSource*>(src)->getQuery().enabledOnly.has_value());
+        optionsMenu->addChildAtPosition(enabledOnlyToggle, Anchor::Left, ccp(15, 0));
+
+        auto enabledOnlyLabel = CCLabelBMFont::create("Enabled Mods Only", "bigFont.fnt");
+        enabledOnlyLabel->setScale(.35f);
+        optionsMenu->addChildAtPosition(enabledOnlyLabel, Anchor::Left, ccp(30, 0), ccp(0, .5f));
+
+        optionsContainer->addChildAtPosition(optionsMenu, Anchor::Center);
+
+        auto optionsTitleMenu = CCMenu::create();
+        optionsTitleMenu->setAnchorPoint({ .5f, 0 });
+        optionsTitleMenu->setContentWidth(optionsContainer->getContentWidth());
+
+        auto optionsTitle = CCLabelBMFont::create("Options", "bigFont.fnt");
+        optionsTitleMenu->addChild(optionsTitle);
+
+        optionsTitleMenu->addChild(SpacerNode::create());
+
+        optionsTitleMenu->setLayout(
+            RowLayout::create()
+                ->setDefaultScaleLimits(.1f, .4f)
+        );
+        optionsContainer->addChildAtPosition(optionsTitleMenu, Anchor::Top, ccp(0, 4));
+
+        m_mainLayer->addChildAtPosition(optionsContainer, Anchor::Bottom, ccp(0, 60), ccp(.5f, .5f));
+    }
 
     auto okSpr = createGeodeButton("OK");
     okSpr->setScale(.7f);
@@ -95,6 +146,11 @@ void FiltersPopup::onLoadTags(typename server::ServerRequest<std::unordered_set<
     }
 }
 
+void FiltersPopup::onToggle(CCObject* sender) {
+    auto toggle = static_cast<CCMenuItemToggler*>(sender);
+    auto enabled = static_cast<bool(*)(ModListSource*)>(toggle->getUserData())(m_source);
+    toggle->toggle(enabled);
+}
 void FiltersPopup::updateTags() {
     for (auto node : CCArrayExt<CCNode*>(m_tagsMenu->getChildren())) {
         if (auto toggle = typeinfo_cast<CCMenuItemToggler*>(node)) {
@@ -103,7 +159,6 @@ void FiltersPopup::updateTags() {
         }
     }
 }
-
 void FiltersPopup::onSelectTag(CCObject* sender) {
     auto toggle = static_cast<CCMenuItemToggler*>(sender);
     auto tag = static_cast<CCString*>(toggle->getUserObject("tag"))->getCString();
@@ -115,12 +170,10 @@ void FiltersPopup::onSelectTag(CCObject* sender) {
     }
     this->updateTags();
 }
-
 void FiltersPopup::onResetTags(CCObject*) {
     m_selectedTags.clear();
     this->updateTags();
 }
-
 void FiltersPopup::onClose(CCObject* sender) {
     m_source->setModTags(m_selectedTags);
     Popup::onClose(sender);
@@ -128,7 +181,11 @@ void FiltersPopup::onClose(CCObject* sender) {
 
 FiltersPopup* FiltersPopup::create(ModListSource* src) {
     auto ret = new FiltersPopup();
-    if (ret && ret->init(350, 170, src)) {
+    float height = 170;
+    if (typeinfo_cast<InstalledModListSource*>(src)) {
+        height = 230;
+    }
+    if (ret && ret->init(350, height, src)) {
         ret->autorelease();
         return ret;
     }
