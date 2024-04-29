@@ -73,11 +73,11 @@ bool FiltersPopup::setup(ModListSource* src) {
             this, menu_selector(FiltersPopup::onToggle), .6f
         );
         enabledOnlyToggle->m_notClickable = true;
-        enabledOnlyToggle->setUserData(+[](ModListSource* src) -> bool {
+        enabledOnlyToggle->setUserData(reinterpret_cast<void*>(+[](ModListSource* src) -> bool {
             auto mut = static_cast<InstalledModListSource*>(src)->getQueryMut();
             mut->enabledOnly = mut->enabledOnly.has_value() ? std::nullopt : std::optional(true);
             return mut->enabledOnly.value_or(false);
-        });
+        }));
         enabledOnlyToggle->toggle(static_cast<InstalledModListSource*>(src)->getQuery().enabledOnly.has_value());
         optionsMenu->addChildAtPosition(enabledOnlyToggle, Anchor::Left, ccp(15, 0));
 
