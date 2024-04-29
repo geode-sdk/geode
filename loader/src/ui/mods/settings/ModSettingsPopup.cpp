@@ -16,13 +16,11 @@ bool ModSettingsPopup::setup(Mod* mod) {
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-    auto const layerSize = CCSize { 346.f, 220.f };
-    auto const layerPos = (winSize - layerSize) / 2;
+    auto const layerSize = CCSize(346, 210);
 
     auto layerBG = CCLayerColor::create({ 0, 0, 0, 75 });
     layerBG->setContentSize(layerSize);
-    layerBG->setPosition(layerPos);
-    m_mainLayer->addChild(layerBG);
+    m_mainLayer->addChildAtPosition(layerBG, Anchor::Center, -layerSize / 2);
 
     auto layer = ScrollLayer::create(layerSize);
     layer->setTouchEnabled(true);
@@ -83,37 +81,33 @@ bool ModSettingsPopup::setup(Mod* mod) {
 
     // layer borders
 
-    addListBorders(m_mainLayer, winSize / 2, layerSize);
+    m_mainLayer->addChildAtPosition(createGeodeListBorders(layerSize), Anchor::Center);
 
     // buttons
 
-    m_applyBtnSpr = ButtonSprite::create("Apply", "goldFont.fnt", "GJ_button_01.png", .7f);
-    m_applyBtnSpr->setScale(.7f);
+    m_applyBtnSpr = createGeodeButton("Apply", true);
+    m_applyBtnSpr->setScale(.6f);
 
     m_applyBtn = CCMenuItemSpriteExtra::create(
         m_applyBtnSpr, this, menu_selector(ModSettingsPopup::onApply)
     );
-    m_applyBtn->setPosition(.0f, -m_size.height / 2 + 20.f);
-    m_buttonMenu->addChild(m_applyBtn);
+    m_buttonMenu->addChildAtPosition(m_applyBtn, Anchor::Bottom, ccp(0, 20));
 
-    auto resetBtnSpr = ButtonSprite::create("Reset All", "goldFont.fnt", "GJ_button_05.png", .7f);
-    resetBtnSpr->setScale(.7f);
+    auto resetBtnSpr = createGeodeButton("Reset All", true);
+    resetBtnSpr->setScale(.6f);
 
     auto resetBtn = CCMenuItemSpriteExtra::create(
         resetBtnSpr, this, menu_selector(ModSettingsPopup::onResetAll)
     );
-    resetBtn->setPosition(-m_size.width / 2 + 45.f, -m_size.height / 2 + 20.f);
-    m_buttonMenu->addChild(resetBtn);
+    m_buttonMenu->addChildAtPosition(resetBtn, Anchor::BottomLeft, ccp(45, 20));
 
-    auto openDirBtnSpr =
-        ButtonSprite::create("Open Folder", "goldFont.fnt", "GJ_button_05.png", .7f);
-    openDirBtnSpr->setScale(.7f);
+    auto openDirBtnSpr = createGeodeButton("Open Folder", true);
+    openDirBtnSpr->setScale(.6f);
 
     auto openDirBtn = CCMenuItemSpriteExtra::create(
         openDirBtnSpr, this, menu_selector(ModSettingsPopup::onOpenSaveDirectory)
     );
-    openDirBtn->setPosition(m_size.width / 2 - 53.f, -m_size.height / 2 + 20.f);
-    m_buttonMenu->addChild(openDirBtn);
+    m_buttonMenu->addChildAtPosition(openDirBtn, Anchor::BottomRight, ccp(-53, 20));
 
     this->settingValueChanged(nullptr);
 

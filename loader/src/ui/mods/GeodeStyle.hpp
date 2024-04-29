@@ -57,13 +57,14 @@ public:
 CCNode* createLoadingCircle(float sideLength, const char* id = "loading-spinner");
 
 IconButtonSprite* createGeodeButton(CCNode* icon, std::string const& text, std::string const& bg = "GE_button_05.png"_spr);
-CCNode* createGeodeButton(CCNode* icon, float width, std::string const& text, std::string const& bg = "GE_button_05.png"_spr);
-ButtonSprite* createGeodeButton(std::string const& text, std::string const& bg = "GE_button_05.png"_spr);
+ButtonSprite* createGeodeButton(std::string const& text, bool gold = false, std::string const& bg = "GE_button_05.png"_spr);
 
 CircleButtonSprite* createGeodeCircleButton(const char* topFrameName);
 
 ButtonSprite* createGeodeTagLabel(std::string const& text, std::optional<std::pair<ccColor3B, ccColor3B>> const& color = std::nullopt);
 std::pair<ccColor3B, ccColor3B> geodeTagColor(std::string_view const& text);
+
+ListBorders* createGeodeListBorders(CCSize const& size);
 
 class GeodeTabSprite : public CCNode {
 protected:

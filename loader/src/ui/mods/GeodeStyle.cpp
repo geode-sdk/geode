@@ -130,22 +130,8 @@ IconButtonSprite* createGeodeButton(CCNode* icon, std::string const& text, std::
     return IconButtonSprite::create(bg.c_str(), icon, text.c_str(), "bigFont.fnt");
 }
 
-CCNode* createGeodeButton(CCNode* icon, float width, std::string const& text, std::string const& bgSpr) {
-    auto bg = CCScale9Sprite::create(bgSpr.c_str());
-    bg->setContentSize({ width, 35 });
-
-    limitNodeSize(icon, { 20, 20 }, 1.f, .1f);
-    bg->addChildAtPosition(icon, Anchor::Left, { 35.f / 2, 0 }, { .5f, .5f });
-
-    auto label = CCLabelBMFont::create(text.c_str(), "bigFont.fnt");
-    limitNodeSize(label, { width - 42.5f, 20 }, .6f, .1f);
-    bg->addChildAtPosition(label, Anchor::Left, { 35, 0 }, { 0, .5f });
-
-    return bg;
-}
-
-ButtonSprite* createGeodeButton(std::string const& text, std::string const& bg) {
-    return ButtonSprite::create(text.c_str(), "bigFont.fnt", bg.c_str(), .8f);
+ButtonSprite* createGeodeButton(std::string const& text, bool gold, std::string const& bg) {
+    return ButtonSprite::create(text.c_str(), gold ? "goldFont.fnt" : "bigFont.fnt", bg.c_str(), .8f);
 }
 
 CircleButtonSprite* createGeodeCircleButton(const char* topFrameName) {
@@ -175,6 +161,13 @@ std::pair<ccColor3B, ccColor3B> geodeTagColor(std::string_view const& text) {
         std::make_pair(ccc3(255, 242, 240), ccc3(163, 128, 123)),
     };
     return TAG_COLORS[hash(text) % 5932 % TAG_COLORS.size()];
+}
+
+ListBorders* createGeodeListBorders(CCSize const& size) {
+    auto ret = ListBorders::create();
+    ret->setSpriteFrames("geode-list-top.png"_spr, "geode-list-side.png"_spr, 2);
+    ret->setContentSize(size);
+    return ret;
 }
 
 bool GeodeTabSprite::init(const char* iconFrame, const char* text, float width, bool altColor) {

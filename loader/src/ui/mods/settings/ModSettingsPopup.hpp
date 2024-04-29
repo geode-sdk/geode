@@ -3,10 +3,11 @@
 #include <Geode/loader/SettingNode.hpp>
 #include <Geode/ui/Popup.hpp>
 #include <Geode/utils/cocos.hpp>
+#include "../GeodeStyle.hpp"
 
 using namespace geode::prelude;
 
-class ModSettingsPopup : public Popup<Mod*>, public SettingNodeDelegate {
+class ModSettingsPopup : public GeodePopup<Mod*>, public SettingNodeDelegate {
 protected:
     Mod* m_mod;
     std::vector<SettingNode*> m_settings;
