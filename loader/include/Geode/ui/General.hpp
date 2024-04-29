@@ -38,10 +38,37 @@ namespace geode {
 
     /**
      * Add the rounded comment borders to a node
+     * @note Use the `ListBorders` class for increased control
      */
     GEODE_DLL void addListBorders(
         cocos2d::CCNode* to,
         cocos2d::CCPoint const& center,
         cocos2d::CCSize const& size
     );
+    
+    class GEODE_DLL ListBorders : public cocos2d::CCNode {
+    protected:
+        cocos2d::extension::CCScale9Sprite* m_top = nullptr;
+        cocos2d::extension::CCScale9Sprite* m_bottom = nullptr;
+        cocos2d::CCSprite* m_left = nullptr;
+        cocos2d::CCSprite* m_right = nullptr;
+        float m_topPadding = 7.5f;
+        float m_bottomPadding = 7.5f;
+    
+        bool init();
+
+    public:
+        static ListBorders* create();
+
+        void setSpriteFrames(const char* topAndBottom, const char* sides, float topPadding = 7.5f);
+        void setSprites(
+            cocos2d::extension::CCScale9Sprite* top,
+            cocos2d::extension::CCScale9Sprite* bottom,
+            cocos2d::CCSprite* left,
+            cocos2d::CCSprite* right,
+            float topPadding = 7.5f,
+            float bottomPadding = 7.5f
+        );
+        void setContentSize(cocos2d::CCSize const& size) override;
+    };
 }

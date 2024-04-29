@@ -112,3 +112,77 @@ void geode::addListBorders(CCNode* to, CCPoint const& center, CCSize const& size
     });
     to->addChild(layerRightSpr);
 }
+
+bool ListBorders::init() {
+    if (!CCNode::init())
+        return false;
+    
+    this->setAnchorPoint({ .5f, .5f });
+    this->setSpriteFrames("GJ_commentTop_001.png", "GJ_commentSide_001.png");
+
+    return true;
+}
+
+ListBorders* ListBorders::create() {
+    auto ret = new ListBorders();
+    if (ret && ret->init()) {
+        ret->autorelease();
+        return ret;
+    }
+    CC_SAFE_DELETE(ret);
+    return nullptr;
+}
+
+void ListBorders::setSpriteFrames(const char* topAndBottom, const char* side, float topPadding) {
+    this->setSprites(
+        CCScale9Sprite::createWithSpriteFrameName(topAndBottom, { 0, 0, 240, 10 }),
+        CCScale9Sprite::createWithSpriteFrameName(topAndBottom, { 0, 0, 240, 10 }),
+        CCSprite::createWithSpriteFrameName(side),
+        CCSprite::createWithSpriteFrameName(side),
+        topPadding,
+        topPadding
+    );
+    m_bottom->setScaleY(-1);
+    m_right->setFlipX(true);
+}
+void ListBorders::setSprites(
+    CCScale9Sprite* top, CCScale9Sprite* bottom,
+    CCSprite* left, CCSprite* right,
+    float topPadding, float bottomPadding
+) {
+    if (m_top) m_top->removeFromParent();
+    if (m_bottom) m_bottom->removeFromParent();
+    if (m_left) m_left->removeFromParent();
+    if (m_right) m_right->removeFromParent();
+
+    m_top = top;
+    this->addChildAtPosition(m_top, Anchor::Top, ccp(0, -m_top->getScaledContentHeight() / 3));
+
+    m_bottom = bottom;
+    this->addChildAtPosition(m_bottom, Anchor::Bottom, ccp(0, m_bottom->getScaledContentHeight() / 3));
+
+    m_left = left;
+    this->addChildAtPosition(m_left, Anchor::Left, ccp(0, 0));
+
+    m_right = right;
+    this->addChildAtPosition(m_right, Anchor::Right, ccp(0, 0));
+
+    m_topPadding = topPadding;
+    m_bottomPadding = bottomPadding;
+
+    this->setContentSize(m_obContentSize);
+}
+void ListBorders::setContentSize(CCSize const& size) {
+    CCNode::setContentSize(size);
+    m_top->setContentWidth(size.width + m_topPadding);
+    m_bottom->setContentWidth(size.width + m_bottomPadding);
+    m_left->setScaleY(
+        (size.height - m_top->getScaledContentHeight() - m_bottom->getScaledContentHeight()) / 
+        m_left->getScaledContentHeight()
+    );
+    m_right->setScaleY(
+        (size.height - m_top->getScaledContentHeight() - m_bottom->getScaledContentHeight()) / 
+        m_right->getScaledContentHeight()
+    );
+    this->updateLayout();
+}
