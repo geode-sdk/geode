@@ -148,7 +148,7 @@ void FiltersPopup::onLoadTags(typename server::ServerRequest<std::unordered_set<
 
 void FiltersPopup::onToggle(CCObject* sender) {
     auto toggle = static_cast<CCMenuItemToggler*>(sender);
-    auto enabled = static_cast<bool(*)(ModListSource*)>(toggle->getUserData())(m_source);
+    auto enabled = reinterpret_cast<bool(*)(ModListSource*)>(toggle->getUserData())(m_source);
     toggle->toggle(enabled);
 }
 void FiltersPopup::updateTags() {
