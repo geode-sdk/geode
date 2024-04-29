@@ -860,6 +860,19 @@ void ModPopup::onEnable(CCObject*) {
 }
 
 void ModPopup::onInstall(CCObject*) {
+    // A futile attempt to try and prevent users from blindly installing 
+    // everything on the index
+    if (m_source.asServer() && Loader::get()->getAllMods().size() > 10) {
+        if (!Mod::get()->setSavedValue("shown-dont-install-everything-warning", true)) {
+            FLAlertLayer::create(
+                "Warning",
+                "Installing too many mods can lead to <cr>instability</c>, <cr>bugs</c>, and "
+                "<cr>crashes</c>. <cy>You should only install mods you need!</c>",
+                "OK"
+            )->show();
+            return;
+        }
+    }
     server::ModDownloadManager::get()->startDownload(m_source.getID(), std::nullopt);
     this->onClose(nullptr);
 }
