@@ -512,7 +512,6 @@ namespace geode {
                 waiting->taskResults.push_back(result);
 
                 // If all tasks are done, finish
-                log::debug("waiting for {}/{} tasks", waiting->taskResults.size(), waiting->taskCount);
                 if (waiting->taskResults.size() >= waiting->taskCount) {
                     // SAFETY: The task results' lifetimes are tied to the tasks 
                     // which could have their only owner be `waiting->taskListeners`, 
@@ -625,7 +624,8 @@ namespace geode {
          */        template <class ResultMapper, class ProgressMapper>
         auto map(ResultMapper&& resultMapper, ProgressMapper&& progressMapper, std::string const& name = "<Mapping Task>") const {
             return this->map(std::move(resultMapper), std::move(progressMapper), +[]() {}, name);
-        }
+        }
+
         /**
          * Create a new Task that listens to this Task and maps the finish value 
          * using the provided function. Progress is mapped by copy-constructing 
