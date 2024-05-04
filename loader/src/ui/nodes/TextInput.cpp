@@ -90,7 +90,7 @@ TextInput* TextInput::create(float width, std::string const& placeholder, std::s
 }
 
 void TextInput::textChanged(CCTextInputNode* input) {
-    if (m_onInput) {
+    if (m_onInput && input->getString()) {
         m_onInput(input->getString());
     }
 }
