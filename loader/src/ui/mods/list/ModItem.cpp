@@ -161,6 +161,26 @@ bool ModItem::init(ModSource&& source) {
 
                 m_titleContainer->addChild(starBG);
             }
+
+            // Show mod download count here already so people can make informed decisions 
+            // on which mods to install
+            auto downloadsContainer = CCNode::create();
+            
+            auto downloads = CCLabelBMFont::create(numToAbbreviatedString(metadata.downloadCount).c_str(), "bigFont.fnt");
+            downloads->setColor("mod-list-version-label"_cc3b);
+            downloads->limitLabelWidth(80, .5f, .1f);
+            downloadsContainer->addChildAtPosition(downloads, Anchor::Right, ccp(-0, 0), ccp(1, .5f));
+
+            auto downloadsIcon = CCSprite::createWithSpriteFrameName("GJ_downloadsIcon_001.png");
+            downloadsIcon->setScale(.75f);
+            downloadsContainer->addChildAtPosition(downloadsIcon, Anchor::Right, ccp(-downloads->getScaledContentWidth() - 10, 0));
+
+            downloadsContainer->setContentSize({
+                downloads->getScaledContentWidth() + 10 + downloadsIcon->getScaledContentWidth() + 10,
+                25
+            });
+            downloadsContainer->updateLayout();
+            m_viewMenu->addChild(downloadsContainer);
         },
         [this](ModSuggestion const& suggestion) {
             m_recommendedBy = CCNode::create();

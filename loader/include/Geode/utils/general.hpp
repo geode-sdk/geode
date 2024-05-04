@@ -102,6 +102,17 @@ namespace geode {
         }
 
         /**
+         * Turn a number into an abbreviated string, like `1253` to `1.25K`
+         */
+        template <std::integral Num>
+        std::string numToAbbreviatedString(Num num) {
+            if (num >= 1'000'000'000) return fmt::format("{:0.3}B", num / 1'000'000'000.f);
+            if (num >= 1'000'000) return fmt::format("{:0.3}M", num / 1'000'000.f);
+            if (num >= 1'000) return fmt::format("{:0.3}K", num / 1'000.f);
+            return numToString(num);
+        }
+
+        /**
          * Parse a number from a string
          * @param str The string to parse
          * @param base The base to use
