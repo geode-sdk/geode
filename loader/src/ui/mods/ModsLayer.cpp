@@ -2,6 +2,7 @@
 #include "SwelvyBG.hpp"
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/utils/ColorProvider.hpp>
+#include <Geode/ui/GeodeUI.hpp>
 #include "popups/ConfirmInstallPopup.hpp"
 #include "GeodeStyle.hpp"
 
@@ -316,13 +317,13 @@ bool ModsLayer::init() {
     actionsMenu->addChild(reloadBtn);
 
     auto themeSpr = createGeodeCircleButton(
-        CCSprite::create("GJ_paletaBtn_001.png"), 1.f,
+        CCSprite::createWithSpriteFrameName("settings.png"_spr), 1.f,
         CircleBaseSize::Medium
     );
     themeSpr->setScale(.8f);
-    themeSpr->setTopOffset(ccp(1, 0));
+    themeSpr->setTopOffset(ccp(.5f, 0));
     auto themeBtn = CCMenuItemSpriteExtra::create(
-        themeSpr, this, menu_selector(ModsLayer::onTheme)
+        themeSpr, this, menu_selector(ModsLayer::onSettings)
     );
     actionsMenu->addChild(themeBtn);
 
@@ -574,6 +575,9 @@ void ModsLayer::onTheme(CCObject*) {
             }
         }
     );
+}
+void ModsLayer::onSettings(CCObject*) {
+    openSettingsPopup(Mod::get());
 }
 
 ModsLayer* ModsLayer::create() {
