@@ -363,17 +363,16 @@ bool ModsLayer::init() {
     auto mainTabs = CCMenu::create();
     mainTabs->setContentWidth(tabsTop->getContentWidth() - 45);
     mainTabs->setAnchorPoint({ .5f, .0f });
-    mainTabs->setPosition(m_frame->convertToWorldSpace(tabsTop->getPosition() + ccp(0, 10)));
+    mainTabs->setPosition(m_frame->convertToWorldSpace(tabsTop->getPosition() + ccp(0, 8)));
 
     for (auto item : std::initializer_list<std::tuple<const char*, const char*, ModListSource*>> {
         { "download.png"_spr, "Installed", InstalledModListSource::get(InstalledModListType::All) },
         { "GJ_starsIcon_001.png", "Recommended", SuggestedModListSource::get() },
         { "globe.png"_spr, "Download", ServerModListSource::get(ServerModListType::Download) },
         { "GJ_timeIcon_001.png", "Recent", ServerModListSource::get(ServerModListType::Recent) },
-        { "gj_folderBtn_001.png", "Mod Packs", ModPackListSource::get() },
     }) {
         auto btn = CCMenuItemSpriteExtra::create(
-            GeodeTabSprite::create(std::get<0>(item), std::get<1>(item), 100),
+            GeodeTabSprite::create(std::get<0>(item), std::get<1>(item), 120),
             this, menu_selector(ModsLayer::onTab)
         );
         btn->setUserData(std::get<2>(item));
