@@ -503,6 +503,14 @@ bool ModPopup::setup(ModSource&& src) {
     );
     m_buttonMenu->addChildAtPosition(settingsBtn, Anchor::BottomLeft, ccp(28, 25));
 
+    if (!m_source.asMod() || !m_source.asMod()->hasSettings()) {
+        settingsSpr->setOpacity(90);
+        static_cast<CCSprite*>(settingsSpr->getTopNode())->setOpacity(90);
+        settingsSpr->setColor(ccGRAY);
+        static_cast<CCSprite*>(settingsSpr->getTopNode())->setColor(ccGRAY);
+        settingsBtn->setEnabled(false);
+    }
+
     // Select details tab
     this->loadTab(Tab::Details);
 
