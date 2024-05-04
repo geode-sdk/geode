@@ -77,11 +77,11 @@ bool ModItem::init(ModSource&& source) {
     m_infoContainer->addChild(m_restartRequiredLabel);
 
     m_downloadBarContainer = CCNode::create();
-    m_downloadBarContainer->setContentSize({ 225, 30 });
+    m_downloadBarContainer->setContentSize({ 320, 30 });
     
     m_downloadBar = Slider::create(nullptr, nullptr);
     m_downloadBar->m_touchLogic->m_thumb->setVisible(false);
-    m_downloadBar->setLayoutOptions(AxisLayoutOptions::create()->setMaxScale(.35f));
+    m_downloadBar->setScale(1.5f);
     m_downloadBarContainer->addChildAtPosition(m_downloadBar, Anchor::Center, ccp(0, 0), ccp(0, 0));
 
     m_infoContainer->addChild(m_downloadBarContainer);
