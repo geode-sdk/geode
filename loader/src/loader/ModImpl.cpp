@@ -840,12 +840,41 @@ Mod* Loader::Impl::getInternalMod() {
     }
     mod->m_impl->m_enabled = true;
     m_mods.insert({ mod->getID(), mod });
-    return mod;
-}
 
-Result<> Loader::Impl::setupInternalMod() {
-    GEODE_UNWRAP(Mod::get()->m_impl->setup());
+    // Set up internal mod right here so it's usable through `$execute`
+    log::info("Setting up internal mod");
+    log::pushNest();
+
+    // Run normal mod setup
+    auto setupRes = mod->m_impl->setup();
+    if (!setupRes) {
+        console::messageBox(
+            "Unable to Load Geode!",
+            "There was a fatal error setting up "
+            "the internal mod and Geode can not be loaded: " + setupRes.unwrapErr()
+        );
+        LoaderImpl::get()->forceReset();
+        return nullptr;
+    }
+
+    // The resources for the internal mod have to be handled differently 
+    // since they live in their own directory outside of unzipped/
     auto resourcesDir = dirs::getGeodeResourcesDir() / Mod::get()->getID();
-    GEODE_UNWRAP(ModMetadataImpl::getImpl(ModImpl::get()->m_metadata).addSpecialFiles(resourcesDir));
-    return Ok();
+    auto resourcesRes = ModMetadataImpl::getImpl(ModImpl::get()->m_metadata).addSpecialFiles(resourcesDir);
+    if (!resourcesRes) {
+        console::messageBox(
+            "Unable to Load Geode!",
+            "There was a fatal error loading the resources for "
+            "the internal mod and Geode can not be loaded: " + resourcesRes.unwrapErr()
+        );
+        LoaderImpl::get()->forceReset();
+        return nullptr;
+    }
+
+    // Should this be RAII so if one of the conditions before fail the nest 
+    // still gets popped? I mean after `forceReset()` the game is getting closed 
+    // anyway but still
+    log::popNest();
+
+    return mod;
 }
