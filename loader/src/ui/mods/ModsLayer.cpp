@@ -369,7 +369,7 @@ bool ModsLayer::init() {
         { "download.png"_spr, "Installed", InstalledModListSource::get(InstalledModListType::All) },
         { "GJ_starsIcon_001.png", "Recommended", SuggestedModListSource::get() },
         { "globe.png"_spr, "Download", ServerModListSource::get(ServerModListType::Download) },
-        { "GJ_sTrendingIcon_001.png", "Trending", ServerModListSource::get(ServerModListType::Trending) },
+        { "GJ_timeIcon_001.png", "Recent", ServerModListSource::get(ServerModListType::Recent) },
         { "gj_folderBtn_001.png", "Mod Packs", ModPackListSource::get() },
     }) {
         auto btn = CCMenuItemSpriteExtra::create(
