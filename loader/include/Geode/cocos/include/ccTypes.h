@@ -50,8 +50,10 @@ typedef struct _ccHSVValue
     float h, s, v;
     bool absoluteSaturation;
     bool absoluteBrightness;
-    private: unsigned char __pad[2];
+    bool saturationChecked;
+    bool brightnessChecked;
 } ccHSVValue;
+
 
 static inline ccHSVValue
 cchsv(const float vh, const float vs, const float vv, const bool as, const bool ab)
