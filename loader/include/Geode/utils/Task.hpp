@@ -4,6 +4,7 @@
 #include "MiniFunction.hpp"
 #include "../loader/Event.hpp"
 #include "../loader/Loader.hpp"
+#include <mutex>
 
 namespace geode {
     /**

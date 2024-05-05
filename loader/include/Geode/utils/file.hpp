@@ -3,6 +3,7 @@
 #include "Result.hpp"
 #include "general.hpp"
 #include "../loader/Event.hpp"
+#include "Task.hpp"
 
 #include <matjson.hpp>
 #include <Geode/DefaultInclude.hpp>
@@ -257,7 +258,7 @@ namespace geode::utils::file {
      * @param mode Type of file selection prompt to show
      * @param options Picker options
      */
-    [[deprecated("Use overload with callback instead, this will be removed in a later version.")]]
+    [[deprecated("Use pick() instead, this will be removed in a later version.")]]
     GEODE_DLL Result<ghc::filesystem::path> pickFile(PickMode mode, FilePickOptions const& options);
 
     GEODE_DLL void pickFile(
@@ -265,13 +266,14 @@ namespace geode::utils::file {
         utils::MiniFunction<void(ghc::filesystem::path)> callback,
         utils::MiniFunction<void()> failed = {}
     );
+    GEODE_DLL Task<Result<ghc::filesystem::path>> pick(PickMode mode, FilePickOptions const& options);
 
     /**
      * Prompt the user to pick a bunch of files for opening using the system's file system picker
      * @deprecated Will not work on Android, use the callback version instead
      * @param options Picker options
      */
-    [[deprecated("Use overload with callback instead, this will be removed in a later version.")]]
+    [[deprecated("Use pickMany() instead, this will be removed in a later version.")]]
     GEODE_DLL Result<std::vector<ghc::filesystem::path>> pickFiles(FilePickOptions const& options);
 
     GEODE_DLL void pickFiles(
@@ -279,6 +281,7 @@ namespace geode::utils::file {
         utils::MiniFunction<void(std::vector<ghc::filesystem::path>)> callback,
         utils::MiniFunction<void()> failed = {}
     );
+    GEODE_DLL Task<Result<std::vector<ghc::filesystem::path>>> pickMany(FilePickOptions const& options);
 
     class GEODE_DLL FileWatchEvent : public Event {
     protected:

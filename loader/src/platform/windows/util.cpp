@@ -121,7 +121,7 @@ Result<ghc::filesystem::path> utils::file::pickFile(
     return Ok(path);
 }
 
-GEODE_DLL void file::pickFile(
+void file::pickFile(
     PickMode mode, FilePickOptions const& options,
     MiniFunction<void(ghc::filesystem::path)> callback,
     MiniFunction<void()> failed
@@ -134,16 +134,19 @@ GEODE_DLL void file::pickFile(
         failed();
     }
 }
+Task<Result<ghc::filesystem::path>> file::pick(PickMode mode, FilePickOptions const& options) {
+    return Task<Result<ghc::filesystem::path>>::immediate(std::move(file::pickFile(mode, options)));
+}
 
 Result<std::vector<ghc::filesystem::path>> utils::file::pickFiles(
     file::FilePickOptions const& options
 ) {
     std::vector<ghc::filesystem::path> paths;
-    GEODE_UNWRAP(nfdPick(NFDMode::OpenFolder, options, &paths));
+    GEODE_UNWRAP(nfdPick(NFDMode::OpenFiles, options, &paths));
     return Ok(paths);
 }
 
-GEODE_DLL void file::pickFiles(
+void file::pickFiles(
     FilePickOptions const& options,
     MiniFunction<void(std::vector<ghc::filesystem::path>)> callback,
     MiniFunction<void()> failed
@@ -155,6 +158,9 @@ GEODE_DLL void file::pickFiles(
     } else {
         failed();
     }
+}
+Task<Result<std::vector<ghc::filesystem::path>>> file::pickMany(FilePickOptions const& options) {
+    return Task<Result<std::vector<ghc::filesystem::path>>>::immediate(std::move(file::pickFiles(options)));
 }
 
 void utils::web::openLinkInBrowser(std::string const& url) {
