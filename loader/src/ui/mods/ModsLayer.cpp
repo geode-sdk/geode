@@ -440,9 +440,21 @@ bool ModsLayer::init() {
 
     this->updateState();
 
-    // The overall mods layer only cares about page number updates
-    m_updateStateListener.setFilter(UpdateModListStateFilter(UpdatePageNumberState()));
-    m_updateStateListener.bind([this](auto) { this->updateState(); });
+    // Listen for state changes
+    m_updateStateListener.setFilter(UpdateModListStateFilter(UpdateWholeState()));
+    m_updateStateListener.bind([this](UpdateModListStateEvent* event) {
+        if (auto whole = std::get_if<UpdateWholeState>(&event->target)) {
+            if (whole->searchByDeveloper) {
+                auto src = ServerModListSource::get(ServerModListType::Download);
+                src->getQueryMut()->developer = *whole->searchByDeveloper;
+                this->gotoTab(src);
+                
+                m_showSearch = true;
+                m_lists.at(src)->activateSearch(m_showSearch);
+            }
+        } 
+        this->updateState();
+    });
 
     return true;
 }

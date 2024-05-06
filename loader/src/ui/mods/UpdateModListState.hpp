@@ -9,6 +9,9 @@ struct UpdatePageNumberState final {
     bool operator==(UpdatePageNumberState const&) const = default;
 };
 struct UpdateWholeState final {
+    std::optional<std::string> searchByDeveloper;
+    UpdateWholeState() = default;
+    inline explicit UpdateWholeState(std::optional<std::string> const& dev) : searchByDeveloper(dev) {}
     bool operator==(UpdateWholeState const&) const = default;
 };
 struct UpdateModState final {

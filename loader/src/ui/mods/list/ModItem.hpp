@@ -46,6 +46,7 @@ protected:
     void onView(CCObject*);
     void onViewError(CCObject*);
     void onInstall(CCObject*);
+    void onDevelopers(CCObject*);
 
 public:
     static ModItem* create(ModSource&& source);

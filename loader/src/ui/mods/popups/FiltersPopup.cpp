@@ -1,4 +1,5 @@
 #include "FiltersPopup.hpp"
+#include <Geode/ui/TextInput.hpp>
 
 bool FiltersPopup::setup(ModListSource* src) {
     m_noElasticity = true;
@@ -54,21 +55,22 @@ bool FiltersPopup::setup(ModListSource* src) {
 
     m_mainLayer->addChildAtPosition(tagsContainer, Anchor::Top, ccp(0, -85));
 
+    auto optionsContainer = CCNode::create();
+    optionsContainer->setContentSize(ccp(160, 35));
+    optionsContainer->setAnchorPoint({ .5f, .5f });
+    optionsContainer->setVisible(false);
+
+    auto optionsBG = CCScale9Sprite::create("square02b_001.png");
+    optionsBG->setColor({ 0, 0, 0 });
+    optionsBG->setOpacity(75);
+    optionsBG->setScale(.3f);
+    optionsBG->setContentSize(optionsContainer->getContentSize() / optionsBG->getScale());
+    optionsContainer->addChildAtPosition(optionsBG, Anchor::Center);
+
+    auto optionsMenu = CCMenu::create();
+    optionsMenu->setContentSize(optionsContainer->getContentSize() - ccp(10, 10));
+
     if (typeinfo_cast<InstalledModListSource*>(m_source)) {
-        auto optionsContainer = CCNode::create();
-        optionsContainer->setContentSize(ccp(160, 35));
-        optionsContainer->setAnchorPoint({ .5f, .5f });
-
-        auto optionsBG = CCScale9Sprite::create("square02b_001.png");
-        optionsBG->setColor({ 0, 0, 0 });
-        optionsBG->setOpacity(75);
-        optionsBG->setScale(.3f);
-        optionsBG->setContentSize(optionsContainer->getContentSize() / optionsBG->getScale());
-        optionsContainer->addChildAtPosition(optionsBG, Anchor::Center);
-
-        auto optionsMenu = CCMenu::create();
-        optionsMenu->setContentSize(optionsContainer->getContentSize() - ccp(10, 10));
-
         auto enabledOnlyToggle = CCMenuItemToggler::createWithStandardSprites(
             this, menu_selector(FiltersPopup::onToggle), .6f
         );
@@ -85,25 +87,35 @@ bool FiltersPopup::setup(ModListSource* src) {
         enabledOnlyLabel->setScale(.35f);
         optionsMenu->addChildAtPosition(enabledOnlyLabel, Anchor::Left, ccp(30, 0), ccp(0, .5f));
 
-        optionsContainer->addChildAtPosition(optionsMenu, Anchor::Center);
-
-        auto optionsTitleMenu = CCMenu::create();
-        optionsTitleMenu->setAnchorPoint({ .5f, 0 });
-        optionsTitleMenu->setContentWidth(optionsContainer->getContentWidth());
-
-        auto optionsTitle = CCLabelBMFont::create("Options", "bigFont.fnt");
-        optionsTitleMenu->addChild(optionsTitle);
-
-        optionsTitleMenu->addChild(SpacerNode::create());
-
-        optionsTitleMenu->setLayout(
-            RowLayout::create()
-                ->setDefaultScaleLimits(.1f, .4f)
-        );
-        optionsContainer->addChildAtPosition(optionsTitleMenu, Anchor::Top, ccp(0, 4));
-
-        m_mainLayer->addChildAtPosition(optionsContainer, Anchor::Bottom, ccp(0, 60), ccp(.5f, .5f));
+        optionsContainer->setVisible(true);
     }
+    else if (typeinfo_cast<ServerModListSource*>(m_source)) {
+        auto input = TextInput::create(100, "Developer");
+        input->setTextAlign(TextInputAlign::Left);
+        input->setLabel("Developer Name");
+        optionsMenu->addChildAtPosition(input, Anchor::Left, ccp(15, 0));
+
+        optionsContainer->setVisible(true);
+    }
+
+    optionsContainer->addChildAtPosition(optionsMenu, Anchor::Center);
+
+    auto optionsTitleMenu = CCMenu::create();
+    optionsTitleMenu->setAnchorPoint({ .5f, 0 });
+    optionsTitleMenu->setContentWidth(optionsContainer->getContentWidth());
+
+    auto optionsTitle = CCLabelBMFont::create("Options", "bigFont.fnt");
+    optionsTitleMenu->addChild(optionsTitle);
+
+    optionsTitleMenu->addChild(SpacerNode::create());
+
+    optionsTitleMenu->setLayout(
+        RowLayout::create()
+            ->setDefaultScaleLimits(.1f, .4f)
+    );
+    optionsContainer->addChildAtPosition(optionsTitleMenu, Anchor::Top, ccp(0, 4));
+
+    m_mainLayer->addChildAtPosition(optionsContainer, Anchor::Bottom, ccp(0, 60), ccp(.5f, .5f));
 
     auto okSpr = createGeodeButton("OK");
     okSpr->setScale(.7f);
@@ -182,7 +194,7 @@ void FiltersPopup::onClose(CCObject* sender) {
 FiltersPopup* FiltersPopup::create(ModListSource* src) {
     auto ret = new FiltersPopup();
     float height = 170;
-    if (typeinfo_cast<InstalledModListSource*>(src)) {
+    if (typeinfo_cast<InstalledModListSource*>(src) || typeinfo_cast<ServerModListSource*>(src)) {
         height = 230;
     }
     if (ret && ret->init(350, height, src)) {

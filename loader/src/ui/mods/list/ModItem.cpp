@@ -3,6 +3,7 @@
 #include <Geode/utils/ColorProvider.hpp>
 #include "../GeodeStyle.hpp"
 #include "../popups/ModPopup.hpp"
+#include "../popups/DevPopup.hpp"
 
 bool ModItem::init(ModSource&& source) {
     if (!CCNode::init())
@@ -56,7 +57,7 @@ bool ModItem::init(ModSource&& source) {
     auto by = "By " + ModMetadata::formatDeveloperDisplayString(m_source.getMetadata().getDevelopers());
     m_developerLabel = CCLabelBMFont::create(by.c_str(), "goldFont.fnt");
     auto developersBtn = CCMenuItemSpriteExtra::create(
-        m_developerLabel, this, nullptr
+        m_developerLabel, this, menu_selector(ModItem::onDevelopers)
     );
     m_developers->addChild(developersBtn);
 
@@ -390,7 +391,6 @@ void ModItem::onView(CCObject*) {
     // Always open up the popup for the installed mod page if that is possible
     ModPopup::create(m_source.convertForPopup())->show();
 }
-
 void ModItem::onViewError(CCObject*) {
     if (auto mod = m_source.asMod()) {
         std::vector<std::string> problems;
@@ -404,7 +404,6 @@ void ModItem::onViewError(CCObject*) {
         )->show();
     }
 }
-
 void ModItem::onEnable(CCObject*) {
     if (auto mod = m_source.asMod()) {
         // Toggle the mod state
@@ -421,9 +420,11 @@ void ModItem::onEnable(CCObject*) {
     // Update state of the mod item
     UpdateModListStateEvent(UpdateModState(m_source.getID())).post();
 }
-
 void ModItem::onInstall(CCObject*) {
     server::ModDownloadManager::get()->startDownload(m_source.getID(), std::nullopt);
+}
+void ModItem::onDevelopers(CCObject*) {
+    DevListPopup::create(m_source.getMetadata())->show();
 }
 
 ModItem* ModItem::create(ModSource&& source) {
