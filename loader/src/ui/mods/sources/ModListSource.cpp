@@ -23,6 +23,10 @@ ListenerResult InvalidateCacheFilter::handle(MiniFunction<Callback> fn, Invalida
 
 InvalidateCacheFilter::InvalidateCacheFilter(ModListSource* src) : m_source(src) {}
 
+bool LocalModsQueryBase::isDefault() const {
+    return !query.has_value() && tags.empty();
+}
+
 typename ModListSource::PageLoadTask ModListSource::loadPage(size_t page, bool forceUpdate) {
     if (!forceUpdate && m_cachedPages.contains(page)) {
         return PageLoadTask::immediate(Ok(m_cachedPages.at(page)));
@@ -59,8 +63,8 @@ std::optional<size_t> ModListSource::getItemCount() const {
 }
 
 void ModListSource::reset() {
-    this->clearCache();
     this->resetQuery();
+    this->clearCache();
 }
 void ModListSource::clearCache() {
     m_cachedPages.clear();

@@ -42,6 +42,8 @@ protected:
     CCMenuItemToggler* m_toggleErrorsOnlyBtn = nullptr;
     TextArea* m_updateCountLabel = nullptr;
     TextInput* m_searchInput;
+    CCMenuItemSpriteExtra* m_filtersBtn;
+    CCMenuItemSpriteExtra* m_clearFiltersBtn;
     EventListener<InvalidateCacheFilter> m_invalidateCacheListener;
     EventListener<server::ServerRequest<std::vector<std::string>>> m_checkUpdatesListener;
     EventListener<server::ModDownloadFilter> m_downloadListener;

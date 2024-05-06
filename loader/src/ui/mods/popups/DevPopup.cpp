@@ -10,7 +10,7 @@ bool DevListPopup::setup(ModMetadata const& meta) {
 
     for (auto dev : meta.getDevelopers()) {
         auto menu = CCMenu::create();
-        menu->setContentWidth(90);
+        menu->setContentWidth(m_size.width - 30);
 
         auto label = CCLabelBMFont::create(dev.c_str(), "bigFont.fnt");
         label->setLayoutOptions(AxisLayoutOptions::create()->setScalePriority(1));
@@ -55,7 +55,7 @@ void DevListPopup::onMoreByThisDev(CCObject* sender) {
 
 DevListPopup* DevListPopup::create(ModMetadata const& meta) {
     auto ret = new DevListPopup();
-    if (ret && ret->init(200, 180, meta)) {
+    if (ret && ret->init(220, 220, meta)) {
         ret->autorelease();
         return ret;
     }

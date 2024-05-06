@@ -32,6 +32,9 @@ bool InstalledModsQuery::queryCheck(ModSource const& src, double& weighted) cons
     // todo: favorites
     return addToList;
 }
+bool InstalledModsQuery::isDefault() const {
+    return LocalModsQueryBase::isDefault() && !enabledOnly.has_value();
+}
 
 InstalledModListSource::InstalledModListSource(InstalledModListType type)
   : m_type(type)
@@ -115,4 +118,7 @@ InstalledModsQuery const& InstalledModListSource::getQuery() const {
 }
 InvalidateQueryAfter<InstalledModsQuery> InstalledModListSource::getQueryMut() {
     return InvalidateQueryAfter(m_query, this);
+}
+bool InstalledModListSource::isDefaultQuery() const {
+    return m_query.isDefault();
 }

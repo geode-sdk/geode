@@ -69,14 +69,17 @@ bool GeodeSquareSprite::init(CCSprite* top, bool* state) {
     return true;
 }
 
+void GeodeSquareSprite::updateImage() {
+    this->setTexture(CCTextureCache::get()->addImage(
+        (m_state ? "GJ_button_02.png" : (isGeodeTheme() ? "GE_button_05.png"_spr : "GJ_button_01.png")),
+        true
+    ));
+}
 void GeodeSquareSprite::update(float dt) {
     CCSprite::update(dt);
     if (m_stateSrc && m_state != *m_stateSrc) {
         m_state = *m_stateSrc;
-        this->setTexture(CCTextureCache::get()->addImage(
-            (m_state ? "GJ_button_02.png" : (isGeodeTheme() ? "GE_button_05.png"_spr : "GJ_button_01.png")),
-            true
-        ));
+        this->updateImage();
     }
 }
 
@@ -89,7 +92,6 @@ GeodeSquareSprite* GeodeSquareSprite::create(const char* top, bool* state) {
     CC_SAFE_DELETE(ret);
     return nullptr;
 }
-
 GeodeSquareSprite* GeodeSquareSprite::createWithSpriteFrameName(const char* top, bool* state) {
     auto ret = new GeodeSquareSprite();
     if (ret && ret->init(CCSprite::createWithSpriteFrameName(top), state)) {
@@ -102,6 +104,13 @@ GeodeSquareSprite* GeodeSquareSprite::createWithSpriteFrameName(const char* top,
 
 CCSprite* GeodeSquareSprite::getTopSprite() const {
     return m_topSprite;
+}
+
+void GeodeSquareSprite::setState(bool state) {
+    if (!m_stateSrc) {
+        m_state = state;
+        this->updateImage();
+    }
 }
 
 class LoadingSpinner : public CCNode {

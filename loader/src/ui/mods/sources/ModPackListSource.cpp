@@ -18,3 +18,6 @@ std::unordered_set<std::string> ModPackListSource::getModTags() const {
     return {};
 }
 void ModPackListSource::setModTags(std::unordered_set<std::string> const& set) {}
+bool ModPackListSource::isDefaultQuery() const {
+    return true;
+}

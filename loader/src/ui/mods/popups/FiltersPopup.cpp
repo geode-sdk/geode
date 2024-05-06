@@ -1,5 +1,4 @@
 #include "FiltersPopup.hpp"
-#include <Geode/ui/TextInput.hpp>
 
 bool FiltersPopup::setup(ModListSource* src) {
     m_noElasticity = true;
@@ -55,67 +54,81 @@ bool FiltersPopup::setup(ModListSource* src) {
 
     m_mainLayer->addChildAtPosition(tagsContainer, Anchor::Top, ccp(0, -85));
 
-    auto optionsContainer = CCNode::create();
-    optionsContainer->setContentSize(ccp(160, 35));
-    optionsContainer->setAnchorPoint({ .5f, .5f });
-    optionsContainer->setVisible(false);
+    if (auto src = typeinfo_cast<InstalledModListSource*>(m_source)) {
+        auto optionsContainer = CCNode::create();
+        optionsContainer->setContentSize(ccp(160, 35));
+        optionsContainer->setAnchorPoint({ .5f, .5f });
 
-    auto optionsBG = CCScale9Sprite::create("square02b_001.png");
-    optionsBG->setColor({ 0, 0, 0 });
-    optionsBG->setOpacity(75);
-    optionsBG->setScale(.3f);
-    optionsBG->setContentSize(optionsContainer->getContentSize() / optionsBG->getScale());
-    optionsContainer->addChildAtPosition(optionsBG, Anchor::Center);
+        auto optionsBG = CCScale9Sprite::create("square02b_001.png");
+        optionsBG->setColor({ 0, 0, 0 });
+        optionsBG->setOpacity(75);
+        optionsBG->setScale(.3f);
+        optionsBG->setContentSize(optionsContainer->getContentSize() / optionsBG->getScale());
+        optionsContainer->addChildAtPosition(optionsBG, Anchor::Center);
 
-    auto optionsMenu = CCMenu::create();
-    optionsMenu->setContentSize(optionsContainer->getContentSize() - ccp(10, 10));
+        auto optionsMenu = CCMenu::create();
+        optionsMenu->setContentSize(optionsContainer->getContentSize() - ccp(10, 10));
 
-    if (typeinfo_cast<InstalledModListSource*>(m_source)) {
-        auto enabledOnlyToggle = CCMenuItemToggler::createWithStandardSprites(
-            this, menu_selector(FiltersPopup::onToggle), .6f
-        );
-        enabledOnlyToggle->m_notClickable = true;
-        enabledOnlyToggle->setUserData(reinterpret_cast<void*>(+[](ModListSource* src) -> bool {
-            auto mut = static_cast<InstalledModListSource*>(src)->getQueryMut();
-            mut->enabledOnly = mut->enabledOnly.has_value() ? std::nullopt : std::optional(true);
-            return mut->enabledOnly.value_or(false);
-        }));
-        enabledOnlyToggle->toggle(static_cast<InstalledModListSource*>(src)->getQuery().enabledOnly.has_value());
-        optionsMenu->addChildAtPosition(enabledOnlyToggle, Anchor::Left, ccp(15, 0));
+        m_enabledModsOnly = CCMenuItemToggler::createWithStandardSprites(this, nullptr, .6f);
+        m_enabledModsOnly->toggle(src->getQuery().enabledOnly.has_value());
+        optionsMenu->addChildAtPosition(m_enabledModsOnly, Anchor::Left, ccp(15, 0));
 
         auto enabledOnlyLabel = CCLabelBMFont::create("Enabled Mods Only", "bigFont.fnt");
         enabledOnlyLabel->setScale(.35f);
         optionsMenu->addChildAtPosition(enabledOnlyLabel, Anchor::Left, ccp(30, 0), ccp(0, .5f));
 
-        optionsContainer->setVisible(true);
+        optionsContainer->addChildAtPosition(optionsMenu, Anchor::Center);
+
+        auto optionsTitleMenu = CCMenu::create();
+        optionsTitleMenu->setAnchorPoint({ .5f, 0 });
+        optionsTitleMenu->setContentWidth(optionsContainer->getContentWidth());
+
+        auto optionsTitle = CCLabelBMFont::create("Options", "bigFont.fnt");
+        optionsTitleMenu->addChild(optionsTitle);
+
+        optionsTitleMenu->addChild(SpacerNode::create());
+
+        optionsTitleMenu->setLayout(
+            RowLayout::create()
+                ->setDefaultScaleLimits(.1f, .4f)
+        );
+        optionsContainer->addChildAtPosition(optionsTitleMenu, Anchor::Top, ccp(0, 4));
+
+        m_mainLayer->addChildAtPosition(optionsContainer, Anchor::Bottom, ccp(0, 60), ccp(.5f, .5f));
     }
-    else if (typeinfo_cast<ServerModListSource*>(m_source)) {
-        auto input = TextInput::create(100, "Developer");
-        input->setTextAlign(TextInputAlign::Left);
-        input->setLabel("Developer Name");
-        optionsMenu->addChildAtPosition(input, Anchor::Left, ccp(15, 0));
+    else if (auto src = typeinfo_cast<ServerModListSource*>(m_source)) {
+        auto inputContainer = CCNode::create();
+        inputContainer->setContentSize(ccp(160, 35));
+        inputContainer->setAnchorPoint({ .5f, .5f });
 
-        optionsContainer->setVisible(true);
+        m_developerNameInput = TextInput::create(inputContainer->getContentWidth(), "Developer Name");
+        m_developerNameInput->setTextAlign(TextInputAlign::Left);
+        m_developerNameInput->setString(src->getQuery().developer.value_or(""));
+        inputContainer->addChildAtPosition(m_developerNameInput, Anchor::Center);
+
+        auto inputTitleMenu = CCMenu::create();
+        inputTitleMenu->setAnchorPoint({ .5f, 0 });
+        inputTitleMenu->setContentWidth(inputContainer->getContentWidth());
+
+        auto inputTitle = CCLabelBMFont::create("From Developer", "bigFont.fnt");
+        inputTitleMenu->addChild(inputTitle);
+
+        inputTitleMenu->addChild(SpacerNode::create());
+
+        auto resetSpr = CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
+        auto resetBtn = CCMenuItemSpriteExtra::create(
+            resetSpr, this, menu_selector(FiltersPopup::onResetDevName)
+        );
+        inputTitleMenu->addChild(resetBtn);
+
+        inputTitleMenu->setLayout(
+            RowLayout::create()
+                ->setDefaultScaleLimits(.1f, .4f)
+        );
+        inputContainer->addChildAtPosition(inputTitleMenu, Anchor::Top, ccp(0, 4));
+
+        m_mainLayer->addChildAtPosition(inputContainer, Anchor::Bottom, ccp(0, 60), ccp(.5f, .5f));
     }
-
-    optionsContainer->addChildAtPosition(optionsMenu, Anchor::Center);
-
-    auto optionsTitleMenu = CCMenu::create();
-    optionsTitleMenu->setAnchorPoint({ .5f, 0 });
-    optionsTitleMenu->setContentWidth(optionsContainer->getContentWidth());
-
-    auto optionsTitle = CCLabelBMFont::create("Options", "bigFont.fnt");
-    optionsTitleMenu->addChild(optionsTitle);
-
-    optionsTitleMenu->addChild(SpacerNode::create());
-
-    optionsTitleMenu->setLayout(
-        RowLayout::create()
-            ->setDefaultScaleLimits(.1f, .4f)
-    );
-    optionsContainer->addChildAtPosition(optionsTitleMenu, Anchor::Top, ccp(0, 4));
-
-    m_mainLayer->addChildAtPosition(optionsContainer, Anchor::Bottom, ccp(0, 60), ccp(.5f, .5f));
 
     auto okSpr = createGeodeButton("OK");
     okSpr->setScale(.7f);
@@ -158,11 +171,6 @@ void FiltersPopup::onLoadTags(typename server::ServerRequest<std::unordered_set<
     }
 }
 
-void FiltersPopup::onToggle(CCObject* sender) {
-    auto toggle = static_cast<CCMenuItemToggler*>(sender);
-    auto enabled = reinterpret_cast<bool(*)(ModListSource*)>(toggle->getUserData())(m_source);
-    toggle->toggle(enabled);
-}
 void FiltersPopup::updateTags() {
     for (auto node : CCArrayExt<CCNode*>(m_tagsMenu->getChildren())) {
         if (auto toggle = typeinfo_cast<CCMenuItemToggler*>(node)) {
@@ -186,8 +194,22 @@ void FiltersPopup::onResetTags(CCObject*) {
     m_selectedTags.clear();
     this->updateTags();
 }
+void FiltersPopup::onResetDevName(CCObject*) {
+    if (m_developerNameInput) {
+        m_developerNameInput->setString("");
+    }
+}
 void FiltersPopup::onClose(CCObject* sender) {
     m_source->setModTags(m_selectedTags);
+    if (auto src = typeinfo_cast<InstalledModListSource*>(m_source)) {
+        src->getQueryMut()->enabledOnly = m_enabledModsOnly->isToggled() ? std::optional(true) : std::nullopt;
+    }
+    else if (auto src = typeinfo_cast<ServerModListSource*>(m_source)) {
+        src->getQueryMut()->developer = m_developerNameInput->getString();
+        if (src->getQueryMut()->developer->empty()) {
+            src->getQueryMut()->developer.reset();
+        }
+    }
     Popup::onClose(sender);
 }
 

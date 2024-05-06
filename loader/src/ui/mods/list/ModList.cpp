@@ -200,24 +200,24 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     );
     if (!typeinfo_cast<ServerModListSource*>(m_source)) {
         sortBtn->setEnabled(false);
-        sortSpr->setColor({ 150, 150, 150 });
+        sortSpr->setColor(ccGRAY);
         sortSpr->setOpacity(105);
-        sortSpr->getTopSprite()->setColor({ 150, 150, 150 });
+        sortSpr->getTopSprite()->setColor(ccGRAY);
         sortSpr->getTopSprite()->setOpacity(105);
     }
     searchFiltersMenu->addChild(sortBtn);
 
-    auto filterBtn = CCMenuItemSpriteExtra::create(
+    m_filtersBtn = CCMenuItemSpriteExtra::create(
         GeodeSquareSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
         this, menu_selector(ModList::onFilters)
     );
-    searchFiltersMenu->addChild(filterBtn);
+    searchFiltersMenu->addChild(m_filtersBtn);
 
-    auto clearFiltersBtn = CCMenuItemSpriteExtra::create(
+    m_clearFiltersBtn = CCMenuItemSpriteExtra::create(
         GeodeSquareSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"),
         this, menu_selector(ModList::onClearFilters)
     );
-    searchFiltersMenu->addChild(clearFiltersBtn);
+    searchFiltersMenu->addChild(m_clearFiltersBtn);
 
     searchFiltersMenu->setLayout(
         RowLayout::create()
@@ -522,6 +522,18 @@ void ModList::updateState() {
     m_pagePrevBtn->setVisible(pageCount && m_page > 0);
     m_pageNextBtn->setVisible(pageCount && m_page < pageCount.value() - 1);
 
+    // Update filter button states
+    auto isDefaultQuery = m_source->isDefaultQuery();
+
+    auto filterSpr = static_cast<GeodeSquareSprite*>(m_filtersBtn->getNormalImage());
+    filterSpr->setState(!isDefaultQuery);
+
+    auto clearSpr = static_cast<GeodeSquareSprite*>(m_clearFiltersBtn->getNormalImage());
+    clearSpr->setColor(isDefaultQuery ? ccGRAY : ccWHITE);
+    clearSpr->setOpacity(isDefaultQuery ? 90 : 255);
+    clearSpr->getTopSprite()->setColor(isDefaultQuery ? ccGRAY : ccWHITE);
+    clearSpr->getTopSprite()->setOpacity(isDefaultQuery ? 90 : 255);
+
     // Post the update page number event
     UpdateModListStateEvent(UpdatePageNumberState()).post();
 }
@@ -573,17 +585,13 @@ void ModList::showStatus(ModListStatus status, std::string const& message, std::
 void ModList::onFilters(CCObject*) {
     FiltersPopup::create(m_source)->show();
 }
-
 void ModList::onSort(CCObject*) {
     SortPopup::create(m_source)->show();
 }
-
 void ModList::onClearFilters(CCObject*) {
-    // FIXME: reloads twice
-    m_source->setModTags({});
-    m_searchInput->setString("", true);
+    m_searchInput->setString("", false);
+    m_source->reset();
 }
-
 void ModList::onToggleUpdates(CCObject*) {
     if (auto src = typeinfo_cast<InstalledModListSource*>(m_source)) {
         auto mut = src->getQueryMut();
@@ -592,7 +600,6 @@ void ModList::onToggleUpdates(CCObject*) {
             InstalledModListType::OnlyUpdates;
     }
 }
-
 void ModList::onToggleErrors(CCObject*) {
     if (auto src = typeinfo_cast<InstalledModListSource*>(m_source)) {
         auto mut = src->getQueryMut();
@@ -601,7 +608,6 @@ void ModList::onToggleErrors(CCObject*) {
             InstalledModListType::OnlyErrors;
     }
 }
-
 void ModList::onUpdateAll(CCObject*) {
     server::ModDownloadManager::get()->startUpdateAll();
 }

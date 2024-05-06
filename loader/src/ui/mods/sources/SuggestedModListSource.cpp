@@ -13,6 +13,9 @@ bool SuggestedModsQuery::queryCheck(ModSource const& src, double& weighted) cons
     }
     return true;
 }
+bool SuggestedModsQuery::isDefault() const {
+    return LocalModsQueryBase::isDefault();
+}
 
 void SuggestedModListSource::resetQuery() {
     m_query = SuggestedModsQuery();
@@ -57,4 +60,8 @@ std::unordered_set<std::string> SuggestedModListSource::getModTags() const {
 void SuggestedModListSource::setModTags(std::unordered_set<std::string> const& tags) {
     m_query.tags = tags;
     this->clearCache();
+}
+
+bool SuggestedModListSource::isDefaultQuery() const {
+    return m_query.isDefault();
 }

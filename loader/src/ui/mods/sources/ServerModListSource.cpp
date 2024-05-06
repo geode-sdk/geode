@@ -97,3 +97,9 @@ server::ModsQuery const& ServerModListSource::getQuery() const {
 InvalidateQueryAfter<server::ModsQuery> ServerModListSource::getQueryMut() {
     return InvalidateQueryAfter(m_query, this);
 }
+bool ServerModListSource::isDefaultQuery() const {
+    return !m_query.query.has_value() &&
+        !m_query.featured.has_value() &&
+        m_query.tags.empty() &&
+        !m_query.developer.has_value();
+}

@@ -65,6 +65,7 @@ public:
     void reset();
     void clearCache();
     void search(std::string const& query);
+    virtual bool isDefaultQuery() const = 0;
 
     virtual std::unordered_set<std::string> getModTags() const = 0;
     virtual void setModTags(std::unordered_set<std::string> const& tags) = 0;
@@ -97,9 +98,9 @@ public:
 struct LocalModsQueryBase {
     std::optional<std::string> query;
     std::unordered_set<std::string> tags = {};
-    std::optional<bool> enabledOnly;
     size_t page = 0;
     size_t pageSize = 10;
+    bool isDefault() const;
 };
 
 enum class InstalledModListType {
@@ -109,8 +110,10 @@ enum class InstalledModListType {
 };
 struct InstalledModsQuery final : public LocalModsQueryBase {
     InstalledModListType type = InstalledModListType::All;
+    std::optional<bool> enabledOnly;
     bool preCheck(ModSource const& src) const;
     bool queryCheck(ModSource const& src, double& weighted) const;
+    bool isDefault() const;
 };
 
 class InstalledModListSource : public ModListSource {
@@ -132,11 +135,13 @@ public:
 
     InstalledModsQuery const& getQuery() const;
     InvalidateQueryAfter<InstalledModsQuery> getQueryMut();
+    bool isDefaultQuery() const override;
 };
 
 struct SuggestedModsQuery final : public LocalModsQueryBase {
     bool preCheck(ModSource const& src) const;
     bool queryCheck(ModSource const& src, double& weighted) const;
+    bool isDefault() const;
 };
 
 class SuggestedModListSource : public ModListSource {
@@ -154,6 +159,7 @@ public:
 
     std::unordered_set<std::string> getModTags() const override;
     void setModTags(std::unordered_set<std::string> const& tags) override;
+    bool isDefaultQuery() const override;
 };
 
 enum class ServerModListType {
@@ -182,6 +188,7 @@ public:
 
     server::ModsQuery const& getQuery() const;
     InvalidateQueryAfter<server::ModsQuery> getQueryMut();
+    bool isDefaultQuery() const override;
 };
 
 class ModPackListSource : public ModListSource {
@@ -197,6 +204,7 @@ public:
 
     std::unordered_set<std::string> getModTags() const override;
     void setModTags(std::unordered_set<std::string> const& tags) override;
+    bool isDefaultQuery() const override;
 };
 
 bool weightedFuzzyMatch(std::string const& str, std::string const& kw, double weight, double& out);

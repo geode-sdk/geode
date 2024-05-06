@@ -50,12 +50,14 @@ protected:
     bool init(CCSprite* top, bool* state);
 
     void update(float dt) override;
+    void updateImage();
 
 public:
     static GeodeSquareSprite* create(const char* top, bool* state = nullptr);
     static GeodeSquareSprite* createWithSpriteFrameName(const char* top, bool* state = nullptr);
 
     CCSprite* getTopSprite() const;
+    void setState(bool state);
 };
 
 CCNode* createLoadingCircle(float sideLength, const char* id = "loading-spinner");
