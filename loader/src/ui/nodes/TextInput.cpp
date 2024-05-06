@@ -8,7 +8,7 @@ using namespace geode::prelude;
 struct TextInputNodeFix : Modify<TextInputNodeFix, CCTextInputNode> {
     GEODE_FORWARD_COMPAT_DISABLE_HOOKS("TextInputNode fix")
 
-    bool ccTouchBegan(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) {
+    bool ccTouchBegan(CCTouch* touch, CCEvent* event) {
         if (!this->getUserObject("fix-text-input")) {
             return CCTextInputNode::ccTouchBegan(touch, event);
         }
@@ -62,19 +62,19 @@ bool TextInput::init(float width, std::string const& placeholder, std::string co
     this->setContentSize({ width, HEIGHT });
     this->setAnchorPoint({ .5f, .5f });
 
-    m_bgSprite = cocos2d::extension::CCScale9Sprite::create("square02b_001.png", { 0, 0, 80, 80 });
+    m_bgSprite = extension::CCScale9Sprite::create("square02b_001.png", { 0, 0, 80, 80 });
     m_bgSprite->setScale(.5f);
     m_bgSprite->setColor({ 0, 0, 0 });
     m_bgSprite->setOpacity(90);
     m_bgSprite->setContentSize({ width * 2, HEIGHT * 2 });
-    this->addChildAtPosition(m_bgSprite, cocos2d::Anchor::Center);
+    this->addChildAtPosition(m_bgSprite, Anchor::Center);
 
     m_input = CCTextInputNode::create(width, HEIGHT, placeholder.c_str(), 24, font.c_str());
     m_input->setLabelPlaceholderColor({ 150, 150, 150 });
     m_input->setLabelPlaceholderScale(.5f);
     m_input->setMaxLabelScale(.6f);
     m_input->setUserObject("fix-text-input", CCBool::create(true));
-    this->addChildAtPosition(m_input, cocos2d::Anchor::Center);
+    this->addChildAtPosition(m_input, Anchor::Center);
 
     return true;
 }
@@ -98,6 +98,24 @@ void TextInput::textChanged(CCTextInputNode* input) {
 void TextInput::setPlaceholder(std::string const& placeholder) {
     m_input->m_caption = placeholder;
     m_input->refreshLabel();
+}
+void TextInput::setLabel(std::string const& label) {
+    if (label.size()) {
+        if (m_label) {
+            m_label->setString(label.c_str());
+        }
+        else {
+            m_label = CCLabelBMFont::create(label.c_str(), "goldFont.fnt");
+            this->addChildAtPosition(m_label, Anchor::TopLeft, ccp(3, 2), ccp(0, 0));
+        }
+        m_label->limitLabelWidth(m_bgSprite->getScaledContentWidth() - 6, .4f, .1f);
+    }
+    else {
+        if (m_label) {
+            m_label->removeFromParent();
+            m_label = nullptr;
+        }
+    }
 }
 void TextInput::setFilter(std::string const& allowedChars) {
     m_input->m_allowedChars = allowedChars;
