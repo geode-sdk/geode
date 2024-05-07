@@ -14,7 +14,6 @@
 #include <loader/updater.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/modify/LevelSelectLayer.hpp>
-#include <ui/other/FixIssuesPopup.hpp>
 
 using namespace geode::prelude;
 
@@ -83,7 +82,20 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         }
 
         // show if some mods failed to load
-        checkLoadingIssues(this);
+        if (Loader::get()->getProblems().size()) {
+            static bool shownProblemPopup = false;
+            if (!shownProblemPopup) {
+                shownProblemPopup = true;
+                Notification::create("There were errors - see Geode page!", NotificationIcon::Error)->show();
+            }
+
+            auto icon = CCSprite::createWithSpriteFrameName("exclamation-red.png"_spr);
+            icon->setPosition(m_fields->m_geodeButton->getContentSize() - ccp(10, 10));
+            icon->setID("errors-found");
+            icon->setZOrder(99);
+            icon->setScale(.8f);
+            m_fields->m_geodeButton->addChild(icon);
+        }
         
         // show if the user tried to be naughty and load arbitrary DLLs
         static bool shownTriedToLoadDlls = false;
@@ -154,6 +166,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
                     auto updatesFound = result->unwrap();
                     if (updatesFound.size() && !m_fields->m_geodeButton->getChildByID("updates-available")) {
                         log::info("Found updates for mods: {}!", updatesFound);
+
                         auto icon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr);
                         icon->setPosition(
                             m_fields->m_geodeButton->getContentSize() - CCSize { 10.f, 10.f }

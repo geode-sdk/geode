@@ -79,13 +79,6 @@ std::vector<LoadProblem> Loader::getProblems() const {
         }
     }
     return result;
-    return ranges::filter(
-        m_impl->getProblems(),
-        [](auto const& problem) {
-            return problem.type != LoadProblem::Type::Recommendation && 
-                problem.type != LoadProblem::Type::Suggestion;
-        }
-    );
 }
 std::vector<LoadProblem> Loader::getRecommendations() const {
     std::vector<LoadProblem> result;

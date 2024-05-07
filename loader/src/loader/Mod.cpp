@@ -252,22 +252,28 @@ std::vector<LoadProblem> Mod::getAllProblems() const {
     return m_impl->getProblems();
 }
 std::vector<LoadProblem> Mod::getProblems() const {
-    return ranges::filter(
-        this->getAllProblems(),
-        [](auto const& problem) {
-            return problem.type != LoadProblem::Type::Recommendation && 
-                problem.type != LoadProblem::Type::Suggestion;
+    std::vector<LoadProblem> result;
+    for (auto problem : this->getAllProblems()) {
+        if (
+            problem.type != LoadProblem::Type::Recommendation && 
+            problem.type != LoadProblem::Type::Suggestion
+        ) {
+            result.push_back(problem);
         }
-    );
+    }
+    return result;
 }
 std::vector<LoadProblem> Mod::getRecommendations() const {
-    return ranges::filter(
-        this->getAllProblems(),
-        [](auto const& problem) {
-            return problem.type == LoadProblem::Type::Recommendation || 
-                problem.type == LoadProblem::Type::Suggestion;
+    std::vector<LoadProblem> result;
+    for (auto problem : this->getAllProblems()) {
+        if (
+            problem.type == LoadProblem::Type::Recommendation || 
+            problem.type == LoadProblem::Type::Suggestion
+        ) {
+            result.push_back(problem);
         }
-    );
+    }
+    return result;
 }
 bool Mod::shouldLoad() const {
     return m_impl->shouldLoad();
