@@ -18,6 +18,29 @@ CCSprite* geode::createLayerBG() {
     return bg;
 }
 
+void geode::addSideArt(CCNode* to, SideArt sides, bool useAnchorLayout) {
+    if (sides & SideArt::BottomLeft) {
+        auto spr = CCSprite::createWithSpriteFrameName("GJ_sideArt_001.png");
+        to->addChildAtPosition(spr, Anchor::BottomLeft, ccp(35, 35), useAnchorLayout);
+    }
+    if (sides & SideArt::BottomRight) {
+        auto spr = CCSprite::createWithSpriteFrameName("GJ_sideArt_001.png");
+        spr->setFlipX(true);
+        to->addChildAtPosition(spr, Anchor::BottomRight, ccp(-35, 35), useAnchorLayout);
+    }
+    if (sides & SideArt::TopLeft) {
+        auto spr = CCSprite::createWithSpriteFrameName("GJ_sideArt_001.png");
+        spr->setFlipY(true);
+        to->addChildAtPosition(spr, Anchor::TopLeft, ccp(35, -35), useAnchorLayout);
+    }
+    if (sides & SideArt::TopRight) {
+        auto spr = CCSprite::createWithSpriteFrameName("GJ_sideArt_001.png");
+        spr->setFlipX(true);
+        spr->setFlipY(true);
+        to->addChildAtPosition(spr, Anchor::TopRight, ccp(-35, -35), useAnchorLayout);
+    }
+}
+
 void geode::addListBorders(CCNode* to, CCPoint const& center, CCSize const& size) {
     // if the size is 346.f, the top aligns perfectly by default :3
     if (size.width == 346.f) {
@@ -88,4 +111,74 @@ void geode::addListBorders(CCNode* to, CCPoint const& center, CCSize const& size
         center.y
     });
     to->addChild(layerRightSpr);
+}
+
+bool ListBorders::init() {
+    if (!CCNode::init())
+        return false;
+    
+    this->setAnchorPoint({ .5f, .5f });
+    this->setSpriteFrames("GJ_commentTop_001.png", "GJ_commentSide_001.png");
+
+    return true;
+}
+
+ListBorders* ListBorders::create() {
+    auto ret = new ListBorders();
+    if (ret && ret->init()) {
+        ret->autorelease();
+        return ret;
+    }
+    CC_SAFE_DELETE(ret);
+    return nullptr;
+}
+
+void ListBorders::setSpriteFrames(const char* topAndBottom, const char* side, float topPadding) {
+    this->setSprites(
+        CCScale9Sprite::createWithSpriteFrameName(topAndBottom),
+        CCScale9Sprite::createWithSpriteFrameName(topAndBottom),
+        CCSprite::createWithSpriteFrameName(side),
+        CCSprite::createWithSpriteFrameName(side),
+        topPadding,
+        topPadding
+    );
+    m_bottom->setScaleY(-1);
+    m_right->setFlipX(true);
+}
+void ListBorders::setSprites(
+    CCScale9Sprite* top, CCScale9Sprite* bottom,
+    CCSprite* left, CCSprite* right,
+    float topPadding, float bottomPadding
+) {
+    if (m_top) m_top->removeFromParent();
+    if (m_bottom) m_bottom->removeFromParent();
+    if (m_left) m_left->removeFromParent();
+    if (m_right) m_right->removeFromParent();
+
+    m_top = top;
+    this->addChildAtPosition(m_top, Anchor::Top, ccp(0, -m_top->getScaledContentHeight() / 3));
+
+    m_bottom = bottom;
+    this->addChildAtPosition(m_bottom, Anchor::Bottom, ccp(0, m_bottom->getScaledContentHeight() / 3));
+
+    m_left = left;
+    this->addChildAtPosition(m_left, Anchor::Left, ccp(0, 0));
+
+    m_right = right;
+    this->addChildAtPosition(m_right, Anchor::Right, ccp(0, 0));
+
+    m_topPadding = topPadding;
+    m_bottomPadding = bottomPadding;
+
+    this->setContentSize(m_obContentSize);
+}
+void ListBorders::setContentSize(CCSize const& size) {
+    CCNode::setContentSize(size);
+    this->updateLayout();
+
+    m_top->setContentWidth(size.width + m_topPadding);
+    m_bottom->setContentWidth(size.width + m_bottomPadding);
+    auto height = m_top->getContentHeight() * 0.75 + m_bottom->getContentHeight() * 0.75;
+    m_left->setScaleY((size.height - height) / m_left->getContentHeight());
+    m_right->setScaleY((size.height - height) / m_right->getContentHeight());
 }
