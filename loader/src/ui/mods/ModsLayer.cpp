@@ -3,7 +3,7 @@
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/ui/GeodeUI.hpp>
-#include "popups/ConfirmInstallPopup.hpp"
+#include "popups/ConfirmInstall.hpp"
 #include "GeodeStyle.hpp"
 
 bool ModsStatusNode::init() {
@@ -245,7 +245,7 @@ void ModsStatusNode::onViewErrors(CCObject*) {
     );
 }
 void ModsStatusNode::onConfirm(CCObject*) {
-    ConfirmInstallPopup::askForCustomize();
+    askConfirmModInstalls();
 }
 void ModsStatusNode::onCancel(CCObject*) {
     server::ModDownloadManager::get()->cancelAll();

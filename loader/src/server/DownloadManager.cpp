@@ -17,7 +17,7 @@ class ModDownload::Impl final {
 public:
     std::string m_id;
     std::optional<VersionInfo> m_version;
-    std::optional<std::string> m_dependencyFor;
+    std::optional<DependencyFor> m_dependencyFor;
     DownloadStatus m_status;
     EventListener<ServerRequest<ServerModVersion>> m_infoListener;
     EventListener<web::WebTask> m_downloadListener;
@@ -25,7 +25,7 @@ public:
     Impl(
         std::string const& id,
         std::optional<VersionInfo> const& version,
-        std::optional<std::string> const& dependencyFor
+        std::optional<DependencyFor> const& dependencyFor
     )
       : m_id(id),
         m_version(version),
@@ -40,11 +40,12 @@ public:
                     auto data = result->unwrap();
                     m_version = data.metadata.getVersion();
                     
-                    // Start downloads for any missing dependencies
+                    // Start downloads for any missing required dependencies
                     for (auto dep : data.metadata.getDependencies()) {
-                        if (!dep.mod) {
+                        if (!dep.mod && dep.importance != ModMetadata::Dependency::Importance::Suggested) {
                             ModDownloadManager::get()->startDownload(
-                                dep.id, dep.version.getUnderlyingVersion(), m_id
+                                dep.id, dep.version.getUnderlyingVersion(),
+                                std::make_pair(m_id, dep.importance)
                             );
                         }
                     }
@@ -145,14 +146,14 @@ public:
 ModDownload::ModDownload(
     std::string const& id,
     std::optional<VersionInfo> const& version,
-    std::optional<std::string> const& dependencyFor
+    std::optional<DependencyFor> const& dependencyFor
 ) : m_impl(std::make_shared<Impl>(id, version, dependencyFor)) {}
 
 void ModDownload::confirm() {
     m_impl->confirm();
 }
 
-std::optional<std::string> ModDownload::getDependencyFor() const {
+std::optional<DependencyFor> ModDownload::getDependencyFor() const {
     return m_impl->m_dependencyFor;
 }
 bool ModDownload::isDone() const {
@@ -193,8 +194,8 @@ public:
         for (auto& [_, d] : m_downloads) {
             if (auto depFor = d.m_impl->m_dependencyFor) {
                 if (
-                    !m_downloads.contains(*depFor) ||
-                    !(m_downloads.at(*depFor).isActive() || m_downloads.at(*depFor).isDone())
+                    !m_downloads.contains(depFor->first) ||
+                    !(m_downloads.at(depFor->first).isActive() || m_downloads.at(depFor->first).isDone())
                 ) {
                     // d.cancel() will cause cancelOrphanedDependencies() to be called again
                     // We want that anyway because cancelling one dependency might cause 
@@ -222,7 +223,7 @@ void ModDownload::cancel() {
 std::optional<ModDownload> ModDownloadManager::startDownload(
     std::string const& id,
     std::optional<VersionInfo> const& version,
-    std::optional<std::string> const& dependencyFor
+    std::optional<DependencyFor> const& dependencyFor
 ) {
     // If this mod has already been succesfully downloaded or is currently 
     // being downloaded, return as you can't download multiple versions of the 
@@ -277,13 +278,6 @@ bool ModDownloadManager::checkAutoConfirm() {
     for (auto& [_, download] :  m_impl->m_downloads) {
         auto status = download.getStatus();
         if (auto confirm = std::get_if<server::DownloadStatusConfirm>(&status)) {
-            for (auto dep : confirm->version.metadata.getDependencies()) {
-                // If some mod has an optional dependency that isn't installed, 
-                // we need to ask for confirmation
-                if (!dep.mod && dep.importance != ModMetadata::Dependency::Importance::Required) {
-                    return false;
-                }
-            }
             for (auto inc : confirm->version.metadata.getIncompatibilities()) {
                 // If some mod has an incompatability that is installed, 
                 // we need to ask for confirmation

@@ -9,7 +9,6 @@ class ConfirmUninstallPopup : public Popup<Mod*> {
 protected:
     Mod* m_mod;
     CCMenuItemToggler* m_deleteDataToggle;
-    EventListener<UpdateModListStateFilter> m_updateStateListener;
 
     bool setup(Mod* mod) override;
 

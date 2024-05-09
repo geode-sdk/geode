@@ -54,6 +54,8 @@ namespace server {
         ModDownloadFilter(std::string const& id);
     };
 
+    using DependencyFor = std::pair<std::string, ModMetadata::Dependency::Importance>;
+
     class ModDownload final {
     private:
         class Impl;
@@ -63,7 +65,7 @@ namespace server {
         ModDownload(
             std::string const& id,
             std::optional<VersionInfo> const& version,
-            std::optional<std::string> const& dependencyFor
+            std::optional<DependencyFor> const& dependencyFor
         );
 
         friend class ModDownloadManager;
@@ -75,7 +77,7 @@ namespace server {
         bool isDone() const;
         bool isActive() const;
         bool canRetry() const;
-        std::optional<std::string> getDependencyFor() const;
+        std::optional<DependencyFor> getDependencyFor() const;
         std::string getID() const;
         DownloadStatus getStatus() const;
         std::optional<VersionInfo> getVersion() const;
@@ -98,7 +100,7 @@ namespace server {
         std::optional<ModDownload> startDownload(
             std::string const& id,
             std::optional<VersionInfo> const& version,
-            std::optional<std::string> const& dependencyFor = std::nullopt
+            std::optional<DependencyFor> const& dependencyFor = std::nullopt
         );
         void startUpdateAll();
         void confirmAll();
