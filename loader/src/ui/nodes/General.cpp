@@ -156,10 +156,10 @@ void ListBorders::setSprites(
     if (m_right) m_right->removeFromParent();
 
     m_top = top;
-    this->addChildAtPosition(m_top, Anchor::Top, ccp(0, -m_top->getScaledContentHeight() / 3));
+    this->addChildAtPosition(m_top, Anchor::Top, ccp(0, -m_top->getContentHeight() / 3));
 
     m_bottom = bottom;
-    this->addChildAtPosition(m_bottom, Anchor::Bottom, ccp(0, m_bottom->getScaledContentHeight() / 3));
+    this->addChildAtPosition(m_bottom, Anchor::Bottom, ccp(0, m_bottom->getContentHeight() / 3));
 
     m_left = left;
     this->addChildAtPosition(m_left, Anchor::Left, ccp(0, 0));
