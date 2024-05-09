@@ -34,7 +34,7 @@ namespace geode::utils::file {
         if (!json.template is<T>()) {
             return Err("JSON is not of type {}", typeid(T).name());
         }
-        return json.template as<T>();
+        return Ok(json.template as<T>());
     }
 
     GEODE_DLL Result<> writeString(ghc::filesystem::path const& path, std::string const& data);
