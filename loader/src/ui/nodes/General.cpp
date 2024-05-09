@@ -135,8 +135,8 @@ ListBorders* ListBorders::create() {
 
 void ListBorders::setSpriteFrames(const char* topAndBottom, const char* side, float topPadding) {
     this->setSprites(
-        CCScale9Sprite::createWithSpriteFrameName(topAndBottom, { 0, 0, 240, 10 }),
-        CCScale9Sprite::createWithSpriteFrameName(topAndBottom, { 0, 0, 240, 10 }),
+        CCScale9Sprite::createWithSpriteFrameName(topAndBottom),
+        CCScale9Sprite::createWithSpriteFrameName(topAndBottom),
         CCSprite::createWithSpriteFrameName(side),
         CCSprite::createWithSpriteFrameName(side),
         topPadding,
