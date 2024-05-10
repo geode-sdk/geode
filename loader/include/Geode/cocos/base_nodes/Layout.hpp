@@ -5,7 +5,7 @@
 #include "../cocoa/CCArray.h"
 #include <Geode/platform/platform.hpp>
 #include <optional>
-#include <unordered_map>
+#include <memory>
 
 NS_CC_BEGIN
 
