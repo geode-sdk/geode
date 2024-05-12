@@ -8,6 +8,10 @@ using namespace geode::prelude;
 #include <Geode/binding/GameManager.hpp>
 #include <objc/runtime.h>
 
+#define CommentType CommentTypeDummy
+#import <Cocoa/Cocoa.h>
+#undef CommentType
+
 bool utils::clipboard::write(std::string const& data) {
     [[NSPasteboard generalPasteboard] clearContents];
     [[NSPasteboard generalPasteboard] setString:[NSString stringWithUTF8String:data.c_str()]
@@ -330,4 +334,17 @@ std::string geode::utils::thread::getDefaultName() {
 
 void geode::utils::thread::platformSetName(std::string const& name) {
     pthread_setname_np(name.c_str());
+}
+
+float geode::utils::getDisplayFactor() {
+    float displayScale = 1.f;
+    if ([[NSScreen mainScreen] respondsToSelector:@selector(backingScaleFactor)]) {
+        NSArray* screens = [NSScreen screens];
+        for (int i = 0; i < screens.count; i++) {
+            float s = [screens[i] backingScaleFactor];
+            if (s > displayScale)
+                displayScale = s;
+        }
+    }
+    return displayScale;
 }

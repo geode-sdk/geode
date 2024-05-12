@@ -138,6 +138,13 @@ namespace geode {
         }
 
         GEODE_DLL std::string timePointAsString(std::chrono::system_clock::time_point const& tp);
+
+        /**
+         * Gets the display pixel factor for the current screen,
+         * i.e. the ratio between physical pixels and logical pixels.
+         * On most platforms this is 1.0, but on retina displays for example this returns 4.0.
+        */
+        GEODE_DLL float getDisplayFactor();
     }
 }
 
