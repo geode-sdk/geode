@@ -763,6 +763,28 @@ namespace geode::cocos {
     GEODE_DLL cocos2d::CCNode* getChildBySpriteFrameName(cocos2d::CCNode* parent, const char* name);
 
     /**
+     * Checks if a node has the given sprite name either
+     * in the sprite or in the sprite inside the button.
+     * 
+     * @param node Node to check
+     * @param name Name of the sprite to search for
+     * @returns True if the node has the given sprite name
+     */
+    GEODE_DLL bool isSpriteName(cocos2d::CCNode* node, const char* name);
+
+    /**
+     * Get the first child that has the given sprite name
+     * either in the sprite or in the sprite inside the
+     * button.
+     *
+     * @param parent Parent node to search in
+     * @param name Name of the sprite to search for
+     * @returns Child with the given sprite name, or
+     * nullptr if there is none
+     */
+    GEODE_DLL cocos2d::CCNode* getChildBySpriteName(cocos2d::CCNode* parent, const char* name);
+
+    /**
      * Checks if a given file exists in CCFileUtils
      * search paths.
      * @param filename File to check

@@ -198,8 +198,10 @@ target_compile_definitions(${PROJECT_NAME} INTERFACE GEODE_GD_VERSION=${GEODE_GD
 
 if (WIN32)
 	# This allows you to compile in debug mode
-	add_compile_definitions(_HAS_ITERATOR_DEBUGGING=0)
+	# add_compile_definitions(_HAS_ITERATOR_DEBUGGING=0)
 	add_definitions(-D_HAS_ITERATOR_DEBUGGING=0)
+	target_compile_definitions(${PROJECT_NAME} INTERFACE _HAS_ITERATOR_DEBUGGING=0)
+	
 	target_link_libraries(${PROJECT_NAME} INTERFACE delayimp)
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND
 		CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
@@ -220,7 +222,7 @@ if (ANDROID)
 endif()
 
 set(MAT_JSON_AS_INTERFACE ON)
-CPMAddPackage("gh:geode-sdk/json#28f157b")
+CPMAddPackage("gh:geode-sdk/json#3fe4752")
 CPMAddPackage("gh:fmtlib/fmt#10.1.1")
 CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 
@@ -251,7 +253,7 @@ if (DEFINED GEODE_TULIPHOOK_REPO_PATH)
 	message(STATUS "Using ${GEODE_TULIPHOOK_REPO_PATH} for TulipHook")
 	add_subdirectory(${GEODE_TULIPHOOK_REPO_PATH} ${GEODE_TULIPHOOK_REPO_PATH}/build)
 else()
-	CPMAddPackage("gh:geode-sdk/TulipHook#09b25c4")
+	CPMAddPackage("gh:geode-sdk/TulipHook#58dc814")
 endif()
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 
