@@ -22,11 +22,11 @@ void ModErrorPopup::createList() {
     CCSize contentSize = m_mainLayer->getContentSize();
     CCArray* elements = CCArray::create();
     std::vector<LoadProblem> problems = m_mod->getProblems();
-    if (problems.empty()) {
+    if (m_mod->getAllProblems().size() == 0) {
         // Display some simple message
         return;
     }
-    m_list = ModProblemList::create(problems, {400.f, 170.f});
+    m_list = ModProblemList::create(m_mod, {400.f, 170.f});
     m_mainLayer->addChildAtPosition(
         m_list,
         Anchor::Center,

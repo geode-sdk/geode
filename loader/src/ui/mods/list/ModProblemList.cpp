@@ -1,22 +1,24 @@
 #include "ModProblemList.hpp"
-#include "GUI/CCControlExtension/CCScale9Sprite.h"
-#include "Geode/cocos/base_nodes/CCNode.h"
-#include "ui/mods/list/ModProblemItem.hpp"
 
-#include <Geode/cocos/platform/CCPlatformMacros.h>
+#include <Geode/cocos/base_nodes/CCNode.h>
 #include <Geode/cocos/base_nodes/Layout.hpp>
 #include <Geode/cocos/cocoa/CCGeometry.h>
+#include <Geode/cocos/platform/CCPlatformMacros.h>
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/loader/Loader.hpp>
+#include <Geode/loader/Mod.hpp>
+#include <GUI/CCControlExtension/CCScale9Sprite.h>
+
+#include "ui/mods/list/ModProblemItem.hpp"
 
 bool ModProblemList::init(
-    std::vector<LoadProblem> problems,
+    Mod* mod,
     CCSize const& size
 ) {
     if (!CCNode::init()) {
         return false;
     }
-    m_problems = problems;
+    m_mod = mod;
     this->setContentSize(size);
     this->setAnchorPoint({ 0.5f, 0.5f });
 
@@ -51,26 +53,24 @@ bool ModProblemList::init(
         50.f
     };
 
-    for (LoadProblem problem : m_problems) {
-        m_list->m_contentLayer->addChild(ModProblemItem::create(problem, itemSize));
-        m_list->m_contentLayer->addChild(ModProblemItem::create(problem, itemSize));
-        m_list->m_contentLayer->addChild(ModProblemItem::create(problem, itemSize));
-        m_list->m_contentLayer->addChild(ModProblemItem::create(problem, itemSize));
-        m_list->m_contentLayer->addChild(ModProblemItem::create(problem, itemSize));
+    for (LoadProblem problem : m_mod->getAllProblems()) {
+        m_list->m_contentLayer->addChild(ModProblemItem::create(m_mod, problem, itemSize));
+        // m_list->m_contentLayer->addChild(ModProblemItem::create(m_mod, problem, itemSize));
+        // m_list->m_contentLayer->addChild(ModProblemItem::create(m_mod, problem, itemSize));
+        // m_list->m_contentLayer->addChild(ModProblemItem::create(m_mod, problem, itemSize));
+        // m_list->m_contentLayer->addChild(ModProblemItem::create(m_mod, problem, itemSize));
     }
     m_list->m_contentLayer->updateLayout();
-    // Scroll list to top
-    auto listTopScrollPos = -m_list->m_contentLayer->getContentHeight() + m_list->getContentHeight();
-    m_list->m_contentLayer->setPositionY(listTopScrollPos);
+    m_list->scrollToTop();
     return true;
 }
 
 ModProblemList* ModProblemList::create(
-    std::vector<LoadProblem> problems,
+    Mod* mod,
     CCSize const& size
 ) {
     auto ret = new ModProblemList();
-    if (!ret || !ret->init(problems, size)) {
+    if (!ret || !ret->init(mod, size)) {
         CC_SAFE_DELETE(ret);
         return nullptr;
     }
