@@ -208,7 +208,9 @@ public:
         float m_fMouseX;
         float m_fMouseY;
         bool m_bIsFullscreen;
+        bool m_bIsBorderless;
         bool m_bShouldHideCursor;
+        bool m_bCursorLocked;
         bool m_bShouldCallGLFinish;
     )
 
