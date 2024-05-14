@@ -64,6 +64,11 @@ bool ScrollLayer::ccTouchBegan(CCTouch* touch, CCEvent* event) {
     return false;
 }
 
+void ScrollLayer::scrollToTop() {
+    auto listTopScrollPos = -m_contentLayer->getContentHeight() + this->getContentHeight();
+    m_contentLayer->setPositionY(listTopScrollPos);
+}
+
 ScrollLayer::ScrollLayer(CCRect const& rect, bool scrollWheelEnabled, bool vertical) :
     CCScrollLayerExt(rect) {
     m_scrollWheelEnabled = scrollWheelEnabled;
