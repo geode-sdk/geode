@@ -18,27 +18,39 @@ CCSprite* geode::createLayerBG() {
     return bg;
 }
 
-void geode::addSideArt(CCNode* to, SideArt sides, bool useAnchorLayout) {
+void geode::addSideArt(CCNode* to, SideArt sides, SideArtStyle style, bool useAnchorLayout) {
+    const char* sprite;
+    float offset;
+    switch (style) {
+        default:
+        case SideArtStyle::Layer:     sprite = "GJ_sideArt_001.png";       offset = 35; break;
+        case SideArtStyle::LayerGray: sprite = "gauntletCorner_001.png";   offset = 35; break;
+        case SideArtStyle::PopupBlue: sprite = "rewardCorner_001.png";     offset = 24.75f; break;
+        case SideArtStyle::PopupGold: sprite = "dailyLevelCorner_001.png"; offset = 24.75f; break;
+    }
     if (sides & SideArt::BottomLeft) {
-        auto spr = CCSprite::createWithSpriteFrameName("GJ_sideArt_001.png");
-        to->addChildAtPosition(spr, Anchor::BottomLeft, ccp(35, 35), useAnchorLayout);
+        auto spr = CCSprite::createWithSpriteFrameName(sprite);
+        to->addChildAtPosition(spr, Anchor::BottomLeft, ccp(offset, offset), useAnchorLayout);
     }
     if (sides & SideArt::BottomRight) {
-        auto spr = CCSprite::createWithSpriteFrameName("GJ_sideArt_001.png");
+        auto spr = CCSprite::createWithSpriteFrameName(sprite);
         spr->setFlipX(true);
-        to->addChildAtPosition(spr, Anchor::BottomRight, ccp(-35, 35), useAnchorLayout);
+        to->addChildAtPosition(spr, Anchor::BottomRight, ccp(-offset, offset), useAnchorLayout);
     }
     if (sides & SideArt::TopLeft) {
-        auto spr = CCSprite::createWithSpriteFrameName("GJ_sideArt_001.png");
+        auto spr = CCSprite::createWithSpriteFrameName(sprite);
         spr->setFlipY(true);
-        to->addChildAtPosition(spr, Anchor::TopLeft, ccp(35, -35), useAnchorLayout);
+        to->addChildAtPosition(spr, Anchor::TopLeft, ccp(offset, -offset), useAnchorLayout);
     }
     if (sides & SideArt::TopRight) {
-        auto spr = CCSprite::createWithSpriteFrameName("GJ_sideArt_001.png");
+        auto spr = CCSprite::createWithSpriteFrameName(sprite);
         spr->setFlipX(true);
         spr->setFlipY(true);
-        to->addChildAtPosition(spr, Anchor::TopRight, ccp(-35, -35), useAnchorLayout);
+        to->addChildAtPosition(spr, Anchor::TopRight, ccp(-offset, -offset), useAnchorLayout);
     }
+}
+void geode::addSideArt(CCNode* to, SideArt sides, bool useAnchorLayout) {
+    return addSideArt(to, sides, SideArtStyle::Layer, useAnchorLayout);
 }
 
 void geode::addListBorders(CCNode* to, CCPoint const& center, CCSize const& size) {
