@@ -28,6 +28,13 @@ namespace geode {
         return static_cast<bool>(static_cast<int>(a) & static_cast<int>(b));
     }
 
+    enum class SideArtStyle {
+        Layer,
+        LayerGray,
+        PopupBlue,
+        PopupGold,
+    };
+
     /**
      * Add side art (corner pieces) for a layer
      * @param to Layer to add corner pieces to
@@ -35,7 +42,25 @@ namespace geode {
      * @param useAnchorLayout If true, `to` is given an `AnchorLayout` and the 
      * corners' positions are dynamically updated
      */
-    GEODE_DLL void addSideArt(cocos2d::CCNode* to, SideArt sides = SideArt::All, bool useAnchorLayout = false);
+    GEODE_DLL void addSideArt(
+        cocos2d::CCNode* to,
+        SideArt sides = SideArt::All,
+        bool useAnchorLayout = false
+    );
+    /**
+     * Add side art (corner pieces) for a layer
+     * @param to Layer to add corner pieces to
+     * @param sides Which corners to populate; by default, populates all
+     * @param style Which side art sprites to use
+     * @param useAnchorLayout If true, `to` is given an `AnchorLayout` and the 
+     * corners' positions are dynamically updated
+     */
+    GEODE_DLL void addSideArt(
+        cocos2d::CCNode* to,
+        SideArt sides,
+        SideArtStyle style,
+        bool useAnchorLayout = false
+    );
 
     /**
      * Add the rounded comment borders to a node
