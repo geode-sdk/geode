@@ -25,8 +25,10 @@ namespace geode::modifier {
     public:
         ~FieldContainer() {
             for (auto i = 0u; i < m_containedFields.size(); i++) {
-                m_destructorFunctions[i](m_containedFields[i]);
-                operator delete(m_containedFields[i]);
+                if (m_destructorFunctions[i] && m_containedFields[i]) {
+                    m_destructorFunctions[i](m_containedFields[i]);
+                    operator delete(m_containedFields[i]);
+                }
             }
         }
 
