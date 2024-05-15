@@ -5,7 +5,7 @@
 #include "CCStdC.h"
 #include "../CCCommon.h"
 #include "../CCApplicationProtocol.h"
-#include "CCControllerHandler.h"
+#include "CXBOXController.h"
 #include <string>
 
 NS_CC_BEGIN
@@ -51,7 +51,7 @@ public:
     RT_ADD(
         void setupVerticalSync();
         void updateVerticalSync();
-        void updateControllerKeys();
+        void updateControllerKeys(CXBOXController* controller, int userIndex);
 
         int getTimeElapsed();
 	    void resetForceTimer();
@@ -96,8 +96,8 @@ public:
     LARGE_INTEGER       m_nVsyncInterval;
     gd::string          m_resourceRootPath;
     gd::string          m_startupScriptFilename;
-    CCControllerHandler* m_pControllerHandler;
-    void*               m_unk; //might be swapped with m_pControllerHandler
+    CXBOXController* m_pControllerHandler;
+    CXBOXController* m_pController2Handler; //might be swapped with m_pControllerHandler
     bool m_bUpdateController;
     CC_SYNTHESIZE_NV(bool, m_bShutdownCalled, ShutdownCalled);
     INPUT m_iInput;
@@ -114,6 +114,7 @@ public:
     CC_SYNTHESIZE_NV(bool, m_bFullscreen, Fullscreen);
     CC_SYNTHESIZE_NV(bool, m_bBorderless, Borderless);
 
+protected:
     static CCApplication * sm_pSharedApplication;
 };
 

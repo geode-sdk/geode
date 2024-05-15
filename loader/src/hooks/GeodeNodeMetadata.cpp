@@ -3,6 +3,7 @@
 #include <Geode/modify/Field.hpp>
 #include <Geode/modify/CCNode.hpp>
 #include <cocos2d.h>
+#include <queue>
 
 using namespace geode::prelude;
 using namespace geode::modifier;
@@ -141,6 +142,162 @@ CCNode* CCNode::getChildByIDRecursive(std::string const& id) {
         }
     }
     return nullptr;
+}
+
+class BFSNodeTreeCrawler final {
+private:
+    std::queue<CCNode*> m_queue;
+    std::unordered_set<CCNode*> m_explored;
+
+public:
+    BFSNodeTreeCrawler(CCNode* target) {
+        if (auto first = getChild(target, 0)) {
+            m_explored.insert(first);
+            m_queue.push(first);
+        }
+    }
+
+    CCNode* next() {
+        if (m_queue.empty()) {
+            return nullptr;
+        }
+        auto node = m_queue.front();
+        m_queue.pop();
+        for (auto sibling : CCArrayExt<CCNode*>(node->getParent()->getChildren())) {
+            if (!m_explored.contains(sibling)) {
+                m_explored.insert(sibling);
+                m_queue.push(sibling);
+            }
+        }
+        for (auto child : CCArrayExt<CCNode*>(node->getChildren())) {
+            if (!m_explored.contains(child)) {
+                m_explored.insert(child);
+                m_queue.push(child);
+            }
+        }
+        return node;
+    }
+};
+
+class NodeQuery final {
+private:
+    enum class Op {
+        ImmediateChild,
+        DescendantChild,
+    };
+
+    std::string m_targetID;
+    Op m_nextOp;
+    std::unique_ptr<NodeQuery> m_next = nullptr;
+
+public:
+    static Result<std::unique_ptr<NodeQuery>> parse(std::string const& query) {
+        if (query.empty()) {
+            return Err("Query may not be empty");
+        }
+
+        auto result = std::make_unique<NodeQuery>();
+        NodeQuery* current = result.get();
+
+        size_t i = 0;
+        std::string collectedID;
+        std::optional<Op> nextOp = Op::DescendantChild;
+        while (i < query.size()) {
+            auto c = query.at(i);
+            if (c == ' ') {
+                if (!nextOp) {
+                    nextOp.emplace(Op::DescendantChild);
+                }
+            }
+            else if (c == '>') {
+                if (!nextOp || *nextOp == Op::DescendantChild) {
+                    nextOp.emplace(Op::ImmediateChild);
+                }
+                // Double >> is syntax error
+                else {
+                    return Err("Can't have multiple child operators at once (index {})", i);
+                }
+            }
+            // ID-valid characters
+            else if (std::isalnum(c) || c == '-' || c == '_' || c == '/' || c == '.') {
+                if (nextOp) {
+                    current->m_next = std::make_unique<NodeQuery>();
+                    current->m_nextOp = *nextOp;
+                    current->m_targetID = collectedID;
+                    current = current->m_next.get();
+
+                    collectedID = "";
+                    nextOp = std::nullopt;
+                }
+                collectedID.push_back(c);
+            }
+            // Any other character is syntax error due to needing to reserve 
+            // stuff for possible future features
+            else {
+                return Err("Unexpected character '{}' at index {}", c, i);
+            }
+            i += 1;
+        }
+        if (nextOp || collectedID.empty()) {
+            return Err("Expected node ID but got end of query");
+        }
+        current->m_targetID = collectedID;
+
+        return Ok(std::move(result));
+    }
+
+    CCNode* match(CCNode* node) const {
+        // Make sure this matches the ID being looked for
+        if (!m_targetID.empty() && node->getID() != m_targetID) {
+            return nullptr;
+        }
+        // If this is the last thing to match, return the result
+        if (!m_next) {
+            return node;
+        }
+        switch (m_nextOp) {
+            case Op::ImmediateChild: {
+                for (auto c : CCArrayExt<CCNode*>(node->getChildren())) {
+                    if (auto r = m_next->match(c)) {
+                        return r;
+                    }
+                }
+            } break;
+
+            case Op::DescendantChild: {
+                auto crawler = BFSNodeTreeCrawler(node);
+                while (auto c = crawler.next()) {
+                    if (auto r = m_next->match(c)) {
+                        return r;
+                    }
+                }
+            } break;
+        }
+        return nullptr;
+    }
+
+    std::string toString() const {
+        auto str = m_targetID.empty() ? "&" : m_targetID;
+        if (m_next) {
+            switch (m_nextOp) {
+                case Op::ImmediateChild: str += " > "; break;
+                case Op::DescendantChild: str += " "; break;
+            }
+            str += m_next->toString();
+        }
+        return str;
+    }
+};
+
+CCNode* CCNode::querySelector(std::string const& queryStr) {
+    auto res = NodeQuery::parse(queryStr);
+    if (!res) {
+        log::error("Invalid CCNode::querySelector query '{}': {}", queryStr, res.unwrapErr());
+        return nullptr;
+    }
+    auto query = std::move(res.unwrap());
+    log::info("parsed query: {}", query->toString());
+    return query->match(this);
 }
 
 void CCNode::removeChildByID(std::string const& id) {
