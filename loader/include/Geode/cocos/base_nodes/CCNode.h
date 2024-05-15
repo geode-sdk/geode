@@ -913,6 +913,12 @@ public:
      */
     GEODE_DLL CCNode* getChildByIDRecursive(std::string const& id);
 
+    /**
+     * Get a child based on a query. Searches the child tree for a matching 
+     * child
+     */
+    GEODE_DLL CCNode* querySelector(std::string const& query);
+
     /** 
      * Removes a child from the container by its ID.
      * @param id The ID of the node
