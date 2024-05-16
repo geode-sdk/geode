@@ -131,7 +131,9 @@ void file::pickFile(
     if (result.isOk()) {
         callback(std::move(result.unwrap()));
     } else {
-        failed();
+        if (failed) {
+            failed();
+        }
     }
 }
 Task<Result<ghc::filesystem::path>> file::pick(PickMode mode, FilePickOptions const& options) {
@@ -156,7 +158,9 @@ void file::pickFiles(
     if (result.isOk()) {
         callback(std::move(result.unwrap()));
     } else {
-        failed();
+        if (failed) {
+            failed();
+        }
     }
 }
 Task<Result<std::vector<ghc::filesystem::path>>> file::pickMany(FilePickOptions const& options) {
