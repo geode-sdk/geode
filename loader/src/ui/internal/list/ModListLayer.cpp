@@ -272,7 +272,7 @@ bool ModListLayer::init() {
 
     // add open folder button
     auto openSpr = CircleButtonSprite::createWithSpriteFrameName(
-        "gj_folderBtn_001.png", .7f, CircleBaseColor::Green, CircleBaseSize::Small
+        "gj_folderBtn_001.png", 1.f, CircleBaseColor::Green, CircleBaseSize::Small
     );
     auto openBtn =
         CCMenuItemSpriteExtra::create(openSpr, this, menu_selector(ModListLayer::onOpenFolder));
