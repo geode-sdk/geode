@@ -249,7 +249,7 @@ namespace geode {
             if (handle->m_status == Status::Pending) {
                 handle->m_status = Status::Finished;
                 handle->m_resultValue.emplace(std::move(value));
-                Loader::get()->queueInMainThread([handle, value = &*handle->m_resultValue]() mutable {
+                queueInMainThread([handle, value = &*handle->m_resultValue]() mutable {
                     // SAFETY: Task::all() depends on the lifetime of the value pointer
                     // being as long as the lifetime of the task itself
                     Event::createFinished(handle, value).post();
@@ -262,7 +262,7 @@ namespace geode {
             if (!handle) return;
             std::unique_lock<std::recursive_mutex> lock(handle->m_mutex);
             if (handle->m_status == Status::Pending) {
-                Loader::get()->queueInMainThread([handle, value = std::move(value)]() mutable {
+                queueInMainThread([handle, value = std::move(value)]() mutable {
                     Event::createProgressed(handle, &value).post();
                 });
             }
@@ -277,7 +277,7 @@ namespace geode {
                 if (!shallow && handle->m_extraData) {
                     handle->m_extraData->cancel();
                 }
-                Loader::get()->queueInMainThread([handle]() mutable {
+                queueInMainThread([handle]() mutable {
                     Event::createCancelled(handle).post();
                     std::unique_lock<std::recursive_mutex> lock(handle->m_mutex);
                     handle->m_finalEventPosted = true;
@@ -668,14 +668,14 @@ namespace geode {
             std::unique_lock<std::recursive_mutex> lock(m_handle->m_mutex);
             if (m_handle->m_finalEventPosted) {
                 if (m_handle->m_status == Status::Finished) {
-                    Loader::get()->queueInMainThread([handle = m_handle, listener = m_listener, value = &*m_handle->m_resultValue]() {
+                    queueInMainThread([handle = m_handle, listener = m_listener, value = &*m_handle->m_resultValue]() {
                         auto ev = Event::createFinished(handle, value);
                         ev.m_for = listener;
                         ev.post();
                     });
                 }
                 else {
-                    Loader::get()->queueInMainThread([handle = m_handle, listener = m_listener]() {
+                    queueInMainThread([handle = m_handle, listener = m_listener]() {
                         auto ev = Event::createCancelled(handle);
                         ev.m_for = listener;
                         ev.post();

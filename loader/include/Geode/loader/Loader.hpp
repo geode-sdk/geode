@@ -148,6 +148,15 @@ namespace geode {
     };
 
     /**
+     * @brief Queues a function to run on the main thread
+     * 
+     * @param func the function to queue
+    */
+    inline GEODE_HIDDEN void queueInMainThread(ScheduledFunction func) {
+        Loader::get()->queueInMainThread(func);
+    }
+
+    /**
      * @brief Take the next mod to load
      *
      * @return Mod* The next mod to load
