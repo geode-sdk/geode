@@ -313,7 +313,31 @@ public:
     virtual bool isBlendAdditive();
     virtual void setBlendAdditive(bool value);
 //////////////////////////////////////////////////////////////////////////
-    
+
+    RT_ADD(
+        float m_fFadeInTime;
+        float m_fFadeInTimeVar;
+        float m_fFadeOutTime;
+        float m_fFadeOutTimeVar;
+        float m_fFrictionPos;
+        float m_fFrictionPosVar;
+        float m_fFrictionSize;
+        float m_fFrictionSizeVar;
+        float m_fFrictionRot;
+        float m_fFrictionRotVar;
+        float m_fRespawn;
+        float m_fRespawnVar;
+        bool m_bStartSpinEqualToEnd;
+        bool m_bStartSizeEqualToEnd;
+        bool m_bStartRadiusEqualToEnd;
+        bool m_bDynamicRotationIsDir;
+        bool m_bOrderSensitive;
+        bool m_bStartRGBVarSync;
+        bool m_bEndRGBVarSync;
+        bool m_bWasRemoved;
+        bool m_bUsingSchedule;
+    )
+
     /** start size in pixels of each particle */
     CC_PROPERTY(float, m_fStartSize, StartSize)
     /** size variance in pixels of each particle */

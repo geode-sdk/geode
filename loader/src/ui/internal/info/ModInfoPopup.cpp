@@ -349,7 +349,7 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
     // Check if a config directory for the mod exists
     if (ghc::filesystem::exists(mod->getConfigDir(false))) {
         auto configSpr = CircleButtonSprite::createWithSpriteFrameName(
-            "pencil.png"_spr, 1.f, CircleBaseColor::Green, CircleBaseSize::MediumAlt
+            "pencil.png"_spr, .9f, CircleBaseColor::Green, CircleBaseSize::MediumAlt
         );
         configSpr->setScale(.65f);
 

@@ -451,32 +451,16 @@ CCRect geode::cocos::calculateChildCoverage(CCNode* parent) {
     return calculateNodeCoverage(parent->getChildren());
 }
 
-void geode::cocos::limitNodeSize(cocos2d::CCNode* spr, cocos2d::CCSize const& size, float def, float min) {
-    spr->setScale(1.f);
-    auto [cwidth, cheight] = spr->getContentSize();
-
-    float scale = def;
-    if (size.height && size.height < cheight) {
-        scale = size.height / cheight;
-    }
-    if (size.width && size.width < cwidth) {
-        if (size.width / cwidth < scale) scale = size.width / cwidth;
-    }
-    if (def && def < scale) {
-        scale = def;
-    }
-    if (min && scale < min) {
-        scale = min;
-    }
-    spr->setScale(scale);
+void geode::cocos::limitNodeSize(CCNode* spr, CCSize const& size, float def, float min) {
+    spr->setScale(clamp(std::min(size.height / spr->getContentHeight(), size.width / spr->getContentWidth()), min, def));
 }
 
-bool geode::cocos::nodeIsVisible(cocos2d::CCNode* node) {
+bool geode::cocos::nodeIsVisible(CCNode* node) {
     if (!node->isVisible()) {
         return false;
     }
-    if (node->getParent()) {
-        return nodeIsVisible(node->getParent());
+    if (auto parent = node->getParent()) {
+        return nodeIsVisible(parent);
     }
     return true;
 }

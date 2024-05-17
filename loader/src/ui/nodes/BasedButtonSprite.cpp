@@ -25,7 +25,6 @@ const char* geode::baseEnumToString(CircleBaseColor value) {
         case CircleBaseColor::Gray: return "Gray";
         case CircleBaseColor::Blue: return "Blue";
         case CircleBaseColor::Cyan: return "Cyan";
-        case CircleBaseColor::Geode: return "Geode";
     }
     return "Unknown";
 }
@@ -190,8 +189,9 @@ bool BasedButtonSprite::init(CCNode* ontop, BaseType type, int size, int color) 
 
     if (ontop) {
         m_onTop = ontop;
-        m_onTop->setPosition(this->getContentSize() / 2 + this->getTopOffset());
-        limitNodeSize(m_onTop, this->getMaxTopSize(), m_onTop->getScale(), .1f);
+        m_onTop->setPosition(this->getContentSize() / 2 + m_topOffset);
+        limitNodeSize(m_onTop, this->getMaxTopSize(), 999.f, .1f);
+        m_onTop->setScale(m_onTop->getScale() * m_onTopRelativeScale);
         this->addChild(m_onTop);
     }
 
@@ -202,8 +202,18 @@ CCSize BasedButtonSprite::getMaxTopSize() const {
     return m_obContentSize - CCSize(18.f, 18.f);
 }
 
-CCPoint BasedButtonSprite::getTopOffset() const {
-    return { 0, 0 };
+void BasedButtonSprite::setTopOffset(CCPoint const& offset) {
+    m_topOffset = offset;
+    if (m_onTop) {
+        m_onTop->setPosition(this->getContentSize() / 2 + offset);
+    }
+}
+void BasedButtonSprite::setTopRelativeScale(float scale) {
+    m_onTopRelativeScale = scale;
+    if (m_onTop) {
+        limitNodeSize(m_onTop, this->getMaxTopSize(), 999.f, .1f);
+        m_onTop->setScale(m_onTop->getScale() * m_onTopRelativeScale);
+    }
 }
 
 bool BasedButtonSprite::initWithSprite(
@@ -211,7 +221,7 @@ bool BasedButtonSprite::initWithSprite(
 ) {
     auto spr = CCSprite::create(sprName);
     if (!spr) return false;
-    spr->setScale(sprScale);
+    m_onTopRelativeScale = sprScale;
     return this->init(spr, type, size, color);
 }
 
@@ -220,7 +230,7 @@ bool BasedButtonSprite::initWithSpriteFrameName(
 ) {
     auto spr = CCSprite::createWithSpriteFrameName(sprName);
     if (!spr) return false;
-    spr->setScale(sprScale);
+    m_onTopRelativeScale = sprScale;
     return this->init(spr, type, size, color);
 }
 
