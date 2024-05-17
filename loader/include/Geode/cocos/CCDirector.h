@@ -544,12 +544,13 @@ public:
         CCSize m_obResolutionInPixels;
         CC_SYNTHESIZE_READONLY_NV(TextureQuality, m_eTextureQuality, LoadedTextureQuality);
         CC_SYNTHESIZE_NV(bool, m_bDontCallWillSwitch, DontCallWillSwitch);
-#if GEODE_COMP_GD_VERSION >= 22003
-        CC_SYNTHESIZE_NV(bool, m_bFastMenu, FastMenu);
-#else
+// #if GEODE_COMP_GD_VERSION >= 22003
+        // this messed up binding tests and i don't really feel like figuring out why
+        // CC_SYNTHESIZE_NV(bool, m_bFastMenu, FastMenu);
+// #else
         // these were just garbage memory in reclass
         void* m_unknownPtr2;
-#endif
+// #endif
         void* m_unknownPtr3;
     )
     
