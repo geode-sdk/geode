@@ -196,6 +196,13 @@ namespace geode {
             return this->Base::value_or(std::forward<U>(val));
         }
 
+        [[nodiscard]] constexpr decltype(auto) unwrapOrDefault() && requires std::is_default_constructible_v<T> {
+            return this->Base::value_or(T());
+        }
+        [[nodiscard]] constexpr decltype(auto) unwrapOrDefault() const& requires std::is_default_constructible_v<T> {
+            return this->Base::value_or(T());
+        }
+
         template <class U>
         [[nodiscard]] constexpr decltype(auto) errorOr(U&& val) && {
             return this->Base::error_or(std::forward<U>(val));

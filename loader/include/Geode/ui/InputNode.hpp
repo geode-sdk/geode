@@ -30,8 +30,6 @@ namespace geode {
         [[deprecated("Use geode::TextInput from the ui/TextInput.hpp header instead")]]
         static InputNode* create(float width, char const* placeholder);
 
-        void activate() override;
-
         CCTextInputNode* getInput() const;
         cocos2d::extension::CCScale9Sprite* getBG() const;
 

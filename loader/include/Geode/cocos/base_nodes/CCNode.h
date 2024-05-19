@@ -913,6 +913,22 @@ public:
      */
     GEODE_DLL CCNode* getChildByIDRecursive(std::string const& id);
 
+    /**
+     * Get a child based on a query. Searches the child tree for a matching 
+     * child. The query currently only supports the following features:
+     *  - `node-id`: Match a node with a specific ID
+     *  - `node-id-1 node-id-2`: Match a descendant (possibly not immediate) 
+     *    child of a node with a specific ID
+     *  - `node-id-1 > node-id-2`: Match the immediate child of a node with a 
+     *    specific ID 
+     * For example, the query "my-layer button-menu > mod.id/epic-button" is 
+     * equivalent to `getChildByIDRecursive("my-layer")
+     * ->getChildByIDRecursive("button-menu")
+     * ->getChildByID("mod.id/epic-button")`
+     * @returns The first matching node, or nullptr if none was found
+     */
+    GEODE_DLL CCNode* querySelector(std::string const& query);
+
     /** 
      * Removes a child from the container by its ID.
      * @param id The ID of the node

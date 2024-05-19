@@ -1,5 +1,17 @@
 # Geode Changelog
 
+## v2.0.0-beta.26
+ * Bring in several UI helpers from the `new-index-but-better` branch: `ListBorders`, `addSideArt`, `AxisLayout` improvements, ... (26729c3, 7ff257c)
+ * Make it possible to compile mods in Debug mode (517ad45)
+ * Add `GJDifficultyName` and `GJFeatureState` (#706)
+ * Add `geode::cocos::isSpriteName` and `geode::cocos::getChildBySpriteName` (#725)
+ * Add some Android keycodes (4fa8098)
+ * Update FMOD on Mac (c4a682b)
+ * Bump JSON version (5cc23e7)
+ * Fixes to `InputNode` touches (29b4732)
+ * Fix `file::readFromJson` (77e0f2e)
+ * Fix issues with TulipHook (f2ce7d0)
+
 ## v2.0.0-beta.25
  * Fix updater sometimes skipping releases (18dd0b7)
  * Fix resources getting downloaded every time (5f571d9)
