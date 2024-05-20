@@ -11,6 +11,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     
     this->setContentSize(size);
     this->setAnchorPoint({ .5f, .5f });
+    this->setID("ModList");
 
     m_source = src;
     m_source->reset();
@@ -26,6 +27,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     this->addChildAtPosition(m_list, Anchor::Bottom, ccp(-m_list->getScaledContentWidth() / 2, 0));
 
     m_topContainer = CCNode::create();
+    m_topContainer->setID("top-container");
     m_topContainer->ignoreAnchorPointForPosition(false);
     m_topContainer->setContentWidth(size.width);
     m_topContainer->setAnchorPoint({ .5f, 1.f });
@@ -36,6 +38,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         m_checkUpdatesListener.setFilter(ModsLayer::checkInstalledModsForUpdates());
 
         m_updateAllContainer = CCNode::create();
+        m_updateAllContainer->setID("update-all-container");
         m_updateAllContainer->ignoreAnchorPointForPosition(false);
         m_updateAllContainer->setContentSize({ size.width, 30 });
         m_updateAllContainer->setVisible(false);
@@ -45,6 +48,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
             "mod-list-updates-available-bg-2"_cc4b,
             ccp(1, -.5f)
         );
+        updateAllBG->setID("update-all-bg");
         updateAllBG->setContentSize(m_updateAllContainer->getContentSize());
         updateAllBG->ignoreAnchorPointForPosition(false);
 
@@ -60,9 +64,11 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         m_updateAllContainer->addChildAtPosition(updateAllBG, Anchor::Center);
         
         m_updateCountLabel = TextArea::create("", "bigFont.fnt", .35f, size.width / 2 - 30, ccp(0, 1), 12.f, false);
+        m_updateCountLabel->setID("update-count-label");
         m_updateAllContainer->addChildAtPosition(m_updateCountLabel, Anchor::Left, ccp(10, 0), ccp(0, 0));
         
         m_updateAllMenu = CCMenu::create();
+        m_updateAllMenu->setID("update-all-menu");
         m_updateAllMenu->setContentWidth(size.width / 2);
         m_updateAllMenu->setAnchorPoint({ 1, .5f });
 
@@ -77,6 +83,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         m_toggleUpdatesOnlyBtn = CCMenuItemToggler::create(
             showUpdatesSpr, hideUpdatesSpr, this, menu_selector(ModList::onToggleUpdates)
         );
+        m_toggleUpdatesOnlyBtn->setID("toggle-updates-only-button");
         m_toggleUpdatesOnlyBtn->m_notClickable = true;
         m_updateAllMenu->addChild(m_toggleUpdatesOnlyBtn);
 
@@ -87,6 +94,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         m_updateAllBtn = CCMenuItemSpriteExtra::create(
             updateAllSpr, this, menu_selector(ModList::onUpdateAll)
         );
+        m_updateAllBtn->setID("update-all-button");
         m_updateAllMenu->addChild(m_updateAllBtn);
 
         m_updateAllLoadingCircle = createLoadingCircle(32);
@@ -104,6 +112,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
 
         if (Loader::get()->getProblems().size()) {
             m_errorsContainer = CCNode::create();
+            m_errorsContainer->setID("errors-container");
             m_errorsContainer->ignoreAnchorPointForPosition(false);
             m_errorsContainer->setContentSize({ size.width, 30 });
             m_errorsContainer->setVisible(false);
@@ -113,6 +122,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
                 "mod-list-errors-found-2"_cc4b,
                 ccp(1, -.5f)
             );
+            errorsBG->setID("errors-bg");
             errorsBG->setContentSize(m_errorsContainer->getContentSize());
             errorsBG->ignoreAnchorPointForPosition(false);
 
@@ -122,9 +132,11 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
                 "There were <cy>errors</c> loading some mods",
                 "bigFont.fnt", .35f, size.width / 2 - 30, ccp(0, 1), 12.f, false
             );
+            errorsLabel->setID("errors-label");
             m_errorsContainer->addChildAtPosition(errorsLabel, Anchor::Left, ccp(10, 0), ccp(0, 0));
             
             auto errorsMenu = CCMenu::create();
+            errorsMenu->setID("errors-menu");
             errorsMenu->setContentWidth(size.width / 2);
             errorsMenu->setAnchorPoint({ 1, .5f });
 
@@ -139,6 +151,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
             m_toggleErrorsOnlyBtn = CCMenuItemToggler::create(
                 showErrorsSpr, hideErrorsSpr, this, menu_selector(ModList::onToggleErrors)
             );
+            m_toggleErrorsOnlyBtn->setID("toggle-errors-only-button");
             m_toggleErrorsOnlyBtn->m_notClickable = true;
             errorsMenu->addChild(m_toggleErrorsOnlyBtn);
 
@@ -154,15 +167,18 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     }
 
     m_searchMenu = CCNode::create();
+    m_searchMenu->setID("search-menu");
     m_searchMenu->ignoreAnchorPointForPosition(false);
     m_searchMenu->setContentSize({ size.width, 30 });
 
     auto searchBG = CCLayerColor::create(ColorProvider::get()->color("mod-list-search-bg"_spr));
     searchBG->setContentSize(m_searchMenu->getContentSize());
     searchBG->ignoreAnchorPointForPosition(false);
+    searchBG->setID("search-id");
     m_searchMenu->addChildAtPosition(searchBG, Anchor::Center);
 
     m_searchInput = TextInput::create(size.width - 5, "Search Mods");
+    m_searchInput->setID("search-input");
     m_searchInput->setScale(.75f);
     m_searchInput->setAnchorPoint({ 0, .5f });
     m_searchInput->setTextAlign(TextInputAlign::Left);
@@ -190,6 +206,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_searchMenu->addChildAtPosition(m_searchInput, Anchor::Left, ccp(7.5f, 0));
 
     auto searchFiltersMenu = CCMenu::create();
+    searchFiltersMenu->setID("search-filters-menu");
     searchFiltersMenu->setContentWidth(size.width - m_searchInput->getScaledContentWidth() - 5);
     searchFiltersMenu->setAnchorPoint({ 1, .5f });
     searchFiltersMenu->setScale(.75f);
@@ -198,6 +215,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     auto sortBtn = CCMenuItemSpriteExtra::create(
         sortSpr, this, menu_selector(ModList::onSort)
     );
+    sortBtn->setID("sort-button");
     if (!typeinfo_cast<ServerModListSource*>(m_source)) {
         sortBtn->setEnabled(false);
         sortSpr->setColor(ccGRAY);
@@ -211,12 +229,14 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         GeodeSquareSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
         this, menu_selector(ModList::onFilters)
     );
+    m_filtersBtn->setID("filters-button");
     searchFiltersMenu->addChild(m_filtersBtn);
 
     m_clearFiltersBtn = CCMenuItemSpriteExtra::create(
         GeodeSquareSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"),
         this, menu_selector(ModList::onClearFilters)
     );
+    m_clearFiltersBtn->setID("clear-filters-button");
     searchFiltersMenu->addChild(m_clearFiltersBtn);
 
     searchFiltersMenu->setLayout(
@@ -240,6 +260,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     // Paging
 
     auto pageLeftMenu = CCMenu::create();
+    pageLeftMenu->setID("page-left-menu");
     pageLeftMenu->setContentWidth(30.f);
     pageLeftMenu->setAnchorPoint({ 1.f, .5f });
 
@@ -247,6 +268,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         CCSprite::createWithSpriteFrameName("GJ_arrow_02_001.png"),
         this, menu_selector(ModList::onPage)
     );
+    m_pagePrevBtn->setID("page-previous-button");
     m_pagePrevBtn->setTag(-1);
     pageLeftMenu->addChild(m_pagePrevBtn);
 
@@ -258,6 +280,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     this->addChildAtPosition(pageLeftMenu, Anchor::Left, ccp(-5, 0));
 
     auto pageRightMenu = CCMenu::create();
+    pageRightMenu->setID("page-right-menu");
     pageRightMenu->setContentWidth(30.f);
     pageRightMenu->setAnchorPoint({ 0.f, .5f });
 
@@ -267,6 +290,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         pageNextSpr,
         this, menu_selector(ModList::onPage)
     );
+    m_pageNextBtn->setID("page-next-button");
     m_pageNextBtn->setTag(1);
     pageRightMenu->addChild(m_pageNextBtn);
 
@@ -279,12 +303,14 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     // Status
 
     m_statusContainer = CCMenu::create();
+    m_statusContainer->setID("status-container");
     m_statusContainer->setScale(.5f);
     m_statusContainer->setContentHeight(size.height / m_statusContainer->getScale());
     m_statusContainer->setAnchorPoint({ .5f, .5f });
     m_statusContainer->ignoreAnchorPointForPosition(false);
 
     m_statusTitle = CCLabelBMFont::create("", "bigFont.fnt");
+    m_statusTitle->setID("status-title-label");
     m_statusTitle->setAlignment(kCCTextAlignmentCenter);
     m_statusContainer->addChild(m_statusTitle);
 
@@ -292,9 +318,11 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         ButtonSprite::create("Details", "bigFont.fnt", "GJ_button_05.png", .75f),
         this, menu_selector(ModList::onShowStatusDetails)
     );
+    m_statusDetailsBtn->setID("status-details-button");
     m_statusContainer->addChild(m_statusDetailsBtn);
 
     m_statusDetails = SimpleTextArea::create("", "chatFont.fnt", .6f);
+    m_statusDetails->setID("status-details-input");
     m_statusDetails->setAlignment(kCCTextAlignmentCenter);
     m_statusContainer->addChild(m_statusDetails);
 
@@ -302,6 +330,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_statusContainer->addChild(m_statusLoadingCircle);
 
     m_statusLoadingBar = Slider::create(this, nullptr);
+    m_statusLoadingBar->setID("status-loading-bar");
     m_statusLoadingBar->m_touchLogic->m_thumb->setVisible(false);
     m_statusLoadingBar->setValue(0);
     m_statusLoadingBar->updateBar();

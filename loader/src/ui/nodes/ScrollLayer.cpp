@@ -79,8 +79,11 @@ ScrollLayer::ScrollLayer(CCRect const& rect, bool scrollWheelEnabled, bool verti
 
     m_contentLayer->removeFromParent();
     m_contentLayer = GenericContentLayer::create(rect.size.width, rect.size.height);
+    m_contentLayer->setID("content-layer");
     m_contentLayer->setAnchorPoint({ 0, 0 });
     this->addChild(m_contentLayer);
+
+    this->setID("ScrollLayer");
 
     this->setMouseEnabled(true);
     this->setTouchEnabled(true);

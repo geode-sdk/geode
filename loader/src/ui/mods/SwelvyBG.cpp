@@ -4,6 +4,8 @@
 bool SwelvyBG::init() {
     if (!CCSpriteBatchNode::initWithTexture(CCTextureCache::get()->textureForKey("SwelveSheet.png"_spr), 20))
         return false;
+
+    this->setID("SwelvyBG");
     
     auto winSize = CCDirector::get()->getWinSize();
     this->setContentSize(winSize);

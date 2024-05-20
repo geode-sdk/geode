@@ -25,6 +25,9 @@ $execute {
     ColorProvider::get()->define("mod-list-recommended-by"_spr, ccc3(25, 255, 167));
     ColorProvider::get()->define("mod-list-recommended-by-2"_spr, ccc3(47, 255, 255));
 
+    // Only used when GD theme is active
+    ColorProvider::get()->define("mods-layer-gd-bg"_spr, { 0, 102, 255, 255 });
+
     auto updateColors = +[](bool enabled) {
         if (enabled) {
             ColorProvider::get()->reset("mod-list-bg"_spr);
@@ -120,7 +123,8 @@ protected:
     bool init(float sideLength) {
         if (!CCNode::init())
             return false;
-        
+
+        this->setID("loading-spinner");
         this->setContentSize({ sideLength, sideLength });
         this->setAnchorPoint({ .5f, .5f });
         
