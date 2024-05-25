@@ -110,6 +110,7 @@ public:
      *  @lua NA
      */
     CCTextFieldTTF();
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTextFieldTTF, CCLabelTTF)
     /**
      *  @lua NA
      */
