@@ -82,33 +82,37 @@ void updater::fetchLatestGithubRelease(
 }
 
 void updater::downloadLatestLoaderResources() {
-    log::debug("Downloading latest resources", Loader::get()->getVersion().toString());
+    // Log the start of the download process
+    log::debug("Downloading latest resources for version: ", Loader::get()->getVersion().toString());
+
+    // Fetch the latest GitHub release
     fetchLatestGithubRelease(
+        // Lambda function to process the JSON response
         [](matjson::Value const& raw) {
             auto json = raw;
             JsonChecker checker(json);
             auto root = checker.root("[]").obj();
 
-            // find release asset
+            // Find the release asset named "resources.zip"
             for (auto asset : root.needs("assets").iterate()) {
                 auto obj = asset.obj();
-                if (obj.needs("name").template get<std::string>() == "resources.zip") {
-                    updater::tryDownloadLoaderResources(
-                        obj.needs("browser_download_url").template get<std::string>(),
-                        false
-                    );
+                std::string assetName = obj.needs("name").template get<std::string>();
+                if (assetName == "resources.zip") {
+                    std::string downloadUrl = obj.needs("browser_download_url").template get<std::string>();
+                    updater::tryDownloadLoaderResources(downloadUrl, false);
                     return;
                 }
             }
 
-            ResourceDownloadEvent(
-                UpdateFailed("Unable to find resources in latest GitHub release")
-            ).post();
+            // Post an event if the "resources.zip" asset is not found
+            log::error("Unable to find 'resources.zip' in the latest GitHub release");
+            ResourceDownloadEvent(UpdateFailed("Unable to find 'resources.zip' in the latest GitHub release")).post();
         },
+        // Lambda function to handle errors during the fetching process
         [](std::string const& info) {
-            ResourceDownloadEvent(
-                UpdateFailed("Unable to download resources: " + info)
-            ).post();
+            std::string errorMsg = "Unable to download resources: " + info;
+            log::error(errorMsg);
+            ResourceDownloadEvent(UpdateFailed(errorMsg)).post();
         },
         true
     );
