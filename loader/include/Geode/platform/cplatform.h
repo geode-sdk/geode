@@ -14,7 +14,6 @@
     #define GEODE_IS_WINDOWS
     #define GEODE_IS_DESKTOP
     #define GEODE_PLATFORM_NAME "Windows"
-    #define GEODE_CALL __stdcall
     #define GEODE_PLATFORM_EXTENSION ".dll"
     #define GEODE_PLATFORM_SHORT_IDENTIFIER "win"
     #define CC_TARGET_OS_WIN32
@@ -23,10 +22,12 @@
         #define GEODE_IS_WINDOWS64
         #define GEODE_WINDOWS64(...) __VA_ARGS__
         #define GEODE_WINDOWS32(...)
+        #define GEODE_CALL
     #else
         #define GEODE_IS_WINDOWS32
         #define GEODE_WINDOWS32(...) __VA_ARGS__
         #define GEODE_WINDOWS64(...)
+        #define GEODE_CALL __stdcall
     #endif
 #else
     #define GEODE_WINDOWS(...)
