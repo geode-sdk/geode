@@ -124,6 +124,31 @@ bool loadGeode() {
     if (!orig)
         return false;
 
+    if (GEODE_STR(GEODE_GD_VERSION) != LoaderImpl::get()->getGameVersion()) {
+        console::messageBox(
+            "Unable to Load Geode!",
+            fmt::format(
+                "This version of Geode is made for Geometry Dash {} "
+                "but you're trying to play with GD {}.\n"
+                "Please, update your game.",
+                GEODE_STR(GEODE_GD_VERSION),
+                LoaderImpl::get()->getGameVersion()
+            )
+        );
+        return false;
+    }
+
+    auto detourAddr = reinterpret_cast<uintptr_t>(&applicationDidFinishLaunchingHook) - geode::base::get() - ENTRY_ADDRESS - 5;
+    auto detourAddrPtr = reinterpret_cast<uint8_t*>(&detourAddr);
+
+    std::array<uint8_t, 5> patchBytes = {
+        0xe9, detourAddrPtr[0], detourAddrPtr[1], detourAddrPtr[2], detourAddrPtr[3]
+    };
+
+    auto res = tulip::hook::writeMemory((void*)(base::get() + ENTRY_ADDRESS), patchBytes.data(), 5);
+    if (!res)
+        return false;
+
     s_applicationDidFinishLaunchingOrig = reinterpret_cast<void(*)(void*, SEL, NSNotification*)>(orig.unwrap());
     return true;
 }

@@ -179,6 +179,15 @@ jobs:
       uses: ./.github/actions/setup-dump-sym
       id: breakpad-tools
       if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
+    
+    - name: Fix Ubuntu libcstd++
+      shell: bash
+      run: |
+        sudo apt install ninja-build &&
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test &&
+        sudo apt-get update &&
+        sudo apt-get install --only-upgrade libstdc++6
+      if: matrix.config.host_id == 'linux'
 
     - name: Checkout ninjatracing
       uses: actions/checkout@v4
