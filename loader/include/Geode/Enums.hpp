@@ -473,6 +473,8 @@ enum class SavedObjectStateRef {};
 enum class CommentType {
     Level = 0,
     Account = 1,
+    FriendRequest = 2,
+    ListDescription = 4,
 };
 
 enum class BoomListType {
