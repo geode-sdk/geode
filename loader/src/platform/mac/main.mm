@@ -136,7 +136,7 @@ void applicationDidFinishLaunchingHook(void* self, SEL sel, NSNotification* noti
 
 
 bool loadGeode() {
-    if (GEODE_STR(GEODE_GD_VERSION) != Loader::get()->getGameVersion()) {
+    if (GEODE_STR(GEODE_GD_VERSION) != LoaderImpl::get()->getGameVersion()) {
         console::messageBox(
             "Unable to Load Geode!",
             fmt::format(
