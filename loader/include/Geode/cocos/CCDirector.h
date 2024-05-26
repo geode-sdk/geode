@@ -91,6 +91,7 @@ RT_ADD(
     class CCKeyboardDispatcher;
     class CCMouseDispatcher;
     class CCSceneDelegate;
+    class CCLabelBMFont;
 )
 
 /**
@@ -481,7 +482,7 @@ public:
     
     bool m_bDisplayStats;
 
-    float m_unknown;
+    float m_fFpsAccumDt;
 
     float m_fAccumDt;
     float m_fFrameRate;
@@ -537,14 +538,19 @@ public:
 
     RT_ADD(
         CC_SYNTHESIZE(CCSceneDelegate*, m_pAppDelegate, SceneDelegate);
-        void* m_unknownPtr;
-        CCNode* m_unknownLabel;
+        bool m_bDisplayFPS;
+        CCLabelBMFont* m_pFPSNode;
         CCSize m_obScaleFactor;
         CCSize m_obResolutionInPixels;
         CC_SYNTHESIZE_READONLY_NV(TextureQuality, m_eTextureQuality, LoadedTextureQuality);
         CC_SYNTHESIZE_NV(bool, m_bDontCallWillSwitch, DontCallWillSwitch);
+// #if GEODE_COMP_GD_VERSION >= 22003
+        // this messed up binding tests and i don't really feel like figuring out why
+        // CC_SYNTHESIZE_NV(bool, m_bFastMenu, FastMenu);
+// #else
         // these were just garbage memory in reclass
         void* m_unknownPtr2;
+// #endif
         void* m_unknownPtr3;
     )
     

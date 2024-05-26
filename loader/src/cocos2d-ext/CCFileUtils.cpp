@@ -5,12 +5,19 @@
 
 using namespace geode::prelude;
 
+static std::vector<CCTexturePack> REMOVED_PACKS;
 static std::vector<CCTexturePack> PACKS;
 static std::vector<std::string> PATHS;
 static bool DONT_ADD_PATHS = false;
 
 #pragma warning(push)
 #pragma warning(disable : 4273)
+
+std::optional<CCTexturePack> getTexturePack(std::string const& id) {
+    return ranges::find(PACKS, [id](CCTexturePack const& pack) {
+        return pack.m_id == id;
+    });
+}
 
 void CCFileUtils::addTexturePack(CCTexturePack const& pack) {
     // remove pack if it has already been added
@@ -23,6 +30,10 @@ void CCFileUtils::addTexturePack(CCTexturePack const& pack) {
 }
 
 void CCFileUtils::removeTexturePack(std::string const& id) {
+    std::optional<CCTexturePack> pack = getTexturePack(id);
+    if(pack.has_value()) {
+        REMOVED_PACKS.push_back(pack.value());
+    }
     ranges::remove(PACKS, [id](CCTexturePack const& pack) {
         return pack.m_id == id;
     });
@@ -36,10 +47,18 @@ void CCFileUtils::addPriorityPath(char const* path) {
 
 void CCFileUtils::updatePaths() {
     // add search paths that aren't in PATHS or PACKS to PATHS
-
     for (auto& path : m_searchPathArray) {
         bool isKnown = false;
         for (auto& pack : PACKS) {
+            for (auto& packPath : pack.m_paths) {
+                if (ghc::filesystem::path(path.c_str()) == packPath) {
+                    isKnown = true;
+                    break;
+                }
+            }
+            if (isKnown) break;
+        }
+        for (auto& pack : REMOVED_PACKS) {
             for (auto& packPath : pack.m_paths) {
                 if (ghc::filesystem::path(path.c_str()) == packPath) {
                     isKnown = true;
@@ -61,7 +80,7 @@ void CCFileUtils::updatePaths() {
     }
 
     // clear old paths
-
+    REMOVED_PACKS.clear();
     m_searchPathArray.clear();
 
     // make sure addSearchPath doesn't add to PACKS or PATHS
