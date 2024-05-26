@@ -30,6 +30,8 @@
     #endif
 #else
     #define GEODE_WINDOWS(...)
+    #define GEODE_WINDOWS32(...)
+    #define GEODE_WINDOWS64(...)
 #endif
 
 #if defined(__APPLE__)
