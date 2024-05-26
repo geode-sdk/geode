@@ -247,7 +247,7 @@ namespace geode {
 
         Ref(Ref<T> const& other) : Ref(other.data()) {}
 
-        Ref(Ref<T>&& other) : m_obj(other.m_obj) {
+        Ref(Ref<T>&& other) noexcept : m_obj(other.m_obj) {
             other.m_obj = nullptr;
         }
 

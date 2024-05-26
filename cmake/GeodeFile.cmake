@@ -98,6 +98,8 @@ function(setup_geode_mod proname)
         )
     endif()
 
+    target_compile_definitions(${proname} PRIVATE GEODE_MOD_ID="${MOD_ID}")
+
     # Add this mod to the list of known externals mods
     list(APPEND GEODE_MODS_BEING_BUILT "${MOD_ID}:${MOD_VERSION}")
     # Ensure that the list of mods being built is global (persists between setup_geode_mod calls)

@@ -58,7 +58,7 @@ void ScrollLayer::enableScrollWheel(bool enable) {
 }
 
 bool ScrollLayer::ccTouchBegan(CCTouch* touch, CCEvent* event) {
-    if (this->isVisible()) {
+    if (nodeIsVisible(this)) {
         return CCScrollLayerExt::ccTouchBegan(touch, event);
     }
     return false;
