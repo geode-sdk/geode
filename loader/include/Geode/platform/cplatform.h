@@ -19,17 +19,15 @@
     #define GEODE_PLATFORM_SHORT_IDENTIFIER "win"
     #define CC_TARGET_OS_WIN32
 
-    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-		#if defined(WIN64) || defined(_WIN64) || defined(__WIN64) && !defined(__CYGWIN__)
-			#define GEODE_IS_WINDOWS64
-            #define GEODE_WINDOWS64(...) __VA_ARGS__
-            #define GEODE_WINDOWS32(...)
-		#else
-			#define GEODE_IS_WINDOWS32
-            #define GEODE_WINDOWS32(...) __VA_ARGS__
-            #define GEODE_WINDOWS64(...)
-		#endif
-	#endif
+    #if defined(WIN64) || defined(_WIN64) || defined(__WIN64) && !defined(__CYGWIN__)
+        #define GEODE_IS_WINDOWS64
+        #define GEODE_WINDOWS64(...) __VA_ARGS__
+        #define GEODE_WINDOWS32(...)
+    #else
+        #define GEODE_IS_WINDOWS32
+        #define GEODE_WINDOWS32(...) __VA_ARGS__
+        #define GEODE_WINDOWS64(...)
+    #endif
 #else
     #define GEODE_WINDOWS(...)
 #endif
