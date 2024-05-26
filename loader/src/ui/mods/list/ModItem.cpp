@@ -11,8 +11,10 @@ bool ModItem::init(ModSource&& source) {
         return false;
     
     m_source = std::move(source);
+    this->setID("ModItem");
 
     m_bg = CCScale9Sprite::create("square02b_small.png");
+    m_bg->setID("bg");
     m_bg->setOpacity(0);
     m_bg->ignoreAnchorPointForPosition(false);
     m_bg->setAnchorPoint({ .5f, .5f });
@@ -20,9 +22,11 @@ bool ModItem::init(ModSource&& source) {
     this->addChild(m_bg);
 
     m_logo = m_source.createModLogo();
+    m_logo->setID("logo-sprite");
     this->addChild(m_logo);
 
     m_infoContainer = CCNode::create();
+    m_infoContainer->setID("info-container");
     m_infoContainer->setScale(.4f);
     m_infoContainer->setAnchorPoint({ .0f, .5f });
     m_infoContainer->setLayout(
@@ -35,6 +39,7 @@ bool ModItem::init(ModSource&& source) {
     m_infoContainer->getLayout()->ignoreInvisibleChildren(true);
 
     m_titleContainer = CCNode::create();
+    m_titleContainer->setID("title-container");
     m_titleContainer->setAnchorPoint({ .0f, .5f });
     m_titleContainer->setLayout(
         RowLayout::create()
@@ -43,23 +48,28 @@ bool ModItem::init(ModSource&& source) {
     );
 
     m_titleLabel = CCLabelBMFont::create(m_source.getMetadata().getName().c_str(), "bigFont.fnt");
+    m_titleLabel->setID("title-label");
     m_titleContainer->addChild(m_titleLabel);
 
     m_versionLabel = CCLabelBMFont::create("", "bigFont.fnt");
+    m_versionLabel->setID("version-label");
     m_versionLabel->setLayoutOptions(AxisLayoutOptions::create()->setMaxScale(.7f));
     m_titleContainer->addChild(m_versionLabel);
     
     m_infoContainer->addChild(m_titleContainer);
     
     m_developers = CCMenu::create();
+    m_developers->setID("developers-menu");
     m_developers->ignoreAnchorPointForPosition(false);
     m_developers->setAnchorPoint({ .0f, .5f });
 
     auto by = "By " + ModMetadata::formatDeveloperDisplayString(m_source.getMetadata().getDevelopers());
     m_developerLabel = CCLabelBMFont::create(by.c_str(), "goldFont.fnt");
+    m_developerLabel->setID("developers-label");
     auto developersBtn = CCMenuItemSpriteExtra::create(
         m_developerLabel, this, menu_selector(ModItem::onDevelopers)
     );
+    developersBtn->setID("developers-button");
     m_developers->addChild(developersBtn);
 
     m_developers->setLayout(
@@ -75,13 +85,16 @@ bool ModItem::init(ModSource&& source) {
             to3B(ColorProvider::get()->color("mod-list-restart-required-label-bg"_spr))
         }}
     );
+    m_restartRequiredLabel->setID("restart-required-label");
     m_restartRequiredLabel->setLayoutOptions(AxisLayoutOptions::create()->setMaxScale(.75f));
     m_infoContainer->addChild(m_restartRequiredLabel);
 
     m_downloadBarContainer = CCNode::create();
+    m_downloadBarContainer->setID("download-bar-container");
     m_downloadBarContainer->setContentSize({ 320, 30 });
     
     m_downloadBar = Slider::create(nullptr, nullptr);
+    m_downloadBar->setID("download-bar");
     m_downloadBar->m_touchLogic->m_thumb->setVisible(false);
     m_downloadBar->setScale(1.5f);
     m_downloadBarContainer->addChildAtPosition(m_downloadBar, Anchor::Center, ccp(0, 0), ccp(0, 0));
@@ -89,10 +102,12 @@ bool ModItem::init(ModSource&& source) {
     m_infoContainer->addChild(m_downloadBarContainer);
 
     m_downloadWaiting = CCNode::create();
+    m_downloadWaiting->setID("download-waiting-container");
     m_downloadWaiting->setContentSize({ 225, 30 });
     
     auto downloadWaitingLabel = CCLabelBMFont::create("Preparing Download...", "bigFont.fnt");
     downloadWaitingLabel->setScale(.75f);
+    downloadWaitingLabel->setID("download-waiting-label");
     m_downloadWaiting->addChildAtPosition(
         downloadWaitingLabel, Anchor::Left,
         ccp(m_downloadWaiting->getContentHeight(), 0), ccp(0, .5f)
@@ -109,6 +124,7 @@ bool ModItem::init(ModSource&& source) {
     this->addChild(m_infoContainer);
 
     m_viewMenu = CCMenu::create();
+    m_viewMenu->setID("view-menu");
     m_viewMenu->setAnchorPoint({ 1.f, .5f });
     m_viewMenu->setScale(.55f);
     
@@ -116,6 +132,7 @@ bool ModItem::init(ModSource&& source) {
         createGeodeButton("View"),
         this, menu_selector(ModItem::onView)
     );
+    viewBtn->setID("view-button");
     m_viewMenu->addChild(viewBtn);
 
     m_viewMenu->setLayout(
@@ -135,6 +152,7 @@ bool ModItem::init(ModSource&& source) {
                 m_enableToggle = CCMenuItemToggler::createWithStandardSprites(
                     this, menu_selector(ModItem::onEnable), 1.f
                 );
+                m_enableToggle->setID("enable-toggler");
                 // Manually handle toggle state
                 m_enableToggle->m_notClickable = true;
                 m_viewMenu->addChild(m_enableToggle);
@@ -148,6 +166,7 @@ bool ModItem::init(ModSource&& source) {
                 auto viewErrorBtn = CCMenuItemSpriteExtra::create(
                     viewErrorSpr, this, menu_selector(ModItem::onViewError)
                 );
+                viewErrorBtn->setID("view-error-button");
                 m_viewMenu->addChild(viewErrorBtn);
             }
         },
@@ -160,6 +179,7 @@ bool ModItem::init(ModSource&& source) {
 
                 auto star = CCSprite::createWithSpriteFrameName("GJ_starsIcon_001.png");
                 starBG->addChildAtPosition(star, Anchor::Center);
+                starBG->setID("star-bg");
 
                 m_titleContainer->addChild(starBG);
             }
@@ -169,11 +189,13 @@ bool ModItem::init(ModSource&& source) {
             auto downloadsContainer = CCNode::create();
             
             auto downloads = CCLabelBMFont::create(numToAbbreviatedString(metadata.downloadCount).c_str(), "bigFont.fnt");
+            downloads->setID("downloads-label");
             downloads->setColor("mod-list-version-label"_cc3b);
             downloads->limitLabelWidth(80, .5f, .1f);
             downloadsContainer->addChildAtPosition(downloads, Anchor::Right, ccp(-0, 0), ccp(1, .5f));
 
             auto downloadsIcon = CCSprite::createWithSpriteFrameName("GJ_downloadsIcon_001.png");
+            downloadsIcon->setID("downloads-icon-sprite");
             downloadsIcon->setScale(.75f);
             downloadsContainer->addChildAtPosition(downloadsIcon, Anchor::Right, ccp(-downloads->getScaledContentWidth() - 10, 0));
 
@@ -186,13 +208,16 @@ bool ModItem::init(ModSource&& source) {
         },
         [this](ModSuggestion const& suggestion) {
             m_recommendedBy = CCNode::create();
+            m_recommendedBy->setID("recommended-container");
             m_recommendedBy->setContentWidth(225);
 
             auto byLabel = CCLabelBMFont::create("Recommended by ", "bigFont.fnt");
+            byLabel->setID("recommended-label");
             byLabel->setColor("mod-list-recommended-by"_cc3b);
             m_recommendedBy->addChild(byLabel);
 
             auto nameLabel = CCLabelBMFont::create(suggestion.forMod->getName().c_str(), "bigFont.fnt");
+            nameLabel->setID("recommended-name-label");
             nameLabel->setColor("mod-list-recommended-by-2"_cc3b);
             m_recommendedBy->addChild(nameLabel);
 
@@ -212,6 +237,7 @@ bool ModItem::init(ModSource&& source) {
     m_updateBtn = CCMenuItemSpriteExtra::create(
         updateSpr, this, menu_selector(ModItem::onInstall)
     );
+    m_updateBtn->setID("update-button");
     m_viewMenu->addChild(m_updateBtn);
 
     if (m_source.asMod()) {
