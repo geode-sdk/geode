@@ -197,10 +197,26 @@ enum class UserListType {
     Blocked = 1,
 };
 enum class GJErrorCode {
+    NotFound = -1,
+    UpdateApp = 3
 };
 enum class AccountError {
+    EmailsDoNotMatch = -99,
+    AlreadyLinkedToDifferentSteamAccount = -13,
+    AccountDisabled = -12,
+    AlreadyLinkedToDifferentAccount = -10,
+    TooShortLessThan3 = -9,
+    TooShortLessThan6 = -8,
+    PasswordsDoNotMatch = -7,
+    InvalidEmail = -6,
+    InvalidPassword = -5,
+    InvalidUsername = -4,
+    AlreadyUsedEmail = -3,
+    AlreadyUsedUsername = -2
 };
 enum class GJSongError {
+    DownloadSongFailed = 1,
+    DownloadSFXFailed = 2
 };
 enum class LikeItemType {
     Unknown = 0,
@@ -213,23 +229,122 @@ enum class LikeItemType {
 enum class CommentError {
 };
 enum class BackupAccountError {
+    BackupOrSyncFailed = -3,
+    LoginFailed = -2
 };
-enum class GJMusicAction {};
+enum class GJMusicAction {
+    DownloadOrUpdate = 2,
+    UpdateSFXLibrary = 4,
+    UpdateMusicLibrary = 6
+};
 enum class CellAction {};
 enum class GJActionCommand {};
-enum class DifficultyIconType {};
-enum class GauntletType {};
+enum class DifficultyIconType {
+    ShortText = 0,
+    DefaultText = 1,
+    NoText = 2
+};
+enum class GauntletType {
+    Fire = 0,
+    Ice = 2,
+    Poison = 3,
+    Shadow = 4,
+    Lava = 5,
+    Bonus = 6,
+    Chaos = 7,
+    Demon = 8,
+    Time = 9,
+    Crystal = 0xA,
+    Magic = 0xB,
+    Spike = 0xC,
+    Monster = 0xD,
+    Doom = 0xE,
+    Death = 0xF,
+    Forest = 0x10,
+    Rune = 0x11,
+    Force = 0x12,
+    Spooky = 0x13,
+    Dragon = 0x14,
+    Water = 0x15,
+    Haunted = 0x16,
+    Acid = 0x17,
+    Witch = 0x18,
+    Power = 0x19,
+    Potion = 0x1A,
+    Snake = 0x1B,
+    Toxic = 0x1C,
+    Halloween = 0x1D,
+    Treasure = 0x1E,
+    Ghost = 0x1F,
+    Spider = 0x20,
+    Gem = 0x21,
+    Inferno = 0x22,
+    Portal = 0x23,
+    Strange = 0x24,
+    Fantasy = 0x25,
+    Christmas = 0x26,
+    Surprise = 0x27,
+    Mystery = 0x28,
+    Cursed = 0x29,
+    Cyborg = 0x2A,
+    Castle = 0x2B,
+    Grave = 0x2C,
+    Temple = 0x2D,
+    World = 0x2E,
+    Galaxy = 0x2F,
+    Universe = 0x30,
+    Discord = 0x31,
+    Split = 0x32
+};
 enum class GJMPErrorCode {};
 enum class GJTimedLevelType {
     Daily = 0,
     Weekly = 1,
     Event = 2
 };
-enum class SongSelectType {};
+enum class SongSelectType {
+    Default = 0,
+    Custom = 1
+};
 enum class AudioTargetType {};
-enum class FMODReverbPreset {};
-enum class DemonDifficultyType {};
-enum class PlayerCollisionDirection {};
+enum class FMODReverbPreset {
+    Generic = 0,
+    PaddedCell = 1,
+    Room = 2,
+    Bathroom = 3,
+    Livingroom = 4,
+    Stoneroom = 5,
+    Auditorium = 6,
+    ConvertHall = 7,
+    Cave = 8,
+    Arena = 9,
+    Hangar = 0xA,
+    CarpettedHallway = 0xB,
+    Hallway = 0xC,
+    StoneCorridor = 0xD,
+    Alley = 0xE,
+    Forest = 0xF,
+    City = 0x10,
+    Mountains = 0x11,
+    Quarry = 0x12,
+    Plain = 0x13,
+    ParkingLot = 0x14,
+    SewerPipe = 0x15,
+    Underwater = 0x16
+};
+enum class DemonDifficultyType {
+    HardDemon = 0,
+    EasyDemon = 3,
+    MediumDemon = 4,
+    InsaneDemon = 5,
+    ExtremeDemon = 6
+};
+enum class PlayerCollisionDirection {
+    Top = 0,
+    Bottom = 1,
+    Left = 2,
+    Right = 3
+};
 enum class ChestSpriteState {};
 enum class FormatterType {};
 enum class AudioModType {};
@@ -251,7 +366,12 @@ enum class LevelLeaderboardMode {
     Points = 1
 };
 enum class StatKey {};
-enum class TextStyleType {};
+enum class TextStyleType {
+    Colored = 1,
+    Instant = 2,
+    Shake = 3,
+    Delayed = 4
+};
 enum class InputValueType {};
 enum class GJInputStyle {};
 enum class GJDifficultyName {
@@ -268,9 +388,72 @@ enum class GJFeatureState {
 enum class GJKeyGroup {};
 enum class GJKeyCommand {};
 enum class SelectSettingType {};
-enum class gjParticleValue {};
+enum class gjParticleValue {
+    MaxParticles = 1,
+    Duration = 2,
+    Lifetime = 3,
+    PlusMinus1 = 4,
+    Emission = 5,
+    Angle = 6,
+    PlusMinus2 = 7,
+    Speed = 8,
+    PlusMinus3 = 9,
+    PosVarX = 0xA,
+    PosVarY = 0xB,
+    GravityX = 0xC,
+    GravityY = 0xD,
+    AccelRad = 0xE,
+    PlusMinus4 = 0xF,
+    AccelTan = 0x10,
+    PlusMinus5 = 0x11,
+    StartSize = 0x12,
+    PlusMinus6 = 0x13,
+    EndSize = 0x14,
+    PlusMinus7 = 0x15,
+    StartSpin = 0x16,
+    PlusMinus8 = 0x17,
+    EndSpin = 0x18,
+    PlusMinus9 = 0x19,
+    StartR = 0x1A,
+    PlusMinus10 = 0x1B,
+    StartG = 0x1C,
+    PlusMinus11 = 0x1D,
+    StartB = 0x1E,
+    PlusMinus12 = 0x1F,
+    StartA = 0x20,
+    PlusMinus13 = 0x21,
+    EndR = 0x22,
+    PlusMinus14 = 0x23,
+    EndG = 0x24,
+    PlusMinus15 = 0x25,
+    EndB = 0x26,
+    PlusMinus16 = 0x27,
+    EndA = 0x28,
+    PlusMinus17 = 0x29,
+    FadeIn = 0x2A,
+    PlusMinus18 = 0x2B,
+    FadeOut = 0x2C,
+    PlusMinus19 = 0x2D,
+    FrictionP = 0x2E,
+    PlusMinus20 = 0x2F,
+    Respawn = 0x30,
+    PlusMinus21 = 0x31,
+    StartRad = 0x32,
+    PlusMinus22 = 0x33,
+    EndRad = 0x34,
+    PlusMinus23 = 0x35,
+    RotSec = 0x36,
+    PlusMinus24 = 0x37,
+    FrictionS = 0x45,
+    PlusMinus25 = 0x46,
+    FrictionR = 0x47,
+    PlusMinus26 = 0x48
+};
 enum class ColorSelectType {};
-enum class AudioGuidelinesType {};
+enum class AudioGuidelinesType {
+    GuidelineCreator = 0,
+    BPMFinder = 1
+};
 enum class SmartBrowseFilter {};
 enum class GJUITouchEvent {};
 enum class ObjectScaleType {
@@ -327,7 +510,21 @@ enum class BoomListType {
 };
 
 enum class CurrencySpriteType {
-    // todo
+    Orb = 1,
+    Star = 2,
+    Diamond = 3,
+    FireShard = 4,
+    IceShard = 5,
+    PoisonShard = 6,
+    ShadowShard = 7,
+    LavaShard = 8,
+    DemonKey = 9,
+    EarthShard = 10,
+    BloodShard = 11,
+    MetalShard = 12,
+    LightShard = 13,
+    SoulShard = 14,
+    Moon = 15
 };
 
 enum class CurrencyRewardType {
