@@ -123,7 +123,7 @@ bool loadGeode() {
     auto orig = geode::hook::replaceObjcMethod("AppController", "applicationDidFinishLaunching:", (void*)applicationDidFinishLaunchingHook);
     if (!orig)
         return false;
-
+    /*
     if (GEODE_STR(GEODE_GD_VERSION) != LoaderImpl::get()->getGameVersion()) {
         console::messageBox(
             "Unable to Load Geode!",
@@ -148,6 +148,7 @@ bool loadGeode() {
     auto res = tulip::hook::writeMemory((void*)(base::get() + ENTRY_ADDRESS), patchBytes.data(), 5);
     if (!res)
         return false;
+    */
 
     s_applicationDidFinishLaunchingOrig = reinterpret_cast<void(*)(void*, SEL, NSNotification*)>(orig.unwrap());
     return true;
