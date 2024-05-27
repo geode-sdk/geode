@@ -87,14 +87,13 @@ namespace {
             return ghc::filesystem::path(s_savedBaseDir);
         }
 
-        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
-        NSString *applicationSupportDirectory = [paths firstObject];
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        NSString *documentsDirectory = [paths firstObject];
 
-        ghc::filesystem::path supportPath = [applicationSupportDirectory UTF8String];
-        auto currentPath = supportPath / "GeometryDash";
+        ghc::filesystem::path documentsPath = [documentsDirectory UTF8String];
 
-        s_savedBaseDir = currentPath;
-        return ghc::filesystem::path(currentPath);
+        s_savedBaseDir = documentsPath;
+        return ghc::filesystem::path(documentsPath);
     }
 }
 
