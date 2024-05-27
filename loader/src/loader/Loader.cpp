@@ -73,6 +73,10 @@ void Loader::queueInMainThread(ScheduledFunction func) {
     return m_impl->queueInMainThread(std::move(func));
 }
 
+std::string Loader::getGameVersion() {
+    return m_impl->getGameVersion();
+}
+
 Mod* Loader::takeNextMod() {
     return m_impl->takeNextMod();
 }
