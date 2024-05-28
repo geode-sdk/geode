@@ -107,11 +107,6 @@ int geodeEntry(void* platformData) {
     }
 #endif
 
-    // Check if `Mod::get()` is valid, i.e. the internal mod has been succesfully setup
-    if (!Mod::get()) {
-        return 1;
-    }
-
     std::string forwardCompatSuffix;
     if (LoaderImpl::get()->isForwardCompatMode())
         forwardCompatSuffix = " (forward compatibility mode)";
@@ -128,6 +123,21 @@ int geodeEntry(void* platformData) {
     tryLogForwardCompat();
 
     auto begin = std::chrono::high_resolution_clock::now();
+
+    // set up internal mod, settings and data
+    log::info("Setting up internal mod");
+    log::pushNest();
+    auto internalSetupRes = LoaderImpl::get()->setupInternalMod();
+    log::popNest();
+    if (!internalSetupRes) {
+        console::messageBox(
+            "Unable to Load Geode!",
+            "There was a fatal error setting up "
+            "the internal mod and Geode can not be loaded: " + internalSetupRes.unwrapErr()
+        );
+        LoaderImpl::get()->forceReset();
+        return 1;
+    }
 
     tryShowForwardCompat();
 

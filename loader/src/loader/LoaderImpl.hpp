@@ -129,6 +129,7 @@ namespace geode {
         void addUninitializedHook(Hook* hook, Mod* mod);
 
         Mod* getInternalMod();
+        Result<> setupInternalMod();
 
         bool userTriedToLoadDLLs() const;
 
