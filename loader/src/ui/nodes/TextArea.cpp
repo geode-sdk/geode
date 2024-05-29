@@ -211,7 +211,7 @@ void SimpleTextArea::updateLinesNoWrap() {
 
 void SimpleTextArea::updateLinesWordWrap() {
     this->charIteration([this](CCLabelBMFont* line, const char c, const float top) {
-        static std::string delimiters(" `~!@#$%^&*()-_=+[{}];:'\",<.>/?\\|");
+        static const std::string delimiters(" `~!@#$%^&*()-_=+[{}];:'\",<.>/?\\|");
 
         if (delimiters.find(c) == std::string_view::npos) {
             const std::string& text = line->getString();
