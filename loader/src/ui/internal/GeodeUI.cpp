@@ -17,7 +17,10 @@ void geode::openIssueReportPopup(Mod* mod) {
         auto info = issues.value().info;
         MDPopup::create(
             "Issue Report",
-                info,
+                info
+                "\n\n"
+                "If the issue is related to a <cy>crash</c>, <cb>please include the latest crash log(s)</c> from `"
+                dirs::getCrashlogsDir().string() + "`",
             "OK", "Open Folder",
             [mod](bool btn2) {
                 if (btn2) {
