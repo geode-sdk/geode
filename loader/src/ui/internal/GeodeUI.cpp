@@ -17,7 +17,7 @@ void geode::openIssueReportPopup(Mod* mod) {
         auto info = issues.value().info;
         MDPopup::create(
             "Issue Report",
-                info
+                info,
             "OK", "Open Folder",
             [mod](bool btn2) {
                 if (btn2) {
