@@ -51,13 +51,18 @@ $execute {
 
     // Update colors when the theme is changed
     listenForSettingChanges("enable-geode-theme", updateColors);
-    updateColors(Mod::get()->template getSettingValue<bool>("enable-geode-theme"));
+
+    Loader::get()->queueInMainThread([updateColors = updateColors] {
+        // this code is ran during static init, where settings aren't loaded yet, and getSettingValue will always return false.
+        // because of that, we have to delay it until next frame.
+        updateColors(Mod::get()->template getSettingValue<bool>("enable-geode-theme"));
+    });
 }
 
 bool GeodeSquareSprite::init(CCSprite* top, bool* state) {
     if (!CCSprite::initWithFile(isGeodeTheme() ? "GE_button_05.png"_spr : "GJ_button_01.png"))
         return false;
-    
+
     m_stateSrc = state;
     m_topSprite = top;
 
@@ -127,7 +132,7 @@ protected:
         this->setID("loading-spinner");
         this->setContentSize({ sideLength, sideLength });
         this->setAnchorPoint({ .5f, .5f });
-        
+
         m_spinner = CCSprite::create("loadingCircle.png");
         m_spinner->setBlendFunc({ GL_ONE, GL_ONE });
         limitNodeSize(m_spinner, m_obContentSize, 1.f, .1f);
@@ -245,7 +250,7 @@ bool isGeodeTheme() {
 bool GeodeTabSprite::init(const char* iconFrame, const char* text, float width, bool altColor) {
     if (!CCNode::init())
         return false;
-    
+
     const CCSize itemSize { width, 35 };
     const CCSize iconSize { 18, 18 };
 
@@ -262,8 +267,8 @@ bool GeodeTabSprite::init(const char* iconFrame, const char* text, float width, 
     m_selectedBG->setScale(.8f);
     m_selectedBG->setContentSize(itemSize / .8f);
     m_selectedBG->setColor(to3B(ColorProvider::get()->color(
-        altColor ? 
-            "mod-list-tab-selected-bg-alt"_spr : 
+        altColor ?
+            "mod-list-tab-selected-bg-alt"_spr :
             "mod-list-tab-selected-bg"_spr
     )));
     this->addChildAtPosition(m_selectedBG, Anchor::Center);
@@ -276,7 +281,7 @@ bool GeodeTabSprite::init(const char* iconFrame, const char* text, float width, 
     m_label->limitLabelWidth(this->getContentWidth() - 45, clamp(width * .0045f, .35f, .55f), .1f);
     m_label->setAnchorPoint({ .5f, .5f });
     this->addChildAtPosition(m_label, Anchor::Left, ccp((itemSize.width - iconSize.width) / 2 + iconSize.width, 0), false);
-    
+
     return true;
 }
 
