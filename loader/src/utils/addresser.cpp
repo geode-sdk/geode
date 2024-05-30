@@ -72,7 +72,7 @@ extern "C" FARPROC WINAPI __delayLoadHelper2(PCImgDelayDescr pidd, FARPROC* ppfn
 #endif
 
 intptr_t Addresser::followThunkFunction(intptr_t address) {
-#ifdef GEODE_IS_WINDOWS
+#ifdef GEODE_IS_WINDOWS32
     // if theres a jmp at the start
     if (*reinterpret_cast<uint8_t*>(address) == 0xE9) {
         auto relative = *reinterpret_cast<uint32_t*>(address + 1);
@@ -110,6 +110,50 @@ intptr_t Addresser::followThunkFunction(intptr_t address) {
 
         // get the address of the function, loading the library if needed
         address = reinterpret_cast<intptr_t>(__delayLoadHelper2(idd, imp));
+    }
+#endif
+#ifdef GEODE_IS_WINDOWS64
+    static constexpr auto checkByteSequence = [](uintptr_t address, const std::initializer_list<uint8_t>& bytes) {
+        for (auto byte : bytes) {
+            if (*reinterpret_cast<uint8_t*>(address++) != byte) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    // check if first instruction is a jmp qword ptr [rip + ...], i.e. if the func is a thunk
+    // FF 25 xxxxxxxx
+    if (checkByteSequence(address, {0xFF, 0x25})) {
+        const auto offset = *reinterpret_cast<int32_t*>(address + 2);
+        // rip is at address + 6 (size of the instruction)
+        address = *reinterpret_cast<uintptr_t*>(address + 6 + offset);
+    }
+
+    // if it starts with lea eax,..., it's a delay loaded func
+    // 48 8D 05 xxxxxxxx
+    if (checkByteSequence(address, {0x48, 0x8d, 0x05})) {
+        // follow the jmp to the tailMerge func and grab the ImgDelayDescr pointer from there
+        // do it this way instead of grabbing it from the NT header ourselves because
+        // we don't know the dll name
+        auto leaAddress = address + 7 + *reinterpret_cast<int32_t*>(address + 3);
+
+        auto jmpOffset = *reinterpret_cast<int32_t*>(address + 7 + 1);
+        auto tailMergeAddr = address + 7 + jmpOffset + 5;
+        auto leaAddr = tailMergeAddr + 51;
+        // make sure leaAddr is pointing to a lea rcx, [rip + ...]
+        if (checkByteSequence(leaAddr, {0x48, 0x8d, 0x0d})) {
+            auto offset = *reinterpret_cast<int32_t*>(leaAddr + 3);
+            auto did = reinterpret_cast<PCImgDelayDescr>(leaAddr + 7 + offset);
+            address = reinterpret_cast<intptr_t>(__delayLoadHelper2(did, reinterpret_cast<FARPROC*>(leaAddress)));
+        }
+    }
+
+    // if theres a jmp at the start
+    if (*reinterpret_cast<uint8_t*>(address) == 0xE9) {
+        auto relative = *reinterpret_cast<uint32_t*>(address + 1);
+        auto newAddress = address + relative + 5;
+        address = newAddress;
     }
 #endif
     return address;
