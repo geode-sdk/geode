@@ -6,7 +6,7 @@
     #pragma warning(disable : 4584) // CCKeyboardDelegate included twice in UILayer
 #endif
 
-#include "Enums.hpp"
+#include <Geode/Enums.hpp>
 
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/utils/addresser.hpp>

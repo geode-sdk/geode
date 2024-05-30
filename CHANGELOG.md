@@ -1,5 +1,14 @@
 # Geode Changelog
 
+## v2.0.0-beta.27
+ * Implement some `BasedButtonSprite` fixes (edb8e6c)
+ * Add early version check for MacOS (4083950)
+ * Move `Enums.hpp` to bindings (23e04a0)
+ * Add a query selector for query based child selection (c75ec63)
+ * Add `getDisplayFactor` utility for MacOS Retina (d725126)
+ * Add `Result::unwrapOrDefault` (1dc9ec4)
+ * Fix texture pack removal (006413a)
+
 ## v2.0.0-beta.26
  * Bring in several UI helpers from the `new-index-but-better` branch: `ListBorders`, `addSideArt`, `AxisLayout` improvements, ... (26729c3, 7ff257c)
  * Make it possible to compile mods in Debug mode (517ad45)
