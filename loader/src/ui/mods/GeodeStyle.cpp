@@ -24,6 +24,10 @@ $execute {
     ColorProvider::get()->define("mod-list-recommended-bg"_spr, ccc3(25, 255, 167));
     ColorProvider::get()->define("mod-list-recommended-by"_spr, ccc3(25, 255, 167));
     ColorProvider::get()->define("mod-list-recommended-by-2"_spr, ccc3(47, 255, 255));
+    ColorProvider::get()->define(
+        "mod-problems-item-bg"_spr,
+        { 255, 255, 255, 15 }
+    );
 
     // Only used when GD theme is active
     ColorProvider::get()->define("mods-layer-gd-bg"_spr, { 0, 102, 255, 255 });
@@ -37,6 +41,7 @@ $execute {
             ColorProvider::get()->reset("mod-list-tab-selected-bg-alt"_spr);
             ColorProvider::get()->reset("mod-list-restart-required-label"_spr);
             ColorProvider::get()->reset("mod-list-restart-required-label-bg"_spr);
+            ColorProvider::get()->reset("mod-problems-item-bg"_spr);
         }
         else {
             ColorProvider::get()->override("mod-list-bg"_spr, { 168, 85, 44, 255 });
@@ -46,6 +51,10 @@ $execute {
             ColorProvider::get()->override("mod-list-tab-selected-bg-alt"_spr, { 156, 185, 147, 255 });
             ColorProvider::get()->override("mod-list-restart-required-label"_spr, ccc3(10, 226, 255));
             ColorProvider::get()->override("mod-list-restart-required-label-bg"_spr, ccc3(0, 174, 180));
+            ColorProvider::get()->override(
+                "mod-problems-item-bg"_spr,
+                { 0, 0, 0, 75 }
+            );
         }
     };
 
