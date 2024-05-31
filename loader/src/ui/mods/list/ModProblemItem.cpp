@@ -1,19 +1,18 @@
 #include "ModProblemItem.hpp"
-#include "Geode/DefaultInclude.hpp"
-#include "Geode/cocos/base_nodes/CCNode.h"
-#include "Geode/loader/Log.hpp"
-#include "Geode/utils/ColorProvider.hpp"
-#include "Geode/utils/cocos.hpp"
 
+#include <Geode/cocos/base_nodes/CCNode.h>
 #include <Geode/cocos/base_nodes/Layout.hpp>
 #include <Geode/cocos/cocoa/CCGeometry.h>
 #include <Geode/cocos/label_nodes/CCLabelBMFont.h>
 #include <Geode/cocos/platform/CCPlatformMacros.h>
 #include <Geode/cocos/sprite_nodes/CCSprite.h>
+#include <Geode/DefaultInclude.hpp>
 #include <Geode/loader/Loader.hpp>
+#include <Geode/loader/Log.hpp>
+#include <Geode/utils/cocos.hpp>
+#include <Geode/utils/ColorProvider.hpp>
 #include <GUI/CCControlExtension/CCScale9Sprite.h>
 #include <ccTypes.h>
-#include <cstdint>
 #include <fmt/core.h>
 #include <sstream>
 

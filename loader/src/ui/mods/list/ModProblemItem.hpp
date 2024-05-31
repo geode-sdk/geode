@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Geode/cocos/sprite_nodes/CCSprite.h"
-#include <Geode/loader/Loader.hpp>
 #include <Geode/cocos/base_nodes/CCNode.h>
 #include <Geode/cocos/cocoa/CCGeometry.h>
+#include <Geode/cocos/sprite_nodes/CCSprite.h>
+#include <Geode/loader/Loader.hpp>
 #include <GUI/CCControlExtension/CCScale9Sprite.h>
 
 using namespace geode::prelude;
