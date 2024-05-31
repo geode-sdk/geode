@@ -562,7 +562,7 @@ void ModPopup::updateState() {
         m_enabledStatusLabel->setVisible(true);
     }
     else {
-        m_enabledStatusLabel->setVisible(false);
+        m_enabledStatusLabel->setVisible(false);   
     }
 
     m_cancelBtn->setVisible(false);
@@ -620,13 +620,11 @@ void ModPopup::updateState() {
             if (auto d = std::get_if<server::DownloadStatusDownloading>(&status)) {
                 m_enabledStatusLabel->setString(fmt::format("Downloading {}%", d->percentage).c_str());
                 m_enabledStatusLabel->setColor(ccWHITE);
-                m_enabledStatusLabel->setVisible(true);
                 // todo: progress bar
             }
             else {
                 m_enabledStatusLabel->setString("Preparing");
                 m_enabledStatusLabel->setColor(ccWHITE);
-                m_enabledStatusLabel->setVisible(true);
                 // todo: spinner
             }
         }
@@ -635,13 +633,11 @@ void ModPopup::updateState() {
                 [this](server::DownloadStatusError const& e) {
                     m_enabledStatusLabel->setString("Error");
                     m_enabledStatusLabel->setColor(to3B(ColorProvider::get()->color("mod-list-disabled"_spr)));
-                    m_enabledStatusLabel->setVisible(true);
                     // todo: show error details somewhere (like an info button)
                 },
                 [this](server::DownloadStatusCancelled const&) {
                     m_enabledStatusLabel->setString("Cancelled");
                     m_enabledStatusLabel->setColor(to3B(ColorProvider::get()->color("mod-list-disabled"_spr)));
-                    m_enabledStatusLabel->setVisible(true);
                 },
                 [this](server::DownloadStatusDone const&) {
                     m_enableBtn->setVisible(false);

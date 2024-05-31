@@ -4,8 +4,45 @@
 #include "Result.hpp"
 #include "Task.hpp"
 #include <chrono>
+#include <optional>
 
 namespace geode::utils::web {
+    // https://curl.se/libcurl/c/CURLOPT_HTTPAUTH.html
+    namespace http_auth {
+        constexpr static long BASIC = 0x0001;
+        constexpr static long DIGEST = 0x0002;
+        constexpr static long DIGEST_IE = 0x0004;
+        constexpr static long BEARER = 0x0008;
+        constexpr static long NEGOTIATE = 0x0010;
+        constexpr static long NTLM = 0x0020;
+        constexpr static long NTLM_WB = 0x0040;
+        constexpr static long ANY = 0x0080;
+        constexpr static long ANYSAFE = 0x0100;
+        constexpr static long ONLY = 0x0200;
+        constexpr static long AWS_SIGV4 = 0x0400;
+    }
+
+    // https://curl.se/libcurl/c/CURLOPT_PROXYTYPE.html
+    enum class ProxyType {
+        HTTP, // HTTP
+        HTTPS, // HTTPS
+        HTTPS2, // HTTPS (attempt to use HTTP/2)
+        SOCKS4, // Socks4
+        SOCKS4A, // Socks4 with hostname resolution
+        SOCKS5, // Socks5
+        SOCKS5H, // Socks5 with hostname resolution
+    };
+
+    struct ProxyOpts {
+        std::string address; // Proxy address/FQDN
+        std::optional<std::uint16_t> port; // Proxy port
+        ProxyType type = ProxyType::HTTP; // Proxy type
+        long auth = http_auth::BASIC; // HTTP proxy auth method
+        std::string username; // Proxy username
+        std::string password; // Proxy password
+        bool tunneling = false; // Enable HTTP tunneling
+    };
+
     class WebRequest;
 
     class GEODE_DLL WebResponse final {
@@ -75,6 +112,7 @@ namespace geode::utils::web {
         WebRequest& userAgent(std::string_view name);
 
         WebRequest& timeout(std::chrono::seconds time);
+        WebRequest& proxyOpts(ProxyOpts const& proxyOpts);
 
         WebRequest& body(ByteVector raw);
         WebRequest& bodyString(std::string_view str);

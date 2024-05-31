@@ -1,10 +1,59 @@
-#include <Geode/cocos/platform/IncludeCurl.h>
+#include <curl/curl.h>
 #include <Geode/utils/web2.hpp>
 #include <Geode/utils/map.hpp>
+#include <Geode/utils/terminate.hpp>
 #include <sstream>
 
 using namespace geode::prelude;
 using namespace geode::utils::web;
+
+static long unwrapProxyType(ProxyType type) {
+    switch (type) {
+        using enum ProxyType;
+
+        case HTTP:
+            return CURLPROXY_HTTP;
+        case HTTPS:
+            return CURLPROXY_HTTPS;
+        case HTTPS2:
+            return CURLPROXY_HTTPS2;
+        case SOCKS4:
+            return CURLPROXY_SOCKS4;
+        case SOCKS4A:
+            return CURLPROXY_SOCKS4A;
+        case SOCKS5:
+            return CURLPROXY_SOCKS5;
+        case SOCKS5H:
+            return CURLPROXY_SOCKS5_HOSTNAME;
+    }
+
+    // Shouldn't happen.
+    unreachable("Unexpected proxy type!");
+}
+
+static long unwrapHttpAuth(long auth) {
+    long unwrapped = 0;
+
+#define SET_AUTH(name) \
+    if (auth & http_auth::name) \
+        unwrapped |= CURLAUTH_##name;
+
+    SET_AUTH(BASIC);
+    SET_AUTH(DIGEST);
+    SET_AUTH(DIGEST_IE);
+    SET_AUTH(BEARER);
+    SET_AUTH(NEGOTIATE);
+    SET_AUTH(NTLM);
+    SET_AUTH(NTLM_WB);
+    SET_AUTH(ANY);
+    SET_AUTH(ANYSAFE);
+    SET_AUTH(ONLY);
+    SET_AUTH(AWS_SIGV4);
+
+#undef SET_AUTH
+
+    return unwrapped;
+}
 
 class WebResponse::Impl {
 public:
@@ -89,6 +138,7 @@ public:
     std::optional<std::string> m_userAgent;
     std::optional<ByteVector> m_body;
     std::optional<std::chrono::seconds> m_timeout;
+    ProxyOpts m_proxyOpts = {};
 
     WebResponse makeError(int code, std::string const& msg) {
         auto res = WebResponse();
@@ -202,6 +252,26 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
             curl_easy_setopt(curl, CURLOPT_TIMEOUT, impl->m_timeout->count());
         }
 
+        // Set proxy options
+        auto const& proxyOpts = impl->m_proxyOpts;
+        if (!proxyOpts.address.empty()) {
+            curl_easy_setopt(curl, CURLOPT_PROXY, proxyOpts.address.c_str());
+
+            if (proxyOpts.port.has_value()) {
+                curl_easy_setopt(curl, CURLOPT_PROXYPORT, proxyOpts.port.value());
+            }
+
+            curl_easy_setopt(curl, CURLOPT_PROXYTYPE, unwrapProxyType(proxyOpts.type));
+
+            if (!proxyOpts.username.empty() || !proxyOpts.username.empty()) {
+                curl_easy_setopt(curl, CURLOPT_PROXYAUTH, unwrapHttpAuth(proxyOpts.auth));
+                curl_easy_setopt(curl, CURLOPT_PROXYUSERPWD,
+                    fmt::format("{}:{}", proxyOpts.username, proxyOpts.password).c_str());
+            }
+
+            curl_easy_setopt(curl, CURLOPT_HTTPPROXYTUNNEL, proxyOpts.tunneling ? 1 : 0);
+        }
+
         // Track progress
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
 
@@ -312,6 +382,11 @@ WebRequest& WebRequest::userAgent(std::string_view name) {
 
 WebRequest& WebRequest::timeout(std::chrono::seconds time) {
     m_impl->m_timeout = time;
+    return *this;
+}
+
+WebRequest& WebRequest::proxyOpts(ProxyOpts const& proxyOpts) {
+    m_impl->m_proxyOpts = proxyOpts;
     return *this;
 }
 

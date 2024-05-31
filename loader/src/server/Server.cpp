@@ -7,31 +7,31 @@ using namespace server;
 
 #define GEODE_GD_VERSION_STR GEODE_STR(GEODE_GD_VERSION)
 
-template <class K, class V> 
+template <class K, class V>
     requires std::equality_comparable<K> && std::copy_constructible<K>
 class CacheMap final {
 private:
-    // I know this looks like a goofy choice over just 
+    // I know this looks like a goofy choice over just
     // `std::unordered_map`, but hear me out:
-    // 
-    // This needs preserved insertion order (so shrinking the cache 
-    // to match size limits doesn't just have to erase random 
-    // elements) 
-    // 
-    // If this used a map for values and another vector for storing 
-    // insertion order, it would have a pretty big memory footprint 
-    // (two copies of Query, one for order, one for map + two heap 
+    //
+    // This needs preserved insertion order (so shrinking the cache
+    // to match size limits doesn't just have to erase random
+    // elements)
+    //
+    // If this used a map for values and another vector for storing
+    // insertion order, it would have a pretty big memory footprint
+    // (two copies of Query, one for order, one for map + two heap
     // allocations on top of that)
-    // 
-    // In addition, it would be a bad idea to have a cache of 1000s 
-    // of items in any case (since that would likely take up a ton 
-    // of memory, which we want to avoid since it's likely many 
-    // crashes with the old index were due to too much memory 
+    //
+    // In addition, it would be a bad idea to have a cache of 1000s
+    // of items in any case (since that would likely take up a ton
+    // of memory, which we want to avoid since it's likely many
+    // crashes with the old index were due to too much memory
     // usage)
-    // 
-    // Linear searching a vector of at most a couple dozen items is 
-    // lightning-fast (🚀), and besides the main performance benefit 
-    // comes from the lack of a web request - not how many extra 
+    //
+    // Linear searching a vector of at most a couple dozen items is
+    // lightning-fast (🚀), and besides the main performance benefit
+    // comes from the lack of a web request - not how many extra
     // milliseconds we can squeeze out of a map access
     std::vector<std::pair<K, V>> m_values;
     size_t m_sizeLimit = 20;
@@ -121,6 +121,13 @@ public:
         m_cache.add(Extract::key(args...), ServerRequest<Value>(f));
         return f;
     }
+
+    template <class... Args>
+    void remove(Args const&... args) {
+        std::unique_lock lock(m_mutex);
+        m_cache.remove(Extract::key(args...));
+    }
+
     size_t size() {
         std::unique_lock lock(m_mutex);
         return m_cache.size();
@@ -433,7 +440,7 @@ Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
     if (res.versions.empty()) {
         return Err("Mod '{}' has no (valid) versions", res.id);
     }
-    
+
     for (auto item : root.has("tags").iterate()) {
         res.tags.insert(item.template get<std::string>());
     }
@@ -598,7 +605,17 @@ ServerRequest<ServerModMetadata> server::getMod(std::string const& id, bool useC
 
 ServerRequest<ServerModVersion> server::getModVersion(std::string const& id, ModVersion const& version, bool useCache) {
     if (useCache) {
-        return getCache<getModVersion>().get(id, version);
+        auto& cache = getCache<getModVersion>();
+
+        auto cachedRequest = cache.get(id, version);
+
+        // if mod installation was cancelled, remove it from cache and fetch again
+        if (cachedRequest.isCancelled()) {
+            cache.remove(id, version);
+            return cache.get(id, version);
+        } else {
+            return cachedRequest;
+        }
     }
 
     auto req = web::WebRequest();
@@ -721,7 +738,7 @@ ServerRequest<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCach
         Loader::get()->getAllMods(),
         [](auto mod) { return mod->getID(); }
     );
-    
+
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
     req.param("platform", GEODE_PLATFORM_SHORT_IDENTIFIER);

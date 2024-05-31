@@ -142,6 +142,12 @@ namespace geode {
 
         void queueInMainThread(ScheduledFunction func);
 
+        /**
+         * Returns the current game version.
+         * @return The game version
+         */
+        std::string getGameVersion();
+
         friend class LoaderImpl;
 
         friend Mod* takeNextLoaderMod();

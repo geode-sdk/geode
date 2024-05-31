@@ -21,7 +21,7 @@ public:
     DownloadStatus m_status;
     EventListener<ServerRequest<ServerModVersion>> m_infoListener;
     EventListener<web::WebTask> m_downloadListener;
-    
+
     Impl(
         std::string const& id,
         std::optional<VersionInfo> const& version,
@@ -39,7 +39,7 @@ public:
                 if (result->isOk()) {
                     auto data = result->unwrap();
                     m_version = data.metadata.getVersion();
-                    
+
                     // Start downloads for any missing required dependencies
                     for (auto dep : data.metadata.getDependencies()) {
                         if (!dep.mod && dep.importance != ModMetadata::Dependency::Importance::Suggested) {
@@ -72,7 +72,7 @@ public:
                 m_status = DownloadStatusCancelled();
                 m_infoListener.setFilter(ServerRequest<ServerModVersion>());
             }
-            
+
             if (!ModDownloadManager::get()->checkAutoConfirm()) {
                 ModDownloadEvent(m_id).post();
             }
@@ -188,17 +188,17 @@ public:
 
     void cancelOrphanedDependencies() {
         // "This doesn't handle circular dependencies!!!!"
-        // Well OK and the human skull doesn't handle the 5000 newtons 
+        // Well OK and the human skull doesn't handle the 5000 newtons
         // of force from this anvil I'm about to drop on your head
 
         for (auto& [_, d] : m_downloads) {
             if (auto depFor = d.m_impl->m_dependencyFor) {
                 if (
                     !m_downloads.contains(depFor->first) ||
-                    !(m_downloads.at(depFor->first).isActive() || m_downloads.at(depFor->first).isDone())
+                    std::holds_alternative<DownloadStatusError>(m_downloads.at(depFor->first).getStatus())
                 ) {
                     // d.cancel() will cause cancelOrphanedDependencies() to be called again
-                    // We want that anyway because cancelling one dependency might cause 
+                    // We want that anyway because cancelling one dependency might cause
                     // dependencies down the chain to become orphaned
                     return d.cancel();
                 }
@@ -212,8 +212,10 @@ void ModDownload::cancel() {
         m_impl->m_status = DownloadStatusCancelled();
         m_impl->m_infoListener.getFilter().cancel();
         m_impl->m_infoListener.setFilter(ServerRequest<ServerModVersion>());
+        m_impl->m_downloadListener.getFilter().cancel();
+        m_impl->m_downloadListener.setFilter({});
 
-        // Cancel any dependencies of this mod left over (unless some other 
+        // Cancel any dependencies of this mod left over (unless some other
         // installation depends on them still)
         ModDownloadManager::get()->m_impl->cancelOrphanedDependencies();
         ModDownloadEvent(m_impl->m_id).post();
@@ -225,9 +227,9 @@ std::optional<ModDownload> ModDownloadManager::startDownload(
     std::optional<VersionInfo> const& version,
     std::optional<DependencyFor> const& dependencyFor
 ) {
-    // If this mod has already been succesfully downloaded or is currently 
-    // being downloaded, return as you can't download multiple versions of the 
-    // same mod simultaniously, since that wouldn't make sense. I mean the new 
+    // If this mod has already been succesfully downloaded or is currently
+    // being downloaded, return as you can't download multiple versions of the
+    // same mod simultaniously, since that wouldn't make sense. I mean the new
     // version would just immediately override to the other one
     if (m_impl->m_downloads.contains(id)) {
         // If the download errored last time, then we can try again
@@ -238,7 +240,7 @@ std::optional<ModDownload> ModDownloadManager::startDownload(
         else return std::nullopt;
     }
 
-    // Start a new download by constructing a ModDownload (which starts the 
+    // Start a new download by constructing a ModDownload (which starts the
     // download)
     m_impl->m_downloads.emplace(id, ModDownload(id, version, dependencyFor));
     return m_impl->m_downloads.at(id);
@@ -279,13 +281,13 @@ bool ModDownloadManager::checkAutoConfirm() {
         auto status = download.getStatus();
         if (auto confirm = std::get_if<server::DownloadStatusConfirm>(&status)) {
             for (auto inc : confirm->version.metadata.getIncompatibilities()) {
-                // If some mod has an incompatability that is installed, 
+                // If some mod has an incompatability that is installed,
                 // we need to ask for confirmation
                 if (inc.mod) {
                     return false;
                 }
             }
-            // If some installed mod is incompatible with this one, 
+            // If some installed mod is incompatible with this one,
             // we need to ask for confirmation
             for (auto mod : Loader::get()->getAllMods()) {
                 for (auto inc : mod->getMetadata().getIncompatibilities()) {
