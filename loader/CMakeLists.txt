@@ -261,7 +261,7 @@ if (NOT GEODE_BUILDING_DOCS)
 	target_link_libraries(${PROJECT_NAME} md4c re2 minizip)
 endif()
 
-target_link_libraries(${PROJECT_NAME} TulipHook geode-sdk mat-json-impl)
+target_link_libraries(${PROJECT_NAME} z TulipHook geode-sdk mat-json-impl)
 
 if (MSVC)
 	# Disable outputting .exp file
