@@ -1,5 +1,6 @@
 #define CURL_STATICLIB
 #include <curl/curl.h>
+#include <ca_bundle.h>
 
 #include <Geode/utils/web2.hpp>
 #include <Geode/utils/map.hpp>
@@ -140,6 +141,8 @@ public:
     std::optional<std::string> m_userAgent;
     std::optional<ByteVector> m_body;
     std::optional<std::chrono::seconds> m_timeout;
+    bool m_certVerification = true;
+    std::string m_CABundleContent;
     ProxyOpts m_proxyOpts = {};
 
     WebResponse makeError(int code, std::string const& msg) {
@@ -240,9 +243,22 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
             curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, impl->m_body->size());
         }
         
-        // No need to verify SSL, we trust our domains :-)
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
+        // Cert verification
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, impl->m_certVerification ? 1 : 0);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2);
+
+        if (impl->m_certVerification) {
+            curl_blob caBundleBlob = {};
+
+            if (impl->m_CABundleContent.empty()) {
+                impl->m_CABundleContent = CA_BUNDLE_CONTENT;
+            }
+            
+            caBundleBlob.data = reinterpret_cast<void*>(impl->m_CABundleContent.data());
+            caBundleBlob.len = impl->m_CABundleContent.size();
+            caBundleBlob.flags = CURL_BLOB_COPY;
+            curl_easy_setopt(curl, CURLOPT_CAINFO_BLOB, &caBundleBlob);
+        }  
 
         // Set user agent if provided
         if (impl->m_userAgent) {
@@ -272,6 +288,8 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
             }
 
             curl_easy_setopt(curl, CURLOPT_HTTPPROXYTUNNEL, proxyOpts.tunneling ? 1 : 0);
+            curl_easy_setopt(curl, CURLOPT_PROXY_SSL_VERIFYPEER, proxyOpts.certVerification ? 1 : 0);
+            curl_easy_setopt(curl, CURLOPT_PROXY_SSL_VERIFYHOST, 2);
         }
 
         // Track progress
@@ -384,6 +402,16 @@ WebRequest& WebRequest::userAgent(std::string_view name) {
 
 WebRequest& WebRequest::timeout(std::chrono::seconds time) {
     m_impl->m_timeout = time;
+    return *this;
+}
+
+WebRequest& WebRequest::certVerification(bool enabled) {
+    m_impl->m_certVerification = enabled;
+    return *this;
+}
+
+WebRequest& WebRequest::CABundleContent(std::string_view content) {
+    m_impl->m_CABundleContent = content;
     return *this;
 }
 

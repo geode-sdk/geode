@@ -41,6 +41,7 @@ namespace geode::utils::web {
         std::string username; // Proxy username
         std::string password; // Proxy password
         bool tunneling = false; // Enable HTTP tunneling
+        bool certVerification = true; // Enable HTTPS certificate verification
     };
 
     class WebRequest;
@@ -112,6 +113,9 @@ namespace geode::utils::web {
         WebRequest& userAgent(std::string_view name);
 
         WebRequest& timeout(std::chrono::seconds time);
+
+        WebRequest& certVerification(bool enabled);
+        WebRequest& CABundleContent(std::string_view content);
         WebRequest& proxyOpts(ProxyOpts const& proxyOpts);
 
         WebRequest& body(ByteVector raw);

@@ -171,6 +171,10 @@ if (GEODE_NO_UNDEFINED_VIRTUALS)
 	target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_NO_UNDEFINED_VIRTUALS)
 endif()
 
+# CA Bundle
+CPMAddPackage("gh:geode-sdk/net_libs#b6604c6")
+target_link_libraries(${PROJECT_NAME} ca-bundle)
+
 # Package resources for UI
 package_geode_resources_now(
 	${PROJECT_NAME}
