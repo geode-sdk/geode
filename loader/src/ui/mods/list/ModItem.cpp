@@ -421,15 +421,6 @@ void ModItem::onView(CCObject*) {
 void ModItem::onViewError(CCObject*) {
     if (auto mod = m_source.asMod()) {
         ModErrorPopup::create(mod)->show();
-        // std::vector<std::string> problems;
-        // for (auto problem : mod->getProblems()) {
-        //     problems.push_back(fmt::format("{} (code {})", problem.message, static_cast<int>(problem.type)));
-        // }
-        // FLAlertLayer::create(
-        //     fmt::format("Errors with {}", mod->getName()).c_str(),
-        //     ranges::join(problems, "\n"),
-        //     "OK"
-        // )->show();
     }
 }
 void ModItem::onEnable(CCObject*) {
