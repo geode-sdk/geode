@@ -55,10 +55,6 @@ bool ModProblemList::init(
 
     for (LoadProblem problem : m_mod->getAllProblems()) {
         m_list->m_contentLayer->addChild(ModProblemItem::create(m_mod, problem, itemSize));
-        // m_list->m_contentLayer->addChild(ModProblemItem::create(m_mod, problem, itemSize));
-        // m_list->m_contentLayer->addChild(ModProblemItem::create(m_mod, problem, itemSize));
-        // m_list->m_contentLayer->addChild(ModProblemItem::create(m_mod, problem, itemSize));
-        // m_list->m_contentLayer->addChild(ModProblemItem::create(m_mod, problem, itemSize));
     }
     m_list->m_contentLayer->updateLayout();
     m_list->scrollToTop();
