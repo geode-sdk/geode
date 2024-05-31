@@ -194,7 +194,7 @@ package_geode_resources_now(
 
 if (APPLE) 
 	# I don't care a single bit where to put this
-	file(COPY ${GEODE_LOADER_PATH}/include/link/libfmod.dylib DESTINATION ${GEODE_BIN_PATH}/nightly)
+	file(COPY ${GEODE_LOADER_PATH}/include/link/macos/libfmod.dylib DESTINATION ${GEODE_BIN_PATH}/nightly)
 endif()
 
 if (ANDROID)

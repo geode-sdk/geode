@@ -26,17 +26,18 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 	# only exists as a global property
 	set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
 
-	find_package(CURL REQUIRED) 
-
-	target_include_directories(${PROJECT_NAME} INTERFACE
-		${CURL_INCLUDE_DIR}
-	)
-
 	target_link_libraries(${PROJECT_NAME} INTERFACE
 		"-framework Cocoa"
 		"-framework OpenGL"
-		${CURL_LIBRARIES}
-		${GEODE_LOADER_PATH}/include/link/libfmod.dylib
+		"-framework SystemConfiguration"
+		${GEODE_LOADER_PATH}/include/link/macos/libfmod.dylib
+		${GEODE_LOADER_PATH}/include/link/macos/libssl.a
+		${GEODE_LOADER_PATH}/include/link/macos/libcrypto.a
+		${GEODE_LOADER_PATH}/include/link/macos/libnghttp2.a
+		${GEODE_LOADER_PATH}/include/link/macos/libngtcp2.a
+		${GEODE_LOADER_PATH}/include/link/macos/libnghttp3.a
+		${GEODE_LOADER_PATH}/include/link/macos/libngtcp2_crypto_boringssl.a
+		${GEODE_LOADER_PATH}/include/link/macos/libcurl.a
 	)
 
 	target_compile_definitions(${PROJECT_NAME} INTERFACE
