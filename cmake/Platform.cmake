@@ -56,12 +56,18 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Win32")
 	target_compile_definitions(${PROJECT_NAME} INTERFACE NOMINMAX)
 
 	target_link_libraries(${PROJECT_NAME} INTERFACE 
-		${GEODE_LOADER_PATH}/include/link/libcocos2d.lib
-		${GEODE_LOADER_PATH}/include/link/libExtensions.lib
-		${GEODE_LOADER_PATH}/include/link/libcurl.lib
-		${GEODE_LOADER_PATH}/include/link/glew32.lib
-		${GEODE_LOADER_PATH}/include/link/gdstring.lib
-		${GEODE_LOADER_PATH}/include/link/fmod.lib
+		${GEODE_LOADER_PATH}/include/link/win32/libcocos2d.lib
+		${GEODE_LOADER_PATH}/include/link/win32/libExtensions.lib
+		${GEODE_LOADER_PATH}/include/link/win32/ssl.lib
+		${GEODE_LOADER_PATH}/include/link/win32/crypto.lib
+		${GEODE_LOADER_PATH}/include/link/win32/nghttp2.lib
+		${GEODE_LOADER_PATH}/include/link/win32/ngtcp2.lib
+		${GEODE_LOADER_PATH}/include/link/win32/nghttp3.lib
+		${GEODE_LOADER_PATH}/include/link/win32/ngtcp2_crypto_boringssl.lib
+		${GEODE_LOADER_PATH}/include/link/win32/libcurl.lib
+		${GEODE_LOADER_PATH}/include/link/win32/glew32.lib
+		${GEODE_LOADER_PATH}/include/link/win32/gdstring.lib
+		${GEODE_LOADER_PATH}/include/link/win32/fmod.lib
 		opengl32
 	)
 
@@ -79,6 +85,9 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android32")
 		${GEODE_LOADER_PATH}/include/link/android32/libssl.a
 		${GEODE_LOADER_PATH}/include/link/android32/libcrypto.a
 		${GEODE_LOADER_PATH}/include/link/android32/libnghttp2.a
+		${GEODE_LOADER_PATH}/include/link/android32/libngtcp2.a
+		${GEODE_LOADER_PATH}/include/link/android32/libnghttp3.a
+		${GEODE_LOADER_PATH}/include/link/android32/libngtcp2_crypto_boringssl.a
 		${GEODE_LOADER_PATH}/include/link/android32/libcurl.a
 		${GEODE_LOADER_PATH}/include/link/android32/libcocos2dcpp.so
 		${GEODE_LOADER_PATH}/include/link/android32/libfmod.so
@@ -99,6 +108,9 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
 		${GEODE_LOADER_PATH}/include/link/android64/libssl.a
 		${GEODE_LOADER_PATH}/include/link/android64/libcrypto.a
 		${GEODE_LOADER_PATH}/include/link/android64/libnghttp2.a
+		${GEODE_LOADER_PATH}/include/link/android64/libngtcp2.a
+		${GEODE_LOADER_PATH}/include/link/android64/libnghttp3.a
+		${GEODE_LOADER_PATH}/include/link/android64/libngtcp2_crypto_boringssl.a
 		${GEODE_LOADER_PATH}/include/link/android64/libcurl.a
 		${GEODE_LOADER_PATH}/include/link/android64/libcocos2dcpp.so
 		${GEODE_LOADER_PATH}/include/link/android64/libfmod.so
