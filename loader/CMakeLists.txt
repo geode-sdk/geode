@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
+cmake_policy(SET CMP0097 NEW)
 
 project(geode-loader VERSION ${GEODE_VERSION} LANGUAGES C CXX)
 if (GEODE_VERSION_TAG_TYPE)
@@ -172,7 +173,15 @@ if (GEODE_NO_UNDEFINED_VIRTUALS)
 endif()
 
 # CA Bundle
-CPMAddPackage("gh:geode-sdk/net_libs#b6604c6")
+CPMAddPackage(
+	GITHUB_REPOSITORY geode-sdk/net_libs
+	GIT_TAG 1f5ffb3
+# CPM is bugged and will not allow an empty string.
+# https://github.com/cpm-cmake/CPM.cmake/issues/467
+# https://github.com/cpm-cmake/CPM.cmake/issues/461
+	GIT_SUBMODULES "nghttp3"
+	GIT_SUBMODULES_RECURSE OFF
+)
 target_link_libraries(${PROJECT_NAME} ca-bundle)
 
 # Package resources for UI
