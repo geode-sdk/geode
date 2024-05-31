@@ -1,4 +1,6 @@
+#define CURL_STATICLIB
 #include <curl/curl.h>
+
 #include <Geode/utils/web2.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/terminate.hpp>

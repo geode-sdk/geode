@@ -1,4 +1,6 @@
-#include <Geode/cocos/platform/IncludeCurl.h>
+#define CURL_STATICLIB
+#include <curl/curl.h>
+
 #include <Geode/loader/Loader.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/web.hpp>
