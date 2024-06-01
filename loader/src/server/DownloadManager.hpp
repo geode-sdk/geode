@@ -65,7 +65,8 @@ namespace server {
         ModDownload(
             std::string const& id,
             std::optional<VersionInfo> const& version,
-            std::optional<DependencyFor> const& dependencyFor
+            std::optional<DependencyFor> const& dependencyFor,
+            std::optional<std::string> const& replacesMod
         );
 
         friend class ModDownloadManager;
@@ -77,6 +78,7 @@ namespace server {
         bool isDone() const;
         bool isActive() const;
         bool canRetry() const;
+        std::optional<std::string> getReplacesMod() const;
         std::optional<DependencyFor> getDependencyFor() const;
         std::string getID() const;
         DownloadStatus getStatus() const;
@@ -100,7 +102,8 @@ namespace server {
         std::optional<ModDownload> startDownload(
             std::string const& id,
             std::optional<VersionInfo> const& version,
-            std::optional<DependencyFor> const& dependencyFor = std::nullopt
+            std::optional<DependencyFor> const& dependencyFor = std::nullopt,
+            std::optional<std::string> const& replacesMod = std::nullopt
         );
         void startUpdateAll();
         void confirmAll();

@@ -346,6 +346,23 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
     return Ok(res);
 }
 
+Result<ServerModReplacement> ServerModReplacement::parse(matjson::Value const& raw) {
+    log::info("entered replacement parse");
+    auto json = raw;
+    log::info("{}", json);
+    JsonChecker checker(json);
+    auto root = checker.root("ServerModReplacement").obj();
+    auto res = ServerModReplacement();
+
+    root.needs("id").into(res.id);
+    root.needs("version").into(res.version);
+
+    if (root.isError()) {
+        return Err(root.getError());
+    }
+    return Ok(res);
+}
+
 Result<ServerModUpdate> ServerModUpdate::parse(matjson::Value const& raw) {
     auto json = raw;
     JsonChecker checker(json);
@@ -355,6 +372,9 @@ Result<ServerModUpdate> ServerModUpdate::parse(matjson::Value const& raw) {
 
     root.needs("id").into(res.id);
     root.needs("version").into(res.version);
+    if (root.has("replacement")) {
+        GEODE_UNWRAP_INTO(res.replacement, ServerModReplacement::parse(root.has("replacement").json()));
+    }
 
     // Check for errors and return result
     if (root.isError()) {
@@ -388,7 +408,7 @@ Result<std::vector<ServerModUpdate>> ServerModUpdate::parseList(matjson::Value c
 
 bool ServerModUpdate::hasUpdateForInstalledMod() const {
     if (auto mod = Loader::get()->getInstalledMod(this->id)) {
-        return mod->getVersion() < this->version;
+        return mod->getVersion() < this->version || this->replacement.has_value();
     }
     return false;
 }
@@ -718,7 +738,10 @@ ServerRequest<std::optional<ServerModUpdate>> server::checkUpdates(Mod* mod) {
         [mod](Result<std::vector<ServerModUpdate>, ServerError>* result) -> Result<std::optional<ServerModUpdate>, ServerError> {
             if (result->isOk()) {
                 for (auto& update : result->unwrap()) {
-                    if (update.id == mod->getID() && update.version > mod->getVersion()) {
+                    if (
+                        update.id == mod->getID() && 
+                        (update.version > mod->getVersion() || update.replacement.has_value())
+                    ) {
                         return Ok(update);
                     }
                 }
