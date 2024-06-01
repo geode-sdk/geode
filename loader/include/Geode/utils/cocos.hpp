@@ -8,6 +8,8 @@
 #include <functional>
 #include <type_traits>
 #include "../loader/Event.hpp"
+#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/binding/CCMenuItemToggler.hpp>
 #include "MiniFunction.hpp"
 
 // support converting ccColor3B / ccColor4B to / from json
@@ -1201,6 +1203,158 @@ namespace geode::cocos {
 
         cocos2d::CCDictionary* inner() {
             return m_dict;
+        }
+    };
+
+    struct CCMenuItemExt {
+    private:
+        template <class Node>
+        class LambdaCallback : public cocos2d::CCObject {
+        public:
+            utils::MiniFunction<void(Node*)> m_callback;
+
+            static LambdaCallback* create(utils::MiniFunction<void(Node*)>&& callback) {
+                auto ret = new (std::nothrow) LambdaCallback();
+                if (ret && ret->init(std::forward<std::remove_reference_t<decltype(callback)>>(callback))) {
+                    ret->autorelease();
+                    return ret;
+                }
+                delete ret;
+                return nullptr;
+            }
+
+            bool init(utils::MiniFunction<void(Node*)>&& callback) {
+                m_callback = std::forward<std::remove_reference_t<decltype(callback)>>(callback);
+                return true;
+            }
+
+            void execute(cocos2d::CCNode* node) {
+                m_callback(static_cast<Node*>(node));
+            }
+        };
+
+    public:
+        static cocos2d::CCMenuItem* create(
+            utils::MiniFunction<void(cocos2d::CCMenuItem*)>&& callback
+        ) {
+            auto item = cocos2d::CCMenuItem::create();
+            assignCallback(item, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+            return item;
+        }
+
+        static cocos2d::CCMenuItemSprite* createSprite(
+            cocos2d::CCNode* normalSprite, 
+            cocos2d::CCNode* selectedSprite,
+            utils::MiniFunction<void(cocos2d::CCMenuItemSprite*)>&& callback
+        ) {
+            auto item = cocos2d::CCMenuItemSprite::create(normalSprite, selectedSprite);
+            assignCallback(item, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+            return item;
+        }
+
+        static cocos2d::CCMenuItemSprite* createSprite(
+            cocos2d::CCNode* normalSprite, 
+            cocos2d::CCNode* selectedSprite,
+            cocos2d::CCNode* disabledSprite,
+            utils::MiniFunction<void(cocos2d::CCMenuItemSprite*)>&& callback
+        ) {
+            auto item = cocos2d::CCMenuItemSprite::create(normalSprite, selectedSprite, disabledSprite);
+            assignCallback(item, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+            return item;
+        }
+
+        static CCMenuItemSpriteExtra* createSpriteExtra(
+            cocos2d::CCNode* normalSprite, 
+            utils::MiniFunction<void(CCMenuItemSpriteExtra*)>&& callback
+        ) {
+            auto item = CCMenuItemSpriteExtra::create(normalSprite, nullptr, nullptr);
+            assignCallback(item, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+            return item;
+        }
+
+        static CCMenuItemSpriteExtra* createSpriteExtraWithFilename(
+            std::string_view normalSpriteName,
+            float scale,
+            utils::MiniFunction<void(CCMenuItemSpriteExtra*)>&& callback
+        ) {
+            auto sprite = cocos2d::CCSprite::create(normalSpriteName.data());
+            sprite->setScale(scale);
+
+            return createSpriteExtra(sprite, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+        }
+
+        static CCMenuItemSpriteExtra* createSpriteExtraWithFrameName(
+            std::string_view normalSpriteName,
+            float scale,
+            utils::MiniFunction<void(CCMenuItemSpriteExtra*)>&& callback
+        ) {
+            auto sprite = cocos2d::CCSprite::createWithSpriteFrameName(normalSpriteName.data());
+            sprite->setScale(scale);
+
+            return createSpriteExtra(sprite, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+        }
+
+        static CCMenuItemToggler* createToggler(
+            cocos2d::CCNode* onSprite, 
+            cocos2d::CCNode* offSprite,
+            utils::MiniFunction<void(CCMenuItemToggler*)>&& callback
+        ) {
+            auto item = CCMenuItemToggler::create(onSprite, offSprite, nullptr, nullptr);
+            assignCallback(item, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+            return item;
+        }
+
+        static CCMenuItemToggler* createTogglerWithStandardSprites(
+            float scale,
+            utils::MiniFunction<void(CCMenuItemToggler*)>&& callback
+        ) {
+            auto offSprite = cocos2d::CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png");
+            auto onSprite = cocos2d::CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png");
+
+            offSprite->setScale(scale);
+            onSprite->setScale(scale);
+
+            return createToggler(offSprite, onSprite, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+        }
+
+        static CCMenuItemToggler* createTogglerWithFilename(
+            std::string_view onSpriteName,
+            std::string_view offSpriteName,
+            float scale,
+            utils::MiniFunction<void(CCMenuItemToggler*)>&& callback
+        ) {
+            auto offSprite = cocos2d::CCSprite::create(offSpriteName.data());
+            auto onSprite = cocos2d::CCSprite::create(onSpriteName.data());
+
+            offSprite->setScale(scale);
+            onSprite->setScale(scale);
+
+            return createToggler(offSprite, onSprite, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+        }
+
+        static CCMenuItemToggler* createTogglerWithFrameName(
+            std::string_view onSpriteName,
+            std::string_view offSpriteName,
+            float scale,
+            utils::MiniFunction<void(CCMenuItemToggler*)>&& callback
+        ) {
+            auto offSprite = cocos2d::CCSprite::createWithSpriteFrameName(offSpriteName.data());
+            auto onSprite = cocos2d::CCSprite::createWithSpriteFrameName(onSpriteName.data());
+
+            offSprite->setScale(scale);
+            onSprite->setScale(scale);
+
+            return createToggler(offSprite, onSprite, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+        }
+
+        template <class Node>
+        static void assignCallback(
+            cocos2d::CCMenuItem* item,
+            utils::MiniFunction<void(Node*)>&& callback
+        ) {
+            auto lambda = LambdaCallback<Node>::create(std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+            item->setTarget(lambda, menu_selector(LambdaCallback<Node>::execute));
+            item->setUserObject("lambda-callback", lambda);
         }
     };
 

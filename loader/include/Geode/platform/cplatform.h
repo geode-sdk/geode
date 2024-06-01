@@ -9,18 +9,30 @@
 
 // Set dllexport/dllimport to geode classes & functions
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__) || defined(WIN64) || defined(_WIN64) || defined(__WIN64) && !defined(__CYGWIN__)
     #define GEODE_WINDOWS(...) __VA_ARGS__
     #define GEODE_IS_WINDOWS
     #define GEODE_IS_DESKTOP
     #define GEODE_PLATFORM_NAME "Windows"
-    #define GEODE_CALL __stdcall
-    #define GEODE_CDECL_CALL __cdecl
     #define GEODE_PLATFORM_EXTENSION ".dll"
     #define GEODE_PLATFORM_SHORT_IDENTIFIER "win"
     #define CC_TARGET_OS_WIN32
+
+    #if defined(WIN64) || defined(_WIN64) || defined(__WIN64) && !defined(__CYGWIN__)
+        #define GEODE_IS_WINDOWS64
+        #define GEODE_WINDOWS64(...) __VA_ARGS__
+        #define GEODE_WINDOWS32(...)
+        #define GEODE_CALL
+    #else
+        #define GEODE_IS_WINDOWS32
+        #define GEODE_WINDOWS32(...) __VA_ARGS__
+        #define GEODE_WINDOWS64(...)
+        #define GEODE_CALL __stdcall
+    #endif
 #else
     #define GEODE_WINDOWS(...)
+    #define GEODE_WINDOWS32(...)
+    #define GEODE_WINDOWS64(...)
 #endif
 
 #if defined(__APPLE__)
@@ -45,7 +57,6 @@
         #define CC_TARGET_OS_MAC
     #endif
     #define GEODE_CALL
-    #define GEODE_CDECL_CALL
 #else
     #define GEODE_MACOS(...)
     #define GEODE_IOS(...)
@@ -57,7 +68,6 @@
     #define GEODE_IS_ANDROID
     #define GEODE_IS_MOBILE
     #define GEODE_CALL
-    #define GEODE_CDECL_CALL
     #define CC_TARGET_OS_ANDROID
 
     #if defined(__arm__)

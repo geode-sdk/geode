@@ -28,14 +28,14 @@ $execute {
         reinterpret_cast<void*>(geode::addresser::getNonVirtual(&FMOD::System::init)),
         &FMOD_System_init_hook,
         "FMOD::System::init"
-        GEODE_WINDOWS(, tulip::hook::TulipConvention::Stdcall)
+        GEODE_WINDOWS32(, tulip::hook::TulipConvention::Stdcall)
     );
 
     (void)geode::Mod::get()->hook(
         reinterpret_cast<void*>(geode::addresser::getNonVirtual(&FMOD::ChannelControl::setVolume)),
         &FMOD_ChannelControl_setVolume_hook,
         "FMOD::ChannelControl::setVolume"
-        GEODE_WINDOWS(, tulip::hook::TulipConvention::Stdcall)
+        GEODE_WINDOWS32(, tulip::hook::TulipConvention::Stdcall)
     );
 }
 

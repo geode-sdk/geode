@@ -24,8 +24,6 @@ SimpleTextArea* SimpleTextArea::create(const std::string& font, const std::strin
     }
 }
 
-SimpleTextArea::SimpleTextArea() {}
-
 bool SimpleTextArea::init(const std::string& font, const std::string& text, const float scale, const float width, const bool artificialWidth) {
     m_font = font;
     m_text = text;
@@ -37,9 +35,7 @@ bool SimpleTextArea::init(const std::string& font, const std::string& text, cons
     m_container->setPosition({ 0, 0 });
     m_container->setAnchorPoint({ 0, 1 });
     m_container->setContentSize({ width, 0 });
-
     this->addChild(m_container);
-
     this->updateContainer();
 
     return true;
@@ -142,14 +138,23 @@ float SimpleTextArea::getLineHeight() {
 }
 
 CCLabelBMFont* SimpleTextArea::createLabel(const std::string& text, const float top) {
-    CCLabelBMFont* label = CCLabelBMFont::create(text.c_str(), m_font.c_str());
+    if (m_maxLines && m_lines.size() >= m_maxLines) {
+        CCLabelBMFont* last = m_lines.at(m_maxLines - 1);
+        const std::string& text = last->getString();
 
-    label->setScale(m_scale);
-    label->setPosition({ 0, top });
-    label->setColor({ m_color.r, m_color.g, m_color.b });
-    label->setOpacity(m_color.a);
+        last->setString(text.substr(0, text.size() - 3).append("...").c_str());
 
-    return label;
+        return nullptr;
+    } else {
+        CCLabelBMFont* label = CCLabelBMFont::create(text.c_str(), m_font.c_str());
+
+        label->setScale(m_scale);
+        label->setPosition({ 0, top });
+        label->setColor({ m_color.r, m_color.g, m_color.b });
+        label->setOpacity(m_color.a);
+
+        return label;
+    }
 }
 
 float SimpleTextArea::calculateOffset(CCLabelBMFont* label) {
@@ -158,22 +163,27 @@ float SimpleTextArea::calculateOffset(CCLabelBMFont* label) {
 
 void SimpleTextArea::charIteration(const std::function<CCLabelBMFont*(CCLabelBMFont* line, const char c, const float top)>& overflowHandling) {
     float top = 0;
+    m_lines.clear();
     CCLabelBMFont* line = this->createLabel("", top);
     m_lines = { line };
 
     for (const char c : m_text) {
-        if (m_maxLines && m_lines.size() > m_maxLines) {
-            CCLabelBMFont* last = m_lines.at(m_maxLines - 1);
-            const std::string text = last->getString();
+        if (c == '\n') {
+            line = this->createLabel("", top -= this->calculateOffset(line));
 
-            m_lines.pop_back();
-            last->setString(text.substr(0, text.size() - 3).append("...").c_str());
+            if (line == nullptr) {
+                break;
+            } else {
+                m_lines.push_back(line);
+            }
+        } else if (m_artificialWidth && line->getContentWidth() * m_scale >= this->getWidth()) {
+            line = overflowHandling(line, c, top -= this->calculateOffset(line));
 
-            break;
-        } else if (c == '\n') {
-            m_lines.push_back(line = this->createLabel("", top -= this->calculateOffset(line)));
-        } else if (m_artificialWidth && line->getContentSize().width * m_scale >= this->getWidth()) {
-            m_lines.push_back(line = overflowHandling(line, c, top -= this->calculateOffset(line)));
+            if (line == nullptr) {
+                break;
+            } else {
+                m_lines.push_back(line);
+            }
         } else {
             line->setString((std::string(line->getString()) + c).c_str());
         }
@@ -184,18 +194,14 @@ void SimpleTextArea::updateLinesNoWrap() {
     std::stringstream stream(m_text);
     std::string part;
     float top = 0;
+    m_lines.clear();
 
     while (std::getline(stream, part)) {
-        if (m_maxLines && m_lines.size() >= m_maxLines) {
-            CCLabelBMFont* last = m_lines.at(m_maxLines - 1);
-            const std::string text = last->getString();
+        CCLabelBMFont* line = this->createLabel(part, top);
 
-            last->setString(text.substr(0, text.size() - 3).append("...").c_str());
-
+        if (line == nullptr) {
             break;
         } else {
-            CCLabelBMFont* line = this->createLabel(part, 0);
-
             top -= this->calculateOffset(line);
 
             m_lines.push_back(line);
@@ -205,15 +211,18 @@ void SimpleTextArea::updateLinesNoWrap() {
 
 void SimpleTextArea::updateLinesWordWrap() {
     this->charIteration([this](CCLabelBMFont* line, const char c, const float top) {
-        static std::string delimiters(" `~!@#$%^&*()-_=+[{}];:'\",<.>/?\\|");
+        static const std::string delimiters(" `~!@#$%^&*()-_=+[{}];:'\",<.>/?\\|");
 
         if (delimiters.find(c) == std::string_view::npos) {
-            const std::string text = line->getString();
+            const std::string& text = line->getString();
             const size_t position = text.find_last_of(delimiters) + 1;
+            CCLabelBMFont* newLine = this->createLabel(text.substr(position) + c, top);
 
-            line->setString(text.substr(0, position).c_str());
+            if (newLine != nullptr) {
+                line->setString(text.substr(0, position).c_str());
+            }
 
-            return this->createLabel(text.substr(position) + c, top);
+            return newLine;
         } else {
             return this->createLabel(std::string(c, c != ' '), top);
         }
@@ -222,12 +231,12 @@ void SimpleTextArea::updateLinesWordWrap() {
 
 void SimpleTextArea::updateLinesCutoffWrap() {
     this->charIteration([this](CCLabelBMFont* line, const char c, const float top) {
-        const std::string text = line->getString();
+        const std::string& text = line->getString();
         const char back = text.back();
         const bool lastIsSpace = back == ' ';
         CCLabelBMFont* newLine = this->createLabel(std::string(!lastIsSpace, back).append(std::string(c != ' ', c)), top);
 
-        if (!lastIsSpace) {
+        if (newLine == nullptr && !lastIsSpace) {
             if (text[text.size() - 2] == ' ') {
                 line->setString(text.substr(0, text.size() - 1).c_str());
             } else {
@@ -261,7 +270,7 @@ void SimpleTextArea::updateContainer() {
         m_lineHeight = 0;
     }
 
-    float height = m_lineHeight * lineCount + m_linePadding * (lineCount - 1);
+    const float height = m_lineHeight * lineCount + m_linePadding * (lineCount - 1);
 
     this->setContentSize({ width, height });
     m_container->setContentSize(this->getContentSize());
@@ -287,8 +296,4 @@ void SimpleTextArea::updateContainer() {
 
         m_container->addChild(line);
     }
-}
-
-void SimpleTextArea::draw() {
-    CCNode::draw();
 }

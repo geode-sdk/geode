@@ -65,6 +65,8 @@ std::string loadGeode() {
 
     gdTimestamp = ntHeader->FileHeader.TimeDateStamp;
 
+#ifdef GEODE_IS_WINDOWS32
+
     constexpr size_t trampolineSize = 12;
     mainTrampolineAddr = VirtualAlloc(
         nullptr, trampolineSize,
@@ -128,6 +130,9 @@ std::string loadGeode() {
         return "Geode could not hook the main function, not loading Geode.";
     std::memcpy(reinterpret_cast<void*>(patchAddr), patchBytes, patchSize);
     VirtualProtectEx(process, reinterpret_cast<void*>(patchAddr), patchSize, oldProtect, &oldProtect);
+#else
+    #pragma message("64-bit entry is not implemented yet.")
+#endif
     return "";
 }
 
