@@ -330,7 +330,7 @@ void ModItem::updateState() {
         m_versionLabel->setString(updateString.c_str());
         m_versionLabel->setColor(to3B(ColorProvider::get()->color("mod-list-version-label-updates-available"_spr)));
 
-        m_bg->setColor(to3B(ColorProvider::get()->color("mod-list-version-label-updates-available"_spr)));
+        m_bg->setColor(to3B(ColorProvider::get()->color("mod-list-version-bg-updates-available"_spr)));
         m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
     }
     else {
