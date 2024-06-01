@@ -142,21 +142,21 @@ std::string loadGeode() {
         // jmp [rip + 0] 
         0xff, 0x25, 0x00, 0x00, 0x00, 0x00,
         // pointer to main + 15
-        (jumpAddr >> 0) & 0xFF, (jumpAddr >> 8) & 0xFF, (jumpAddr >> 16) & 0xFF, (jumpAddr >> 24) & 0xFF,
-        (jumpAddr >> 32) & 0xFF, (jumpAddr >> 40) & 0xFF, (jumpAddr >> 48) & 0xFF, (jumpAddr >> 56) & 0xFF,
+        static_cast<uint8_t>((jumpAddr >> 0) & 0xFF), static_cast<uint8_t>((jumpAddr >> 8) & 0xFF), static_cast<uint8_t>((jumpAddr >> 16) & 0xFF), static_cast<uint8_t>((jumpAddr >> 24) & 0xFF),
+        static_cast<uint8_t>((jumpAddr >> 32) & 0xFF), static_cast<uint8_t>((jumpAddr >> 40) & 0xFF), static_cast<uint8_t>((jumpAddr >> 48) & 0xFF), static_cast<uint8_t>((jumpAddr >> 56) & 0xFF),
         // nop to pad it out, helps the asm to show up properly on debuggers
         0x90, 0x90, 0x90
     };
 
     std::memcpy(mainTrampolineAddr, trampolineBytes, trampolineSize);
 
-    jmpAddr = reinterpret_cast<uintptr_t>(&gdMainHook);
+    auto jmpAddr = reinterpret_cast<uintptr_t>(&gdMainHook);
     uint8_t patchBytes[patchSize] = {
         // jmp [rip + 0]
         0xff, 0x25, 0x00, 0x00, 0x00, 0x00,
         // pointer to gdMainHook
-        (jmpAddr >> 0) & 0xFF, (jmpAddr >> 8) & 0xFF, (jmpAddr >> 16) & 0xFF, (jmpAddr >> 24) & 0xFF,
-        (jmpAddr >> 32) & 0xFF, (jmpAddr >> 40) & 0xFF, (jmpAddr >> 48) & 0xFF, (jmpAddr >> 56) & 0xFF,
+        static_cast<uint8_t>((jmpAddr >> 0) & 0xFF), static_cast<uint8_t>((jmpAddr >> 8) & 0xFF), static_cast<uint8_t>((jmpAddr >> 16) & 0xFF), static_cast<uint8_t>((jmpAddr >> 24) & 0xFF),
+        static_cast<uint8_t>((jmpAddr >> 32) & 0xFF), static_cast<uint8_t>((jmpAddr >> 40) & 0xFF), static_cast<uint8_t>((jmpAddr >> 48) & 0xFF), static_cast<uint8_t>((jmpAddr >> 56) & 0xFF),
         // nop to pad it out, helps the asm to show up properly on debuggers
         0x90
     };
