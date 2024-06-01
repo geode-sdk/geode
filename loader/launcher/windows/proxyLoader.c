@@ -42,10 +42,11 @@ DWORD WINAPI xinputGetDSoundAudioDeviceGuids(DWORD dwUserIndex, GUID* pDSoundRen
     return getDSoundAudioDeviceGuids(dwUserIndex, pDSoundRenderGuid, pDSoundCaptureGuid);
 }
 
-#pragma comment(linker, "/export:XInputGetState=_xinputGetState@8")
-#pragma comment(linker, "/export:XInputSetState=_xinputSetState@8")
-#pragma comment(linker, "/export:XInputGetCapabilities=_xinputGetCapabilities@12")
-#pragma comment(linker, "/export:XInputGetDSoundAudioDeviceGuids=_xinputGetDSoundAudioDeviceGuids@12")
+// https://github.com/mrexodia/perfect-dll-proxy
+#pragma comment(linker, "/export:XInputGetState=\\\\.\\GLOBALROOT\\SystemRoot\\System32\\XInput9_1_0.dll.XInputGetState")
+#pragma comment(linker, "/export:XInputSetState=\\\\.\\GLOBALROOT\\SystemRoot\\System32\\XInput9_1_0.dll.XInputSetState")
+#pragma comment(linker, "/export:XInputGetCapabilities=\\\\.\\GLOBALROOT\\SystemRoot\\System32\\XInput9_1_0.dll.XInputGetCapabilities")
+#pragma comment(linker, "/export:XInputGetDSoundAudioDeviceGuids=\\\\.\\GLOBALROOT\\SystemRoot\\System32\\XInput9_1_0.dll.XInputGetDSoundAudioDeviceGuids")
 
 BOOL fileExists(char const* path) {
     DWORD attrib = GetFileAttributesA(path);
