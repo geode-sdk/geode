@@ -27,36 +27,53 @@ namespace geode::base {
     }
 }
 
+
 namespace geode::cast {
+    template <class Type>
+    struct ShrunkPointer {
+        uint32_t m_ptrOffset;
+
+        Type* into(uintptr_t base) {
+            return reinterpret_cast<Type*>(base + m_ptrOffset);
+        }
+    };
+
     struct TypeDescriptorType {
         void* m_typeinfoTable;
-        int32_t m_spare;
+        intptr_t m_spare;
         char m_typeDescriptorName[0x100];
     };
 
     struct ClassDescriptorType;
 
     struct BaseClassDescriptorType {
-        TypeDescriptorType* m_typeDescriptor;
+        ShrunkPointer<TypeDescriptorType> m_typeDescriptor;
         int32_t m_numContainedBases;
         int32_t m_memberDisplacement[3];
         int32_t m_attributes;
-        ClassDescriptorType* m_classDescriptor;
+        ShrunkPointer<ClassDescriptorType> m_classDescriptor;
+    };
+    
+    struct BaseClassArrayType {
+        ShrunkPointer<BaseClassDescriptorType> m_descriptorEntries[0x100];
     };
 
     struct ClassDescriptorType {
         int32_t m_signature;
         int32_t m_attributes;
         int32_t m_numBaseClasses;
-        BaseClassDescriptorType** m_baseClassArray;
+        ShrunkPointer<BaseClassArrayType> m_baseClassArray;
     };
 
     struct CompleteLocatorType {
         int32_t m_signature;
         int32_t m_offset;
         int32_t m_cdOffset;
-        TypeDescriptorType* m_typeDescriptor;
-        ClassDescriptorType* m_classDescriptor;
+        ShrunkPointer<TypeDescriptorType> m_typeDescriptor;
+        ShrunkPointer<ClassDescriptorType> m_classDescriptor;
+    #ifdef GEODE_IS_X64
+        int32_t m_locatorOffset;
+    #endif
     };
 
     struct MetaPointerType {
@@ -89,12 +106,20 @@ namespace geode::cast {
 
         auto afterIdent = static_cast<char const*>(afterDesc->m_typeDescriptorName);
 
-        auto classDesc = metaPtr->m_completeLocator->m_classDescriptor;
+    #ifdef GEODE_IS_X64
+        auto locatorOffset = metaPtr->m_completeLocator->m_locatorOffset;
+        auto base = reinterpret_cast<uintptr_t>(metaPtr->m_completeLocator) - locatorOffset;
+    #else
+        auto base = 0;
+    #endif
+
+        auto classDesc = metaPtr->m_completeLocator->m_classDescriptor.into(base);
         for (int32_t i = 0; i < classDesc->m_numBaseClasses; ++i) {
+            auto entry = classDesc->m_baseClassArray.into(base)->m_descriptorEntries[i].into(base);
             auto optionIdent = static_cast<char const*>(
-                classDesc->m_baseClassArray[i]->m_typeDescriptor->m_typeDescriptorName
+                entry->m_typeDescriptor.into(base)->m_typeDescriptorName
             );
-            auto optionOffset = classDesc->m_baseClassArray[i]->m_memberDisplacement[0];
+            auto optionOffset = entry->m_memberDisplacement[0];
 
             if (std::strcmp(afterIdent, optionIdent) == 0) {
                 auto afterPtr = reinterpret_cast<std::byte*>(basePtr) + optionOffset;
