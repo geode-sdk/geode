@@ -45,10 +45,10 @@ DWORD WINAPI xinputGetDSoundAudioDeviceGuids(DWORD dwUserIndex, GUID* pDSoundRen
 // https://github.com/mrexodia/perfect-dll-proxy
 #if defined(_WIN64)
 #define PROXY_PATH(export) \
-    "/export:" #export "=\\\\.\\GLOBALROOT\\SystemRoot\\SysWOW64\\XInput9_1_0.dll." #export
+    "/export:" #export "=\\\\.\\GLOBALROOT\\SystemRoot\\System32\\XInput9_1_0.dll." #export
 #else
 #define PROXY_PATH(export) \
-    "/export:" #export "=\\\\.\\GLOBALROOT\\SystemRoot\\System32\\XInput9_1_0.dll." #export
+    "/export:" #export "=\\\\.\\GLOBALROOT\\SystemRoot\\SysWOW64\\XInput9_1_0.dll." #export
 #endif
 
 #pragma comment(linker, PROXY_PATH(XInputGetState))
