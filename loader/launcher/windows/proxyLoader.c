@@ -43,10 +43,18 @@ DWORD WINAPI xinputGetDSoundAudioDeviceGuids(DWORD dwUserIndex, GUID* pDSoundRen
 }
 
 // https://github.com/mrexodia/perfect-dll-proxy
-#pragma comment(linker, "/export:XInputGetState=\\\\.\\GLOBALROOT\\SystemRoot\\System32\\XInput9_1_0.dll.XInputGetState")
-#pragma comment(linker, "/export:XInputSetState=\\\\.\\GLOBALROOT\\SystemRoot\\System32\\XInput9_1_0.dll.XInputSetState")
-#pragma comment(linker, "/export:XInputGetCapabilities=\\\\.\\GLOBALROOT\\SystemRoot\\System32\\XInput9_1_0.dll.XInputGetCapabilities")
-#pragma comment(linker, "/export:XInputGetDSoundAudioDeviceGuids=\\\\.\\GLOBALROOT\\SystemRoot\\System32\\XInput9_1_0.dll.XInputGetDSoundAudioDeviceGuids")
+#if defined(_WIN64)
+#define PROXY_PATH(export) \
+    "/export:" #export "=\\\\.\\GLOBALROOT\\SystemRoot\\SysWOW64\\XInput9_1_0.dll." #export
+#else
+#define PROXY_PATH(export) \
+    "/export:" #export "=\\\\.\\GLOBALROOT\\SystemRoot\\System32\\XInput9_1_0.dll." #export
+#endif
+
+#pragma comment(linker, PROXY_PATH(XInputGetState))
+#pragma comment(linker, PROXY_PATH(XInputSetState))
+#pragma comment(linker, PROXY_PATH(XInputGetCapabilities))
+#pragma comment(linker, PROXY_PATH(XInputGetDSoundAudioDeviceGuids))
 
 BOOL fileExists(char const* path) {
     DWORD attrib = GetFileAttributesA(path);
