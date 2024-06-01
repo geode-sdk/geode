@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.21)
 
-add_library(ProxyLoader SHARED proxyLoader.c)
+add_library(ProxyLoader SHARED proxyLoader.cpp)
 set_target_properties(ProxyLoader PROPERTIES
 	PREFIX ""
-	OUTPUT_NAME "XInput9_1_0"
+	OUTPUT_NAME "dinput8"
 	LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO "${GEODE_BIN_PATH}/nightly"
 	RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${GEODE_BIN_PATH}/nightly"
 	ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO "${GEODE_BIN_PATH}/nightly"
