@@ -196,10 +196,10 @@ if (WIN32)
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND
 		CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
 		# target x86 on windows with clang
-		target_compile_options(${PROJECT_NAME} INTERFACE --target=i686-pc-windows-msvc)
-		target_link_options(${PROJECT_NAME} INTERFACE --target=i686-pc-windows-msvc)
-		add_compile_options(--target=i686-pc-windows-msvc)
-		add_link_options(--target=i686-pc-windows-msvc)
+		target_compile_options(${PROJECT_NAME} INTERFACE --target=x86_64-pc-windows-msvc)
+		target_link_options(${PROJECT_NAME} INTERFACE --target=x86_64-pc-windows-msvc)
+		add_compile_options(--target=x86_64-pc-windows-msvc)
+		add_link_options(--target=x86_64-pc-windows-msvc)
 	endif()
 endif()
 

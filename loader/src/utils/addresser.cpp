@@ -159,16 +159,18 @@ intptr_t Addresser::followThunkFunction(intptr_t address) {
 
         auto jmpOffset = *reinterpret_cast<int32_t*>(address + 7 + 1);
         auto tailMergeAddr = address + 7 + jmpOffset + 5;
-        // this is quite a scary offset, but lets hope it works
-        auto leaAddr = tailMergeAddr + 51;
-        // make sure leaAddr is pointing to a lea rcx, [rip + ...]
-        if (leaAddr && checkByteSequence(leaAddr, {0x48, 0x8d, 0x0d})) {
-            auto offset = *reinterpret_cast<int32_t*>(leaAddr + 3);
-            auto did = reinterpret_cast<PCImgDelayDescr>(leaAddr + 7 + offset);
-            address = reinterpret_cast<intptr_t>(__delayLoadHelper2(did, reinterpret_cast<FARPROC*>(leaAddress)));
+        // inside of the tail merge, try to find the lea rcx, [rip + ...]
+        for (uintptr_t leaOffset = 10; leaOffset < 100; ++leaOffset) {
+            auto leaAddr = tailMergeAddr + leaOffset;
+            if (checkByteSequence(leaAddr, {0x48, 0x8d, 0x0d})) {
+                auto offset = *reinterpret_cast<int32_t*>(leaAddr + 3);
+                auto did = reinterpret_cast<PCImgDelayDescr>(leaAddr + 7 + offset);
+                address = reinterpret_cast<intptr_t>(__delayLoadHelper2(did, reinterpret_cast<FARPROC*>(leaAddress)));
 
-            if (address == -1) {
-                address = 0;
+                if (address == -1) {
+                    address = 0;
+                }
+                break;
             }
         }
     }
