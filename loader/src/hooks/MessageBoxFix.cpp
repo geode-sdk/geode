@@ -38,6 +38,7 @@ $execute {
     // geode::base::getCocos() + 0x1225DC = MessageBoxW in .idata
     if (LoaderImpl::get()->isForwardCompatMode()) return;
 
+#if GEODE_COMP_GD_VERSION == 22040
     const uint32_t importedMessageBoxA = geode::base::getCocos() + 0x122600;
 
     ByteVector p = {
@@ -48,6 +49,9 @@ $execute {
 
     (void)Mod::get()->patch(reinterpret_cast<void*>(geode::base::getCocos() + 0xC75F9), p);
     (void)Mod::get()->patch(reinterpret_cast<void*>(geode::base::getCocos() + 0xc7651), p);
+#else
+    #pragma message("Unsupported GD version!")
+#endif
 }
 
 #endif

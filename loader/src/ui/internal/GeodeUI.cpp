@@ -13,13 +13,11 @@ void geode::openModsList() {
 }
 
 void geode::openIssueReportPopup(Mod* mod) {
-    if (mod->getMetadata().getIssues()) {
+    if (auto issues = mod->getMetadata().getIssues()) {
+        auto info = issues.value().info;
         MDPopup::create(
             "Issue Report",
-                "Please report the issue to the mod that caused the crash.\n"
-                "If your issue relates to a <cr>game crash</c>, <cb>please include</c> the "
-                "latest crash log(s) from `" +
-                dirs::getCrashlogsDir().string() + "`",
+                info + "\n\n" + "If the issue is related to a <cy>crash</c>, <cb>please include the latest crash log(s)</c> from `" + dirs::getCrashlogsDir().string() + "`",
             "OK", "Open Folder",
             [mod](bool btn2) {
                 if (btn2) {
