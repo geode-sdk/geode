@@ -7,7 +7,6 @@
 #define PROXY_EXPORT(sym) \
     "/export:" #sym "=" XINPUT_PATH "." #sym
 
-#pragma comment(linker, "/export:DllMain")
 #pragma comment(linker, PROXY_EXPORT(XInputSetState))
 #pragma comment(linker, PROXY_EXPORT(XInputGetCapabilities))
 #pragma comment(linker, PROXY_EXPORT(XInputEnable))
