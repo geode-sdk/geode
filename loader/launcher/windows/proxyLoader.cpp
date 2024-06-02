@@ -18,7 +18,6 @@
 struct XINPUT_STATE;
 
 // libcocos2d.dll requires for this function to have ordinal 2.
-// Generally this is never called as the game dynamically resolves the functions.
 #pragma comment(linker, "/export:XInputGetState,@2")
 extern "C" DWORD XInputGetState(DWORD dwUserIndex, XINPUT_STATE *pState) {
     auto xinput = GetModuleHandleA(XINPUT_PATH);
