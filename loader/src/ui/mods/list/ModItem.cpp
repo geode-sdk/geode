@@ -273,7 +273,6 @@ void ModItem::updateState() {
             m_downloadWaiting->setVisible(false);
             m_downloadBarContainer->setVisible(true);
             m_downloadBar->setValue(prog->percentage / 100.f);
-            m_downloadBar->updateBar();
         }
         else {
             m_downloadBarContainer->setVisible(false);

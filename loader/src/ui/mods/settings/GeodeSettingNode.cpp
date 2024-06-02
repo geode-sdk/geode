@@ -170,7 +170,6 @@ void IntSettingNode::updateSlider() {
             setting()->castDefinition(),
             m_uncommittedValue
         ));
-        m_slider->updateBar();
     }
 }
 
@@ -255,7 +254,6 @@ void FloatSettingNode::updateSlider() {
             setting()->castDefinition(),
             m_uncommittedValue
         ));
-        m_slider->updateBar();
     }
 }
 

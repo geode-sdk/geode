@@ -333,7 +333,6 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_statusLoadingBar->setID("status-loading-bar");
     m_statusLoadingBar->m_touchLogic->m_thumb->setVisible(false);
     m_statusLoadingBar->setValue(0);
-    m_statusLoadingBar->updateBar();
     m_statusLoadingBar->setAnchorPoint({ 0, 0 });
     m_statusContainer->addChild(m_statusLoadingBar);
 
@@ -617,7 +616,6 @@ void ModList::showStatus(ModListStatus status, std::string const& message, std::
     // Update progress bar
     if (auto per = std::get_if<ModListProgressStatus>(&status)) {
         m_statusLoadingBar->setValue(per->percentage / 100.f);
-        m_statusLoadingBar->updateBar();
     }
 
     // Update layout to automatically rearrange everything neatly in the status
