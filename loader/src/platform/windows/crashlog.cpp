@@ -171,7 +171,7 @@ static std::string getStacktrace(PCONTEXT context) {
     // size_t frame = 0;
     while (true) {
         if (!StackWalk64(
-                IMAGE_FILE_MACHINE_I386, process, thread, &stack, context, nullptr,
+                IMAGE_FILE_MACHINE_AMD64, process, thread, &stack, context, nullptr,
                 SymFunctionTableAccess64, SymGetModuleBase64, nullptr
             ))
             break;
