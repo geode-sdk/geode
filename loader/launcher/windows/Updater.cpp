@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
 
     if (std::filesystem::exists(geodeDir) && std::filesystem::exists(updatesDir)) {
         bool updateSuccess = true;
-        updateSuccess &= updateFile("dinput8.dll");
+        updateSuccess &= updateFile("XInput1_4.dll");
         updateSuccess &= updateFile("Geode.dll");
         updateSuccess &= updateFile("Geode.pdb");
         updateResources();

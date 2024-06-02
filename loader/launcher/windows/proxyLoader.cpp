@@ -3,14 +3,15 @@
 
 // https://github.com/mrexodia/perfect-dll-proxy
 #define PROXY_PATH(export) \
-    "/export:" #export "=\\\\.\\GLOBALROOT\\SystemRoot\\System32\\dinput8.dll." #export
+    "/export:" #export "=\\\\.\\GLOBALROOT\\SystemRoot\\System32\\XInput1_4.dll." #export
 
-#pragma comment(linker, PROXY_PATH(DirectInput8Create))
-#pragma comment(linker, PROXY_PATH(DllCanUnloadNow))
-#pragma comment(linker, PROXY_PATH(DllGetClassObject))
-#pragma comment(linker, PROXY_PATH(DllRegisterServer))
-#pragma comment(linker, PROXY_PATH(DllUnregisterServer))
-#pragma comment(linker, PROXY_PATH(GetdfDIJoystick))
+#pragma comment(linker, PROXY_PATH(XInputEnable))
+#pragma comment(linker, PROXY_PATH(XInputGetAudioDeviceIds))
+#pragma comment(linker, PROXY_PATH(XInputGetBatteryInformation))
+#pragma comment(linker, PROXY_PATH(XInputGetCapabilities))
+#pragma comment(linker, PROXY_PATH(XInputGetKeystroke))
+#pragma comment(linker, PROXY_PATH(XInputGetState))
+#pragma comment(linker, PROXY_PATH(XInputSetState))
 
 static std::wstring getErrorString() {
     return L"Could not load Geode. Error code: " + std::to_wstring(GetLastError());

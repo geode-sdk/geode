@@ -409,7 +409,7 @@ Function .onVerifyInstDir
     IfFileExists $INSTDIR\hackpro.dll other_hackpro
     IfFileExists $INSTDIR\ToastedMarshmellow.dll other_gdhm
     IfFileExists $INSTDIR\quickldr.dll other_quickldr
-    IfFileExists $INSTDIR\dinput8.dll other_dinput
+    IfFileExists $INSTDIR\XInput1_4.dll other_xinput
     IfFileExists $INSTDIR\mimalloc.dll other_mimalloc
     IfFileExists $INSTDIR\GDH.dll other_GDH
 
@@ -431,8 +431,8 @@ Function .onVerifyInstDir
     other_quickldr:
         StrCpy $0 "quickldr.dll"
         Goto other
-    other_dinput:
-        StrCpy $0 "dinput8.dll"
+    other_xinput:
+        StrCpy $0 "XInput1_4.dll"
         Goto other
     other_mimalloc:
         StrCpy $0 "mimalloc.dll"
@@ -459,7 +459,7 @@ SectionGroup "Geode"
         File ${BINDIR}\Geode.dll
         File ${BINDIR}\Geode.pdb
         File ${BINDIR}\GeodeUpdater.exe
-        File ${BINDIR}\dinput8.dll
+        File ${BINDIR}\XInput1_4.dll
 
         WriteUninstaller "GeodeUninstaller.exe"
     SectionEnd
@@ -511,8 +511,8 @@ Function un.onInit
     IfFileExists $INSTDIR\*.exe 0 invalid
     IfFileExists $INSTDIR\libcocos2d.dll 0 invalid
 
-    ; check if dinput and geode exist
-    IfFileExists $INSTDIR\dinput8.dll 0 invalid
+    ; check if xinput and geode exist
+    IfFileExists $INSTDIR\XInput1_4.dll 0 invalid
     IfFileExists $INSTDIR\Geode.dll 0 invalid
         Return
 
@@ -527,7 +527,7 @@ Section "Uninstall"
     Delete $INSTDIR\Geode.pdb
     Delete $INSTDIR\Geode.lib
     Delete $INSTDIR\GeodeUpdater.exe
-    Delete $INSTDIR\dinput8.dll
+    Delete $INSTDIR\XInput1_4.dll
 
     # default value of DATA is an empty string
     # if DATA is empty, keep user data
