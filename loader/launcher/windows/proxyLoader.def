@@ -1,3 +1,0 @@
-LIBRARY XINPUT1_4
-EXPORTS
-    XInputGetAudioDeviceIds @2

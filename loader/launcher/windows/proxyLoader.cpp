@@ -5,9 +5,10 @@
 #define PROXY(export, ordinal) \
     "/export:" #export "=\\\\.\\GLOBALROOT\\SystemRoot\\System32\\XInput1_4.dll.#" #ordinal
 
-// This is the only function required by libcocos2d.dll.
-#pragma comment(linker, PROXY(XInputGetAudioDeviceIds, 2))
-extern "C" void XInputGetAudioDeviceIds() {}
+// This are the only two functions required by libcocos2d.dll.
+#pragma comment(linker, PROXY(XInputGetState, 2))
+
+#pragma comment(linker, PROXY(XInputGetCapabilities, 4))
 
 static std::wstring getErrorString() {
     return L"Could not load Geode. Error code: " + std::to_wstring(GetLastError());
