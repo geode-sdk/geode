@@ -2,16 +2,12 @@
 #include <string>
 
 // https://github.com/mrexodia/perfect-dll-proxy
-#define PROXY_PATH(export) \
-    "/export:" #export "=\\\\.\\GLOBALROOT\\SystemRoot\\System32\\XInput1_4.dll." #export
+#define PROXY(export, ordinal) \
+    "/export:" #export "=\\\\.\\GLOBALROOT\\SystemRoot\\System32\\XInput1_4.dll.#" #ordinal
 
-#pragma comment(linker, PROXY_PATH(XInputEnable))
-#pragma comment(linker, PROXY_PATH(XInputGetAudioDeviceIds))
-#pragma comment(linker, PROXY_PATH(XInputGetBatteryInformation))
-#pragma comment(linker, PROXY_PATH(XInputGetCapabilities))
-#pragma comment(linker, PROXY_PATH(XInputGetKeystroke))
-#pragma comment(linker, PROXY_PATH(XInputGetState))
-#pragma comment(linker, PROXY_PATH(XInputSetState))
+// This is the only function required by libcocos2d.dll.
+#pragma comment(linker, PROXY(XInputGetAudioDeviceIds, 2))
+extern "C" void XInputGetAudioDeviceIds() {}
 
 static std::wstring getErrorString() {
     return L"Could not load Geode. Error code: " + std::to_wstring(GetLastError());
