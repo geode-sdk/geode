@@ -22,6 +22,9 @@ struct XINPUT_STATE;
 #pragma comment(linker, "/export:XInputGetState,@2")
 extern "C" DWORD XInputGetState(DWORD dwUserIndex, XINPUT_STATE *pState) {
     auto xinput = GetModuleHandleA(XINPUT_PATH);
+    if (!xinput)
+        xinput = LoadLibraryA(XINPUT_PATH);
+
     if (xinput) {
         auto fp = GetProcAddress(xinput, "XInputGetState");
         if (fp) {
