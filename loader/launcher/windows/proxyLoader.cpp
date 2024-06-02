@@ -5,7 +5,7 @@
 #define PROXY(export, ordinal) \
     "/export:" #export "=\\\\.\\GLOBALROOT\\SystemRoot\\System32\\XInput1_4.dll.#" #ordinal
 
-// This are the only two functions required by libcocos2d.dll.
+// These are the only two functions required by libcocos2d.dll.
 #pragma comment(linker, PROXY(XInputGetState, 2))
 
 #pragma comment(linker, PROXY(XInputGetCapabilities, 4))
