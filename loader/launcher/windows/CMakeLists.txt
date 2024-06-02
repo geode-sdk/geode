@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-add_library(ProxyLoader SHARED proxyLoader.c proxyLoader.def)
+add_library(ProxyLoader SHARED proxyLoader.cpp)
 set_target_properties(ProxyLoader PROPERTIES
 	PREFIX ""
 	OUTPUT_NAME "XInput1_4"
