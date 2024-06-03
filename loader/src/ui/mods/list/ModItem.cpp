@@ -63,7 +63,7 @@ bool ModItem::init(ModSource&& source) {
     m_developers->ignoreAnchorPointForPosition(false);
     m_developers->setAnchorPoint({ .0f, .5f });
 
-    auto by = "By " + ModMetadata::formatDeveloperDisplayString(m_source.getMetadata().getDevelopers());
+    auto by = "By " + m_source.formatDevelopers();
     m_developerLabel = CCLabelBMFont::create(by.c_str(), "goldFont.fnt");
     m_developerLabel->setID("developers-label");
     auto developersBtn = CCMenuItemSpriteExtra::create(

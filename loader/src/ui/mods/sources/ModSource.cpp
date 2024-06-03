@@ -1,4 +1,6 @@
 #include "ModSource.hpp"
+
+#include <Geode/loader/ModMetadata.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <server/DownloadManager.hpp>
 #include <Geode/binding/GameObject.hpp>
@@ -68,6 +70,22 @@ ModMetadata ModSource::getMetadata() const {
         },
     }, m_value);
 }
+
+std::string ModSource::formatDevelopers() const {
+    return std::visit(makeVisitor {
+        [](Mod* mod) {
+            return ModMetadata::formatDeveloperDisplayString(mod->getMetadata().getDevelopers());
+        },
+        [](server::ServerModMetadata const& metadata) {
+            // Versions should be guaranteed to have at least one item
+            return metadata.formatDevelopersToString();
+        },
+        [](ModSuggestion const& suggestion) {
+            return ModMetadata::formatDeveloperDisplayString(suggestion.suggestion.getDevelopers());
+        },
+    }, m_value);
+}
+
 CCNode* ModSource::createModLogo() const {
     return std::visit(makeVisitor {
         [](Mod* mod) {
