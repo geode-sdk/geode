@@ -17,7 +17,7 @@ namespace geode {
 
     class ModMetadata::Impl {
     public:
-        ghc::filesystem::path m_path;
+        std::filesystem::path m_path;
         std::string m_binaryName;
         VersionInfo m_version{1, 0, 0};
         std::string m_id;
@@ -42,8 +42,8 @@ namespace geode {
         ModJson m_rawJSON;
 
         static Result<ModMetadata> createFromGeodeZip(utils::file::Unzip& zip);
-        static Result<ModMetadata> createFromGeodeFile(ghc::filesystem::path const& path);
-        static Result<ModMetadata> createFromFile(ghc::filesystem::path const& path);
+        static Result<ModMetadata> createFromGeodeFile(std::filesystem::path const& path);
+        static Result<ModMetadata> createFromFile(std::filesystem::path const& path);
         static Result<ModMetadata> create(ModJson const& json);
 
         ModJson toJSON() const;
@@ -57,7 +57,7 @@ namespace geode {
 
         static Result<ModMetadata> createFromSchemaV010(ModJson const& rawJson);
 
-        Result<> addSpecialFiles(ghc::filesystem::path const& dir);
+        Result<> addSpecialFiles(std::filesystem::path const& dir);
         Result<> addSpecialFiles(utils::file::Unzip& zip);
 
         std::vector<std::pair<std::string, std::optional<std::string>*>> getSpecialFiles();

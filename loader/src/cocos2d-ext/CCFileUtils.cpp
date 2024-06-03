@@ -51,7 +51,7 @@ void CCFileUtils::updatePaths() {
         bool isKnown = false;
         for (auto& pack : PACKS) {
             for (auto& packPath : pack.m_paths) {
-                if (ghc::filesystem::path(path.c_str()) == packPath) {
+                if (std::filesystem::path(path.c_str()) == packPath) {
                     isKnown = true;
                     break;
                 }
@@ -60,7 +60,7 @@ void CCFileUtils::updatePaths() {
         }
         for (auto& pack : REMOVED_PACKS) {
             for (auto& packPath : pack.m_paths) {
-                if (ghc::filesystem::path(path.c_str()) == packPath) {
+                if (std::filesystem::path(path.c_str()) == packPath) {
                     isKnown = true;
                     break;
                 }
@@ -69,7 +69,7 @@ void CCFileUtils::updatePaths() {
         }
         if (isKnown) break;
         for (auto& p : PATHS) {
-            if (ghc::filesystem::path(path.c_str()) == p) {
+            if (std::filesystem::path(path.c_str()) == p) {
                 isKnown = true;
                 break;
             }

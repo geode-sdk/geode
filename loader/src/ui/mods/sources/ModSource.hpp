@@ -44,6 +44,7 @@ public:
     server::ServerModMetadata const* asServer() const;
     ModSuggestion const* asSuggestion() const;
 
+    std::string formatDevelopers() const;
     server::ServerRequest<server::ServerModMetadata> fetchServerInfo() const;
     server::ServerRequest<std::optional<std::string>> fetchAbout() const;
     server::ServerRequest<std::optional<std::string>> fetchChangelog() const;

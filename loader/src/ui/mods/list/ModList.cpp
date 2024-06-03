@@ -72,27 +72,27 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         m_updateAllMenu->setContentWidth(size.width / 2);
         m_updateAllMenu->setAnchorPoint({ 1, .5f });
 
-        auto showUpdatesSpr = createGeodeButton(
+        m_showUpdatesSpr = createGeodeButton(
             CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
             "Show Updates", GeodeButtonSprite::Install
         );
-        auto hideUpdatesSpr = createGeodeButton(
+        m_hideUpdatesSpr = createGeodeButton(
             CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
             "Hide Updates", GeodeButtonSprite::Default
         );
         m_toggleUpdatesOnlyBtn = CCMenuItemToggler::create(
-            showUpdatesSpr, hideUpdatesSpr, this, menu_selector(ModList::onToggleUpdates)
+            m_showUpdatesSpr, m_hideUpdatesSpr, this, menu_selector(ModList::onToggleUpdates)
         );
         m_toggleUpdatesOnlyBtn->setID("toggle-updates-only-button");
         m_toggleUpdatesOnlyBtn->m_notClickable = true;
         m_updateAllMenu->addChild(m_toggleUpdatesOnlyBtn);
 
-        auto updateAllSpr = createGeodeButton(
+        m_updateAllSpr = createGeodeButton(
             CCSprite::createWithSpriteFrameName("update.png"_spr),
             "Update All", GeodeButtonSprite::Install
         );
         m_updateAllBtn = CCMenuItemSpriteExtra::create(
-            updateAllSpr, this, menu_selector(ModList::onUpdateAll)
+            m_updateAllSpr, this, menu_selector(ModList::onUpdateAll)
         );
         m_updateAllBtn->setID("update-all-button");
         m_updateAllMenu->addChild(m_updateAllBtn);
@@ -333,7 +333,6 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_statusLoadingBar->setID("status-loading-bar");
     m_statusLoadingBar->m_touchLogic->m_thumb->setVisible(false);
     m_statusLoadingBar->setValue(0);
-    m_statusLoadingBar->updateBar();
     m_statusLoadingBar->setAnchorPoint({ 0, 0 });
     m_statusContainer->addChild(m_statusLoadingBar);
 
@@ -442,14 +441,27 @@ void ModList::onShowStatusDetails(CCObject*) {
 void ModList::onCheckUpdates(typename server::ServerRequest<std::vector<std::string>>::Event* event) {
     if (event->getValue() && event->getValue()->isOk()) {
         if (auto mods = event->getValue()->unwrap(); mods.size() > 0) {
-            std::string fmt;
             if (mods.size() == 1) {
-                fmt = fmt::format("There is <cg>{}</c> update available!", mods.size());
+                m_updateCountLabel->setString(fmt::format("There is <cg>{}</c> update available!", mods.size()));
+                m_updateAllSpr->setString("");
+                m_showUpdatesSpr->setString("Show Update");
+                m_hideUpdatesSpr->setString("Hide Update");
             }
             else {
-                fmt = fmt::format("There are <cg>{}</c> updates available!", mods.size());
+                m_updateCountLabel->setString(fmt::format("There are <cg>{}</c> updates available!", mods.size()));
+                m_updateAllSpr->setString("Update All");
+                m_showUpdatesSpr->setString("Show Updates");
+                m_hideUpdatesSpr->setString("Hide Updates");
             }
-            m_updateCountLabel->setString(fmt.c_str());
+
+            // Recreate the button with the updated label.
+            m_updateAllMenu->removeChild(m_updateAllBtn, false);
+            m_updateAllBtn = CCMenuItemSpriteExtra::create(
+                m_updateAllSpr, this, menu_selector(ModList::onUpdateAll)
+            );
+            m_updateAllBtn->setID("update-all-button");
+            m_updateAllMenu->addChild(m_updateAllBtn);
+
             m_updateAllContainer->setVisible(true);
             this->updateTopContainer();
         }
@@ -604,7 +616,6 @@ void ModList::showStatus(ModListStatus status, std::string const& message, std::
     // Update progress bar
     if (auto per = std::get_if<ModListProgressStatus>(&status)) {
         m_statusLoadingBar->setValue(per->percentage / 100.f);
-        m_statusLoadingBar->updateBar();
     }
 
     // Update layout to automatically rearrange everything neatly in the status

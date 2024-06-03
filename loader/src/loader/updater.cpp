@@ -250,8 +250,8 @@ bool updater::verifyLoaderResources() {
 
     // if the resources dir doesn't exist, then it's probably incorrect
     if (!(
-        ghc::filesystem::exists(resourcesDir) &&
-            ghc::filesystem::is_directory(resourcesDir)
+        std::filesystem::exists(resourcesDir) &&
+            std::filesystem::is_directory(resourcesDir)
     )) {
         log::debug("Resources directory does not exist");
         updater::downloadLoaderResources(true);
@@ -260,7 +260,7 @@ bool updater::verifyLoaderResources() {
 
     // TODO: actually have a proper way to disable checking resources
     // for development builds
-    if (ghc::filesystem::exists(resourcesDir / "dont-update.txt")) {
+    if (std::filesystem::exists(resourcesDir / "dont-update.txt")) {
         // this is kind of a hack, but it's the easiest way to prevent
         // auto update while developing
         log::debug("Not updating resources since dont-update.txt exists");
@@ -271,7 +271,7 @@ bool updater::verifyLoaderResources() {
     size_t coverage = 0;
 
     // verify hashes
-    for (auto& file : ghc::filesystem::directory_iterator(resourcesDir)) {
+    for (auto& file : std::filesystem::directory_iterator(resourcesDir)) {
         auto name = file.path().filename().string();
         // skip unknown files
         if (!LOADER_RESOURCE_HASHES.count(name)) {

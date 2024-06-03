@@ -24,6 +24,7 @@ namespace server {
     struct ServerDeveloper final {
         std::string username;
         std::string displayName;
+        bool isOwner;
     };
 
     struct ServerModVersion final {
@@ -72,6 +73,7 @@ namespace server {
         static Result<ServerModMetadata> parse(matjson::Value const& json);
 
         ModMetadata latestVersion() const;
+        std::string formatDevelopersToString() const;
         bool hasUpdateForInstalledMod() const;
     };
 

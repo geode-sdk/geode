@@ -6,7 +6,7 @@
 #include "Result.hpp"
 #include "general.hpp"
 
-#include <ghc/fs_fwd.hpp>
+#include <filesystem>
 #include <chrono>
 
 namespace geode::utils::web {
@@ -42,7 +42,7 @@ namespace geode::utils::web {
      */
     [[deprecated("Use the WebRequest class from the web2.hpp header instead")]]
     GEODE_DLL Result<> fetchFile(
-        std::string const& url, ghc::filesystem::path const& into, FileProgressCallback prog = nullptr
+        std::string const& url, std::filesystem::path const& into, FileProgressCallback prog = nullptr
     );
 
     /**
@@ -307,7 +307,7 @@ namespace geode::utils::web {
         /**
          * Download into a stream. Make sure the stream lives for the entire
          * duration of the request. If you want to download a file, use the
-         * `ghc::filesystem::path` overload of `into` instead
+         * `std::filesystem::path` overload of `into` instead
          * @param stream Stream to download into. Make sure it lives long
          * enough, otherwise the web request will crash
          * @returns AsyncWebResult, where you can specify the `then` action for
@@ -325,7 +325,7 @@ namespace geode::utils::web {
          * template parameter, as it can be assumed you know what you passed
          * into `into`
          */
-        AsyncWebResult<std::monostate> into(ghc::filesystem::path const& path);
+        AsyncWebResult<std::monostate> into(std::filesystem::path const& path);
         /**
          * Download into memory as a string
          * @returns AsyncWebResult, where you can specify the `then` action for

@@ -47,7 +47,7 @@ static std::string getModuleName(HMODULE module, bool fullPath = true) {
     if (fullPath) {
         return buffer;
     }
-    return ghc::filesystem::path(buffer).filename().string();
+    return std::filesystem::path(buffer).filename().string();
 }
 
 static char const* getExceptionCodeString(DWORD code) {
@@ -154,17 +154,24 @@ static std::string getStacktrace(PCONTEXT context) {
 
     auto process = GetCurrentProcess();
     auto thread = GetCurrentThread();
+#ifdef GEODE_IS_X86
     stack.AddrPC.Offset = context->Eip;
-    stack.AddrPC.Mode = AddrModeFlat;
     stack.AddrStack.Offset = context->Esp;
-    stack.AddrStack.Mode = AddrModeFlat;
     stack.AddrFrame.Offset = context->Ebp;
+#else
+    stack.AddrPC.Offset = context->Rip;
+    stack.AddrStack.Offset = context->Rsp;
+    stack.AddrFrame.Offset = context->Rbp;
+#endif
+
+    stack.AddrPC.Mode = AddrModeFlat;
+    stack.AddrStack.Mode = AddrModeFlat;
     stack.AddrFrame.Mode = AddrModeFlat;
 
     // size_t frame = 0;
     while (true) {
         if (!StackWalk64(
-                IMAGE_FILE_MACHINE_I386, process, thread, &stack, context, nullptr,
+                IMAGE_FILE_MACHINE_AMD64, process, thread, &stack, context, nullptr,
                 SymFunctionTableAccess64, SymGetModuleBase64, nullptr
             ))
             break;
@@ -177,6 +184,7 @@ static std::string getStacktrace(PCONTEXT context) {
 }
 
 static std::string getRegisters(PCONTEXT context) {
+#ifdef GEODE_IS_X86
     return fmt::format(
         "EAX: {:08x}\n"
         "EBX: {:08x}\n"
@@ -197,6 +205,44 @@ static std::string getRegisters(PCONTEXT context) {
         context->Esi,
         context->Eip
     );
+#else
+    return fmt::format(
+        "RAX: {:016x}\n"
+        "RBX: {:016x}\n"
+        "RCX: {:016x}\n"
+        "RDX: {:016x}\n"
+        "RBP: {:016x}\n"
+        "RSP: {:016x}\n"
+        "RDI: {:016x}\n"
+        "RSI: {:016x}\n"
+        "RIP: {:016x}\n"
+        "R8:  {:016x}\n"
+        "R9:  {:016x}\n"
+        "R10: {:016x}\n"
+        "R11: {:016x}\n"
+        "R12: {:016x}\n"
+        "R13: {:016x}\n"
+        "R14: {:016x}\n"
+        "R15: {:016x}\n",
+        context->Rax,
+        context->Rbx,
+        context->Rcx,
+        context->Rdx,
+        context->Rbp,
+        context->Rsp,
+        context->Rdi,
+        context->Rsi,
+        context->Rip,
+        context->R8,
+        context->R9,
+        context->R10,
+        context->R11,
+        context->R12,
+        context->R13,
+        context->R14,
+        context->R15
+    );
+#endif
 }
 
 template <typename T, typename U>
@@ -327,10 +373,10 @@ bool crashlog::setupPlatformHandler() {
     SetUnhandledExceptionFilter(exceptionHandler);
 
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
-    if (ghc::filesystem::exists(lastCrashedFile)) {
+    if (std::filesystem::exists(lastCrashedFile)) {
         g_lastLaunchCrashed = true;
         try {
-            ghc::filesystem::remove(lastCrashedFile);
+            std::filesystem::remove(lastCrashedFile);
         }
         catch (...) {
         }
@@ -344,6 +390,6 @@ bool crashlog::didLastLaunchCrash() {
 
 void crashlog::setupPlatformHandlerPost() {}
 
-ghc::filesystem::path crashlog::getCrashLogDirectory() {
+std::filesystem::path crashlog::getCrashLogDirectory() {
     return dirs::getGeodeDir() / "crashlogs";
 }

@@ -14,7 +14,7 @@ bool SwelvyBG::init() {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> sign(0, 1);
-    std::uniform_real_distribution<float> dis(.05f, .15f);
+    std::uniform_real_distribution<float> dis(3.f, 9.f);
 
     float y = m_obContentSize.height + 5;
     for (auto layer : std::initializer_list<std::pair<ccColor3B, const char*>> {
@@ -50,7 +50,7 @@ bool SwelvyBG::init() {
 void SwelvyBG::updateSpritePosition(float dt) {
     auto speed = static_cast<CCFloat*>(this->getUserObject("speed"))->getValue();
     auto repeatCount = static_cast<CCInteger*>(this->getUserObject("repeat-count"))->getValue();
-    this->setPositionX(this->getPositionX() - speed);
+    this->setPositionX(this->getPositionX() - speed * dt);
     if (speed > 0 && this->getPositionX() < 0.f) {
         this->setPositionX(this->getPositionX() + (this->getContentWidth() - 1) * repeatCount);
     }

@@ -227,7 +227,6 @@ void ModsStatusNode::updateState() {
 
             m_progressBar->setVisible(true);
             m_progressBar->setValue(percentage / 100.f);
-            m_progressBar->updateBar();
         } break;
     }
 

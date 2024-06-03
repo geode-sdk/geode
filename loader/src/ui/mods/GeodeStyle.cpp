@@ -7,6 +7,7 @@ $execute {
     // todo: these names should probably be shorter so they fit in SSO...
     ColorProvider::get()->define("mod-list-bg"_spr, { 25, 17, 37, 255 });
     ColorProvider::get()->define("mod-list-version-label"_spr, ccc3(112, 235, 41));
+    ColorProvider::get()->define("mod-list-version-bg-updates-available"_spr, ccc3(88, 202, 255));
     ColorProvider::get()->define("mod-list-version-label-updates-available"_spr, ccc3(88, 202, 255));
     ColorProvider::get()->define("mod-list-restart-required-label"_spr, ccc3(153, 245, 245));
     ColorProvider::get()->define("mod-list-restart-required-label-bg"_spr, ccc3(123, 156, 163));
@@ -35,6 +36,7 @@ $execute {
     auto updateColors = +[](bool enabled) {
         if (enabled) {
             ColorProvider::get()->reset("mod-list-bg"_spr);
+            ColorProvider::get()->reset("mod-list-version-bg-updates-available"_spr);
             ColorProvider::get()->reset("mod-list-search-bg"_spr);
             ColorProvider::get()->reset("mod-list-tab-deselected-bg"_spr);
             ColorProvider::get()->reset("mod-list-tab-selected-bg"_spr);
@@ -45,6 +47,7 @@ $execute {
         }
         else {
             ColorProvider::get()->override("mod-list-bg"_spr, { 168, 85, 44, 255 });
+            ColorProvider::get()->override("mod-list-version-bg-updates-available"_spr, { 220, 190, 0, 120 });
             ColorProvider::get()->override("mod-list-search-bg"_spr, { 114, 63, 31, 255 });
             ColorProvider::get()->override("mod-list-tab-deselected-bg"_spr, { 54, 31, 16, 255 });
             ColorProvider::get()->override("mod-list-tab-selected-bg"_spr, { 248, 200, 43, 255 });

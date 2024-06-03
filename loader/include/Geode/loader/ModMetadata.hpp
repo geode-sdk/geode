@@ -94,7 +94,7 @@ namespace geode {
         /**
          * Path to the mod file
          */
-        [[nodiscard]] ghc::filesystem::path getPath() const;
+        [[nodiscard]] std::filesystem::path getPath() const;
         /**
          * Name of the platform binary within
          * the mod zip
@@ -216,7 +216,7 @@ namespace geode {
         Result<> checkGameVersion() const;
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
-        void setPath(ghc::filesystem::path const& value);
+        void setPath(std::filesystem::path const& value);
         void setBinaryName(std::string const& value);
         void setVersion(VersionInfo const& value);
         void setID(std::string const& value);
@@ -246,11 +246,11 @@ namespace geode {
         /**
          * Create ModInfo from a .geode package
          */
-        static Result<ModMetadata> createFromGeodeFile(ghc::filesystem::path const& path);
+        static Result<ModMetadata> createFromGeodeFile(std::filesystem::path const& path);
         /**
          * Create ModInfo from a mod.json file
          */
-        static Result<ModMetadata> createFromFile(ghc::filesystem::path const& path);
+        static Result<ModMetadata> createFromFile(std::filesystem::path const& path);
         /**
          * Create ModInfo from a parsed json document
          */
@@ -287,7 +287,7 @@ namespace geode {
          */
         static Result<ModMetadata> createFromSchemaV010(ModJson const& json);
 
-        Result<> addSpecialFiles(ghc::filesystem::path const& dir);
+        Result<> addSpecialFiles(std::filesystem::path const& dir);
         Result<> addSpecialFiles(utils::file::Unzip& zip);
 
         std::vector<std::pair<std::string, std::optional<std::string>*>> getSpecialFiles();

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ghc/fs_fwd.hpp>
+#include <filesystem>
 #include "../utils/Result.hpp"
 #include "../utils/MiniFunction.hpp"
 #include "Log.hpp"
@@ -18,7 +18,7 @@ namespace geode {
     using ScheduledFunction = utils::MiniFunction<void()>;
 
     struct InvalidGeodeFile {
-        ghc::filesystem::path path;
+        std::filesystem::path path;
         std::string reason;
     };
 
@@ -45,7 +45,7 @@ namespace geode {
             OutdatedIncompatibility,
         };
         Type type;
-        std::variant<ghc::filesystem::path, ModMetadata, Mod*> cause;
+        std::variant<std::filesystem::path, ModMetadata, Mod*> cause;
         std::string message;
     };
 

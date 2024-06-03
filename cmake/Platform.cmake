@@ -17,11 +17,10 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 	set_target_properties(${PROJECT_NAME} PROPERTIES 
 		SYSTEM_NAME MacOS
-		APPLE_SILICON_PROCESSOR x86_64
 	)
 
 	# this should be set globally
-	set(CMAKE_OSX_ARCHITECTURES "x86_64")
+	set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
 
 	# only exists as a global property
 	set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
@@ -57,18 +56,18 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Win32")
 	target_compile_definitions(${PROJECT_NAME} INTERFACE NOMINMAX)
 
 	target_link_libraries(${PROJECT_NAME} INTERFACE 
-		${GEODE_LOADER_PATH}/include/link/win32/libcocos2d.lib
-		${GEODE_LOADER_PATH}/include/link/win32/libExtensions.lib
-		${GEODE_LOADER_PATH}/include/link/win32/ssl.lib
-		${GEODE_LOADER_PATH}/include/link/win32/crypto.lib
-		${GEODE_LOADER_PATH}/include/link/win32/nghttp2.lib
-		${GEODE_LOADER_PATH}/include/link/win32/ngtcp2.lib
-		${GEODE_LOADER_PATH}/include/link/win32/nghttp3.lib
-		${GEODE_LOADER_PATH}/include/link/win32/ngtcp2_crypto_boringssl.lib
-		${GEODE_LOADER_PATH}/include/link/win32/libcurl.lib
-		${GEODE_LOADER_PATH}/include/link/win32/glew32.lib
-		${GEODE_LOADER_PATH}/include/link/win32/gdstring.lib
-		${GEODE_LOADER_PATH}/include/link/win32/fmod.lib
+		${GEODE_LOADER_PATH}/include/link/win64/libcocos2d.lib
+		${GEODE_LOADER_PATH}/include/link/win64/libExtensions.lib
+		${GEODE_LOADER_PATH}/include/link/win64/ssl.lib
+		${GEODE_LOADER_PATH}/include/link/win64/crypto.lib
+		${GEODE_LOADER_PATH}/include/link/win64/nghttp2.lib
+		${GEODE_LOADER_PATH}/include/link/win64/ngtcp2.lib
+		${GEODE_LOADER_PATH}/include/link/win64/nghttp3.lib
+		${GEODE_LOADER_PATH}/include/link/win64/ngtcp2_crypto_boringssl.lib
+		${GEODE_LOADER_PATH}/include/link/win64/libcurl.lib
+		${GEODE_LOADER_PATH}/include/link/win64/glew32.lib
+		${GEODE_LOADER_PATH}/include/link/win64/gdstring.lib
+		${GEODE_LOADER_PATH}/include/link/win64/fmod.lib
 		opengl32
 	)
 

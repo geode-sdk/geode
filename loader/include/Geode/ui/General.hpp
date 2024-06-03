@@ -2,6 +2,7 @@
 
 #include <Geode/DefaultInclude.hpp>
 #include <cocos2d.h>
+#include <cocos-ext.h>
 
 namespace geode {
     /**

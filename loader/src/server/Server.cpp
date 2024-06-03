@@ -1,5 +1,7 @@
 #include "Server.hpp"
 #include <Geode/utils/JsonValidation.hpp>
+#include <Geode/utils/ranges.hpp>
+#include <fmt/core.h>
 #include <loader/ModMetadataImpl.hpp>
 #include <fmt/chrono.h>
 
@@ -438,6 +440,7 @@ Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
         auto dev = ServerDeveloper();
         obj.needs("username").into(dev.username);
         obj.needs("display_name").into(dev.displayName);
+        obj.needs("is_owner").into(dev.isOwner);
         res.developers.push_back(dev);
         developerNames.push_back(dev.displayName);
     }
@@ -472,6 +475,24 @@ Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
         return Err(root.getError());
     }
     return Ok(res);
+}
+
+std::string ServerModMetadata::formatDevelopersToString() const {
+    std::optional<ServerDeveloper> owner = ranges::find(developers, [] (auto item) {
+        return item.isOwner;
+    });
+    switch (developers.size()) {
+        case 0: return "Unknown"; break;
+        case 1: return developers.front().displayName; break;
+        case 2: return developers.front().displayName + " & " + developers.back().displayName; break;
+        default: {
+            if (owner) {
+                return fmt::format("{} + {} More", owner->displayName, developers.size() - 1);
+            } else {
+                return fmt::format("{} + {} More", developers.front().displayName, developers.size() - 1);
+            }
+        } break;
+    }
 }
 
 Result<ServerModsList> ServerModsList::parse(matjson::Value const& raw) {

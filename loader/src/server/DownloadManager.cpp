@@ -106,7 +106,7 @@ public:
                     std::string id = m_replacesMod.has_value() ? m_replacesMod.value() : m_id;
                     if (auto mod = Loader::get()->getInstalledMod(id)) {
                         std::error_code ec;
-                        ghc::filesystem::remove(mod->getPackagePath(), ec);
+                        std::filesystem::remove(mod->getPackagePath(), ec);
                         if (ec) {
                             removingInstalledWasError = true;
                             m_status = DownloadStatusError {

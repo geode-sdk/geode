@@ -27,7 +27,13 @@
     #define GEODE_API extern "C" __declspec(dllexport)
     #define GEODE_EXPORT __declspec(dllexport)
 
-    static_assert(sizeof(void*) == 4, "Geode must be compiled in 32-bit for Windows!");
+    #if defined(GEODE_IS_WINDOWS64)
+        #define GEODE_IS_X64
+        #define GEODE_CDECL_CALL
+    #else 
+        #define GEODE_IS_X86
+        #define GEODE_CDECL_CALL __cdecl
+	#endif
 
     #include "windows.hpp"
 
@@ -47,6 +53,9 @@
     #define GEODE_API extern "C" __attribute__((visibility("default")))
     #define GEODE_EXPORT __attribute__((visibility("default")))
 
+    #define GEODE_IS_X64
+    #define GEODE_CDECL_CALL
+
     #include "macos.hpp"
 
 #elif defined(GEODE_IS_IOS)
@@ -65,6 +74,9 @@
     #define GEODE_API extern "C" __attribute__((visibility("default")))
     #define GEODE_EXPORT __attribute__((visibility("default")))
 
+    #define GEODE_IS_X64
+    #define GEODE_CDECL_CALL
+
     #include "ios.hpp"
 
 #elif defined(GEODE_IS_ANDROID)
@@ -82,6 +94,13 @@
 
     #define GEODE_API extern "C" __attribute__((visibility("default")))
     #define GEODE_EXPORT __attribute__((visibility("default")))
+
+    #if defined(GEODE_IS_ANDROID64)
+        #define GEODE_IS_X64
+    #else 
+        #define GEODE_IS_X86
+    #endif
+    #define GEODE_CDECL_CALL
 
     #include "android.hpp"
 

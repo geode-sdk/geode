@@ -63,7 +63,7 @@ bool ModItem::init(ModSource&& source) {
     m_developers->ignoreAnchorPointForPosition(false);
     m_developers->setAnchorPoint({ .0f, .5f });
 
-    auto by = "By " + ModMetadata::formatDeveloperDisplayString(m_source.getMetadata().getDevelopers());
+    auto by = "By " + m_source.formatDevelopers();
     m_developerLabel = CCLabelBMFont::create(by.c_str(), "goldFont.fnt");
     m_developerLabel->setID("developers-label");
     auto developersBtn = CCMenuItemSpriteExtra::create(
@@ -273,7 +273,6 @@ void ModItem::updateState() {
             m_downloadWaiting->setVisible(false);
             m_downloadBarContainer->setVisible(true);
             m_downloadBar->setValue(prog->percentage / 100.f);
-            m_downloadBar->updateBar();
         }
         else {
             m_downloadBarContainer->setVisible(false);
@@ -335,7 +334,7 @@ void ModItem::updateState() {
         m_versionLabel->setString(updateString.c_str());
         m_versionLabel->setColor(to3B(ColorProvider::get()->color("mod-list-version-label-updates-available"_spr)));
 
-        m_bg->setColor(to3B(ColorProvider::get()->color("mod-list-version-label-updates-available"_spr)));
+        m_bg->setColor(to3B(ColorProvider::get()->color("mod-list-version-bg-updates-available"_spr)));
         m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
     }
     else {

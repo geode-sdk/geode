@@ -383,7 +383,7 @@ int ZipUtils::ccInflateCCZFile(char const* path, unsigned char** out) {
     }
 
     unsigned long destlen = len;
-    unsigned long source = (unsigned long)compressed + sizeof(*header);
+    uintptr_t source = (uintptr_t)compressed + sizeof(*header);
     int ret = uncompress(*out, &destlen, (Bytef*)source, fileLen - sizeof(*header));
 
     delete[] compressed;

@@ -1,6 +1,10 @@
 {
     "geode": "@PROJECT_VERSION@@PROJECT_VERSION_SUFFIX@",
-    "gd": "*",
+    "gd": {
+        "win": "*",
+        "mac": "*",
+        "android": "*"
+    },
     "id": "geode.loader",
     "version": "@PROJECT_VERSION@@PROJECT_VERSION_SUFFIX@",
     "name": "Geode",
