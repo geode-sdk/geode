@@ -91,24 +91,24 @@ namespace geode {
         std::vector<std::string> getDevelopers() const;
         std::optional<std::string> getDescription() const;
         std::optional<std::string> getDetails() const;
-        ghc::filesystem::path getPackagePath() const;
+        std::filesystem::path getPackagePath() const;
         VersionInfo getVersion() const;
         bool isEnabled() const;
         bool isOrWillBeEnabled() const;
         bool isInternal() const;
         bool needsEarlyLoad() const;
         ModMetadata getMetadata() const;
-        ghc::filesystem::path getTempDir() const;
+        std::filesystem::path getTempDir() const;
         /**
          * Get the path to the mod's platform binary (.dll on Windows, .dylib
          * on Mac & iOS, .so on Android)
          */
-        ghc::filesystem::path getBinaryPath() const;
+        std::filesystem::path getBinaryPath() const;
         /**
          * Get the path to the mod's runtime resources directory (contains all
          * of its resources)
          */
-        ghc::filesystem::path getResourcesDir() const;
+        std::filesystem::path getResourcesDir() const;
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
         void setMetadata(ModMetadata const& metadata);
@@ -131,11 +131,11 @@ namespace geode {
         /**
          * Get the mod's save directory path
          */
-        ghc::filesystem::path getSaveDir() const;
+        std::filesystem::path getSaveDir() const;
         /**
          * Get the mod's config directory path
          */
-        ghc::filesystem::path getConfigDir(bool create = true) const;
+        std::filesystem::path getConfigDir(bool create = true) const;
 
         bool hasSettings() const;
         std::vector<std::string> getSettingKeys() const;

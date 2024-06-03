@@ -362,7 +362,7 @@ Result<ModMetadata> ModMetadata::Impl::create(ModJson const& json) {
     return Impl::createFromSchemaV010(json);
 }
 
-Result<ModMetadata> ModMetadata::Impl::createFromFile(ghc::filesystem::path const& path) {
+Result<ModMetadata> ModMetadata::Impl::createFromFile(std::filesystem::path const& path) {
     GEODE_UNWRAP_INTO(auto read, utils::file::readString(path));
 
     std::string error;
@@ -382,7 +382,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromFile(ghc::filesystem::path cons
     return Ok(info);
 }
 
-Result<ModMetadata> ModMetadata::Impl::createFromGeodeFile(ghc::filesystem::path const& path) {
+Result<ModMetadata> ModMetadata::Impl::createFromGeodeFile(std::filesystem::path const& path) {
     GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(path));
     return ModMetadata::createFromGeodeZip(unzip);
 }
@@ -429,10 +429,10 @@ Result<> ModMetadata::Impl::addSpecialFiles(file::Unzip& unzip) {
     return Ok();
 }
 
-Result<> ModMetadata::Impl::addSpecialFiles(ghc::filesystem::path const& dir) {
+Result<> ModMetadata::Impl::addSpecialFiles(std::filesystem::path const& dir) {
     // unzip known MD files
     for (auto& [file, target] : this->getSpecialFiles()) {
-        if (ghc::filesystem::exists(dir / file)) {
+        if (std::filesystem::exists(dir / file)) {
             auto data = file::readString(dir / file);
             if (!data) {
                 return Err("Unable to read \"" + file + "\": " + data.unwrapErr());
@@ -466,7 +466,7 @@ bool ModMetadata::Impl::operator==(ModMetadata::Impl const& other) const {
     return this->m_id == other.m_id;
 }
 
-[[maybe_unused]] ghc::filesystem::path ModMetadata::getPath() const {
+[[maybe_unused]] std::filesystem::path ModMetadata::getPath() const {
     return m_impl->m_path;
 }
 
@@ -579,7 +579,7 @@ Result<> ModMetadata::checkGameVersion() const {
 }
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
-void ModMetadata::setPath(ghc::filesystem::path const& value) {
+void ModMetadata::setPath(std::filesystem::path const& value) {
     m_impl->m_path = value;
 }
 void ModMetadata::setBinaryName(std::string const& value) {
@@ -647,10 +647,10 @@ ModMetadataLinks& ModMetadata::getLinksMut() {
 Result<ModMetadata> ModMetadata::createFromGeodeZip(utils::file::Unzip& zip) {
     return Impl::createFromGeodeZip(zip);
 }
-Result<ModMetadata> ModMetadata::createFromGeodeFile(ghc::filesystem::path const& path) {
+Result<ModMetadata> ModMetadata::createFromGeodeFile(std::filesystem::path const& path) {
     return Impl::createFromGeodeFile(path);
 }
-Result<ModMetadata> ModMetadata::createFromFile(ghc::filesystem::path const& path) {
+Result<ModMetadata> ModMetadata::createFromFile(std::filesystem::path const& path) {
     return Impl::createFromFile(path);
 }
 Result<ModMetadata> ModMetadata::create(ModJson const& json) {
@@ -676,7 +676,7 @@ Result<ModMetadata> ModMetadata::createFromSchemaV010(ModJson const& json) {
     return Impl::createFromSchemaV010(json);
 }
 
-Result<> ModMetadata::addSpecialFiles(ghc::filesystem::path const& dir) {
+Result<> ModMetadata::addSpecialFiles(std::filesystem::path const& dir) {
     return m_impl->addSpecialFiles(dir);
 }
 Result<> ModMetadata::addSpecialFiles(utils::file::Unzip& zip) {

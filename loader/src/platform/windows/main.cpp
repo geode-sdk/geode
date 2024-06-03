@@ -13,16 +13,16 @@ void updateGeode() {
     const auto geodeDir = dirs::getGeodeDir();
     const auto updatesDir = geodeDir / "update";
 
-    bool bootstrapperExists = ghc::filesystem::exists(workingDir / "GeodeBootstrapper.dll");
-    bool updatesDirExists = ghc::filesystem::exists(geodeDir) && ghc::filesystem::exists(updatesDir);
+    bool bootstrapperExists = std::filesystem::exists(workingDir / "GeodeBootstrapper.dll");
+    bool updatesDirExists = std::filesystem::exists(geodeDir) && std::filesystem::exists(updatesDir);
 
     if (!bootstrapperExists && !updatesDirExists)
         return;
 
     // update updater
-    if (ghc::filesystem::exists(updatesDir) &&
-        ghc::filesystem::exists(updatesDir / "GeodeUpdater.exe"))
-        ghc::filesystem::rename(updatesDir / "GeodeUpdater.exe", workingDir / "GeodeUpdater.exe");
+    if (std::filesystem::exists(updatesDir) &&
+        std::filesystem::exists(updatesDir / "GeodeUpdater.exe"))
+        std::filesystem::rename(updatesDir / "GeodeUpdater.exe", workingDir / "GeodeUpdater.exe");
 
     utils::game::restart();
 }
@@ -283,7 +283,7 @@ BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
         // if we find the old bootstrapper dll, don't load geode, copy new updater and let it do the rest
         auto workingDir = dirs::getGameDir();
         std::error_code error;
-        bool oldBootstrapperExists = ghc::filesystem::exists(workingDir / "GeodeBootstrapper.dll", error);
+        bool oldBootstrapperExists = std::filesystem::exists(workingDir / "GeodeBootstrapper.dll", error);
         if (error) {
             earlyError("There was an error checking whether the old GeodeBootstrapper.dll exists: " + error.message());
             return FALSE;

@@ -206,7 +206,6 @@ endif()
 set(MAT_JSON_AS_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/json#3fe4752")
 CPMAddPackage("gh:fmtlib/fmt#10.1.1")
-CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 
 target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)
 
@@ -250,10 +249,6 @@ endif()
 
 target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
 
-add_library(GeodeFilesystemImpl ${CMAKE_CURRENT_SOURCE_DIR}/FilesystemImpl.cpp)
-target_compile_features(GeodeFilesystemImpl PUBLIC cxx_std_20)
-target_link_libraries(GeodeFilesystemImpl PUBLIC ghc_filesystem)
-
 add_subdirectory(${GEODE_BINDINGS_REPO_PATH} ${CMAKE_BINARY_DIR}/bindings)
 
 if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
@@ -269,7 +264,7 @@ target_include_directories(GeodeBindings PUBLIC
 	${GEODE_LOADER_PATH}/include/Geode/fmod
 )
 target_link_directories(GeodeBindings PUBLIC ${GEODE_LOADER_PATH}/include/link)
-target_link_libraries(GeodeBindings PUBLIC ghc_filesystem fmt TulipHookInclude mat-json GeodeFilesystemImpl)
+target_link_libraries(GeodeBindings PUBLIC fmt TulipHookInclude mat-json)
 target_link_libraries(${PROJECT_NAME} INTERFACE GeodeBindings)
 if (${GEODE_REVERT_TODO_RETURN})
 	target_compile_definitions(GeodeBindings PUBLIC GEODE_REVERT_TODO_RETURN)

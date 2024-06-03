@@ -2,6 +2,8 @@
 #include <Geode/loader/Loader.hpp>
 #include <server/DownloadManager.hpp>
 #include <ui/mods/sources/ModSource.hpp>
+#include <vector>
+#include <deque>
 
 // TODO: UNFINISHED!!!
 // If you want to bring this back, you are free to do so - 
@@ -24,9 +26,9 @@ protected:
     std::vector<std::string> m_unsolved;
     std::deque<Question> m_questionQueue;
 
-    static ghc::filesystem::path getPath(LoadProblem const& problem) {
+    static std::filesystem::path getPath(LoadProblem const& problem) {
         return std::visit(makeVisitor {
-            [](ghc::filesystem::path const& path) {
+            [](std::filesystem::path const& path) {
                 return path;
             },
             [](ModMetadata const& meta) {
@@ -39,7 +41,7 @@ protected:
     }
     static std::string getName(LoadProblem const& problem) {
         return std::visit(makeVisitor {
-            [](ghc::filesystem::path const& path) {
+            [](std::filesystem::path const& path) {
                 return path.string();
             },
             [](ModMetadata const& meta) {
@@ -94,7 +96,7 @@ public:
                 {
                     auto path = getPath(problem);
                     std::error_code ec;
-                    ghc::filesystem::remove(path, ec);
+                    std::filesystem::remove(path, ec);
                     if (ec) {
                         m_unsolved.push_back(fmt::format("Failed to delete '{}'", path));
                     }

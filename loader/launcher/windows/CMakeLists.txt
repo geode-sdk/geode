@@ -39,7 +39,6 @@ set_target_properties(Updater PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY "${GEODE_BIN_PATH}/nightly"
 	ARCHIVE_OUTPUT_DIRECTORY "${GEODE_BIN_PATH}/nightly"
 )
-target_link_libraries(Updater PUBLIC ghc_filesystem)
 
 if (MSVC)
 	include(CheckLinkerFlag)

@@ -47,7 +47,7 @@ static std::string getModuleName(HMODULE module, bool fullPath = true) {
     if (fullPath) {
         return buffer;
     }
-    return ghc::filesystem::path(buffer).filename().string();
+    return std::filesystem::path(buffer).filename().string();
 }
 
 static char const* getExceptionCodeString(DWORD code) {
@@ -373,10 +373,10 @@ bool crashlog::setupPlatformHandler() {
     SetUnhandledExceptionFilter(exceptionHandler);
 
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
-    if (ghc::filesystem::exists(lastCrashedFile)) {
+    if (std::filesystem::exists(lastCrashedFile)) {
         g_lastLaunchCrashed = true;
         try {
-            ghc::filesystem::remove(lastCrashedFile);
+            std::filesystem::remove(lastCrashedFile);
         }
         catch (...) {
         }
@@ -390,6 +390,6 @@ bool crashlog::didLastLaunchCrash() {
 
 void crashlog::setupPlatformHandlerPost() {}
 
-ghc::filesystem::path crashlog::getCrashLogDirectory() {
+std::filesystem::path crashlog::getCrashLogDirectory() {
     return dirs::getGeodeDir() / "crashlogs";
 }

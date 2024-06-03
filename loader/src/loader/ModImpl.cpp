@@ -66,7 +66,7 @@ Result<> Mod::Impl::setup() {
         });
 
         const auto binariesDir = searchPathRoot / m_metadata.getID() / "binaries" / PlatformID::toShortString(GEODE_PLATFORM_TARGET);
-        if (ghc::filesystem::exists(binariesDir))
+        if (std::filesystem::exists(binariesDir))
             LoaderImpl::get()->addNativeBinariesPath(binariesDir);
 
         m_resourcesLoaded = true;
@@ -77,7 +77,7 @@ Result<> Mod::Impl::setup() {
 
 // Getters
 
-ghc::filesystem::path Mod::Impl::getSaveDir() const {
+std::filesystem::path Mod::Impl::getSaveDir() const {
     return m_saveDirPath;
 }
 
@@ -114,15 +114,15 @@ std::vector<Mod*> Mod::Impl::getDependants() const {
 }
 #endif
 
-ghc::filesystem::path Mod::Impl::getTempDir() const {
+std::filesystem::path Mod::Impl::getTempDir() const {
     return m_tempDirName;
 }
 
-ghc::filesystem::path Mod::Impl::getBinaryPath() const {
+std::filesystem::path Mod::Impl::getBinaryPath() const {
     return m_tempDirName / m_metadata.getBinaryName();
 }
 
-ghc::filesystem::path Mod::Impl::getPackagePath() const {
+std::filesystem::path Mod::Impl::getPackagePath() const {
     return m_metadata.getPath();
 }
 
@@ -180,7 +180,7 @@ Result<> Mod::Impl::loadData() {
     // Settings
     // Check if settings exist
     auto settingPath = m_saveDirPath / "settings.json";
-    if (ghc::filesystem::exists(settingPath)) {
+    if (std::filesystem::exists(settingPath)) {
         GEODE_UNWRAP_INTO(auto settingData, utils::file::readString(settingPath));
         // parse settings.json
         std::string error;
@@ -223,7 +223,7 @@ Result<> Mod::Impl::loadData() {
 
     // Saved values
     auto savedPath = m_saveDirPath / "saved.json";
-    if (ghc::filesystem::exists(savedPath)) {
+    if (std::filesystem::exists(savedPath)) {
         GEODE_UNWRAP_INTO(auto data, utils::file::readString(savedPath));
         std::string error;
         auto res = matjson::parse(data, error);
@@ -386,7 +386,7 @@ Result<> Mod::Impl::loadBinary() {
     if (m_enabled)
         return Ok();
 
-    if (!ghc::filesystem::exists(this->getBinaryPath())) {
+    if (!std::filesystem::exists(this->getBinaryPath())) {
         return Err(
             fmt::format(
                 "Failed to load {}: No binary could be found for current platform.\n"
@@ -483,7 +483,7 @@ Result<> Mod::Impl::uninstall(bool deleteSaveData) {
     Mod::get()->getSaveContainer().try_erase("should-load-" + m_metadata.getID());
 
     std::error_code ec;
-    ghc::filesystem::remove(m_metadata.getPath(), ec);
+    std::filesystem::remove(m_metadata.getPath(), ec);
     if (ec) {
         return Err(
             "Unable to delete mod's .geode file: " + ec.message()
@@ -491,7 +491,7 @@ Result<> Mod::Impl::uninstall(bool deleteSaveData) {
     }
 
     if (deleteSaveData) {
-        ghc::filesystem::remove_all(this->getSaveDir(), ec);
+        std::filesystem::remove_all(this->getSaveDir(), ec);
         if (ec) {
             return Err(
                 "Unable to delete mod's save directory: " + ec.message()
@@ -690,7 +690,7 @@ Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
     auto datePath = tempDir / "modified-at";
     std::string currentHash = file::readString(datePath).unwrapOr("");
 
-    auto modifiedDate = ghc::filesystem::last_write_time(metadata.getPath());
+    auto modifiedDate = std::filesystem::last_write_time(metadata.getPath());
     auto modifiedCount = std::chrono::duration_cast<std::chrono::milliseconds>(modifiedDate.time_since_epoch());
     auto modifiedHash = std::to_string(modifiedCount.count());
     if (currentHash == modifiedHash) {
@@ -700,7 +700,7 @@ Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
     log::debug("Hash mismatch detected, unzipping");
 
     std::error_code ec;
-    ghc::filesystem::remove_all(tempDir, ec);
+    std::filesystem::remove_all(tempDir, ec);
     if (ec) {
         auto message = ec.message();
         #ifdef GEODE_IS_WINDOWS
@@ -735,7 +735,7 @@ Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
     return Ok();
 }
 
-ghc::filesystem::path Mod::Impl::getConfigDir(bool create) const {
+std::filesystem::path Mod::Impl::getConfigDir(bool create) const {
     auto dir = dirs::getModConfigDir() / m_metadata.getID();
     if (create) {
         (void)file::createDirectoryAll(dir);

@@ -33,11 +33,11 @@ namespace geode {
         std::string m_gdVersion;
         std::optional<bool> m_forwardCompatMode;
 
-        std::vector<ghc::filesystem::path> m_modSearchDirectories;
+        std::vector<std::filesystem::path> m_modSearchDirectories;
         std::vector<LoadProblem> m_problems;
         std::unordered_map<std::string, Mod*> m_mods;
         std::deque<Mod*> m_modsToLoad;
-        std::vector<ghc::filesystem::path> m_texturePaths;
+        std::vector<std::filesystem::path> m_texturePaths;
         bool m_isSetup = false;
 
         LoadingState m_loadingState = LoadingState::None;
@@ -84,7 +84,7 @@ namespace geode {
 
         void updateModResources(Mod* mod);
         void addSearchPaths();
-        void addNativeBinariesPath(ghc::filesystem::path const& path);
+        void addNativeBinariesPath(std::filesystem::path const& path);
 
         Result<> setup();
         void forceReset();

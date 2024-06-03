@@ -8,19 +8,10 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <ghc/fs_fwd.hpp>
+#include <filesystem>
 #include <matjson.hpp>
 #include <charconv>
 #include <clocale>
-
-// for some reason std::filesystem::path doesn't have std::hash defined in C++17 
-// and ghc seems to have inherited this limitation
-template<>
-struct std::hash<ghc::filesystem::path> {
-    std::size_t operator()(ghc::filesystem::path const& path) const noexcept {
-        return ghc::filesystem::hash_value(path);
-    }
-};
 
 namespace geode {
     using ByteVector = std::vector<uint8_t>;

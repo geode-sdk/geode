@@ -100,7 +100,7 @@ public:
                     // If this was an update, delete the old file first
                     if (auto mod = Loader::get()->getInstalledMod(m_id)) {
                         std::error_code ec;
-                        ghc::filesystem::remove(mod->getPackagePath(), ec);
+                        std::filesystem::remove(mod->getPackagePath(), ec);
                         if (ec) {
                             removingInstalledWasError = true;
                             m_status = DownloadStatusError {

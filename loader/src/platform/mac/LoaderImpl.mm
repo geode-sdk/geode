@@ -131,7 +131,7 @@ bool Loader::Impl::userTriedToLoadDLLs() const {
     return false;
 }
 
-void Loader::Impl::addNativeBinariesPath(ghc::filesystem::path const& path) {
+void Loader::Impl::addNativeBinariesPath(std::filesystem::path const& path) {
     log::warn("LoaderImpl::addNativeBinariesPath not implement on this platform, not adding path {}", path.string());
 }
 

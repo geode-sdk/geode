@@ -70,7 +70,7 @@ bool Loader::Impl::userTriedToLoadDLLs() const {
             std::array<char, MAX_PATH> modName;
             if (GetModuleFileNameExA(process, mods[i], modName.data(), modName.size())) {
                 if (KNOWN_MOD_DLLS.count(string::trim(string::toLower(
-                    ghc::filesystem::path(modName.data()).filename().string()
+                    std::filesystem::path(modName.data()).filename().string()
                 )))) {
                     triedToLoadDLLs = true;
                 }
@@ -81,7 +81,7 @@ bool Loader::Impl::userTriedToLoadDLLs() const {
     return triedToLoadDLLs;
 }
 
-void Loader::Impl::addNativeBinariesPath(ghc::filesystem::path const& path) {
+void Loader::Impl::addNativeBinariesPath(std::filesystem::path const& path) {
     // https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-adddlldirectory#remarks
     static auto runOnce = [] {
         SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
