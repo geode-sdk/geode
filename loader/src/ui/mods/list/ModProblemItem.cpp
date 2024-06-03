@@ -61,12 +61,19 @@ bool ModProblemItem::init(Mod* source, LoadProblem problem, CCSize const& size) 
     label->setWrappingMode(WrappingMode::WORD_WRAP);
     label->setAnchorPoint({ 0.0f, 0.5f });
     label->setMaxLines(4);
-    label->setWidth(size.width * 0.7f);
+    if (this->showFixButton()) {
+        label->setWidth(size.width * 0.7f);
+    } else {
+        // Left + Right + Space between
+        constexpr float paddings = 30.0f;
+        float calc = size.width - paddings - icon->getScaledContentWidth();
+        label->setWidth(calc);
+    }
     label->setScale(0.4f);
     this->addChildAtPosition(
         label,
         Anchor::Left,
-        CCPoint { 15.0f + icon->getScaledContentWidth(), 0.0f }
+        CCPoint { 20.0f + icon->getScaledContentWidth(), 0.0f }
     );
 
     return true;
@@ -89,6 +96,11 @@ CCSprite* ModProblemItem::createSeverityIcon() {
         default:
             return CCSprite::createWithSpriteFrameName("info-warning.png"_spr);
     }
+}
+
+bool ModProblemItem::showFixButton() {
+    // TODO: Actually implement the fix button ;)
+    return false;
 }
 
 std::string ModProblemItem::createProblemMessage() {

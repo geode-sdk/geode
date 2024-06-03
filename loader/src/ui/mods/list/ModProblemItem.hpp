@@ -23,6 +23,7 @@ public:
 protected:
     bool init(Mod* source, LoadProblem problem, CCSize const& size);
     ModProblemItem::Severity computeSeverity();
+    bool showFixButton();
     CCSprite* createSeverityIcon();
     std::string createProblemMessage();
 };
