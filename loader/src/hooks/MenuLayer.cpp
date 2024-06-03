@@ -81,8 +81,10 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             }
         }
 
+        bool hasErrors = false;
         // show if some mods failed to load
         if (Loader::get()->getProblems().size()) {
+            hasErrors = true;
             static bool shownProblemPopup = false;
             if (!shownProblemPopup) {
                 shownProblemPopup = true;
@@ -161,20 +163,23 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
         // Check for mod updates
         m_fields->m_updateCheckTask = ModsLayer::checkInstalledModsForUpdates().map(
-            [this](server::ServerRequest<std::vector<std::string>>::Value* result) {
+            [this, hasErrors](server::ServerRequest<std::vector<std::string>>::Value* result) {
                 if (result->isOk()) {
                     auto updatesFound = result->unwrap();
                     if (updatesFound.size() && !m_fields->m_geodeButton->getChildByID("updates-available")) {
                         log::info("Found updates for mods: {}!", updatesFound);
-
-                        auto icon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr);
-                        icon->setPosition(
-                            m_fields->m_geodeButton->getContentSize() - CCSize { 10.f, 10.f }
-                        );
-                        icon->setID("updates-available");
-                        icon->setZOrder(99);
-                        icon->setScale(.5f);
-                        m_fields->m_geodeButton->addChild(icon);
+                        
+                        // Only show the icon if the errors icon wasn't added already, to prevent overlap
+                        if (!hasErrors) {
+                            auto icon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr);
+                            icon->setPosition(
+                                m_fields->m_geodeButton->getContentSize() - CCSize { 10.f, 10.f }
+                            );
+                            icon->setID("updates-available");
+                            icon->setZOrder(99);
+                            icon->setScale(.5f);
+                            m_fields->m_geodeButton->addChild(icon);
+                        }
                     }
                     else {
                         log::error("No updates found :(");

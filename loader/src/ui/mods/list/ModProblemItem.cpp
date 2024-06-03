@@ -9,6 +9,7 @@
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
+#include <Geode/ui/TextArea.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <GUI/CCControlExtension/CCScale9Sprite.h>
@@ -44,45 +45,28 @@ bool ModProblemItem::init(Mod* source, LoadProblem problem, CCSize const& size) 
     );
 
     CCSprite* icon = this->createSeverityIcon();
+    icon->setAnchorPoint({ 0.0f, 0.5f });
     std::string message = this->createProblemMessage();
 
-    CCNode* infoContainer = CCNode::create();
-    infoContainer->setAnchorPoint({ 0.0f, 0.5f });
-    infoContainer->setContentSize({ 
-        size.width - 10.f,
-        icon->getScaledContentHeight() 
-    });
-    infoContainer->setLayout(
-        RowLayout::create()
-            ->setAxisAlignment(AxisAlignment::Start)
-            ->setAutoScale(true)
-            ->setGap(5.0f)
+    this->addChildAtPosition(
+        icon,
+        Anchor::Left,
+        CCPoint { 10.0f, 0.0f }
     );
 
-    auto label = CCLabelBMFont::create(
+    auto label = SimpleTextArea::create(
         message.c_str(),
         "bigFont.fnt"
     );
+    label->setWrappingMode(WrappingMode::WORD_WRAP);
     label->setAnchorPoint({ 0.0f, 0.5f });
-    // This is such a stupid hack
-    label->limitLabelWidth(
-        infoContainer->getContentWidth() * 2.f / 3.f,
-        1.0f,
-        0.1f
-    );
-    label->setLayoutOptions(
-        AxisLayoutOptions::create()
-        ->setRelativeScale(label->getScale())
-    );
-
-    infoContainer->addChild(icon);
-    infoContainer->addChild(label);
-
-    infoContainer->updateLayout();
+    label->setMaxLines(4);
+    label->setWidth(size.width * 0.7f);
+    label->setScale(0.4f);
     this->addChildAtPosition(
-        infoContainer,
+        label,
         Anchor::Left,
-        { 10.f, 0.0f }
+        CCPoint { 15.0f + icon->getScaledContentWidth(), 0.0f }
     );
 
     return true;
@@ -122,9 +106,9 @@ std::string ModProblemItem::createProblemMessage() {
                     "suggests enabling the {} mod.",
                     found->getName()
                 );
-                return ss.str();
+            } else {
+                ss << "suggests " << m_problem.message << " to be installed.";
             }
-            ss << "suggests " << m_problem.message << " to be installed.";
             return ss.str();
         }
         case LoadProblem::Type::Recommendation: {
@@ -134,9 +118,9 @@ std::string ModProblemItem::createProblemMessage() {
                     "recommends enabling the {} mod.",
                     found->getName()
                 );
-                return ss.str();
+            } else {
+                ss << "recommends" << m_problem.message << " to be installed.";
             }
-            ss << "recommends" << m_problem.message << " to be installed.";
             return ss.str();
         }
         case LoadProblem::Type::OutdatedConflict:
@@ -146,8 +130,13 @@ std::string ModProblemItem::createProblemMessage() {
                     "conflicts with the {} mod.",
                     found->getName()
                 );
-                return ss.str();
+            } else {
+                ss << fmt::format(
+                    "conflicts with the {} mod.",
+                    m_problem.message
+                );
             }
+            return ss.str();
         }
         case LoadProblem::Type::OutdatedIncompatibility:
         case LoadProblem::Type::PresentIncompatibility: {
@@ -156,8 +145,13 @@ std::string ModProblemItem::createProblemMessage() {
                     "cannot work if the {} mod is enabled.",
                     found->getName()
                 );
-                return ss.str();
+            } else {
+                ss << fmt::format(
+                    "cannot work if the {} mod is enabled.",
+                    m_problem.message
+                );
             }
+            return ss.str();
         }
         case LoadProblem::Type::InvalidFile: {
             ss << "has an invalid .geode file.";
@@ -185,12 +179,7 @@ std::string ModProblemItem::createProblemMessage() {
             return ss.str();
         }
         case LoadProblem::Type::UnsupportedVersion: {
-            ss << fmt::format(
-                "requires Geometry Dash {} to run. You have {}.",
-                m_problem.message,
-                GEODE_STR(GEODE_GD_VERSION)
-            );
-            return ss.str();
+            return m_problem.message;
         }
         case LoadProblem::Type::NeedsNewerGeodeVersion:
         case LoadProblem::Type::UnsupportedGeodeVersion: {
@@ -207,8 +196,13 @@ std::string ModProblemItem::createProblemMessage() {
                     "requires the {} mod to be updated.",
                     found->getName()
                 );
-                return ss.str();
+            } else {
+                ss << fmt::format(
+                    "requires the {} mod to be updated.",
+                    m_problem.message
+                );
             }
+            return ss.str();
         }
         case LoadProblem::Type::DisabledDependency: {
             if (auto found = Loader::get()->getInstalledMod(m_problem.message)) {
@@ -216,8 +210,13 @@ std::string ModProblemItem::createProblemMessage() {
                     "requires the {} mod to be enabled.",
                     found->getName()
                 );
-                return ss.str();
+            } else {
+                ss << fmt::format(
+                    "requires the {} mod to be enabled.",
+                    m_problem.message
+                );
             }
+            return ss.str();
         }
         case LoadProblem::Type::MissingDependency: {
             std::string id = m_problem.message.substr(0, m_problem.message.find(" "));

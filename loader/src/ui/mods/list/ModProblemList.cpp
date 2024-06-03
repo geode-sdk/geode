@@ -50,7 +50,7 @@ bool ModProblemList::init(
 
     CCSize itemSize = {
         m_list->getScaledContentWidth(),
-        50.f
+        70.f
     };
 
     for (LoadProblem problem : m_mod->getAllProblems()) {
