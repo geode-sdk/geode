@@ -1,6 +1,8 @@
 #include "ModItem.hpp"
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/utils/ColorProvider.hpp>
+#include <Geode/binding/ButtonSprite.hpp>
+#include <Geode/loader/Loader.hpp>
 #include "../GeodeStyle.hpp"
 #include "../popups/ModPopup.hpp"
 #include "../popups/DevPopup.hpp"
@@ -127,9 +129,15 @@ bool ModItem::init(ModSource&& source) {
     m_viewMenu->setID("view-menu");
     m_viewMenu->setAnchorPoint({ 1.f, .5f });
     m_viewMenu->setScale(.55f);
-    
+
+    ButtonSprite* spr;
+    if (Loader::get()->isModInstalled(m_source.getID())) {
+        spr = createGeodeButton("View");
+    } else {
+        spr = createGeodeButton("Get", false, GeodeButtonSprite::Install);
+    }
     auto viewBtn = CCMenuItemSpriteExtra::create(
-        createGeodeButton("View"),
+        spr,
         this, menu_selector(ModItem::onView)
     );
     viewBtn->setID("view-button");
