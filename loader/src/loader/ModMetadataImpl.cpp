@@ -134,9 +134,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     // (use rawJson because i dont like JsonMaybeValue)
     if (rawJson.contains("gd")) {
         std::string ver;
-        if (rawJson["gd"].is_string()) {
-            ver = rawJson["gd"].as_string();
-        } else if (rawJson["gd"].is_object()) {
+        if (rawJson["gd"].is_object()) {
             auto key = PlatformID::toShortString(GEODE_PLATFORM_TARGET, true);
             if (rawJson["gd"].contains(key) && rawJson["gd"][key].is_string())
                 ver = rawJson["gd"][key].as_string();
