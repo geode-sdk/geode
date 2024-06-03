@@ -15,6 +15,7 @@
 #pragma comment(linker, PROXY_EXPORT(XInputGetAudioDeviceIds))
 
 struct XINPUT_STATE;
+struct XINPUT_CAPABILITIES;
 
 // libcocos2d.dll requires for this function to have ordinal 2.
 #pragma comment(linker, "/export:XInputGetState,@2")
@@ -28,6 +29,24 @@ extern "C" DWORD XInputGetState(DWORD dwUserIndex, XINPUT_STATE *pState) {
         if (fp) {
             using FPType = decltype(&XInputGetState);
             return reinterpret_cast<FPType>(fp)(dwUserIndex, pState);
+        } 
+    }
+
+    return ERROR_DEVICE_NOT_CONNECTED;
+}
+
+// Hi nikki please leave this as is, it fixes wine :)
+#pragma comment(linker, "/export:XInputGetCapabilities,@4")
+extern "C" DWORD XInputGetCapabilities(DWORD dwUserIndex, DWORD dwFlags, XINPUT_CAPABILITIES *pCapabilities) {
+    auto xinput = GetModuleHandleA(XINPUT_PATH);
+    if (!xinput)
+        xinput = LoadLibraryA(XINPUT_PATH);
+
+    if (xinput) {
+        auto fp = GetProcAddress(xinput, "XInputGetCapabilities");
+        if (fp) {
+            using FPType = decltype(&XInputGetCapabilities);
+            return reinterpret_cast<FPType>(fp)(dwUserIndex, dwFlags, pCapabilities);
         } 
     }
 
