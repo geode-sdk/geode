@@ -140,7 +140,7 @@ namespace geode {
             return value.as<T>();
         }
 
-        void queueInMainThread(ScheduledFunction func);
+        void queueInMainThread(ScheduledFunction&& func);
 
         /**
          * Returns the current game version.
@@ -158,8 +158,8 @@ namespace geode {
      * 
      * @param func the function to queue
     */
-    inline GEODE_HIDDEN void queueInMainThread(ScheduledFunction func) {
-        Loader::get()->queueInMainThread(func);
+    inline GEODE_HIDDEN void queueInMainThread(ScheduledFunction&& func) {
+        Loader::get()->queueInMainThread(std::forward<ScheduledFunction>(func));
     }
 
     /**

@@ -93,8 +93,8 @@ std::vector<LoadProblem> Loader::getRecommendations() const {
     return result;
 }
 
-void Loader::queueInMainThread(ScheduledFunction func) {
-    return m_impl->queueInMainThread(std::move(func));
+void Loader::queueInMainThread(ScheduledFunction&& func) {
+    return m_impl->queueInMainThread(std::forward<ScheduledFunction>(func));
 }
 
 std::string Loader::getGameVersion() {

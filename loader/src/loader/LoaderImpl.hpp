@@ -122,7 +122,7 @@ namespace geode {
 
         void updateResources(bool forceReload);
 
-        void queueInMainThread(const ScheduledFunction& func);
+        void queueInMainThread(ScheduledFunction&& func);
         void executeMainThreadQueue();
 
         bool isReadyToHook() const;

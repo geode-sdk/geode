@@ -266,9 +266,6 @@ target_include_directories(GeodeBindings PUBLIC
 target_link_directories(GeodeBindings PUBLIC ${GEODE_LOADER_PATH}/include/link)
 target_link_libraries(GeodeBindings PUBLIC fmt TulipHookInclude mat-json)
 target_link_libraries(${PROJECT_NAME} INTERFACE GeodeBindings)
-if (${GEODE_REVERT_TODO_RETURN})
-	target_compile_definitions(GeodeBindings PUBLIC GEODE_REVERT_TODO_RETURN)
-endif()
 
 if (NOT EXISTS ${GEODE_BIN_PATH})
 	file(MAKE_DIRECTORY ${GEODE_BIN_PATH})
