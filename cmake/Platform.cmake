@@ -19,8 +19,8 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 		SYSTEM_NAME MacOS
 	)
 
-	# this should be set globally
-	set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
+	# this should be set globally, unless already set
+	set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "")
 
 	# only exists as a global property
 	set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
