@@ -195,6 +195,21 @@ if (WIN32)
 	endif()
 endif()
 
+if (WIN64)
+	add_definitions(-D_HAS_ITERATOR_DEBUGGING=0)
+	target_compile_definitions(${PROJECT_NAME} INTERFACE _HAS_ITERATOR_DEBUGGING=0)
+	
+	target_link_libraries(${PROJECT_NAME} INTERFACE delayimp ws2_64)
+	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND
+		CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
+		# target x86 on windows with clang
+		target_compile_options(${PROJECT_NAME} INTERFACE --target=x64-pc-windows-msvc)
+		target_link_options(${PROJECT_NAME} INTERFACE --target=x64-pc-windows-msvc)
+		add_compile_options(--target=x64-pc-windows-msvc)
+		add_link_options(--target=x64-pc-windows-msvc)
+	endif()
+endif()
+
 # We do not support anything below SDK 23
 if (ANDROID)
 	string(REGEX MATCH "[0-9]+" ANDROID_PLATFORM_NUMBER "${ANDROID_PLATFORM}")
