@@ -54,6 +54,8 @@ $execute {
             ColorProvider::get()->override("mod-list-tab-selected-bg-alt"_spr, { 156, 185, 147, 255 });
             ColorProvider::get()->override("mod-list-restart-required-label"_spr, ccc3(10, 226, 255));
             ColorProvider::get()->override("mod-list-restart-required-label-bg"_spr, ccc3(0, 174, 180));
+            ColorProvider::get()->override("mod-list-errors-found"_spr, { 255, 0, 0, 255 });
+            ColorProvider::get()->override("mod-list-errors-found-2"_spr, { 235, 35, 112, 255 });
             ColorProvider::get()->override(
                 "mod-problems-item-bg"_spr,
                 { 0, 0, 0, 75 }
