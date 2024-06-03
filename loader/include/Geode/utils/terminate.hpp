@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../DefaultInclude.hpp"
-#include "../loader/Log.hpp"
 
 namespace geode {
     class Mod;
@@ -26,14 +25,14 @@ namespace geode::utils {
 
     namespace detail {
         // This needs to do stuff with `Mod*` which is not included in the file
-        GEODE_DLL std::string fmtTerminateError(const char* reason, Mod* mod);
+        GEODE_DLL void logTerminationError(const char* reason, Mod* mod);
     }
 
     template <class = void>
     [[noreturn]]
     void terminate(std::string const& reason, Mod* mod = getMod(), size_t platformCode = GEODE_TERMINATE_EXCEPTION_CODE) {
         // Add the error to the logfile
-        log::error("{}", detail::fmtTerminateError(reason.c_str(), mod));
+        detail::logTerminationError(reason.c_str(), mod);
 
     #ifdef GEODE_IS_WINDOWS
         // If a debugger is attached, start debugging
