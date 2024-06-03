@@ -1,8 +1,11 @@
 #pragma once
 
+#include "Geode/utils/VersionInfo.hpp"
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/utils/web2.hpp>
 #include <Geode/loader/SettingEvent.hpp>
+#include <matjson.hpp>
+#include <vector>
 
 using namespace geode::prelude;
 
@@ -34,10 +37,19 @@ namespace server {
 
         static Result<ServerModVersion> parse(matjson::Value const& json);
     };
+    
+    struct ServerModReplacement final {
+        std::string id;
+        VersionInfo version;
+        std::string download_link;
+
+        static Result<ServerModReplacement> parse(matjson::Value const& json);
+    };
 
     struct ServerModUpdate final {
         std::string id;
         VersionInfo version;
+        std::optional<ServerModReplacement> replacement;
 
         static Result<ServerModUpdate> parse(matjson::Value const& json);
         static Result<std::vector<ServerModUpdate>> parseList(matjson::Value const& json);

@@ -1,4 +1,6 @@
 #include "DownloadManager.hpp"
+#include "Geode/loader/Mod.hpp"
+#include <optional>
 
 using namespace server;
 
@@ -18,6 +20,7 @@ public:
     std::string m_id;
     std::optional<VersionInfo> m_version;
     std::optional<DependencyFor> m_dependencyFor;
+    std::optional<std::string> m_replacesMod;
     DownloadStatus m_status;
     EventListener<ServerRequest<ServerModVersion>> m_infoListener;
     EventListener<web::WebTask> m_downloadListener;
@@ -25,11 +28,13 @@ public:
     Impl(
         std::string const& id,
         std::optional<VersionInfo> const& version,
-        std::optional<DependencyFor> const& dependencyFor
+        std::optional<DependencyFor> const& dependencyFor,
+        std::optional<std::string> const& replacesMod
     )
       : m_id(id),
         m_version(version),
         m_dependencyFor(dependencyFor),
+        m_replacesMod(replacesMod),
         m_status(DownloadStatusFetching {
             .percentage = 0,
         })
@@ -97,8 +102,9 @@ public:
             if (auto value = event->getValue()) {
                 if (value->ok()) {
                     bool removingInstalledWasError = false;
-                    // If this was an update, delete the old file first
-                    if (auto mod = Loader::get()->getInstalledMod(m_id)) {
+                    bool disablingReplacedWasError = false;
+                    std::string id = m_replacesMod.has_value() ? m_replacesMod.value() : m_id;
+                    if (auto mod = Loader::get()->getInstalledMod(id)) {
                         std::error_code ec;
                         std::filesystem::remove(mod->getPackagePath(), ec);
                         if (ec) {
@@ -108,6 +114,7 @@ public:
                             };
                         }
                     }
+                    // If this was an update, delete the old file first
                     if (!removingInstalledWasError) {
                         auto ok = file::writeBinary(dirs::getModsDir() / (m_id + ".geode"), value->data());
                         if (!ok) {
@@ -146,8 +153,9 @@ public:
 ModDownload::ModDownload(
     std::string const& id,
     std::optional<VersionInfo> const& version,
-    std::optional<DependencyFor> const& dependencyFor
-) : m_impl(std::make_shared<Impl>(id, version, dependencyFor)) {}
+    std::optional<DependencyFor> const& dependencyFor,
+    std::optional<std::string> const& replacesMod
+) : m_impl(std::make_shared<Impl>(id, version, dependencyFor, replacesMod)) {}
 
 void ModDownload::confirm() {
     m_impl->confirm();
@@ -155,6 +163,9 @@ void ModDownload::confirm() {
 
 std::optional<DependencyFor> ModDownload::getDependencyFor() const {
     return m_impl->m_dependencyFor;
+}
+std::optional<std::string> ModDownload::getReplacesMod() const {
+    return m_impl->m_replacesMod;
 }
 bool ModDownload::isDone() const {
     return std::holds_alternative<DownloadStatusDone>(m_impl->m_status);
@@ -225,7 +236,8 @@ void ModDownload::cancel() {
 std::optional<ModDownload> ModDownloadManager::startDownload(
     std::string const& id,
     std::optional<VersionInfo> const& version,
-    std::optional<DependencyFor> const& dependencyFor
+    std::optional<DependencyFor> const& dependencyFor,
+    std::optional<std::string> const& replacesMod
 ) {
     // If this mod has already been succesfully downloaded or is currently
     // being downloaded, return as you can't download multiple versions of the
@@ -242,7 +254,7 @@ std::optional<ModDownload> ModDownloadManager::startDownload(
 
     // Start a new download by constructing a ModDownload (which starts the
     // download)
-    m_impl->m_downloads.emplace(id, ModDownload(id, version, dependencyFor));
+    m_impl->m_downloads.emplace(id, ModDownload(id, version, dependencyFor, replacesMod));
     return m_impl->m_downloads.at(id);
 }
 void ModDownloadManager::cancelAll() {
@@ -261,7 +273,16 @@ void ModDownloadManager::startUpdateAll() {
             if (result->isOk()) {
                 for (auto& mod : result->unwrap()) {
                     if (mod.hasUpdateForInstalledMod()) {
-                        this->startDownload(mod.id, std::nullopt);
+                        if (mod.replacement.has_value()) {
+                            this->startDownload(
+                                mod.replacement.value().id,
+                                mod.replacement.value().version,
+                                std::nullopt,
+                                mod.id
+                            );
+                        } else {
+                            this->startDownload(mod.id, std::nullopt);
+                        }
                     }
                 }
             }

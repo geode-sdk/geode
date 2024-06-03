@@ -7,6 +7,7 @@ using namespace server;
 void askConfirmModInstalls() {
     struct ToConfirm final {
         size_t modCount = 0;
+        size_t replacementCount = 0;
         size_t dependencyCount = 0;
         std::unordered_set<Mod*> toDisable;
         std::unordered_set<Mod*> toEnable;
@@ -23,6 +24,9 @@ void askConfirmModInstalls() {
             }
             else {
                 toConfirm.modCount += 1;
+                if (download.getReplacesMod()) {
+                    toConfirm.replacementCount += 1;
+                }
 
                 // Since the user has already explicitly chosen to download these mods, we 
                 // are going to assume they want these mods enabled over already installed 
@@ -68,10 +72,10 @@ void askConfirmModInstalls() {
     createQuickPopup(
         "Confirm Install",
         fmt::format(
-            "<cj>{}</c> mods will be installed, of which <cy>{}</c> are <cy>dependencies</c>.\n"
+            "<cj>{}</c> mods will be installed, of which <cy>{}</c> are <cy>dependencies</c> and <cy>{}</c> are <cy>replacements</c>.\n"
             "<cr>{} mods will be force-disabled, as they are incompatible</c>: {}\n"
             "<cg>{} mods will be force-enabled</c>: {}",
-            toConfirm.modCount, toConfirm.dependencyCount,
+            toConfirm.modCount, toConfirm.dependencyCount, toConfirm.replacementCount,
             toConfirm.toDisable.size(), joinModsToIDs(toConfirm.toDisable),
             toConfirm.toEnable.size(), joinModsToIDs(toConfirm.toEnable)
         ),

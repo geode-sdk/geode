@@ -325,7 +325,12 @@ void ModItem::updateState() {
         update && !(download && (download->isActive() || download->isDone()))
     ) {
         m_updateBtn->setVisible(true);
-        auto updateString = m_source.getMetadata().getVersion().toString() + " -> " + update->version.toString();
+        std::string updateString = "";
+        if (update->replacement.has_value()) {
+            updateString += " -> " + update->replacement.value().id;
+        } else {
+            updateString += m_source.getMetadata().getVersion().toVString() + " -> " + update->version.toVString();
+        }
         m_versionLabel->setString(updateString.c_str());
         m_versionLabel->setColor(to3B(ColorProvider::get()->color("mod-list-version-label-updates-available"_spr)));
 
@@ -439,6 +444,17 @@ void ModItem::onEnable(CCObject*) {
     UpdateModListStateEvent(UpdateModState(m_source.getID())).post();
 }
 void ModItem::onInstall(CCObject*) {
+    if (auto updates = m_source.hasUpdates()) {
+        if (updates->replacement.has_value()) {
+            server::ModDownloadManager::get()->startDownload(
+                updates->replacement->id,
+                updates->replacement->version,
+                std::nullopt,
+                m_source.getID()
+            );
+            return;
+        }
+    }
     server::ModDownloadManager::get()->startDownload(m_source.getID(), std::nullopt);
 }
 void ModItem::onDevelopers(CCObject*) {
