@@ -4,6 +4,7 @@
 
 namespace geode {
     class Mod;
+    Mod* getMod();
 }
 
 namespace geode::utils {
