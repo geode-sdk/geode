@@ -131,7 +131,7 @@ std::string VersionInfo::toNonVString(bool includeTag) const {
 }
 
 std::string geode::format_as(VersionInfo const& version) {
-    return version.toString();
+    return version.toVString();
 }
 
 // ComparableVersionInfo
@@ -182,7 +182,7 @@ std::string ComparableVersionInfo::toString() const {
         case VersionCompare::More: prefix = ">"; break;
         case VersionCompare::Any: return "*";
     }
-    return prefix + m_version.toString();
+    return prefix + m_version.toVString();
 }
 
 std::string geode::format_as(ComparableVersionInfo const& version) {

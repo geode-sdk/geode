@@ -65,10 +65,10 @@ struct $modify(MenuLayer) {
 #include <Geode/modify/GJGarageLayer.hpp>
 
 struct GJGarageLayerTest : Modify<GJGarageLayerTest, GJGarageLayer> {
-    GJGarageLayerTest() : myValue(1907) {}
-
-    int myValue;
-    std::string myString = "yeah have fun finding a better thing for this";
+    struct Fields {
+        int myValue = 1907;
+        std::string myString = "yeah have fun finding a better thing for this";
+    };
 
     bool init() {
         if (!GJGarageLayer::init()) return false;

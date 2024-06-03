@@ -106,37 +106,6 @@ namespace geode::modifier {
             }
         }
 
-        [[deprecated("Fields are now done using an explicit `Fields` struct. Please refer to https://docs.geode-sdk.org/tutorials/fields/ for more information.")]]
-        auto deprecatedSelf() {
-            // get the this pointer of the base
-            // field intermediate is the first member of Modify
-            // meaning we canget the base from ourself
-            auto node = reinterpret_cast<Parent*>(reinterpret_cast<std::byte*>(this) - sizeof(Base));
-            static_assert(sizeof(Base) == offsetof(Parent, m_fields), "offsetof not correct");
-
-            // generating the container if it doesn't exist
-            auto container = FieldContainer::from(node, typeid(Base).name());
-
-            // the index is global across all mods, so the
-            // function is defined in the loader source
-            static size_t index = getFieldIndexForClass(typeid(Base).name());
-
-            // the fields are actually offset from their original
-            // offset, this is done to save on allocation and space
-            auto offsetField = container->getField(index);
-            if (!offsetField) {
-                offsetField = container->setField(
-                    index, sizeof(Parent) - sizeof(Intermediate), &FieldIntermediate::fieldDestructor
-                );
-
-                FieldIntermediate::fieldConstructor(offsetField);
-            }
-
-            return reinterpret_cast<Parent*>(
-                reinterpret_cast<std::byte*>(offsetField) - sizeof(Intermediate)
-            );
-        }
-
         auto self() {
             if constexpr (HasFields<Parent>) {
                 // get the this pointer of the base
@@ -166,7 +135,7 @@ namespace geode::modifier {
                 return reinterpret_cast<typename Parent::Fields*>(offsetField);
             }
             else {
-                return this->deprecatedSelf();
+                static_assert(!HasFields<Parent>, "Parent must have a Fields struct");
             }
         }
 

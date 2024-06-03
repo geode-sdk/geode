@@ -119,7 +119,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         checkerRoot = fmt::format(
             "[{}/{}/mod.json]",
             rawJson.contains("id") ? rawJson["id"].as_string() : "unknown.mod",
-            rawJson.contains("version") ? rawJson["version"].as<VersionInfo>().toString() : "v0.0.0"
+            rawJson.contains("version") ? rawJson["version"].as<VersionInfo>().toVString() : "v0.0.0"
         );
     }
     catch (...) { }
@@ -349,7 +349,7 @@ Result<ModMetadata> ModMetadata::Impl::create(ModJson const& json) {
     // Handle mod.json data based on target
     if (schema < VersionInfo(0, 1, 0)) {
         return Err(
-            "[mod.json] targets a version (" + schema.toString() +
+            "[mod.json] targets a version (" + schema.toVString() +
             ") that isn't supported by this version (v" +
             about::getLoaderVersionStr() +
             ") of geode. This is probably a bug; report it to "

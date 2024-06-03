@@ -455,8 +455,8 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
                 node,
                 fmt::format(
                     "Geode version {}\nis required to run this mod\n(installed: {})",
-                    node->getMetadata().getGeodeVersion().toString(),
-                    this->getVersion().toString()
+                    node->getMetadata().getGeodeVersion().toVString(),
+                    this->getVersion().toVString()
                 )
             });
             log::error("Unsupported Geode version: {}", node->getMetadata().getGeodeVersion());

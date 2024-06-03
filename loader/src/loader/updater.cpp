@@ -56,7 +56,7 @@ void updater::fetchLatestGithubRelease(
         Mod::get()->getSavedValue("latest-version-auto-update-check", std::string("0.0.0"))
     );
 
-    log::debug("Last update check result: {}", version.unwrap().toString());
+    log::debug("Last update check result: {}", version.unwrap().toVString());
 
     std::string modifiedSince;
     if (!force && version && version.unwrap() <= Mod::get()->getVersion() && version.unwrap() != VersionInfo(0, 0, 0)) {
@@ -99,7 +99,7 @@ void updater::fetchLatestGithubRelease(
 }
 
 void updater::downloadLatestLoaderResources() {
-    log::debug("Downloading latest resources", Loader::get()->getVersion().toString());
+    log::debug("Downloading latest resources", Loader::get()->getVersion().toVString());
     fetchLatestGithubRelease(
         [](matjson::Value const& raw) {
             auto json = raw;
@@ -201,7 +201,7 @@ void updater::downloadLoaderResources(bool useLatestRelease) {
     req.userAgent("github_api/1.0");
     RUNNING_REQUESTS.emplace(
         "@downloadLoaderResources",
-        req.get("https://api.github.com/repos/geode-sdk/geode/releases/tags/" + Loader::get()->getVersion().toString()).map(
+        req.get("https://api.github.com/repos/geode-sdk/geode/releases/tags/" + Loader::get()->getVersion().toVString()).map(
         [useLatestRelease](web::WebResponse* response) {
             RUNNING_REQUESTS.erase("@downloadLoaderResources");
             if (response->ok()) {
@@ -227,11 +227,11 @@ void updater::downloadLoaderResources(bool useLatestRelease) {
                 }
             }
             if (useLatestRelease) {
-                log::debug("Loader version {} does not exist, trying to download latest resources", Loader::get()->getVersion().toString());
+                log::debug("Loader version {} does not exist, trying to download latest resources", Loader::get()->getVersion().toVString());
                 downloadLatestLoaderResources();
             }
             else {
-                log::debug("Loader version {} does not exist on GitHub, not downloading the resources", Loader::get()->getVersion().toString());
+                log::debug("Loader version {} does not exist on GitHub, not downloading the resources", Loader::get()->getVersion().toVString());
                 ResourceDownloadEvent(UpdateFinished()).post();
             }
             return *response;
@@ -369,8 +369,8 @@ void updater::checkForLoaderUpdates() {
             VersionInfo ver { 0, 0, 0 };
             root.needs("tag_name").into(ver);
 
-            log::info("Latest version is {}", ver.toString());
-            Mod::get()->setSavedValue("latest-version-auto-update-check", ver.toString());
+            log::info("Latest version is {}", ver.toVString());
+            Mod::get()->setSavedValue("latest-version-auto-update-check", ver.toVString());
 
             // make sure release is newer
             if (ver <= Loader::get()->getVersion()) {

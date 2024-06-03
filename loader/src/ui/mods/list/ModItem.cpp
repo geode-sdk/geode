@@ -55,7 +55,7 @@ bool ModItem::init(ModSource&& source) {
 
     m_versionLabel = CCLabelBMFont::create("", "bigFont.fnt");
     m_versionLabel->setID("version-label");
-    m_versionLabel->setLayoutOptions(AxisLayoutOptions::create()->setMaxScale(.7f));
+    m_versionLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(std::nullopt, .7f));
     m_titleContainer->addChild(m_versionLabel);
     
     m_infoContainer->addChild(m_titleContainer);
@@ -88,7 +88,7 @@ bool ModItem::init(ModSource&& source) {
         }}
     );
     m_restartRequiredLabel->setID("restart-required-label");
-    m_restartRequiredLabel->setLayoutOptions(AxisLayoutOptions::create()->setMaxScale(.75f));
+    m_restartRequiredLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(std::nullopt, .75f));
     m_infoContainer->addChild(m_restartRequiredLabel);
 
     m_downloadBarContainer = CCNode::create();
@@ -347,7 +347,7 @@ void ModItem::updateState() {
     }
     else {
         m_updateBtn->setVisible(false);
-        m_versionLabel->setString(m_source.getMetadata().getVersion().toString().c_str());
+        m_versionLabel->setString(m_source.getMetadata().getVersion().toVString().c_str());
         m_versionLabel->setColor(to3B(ColorProvider::get()->color("mod-list-version-label"_spr)));
     }
     m_viewMenu->updateLayout();

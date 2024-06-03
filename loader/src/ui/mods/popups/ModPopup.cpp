@@ -158,7 +158,7 @@ bool ModPopup::setup(ModSource&& src) {
         { "GJ_downloadsIcon_001.png", "Downloads", "downloads", std::nullopt, "stats" },
         { "GJ_timeIcon_001.png", "Released", "release-date", std::nullopt, "stats" },
         { "GJ_timeIcon_001.png", "Updated", "update-date", std::nullopt, "stats" },
-        { "version.png"_spr, "Version", "version", m_source.getMetadata().getVersion().toString(), "client" },
+        { "version.png"_spr, "Version", "version", m_source.getMetadata().getVersion().toVString(), "client" },
         { nullptr, "Checking for updates", "update-check", std::nullopt, "updates" },
     }) {
         auto container = CCNode::create();
@@ -749,7 +749,7 @@ void ModPopup::onCheckUpdates(typename server::ServerRequest<std::optional<serve
                 updatesStat, "Update Found", false,
                 ColorProvider::get()->color3b("mod-list-version-label-updates-available"_spr)
             );
-            this->setStatValue(updatesStat, resolved.value().version.toString());
+            this->setStatValue(updatesStat, resolved.value().version.toVString());
             this->updateState();
         }
         else {

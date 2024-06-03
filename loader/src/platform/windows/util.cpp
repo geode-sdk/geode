@@ -5,7 +5,7 @@ using namespace geode::prelude;
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/binding/AppDelegate.hpp>
 #include "nfdwin.hpp"
-#include <filesystem>
+#include <ghc/fs_fwd.hpp>
 #include <Windows.h>
 #include <processthreadsapi.h>
 #include <iostream>
@@ -77,7 +77,7 @@ std::string utils::clipboard::read() {
     return text;
 }
 
-bool utils::file::openFolder(std::filesystem::path const& path) {
+bool utils::file::openFolder(ghc::filesystem::path const& path) {
     // mods can (and do) keep CoInitializeEx initialized on the main thread
     // which results in this function just not doing anything
     // which is why we're using a separate thread
@@ -86,9 +86,9 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
     auto thread = std::thread([](auto const& path, bool& success) {
         if (CoInitializeEx(nullptr, COINIT_MULTITHREADED) == S_OK) {
             if (auto id = ILCreateFromPathW(path.wstring().c_str())) {
-                std::filesystem::path selectPath = path / ".";
+                ghc::filesystem::path selectPath = path / ".";
                 std::error_code whatever;
-                if (!std::filesystem::is_directory(path, whatever)) {
+                if (!ghc::filesystem::is_directory(path, whatever)) {
                     selectPath = path;
                 }
                 auto selectEntry = ILCreateFromPathW(selectPath.wstring().c_str());
@@ -104,7 +104,7 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
     return success;
 }
 
-Result<std::filesystem::path> utils::file::pickFile(
+Result<ghc::filesystem::path> utils::file::pickFile(
     file::PickMode mode, file::FilePickOptions const& options
 ) {
     #define TURN_INTO_NFDMODE(mode) \
@@ -117,14 +117,14 @@ Result<std::filesystem::path> utils::file::pickFile(
         TURN_INTO_NFDMODE(OpenFolder);
         default: return Err<std::string>("Unknown open mode");
     }
-    std::filesystem::path path;
+    ghc::filesystem::path path;
     GEODE_UNWRAP(nfdPick(nfdMode, options, &path));
     return Ok(path);
 }
 
 void file::pickFile(
     PickMode mode, FilePickOptions const& options,
-    MiniFunction<void(std::filesystem::path)> callback,
+    MiniFunction<void(ghc::filesystem::path)> callback,
     MiniFunction<void()> failed
 ) {
     auto result = file::pickFile(mode, options);
@@ -137,21 +137,21 @@ void file::pickFile(
         }
     }
 }
-Task<Result<std::filesystem::path>> file::pick(PickMode mode, FilePickOptions const& options) {
-    return Task<Result<std::filesystem::path>>::immediate(std::move(file::pickFile(mode, options)));
+Task<Result<ghc::filesystem::path>> file::pick(PickMode mode, FilePickOptions const& options) {
+    return Task<Result<ghc::filesystem::path>>::immediate(std::move(file::pickFile(mode, options)));
 }
 
-Result<std::vector<std::filesystem::path>> utils::file::pickFiles(
+Result<std::vector<ghc::filesystem::path>> utils::file::pickFiles(
     file::FilePickOptions const& options
 ) {
-    std::vector<std::filesystem::path> paths;
+    std::vector<ghc::filesystem::path> paths;
     GEODE_UNWRAP(nfdPick(NFDMode::OpenFiles, options, &paths));
     return Ok(paths);
 }
 
 void file::pickFiles(
     FilePickOptions const& options,
-    MiniFunction<void(std::vector<std::filesystem::path>)> callback,
+    MiniFunction<void(std::vector<ghc::filesystem::path>)> callback,
     MiniFunction<void()> failed
 ) {
     auto result = file::pickFiles(options);
@@ -164,8 +164,8 @@ void file::pickFiles(
         }
     }
 }
-Task<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions const& options) {
-    return Task<Result<std::vector<std::filesystem::path>>>::immediate(std::move(file::pickFiles(options)));
+Task<Result<std::vector<ghc::filesystem::path>>> file::pickMany(FilePickOptions const& options) {
+    return Task<Result<std::vector<ghc::filesystem::path>>>::immediate(std::move(file::pickFiles(options)));
 }
 
 void utils::web::openLinkInBrowser(std::string const& url) {
@@ -181,33 +181,33 @@ CCPoint cocos::getMousePos() {
     return ccp(mouse.x, 1.f - mouse.y) * winSize;
 }
 
-std::filesystem::path dirs::getGameDir() {
+ghc::filesystem::path dirs::getGameDir() {
     // only fetch the path once, since ofc it'll never change
     // throughout the execution
     static const auto path = [] {
         std::array<WCHAR, MAX_PATH> buffer;
         GetModuleFileNameW(NULL, buffer.data(), MAX_PATH);
 
-        const std::filesystem::path path(buffer.data());
+        const ghc::filesystem::path path(buffer.data());
         return std::filesystem::weakly_canonical(path.parent_path().wstring()).wstring();
     }();
 
     return path;
 }
 
-std::filesystem::path dirs::getSaveDir() {
+ghc::filesystem::path dirs::getSaveDir() {
     // only fetch the path once, since ofc it'll never change
     // throughout the execution
     static const auto path = [] {
         std::array<WCHAR, MAX_PATH + 1> buffer;
         GetModuleFileNameW(NULL, buffer.data(), MAX_PATH + 1);
 
-        auto executablePath = std::filesystem::path(buffer.data());
+        auto executablePath = ghc::filesystem::path(buffer.data());
         auto executableName = executablePath.filename().wstring();
         executableName = executableName.substr(0, executableName.find_last_of(L"."));
 
         if (SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, buffer.data()) >= 0) {
-            auto appdataPath = std::filesystem::path(buffer.data());
+            auto appdataPath = ghc::filesystem::path(buffer.data());
             auto savePath = appdataPath / executableName;
 
             if (SHCreateDirectoryExW(NULL, savePath.wstring().c_str(), NULL) >= 0) {
@@ -221,7 +221,7 @@ std::filesystem::path dirs::getSaveDir() {
     return path;
 }
 
-std::filesystem::path dirs::getModRuntimeDir() {
+ghc::filesystem::path dirs::getModRuntimeDir() {
     return dirs::getGeodeDir() / "unzipped";
 }
 
@@ -258,7 +258,7 @@ void geode::utils::game::restart() {
 
     wchar_t buffer[MAX_PATH];
     GetModuleFileNameW(nullptr, buffer, MAX_PATH);
-    const auto gdName = fmt::format("\"{}\"", std::filesystem::path(buffer).filename().string());
+    const auto gdName = fmt::format("\"{}\"", ghc::filesystem::path(buffer).filename().string());
 
     // launch updater
     const auto updaterPath = (workingDir / "GeodeUpdater.exe").string();
