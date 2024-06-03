@@ -3,6 +3,7 @@
 using namespace geode::prelude;
 
 #include <Geode/loader/Dirs.hpp>
+#include <Geode/binding/AppDelegate.hpp>
 #include "nfdwin.hpp"
 #include <filesystem>
 #include <Windows.h>
@@ -234,13 +235,11 @@ void geode::utils::game::exit() {
     }
     #endif
 
-    if (CCApplication::sharedApplication())
-        // please forgive me..
-        // manually set the closed flag
-        // TODO: actually call glfwSetWindowShouldClose
-        *reinterpret_cast<bool*>(reinterpret_cast<uintptr_t>(CCEGLView::sharedOpenGLView()->getWindow()) + 0xa) = true;
-    else
-        std::exit(0);
+    // If this breaks down the read, uhhh blame Cvolton or something
+    if (AppDelegate::get()) {
+        AppDelegate::get()->trySaveGame(true);
+    }
+    std::exit(0);
 }
 
 void geode::utils::game::restart() {
