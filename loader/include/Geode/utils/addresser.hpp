@@ -64,7 +64,7 @@ namespace geode::addresser {
         }
 
         template <typename T>
-        static ptrdiff_t thunkOf(T ptr) {
+        static uint32_t thunkOf(T ptr) {
             // msvc
             if (sizeof(T) == sizeof(ptrdiff_t)) return 0;
 

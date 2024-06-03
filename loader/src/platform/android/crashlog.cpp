@@ -52,9 +52,9 @@ bool crashlog::setupPlatformHandler() {
     );
 
     auto crashIndicatorPath = crashlog::getCrashLogDirectory() / crashIndicatorFilename;
-    if (ghc::filesystem::exists(crashIndicatorPath)) {
+    if (std::filesystem::exists(crashIndicatorPath)) {
         s_lastLaunchCrashed = true;
-        ghc::filesystem::remove(crashIndicatorPath);
+        std::filesystem::remove(crashIndicatorPath);
     }
 
     return true;
@@ -69,7 +69,7 @@ using namespace geode::prelude;
 #include <Geode/utils/string.hpp>
 #include <array>
 #include <thread>
-#include <ghc/fs_fwd.hpp>
+#include <filesystem>
 #include <execinfo.h>
 #include <dlfcn.h>
 #include <cxxabi.h>
@@ -257,7 +257,7 @@ int writeAndGetPid() {
 
     int lastPid = 0;
 
-    if (ghc::filesystem::exists(pidFile)) {
+    if (std::filesystem::exists(pidFile)) {
 
         auto res = file::readString(pidFile);
         if (!res) {
@@ -268,7 +268,7 @@ int writeAndGetPid() {
         }
 
         std::error_code ec;
-        ghc::filesystem::remove(pidFile, ec);
+        std::filesystem::remove(pidFile, ec);
 
         if (ec) {
             log::warn("Failed to remove last-pid file: {}", ec.message());
@@ -367,7 +367,7 @@ void crashlog::setupPlatformHandlerPost() {
 
 #endif
 
-ghc::filesystem::path crashlog::getCrashLogDirectory() {
+std::filesystem::path crashlog::getCrashLogDirectory() {
     return geode::dirs::getGeodeDir() / "crashlogs";
 }
 

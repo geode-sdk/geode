@@ -186,8 +186,11 @@ namespace geode {
                 std::tie(other.m_major, other.m_minor, other.m_patch, other.m_tag);
         }
 
+        [[deprecated("Use toNonVString or toVString instead")]]
         std::string toString(bool includeTag = true) const;
-
+        std::string toVString(bool includeTag = true) const;
+        std::string toNonVString(bool includeTag = true) const;
+ 
         friend GEODE_DLL std::string format_as(VersionInfo const& version);
     };
 
@@ -236,6 +239,13 @@ namespace geode {
                 default:
                     return VersionCompareResult::GenericMismatch;
             }
+        }
+
+        constexpr VersionCompare getComparison() const {
+            return m_compare;
+        }
+        constexpr VersionInfo getUnderlyingVersion() const {
+            return m_version;
         }
 
         std::string toString() const;

@@ -638,6 +638,16 @@ namespace gd {
         bool operator[](size_t index) const {
             return const_cast<vector&>(*this)[index];
         }
+
+        _bit_reference at(size_t index) {
+            // TODO: bounds checking
+            return this->operator[](index);
+        }
+
+        bool at(size_t index) const {
+            // TODO: bounds checking
+            return this->operator[](index);
+        }
     };
 
     // 2.2 TODO: Implement set, unordered_map and unordered_set

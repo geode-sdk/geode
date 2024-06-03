@@ -420,15 +420,41 @@ size_t CCNode::getEventListenerCount() {
 }
 
 void CCNode::addChildAtPosition(CCNode* child, Anchor anchor, CCPoint const& offset, bool useAnchorLayout) {
+    return this->addChildAtPosition(child, anchor, offset, child->getAnchorPoint(), useAnchorLayout);
+}
+
+void CCNode::addChildAtPosition(CCNode* child, Anchor anchor, CCPoint const& offset, CCPoint const& nodeAnchor, bool useAnchorLayout) {
     auto layout = this->getLayout();
     if (!layout && useAnchorLayout) {
         this->setLayout(AnchorLayout::create());
     }
+    // Set the position
     child->setPosition(AnchorLayout::getAnchoredPosition(this, anchor, offset));
+    child->setAnchorPoint(nodeAnchor);
+    // Set dynamic positioning
     if (useAnchorLayout) {
         child->setLayoutOptions(AnchorLayoutOptions::create()->setAnchor(anchor)->setOffset(offset));
     }
     this->addChild(child);
+}
+
+void CCNode::updateAnchoredPosition(Anchor anchor, CCPoint const& offset) {
+    return this->updateAnchoredPosition(anchor, offset, this->getAnchorPoint());
+}
+
+void CCNode::updateAnchoredPosition(Anchor anchor, CCPoint const& offset, CCPoint const& nodeAnchor) {
+    // Always require a parent
+    if (!m_pParent) {
+        return;
+    }
+    // Set the position
+    this->setPosition(AnchorLayout::getAnchoredPosition(m_pParent, anchor, offset));
+    this->setAnchorPoint(nodeAnchor);
+    // Update dynamic positioning
+    if (auto opts = typeinfo_cast<AnchorLayoutOptions*>(this->getLayoutOptions())) {
+        opts->setAnchor(anchor);
+        opts->setOffset(offset);
+    }
 }
 
 #ifdef GEODE_EXPORTING

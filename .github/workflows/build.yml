@@ -287,7 +287,7 @@ jobs:
       - name: Zip Windows Artifacts
         uses: vimtor/action-zip@v1.1
         with:
-          files: geode-win/XInput9_1_0.dll geode-win/Geode.dll geode-win/GeodeUpdater.exe geode-win/Geode.lib geode-win/Geode.pdb
+          files: geode-win/XInput1_4.dll geode-win/Geode.dll geode-win/GeodeUpdater.exe geode-win/Geode.lib geode-win/Geode.pdb
           dest: geode-${{ steps.ref.outputs.hash }}-win.zip
 
       - name: Zip Android32 Artifacts

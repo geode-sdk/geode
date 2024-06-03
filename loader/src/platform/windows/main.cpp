@@ -13,18 +13,81 @@ void updateGeode() {
     const auto geodeDir = dirs::getGeodeDir();
     const auto updatesDir = geodeDir / "update";
 
-    bool bootstrapperExists = ghc::filesystem::exists(workingDir / "GeodeBootstrapper.dll");
-    bool updatesDirExists = ghc::filesystem::exists(geodeDir) && ghc::filesystem::exists(updatesDir);
+    bool bootstrapperExists = std::filesystem::exists(workingDir / "GeodeBootstrapper.dll");
+    bool updatesDirExists = std::filesystem::exists(geodeDir) && std::filesystem::exists(updatesDir);
 
     if (!bootstrapperExists && !updatesDirExists)
         return;
 
     // update updater
-    if (ghc::filesystem::exists(updatesDir) &&
-        ghc::filesystem::exists(updatesDir / "GeodeUpdater.exe"))
-        ghc::filesystem::rename(updatesDir / "GeodeUpdater.exe", workingDir / "GeodeUpdater.exe");
+    if (std::filesystem::exists(updatesDir) &&
+        std::filesystem::exists(updatesDir / "GeodeUpdater.exe"))
+        std::filesystem::rename(updatesDir / "GeodeUpdater.exe", workingDir / "GeodeUpdater.exe");
 
     utils::game::restart();
+}
+
+void patchDelayLoad() {
+#ifdef GEODE_IS_WINDOWS64
+    // clang has a stupid issue where its tailmerge does not allocate
+    // the correct space for xmm registers, causing them to be overwritten by the delayLoadHelper2 function
+    // See: https://github.com/llvm/llvm-project/issues/51941
+
+    // based off addresser.cpp followThunkFunction
+    // get some function thats not virtual
+    auto address = geode::cast::reference_cast<uintptr_t>(&cocos2d::CCNode::convertToNodeSpace);
+    static constexpr auto checkByteSequence = [](uintptr_t address, const std::initializer_list<uint8_t>& bytes) {
+        for (auto byte : bytes) {
+            if (*reinterpret_cast<uint8_t*>(address++) != byte) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    // check if first instruction is a jmp qword ptr [rip + ...], i.e. if the func is a thunk
+    // FF 25 xxxxxxxx
+    if (address && checkByteSequence(address, {0xFF, 0x25})) {
+        const auto offset = *reinterpret_cast<int32_t*>(address + 2);
+        // rip is at address + 6 (size of the instruction)
+        address = *reinterpret_cast<uintptr_t*>(address + 6 + offset);
+    }
+
+    // if it starts with lea eax,..., it's a delay loaded func
+    // 48 8D 05 xxxxxxxx
+    if (address && checkByteSequence(address, {0x48, 0x8d, 0x05})) {
+        // follow the jmp to the tailMerge func and grab the ImgDelayDescr pointer from there
+        // do it this way instead of grabbing it from the NT header ourselves because
+        // we don't know the dll name
+        auto leaAddress = address + 7 + *reinterpret_cast<int32_t*>(address + 3);
+
+        auto jmpOffset = *reinterpret_cast<int32_t*>(address + 7 + 1);
+        auto tailMergeAddr = address + 7 + jmpOffset + 5;
+        // see https://github.com/llvm/llvm-project/blob/main/lld/COFF/DLL.cpp#L207
+        if (checkByteSequence(tailMergeAddr, {0x51, 0x52, 0x41, 0x50, 0x41, 0x51, 0x48, 0x83, 0xEC, 0x48})) {
+            // ok we are probably in the broken lld-link tailMerge, time to patch it
+            // TODO:
+            // FIXME: xmm0 is still wrong, dont have enough space to fix it,
+            // gotta allocate space somewhere else
+            static constexpr uint8_t patch1[] = {
+                0x48, 0x83, 0xEC, 0x68,             // sub     rsp, 68h
+                0x66, 0x0F, 0x7F, 0x04, 0x24,       // movdqa  xmmword ptr [rsp], xmm0
+                0x66, 0x0F, 0x7F, 0x4C, 0x24, 0x30, // movdqa  xmmword ptr [rsp+30h], xmm1
+                0x66, 0x0F, 0x7F, 0x54, 0x24, 0x40, // movdqa  xmmword ptr [rsp+40h], xmm2
+                0x66, 0x0F, 0x7F, 0x5C, 0x24, 0x50, // movdqa  xmmword ptr [rsp+50h], xmm3
+            };
+            (void) tulip::hook::writeMemory(reinterpret_cast<void*>(tailMergeAddr + 6), patch1, sizeof(patch1));
+            static constexpr uint8_t patch2[] = {
+                0x66, 0x0F, 0x6F, 0x04, 0x24,       // movdqa  xmm0, xmmword ptr [rsp]
+                0x66, 0x0F, 0x6F, 0x4C, 0x24, 0x30, // movdqa  xmm1, xmmword ptr [rsp+30h]
+                0x66, 0x0F, 0x6F, 0x54, 0x24, 0x40, // movdqa  xmm2, xmmword ptr [rsp+40h]
+                0x66, 0x0F, 0x6F, 0x5C, 0x24, 0x50, // movdqa  xmm3, xmmword ptr [rsp+50h]
+                0x48, 0x83, 0xC4, 0x68,             // add     rsp, 68h
+            };
+            (void) tulip::hook::writeMemory(reinterpret_cast<void*>(tailMergeAddr + 48), patch2, sizeof(patch2));
+        }
+    }
+#endif
 }
 
 void* mainTrampolineAddr;
@@ -50,6 +113,8 @@ int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
         );
         // TODO: should geode FreeLibrary itself here?
     } else {
+        patchDelayLoad();
+
         int exitCode = geodeEntry(hInstance);
         if (exitCode != 0)
             return exitCode;
@@ -218,7 +283,7 @@ BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
         // if we find the old bootstrapper dll, don't load geode, copy new updater and let it do the rest
         auto workingDir = dirs::getGameDir();
         std::error_code error;
-        bool oldBootstrapperExists = ghc::filesystem::exists(workingDir / "GeodeBootstrapper.dll", error);
+        bool oldBootstrapperExists = std::filesystem::exists(workingDir / "GeodeBootstrapper.dll", error);
         if (error) {
             earlyError("There was an error checking whether the old GeodeBootstrapper.dll exists: " + error.message());
             return FALSE;

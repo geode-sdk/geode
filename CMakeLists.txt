@@ -172,13 +172,8 @@ include(cmake/Platform.cmake)
 include(cmake/GeodeFile.cmake)
 
 if (NOT DEFINED GEODE_GD_VERSION)
-	if (${GEODE_TARGET_PLATFORM} STREQUAL "Win32")
-		set(GEODE_GD_VERSION 2.204)
-		set(GEODE_COMP_GD_VERSION 22040)
-	else()
-		set(GEODE_GD_VERSION 2.206)
-		set(GEODE_COMP_GD_VERSION 22060)
-	endif()
+	set(GEODE_GD_VERSION 2.206)
+	set(GEODE_COMP_GD_VERSION 22060)
 endif()
 
 target_compile_definitions(${PROJECT_NAME} INTERFACE GEODE_GD_VERSION=${GEODE_GD_VERSION} GEODE_COMP_GD_VERSION=${GEODE_COMP_GD_VERSION})
@@ -189,7 +184,7 @@ if (WIN32)
 	add_definitions(-D_HAS_ITERATOR_DEBUGGING=0)
 	target_compile_definitions(${PROJECT_NAME} INTERFACE _HAS_ITERATOR_DEBUGGING=0)
 	
-	target_link_libraries(${PROJECT_NAME} INTERFACE delayimp)
+	target_link_libraries(${PROJECT_NAME} INTERFACE delayimp ws2_32)
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND
 		CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
 		# target x86 on windows with clang
@@ -211,7 +206,6 @@ endif()
 set(MAT_JSON_AS_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/json#3fe4752")
 CPMAddPackage("gh:fmtlib/fmt#10.1.1")
-CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 
 target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)
 
@@ -240,7 +234,7 @@ if (DEFINED GEODE_TULIPHOOK_REPO_PATH)
 	message(STATUS "Using ${GEODE_TULIPHOOK_REPO_PATH} for TulipHook")
 	add_subdirectory(${GEODE_TULIPHOOK_REPO_PATH} ${GEODE_TULIPHOOK_REPO_PATH}/build)
 else()
-	CPMAddPackage("gh:geode-sdk/TulipHook#fd1e02e")
+	CPMAddPackage("gh:geode-sdk/TulipHook#7e52ec4")
 endif()
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 
@@ -254,10 +248,6 @@ if (SUPPORTS_W_NO_EVERYTHING)
 endif()
 
 target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
-
-add_library(GeodeFilesystemImpl ${CMAKE_CURRENT_SOURCE_DIR}/FilesystemImpl.cpp)
-target_compile_features(GeodeFilesystemImpl PUBLIC cxx_std_20)
-target_link_libraries(GeodeFilesystemImpl PUBLIC ghc_filesystem)
 
 add_subdirectory(${GEODE_BINDINGS_REPO_PATH} ${CMAKE_BINARY_DIR}/bindings)
 
@@ -274,7 +264,7 @@ target_include_directories(GeodeBindings PUBLIC
 	${GEODE_LOADER_PATH}/include/Geode/fmod
 )
 target_link_directories(GeodeBindings PUBLIC ${GEODE_LOADER_PATH}/include/link)
-target_link_libraries(GeodeBindings PUBLIC ghc_filesystem fmt TulipHookInclude mat-json GeodeFilesystemImpl)
+target_link_libraries(GeodeBindings PUBLIC fmt TulipHookInclude mat-json)
 target_link_libraries(${PROJECT_NAME} INTERFACE GeodeBindings)
 if (${GEODE_REVERT_TODO_RETURN})
 	target_compile_definitions(GeodeBindings PUBLIC GEODE_REVERT_TODO_RETURN)

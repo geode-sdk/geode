@@ -6,7 +6,7 @@
 #include <Geode/DefaultInclude.hpp>
 #include <ccTypes.h>
 #include <chrono>
-#include <ghc/fs_fwd.hpp>
+#include <filesystem>
 #include <matjson.hpp>
 #include <type_traits>
 #include <fmt/core.h>
@@ -59,8 +59,8 @@ namespace gd {
     }
 }
 
-namespace ghc::filesystem {
-    GEODE_INLINE GEODE_HIDDEN std::string format_as(ghc::filesystem::path const& value) {
+namespace std::filesystem {
+    GEODE_INLINE GEODE_HIDDEN std::string format_as(std::filesystem::path const& value) {
         return value.string();
     }
 }

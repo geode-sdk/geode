@@ -1,9 +1,9 @@
 #include <FileWatcher.hpp>
 
 FileWatcher::FileWatcher(
-    ghc::filesystem::path const& file, FileWatchCallback callback, ErrorCallback error
+    std::filesystem::path const& file, FileWatchCallback callback, ErrorCallback error
 ) {
-    m_filemode = ghc::filesystem::is_regular_file(file);
+    m_filemode = std::filesystem::is_regular_file(file);
 
     m_platformHandle = nullptr;
     m_file = file;

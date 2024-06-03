@@ -7,9 +7,9 @@ static constexpr auto const notifyAttributes =
     FILE_NOTIFY_CHANGE_LAST_WRITE | FILE_NOTIFY_CHANGE_ATTRIBUTES | FILE_NOTIFY_CHANGE_SIZE;
 
 FileWatcher::FileWatcher(
-    ghc::filesystem::path const& file, FileWatchCallback callback, ErrorCallback error
+    std::filesystem::path const& file, FileWatchCallback callback, ErrorCallback error
 ) {
-    m_filemode = ghc::filesystem::is_regular_file(file);
+    m_filemode = std::filesystem::is_regular_file(file);
     auto handle = FindFirstChangeNotificationW(
         (m_filemode ? file.parent_path() : file).wstring().c_str(), false, notifyAttributes
     );
@@ -75,8 +75,8 @@ void FileWatcher::watch() {
                     auto filename = std::wstring(
                         info->FileName, info->FileName + info->FileNameLength / sizeof(wchar_t)
                     );
-                    if (ghc::filesystem::exists(m_file) &&
-                        ghc::filesystem::file_size(m_file) > 1000 &&
+                    if (std::filesystem::exists(m_file) &&
+                        std::filesystem::file_size(m_file) > 1000 &&
                         info->Action == FILE_ACTION_MODIFIED &&
                         m_file.filename().wstring() == filename) {
                         m_callback(m_file);

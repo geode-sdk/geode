@@ -51,7 +51,7 @@ bool Loader::Impl::isForwardCompatMode() {
 
 void Loader::Impl::createDirectories() {
 #ifdef GEODE_IS_MACOS
-    ghc::filesystem::create_directory(dirs::getSaveDir());
+    std::filesystem::create_directory(dirs::getSaveDir());
 #endif
 
     (void) utils::file::createDirectoryAll(dirs::getGeodeResourcesDir());
@@ -260,8 +260,8 @@ void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
     for (auto const& dir : m_modSearchDirectories) {
         log::debug("Searching {}", dir);
         log::pushNest();
-        for (auto const& entry : ghc::filesystem::directory_iterator(dir)) {
-            if (!ghc::filesystem::is_regular_file(entry) ||
+        for (auto const& entry : std::filesystem::directory_iterator(dir)) {
+            if (!std::filesystem::is_regular_file(entry) ||
                 entry.path().extension() != GEODE_MOD_EXTENSION)
                 continue;
 
@@ -521,22 +521,35 @@ void Loader::Impl::findProblems() {
         for (auto const& dep : mod->getMetadata().getDependencies()) {
             if (dep.mod && dep.mod->isEnabled() && dep.version.compare(dep.mod->getVersion()))
                 continue;
+
+            auto dismissKey = fmt::format("dismiss-optional-dependency-{}-for-{}", dep.id, id);
+
             switch(dep.importance) {
                 case ModMetadata::Dependency::Importance::Suggested:
-                    this->addProblem({
-                        LoadProblem::Type::Suggestion,
-                        mod,
-                        fmt::format("{} {}", dep.id, dep.version.toString())
-                    });
-                    log::info("{} suggests {} {}", id, dep.id, dep.version);
+                    if (!Mod::get()->template getSavedValue<bool>(dismissKey)) {
+                        this->addProblem({
+                            LoadProblem::Type::Suggestion,
+                            mod,
+                            fmt::format("{} {}", dep.id, dep.version.toString())
+                        });
+                        log::info("{} suggests {} {}", id, dep.id, dep.version);
+                    }
+                    else {
+                        log::info("{} suggests {} {}, but that suggestion was dismissed", id, dep.id, dep.version);
+                    }
                     break;
                 case ModMetadata::Dependency::Importance::Recommended:
-                    this->addProblem({
-                        LoadProblem::Type::Recommendation,
-                        mod,
-                        fmt::format("{} {}", dep.id, dep.version.toString())
-                    });
-                    log::warn("{} recommends {} {}", id, dep.id, dep.version);
+                    if (!Mod::get()->template getSavedValue<bool>(dismissKey)) {
+                        this->addProblem({
+                            LoadProblem::Type::Recommendation,
+                            mod,
+                            fmt::format("{} {}", dep.id, dep.version.toString())
+                        });
+                        log::warn("{} recommends {} {}", id, dep.id, dep.version);
+                    }
+                    else {
+                        log::warn("{} recommends {} {}, but that suggestion was dismissed", id, dep.id, dep.version);
+                    }
                     break;
                 case ModMetadata::Dependency::Importance::Required:
                     if(m_mods.find(dep.id) == m_mods.end()) {
@@ -763,8 +776,8 @@ void Loader::Impl::forceReset() {
     }
     m_mods.clear();
     log::Logger::get()->clear();
-    ghc::filesystem::remove_all(dirs::getModRuntimeDir());
-    ghc::filesystem::remove_all(dirs::getTempDir());
+    std::filesystem::remove_all(dirs::getModRuntimeDir());
+    std::filesystem::remove_all(dirs::getTempDir());
 }
 
 bool Loader::Impl::isReadyToHook() const {

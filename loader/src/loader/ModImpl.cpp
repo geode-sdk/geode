@@ -21,6 +21,17 @@
 
 using namespace geode::prelude;
 
+static constexpr const char* humanReadableDescForAction(ModRequestedAction action) {
+    switch (action) {
+        default: return "(Unknown action)";
+        case ModRequestedAction::None: return "(No action has been taken)";
+        case ModRequestedAction::Enable: return "Mod has been enabled";
+        case ModRequestedAction::Disable: return "Mod has been disabled";
+        case ModRequestedAction::Uninstall: return "Mod has been uninstalled";
+        case ModRequestedAction::UninstallWithSaveData: return "Mod has been uninstalled";
+    }
+}
+
 Mod::Impl* ModImpl::get() {
     return Mod::get()->m_impl.get();
 }
@@ -48,10 +59,14 @@ Result<> Mod::Impl::setup() {
     }
     if (!m_resourcesLoaded) {
         auto searchPathRoot = dirs::getModRuntimeDir() / m_metadata.getID() / "resources";
-        CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
+
+        // Hi, linux bros!
+        Loader::get()->queueInMainThread([searchPathRoot]() {
+            CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
+        });
 
         const auto binariesDir = searchPathRoot / m_metadata.getID() / "binaries" / PlatformID::toShortString(GEODE_PLATFORM_TARGET);
-        if (ghc::filesystem::exists(binariesDir))
+        if (std::filesystem::exists(binariesDir))
             LoaderImpl::get()->addNativeBinariesPath(binariesDir);
 
         m_resourcesLoaded = true;
@@ -62,7 +77,7 @@ Result<> Mod::Impl::setup() {
 
 // Getters
 
-ghc::filesystem::path Mod::Impl::getSaveDir() const {
+std::filesystem::path Mod::Impl::getSaveDir() const {
     return m_saveDirPath;
 }
 
@@ -99,15 +114,15 @@ std::vector<Mod*> Mod::Impl::getDependants() const {
 }
 #endif
 
-ghc::filesystem::path Mod::Impl::getTempDir() const {
+std::filesystem::path Mod::Impl::getTempDir() const {
     return m_tempDirName;
 }
 
-ghc::filesystem::path Mod::Impl::getBinaryPath() const {
+std::filesystem::path Mod::Impl::getBinaryPath() const {
     return m_tempDirName / m_metadata.getBinaryName();
 }
 
-ghc::filesystem::path Mod::Impl::getPackagePath() const {
+std::filesystem::path Mod::Impl::getPackagePath() const {
     return m_metadata.getPath();
 }
 
@@ -165,7 +180,7 @@ Result<> Mod::Impl::loadData() {
     // Settings
     // Check if settings exist
     auto settingPath = m_saveDirPath / "settings.json";
-    if (ghc::filesystem::exists(settingPath)) {
+    if (std::filesystem::exists(settingPath)) {
         GEODE_UNWRAP_INTO(auto settingData, utils::file::readString(settingPath));
         // parse settings.json
         std::string error;
@@ -208,7 +223,7 @@ Result<> Mod::Impl::loadData() {
 
     // Saved values
     auto savedPath = m_saveDirPath / "saved.json";
-    if (ghc::filesystem::exists(savedPath)) {
+    if (std::filesystem::exists(savedPath)) {
         GEODE_UNWRAP_INTO(auto data, utils::file::readString(savedPath));
         std::string error;
         auto res = matjson::parse(data, error);
@@ -371,7 +386,7 @@ Result<> Mod::Impl::loadBinary() {
     if (m_enabled)
         return Ok();
 
-    if (!ghc::filesystem::exists(this->getBinaryPath())) {
+    if (!std::filesystem::exists(this->getBinaryPath())) {
         return Err(
             fmt::format(
                 "Failed to load {}: No binary could be found for current platform.\n"
@@ -407,30 +422,51 @@ Result<> Mod::Impl::loadBinary() {
 }
 
 Result<> Mod::Impl::enable() {
-    if (m_requestedAction != ModRequestedAction::None) {
-        return Err("Mod already has a requested action");
-    }
+    switch (m_requestedAction) {
+        // Allow reverting disabling
+        case ModRequestedAction::Disable: {
+            m_requestedAction = ModRequestedAction::None;
+        } break;
 
-    m_requestedAction = ModRequestedAction::Enable;
+        // Only possible to enable otherwise
+        case ModRequestedAction::None: {
+            m_requestedAction = ModRequestedAction::Enable;
+        } break;
+
+        default: {
+            return Err(humanReadableDescForAction(m_requestedAction));
+        } break;
+    }
     Mod::get()->setSavedValue("should-load-" + m_metadata.getID(), true);
 
     return Ok();
 }
 
 Result<> Mod::Impl::disable() {
-    if (m_requestedAction != ModRequestedAction::None) {
-        return Err("Mod already has a requested action");
-    }
+    switch (m_requestedAction) {
+        // Allow reverting enabling
+        case ModRequestedAction::Enable: {
+            m_requestedAction = ModRequestedAction::None;
+        } break;
 
-    m_requestedAction = ModRequestedAction::Disable;
+        // Only possible to enable otherwise
+        case ModRequestedAction::None: {
+            m_requestedAction = ModRequestedAction::Disable;
+        } break;
+
+        default: {
+            return Err(humanReadableDescForAction(m_requestedAction));
+        } break;
+    }
     Mod::get()->setSavedValue("should-load-" + m_metadata.getID(), false);
 
     return Ok();
 }
 
 Result<> Mod::Impl::uninstall(bool deleteSaveData) {
-    if (m_requestedAction != ModRequestedAction::None) {
-        return Err("Mod already has a requested action");
+    // Allow uninstalling if the mod has been disabled / enabled
+    if (modRequestedActionIsUninstall(m_requestedAction)) {
+        return Err(humanReadableDescForAction(m_requestedAction));
     }
 
     if (this->isInternal()) {
@@ -447,7 +483,7 @@ Result<> Mod::Impl::uninstall(bool deleteSaveData) {
     Mod::get()->getSaveContainer().try_erase("should-load-" + m_metadata.getID());
 
     std::error_code ec;
-    ghc::filesystem::remove(m_metadata.getPath(), ec);
+    std::filesystem::remove(m_metadata.getPath(), ec);
     if (ec) {
         return Err(
             "Unable to delete mod's .geode file: " + ec.message()
@@ -455,7 +491,7 @@ Result<> Mod::Impl::uninstall(bool deleteSaveData) {
     }
 
     if (deleteSaveData) {
-        ghc::filesystem::remove_all(this->getSaveDir(), ec);
+        std::filesystem::remove_all(this->getSaveDir(), ec);
         if (ec) {
             return Err(
                 "Unable to delete mod's save directory: " + ec.message()
@@ -467,8 +503,7 @@ Result<> Mod::Impl::uninstall(bool deleteSaveData) {
 }
 
 bool Mod::Impl::isUninstalled() const {
-    return m_requestedAction == ModRequestedAction::Uninstall ||
-        m_requestedAction == ModRequestedAction::UninstallWithSaveData;
+    return modRequestedActionIsUninstall(m_requestedAction);
 }
 
 ModRequestedAction Mod::Impl::getRequestedAction() const {
@@ -655,7 +690,7 @@ Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
     auto datePath = tempDir / "modified-at";
     std::string currentHash = file::readString(datePath).unwrapOr("");
 
-    auto modifiedDate = ghc::filesystem::last_write_time(metadata.getPath());
+    auto modifiedDate = std::filesystem::last_write_time(metadata.getPath());
     auto modifiedCount = std::chrono::duration_cast<std::chrono::milliseconds>(modifiedDate.time_since_epoch());
     auto modifiedHash = std::to_string(modifiedCount.count());
     if (currentHash == modifiedHash) {
@@ -665,7 +700,7 @@ Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
     log::debug("Hash mismatch detected, unzipping");
 
     std::error_code ec;
-    ghc::filesystem::remove_all(tempDir, ec);
+    std::filesystem::remove_all(tempDir, ec);
     if (ec) {
         auto message = ec.message();
         #ifdef GEODE_IS_WINDOWS
@@ -700,7 +735,7 @@ Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
     return Ok();
 }
 
-ghc::filesystem::path Mod::Impl::getConfigDir(bool create) const {
+std::filesystem::path Mod::Impl::getConfigDir(bool create) const {
     auto dir = dirs::getModConfigDir() / m_metadata.getID();
     if (create) {
         (void)file::createDirectoryAll(dir);

@@ -26,7 +26,7 @@ THE SOFTWARE.
 #define __SUPPORT_ZIPUTILS_H__
 
 #include <string>
-#include <ghc/fs_fwd.hpp>
+#include <filesystem>
 #include "../../platform/CCPlatformDefine.h"
 #include "../../platform/CCPlatformConfig.h"
 #include "../../include/ccMacros.h"
@@ -217,7 +217,7 @@ namespace cocos2d
          */
         bool isLoaded() const;
 
-        bool unzipAllTo(ghc::filesystem::path const& path);
+        bool unzipAllTo(std::filesystem::path const& path);
 
         /**
         * Regenerate accessible file list based on a new filter string.

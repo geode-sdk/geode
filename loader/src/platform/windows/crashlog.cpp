@@ -9,6 +9,7 @@
 #include <DbgHelp.h>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/file.hpp>
+#include <Geode/utils/terminate.hpp>
 #include <Windows.h>
 #include <chrono>
 #include <ctime>
@@ -46,7 +47,7 @@ static std::string getModuleName(HMODULE module, bool fullPath = true) {
     if (fullPath) {
         return buffer;
     }
-    return ghc::filesystem::path(buffer).filename().string();
+    return std::filesystem::path(buffer).filename().string();
 }
 
 static char const* getExceptionCodeString(DWORD code) {
@@ -66,6 +67,8 @@ static char const* getExceptionCodeString(DWORD code) {
         EXP_STR(EXCEPTION_FLT_INVALID_OPERATION);
         EXP_STR(EXCEPTION_FLT_OVERFLOW);
         EXP_STR(EXCEPTION_INT_DIVIDE_BY_ZERO);
+        EXP_STR(GEODE_TERMINATE_EXCEPTION_CODE);
+        EXP_STR(GEODE_UNREACHABLE_EXCEPTION_CODE);
         default: return "<Unknown>";
     }
     #undef EXP_STR
@@ -168,7 +171,7 @@ static std::string getStacktrace(PCONTEXT context) {
     // size_t frame = 0;
     while (true) {
         if (!StackWalk64(
-                IMAGE_FILE_MACHINE_I386, process, thread, &stack, context, nullptr,
+                IMAGE_FILE_MACHINE_AMD64, process, thread, &stack, context, nullptr,
                 SymFunctionTableAccess64, SymGetModuleBase64, nullptr
             ))
             break;
@@ -313,7 +316,14 @@ static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod) {
         }
 
         stream << "Faulty Mod: " << (faultyMod ? faultyMod->getID() : "<Unknown>") << "\n";
-    } else {
+    }
+    else if (isGeodeExceptionCode(info->ExceptionRecord->ExceptionCode)) {
+        stream
+            << "A mod has deliberately asked the game to crash.\n"
+            << "Reason: " << reinterpret_cast<const char*>(info->ExceptionRecord->ExceptionInformation[0]) << "\n"
+            << "Faulty Mod: " << reinterpret_cast<Mod*>(info->ExceptionRecord->ExceptionInformation[1])->getID() << "\n";
+    }
+    else {
         stream << "Faulty Module: "
             << getModuleName(handleFromAddress(info->ExceptionRecord->ExceptionAddress), true)
             << "\n"
@@ -363,10 +373,10 @@ bool crashlog::setupPlatformHandler() {
     SetUnhandledExceptionFilter(exceptionHandler);
 
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
-    if (ghc::filesystem::exists(lastCrashedFile)) {
+    if (std::filesystem::exists(lastCrashedFile)) {
         g_lastLaunchCrashed = true;
         try {
-            ghc::filesystem::remove(lastCrashedFile);
+            std::filesystem::remove(lastCrashedFile);
         }
         catch (...) {
         }
@@ -380,6 +390,6 @@ bool crashlog::didLastLaunchCrash() {
 
 void crashlog::setupPlatformHandlerPost() {}
 
-ghc::filesystem::path crashlog::getCrashLogDirectory() {
+std::filesystem::path crashlog::getCrashLogDirectory() {
     return dirs::getGeodeDir() / "crashlogs";
 }

@@ -1,6 +1,10 @@
 {
     "geode":        "@GEODE_VERSION_FULL@",
-    "gd":           "*",
+    "gd": {
+        "win": "*",
+        "mac": "*",
+        "android": "*"
+    },
 	"version":      "1.0.0",
 	"id":           "geode.testdep",
     "name":         "Geode Test Dependency",

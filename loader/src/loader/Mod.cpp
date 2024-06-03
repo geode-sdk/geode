@@ -2,7 +2,6 @@
 
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <Geode/loader/Index.hpp>
 #include <optional>
 #include <string_view>
 
@@ -36,7 +35,7 @@ std::optional<std::string> Mod::getDetails() const {
     return m_impl->getDetails();
 }
 
-ghc::filesystem::path Mod::getPackagePath() const {
+std::filesystem::path Mod::getPackagePath() const {
     return m_impl->getPackagePath();
 }
 
@@ -56,6 +55,17 @@ bool Mod::isEnabled() const {
     return m_impl->isEnabled();
 }
 
+bool Mod::isOrWillBeEnabled() const {
+    bool enabled = m_impl->isEnabled();
+    if (m_impl->m_requestedAction == ModRequestedAction::Enable) {
+        enabled = true;
+    }
+    else if (m_impl->m_requestedAction == ModRequestedAction::Disable) {
+        enabled = false;
+    }
+    return enabled;
+}
+
 bool Mod::isInternal() const {
     return m_impl->isInternal();
 }
@@ -68,15 +78,15 @@ ModMetadata Mod::getMetadata() const {
     return m_impl->getMetadata();
 }
 
-ghc::filesystem::path Mod::getTempDir() const {
+std::filesystem::path Mod::getTempDir() const {
     return m_impl->getTempDir();
 }
 
-ghc::filesystem::path Mod::getBinaryPath() const {
+std::filesystem::path Mod::getBinaryPath() const {
     return m_impl->getBinaryPath();
 }
 
-ghc::filesystem::path Mod::getResourcesDir() const {
+std::filesystem::path Mod::getResourcesDir() const {
     return dirs::getModRuntimeDir() / this->getID() / "resources" / this->getID();
 }
 
@@ -91,14 +101,15 @@ std::vector<Mod*> Mod::getDependants() const {
 #endif
 
 std::optional<VersionInfo> Mod::hasAvailableUpdate() const {
-    if (auto item = Index::get()->getItem(this->getID(), std::nullopt)) {
-        if (
-            item->getMetadata().getVersion() > this->getVersion() &&
-            item->getAvailablePlatforms().contains(GEODE_PLATFORM_TARGET)
-        ) {
-            return item->getMetadata().getVersion();
-        }
-    }
+    #pragma message("todo")
+    // if (auto item = Index::get()->getItem(this->getID(), std::nullopt)) {
+    //     if (
+    //         item->getMetadata().getVersion() > this->getVersion() &&
+    //         item->getAvailablePlatforms().contains(GEODE_PLATFORM_TARGET)
+    //     ) {
+    //         return item->getMetadata().getVersion();
+    //     }
+    // }
     return std::nullopt;
 }
 
@@ -110,11 +121,11 @@ Result<> Mod::loadData() {
     return m_impl->loadData();
 }
 
-ghc::filesystem::path Mod::getSaveDir() const {
+std::filesystem::path Mod::getSaveDir() const {
     return m_impl->getSaveDir();
 }
 
-ghc::filesystem::path Mod::getConfigDir(bool create) const {
+std::filesystem::path Mod::getConfigDir(bool create) const {
     return m_impl->getConfigDir(create);
 }
 
@@ -237,11 +248,36 @@ bool Mod::hasSavedValue(std::string_view const key) {
 bool Mod::hasProblems() const {
     return m_impl->hasProblems();
 }
-
+std::vector<LoadProblem> Mod::getAllProblems() const {
+    return m_impl->getProblems();
+}
+std::vector<LoadProblem> Mod::getProblems() const {
+    std::vector<LoadProblem> result;
+    for (auto problem : this->getAllProblems()) {
+        if (
+            problem.type != LoadProblem::Type::Recommendation && 
+            problem.type != LoadProblem::Type::Suggestion
+        ) {
+            result.push_back(problem);
+        }
+    }
+    return result;
+}
+std::vector<LoadProblem> Mod::getRecommendations() const {
+    std::vector<LoadProblem> result;
+    for (auto problem : this->getAllProblems()) {
+        if (
+            problem.type == LoadProblem::Type::Recommendation || 
+            problem.type == LoadProblem::Type::Suggestion
+        ) {
+            result.push_back(problem);
+        }
+    }
+    return result;
+}
 bool Mod::shouldLoad() const {
     return m_impl->shouldLoad();
 }
-
 bool Mod::isCurrentlyLoading() const {
     return m_impl->isCurrentlyLoading();
 }

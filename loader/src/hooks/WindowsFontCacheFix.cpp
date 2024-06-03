@@ -38,7 +38,7 @@ $execute {
     if (LoaderImpl::get()->isForwardCompatMode()) return;
     
     // BitmapDC::~BitmapDC
-#if GEODE_COMP_GD_VERSION == 22040
+#if 0 // TODO: mat GEODE_COMP_GD_VERSION == 22040
     patchCall(0xC9A56, (uintptr_t)&RemoveFontResourceWHook);
 
     // BitmapDC::setFont
