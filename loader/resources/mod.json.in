@@ -92,6 +92,12 @@
             "default": true,
             "name": "Enable Geode-Themed Colors",
             "description": "When enabled, the Geode menu has a <ca>Geode-themed color scheme</c>. <cy>This does not affect any other menus!</c>"
+        },
+        "disable-auto-mod-updates": {
+            "type": "bool",
+            "default": false,
+            "name": "Disable auto mod updates",
+            "description": "When enabled, Geode won't check for mod updates at game startup, which is useful for slow connections or conserving mobile data."
         }
     },
     "issues": {
