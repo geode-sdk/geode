@@ -1,8 +1,11 @@
 #pragma once
 
 #include <Geode/DefaultInclude.hpp>
+#include <Geode/ui/General.hpp>
 #include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
+#include <Geode/ui/Popup.hpp>
+#include <Geode/loader/Mod.hpp>
 
 using namespace geode::prelude;
 

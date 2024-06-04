@@ -1,4 +1,6 @@
 #include "ConfirmUninstallPopup.hpp"
+#include <Geode/binding/ButtonSprite.hpp>
+#include <Geode/binding/TextArea.hpp>
 
 bool ConfirmUninstallPopup::setup(Mod* mod) {
     m_mod = mod;

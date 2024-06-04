@@ -2,6 +2,10 @@
 
 #include <Geode/ui/General.hpp>
 #include <server/Server.hpp>
+#include <Geode/binding/ButtonSprite.hpp>
+#include <Geode/binding/Slider.hpp>
+#include <Geode/binding/CCMenuItemToggler.hpp>
+#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <server/DownloadManager.hpp>
 #include "../sources/ModSource.hpp"
 #include "../UpdateModListState.hpp"

@@ -1,7 +1,9 @@
 ﻿#pragma once
 
 #include <string>
+#include <matjson.hpp>
 #include <Geode/utils/MiniFunction.hpp>
+#include <Geode/loader/Event.hpp>
 
 namespace geode::updater {
     using UpdateFinished = std::monostate;

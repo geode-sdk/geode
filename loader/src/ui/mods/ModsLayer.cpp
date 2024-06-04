@@ -2,7 +2,12 @@
 #include "SwelvyBG.hpp"
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/utils/ColorProvider.hpp>
+#include <Geode/utils/ranges.hpp>
 #include <Geode/ui/GeodeUI.hpp>
+#include <Geode/binding/Slider.hpp>
+#include <Geode/binding/SetTextPopup.hpp>
+#include <Geode/binding/ButtonSprite.hpp>
+#include <Geode/binding/MenuLayer.hpp>
 #include "popups/ConfirmInstall.hpp"
 #include "GeodeStyle.hpp"
 

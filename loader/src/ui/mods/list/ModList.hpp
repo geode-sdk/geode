@@ -4,6 +4,8 @@
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/ui/TextArea.hpp>
 #include <Geode/ui/TextInput.hpp>
+#include <Geode/ui/IconButtonSprite.hpp>
+#include <Geode/binding/TextArea.hpp>
 #include "ModItem.hpp"
 #include "../sources/ModListSource.hpp"
 #include <server/DownloadManager.hpp>

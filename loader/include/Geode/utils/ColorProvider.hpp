@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Geode/loader/Mod.hpp>
+#include <ccTypes.h>
 #include "../DefaultInclude.hpp"
 #include "../loader/Event.hpp"
 

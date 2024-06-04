@@ -5,6 +5,8 @@
 #include "../utils/Result.hpp"
 #include "../utils/VersionInfo.hpp"
 #include "../utils/general.hpp"
+
+#include "Loader.hpp" // very nice circular dependency fix
 #include "Hook.hpp"
 #include "ModMetadata.hpp"
 #include "Setting.hpp"

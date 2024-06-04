@@ -1,5 +1,7 @@
 #include "DownloadManager.hpp"
 #include "Geode/loader/Mod.hpp"
+#include <Geode/loader/Dirs.hpp>
+#include <Geode/utils/map.hpp>
 #include <optional>
 
 using namespace server;

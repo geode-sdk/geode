@@ -9,6 +9,7 @@
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
+#include <Geode/loader/Mod.hpp>
 #include <Geode/ui/TextArea.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/ColorProvider.hpp>

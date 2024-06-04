@@ -3,6 +3,8 @@
 #include <Geode/ui/General.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/ui/TextArea.hpp>
+#include <Geode/ui/IconButtonSprite.hpp>
+#include <Geode/binding/SetTextPopupDelegate.hpp>
 #include "list/ModItem.hpp"
 #include "list/ModList.hpp"
 #include "sources/ModListSource.hpp"

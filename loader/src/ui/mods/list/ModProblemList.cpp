@@ -4,6 +4,7 @@
 #include <Geode/cocos/base_nodes/Layout.hpp>
 #include <Geode/cocos/cocoa/CCGeometry.h>
 #include <Geode/cocos/platform/CCPlatformMacros.h>
+#include <Geode/utils/cocos.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Mod.hpp>

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Geode/loader/Loader.hpp> // another great circular dependency fix
 #include <matjson.hpp>
 #include "Result.hpp"
 #include "Task.hpp"

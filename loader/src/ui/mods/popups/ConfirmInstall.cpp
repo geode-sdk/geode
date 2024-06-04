@@ -1,4 +1,6 @@
 #include "ConfirmInstall.hpp"
+#include <Geode/utils/ranges.hpp>
+#include <Geode/ui/Popup.hpp>
 #include <server/DownloadManager.hpp>
 
 using namespace geode::prelude;

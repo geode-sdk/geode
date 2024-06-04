@@ -25,6 +25,7 @@
 #ifndef __CCDATAVISITOR_H__
 #define __CCDATAVISITOR_H__
 
+#include "../../DefaultInclude.hpp"
 #include "../platform/CCPlatformMacros.h"
 #include <string>
 

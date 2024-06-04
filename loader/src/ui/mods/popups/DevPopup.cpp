@@ -1,3 +1,4 @@
+#include <Geode/binding/ButtonSprite.hpp>
 #include "DevPopup.hpp"
 #include "../UpdateModListState.hpp"
 

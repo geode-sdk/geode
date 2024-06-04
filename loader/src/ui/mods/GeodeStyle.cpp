@@ -2,6 +2,7 @@
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/loader/SettingEvent.hpp>
+#include <Geode/binding/ButtonSprite.hpp>
 
 $execute {
     // todo: these names should probably be shorter so they fit in SSO...

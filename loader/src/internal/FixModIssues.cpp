@@ -1,5 +1,6 @@
 #include "FixModIssues.hpp"
 #include <Geode/loader/Loader.hpp>
+#include <Geode/ui/Popup.hpp>
 #include <server/DownloadManager.hpp>
 #include <ui/mods/sources/ModSource.hpp>
 #include <vector>
