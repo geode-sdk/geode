@@ -50,7 +50,7 @@ extern "C" DWORD XInputGetCapabilities(DWORD dwUserIndex, DWORD dwFlags, XINPUT_
 }
 
 static std::wstring getErrorString() {
-    return L"Could not load Geode. Error code: " + std::to_wstring(GetLastError());
+    return L"Could not load Geode! Error code: " + std::to_wstring(GetLastError());
 }
 
 BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID _) {
