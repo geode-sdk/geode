@@ -188,7 +188,7 @@ std::string ModProblemItem::createProblemMessage() {
             return ss.str();
         }
         case LoadProblem::Type::UnzipFailed: {
-            ss << "coulsn't be unzipped. Reason: " << m_problem.message;
+            ss << "couldn't be unzipped. Reason: " << m_problem.message;
             return ss.str();
         }
         case LoadProblem::Type::UnsupportedVersion: {
@@ -198,7 +198,7 @@ std::string ModProblemItem::createProblemMessage() {
         case LoadProblem::Type::UnsupportedGeodeVersion: {
             ss << fmt::format(
                 "requires Geode {} to run (installed: {})",
-                m_source->getVersion().toNonVString(),
+                m_source->getMetadata().getGeodeVersion(),
                 Loader::get()->getVersion().toNonVString()
             );
             return ss.str();
