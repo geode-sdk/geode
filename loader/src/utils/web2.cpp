@@ -1,3 +1,5 @@
+#include "Geode/utils/general.hpp"
+#include <matjson.hpp>
 #define CURL_STATICLIB
 #include <curl/curl.h>
 #include <ca_bundle.h>
@@ -425,11 +427,12 @@ WebRequest& WebRequest::body(ByteVector raw) {
     return *this;
 }
 WebRequest& WebRequest::bodyString(std::string_view str) {
-    m_impl->m_body = toByteArray(str);
+    m_impl->m_body = ByteVector { str.begin(), str.end() };
     return *this;
 }
 WebRequest& WebRequest::bodyJSON(matjson::Value const& json) {
     this->header("Content-Type", "application/json");
-    m_impl->m_body = toByteArray(json);
+    std::string str = json.dump(matjson::NO_INDENTATION);
+    m_impl->m_body = ByteVector { str.begin(), str.end() };
     return *this;
 }
