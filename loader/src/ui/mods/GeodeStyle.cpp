@@ -95,7 +95,7 @@ bool GeodeSquareSprite::init(CCSprite* top, bool* state) {
 void GeodeSquareSprite::updateImage() {
     this->setTexture(CCTextureCache::get()->addImage(
         (m_state ? "GJ_button_02.png" : (isGeodeTheme() ? "GE_button_05.png"_spr : "GJ_button_01.png")),
-        true
+        false
     ));
 }
 void GeodeSquareSprite::update(float dt) {
