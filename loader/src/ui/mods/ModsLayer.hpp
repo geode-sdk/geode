@@ -5,6 +5,7 @@
 #include <Geode/ui/TextArea.hpp>
 #include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/binding/SetTextPopupDelegate.hpp>
+#include <Geode/binding/SetIDPopupDelegate.hpp>
 #include <Geode/cocos/cocoa/CCObject.h>
 #include "list/ModItem.hpp"
 #include "list/ModList.hpp"
