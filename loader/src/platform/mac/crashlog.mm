@@ -172,8 +172,12 @@ extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext)
 	auto context = reinterpret_cast<ucontext_t*>(vcontext);
 	s_backtraceSize = backtrace(s_backtrace.data(), FRAME_SIZE);
 
-    // for some reason this is needed, dont ask me why
+    	// for some reason this is needed, dont ask me why
+	#ifdef GEODE_IS_INTEL_MAC
 	s_backtrace[2] = reinterpret_cast<void*>(context->uc_mcontext->__ss.__rip);
+	#else
+	s_backtrace[2] = reinterpret_cast<void*>(context->uc_mcontext->__ss.__pc);
+	#endif
 	if (s_backtraceSize < FRAME_SIZE) {
 		s_backtrace[s_backtraceSize] = nullptr;
 	}
@@ -300,6 +304,7 @@ static std::string getRegisters() {
 
     // geez
     registers << std::showbase << std::hex /*<< std::setfill('0') << std::setw(16) */;
+    #ifdef GEODE_IS_INTEL_MAC
     registers << "rax: " << ss.__rax << "\n";
     registers << "rbx: " << ss.__rbx << "\n";
     registers << "rcx: " << ss.__rcx << "\n";
@@ -321,6 +326,42 @@ static std::string getRegisters() {
     registers << "cs: " << ss.__cs << "\n";
     registers << "fs: " << ss.__fs << "\n";
     registers << "gs: " << ss.__gs << "\n";
+    #else // m1
+    registers << "x0: " << ss.__x[0] << "\n";
+    registers << "x1: " << ss.__x[1] << "\n";
+    registers << "x2: " << ss.__x[2] << "\n";
+    registers << "x3: " << ss.__x[3] << "\n";
+    registers << "x4: " << ss.__x[4] << "\n";
+    registers << "x5: " << ss.__x[5] << "\n";
+    registers << "x6: " << ss.__x[6] << "\n";
+    registers << "x7: " << ss.__x[7] << "\n";
+    registers << "x8: " << ss.__x[8] << "\n";
+    registers << "x9: " << ss.__x[9] << "\n";
+    registers << "x10: " << ss.__x[10] << "\n";
+    registers << "x11: " << ss.__x[11] << "\n";
+    registers << "x12: " << ss.__x[12] << "\n";
+    registers << "x13: " << ss.__x[13] << "\n";
+    registers << "x14: " << ss.__x[14] << "\n";
+    registers << "x15: " << ss.__x[15] << "\n";
+    registers << "x16: " << ss.__x[16] << "\n";
+    registers << "x17: " << ss.__x[17] << "\n";
+    registers << "x18: " << ss.__x[18] << "\n";
+    registers << "x19: " << ss.__x[19] << "\n";
+    registers << "x20: " << ss.__x[20] << "\n";
+    registers << "x21: " << ss.__x[21] << "\n";
+    registers << "x22: " << ss.__x[22] << "\n";
+    registers << "x23: " << ss.__x[23] << "\n";
+    registers << "x24: " << ss.__x[24] << "\n";
+    registers << "x25: " << ss.__x[25] << "\n";
+    registers << "x26: " << ss.__x[26] << "\n";
+    registers << "x27: " << ss.__x[27] << "\n";
+    registers << "x28: " << ss.__x[28] << "\n";
+    registers << "fp: " << ss.__fp << "\n";
+    registers << "lr: " << ss.__lr << "\n";
+    registers << "sp: " << ss.__sp << "\n";
+    registers << "pc: " << ss.__pc << "\n";
+    registers << "cpsr: " << ss.__cpsr << "\n";
+    #endif
 
     return registers.str();
 }
@@ -329,7 +370,11 @@ static void handlerThread() {
     std::unique_lock<std::mutex> lock(s_mutex);
     s_cv.wait(lock, [] { return s_signal != 0; });
 
+    #ifdef GEODE_IS_INTEL_MAC
     auto signalAddress = reinterpret_cast<void*>(s_context->uc_mcontext->__ss.__rip);
+    #else // m1
+    auto signalAddress = reinterpret_cast<void*>(s_context->uc_mcontext->__ss.__pc);
+    #endif
     // Mod* faultyMod = nullptr;
     // for (int i = 1; i < s_backtraceSize; ++i) {
     //     auto mod = modFromAddress(s_backtrace[i]);
