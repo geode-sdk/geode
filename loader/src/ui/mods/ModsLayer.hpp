@@ -5,6 +5,7 @@
 #include <Geode/ui/TextArea.hpp>
 #include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/binding/SetTextPopupDelegate.hpp>
+#include <Geode/cocos/cocoa/CCObject.h>
 #include "list/ModItem.hpp"
 #include "list/ModList.hpp"
 #include "sources/ModListSource.hpp"
@@ -59,6 +60,7 @@ protected:
     void setIDPopupClosed(SetIDPopup*, int value) override;
     
     void onTab(CCObject* sender);
+    void onOpenModsFolder(CCObject*);
     void onBigView(CCObject*);
     void onSearch(CCObject*);
     void onGoToPage(CCObject*);

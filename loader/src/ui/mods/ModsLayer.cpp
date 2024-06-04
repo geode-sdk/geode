@@ -1,4 +1,9 @@
 #include "ModsLayer.hpp"
+#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/loader/Dirs.hpp>
+#include <Geode/ui/BasedButtonSprite.hpp>
+#include <Geode/utils/file.hpp>
+#include <Geode/cocos/cocoa/CCObject.h>
 #include "SwelvyBG.hpp"
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/utils/ColorProvider.hpp>
@@ -263,6 +268,11 @@ void ModsStatusNode::onConfirm(CCObject*) {
 void ModsStatusNode::onCancel(CCObject*) {
     server::ModDownloadManager::get()->cancelAll();
 }
+
+void ModsLayer::onOpenModsFolder(CCObject*) {
+    file::openFolder(dirs::getModsDir());
+}
+
 void ModsStatusNode::onRestart(CCObject*) {
     // Update button state to let user know it's restarting but it might take a bit
     m_restartBtn->setEnabled(false);
@@ -346,6 +356,19 @@ bool ModsLayer::init() {
     );
     themeBtn->setID("theme-button");
     actionsMenu->addChild(themeBtn);
+
+    auto folderSpr = createGeodeCircleButton(
+        CCSprite::createWithSpriteFrameName("gj_folderBtn_001.png"), 1.f,
+        CircleBaseSize::Medium
+    );
+    folderSpr->setScale(0.8f);
+    auto folderBtn = CCMenuItemSpriteExtra::create(
+        folderSpr,
+        this,
+        menu_selector(ModsLayer::onOpenModsFolder)
+    );
+    folderBtn->setID("mods-folder-button");
+    actionsMenu->addChild(folderBtn);
 
     actionsMenu->setLayout(
         ColumnLayout::create()
