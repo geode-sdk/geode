@@ -13,6 +13,16 @@
 #include <charconv>
 #include <clocale>
 
+// only windows seems to properly implement std::hash on std::filesystem::path
+#ifndef GEODE_IS_WINDOWS
+template <>
+struct std::hash<std::filesystem::path> {
+    std::size_t operator()(std::filesystem::path const& path) const noexcept {
+        return std::filesystem::hash_value(path);
+    }
+};
+#endif
+
 namespace geode {
     using ByteVector = std::vector<uint8_t>;
 
