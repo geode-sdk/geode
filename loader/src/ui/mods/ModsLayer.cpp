@@ -531,15 +531,11 @@ void ModsLayer::keyBackClicked() {
     this->onBack(nullptr);
 }
 
-void ModsLayer::setTextPopupClosed(SetTextPopup* popup, gd::string value) {
+void ModsLayer::setIDPopupClosed(SetIDPopup* popup, int num) {
     if (popup->getID() == "go-to-page"_spr) {
-        if (auto res = numFromString<size_t>(value)) {
-            size_t num = res.unwrap();
-            // The page indices are 0-based but people think in 1-based
-            if (num > 0) num -= 1;
-            if (m_currentSource) {
-                m_lists.at(m_currentSource)->gotoPage(num);
-            }
+        if (num > 0) num -= 1;
+        if (m_currentSource) {
+            m_lists.at(m_currentSource)->gotoPage(num);
         }
     }
 }
@@ -581,9 +577,8 @@ void ModsLayer::onBack(CCObject*) {
     ModListSource::clearAllCaches();
 }
 void ModsLayer::onGoToPage(CCObject*) {
-    auto popup = SetTextPopup::create("", "Page", 5, "Go to Page", "OK", true, 60.f);
+    auto popup = SetIDPopup::create(m_lists.at(m_currentSource)->getPage() + 1, 1, m_currentSource->getPageCount().value(), "Go to Page", "Go", true, 1, 60.f, false, false);
     popup->m_delegate = this;
-    popup->m_input->m_allowedChars = getCommonFilterAllowedChars(CommonFilter::Uint);
     popup->setID("go-to-page"_spr);
     popup->show();
 }

@@ -39,7 +39,7 @@ public:
     static ModsStatusNode* create();
 };
 
-class ModsLayer : public CCLayer, public SetTextPopupDelegate {
+class ModsLayer : public CCLayer, public SetIDPopupDelegate {
 protected:
     CCNode* m_frame;
     std::vector<CCMenuItemSpriteExtra*> m_tabs;
@@ -56,7 +56,7 @@ protected:
     bool init();
 
     void keyBackClicked() override;
-    void setTextPopupClosed(SetTextPopup*, gd::string value) override;
+    void setIDPopupClosed(SetIDPopup*, int value) override;
     
     void onTab(CCObject* sender);
     void onBigView(CCObject*);
