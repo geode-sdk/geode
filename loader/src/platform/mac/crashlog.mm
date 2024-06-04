@@ -172,8 +172,12 @@ extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext)
 	auto context = reinterpret_cast<ucontext_t*>(vcontext);
 	s_backtraceSize = backtrace(s_backtrace.data(), FRAME_SIZE);
 
-    // for some reason this is needed, dont ask me why
+    	// for some reason this is needed, dont ask me why
+	#ifdef GEODE_IS_INTEL_MAC
 	s_backtrace[2] = reinterpret_cast<void*>(context->uc_mcontext->__ss.__rip);
+	#else
+	s_backtrace[2] = reinterpret_cast<void*>(context->uc_mcontext->__ss.__pc);
+	#endif
 	if (s_backtraceSize < FRAME_SIZE) {
 		s_backtrace[s_backtraceSize] = nullptr;
 	}
@@ -366,7 +370,11 @@ static void handlerThread() {
     std::unique_lock<std::mutex> lock(s_mutex);
     s_cv.wait(lock, [] { return s_signal != 0; });
 
+    #ifdef GEODE_IS_INTEL_MAC
     auto signalAddress = reinterpret_cast<void*>(s_context->uc_mcontext->__ss.__rip);
+    #else // m1
+    auto signalAddress = reinterpret_cast<void*>(s_context->uc_mcontext->__ss.__pc);
+    #endif
     // Mod* faultyMod = nullptr;
     // for (int i = 1; i < s_backtraceSize; ++i) {
     //     auto mod = modFromAddress(s_backtrace[i]);
