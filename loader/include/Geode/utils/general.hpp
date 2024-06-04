@@ -14,7 +14,7 @@
 #include <clocale>
 
 // only windows seems to properly implement std::hash on std::filesystem::path
-#ifndef GEODE_IS_WINDOWS
+#ifdef GEODE_IS_ANDROID
 template <>
 struct std::hash<std::filesystem::path> {
     std::size_t operator()(std::filesystem::path const& path) const noexcept {
