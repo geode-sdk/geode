@@ -209,9 +209,9 @@ void SimpleTextArea::updateLinesNoWrap() {
     }
 }
 
-void SimpleTextArea::updateLinesWordWrap() {
-    this->charIteration([this](CCLabelBMFont* line, const char c, const float top) {
-        static const std::string delimiters(" `~!@#$%^&*()-_=+[{}];:'\",<.>/?\\|");
+void SimpleTextArea::updateLinesWordWrap(bool spaceWrap) {
+    this->charIteration([this, spaceWrap](CCLabelBMFont* line, const char c, const float top) {
+        static const std::string delimiters(spaceWrap ? " " : " `~!@#$%^&*()-_=+[{}];:'\",<.>/?\\|");
 
         if (delimiters.find(c) == std::string_view::npos) {
             const std::string& text = line->getString();
@@ -254,7 +254,10 @@ void SimpleTextArea::updateContainer() {
             this->updateLinesNoWrap();
         } break;
         case WORD_WRAP: {
-            this->updateLinesWordWrap();
+            this->updateLinesWordWrap(false);
+        } break;
+        case SPACE_WRAP: {
+            this->updateLinesWordWrap(true);
         } break;
         case CUTOFF_WRAP: {
             this->updateLinesCutoffWrap();
