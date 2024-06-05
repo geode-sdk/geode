@@ -64,7 +64,7 @@ void SwelvyBG::updateSpritePosition(float dt) {
     auto rect = sprite->getTextureRect();
 
     float dX = rect.origin.x - speed * dt;
-    if(dX >= width || dX <= -width) {
+    if(dX >= std::abs(width)) {
         dX = 0;
     }
 
