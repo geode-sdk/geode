@@ -17,7 +17,11 @@
 using namespace geode::prelude;
 
 // address of applicationDidFinishLaunching:
-constexpr static uintptr_t ENTRY_ADDRESS = 0xb030;
+#ifdef GEODE_IS_INTEL_MAC
+constexpr static uintptr_t ENTRY_ADDRESS = 0x78a0;
+#else
+constexpr static uintptr_t ENTRY_ADDRESS = 0xa2f8;
+#endif
 
 std::length_error::~length_error() _NOEXCEPT {} // do not ask...
 
