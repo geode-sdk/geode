@@ -3,6 +3,7 @@
 #include <Geode/DefaultInclude.hpp>
 #include <memory>
 #include <concepts>
+#include "terminate.hpp"
 
 namespace geode::utils {
 
@@ -25,7 +26,7 @@ namespace geode::utils {
         explicit MiniFunctionState(Type func) : m_func(func) {}
 
         Ret call(Args... args) const override {
-            return const_cast<Type&>(m_func)(args...);
+            return const_cast<Type&>(m_func)(std::forward<Args>(args)...);
         }
 
         MiniFunctionStateBase<Ret, Args...>* clone() const override {
@@ -41,7 +42,7 @@ namespace geode::utils {
         explicit MiniFunctionStatePointer(Type func) : m_func(func) {}
 
         Ret call(Args... args) const override {
-            return const_cast<Type&>(*m_func)(args...);
+            return const_cast<Type&>(*m_func)(std::forward<Args>(args)...);
         }
 
         MiniFunctionStateBase<Ret, Args...>* clone() const override {
@@ -57,7 +58,7 @@ namespace geode::utils {
         explicit MiniFunctionStateMemberPointer(Type func) : m_func(func) {}
 
         Ret call(Class self, Args... args) const override {
-            return const_cast<Type&>(self->*m_func)(args...);
+            return const_cast<Type&>(self->*m_func)(std::forward<Args>(args)...);
         }
 
         MiniFunctionStateBase<Ret, Class, Args...>* clone() const override {
@@ -67,7 +68,7 @@ namespace geode::utils {
     
     template <class Callable, class Ret, class... Args>
     concept MiniFunctionCallable = requires(Callable&& func, Args... args) {
-        { func(args...) } -> std::same_as<Ret>;
+        { func(std::forward<Args>(args)...) } -> std::same_as<Ret>;
     };
 
     template <class Ret, class... Args>
@@ -92,7 +93,7 @@ namespace geode::utils {
         }
 
         ~MiniFunction() {
-            delete m_state;
+            if (m_state) delete m_state;
         }
 
         template <class Callable>
@@ -111,21 +112,26 @@ namespace geode::utils {
             m_state(new MiniFunctionStateMemberPointer<MemberFunctionPointer, Ret, Args...>(func)) {}
 
         MiniFunction& operator=(MiniFunction const& other) {
-            delete m_state;
+            if (m_state) delete m_state;
             m_state = other.m_state ? other.m_state->clone() : nullptr;
             return *this;
         }
 
         MiniFunction& operator=(MiniFunction&& other) {
-            delete m_state;
+            if (m_state) delete m_state;
             m_state = other.m_state;
             other.m_state = nullptr;
             return *this;
         }
 
         Ret operator()(Args... args) const {
-            if (!m_state) return Ret();
-            return m_state->call(args...);
+            if (!m_state) {
+                utils::terminate(
+                    "Attempted to call a MiniFunction that was never assigned "
+                    "any function, or one that has been moved"
+                );
+            }
+            return m_state->call(std::forward<Args>(args)...);
         }
 
         explicit operator bool() const {

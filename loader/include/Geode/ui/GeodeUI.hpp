@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../loader/Mod.hpp"
-#include "../loader/Index.hpp"
 
 namespace geode {
     /**
@@ -20,6 +19,7 @@ namespace geode {
      * Open the support popup for a mod
      */
     GEODE_DLL void openSupportPopup(Mod* mod);
+    GEODE_DLL void openSupportPopup(ModMetadata const& metadata);
     /**
      * Open the store page for a mod (if it exists)
      */
@@ -30,23 +30,16 @@ namespace geode {
     GEODE_DLL void openSettingsPopup(Mod* mod);
     /**
      * Create a default logo sprite
-     * @param size Size of the sprite
      */
-    GEODE_DLL cocos2d::CCNode* createDefaultLogo(
-        cocos2d::CCSize const& size
-    );
+    GEODE_DLL cocos2d::CCNode* createDefaultLogo();
     /**
      * Create a logo sprite for a mod
-     * @param size Size of the sprite
      */
-    GEODE_DLL cocos2d::CCNode* createModLogo(
-        Mod* mod, cocos2d::CCSize const& size
-    );
+    GEODE_DLL cocos2d::CCNode* createModLogo(Mod* mod);
     /**
-     * Create a logo sprite for an index item
-     * @param size Size of the sprite
+     * Create a logo sprite for a mod downloaded from the Geode servers. The 
+     * logo is initially a loading circle, with the actual sprite downloaded 
+     * asynchronously
      */
-    GEODE_DLL cocos2d::CCNode* createIndexItemLogo(
-        IndexItemHandle item, cocos2d::CCSize const& size
-    );
+    GEODE_DLL cocos2d::CCNode* createServerModLogo(std::string const& id);
 }

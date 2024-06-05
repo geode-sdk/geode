@@ -1,12 +1,12 @@
 #pragma once
 
 #include <string>
-#include <ghc/fs_fwd.hpp>
+#include <filesystem>
 
-std::string calculateSHA3_256(ghc::filesystem::path const& path);
+std::string calculateSHA3_256(std::filesystem::path const& path);
 
-std::string calculateSHA256(ghc::filesystem::path const& path);
+std::string calculateSHA256(std::filesystem::path const& path);
 
-std::string calculateSHA256Text(ghc::filesystem::path const& path);
+std::string calculateSHA256Text(std::filesystem::path const& path);
 
-std::string calculateHash(ghc::filesystem::path const& path);
+std::string calculateHash(std::filesystem::path const& path);

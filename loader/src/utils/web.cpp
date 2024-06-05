@@ -1,4 +1,6 @@
-#include <Geode/cocos/platform/IncludeCurl.h>
+#define CURL_STATICLIB
+#include <curl/curl.h>
+
 #include <Geode/loader/Loader.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/web.hpp>
@@ -30,7 +32,7 @@ namespace geode::utils::fetch {
 }
 
 Result<> web::fetchFile(
-    std::string const& url, ghc::filesystem::path const& into, FileProgressCallback prog
+    std::string const& url, std::filesystem::path const& into, FileProgressCallback prog
 ) {
     auto curl = curl_easy_init();
 
@@ -168,7 +170,7 @@ private:
     std::string m_postFields;
     bool m_isJsonRequest = false;
     bool m_sent = false;
-    std::variant<std::monostate, std::ostream*, ghc::filesystem::path> m_target;
+    std::variant<std::monostate, std::ostream*, std::filesystem::path> m_target;
     std::vector<std::string> m_httpHeaders;
 
 
@@ -209,7 +211,7 @@ public:
     std::string m_postFields;
     bool m_isJsonRequest = false;
     bool m_sent = false;
-    std::variant<std::monostate, std::ostream*, ghc::filesystem::path> m_target;
+    std::variant<std::monostate, std::ostream*, std::filesystem::path> m_target;
     std::vector<std::string> m_httpHeaders;
     std::chrono::seconds m_timeoutSeconds;
 
@@ -268,9 +270,9 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
         std::unique_ptr<std::ofstream> file = nullptr;
 
         // into file
-        if (std::holds_alternative<ghc::filesystem::path>(m_target)) {
+        if (std::holds_alternative<std::filesystem::path>(m_target)) {
             file = std::make_unique<std::ofstream>(
-                std::get<ghc::filesystem::path>(m_target), std::ios::out | std::ios::binary
+                std::get<std::filesystem::path>(m_target), std::ios::out | std::ios::binary
             );
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, file.get());
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, utils::fetch::writeBinaryData);
@@ -430,11 +432,11 @@ void SentAsyncWebRequest::Impl::doCancel() {
     m_cleanedUp = true;
 
     // remove file if downloaded to one
-    if (std::holds_alternative<ghc::filesystem::path>(m_target)) {
-        auto path = std::get<ghc::filesystem::path>(m_target);
-        if (ghc::filesystem::exists(path)) {
+    if (std::holds_alternative<std::filesystem::path>(m_target)) {
+        auto path = std::get<std::filesystem::path>(m_target);
+        if (std::filesystem::exists(path)) {
             std::error_code ec;
-            ghc::filesystem::remove(path, ec);
+            std::filesystem::remove(path, ec);
         }
     }
 
@@ -686,7 +688,7 @@ AsyncWebResult<std::monostate> AsyncWebResponse::into(std::ostream& stream) {
     });
 }
 
-AsyncWebResult<std::monostate> AsyncWebResponse::into(ghc::filesystem::path const& path) {
+AsyncWebResult<std::monostate> AsyncWebResponse::into(std::filesystem::path const& path) {
     m_request.m_impl->m_target = path;
     return this->as(+[](ByteVector const&) -> Result<std::monostate> {
         return Ok(std::monostate());

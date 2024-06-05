@@ -27,11 +27,11 @@ void geode_nslog(uintptr_t x) {
 }
 
 
-ghc::filesystem::path dirs::getGameDir() {
-    return ghc::filesystem::current_path();
+std::filesystem::path dirs::getGameDir() {
+    return std::filesystem::current_path();
 }
 
-ghc::filesystem::path dirs::getSaveDir() {
+std::filesystem::path dirs::getSaveDir() {
     return weaklyCanonical(CCFileUtils::sharedFileUtils()->getWritablePath().c_str());
 }
 

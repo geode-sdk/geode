@@ -264,12 +264,14 @@ namespace geode {
     }
 
     template <class T>
-    constexpr impl::Success<T> Ok(T&& value) {
+    constexpr impl::Success<T> Ok(T value) {
+        // DO NOT MAKE THE PARAMETER T&&!!!! THAT WILL CAUSE C++ TO DO UNEXPECTED 
+        // IMPLICIT MOVES FOR EXAMPLE WHEN DOING `Ok(unordered_map.at(value))`
         return impl::Success<T>(std::forward<T>(value));
     }
 
     template <class E>
-    constexpr impl::Failure<E> Err(E&& error) {
+    constexpr impl::Failure<E> Err(E error) {
         return impl::Failure<E>(std::forward<E>(error));
     }
 

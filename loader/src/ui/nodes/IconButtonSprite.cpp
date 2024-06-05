@@ -36,18 +36,23 @@ bool IconButtonSprite::init(
 void IconButtonSprite::updateLayout() {
     static constexpr float const PAD = 7.5f;
 
+    bool hasText = m_label->getString() && strlen(m_label->getString());
+
     auto size = CCSize { 20.f, 20.f };
-    if (m_label->getString() && strlen(m_label->getString())) {
+    if (hasText) {
         m_label->limitLabelWidth(100.f, .6f, .1f);
         size.width += m_label->getScaledContentSize().width;
+        if (m_icon) {
+            size.width += PAD;
+        }
     }
     if (m_icon) {
-        limitNodeSize(m_icon, size, 1.f, .1f);
+        limitNodeSize(m_icon, { 20, 20 }, 1.f, .1f);
     }
     size.height += 15.f;
 
     if (m_icon) {
-        size.width += m_icon->getScaledContentSize().width + PAD;
+        size.width += m_icon->getScaledContentSize().width;
     }
 
     this->setContentSize(size);
@@ -55,10 +60,16 @@ void IconButtonSprite::updateLayout() {
     m_bg->setPosition(m_obContentSize / 2);
 
     if (m_icon) {
-        m_label->setPosition(
-            size.height / 2 + m_icon->getScaledContentSize().width / 2 + PAD, size.height / 2 + 1.f
-        );
-        m_icon->setPosition(size.height / 2, size.height / 2);
+        if (hasText) {
+            m_label->setPosition(
+                size.height / 2 + m_icon->getScaledContentSize().width / 2 + PAD,
+                size.height / 2 + 1.f
+            );
+            m_icon->setPosition(size.height / 2, size.height / 2);
+        }
+        else {
+            m_icon->setPosition(size.width / 2, size.height / 2);
+        }
     }
     else {
         m_label->setPosition(size.height / 2, size.height / 2);
@@ -124,4 +135,22 @@ void IconButtonSprite::setString(char const* label) {
 
 char const* IconButtonSprite::getString() {
     return m_label->getString();
+}
+
+void IconButtonSprite::setColor(cocos2d::ccColor3B const& color) {
+    CCSprite::setColor(color);
+    m_bg->setColor(color);
+    m_label->setColor(color);
+    if (auto icon = typeinfo_cast<CCRGBAProtocol*>(m_icon)) {
+        icon->setColor(color);
+    }
+}
+
+void IconButtonSprite::setOpacity(GLubyte opacity) {
+    CCSprite::setOpacity(opacity);
+    m_bg->setOpacity(opacity);
+    m_label->setOpacity(opacity);
+    if (auto icon = typeinfo_cast<CCRGBAProtocol*>(m_icon)) {
+        icon->setOpacity(opacity);
+    }
 }

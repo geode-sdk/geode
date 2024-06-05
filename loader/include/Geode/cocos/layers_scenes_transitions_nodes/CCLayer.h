@@ -380,6 +380,8 @@ public:
     static CCLayerGradient* create(const ccColor4B& start, const ccColor4B& end, const CCPoint& v);
 
     virtual bool init();
+
+    virtual void updateColor();
     /** Initializes the CCLayer with a gradient between start and end. 
      *  @js init
      */
@@ -411,9 +413,6 @@ public:
     virtual bool isCompressedInterpolation();
     
     static CCLayerGradient* create();
-
-protected:
-    virtual void updateColor();
 };
 
 

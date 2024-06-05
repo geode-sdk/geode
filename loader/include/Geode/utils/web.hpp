@@ -6,7 +6,7 @@
 #include "Result.hpp"
 #include "general.hpp"
 
-#include <ghc/fs_fwd.hpp>
+#include <filesystem>
 #include <chrono>
 
 namespace geode::utils::web {
@@ -19,6 +19,7 @@ namespace geode::utils::web {
      * @param url URL to fetch
      * @returns Returned data as bytes, or error on error
      */
+    [[deprecated("Use the WebRequest class from the web2.hpp header instead")]]
     GEODE_DLL Result<ByteVector> fetchBytes(std::string const& url);
 
     /**
@@ -26,6 +27,7 @@ namespace geode::utils::web {
      * @param url URL to fetch
      * @returns Returned data as string, or error on error
      */
+    [[deprecated("Use the WebRequest class from the web2.hpp header instead")]]
     GEODE_DLL Result<std::string> fetch(std::string const& url);
 
     /**
@@ -38,8 +40,9 @@ namespace geode::utils::web {
      * automatically remove the file that was being downloaded
      * @returns Returned data as JSON, or error on error
      */
+    [[deprecated("Use the WebRequest class from the web2.hpp header instead")]]
     GEODE_DLL Result<> fetchFile(
-        std::string const& url, ghc::filesystem::path const& into, FileProgressCallback prog = nullptr
+        std::string const& url, std::filesystem::path const& into, FileProgressCallback prog = nullptr
     );
 
     /**
@@ -47,6 +50,7 @@ namespace geode::utils::web {
      * @param url URL to fetch
      * @returns Returned data as JSON, or error on error
      */
+    [[deprecated("Use the WebRequest class from the web2.hpp header instead")]]
     GEODE_DLL Result<matjson::Value> fetchJSON(std::string const& url);
 
     class SentAsyncWebRequest;
@@ -65,7 +69,7 @@ namespace geode::utils::web {
      * A handle to an in-progress sent asynchronous web request. Use this to
      * cancel the request / query information about it
      */
-    class GEODE_DLL SentAsyncWebRequest {
+    class GEODE_DLL [[deprecated("Use the WebRequest class from the web2.hpp header instead")]] SentAsyncWebRequest {
     private:
         class Impl;
         std::shared_ptr<Impl> m_impl;
@@ -114,7 +118,7 @@ namespace geode::utils::web {
      * internet without slowing the main thread. All callbacks are run in the
      * GD thread, so interacting with the Cocos2d UI is perfectly safe
      */
-    class GEODE_DLL AsyncWebRequest {
+    class GEODE_DLL [[deprecated("Use the WebRequest class from the web2.hpp header instead")]] AsyncWebRequest {
     private:
         class Impl;
         std::unique_ptr<Impl> m_impl;
@@ -262,7 +266,7 @@ namespace geode::utils::web {
     };
 
     template <class T>
-    class AsyncWebResult {
+    class [[deprecated("Use the WebRequest class from the web2.hpp header instead")]] AsyncWebResult {
     private:
         AsyncWebRequest& m_request;
         DataConverter<T> m_converter;
@@ -291,7 +295,7 @@ namespace geode::utils::web {
         AsyncWebRequest& then(utils::MiniFunction<void(SentAsyncWebRequest&, T)> handle);
     };
 
-    class GEODE_DLL AsyncWebResponse {
+    class GEODE_DLL [[deprecated("Use the WebRequest class from the web2.hpp header instead")]] AsyncWebResponse {
     private:
         AsyncWebRequest& m_request;
 
@@ -303,7 +307,7 @@ namespace geode::utils::web {
         /**
          * Download into a stream. Make sure the stream lives for the entire
          * duration of the request. If you want to download a file, use the
-         * `ghc::filesystem::path` overload of `into` instead
+         * `std::filesystem::path` overload of `into` instead
          * @param stream Stream to download into. Make sure it lives long
          * enough, otherwise the web request will crash
          * @returns AsyncWebResult, where you can specify the `then` action for
@@ -321,7 +325,7 @@ namespace geode::utils::web {
          * template parameter, as it can be assumed you know what you passed
          * into `into`
          */
-        AsyncWebResult<std::monostate> into(ghc::filesystem::path const& path);
+        AsyncWebResult<std::monostate> into(std::filesystem::path const& path);
         /**
          * Download into memory as a string
          * @returns AsyncWebResult, where you can specify the `then` action for

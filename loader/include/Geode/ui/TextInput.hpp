@@ -29,6 +29,11 @@ namespace geode {
 
     GEODE_DLL const char* getCommonFilterAllowedChars(CommonFilter filter);
 
+    enum class TextInputAlign {
+        Center,
+        Left,
+    };
+
     /**
      * A single-line text input node
      */
@@ -37,6 +42,7 @@ namespace geode {
         cocos2d::extension::CCScale9Sprite* m_bgSprite;
         CCTextInputNode* m_input;
         std::function<void(std::string const&)> m_onInput = nullptr;
+        cocos2d::CCLabelBMFont* m_label = nullptr;
 
         bool init(float width, std::string const& placeholder, std::string const& font);
 
@@ -59,6 +65,11 @@ namespace geode {
          * Set the placeholder label for this input
          */
         void setPlaceholder(std::string const& placeholder);
+        /**
+         * Set a label on this input that shows up on the top. Set an empty 
+         * string to remove the label
+         */
+        void setLabel(std::string const& label);
         /**
          * Set the filter (allowed characters) for this input
          * @param allowedChars String of allowed characters; each character in 
@@ -104,6 +115,10 @@ namespace geode {
          * Enable/disable the input
          */
         void setEnabled(bool enabled);
+        /**
+         * Align the button's content to the left. If false, aligns to the center
+         */
+        void setTextAlign(TextInputAlign align);
 
         /**
          * Hides the background of this input. Shorthand for 

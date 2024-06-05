@@ -38,7 +38,7 @@ $execute {
     // geode::base::getCocos() + 0x1225DC = MessageBoxW in .idata
     if (LoaderImpl::get()->isForwardCompatMode()) return;
 
-#if GEODE_COMP_GD_VERSION == 22040
+#if 0 // TODO: mat GEODE_COMP_GD_VERSION == 22040
     const uint32_t importedMessageBoxA = geode::base::getCocos() + 0x122600;
 
     ByteVector p = {

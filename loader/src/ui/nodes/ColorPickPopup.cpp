@@ -146,7 +146,6 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
             Slider::create(this, menu_selector(ColorPickPopup::onOpacitySlider), .75f);
         m_opacitySlider->setPosition(winSize.width / 2 - 30.f, winSize.height / 2 - 95.f);
         m_opacitySlider->setValue(color.a / 255.f);
-        m_opacitySlider->updateBar();
         m_mainLayer->addChild(m_opacitySlider);
 
         m_opacityInput = InputNode::create(60.f, "0.00");
@@ -187,7 +186,6 @@ void ColorPickPopup::updateState(CCNode* except) {
     }
     if (m_opacitySlider) {
         m_opacitySlider->setValue(m_color.a / 255.f);
-        m_opacitySlider->updateBar();
     }
     if (m_picker != except) {
         m_picker->setDelegate(nullptr);

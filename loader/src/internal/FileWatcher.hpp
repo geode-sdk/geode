@@ -3,17 +3,17 @@
 #include <Geode/DefaultInclude.hpp>
 //#include <Geode/utils/general.hpp>
 #include <Geode/utils/MiniFunction.hpp>
-#include <ghc/fs_fwd.hpp>
+#include <filesystem>
 #include <functional>
 #include <string>
 
 class FileWatcher {
 public:
-    using FileWatchCallback = geode::utils::MiniFunction<void(ghc::filesystem::path)>;
+    using FileWatchCallback = geode::utils::MiniFunction<void(std::filesystem::path)>;
     using ErrorCallback = geode::utils::MiniFunction<void(std::string)>;
 
 protected:
-    ghc::filesystem::path m_file;
+    std::filesystem::path m_file;
     FileWatchCallback m_callback;
     ErrorCallback m_error;
     bool m_filemode = false;
@@ -25,12 +25,12 @@ protected:
 public:
     bool watching() const;
 
-    ghc::filesystem::path path() const {
+    std::filesystem::path path() const {
         return m_file;
     }
 
     FileWatcher(
-        ghc::filesystem::path const& file,
+        std::filesystem::path const& file,
         FileWatchCallback callback,
         ErrorCallback error = nullptr
     );

@@ -1,3 +1,4 @@
+#include "Geode/utils/ColorProvider.hpp"
 #include <Geode/ui/General.hpp>
 #include <cocos-ext.h>
 
@@ -7,13 +8,14 @@ CCSprite* geode::createLayerBG() {
     auto winSize = CCDirector::get()->getWinSize();
 
     auto bg = CCSprite::create("GJ_gradientBG.png");
+    bg->setID("bg");
     auto bgSize = bg->getTextureRect().size;
 
     bg->setAnchorPoint({ 0.0f, 0.0f });
     bg->setScaleX((winSize.width + 10.0f) / bgSize.width);
     bg->setScaleY((winSize.height + 10.0f) / bgSize.height);
     bg->setPosition({ -5.0f, -5.0f });
-    bg->setColor({ 0, 102, 255 }); // todo: let mods customize this
+    bg->setColor(ColorProvider::get()->color3b("mods-layer-gd-bg"_spr)); // todo: let mods customize this
 
     return bg;
 }
@@ -30,20 +32,24 @@ void geode::addSideArt(CCNode* to, SideArt sides, SideArtStyle style, bool useAn
     }
     if (sides & SideArt::BottomLeft) {
         auto spr = CCSprite::createWithSpriteFrameName(sprite);
+        spr->setID("side-art-bottom-left");
         to->addChildAtPosition(spr, Anchor::BottomLeft, ccp(offset, offset), useAnchorLayout);
     }
     if (sides & SideArt::BottomRight) {
         auto spr = CCSprite::createWithSpriteFrameName(sprite);
+        spr->setID("side-art-bottom-right");
         spr->setFlipX(true);
         to->addChildAtPosition(spr, Anchor::BottomRight, ccp(-offset, offset), useAnchorLayout);
     }
     if (sides & SideArt::TopLeft) {
         auto spr = CCSprite::createWithSpriteFrameName(sprite);
+        spr->setID("side-art-top-left");
         spr->setFlipY(true);
         to->addChildAtPosition(spr, Anchor::TopLeft, ccp(offset, -offset), useAnchorLayout);
     }
     if (sides & SideArt::TopRight) {
         auto spr = CCSprite::createWithSpriteFrameName(sprite);
+        spr->setID("side-art-top-right");
         spr->setFlipX(true);
         spr->setFlipY(true);
         to->addChildAtPosition(spr, Anchor::TopRight, ccp(-offset, -offset), useAnchorLayout);

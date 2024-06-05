@@ -65,12 +65,36 @@ std::vector<Mod*> Loader::getAllMods() {
     return m_impl->getAllMods();
 }
 
-std::vector<LoadProblem> Loader::getProblems() const {
+std::vector<LoadProblem> Loader::getAllProblems() const {
     return m_impl->getProblems();
 }
+std::vector<LoadProblem> Loader::getProblems() const {
+    std::vector<LoadProblem> result;
+    for (auto problem : this->getAllProblems()) {
+        if (
+            problem.type != LoadProblem::Type::Recommendation && 
+            problem.type != LoadProblem::Type::Suggestion
+        ) {
+            result.push_back(problem);
+        }
+    }
+    return result;
+}
+std::vector<LoadProblem> Loader::getRecommendations() const {
+    std::vector<LoadProblem> result;
+    for (auto problem : this->getAllProblems()) {
+        if (
+            problem.type == LoadProblem::Type::Recommendation || 
+            problem.type == LoadProblem::Type::Suggestion
+        ) {
+            result.push_back(problem);
+        }
+    }
+    return result;
+}
 
-void Loader::queueInMainThread(ScheduledFunction func) {
-    return m_impl->queueInMainThread(std::move(func));
+void Loader::queueInMainThread(ScheduledFunction&& func) {
+    return m_impl->queueInMainThread(std::forward<ScheduledFunction>(func));
 }
 
 std::string Loader::getGameVersion() {

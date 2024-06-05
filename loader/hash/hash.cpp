@@ -23,7 +23,7 @@ void readBuffered(std::ifstream& stream, Func func) {
     }
 }
 
-std::string calculateSHA3_256(ghc::filesystem::path const& path) {
+std::string calculateSHA3_256(std::filesystem::path const& path) {
     std::ifstream file(path, std::ios::binary);
     SHA3 sha;
     readBuffered(file, [&](const void* data, size_t amt) {
@@ -32,14 +32,14 @@ std::string calculateSHA3_256(ghc::filesystem::path const& path) {
     return sha.getHash();
 }
 
-std::string calculateSHA256(ghc::filesystem::path const& path) {
+std::string calculateSHA256(std::filesystem::path const& path) {
     std::vector<uint8_t> hash(picosha2::k_digest_size);
     std::ifstream file(path, std::ios::binary);
     picosha2::hash256(file, hash.begin(), hash.end());
     return picosha2::bytes_to_hex_string(hash.begin(), hash.end());
 }
 
-std::string calculateSHA256Text(ghc::filesystem::path const& path) {
+std::string calculateSHA256Text(std::filesystem::path const& path) {
     // remove all newlines
     std::vector<uint8_t> hash(picosha2::k_digest_size);
     std::ifstream file(path);
@@ -52,6 +52,6 @@ std::string calculateSHA256Text(ghc::filesystem::path const& path) {
     return picosha2::bytes_to_hex_string(hash.begin(), hash.end());
 }
 
-std::string calculateHash(ghc::filesystem::path const& path) {
+std::string calculateHash(std::filesystem::path const& path) {
     return calculateSHA3_256(path);
 }

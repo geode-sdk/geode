@@ -20,8 +20,8 @@ void Loader::Impl::logConsoleMessageWithSeverity(std::string const& msg, Severit
 }
 
 void Loader::Impl::openPlatformConsole() {
-    ghc::filesystem::path(getpwuid(getuid())->pw_dir);
-    freopen(ghc::filesystem::path(dirs::getGeodeDir() / "geode_log.txt").string().c_str(), "w", stdout);
+    std::filesystem::path(getpwuid(getuid())->pw_dir);
+    freopen(std::filesystem::path(dirs::getGeodeDir() / "geode_log.txt").string().c_str(), "w", stdout);
     m_platformConsoleOpen = true;
 }
 

@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <tulip/TulipHook.hpp>
 #include <array>
-#include <ghc/fs_fwd.hpp>
+#include <filesystem>
 #include <Geode/Loader.hpp>
 #include "../../loader/LoaderImpl.hpp"
 #include <thread>
@@ -17,7 +17,11 @@
 using namespace geode::prelude;
 
 // address of applicationDidFinishLaunching:
-constexpr static uintptr_t ENTRY_ADDRESS = 0xb030;
+#ifdef GEODE_IS_INTEL_MAC
+constexpr static uintptr_t ENTRY_ADDRESS = 0x78a0;
+#else
+constexpr static uintptr_t ENTRY_ADDRESS = 0xa2f8;
+#endif
 
 std::length_error::~length_error() _NOEXCEPT {} // do not ask...
 
@@ -30,18 +34,18 @@ void updateFiles() {
     auto updatesDir = dirs::getGeodeDir() / "update";
     auto resourcesDir = dirs::getGeodeResourcesDir();
 
-    if (ghc::filesystem::exists(frameworkDir) && ghc::filesystem::exists(updatesDir)) {
+    if (std::filesystem::exists(frameworkDir) && std::filesystem::exists(updatesDir)) {
         std::error_code error;
         auto bootFile = "GeodeBootstrapper.dylib";
         auto geodeFile = "Geode.dylib";
 
-        if (ghc::filesystem::exists(updatesDir / bootFile)) {
-            ghc::filesystem::remove(frameworkDir / bootFile, error);
+        if (std::filesystem::exists(updatesDir / bootFile)) {
+            std::filesystem::remove(frameworkDir / bootFile, error);
             if (error) {
                 log::warn("Couldn't remove old GeodeBootstrapper.dylib: {}", error.message());
             }
             else {
-                ghc::filesystem::rename(updatesDir / bootFile, frameworkDir / bootFile, error);
+                std::filesystem::rename(updatesDir / bootFile, frameworkDir / bootFile, error);
                 if (error) {
                     log::warn("Couldn't move new GeodeBootstrapper.dylib: {}", error.message());
                 }
@@ -50,13 +54,13 @@ void updateFiles() {
                 }
             }
         }
-        if (ghc::filesystem::exists(updatesDir / geodeFile)) {
-            ghc::filesystem::remove(frameworkDir / geodeFile, error);
+        if (std::filesystem::exists(updatesDir / geodeFile)) {
+            std::filesystem::remove(frameworkDir / geodeFile, error);
             if (error) {
                 log::warn("Couldn't remove old Geode.dylib: {}", error.message());
             }
             else {
-                ghc::filesystem::rename(updatesDir / geodeFile, frameworkDir / geodeFile, error);
+                std::filesystem::rename(updatesDir / geodeFile, frameworkDir / geodeFile, error);
                 if (error) {
                     log::warn("Couldn't move new Geode.dylib: {}", error.message());
                 }
@@ -65,13 +69,13 @@ void updateFiles() {
                 }
             }
         }
-        if (ghc::filesystem::exists(updatesDir / "resources")) {
-            ghc::filesystem::remove_all(resourcesDir / "geode.loader", error);
+        if (std::filesystem::exists(updatesDir / "resources")) {
+            std::filesystem::remove_all(resourcesDir / "geode.loader", error);
             if (error) {
                 log::warn("Couldn't remove old resources: {}", error.message());
             }
             else {
-                ghc::filesystem::rename(updatesDir / "resources", resourcesDir / "geode.loader", error);
+                std::filesystem::rename(updatesDir / "resources", resourcesDir / "geode.loader", error);
                 if (error) {
                     log::warn("Couldn't move new resources: {}", error.message());
                 }
@@ -80,7 +84,7 @@ void updateFiles() {
                 }
             }
         }
-        ghc::filesystem::remove_all(updatesDir, error);
+        std::filesystem::remove_all(updatesDir, error);
         if (error) {
             log::warn("Couldn't remove old update directory: {}", error.message());
         }
@@ -98,12 +102,12 @@ $execute {
 };
 
 void updateGeode() {
-    ghc::filesystem::path oldSavePath = "/Users/Shared/Geode/geode";
+    std::filesystem::path oldSavePath = "/Users/Shared/Geode/geode";
     auto newSavePath = dirs::getSaveDir() / "geode";
-    if (ghc::filesystem::exists(oldSavePath)) {
+    if (std::filesystem::exists(oldSavePath)) {
         std::error_code error;
 
-        ghc::filesystem::rename(oldSavePath, newSavePath, error);
+        std::filesystem::rename(oldSavePath, newSavePath, error);
         if (error) {
             log::warn("Couldn't migrate old save files from {} to {}", oldSavePath.string(), newSavePath.string());
         }

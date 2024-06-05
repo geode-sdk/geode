@@ -31,6 +31,7 @@ static auto const& getGDVersionTimestampMap() {
         { 1704601266, "2.202" },
         { 1704948277, "2.203" },
         { 1705041028, "2.204" },
+        { 1717243515, "2.206" },
     };
     return map;
 }
