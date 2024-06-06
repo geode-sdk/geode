@@ -130,7 +130,6 @@ void ListView::setCellBorderColor(cocos2d::ccColor4B color) {
 void ListView::updateAllCells() {
     for (size_t i = 0; i < m_tableView->m_cellArray->count(); i++) {
         if (auto cell = as<GenericListCell*>(m_tableView->m_cellArray->objectAtIndex(i))) {
-            log::info("Updating cell {}", i);
             cell->setPrimaryColor(m_primaryCellColor);
             cell->setSecondaryColor(m_secondaryCellColor);
             cell->setOpacity(m_cellOpacity);
