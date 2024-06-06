@@ -7,6 +7,10 @@
 namespace geode {
     class GEODE_DLL GenericListCell : public TableViewCell {
     protected:
+        cocos2d::ccColor3B m_primaryColor;
+        cocos2d::ccColor3B m_secondaryColor;
+        GLubyte m_opacity;
+
         GenericListCell(char const* name, cocos2d::CCSize size);
 
         void draw() override;
@@ -14,7 +18,10 @@ namespace geode {
     public:
         static GenericListCell* create(char const* key, cocos2d::CCSize size);
 
-        void updateBGColor(int index);
+        virtual void updateBGColor(int index);
+        void setPrimaryColor(cocos2d::ccColor3B color);
+        void setSecondaryColor(cocos2d::ccColor3B color);
+        void setOpacity(GLubyte opacity);
     };
 
     /**

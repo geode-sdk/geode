@@ -7,7 +7,10 @@
 using namespace geode::prelude;
 
 GenericListCell::GenericListCell(char const* name, CCSize size) :
-    TableViewCell(name, size.width, size.height) {}
+    TableViewCell(name, size.width, size.height),
+    m_primaryColor(ccc3(0xa1, 0x58, 0x2c)),
+    m_secondaryColor(ccc3(0xc2, 0x72, 0x3e)),
+    m_opacity(0xff) {}
 
 void GenericListCell::draw() {
     auto size = this->getContentSize();
@@ -27,9 +30,9 @@ GenericListCell* GenericListCell::create(char const* key, CCSize size) {
 }
 
 void GenericListCell::updateBGColor(int index) {
-    if (index & 1) m_backgroundLayer->setColor(ccc3(0xc2, 0x72, 0x3e));
-    else m_backgroundLayer->setColor(ccc3(0xa1, 0x58, 0x2c));
-    m_backgroundLayer->setOpacity(0xff);
+    if (index & 1) m_backgroundLayer->setColor(m_secondaryColor);
+    else m_backgroundLayer->setColor(m_primaryColor);
+    m_backgroundLayer->setOpacity(m_opacity);
 }
 
 void ListView::setupList(float) {
@@ -77,4 +80,16 @@ ListView* ListView::create(CCArray* items, float itemHeight, float width, float 
     }
     CC_SAFE_DELETE(ret);
     return nullptr;
+}
+
+void GenericListCell::setPrimaryColor(cocos2d::ccColor3B color) {
+    m_primaryColor = color;
+}
+
+void GenericListCell::setSecondaryColor(cocos2d::ccColor3B color) {
+    m_secondaryColor = color;
+}
+
+void GenericListCell::setOpacity(GLubyte opacity) {
+    m_opacity = opacity;
 }
