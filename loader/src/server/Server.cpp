@@ -786,6 +786,8 @@ ServerRequest<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCach
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
     req.param("platform", GEODE_PLATFORM_SHORT_IDENTIFIER);
+    req.param("gd", GEODE_GD_VERSION_STR);
+    req.param("geode", Loader::get()->getVersion().toVString());
     if (modIDs.size()) {
         req.param("ids", ranges::join(modIDs, ";"));
     }
