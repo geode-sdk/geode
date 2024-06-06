@@ -2,6 +2,7 @@
 #include <cocos2d.h>
 #include <cocos-ext.h>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/utils/cocos.hpp>
 
 using namespace geode::prelude;
 
