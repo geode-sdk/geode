@@ -111,6 +111,12 @@ namespace geode::utils::web {
 
         WebRequest& header(std::string_view name, std::string_view value);
         WebRequest& param(std::string_view name, std::string_view value);
+
+        template <std::integral T>
+        WebRequest& param(std::string_view name, T value) {
+            return this->param(name, std::to_string(value));
+        }
+
         WebRequest& userAgent(std::string_view name);
 
         WebRequest& timeout(std::chrono::seconds time);
