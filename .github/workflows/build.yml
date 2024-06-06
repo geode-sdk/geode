@@ -40,6 +40,8 @@ jobs:
           extra_flags: >
             -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
             -DGEODE_DONT_BUILD_TEST_MODS=1
+            -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang
+            -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++
           package_cmd: './installer/mac/package.sh ./bin/nightly ./installer/mac/geode-installer-mac.pkg'
           installer_path: './installer/mac/geode-installer-mac.pkg'
 
@@ -138,13 +140,20 @@ jobs:
         7z x ninja.zip -o"$GITHUB_WORKSPACE/ninja"
         echo "$GITHUB_WORKSPACE/ninja" >> $GITHUB_PATH
 
-    - name: Update LLVM
+    - name: Update LLVM (Windows)
       shell: bash
       run: |
         curl -L https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/LLVM-17.0.6-win64.exe -o llvm-inst.exe
         7z x llvm-inst.exe -ollvm bin/clang.exe bin/clang++.exe bin/lld-link.exe bin/llvm-rc.exe bin/*.dll lib/clang/*/include/*
         echo "$GITHUB_WORKSPACE/llvm/bin" >> $GITHUB_PATH
       if: matrix.config.id == 'win'
+
+    - name: Install LLVM (MacOS)
+      shell: bash
+      run: |
+        brew install llvm
+        echo "/usr/local/opt/llvm/bin" >> $GITHUB_PATH
+      if: matrix.config.id == 'mac'
 
     - name: Download CLI
       uses: robinraju/release-downloader@v1.9
