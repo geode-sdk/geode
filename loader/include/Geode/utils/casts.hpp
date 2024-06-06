@@ -62,14 +62,4 @@ namespace geode::cast {
         }
         return nullptr;
     }
-
-    /**
-     * Cast based on RTTI. This behaves as a replacement
-     * of dynamic_cast for cocos and gd classes,
-     * and must be used for expected results.
-     */
-    template <class T, class F>
-    static T safe_cast(F const obj) {
-        return typeinfo_cast<T>(obj);
-    }
 }
