@@ -243,6 +243,10 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         if (impl->m_body) {
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, impl->m_body->data());
             curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, impl->m_body->size());
+        } else if (impl->m_method == "POST") {
+            // curl_easy_perform would freeze on a POST request with no fields, so set it to an empty string
+            // why? god knows
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "");
         }
         
         // Cert verification
