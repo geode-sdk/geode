@@ -24,7 +24,7 @@ Border* Border::create(CCNode* node, const ccColor4B& backgroundColor, const CCS
     }
 }
 
-Border::Border(const CCPoint& padding) : m_size({ 0, 0 }),
+Border::Border(const CCPoint& padding) : m_size(ccp(0, 0)),
     m_padding({ padding.x, padding.y, padding.x, padding.y }),
     m_customZOrder(false) { }
 
