@@ -35,6 +35,18 @@ void GenericListCell::updateBGColor(int index) {
     m_backgroundLayer->setOpacity(m_opacity);
 }
 
+void GenericListCell::setPrimaryColor(cocos2d::ccColor3B color) {
+    m_primaryColor = color;
+}
+
+void GenericListCell::setSecondaryColor(cocos2d::ccColor3B color) {
+    m_secondaryColor = color;
+}
+
+void GenericListCell::setOpacity(GLubyte opacity) {
+    m_opacity = opacity;
+}
+
 void ListView::setupList(float) {
     if (!m_entries->count()) return;
     m_tableView->reloadData();
@@ -65,6 +77,9 @@ void ListView::loadCell(TableViewCell* cell, int index) {
         node->setContentSize(lcell->getScaledContentSize());
         node->setPosition(0, 0);
         lcell->addChild(node);
+        lcell->setPrimaryColor(m_primaryCellColor);
+        lcell->setSecondaryColor(m_secondaryCellColor);
+        lcell->setOpacity(m_cellOpacity);
         lcell->updateBGColor(index);
     }
 }
@@ -73,6 +88,9 @@ ListView* ListView::create(CCArray* items, float itemHeight, float width, float 
     auto ret = new ListView();
     if (ret) {
         ret->m_itemSeparation = itemHeight;
+        ret->m_primaryCellColor = ccc3(0xa1, 0x58, 0x2c);
+        ret->m_secondaryCellColor = ccc3(0xc2, 0x72, 0x3e);
+        ret->m_cellOpacity = 0xff;
         if (ret->init(items, BoomListType::Default, width, height)) {
             ret->autorelease();
             return ret;
@@ -82,14 +100,14 @@ ListView* ListView::create(CCArray* items, float itemHeight, float width, float 
     return nullptr;
 }
 
-void GenericListCell::setPrimaryColor(cocos2d::ccColor3B color) {
-    m_primaryColor = color;
+void ListView::setPrimaryCellColor(cocos2d::ccColor3B color) {
+    m_primaryCellColor = color;
 }
 
-void GenericListCell::setSecondaryColor(cocos2d::ccColor3B color) {
-    m_secondaryColor = color;
+void ListView::setSecondaryCellColor(cocos2d::ccColor3B color) {
+    m_secondaryCellColor = color;
 }
 
-void GenericListCell::setOpacity(GLubyte opacity) {
-    m_opacity = opacity;
+void ListView::setCellOpacity(GLubyte opacity) {
+    m_cellOpacity = opacity;
 }

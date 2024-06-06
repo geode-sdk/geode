@@ -18,7 +18,7 @@ namespace geode {
     public:
         static GenericListCell* create(char const* key, cocos2d::CCSize size);
 
-        virtual void updateBGColor(int index);
+        void updateBGColor(int index);
         void setPrimaryColor(cocos2d::ccColor3B color);
         void setSecondaryColor(cocos2d::ccColor3B color);
         void setOpacity(GLubyte opacity);
@@ -30,6 +30,10 @@ namespace geode {
      */
     class GEODE_DLL ListView : public CustomListView {
     protected:
+        cocos2d::ccColor3B m_primaryCellColor;
+        cocos2d::ccColor3B m_secondaryCellColor;
+        GLubyte m_cellOpacity;
+
         void setupList(float) override;
         TableViewCell* getListCell(char const* key) override;
         void loadCell(TableViewCell* cell, int index) override;
@@ -49,5 +53,9 @@ namespace geode {
             cocos2d::CCArray* items, float itemHeight = 40.f, float width = 358.f,
             float height = 220.f
         );
+
+        void setPrimaryCellColor(cocos2d::ccColor3B color);
+        void setSecondaryCellColor(cocos2d::ccColor3B color);
+        void setCellOpacity(GLubyte opacity);
     };
 }
