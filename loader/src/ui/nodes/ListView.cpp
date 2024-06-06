@@ -93,7 +93,7 @@ ListView* ListView::create(CCArray* items, float itemHeight, float width, float 
         ret->m_primaryCellColor = ccc3(0xa1, 0x58, 0x2c);
         ret->m_secondaryCellColor = ccc3(0xc2, 0x72, 0x3e);
         ret->m_cellOpacity = 0xff;
-        ret->m_borderColor = ccc4(0x00, 0x00, 0x00, 0x4B);
+        ret->m_cellBorderColor = ccc4(0x00, 0x00, 0x00, 0x4B);
         if (ret->init(items, BoomListType::Default, width, height)) {
             ret->autorelease();
             return ret;
@@ -121,8 +121,8 @@ void ListView::setCellOpacity(GLubyte opacity) {
     updateAllCells();
 }
 
-void ListView::setBorderColor(cocos2d::ccColor4B color) {
-    m_borderColor = color;
+void ListView::setCellBorderColor(cocos2d::ccColor4B color) {
+    m_cellBorderColor = color;
 
     updateAllCells();
 }
@@ -134,7 +134,7 @@ void ListView::updateAllCells() {
             cell->setPrimaryColor(m_primaryCellColor);
             cell->setSecondaryColor(m_secondaryCellColor);
             cell->setOpacity(m_cellOpacity);
-            cell->setBorderColor(m_borderColor);
+            cell->setBorderColor(m_cellBorderColor);
             cell->updateBGColor(i);
         }
     }

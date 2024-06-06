@@ -35,7 +35,7 @@ namespace geode {
         cocos2d::ccColor3B m_primaryCellColor;
         cocos2d::ccColor3B m_secondaryCellColor;
         GLubyte m_cellOpacity;
-        cocos2d::ccColor4B m_borderColor;
+        cocos2d::ccColor4B m_cellBorderColor;
 
         void setupList(float) override;
         TableViewCell* getListCell(char const* key) override;
@@ -61,6 +61,6 @@ namespace geode {
         void setPrimaryCellColor(cocos2d::ccColor3B color);
         void setSecondaryCellColor(cocos2d::ccColor3B color);
         void setCellOpacity(GLubyte opacity);
-        void setBorderColor(cocos2d::ccColor4B color);
+        void setCellBorderColor(cocos2d::ccColor4B color);
     };
 }
