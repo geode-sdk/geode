@@ -10,6 +10,7 @@ namespace geode {
         cocos2d::ccColor3B m_primaryColor;
         cocos2d::ccColor3B m_secondaryColor;
         GLubyte m_opacity;
+        cocos2d::ccColor4B m_borderColor;
 
         GenericListCell(char const* name, cocos2d::CCSize size);
 
@@ -22,6 +23,7 @@ namespace geode {
         void setPrimaryColor(cocos2d::ccColor3B color);
         void setSecondaryColor(cocos2d::ccColor3B color);
         void setOpacity(GLubyte opacity);
+        void setBorderColor(cocos2d::ccColor4B color);
     };
 
     /**
@@ -33,10 +35,12 @@ namespace geode {
         cocos2d::ccColor3B m_primaryCellColor;
         cocos2d::ccColor3B m_secondaryCellColor;
         GLubyte m_cellOpacity;
+        cocos2d::ccColor4B m_cellBorderColor;
 
         void setupList(float) override;
         TableViewCell* getListCell(char const* key) override;
         void loadCell(TableViewCell* cell, int index) override;
+        void updateAllCells();
 
     public:
         /**
@@ -57,5 +61,6 @@ namespace geode {
         void setPrimaryCellColor(cocos2d::ccColor3B color);
         void setSecondaryCellColor(cocos2d::ccColor3B color);
         void setCellOpacity(GLubyte opacity);
+        void setCellBorderColor(cocos2d::ccColor4B color);
     };
 }

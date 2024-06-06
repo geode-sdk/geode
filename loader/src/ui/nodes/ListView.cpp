@@ -10,11 +10,12 @@ GenericListCell::GenericListCell(char const* name, CCSize size) :
     TableViewCell(name, size.width, size.height),
     m_primaryColor(ccc3(0xa1, 0x58, 0x2c)),
     m_secondaryColor(ccc3(0xc2, 0x72, 0x3e)),
-    m_opacity(0xff) {}
+    m_opacity(0xff),
+    m_borderColor(ccc4(0x00, 0x00, 0x00, 0x4B)) {}
 
 void GenericListCell::draw() {
     auto size = this->getContentSize();
-    cocos2d::ccDrawColor4B(0, 0, 0, 75);
+    cocos2d::ccDrawColor4B(m_borderColor.r, m_borderColor.g, m_borderColor.b, m_borderColor.a);
     glLineWidth(2.0f);
     cocos2d::ccDrawLine({ 1.0f, 0.0f }, { size.width - 1.0f, 0.0f });
     cocos2d::ccDrawLine({ 1.0f, size.height }, { size.width - 1.0f, size.height });
@@ -47,6 +48,10 @@ void GenericListCell::setOpacity(GLubyte opacity) {
     m_opacity = opacity;
 }
 
+void GenericListCell::setBorderColor(cocos2d::ccColor4B color) {
+    m_borderColor = color;
+}
+
 void ListView::setupList(float) {
     if (!m_entries->count()) return;
     m_tableView->reloadData();
@@ -77,9 +82,6 @@ void ListView::loadCell(TableViewCell* cell, int index) {
         node->setContentSize(lcell->getScaledContentSize());
         node->setPosition(0, 0);
         lcell->addChild(node);
-        lcell->setPrimaryColor(m_primaryCellColor);
-        lcell->setSecondaryColor(m_secondaryCellColor);
-        lcell->setOpacity(m_cellOpacity);
         lcell->updateBGColor(index);
     }
 }
@@ -91,6 +93,7 @@ ListView* ListView::create(CCArray* items, float itemHeight, float width, float 
         ret->m_primaryCellColor = ccc3(0xa1, 0x58, 0x2c);
         ret->m_secondaryCellColor = ccc3(0xc2, 0x72, 0x3e);
         ret->m_cellOpacity = 0xff;
+        ret->m_cellBorderColor = ccc4(0x00, 0x00, 0x00, 0x4B);
         if (ret->init(items, BoomListType::Default, width, height)) {
             ret->autorelease();
             return ret;
@@ -102,12 +105,36 @@ ListView* ListView::create(CCArray* items, float itemHeight, float width, float 
 
 void ListView::setPrimaryCellColor(cocos2d::ccColor3B color) {
     m_primaryCellColor = color;
+
+    updateAllCells();
 }
 
 void ListView::setSecondaryCellColor(cocos2d::ccColor3B color) {
     m_secondaryCellColor = color;
+
+    updateAllCells();
 }
 
 void ListView::setCellOpacity(GLubyte opacity) {
     m_cellOpacity = opacity;
+
+    updateAllCells();
+}
+
+void ListView::setCellBorderColor(cocos2d::ccColor4B color) {
+    m_cellBorderColor = color;
+
+    updateAllCells();
+}
+
+void ListView::updateAllCells() {
+    for (size_t i = 0; i < m_tableView->m_cellArray->count(); i++) {
+        if (auto cell = as<GenericListCell*>(m_tableView->m_cellArray->objectAtIndex(i))) {
+            cell->setPrimaryColor(m_primaryCellColor);
+            cell->setSecondaryColor(m_secondaryCellColor);
+            cell->setOpacity(m_cellOpacity);
+            cell->setBorderColor(m_cellBorderColor);
+            cell->updateBGColor(i);
+        }
+    }
 }
