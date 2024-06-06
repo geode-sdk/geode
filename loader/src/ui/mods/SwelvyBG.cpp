@@ -3,7 +3,7 @@
 #include <random>
 
 bool SwelvyBG::init() {
-    if (!CCSpriteBatchNode::initWithTexture(CCTextureCache::get()->textureForKey("SwelveSheet.png"_spr), 20))
+    if (!CCNode::init())
         return false;
 
     this->setID("SwelvyBG");
@@ -18,46 +18,58 @@ bool SwelvyBG::init() {
     std::uniform_real_distribution<float> dis(3.f, 9.f);
 
     float y = m_obContentSize.height + 5;
+    int idx = 0;
     for (auto layer : std::initializer_list<std::pair<ccColor3B, const char*>> {
-        { ccc3(244, 212, 142), "layer3.png"_spr },
-        { ccc3(245, 174, 125), "layer0.png"_spr },
-        { ccc3(236, 137, 124), "layer1.png"_spr },
-        { ccc3(213, 105, 133), "layer2.png"_spr },
-        { ccc3(173, 84,  146), "layer1.png"_spr },
-        { ccc3(113, 74,  154), "layer0.png"_spr },
+        { ccc3(244, 212, 142), "swelve-layer3.png"_spr },
+        { ccc3(245, 174, 125), "swelve-layer0.png"_spr },
+        { ccc3(236, 137, 124), "swelve-layer1.png"_spr },
+        { ccc3(213, 105, 133), "swelve-layer2.png"_spr },
+        { ccc3(173, 84,  146), "swelve-layer1.png"_spr },
+        { ccc3(113, 74,  154), "swelve-layer0.png"_spr },
     }) {
         float speed = dis(gen);
         if (sign(gen) == 0) {
             speed = -speed;
         }
-        auto frame = CCSpriteFrameCache::get()->spriteFrameByName(layer.second);
-        auto repeatCount = static_cast<int>(floor(winSize.width / frame->getRect().size.width)) + 2;
-        for (int i = 0; i < repeatCount; i += 1) {
-            auto sprite = CCSprite::createWithSpriteFrame(frame);
-            sprite->setColor(layer.first);
-            sprite->setAnchorPoint({ (speed < 0 ? 0.f : 1.f), 1 });
-            sprite->setPosition({ (i + 1) * (sprite->getContentWidth() - 1), y });
-            sprite->schedule(schedule_selector(SwelvyBG::updateSpritePosition));
-            sprite->setUserObject("speed", CCFloat::create(speed));
-            sprite->setUserObject("repeat-count", CCInteger::create(repeatCount));
-            this->addChild(sprite);
-        }
-        y -= m_obContentSize.height / 6;
-    }
+        ccTexParams params = {GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT};
 
+        auto sprite = CCSprite::create(layer.second);
+        auto rect = sprite->getTextureRect();
+        sprite->setUserObject("width", CCFloat::create(rect.size.width));
+        rect.size = CCSize{winSize.width, rect.size.height};
+
+        std::string layerID = fmt::format("layer-{}", idx);
+        sprite->setID(layerID);
+        sprite->getTexture()->setTexParameters(&params);
+        sprite->setTextureRect(rect);
+        sprite->setAnchorPoint({ 0, 1 });
+        sprite->setContentSize({winSize.width, sprite->getContentSize().height});
+        sprite->setColor(layer.first);
+        sprite->setPosition({0, y});
+        sprite->schedule(schedule_selector(SwelvyBG::updateSpritePosition));
+        sprite->setUserObject("speed", CCFloat::create(speed));
+        this->addChild(sprite);
+
+        y -= m_obContentSize.height / 6;
+        idx += 1;
+    }
     return true;
 }
 
 void SwelvyBG::updateSpritePosition(float dt) {
     auto speed = static_cast<CCFloat*>(this->getUserObject("speed"))->getValue();
-    auto repeatCount = static_cast<CCInteger*>(this->getUserObject("repeat-count"))->getValue();
-    this->setPositionX(this->getPositionX() - speed * dt);
-    if (speed > 0 && this->getPositionX() < 0.f) {
-        this->setPositionX(this->getPositionX() + (this->getContentWidth() - 1) * repeatCount);
+    auto width = static_cast<CCFloat*>(this->getUserObject("width"))->getValue();
+
+    auto sprite = typeinfo_cast<CCSprite*>(this);
+    auto rect = sprite->getTextureRect();
+
+    float dX = rect.origin.x - speed * dt;
+    if(dX >= std::abs(width)) {
+        dX = 0;
     }
-    else if (speed < 0 && this->getPositionX() > this->getParent()->getContentWidth()) {
-        this->setPositionX(this->getPositionX() - (this->getContentWidth() - 1) * repeatCount);
-    }
+
+    rect.origin = CCPoint{dX, 0};
+    sprite->setTextureRect(rect);
 }
 
 SwelvyBG* SwelvyBG::create() {
