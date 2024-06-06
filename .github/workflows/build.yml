@@ -40,6 +40,7 @@ jobs:
           extra_flags: >
             -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
             -DGEODE_DONT_BUILD_TEST_MODS=1
+            -DCMAKE_LINKER="/usr/bin/ld"
           package_cmd: './installer/mac/package.sh ./bin/nightly ./installer/mac/geode-installer-mac.pkg'
           installer_path: './installer/mac/geode-installer-mac.pkg'
 
