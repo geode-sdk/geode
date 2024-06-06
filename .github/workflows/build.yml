@@ -40,8 +40,6 @@ jobs:
           extra_flags: >
             -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
             -DGEODE_DONT_BUILD_TEST_MODS=1
-            -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang
-            -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++
           package_cmd: './installer/mac/package.sh ./bin/nightly ./installer/mac/geode-installer-mac.pkg'
           installer_path: './installer/mac/geode-installer-mac.pkg'
 
@@ -152,7 +150,7 @@ jobs:
       shell: bash
       run: |
         brew install llvm
-        echo "/usr/local/opt/llvm/bin" >> $GITHUB_PATH
+        echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
       if: matrix.config.id == 'mac'
 
     - name: Download CLI
