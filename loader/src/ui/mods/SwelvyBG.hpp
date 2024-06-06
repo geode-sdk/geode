@@ -4,7 +4,7 @@
 
 using namespace geode::prelude;
 
-class SwelvyBG : public CCSpriteBatchNode {
+class SwelvyBG : public CCNode {
 protected:
     bool init();
 
