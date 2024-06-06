@@ -35,7 +35,8 @@
             }
         },
         "sprites": [
-            "images/*.png"
+            "images/*.png",
+            "swelve/*.png"
         ],
         "files": [
             "sounds/*.ogg",
@@ -54,9 +55,6 @@
             ],
             "BlankSheet": [
                 "blanks/*.png"
-            ],
-            "SwelveSheet": [
-                "swelve/*.png"
             ]
         }
     },
