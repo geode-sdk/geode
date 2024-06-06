@@ -50,9 +50,9 @@ namespace geode::utils {
                 2, reinterpret_cast<ULONG_PTR*>(errorList.data())
             );
         }
-    #else
-        std::terminate();
     #endif
+        
+        std::terminate();
     }
     
     template <class = void>
