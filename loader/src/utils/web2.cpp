@@ -150,7 +150,7 @@ public:
     WebResponse makeError(int code, std::string const& msg) {
         auto res = WebResponse();
         res.m_impl->m_code = code;
-        res.m_impl->m_data = toByteArray(msg);
+        res.m_impl->m_data = ByteVector(msg.begin(), msg.end());
         return res;
     }
 };
