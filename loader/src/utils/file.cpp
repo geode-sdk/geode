@@ -18,6 +18,16 @@
 #include <filesystem>
 #endif
 
+#if defined(GEODE_IS_ANDROID) || defined(GEODE_IS_MACOS)
+struct path_hash_t {
+    std::size_t operator()(std::filesystem::path const& path) const noexcept {
+        return std::filesystem::hash_value(path);
+    }
+};
+#else
+using path_hash_t = std::hash<std::filesystem::path>;
+#endif
+
 using namespace geode::prelude;
 using namespace geode::utils::file;
 
@@ -169,7 +179,7 @@ private:
     void* m_stream = nullptr;
     int32_t m_mode;
     std::variant<Path, ByteVector> m_srcDest;
-    std::unordered_map<Path, ZipEntry> m_entries;
+    std::unordered_map<Path, ZipEntry, path_hash_t> m_entries;
     utils::MiniFunction<void(uint32_t, uint32_t)> m_progressCallback;
 
     Result<> init() {
@@ -482,7 +492,7 @@ public:
         return Path();
     }
 
-    std::unordered_map<Path, ZipEntry> getEntries() const {
+    std::unordered_map<Path, ZipEntry, path_hash_t> getEntries() const {
         return m_entries;
     }
 

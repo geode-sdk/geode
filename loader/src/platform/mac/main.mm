@@ -1,6 +1,7 @@
 #include <Geode/DefaultInclude.hpp>
 
 #import <Cocoa/Cocoa.h>
+#include <objc/runtime.h>
 #include "../load.hpp"
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
@@ -15,13 +16,6 @@
 #include <loader/updater.hpp>
 
 using namespace geode::prelude;
-
-// address of applicationDidFinishLaunching:
-#ifdef GEODE_IS_INTEL_MAC
-constexpr static uintptr_t ENTRY_ADDRESS = 0x78a0;
-#else
-constexpr static uintptr_t ENTRY_ADDRESS = 0xa2f8;
-#endif
 
 std::length_error::~length_error() _NOEXCEPT {} // do not ask...
 
@@ -118,24 +112,16 @@ void updateGeode() {
 
 extern "C" void fake() {}
 
+static void(*s_applicationDidFinishLaunchingOrig)(void*, SEL, NSNotification*);
+
 void applicationDidFinishLaunchingHook(void* self, SEL sel, NSNotification* notification) {
     updateGeode();
-
-    std::array<uint8_t, 6> patchBytes = {
-        0x55,
-        0x48, 0x89, 0xe5,
-        0x41, 0x57
-    };
-
-    auto res = tulip::hook::writeMemory((void*)(base::get() + ENTRY_ADDRESS), patchBytes.data(), 6);
-    if (!res)
-        return;
 
     int exitCode = geodeEntry(nullptr);
     if (exitCode != 0)
         return;
 
-    return reinterpret_cast<void(*)(void*, SEL, NSNotification*)>(geode::base::get() + ENTRY_ADDRESS)(self, sel, notification);
+    return s_applicationDidFinishLaunchingOrig(self, sel, notification);
 }
 
 
@@ -154,17 +140,14 @@ bool loadGeode() {
         return false;
     }
 
-    auto detourAddr = reinterpret_cast<uintptr_t>(&applicationDidFinishLaunchingHook) - geode::base::get() - ENTRY_ADDRESS - 5;
-    auto detourAddrPtr = reinterpret_cast<uint8_t*>(&detourAddr);
-
-    std::array<uint8_t, 5> patchBytes = {
-        0xe9, detourAddrPtr[0], detourAddrPtr[1], detourAddrPtr[2], detourAddrPtr[3]
-    };
-
-    auto res = tulip::hook::writeMemory((void*)(base::get() + ENTRY_ADDRESS), patchBytes.data(), 5);
-    if (!res)
+    auto appController = objc_getClass("AppController");
+    auto adflMethod = class_getInstanceMethod(appController, @selector(applicationDidFinishLaunching:));
+    s_applicationDidFinishLaunchingOrig = reinterpret_cast<decltype(s_applicationDidFinishLaunchingOrig)>(method_getImplementation(adflMethod));
+    if (!s_applicationDidFinishLaunchingOrig) {
         return false;
+    }
 
+    method_setImplementation(adflMethod, (IMP)&applicationDidFinishLaunchingHook);
     return true;
 }
 
