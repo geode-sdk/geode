@@ -743,7 +743,7 @@ namespace geode::cocos {
      */
     template <class Type = cocos2d::CCNode>
     Type* findFirstChildRecursive(cocos2d::CCNode* node, utils::MiniFunction<bool(Type*)> predicate) {
-        if (cast::safe_cast<Type*>(node) && predicate(static_cast<Type*>(node)))
+        if (cast::typeinfo_cast<Type*>(node) && predicate(static_cast<Type*>(node)))
             return static_cast<Type*>(node);
 
         auto children = node->getChildren();

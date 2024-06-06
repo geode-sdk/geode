@@ -71,7 +71,7 @@ TableViewCell* ListView::getListCell(char const* key) {
 }
 
 void ListView::loadCell(TableViewCell* cell, int index) {
-    auto node = dynamic_cast<CCNode*>(m_entries->objectAtIndex(index));
+    auto node = typeinfo_cast<CCNode*>(m_entries->objectAtIndex(index));
     if (node) {
         auto lcell = as<GenericListCell*>(cell);
         node->setContentSize(lcell->getScaledContentSize());
