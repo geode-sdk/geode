@@ -8,6 +8,7 @@
 #include <string_view>
 #include <vector>
 #include <span>
+#include <unordered_map>
 
 namespace geode {
 
@@ -35,6 +36,8 @@ public:
     constexpr static auto DEFAULT_ITEM_HEIGHT = 40.0f;
 
 private:
+    std::unordered_map<ListItemContainer*, float> m_containerHeights;
+
     void setupList(float) override final;
     TableViewCell* getListCell(const char*) override final;
     void loadCell(TableViewCell* cell, int index) override final;

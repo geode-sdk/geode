@@ -19,6 +19,7 @@ ListItemContainer* ListItemContainer::create() { return new ListItemContainer();
 void ListItemContainer::setItem(cocos2d::CCNode* item) {
     const auto& size = item->getContentSize();
     item->setPosition(0, 0);
+    this->setContentSize(size);
     m_backgroundLayer->setContentSize(size);
     m_width = size.width;
     m_height = size.height;
@@ -31,18 +32,28 @@ void ListView::setupList(float) {
 
     m_tableView->reloadData();
 
-    // Fix values, the game assumes every container has the same height.
-    float contentHeight = 0.0f;
-    auto contentNodes = m_tableView->m_contentLayer->getChildren();
-    for (auto node : CCArrayExt<CCNode*>(contentNodes))
-        contentHeight += node->getContentHeight();
+    // Every container height is forced to the value returned by cellHeightForRowAtIndexPath.
+    // We can't override this method because at the time it's called the container doesn't exist
+    // yet (ie. loadCell() gets called after that).
+    // Therefore we save the heights in a map, and restore them once reloading has completed.
+    // We also set the size for the content layer, as our override returns 0.0f.
+    float allContainersHeight = 0.0f;
+    auto containers = m_tableView->m_contentLayer->getChildren();
+    for (auto container : CCArrayExt<ListItemContainer*>(containers)) {
+        if (m_containerHeights.contains(container)) {
+            const auto height = m_containerHeights[container];
+            container->setContentHeight(height);
+            allContainersHeight += height;
+        }
+    }
 
-    m_tableView->m_contentLayer->setContentHeight(contentHeight);
+    m_tableView->m_contentLayer->setContentHeight(allContainersHeight);
 
+    // Reposition containers as the game assumes they all have the same height.
     float offset = 0.0;
-    for (auto node : CCArrayExt<CCNode*>(contentNodes)) {
-        const auto height = node->getContentHeight();
-        node->setPositionY(contentHeight - offset - height);
+    for (auto container : CCArrayExt<ListItemContainer*>(containers)) {
+        const auto height = container->getContentHeight();
+        container->setPositionY(allContainersHeight - offset - height);
         offset += height;
     }
 
@@ -66,16 +77,11 @@ void ListView::loadCell(TableViewCell* itemContainer, int index) {
         auto container = as<ListItemContainer*>(itemContainer);
         container->setItem(item);
         onItemLoaded(item, index);
+        m_containerHeights[container] = container->getContentHeight();
     }
 }
 
-float ListView::cellHeightForRowAtIndexPath(CCIndexPath& path, TableView*) {
-    // TODO: we need to use the container.
-    if (path.m_row < m_entries->count())
-        return as<CCNode*>(m_entries->objectAtIndex(path.m_row))->getContentHeight();
-
-    return 0.0f;
-}
+float ListView::cellHeightForRowAtIndexPath(CCIndexPath& path, TableView*) { return 0.0f; }
 
 bool ListView::init(const CCSize& size) {
     return CustomListView::init(CCArray::create(), BoomListType::Default, size.width, size.height);
@@ -93,6 +99,7 @@ ListView* ListView::create(const CCSize& size) {
 }
 
 void ListView::reload() {
+    m_containerHeights.clear();
     setupList(0.0f);
 
     // Visible list layer is actually slightly smaller.
