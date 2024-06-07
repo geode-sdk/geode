@@ -1,7 +1,6 @@
 # Geode Changelog
 
 ## v3.0.0-alpha.1
-
  * Deprecated the old web API, replacing it with a new one (b129808)
  * Replace `ghc::filesystem` with `std::filesystem` (#713)
  * Make `queueInMainThread` take a move only function
@@ -10,7 +9,27 @@
  * Make `TodoReturn` unusable (#714)
  * Remove unused wstring utilities
  * Add support for Geometry Dash 2.206
- * New UI for the Index, which also uses a server implementation
+ * New UI for the Index, which also uses a server implementation (#833)
+   * Implements new popups `ConfirmUninstallPopup`, `DevPopup`, `FiltersPopup`, `ModErrorPopup`, `ModPopup`, `SortPopup`
+     * Mod popup now has new features like tags, reverting accidental disabling, version (1876af8, dac16a4, f365dc4)
+   * Adds 4 tabs to the Geode menu: Installed, Recommended, Download, Recent
+   * Creates a fancy new background with `SwelvyBG`
+   * The entire color scheme has been changed to fit Geode's color language of pastel purple-pastel gold gradient
+ * Remove old web utilities (b129808)
+ * Implement Windows 64-bit and MacOS M1 arm64 support
+ * Add color support to `ListView` (#854, #859)
+ * Use `std::string` for `gd::string` on Windows (144b2d7)
+ * Make `queueInMainThread` take in a movable callback (0c35a92)
+ * Add `CCMenuItemExt` for lambda versions of CCMenuItem classes (de73317)
+ * Add `scrollToTop` for ScrollLayer (7071bb1)
+ * Add a new `Task` class for generic task implementations
+   * Documentation can be found [here](https://docs.geode-sdk.org/tutorials/tasks/)
+   * Add a special task named `WebTask` for handling web requests
+ * Fix `Unzip` crash on missing progress callback (1145426)
+ * Fix `AnchorLayout` not ignoring `ignoreAnchorPointForPosition` (547c047)
+ * Add `ObjWrapper` class for wrapping objects inside a `CCObject` (5e76da1)
+ * Adjust fuzzy searching (cc5cb07)
+ * Add `TextInput::setLabel` (991fce0)
 
 ## v2.0.0-beta.27
  * Implement some `BasedButtonSprite` fixes (edb8e6c)
