@@ -2,7 +2,7 @@
 
 #include "Geode/utils/VersionInfo.hpp"
 #include <Geode/DefaultInclude.hpp>
-#include <Geode/utils/web2.hpp>
+#include <Geode/utils/web.hpp>
 #include <Geode/loader/SettingEvent.hpp>
 #include <matjson.hpp>
 #include <vector>

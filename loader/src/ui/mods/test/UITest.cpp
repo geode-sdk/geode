@@ -4,7 +4,7 @@
 #include <Geode/modify/MenuLayer.hpp>
 #include <Geode/ui/Popup.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
-#include <Geode/utils/web2.hpp>
+#include <Geode/utils/web.hpp>
 #include <server/Server.hpp>
 #include "../sources/ModListSource.hpp"
 
