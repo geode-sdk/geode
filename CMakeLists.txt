@@ -195,10 +195,10 @@ if (WIN32)
 	endif()
 endif()
 
-if (APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-	# set_property(TARGET ${PROJECT_NAME} PROPERTY LINKER_TYPE LLD)
-	# target_link_options(${PROJECT_NAME} INTERFACE -fuse-ld=lld)
-endif ()
+# if (APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+# 	set_property(TARGET ${PROJECT_NAME} PROPERTY LINKER_TYPE LLD)
+# 	target_link_options(${PROJECT_NAME} INTERFACE -fuse-ld=lld)
+# endif ()
 
 # We do not support anything below SDK 23
 if (ANDROID)
