@@ -1,5 +1,17 @@
 # Geode Changelog
 
+## v3.0.0-alpha.1
+
+ * Deprecated the old web API, replacing it with a new one (b129808)
+ * Replace `ghc::filesystem` with `std::filesystem` (#713)
+ * Make `queueInMainThread` take a move only function
+ * Remove "gd" shorthand from mod.json (#471)
+ * Remove old fields syntax (#715)
+ * Make `TodoReturn` unusable (#714)
+ * Remove unused wstring utilities
+ * Add support for Geometry Dash 2.206
+ * New UI for the Index, which also uses a server implementation
+
 ## v2.0.0-beta.27
  * Implement some `BasedButtonSprite` fixes (edb8e6c)
  * Add early version check for MacOS (4083950)
