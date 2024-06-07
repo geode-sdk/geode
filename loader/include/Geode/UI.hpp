@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ui/BasedButton.hpp"
+#include "ui/Border.hpp"
 #include "ui/ColorPickPopup.hpp"
 #include "ui/EnterLayerEvent.hpp"
 #include "ui/BasedButtonSprite.hpp"
@@ -16,4 +17,5 @@
 #include "ui/ScrollLayer.hpp"
 #include "ui/SelectList.hpp"
 #include "ui/Scrollbar.hpp"
+#include "ui/TextArea.hpp"
 #include "ui/TextRenderer.hpp"
