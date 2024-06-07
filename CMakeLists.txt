@@ -196,7 +196,7 @@ if (WIN32)
 endif()
 
 if (APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-	set_property(TARGET ${PROJECT_NAME} PROPERTY LINKER_TYPE "lld")
+	set_property(TARGET ${PROJECT_NAME} PROPERTY LINKER_TYPE LLD)
 endif ()
 
 # We do not support anything below SDK 23
