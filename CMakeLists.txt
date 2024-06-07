@@ -195,6 +195,10 @@ if (WIN32)
 	endif()
 endif()
 
+if (APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+	set_property(TARGET ${PROJECT_NAME} PROPERTY LINKER_TYPE "lld")
+endif ()
+
 # We do not support anything below SDK 23
 if (ANDROID)
 	string(REGEX MATCH "[0-9]+" ANDROID_PLATFORM_NUMBER "${ANDROID_PLATFORM}")
