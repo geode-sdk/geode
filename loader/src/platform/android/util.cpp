@@ -194,7 +194,6 @@ Result<std::filesystem::path> file::pickFile(file::PickMode mode, file::FilePick
     return Err("Use the callback version");
 }
 
-
 void file::pickFile(
     PickMode mode, FilePickOptions const& options,
     MiniFunction<void(std::filesystem::path)> callback,
@@ -235,10 +234,6 @@ void file::pickFile(
     }
 }
 
-Task<Result<std::filesystem::path>> file::pick(PickMode mode, FilePickOptions const& options) {
-    return Task<Result<std::filesystem::path>>::immediate(std::move(file::pickFile(mode, options)));
-}
-
 Result<std::vector<std::filesystem::path>> file::pickFiles(file::FilePickOptions const& options) {
     return Err("Use the callback version");
 }
@@ -268,10 +263,6 @@ void file::pickFiles(
             s_failedCallback();
         });
     }
-}
-
-Task<Result<std::filesystem::path>> file::pickMany(FilePickOptions const& options) {
-    return Task<Result<std::filesystem::path>>::immediate(std::move(file::pickFiles(options)));
 }
 
 void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
