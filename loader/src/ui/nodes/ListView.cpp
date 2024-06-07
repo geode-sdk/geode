@@ -8,7 +8,7 @@ using namespace geode::prelude;
 
 void ListItemContainer::draw() {
     const auto& size = this->getContentSize();
-    ccDrawColor4B(0, 0, 0, 75);
+    ccDrawColor4B(m_borderColor);
     glLineWidth(2.0f);
     ccDrawLine({ 1.0f, 0.0f }, { size.width - 1.0f, 0.0f });
     ccDrawLine({ 1.0f, size.height }, { size.width - 1.0f, size.height });

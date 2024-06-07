@@ -13,7 +13,12 @@
 namespace geode {
 
 class GEODE_DLL ListItemContainer : public TableViewCell {
+public:
+    static inline const auto DEFAULT_BORDER_COLOR = cocos2d::ccc4(0, 0, 0, 75);
+
 protected:
+    cocos2d::ccColor4B m_borderColor = DEFAULT_BORDER_COLOR;
+
     void draw() override;
     ListItemContainer() : TableViewCell("", 0.0f, 0.0f) {}
 
@@ -21,12 +26,13 @@ public:
     static ListItemContainer* create();
     virtual void setItem(cocos2d::CCNode* item);
 
-    void setColor(const cocos2d::ccColor3B& color) {
-        m_backgroundLayer->setColor(color);
+    virtual void setColor(const cocos2d::ccColor4B& color) {
+        m_backgroundLayer->setColor(cocos2d::ccc3(color.r, color.g, color.b));
+        m_backgroundLayer->setOpacity(color.a);
     }
 
-    void setOpacity(GLubyte opacity) {
-        m_backgroundLayer->setOpacity(opacity);
+    virtual void setBorderColor(const cocos2d::ccColor4B& color) {
+        m_borderColor = color;
     }
 };
 
@@ -78,10 +84,9 @@ protected:
             return;
 
         auto container = cast::as<ListItemContainer*>(item->getParent());
+        container->setColor(m_colors[m_index]);
         const auto& color = m_colors[m_index];
         ++m_index %= m_colors.size();
-        container->setColor(cocos2d::ccc3(color.r, color.g, color.b));
-        container->setOpacity(color.a);
     }
 
 public:
