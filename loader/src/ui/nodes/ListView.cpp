@@ -14,8 +14,6 @@ void ListItemContainer::draw() {
     ccDrawLine({ 1.0f, size.height }, { size.width - 1.0f, size.height });
 }
 
-ListItemContainer* ListItemContainer::create() { return new ListItemContainer(); }
-
 void ListItemContainer::setItem(cocos2d::CCNode* item) {
     const auto& size = item->getContentSize();
     item->setPosition(0, 0);
@@ -25,6 +23,8 @@ void ListItemContainer::setItem(cocos2d::CCNode* item) {
     m_height = size.height;
     this->addChild(item);
 }
+
+ListItemContainer* ListItemContainer::create() { return new ListItemContainer(); }
 
 void ListView::setupList(float) {
     if (!m_entries->count())
@@ -38,7 +38,7 @@ void ListView::setupList(float) {
     // Therefore we save the heights in a map, and restore them once reloading has completed.
     // We also set the size for the content layer, as our override returns 0.0f.
     float allContainersHeight = 0.0f;
-    auto containers = m_tableView->m_contentLayer->getChildren();
+    auto containers = getContainers();
     for (auto container : CCArrayExt<ListItemContainer*>(containers)) {
         if (m_containerHeights.contains(container)) {
             const auto height = m_containerHeights[container];
@@ -68,8 +68,13 @@ void ListView::loadCell(TableViewCell* itemContainer, int index) {
     if (item) {
         auto container = as<ListItemContainer*>(itemContainer);
         container->setItem(item);
-        onItemLoaded(item, index);
         m_containerHeights[container] = container->getContentHeight();
+
+        // Link this container to the list.
+        this->retain();
+        container->link(this);
+
+        onItemLoaded(item, index);
     }
 }
 
@@ -90,7 +95,19 @@ ListView* ListView::create(const CCSize& size) {
     return nullptr;
 }
 
+cocos2d::CCArray* ListView::getContainers() {
+    return m_tableView->m_contentLayer->getChildren();
+}
+
+cocos2d::CCArray* ListView::getItems() { return m_entries; }
+
 void ListView::reload() {
+    // Unlink containers from the list.
+    for (auto container : CCArrayExt<ListItemContainer*>(getContainers())) {
+        container->unlink();
+        this->release();
+    }
+
     m_containerHeights.clear();
     setupList(0.0f);
 

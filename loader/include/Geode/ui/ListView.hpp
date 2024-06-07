@@ -13,6 +13,8 @@
 namespace geode {
 
 class GEODE_DLL ListItemContainer : public TableViewCell {
+    friend class ListView;
+
 public:
     static inline const auto DEFAULT_BORDER_COLOR = cocos2d::ccc4(0, 0, 0, 75);
 
@@ -20,11 +22,15 @@ protected:
     cocos2d::ccColor4B m_borderColor = DEFAULT_BORDER_COLOR;
 
     void draw() override;
+
+    virtual void setItem(cocos2d::CCNode* item);
+    virtual void link(ListView* list) {}
+    virtual void unlink() {}
+
     ListItemContainer() : TableViewCell("", 0.0f, 0.0f) {}
 
 public:
     static ListItemContainer* create();
-    virtual void setItem(cocos2d::CCNode* item);
 
     virtual void setColor(const cocos2d::ccColor4B& color) {
         m_backgroundLayer->setColor(cocos2d::ccc3(color.r, color.g, color.b));
@@ -62,10 +68,17 @@ protected:
 public:
     static ListView* create(const cocos2d::CCSize& size = DEFAULT_SIZE);
 
-    void reload();
+    // Get the currently loaded items (ie. what you see on screen).
+    cocos2d::CCArray* getContainers();
+
+    // Get the list items, not necessarily loaded.
+    cocos2d::CCArray* getItems();
 
     void addItem(cocos2d::CCNode* item);
     void removeItem(cocos2d::CCNode* item);
+
+    // Reload all items shown on screen.
+    void reload();
 };
 
 class GEODE_DLL ColoredListView : public ListView {
