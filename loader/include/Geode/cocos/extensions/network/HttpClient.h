@@ -53,6 +53,8 @@ public:
     
     /** Relase the shared instance **/
     static void destroyInstance();
+
+    virtual ~CCHttpClient();
         
     /**
      * Add a get request to task queue
@@ -94,7 +96,6 @@ public:
         
 private:
     CCHttpClient();
-    virtual ~CCHttpClient();
     bool init(void);
     
     /**

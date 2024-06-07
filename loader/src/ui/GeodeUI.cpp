@@ -1,4 +1,3 @@
-
 #include "mods/ModsLayer.hpp"
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/ui/GeodeUI.hpp>
@@ -7,6 +6,7 @@
 #include <server/Server.hpp>
 #include "mods/GeodeStyle.hpp"
 #include "mods/settings/ModSettingsPopup.hpp"
+#include "mods/popups/ModPopup.hpp"
 
 void geode::openModsList() {
     ModsLayer::scene();
@@ -71,10 +71,7 @@ void geode::openInfoPopup(Mod* mod) {
 }
 
 void geode::openIndexPopup(Mod* mod) {
-    #pragma message("todo")
-    // if (auto item = Index::get()->getItem(mod)) {
-    //     IndexItemInfoPopup::create(item, nullptr)->show();
-    // }
+    ModPopup::create(mod)->show();
 }
 
 void geode::openSettingsPopup(Mod* mod) {

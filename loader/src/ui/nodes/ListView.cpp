@@ -26,6 +26,10 @@ void ListItemContainer::setItem(cocos2d::CCNode* item) {
     this->addChild(item);
 }
 
+void GenericListCell::setBorderColor(cocos2d::ccColor4B color) {
+    m_borderColor = color;
+}
+
 void ListView::setupList(float) {
     if (!m_entries->count())
         return;

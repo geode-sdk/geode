@@ -12,6 +12,7 @@
 #include <matjson.hpp>
 #include <charconv>
 #include <clocale>
+#include <type_traits>
 
 // only windows seems to properly implement std::hash on std::filesystem::path
 #ifdef GEODE_IS_ANDROID
@@ -34,14 +35,6 @@ namespace geode {
         return out;
     }
 
-    template <class T>
-    struct TypeIdentity {
-        using type = T;
-    };
-
-    template <class T>
-    using TypeIdentityType = typename TypeIdentity<T>::type;
-        
     namespace utils {
         // helper for std::visit
         template<class... Ts> struct makeVisitor : Ts... { using Ts::operator()...; };
@@ -74,7 +67,7 @@ namespace geode {
         }
 
         template <typename T>
-        constexpr const T& clamp(const T& value, const TypeIdentityType<T>& minValue, const TypeIdentityType<T>& maxValue) {
+        constexpr const T& clamp(const T& value, const std::type_identity_t<T>& minValue, const std::type_identity_t<T>& maxValue) {
             return value < minValue ? minValue : maxValue < value ? maxValue : value;
         }
 
