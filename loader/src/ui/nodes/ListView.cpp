@@ -26,10 +26,6 @@ void ListItemContainer::setItem(cocos2d::CCNode* item) {
     this->addChild(item);
 }
 
-void GenericListCell::setBorderColor(cocos2d::ccColor4B color) {
-    m_borderColor = color;
-}
-
 void ListView::setupList(float) {
     if (!m_entries->count())
         return;
@@ -62,15 +58,7 @@ void ListView::setupList(float) {
     }
 
     // Scroll to top.
-    // TODO: FIX.
-    if (m_entries->count() == 1) {
-        //auto node = as<CCNode*>(contentNodes->objectAtIndex(0));
-        //m_tableView->moveToTopWithOffset(node->getContentHeight() * 2);
-    } else if (m_entries->count() == 2) {
-        //m_tableView->moveToTopWithOffset(-m_itemSeparation);
-    } else {
-        m_tableView->moveToTop();
-    }
+    m_tableView->moveToTop();
 }
 
 TableViewCell* ListView::getListCell(char const*) { return createContainer(); }
