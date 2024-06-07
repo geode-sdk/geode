@@ -11,10 +11,8 @@
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/terminate.hpp>
 #include <Windows.h>
-#include <chrono>
 #include <ctime>
 #include <errhandlingapi.h>
-#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <string>
@@ -254,7 +252,7 @@ static std::add_const_t<std::decay_t<T>> rebaseAndCast(intptr_t base, U value) {
 static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod) {
     std::stringstream stream;
 
-    if (info->ExceptionRecord->ExceptionCode == EH_EXCEPTION_NUMBER) {
+    if (info->ExceptionRecord->ExceptionCode == EXCEPTION_NUMBER) {
         // This executes when a C++ exception was thrown and not handled.
         // https://devblogs.microsoft.com/oldnewthing/20100730-00/?p=13273
         // handling code is partially taken from https://github.com/gnustep/libobjc2/blob/377a81d23778400b5306ee490451ed68b6e8db81/eh_win32_msvc.cc#L244
