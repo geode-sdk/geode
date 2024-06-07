@@ -22,7 +22,7 @@
  * Make `queueInMainThread` take in a movable callback (0c35a92)
  * Add `CCMenuItemExt` for lambda versions of CCMenuItem classes (de73317)
  * Add `scrollToTop` for ScrollLayer (7071bb1)
- * Add a new `Task` class for generic task implementations
+ * Add a new `Task` class for generic asynchronous task implementations
    * Documentation can be found [here](https://docs.geode-sdk.org/tutorials/tasks/)
    * Add a special task named `WebTask` for handling web requests
  * Fix `Unzip` crash on missing progress callback (1145426)
