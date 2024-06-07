@@ -116,7 +116,8 @@ namespace geode {
         enum {
             Unknown = -1,
             Windows,
-            MacOS,
+            MacIntel,
+            MacArm,
             iOS,
             Android32,
             Android64,
@@ -167,7 +168,8 @@ namespace geode {
             switch (lp) {
                 case Unknown: return "Unknown";
                 case Windows: return "Windows";
-                case MacOS: return "MacOS";
+                case MacIntel: return "MacIntel";
+                case MacArm: return "MacArm";
                 case iOS: return "iOS";
                 case Android32: return "Android32";
                 case Android64: return "Android64";
@@ -181,7 +183,8 @@ namespace geode {
             switch (lp) {
                 case Unknown: return "unknown";
                 case Windows: return "win";
-                case MacOS: return "mac";
+                case MacIntel: return ignoreArch ? "mac" : "mac-intel";
+                case MacArm: return ignoreArch ? "mac" : "mac-arm";
                 case iOS: return "ios";
                 case Android32: return ignoreArch ? "android" : "android32";
                 case Android64: return ignoreArch ? "android" : "android64";
@@ -220,8 +223,10 @@ namespace std {
 
 #ifdef GEODE_IS_WINDOWS
     #define GEODE_PLATFORM_TARGET PlatformID::Windows
-#elif defined(GEODE_IS_MACOS)
-    #define GEODE_PLATFORM_TARGET PlatformID::MacOS
+#elif defined(GEODE_IS_ARM_MAC)
+    #define GEODE_PLATFORM_TARGET PlatformID::MacArm
+#elif defined(GEODE_IS_INTEL_MAC)
+    #define GEODE_PLATFORM_TARGET PlatformID::MacIntel
 #elif defined(GEODE_IS_IOS)
     #define GEODE_PLATFORM_TARGET PlatformID::iOS
 #elif defined(GEODE_IS_ANDROID32)

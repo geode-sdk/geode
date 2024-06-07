@@ -10,9 +10,13 @@ PlatformID PlatformID::from(const char* str) {
         case hash("Windows"):
         case hash("windows"): return PlatformID::Windows;
         
-        case hash("mac"):
-        case hash("MacOS"):
-        case hash("macos"): return PlatformID::MacOS;
+        case hash("mac-intel"):
+        case hash("imac"):
+        case hash("MacIntel"): return PlatformID::MacIntel;
+
+        case hash("m1"):
+        case hash("mac-arm"):
+        case hash("MacArm"): return PlatformID::MacArm;
 
         case hash("iOS"):
         case hash("ios"): return PlatformID::iOS;

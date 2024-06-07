@@ -55,15 +55,16 @@
         #define GEODE_IS_DESKTOP
         #define GEODE_PLATFORM_NAME "MacOS"
         #define GEODE_PLATFORM_EXTENSION ".dylib"
-        #define GEODE_PLATFORM_SHORT_IDENTIFIER "mac"
         #define CC_TARGET_OS_MAC
 
         #if TARGET_CPU_ARM64
             #define GEODE_IS_ARM_MAC
+            #define GEODE_PLATFORM_SHORT_IDENTIFIER "mac-arm"
             #define GEODE_ARM_MAC(...) __VA_ARGS__
             #define GEODE_INTEL_MAC(...)
         #else
             #define GEODE_IS_INTEL_MAC
+            #define GEODE_PLATFORM_SHORT_IDENTIFIER "mac-intel"
             #define GEODE_ARM_MAC(...)
             #define GEODE_INTEL_MAC(...) __VA_ARGS__
         #endif
