@@ -111,13 +111,10 @@ void ListView::reload() {
 void ListView::addItem(CCNode* item) { m_entries->addObject(item); }
 void ListView::removeItem(CCNode* item) { m_entries->removeObject(item); }
 
-ColoredListView* ColoredListView::create(const CCSize& size, const ccColor3B& primaryColor, const ccColor3B& secondaryColor,
-    GLubyte opacity) {
+ColoredListView* ColoredListView::create(const CCSize& size, const std::span<const ccColor4B> colors) {
     auto ret = new ColoredListView();
     if (ret->init(size)) {
-        ret->setPrimaryColor(primaryColor);
-        ret->setSecondaryColor(secondaryColor);
-        ret->setOpacity(opacity);
+        ret->setColors(colors);
         ret->autorelease();
         return ret;
     }
