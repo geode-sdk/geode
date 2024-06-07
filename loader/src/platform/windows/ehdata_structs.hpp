@@ -49,4 +49,6 @@ struct _MSVC_ThrowInfo {
 # define _ThrowInfo _MSVC_ThrowInfo
 #endif
 
-#include <ehdata.h> // for EH_EXCEPTION_NUMBER
+// this constant is defined in <ehdata.h> as EH_EXCEPTION_NUMBER,
+// but because of c-brained devs it's defined in a way that raises a warning on clang
+constexpr uint32_t EXCEPTION_NUMBER = 0xe06d7363;
