@@ -1,5 +1,10 @@
-#include "Geode/utils/general.hpp"
+#include <Geode/utils/Result.hpp>
+#include <Geode/utils/general.hpp>
+#include <filesystem>
+#include <fmt/core.h>
+#include <fstream>
 #include <matjson.hpp>
+#include <system_error>
 #define CURL_STATICLIB
 #include <curl/curl.h>
 #include <ca_bundle.h>
@@ -65,7 +70,24 @@ public:
     int m_code;
     ByteVector m_data;
     std::unordered_map<std::string, std::string> m_headers;
+
+    Result<> into(std::filesystem::path const& path) const;
 };
+
+Result<> WebResponse::Impl::into(std::filesystem::path const& path) const {
+    // Test if there are no permission issues
+    std::error_code ec;
+    auto _ = std::filesystem::exists(path, ec);
+    if (ec) {
+        return Err(fmt::format("Couldn't write to file: {}", ec.category().message(ec.value())));
+    }
+
+    auto stream = std::ofstream(path, std::ios::out | std::ios::binary);
+    stream.write(reinterpret_cast<const char*>(m_data.data()), m_data.size());
+    stream.close();
+
+    return Ok();
+}
 
 WebResponse::WebResponse() : m_impl(std::make_shared<Impl>()) {}
 
@@ -90,6 +112,9 @@ Result<matjson::Value> WebResponse::json() const {
 }
 ByteVector WebResponse::data() const {
     return m_impl->m_data;
+}
+Result<> WebResponse::into(std::filesystem::path const& path) const {
+    return m_impl->into(path);
 }
 
 std::vector<std::string> WebResponse::headers() const {
