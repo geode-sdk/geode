@@ -1,8 +1,4 @@
 #include <Geode/ui/Border.hpp>
-#include <cocos2d.h>
-#include <cocos-ext.h>
-#include <Geode/loader/Mod.hpp>
-#include <Geode/utils/cocos.hpp>
 
 using namespace geode::prelude;
 
@@ -28,9 +24,7 @@ Border* Border::create(CCNode* node, const ccColor4B& backgroundColor, const CCS
     }
 }
 
-Border::Border(const CCPoint& padding) : m_size(ccp(0, 0)),
-    m_padding({ padding.x, padding.y, padding.x, padding.y }),
-    m_customZOrder(false) { }
+Border::Border(const CCPoint& padding) : m_padding({ padding.x, padding.y, padding.x, padding.y }), m_customZOrder(false) { }
 
 bool Border::init(const ccColor4B& backgroundColor, const CCSize& size) {
     return this->init(nullptr, backgroundColor, size);
@@ -42,11 +36,15 @@ bool Border::init(CCNode* node, const ccColor4B& backgroundColor, const CCSize& 
     }
 
     CCScale9Sprite* border = CCScale9Sprite::create("inverseborder.png"_spr);
+    CCLayer* content = CCLayer::create();
 
     border->setID("border_sprite"_spr);
     border->setAnchorPoint({ 0, 0 });
     border->setPosition({ 0, 0 });
+    content->setID("border_content"_spr);
+    content->setContentSize(size);
     this->addChild(border);
+    this->addChild(content);
 
     if (node != nullptr) {
         this->setNode(node);
@@ -94,6 +92,8 @@ float Border::getPaddingY() {
 
 void Border::setPaddingTop(float top) {
     m_padding.top = top;
+
+    this->updatePadding();
 }
 
 float Border::getPaddingTop() {
@@ -102,6 +102,8 @@ float Border::getPaddingTop() {
 
 void Border::setPaddingRight(float right) {
     m_padding.right = right;
+
+    this->updatePadding();
 }
 
 float Border::getPaddingRight() {
@@ -110,6 +112,8 @@ float Border::getPaddingRight() {
 
 void Border::setPaddingBottom(float bottom) {
     m_padding.bottom = bottom;
+
+    this->updatePadding();
 }
 
 float Border::getPaddingBottom() {
@@ -118,6 +122,8 @@ float Border::getPaddingBottom() {
 
 void Border::setPaddingLeft(float left) {
     m_padding.left = left;
+
+    this->updatePadding();
 }
 
 float Border::getPaddingLeft() {
@@ -134,21 +140,25 @@ ccColor4B Border::getBackgroundColor() {
 }
 
 void Border::setNode(CCNode* node) {
+    CCNode* content = this->getChildByID("border_content"_spr);
+
     // Can't assume an ID as the node is a user input and may have its ID changed
-    if (CCNode* node = cocos::getChild<CCNode>(this, 1)) {
+    if (CCNode* oldNode = cocos::getChild<CCNode>(content, 0)) {
         // Not going to mess with releasing the node, I'll leave that to the user
-        node->removeFromParent();
+        oldNode->removeFromParent();
     }
+
+    content->addChild(node);
 
     if (!m_customZOrder) {
         this->getChildByID("border_sprite"_spr)->setZOrder(node->getZOrder() + 1);
     }
 
-    this->addChild(node);
+    this->updatePadding();
 }
 
 CCNode* Border::getNode() {
-    if (CCNode* node = cocos::getChild<CCNode>(this, 1)) {
+    if (CCNode* node = cocos::getChild<CCNode>(this->getChildByID("border_content"_spr), 0)) {
         return node;
     } else {
         return nullptr;
@@ -156,40 +166,37 @@ CCNode* Border::getNode() {
 }
 
 void Border::setSize(const CCSize& size) {
-    m_size = size;
     this->setContentSize(size);
     this->getChildByID("border_sprite"_spr)->setContentSize(size);
+    this->getChildByID("border_content"_spr)->setContentSize(size);
     this->updatePadding();
 }
 
 void Border::setZOrder(int zOrder) {
     m_customZOrder = true;
 
-    this->getChildByID("border_sprite"_spr)->setZOrder(zOrder);
+    this->getChildByID("border_sprite"_spr)->setZOrder(zOrder + 1);
+    this->getChildByID("border_content"_spr)->setZOrder(zOrder);
 }
 
 void Border::resetZOrder() {
     m_customZOrder = false;
 
+    this->getChildByID("border_content"_spr)->setZOrder(0);
+
     if (CCNode* node = this->getNode()) {
         this->getChildByID("border_sprite"_spr)->setZOrder(node->getZOrder() + 1);
     } else {
-        this->getChildByID("border_sprite"_spr)->setZOrder(0);
+        this->getChildByID("border_sprite"_spr)->setZOrder(1);
     }
 }
 
 void Border::updatePadding() {
     if (CCNode* node = this->getNode()) {
-        CCSize size;
-
-        if (m_size.width == 0 && m_size.height == 0) {
-            size = this->getContentSize();
-        } else {
-            size = m_size;
-        }
+        CCSize size = this->getContentSize();
 
         node->setAnchorPoint({ 0, 0 });
         node->setPosition({ m_padding.left, m_padding.bottom });
-        node->setContentSize({ size.width - this->getPaddingX() * 2, size.height - this->getPaddingY() * 2 });
+        node->setContentSize(size - ccp(this->getPaddingX(), this->getPaddingY()) * 2);
     }
 }
