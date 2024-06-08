@@ -299,7 +299,7 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
 
         bool onThisPlatform = !obj.has("platforms");
         for (auto& plat : obj.has("platforms").iterate()) {
-            if (PlatformID::from(plat.get<std::string>()) == GEODE_PLATFORM_TARGET) {
+            if (PlatformID::coveredBy(plat.get<std::string>(), GEODE_PLATFORM_TARGET)) {
                 onThisPlatform = true;
             }
         }

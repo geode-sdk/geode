@@ -164,6 +164,14 @@ namespace geode {
         static GEODE_DLL PlatformID from(const char* str);
         static GEODE_DLL PlatformID from(std::string const& str);
 
+        /**
+         * Determines if a given platform string "covers" the given platform.
+         * For example, "android" is covered by Platform::Android32 and Platform::Android64.
+         * Input string must follow the format in PlatformID::toShortString.
+         */
+        static GEODE_DLL bool coveredBy(const char* str, PlatformID t);
+        static GEODE_DLL bool coveredBy(std::string const& str, PlatformID t);
+
         static constexpr char const* toString(Type lp) {
             switch (lp) {
                 case Unknown: return "Unknown";

@@ -208,7 +208,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
 
         bool onThisPlatform = !obj.has("platforms");
         for (auto& plat : obj.has("platforms").iterate()) {
-            if (PlatformID::from(plat.get<std::string>()) == GEODE_PLATFORM_TARGET) {
+            if (PlatformID::coveredBy(plat.get<std::string>(), GEODE_PLATFORM_TARGET)) {
                 onThisPlatform = true;
             }
         }
@@ -263,7 +263,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
             auto obj = value.obj();
             bool onThisPlatform = !obj.has("platforms");
             for (auto& plat : obj.has("platforms").iterate()) {
-                if (PlatformID::from(plat.get<std::string>()) == GEODE_PLATFORM_TARGET) {
+                if (PlatformID::coveredBy(plat.get<std::string>(), GEODE_PLATFORM_TARGET)) {
                     onThisPlatform = true;
                 }
             }
