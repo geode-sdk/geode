@@ -13,9 +13,9 @@ namespace geode {
     }
 }
 
-namespace {
+GEODE_API void geodeImplicitEntry() {
     // to make sure the instance is set into the sharedMod<> in load time
-    static auto mod = geode::getMod();
+    (void)geode::getMod();
 }
 
 #if defined(_DEBUG) && defined(GEODE_IS_WINDOWS)

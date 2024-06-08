@@ -5,6 +5,15 @@
 
 using namespace geode::prelude;
 
+template <typename T>
+T findSymbolOrMangled(void* so, char const* name, char const* mangled) {
+    auto res = reinterpret_cast<T>(dlsym(so, name));
+    if (!res) {
+        res = reinterpret_cast<T>(dlsym(so, mangled));
+    }
+    return res;
+}
+
 Result<> Mod::Impl::loadPlatformBinary() {
     auto so =
         dlopen((m_tempDirName / m_metadata.getBinaryName()).string().c_str(), RTLD_LAZY);
@@ -13,6 +22,16 @@ Result<> Mod::Impl::loadPlatformBinary() {
             delete m_platformInfo;
         }
         m_platformInfo = new PlatformInfo{so};
+
+        auto geodeImplicitEntry = findSymbolOrMangled<void(*)()>(so, "geodeImplicitEntry", "_geodeImplicitEntry@0");
+        if (geodeImplicitEntry) {
+            geodeImplicitEntry();
+        }
+
+        auto geodeCustomEntry = findSymbolOrMangled<void(*)()>(so, "geodeCustomEntry", "_geodeCustomEntry@0");
+        if (geodeCustomEntry) {
+            geodeCustomEntry();
+        }
 
         return Ok();
     }
