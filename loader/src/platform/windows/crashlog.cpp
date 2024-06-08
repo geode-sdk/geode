@@ -391,9 +391,6 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
 bool crashlog::setupPlatformHandler() {
     AddVectoredExceptionHandler(1, exceptionHandler);
 
-    // no idea if this does anything
-    SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
-
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
     if (std::filesystem::exists(lastCrashedFile)) {
         g_lastLaunchCrashed = true;
