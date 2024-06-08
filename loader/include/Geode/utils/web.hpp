@@ -67,6 +67,7 @@ namespace geode::utils::web {
         Result<std::string> string() const;
         Result<matjson::Value> json() const;
         ByteVector data() const;
+        Result<> into(std::filesystem::path const& path) const;
         
         std::vector<std::string> headers() const;
         std::optional<std::string> header(std::string_view name) const;
