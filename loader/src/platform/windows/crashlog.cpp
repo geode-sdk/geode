@@ -249,70 +249,81 @@ static std::add_const_t<std::decay_t<T>> rebaseAndCast(intptr_t base, U value) {
     return reinterpret_cast<std::add_const_t<std::decay_t<T>>>(base + (ptrdiff_t)(value));
 }
 
+// Parses an unhandled C++ exception from an exception pointers struct.
+static std::string parseCppException(LPEXCEPTION_POINTERS info) {
+    if (info->ExceptionRecord->ExceptionCode != EXCEPTION_NUMBER) {
+        throw std::runtime_error("exception handler precondition violated: wrong exception code in c++ exception handler");
+    }
+
+    // This executes when a C++ exception was thrown and not handled.
+    // https://devblogs.microsoft.com/oldnewthing/20100730-00/?p=13273
+    // handling code is partially taken from https://github.com/gnustep/libobjc2/blob/377a81d23778400b5306ee490451ed68b6e8db81/eh_win32_msvc.cc#L244
+
+    // since you can throw virtually anything, we need to figure out if it's an std::exception* or not
+    bool isStdException = false;
+
+    auto* exceptionRecord = info->ExceptionRecord;
+    auto exceptionObject = exceptionRecord->ExceptionInformation[1];
+
+    // 0 on 32-bit, dll offset on 64-bit
+    intptr_t imageBase = exceptionRecord->NumberParameters >= 4 ? static_cast<intptr_t>(exceptionRecord->ExceptionInformation[3]) : 0;
+
+    auto* throwInfo = reinterpret_cast<_MSVC_ThrowInfo*>(exceptionRecord->ExceptionInformation[2]);
+
+    std::string excString;
+    if (!throwInfo || !throwInfo->pCatchableTypeArray) {
+        excString = "C++ exception: <no SEH data available about the thrown exception>";
+    } else {
+        auto* catchableTypeArray = rebaseAndCast<_MSVC_CatchableTypeArray*>(imageBase, throwInfo->pCatchableTypeArray);
+        auto ctaSize = catchableTypeArray->nCatchableTypes;
+        const char* targetName = nullptr;
+
+        for (int i = 0; i < ctaSize; i++) {
+            auto* catchableType = rebaseAndCast<_MSVC_CatchableType*>(imageBase, catchableTypeArray->arrayOfCatchableTypes[i]);
+            auto* ctDescriptor = rebaseAndCast<_MSVC_TypeDescriptor*>(imageBase, catchableType->pType);
+            const char* classname = ctDescriptor->name;
+
+            if (i == 0) {
+                targetName = classname;
+            }
+
+            if (strcmp(classname, ".?AVexception@std@@") == 0) {
+                isStdException = true;
+                break;
+            }
+        }
+
+        // demangle the name of the thrown object
+        std::string demangledName;
+
+        if (!targetName || targetName[0] == '\0' || targetName[1] == '\0') {
+            demangledName = "<Unknown type>";
+        } else {
+            char demangledBuf[256];
+            size_t written = UnDecorateSymbolName(targetName + 1, demangledBuf, 256, UNDNAME_NO_ARGUMENTS);
+            if (written == 0) {
+                demangledName = "<Unknown type>";
+            } else {
+                demangledName = std::string(demangledBuf, demangledBuf + written);
+            }
+        }
+
+        if (isStdException) {
+            std::exception* excObject = reinterpret_cast<std::exception*>(exceptionObject);
+            excString = fmt::format("C++ Exception: {}(\"{}\")", demangledName, excObject->what());
+        } else {
+            excString = fmt::format("C++ Exception: type '{}'", demangledName);
+        }
+    }
+
+    return excString;
+}
+
 static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod) {
     std::stringstream stream;
 
     if (info->ExceptionRecord->ExceptionCode == EXCEPTION_NUMBER) {
-        // This executes when a C++ exception was thrown and not handled.
-        // https://devblogs.microsoft.com/oldnewthing/20100730-00/?p=13273
-        // handling code is partially taken from https://github.com/gnustep/libobjc2/blob/377a81d23778400b5306ee490451ed68b6e8db81/eh_win32_msvc.cc#L244
-
-        // since you can throw virtually anything, we need to figure out if it's an std::exception* or not
-        bool isStdException = false;
-
-        auto* exceptionRecord = info->ExceptionRecord;
-        auto exceptionObject = exceptionRecord->ExceptionInformation[1];
-
-        // 0 on 32-bit, dll offset on 64-bit
-        intptr_t imageBase = exceptionRecord->NumberParameters >= 4 ? static_cast<intptr_t>(exceptionRecord->ExceptionInformation[3]) : 0;
-
-        auto* throwInfo = reinterpret_cast<_MSVC_ThrowInfo*>(exceptionRecord->ExceptionInformation[2]);
-
-        if (!throwInfo || !throwInfo->pCatchableTypeArray) {
-            stream << "C++ exception: <no SEH data available about the thrown exception>\n";
-        } else {
-            auto* catchableTypeArray = rebaseAndCast<_MSVC_CatchableTypeArray*>(imageBase, throwInfo->pCatchableTypeArray);
-            auto ctaSize = catchableTypeArray->nCatchableTypes;
-            const char* targetName = nullptr;
-
-            for (int i = 0; i < ctaSize; i++) {
-                auto* catchableType = rebaseAndCast<_MSVC_CatchableType*>(imageBase, catchableTypeArray->arrayOfCatchableTypes[i]);
-                auto* ctDescriptor = rebaseAndCast<_MSVC_TypeDescriptor*>(imageBase, catchableType->pType);
-                const char* classname = ctDescriptor->name;
-
-                if (i == 0) {
-                    targetName = classname;
-                }
-
-                if (strcmp(classname, ".?AVexception@std@@") == 0) {
-                    isStdException = true;
-                    break;
-                }
-            }
-
-            // demangle the name of the thrown object
-            std::string demangledName;
-
-            if (!targetName || targetName[0] == '\0' || targetName[1] == '\0') {
-                demangledName = "<Unknown type>";
-            } else {
-                char demangledBuf[256];
-                size_t written = UnDecorateSymbolName(targetName + 1, demangledBuf, 256, UNDNAME_NO_ARGUMENTS);
-                if (written == 0) {
-                    demangledName = "<Unknown type>";
-                } else {
-                    demangledName = std::string(demangledBuf, demangledBuf + written);
-                }
-            }
-
-            if (isStdException) {
-                std::exception* excObject = reinterpret_cast<std::exception*>(exceptionObject);
-                stream << "C++ Exception: " << demangledName << "(\"" << excObject->what() << "\")" << "\n";
-            } else {
-                stream << "C++ Exception: type '" << demangledName << "'\n";
-            }
-        }
-
+        stream << parseCppException(info) << "\n";
         stream << "Faulty Mod: " << (faultyMod ? faultyMod->getID() : "<Unknown>") << "\n";
     }
     else if (isGeodeExceptionCode(info->ExceptionRecord->ExceptionCode)) {
@@ -343,6 +354,38 @@ static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod) {
     return stream.str();
 }
 
+static void handleException(LPEXCEPTION_POINTERS info) {
+    std::string text;
+
+    // calling SymInitialize from multiple threads can have unexpected behavior, so synchronize this part
+    static std::mutex symMutex;
+    {
+        std::lock_guard lock(symMutex);
+
+        SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
+
+        // init symbols so we can get some juicy debug info
+        g_symbolsInitialized = SymInitialize(static_cast<HMODULE>(GetCurrentProcess()), nullptr, true);
+        if (!g_symbolsInitialized) {
+            log::warn("Failed to initialize debug symbols: Error {}", GetLastError());
+        }
+
+        auto faultyMod = modFromAddress(info->ExceptionRecord->ExceptionAddress);
+        auto crashInfo = getInfo(info, faultyMod);
+
+        text = crashlog::writeCrashlog(
+            faultyMod,
+            crashInfo,
+            getStacktrace(info->ContextRecord),
+            getRegisters(info->ContextRecord)
+        );
+
+        SymCleanup(GetCurrentProcess());
+    }
+
+    MessageBoxA(nullptr, text.c_str(), "Geometry Dash Crashed", MB_ICONERROR);
+}
+
 static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
     // not all exceptions are critical, some can and should be ignored
     static constexpr auto ignored = std::to_array<DWORD>({
@@ -362,56 +405,46 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
         DBG_CONTROL_C,
         STATUS_CONTROL_C_EXIT,
         // SetThreadName
-        0x406d1388
+        0x406d1388,
+        // c++ exceptions, handled separately
+        EXCEPTION_NUMBER
     });
 
     if (std::find(ignored.begin(), ignored.end(), info->ExceptionRecord->ExceptionCode) != ignored.end()) {
         return EXCEPTION_CONTINUE_SEARCH;
     }
 
-    std::string text;
+    handleException(info);
 
-    // calling SymInitialize from multiple threads can have unexpected behavior, so synchronize this part
-    static std::mutex symMutex;
-    {
-        std::lock_guard lock(symMutex);
+    // continue searching, which usually just ends up terminating the program (exactly what we need)
+    return EXCEPTION_CONTINUE_SEARCH;
+}
 
-        SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
-
-        // init symbols so we can get some juicy debug info
-        g_symbolsInitialized = SymInitialize(static_cast<HMODULE>(GetCurrentProcess()), nullptr, true);
-        if (!g_symbolsInitialized) {
-            log::warn("Failed to initialize debug symbols: Error {}", GetLastError());
-        }
-
-        auto faultyMod = modFromAddress(info->ExceptionRecord->ExceptionAddress);
-        auto crashInfo = getInfo(info, faultyMod);
-
-        // how did we get here? why does this check have to be here?
-        // i do not know. but don't remove it.
-        if (info->ExceptionRecord->ExceptionCode == EXCEPTION_NUMBER && crashInfo.find("Poco::NotFoundException(\"Not found\")") != std::string::npos) {
-            log::warn("ignoring bogus exception");
-            SymCleanup(GetCurrentProcess());
-            return EXCEPTION_CONTINUE_SEARCH;
-        }
-
-        text = crashlog::writeCrashlog(
-            faultyMod,
-            crashInfo,
-            getStacktrace(info->ContextRecord),
-            getRegisters(info->ContextRecord)
-        );
-
-        SymCleanup(GetCurrentProcess());
+static LONG WINAPI continueHandler(LPEXCEPTION_POINTERS info) {
+    if (info->ExceptionRecord->ExceptionCode == EXCEPTION_NUMBER) {
+        handleException(info);
     }
-
-    MessageBoxA(nullptr, text.c_str(), "Geometry Dash Crashed", MB_ICONERROR);
 
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
+static bool isWine() {
+    auto ntdll = GetModuleHandleA("ntdll.dll");
+    return ntdll ? (GetProcAddress(ntdll, "wine_get_version") != NULL) : false;
+}
+
 bool crashlog::setupPlatformHandler() {
+    // this one works everywhere but breaks for c++ exceptions
     AddVectoredExceptionHandler(0, exceptionHandler);
+
+    // this one does nothing on wine but works on windows
+    AddVectoredContinueHandler(0, continueHandler);
+
+    // this one does nothing on windows but works on wine
+    // bonus points: on windows it works *sometimes*, so we check for wine to prevent showing 2 crash popups at once.
+    if (isWine()) {
+        SetUnhandledExceptionFilter(continueHandler);
+    }
 
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
     if (std::filesystem::exists(lastCrashedFile)) {
