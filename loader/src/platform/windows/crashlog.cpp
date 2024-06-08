@@ -345,27 +345,27 @@ static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod) {
 
 static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
     // not all exceptions are critical, some can and should be ignored
-    bool ignore = false;
-
-    switch (info->ExceptionRecord->ExceptionCode) {
-        // ignore all debug stuff
-        case DBG_EXCEPTION_HANDLED: ignore = true; break;
-        case DBG_CONTINUE: ignore = true; break;
-        case DBG_REPLY_LATER: ignore = true;
-        case DBG_TERMINATE_THREAD: ignore = true; break;
-        case DBG_TERMINATE_PROCESS: ignore = true; break;
-        case DBG_CONTROL_C: ignore = true; break;
-        case DBG_PRINTEXCEPTION_C: ignore = true; break;
-        case DBG_RIPEXCEPTION: ignore = true; break;
-        case DBG_CONTROL_BREAK: ignore = true; break;
-        case DBG_COMMAND_EXCEPTION: ignore = true; break;
-        case DBG_PRINTEXCEPTION_WIDE_C: ignore = true; break;
+    static constexpr auto ignored = std::to_array<DWORD>({
+        // various debugger stuff
+        DBG_EXCEPTION_HANDLED,
+        DBG_CONTINUE,
+        DBG_REPLY_LATER,
+        DBG_TERMINATE_THREAD,
+        DBG_TERMINATE_PROCESS,
+        DBG_RIPEXCEPTION,
+        DBG_CONTROL_BREAK,
+        DBG_COMMAND_EXCEPTION,
+        // OutputDebugString
+        DBG_PRINTEXCEPTION_C,
+        DBG_PRINTEXCEPTION_WIDE_C,
         // ctrl+c
-        case STATUS_CONTROL_C_EXIT: ignore = true; break;
-        case 0x406d1388: ignore = true; break; // SetThreadName
-    }
+        DBG_CONTROL_C,
+        STATUS_CONTROL_C_EXIT,
+        // SetThreadName
+        0x406d1388
+    });
 
-    if (ignore) {
+    if (std::find(ignored.begin(), ignored.end(), info->ExceptionRecord->ExceptionCode) != ignored.end()) {
         return EXCEPTION_CONTINUE_SEARCH;
     }
 
@@ -376,7 +376,12 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
 
     auto faultyMod = modFromAddress(info->ExceptionRecord->ExceptionAddress);
 
-    auto text = crashlog::writeCrashlog(faultyMod, getInfo(info, faultyMod), getStacktrace(info->ContextRecord), getRegisters(info->ContextRecord));
+    auto text = crashlog::writeCrashlog(
+        faultyMod,
+        getInfo(info, faultyMod),
+        getStacktrace(info->ContextRecord),
+        getRegisters(info->ContextRecord)
+    );
 
     MessageBoxA(nullptr, text.c_str(), "Geometry Dash Crashed", MB_ICONERROR);
 
@@ -385,6 +390,9 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
 
 bool crashlog::setupPlatformHandler() {
     AddVectoredExceptionHandler(1, exceptionHandler);
+
+    // no idea if this does anything
+    SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
 
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
     if (std::filesystem::exists(lastCrashedFile)) {
