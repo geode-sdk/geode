@@ -24,10 +24,10 @@
  * Add `scrollToTop` for ScrollLayer (7071bb1)
  * Add a new `Task` class for generic asynchronous task implementations
    * Documentation can be found [here](https://docs.geode-sdk.org/tutorials/tasks/)
-   * Add a special task named `WebTask` for handling web requests
+   * Add a special task named `WebTask` for handling web requests
  * Fix `Unzip` crash on missing progress callback (1145426)
  * Fix `AnchorLayout` not ignoring `ignoreAnchorPointForPosition` (547c047)
- * Add `ObjWrapper` class for wrapping objects inside a `CCObject` (5e76da1)
+ * Add `ObjWrapper` class for wrapping objects inside a `CCObject` (5e76da1)
  * Adjust fuzzy searching (cc5cb07)
  * Add `TextInput::setLabel` (991fce0)
 

@@ -1,6 +1,8 @@
 #include "Server.hpp"
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/ranges.hpp>
+#include <chrono>
+#include <date/date.h>
 #include <fmt/core.h>
 #include <loader/ModMetadataImpl.hpp>
 #include <fmt/chrono.h>
@@ -244,11 +246,10 @@ std::string ServerDateTime::toAgoString() const {
 
 Result<ServerDateTime> ServerDateTime::parse(std::string const& str) {
     std::stringstream ss(str);
-    std::tm value;
-    if (ss >> std::get_time(&value, "%Y-%m-%dT%H:%M:%SZ")) {
-        auto time = std::mktime(&value);
+    date::sys_seconds seconds;
+    if (ss >> date::parse("%Y-%m-%dT%H:%M:%S%Z", seconds)) {
         return Ok(ServerDateTime {
-            .value = Clock::from_time_t(time),
+            .value = seconds
         });
     }
     return Err("Invalid date time format '{}'", str);
@@ -299,7 +300,7 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
 
         bool onThisPlatform = !obj.has("platforms");
         for (auto& plat : obj.has("platforms").iterate()) {
-            if (PlatformID::from(plat.get<std::string>()) == GEODE_PLATFORM_TARGET) {
+            if (PlatformID::coveredBy(plat.get<std::string>(), GEODE_PLATFORM_TARGET)) {
                 onThisPlatform = true;
             }
         }

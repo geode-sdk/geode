@@ -339,11 +339,35 @@ static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod) {
 
     // show the thread that crashed
     stream << "Crashed thread: " << utils::thread::getName() << "\n";
-    
+
     return stream.str();
 }
 
 static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
+    // not all exceptions are critical, some can and should be ignored
+    static constexpr auto ignored = std::to_array<DWORD>({
+        // various debugger stuff
+        DBG_EXCEPTION_HANDLED,
+        DBG_CONTINUE,
+        DBG_REPLY_LATER,
+        DBG_TERMINATE_THREAD,
+        DBG_TERMINATE_PROCESS,
+        DBG_RIPEXCEPTION,
+        DBG_CONTROL_BREAK,
+        DBG_COMMAND_EXCEPTION,
+        // OutputDebugString
+        DBG_PRINTEXCEPTION_C,
+        DBG_PRINTEXCEPTION_WIDE_C,
+        // ctrl+c
+        DBG_CONTROL_C,
+        STATUS_CONTROL_C_EXIT,
+        // SetThreadName
+        0x406d1388
+    });
+
+    if (std::find(ignored.begin(), ignored.end(), info->ExceptionRecord->ExceptionCode) != ignored.end()) {
+        return EXCEPTION_CONTINUE_SEARCH;
+    }
 
     SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
 
@@ -352,23 +376,20 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
 
     auto faultyMod = modFromAddress(info->ExceptionRecord->ExceptionAddress);
 
-    auto text = crashlog::writeCrashlog(faultyMod, getInfo(info, faultyMod), getStacktrace(info->ContextRecord), getRegisters(info->ContextRecord));
+    auto text = crashlog::writeCrashlog(
+        faultyMod,
+        getInfo(info, faultyMod),
+        getStacktrace(info->ContextRecord),
+        getRegisters(info->ContextRecord)
+    );
 
     MessageBoxA(nullptr, text.c_str(), "Geometry Dash Crashed", MB_ICONERROR);
 
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
-static LONG WINAPI exceptionHandlerDummy(LPEXCEPTION_POINTERS info) {
-    SetUnhandledExceptionFilter(exceptionHandler);
-    return EXCEPTION_CONTINUE_SEARCH;
-}
-
 bool crashlog::setupPlatformHandler() {
-    // for some reason, on exceptions windows seems to clear SetUnhandledExceptionFilter
-    // so we attach a VE handler (which runs *earlier*) and inside set our crash handler
-    AddVectoredExceptionHandler(0, exceptionHandlerDummy);
-    SetUnhandledExceptionFilter(exceptionHandler);
+    AddVectoredExceptionHandler(1, exceptionHandler);
 
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
     if (std::filesystem::exists(lastCrashedFile)) {

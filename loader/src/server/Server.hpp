@@ -4,6 +4,7 @@
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/utils/web.hpp>
 #include <Geode/loader/SettingEvent.hpp>
+#include <chrono>
 #include <matjson.hpp>
 #include <vector>
 

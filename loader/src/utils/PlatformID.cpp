@@ -32,6 +32,30 @@ PlatformID PlatformID::from(const char* str) {
     }
 }
 
+bool PlatformID::coveredBy(const char* str, PlatformID t) {
+    switch (hash(str)) {
+        case hash("win"): return t == PlatformID::Windows;
+
+        case hash("mac"): return t == PlatformID::MacIntel || t == PlatformID::MacArm;
+        case hash("mac-intel"): return t == PlatformID::MacIntel;
+        case hash("mac-arm"): return t == PlatformID::MacArm;
+
+        case hash("ios"): return t == PlatformID::iOS;
+
+        case hash("android"): return t == PlatformID::Android32 || t == PlatformID::Android64;
+        case hash("android32"): return t == PlatformID::Android32;
+        case hash("android64"): return t == PlatformID::Android64;
+
+        case hash("linux"): return t == PlatformID::Linux;
+
+        default: return false;
+    }
+}
+
+bool PlatformID::coveredBy(std::string const& str, PlatformID t) {
+    return PlatformID::coveredBy(str.c_str(), t);
+}
+
 PlatformID PlatformID::from(std::string const& str) {
     return PlatformID::from(str.c_str());
 }
