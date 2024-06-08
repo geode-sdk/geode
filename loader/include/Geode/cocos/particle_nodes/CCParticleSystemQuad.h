@@ -35,7 +35,7 @@ class CCSpriteFrame;
 
 // 2.2 additions
 struct ParticleStruct {
-
+    uint8_t pad[0x108];
 };
 
 /**
