@@ -475,9 +475,9 @@ SectionGroupEnd
 !execute "pwsh -nol -noni -nop dl-vcr.ps1"
 Section "Visual Studio Runtime"
     SetOutPath $INSTDIR
-    File VC_redist.x86.exe
-    ExecWait "$INSTDIR\VC_redist.x86.exe /install /quiet /norestart"
-    Delete "$INSTDIR\VC_redist.x86.exe"
+    File VC_redist.x64.exe
+    ExecWait "$INSTDIR\VC_redist.x64.exe /install /quiet /norestart"
+    Delete "$INSTDIR\VC_redist.x64.exe"
 SectionEnd
 
 Section "steam_appid.txt"
