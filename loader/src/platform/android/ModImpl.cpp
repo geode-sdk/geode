@@ -23,12 +23,12 @@ Result<> Mod::Impl::loadPlatformBinary() {
         }
         m_platformInfo = new PlatformInfo{so};
 
-        auto geodeImplicitEntry = findSymbolOrMangled<void(*)()>(so, "geodeImplicitEntry", "_geodeImplicitEntry@0");
+        auto geodeImplicitEntry = findSymbolOrMangled<void(*)()>(so, "geodeImplicitEntry", "_Z17geodeImplicitEntryv");
         if (geodeImplicitEntry) {
             geodeImplicitEntry();
         }
 
-        auto geodeCustomEntry = findSymbolOrMangled<void(*)()>(so, "geodeCustomEntry", "_geodeCustomEntry@0");
+        auto geodeCustomEntry = findSymbolOrMangled<void(*)()>(so, "geodeCustomEntry", "_Z15geodeCustomEntryv");
         if (geodeCustomEntry) {
             geodeCustomEntry();
         }
