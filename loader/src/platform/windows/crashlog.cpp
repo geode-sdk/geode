@@ -369,19 +369,41 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
         return EXCEPTION_CONTINUE_SEARCH;
     }
 
-    SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
+    std::string text;
 
-    // init symbols so we can get some juicy debug info
-    g_symbolsInitialized = SymInitialize(static_cast<HMODULE>(GetCurrentProcess()), nullptr, true);
+    // calling SymInitialize from multiple threads can have unexpected behavior, so synchronize this part
+    static std::mutex symMutex;
+    {
+        std::lock_guard lock(symMutex);
 
-    auto faultyMod = modFromAddress(info->ExceptionRecord->ExceptionAddress);
+        SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
 
-    auto text = crashlog::writeCrashlog(
-        faultyMod,
-        getInfo(info, faultyMod),
-        getStacktrace(info->ContextRecord),
-        getRegisters(info->ContextRecord)
-    );
+        // init symbols so we can get some juicy debug info
+        g_symbolsInitialized = SymInitialize(static_cast<HMODULE>(GetCurrentProcess()), nullptr, true);
+        if (!g_symbolsInitialized) {
+            log::warn("Failed to initialize debug symbols: Error {}", GetLastError());
+        }
+
+        auto faultyMod = modFromAddress(info->ExceptionRecord->ExceptionAddress);
+        auto crashInfo = getInfo(info, faultyMod);
+
+        // how did we get here? why does this check have to be here?
+        // i do not know. but don't remove it.
+        if (info->ExceptionRecord->ExceptionCode == EXCEPTION_NUMBER && crashInfo.find("Poco::NotFoundException(\"Not found\")") != std::string::npos) {
+            log::warn("ignoring bogus exception");
+            SymCleanup(GetCurrentProcess());
+            return EXCEPTION_CONTINUE_SEARCH;
+        }
+
+        text = crashlog::writeCrashlog(
+            faultyMod,
+            crashInfo,
+            getStacktrace(info->ContextRecord),
+            getRegisters(info->ContextRecord)
+        );
+
+        SymCleanup(GetCurrentProcess());
+    }
 
     MessageBoxA(nullptr, text.c_str(), "Geometry Dash Crashed", MB_ICONERROR);
 
@@ -389,7 +411,7 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
 }
 
 bool crashlog::setupPlatformHandler() {
-    AddVectoredExceptionHandler(1, exceptionHandler);
+    AddVectoredExceptionHandler(0, exceptionHandler);
 
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
     if (std::filesystem::exists(lastCrashedFile)) {
