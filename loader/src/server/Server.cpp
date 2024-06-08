@@ -327,9 +327,18 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
         auto obj = incompat.obj();
 
         ModMetadata::Incompatibility incompatibility;
-        obj.needs("mod_id").validate(MiniFunction<bool(std::string const&)>(&ModMetadata::validateID)).into(incompatibility.id);
-        obj.needs("version").into(incompatibility.version);
         obj.has("importance").into(incompatibility.importance);
+
+        auto modIdValue = obj.needs("mod_id");
+
+        // Do not validate if we have a supersede, maybe the old ID is invalid
+        if (incompatibility.importance == ModMetadata::Incompatibility::Importance::Superseded) {
+            modIdValue.into(incompatibility.id);
+        } else {
+            modIdValue.validate(MiniFunction<bool(std::string const&)>(&ModMetadata::validateID)).into(incompatibility.id);
+        }
+
+        obj.needs("version").into(incompatibility.version);
 
         // Check if this incompatability is installed, and if so assign the `mod` member to mark that
         auto mod = Loader::get()->getInstalledMod(incompatibility.id);
