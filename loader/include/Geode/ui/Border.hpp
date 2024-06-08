@@ -41,7 +41,6 @@ namespace geode {
         void setZOrder(int zOrder) override;
         void resetZOrder();
     protected:
-        cocos2d::CCSize m_size;
         Padding m_padding;
         bool m_customZOrder;
 
