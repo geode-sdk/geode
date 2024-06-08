@@ -428,11 +428,23 @@ static LONG WINAPI continueHandler(LPEXCEPTION_POINTERS info) {
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
+static bool isWine() {
+    auto ntdll = GetModuleHandleA("ntdll.dll");
+    return ntdll ? (GetProcAddress(ntdll, "wine_get_version") != NULL) : false;
+}
+
 bool crashlog::setupPlatformHandler() {
+    // this one works everywhere but breaks for c++ exceptions
     AddVectoredExceptionHandler(0, exceptionHandler);
 
-    // this one is pretty undocumented and idk what it does but it seems to work
+    // this one does nothing on wine but works on windows
     AddVectoredContinueHandler(0, continueHandler);
+
+    // this one does nothing on windows but works on wine
+    // bonus points: on windows it works *sometimes*, so we check for wine to prevent showing 2 crash popups at once.
+    if (isWine()) {
+        SetUnhandledExceptionFilter(continueHandler);
+    }
 
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
     if (std::filesystem::exists(lastCrashedFile)) {
