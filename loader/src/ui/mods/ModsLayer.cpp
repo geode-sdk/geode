@@ -416,6 +416,8 @@ bool ModsLayer::init() {
     mainTabs->setContentWidth(tabsTop->getContentWidth() - 45);
     mainTabs->setAnchorPoint({ .5f, .0f });
     mainTabs->setPosition(m_frame->convertToWorldSpace(tabsTop->getPosition() + ccp(0, 8)));
+    // Increment touch priority so the mods in the list don't override
+    mainTabs->setTouchPriority(-150);
 
     for (auto item : std::initializer_list<std::tuple<const char*, const char*, ModListSource*, const char*>> {
         { "download.png"_spr, "Installed", InstalledModListSource::get(InstalledModListType::All), "installed-button" },

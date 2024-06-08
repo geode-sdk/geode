@@ -210,6 +210,8 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     searchFiltersMenu->setContentWidth(size.width - m_searchInput->getScaledContentWidth() - 5);
     searchFiltersMenu->setAnchorPoint({ 1, .5f });
     searchFiltersMenu->setScale(.75f);
+    // Set higher prio to not let list items override touch
+    searchFiltersMenu->setTouchPriority(-150);
 
     auto sortSpr = GeodeSquareSprite::createWithSpriteFrameName("GJ_sortIcon_001.png");
     auto sortBtn = CCMenuItemSpriteExtra::create(
