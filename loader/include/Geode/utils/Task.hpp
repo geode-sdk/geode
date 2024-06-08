@@ -154,6 +154,22 @@ namespace geode {
 
         public:
             Handle(PrivateMarker, std::string const& name) : m_name(name) {}
+            ~Handle() {
+                // If this Task was still pending when the Handle was destroyed, 
+                // it can no longer be listened to so just cancel and cleanup
+                std::unique_lock<std::recursive_mutex> lock(m_mutex);
+                if (m_status == Status::Pending) {
+                    m_status = Status::Cancelled;
+                    // If this task carries extra data, call the extra data's 
+                    // handling method
+                    if (m_extraData) {
+                        m_extraData->cancel();
+                    }
+                    // No need to actually post an event because this Task is 
+                    // unlisteanable
+                    m_finalEventPosted = true;
+                }
+            }
         };
 
         /**
