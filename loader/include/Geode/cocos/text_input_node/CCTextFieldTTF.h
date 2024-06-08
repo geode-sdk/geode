@@ -182,6 +182,8 @@ protected:
 private:
     class LengthStack;
     LengthStack * m_pLens;
+public:
+    int m_uCursorPos;
 };
 
 // end of input group
