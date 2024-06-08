@@ -344,9 +344,19 @@ static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod) {
 }
 
 static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
-    // not all exceptions are critical, some (i.e. SetThreadName) can and should be ignored
-    if (info->ExceptionRecord->ExceptionCode == 0x406d1388) {
-        return EXCEPTION_CONTINUE_EXECUTION;
+    // not all exceptions are critical, some can and should be ignored
+    bool ignore = false;
+
+    switch (info->ExceptionRecord->ExceptionCode) {
+        case DBG_CONTROL_C: ignore = true; break;
+        case DBG_TERMINATE_THREAD: ignore = true; break;
+        case DBG_TERMINATE_PROCESS: ignore = true; break;
+        case STATUS_CONTROL_C_EXIT: ignore = true; break;
+        case 0x406d1388: ignore = true; break; // SetThreadName
+    }
+
+    if (ignore) {
+        return EXCEPTION_CONTINUE_SEARCH;
     }
 
     SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
