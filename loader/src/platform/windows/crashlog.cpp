@@ -348,9 +348,19 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
     bool ignore = false;
 
     switch (info->ExceptionRecord->ExceptionCode) {
-        case DBG_CONTROL_C: ignore = true; break;
+        // ignore all debug stuff
+        case DBG_EXCEPTION_HANDLED: ignore = true; break;
+        case DBG_CONTINUE: ignore = true; break;
+        case DBG_REPLY_LATER: ignore = true;
         case DBG_TERMINATE_THREAD: ignore = true; break;
         case DBG_TERMINATE_PROCESS: ignore = true; break;
+        case DBG_CONTROL_C: ignore = true; break;
+        case DBG_PRINTEXCEPTION_C: ignore = true; break;
+        case DBG_RIPEXCEPTION: ignore = true; break;
+        case DBG_CONTROL_BREAK: ignore = true; break;
+        case DBG_COMMAND_EXCEPTION: ignore = true; break;
+        case DBG_PRINTEXCEPTION_WIDE_C: ignore = true; break;
+        // ctrl+c
         case STATUS_CONTROL_C_EXIT: ignore = true; break;
         case 0x406d1388: ignore = true; break; // SetThreadName
     }
