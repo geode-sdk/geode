@@ -119,7 +119,7 @@ struct ParticleStruct
     float frictionRot;
     float frictionRotVar;
  
-    std::string sFrame;
+    gd::string sFrame;
  
     ParticleStruct()
         : TotalParticles(0)
