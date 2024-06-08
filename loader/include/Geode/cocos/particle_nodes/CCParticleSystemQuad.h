@@ -33,11 +33,6 @@ NS_CC_BEGIN
 
 class CCSpriteFrame;
 
-// 2.2 additions
-struct ParticleStruct {
-
-};
-
 /**
  * @addtogroup particle_nodes
  * @{
