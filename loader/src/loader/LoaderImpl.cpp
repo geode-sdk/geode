@@ -103,6 +103,10 @@ Result<> Loader::Impl::setup() {
     this->addSearchPaths();
     log::popNest();
 
+    // Trigger on_mod(Loaded) for the internal mod
+    // this function is already on the gd thread, so this should be fine
+    ModStateEvent(Mod::get(), ModEventType::Loaded).post();
+
     this->refreshModGraph();
 
     m_isSetup = true;

@@ -4,7 +4,7 @@
 #include <Geode/loader/SettingEvent.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
 
-$execute {
+$on_mod(Loaded) {
     // todo: these names should probably be shorter so they fit in SSO...
     ColorProvider::get()->define("mod-list-bg"_spr, { 25, 17, 37, 255 });
     ColorProvider::get()->define("mod-list-version-label"_spr, ccc3(112, 235, 41));

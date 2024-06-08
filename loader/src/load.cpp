@@ -17,7 +17,7 @@ using namespace geode::prelude;
 
 #include "load.hpp"
 
-$execute {
+$on_mod(Loaded) {
     ipc::listen("ipc-test", [](ipc::IPCEvent* event) -> matjson::Value {
         return "Hello from Geode!";
     });
