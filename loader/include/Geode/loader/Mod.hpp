@@ -51,22 +51,20 @@ namespace geode {
         return action == ModRequestedAction::Uninstall || action == ModRequestedAction::UninstallWithSaveData;
     }
 
-    namespace internal {
-        template <class T>
-        static consteval bool typeImplementsIsJSON() {
-            using namespace matjson;
-            if constexpr (requires(const Value& json) { Serialize<std::decay_t<T>>::is_json(json); })
-                return true;
-            if constexpr (std::is_same_v<T, Value>) return true;
-            if constexpr (std::is_same_v<T, Array>) return true;
-            if constexpr (std::is_same_v<T, Object>) return true;
-            if constexpr (std::is_constructible_v<std::string, T>) return true;
-            if constexpr (std::is_integral_v<T> || std::is_floating_point_v<T>) return true;
-            if constexpr (std::is_same_v<T, bool>) return true;
-            if constexpr (std::is_same_v<T, std::nullptr_t>) return true;
+    template <class T>
+    static consteval bool typeImplementsIsJSON() {
+        using namespace matjson;
+        if constexpr (requires(const Value& json) { Serialize<std::decay_t<T>>::is_json(json); })
+            return true;
+        if constexpr (std::is_same_v<T, Value>) return true;
+        if constexpr (std::is_same_v<T, Array>) return true;
+        if constexpr (std::is_same_v<T, Object>) return true;
+        if constexpr (std::is_constructible_v<std::string, T>) return true;
+        if constexpr (std::is_integral_v<T> || std::is_floating_point_v<T>) return true;
+        if constexpr (std::is_same_v<T, bool>) return true;
+        if constexpr (std::is_same_v<T, std::nullptr_t>) return true;
 
-            return false;
-        }
+        return false;
     }
 
     GEODE_HIDDEN Mod* takeNextLoaderMod();
@@ -256,7 +254,7 @@ namespace geode {
 
         template <class T>
         T getSavedValue(std::string_view const key) {
-            static_assert(internal::typeImplementsIsJSON<T>(), "T must implement is_json in matjson::Serialize<T>, otherwise this always returns default value.");
+            static_assert(geode::typeImplementsIsJSON<T>(), "T must implement is_json in matjson::Serialize<T>, otherwise this always returns default value.");
             auto& saved = this->getSaveContainer();
             if (saved.contains(key)) {
                 if (auto value = saved.try_get<T>(key)) {
@@ -268,7 +266,7 @@ namespace geode {
 
         template <class T>
         T getSavedValue(std::string_view const key, T const& defaultValue) {
-            static_assert(internal::typeImplementsIsJSON<T>(), "T must implement is_json in matjson::Serialize<T>, otherwise this always returns default value.");
+            static_assert(geode::typeImplementsIsJSON<T>(), "T must implement is_json in matjson::Serialize<T>, otherwise this always returns default value.");
             auto& saved = this->getSaveContainer();
             if (saved.contains(key)) {
                 if (auto value = saved.try_get<T>(key)) {
