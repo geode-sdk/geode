@@ -1,6 +1,6 @@
 # Geode Changelog
 
-## v3.0.0-alpha.1 matá
+## v3.0.0-alpha.1
  * Deprecated the old web API, replacing it with a new one (b129808)
  * Replace `ghc::filesystem` with `std::filesystem` (#713)
  * Make `queueInMainThread` take a move only function
