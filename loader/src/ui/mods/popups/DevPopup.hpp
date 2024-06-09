@@ -6,10 +6,12 @@
 
 class DevListPopup : public GeodePopup<ModMetadata const&> {
 protected:
-    bool setup(ModMetadata const& src);
-
-    void onMoreByThisDev(CCObject* sender);
-
+    ModMetadata m_meta;
 public:
-    static DevListPopup* create(ModMetadata const& src);
+    static DevListPopup* create(ModMetadata const&);
+    void onClose(cocos2d::CCObject*);
+private:
+    bool setup(ModMetadata const&);
+    void createList();
+    void onMoreByThisDev(CCObject* sender);
 };
