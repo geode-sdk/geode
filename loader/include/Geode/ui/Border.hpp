@@ -35,11 +35,8 @@ namespace geode {
         void setNode(CCNode* node);
         CCNode* getNode();
         void setSize(const cocos2d::CCSize& size);
-        void setZOrder(int zOrder) override;
-        void resetZOrder();
     protected:
         Padding m_padding;
-        bool m_customZOrder;
 
         Border(const cocos2d::CCPoint& padding = { 0, 0 });
         bool init(const cocos2d::ccColor4B& backgroundColor, const cocos2d::CCSize& size);
