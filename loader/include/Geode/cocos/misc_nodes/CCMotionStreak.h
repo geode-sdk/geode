@@ -155,7 +155,6 @@ protected:
     /** texture used for the motion streak */
     CCTexture2D* m_pTexture;
     ccBlendFunc m_tBlendFunc;
-    CCPoint m_tPositionR;
 
     float m_fStroke;
     float m_fFadeDelta;
@@ -181,6 +180,7 @@ protected:
         bool m_idk;
         float m_fMaxSeg;
         bool m_bDontOpacityFade;
+        CCPoint m_tPositionR;
     )
 };
 
