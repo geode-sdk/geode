@@ -2,14 +2,6 @@
 
 using namespace geode::prelude;
 
-Border* Border::create(CCNode* node, const ccColor4B& backgroundColor) {
-    return Border::create(node, backgroundColor, { 0, 0 });
-}
-
-Border* Border::create(CCNode* node, const ccColor4B& backgroundColor, const CCSize& size) {
-    return Border::create(node, backgroundColor, size, { 0, 0 });
-}
-
 Border* Border::create(CCNode* node, const ccColor4B& backgroundColor, const CCSize& size, const CCPoint& padding) {
     Border* instance = new Border(padding);
 
@@ -24,7 +16,7 @@ Border* Border::create(CCNode* node, const ccColor4B& backgroundColor, const CCS
     }
 }
 
-Border::Border(const CCPoint& padding) : m_padding({ padding.x, padding.y, padding.x, padding.y }), m_customZOrder(false) { }
+Border::Border(const CCPoint& padding) : m_padding({ padding.x, padding.y, padding.x, padding.y }) { }
 
 bool Border::init(const ccColor4B& backgroundColor, const CCSize& size) {
     return this->init(nullptr, backgroundColor, size);
@@ -41,6 +33,7 @@ bool Border::init(CCNode* node, const ccColor4B& backgroundColor, const CCSize& 
     border->setID("border_sprite"_spr);
     border->setAnchorPoint({ 0, 0 });
     border->setPosition({ 0, 0 });
+    border->setZOrder(1);
     content->setID("border_content"_spr);
     content->setContentSize(size);
     this->addChild(border);
@@ -150,10 +143,6 @@ void Border::setNode(CCNode* node) {
 
     content->addChild(node);
 
-    if (!m_customZOrder) {
-        this->getChildByID("border_sprite"_spr)->setZOrder(node->getZOrder() + 1);
-    }
-
     this->updatePadding();
 }
 
@@ -170,25 +159,6 @@ void Border::setSize(const CCSize& size) {
     this->getChildByID("border_sprite"_spr)->setContentSize(size);
     this->getChildByID("border_content"_spr)->setContentSize(size);
     this->updatePadding();
-}
-
-void Border::setZOrder(int zOrder) {
-    m_customZOrder = true;
-
-    this->getChildByID("border_sprite"_spr)->setZOrder(zOrder + 1);
-    this->getChildByID("border_content"_spr)->setZOrder(zOrder);
-}
-
-void Border::resetZOrder() {
-    m_customZOrder = false;
-
-    this->getChildByID("border_content"_spr)->setZOrder(0);
-
-    if (CCNode* node = this->getNode()) {
-        this->getChildByID("border_sprite"_spr)->setZOrder(node->getZOrder() + 1);
-    } else {
-        this->getChildByID("border_sprite"_spr)->setZOrder(1);
-    }
 }
 
 void Border::updatePadding() {
