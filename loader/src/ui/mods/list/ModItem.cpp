@@ -351,6 +351,9 @@ void ModItem::updateState() {
         m_versionLabel->setColor(to3B(ColorProvider::get()->color("mod-list-version-label"_spr)));
     }
 
+    m_viewMenu->updateLayout();
+    m_titleContainer->updateLayout();
+
     // If there were problems, tint the BG red
     if (m_source.asMod() && m_source.asMod()->hasProblems()) {
         m_bg->setColor("mod-list-errors-found"_cc3b);
@@ -377,14 +380,7 @@ void ModItem::updateState() {
             on->setColor(ccGRAY);
             on->setOpacity(105);
         }
-
-        // Make sure toggler is always the same size and position to prevent misalignment
-        m_enableToggle->setContentSize({35, 35});
-        m_enableToggle->m_offButton->setPosition({17.5, 17.5});
-        m_enableToggle->m_onButton->setPosition({17.5, 17.5});
     }
-    m_viewMenu->updateLayout();
-    m_titleContainer->updateLayout();
 }
 
 void ModItem::updateSize(float width, bool big) {
