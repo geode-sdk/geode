@@ -16,7 +16,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-    auto const layerSize = CCSize(346, 210);
+    auto const layerSize = CCSize(346, 200);
 
     auto layerBG = CCLayerColor::create({ 0, 0, 0, 75 });
     layerBG->setContentSize(layerSize);
@@ -81,7 +81,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
 
     // layer borders
 
-    m_mainLayer->addChildAtPosition(createGeodeListBorders(layerSize), Anchor::Center);
+    m_mainLayer->addChildAtPosition(createGeodeListBorders({layerSize.width, layerSize.height - 2}), Anchor::Center);
 
     // buttons
 
@@ -196,7 +196,7 @@ void ModSettingsPopup::onOpenSaveDirectory(CCObject*) {
 
 ModSettingsPopup* ModSettingsPopup::create(Mod* mod) {
     auto ret = new ModSettingsPopup();
-    if (ret && ret->init(440.f, 290.f, mod)) {
+    if (ret && ret->init(440.f, 280.f, mod)) {
         ret->autorelease();
         return ret;
     }

@@ -22,7 +22,7 @@ void ModErrorPopup::createList() {
     CCSize contentSize = m_mainLayer->getContentSize();
     CCArray* elements = CCArray::create();
     std::vector<LoadProblem> problems = m_mod->getProblems();
-    m_list = ModProblemList::create(m_mod, {400.f, 170.f});
+    m_list = ModProblemList::create(m_mod, {400.f, 215.f});
     m_mainLayer->addChildAtPosition(
         m_list,
         Anchor::Center,
@@ -32,7 +32,7 @@ void ModErrorPopup::createList() {
 
 ModErrorPopup* ModErrorPopup::create(Mod *mod) {
     ModErrorPopup* ret = new ModErrorPopup();
-    if (!ret || !ret->init(440.f, 220.f, mod, GeodePopupStyle::Default)) {
+    if (!ret || !ret->init(440.f, 280.f, mod, GeodePopupStyle::Default)) {
         CC_SAFE_DELETE(ret);
         return nullptr;
     }

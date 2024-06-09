@@ -91,11 +91,11 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
                 Notification::create("There were errors - see Geode page!", NotificationIcon::Error)->show();
             }
 
-            auto icon = CCSprite::createWithSpriteFrameName("exclamation-red.png"_spr);
+            auto icon = CCSprite::createWithSpriteFrameName("exMark_001.png");
             icon->setPosition(m_fields->m_geodeButton->getContentSize() - ccp(10, 10));
             icon->setID("errors-found");
             icon->setZOrder(99);
-            icon->setScale(.8f);
+            icon->setScale(.6f);
             m_fields->m_geodeButton->addChild(icon);
         }
         

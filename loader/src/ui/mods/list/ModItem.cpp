@@ -132,9 +132,9 @@ bool ModItem::init(ModSource&& source) {
 
     ButtonSprite* spr;
     if (Loader::get()->isModInstalled(m_source.getID())) {
-        spr = createGeodeButton("View");
+        spr = createGeodeButton("View", 50, false, true);
     } else {
-        spr = createGeodeButton("Get", false, GeodeButtonSprite::Install);
+        spr = createGeodeButton("Get", 50, false, true, GeodeButtonSprite::Install);
     }
     auto viewBtn = CCMenuItemSpriteExtra::create(
         spr,
@@ -350,8 +350,6 @@ void ModItem::updateState() {
         m_versionLabel->setString(m_source.getMetadata().getVersion().toVString().c_str());
         m_versionLabel->setColor(to3B(ColorProvider::get()->color("mod-list-version-label"_spr)));
     }
-    m_viewMenu->updateLayout();
-    m_titleContainer->updateLayout();
 
     // If there were problems, tint the BG red
     if (m_source.asMod() && m_source.asMod()->hasProblems()) {
@@ -379,7 +377,14 @@ void ModItem::updateState() {
             on->setColor(ccGRAY);
             on->setOpacity(105);
         }
+
+        // Make sure toggler is always the same size and position to prevent misalignment
+        m_enableToggle->setContentSize({35, 35});
+        m_enableToggle->m_offButton->setPosition({17.5, 17.5});
+        m_enableToggle->m_onButton->setPosition({17.5, 17.5});
     }
+    m_viewMenu->updateLayout();
+    m_titleContainer->updateLayout();
 }
 
 void ModItem::updateSize(float width, bool big) {

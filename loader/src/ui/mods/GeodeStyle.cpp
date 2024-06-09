@@ -26,10 +26,8 @@ $on_mod(Loaded) {
     ColorProvider::get()->define("mod-list-recommended-bg"_spr, ccc3(25, 255, 167));
     ColorProvider::get()->define("mod-list-recommended-by"_spr, ccc3(25, 255, 167));
     ColorProvider::get()->define("mod-list-recommended-by-2"_spr, ccc3(47, 255, 255));
-    ColorProvider::get()->define(
-        "mod-problems-item-bg"_spr,
-        { 255, 255, 255, 15 }
-    );
+    ColorProvider::get()->define("mod-problems-item-bg"_spr, { 255, 255, 255, 15 });
+    ColorProvider::get()->define("mod-developer-item-bg"_spr, { 255, 255, 255, 15 });
 
     // Only used when GD theme is active
     ColorProvider::get()->define("mods-layer-gd-bg"_spr, { 0, 102, 255, 255 });
@@ -45,6 +43,7 @@ $on_mod(Loaded) {
             ColorProvider::get()->reset("mod-list-restart-required-label"_spr);
             ColorProvider::get()->reset("mod-list-restart-required-label-bg"_spr);
             ColorProvider::get()->reset("mod-problems-item-bg"_spr);
+            ColorProvider::get()->reset("mod-developer-item-bg"_spr);
         }
         else {
             ColorProvider::get()->override("mod-list-bg"_spr, { 168, 85, 44, 255 });
@@ -57,10 +56,8 @@ $on_mod(Loaded) {
             ColorProvider::get()->override("mod-list-restart-required-label-bg"_spr, ccc3(0, 174, 180));
             ColorProvider::get()->override("mod-list-errors-found"_spr, { 255, 0, 0, 255 });
             ColorProvider::get()->override("mod-list-errors-found-2"_spr, { 235, 35, 112, 255 });
-            ColorProvider::get()->override(
-                "mod-problems-item-bg"_spr,
-                { 0, 0, 0, 75 }
-            );
+            ColorProvider::get()->override("mod-problems-item-bg"_spr, { 0, 0, 0, 75 });
+            ColorProvider::get()->override("mod-developer-item-bg"_spr, { 0, 0, 0, 75 });
         }
     };
 
@@ -210,6 +207,9 @@ const char* getGeodeButtonSpriteName(GeodeButtonSprite spr) {
 
 IconButtonSprite* createGeodeButton(CCNode* icon, std::string const& text, GeodeButtonSprite bg) {
     return IconButtonSprite::create(getGeodeButtonSpriteName(bg), icon, text.c_str(), "bigFont.fnt");
+}
+ButtonSprite* createGeodeButton(std::string const& text, int width, bool gold, bool absolute, GeodeButtonSprite bg) {
+    return ButtonSprite::create(text.c_str(), width, absolute, gold ? "goldFont.fnt" : "bigFont.fnt", getGeodeButtonSpriteName(bg), 0.0f, .8f);
 }
 ButtonSprite* createGeodeButton(std::string const& text, bool gold, GeodeButtonSprite bg) {
     return ButtonSprite::create(text.c_str(), gold ? "goldFont.fnt" : "bigFont.fnt", getGeodeButtonSpriteName(bg), .8f);
