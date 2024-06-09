@@ -21,7 +21,7 @@
  * Use `std::string` for `gd::string` on Windows (144b2d7)
  * Make `queueInMainThread` take in a movable callback (0c35a92)
  * Add `CCMenuItemExt` for lambda versions of CCMenuItem classes (de73317)
- * Add `scrollToTop` for ScrollLayer (7071bb1)
+ * Add `scrollToTop` for ScrollLayer (7071bb1)
  * Add a new `Task` class for generic asynchronous task implementations
    * Documentation can be found [here](https://docs.geode-sdk.org/tutorials/tasks/)
    * Add a special task named `WebTask` for handling web requests
