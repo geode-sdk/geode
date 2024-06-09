@@ -11,7 +11,7 @@ on:
 
 jobs:
   check:
-    name: Trigger site build
+    name: Check CHANGELOG.md
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
