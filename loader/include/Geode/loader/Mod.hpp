@@ -50,6 +50,11 @@ namespace geode {
         return action == ModRequestedAction::Uninstall || action == ModRequestedAction::UninstallWithSaveData;
     }
 
+    template <class T>
+    concept TypeImplementsIsJSON = requires(matjson::Value v) {
+        { matjson::Serialize<std::decay_t<T>>::is_json(v) } -> std::same_as<bool>;
+    };
+
     GEODE_HIDDEN Mod* takeNextLoaderMod();
 
     class ModImpl;
@@ -237,6 +242,7 @@ namespace geode {
 
         template <class T>
         T getSavedValue(std::string_view const key) {
+            static_assert(TypeImplementsIsJSON<T>, "T must implement is_json in matjson::Serialize<T>, otherwise this always returns default value.");
             auto& saved = this->getSaveContainer();
             if (saved.contains(key)) {
                 if (auto value = saved.try_get<T>(key)) {
@@ -248,6 +254,7 @@ namespace geode {
 
         template <class T>
         T getSavedValue(std::string_view const key, T const& defaultValue) {
+            static_assert(TypeImplementsIsJSON<T>, "T must implement is_json in matjson::Serialize<T>, otherwise this always returns default value.");
             auto& saved = this->getSaveContainer();
             if (saved.contains(key)) {
                 if (auto value = saved.try_get<T>(key)) {
