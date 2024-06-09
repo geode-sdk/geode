@@ -2,14 +2,6 @@
 
 using namespace geode::prelude;
 
-Border* Border::create(CCNode* node, const ccColor4B& backgroundColor) {
-    return Border::create(node, backgroundColor, { 0, 0 });
-}
-
-Border* Border::create(CCNode* node, const ccColor4B& backgroundColor, const CCSize& size) {
-    return Border::create(node, backgroundColor, size, { 0, 0 });
-}
-
 Border* Border::create(CCNode* node, const ccColor4B& backgroundColor, const CCSize& size, const CCPoint& padding) {
     Border* instance = new Border(padding);
 

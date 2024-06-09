@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Geode/DefaultInclude.hpp>
 #include <cocos2d.h>
 
 namespace geode {
@@ -13,9 +12,7 @@ namespace geode {
             float left;
         };
 
-        static Border* create(cocos2d::CCNode* node, const cocos2d::ccColor4B& backgroundColor);
-        static Border* create(cocos2d::CCNode* node, const cocos2d::ccColor4B& backgroundColor, const cocos2d::CCSize& size);
-        static Border* create(cocos2d::CCNode* node, const cocos2d::ccColor4B& backgroundColor, const cocos2d::CCSize& size, const cocos2d::CCPoint& padding);
+        static Border* create(cocos2d::CCNode* node, const cocos2d::ccColor4B& backgroundColor, const cocos2d::CCSize& size = { 0, 0 }, const cocos2d::CCPoint& padding = { 0, 0 });
 
         void setPadding(const cocos2d::CCPoint& padding);
         void setPadding(float x, float y);
