@@ -456,6 +456,8 @@ void ModList::onCheckUpdates(typename server::ServerRequest<std::vector<std::str
                 m_hideUpdatesSpr->setString("Hide Updates");
             }
 
+            if (!m_updateAllSpr) return;
+
             // Recreate the button with the updated label.
             m_updateAllMenu->removeChild(m_updateAllBtn, false);
             m_updateAllBtn = CCMenuItemSpriteExtra::create(
