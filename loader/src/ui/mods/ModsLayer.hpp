@@ -57,6 +57,7 @@ protected:
 
     bool init();
 
+    void keyDown(enumKeyCodes key) override;
     void keyBackClicked() override;
     void setIDPopupClosed(SetIDPopup*, int value) override;
     

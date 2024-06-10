@@ -559,6 +559,27 @@ void ModsLayer::gotoTab(ModListSource* src) {
     m_lists.at(m_currentSource)->updateState();
 }
 
+void ModsLayer::keyDown(enumKeyCodes key) {
+    auto list = m_lists.at(m_currentSource);
+
+    switch(key) {
+        case KEY_Left:
+        case CONTROLLER_Left:
+            if (m_currentSource->getPageCount() && list->getPage() > 0) {
+                list->gotoPage(list->getPage() - 1);
+            }
+            break;
+        case KEY_Right:
+        case CONTROLLER_Right:
+            if (m_currentSource->getPageCount() && list->getPage() < m_currentSource->getPageCount().value() - 1) {
+                list->gotoPage(list->getPage() + 1);
+            }
+            break;
+        default:
+            CCLayer::keyDown(key);
+    }
+}
+
 void ModsLayer::keyBackClicked() {
     this->onBack(nullptr);
 }
