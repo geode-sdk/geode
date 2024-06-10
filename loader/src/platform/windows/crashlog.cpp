@@ -414,6 +414,10 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
         return EXCEPTION_CONTINUE_SEARCH;
     }
 
+    if (info->ExceptionRecord->ExceptionCode == STATUS_BREAKPOINT && IsDebuggerPresent()) {
+        return EXCEPTION_CONTINUE_SEARCH;
+    }
+
     handleException(info);
 
     // continue searching, which usually just ends up terminating the program (exactly what we need)
