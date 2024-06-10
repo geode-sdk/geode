@@ -1,5 +1,25 @@
 # Geode Changelog
 
+## v3.0.0-alpha.2
+
+ * Add `WebResponse::into()` for writing responses to files (f909a73)
+ * Add `geodeImplicitEntry` and `geodeCustomEntry` (6b2ac24, 5969c90)
+ * Fix padding and add a custom color for borders (#868)
+ * Add more SMJS nodes to UI include (#869)
+ * Fix an issue with CCParticleQuad (330c20e, #865)
+ * Hopefully fix Windows crashlogs
+ * Fix supersede incompatiblity IDs being validated (754ae3c)
+ * Fix dates not respecting timezones (1c36854)
+ * Change dependency / incompatibility / settings 'platform' string values (80d95cf)
+ * Make tasks cancel when the handle is destroyed (c82112f)
+ * Increase delay when restarting GD (84c0ba5)
+ * trigger $on_mod(Loaded) for Loader
+ * Make Windows installer use x64 vc_redist (6793fbd)
+ * Fix some cocos members (#872, #881) - thanks Acaruso and SpaghettDev
+ * geode::ui::Border fixes (#883) - thanks SMJS
+ * Update the developer popup, and various other UI fixes (#877) - thanks Alphalaneous
+ * Check if is_json is defined for getSavedValue custom types
+
 ## v3.0.0-alpha.1
  * Deprecated the old web API, replacing it with a new one (b129808)
  * Replace `ghc::filesystem` with `std::filesystem` (#713)
