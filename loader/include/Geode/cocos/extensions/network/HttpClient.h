@@ -47,6 +47,7 @@ NS_CC_EXT_BEGIN
  */
 class CC_DLL CCHttpClient : public CCObject
 {
+    GEODE_FRIEND_MODIFY
 public:
     /** Return the shared instance **/
     static CCHttpClient *getInstance();
