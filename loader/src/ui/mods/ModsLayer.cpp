@@ -281,7 +281,13 @@ void ModsStatusNode::onRestart(CCObject*) {
     m_restartBtn->updateSprite();
 
     // Actually restart
-    game::restart();
+    Loader::get()->queueInMainThread([] {
+        // Delayed by 2 frames - one is needed to render the "Restarting text"
+        Loader::get()->queueInMainThread([] {
+            // the other never finishes rendering because the game actually restarts at this point
+            game::restart();
+        });
+    });
 }
 
 ModsStatusNode* ModsStatusNode::create() {
