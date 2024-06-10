@@ -411,8 +411,7 @@ void ModList::onPromise(ModListSource::PageLoadTask::Event* event) {
         }
     }
     else if (event->isCancelled()) {
-        this->showStatus(ModListErrorStatus(), "Loading Mods Cancelled");
-        this->updateState();
+        this->reloadPage();
     }
 }
 
