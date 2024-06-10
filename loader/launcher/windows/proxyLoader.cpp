@@ -1,5 +1,6 @@
 #include <Windows.h>
 #include <string>
+#include <thread>
 
 struct XINPUT_STATE;
 struct XINPUT_CAPABILITIES;
@@ -49,8 +50,12 @@ extern "C" DWORD XInputGetCapabilities(DWORD dwUserIndex, DWORD dwFlags, XINPUT_
     return ERROR_DEVICE_NOT_CONNECTED;
 }
 
-static std::wstring getErrorString() {
-    return L"Could not load Geode! Error code: " + std::to_wstring(GetLastError());
+static std::wstring getErrorString(DWORD error) {
+    return L"Could not load Geode! Error code: " + std::to_wstring(error);
+}
+
+static std::wstring get1114ErrorString(DWORD error) {
+    return L"Could not load Geode! Error code: " + std::to_wstring(error) + L"\n\nDo you want to update Microsoft Visual C++ Redistributable 2022 to try to fix this issue?";
 }
 
 BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID _) {
@@ -58,8 +63,20 @@ BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID _) {
         DisableThreadLibraryCalls(module);
 
         // This is UB.
-        if (LoadLibraryW(L"Geode.dll") == NULL)
-            MessageBoxW(NULL, getErrorString().c_str(), L"Load failed" , MB_OK | MB_ICONWARNING);
+        if (LoadLibraryW(L"Geode.dll") == NULL) {
+            auto error = GetLastError();
+
+            if(error == 1114) {
+                if(MessageBoxW(NULL, get1114ErrorString(error).c_str(), L"Load failed" , MB_YESNO | MB_ICONWARNING) == IDYES) {
+                    std::thread([]() {
+                        ShellExecuteW(NULL, L"open", L"https://aka.ms/vs/17/release/vc_redist.x64.exe", NULL, NULL, SW_SHOWNORMAL);
+                    }).detach();
+                }
+            } else {
+                MessageBoxW(NULL, getErrorString(error).c_str(), L"Load failed" , MB_OK | MB_ICONWARNING);
+            }
+
+        }
     }
 
     return TRUE;
