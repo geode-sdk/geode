@@ -58,6 +58,16 @@ protected:
     
     bool            m_bDirty;
     
+RT_ADD(
+    bool            m_bUseArea;
+    CCRect          m_rDrawArea;
+
+    float           m_fMinAreaX;
+    float           m_fMaxAreaX;
+    float           m_fMaxAreaY;
+    float           m_fMinAreaY;
+)
+
 public:
     static CCDrawNode* create();
     virtual ~CCDrawNode();
