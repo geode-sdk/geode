@@ -234,7 +234,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 # These are only needed for building source :-)
 if (NOT GEODE_BUILDING_DOCS)
 	# Markdown support
-	CPMAddPackage("gh:geode-sdk/md4c")
+	CPMAddPackage("gh:geode-sdk/md4c#3c2f959")
 
 	# Zip support (needed for in-memory streams, which zlib's minizip doesn't support)
 	set(MZ_LZMA Off CACHE INTERNAL "Enables LZMA & XZ compression")
