@@ -5,6 +5,7 @@
 #include "../loader/Event.hpp"
 #include "../loader/Loader.hpp"
 #include <mutex>
+#include <string_view>
 
 namespace geode {
     /**
@@ -140,7 +141,7 @@ namespace geode {
 
             class PrivateMarker final {};
 
-            static std::shared_ptr<Handle> create(std::string const& name) {
+            static std::shared_ptr<Handle> create(std::string_view const name) {
                 return std::make_shared<Handle>(PrivateMarker(), name);
             }
 
@@ -153,7 +154,7 @@ namespace geode {
             friend class Task;
 
         public:
-            Handle(PrivateMarker, std::string const& name) : m_name(name) {}
+            Handle(PrivateMarker, std::string_view const name) : m_name(name) {}
             ~Handle() {
                 // If this Task was still pending when the Handle was destroyed, 
                 // it can no longer be listened to so just cancel and cleanup
@@ -392,7 +393,7 @@ namespace geode {
          * @param value The value the Task shall be finished with
          * @param name The name of the Task; used for debugging
          */
-        static Task immediate(T value, std::string const& name = "<Immediate Task>") {
+        static Task immediate(T value, std::string_view const name = "<Immediate Task>") {
             auto task = Task(Handle::create(name));
             Task::finish(task.m_handle, std::move(value));
             return task;
@@ -404,7 +405,7 @@ namespace geode {
          * function MUST be synchronous - Task creates the thread for you!
          * @param name The name of the Task; used for debugging
          */
-        static Task run(Run&& body, std::string const& name = "<Task>") {
+        static Task run(Run&& body, std::string_view const name = "<Task>") {
             auto task = Task(Handle::create(name));
             std::thread([handle = std::weak_ptr(task.m_handle), name, body = std::move(body)] {
                 utils::thread::setName(fmt::format("Task '{}'", name));
@@ -437,7 +438,7 @@ namespace geode {
          * calls will always be ignored
          * @param name The name of the Task; used for debugging
          */
-        static Task runWithCallback(RunWithCallback&& body, std::string const& name = "<Callback Task>") {
+        static Task runWithCallback(RunWithCallback&& body, std::string_view const name = "<Callback Task>") {
             auto task = Task(Handle::create(name));
             std::thread([handle = std::weak_ptr(task.m_handle), name, body = std::move(body)] {
                 utils::thread::setName(fmt::format("Task '{}'", name));
@@ -472,7 +473,7 @@ namespace geode {
          * were cancelled!
          */
         template <std::move_constructible NP>
-        static Task<std::vector<T*>, std::monostate> all(std::vector<Task<T, NP>>&& tasks, std::string const& name = "<Multiple Tasks>") {
+        static Task<std::vector<T*>, std::monostate> all(std::vector<Task<T, NP>>&& tasks, std::string_view const name = "<Multiple Tasks>") {
             using AllTask = Task<std::vector<T*>, std::monostate>;
 
             // If there are no tasks, return an immediate task that does nothing
@@ -569,7 +570,7 @@ namespace geode {
          * the mapped task is appended to the end
          */
         template <class ResultMapper, class ProgressMapper, class OnCancelled>
-        auto map(ResultMapper&& resultMapper, ProgressMapper&& progressMapper, OnCancelled&& onCancelled, std::string const& name = "<Mapping Task>") const {
+        auto map(ResultMapper&& resultMapper, ProgressMapper&& progressMapper, OnCancelled&& onCancelled, std::string_view const name = "<Mapping Task>") const {
             using T2 = decltype(resultMapper(std::declval<T*>()));
             using P2 = decltype(progressMapper(std::declval<P*>()));
 
@@ -639,7 +640,7 @@ namespace geode {
          * @param name The name of the Task; used for debugging. The name of 
          * the mapped task is appended to the end
          */        template <class ResultMapper, class ProgressMapper>
-        auto map(ResultMapper&& resultMapper, ProgressMapper&& progressMapper, std::string const& name = "<Mapping Task>") const {
+        auto map(ResultMapper&& resultMapper, ProgressMapper&& progressMapper, std::string_view const name = "<Mapping Task>") const {
             return this->map(std::move(resultMapper), std::move(progressMapper), +[]() {}, name);
         }
 
@@ -657,7 +658,7 @@ namespace geode {
          * the mapped task is appended to the end
          */        template <class ResultMapper>
             requires std::copy_constructible<P>
-        auto map(ResultMapper&& resultMapper, std::string const& name = "<Mapping Task>") const {
+        auto map(ResultMapper&& resultMapper, std::string_view const name = "<Mapping Task>") const {
             return this->map(std::move(resultMapper), +[](P* p) -> P { return *p; }, name);
         }
 
