@@ -561,7 +561,7 @@ namespace geode {
          * @param resultMapper Function that converts the finished values of 
          * the mapped Task to a desired type. Note that the function is only 
          * given a pointer to the finish value, as `T` is not guaranteed to be 
-         * copiable - the mapper may NOT move out of the value!
+         * copyable - the mapper may NOT move out of the value!
          * @param progressMapper Function that converts the progress values of 
          * the mapped Task to a desired type
          * @param onCancelled Function that is called if the mapped Task is 
@@ -634,7 +634,7 @@ namespace geode {
          * @param resultMapper Function that converts the finished values of 
          * the mapped Task to a desired type. Note that the function is only 
          * given a pointer to the finish value, as `T` is not guaranteed to be 
-         * copiable - the mapper may NOT move out of the value!
+         * copyable - the mapper may NOT move out of the value!
          * @param progressMapper Function that converts the progress values of 
          * the mapped Task to a desired type
          * @param name The name of the Task; used for debugging. The name of 
@@ -653,13 +653,91 @@ namespace geode {
          * @param resultMapper Function that converts the finished values of 
          * the mapped Task to a desired type. Note that the function is only 
          * given a pointer to the finish value, as `T` is not guaranteed to be 
-         * copiable - the mapper may NOT move out of the value!
+         * copyable - the mapper may NOT move out of the value!
          * @param name The name of the Task; used for debugging. The name of 
          * the mapped task is appended to the end
          */        template <class ResultMapper>
             requires std::copy_constructible<P>
         auto map(ResultMapper&& resultMapper, std::string_view const name = "<Mapping Task>") const {
             return this->map(std::move(resultMapper), +[](P* p) -> P { return *p; }, name);
+        }
+
+        /**
+         * Creates an implicit event listener for this Task that will call the
+         * provided functions when the Task finishes, progresses, or is cancelled.
+         * The listener will automatically be destroyed after the Task has finished.
+         * @param onResult Function to call when the Task finishes. The function
+         * is given a pointer to the finished value, `T*`.
+         * @param onProgress Function to call when the Task progresses. The function
+         * is given a pointer to the progress value, `P*`.
+         * @param onCancelled Function to call when the Task is cancelled
+         * 
+         * @warning This method should only be used in a global context. If you rely
+         * on some node still existing when the task completes, use an event listener instead.
+         */
+        template <class OnResult, class OnProgress, class OnCancelled>
+        void then(OnResult&& onResult, OnProgress&& onProgress, OnCancelled&& onCancelled) const {
+            // use a raw pointer to avoid cyclic references,
+            // we destroy it manually later on
+            auto* listener = new EventListener<Task>(*this);
+            listener->bind([
+                onResult = std::move(onResult),
+                onProgress = std::move(onProgress),
+                onCancelled = std::move(onCancelled),
+                listener
+            ](Event* event) mutable {
+                bool finished = false;
+                if (auto v = event->getValue()) {
+                    finished = true;
+                    onResult(v);
+                }
+                else if (auto p = event->getProgress()) {
+                    onProgress(p);
+                }
+                else if (event->isCancelled()) {
+                    finished = true;
+                    onCancelled();
+                }
+                if (finished) {
+                    // delay destroying the listener for a frame
+                    // to prevent any potential use-after-free
+                    queueInMainThread([listener] {
+                        delete listener;
+                    });
+                }
+            });
+        }
+
+        /**
+         * Creates an implicit event listener for this Task that will call the
+         * provided functions when the Task finishes or progresses.
+         * The listener will automatically be destroyed after the Task has finished.
+         * @param onResult Function to call when the Task finishes. The function
+         * is given a pointer to the finished value, `T*`.
+         * @param onProgress Function to call when the Task progresses. The function
+         * is given a pointer to the progress value, `P*`.
+         * 
+         * @warning This method should only be used in a global context. If you rely
+         * on some node still existing when the task completes, use an event listener instead.
+         */
+        template <class OnResult, class OnProgress>
+        void then(OnResult&& onResult, OnProgress&& onProgress) const {
+            this->then(std::move(onResult), std::move(onProgress), [] {});
+        }
+
+        /**
+         * Creates an implicit event listener for this Task that will call the
+         * provided functions when the Task finishes.
+         * The listener will automatically be destroyed after the Task has finished.
+         * @param onResult Function to call when the Task finishes. The function
+         * is given a pointer to the finished value, `T*`.
+         * 
+         * @warning This method should only be used in a global context. If you rely
+         * on some node still existing when the task completes, use an event listener instead.
+         */
+        template <class OnResult, class OnProgress>
+        void then(OnResult&& onResult) const {
+            this->then(std::move(onResult), [](auto const&) {}, [] {});
         }
 
         ListenerResult handle(utils::MiniFunction<Callback> fn, Event* e) {
