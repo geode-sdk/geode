@@ -101,7 +101,7 @@ std::vector<Mod*> Mod::getDependants() const {
 #endif
 
 std::optional<VersionInfo> Mod::hasAvailableUpdate() const {
-    #pragma message("todo")
+    // TODO
     // if (auto item = Index::get()->getItem(this->getID(), std::nullopt)) {
     //     if (
     //         item->getMetadata().getVersion() > this->getVersion() &&

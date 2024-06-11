@@ -66,7 +66,7 @@ void geode::openSupportPopup(ModMetadata const& metadata) {
 }
 
 void geode::openInfoPopup(Mod* mod) {
-    #pragma message("todo")
+    // TODO
     // LocalModInfoPopup::create(mod, nullptr)->show();
 }
 

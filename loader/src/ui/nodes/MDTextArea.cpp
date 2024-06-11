@@ -229,7 +229,7 @@ void MDTextArea::onGDLevel(CCObject* pSender) {
 }
 
 void MDTextArea::onGeodeMod(CCObject* pSender) {
-    #pragma message("todo")
+    // TODO
     // auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject());
     // auto modString = std::string(href->getCString());
     // modString = modString.substr(modString.find(":") + 1);
