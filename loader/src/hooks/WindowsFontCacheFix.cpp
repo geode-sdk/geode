@@ -45,7 +45,7 @@ $execute {
     patchCall(0xCB5BC, (uintptr_t)&RemoveFontResourceWHook);
     patchCall(0xCB642, (uintptr_t)&AddFontResourceWHook);
 #else
-    #pragma message("Unsupported GD version!")
+    // #pragma message("Unsupported GD version!")
 #endif
 };
 
