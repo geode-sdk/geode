@@ -115,7 +115,7 @@ public:
                     // If this mod is already installed, see if it can be updated
                     if (auto mod = Loader::get()->getInstalledMod(id)) {
                         // todo: after update check, if there are no updates, mark this as unsolved, otherwise start update
-                        ModSource(mod).checkUpdates();
+                        (void)ModSource(mod).checkUpdates();
                     }
                     // Otherwise try to install the mod
                     // todo: Check if the mod can be downloaded, and if not mark this as unsolved
