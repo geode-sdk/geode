@@ -2,7 +2,6 @@
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <chrono>
-#include <date/date.h>
 #include <fmt/core.h>
 #include <loader/ModMetadataImpl.hpp>
 #include <fmt/chrono.h>
@@ -246,8 +245,8 @@ std::string ServerDateTime::toAgoString() const {
 
 Result<ServerDateTime> ServerDateTime::parse(std::string const& str) {
     std::stringstream ss(str);
-    date::sys_seconds seconds;
-    if (ss >> date::parse("%Y-%m-%dT%H:%M:%S%Z", seconds)) {
+    std::chrono::time_point<std::chrono::system_clock, std::chrono::seconds> seconds;
+    if (ss >> std::chrono::parse("%Y-%m-%dT%H:%M:%S%Z", seconds)) {
         return Ok(ServerDateTime {
             .value = seconds
         });
