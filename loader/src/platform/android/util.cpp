@@ -10,6 +10,7 @@ using namespace geode::prelude;
 #include <Geode/utils/general.hpp>
 #include <Geode/utils/MiniFunction.hpp>
 #include <Geode/utils/permission.hpp>
+#include <Geode/utils/Task.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/binding/AppDelegate.hpp>
 #include <Geode/loader/Log.hpp>
@@ -192,6 +193,13 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_failedCallback(
 
 Result<std::filesystem::path> file::pickFile(file::PickMode mode, file::FilePickOptions const& options) {
     return Err("Use the callback version");
+}
+
+GEODE_DLL Task<Result<std::filesystem::path>> pick(PickMode mode, FilePickOptions const& options) {
+    using RetTask = Task<Result<std::filesystem::path>>
+    return RetTask::runWithCallback([] (auto resultCallback, auto progressCallback, auto cancelCallback) {
+        
+    });
 }
 
 void file::pickFile(

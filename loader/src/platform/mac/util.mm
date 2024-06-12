@@ -8,6 +8,7 @@ using namespace geode::prelude;
 #include <Geode/binding/GameManager.hpp>
 #include <objc/runtime.h>
 #include <Geode/utils/web.hpp>
+#include <Geode/utils/Task.hpp>
 
 #define CommentType CommentTypeDummy
 #import <Cocoa/Cocoa.h>
@@ -159,48 +160,27 @@ namespace {
 
 @end
 
-Result<std::filesystem::path> file::pickFile(
-    file::PickMode mode, file::FilePickOptions const& options
-) {
-    return Err("Use the callback version");
-}
-
-GEODE_DLL void file::pickFile(
-    PickMode mode, FilePickOptions const& options,
-    MiniFunction<void(std::filesystem::path)> callback,
-    MiniFunction<void()> failed
-) {
+GEODE_DLL Task<Result<std::filesystem::path>> pick(PickMode mode, FilePickOptions const& options) {
+    using RetTask = Task<Result<std::filesystem::path>>;
     [FileDialog dispatchFilePickerWithMode:mode options:options multiple:false onCompletion: ^(FileResult result) {
-        Loader::get()->queueInMainThread([=]() {
-            if (result.isOk()) {
-                callback(std::move(result.unwrap()[0]));
-            } else {
-                failed();
-            }
-        });
+        if (result.isOk()) {
+            return RetTask::immediate(std::move(result.unwrap()[0]));
+        } else {
+            return RetTask::immediate(Err("Couldn't open file"));
+        }
     }];
 }
 
-Result<std::vector<std::filesystem::path>> file::pickFiles(
-    file::FilePickOptions const& options
-) {
-    return Err("Use the callback version");
-}
-
-GEODE_DLL void file::pickFiles(
-    FilePickOptions const& options,
-    MiniFunction<void(std::vector<std::filesystem::path>)> callback,
-    MiniFunction<void()> failed
-) {
-    [FileDialog dispatchFilePickerWithMode: file::PickMode::OpenFile options:options multiple:true onCompletion: ^(FileResult result) {
-        Loader::get()->queueInMainThread([=]() {
-            if (result.isOk()) {
-                callback(std::move(result.unwrap()));
-            } else {
-                failed();
-            }
-        });
+GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> pickMany(FilePickOptions const& options) {
+    using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
+    [FileDialog dispatchFilePickerWithMode:mode options:options multiple:true onCompletion: ^(FileResult result) {
+        if (result.isOk()) {
+            return RetTask::immediate(std::move(result.unwrap()));
+        } else {
+            return RetTask::immediate(Err("Couldn't open file"));
+        }
     }];
+
 }
 
 CCPoint cocos::getMousePos() {
