@@ -682,7 +682,7 @@ ServerRequest<ServerModVersion> server::getModVersion(std::string const& id, Mod
             req.param("major", std::to_string(ver.major));
         },
         [&](ModVersionSpecific const& ver) {
-            versionURL = ver.toNonVString(false);
+            versionURL = ver.toNonVString();
         },
     }, version);
 
