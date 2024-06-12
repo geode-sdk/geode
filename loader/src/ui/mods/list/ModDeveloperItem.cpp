@@ -23,7 +23,8 @@ bool ModDeveloperItem::init(
     DevListPopup* popup,
     std::string developer,
     CCSize const& size,
-    std::optional<std::string> displayName
+    std::optional<std::string> displayName,
+    bool addMoreButton
 ) {
     if (!CCNode::init()) {
         return false;
@@ -66,30 +67,32 @@ bool ModDeveloperItem::init(
         {5, 0}
     );
 
-    auto menu = CCMenu::create();
-    menu->setAnchorPoint({1.0f, 0.5f});
+    if (addMoreButton) {
+        auto menu = CCMenu::create();
+        menu->setAnchorPoint({1.0f, 0.5f});
 
-    auto more = createGeodeButton("More");
+        auto more = createGeodeButton("More");
 
-    auto btn = CCMenuItemSpriteExtra::create(
-        more, this, menu_selector(ModDeveloperItem::onMoreByThisDev)
-    );
-    btn->setUserObject(CCString::create(developer));
-    menu->addChild(btn);
-    menu->setContentSize({size.width/2, size.height});
-    menu->setScale(0.6f);
+        auto btn = CCMenuItemSpriteExtra::create(
+            more, this, menu_selector(ModDeveloperItem::onMoreByThisDev)
+        );
+        btn->setUserObject(CCString::create(developer));
+        menu->addChild(btn);
+        menu->setContentSize({size.width/2, size.height});
+        menu->setScale(0.6f);
 
-    auto layout = RowLayout::create();
-    layout->setDefaultScaleLimits(0.5f, 0.7f);
-    layout->setAxisAlignment(AxisAlignment::End);
-    layout->setAxisReverse(true);
-    menu->setLayout(layout);
+        auto layout = RowLayout::create();
+        layout->setDefaultScaleLimits(0.5f, 0.7f);
+        layout->setAxisAlignment(AxisAlignment::End);
+        layout->setAxisReverse(true);
+        menu->setLayout(layout);
 
-    this->addChildAtPosition(
-        menu,
-        Anchor::Right,
-        {-3, 0}
-    );
+        this->addChildAtPosition(
+            menu,
+            Anchor::Right,
+            {-3, 0}
+        );
+    }
 
     return true;
 }
@@ -104,10 +107,11 @@ ModDeveloperItem* ModDeveloperItem::create(
     DevListPopup* popup,
     std::string developer,
     CCSize const& size,
-    std::optional<std::string> displayName
+    std::optional<std::string> displayName,
+    bool addMoreButton
 ) {
     auto ret = new ModDeveloperItem();
-    if (!ret || !ret->init(popup, developer, size, displayName)) {
+    if (!ret || !ret->init(popup, developer, size, displayName, addMoreButton)) {
         CC_SAFE_DELETE(ret);
         return nullptr;
     }

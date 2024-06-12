@@ -56,7 +56,7 @@ bool ModDeveloperList::init(DevListPopup* popup, ModSource const& source, CCSize
     m_source.visit(makeVisitor {
         [this, popup, itemSize](Mod* mod) {
             for (std::string& dev : mod->getMetadata().getDevelopers()) {
-                m_list->m_contentLayer->addChild(ModDeveloperItem::create(popup, dev, itemSize));
+                m_list->m_contentLayer->addChild(ModDeveloperItem::create(popup, dev, itemSize, std::nullopt, false));
             }
         },
         [this, popup, itemSize](server::ServerModMetadata const& metadata) {
@@ -66,7 +66,7 @@ bool ModDeveloperList::init(DevListPopup* popup, ModSource const& source, CCSize
         },
         [this, popup, itemSize](ModSuggestion const& suggestion) {
             for (std::string& dev : suggestion.suggestion.getDevelopers()) {
-                m_list->m_contentLayer->addChild(ModDeveloperItem::create(popup, dev, itemSize));
+                m_list->m_contentLayer->addChild(ModDeveloperItem::create(popup, dev, itemSize, std::nullopt, false));
             }
         },
     });

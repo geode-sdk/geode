@@ -19,14 +19,16 @@ public:
         DevListPopup* popup,
         std::string developer,
         CCSize const& size,
-        std::optional<std::string> displayName = std::nullopt
+        std::optional<std::string> displayName = std::nullopt,
+        bool addMoreButton = true
     );
 private:
     bool init(
         DevListPopup* popup,
         std::string developer,
         CCSize const& size,
-        std::optional<std::string> displayName
+        std::optional<std::string> displayName,
+        bool addMoreButton
     );
     void onMoreByThisDev(CCObject* sender);
 };
