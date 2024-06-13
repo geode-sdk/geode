@@ -9,6 +9,7 @@
 #include <Geode/loader/Dirs.hpp>
 #include <charconv>
 #include <clocale>
+#include <filesystem>
 
 // Helpers
 
@@ -364,16 +365,20 @@ void FileSettingNode::valueChanged(bool updateText) {
 }
 
 void FileSettingNode::onPickFile(CCObject*) {
-    file::pickFile(
-        file::PickMode::OpenFile,
+    file::pick(
+        file::PickMode::OpenFile, 
         {
             dirs::getGameDir(),
             setting()->castDefinition().controls.filters
+    }).then(
+        [this](Result<std::filesystem::path>* path) {
+            if (path->isOk()) {
+                m_uncommittedValue = path->unwrap();
+                this->valueChanged(true);
+            }
         },
-        [&](auto path) {
-            m_uncommittedValue = path;
-            this->valueChanged(true);
-        }
+        [] (auto progress) {},
+        [] () {}
     );
 }
 
