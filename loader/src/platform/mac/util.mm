@@ -162,22 +162,33 @@ namespace {
 
 GEODE_DLL Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, file::FilePickOptions const& options) {
     using RetTask = Task<Result<std::filesystem::path>>;
-    [FileDialog dispatchFilePickerWithMode:mode options:options multiple:false onCompletion: ^(FileResult result) {
-        if (result.isOk()) {
-            std::filesystem::path path = result.unwrap()[0];
-            return RetTask::immediate(Ok(path));
-        } else {
-            return RetTask::immediate(Err(result.err().unwrap()));
-        }
-    }];
+    return RetTask::runWithCallback([mode, options](auto resultCallback, auto progress, auto cancelled) {
+        [FileDialog dispatchFilePickerWithMode:mode options:options multiple:false onCompletion: ^(FileResult result) {
+            if (cancelled()) {
+                resultCallback(RetTask::Cancel());
+            } else {
+                if (result.isOk()) {
+                    std::filesystem::path path = result.unwrap()[0];
+                    resultCallback(Ok(path));
+                } else {
+                    resultCallback(Err(result.err().value()));
+                }
+            }
+        }];
+    });
 }
 
 GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> file::pickMany(file::FilePickOptions const& options) {
     using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
-    [FileDialog dispatchFilePickerWithMode:mode options:options multiple:true onCompletion: ^(FileResult result) {
-        return RetTask::immediate(result);
-    }];
-
+    return RetTask::runWithCallback([options](auto resultCallback, auto progress, auto cancelled) {
+        [FileDialog dispatchFilePickerWithMode:mode options:options multiple:true onCompletion: ^(FileResult result) {
+            if (cancelled()) {
+                resultCallback(RetTask::Cancel());
+            } else {
+                resultCallback(result);
+            }
+        }];
+    })
 }
 
 CCPoint cocos::getMousePos() {
