@@ -182,7 +182,7 @@ static std::string baseEnumsToString(BaseType type, int size, int color) {
 
 bool BasedButtonSprite::init(CCNode* ontop, BaseType type, int size, int color) {
     if (!CCSprite::initWithSpriteFrameName(
-        Mod::get()->expandSpriteName(baseEnumsToString(type, size, color).c_str())
+        Mod::get()->expandSpriteName(baseEnumsToString(type, size, color)).data()
     )) return false;
 
     m_type = type;

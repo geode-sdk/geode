@@ -676,7 +676,7 @@ namespace geode {
          * on some node still existing when the task completes, use an event listener instead.
          */
         template <class OnResult, class OnProgress, class OnCancelled>
-        void then(OnResult&& onResult, OnProgress&& onProgress, OnCancelled&& onCancelled) const {
+        void listen(OnResult&& onResult, OnProgress&& onProgress, OnCancelled&& onCancelled) const {
             // use a raw pointer to avoid cyclic references,
             // we destroy it manually later on
             auto* listener = new EventListener<Task>(*this);
@@ -721,13 +721,13 @@ namespace geode {
          * on some node still existing when the task completes, use an event listener instead.
          */
         template <class OnResult, class OnProgress>
-        void then(OnResult&& onResult, OnProgress&& onProgress) const {
-            this->then(std::move(onResult), std::move(onProgress), [] {});
+        void listen(OnResult&& onResult, OnProgress&& onProgress) const {
+            this->listen(std::move(onResult), std::move(onProgress), [] {});
         }
 
         /**
          * Creates an implicit event listener for this Task that will call the
-         * provided functions when the Task finishes.
+         * provided function when the Task finishes.
          * The listener will automatically be destroyed after the Task has finished.
          * @param onResult Function to call when the Task finishes. The function
          * is given a pointer to the finished value, `T*`.
@@ -736,8 +736,8 @@ namespace geode {
          * on some node still existing when the task completes, use an event listener instead.
          */
         template <class OnResult, class OnProgress>
-        void then(OnResult&& onResult) const {
-            this->then(std::move(onResult), [](auto const&) {}, [] {});
+        void listen(OnResult&& onResult) const {
+            this->listen(std::move(onResult), [](auto const&) {}, [] {});
         }
 
         ListenerResult handle(utils::MiniFunction<Callback> fn, Event* e) {
