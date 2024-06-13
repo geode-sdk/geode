@@ -380,80 +380,23 @@ static void handleException(LPEXCEPTION_POINTERS info) {
             getRegisters(info->ContextRecord)
         );
 
-        SymCleanup(GetCurrentProcess());
+        if (g_symbolsInitialized) {
+            SymCleanup(GetCurrentProcess());
+        }
     }
 
     MessageBoxA(nullptr, text.c_str(), "Geometry Dash Crashed", MB_ICONERROR);
 }
 
 static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
-    // not all exceptions are critical, some can and should be ignored
-    static constexpr auto ignored = std::to_array<DWORD>({
-        // various debugger stuff
-        DBG_EXCEPTION_HANDLED,
-        DBG_CONTINUE,
-        DBG_REPLY_LATER,
-        DBG_TERMINATE_THREAD,
-        DBG_TERMINATE_PROCESS,
-        DBG_RIPEXCEPTION,
-        DBG_CONTROL_BREAK,
-        DBG_COMMAND_EXCEPTION,
-        // OutputDebugString
-        DBG_PRINTEXCEPTION_C,
-        DBG_PRINTEXCEPTION_WIDE_C,
-        // ctrl+c
-        DBG_CONTROL_C,
-        STATUS_CONTROL_C_EXIT,
-        // SetThreadName
-        0x406d1388,
-        // c++ exceptions, handled separately
-        EXCEPTION_NUMBER,
-        // mods failing to load
-        STATUS_DLL_NOT_FOUND,
-        STATUS_DLL_INIT_FAILED,
-        STATUS_ORDINAL_NOT_FOUND,
-        STATUS_ENTRYPOINT_NOT_FOUND,
-    });
-
-    if (std::find(ignored.begin(), ignored.end(), info->ExceptionRecord->ExceptionCode) != ignored.end()) {
-        return EXCEPTION_CONTINUE_SEARCH;
-    }
-
-    if (info->ExceptionRecord->ExceptionCode == STATUS_BREAKPOINT && IsDebuggerPresent()) {
-        return EXCEPTION_CONTINUE_SEARCH;
-    }
-
     handleException(info);
 
     // continue searching, which usually just ends up terminating the program (exactly what we need)
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
-static LONG WINAPI continueHandler(LPEXCEPTION_POINTERS info) {
-    if (info->ExceptionRecord->ExceptionCode == EXCEPTION_NUMBER) {
-        handleException(info);
-    }
-
-    return EXCEPTION_CONTINUE_SEARCH;
-}
-
-static bool isWine() {
-    auto ntdll = GetModuleHandleA("ntdll.dll");
-    return ntdll ? (GetProcAddress(ntdll, "wine_get_version") != NULL) : false;
-}
-
 bool crashlog::setupPlatformHandler() {
-    // this one works everywhere but breaks for c++ exceptions
-    AddVectoredExceptionHandler(0, exceptionHandler);
-
-    // this one does nothing on wine but works on windows
-    AddVectoredContinueHandler(0, continueHandler);
-
-    // this one does nothing on windows but works on wine
-    // bonus points: on windows it works *sometimes*, so we check for wine to prevent showing 2 crash popups at once.
-    if (isWine()) {
-        SetUnhandledExceptionFilter(continueHandler);
-    }
+    SetUnhandledExceptionFilter(exceptionHandler);
 
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
     if (std::filesystem::exists(lastCrashedFile)) {
