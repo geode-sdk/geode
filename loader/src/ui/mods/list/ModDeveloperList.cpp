@@ -11,13 +11,14 @@
 #include <GUI/CCControlExtension/CCScale9Sprite.h>
 
 #include "ui/mods/list/ModDeveloperItem.hpp"
+#include "ui/mods/sources/ModSource.hpp"
 
-bool ModDeveloperList::init(DevListPopup* popup, ModMetadata const& meta, CCSize const& size) {
+bool ModDeveloperList::init(DevListPopup* popup, ModSource const& source, CCSize const& size) {
     if (!CCNode::init()) {
         return false;
     }
 
-    m_meta = meta;
+    m_source = source;
     this->setContentSize(size);
     this->setAnchorPoint({ 0.5f, 0.5f });
 
@@ -52,17 +53,31 @@ bool ModDeveloperList::init(DevListPopup* popup, ModMetadata const& meta, CCSize
         20.f
     };
 
-    for (std::string dev : m_meta.getDevelopers()) {
-        m_list->m_contentLayer->addChild(ModDeveloperItem::create(popup, dev, itemSize));
-    }
+    m_source.visit(makeVisitor {
+        [this, popup, itemSize](Mod* mod) {
+            for (std::string& dev : mod->getMetadata().getDevelopers()) {
+                m_list->m_contentLayer->addChild(ModDeveloperItem::create(popup, dev, itemSize, std::nullopt, false));
+            }
+        },
+        [this, popup, itemSize](server::ServerModMetadata const& metadata) {
+            for (auto& dev : metadata.developers) {
+                m_list->m_contentLayer->addChild(ModDeveloperItem::create(popup, dev.username, itemSize, dev.displayName));
+            }
+        },
+        [this, popup, itemSize](ModSuggestion const& suggestion) {
+            for (std::string& dev : suggestion.suggestion.getDevelopers()) {
+                m_list->m_contentLayer->addChild(ModDeveloperItem::create(popup, dev, itemSize, std::nullopt, false));
+            }
+        },
+    });
     m_list->m_contentLayer->updateLayout();
     m_list->scrollToTop();
     return true;
 }
 
-ModDeveloperList* ModDeveloperList::create(DevListPopup* popup, ModMetadata const& meta, CCSize const& size) {
+ModDeveloperList* ModDeveloperList::create(DevListPopup* popup, ModSource const& source, CCSize const& size) {
     auto ret = new ModDeveloperList();
-    if (!ret || !ret->init(popup, meta, size)) {
+    if (!ret || !ret->init(popup, source, size)) {
         CC_SAFE_DELETE(ret);
         return nullptr;
     }

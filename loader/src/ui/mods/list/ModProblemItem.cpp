@@ -59,7 +59,7 @@ bool ModProblemItem::init(Mod* source, LoadProblem problem, CCSize const& size) 
         message.c_str(),
         "bigFont.fnt"
     );
-    label->setWrappingMode(WrappingMode::WORD_WRAP);
+    label->setWrappingMode(WrappingMode::SPACE_WRAP);
     label->setAnchorPoint({ 0.0f, 0.5f });
     label->setMaxLines(4);
     if (this->showFixButton()) {

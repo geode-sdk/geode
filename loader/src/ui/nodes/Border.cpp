@@ -1,4 +1,6 @@
 #include <Geode/ui/Border.hpp>
+#include <Geode/loader/Mod.hpp>
+#include <Geode/utils/cocos.hpp>
 
 using namespace geode::prelude;
 

@@ -467,7 +467,7 @@ void ModItem::onInstall(CCObject*) {
     server::ModDownloadManager::get()->startDownload(m_source.getID(), std::nullopt);
 }
 void ModItem::onDevelopers(CCObject*) {
-    DevListPopup::create(m_source.getMetadata())->show();
+    DevListPopup::create(m_source)->show();
 }
 
 ModItem* ModItem::create(ModSource&& source) {
