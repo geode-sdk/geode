@@ -160,22 +160,22 @@ namespace {
 
 @end
 
-GEODE_DLL Task<Result<std::filesystem::path>> pick(PickMode mode, FilePickOptions const& options) {
+GEODE_DLL Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, file::FilePickOptions const& options) {
     using RetTask = Task<Result<std::filesystem::path>>;
     [FileDialog dispatchFilePickerWithMode:mode options:options multiple:false onCompletion: ^(FileResult result) {
         if (result.isOk()) {
             return RetTask::immediate(std::move(result.unwrap()[0]));
         } else {
-            return RetTask::immediate(Err("Couldn't open file"));
+            return RetTask::immediate(result.err().unwrap());
         }
     }];
 }
 
-GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> pickMany(FilePickOptions const& options) {
+GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> file::pickMany(file::FilePickOptions const& options) {
     using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
     [FileDialog dispatchFilePickerWithMode:mode options:options multiple:true onCompletion: ^(FileResult result) {
         if (result.isOk()) {
-            return RetTask::immediate(std::move(result.unwrap()));
+            return RetTask::immediate(result);
         } else {
             return RetTask::immediate(Err("Couldn't open file"));
         }
