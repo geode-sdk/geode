@@ -370,7 +370,7 @@ void FileSettingNode::onPickFile(CCObject*) {
         {
             dirs::getGameDir(),
             setting()->castDefinition().controls.filters
-    }).then(
+    }).listen(
         [this](Result<std::filesystem::path>* path) {
             if (path->isOk()) {
                 m_uncommittedValue = path->unwrap();
