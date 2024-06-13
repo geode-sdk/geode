@@ -466,6 +466,37 @@ namespace geode {
     };
 }
 
+// apple clang is stupid, probably
+#ifdef __APPLE_CC__
+
 GEODE_HIDDEN inline char const* operator"" _spr(char const* str, size_t len) {
     return geode::Mod::get()->expandSpriteName({ str, len }).data();
 }
+
+#else
+
+namespace geode::geode_internal {
+    // this impl relies on the GEODE_MOD_ID macro set by cmake
+    template <size_t N>
+    struct StringConcatModIDSlash {
+        static constexpr size_t extra = sizeof(GEODE_MOD_ID);
+        char buffer[extra + N]{};
+        constexpr StringConcatModIDSlash(const char (&pp)[N]) {
+            char id[] = GEODE_MOD_ID;
+            for (int i = 0; i < sizeof(id); ++i) {
+                buffer[i] = id[i];
+            }
+            buffer[extra - 1] = '/';
+            for (int i = 0; i < N; ++i) {
+                buffer[extra + i] = pp[i];
+            }
+        }
+    };
+}
+
+template <geode::geode_internal::StringConcatModIDSlash Str>
+constexpr auto operator""_spr() {
+    return Str.buffer;
+}
+
+#endif
