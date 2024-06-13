@@ -409,7 +409,10 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
         // c++ exceptions, handled separately
         EXCEPTION_NUMBER,
         // mods failing to load
-        ERROR_DLL_INIT_FAILED
+        STATUS_DLL_NOT_FOUND,
+        STATUS_DLL_INIT_FAILED,
+        STATUS_ORDINAL_NOT_FOUND,
+        STATUS_ENTRYPOINT_NOT_FOUND,
     });
 
     if (std::find(ignored.begin(), ignored.end(), info->ExceptionRecord->ExceptionCode) != ignored.end()) {
