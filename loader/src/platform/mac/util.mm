@@ -1,3 +1,4 @@
+#include "Geode/utils/file.hpp"
 #include <Geode/DefaultInclude.hpp>
 
 using namespace geode::prelude;
@@ -181,14 +182,14 @@ GEODE_DLL Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, fi
 GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> file::pickMany(file::FilePickOptions const& options) {
     using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
     return RetTask::runWithCallback([options](auto resultCallback, auto progress, auto cancelled) {
-        [FileDialog dispatchFilePickerWithMode:mode options:options multiple:true onCompletion: ^(FileResult result) {
+        [FileDialog dispatchFilePickerWithMode: file::PickMode::OpenFile options:options multiple:true onCompletion: ^(FileResult result) {
             if (cancelled()) {
                 resultCallback(RetTask::Cancel());
             } else {
                 resultCallback(result);
             }
         }];
-    })
+    });
 }
 
 CCPoint cocos::getMousePos() {
