@@ -3,6 +3,7 @@
 #include <matjson.hpp>
 #include "ModPatch.hpp"
 #include <Geode/loader/Loader.hpp>
+#include <string_view>
 
 namespace geode {
     class Mod::Impl {
@@ -148,7 +149,7 @@ namespace geode {
 
         Result<> loadBinary();
 
-        char const* expandSpriteName(char const* name);
+        std::string_view expandSpriteName(std::string_view name);
         ModJson getRuntimeInfo() const;
 
         bool isLoggingEnabled() const;

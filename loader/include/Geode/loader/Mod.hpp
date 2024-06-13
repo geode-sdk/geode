@@ -444,7 +444,7 @@ namespace geode {
          */
         bool hasUnresolvedIncompatibilities() const;
 
-        char const* expandSpriteName(char const* name);
+        std::string_view expandSpriteName(std::string_view name);
 
         /**
          * Get info about the mod as JSON
@@ -466,6 +466,6 @@ namespace geode {
     };
 }
 
-GEODE_HIDDEN inline char const* operator"" _spr(char const* str, size_t) {
-    return geode::Mod::get()->expandSpriteName(str);
+GEODE_HIDDEN inline char const* operator"" _spr(char const* str, size_t len) {
+    return geode::Mod::get()->expandSpriteName({ str, len }).data();
 }
