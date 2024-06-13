@@ -164,9 +164,10 @@ GEODE_DLL Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, fi
     using RetTask = Task<Result<std::filesystem::path>>;
     [FileDialog dispatchFilePickerWithMode:mode options:options multiple:false onCompletion: ^(FileResult result) {
         if (result.isOk()) {
-            return RetTask::immediate(std::move(result.unwrap()[0]));
+            std::filesystem::path path = result.unwrap()[0];
+            return RetTask::immediate(Ok(path));
         } else {
-            return RetTask::immediate(result.err().unwrap());
+            return RetTask::immediate(Err(result.err().unwrap()));
         }
     }];
 }
@@ -174,11 +175,7 @@ GEODE_DLL Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, fi
 GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> file::pickMany(file::FilePickOptions const& options) {
     using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
     [FileDialog dispatchFilePickerWithMode:mode options:options multiple:true onCompletion: ^(FileResult result) {
-        if (result.isOk()) {
-            return RetTask::immediate(result);
-        } else {
-            return RetTask::immediate(Err("Couldn't open file"));
-        }
+        return RetTask::immediate(result);
     }];
 
 }
