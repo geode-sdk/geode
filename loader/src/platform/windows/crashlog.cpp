@@ -407,7 +407,9 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
         // SetThreadName
         0x406d1388,
         // c++ exceptions, handled separately
-        EXCEPTION_NUMBER
+        EXCEPTION_NUMBER,
+        // mods failing to load
+        ERROR_DLL_INIT_FAILED
     });
 
     if (std::find(ignored.begin(), ignored.end(), info->ExceptionRecord->ExceptionCode) != ignored.end()) {
