@@ -1,10 +1,8 @@
-#include <Geode/utils/file.hpp>
-#include <mutex>
-
 using namespace geode::prelude;
 
 #include <Geode/utils/cocos.hpp>
 #include <Geode/loader/Dirs.hpp>
+#include <Geode/utils/file.hpp>
 #include <Geode/utils/web.hpp>
 #include <filesystem>
 #include <Geode/utils/general.hpp>
@@ -18,6 +16,7 @@ using namespace geode::prelude;
 #include <Geode/utils/Result.hpp>
 #include <Geode/DefaultInclude.hpp>
 #include <optional>
+#include <mutex>
 
 #include <jni.h>
 #include <Geode/cocos/platform/android/jni/JniHelper.h>
