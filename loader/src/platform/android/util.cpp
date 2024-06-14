@@ -153,7 +153,7 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_selectFileCallba
     auto isCopy = jboolean();
     auto dataStr = env->GetStringUTFChars(data, &isCopy);
 
-    const std::lock_guard<std::mutex> lock(s_callbackMutex);
+    const std::lock_guard lock(s_callbackMutex);
     if (s_taskCancelled && s_taskCancelled()) {
         s_taskCancelled = {};
         return;
@@ -179,7 +179,7 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_selectFilesCallb
         auto dataStr = env->GetStringUTFChars(data, &isCopy);
         result.push_back(dataStr);
     }
-    const std::lock_guard<std::mutex> lock(s_callbackMutex);
+    const std::lock_guard lock(s_callbackMutex);
     if (s_taskCancelled && s_taskCancelled()) {
         s_taskCancelled = {};
         return;
@@ -196,7 +196,7 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_failedCallback(
         JNIEnv *env,
         jobject
 ) {
-    const std::lock_guard<std::mutex> lock(s_callbackMutex);
+    const std::lock_guard lock(s_callbackMutex);
     if (s_fileCallback) {
         s_fileCallback(Err("Permission error"));
         s_fileCallback = {};
@@ -213,7 +213,7 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_failedCallback(
 Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, file::FilePickOptions const& options) {
     using RetTask = Task<Result<std::filesystem::path>>;
 
-    const std::lock_guard<std::mutex> lock(s_callbackMutex);
+    const std::lock_guard lock(s_callbackMutex);
     if (s_fileCallback || s_filesCallback || s_taskCancelled) {
         return RetTask::immediate(Err("File picker was already called this frame"));
     }
@@ -244,7 +244,7 @@ Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, file::FilePi
         }
     }
     return RetTask::runWithCallback([] (auto result, auto progress, auto cancelled) {
-        const std::lock_guard<std::mutex> lock(s_callbackMutex);
+        const std::lock_guard lock(s_callbackMutex);
         s_fileCallback = result;
         s_taskCancelled = cancelled;
     });
@@ -253,7 +253,7 @@ Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, file::FilePi
 Task<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions const& options) {
     using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
 
-    const std::lock_guard<std::mutex> lock(s_callbackMutex);
+    const std::lock_guard lock(s_callbackMutex);
     if (s_fileCallback || s_filesCallback || s_taskCancelled) {
         return RetTask::immediate(Err("File picker was already called this frame"));
     }
@@ -272,7 +272,7 @@ Task<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions 
     }
 
     return RetTask::runWithCallback([options](auto result, auto progress, auto cancelled){
-        const std::lock_guard<std::mutex> lock(s_callbackMutex);
+        const std::lock_guard lock(s_callbackMutex);
         s_filesCallback = result;
         s_taskCancelled = cancelled;
     });
