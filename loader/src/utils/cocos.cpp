@@ -372,7 +372,7 @@ CCNode* geode::cocos::getChildBySpriteFrameName(CCNode* parent, const char* name
     return nullptr;
 }
 
-bool geode::cocos::isSpriteName(CCNode* node, const char* name) {
+bool geode::cocos::isFilename(CCNode* node, const char* name) {
     if (!node) return false;
 
     auto texture = CCTextureCache::sharedTextureCache()->textureForKey(name);
@@ -394,9 +394,9 @@ bool geode::cocos::isSpriteName(CCNode* node, const char* name) {
     return false;
 }
 
-CCNode* geode::cocos::getChildBySpriteName(CCNode* parent, const char* name) {
+CCNode* geode::cocos::getChildByFilename(CCNode* parent, const char* name) {
     for (auto child : CCArrayExt<CCNode*>(parent->getChildren())) {
-        if (::isSpriteName(static_cast<CCNode*>(child), name)) {
+        if (::isFilename(static_cast<CCNode*>(child), name)) {
             return child;
         }
     }
