@@ -16,6 +16,7 @@
 #include <Geode/binding/MenuLayer.hpp>
 #include "popups/ConfirmInstall.hpp"
 #include "GeodeStyle.hpp"
+#include "ui/mods/sources/ModListSource.hpp"
 
 bool ModsStatusNode::init() {
     if (!CCNode::init())
@@ -427,7 +428,7 @@ bool ModsLayer::init() {
 
     for (auto item : std::initializer_list<std::tuple<const char*, const char*, ModListSource*, const char*>> {
         { "download.png"_spr, "Installed", InstalledModListSource::get(InstalledModListType::All), "installed-button" },
-        { "GJ_starsIcon_001.png", "Recommended", SuggestedModListSource::get(), "recommended-button" },
+        { "GJ_starsIcon_001.png", "Featured", ServerModListSource::get(ServerModListType::Featured), "featured-button" },
         { "globe.png"_spr, "Download", ServerModListSource::get(ServerModListType::Download), "download-button" },
         { "GJ_timeIcon_001.png", "Recent", ServerModListSource::get(ServerModListType::Recent), "recent-button" },
     }) {
