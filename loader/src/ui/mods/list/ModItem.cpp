@@ -3,10 +3,12 @@
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/loader/Loader.hpp>
+#include <vector>
 #include "../GeodeStyle.hpp"
 #include "../popups/ModPopup.hpp"
 #include "../popups/DevPopup.hpp"
 #include "ui/mods/popups/ModErrorPopup.hpp"
+#include "ui/mods/sources/ModSource.hpp"
 
 bool ModItem::init(ModSource&& source) {
     if (!CCNode::init())
@@ -213,29 +215,48 @@ bool ModItem::init(ModSource&& source) {
             });
             downloadsContainer->updateLayout();
             m_viewMenu->addChild(downloadsContainer);
-        },
-        [this](ModSuggestion const& suggestion) {
-            m_recommendedBy = CCNode::create();
-            m_recommendedBy->setID("recommended-container");
-            m_recommendedBy->setContentWidth(225);
 
-            auto byLabel = CCLabelBMFont::create("Recommended by ", "bigFont.fnt");
-            byLabel->setID("recommended-label");
-            byLabel->setColor("mod-list-recommended-by"_cc3b);
-            m_recommendedBy->addChild(byLabel);
+            // Check if mod is recommended by any others, only if not installed
+            if (!Loader::get()->isModInstalled(metadata.id)) {
+                std::vector<Mod*> recommends {};
+                for (auto& recommend : Loader::get()->getRecommendations()) {
+                    auto suggestionID = recommend.message.substr(0, recommend.message.find(' '));
+                    if (suggestionID != metadata.id) {
+                        continue;
+                    }
+                    recommends.push_back(std::get<2>(recommend.cause));
+                }
 
-            auto nameLabel = CCLabelBMFont::create(suggestion.forMod->getName().c_str(), "bigFont.fnt");
-            nameLabel->setID("recommended-name-label");
-            nameLabel->setColor("mod-list-recommended-by-2"_cc3b);
-            m_recommendedBy->addChild(nameLabel);
+                if (recommends.size() > 0) {
+                    m_recommendedBy = CCNode::create();
+                    m_recommendedBy->setID("recommended-container");
+                    m_recommendedBy->setContentWidth(225);
+                    auto byLabel = CCLabelBMFont::create("Recommended by ", "bigFont.fnt");
+                    byLabel->setID("recommended-label");
+                    byLabel->setColor("mod-list-recommended-by"_cc3b);
+                    m_recommendedBy->addChild(byLabel);
 
-            m_recommendedBy->setLayout(
+                    std::string recommendStr = "";
+                    if (recommends.size() == 1) {
+                        recommendStr = recommends[0]->getName();
+                    } else {
+                        recommendStr = fmt::format("{} installed mods", recommends.size());
+                    }
+
+                    auto nameLabel = CCLabelBMFont::create(recommendStr.c_str(), "bigFont.fnt");
+                    nameLabel->setID("recommended-name-label");
+                    nameLabel->setColor("mod-list-recommended-by-2"_cc3b);
+                    m_recommendedBy->addChild(nameLabel);
+
+                    m_recommendedBy->setLayout(
                 RowLayout::create()
-                    ->setDefaultScaleLimits(.1f, 1.f)
-                    ->setAxisAlignment(AxisAlignment::Start)
-            );
-            m_infoContainer->addChild(m_recommendedBy);
-        },
+                            ->setDefaultScaleLimits(.1f, 1.f)
+                            ->setAxisAlignment(AxisAlignment::Start)
+                    );
+                    m_infoContainer->addChild(m_recommendedBy);
+                }
+            }
+        }
     });
 
     auto updateSpr = createGeodeCircleButton(

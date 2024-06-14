@@ -138,30 +138,6 @@ public:
     bool isDefaultQuery() const override;
 };
 
-struct SuggestedModsQuery final : public LocalModsQueryBase {
-    bool preCheck(ModSource const& src) const;
-    bool queryCheck(ModSource const& src, double& weighted) const;
-    bool isDefault() const;
-};
-
-class SuggestedModListSource : public ModListSource {
-protected:
-    SuggestedModsQuery m_query;
-
-    void resetQuery() override;
-    ProviderTask fetchPage(size_t page, size_t pageSize, bool forceUpdate) override;
-    void setSearchQuery(std::string const& query) override;
-
-    SuggestedModListSource();
-
-public:
-    static SuggestedModListSource* get();
-
-    std::unordered_set<std::string> getModTags() const override;
-    void setModTags(std::unordered_set<std::string> const& tags) override;
-    bool isDefaultQuery() const override;
-};
-
 enum class ServerModListType {
     Download,
     Featured,

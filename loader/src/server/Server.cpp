@@ -6,6 +6,8 @@
 #include <fmt/core.h>
 #include <loader/ModMetadataImpl.hpp>
 #include <fmt/chrono.h>
+#include <loader/LoaderImpl.hpp>
+#include "../internal/about.hpp"
 
 using namespace server;
 
@@ -550,11 +552,18 @@ std::string formatServerURL(fmt::format_string<Args...> fmt, Args&&... args) {
 }
 
 std::string server::getServerUserAgent() {
-    // this may change in the future..
-    return fmt::format("Geode {}/{}",
-        Loader::get()->getVersion().toVString(),
-        PlatformID::toShortString(GEODE_PLATFORM_TARGET)
-    );
+    // no need to compute this more than once
+    static const auto value = [] {
+        // TODO: is this enough info? is it too much?
+        return fmt::format("Geode Loader (ver={};commit={};platform={};gd={};mods={})",
+            Loader::get()->getVersion().toNonVString(),
+            about::getLoaderCommitHash(),
+            GEODE_PLATFORM_SHORT_IDENTIFIER,
+            LoaderImpl::get()->getGameVersion(),
+            Loader::get()->getAllMods().size()
+        );
+    }();
+    return value;
 }
 
 ServerRequest<ServerModsList> server::getMods(ModsQuery const& query, bool useCache) {

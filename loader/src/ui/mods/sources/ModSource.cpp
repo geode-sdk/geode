@@ -41,7 +41,6 @@ LoadModSuggestionTask loadModSuggestion(LoadProblem const& problem) {
 
 ModSource::ModSource(Mod* mod) : m_value(mod) {}
 ModSource::ModSource(server::ServerModMetadata&& metadata) : m_value(metadata) {}
-ModSource::ModSource(ModSuggestion&& suggestion) : m_value(suggestion) {}
 
 std::string ModSource::getID() const {
     return std::visit(makeVisitor {
@@ -144,9 +143,6 @@ Mod* ModSource::asMod() const {
 }
 server::ServerModMetadata const* ModSource::asServer() const {
     return std::get_if<server::ServerModMetadata>(&m_value);
-}
-ModSuggestion const* ModSource::asSuggestion() const {
-    return std::get_if<ModSuggestion>(&m_value);
 }
 
 server::ServerRequest<std::optional<std::string>> ModSource::fetchAbout() const {

@@ -52,7 +52,7 @@ protected:
     CCMenuItemSpriteExtra* m_goToPageBtn;
     ModsStatusNode* m_statusNode;
     EventListener<UpdateModListStateFilter> m_updateStateListener;
-    bool m_showSearch = false;
+    bool m_showSearch = true;
     bool m_bigView = false;
 
     bool init();
