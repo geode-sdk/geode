@@ -4,7 +4,6 @@
 #include <Geode/utils/string.hpp>
 #include <array>
 #include <thread>
-#include <ghc/fs_fwd.hpp>
 #include <execinfo.h>
 #include <dlfcn.h>
 #include <cxxabi.h>
@@ -140,20 +139,20 @@ static Mod* modFromAddress(void const* addr) {
         return nullptr;
     }
 
-    ghc::filesystem::path imagePath = getImageName(image);
-    if (!ghc::filesystem::exists(imagePath)) {
+    std::filesystem::path imagePath = getImageName(image);
+    if (!std::filesystem::exists(imagePath)) {
         return nullptr;
     }
     auto geodePath = dirs::getGameDir() / "Frameworks" / "Geode.dylib";
-    if (ghc::filesystem::equivalent(imagePath, geodePath)) {
+    if (std::filesystem::equivalent(imagePath, geodePath)) {
         return Mod::get();
     }
 
     for (auto& mod : Loader::get()->getAllMods()) {
-        if (!mod->isEnabled() || !ghc::filesystem::exists(mod->getBinaryPath())) {
+        if (!mod->isEnabled() || !std::filesystem::exists(mod->getBinaryPath())) {
             continue;
         }
-        if (ghc::filesystem::equivalent(imagePath, mod->getBinaryPath())) {
+        if (std::filesystem::equivalent(imagePath, mod->getBinaryPath())) {
             return mod;
         }
     }
@@ -388,10 +387,10 @@ bool crashlog::setupPlatformHandler() {
     std::thread(&handlerThread).detach();
 
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
-    if (ghc::filesystem::exists(lastCrashedFile)) {
+    if (std::filesystem::exists(lastCrashedFile)) {
         s_lastLaunchCrashed = true;
         try {
-            ghc::filesystem::remove(lastCrashedFile);
+            std::filesystem::remove(lastCrashedFile);
         }
         catch (...) {
         }
@@ -405,6 +404,6 @@ bool crashlog::didLastLaunchCrash() {
     return s_lastLaunchCrashed;
 }
 
-ghc::filesystem::path crashlog::getCrashLogDirectory() {
+std::filesystem::path crashlog::getCrashLogDirectory() {
     return dirs::getGeodeDir() / "crashlogs";
 }
