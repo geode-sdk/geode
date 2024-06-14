@@ -138,6 +138,9 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
             auto key = PlatformID::toShortString(GEODE_PLATFORM_TARGET, true);
             if (rawJson["gd"].contains(key) && rawJson["gd"][key].is_string())
                 ver = rawJson["gd"][key].as_string();
+        } else if (rawJson["gd"].is_string()) {
+            impl->m_softInvalidReason = "mod.json uses old syntax";
+            goto dontCheckVersion;
         } else {
             return Err("[mod.json] has invalid target GD version");
         }
@@ -158,6 +161,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     } else {
         return Err("[mod.json] is missing target GD version");
     }
+    dontCheckVersion:
 
     root.needs("id")
         // todo: make this use validateID in full 2.0.0 release

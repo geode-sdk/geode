@@ -440,6 +440,18 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
     };
 
     {   // version checking
+        if (auto reason = node->getMetadata().m_impl->m_softInvalidReason) {
+            this->addProblem({
+                LoadProblem::Type::InvalidFile,
+                node,
+                reason.value()
+            });
+            log::error("{}", reason.value());
+            m_refreshingModCount -= 1;
+            log::popNest();
+            return;
+        }
+
         auto res = node->getMetadata().checkGameVersion();
         if (!res) {
             this->addProblem({
