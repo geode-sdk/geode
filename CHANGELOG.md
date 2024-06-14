@@ -1,5 +1,28 @@
 # Geode Changelog
 
+## v3.0.0-beta.1
+
+ * Add a special error for 1114 - vcredist update (d0821f5)
+ * Properly fix Windows exceptions (84a2c6b)
+ * Add keyboard support to ModsLayer (2b53e8a)
+ * Fix "Loading mods cancelled" appearing with no reason (698112a)
+ * Fix various compile warnings (68ac2b0, cb1e7de)
+ * Use `string_view` instead of `string` for some Task functions (da617ee)
+ * Add `Task::listen` for listening to Tasks globally (fa7a2de, eb7c4d9)
+ * Add 2.2 `CCDrawNode` members (562fbf6) - thanks Prevter
+ * Use `SPACE_WRAP` for mod problem textarea (4d267d3)
+ * Fix download links for mods being generated without prerelease tag (06bd2e2)
+ * Make developer filter search by username (014ec68, 1c40a63)
+ * Fix `Notification` crashing when shown during a transition fade (0270d47)
+ * Split `GEODE_PLATFORM_NAME` for Mac ARM and Mac Intel (48a7981)
+ * Use `string_view` instead of `const char*` for `expandSpriteName` (22cc33b)
+ * Make `_spr` compile time (b22a59d, bacab92)
+ * Update server UserAgent format (9679b40)
+ * Allow mods with old `gd` key syntax in `mod.json` to be checked for updates (c1fbc08)
+ * Replace the "Recommended" tab with "Featured" (#897)
+ * Use c++_shared STL on Android64 (115b9cf, d0cc62a, fbc6416)
+ * `file::pick` and `file::pickMany` are the new file APIs, which use Tasks (#899)
+
 ## v3.0.0-alpha.2
 
  * Add `WebResponse::into()` for writing responses to files (f909a73)
