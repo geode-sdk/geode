@@ -78,7 +78,7 @@ if (NOT GEODE_BINDINGS_REPO_PATH)
 	if ("${CMAKE_SYSTEM_NAME}" STREQUAL "iOS")
 	message(STATUS "Using ios branch for bindings")
         CPMAddPackage(NAME "bindings"
-                GITHUB_REPOSITORY "geode-sdk/bindings"
+                GITHUB_REPOSITORY "geode-ios/bindings"
                 GIT_TAG "ios"
                 DOWNLOAD_ONLY YES
                 NO_CACHE YES
