@@ -36,5 +36,6 @@ namespace geode {
 
         void scrollWheel(float y, float) override;
         void enableScrollWheel(bool enable = true);
+        void scrollToTop();
     };
 }

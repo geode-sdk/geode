@@ -6,7 +6,6 @@
 #include <Geode/binding/LevelBrowserLayer.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Loader.hpp>
-#include <Geode/loader/Index.hpp>
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/cocos.hpp>
@@ -16,7 +15,6 @@
 #include <md4c.h>
 #include <charconv>
 #include <Geode/loader/Log.hpp>
-#include "../internal/info/ModInfoPopup.hpp"
 
 using namespace geode::prelude;
 
@@ -231,42 +229,43 @@ void MDTextArea::onGDLevel(CCObject* pSender) {
 }
 
 void MDTextArea::onGeodeMod(CCObject* pSender) {
-    auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject());
-    auto modString = std::string(href->getCString());
-    modString = modString.substr(modString.find(":") + 1);
-    auto loader = Loader::get();
-    auto index = Index::get();
-    Mod* mod;
-    bool success = false;
-    IndexItemHandle indexItem;
-    bool isIndexMod = !loader->isModInstalled(modString);
+    // TODO
+    // auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject());
+    // auto modString = std::string(href->getCString());
+    // modString = modString.substr(modString.find(":") + 1);
+    // auto loader = Loader::get();
+    // auto index = Index::get();
+    // Mod* mod;
+    // bool success = false;
+    // IndexItemHandle indexItem;
+    // bool isIndexMod = !loader->isModInstalled(modString);
 
-    if (isIndexMod) {
-        auto indexSearch = index->getItemsByModID(modString);
-        if (indexSearch.size() != 0) {
-            indexItem = indexSearch.back();
-            Mod mod2 = Mod(indexItem->getMetadata());
-            mod = &mod2;
-            auto item = Index::get()->getItem(mod);
-            IndexItemInfoPopup::create(item, nullptr)->show();
-            success = true;
-        }
-    } else {
-        mod = loader->getLoadedMod(modString);
-        LocalModInfoPopup::create(mod, nullptr)->show();
-        success = true;
-    }
+    // if (isIndexMod) {
+    //     auto indexSearch = index->getItemsByModID(modString);
+    //     if (indexSearch.size() != 0) {
+    //         indexItem = indexSearch.back();
+    //         Mod mod2 = Mod(indexItem->getMetadata());
+    //         mod = &mod2;
+    //         auto item = Index::get()->getItem(mod);
+    //         IndexItemInfoPopup::create(item, nullptr)->show();
+    //         success = true;
+    //     }
+    // } else {
+    //     mod = loader->getLoadedMod(modString);
+    //     LocalModInfoPopup::create(mod, nullptr)->show();
+    //     success = true;
+    // }
 
-    if (!success) {
-        FLAlertLayer::create(
-            "Error",
-            "Invalid mod ID: <cr>" + modString +
-                "</c>. This is "
-                "probably the mod developers's fault, report the bug to them.",
-            "OK"
-        )
-            ->show();
-    }
+    // if (!success) {
+    //     FLAlertLayer::create(
+    //         "Error",
+    //         "Invalid mod ID: <cr>" + modString +
+    //             "</c>. This is "
+    //             "probably the mod developers's fault, report the bug to them.",
+    //         "OK"
+    //     )
+    //         ->show();
+    // }
 }
 
 void MDTextArea::FLAlert_Clicked(FLAlertLayer* layer, bool btn) {

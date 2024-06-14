@@ -408,7 +408,8 @@ _NODISCARD bool operator!=(const unordered_set<_Kty, _Hasher, _Keyeq, _Alloc>& _
 }
 #endif // !_HAS_CXX20
 
-_STD_END
+} // namespace geode::stl
+
 #pragma pop_macro("new")
 _STL_RESTORE_CLANG_WARNINGS
 #pragma warning(pop)

@@ -1,5 +1,4 @@
-#include "../ui/internal/settings/GeodeSettingNode.hpp"
-
+#include <ui/mods/settings/GeodeSettingNode.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Setting.hpp>
 #include <Geode/loader/SettingEvent.hpp>

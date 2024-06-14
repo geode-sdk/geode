@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Geode/Loader.hpp>
-#include <ghc/fs_fwd.hpp>
+#include <filesystem>
 #include <string>
 
 /**
@@ -29,7 +29,7 @@ namespace crashlog {
      * @returns Path to the directory, or an empty string if the platform does
      * not support crash logs
      */
-    ghc::filesystem::path GEODE_DLL getCrashLogDirectory();
+    std::filesystem::path GEODE_DLL getCrashLogDirectory();
 
     std::string GEODE_DLL writeCrashlog(geode::Mod* faultyMod, std::string const& info, std::string const& stacktrace, std::string const& registers);
 

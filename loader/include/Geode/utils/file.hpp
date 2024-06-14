@@ -3,19 +3,20 @@
 #include "Result.hpp"
 #include "general.hpp"
 #include "../loader/Event.hpp"
+#include "Task.hpp"
 
 #include <matjson.hpp>
 #include <Geode/DefaultInclude.hpp>
-#include <ghc/fs_fwd.hpp>
+#include <filesystem>
 #include <string>
 #include <unordered_set>
 
 template <>
-struct matjson::Serialize<ghc::filesystem::path> {
-    static matjson::Value to_json(ghc::filesystem::path const& path) {
+struct matjson::Serialize<std::filesystem::path> {
+    static matjson::Value to_json(std::filesystem::path const& path) {
         return path.string();
     }
-    static ghc::filesystem::path from_json(matjson::Value const& value) {
+    static std::filesystem::path from_json(matjson::Value const& value) {
         return value.as_string();
     }
     static bool is_json(matjson::Value const& value) {
@@ -24,12 +25,12 @@ struct matjson::Serialize<ghc::filesystem::path> {
 };
 
 namespace geode::utils::file {
-    GEODE_DLL Result<std::string> readString(ghc::filesystem::path const& path);
-    GEODE_DLL Result<matjson::Value> readJson(ghc::filesystem::path const& path);
-    GEODE_DLL Result<ByteVector> readBinary(ghc::filesystem::path const& path);
+    GEODE_DLL Result<std::string> readString(std::filesystem::path const& path);
+    GEODE_DLL Result<matjson::Value> readJson(std::filesystem::path const& path);
+    GEODE_DLL Result<ByteVector> readBinary(std::filesystem::path const& path);
 
     template <class T>
-    Result<T> readFromJson(ghc::filesystem::path const& file) {
+    Result<T> readFromJson(std::filesystem::path const& file) {
         GEODE_UNWRAP_INTO(auto json, readJson(file));
         if (!json.template is<T>()) {
             return Err("JSON is not of type {}", typeid(T).name());
@@ -37,26 +38,26 @@ namespace geode::utils::file {
         return Ok(json.template as<T>());
     }
 
-    GEODE_DLL Result<> writeString(ghc::filesystem::path const& path, std::string const& data);
-    GEODE_DLL Result<> writeBinary(ghc::filesystem::path const& path, ByteVector const& data);
+    GEODE_DLL Result<> writeString(std::filesystem::path const& path, std::string const& data);
+    GEODE_DLL Result<> writeBinary(std::filesystem::path const& path, ByteVector const& data);
 
     template <class T>
-    Result<> writeToJson(ghc::filesystem::path const& path, T const& data) {
+    Result<> writeToJson(std::filesystem::path const& path, T const& data) {
         GEODE_UNWRAP(writeString(path, matjson::Value(data).dump()));
         return Ok();
     }
 
-    GEODE_DLL Result<> createDirectory(ghc::filesystem::path const& path);
-    GEODE_DLL Result<> createDirectoryAll(ghc::filesystem::path const& path);
-    GEODE_DLL Result<std::vector<ghc::filesystem::path>> readDirectory(
-        ghc::filesystem::path const& path, bool recursive = false
+    GEODE_DLL Result<> createDirectory(std::filesystem::path const& path);
+    GEODE_DLL Result<> createDirectoryAll(std::filesystem::path const& path);
+    GEODE_DLL Result<std::vector<std::filesystem::path>> readDirectory(
+        std::filesystem::path const& path, bool recursive = false
     );
 
     class Unzip;
 
     class GEODE_DLL Zip final {
     public:
-        using Path = ghc::filesystem::path;
+        using Path = std::filesystem::path;
 
     private:
         class Impl;
@@ -142,7 +143,7 @@ namespace geode::utils::file {
         Unzip(Unzip&& other);
         ~Unzip();
 
-        using Path = ghc::filesystem::path;
+        using Path = std::filesystem::path;
 
         /**
          * Create unzipper for file
@@ -223,7 +224,7 @@ namespace geode::utils::file {
      * Open a folder / file in the system's file explorer
      * @param path Folder / file to open
      */
-    GEODE_DLL bool openFolder(ghc::filesystem::path const& path);
+    GEODE_DLL bool openFolder(std::filesystem::path const& path);
 
     enum class PickMode {
         OpenFile,
@@ -244,7 +245,7 @@ namespace geode::utils::file {
          * to be a filename, unless it points to an extant directory.
          * On PickMode::OpenFolder, path is treated as leading up to a directory
          */
-        std::optional<ghc::filesystem::path> defaultPath;
+        std::optional<std::filesystem::path> defaultPath;
         /**
          * File extension filters to show on the file picker
          */
@@ -257,47 +258,49 @@ namespace geode::utils::file {
      * @param mode Type of file selection prompt to show
      * @param options Picker options
      */
-    [[deprecated("Use overload with callback instead, this will be removed in a later version.")]]
-    GEODE_DLL Result<ghc::filesystem::path> pickFile(PickMode mode, FilePickOptions const& options);
+    [[deprecated("Use pick() instead, this will be removed in a later version.")]]
+    GEODE_DLL Result<std::filesystem::path> pickFile(PickMode mode, FilePickOptions const& options);
 
     GEODE_DLL void pickFile(
         PickMode mode, FilePickOptions const& options,
-        utils::MiniFunction<void(ghc::filesystem::path)> callback,
+        utils::MiniFunction<void(std::filesystem::path)> callback,
         utils::MiniFunction<void()> failed = {}
     );
+    GEODE_DLL Task<Result<std::filesystem::path>> pick(PickMode mode, FilePickOptions const& options);
 
     /**
      * Prompt the user to pick a bunch of files for opening using the system's file system picker
      * @deprecated Will not work on Android, use the callback version instead
      * @param options Picker options
      */
-    [[deprecated("Use overload with callback instead, this will be removed in a later version.")]]
-    GEODE_DLL Result<std::vector<ghc::filesystem::path>> pickFiles(FilePickOptions const& options);
+    [[deprecated("Use pickMany() instead, this will be removed in a later version.")]]
+    GEODE_DLL Result<std::vector<std::filesystem::path>> pickFiles(FilePickOptions const& options);
 
     GEODE_DLL void pickFiles(
         FilePickOptions const& options,
-        utils::MiniFunction<void(std::vector<ghc::filesystem::path>)> callback,
+        utils::MiniFunction<void(std::vector<std::filesystem::path>)> callback,
         utils::MiniFunction<void()> failed = {}
     );
+    GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> pickMany(FilePickOptions const& options);
 
     class GEODE_DLL FileWatchEvent : public Event {
     protected:
-        ghc::filesystem::path m_path;
+        std::filesystem::path m_path;
     
     public:
-        FileWatchEvent(ghc::filesystem::path const& path);
-        ghc::filesystem::path getPath() const;
+        FileWatchEvent(std::filesystem::path const& path);
+        std::filesystem::path getPath() const;
     };
 
     class GEODE_DLL FileWatchFilter : public EventFilter<FileWatchEvent> {
     protected:
-        ghc::filesystem::path m_path;
+        std::filesystem::path m_path;
     
     public:
         using Callback = void(FileWatchEvent*);
 
         ListenerResult handle(utils::MiniFunction<Callback> callback, FileWatchEvent* event);
-        FileWatchFilter(ghc::filesystem::path const& path);
+        FileWatchFilter(std::filesystem::path const& path);
     };
 
     /**
@@ -309,10 +312,10 @@ namespace geode::utils::file {
      * so different paths that point to the same file will be considered the 
      * same
      */
-    GEODE_DLL Result<> watchFile(ghc::filesystem::path const& file);
+    GEODE_DLL Result<> watchFile(std::filesystem::path const& file);
     /**
      * Stop watching a file for changes
      * @param file The file to unwatch
      */
-    GEODE_DLL void unwatchFile(ghc::filesystem::path const& file);
+    GEODE_DLL void unwatchFile(std::filesystem::path const& file);
 }

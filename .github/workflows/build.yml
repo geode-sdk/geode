@@ -40,7 +40,9 @@ jobs:
           extra_flags: >
             -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
             -DGEODE_DONT_BUILD_TEST_MODS=1
-            -DGEODE_DISABLE_PRECOMPILED_HEADERS=OFF
+            -DCMAKE_AR='/usr/bin/ar'
+            -DCMAKE_RANLIB='/usr/bin/ranlib'
+            -DGEODE_DISABLE_PRECOMPILED_HEADERS=Off
           package_cmd: './installer/mac/package.sh ./bin/nightly ./installer/mac/geode-installer-mac.pkg'
           installer_path: './installer/mac/geode-installer-mac.pkg'
 
@@ -151,13 +153,20 @@ jobs:
         7z x ninja.zip -o"$GITHUB_WORKSPACE/ninja"
         echo "$GITHUB_WORKSPACE/ninja" >> $GITHUB_PATH
 
-    - name: Update LLVM
+    - name: Update LLVM (Windows)
       shell: bash
       run: |
         curl -L https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/LLVM-17.0.6-win64.exe -o llvm-inst.exe
         7z x llvm-inst.exe -ollvm bin/clang.exe bin/clang++.exe bin/lld-link.exe bin/llvm-rc.exe bin/*.dll lib/clang/*/include/*
         echo "$GITHUB_WORKSPACE/llvm/bin" >> $GITHUB_PATH
       if: matrix.config.id == 'win'
+
+    - name: Install LLVM (MacOS)
+      shell: bash
+      run: |
+        brew install llvm
+        echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
+      if: matrix.config.id == 'mac'
 
     - name: Download CLI
       uses: robinraju/release-downloader@v1.9
@@ -299,7 +308,7 @@ jobs:
       - name: Zip Windows Artifacts
         uses: vimtor/action-zip@v1.1
         with:
-          files: geode-win/XInput9_1_0.dll geode-win/Geode.dll geode-win/GeodeUpdater.exe geode-win/Geode.lib geode-win/Geode.pdb
+          files: geode-win/XInput1_4.dll geode-win/Geode.dll geode-win/GeodeUpdater.exe geode-win/Geode.lib geode-win/Geode.pdb
           dest: geode-${{ steps.ref.outputs.hash }}-win.zip
 
       - name: Zip Android32 Artifacts

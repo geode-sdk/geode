@@ -143,6 +143,21 @@ namespace geode {
             }
             m_title->limitLabelWidth(m_size.width - 20.f, scale, .1f);
         }
+
+        void setCloseButtonSpr(cocos2d::CCSprite* spr, float scale = 1.f) {
+            // Store original attributes of the close button
+            auto origSize = m_closeBtn->getContentSize();
+            auto orig = Ref(m_closeBtn->getNormalImage());
+            
+            // Replace the close button sprite
+            m_closeBtn->setNormalImage(spr);
+
+            // Restore size and position
+            spr->setScale(scale);
+            spr->setPosition(orig->getPosition());
+            spr->setAnchorPoint(orig->getAnchorPoint());
+            m_closeBtn->setContentSize(origSize);
+        }
     };
 
     GEODE_DLL FLAlertLayer* createQuickPopup(

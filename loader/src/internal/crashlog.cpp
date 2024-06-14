@@ -20,7 +20,7 @@ std::string crashlog::getDateString(bool filesafe) {
 }
 
 void crashlog::printGeodeInfo(std::stringstream& stream) {
-    stream << "Loader Version: " << Loader::get()->getVersion().toString() << "\n"
+    stream << "Loader Version: " << Loader::get()->getVersion().toVString() << "\n"
            << "Loader Commit: " << about::getLoaderCommitHash() << "\n"
            << "Bindings Commit: " << about::getBindingsCommitHash() << "\n"
            << "Installed mods: " << Loader::get()->getAllMods().size() << "\n"
@@ -47,7 +47,7 @@ void crashlog::printMods(std::stringstream& stream) {
             mod->hasProblems() ? "!"sv : // thank you for this bug report
             mod->shouldLoad() ? "~"sv : 
             " "sv,
-            mod->getVersion().toString(), mod->getID()
+            mod->getVersion().toVString(), mod->getID()
         );
     }
 }

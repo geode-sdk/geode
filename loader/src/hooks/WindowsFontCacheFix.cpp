@@ -38,11 +38,15 @@ $execute {
     if (LoaderImpl::get()->isForwardCompatMode()) return;
     
     // BitmapDC::~BitmapDC
+#if 0 // TODO: mat GEODE_COMP_GD_VERSION == 22040
     patchCall(0xC9A56, (uintptr_t)&RemoveFontResourceWHook);
 
     // BitmapDC::setFont
     patchCall(0xCB5BC, (uintptr_t)&RemoveFontResourceWHook);
     patchCall(0xCB642, (uintptr_t)&AddFontResourceWHook);
+#else
+    // #pragma message("Unsupported GD version!")
+#endif
 };
 
 #endif

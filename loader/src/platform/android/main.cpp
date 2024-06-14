@@ -6,7 +6,7 @@
 #include "internalString.hpp"
 #include <cocos2d.h>
 #include <Geode/loader/Log.hpp>
-#include <ghc/fs_fwd.hpp>
+#include <filesystem>
 #include <Geode/loader/Dirs.hpp>
 
 using namespace geode::prelude;
@@ -49,7 +49,7 @@ extern "C" [[gnu::visibility("default")]] jint JNI_OnLoad(JavaVM* vm, void* rese
 
     auto updatePath = geode::dirs::getGameDir() / "update";
     std::error_code ec;
-    ghc::filesystem::remove_all(updatePath, ec);
+    std::filesystem::remove_all(updatePath, ec);
     if (ec) {
         geode::log::warn("Failed to remove update directory: {}", ec.message());
     }

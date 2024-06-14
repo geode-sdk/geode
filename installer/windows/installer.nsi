@@ -409,7 +409,7 @@ Function .onVerifyInstDir
     IfFileExists $INSTDIR\hackpro.dll other_hackpro
     IfFileExists $INSTDIR\ToastedMarshmellow.dll other_gdhm
     IfFileExists $INSTDIR\quickldr.dll other_quickldr
-    IfFileExists $INSTDIR\XInput9_1_0.dll other_xinput
+    IfFileExists $INSTDIR\XInput1_4.dll other_xinput
     IfFileExists $INSTDIR\mimalloc.dll other_mimalloc
     IfFileExists $INSTDIR\GDH.dll other_GDH
 
@@ -432,7 +432,7 @@ Function .onVerifyInstDir
         StrCpy $0 "quickldr.dll"
         Goto other
     other_xinput:
-        StrCpy $0 "XInput9_1_0.dll"
+        StrCpy $0 "XInput1_4.dll"
         Goto other
     other_mimalloc:
         StrCpy $0 "mimalloc.dll"
@@ -459,7 +459,7 @@ SectionGroup "Geode"
         File ${BINDIR}\Geode.dll
         File ${BINDIR}\Geode.pdb
         File ${BINDIR}\GeodeUpdater.exe
-        File ${BINDIR}\XInput9_1_0.dll
+        File ${BINDIR}\XInput1_4.dll
 
         WriteUninstaller "GeodeUninstaller.exe"
     SectionEnd
@@ -475,9 +475,9 @@ SectionGroupEnd
 !execute "pwsh -nol -noni -nop dl-vcr.ps1"
 Section "Visual Studio Runtime"
     SetOutPath $INSTDIR
-    File VC_redist.x86.exe
-    ExecWait "$INSTDIR\VC_redist.x86.exe /install /quiet /norestart"
-    Delete "$INSTDIR\VC_redist.x86.exe"
+    File VC_redist.x64.exe
+    ExecWait "$INSTDIR\VC_redist.x64.exe /install /quiet /norestart"
+    Delete "$INSTDIR\VC_redist.x64.exe"
 SectionEnd
 
 Section "steam_appid.txt"
@@ -512,7 +512,7 @@ Function un.onInit
     IfFileExists $INSTDIR\libcocos2d.dll 0 invalid
 
     ; check if xinput and geode exist
-    IfFileExists $INSTDIR\XInput9_1_0.dll 0 invalid
+    IfFileExists $INSTDIR\XInput1_4.dll 0 invalid
     IfFileExists $INSTDIR\Geode.dll 0 invalid
         Return
 
@@ -527,7 +527,7 @@ Section "Uninstall"
     Delete $INSTDIR\Geode.pdb
     Delete $INSTDIR\Geode.lib
     Delete $INSTDIR\GeodeUpdater.exe
-    Delete $INSTDIR\XInput9_1_0.dll
+    Delete $INSTDIR\XInput1_4.dll
 
     # default value of DATA is an empty string
     # if DATA is empty, keep user data

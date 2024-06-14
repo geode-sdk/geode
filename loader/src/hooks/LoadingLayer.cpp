@@ -115,17 +115,17 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
 
     void updateResourcesProgress(updater::ResourceDownloadEvent* event) {
         std::visit(makeVisitor {
-            [&](UpdateProgress const& progress) {
+            [&](updater::UpdateProgress const& progress) {
                 this->setSmallText(fmt::format(
                     "Downloading Loader Resources: {}%", progress.first
                 ));
             },
-            [&](UpdateFinished) {
+            [&](updater::UpdateFinished) {
                 log::debug("Downloaded Loader Resources");
                 this->setSmallText("Downloaded Loader Resources");
                 this->continueLoadAssets();
             },
-            [&](UpdateFailed const& error) {
+            [&](updater::UpdateFailed const& error) {
                 log::debug("Failed Loader Resources");
                 console::messageBox(
                     "Error updating resources",

@@ -7,6 +7,7 @@ namespace geode {
     enum WrappingMode {
         NO_WRAP,
         WORD_WRAP,
+        SPACE_WRAP,
         CUTOFF_WRAP
     };
 
@@ -66,14 +67,12 @@ namespace geode {
         float m_lineHeight = 0.f;
         float m_linePadding = 0.f;
 
-        SimpleTextArea();
         cocos2d::CCLabelBMFont* createLabel(const std::string& text, const float top);
         float calculateOffset(cocos2d::CCLabelBMFont* label);
         void charIteration(const std::function<cocos2d::CCLabelBMFont*(cocos2d::CCLabelBMFont* line, const char c, const float top)>& overflowHandling);
         void updateLinesNoWrap();
-        void updateLinesWordWrap();
+        void updateLinesWordWrap(bool spaceWrap);
         void updateLinesCutoffWrap();
         void updateContainer();
-        virtual void draw() override;
     };
 }

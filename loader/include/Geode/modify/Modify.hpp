@@ -19,7 +19,7 @@
         using DerivedFuncType = decltype(Resolve<__VA_ARGS__>::func(&Derived::FunctionName_));                \
         if constexpr (different) {                                                                            \
             static auto address = AddressInline_;                                                             \
-            static_assert(GEODE_REVERT_TODO_RETURN ||                                                         \
+            static_assert(                                                                                    \
                 !different || !std::is_same_v<typename ReturnType<BaseFuncType>::type, TodoReturn>,           \
                 "Function" #ClassName_ "::" #FunctionName_ " has a TodoReturn type, "                         \
                 "please fix it by editing the bindings."                                                      \

@@ -88,16 +88,20 @@ namespace geode {
         void setListener(EventListenerProtocol* listener) {
             m_listener = listener;
         }
-
         EventListenerProtocol* getListener() const {
             return m_listener;
         }
     };
 
     template <typename T>
-    concept is_filter = std::is_base_of_v<EventFilter<typename T::Event>, T> &&
-        requires(T a) {
-            a.handle(std::declval<typename T::Callback>(), std::declval<typename T::Event*>());
+    concept is_filter = // # no need to do this IMO - HJfod # std::is_base_of_v<EventFilter<typename T::Event>, T> &&
+        requires(T a, T const& ca) {
+            typename T::Callback;
+            typename T::Event;
+            { a.handle(std::declval<typename T::Callback>(), std::declval<typename T::Event*>()) } -> std::same_as<ListenerResult>;
+            { ca.getPool() } -> std::convertible_to<EventListenerPool*>;
+            { a.setListener(std::declval<EventListenerProtocol*>()) } -> std::same_as<void>;
+            { ca.getListener() } -> std::convertible_to<EventListenerProtocol*>;
         };
 
     template <is_filter T>
@@ -163,7 +167,10 @@ namespace geode {
             this->enable();
         }
 
-        void bind(utils::MiniFunction<Callback> fn) {
+        void bind(utils::MiniFunction<Callback> const& fn) {
+            m_callback = fn;
+        }
+        void bind(utils::MiniFunction<Callback>&& fn) {
             m_callback = fn;
         }
 
@@ -212,4 +219,130 @@ namespace geode {
         
         virtual ~Event();
     };
+    
+    // template <is_filter F, std::move_constructible T>
+    // class [[nodiscard]] EventMapper final {
+    // public:
+    //     using Value = T;
+
+    //     class Handle final {
+    //         std::optional<EventListener<F>> m_listener;
+
+    //         class PrivateMarker final {};
+
+    //         static std::shared_ptr<Handle> create() {
+    //             return std::make_shared<Handle>(PrivateMarker());
+    //         }
+
+    //         friend class EventMapper;
+
+    //     public:
+    //         Handle(PrivateMarker) {}
+    //     };
+
+    //     class Event final : public geode::Event {
+    //     private:
+    //         std::shared_ptr<Handle> m_handle;
+    //         T m_value;
+
+    //         Event(std::shared_ptr<Handle> handle, T&& value)
+    //           : m_handle(handle), m_value(std::move(value)) {}
+
+    //         friend class EventMapper;
+        
+    //     public:
+    //         T& getValue() & {
+    //             return m_value;
+    //         }
+    //         T const& getValue() const& {
+    //             return m_value;
+    //         }
+    //         T&& getValue() && {
+    //             return std::move(m_value);
+    //         }
+
+    //         operator T*() const {
+    //             return m_value;
+    //         }
+    //         T* operator*() const {
+    //             return m_value;
+    //         }
+    //         T* operator->() const {
+    //             return m_value;
+    //         }
+    //     };
+
+    //     using Mapper = utils::MiniFunction<T(typename F::Event*)>;
+    //     using Callback = void(Event*);
+
+    // private:
+    //     EventListenerProtocol* m_listener = nullptr;
+    //     std::shared_ptr<Handle> m_handle;
+
+    //     EventMapper(std::shared_ptr<Handle> handle) : m_handle(handle) {}
+
+    // public:
+    //     EventMapper() : m_handle(nullptr) {}
+
+    //     static EventMapper immediate(T&& value) {
+    //         auto emapper = EventMapper(Handle::create());
+    //         Loader::get()->queueInMainThread([handle = emapper.m_handle, value = std::move(value)]() mutable {
+    //             EventMapper::Event(handle, std::move(value)).post();
+    //         });
+    //         return emapper;
+    //     }
+    //     static EventMapper create(F&& filter, Mapper&& mapper) {
+    //         auto emapper = EventMapper(Handle::create());
+    //         emapper.m_handle->m_listener.emplace(EventListener(
+    //             // The event listener should not own itself (circular ref = memory leak!!)
+    //             [handle = std::weak_ptr(emapper.m_handle), mapper = std::move(mapper)](F::Event* event) {
+    //                 if (auto lock = handle.lock()) {
+    //                     EventMapper::Event(lock, mapper(event)).post();
+    //                 }
+    //             },
+    //             std::move(filter)
+    //         ));
+    //         return emapper;
+    //     }
+
+    //     template <class NewMapper>
+    //     auto map(NewMapper&& mapper) {
+    //         using T2 = decltype(mapper(std::declval<T*>()));
+    //         return mapEvent(*this, [mapper = std::move(mapper)](Event* event) -> T2 {
+    //             return mapper(&event->getValue());
+    //         });
+    //     }
+
+    //     ListenerResult handle(utils::MiniFunction<Callback> fn, Event* e) {
+    //         if (e->m_handle == m_handle) {
+    //             fn(e);
+    //         }
+    //         return ListenerResult::Propagate;
+    //     }
+
+    //     // todo: i believe alk wanted these to be in their own pool
+    //     EventListenerPool* getPool() const {
+    //         return DefaultEventListenerPool::get();
+    //     }
+
+    //     void setListener(EventListenerProtocol* listener) {
+    //         m_listener = listener;
+    //     }
+    //     EventListenerProtocol* getListener() const {
+    //         return m_listener;
+    //     }
+    // };
+
+    // template <is_filter F, class Mapper>
+    // static auto mapEvent(F&& filter, Mapper&& mapper) {
+    //     using T = decltype(mapper(std::declval<typename F::Event*>()));
+    //     return EventMapper<F, T>::create(std::move(filter), std::move(mapper));
+    // }
+
+    // template <is_filter F, class Mapper>
+    //     requires std::copy_constructible<F>
+    // static auto mapEvent(F const& filter, Mapper&& mapper) {
+    //     using T = decltype(mapper(std::declval<typename F::Event*>()));
+    //     return EventMapper<F, T>::create(F(filter), std::move(mapper));
+    // }
 }

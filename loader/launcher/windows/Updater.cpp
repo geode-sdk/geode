@@ -17,17 +17,21 @@ bool waitForFile(std::filesystem::path const& path) {
         return false;
 
     int delay = 10;
+    int maxDelayAttempts = 20;
     HANDLE hFile;
     while ((hFile = CreateFileA(path.string().c_str(), FILE_GENERIC_WRITE, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL)) == INVALID_HANDLE_VALUE) {
         if (GetLastError() == ERROR_SHARING_VIOLATION) {
             Sleep(delay);
-            // the delay would raise and go up to about 5 seconds, after which it will fail
-            if (delay < 5120) {
+            // the delay would raise and go up to about 1 second, after which it will start a 20 second countdown
+            if (delay < 1024) {
                 delay *= 2;
             } else {
-                // delay too long, just give up now
-                hFile = NULL;
-                break;
+                maxDelayAttempts--;
+                // delay too long, failed too many times, just give up now
+                if (maxDelayAttempts == 0) {
+                    hFile = NULL;
+                    break;
+                }
             }
         } else {
             break;
@@ -105,7 +109,7 @@ int main(int argc, char* argv[]) {
 
     if (std::filesystem::exists(geodeDir) && std::filesystem::exists(updatesDir)) {
         bool updateSuccess = true;
-        updateSuccess &= updateFile("XInput9_1_0.dll");
+        updateSuccess &= updateFile("XInput1_4.dll");
         updateSuccess &= updateFile("Geode.dll");
         updateSuccess &= updateFile("Geode.pdb");
         updateResources();

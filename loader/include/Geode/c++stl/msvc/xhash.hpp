@@ -1796,7 +1796,8 @@ _NODISCARD bool _Hash_equal(const _Hash<_Traits>& _Left, const _Hash<_Traits>& _
 
     return true;
 }
-_STD_END
+
+} // namespace geode::stl
 
 #pragma pop_macro("new")
 _STL_RESTORE_CLANG_WARNINGS

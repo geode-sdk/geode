@@ -8,19 +8,21 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <ghc/fs_fwd.hpp>
+#include <filesystem>
 #include <matjson.hpp>
 #include <charconv>
 #include <clocale>
+#include <type_traits>
 
-// for some reason std::filesystem::path doesn't have std::hash defined in C++17 
-// and ghc seems to have inherited this limitation
-template<>
-struct std::hash<ghc::filesystem::path> {
-    std::size_t operator()(ghc::filesystem::path const& path) const noexcept {
-        return ghc::filesystem::hash_value(path);
+// only windows seems to properly implement std::hash on std::filesystem::path
+#ifdef GEODE_IS_ANDROID
+template <>
+struct std::hash<std::filesystem::path> {
+    std::size_t operator()(std::filesystem::path const& path) const noexcept {
+        return std::filesystem::hash_value(path);
     }
 };
+#endif
 
 namespace geode {
     using ByteVector = std::vector<uint8_t>;
@@ -33,14 +35,6 @@ namespace geode {
         return out;
     }
 
-    template <class T>
-    struct TypeIdentity {
-        using type = T;
-    };
-
-    template <class T>
-    using TypeIdentityType = typename TypeIdentity<T>::type;
-        
     namespace utils {
         // helper for std::visit
         template<class... Ts> struct makeVisitor : Ts... { using Ts::operator()...; };
@@ -55,21 +49,25 @@ namespace geode {
         constexpr unsigned int hash(char const* str, int h = 0) {
             return !str[h] ? 5381 : (hash(str, h + 1) * 33) ^ str[h];
         }
-
+        constexpr unsigned int hash(std::string_view str, int h = 0) {
+            return h >= str.size() ? 5381 : (hash(str, h + 1) * 33) ^ str[h];
+        }
         constexpr unsigned int hash(wchar_t const* str, int h = 0) {
             return !str[h] ? 5381 : (hash(str, h + 1) * 33) ^ str[h];
+        }
+        constexpr unsigned int hash(std::wstring_view str, int h = 0) {
+            return h >= str.size() ? 5381 : (hash(str, h + 1) * 33) ^ str[h];
         }
 
         constexpr size_t operator"" _h(char const* txt, size_t) {
             return geode::utils::hash(txt);
         }
-
         constexpr size_t operator"" _h(wchar_t const* txt, size_t) {
             return geode::utils::hash(txt);
         }
 
         template <typename T>
-        constexpr const T& clamp(const T& value, const TypeIdentityType<T>& minValue, const TypeIdentityType<T>& maxValue) {
+        constexpr const T& clamp(const T& value, const std::type_identity_t<T>& minValue, const std::type_identity_t<T>& maxValue) {
             return value < minValue ? minValue : maxValue < value ? maxValue : value;
         }
 
@@ -95,6 +93,17 @@ namespace geode {
             }
             ss << num;
             return ss.str();
+        }
+
+        /**
+         * Turn a number into an abbreviated string, like `1253` to `1.25K`
+         */
+        template <std::integral Num>
+        std::string numToAbbreviatedString(Num num) {
+            if (num >= 1'000'000'000) return fmt::format("{:0.3}B", num / 1'000'000'000.f);
+            if (num >= 1'000'000) return fmt::format("{:0.3}M", num / 1'000'000.f);
+            if (num >= 1'000) return fmt::format("{:0.3}K", num / 1'000.f);
+            return numToString(num);
         }
 
         /**

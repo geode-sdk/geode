@@ -30,14 +30,14 @@ void utils::web::openLinkInBrowser(std::string const& url) {
         openURL:[NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]]];
 }
 
-bool utils::file::openFolder(ghc::filesystem::path const& path) {
+bool utils::file::openFolder(std::filesystem::path const& path) {
     // TODO: maybe we can just copy the one from mac
     return false;
 }
 
 void file::pickFile(
     PickMode mode, FilePickOptions const& options,
-    MiniFunction<void(ghc::filesystem::path)> callback,
+    MiniFunction<void(std::filesystem::path)> callback,
     MiniFunction<void()> failed
 ) {
     // TODO
@@ -82,30 +82,30 @@ CCPoint cocos::getMousePos() {
 namespace {
     std::string s_savedBaseDir = "";
 
-    ghc::filesystem::path getBaseDir() {
+    std::filesystem::path getBaseDir() {
         if (!s_savedBaseDir.empty()) {
-            return ghc::filesystem::path(s_savedBaseDir);
+            return std::filesystem::path(s_savedBaseDir);
         }
 
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
         NSString *documentsDirectory = [paths firstObject];
 
-        ghc::filesystem::path documentsPath = [documentsDirectory UTF8String];
+        std::filesystem::path documentsPath = [documentsDirectory UTF8String];
 
         s_savedBaseDir = documentsPath;
-        return ghc::filesystem::path(documentsPath);
+        return std::filesystem::path(documentsPath);
     }
 }
 
-ghc::filesystem::path dirs::getGameDir() {
+std::filesystem::path dirs::getGameDir() {
     return getBaseDir() / "game";
 }
 
-ghc::filesystem::path dirs::getModRuntimeDir() {
+std::filesystem::path dirs::getModRuntimeDir() {
     return dirs::getGeodeDir() / "unzipped";
 }
 
-ghc::filesystem::path dirs::getSaveDir() {
+std::filesystem::path dirs::getSaveDir() {
     return getBaseDir() / "save";
 }
 

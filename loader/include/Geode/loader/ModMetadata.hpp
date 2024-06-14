@@ -15,6 +15,38 @@ namespace geode {
 
     class ModMetadataImpl;
 
+    class GEODE_DLL ModMetadataLinks final {
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
+
+        friend class ModMetadataImpl;
+    
+    public:
+        ModMetadataLinks();
+        ModMetadataLinks(ModMetadataLinks const& other);
+        ModMetadataLinks(ModMetadataLinks&& other) noexcept;
+        ModMetadataLinks& operator=(ModMetadataLinks const& other);
+        ModMetadataLinks& operator=(ModMetadataLinks&& other) noexcept;
+        ~ModMetadataLinks();
+
+        /**
+         * Get the URL for the home website for this mod
+         */
+        std::optional<std::string> getHomepageURL() const;
+        /**
+         * Get the URL for the source code repository for this mod
+         */
+        std::optional<std::string> getSourceURL() const;
+        /**
+         * Get the URL for the community page (Discord server etc.) for this mod
+         */
+        std::optional<std::string> getCommunityURL() const;
+
+#if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
+        Impl* getImpl();
+#endif
+    };
+
     /**
      * Represents all the data gather-able
      * from mod.json
@@ -62,7 +94,7 @@ namespace geode {
         /**
          * Path to the mod file
          */
-        [[nodiscard]] ghc::filesystem::path getPath() const;
+        [[nodiscard]] std::filesystem::path getPath() const;
         /**
          * Name of the platform binary within
          * the mod zip
@@ -126,7 +158,12 @@ namespace geode {
         /**
          * Git Repository of the mod
          */
-        [[nodiscard]] std::optional<std::string> getRepository() const;
+        [[nodiscard, deprecated("Use ModMetadata::getLinks instead")]]
+        std::optional<std::string> getRepository() const;
+        /**
+         * Get the links (related websites / servers / etc.) for this mod
+         */
+        ModMetadataLinks getLinks() const;
         /**
          * Info about where users should report issues and request help
          */
@@ -148,6 +185,10 @@ namespace geode {
          * @note Not a map because insertion order must be preserved
          */
         [[nodiscard]] std::vector<std::pair<std::string, Setting>> getSettings() const;
+        /**
+         * Get the tags for this mod
+         */
+        [[nodiscard]] std::unordered_set<std::string> getTags() const;
         /**
          * Whether this mod has to be loaded before the loading screen or not
          */
@@ -175,7 +216,7 @@ namespace geode {
         Result<> checkGameVersion() const;
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
-        void setPath(ghc::filesystem::path const& value);
+        void setPath(std::filesystem::path const& value);
         void setBinaryName(std::string const& value);
         void setVersion(VersionInfo const& value);
         void setID(std::string const& value);
@@ -192,8 +233,10 @@ namespace geode {
         void setIncompatibilities(std::vector<Incompatibility> const& value);
         void setSpritesheets(std::vector<std::string> const& value);
         void setSettings(std::vector<std::pair<std::string, Setting>> const& value);
+        void setTags(std::unordered_set<std::string> const& value);
         void setNeedsEarlyLoad(bool const& value);
         void setIsAPI(bool const& value);
+        ModMetadataLinks& getLinksMut();
 #endif
 
         /**
@@ -203,11 +246,11 @@ namespace geode {
         /**
          * Create ModInfo from a .geode package
          */
-        static Result<ModMetadata> createFromGeodeFile(ghc::filesystem::path const& path);
+        static Result<ModMetadata> createFromGeodeFile(std::filesystem::path const& path);
         /**
          * Create ModInfo from a mod.json file
          */
-        static Result<ModMetadata> createFromFile(ghc::filesystem::path const& path);
+        static Result<ModMetadata> createFromFile(std::filesystem::path const& path);
         /**
          * Create ModInfo from a parsed json document
          */
@@ -244,7 +287,7 @@ namespace geode {
          */
         static Result<ModMetadata> createFromSchemaV010(ModJson const& json);
 
-        Result<> addSpecialFiles(ghc::filesystem::path const& dir);
+        Result<> addSpecialFiles(std::filesystem::path const& dir);
         Result<> addSpecialFiles(utils::file::Unzip& zip);
 
         std::vector<std::pair<std::string, std::optional<std::string>*>> getSpecialFiles();

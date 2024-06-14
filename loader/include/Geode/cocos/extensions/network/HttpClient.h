@@ -47,12 +47,15 @@ NS_CC_EXT_BEGIN
  */
 class CC_DLL CCHttpClient : public CCObject
 {
+    GEODE_FRIEND_MODIFY
 public:
     /** Return the shared instance **/
     static CCHttpClient *getInstance();
     
     /** Relase the shared instance **/
     static void destroyInstance();
+
+    virtual ~CCHttpClient();
         
     /**
      * Add a get request to task queue
@@ -94,7 +97,6 @@ public:
         
 private:
     CCHttpClient();
-    virtual ~CCHttpClient();
     bool init(void);
     
     /**

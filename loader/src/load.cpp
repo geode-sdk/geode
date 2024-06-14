@@ -17,7 +17,7 @@ using namespace geode::prelude;
 
 #include "load.hpp"
 
-$execute {
+$on_mod(Loaded) {
     ipc::listen("ipc-test", [](ipc::IPCEvent* event) -> matjson::Value {
         return "Hello from Geode!";
     });
@@ -112,12 +112,13 @@ int geodeEntry(void* platformData) {
         forwardCompatSuffix = " (forward compatibility mode)";
 
     if (LoaderImpl::get()->getGameVersion().empty()) {
-        log::info("Running {} {}{}", Mod::get()->getName(), Mod::get()->getVersion(),
-            forwardCompatSuffix);
+        log::info("Running {} {}{} on {}", Mod::get()->getName(), Mod::get()->getVersion(),
+            forwardCompatSuffix, PlatformID::toString(GEODE_PLATFORM_TARGET));
     }
     else {
-        log::info("Running {} {} in Geometry Dash v{}{}", Mod::get()->getName(),
-            Mod::get()->getVersion(), LoaderImpl::get()->getGameVersion(), forwardCompatSuffix);
+        log::info("Running {} {} in Geometry Dash v{}{} on {}", Mod::get()->getName(),
+            Mod::get()->getVersion(), LoaderImpl::get()->getGameVersion(), forwardCompatSuffix,
+            PlatformID::toString(GEODE_PLATFORM_TARGET));
     }
 
     tryLogForwardCompat();

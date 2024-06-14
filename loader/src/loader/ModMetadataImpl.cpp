@@ -13,6 +13,37 @@
 
 using namespace geode::prelude;
 
+std::optional<std::string> ModMetadataLinks::getHomepageURL() const {
+    return m_impl->m_homepage;
+}
+std::optional<std::string> ModMetadataLinks::getSourceURL() const {
+    return m_impl->m_source;
+}
+std::optional<std::string> ModMetadataLinks::getCommunityURL() const {
+    return m_impl->m_community;
+}
+
+#if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
+ModMetadataLinks::Impl* ModMetadataLinks::getImpl() {
+    return m_impl.get();
+}
+#endif
+
+ModMetadataLinks::ModMetadataLinks() : m_impl(std::make_unique<Impl>()) {}
+ModMetadataLinks::ModMetadataLinks(ModMetadataLinks const& other)
+  : m_impl(std::make_unique<Impl>(*other.m_impl)) {}
+ModMetadataLinks::ModMetadataLinks(ModMetadataLinks&& other) noexcept
+  : m_impl(std::move(other.m_impl)) {}
+ModMetadataLinks& ModMetadataLinks::operator=(ModMetadataLinks const& other) {
+    m_impl = std::make_unique<Impl>(*other.m_impl);
+    return *this;
+}
+ModMetadataLinks& ModMetadataLinks::operator=(ModMetadataLinks&& other) noexcept {
+    m_impl = std::move(other.m_impl);
+    return *this;
+}
+ModMetadataLinks::~ModMetadataLinks() = default;
+
 ModMetadata::Impl& ModMetadataImpl::getImpl(ModMetadata& info)  {
     return *info.m_impl;
 }
@@ -88,7 +119,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         checkerRoot = fmt::format(
             "[{}/{}/mod.json]",
             rawJson.contains("id") ? rawJson["id"].as_string() : "unknown.mod",
-            rawJson.contains("version") ? rawJson["version"].as<VersionInfo>().toString() : "v0.0.0"
+            rawJson.contains("version") ? rawJson["version"].as<VersionInfo>().toVString() : "v0.0.0"
         );
     }
     catch (...) { }
@@ -103,9 +134,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     // (use rawJson because i dont like JsonMaybeValue)
     if (rawJson.contains("gd")) {
         std::string ver;
-        if (rawJson["gd"].is_string()) {
-            ver = rawJson["gd"].as_string();
-        } else if (rawJson["gd"].is_object()) {
+        if (rawJson["gd"].is_object()) {
             auto key = PlatformID::toShortString(GEODE_PLATFORM_TARGET, true);
             if (rawJson["gd"].contains(key) && rawJson["gd"][key].is_string())
                 ver = rawJson["gd"][key].as_string();
@@ -129,9 +158,6 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     } else {
         return Err("[mod.json] is missing target GD version");
     }
-
-    // don't think its used locally yet
-    root.addKnownKey("tags"); 
 
     root.needs("id")
         // todo: make this use validateID in full 2.0.0 release
@@ -162,7 +188,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         impl->m_developers = { dev };
     }
     root.has("description").into(impl->m_description);
-    root.has("repository").into(impl->m_repository);
+    root.has("repository").into(info.getLinksMut().getImpl()->m_source);
     root.has("early-load").into(impl->m_needsEarlyLoad);
     if (root.has("api")) {
         impl->m_isAPI = true;
@@ -182,7 +208,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
 
         bool onThisPlatform = !obj.has("platforms");
         for (auto& plat : obj.has("platforms").iterate()) {
-            if (PlatformID::from(plat.get<std::string>()) == GEODE_PLATFORM_TARGET) {
+            if (PlatformID::coveredBy(plat.get<std::string>(), GEODE_PLATFORM_TARGET)) {
                 onThisPlatform = true;
             }
         }
@@ -196,6 +222,17 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         obj.needs("version").into(dependency.version);
         obj.has("importance").into(dependency.importance);
         obj.checkUnknownKeys();
+
+        if (
+            dependency.version.getComparison() != VersionCompare::MoreEq &&
+            dependency.version.getComparison() != VersionCompare::Any
+        ) {
+            return Err(
+                "[mod.json].dependencies.{}.version must be either a more-than "
+                "comparison for a specific version or a wildcard for any version",
+                dependency.id
+            );
+        }
 
         // if (isDeprecatedIDForm(dependency.id)) {
         //     log::warn(
@@ -226,7 +263,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
             auto obj = value.obj();
             bool onThisPlatform = !obj.has("platforms");
             for (auto& plat : obj.has("platforms").iterate()) {
-                if (PlatformID::from(plat.get<std::string>()) == GEODE_PLATFORM_TARGET) {
+                if (PlatformID::coveredBy(plat.get<std::string>(), GEODE_PLATFORM_TARGET)) {
                     onThisPlatform = true;
                 }
             }
@@ -250,6 +287,18 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         issues.needs("info").into(issuesInfo.info);
         issues.has("url").intoAs<std::string>(issuesInfo.url);
         impl->m_issues = issuesInfo;
+    }
+
+    if (auto links = root.has("links").obj()) {
+        links.has("homepage").into(info.getLinksMut().getImpl()->m_homepage);
+        links.has("source").into(info.getLinksMut().getImpl()->m_source);
+        links.has("community").into(info.getLinksMut().getImpl()->m_community);
+        // do not check unknown for future compat
+    }
+
+    // Tags. Actual validation is done when interacting with the server in the UI
+    for (auto& tag : root.has("tags").iterate()) {
+        impl->m_tags.insert(tag.template get<std::string>());
     }
 
     // with new cli, binary name is always mod id
@@ -300,7 +349,7 @@ Result<ModMetadata> ModMetadata::Impl::create(ModJson const& json) {
     // Handle mod.json data based on target
     if (schema < VersionInfo(0, 1, 0)) {
         return Err(
-            "[mod.json] targets a version (" + schema.toString() +
+            "[mod.json] targets a version (" + schema.toVString() +
             ") that isn't supported by this version (v" +
             about::getLoaderVersionStr() +
             ") of geode. This is probably a bug; report it to "
@@ -311,7 +360,7 @@ Result<ModMetadata> ModMetadata::Impl::create(ModJson const& json) {
     return Impl::createFromSchemaV010(json);
 }
 
-Result<ModMetadata> ModMetadata::Impl::createFromFile(ghc::filesystem::path const& path) {
+Result<ModMetadata> ModMetadata::Impl::createFromFile(std::filesystem::path const& path) {
     GEODE_UNWRAP_INTO(auto read, utils::file::readString(path));
 
     std::string error;
@@ -331,7 +380,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromFile(ghc::filesystem::path cons
     return Ok(info);
 }
 
-Result<ModMetadata> ModMetadata::Impl::createFromGeodeFile(ghc::filesystem::path const& path) {
+Result<ModMetadata> ModMetadata::Impl::createFromGeodeFile(std::filesystem::path const& path) {
     GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(path));
     return ModMetadata::createFromGeodeZip(unzip);
 }
@@ -378,10 +427,10 @@ Result<> ModMetadata::Impl::addSpecialFiles(file::Unzip& unzip) {
     return Ok();
 }
 
-Result<> ModMetadata::Impl::addSpecialFiles(ghc::filesystem::path const& dir) {
+Result<> ModMetadata::Impl::addSpecialFiles(std::filesystem::path const& dir) {
     // unzip known MD files
     for (auto& [file, target] : this->getSpecialFiles()) {
-        if (ghc::filesystem::exists(dir / file)) {
+        if (std::filesystem::exists(dir / file)) {
             auto data = file::readString(dir / file);
             if (!data) {
                 return Err("Unable to read \"" + file + "\": " + data.unwrapErr());
@@ -415,7 +464,7 @@ bool ModMetadata::Impl::operator==(ModMetadata::Impl const& other) const {
     return this->m_id == other.m_id;
 }
 
-[[maybe_unused]] ghc::filesystem::path ModMetadata::getPath() const {
+[[maybe_unused]] std::filesystem::path ModMetadata::getPath() const {
     return m_impl->m_path;
 }
 
@@ -460,64 +509,55 @@ std::string ModMetadata::formatDeveloperDisplayString(std::vector<std::string> c
 std::vector<std::string> ModMetadata::getDevelopers() const {
     return m_impl->m_developers;
 }
-
 std::optional<std::string> ModMetadata::getDescription() const {
     return m_impl->m_description;
 }
-
 std::optional<std::string> ModMetadata::getDetails() const {
     return m_impl->m_details;
 }
-
 std::optional<std::string> ModMetadata::getChangelog() const {
     return m_impl->m_changelog;
 }
-
 std::optional<std::string> ModMetadata::getSupportInfo() const {
     return m_impl->m_supportInfo;
 }
-
 std::optional<std::string> ModMetadata::getRepository() const {
-    return m_impl->m_repository;
+    return m_impl->m_links.getSourceURL();
 }
-
+ModMetadataLinks ModMetadata::getLinks() const {
+    return m_impl->m_links;
+}
 std::optional<ModMetadata::IssuesInfo> ModMetadata::getIssues() const {
     return m_impl->m_issues;
 }
-
 std::vector<ModMetadata::Dependency> ModMetadata::getDependencies() const {
     return m_impl->m_dependencies;
 }
-
 std::vector<ModMetadata::Incompatibility> ModMetadata::getIncompatibilities() const {
     return m_impl->m_incompatibilities;
 }
-
 std::vector<std::string> ModMetadata::getSpritesheets() const {
     return m_impl->m_spritesheets;
 }
-
 std::vector<std::pair<std::string, Setting>> ModMetadata::getSettings() const {
     return m_impl->m_settings;
 }
-
+std::unordered_set<std::string> ModMetadata::getTags() const {
+    return m_impl->m_tags;
+}
 bool ModMetadata::needsEarlyLoad() const {
     return m_impl->m_needsEarlyLoad;
 }
-
 bool ModMetadata::isAPI() const {
     return m_impl->m_isAPI;
 }
-
 std::optional<std::string> ModMetadata::getGameVersion() const {
     if (m_impl->m_gdVersion.empty()) return std::nullopt;
     return m_impl->m_gdVersion;
 }
-
 VersionInfo ModMetadata::getGeodeVersion() const {
     return m_impl->m_geodeVersion;
 }
-
 Result<> ModMetadata::checkGameVersion() const {
     if (!m_impl->m_gdVersion.empty()) {
         auto const ver = m_impl->m_gdVersion;
@@ -526,107 +566,97 @@ Result<> ModMetadata::checkGameVersion() const {
         if (LoaderImpl::get()->isForwardCompatMode()) {
             // this means current gd version is > GEODE_GD_VERSION
             if (modTargetVer <= GEODE_GD_VERSION) {
-                return Err(fmt::format("Mod doesn't support this GD version ({} < current version)", ver));
+                return Err(fmt::format("This mod doesn't support this version of Geometry Dash ({})", ver));
             }
         } else if (ver != GEODE_STR(GEODE_GD_VERSION)) {
             // we are not in forward compat mode, so GEODE_GD_VERSION is the current gd version
-            return Err(fmt::format("Mod doesn't support this GD version ({} != {})", ver, GEODE_STR(GEODE_GD_VERSION)));
+            return Err(
+                fmt::format(
+                    "This mod was created for a different version of Geometry Dash ({}). You currently have version {}.",
+                    ver,
+                    GEODE_STR(GEODE_GD_VERSION)
+                )
+            );
         }
     }
     return Ok();
 }
 
-
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
-void ModMetadata::setPath(ghc::filesystem::path const& value) {
+void ModMetadata::setPath(std::filesystem::path const& value) {
     m_impl->m_path = value;
 }
-
 void ModMetadata::setBinaryName(std::string const& value) {
     m_impl->m_binaryName = value;
 }
-
 void ModMetadata::setVersion(VersionInfo const& value) {
     m_impl->m_version = value;
 }
-
 void ModMetadata::setID(std::string const& value) {
     m_impl->m_id = value;
 }
-
 void ModMetadata::setName(std::string const& value) {
     m_impl->m_name = value;
 }
-
 void ModMetadata::setDeveloper(std::string const& value) {
     m_impl->m_developers = { value };
 }
-
 void ModMetadata::setDevelopers(std::vector<std::string> const& value) {
     m_impl->m_developers = value;
 }
-
 void ModMetadata::setDescription(std::optional<std::string> const& value) {
     m_impl->m_description = value;
 }
-
 void ModMetadata::setDetails(std::optional<std::string> const& value) {
     m_impl->m_details = value;
 }
-
 void ModMetadata::setChangelog(std::optional<std::string> const& value) {
     m_impl->m_changelog = value;
 }
-
 void ModMetadata::setSupportInfo(std::optional<std::string> const& value) {
     m_impl->m_supportInfo = value;
 }
-
 void ModMetadata::setRepository(std::optional<std::string> const& value) {
-    m_impl->m_repository = value;
+    this->getLinksMut().getImpl()->m_source = value;
 }
-
 void ModMetadata::setIssues(std::optional<IssuesInfo> const& value) {
     m_impl->m_issues = value;
 }
-
 void ModMetadata::setDependencies(std::vector<Dependency> const& value) {
     m_impl->m_dependencies = value;
 }
-
 void ModMetadata::setIncompatibilities(std::vector<Incompatibility> const& value) {
     m_impl->m_incompatibilities = value;
 }
-
 void ModMetadata::setSpritesheets(std::vector<std::string> const& value) {
     m_impl->m_spritesheets = value;
 }
-
 void ModMetadata::setSettings(std::vector<std::pair<std::string, Setting>> const& value) {
     m_impl->m_settings = value;
 }
-
+void ModMetadata::setTags(std::unordered_set<std::string> const& value) {
+    m_impl->m_tags = value;
+}
 void ModMetadata::setNeedsEarlyLoad(bool const& value) {
     m_impl->m_needsEarlyLoad = value;
 }
-
 void ModMetadata::setIsAPI(bool const& value) {
     m_impl->m_isAPI = value;
+}
+ModMetadataLinks& ModMetadata::getLinksMut() {
+    return m_impl->m_links;
 }
 #endif
 
 Result<ModMetadata> ModMetadata::createFromGeodeZip(utils::file::Unzip& zip) {
     return Impl::createFromGeodeZip(zip);
 }
-
-Result<ModMetadata> ModMetadata::createFromGeodeFile(ghc::filesystem::path const& path) {
+Result<ModMetadata> ModMetadata::createFromGeodeFile(std::filesystem::path const& path) {
     return Impl::createFromGeodeFile(path);
 }
-
-Result<ModMetadata> ModMetadata::createFromFile(ghc::filesystem::path const& path) {
+Result<ModMetadata> ModMetadata::createFromFile(std::filesystem::path const& path) {
     return Impl::createFromFile(path);
 }
-
 Result<ModMetadata> ModMetadata::create(ModJson const& json) {
     return Impl::create(json);
 }
@@ -634,7 +664,6 @@ Result<ModMetadata> ModMetadata::create(ModJson const& json) {
 ModJson ModMetadata::toJSON() const {
     return m_impl->toJSON();
 }
-
 ModJson ModMetadata::getRawJSON() const {
     return m_impl->getRawJSON();
 }
@@ -651,7 +680,7 @@ Result<ModMetadata> ModMetadata::createFromSchemaV010(ModJson const& json) {
     return Impl::createFromSchemaV010(json);
 }
 
-Result<> ModMetadata::addSpecialFiles(ghc::filesystem::path const& dir) {
+Result<> ModMetadata::addSpecialFiles(std::filesystem::path const& dir) {
     return m_impl->addSpecialFiles(dir);
 }
 Result<> ModMetadata::addSpecialFiles(utils::file::Unzip& zip) {
@@ -664,69 +693,16 @@ std::vector<std::pair<std::string, std::optional<std::string>*>> ModMetadata::ge
 
 ModMetadata::ModMetadata() : m_impl(std::make_unique<Impl>()) {}
 ModMetadata::ModMetadata(std::string id) : m_impl(std::make_unique<Impl>()) { m_impl->m_id = std::move(id); }
-ModMetadata::ModMetadata(ModMetadata const& other) : m_impl(std::make_unique<Impl>(*other.m_impl)) {}
+ModMetadata::ModMetadata(ModMetadata const& other) : m_impl(other.m_impl ? std::make_unique<Impl>(*other.m_impl) : std::make_unique<Impl>()) {}
 ModMetadata::ModMetadata(ModMetadata&& other) noexcept : m_impl(std::move(other.m_impl)) {}
 
 ModMetadata& ModMetadata::operator=(ModMetadata const& other) {
     m_impl = std::make_unique<Impl>(*other.m_impl);
     return *this;
 }
-
 ModMetadata& ModMetadata::operator=(ModMetadata&& other) noexcept {
     m_impl = std::move(other.m_impl);
     return *this;
 }
 
 ModMetadata::~ModMetadata() = default;
-
-template <>
-struct matjson::Serialize<geode::ModMetadata::Dependency::Importance> {
-    static matjson::Value GEODE_DLL to_json(geode::ModMetadata::Dependency::Importance const& importance) {
-        switch (importance) {
-            case geode::ModMetadata::Dependency::Importance::Required: return {"required"};
-            case geode::ModMetadata::Dependency::Importance::Recommended: return {"recommended"};
-            case geode::ModMetadata::Dependency::Importance::Suggested: return {"suggested"};
-            default: return {"unknown"};
-        }
-    }
-    static geode::ModMetadata::Dependency::Importance GEODE_DLL from_json(matjson::Value const& importance) {
-        auto impStr = importance.as_string();
-        if (impStr == "required")
-            return geode::ModMetadata::Dependency::Importance::Required;
-        if (impStr == "recommended")
-            return geode::ModMetadata::Dependency::Importance::Recommended;
-        if (impStr == "suggested")
-            return geode::ModMetadata::Dependency::Importance::Suggested;
-        throw matjson::JsonException(R"(Expected importance to be "required", "recommended" or "suggested")");
-    }
-
-    static bool is_json(matjson::Value const& value) {
-        return value.is_string();
-    }
-};
-
-template <>
-struct matjson::Serialize<geode::ModMetadata::Incompatibility::Importance> {
-    static matjson::Value GEODE_DLL to_json(geode::ModMetadata::Incompatibility::Importance const& importance) {
-        switch (importance) {
-            case geode::ModMetadata::Incompatibility::Importance::Breaking: return {"breaking"};
-            case geode::ModMetadata::Incompatibility::Importance::Conflicting: return {"conflicting"};
-            case geode::ModMetadata::Incompatibility::Importance::Superseded: return {"superseded"};
-            default: return {"unknown"};
-        }
-    }
-    static geode::ModMetadata::Incompatibility::Importance GEODE_DLL from_json(matjson::Value const& importance) {
-        auto impStr = importance.as_string();
-        if (impStr == "breaking")
-            return geode::ModMetadata::Incompatibility::Importance::Breaking;
-        if (impStr == "conflicting")
-            return geode::ModMetadata::Incompatibility::Importance::Conflicting;
-        if (impStr == "superseded")
-            return geode::ModMetadata::Incompatibility::Importance::Superseded;
-        throw matjson::JsonException(R"(Expected importance to be "breaking", "conflicting", or "superseded")");
-    }
-
-    static bool is_json(matjson::Value const& value) {
-        return value.is_string();
-    }
-};

@@ -14,7 +14,7 @@ using geode::stl::StringImpl;
 #define impl implFor((*this))
 
 namespace gd {
-#if !defined(GEODE_IS_MACOS) && !defined(GEODE_IS_IOS)
+#if !defined(GEODE_IS_MACOS) && !defined(GEODE_IS_IOS) && !defined(GEODE_IS_WINDOWS)
     string::string() {
         impl.setEmpty();
     }

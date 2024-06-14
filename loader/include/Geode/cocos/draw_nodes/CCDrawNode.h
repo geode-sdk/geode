@@ -57,7 +57,7 @@ protected:
     ccBlendFunc     m_sBlendFunc;
     
     bool            m_bDirty;
-    
+
 public:
     static CCDrawNode* create();
     virtual ~CCDrawNode();

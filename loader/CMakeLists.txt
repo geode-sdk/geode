@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
+cmake_policy(SET CMP0097 NEW)
 
 project(geode-loader VERSION ${GEODE_VERSION} LANGUAGES C CXX)
 if (GEODE_VERSION_TAG_TYPE)
@@ -67,15 +68,20 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 	src/hooks/*.cpp
 	src/ids/*.cpp
 	src/internal/*.cpp
+	src/server/*.cpp
 	src/loader/*.cpp
 	src/load.cpp
 	src/utils/*.cpp
 	src/ui/*.cpp
 	src/ui/nodes/*.cpp
-	src/ui/internal/*.cpp
-	src/ui/internal/info/*.cpp
-	src/ui/internal/list/*.cpp
-	src/ui/internal/settings/*.cpp
+	src/ui/other/*.cpp
+	src/ui/mods/*.cpp
+	src/ui/mods/list/*.cpp
+	src/ui/mods/popups/*.cpp
+	src/ui/mods/sources/*.cpp
+	src/ui/mods/settings/*.cpp
+	src/ui/mods/test/*.cpp
+	src/ui/*.cpp
 	src/c++stl/*.cpp
 	hash/hash.cpp
 )
@@ -167,6 +173,18 @@ if (GEODE_NO_UNDEFINED_VIRTUALS)
 	target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_NO_UNDEFINED_VIRTUALS)
 endif()
 
+# CA Bundle
+CPMAddPackage(
+	GITHUB_REPOSITORY geode-sdk/net_libs
+	GIT_TAG 1f5ffb3
+# CPM is bugged and will not allow an empty string.
+# https://github.com/cpm-cmake/CPM.cmake/issues/467
+# https://github.com/cpm-cmake/CPM.cmake/issues/461
+	GIT_SUBMODULES "nghttp3"
+	GIT_SUBMODULES_RECURSE OFF
+)
+target_link_libraries(${PROJECT_NAME} ca-bundle)
+
 # Package resources for UI
 package_geode_resources_now(
 	${PROJECT_NAME}
@@ -177,7 +195,7 @@ package_geode_resources_now(
 
 if (APPLE)
 	# I don't care a single bit where to put this
-	file(COPY ${GEODE_LOADER_PATH}/include/link/libfmod.dylib DESTINATION ${GEODE_BIN_PATH}/nightly)
+	file(COPY ${GEODE_LOADER_PATH}/include/link/macos/libfmod.dylib DESTINATION ${GEODE_BIN_PATH}/nightly)
 endif()
 
 if (ANDROID)
@@ -213,6 +231,9 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 	GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE
 	_CRT_SECURE_NO_WARNINGS
 )
+
+# set GEODE_MOD_ID for loader itself
+target_compile_definitions(${PROJECT_NAME} PRIVATE GEODE_MOD_ID="geode.loader")
 
 # These are only needed for building source :-)
 if (NOT GEODE_BUILDING_DOCS)
@@ -252,12 +273,20 @@ if (NOT GEODE_BUILDING_DOCS)
 	# Regex support
 	CPMAddPackage("gh:google/re2#c9cba76")
 
+	# Cool date library
+	CPMAddPackage("gh:HowardHinnant/date#1ead671")
+
 	target_include_directories(${PROJECT_NAME} PRIVATE ${md4c_SOURCE_DIR}/src)
 
-	target_link_libraries(${PROJECT_NAME} md4c re2 minizip)
+	target_link_libraries(${PROJECT_NAME} md4c re2 minizip date)
 endif()
 
-target_link_libraries(${PROJECT_NAME} z TulipHook geode-sdk mat-json-impl)
+target_link_libraries(${PROJECT_NAME} TulipHook geode-sdk mat-json-impl)
+
+# Required by curl for macos
+if (APPLE)
+	target_link_libraries(${PROJECT_NAME} z)
+endif()
 
 if (MSVC)
 	# Disable outputting .exp file

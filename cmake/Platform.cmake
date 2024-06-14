@@ -58,26 +58,28 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 	set_target_properties(${PROJECT_NAME} PROPERTIES
 		SYSTEM_NAME MacOS
-		APPLE_SILICON_PROCESSOR x86_64
 	)
 
-	# this should be set globally
-	set(CMAKE_OSX_ARCHITECTURES "x86_64")
+	# for some reason, this value is initialized as an empty string by default. idk why
+	if (NOT DEFINED CMAKE_OSX_ARCHITECTURES OR CMAKE_OSX_ARCHITECTURES STREQUAL "")
+		set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
+	endif()
 
 	# only exists as a global property
 	set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
 
-	find_package(CURL REQUIRED)
-
-	target_include_directories(${PROJECT_NAME} INTERFACE
-		${CURL_INCLUDE_DIR}
-	)
-
 	target_link_libraries(${PROJECT_NAME} INTERFACE
 		"-framework Cocoa"
 		"-framework OpenGL"
-		${CURL_LIBRARIES}
-		${GEODE_LOADER_PATH}/include/link/libfmod.dylib
+		"-framework SystemConfiguration"
+		${GEODE_LOADER_PATH}/include/link/macos/libfmod.dylib
+		${GEODE_LOADER_PATH}/include/link/macos/libssl.a
+		${GEODE_LOADER_PATH}/include/link/macos/libcrypto.a
+		${GEODE_LOADER_PATH}/include/link/macos/libnghttp2.a
+		${GEODE_LOADER_PATH}/include/link/macos/libngtcp2.a
+		${GEODE_LOADER_PATH}/include/link/macos/libnghttp3.a
+		${GEODE_LOADER_PATH}/include/link/macos/libngtcp2_crypto_boringssl.a
+		${GEODE_LOADER_PATH}/include/link/macos/libcurl.a
 	)
 
 	target_compile_definitions(${PROJECT_NAME} INTERFACE
@@ -88,21 +90,27 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 	set(GEODE_OUTPUT_NAME "Geode")
 	set(GEODE_PLATFORM_BINARY "Geode.dylib")
 	set(GEODE_MOD_BINARY_SUFFIX ".dylib" CACHE STRING "" FORCE)
-elseif (GEODE_TARGET_PLATFORM STREQUAL "Win32")
+elseif (GEODE_TARGET_PLATFORM STREQUAL "Win64")
 	set_target_properties(${PROJECT_NAME} PROPERTIES
-		SYSTEM_NAME Win32
-		GENERATOR_PLATFORM x86
+		SYSTEM_NAME Win64
+		GENERATOR_PLATFORM x64
 	)
 
 	target_compile_definitions(${PROJECT_NAME} INTERFACE NOMINMAX)
 
-	target_link_libraries(${PROJECT_NAME} INTERFACE
-		${GEODE_LOADER_PATH}/include/link/libcocos2d.lib
-		${GEODE_LOADER_PATH}/include/link/libExtensions.lib
-		${GEODE_LOADER_PATH}/include/link/libcurl.lib
-		${GEODE_LOADER_PATH}/include/link/glew32.lib
-		${GEODE_LOADER_PATH}/include/link/gdstring.lib
-		${GEODE_LOADER_PATH}/include/link/fmod.lib
+	target_link_libraries(${PROJECT_NAME} INTERFACE 
+		${GEODE_LOADER_PATH}/include/link/win64/libcocos2d.lib
+		${GEODE_LOADER_PATH}/include/link/win64/libExtensions.lib
+		${GEODE_LOADER_PATH}/include/link/win64/ssl.lib
+		${GEODE_LOADER_PATH}/include/link/win64/crypto.lib
+		${GEODE_LOADER_PATH}/include/link/win64/nghttp2.lib
+		${GEODE_LOADER_PATH}/include/link/win64/ngtcp2.lib
+		${GEODE_LOADER_PATH}/include/link/win64/nghttp3.lib
+		${GEODE_LOADER_PATH}/include/link/win64/ngtcp2_crypto_boringssl.lib
+		${GEODE_LOADER_PATH}/include/link/win64/libcurl.lib
+		${GEODE_LOADER_PATH}/include/link/win64/glew32.lib
+		${GEODE_LOADER_PATH}/include/link/win64/gdstring.lib
+		${GEODE_LOADER_PATH}/include/link/win64/fmod.lib
 		opengl32
 	)
 
@@ -120,6 +128,9 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android32")
 		${GEODE_LOADER_PATH}/include/link/android32/libssl.a
 		${GEODE_LOADER_PATH}/include/link/android32/libcrypto.a
 		${GEODE_LOADER_PATH}/include/link/android32/libnghttp2.a
+		${GEODE_LOADER_PATH}/include/link/android32/libngtcp2.a
+		${GEODE_LOADER_PATH}/include/link/android32/libnghttp3.a
+		${GEODE_LOADER_PATH}/include/link/android32/libngtcp2_crypto_boringssl.a
 		${GEODE_LOADER_PATH}/include/link/android32/libcurl.a
 		${GEODE_LOADER_PATH}/include/link/android32/libcocos2dcpp.so
 		${GEODE_LOADER_PATH}/include/link/android32/libfmod.so
@@ -140,6 +151,9 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
 		${GEODE_LOADER_PATH}/include/link/android64/libssl.a
 		${GEODE_LOADER_PATH}/include/link/android64/libcrypto.a
 		${GEODE_LOADER_PATH}/include/link/android64/libnghttp2.a
+		${GEODE_LOADER_PATH}/include/link/android64/libngtcp2.a
+		${GEODE_LOADER_PATH}/include/link/android64/libnghttp3.a
+		${GEODE_LOADER_PATH}/include/link/android64/libngtcp2_crypto_boringssl.a
 		${GEODE_LOADER_PATH}/include/link/android64/libcurl.a
 		${GEODE_LOADER_PATH}/include/link/android64/libcocos2dcpp.so
 		${GEODE_LOADER_PATH}/include/link/android64/libfmod.so

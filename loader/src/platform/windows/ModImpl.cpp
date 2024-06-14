@@ -80,6 +80,16 @@ Result<> Mod::Impl::loadPlatformBinary() {
             delete m_platformInfo;
         }
         m_platformInfo = new PlatformInfo { load };
+
+        auto geodeImplicitEntry = findSymbolOrMangled<void(*)()>(load, "geodeImplicitEntry", "_geodeImplicitEntry@0");
+        if (geodeImplicitEntry) {
+            geodeImplicitEntry();
+        }
+
+        auto geodeCustomEntry = findSymbolOrMangled<void(*)()>(load, "geodeCustomEntry", "_geodeCustomEntry@0");
+        if (geodeCustomEntry) {
+            geodeCustomEntry();
+        }
         return Ok();
     }
     return Err("Unable to load the DLL: " + getLastWinError());

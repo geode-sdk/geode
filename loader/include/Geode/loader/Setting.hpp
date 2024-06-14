@@ -109,7 +109,7 @@ namespace geode {
      * local device
      */
     struct GEODE_DLL FileSetting final {
-        using ValueType = ghc::filesystem::path;
+        using ValueType = std::filesystem::path;
         using Filter = utils::file::FilePickOptions::Filter;
 
         std::optional<std::string> name;

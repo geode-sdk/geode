@@ -3,6 +3,7 @@
 #include "Event.hpp"
 #include "Loader.hpp"
 #include "Setting.hpp"
+#include "Mod.hpp"
 
 #include <optional>
 

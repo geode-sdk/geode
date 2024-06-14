@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ghc/fs_fwd.hpp>
+#include <filesystem>
 #include "../utils/Result.hpp"
 #include "../utils/MiniFunction.hpp"
 #include "Log.hpp"
@@ -18,7 +18,7 @@ namespace geode {
     using ScheduledFunction = utils::MiniFunction<void()>;
 
     struct InvalidGeodeFile {
-        ghc::filesystem::path path;
+        std::filesystem::path path;
         std::string reason;
     };
 
@@ -45,7 +45,7 @@ namespace geode {
             OutdatedIncompatibility,
         };
         Type type;
-        std::variant<ghc::filesystem::path, ModMetadata, Mod*> cause;
+        std::variant<std::filesystem::path, ModMetadata, Mod*> cause;
         std::string message;
     };
 
@@ -91,7 +91,9 @@ namespace geode {
         bool isModLoaded(std::string const& id) const;
         Mod* getLoadedMod(std::string const& id) const;
         std::vector<Mod*> getAllMods();
+        std::vector<LoadProblem> getAllProblems() const;
         std::vector<LoadProblem> getProblems() const;
+        std::vector<LoadProblem> getRecommendations() const;
 
         /**
          * Returns the available launch argument names.
@@ -138,7 +140,7 @@ namespace geode {
             return value.as<T>();
         }
 
-        void queueInMainThread(ScheduledFunction func);
+        void queueInMainThread(ScheduledFunction&& func);
 
         /**
          * Returns the current game version.
@@ -150,6 +152,15 @@ namespace geode {
 
         friend Mod* takeNextLoaderMod();
     };
+
+    /**
+     * @brief Queues a function to run on the main thread
+     * 
+     * @param func the function to queue
+    */
+    inline GEODE_HIDDEN void queueInMainThread(ScheduledFunction&& func) {
+        Loader::get()->queueInMainThread(std::forward<ScheduledFunction>(func));
+    }
 
     /**
      * @brief Take the next mod to load

@@ -3,6 +3,7 @@
 #include <matjson.hpp>
 #include "ModPatch.hpp"
 #include <Geode/loader/Loader.hpp>
+#include <string_view>
 
 namespace geode {
     class Mod::Impl {
@@ -31,11 +32,11 @@ namespace geode {
         /**
          * Mod temp directory name
          */
-        ghc::filesystem::path m_tempDirName;
+        std::filesystem::path m_tempDirName;
         /**
          * Mod save directory name
          */
-        ghc::filesystem::path m_saveDirPath;
+        std::filesystem::path m_saveDirPath;
         /**
          * Pointers to mods that depend on this Mod.
          * Makes it possible to enable / disable them automatically,
@@ -89,14 +90,14 @@ namespace geode {
         std::vector<std::string> getDevelopers() const;
         std::optional<std::string> getDescription() const;
         std::optional<std::string> getDetails() const;
-        ghc::filesystem::path getPackagePath() const;
+        std::filesystem::path getPackagePath() const;
         VersionInfo getVersion() const;
         bool isEnabled() const;
         bool isInternal() const;
         bool needsEarlyLoad() const;
         ModMetadata getMetadata() const;
-        ghc::filesystem::path getTempDir() const;
-        ghc::filesystem::path getBinaryPath() const;
+        std::filesystem::path getTempDir() const;
+        std::filesystem::path getBinaryPath() const;
 
         matjson::Value& getSaveContainer();
         matjson::Value& getSavedSettingsData();
@@ -109,8 +110,8 @@ namespace geode {
         Result<> saveData();
         Result<> loadData();
 
-        ghc::filesystem::path getSaveDir() const;
-        ghc::filesystem::path getConfigDir(bool create = true) const;
+        std::filesystem::path getSaveDir() const;
+        std::filesystem::path getConfigDir(bool create = true) const;
 
         bool hasSettings() const;
         std::vector<std::string> getSettingKeys() const;
@@ -148,7 +149,7 @@ namespace geode {
 
         Result<> loadBinary();
 
-        char const* expandSpriteName(char const* name);
+        std::string_view expandSpriteName(std::string_view name);
         ModJson getRuntimeInfo() const;
 
         bool isLoggingEnabled() const;

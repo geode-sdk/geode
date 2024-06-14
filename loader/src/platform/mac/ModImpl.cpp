@@ -24,6 +24,16 @@ Result<> Mod::Impl::loadPlatformBinary() {
         }
         m_platformInfo = new PlatformInfo { dylib };
 
+        auto geodeImplicitEntry = findSymbolOrMangled<void(*)()>(dylib, "geodeImplicitEntry", "_Z17geodeImplicitEntryv");
+        if (geodeImplicitEntry) {
+            geodeImplicitEntry();
+        }
+
+        auto geodeCustomEntry = findSymbolOrMangled<void(*)()>(dylib, "geodeCustomEntry", "_Z15geodeCustomEntryv");
+        if (geodeCustomEntry) {
+            geodeCustomEntry();
+        }
+
         return Ok();
     }
     std::string err = (char const*)dlerror();

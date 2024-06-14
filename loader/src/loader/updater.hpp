@@ -1,10 +1,16 @@
 ﻿#pragma once
 
 #include <string>
+#include <matjson.hpp>
 #include <Geode/utils/MiniFunction.hpp>
-#include <Geode/loader/Index.hpp>
+#include <Geode/loader/Event.hpp>
 
 namespace geode::updater {
+    using UpdateFinished = std::monostate;
+    using UpdateProgress = std::pair<uint8_t, std::string>;
+    using UpdateFailed = std::string;
+    using UpdateStatus = std::variant<UpdateFinished, UpdateProgress, UpdateFailed>;
+
     struct ResourceDownloadEvent : public Event {
         const UpdateStatus status;
         explicit ResourceDownloadEvent(UpdateStatus status);

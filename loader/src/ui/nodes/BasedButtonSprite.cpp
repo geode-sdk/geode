@@ -25,6 +25,8 @@ const char* geode::baseEnumToString(CircleBaseColor value) {
         case CircleBaseColor::Gray: return "Gray";
         case CircleBaseColor::Blue: return "Blue";
         case CircleBaseColor::Cyan: return "Cyan";
+        case CircleBaseColor::DarkPurple: return "DarkPurple";
+        case CircleBaseColor::DarkAqua: return "DarkAqua";
     }
     return "Unknown";
 }
@@ -180,7 +182,7 @@ static std::string baseEnumsToString(BaseType type, int size, int color) {
 
 bool BasedButtonSprite::init(CCNode* ontop, BaseType type, int size, int color) {
     if (!CCSprite::initWithSpriteFrameName(
-        Mod::get()->expandSpriteName(baseEnumsToString(type, size, color).c_str())
+        Mod::get()->expandSpriteName(baseEnumsToString(type, size, color)).data()
     )) return false;
 
     m_type = type;

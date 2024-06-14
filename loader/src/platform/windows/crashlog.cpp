@@ -9,11 +9,10 @@
 #include <DbgHelp.h>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/file.hpp>
+#include <Geode/utils/terminate.hpp>
 #include <Windows.h>
-#include <chrono>
 #include <ctime>
 #include <errhandlingapi.h>
-#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <string>
@@ -46,7 +45,7 @@ static std::string getModuleName(HMODULE module, bool fullPath = true) {
     if (fullPath) {
         return buffer;
     }
-    return ghc::filesystem::path(buffer).filename().string();
+    return std::filesystem::path(buffer).filename().string();
 }
 
 static char const* getExceptionCodeString(DWORD code) {
@@ -66,6 +65,8 @@ static char const* getExceptionCodeString(DWORD code) {
         EXP_STR(EXCEPTION_FLT_INVALID_OPERATION);
         EXP_STR(EXCEPTION_FLT_OVERFLOW);
         EXP_STR(EXCEPTION_INT_DIVIDE_BY_ZERO);
+        EXP_STR(GEODE_TERMINATE_EXCEPTION_CODE);
+        EXP_STR(GEODE_UNREACHABLE_EXCEPTION_CODE);
         default: return "<Unknown>";
     }
     #undef EXP_STR
@@ -151,17 +152,24 @@ static std::string getStacktrace(PCONTEXT context) {
 
     auto process = GetCurrentProcess();
     auto thread = GetCurrentThread();
+#ifdef GEODE_IS_X86
     stack.AddrPC.Offset = context->Eip;
-    stack.AddrPC.Mode = AddrModeFlat;
     stack.AddrStack.Offset = context->Esp;
-    stack.AddrStack.Mode = AddrModeFlat;
     stack.AddrFrame.Offset = context->Ebp;
+#else
+    stack.AddrPC.Offset = context->Rip;
+    stack.AddrStack.Offset = context->Rsp;
+    stack.AddrFrame.Offset = context->Rbp;
+#endif
+
+    stack.AddrPC.Mode = AddrModeFlat;
+    stack.AddrStack.Mode = AddrModeFlat;
     stack.AddrFrame.Mode = AddrModeFlat;
 
     // size_t frame = 0;
     while (true) {
         if (!StackWalk64(
-                IMAGE_FILE_MACHINE_I386, process, thread, &stack, context, nullptr,
+                IMAGE_FILE_MACHINE_AMD64, process, thread, &stack, context, nullptr,
                 SymFunctionTableAccess64, SymGetModuleBase64, nullptr
             ))
             break;
@@ -174,6 +182,7 @@ static std::string getStacktrace(PCONTEXT context) {
 }
 
 static std::string getRegisters(PCONTEXT context) {
+#ifdef GEODE_IS_X86
     return fmt::format(
         "EAX: {:08x}\n"
         "EBX: {:08x}\n"
@@ -194,6 +203,44 @@ static std::string getRegisters(PCONTEXT context) {
         context->Esi,
         context->Eip
     );
+#else
+    return fmt::format(
+        "RAX: {:016x}\n"
+        "RBX: {:016x}\n"
+        "RCX: {:016x}\n"
+        "RDX: {:016x}\n"
+        "RBP: {:016x}\n"
+        "RSP: {:016x}\n"
+        "RDI: {:016x}\n"
+        "RSI: {:016x}\n"
+        "RIP: {:016x}\n"
+        "R8:  {:016x}\n"
+        "R9:  {:016x}\n"
+        "R10: {:016x}\n"
+        "R11: {:016x}\n"
+        "R12: {:016x}\n"
+        "R13: {:016x}\n"
+        "R14: {:016x}\n"
+        "R15: {:016x}\n",
+        context->Rax,
+        context->Rbx,
+        context->Rcx,
+        context->Rdx,
+        context->Rbp,
+        context->Rsp,
+        context->Rdi,
+        context->Rsi,
+        context->Rip,
+        context->R8,
+        context->R9,
+        context->R10,
+        context->R11,
+        context->R12,
+        context->R13,
+        context->R14,
+        context->R15
+    );
+#endif
 }
 
 template <typename T, typename U>
@@ -202,72 +249,90 @@ static std::add_const_t<std::decay_t<T>> rebaseAndCast(intptr_t base, U value) {
     return reinterpret_cast<std::add_const_t<std::decay_t<T>>>(base + (ptrdiff_t)(value));
 }
 
-static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod) {
-    std::stringstream stream;
+// Parses an unhandled C++ exception from an exception pointers struct.
+static std::string parseCppException(LPEXCEPTION_POINTERS info) {
+    if (info->ExceptionRecord->ExceptionCode != EXCEPTION_NUMBER) {
+        throw std::runtime_error("exception handler precondition violated: wrong exception code in c++ exception handler");
+    }
 
-    if (info->ExceptionRecord->ExceptionCode == EH_EXCEPTION_NUMBER) {
-        // This executes when a C++ exception was thrown and not handled.
-        // https://devblogs.microsoft.com/oldnewthing/20100730-00/?p=13273
-        // handling code is partially taken from https://github.com/gnustep/libobjc2/blob/377a81d23778400b5306ee490451ed68b6e8db81/eh_win32_msvc.cc#L244
+    // This executes when a C++ exception was thrown and not handled.
+    // https://devblogs.microsoft.com/oldnewthing/20100730-00/?p=13273
+    // handling code is partially taken from https://github.com/gnustep/libobjc2/blob/377a81d23778400b5306ee490451ed68b6e8db81/eh_win32_msvc.cc#L244
 
-        // since you can throw virtually anything, we need to figure out if it's an std::exception* or not
-        bool isStdException = false;
+    // since you can throw virtually anything, we need to figure out if it's an std::exception* or not
+    bool isStdException = false;
 
-        auto* exceptionRecord = info->ExceptionRecord;
-        auto exceptionObject = exceptionRecord->ExceptionInformation[1];
+    auto* exceptionRecord = info->ExceptionRecord;
+    auto exceptionObject = exceptionRecord->ExceptionInformation[1];
 
-        // 0 on 32-bit, dll offset on 64-bit
-        intptr_t imageBase = exceptionRecord->NumberParameters >= 4 ? static_cast<intptr_t>(exceptionRecord->ExceptionInformation[3]) : 0;
+    // 0 on 32-bit, dll offset on 64-bit
+    intptr_t imageBase = exceptionRecord->NumberParameters >= 4 ? static_cast<intptr_t>(exceptionRecord->ExceptionInformation[3]) : 0;
 
-        auto* throwInfo = reinterpret_cast<_MSVC_ThrowInfo*>(exceptionRecord->ExceptionInformation[2]);
+    auto* throwInfo = reinterpret_cast<_MSVC_ThrowInfo*>(exceptionRecord->ExceptionInformation[2]);
 
-        if (!throwInfo || !throwInfo->pCatchableTypeArray) {
-            stream << "C++ exception: <no SEH data available about the thrown exception>\n";
-        } else {
-            auto* catchableTypeArray = rebaseAndCast<_MSVC_CatchableTypeArray*>(imageBase, throwInfo->pCatchableTypeArray);
-            auto ctaSize = catchableTypeArray->nCatchableTypes;
-            const char* targetName = nullptr;
+    std::string excString;
+    if (!throwInfo || !throwInfo->pCatchableTypeArray) {
+        excString = "C++ exception: <no SEH data available about the thrown exception>";
+    } else {
+        auto* catchableTypeArray = rebaseAndCast<_MSVC_CatchableTypeArray*>(imageBase, throwInfo->pCatchableTypeArray);
+        auto ctaSize = catchableTypeArray->nCatchableTypes;
+        const char* targetName = nullptr;
 
-            for (int i = 0; i < ctaSize; i++) {
-                auto* catchableType = rebaseAndCast<_MSVC_CatchableType*>(imageBase, catchableTypeArray->arrayOfCatchableTypes[i]);
-                auto* ctDescriptor = rebaseAndCast<_MSVC_TypeDescriptor*>(imageBase, catchableType->pType);
-                const char* classname = ctDescriptor->name;
+        for (int i = 0; i < ctaSize; i++) {
+            auto* catchableType = rebaseAndCast<_MSVC_CatchableType*>(imageBase, catchableTypeArray->arrayOfCatchableTypes[i]);
+            auto* ctDescriptor = rebaseAndCast<_MSVC_TypeDescriptor*>(imageBase, catchableType->pType);
+            const char* classname = ctDescriptor->name;
 
-                if (i == 0) {
-                    targetName = classname;
-                }
-
-                if (strcmp(classname, ".?AVexception@std@@") == 0) {
-                    isStdException = true;
-                    break;
-                }
+            if (i == 0) {
+                targetName = classname;
             }
 
-            // demangle the name of the thrown object
-            std::string demangledName;
-
-            if (!targetName || targetName[0] == '\0' || targetName[1] == '\0') {
-                demangledName = "<Unknown type>";
-            } else {
-                char demangledBuf[256];
-                size_t written = UnDecorateSymbolName(targetName + 1, demangledBuf, 256, UNDNAME_NO_ARGUMENTS);
-                if (written == 0) {
-                    demangledName = "<Unknown type>";
-                } else {
-                    demangledName = std::string(demangledBuf, demangledBuf + written);
-                }
-            }
-
-            if (isStdException) {
-                std::exception* excObject = reinterpret_cast<std::exception*>(exceptionObject);
-                stream << "C++ Exception: " << demangledName << "(\"" << excObject->what() << "\")" << "\n";
-            } else {
-                stream << "C++ Exception: type '" << demangledName << "'\n";
+            if (strcmp(classname, ".?AVexception@std@@") == 0) {
+                isStdException = true;
+                break;
             }
         }
 
+        // demangle the name of the thrown object
+        std::string demangledName;
+
+        if (!targetName || targetName[0] == '\0' || targetName[1] == '\0') {
+            demangledName = "<Unknown type>";
+        } else {
+            char demangledBuf[256];
+            size_t written = UnDecorateSymbolName(targetName + 1, demangledBuf, 256, UNDNAME_NO_ARGUMENTS);
+            if (written == 0) {
+                demangledName = "<Unknown type>";
+            } else {
+                demangledName = std::string(demangledBuf, demangledBuf + written);
+            }
+        }
+
+        if (isStdException) {
+            std::exception* excObject = reinterpret_cast<std::exception*>(exceptionObject);
+            excString = fmt::format("C++ Exception: {}(\"{}\")", demangledName, excObject->what());
+        } else {
+            excString = fmt::format("C++ Exception: type '{}'", demangledName);
+        }
+    }
+
+    return excString;
+}
+
+static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod) {
+    std::stringstream stream;
+
+    if (info->ExceptionRecord->ExceptionCode == EXCEPTION_NUMBER) {
+        stream << parseCppException(info) << "\n";
         stream << "Faulty Mod: " << (faultyMod ? faultyMod->getID() : "<Unknown>") << "\n";
-    } else {
+    }
+    else if (isGeodeExceptionCode(info->ExceptionRecord->ExceptionCode)) {
+        stream
+            << "A mod has deliberately asked the game to crash.\n"
+            << "Reason: " << reinterpret_cast<const char*>(info->ExceptionRecord->ExceptionInformation[0]) << "\n"
+            << "Faulty Mod: " << reinterpret_cast<Mod*>(info->ExceptionRecord->ExceptionInformation[1])->getID() << "\n";
+    }
+    else {
         stream << "Faulty Module: "
             << getModuleName(handleFromAddress(info->ExceptionRecord->ExceptionAddress), true)
             << "\n"
@@ -285,42 +350,116 @@ static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod) {
 
     // show the thread that crashed
     stream << "Crashed thread: " << utils::thread::getName() << "\n";
-    
+
     return stream.str();
 }
 
-static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
+static void handleException(LPEXCEPTION_POINTERS info) {
+    std::string text;
 
-    SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
+    // calling SymInitialize from multiple threads can have unexpected behavior, so synchronize this part
+    static std::mutex symMutex;
+    {
+        std::lock_guard lock(symMutex);
 
-    // init symbols so we can get some juicy debug info
-    g_symbolsInitialized = SymInitialize(static_cast<HMODULE>(GetCurrentProcess()), nullptr, true);
+        SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
 
-    auto faultyMod = modFromAddress(info->ExceptionRecord->ExceptionAddress);
+        // init symbols so we can get some juicy debug info
+        g_symbolsInitialized = SymInitialize(static_cast<HMODULE>(GetCurrentProcess()), nullptr, true);
+        if (!g_symbolsInitialized) {
+            log::warn("Failed to initialize debug symbols: Error {}", GetLastError());
+        }
 
-    auto text = crashlog::writeCrashlog(faultyMod, getInfo(info, faultyMod), getStacktrace(info->ContextRecord), getRegisters(info->ContextRecord));
+        auto faultyMod = modFromAddress(info->ExceptionRecord->ExceptionAddress);
+        auto crashInfo = getInfo(info, faultyMod);
+
+        text = crashlog::writeCrashlog(
+            faultyMod,
+            crashInfo,
+            getStacktrace(info->ContextRecord),
+            getRegisters(info->ContextRecord)
+        );
+
+        SymCleanup(GetCurrentProcess());
+    }
 
     MessageBoxA(nullptr, text.c_str(), "Geometry Dash Crashed", MB_ICONERROR);
+}
+
+static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
+    // not all exceptions are critical, some can and should be ignored
+    static constexpr auto ignored = std::to_array<DWORD>({
+        // various debugger stuff
+        DBG_EXCEPTION_HANDLED,
+        DBG_CONTINUE,
+        DBG_REPLY_LATER,
+        DBG_TERMINATE_THREAD,
+        DBG_TERMINATE_PROCESS,
+        DBG_RIPEXCEPTION,
+        DBG_CONTROL_BREAK,
+        DBG_COMMAND_EXCEPTION,
+        // OutputDebugString
+        DBG_PRINTEXCEPTION_C,
+        DBG_PRINTEXCEPTION_WIDE_C,
+        // ctrl+c
+        DBG_CONTROL_C,
+        STATUS_CONTROL_C_EXIT,
+        // SetThreadName
+        0x406d1388,
+        // c++ exceptions, handled separately
+        EXCEPTION_NUMBER,
+        // mods failing to load
+        STATUS_DLL_NOT_FOUND,
+        STATUS_DLL_INIT_FAILED,
+        STATUS_ORDINAL_NOT_FOUND,
+        STATUS_ENTRYPOINT_NOT_FOUND,
+    });
+
+    if (std::find(ignored.begin(), ignored.end(), info->ExceptionRecord->ExceptionCode) != ignored.end()) {
+        return EXCEPTION_CONTINUE_SEARCH;
+    }
+
+    if (info->ExceptionRecord->ExceptionCode == STATUS_BREAKPOINT && IsDebuggerPresent()) {
+        return EXCEPTION_CONTINUE_SEARCH;
+    }
+
+    handleException(info);
+
+    // continue searching, which usually just ends up terminating the program (exactly what we need)
+    return EXCEPTION_CONTINUE_SEARCH;
+}
+
+static LONG WINAPI continueHandler(LPEXCEPTION_POINTERS info) {
+    if (info->ExceptionRecord->ExceptionCode == EXCEPTION_NUMBER) {
+        handleException(info);
+    }
 
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
-static LONG WINAPI exceptionHandlerDummy(LPEXCEPTION_POINTERS info) {
-    SetUnhandledExceptionFilter(exceptionHandler);
-    return EXCEPTION_CONTINUE_SEARCH;
+static bool isWine() {
+    auto ntdll = GetModuleHandleA("ntdll.dll");
+    return ntdll ? (GetProcAddress(ntdll, "wine_get_version") != NULL) : false;
 }
 
 bool crashlog::setupPlatformHandler() {
-    // for some reason, on exceptions windows seems to clear SetUnhandledExceptionFilter
-    // so we attach a VE handler (which runs *earlier*) and inside set our crash handler
-    AddVectoredExceptionHandler(0, exceptionHandlerDummy);
-    SetUnhandledExceptionFilter(exceptionHandler);
+    // this one works everywhere but breaks for c++ exceptions
+    AddVectoredExceptionHandler(0, exceptionHandler);
+
+    // this one does nothing on wine but works on windows
+    AddVectoredContinueHandler(0, continueHandler);
+
+    // this one does nothing on windows but works on wine
+    // bonus points: on windows it works *sometimes*, so we check for wine to prevent showing 2 crash popups at once.
+    if (isWine()) {
+        SetUnhandledExceptionFilter(continueHandler);
+    }
 
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
-    if (ghc::filesystem::exists(lastCrashedFile)) {
+    if (std::filesystem::exists(lastCrashedFile)) {
         g_lastLaunchCrashed = true;
         try {
-            ghc::filesystem::remove(lastCrashedFile);
+            std::filesystem::remove(lastCrashedFile);
         }
         catch (...) {
         }
@@ -334,6 +473,6 @@ bool crashlog::didLastLaunchCrash() {
 
 void crashlog::setupPlatformHandlerPost() {}
 
-ghc::filesystem::path crashlog::getCrashLogDirectory() {
+std::filesystem::path crashlog::getCrashLogDirectory() {
     return dirs::getGeodeDir() / "crashlogs";
 }
