@@ -2,6 +2,7 @@
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/utils/web.hpp>
+#include <Geode/loader/Loader.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include "ConfirmUninstallPopup.hpp"
@@ -105,28 +106,47 @@ bool ModPopup::setup(ModSource&& src) {
     dev->setAnchorPoint({ .0f, .5f });
     titleContainer->addChildAtPosition(dev, Anchor::BottomLeft, ccp(devAndTitlePos, titleContainer->getContentHeight() * .25f));
 
-    if (auto suggestion = m_source.asSuggestion()) {
-        title->updateAnchoredPosition(Anchor::TopLeft, ccp(devAndTitlePos, -2));
-        dev->updateAnchoredPosition(Anchor::Left, ccp(devAndTitlePos, 0));
+    // Suggestions
+    if (!Loader::get()->isModInstalled(m_source.getMetadata().getID())) {
+        std::vector<Mod*> recommends {};
+        for (auto& problem : Loader::get()->getRecommendations()) {
+            auto suggestionID = problem.message.substr(0, problem.message.find(' '));
+            if (suggestionID != m_source.getMetadata().getID()) {
+                continue;
+            }
+            recommends.push_back(std::get<2>(problem.cause));
+        }
 
-        auto recommendedBy = CCNode::create();
-        recommendedBy->setContentWidth(titleContainer->getContentWidth() - devAndTitlePos);
-        recommendedBy->setAnchorPoint({ .0f, .5f });
+        if (recommends.size() > 0) {
+            title->updateAnchoredPosition(Anchor::TopLeft, ccp(devAndTitlePos, -2));
+            dev->updateAnchoredPosition(Anchor::Left, ccp(devAndTitlePos, 0));
 
-        auto byLabel = CCLabelBMFont::create("Recommended by ", "bigFont.fnt");
-        byLabel->setColor("mod-list-recommended-by"_cc3b);
-        recommendedBy->addChild(byLabel);
+            auto recommendedBy = CCNode::create();
+            recommendedBy->setContentWidth(titleContainer->getContentWidth() - devAndTitlePos);
+            recommendedBy->setAnchorPoint({ .0f, .5f });
 
-        auto nameLabel = CCLabelBMFont::create(suggestion->forMod->getName().c_str(), "bigFont.fnt");
-        nameLabel->setColor("mod-list-recommended-by-2"_cc3b);
-        recommendedBy->addChild(nameLabel);
+            auto byLabel = CCLabelBMFont::create("Recommended by ", "bigFont.fnt");
+            byLabel->setColor("mod-list-recommended-by"_cc3b);
+            recommendedBy->addChild(byLabel);
 
-        recommendedBy->setLayout(
-            RowLayout::create()
-                ->setDefaultScaleLimits(.1f, 1.f)
-                ->setAxisAlignment(AxisAlignment::Start)
-        );
-        titleContainer->addChildAtPosition(recommendedBy, Anchor::BottomLeft, ccp(devAndTitlePos, 4));
+            std::string suggestionStr {};
+            if (recommends.size() == 1) {
+                suggestionStr = recommends[0]->getName();
+            } else {
+                suggestionStr = fmt::format("{} installed mods", recommends.size());
+            }
+
+            auto nameLabel = CCLabelBMFont::create(suggestionStr.c_str(), "bigFont.fnt");
+            nameLabel->setColor("mod-list-recommended-by-2"_cc3b);
+            recommendedBy->addChild(nameLabel);
+
+            recommendedBy->setLayout(
+                RowLayout::create()
+                    ->setDefaultScaleLimits(.1f, 1.f)
+                    ->setAxisAlignment(AxisAlignment::Start)
+            );
+            titleContainer->addChildAtPosition(recommendedBy, Anchor::BottomLeft, ccp(devAndTitlePos, 4));
+        }
     }
 
     leftColumn->addChild(titleContainer);
@@ -575,7 +595,7 @@ void ModPopup::updateState() {
     m_reenableBtn->setVisible(asMod && modRequestedActionIsToggle(asMod->getRequestedAction()));
 
     m_updateBtn->setVisible(m_source.hasUpdates().has_value() && asMod->getRequestedAction() == ModRequestedAction::None);
-    m_installBtn->setVisible(m_source.asServer() || m_source.asSuggestion());
+    m_installBtn->setVisible(m_source.asServer());
     m_uninstallBtn->setVisible(asMod && asMod->getRequestedAction() == ModRequestedAction::None);
 
     if (asMod && modRequestedActionIsUninstall(asMod->getRequestedAction())) {
@@ -922,9 +942,6 @@ ModPopup* ModPopup::create(ModSource&& src) {
     GeodePopupStyle style = GeodePopupStyle::Default;
     if (src.asServer()) {
         style = GeodePopupStyle::Alt;
-    }
-    else if (src.asSuggestion()) {
-        style = GeodePopupStyle::Alt2;
     }
     if (ret && ret->init(440, 280, std::move(src), style)) {
         ret->autorelease();
