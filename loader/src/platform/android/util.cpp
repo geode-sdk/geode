@@ -138,12 +138,9 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
     return false;
 }
 
-
-// static utils::MiniFunction<void(std::filesystem::path)> s_fileCallback;
-// static utils::MiniFunction<void(std::vector<std::filesystem::path>)> s_filesCallback;
-// static utils::MiniFunction<void()> s_failedCallback;
-static std::optional<Result<std::filesystem::path>> s_fileResult = std::nullopt;
-static std::optional<Result<std::vector<std::filesystem::path>>> s_filesResult = std::nullopt;
+static utils::MiniFunction<void(Result<std::filesystem::path>)> s_fileCallback {};
+static utils::MiniFunction<void(Result<std::vector<std::filesystem::path>>)> s_filesCallback {};
+static utils::MiniFunction<bool()> s_taskCancelled {};
 
 extern "C"
 JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_selectFileCallback(
@@ -154,8 +151,15 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_selectFileCallba
     auto isCopy = jboolean();
     auto dataStr = env->GetStringUTFChars(data, &isCopy);
 
-    log::debug("Selected file: {}", dataStr);
-    s_fileResult = Ok(std::filesystem::path(dataStr));
+    if (s_taskCancelled && s_taskCancelled()) {
+        s_taskCancelled = {};
+        return;
+    }
+    if (s_fileCallback) {
+        s_fileCallback(Ok(std::filesystem::path(dataStr)));
+        s_fileCallback = {};
+        s_taskCancelled = {};
+    }
 }
 
 extern "C"
@@ -171,11 +175,16 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_selectFilesCallb
         auto data = (jstring)env->GetObjectArrayElement(datas, i);
         auto dataStr = env->GetStringUTFChars(data, &isCopy);
         result.push_back(dataStr);
-
-        log::debug("Selected file {}: {}", i, dataStr);
     }
-
-    s_filesResult = Ok(std::move(result));
+    if (s_taskCancelled && s_taskCancelled()) {
+        s_taskCancelled = {};
+        return;
+    }
+    if (s_filesCallback) {
+        s_filesCallback(Ok(std::move(result)));
+        s_filesCallback = {};
+        s_taskCancelled = {};
+    }
 }
 
 extern "C"
@@ -183,81 +192,65 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_failedCallback(
         JNIEnv *env,
         jobject
 ) {
-    s_fileResult = Err("Permission error");
-    s_filesResult = Err("Permission error");
+    if (s_fileCallback) {
+        s_fileCallback(Err("Permission error"));
+    }
+    if (s_filesCallback) {
+        s_filesCallback(Err("Permission error"));
+    }
 }
 
 Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, file::FilePickOptions const& options) {
     using RetTask = Task<Result<std::filesystem::path>>;
-    s_fileResult = std::nullopt;
-    return RetTask::run([mode, options](auto progress, auto cancelled) -> RetTask::Result {
-        std::string method;
-        switch (mode) {
-            case file::PickMode::OpenFile:
-                method = "selectFile";
-                break;
-            case file::PickMode::SaveFile:
-                method = "createFile";
-                break;
-            case file::PickMode::OpenFolder:
-                method = "selectFolder";
-                break;
+    std::string method;
+    switch (mode) {
+        case file::PickMode::OpenFile:
+            method = "selectFile";
+            break;
+        case file::PickMode::SaveFile:
+            method = "createFile";
+            break;
+        case file::PickMode::OpenFolder:
+            method = "selectFolder";
+            break;
+    }
+
+    JniMethodInfo t;
+    if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", method.c_str(), "(Ljava/lang/String;)Z")) {
+        jstring stringArg1 = t.env->NewStringUTF(options.defaultPath.value_or(std::filesystem::path()).filename().string().c_str());
+
+        jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
+
+        t.env->DeleteLocalRef(stringArg1);
+        t.env->DeleteLocalRef(t.classID);
+        if (!result) {
+            return RetTask::immediate(Err("Failed to open file picker"));
         }
-
-        JniMethodInfo t;
-        if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", method.c_str(), "(Ljava/lang/String;)Z")) {
-            jstring stringArg1 = t.env->NewStringUTF(options.defaultPath.value_or(std::filesystem::path()).filename().string().c_str());
-
-            jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
-
-            t.env->DeleteLocalRef(stringArg1);
-            t.env->DeleteLocalRef(t.classID);
-            if (result) {
-                return Err("Failed to open file picker");
-            }
-        }
-
-        // Time for while loop :D
-        while (!s_fileResult.has_value()) {
-            if (cancelled()) {
-                return RetTask::Cancel();
-            }
-        }
-
-        Result<std::filesystem::path> result = s_fileResult.value();
-        s_fileResult = std::nullopt;
-        return result;
+    }
+    return RetTask::runWithCallback([] (auto result, auto progress, auto cancelled) {
+        s_fileCallback = result;
+        s_taskCancelled = cancelled;
     });
 }
 
 Task<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions const& options) {
     using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
-    s_filesResult = std::nullopt;
+    JniMethodInfo t;
+    if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "selectFiles", "(Ljava/lang/String;)Z")) {
+        jstring stringArg1 = t.env->NewStringUTF(options.defaultPath.value_or(std::filesystem::path()).string().c_str());
 
-    return RetTask::run([options](auto progress, auto cancelled) -> RetTask::Result {
-        JniMethodInfo t;
-        if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "selectFiles", "(Ljava/lang/String;)Z")) {
-            jstring stringArg1 = t.env->NewStringUTF(options.defaultPath.value_or(std::filesystem::path()).string().c_str());
+        jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
 
-            jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
-
-            t.env->DeleteLocalRef(stringArg1);
-            t.env->DeleteLocalRef(t.classID);
-            if (result) {
-                return Err("Failed to open file dialog");
-            }
+        t.env->DeleteLocalRef(stringArg1);
+        t.env->DeleteLocalRef(t.classID);
+        if (!result) {
+            return RetTask::immediate(Err("Failed to open file dialog"));
         }
+    }
 
-        // Time for while loop :D
-        while (!s_fileResult.has_value()) {
-            if (cancelled()) {
-                return RetTask::Cancel();
-            }
-        }
-    
-        Result<std::vector<std::filesystem::path>> result = s_filesResult.value();
-        s_filesResult = std::nullopt;
-        return result;
+    return RetTask::runWithCallback([options](auto result, auto progress, auto cancelled){
+        s_filesCallback = result;
+        s_taskCancelled = cancelled;
     });
 }
 
