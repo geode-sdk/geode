@@ -11,12 +11,17 @@
 #include <filesystem>
 #include <Geode/Loader.hpp>
 #include "../../loader/LoaderImpl.hpp"
-#include <Geode/Utils.hpp>
 #include <thread>
 #include <variant>
 #include <loader/updater.hpp>
 
 using namespace geode::prelude;
+
+std::length_error::~length_error() _NOEXCEPT {} // do not ask...
+
+// camila has an old ass macos and this function turned
+// from dynamic to static thats why she needs to define it
+// this is what old versions does to a silly girl
 
 void updateFiles() {
     auto frameworkDir = dirs::getGameDir() / "Frameworks";
@@ -121,10 +126,6 @@ void applicationDidFinishLaunchingHook(void* self, SEL sel, NSNotification* noti
 
 
 bool loadGeode() {
-    auto orig = geode::hook::replaceObjcMethod("AppController", "applicationDidFinishLaunching:", (void*)applicationDidFinishLaunchingHook);
-    if (!orig)
-        return false;
-    /*
     if (GEODE_STR(GEODE_GD_VERSION) != LoaderImpl::get()->getGameVersion()) {
         console::messageBox(
             "Unable to Load Geode!",
