@@ -165,6 +165,10 @@ Result<Setting> Setting::parse(
                 default: return Err("Unknown setting type \"" + type + "\"");
             }
         }
+
+        // this is handled before the setting is parsed
+        obj.addKnownKey("platforms");
+
         obj.checkUnknownKeys();
     }
     // if the type wasn't an object or a string, the JsonChecker that gave the 
