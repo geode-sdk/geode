@@ -82,9 +82,14 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
     auto success = false;
     auto thread = std::thread([](auto const& path, bool& success) {
         if (CoInitializeEx(nullptr, COINIT_MULTITHREADED) == S_OK) {
-            if (auto id = ILCreateFromPathW(path.wstring().c_str())) {
+            // Don't try to open up a file >:(
+            std::error_code whatever;
+            std::filesystem::path dir = path;
+            if (!std::filesystem::is_directory(dir, whatever)) {
+                dir = dir.parent_path();
+            }
+            if (auto id = ILCreateFromPathW(dir.wstring().c_str())) {
                 std::filesystem::path selectPath = path / ".";
-                std::error_code whatever;
                 if (!std::filesystem::is_directory(path, whatever)) {
                     selectPath = path;
                 }
