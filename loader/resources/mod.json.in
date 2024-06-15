@@ -63,7 +63,8 @@
             "type": "bool",
             "default": false,
             "name": "Show Platform Console",
-            "description": "Show the native console (if one exists). <cr>This setting is meant for developers</c>"
+            "description": "Show the native console (if one exists). <cr>This setting is meant for developers</c>",
+            "platforms": ["win", "mac"]
         },
         "auto-check-updates": {
             "type": "bool",
