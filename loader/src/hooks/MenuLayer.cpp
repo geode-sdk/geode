@@ -162,37 +162,42 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         }
 
         // Check for mod updates
-        m_fields->m_updateCheckTask = ModsLayer::checkInstalledModsForUpdates().map(
-            [this, hasErrors](server::ServerRequest<std::vector<std::string>>::Value* result) {
-                if (result->isOk()) {
-                    auto updatesFound = result->unwrap();
-                    if (updatesFound.size() && !m_fields->m_geodeButton->getChildByID("updates-available")) {
-                        log::info("Found updates for mods: {}!", updatesFound);
-                        
-                        // Only show the icon if the errors icon wasn't added already, to prevent overlap
-                        if (!hasErrors) {
-                            auto icon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr);
-                            icon->setPosition(
-                                m_fields->m_geodeButton->getContentSize() - CCSize { 10.f, 10.f }
-                            );
-                            icon->setID("updates-available");
-                            icon->setZOrder(99);
-                            icon->setScale(.5f);
-                            m_fields->m_geodeButton->addChild(icon);
+        static bool checkedModUpdates = false;
+        if (!checkedModUpdates) {
+            // only run it once
+            checkedModUpdates = true;
+            m_fields->m_updateCheckTask = ModsLayer::checkInstalledModsForUpdates().map(
+                [this, hasErrors](server::ServerRequest<std::vector<std::string>>::Value* result) {
+                    if (result->isOk()) {
+                        auto updatesFound = result->unwrap();
+                        if (updatesFound.size() && !m_fields->m_geodeButton->getChildByID("updates-available")) {
+                            log::info("Found updates for mods: {}!", updatesFound);
+                            
+                            // Only show the icon if the errors icon wasn't added already, to prevent overlap
+                            if (!hasErrors) {
+                                auto icon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr);
+                                icon->setPosition(
+                                    m_fields->m_geodeButton->getContentSize() - CCSize { 10.f, 10.f }
+                                );
+                                icon->setID("updates-available");
+                                icon->setZOrder(99);
+                                icon->setScale(.5f);
+                                m_fields->m_geodeButton->addChild(icon);
+                            }
+                        }
+                        else {
+                            log::error("No updates found :(");
                         }
                     }
                     else {
-                        log::error("No updates found :(");
+                        auto error = result->unwrapErr();
+                        log::error("Unable to check for mod updates ({}): {}", error.code, error.details);
                     }
-                }
-                else {
-                    auto error = result->unwrapErr();
-                    log::error("Unable to check for mod updates ({}): {}", error.code, error.details);
-                }
-                return std::monostate();
-            },
-            [](auto) { return std::monostate(); }
-        );
+                    return std::monostate();
+                },
+                [](auto) { return std::monostate(); }
+            );
+        }
 
         for (auto mod : Loader::get()->getAllMods()) {
             if (mod->getMetadata().usesDeprecatedIDForm()) {
