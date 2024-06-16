@@ -120,11 +120,6 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
 		log
 	)
 
-	# this should help with fixing exceptions
- 	set(ANDROID_STL c++_shared)
-  	# a little desperate
-	add_definitions(-DANDROID_STL=c++_shared)
-
 	set(GEODE_OUTPUT_NAME "Geode.android64")
 	set(GEODE_PLATFORM_BINARY "Geode.android64.so")
 	set(GEODE_MOD_BINARY_SUFFIX ".android64.so" CACHE STRING "" FORCE)
