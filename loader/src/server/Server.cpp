@@ -361,9 +361,7 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
 }
 
 Result<ServerModReplacement> ServerModReplacement::parse(matjson::Value const& raw) {
-    log::info("entered replacement parse");
     auto json = raw;
-    log::info("{}", json);
     JsonChecker checker(json);
     auto root = checker.root("ServerModReplacement").obj();
     auto res = ServerModReplacement();

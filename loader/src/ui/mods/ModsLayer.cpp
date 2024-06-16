@@ -206,6 +206,7 @@ void ModsStatusNode::updateState() {
 
             m_viewBtn->setVisible(true);
             m_viewBtn->setTarget(this, menu_selector(ModsStatusNode::onConfirm));
+            askConfirmModInstalls();
         } break;
 
         case DownloadState::SomeFetching: {
