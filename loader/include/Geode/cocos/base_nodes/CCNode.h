@@ -849,11 +849,15 @@ public:
      * Set a user-assigned CCObject with a specific ID. This allows nodes to 
      * have multiple user objects. Objects should be prefixed with the mod ID. 
      * Assigning a null removes the user object with the ID
+     * 
+     * @note Geode addition
      */
     GEODE_DLL void setUserObject(std::string const& id, CCObject* object);
 
     /**
      * Get a user-assigned CCObject with the specific ID
+     * 
+     * @note Geode addition
      */
     GEODE_DLL CCObject* getUserObject(std::string const& id);
     
