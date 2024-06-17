@@ -118,7 +118,7 @@ protected:
             m_sprite->removeFromParent();
         }
         // Fallback to default logo if the sprite is null
-        if (!sprite) {
+        if (!sprite || sprite->getUserObject("geode.texture-loader/fallback")) {
             sprite = CCLabelBMFont::create("N/A", "bigFont.fnt");
             static_cast<CCLabelBMFont*>(sprite)->setOpacity(90);
         }
