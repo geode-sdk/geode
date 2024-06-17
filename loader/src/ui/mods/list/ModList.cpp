@@ -415,6 +415,10 @@ void ModList::onPromise(ModListSource::PageLoadTask::Event* event) {
     }
 }
 
+void ModList::setIsExiting(bool exiting) {
+    m_exiting = true;
+}
+
 void ModList::onPage(CCObject* sender) {
     // If no page count has been loaded yet, we can't do anything
     if (!m_source->getPageCount()) return;
@@ -470,7 +474,9 @@ void ModList::onCheckUpdates(typename server::ServerRequest<std::vector<std::str
 }
 
 void ModList::onInvalidateCache(InvalidateCacheEvent* event) {
-    this->gotoPage(0);
+    if (!m_exiting) {
+        this->gotoPage(0);
+    }
 }
 
 void ModList::activateSearch(bool activate) {

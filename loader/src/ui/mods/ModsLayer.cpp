@@ -643,6 +643,12 @@ void ModsLayer::onRefreshList(CCObject*) {
     }
 }
 void ModsLayer::onBack(CCObject*) {
+    // Tell every list that we are about to exit the layer.
+    // This prevents any page from being cached when the 
+    // cache invalidation event fires.
+    for (auto& list : m_lists) {
+        list.second->setIsExiting(true);
+    }
     CCDirector::get()->replaceScene(CCTransitionFade::create(.5f, MenuLayer::scene(false)));
 
     // To avoid memory overloading, clear caches after leaving the layer
