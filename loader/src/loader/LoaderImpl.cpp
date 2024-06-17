@@ -128,6 +128,10 @@ void Loader::Impl::updateResources(bool forceReload) {
         this->updateModResources(mod);
         ModImpl::getImpl(mod)->m_resourcesLoaded = true;
     }
+    // deduplicate mod resource paths, since they added in both updateModResources and Mod::Impl::setup
+    // we have to call it in both places since setup is only called once ever, but updateResources is called
+    // on every texture reload
+    CCFileUtils::get()->updatePaths();
     log::popNest();
 }
 
@@ -215,7 +219,11 @@ Mod* Loader::Impl::getLoadedMod(std::string const& id) const {
 }
 
 void Loader::Impl::updateModResources(Mod* mod) {
-    // search path is added in Mod::Impl::setup
+    if (!mod->isInternal()) {
+        // geode.loader resource is stored somewhere else, which is already added anyway
+        auto searchPathRoot = dirs::getModRuntimeDir() / mod->getID() / "resources";
+        CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
+    }
 
     // only thing needs previous setup is spritesheets
     if (mod->getMetadata().getSpritesheets().empty())
