@@ -17,6 +17,7 @@
 #include "popups/ConfirmInstall.hpp"
 #include "GeodeStyle.hpp"
 #include "ui/mods/sources/ModListSource.hpp"
+#include <loader/LoaderImpl.hpp>
 
 bool ModsStatusNode::init() {
     if (!CCNode::init())
@@ -301,14 +302,17 @@ bool ModsLayer::init() {
     this->setID("ModsLayer");
 
     auto winSize = CCDirector::get()->getWinSize();
+    const bool isSafeMode = LoaderImpl::get()->isSafeMode();
     
     const bool geodeTheme = isGeodeTheme();
-    if (geodeTheme) {
-        this->addChild(SwelvyBG::create());
-    }
-    else {
-        this->addChild(createLayerBG());
-        addSideArt(this);
+    if (!isSafeMode) {
+        if (geodeTheme) {
+            this->addChild(SwelvyBG::create());
+        }
+        else {
+            this->addChild(createLayerBG());
+            addSideArt(this);
+        }
     }
     
     auto backMenu = CCMenu::create();
@@ -515,6 +519,28 @@ bool ModsLayer::init() {
         } 
         this->updateState();
     });
+
+    // add safe mode label
+    if (isSafeMode) {
+        auto* label = CCLabelBMFont::create("Safe Mode Enabled", "bigFont.fnt");
+        label->setPosition(winSize.width, 0);
+        label->setAnchorPoint(ccp(1, 0));
+        label->setOpacity(128);
+        label->setZOrder(999);
+        label->setScale(0.55f);
+        this->addChild(label);
+        static int _ = [this] {
+            auto* alert = FLAlertLayer::create(
+                "Safe Mode Enabled",
+                "Safe Mode has been enabled. This means no mods will be loaded to prevent crashes. Feel free to manage any problematic mods.",
+                "OK"
+            );
+            alert->m_scene = this;
+            alert->m_noElasticity = true;
+            alert->show();
+            return 0;
+        }();
+    }
 
     return true;
 }
