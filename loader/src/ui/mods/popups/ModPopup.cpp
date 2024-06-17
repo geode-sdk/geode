@@ -741,7 +741,7 @@ void ModPopup::onLoadServerInfo(typename server::ServerRequest<server::ServerMod
 
         // Update server stats
         for (auto id : std::initializer_list<std::pair<const char*, std::string>> {
-            { "downloads", std::to_string(data.downloadCount) },
+            { "downloads", fmt::format(std::locale("en_US.UTF-8"), "{:L}", data.downloadCount) },
             { "release-date", timeToString(data.createdAt) },
             { "update-date", timeToString(data.updatedAt) },
         }) {
