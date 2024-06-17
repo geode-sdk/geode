@@ -52,7 +52,7 @@ bool isPathEqual(std::filesystem::path const& cocosPath, std::filesystem::path c
 void CCFileUtils::updatePaths() {
     // add search paths that aren't in PATHS or PACKS to PATHS
     for (auto& path : m_searchPathArray) {
-        std::filesystem::path const cocosPath = path;
+        std::filesystem::path const cocosPath = std::string(path);
         bool isKnown = false;
         for (auto& pack : PACKS) {
             for (auto& packPath : pack.m_paths) {
