@@ -215,11 +215,7 @@ Mod* Loader::Impl::getLoadedMod(std::string const& id) const {
 }
 
 void Loader::Impl::updateModResources(Mod* mod) {
-    if (mod != Mod::get()) {
-        // geode.loader resource is stored somewhere else, which is already added anyway
-        auto searchPathRoot = dirs::getModRuntimeDir() / mod->getID() / "resources";
-        CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
-    }
+    // search path is added in Mod::Impl::setup
 
     // only thing needs previous setup is spritesheets
     if (mod->getMetadata().getSpritesheets().empty())

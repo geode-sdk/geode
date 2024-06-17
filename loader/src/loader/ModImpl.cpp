@@ -58,7 +58,7 @@ Result<> Mod::Impl::setup() {
     if (!loadRes) {
         log::warn("Unable to load data for \"{}\": {}", m_metadata.getID(), loadRes.unwrapErr());
     }
-    if (!m_resourcesLoaded) {
+    if (!m_resourcesLoaded && !this->isInternal()) {
         auto searchPathRoot = dirs::getModRuntimeDir() / m_metadata.getID() / "resources";
 
         // Hi, linux bros!
