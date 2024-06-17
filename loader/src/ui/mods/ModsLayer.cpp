@@ -95,15 +95,6 @@ bool ModsStatusNode::init() {
 }
 
 void ModsStatusNode::updateState() {
-    enum class DownloadState {
-        None,
-        SomeCancelled,
-        AllDone,
-        SomeErrored,
-        SomeToBeConfirmed,
-        SomeFetching,
-        SomeDownloading,
-    };
     DownloadState state = DownloadState::None;
     auto upgradeState = [&](DownloadState into) {
         if (static_cast<int>(state) < static_cast<int>(into)) {
@@ -206,7 +197,7 @@ void ModsStatusNode::updateState() {
 
             m_viewBtn->setVisible(true);
             m_viewBtn->setTarget(this, menu_selector(ModsStatusNode::onConfirm));
-            askConfirmModInstalls();
+            if(m_lastState != state) askConfirmModInstalls();
         } break;
 
         case DownloadState::SomeFetching: {
@@ -243,6 +234,7 @@ void ModsStatusNode::updateState() {
         } break;
     }
 
+    m_lastState = state;
     m_btnMenu->updateLayout();
 }
 

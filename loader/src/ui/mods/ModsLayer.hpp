@@ -17,6 +17,16 @@ using namespace geode::prelude;
 
 class ModsStatusNode : public CCNode {
 protected:
+    enum class DownloadState {
+        None,
+        SomeCancelled,
+        AllDone,
+        SomeErrored,
+        SomeToBeConfirmed,
+        SomeFetching,
+        SomeDownloading,
+    };
+    
     CCScale9Sprite* m_statusBG;
     CCLabelBMFont* m_status;
     CCLabelBMFont* m_statusPercentage;
@@ -28,6 +38,7 @@ protected:
     CCMenuItemSpriteExtra* m_restartBtn;
     EventListener<UpdateModListStateFilter> m_updateStateListener;
     EventListener<server::ModDownloadFilter> m_downloadListener;
+    DownloadState m_lastState = DownloadState::None;
     
     bool init();
     void updateState();
