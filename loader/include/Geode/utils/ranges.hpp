@@ -214,11 +214,9 @@ namespace geode::utils::ranges {
     }
 
     template <class R, ValidConstContainer C, class Reducer>
-
     requires requires(Reducer r, R& acc, typename C::value_type t) {
         r(acc, t);
     }
-
     R reduce(C const& container, Reducer reducer) {
         auto res = R();
         for (auto& item : container) {

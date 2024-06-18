@@ -1024,7 +1024,7 @@ namespace geode::cocos {
         using T = std::remove_pointer_t<Type>;
 
     public:
-        using value_type = T;
+        using value_type = T*;
         using iterator = T**;
         using const_iterator = const T**;
 
