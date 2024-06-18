@@ -10,6 +10,11 @@
     "name": "Geode",
     "developer": "Geode Team",
     "description": "The Geode mod loader",
+    "links": {
+        "community": "https://discord.com/invite/9e43WMKzhp",
+        "homepage": "https://geode-sdk.org",
+        "source": "https://github.com/geode-sdk/geode"
+    },
     "repository": "https://github.com/geode-sdk/geode",
     "resources": {
         "fonts": {
