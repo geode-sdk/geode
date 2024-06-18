@@ -77,6 +77,9 @@ enum class AxisAlignment {
     // Each item gets the same portion from the layout (disregards gap)
     // |.o..o..o.|
     Even,
+    // Space between each item is the same (disregards gap)
+    // |o...o...o|
+    Between,
 };
 
 constexpr float AXISLAYOUT_DEFAULT_MIN_SCALE = 0.65f;

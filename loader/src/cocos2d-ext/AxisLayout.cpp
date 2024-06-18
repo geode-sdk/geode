@@ -592,6 +592,7 @@ public:
                 rowCrossPos = totalRowCrossLength - rowsEndsLength * 1.5f * scale * (1.f - columnSquish);
             } break;
 
+            case AxisAlignment::Between:
             case AxisAlignment::Even: {
                 totalRowCrossLength = available.crossLength;
                 rowCrossPos = totalRowCrossLength - rowsEndsLength * 1.5f * scale * (1.f - columnSquish);
@@ -609,6 +610,14 @@ public:
         }
 
         float rowEvenSpace = available.crossLength / rows->count();
+        
+        float rowCrossLengthTotal = ranges::reduce<float>(
+            CCArrayExt<Row*>(rows),
+            [](float& acc, Row* row) {
+                acc += row->crossLength;
+            }
+        );
+        float rowCrossBetweenSpace = std::max(0.f, (available.crossLength - rowCrossLengthTotal) / std::max(rows->count() - 1, 1u));
 
         for (auto row : CCArrayExt<Row*>(rows)) {
             row->accountSpacers(m_axis, available.axisLength, available.crossLength);
@@ -616,16 +625,18 @@ public:
             if (m_crossAlignment == AxisAlignment::Even) {
                 rowCrossPos -= rowEvenSpace / 2 + row->crossLength / 2;
             }
+            else if (m_crossAlignment == AxisAlignment::Between) {
+                rowCrossPos -= row->crossLength * columnSquish;
+            }
             else {
                 rowCrossPos -= row->crossLength * columnSquish;
             }
 
+            // starting axis pos
             float rowAxisPos;
             switch (m_axisAlignment) {
-                case AxisAlignment::Start: { 
-                    rowAxisPos = 0.f;
-                } break;
-
+                case AxisAlignment::Start:
+                case AxisAlignment::Between:
                 case AxisAlignment::Even: { 
                     rowAxisPos = 0.f;
                 } break;
@@ -639,10 +650,7 @@ public:
                 } break;
             }
 
-            float evenSpace = available.axisLength / row->nodes->count();
-
-            size_t ix = 0;
-            AxisLayoutOptions const* prev = nullptr;
+            float rowLengthTotal = 0.f;
             for (auto& node : CCArrayExt<CCNode*>(row->nodes)) {
                 auto opts = axisOpts(node);
                 // rescale node if overflowing
@@ -655,7 +663,17 @@ public:
                     }
                     node->setScale(nodeScale);
                 }
-                if (!ix) {
+                auto pos = nodeAxis(node, m_axis, row->squish);
+                rowLengthTotal += pos.axisLength;
+            }
+            float evenSpace = available.axisLength / row->nodes->count();
+            float rowBetweenSpace = std::max(0.f, (available.axisLength - rowLengthTotal) / std::max(row->nodes->count() - 1, 1u));
+
+            size_t ix = 0;
+            AxisLayoutOptions const* prev = nullptr;
+            for (auto& node : CCArrayExt<CCNode*>(row->nodes)) {
+                auto opts = axisOpts(node);
+                if (ix == 0) {
                     rowAxisPos += row->axisEndsLength * row->scale / 2 * (1.f - row->squish);
                 }
                 auto pos = nodeAxis(node, m_axis, row->squish);
@@ -665,8 +683,12 @@ public:
                     rowAxisPos += evenSpace - 
                         row->axisEndsLength * row->scale * (1.f - row->squish) * 1.f / nodes->count();
                 }
+                else if (m_axisAlignment == AxisAlignment::Between) {
+                    axisPos = rowAxisPos + pos.axisLength * pos.axisAnchor;
+                    rowAxisPos += pos.axisLength + rowBetweenSpace;
+                }
                 else {
-                    if (ix) {
+                    if (ix != 0) {
                         if (row->prio == minMaxPrios.first) {
                             rowAxisPos += this->nextGap(prev, opts) * row->scale * row->squish;
                         }
@@ -684,7 +706,9 @@ public:
                         crossOffset = pos.crossLength * pos.crossAnchor;
                     } break;
 
-                    case AxisAlignment::Center: case AxisAlignment::Even: {
+                    case AxisAlignment::Center:
+                    case AxisAlignment::Between:
+                    case AxisAlignment::Even: {
                         crossOffset = row->crossLength / 2 - pos.crossLength * (.5f - pos.crossAnchor);
                     } break;
 
@@ -704,6 +728,10 @@ public:
         
             if (m_crossAlignment == AxisAlignment::Even) {
                 rowCrossPos -= rowEvenSpace / 2 - row->crossLength / 2 - 
+                    rowsEndsLength * 1.5f * row->scale * (1.f - columnSquish) * 1.f / rows->count();
+            }
+            else if (m_crossAlignment == AxisAlignment::Between) {
+                rowCrossPos -= rowCrossBetweenSpace -
                     rowsEndsLength * 1.5f * row->scale * (1.f - columnSquish) * 1.f / rows->count();
             }
             else {
