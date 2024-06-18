@@ -144,10 +144,13 @@ static void printAddr(std::ostream& stream, void const* addr, bool fullPath = tr
     }
 }
 
+PVOID CustomFunctionTableAccess64(HANDLE hProcess, DWORD64 AddrBase);
+
 // https://stackoverflow.com/a/50208684/9124836
 static std::string getStacktrace(PCONTEXT context) {
     std::stringstream stream;
-    STACKFRAME64 stack;
+    static STACKFRAME64 stack;
+    static PCONTEXT pcontext = context;
     memset(&stack, 0, sizeof(STACKFRAME64));
 
     auto process = GetCurrentProcess();
@@ -159,7 +162,7 @@ static std::string getStacktrace(PCONTEXT context) {
 #else
     stack.AddrPC.Offset = context->Rip;
     stack.AddrStack.Offset = context->Rsp;
-    stack.AddrFrame.Offset = context->Rbp;
+    stack.AddrFrame.Offset = context->Rdi;
 #endif
 
     stack.AddrPC.Mode = AddrModeFlat;
@@ -170,7 +173,21 @@ static std::string getStacktrace(PCONTEXT context) {
     while (true) {
         if (!StackWalk64(
                 IMAGE_FILE_MACHINE_AMD64, process, thread, &stack, context, nullptr,
-                SymFunctionTableAccess64, SymGetModuleBase64, nullptr
+                +[](HANDLE hProcess, DWORD64 AddrBase) {
+                    auto ret =  CustomFunctionTableAccess64(hProcess, AddrBase);
+                    if (ret) {
+                        return ret;
+                    }
+                    return SymFunctionTableAccess64(hProcess, AddrBase);
+                }, 
+                +[](HANDLE hProcess, DWORD64 dwAddr) -> DWORD64 {
+                    auto ret = CustomFunctionTableAccess64(hProcess, dwAddr);
+                    if (ret) {
+                        return dwAddr & (~0xffffull);
+                    }
+                    return SymGetModuleBase64(hProcess, dwAddr);
+                }
+                , nullptr
             ))
             break;
 
@@ -397,6 +414,26 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
 
 bool crashlog::setupPlatformHandler() {
     SetUnhandledExceptionFilter(exceptionHandler);
+
+    // auto functionTableHook = +[](HANDLE hProcess, DWORD64 AddrBase) -> PVOID {
+    //     auto ret =  CustomFunctionTableAccess64(hProcess, AddrBase);
+    //     if (ret) {
+    //         return ret;
+    //     }
+    //     return SymFunctionTableAccess64(hProcess, AddrBase);
+    // };
+    // auto functionTableAddress = GetProcAddress(GetModuleHandleA("dbghelp.dll"), "SymFunctionTableAccess64");
+    // auto getModuleHook = +[](HANDLE hProcess, DWORD64 dwAddr) -> DWORD64 {
+    //     auto ret = CustomFunctionTableAccess64(hProcess, dwAddr);
+    //     if (ret) {
+    //         return dwAddr & (~0xffffull);
+    //     }
+    //     return SymGetModuleBase64(hProcess, dwAddr);
+    // };
+    // auto getModuleAddress = GetProcAddress(GetModuleHandleA("dbghelp.dll"), "SymGetModuleBase64");
+
+    // Mod::get()->hook(functionTableAddress, functionTableHook, "SymFunctionTableAccess64");
+    // Mod::get()->hook(getModuleAddress, getModuleHook, "SymGetModuleBase64");
 
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
     if (std::filesystem::exists(lastCrashedFile)) {
