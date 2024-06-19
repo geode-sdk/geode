@@ -186,7 +186,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
                             }
                         }
                         else {
-                            log::error("No updates found :(");
+                            log::info("All mods up to date!");
                         }
                     }
                     else {
