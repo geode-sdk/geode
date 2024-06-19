@@ -415,26 +415,6 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
 bool crashlog::setupPlatformHandler() {
     SetUnhandledExceptionFilter(exceptionHandler);
 
-    // auto functionTableHook = +[](HANDLE hProcess, DWORD64 AddrBase) -> PVOID {
-    //     auto ret =  CustomFunctionTableAccess64(hProcess, AddrBase);
-    //     if (ret) {
-    //         return ret;
-    //     }
-    //     return SymFunctionTableAccess64(hProcess, AddrBase);
-    // };
-    // auto functionTableAddress = GetProcAddress(GetModuleHandleA("dbghelp.dll"), "SymFunctionTableAccess64");
-    // auto getModuleHook = +[](HANDLE hProcess, DWORD64 dwAddr) -> DWORD64 {
-    //     auto ret = CustomFunctionTableAccess64(hProcess, dwAddr);
-    //     if (ret) {
-    //         return dwAddr & (~0xffffull);
-    //     }
-    //     return SymGetModuleBase64(hProcess, dwAddr);
-    // };
-    // auto getModuleAddress = GetProcAddress(GetModuleHandleA("dbghelp.dll"), "SymGetModuleBase64");
-
-    // Mod::get()->hook(functionTableAddress, functionTableHook, "SymFunctionTableAccess64");
-    // Mod::get()->hook(getModuleAddress, getModuleHook, "SymGetModuleBase64");
-
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
     if (std::filesystem::exists(lastCrashedFile)) {
         g_lastLaunchCrashed = true;
