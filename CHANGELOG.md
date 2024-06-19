@@ -1,5 +1,26 @@
 # Geode Changelog
 
+## v3.0.0-beta.2
+
+ * (WebRequest) Don't change the method from POST to GET on redirect follow (6ae11dd)
+ * Make `file::openFolder` actually work on selecting paths on Windows (0309e01)
+ * Hide platform console option on Android (df3d147)
+ * Add `gd::vector::erase` for Android (c3c2afa) - thanks SpaghettDev
+ * Stop using `android_stl=c++_shared` on mods (100dbdc)
+ * Show confirm dialog directly when updating mods (8f1a9cf)
+ * Only check for updates once per launch (3313a44)
+ * Fix various bugs with texture pack reloading (aeaf7f7)
+ * Fix `Ref` and `WeakRef` move assignment (f352503)
+ * Add comma to download counts (de50b98)
+ * Add check for Texture Loader's fallback function for mod logos (a421047)
+ * Bring back safe mode UI (6e6dace)
+ * Fix texture corruption bug on `ModsLayer` (76e2ed4)
+ * Fix `CCArrayExt::value_type` (97d2e44)
+ * Add `AxisAlignment::Between`, for equal space between elements (adc4469)
+ * Add discord and website links to loader mod.json (8792747) - thanks coopeeo
+ * Make mod updates log into an info log instead of error (815c4a3)
+ * Hopefully finally fix Windows crashlogs (70fe096)
+
 ## v3.0.0-beta.1
 
  * Add a special error for 1114 - vcredist update (d0821f5)
