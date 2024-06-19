@@ -37,7 +37,7 @@ protected:
     CCNode* m_searchMenu;
     CCNode* m_updateAllContainer = nullptr;
     CCMenu* m_updateAllMenu = nullptr;
-    IconButtonSprite* m_updateAllSpr = nullptr;
+    Ref<IconButtonSprite> m_updateAllSpr = nullptr;
     CCMenuItemSpriteExtra* m_updateAllBtn = nullptr;
     CCNode* m_updateAllLoadingCircle = nullptr;
     IconButtonSprite* m_showUpdatesSpr = nullptr;

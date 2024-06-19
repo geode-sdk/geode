@@ -460,7 +460,7 @@ void ModList::onCheckUpdates(typename server::ServerRequest<std::vector<std::str
             }
 
             // Recreate the button with the updated label.
-            m_updateAllMenu->removeChild(m_updateAllBtn, false);
+            m_updateAllMenu->removeChild(m_updateAllBtn, true);
             m_updateAllBtn = CCMenuItemSpriteExtra::create(
                 m_updateAllSpr, this, menu_selector(ModList::onUpdateAll)
             );
