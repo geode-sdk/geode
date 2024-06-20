@@ -1,6 +1,14 @@
 # Geode Changelog
 
 ## v3.0.0-beta.3
+ * Fix a crash that might happen when entering the Geode mods page (79689cd)
+ * Fix a locale related crash (fdb473a)
+ * Cleanup old field syntax remnants (34e51ff)
+ * Use `clamp` for `SwelvyBG` instead of `repeat` (0a6a5e6)
+ * Add support for `one-of` settings for mods (3f674e5, 7d79ddd)
+ * Remove `RT_ADD` and `RT_REMOVE` (7bd8a1a)
+ * Add `CCDirector::m_bFastMenu` back (c3058ff)
+ * Fix UI visual bugs in `ModsLayer` (e273ef2, b3925f1)
  * 
 
 ## v3.0.0-beta.2
