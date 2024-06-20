@@ -407,7 +407,7 @@ namespace geode {
          */
         static Task run(Run&& body, std::string_view const name = "<Task>") {
             auto task = Task(Handle::create(name));
-            std::thread([handle = std::weak_ptr(task.m_handle), name, body = std::move(body)] {
+            std::thread([handle = std::weak_ptr(task.m_handle), name = std::string(name), body = std::move(body)] {
                 utils::thread::setName(fmt::format("Task '{}'", name));
                 auto result = body(
                     [handle](P progress) {
@@ -440,7 +440,7 @@ namespace geode {
          */
         static Task runWithCallback(RunWithCallback&& body, std::string_view const name = "<Callback Task>") {
             auto task = Task(Handle::create(name));
-            std::thread([handle = std::weak_ptr(task.m_handle), name, body = std::move(body)] {
+            std::thread([handle = std::weak_ptr(task.m_handle), name = std::string(name), body = std::move(body)] {
                 utils::thread::setName(fmt::format("Task '{}'", name));
                 body(
                     [handle](Result result) {
