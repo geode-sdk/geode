@@ -139,7 +139,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: .xwin-cache
-        key: xwin-${{ matrix.config.id }}-v1 }}
+        key: xwin-${{ matrix.config.id }}-v1
       if: matrix.config.id == 'win'
 
     - name: Setup info.rc Cache
