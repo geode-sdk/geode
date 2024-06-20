@@ -10,6 +10,10 @@ bool DefaultEventListenerPool::add(EventListenerProtocol* listener) {
     if (!m_data) m_data = std::make_unique<Data>();
 
     std::unique_lock lock(m_data->m_mutex);
+    if (ranges::contains(m_data->m_listeners, listener) || ranges::contains(m_data->m_toAdd, listener)) {
+        return false;
+    }
+    
     if (m_data->m_locked) {
         m_data->m_toAdd.push_back(listener);
     }
@@ -34,6 +38,7 @@ void DefaultEventListenerPool::remove(EventListenerProtocol* listener) {
     else {
         ranges::remove(m_data->m_listeners, listener);
     }
+    ranges::remove(m_data->m_toAdd, listener);
 }
 
 ListenerResult DefaultEventListenerPool::handle(Event* event) {
