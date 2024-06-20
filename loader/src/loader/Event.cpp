@@ -97,7 +97,6 @@ void EventListenerProtocol::disable() {
 }
 
 EventListenerProtocol::~EventListenerProtocol() {
-    log::debug("Destroying listener {}", (void*)this);
     this->disable();
 }
 
