@@ -75,6 +75,7 @@ Result<StringSetting> StringSetting::parse(JsonMaybeObject& obj) {
     parseCommon(sett, obj);
     obj.has("match").into(sett.match);
     obj.has("filter").into(sett.filter);
+    obj.has("one-of").into(sett.options);
     return Ok(sett);
 }
 
@@ -372,6 +373,21 @@ IMPL_TO_VALID(String) {
                 fmt::format(
                     "Value must match regex {}",
                     m_definition.match.value()
+                )
+            };
+        }
+    }
+    else if (m_definition.options) {
+        if (std::find(
+            m_definition.options.value().begin(),
+            m_definition.options.value().end(),
+            value
+        ) == m_definition.options.value().end()) {
+            return {
+                m_definition.defaultValue,
+                fmt::format(
+                    "Value must be one of {}",
+                    fmt::join(m_definition.options.value(), ", ")
                 )
             };
         }
