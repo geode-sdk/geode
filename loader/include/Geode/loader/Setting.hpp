@@ -101,11 +101,6 @@ namespace geode {
          */
         std::optional<std::string> filter;
 
-        /**
-         * A list of options the user can choose from
-         */
-        std::optional<std::vector<std::string>> options;
-
         static Result<StringSetting> parse(JsonMaybeObject& obj);
     };
 
