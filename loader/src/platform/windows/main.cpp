@@ -66,9 +66,6 @@ void patchDelayLoad() {
         // see https://github.com/llvm/llvm-project/blob/main/lld/COFF/DLL.cpp#L207
         if (checkByteSequence(tailMergeAddr, {0x51, 0x52, 0x41, 0x50, 0x41, 0x51, 0x48, 0x83, 0xEC, 0x48})) {
             // ok we are probably in the broken lld-link tailMerge, time to patch it
-            // TODO:
-            // FIXME: xmm0 is still wrong, dont have enough space to fix it,
-            // gotta allocate space somewhere else
             auto allocated = reinterpret_cast<uintptr_t>(VirtualAlloc(nullptr, 0x100, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READ));
             if (!allocated) {
                 log::warn("Failed to allocate memory for xmm0 fix");
