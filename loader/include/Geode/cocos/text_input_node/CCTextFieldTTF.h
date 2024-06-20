@@ -93,9 +93,8 @@ public:
         return false;
     }
 
-    RT_ADD(
-    	virtual void textChanged() {}
-    )
+    // @note RobTop Addition
+    virtual void textChanged() {}
 };
 
 /**

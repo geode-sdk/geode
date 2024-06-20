@@ -160,7 +160,8 @@ protected:
     CCSize m_obOriginalSizeInPixels;
     CCTexture2D *m_pobTexture;
     gd::string  m_strTextureFilename;
-    RT_ADD( gd::string  m_strFrameName; )
+    // @note RobTop Addition
+    gd::string  m_strFrameName;
 };
 
 // end of sprite_nodes group

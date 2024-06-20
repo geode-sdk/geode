@@ -76,12 +76,14 @@ public:
     */
     virtual void applicationWillEnterForeground() {}
 
-    RT_ADD(
-        virtual void applicationWillBecomeActive() {}
-        virtual void applicationWillResignActive() {}
-        virtual void trySaveGame(bool) {}
-        virtual void gameDidSave() {}
-    )
+    // @note RobTop Addition
+    virtual void applicationWillBecomeActive() {}
+    // @note RobTop Addition
+    virtual void applicationWillResignActive() {}
+    // @note RobTop Addition
+    virtual void trySaveGame(bool) {}
+    // @note RobTop Addition
+    virtual void gameDidSave() {}
 
     /**
     @brief    Callback by CCDirector for limit FPS.
@@ -100,7 +102,8 @@ public:
      */
     virtual TargetPlatform getTargetPlatform() { return kTargetWindows; }
 
-    RT_ADD( virtual void openURL(const char* url) {} )
+    // @note RobTop Addition
+    virtual void openURL(const char* url) {}
 };
 
 // end of platform group

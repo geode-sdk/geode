@@ -201,16 +201,20 @@ public:
      */
     CCTouchHandler* findHandler(CCTouchDelegate *pDelegate);
 
+    // @note RobTop Addition
 	void addPrioTargetedDelegate(cocos2d::CCTouchDelegate*, int, bool);
-	bool isUsingForcePrio();
-	void registerForcePrio(cocos2d::CCObject*, int);
-	void unregisterForcePrio(cocos2d::CCObject*);
+	// @note RobTop Addition
+    bool isUsingForcePrio();
+	// @note RobTop Addition
+    void registerForcePrio(cocos2d::CCObject*, int);
+	// @note RobTop Addition
+    void unregisterForcePrio(cocos2d::CCObject*);
 
 private:
-    RT_ADD(
-        void incrementForcePrio(int priority);
-        void decrementForcePrio(int priority);
-    )
+    // @note RobTop Addition
+    void incrementForcePrio(int priority);
+    // @note RobTop Addition
+    void decrementForcePrio(int priority);
 protected:
     void forceRemoveDelegate(CCTouchDelegate *pDelegate);
     void forceAddHandler(CCTouchHandler *pHandler, CCArray* pArray);
@@ -237,8 +241,11 @@ protected:
 
     // 2.2 changes
 
+    // @note RobTop Addition
     CC_SYNTHESIZE_NV(int, m_forcePrio, ForcePrio);
+    // @note RobTop Addition
     void* m_unknown;
+    // @note RobTop Addition
     CC_SYNTHESIZE_NV(int, m_targetPrio, TargetPrio);
 };
 

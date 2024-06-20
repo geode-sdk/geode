@@ -58,15 +58,19 @@ protected:
     
     bool            m_bDirty;
     
-RT_ADD(
-    bool            m_bUseArea;
-    CCRect          m_rDrawArea;
 
+    // @note RobTop Addition
+    bool            m_bUseArea;
+    // @note RobTop Addition
+    CCRect          m_rDrawArea;
+    // @note RobTop Addition
     float           m_fMinAreaX;
+    // @note RobTop Addition
     float           m_fMaxAreaX;
+    // @note RobTop Addition
     float           m_fMaxAreaY;
+    // @note RobTop Addition
     float           m_fMinAreaY;
-)
 
 public:
     static CCDrawNode* create();

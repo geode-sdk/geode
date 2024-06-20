@@ -268,20 +268,25 @@ public:
     virtual void draw();
 #endif // CC_LABELBMFONT_DEBUG_DRAW
 
-    RT_ADD(
-        static CCLabelBMFont* createBatched(const char* str, const char* fntFile, CCArray*, int);
-        void limitLabelWidth(float width, float defaultScale, float minScale);
+    // @note RobTop Addition
+    static CCLabelBMFont* createBatched(const char* str, const char* fntFile, CCArray*, int);
+    // @note RobTop Addition
+    void limitLabelWidth(float width, float defaultScale, float minScale);
 
-	int getExtraKerning() const;
-	void setExtraKerning(int);
+	// @note RobTop Addition
+    int getExtraKerning() const;
+	// @note RobTop Addition
+    void setExtraKerning(int);
 
-	bool getIsBatched() const;
-	void setIsBatched(bool);
+	// @note RobTop Addition
+    bool getIsBatched() const;
+	// @note RobTop Addition
+    void setIsBatched(bool);
 
-	cocos2d::CCArray* getTargetArray() const;
-	void setTargetArray(cocos2d::CCArray*);
-
-    )
+	// @note RobTop Addition
+    cocos2d::CCArray* getTargetArray() const;
+	// @note RobTop Addition
+    void setTargetArray(cocos2d::CCArray*);
 
 private:
     char * atlasNameFromFntFile(const char *fntFile);
@@ -325,12 +330,14 @@ protected:
     /** conforms to CCRGBAProtocol protocol */
     bool        m_bIsOpacityModifyRGB;
 
-    RT_ADD(
-        bool m_bIsBatched;
-        CCArray* m_pTargetArray;
-        CCTexture2D* m_pSomeTexture;
-        void* m_pUnknown; // 2.2 addition, might be positioned somewhere else
-    )
+    // @note RobTop Addition
+    bool m_bIsBatched;
+    // @note RobTop Addition
+    CCArray* m_pTargetArray;
+    // @note RobTop Addition
+    CCTexture2D* m_pSomeTexture;
+    // @note RobTop Addition
+    void* m_pUnknown; // 2.2 addition, might be positioned somewhere else
 
 };
 

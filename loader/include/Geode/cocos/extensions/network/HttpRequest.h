@@ -228,12 +228,14 @@ protected:
     void*                       _pUserData;      /// You can add your customed data here 
     gd::vector<gd::string>    _headers;		      /// custom http headers
 
-    RT_ADD(
-        int _requestTypeGJ;
-        bool _shouldCancel;
-        int _downloadProgress;
-        int _readTimeout;
-    )
+    // @note RobTop Addition
+    int _requestTypeGJ;
+    // @note RobTop Addition
+    bool _shouldCancel;
+    // @note RobTop Addition
+    int _downloadProgress;
+    // @note RobTop Addition
+    int _readTimeout;
 };
 
 NS_CC_EXT_END

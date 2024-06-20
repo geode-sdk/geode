@@ -91,13 +91,10 @@ class CC_DLL CCControl : public CCLayerRGBA
     //CCRGBAProtocol
     bool m_bIsOpacityModifyRGB;
 
-    /** The current control state constant. */
-    RT_REMOVE(
-        CC_SYNTHESIZE_READONLY(CCControlState, m_eState, State);
-    )
-    RT_ADD(
-        CC_SYNTHESIZE_READONLY_NV(CCControlState, m_eState, State);
-    )
+    /** The current control state constant. 
+     * @note Robtop Addition: Made non virtual
+    */
+    CC_SYNTHESIZE_READONLY_NV(CCControlState, m_eState, State);
 
     /** True if all of the controls parents are visible */
 protected:

@@ -4,69 +4,69 @@
 #include "CCKeyboardDelegate.h"
 #include "../../cocoa/CCArray.h"
 
-RT_ADD(
-	NS_CC_BEGIN
 
-	class CC_DLL CCKeyboardDispatcher : public CCObject 
-	{
-	public:
-		CCKeyboardDispatcher();
-		virtual ~CCKeyboardDispatcher();
+NS_CC_BEGIN
 
-		void addDelegate(CCKeyboardDelegate* pDelegate);
-		void removeDelegate(CCKeyboardDelegate* pDelegate);
+// @note RobTop Addition
+class CC_DLL CCKeyboardDispatcher : public CCObject 
+{
+public:
+	CCKeyboardDispatcher();
+	virtual ~CCKeyboardDispatcher();
 
-		void forceAddDelegate(CCKeyboardDelegate* pDelegate);
-		void forceRemoveDelegate(CCKeyboardDelegate* pDelegate);
+	void addDelegate(CCKeyboardDelegate* pDelegate);
+	void removeDelegate(CCKeyboardDelegate* pDelegate);
 
-		static enumKeyCodes convertKeyCode(enumKeyCodes key);
+	void forceAddDelegate(CCKeyboardDelegate* pDelegate);
+	void forceRemoveDelegate(CCKeyboardDelegate* pDelegate);
 
-		bool dispatchKeyboardMSG(enumKeyCodes key, bool isKeyDown, bool isKeyRepeat);
+	static enumKeyCodes convertKeyCode(enumKeyCodes key);
 
-		inline bool getAltKeyPressed() const {
-			return m_bAltPressed;
-		}
-		inline bool getCommandKeyPressed() const {
-			return m_bCommandPressed;
-		}
-		inline bool getControlKeyPressed() const {
-			return m_bControlPressed;
-		}
-		inline bool getShiftKeyPressed() const {
-			return m_bShiftPressed;
-		}
+	bool dispatchKeyboardMSG(enumKeyCodes key, bool isKeyDown, bool isKeyRepeat);
 
-		static GEODE_DLL CCKeyboardDispatcher* get();
+	inline bool getAltKeyPressed() const {
+		return m_bAltPressed;
+	}
+	inline bool getCommandKeyPressed() const {
+		return m_bCommandPressed;
+	}
+	inline bool getControlKeyPressed() const {
+		return m_bControlPressed;
+	}
+	inline bool getShiftKeyPressed() const {
+		return m_bShiftPressed;
+	}
 
-		const char* keyToString(enumKeyCodes key);
+	static GEODE_DLL CCKeyboardDispatcher* get();
 
-		void updateModifierKeys(bool shft, bool ctrl, bool alt, bool cmd);
+	const char* keyToString(enumKeyCodes key);
 
-		inline bool getBlockRepeat() const {
-			return m_bBlockRepeat;
-		}
+	void updateModifierKeys(bool shft, bool ctrl, bool alt, bool cmd);
 
-		inline void setBlockRepeat(bool blockRepeat) {
-			this->m_bBlockRepeat = blockRepeat;
-		}
+	inline bool getBlockRepeat() const {
+		return m_bBlockRepeat;
+	}
 
-	protected:
-		CCArray* m_pDelegates;	// 0x34
-		bool m_bUnknown38;			// 0x38
-		bool m_bUnknown39;      // 0x39
-		bool m_bUnknown3a;			// 0x3a
-		ccCArray* m_pUnknown3c; // 0x3c
-		ccCArray* m_pUnknown40;	// 0x40
-		bool m_bShiftPressed;		// 0x44
-		bool m_bControlPressed;	// 0x45
-		bool m_bAltPressed;			// 0x46
-		bool m_bCommandPressed;	// 0x47
-		bool m_bBlockRepeat;		// 0x48
+	inline void setBlockRepeat(bool blockRepeat) {
+		this->m_bBlockRepeat = blockRepeat;
+	}
 
-		// ~~there's more here, check the initializer~~ no there's not??
-	};
+protected:
+	CCArray* m_pDelegates;	// 0x34
+	bool m_bUnknown38;			// 0x38
+	bool m_bUnknown39;      // 0x39
+	bool m_bUnknown3a;			// 0x3a
+	ccCArray* m_pUnknown3c; // 0x3c
+	ccCArray* m_pUnknown40;	// 0x40
+	bool m_bShiftPressed;		// 0x44
+	bool m_bControlPressed;	// 0x45
+	bool m_bAltPressed;			// 0x46
+	bool m_bCommandPressed;	// 0x47
+	bool m_bBlockRepeat;		// 0x48
 
-	NS_CC_END
-)
+	// ~~there's more here, check the initializer~~ no there's not??
+};
+
+NS_CC_END
 
 #endif

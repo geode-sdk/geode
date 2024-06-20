@@ -111,7 +111,8 @@ public:
     inline int getTag(void) { return m_nTag; }
     inline void setTag(int nTag) { m_nTag = nTag; }
     
-    RT_ADD(void setSpeedMod(float mod);)
+    // @note RobTop Addition
+    void setSpeedMod(float mod);
 
     // 2.2 addition
     float getSpeedMod();
@@ -129,7 +130,8 @@ protected:
     CCNode    *m_pTarget;
     /** The action tag. An identifier of the action */
     int     m_nTag;
-    RT_ADD(float m_fSpeedMod;)
+    // @note RobTop Addition
+    float m_fSpeedMod;
 };
 
 /** 
