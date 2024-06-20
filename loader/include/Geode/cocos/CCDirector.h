@@ -579,14 +579,15 @@ public:
     CC_SYNTHESIZE_READONLY_NV(TextureQuality, m_eTextureQuality, LoadedTextureQuality);
     // @note RobTop Addition
     CC_SYNTHESIZE_NV(bool, m_bDontCallWillSwitch, DontCallWillSwitch);
-// #if GEODE_COMP_GD_VERSION >= 22003
-    // this messed up binding tests and i don't really feel like figuring out why
-    // CC_SYNTHESIZE_NV(bool, m_bFastMenu, FastMenu);
-// #else
+
+#if GEODE_COMP_GD_VERSION >= 22003
+    // @note RobTop Addition
+    CC_SYNTHESIZE_NV(bool, m_bFastMenu, FastMenu);
+#else
     // these were just garbage memory in reclass
     // @note RobTop Addition
     void* m_unknownPtr2;
-// #endif
+#endif
     // @note RobTop Addition
     void* m_unknownPtr3;
     
