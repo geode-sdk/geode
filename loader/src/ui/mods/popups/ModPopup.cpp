@@ -729,6 +729,20 @@ void ModPopup::setStatValue(CCNode* stat, std::optional<std::string> const& valu
     container->updateLayout();
 }
 
+// helper class for making an std::locale
+class comma_numpunct : public std::numpunct<char> {
+protected:
+    virtual char do_thousands_sep() const
+    {
+        return ',';
+    }
+
+    virtual std::string do_grouping() const
+    {
+        return "\03";
+    }
+};
+
 void ModPopup::onLoadServerInfo(typename server::ServerRequest<server::ServerModMetadata>::Event* event) {
     if (event->getValue() && event->getValue()->isOk()) {
         auto data = event->getValue()->unwrap();
@@ -738,10 +752,12 @@ void ModPopup::onLoadServerInfo(typename server::ServerRequest<server::ServerMod
             }
             return std::string("N/A");
         };
-
+        
+        static std::locale commaLocale(std::locale(), new comma_numpunct());
+        
         // Update server stats
         for (auto id : std::initializer_list<std::pair<const char*, std::string>> {
-            { "downloads", fmt::format(std::locale("en_US.UTF-8"), "{:L}", data.downloadCount) },
+            { "downloads", fmt::format(commaLocale, "{:L}", data.downloadCount) },
             { "release-date", timeToString(data.createdAt) },
             { "update-date", timeToString(data.updatedAt) },
         }) {
