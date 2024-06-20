@@ -153,11 +153,6 @@ jobs:
         echo "$GITHUB_WORKSPACE/llvm/bin" >> $GITHUB_PATH
       if: matrix.config.host_id == 'win'
 
-    - name: Update LLVM (Linux)
-      shell: bash
-      run: sudo apt install clang-17 clang-tools-17 lld-17
-      if: matrix.config.host_id == 'linux'
-
     - name: Install LLVM (MacOS)
       shell: bash
       run: |
@@ -180,7 +175,7 @@ jobs:
         7z x "epic-xwin/xwin-*-x86_64-unknown-linux-musl.tar.gz" -o"epic-xwin"
         7z x "epic-xwin/xwin-*-x86_64-unknown-linux-musl.tar" -o"epic-xwin"
         mv epic-xwin/xwin-*-x86_64-unknown-linux-musl/xwin ./xwin
-        xwin --arch x86_64 --accept-license splat --include-debug-libs --output splat
+        ./xwin --arch x86_64 --accept-license splat --include-debug-libs --output splat
       if: matrix.config.id == 'win'
 
     - name: Download clang-msvc-sdk toolchain
