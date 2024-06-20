@@ -1,5 +1,9 @@
 # Geode Changelog
 
+## v3.0.0-beta.4
+ * Fix events crash caused by immediate enabling & disabling (e796711)
+ * Make some classes final (ea96e2c)
+
 ## v3.0.0-beta.3
  * Fix a crash that might happen when entering the Geode mods page (79689cd)
  * Fix a locale related crash (fdb473a)
