@@ -25,13 +25,10 @@ void DefaultEventListenerPool::remove(EventListenerProtocol* listener) {
 
     std::unique_lock lock(m_data->m_mutex);
     if (m_data->m_locked) {
-        auto index = ranges::indexOf(m_data->m_listeners, listener);
-        if (index) {
-            // set to nullptr so we can remove it later
-            // we cant just add it to a 
-            // toRemove array because the listeners
-            // could get iterated multiple times by others
-            m_data->m_listeners[*index] = nullptr;
+        for (size_t i = 0 ; i < m_data->m_listeners.size(); i++) {
+            if (m_data->m_listeners[i] == listener) {
+                m_data->m_listeners[i] = nullptr;
+            }
         }
     }
     else {
