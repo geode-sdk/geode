@@ -101,7 +101,7 @@ void patchDelayLoad() {
 
                 std::array<uint8_t, 48> patch2 = {
                     0x48, 0x83, 0xEC, 0x68,             // sub     rsp, 68h
-                    0x66, 0x0F, 0x7F, 0x44, 0x24, 0x20,  // movdqa  xmmword ptr [rsp+20h], xmm0
+                    0x66, 0x0F, 0x7F, 0x44, 0x24, 0x20, // movdqa  xmmword ptr [rsp+20h], xmm0
                     0x66, 0x0F, 0x7F, 0x4C, 0x24, 0x30, // movdqa  xmmword ptr [rsp+30h], xmm1
                     0x66, 0x0F, 0x7F, 0x54, 0x24, 0x40, // movdqa  xmmword ptr [rsp+40h], xmm2
                     0x66, 0x0F, 0x7F, 0x5C, 0x24, 0x50, // movdqa  xmmword ptr [rsp+50h], xmm3
@@ -118,7 +118,7 @@ void patchDelayLoad() {
                 (void) tulip::hook::writeMemory(reinterpret_cast<void*>(tailMergeAddr + 48), patch1.data(), sizeof(patch1));
 
                 std::array<uint8_t, 48> patch3 = {
-                    0x66, 0x0F, 0x6F, 0x44, 0x24, 0x20,  // movdqa  xmm0, xmmword ptr [rsp+20h]
+                    0x66, 0x0F, 0x6F, 0x44, 0x24, 0x20, // movdqa  xmm0, xmmword ptr [rsp+20h]
                     0x66, 0x0F, 0x6F, 0x4C, 0x24, 0x30, // movdqa  xmm1, xmmword ptr [rsp+30h]
                     0x66, 0x0F, 0x6F, 0x54, 0x24, 0x40, // movdqa  xmm2, xmmword ptr [rsp+40h]
                     0x66, 0x0F, 0x6F, 0x5C, 0x24, 0x50, // movdqa  xmm3, xmmword ptr [rsp+50h]
