@@ -283,7 +283,7 @@ void ModDownloadManager::startUpdateAll() {
                                 mod.id
                             );
                         } else {
-                            this->startDownload(mod.id, std::nullopt);
+                            this->startDownload(mod.id, mod.version);
                         }
                     }
                 }
