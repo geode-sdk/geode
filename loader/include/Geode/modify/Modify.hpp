@@ -100,8 +100,8 @@ namespace geode::modifier {
 
         // unordered_map<handles> idea
         ModifyBase() {
-            static constexpr bool hasImproperCustomFields =
-                sizeof(typename ModifyDerived::Derived) != sizeof(typename ModifyDerived::Base) + std::max(std::alignment_of_v<typename ModifyDerived::Base>, sizeof(uintptr_t));
+            static constexpr bool hasImproperCustomFields = sizeof(typename ModifyDerived::Derived) >= 1 &&
+                sizeof(typename ModifyDerived::Derived) != sizeof(typename ModifyDerived::Base) + std::alignment_of_v<typename ModifyDerived::Base>;
             static_assert(!hasImproperCustomFields,
                 "\n--- Error in modify class:\n"
                 "  Do not add members to a modify class, use `struct Fields` instead.\n"
