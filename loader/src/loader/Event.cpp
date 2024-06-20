@@ -12,7 +12,6 @@ bool DefaultEventListenerPool::add(EventListenerProtocol* listener) {
     std::unique_lock lock(m_data->m_mutex);
     if (m_data->m_locked) {
         m_data->m_toAdd.push_back(listener);
-        ranges::remove(m_data->m_toRemove, listener);
     }
     else {
         // insert listeners at the start so new listeners get priority
@@ -26,8 +25,14 @@ void DefaultEventListenerPool::remove(EventListenerProtocol* listener) {
 
     std::unique_lock lock(m_data->m_mutex);
     if (m_data->m_locked) {
-        m_data->m_toRemove.push_back(listener);
-        ranges::remove(m_data->m_toAdd, listener);
+        auto index = ranges::indexOf(m_data->m_listeners, listener);
+        if (index) {
+            // set to nullptr so we can remove it later
+            // we cant just add it to a 
+            // toRemove array because the listeners
+            // could get iterated multiple times by others
+            m_data->m_listeners[*index] = nullptr;
+        }
     }
     else {
         ranges::remove(m_data->m_listeners, listener);
@@ -53,14 +58,11 @@ ListenerResult DefaultEventListenerPool::handle(Event* event) {
     // only mutate listeners once nothing is iterating 
     // (if there are recursive handle calls)
     if (m_data->m_locked == 0) {
-        for (auto listener : m_data->m_toRemove) {
-            ranges::remove(m_data->m_listeners, listener);
-        }
+        ranges::remove(m_data->m_listeners, nullptr);
         for (auto listener : m_data->m_toAdd) {
             m_data->m_listeners.push_front(listener);
         }
         m_data->m_toAdd.clear();
-        m_data->m_toRemove.clear();
     }
     return res;
 }
@@ -98,6 +100,7 @@ void EventListenerProtocol::disable() {
 }
 
 EventListenerProtocol::~EventListenerProtocol() {
+    log::debug("Destroying listener {}", (void*)this);
     this->disable();
 }
 

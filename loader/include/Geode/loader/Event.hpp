@@ -46,7 +46,6 @@ namespace geode {
             std::mutex m_mutex;
             std::deque<EventListenerProtocol*> m_listeners;
             std::vector<EventListenerProtocol*> m_toAdd;
-            std::vector<EventListenerProtocol*> m_toRemove;
         };
         std::unique_ptr<Data> m_data;
 
