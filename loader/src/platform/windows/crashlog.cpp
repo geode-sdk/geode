@@ -144,7 +144,7 @@ static void printAddr(std::ostream& stream, void const* addr, bool fullPath = tr
     }
 }
 
-PVOID CustomFunctionTableAccess64(HANDLE hProcess, DWORD64 AddrBase);
+PVOID GeodeFunctionTableAccess64(HANDLE hProcess, DWORD64 AddrBase);
 
 // https://stackoverflow.com/a/50208684/9124836
 static std::string getStacktrace(PCONTEXT context) {
@@ -174,14 +174,14 @@ static std::string getStacktrace(PCONTEXT context) {
         if (!StackWalk64(
                 IMAGE_FILE_MACHINE_AMD64, process, thread, &stack, context, nullptr,
                 +[](HANDLE hProcess, DWORD64 AddrBase) {
-                    auto ret =  CustomFunctionTableAccess64(hProcess, AddrBase);
+                    auto ret = GeodeFunctionTableAccess64(hProcess, AddrBase);
                     if (ret) {
                         return ret;
                     }
                     return SymFunctionTableAccess64(hProcess, AddrBase);
                 }, 
                 +[](HANDLE hProcess, DWORD64 dwAddr) -> DWORD64 {
-                    auto ret = CustomFunctionTableAccess64(hProcess, dwAddr);
+                    auto ret = GeodeFunctionTableAccess64(hProcess, dwAddr);
                     if (ret) {
                         return dwAddr & (~0xffffull);
                     }
