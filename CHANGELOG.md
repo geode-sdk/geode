@@ -8,8 +8,13 @@
  * Add support for `one-of` settings for mods (3f674e5, 7d79ddd)
  * Remove `RT_ADD` and `RT_REMOVE` (7bd8a1a)
  * Add `CCDirector::m_bFastMenu` back (c3058ff)
- * Fix UI visual bugs in `ModsLayer` (e273ef2, b3925f1)
- * 
+ * Fix UI visual bugs in `ModsLayer` (e273ef2, b3925f1, 255a42c)
+ * Fix race conditions for event pools (636be07, 4c15bdb, abc34f9)
+ * Add a `static_assert` to prevent old field syntax (5f37d30)
+ * Fix dangling `string_view` for `Task` names (92704b9)
+ * Download the exact update suggested by Index instead of latest version (115f0e7)
+ * Small cleanup and improvements for Windows stacktraces (2824c17)
+ * Fix bugs related to `delayload` (ec1d846)
 
 ## v3.0.0-beta.2
  * (WebRequest) Don't change the method from POST to GET on redirect follow (6ae11dd)
