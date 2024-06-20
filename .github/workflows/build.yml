@@ -41,6 +41,8 @@ jobs:
         #  id: mac
         #  host_id: mac
         #  extra_flags: >
+        #    -DCMAKE_C_COMPILER=clang
+        #    -DCMAKE_CXX_COMPILER=clang++
         #    -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
         #    -DGEODE_DONT_BUILD_TEST_MODS=1
         #    -DCMAKE_AR='/usr/bin/ar'
@@ -55,6 +57,8 @@ jobs:
         #  host_id: linux
         #  extra_flags: >
         #    -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake
+        #    -DCMAKE_C_COMPILER=clang
+        #    -DCMAKE_CXX_COMPILER=clang++
         #    -DANDROID_ABI=armeabi-v7a
         #    -DANDROID_PLATFORM=android-23
         #    -DGEODE_DONT_BUILD_TEST_MODS=1
@@ -131,6 +135,13 @@ jobs:
         restore-keys: |
           cpm-${{ matrix.config.id }}-v1-
 
+    - name: Setup xwin Cache
+      uses: actions/cache@v4
+      with:
+        path: .xwin-cache
+        key: xwin-${{ matrix.config.id }}-v1 }}
+      if: matrix.config.id == 'win'
+
     - name: Setup info.rc Cache
       uses: actions/cache@v4
       with:
@@ -175,7 +186,7 @@ jobs:
         7z x "epic-xwin/xwin-*-x86_64-unknown-linux-musl.tar.gz" -o"epic-xwin"
         7z x "epic-xwin/xwin-*-x86_64-unknown-linux-musl.tar" -o"epic-xwin"
         mv epic-xwin/xwin-*-x86_64-unknown-linux-musl/xwin ./xwin
-        ./xwin --arch x86_64 --accept-license splat --include-debug-libs --output splat
+        ./xwin --arch x86_64 --variant desktop --accept-license splat --include-debug-libs --output splat
       if: matrix.config.id == 'win'
 
     - name: Download clang-msvc-sdk toolchain
@@ -235,8 +246,6 @@ jobs:
         cmake -B build
         -DCLI_PATH=${{ github.workspace }}/cli
         -DCMAKE_BUILD_TYPE=RelWithDebInfo
-        -DCMAKE_C_COMPILER=clang
-        -DCMAKE_CXX_COMPILER=clang++
         -DGEODE_CODEGEN_CMAKE_ARGS="-DCMAKE_C_COMPILER=clang;-DCMAKE_CXX_COMPILER=clang++;-G Ninja"
         -G Ninja
         ${{ inputs.build-debug-info && '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON' || '' }}
