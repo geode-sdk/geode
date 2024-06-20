@@ -51,7 +51,7 @@ namespace geode {
      * Represents all the data gather-able
      * from mod.json
      */
-    class GEODE_DLL ModMetadata {
+    class GEODE_DLL ModMetadata final {
         class Impl;
         std::unique_ptr<Impl> m_impl;
 

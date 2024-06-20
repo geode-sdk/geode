@@ -10,7 +10,7 @@ namespace cocos2d {
 }
 
 namespace geode {
-    class GEODE_DLL SceneManager {
+    class GEODE_DLL SceneManager final {
     protected:
         cocos2d::CCArray* m_persistedNodes;
         cocos2d::CCScene* m_lastScene = nullptr;

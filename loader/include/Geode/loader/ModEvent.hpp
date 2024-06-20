@@ -20,7 +20,7 @@ namespace geode {
     /**
      * Event that is fired when a mod is loaded / unloaded / enabled / disabled
      */
-    class GEODE_DLL ModStateEvent : public Event {
+    class GEODE_DLL ModStateEvent final : public Event {
     protected:
         ModEventType m_type;
         Mod* m_mod;
@@ -34,7 +34,7 @@ namespace geode {
     /**
      * Listener for mod load/enable/disable/unload/data save events
      */
-    class GEODE_DLL ModStateFilter : public EventFilter<ModStateEvent> {
+    class GEODE_DLL ModStateFilter final : public EventFilter<ModStateEvent> {
     public:
         using Callback = void(ModStateEvent*);
 

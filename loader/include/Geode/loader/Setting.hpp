@@ -244,7 +244,7 @@ namespace geode {
     };
 
     template<class T>
-    class GeodeSettingValue : public SettingValue {
+    class GeodeSettingValue final : public SettingValue {
     public:
         using ValueType = typename T::ValueType;
 

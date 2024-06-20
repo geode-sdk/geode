@@ -265,7 +265,7 @@ namespace geode::utils::file {
      */
     GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> pickMany(FilePickOptions const& options);
 
-    class GEODE_DLL FileWatchEvent : public Event {
+    class GEODE_DLL FileWatchEvent final : public Event {
     protected:
         std::filesystem::path m_path;
     
@@ -274,7 +274,7 @@ namespace geode::utils::file {
         std::filesystem::path getPath() const;
     };
 
-    class GEODE_DLL FileWatchFilter : public EventFilter<FileWatchEvent> {
+    class GEODE_DLL FileWatchFilter final : public EventFilter<FileWatchEvent> {
     protected:
         std::filesystem::path m_path;
     
