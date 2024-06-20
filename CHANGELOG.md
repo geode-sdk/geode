@@ -1,7 +1,9 @@
 # Geode Changelog
 
-## v3.0.0-beta.2
+## v3.0.0-beta.3
+ * 
 
+## v3.0.0-beta.2
  * (WebRequest) Don't change the method from POST to GET on redirect follow (6ae11dd)
  * Make `file::openFolder` actually work on selecting paths on Windows (0309e01)
  * Hide platform console option on Android (df3d147)
@@ -22,7 +24,6 @@
  * Hopefully finally fix Windows crashlogs (70fe096)
 
 ## v3.0.0-beta.1
-
  * Add a special error for 1114 - vcredist update (d0821f5)
  * Properly fix Windows exceptions (84a2c6b)
  * Add keyboard support to ModsLayer (2b53e8a)
@@ -45,7 +46,6 @@
  * `file::pick` and `file::pickMany` are the new file APIs, which use Tasks (#899)
 
 ## v3.0.0-alpha.2
-
  * Add `WebResponse::into()` for writing responses to files (f909a73)
  * Add `geodeImplicitEntry` and `geodeCustomEntry` (6b2ac24, 5969c90)
  * Fix padding and add a custom color for borders (#868)
