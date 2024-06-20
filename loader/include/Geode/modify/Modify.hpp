@@ -100,6 +100,15 @@ namespace geode::modifier {
 
         // unordered_map<handles> idea
         ModifyBase() {
+            static constexpr bool hasImproperCustomFields =
+                sizeof(ModifyDerived::Derived) != sizeof(ModifyDerived::Base) + std::max(std::alignment_of_v<typename ModifyDerived::Base>, sizeof(uintptr_t));
+            static_assert(!hasImproperCustomFields,
+                "\n--- Error in modify class:\n"
+                "  Do not add members to a modify class, use `struct Fields` instead.\n"
+                "  See https://docs.geode-sdk.org/tutorials/fields for more info."
+                "\n---"
+            );
+
             // i really dont want to recompile codegen
             auto test = static_cast<ModifyDerived*>(this);
             test->ModifyDerived::apply();
