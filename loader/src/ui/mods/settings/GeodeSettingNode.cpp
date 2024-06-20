@@ -61,14 +61,14 @@ static typename T::ValueType valueFromSlider(T const& setting, float num) {
 }
 
 template<class C, class T>
-InputNode* createInput(C* node, GeodeSettingValue<T>* setting, float width) {
-    auto input = InputNode::create(width / 2 - 70.f, "Text", "chatFont.fnt");
+TextInput* createInput(C* node, GeodeSettingValue<T>* setting, float width) {
+    auto input = TextInput::create(width / 2 - 70.f, "Text", "chatFont.fnt");
     input->setPosition({
         -(width / 2 - 70.f) / 2,
         setting->castDefinition().controls.slider ? 5.f : 0.f
     });
     input->setScale(.65f);
-    input->getInput()->setDelegate(node);
+    input->setDelegate(node);
     return input;
 }
 
@@ -177,9 +177,7 @@ void IntSettingNode::updateSlider() {
 void IntSettingNode::updateLabel() {
     if (m_input) {
         // hacky way to make setString not called textChanged
-        m_input->getInput()->setDelegate(nullptr);
-        m_input->setString(numToString(m_uncommittedValue));
-        m_input->getInput()->setDelegate(this);
+        m_input->setString(numToString(m_uncommittedValue), false);
     }
     else {
         m_label->setString(numToString(m_uncommittedValue).c_str());
@@ -200,7 +198,7 @@ void IntSettingNode::textChanged(CCTextInputNode* input) {
 bool IntSettingNode::setup(IntSettingValue* setting, float width) {
     if (setting->castDefinition().controls.input) {
         m_menu->addChild(m_input = createInput(this, setting, width));
-        m_input->getInput()->setAllowedChars("0123456789-");
+        m_input->setCommonFilter(CommonFilter::Int);
     }
     else {
         m_label = CCLabelBMFont::create("", "bigFont.fnt");
@@ -261,9 +259,7 @@ void FloatSettingNode::updateSlider() {
 void FloatSettingNode::updateLabel() {
     if (m_input) {
         // hacky way to make setString not called textChanged
-        m_input->getInput()->setDelegate(nullptr);
-        m_input->setString(numToString(m_uncommittedValue));
-        m_input->getInput()->setDelegate(this);
+        m_input->setString(numToString(m_uncommittedValue), false);
     }
     else {
         m_label->setString(numToString(m_uncommittedValue).c_str());
@@ -284,7 +280,7 @@ void FloatSettingNode::textChanged(CCTextInputNode* input) {
 bool FloatSettingNode::setup(FloatSettingValue* setting, float width) {
     if (setting->castDefinition().controls.input) {
         m_menu->addChild(m_input = createInput(this, setting, width));
-        m_input->getInput()->setAllowedChars("0123456789.-");
+        m_input->setCommonFilter(CommonFilter::Float);
     }
     else {
         m_label = CCLabelBMFont::create("", "bigFont.fnt");
@@ -315,9 +311,7 @@ bool FloatSettingNode::setup(FloatSettingValue* setting, float width) {
 
 void StringSettingNode::updateLabel() {
     // hacky way to make setString not called textChanged
-    m_input->getInput()->setDelegate(nullptr);
-    m_input->setString(m_uncommittedValue);
-    m_input->getInput()->setDelegate(this);
+    m_input->setString(m_uncommittedValue, false);
 }
 
 void StringSettingNode::textChanged(CCTextInputNode* input) {
@@ -331,15 +325,15 @@ void StringSettingNode::valueChanged(bool updateText) {
 }
 
 bool StringSettingNode::setup(StringSettingValue* setting, float width) {
-    m_input = InputNode::create(width / 2 - 10.f, "Text", "chatFont.fnt");
+    m_input = TextInput::create(width / 2 - 10.f, "Text", "chatFont.fnt");
     m_input->setPosition({ -(width / 2 - 70.f) / 2, .0f });
     m_input->setScale(.65f);
 
     if (setting->castDefinition().filter.has_value()) {
-        m_input->getInput()->setAllowedChars(setting->castDefinition().filter.value());
+        m_input->setFilter(setting->castDefinition().filter.value());
     }
 
-    m_input->getInput()->setDelegate(this);
+    m_input->setDelegate(this);
     m_menu->addChild(m_input);
 
     return true;
@@ -349,9 +343,7 @@ bool StringSettingNode::setup(StringSettingValue* setting, float width) {
 
 void FileSettingNode::updateLabel() {
     // hacky way to make setString not called textChanged
-    m_input->getInput()->setDelegate(nullptr);
-    m_input->setString(m_uncommittedValue.string());
-    m_input->getInput()->setDelegate(this);
+    m_input->setString(m_uncommittedValue.string(), false);
 }
 
 void FileSettingNode::textChanged(CCTextInputNode* input) {
@@ -383,10 +375,10 @@ void FileSettingNode::onPickFile(CCObject*) {
 }
 
 bool FileSettingNode::setup(FileSettingValue* setting, float width) {
-    m_input = InputNode::create(width / 2 - 30.f, "Path to File", "chatFont.fnt");
+    m_input = TextInput::create(width / 2 - 30.f, "Path to File", "chatFont.fnt");
     m_input->setPosition({ -(width / 2 - 80.f) / 2 - 15.f, .0f });
     m_input->setScale(.65f);
-    m_input->getInput()->setDelegate(this);
+    m_input->setDelegate(this);
     m_menu->addChild(m_input);
 
     auto fileBtnSpr = CCSprite::createWithSpriteFrameName("gj_folderBtn_001.png");

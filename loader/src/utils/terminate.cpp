@@ -9,6 +9,6 @@ void geode::utils::detail::logTerminationError(const char* reason, Mod* mod) {
     log::logImpl(
         Severity::Error, mod,
         "The mod '{}' by {} has deliberately asked the game to crash.\nReason: {}",
-        mod->getID(), mod->getDeveloper(), reason
+        mod->getID(), fmt::format("{}", fmt::join(mod->getDevelopers(), ", ")), reason
     );
 }

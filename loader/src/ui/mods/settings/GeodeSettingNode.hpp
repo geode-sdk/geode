@@ -208,7 +208,7 @@ class IntSettingNode :
     public TextInputDelegate
 {
 protected:
-    InputNode* m_input = nullptr;
+    TextInput* m_input = nullptr;
     CCLabelBMFont* m_label = nullptr;
     Slider* m_slider = nullptr;
     CCMenuItemSpriteExtra* m_decArrow = nullptr;
@@ -237,7 +237,7 @@ class FloatSettingNode :
     public TextInputDelegate
 {
 protected:
-    InputNode* m_input = nullptr;
+    TextInput* m_input = nullptr;
     CCLabelBMFont* m_label = nullptr;
     Slider* m_slider = nullptr;
     CCMenuItemSpriteExtra* m_decArrow = nullptr;
@@ -266,7 +266,7 @@ class StringSettingNode :
     public TextInputDelegate
 {
 protected:
-    InputNode* m_input;
+    TextInput* m_input;
 
     void textChanged(CCTextInputNode* input) override;
     void valueChanged(bool updateText) override;
@@ -283,7 +283,7 @@ class FileSettingNode :
     public TextInputDelegate
 {
 protected:
-    InputNode* m_input;
+    TextInput* m_input;
 
     void textChanged(CCTextInputNode* input) override;
     void valueChanged(bool updateText) override;

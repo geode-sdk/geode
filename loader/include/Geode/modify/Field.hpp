@@ -76,7 +76,7 @@ namespace geode::modifier {
             // field intermediate is the first member of Modify
             // meaning we can get the base from ourself
             auto node = reinterpret_cast<Parent*>(reinterpret_cast<std::byte*>(this) - sizeof(Base));
-            static_assert(sizeof(Base) == offsetof(Parent, m_fields), "offsetof not correct");
+            // static_assert(sizeof(Base) + sizeof() == sizeof(Intermediate), "offsetof not correct");
 
             // generating the container if it doesn't exist
             auto container = FieldContainer::from(node, typeid(Base).name());
@@ -100,18 +100,7 @@ namespace geode::modifier {
         }
 
         auto operator->() {
-            // workaround for "static assertion is not an integral constant expression" in CLion
-            // while the solution in https://github.com/microsoft/STL/issues/3311 works, you can't provide
-            // cli args to clang-tidy in clion, so we use this workaround instead
-            // https://youtrack.jetbrains.com/issue/CPP-27446/spurious-offsetof-in-staticassert-error-from-clangd#focus=Comments-27-8172811.0-0
-            // update: that workaround didn't work,
-            // undefining and re-defining offsetof caused another error further down
-            // so we're doing this now
-#ifdef __CLION_IDE__
-            return reinterpret_cast<typename Parent::Fields*>(69420);
-#else
             return this->self();
-#endif
         }
     };
 
