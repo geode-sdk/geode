@@ -8,14 +8,14 @@
 #include <optional>
 
 namespace geode {
-    struct GEODE_DLL SettingChangedEvent final : public Event {
+    struct GEODE_DLL SettingChangedEvent : public Event {
         Mod* mod;
         SettingValue* value;
 
         SettingChangedEvent(Mod* mod, SettingValue* value);
     };
 
-    class GEODE_DLL SettingChangedFilter final : public EventFilter<SettingChangedEvent> {
+    class GEODE_DLL SettingChangedFilter : public EventFilter<SettingChangedEvent> {
     protected:
         std::string m_modID;
         std::optional<std::string> m_targetKey;
