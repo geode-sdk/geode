@@ -553,12 +553,11 @@ std::string server::getServerUserAgent() {
     // no need to compute this more than once
     static const auto value = [] {
         // TODO: is this enough info? is it too much?
-        return fmt::format("Geode Loader (ver={};commit={};platform={};gd={};mods={})",
+        return fmt::format("Geode Loader (ver={};commit={};platform={};gd={})",
             Loader::get()->getVersion().toNonVString(),
             about::getLoaderCommitHash(),
             GEODE_PLATFORM_SHORT_IDENTIFIER,
-            LoaderImpl::get()->getGameVersion(),
-            Loader::get()->getAllMods().size()
+            LoaderImpl::get()->getGameVersion()
         );
     }();
     return value;
