@@ -1,5 +1,12 @@
 # Geode Changelog
 
+## v3.0.0-beta.5
+ * Add More Details button for mod problems (9095005)
+ * Display mods not on current platform (2cd0990)
+ * Fix `DefaultEventListenerPool` missing constructor ABI break for Dispatch (d88a93e)
+ * Implement `one-of` setting without ABI break (7742b57)
+ * Remove the missing custom setting warning (4509607)
+
 ## v3.0.0-beta.4
  * Fix events crash caused by immediate enabling & disabling (e796711)
  * Make some classes final (ea96e2c)
