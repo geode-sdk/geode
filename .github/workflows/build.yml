@@ -37,47 +37,47 @@ jobs:
             makensis -WX -V3 ./installer/windows/installer.nsi
           installer_path: './installer/windows/geode-installer-win.exe'
 
-        #- name: macOS
-        #  os: macos-latest
-        #  id: mac
-        #  host_id: mac
-        #  extra_flags: >
-        #    -DCMAKE_C_COMPILER=clang
-        #    -DCMAKE_CXX_COMPILER=clang++
-        #    -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
-        #    -DGEODE_DONT_BUILD_TEST_MODS=1
-        #    -DCMAKE_AR='/usr/bin/ar'
-        #    -DCMAKE_RANLIB='/usr/bin/ranlib'
-        #    -DGEODE_DISABLE_PRECOMPILED_HEADERS=Off
-        #  package_cmd: './installer/mac/package.sh ./bin/nightly ./installer/mac/geode-installer-mac.pkg'
-        #  installer_path: './installer/mac/geode-installer-mac.pkg'
+        - name: macOS
+          os: macos-latest
+          id: mac
+          host_id: mac
+          extra_flags: >
+            -DCMAKE_C_COMPILER=clang
+            -DCMAKE_CXX_COMPILER=clang++
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
+            -DGEODE_DONT_BUILD_TEST_MODS=1
+            -DCMAKE_AR='/usr/bin/ar'
+            -DCMAKE_RANLIB='/usr/bin/ranlib'
+            -DGEODE_DISABLE_PRECOMPILED_HEADERS=Off
+          package_cmd: './installer/mac/package.sh ./bin/nightly ./installer/mac/geode-installer-mac.pkg'
+          installer_path: './installer/mac/geode-installer-mac.pkg'
 
-        #- name: Android32
-        #  os: ubuntu-latest
-        #  id: android32
-        #  host_id: linux
-        #  extra_flags: >
-        #    -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake
-        #    -DCMAKE_C_COMPILER=clang
-        #    -DCMAKE_CXX_COMPILER=clang++
-        #    -DANDROID_ABI=armeabi-v7a
-        #    -DANDROID_PLATFORM=android-23
-        #    -DGEODE_DONT_BUILD_TEST_MODS=1
-        #  package_cmd: ''
-        #  installer_path: ''
+        - name: Android32
+          os: ubuntu-latest
+          id: android32
+          host_id: linux
+          extra_flags: >
+            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake
+            -DCMAKE_C_COMPILER=clang
+            -DCMAKE_CXX_COMPILER=clang++
+            -DANDROID_ABI=armeabi-v7a
+            -DANDROID_PLATFORM=android-23
+            -DGEODE_DONT_BUILD_TEST_MODS=1
+          package_cmd: ''
+          installer_path: ''
 
-        #- name: Android64
-        #  os: ubuntu-latest
-        #  id: android64
-        #  host_id: linux
-        #  extra_flags: >
-        #    -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake
-        #    -DANDROID_ABI=arm64-v8a
-        #    -DANDROID_PLATFORM=android-23
-        #    -DANDROID_STL=c++_shared
-        #    -DGEODE_DONT_BUILD_TEST_MODS=1
-        #  package_cmd: ''
-        #  installer_path: ''
+        - name: Android64
+          os: ubuntu-latest
+          id: android64
+          host_id: linux
+          extra_flags: >
+            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake
+            -DANDROID_ABI=arm64-v8a
+            -DANDROID_PLATFORM=android-23
+            -DANDROID_STL=c++_shared
+            -DGEODE_DONT_BUILD_TEST_MODS=1
+          package_cmd: ''
+          installer_path: ''
 
     name: Build ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
