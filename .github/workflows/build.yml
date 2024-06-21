@@ -36,11 +36,6 @@ jobs:
     name: Build Windows
     runs-on: ubuntu-24.04
 
-    env:
-      SPLAT_DIR: ${{ github.workspace }}/.xwin-cache/splat
-      TOOLCHAIN: ${{ github.workspace }}/toolchain/clang-cl-msvc.cmake
-      HOST_ARCH: x86_64
-
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -109,11 +104,19 @@ jobs:
 
     - name: Configure
       run: ${{ env.base-configure-command }} -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN ${{ steps.build-debug-info.outputs.extra-configure }}
+      env:
+        SPLAT_DIR: ${{ github.workspace }}/.xwin-cache/splat
+        TOOLCHAIN: ${{ github.workspace }}/toolchain/clang-cl-msvc.cmake
+        HOST_ARCH: x86_64
 
     - name: Build
       run: |
         ${{ env.base-build-command }}
         ${{ steps.build-debug-info.outputs.extra-build }}
+      env:
+        SPLAT_DIR: ${{ github.workspace }}/.xwin-cache/splat
+        TOOLCHAIN: ${{ github.workspace }}/toolchain/clang-cl-msvc.cmake
+        HOST_ARCH: x86_64
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
@@ -179,13 +182,12 @@ jobs:
 
     - name: Configure
       run: >
-        ${{ env.base-configure-command }}
+        ${{ env.base-configure-command }} -DGEODE_DISABLE_PRECOMPILED_HEADERS=Off
         -DCMAKE_C_COMPILER=clang
         -DCMAKE_CXX_COMPILER=clang++
         -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
         -DCMAKE_AR='/usr/bin/ar'
         -DCMAKE_RANLIB='/usr/bin/ranlib'
-        -DGEODE_DISABLE_PRECOMPILED_HEADERS=Off
         ${{ steps.build-debug-info.outputs.extra-configure }}
 
     - name: Build
@@ -273,8 +275,7 @@ jobs:
 
     - name: Configure
       run: >
-        ${{ env.base-configure-command }}
-        -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake
+        ${{ env.base-configure-command }} -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake
         -DCMAKE_C_COMPILER=clang
         -DCMAKE_CXX_COMPILER=clang++
         -DANDROID_PLATFORM=android-23
