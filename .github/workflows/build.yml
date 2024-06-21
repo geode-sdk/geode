@@ -36,6 +36,7 @@ jobs:
             sudo apt install nsis
             makensis -WX -V3 ./installer/windows/installer.nsi
           installer_path: './installer/windows/geode-installer-win.exe'
+          xwin_sdk_version: '10.0.22621'
 
         #- name: macOS
         #  os: macos-latest
@@ -140,7 +141,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: .xwin-cache
-        key: xwin-${{ matrix.config.id }}-v1
+        key: xwin-${{ matrix.config.id }}-v1-${{ matrix.config.xwin_sdk_version }}
       if: matrix.config.id == 'win'
 
     - name: Setup info.rc Cache
@@ -187,7 +188,7 @@ jobs:
         7z x "epic-xwin/xwin-*-x86_64-unknown-linux-musl.tar.gz" -o"epic-xwin"
         7z x "epic-xwin/xwin-*-x86_64-unknown-linux-musl.tar" -o"epic-xwin"
         mv epic-xwin/xwin-*-x86_64-unknown-linux-musl/xwin ./xwin
-        ./xwin --arch x86_64 --sdk-version 10.0.22621 --accept-license splat --include-debug-libs --output splat
+        ./xwin --arch x86_64 --sdk-version 10.0.22621 --accept-license splat --include-debug-libs
       if: matrix.config.id == 'win'
 
     - name: Download clang-msvc-sdk toolchain
@@ -238,7 +239,7 @@ jobs:
 
     - name: Configure
       run: >
-        ${{ matrix.config.id == 'win' && 'export SPLAT_DIR=$GITHUB_WORKSPACE/splat' }}
+        ${{ matrix.config.id == 'win' && 'export SPLAT_DIR=$GITHUB_WORKSPACE/.xwin-cache/splat' }}
 
         ${{ matrix.config.id == 'win' && 'export TOOLCHAIN=$GITHUB_WORKSPACE/toolchain/clang-cl-msvc.cmake' }}
 
@@ -256,7 +257,7 @@ jobs:
 
     - name: Build
       run: |
-        ${{ matrix.config.id == 'win' && 'export SPLAT_DIR=$GITHUB_WORKSPACE/splat' }}
+        ${{ matrix.config.id == 'win' && 'export SPLAT_DIR=$GITHUB_WORKSPACE/.xwin-cache/splat' }}
         ${{ matrix.config.id == 'win' && 'export TOOLCHAIN=$GITHUB_WORKSPACE/toolchain/clang-cl-msvc.cmake' }}
         ${{ matrix.config.id == 'win' && 'export HOST_ARCH=x86_64' }}
         cmake --build build --config RelWithDebInfo --parallel
