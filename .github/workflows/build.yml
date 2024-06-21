@@ -25,7 +25,6 @@ env:
     cmake -B build
     -DCMAKE_BUILD_TYPE=RelWithDebInfo
     -DGEODE_CODEGEN_CMAKE_ARGS="-DCMAKE_C_COMPILER=clang;-DCMAKE_CXX_COMPILER=clang++;-G Ninja"
-    -DGEODE_DONT_BUILD_TEST_MODS=1
     -G Ninja
   base-build-command: |
     cmake --build build --config RelWithDebInfo --parallel

@@ -13,7 +13,7 @@ runs:
     uses: robinraju/release-downloader@v1.10
     with:
       repository: geode-sdk/cli
-      latest: true
+      tag: 'nightly'
       fileName: '*-${{ inputs.host }}.zip'
       tarBall: false
       zipBall: false
