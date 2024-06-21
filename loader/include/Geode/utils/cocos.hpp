@@ -304,7 +304,8 @@ namespace geode {
         }
 
         Ref<T>& operator=(Ref<T>&& other) {
-            this->swap(other.data());
+            m_obj = other.data();
+            other.m_obj = nullptr;
             return *this;
         }
 
@@ -467,7 +468,7 @@ namespace geode {
         }
 
         WeakRef<T>& operator=(WeakRef<T>&& other) {
-            this->swap(static_cast<T*>(other.m_controller->get()));
+            m_controller = std::move(other.m_controller);
             return *this;
         }
 
@@ -1023,7 +1024,7 @@ namespace geode::cocos {
         using T = std::remove_pointer_t<Type>;
 
     public:
-        using value_type = T;
+        using value_type = T*;
         using iterator = T**;
         using const_iterator = const T**;
 

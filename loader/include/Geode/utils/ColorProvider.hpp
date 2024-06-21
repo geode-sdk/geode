@@ -6,14 +6,14 @@
 #include "../loader/Event.hpp"
 
 namespace geode {
-    struct GEODE_DLL ColorProvidedEvent : public Event {
+    struct GEODE_DLL ColorProvidedEvent final : public Event {
         std::string id;
         cocos2d::ccColor4B color;
 
         ColorProvidedEvent(std::string const& id, cocos2d::ccColor4B const& color);
     };
 
-    class GEODE_DLL ColorProvidedFilter : public EventFilter<ColorProvidedEvent> {
+    class GEODE_DLL ColorProvidedFilter final : public EventFilter<ColorProvidedEvent> {
     public:
         using Callback = void(ColorProvidedEvent*);
 

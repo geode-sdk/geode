@@ -1,3 +1,4 @@
+#include "Geode/utils/file.hpp"
 #include <Geode/DefaultInclude.hpp>
 
 using namespace geode::prelude;
@@ -8,6 +9,7 @@ using namespace geode::prelude;
 #include <Geode/binding/GameManager.hpp>
 #include <objc/runtime.h>
 #include <Geode/utils/web.hpp>
+#include <Geode/utils/Task.hpp>
 
 #define CommentType CommentTypeDummy
 #import <Cocoa/Cocoa.h>
@@ -159,48 +161,35 @@ namespace {
 
 @end
 
-Result<std::filesystem::path> file::pickFile(
-    file::PickMode mode, file::FilePickOptions const& options
-) {
-    return Err("Use the callback version");
-}
-
-GEODE_DLL void file::pickFile(
-    PickMode mode, FilePickOptions const& options,
-    MiniFunction<void(std::filesystem::path)> callback,
-    MiniFunction<void()> failed
-) {
-    [FileDialog dispatchFilePickerWithMode:mode options:options multiple:false onCompletion: ^(FileResult result) {
-        Loader::get()->queueInMainThread([=]() {
-            if (result.isOk()) {
-                callback(std::move(result.unwrap()[0]));
+GEODE_DLL Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, file::FilePickOptions const& options) {
+    using RetTask = Task<Result<std::filesystem::path>>;
+    return RetTask::runWithCallback([mode, options](auto resultCallback, auto progress, auto cancelled) {
+        [FileDialog dispatchFilePickerWithMode:mode options:options multiple:false onCompletion: ^(FileResult result) {
+            if (cancelled()) {
+                resultCallback(RetTask::Cancel());
             } else {
-                failed();
+                if (result.isOk()) {
+                    std::filesystem::path path = result.unwrap()[0];
+                    resultCallback(Ok(path));
+                } else {
+                    resultCallback(Err(result.err().value()));
+                }
             }
-        });
-    }];
+        }];
+    });
 }
 
-Result<std::vector<std::filesystem::path>> file::pickFiles(
-    file::FilePickOptions const& options
-) {
-    return Err("Use the callback version");
-}
-
-GEODE_DLL void file::pickFiles(
-    FilePickOptions const& options,
-    MiniFunction<void(std::vector<std::filesystem::path>)> callback,
-    MiniFunction<void()> failed
-) {
-    [FileDialog dispatchFilePickerWithMode: file::PickMode::OpenFile options:options multiple:true onCompletion: ^(FileResult result) {
-        Loader::get()->queueInMainThread([=]() {
-            if (result.isOk()) {
-                callback(std::move(result.unwrap()));
+GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> file::pickMany(file::FilePickOptions const& options) {
+    using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
+    return RetTask::runWithCallback([options](auto resultCallback, auto progress, auto cancelled) {
+        [FileDialog dispatchFilePickerWithMode: file::PickMode::OpenFile options:options multiple:true onCompletion: ^(FileResult result) {
+            if (cancelled()) {
+                resultCallback(RetTask::Cancel());
             } else {
-                failed();
+                resultCallback(result);
             }
-        });
-    }];
+        }];
+    });
 }
 
 CCPoint cocos::getMousePos() {

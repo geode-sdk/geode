@@ -163,11 +163,12 @@ public:
      you might need to load different resources for a given file in the different platforms.
 
      @since v2.1
+     @note Robtop Addition: added a bool parameter
      */
-    RT_REMOVE(  virtual gd::string fullPathForFilename(const char* pszFileName);       )
-    RT_ADD(     virtual gd::string fullPathForFilename(const char* pszFileName, bool); )
+    virtual gd::string fullPathForFilename(const char* pszFileName, bool);
     
-    RT_ADD(virtual void removeFullPath(const char* path));
+    // @note RobTop Addition
+    virtual void removeFullPath(const char* path);
 
     /**
      * Loads the filenameLookup dictionary from the contents of a filename.
@@ -343,7 +344,8 @@ public:
      */
     virtual gd::string getWritablePath() { return ""; }
 
-    RT_ADD(virtual gd::string getWritablePath2();)
+    // @note RobTop Addition
+    virtual gd::string getWritablePath2();
     
     /**
      *  Checks whether a file exists.
@@ -402,8 +404,10 @@ protected:
      */
     virtual gd::string getNewFilename(const char* pszFileName);
 
-    RT_ADD(virtual bool shouldUseHD();)
-    RT_ADD(virtual gd::string addSuffix(gd::string, gd::string);)
+    // @note RobTop Addition
+    virtual bool shouldUseHD();
+    // @note RobTop Addition
+    virtual gd::string addSuffix(gd::string, gd::string);
     
     /**
      *  Gets full path for filename, resolution directory and search path.

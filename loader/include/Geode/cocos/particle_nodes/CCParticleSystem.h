@@ -236,12 +236,8 @@ protected:
     /** weak reference to the CCSpriteBatchNode that renders the CCSprite */
     CC_PROPERTY(CCParticleBatchNode*, m_pBatchNode, BatchNode);
 
-    RT_REMOVE(
-        CC_SYNTHESIZE(unsigned int, m_uAtlasIndex, AtlasIndex);
-    )
-    RT_ADD(
-        CC_SYNTHESIZE_NV(unsigned int, m_uAtlasIndex, AtlasIndex);
-    )
+    // @note RobTop Addition: Made non virtual
+    CC_SYNTHESIZE_NV(unsigned int, m_uAtlasIndex, AtlasIndex);
 
     //true if scaled or rotated
     bool m_bTransformSystemDirty;
@@ -300,9 +296,8 @@ public:
     virtual float getRotatePerSecondVar();
     virtual void setRotatePerSecondVar(float degrees);
 
-    RT_ADD (
-        virtual void setVisible(bool visible);
-    )
+    // @note RobTop Addition
+    virtual void setVisible(bool visible);
 
     virtual void setScale(float s);
     virtual void setRotation(float newRotation);
@@ -314,29 +309,50 @@ public:
     virtual void setBlendAdditive(bool value);
 //////////////////////////////////////////////////////////////////////////
 
-    RT_ADD(
-        float m_fFadeInTime;
-        float m_fFadeInTimeVar;
-        float m_fFadeOutTime;
-        float m_fFadeOutTimeVar;
-        float m_fFrictionPos;
-        float m_fFrictionPosVar;
-        float m_fFrictionSize;
-        float m_fFrictionSizeVar;
-        float m_fFrictionRot;
-        float m_fFrictionRotVar;
-        float m_fRespawn;
-        float m_fRespawnVar;
-        bool m_bStartSpinEqualToEnd;
-        bool m_bStartSizeEqualToEnd;
-        bool m_bStartRadiusEqualToEnd;
-        bool m_bDynamicRotationIsDir;
-        bool m_bOrderSensitive;
-        bool m_bStartRGBVarSync;
-        bool m_bEndRGBVarSync;
-        bool m_bWasRemoved;
-        bool m_bUsingSchedule;
-    )
+    
+    // @note RobTop Addition
+    float m_fFadeInTime;
+    // @note RobTop Addition
+    float m_fFadeInTimeVar;
+    // @note RobTop Addition
+    float m_fFadeOutTime;
+    // @note RobTop Addition
+    float m_fFadeOutTimeVar;
+    // @note RobTop Addition
+    float m_fFrictionPos;
+    // @note RobTop Addition
+    float m_fFrictionPosVar;
+    // @note RobTop Addition
+    float m_fFrictionSize;
+    // @note RobTop Addition
+    float m_fFrictionSizeVar;
+    // @note RobTop Addition
+    float m_fFrictionRot;
+    // @note RobTop Addition
+    float m_fFrictionRotVar;
+    // @note RobTop Addition
+    float m_fRespawn;
+    // @note RobTop Addition
+    float m_fRespawnVar;
+    // @note RobTop Addition
+    bool m_bStartSpinEqualToEnd;
+    // @note RobTop Addition
+    bool m_bStartSizeEqualToEnd;
+    // @note RobTop Addition
+    bool m_bStartRadiusEqualToEnd;
+    // @note RobTop Addition
+    bool m_bDynamicRotationIsDir;
+    // @note RobTop Addition
+    bool m_bOrderSensitive;
+    // @note RobTop Addition
+    bool m_bStartRGBVarSync;
+    // @note RobTop Addition
+    bool m_bEndRGBVarSync;
+    // @note RobTop Addition
+    bool m_bWasRemoved;
+    // @note RobTop Addition
+    bool m_bUsingSchedule;
+
 
     /** start size in pixels of each particle */
     CC_PROPERTY(float, m_fStartSize, StartSize)
@@ -452,9 +468,8 @@ public:
     void stopSystem();
     //! Kill all living particles.
     void resetSystem();
-    RT_ADD(
-        void resumeSystem();
-    )
+    // @note RobTop Addition
+    void resumeSystem();
     //! whether or not the system is full
     bool isFull();
 
@@ -469,100 +484,155 @@ public:
 protected:
     virtual void updateBlendFunc();
 
-    RT_ADD(
         // saved/loaded in loadDefaults, loadScaledDefaults and saveDefaults
 
+        // @note RobTop Addition
         float m_fDefaultStartSize;
+        // @note RobTop Addition
         float m_fDefaultStartSizeVar;
         // saved as m_fEndSize but not loaded,
         // probably was supposed to be m_fDefaultEndSizeVar and saved and loaded as m_fEndSizeVar but was scrapped?
+        // @note RobTop Addition
         float m_fDefaultEndSize2;
+        // @note RobTop Addition
         float m_fDefaultEndSize;
+        // @note RobTop Addition
         float m_fDefaultModeASpeed;
+        // @note RobTop Addition
         float m_fDefaultModeASpeedVar;
+        // @note RobTop Addition
         CCPoint m_tDefaultPosVar;
-    )
 public:
-    RT_ADD(
-        void saveDefaults(void);
-        void loadDefaults(void);
-        void loadScaledDefaults(float);
+    // @note RobTop Addition
+    void saveDefaults(void);
+    // @note RobTop Addition
+    void loadDefaults(void);
+    // @note RobTop Addition
+    void loadScaledDefaults(float);
 
-    	void calculateWorldSpace();
+    // @note RobTop Addition
+    void calculateWorldSpace();
 
-	bool getDontCleanupOnFinish() const;
-	void setDontCleanupOnFinish(bool);
+	// @note RobTop Addition
+    bool getDontCleanupOnFinish() const;
+	// @note RobTop Addition
+    void setDontCleanupOnFinish(bool);
 
-	bool getDynamicRotationIsDir() const;
-	void setDynamicRotationIsDir(bool);
+	// @note RobTop Addition
+    bool getDynamicRotationIsDir() const;
+	// @note RobTop Addition
+    void setDynamicRotationIsDir(bool);
 
-	bool getEndRGBVarSync() const;
-	void setEndRGBVarSync(bool);
+	// @note RobTop Addition
+    bool getEndRGBVarSync() const;
+	// @note RobTop Addition
+    void setEndRGBVarSync(bool);
 
+    // @note RobTop Addition
     float getFadeInTime() const;
-	float getFadeInTimeVar() const;
-	float getFadeOutTime() const;
-	float getFadeOutTimeVar() const;
-	float getFrictionPos() const;
-	float getFrictionPosVar() const;
-	float getFrictionRot() const;
-	float getFrictionRotVar() const;
-	float getFrictionSize() const;
-	float getFrictionSizeVar() const;
+	// @note RobTop Addition
+    float getFadeInTimeVar() const;
+	// @note RobTop Addition
+    float getFadeOutTime() const;
+	// @note RobTop Addition
+    float getFadeOutTimeVar() const;
+	// @note RobTop Addition
+    float getFrictionPos() const;
+	// @note RobTop Addition
+    float getFrictionPosVar() const;
+	// @note RobTop Addition
+    float getFrictionRot() const;
+	// @note RobTop Addition
+    float getFrictionRotVar() const;
+    // @note RobTop Addition
+    float getFrictionSize() const;
+	// @note RobTop Addition
+    float getFrictionSizeVar() const;
 
-	bool getOrderSensitive() const;
+	// @note RobTop Addition
+    bool getOrderSensitive() const;
 
+    // @note RobTop Addition
     float getRespawn() const;
-	float getRespawnVar() const;
+	// @note RobTop Addition
+    float getRespawnVar() const;
 
-	bool getStartRGBVarSync() const;
-	bool getStartRadiusEqualToEnd() const;
-	bool getStartSizeEqualToEnd() const;
-	bool getStartSpinEqualToEnd() const;
+	// @note RobTop Addition
+    bool getStartRGBVarSync() const;
+	// @note RobTop Addition
+    bool getStartRadiusEqualToEnd() const;
+	// @note RobTop Addition
+    bool getStartSizeEqualToEnd() const;
+	// @note RobTop Addition
+    bool getStartSpinEqualToEnd() const;
 
-	float getTimeElapsed();
+	// @note RobTop Addition
+    float getTimeElapsed();
 
-	bool getUseUniformColorMode() const;
+	// @note RobTop Addition
+    bool getUseUniformColorMode() const;
 
-	bool getWasRemoved() const;
+	// @note RobTop Addition
+    bool getWasRemoved() const;
 
-	bool getUsingSchedule() const;
+	// @note RobTop Addition
+    bool getUsingSchedule() const;
 
-	
+	// @note RobTop Addition
     void setEndAlpha(float);
+    // @note RobTop Addition
     void setFadeInTime(float);
-	void setFadeInTimeVar(float);
-	void setFadeOutTime(float);
-	void setFadeOutTimeVar(float);
-	void setFrictionPos(float);
-	void setFrictionPosVar(float);
-	void setFrictionRot(float);
-	void setFrictionRotVar(float);
-	void setFrictionSize(float);
-	void setFrictionSizeVar(float);
+	// @note RobTop Addition
+    void setFadeInTimeVar(float);
+	// @note RobTop Addition
+    void setFadeOutTime(float);
+	// @note RobTop Addition
+    void setFadeOutTimeVar(float);
+	// @note RobTop Addition
+    void setFrictionPos(float);
+	// @note RobTop Addition
+    void setFrictionPosVar(float);
+	// @note RobTop Addition
+    void setFrictionRot(float);
+	// @note RobTop Addition
+    void setFrictionRotVar(float);
+	// @note RobTop Addition
+    void setFrictionSize(float);
+	// @note RobTop Addition
+    void setFrictionSizeVar(float);
 
-	void setOrderSensitive(bool);
+	// @note RobTop Addition
+    void setOrderSensitive(bool);
 
+    // @note RobTop Addition
     void setRespawn(float);
-	void setRespawnVar(float);
+	// @note RobTop Addition
+    void setRespawnVar(float);
 
-	void setStartAlpha(float);
-	void setStartRGBVarSync(bool);
-	void setStartRadiusEqualToEnd(bool);
-	void setStartSizeEqualToEnd(bool);
-	void setStartSpinEqualToEnd(bool);
+	// @note RobTop Addition
+    void setStartAlpha(float);
+	// @note RobTop Addition
+    void setStartRGBVarSync(bool);
+	// @note RobTop Addition
+    void setStartRadiusEqualToEnd(bool);
+	// @note RobTop Addition
+    void setStartSizeEqualToEnd(bool);
+	// @note RobTop Addition
+    void setStartSpinEqualToEnd(bool);
 
-	void setUsingSchedule(bool);
+	// @note RobTop Addition
+    void setUsingSchedule(bool);
 
-	void setWasRemoved(bool);
+	// @note RobTop Addition
+    void setWasRemoved(bool);
 
-	void toggleUniformColorMode(bool);
-	void updateVisible();
+	// @note RobTop Addition
+    void toggleUniformColorMode(bool);
+	// @note RobTop Addition
+    void updateVisible();
 
-	virtual void updateEmissionRate();
-
-
-    )
+	// @note RobTop Addition
+    virtual void updateEmissionRate();
 };
 
 // end of particle_nodes group

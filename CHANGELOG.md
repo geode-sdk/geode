@@ -1,7 +1,68 @@
 # Geode Changelog
 
-## v3.0.0-alpha.2
+## v3.0.0-beta.4
+ * Fix events crash caused by immediate enabling & disabling (e796711)
+ * Make some classes final (ea96e2c)
 
+## v3.0.0-beta.3
+ * Fix a crash that might happen when entering the Geode mods page (79689cd)
+ * Fix a locale related crash (fdb473a)
+ * Cleanup old field syntax remnants (34e51ff)
+ * Use `clamp` for `SwelvyBG` instead of `repeat` (0a6a5e6)
+ * Add support for `one-of` settings for mods (3f674e5, 7d79ddd)
+ * Remove `RT_ADD` and `RT_REMOVE` (7bd8a1a)
+ * Add `CCDirector::m_bFastMenu` back (c3058ff)
+ * Fix UI visual bugs in `ModsLayer` (e273ef2, b3925f1, 255a42c)
+ * Fix race conditions for event pools (636be07, 4c15bdb, abc34f9)
+ * Add a `static_assert` to prevent old field syntax (5f37d30)
+ * Fix dangling `string_view` for `Task` names (92704b9)
+ * Download the exact update suggested by Index instead of latest version (115f0e7)
+ * Small cleanup and improvements for Windows stacktraces (2824c17)
+ * Fix bugs related to `delayload` (ec1d846)
+
+## v3.0.0-beta.2
+ * (WebRequest) Don't change the method from POST to GET on redirect follow (6ae11dd)
+ * Make `file::openFolder` actually work on selecting paths on Windows (0309e01)
+ * Hide platform console option on Android (df3d147)
+ * Add `gd::vector::erase` for Android (c3c2afa) - thanks SpaghettDev
+ * Stop using `android_stl=c++_shared` on mods (100dbdc)
+ * Show confirm dialog directly when updating mods (8f1a9cf)
+ * Only check for updates once per launch (3313a44)
+ * Fix various bugs with texture pack reloading (aeaf7f7)
+ * Fix `Ref` and `WeakRef` move assignment (f352503)
+ * Add comma to download counts (de50b98)
+ * Add check for Texture Loader's fallback function for mod logos (a421047)
+ * Bring back safe mode UI (6e6dace)
+ * Fix texture corruption bug on `ModsLayer` (76e2ed4)
+ * Fix `CCArrayExt::value_type` (97d2e44)
+ * Add `AxisAlignment::Between`, for equal space between elements (adc4469)
+ * Add discord and website links to loader mod.json (8792747) - thanks coopeeo
+ * Make mod updates log into an info log instead of error (815c4a3)
+ * Hopefully finally fix Windows crashlogs (70fe096)
+
+## v3.0.0-beta.1
+ * Add a special error for 1114 - vcredist update (d0821f5)
+ * Properly fix Windows exceptions (84a2c6b)
+ * Add keyboard support to ModsLayer (2b53e8a)
+ * Fix "Loading mods cancelled" appearing with no reason (698112a)
+ * Fix various compile warnings (68ac2b0, cb1e7de)
+ * Use `string_view` instead of `string` for some Task functions (da617ee)
+ * Add `Task::listen` for listening to Tasks globally (fa7a2de, eb7c4d9)
+ * Add 2.2 `CCDrawNode` members (562fbf6) - thanks Prevter
+ * Use `SPACE_WRAP` for mod problem textarea (4d267d3)
+ * Fix download links for mods being generated without prerelease tag (06bd2e2)
+ * Make developer filter search by username (014ec68, 1c40a63)
+ * Fix `Notification` crashing when shown during a transition fade (0270d47)
+ * Split `GEODE_PLATFORM_NAME` for Mac ARM and Mac Intel (48a7981)
+ * Use `string_view` instead of `const char*` for `expandSpriteName` (22cc33b)
+ * Make `_spr` compile time (b22a59d, bacab92)
+ * Update server UserAgent format (9679b40)
+ * Allow mods with old `gd` key syntax in `mod.json` to be checked for updates (c1fbc08)
+ * Replace the "Recommended" tab with "Featured" (#897)
+ * Use c++_shared STL on Android64 (115b9cf, d0cc62a, fbc6416)
+ * `file::pick` and `file::pickMany` are the new file APIs, which use Tasks (#899)
+
+## v3.0.0-alpha.2
  * Add `WebResponse::into()` for writing responses to files (f909a73)
  * Add `geodeImplicitEntry` and `geodeCustomEntry` (6b2ac24, 5969c90)
  * Fix padding and add a custom color for borders (#868)

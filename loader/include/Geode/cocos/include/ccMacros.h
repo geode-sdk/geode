@@ -272,31 +272,6 @@ extern unsigned int ACTUAL_CC_DLL g_uNumberOfDraws;
 #define __STR_CAT___(str1, str2) str1##str2
 #define __STR_CAT__(str1, str2) __STR_CAT___(str1, str2)
 
-/** RT_ADD
-* RobTop added this function / field. It is proprietary,
-* and the modding library will not compile properly
-* if this function / field is not found in the
-* Cocos2d headers.
-* 
-* Variadic arguments used due to enums using commas, 
-* which will not expand correctly otherwise.
-*/
-#define RT_ADD(...) __VA_ARGS__
-
-/** RT_REMOVE
-* RobTop removed this function / field. It is not
-* found in libcocos2d.dll, and can't be called / used.
-*/
-#define RT_REMOVE(name)
-
-/** HJ_ADD
- * This function / field might not actually exist in GD itself.
- * 
- * However, it has been added in these headers for ease-of-use
- * or other equivalent reasons. It should not conflict with
- * GD itself.
-*/
-#define HJ_ADD(...) __VA_ARGS__
 
 
 /** PAD

@@ -7,11 +7,9 @@ using namespace geode::prelude;
 #include "nfdwin.hpp"
 #include <Windows.h>
 #include <processthreadsapi.h>
-#include <iostream>
 #include <ShlObj.h>
 #include <shlwapi.h>
 #include <shobjidl.h>
-#include <sstream>
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/loader/Log.hpp>
@@ -84,9 +82,14 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
     auto success = false;
     auto thread = std::thread([](auto const& path, bool& success) {
         if (CoInitializeEx(nullptr, COINIT_MULTITHREADED) == S_OK) {
-            if (auto id = ILCreateFromPathW(path.wstring().c_str())) {
+            // Don't try to open up a file >:(
+            std::error_code whatever;
+            std::filesystem::path dir = path;
+            if (!std::filesystem::is_directory(dir, whatever)) {
+                dir = dir.parent_path();
+            }
+            if (auto id = ILCreateFromPathW(dir.wstring().c_str())) {
                 std::filesystem::path selectPath = path / ".";
-                std::error_code whatever;
                 if (!std::filesystem::is_directory(path, whatever)) {
                     selectPath = path;
                 }
@@ -103,9 +106,8 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
     return success;
 }
 
-Result<std::filesystem::path> utils::file::pickFile(
-    file::PickMode mode, file::FilePickOptions const& options
-) {
+Task<Result<std::filesystem::path>> file::pick(PickMode mode, FilePickOptions const& options) {
+    using RetTask = Task<Result<std::filesystem::path>>;
     #define TURN_INTO_NFDMODE(mode) \
         case file::PickMode::mode: nfdMode = NFDMode::mode; break;
 
@@ -114,57 +116,33 @@ Result<std::filesystem::path> utils::file::pickFile(
         TURN_INTO_NFDMODE(OpenFile);
         TURN_INTO_NFDMODE(SaveFile);
         TURN_INTO_NFDMODE(OpenFolder);
-        default: return Err<std::string>("Unknown open mode");
+        default:
+            return RetTask::immediate(Err<std::string>("Invalid pick mode"));
     }
     std::filesystem::path path;
-    GEODE_UNWRAP(nfdPick(nfdMode, options, &path));
-    return Ok(path);
-}
-
-void file::pickFile(
-    PickMode mode, FilePickOptions const& options,
-    MiniFunction<void(std::filesystem::path)> callback,
-    MiniFunction<void()> failed
-) {
-    auto result = file::pickFile(mode, options);
-
-    if (result.isOk()) {
-        callback(std::move(result.unwrap()));
+    Result<std::filesystem::path> result;
+    auto pickresult = nfdPick(nfdMode, options, &path);
+    if (pickresult.isErr()) {
+        result = Err(pickresult.err().value());
     } else {
-        if (failed) {
-            failed();
-        }
+        result = Ok(path);
     }
-}
-Task<Result<std::filesystem::path>> file::pick(PickMode mode, FilePickOptions const& options) {
-    return Task<Result<std::filesystem::path>>::immediate(std::move(file::pickFile(mode, options)));
+    return RetTask::immediate(std::move(result));
 }
 
-Result<std::vector<std::filesystem::path>> utils::file::pickFiles(
-    file::FilePickOptions const& options
-) {
-    std::vector<std::filesystem::path> paths;
-    GEODE_UNWRAP(nfdPick(NFDMode::OpenFiles, options, &paths));
-    return Ok(paths);
-}
-
-void file::pickFiles(
-    FilePickOptions const& options,
-    MiniFunction<void(std::vector<std::filesystem::path>)> callback,
-    MiniFunction<void()> failed
-) {
-    auto result = file::pickFiles(options);
-
-    if (result.isOk()) {
-        callback(std::move(result.unwrap()));
-    } else {
-        if (failed) {
-            failed();
-        }
-    }
-}
 Task<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions const& options) {
-    return Task<Result<std::vector<std::filesystem::path>>>::immediate(std::move(file::pickFiles(options)));
+    using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
+
+    std::vector<std::filesystem::path> paths;
+    auto pickResult = nfdPick(NFDMode::OpenFiles, options, &paths);
+    Result<std::vector<std::filesystem::path>> result;
+    if (pickResult.isErr()) {
+        result = Err(pickResult.err().value());
+    } else {
+        result = Ok(paths);
+    }
+    return RetTask::immediate(std::move(result));
+    // return Task<Result<std::vector<std::filesystem::path>>>::immediate(std::move(file::pickFiles(options)));
 }
 
 void utils::web::openLinkInBrowser(std::string const& url) {

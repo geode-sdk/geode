@@ -16,6 +16,8 @@
 #include <Geode/binding/MenuLayer.hpp>
 #include "popups/ConfirmInstall.hpp"
 #include "GeodeStyle.hpp"
+#include "ui/mods/sources/ModListSource.hpp"
+#include <loader/LoaderImpl.hpp>
 
 bool ModsStatusNode::init() {
     if (!CCNode::init())
@@ -94,15 +96,6 @@ bool ModsStatusNode::init() {
 }
 
 void ModsStatusNode::updateState() {
-    enum class DownloadState {
-        None,
-        SomeCancelled,
-        AllDone,
-        SomeErrored,
-        SomeToBeConfirmed,
-        SomeFetching,
-        SomeDownloading,
-    };
     DownloadState state = DownloadState::None;
     auto upgradeState = [&](DownloadState into) {
         if (static_cast<int>(state) < static_cast<int>(into)) {
@@ -205,6 +198,7 @@ void ModsStatusNode::updateState() {
 
             m_viewBtn->setVisible(true);
             m_viewBtn->setTarget(this, menu_selector(ModsStatusNode::onConfirm));
+            if(m_lastState != state) askConfirmModInstalls();
         } break;
 
         case DownloadState::SomeFetching: {
@@ -241,6 +235,7 @@ void ModsStatusNode::updateState() {
         } break;
     }
 
+    m_lastState = state;
     m_btnMenu->updateLayout();
 }
 
@@ -307,14 +302,17 @@ bool ModsLayer::init() {
     this->setID("ModsLayer");
 
     auto winSize = CCDirector::get()->getWinSize();
+    const bool isSafeMode = LoaderImpl::get()->isSafeMode();
     
     const bool geodeTheme = isGeodeTheme();
-    if (geodeTheme) {
-        this->addChild(SwelvyBG::create());
-    }
-    else {
-        this->addChild(createLayerBG());
-        addSideArt(this);
+    if (!isSafeMode) {
+        if (geodeTheme) {
+            this->addChild(SwelvyBG::create());
+        }
+        else {
+            this->addChild(createLayerBG());
+            addSideArt(this);
+        }
     }
     
     auto backMenu = CCMenu::create();
@@ -397,23 +395,25 @@ bool ModsLayer::init() {
     auto tabsTop = CCSprite::createWithSpriteFrameName(geodeTheme ? "mods-list-top.png"_spr : "mods-list-top-gd.png"_spr);
     tabsTop->setID("frame-top-sprite");
     tabsTop->setAnchorPoint({ .5f, .0f });
+    tabsTop->setZOrder(1);
     m_frame->addChildAtPosition(tabsTop, Anchor::Top, ccp(0, -2));
 
     auto tabsLeft = CCSprite::createWithSpriteFrameName(geodeTheme ? "mods-list-side.png"_spr : "mods-list-side-gd.png"_spr);
     tabsLeft->setID("frame-left-sprite");
     tabsLeft->setScaleY(m_frame->getContentHeight() / tabsLeft->getContentHeight());
-    m_frame->addChildAtPosition(tabsLeft, Anchor::Left, ccp(6, 0));
+    m_frame->addChildAtPosition(tabsLeft, Anchor::Left, ccp(6.5f, 1));
 
     auto tabsRight = CCSprite::createWithSpriteFrameName(geodeTheme ? "mods-list-side.png"_spr : "mods-list-side-gd.png"_spr);
     tabsRight->setID("frame-right-sprite");
     tabsRight->setFlipX(true);
     tabsRight->setScaleY(m_frame->getContentHeight() / tabsRight->getContentHeight());
-    m_frame->addChildAtPosition(tabsRight, Anchor::Right, ccp(-6, 0));
+    m_frame->addChildAtPosition(tabsRight, Anchor::Right, ccp(-6.5f, 1));
 
     auto tabsBottom = CCSprite::createWithSpriteFrameName(geodeTheme ? "mods-list-bottom.png"_spr : "mods-list-bottom-gd.png"_spr);
     tabsBottom->setID("frame-bottom-sprite");
     tabsBottom->setAnchorPoint({ .5f, 1.f });
-    m_frame->addChildAtPosition(tabsBottom, Anchor::Bottom, ccp(0, 2));
+    tabsBottom->setZOrder(1);
+    m_frame->addChildAtPosition(tabsBottom, Anchor::Bottom, ccp(0, 3));
 
     this->addChildAtPosition(m_frame, Anchor::Center, ccp(0, -10), false);
 
@@ -427,7 +427,7 @@ bool ModsLayer::init() {
 
     for (auto item : std::initializer_list<std::tuple<const char*, const char*, ModListSource*, const char*>> {
         { "download.png"_spr, "Installed", InstalledModListSource::get(InstalledModListType::All), "installed-button" },
-        { "GJ_starsIcon_001.png", "Recommended", SuggestedModListSource::get(), "recommended-button" },
+        { "GJ_starsIcon_001.png", "Featured", ServerModListSource::get(ServerModListType::Featured), "featured-button" },
         { "globe.png"_spr, "Download", ServerModListSource::get(ServerModListType::Download), "download-button" },
         { "GJ_timeIcon_001.png", "Recent", ServerModListSource::get(ServerModListType::Recent), "recent-button" },
     }) {
@@ -521,6 +521,28 @@ bool ModsLayer::init() {
         } 
         this->updateState();
     });
+
+    // add safe mode label
+    if (isSafeMode) {
+        auto* label = CCLabelBMFont::create("Safe Mode Enabled", "bigFont.fnt");
+        label->setPosition(winSize.width, 0);
+        label->setAnchorPoint(ccp(1, 0));
+        label->setOpacity(128);
+        label->setZOrder(999);
+        label->setScale(0.55f);
+        this->addChild(label);
+        static int _ = [this] {
+            auto* alert = FLAlertLayer::create(
+                "Safe Mode Enabled",
+                "Safe Mode has been enabled. This means no mods will be loaded to prevent crashes. Feel free to manage any problematic mods.",
+                "OK"
+            );
+            alert->m_scene = this;
+            alert->m_noElasticity = true;
+            alert->show();
+            return 0;
+        }();
+    }
 
     return true;
 }
@@ -623,6 +645,12 @@ void ModsLayer::onRefreshList(CCObject*) {
     }
 }
 void ModsLayer::onBack(CCObject*) {
+    // Tell every list that we are about to exit the layer.
+    // This prevents any page from being cached when the 
+    // cache invalidation event fires.
+    for (auto& list : m_lists) {
+        list.second->setIsExiting(true);
+    }
     CCDirector::get()->replaceScene(CCTransitionFade::create(.5f, MenuLayer::scene(false)));
 
     // To avoid memory overloading, clear caches after leaving the layer

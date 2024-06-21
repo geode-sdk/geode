@@ -57,6 +57,20 @@ protected:
     ccBlendFunc     m_sBlendFunc;
     
     bool            m_bDirty;
+    
+
+    // @note RobTop Addition
+    bool            m_bUseArea;
+    // @note RobTop Addition
+    CCRect          m_rDrawArea;
+    // @note RobTop Addition
+    float           m_fMinAreaX;
+    // @note RobTop Addition
+    float           m_fMaxAreaX;
+    // @note RobTop Addition
+    float           m_fMaxAreaY;
+    // @note RobTop Addition
+    float           m_fMinAreaY;
 
 public:
     static CCDrawNode* create();

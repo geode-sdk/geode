@@ -254,36 +254,18 @@ namespace geode::utils::file {
 
     /**
      * Prompt the user to pick a file using the system's file system picker
-     * @deprecated Will not work on Android, use the callback version instead
      * @param mode Type of file selection prompt to show
      * @param options Picker options
      */
-    [[deprecated("Use pick() instead, this will be removed in a later version.")]]
-    GEODE_DLL Result<std::filesystem::path> pickFile(PickMode mode, FilePickOptions const& options);
-
-    GEODE_DLL void pickFile(
-        PickMode mode, FilePickOptions const& options,
-        utils::MiniFunction<void(std::filesystem::path)> callback,
-        utils::MiniFunction<void()> failed = {}
-    );
     GEODE_DLL Task<Result<std::filesystem::path>> pick(PickMode mode, FilePickOptions const& options);
 
     /**
      * Prompt the user to pick a bunch of files for opening using the system's file system picker
-     * @deprecated Will not work on Android, use the callback version instead
      * @param options Picker options
      */
-    [[deprecated("Use pickMany() instead, this will be removed in a later version.")]]
-    GEODE_DLL Result<std::vector<std::filesystem::path>> pickFiles(FilePickOptions const& options);
-
-    GEODE_DLL void pickFiles(
-        FilePickOptions const& options,
-        utils::MiniFunction<void(std::vector<std::filesystem::path>)> callback,
-        utils::MiniFunction<void()> failed = {}
-    );
     GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> pickMany(FilePickOptions const& options);
 
-    class GEODE_DLL FileWatchEvent : public Event {
+    class GEODE_DLL FileWatchEvent final : public Event {
     protected:
         std::filesystem::path m_path;
     
@@ -292,7 +274,7 @@ namespace geode::utils::file {
         std::filesystem::path getPath() const;
     };
 
-    class GEODE_DLL FileWatchFilter : public EventFilter<FileWatchEvent> {
+    class GEODE_DLL FileWatchFilter final : public EventFilter<FileWatchEvent> {
     protected:
         std::filesystem::path m_path;
     

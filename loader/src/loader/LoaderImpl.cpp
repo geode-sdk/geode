@@ -128,6 +128,10 @@ void Loader::Impl::updateResources(bool forceReload) {
         this->updateModResources(mod);
         ModImpl::getImpl(mod)->m_resourcesLoaded = true;
     }
+    // deduplicate mod resource paths, since they added in both updateModResources and Mod::Impl::setup
+    // we have to call it in both places since setup is only called once ever, but updateResources is called
+    // on every texture reload
+    CCFileUtils::get()->updatePaths();
     log::popNest();
 }
 
@@ -215,7 +219,7 @@ Mod* Loader::Impl::getLoadedMod(std::string const& id) const {
 }
 
 void Loader::Impl::updateModResources(Mod* mod) {
-    if (mod != Mod::get()) {
+    if (!mod->isInternal()) {
         // geode.loader resource is stored somewhere else, which is already added anyway
         auto searchPathRoot = dirs::getModRuntimeDir() / mod->getID() / "resources";
         CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
@@ -440,6 +444,18 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
     };
 
     {   // version checking
+        if (auto reason = node->getMetadata().m_impl->m_softInvalidReason) {
+            this->addProblem({
+                LoadProblem::Type::InvalidFile,
+                node,
+                reason.value()
+            });
+            log::error("{}", reason.value());
+            m_refreshingModCount -= 1;
+            log::popNest();
+            return;
+        }
+
         auto res = node->getMetadata().checkGameVersion();
         if (!res) {
             this->addProblem({

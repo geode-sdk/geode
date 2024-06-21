@@ -62,18 +62,18 @@ typedef enum {
     kCCDirectorProjectionDefault = kCCDirectorProjection3D,
 } ccDirectorProjection;
 
-RT_ADD(
-    typedef enum {
-        kTextureQualityLow = 1,
-        kTextureQualityMedium,
-        kTextureQualityHigh
-    } TextureQuality;
+// @note RobTop Addition
+typedef enum {
+    kTextureQualityLow = 1,
+    kTextureQualityMedium,
+    kTextureQualityHigh
+} TextureQuality;
 
-    typedef enum {
-        kPopTransitionFade,
-        kPopTransitionMoveInT
-    } PopTransition;
-)
+// @note RobTop Addition
+typedef enum {
+    kPopTransitionFade,
+    kPopTransitionMoveInT
+} PopTransition;
 
 
 /* Forward declarations. */
@@ -87,12 +87,14 @@ class CCActionManager;
 class CCTouchDispatcher;
 class CCKeypadDispatcher;
 class CCAccelerometer;
-RT_ADD(
-    class CCKeyboardDispatcher;
-    class CCMouseDispatcher;
-    class CCSceneDelegate;
-    class CCLabelBMFont;
-)
+// @note RobTop Addition
+class CCKeyboardDispatcher;
+// @note RobTop Addition
+class CCMouseDispatcher;
+// @note RobTop Addition
+class CCSceneDelegate;
+// @note RobTop Addition
+class CCLabelBMFont;
 
 /**
 @brief Class that creates and handle the main Window and manages how
@@ -259,9 +261,10 @@ public:
      * The new scene will be executed.
      * Try to avoid big stacks of pushed scenes to reduce memory allocation. 
      * ONLY call it if there is a running scene.
+     * 
+     * @note Robtop Addition: return value from void to bool
      */
-    RT_REMOVE(  void pushScene(CCScene *pScene);    )
-    RT_ADD(     bool pushScene(CCScene *pScene);    )
+    bool pushScene(CCScene *pScene);
 
     /** Pops out a scene from the queue.
      * This scene will replace the running one.
@@ -285,9 +288,10 @@ public:
 
     /** Replaces the running scene with a new one. The running scene is terminated.
      * ONLY call it if there is a running scene.
+     * 
+     * @note Robtop Addition: return value from void to bool
      */
-    RT_REMOVE(  void replaceScene(CCScene *pScene); )
-    RT_ADD(     bool replaceScene(CCScene *pScene); )
+    bool replaceScene(CCScene *pScene);
 
     /** Ends the execution, releases the running scene.
      It doesn't remove the OpenGL view from its parent. You have to do it manually.
@@ -358,44 +362,66 @@ public:
     void setContentScaleFactor(float scaleFactor);
     inline float getContentScaleFactor(void) { return m_fContentScaleFactor; }
 
-    RT_ADD(
-    public:
+public:
+    // @note RobTop Addition
+    void checkSceneReference(void);
+    // @note RobTop Addition
+    CCScene* getNextScene(void);
+    // @note RobTop Addition
+    int levelForSceneInStack(CCScene*);
+    // @note RobTop Addition
+    bool popSceneWithTransition(float, PopTransition);
+    // @note RobTop Addition
+    void popToSceneInStack(CCScene*);
+    // @note RobTop Addition
+    int sceneCount(void);
+    // @note RobTop Addition
+    void willSwitchToScene(CCScene*);
+    
+    // @note RobTop Addition
+    void removeStatsLabel(void);
 
-        void checkSceneReference(void);
+    // @note RobTop Addition
+    void resetSmoothFixCounter(void);
+    // @note RobTop Addition
+    void setDeltaTime(float);
 
-        CCScene* getNextScene(void);
-        int levelForSceneInStack(CCScene*);
-        bool popSceneWithTransition(float, PopTransition);
-        void popToSceneInStack(CCScene*);
-        int sceneCount(void);
-        void willSwitchToScene(CCScene*);
-        
-        void removeStatsLabel(void);
+    // @note RobTop Addition
+    void setupScreenScale(CCSize, CCSize, TextureQuality);
+    // @note RobTop Addition
+    void updateContentScale(TextureQuality);
+    // @note RobTop Addition
+    void updateScreenScale(CCSize);
 
-        void resetSmoothFixCounter(void);
-        void setDeltaTime(float);
+    // @note RobTop Addition
+    void applySmoothFix();
+    // @note RobTop Addition
+    void showFPSLabel();
+    // @note RobTop Addition
+    void toggleShowFPS(bool, gd::string, cocos2d::CCPoint);
+protected:
+    // @note RobTop Addition
+    void createStatsLabel();
 
-        void setupScreenScale(CCSize, CCSize, TextureQuality);
-        void updateContentScale(TextureQuality);
-        void updateScreenScale(CCSize);
-
-    	void applySmoothFix();
-        void showFPSLabel();
-        void toggleShowFPS(bool, gd::string, cocos2d::CCPoint);
-    protected:
-        void createStatsLabel();
-
-    protected:
-        CC_SYNTHESIZE_READONLY_NV(float, m_fScreenScaleFactor, ScreenScaleFactor);
-        CC_SYNTHESIZE_READONLY_NV(float, m_fScreenScaleFactorMax, ScreenScaleFactorMax);
-        CC_SYNTHESIZE_READONLY_NV(float, m_fScreenScaleFactorW, ScreenScaleFactorW);
-        CC_SYNTHESIZE_READONLY_NV(float, m_fScreenScaleFactorH, ScreenScaleFactorH);
-        CC_SYNTHESIZE_READONLY_NV(float, m_fScreenTop, ScreenTop);
-        CC_SYNTHESIZE_READONLY_NV_NC(float, m_fScreenBottom, ScreenBottom);
-        CC_SYNTHESIZE_READONLY_NV_NC(float, m_fScreenLeft, ScreenLeft);
-        CC_SYNTHESIZE_READONLY_NV(float, m_fScreenRight, ScreenRight);
-        CC_SYNTHESIZE_NV(CCScene*, m_pSceneReference, SceneReference);
-    )
+protected:
+    // @note RobTop Addition
+    CC_SYNTHESIZE_READONLY_NV(float, m_fScreenScaleFactor, ScreenScaleFactor);
+    // @note RobTop Addition
+    CC_SYNTHESIZE_READONLY_NV(float, m_fScreenScaleFactorMax, ScreenScaleFactorMax);
+    // @note RobTop Addition
+    CC_SYNTHESIZE_READONLY_NV(float, m_fScreenScaleFactorW, ScreenScaleFactorW);
+    // @note RobTop Addition
+    CC_SYNTHESIZE_READONLY_NV(float, m_fScreenScaleFactorH, ScreenScaleFactorH);
+    // @note RobTop Addition
+    CC_SYNTHESIZE_READONLY_NV(float, m_fScreenTop, ScreenTop);
+    // @note RobTop Addition
+    CC_SYNTHESIZE_READONLY_NV_NC(float, m_fScreenBottom, ScreenBottom);
+    // @note RobTop Addition
+    CC_SYNTHESIZE_READONLY_NV_NC(float, m_fScreenLeft, ScreenLeft);
+    // @note RobTop Addition
+    CC_SYNTHESIZE_READONLY_NV(float, m_fScreenRight, ScreenRight);
+    // @note RobTop Addition
+    CC_SYNTHESIZE_NV(CCScene*, m_pSceneReference, SceneReference);
 
 public:
     /** CCScheduler associated with this director
@@ -418,11 +444,11 @@ public:
      */
     CC_PROPERTY(CCKeypadDispatcher*, m_pKeypadDispatcher, KeypadDispatcher);
 
-    RT_ADD(
-        CC_PROPERTY(CCKeyboardDispatcher*, m_pKeyboardDispatcher, KeyboardDispatcher);
+    // @note RobTop Addition
+    CC_PROPERTY(CCKeyboardDispatcher*, m_pKeyboardDispatcher, KeyboardDispatcher);
 
-        CC_PROPERTY(CCMouseDispatcher*, m_pMouseDispatcher, MouseDispatcher);
-    )
+    // @note RobTop Addition
+    CC_PROPERTY(CCMouseDispatcher*, m_pMouseDispatcher, MouseDispatcher);
 
     /** CCAccelerometer associated with this director
      @since v2.0
@@ -435,9 +461,8 @@ public:
 	CC_PROPERTY_READONLY(float, m_fDeltaTime, DeltaTime);
 
     /* *actual* delta time, according to rob. not sure what that means but i'm not arguing */
-    RT_ADD(
-        CC_SYNTHESIZE_NV(float, m_fActualDeltaTime, ActualDeltaTime); 
-    )
+    // @note RobTop Addition
+    CC_SYNTHESIZE_NV(float, m_fActualDeltaTime, ActualDeltaTime); 
     
 	
 public:
@@ -449,14 +474,17 @@ public:
 protected:
 
     void purgeDirector();
-    RT_ADD(
-        CC_SYNTHESIZE_READONLY_NV(bool, m_bIsTransitioning, IsTransitioning);   // if in a CCTransitionScene
+    // @note RobTop Addition
+    CC_SYNTHESIZE_READONLY_NV(bool, m_bIsTransitioning, IsTransitioning);   // if in a CCTransitionScene
 
-        CC_SYNTHESIZE_NV(bool, m_bSmoothFix, SmoothFix);                        // if smooth fix is on
-        CC_SYNTHESIZE_NV(bool, m_bSmoothFixCheck, SmoothFixCheck);              // not exactly sure what this is, but the name says something ig
-        CC_SYNTHESIZE_NV(bool, m_bForceSmoothFix, ForceSmoothFix);              // if "force smooth fix" is on or not
-        CC_SYNTHESIZE_READONLY_NV(int, m_nSmoothFixCounter, SmoothFixCounter);  // not sure about this one either
-    )
+    // @note RobTop Addition
+    CC_SYNTHESIZE_NV(bool, m_bSmoothFix, SmoothFix);                        // if smooth fix is on
+    // @note RobTop Addition
+    CC_SYNTHESIZE_NV(bool, m_bSmoothFixCheck, SmoothFixCheck);              // not exactly sure what this is, but the name says something ig
+    // @note RobTop Addition
+    CC_SYNTHESIZE_NV(bool, m_bForceSmoothFix, ForceSmoothFix);              // if "force smooth fix" is on or not
+    // @note RobTop Addition
+    CC_SYNTHESIZE_READONLY_NV(int, m_nSmoothFixCounter, SmoothFixCounter);  // not sure about this one either
 
     bool m_bPurgeDirecotorInNextLoop; // this flag will be set to true in end()
 
@@ -464,7 +492,8 @@ protected:
     void setNextScene(void);
     
     void showStats();
-    RT_REMOVE(void createStatsLabel();)
+    // Robtop Removal
+    // void createStatsLabel();
     void calculateMPF();
     void getFPSImageData(unsigned char** datapointer, unsigned int* length);
     
@@ -536,23 +565,31 @@ public:
     /* Projection protocol delegate */
     CCDirectorDelegate *m_pProjectionDelegate;
 
-    RT_ADD(
-        CC_SYNTHESIZE(CCSceneDelegate*, m_pAppDelegate, SceneDelegate);
-        bool m_bDisplayFPS;
-        CCLabelBMFont* m_pFPSNode;
-        CCSize m_obScaleFactor;
-        CCSize m_obResolutionInPixels;
-        CC_SYNTHESIZE_READONLY_NV(TextureQuality, m_eTextureQuality, LoadedTextureQuality);
-        CC_SYNTHESIZE_NV(bool, m_bDontCallWillSwitch, DontCallWillSwitch);
-// #if GEODE_COMP_GD_VERSION >= 22003
-        // this messed up binding tests and i don't really feel like figuring out why
-        // CC_SYNTHESIZE_NV(bool, m_bFastMenu, FastMenu);
-// #else
-        // these were just garbage memory in reclass
-        void* m_unknownPtr2;
-// #endif
-        void* m_unknownPtr3;
-    )
+    // @note RobTop Addition
+    CC_SYNTHESIZE(CCSceneDelegate*, m_pAppDelegate, SceneDelegate);
+    // @note RobTop Addition
+    bool m_bDisplayFPS;
+    // @note RobTop Addition
+    CCLabelBMFont* m_pFPSNode;
+    // @note RobTop Addition
+    CCSize m_obScaleFactor;
+    // @note RobTop Addition
+    CCSize m_obResolutionInPixels;
+    // @note RobTop Addition
+    CC_SYNTHESIZE_READONLY_NV(TextureQuality, m_eTextureQuality, LoadedTextureQuality);
+    // @note RobTop Addition
+    CC_SYNTHESIZE_NV(bool, m_bDontCallWillSwitch, DontCallWillSwitch);
+
+#if GEODE_COMP_GD_VERSION >= 22003
+    // @note RobTop Addition
+    CC_SYNTHESIZE_NV(bool, m_bFastMenu, FastMenu);
+#else
+    // these were just garbage memory in reclass
+    // @note RobTop Addition
+    void* m_unknownPtr2;
+#endif
+    // @note RobTop Addition
+    void* m_unknownPtr3;
     
     // CCEGLViewProtocol will recreate stats labels to fit visible rect
     friend class CCEGLViewProtocol;

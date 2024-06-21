@@ -103,10 +103,9 @@ public:
     *  object and it will return it. It will use the filename as a key.
     * Otherwise it will return a reference of a previously loaded image.
     * Supported image extensions: .png, .bmp, .tiff, .jpeg, .pvr, .gif
+    * @note Robtop Addition: added a bool param
     */
-    RT_REMOVE( CCTexture2D* addImage(const char* fileimage); )
-
-    RT_ADD( CCTexture2D* addImage(const char* fileimage, bool ); )
+    CCTexture2D* addImage(const char* fileimage, bool);
 
     /* Returns a Texture2D object given a file image
     * If the file image was not previously loaded, it will create a new CCTexture2D object and it will return it.

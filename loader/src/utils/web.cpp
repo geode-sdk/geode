@@ -328,6 +328,8 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
 
         // Follow redirects
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+        // don't change the method from POST to GET when following a redirect
+        curl_easy_setopt(curl, CURLOPT_POSTREDIR, CURL_REDIR_POST_ALL);
 
         // Do not fail if response code is 4XX or 5XX
         curl_easy_setopt(curl, CURLOPT_FAILONERROR, 0L);

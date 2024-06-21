@@ -39,7 +39,7 @@ namespace geode {
     };
 
     template<InheritsCCNode T>
-    class EnterLayerEvent : public AEnterLayerEvent {
+    class EnterLayerEvent final : public AEnterLayerEvent {
     public:
         EnterLayerEvent(
             std::string const& layerID,
@@ -55,7 +55,7 @@ namespace geode {
     concept InheritsEnterLayer = std::is_base_of_v<EnterLayerEvent<N>, T>;
 
     template<class N, InheritsEnterLayer<N> T = EnterLayerEvent<N>>
-	class EnterLayerFilter : public EventFilter<EnterLayerEvent<N>> {
+	class EnterLayerFilter final : public EventFilter<EnterLayerEvent<N>> {
 	public:
 		using Callback = void(T*);
         

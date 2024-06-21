@@ -23,6 +23,8 @@ namespace geode {
         std::string m_id;
         std::string m_name;
         std::vector<std::string> m_developers;
+        // TODO: remove once #895 is fixed
+        std::optional<std::string> m_softInvalidReason;
         std::string m_gdVersion;
         VersionInfo m_geodeVersion;
         std::optional<std::string> m_description;

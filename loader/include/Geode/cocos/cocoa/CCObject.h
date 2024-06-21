@@ -36,9 +36,8 @@ THE SOFTWARE.
 #include <GLES2/gl2.h>
 #endif // EMSCRIPTEN
 
-RT_ADD(
-    class DS_Dictionary;
-)
+// @note RobTop Addition
+class DS_Dictionary;
 
 NS_CC_BEGIN
 

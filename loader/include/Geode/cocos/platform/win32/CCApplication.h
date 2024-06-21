@@ -23,8 +23,11 @@ public:
     /**
     @brief    Run the message loop.
     */
-    RT_REMOVE(  virtual int run();  )
-    RT_ADD(     virtual void gameDidSave(); )
+    // Robtop Removal
+    // virtual int run();
+
+    // @note RobTop Addition
+    virtual void gameDidSave();
 
     /**
     @brief    Get current applicaiton instance.
@@ -48,27 +51,38 @@ public:
     virtual void setupGLView();
     virtual void platformShutdown();
     void toggleVerticalSync(bool);
-    RT_ADD(
-        void setupVerticalSync();
-        void updateVerticalSync();
-        void updateControllerKeys(CXBOXController* controller, int userIndex);
+    // @note RobTop Addition
+    void setupVerticalSync();
+    // @note RobTop Addition
+    void updateVerticalSync();
+    // @note RobTop Addition
+    void updateControllerKeys(CXBOXController* controller, int userIndex);
 
-        int getTimeElapsed();
-	    void resetForceTimer();
+    // @note RobTop Addition
+    int getTimeElapsed();
+    // @note RobTop Addition
+    void resetForceTimer();
 
-        void leftMouseDown();
-	    void leftMouseUp();
+    // @note RobTop Addition
+    void leftMouseDown();
+    // @note RobTop Addition
+    void leftMouseUp();
 
-    	void logTimeElapsed(gd::string);
+    // @note RobTop Addition
+    void logTimeElapsed(gd::string);
 
-    	void moveMouse(int, int);
+    // @note RobTop Addition
+    void moveMouse(int, int);
 
-    	void shutdownApplication();
-        void toggleMouseControl(bool);
-        void updateController();
-        void updateMouseControl();
+    // @note RobTop Addition
+    void shutdownApplication();
+    // @note RobTop Addition
+    void toggleMouseControl(bool);
+    // @note RobTop Addition
+    void updateController();
+    // @note RobTop Addition
+    void updateMouseControl();
 
-    )
 
     /**
      *  Sets the Resource root path.

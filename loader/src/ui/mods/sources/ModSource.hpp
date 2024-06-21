@@ -16,7 +16,7 @@ LoadModSuggestionTask loadModSuggestion(LoadProblem const& problem);
 
 class ModSource final {
 private:
-    std::variant<Mod*, server::ServerModMetadata, ModSuggestion> m_value;
+    std::variant<Mod*, server::ServerModMetadata> m_value;
     std::optional<server::ServerModUpdate> m_availableUpdate;
 
 public:
@@ -42,7 +42,6 @@ public:
 
     Mod* asMod() const;
     server::ServerModMetadata const* asServer() const;
-    ModSuggestion const* asSuggestion() const;
 
     std::string formatDevelopers() const;
     server::ServerRequest<server::ServerModMetadata> fetchServerInfo() const;

@@ -31,7 +31,7 @@ namespace geode {
 
         EventListenerPool* getPool() const override {
             if (dispatchPools().count(m_id) == 0) {
-                dispatchPools()[m_id] = new DefaultEventListenerPool();
+                dispatchPools()[m_id] = DefaultEventListenerPool::create();
             }
             return dispatchPools()[m_id];
         }
@@ -48,7 +48,7 @@ namespace geode {
 
         EventListenerPool* getPool() const {
             if (dispatchPools().count(m_id) == 0) {
-                dispatchPools()[m_id] = new DefaultEventListenerPool();
+                dispatchPools()[m_id] = DefaultEventListenerPool::create();
             }
             return dispatchPools()[m_id];
         }

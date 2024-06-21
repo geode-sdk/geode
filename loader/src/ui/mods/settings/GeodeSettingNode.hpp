@@ -208,7 +208,7 @@ class IntSettingNode :
     public TextInputDelegate
 {
 protected:
-    InputNode* m_input = nullptr;
+    TextInput* m_input = nullptr;
     CCLabelBMFont* m_label = nullptr;
     Slider* m_slider = nullptr;
     CCMenuItemSpriteExtra* m_decArrow = nullptr;
@@ -237,7 +237,7 @@ class FloatSettingNode :
     public TextInputDelegate
 {
 protected:
-    InputNode* m_input = nullptr;
+    TextInput* m_input = nullptr;
     CCLabelBMFont* m_label = nullptr;
     Slider* m_slider = nullptr;
     CCMenuItemSpriteExtra* m_decArrow = nullptr;
@@ -266,11 +266,19 @@ class StringSettingNode :
     public TextInputDelegate
 {
 protected:
-    InputNode* m_input;
+    TextInput* m_input = nullptr;
+    CCLabelBMFont* m_label = nullptr;
+    CCMenuItemSpriteExtra* m_prevBtn = nullptr;
+    CCMenuItemSpriteExtra* m_nextBtn = nullptr;
+    std::vector<std::string> m_options;
+    int m_selectedOption = 0;
+    float m_width;
 
     void textChanged(CCTextInputNode* input) override;
     void valueChanged(bool updateText) override;
     void updateLabel();
+    
+    void onArrow(CCObject* sender);
 
     bool setup(StringSettingValue* setting, float width) override;
 
@@ -283,7 +291,7 @@ class FileSettingNode :
     public TextInputDelegate
 {
 protected:
-    InputNode* m_input;
+    TextInput* m_input;
 
     void textChanged(CCTextInputNode* input) override;
     void valueChanged(bool updateText) override;

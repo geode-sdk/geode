@@ -43,31 +43,69 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
     auto bg = cocos2d::extension::CCScale9Sprite::create(
         "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
     );
+    bg->setID("popup-bg");
     bg->setScale(.5f);
     bg->setColor({ 0, 0, 0 });
     bg->setOpacity(85);
     bg->setContentSize({ m_size.width * 2 - 40.f, m_size.height * 2 - 140.f });
-    bg->setPosition(winSize / 2);
-    m_mainLayer->addChild(bg);
+    m_mainLayer->addChildAtPosition(bg, Anchor::Center, ccp(0, 0));
+
+    auto opacityColumn = CCLayer::create();
+    opacityColumn->setLayout(
+        ColumnLayout::create()
+            ->setGap(5.f)
+            ->setAxisReverse(true)
+            ->setAxisAlignment(AxisAlignment::Start)
+            ->setAutoGrowAxis(0)
+    );
+    opacityColumn->setID("opacity-column");
+    m_mainLayer->addChildAtPosition(opacityColumn, Anchor::Center, ccp(0, 0));
+
+    auto pickerRow = CCLayer::create();
+    pickerRow->setLayout(
+        RowLayout::create()
+            ->setGap(10.f)
+            ->setAxisAlignment(AxisAlignment::Start)
+            ->setAutoGrowAxis(0)
+    );
+    pickerRow->setID("picker-row");
+    opacityColumn->addChild(pickerRow);
+
+    // color difference
+
+    auto colorMenu = CCMenu::create();
+    colorMenu->setLayout(
+        ColumnLayout::create()
+            ->setGap(0.f)
+            ->setAxisReverse(true)
+            ->setAutoScale(false)
+            ->setAxisAlignment(AxisAlignment::Start)
+            ->setAutoGrowAxis(0)
+    );
+    colorMenu->setID("color-menu");
+    pickerRow->addChild(colorMenu);
 
     // picker
 
     m_picker = CCControlColourPicker::colourPicker();
-    m_picker->setPosition(winSize.width / 2 - 45.f, winSize.height / 2 + (isRGBA ? 25.f : 0.f));
     m_picker->setDelegate(this);
-    m_mainLayer->addChild(m_picker);
+    m_picker->setID("color-picker");
 
-    // color difference
+    auto pickerWrapper = CCNode::create();
+    pickerWrapper->setContentSize(m_picker->getContentSize());
+    pickerWrapper->setID("picker-wrapper");
+    pickerWrapper->addChildAtPosition(m_picker, Anchor::Center, ccp(0, 0));
+    pickerRow->addChild(pickerWrapper);
 
     auto oldColorSpr = CCSprite::createWithSpriteFrameName("whiteSquare60_001.png");
-    oldColorSpr->setPosition({ winSize.width / 2 - 165.f, winSize.height / 2 + 15.f });
     oldColorSpr->setColor(to3B(m_color));
-    m_mainLayer->addChild(oldColorSpr);
+    oldColorSpr->setID("old-color-spr");
+    colorMenu->addChild(oldColorSpr);
 
     m_newColorSpr = CCSprite::createWithSpriteFrameName("whiteSquare60_001.png");
-    m_newColorSpr->setPosition({ winSize.width / 2 - 165.f, winSize.height / 2 - 15.f });
     m_newColorSpr->setColor(to3B(m_color));
-    m_mainLayer->addChild(m_newColorSpr);
+    m_newColorSpr->setID("new-color-spr");
+    colorMenu->addChild(m_newColorSpr);
 
     auto resetBtnSpr = ButtonSprite::create(
         CCSprite::createWithSpriteFrameName("reset-gold.png"_spr), 0x20, true, 0.f,
@@ -78,83 +116,209 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
     m_resetBtn =
         CCMenuItemSpriteExtra::create(resetBtnSpr, this, menu_selector(ColorPickPopup::onReset));
     m_resetBtn->setPosition({ -165.f, -50.f });
-    m_buttonMenu->addChild(m_resetBtn);
+    m_resetBtn->setLayoutOptions(
+        AxisLayoutOptions::create()
+            ->setPrevGap(10.f)
+            ->setNextGap(10.f)
+    );
+    m_resetBtn->setID("reset-btn");
+    colorMenu->addChild(m_resetBtn);
+
+
+
+    auto inputColumn = CCLayer::create();
+    inputColumn->setLayout(
+        ColumnLayout::create()
+            ->setGap(3.f)
+            ->setAxisReverse(true)
+            ->setAxisAlignment(AxisAlignment::Start)
+            ->setAutoGrowAxis(0)
+    );
+    inputColumn->setID("input-column");
+    pickerRow->addChild(inputColumn);
+
+    auto rgbRow = CCLayer::create();
+    rgbRow->setLayout(
+        RowLayout::create()
+            ->setGap(5.f)
+            ->setAxisAlignment(AxisAlignment::Start)
+            ->setAutoGrowAxis(0)
+    );
+    rgbRow->setID("rgb-row");
+    inputColumn->addChild(rgbRow);
 
     // r
 
-    auto rText = CCLabelBMFont::create("R", "goldFont.fnt");
-    rText->setPosition(winSize.width / 2 + 75.f, winSize.height / 2 + (isRGBA ? 60.f : 35.f));
-    rText->setScale(.55f);
-    m_mainLayer->addChild(rText);
+    auto rColumn = CCLayer::create();
+    rColumn->setLayout(
+        ColumnLayout::create()
+            ->setGap(3.f)
+            ->setAxisReverse(true)
+            ->setAutoScale(false)
+            ->setAxisAlignment(AxisAlignment::Start)
+            ->setAutoGrowAxis(0)
+    );
+    rColumn->setID("r-column");
+    rgbRow->addChild(rColumn);
 
-    m_rInput = InputNode::create(50.f, "R");
-    m_rInput->setPosition(75.f, (isRGBA ? 40.f : 15.f));
+    auto rText = CCLabelBMFont::create("R", "goldFont.fnt");
+    rText->setScale(.55f);
+    rText->setID("r-text");
+    rColumn->addChild(rText);
+
+    m_rInput = TextInput::create(50.f, "R");
     m_rInput->setScale(.7f);
-    m_rInput->getInput()->setTag(TAG_R_INPUT);
-    m_rInput->getInput()->setDelegate(this);
-    m_buttonMenu->addChild(m_rInput);
+    m_rInput->setDelegate(this, TAG_R_INPUT);
+    m_rInput->setID("r-input");
+    rColumn->addChild(m_rInput);
+
+    rColumn->updateLayout();
+    auto rRect = calculateChildCoverage(rColumn);
+    rColumn->setContentSize(rRect.size);
 
     // g
 
-    auto gText = CCLabelBMFont::create("G", "goldFont.fnt");
-    gText->setPosition(winSize.width / 2 + 115.f, winSize.height / 2 + (isRGBA ? 60.f : 35.f));
-    gText->setScale(.55f);
-    m_mainLayer->addChild(gText);
+    auto gColumn = CCLayer::create();
+    gColumn->setLayout(
+        ColumnLayout::create()
+            ->setGap(3.f)
+            ->setAxisReverse(true)
+            ->setAutoScale(false)
+            ->setAxisAlignment(AxisAlignment::Start)
+            ->setAutoGrowAxis(0)
+    );
+    gColumn->setID("g-column");
+    rgbRow->addChild(gColumn);
 
-    m_gInput = InputNode::create(50.f, "G");
-    m_gInput->setPosition(115.f, (isRGBA ? 40.f : 15.f));
+    auto gText = CCLabelBMFont::create("G", "goldFont.fnt");
+    gText->setScale(.55f);
+    gText->setID("g-text");
+    gColumn->addChild(gText);
+
+    m_gInput = TextInput::create(50.f, "G");
     m_gInput->setScale(.7f);
-    m_gInput->getInput()->setTag(TAG_G_INPUT);
-    m_gInput->getInput()->setDelegate(this);
-    m_buttonMenu->addChild(m_gInput);
+    m_gInput->setDelegate(this, TAG_G_INPUT);
+    m_gInput->setID("g-input");
+    gColumn->addChild(m_gInput);
+
+    gColumn->updateLayout();
+    auto gRect = calculateChildCoverage(gColumn);
+    gColumn->setContentSize(gRect.size);
 
     // b
 
-    auto bText = CCLabelBMFont::create("B", "goldFont.fnt");
-    bText->setPosition(winSize.width / 2 + 155.f, winSize.height / 2 + (isRGBA ? 60.f : 35.f));
-    bText->setScale(.55f);
-    m_mainLayer->addChild(bText);
+    auto bColumn = CCLayer::create();
+    bColumn->setLayout(
+        ColumnLayout::create()
+            ->setGap(3.f)
+            ->setAxisReverse(true)
+            ->setAutoScale(false)
+            ->setAxisAlignment(AxisAlignment::Start)
+            ->setAutoGrowAxis(0)
+    );
+    bColumn->setID("b-column");
+    rgbRow->addChild(bColumn);
 
-    m_bInput = InputNode::create(50.f, "B");
-    m_bInput->setPosition(155.f, (isRGBA ? 40.f : 15.f));
+    auto bText = CCLabelBMFont::create("B", "goldFont.fnt");
+    bText->setScale(.55f);
+    bText->setID("b-text");
+    bColumn->addChild(bText);
+
+    m_bInput = TextInput::create(50.f, "B");
     m_bInput->setScale(.7f);
-    m_bInput->getInput()->setTag(TAG_B_INPUT);
-    m_bInput->getInput()->setDelegate(this);
-    m_buttonMenu->addChild(m_bInput);
+    m_bInput->setDelegate(this, TAG_B_INPUT);
+    m_bInput->setID("b-input");
+    bColumn->addChild(m_bInput);
+
+    bColumn->updateLayout();
+    auto bRect = calculateChildCoverage(bColumn);
+    bColumn->setContentSize(bRect.size);
 
     // hex
 
-    auto hexText = CCLabelBMFont::create("Hex", "goldFont.fnt");
-    hexText->setPosition(winSize.width / 2 + 115.f, winSize.height / 2 + (isRGBA ? 20.f : -5.f));
-    hexText->setScale(.55f);
-    m_mainLayer->addChild(hexText);
+    auto hexColumn = CCLayer::create();
+    hexColumn->setLayout(
+        ColumnLayout::create()
+            ->setGap(3.f)
+            ->setAxisReverse(true)
+            ->setAutoScale(false)
+            ->setAxisAlignment(AxisAlignment::Start)
+            ->setAutoGrowAxis(0)
+    );
+    hexColumn->setID("hex-column");
+    inputColumn->addChild(hexColumn);
 
-    m_hexInput = InputNode::create(165.f, "Hex");
-    m_hexInput->setPosition(115.f, (isRGBA ? 0.f : -25.f));
+    auto hexText = CCLabelBMFont::create("Hex", "goldFont.fnt");
+    hexText->setScale(.55f);
+    hexText->setID("hex-text");
+    hexColumn->addChild(hexText);
+
+    m_hexInput = TextInput::create(165.f, "Hex");
     m_hexInput->setScale(.7f);
-    m_hexInput->getInput()->setTag(TAG_HEX_INPUT);
-    m_hexInput->getInput()->setDelegate(this);
-    m_buttonMenu->addChild(m_hexInput);
+    m_hexInput->setDelegate(this, TAG_HEX_INPUT);
+    m_hexInput->setID("hex-input");
+    hexColumn->addChild(m_hexInput);
+
+    hexColumn->updateLayout();
+    rgbRow->updateLayout();
+    inputColumn->updateLayout();
+    colorMenu->updateLayout();
+    pickerRow->updateLayout();
 
     if (isRGBA) {
+        auto opacitySection = CCLayer::create();
+        opacitySection->setLayout(
+            RowLayout::create()
+                ->setGap(10.f)
+                ->setAutoScale(false)
+                ->setAxisAlignment(AxisAlignment::Start)
+                ->setCrossAxisLineAlignment(AxisAlignment::Start)
+                ->setAutoGrowAxis(0)
+        );
+        opacitySection->setID("opacity-section");
+        opacityColumn->addChild(opacitySection);
+
+        auto sliderColumn = CCLayer::create();
+        sliderColumn->setLayout(
+            ColumnLayout::create()
+                ->setGap(7.f)
+                ->setAxisReverse(true)
+                ->setAutoScale(false)
+                ->setAxisAlignment(AxisAlignment::Start)
+                ->setAutoGrowAxis(0)
+        );
+        sliderColumn->setID("slider-column");
+        opacitySection->addChild(sliderColumn);
+
+
         auto opacityText = CCLabelBMFont::create("Opacity", "goldFont.fnt");
-        opacityText->setPosition(winSize.width / 2 - 30.f, winSize.height / 2 - 75.f);
         opacityText->setScale(.55f);
-        m_mainLayer->addChild(opacityText);
+        opacityText->setID("opacity-text");
+        sliderColumn->addChild(opacityText);
 
         m_opacitySlider =
             Slider::create(this, menu_selector(ColorPickPopup::onOpacitySlider), .75f);
-        m_opacitySlider->setPosition(winSize.width / 2 - 30.f, winSize.height / 2 - 95.f);
         m_opacitySlider->setValue(color.a / 255.f);
-        m_mainLayer->addChild(m_opacitySlider);
+        m_opacitySlider->setID("opacity-slider");
+        
+        auto sliderWrapper = CCNode::create();
+        sliderWrapper->setContentSize(ccp(m_opacitySlider->m_width, m_opacitySlider->m_height) * .75f);
+        sliderWrapper->setID("slider-wrapper");
+        sliderWrapper->addChildAtPosition(m_opacitySlider, Anchor::Center, ccp(0, 0));
+        sliderColumn->addChild(sliderWrapper);
 
-        m_opacityInput = InputNode::create(60.f, "0.00");
+        m_opacityInput = TextInput::create(60.f, "0.00");
         m_opacityInput->setPosition(85.f, -95.f);
         m_opacityInput->setScale(.7f);
-        m_opacityInput->getInput()->setTag(TAG_OPACITY_INPUT);
-        m_opacityInput->getInput()->setDelegate(this);
-        m_buttonMenu->addChild(m_opacityInput);
+        m_opacityInput->setDelegate(this, TAG_OPACITY_INPUT);
+        m_opacityInput->setID("opacity-input");
+        opacitySection->addChild(m_opacityInput);
+        
+        sliderColumn->updateLayout();
+        opacitySection->updateLayout();
     }
+
+    opacityColumn->updateLayout();
 
     this->updateState();
 
@@ -163,18 +327,16 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
 
     auto okBtn =
         CCMenuItemSpriteExtra::create(okBtnSpr, this, menu_selector(ColorPickPopup::onClose));
-    okBtn->setPosition(.0f, -m_size.height / 2 + 20.f);
-    m_buttonMenu->addChild(okBtn);
+    // okBtn->setPosition(.0f, -m_size.height / 2 + 20.f);
+    m_buttonMenu->addChildAtPosition(okBtn, Anchor::Bottom, ccp(0, 20.f));
 
     return true;
 }
 
 void ColorPickPopup::updateState(CCNode* except) {
-#define IF_NOT_EXCEPT(inp, value)              \
-    if (inp->getInput() != except) {           \
-        inp->getInput()->setDelegate(nullptr); \
-        inp->setString(value);                 \
-        inp->getInput()->setDelegate(this);    \
+#define IF_NOT_EXCEPT(inp, value)                  \
+    if (inp->getInputNode() != except) {           \
+        inp->setString(value, false);              \
     }
 
     IF_NOT_EXCEPT(m_rInput, numToString<int>(m_color.r));
@@ -253,7 +415,7 @@ void ColorPickPopup::setColorTarget(cocos2d::CCSprite* spr) {
 
 ColorPickPopup* ColorPickPopup::create(ccColor4B const& color, bool isRGBA) {
     auto ret = new ColorPickPopup();
-    if (ret && ret->init(400.f, (isRGBA ? 290.f : 240.f), color, isRGBA)) {
+    if (ret && ret->initAnchored(400.f, (isRGBA ? 290.f : 240.f), color, isRGBA)) {
         ret->autorelease();
         return ret;
     }

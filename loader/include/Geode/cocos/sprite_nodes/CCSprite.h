@@ -278,10 +278,10 @@ public:
     inline ccBlendFunc getBlendFunc(void) { return m_sBlendFunc; }
     /// @}
 
-    RT_ADD(
-        virtual void setChildColor(const ccColor3B&);
-        virtual void setChildOpacity(GLubyte);
-    )
+    // @note RobTop Addition
+    virtual void setChildColor(const ccColor3B&);
+    // @note RobTop Addition
+    virtual void setChildOpacity(GLubyte);
 
     /// @{
     /// @name Functions inherited from CCNode
@@ -351,9 +351,8 @@ public:
      
     /// @} end of BatchNode methods
     
-    RT_ADD(
-        virtual void refreshTextureRect(void);
-    )
+    // @note RobTop Addition
+    virtual void refreshTextureRect(void);
     
     /// @{
     /// @name Texture methods
@@ -519,8 +518,8 @@ public:
     
 protected:
     void updateColor(void);
-    RT_REMOVE(  virtual void setTextureCoords(CCRect rect);         )
-    RT_ADD(     virtual void setTextureCoords(const CCRect& rect);  )
+    // @note RobTop Addition: Changed the param from CCRect to const CCRect&
+    virtual void setTextureCoords(const CCRect& rect);
     virtual void updateBlendFunc(void);
     virtual void setReorderChildDirtyRecursively(void);
     virtual void setDirtyRecursively(bool bValue);
@@ -566,17 +565,20 @@ protected:
     bool m_bFlipX;                              /// Whether the sprite is flipped horizaontally or not.
     bool m_bFlipY;                              /// Whether the sprite is flipped vertically or not.
 
-    RT_ADD(
-        CC_SYNTHESIZE_NV(bool, m_bDontDraw, DontDraw);
-        CC_SYNTHESIZE_NV(float, m_fTlVertexMod, TlVertexMod);
-        CC_SYNTHESIZE_NV(float, m_fTrVertexMod, TrVertexMod);
-        CC_SYNTHESIZE_NV(float, m_fBlVertexMod, BlVertexMod);
-        CC_SYNTHESIZE_NV(float, m_fBrVertexMod, BrVertexMod);
-        PAD(16);
-        bool m_bUnknown;
-        // 2.2 additions
-        // int m_nUnknown;
-    )
+    // @note RobTop Addition
+    CC_SYNTHESIZE_NV(bool, m_bDontDraw, DontDraw);
+    // @note RobTop Addition
+    CC_SYNTHESIZE_NV(float, m_fTlVertexMod, TlVertexMod);
+    // @note RobTop Addition
+    CC_SYNTHESIZE_NV(float, m_fTrVertexMod, TrVertexMod);
+    // @note RobTop Addition
+    CC_SYNTHESIZE_NV(float, m_fBlVertexMod, BlVertexMod);
+    // @note RobTop Addition
+    CC_SYNTHESIZE_NV(float, m_fBrVertexMod, BrVertexMod);
+    // @note RobTop Addition
+    PAD(16);
+    // @note RobTop Addition
+    bool m_bUnknown;
 };
 
 

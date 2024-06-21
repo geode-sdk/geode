@@ -4,36 +4,35 @@
 #include "CCMouseDelegate.h"
 #include "../../cocoa/CCArray.h"
 
-RT_ADD(
-	NS_CC_BEGIN
+NS_CC_BEGIN
 
-	class CC_DLL CCMouseDispatcher : public CCObject 
-	{
-		GEODE_FRIEND_MODIFY
-	public:
-		CCMouseDispatcher();
-		virtual ~CCMouseDispatcher();
+// @note RobTop Addition
+class CC_DLL CCMouseDispatcher : public CCObject 
+{
+	GEODE_FRIEND_MODIFY
+public:
+	CCMouseDispatcher();
+	virtual ~CCMouseDispatcher();
 
-		void addDelegate(CCMouseDelegate* pDelegate);
+	void addDelegate(CCMouseDelegate* pDelegate);
 
-		void removeDelegate(CCMouseDelegate* pDelegate);
+	void removeDelegate(CCMouseDelegate* pDelegate);
 
-		void forceAddDelegate(CCMouseDelegate* pDelegate);
+	void forceAddDelegate(CCMouseDelegate* pDelegate);
 
-		void forceRemoveDelegate(CCMouseDelegate* pDelegate);
+	void forceRemoveDelegate(CCMouseDelegate* pDelegate);
 
-		bool dispatchScrollMSG(float x, float y);
+	bool dispatchScrollMSG(float x, float y);
 
-	protected:
-		CCArray* m_pMouseHandlers;
-		bool m_bLocked;
-		bool m_bToAdd;
-		bool m_bToRemove;
-		ccCArray* m_pHandlersToAdd;
-		ccCArray* m_pHandlersToRemove;
-	};
+protected:
+	CCArray* m_pMouseHandlers;
+	bool m_bLocked;
+	bool m_bToAdd;
+	bool m_bToRemove;
+	ccCArray* m_pHandlersToAdd;
+	ccCArray* m_pHandlersToRemove;
+};
 
-	NS_CC_END
-)
+NS_CC_END
 
 #endif

@@ -53,37 +53,33 @@ class CC_DLL CCControlColourPicker : public CCControl
     GEODE_FRIEND_MODIFY
     
 public:
-    RT_ADD(
-        ccColor3B const& getColorValue() const;
-        virtual void setColorValue(ccColor3B const&);
-    )
+    // @note RobTop Addition
+    ccColor3B const& getColorValue() const;
+    // @note RobTop Addition
+    virtual void setColorValue(ccColor3B const&);
 
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCControlColourPicker, CCControl)
     CCControlColourPicker();
     virtual ~CCControlColourPicker();
 
 protected:
-    RT_ADD(
-        ccColor3B m_rgb;
-    )
+    // @note RobTop Addition
+    ccColor3B m_rgb;
     HSV m_hsv;
     CC_SYNTHESIZE_RETAIN(CCControlSaturationBrightnessPicker*, m_colourPicker, colourPicker)
     
     CC_SYNTHESIZE_RETAIN(CCControlHuePicker*, m_huePicker, HuePicker)
     CC_SYNTHESIZE_RETAIN(CCSprite*, m_background, Background)
 
-    RT_ADD(
-        CC_SYNTHESIZE_NV(CCSprite*, m_colorTarget, ColorTarget)
-        CC_SYNTHESIZE_NV(ColorPickerDelegate*, m_delegate, Delegate)
-    )
+    // @note RobTop Addition
+    CC_SYNTHESIZE_NV(CCSprite*, m_colorTarget, ColorTarget)
+    // @note RobTop Addition
+    CC_SYNTHESIZE_NV(ColorPickerDelegate*, m_delegate, Delegate)
+    
     
 public:
-    RT_REMOVE(
-        static CCControlColourPicker* create();
-    )
-    RT_ADD(
-        static CCControlColourPicker* colourPicker();
-    )
+    // @note RobTop Addition: renamed create to colourPicker
+    static CCControlColourPicker* colourPicker();
 
     virtual bool init();
     void hueSliderValueChanged(CCObject * sender, CCControlEvent controlEvent);

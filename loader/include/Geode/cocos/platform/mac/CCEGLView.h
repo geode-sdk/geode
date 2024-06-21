@@ -60,11 +60,12 @@ public:
 private:
     static CCEGLView* s_sharedView;
 
-    RT_ADD(
-    	bool m_idk1;
-    	bool m_idk2;
-    	bool m_idk3;
-    )
+    // @note RobTop Addition
+    bool m_idk1;
+    // @note RobTop Addition
+    bool m_idk2;
+    // @note RobTop Addition
+    bool m_idk3;
     
     CCEGLView(void);
 };

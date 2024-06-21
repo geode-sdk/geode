@@ -37,7 +37,7 @@ protected:
     CCNode* m_searchMenu;
     CCNode* m_updateAllContainer = nullptr;
     CCMenu* m_updateAllMenu = nullptr;
-    IconButtonSprite* m_updateAllSpr = nullptr;
+    Ref<IconButtonSprite> m_updateAllSpr = nullptr;
     CCMenuItemSpriteExtra* m_updateAllBtn = nullptr;
     CCNode* m_updateAllLoadingCircle = nullptr;
     IconButtonSprite* m_showUpdatesSpr = nullptr;
@@ -53,6 +53,7 @@ protected:
     EventListener<server::ServerRequest<std::vector<std::string>>> m_checkUpdatesListener;
     EventListener<server::ModDownloadFilter> m_downloadListener;
     bool m_bigSize = false;
+    bool m_exiting = false;
     std::atomic<size_t> m_searchInputThreads = 0;
 
     bool init(ModListSource* src, CCSize const& size);
@@ -83,4 +84,5 @@ public:
     void updateState();
     void updateSize(bool big);
     void activateSearch(bool activate);
+    void setIsExiting(bool exiting);
 };

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Popup.hpp"
-#include "InputNode.hpp"
+#include "TextInput.hpp"
 #include "Popup.hpp"
 
 #include <Geode/binding/TextInputDelegate.hpp>
@@ -21,11 +21,11 @@ namespace geode {
         cocos2d::ccColor4B m_originalColor;
         cocos2d::extension::CCControlColourPicker* m_picker;
         Slider* m_opacitySlider = nullptr;
-        InputNode* m_rInput;
-        InputNode* m_gInput;
-        InputNode* m_bInput;
-        InputNode* m_hexInput;
-        InputNode* m_opacityInput = nullptr;
+        TextInput* m_rInput;
+        TextInput* m_gInput;
+        TextInput* m_bInput;
+        TextInput* m_hexInput;
+        TextInput* m_opacityInput = nullptr;
         ColorPickPopupDelegate* m_delegate = nullptr;
         cocos2d::CCSprite* m_newColorSpr;
         CCMenuItemSpriteExtra* m_resetBtn;

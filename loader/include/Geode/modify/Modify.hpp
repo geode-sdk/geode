@@ -100,6 +100,24 @@ namespace geode::modifier {
 
         // unordered_map<handles> idea
         ModifyBase() {
+            struct EboCheck : ModifyDerived::Base {
+                std::aligned_storage_t<
+                    std::alignment_of_v<typename ModifyDerived::Base>, 
+                    std::alignment_of_v<typename ModifyDerived::Base>
+                > m_padding;
+            };
+            static constexpr auto baseSize = sizeof(typename ModifyDerived::Base);
+            static constexpr auto derivedSize = sizeof(typename ModifyDerived::Derived);
+            static constexpr auto alignment = std::alignment_of_v<typename ModifyDerived::Base>;
+            static constexpr bool hasEbo = sizeof(EboCheck) == sizeof(typename ModifyDerived::Base);
+            static constexpr bool hasImproperCustomFields = hasEbo ? derivedSize != baseSize : derivedSize != baseSize + alignment;
+            static_assert(!hasImproperCustomFields,
+                "\n--- Error in modify class:\n"
+                "  Do not add members to a modify class, use `struct Fields` instead.\n"
+                "  See https://docs.geode-sdk.org/tutorials/fields for more info."
+                "\n---"
+            );
+
             // i really dont want to recompile codegen
             auto test = static_cast<ModifyDerived*>(this);
             test->ModifyDerived::apply();

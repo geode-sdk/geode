@@ -4,48 +4,73 @@
 
 using namespace geode::prelude;
 
+DefaultEventListenerPool::DefaultEventListenerPool() : m_data(new Data) {}
+
 bool DefaultEventListenerPool::add(EventListenerProtocol* listener) {
-    if (m_locked) {
-        m_toAdd.push_back(listener);
+    if (!m_data) m_data = std::make_unique<Data>();
+
+    std::unique_lock lock(m_data->m_mutex);
+    if (ranges::contains(m_data->m_listeners, listener) || ranges::contains(m_data->m_toAdd, listener)) {
+        return false;
+    }
+    
+    if (m_data->m_locked) {
+        m_data->m_toAdd.push_back(listener);
     }
     else {
         // insert listeners at the start so new listeners get priority
-        m_listeners.insert(m_listeners.begin(), listener);
+        m_data->m_listeners.push_front(listener);
     }
     return true;
 }
 
 void DefaultEventListenerPool::remove(EventListenerProtocol* listener) {
-    for (size_t i = 0; i < m_listeners.size(); i++) {
-        if (m_listeners[i] == listener) {
-            m_listeners[i] = nullptr;
+    if (!m_data) m_data = std::make_unique<Data>();
+
+    std::unique_lock lock(m_data->m_mutex);
+    if (m_data->m_locked) {
+        for (size_t i = 0 ; i < m_data->m_listeners.size(); i++) {
+            if (m_data->m_listeners[i] == listener) {
+                m_data->m_listeners[i] = nullptr;
+            }
         }
     }
-    ranges::remove(m_toAdd, listener);
+    else {
+        ranges::remove(m_data->m_listeners, listener);
+    }
+    ranges::remove(m_data->m_toAdd, listener);
 }
 
 ListenerResult DefaultEventListenerPool::handle(Event* event) {
+    if (!m_data) m_data = std::make_unique<Data>();
+
     auto res = ListenerResult::Propagate;
-    m_locked += 1;
-    for (auto h : m_listeners) {
-        // if an event listener gets destroyed in the middle of this loop, it 
-        // gets set to null
+    m_data->m_locked += 1;
+    std::unique_lock lock(m_data->m_mutex);
+    for (auto h : m_data->m_listeners) {
+        lock.unlock();
         if (h && h->handle(event) == ListenerResult::Stop) {
             res = ListenerResult::Stop;
+            lock.lock();
             break;
         }
+        lock.lock();
     }
-    m_locked -= 1;
+    m_data->m_locked -= 1;
     // only mutate listeners once nothing is iterating 
     // (if there are recursive handle calls)
-    if (m_locked == 0) {
-        ranges::remove(m_listeners, nullptr);
-        for (auto listener : m_toAdd) {
-            m_listeners.insert(m_listeners.begin(), listener);
+    if (m_data->m_locked == 0) {
+        ranges::remove(m_data->m_listeners, nullptr);
+        for (auto listener : m_data->m_toAdd) {
+            m_data->m_listeners.push_front(listener);
         }
-        m_toAdd.clear();
+        m_data->m_toAdd.clear();
     }
     return res;
+}
+
+DefaultEventListenerPool* DefaultEventListenerPool::create() {
+    return new DefaultEventListenerPool();
 }
 
 DefaultEventListenerPool* DefaultEventListenerPool::get() {

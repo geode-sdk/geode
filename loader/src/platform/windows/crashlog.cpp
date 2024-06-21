@@ -144,10 +144,13 @@ static void printAddr(std::ostream& stream, void const* addr, bool fullPath = tr
     }
 }
 
+PVOID GeodeFunctionTableAccess64(HANDLE hProcess, DWORD64 AddrBase);
+
 // https://stackoverflow.com/a/50208684/9124836
-static std::string getStacktrace(PCONTEXT context) {
+static std::string getStacktrace(PCONTEXT context, Mod*& suspectedFaultyMod) {
     std::stringstream stream;
-    STACKFRAME64 stack;
+    static STACKFRAME64 stack;
+    static PCONTEXT pcontext = context;
     memset(&stack, 0, sizeof(STACKFRAME64));
 
     auto process = GetCurrentProcess();
@@ -159,7 +162,7 @@ static std::string getStacktrace(PCONTEXT context) {
 #else
     stack.AddrPC.Offset = context->Rip;
     stack.AddrStack.Offset = context->Rsp;
-    stack.AddrFrame.Offset = context->Rbp;
+    stack.AddrFrame.Offset = context->Rdi;
 #endif
 
     stack.AddrPC.Mode = AddrModeFlat;
@@ -170,13 +173,35 @@ static std::string getStacktrace(PCONTEXT context) {
     while (true) {
         if (!StackWalk64(
                 IMAGE_FILE_MACHINE_AMD64, process, thread, &stack, context, nullptr,
-                SymFunctionTableAccess64, SymGetModuleBase64, nullptr
+                +[](HANDLE hProcess, DWORD64 AddrBase) {
+                    auto ret = GeodeFunctionTableAccess64(hProcess, AddrBase);
+                    if (ret) {
+                        return ret;
+                    }
+                    return SymFunctionTableAccess64(hProcess, AddrBase);
+                }, 
+                +[](HANDLE hProcess, DWORD64 dwAddr) -> DWORD64 {
+                    auto ret = GeodeFunctionTableAccess64(hProcess, dwAddr);
+                    if (ret) {
+                        return dwAddr & (~0xffffull);
+                    }
+                    return SymGetModuleBase64(hProcess, dwAddr);
+                }
+                , nullptr
             ))
             break;
 
         stream << " - ";
-        printAddr(stream, reinterpret_cast<void*>(stack.AddrPC.Offset));
+
+        void* addr = reinterpret_cast<void*>(stack.AddrPC.Offset);
+        printAddr(stream, addr);
+
         stream << std::endl;
+
+        // set the suspected faulty mod to the first entry in the stack trace that belongs to a mod
+        if (!suspectedFaultyMod) {
+            suspectedFaultyMod = modFromAddress(addr);
+        }
     }
     return stream.str();
 }
@@ -249,6 +274,23 @@ static std::add_const_t<std::decay_t<T>> rebaseAndCast(intptr_t base, U value) {
     return reinterpret_cast<std::add_const_t<std::decay_t<T>>>(base + (ptrdiff_t)(value));
 }
 
+static std::string demangleSymbol(const char* symbol, bool isClassName) {
+    char demangledBuf[256];
+
+    DWORD flags = 0;
+    if (isClassName) {
+        symbol += 1; // i know.
+        flags = UNDNAME_NO_ARGUMENTS;
+    }
+
+    size_t written = UnDecorateSymbolName(symbol, demangledBuf, 256, flags);
+    if (written == 0) {
+        return "";
+    } else {
+        return std::string(demangledBuf, demangledBuf + written);
+    }
+}
+
 // Parses an unhandled C++ exception from an exception pointers struct.
 static std::string parseCppException(LPEXCEPTION_POINTERS info) {
     if (info->ExceptionRecord->ExceptionCode != EXCEPTION_NUMBER) {
@@ -296,16 +338,12 @@ static std::string parseCppException(LPEXCEPTION_POINTERS info) {
         // demangle the name of the thrown object
         std::string demangledName;
 
-        if (!targetName || targetName[0] == '\0' || targetName[1] == '\0') {
+        if (targetName && targetName[0] != '\0' && targetName[1] != '\0') {
+            demangledName = demangleSymbol(targetName, true);
+        }
+
+        if (demangledName.empty()) {
             demangledName = "<Unknown type>";
-        } else {
-            char demangledBuf[256];
-            size_t written = UnDecorateSymbolName(targetName + 1, demangledBuf, 256, UNDNAME_NO_ARGUMENTS);
-            if (written == 0) {
-                demangledName = "<Unknown type>";
-            } else {
-                demangledName = std::string(demangledBuf, demangledBuf + written);
-            }
         }
 
         if (isStdException) {
@@ -319,24 +357,50 @@ static std::string parseCppException(LPEXCEPTION_POINTERS info) {
     return excString;
 }
 
-static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod) {
+static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod, Mod* suspectedFaultyMod) {
+    // the error code wine raises when a non-existent imported function gets invoked
+    constexpr DWORD EXCEPTION_WINE_STUB = 0x80000100;
+
     std::stringstream stream;
 
-    if (info->ExceptionRecord->ExceptionCode == EXCEPTION_NUMBER) {
+    DWORD code = info->ExceptionRecord->ExceptionCode;
+
+    auto makeFaultyModString = [](Mod* mod) -> std::string {
+        if (!mod) return "Faulty Mod: <Unknown>";
+
+        return fmt::format("Faulty Mod: {} {} ({})", mod->getName(), mod->getVersion().toVString(), mod->getID());
+    };
+
+    if (code == EXCEPTION_NUMBER) {
+        if (!faultyMod) {
+            faultyMod = suspectedFaultyMod;
+        }
+
         stream << parseCppException(info) << "\n";
-        stream << "Faulty Mod: " << (faultyMod ? faultyMod->getID() : "<Unknown>") << "\n";
+        stream << makeFaultyModString(faultyMod) << "\n";
     }
-    else if (isGeodeExceptionCode(info->ExceptionRecord->ExceptionCode)) {
+    else if (isGeodeExceptionCode(code)) {
         stream
             << "A mod has deliberately asked the game to crash.\n"
             << "Reason: " << reinterpret_cast<const char*>(info->ExceptionRecord->ExceptionInformation[0]) << "\n"
-            << "Faulty Mod: " << reinterpret_cast<Mod*>(info->ExceptionRecord->ExceptionInformation[1])->getID() << "\n";
+            << makeFaultyModString(reinterpret_cast<Mod*>(info->ExceptionRecord->ExceptionInformation[1])) << "\n";
+    }
+    else if (code == EXCEPTION_WINE_STUB) {
+        auto* dll = reinterpret_cast<const char*>(info->ExceptionRecord->ExceptionInformation[0]);
+        auto* function = reinterpret_cast<const char*>(info->ExceptionRecord->ExceptionInformation[1]);
+
+        if (!faultyMod) {
+            faultyMod = suspectedFaultyMod;
+        }
+
+        stream << fmt::format("Attempted to invoke a non-existent function: {} (not found in {})\n", demangleSymbol(function, false), dll);
+        stream << makeFaultyModString(faultyMod) << "\n";
     }
     else {
         stream << "Faulty Module: "
             << getModuleName(handleFromAddress(info->ExceptionRecord->ExceptionAddress), true)
             << "\n"
-            << "Faulty Mod: " << (faultyMod ? faultyMod->getID() : "<Unknown>") << "\n"
+            << makeFaultyModString(faultyMod) << "\n"
             << "Exception Code: " << std::hex << info->ExceptionRecord->ExceptionCode << " ("
             << getExceptionCodeString(info->ExceptionRecord->ExceptionCode) << ")" << std::dec
             << "\n"
@@ -369,91 +433,41 @@ static void handleException(LPEXCEPTION_POINTERS info) {
         if (!g_symbolsInitialized) {
             log::warn("Failed to initialize debug symbols: Error {}", GetLastError());
         }
+        
+        // in some cases, we can be pretty certain that the first mod found while unwinding
+        // is the one that caused the crash, so using `suspectedFaultyMod` is safe and correct.
+        //
+        // however, for most cases there's no such guarantee, and for them only top stack entry is checked.
+        Mod* faultyMod = modFromAddress(info->ExceptionRecord->ExceptionAddress);
+        Mod* suspectedFaultyMod = nullptr;
 
-        auto faultyMod = modFromAddress(info->ExceptionRecord->ExceptionAddress);
-        auto crashInfo = getInfo(info, faultyMod);
+        auto stacktrace = getStacktrace(info->ContextRecord, suspectedFaultyMod);
+        auto crashInfo = getInfo(info, faultyMod, suspectedFaultyMod);
 
         text = crashlog::writeCrashlog(
             faultyMod,
             crashInfo,
-            getStacktrace(info->ContextRecord),
+            stacktrace,
             getRegisters(info->ContextRecord)
         );
 
-        SymCleanup(GetCurrentProcess());
+        if (g_symbolsInitialized) {
+            SymCleanup(GetCurrentProcess());
+        }
     }
 
     MessageBoxA(nullptr, text.c_str(), "Geometry Dash Crashed", MB_ICONERROR);
 }
 
 static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
-    // not all exceptions are critical, some can and should be ignored
-    static constexpr auto ignored = std::to_array<DWORD>({
-        // various debugger stuff
-        DBG_EXCEPTION_HANDLED,
-        DBG_CONTINUE,
-        DBG_REPLY_LATER,
-        DBG_TERMINATE_THREAD,
-        DBG_TERMINATE_PROCESS,
-        DBG_RIPEXCEPTION,
-        DBG_CONTROL_BREAK,
-        DBG_COMMAND_EXCEPTION,
-        // OutputDebugString
-        DBG_PRINTEXCEPTION_C,
-        DBG_PRINTEXCEPTION_WIDE_C,
-        // ctrl+c
-        DBG_CONTROL_C,
-        STATUS_CONTROL_C_EXIT,
-        // SetThreadName
-        0x406d1388,
-        // c++ exceptions, handled separately
-        EXCEPTION_NUMBER,
-        // mods failing to load
-        STATUS_DLL_NOT_FOUND,
-        STATUS_DLL_INIT_FAILED,
-        STATUS_ORDINAL_NOT_FOUND,
-        STATUS_ENTRYPOINT_NOT_FOUND,
-    });
-
-    if (std::find(ignored.begin(), ignored.end(), info->ExceptionRecord->ExceptionCode) != ignored.end()) {
-        return EXCEPTION_CONTINUE_SEARCH;
-    }
-
-    if (info->ExceptionRecord->ExceptionCode == STATUS_BREAKPOINT && IsDebuggerPresent()) {
-        return EXCEPTION_CONTINUE_SEARCH;
-    }
-
     handleException(info);
 
     // continue searching, which usually just ends up terminating the program (exactly what we need)
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
-static LONG WINAPI continueHandler(LPEXCEPTION_POINTERS info) {
-    if (info->ExceptionRecord->ExceptionCode == EXCEPTION_NUMBER) {
-        handleException(info);
-    }
-
-    return EXCEPTION_CONTINUE_SEARCH;
-}
-
-static bool isWine() {
-    auto ntdll = GetModuleHandleA("ntdll.dll");
-    return ntdll ? (GetProcAddress(ntdll, "wine_get_version") != NULL) : false;
-}
-
 bool crashlog::setupPlatformHandler() {
-    // this one works everywhere but breaks for c++ exceptions
-    AddVectoredExceptionHandler(0, exceptionHandler);
-
-    // this one does nothing on wine but works on windows
-    AddVectoredContinueHandler(0, continueHandler);
-
-    // this one does nothing on windows but works on wine
-    // bonus points: on windows it works *sometimes*, so we check for wine to prevent showing 2 crash popups at once.
-    if (isWine()) {
-        SetUnhandledExceptionFilter(continueHandler);
-    }
+    SetUnhandledExceptionFilter(exceptionHandler);
 
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
     if (std::filesystem::exists(lastCrashedFile)) {

@@ -118,7 +118,8 @@ public:
     int             m_nScriptTapHandler;
 
     // 2.2 additions
-    RT_ADD(float m_fSizeMult = 0.f;)
+    // @note RobTop Addition
+    float m_fSizeMult = 0.f;
 };
 
 /** @brief An abstract class for "label" CCMenuItemLabel items 

@@ -75,7 +75,7 @@ namespace geode {
      * Represents a Mod ingame.
      * @class Mod
      */
-    class GEODE_DLL Mod {
+    class GEODE_DLL Mod final {
     protected:
         class Impl;
         std::unique_ptr<Impl> m_impl;

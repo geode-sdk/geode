@@ -8,7 +8,6 @@ using namespace geode::prelude;
 static std::vector<CCTexturePack> REMOVED_PACKS;
 static std::vector<CCTexturePack> PACKS;
 static std::vector<std::string> PATHS;
-static bool DONT_ADD_PATHS = false;
 
 #pragma warning(push)
 #pragma warning(disable : 4273)
@@ -31,13 +30,13 @@ void CCFileUtils::addTexturePack(CCTexturePack const& pack) {
 
 void CCFileUtils::removeTexturePack(std::string const& id) {
     std::optional<CCTexturePack> pack = getTexturePack(id);
-    if(pack.has_value()) {
+    if (pack.has_value()) {
         REMOVED_PACKS.push_back(pack.value());
+        ranges::remove(PACKS, [id](CCTexturePack const& pack) {
+            return pack.m_id == id;
+        });
+        this->updatePaths();
     }
-    ranges::remove(PACKS, [id](CCTexturePack const& pack) {
-        return pack.m_id == id;
-    });
-    this->updatePaths();
 }
 
 void CCFileUtils::addPriorityPath(char const* path) {
@@ -45,31 +44,38 @@ void CCFileUtils::addPriorityPath(char const* path) {
     this->updatePaths();
 }
 
+// cocos adds a trailing / to paths, so we need to check for that
+bool isPathEqual(std::filesystem::path const& cocosPath, std::filesystem::path const& ourPath) {
+    return cocosPath == ourPath || (cocosPath == (ourPath / ""));
+}
+
 void CCFileUtils::updatePaths() {
     // add search paths that aren't in PATHS or PACKS to PATHS
     for (auto& path : m_searchPathArray) {
+        std::filesystem::path const cocosPath = std::string(path);
         bool isKnown = false;
         for (auto& pack : PACKS) {
             for (auto& packPath : pack.m_paths) {
-                if (std::filesystem::path(path.c_str()) == packPath) {
+                if (isPathEqual(cocosPath, packPath)) {
                     isKnown = true;
                     break;
                 }
             }
             if (isKnown) break;
         }
+        if (isKnown) continue;
         for (auto& pack : REMOVED_PACKS) {
             for (auto& packPath : pack.m_paths) {
-                if (std::filesystem::path(path.c_str()) == packPath) {
+                if (isPathEqual(cocosPath, packPath)) {
                     isKnown = true;
                     break;
                 }
             }
             if (isKnown) break;
         }
-        if (isKnown) break;
+        if (isKnown) continue;
         for (auto& p : PATHS) {
-            if (std::filesystem::path(path.c_str()) == p) {
+            if (isPathEqual(cocosPath, p)) {
                 isKnown = true;
                 break;
             }
@@ -83,9 +89,6 @@ void CCFileUtils::updatePaths() {
     REMOVED_PACKS.clear();
     m_searchPathArray.clear();
 
-    // make sure addSearchPath doesn't add to PACKS or PATHS
-    DONT_ADD_PATHS = true;
-
     // add texture packs first
     for (auto& pack : PACKS) {
         for (auto& path : pack.m_paths) {
@@ -96,7 +99,6 @@ void CCFileUtils::updatePaths() {
     for (auto& path : PATHS) {
         this->addSearchPath(path.c_str());
     }
-    DONT_ADD_PATHS = false;
 }
 
 #pragma warning(pop)

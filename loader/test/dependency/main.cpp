@@ -75,12 +75,12 @@ protected:
         float x = -75.f;
 
         for (auto& [spr, icon] : {
-            std::pair { "player_01_001.png", Icon::Steve, },
-            std::pair { "player_02_001.png", Icon::Mike, },
-            std::pair { "player_03_001.png", Icon::LazarithTheDestroyerOfForsakenSouls, },
-            std::pair { "player_04_001.png", Icon::Geoff, },
+            std::pair { "GJ_square01.png", Icon::Steve, },
+            std::pair { "GJ_square02.png", Icon::Mike, },
+            std::pair { "GJ_square03.png", Icon::LazarithTheDestroyerOfForsakenSouls, },
+            std::pair { "GJ_square04.png", Icon::Geoff, },
         }) {
-            auto btnSpr = CCSprite::createWithSpriteFrameName(spr);
+            auto btnSpr = CCSprite::create(spr);
             btnSpr->setScale(.7f);
             m_sprites.push_back(btnSpr);
             if (icon == m_currentIcon) {
