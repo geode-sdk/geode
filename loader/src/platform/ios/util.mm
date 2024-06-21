@@ -35,12 +35,11 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
     return false;
 }
 
-void file::pickFile(
-    PickMode mode, FilePickOptions const& options,
-    MiniFunction<void(std::filesystem::path)> callback,
-    MiniFunction<void()> failed
-) {
-    // TODO
+GEODE_DLL Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, file::FilePickOptions const& options) {
+    using RetTask = Task<Result<std::filesystem::path>>;
+    return RetTask::runWithCallback([mode, options](auto resultCallback, auto progress, auto cancelled) {
+        resultCallback(RetTask::Cancel()); // TODO !!!!
+    });
 }
 
 // TODO: copied those two from android but idk maybe shouldve copied from mac
