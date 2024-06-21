@@ -341,10 +341,8 @@ void StringSettingNode::onArrow(CCObject* sender) {
 
 bool StringSettingNode::setup(StringSettingValue* setting, float width) {
     m_width = width;
-    if (setting->castDefinition().filter.has_value() && 
-        setting->castDefinition().match.has_value() &&
-        setting->castDefinition().filter.value() == "one-of") {
-        m_options = utils::string::split(setting->castDefinition().match.value(), "|");
+    if (setting->castDefinition().controls->options.has_value()) {
+        m_options = setting->castDefinition().controls->options.value();
 
         m_selectedOption = 0;
         for (size_t i = 0; i < m_options.size(); i++) {
@@ -384,8 +382,8 @@ bool StringSettingNode::setup(StringSettingValue* setting, float width) {
         m_input->setPosition({ -(width / 2 - 70.f) / 2, .0f });
         m_input->setScale(.65f);
 
-        if (setting->castDefinition().filter.has_value()) {
-            m_input->setFilter(setting->castDefinition().filter.value());
+        if (setting->castDefinition().controls->filter.has_value()) {
+            m_input->setFilter(setting->castDefinition().controls->filter.value());
         }
 
         m_input->setDelegate(this);

@@ -195,11 +195,6 @@ Result<> Mod::Impl::loadData() {
         auto root = checker.root(fmt::format("[{}/settings.json]", this->getID()));
 
         m_savedSettingsData = json;
-
-        log::debug("settings of this mod: ");
-        for (auto& [key, value] : m_settings) {
-            log::debug("{}", key);
-        }
         
         for (auto& [key, value] : root.items()) {
             // check if this is a known setting
@@ -326,14 +321,7 @@ std::vector<std::string> Mod::Impl::getSettingKeys() const {
 
 std::optional<Setting> Mod::Impl::getSettingDefinition(std::string_view const key) const {
     for (auto& setting : m_metadata.getSettings()) {
-        log::debug("Checking setting {}", setting.first);
         if (setting.first == key) {
-            log::debug("Found setting {}", setting.first);
-            auto thing = setting.second.get<CustomSetting>();
-            if (thing) {
-                log::debug("Setting json: {}", thing->json->dump());
-            }
-
             return setting.second;
         }
     }
