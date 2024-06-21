@@ -211,13 +211,19 @@ Result<> Mod::Impl::loadData() {
                 }
             }
             else {
-                log::logImpl(
-                    Severity::Warning,
-                    m_self,
-                    "Encountered unknown setting \"{}\" while loading "
-                    "settings",
-                    key
-                );
+                if (auto definition = this->getSettingDefinition(key)) {
+                    // Found a definition for this setting, it's most likely a custom setting
+                    // Don't warn it, as it's expected to be loaded by the mod
+                }
+                else {
+                    log::logImpl(
+                        Severity::Warning,
+                        m_self,
+                        "Encountered unknown setting \"{}\" while loading "
+                        "settings",
+                        key
+                    );
+                }
             }
         }
     }
