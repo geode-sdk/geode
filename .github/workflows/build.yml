@@ -36,7 +36,6 @@ jobs:
             sudo apt install nsis
             makensis -WX -V3 ./installer/windows/installer.nsi
           installer_path: './installer/windows/geode-installer-win.exe'
-          xwin_sdk_version: '10.0.22621'
 
         #- name: macOS
         #  os: macos-latest
@@ -141,7 +140,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: .xwin-cache
-        key: xwin-${{ matrix.config.id }}-v1-${{ matrix.config.xwin_sdk_version }}
+        key: xwin-${{ matrix.config.id }}-v1-${{ hashFiles('.xwin-cache/manifest-*.json') }}
       if: matrix.config.id == 'win'
 
     - name: Setup info.rc Cache
