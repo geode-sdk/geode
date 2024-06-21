@@ -31,6 +31,7 @@ jobs:
           host_id: linux
           extra_flags: >
             -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN
+            -DGEODE_DONT_BUILD_TEST_MODS=1
           package_cmd: |
             sudo apt install nsis
             makensis -WX -V3 ./installer/windows/installer.nsi
@@ -225,7 +226,7 @@ jobs:
         sudo add-apt-repository ppa:ubuntu-toolchain-r/test &&
         sudo apt-get update &&
         sudo apt-get install --only-upgrade libstdc++6
-      if: matrix.config.host_id == 'linux'
+      if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
 
     - name: Checkout ninjatracing
       uses: actions/checkout@v4
