@@ -248,6 +248,11 @@ Result<> Mod::Impl::loadData() {
 }
 
 Result<> Mod::Impl::saveData() {
+    if (this->getRequestedAction() == ModRequestedAction::UninstallWithSaveData) {
+        // Don't save data if the mod is being uninstalled with save data
+        return Ok();
+    }
+
     // saveData is expected to be synchronous, and always called from GD thread
     ModStateEvent(m_self, ModEventType::DataSaved).post();
 
