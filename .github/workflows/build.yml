@@ -136,13 +136,6 @@ jobs:
         restore-keys: |
           cpm-${{ matrix.config.id }}-v1-
 
-    - name: Setup xwin Cache
-      uses: actions/cache@v4
-      with:
-        path: .xwin-cache
-        key: xwin-${{ matrix.config.id }}-v1-${{ hashFiles('.xwin-cache/manifest-*.json') }}
-      if: matrix.config.id == 'win'
-
     - name: Setup info.rc Cache
       uses: actions/cache@v4
       with:
@@ -182,13 +175,26 @@ jobs:
         zipBall: false
         out-file-path: "epic-xwin"
 
-    - name: Setup Windows headers
+    - name: Prepare xwin
       run: |
-        7z x "epic-xwin/xwin-*-x86_64-unknown-linux-musl.tar.gz" -o"epic-xwin"
-        7z x "epic-xwin/xwin-*-x86_64-unknown-linux-musl.tar" -o"epic-xwin"
+        tar -xzf epic-xwin/xwin-*-x86_64-unknown-linux-musl.tar.gz -C epic-xwin
         mv epic-xwin/xwin-*-x86_64-unknown-linux-musl/xwin ./xwin
-        ./xwin --arch x86_64 --sdk-version 10.0.22621 --accept-license splat --include-debug-libs
+        ./xwin --arch x86_64 --sdk-version 10.0.22621 --accept-license list
       if: matrix.config.id == 'win'
+
+    # this caches '.xwin-cache/**/*' but that's actually only gonna
+    # contain the manifest cuz we only ran `xwin list` so far
+    - name: Setup xwin Cache
+      id: xwin-cache
+      uses: actions/cache@v4
+      with:
+        path: .xwin-cache
+        key: xwin-${{ matrix.config.id }}-v1-${{ hashFiles('.xwin-cache/**/*') }}
+      if: matrix.config.id == 'win'
+
+    - name: Download Windows headers
+      run: ./xwin --arch x86_64 --sdk-version 10.0.22621 --accept-license splat --include-debug-libs
+      if: matrix.config.id == 'win' && steps.xwin-cache.outputs.cache-hit != 'true'
 
     - name: Download clang-msvc-sdk toolchain
       uses: actions/checkout@v4
