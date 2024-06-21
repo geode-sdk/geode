@@ -93,6 +93,7 @@ namespace geode {
         ValueType defaultValue;
         /**
          * A regex the string must successfully match against
+         * For now merged with options, reenable for Geode 4.0.0
          */
         std::optional<std::string> match;
 
@@ -103,8 +104,9 @@ namespace geode {
 
         /**
          * A list of options the user can choose from
+         * Reenable for Geode 4.0.0
          */
-        std::optional<std::vector<std::string>> options;
+        // std::optional<std::vector<std::string>> options;
 
         static Result<StringSetting> parse(JsonMaybeObject& obj);
     };

@@ -341,8 +341,8 @@ void StringSettingNode::onArrow(CCObject* sender) {
 
 bool StringSettingNode::setup(StringSettingValue* setting, float width) {
     m_width = width;
-    if (setting->castDefinition().options && setting->castDefinition().options->size() > 0) {
-        m_options = setting->castDefinition().options.value();
+    if (setting->castDefinition().match == "one-of") {
+        m_options = utils::string::split(setting->castDefinition().match.value(), "|");
 
         m_selectedOption = 0;
         for (size_t i = 0; i < m_options.size(); i++) {

@@ -75,7 +75,12 @@ Result<StringSetting> StringSetting::parse(JsonMaybeObject& obj) {
     parseCommon(sett, obj);
     obj.has("match").into(sett.match);
     obj.has("filter").into(sett.filter);
-    obj.has("one-of").into(sett.options);
+    std::vector<std::string> options;
+    obj.has("one-of").into(options);
+    if (options.size()) {
+        sett.filter = "one-of";
+        sett.match = fmt::format("{}", fmt::join(options, "|"));
+    }
     return Ok(sett);
 }
 
@@ -367,7 +372,25 @@ IMPL_TO_VALID(Float) {
 
 IMPL_TO_VALID(String) {
     if (m_definition.match) {
-        if (!re2::RE2::FullMatch(value, m_definition.match.value())) {
+        // hacky things ahead
+        if (m_definition.filter == "one-of") {
+            auto options = utils::string::split(m_definition.match.value(), "|");
+
+            if (std::find(
+                options.begin(),
+                options.end(),
+                value
+            ) == options.end()) {
+                return {
+                    m_definition.defaultValue,
+                    fmt::format(
+                        "Value must be one of {}",
+                        fmt::join(options, ", ")
+                    )
+                };
+            }
+        }
+        else if (!re2::RE2::FullMatch(value, m_definition.match.value())) {
             return {
                 m_definition.defaultValue,
                 fmt::format(
@@ -377,21 +400,21 @@ IMPL_TO_VALID(String) {
             };
         }
     }
-    else if (m_definition.options) {
-        if (std::find(
-            m_definition.options.value().begin(),
-            m_definition.options.value().end(),
-            value
-        ) == m_definition.options.value().end()) {
-            return {
-                m_definition.defaultValue,
-                fmt::format(
-                    "Value must be one of {}",
-                    fmt::join(m_definition.options.value(), ", ")
-                )
-            };
-        }
-    }
+    // else if (m_definition.options) {
+    //     if (std::find(
+    //         m_definition.options.value().begin(),
+    //         m_definition.options.value().end(),
+    //         value
+    //     ) == m_definition.options.value().end()) {
+    //         return {
+    //             m_definition.defaultValue,
+    //             fmt::format(
+    //                 "Value must be one of {}",
+    //                 fmt::join(m_definition.options.value(), ", ")
+    //             )
+    //         };
+    //     }
+    // }
     return { value, std::nullopt };
 }
 
