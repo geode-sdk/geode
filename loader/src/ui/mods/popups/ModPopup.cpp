@@ -7,6 +7,7 @@
 #include <Geode/utils/ColorProvider.hpp>
 #include "ConfirmUninstallPopup.hpp"
 #include "../settings/ModSettingsPopup.hpp"
+#include "../../../internal/about.hpp"
 
 class FetchTextArea : public CCNode {
 public:
@@ -65,6 +66,19 @@ public:
 bool ModPopup::setup(ModSource&& src) {
     m_source = std::move(src);
     m_noElasticity = true;
+
+    if (src.asMod() == Mod::get()) {
+        // Display commit hashes
+        auto loaderHash = about::getLoaderCommitHash();
+        auto bindingsHash = about::getBindingsCommitHash();
+
+        auto string = fmt::format("Loader: {}, Bindings: {}", loaderHash, bindingsHash);
+        auto hashLabel = CCLabelBMFont::create(string.c_str(), "chatFont.fnt");
+        hashLabel->setAnchorPoint({ .5f, 1.f });
+        hashLabel->setOpacity(51);
+        hashLabel->setScale(.7f);
+        m_mainLayer->addChildAtPosition(hashLabel, Anchor::Bottom, ccp(0, -5));
+    }
 
     auto mainContainer = CCNode::create();
     mainContainer->setContentSize(m_mainLayer->getContentSize() - ccp(20, 20));
