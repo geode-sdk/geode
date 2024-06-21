@@ -166,6 +166,7 @@ jobs:
         tarBall: false
         zipBall: false
         out-file-path: "epic-xwin"
+      if: matrix.config.id == 'win'
 
     - name: Prepare xwin
       run: |
