@@ -95,7 +95,7 @@ jobs:
       shell: bash
       run: |
         mkdir ./build-debug-info
-        ${{ matrix.config.host_id == 'win' && 'echo "REAL_BASH=C:/Program Files/Git/bin/bash.exe" >> $GITHUB_ENV' || 'echo "REAL_BASH=$BASH" >> $GITHUB_ENV' }}
+        echo "REAL_BASH=$BASH" >> $GITHUB_ENV
         echo "SCCACHE_ERROR_LOG=$GITHUB_WORKSPACE/build-debug-info/sccache-log.txt" >> $GITHUB_ENV
         echo "SCCACHE_LOG=debug" >> $GITHUB_ENV
         echo "RUST_BACKTRACE=1" >> $GITHUB_ENV
@@ -150,15 +150,7 @@ jobs:
         7z x ninja.zip -o"$GITHUB_WORKSPACE/ninja"
         echo "$GITHUB_WORKSPACE/ninja" >> $GITHUB_PATH
 
-    - name: Update LLVM (Windows)
-      shell: bash
-      run: |
-        curl -L https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/LLVM-17.0.6-win64.exe -o llvm-inst.exe
-        7z x llvm-inst.exe -ollvm bin/clang.exe bin/clang++.exe bin/lld-link.exe bin/llvm-rc.exe bin/*.dll lib/clang/*/include/*
-        echo "$GITHUB_WORKSPACE/llvm/bin" >> $GITHUB_PATH
-      if: matrix.config.host_id == 'win'
-
-    - name: Install LLVM (MacOS)
+    - name: Install LLVM
       shell: bash
       run: |
         brew install llvm
@@ -244,11 +236,11 @@ jobs:
 
     - name: Configure
       run: >
-        ${{ matrix.config.id == 'win' && 'export SPLAT_DIR=$GITHUB_WORKSPACE/.xwin-cache/splat' }}
+        ${{ matrix.config.id == 'win' && 'export SPLAT_DIR=$GITHUB_WORKSPACE/.xwin-cache/splat' || '' }}
 
-        ${{ matrix.config.id == 'win' && 'export TOOLCHAIN=$GITHUB_WORKSPACE/toolchain/clang-cl-msvc.cmake' }}
+        ${{ matrix.config.id == 'win' && 'export TOOLCHAIN=$GITHUB_WORKSPACE/toolchain/clang-cl-msvc.cmake' || '' }}
 
-        ${{ matrix.config.id == 'win' && 'export HOST_ARCH=x86_64' }}
+        ${{ matrix.config.id == 'win' && 'export HOST_ARCH=x86_64' || '' }}
 
         cmake -B build
         -DCLI_PATH=${{ github.workspace }}/cli
@@ -262,9 +254,9 @@ jobs:
 
     - name: Build
       run: |
-        ${{ matrix.config.id == 'win' && 'export SPLAT_DIR=$GITHUB_WORKSPACE/.xwin-cache/splat' }}
-        ${{ matrix.config.id == 'win' && 'export TOOLCHAIN=$GITHUB_WORKSPACE/toolchain/clang-cl-msvc.cmake' }}
-        ${{ matrix.config.id == 'win' && 'export HOST_ARCH=x86_64' }}
+        ${{ matrix.config.id == 'win' && 'export SPLAT_DIR=$GITHUB_WORKSPACE/.xwin-cache/splat' || '' }}
+        ${{ matrix.config.id == 'win' && 'export TOOLCHAIN=$GITHUB_WORKSPACE/toolchain/clang-cl-msvc.cmake' || '' }}
+        ${{ matrix.config.id == 'win' && 'export HOST_ARCH=x86_64' || '' }}
         cmake --build build --config RelWithDebInfo --parallel
         rm bin/nightly/resources/.geode_cache
         ${{ inputs.build-debug-info && 'python3 ./ninjatracing/ninjatracing ./build/.ninja_log > ./build-debug-info/ninja-trace.json' || '' }}
