@@ -1,5 +1,11 @@
 # Geode Changelog
 
+## v3.0.0
+ * Show loader commit hashes again (b72bb9e)
+ * Don't save data if mod is uninstalled with save (518f941)
+ * Add "open in browser" button to mods (581e2d3)
+ * Remove the unimplemented Versions tab temporarily (581e2d3, 1f5ebf9)
+
 ## v3.0.0-beta.5
  * Add More Details button for mod problems (9095005)
  * Display mods not on current platform (2cd0990)
