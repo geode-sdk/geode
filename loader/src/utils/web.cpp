@@ -196,6 +196,7 @@ public:
     std::optional<std::string> m_encoding;
     std::optional<ByteVector> m_body;
     std::optional<std::chrono::seconds> m_timeout;
+    std::optional<std::pair<std::uint64_t, std::uint64_t>> m_range;
     bool m_certVerification = true;
     bool m_transferBody = true;
     bool m_followRequest = false;
@@ -350,6 +351,11 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
             curl_easy_setopt(curl, CURLOPT_TIMEOUT, impl->m_timeout->count());
         }
 
+        // Set range
+        if (impl->m_range) {
+            curl_easy_setopt(curl, CURLOPT_RANGE, fmt::format("{}-{}", impl->m_range->first, impl->m_range->second).c_str());
+        }
+
         // Set proxy options
         auto const& proxyOpts = impl->m_proxyOpts;
         if (!proxyOpts.address.empty()) {
@@ -484,6 +490,11 @@ WebRequest& WebRequest::userAgent(std::string_view name) {
 
 WebRequest& WebRequest::timeout(std::chrono::seconds time) {
     m_impl->m_timeout = time;
+    return *this;
+}
+
+WebRequest& WebRequest::range(std::pair<std::uint64_t, std::uint64_t> byteRange) {
+    m_impl->m_range = byteRange;
     return *this;
 }
 

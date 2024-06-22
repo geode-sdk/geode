@@ -138,6 +138,8 @@ namespace geode::utils::web {
 
         WebRequest& timeout(std::chrono::seconds time);
 
+        WebRequest& range(std::pair<std::uint64_t, std::uint64_t> byteRange);
+
         WebRequest& certVerification(bool enabled);
         WebRequest& transferBody(bool enabled);
         WebRequest& followRequest(bool enabled);
