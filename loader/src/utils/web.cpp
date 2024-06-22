@@ -199,7 +199,6 @@ public:
     std::optional<std::pair<std::uint64_t, std::uint64_t>> m_range;
     bool m_certVerification = true;
     bool m_transferBody = true;
-    bool m_followRequest = false;
     std::string m_CABundleContent;
     ProxyOpts m_proxyOpts = {};
     HttpVersion m_httpVersion = HttpVersion::DEFAULT;
@@ -329,11 +328,6 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         // Transfer body
         if (!impl->m_transferBody) {
             curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
-        }
-
-        // Follow request through 30x responses
-        if (impl->m_followRequest) {
-            curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
         }
 
         // Set user agent if provided
@@ -504,11 +498,6 @@ WebRequest& WebRequest::certVerification(bool enabled) {
 }
 WebRequest& WebRequest::transferBody(bool enabled) {
     m_impl->m_transferBody = enabled;
-    return *this;
-}
-
-WebRequest& WebRequest::followRequest(bool enabled) {
-    m_impl->m_followRequest = enabled;
     return *this;
 }
 

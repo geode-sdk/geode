@@ -142,7 +142,6 @@ namespace geode::utils::web {
 
         WebRequest& certVerification(bool enabled);
         WebRequest& transferBody(bool enabled);
-        WebRequest& followRequest(bool enabled);
         WebRequest& CABundleContent(std::string_view content);
         WebRequest& proxyOpts(ProxyOpts const& proxyOpts);
 
