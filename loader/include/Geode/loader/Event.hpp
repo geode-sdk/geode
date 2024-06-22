@@ -5,6 +5,8 @@
 
 #include <Geode/DefaultInclude.hpp>
 #include <type_traits>
+#include <mutex>
+#include <deque>
 #include <unordered_set>
 
 namespace geode {
@@ -29,12 +31,26 @@ namespace geode {
         EventListenerPool(EventListenerPool const&) = delete;
         EventListenerPool(EventListenerPool&&) = delete;
     };
+
+    template <class... Args>
+    class DispatchEvent;
+
+    template <class... Args>
+    class DispatchFilter;
     
     class GEODE_DLL DefaultEventListenerPool : public EventListenerPool {
     protected:
-        std::atomic_size_t m_locked = 0;
-        std::vector<EventListenerProtocol*> m_listeners;
-        std::vector<EventListenerProtocol*> m_toAdd;
+        // fix this in Geode 4.0.0
+        struct Data {
+            std::atomic_size_t m_locked = 0;
+            std::mutex m_mutex;
+            std::deque<EventListenerProtocol*> m_listeners;
+            std::vector<EventListenerProtocol*> m_toAdd;
+        };
+        std::unique_ptr<Data> m_data;
+
+    private:
+        static DefaultEventListenerPool* create();
 
     public:
         bool add(EventListenerProtocol* listener) override;
@@ -42,6 +58,15 @@ namespace geode {
         ListenerResult handle(Event* event) override;
 
         static DefaultEventListenerPool* get();
+
+        template <class... Args>
+        friend class DispatchEvent;
+
+        template <class... Args>
+        friend class DispatchFilter;
+
+        // todo: make this private in Geode 4.0.0
+        DefaultEventListenerPool();
     };
 
     class GEODE_DLL EventListenerProtocol {

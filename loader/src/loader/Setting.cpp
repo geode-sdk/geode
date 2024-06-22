@@ -73,9 +73,9 @@ Result<FloatSetting> FloatSetting::parse(JsonMaybeObject& obj) {
 Result<StringSetting> StringSetting::parse(JsonMaybeObject& obj) {
     StringSetting sett;
     parseCommon(sett, obj);
-    obj.has("match").into(sett.match);
-    obj.has("filter").into(sett.filter);
-    obj.has("one-of").into(sett.options);
+    obj.has("match").into(sett.controls->match);
+    obj.has("filter").into(sett.controls->filter);
+    obj.has("one-of").into(sett.controls->options);
     return Ok(sett);
 }
 
@@ -242,6 +242,29 @@ std::string Setting::getModID() const {
     return m_modID;
 }
 
+// StringSetting
+
+StringSetting::StringSetting() : name(), description(), defaultValue(), controls(new Data()) {}
+StringSetting::StringSetting(StringSetting const& other) : name(other.name), description(other.description), 
+    defaultValue(other.defaultValue), controls(new Data(*other.controls)) {}
+StringSetting::StringSetting(StringSetting&& other) noexcept : name(std::move(other.name)), description(std::move(other.description)), 
+    defaultValue(std::move(other.defaultValue)), controls(std::move(other.controls)) {}
+StringSetting& StringSetting::operator=(StringSetting const& other) {
+    name = other.name;
+    description = other.description;
+    defaultValue = other.defaultValue;
+    *controls = *other.controls;
+    return *this;
+}
+StringSetting& StringSetting::operator=(StringSetting&& other) noexcept {
+    name = std::move(other.name);
+    description = std::move(other.description);
+    defaultValue = std::move(other.defaultValue);
+    controls = std::move(other.controls);
+    return *this;
+}
+StringSetting::~StringSetting() = default;
+
 // SettingValue
 
 SettingValue::SettingValue(std::string const& key, std::string const& mod)
@@ -366,28 +389,28 @@ IMPL_TO_VALID(Float) {
 }
 
 IMPL_TO_VALID(String) {
-    if (m_definition.match) {
-        if (!re2::RE2::FullMatch(value, m_definition.match.value())) {
+    if (m_definition.controls->match) {
+        if (!re2::RE2::FullMatch(value, m_definition.controls->match.value())) {
             return {
                 m_definition.defaultValue,
                 fmt::format(
                     "Value must match regex {}",
-                    m_definition.match.value()
+                    m_definition.controls->match.value()
                 )
             };
         }
     }
-    else if (m_definition.options) {
+    else if (m_definition.controls->options) {
         if (std::find(
-            m_definition.options.value().begin(),
-            m_definition.options.value().end(),
+            m_definition.controls->options.value().begin(),
+            m_definition.controls->options.value().end(),
             value
-        ) == m_definition.options.value().end()) {
+        ) == m_definition.controls->options.value().end()) {
             return {
                 m_definition.defaultValue,
                 fmt::format(
                     "Value must be one of {}",
-                    fmt::join(m_definition.options.value(), ", ")
+                    fmt::join(m_definition.controls->options.value(), ", ")
                 )
             };
         }

@@ -66,25 +66,68 @@ void patchDelayLoad() {
         // see https://github.com/llvm/llvm-project/blob/main/lld/COFF/DLL.cpp#L207
         if (checkByteSequence(tailMergeAddr, {0x51, 0x52, 0x41, 0x50, 0x41, 0x51, 0x48, 0x83, 0xEC, 0x48})) {
             // ok we are probably in the broken lld-link tailMerge, time to patch it
-            // TODO:
-            // FIXME: xmm0 is still wrong, dont have enough space to fix it,
-            // gotta allocate space somewhere else
-            static constexpr uint8_t patch1[] = {
-                0x48, 0x83, 0xEC, 0x68,             // sub     rsp, 68h
-                0x66, 0x0F, 0x7F, 0x04, 0x24,       // movdqa  xmmword ptr [rsp], xmm0
-                0x66, 0x0F, 0x7F, 0x4C, 0x24, 0x30, // movdqa  xmmword ptr [rsp+30h], xmm1
-                0x66, 0x0F, 0x7F, 0x54, 0x24, 0x40, // movdqa  xmmword ptr [rsp+40h], xmm2
-                0x66, 0x0F, 0x7F, 0x5C, 0x24, 0x50, // movdqa  xmmword ptr [rsp+50h], xmm3
-            };
-            (void) tulip::hook::writeMemory(reinterpret_cast<void*>(tailMergeAddr + 6), patch1, sizeof(patch1));
-            static constexpr uint8_t patch2[] = {
-                0x66, 0x0F, 0x6F, 0x04, 0x24,       // movdqa  xmm0, xmmword ptr [rsp]
-                0x66, 0x0F, 0x6F, 0x4C, 0x24, 0x30, // movdqa  xmm1, xmmword ptr [rsp+30h]
-                0x66, 0x0F, 0x6F, 0x54, 0x24, 0x40, // movdqa  xmm2, xmmword ptr [rsp+40h]
-                0x66, 0x0F, 0x6F, 0x5C, 0x24, 0x50, // movdqa  xmm3, xmmword ptr [rsp+50h]
-                0x48, 0x83, 0xC4, 0x68,             // add     rsp, 68h
-            };
-            (void) tulip::hook::writeMemory(reinterpret_cast<void*>(tailMergeAddr + 48), patch2, sizeof(patch2));
+            auto allocated = reinterpret_cast<uintptr_t>(VirtualAlloc(nullptr, 0x100, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READ));
+            if (!allocated) {
+                log::warn("Failed to allocate memory for xmm0 fix");
+                static constexpr uint8_t patch1[] = {
+                    0x48, 0x83, 0xEC, 0x68,             // sub     rsp, 68h
+                    0x66, 0x0F, 0x7F, 0x04, 0x24,       // movdqa  xmmword ptr [rsp], xmm0
+                    0x66, 0x0F, 0x7F, 0x4C, 0x24, 0x30, // movdqa  xmmword ptr [rsp+30h], xmm1
+                    0x66, 0x0F, 0x7F, 0x54, 0x24, 0x40, // movdqa  xmmword ptr [rsp+40h], xmm2
+                    0x66, 0x0F, 0x7F, 0x5C, 0x24, 0x50, // movdqa  xmmword ptr [rsp+50h], xmm3
+                };
+                (void) tulip::hook::writeMemory(reinterpret_cast<void*>(tailMergeAddr + 6), patch1, sizeof(patch1));
+                static constexpr uint8_t patch2[] = {
+                    0x66, 0x0F, 0x6F, 0x04, 0x24,       // movdqa  xmm0, xmmword ptr [rsp]
+                    0x66, 0x0F, 0x6F, 0x4C, 0x24, 0x30, // movdqa  xmm1, xmmword ptr [rsp+30h]
+                    0x66, 0x0F, 0x6F, 0x54, 0x24, 0x40, // movdqa  xmm2, xmmword ptr [rsp+40h]
+                    0x66, 0x0F, 0x6F, 0x5C, 0x24, 0x50, // movdqa  xmm3, xmmword ptr [rsp+50h]
+                    0x48, 0x83, 0xC4, 0x68,             // add     rsp, 68h
+                };
+                (void) tulip::hook::writeMemory(reinterpret_cast<void*>(tailMergeAddr + 48), patch2, sizeof(patch2));
+            }
+            else {
+                std::array<uint8_t, 27> patch1 = {
+                    0xFF, 0x25, 0x00, 0x00, 0x00, 0x00, // jmp     qword ptr [rip + ...]
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90
+                };
+                uintptr_t jmpAddr = allocated;
+                std::memcpy(patch1.data() + 6, &jmpAddr, sizeof(jmpAddr));
+                (void) tulip::hook::writeMemory(reinterpret_cast<void*>(tailMergeAddr + 6), patch1.data(), sizeof(patch1));
+
+                std::array<uint8_t, 48> patch2 = {
+                    0x48, 0x83, 0xEC, 0x68,             // sub     rsp, 68h
+                    0x66, 0x0F, 0x7F, 0x44, 0x24, 0x20, // movdqa  xmmword ptr [rsp+20h], xmm0
+                    0x66, 0x0F, 0x7F, 0x4C, 0x24, 0x30, // movdqa  xmmword ptr [rsp+30h], xmm1
+                    0x66, 0x0F, 0x7F, 0x54, 0x24, 0x40, // movdqa  xmmword ptr [rsp+40h], xmm2
+                    0x66, 0x0F, 0x7F, 0x5C, 0x24, 0x50, // movdqa  xmmword ptr [rsp+50h], xmm3
+                    0xFF, 0x25, 0x00, 0x00, 0x00, 0x00, // jmp     qword ptr [rip + ...]
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x90, 0x90, 0x90, 0x90, 0x90, 0x90
+                };
+                jmpAddr = tailMergeAddr + 6 + 27;
+                std::memcpy(patch2.data() + 34, &jmpAddr, sizeof(jmpAddr));
+                (void) tulip::hook::writeMemory(reinterpret_cast<void*>(allocated), patch2.data(), sizeof(patch2));
+
+                jmpAddr = allocated + 42;
+                std::memcpy(patch1.data() + 6, &jmpAddr, sizeof(jmpAddr));
+                (void) tulip::hook::writeMemory(reinterpret_cast<void*>(tailMergeAddr + 48), patch1.data(), sizeof(patch1));
+
+                std::array<uint8_t, 48> patch3 = {
+                    0x66, 0x0F, 0x6F, 0x44, 0x24, 0x20, // movdqa  xmm0, xmmword ptr [rsp+20h]
+                    0x66, 0x0F, 0x6F, 0x4C, 0x24, 0x30, // movdqa  xmm1, xmmword ptr [rsp+30h]
+                    0x66, 0x0F, 0x6F, 0x54, 0x24, 0x40, // movdqa  xmm2, xmmword ptr [rsp+40h]
+                    0x66, 0x0F, 0x6F, 0x5C, 0x24, 0x50, // movdqa  xmm3, xmmword ptr [rsp+50h]
+                    0x48, 0x83, 0xC4, 0x68,             // add     rsp, 68h
+                    0xFF, 0x25, 0x00, 0x00, 0x00, 0x00, // jmp     qword ptr [rip + ...]
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x90, 0x90, 0x90, 0x90, 0x90, 0x90
+                };
+                jmpAddr = tailMergeAddr + 48 + 27;
+                std::memcpy(patch3.data() + 34, &jmpAddr, sizeof(jmpAddr));
+                (void) tulip::hook::writeMemory(reinterpret_cast<void*>(allocated + 42), patch3.data(), sizeof(patch3));
+            }            
         }
     }
 #endif

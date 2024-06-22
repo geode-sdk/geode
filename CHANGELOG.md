@@ -1,7 +1,33 @@
 # Geode Changelog
 
-## v3.0.0-beta.2
+## v3.0.0-beta.5
+ * Add More Details button for mod problems (9095005)
+ * Display mods not on current platform (2cd0990)
+ * Fix `DefaultEventListenerPool` missing constructor ABI break for Dispatch (d88a93e)
+ * Implement `one-of` setting without ABI break (7742b57)
+ * Remove the missing custom setting warning (4509607)
 
+## v3.0.0-beta.4
+ * Fix events crash caused by immediate enabling & disabling (e796711)
+ * Make some classes final (ea96e2c)
+
+## v3.0.0-beta.3
+ * Fix a crash that might happen when entering the Geode mods page (79689cd)
+ * Fix a locale related crash (fdb473a)
+ * Cleanup old field syntax remnants (34e51ff)
+ * Use `clamp` for `SwelvyBG` instead of `repeat` (0a6a5e6)
+ * Add support for `one-of` settings for mods (3f674e5, 7d79ddd)
+ * Remove `RT_ADD` and `RT_REMOVE` (7bd8a1a)
+ * Add `CCDirector::m_bFastMenu` back (c3058ff)
+ * Fix UI visual bugs in `ModsLayer` (e273ef2, b3925f1, 255a42c)
+ * Fix race conditions for event pools (636be07, 4c15bdb, abc34f9)
+ * Add a `static_assert` to prevent old field syntax (5f37d30)
+ * Fix dangling `string_view` for `Task` names (92704b9)
+ * Download the exact update suggested by Index instead of latest version (115f0e7)
+ * Small cleanup and improvements for Windows stacktraces (2824c17)
+ * Fix bugs related to `delayload` (ec1d846)
+
+## v3.0.0-beta.2
  * (WebRequest) Don't change the method from POST to GET on redirect follow (6ae11dd)
  * Make `file::openFolder` actually work on selecting paths on Windows (0309e01)
  * Hide platform console option on Android (df3d147)
@@ -22,7 +48,6 @@
  * Hopefully finally fix Windows crashlogs (70fe096)
 
 ## v3.0.0-beta.1
-
  * Add a special error for 1114 - vcredist update (d0821f5)
  * Properly fix Windows exceptions (84a2c6b)
  * Add keyboard support to ModsLayer (2b53e8a)
@@ -45,7 +70,6 @@
  * `file::pick` and `file::pickMany` are the new file APIs, which use Tasks (#899)
 
 ## v3.0.0-alpha.2
-
  * Add `WebResponse::into()` for writing responses to files (f909a73)
  * Add `geodeImplicitEntry` and `geodeCustomEntry` (6b2ac24, 5969c90)
  * Fix padding and add a custom color for borders (#868)

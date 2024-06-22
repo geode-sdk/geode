@@ -7,6 +7,7 @@
 #include <Geode/utils/ColorProvider.hpp>
 #include "ConfirmUninstallPopup.hpp"
 #include "../settings/ModSettingsPopup.hpp"
+#include "../../../internal/about.hpp"
 
 class FetchTextArea : public CCNode {
 public:
@@ -65,6 +66,19 @@ public:
 bool ModPopup::setup(ModSource&& src) {
     m_source = std::move(src);
     m_noElasticity = true;
+
+    if (src.asMod() == Mod::get()) {
+        // Display commit hashes
+        auto loaderHash = about::getLoaderCommitHash();
+        auto bindingsHash = about::getBindingsCommitHash();
+
+        auto string = fmt::format("Loader: {}, Bindings: {}", loaderHash, bindingsHash);
+        auto hashLabel = CCLabelBMFont::create(string.c_str(), "chatFont.fnt");
+        hashLabel->setAnchorPoint({ .5f, 1.f });
+        hashLabel->setOpacity(51);
+        hashLabel->setScale(.7f);
+        m_mainLayer->addChildAtPosition(hashLabel, Anchor::Bottom, ccp(0, -5));
+    }
 
     auto mainContainer = CCNode::create();
     mainContainer->setContentSize(m_mainLayer->getContentSize() - ccp(20, 20));
@@ -499,8 +513,8 @@ bool ModPopup::setup(ModSource&& src) {
 
     for (auto mdTab : std::initializer_list<std::tuple<const char*, const char*, Tab>> {
         { "message.png"_spr,   "Description", Tab::Details },
-        { "changelog.png"_spr, "Changelog",   Tab::Changelog },
-        { "version.png"_spr,   "Versions",    Tab::Versions },
+        { "changelog.png"_spr, "Changelog",   Tab::Changelog }
+        // { "version.png"_spr,   "Versions",    Tab::Versions },
     }) {
         auto spr = GeodeTabSprite::create(std::get<0>(mdTab), std::get<1>(mdTab), 140, m_source.asServer());
         auto btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(ModPopup::onTab));
@@ -508,6 +522,18 @@ bool ModPopup::setup(ModSource&& src) {
         tabsMenu->addChild(btn);
         m_tabs.insert({ std::get<2>(mdTab), { spr, nullptr } });
     }
+
+    // placeholder external link until versions tab is implemented
+    auto modUrl = fmt::format("https://geode-sdk.org/mods/{}", m_source.getID());
+    auto externalLinkSpr = CCSprite::createWithSpriteFrameName("external-link.png"_spr);
+
+    externalLinkSpr->setScale(0.35f);
+    externalLinkSpr->setOpacity(127);
+
+    auto externalLinkBtn = CCMenuItemSpriteExtra::create(externalLinkSpr, this, menu_selector(ModPopup::onLink));
+    externalLinkBtn->setUserObject("url", CCString::create(modUrl));
+
+    m_buttonMenu->addChildAtPosition(externalLinkBtn, Anchor::TopRight, ccp(-14, -16));
 
     tabsMenu->setLayout(RowLayout::create());
     m_rightColumn->addChildAtPosition(tabsMenu, Anchor::Top);

@@ -310,8 +310,11 @@ bool FloatSettingNode::setup(FloatSettingValue* setting, float width) {
 // StringSettingNode
 
 void StringSettingNode::updateLabel() {
-    // hacky way to make setString not called textChanged
-    m_input->setString(m_uncommittedValue, false);
+    if (m_input) m_input->setString(m_uncommittedValue, false);
+    if (m_label) {
+        m_label->setString(m_uncommittedValue.c_str());   
+        m_label->limitLabelWidth(m_width / 2 - 80.f, .65f, .1f);
+    }
 }
 
 void StringSettingNode::textChanged(CCTextInputNode* input) {
@@ -324,17 +327,68 @@ void StringSettingNode::valueChanged(bool updateText) {
     this->updateLabel();
 }
 
-bool StringSettingNode::setup(StringSettingValue* setting, float width) {
-    m_input = TextInput::create(width / 2 - 10.f, "Text", "chatFont.fnt");
-    m_input->setPosition({ -(width / 2 - 70.f) / 2, .0f });
-    m_input->setScale(.65f);
-
-    if (setting->castDefinition().filter.has_value()) {
-        m_input->setFilter(setting->castDefinition().filter.value());
+void StringSettingNode::onArrow(CCObject* sender) {
+    m_selectedOption += sender->getTag();
+    if (m_selectedOption < 0) {
+        m_selectedOption = m_options.size() - 1;
     }
+    else if (m_selectedOption >= m_options.size()) {
+        m_selectedOption = 0;
+    }
+    m_uncommittedValue = m_options[m_selectedOption];
+    this->valueChanged(true);
+}
 
-    m_input->setDelegate(this);
-    m_menu->addChild(m_input);
+bool StringSettingNode::setup(StringSettingValue* setting, float width) {
+    m_width = width;
+    if (setting->castDefinition().controls->options.has_value()) {
+        m_options = setting->castDefinition().controls->options.value();
+
+        m_selectedOption = 0;
+        for (size_t i = 0; i < m_options.size(); i++) {
+            if (m_options[i] == setting->castDefinition().defaultValue) {
+                m_selectedOption = i;
+                break;
+            }
+        }
+
+        auto prevArrowSpr = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
+        prevArrowSpr->setFlipX(true);
+        prevArrowSpr->setScale(.3f);
+
+        m_prevBtn = CCMenuItemSpriteExtra::create(
+            prevArrowSpr, this, menu_selector(StringSettingNode::onArrow)
+        );
+        m_prevBtn->setPosition(-width / 2 + 65.f, 0.f);
+        m_prevBtn->setTag(-1);
+        m_menu->addChild(m_prevBtn);
+
+        auto nextArrowSpr = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
+        nextArrowSpr->setScale(.3f);
+
+        m_nextBtn = CCMenuItemSpriteExtra::create(
+            nextArrowSpr, this, menu_selector(StringSettingNode::onArrow)
+        );
+        m_nextBtn->setTag(1);
+        m_nextBtn->setPosition(5.f, 0.f);
+        m_menu->addChild(m_nextBtn);
+
+        m_label = CCLabelBMFont::create("", "bigFont.fnt");
+        m_label->setPosition({ -(width / 2 - 70.f) / 2, .0f });
+        m_menu->addChild(m_label);
+    }
+    else {
+        m_input = TextInput::create(width / 2 - 10.f, "Text", "chatFont.fnt");
+        m_input->setPosition({ -(width / 2 - 70.f) / 2, .0f });
+        m_input->setScale(.65f);
+
+        if (setting->castDefinition().controls->filter.has_value()) {
+            m_input->setFilter(setting->castDefinition().controls->filter.value());
+        }
+
+        m_input->setDelegate(this);
+        m_menu->addChild(m_input);
+    }
 
     return true;
 }

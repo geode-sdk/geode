@@ -1868,7 +1868,7 @@ NS_CC_END
 
 #ifndef GEODE_IS_MEMBER_TEST
 namespace geode {
-    struct GEODE_DLL UserObjectSetEvent : public Event {
+    struct GEODE_DLL UserObjectSetEvent final : public Event {
         cocos2d::CCNode* node;
         const std::string id;
         cocos2d::CCObject* value;
@@ -1876,7 +1876,7 @@ namespace geode {
         UserObjectSetEvent(cocos2d::CCNode* node, std::string const& id, cocos2d::CCObject* value);
     };
 
-    class GEODE_DLL AttributeSetFilter : public EventFilter<UserObjectSetEvent> {
+    class GEODE_DLL AttributeSetFilter final : public EventFilter<UserObjectSetEvent> {
 	public:
 		using Callback = void(UserObjectSetEvent*);
     

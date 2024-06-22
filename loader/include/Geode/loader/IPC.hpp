@@ -25,7 +25,7 @@ namespace geode::ipc {
     // example, an external application can query what mods are loaded in Geode
     // by sending the `list-mods` message to `geode.loader`.
 
-    class GEODE_DLL IPCEvent : public Event {
+    class GEODE_DLL IPCEvent final : public Event {
     protected:
         void* m_rawPipeHandle;
         bool m_replied = false;
@@ -48,7 +48,7 @@ namespace geode::ipc {
         virtual ~IPCEvent();
     };
 
-    class GEODE_DLL IPCFilter : public EventFilter<IPCEvent> {
+    class GEODE_DLL IPCFilter final : public EventFilter<IPCEvent> {
     public:
         using Callback = matjson::Value(IPCEvent*);
 

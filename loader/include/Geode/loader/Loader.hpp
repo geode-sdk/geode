@@ -51,7 +51,7 @@ namespace geode {
 
     class LoaderImpl;
 
-    class GEODE_DLL Loader {
+    class GEODE_DLL Loader final {
     private:
         class Impl;
         std::unique_ptr<Impl> m_impl;

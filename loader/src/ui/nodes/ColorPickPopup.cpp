@@ -232,7 +232,6 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
 
     bColumn->updateLayout();
     auto bRect = calculateChildCoverage(bColumn);
-    log::debug("bRect: {}", bRect.size);
     bColumn->setContentSize(bRect.size);
 
     // hex

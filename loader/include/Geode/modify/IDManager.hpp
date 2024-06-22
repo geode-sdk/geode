@@ -13,7 +13,7 @@ namespace geode {
         { T::CLASS_NAME } -> std::convertible_to<const char*>;
     };
 
-    class GEODE_DLL NodeIDs {
+    class GEODE_DLL NodeIDs final {
     public:
         template<class T>
         using Provider = void(GEODE_CALL*)(T*);
