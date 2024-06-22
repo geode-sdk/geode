@@ -513,8 +513,8 @@ bool ModPopup::setup(ModSource&& src) {
 
     for (auto mdTab : std::initializer_list<std::tuple<const char*, const char*, Tab>> {
         { "message.png"_spr,   "Description", Tab::Details },
-        { "changelog.png"_spr, "Changelog",   Tab::Changelog },
-        { "version.png"_spr,   "Versions",    Tab::Versions },
+        { "changelog.png"_spr, "Changelog",   Tab::Changelog }
+        // { "version.png"_spr,   "Versions",    Tab::Versions },
     }) {
         auto spr = GeodeTabSprite::create(std::get<0>(mdTab), std::get<1>(mdTab), 140, m_source.asServer());
         auto btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(ModPopup::onTab));
@@ -522,6 +522,18 @@ bool ModPopup::setup(ModSource&& src) {
         tabsMenu->addChild(btn);
         m_tabs.insert({ std::get<2>(mdTab), { spr, nullptr } });
     }
+
+    // placeholder external link until versions tab is implemented
+    auto modUrl = fmt::format("https://geode-sdk.org/mods/{}", m_source.getID());
+    auto externalLinkSpr = CCSprite::createWithSpriteFrameName("external-link.png"_spr);
+
+    externalLinkSpr->setScale(0.35f);
+    externalLinkSpr->setOpacity(127);
+
+    auto externalLinkBtn = CCMenuItemSpriteExtra::create(externalLinkSpr, this, menu_selector(ModPopup::onLink));
+    externalLinkBtn->setUserObject("url", CCString::create(modUrl));
+
+    m_buttonMenu->addChildAtPosition(externalLinkBtn, Anchor::TopRight, ccp(-14, -16));
 
     tabsMenu->setLayout(RowLayout::create());
     m_rightColumn->addChildAtPosition(tabsMenu, Anchor::Top);
