@@ -65,6 +65,33 @@ static long unwrapHttpAuth(long auth) {
     return unwrapped;
 }
 
+static long unwrapHttpVersion(HttpVersion version)
+{
+    switch (version) {
+        using enum HttpVersion;
+
+        case DEFAULT:
+            return CURL_HTTP_VERSION_NONE;
+        case VERSION_1_0:
+            return CURL_HTTP_VERSION_1_0;
+        case VERSION_1_1:
+            return CURL_HTTP_VERSION_1_1;
+        case VERSION_2_0:
+            return CURL_HTTP_VERSION_2_0;
+        case VERSION_2TLS:
+            return CURL_HTTP_VERSION_2TLS;
+        case VERSION_2_PRIOR_KNOWLEDGE:
+            return CURL_HTTP_VERSION_2_PRIOR_KNOWLEDGE;
+        case VERSION_3:
+            return CURL_HTTP_VERSION_3;
+        case VERSION_3ONLY:
+            return CURL_HTTP_VERSION_3ONLY;
+    }
+
+    // Shouldn't happen.
+    unreachable("Unexpected HTTP Version!");
+}
+
 class WebResponse::Impl {
 public:
     int m_code;
@@ -166,11 +193,15 @@ public:
     std::unordered_map<std::string, std::string> m_headers;
     std::unordered_map<std::string, std::string> m_urlParameters;
     std::optional<std::string> m_userAgent;
+    std::optional<std::string> m_encoding;
     std::optional<ByteVector> m_body;
     std::optional<std::chrono::seconds> m_timeout;
     bool m_certVerification = true;
+    bool m_transferBody = true;
+    bool m_followRequest = false;
     std::string m_CABundleContent;
     ProxyOpts m_proxyOpts = {};
+    HttpVersion m_httpVersion = HttpVersion::DEFAULT;
 
     WebResponse makeError(int code, std::string const& msg) {
         auto res = WebResponse();
@@ -254,6 +285,9 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         }
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 
+        // Set HTTP version
+        curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, unwrapHttpVersion(impl->m_httpVersion));
+
         // Set request method
         if (impl->m_method != "GET") {
             if (impl->m_method == "POST") {
@@ -273,7 +307,7 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
             // why? god knows
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "");
         }
-        
+
         // Cert verification
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, impl->m_certVerification ? 1 : 0);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2);
@@ -289,11 +323,26 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
             caBundleBlob.len = impl->m_CABundleContent.size();
             caBundleBlob.flags = CURL_BLOB_COPY;
             curl_easy_setopt(curl, CURLOPT_CAINFO_BLOB, &caBundleBlob);
-        }  
+        }
+
+        // Transfer body
+        if (!impl->m_transferBody) {
+            curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
+        }
+
+        // Follow request through 30x responses
+        if (impl->m_followRequest) {
+            curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+        }
 
         // Set user agent if provided
         if (impl->m_userAgent) {
             curl_easy_setopt(curl, CURLOPT_USERAGENT, impl->m_userAgent->c_str());
+        }
+
+        // Set encoding
+        if (impl->m_encoding) {
+            curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, impl->m_encoding->c_str());
         }
 
         // Set timeout
@@ -442,6 +491,15 @@ WebRequest& WebRequest::certVerification(bool enabled) {
     m_impl->m_certVerification = enabled;
     return *this;
 }
+WebRequest& WebRequest::transferBody(bool enabled) {
+    m_impl->m_transferBody = enabled;
+    return *this;
+}
+
+WebRequest& WebRequest::followRequest(bool enabled) {
+    m_impl->m_followRequest = enabled;
+    return *this;
+}
 
 WebRequest& WebRequest::CABundleContent(std::string_view content) {
     m_impl->m_CABundleContent = content;
@@ -450,6 +508,16 @@ WebRequest& WebRequest::CABundleContent(std::string_view content) {
 
 WebRequest& WebRequest::proxyOpts(ProxyOpts const& proxyOpts) {
     m_impl->m_proxyOpts = proxyOpts;
+    return *this;
+}
+
+WebRequest& WebRequest::version(HttpVersion httpVersion) {
+    m_impl->m_httpVersion = httpVersion;
+    return *this;
+}
+
+WebRequest& WebRequest::encoding(std::string_view str) {
+    m_impl->m_encoding = str;
     return *this;
 }
 

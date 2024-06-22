@@ -25,6 +25,18 @@ namespace geode::utils::web {
         constexpr static long AWS_SIGV4 = 0x0400;
     }
 
+    // https://curl.se/libcurl/c/CURLOPT_HTTP_VERSION.html
+    enum class HttpVersion {
+        DEFAULT,
+        VERSION_1_0,
+        VERSION_1_1,
+        VERSION_2_0,
+        VERSION_2TLS,
+        VERSION_2_PRIOR_KNOWLEDGE,
+        VERSION_3 = 30,
+        VERSION_3ONLY = 31
+    };
+
     // https://curl.se/libcurl/c/CURLOPT_PROXYTYPE.html
     enum class ProxyType {
         HTTP, // HTTP
@@ -68,7 +80,7 @@ namespace geode::utils::web {
         Result<matjson::Value> json() const;
         ByteVector data() const;
         Result<> into(std::filesystem::path const& path) const;
-        
+
         std::vector<std::string> headers() const;
         std::optional<std::string> header(std::string_view name) const;
     };
@@ -122,11 +134,17 @@ namespace geode::utils::web {
 
         WebRequest& userAgent(std::string_view name);
 
+        WebRequest& encoding(std::string_view encoding);
+
         WebRequest& timeout(std::chrono::seconds time);
 
         WebRequest& certVerification(bool enabled);
+        WebRequest& transferBody(bool enabled);
+        WebRequest& followRequest(bool enabled);
         WebRequest& CABundleContent(std::string_view content);
         WebRequest& proxyOpts(ProxyOpts const& proxyOpts);
+
+        WebRequest& version(HttpVersion httpVersion);
 
         WebRequest& body(ByteVector raw);
         WebRequest& bodyString(std::string_view str);
