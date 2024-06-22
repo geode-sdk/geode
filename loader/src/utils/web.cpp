@@ -193,13 +193,13 @@ public:
     std::unordered_map<std::string, std::string> m_headers;
     std::unordered_map<std::string, std::string> m_urlParameters;
     std::optional<std::string> m_userAgent;
-    std::optional<std::string> m_encoding;
+    std::optional<std::string> m_downloadEncodingType;
     std::optional<ByteVector> m_body;
     std::optional<std::chrono::seconds> m_timeout;
     std::optional<std::pair<std::uint64_t, std::uint64_t>> m_range;
     bool m_certVerification = true;
     bool m_transferBody = true;
-    bool m_followRequest = true;
+    bool m_followRedirects = true;
     std::string m_CABundleContent;
     ProxyOpts m_proxyOpts = {};
     HttpVersion m_httpVersion = HttpVersion::DEFAULT;
@@ -327,9 +327,7 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         }
 
         // Transfer body
-        if (!impl->m_transferBody) {
-            curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
-        }
+        curl_easy_setopt(curl, CURLOPT_NOBODY, impl->m_transferBody ? 0L : 1L);
 
         // Set user agent if provided
         if (impl->m_userAgent) {
@@ -337,8 +335,8 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         }
 
         // Set encoding
-        if (impl->m_encoding) {
-            curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, impl->m_encoding->c_str());
+        if (impl->m_downloadEncodingType) {
+            curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, impl->m_downloadEncodingType->c_str());
         }
 
         // Set timeout
@@ -373,10 +371,8 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
             curl_easy_setopt(curl, CURLOPT_PROXY_SSL_VERIFYHOST, 2);
         }
 
-        // Follow request through 30x responses
-        if (impl->m_followRequest) {
-            curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-        }
+        // Follow request through 3xx responses
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, impl->m_followRedirects ? 1L : 0L);
 
         // Track progress
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
@@ -491,7 +487,7 @@ WebRequest& WebRequest::timeout(std::chrono::seconds time) {
     return *this;
 }
 
-WebRequest& WebRequest::range(std::pair<std::uint64_t, std::uint64_t> byteRange) {
+WebRequest& WebRequest::downloadRange(std::pair<std::uint64_t, std::uint64_t> byteRange) {
     m_impl->m_range = byteRange;
     return *this;
 }
@@ -505,8 +501,8 @@ WebRequest& WebRequest::transferBody(bool enabled) {
     return *this;
 }
 
-WebRequest& WebRequest::followRequest(bool enabled) {
-    m_impl->m_followRequest = enabled;
+WebRequest& WebRequest::followRedirects(bool enabled) {
+    m_impl->m_followRedirects = enabled;
     return *this;
 }
 
@@ -525,8 +521,8 @@ WebRequest& WebRequest::version(HttpVersion httpVersion) {
     return *this;
 }
 
-WebRequest& WebRequest::encoding(std::string_view str) {
-    m_impl->m_encoding = str;
+WebRequest& WebRequest::responseEncodingType(std::string_view str) {
+    m_impl->m_downloadEncodingType = str;
     return *this;
 }
 

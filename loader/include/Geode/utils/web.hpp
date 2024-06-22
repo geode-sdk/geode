@@ -132,24 +132,124 @@ namespace geode::utils::web {
             return this->param(name, std::to_string(value));
         }
 
+        /**
+         * Sets the request's user agent.
+         * The default is NULL, which makes the request not send a User-Agent: header.
+         *
+         * @param name
+         * @return WebRequest&
+         */
         WebRequest& userAgent(std::string_view name);
 
-        WebRequest& encoding(std::string_view encoding);
+        /**
+         * Sets the response's encoding. Valid values include: br, gzip, deflate, ...
+         * You can set multiple encoding types by calling this method with a comma separated list
+         * of the encodings of your choosing.
+         * The default is NULL, which makes the request not send an Accept-Encoding: header and not decompress received contents automatically.
+         *
+         * @example
+         * auto req = web::WebRequest()
+         *  .responseEncoding("gzip, deflate")
+         *  .get(url);
+         *
+         * @param encodingType Target response encoding type. An empty string ("") will use all built-in supported encodings.
+         * @return WebRequest&
+         */
+        WebRequest& responseEncodingType(std::string_view encodingType);
 
+        /**
+         * Sets the maximum amount of seconds to allow the entire transfer operation to take.
+         * The default timeout is 0, which means the request never times out during transfer.
+         *
+         * @param time
+         * @return WebRequest&
+         */
         WebRequest& timeout(std::chrono::seconds time);
 
-        WebRequest& range(std::pair<std::uint64_t, std::uint64_t> byteRange);
+        /**
+         * Sets the target byte range to request.
+         * The default is NULL, which means the full request is sent back.
+         *
+         * @param byteRange a pair of ints, first value is what byte to start from, second value is the last byte to get (both inclusive)
+         * @return WebRequest&
+         */
+        WebRequest& downloadRange(std::pair<std::uint64_t, std::uint64_t> byteRange);
 
+        /**
+         * Enable or disables peer verification in SSL handshake.
+         * The default is true.
+         *
+         * @param enabled
+         * @return WebRequest&
+         */
         WebRequest& certVerification(bool enabled);
+
+        /**
+         * Enables or disabled getting the body of a request. For HTTP(S), this does a HEAD request.
+         * For most other protocols it means just not asking to transfer the body data. 
+         * The default is true.
+         *
+         * @param enabled
+         * @return WebRequest&
+         */
         WebRequest& transferBody(bool enabled);
-        WebRequest& followRequest(bool enabled);
+
+        /**
+         * Follow HTTP 3xx redirects.
+         * The default is true.
+         *
+         * @param enabled
+         * @return WebRequest&
+         */
+        WebRequest& followRedirects(bool enabled);
+
+        /**
+         * Sets the Certificate Authority (CA) bundle content.
+         * The default is NULL.
+         *
+         * @param content
+         * @return WebRequest&
+         */
         WebRequest& CABundleContent(std::string_view content);
+
+        /**
+         * Sets the request's proxy.
+         * The default is NULL, which means no proxy is used.
+         *
+         * @param proxyOpts
+         * @return WebRequest&
+         */
         WebRequest& proxyOpts(ProxyOpts const& proxyOpts);
 
+        /**
+         * Sets the request's HTTP version.
+         * The default is HttpVersion::VERSION_2TLS.
+         *
+         * @param httpVersion
+         * @return WebRequest&
+         */
         WebRequest& version(HttpVersion httpVersion);
 
+        /**
+         * Sets the body of the request to a byte vector.
+         *
+         * @param raw The raw bytes to set as the body.
+         * @return WebRequest&
+         */
         WebRequest& body(ByteVector raw);
+        /**
+         * Sets the body of the request to a string.
+         *
+         * @param str The string to set as the body.
+         * @return WebRequest&
+         */
         WebRequest& bodyString(std::string_view str);
+        /**
+         * Sets the body of the request to a json object.
+         *
+         * @param json
+         * @return WebRequest&
+         */
         WebRequest& bodyJSON(matjson::Value const& json);
     };
 }
