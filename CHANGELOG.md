@@ -6,6 +6,8 @@
  * Add "open in browser" button to mods (581e2d3)
  * Remove the unimplemented Versions tab temporarily (581e2d3, 1f5ebf9)
  * Texture fix (#941)
+ * Implement Android 64 bit exception fix in client side (cfb682e)
+   * Most of the fix is in the launcher itself, so you need to update to 1.4.0 for the full fix
 
 ## v3.0.0-beta.5
  * Add More Details button for mod problems (9095005)
