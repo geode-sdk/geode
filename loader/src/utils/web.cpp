@@ -199,6 +199,7 @@ public:
     std::optional<std::pair<std::uint64_t, std::uint64_t>> m_range;
     bool m_certVerification = true;
     bool m_transferBody = true;
+    bool m_followRequest = true;
     std::string m_CABundleContent;
     ProxyOpts m_proxyOpts = {};
     HttpVersion m_httpVersion = HttpVersion::DEFAULT;
@@ -372,11 +373,14 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
             curl_easy_setopt(curl, CURLOPT_PROXY_SSL_VERIFYHOST, 2);
         }
 
+        // Follow request through 30x responses
+        if (impl->m_followRequest) {
+            curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+        }
+
         // Track progress
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
 
-        // Follow redirects
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
         // don't change the method from POST to GET when following a redirect
         curl_easy_setopt(curl, CURLOPT_POSTREDIR, CURL_REDIR_POST_ALL);
 
@@ -498,6 +502,11 @@ WebRequest& WebRequest::certVerification(bool enabled) {
 }
 WebRequest& WebRequest::transferBody(bool enabled) {
     m_impl->m_transferBody = enabled;
+    return *this;
+}
+
+WebRequest& WebRequest::followRequest(bool enabled) {
+    m_impl->m_followRequest = enabled;
     return *this;
 }
 
