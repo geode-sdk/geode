@@ -535,7 +535,7 @@ bool ModPopup::setup(ModSource&& src) {
 
     m_buttonMenu->addChildAtPosition(externalLinkBtn, Anchor::TopRight, ccp(-14, -16));
 
-    tabsMenu->setLayout(RowLayout::create());
+    tabsMenu->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::Start));
     m_rightColumn->addChildAtPosition(tabsMenu, Anchor::Top);
 
     mainContainer->addChildAtPosition(m_rightColumn, Anchor::Right, ccp(-20, 0));
