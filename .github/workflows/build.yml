@@ -30,7 +30,7 @@ jobs:
           id: win
           host_id: win
           extra_flags: ''
-          package_cmd: 'makensis -WX -V3 /X"SetCompressor /SOLID lzma" /X"SetCompressorDictSize 64" /X"SetDatablockOptimize ON" ./installer/windows/installer.nsi'
+          package_cmd: 'makensis -WX -V3 ./installer/windows/installer.nsi'
           installer_path: './installer/windows/geode-installer-win.exe'
 
         - name: macOS
