@@ -193,7 +193,7 @@ public:
     std::unordered_map<std::string, std::string> m_headers;
     std::unordered_map<std::string, std::string> m_urlParameters;
     std::optional<std::string> m_userAgent;
-    std::optional<std::string> m_downloadEncodingType;
+    std::optional<std::string> m_acceptEncodingType;
     std::optional<ByteVector> m_body;
     std::optional<std::chrono::seconds> m_timeout;
     std::optional<std::pair<std::uint64_t, std::uint64_t>> m_range;
@@ -335,8 +335,8 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         }
 
         // Set encoding
-        if (impl->m_downloadEncodingType) {
-            curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, impl->m_downloadEncodingType->c_str());
+        if (impl->m_acceptEncodingType) {
+            curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, impl->m_acceptEncodingType->c_str());
         }
 
         // Set timeout
@@ -521,8 +521,8 @@ WebRequest& WebRequest::version(HttpVersion httpVersion) {
     return *this;
 }
 
-WebRequest& WebRequest::responseEncodingType(std::string_view str) {
-    m_impl->m_downloadEncodingType = str;
+WebRequest& WebRequest::acceptEncoding(std::string_view str) {
+    m_impl->m_acceptEncodingType = str;
     return *this;
 }
 

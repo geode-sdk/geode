@@ -134,7 +134,7 @@ namespace geode::utils::web {
 
         /**
          * Sets the request's user agent.
-         * The default is NULL, which makes the request not send a User-Agent: header.
+         * Defaults to not sending the User-Agent: header.
          *
          * @param name
          * @return WebRequest&
@@ -145,17 +145,17 @@ namespace geode::utils::web {
          * Sets the response's encoding. Valid values include: br, gzip, deflate, ...
          * You can set multiple encoding types by calling this method with a comma separated list
          * of the encodings of your choosing.
-         * The default is NULL, which makes the request not send an Accept-Encoding: header and not decompress received contents automatically.
+         * Defaults to not sending an Accept-Encoding: header, and in turn, does not decompress received contents automatically.
          *
          * @example
          * auto req = web::WebRequest()
-         *  .responseEncoding("gzip, deflate")
+         *  .acceptEncoding("gzip, deflate")
          *  .get(url);
          *
          * @param encodingType Target response encoding type. An empty string ("") will use all built-in supported encodings.
          * @return WebRequest&
          */
-        WebRequest& responseEncodingType(std::string_view encodingType);
+        WebRequest& acceptEncoding(std::string_view encodingType);
 
         /**
          * Sets the maximum amount of seconds to allow the entire transfer operation to take.
@@ -168,7 +168,7 @@ namespace geode::utils::web {
 
         /**
          * Sets the target byte range to request.
-         * The default is NULL, which means the full request is sent back.
+         * Defaults to receiving the full request.
          *
          * @param byteRange a pair of ints, first value is what byte to start from, second value is the last byte to get (both inclusive)
          * @return WebRequest&
@@ -205,7 +205,7 @@ namespace geode::utils::web {
 
         /**
          * Sets the Certificate Authority (CA) bundle content.
-         * The default is NULL.
+         * Defaults to not sending a CA bundle.
          *
          * @param content
          * @return WebRequest&
@@ -214,7 +214,7 @@ namespace geode::utils::web {
 
         /**
          * Sets the request's proxy.
-         * The default is NULL, which means no proxy is used.
+         * Defaults to not using a proxy.
          *
          * @param proxyOpts
          * @return WebRequest&
