@@ -97,11 +97,12 @@ public:
         auto inst = new QuickPopup;
         inst->m_selected = selected;
         inst->m_cancelledByEscape = cancelledByEscape;
-        if (inst && inst->init(inst, title, content, btn1, btn2, width, false, .0f, 1.0f)) {
+        if (inst->init(inst, title, content, btn1, btn2, width, false, .0f, 1.0f)) {
             inst->autorelease();
             return inst;
         }
-        CC_SAFE_DELETE(inst);
+
+        delete inst;
         return nullptr;
     }
 };

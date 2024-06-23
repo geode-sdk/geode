@@ -11,6 +11,9 @@
     XPStyle on
     RequestExecutionLevel user
     ManifestSupportedOS Win7
+    SetCompressor /SOLID lzma
+    SetCompressorDictSize 64
+    SetDatablockOptimize ON
 
 ; ui settings
     !define MUI_ABORTWARNING

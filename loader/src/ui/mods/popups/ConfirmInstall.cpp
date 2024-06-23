@@ -36,14 +36,14 @@ void askConfirmModInstalls() {
 
                 // If this mod has incompatabilities that are installed, disable them
                 for (auto inc : conf->version.metadata.getIncompatibilities()) {
-                    if (inc.mod && inc.mod->isOrWillBeEnabled()) {
+                    if (inc.mod && inc.version.compare(conf->version.metadata.getVersion()) && inc.mod->isOrWillBeEnabled()) {
                         toConfirm.toDisable.insert(inc.mod);
                     }
                 }
                 // If some installed mods are incompatible with this one, disable them
                 for (auto mod : Loader::get()->getAllMods()) {
                     for (auto inc : mod->getMetadata().getIncompatibilities()) {
-                        if (inc.id == conf->version.metadata.getID() && mod->isOrWillBeEnabled()) {
+                        if (inc.id == conf->version.metadata.getID() && inc.version.compare(mod->getVersion()) && mod->isOrWillBeEnabled()) {
                             toConfirm.toDisable.insert(mod);
                         }
                     }
@@ -82,7 +82,7 @@ void askConfirmModInstalls() {
             toConfirm.toEnable.size(), joinModsToIDs(toConfirm.toEnable)
         ),
         "Cancel", "Continue",
-        [toConfirm = std::move(toConfirm)](auto*, bool btn2) {
+        [toConfirm](auto*, bool btn2) {
             if (btn2) {
                 for (auto mod : toConfirm.toDisable) {
                     (void)mod->disable();

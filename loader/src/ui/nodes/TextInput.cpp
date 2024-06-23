@@ -82,11 +82,11 @@ bool TextInput::init(float width, std::string const& placeholder, std::string co
 
 TextInput* TextInput::create(float width, std::string const& placeholder, std::string const& font) {
     auto ret = new TextInput();
-    if (ret && ret->init(width, placeholder, font)) {
+    if (ret->init(width, placeholder, font)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 

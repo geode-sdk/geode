@@ -21,11 +21,11 @@ using namespace geode::prelude;
         type_##SettingValue* value, float width     \
     ) {                                             \
         auto ret = new type_##SettingNode;          \
-        if (ret && ret->init(value, width)) {       \
+        if (ret->init(value, width)) {       \
             ret->autorelease();                     \
             return ret;                             \
         }                                           \
-        CC_SAFE_DELETE(ret);                        \
+        delete ret;                        \
         return nullptr;                             \
     }
 

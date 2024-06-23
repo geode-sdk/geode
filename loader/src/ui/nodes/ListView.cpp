@@ -22,12 +22,7 @@ void GenericListCell::draw() {
 }
 
 GenericListCell* GenericListCell::create(char const* key, CCSize size) {
-    auto pRet = new GenericListCell(key, size);
-    if (pRet) {
-        return pRet;
-    }
-    CC_SAFE_DELETE(pRet);
-    return nullptr;
+    return new GenericListCell(key, size);
 }
 
 void GenericListCell::updateBGColor(int index) {
@@ -88,18 +83,17 @@ void ListView::loadCell(TableViewCell* cell, int index) {
 
 ListView* ListView::create(CCArray* items, float itemHeight, float width, float height) {
     auto ret = new ListView();
-    if (ret) {
-        ret->m_itemSeparation = itemHeight;
-        ret->m_primaryCellColor = ccc3(0xa1, 0x58, 0x2c);
-        ret->m_secondaryCellColor = ccc3(0xc2, 0x72, 0x3e);
-        ret->m_cellOpacity = 0xff;
-        ret->m_cellBorderColor = ccc4(0x00, 0x00, 0x00, 0x4B);
-        if (ret->init(items, BoomListType::Default, width, height)) {
-            ret->autorelease();
-            return ret;
-        }
+    ret->m_itemSeparation = itemHeight;
+    ret->m_primaryCellColor = ccc3(0xa1, 0x58, 0x2c);
+    ret->m_secondaryCellColor = ccc3(0xc2, 0x72, 0x3e);
+    ret->m_cellOpacity = 0xff;
+    ret->m_cellBorderColor = ccc4(0x00, 0x00, 0x00, 0x4B);
+    if (ret->init(items, BoomListType::Default, width, height)) {
+        ret->autorelease();
+        return ret;
     }
-    CC_SAFE_DELETE(ret);
+
+    delete ret;
     return nullptr;
 }
 

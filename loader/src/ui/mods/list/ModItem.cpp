@@ -493,10 +493,10 @@ void ModItem::onDevelopers(CCObject*) {
 
 ModItem* ModItem::create(ModSource&& source) {
     auto ret = new ModItem();
-    if (ret && ret->init(std::move(source))) {
+    if (ret->init(std::move(source))) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }

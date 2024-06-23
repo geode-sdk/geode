@@ -97,11 +97,11 @@ namespace geode {
             float width, std::vector<T> const& list, utils::MiniFunction<void(T const&, size_t)> onChange
         ) {
             auto ret = new SelectList();
-            if (ret && ret->init(width, list, onChange)) {
+            if (ret->init(width, list, onChange)) {
                 ret->autorelease();
                 return ret;
             }
-            CC_SAFE_DELETE(ret);
+            delete ret;
             return nullptr;
         }
 

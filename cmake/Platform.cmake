@@ -84,6 +84,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android32")
 
 	target_link_libraries(${PROJECT_NAME} INTERFACE
 		c
+		unwind
 		${GEODE_LOADER_PATH}/include/link/android32/libssl.a
 		${GEODE_LOADER_PATH}/include/link/android32/libcrypto.a
 		${GEODE_LOADER_PATH}/include/link/android32/libnghttp2.a
@@ -107,6 +108,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
 
 	target_link_libraries(${PROJECT_NAME} INTERFACE
 		c
+		unwind
 		${GEODE_LOADER_PATH}/include/link/android64/libssl.a
 		${GEODE_LOADER_PATH}/include/link/android64/libcrypto.a
 		${GEODE_LOADER_PATH}/include/link/android64/libnghttp2.a
@@ -121,8 +123,8 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
 	)
 
 	# this should help with fixing exceptions
- 	set(ANDROID_STL c++_shared)
-  	# a little desperate
+	set(ANDROID_STL c++_shared)
+  # a little desperate
 	add_definitions(-DANDROID_STL=c++_shared)
 
 	set(GEODE_OUTPUT_NAME "Geode.android64")

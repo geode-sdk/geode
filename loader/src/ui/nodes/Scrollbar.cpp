@@ -190,11 +190,11 @@ bool Scrollbar::init(CCScrollLayerExt* target) {
 Scrollbar* Scrollbar::create(CCScrollLayerExt* target) {
     auto ret = new Scrollbar;
 
-    if (ret && ret->init(target)) {
+    if (ret->init(target)) {
         ret->autorelease();
         return ret;
     }
 
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }

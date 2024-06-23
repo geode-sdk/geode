@@ -665,10 +665,10 @@ size_t ModList::getPage() const {
 
 ModList* ModList::create(ModListSource* src, CCSize const& size) {
     auto ret = new ModList();
-    if (ret && ret->init(src, size)) {
+    if (ret->init(src, size)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }

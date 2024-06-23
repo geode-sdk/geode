@@ -152,11 +152,11 @@ protected:
 public:
     static ModLogoSprite* create(std::string const& id, bool fetch = false) {
         auto ret = new ModLogoSprite();
-        if (ret && ret->init(id, fetch)) {
+        if (ret->init(id, fetch)) {
             ret->autorelease();
             return ret;
         }
-        CC_SAFE_DELETE(ret);
+        delete ret;
         return nullptr;
     }
 };

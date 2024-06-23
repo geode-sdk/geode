@@ -557,10 +557,10 @@ CustomSettingPlaceholderNode* CustomSettingPlaceholderNode::create(
     std::string const& key, float width
 ) {
     auto ret = new CustomSettingPlaceholderNode;
-    if (ret && ret->init(key, width)) {
+    if (ret->init(key, width)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }

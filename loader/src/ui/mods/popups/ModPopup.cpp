@@ -54,11 +54,11 @@ protected:
 public:
     static FetchTextArea* create(Request const& req, std::string const& noneText, CCSize const& size) {
         auto ret = new FetchTextArea();
-        if (ret && ret->init(req, noneText, size)) {
+        if (ret->init(req, noneText, size)) {
             ret->autorelease();
             return ret;
         }
-        CC_SAFE_DELETE(ret);
+        delete ret;
         return nullptr;
     }
 };
@@ -985,10 +985,10 @@ ModPopup* ModPopup::create(ModSource&& src) {
     if (src.asServer()) {
         style = GeodePopupStyle::Alt;
     }
-    if (ret && ret->init(440, 280, std::move(src), style)) {
+    if (ret->init(440, 280, std::move(src), style)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
