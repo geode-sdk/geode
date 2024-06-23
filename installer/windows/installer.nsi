@@ -464,6 +464,8 @@ SectionGroup "Geode"
         File ${BINDIR}\GeodeUpdater.exe
         File ${BINDIR}\XInput1_4.dll
 
+        RMdir /r $INSTDIR\geode\update
+
         WriteUninstaller "GeodeUninstaller.exe"
     SectionEnd
 
@@ -471,6 +473,7 @@ SectionGroup "Geode"
         CreateDirectory $INSTDIR\geode\resources\geode.loader
         SetOutPath $INSTDIR\geode\resources\geode.loader
         File /r ${BINDIR}\resources\*
+        RMdir /r $INSTDIR\geode
     SectionEnd
 SectionGroupEnd
 
