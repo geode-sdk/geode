@@ -410,11 +410,7 @@ Function .onVerifyInstDir
 
     ; check mod loaders/mod menus
     IfFileExists $INSTDIR\hackpro.dll other_hackpro
-    IfFileExists $INSTDIR\ToastedMarshmellow.dll other_gdhm
-    IfFileExists $INSTDIR\quickldr.dll other_quickldr
     IfFileExists $INSTDIR\XInput1_4.dll other_xinput
-    IfFileExists $INSTDIR\mimalloc.dll other_mimalloc
-    IfFileExists $INSTDIR\GDH.dll other_GDH
 
     ; all checks passed
     valid:
@@ -428,28 +424,19 @@ Function .onVerifyInstDir
     other_hackpro:
         StrCpy $0 "hackpro.dll"
         Goto other
-    other_gdhm:
-        StrCpy $0 "ToastedMarshmellow.dll"
-        Goto other
-    other_quickldr:
-        StrCpy $0 "quickldr.dll"
-        Goto other
     other_xinput:
         StrCpy $0 "XInput1_4.dll"
-        Goto other
-    other_mimalloc:
-        StrCpy $0 "mimalloc.dll"
-        Goto other
-    other_GDH:
-        StrCpy $0 "GDH.dll"
         Goto other
     other:
         ${StrRep} $0 $(GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED) "the dll trademark" $0
         SendMessage $geode.DirectoryPage.ErrorText ${WM_SETTEXT} "" "STR:$0"
-        Goto error
+        SetCtlColors $geode.DirectoryPage.ErrorText e25402 transparent
+        LockWindow off
+        Return
 
     error:
         ShowWindow $geode.DirectoryPage.ErrorText 1
+        SetCtlColors $geode.DirectoryPage.ErrorText ff0000 transparent
         LockWindow off
         Abort
         Return
@@ -469,6 +456,8 @@ SectionGroup "Geode"
         Delete "$INSTDIR\xinput9_1_0.dll"
         Delete "$INSTDIR\xinput9_1_0.lib"
         Delete "$INSTDIR\xinput9_1_0.pdb"
+
+        Delete "$INSTDIR\hackpro.dll"
 
         WriteUninstaller "GeodeUninstaller.exe"
     SectionEnd
