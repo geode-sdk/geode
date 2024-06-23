@@ -465,6 +465,10 @@ SectionGroup "Geode"
         File ${BINDIR}\XInput1_4.dll
 
         RMdir /r $INSTDIR\geode\update
+        RMdir /r $INSTDIR\geode\index
+        Delete "$INSTDIR\xinput9_1_0.dll"
+        Delete "$INSTDIR\xinput9_1_0.lib"
+        Delete "$INSTDIR\xinput9_1_0.pdb"
 
         WriteUninstaller "GeodeUninstaller.exe"
     SectionEnd
@@ -473,7 +477,6 @@ SectionGroup "Geode"
         CreateDirectory $INSTDIR\geode\resources\geode.loader
         SetOutPath $INSTDIR\geode\resources\geode.loader
         File /r ${BINDIR}\resources\*
-        RMdir /r $INSTDIR\geode
     SectionEnd
 SectionGroupEnd
 
