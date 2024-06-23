@@ -192,7 +192,7 @@ jobs:
     - name: Download clang-msvc-sdk toolchain
       uses: actions/checkout@v4
       with:
-        repository: 'matcool/clang-msvc-sdk'
+        repository: 'geode-sdk/clang-msvc-sdk'
         path: toolchain
         submodules: recursive
       if: matrix.config.id == 'win'
