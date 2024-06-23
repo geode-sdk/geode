@@ -131,11 +131,11 @@ public:
 
     static MySettingNode* create(MySettingValue* value, float width) {
         auto ret = new MySettingNode;
-        if (ret && ret->init(value, width)) {
+        if (ret->init(value, width)) {
             ret->autorelease();
             return ret;
         }
-        CC_SAFE_DELETE(ret);
+        delete ret;
         return nullptr;
     }
 };

@@ -49,8 +49,6 @@ namespace geode {
         };
         std::unique_ptr<Data> m_data;
 
-        DefaultEventListenerPool();
-
     private:
         static DefaultEventListenerPool* create();
 
@@ -66,6 +64,9 @@ namespace geode {
 
         template <class... Args>
         friend class DispatchFilter;
+
+        // todo: make this private in Geode 4.0.0
+        DefaultEventListenerPool();
     };
 
     class GEODE_DLL EventListenerProtocol {

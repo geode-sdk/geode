@@ -80,11 +80,11 @@ IconButtonSprite* IconButtonSprite::create(
     char const* bg, cocos2d::CCNode* icon, char const* text, char const* font
 ) {
     auto ret = new IconButtonSprite();
-    if (ret && ret->init(bg, false, icon, text, font)) {
+    if (ret->init(bg, false, icon, text, font)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 
@@ -92,11 +92,11 @@ IconButtonSprite* IconButtonSprite::createWithSpriteFrameName(
     char const* bg, cocos2d::CCNode* icon, char const* text, char const* font
 ) {
     auto ret = new IconButtonSprite();
-    if (ret && ret->init(bg, true, icon, text, font)) {
+    if (ret->init(bg, true, icon, text, font)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 

@@ -105,20 +105,20 @@ void GeodeSquareSprite::update(float dt) {
 
 GeodeSquareSprite* GeodeSquareSprite::create(const char* top, bool* state) {
     auto ret = new GeodeSquareSprite();
-    if (ret && ret->init(CCSprite::create(top), state)) {
+    if (ret->init(CCSprite::create(top), state)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 GeodeSquareSprite* GeodeSquareSprite::createWithSpriteFrameName(const char* top, bool* state) {
     auto ret = new GeodeSquareSprite();
-    if (ret && ret->init(CCSprite::createWithSpriteFrameName(top), state)) {
+    if (ret->init(CCSprite::createWithSpriteFrameName(top), state)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 
@@ -162,11 +162,11 @@ protected:
 public:
     static LoadingSpinner* create(float sideLength) {
         auto ret = new LoadingSpinner();
-        if (ret && ret->init(sideLength)) {
+        if (ret->init(sideLength)) {
             ret->autorelease();
             return ret;
         }
-        CC_SAFE_DELETE(ret);
+        delete ret;
         return nullptr;
     }
 
@@ -302,11 +302,11 @@ bool GeodeTabSprite::init(const char* iconFrame, const char* text, float width, 
 
 GeodeTabSprite* GeodeTabSprite::create(const char* iconFrame, const char* text, float width, bool altColor) {
     auto ret = new GeodeTabSprite();
-    if (ret && ret->init(iconFrame, text, width, altColor)) {
+    if (ret->init(iconFrame, text, width, altColor)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 

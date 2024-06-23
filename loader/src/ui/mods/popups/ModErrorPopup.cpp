@@ -32,11 +32,11 @@ void ModErrorPopup::createList() {
 
 ModErrorPopup* ModErrorPopup::create(Mod *mod) {
     ModErrorPopup* ret = new ModErrorPopup();
-    if (!ret || !ret->init(440.f, 280.f, mod, GeodePopupStyle::Default)) {
-        CC_SAFE_DELETE(ret);
-        return nullptr;
+    if (ret->init(440.f, 280.f, mod, GeodePopupStyle::Default)) {
+        ret->autorelease();
+        return ret;
     }
 
-    ret->autorelease();
-    return ret;
+    delete ret;
+    return nullptr;
 }

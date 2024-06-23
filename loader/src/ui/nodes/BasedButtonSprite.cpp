@@ -244,11 +244,11 @@ BasedButtonSprite::~BasedButtonSprite() {}
 
 BasedButtonSprite* BasedButtonSprite::create(CCNode* ontop, BaseType type, int size, int color) {
     auto ret = new BasedButtonSprite();
-    if (ret && ret->init(ontop, type, size, color)) {
+    if (ret->init(ontop, type, size, color)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 
@@ -257,14 +257,14 @@ BasedButtonSprite* BasedButtonSprite::create(CCNode* ontop, BaseType type, int s
         cocos2d::CCNode* top, ty_##BaseColor color, ty_##BaseSize size  \
     ) {                                                                 \
         auto ret = new ty_##ButtonSprite();                             \
-        if (ret && ret->init(                                           \
+        if (ret->init(                                           \
             top, BaseType::ty_,                                         \
             static_cast<int>(size), static_cast<int>(color)             \
         )) {                                                            \
             ret->autorelease();                                         \
             return ret;                                                 \
         }                                                               \
-        CC_SAFE_DELETE(ret);                                            \
+        delete ret;                                            \
         return nullptr;                                                 \
     }
 
@@ -274,14 +274,14 @@ BasedButtonSprite* BasedButtonSprite::create(CCNode* ontop, BaseType type, int s
         ty_##BaseColor color, ty_##BaseSize size            \
     ) {                                                     \
         auto ret = new ty_##ButtonSprite();                 \
-        if (ret && ret->initWithSprite(                     \
+        if (ret->initWithSprite(                     \
             sprName, sprScale, BaseType::ty_,               \
             static_cast<int>(size), static_cast<int>(color) \
         )) {                                                \
             ret->autorelease();                             \
             return ret;                                     \
         }                                                   \
-        CC_SAFE_DELETE(ret);                                \
+        delete ret;                                \
         return nullptr;                                     \
     }
 
@@ -291,14 +291,14 @@ BasedButtonSprite* BasedButtonSprite::create(CCNode* ontop, BaseType type, int s
         ty_##BaseColor color, ty_##BaseSize size                    \
     ) {                                                             \
         auto ret = new ty_##ButtonSprite();                         \
-        if (ret && ret->initWithSpriteFrameName(                    \
+        if (ret->initWithSpriteFrameName(                    \
             sprName, sprScale, BaseType::ty_,                       \
             static_cast<int>(size), static_cast<int>(color)         \
         )) {                                                        \
             ret->autorelease();                                     \
             return ret;                                             \
         }                                                           \
-        CC_SAFE_DELETE(ret);                                        \
+        delete ret;                                        \
         return nullptr;                                             \
     }
 
@@ -327,13 +327,13 @@ TabButtonSprite* TabButtonSprite::create(char const* text, TabBaseColor color, T
     auto ret = new TabButtonSprite();
     auto label = CCLabelBMFont::create(text, "bigFont.fnt");
     label->limitLabelWidth(75.f, .6f, .1f);
-    if (ret && ret->init(
+    if (ret->init(
         label, BaseType::Tab, 
         static_cast<int>(size), static_cast<int>(color)
     )) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }

@@ -6,26 +6,25 @@ using namespace geode::prelude;
 
 std::string Loader::Impl::getGameVersion() {
     if (m_gdVersion.empty()) {
-        /*
-        // before uncommenting please note:
-        // getGameVersion can only run after JNI_OnLoad is called. otherwise it crashes
-
-        JniMethodInfo t;
-        if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "getGameVersion", "()Ljava/lang/String;")) {
-            jstring str = reinterpret_cast<jstring>(t.env->CallStaticObjectMethod(t.classID, t.methodID));
-            t.env->DeleteLocalRef(t.classID);
-            m_gdVersion = JniHelper::jstring2string(str);
-            t.env->DeleteLocalRef(str);
-        } else {
-            auto vm = JniHelper::getJavaVM();
-
-            JNIEnv* env;
-            if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) == JNI_OK) {
-                env->ExceptionClear();
-            }
+        std::ifstream version_file("/data/data/com.geode.launcher/files/game_version.txt");
+        if (!version_file) {
+            // probably on an older launcher
+            return m_gdVersion;
         }
-        */
+
+        int version_code = 0;
+        version_file >> version_code;
+
+        version_file.close();
+
+        switch (version_code) {
+            case 37: m_gdVersion = "2.200"; break;
+            case 38: m_gdVersion = "2.205"; break;
+            case 39: m_gdVersion = "2.206"; break;
+            default: m_gdVersion = std::to_string(version_code);
+        }
     }
+
     return m_gdVersion;
 }
 

@@ -62,6 +62,7 @@ jobs:
             -DCMAKE_CXX_COMPILER=clang++
             -DANDROID_ABI=armeabi-v7a
             -DANDROID_PLATFORM=android-23
+            -DANDROID_STL=c++_shared
             -DGEODE_DONT_BUILD_TEST_MODS=1
           package_cmd: ''
           installer_path: ''

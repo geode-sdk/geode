@@ -415,11 +415,11 @@ void ColorPickPopup::setColorTarget(cocos2d::CCSprite* spr) {
 
 ColorPickPopup* ColorPickPopup::create(ccColor4B const& color, bool isRGBA) {
     auto ret = new ColorPickPopup();
-    if (ret && ret->initAnchored(400.f, (isRGBA ? 290.f : 240.f), color, isRGBA)) {
+    if (ret->initAnchored(400.f, (isRGBA ? 290.f : 240.f), color, isRGBA)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 

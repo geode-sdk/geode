@@ -48,12 +48,12 @@ protected:
 public:
     static MDContentLayer* create(CCMenu* content, float width, float height) {
         auto ret = new MDContentLayer();
-        if (ret && ret->initWithColor({ 0, 255, 0, 0 }, width, height)) {
+        if (ret->initWithColor({ 0, 255, 0, 0 }, width, height)) {
             ret->m_content = content;
             ret->autorelease();
             return ret;
         }
-        CC_SAFE_DELETE(ret);
+        delete ret;
         return nullptr;
     }
 
@@ -164,12 +164,12 @@ protected:
 public:
     static BreakLine* create(float width) {
         auto ret = new BreakLine;
-        if (ret && ret->init()) {
+        if (ret->init()) {
             ret->autorelease();
             ret->setContentSize({ width, 1.f });
             return ret;
         }
-        CC_SAFE_DELETE(ret);
+        delete ret;
         return nullptr;
     }
 };
@@ -820,10 +820,10 @@ char const* MDTextArea::getString() {
 
 MDTextArea* MDTextArea::create(std::string const& str, CCSize const& size) {
     auto ret = new MDTextArea;
-    if (ret && ret->init(str, size)) {
+    if (ret->init(str, size)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }

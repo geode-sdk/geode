@@ -1,5 +1,21 @@
 # Geode Changelog
 
+## v3.0.0
+ * Show loader commit hashes again (b72bb9e)
+ * Don't save data if mod is uninstalled with save (518f941)
+ * Add "open in browser" button to mods (581e2d3)
+ * Remove the unimplemented Versions tab temporarily (581e2d3, 1f5ebf9)
+ * Texture fix (#941)
+ * Implement Android 64 bit exception fix in client side (cfb682e)
+   * Most of the fix is in the launcher itself, so you need to update to 1.4.0 for the full fix
+
+## v3.0.0-beta.5
+ * Add More Details button for mod problems (9095005)
+ * Display mods not on current platform (2cd0990)
+ * Fix `DefaultEventListenerPool` missing constructor ABI break for Dispatch (d88a93e)
+ * Implement `one-of` setting without ABI break (7742b57)
+ * Remove the missing custom setting warning (4509607)
+
 ## v3.0.0-beta.4
  * Fix events crash caused by immediate enabling & disabling (e796711)
  * Make some classes final (ea96e2c)

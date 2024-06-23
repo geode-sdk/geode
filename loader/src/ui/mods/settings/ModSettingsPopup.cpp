@@ -196,10 +196,10 @@ void ModSettingsPopup::onOpenSaveDirectory(CCObject*) {
 
 ModSettingsPopup* ModSettingsPopup::create(Mod* mod) {
     auto ret = new ModSettingsPopup();
-    if (ret && ret->init(440.f, 280.f, mod)) {
+    if (ret->init(440.f, 280.f, mod)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }

@@ -287,11 +287,11 @@ void ModsStatusNode::onRestart(CCObject*) {
 
 ModsStatusNode* ModsStatusNode::create() {
     auto ret = new ModsStatusNode();
-    if (ret && ret->init()) {
+    if (ret->init()) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 
@@ -704,11 +704,11 @@ void ModsLayer::onSettings(CCObject*) {
 
 ModsLayer* ModsLayer::create() {
     auto ret = new ModsLayer();
-    if (ret && ret->init()) {
+    if (ret->init()) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 

@@ -13,15 +13,13 @@ SimpleTextArea* SimpleTextArea::create(const std::string& text, const std::strin
 SimpleTextArea* SimpleTextArea::create(const std::string& font, const std::string& text, const float scale, const float width, const bool artificialWidth) {
     SimpleTextArea* instance = new SimpleTextArea();
 
-    if (instance && instance->init(font, text, scale, width, artificialWidth)) {
+    if (instance->init(font, text, scale, width, artificialWidth)) {
         instance->autorelease();
-
         return instance;
-    } else {
-        CC_SAFE_DELETE(instance);
-        
-        return nullptr;
     }
+
+    delete instance;
+    return nullptr;
 }
 
 bool SimpleTextArea::init(const std::string& font, const std::string& text, const float scale, const float width, const bool artificialWidth) {

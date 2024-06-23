@@ -101,11 +101,11 @@ Notification* Notification::create(std::string const& text, NotificationIcon ico
 
 Notification* Notification::create(std::string const& text, CCSprite* icon, float time) {
     auto ret = new Notification();
-    if (ret && ret->init(text, icon, time)) {
+    if (ret->init(text, icon, time)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 

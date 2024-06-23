@@ -518,21 +518,21 @@ namespace geode {
     public:
         static EventListenerNode* create(EventListener<Filter> listener) {
             auto ret = new EventListenerNode(std::move(listener));
-            if (ret && ret->init()) {
+            if (ret->init()) {
                 ret->autorelease();
                 return ret;
             }
-            CC_SAFE_DELETE(ret);
+            delete ret;
             return nullptr;
         }
 
         static EventListenerNode* create(typename Filter::Callback callback, Filter filter = Filter()) {
             auto ret = new EventListenerNode(EventListener<Filter>(callback, filter));
-            if (ret && ret->init()) {
+            if (ret->init()) {
                 ret->autorelease();
                 return ret;
             }
-            CC_SAFE_DELETE(ret);
+            delete ret;
             return nullptr;
         }
 
@@ -544,11 +544,11 @@ namespace geode {
             // it claims no return value...
             // despite me writing return EventListenerNode::create()......
             auto ret = new EventListenerNode(EventListener<Filter>(cls, callback));
-            if (ret && ret->init()) {
+            if (ret->init()) {
                 ret->autorelease();
                 return ret;
             }
-            CC_SAFE_DELETE(ret);
+            delete ret;
             return nullptr;
         }
     };
@@ -1216,7 +1216,7 @@ namespace geode::cocos {
 
             static LambdaCallback* create(utils::MiniFunction<void(Node*)>&& callback) {
                 auto ret = new (std::nothrow) LambdaCallback();
-                if (ret && ret->init(std::forward<std::remove_reference_t<decltype(callback)>>(callback))) {
+                if (ret->init(std::forward<std::remove_reference_t<decltype(callback)>>(callback))) {
                     ret->autorelease();
                     return ret;
                 }
