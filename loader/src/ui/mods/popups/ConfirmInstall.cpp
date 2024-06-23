@@ -82,7 +82,7 @@ void askConfirmModInstalls() {
             toConfirm.toEnable.size(), joinModsToIDs(toConfirm.toEnable)
         ),
         "Cancel", "Continue",
-        [toConfirm = std::move(toConfirm)](auto*, bool btn2) {
+        [toConfirm](auto*, bool btn2) {
             if (btn2) {
                 for (auto mod : toConfirm.toDisable) {
                     (void)mod->disable();
