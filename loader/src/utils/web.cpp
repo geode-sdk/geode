@@ -346,7 +346,7 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
 
         // Set range
         if (impl->m_range) {
-            curl_easy_setopt(curl, CURLOPT_RANGE, fmt::format("{}-{}", impl->m_range->first, impl->m_range->second).c_str());
+            curl_easy_setopt(curl, CURLOPT_RANGE, fmt::format("bytes={}-{}", impl->m_range->first, impl->m_range->second).c_str());
         }
 
         // Set proxy options
