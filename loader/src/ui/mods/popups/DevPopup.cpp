@@ -36,10 +36,10 @@ void DevListPopup::onMoreByThisDev(CCObject* sender) {
 
 DevListPopup* DevListPopup::create(ModSource const& meta) {
     auto ret = new DevListPopup();
-    if (ret && ret->init(250, 210, meta)) {
+    if (ret->init(250, 210, meta)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }

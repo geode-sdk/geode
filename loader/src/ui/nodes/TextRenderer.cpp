@@ -78,11 +78,11 @@ TextDecorationWrapper* TextDecorationWrapper::create(
     TextRenderer::Label const& label, int deco, ccColor3B const& color, GLubyte opacity
 ) {
     auto ret = new TextDecorationWrapper;
-    if (ret && ret->init(label, deco, color, opacity)) {
+    if (ret->init(label, deco, color, opacity)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 
@@ -179,11 +179,11 @@ TextLinkedButtonWrapper* TextLinkedButtonWrapper::create(
     TextRenderer::Label const& label, cocos2d::CCObject* target, cocos2d::SEL_MenuHandler handler
 ) {
     auto ret = new TextLinkedButtonWrapper;
-    if (ret && ret->init(label, target, handler)) {
+    if (ret->init(label, target, handler)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 
@@ -697,10 +697,10 @@ TextRenderer::~TextRenderer() {
 
 TextRenderer* TextRenderer::create() {
     auto ret = new TextRenderer();
-    if (ret && ret->init()) {
+    if (ret->init()) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }

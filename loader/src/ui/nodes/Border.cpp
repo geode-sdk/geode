@@ -7,15 +7,13 @@ using namespace geode::prelude;
 Border* Border::create(CCNode* node, const ccColor4B& backgroundColor, const CCSize& size, const CCPoint& padding) {
     Border* instance = new Border(padding);
 
-    if (instance && instance->init(node, backgroundColor, size)) {
+    if (instance->init(node, backgroundColor, size)) {
         instance->autorelease();
-
         return instance;
-    } else {
-        CC_SAFE_DELETE(instance);
-
-        return nullptr;
     }
+    
+    delete instance;
+    return nullptr;
 }
 
 Border::Border(const CCPoint& padding) : m_padding({ padding.x, padding.y, padding.x, padding.y }) { }

@@ -164,11 +164,11 @@ protected:
 public:
     static GUITestPopup* create() {
         auto ret = new GUITestPopup();
-        if (ret && ret->initAnchored(320, 280)) {
+        if (ret->initAnchored(320, 280)) {
             ret->autorelease();
             return ret;
         }
-        CC_SAFE_DELETE(ret);
+        delete ret;
         return nullptr;
     }
 };

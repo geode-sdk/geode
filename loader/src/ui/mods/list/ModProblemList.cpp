@@ -67,10 +67,11 @@ ModProblemList* ModProblemList::create(
     CCSize const& size
 ) {
     auto ret = new ModProblemList();
-    if (!ret || !ret->init(mod, size)) {
-        CC_SAFE_DELETE(ret);
-        return nullptr;
+    if (ret->init(mod, size)) {
+        ret->autorelease();
+        return ret;
     }
-    ret->autorelease();
-    return ret;
+    
+    delete ret;
+    return nullptr;
 }

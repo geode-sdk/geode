@@ -293,11 +293,12 @@ std::string ModProblemItem::createProblemMessage() {
 }
 
 ModProblemItem* ModProblemItem::create(Mod* source, LoadProblem problem, CCSize const& size) {
-    auto ret = new ModProblemItem;
-    if (!ret || !ret->init(source, problem, size)) {
-        CC_SAFE_DELETE(ret);
-        return nullptr;
+    auto ret = new ModProblemItem();
+    if (ret->init(source, problem, size)) {
+        ret->autorelease();
+        return ret;
     }
-    ret->autorelease();
-    return ret;
+
+    delete ret;
+    return nullptr;
 }

@@ -64,10 +64,10 @@ void ConfirmUninstallPopup::onUninstall(CCObject*) {
 
 ConfirmUninstallPopup* ConfirmUninstallPopup::create(Mod* mod) {
     auto ret = new ConfirmUninstallPopup();
-    if (ret && ret->initAnchored(300, 150, mod, "square01_001.png", { 0, 0, 94, 94 })) {
+    if (ret->initAnchored(300, 150, mod, "square01_001.png", { 0, 0, 94, 94 })) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }

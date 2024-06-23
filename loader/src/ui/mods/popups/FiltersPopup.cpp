@@ -219,10 +219,10 @@ FiltersPopup* FiltersPopup::create(ModListSource* src) {
     if (typeinfo_cast<InstalledModListSource*>(src) || typeinfo_cast<ServerModListSource*>(src)) {
         height = 230;
     }
-    if (ret && ret->init(350, height, src)) {
+    if (ret->init(350, height, src)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
