@@ -16,6 +16,7 @@ namespace geode {
         Success,
         Warning,
         Error,
+        Info,
     };
 
     class GEODE_DLL Notification : public cocos2d::CCNodeRGBA {

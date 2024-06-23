@@ -92,6 +92,10 @@ CCSprite* Notification::createIcon(NotificationIcon icon) {
         case NotificationIcon::Error: {
             return CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png");
         } break;
+
+        case NotificationIcon::Info: {
+            return CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
+        } break;
     }
 }
 
