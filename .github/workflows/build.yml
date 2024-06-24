@@ -19,72 +19,21 @@ on:
     - '**'              # every branch
     - '!no-build-**'    # unless marked as no-build
 
+env:
+  CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm-cache
+  base-configure-command: >-
+    cmake -B build
+    -DCMAKE_BUILD_TYPE=RelWithDebInfo
+    -DGEODE_CODEGEN_CMAKE_ARGS="-DCMAKE_C_COMPILER=clang;-DCMAKE_CXX_COMPILER=clang++;-G Ninja"
+    -G Ninja
+  base-build-command: |
+    cmake --build build --config RelWithDebInfo --parallel
+    rm bin/nightly/resources/.geode_cache
+
 jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        config:
-        - name: Windows
-          os: ubuntu-24.04
-          id: win
-          host_id: linux
-          extra_flags: >
-            -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN
-            -DGEODE_DONT_BUILD_TEST_MODS=1
-          package_cmd: |
-            sudo apt install nsis
-            makensis -WX -V3 ./installer/windows/installer.nsi
-          installer_path: './installer/windows/geode-installer-win.exe'
-
-        - name: macOS
-          os: macos-latest
-          id: mac
-          host_id: mac
-          extra_flags: >
-            -DCMAKE_C_COMPILER=clang
-            -DCMAKE_CXX_COMPILER=clang++
-            -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
-            -DGEODE_DONT_BUILD_TEST_MODS=1
-            -DCMAKE_AR='/usr/bin/ar'
-            -DCMAKE_RANLIB='/usr/bin/ranlib'
-            -DGEODE_DISABLE_PRECOMPILED_HEADERS=Off
-          package_cmd: './installer/mac/package.sh ./bin/nightly ./installer/mac/geode-installer-mac.pkg'
-          installer_path: './installer/mac/geode-installer-mac.pkg'
-
-        - name: Android32
-          os: ubuntu-latest
-          id: android32
-          host_id: linux
-          extra_flags: >
-            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake
-            -DCMAKE_C_COMPILER=clang
-            -DCMAKE_CXX_COMPILER=clang++
-            -DANDROID_ABI=armeabi-v7a
-            -DANDROID_PLATFORM=android-23
-            -DANDROID_STL=c++_shared
-            -DGEODE_DONT_BUILD_TEST_MODS=1
-          package_cmd: ''
-          installer_path: ''
-
-        - name: Android64
-          os: ubuntu-latest
-          id: android64
-          host_id: linux
-          extra_flags: >
-            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake
-            -DANDROID_ABI=arm64-v8a
-            -DANDROID_PLATFORM=android-23
-            -DANDROID_STL=c++_shared
-            -DGEODE_DONT_BUILD_TEST_MODS=1
-          package_cmd: ''
-          installer_path: ''
-
-    name: Build ${{ matrix.config.name }}
-    runs-on: ${{ matrix.config.os }}
-
-    env:
-      CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm-cache
+  build-windows:
+    name: Build Windows
+    runs-on: ubuntu-24.04
 
     steps:
     - name: Checkout
@@ -93,70 +42,28 @@ jobs:
         submodules: recursive
 
     - name: Prepare for Build Debug Info
-      shell: bash
-      run: |
-        mkdir ./build-debug-info
-        echo "REAL_BASH=$BASH" >> $GITHUB_ENV
-        echo "SCCACHE_ERROR_LOG=$GITHUB_WORKSPACE/build-debug-info/sccache-log.txt" >> $GITHUB_ENV
-        echo "SCCACHE_LOG=debug" >> $GITHUB_ENV
-        echo "RUST_BACKTRACE=1" >> $GITHUB_ENV
+      id: build-debug-info
+      uses: ./.github/actions/build-debug-info
+      with:
+        has-sccache: ${{ inputs.use-ccache }}
       if: inputs.build-debug-info
 
-    # https://github.com/mozilla/sccache/issues/2090
-    - name: Download custom sccache
-      uses: robinraju/release-downloader@v1.10
+    - name: Setup caches
+      uses: ./.github/actions/setup-cache
       with:
-        repository: cgytrus/sccache
-        latest: true
-        fileName: 'sccache-*-x86_64-apple-darwin.zip'
-        tarBall: false
-        zipBall: false
-        out-file-path: "epic-sccache"
-      if: ${{ matrix.config.id == 'mac' && (github.event_name != 'workflow_dispatch' || inputs.use-ccache) }}
+        host: linux
+        target: win
+        use-ccache: ${{ github.event_name != 'workflow_dispatch' || inputs.use-ccache }}
 
-    - name: Setup custom sccache
-      run: |
-        7z x "epic-sccache/sccache-*-x86_64-apple-darwin.zip" -o"epic-sccache"
-        echo "$GITHUB_WORKSPACE/epic-sccache" >> $GITHUB_PATH
-        chmod +x "epic-sccache/sccache"
-      if: ${{ matrix.config.id == 'mac' && (github.event_name != 'workflow_dispatch' || inputs.use-ccache) }}
-
-    # https://github.com/hendrikmuhs/ccache-action/pull/182
-    - name: Setup sccache
-      uses: chirag-droid/ccache-action@main
+    - name: Setup Ninja
+      uses: ./.github/actions/setup-ninja
       with:
-        variant: sccache
-        key: ${{ matrix.config.id }}-v1
-      if: ${{ github.event_name != 'workflow_dispatch' || inputs.use-ccache }}
+        host: linux
 
-    - name: Setup CPM Cache
-      uses: actions/cache@v4
+    - name: Setup CLI
+      uses: ./.github/actions/setup-cli
       with:
-        path: cpm-cache
-        key: cpm-${{ matrix.config.id }}-v1-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
-        restore-keys: |
-          cpm-${{ matrix.config.id }}-v1-
-
-    - name: Setup info.rc Cache
-      uses: actions/cache@v4
-      with:
-        path: build/**/info.rc*
-        key: rc-${{ matrix.config.id }}-v1-${{ hashFiles('VERSION', 'loader/CMakeLists.txt', 'loader/src/platform/windows/info.rc.in') }}
-      if: matrix.config.id == 'win'
-
-    - name: Install Ninja
-      shell: bash
-      run: |
-        curl -L https://github.com/ninja-build/ninja/releases/latest/download/ninja-${{ matrix.config.host_id }}.zip -o ninja.zip
-        7z x ninja.zip -o"$GITHUB_WORKSPACE/ninja"
-        echo "$GITHUB_WORKSPACE/ninja" >> $GITHUB_PATH
-
-    - name: Install LLVM
-      shell: bash
-      run: |
-        brew install llvm
-        echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
-      if: matrix.config.host_id == 'mac'
+        host: linux
 
     - name: Download xwin
       uses: robinraju/release-downloader@v1.10
@@ -167,14 +74,12 @@ jobs:
         tarBall: false
         zipBall: false
         out-file-path: "epic-xwin"
-      if: matrix.config.id == 'win'
 
     - name: Prepare xwin
       run: |
         tar -xzf epic-xwin/xwin-*-x86_64-unknown-linux-musl.tar.gz -C epic-xwin
         mv epic-xwin/xwin-*-x86_64-unknown-linux-musl/xwin ./xwin
         ./xwin --arch x86_64 --sdk-version 10.0.22621 --accept-license list
-      if: matrix.config.id == 'win'
 
     # this caches '.xwin-cache/**/*' but that's actually only gonna
     # contain the manifest cuz we only ran `xwin list` so far
@@ -183,12 +88,11 @@ jobs:
       uses: actions/cache@v4
       with:
         path: .xwin-cache
-        key: xwin-${{ matrix.config.id }}-v1-${{ hashFiles('.xwin-cache/**/*') }}
-      if: matrix.config.id == 'win'
+        key: xwin-win-v1-${{ hashFiles('.xwin-cache/**/*') }}
 
     - name: Download Windows headers
       run: ./xwin --arch x86_64 --sdk-version 10.0.22621 --accept-license splat --include-debug-libs
-      if: matrix.config.id == 'win' && steps.xwin-cache.outputs.cache-hit != 'true'
+      if: steps.xwin-cache.outputs.cache-hit != 'true'
 
     - name: Download clang-msvc-sdk toolchain
       uses: actions/checkout@v4
@@ -196,80 +100,196 @@ jobs:
         repository: 'geode-sdk/clang-msvc-sdk'
         path: toolchain
         submodules: recursive
-      if: matrix.config.id == 'win'
 
-    - name: Download CLI
-      uses: robinraju/release-downloader@v1.10
+    - name: Configure
+      run: ${{ env.base-configure-command }} -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN ${{ steps.build-debug-info.outputs.extra-configure }}
+      env:
+        SPLAT_DIR: ${{ github.workspace }}/.xwin-cache/splat
+        TOOLCHAIN: ${{ github.workspace }}/toolchain/clang-cl-msvc.cmake
+        HOST_ARCH: x86_64
+
+    - name: Build
+      run: |
+        ${{ env.base-build-command }}
+        ${{ steps.build-debug-info.outputs.extra-build }}
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
       with:
-        repository: geode-sdk/cli
-        latest: true
-        fileName: '*-${{ matrix.config.host_id }}.zip'
-        tarBall: false
-        zipBall: false
-        out-file-path: "cli"
+        name: geode-win
+        path: ./bin/nightly
+
+    - name: Package Installer
+      run: |
+        sudo apt install nsis
+        makensis -WX -V3 ./installer/windows/installer.nsi
+
+    - name: Upload Installer
+      uses: actions/upload-artifact@v4
+      with:
+        name: geode-installer-win
+        path: './installer/windows/geode-installer-win.exe'
+
+    - name: Complete Build Debug Info
+      uses: ./.github/actions/build-debug-info-post
+      with:
+        target: win
+      if: inputs.build-debug-info && (success() || failure())
+
+  build-mac:
+    name: Build macOS
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Prepare for Build Debug Info
+      id: build-debug-info
+      uses: ./.github/actions/build-debug-info
+      with:
+        has-sccache: ${{ inputs.use-ccache }}
+      if: inputs.build-debug-info
+
+    - name: Setup caches
+      uses: ./.github/actions/setup-cache
+      with:
+        host: mac
+        target: mac
+        use-ccache: ${{ github.event_name != 'workflow_dispatch' || inputs.use-ccache }}
+
+    - name: Setup Ninja
+      uses: ./.github/actions/setup-ninja
+      with:
+        host: mac
+
+    - name: Install LLVM
+      run: |
+        brew install llvm
+        echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
 
     - name: Setup CLI
-      shell: bash
+      uses: ./.github/actions/setup-cli
+      with:
+        host: mac
+
+    - name: Configure
+      run: >
+        ${{ env.base-configure-command }}
+        -DCMAKE_C_COMPILER=clang
+        -DCMAKE_CXX_COMPILER=clang++
+        -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
+        -DCMAKE_AR='/usr/bin/ar'
+        -DCMAKE_RANLIB='/usr/bin/ranlib'
+        -DGEODE_DISABLE_PRECOMPILED_HEADERS=Off
+        ${{ steps.build-debug-info.outputs.extra-configure }}
+
+    - name: Build
       run: |
-        7z x "cli/*-${{ matrix.config.host_id }}.zip" -ocli
-        chmod +x cli/geode
+        ${{ env.base-build-command }}
+        ${{ steps.build-debug-info.outputs.extra-build }}
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: geode-mac
+        path: ./bin/nightly
+
+    - name: Package Installer
+      run: ./installer/mac/package.sh ./bin/nightly ./installer/mac/geode-installer-mac.pkg
+
+    - name: Upload Installer
+      uses: actions/upload-artifact@v4
+      with:
+        name: geode-installer-mac
+        path: './installer/mac/geode-installer-mac.pkg'
+
+    - name: Complete Build Debug Info
+      uses: ./.github/actions/build-debug-info-post
+      with:
+        target: mac
+      if: inputs.build-debug-info && (success() || failure())
+
+  build-android:
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - name: Android (32-bit)
+          id: android32
+          extra-configure: -DANDROID_ABI=armeabi-v7a
+
+        - name: Android (64-bit)
+          id: android64
+          extra-configure: -DANDROID_ABI=arm64-v8a
+
+    name: Build ${{ matrix.config.name }}
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Prepare for Build Debug Info
+      id: build-debug-info
+      uses: ./.github/actions/build-debug-info
+      with:
+        has-sccache: ${{ inputs.use-ccache }}
+      if: inputs.build-debug-info
+
+    - name: Setup caches
+      uses: ./.github/actions/setup-cache
+      with:
+        host: linux
+        target: ${{ matrix.config.id }}
+        use-ccache: ${{ github.event_name != 'workflow_dispatch' || inputs.use-ccache }}
+
+    - name: Setup Ninja
+      uses: ./.github/actions/setup-ninja
+      with:
+        host: linux
+
+    - name: Setup CLI
+      uses: ./.github/actions/setup-cli
+      with:
+        host: linux
 
     - name: Setup Breakpad Tools
       uses: ./.github/actions/setup-dump-sym
       id: breakpad-tools
-      if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
 
     - name: Fix Ubuntu libcstd++
-      shell: bash
       run: |
         sudo apt install ninja-build &&
         sudo add-apt-repository ppa:ubuntu-toolchain-r/test &&
         sudo apt-get update &&
         sudo apt-get install --only-upgrade libstdc++6
-      if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
-
-    - name: Checkout ninjatracing
-      uses: actions/checkout@v4
-      with:
-        repository: 'nico/ninjatracing'
-        path: ninjatracing
-        submodules: recursive
-      if: inputs.build-debug-info
 
     - name: Configure
       run: >
-        ${{ matrix.config.id == 'win' && 'export SPLAT_DIR=$GITHUB_WORKSPACE/.xwin-cache/splat' || '' }}
-
-        ${{ matrix.config.id == 'win' && 'export TOOLCHAIN=$GITHUB_WORKSPACE/toolchain/clang-cl-msvc.cmake' || '' }}
-
-        ${{ matrix.config.id == 'win' && 'export HOST_ARCH=x86_64' || '' }}
-
-        cmake -B build
-        -DCLI_PATH=${{ github.workspace }}/cli
-        -DCMAKE_BUILD_TYPE=RelWithDebInfo
-        -DGEODE_CODEGEN_CMAKE_ARGS="-DCMAKE_C_COMPILER=clang;-DCMAKE_CXX_COMPILER=clang++;-G Ninja"
-        -G Ninja
-        ${{ inputs.build-debug-info && '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON' || '' }}
-        ${{ matrix.config.extra_flags }}
-
-        ${{ inputs.build-debug-info && 'cp ./build/compile_commands.json ./build-debug-info/' || '' }}
+        ${{ env.base-configure-command }}
+        -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake
+        -DCMAKE_C_COMPILER=clang
+        -DCMAKE_CXX_COMPILER=clang++
+        -DANDROID_PLATFORM=android-23
+        -DANDROID_STL=c++_shared
+        ${{ matrix.config.extra-configure }}
+        ${{ steps.build-debug-info.outputs.extra-configure }}
 
     - name: Build
       run: |
-        ${{ matrix.config.id == 'win' && 'export SPLAT_DIR=$GITHUB_WORKSPACE/.xwin-cache/splat' || '' }}
-        ${{ matrix.config.id == 'win' && 'export TOOLCHAIN=$GITHUB_WORKSPACE/toolchain/clang-cl-msvc.cmake' || '' }}
-        ${{ matrix.config.id == 'win' && 'export HOST_ARCH=x86_64' || '' }}
-        cmake --build build --config RelWithDebInfo --parallel
-        rm bin/nightly/resources/.geode_cache
-        ${{ inputs.build-debug-info && 'python3 ./ninjatracing/ninjatracing ./build/.ninja_log > ./build-debug-info/ninja-trace.json' || '' }}
-        ${{ inputs.build-debug-info && inputs.use-ccache && 'sccache --show-adv-stats' || '' }}
+        ${{ env.base-build-command }}
+        ${{ steps.build-debug-info.outputs.extra-build }}
 
     # hardcoding toolchain path :(
-    - name: Post Build
+    - name: Dump Symbols
       run: |
         ${{ steps.breakpad-tools.outputs.binary-path }} ./bin/nightly/Geode.${{ matrix.config.id }}.so -o ./bin/nightly/Geode.${{ matrix.config.id }}.so.sym
         $ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip ./bin/nightly/Geode.${{ matrix.config.id }}.so
-      if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
@@ -277,45 +297,16 @@ jobs:
         name: geode-${{ matrix.config.id }}
         path: ./bin/nightly
 
-    - name: Package Installer
-      run: ${{ matrix.config.package_cmd }}
-      if: matrix.config.package_cmd != ''
-
-    - name: Upload Installer
-      uses: actions/upload-artifact@v4
+    - name: Complete Build Debug Info
+      uses: ./.github/actions/build-debug-info-post
       with:
-        name: geode-installer-${{ matrix.config.id }}
-        path: ${{ matrix.config.installer_path }}
-      if: matrix.config.installer_path != ''
-
-    - name: Preprocess
-      shell: bash
-      run: |
-        mkdir build-debug-info-preprocessed
-        cd build
-        sed 's/\\\\/\//g' compile_commands.json | sed 's/D:\//\/d\//' > uni_compile_commands.json
-        pip install compile-commands
-        compile-commands --file=uni_compile_commands.json --filter_files='.*info\.rc.*' --filter='(.*) -o (.*)((?:/|\\).*)\.(?:obj|o) -c (.*)' --replacement="$REAL_BASH"' --noprofile --norc -c "mkdir -p ../build-debug-info-preprocessed/\g<2> && \g<1> -o ../build-debug-info-preprocessed/\g<2>\g<3>.i -E \g<4>"' -o ../build-debug-info/preprocess_commands.json --run --verbose
-      if: inputs.build-debug-info
-
-    - name: Upload Build Debug Info
-      uses: actions/upload-artifact@v4
-      with:
-        name: geode-build-debug-info-${{ matrix.config.id }}
-        path: ./build-debug-info/*
-      if: inputs.build-debug-info && (success() || failure())
-
-    - name: Upload Preprocessed Files
-      uses: actions/upload-artifact@v4
-      with:
-        name: geode-build-debug-info-preprocessed-${{ matrix.config.id }}
-        path: ./build-debug-info-preprocessed/*
+        target: ${{ matrix.config.id }}
       if: inputs.build-debug-info && (success() || failure())
 
   publish:
     name: Publish
     runs-on: ubuntu-latest
-    needs: build
+    needs: [ build-windows, build-mac, build-android ]
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
@@ -323,7 +314,6 @@ jobs:
 
       - name: Declare Version Variables
         id: ref
-        shell: bash
         run: |
           echo "version=$(cat VERSION | xargs)" >> $GITHUB_OUTPUT
           echo "hash=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_OUTPUT
