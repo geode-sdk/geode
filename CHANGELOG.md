@@ -14,6 +14,10 @@
    * Delete left over dlls from 2.204 (d1e2919)
    * Installer can now forcibly install over existing mod loaders (736a61e)
    * Make installer delete msvcp dlls in gd folder (d9c7610, 9c6841e)
+ * Improve CI by cross compiling from linux (#935, #939)
+ * Alternate way of getting main function address on Windows (1384604)
+   * Previously this would affect about 2 people on earth
+ * Show special error on proxy loader if bad dlls are in gd folder (fd476fe) 
 
 ## v3.0.0
  * Show loader commit hashes again (b72bb9e)
