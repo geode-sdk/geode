@@ -81,7 +81,7 @@ namespace geode {
         float m_topPadding = 7.5f;
         float m_bottomPadding = 7.5f;
     
-        bool init();
+        bool init() override;
 
     public:
         static ListBorders* create();
