@@ -26,11 +26,15 @@ jobs:
       matrix:
         config:
         - name: Windows
-          os: windows-latest
+          os: ubuntu-24.04
           id: win
-          host_id: win
-          extra_flags: ''
-          package_cmd: 'makensis -WX -V3 ./installer/windows/installer.nsi'
+          host_id: linux
+          extra_flags: >
+            -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN
+            -DGEODE_DONT_BUILD_TEST_MODS=1
+          package_cmd: |
+            sudo apt install nsis
+            makensis -WX -V3 ./installer/windows/installer.nsi
           installer_path: './installer/windows/geode-installer-win.exe'
 
         - name: macOS
@@ -38,6 +42,8 @@ jobs:
           id: mac
           host_id: mac
           extra_flags: >
+            -DCMAKE_C_COMPILER=clang
+            -DCMAKE_CXX_COMPILER=clang++
             -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
             -DGEODE_DONT_BUILD_TEST_MODS=1
             -DCMAKE_AR='/usr/bin/ar'
@@ -52,6 +58,8 @@ jobs:
           host_id: linux
           extra_flags: >
             -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake
+            -DCMAKE_C_COMPILER=clang
+            -DCMAKE_CXX_COMPILER=clang++
             -DANDROID_ABI=armeabi-v7a
             -DANDROID_PLATFORM=android-23
             -DANDROID_STL=c++_shared
@@ -88,7 +96,7 @@ jobs:
       shell: bash
       run: |
         mkdir ./build-debug-info
-        ${{ matrix.config.id == 'win' && 'echo "REAL_BASH=C:/Program Files/Git/bin/bash.exe" >> $GITHUB_ENV' || 'echo "REAL_BASH=$BASH" >> $GITHUB_ENV' }}
+        echo "REAL_BASH=$BASH" >> $GITHUB_ENV
         echo "SCCACHE_ERROR_LOG=$GITHUB_WORKSPACE/build-debug-info/sccache-log.txt" >> $GITHUB_ENV
         echo "SCCACHE_LOG=debug" >> $GITHUB_ENV
         echo "RUST_BACKTRACE=1" >> $GITHUB_ENV
@@ -96,7 +104,7 @@ jobs:
 
     # https://github.com/mozilla/sccache/issues/2090
     - name: Download custom sccache
-      uses: robinraju/release-downloader@v1.9
+      uses: robinraju/release-downloader@v1.10
       with:
         repository: cgytrus/sccache
         latest: true
@@ -143,23 +151,55 @@ jobs:
         7z x ninja.zip -o"$GITHUB_WORKSPACE/ninja"
         echo "$GITHUB_WORKSPACE/ninja" >> $GITHUB_PATH
 
-    - name: Update LLVM (Windows)
-      shell: bash
-      run: |
-        curl -L https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/LLVM-17.0.6-win64.exe -o llvm-inst.exe
-        7z x llvm-inst.exe -ollvm bin/clang.exe bin/clang++.exe bin/lld-link.exe bin/llvm-rc.exe bin/*.dll lib/clang/*/include/*
-        echo "$GITHUB_WORKSPACE/llvm/bin" >> $GITHUB_PATH
-      if: matrix.config.id == 'win'
-
-    - name: Install LLVM (MacOS)
+    - name: Install LLVM
       shell: bash
       run: |
         brew install llvm
         echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
-      if: matrix.config.id == 'mac'
+      if: matrix.config.host_id == 'mac'
+
+    - name: Download xwin
+      uses: robinraju/release-downloader@v1.10
+      with:
+        repository: Jake-Shadle/xwin
+        latest: true
+        fileName: 'xwin-*-x86_64-unknown-linux-musl.tar.gz'
+        tarBall: false
+        zipBall: false
+        out-file-path: "epic-xwin"
+      if: matrix.config.id == 'win'
+
+    - name: Prepare xwin
+      run: |
+        tar -xzf epic-xwin/xwin-*-x86_64-unknown-linux-musl.tar.gz -C epic-xwin
+        mv epic-xwin/xwin-*-x86_64-unknown-linux-musl/xwin ./xwin
+        ./xwin --arch x86_64 --sdk-version 10.0.22621 --accept-license list
+      if: matrix.config.id == 'win'
+
+    # this caches '.xwin-cache/**/*' but that's actually only gonna
+    # contain the manifest cuz we only ran `xwin list` so far
+    - name: Setup xwin Cache
+      id: xwin-cache
+      uses: actions/cache@v4
+      with:
+        path: .xwin-cache
+        key: xwin-${{ matrix.config.id }}-v1-${{ hashFiles('.xwin-cache/**/*') }}
+      if: matrix.config.id == 'win'
+
+    - name: Download Windows headers
+      run: ./xwin --arch x86_64 --sdk-version 10.0.22621 --accept-license splat --include-debug-libs
+      if: matrix.config.id == 'win' && steps.xwin-cache.outputs.cache-hit != 'true'
+
+    - name: Download clang-msvc-sdk toolchain
+      uses: actions/checkout@v4
+      with:
+        repository: 'geode-sdk/clang-msvc-sdk'
+        path: toolchain
+        submodules: recursive
+      if: matrix.config.id == 'win'
 
     - name: Download CLI
-      uses: robinraju/release-downloader@v1.9
+      uses: robinraju/release-downloader@v1.10
       with:
         repository: geode-sdk/cli
         latest: true
@@ -178,7 +218,7 @@ jobs:
       uses: ./.github/actions/setup-dump-sym
       id: breakpad-tools
       if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
-    
+
     - name: Fix Ubuntu libcstd++
       shell: bash
       run: |
@@ -186,7 +226,7 @@ jobs:
         sudo add-apt-repository ppa:ubuntu-toolchain-r/test &&
         sudo apt-get update &&
         sudo apt-get install --only-upgrade libstdc++6
-      if: matrix.config.host_id == 'linux'
+      if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
 
     - name: Checkout ninjatracing
       uses: actions/checkout@v4
@@ -198,11 +238,15 @@ jobs:
 
     - name: Configure
       run: >
+        ${{ matrix.config.id == 'win' && 'export SPLAT_DIR=$GITHUB_WORKSPACE/.xwin-cache/splat' || '' }}
+
+        ${{ matrix.config.id == 'win' && 'export TOOLCHAIN=$GITHUB_WORKSPACE/toolchain/clang-cl-msvc.cmake' || '' }}
+
+        ${{ matrix.config.id == 'win' && 'export HOST_ARCH=x86_64' || '' }}
+
         cmake -B build
         -DCLI_PATH=${{ github.workspace }}/cli
         -DCMAKE_BUILD_TYPE=RelWithDebInfo
-        -DCMAKE_C_COMPILER=clang
-        -DCMAKE_CXX_COMPILER=clang++
         -DGEODE_CODEGEN_CMAKE_ARGS="-DCMAKE_C_COMPILER=clang;-DCMAKE_CXX_COMPILER=clang++;-G Ninja"
         -G Ninja
         ${{ inputs.build-debug-info && '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON' || '' }}
@@ -212,6 +256,9 @@ jobs:
 
     - name: Build
       run: |
+        ${{ matrix.config.id == 'win' && 'export SPLAT_DIR=$GITHUB_WORKSPACE/.xwin-cache/splat' || '' }}
+        ${{ matrix.config.id == 'win' && 'export TOOLCHAIN=$GITHUB_WORKSPACE/toolchain/clang-cl-msvc.cmake' || '' }}
+        ${{ matrix.config.id == 'win' && 'export HOST_ARCH=x86_64' || '' }}
         cmake --build build --config RelWithDebInfo --parallel
         rm bin/nightly/resources/.geode_cache
         ${{ inputs.build-debug-info && 'python3 ./ninjatracing/ninjatracing ./build/.ninja_log > ./build-debug-info/ninja-trace.json' || '' }}
@@ -290,31 +337,31 @@ jobs:
           mv geode-installer-win/geode-installer-win.exe geode-installer-${{ steps.ref.outputs.hash }}-win.exe
 
       - name: Zip MacOS Artifacts
-        uses: vimtor/action-zip@v1.1
+        uses: vimtor/action-zip@v1.2
         with:
           files: geode-mac/Geode.dylib geode-mac/GeodeBootstrapper.dylib
           dest: geode-${{ steps.ref.outputs.hash }}-mac.zip
 
       - name: Zip Windows Artifacts
-        uses: vimtor/action-zip@v1.1
+        uses: vimtor/action-zip@v1.2
         with:
           files: geode-win/XInput1_4.dll geode-win/Geode.dll geode-win/GeodeUpdater.exe geode-win/Geode.lib geode-win/Geode.pdb
           dest: geode-${{ steps.ref.outputs.hash }}-win.zip
 
       - name: Zip Android32 Artifacts
-        uses: vimtor/action-zip@v1.1
+        uses: vimtor/action-zip@v1.2
         with:
           files: geode-android32/Geode.android32.so geode-android32/Geode.android32.so.sym
           dest: geode-${{ steps.ref.outputs.hash }}-android32.zip
 
       - name: Zip Android64 Artifacts
-        uses: vimtor/action-zip@v1.1
+        uses: vimtor/action-zip@v1.2
         with:
           files: geode-android64/Geode.android64.so geode-android64/Geode.android64.so.sym
           dest: geode-${{ steps.ref.outputs.hash }}-android64.zip
 
       - name: Zip Resources
-        uses: vimtor/action-zip@v1.1
+        uses: vimtor/action-zip@v1.2
         with:
           files: geode-android64/resources
           dest: resources.zip
