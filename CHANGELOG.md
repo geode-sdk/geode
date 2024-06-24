@@ -1,5 +1,20 @@
 # Geode Changelog
 
+## v3.1.0
+ * Implement LoaderImpl::getGameVersion on android, requires 1.4.0 launcher (00799b6)
+ * Better compression for windows installer, saves 6mb (54da3b0)
+ * Fix mod install confirmation popup not properly showing mods (5886324)
+ * Fix missing version check for incompatibilities (83bb3c2)
+ * Update TulipHook (f6260a5)
+   * This fixes a crash with CustomKeybinds
+ * Add more options to `web::WebRequest` (83f8a32) (#943)
+ * Prioritize mod updates over failed mods on the main menu icon (89ed81a)
+ * Windows installer improvements:
+   * Delete old geode/update folder to prevent downgrading (116af49)
+   * Delete left over dlls from 2.204 (d1e2919)
+   * Installer can now forcibly install over existing mod loaders (736a61e)
+   * Make installer delete msvcp dlls in gd folder (d9c7610, 9c6841e)
+
 ## v3.0.0
  * Show loader commit hashes again (b72bb9e)
  * Don't save data if mod is uninstalled with save (518f941)
