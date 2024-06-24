@@ -166,6 +166,13 @@ int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     return reinterpret_cast<decltype(&wWinMain)>(mainTrampolineAddr)(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 }
 
+// incase we're desperate again
+#if 0
+#define MSG_BOX_DEBUG(...) MessageBoxA(NULL, std::format(GEODE_STR(__LINE__) " - " __VA_ARGS__).c_str(), "Geode", 0)
+#else
+#define MSG_BOX_DEBUG(...)
+#endif
+
 std::string loadGeode() {
     auto process = GetCurrentProcess();
     auto dosHeader = reinterpret_cast<IMAGE_DOS_HEADER*>(geode::base::get());
@@ -180,6 +187,18 @@ std::string loadGeode() {
     );
 
     const uintptr_t entryAddr = geode::base::get() + ntHeader->OptionalHeader.AddressOfEntryPoint;
+    bool panicMode = false;
+
+#ifdef GEODE_IS_WINDOWS64
+    // somehow, there are like 2 people where the code at the entry is just nonsense
+    // i do not understand it either
+    if (*reinterpret_cast<uint32_t*>(entryAddr) != 0x28ec8348) {
+        MSG_BOX_DEBUG("Going into emergency mode");
+        panicMode = true;
+    }
+#endif
+    
+    MSG_BOX_DEBUG("Entry address: {:x}, {:x}", entryAddr, entryAddr - geode::base::get());
     // function that calls main
     // 32 bit: 
     // e8 xx xx xx xx call (security)
@@ -192,14 +211,15 @@ std::string loadGeode() {
 
     constexpr ptrdiff_t mainCallJmpOffset = GEODE_WINDOWS64(13) GEODE_WINDOWS32(5);
     const uintptr_t mainCallJmpAddress = entryAddr + mainCallJmpOffset;
-    const int32_t mainCallJmpValue = *reinterpret_cast<int32_t*>(mainCallJmpAddress + 1);
-    const uintptr_t preWinMainAddr = mainCallJmpAddress + mainCallJmpValue + 5;
+    const int32_t mainCallJmpValue = panicMode ? 0 : *reinterpret_cast<int32_t*>(mainCallJmpAddress + 1);
+    uintptr_t preWinMainAddr = mainCallJmpAddress + mainCallJmpValue + 5;
 
     // the search bytes for the main function
     // 32 bit:
     // 6a 00                  push 0
     // 68 00 00 40 00         push geode::base::get()
     // e8 ...                 call ...
+
     // 64 bit:
     // 44 8b cb               mov r9d, ebx
     // 4c 8b c0               mov r8, rax
@@ -213,6 +233,16 @@ std::string loadGeode() {
 #ifdef GEODE_IS_WINDOWS32
     mainSearchBytes |= static_cast<uint64_t>(geode::base::get()) << 24;
 #endif
+
+#ifdef GEODE_IS_WINDOWS64
+    if (panicMode) {
+        // at least in 2.206 it seems to be before the entry,
+        // so do this and if it fails oh well
+        preWinMainAddr = entryAddr - 0x200;
+    }
+#endif
+
+    MSG_BOX_DEBUG("Searching from {:x}, aka {:x}", preWinMainAddr, preWinMainAddr - geode::base::get());
 
     uintptr_t patchAddr = 0;
     // 0x1000 should be enough of a limit here..
@@ -291,6 +321,8 @@ std::string loadGeode() {
         0x90
     };
 #endif
+
+    MessageBoxA(NULL, std::format("hyaa! found the address {:x}", patchAddr - geode::base::get()).c_str(), "Geode", 0);
 
     DWORD oldProtect;
     if (!VirtualProtectEx(process, reinterpret_cast<void*>(patchAddr), patchSize, PAGE_EXECUTE_READWRITE, &oldProtect))
