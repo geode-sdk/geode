@@ -112,10 +112,6 @@ jobs:
       run: |
         ${{ env.base-build-command }}
         ${{ steps.build-debug-info.outputs.extra-build }}
-      env:
-        SPLAT_DIR: ${{ github.workspace }}/.xwin-cache/splat
-        TOOLCHAIN: ${{ github.workspace }}/toolchain/clang-cl-msvc.cmake
-        HOST_ARCH: x86_64
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
