@@ -322,7 +322,7 @@ std::string loadGeode() {
     };
 #endif
 
-    MessageBoxA(NULL, std::format("hyaa! found the address {:x}", patchAddr - geode::base::get()).c_str(), "Geode", 0);
+    MSG_BOX_DEBUG("found the main address {:x}", patchAddr - geode::base::get());
 
     DWORD oldProtect;
     if (!VirtualProtectEx(process, reinterpret_cast<void*>(patchAddr), patchSize, PAGE_EXECUTE_READWRITE, &oldProtect))
