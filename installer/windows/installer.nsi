@@ -461,6 +461,8 @@ SectionGroup "Geode"
 
         Delete "$INSTDIR\msvcp140.dll"
         Delete "$INSTDIR\msvcp140d.dll"
+        Delete "$INSTDIR\vcruntime140.dll"
+        Delete "$INSTDIR\vcruntime140d.dll"
 
         WriteUninstaller "GeodeUninstaller.exe"
     SectionEnd
