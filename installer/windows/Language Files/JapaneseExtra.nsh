@@ -9,8 +9,7 @@ ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "このセットアップは$(^Na
 ; installer
 
 ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nこのパスにはGeometry Dashがインストールされていません！"
-${LangFileString} GEODE_TEXT_MH_ALREADY_INSTALLED "このパスにはすでにMega Hack v6/v7がインストールされています！$\r$\nGeodeはMHv6/v7と互換性がありません（MHv8はGeodeと互換性があります）。$\r$\n続行する前にアンインストールしてください。"
-${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "このパスにはすでに他のモッドローダーがインストールされています！$\r$\nGeodeは他のモッドローダーと互換性がありません。$\r$\n続行する前にアンインストールしてください。（the dll trademark）"
+${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "このパスにはすでに他のモッドがインストールされています！$\r$\nそれらはGeodeによって上書きされます。（the dll trademark）"
 
 ; uninstaller
 

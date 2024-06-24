@@ -12,8 +12,7 @@ ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Bu sihirbaz size $(^NameDA) prog
 ; installer
 
 ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nBu dizin yolunda Geometry Dash yüklü değildir!"
-${LangFileString} GEODE_TEXT_MH_ALREADY_INSTALLED "Bu dizin yolunda çoktan Mega Hack v6/v7 yüklüdür!$\r$\nGeode MHv6/v7 ile çalışmamaktadır (MHv8 Geode ile uyumlu olacaktır).$\r$\nLütfen devam etmek için programı kaldırın."
-${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "Bu dizin yolunda çoktan başka bir mod yükleyicisi bulunmaktadır!$\r$\nGeode başka bir mod yükleyicisi ile birlikte çalışmamaktadır.$\r$\nLütfen devam etmek için programı kaldırın. (the dll trademark)"
+${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "Bu dizin yolunda başka modlar yüklüdür!$\r$\nGeode bunların üzerine yazılacaktır. (the dll trademark)"
 
 ; uninstaller
 
