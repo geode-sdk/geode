@@ -1,5 +1,11 @@
 # Geode Changelog
 
+## v3.1.1
+ * Update Windows installer translations (ae589d2, dca28db, d12fb37, 08d8af3, f52cf02, 3fa1d9b)
+ * Add safe mode by holding shift on MacOS (e4905a0)
+ * Fix bug on android where `FileOperation::getFilePath` was not actually hooked (9885212)
+   * This was a problem with our bindings, there the return type was TodoReturn instead of gd::string causing the hook to silently fail, leaving only the launcher hook (which is prone to failing) as a fallback.
+
 ## v3.1.0
  * Implement LoaderImpl::getGameVersion on android, requires 1.4.0 launcher (00799b6)
  * Better compression for windows installer, saves 6mb (54da3b0)
