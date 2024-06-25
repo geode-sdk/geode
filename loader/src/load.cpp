@@ -86,17 +86,18 @@ void tryShowForwardCompat() {
 #ifdef GEODE_IS_WINDOWS
 bool safeModeCheck() {
     // yes this is quite funny
-    if (GetAsyncKeyState(VK_SHIFT) != 0) {
-        auto choice = MessageBoxA(
-            NULL,
-            "(This has been triggered because you were holding SHIFT)\n"
-            "Do you want to activate Geode Safe Mode? This disables loading any mods.",
-            "Attention",
-            MB_YESNO | MB_ICONINFORMATION
-        );
-        return choice == IDYES;
+    if (GetAsyncKeyState(VK_SHIFT) == 0) {
+        return false;
     }
-    return false;
+
+    auto choice = MessageBoxA(
+        NULL,
+        "(This has been triggered because you were holding SHIFT)\n"
+        "Do you want to activate Geode Safe Mode? This disables loading any mods.",
+        "Attention",
+        MB_YESNO | MB_ICONINFORMATION
+    );
+    return choice == IDYES;
 }
 #else !defined(GEODE_IS_MACOS)
 // macos is defined in load.mm, this is for android
