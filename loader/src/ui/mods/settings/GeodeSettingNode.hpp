@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Geode/loader/Event.hpp>
+#include <Geode/utils/Result.hpp>
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/CCTextInputNode.hpp>
 #include <Geode/binding/Slider.hpp>
@@ -291,13 +293,17 @@ class FileSettingNode :
     public TextInputDelegate
 {
 protected:
+    using FileTask = Task<Result<std::filesystem::path>>;
+
     TextInput* m_input;
+    EventListener<FileTask> m_pickListener;
 
     void textChanged(CCTextInputNode* input) override;
     void valueChanged(bool updateText) override;
     void updateLabel();
 
     void onPickFile(CCObject*);
+    void onPickFileFinished(FileTask::Event* event);
 
     bool setup(FileSettingValue* setting, float width) override;
 

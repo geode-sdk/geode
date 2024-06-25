@@ -1,4 +1,6 @@
 #include "GeodeSettingNode.hpp"
+#include "Geode/binding/FLAlertLayer.hpp"
+#include "Geode/ui/Popup.hpp"
 
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/binding/CCTextInputNode.hpp>
@@ -411,21 +413,31 @@ void FileSettingNode::valueChanged(bool updateText) {
 }
 
 void FileSettingNode::onPickFile(CCObject*) {
-    file::pick(
+    m_pickListener.bind(this, &FileSettingNode::onPickFileFinished);
+    m_pickListener.setFilter(file::pick(
         file::PickMode::OpenFile, 
         {
             dirs::getGameDir(),
             setting()->castDefinition().controls.filters
-    }).listen(
-        [this](Result<std::filesystem::path>* path) {
-            if (path->isOk()) {
-                m_uncommittedValue = path->unwrap();
-                this->valueChanged(true);
-            }
-        },
-        [] (auto progress) {},
-        [] () {}
-    );
+    }));
+}
+
+void FileSettingNode::onPickFileFinished(FileTask::Event* event) {
+    if (!event->getValue()) {
+        return;
+    }
+
+    auto value = event->getValue();
+    if (value->isOk()) {
+        m_uncommittedValue = value->unwrap();
+        this->valueChanged(true);
+    } else {
+        FLAlertLayer::create(
+            "Failed",
+            fmt::format("Failed to pick file: {}", value->err().value()).c_str(),
+            "Ok"
+        )->show();
+    }
 }
 
 bool FileSettingNode::setup(FileSettingValue* setting, float width) {
