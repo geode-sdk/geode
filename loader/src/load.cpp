@@ -99,7 +99,7 @@ bool safeModeCheck() {
     );
     return choice == IDYES;
 }
-#else !defined(GEODE_IS_MACOS)
+#elif !defined(GEODE_IS_MACOS)
 // macos is defined in load.mm, this is for android
 // on android the launcher just adds the launch args to enable safe mode
 bool safeModeCheck() {
