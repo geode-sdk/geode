@@ -503,7 +503,7 @@ Function .onInit
     !delfile "${TMPINST}"
 
     ; create and run the installer that just uses WriteUninstaller
-    !makensis '-DGENERATE_UNINSTALLER "${__FILE__}" "-XOutFile `${TMPINST}.exe`"'
+    !makensis "-DGENERATE_UNINSTALLER $\"${__FILE__}$\" $\"-XOutFile '${TMPINST}.exe'$\""
     !system '"${TMPINST}.exe" /S'
     !delfile "${TMPINST}.exe"
 !endif
