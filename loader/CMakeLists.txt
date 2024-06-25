@@ -273,7 +273,7 @@ if (NOT GEODE_BUILDING_DOCS)
 
 	target_include_directories(${PROJECT_NAME} PRIVATE ${md4c_SOURCE_DIR}/src)
 
-	target_link_libraries(${PROJECT_NAME} md4c zlib minizip date)
+	target_link_libraries(${PROJECT_NAME} md4c zlibstatic minizip date)
 endif()
 
 target_link_libraries(${PROJECT_NAME} TulipHook geode-sdk mat-json-impl)
