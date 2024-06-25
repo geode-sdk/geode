@@ -84,21 +84,26 @@ void tryShowForwardCompat() {
 }
 
 #ifdef GEODE_IS_WINDOWS
-    void safeModeCheck() {
-        // yes this is quite funny
-        if (GetAsyncKeyState(VK_SHIFT) != 0) {
-            auto choice = MessageBoxA(
-                NULL,
-                "(This has been triggered because you were holding SHIFT)\n"
-                "Do you want to activate Geode Safe Mode? This disables loading any mods.",
-                "Attention",
-                MB_YESNO | MB_ICONINFORMATION
-            );
-            if (choice == IDYES) {
-                LoaderImpl::get()->forceSafeMode();
-            }
-        }
+bool safeModeCheck() {
+    // yes this is quite funny
+    if (GetAsyncKeyState(VK_SHIFT) != 0) {
+        auto choice = MessageBoxA(
+            NULL,
+            "(This has been triggered because you were holding SHIFT)\n"
+            "Do you want to activate Geode Safe Mode? This disables loading any mods.",
+            "Attention",
+            MB_YESNO | MB_ICONINFORMATION
+        );
+        return choice == IDYES;
     }
+    return false;
+}
+#else !defined(GEODE_IS_MACOS)
+// macos is defined in load.mm, this is for android
+// on android the launcher just adds the launch args to enable safe mode
+bool safeModeCheck() {
+    return false;
+}
 #endif
 
 int geodeEntry(void* platformData) {
@@ -110,7 +115,9 @@ int geodeEntry(void* platformData) {
         console::openIfClosed();
     }
 
-    safeModeCheck();
+    if (safeModeCheck()) {
+        LoaderImpl::get()->forceSafeMode();
+    }
 
     std::string forwardCompatSuffix;
     if (LoaderImpl::get()->isForwardCompatMode())

@@ -1,3 +1,3 @@
 #pragma once
-void safeModeCheck();
+bool safeModeCheck();
 int geodeEntry(void* platformData);
