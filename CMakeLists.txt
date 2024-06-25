@@ -79,7 +79,7 @@ if (NOT GEODE_BINDINGS_REPO_PATH)
 	message(STATUS "Using ios branch for bindings")
         CPMAddPackage(NAME "bindings"
                 GITHUB_REPOSITORY "geode-ios/bindings"
-                GIT_TAG "ios"
+                GIT_TAG "main"
                 DOWNLOAD_ONLY YES
                 NO_CACHE YES
         )
