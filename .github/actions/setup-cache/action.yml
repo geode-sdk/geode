@@ -39,7 +39,7 @@ runs:
     uses: hendrikmuhs/ccache-action@v1.2.13
     with:
       variant: sccache
-      key: win-v1
+      key: ${{ inputs.target }}-v1
     if: inputs.use-ccache
 
   - name: Setup CPM Cache
