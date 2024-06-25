@@ -491,23 +491,6 @@ Section "steam_appid.txt"
 SectionEnd
 
 Function .onInit
-    # huge thanks to Anders for the reference !!
-    # https://forums.winamp.com/forum/developer-center/nsis-discussion/4633037-creating-an-uninstaller-in-compile-time?p=4633073#post4633073
-!ifdef GENERATE_UNINSTALLER
-    WriteUninstaller "${__FILEDIR__}\GeodeUninstaller.exe"
-    SetErrorLevel 0
-    Quit
-!else
-    ; get a temporary file path
-    !tempfile TMPINST
-    !delfile "${TMPINST}"
-
-    ; create and run the installer that just uses WriteUninstaller
-    !makensis "-DGENERATE_UNINSTALLER $\"${__FILE__}$\" $\"-XOutFile '${TMPINST}.exe'$\""
-    !system '"${TMPINST}.exe" /S'
-    !delfile "${TMPINST}.exe"
-!endif
-
     !insertmacro MUI_LANGDLL_DISPLAY
 
     IntOp $0 ${SF_SELECTED} | ${SF_RO}
