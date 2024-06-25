@@ -5,7 +5,7 @@
 #include <Geode/loader/SettingNode.hpp>
 #include <Geode/utils/general.hpp>
 #include <Geode/utils/JsonValidation.hpp>
-#include <re2/re2.h>
+#include <regex>
 
 using namespace geode::prelude;
 
@@ -390,7 +390,7 @@ IMPL_TO_VALID(Float) {
 
 IMPL_TO_VALID(String) {
     if (m_definition.controls->match) {
-        if (!re2::RE2::FullMatch(value, m_definition.controls->match.value())) {
+        if (!std::regex_match(value, std::regex{m_definition.controls->match.value()})) {
             return {
                 m_definition.defaultValue,
                 fmt::format(
