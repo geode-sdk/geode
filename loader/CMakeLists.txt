@@ -241,19 +241,17 @@ if (NOT GEODE_BUILDING_DOCS)
 	CPMAddPackage("gh:mity/md4c#release-0.5.2")
 
 	# Zip support (needed for in-memory streams, which zlib's minizip doesn't support)
-	set(MZ_LZMA Off CACHE INTERNAL "Enables LZMA & XZ compression")
-	set(MZ_ZSTD Off CACHE INTERNAL "")
-	set(MZ_BZIP2 Off CACHE INTERNAL "")
-	set(MZ_OPENSSL Off CACHE INTERNAL "")
-	set(MZ_LIBBSD Off CACHE INTERNAL "")
-	set(SKIP_INSTALL_ALL On CACHE INTERNAL "")
-	set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)
-	CPMAddPackage(
-		GITHUB_REPOSITORY zlib-ng/minizip-ng
-		GIT_TAG cee6d8c
-		OPTIONS "CMAKE_POLICY_DEFAULT_CMP0048 OLD" "ZLIB_TAG v1.2.13"
-	)
-	set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
+	set(MZ_LZMA OFF CACHE INTERNAL "")
+	set(MZ_ZSTD OFF CACHE INTERNAL "")
+	set(MZ_BZIP2 OFF CACHE INTERNAL "")
+	set(MZ_OPENSSL OFF CACHE INTERNAL "")
+	set(MZ_LIBBSD OFF CACHE INTERNAL "")
+	set(MZ_FETCH_LIBS ON CACHE INTERNAL "")
+	set(SKIP_INSTALL_ALL ON CACHE INTERNAL "")
+	CPMAddPackage("gh:geode-sdk/minizip-ng#83a786f")
+	if (WIN32)
+		set_target_properties(zlib PROPERTIES SUFFIX "1.dll")
+	endif()
 
 	# Silence warnings from dependencies
 	include(CheckCXXCompilerFlag)
@@ -266,19 +264,19 @@ if (NOT GEODE_BUILDING_DOCS)
 			target_compile_options(zlib PRIVATE -Wno-everything)
 		endif()
 		if (TARGET zlibstatic)
-			target_compile_options(zlibstatic PRIVATE -Wno-everything)
+			get_property(zlibstatic_ALIASED TARGET zlibstatic PROPERTY ALIASED_TARGET)
+			if ("${zlibstatic_ALIASED}" STREQUAL "")
+				target_compile_options(zlibstatic PRIVATE -Wno-everything)
+			endif()
 		endif()
 	endif()
-
-	# Regex support
-	CPMAddPackage("gh:google/re2#c9cba76")
 
 	# Cool date library
 	CPMAddPackage("gh:HowardHinnant/date#1ead671")
 
 	target_include_directories(${PROJECT_NAME} PRIVATE ${md4c_SOURCE_DIR}/src)
 
-	target_link_libraries(${PROJECT_NAME} md4c re2 minizip date)
+	target_link_libraries(${PROJECT_NAME} md4c minizip date)
 endif()
 
 target_link_libraries(${PROJECT_NAME} TulipHook geode-sdk mat-json-impl)
