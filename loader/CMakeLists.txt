@@ -249,7 +249,9 @@ if (NOT GEODE_BUILDING_DOCS)
 	set(MZ_FETCH_LIBS ON CACHE INTERNAL "")
 	set(SKIP_INSTALL_ALL ON CACHE INTERNAL "")
 	CPMAddPackage("gh:geode-sdk/minizip-ng#83a786f")
-	set_target_properties(zlib PROPERTIES SUFFIX "1.dll")
+	if (WIN32)
+		set_target_properties(zlib PROPERTIES SUFFIX "1.dll")
+	endif()
 
 	# Silence warnings from dependencies
 	include(CheckCXXCompilerFlag)
