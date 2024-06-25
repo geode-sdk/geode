@@ -89,6 +89,7 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 # Obj-c sources
 file(GLOB OBJC_SOURCES
 	src/platform/Objcpp.mm
+	src/load.mm
 )
 set_source_files_properties(${OBJC_SOURCES} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 
