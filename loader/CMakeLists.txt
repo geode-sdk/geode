@@ -248,7 +248,8 @@ if (NOT GEODE_BUILDING_DOCS)
 	set(MZ_LIBBSD OFF CACHE INTERNAL "")
 	set(MZ_FETCH_LIBS ON CACHE INTERNAL "")
 	set(SKIP_INSTALL_ALL ON CACHE INTERNAL "")
-	CPMAddPackage("gh:zlib-ng/minizip-ng#4.0.7")
+	CPMAddPackage("gh:geode-sdk/minizip-ng#83a786f")
+	set_target_properties(zlib PROPERTIES SUFFIX "1.dll")
 
 	# Silence warnings from dependencies
 	include(CheckCXXCompilerFlag)
@@ -273,7 +274,7 @@ if (NOT GEODE_BUILDING_DOCS)
 
 	target_include_directories(${PROJECT_NAME} PRIVATE ${md4c_SOURCE_DIR}/src)
 
-	target_link_libraries(${PROJECT_NAME} md4c zlibstatic minizip date)
+	target_link_libraries(${PROJECT_NAME} md4c zlib minizip date)
 endif()
 
 target_link_libraries(${PROJECT_NAME} TulipHook geode-sdk mat-json-impl)
