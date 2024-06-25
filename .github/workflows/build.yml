@@ -128,7 +128,9 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: geode-installer-win
-        path: './installer/windows/geode-installer-win.exe'
+        path: |
+          ./installer/windows/geode-installer-win.exe
+          ./installer/windows/GeodeUninstaller.exe
 
     - name: Complete Build Debug Info
       uses: ./.github/actions/build-debug-info-post
@@ -335,7 +337,9 @@ jobs:
       - name: Zip Windows Artifacts
         uses: vimtor/action-zip@v1.2
         with:
-          files: geode-win/XInput1_4.dll geode-win/Geode.dll geode-win/GeodeUpdater.exe geode-win/Geode.lib geode-win/Geode.pdb
+          files: >-
+            geode-win/XInput1_4.dll geode-win/Geode.dll geode-win/Geode.lib geode-win/Geode.pdb
+            geode-win/GeodeUpdater.exe geode-installer-win/GeodeUninstaller.exe
           dest: geode-${{ steps.ref.outputs.hash }}-win.zip
 
       - name: Zip Android32 Artifacts
