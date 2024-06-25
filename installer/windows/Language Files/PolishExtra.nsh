@@ -7,7 +7,7 @@ ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Instalator przeprowadzi cię prz
 
 ; installer
 
-${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nGeometry Dash nie jest zainstalowane w tej ścieżce!"
+${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nGeometry Dash nie jest zainstalowane w tym folderze!"
 ${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "W tym folderze zainstalowane są inne modyfikacje!$\r$\nZostaną one zastąpione przez Geode. (the dll trademark)"
 
 ; uninstaller
