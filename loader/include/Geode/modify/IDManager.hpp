@@ -2,6 +2,7 @@
 
 #include "../DefaultInclude.hpp"
 #include "../ui/EnterLayerEvent.hpp"
+#include <Geode/loader/ModEvent.hpp>
 
 namespace cocos2d {
     class CCNode;
