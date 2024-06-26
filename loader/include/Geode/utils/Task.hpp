@@ -735,7 +735,7 @@ namespace geode {
          * @warning This method should only be used in a global context. If you rely
          * on some node still existing when the task completes, use an event listener instead.
          */
-        template <class OnResult, class OnProgress>
+        template <class OnResult>
         void listen(OnResult&& onResult) const {
             this->listen(std::move(onResult), [](auto const&) {}, [] {});
         }
