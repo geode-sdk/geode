@@ -62,7 +62,7 @@ namespace geode {
     struct GEODE_CONCAT(ProvideIDsFor, Layer_) : public Layer_ {\
         void provide();\
     };\
-	$on_mod(Loaded) {\
+	$execute {\
 		NodeIDs::get()->registerProvider(\
             &geodeInternalProvideIDsFor<GEODE_CONCAT(ProvideIDsFor, Layer_)>\
         );\
