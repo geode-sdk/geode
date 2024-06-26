@@ -2,7 +2,7 @@
 
 using namespace geode::prelude;
 
-#ifdef GEODE_IS_ANDROID32
+#ifdef GEODE_IS_ANDROID
 
 // replaces https://github.com/llvm-mirror/libcxxabi/blob/master/src/private_typeinfo.cpp#L213
 // this is the function that checks if a type can catch an exception
@@ -31,7 +31,7 @@ $execute {
     auto tiVtable = typeinfo->m_typeinfoVtable;
     auto hookAddr = tiVtable->m_vtable[4]; // 5th entry is can_catch
 
-    (void)Mod::get()->hook(hookAddr, &canCatchImpl, "__class_type_info::can_catch");
+    (void)Mod::get()->hook(hookAddr, &canCatchImpl, "__cxxabiv1::__class_type_info::can_catch");
 }
 
 #endif

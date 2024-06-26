@@ -220,7 +220,7 @@ endif()
 
 set(MAT_JSON_AS_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/json#3a79c51")
-CPMAddPackage("gh:fmtlib/fmt#10.1.1")
+CPMAddPackage("gh:fmtlib/fmt#10.2.1")
 
 target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)
 
@@ -249,7 +249,7 @@ if (DEFINED GEODE_TULIPHOOK_REPO_PATH)
 	message(STATUS "Using ${GEODE_TULIPHOOK_REPO_PATH} for TulipHook")
 	add_subdirectory(${GEODE_TULIPHOOK_REPO_PATH} ${GEODE_TULIPHOOK_REPO_PATH}/build)
 else()
-	CPMAddPackage("gh:geode-sdk/TulipHook#b8357de")
+	CPMAddPackage("gh:geode-sdk/TulipHook#fbf79b4")
 endif()
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 

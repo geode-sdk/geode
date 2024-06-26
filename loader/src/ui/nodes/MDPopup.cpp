@@ -63,14 +63,13 @@ MDPopup* MDPopup::create(
     utils::MiniFunction<void(bool)> onClick
 ) {
     auto ret = new MDPopup();
-    if (ret &&
-        ret->initAnchored(
+    if (ret->initAnchored(
             320.f, MDPopup::estimateHeight(content), title, content, btn1, btn2, onClick,
             "square01_001.png", { 0, 0, 94, 94 }
         )) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }

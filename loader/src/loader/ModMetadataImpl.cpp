@@ -145,7 +145,8 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
             return Err("[mod.json] has invalid target GD version");
         }
         if (ver.empty()) {
-            return Err("[mod.json] could not find GD version for current platform");
+            // this will show an error later on, but will at least load the rest of the metadata
+            ver = "0.000";
         }
         if (ver != "*") {
             double val = 0.0;
@@ -567,6 +568,11 @@ Result<> ModMetadata::checkGameVersion() const {
         auto const ver = m_impl->m_gdVersion;
 
         double modTargetVer = std::stod(ver);
+
+        if (modTargetVer == 0.0) { // O.o
+            return Err(fmt::format("This mod doesn't support the current platform."));
+        }
+
         if (LoaderImpl::get()->isForwardCompatMode()) {
             // this means current gd version is > GEODE_GD_VERSION
             if (modTargetVer <= GEODE_GD_VERSION) {

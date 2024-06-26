@@ -63,10 +63,10 @@ void SortPopup::onClose(CCObject* sender) {
 
 SortPopup* SortPopup::create(ModListSource* src) {
     auto ret = new SortPopup();
-    if (ret && ret->init(230, 165, src)) {
+    if (ret->init(230, 165, src)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }

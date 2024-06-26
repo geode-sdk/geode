@@ -18,11 +18,11 @@ bool SpacerNode::init(size_t grow) {
 
 SpacerNode* SpacerNode::create(size_t grow) {
     auto ret = new SpacerNode;
-    if (ret && ret->init(grow)) {
+    if (ret->init(grow)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 
@@ -48,11 +48,11 @@ bool SpacerNodeChild::init(CCNode* child, size_t grow) {
 
 SpacerNodeChild* SpacerNodeChild::create(CCNode* child, size_t grow) {
     auto ret = new SpacerNodeChild;
-    if (ret && ret->init(child, grow)) {
+    if (ret->init(child, grow)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 

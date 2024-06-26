@@ -77,10 +77,11 @@ bool ModDeveloperList::init(DevListPopup* popup, ModSource const& source, CCSize
 
 ModDeveloperList* ModDeveloperList::create(DevListPopup* popup, ModSource const& source, CCSize const& size) {
     auto ret = new ModDeveloperList();
-    if (!ret || !ret->init(popup, source, size)) {
-        CC_SAFE_DELETE(ret);
-        return nullptr;
+    if (ret->init(popup, source, size)) {
+        ret->autorelease();
+        return ret;
     }
-    ret->autorelease();
-    return ret;
+    
+    delete ret;
+    return nullptr;
 }

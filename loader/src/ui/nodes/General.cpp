@@ -143,11 +143,11 @@ bool ListBorders::init() {
 
 ListBorders* ListBorders::create() {
     auto ret = new ListBorders();
-    if (ret && ret->init()) {
+    if (ret->init()) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 

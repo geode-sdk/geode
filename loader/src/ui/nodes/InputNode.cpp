@@ -77,12 +77,12 @@ InputNode* InputNode::create(
 ) {
     auto pRet = new InputNode();
 
-    if (pRet && pRet->init(width, placeholder, font, filter, maxCharCount)) {
+    if (pRet->init(width, placeholder, font, filter, maxCharCount)) {
         pRet->autorelease();
         return pRet;
     }
 
-    CC_SAFE_DELETE(pRet);
+    delete pRet;
     return nullptr;
 }
 

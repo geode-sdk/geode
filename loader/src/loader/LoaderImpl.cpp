@@ -463,7 +463,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
                 node,
                 res.unwrapErr()
             });
-            log::error("Geometry Dash version {} is required to run this mod", res.unwrapErr());
+            log::error("{}", res.unwrapErr());
             m_refreshingModCount -= 1;
             log::popNest();
             return;

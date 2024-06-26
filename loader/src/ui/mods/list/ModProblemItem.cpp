@@ -6,6 +6,7 @@
 #include <Geode/cocos/label_nodes/CCLabelBMFont.h>
 #include <Geode/cocos/platform/CCPlatformMacros.h>
 #include <Geode/cocos/sprite_nodes/CCSprite.h>
+#include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
@@ -17,6 +18,7 @@
 #include <ccTypes.h>
 #include <fmt/core.h>
 #include <sstream>
+#include "../GeodeStyle.hpp"
 
 bool ModProblemItem::init(Mod* source, LoadProblem problem, CCSize const& size) {
     if (!CCNode::init()) {
@@ -62,8 +64,30 @@ bool ModProblemItem::init(Mod* source, LoadProblem problem, CCSize const& size) 
     label->setWrappingMode(WrappingMode::SPACE_WRAP);
     label->setAnchorPoint({ 0.0f, 0.5f });
     label->setMaxLines(4);
-    if (this->showFixButton()) {
+    if (this->showFixButton() || this->showInfoButton()) {
         label->setWidth(size.width * 0.7f);
+
+        auto helpMenu = CCMenu::create();
+        helpMenu->setAnchorPoint({ 1.0f, 0.5f });
+
+        if (this->showInfoButton()) {
+            auto infoSpr = createGeodeButton("More");
+            infoSpr->setScale(0.6f);
+
+            auto infoBtn = CCMenuItemSpriteExtra::create(infoSpr, this, menu_selector(ModProblemItem::onInfo));
+
+            helpMenu->addChild(infoBtn);
+        }
+
+        // this layout isn't perfect but whoever adds the fix button can figure it out imo
+        helpMenu->setContentSize({size.width, size.height});
+
+        auto layout = RowLayout::create();
+        layout->setAxisAlignment(AxisAlignment::End);
+        layout->setAxisReverse(true);
+        helpMenu->setLayout(layout);
+
+        this->addChildAtPosition(helpMenu, Anchor::Right, CCPoint { -13.0f, 0 });
     } else {
         // Left + Right + Space between
         constexpr float paddings = 30.0f;
@@ -96,6 +120,32 @@ CCSprite* ModProblemItem::createSeverityIcon() {
             return CCSprite::createWithSpriteFrameName("info-alert.png"_spr);
         default:
             return CCSprite::createWithSpriteFrameName("info-warning.png"_spr);
+    }
+}
+
+void ModProblemItem::onInfo(CCObject*) {
+    if (m_problem.message.length() > 400) {
+        // show message in a scrolling layer if it's too long
+        FLAlertLayer::create(nullptr, "Error Details", m_problem.message, "OK", nullptr, 400.0f, true, 280.0f, 1.0f)->show();
+    } else {
+        FLAlertLayer::create("Error Details", m_problem.message, "OK")->show();
+    }
+}
+
+bool ModProblemItem::showInfoButton() {
+    if (m_problem.message.empty()) {
+        return false;
+    }
+
+    // should only show for types that don't already show their message (some do!)
+    switch (m_problem.type) {
+        case LoadProblem::Type::Unknown:
+        case LoadProblem::Type::InvalidFile:
+        case LoadProblem::Type::LoadFailed:
+        case LoadProblem::Type::EnableFailed:
+            return true;
+        default:
+            return false;
     }
 }
 
@@ -243,11 +293,12 @@ std::string ModProblemItem::createProblemMessage() {
 }
 
 ModProblemItem* ModProblemItem::create(Mod* source, LoadProblem problem, CCSize const& size) {
-    auto ret = new ModProblemItem;
-    if (!ret || !ret->init(source, problem, size)) {
-        CC_SAFE_DELETE(ret);
-        return nullptr;
+    auto ret = new ModProblemItem();
+    if (ret->init(source, problem, size)) {
+        ret->autorelease();
+        return ret;
     }
-    ret->autorelease();
-    return ret;
+
+    delete ret;
+    return nullptr;
 }

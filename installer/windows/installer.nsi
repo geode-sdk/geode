@@ -11,6 +11,9 @@
     XPStyle on
     RequestExecutionLevel user
     ManifestSupportedOS Win7
+    SetCompressor /SOLID lzma
+    SetCompressorDictSize 64
+    SetDatablockOptimize ON
 
 ; ui settings
     !define MUI_ABORTWARNING
@@ -52,6 +55,7 @@
     !insertmacro GEODE_LANGUAGE "Swedish"
     !insertmacro GEODE_LANGUAGE "Greek"
     !insertmacro GEODE_LANGUAGE "Finnish"
+    !insertmacro GEODE_LANGUAGE "Polish"
     !insertmacro GEODE_LANGUAGE "Russian"
     !insertmacro GEODE_LANGUAGE "PortugueseBR"
     !insertmacro GEODE_LANGUAGE "Ukrainian"
@@ -60,6 +64,7 @@
     !insertmacro GEODE_LANGUAGE "Japanese"
     !insertmacro GEODE_LANGUAGE "SimpChinese"
     !insertmacro GEODE_LANGUAGE "TradChinese"
+    !insertmacro GEODE_LANGUAGE "Korean"
 
     !insertmacro MUI_RESERVEFILE_LANGDLL
 
@@ -407,11 +412,7 @@ Function .onVerifyInstDir
 
     ; check mod loaders/mod menus
     IfFileExists $INSTDIR\hackpro.dll other_hackpro
-    IfFileExists $INSTDIR\ToastedMarshmellow.dll other_gdhm
-    IfFileExists $INSTDIR\quickldr.dll other_quickldr
     IfFileExists $INSTDIR\XInput1_4.dll other_xinput
-    IfFileExists $INSTDIR\mimalloc.dll other_mimalloc
-    IfFileExists $INSTDIR\GDH.dll other_GDH
 
     ; all checks passed
     valid:
@@ -425,28 +426,19 @@ Function .onVerifyInstDir
     other_hackpro:
         StrCpy $0 "hackpro.dll"
         Goto other
-    other_gdhm:
-        StrCpy $0 "ToastedMarshmellow.dll"
-        Goto other
-    other_quickldr:
-        StrCpy $0 "quickldr.dll"
-        Goto other
     other_xinput:
         StrCpy $0 "XInput1_4.dll"
-        Goto other
-    other_mimalloc:
-        StrCpy $0 "mimalloc.dll"
-        Goto other
-    other_GDH:
-        StrCpy $0 "GDH.dll"
         Goto other
     other:
         ${StrRep} $0 $(GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED) "the dll trademark" $0
         SendMessage $geode.DirectoryPage.ErrorText ${WM_SETTEXT} "" "STR:$0"
-        Goto error
+        SetCtlColors $geode.DirectoryPage.ErrorText e25402 transparent
+        LockWindow off
+        Return
 
     error:
         ShowWindow $geode.DirectoryPage.ErrorText 1
+        SetCtlColors $geode.DirectoryPage.ErrorText ff0000 transparent
         LockWindow off
         Abort
         Return
@@ -460,6 +452,19 @@ SectionGroup "Geode"
         File ${BINDIR}\Geode.pdb
         File ${BINDIR}\GeodeUpdater.exe
         File ${BINDIR}\XInput1_4.dll
+
+        RMdir /r $INSTDIR\geode\update
+        RMdir /r $INSTDIR\geode\index
+        Delete "$INSTDIR\xinput9_1_0.dll"
+        Delete "$INSTDIR\xinput9_1_0.lib"
+        Delete "$INSTDIR\xinput9_1_0.pdb"
+
+        Delete "$INSTDIR\hackpro.dll"
+
+        Delete "$INSTDIR\msvcp140.dll"
+        Delete "$INSTDIR\msvcp140d.dll"
+        Delete "$INSTDIR\vcruntime140.dll"
+        Delete "$INSTDIR\vcruntime140d.dll"
 
         WriteUninstaller "GeodeUninstaller.exe"
     SectionEnd

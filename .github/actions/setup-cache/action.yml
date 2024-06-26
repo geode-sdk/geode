@@ -1,0 +1,58 @@
+﻿name: Setup cache
+description: Sets up sccache, CPM cache, etc.
+
+inputs:
+  host:
+    description: 'Host platform: win, mac or linux'
+    required: true
+  target:
+    description: 'Target platform: win, mac, android32 or android64'
+    required: true
+  use-ccache:
+    description: 'Whether to use ccache/sccache'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+  # https://github.com/mozilla/sccache/issues/2090
+  - name: Download custom sccache
+    uses: robinraju/release-downloader@v1.10
+    with:
+      repository: cgytrus/sccache
+      latest: true
+      fileName: 'sccache-*-x86_64-apple-darwin.zip'
+      tarBall: false
+      zipBall: false
+      out-file-path: "epic-sccache"
+    if: inputs.host == 'mac' && inputs.use-ccache
+
+  - name: Setup custom sccache
+    shell: bash
+    run: |
+      7z x "epic-sccache/sccache-*-x86_64-apple-darwin.zip" -o"epic-sccache"
+      echo "$GITHUB_WORKSPACE/epic-sccache" >> $GITHUB_PATH
+      chmod +x "epic-sccache/sccache"
+    if: inputs.host == 'mac' && inputs.use-ccache
+
+  - name: Setup sccache
+    uses: hendrikmuhs/ccache-action@v1.2.13
+    with:
+      variant: sccache
+      key: ${{ inputs.target }}-v1
+    if: inputs.use-ccache
+
+  - name: Setup CPM Cache
+    uses: actions/cache@v4
+    with:
+      path: cpm-cache
+      key: cpm-${{ inputs.target }}-v1-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+      restore-keys: |
+        cpm-${{ inputs.target }}-v1-
+
+  - name: Setup info.rc Cache
+    uses: actions/cache@v4
+    with:
+      path: build/**/info.rc*
+      key: rc-${{ inputs.target }}-v1-${{ hashFiles('VERSION', 'loader/CMakeLists.txt', 'loader/src/platform/windows/info.rc.in') }}
+    if: inputs.target == 'win'

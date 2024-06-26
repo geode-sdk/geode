@@ -2,10 +2,10 @@
 name: Update Website
 
 on:
-  # trigger when a new release is released
-  release:
-    types:
-      - released
+  # # trigger when a new release is released
+  # release:
+  #   types:
+  #     - released
 
   workflow_dispatch:
 

@@ -392,7 +392,7 @@ void updater::checkForLoaderUpdates() {
                 auto obj = asset.obj();
                 if (string::endsWith(
                     obj.needs("name").template get<std::string>(),
-                    GEODE_PLATFORM_SHORT_IDENTIFIER ".zip"
+                    fmt::format("{}.zip", PlatformID::toShortString(GEODE_PLATFORM_TARGET, true))
                 )) {
                     updater::downloadLoaderUpdate(
                         obj.needs("browser_download_url").template get<std::string>()

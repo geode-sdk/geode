@@ -32,6 +32,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
     struct Fields {
         bool m_menuDisabled = false;
         CCSprite* m_geodeButton = nullptr;
+        CCSprite* m_exclamation = nullptr;
         Task<std::monostate> m_updateCheckTask;
     };
 
@@ -81,22 +82,20 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             }
         }
 
-        bool hasErrors = false;
         // show if some mods failed to load
         if (Loader::get()->getProblems().size()) {
-            hasErrors = true;
             static bool shownProblemPopup = false;
             if (!shownProblemPopup) {
                 shownProblemPopup = true;
                 Notification::create("There were errors - see Geode page!", NotificationIcon::Error)->show();
             }
 
-            auto icon = CCSprite::createWithSpriteFrameName("exMark_001.png");
-            icon->setPosition(m_fields->m_geodeButton->getContentSize() - ccp(10, 10));
-            icon->setID("errors-found");
-            icon->setZOrder(99);
-            icon->setScale(.6f);
-            m_fields->m_geodeButton->addChild(icon);
+            m_fields->m_exclamation = CCSprite::createWithSpriteFrameName("exMark_001.png");
+            m_fields->m_exclamation->setPosition(m_fields->m_geodeButton->getContentSize() - ccp(10, 10));
+            m_fields->m_exclamation->setID("errors-found");
+            m_fields->m_exclamation->setZOrder(99);
+            m_fields->m_exclamation->setScale(.6f);
+            m_fields->m_geodeButton->addChild(m_fields->m_exclamation);
         }
         
         // show if the user tried to be naughty and load arbitrary DLLs
@@ -167,15 +166,19 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             // only run it once
             checkedModUpdates = true;
             m_fields->m_updateCheckTask = ModsLayer::checkInstalledModsForUpdates().map(
-                [this, hasErrors](server::ServerRequest<std::vector<std::string>>::Value* result) {
+                [this](server::ServerRequest<std::vector<std::string>>::Value* result) {
                     if (result->isOk()) {
                         auto updatesFound = result->unwrap();
                         if (updatesFound.size() && !m_fields->m_geodeButton->getChildByID("updates-available")) {
                             log::info("Found updates for mods: {}!", updatesFound);
                             
-                            // Only show the icon if the errors icon wasn't added already, to prevent overlap
-                            if (!hasErrors) {
-                                auto icon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr);
+                            if(auto icon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr)) {
+                                // Remove errors icon if it was added, to prevent overlap
+                                if (m_fields->m_exclamation) {
+                                    m_fields->m_exclamation->removeFromParent();
+                                    m_fields->m_exclamation = nullptr;
+                                }
+
                                 icon->setPosition(
                                     m_fields->m_geodeButton->getContentSize() - CCSize { 10.f, 10.f }
                                 );

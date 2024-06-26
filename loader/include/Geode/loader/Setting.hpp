@@ -91,20 +91,33 @@ namespace geode {
         std::optional<std::string> name;
         std::optional<std::string> description;
         ValueType defaultValue;
-        /**
-         * A regex the string must successfully match against
-         */
-        std::optional<std::string> match;
+        struct Data {
+            /**
+             * A regex the string must successfully match against
+             */
+            std::optional<std::string> match;
 
-        /**
-         * The CCTextInputNode's allowed character filter
-         */
-        std::optional<std::string> filter;
+            /**
+             * The CCTextInputNode's allowed character filter
+             */
+            std::optional<std::string> filter;
 
-        /**
-         * A list of options the user can choose from
-         */
-        std::optional<std::vector<std::string>> options;
+            /**
+             * A list of options the user can choose from
+             */
+            std::optional<std::vector<std::string>> options;
+        };
+        std::unique_ptr<Data> controls;
+
+        std::array<uint8_t, sizeof(Data::match) + sizeof(Data::filter) - sizeof(controls)> m_padding;
+
+        StringSetting();
+        StringSetting(StringSetting const& other);
+        StringSetting(StringSetting&& other) noexcept;
+        StringSetting& operator=(StringSetting const& other);
+        StringSetting& operator=(StringSetting&& other) noexcept;
+        ~StringSetting();
+        
 
         static Result<StringSetting> parse(JsonMaybeObject& obj);
     };

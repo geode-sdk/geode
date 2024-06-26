@@ -187,7 +187,8 @@ private:
         if (std::holds_alternative<Path>(m_srcDest)) {
             auto& path = std::get<Path>(m_srcDest);
             // open file
-            if (!mz_stream_os_create(&m_stream)) {
+            m_stream = mz_stream_os_create();
+            if (!m_stream) {
                 return Err("Unable to open file");
             }
             if (mz_stream_os_open(
@@ -201,7 +202,8 @@ private:
         // open stream from memory stream
         else {
             auto& src = std::get<ByteVector>(m_srcDest);
-            if (!mz_stream_mem_create(&m_stream)) {
+            m_stream = mz_stream_mem_create();
+            if (!m_stream) {
                 return Err("Unable to create memory stream");
             }
             // mz_stream_mem_set_buffer doesn't memcpy so we gotta store the data 
@@ -218,7 +220,8 @@ private:
         }
 
         // open zip
-        if (!mz_zip_create(&m_handle)) {
+        m_handle = mz_zip_create();
+        if (!m_handle) {
             return Err("Unable to create zip handler");
         }
         if (mz_zip_open(m_handle, m_stream, m_mode) != MZ_OK) {

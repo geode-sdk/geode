@@ -195,7 +195,7 @@ Result<> Mod::Impl::loadData() {
         auto root = checker.root(fmt::format("[{}/settings.json]", this->getID()));
 
         m_savedSettingsData = json;
-
+        
         for (auto& [key, value] : root.items()) {
             // check if this is a known setting
             if (auto setting = this->getSetting(key)) {
@@ -211,13 +211,19 @@ Result<> Mod::Impl::loadData() {
                 }
             }
             else {
-                log::logImpl(
-                    Severity::Warning,
-                    m_self,
-                    "Encountered unknown setting \"{}\" while loading "
-                    "settings",
-                    key
-                );
+                if (auto definition = this->getSettingDefinition(key)) {
+                    // Found a definition for this setting, it's most likely a custom setting
+                    // Don't warn it, as it's expected to be loaded by the mod
+                }
+                else {
+                    log::logImpl(
+                        Severity::Warning,
+                        m_self,
+                        "Encountered unknown setting \"{}\" while loading "
+                        "settings",
+                        key
+                    );
+                }
             }
         }
     }
@@ -242,6 +248,11 @@ Result<> Mod::Impl::loadData() {
 }
 
 Result<> Mod::Impl::saveData() {
+    if (this->getRequestedAction() == ModRequestedAction::UninstallWithSaveData) {
+        // Don't save data if the mod is being uninstalled with save data
+        return Ok();
+    }
+
     // saveData is expected to be synchronous, and always called from GD thread
     ModStateEvent(m_self, ModEventType::DataSaved).post();
 

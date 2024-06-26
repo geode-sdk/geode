@@ -65,6 +65,33 @@ static long unwrapHttpAuth(long auth) {
     return unwrapped;
 }
 
+static long unwrapHttpVersion(HttpVersion version)
+{
+    switch (version) {
+        using enum HttpVersion;
+
+        case DEFAULT:
+            return CURL_HTTP_VERSION_NONE;
+        case VERSION_1_0:
+            return CURL_HTTP_VERSION_1_0;
+        case VERSION_1_1:
+            return CURL_HTTP_VERSION_1_1;
+        case VERSION_2_0:
+            return CURL_HTTP_VERSION_2_0;
+        case VERSION_2TLS:
+            return CURL_HTTP_VERSION_2TLS;
+        case VERSION_2_PRIOR_KNOWLEDGE:
+            return CURL_HTTP_VERSION_2_PRIOR_KNOWLEDGE;
+        case VERSION_3:
+            return CURL_HTTP_VERSION_3;
+        case VERSION_3ONLY:
+            return CURL_HTTP_VERSION_3ONLY;
+    }
+
+    // Shouldn't happen.
+    unreachable("Unexpected HTTP Version!");
+}
+
 class WebResponse::Impl {
 public:
     int m_code;
@@ -166,11 +193,16 @@ public:
     std::unordered_map<std::string, std::string> m_headers;
     std::unordered_map<std::string, std::string> m_urlParameters;
     std::optional<std::string> m_userAgent;
+    std::optional<std::string> m_acceptEncodingType;
     std::optional<ByteVector> m_body;
     std::optional<std::chrono::seconds> m_timeout;
+    std::optional<std::pair<std::uint64_t, std::uint64_t>> m_range;
     bool m_certVerification = true;
+    bool m_transferBody = true;
+    bool m_followRedirects = true;
     std::string m_CABundleContent;
     ProxyOpts m_proxyOpts = {};
+    HttpVersion m_httpVersion = HttpVersion::DEFAULT;
 
     WebResponse makeError(int code, std::string const& msg) {
         auto res = WebResponse();
@@ -254,6 +286,9 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         }
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 
+        // Set HTTP version
+        curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, unwrapHttpVersion(impl->m_httpVersion));
+
         // Set request method
         if (impl->m_method != "GET") {
             if (impl->m_method == "POST") {
@@ -273,7 +308,7 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
             // why? god knows
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "");
         }
-        
+
         // Cert verification
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, impl->m_certVerification ? 1 : 0);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2);
@@ -289,16 +324,29 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
             caBundleBlob.len = impl->m_CABundleContent.size();
             caBundleBlob.flags = CURL_BLOB_COPY;
             curl_easy_setopt(curl, CURLOPT_CAINFO_BLOB, &caBundleBlob);
-        }  
+        }
+
+        // Transfer body
+        curl_easy_setopt(curl, CURLOPT_NOBODY, impl->m_transferBody ? 0L : 1L);
 
         // Set user agent if provided
         if (impl->m_userAgent) {
             curl_easy_setopt(curl, CURLOPT_USERAGENT, impl->m_userAgent->c_str());
         }
 
+        // Set encoding
+        if (impl->m_acceptEncodingType) {
+            curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, impl->m_acceptEncodingType->c_str());
+        }
+
         // Set timeout
         if (impl->m_timeout) {
             curl_easy_setopt(curl, CURLOPT_TIMEOUT, impl->m_timeout->count());
+        }
+
+        // Set range
+        if (impl->m_range) {
+            curl_easy_setopt(curl, CURLOPT_RANGE, fmt::format("{}-{}", impl->m_range->first, impl->m_range->second).c_str());
         }
 
         // Set proxy options
@@ -323,11 +371,12 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
             curl_easy_setopt(curl, CURLOPT_PROXY_SSL_VERIFYHOST, 2);
         }
 
+        // Follow request through 3xx responses
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, impl->m_followRedirects ? 1L : 0L);
+
         // Track progress
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
 
-        // Follow redirects
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
         // don't change the method from POST to GET when following a redirect
         curl_easy_setopt(curl, CURLOPT_POSTREDIR, CURL_REDIR_POST_ALL);
 
@@ -438,8 +487,22 @@ WebRequest& WebRequest::timeout(std::chrono::seconds time) {
     return *this;
 }
 
+WebRequest& WebRequest::downloadRange(std::pair<std::uint64_t, std::uint64_t> byteRange) {
+    m_impl->m_range = byteRange;
+    return *this;
+}
+
 WebRequest& WebRequest::certVerification(bool enabled) {
     m_impl->m_certVerification = enabled;
+    return *this;
+}
+WebRequest& WebRequest::transferBody(bool enabled) {
+    m_impl->m_transferBody = enabled;
+    return *this;
+}
+
+WebRequest& WebRequest::followRedirects(bool enabled) {
+    m_impl->m_followRedirects = enabled;
     return *this;
 }
 
@@ -450,6 +513,16 @@ WebRequest& WebRequest::CABundleContent(std::string_view content) {
 
 WebRequest& WebRequest::proxyOpts(ProxyOpts const& proxyOpts) {
     m_impl->m_proxyOpts = proxyOpts;
+    return *this;
+}
+
+WebRequest& WebRequest::version(HttpVersion httpVersion) {
+    m_impl->m_httpVersion = httpVersion;
+    return *this;
+}
+
+WebRequest& WebRequest::acceptEncoding(std::string_view str) {
+    m_impl->m_acceptEncodingType = str;
     return *this;
 }
 

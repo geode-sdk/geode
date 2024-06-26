@@ -5,11 +5,11 @@ using namespace geode::prelude;
 
 GenericContentLayer* GenericContentLayer::create(float width, float height) {
     auto ret = new GenericContentLayer();
-    if (ret && ret->initWithColor({ 0, 0, 0, 0 }, width, height)) {
+    if (ret->initWithColor({ 0, 0, 0, 0 }, width, height)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 
@@ -91,12 +91,8 @@ ScrollLayer::ScrollLayer(CCRect const& rect, bool scrollWheelEnabled, bool verti
 
 ScrollLayer* ScrollLayer::create(CCRect const& rect, bool scroll, bool vertical) {
     auto ret = new ScrollLayer(rect, scroll, vertical);
-    if (ret) {
-        ret->autorelease();
-        return ret;
-    }
-    CC_SAFE_DELETE(ret);
-    return nullptr;
+    ret->autorelease();
+    return ret;
 }
 
 ScrollLayer* ScrollLayer::create(CCSize const& size, bool scroll, bool vertical) {

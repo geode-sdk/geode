@@ -111,10 +111,11 @@ ModDeveloperItem* ModDeveloperItem::create(
     bool addMoreButton
 ) {
     auto ret = new ModDeveloperItem();
-    if (!ret || !ret->init(popup, developer, size, displayName, addMoreButton)) {
-        CC_SAFE_DELETE(ret);
-        return nullptr;
+    if (ret->init(popup, developer, size, displayName, addMoreButton)) {
+        ret->autorelease();
+        return ret;
     }
-    ret->autorelease();
-    return ret;
+    
+    delete ret;
+    return nullptr;
 }

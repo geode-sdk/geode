@@ -1,5 +1,46 @@
 # Geode Changelog
 
+## v3.1.1
+ * Update Windows installer translations (ae589d2, dca28db, d12fb37, 08d8af3, f52cf02, 3fa1d9b)
+ * Add safe mode by holding shift on MacOS (e4905a0)
+ * Fix bug on android where `FileOperation::getFilePath` was not actually hooked (9885212)
+   * This was a problem with our bindings, there the return type was TodoReturn instead of gd::string causing the hook to silently fail, leaving only the launcher hook (which is prone to failing) as a fallback.
+
+## v3.1.0
+ * Implement LoaderImpl::getGameVersion on android, requires 1.4.0 launcher (00799b6)
+ * Better compression for windows installer, saves 6mb (54da3b0)
+ * Fix mod install confirmation popup not properly showing mods (5886324)
+ * Fix missing version check for incompatibilities (83bb3c2)
+ * Update TulipHook (f6260a5)
+   * This fixes a crash with CustomKeybinds
+ * Add more options to `web::WebRequest` (83f8a32) (#943)
+ * Prioritize mod updates over failed mods on the main menu icon (89ed81a)
+ * Windows installer improvements:
+   * Delete old geode/update folder to prevent downgrading (116af49)
+   * Delete left over dlls from 2.204 (d1e2919)
+   * Installer can now forcibly install over existing mod loaders (736a61e)
+   * Make installer delete msvcp dlls in gd folder (d9c7610, 9c6841e)
+ * Improve CI by cross compiling from linux (#935, #939)
+ * Alternate way of getting main function address on Windows (1384604)
+   * Previously this would affect about 2 people on earth
+ * Show special error on proxy loader if bad dlls are in gd folder (fd476fe) 
+
+## v3.0.0
+ * Show loader commit hashes again (b72bb9e)
+ * Don't save data if mod is uninstalled with save (518f941)
+ * Add "open in browser" button to mods (581e2d3)
+ * Remove the unimplemented Versions tab temporarily (581e2d3, 1f5ebf9)
+ * Texture fix (#941)
+ * Implement Android 64 bit exception fix in client side (cfb682e)
+   * Most of the fix is in the launcher itself, so you need to update to 1.4.0 for the full fix
+
+## v3.0.0-beta.5
+ * Add More Details button for mod problems (9095005)
+ * Display mods not on current platform (2cd0990)
+ * Fix `DefaultEventListenerPool` missing constructor ABI break for Dispatch (d88a93e)
+ * Implement `one-of` setting without ABI break (7742b57)
+ * Remove the missing custom setting warning (4509607)
+
 ## v3.0.0-beta.4
  * Fix events crash caused by immediate enabling & disabling (e796711)
  * Make some classes final (ea96e2c)

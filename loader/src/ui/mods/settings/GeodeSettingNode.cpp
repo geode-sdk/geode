@@ -1,4 +1,6 @@
 #include "GeodeSettingNode.hpp"
+#include "Geode/binding/FLAlertLayer.hpp"
+#include "Geode/ui/Popup.hpp"
 
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/binding/CCTextInputNode.hpp>
@@ -341,8 +343,8 @@ void StringSettingNode::onArrow(CCObject* sender) {
 
 bool StringSettingNode::setup(StringSettingValue* setting, float width) {
     m_width = width;
-    if (setting->castDefinition().options && setting->castDefinition().options->size() > 0) {
-        m_options = setting->castDefinition().options.value();
+    if (setting->castDefinition().controls->options.has_value()) {
+        m_options = setting->castDefinition().controls->options.value();
 
         m_selectedOption = 0;
         for (size_t i = 0; i < m_options.size(); i++) {
@@ -382,8 +384,8 @@ bool StringSettingNode::setup(StringSettingValue* setting, float width) {
         m_input->setPosition({ -(width / 2 - 70.f) / 2, .0f });
         m_input->setScale(.65f);
 
-        if (setting->castDefinition().filter.has_value()) {
-            m_input->setFilter(setting->castDefinition().filter.value());
+        if (setting->castDefinition().controls->filter.has_value()) {
+            m_input->setFilter(setting->castDefinition().controls->filter.value());
         }
 
         m_input->setDelegate(this);
@@ -411,21 +413,31 @@ void FileSettingNode::valueChanged(bool updateText) {
 }
 
 void FileSettingNode::onPickFile(CCObject*) {
-    file::pick(
+    m_pickListener.bind(this, &FileSettingNode::onPickFileFinished);
+    m_pickListener.setFilter(file::pick(
         file::PickMode::OpenFile, 
         {
             dirs::getGameDir(),
             setting()->castDefinition().controls.filters
-    }).listen(
-        [this](Result<std::filesystem::path>* path) {
-            if (path->isOk()) {
-                m_uncommittedValue = path->unwrap();
-                this->valueChanged(true);
-            }
-        },
-        [] (auto progress) {},
-        [] () {}
-    );
+    }));
+}
+
+void FileSettingNode::onPickFileFinished(FileTask::Event* event) {
+    if (!event->getValue()) {
+        return;
+    }
+
+    auto value = event->getValue();
+    if (value->isOk()) {
+        m_uncommittedValue = value->unwrap();
+        this->valueChanged(true);
+    } else {
+        FLAlertLayer::create(
+            "Failed",
+            fmt::format("Failed to pick file: {}", value->err().value()).c_str(),
+            "Ok"
+        )->show();
+    }
 }
 
 bool FileSettingNode::setup(FileSettingValue* setting, float width) {
@@ -557,10 +569,10 @@ CustomSettingPlaceholderNode* CustomSettingPlaceholderNode::create(
     std::string const& key, float width
 ) {
     auto ret = new CustomSettingPlaceholderNode;
-    if (ret && ret->init(key, width)) {
+    if (ret->init(key, width)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }

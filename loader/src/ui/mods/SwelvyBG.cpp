@@ -74,10 +74,10 @@ void SwelvyBG::updateSpritePosition(float dt) {
 
 SwelvyBG* SwelvyBG::create() {
     auto ret = new SwelvyBG();
-    if (ret && ret->init()) {
+    if (ret->init()) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }

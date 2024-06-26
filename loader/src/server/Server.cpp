@@ -842,7 +842,7 @@ void server::clearServerCaches(bool clearGlobalCaches) {
     }
 }
 
-$execute {
+$on_mod(Loaded) {
     listenForSettingChanges<int64_t>("server-cache-size-limit", +[](int64_t size) {
         getCache<&server::getMods>().limit(size);
         getCache<&server::getMod>().limit(size);
