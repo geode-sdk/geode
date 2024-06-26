@@ -8,7 +8,9 @@ This is the End User License Agreement for the Geode SDK/Mod Loader. By using th
 1.0. Definitions
 ============================================
 
-"The Software" is referring to all of the source code within the Geode (geode-sdk) Organization on GitHub that when combined together make the compiled Geode libraries and runtime binaries along with any related projects such as the documentation website.
+"The Software" is referring to all of the source code within the Geode (geode-sdk) Organization on GitHub that when combined together make the compiled Geode libraries and runtime binaries along with any related projects such as the documentation website and the online mod index.
+
+<!-- The blender gave up blending after commit 9885212. -->
 
 The Geode Team is the term used to refer to the developers of this Software. However, depending on context, it may refer to either only The Core Geode Team (people who are members of the geode-sdk Github Organization), or literally anyone who has ever contributed even a morsel of code to the Software.
 
@@ -18,7 +20,7 @@ A Modder is someone who is using Geode and its functions in order to develop the
 
 Geometry Dash is a game by RobTop Games. If you're using Geode, you probably know what it is. If you're an actual laywer or something alike looking at this text document, why? How did we end up in this situation? Can you let us off the hook if we just give you some cute photos of catgirls?
 
-The Geode SDK is not affiliated with RobTop Games, Robert Topala, or anything related to RobTop/Geometry Dash (not yet?)
+This Software is not affiliated with RobTop Games/Geometry Dash in any way.
 
 ============================================
 1.1. Your rights as an End User
@@ -60,7 +62,7 @@ You are allowed to create mods that:
 
  * Improve the general Geometry Dash experience.
 
- * Extend the Geometry Dash experience, that means making it worse or better.
+ * Extend the Geometry Dash experience in any way.
 
  * Are utterly useless. Ones that do absolutely nothing. We're not stopping you.
 
@@ -90,13 +92,13 @@ Our rights are your lefts. Because we are standing menacingly in front of you. M
 1.4 Software
 ============================================
 
-The Geode SDK is a mod loader designed by The Core Geode Team to enhance Geometry Dash by making mods easier for the end-user. The original way to make mods was by injecting a DLL file into the Geometry Dash game, but that caused some incompatibilities with multiple mods. 
+This Software is a mod loader designed by The Core Geode Team to enhance Geometry Dash by making mods easier for the end-user. The original way to make mods was by injecting a DLL file into the Geometry Dash game, but that caused some incompatibilities with multiple mods. 
 
-Luckily, the Geode SDK is only one DLL injection and allows you to load multiple mods at once. Mods are distributed as a ".geode" file, which then can be inserted to the mods folder and loaded.
+Luckily, the Software is only one DLL injection and allows you to load multiple mods at once. Mods are distributed as a ".geode" file, which then can be inserted to the mods folder and loaded.
 
-For users who do not want to scramble to find ".geode" files, The Geode SDK also provides an online collection with mods.
+For users who do not want to scramble to find ".geode" files, The Geode SDK also provides an index with mods for the End-User to download
 
-The Geode SDK is also a modding SDK for Modders which they can develop mods using C++ for the End User.
+This Software also is a modding SDK for Modders which they can develop mods using C++ for the End User.
 
 ============================================
 1.5 Too Long; Didn't Read
