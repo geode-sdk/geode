@@ -2,7 +2,6 @@
 
 #include "../DefaultInclude.hpp"
 #include "../ui/EnterLayerEvent.hpp"
-#include <Geode/loader/ModEvent.hpp>
 
 namespace cocos2d {
     class CCNode;
@@ -63,7 +62,7 @@ namespace geode {
     struct GEODE_CONCAT(ProvideIDsFor, Layer_) : public Layer_ {\
         void provide();\
     };\
-	$on_mod(Loaded) {\
+	$execute {\
 		NodeIDs::get()->registerProvider(\
             &geodeInternalProvideIDsFor<GEODE_CONCAT(ProvideIDsFor, Layer_)>\
         );\
