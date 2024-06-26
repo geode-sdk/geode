@@ -254,11 +254,6 @@ jobs:
     - name: Configure
       run: >
         ${{ env.base-configure-command }}
-        -DCMAKE_C_COMPILER=clang
-        -DCMAKE_CXX_COMPILER=clang++
-        -DCMAKE_AR='/usr/bin/ar'
-        -DCMAKE_RANLIB='/usr/bin/ranlib'
-        -DGEODE_DISABLE_PRECOMPILED_HEADERS=Off
         -DGEODE_TARGET_PLATFORM=iOS
         -DCMAKE_SYSTEM_NAME=iOS
         -DGEODE_DONT_BUILD_TEST_MODS=ON
