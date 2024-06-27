@@ -138,6 +138,9 @@ jobs:
     name: Build macOS
     runs-on: macos-latest
 
+    env:
+      SCCACHE_CACHE_MULTIARCH: 1
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
