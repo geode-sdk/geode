@@ -11,7 +11,7 @@ on:
       use-ccache:
         description: 'Enable ccache/sccache'
         required: false
-        default: true
+        default: false
         type: boolean
   pull_request:
   push:
@@ -163,10 +163,10 @@ jobs:
       with:
         host: mac
 
-    # - name: Install LLVM
-    #   run: |
-    #     brew install llvm
-    #     echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
+    - name: Install LLVM
+      run: |
+        brew install llvm
+        echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
 
     - name: Setup CLI
       uses: geode-sdk/cli/.github/actions/setup@main
