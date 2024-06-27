@@ -180,7 +180,7 @@ jobs:
         -DCMAKE_AR='/usr/bin/ar'
         -DCMAKE_RANLIB='/usr/bin/ranlib'
         -DGEODE_DISABLE_PRECOMPILED_HEADERS=Off
-        -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+        -DCMAKE_OSX_ARCHITECTURES="arm64"
         ${{ steps.build-debug-info.outputs.extra-configure }}
       env:
         MACOSX_DEPLOYMENT_TARGET: "10.15"
