@@ -2,15 +2,15 @@
     End User License Agreement for Geode    
 ============================================
 
-This is the End User License Agreement for the Geode SDK/Mod Loader. By using this Software, you agree to the terms of this EULA.
+This is the End User License Agreement for the Geode SDK/Mod Loader. By using this Software, you agree to the this EULA.
 
 ============================================
 1.0. Definitions
 ============================================
 
-"The Software" is referring to all of the source code within the Geode (geode-sdk) Organization on GitHub that when combined together make the compiled Geode libraries and runtime binaries along with any related projects such as the documentation website and the online mod index.
+The Software refers to all of the source code within the Geode (geode-sdk) Organization on GitHub that when combined together make the compiled Geode libraries and runtime binaries along with any related projects such as the documentation website and the online mod index.
 
-The Geode Team is the term used to refer to the developers of this Software. However, depending on context, it may refer to either only The Core Geode Team (people who are members of the geode-sdk Github Organization), or literally anyone who has ever contributed even a morsel of code to the Software.
+The Geode Team is the term used to refer to the developers of this Software. However, depending on context, it may refer to either only The Core Geode Team (people who are members of the geode-sdk Github Organization), or literally anyone who has ever contributed even a tiny bit of code to the Software.
 
 The End User is someone who is using Geode and Geode-based modifications. This is the only actually kind of important term to define here, alongside Modder. The End User does not refer to someone who uses Geode to create mods, it refers to someone who uses Geode to play Geometry Dash with mods.
 
