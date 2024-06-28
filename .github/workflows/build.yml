@@ -6,7 +6,7 @@ on:
       build-debug-info:
         description: 'Profile and debug the build process'
         required: false
-        default: false
+        default: true
         type: boolean
       use-ccache:
         description: 'Enable ccache/sccache'
