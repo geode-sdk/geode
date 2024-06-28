@@ -15,7 +15,7 @@ outputs:
     description: 'Extra stuff for CMake build step'
     value: |
       python3 ./ninjatracing/ninjatracing ./build/.ninja_log > ./build-debug-info/ninja-trace.json
-      ${{ inputs.has-sccache && 'sccache --show-adv-stats' || '' }}
+      #${{ inputs.has-sccache && 'sccache --show-adv-stats' || '' }}
 
 runs:
   using: "composite"
