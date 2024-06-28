@@ -18,8 +18,7 @@ static void __cdecl fixedErrorHandler(int code, char const* description) {
     MessageBoxA(
         nullptr,
         fmt::format(
-            "GLFWError #{}: {}\nPlease contact the "
-            "Geode Development Team for more information.",
+            "GLFWError #{}: {}",
             code,
             description
         )
@@ -27,32 +26,33 @@ static void __cdecl fixedErrorHandler(int code, char const* description) {
         "OpenGL Error",
         MB_ICONERROR
     );
+
+    std::abort();
 }
 
 $execute {
     // updated for 2.206
     // check xrefs to "GLFWError #%d Happen, %s\n", now there's two functions with the same exact
-    // behaviour, one is a member function though... call ds:MessageBoxW
-    // patch MessageBoxW to MessageBoxA
-    // geode::base::getCocos() + 0xe2670 = MessageBoxA in .idata
-    // geode::base::getCocos() + 0xe26b8 = MessageBoxW in .idata
+    // behaviour, one is a member function though... 
+    // hook them to call our own handler
     if (LoaderImpl::get()->isForwardCompatMode()) return;
 
 #if GEODE_COMP_GD_VERSION == 22060
-    // in x64 these became rip-relative jmp & call respectively, instead of absolute calls,
-    // so this code is a bit more complicated than it used to be
-
-    const uintptr_t importedMessageBoxA = 0xe2670;
+    const uintptr_t offset1 = 0x75d00;
+    const uintptr_t offset2 = 0x75d60;
     
-    const uintptr_t offset1 = 0x75d4a;
-    const uint32_t rel1 = static_cast<uint32_t>(importedMessageBoxA - offset1 - 7);
+    (void) Mod::get()->hook(
+        reinterpret_cast<void*>(geode::base::getCocos() + offset1),
+        fixedErrorHandler,
+        "onGLFWError"
+    );
     
-    (void) Mod::get()->patch(reinterpret_cast<void*>(geode::base::getCocos() + offset1 + 3), geode::toByteArray(rel1));
+    (void) Mod::get()->hook(
+        reinterpret_cast<void*>(geode::base::getCocos() + offset2),
+        fixedErrorHandler,
+        "onGLFWError2"
+    );
 
-    const uintptr_t offset2 = 0x75daf;
-    const uint32_t rel2 = static_cast<uint32_t>(importedMessageBoxA - offset2 - 6);
-
-    (void) Mod::get()->patch(reinterpret_cast<void*>(geode::base::getCocos() + offset2 + 2), geode::toByteArray(rel2));
 #else
     #pragma message("Unsupported GD version!")
 #endif
