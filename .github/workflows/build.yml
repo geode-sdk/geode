@@ -148,14 +148,14 @@ jobs:
       id: build-debug-info
       uses: ./.github/actions/build-debug-info
       with:
-        has-sccache: true
+        has-sccache: false
 
-    - name: Setup caches
-      uses: ./.github/actions/setup-cache
-      with:
-        host: mac
-        target: mac
-        use-ccache: ${{ github.event_name != 'workflow_dispatch' || inputs.use-ccache }}
+    #- name: Setup caches
+    #  uses: ./.github/actions/setup-cache
+    #  with:
+    #    host: mac
+    #    target: mac
+    #    use-ccache: false
 
     - name: Setup Ninja
       uses: ./.github/actions/setup-ninja
@@ -179,12 +179,12 @@ jobs:
         -DCMAKE_RANLIB='/usr/bin/ranlib'
         -DCMAKE_OSX_DEPLOYMENT_TARGET="10.15"
         -DGEODE_DISABLE_PRECOMPILED_HEADERS=Off
-        -DCMAKE_OSX_ARCHITECTURES="arm64"
+        -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
         ${{ steps.build-debug-info.outputs.extra-configure }}
       env:
         MACOSX_DEPLOYMENT_TARGET: "10.15"
         CPPFLAGS: "-I/opt/homebrew/opt/llvm/include"
-        LDFLAGS: "-L/opt/homebrew/opt/llvm/lib -Wl,-rpath,/opt/homebrew/opt/llvm/lib"
+        LDFLAGS: "-L/opt/homebrew/opt/llvm/lib"
 
     - name: Build
       run: |
@@ -193,7 +193,7 @@ jobs:
       env:
         MACOSX_DEPLOYMENT_TARGET: "10.15"
         CPPFLAGS: "-I/opt/homebrew/opt/llvm/include"
-        LDFLAGS: "-L/opt/homebrew/opt/llvm/lib -Wl,-rpath,/opt/homebrew/opt/llvm/lib"
+        LDFLAGS: "-L/opt/homebrew/opt/llvm/lib"
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
