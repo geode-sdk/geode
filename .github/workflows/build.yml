@@ -149,6 +149,7 @@ jobs:
       uses: ./.github/actions/build-debug-info
       with:
         has-sccache: false
+      if: false
 
     #- name: Setup caches
     #  uses: ./.github/actions/setup-cache
@@ -166,9 +167,15 @@ jobs:
       run: |
         brew install llvm
         echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
+        ls /opt/homebrew/opt/llvm/
+        ls /opt/homebrew/opt/llvm/bin/
+        ls /opt/homebrew/Cellar/llvm/
+        ls /opt/homebrew/Cellar/llvm/18.1.7/
+        ls /opt/homebrew/Cellar/llvm/18.1.7/lib/
 
     - name: Setup CLI
       uses: geode-sdk/cli/.github/actions/setup@main
+      if: false
 
     - name: Configure
       run: >
@@ -185,6 +192,7 @@ jobs:
         MACOSX_DEPLOYMENT_TARGET: "10.15"
         CPPFLAGS: "-I/opt/homebrew/opt/llvm/include"
         LDFLAGS: "-L/opt/homebrew/opt/llvm/lib"
+      if: false
 
     - name: Build
       run: |
@@ -194,27 +202,31 @@ jobs:
         MACOSX_DEPLOYMENT_TARGET: "10.15"
         CPPFLAGS: "-I/opt/homebrew/opt/llvm/include"
         LDFLAGS: "-L/opt/homebrew/opt/llvm/lib"
+      if: false
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: geode-mac
         path: ./bin/nightly
+      if: false
 
     - name: Package Installer
       run: ./installer/mac/package.sh ./bin/nightly ./installer/mac/geode-installer-mac.pkg
+      if: false
 
     - name: Upload Installer
       uses: actions/upload-artifact@v4
       with:
         name: geode-installer-mac
         path: './installer/mac/geode-installer-mac.pkg'
+      if: false
 
     - name: Complete Build Debug Info
       uses: ./.github/actions/build-debug-info-post
       with:
         target: mac
-      if: success() || failure()
+      if: false && (success() || failure())
 
   build-android:
     strategy:
