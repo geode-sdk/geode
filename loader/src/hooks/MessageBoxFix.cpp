@@ -13,7 +13,7 @@ using namespace geode::prelude;
 // no one knows how this is possible (he passes char* to wchar_t*).
 // so anyway, here's a fix for it
 
-static void __cdecl fixedErrorHandler(int code, char const* description) {
+static void __cdecl fixedErrorHandler2(int code, char const* description) {
     log::error("GLFW Error {}: {}", code, description);
     MessageBoxA(
         nullptr,
@@ -30,6 +30,10 @@ static void __cdecl fixedErrorHandler(int code, char const* description) {
     std::abort();
 }
 
+static void __cdecl fixedErrorHandler(CCEGLView*, int code, char const* description) {
+    fixedErrorHandler2(code, description);
+}
+
 $execute {
     // updated for 2.206
     // check xrefs to "GLFWError #%d Happen, %s\n", now there's two functions with the same exact
@@ -38,8 +42,8 @@ $execute {
     if (LoaderImpl::get()->isForwardCompatMode()) return;
 
 #if GEODE_COMP_GD_VERSION == 22060
-    const uintptr_t offset1 = 0x75d00;
-    const uintptr_t offset2 = 0x75d60;
+    const uintptr_t offset1 = 0x75d00; // member function in CCEGLView
+    const uintptr_t offset2 = 0x75d60; // static function
     
     (void) Mod::get()->hook(
         reinterpret_cast<void*>(geode::base::getCocos() + offset1),
@@ -49,7 +53,7 @@ $execute {
     
     (void) Mod::get()->hook(
         reinterpret_cast<void*>(geode::base::getCocos() + offset2),
-        fixedErrorHandler,
+        fixedErrorHandler2,
         "onGLFWError2"
     );
 
