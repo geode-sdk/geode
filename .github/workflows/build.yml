@@ -181,6 +181,7 @@ jobs:
         -DCMAKE_RANLIB='/usr/bin/ranlib'
         -DGEODE_DISABLE_PRECOMPILED_HEADERS=Off
         -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+        -DCMAKE_OSX_SYSROOT=/Applications/Xcode_14.3.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.3.sdk
         ${{ steps.build-debug-info.outputs.extra-configure }}
       env:
         MACOSX_DEPLOYMENT_TARGET: "10.15"
