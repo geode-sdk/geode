@@ -148,8 +148,7 @@ jobs:
       id: build-debug-info
       uses: ./.github/actions/build-debug-info
       with:
-        has-sccache: ${{ inputs.use-ccache }}
-      if: true
+        has-sccache: true
 
     - name: Setup caches
       uses: ./.github/actions/setup-cache
@@ -177,13 +176,13 @@ jobs:
         -DCMAKE_C_COMPILER=clang
         -DCMAKE_CXX_COMPILER=clang++
         -DCMAKE_OSX_DEPLOYMENT_TARGET="10.13"
-        -DCMAKE_AR='/usr/bin/ar'
-        -DCMAKE_RANLIB='/usr/bin/ranlib'
         -DGEODE_DISABLE_PRECOMPILED_HEADERS=Off
         -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
         ${{ steps.build-debug-info.outputs.extra-configure }}
       env:
         MACOSX_DEPLOYMENT_TARGET: "10.13"
+        CPPFLAGS: "-I/opt/homebrew/opt/llvm/include"
+        LDFLAGS: "-L/opt/homebrew/opt/llvm/lib -Wl,-rpath,/opt/homebrew/opt/llvm/lib"
 
     - name: Build
       run: |
@@ -191,6 +190,8 @@ jobs:
         ${{ steps.build-debug-info.outputs.extra-build }}
       env:
         MACOSX_DEPLOYMENT_TARGET: "10.13"
+        CPPFLAGS: "-I/opt/homebrew/opt/llvm/include"
+        LDFLAGS: "-L/opt/homebrew/opt/llvm/lib -Wl,-rpath,/opt/homebrew/opt/llvm/lib"
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
