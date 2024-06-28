@@ -149,7 +149,7 @@ jobs:
       uses: ./.github/actions/build-debug-info
       with:
         has-sccache: ${{ inputs.use-ccache }}
-      # if: inputs.build-debug-info
+      if: true
 
     - name: Setup caches
       uses: ./.github/actions/setup-cache
