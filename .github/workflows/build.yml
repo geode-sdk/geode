@@ -166,7 +166,7 @@ jobs:
     - name: Install LLVM
       run: |
         brew install llvm@17
-        echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
+        echo "/opt/homebrew/opt/llvm@17/bin" >> $GITHUB_PATH
 
     - name: Setup CLI
       uses: geode-sdk/cli/.github/actions/setup@main
@@ -174,8 +174,8 @@ jobs:
     - name: Configure
       run: >
         ${{ env.base-configure-command }}
-        -DCMAKE_C_COMPILER=clang-17
-        -DCMAKE_CXX_COMPILER=clang++-17
+        -DCMAKE_C_COMPILER=clang
+        -DCMAKE_CXX_COMPILER=clang++
         -DCMAKE_AR='/usr/bin/ar'
         -DCMAKE_RANLIB='/usr/bin/ranlib'
         -DCMAKE_OSX_DEPLOYMENT_TARGET="10.15"
