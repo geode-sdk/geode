@@ -25,8 +25,8 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 	endif()
 
 	# only exists as a global property
-	set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13")
-	#target_compile_options(${PROJECT_NAME} INTERFACE "-mmacos-version-min=10.13")
+	set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
+	#target_compile_options(${PROJECT_NAME} INTERFACE "-mmacos-version-min=10.15")
 
 	target_link_libraries(${PROJECT_NAME} INTERFACE
 		"-framework Cocoa"

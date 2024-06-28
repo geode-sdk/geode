@@ -175,14 +175,14 @@ jobs:
         ${{ env.base-configure-command }}
         -DCMAKE_C_COMPILER=clang
         -DCMAKE_CXX_COMPILER=clang++
-        -DCMAKE_AR=llvm-ar
-        -DCMAKE_RANLIB=llvm-ranlib
-        -DCMAKE_OSX_DEPLOYMENT_TARGET="10.13"
+        -DCMAKE_AR='/usr/bin/ar'
+        -DCMAKE_RANLIB='/usr/bin/ranlib'
+        -DCMAKE_OSX_DEPLOYMENT_TARGET="10.15"
         -DGEODE_DISABLE_PRECOMPILED_HEADERS=Off
         -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
         ${{ steps.build-debug-info.outputs.extra-configure }}
       env:
-        MACOSX_DEPLOYMENT_TARGET: "10.13"
+        MACOSX_DEPLOYMENT_TARGET: "10.15"
         CPPFLAGS: "-I/opt/homebrew/opt/llvm/include"
         LDFLAGS: "-L/opt/homebrew/opt/llvm/lib -Wl,-rpath,/opt/homebrew/opt/llvm/lib"
 
@@ -191,7 +191,7 @@ jobs:
         ${{ env.base-build-command }}
         ${{ steps.build-debug-info.outputs.extra-build }}
       env:
-        MACOSX_DEPLOYMENT_TARGET: "10.13"
+        MACOSX_DEPLOYMENT_TARGET: "10.15"
         CPPFLAGS: "-I/opt/homebrew/opt/llvm/include"
         LDFLAGS: "-L/opt/homebrew/opt/llvm/lib -Wl,-rpath,/opt/homebrew/opt/llvm/lib"
 
