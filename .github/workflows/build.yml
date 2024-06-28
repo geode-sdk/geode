@@ -211,7 +211,7 @@ jobs:
       uses: ./.github/actions/build-debug-info-post
       with:
         target: mac
-      if: false && (success() || failure())
+      if: success() || failure()
 
   build-android:
     strategy:
