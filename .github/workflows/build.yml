@@ -261,9 +261,8 @@ jobs:
 
     - name: Fix Ubuntu libcstd++
       run: |
-        sudo apt install ninja-build &&
-        sudo add-apt-repository ppa:ubuntu-toolchain-r/test &&
-        sudo apt-get update &&
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+        sudo apt-get update
         sudo apt-get install --only-upgrade libstdc++6
 
     - name: Configure
