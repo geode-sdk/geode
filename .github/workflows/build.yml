@@ -6,12 +6,12 @@ on:
       build-debug-info:
         description: 'Profile and debug the build process'
         required: false
-        default: true
+        default: false
         type: boolean
       use-ccache:
         description: 'Enable ccache/sccache'
         required: false
-        default: false
+        default: true
         type: boolean
   pull_request:
   push:
@@ -148,14 +148,14 @@ jobs:
       id: build-debug-info
       uses: ./.github/actions/build-debug-info
       with:
-        has-sccache: false
+        has-sccache: ${{ inputs.use-ccache }}
 
     - name: Setup caches
       uses: ./.github/actions/setup-cache
       with:
         host: mac
         target: mac
-        use-ccache: false
+        use-ccache: ${{ github.event_name != 'workflow_dispatch' || inputs.use-ccache }}
       if: false
 
     - name: Setup Ninja
@@ -165,9 +165,8 @@ jobs:
 
     - name: Install LLVM
       run: |
-        brew install llvm@14
-        echo "/opt/homebrew/opt/llvm@14/bin" >> $GITHUB_PATH
-      if: false
+        brew install llvm@17
+        echo "/opt/homebrew/opt/llvm@17/bin" >> $GITHUB_PATH
 
     - name: Setup CLI
       uses: geode-sdk/cli/.github/actions/setup@main
@@ -180,18 +179,12 @@ jobs:
         -DCMAKE_AR='/usr/bin/ar'
         -DCMAKE_RANLIB='/usr/bin/ranlib'
         -DGEODE_DISABLE_PRECOMPILED_HEADERS=Off
-        -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
-        -DCMAKE_OSX_SYSROOT=/Applications/Xcode_14.3.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.3.sdk
         ${{ steps.build-debug-info.outputs.extra-configure }}
-      env:
-        MACOSX_DEPLOYMENT_TARGET: "10.15"
 
     - name: Build
       run: |
         ${{ env.base-build-command }}
         ${{ steps.build-debug-info.outputs.extra-build }}
-      env:
-        MACOSX_DEPLOYMENT_TARGET: "10.15"
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
