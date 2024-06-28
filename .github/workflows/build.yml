@@ -182,11 +182,15 @@ jobs:
         -DGEODE_DISABLE_PRECOMPILED_HEADERS=Off
         -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
         ${{ steps.build-debug-info.outputs.extra-configure }}
+      env:
+        MACOSX_DEPLOYMENT_TARGET: "10.15"
 
     - name: Build
       run: |
         ${{ env.base-build-command }}
         ${{ steps.build-debug-info.outputs.extra-build }}
+      env:
+        MACOSX_DEPLOYMENT_TARGET: "10.15"
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
