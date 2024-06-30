@@ -279,9 +279,9 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
 
         // Add parameters to the URL and pass it to curl
         auto url = impl->m_url;
-        bool first = true;
-        for (auto param : impl->m_urlParameters) {
-            url += (first ? "?" : "&") + urlParamEncode(param.first) + "=" + urlParamEncode(param.second);
+        bool first = url.find('?') == std::string::npos;
+        for (auto& [key, value] : impl->m_urlParameters) {
+            url += (first ? "?" : "&") + urlParamEncode(key) + "=" + urlParamEncode(value);
             first = false;
         }
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
@@ -306,6 +306,7 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         } else if (impl->m_method == "POST") {
             // curl_easy_perform would freeze on a POST request with no fields, so set it to an empty string
             // why? god knows
+            // SMJS: because the stream isn't complete without a body according to the spec
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "");
         }
 
@@ -470,13 +471,39 @@ WebTask WebRequest::patch(std::string_view url) {
 }
 
 WebRequest& WebRequest::header(std::string_view name, std::string_view value) {
+    if (name == "User-Agent") {
+        userAgent(value);
+
+        return *this;
+    } if (name == "Accept-Encoding") {
+        acceptEncoding(value);
+
+        return *this;
+    } if (name == "Keep-Alive") {
+        const size_t timeoutPos = value.find("timeout");
+
+        if (timeoutPos != std::string::npos) {
+            // At this point idc what happens if I get NPOS or string ends, you shouldn't custom format a spec header
+            const size_t numStart = value.find('=', timeoutPos) + 1;
+            const size_t comma = value.find(',', numStart);
+            const size_t numLength = (comma == std::string::npos ? value.size() : comma) - numStart;
+
+            timeout(std::chrono::seconds(std::stol(std::string(value.substr(numStart, numLength)))));
+
+            return *this;
+        }
+    }
+
     m_impl->m_headers.insert_or_assign(std::string(name), std::string(value));
+
     return *this;
 }
+
 WebRequest& WebRequest::param(std::string_view name, std::string_view value) {
     m_impl->m_urlParameters.insert_or_assign(std::string(name), std::string(value));
     return *this;
 }
+
 WebRequest& WebRequest::userAgent(std::string_view name) {
     m_impl->m_userAgent = name;
     return *this;
@@ -539,4 +566,32 @@ WebRequest& WebRequest::bodyJSON(matjson::Value const& json) {
     std::string str = json.dump(matjson::NO_INDENTATION);
     m_impl->m_body = ByteVector { str.begin(), str.end() };
     return *this;
+}
+
+std::string WebRequest::getMethod() const {
+    return m_impl->m_method;
+}
+
+std::string WebRequest::getUrl() const {
+    return m_impl->m_url;
+}
+
+std::unordered_map<std::string, std::string> WebRequest::getHeaders() const {
+    return m_impl->m_headers;
+}
+
+std::unordered_map<std::string, std::string> WebRequest::getUrlParams() const {
+    return m_impl->m_urlParameters;
+}
+
+std::optional<ByteVector> WebRequest::getBody() const {
+    return m_impl->m_body;
+}
+
+std::optional<std::chrono::seconds> WebRequest::getTimeout() const {
+    return m_impl->m_timeout;
+}
+
+HttpVersion WebRequest::getHttpVersion() const {
+    return m_impl->m_httpVersion;
 }
