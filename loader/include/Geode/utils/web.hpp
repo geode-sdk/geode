@@ -127,6 +127,14 @@ namespace geode::utils::web {
         WebRequest& header(std::string_view name, std::string_view value);
         WebRequest& param(std::string_view name, std::string_view value);
 
+        std::string getMethod();
+        std::string getUrl();
+        std::unordered_map<std::string, std::string> getHeaders();
+        std::unordered_map<std::string, std::string> getUrlParams();
+        std::optional<ByteVector> getBody();
+        std::optional<std::chrono::seconds> getTimeout();
+        HttpVersion getHttpVersion();
+
         template <std::integral T>
         WebRequest& param(std::string_view name, T value) {
             return this->param(name, std::to_string(value));
