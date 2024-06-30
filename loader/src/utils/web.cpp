@@ -473,9 +473,13 @@ WebTask WebRequest::patch(std::string_view url) {
 WebRequest& WebRequest::header(std::string_view name, std::string_view value) {
     if (name == "User-Agent") {
         userAgent(value);
-    } else if (name == "Accept-Encoding") {
+
+        return *this;
+    } if (name == "Accept-Encoding") {
         acceptEncoding(value);
-    } else if (name == "Keep-Alive") {
+
+        return *this;
+    } if (name == "Keep-Alive") {
         const size_t timeoutPos = value.find("timeout");
 
         if (timeoutPos != std::string::npos) {
@@ -485,6 +489,8 @@ WebRequest& WebRequest::header(std::string_view name, std::string_view value) {
             const size_t numLength = (comma == std::string::npos ? value.size() : comma) - numStart;
 
             timeout(std::chrono::seconds(std::stol(std::string(value.substr(numStart, numLength)))));
+
+            return *this;
         }
     }
 
