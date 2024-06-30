@@ -169,6 +169,16 @@ bool Mod::getLaunchFlag(std::string_view const name) const {
     return m_impl->getLaunchFlag(name);
 }
 
+Result<Hook*> Mod::hook(
+    void* address, void* detour, std::string const& displayName,
+    tulip::hook::HandlerMetadata const& handlerMetadata,
+    tulip::hook::HookMetadata const& hookMetadata
+) {
+    auto hook = Hook::create(address, detour, displayName, handlerMetadata, hookMetadata);
+    GEODE_UNWRAP_INTO(auto ptr, this->claimHook(std::move(hook)));
+    return Ok(ptr);
+}
+
 Result<Hook*> Mod::claimHook(std::shared_ptr<Hook> hook) {
     return m_impl->claimHook(hook);
 }
@@ -179,6 +189,12 @@ Result<> Mod::disownHook(Hook* hook) {
 
 std::vector<Hook*> Mod::getHooks() const {
     return m_impl->getHooks();
+}
+
+Result<Patch*> Mod::patch(void* address, ByteVector const& data) {
+    auto patch = Patch::create(address, data);
+    GEODE_UNWRAP_INTO(auto ptr, this->claimPatch(std::move(patch)));
+    return Ok(ptr);
 }
 
 Result<Patch*> Mod::claimPatch(std::shared_ptr<Patch> patch) {
