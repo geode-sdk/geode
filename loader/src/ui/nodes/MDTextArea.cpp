@@ -338,20 +338,33 @@ struct MDParser {
                     else if (s_lastImage.size()) {
                         bool isFrame = false;
 
-                        std::vector<std::string> imgArguments = utils::string::split(s_lastImage, "&");
+                        std::vector<std::string> imgArguments = utils::string::split(s_lastImage, "?");
                         s_lastImage = imgArguments.at(0);
+                        if (utils::string::contains(s_lastImage, "&")) { //old format
+                            imgArguments = utils::string::split(s_lastImage, "&");
+                            s_lastImage = imgArguments.at(0);
+                        }
 
                         imgArguments.erase(imgArguments.begin()); //remove the image path
 
                         float spriteScale = 1.0f;
 
                         for(std::string arg : imgArguments){
-                            if(utils::string::startsWith(arg, "scale:")){
-                                std::string scaleValue = arg.substr(arg.find(":") + 1);
+                            if(utils::string::startsWith(arg, "scale=")){
+                                std::string scaleValue = arg.substr(arg.find("=") + 1);
                                 std::stringstream s(scaleValue);
 
                                 float scale;
                                 if (s >> scale) { //if valid float, put into spriteScale
+                                    spriteScale = scale;
+                                }
+                            }
+                            else if(utils::string::startsWith(arg, "scale:")){ //old format
+                                std::string scaleValue = arg.substr(arg.find(":") + 1);
+                                std::stringstream s(scaleValue);
+
+                                float scale;
+                                if (s >> scale) {
                                     spriteScale = scale;
                                 }
                             }
