@@ -52,7 +52,7 @@ namespace geode::stl {
 }
 
 namespace gd {
-#if defined(GEODE_IS_MACOS) || defined(GEODE_IS_WINDOWS)
+#if defined(GEODE_IS_MACOS) || defined(GEODE_IS_IOS) || defined(GEODE_IS_WINDOWS)
 	// rob uses libc++ now! this will prob work fine
 	using string = std::string;
 
@@ -76,7 +76,7 @@ namespace gd {
 		string& operator=(std::string const&);
 
 		void clear();
-		
+
 		char& at(size_t pos);
 		char const& at(size_t pos) const;
 

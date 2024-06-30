@@ -17,7 +17,7 @@ T findSymbolOrMangled(void* dylib, char const* name, char const* mangled) {
 
 Result<> Mod::Impl::loadPlatformBinary() {
     auto dylib =
-        dlopen((m_tempDirName / m_info.binaryName()).string().c_str(), RTLD_LAZY);
+        dlopen((m_tempDirName / m_metadata.getBinaryName()).string().c_str(), RTLD_LAZY);
     if (dylib) {
         if (m_platformInfo) {
             delete m_platformInfo;
@@ -38,16 +38,4 @@ Result<> Mod::Impl::loadPlatformBinary() {
     }
     std::string err = (char const*)dlerror();
     return Err("Unable to load the DYLIB: dlerror returned (" + err + ")");
-}
-
-Result<> Mod::Impl::unloadPlatformBinary() {
-    auto dylib = m_platformInfo->m_dylib;
-    delete m_platformInfo;
-    m_platformInfo = nullptr;
-    if (dlclose(dylib) == 0) {
-        return Ok();
-    }
-    else {
-        return Err("Unable to free library");
-    }
 }

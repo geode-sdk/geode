@@ -61,7 +61,7 @@ configure_file(${GEODE_RESOURCES_PATH}/support.md.in ${GEODE_RESOURCES_PATH}/sup
 configure_file(src/internal/about.cpp.in ${CMAKE_CURRENT_SOURCE_DIR}/src/internal/about.cpp)
 
 # Source files
-file(GLOB SOURCES CONFIGURE_DEPENDS 
+file(GLOB SOURCES CONFIGURE_DEPENDS
 	src/cocos2d-ext/*.cpp
 	src/cocos2d-ext/zip/*.cpp
 	src/core/*.cpp
@@ -99,26 +99,27 @@ if (WIN32)
 	add_definitions(-D_HAS_ITERATOR_DEBUGGING=0)
 endif()
 
-
 # Add platform sources
 if (WIN32)
 
-	file(GLOB WIN_SOURCES CONFIGURE_DEPENDS 
+	file(GLOB WIN_SOURCES CONFIGURE_DEPENDS
 		src/platform/windows/*.cpp
 	)
 	list(APPEND SOURCES ${WIN_SOURCES})
 
-elseif(IOS)
-
-	file(GLOB IOS_SOURCES CONFIGURE_DEPENDS 
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "iOS") # elseif(IOS) just doesn't work?
+	# IOS TODO: remove the message
+	message(STATUS "!!! building for ios you got it!!")
+	file(GLOB IOS_SOURCES CONFIGURE_DEPENDS
 		src/platform/ios/*.cpp
 	)
 	list(APPEND SOURCES ${IOS_SOURCES})
 	list(APPEND SOURCES ${OBJC_SOURCES})
 
 elseif(APPLE)
-
-	file(GLOB MAC_SOURCES CONFIGURE_DEPENDS 
+	# IOS TODO: remove the message
+	message(STATUS "!!! building for mac you suck :(")
+	file(GLOB MAC_SOURCES CONFIGURE_DEPENDS
 		src/platform/mac/*.cpp
 	)
 	list(APPEND SOURCES ${MAC_SOURCES})
@@ -193,7 +194,7 @@ package_geode_resources_now(
 	${CMAKE_CURRENT_SOURCE_DIR}/src/internal/resources.hpp
 )
 
-if (APPLE) 
+if (APPLE)
 	# I don't care a single bit where to put this
 	file(COPY ${GEODE_LOADER_PATH}/include/link/macos/libfmod.dylib DESTINATION ${GEODE_BIN_PATH}/nightly)
 endif()
@@ -316,7 +317,7 @@ endif()
 
 # Create launcher
 if (APPLE)
-	set_target_properties(geode-loader PROPERTIES 
+	set_target_properties(geode-loader PROPERTIES
 		SYSTEM_NAME MacOS
 		OSX_DEPLOYMENT_TARGET 10.15
 		APPLE_SILICON_PROCESSOR x86_64
