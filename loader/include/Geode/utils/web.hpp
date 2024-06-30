@@ -126,15 +126,6 @@ namespace geode::utils::web {
 
         WebRequest& header(std::string_view name, std::string_view value);
         WebRequest& param(std::string_view name, std::string_view value);
-
-        std::string getMethod();
-        std::string getUrl();
-        std::unordered_map<std::string, std::string> getHeaders();
-        std::unordered_map<std::string, std::string> getUrlParams();
-        std::optional<ByteVector> getBody();
-        std::optional<std::chrono::seconds> getTimeout();
-        HttpVersion getHttpVersion();
-
         template <std::integral T>
         WebRequest& param(std::string_view name, T value) {
             return this->param(name, std::to_string(value));
@@ -259,5 +250,55 @@ namespace geode::utils::web {
          * @return WebRequest&
          */
         WebRequest& bodyJSON(matjson::Value const& json);
+
+
+        /**
+         * Gets the request method as a string
+         *
+         * @return std::string
+         */
+        std::string getMethod() const;
+
+        /**
+         * Gets the request URL
+         *
+         * @return std::string
+         */
+        std::string getUrl() const;
+
+        /**
+         * Gets the request headers
+         *
+         * @return std::unordered_map<std::string, std::string>
+         */
+        std::unordered_map<std::string, std::string> getHeaders() const;
+
+        /**
+         * Gets the parameters inside the URL
+         *
+         * @return std::unordered_map<std::string, std::string>
+         */
+        std::unordered_map<std::string, std::string> getUrlParams() const;
+
+        /**
+         * Gets the post body stream
+         *
+         * @return std::optional<ByteVector>
+         */
+        std::optional<ByteVector> getBody() const;
+
+        /**
+         * Gets the request timeout in seconds
+         *
+         * @return std::optional<std::chrono::seconds>
+         */
+        std::optional<std::chrono::seconds> getTimeout() const;
+
+        /**
+         * Gets HTTP versions applied to the request
+         *
+         * @return HttpVersion
+         */
+        HttpVersion getHttpVersion() const;
     };
 }

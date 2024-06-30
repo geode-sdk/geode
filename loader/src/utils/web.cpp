@@ -561,3 +561,31 @@ WebRequest& WebRequest::bodyJSON(matjson::Value const& json) {
     m_impl->m_body = ByteVector { str.begin(), str.end() };
     return *this;
 }
+
+std::string WebRequest::getMethod() const {
+    return m_impl->m_method;
+}
+
+std::string WebRequest::getUrl() const {
+    return m_impl->m_url;
+}
+
+std::unordered_map<std::string, std::string> WebRequest::getHeaders() const {
+    return m_impl->m_headers;
+}
+
+std::unordered_map<std::string, std::string> WebRequest::getUrlParams() const {
+    return m_impl->m_urlParameters;
+}
+
+std::optional<ByteVector> WebRequest::getBody() const {
+    return m_impl->m_body;
+}
+
+std::optional<std::chrono::seconds> WebRequest::getTimeout() const {
+    return m_impl->m_timeout;
+}
+
+HttpVersion WebRequest::getHttpVersion() const {
+    return m_impl->m_httpVersion;
+}
