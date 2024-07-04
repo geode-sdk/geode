@@ -140,7 +140,7 @@ matjson::Value& Mod::Impl::getSavedSettingsData() {
 }
 
 bool Mod::Impl::isEnabled() const {
-    return m_enabled;
+    return m_enabled || this->isInternal();
 }
 
 bool Mod::Impl::isInternal() const {
@@ -800,7 +800,7 @@ void Mod::Impl::setLoggingEnabled(bool enabled) {
 }
 
 bool Mod::Impl::shouldLoad() const {
-    return Mod::get()->getSavedValue<bool>("should-load-" + m_metadata.getID(), true);
+    return Mod::get()->getSavedValue<bool>("should-load-" + m_metadata.getID(), true) || this->isInternal();
 }
 
 bool Mod::Impl::isCurrentlyLoading() const {
