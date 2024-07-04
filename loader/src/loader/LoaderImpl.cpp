@@ -384,11 +384,6 @@ void Loader::Impl::buildModGraph() {
 }
 
 void Loader::Impl::loadModGraph(Mod* node, bool early) {
-    if (early && !node->needsEarlyLoad()) {
-        m_modsToLoad.push_back(node);
-        return;
-    }
-
     if (node->hasUnresolvedDependencies()) {
         log::debug("{} {} has unresolved dependencies", node->getID(), node->getVersion());
         return;
@@ -402,9 +397,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
     log::pushNest();
 
     if (node->isEnabled()) {
-        for (auto const& dep : node->m_impl->m_dependants) {
-            m_modsToLoad.push_front(dep);
-        }
+        log::warn("Mod {} already loaded, this should never happen", node->getID());
         log::popNest();
         return;
     }
@@ -433,10 +426,6 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
                 log::error("Failed to load binary: {}", res.unwrapErr());
                 m_refreshingModCount -= 1;
                 return;
-            }
-
-            for (auto const& dep : node->m_impl->m_dependants) {
-                m_modsToLoad.push_front(dep);
             }
         }
 
@@ -702,11 +691,18 @@ void Loader::Impl::refreshModGraph() {
     this->buildModGraph();
     log::popNest();
 
+    log::debug("Ordering mod stack");
+    log::pushNest();
+    this->orderModStack();
+    log::popNest();
+
     m_loadingState = LoadingState::EarlyMods;
     log::debug("Loading early mods");
     log::pushNest();
-    for (auto const& dep : ModImpl::get()->m_dependants) {
-        this->loadModGraph(dep, true);
+    while (!m_modsToLoad.empty() && m_modsToLoad.front()->needsEarlyLoad()) {
+        auto mod = m_modsToLoad.front();
+        m_modsToLoad.pop_front();
+        this->loadModGraph(mod, true);
     }
     log::popNest();
 
@@ -716,14 +712,57 @@ void Loader::Impl::refreshModGraph() {
 
     log::popNest();
 
-    if (m_modsToLoad.empty())
-        m_loadingState = LoadingState::Problems;
-    else
-        m_loadingState = LoadingState::Mods;
+    m_loadingState = LoadingState::Mods;
 
     queueInMainThread([&]() {
         this->continueRefreshModGraph();
     });
+}
+
+void Loader::Impl::orderModStack() {
+    std::unordered_set<Mod*> visited;
+    visited.insert(Mod::get());
+    Mod* selectedMod = nullptr;
+    do {
+        selectedMod = nullptr;
+        for (auto const& mod : ModImpl::get()->m_dependants) {
+            if (visited.count(mod) != 0) continue;
+
+            for (auto dep : mod->getMetadata().getDependencies()) {
+                if (dep.mod && visited.count(dep.mod) == 0) {
+                    // the dependency is not visited yet
+                    // so we cant select this mod
+                    goto skip_mod;
+                }
+            }
+
+            if (selectedMod) {
+                if (
+                    !selectedMod->m_impl->needsEarlyLoad() &&
+                    mod->m_impl->needsEarlyLoad()
+                ) {
+                    // this mod is implied to be loaded early
+                    // so we can override a mod that is not
+                    selectedMod = mod;
+                }
+            }
+            else {
+                selectedMod = mod;
+            }
+
+        skip_mod:
+            continue;
+        }
+
+        if (selectedMod) {
+            m_modsToLoad.push_back(selectedMod);
+            visited.insert(selectedMod);
+        }
+    } while (selectedMod != nullptr);
+
+    for (auto mod : m_modsToLoad) {
+        log::debug("{}, early: {}", mod->getID(), mod->needsEarlyLoad());
+    }
 }
 
 void Loader::Impl::continueRefreshModGraph() {

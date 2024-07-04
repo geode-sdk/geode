@@ -148,11 +148,11 @@ bool Mod::Impl::isInternal() const {
 }
 
 bool Mod::Impl::needsEarlyLoad() const {
-    auto deps = m_dependants;
-    return getMetadata().needsEarlyLoad() ||
-        !deps.empty() && std::any_of(deps.begin(), deps.end(), [&](auto& item) {
-             return item->needsEarlyLoad();
-         });
+    if (this->getMetadata().needsEarlyLoad()) return true;
+    for (auto& dep : m_dependants) {
+        if (dep->needsEarlyLoad()) return true;
+    }
+    return false;
 }
 
 std::vector<Hook*> Mod::Impl::getHooks() const {

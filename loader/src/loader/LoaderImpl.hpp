@@ -100,6 +100,7 @@ namespace geode {
         void queueMods(std::vector<ModMetadata>& modQueue);
         void populateModList(std::vector<ModMetadata>& modQueue);
         void buildModGraph();
+        void orderModStack();
         void loadModGraph(Mod* node, bool early);
         void findProblems();
         void refreshModGraph();
