@@ -729,7 +729,8 @@ void Loader::Impl::orderModStack() {
             if (visited.count(mod) != 0) continue;
 
             for (auto dep : mod->getMetadata().getDependencies()) {
-                if (dep.mod && visited.count(dep.mod) == 0) {
+                if (dep.mod && dep.importance == ModMetadata::Dependency::Importance::Required && 
+                    visited.count(dep.mod) == 0) {
                     // the dependency is not visited yet
                     // so we cant select this mod
                     goto skip_mod;
