@@ -8,6 +8,7 @@ ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Эта программа уда
 ; installer
 
 ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nПо этому пути не установлен Geometry Dash!"
+${LangFileString} GEODE_TEXT_GD_OLD "$\r$\n$\r$\nYour version of Geometry Dash is too old for this version of Geode!"
 ${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "По этому пути уже установлены другие моды!$\r$\nОни будут перезаписаны Geode. (the dll trademark)"
 
 ; uninstaller

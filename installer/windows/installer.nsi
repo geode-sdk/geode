@@ -407,6 +407,11 @@ Function .onVerifyInstDir
     IfFileExists $INSTDIR\*.exe 0 noGameNoLife
     IfFileExists $INSTDIR\libcocos2d.dll 0 noGameNoLife
 
+    ; check if we're on 64-bit gd (checks for some of the DLLs introduced in 2.206)
+    IfFileExists $INSTDIR\libpng16.dll 0 versionIssueImo
+    IfFileExists $INSTDIR\pthreadVC3.dll 0 versionIssueImo
+    IfFileExists $INSTDIR\libcrypto-3-x64.dll 0 versionIssueImo
+
     ; check if geode is already installed
     IfFileExists $INSTDIR\Geode.dll valid
 
@@ -422,6 +427,9 @@ Function .onVerifyInstDir
 
     noGameNoLife:
         SendMessage $geode.DirectoryPage.ErrorText ${WM_SETTEXT} "" "STR:$(GEODE_TEXT_GD_MISSING)"
+        Goto error
+    versionIssueImo:
+        SendMessage $geode.DirectoryPage.ErrorText ${WM_SETTEXT} "" "STR:$(GEODE_TEXT_GD_OLD)"
         Goto error
     other_hackpro:
         StrCpy $0 "hackpro.dll"

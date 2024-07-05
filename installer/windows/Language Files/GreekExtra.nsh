@@ -8,8 +8,8 @@ ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Το setup θα σας καθο�
 ; installer
 
 ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nΑυτό το path δεν έχει το Geometry Dash εγκατεστημένο!"
-${LangFileString} GEODE_TEXT_MH_ALREADY_INSTALLED "Αυτό το path έχει ήδη το Mega Hack v6/v7 εγκατεστημένο!$\r$\nΤο Geode δεν λειτουργεί με το MHv6/v7 (MHv8 θα είναι συμβατό με το Geode).$\r$\nΠαρακαλώ, απεγκαταστήστε το πριν προχωρήσετε."
-${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "Αυτό το path έχει ήδη ένα mod loader εγκατεστημένο!$\r$\nΤο Geode δεν λειτουργεί με οποιοδήποτε άλλο mod loader.$\r$\nΠαρακαλώ, απεγκαταστήστε το πριν προχωρήσετε. (the dll trademark)"
+${LangFileString} GEODE_TEXT_GD_OLD "$\r$\n$\r$\nYour version of Geometry Dash is too old for this version of Geode!"
+${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "This path has other mods installed!$\r$\nThey will be overwritten by Geode. (the dll trademark)"
 
 ; uninstaller
 
