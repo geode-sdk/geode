@@ -10,7 +10,12 @@ namespace geode {
     /**
      * Open the info popup for a mod
      */
+    [[deprecated("Will be removed, it already doesn't do anything, use openIndexPopup instead")]]
     GEODE_DLL void openInfoPopup(Mod* mod);
+    /**
+     * Open the info popup for a mod on the changelog page
+     */
+    GEODE_DLL void openChangelogPopup(Mod* mod);
     /**
      * Open the issue report popup for a mod
      */

@@ -74,6 +74,12 @@ void geode::openIndexPopup(Mod* mod) {
     ModPopup::create(mod)->show();
 }
 
+void geode::openChangelogPopup(Mod* mod) {
+    auto popup = ModPopup::create(mod);
+    popup->loadTab(ModPopup::Tab::Changelog);
+    popup->show();
+}
+
 void geode::openSettingsPopup(Mod* mod) {
     if (mod->hasSettings()) {
         ModSettingsPopup::create(mod)->show();
