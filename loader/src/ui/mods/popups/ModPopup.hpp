@@ -10,13 +10,14 @@
 using namespace geode::prelude;
 
 class ModPopup : public GeodePopup<ModSource&&> {
-protected:
+public:
     enum class Tab {
         Details,
         Changelog,
         Versions,
     };
 
+protected:
     ModSource m_source;
     CCNode* m_stats;
     CCNode* m_tags;
@@ -51,7 +52,6 @@ protected:
     void onLoadTags(typename server::ServerRequest<std::unordered_set<std::string>>::Event* event);
     void onCheckUpdates(typename server::ServerRequest<std::optional<server::ServerModUpdate>>::Event* event);
     
-    void loadTab(Tab tab);
     void onTab(CCObject* sender);
     void onEnable(CCObject*);
     void onInstall(CCObject*);
@@ -63,5 +63,6 @@ protected:
     void onSupport(CCObject*);
 
 public:
+    void loadTab(Tab tab);
     static ModPopup* create(ModSource&& src);
 };
