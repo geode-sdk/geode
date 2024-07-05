@@ -347,6 +347,11 @@ struct MDParser {
 
                         imgArguments.erase(imgArguments.begin()); //remove the image path
 
+                        // Split by "&" to get arguments
+                        if (imgArguments.size() > 0) {
+                            imgArguments = utils::string::split(imgArguments.at(0), "&");
+                        }
+
                         float spriteScale = 1.0f;
 
                         for(std::string arg : imgArguments){
