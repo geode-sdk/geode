@@ -1,7 +1,7 @@
-!insertmacro LANGFILE_EXT Spanish
+!insertmacro LANGFILE_EXT SpanishInternational
 
 !pragma warning disable 6030
-${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Este asistente te guiará durante la instalación de $(^NameDA) en tu ordenador.$\r$\n$\r$\nAntes de comenzar la instalación, asegúrate de que Geometry Dash no esté en ejecución.$\r$\n$\r$\n$_CLICK"
+${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Este asistente te guiará durante la instalación de $(^NameDA) en tu computadora.$\r$\n$\r$\nAntes de comenzar la instalación, asegúrate de que Geometry Dash no esté en ejecución.$\r$\n$\r$\n$_CLICK"
 ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Este asistente te guiará durante la desinstalación de $(^NameDA).$\r$\n$\r$\nAntes de comenzar la desinstalación, asegúrate de que Geometry Dash no esté en ejecución.$\r$\n$\r$\n$_CLICK"
 !pragma warning default 6030
 
