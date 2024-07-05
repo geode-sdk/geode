@@ -183,7 +183,7 @@ public:
 private:
     void getSetOfTouchesEndOrCancel(CCSet& set, int num, int ids[], float xs[], float ys[]);
 
-protected:
+public:
     EGLTouchDelegate* m_pDelegate;
 
     // real screen size
