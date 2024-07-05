@@ -18,6 +18,7 @@
 #include <string>
 #include <fmt/core.h>
 #include "ehdata_structs.hpp"
+#include <Geode/CodegenData.hpp>
 
 using namespace geode::prelude;
 
@@ -91,6 +92,18 @@ static Mod* modFromAddress(PVOID exceptionAddress) {
     return nullptr;
 }
 
+static uintptr_t findMethodStart(void const* address, size_t maxSearch = 0x1000) {
+    // Backtrack until we hit a 0xCC (int3) instruction
+    uintptr_t start = reinterpret_cast<uintptr_t>(address);
+    while (start > reinterpret_cast<uintptr_t>(address) - maxSearch) {
+        if (*reinterpret_cast<uint8_t*>(start) == 0xCC) {
+            return start + 1;
+        }
+        start--;
+    }
+    return reinterpret_cast<uintptr_t>(address);
+}
+
 static void printAddr(std::ostream& stream, void const* addr, bool fullPath = true) {
     HMODULE module = nullptr;
 
@@ -136,6 +149,21 @@ static void printAddr(std::ostream& stream, void const* addr, bool fullPath = tr
                 }
 
                 stream << ")";
+            } else if (module == GetModuleHandle(nullptr)) {
+                uintptr_t methodStart = findMethodStart(addr);
+                if (methodStart == reinterpret_cast<uintptr_t>(addr)) {
+                    return;
+                }
+
+                uintptr_t baseOffset = methodStart - reinterpret_cast<uintptr_t>(module); 
+                uintptr_t methodOffset = reinterpret_cast<uintptr_t>(addr) - methodStart;
+
+                auto it = s_codegenData.find(baseOffset);
+                if (it != s_codegenData.end()) {
+                    stream << " (" << it->second << " + " << std::hex << methodOffset << std::dec << ")";
+                } else {
+                    stream << " (<method " << std::hex << baseOffset << "> + " << methodOffset << std::dec << ")";
+                }
             }
         }
     }
