@@ -105,23 +105,26 @@ std::optional<VersionInfo> Mod::hasAvailableUpdate() const {
     return std::nullopt;
 }
 Mod::CheckUpdatesTask Mod::checkUpdates() const {
-    return server::checkUpdates(this).map([](server::ServerRequest<std::optional<server::ServerModUpdate>>::Value* result) -> Mod::CheckUpdatesTask::Value {
-        if (result->isOk()) {
-            if (auto value = result->unwrap()) {
-                if (value->replacement) {
-                    return Err(
-                        "Mod has been replaced by {} - please visit the Geode "
-                        "menu to install the replacement",
-                        value->replacement->id
-                    );
+    return server::checkUpdates(this).map(
+        [](auto* result) -> Mod::CheckUpdatesTask::Value {
+            if (result->isOk()) {
+                if (auto value = result->unwrap()) {
+                    if (value->replacement) {
+                        return Err(
+                            "Mod has been replaced by {} - please visit the Geode "
+                            "menu to install the replacement",
+                            value->replacement->id
+                        );
+                    }
+                    return Ok(value->version);
                 }
-                return Ok(value->version);
+                return Ok(std::nullopt);
             }
-            return Ok(std::nullopt);
-        }
-        auto err = result->unwrapErr();
-        return Err("{} (code {})", err.details, err.code);
-    });
+            auto err = result->unwrapErr();
+            return Err("{} (code {})", err.details, err.code);
+        },
+        [](auto*) { return std::monostate(); }
+    );
 }
 
 Result<> Mod::saveData() {
