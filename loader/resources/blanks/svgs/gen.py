@@ -50,6 +50,7 @@ editor_colors = {
     "LightBlue": ["#52e8ff", "#4fb1ff", "#2f6ac7"],
     "Gray": ["#c8c7c9", "#9b9a9b", "#5c5c5d"],
     "DarkGray": ["#9a9a9a", "#717171", "#3a3a3a"],
+    "Salmon": ["#ffbbb9", "#ff9260", "#e15032"],
 }
 
 for size in sizes:
