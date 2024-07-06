@@ -105,7 +105,7 @@ std::optional<VersionInfo> Mod::hasAvailableUpdate() const {
     return std::nullopt;
 }
 Mod::CheckUpdatesTask Mod::checkUpdates() const {
-    server::checkUpdates(this).map([](server::ServerRequest<std::optional<server::ServerModUpdate>>::Value* result) -> Mod::CheckUpdatesTask::Value {
+    return server::checkUpdates(this).map([](server::ServerRequest<std::optional<server::ServerModUpdate>>::Value* result) -> Mod::CheckUpdatesTask::Value {
         if (result->isOk()) {
             if (auto value = result->unwrap()) {
                 if (value->replacement) {
