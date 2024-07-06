@@ -50,6 +50,18 @@
         );                                                                                                    \
     } while (0);
 
+#define GEODE_APPLY_MODIFY_FOR_FUNCTION_ERROR_DEFINED(ClassName_, FunctionName_, ...)                         \
+    do {                                                                                                      \
+        static auto constexpr different = Unique::different<                                                  \
+            Resolve<__VA_ARGS__>::func(&Base::FunctionName_),                                                 \
+            Resolve<__VA_ARGS__>::func(&Derived::FunctionName_)                                               \
+        >();                                                                                                  \
+        static_assert(!different,                                                                             \
+            "Function " #ClassName_ "::" #FunctionName_ " does not have an available address in the"          \
+            " bindings, please add it to the bindings to hook it."                                            \
+        );                                                                                                    \
+    } while (0);
+
 #define GEODE_APPLY_MODIFY_FOR_FUNCTION_ERROR_INLINE(ClassName_, FunctionName_, ...)                          \
     do {                                                                                                      \
         static auto constexpr different = Unique::different<                                                  \
