@@ -10,7 +10,6 @@ namespace geode {
     /**
      * Open the info popup for a mod
      */
-    [[deprecated("Will be removed, it already doesn't do anything, use openIndexPopup instead")]]
     GEODE_DLL void openInfoPopup(Mod* mod);
     /**
      * Open the info popup for a mod on the changelog page
@@ -28,6 +27,7 @@ namespace geode {
     /**
      * Open the store page for a mod (if it exists)
      */
+    [[deprecated("Will be removed, use openInfoPopup instead")]]
     GEODE_DLL void openIndexPopup(Mod* mod);
     /**
      * Open the settings popup for a mod (if it has any settings)
