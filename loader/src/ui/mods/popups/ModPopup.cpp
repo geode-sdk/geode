@@ -648,9 +648,12 @@ void ModPopup::updateState() {
 
     if (asMod && asMod->isInternal()) {
         m_enableBtn->setVisible(false);
+        // you can uninstall loader ingame just fine on windows
+        #if !defined(GEODE_IS_WINDOWS)
         m_uninstallBtn->setVisible(false);
         m_installStatusLabel->setString("N/A");
         m_installStatusLabel->setVisible(true);
+        #endif
     }
 
     auto download = server::ModDownloadManager::get()->getDownload(m_source.getID());

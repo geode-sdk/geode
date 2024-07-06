@@ -8,6 +8,7 @@ ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Bu sihirbaz size $(^NameDA) prog
 ; installer
 
 ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nBu dizin yolunda Geometry Dash yüklü değildir!"
+${LangFileString} GEODE_TEXT_GD_OLD "$\r$\n$\r$\nGeometry Dash versiyonunuz bu Geode versiyonu için çok eskidir!"
 ${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "Bu dizin yolunda başka modlar yüklüdür!$\r$\nGeode bunların üzerine yazılacaktır. (the dll trademark)"
 
 ; uninstaller

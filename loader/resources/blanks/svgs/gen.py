@@ -50,6 +50,7 @@ editor_colors = {
     "LightBlue": ["#52e8ff", "#4fb1ff", "#2f6ac7"],
     "Gray": ["#c8c7c9", "#9b9a9b", "#5c5c5d"],
     "DarkGray": ["#9a9a9a", "#717171", "#3a3a3a"],
+    "Salmon": ["#ffbbb9", "#ff9260", "#e15032"],
 }
 
 for size in sizes:
@@ -57,7 +58,7 @@ for size in sizes:
         svg_base = file.read()
     for name, cols in colors.items():
         svg = svg_base
-        out = f"../baseCircle_{size}_{name.title()}.png"
+        out = f"../baseCircle_{size}_{name}.png"
         print(f"Generating {out}")
         for color_orig, color_to in zip(color_from, cols):
             svg = svg.replace(color_orig, color_to)
@@ -68,7 +69,7 @@ for size in editor_sizes:
         svg_base = file.read()
     for name, cols in editor_colors.items():
         svg = svg_base
-        out = f"../baseEditor_{size}_{name.title()}.png"
+        out = f"../baseEditor_{size}_{name}.png"
         print(f"Generating {out}")
         for color_orig, color_to in zip(editor_color_from, cols):
             svg = svg.replace(color_orig, color_to)

@@ -19,6 +19,11 @@ bool ConfirmUninstallPopup::setup(Mod* mod) {
     deleteDataLabel->setScale(.35f);
     m_buttonMenu->addChildAtPosition(deleteDataLabel, Anchor::Center, ccp(-70, -15), ccp(0, .5f));
 
+    if (mod->isInternal()) {
+        deleteDataLabel->setString("Delete ALL mods and their save data");
+        deleteDataLabel->setScale(0.275f);
+    }
+
     m_deleteDataToggle = CCMenuItemToggler::createWithStandardSprites(this, nullptr, .6f);
     m_buttonMenu->addChildAtPosition(m_deleteDataToggle, Anchor::Center, ccp(-88, -15));
 

@@ -20,7 +20,7 @@ $on_mod(Loaded) {
     ColorProvider::get()->define("mod-list-tab-deselected-bg"_spr, { 26, 24, 29, 255 });
     ColorProvider::get()->define("mod-list-tab-selected-bg"_spr, { 168, 147, 185, 255 });
     ColorProvider::get()->define("mod-list-tab-selected-bg-alt"_spr, { 147, 163, 185, 255 });
-    ColorProvider::get()->define("mod-list-featured-color"_spr, { 255, 255, 120, 255 });
+    ColorProvider::get()->define("mod-list-featured-color"_spr, { 240, 211, 42, 255 });
     ColorProvider::get()->define("mod-list-enabled"_spr, { 120, 255, 100, 255 });
     ColorProvider::get()->define("mod-list-disabled"_spr, { 255, 120, 100, 255 });
     ColorProvider::get()->define("mod-list-recommended-bg"_spr, ccc3(25, 255, 167));
@@ -28,6 +28,7 @@ $on_mod(Loaded) {
     ColorProvider::get()->define("mod-list-recommended-by-2"_spr, ccc3(47, 255, 255));
     ColorProvider::get()->define("mod-problems-item-bg"_spr, { 255, 255, 255, 15 });
     ColorProvider::get()->define("mod-developer-item-bg"_spr, { 255, 255, 255, 15 });
+    ColorProvider::get()->define("mod-list-paid-color"_spr, { 0, 255, 63, 255 });
 
     // Only used when GD theme is active
     ColorProvider::get()->define("mods-layer-gd-bg"_spr, { 0, 102, 255, 255 });

@@ -140,7 +140,7 @@ matjson::Value& Mod::Impl::getSavedSettingsData() {
 }
 
 bool Mod::Impl::isEnabled() const {
-    return m_enabled;
+    return m_enabled || this->isInternal();
 }
 
 bool Mod::Impl::isInternal() const {
@@ -148,11 +148,11 @@ bool Mod::Impl::isInternal() const {
 }
 
 bool Mod::Impl::needsEarlyLoad() const {
-    auto deps = m_dependants;
-    return getMetadata().needsEarlyLoad() ||
-        !deps.empty() && std::any_of(deps.begin(), deps.end(), [&](auto& item) {
-             return item->needsEarlyLoad();
-         });
+    if (this->getMetadata().needsEarlyLoad()) return true;
+    for (auto& dep : m_dependants) {
+        if (dep->needsEarlyLoad()) return true;
+    }
+    return false;
 }
 
 std::vector<Hook*> Mod::Impl::getHooks() const {
@@ -800,7 +800,7 @@ void Mod::Impl::setLoggingEnabled(bool enabled) {
 }
 
 bool Mod::Impl::shouldLoad() const {
-    return Mod::get()->getSavedValue<bool>("should-load-" + m_metadata.getID(), true);
+    return Mod::get()->getSavedValue<bool>("should-load-" + m_metadata.getID(), true) || this->isInternal();
 }
 
 bool Mod::Impl::isCurrentlyLoading() const {

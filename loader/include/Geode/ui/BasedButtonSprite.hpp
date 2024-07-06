@@ -85,6 +85,7 @@ namespace geode {
         Magenta = 9,
         DimGreen = 10,
         BrightGreen = 11,
+        Salmon = 12,
     };
     GEODE_DLL const char* baseEnumToString(EditorBaseColor);
 

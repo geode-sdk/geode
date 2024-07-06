@@ -8,8 +8,8 @@ ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Le programme d'installation vous
 ; installer
 
 ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nGeometry Dash n'est pas installé sur ce chemin !"
-${LangFileString} GEODE_TEXT_MH_ALREADY_INSTALLED "Ce chemin a déjà Mega Hack v6/v7 installé !$\r$\nGeode ne fonctionne pas avec MHv6/v7 (MHv8 sera compatible avec Geode).$\r$\nVeuillez le désinstaller avant de continuer."
-${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "Ce chemin contient déjà un autre chargeur de mod installé !$\r$\nGeode ne fonctionne avec aucun autre chargeur de mod.$\r$\nVeuillez le désinstaller avant de continuer. (the dll trademark)"
+${LangFileString} GEODE_TEXT_GD_OLD "$\r$\n$\r$\nYour version of Geometry Dash is too old for this version of Geode!"
+${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "This path has other mods installed!$\r$\nThey will be overwritten by Geode. (the dll trademark)"
 
 ; uninstaller
 
