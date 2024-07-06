@@ -142,7 +142,21 @@ namespace geode {
          * @returns The latest available version on the index if there are 
          * updates for this mod
          */
+        [[deprecated("Use Mod::checkUpdates instead; this function always returns nullopt")]]
         std::optional<VersionInfo> hasAvailableUpdate() const;
+
+        using CheckUpdatesTask = Task<Result<std::optional<VersionInfo>, std::string>>;
+        /**
+         * Check if this Mod has updates available on the mods index. If 
+         * you're using this for automatic update checking, use 
+         * `openInfoPopup` from the `ui/GeodeUI.hpp` header to open the Mod's 
+         * page to let the user install the update
+         * @returns A task that resolves to an option, either the latest 
+         * available version on the index if there are updates available, or 
+         * `std::nullopt` if there are no updates. On error, the Task returns 
+         * an error
+         */
+        CheckUpdatesTask checkUpdates() const;
 
         Result<> saveData();
         Result<> loadData();

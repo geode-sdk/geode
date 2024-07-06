@@ -770,7 +770,7 @@ ServerRequest<std::unordered_set<std::string>> server::getTags(bool useCache) {
     );
 }
 
-ServerRequest<std::optional<ServerModUpdate>> server::checkUpdates(Mod* mod) {
+ServerRequest<std::optional<ServerModUpdate>> server::checkUpdates(Mod const* mod) {
     return checkAllUpdates().map(
         [mod](Result<std::vector<ServerModUpdate>, ServerError>* result) -> Result<std::optional<ServerModUpdate>, ServerError> {
             if (result->isOk()) {

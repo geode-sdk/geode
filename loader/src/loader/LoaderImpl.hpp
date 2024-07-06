@@ -22,7 +22,6 @@
 #include <queue>
 #include <tulip/TulipHook.hpp>
 
-// TODO: Find a file convention for impl headers
 namespace geode {
     static constexpr std::string_view LAUNCH_ARG_PREFIX = "--geode:";
 

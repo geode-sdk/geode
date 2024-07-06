@@ -103,7 +103,6 @@ namespace geode {
         class FieldIntermediate;
     }
 
-    // TODO: make ordered
     using ModJson = matjson::Value;
 }
 
