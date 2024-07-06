@@ -8,8 +8,8 @@ ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Saat tarvittavia ohjeita sitä m
 ; installer
 
 ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nValitussa kansiossa ei ole Geometry Dash -peliä asennettuna."
-${LangFileString} GEODE_TEXT_GD_OLD "$\r$\n$\r$\nYour version of Geometry Dash is too old for this version of Geode!"
-${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "This path has other mods installed!$\r$\nThey will be overwritten by Geode. (the dll trademark)"
+${LangFileString} GEODE_TEXT_GD_OLD "$\r$\n$\r$\nGeometry Dash -pelisi on vanhentunut, eikä ole yhteensopiva tämän Geode-version kanssa!"
+${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "Valitussa kansiossa on muita modeja asennettuna!$\r$\nGeode tulee poistamaan ne. (the dll trademark)"
 
 ; uninstaller
 
