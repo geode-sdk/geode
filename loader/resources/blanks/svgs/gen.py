@@ -57,7 +57,7 @@ for size in sizes:
         svg_base = file.read()
     for name, cols in colors.items():
         svg = svg_base
-        out = f"../baseCircle_{size}_{name.title()}.png"
+        out = f"../baseCircle_{size}_{name}.png"
         print(f"Generating {out}")
         for color_orig, color_to in zip(color_from, cols):
             svg = svg.replace(color_orig, color_to)
@@ -68,7 +68,7 @@ for size in editor_sizes:
         svg_base = file.read()
     for name, cols in editor_colors.items():
         svg = svg_base
-        out = f"../baseEditor_{size}_{name.title()}.png"
+        out = f"../baseEditor_{size}_{name}.png"
         print(f"Generating {out}")
         for color_orig, color_to in zip(editor_color_from, cols):
             svg = svg.replace(color_orig, color_to)
