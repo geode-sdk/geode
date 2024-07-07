@@ -33,6 +33,7 @@ env:
 jobs:
   build-windows:
     name: Build Windows
+    if: false
     runs-on: ubuntu-24.04
 
     steps:
@@ -165,8 +166,8 @@ jobs:
 
     - name: Install LLVM
       run: |
-        brew install llvm@16
-        echo "/opt/homebrew/opt/llvm@16/bin" >> $GITHUB_PATH
+        brew install llvm@15
+        echo "/opt/homebrew/opt/llvm@15/bin" >> $GITHUB_PATH
 
     - name: Setup CLI
       uses: geode-sdk/cli/.github/actions/setup@main
@@ -222,6 +223,7 @@ jobs:
 
     name: Build ${{ matrix.config.name }}
     runs-on: ubuntu-latest
+    if: false
 
     steps:
     - name: Checkout
