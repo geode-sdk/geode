@@ -1,5 +1,24 @@
 # Geode Changelog
 
+## v3.2.0
+ * Fix auto-updater on MacOS (d752bc2)
+ * Use tasks for `FileSettingNode` (f94e95e)
+ * Fix single argument overload of `Task` (6fe1ac9)
+ * Fix the GLFW message box fix (09c188a)
+ * Shrink `TextInput` input to give some padding (1da73cf)
+ * Undither account and editor blank sprites, add missing editor blank sprites (427e86e, efc4a00, 9fd9a78)
+ * Fix populating web headers and add some new getters (a96ec91)
+ * Build mods to load stack statically (255066a)
+ * Force internal mod to always appear enabled (e659b97)
+ * Bring back uninstall Geode button on Windows (22b2580)
+ * Add `geode::openChangelogPopup` (e432e72)
+ * Add special visuals for paid tag (0082765)
+ * Add 64-bit check to the Windows installer (c45d8f6)
+ * Add `Mod::checkUpdates` (9d02155)
+ * Error on attempting to hook missing or inlined functions (2dc989f)
+ * Implement function bound checking on Windows crashlog for symbol resolution (66c2f9a)
+ * Add new syntax for image scale arguments (#983)
+
 ## v3.1.1
  * Update Windows installer translations (ae589d2, dca28db, d12fb37, 08d8af3, f52cf02, 3fa1d9b)
  * Add safe mode by holding shift on MacOS (e4905a0)

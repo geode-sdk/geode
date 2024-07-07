@@ -4,6 +4,7 @@
 #include <Geode/loader/Mod.hpp>
 #include <optional>
 #include <string_view>
+#include <server/Server.hpp>
 
 using namespace geode::prelude;
 
@@ -101,16 +102,29 @@ std::vector<Mod*> Mod::getDependants() const {
 #endif
 
 std::optional<VersionInfo> Mod::hasAvailableUpdate() const {
-    // TODO
-    // if (auto item = Index::get()->getItem(this->getID(), std::nullopt)) {
-    //     if (
-    //         item->getMetadata().getVersion() > this->getVersion() &&
-    //         item->getAvailablePlatforms().contains(GEODE_PLATFORM_TARGET)
-    //     ) {
-    //         return item->getMetadata().getVersion();
-    //     }
-    // }
     return std::nullopt;
+}
+Mod::CheckUpdatesTask Mod::checkUpdates() const {
+    return server::checkUpdates(this).map(
+        [](auto* result) -> Mod::CheckUpdatesTask::Value {
+            if (result->isOk()) {
+                if (auto value = result->unwrap()) {
+                    if (value->replacement) {
+                        return Err(
+                            "Mod has been replaced by {} - please visit the Geode "
+                            "menu to install the replacement",
+                            value->replacement->id
+                        );
+                    }
+                    return Ok(value->version);
+                }
+                return Ok(std::nullopt);
+            }
+            auto err = result->unwrapErr();
+            return Err("{} (code {})", err.details, err.code);
+        },
+        [](auto*) { return std::monostate(); }
+    );
 }
 
 Result<> Mod::saveData() {

@@ -95,6 +95,10 @@ const char* geode::baseEnumToString(EditorBaseColor value) {
         case EditorBaseColor::Teal: return "Teal";
         case EditorBaseColor::Aqua: return "Aqua";
         case EditorBaseColor::Cyan: return "Cyan";
+        case EditorBaseColor::Magenta: return "Magenta";
+        case EditorBaseColor::DimGreen: return "DimGreen";
+        case EditorBaseColor::BrightGreen: return "BrightGreen";
+        case EditorBaseColor::Salmon: return "Salmon";
     }
     return "Unknown";
 }

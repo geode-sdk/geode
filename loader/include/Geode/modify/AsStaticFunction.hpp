@@ -41,4 +41,11 @@ namespace geode::modifier {
 
     GEODE_AS_STATIC_FUNCTION(constructor)
     GEODE_AS_STATIC_FUNCTION(destructor)
+
+
+#define GEODE_CONCEPT_FUNCTION_CHECK(FunctionName_)                                              \
+    template <class Class, class... Args>                                                        \
+    concept FunctionExists_##FunctionName_ = requires(Class* self, Args... args) {               \
+        self->FunctionName_(args...);                                                            \
+    };
 }

@@ -8,8 +8,8 @@ ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Setup會幫您卸載$(^NameDA)�
 ; installer
 
 ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nGeometry Dash不在這文件夾，請再試一遍！"
-${LangFileString} GEODE_TEXT_MH_ALREADY_INSTALLED "這文件夾已經安裝了Mega Hack v6/v7！$\r$\nGeode不能跟MHv6/v7一起用(可是MHv8可以跟Geode一起用)。$\r$\n請先卸載MHv6/v7。"
-${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "這文件夾已經安裝了不同的遊戲修改器加載器！$\r$\nGeode不能跟不同的遊戲修改器加載器一起用。$\r$\n請先卸載那個遊戲修改器加載器。 (the dll trademark)"
+${LangFileString} GEODE_TEXT_GD_OLD "$\r$\n$\r$\nYour version of Geometry Dash is too old for this version of Geode!"
+${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "This path has other mods installed!$\r$\nThey will be overwritten by Geode. (the dll trademark)"
 
 ; uninstaller
 

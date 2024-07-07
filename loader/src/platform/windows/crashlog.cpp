@@ -91,8 +91,36 @@ static Mod* modFromAddress(PVOID exceptionAddress) {
     return nullptr;
 }
 
+PVOID GeodeFunctionTableAccess64(HANDLE hProcess, DWORD64 AddrBase);
+
+typedef union _UNWIND_CODE {
+    struct {
+        uint8_t CodeOffset;
+        uint8_t UnwindOp : 4;
+        uint8_t OpInfo   : 4;
+    };
+    uint16_t FrameOffset;
+} UNWIND_CODE, *PUNWIND_CODE;
+
+typedef struct _UNWIND_INFO {
+    uint8_t Version       : 3;
+    uint8_t Flags         : 5;
+    uint8_t SizeOfProlog;
+    uint8_t CountOfCodes;
+    uint8_t FrameRegister : 4;
+    uint8_t FrameOffset   : 4;
+    UNWIND_CODE UnwindCode[1];
+/*  UNWIND_CODE MoreUnwindCode[((CountOfCodes + 1) & ~1) - 1];
+*   union {
+*       OPTIONAL ULONG ExceptionHandler;
+*       OPTIONAL ULONG FunctionEntry;
+*   };
+*   OPTIONAL ULONG ExceptionData[]; */
+} UNWIND_INFO, *PUNWIND_INFO;
+
 static void printAddr(std::ostream& stream, void const* addr, bool fullPath = true) {
     HMODULE module = nullptr;
+    auto proc = GetCurrentProcess();
 
     if (GetModuleHandleEx(
             GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
@@ -114,12 +142,26 @@ static void printAddr(std::ostream& stream, void const* addr, bool fullPath = tr
             symbolInfo->SizeOfStruct = sizeof(SYMBOL_INFO);
             symbolInfo->MaxNameLen = MAX_SYM_NAME;
 
-            auto proc = GetCurrentProcess();
-
             if (SymFromAddr(
                     proc, static_cast<DWORD64>(reinterpret_cast<uintptr_t>(addr)), &displacement,
                     symbolInfo
                 )) {
+                if (auto entry = SymFunctionTableAccess64(proc, static_cast<DWORD64>(reinterpret_cast<uintptr_t>(addr)))) {
+                    auto moduleBase = SymGetModuleBase64(proc, static_cast<DWORD64>(reinterpret_cast<uintptr_t>(addr)));
+                    auto runtimeFunction = static_cast<PRUNTIME_FUNCTION>(entry);
+                    auto unwindInfo = reinterpret_cast<PUNWIND_INFO>(moduleBase + runtimeFunction->UnwindInfoAddress);
+
+                    // This is a chain of unwind info structures, so we traverse back to the first one
+                    while (unwindInfo->Flags & UNW_FLAG_CHAININFO) {
+                        runtimeFunction = (PRUNTIME_FUNCTION)&(unwindInfo->UnwindCode[( unwindInfo->CountOfCodes + 1 ) & ~1]);
+                        unwindInfo = reinterpret_cast<PUNWIND_INFO>(moduleBase + runtimeFunction->UnwindInfoAddress);
+                    }
+
+                    if (moduleBase + runtimeFunction->BeginAddress != symbolInfo->Address) {
+                        // the symbol address is not the same as the function address
+                        return;
+                    }
+                }
                 stream << " (" << std::string(symbolInfo->Name, symbolInfo->NameLen) << " + "
                        << displacement;
 
@@ -141,10 +183,12 @@ static void printAddr(std::ostream& stream, void const* addr, bool fullPath = tr
     }
     else {
         stream << addr;
+
+        if (GeodeFunctionTableAccess64(proc, reinterpret_cast<DWORD64>(addr))) {
+            stream << " (Hook handler)";
+        }
     }
 }
-
-PVOID GeodeFunctionTableAccess64(HANDLE hProcess, DWORD64 AddrBase);
 
 // https://stackoverflow.com/a/50208684/9124836
 static std::string getStacktrace(PCONTEXT context, Mod*& suspectedFaultyMod) {

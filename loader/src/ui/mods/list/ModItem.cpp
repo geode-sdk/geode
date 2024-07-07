@@ -53,6 +53,7 @@ bool ModItem::init(ModSource&& source) {
 
     m_titleLabel = CCLabelBMFont::create(m_source.getMetadata().getName().c_str(), "bigFont.fnt");
     m_titleLabel->setID("title-label");
+    m_titleLabel->setLayoutOptions(AxisLayoutOptions::create()->setScalePriority(1));
     m_titleContainer->addChild(m_titleLabel);
 
     m_versionLabel = CCLabelBMFont::create("", "bigFont.fnt");
@@ -182,16 +183,14 @@ bool ModItem::init(ModSource&& source) {
         },
         [this](server::ServerModMetadata const& metadata) {
             if (metadata.featured) {
-                auto starBG = CCScale9Sprite::createWithSpriteFrameName("GJ_colorBtn_001.png");
-                starBG->setContentSize({ 50, 38 });
-                starBG->setColor(to3B(ColorProvider::get()->color("mod-list-featured-color"_spr)));
-                starBG->setOpacity(45);
-
-                auto star = CCSprite::createWithSpriteFrameName("GJ_starsIcon_001.png");
-                starBG->addChildAtPosition(star, Anchor::Center);
-                starBG->setID("star-bg");
-
-                m_titleContainer->addChild(starBG);
+                auto star = CCSprite::createWithSpriteFrameName("tag-featured.png"_spr);
+                star->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.1f, .8f));
+                m_titleContainer->addChild(star);
+            }
+            if (metadata.tags.contains("paid")) {
+                auto paidModLabel = CCSprite::createWithSpriteFrameName("tag-paid.png"_spr);
+                paidModLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.1f, .8f));
+                m_titleContainer->addChild(paidModLabel);
             }
 
             // Show mod download count here already so people can make informed decisions 
@@ -338,9 +337,15 @@ void ModItem::updateState() {
         [this](server::ServerModMetadata const& metadata) {
             m_bg->setColor(isGeodeTheme() ? ccWHITE : ccBLACK);
             m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
+
+            if (metadata.tags.contains("paid")) {
+                m_bg->setColor("mod-list-paid-color"_cc3b);
+                m_bg->setOpacity(55);
+            }
+            
             if (isGeodeTheme() && metadata.featured) {
                 m_bg->setColor("mod-list-featured-color"_cc3b);
-                m_bg->setOpacity(40);
+                m_bg->setOpacity(65);
             }
         },
         [this](ModSuggestion const& suggestion) {
@@ -449,6 +454,22 @@ void ModItem::onCheckUpdates(typename server::ServerRequest<std::optional<server
 }
 
 void ModItem::onView(CCObject*) {
+    // This is a local static and not a mod saved value because we might want 
+    // to periodically remind users that paid mods are paid
+    static bool shownPaidNotif = false;
+    if (m_source.asServer() && m_source.asServer()->tags.contains("paid") && !shownPaidNotif) {
+        shownPaidNotif = true;
+        return FLAlertLayer::create(
+            nullptr,
+            "Paid Content",
+            "This mod contains <cg>Paid Content</c>. This means that some or all "
+            "features of the mod <cj>require money to use</c>.\n\n"
+            "<cy>Geode does not handle any payments. The mod handles all transactions in their own way.</c>\n\n"
+            "<cp>The paid content may not be available in your country.</c>",
+            "OK", nullptr, 360
+        )->show();
+    }
+
     // Always open up the popup for the installed mod page if that is possible
     ModPopup::create(m_source.convertForPopup())->show();
 }

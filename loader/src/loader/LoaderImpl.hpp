@@ -22,7 +22,6 @@
 #include <queue>
 #include <tulip/TulipHook.hpp>
 
-// TODO: Find a file convention for impl headers
 namespace geode {
     static constexpr std::string_view LAUNCH_ARG_PREFIX = "--geode:";
 
@@ -100,6 +99,7 @@ namespace geode {
         void queueMods(std::vector<ModMetadata>& modQueue);
         void populateModList(std::vector<ModMetadata>& modQueue);
         void buildModGraph();
+        void orderModStack();
         void loadModGraph(Mod* node, bool early);
         void findProblems();
         void refreshModGraph();
