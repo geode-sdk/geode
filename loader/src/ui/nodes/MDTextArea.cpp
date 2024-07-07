@@ -335,42 +335,45 @@ struct MDParser {
                         renderer->popDecoFlags();
                         renderer->popColor();
                     }
-                    else if (s_lastImage.size()) {
+                    else if (!s_lastImage.empty()) {
                         bool isFrame = false;
 
-                        std::vector<std::string> imgArguments = utils::string::split(s_lastImage, "?");
-                        s_lastImage = imgArguments.at(0);
-                        if (utils::string::contains(s_lastImage, "&")) { //old format
-                            imgArguments = utils::string::split(s_lastImage, "&");
-                            s_lastImage = imgArguments.at(0);
-                        }
+                        const auto splitOnce = [](const std::string& str, char delim) -> std::pair<std::string, std::string> {
+                            const auto pos = str.find(delim);
+                            if (pos == std::string::npos) {
+                                return { str, {} };
+                            }
+                            return { str.substr(0, pos), str.substr(pos + 1) };
+                        };
 
-                        imgArguments.erase(imgArguments.begin()); //remove the image path
+                        // key value pair of arguments
+                        std::vector<std::pair<std::string, std::string>> imgArguments;
+                        auto split = splitOnce(s_lastImage, '?');
+                        s_lastImage = split.first;
 
-                        // Split by "&" to get arguments
-                        if (imgArguments.size() > 0) {
-                            imgArguments = utils::string::split(imgArguments.at(0), "&");
+                        // TODO: remove this in v4.0.0
+                        // check if this image is using the old format "my.mod/image.png&scale:0.5"
+                        // this will be deprecated and then removed in the future
+                        if (utils::string::contains(s_lastImage, "&")) {
+                            split = splitOnce(s_lastImage, '&');
+                            s_lastImage = split.first;
+                            imgArguments = ranges::map<decltype(imgArguments)>(utils::string::split(split.second, "&"), [&](auto str) {
+                                return splitOnce(str, ':');
+                            });
+                        } else {
+                            // new format "my.mod/image.png?scale=0.5"
+                            imgArguments = ranges::map<decltype(imgArguments)>(utils::string::split(split.second, "&"), [&](auto str) {
+                                return splitOnce(str, '=');
+                            });
                         }
 
                         float spriteScale = 1.0f;
 
-                        for(std::string arg : imgArguments){
-                            if(utils::string::startsWith(arg, "scale=")){
-                                std::string scaleValue = arg.substr(arg.find("=") + 1);
-                                std::stringstream s(scaleValue);
-
-                                float scale;
-                                if (s >> scale) { //if valid float, put into spriteScale
-                                    spriteScale = scale;
-                                }
-                            }
-                            else if(utils::string::startsWith(arg, "scale:")){ //old format
-                                std::string scaleValue = arg.substr(arg.find(":") + 1);
-                                std::stringstream s(scaleValue);
-
-                                float scale;
-                                if (s >> scale) {
-                                    spriteScale = scale;
+                        for (auto [key, value] : imgArguments) {
+                            if (key == "scale") {
+                                auto scaleRes = utils::numFromString<float>(value);
+                                if (scaleRes) {
+                                    spriteScale = *scaleRes;
                                 }
                             }
                         }
@@ -386,7 +389,7 @@ struct MDParser {
                         else {
                             spr = CCSprite::create(s_lastImage.c_str());
                         }
-                        if (spr) {
+                        if (spr && spr->getUserObject("geode.texture-loader/fallback") == nullptr) {
                             spr->setScale(spriteScale);
                             renderer->renderNode(spr);
                         }
