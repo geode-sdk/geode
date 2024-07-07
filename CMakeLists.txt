@@ -66,7 +66,7 @@ if (DEFINED ENV{GEODE_BINDINGS_REPO_PATH})
 	# this is so stupid i hate windows paths
 	string(REPLACE "\\" "/" GEODE_BINDINGS_REPO_PATH ${temp})
 endif()
-
+set(SKIP_BUILDING_CODEGEN OFF)
 if (NOT GEODE_BINDINGS_REPO_PATH)
 	message(STATUS
 		"No override path for bindings provided, using CPM to clone default. "
@@ -77,7 +77,7 @@ if (NOT GEODE_BINDINGS_REPO_PATH)
 	)
 	CPMAddPackage(NAME "bindings"
 		GITHUB_REPOSITORY "geode-sdk/bindings"
-		GIT_TAG "main"
+		GIT_TAG "6a055819c91b900cad54ea5ad1a0ba9981e4e6bd"
 		DOWNLOAD_ONLY YES
 		NO_CACHE YES
 	)
