@@ -17,6 +17,7 @@
  * Add `Mod::checkUpdates` (9d02155)
  * Error on attempting to hook missing or inlined functions (2dc989f)
  * Implement function bound checking on Windows crashlog for symbol resolution (66c2f9a)
+ * Add new syntax for image scale arguments (#983)
 
 ## v3.1.1
  * Update Windows installer translations (ae589d2, dca28db, d12fb37, 08d8af3, f52cf02, 3fa1d9b)
