@@ -70,7 +70,7 @@ bool TextInput::init(float width, std::string const& placeholder, std::string co
     m_bgSprite->setContentSize({ width * 2, HEIGHT * 2 });
     this->addChildAtPosition(m_bgSprite, Anchor::Center);
 
-    m_input = CCTextInputNode::create(width, HEIGHT, placeholder.c_str(), 24, font.c_str());
+    m_input = CCTextInputNode::create(width - 10.f, HEIGHT, placeholder.c_str(), 24, font.c_str());
     m_input->setLabelPlaceholderColor({ 150, 150, 150 });
     m_input->setLabelPlaceholderScale(.5f);
     m_input->setMaxLabelScale(.6f);
@@ -132,9 +132,12 @@ void TextInput::setPasswordMode(bool enable) {
     m_input->refreshLabel();
 }
 void TextInput::setWidth(float width) {
-    m_input->m_maxLabelWidth = width;
-    m_input->setContentWidth(width * 2);
+    this->setContentWidth(width);
+    m_input->m_maxLabelWidth = width - 10.f;
+    m_input->setContentWidth(width);
     m_bgSprite->setContentWidth(width * 2);
+    m_input->setPositionX(width / 2.f);
+    m_bgSprite->setPositionX(width / 2.f);
 }
 void TextInput::setDelegate(TextInputDelegate* delegate, std::optional<int> tag) {
     m_input->m_delegate = delegate;

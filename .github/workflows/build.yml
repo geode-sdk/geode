@@ -61,9 +61,7 @@ jobs:
         host: linux
 
     - name: Setup CLI
-      uses: ./.github/actions/setup-cli
-      with:
-        host: linux
+      uses: geode-sdk/cli/.github/actions/setup@main
 
     - name: Download xwin
       uses: robinraju/release-downloader@v1.10
@@ -105,7 +103,7 @@ jobs:
       run: ${{ env.base-configure-command }} -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN ${{ steps.build-debug-info.outputs.extra-configure }}
       env:
         SPLAT_DIR: ${{ github.workspace }}/.xwin-cache/splat
-        TOOLCHAIN: ${{ github.workspace }}/toolchain/clang-cl-msvc.cmake
+        TOOLCHAIN: ${{ github.workspace }}/toolchain/clang-msvc.cmake
         HOST_ARCH: x86_64
 
     - name: Build
@@ -140,6 +138,9 @@ jobs:
     name: Build macOS
     runs-on: macos-latest
 
+    env:
+      SCCACHE_CACHE_MULTIARCH: 1
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -171,9 +172,7 @@ jobs:
         echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
 
     - name: Setup CLI
-      uses: ./.github/actions/setup-cli
-      with:
-        host: mac
+      uses: geode-sdk/cli/.github/actions/setup@main
 
     - name: Configure
       run: >
@@ -319,9 +318,7 @@ jobs:
         host: linux
 
     - name: Setup CLI
-      uses: ./.github/actions/setup-cli
-      with:
-        host: linux
+      uses: geode-sdk/cli/.github/actions/setup@main
 
     - name: Setup Breakpad Tools
       uses: ./.github/actions/setup-dump-sym
@@ -329,9 +326,8 @@ jobs:
 
     - name: Fix Ubuntu libcstd++
       run: |
-        sudo apt install ninja-build &&
-        sudo add-apt-repository ppa:ubuntu-toolchain-r/test &&
-        sudo apt-get update &&
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+        sudo apt-get update
         sudo apt-get install --only-upgrade libstdc++6
 
     - name: Configure

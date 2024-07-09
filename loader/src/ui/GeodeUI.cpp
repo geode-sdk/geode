@@ -66,12 +66,17 @@ void geode::openSupportPopup(ModMetadata const& metadata) {
 }
 
 void geode::openInfoPopup(Mod* mod) {
-    // TODO
-    // LocalModInfoPopup::create(mod, nullptr)->show();
+    ModPopup::create(mod)->show();
+}
+void geode::openIndexPopup(Mod* mod) {
+    // deprecated func
+    openInfoPopup(mod);
 }
 
-void geode::openIndexPopup(Mod* mod) {
-    ModPopup::create(mod)->show();
+void geode::openChangelogPopup(Mod* mod) {
+    auto popup = ModPopup::create(mod);
+    popup->loadTab(ModPopup::Tab::Changelog);
+    popup->show();
 }
 
 void geode::openSettingsPopup(Mod* mod) {

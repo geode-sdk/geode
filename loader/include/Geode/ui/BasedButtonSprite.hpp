@@ -82,6 +82,10 @@ namespace geode {
         Teal = 6,
         Aqua = 7,
         Cyan = 8,
+        Magenta = 9,
+        DimGreen = 10,
+        BrightGreen = 11,
+        Salmon = 12,
     };
     GEODE_DLL const char* baseEnumToString(EditorBaseColor);
 
