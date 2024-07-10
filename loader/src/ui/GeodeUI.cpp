@@ -129,7 +129,7 @@ protected:
         }
         // Set sprite and scale it to node size
         m_sprite = sprite;
-        limitNodeSize(m_sprite, m_obContentSize, 99.f, .05f);
+        limitNodeSize(m_sprite, m_obContentSize, 99.f, 0.f);
         this->addChildAtPosition(m_sprite, Anchor::Center);
     }
 
