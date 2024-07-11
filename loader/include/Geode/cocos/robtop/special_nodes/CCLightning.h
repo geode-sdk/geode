@@ -67,7 +67,7 @@ protected:
 	uint8_t m_unk148;
 	uint8_t m_opacity;
 	PAD(3);
-	cocos2d::CCColor3B m_tColor;
+	cocos2d::_ccColor3B m_tColor;
 	PAD(3);
 };
 
