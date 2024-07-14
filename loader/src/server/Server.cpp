@@ -264,22 +264,17 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
 
     auto res = ServerModVersion();
 
-    // Verify target Geode version
-    auto version = root.needs("geode").template get<VersionInfo>();
-    if (!semverCompare(Loader::get()->getVersion(), version)) {
-        return Err(
-            "Mod targets version {} but Geode is version {}",
-            version, Loader::get()->getVersion()
-        );
-    }
+    res.metadata.setGeodeVersion(root.needs("geode").template get<VersionInfo>());
 
     // Verify target GD version
-    auto gd = root.needs("gd").obj().needs(GEODE_PLATFORM_SHORT_IDENTIFIER).template get<std::string>();
-    if (gd != GEODE_GD_VERSION_STR && gd != "*") {
-        return Err(
-            "Mod targets GD version {} but current is version {}",
-            gd, GEODE_GD_VERSION_STR
-        );
+    auto gd_obj = root.needs("gd").obj();
+    std::string gd = "0.000";
+    if (gd_obj.has(GEODE_PLATFORM_SHORT_IDENTIFIER)) {
+        gd = gd_obj.has(GEODE_PLATFORM_SHORT_IDENTIFIER).template get<std::string>();
+    }
+
+    if (gd != "*") {
+        res.metadata.setGameVersion(gd);
     }
 
     // Get server info
