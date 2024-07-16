@@ -246,9 +246,7 @@ jobs:
         echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
 
     - name: Setup CLI
-      uses: ./.github/actions/setup-cli
-      with:
-        host: mac
+      uses: geode-sdk/cli/.github/actions/setup@main
 
     - name: Configure
       run: >
