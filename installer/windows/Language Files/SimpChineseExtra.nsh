@@ -8,8 +8,8 @@ ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Setup会帮您卸载$(^NameDA)�
 ; installer
 
 ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nGeometry Dash不在这文件夹，请再试一遍！"
-${LangFileString} GEODE_TEXT_GD_OLD "$\r$\n$\r$\nYour version of Geometry Dash is too old for this version of Geode!"
-${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "This path has other mods installed!$\r$\nThey will be overwritten by Geode. (the dll trademark)"
+${LangFileString} GEODE_TEXT_GD_OLD "$\r$\n$\r$\n您的Geometry Dash版本太旧了，不適合Geode的版本！"
+${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "这文件夹已经安装了不同的游戏修改器加载器！$\r$\nGeode会改写那些游戏修改器加载器。 (the dll trademark)"
 
 ; uninstaller
 
