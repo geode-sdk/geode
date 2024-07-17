@@ -410,7 +410,7 @@ jobs:
           dest: geode-${{ steps.ref.outputs.hash }}-android64.zip
 
       - name: Zip iOS Artifacts
-        uses: vimtor/action-zip@v1.1
+        uses: vimtor/action-zip@v1.2
         with:
           files: geode-ios/Geode.ios.dylib
           dest: geode-${{ steps.ref.outputs.hash }}-ios.zip
