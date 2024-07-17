@@ -76,9 +76,9 @@ if (NOT GEODE_BINDINGS_REPO_PATH)
 		"cloned the repository (system environment variables are supported)."
 	)
 	if ("${CMAKE_SYSTEM_NAME}" STREQUAL "iOS")
-	message(STATUS "Using ios branch for bindings")
+	message(STATUS "Using ios repo for bindings")
         CPMAddPackage(NAME "bindings"
-                GITHUB_REPOSITORY "geode-ios/bindings"
+                GITHUB_REPOSITORY "geode-catgirls/bindings"
                 GIT_TAG "main"
                 DOWNLOAD_ONLY YES
                 NO_CACHE YES
