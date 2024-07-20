@@ -1,5 +1,16 @@
 # Geode Changelog
 
+## v3.3.0
+ * Update network libraries, fixing problems with old Wine versions (e26fe95)
+ * Fix scale on mod logos for low quality (ba7b0fa)
+ * Fix platform-specific dependencies by using CLI 3.2.0 (98f82ff)
+ * Add `GEODE_DONT_USE_CCACHE` CMake option (2edfb71)
+ * Remove now useless `std::hash` impl for `std::filesystem::path` on android (2b35e0e)
+ * Implement custom window for showing crashlog on windows (4f32197)
+ * Update docs version to show v3.0.0 (f86d4db)
+ * Update chinese installer translation (#995, #997)
+ * Update polish installer translation (#998)
+
 ## v3.2.0
  * Fix auto-updater on MacOS (d752bc2)
  * Use tasks for `FileSettingNode` (f94e95e)
