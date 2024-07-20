@@ -8,6 +8,7 @@
  * Remove now useless `std::hash` impl for `std::filesystem::path` on android (2b35e0e)
  * Implement custom window for showing crashlog on windows (4f32197)
  * Update docs version to show v3.0.0 (f86d4db)
+ * Check hash for downloaded mods (61e000d)
  * Update chinese installer translation (#995, #997)
  * Update polish installer translation (#998)
 
