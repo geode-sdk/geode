@@ -335,7 +335,9 @@ if (APPLE)
 elseif (WIN32)
 	add_subdirectory(launcher/windows)
 
-	target_link_libraries(${PROJECT_NAME} dbghelp)
+	target_link_libraries(${PROJECT_NAME} dbghelp comctl32 uxtheme Winmm)
+
+	target_compile_definitions(${PROJECT_NAME} PUBLIC ISOLATION_AWARE_ENABLED=1)
 
 	if (MSVC)
 		# disable warnings about CCNode::setID
