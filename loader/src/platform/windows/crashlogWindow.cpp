@@ -1,9 +1,6 @@
 #define ISOLATION_AWARE_ENABLED 1
 
 #include <Windows.h>
-#include <CommCtrl.h>
-#include <Uxtheme.h>
-#include <vsstyle.h>
 
 #include <Geode/loader/Log.hpp>
 #include <Geode/utils/file.hpp>
@@ -72,7 +69,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         );
         SendMessage(handleText, WM_SETFONT, WPARAM(monoFont), TRUE);
         // does nothing :(
-        Edit_SetEndOfLine(handleText, EC_ENDOFLINE_LF);
+        // Edit_SetEndOfLine(handleText, EC_ENDOFLINE_LF);
 
         auto button = CreateWindowA(
             "BUTTON", "Close",

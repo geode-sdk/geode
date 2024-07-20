@@ -335,7 +335,7 @@ if (APPLE)
 elseif (WIN32)
 	add_subdirectory(launcher/windows)
 
-	target_link_libraries(${PROJECT_NAME} dbghelp comctl32 uxtheme winmm)
+	target_link_libraries(${PROJECT_NAME} dbghelp winmm)
 
 	target_compile_definitions(${PROJECT_NAME} PUBLIC ISOLATION_AWARE_ENABLED=1)
 
