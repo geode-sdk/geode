@@ -464,6 +464,7 @@ static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod, Mod* suspe
 
 static void handleException(LPEXCEPTION_POINTERS info) {
     std::string text;
+    std::filesystem::path crashlogPath;
 
     // calling SymInitialize from multiple threads can have unexpected behavior, so synchronize this part
     static std::mutex symMutex;
@@ -492,7 +493,8 @@ static void handleException(LPEXCEPTION_POINTERS info) {
             faultyMod,
             crashInfo,
             stacktrace,
-            getRegisters(info->ContextRecord)
+            getRegisters(info->ContextRecord),
+            crashlogPath
         );
 
         if (g_symbolsInitialized) {
@@ -500,7 +502,13 @@ static void handleException(LPEXCEPTION_POINTERS info) {
         }
     }
 
-    MessageBoxA(nullptr, text.c_str(), "Geometry Dash Crashed", MB_ICONERROR);
+    // defined in crashlogWindow.cpp
+    extern bool showCustomCrashlogWindow(std::string text, std::filesystem::path const& crashlogPath);
+
+    if (!showCustomCrashlogWindow(text, crashlogPath)) {
+        // if the window fails to show, we show a message box instead
+        MessageBoxA(nullptr, text.c_str(), "Geometry Dash Crashed", MB_ICONERROR);
+    }
 }
 
 static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {

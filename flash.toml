@@ -1,10 +1,10 @@
 
 # Configuration file for the Flash C++ documentation generator.
-# https://github.com/hjfod/flash
+# https://github.com/geode-sdk/flash
 
 [project]
 name = "Geode"
-version = "v1.0.0"
+version = "v3.0.0"
 repository = "https://github.com/geode-sdk/geode"
 tree = "https://github.com/geode-sdk/geode/tree/main"
 icon = "loader/resources/logos/geode-circle.png"
