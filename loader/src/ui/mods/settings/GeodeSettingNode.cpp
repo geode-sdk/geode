@@ -27,7 +27,7 @@ Num parseNumForInput(std::string const& str) {
     else if constexpr (std::is_same_v<Num, double>) {
         double val = 0.0;
         errno = 0;
-        if (std::setlocale(LC_NUMERIC, "en_US.utf8")) {
+        if (std::setlocale(LC_NUMERIC, "C")) {
             val = std::strtod(str.c_str(), nullptr);
             if (errno == 0) {
                 return val;

@@ -151,7 +151,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         if (ver != "*") {
             double val = 0.0;
             errno = 0;
-            if (std::setlocale(LC_NUMERIC, "en_US.utf8")) {
+            if (std::setlocale(LC_NUMERIC, "C")) {
                 val = std::strtod(ver.c_str(), nullptr);
                 if (errno == ERANGE) {
                     return Err("[mod.json] has invalid target GD version");

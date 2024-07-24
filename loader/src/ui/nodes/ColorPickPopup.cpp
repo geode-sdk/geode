@@ -22,7 +22,7 @@ static GLubyte parseInt(char const* str) {
 static GLubyte parseFloat(char const* str) {
     float val = 0.0f;
     errno = 0;
-    if (std::setlocale(LC_NUMERIC, "en_US.utf8")) {
+    if (std::setlocale(LC_NUMERIC, "C")) {
         val = std::strtof(str, nullptr);
         if (errno == 0) {
             return val;
