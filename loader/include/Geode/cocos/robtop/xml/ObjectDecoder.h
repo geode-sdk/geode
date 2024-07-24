@@ -4,7 +4,7 @@
 #include "../../include/cocos2d.h"
 
 // @note RobTop Addition
-class CC_DLL ObjectDecoder {
+class CC_DLL ObjectDecoder : public cocos2d::CCNode {
 public:
 	ObjectDecoder();
 	~ObjectDecoder() {}
