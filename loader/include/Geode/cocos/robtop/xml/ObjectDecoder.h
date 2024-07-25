@@ -25,8 +25,10 @@ public:
 
 	virtual bool init();
 
+/*
 public:
 	ObjectDecoderDelegate* m_delegate;
+*/
 };
 
 #endif
