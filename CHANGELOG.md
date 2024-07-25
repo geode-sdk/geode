@@ -1,5 +1,10 @@
 # Geode Changelog
 
+## v3.3.1
+ * Move ObjectDecoder to Cocos headers (95f9eeb)
+ * Fix weird behavior with textures, objects and more by changing en-US.utf8 locale to C (2cd1a9e)
+ * Change all C number parsing to use `numFromString` to further remove the risk of this happening again (006ede8)
+
 ## v3.3.0
  * Update network libraries, fixing problems with old Wine versions (e26fe95)
  * Fix scale on mod logos for low quality (ba7b0fa)
