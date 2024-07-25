@@ -79,12 +79,11 @@ public:
 Result<ccColor3B> colorForIdentifier(std::string const& tag) {
     if (utils::string::contains(tag, ' ')) {
         auto hexStr = utils::string::split(utils::string::normalize(tag), " ").at(1);
-        int hex = 0;
-        auto res = std::from_chars(hexStr.data(), hexStr.data() + hexStr.size(), hex, 16);
-        if (res.ec != std::errc()) {
+        auto res = numFromString<uint32_t>(hexStr, 16);
+        if (res.isErr()) {
             return Err("Invalid hex");
         }
-        return Ok(cc3x(hex));
+        return Ok(cc3x(res.unwrap()));
     }
     else {
         auto colorText = tag.substr(1);
@@ -190,40 +189,36 @@ void MDTextArea::onGDProfile(CCObject* pSender) {
     auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject());
     auto profile = std::string(href->getCString());
     profile = profile.substr(profile.find(":") + 1);
-    int id = 0;
-    auto res = std::from_chars(profile.data(), profile.data() + profile.size(), id);
-    if (res.ec != std::errc()) {
+    auto res = numFromString<int>(profile);
+    if (res.isErr()) {
         FLAlertLayer::create(
             "Error",
             "Invalid profile ID: <cr>" + profile +
                 "</c>. This is "
                 "probably the mod developer's fault, report the bug to them.",
             "OK"
-        )
-            ->show();
+        )->show();
         return;
     }
-    ProfilePage::create(id, false)->show();
+    ProfilePage::create(res.unwrap(), false)->show();
 }
 
 void MDTextArea::onGDLevel(CCObject* pSender) {
     auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject());
     auto level = std::string(href->getCString());
     level = level.substr(level.find(":") + 1);
-    int id = 0;
-    auto res = std::from_chars(level.data(), level.data() + level.size(), id);
-    if (res.ec != std::errc()) {
+    auto res = numFromString<int>(level);
+    if (res.isErr()) {
         FLAlertLayer::create(
             "Error",
             "Invalid level ID: <cr>" + level +
                 "</c>. This is "
                 "probably the mod developers's fault, report the bug to them.",
             "OK"
-        )
-            ->show();
+        )->show();
         return;
     }
-    auto searchObject = GJSearchObject::create(SearchType::Type19, fmt::format("{}&gameVersion=22", id));
+    auto searchObject = GJSearchObject::create(SearchType::Type19, fmt::format("{}&gameVersion=22", res.unwrap()));
     auto scene = LevelBrowserLayer::scene(searchObject);
     CCDirector::sharedDirector()->replaceScene(CCTransitionFade::create(0.5f, scene));
 }
