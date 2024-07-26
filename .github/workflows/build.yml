@@ -180,6 +180,7 @@ jobs:
         ${{ env.base-configure-command }}
         -DCMAKE_C_COMPILER=clang
         -DCMAKE_CXX_COMPILER=clang++
+        -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
         -DCMAKE_AR='/usr/bin/ar'
         -DCMAKE_RANLIB='/usr/bin/ranlib'
         -DGEODE_DISABLE_PRECOMPILED_HEADERS=Off
