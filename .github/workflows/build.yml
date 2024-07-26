@@ -167,10 +167,10 @@ jobs:
       with:
         host: mac
 
-    - name: Install LLVM
-      run: |
-        brew install llvm
-        echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
+    #- name: Install LLVM
+    #  run: |
+    #    brew install llvm
+    #    echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
 
     - name: Setup CLI
       uses: geode-sdk/cli/.github/actions/setup@main
