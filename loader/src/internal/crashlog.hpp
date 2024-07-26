@@ -33,6 +33,8 @@ namespace crashlog {
 
     std::string GEODE_DLL writeCrashlog(geode::Mod* faultyMod, std::string const& info, std::string const& stacktrace, std::string const& registers);
 
+    std::string writeCrashlog(geode::Mod* faultyMod, std::string const& info, std::string const& stacktrace, std::string const& registers, std::filesystem::path& outCrashlogPath);
+
     std::string getDateString(bool filesafe);
 
     void GEODE_DLL printGeodeInfo(std::stringstream& stream);

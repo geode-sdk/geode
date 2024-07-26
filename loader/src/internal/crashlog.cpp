@@ -53,6 +53,11 @@ void crashlog::printMods(std::stringstream& stream) {
 }
 
 std::string crashlog::writeCrashlog(geode::Mod* faultyMod, std::string const& info, std::string const& stacktrace, std::string const& registers) {
+    std::filesystem::path outPath;
+    return writeCrashlog(faultyMod, info, stacktrace, registers, outPath);
+}
+
+std::string crashlog::writeCrashlog(geode::Mod* faultyMod, std::string const& info, std::string const& stacktrace, std::string const& registers, std::filesystem::path& outPath) {
     // make sure crashlog directory exists
     (void)utils::file::createDirectoryAll(crashlog::getCrashLogDirectory());
 
@@ -94,9 +99,10 @@ std::string crashlog::writeCrashlog(geode::Mod* faultyMod, std::string const& in
     printMods(file);
 
     // save actual file
+    outPath = crashlog::getCrashLogDirectory() / (getDateString(true) + ".log");
     std::ofstream actualFile;
     actualFile.open(
-        crashlog::getCrashLogDirectory() / (getDateString(true) + ".log"), std::ios::app
+        outPath, std::ios::app
     );
     actualFile << file.rdbuf() << std::flush;
     actualFile.close();

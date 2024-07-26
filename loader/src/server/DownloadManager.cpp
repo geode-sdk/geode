@@ -3,6 +3,7 @@
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/utils/map.hpp>
 #include <optional>
+#include <hash/hash.hpp>
 
 using namespace server;
 
@@ -103,8 +104,16 @@ public:
         m_downloadListener.bind([this, hash = version.hash](web::WebTask::Event* event) {
             if (auto value = event->getValue()) {
                 if (value->ok()) {
+                    if (auto actualHash = ::calculateHash(value->data()); actualHash != hash) {
+                        log::error("Failed to download {}, hash mismatch ({} != {})", m_id, actualHash, hash);
+                        m_status = DownloadStatusError {
+                            .details = "Hash mismatch, downloaded file did not match what was expected",
+                        };
+                        ModDownloadEvent(m_id).post();
+                        return;
+                    }
+
                     bool removingInstalledWasError = false;
-                    bool disablingReplacedWasError = false;
                     std::string id = m_replacesMod.has_value() ? m_replacesMod.value() : m_id;
                     if (auto mod = Loader::get()->getInstalledMod(id)) {
                         std::error_code ec;

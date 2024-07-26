@@ -488,7 +488,13 @@ WebRequest& WebRequest::header(std::string_view name, std::string_view value) {
             const size_t comma = value.find(',', numStart);
             const size_t numLength = (comma == std::string::npos ? value.size() : comma) - numStart;
 
-            timeout(std::chrono::seconds(std::stol(std::string(value.substr(numStart, numLength)))));
+            int timeoutValue = 5;
+            auto res = numFromString<int>(value.substr(numStart, numLength));
+            if (res) {
+                timeoutValue = res.value();
+            }
+
+            timeout(std::chrono::seconds(timeoutValue));
 
             return *this;
         }
