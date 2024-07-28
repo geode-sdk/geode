@@ -149,16 +149,16 @@ namespace cocos2d {
         return s1.width != s2.width || s1.height != s2.height;
     }
     static bool operator<(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
-        return s1.width < s2.width || s1.height < s2.height;
+        return s1.width < s2.width && s1.height < s2.height;
     }
     static bool operator<=(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
-        return s1.width <= s2.width || s1.height <= s2.height;
+        return s1.width <= s2.width && s1.height <= s2.height;
     }
     static bool operator>(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
-        return s1.width > s2.width || s1.height > s2.height;
+        return s1.width > s2.width && s1.height > s2.height;
     }
     static bool operator>=(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
-        return s1.width >= s2.width || s1.height >= s2.height;
+        return s1.width >= s2.width && s1.height >= s2.height;
     }
     static bool operator==(cocos2d::CCRect const& r1, cocos2d::CCRect const& r2) {
         return r1.origin == r2.origin && r1.size == r2.size;
