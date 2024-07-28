@@ -125,11 +125,13 @@ namespace geode::utils::web {
         WebTask patch(std::string_view url);
 
         WebRequest& header(std::string_view name, std::string_view value);
+        WebRequest& removeHeader(std::string_view name);
         WebRequest& param(std::string_view name, std::string_view value);
         template <std::integral T>
         WebRequest& param(std::string_view name, T value) {
             return this->param(name, std::to_string(value));
         }
+        WebRequest& removeParam(std::string_view name);
 
         /**
          * Sets the request's user agent.
