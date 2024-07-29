@@ -12,6 +12,12 @@ namespace geode {
      */
     GEODE_DLL void openInfoPopup(Mod* mod);
     /**
+     * Open the info popup for a mod based on an ID. If the mod is installed, 
+     * its installed popup is opened. Otherwise will check if the servers 
+     * have this mod, or if not, show an error popup
+     */
+    GEODE_DLL void openInfoPopup(std::string const& modID);
+    /**
      * Open the info popup for a mod on the changelog page
      */
     GEODE_DLL void openChangelogPopup(Mod* mod);

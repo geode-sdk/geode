@@ -15,6 +15,8 @@
 #include <md4c.h>
 #include <charconv>
 #include <Geode/loader/Log.hpp>
+#include <Geode/ui/GeodeUI.hpp>
+#include <server/Server.hpp>
 
 using namespace geode::prelude;
 
@@ -77,13 +79,8 @@ public:
 };
 
 Result<ccColor3B> colorForIdentifier(std::string const& tag) {
-    if (utils::string::contains(tag, ' ')) {
-        auto hexStr = utils::string::split(utils::string::normalize(tag), " ").at(1);
-        auto res = numFromString<uint32_t>(hexStr, 16);
-        if (res.isErr()) {
-            return Err("Invalid hex");
-        }
-        return Ok(cc3x(res.unwrap()));
+    if (tag.length() > 2 && tag[1] == '-') {
+        return cc3bFromHexString(tag.substr(2));
     }
     else {
         auto colorText = tag.substr(1);
@@ -95,15 +92,19 @@ Result<ccColor3B> colorForIdentifier(std::string const& tag) {
         }
         else {
             switch (colorText.front()) {
-                case 'a': return Ok(cc3x(0x9632ff)); break;
-                case 'b': return Ok(cc3x(0x4a52e1)); break;
-                case 'g': return Ok(cc3x(0x40e348)); break;
-                case 'l': return Ok(cc3x(0x60abef)); break;
-                case 'j': return Ok(cc3x(0x32c8ff)); break;
-                case 'y': return Ok(cc3x(0xffff00)); break;
-                case 'o': return Ok(cc3x(0xffa54b)); break;
-                case 'r': return Ok(cc3x(0xff5a5a)); break;
-                case 'p': return Ok(cc3x(0xff00ff)); break;
+                case 'a': return Ok(ccc3(150, 50, 255)); break;
+                case 'b': return Ok(ccc3(74, 82, 225)); break;
+                case 'c': return Ok(ccc3(255, 255, 150)); break;
+                case 'd': return Ok(ccc3(255, 150, 255)); break;
+                case 'f': return Ok(ccc3(150, 255, 255)); break;
+                case 'g': return Ok(ccc3(64, 227, 72)); break;
+                case 'j': return Ok(ccc3(50, 200, 255)); break;
+                case 'l': return Ok(ccc3(96, 171, 239)); break;
+                case 'o': return Ok(ccc3(255, 165, 75)); break;
+                case 'p': return Ok(ccc3(255, 0, 255)); break;
+                case 'r': return Ok(ccc3(255, 90, 90)); break;
+                case 's': return Ok(ccc3(255, 220, 65)); break;
+                case 'y': return Ok(ccc3(255, 255, 0)); break;
                 default: return Err("Unknown color " + colorText);
             }
         }
@@ -223,44 +224,10 @@ void MDTextArea::onGDLevel(CCObject* pSender) {
     CCDirector::sharedDirector()->replaceScene(CCTransitionFade::create(0.5f, scene));
 }
 
-void MDTextArea::onGeodeMod(CCObject* pSender) {
-    // TODO
-    // auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject());
-    // auto modString = std::string(href->getCString());
-    // modString = modString.substr(modString.find(":") + 1);
-    // auto loader = Loader::get();
-    // auto index = Index::get();
-    // Mod* mod;
-    // bool success = false;
-    // IndexItemHandle indexItem;
-    // bool isIndexMod = !loader->isModInstalled(modString);
-
-    // if (isIndexMod) {
-    //     auto indexSearch = index->getItemsByModID(modString);
-    //     if (indexSearch.size() != 0) {
-    //         indexItem = indexSearch.back();
-    //         Mod mod2 = Mod(indexItem->getMetadata());
-    //         mod = &mod2;
-    //         auto item = Index::get()->getItem(mod);
-    //         IndexItemInfoPopup::create(item, nullptr)->show();
-    //         success = true;
-    //     }
-    // } else {
-    //     mod = loader->getLoadedMod(modString);
-    //     LocalModInfoPopup::create(mod, nullptr)->show();
-    //     success = true;
-    // }
-
-    // if (!success) {
-    //     FLAlertLayer::create(
-    //         "Error",
-    //         "Invalid mod ID: <cr>" + modString +
-    //             "</c>. This is "
-    //             "probably the mod developers's fault, report the bug to them.",
-    //         "OK"
-    //     )
-    //         ->show();
-    // }
+void MDTextArea::onGeodeMod(CCObject* sender) {
+    auto href = as<CCString*>(as<CCNode*>(sender)->getUserObject());
+    auto modID = std::string(href->getCString());
+    openInfoPopup(modID.substr(modID.find(":") + 1));
 }
 
 void MDTextArea::FLAlert_Clicked(FLAlertLayer* layer, bool btn) {

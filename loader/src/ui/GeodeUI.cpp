@@ -2,11 +2,70 @@
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/MDPopup.hpp>
+#include <Geode/ui/LoadingSpinner.hpp>
 #include <Geode/utils/web.hpp>
 #include <server/Server.hpp>
 #include "mods/GeodeStyle.hpp"
 #include "mods/settings/ModSettingsPopup.hpp"
 #include "mods/popups/ModPopup.hpp"
+
+class LoadServerModLayer : public Popup<std::string const&> {
+protected:
+    std::string m_id;
+    EventListener<server::ServerRequest<server::ServerModMetadata>> m_listener;
+
+    bool setup(std::string const& id) override {
+        m_closeBtn->setVisible(false);
+
+        this->setTitle("Loading mod...");
+
+        auto spinner = LoadingSpinner::create(40);
+        m_mainLayer->addChildAtPosition(spinner, Anchor::Center, ccp(0, -10));
+
+        m_id = id;
+        m_listener.bind(this, &LoadServerModLayer::onRequest);
+        m_listener.setFilter(server::getMod(id));
+
+        return true;
+    }
+
+    void onRequest(server::ServerRequest<server::ServerModMetadata>::Event* event) {
+        if (auto res = event->getValue()) {
+            if (res->isOk()) {
+                // Copy info first as onClose may free the listener which will free the event
+                auto info = **res;
+                this->onClose(nullptr);
+                // Run this on next frame because otherwise the popup is unable to call server::getMod for some reason
+                Loader::get()->queueInMainThread([info = std::move(info)]() mutable {
+                    ModPopup::create(ModSource(std::move(info)))->show();
+                });
+            }
+            else {
+                auto id = m_id;
+                this->onClose(nullptr);
+                FLAlertLayer::create(
+                    "Error Loading Mod",
+                    fmt::format("Unable to find mod with the ID <cr>{}</c>!", id),
+                    "OK"
+                )->show();
+            }
+        }
+        else if (event->isCancelled()) {
+            this->onClose(nullptr);
+        }
+    }
+
+public:
+    static LoadServerModLayer* create(std::string const& id) {
+        auto ret = new LoadServerModLayer();
+        if (ret && ret->initAnchored(180, 100, id, "square01_001.png", CCRectZero)) {
+            ret->autorelease();
+            return ret;
+        }
+        CC_SAFE_RELEASE(ret);
+        return nullptr;
+    }
+};
 
 void geode::openModsList() {
     ModsLayer::scene();
@@ -67,6 +126,14 @@ void geode::openSupportPopup(ModMetadata const& metadata) {
 
 void geode::openInfoPopup(Mod* mod) {
     ModPopup::create(mod)->show();
+}
+void geode::openInfoPopup(std::string const& modID) {
+    if (auto mod = Loader::get()->getInstalledMod(modID)) {
+        openInfoPopup(mod);
+    }
+    else {
+        LoadServerModLayer::create(modID)->show();
+    }
 }
 void geode::openIndexPopup(Mod* mod) {
     // deprecated func
