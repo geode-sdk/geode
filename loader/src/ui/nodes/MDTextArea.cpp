@@ -24,7 +24,7 @@ static constexpr float g_fontScale = .5f;
 static constexpr float g_paragraphPadding = 7.f;
 static constexpr float g_indent = 7.f;
 static constexpr float g_codeBlockIndent = 8.f;
-static constexpr ccColor3B g_linkColor = cc3x(0x7ff4f4);
+static constexpr ccColor3B g_linkColor = {0x7f, 0xf4, 0xf4};
 
 TextRenderer::Font g_mdFont = [](int style) -> TextRenderer::Label {
     if ((style & TextStyleBold) && (style & TextStyleItalic)) {
