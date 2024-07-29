@@ -6,6 +6,7 @@
 class ModPopup;
 class ModItem;
 class ModLogoSprite;
+class FLAlertLayer; // for macos :3
 
 namespace geode {
     /**
