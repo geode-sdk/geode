@@ -56,4 +56,6 @@ public:
     static ModItem* create(ModSource&& source);
 
     void updateSize(float width, bool big);
+
+    ModSource& getSource() &;
 };

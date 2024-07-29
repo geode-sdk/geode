@@ -2,7 +2,104 @@
 
 #include "../loader/Mod.hpp"
 
+class ModPopup;
+class ModItem;
+class ModLogoSprite;
+
 namespace geode {
+    /**
+     * Event posted whenever a popup is opened for a mod. Allows mods to modify 
+     * the Geode UI. See the [tutorial on Geode UI modification](https://docs.geode-sdk.org/tutorials/modify-geode) 
+     * for **very important notes on these events**!
+     */
+    class GEODE_DLL ModPopupUIEvent final : public Event {
+    private:
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
+
+        friend class ::ModPopup;
+
+        ModPopupUIEvent(std::unique_ptr<Impl>&& impl);
+
+    public:
+        virtual ~ModPopupUIEvent();
+
+        /**
+         * Get the popup itself
+         */
+        FLAlertLayer* getPopup() const;
+        /**
+         * Get the ID of the mod this popup is for
+         */
+        std::string getModID() const;
+        /**
+         * If this popup is of an installed mod, get it
+         */
+        std::optional<Mod*> getMod() const;
+    };
+
+    /**
+     * Event posted whenever a logo sprite is created for a mod. Allows mods to modify 
+     * the Geode UI. See the [tutorial on Geode UI modification](https://docs.geode-sdk.org/tutorials/modify-geode) 
+     * for **very important notes on these events**!
+     */
+    class GEODE_DLL ModItemUIEvent final : public Event {
+    private:
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
+
+        friend class ::ModItem;
+
+        ModItemUIEvent(std::unique_ptr<Impl>&& impl);
+
+    public:
+        virtual ~ModItemUIEvent();
+
+        /**
+         * Get the item itself
+         */
+        cocos2d::CCNode* getItem() const;
+        /**
+         * Get the ID of the mod this logo is for
+         */
+        std::string getModID() const;
+        /**
+         * If this logo is of an installed mod, get it
+         */
+        std::optional<Mod*> getMod() const;
+    };
+
+    /**
+     * Event posted whenever a logo sprite is created for a mod. Allows mods to modify 
+     * the Geode UI. See the [tutorial on Geode UI modification](https://docs.geode-sdk.org/tutorials/modify-geode) 
+     * for **very important notes on these events**!
+     */
+    class GEODE_DLL ModLogoUIEvent final : public Event {
+    private:
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
+
+        friend class ::ModLogoSprite;
+
+        ModLogoUIEvent(std::unique_ptr<Impl>&& impl);
+
+    public:
+        virtual ~ModLogoUIEvent();
+
+        /**
+         * Get the sprite itself
+         */
+        cocos2d::CCNode* getSprite() const;
+        /**
+         * Get the ID of the mod this logo is for
+         */
+        std::string getModID() const;
+        /**
+         * If this logo is of an installed mod, get it
+         */
+        std::optional<Mod*> getMod() const;
+    };
+
     /**
      * Open the Geode mods list
      */

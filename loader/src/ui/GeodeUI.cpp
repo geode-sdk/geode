@@ -8,6 +8,7 @@
 #include "mods/GeodeStyle.hpp"
 #include "mods/settings/ModSettingsPopup.hpp"
 #include "mods/popups/ModPopup.hpp"
+#include "GeodeUIEvent.hpp"
 
 class LoadServerModLayer : public Popup<std::string const&> {
 protected:
@@ -176,6 +177,9 @@ protected:
         this->setAnchorPoint({ .5f, .5f });
         this->setContentSize({ 50, 50 });
 
+        // This is a default ID, nothing should ever rely on the ID of any ModLogoSprite being this
+        this->setID(std::string(Mod::get()->expandSpriteName(fmt::format("sprite-{}", id))));
+
         m_modID = id;
         m_listener.bind(this, &ModLogoSprite::onFetch);
 
@@ -183,19 +187,22 @@ protected:
         if (!fetch) {
             this->setSprite(id == "geode.loader" ? 
                 CCSprite::createWithSpriteFrameName("geode-logo.png"_spr) : 
-                CCSprite::create(fmt::format("{}/logo.png", id).c_str())
+                CCSprite::create(fmt::format("{}/logo.png", id).c_str()),
+                false
             );
         }
         // Asynchronously fetch from server
         else {
-            this->setSprite(createLoadingCircle(25));
+            this->setSprite(createLoadingCircle(25), false);
             m_listener.setFilter(server::getModLogo(id));
         }
+
+        ModLogoUIEvent(std::make_unique<ModLogoUIEvent::Impl>(this, id)).post();
 
         return true;
     }
 
-    void setSprite(CCNode* sprite) {
+    void setSprite(CCNode* sprite, bool postEvent) {
         // Remove any existing sprite
         if (m_sprite) {
             m_sprite->removeFromParent();
@@ -207,15 +214,20 @@ protected:
         }
         // Set sprite and scale it to node size
         m_sprite = sprite;
+        m_sprite->setID("sprite");
         limitNodeSize(m_sprite, m_obContentSize, 99.f, 0.f);
         this->addChildAtPosition(m_sprite, Anchor::Center);
+
+        if (postEvent) {
+            ModLogoUIEvent(std::make_unique<ModLogoUIEvent::Impl>(this, m_modID)).post();
+        }
     }
 
     void onFetch(server::ServerRequest<ByteVector>::Event* event) {
         if (auto result = event->getValue()) {
             // Set default sprite on error
             if (result->isErr()) {
-                this->setSprite(nullptr);
+                this->setSprite(nullptr, true);
             }
             // Otherwise load downloaded sprite to memory
             else {
@@ -224,11 +236,11 @@ protected:
                 image->initWithImageData(const_cast<uint8_t*>(data.data()), data.size());
 
                 auto texture = CCTextureCache::get()->addUIImage(image, m_modID.c_str());
-                this->setSprite(CCSprite::createWithTexture(texture));
+                this->setSprite(CCSprite::createWithTexture(texture), true);
             }
         }
         else if (event->isCancelled()) {
-            this->setSprite(nullptr);
+            this->setSprite(nullptr, true);
         }
     }
 
