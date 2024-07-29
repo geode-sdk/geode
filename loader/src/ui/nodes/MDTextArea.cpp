@@ -227,7 +227,7 @@ void MDTextArea::onGDLevel(CCObject* pSender) {
 void MDTextArea::onGeodeMod(CCObject* sender) {
     auto href = as<CCString*>(as<CCNode*>(sender)->getUserObject());
     auto modID = std::string(href->getCString());
-    openInfoPopup(modID.substr(modID.find(":") + 1));
+    (void)openInfoPopup(modID.substr(modID.find(":") + 1));
 }
 
 void MDTextArea::FLAlert_Clicked(FLAlertLayer* layer, bool btn) {
