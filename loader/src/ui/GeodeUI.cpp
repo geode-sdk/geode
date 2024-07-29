@@ -56,6 +56,13 @@ protected:
     }
 
 public:
+    Task<bool> listen() const {
+        return m_listener.getFilter().map(
+            [](auto* result) -> bool { return result->isOk(); },
+            [](auto) -> std::monostate { return std::monostate(); }
+        );
+    }
+
     static LoadServerModLayer* create(std::string const& id) {
         auto ret = new LoadServerModLayer();
         if (ret && ret->initAnchored(180, 100, id, "square01_001.png", CCRectZero)) {
@@ -127,12 +134,16 @@ void geode::openSupportPopup(ModMetadata const& metadata) {
 void geode::openInfoPopup(Mod* mod) {
     ModPopup::create(mod)->show();
 }
-void geode::openInfoPopup(std::string const& modID) {
+Task<bool> geode::openInfoPopup(std::string const& modID) {
     if (auto mod = Loader::get()->getInstalledMod(modID)) {
         openInfoPopup(mod);
+        return Task<bool>::immediate(true);
     }
     else {
-        LoadServerModLayer::create(modID)->show();
+        auto popup = LoadServerModLayer::create(modID);
+        auto task = popup->listen();
+        popup->show();
+        return task;
     }
 }
 void geode::openIndexPopup(Mod* mod) {
