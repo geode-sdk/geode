@@ -1,5 +1,13 @@
 # Geode Changelog
 
+## v3.4.0
+ * Add an API for modifying the Geode UI via events; see [the corresponding docs page](https://docs.geode-sdk.org/tutorials/modify-geode) (2a3c35f)
+ * Add `openInfoPopup` overload that accepts a mod ID and can open both an installed mod page or a server page (028bbf9)
+ * Add `LoadingSpinner` for creating loading circles easily (5c84012)
+ * MDTextArea changes: hex colors are now formatted as `<c-XXXXXX></c>`; added support for `<cc>`, `<cd>`, `<cf>`, and `<cs>`; fixed `mod:` links (028bbf9)
+ * Deprecate `cc3x` (6080fdb)
+ * Don't cancel subtasks on `Task` destructor (4b4bc0e)
+
 ## v3.3.1
  * Move ObjectDecoder and its delegate to Cocos headers (95f9eeb, dceb91e)
  * Fix weird behavior with textures, objects and more by changing en-US.utf8 locale to C (2cd1a9e)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../loader/Mod.hpp"
+#include <Geode/binding/FLAlertLayer.hpp>
 
 class ModPopup;
 class ModItem;
