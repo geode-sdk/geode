@@ -82,6 +82,10 @@ Result<ccColor3B> colorForIdentifier(std::string const& tag) {
     if (tag.length() > 2 && tag[1] == '-') {
         return cc3bFromHexString(tag.substr(2));
     }
+    // Support the old form of <carbitaryletters hex>
+    else if (tag.find(' ') != std::string::npos) {
+        return cc3bFromHexString(tag.substr(tag.find(' ') + 1));
+    }
     else {
         auto colorText = tag.substr(1);
         if (!colorText.size()) {
