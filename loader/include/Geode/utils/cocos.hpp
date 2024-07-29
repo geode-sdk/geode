@@ -861,6 +861,7 @@ namespace geode::cocos {
         return {color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f};
     }
 
+    [[deprecated("This function sucks, use cc3bFromHexString instead")]]
     constexpr cocos2d::ccColor3B cc3x(int hexValue) {
         if (hexValue <= 0xf)
             return cocos2d::ccColor3B{
