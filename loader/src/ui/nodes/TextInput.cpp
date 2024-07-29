@@ -191,6 +191,13 @@ std::string TextInput::getString() const {
     return m_input->getString();
 }
 
+void TextInput::focus() {
+    m_input->onClickTrackNode(true);
+}
+void TextInput::defocus() {
+    m_input->detachWithIME();
+}
+
 CCTextInputNode* TextInput::getInputNode() const {
     return m_input;
 }
