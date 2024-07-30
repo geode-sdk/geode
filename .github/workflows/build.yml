@@ -141,6 +141,7 @@ jobs:
 
     env:
       SCCACHE_CACHE_MULTIARCH: 1
+      SCCACHE_RECACHE: 1
 
     steps:
     - name: Checkout
