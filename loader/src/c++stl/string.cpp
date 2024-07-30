@@ -34,6 +34,10 @@ namespace gd {
         impl.setStorage(str);
     }
 
+    string::string(char const* str, size_t size) {
+        impl.setStorage(std::string_view(str, size));
+    }
+
     string::string(std::string const& str) {
         impl.setStorage(str);
     }

@@ -66,6 +66,7 @@ namespace gd {
 		string(string const&);
 		// string(string&&);
 		string(char const*);
+		string(char const*, size_t);
 		string(std::string const&);
 		// tried to add a string_view ctor, but got overload errors :(
 		~string();
