@@ -163,9 +163,12 @@ namespace geode {
                     m_status = Status::Cancelled;
                     // If this task carries extra data, call the extra data's 
                     // handling method
-                    if (m_extraData) {
-                        m_extraData->cancel();
-                    }
+                    // Actually: don't do this! This will cancel tasks even if
+                    // they have other listeners! The extra data's destructor 
+                    // will handle cancellation if it has no other listeners!
+                    // if (m_extraData) {
+                    //     m_extraData->cancel();
+                    // }
                     // No need to actually post an event because this Task is 
                     // unlisteanable
                     m_finalEventPosted = true;

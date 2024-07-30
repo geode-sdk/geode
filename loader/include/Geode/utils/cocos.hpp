@@ -149,16 +149,16 @@ namespace cocos2d {
         return s1.width != s2.width || s1.height != s2.height;
     }
     static bool operator<(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
-        return s1.width < s2.width || s1.height < s2.height;
+        return s1.width < s2.width && s1.height < s2.height;
     }
     static bool operator<=(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
-        return s1.width <= s2.width || s1.height <= s2.height;
+        return s1.width <= s2.width && s1.height <= s2.height;
     }
     static bool operator>(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
-        return s1.width > s2.width || s1.height > s2.height;
+        return s1.width > s2.width && s1.height > s2.height;
     }
     static bool operator>=(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
-        return s1.width >= s2.width || s1.height >= s2.height;
+        return s1.width >= s2.width && s1.height >= s2.height;
     }
     static bool operator==(cocos2d::CCRect const& r1, cocos2d::CCRect const& r2) {
         return r1.origin == r2.origin && r1.size == r2.size;
@@ -861,6 +861,7 @@ namespace geode::cocos {
         return {color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f};
     }
 
+    [[deprecated("This function may have unintended behavior, use cc3bFromHexString or manually expand the color instead")]]
     constexpr cocos2d::ccColor3B cc3x(int hexValue) {
         if (hexValue <= 0xf)
             return cocos2d::ccColor3B{
