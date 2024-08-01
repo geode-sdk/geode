@@ -1316,7 +1316,7 @@ namespace geode::cocos {
             offSprite->setScale(scale);
             onSprite->setScale(scale);
 
-            return createToggler(offSprite, onSprite, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+            return createToggler(onSprite, offSprite, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
         }
 
         static CCMenuItemToggler* createTogglerWithFilename(
@@ -1331,7 +1331,7 @@ namespace geode::cocos {
             offSprite->setScale(scale);
             onSprite->setScale(scale);
 
-            return createToggler(offSprite, onSprite, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+            return createToggler(onSprite, offSprite, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
         }
 
         static CCMenuItemToggler* createTogglerWithFrameName(
@@ -1346,7 +1346,7 @@ namespace geode::cocos {
             offSprite->setScale(scale);
             onSprite->setScale(scale);
 
-            return createToggler(offSprite, onSprite, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+            return createToggler(onSprite, offSprite, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
         }
 
         template <class Node>
