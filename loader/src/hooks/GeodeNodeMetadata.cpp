@@ -122,7 +122,7 @@ void CCNode::setID(std::string const& id) {
 }
 
 CCNode* CCNode::getChildByID(std::string const& id) {
-    for (auto child : CCArrayExt<CCNode*>(m_pChildren)) {
+    for (auto child : CCArrayExt<CCNode*>(this->getChildren())) {
         if (child->getID() == id) {
             return child;
         }
