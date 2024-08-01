@@ -1301,7 +1301,7 @@ namespace geode::cocos {
             cocos2d::CCNode* offSprite,
             utils::MiniFunction<void(CCMenuItemToggler*)>&& callback
         ) {
-            auto item = CCMenuItemToggler::create(onSprite, offSprite, nullptr, nullptr);
+            auto item = CCMenuItemToggler::create(offSprite, onSprite, nullptr, nullptr);
             assignCallback(item, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
             return item;
         }
