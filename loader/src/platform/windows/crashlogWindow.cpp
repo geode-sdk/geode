@@ -141,6 +141,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             0, 0,
             SWP_NOZORDER | SWP_NOSIZE
         );
+
+        // force redraw buttons to fix weird artifacts
+        RedrawWindow(GetDlgItem(hwnd, ID_BUTTON_CLOSE), NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_FRAME);
+        RedrawWindow(GetDlgItem(hwnd, ID_BUTTON_OPEN_FOLDER), NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_FRAME);
+        RedrawWindow(GetDlgItem(hwnd, ID_BUTTON_COPY_CLIPBOARD), NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_FRAME);
+        RedrawWindow(GetDlgItem(hwnd, ID_BUTTON_RESTART_GAME), NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_FRAME);
     } break;
 
     case WM_CTLCOLORSTATIC: {
