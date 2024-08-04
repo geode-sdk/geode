@@ -33,7 +33,6 @@ env:
 jobs:
   build-windows:
     name: Build Windows
-    if: false
     runs-on: ubuntu-24.04
 
     steps:
@@ -141,7 +140,6 @@ jobs:
 
     env:
       SCCACHE_CACHE_MULTIARCH: 1
-      SCCACHE_RECACHE: 1
 
     steps:
     - name: Checkout
@@ -156,12 +154,14 @@ jobs:
         has-sccache: ${{ inputs.use-ccache }}
       if: inputs.build-debug-info
 
-    #- name: Setup caches
-    #  uses: ./.github/actions/setup-cache
-    #  with:
-    #    host: mac
-    #    target: mac
-    #    use-ccache: ${{ github.event_name != 'workflow_dispatch' || inputs.use-ccache }}
+    # due to very strange performance issues, sccache is currently disabled for macos. sorry
+
+    # - name: Setup caches
+    #   uses: ./.github/actions/setup-cache
+    #   with:
+    #     host: mac
+    #     target: mac
+    #     use-ccache: ${{ github.event_name != 'workflow_dispatch' || inputs.use-ccache }}
 
     - name: Setup Ninja
       uses: ./.github/actions/setup-ninja
@@ -222,7 +222,6 @@ jobs:
 
     name: Build ${{ matrix.config.name }}
     runs-on: ubuntu-latest
-    if: false
 
     steps:
     - name: Checkout
