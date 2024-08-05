@@ -52,7 +52,7 @@ namespace geode::stl {
 }
 
 namespace gd {
-#if defined(GEODE_IS_MACOS) || defined(GEODE_IS_WINDOWS)
+#if defined(GEODE_IS_MACOS) || defined(GEODE_IS_WINDOWS) || defined(GEODE_IS_IOS)
 	// rob uses libc++ now! this will prob work fine
 	using string = std::string;
 
