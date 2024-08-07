@@ -505,8 +505,18 @@ WebRequest& WebRequest::header(std::string_view name, std::string_view value) {
     return *this;
 }
 
+WebRequest& WebRequest::removeHeader(std::string_view name) {
+    m_impl->m_headers.erase(std::string(name));
+    return *this;
+}
+
 WebRequest& WebRequest::param(std::string_view name, std::string_view value) {
     m_impl->m_urlParameters.insert_or_assign(std::string(name), std::string(value));
+    return *this;
+}
+
+WebRequest& WebRequest::removeParam(std::string_view name) {
+    m_impl->m_urlParameters.erase(std::string(name));
     return *this;
 }
 

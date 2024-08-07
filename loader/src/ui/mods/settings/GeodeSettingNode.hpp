@@ -150,10 +150,10 @@ protected:
 
     virtual void valueChanged(bool updateText = true) {
         if (this->hasUncommittedChanges()) {
-            m_nameLabel->setColor(cc3x(0x1d0));
+            m_nameLabel->setColor({0x11, 0xdd, 0x00});
         }
         else {
-            m_nameLabel->setColor(cc3x(0xfff));
+            m_nameLabel->setColor({0xff, 0xff, 0xff});
         }
         if (m_resetBtn) m_resetBtn->setVisible(this->hasNonDefaultValue());
         auto isValid = setting()->validate(m_uncommittedValue);
