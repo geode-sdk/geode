@@ -103,6 +103,7 @@ bool FiltersPopup::setup(ModListSource* src) {
 
         m_developerNameInput = TextInput::create(inputContainer->getContentWidth(), "Developer Name");
         m_developerNameInput->setTextAlign(TextInputAlign::Left);
+        m_developerNameInput->setFilter("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-");
         m_developerNameInput->setString(src->getQuery().developer.value_or(""));
         inputContainer->addChildAtPosition(m_developerNameInput, Anchor::Center);
 
