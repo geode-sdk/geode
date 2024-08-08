@@ -154,22 +154,19 @@ jobs:
         has-sccache: ${{ inputs.use-ccache }}
       if: inputs.build-debug-info
 
-    - name: Setup caches
-      uses: ./.github/actions/setup-cache
-      with:
-        host: mac
-        target: mac
-        use-ccache: ${{ github.event_name != 'workflow_dispatch' || inputs.use-ccache }}
+    # due to very strange performance issues, sccache is currently disabled for macos. sorry
+
+    # - name: Setup caches
+    #   uses: ./.github/actions/setup-cache
+    #   with:
+    #     host: mac
+    #     target: mac
+    #     use-ccache: ${{ github.event_name != 'workflow_dispatch' || inputs.use-ccache }}
 
     - name: Setup Ninja
       uses: ./.github/actions/setup-ninja
       with:
         host: mac
-
-    - name: Install LLVM
-      run: |
-        brew install llvm
-        echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
 
     - name: Setup CLI
       uses: geode-sdk/cli/.github/actions/setup@main
@@ -180,9 +177,8 @@ jobs:
         -DCMAKE_C_COMPILER=clang
         -DCMAKE_CXX_COMPILER=clang++
         -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
-        -DCMAKE_AR='/usr/bin/ar'
-        -DCMAKE_RANLIB='/usr/bin/ranlib'
-        -DGEODE_DISABLE_PRECOMPILED_HEADERS=Off
+        -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+        -DGEODE_DISABLE_PRECOMPILED_HEADERS=OFF
         ${{ steps.build-debug-info.outputs.extra-configure }}
 
     - name: Build
