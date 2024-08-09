@@ -72,7 +72,7 @@ representative at an online or offline event.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the community leaders directly on Discord, or via a private message
-to the official Geode X account (@GeodeSDK). If your report concerns a specific
+to the official Geode X account ([@GeodeSDK](https://x.com/GeodeSDK)). If your report concerns a specific
 community team member or group of community team members, please send your
 report to a team member that is not part of the report, or a member of the
 administrative board.
