@@ -375,6 +375,17 @@ bool ModsLayer::init() {
     folderBtn->setID("mods-folder-button");
     actionsMenu->addChild(folderBtn);
 
+    auto copySpr = createGeodeCircleButton(
+        CCSprite::createWithSpriteFrameName("copy.png"_spr), 1.f,
+        CircleBaseSize::Medium
+    );
+    copySpr->setScale(.8f);
+    auto copyBtn = CCMenuItemSpriteExtra::create(
+        copySpr, this, menu_selector(ModsLayer::onCopy)
+    );
+    copyBtn->setID("copy-button");
+    actionsMenu->addChild(copyBtn);
+
     actionsMenu->setLayout(
         ColumnLayout::create()
             ->setAxisAlignment(AxisAlignment::Start)
@@ -700,6 +711,35 @@ void ModsLayer::onTheme(CCObject*) {
 }
 void ModsLayer::onSettings(CCObject*) {
     openSettingsPopup(Mod::get());
+}
+
+void ModsLayer::onCopy(CCObject*) {
+    auto text = "No mods installed";
+    auto mods = Loader::get()->getAllMods();
+    if (!mods.empty()) text = "Mods list copied to clipboard!";
+
+    auto* label = CCLabelBMFont::create(text, "bigFont.fnt");
+    label->setPosition(CCDirector::get()->getWinSize() / 2);
+    label->setOpacity(0);
+    label->runAction(CCSequence::create(
+        CCFadeIn::create(.5f),
+        CCDelayTime::create(1.f),
+        CCFadeOut::create(.5f),
+        nullptr
+    ));
+    this->addChild(label);
+
+    std::stringstream ss;
+    using namespace std::string_view_literals;
+    for (auto& mod : mods) {
+        ss << fmt::format("{} | [{}] {}\n",
+            mod->isEnabled() ? "x"sv : 
+            mod->hasProblems() ? "!"sv :
+            " "sv,
+            mod->getVersion().toVString(), mod->getID()
+        );
+    }
+    clipboard::write(ss.str());
 }
 
 ModsLayer* ModsLayer::create() {
