@@ -326,6 +326,7 @@ THE SOFTWARE.
 #include "../robtop/scene_nodes/CCSceneTransitionDelegate.h"
 
 #include "../robtop/xml/DS_Dictionary.h"
+#include "../robtop/xml/ObjectDecoder.h"
 
 // #include "../robtop/glfw/glfw3.h"
 

@@ -52,7 +52,7 @@ namespace geode::stl {
 }
 
 namespace gd {
-#if defined(GEODE_IS_MACOS) || defined(GEODE_IS_WINDOWS)
+#if defined(GEODE_IS_MACOS) || defined(GEODE_IS_WINDOWS) || defined(GEODE_IS_IOS)
 	// rob uses libc++ now! this will prob work fine
 	using string = std::string;
 
@@ -66,6 +66,7 @@ namespace gd {
 		string(string const&);
 		// string(string&&);
 		string(char const*);
+		string(char const*, size_t);
 		string(std::string const&);
 		// tried to add a string_view ctor, but got overload errors :(
 		~string();

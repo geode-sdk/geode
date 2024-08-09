@@ -1,6 +1,7 @@
 #pragma once
 
 #include <dlfcn.h>
+#include <type_traits>
 #include "ItaniumCast.hpp"
 
 namespace geode {

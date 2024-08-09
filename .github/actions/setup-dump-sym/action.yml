@@ -5,7 +5,7 @@ inputs:
   dump_syms_version:
     description: "Revision of mozilla/dump_syms repository to fetch"
     required: true
-    default: "v2.2.2"
+    default: "v2.3.3"
 outputs:
   binary-path:
     description: "Path of the dump_syms utility, including the executable."
