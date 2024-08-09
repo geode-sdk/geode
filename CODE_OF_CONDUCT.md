@@ -91,4 +91,4 @@ We welcome feedback and suggestions. Feel free to open an issue on our
 
 ## Attribution
 
-This Code of Conduct is adapted from the [Contributor Covenant version 2.1](https://www.contributor-covenant.org/version/2/1/code_of_conduct.html), with inspirations taken from [Prism Code of Conduct](https://prismlauncher.org/wiki/overview/code-of-conduct/) and [Quilt Code of Conduct](https://quiltmc.org/en/community/code-of-conduct/).
+This Code of Conduct is adapted from the [Contributor Covenant version 2.1](https://www.contributor-covenant.org/version/2/1/code_of_conduct.html), with inspirations taken from [Prism Launcher Code of Conduct](https://prismlauncher.org/wiki/overview/code-of-conduct/) and [QuiltMC Code of Conduct](https://quiltmc.org/en/community/code-of-conduct/).
