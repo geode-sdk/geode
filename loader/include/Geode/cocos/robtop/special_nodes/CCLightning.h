@@ -51,13 +51,18 @@ protected:
     uint64_t m_seed;
     float m_lineWidth;
     bool m_unkBool;
+    bool m_removeAfterFinished;
     float m_duration;
-    float m_extraOpacity;
+    float m_opacityModify;
     std::array<CCPoint, 200>* m_lightningPoints;
     uint32_t m_numPoints;
-    uint8_t m_unk148;
+    uint8_t m_displayedOpacity;
     uint8_t m_opacity;
-    ccColor3B m_tColor;
+    ccColor3B m_displayedColor;
+    ccColor3B m_color;
+    bool m_cascadeColorEnabled;
+    bool m_cascadeOpacityEnabled;
+    bool m_opacityModifyEnabled;
 };
 
 NS_CC_END
