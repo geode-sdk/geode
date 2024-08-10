@@ -488,7 +488,13 @@ WebRequest& WebRequest::header(std::string_view name, std::string_view value) {
             const size_t comma = value.find(',', numStart);
             const size_t numLength = (comma == std::string::npos ? value.size() : comma) - numStart;
 
-            timeout(std::chrono::seconds(std::stol(std::string(value.substr(numStart, numLength)))));
+            int timeoutValue = 5;
+            auto res = numFromString<int>(value.substr(numStart, numLength));
+            if (res) {
+                timeoutValue = res.value();
+            }
+
+            timeout(std::chrono::seconds(timeoutValue));
 
             return *this;
         }
@@ -499,8 +505,18 @@ WebRequest& WebRequest::header(std::string_view name, std::string_view value) {
     return *this;
 }
 
+WebRequest& WebRequest::removeHeader(std::string_view name) {
+    m_impl->m_headers.erase(std::string(name));
+    return *this;
+}
+
 WebRequest& WebRequest::param(std::string_view name, std::string_view value) {
     m_impl->m_urlParameters.insert_or_assign(std::string(name), std::string(value));
+    return *this;
+}
+
+WebRequest& WebRequest::removeParam(std::string_view name) {
+    m_impl->m_urlParameters.erase(std::string(name));
     return *this;
 }
 

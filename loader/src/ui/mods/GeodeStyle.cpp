@@ -3,6 +3,7 @@
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/loader/SettingEvent.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
+#include <Geode/ui/LoadingSpinner.hpp>
 
 $on_mod(Loaded) {
     // todo: these names should probably be shorter so they fit in SSO...
@@ -133,51 +134,6 @@ void GeodeSquareSprite::setState(bool state) {
         this->updateImage();
     }
 }
-
-class LoadingSpinner : public CCNode {
-protected:
-    CCSprite* m_spinner;
-
-    bool init(float sideLength) {
-        if (!CCNode::init())
-            return false;
-
-        this->setID("loading-spinner");
-        this->setContentSize({ sideLength, sideLength });
-        this->setAnchorPoint({ .5f, .5f });
-
-        m_spinner = CCSprite::create("loadingCircle.png");
-        m_spinner->setBlendFunc({ GL_ONE, GL_ONE });
-        limitNodeSize(m_spinner, m_obContentSize, 1.f, .1f);
-        this->addChildAtPosition(m_spinner, Anchor::Center);
-
-        this->spin();
-
-        return true;
-    }
-
-    void spin() {
-        m_spinner->runAction(CCRepeatForever::create(CCRotateBy::create(1.f, 360.f)));
-    }
-
-public:
-    static LoadingSpinner* create(float sideLength) {
-        auto ret = new LoadingSpinner();
-        if (ret->init(sideLength)) {
-            ret->autorelease();
-            return ret;
-        }
-        delete ret;
-        return nullptr;
-    }
-
-    void setVisible(bool visible) override {
-        CCNode::setVisible(visible);
-        if (visible) {
-            this->spin();
-        }
-    }
-};
 
 CCNode* createLoadingCircle(float sideLength, const char* id) {
     auto spinner = LoadingSpinner::create(sideLength);

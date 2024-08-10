@@ -65,4 +65,6 @@ protected:
 public:
     void loadTab(Tab tab);
     static ModPopup* create(ModSource&& src);
+
+    ModSource& getSource() &;
 };

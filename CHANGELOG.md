@@ -1,5 +1,31 @@
 # Geode Changelog
 
+## v3.4.0
+ * Add an API for modifying the Geode UI via events; see [the corresponding docs page](https://docs.geode-sdk.org/tutorials/modify-geode) (2a3c35f)
+ * Add `openInfoPopup` overload that accepts a mod ID and can open both an installed mod page or a server page (028bbf9)
+ * Add `LoadingSpinner` for creating loading circles easily (5c84012)
+ * Add `TextInput::focus` and `TextInput::unfocus` (749fdf1)
+ * MDTextArea changes: hex colors are now formatted as `<c-XXXXXX></c>`; added support for `<cc>`, `<cd>`, `<cf>`, and `<cs>`; fixed `mod:` links (028bbf9)
+ * Deprecate `cc3x` (6080fdb)
+ * Don't cancel subtasks on `Task` destructor (4b4bc0e)
+
+## v3.3.1
+ * Move ObjectDecoder and its delegate to Cocos headers (95f9eeb, dceb91e)
+ * Fix weird behavior with textures, objects and more by changing en-US.utf8 locale to C (2cd1a9e)
+ * Change all C number parsing to use `numFromString` to further remove the risk of this happening again (006ede8)
+
+## v3.3.0
+ * Update network libraries, fixing problems with old Wine versions (e26fe95)
+ * Fix scale on mod logos for low quality (ba7b0fa)
+ * Fix platform-specific dependencies by using CLI 3.2.0 (98f82ff)
+ * Add `GEODE_DONT_USE_CCACHE` CMake option (2edfb71)
+ * Remove now useless `std::hash` impl for `std::filesystem::path` on android (2b35e0e)
+ * Implement custom window for showing crashlog on windows (4f32197)
+ * Update docs version to show v3.0.0 (f86d4db)
+ * Check hash for downloaded mods (61e000d)
+ * Update chinese installer translation (#995, #997)
+ * Update polish installer translation (#998)
+
 ## v3.2.0
  * Fix auto-updater on MacOS (d752bc2)
  * Use tasks for `FileSettingNode` (f94e95e)

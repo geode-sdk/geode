@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../DefaultInclude.hpp"
+#include <exception>
 
 namespace geode {
     class Mod;

@@ -107,6 +107,7 @@ public:
      * @lua NA
      */
     CCGLProgram();
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCGLProgram, CCObject);
     /**
      * @js NA
      * @lua NA

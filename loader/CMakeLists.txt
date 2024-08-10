@@ -249,7 +249,7 @@ if (NOT GEODE_BUILDING_DOCS)
 	set(MZ_FETCH_LIBS ON CACHE INTERNAL "" FORCE)
 	set(MZ_FORCE_FETCH_LIBS ${WIN32} CACHE INTERNAL "")
 	set(SKIP_INSTALL_ALL ON CACHE INTERNAL "")
-	CPMAddPackage("gh:geode-sdk/minizip-ng#7548419")
+	CPMAddPackage("gh:geode-sdk/minizip-ng#43d9254")
 	if (WIN32)
 		set_target_properties(zlib PROPERTIES SUFFIX "1.dll")
 	endif()
@@ -335,7 +335,9 @@ if (APPLE)
 elseif (WIN32)
 	add_subdirectory(launcher/windows)
 
-	target_link_libraries(${PROJECT_NAME} dbghelp)
+	target_link_libraries(${PROJECT_NAME} dbghelp winmm)
+
+	target_compile_definitions(${PROJECT_NAME} PUBLIC ISOLATION_AWARE_ENABLED=1)
 
 	if (MSVC)
 		# disable warnings about CCNode::setID
