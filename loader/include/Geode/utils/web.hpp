@@ -112,9 +112,7 @@ namespace geode::utils::web {
     private:
         class Impl;
 
-        static std::atomic_size_t s_idCounter;
         std::shared_ptr<Impl> m_impl;
-        const size_t m_id;
     public:
         WebRequest();
         ~WebRequest();
