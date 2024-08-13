@@ -47,6 +47,7 @@ Result<std::shared_ptr<SettingV3>> SettingV3::parseBuiltin(std::string const& mo
     GEODE_UNWRAP(ret->parse(modID, json));
     return root.ok(ret);
 }
+
 std::optional<Setting> SettingV3::convertToLegacy() const {
     return std::nullopt;
 }
@@ -75,6 +76,11 @@ Result<> geode::detail::GeodeSettingBaseV3::parseShared(JsonExpectedValue& json)
     json.needs("name").into(m_impl->name);
     json.needs("description").into(m_impl->description);
     json.needs("enable-if").into(m_impl->enableIf);
+    return Ok();
+}
+Result<> geode::detail::GeodeSettingBaseV3::isValidShared() const {
+    // In the future if something like `enable-if` preventing 
+    // programmatic modification of settings it should be added here
     return Ok();
 }
 
@@ -152,7 +158,11 @@ bool BoolSettingV3::getValue() const {
 void BoolSettingV3::setValue(bool value) {
     m_impl->value = value;
 }
-Result<> BoolSettingV3::isValid(bool value) const {}
+Result<> BoolSettingV3::isValid(bool value) const {
+    GEODE_UNWRAP(this->isValidShared());
+    return Ok();
+}
+
 bool BoolSettingV3::getDefaultValue() const {
     return m_impl->defaultValue;
 }

@@ -60,6 +60,7 @@ namespace geode {
         
         protected:
             Result<> parseShared(JsonExpectedValue& json);
+            Result<> isValidShared() const;
 
         public:
             std::string getName() const;
