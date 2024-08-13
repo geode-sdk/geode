@@ -113,7 +113,6 @@ namespace geode::utils::web {
         class Impl;
 
         std::shared_ptr<Impl> m_impl;
-
     public:
         WebRequest();
         ~WebRequest();
@@ -252,6 +251,13 @@ namespace geode::utils::web {
          * @return WebRequest&
          */
         WebRequest& bodyJSON(matjson::Value const& json);
+
+        /**
+         * Gets the unique request ID
+         *
+         * @return size_t
+         */
+        size_t getID() const;
 
 
         /**

@@ -188,6 +188,8 @@ std::optional<float> WebProgress::uploadProgress() const {
 
 class WebRequest::Impl {
 public:
+    static std::atomic_size_t s_counter;
+
     std::string m_method;
     std::string m_url;
     std::unordered_map<std::string, std::string> m_headers;
@@ -203,6 +205,9 @@ public:
     std::string m_CABundleContent;
     ProxyOpts m_proxyOpts = {};
     HttpVersion m_httpVersion = HttpVersion::DEFAULT;
+    size_t m_id;
+
+    Impl() : m_id(s_counter++) {}
 
     WebResponse makeError(int code, std::string const& msg) {
         auto res = WebResponse();
@@ -582,6 +587,10 @@ WebRequest& WebRequest::bodyJSON(matjson::Value const& json) {
     std::string str = json.dump(matjson::NO_INDENTATION);
     m_impl->m_body = ByteVector { str.begin(), str.end() };
     return *this;
+}
+
+size_t WebRequest::getID() const {
+    return m_impl->m_id;
 }
 
 std::string WebRequest::getMethod() const {
