@@ -212,7 +212,9 @@ public:
     }
 };
 
-WebRequest::WebRequest() : m_impl(std::make_shared<Impl>()) {}
+size_t WebRequest::m_idCounter = 0;
+
+WebRequest::WebRequest() : m_impl(std::make_shared<Impl>()), m_id(WebRequest::m_idCounter++) {}
 WebRequest::~WebRequest() {}
 
 // Encodes a url param
@@ -582,6 +584,10 @@ WebRequest& WebRequest::bodyJSON(matjson::Value const& json) {
     std::string str = json.dump(matjson::NO_INDENTATION);
     m_impl->m_body = ByteVector { str.begin(), str.end() };
     return *this;
+}
+
+size_t WebRequest::getID() const {
+    return m_id;
 }
 
 std::string WebRequest::getMethod() const {
