@@ -212,9 +212,9 @@ public:
     }
 };
 
-size_t WebRequest::m_idCounter = 0;
+std::atomic_size_t WebRequest::s_idCounter = 0;
 
-WebRequest::WebRequest() : m_impl(std::make_shared<Impl>()), m_id(WebRequest::m_idCounter++) {}
+WebRequest::WebRequest() : m_impl(std::make_shared<Impl>()), m_id(WebRequest::s_idCounter++) {}
 WebRequest::~WebRequest() {}
 
 // Encodes a url param
