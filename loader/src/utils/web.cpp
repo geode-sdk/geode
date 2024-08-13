@@ -188,7 +188,7 @@ std::optional<float> WebProgress::uploadProgress() const {
 
 class WebRequest::Impl {
 public:
-    static std::atomic_size_t s_counter;
+    static std::atomic_size_t s_idCounter;
 
     std::string m_method;
     std::string m_url;
@@ -207,7 +207,7 @@ public:
     HttpVersion m_httpVersion = HttpVersion::DEFAULT;
     size_t m_id;
 
-    Impl() : m_id(s_counter++) {}
+    Impl() : m_id(s_idCounter++) {}
 
     WebResponse makeError(int code, std::string const& msg) {
         auto res = WebResponse();
@@ -216,6 +216,8 @@ public:
         return res;
     }
 };
+
+std::atomic_size_t WebRequest::Impl::s_idCounter = 0;
 
 WebRequest::WebRequest() : m_impl(std::make_shared<Impl>()) {}
 WebRequest::~WebRequest() {}
