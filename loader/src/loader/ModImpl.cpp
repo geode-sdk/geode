@@ -341,9 +341,10 @@ std::optional<Setting> Mod::Impl::getSettingDefinition(std::string_view const ke
 
 SettingValue* Mod::Impl::getSetting(std::string_view const key) const {
     auto keystr = std::string(key);
-
     if (m_settings.count(keystr)) {
-        return m_settings.at(keystr).get();
+        if (auto value = m_settings.at(keystr)->convertToLegacyValue()) {
+            return value->get();
+        }
     }
     return nullptr;
 }

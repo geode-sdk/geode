@@ -4,6 +4,7 @@
 #include "ModPatch.hpp"
 #include <Geode/loader/Loader.hpp>
 #include <string_view>
+#include "ModSettingsManager.hpp"
 
 namespace geode {
     class Mod::Impl {
@@ -48,9 +49,9 @@ namespace geode {
          */
         matjson::Value m_saved = matjson::Object();
         /**
-         * Setting values
+         * Setting values. This is behind unique_ptr for interior mutability
          */
-        std::unordered_map<std::string, std::unique_ptr<SettingValue>> m_settings;
+        std::unique_ptr<ModSettingsManager> m_settings = std::make_unique<ModSettingsManager>();
         /**
          * Settings save data. Stored for efficient loading of custom settings
          */
