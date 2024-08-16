@@ -334,12 +334,26 @@ struct MDParser {
                         }
 
                         float spriteScale = 1.0f;
+                        float spriteWidth = 0.0f;
+                        float spriteHeight = 0.0f;
 
                         for (auto [key, value] : imgArguments) {
                             if (key == "scale") {
                                 auto scaleRes = utils::numFromString<float>(value);
                                 if (scaleRes) {
                                     spriteScale = *scaleRes;
+                                }
+                            }
+                            else if (key == "width") {
+                                auto widthRes = utils::numFromString<float>(value);
+                                if (widthRes) {
+                                    spriteWidth = *widthRes;
+                                }
+                            }
+                            else if (key == "height") {
+                                auto heightRes = utils::numFromString<float>(value);
+                                if (heightRes) {
+                                    spriteHeight = *heightRes;
                                 }
                             }
                         }
@@ -357,6 +371,15 @@ struct MDParser {
                         }
                         if (spr && spr->getUserObject("geode.texture-loader/fallback") == nullptr) {
                             spr->setScale(spriteScale);
+                            if (spriteWidth > 0.0f && spriteHeight <= 0.0f) {
+                                limitNodeWidth(spr, spriteWidth, spriteScale, 0.1f);
+                            }
+                            else if (spriteHeight > 0.0f && spriteWidth <= 0.0f) {
+                                limitNodeHeight(spr, spriteHeight, spriteScale, 0.1f);
+                            }
+                            else if (spriteWidth > 0.0f && spriteHeight > 0.0f) {
+                                limitNodeSize(spr, { spriteWidth, spriteHeight }, spriteScale, 0.1f);
+                            }
                             renderer->renderNode(spr);
                         }
                         else {
