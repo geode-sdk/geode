@@ -138,6 +138,15 @@ namespace geode {
          */
         std::string getString() const;
 
+        /**
+         * Focus this input (activate the cursor)
+         */
+        void focus();
+        /**
+         * Defocus this input (deactivate the cursor)
+         */
+        void defocus();
+
         CCTextInputNode* getInputNode() const;
         cocos2d::extension::CCScale9Sprite* getBGSprite() const;
     };

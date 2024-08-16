@@ -93,5 +93,11 @@ namespace geode {
          * to prematurily hide the notification
          */
         void hide();
+
+        /**
+         * Cancels the showing of the notification if it's in the queue.
+         * Otherwise, it hides the notification if it's currently showing.
+         */
+        void cancel();
     };
 }

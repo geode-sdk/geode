@@ -265,6 +265,9 @@ protected:
 
 //////////////////////////////////////////////////////////////////////////
 public:
+	// @note RobTop Addition
+    virtual void updateEmissionRate();
+
     // mode A
     virtual const CCPoint& getGravity();
     virtual void setGravity(const CCPoint& g);
@@ -630,9 +633,6 @@ public:
     void toggleUniformColorMode(bool);
 	// @note RobTop Addition
     void updateVisible();
-
-	// @note RobTop Addition
-    virtual void updateEmissionRate();
 };
 
 // end of particle_nodes group

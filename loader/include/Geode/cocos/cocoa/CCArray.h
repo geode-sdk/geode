@@ -186,7 +186,7 @@ public:
      * Returns first element, or null if empty
      * @note Geode addition
      */
-    CCObject* firstObject();
+    GEODE_DLL CCObject* firstObject();
     /** Returns last element */
     CCObject* lastObject();
     /** Returns a random element */
@@ -215,7 +215,7 @@ public:
      * Remove first object, or do nothing if array is empty
      * @note Geode addition
      */
-    void removeFirstObject(bool bReleaseObj = true);
+    GEODE_DLL void removeFirstObject(bool bReleaseObj = true);
     /** Remove last object */
     void removeLastObject(bool bReleaseObj = true);
     /** Remove a certain object */

@@ -50,6 +50,7 @@ bin
 # Ignore docs folders
 docs/**
 docs
+docs-dist/
 
 # Ignore codegenned files
 loader/src/internal/about.cpp
