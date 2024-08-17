@@ -372,13 +372,13 @@ struct MDParser {
                         if (spr && spr->getUserObject("geode.texture-loader/fallback") == nullptr) {
                             spr->setScale(spriteScale);
                             if (spriteWidth > 0.0f && spriteHeight <= 0.0f) {
-                                limitNodeWidth(spr, spriteWidth, spriteScale, 0.1f);
+                                limitNodeWidth(spr, spriteWidth, 999.f, .1f);
                             }
                             else if (spriteHeight > 0.0f && spriteWidth <= 0.0f) {
-                                limitNodeHeight(spr, spriteHeight, spriteScale, 0.1f);
+                                limitNodeHeight(spr, spriteHeight, 999.f, .1f);
                             }
                             else if (spriteWidth > 0.0f && spriteHeight > 0.0f) {
-                                limitNodeSize(spr, { spriteWidth, spriteHeight }, spriteScale, 0.1f);
+                                limitNodeSize(spr, { spriteWidth, spriteHeight }, 999.f, .1f);
                             }
                             renderer->renderNode(spr);
                         }
