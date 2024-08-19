@@ -320,6 +320,7 @@ JsonExpectedValue JsonExpectedValue::has(std::string_view key) {
     if (!this->assertIs(matjson::Type::Object)) {
         return JsonExpectedValue();
     }
+    m_impl->knownKeys.insert(std::string(key));
     if (!m_impl->scope.contains(key)) {
         return JsonExpectedValue();
     }
@@ -332,6 +333,7 @@ JsonExpectedValue JsonExpectedValue::needs(std::string_view key) {
     if (!this->assertIs(matjson::Type::Object)) {
         return JsonExpectedValue();
     }
+    m_impl->knownKeys.insert(std::string(key));
     if (!m_impl->scope.contains(key)) {
         this->setError("missing required key {}", key);
         return JsonExpectedValue();
@@ -352,8 +354,9 @@ std::vector<std::pair<std::string, JsonExpectedValue>> JsonExpectedValue::proper
     return res;
 }
 void JsonExpectedValue::checkUnknownKeys() {
-    for (auto& [key, _] : this->properties()) {
-        if (!m_impl->knownKeys.count(key)) {
+    if (this->hasError()) return;
+    for (auto&& [key, _] : this->properties()) {
+        if (!m_impl->knownKeys.contains(key)) {
             log::warn("{} contains unknown key \"{}\"", m_impl->scopeName, key);
         }
     }
@@ -401,7 +404,8 @@ std::vector<JsonExpectedValue> JsonExpectedValue::items() {
 }
 
 JsonExpectedValue::operator bool() const {
-    return !this->hasError();
+    // The shared check is because null values should evaluate to false so `obj.has("key")` evaluates to false
+    return m_impl->shared && !this->hasError();
 }
 
 Result<> JsonExpectedValue::ok() {

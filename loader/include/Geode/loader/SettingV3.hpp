@@ -6,6 +6,8 @@
 // todo: remove this header in 4.0.0
 #include "Setting.hpp"
 #include "../utils/cocos.hpp"
+// this unfortunately has to be included because of C++ templates
+#include "../utils/JsonValidation.hpp"
 
 // todo in v4: these can be removed as well as the friend decl in UnresolvedCustomSettingV3
 class ModSettingsManager;
@@ -13,7 +15,6 @@ class LegacyCustomSettingToV3Node;
 
 namespace geode {
     class SettingNodeV3;
-    class JsonExpectedValue;
 
     class GEODE_DLL SettingV3 : public std::enable_shared_from_this<SettingV3> {
     private:
@@ -70,11 +71,28 @@ namespace geode {
             class Impl;
             std::shared_ptr<Impl> m_impl;
         
+            Result<> parseSharedBase(JsonExpectedValue& json);
+
         protected:
-            Result<> parseShared(JsonExpectedValue& json);
             Result<> isValidShared() const;
 
+            template <class T>
+            Result<> parseShared(JsonExpectedValue& json, T& defaultValue) {
+                GEODE_UNWRAP(this->parseSharedBase(json));
+                auto value = json.needs("default");
+                // Check if this is a platform-specific default value
+                if (value.isObject() && value.has(GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH)) {
+                    value.needs(GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH).into(defaultValue);
+                }
+                else {
+                    value.into(defaultValue);
+                }
+                return Ok();
+            }
+
         public:
+            GeodeSettingBaseV3();
+
             std::string getName() const;
             std::optional<std::string> getDescription() const;
             std::optional<std::string> getEnableIf() const;
@@ -116,6 +134,8 @@ namespace geode {
         Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
 
     public:
+        TitleSettingV3();
+
         std::string getTitle() const;
 
         bool load(matjson::Value const& json) override;
@@ -138,6 +158,8 @@ namespace geode {
         Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
 
     public:
+        UnresolvedCustomSettingV3();
+
         bool load(matjson::Value const& json) override;
         bool save(matjson::Value& json) const override;
         SettingNodeV3* createNode(float width) override;
@@ -159,6 +181,8 @@ namespace geode {
         Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
 
     public:
+        BoolSettingV3();
+
         bool getDefaultValue() const override;
         Result<> isValid(bool value) const override;
         
@@ -180,6 +204,8 @@ namespace geode {
         Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
 
     public:
+        IntSettingV3();
+
         int64_t getDefaultValue() const override;
         Result<> isValid(int64_t value) const override;
 
@@ -212,6 +238,8 @@ namespace geode {
         Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
 
     public:
+        FloatSettingV3();
+
         double getDefaultValue() const override;
         Result<> isValid(double value) const override;
 
@@ -244,6 +272,8 @@ namespace geode {
         Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
 
     public:
+        StringSettingV3();
+
         std::string getDefaultValue() const override;
         Result<> isValid(std::string_view value) const override;
 
@@ -269,6 +299,8 @@ namespace geode {
         Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
 
     public:
+        FileSettingV3();
+
         std::filesystem::path getDefaultValue() const override;
         Result<> isValid(std::filesystem::path const& value) const override;
 
@@ -292,6 +324,8 @@ namespace geode {
         Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
 
     public:
+        Color3BSettingV3();
+
         cocos2d::ccColor3B getDefaultValue() const override;
         Result<> isValid(cocos2d::ccColor3B value) const override;
 
@@ -313,6 +347,8 @@ namespace geode {
         Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
 
     public:
+        Color4BSettingV3();
+
         cocos2d::ccColor4B getDefaultValue() const override;
         Result<> isValid(cocos2d::ccColor4B value) const override;
 

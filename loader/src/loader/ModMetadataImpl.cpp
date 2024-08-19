@@ -125,8 +125,6 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     }
     catch (...) { }
 
-    return Ok(info);
-
     auto root = checkJson(impl->m_rawJSON, checkerRoot);
     root.needs("geode").into(impl->m_geodeVersion);
     
@@ -283,6 +281,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     impl->m_binaryName = impl->m_id + GEODE_PLATFORM_EXTENSION;
 
     root.checkUnknownKeys();
+
     return root.ok(info);
 }
 

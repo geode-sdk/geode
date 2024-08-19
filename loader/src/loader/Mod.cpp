@@ -164,9 +164,7 @@ SettingValue* Mod::getSetting(std::string_view const key) const {
 }
 
 std::shared_ptr<SettingV3> Mod::getSettingV3(std::string_view const key) const {
-    auto sett = m_impl->m_settings->get(std::string(key));
-    (void)file::writeString(".AAAAAk2", fmt::format("got it: {}, {}", key, fmt::ptr(sett)));
-    return sett;
+    return m_impl->m_settings->get(std::string(key));
 }
 
 void Mod::registerCustomSetting(std::string_view const key, std::unique_ptr<SettingValue> value) {

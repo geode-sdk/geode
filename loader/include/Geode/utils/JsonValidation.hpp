@@ -321,7 +321,8 @@ namespace geode {
             try {
                 return this->getJSONRef().template as<T>();
             }
-            catch(matjson::JsonException const& e) {
+            // matjson can throw variant exceptions too so you need to do this
+            catch(std::exception const& e) {
                 this->setError("invalid json type: {}", e);
             }
             return std::nullopt;
