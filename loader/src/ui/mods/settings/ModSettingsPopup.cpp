@@ -1,12 +1,10 @@
 #include "ModSettingsPopup.hpp"
-
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Setting.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/ui/General.hpp>
-#include "GeodeSettingNode.hpp"
 
 bool ModSettingsPopup::setup(Mod* mod) {
     m_noElasticity = true;
@@ -25,56 +23,41 @@ bool ModSettingsPopup::setup(Mod* mod) {
     auto layer = ScrollLayer::create(layerSize);
     layer->setTouchEnabled(true);
 
-    float totalHeight = .0f;
-    std::vector<CCNode*> rendered;
-    bool hasBG = true;
+    bool hasBG = false;
     for (auto& key : mod->getSettingKeys()) {
-        SettingNode* node;
-        if (auto sett = mod->getSetting(key)) {
+        hasBG = !hasBG;
+
+        auto bg = CCLayerColor::create({ 0, 0, 0, 50 });
+        bg->setOpacity(hasBG ? 50 : 0);
+
+        SettingNodeV3* node;
+        if (auto sett = mod->getSettingV3(key)) {
             node = sett->createNode(layerSize.width);
         }
         else {
-            node = CustomSettingPlaceholderNode::create(key, layerSize.width);
+            // todo: placeholder node
+            continue;
         }
-        node->setDelegate(this);
+    
+        bg->setContentSize(node->getScaledContentSize());
+        bg->addChildAtPosition(node, Anchor::Center);
 
-        totalHeight += node->getScaledContentSize().height;
+        auto separator = CCLayerColor::create({ 0, 0, 0, 50 }, layerSize.width, 1.f);
+        separator->setOpacity(hasBG ? 100 : 50);
+        bg->addChildAtPosition(separator, Anchor::Bottom);
 
-        if (hasBG) {
-            auto bg = CCLayerColor::create({ 0, 0, 0, 50 });
-            bg->setContentSize(node->getScaledContentSize());
-            bg->setPosition(0.f, -totalHeight);
-            bg->setZOrder(-10);
-            layer->m_contentLayer->addChild(bg);
-
-            rendered.push_back(bg);
-
-            hasBG = false;
-        }
-        else {
-            hasBG = true;
-        }
-
-        node->setPosition(0.f, -totalHeight);
-        layer->m_contentLayer->addChild(node);
-
-        auto separator = CCLayerColor::create(
-            { 0, 0, 0, static_cast<GLubyte>(hasBG ? 100 : 50) }, layerSize.width, 1.f
-        );
-        separator->setPosition(0.f, -totalHeight);
-        layer->m_contentLayer->addChild(separator);
-        rendered.push_back(separator);
-
-        rendered.push_back(node);
         m_settings.push_back(node);
+
+        layer->m_contentLayer->addChild(bg);
     }
-    if (totalHeight < layerSize.height) {
-        totalHeight = layerSize.height;
-    }
-    for (auto& node : rendered) {
-        node->setPositionY(node->getPositionY() + totalHeight);
-    }
-    layer->m_contentLayer->setContentSize({ layerSize.width, totalHeight });
+    layer->m_contentLayer->setLayout(
+        ColumnLayout::create()
+            ->setAxisReverse(true)
+            ->setAutoGrowAxis(layerSize.height)
+            ->setCrossAxisOverflow(false)
+            ->setAxisAlignment(AxisAlignment::End)
+            ->setGap(0)
+    );
     layer->moveToTop();
 
     layerBG->addChild(layer);
@@ -109,7 +92,11 @@ bool ModSettingsPopup::setup(Mod* mod) {
     );
     m_buttonMenu->addChildAtPosition(openDirBtn, Anchor::BottomRight, ccp(-53, 20));
 
-    this->settingValueChanged(nullptr);
+    m_changeListener.bind([this](auto) {
+        this->updateState();
+        return ListenerResult::Propagate;
+    });
+    this->updateState();
 
     return true;
 }
@@ -143,18 +130,7 @@ void ModSettingsPopup::onResetAll(CCObject*) {
     );
 }
 
-void ModSettingsPopup::settingValueCommitted(SettingNode*) {
-    if (this->hasUncommitted()) {
-        m_applyBtnSpr->setColor({0xff, 0xff, 0xff});
-        m_applyBtn->setEnabled(true);
-    }
-    else {
-        m_applyBtnSpr->setColor({0x44, 0x44, 0x44});
-        m_applyBtn->setEnabled(false);
-    }
-}
-
-void ModSettingsPopup::settingValueChanged(SettingNode*) {
+void ModSettingsPopup::updateState() {
     if (this->hasUncommitted()) {
         m_applyBtnSpr->setColor({0xff, 0xff, 0xff});
         m_applyBtn->setEnabled(true);

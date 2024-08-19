@@ -10,6 +10,7 @@
 #include "Hook.hpp"
 #include "ModMetadata.hpp"
 #include "Setting.hpp"
+#include "SettingV3.hpp"
 #include "Types.hpp"
 #include "Loader.hpp"
 
@@ -23,6 +24,8 @@
 #include <vector>
 
 namespace geode {
+    class SettingV3;
+    
     template <class T>
     struct HandleToSaved : public T {
         Mod* m_mod;
@@ -175,6 +178,7 @@ namespace geode {
         bool hasSetting(std::string_view const key) const;
         std::optional<Setting> getSettingDefinition(std::string_view const key) const;
         SettingValue* getSetting(std::string_view const key) const;
+        std::shared_ptr<SettingV3> getSettingV3(std::string_view const key) const;
 
         /**
          * Register a custom setting's value class. See Mod::addCustomSetting
@@ -187,6 +191,11 @@ namespace geode {
          * @see addCustomSetting
          */
         void registerCustomSetting(std::string_view const key, std::unique_ptr<SettingValue> value);
+
+        /**
+         * Register a custom setting
+         */
+        Result<> registerCustomSettingV3(std::string_view const key, std::shared_ptr<SettingV3> value);
         /**
          * Register a custom setting's value class. The new SettingValue class
          * will be created in-place using `std::make_unique`. See
@@ -246,19 +255,27 @@ namespace geode {
         matjson::Value& getSaveContainer();
         matjson::Value& getSavedSettingsData();
 
+        /**
+         * Get the value of a [setting](https://docs.geode-sdk.org/mods/settings). 
+         * To use this for custom settings, first specialize the 
+         * `SettingTypeForValueType` class, and then make sure your custom 
+         * setting type has a `getValue` function which returns the value
+         */
         template <class T>
         T getSettingValue(std::string_view const key) const {
-            if (auto sett = this->getSetting(key)) {
-                return SettingValueSetter<T>::get(sett);
+            using S = typename SettingTypeForValueType<T>::SettingType;
+            if (auto sett = typeinfo_pointer_cast<S>(this->getSettingV3(key))) {
+                return sett->getValue();
             }
             return T();
         }
 
         template <class T>
         T setSettingValue(std::string_view const key, T const& value) {
-            if (auto sett = this->getSetting(key)) {
-                auto old = this->getSettingValue<T>(key);
-                SettingValueSetter<T>::set(sett, value);
+            using S = typename SettingTypeForValueType<T>::SettingType;
+            if (auto sett = typeinfo_pointer_cast<S>(this->getSettingV3(key))) {
+                auto old = sett->getValue();
+                sett->setValue(value);
                 return old;
             }
             return T();

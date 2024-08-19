@@ -405,7 +405,7 @@ namespace geode {
         } {
             if (this->hasError()) return *this;
             if (auto v = this->template tryGet<T>()) {
-                if (!predicate(v)) {
+                if (!predicate(*v)) {
                     this->setError("json value is not {}", name);
                 }
             }
@@ -463,12 +463,12 @@ namespace geode {
 
         Result<> ok();
         template <class T>
-        Result<T> ok(T&& value) {
+        Result<T> ok(T value) {
             auto ok = this->ok();
             if (!ok) {
                 return Err(ok.unwrapErr());
             }
-            return Ok(std::move(value));
+            return Ok(std::forward<T>(value));
         }
     };
     GEODE_DLL JsonExpectedValue checkJson(matjson::Value const& json, std::string_view rootScopeName);

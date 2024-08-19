@@ -125,6 +125,8 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     }
     catch (...) { }
 
+    return Ok(info);
+
     auto root = checkJson(impl->m_rawJSON, checkerRoot);
     root.needs("geode").into(impl->m_geodeVersion);
     
@@ -249,9 +251,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
                 continue;
             }
         }
-
-        GEODE_UNWRAP_INTO(auto sett, SettingV3::parseBuiltin(impl->m_id, value.json()));
-        impl->m_settings.emplace_back(key, sett);
+        impl->m_settings.emplace_back(key, value.json());
     }
 
     if (auto resources = root.has("resources")) {

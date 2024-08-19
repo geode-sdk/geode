@@ -224,7 +224,7 @@ JsonExpectedValue::JsonExpectedValue(Impl* from, matjson::Value& scope, std::str
   : m_impl(std::make_unique<Impl>(from, scope, key))
 {}
 JsonExpectedValue::JsonExpectedValue(matjson::Value const& json, std::string_view rootScopeName)
-  : m_impl(std::make_unique<Impl>(std::make_shared<matjson::Value>(json, rootScopeName)))
+  : m_impl(std::make_unique<Impl>(std::make_shared<Impl::Shared>(json, rootScopeName)))
 {}
 JsonExpectedValue::~JsonExpectedValue() {}
 
@@ -389,7 +389,7 @@ std::vector<JsonExpectedValue> JsonExpectedValue::items() {
     if (this->hasError()) {
         return std::vector<JsonExpectedValue>();
     }
-    if (!this->assertIs(matjson::Type::Object)) {
+    if (!this->assertIs(matjson::Type::Array)) {
         return std::vector<JsonExpectedValue>();
     }
     std::vector<JsonExpectedValue> res;

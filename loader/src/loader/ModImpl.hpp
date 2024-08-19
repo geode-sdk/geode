@@ -51,7 +51,7 @@ namespace geode {
         /**
          * Setting values. This is behind unique_ptr for interior mutability
          */
-        std::unique_ptr<ModSettingsManager> m_settings = std::make_unique<ModSettingsManager>();
+        std::unique_ptr<ModSettingsManager> m_settings = nullptr;
         /**
          * Settings save data. Stored for efficient loading of custom settings
          */
@@ -75,6 +75,8 @@ namespace geode {
 
         Impl(Mod* self, ModMetadata const& metadata);
         ~Impl();
+        Impl(Impl const&) = delete;
+        Impl(Impl&&) = delete;
 
         Result<> setup();
 
@@ -83,8 +85,6 @@ namespace geode {
 
         // called on a separate thread
         Result<> unzipGeodeFile(ModMetadata metadata);
-
-        void setupSettings();
 
         std::string getID() const;
         std::string getName() const;
@@ -117,9 +117,6 @@ namespace geode {
         bool hasSettings() const;
         std::vector<std::string> getSettingKeys() const;
         bool hasSetting(std::string_view const key) const;
-        std::optional<Setting> getSettingDefinition(std::string_view const key) const;
-        SettingValue* getSetting(std::string_view const key) const;
-        void registerCustomSetting(std::string_view const key, std::unique_ptr<SettingValue> value);
 
         std::string getLaunchArgumentName(std::string_view const name) const;
         std::vector<std::string> getLaunchArgumentNames() const;

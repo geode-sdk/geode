@@ -5,21 +5,22 @@
 
 using namespace geode::prelude;
 
-// This class should NEVER be exposed in a header!!!
-// It is an implementation detail!!!
-
 class ModSettingsManager final {
 private:
-    struct SettingInfo final {
-        std::unique_ptr<SettingV3> v3;
-        std::unique_ptr<SettingValue> legacy;
-    };
-
-    std::unordered_map<std::string, std::unique_ptr<SettingV3>> m_v3;
-    // todo: remove in v4
-    std::unordered_map<std::string, std::unique_ptr<SettingValue>> m_legacy;
+    class Impl;
+    std::unique_ptr<Impl> m_impl;
 
 public:
-    SettingV3* get(std::string const& id);
-    SettingValue* getLegacy(std::string const& id);
+    ModSettingsManager(ModMetadata const& metadata);
+    ~ModSettingsManager();
+
+    Result<> load(matjson::Value const& json);
+    void save(matjson::Value& json);
+
+    Result<> registerCustomSetting(std::string_view key, std::shared_ptr<SettingV3> ptr);
+    Result<> registerLegacyCustomSetting(std::string_view key, std::unique_ptr<SettingValue>&& ptr);
+
+    std::shared_ptr<SettingV3> get(std::string_view key);
+    std::shared_ptr<SettingValue> getLegacy(std::string_view key);
+    std::optional<Setting> getLegacyDefinition(std::string_view key);
 };
