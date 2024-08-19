@@ -716,7 +716,7 @@ void ModsLayer::onSettings(CCObject*) {
 void ModsLayer::onCopy(CCObject*) {
     auto mods = Loader::get()->getAllMods();
     if (mods.empty()) {
-        Notification::create("No mods installed", NotificationIcon::Info, 0.6f)->show();
+        Notification::create("No mods installed", NotificationIcon::Info, 0.5f)->show();
         return;
     }
 
