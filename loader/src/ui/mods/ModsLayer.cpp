@@ -714,37 +714,37 @@ void ModsLayer::onSettings(CCObject*) {
 }
 
 void ModsLayer::onCopy(CCObject*) {
-    auto text = "No mods installed";
     auto mods = Loader::get()->getAllMods();
-    if (!mods.empty()) {
-        text = "Mods list copied to clipboard!";
-        std::sort(mods.begin(), mods.end(), [](Mod* a, Mod* b) {
-            auto const s1 = a->getID();
-            auto const s2 = b->getID();
-            return std::lexicographical_compare(s1.begin(), s1.end(), s2.begin(), s2.end(), [](auto a, auto b) {
-                return std::tolower(a) < std::tolower(b);
-            });
-        });
-
-        std::stringstream ss;
-        using namespace std::string_view_literals;
-        for (int i = 0; i < mods.size(); i++) {
-            auto& mod = mods[i];
-            ss << fmt::format("{} | [{}] {}",
-                mod->isEnabled() ? "x"sv : 
-                mod->hasProblems() ? "!"sv :
-                " "sv,
-                mod->getVersion().toVString(), mod->getID()
-            );
-            if (i != mods.size() - 1) {
-                ss << "\n";
-            }
-        }
-        clipboard::write(ss.str());
+    if (mods.empty()) {
+        Notification::create("No mods installed", NotificationIcon::Info, 0.6f)->show();
+        return;
     }
 
-    auto popup = TextAlertPopup::create(text, 0.5f, 0.6f, 150, "bigFont.fnt");
-    this->addChild(popup, 100);
+    std::sort(mods.begin(), mods.end(), [](Mod* a, Mod* b) {
+        auto const s1 = a->getID();
+        auto const s2 = b->getID();
+        return std::lexicographical_compare(s1.begin(), s1.end(), s2.begin(), s2.end(), [](auto a, auto b) {
+            return std::tolower(a) < std::tolower(b);
+        });
+    });
+
+    std::stringstream ss;
+    using namespace std::string_view_literals;
+    for (int i = 0; i < mods.size(); i++) {
+        auto& mod = mods[i];
+        ss << fmt::format("{} | [{}] {}",
+            mod->isEnabled() ? "x"sv : 
+            mod->hasProblems() ? "!"sv :
+            " "sv,
+            mod->getVersion().toVString(), mod->getID()
+        );
+        if (i != mods.size() - 1) {
+            ss << "\n";
+        }
+    }
+    clipboard::write(ss.str());
+
+    Notification::create("Mods list copied to clipboard", NotificationIcon::Info, 0.5f)->show();
 }
 
 ModsLayer* ModsLayer::create() {
