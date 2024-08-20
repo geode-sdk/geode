@@ -133,8 +133,12 @@ namespace geode {
     protected:
         Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
 
+    private:
+        class PrivateMarker {};
+        friend class SettingV3;
+
     public:
-        TitleSettingV3();
+        TitleSettingV3(PrivateMarker);
 
         std::string getTitle() const;
 
@@ -157,8 +161,12 @@ namespace geode {
     protected:
         Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
 
+    private:
+        class PrivateMarker {};
+        friend class SettingV3;
+
     public:
-        UnresolvedCustomSettingV3();
+        UnresolvedCustomSettingV3(PrivateMarker);
 
         bool load(matjson::Value const& json) override;
         bool save(matjson::Value& json) const override;
@@ -180,8 +188,12 @@ namespace geode {
         bool& getValueMut() const override;
         Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
 
+    private:
+        class PrivateMarker {};
+        friend class SettingV3;
+
     public:
-        BoolSettingV3();
+        BoolSettingV3(PrivateMarker);
 
         bool getDefaultValue() const override;
         Result<> isValid(bool value) const override;
@@ -203,8 +215,12 @@ namespace geode {
         int64_t& getValueMut() const override;
         Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
 
+    private:
+        class PrivateMarker {};
+        friend class SettingV3;
+
     public:
-        IntSettingV3();
+        IntSettingV3(PrivateMarker);
 
         int64_t getDefaultValue() const override;
         Result<> isValid(int64_t value) const override;
@@ -237,8 +253,12 @@ namespace geode {
         double& getValueMut() const override;
         Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
 
+    private:
+        class PrivateMarker {};
+        friend class SettingV3;
+
     public:
-        FloatSettingV3();
+        FloatSettingV3(PrivateMarker);
 
         double getDefaultValue() const override;
         Result<> isValid(double value) const override;
@@ -271,8 +291,12 @@ namespace geode {
         std::string& getValueMut() const override;
         Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
 
+    private:
+        class PrivateMarker {};
+        friend class SettingV3;
+
     public:
-        StringSettingV3();
+        StringSettingV3(PrivateMarker);
 
         std::string getDefaultValue() const override;
         Result<> isValid(std::string_view value) const override;
@@ -298,8 +322,12 @@ namespace geode {
         std::filesystem::path& getValueMut() const override;
         Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
 
+    private:
+        class PrivateMarker {};
+        friend class SettingV3;
+
     public:
-        FileSettingV3();
+        FileSettingV3(PrivateMarker);
 
         std::filesystem::path getDefaultValue() const override;
         Result<> isValid(std::filesystem::path const& value) const override;
@@ -323,8 +351,12 @@ namespace geode {
         cocos2d::ccColor3B& getValueMut() const override;
         Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
 
+    private:
+        class PrivateMarker {};
+        friend class SettingV3;
+
     public:
-        Color3BSettingV3();
+        Color3BSettingV3(PrivateMarker);
 
         cocos2d::ccColor3B getDefaultValue() const override;
         Result<> isValid(cocos2d::ccColor3B value) const override;
@@ -346,8 +378,12 @@ namespace geode {
         cocos2d::ccColor4B& getValueMut() const override;
         Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
 
+    private:
+        class PrivateMarker {};
+        friend class SettingV3;
+
     public:
-        Color4BSettingV3();
+        Color4BSettingV3(PrivateMarker);
 
         cocos2d::ccColor4B getDefaultValue() const override;
         Result<> isValid(cocos2d::ccColor4B value) const override;

@@ -38,16 +38,16 @@ Result<std::shared_ptr<SettingV3>> SettingV3::parseBuiltin(std::string const& ke
     root.needs("type").into(type);
     std::shared_ptr<SettingV3> ret;
     switch (hash(type)) {
-        case hash("bool"): ret = std::make_shared<BoolSettingV3>(); break;
-        case hash("int"): ret = std::make_shared<IntSettingV3>(); break;
-        case hash("float"): ret = std::make_shared<FloatSettingV3>(); break;
-        case hash("string"): ret = std::make_shared<StringSettingV3>(); break;
-        case hash("rgb"): case hash("color"): ret = std::make_shared<Color3BSettingV3>(); break;
-        case hash("rgba"): ret = std::make_shared<Color4BSettingV3>(); break;
-        case hash("path"): case hash("file"): ret = std::make_shared<FileSettingV3>(); break;
-        case hash("title"): ret = std::make_shared<TitleSettingV3>(); break;
+        case hash("bool"): ret = std::make_shared<BoolSettingV3>(BoolSettingV3::PrivateMarker()); break;
+        case hash("int"): ret = std::make_shared<IntSettingV3>(IntSettingV3::PrivateMarker()); break;
+        case hash("float"): ret = std::make_shared<FloatSettingV3>(FloatSettingV3::PrivateMarker()); break;
+        case hash("string"): ret = std::make_shared<StringSettingV3>(StringSettingV3::PrivateMarker()); break;
+        case hash("rgb"): case hash("color"): ret = std::make_shared<Color3BSettingV3>(Color3BSettingV3::PrivateMarker()); break;
+        case hash("rgba"): ret = std::make_shared<Color4BSettingV3>(Color4BSettingV3::PrivateMarker()); break;
+        case hash("path"): case hash("file"): ret = std::make_shared<FileSettingV3>(FileSettingV3::PrivateMarker()); break;
+        case hash("title"): ret = std::make_shared<TitleSettingV3>(TitleSettingV3::PrivateMarker()); break;
         default:
-        case hash("custom"): ret = std::make_shared<UnresolvedCustomSettingV3>(); break;
+        case hash("custom"): ret = std::make_shared<UnresolvedCustomSettingV3>(UnresolvedCustomSettingV3::PrivateMarker()); break;
     }
     GEODE_UNWRAP(ret->parse(key, modID, json));
     return root.ok(std::move(ret));
@@ -100,7 +100,7 @@ public:
     std::string title;
 };
 
-TitleSettingV3::TitleSettingV3() : m_impl(std::make_shared<Impl>()) {}
+TitleSettingV3::TitleSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
 std::string TitleSettingV3::getTitle() const {
     return m_impl->title;
@@ -134,7 +134,7 @@ void TitleSettingV3::reset() {}
 // replace this comment with it
 // put it riiiiiight here
 
-UnresolvedCustomSettingV3::UnresolvedCustomSettingV3() : m_impl(std::make_shared<Impl>()) {}
+UnresolvedCustomSettingV3::UnresolvedCustomSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
 Result<> UnresolvedCustomSettingV3::onParse(std::string const& key, std::string const& modID, matjson::Value const& json) {
     m_impl->json = json;
@@ -177,7 +177,7 @@ public:
     bool defaultValue;
 };
 
-BoolSettingV3::BoolSettingV3() : m_impl(std::make_shared<Impl>()) {}
+BoolSettingV3::BoolSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
 bool& BoolSettingV3::getValueMut() const {
     return m_impl->value;
@@ -244,7 +244,7 @@ public:
     } controls;
 };
 
-IntSettingV3::IntSettingV3() : m_impl(std::make_shared<Impl>()) {}
+IntSettingV3::IntSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
 int64_t& IntSettingV3::getValueMut() const {
     return m_impl->value;
@@ -374,7 +374,7 @@ public:
     } controls;
 };
 
-FloatSettingV3::FloatSettingV3() : m_impl(std::make_shared<Impl>()) {}
+FloatSettingV3::FloatSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
 double& FloatSettingV3::getValueMut() const {
     return m_impl->value;
@@ -496,7 +496,7 @@ public:
     std::optional<std::vector<std::string>> oneOf;
 };
 
-StringSettingV3::StringSettingV3() : m_impl(std::make_shared<Impl>()) {}
+StringSettingV3::StringSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
 std::string& StringSettingV3::getValueMut() const {
     return m_impl->value;
@@ -580,7 +580,7 @@ public:
     std::optional<std::vector<utils::file::FilePickOptions::Filter>> filters;
 };
 
-FileSettingV3::FileSettingV3() : m_impl(std::make_shared<Impl>()) {}
+FileSettingV3::FileSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
 std::filesystem::path& FileSettingV3::getValueMut() const {
     return m_impl->value;
@@ -669,7 +669,7 @@ public:
     ccColor3B defaultValue;
 };
 
-Color3BSettingV3::Color3BSettingV3() : m_impl(std::make_shared<Impl>()) {}
+Color3BSettingV3::Color3BSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
 ccColor3B& Color3BSettingV3::getValueMut() const {
     return m_impl->value;
@@ -725,7 +725,7 @@ public:
     ccColor4B defaultValue;
 };
 
-Color4BSettingV3::Color4BSettingV3() : m_impl(std::make_shared<Impl>()) {}
+Color4BSettingV3::Color4BSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
 ccColor4B& Color4BSettingV3::getValueMut() const {
     return m_impl->value;
