@@ -264,7 +264,7 @@ namespace geode {
         template <class T>
         T getSettingValue(std::string_view const key) const {
             using S = typename SettingTypeForValueType<T>::SettingType;
-            if (auto sett = typeinfo_pointer_cast<S>(this->getSettingV3(key))) {
+            if (auto sett = cast::typeinfo_pointer_cast<S>(this->getSettingV3(key))) {
                 return sett->getValue();
             }
             return T();
@@ -273,7 +273,7 @@ namespace geode {
         template <class T>
         T setSettingValue(std::string_view const key, T const& value) {
             using S = typename SettingTypeForValueType<T>::SettingType;
-            if (auto sett = typeinfo_pointer_cast<S>(this->getSettingV3(key))) {
+            if (auto sett = cast::typeinfo_pointer_cast<S>(this->getSettingV3(key))) {
                 auto old = sett->getValue();
                 sett->setValue(value);
                 return old;
