@@ -30,6 +30,8 @@ ModSettingsManager::ModSettingsManager(ModMetadata const& metadata)
 }
 ModSettingsManager::~ModSettingsManager() {}
 
+ModSettingsManager::ModSettingsManager(ModSettingsManager&&) = default;
+
 Result<> ModSettingsManager::registerCustomSetting(std::string_view key, std::shared_ptr<SettingV3> ptr) {
     if (!ptr) {
         return Err("Custom settings must not be null!");
