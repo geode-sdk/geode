@@ -130,11 +130,4 @@ namespace geode::cast {
 
         return nullptr;
     }
-
-    template<class T, class U>
-    std::shared_ptr<T> typeinfo_pointer_cast(std::shared_ptr<U> const& r) noexcept {
-        // https://en.cppreference.com/w/cpp/memory/shared_ptr/pointer_cast
-        auto p = typeinfo_cast<typename std::shared_ptr<T>::element_type*>(r.get());
-        return std::shared_ptr<T>(r, p);
-    }
 }

@@ -242,3 +242,13 @@ namespace std {
 #elif defined(GEODE_IS_ANDROID64)
     #define GEODE_PLATFORM_TARGET PlatformID::Android64
 #endif
+
+// this is cross-platform so not duplicating it across the typeinfo_cast definitions
+namespace geode::cast {
+    template<class T, class U>
+    std::shared_ptr<T> typeinfo_pointer_cast(std::shared_ptr<U> const& r) noexcept {
+        // https://en.cppreference.com/w/cpp/memory/shared_ptr/pointer_cast
+        auto p = typeinfo_cast<typename std::shared_ptr<T>::element_type*>(r.get());
+        return std::shared_ptr<T>(r, p);
+    }
+}
