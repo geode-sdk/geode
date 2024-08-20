@@ -151,7 +151,6 @@ static void fixCWD() {
             break;
         }
     }
-    console::messageBox("Geode", fmt::format("Hello from gdMainHook!\Setting CWD: {}", cwd));
     SetCurrentDirectoryA(cwd);
 }
 
