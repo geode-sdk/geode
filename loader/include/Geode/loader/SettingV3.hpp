@@ -119,7 +119,7 @@ namespace geode {
             bool isDefaultValue() const override {
                 return this->getValue() == this->getDefaultValue();
             }
-            void reset() {
+            void reset() override {
                 this->setValue(this->getDefaultValue());
             }
         };
@@ -155,8 +155,8 @@ namespace geode {
         class Impl;
         std::shared_ptr<Impl> m_impl;
 
-        friend class ModSettingsManager;
-        friend class LegacyCustomSettingToV3Node;
+        friend class ::ModSettingsManager;
+        friend class ::LegacyCustomSettingToV3Node;
     
     protected:
         Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
