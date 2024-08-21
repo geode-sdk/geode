@@ -18,18 +18,20 @@ public:
 SettingV3::SettingV3() : m_impl(std::make_shared<GeodeImpl>()) {}
 SettingV3::~SettingV3() = default;
 
-Result<> SettingV3::parseSharedProperties(std::string const& key, std::string const& modID, matjson::Value const& value) {
+Result<> SettingV3::parseSharedProperties(std::string const& key, std::string const& modID, matjson::Value const& value, bool onlyNameAndDesc) {
     auto json = checkJson(value, "SettingV3");
-    this->parseSharedProperties(key, modID, json);
+    this->parseSharedProperties(key, modID, json, onlyNameAndDesc);
     return json.ok();
 }
-void SettingV3::parseSharedProperties(std::string const& key, std::string const& modID, JsonExpectedValue& value) {
+void SettingV3::parseSharedProperties(std::string const& key, std::string const& modID, JsonExpectedValue& value, bool onlyNameAndDesc) {
     this->init(key, modID);
     value.needs("type");
     value.has("name").into(m_impl->name);
     value.has("description").into(m_impl->description);
-    value.has("enable-if").into(m_impl->enableIf);
-    value.has("requires-restart").into(m_impl->requiresRestart);
+    if (!onlyNameAndDesc) {
+        value.has("enable-if").into(m_impl->enableIf);
+        value.has("requires-restart").into(m_impl->requiresRestart);
+    }
 }
 void SettingV3::init(std::string const& key, std::string const& modID) {
     m_impl->key = key;
@@ -42,8 +44,8 @@ std::string SettingV3::getKey() const {
 std::string SettingV3::getModID() const {
     return m_impl->modID;
 }
-std::string SettingV3::getName() const {
-    return m_impl->name.value_or(m_impl->key);
+std::optional<std::string> SettingV3::getName() const {
+    return m_impl->name;
 }
 std::optional<std::string> SettingV3::getDescription() const {
     return m_impl->description;
@@ -67,7 +69,6 @@ std::optional<std::shared_ptr<SettingValue>> SettingV3::convertToLegacyValue() c
 
 class TitleSettingV3::Impl final {
 public:
-    std::string title;
 };
 
 TitleSettingV3::TitleSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
@@ -75,14 +76,9 @@ TitleSettingV3::TitleSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>())
 Result<std::shared_ptr<TitleSettingV3>> TitleSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
     auto ret = std::make_shared<TitleSettingV3>(PrivateMarker());
     auto root = checkJson(json, "TitleSettingV3");
-    ret->init(key, modID);
-    root.needs("title").into(ret->m_impl->title);
+    ret->parseSharedProperties(key, modID, root, true);
     root.checkUnknownKeys();
     return root.ok(ret);
-}
-
-std::string TitleSettingV3::getTitle() const {
-    return m_impl->title;
 }
 
 bool TitleSettingV3::load(matjson::Value const& json) {

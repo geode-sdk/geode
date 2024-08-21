@@ -23,8 +23,8 @@ namespace geode {
     
     protected:
         void init(std::string const& key, std::string const& modID);
-        Result<> parseSharedProperties(std::string const& key, std::string const& modID, matjson::Value const& value);
-        void parseSharedProperties(std::string const& key, std::string const& modID, JsonExpectedValue& value);
+        Result<> parseSharedProperties(std::string const& key, std::string const& modID, matjson::Value const& value, bool onlyNameAndDesc = false);
+        void parseSharedProperties(std::string const& key, std::string const& modID, JsonExpectedValue& value, bool onlyNameAndDesc = false);
 
     public:
         SettingV3();
@@ -46,7 +46,7 @@ namespace geode {
         /**
          * Get the name of this setting
          */
-        std::string getName() const; 
+        std::optional<std::string> getName() const; 
         /**
          * Get the description of this setting
          */
@@ -134,8 +134,6 @@ namespace geode {
     public:
         TitleSettingV3(PrivateMarker);
         static Result<std::shared_ptr<TitleSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
-
-        std::string getTitle() const;
 
         bool load(matjson::Value const& json) override;
         bool save(matjson::Value& json) const override;
@@ -401,6 +399,8 @@ namespace geode {
     protected:
         bool init(std::shared_ptr<SettingV3> setting, float width);
 
+        virtual void updateState();
+
         /**
          * Mark this setting as changed. This updates the UI for committing 
          * the value
@@ -414,11 +414,18 @@ namespace geode {
          */
         virtual void onCommit() = 0;
 
+        void onDescription(CCObject*);
+        void onReset(CCObject*);
+
     public:
         void commit();
         virtual bool hasUncommittedChanges() const = 0;
         virtual bool hasNonDefaultValue() const = 0;
         virtual void resetToDefault() = 0;
+
+        cocos2d::CCLabelBMFont* getNameLabel() const;
+        cocos2d::CCMenu* getNameMenu() const;
+        cocos2d::CCMenu* getButtonMenu() const;
 
         void setContentSize(cocos2d::CCSize const& size) override;
 

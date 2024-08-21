@@ -36,6 +36,10 @@ bool SettingNodeValueChangeEventV3::isCommit() const {
 class SettingNodeV3::Impl final {
 public:
     std::shared_ptr<SettingV3> setting;
+    CCLabelBMFont* nameLabel;
+    CCMenu* nameMenu;
+    CCMenu* buttonMenu;
+    CCMenuItemSpriteExtra* resetButton;
 };
 
 bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
@@ -45,21 +49,91 @@ bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
     m_impl = std::make_shared<Impl>();
     m_impl->setting = setting;
 
+    m_impl->nameMenu = CCMenu::create();
+    m_impl->nameMenu->setContentWidth(width / 2 - 20);
+
+    m_impl->nameLabel = CCLabelBMFont::create(
+        setting->getName().value_or(setting->getKey()).c_str(),
+        "bigFont.fnt"
+    );
+    m_impl->nameLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.1f, .4f)->setScalePriority(1));
+    m_impl->nameMenu->addChild(m_impl->nameLabel);
+
+    if (setting->getDescription()) {
+        auto descSpr = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
+        descSpr->setScale(.5f);
+        auto descBtn = CCMenuItemSpriteExtra::create(
+            descSpr, this, menu_selector(SettingNodeV3::onDescription)
+        );
+        m_impl->nameMenu->addChild(descBtn);
+    }
+
+    auto resetSpr = CCSprite::createWithSpriteFrameName("reset-gold.png"_spr);
+    resetSpr->setScale(.5f);
+    m_impl->resetButton = CCMenuItemSpriteExtra::create(
+        resetSpr, this, menu_selector(SettingNodeV3::onReset)
+    );
+    m_impl->nameMenu->addChild(m_impl->resetButton);
+
+    m_impl->nameMenu->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::Start));
+    this->addChildAtPosition(m_impl->nameMenu, Anchor::Left, ccp(10, 0), ccp(0, .5f));
+
+    m_impl->buttonMenu = CCMenu::create();
+    m_impl->buttonMenu->setContentWidth(width / 2 - 20);
+    m_impl->buttonMenu->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::End));
+    this->addChildAtPosition(m_impl->buttonMenu, Anchor::Right, ccp(-10, 0), ccp(1, .5f));
+
+    this->setAnchorPoint({ .5f, .5f });
+    this->setContentSize({ width, 30 });
+
     return true;
 }
 
-void SettingNodeV3::markChanged() {
-    SettingNodeValueChangeEventV3(false).post();
+void SettingNodeV3::updateState() {
+    this->getNameLabel()->setColor(this->hasUncommittedChanges() ? ccc3(17, 221, 0) : ccWHITE);
+    m_impl->resetButton->setVisible(this->hasNonDefaultValue());
+    m_impl->nameMenu->updateLayout();
 }
 
+void SettingNodeV3::onDescription(CCObject*) {
+    auto title = m_impl->setting->getName().value_or(m_impl->setting->getKey());
+    FLAlertLayer::create(
+        nullptr,
+        title.c_str(),
+        m_impl->setting->getDescription().value_or("No description provided"),
+        "OK", nullptr,
+        clamp(title.size() * 16, 240, 400)
+    )->show();
+}
+void SettingNodeV3::onReset(CCObject*) {
+    this->resetToDefault();
+    this->updateState();
+}
+
+void SettingNodeV3::markChanged() {
+    this->updateState();
+    SettingNodeValueChangeEventV3(false).post();
+}
 void SettingNodeV3::commit() {
     this->onCommit();
+    this->updateState();
     SettingNodeValueChangeEventV3(true).post();
 }
 
 void SettingNodeV3::setContentSize(CCSize const& size) {
     CCNode::setContentSize(size);
+    this->updateLayout();
     SettingNodeSizeChangeEventV3(this).post();
+}
+
+CCLabelBMFont* SettingNodeV3::getNameLabel() const {
+    return m_impl->nameLabel;
+}
+CCMenu* SettingNodeV3::getNameMenu() const {
+    return m_impl->nameMenu;
+}
+CCMenu* SettingNodeV3::getButtonMenu() const {
+    return m_impl->buttonMenu;
 }
 
 std::shared_ptr<SettingV3> SettingNodeV3::getSetting() const {
@@ -72,11 +146,10 @@ bool TitleSettingNodeV3::init(std::shared_ptr<TitleSettingV3> setting, float wid
     if (!SettingNodeV3::init(setting, width))
         return false;
     
+    this->getNameLabel()->setFntFile("goldFont.fnt");
+    this->getNameMenu()->updateLayout();
     this->setContentHeight(20);
-    
-    auto label = CCLabelBMFont::create(setting->getTitle().c_str(), "goldFont.fnt");
-    label->limitLabelWidth(width - m_obContentSize.height, .7f, .1f);
-    this->addChildAtPosition(label, Anchor::Left, ccp(m_obContentSize.height / 2, 0));
+    this->updateState();
     
     return true;
 }
@@ -111,22 +184,29 @@ bool BoolSettingNodeV3::init(std::shared_ptr<BoolSettingV3> setting, float width
     if (!SettingNodeV3::init(setting, width))
         return false;
     
-    this->setContentHeight(30);
-
-    auto label = CCLabelBMFont::create(setting->getName().c_str(), "bigFont.fnt");
-    label->limitLabelWidth(width - m_obContentSize.height * 1.5f, .5f, .1f);
-    this->addChildAtPosition(label, Anchor::Left, ccp(m_obContentSize.height / 2, 0));
-    
     m_toggle = CCMenuItemToggler::createWithStandardSprites(
-        this, nullptr, .8f
+        this, menu_selector(BoolSettingNodeV3::onToggle), .55f
     );
-    this->addChildAtPosition(m_toggle, Anchor::Right, ccp(-m_obContentSize.height / 2, 0));
+    m_toggle->m_onButton->setContentSize({ 25, 25 });
+    m_toggle->m_onButton->getNormalImage()->setPosition(ccp(25, 25) / 2);
+    m_toggle->m_offButton->setContentSize({ 25, 25 });
+    m_toggle->m_offButton->getNormalImage()->setPosition(ccp(25, 25) / 2);
+    m_toggle->m_notClickable = true;
+    m_toggle->toggle(setting->getValue());
+    this->getButtonMenu()->addChild(m_toggle);
+    this->getButtonMenu()->updateLayout();
+
+    this->updateState();
 
     return true;
 }
 
 void BoolSettingNodeV3::onCommit() {
     this->getSetting()->setValue(m_toggle->isToggled());
+}
+void BoolSettingNodeV3::onToggle(CCObject*) {
+    m_toggle->toggle(!m_toggle->isToggled());
+    this->markChanged();
 }
 
 BoolSettingNodeV3* BoolSettingNodeV3::create(std::shared_ptr<BoolSettingV3> setting, float width) {

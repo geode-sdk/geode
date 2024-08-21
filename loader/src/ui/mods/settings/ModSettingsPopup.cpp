@@ -28,7 +28,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
         hasBG = !hasBG;
 
         auto bg = CCLayerColor::create({ 0, 0, 0, 50 });
-        bg->setOpacity(hasBG ? 50 : 0);
+        bg->setOpacity(hasBG ? 60 : 20);
 
         SettingNodeV3* node;
         if (auto sett = mod->getSettingV3(key)) {
@@ -40,11 +40,12 @@ bool ModSettingsPopup::setup(Mod* mod) {
         }
     
         bg->setContentSize(node->getScaledContentSize());
-        bg->addChildAtPosition(node, Anchor::Center);
+        bg->addChildAtPosition(node, Anchor::Center, ccp(0, 0), ccp(.5f, .5f));
 
-        auto separator = CCLayerColor::create({ 0, 0, 0, 50 }, layerSize.width, 1.f);
-        separator->setOpacity(hasBG ? 100 : 50);
-        bg->addChildAtPosition(separator, Anchor::Bottom);
+        // auto separator = CCLayerColor::create({ 0, 0, 0, 50 }, layerSize.width, 1.f);
+        // separator->setOpacity(hasBG ? 100 : 50);
+        // separator->ignoreAnchorPointForPosition(false);
+        // bg->addChildAtPosition(separator, Anchor::Bottom, ccp(0, 0), ccp(.5f, .5f));
 
         m_settings.push_back(node);
 
@@ -132,11 +133,13 @@ void ModSettingsPopup::onResetAll(CCObject*) {
 
 void ModSettingsPopup::updateState() {
     if (this->hasUncommitted()) {
-        m_applyBtnSpr->setColor({0xff, 0xff, 0xff});
+        m_applyBtnSpr->setColor(ccWHITE);
+        m_applyBtnSpr->setOpacity(255);
         m_applyBtn->setEnabled(true);
     }
     else {
-        m_applyBtnSpr->setColor({0x44, 0x44, 0x44});
+        m_applyBtnSpr->setColor(ccGRAY);
+        m_applyBtnSpr->setOpacity(155);
         m_applyBtn->setEnabled(false);
     }
 }
@@ -172,7 +175,7 @@ void ModSettingsPopup::onOpenSaveDirectory(CCObject*) {
 
 ModSettingsPopup* ModSettingsPopup::create(Mod* mod) {
     auto ret = new ModSettingsPopup();
-    if (ret->init(440.f, 280.f, mod)) {
+    if (ret->init(440, 280, mod)) {
         ret->autorelease();
         return ret;
     }

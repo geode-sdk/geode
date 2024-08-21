@@ -33,6 +33,8 @@ protected:
 
     void onCommit() override;
 
+    void onToggle(CCObject*);
+
 public:
     static BoolSettingNodeV3* create(std::shared_ptr<BoolSettingV3> setting, float width);
     
