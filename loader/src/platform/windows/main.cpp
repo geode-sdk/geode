@@ -142,8 +142,8 @@ unsigned int gdTimestamp = 0;
 // this function will set the current working directory to the game's directory
 // to avoid the game crashing due to not being able to find the resources
 static void fixCWD() {
-    char cwd[1024];
-    DWORD size = GetModuleFileNameA(NULL, cwd, sizeof(cwd));
+    WCHAR cwd[MAX_PATH];
+    DWORD size = GetModuleFileNameW(NULL, cwd, sizeof(cwd));
     if (size == sizeof(cwd)) return;
     for (int i = size - 1; i >= 0; i--) {
         if (cwd[i] == '\\') {
@@ -151,7 +151,7 @@ static void fixCWD() {
             break;
         }
     }
-    SetCurrentDirectoryA(cwd);
+    SetCurrentDirectoryW(cwd);
 }
 
 int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
