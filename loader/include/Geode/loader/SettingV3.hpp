@@ -9,22 +9,22 @@
 // this unfortunately has to be included because of C++ templates
 #include "../utils/JsonValidation.hpp"
 
-// todo in v4: these can be removed as well as the friend decl in UnresolvedCustomSettingV3
-class ModSettingsManager;
+// todo in v4: these can be removed as well as the friend decl in LegacyCustomSettingV3
 class LegacyCustomSettingToV3Node;
 
 namespace geode {
+    class ModSettingsManager;
     class SettingNodeV3;
 
     class GEODE_DLL SettingV3 : public std::enable_shared_from_this<SettingV3> {
     private:
         class GeodeImpl;
         std::shared_ptr<GeodeImpl> m_impl;
-
+    
     protected:
-        virtual Result<> onParse(
-            std::string const& key, std::string const& modID, matjson::Value const& json
-        ) = 0;
+        void init(std::string const& key, std::string const& modID);
+        Result<> parseSharedProperties(std::string const& key, std::string const& modID, matjson::Value const& value);
+        void parseSharedProperties(std::string const& key, std::string const& modID, JsonExpectedValue& value);
 
     public:
         SettingV3();
@@ -43,8 +43,23 @@ namespace geode {
          * while the mod is still being initialized
          */
         Mod* getMod() const;
+        /**
+         * Get the name of this setting
+         */
+        std::string getName() const; 
+        /**
+         * Get the description of this setting
+         */
+        std::optional<std::string> getDescription() const;
+        /**
+         * Get the "enable-if" scheme for this setting
+         */
+        std::optional<std::string> getEnableIf() const;
+        /**
+         * Whether this setting requires a restart on change
+         */
+        bool requiresRestart() const;
 
-        Result<> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
         virtual bool load(matjson::Value const& json) = 0;
         virtual bool save(matjson::Value& json) const = 0;
         virtual SettingNodeV3* createNode(float width) = 0;
@@ -59,26 +74,22 @@ namespace geode {
         virtual std::optional<Setting> convertToLegacy() const;
         [[deprecated("This function will be removed alongside legacy settings in 4.0.0!")]]
         virtual std::optional<std::shared_ptr<SettingValue>> convertToLegacyValue() const;
-
-        static Result<std::shared_ptr<SettingV3>> parseBuiltin(
-            std::string const& key, std::string const& modID, matjson::Value const& json
-        );
     };
+    
+    using SettingGenerator = std::function<Result<std::shared_ptr<SettingV3>>(
+        std::string const& key,
+        std::string const& modID,
+        matjson::Value const& json
+    )>;
 
     namespace detail {
-        class GEODE_DLL GeodeSettingBaseV3 : public SettingV3 {
-        private:
-            class Impl;
-            std::shared_ptr<Impl> m_impl;
-        
-            Result<> parseSharedBase(JsonExpectedValue& json);
-
+        template <class T, class V = T>
+        class GeodeSettingBaseValueV3 : public SettingV3 {
         protected:
-            Result<> isValidShared() const;
+            virtual T& getValueMut() const = 0;
 
             template <class T>
-            Result<> parseShared(JsonExpectedValue& json, T& defaultValue) {
-                GEODE_UNWRAP(this->parseSharedBase(json));
+            void parseDefaultValue(JsonExpectedValue& json, T& defaultValue) {
                 auto value = json.needs("default");
                 // Check if this is a platform-specific default value
                 if (value.isObject() && value.has(GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH)) {
@@ -87,22 +98,8 @@ namespace geode {
                 else {
                     value.into(defaultValue);
                 }
-                return Ok();
             }
 
-        public:
-            GeodeSettingBaseV3();
-
-            std::string getName() const;
-            std::optional<std::string> getDescription() const;
-            std::optional<std::string> getEnableIf() const;
-        };
-
-        template <class T, class V = T>
-        class GeodeSettingBaseValueV3 : public GeodeSettingBaseV3 {
-        protected:
-            virtual T& getValueMut() const = 0;
-        
         public:
             using ValueType = T;
 
@@ -130,15 +127,13 @@ namespace geode {
         class Impl;
         std::shared_ptr<Impl> m_impl;
     
-    protected:
-        Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
-
     private:
         class PrivateMarker {};
         friend class SettingV3;
 
     public:
         TitleSettingV3(PrivateMarker);
+        static Result<std::shared_ptr<TitleSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
 
         std::string getTitle() const;
 
@@ -150,23 +145,25 @@ namespace geode {
         void reset() override;
     };
 
-    class GEODE_DLL UnresolvedCustomSettingV3 final : public SettingV3 {
+    // todo in v4: remove this class completely
+    class GEODE_DLL LegacyCustomSettingV3 final : public SettingV3 {
     private:
         class Impl;
         std::shared_ptr<Impl> m_impl;
 
-        friend class ::ModSettingsManager;
+        friend class ::geode::ModSettingsManager;
         friend class ::LegacyCustomSettingToV3Node;
     
-    protected:
-        Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
-
     private:
         class PrivateMarker {};
         friend class SettingV3;
 
     public:
-        UnresolvedCustomSettingV3(PrivateMarker);
+        LegacyCustomSettingV3(PrivateMarker);
+        static Result<std::shared_ptr<LegacyCustomSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
+
+        std::shared_ptr<SettingValue> getValue() const;
+        void setValue(std::shared_ptr<SettingValue> value);
 
         bool load(matjson::Value const& json) override;
         bool save(matjson::Value& json) const override;
@@ -186,7 +183,6 @@ namespace geode {
 
     protected:
         bool& getValueMut() const override;
-        Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
 
     private:
         class PrivateMarker {};
@@ -194,6 +190,7 @@ namespace geode {
 
     public:
         BoolSettingV3(PrivateMarker);
+        static Result<std::shared_ptr<BoolSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
 
         bool getDefaultValue() const override;
         Result<> isValid(bool value) const override;
@@ -213,7 +210,6 @@ namespace geode {
 
     protected:
         int64_t& getValueMut() const override;
-        Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
 
     private:
         class PrivateMarker {};
@@ -221,6 +217,7 @@ namespace geode {
 
     public:
         IntSettingV3(PrivateMarker);
+        static Result<std::shared_ptr<IntSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
 
         int64_t getDefaultValue() const override;
         Result<> isValid(int64_t value) const override;
@@ -251,7 +248,6 @@ namespace geode {
 
     protected:
         double& getValueMut() const override;
-        Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
 
     private:
         class PrivateMarker {};
@@ -259,6 +255,7 @@ namespace geode {
 
     public:
         FloatSettingV3(PrivateMarker);
+        static Result<std::shared_ptr<FloatSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
 
         double getDefaultValue() const override;
         Result<> isValid(double value) const override;
@@ -289,7 +286,6 @@ namespace geode {
 
     protected:
         std::string& getValueMut() const override;
-        Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
 
     private:
         class PrivateMarker {};
@@ -297,6 +293,7 @@ namespace geode {
 
     public:
         StringSettingV3(PrivateMarker);
+        static Result<std::shared_ptr<StringSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
 
         std::string getDefaultValue() const override;
         Result<> isValid(std::string_view value) const override;
@@ -320,7 +317,6 @@ namespace geode {
 
     protected:
         std::filesystem::path& getValueMut() const override;
-        Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
 
     private:
         class PrivateMarker {};
@@ -328,6 +324,7 @@ namespace geode {
 
     public:
         FileSettingV3(PrivateMarker);
+        static Result<std::shared_ptr<FileSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
 
         std::filesystem::path getDefaultValue() const override;
         Result<> isValid(std::filesystem::path const& value) const override;
@@ -349,7 +346,6 @@ namespace geode {
 
     protected:
         cocos2d::ccColor3B& getValueMut() const override;
-        Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
 
     private:
         class PrivateMarker {};
@@ -357,6 +353,7 @@ namespace geode {
 
     public:
         Color3BSettingV3(PrivateMarker);
+        static Result<std::shared_ptr<Color3BSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
 
         cocos2d::ccColor3B getDefaultValue() const override;
         Result<> isValid(cocos2d::ccColor3B value) const override;
@@ -376,7 +373,6 @@ namespace geode {
 
     protected:
         cocos2d::ccColor4B& getValueMut() const override;
-        Result<> onParse(std::string const& key, std::string const& modID, matjson::Value const& json) override;
 
     private:
         class PrivateMarker {};
@@ -384,6 +380,7 @@ namespace geode {
 
     public:
         Color4BSettingV3(PrivateMarker);
+        static Result<std::shared_ptr<Color4BSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
 
         cocos2d::ccColor4B getDefaultValue() const override;
         Result<> isValid(cocos2d::ccColor4B value) const override;

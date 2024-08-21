@@ -1,7 +1,6 @@
 #include <Geode/loader/SettingV3.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <regex>
-#include "SettingV3Impl.hpp"
 #include "SettingNodeV3.hpp"
 
 using namespace geode::prelude;
@@ -10,11 +9,32 @@ class SettingV3::GeodeImpl {
 public:
     std::string modID;
     std::string key;
+    std::optional<std::string> name;
+    std::optional<std::string> description;
+    std::optional<std::string> enableIf;
+    bool requiresRestart = false;
 };
 
+SettingV3::SettingV3() : m_impl(std::make_shared<GeodeImpl>()) {}
 SettingV3::~SettingV3() = default;
 
-SettingV3::SettingV3() : m_impl(std::make_shared<GeodeImpl>()) {}
+Result<> SettingV3::parseSharedProperties(std::string const& key, std::string const& modID, matjson::Value const& value) {
+    auto json = checkJson(value, "SettingV3");
+    this->parseSharedProperties(key, modID, json);
+    return json.ok();
+}
+void SettingV3::parseSharedProperties(std::string const& key, std::string const& modID, JsonExpectedValue& value) {
+    this->init(key, modID);
+    value.needs("type");
+    value.has("name").into(m_impl->name);
+    value.has("description").into(m_impl->description);
+    value.has("enable-if").into(m_impl->enableIf);
+    value.has("requires-restart").into(m_impl->requiresRestart);
+}
+void SettingV3::init(std::string const& key, std::string const& modID) {
+    m_impl->key = key;
+    m_impl->modID = modID;
+}
 
 std::string SettingV3::getKey() const {
     return m_impl->key;
@@ -22,35 +42,20 @@ std::string SettingV3::getKey() const {
 std::string SettingV3::getModID() const {
     return m_impl->modID;
 }
+std::string SettingV3::getName() const {
+    return m_impl->name.value_or(m_impl->key);
+}
+std::optional<std::string> SettingV3::getDescription() const {
+    return m_impl->description;
+}
+std::optional<std::string> SettingV3::getEnableIf() const {
+    return m_impl->enableIf;
+}
+bool SettingV3::requiresRestart() const {
+    return m_impl->requiresRestart;
+}
 Mod* SettingV3::getMod() const {
     return Loader::get()->getInstalledMod(m_impl->modID);
-}
-
-Result<> SettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
-    m_impl->key = key;
-    m_impl->modID = modID;
-    return this->onParse(key, modID, json);
-}
-
-Result<std::shared_ptr<SettingV3>> SettingV3::parseBuiltin(std::string const& key, std::string const& modID, matjson::Value const& json) {
-    auto root = checkJson(json, "SettingV3");
-    std::string type;
-    root.needs("type").into(type);
-    std::shared_ptr<SettingV3> ret;
-    switch (hash(type)) {
-        case hash("bool"): ret = std::make_shared<BoolSettingV3>(BoolSettingV3::PrivateMarker()); break;
-        case hash("int"): ret = std::make_shared<IntSettingV3>(IntSettingV3::PrivateMarker()); break;
-        case hash("float"): ret = std::make_shared<FloatSettingV3>(FloatSettingV3::PrivateMarker()); break;
-        case hash("string"): ret = std::make_shared<StringSettingV3>(StringSettingV3::PrivateMarker()); break;
-        case hash("rgb"): case hash("color"): ret = std::make_shared<Color3BSettingV3>(Color3BSettingV3::PrivateMarker()); break;
-        case hash("rgba"): ret = std::make_shared<Color4BSettingV3>(Color4BSettingV3::PrivateMarker()); break;
-        case hash("path"): case hash("file"): ret = std::make_shared<FileSettingV3>(FileSettingV3::PrivateMarker()); break;
-        case hash("title"): ret = std::make_shared<TitleSettingV3>(TitleSettingV3::PrivateMarker()); break;
-        default:
-        case hash("custom"): ret = std::make_shared<UnresolvedCustomSettingV3>(UnresolvedCustomSettingV3::PrivateMarker()); break;
-    }
-    GEODE_UNWRAP(ret->parse(key, modID, json));
-    return root.ok(std::move(ret));
 }
 
 std::optional<Setting> SettingV3::convertToLegacy() const {
@@ -60,41 +65,6 @@ std::optional<std::shared_ptr<SettingValue>> SettingV3::convertToLegacyValue() c
     return std::nullopt;
 }
 
-class geode::detail::GeodeSettingBaseV3::Impl final {
-public:
-    std::optional<std::string> name;
-    std::optional<std::string> description;
-    std::optional<std::string> enableIf;
-};
-
-geode::detail::GeodeSettingBaseV3::GeodeSettingBaseV3() : m_impl(std::make_shared<Impl>()) {}
-
-std::string geode::detail::GeodeSettingBaseV3::getName() const {
-    return m_impl->name.value_or(this->getKey());
-}
-std::optional<std::string> geode::detail::GeodeSettingBaseV3::getDescription() const {
-    return m_impl->description;
-}
-std::optional<std::string> geode::detail::GeodeSettingBaseV3::getEnableIf() const {
-    return m_impl->enableIf;
-}
-
-Result<> geode::detail::GeodeSettingBaseV3::parseSharedBase(JsonExpectedValue& json) {
-    // Mark keys that have been checked before-hand
-    json.needs("type");
-    json.has("platforms");
-
-    json.has("name").into(m_impl->name);
-    json.has("description").into(m_impl->description);
-    json.has("enable-if").into(m_impl->enableIf);
-    return Ok();
-}
-Result<> geode::detail::GeodeSettingBaseV3::isValidShared() const {
-    // In the future if something like `enable-if` preventing 
-    // programmatic modification of settings it should be added here
-    return Ok();
-}
-
 class TitleSettingV3::Impl final {
 public:
     std::string title;
@@ -102,16 +72,19 @@ public:
 
 TitleSettingV3::TitleSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
+Result<std::shared_ptr<TitleSettingV3>> TitleSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
+    auto ret = std::make_shared<TitleSettingV3>(PrivateMarker());
+    auto root = checkJson(json, "TitleSettingV3");
+    ret->init(key, modID);
+    root.needs("title").into(ret->m_impl->title);
+    root.checkUnknownKeys();
+    return root.ok(ret);
+}
+
 std::string TitleSettingV3::getTitle() const {
     return m_impl->title;
 }
 
-Result<> TitleSettingV3::onParse(std::string const& key, std::string const& modID, matjson::Value const& json) {
-    auto root = checkJson(json, "TitleSettingV3");
-    root.needs("title").into(m_impl->title);
-    root.checkUnknownKeys();
-    return root.ok();
-}
 bool TitleSettingV3::load(matjson::Value const& json) {
     return true;
 }
@@ -128,46 +101,56 @@ bool TitleSettingV3::isDefaultValue() const {
 }
 void TitleSettingV3::reset() {}
 
-// todo in v4: move the UnresolvedCustomSettingV3::Impl definition from SettingV3Impl.hpp to here
-// on this line in particular
-// right here
-// replace this comment with it
-// put it riiiiiight here
+class LegacyCustomSettingV3::Impl final {
+public:
+    matjson::Value json;
+    std::shared_ptr<SettingValue> legacyValue = nullptr;
+};
 
-UnresolvedCustomSettingV3::UnresolvedCustomSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
+LegacyCustomSettingV3::LegacyCustomSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
-Result<> UnresolvedCustomSettingV3::onParse(std::string const& key, std::string const& modID, matjson::Value const& json) {
-    m_impl->json = json;
-    return Ok();
+Result<std::shared_ptr<LegacyCustomSettingV3>> LegacyCustomSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
+    auto ret = std::make_shared<LegacyCustomSettingV3>(PrivateMarker());
+    ret->init(key, modID);
+    ret->m_impl->json = json;
+    return Ok(ret);
 }
-bool UnresolvedCustomSettingV3::load(matjson::Value const& json) {
+
+std::shared_ptr<SettingValue> LegacyCustomSettingV3::getValue() const {
+    return m_impl->legacyValue;
+}
+void LegacyCustomSettingV3::setValue(std::shared_ptr<SettingValue> value) {
+    m_impl->legacyValue = value;
+}
+
+bool LegacyCustomSettingV3::load(matjson::Value const& json) {
     return true;
 }
-bool UnresolvedCustomSettingV3::save(matjson::Value& json) const {
+bool LegacyCustomSettingV3::save(matjson::Value& json) const {
     return true;
 }
-SettingNodeV3* UnresolvedCustomSettingV3::createNode(float width) {
+SettingNodeV3* LegacyCustomSettingV3::createNode(float width) {
     if (m_impl->legacyValue) {
         return LegacyCustomSettingToV3Node::create(
-            std::static_pointer_cast<UnresolvedCustomSettingV3>(shared_from_this()), width
+            std::static_pointer_cast<LegacyCustomSettingV3>(shared_from_this()), width
         );
     }
     return UnresolvedCustomSettingNodeV3::create(
-        std::static_pointer_cast<UnresolvedCustomSettingV3>(shared_from_this()), width
+        std::static_pointer_cast<LegacyCustomSettingV3>(shared_from_this()), width
     );
 }
 
-bool UnresolvedCustomSettingV3::isDefaultValue() const {
+bool LegacyCustomSettingV3::isDefaultValue() const {
     return true;
 }
-void UnresolvedCustomSettingV3::reset() {}
+void LegacyCustomSettingV3::reset() {}
 
-std::optional<Setting> UnresolvedCustomSettingV3::convertToLegacy() const {
+std::optional<Setting> LegacyCustomSettingV3::convertToLegacy() const {
     return Setting(this->getKey(), this->getModID(), SettingKind(CustomSetting {
         .json = std::make_shared<ModJson>(m_impl->json)
     }));
 }
-std::optional<std::shared_ptr<SettingValue>> UnresolvedCustomSettingV3::convertToLegacyValue() const {
+std::optional<std::shared_ptr<SettingValue>> LegacyCustomSettingV3::convertToLegacyValue() const {
     return m_impl->legacyValue ? std::optional(m_impl->legacyValue) : std::nullopt;
 }
 
@@ -179,6 +162,18 @@ public:
 
 BoolSettingV3::BoolSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
+Result<std::shared_ptr<BoolSettingV3>> BoolSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
+    auto ret = std::make_shared<BoolSettingV3>(PrivateMarker());
+
+    auto root = checkJson(json, "BoolSettingV3");
+    ret->parseSharedProperties(key, modID, root);
+    ret->parseDefaultValue(root, ret->m_impl->defaultValue);
+    ret->m_impl->value = ret->m_impl->defaultValue;
+
+    root.checkUnknownKeys();
+    return root.ok(ret);
+}
+
 bool& BoolSettingV3::getValueMut() const {
     return m_impl->value;
 }
@@ -186,19 +181,9 @@ bool BoolSettingV3::getDefaultValue() const {
     return m_impl->defaultValue;
 }
 Result<> BoolSettingV3::isValid(bool value) const {
-    GEODE_UNWRAP(this->isValidShared());
     return Ok();
 }
 
-Result<> BoolSettingV3::onParse(std::string const& key, std::string const& modID, matjson::Value const& json) {
-    auto root = checkJson(json, "BoolSettingV3");
-
-    GEODE_UNWRAP(this->parseShared(root, m_impl->defaultValue));
-    m_impl->value = m_impl->defaultValue;
-
-    root.checkUnknownKeys();
-    return root.ok();
-}
 bool BoolSettingV3::load(matjson::Value const& json) {
     if (json.is_bool()) {
         m_impl->value = json.as_bool();
@@ -244,6 +229,35 @@ public:
     } controls;
 };
 
+Result<std::shared_ptr<IntSettingV3>> IntSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
+    auto ret = std::make_shared<IntSettingV3>(PrivateMarker());
+    
+    auto root = checkJson(json, "IntSettingV3");
+    ret->parseSharedProperties(key, modID, root);
+    ret->parseDefaultValue(root, ret->m_impl->defaultValue);
+    ret->m_impl->value = ret->m_impl->defaultValue;
+
+    root.has("min").into(ret->m_impl->minValue);
+    root.has("max").into(ret->m_impl->maxValue);
+    if (auto controls = root.has("control")) {
+        controls.has("arrow-step").into(ret->m_impl->controls.arrowStepSize);
+        if (!controls.has("arrows").template get<bool>()) {
+            ret->m_impl->controls.arrowStepSize = 0;
+        }
+        controls.has("big-arrow-step").into(ret->m_impl->controls.bigArrowStepSize);
+        if (!controls.has("big-arrows").template get<bool>()) {
+            ret->m_impl->controls.bigArrowStepSize = 0;
+        }
+        controls.has("slider").into(ret->m_impl->controls.sliderEnabled);
+        controls.has("slider-step").into(ret->m_impl->controls.sliderSnap);
+        controls.has("input").into(ret->m_impl->controls.textInputEnabled);
+        controls.checkUnknownKeys();
+    }
+
+    root.checkUnknownKeys();
+    return root.ok(ret);
+}
+
 IntSettingV3::IntSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
 int64_t& IntSettingV3::getValueMut() const {
@@ -253,7 +267,6 @@ int64_t IntSettingV3::getDefaultValue() const {
     return m_impl->defaultValue;
 }
 Result<> IntSettingV3::isValid(int64_t value) const {
-    GEODE_UNWRAP(this->isValidShared());
     if (m_impl->minValue && value < *m_impl->minValue) {
         return Err("value must be at least {}", *m_impl->minValue);
     }
@@ -292,32 +305,6 @@ bool IntSettingV3::isInputEnabled() const {
     return m_impl->controls.textInputEnabled;
 }
 
-Result<> IntSettingV3::onParse(std::string const& key, std::string const& modID, matjson::Value const& json) {
-    auto root = checkJson(json, "IntSettingV3");
-
-    GEODE_UNWRAP(this->parseShared(root, m_impl->defaultValue));
-    m_impl->value = m_impl->defaultValue;
-    
-    root.has("min").into(m_impl->minValue);
-    root.has("max").into(m_impl->maxValue);
-    if (auto controls = root.has("control")) {
-        controls.has("arrow-step").into(m_impl->controls.arrowStepSize);
-        if (!controls.has("arrows").template get<bool>()) {
-            m_impl->controls.arrowStepSize = 0;
-        }
-        controls.has("big-arrow-step").into(m_impl->controls.bigArrowStepSize);
-        if (!controls.has("big-arrows").template get<bool>()) {
-            m_impl->controls.bigArrowStepSize = 0;
-        }
-        controls.has("slider").into(m_impl->controls.sliderEnabled);
-        controls.has("slider-step").into(m_impl->controls.sliderSnap);
-        controls.has("input").into(m_impl->controls.textInputEnabled);
-        controls.checkUnknownKeys();
-    }
-
-    root.checkUnknownKeys();
-    return root.ok();
-}
 bool IntSettingV3::load(matjson::Value const& json) {
     if (json.is_number()) {
         m_impl->value = json.as_int();
@@ -376,6 +363,35 @@ public:
 
 FloatSettingV3::FloatSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
+Result<std::shared_ptr<FloatSettingV3>> FloatSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
+    auto ret = std::make_shared<FloatSettingV3>(PrivateMarker());
+
+    auto root = checkJson(json, "FloatSettingV3");
+    ret->parseSharedProperties(key, modID, root);
+    ret->parseDefaultValue(root, ret->m_impl->defaultValue);
+    ret->m_impl->value = ret->m_impl->defaultValue;
+
+    root.has("min").into(ret->m_impl->minValue);
+    root.has("max").into(ret->m_impl->maxValue);
+    if (auto controls = root.has("control")) {
+        controls.has("arrow-step").into(ret->m_impl->controls.arrowStepSize);
+        if (!controls.has("arrows").template get<bool>()) {
+            ret->m_impl->controls.arrowStepSize = 0;
+        }
+        controls.has("big-arrow-step").into(ret->m_impl->controls.bigArrowStepSize);
+        if (!controls.has("big-arrows").template get<bool>()) {
+            ret->m_impl->controls.bigArrowStepSize = 0;
+        }
+        controls.has("slider").into(ret->m_impl->controls.sliderEnabled);
+        controls.has("slider-step").into(ret->m_impl->controls.sliderSnap);
+        controls.has("input").into(ret->m_impl->controls.textInputEnabled);
+        controls.checkUnknownKeys();
+    }
+
+    root.checkUnknownKeys();
+    return root.ok(ret);
+}
+
 double& FloatSettingV3::getValueMut() const {
     return m_impl->value;
 }
@@ -383,7 +399,6 @@ double FloatSettingV3::getDefaultValue() const {
     return m_impl->defaultValue;
 }
 Result<> FloatSettingV3::isValid(double value) const {
-    GEODE_UNWRAP(this->isValidShared());
     if (m_impl->minValue && value < *m_impl->minValue) {
         return Err("value must be at least {}", *m_impl->minValue);
     }
@@ -422,32 +437,6 @@ bool FloatSettingV3::isInputEnabled() const {
     return m_impl->controls.textInputEnabled;
 }
 
-Result<> FloatSettingV3::onParse(std::string const& key, std::string const& modID, matjson::Value const& json) {
-    auto root = checkJson(json, "FloatSettingV3");
-
-    GEODE_UNWRAP(this->parseShared(root, m_impl->defaultValue));
-    m_impl->value = m_impl->defaultValue;
-    
-    root.has("min").into(m_impl->minValue);
-    root.has("max").into(m_impl->maxValue);
-    if (auto controls = root.has("control")) {
-        controls.has("arrow-step").into(m_impl->controls.arrowStepSize);
-        if (!controls.has("arrows").template get<bool>()) {
-            m_impl->controls.arrowStepSize = 0;
-        }
-        controls.has("big-arrow-step").into(m_impl->controls.bigArrowStepSize);
-        if (!controls.has("big-arrows").template get<bool>()) {
-            m_impl->controls.bigArrowStepSize = 0;
-        }
-        controls.has("slider").into(m_impl->controls.sliderEnabled);
-        controls.has("slider-step").into(m_impl->controls.sliderSnap);
-        controls.has("input").into(m_impl->controls.textInputEnabled);
-        controls.checkUnknownKeys();
-    }
-
-    root.checkUnknownKeys();
-    return root.ok();
-}
 bool FloatSettingV3::load(matjson::Value const& json) {
     if (json.is_number()) {
         m_impl->value = json.as_double();
@@ -498,6 +487,22 @@ public:
 
 StringSettingV3::StringSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
+Result<std::shared_ptr<StringSettingV3>> StringSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
+    auto ret = std::make_shared<StringSettingV3>(PrivateMarker());
+
+    auto root = checkJson(json, "StringSettingV3");
+    ret->parseSharedProperties(key, modID, root);
+    ret->parseDefaultValue(root, ret->m_impl->defaultValue);
+    ret->m_impl->value = ret->m_impl->defaultValue;
+
+    root.has("match").into(ret->m_impl->match);
+    root.has("filter").into(ret->m_impl->filter);
+    root.has("one-of").into(ret->m_impl->oneOf);
+
+    root.checkUnknownKeys();
+    return root.ok(ret);
+}
+
 std::string& StringSettingV3::getValueMut() const {
     return m_impl->value;
 }
@@ -505,7 +510,6 @@ std::string StringSettingV3::getDefaultValue() const {
     return m_impl->defaultValue;
 }
 Result<> StringSettingV3::isValid(std::string_view value) const {
-    GEODE_UNWRAP(this->isValidShared());
     if (m_impl->match) {
         if (!std::regex_match(std::string(value), std::regex(*m_impl->match))) {
             return Err("value must match regex {}", *m_impl->match);
@@ -529,19 +533,6 @@ std::optional<std::vector<std::string>> StringSettingV3::getEnumOptions() const 
     return m_impl->oneOf;
 }
 
-Result<> StringSettingV3::onParse(std::string const& key, std::string const& modID, matjson::Value const& json) {
-    auto root = checkJson(json, "StringSettingV3");
-
-    GEODE_UNWRAP(this->parseShared(root, m_impl->defaultValue));
-    m_impl->value = m_impl->defaultValue;
-
-    root.has("match").into(m_impl->match);
-    root.has("filter").into(m_impl->filter);
-    root.has("one-of").into(m_impl->oneOf);
-
-    root.checkUnknownKeys();
-    return root.ok();
-}
 bool StringSettingV3::load(matjson::Value const& json) {
     if (json.is_string()) {
         m_impl->value = json.as_string();
@@ -582,30 +573,18 @@ public:
 
 FileSettingV3::FileSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
-std::filesystem::path& FileSettingV3::getValueMut() const {
-    return m_impl->value;
-}
-std::filesystem::path FileSettingV3::getDefaultValue() const {
-    return m_impl->defaultValue;
-}
-Result<> FileSettingV3::isValid(std::filesystem::path const& value) const {
-    GEODE_UNWRAP(this->isValidShared());
-    return Ok();
-}
+Result<std::shared_ptr<FileSettingV3>> FileSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
+    auto ret = std::make_shared<FileSettingV3>(PrivateMarker());
 
-std::optional<std::vector<utils::file::FilePickOptions::Filter>> FileSettingV3::getFilters() const {
-    return m_impl->filters;
-}
-
-Result<> FileSettingV3::onParse(std::string const& key, std::string const& modID, matjson::Value const& json) {
     auto root = checkJson(json, "FileSettingV3");
-
-    GEODE_UNWRAP(this->parseShared(root, m_impl->defaultValue));
+    ret->parseSharedProperties(key, modID, root);
+    ret->parseDefaultValue(root, ret->m_impl->defaultValue);
+    ret->m_impl->value = ret->m_impl->defaultValue;
 
     // Replace known paths like `{gd-save-dir}/`    
     try {
-        m_impl->defaultValue = fmt::format(
-            fmt::runtime(m_impl->defaultValue.string()), 
+        ret->m_impl->defaultValue = fmt::format(
+            fmt::runtime(ret->m_impl->defaultValue.string()), 
             fmt::arg("gd-save-dir", dirs::getSaveDir()),
             fmt::arg("gd-game-dir", dirs::getGameDir()),
             fmt::arg("mod-config-dir", dirs::getModConfigDir() / modID),
@@ -616,7 +595,7 @@ Result<> FileSettingV3::onParse(std::string const& key, std::string const& modID
     catch(fmt::format_error const&) {
         return Err("Invalid format string for file setting path");
     }
-    m_impl->value = m_impl->defaultValue;
+    ret->m_impl->value = ret->m_impl->defaultValue;
 
     if (auto controls = root.has("control")) {
         auto filters = std::vector<file::FilePickOptions::Filter>();
@@ -627,13 +606,28 @@ Result<> FileSettingV3::onParse(std::string const& key, std::string const& modID
             filters.push_back(filter);
         }
         if (!filters.empty()) {
-            m_impl->filters.emplace(filters);
+            ret->m_impl->filters.emplace(filters);
         }
     }
 
     root.checkUnknownKeys();
-    return root.ok();
+    return root.ok(ret);
 }
+
+std::filesystem::path& FileSettingV3::getValueMut() const {
+    return m_impl->value;
+}
+std::filesystem::path FileSettingV3::getDefaultValue() const {
+    return m_impl->defaultValue;
+}
+Result<> FileSettingV3::isValid(std::filesystem::path const& value) const {
+    return Ok();
+}
+
+std::optional<std::vector<utils::file::FilePickOptions::Filter>> FileSettingV3::getFilters() const {
+    return m_impl->filters;
+}
+
 bool FileSettingV3::load(matjson::Value const& json) {
     if (json.is_string()) {
         m_impl->value = json.as_string();
@@ -671,6 +665,18 @@ public:
 
 Color3BSettingV3::Color3BSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
+Result<std::shared_ptr<Color3BSettingV3>> Color3BSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
+    auto ret = std::make_shared<Color3BSettingV3>(PrivateMarker());
+
+    auto root = checkJson(json, "Color3BSettingV3");
+    ret->parseSharedProperties(key, modID, root);
+    ret->parseDefaultValue(root, ret->m_impl->defaultValue);
+    ret->m_impl->value = ret->m_impl->defaultValue;
+
+    root.checkUnknownKeys();
+    return root.ok(ret);
+}
+
 ccColor3B& Color3BSettingV3::getValueMut() const {
     return m_impl->value;
 }
@@ -678,19 +684,9 @@ ccColor3B Color3BSettingV3::getDefaultValue() const {
     return m_impl->defaultValue;
 }
 Result<> Color3BSettingV3::isValid(ccColor3B value) const {
-    GEODE_UNWRAP(this->isValidShared());
     return Ok();
 }
 
-Result<> Color3BSettingV3::onParse(std::string const& key, std::string const& modID, matjson::Value const& json) {
-    auto root = checkJson(json, "Color3BSettingV3");
-
-    GEODE_UNWRAP(this->parseShared(root, m_impl->defaultValue));
-    m_impl->value = m_impl->defaultValue;
-
-    root.checkUnknownKeys();
-    return root.ok();
-}
 bool Color3BSettingV3::load(matjson::Value const& json) {
     if (json.template is<ccColor3B>()) {
         m_impl->value = json.template as<ccColor3B>();
@@ -727,6 +723,18 @@ public:
 
 Color4BSettingV3::Color4BSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
+Result<std::shared_ptr<Color4BSettingV3>> Color4BSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
+    auto ret = std::make_shared<Color4BSettingV3>(PrivateMarker());
+
+    auto root = checkJson(json, "Color4BSettingV3");
+    ret->parseSharedProperties(key, modID, root);
+    ret->parseDefaultValue(root, ret->m_impl->defaultValue);
+    ret->m_impl->value = ret->m_impl->defaultValue;
+
+    root.checkUnknownKeys();
+    return root.ok(ret);
+}
+
 ccColor4B& Color4BSettingV3::getValueMut() const {
     return m_impl->value;
 }
@@ -734,19 +742,9 @@ ccColor4B Color4BSettingV3::getDefaultValue() const {
     return m_impl->defaultValue;
 }
 Result<> Color4BSettingV3::isValid(ccColor4B value) const {
-    GEODE_UNWRAP(this->isValidShared());
     return Ok();
 }
 
-Result<> Color4BSettingV3::onParse(std::string const& key, std::string const& modID, matjson::Value const& json) {
-    auto root = checkJson(json, "Color4BSettingV3");
-
-    GEODE_UNWRAP(this->parseShared(root, m_impl->defaultValue));
-    m_impl->value = m_impl->defaultValue;
-
-    root.checkUnknownKeys();
-    return root.ok();
-}
 bool Color4BSettingV3::load(matjson::Value const& json) {
     if (json.template is<ccColor4B>()) {
         m_impl->value = json.template as<ccColor4B>();

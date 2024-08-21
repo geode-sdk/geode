@@ -191,11 +191,6 @@ namespace geode {
          * @see addCustomSetting
          */
         void registerCustomSetting(std::string_view const key, std::unique_ptr<SettingValue> value);
-
-        /**
-         * Register a custom setting
-         */
-        Result<> registerCustomSettingV3(std::string_view const key, std::shared_ptr<SettingV3> value);
         /**
          * Register a custom setting's value class. The new SettingValue class
          * will be created in-place using `std::make_unique`. See
@@ -212,6 +207,11 @@ namespace geode {
         void addCustomSetting(std::string_view const key, V const& value) {
             this->registerCustomSetting(key, std::make_unique<T>(std::string(key), this->getID(), value));
         }
+
+        /**
+         * Register a custom setting type
+         */
+        Result<> registerCustomSettingType(std::string_view type, SettingGenerator generator);
 
         /**
          * Returns a prefixed launch argument name. See `Mod::getLaunchArgument`

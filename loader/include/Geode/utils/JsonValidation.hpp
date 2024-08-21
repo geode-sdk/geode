@@ -318,12 +318,17 @@ namespace geode {
         template <class T>
         std::optional<T> tryGet() {
             if (this->hasError()) return std::nullopt;
-            try {
-                return this->getJSONRef().template as<T>();
+            if constexpr (std::is_same_v<T, matjson::Value>) {
+                return this->getJSONRef();
             }
-            // matjson can throw variant exceptions too so you need to do this
-            catch(std::exception const& e) {
-                this->setError("invalid json type: {}", e);
+            else {
+                try {
+                    return this->getJSONRef().template as<T>();
+                }
+                // matjson can throw variant exceptions too so you need to do this
+                catch(std::exception const& e) {
+                    this->setError("invalid json type: {}", e);
+                }
             }
             return std::nullopt;
         }

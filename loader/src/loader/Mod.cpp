@@ -173,8 +173,8 @@ void Mod::registerCustomSetting(std::string_view const key, std::unique_ptr<Sett
         log::error("Unable to register custom setting: {}", reg.unwrapErr());
     }
 }
-Result<> Mod::registerCustomSettingV3(std::string_view const key, std::shared_ptr<SettingV3> value) {
-    return m_impl->m_settings->registerCustomSetting(key, value);
+Result<> Mod::registerCustomSettingType(std::string_view type, SettingGenerator generator) {
+    return m_impl->m_settings->registerCustomSettingType(type, generator);
 }
 
 std::vector<std::string> Mod::getLaunchArgumentNames() const {

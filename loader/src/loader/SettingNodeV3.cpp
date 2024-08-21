@@ -1,5 +1,4 @@
 #include "SettingNodeV3.hpp"
-#include "SettingV3Impl.hpp"
 #include <Geode/loader/SettingNode.hpp>
 
 class SettingNodeSizeChangeEventV3::Impl final {
@@ -367,7 +366,7 @@ std::shared_ptr<Color4BSettingV3> Color4BSettingNodeV3::getSetting() const {
 
 // UnresolvedCustomSettingNodeV3
 
-bool UnresolvedCustomSettingNodeV3::init(std::shared_ptr<UnresolvedCustomSettingV3> setting, float width) {
+bool UnresolvedCustomSettingNodeV3::init(std::shared_ptr<LegacyCustomSettingV3> setting, float width) {
     if (!SettingNodeV3::init(setting, width))
         return false;
     
@@ -385,7 +384,7 @@ bool UnresolvedCustomSettingNodeV3::init(std::shared_ptr<UnresolvedCustomSetting
 
 void UnresolvedCustomSettingNodeV3::onCommit() {}
 
-UnresolvedCustomSettingNodeV3* UnresolvedCustomSettingNodeV3::create(std::shared_ptr<UnresolvedCustomSettingV3> setting, float width) {
+UnresolvedCustomSettingNodeV3* UnresolvedCustomSettingNodeV3::create(std::shared_ptr<LegacyCustomSettingV3> setting, float width) {
     auto ret = new UnresolvedCustomSettingNodeV3();
     if (ret && ret->init(setting, width)) {
         ret->autorelease();
@@ -403,17 +402,17 @@ bool UnresolvedCustomSettingNodeV3::hasNonDefaultValue() const {
 }
 void UnresolvedCustomSettingNodeV3::resetToDefault() {}
 
-std::shared_ptr<UnresolvedCustomSettingV3> UnresolvedCustomSettingNodeV3::getSetting() const {
-    return std::static_pointer_cast<UnresolvedCustomSettingV3>(SettingNodeV3::getSetting());
+std::shared_ptr<LegacyCustomSettingV3> UnresolvedCustomSettingNodeV3::getSetting() const {
+    return std::static_pointer_cast<LegacyCustomSettingV3>(SettingNodeV3::getSetting());
 }
 
 // LegacyCustomSettingToV3Node
 
-bool LegacyCustomSettingToV3Node::init(std::shared_ptr<UnresolvedCustomSettingV3> original, float width) {
+bool LegacyCustomSettingToV3Node::init(std::shared_ptr<LegacyCustomSettingV3> original, float width) {
     if (!SettingNodeV3::init(original, width))
         return false;
 
-    m_original = original->m_impl->legacyValue->createNode(width);
+    m_original = original->getValue()->createNode(width);
     this->setContentSize({ width, m_original->getContentHeight() });
     this->addChildAtPosition(m_original, Anchor::Center);
     
@@ -424,7 +423,7 @@ void LegacyCustomSettingToV3Node::onCommit() {
     m_original->commit();
 }
 
-LegacyCustomSettingToV3Node* LegacyCustomSettingToV3Node::create(std::shared_ptr<UnresolvedCustomSettingV3> original, float width) {
+LegacyCustomSettingToV3Node* LegacyCustomSettingToV3Node::create(std::shared_ptr<LegacyCustomSettingV3> original, float width) {
     auto ret = new LegacyCustomSettingToV3Node();
     if (ret && ret->init(original, width)) {
         ret->autorelease();

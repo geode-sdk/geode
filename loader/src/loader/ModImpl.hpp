@@ -4,7 +4,7 @@
 #include "ModPatch.hpp"
 #include <Geode/loader/Loader.hpp>
 #include <string_view>
-#include "ModSettingsManager.hpp"
+#include <Geode/loader/ModSettingsManager.hpp>
 
 namespace geode {
     class Mod::Impl {

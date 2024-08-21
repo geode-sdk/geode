@@ -1,65 +1,161 @@
-#include "ModSettingsManager.hpp"
-#include "SettingV3Impl.hpp"
+#include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/utils/JsonValidation.hpp>
+#include "ModImpl.hpp"
+
+using namespace geode::prelude;
+
+// All setting type generators are put in a shared pool for two reasons:
+// #1 no need to duplicate the built-in settings between all mods
+// #2 easier lookup of custom settings if a mod uses another mod's custom setting type
+
+class SharedSettingTypesPool final {
+private:
+    std::unordered_map<std::string, SettingGenerator> m_types;
+
+    SharedSettingTypesPool() : m_types({
+        // todo in v4: remove this
+        { "custom", &LegacyCustomSettingV3::parse },
+        { "title", &TitleSettingV3::parse },
+        { "bool", &BoolSettingV3::parse },
+        { "int", &IntSettingV3::parse },
+        { "float", &FloatSettingV3::parse },
+        { "string", &StringSettingV3::parse },
+        { "file", &FileSettingV3::parse },
+        { "path", &FileSettingV3::parse },
+        { "rgb", &Color3BSettingV3::parse },
+        { "color", &Color3BSettingV3::parse },
+        { "rgba", &Color4BSettingV3::parse },
+    }) {}
+
+public:
+    static SharedSettingTypesPool& get() {
+        static auto inst = SharedSettingTypesPool();
+        return inst;
+    }
+
+    Result<> add(std::string_view modID, std::string_view type, SettingGenerator generator) {
+        // Limit type to just [a-z0-9\-]+
+        if (type.empty() || !std::all_of(type.begin(), type.end(), +[](char c) {
+            return
+                ('a' <= c && c <= 'z') ||
+                ('0' <= c && c <= '9') ||
+                (c == '-');
+        })) {
+            return Err("Custom setting types must match the regex [a-z0-9\\-]+");
+        }
+        auto full = fmt::format("{}/{}", modID, type);
+        if (m_types.contains(full)) {
+            return Err("Type \"{}\" has already been registered for mod {}", type, modID);
+        }
+        m_types.emplace(full, generator);
+        return Ok();
+    }
+    std::optional<SettingGenerator> find(std::string_view modID, std::string_view fullType) {
+        auto full = std::string(
+            fullType.starts_with("custom:") ?
+                fullType.substr(fullType.find(':') + 1) : 
+                fullType
+        );
+        if (!full.find('/')) {
+            full = fmt::format("{}/{}", modID, full);
+        }
+        if (m_types.contains(full)) {
+            return m_types.at(full);
+        }
+        return std::nullopt;
+    }
+};
 
 class ModSettingsManager::Impl final {
 public:
     struct SettingInfo final {
-        std::shared_ptr<SettingV3> v3;
+        std::string type;
+        matjson::Value json;
+        std::shared_ptr<SettingV3> v3 = nullptr;
         // todo: remove in v4
         std::shared_ptr<SettingValue> legacy = nullptr;
     };
     std::string modID;
-    std::unordered_map<std::string, SettingInfo> list;
+    std::unordered_map<std::string, SettingInfo> settings;
+
+    void createSettings() {
+        for (auto& [key, setting] : settings) {
+            if (setting.v3) {
+                continue;
+            }
+            auto gen = SharedSettingTypesPool::get().find(modID, setting.type);
+            // The type was not found, meaning it probably hasn't been registered yet
+            if (!gen) {
+                continue;
+            }
+            if (auto v3 = (*gen)(key, modID, setting.json)) {
+                setting.v3 = *v3;
+            }
+            else {
+                log::error(
+                    "Unable to parse setting '{}' for mod {}: {}",
+                    key, modID, v3.unwrapErr()
+                );
+            }
+        }
+    }
 };
+
+ModSettingsManager* ModSettingsManager::from(Mod* mod) {
+    return ModImpl::getImpl(mod)->m_settings.get();
+}
 
 ModSettingsManager::ModSettingsManager(ModMetadata const& metadata)
   : m_impl(std::make_unique<Impl>())
 {
     m_impl->modID = metadata.getID();
     for (auto const& [key, json] : metadata.getSettingsV3()) {
-        if (auto v3 = SettingV3::parseBuiltin(key, m_impl->modID, json)) {
-            auto setting = Impl::SettingInfo();
-            setting.v3.swap(*v3);
-            m_impl->list.emplace(key, setting);
+        auto setting = Impl::SettingInfo();
+        setting.json = json;
+        auto root = checkJson(json, "setting");
+        root.needs("type").into(setting.type);
+        if (root) {
+            if (setting.type == "custom") {
+                log::warn(
+                    "Setting \"{}\" in mod {} has the old \"custom\" type - "
+                    "this type has been deprecated and will be removed in Geode v4.0.0. "
+                    "Use the new \"custom:type-name-here\" syntax for defining custom "
+                    "setting types - see more in INSERT TUTORIAL HERE",
+                    key, m_impl->modID
+                );
+            }
+            m_impl->settings.emplace(key, setting);
         }
         else {
-            log::error("Unable to parse setting '{}' for mod {}: {}", key, m_impl->modID, v3.unwrapErr());
+            log::error("Setting '{}' in mod {} is missing type", key, m_impl->modID);
         }
     }
+    m_impl->createSettings();
 }
 ModSettingsManager::~ModSettingsManager() {}
-
 ModSettingsManager::ModSettingsManager(ModSettingsManager&&) = default;
 
-Result<> ModSettingsManager::registerCustomSetting(std::string_view key, std::shared_ptr<SettingV3> ptr) {
-    if (!ptr) {
-        return Err("Custom settings must not be null!");
-    }
-    auto id = std::string(key);
-    if (!m_impl->list.count(id)) {
-        return Err("No such setting '{}' in mod {}", id, m_impl->modID);
-    }
-    auto& sett = m_impl->list.at(id);
-    sett.v3.swap(ptr);
+Result<> ModSettingsManager::registerCustomSettingType(std::string_view type, SettingGenerator generator) {
+    GEODE_UNWRAP(SharedSettingTypesPool::get().add(m_impl->modID, type, generator));
+    m_impl->createSettings();
     return Ok();
 }
 Result<> ModSettingsManager::registerLegacyCustomSetting(std::string_view key, std::unique_ptr<SettingValue>&& ptr) {
     auto id = std::string(key);
-    if (!m_impl->list.count(id)) {
+    if (!m_impl->settings.count(id)) {
         return Err("No such setting '{}' in mod {}", id, m_impl->modID);
     }
-    auto& sett = m_impl->list.at(id);
-    if (auto custom = typeinfo_pointer_cast<UnresolvedCustomSettingV3>(sett.v3)) {
-        if (!custom->m_impl->legacyValue) {
-            custom->m_impl->legacyValue = std::move(ptr);
+    auto& sett = m_impl->settings.at(id);
+    if (auto custom = typeinfo_pointer_cast<LegacyCustomSettingV3>(sett.v3)) {
+        if (!custom->getValue()) {
+            custom->setValue(std::move(ptr));
         }
         else {
             return Err("Setting '{}' in mod {} has already been registed", id, m_impl->modID);
         }
     }
     else {
-        return Err("Setting '{}' in mod {} is not a custom setting", id, m_impl->modID);
+        return Err("Setting '{}' in mod {} is not a legacy custom setting", id, m_impl->modID);
     }
     return Ok();
 }
@@ -67,9 +163,9 @@ Result<> ModSettingsManager::registerLegacyCustomSetting(std::string_view key, s
 Result<> ModSettingsManager::load(matjson::Value const& json) {
     auto root = checkJson(json, "Settings");
     for (auto const& [key, value] : root.properties()) {
-        if (m_impl->list.contains(key)) {
+        if (m_impl->settings.contains(key)) {
             try {
-                if (!m_impl->list.at(key).v3->load(value.json())) {
+                if (!m_impl->settings.at(key).v3->load(value.json())) {
                     log::error("Unable to load setting '{}' for mod {}", key, m_impl->modID);
                 }
             }
@@ -81,7 +177,7 @@ Result<> ModSettingsManager::load(matjson::Value const& json) {
     return Ok();
 }
 void ModSettingsManager::save(matjson::Value& json) {
-    for (auto& [key, sett] : m_impl->list) {
+    for (auto& [key, sett] : m_impl->settings) {
         // Store the value in an intermediary so if `save` fails the existing 
         // value loaded from disk isn't overwritten
         matjson::Value value;
@@ -101,17 +197,21 @@ void ModSettingsManager::save(matjson::Value& json) {
 
 std::shared_ptr<SettingV3> ModSettingsManager::get(std::string_view key) {
     auto id = std::string(key);
-    return m_impl->list.count(id) ? m_impl->list.at(id).v3 : nullptr;
+    return m_impl->settings.count(id) ? m_impl->settings.at(id).v3 : nullptr;
 }
 std::shared_ptr<SettingValue> ModSettingsManager::getLegacy(std::string_view key) {
     auto id = std::string(key);
-    if (!m_impl->list.count(id)) {
+    if (!m_impl->settings.count(id)) {
         return nullptr;
     }
-    auto& info = m_impl->list.at(id);
+    auto& info = m_impl->settings.at(id);
     // If this setting has alreay been given a legacy interface, give that
     if (info.legacy) {
         return info.legacy;
+    }
+    // Uninitialized settings are null
+    if (!info.v3) {
+        return nullptr;
     }
     // Generate new legacy interface
     if (auto legacy = info.v3->convertToLegacyValue()) {

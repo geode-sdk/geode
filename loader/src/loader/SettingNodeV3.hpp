@@ -141,18 +141,18 @@ public:
 
 class UnresolvedCustomSettingNodeV3 : public SettingNodeV3 {
 protected:
-    bool init(std::shared_ptr<UnresolvedCustomSettingV3> setting, float width);
+    bool init(std::shared_ptr<LegacyCustomSettingV3> setting, float width);
 
     void onCommit() override;
 
 public:
-    static UnresolvedCustomSettingNodeV3* create(std::shared_ptr<UnresolvedCustomSettingV3> setting, float width);
+    static UnresolvedCustomSettingNodeV3* create(std::shared_ptr<LegacyCustomSettingV3> setting, float width);
     
     bool hasUncommittedChanges() const override;
     bool hasNonDefaultValue() const override;
     void resetToDefault() override;
 
-    std::shared_ptr<UnresolvedCustomSettingV3> getSetting() const;
+    std::shared_ptr<LegacyCustomSettingV3> getSetting() const;
 };
 
 // If these classes do get exposed in headers, this SHOULD NOT BE EXPOSED!!!!!! DO NOT DO THAT!!!!
@@ -161,12 +161,12 @@ class LegacyCustomSettingToV3Node : public SettingNodeV3 {
 protected:
     SettingNode* m_original;
 
-    bool init(std::shared_ptr<UnresolvedCustomSettingV3> original, float width);
+    bool init(std::shared_ptr<LegacyCustomSettingV3> original, float width);
 
     void onCommit() override;
 
 public:
-    static LegacyCustomSettingToV3Node* create(std::shared_ptr<UnresolvedCustomSettingV3> original, float width);
+    static LegacyCustomSettingToV3Node* create(std::shared_ptr<LegacyCustomSettingV3> original, float width);
 
     bool hasUncommittedChanges() const override;
     bool hasNonDefaultValue() const override;
