@@ -48,6 +48,10 @@ namespace geode {
          */
         std::optional<std::string> getName() const; 
         /**
+         * Get the name of this setting, or its key if it has no name
+         */
+        std::string getDisplayName() const; 
+        /**
          * Get the description of this setting
          */
         std::optional<std::string> getDescription() const;
@@ -413,15 +417,16 @@ namespace geode {
          * the value in some sort of global manager
          */
         virtual void onCommit() = 0;
+        virtual void onResetToDefault() = 0;
 
         void onDescription(CCObject*);
         void onReset(CCObject*);
 
     public:
         void commit();
+        void resetToDefault();
         virtual bool hasUncommittedChanges() const = 0;
         virtual bool hasNonDefaultValue() const = 0;
-        virtual void resetToDefault() = 0;
 
         cocos2d::CCLabelBMFont* getNameLabel() const;
         cocos2d::CCMenu* getNameMenu() const;

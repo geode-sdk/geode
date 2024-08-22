@@ -20,7 +20,7 @@ public:
     
     bool hasUncommittedChanges() const override;
     bool hasNonDefaultValue() const override;
-    void resetToDefault() override;
+    void onResetToDefault() override;
 
     std::shared_ptr<TitleSettingV3> getSetting() const;
 };
@@ -32,7 +32,6 @@ protected:
     bool init(std::shared_ptr<BoolSettingV3> setting, float width);
 
     void onCommit() override;
-
     void onToggle(CCObject*);
 
 public:
@@ -40,39 +39,59 @@ public:
     
     bool hasUncommittedChanges() const override;
     bool hasNonDefaultValue() const override;
-    void resetToDefault() override;
+    void onResetToDefault() override;
 
     std::shared_ptr<BoolSettingV3> getSetting() const;
 };
 
 class IntSettingNodeV3 : public SettingNodeV3 {
 protected:
+    TextInput* m_input;
+    Slider* m_slider;
+
     bool init(std::shared_ptr<IntSettingV3> setting, float width);
 
+    void updateState() override;
+
     void onCommit() override;
+    void onArrow(CCObject* sender);
+    void onSlider(CCObject*);
+
+    int64_t getCurrentValue() const;
+    void setCurrentValue(int64_t value);
 
 public:
     static IntSettingNodeV3* create(std::shared_ptr<IntSettingV3> setting, float width);
     
     bool hasUncommittedChanges() const override;
     bool hasNonDefaultValue() const override;
-    void resetToDefault() override;
+    void onResetToDefault() override;
 
     std::shared_ptr<IntSettingV3> getSetting() const;
 };
 
 class FloatSettingNodeV3 : public SettingNodeV3 {
 protected:
+    TextInput* m_input;
+    Slider* m_slider;
+
     bool init(std::shared_ptr<FloatSettingV3> setting, float width);
 
+    void updateState() override;
+
     void onCommit() override;
+    void onArrow(CCObject* sender);
+    void onSlider(CCObject*);
+
+    double getCurrentValue() const;
+    void setCurrentValue(double value);
 
 public:
     static FloatSettingNodeV3* create(std::shared_ptr<FloatSettingV3> setting, float width);
     
     bool hasUncommittedChanges() const override;
     bool hasNonDefaultValue() const override;
-    void resetToDefault() override;
+    void onResetToDefault() override;
 
     std::shared_ptr<FloatSettingV3> getSetting() const;
 };
@@ -88,7 +107,7 @@ public:
     
     bool hasUncommittedChanges() const override;
     bool hasNonDefaultValue() const override;
-    void resetToDefault() override;
+    void onResetToDefault() override;
 
     std::shared_ptr<StringSettingV3> getSetting() const;
 };
@@ -104,7 +123,7 @@ public:
     
     bool hasUncommittedChanges() const override;
     bool hasNonDefaultValue() const override;
-    void resetToDefault() override;
+    void onResetToDefault() override;
 
     std::shared_ptr<FileSettingV3> getSetting() const;
 };
@@ -120,7 +139,7 @@ public:
     
     bool hasUncommittedChanges() const override;
     bool hasNonDefaultValue() const override;
-    void resetToDefault() override;
+    void onResetToDefault() override;
 
     std::shared_ptr<Color3BSettingV3> getSetting() const;
 };
@@ -136,7 +155,7 @@ public:
     
     bool hasUncommittedChanges() const override;
     bool hasNonDefaultValue() const override;
-    void resetToDefault() override;
+    void onResetToDefault() override;
 
     std::shared_ptr<Color4BSettingV3> getSetting() const;
 };
@@ -152,7 +171,7 @@ public:
     
     bool hasUncommittedChanges() const override;
     bool hasNonDefaultValue() const override;
-    void resetToDefault() override;
+    void onResetToDefault() override;
 
     std::shared_ptr<LegacyCustomSettingV3> getSetting() const;
 };
@@ -172,5 +191,5 @@ public:
 
     bool hasUncommittedChanges() const override;
     bool hasNonDefaultValue() const override;
-    void resetToDefault() override;
+    void onResetToDefault() override;
 };

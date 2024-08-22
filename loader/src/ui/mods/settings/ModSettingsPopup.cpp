@@ -132,6 +132,8 @@ void ModSettingsPopup::onResetAll(CCObject*) {
 }
 
 void ModSettingsPopup::updateState() {
+    m_applyBtnSpr->setCascadeColorEnabled(true);
+    m_applyBtnSpr->setCascadeOpacityEnabled(true);
     if (this->hasUncommitted()) {
         m_applyBtnSpr->setColor(ccWHITE);
         m_applyBtnSpr->setOpacity(255);

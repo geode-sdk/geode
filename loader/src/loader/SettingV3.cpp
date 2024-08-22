@@ -47,6 +47,9 @@ std::string SettingV3::getModID() const {
 std::optional<std::string> SettingV3::getName() const {
     return m_impl->name;
 }
+std::string SettingV3::getDisplayName() const {
+    return m_impl->name.value_or(m_impl->key);
+}
 std::optional<std::string> SettingV3::getDescription() const {
     return m_impl->description;
 }
@@ -217,11 +220,11 @@ public:
 
     struct {
         // 0 means not enabled
-        size_t arrowStepSize;
-        size_t bigArrowStepSize;
-        bool sliderEnabled;
+        size_t arrowStepSize = 1;
+        size_t bigArrowStepSize = 5;
+        bool sliderEnabled = true;
         std::optional<int64_t> sliderSnap;
-        bool textInputEnabled;
+        bool textInputEnabled = true;
     } controls;
 };
 
@@ -247,6 +250,18 @@ Result<std::shared_ptr<IntSettingV3>> IntSettingV3::parse(std::string const& key
         controls.has("slider").into(ret->m_impl->controls.sliderEnabled);
         controls.has("slider-step").into(ret->m_impl->controls.sliderSnap);
         controls.has("input").into(ret->m_impl->controls.textInputEnabled);
+        // Without "min" or "max" slider makes no sense
+        if (!ret->m_impl->minValue || !ret->m_impl->maxValue) {
+            if (ret->m_impl->controls.sliderEnabled) {
+                log::warn(
+                    "Setting '{}' has \"controls.slider\" enabled but doesn't "
+                    "have both \"min\" and \"max\" defined - the slider has "
+                    "been force-disabled!",
+                    key
+                );
+            }
+            ret->m_impl->controls.sliderEnabled = false;
+        }
         controls.checkUnknownKeys();
     }
 
@@ -381,6 +396,18 @@ Result<std::shared_ptr<FloatSettingV3>> FloatSettingV3::parse(std::string const&
         controls.has("slider").into(ret->m_impl->controls.sliderEnabled);
         controls.has("slider-step").into(ret->m_impl->controls.sliderSnap);
         controls.has("input").into(ret->m_impl->controls.textInputEnabled);
+        // Without "min" or "max" slider makes no sense
+        if (!ret->m_impl->minValue || !ret->m_impl->maxValue) {
+            if (ret->m_impl->controls.sliderEnabled) {
+                log::warn(
+                    "Setting '{}' has \"controls.slider\" enabled but doesn't "
+                    "have both \"min\" and \"max\" defined - the slider has "
+                    "been force-disabled!",
+                    key
+                );
+            }
+            ret->m_impl->controls.sliderEnabled = false;
+        }
         controls.checkUnknownKeys();
     }
 
