@@ -5,6 +5,23 @@ using namespace cocos2d;
 #pragma warning(push)
 #pragma warning(disable : 4273)
 
+// hopefully if broma supports global functions i can remove this hack
+
+#ifdef GEODE_IS_IOS
+#define kmGLPushMatrixOffset 0x17420c
+#define kmGLPopMatrixOffset 0x174250
+#endif
+
+#ifdef GEODE_IS_ARM_MAC
+#define kmGLPushMatrixOffset 0x8008135
+#define kmGLPopMatrixOffset 0x8008135
+#endif
+
+#ifdef GEODE_IS_INTEL_MAC
+#define kmGLPushMatrixOffset 0x8008135
+#define kmGLPopMatrixOffset 0x8008135
+#endif
+
 static GLint g_sStencilBits = -1;
 
 static void setProgram(CCNode *n, CCGLProgram *p)
@@ -276,10 +293,18 @@ void CCClippingNode::visit()
     
     // draw the stencil node as if it was one of our child
     // (according to the stencil test func/op and alpha (or alpha shader) test)
+    #ifdef __APPLE__
+    reinterpret_cast<void(__cdecl*)()>(geode::base::get() + kmGLPushMatrixOffset)();
+    #else
     kmGLPushMatrix();
+    #endif
     transform();
     m_pStencil->visit();
+    #ifdef __APPLE__
+    reinterpret_cast<void(__cdecl*)()>(geode::base::get() + kmGLPopMatrixOffset)();
+    #else
     kmGLPopMatrix();
+    #endif
     
     // restore alpha test state
     if (m_fAlphaThreshold < 1)
