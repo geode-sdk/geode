@@ -176,7 +176,9 @@ namespace geode {
         bool hasSettings() const;
         std::vector<std::string> getSettingKeys() const;
         bool hasSetting(std::string_view const key) const;
+        [[deprecated("Use Mod::getSettingV3")]]
         std::optional<Setting> getSettingDefinition(std::string_view const key) const;
+        [[deprecated("Use Mod::getSettingV3")]]
         SettingValue* getSetting(std::string_view const key) const;
         std::shared_ptr<SettingV3> getSettingV3(std::string_view const key) const;
 
@@ -190,6 +192,7 @@ namespace geode {
          * @param value The SettingValue class that shall handle this setting
          * @see addCustomSetting
          */
+        [[deprecated("Use Mod::registerCustomSettingType")]]
         void registerCustomSetting(std::string_view const key, std::unique_ptr<SettingValue> value);
         /**
          * Register a custom setting's value class. The new SettingValue class
@@ -204,6 +207,7 @@ namespace geode {
          * }
          */
         template <class T, class V>
+        [[deprecated("Use Mod::registerCustomSettingType")]]
         void addCustomSetting(std::string_view const key, V const& value) {
             this->registerCustomSetting(key, std::make_unique<T>(std::string(key), this->getID(), value));
         }
