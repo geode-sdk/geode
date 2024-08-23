@@ -364,11 +364,11 @@ public:
 
     struct {
         // 0 means not enabled
-        size_t arrowStepSize;
-        size_t bigArrowStepSize;
-        bool sliderEnabled;
+        size_t arrowStepSize = 1;
+        size_t bigArrowStepSize = 5;
+        bool sliderEnabled = true;
         std::optional<double> sliderSnap;
-        bool textInputEnabled;
+        bool textInputEnabled = true;
     } controls;
 };
 
@@ -521,6 +521,9 @@ Result<std::shared_ptr<StringSettingV3>> StringSettingV3::parse(std::string cons
     root.has("match").into(ret->m_impl->match);
     root.has("filter").into(ret->m_impl->filter);
     root.has("one-of").into(ret->m_impl->oneOf);
+    if (ret->m_impl->oneOf && ret->m_impl->oneOf->empty()) {
+        return Err("Setting '{}' in mod {} - \"one-of\" may not be empty!", key, modID);
+    }
 
     root.checkUnknownKeys();
     return root.ok(ret);
