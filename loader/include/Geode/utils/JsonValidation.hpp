@@ -385,11 +385,11 @@ namespace geode {
         // -- Dealing with values --
 
         template <class T>
-        T get() {
+        T get(T const& defaultValue = T()) {
             if (auto v = this->template tryGet<T>()) {
                 return *std::move(v);
             }
-            return T();
+            return defaultValue;
         }
         template <class T>
         JsonExpectedValue& into(T& value) {
