@@ -52,6 +52,10 @@ protected:
 
     TextInput* m_input;
     Slider* m_slider;
+    CCMenuItemSpriteExtra* m_arrowLeftBtn;
+    CCMenuItemSpriteExtra* m_bigArrowLeftBtn;
+    CCMenuItemSpriteExtra* m_arrowRightBtn;
+    CCMenuItemSpriteExtra* m_bigArrowRightBtn;
 
     float valueToSlider(ValueType value) {
         auto min = this->getSetting()->getMinValue().value_or(-100);
@@ -75,6 +79,8 @@ protected:
             return false;
 
         auto bigArrowLeftSpr = CCSprite::create();
+        bigArrowLeftSpr->setCascadeColorEnabled(true);
+        bigArrowLeftSpr->setCascadeOpacityEnabled(true);
         auto bigArrowLeftSpr1 = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
         auto bigArrowLeftSpr2 = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
         
@@ -83,21 +89,21 @@ protected:
         bigArrowLeftSpr->addChildAtPosition(bigArrowLeftSpr1, Anchor::Center, ccp(-10, 0));
         bigArrowLeftSpr->setScale(.3f);
 
-        auto bigArrowLeftBtn = CCMenuItemSpriteExtra::create(
+        m_bigArrowLeftBtn = CCMenuItemSpriteExtra::create(
             bigArrowLeftSpr, this, menu_selector(NumberSettingNodeV3::onArrow)
         );
-        bigArrowLeftBtn->setTag(-setting->getBigArrowStepSize());
-        bigArrowLeftBtn->setVisible(setting->isBigArrowsEnabled());
-        this->getButtonMenu()->addChildAtPosition(bigArrowLeftBtn, Anchor::Left, ccp(5, 0));
+        m_bigArrowLeftBtn->setUserObject(ObjWrapper<ValueType>::create(-setting->getBigArrowStepSize()));
+        m_bigArrowLeftBtn->setVisible(setting->isBigArrowsEnabled());
+        this->getButtonMenu()->addChildAtPosition(m_bigArrowLeftBtn, Anchor::Left, ccp(5, 0));
 
         auto arrowLeftSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png");
         arrowLeftSpr->setScale(.5f);
-        auto arrowLeftBtn = CCMenuItemSpriteExtra::create(
+        m_arrowLeftBtn = CCMenuItemSpriteExtra::create(
             arrowLeftSpr, this, menu_selector(NumberSettingNodeV3::onArrow)
         );
-        arrowLeftBtn->setTag(-setting->getArrowStepSize());
-        arrowLeftBtn->setVisible(setting->isArrowsEnabled());
-        this->getButtonMenu()->addChildAtPosition(arrowLeftBtn, Anchor::Left, ccp(22, 0));
+        m_arrowLeftBtn->setUserObject(ObjWrapper<ValueType>::create(-setting->getArrowStepSize()));
+        m_arrowLeftBtn->setVisible(setting->isArrowsEnabled());
+        this->getButtonMenu()->addChildAtPosition(m_arrowLeftBtn, Anchor::Left, ccp(22, 0));
         
         m_input = TextInput::create(this->getButtonMenu()->getContentWidth() - 40, "Num");
         m_input->setScale(.7f);
@@ -115,14 +121,16 @@ protected:
         auto arrowRightSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png");
         arrowRightSpr->setFlipX(true);
         arrowRightSpr->setScale(.5f);
-        auto arrowRightBtn = CCMenuItemSpriteExtra::create(
+        m_arrowRightBtn = CCMenuItemSpriteExtra::create(
             arrowRightSpr, this, menu_selector(NumberSettingNodeV3::onArrow)
         );
-        arrowRightBtn->setTag(setting->getArrowStepSize());
-        arrowRightBtn->setVisible(setting->isArrowsEnabled());
-        this->getButtonMenu()->addChildAtPosition(arrowRightBtn, Anchor::Right, ccp(-22, 0));
+        m_arrowRightBtn->setUserObject(ObjWrapper<ValueType>::create(setting->getArrowStepSize()));
+        m_arrowRightBtn->setVisible(setting->isArrowsEnabled());
+        this->getButtonMenu()->addChildAtPosition(m_arrowRightBtn, Anchor::Right, ccp(-22, 0));
 
         auto bigArrowRightSpr = CCSprite::create();
+        bigArrowRightSpr->setCascadeColorEnabled(true);
+        bigArrowRightSpr->setCascadeOpacityEnabled(true);
         auto bigArrowRightSpr1 = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
         bigArrowRightSpr1->setFlipX(true);
         auto bigArrowRightSpr2 = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
@@ -133,12 +141,12 @@ protected:
         bigArrowRightSpr->addChildAtPosition(bigArrowRightSpr2, Anchor::Center, ccp(10, 0));
         bigArrowRightSpr->setScale(.3f);
 
-        auto bigArrowRightBtn = CCMenuItemSpriteExtra::create(
+        m_bigArrowRightBtn = CCMenuItemSpriteExtra::create(
             bigArrowRightSpr, this, menu_selector(NumberSettingNodeV3::onArrow)
         );
-        bigArrowRightBtn->setTag(setting->getBigArrowStepSize());
-        bigArrowRightBtn->setVisible(setting->isBigArrowsEnabled());
-        this->getButtonMenu()->addChildAtPosition(bigArrowRightBtn, Anchor::Right, ccp(-5, 0));
+        m_bigArrowRightBtn->setUserObject(ObjWrapper<ValueType>::create(setting->getBigArrowStepSize()));
+        m_bigArrowRightBtn->setVisible(setting->isBigArrowsEnabled());
+        this->getButtonMenu()->addChildAtPosition(m_bigArrowRightBtn, Anchor::Right, ccp(-5, 0));
 
         if (setting->isSliderEnabled()) {
             this->setContentHeight(45);
@@ -161,13 +169,40 @@ protected:
             m_slider->m_touchLogic->m_thumb->setValue(this->valueToSlider(this->getCurrentValue()));
             m_slider->updateBar();
         }
+        if (auto min = this->getSetting()->getMinValue()) {
+            auto enable = this->getCurrentValue() > *min;
+            m_arrowLeftBtn->setEnabled(enable);
+            m_bigArrowLeftBtn->setEnabled(enable);
+            static_cast<CCSprite*>(m_arrowLeftBtn->getNormalImage())->setOpacity(enable ? 255 : 155);
+            static_cast<CCSprite*>(m_arrowLeftBtn->getNormalImage())->setColor(enable ? ccWHITE : ccGRAY);
+            static_cast<CCSprite*>(m_bigArrowLeftBtn->getNormalImage())->setOpacity(enable ? 255 : 155);
+            static_cast<CCSprite*>(m_bigArrowLeftBtn->getNormalImage())->setColor(enable ? ccWHITE : ccGRAY);
+        }
+        if (auto max = this->getSetting()->getMaxValue()) {
+            auto enable = this->getCurrentValue() < *max;
+            m_arrowRightBtn->setEnabled(enable);
+            m_bigArrowRightBtn->setEnabled(enable);
+            static_cast<CCSprite*>(m_arrowRightBtn->getNormalImage())->setOpacity(enable ? 255 : 155);
+            static_cast<CCSprite*>(m_arrowRightBtn->getNormalImage())->setColor(enable ? ccWHITE : ccGRAY);
+            static_cast<CCSprite*>(m_bigArrowRightBtn->getNormalImage())->setOpacity(enable ? 255 : 155);
+            static_cast<CCSprite*>(m_bigArrowRightBtn->getNormalImage())->setColor(enable ? ccWHITE : ccGRAY);
+        }
     }
 
     void onCommit() override {
         this->getSetting()->setValue(this->getCurrentValue());
     }
     void onArrow(CCObject* sender) {
-        this->setCurrentValue(this->getCurrentValue() + sender->getTag());
+        auto value = this->getCurrentValue() + static_cast<ObjWrapper<ValueType>*>(
+            static_cast<CCNode*>(sender)->getUserObject()
+        )->getValue();
+        if (auto min = this->getSetting()->getMinValue()) {
+            value = std::max(*min, value);
+        }
+        if (auto max = this->getSetting()->getMaxValue()) {
+            value = std::min(*max, value);
+        }
+        this->setCurrentValue(value);
     }
     void onSlider(CCObject*) {
         this->setCurrentValue(this->valueFromSlider(m_slider->m_touchLogic->m_thumb->getValue()));
@@ -233,9 +268,17 @@ public:
 
 class FileSettingNodeV3 : public SettingNodeV3 {
 protected:
+    CCSprite* m_fileIcon;
+    std::filesystem::path m_path;
+    CCLabelBMFont* m_nameLabel;
+    EventListener<Task<Result<std::filesystem::path>>> m_pickListener;
+
     bool init(std::shared_ptr<FileSettingV3> setting, float width);
 
+    void updateState() override;
+
     void onCommit() override;
+    void onPickFile(CCObject*);
 
 public:
     static FileSettingNodeV3* create(std::shared_ptr<FileSettingV3> setting, float width);

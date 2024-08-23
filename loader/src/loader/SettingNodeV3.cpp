@@ -73,6 +73,7 @@ bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
     m_impl->nameMenu->addChild(m_impl->resetButton);
 
     m_impl->nameMenu->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::Start));
+    m_impl->nameMenu->getLayout()->ignoreInvisibleChildren(true);
     this->addChildAtPosition(m_impl->nameMenu, Anchor::Left, ccp(10, 0), ccp(0, .5f));
 
     m_impl->buttonMenu = CCMenu::create();
@@ -197,6 +198,10 @@ TitleSettingNodeV3* TitleSettingNodeV3::create(std::shared_ptr<TitleSettingV3> s
 bool BoolSettingNodeV3::init(std::shared_ptr<BoolSettingV3> setting, float width) {
     if (!SettingNodeV3::init(setting, width))
         return false;
+
+    this->getButtonMenu()->setContentWidth(20);
+    this->getNameMenu()->setContentWidth(width - 50);
+    this->getNameMenu()->updateLayout();
     
     m_toggle = CCMenuItemToggler::createWithStandardSprites(
         this, menu_selector(BoolSettingNodeV3::onToggle), .55f
@@ -208,9 +213,6 @@ bool BoolSettingNodeV3::init(std::shared_ptr<BoolSettingV3> setting, float width
     m_toggle->m_notClickable = true;
     m_toggle->toggle(setting->getValue());
     this->getButtonMenu()->addChildAtPosition(m_toggle, Anchor::Right, ccp(-10, 0));
-
-    this->getNameMenu()->setContentWidth(width - 50);
-    this->getNameMenu()->updateLayout();
 
     this->updateState();
 
@@ -255,7 +257,7 @@ bool StringSettingNodeV3::init(std::shared_ptr<StringSettingV3> setting, float w
     if (!SettingNodeV3::init(setting, width))
         return false;
 
-    m_input = TextInput::create(width / 2 - 50, "Num");
+    m_input = TextInput::create(setting->getEnumOptions() ? width / 2 - 50 : width / 2, "Text");
     m_input->setCallback([this](auto const&) {
         this->markChanged();
     });
@@ -339,20 +341,91 @@ bool FileSettingNodeV3::init(std::shared_ptr<FileSettingV3> setting, float width
     if (!SettingNodeV3::init(setting, width))
         return false;
     
-    // todo
+    m_path = setting->getValue();
+
+    auto labelBG = extension::CCScale9Sprite::create("square02b_001.png", { 0, 0, 80, 80 });
+    labelBG->setScale(.25f);
+    labelBG->setColor({ 0, 0, 0 });
+    labelBG->setOpacity(90);
+    labelBG->setContentSize({ 400, 80 });
+    this->getButtonMenu()->addChildAtPosition(labelBG, Anchor::Center, ccp(-15, 0));
+
+    m_fileIcon = CCSprite::create();
+    this->getButtonMenu()->addChildAtPosition(m_fileIcon, Anchor::Left, ccp(3, 0));
+
+    m_nameLabel = CCLabelBMFont::create("", "bigFont.fnt");
+    this->getButtonMenu()->addChildAtPosition(m_nameLabel, Anchor::Left, ccp(11, 0), ccp(0, .5f));
+
+    auto selectSpr = CCSprite::createWithSpriteFrameName("GJ_plus2Btn_001.png");
+    selectSpr->setScale(.75f);
+    auto selectBtn = CCMenuItemSpriteExtra::create(
+        selectSpr, this, menu_selector(FileSettingNodeV3::onPickFile)
+    );
+    this->getButtonMenu()->addChildAtPosition(selectBtn, Anchor::Right, ccp(-5, 0));
+
+    this->updateState();
 
     return true;
 }
 
-void FileSettingNodeV3::onCommit() {}
+void FileSettingNodeV3::updateState() {
+    SettingNodeV3::updateState();
+    auto ty = this->getSetting()->getFileType();
+    if (ty == FileSettingV3::FileType::Any) {
+        ty = std::filesystem::is_directory(m_path) ? 
+            FileSettingV3::FileType::Folder : 
+            FileSettingV3::FileType::File;
+    }
+    m_fileIcon->setDisplayFrame(CCSpriteFrameCache::get()->spriteFrameByName(
+        ty == FileSettingV3::FileType::File ? "file.png"_spr : "folderIcon_001.png"
+    ));
+    limitNodeSize(m_fileIcon, ccp(10, 10), 1.f, .1f);
+    m_nameLabel->setString(m_path.filename().string().c_str());
+    m_nameLabel->limitLabelWidth(75, .4f, .1f);
+}
+
+void FileSettingNodeV3::onCommit() {
+    this->getSetting()->setValue(m_path);
+}
+
+void FileSettingNodeV3::onPickFile(CCObject*) {
+    m_pickListener.bind([this](auto* event) {
+        auto value = event->getValue();
+        if (!value) {
+            return;
+        }
+        if (value->isOk()) {
+            m_path = value->unwrap().string();
+            this->markChanged();
+        }
+        else {
+            FLAlertLayer::create(
+                "Failed",
+                fmt::format("Failed to pick file: {}", value->unwrapErr()),
+                "Ok"
+            )->show();
+        }
+    });
+    m_pickListener.setFilter(file::pick(
+        this->getSetting()->getFileType() == FileSettingV3::FileType::Folder ?
+            file::PickMode::OpenFolder :
+            file::PickMode::OpenFile, 
+        {
+            dirs::getGameDir(),
+            this->getSetting()->getFilters().value_or(std::vector<file::FilePickOptions::Filter>())
+        }
+    ));
+}
 
 bool FileSettingNodeV3::hasUncommittedChanges() const {
-    return false;
+    return m_path != this->getSetting()->getValue();
 }
 bool FileSettingNodeV3::hasNonDefaultValue() const {
-    return false;
+    return m_path != this->getSetting()->getDefaultValue();
 }
-void FileSettingNodeV3::onResetToDefault() {}
+void FileSettingNodeV3::onResetToDefault() {
+    m_path = this->getSetting()->getDefaultValue();
+}
 
 std::shared_ptr<FileSettingV3> FileSettingNodeV3::getSetting() const {
     return std::static_pointer_cast<FileSettingV3>(SettingNodeV3::getSetting());

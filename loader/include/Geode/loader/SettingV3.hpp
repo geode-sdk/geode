@@ -267,8 +267,8 @@ namespace geode {
 
         bool isArrowsEnabled() const;
         bool isBigArrowsEnabled() const;
-        size_t getArrowStepSize() const;
-        size_t getBigArrowStepSize() const;
+        double getArrowStepSize() const;
+        double getBigArrowStepSize() const;
         bool isSliderEnabled() const;
         std::optional<double> getSliderSnap() const;
         bool isInputEnabled() const;
@@ -328,8 +328,16 @@ namespace geode {
         FileSettingV3(PrivateMarker);
         static Result<std::shared_ptr<FileSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
 
+        enum class FileType {
+            Any    = 0,
+            File   = 1,
+            Folder = 2,
+        };
+
         std::filesystem::path getDefaultValue() const override;
         Result<> isValid(std::filesystem::path const& value) const override;
+
+        FileType getFileType() const;
 
         std::optional<std::vector<utils::file::FilePickOptions::Filter>> getFilters() const;
         
