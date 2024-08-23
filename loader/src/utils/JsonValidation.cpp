@@ -161,18 +161,6 @@ JsonMaybeValue JsonChecker::root(std::string const& hierarchy) {
     return JsonMaybeValue(*this, m_json, hierarchy, true);
 }
 
-static const char* matJsonTypeToString(matjson::Type ty) {
-    switch (ty) {
-        case matjson::Type::Null: return "null";
-        case matjson::Type::Bool: return "bool";
-        case matjson::Type::Number: return "number";
-        case matjson::Type::String: return "string";
-        case matjson::Type::Array: return "array";
-        case matjson::Type::Object: return "object";
-        default: return "unknown";
-    }
-}
-
 // This is used for null JsonExpectedValues (for example when doing 
 // `json.has("key")` where "key" doesn't exist)
 static matjson::Value NULL_SCOPED_VALUE = nullptr;
@@ -230,6 +218,18 @@ JsonExpectedValue::~JsonExpectedValue() {}
 
 JsonExpectedValue::JsonExpectedValue(JsonExpectedValue&&) = default;
 JsonExpectedValue& JsonExpectedValue::operator=(JsonExpectedValue&&) = default;
+
+const char* JsonExpectedValue::matJsonTypeToString(matjson::Type ty) {
+    switch (ty) {
+        case matjson::Type::Null: return "null";
+        case matjson::Type::Bool: return "bool";
+        case matjson::Type::Number: return "number";
+        case matjson::Type::String: return "string";
+        case matjson::Type::Array: return "array";
+        case matjson::Type::Object: return "object";
+        default: return "unknown";
+    }
+}
 
 matjson::Value const& JsonExpectedValue::getJSONRef() const {
     return m_impl->scope;

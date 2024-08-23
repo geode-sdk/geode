@@ -305,6 +305,8 @@ namespace geode {
         JsonExpectedValue();
         JsonExpectedValue(Impl* from, matjson::Value& scope, std::string_view key);
 
+        static const char* matJsonTypeToString(matjson::Type ty);
+
         bool hasError() const;
         void setError(std::string_view error);
 
@@ -323,11 +325,19 @@ namespace geode {
             }
             else {
                 try {
-                    return this->getJSONRef().template as<T>();
+                    if (this->getJSONRef().template is<T>()) {
+                        return this->getJSONRef().template as<T>();
+                    }
+                    else {
+                        this->setError(
+                            "unexpected type {}",
+                            this->matJsonTypeToString(this->getJSONRef().type())
+                        );
+                    }
                 }
                 // matjson can throw variant exceptions too so you need to do this
                 catch(std::exception const& e) {
-                    this->setError("invalid json type: {}", e);
+                    this->setError("unable to parse json: {}", e);
                 }
             }
             return std::nullopt;
