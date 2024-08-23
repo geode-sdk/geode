@@ -178,6 +178,9 @@ Result<> ModSettingsManager::load(matjson::Value const& json) {
 }
 void ModSettingsManager::save(matjson::Value& json) {
     for (auto& [key, sett] : m_impl->settings) {
+        if (!sett.v3) {
+            continue;
+        }
         // Store the value in an intermediary so if `save` fails the existing 
         // value loaded from disk isn't overwritten
         matjson::Value value;
