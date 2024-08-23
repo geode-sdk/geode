@@ -92,8 +92,8 @@ namespace geode {
         protected:
             virtual T& getValueMut() const = 0;
 
-            template <class T>
-            void parseDefaultValue(JsonExpectedValue& json, T& defaultValue) {
+            template <class D>
+            void parseDefaultValue(JsonExpectedValue& json, D& defaultValue) {
                 auto value = json.needs("default");
                 // Check if this is a platform-specific default value
                 if (value.isObject() && value.has(GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH)) {
