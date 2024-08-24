@@ -1,5 +1,7 @@
 #include "SettingNodeV3.hpp"
 #include <Geode/loader/SettingNode.hpp>
+#include <Geode/utils/ColorProvider.hpp>
+#include <ui/mods/GeodeStyle.hpp>
 
 class SettingNodeSizeChangeEventV3::Impl final {
 public:
@@ -36,10 +38,14 @@ bool SettingNodeValueChangeEventV3::isCommit() const {
 class SettingNodeV3::Impl final {
 public:
     std::shared_ptr<SettingV3> setting;
+    CCLayerColor* bg;
     CCLabelBMFont* nameLabel;
     CCMenu* nameMenu;
     CCMenu* buttonMenu;
     CCMenuItemSpriteExtra* resetButton;
+    ButtonSprite* restartRequiredLabel;
+    ccColor4B bgColor = ccc4(0, 0, 0, 0);
+    bool committed = false;
 };
 
 bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
@@ -49,12 +55,28 @@ bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
     m_impl = std::make_shared<Impl>();
     m_impl->setting = setting;
 
+    m_impl->bg = CCLayerColor::create({ 0, 0, 0, 0 });
+    m_impl->bg->setContentSize({ width, 0 });
+    m_impl->bg->ignoreAnchorPointForPosition(false);
+    m_impl->bg->setAnchorPoint(ccp(.5f, .5f));
+    this->addChildAtPosition(m_impl->bg, Anchor::Center);
+    
     m_impl->nameMenu = CCMenu::create();
     m_impl->nameMenu->setContentWidth(width / 2 + 25);
 
     m_impl->nameLabel = CCLabelBMFont::create(setting->getDisplayName().c_str(), "bigFont.fnt");
     m_impl->nameLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.1f, .4f)->setScalePriority(1));
     m_impl->nameMenu->addChild(m_impl->nameLabel);
+
+    m_impl->restartRequiredLabel = createGeodeTagLabel(
+        "Restart Required",
+        {{
+            to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)),
+            to3B(ColorProvider::get()->color("mod-list-restart-required-label-bg"_spr))
+        }}
+    );
+    m_impl->restartRequiredLabel->setScale(.25f);
+    this->addChildAtPosition(m_impl->restartRequiredLabel, Anchor::Left, ccp(10, -10), ccp(0, .5f));
 
     if (setting->getDescription()) {
         auto descSpr = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
@@ -88,8 +110,19 @@ bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
 }
 
 void SettingNodeV3::updateState() {
-    this->getNameLabel()->setColor(this->hasUncommittedChanges() ? ccc3(17, 221, 0) : ccWHITE);
+    m_impl->nameLabel->setColor(this->hasUncommittedChanges() ? ccc3(17, 221, 0) : ccWHITE);
     m_impl->resetButton->setVisible(this->hasNonDefaultValue());
+
+    m_impl->bg->setColor(to3B(m_impl->bgColor));
+    m_impl->bg->setOpacity(m_impl->bgColor.a);
+
+    m_impl->restartRequiredLabel->setVisible(false);
+    if (m_impl->setting->requiresRestart() && (this->hasUncommittedChanges() || m_impl->committed)) {
+        m_impl->restartRequiredLabel->setVisible(true);
+        m_impl->bg->setColor("mod-list-restart-required-label-bg"_cc3b);
+        m_impl->bg->setOpacity(75);
+    }
+
     m_impl->nameMenu->updateLayout();
 }
 
@@ -119,12 +152,18 @@ void SettingNodeV3::onReset(CCObject*) {
     );
 }
 
+void SettingNodeV3::setBGColor(ccColor4B const& color) {
+    m_impl->bgColor = color;
+    this->updateState();
+}
+
 void SettingNodeV3::markChanged() {
     this->updateState();
     SettingNodeValueChangeEventV3(false).post();
 }
 void SettingNodeV3::commit() {
     this->onCommit();
+    m_impl->committed = true;
     this->updateState();
     SettingNodeValueChangeEventV3(true).post();
 }
@@ -137,6 +176,7 @@ void SettingNodeV3::resetToDefault() {
 
 void SettingNodeV3::setContentSize(CCSize const& size) {
     CCNode::setContentSize(size);
+    m_impl->bg->setContentSize(size);
     this->updateLayout();
     SettingNodeSizeChangeEventV3(this).post();
 }

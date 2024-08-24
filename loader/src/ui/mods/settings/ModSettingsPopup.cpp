@@ -23,12 +23,9 @@ bool ModSettingsPopup::setup(Mod* mod) {
     auto layer = ScrollLayer::create(layerSize);
     layer->setTouchEnabled(true);
 
-    bool hasBG = false;
+    bool bg = false;
     for (auto& key : mod->getSettingKeys()) {
-        hasBG = !hasBG;
-
-        auto bg = CCLayerColor::create({ 0, 0, 0, 50 });
-        bg->setOpacity(hasBG ? 60 : 20);
+        bg = !bg;
 
         SettingNodeV3* node;
         if (auto sett = mod->getSettingV3(key)) {
@@ -38,18 +35,15 @@ bool ModSettingsPopup::setup(Mod* mod) {
             // todo: placeholder node
             continue;
         }
+        node->setBGColor(ccc4(0, 0, 0, bg ? 60 : 20));
     
-        bg->setContentSize(node->getScaledContentSize());
-        bg->addChildAtPosition(node, Anchor::Center, ccp(0, 0), ccp(.5f, .5f));
-
         // auto separator = CCLayerColor::create({ 0, 0, 0, 50 }, layerSize.width, 1.f);
-        // separator->setOpacity(hasBG ? 100 : 50);
+        // separator->setOpacity(bg ? 100 : 50);
         // separator->ignoreAnchorPointForPosition(false);
         // bg->addChildAtPosition(separator, Anchor::Bottom, ccp(0, 0), ccp(.5f, .5f));
 
         m_settings.push_back(node);
-
-        layer->m_contentLayer->addChild(bg);
+        layer->m_contentLayer->addChild(node);
     }
     layer->m_contentLayer->setLayout(
         ColumnLayout::create()

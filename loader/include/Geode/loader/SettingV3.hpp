@@ -431,6 +431,10 @@ namespace geode {
         virtual bool hasUncommittedChanges() const = 0;
         virtual bool hasNonDefaultValue() const = 0;
 
+        // Can be overridden by the setting itself
+        // Can / should be used to do alternating BG
+        void setBGColor(cocos2d::ccColor4B const& color);
+
         cocos2d::CCLabelBMFont* getNameLabel() const;
         cocos2d::CCMenu* getNameMenu() const;
         cocos2d::CCMenu* getButtonMenu() const;
