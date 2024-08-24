@@ -10,6 +10,55 @@
 
 using namespace geode::prelude;
 
+// class ColorPickPopupEvent::Impl final {
+// public:
+//     ColorPickPopup* popup;
+//     ccColor4B color;
+//     bool closed = false;
+// };
+
+// ColorPickPopupEvent::ColorPickPopupEvent(ColorPickPopup* popup, ccColor4B const& color)
+//   : m_impl(std::make_shared<Impl>())
+// {
+//     m_impl->popup = popup;
+//     m_impl->color = color;
+// }
+// ColorPickPopupEvent::~ColorPickPopupEvent() = default;
+
+// ColorPickPopup* ColorPickPopupEvent::getPopup() const {
+//     return m_impl->popup;
+// }
+// ccColor4B ColorPickPopupEvent::getColor() const {
+//     return m_impl->color;
+// }
+// bool ColorPickPopupEvent::isPopupClosed() const {
+//     return m_impl->closed;
+// }
+
+// class ColorPickPopupEventFilter::Impl final {
+// public:
+//     ColorPickPopup* popup;
+// };
+
+// ListenerResult ColorPickPopupEventFilter::handle(utils::MiniFunction<Callback> fn, ColorPickPopupEvent* event) {
+//     if (event->getPopup() == m_impl->popup) {
+//         if (event->isPopupClosed()) {
+//             m_impl->popup = nullptr;
+//         }
+//         else {
+//             fn(event);
+//         }
+//     }
+//     return ListenerResult::Propagate;
+// }
+// ColorPickPopupEventFilter::ColorPickPopupEventFilter() : ColorPickPopupEventFilter(nullptr) {}
+// ColorPickPopupEventFilter::ColorPickPopupEventFilter(ColorPickPopup* popup)
+//   : m_impl(std::make_shared<Impl>())
+// {
+//     m_impl->popup = popup;
+// }
+// ColorPickPopupEventFilter::~ColorPickPopupEventFilter() = default;
+
 bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
     m_noElasticity = true;
     m_color = color;
@@ -334,7 +383,9 @@ void ColorPickPopup::updateState(CCNode* except) {
     }
     m_resetBtn->setVisible(m_originalColor != m_color);
     m_newColorSpr->setColor(to3B(m_color));
-    if (m_delegate) m_delegate->updateColor(m_color);
+    if (m_delegate) {
+        m_delegate->updateColor(m_color);
+    }
 }
 
 void ColorPickPopup::onOpacitySlider(CCObject* sender) {
