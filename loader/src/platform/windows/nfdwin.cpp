@@ -182,6 +182,7 @@ Result<> nfdPick(
     }
     if (options.defaultPath && options.defaultPath.value().wstring().size()) {
         std::filesystem::path path = options.defaultPath.value();
+        path.make_preferred();
         if (mode == NFDMode::OpenFile || mode == NFDMode::SaveFile) {
             if (!std::filesystem::exists(path) || !std::filesystem::is_directory(path)) {
                 if (path.has_filename()) {

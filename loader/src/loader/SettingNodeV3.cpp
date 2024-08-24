@@ -409,12 +409,14 @@ void FileSettingNodeV3::onPickFile(CCObject*) {
             )->show();
         }
     });
+    std::error_code ec;
     m_pickListener.setFilter(file::pick(
         this->getSetting()->isFolder() ? 
             file::PickMode::OpenFolder : 
             (this->getSetting()->useSaveDialog() ? file::PickMode::SaveFile : file::PickMode::OpenFile), 
         {
-            dirs::getGameDir(),
+            // Prefer opening the current path directly if possible
+            m_path.empty() || !std::filesystem::exists(m_path.parent_path(), ec) ? dirs::getGameDir() : m_path,
             this->getSetting()->getFilters().value_or(std::vector<file::FilePickOptions::Filter>())
         }
     ));
