@@ -3,6 +3,7 @@
 #include <Geode/loader/SettingV3.hpp>
 #include <Geode/loader/SettingNode.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
+#include <Geode/ui/ColorPickPopup.hpp>
 
 using namespace geode::prelude;
 
@@ -290,11 +291,18 @@ public:
     std::shared_ptr<FileSettingV3> getSetting() const;
 };
 
-class Color3BSettingNodeV3 : public SettingNodeV3 {
+class Color3BSettingNodeV3 : public SettingNodeV3, public ColorPickPopupDelegate {
 protected:
+    ccColor3B m_value;
+    ColorChannelSprite* m_colorSprite;
+
     bool init(std::shared_ptr<Color3BSettingV3> setting, float width);
 
+    void updateState() override;
+
     void onCommit() override;
+    void onSelectColor(CCObject*);
+    void updateColor(ccColor4B const& color) override;
 
 public:
     static Color3BSettingNodeV3* create(std::shared_ptr<Color3BSettingV3> setting, float width);
@@ -306,11 +314,18 @@ public:
     std::shared_ptr<Color3BSettingV3> getSetting() const;
 };
 
-class Color4BSettingNodeV3 : public SettingNodeV3 {
+class Color4BSettingNodeV3 : public SettingNodeV3, public ColorPickPopupDelegate {
 protected:
+    ccColor4B m_value;
+    ColorChannelSprite* m_colorSprite;
+
     bool init(std::shared_ptr<Color4BSettingV3> setting, float width);
 
+    void updateState() override;
+
     void onCommit() override;
+    void onSelectColor(CCObject*);
+    void updateColor(ccColor4B const& color) override;
 
 public:
     static Color4BSettingNodeV3* create(std::shared_ptr<Color4BSettingV3> setting, float width);

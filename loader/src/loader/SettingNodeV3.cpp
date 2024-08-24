@@ -387,10 +387,6 @@ void FileSettingNodeV3::updateState() {
     m_nameLabel->limitLabelWidth(75, .35f, .1f);
 }
 
-void FileSettingNodeV3::onCommit() {
-    this->getSetting()->setValue(m_path);
-}
-
 void FileSettingNodeV3::onPickFile(CCObject*) {
     m_pickListener.bind([this](auto* event) {
         auto value = event->getValue();
@@ -422,6 +418,9 @@ void FileSettingNodeV3::onPickFile(CCObject*) {
     ));
 }
 
+void FileSettingNodeV3::onCommit() {
+    this->getSetting()->setValue(m_path);
+}
 bool FileSettingNodeV3::hasUncommittedChanges() const {
     return m_path != this->getSetting()->getValue();
 }
@@ -452,20 +451,48 @@ bool Color3BSettingNodeV3::init(std::shared_ptr<Color3BSettingV3> setting, float
     if (!SettingNodeV3::init(setting, width))
         return false;
     
-    // todo
+    m_value = setting->getValue();
+
+    m_colorSprite = ColorChannelSprite::create();
+    m_colorSprite->setScale(.65f);
+
+    auto button = CCMenuItemSpriteExtra::create(
+        m_colorSprite, this, menu_selector(Color3BSettingNodeV3::onSelectColor)
+    );
+    this->getButtonMenu()->addChildAtPosition(button, Anchor::Right, ccp(-10, 0));
+
+    this->updateState();
 
     return true;
 }
 
-void Color3BSettingNodeV3::onCommit() {}
+void Color3BSettingNodeV3::updateState() {
+    SettingNodeV3::updateState();
+    m_colorSprite->setColor(m_value);
+}
 
+void Color3BSettingNodeV3::onSelectColor(CCObject*) {
+    auto popup = ColorPickPopup::create(m_value);
+    popup->setDelegate(this);
+    popup->show();
+}
+void Color3BSettingNodeV3::updateColor(ccColor4B const& color) {
+    m_value = to3B(color);
+    this->markChanged();
+}
+
+void Color3BSettingNodeV3::onCommit() {
+    this->getSetting()->setValue(m_value);
+}
 bool Color3BSettingNodeV3::hasUncommittedChanges() const {
-    return false;
+    return m_value != this->getSetting()->getValue();
 }
 bool Color3BSettingNodeV3::hasNonDefaultValue() const {
-    return false;
+    return m_value != this->getSetting()->getDefaultValue();
 }
-void Color3BSettingNodeV3::onResetToDefault() {}
+void Color3BSettingNodeV3::onResetToDefault() {
+    m_value = this->getSetting()->getDefaultValue();
+}
 
 std::shared_ptr<Color3BSettingV3> Color3BSettingNodeV3::getSetting() const {
     return std::static_pointer_cast<Color3BSettingV3>(SettingNodeV3::getSetting());
@@ -487,20 +514,49 @@ bool Color4BSettingNodeV3::init(std::shared_ptr<Color4BSettingV3> setting, float
     if (!SettingNodeV3::init(setting, width))
         return false;
     
-    // todo
+    m_value = setting->getValue();
+
+    m_colorSprite = ColorChannelSprite::create();
+    m_colorSprite->setScale(.65f);
+
+    auto button = CCMenuItemSpriteExtra::create(
+        m_colorSprite, this, menu_selector(Color4BSettingNodeV3::onSelectColor)
+    );
+    this->getButtonMenu()->addChildAtPosition(button, Anchor::Right, ccp(-10, 0));
+
+    this->updateState();
 
     return true;
 }
 
-void Color4BSettingNodeV3::onCommit() {}
+void Color4BSettingNodeV3::updateState() {
+    SettingNodeV3::updateState();
+    m_colorSprite->setColor(to3B(m_value));
+    m_colorSprite->updateOpacity(m_value.a / 255.f);
+}
 
+void Color4BSettingNodeV3::onSelectColor(CCObject*) {
+    auto popup = ColorPickPopup::create(m_value);
+    popup->setDelegate(this);
+    popup->show();
+}
+void Color4BSettingNodeV3::updateColor(ccColor4B const& color) {
+    m_value = color;
+    this->markChanged();
+}
+
+void Color4BSettingNodeV3::onCommit() {
+    this->getSetting()->setValue(m_value);
+}
 bool Color4BSettingNodeV3::hasUncommittedChanges() const {
-    return false;
+    return m_value != this->getSetting()->getValue();
 }
 bool Color4BSettingNodeV3::hasNonDefaultValue() const {
-    return false;
+    return m_value != this->getSetting()->getDefaultValue();
 }
-void Color4BSettingNodeV3::onResetToDefault() {}
+void Color4BSettingNodeV3::onResetToDefault() {
+   m_value = this->getSetting()->getDefaultValue();
+}
 
 std::shared_ptr<Color4BSettingV3> Color4BSettingNodeV3::getSetting() const {
     return std::static_pointer_cast<Color4BSettingV3>(SettingNodeV3::getSetting());
