@@ -49,6 +49,9 @@ bool applicationDidFinishLaunchingHook(void* self, SEL sel, void* p1, void* p2) 
     if (exitCode != 0)
         return false;
 
+    if (!LoaderImpl::get()->getInternalMod()->patch(reinterpret_cast<void*>(geode::base::get() + 0x27955c), { 0x03, 0x1e, 0x91, 0x52 }).isOk())
+        return false;
+    
     return s_applicationDidFinishLaunchingOrig(self, sel, p1, p2);
 }
 
