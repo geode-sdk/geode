@@ -609,7 +609,8 @@ class FileSettingV3::Impl final {
 public:
     std::filesystem::path value;
     std::filesystem::path defaultValue;
-    FileType fileType;
+    bool folder = false;
+    bool useSaveDialog = false; // this option makes no sense if folder = true
     std::optional<std::vector<utils::file::FilePickOptions::Filter>> filters;
 };
 
@@ -623,7 +624,7 @@ Result<std::shared_ptr<FileSettingV3>> FileSettingV3::parse(std::string const& k
     ret->parseDefaultValue(root, ret->m_impl->defaultValue);
     ret->m_impl->value = ret->m_impl->defaultValue;
 
-    // Replace known paths like `{gd-save-dir}/`    
+    // Replace known paths like `{gd-save-dir}/`
     try {
         ret->m_impl->defaultValue = fmt::format(
             fmt::runtime(ret->m_impl->defaultValue.string()),
@@ -639,29 +640,41 @@ Result<std::shared_ptr<FileSettingV3>> FileSettingV3::parse(std::string const& k
     }
     ret->m_impl->value = ret->m_impl->defaultValue;
 
-    if (auto ty = root.has("filetype")) {
-        ty.assertIsString();
-        switch (hash(ty.template get<std::string>())) {
-            case hash("any"): ret->m_impl->fileType = FileType::Any; break;
-            case hash("file"): ret->m_impl->fileType = FileType::File; break;
-            case hash("folder"): ret->m_impl->fileType = FileType::Folder; break;
-            default: return Err(
-                "Setting '{}' in mod {}: Invalid filetype \"{}\"",
-                key, modID, ty.template get<std::string>()
+    std::string type;
+    root.needs("type").into(type);
+    if (type == "folder") {
+        ret->m_impl->folder = true;
+        // folder-specific stuff if they ever exist
+    }
+    else if (type == "file" || type == "path") {
+        if (type == "path") {
+            log::warn(
+                "Setting '{}' in mod {}: the \"path\" type has been "
+                "deprecated, use \"type\": \"file\" or \"type\": \"folder\" instead",
+                key, modID
             );
         }
-    }
-
-    if (auto controls = root.has("control")) {
-        auto filters = std::vector<file::FilePickOptions::Filter>();
-        for (auto& item : controls.has("filters").items()) {
-            utils::file::FilePickOptions::Filter filter;
-            item.has("description").into(filter.description);
-            item.has("files").into(filter.files);
-            filters.push_back(filter);
+        std::string dialogType;
+        root.has("dialog").into(dialogType);
+        switch (hash(dialogType)) {
+            case hash("save"): ret->m_impl->useSaveDialog = true; break;
+            case hash("open"): ret->m_impl->useSaveDialog = false; break;
+            case hash(""): break;
+            default: return Err("Setting '{}' in mod {}: unknown \"dialog\" type \"{}\"", key, modID, dialogType);
         }
-        if (!filters.empty()) {
-            ret->m_impl->filters.emplace(filters);
+
+        // Filter controls only make sense for files but not for folders
+        if (auto controls = root.has("control")) {
+            auto filters = std::vector<file::FilePickOptions::Filter>();
+            for (auto& item : controls.has("filters").items()) {
+                utils::file::FilePickOptions::Filter filter;
+                item.has("description").into(filter.description);
+                item.has("files").into(filter.files);
+                filters.push_back(filter);
+            }
+            if (!filters.empty()) {
+                ret->m_impl->filters.emplace(filters);
+            }
         }
     }
 
@@ -676,22 +689,25 @@ std::filesystem::path FileSettingV3::getDefaultValue() const {
     return m_impl->defaultValue;
 }
 Result<> FileSettingV3::isValid(std::filesystem::path const& value) const {
-    if (m_impl->fileType != FileType::Any) {
-        if (!std::filesystem::exists(value)) {
-            return Err("{} must exist", m_impl->fileType == FileType::File ? "File" : "Folder");
-        }
-        if (m_impl->fileType == FileType::File && !std::filesystem::is_regular_file(value)) {
-            return Err("Value must be a file");
-        }
-        if (m_impl->fileType == FileType::Folder && !std::filesystem::is_directory(value)) {
+    std::error_code ec;
+    if (m_impl->folder) {
+        if (!std::filesystem::is_directory(value, ec)) {
             return Err("Value must be a folder");
+        }
+    }
+    else {
+        if (!std::filesystem::is_regular_file(value, ec)) {
+            return Err("Value must be a file");
         }
     }
     return Ok();
 }
 
-FileSettingV3::FileType FileSettingV3::getFileType() const {
-    return m_impl->fileType;
+bool FileSettingV3::isFolder() const {
+    return m_impl->folder;
+}
+bool FileSettingV3::useSaveDialog() const {
+    return m_impl->useSaveDialog;
 }
 
 std::optional<std::vector<utils::file::FilePickOptions::Filter>> FileSettingV3::getFilters() const {

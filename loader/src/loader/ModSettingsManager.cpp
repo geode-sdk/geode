@@ -21,6 +21,7 @@ private:
         { "float", &FloatSettingV3::parse },
         { "string", &StringSettingV3::parse },
         { "file", &FileSettingV3::parse },
+        { "folder", &FileSettingV3::parse },
         { "path", &FileSettingV3::parse },
         { "rgb", &Color3BSettingV3::parse },
         { "color", &Color3BSettingV3::parse },

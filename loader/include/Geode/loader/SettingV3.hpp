@@ -328,16 +328,11 @@ namespace geode {
         FileSettingV3(PrivateMarker);
         static Result<std::shared_ptr<FileSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
 
-        enum class FileType {
-            Any    = 0,
-            File   = 1,
-            Folder = 2,
-        };
-
         std::filesystem::path getDefaultValue() const override;
         Result<> isValid(std::filesystem::path const& value) const override;
 
-        FileType getFileType() const;
+        bool isFolder() const;
+        bool useSaveDialog() const;
 
         std::optional<std::vector<utils::file::FilePickOptions::Filter>> getFilters() const;
         

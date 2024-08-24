@@ -347,17 +347,17 @@ bool FileSettingNodeV3::init(std::shared_ptr<FileSettingV3> setting, float width
     labelBG->setScale(.25f);
     labelBG->setColor({ 0, 0, 0 });
     labelBG->setOpacity(90);
-    labelBG->setContentSize({ 400, 80 });
-    this->getButtonMenu()->addChildAtPosition(labelBG, Anchor::Center, ccp(-15, 0));
+    labelBG->setContentSize({ 420, 80 });
+    this->getButtonMenu()->addChildAtPosition(labelBG, Anchor::Center, ccp(-10, 0));
 
     m_fileIcon = CCSprite::create();
-    this->getButtonMenu()->addChildAtPosition(m_fileIcon, Anchor::Left, ccp(3, 0));
+    this->getButtonMenu()->addChildAtPosition(m_fileIcon, Anchor::Left, ccp(5, 0));
 
     m_nameLabel = CCLabelBMFont::create("", "bigFont.fnt");
-    this->getButtonMenu()->addChildAtPosition(m_nameLabel, Anchor::Left, ccp(11, 0), ccp(0, .5f));
+    this->getButtonMenu()->addChildAtPosition(m_nameLabel, Anchor::Left, ccp(13, 0), ccp(0, .5f));
 
     auto selectSpr = CCSprite::createWithSpriteFrameName("GJ_plus2Btn_001.png");
-    selectSpr->setScale(.75f);
+    selectSpr->setScale(.7f);
     auto selectBtn = CCMenuItemSpriteExtra::create(
         selectSpr, this, menu_selector(FileSettingNodeV3::onPickFile)
     );
@@ -370,18 +370,21 @@ bool FileSettingNodeV3::init(std::shared_ptr<FileSettingV3> setting, float width
 
 void FileSettingNodeV3::updateState() {
     SettingNodeV3::updateState();
-    auto ty = this->getSetting()->getFileType();
-    if (ty == FileSettingV3::FileType::Any) {
-        ty = std::filesystem::is_directory(m_path) ? 
-            FileSettingV3::FileType::Folder : 
-            FileSettingV3::FileType::File;
-    }
     m_fileIcon->setDisplayFrame(CCSpriteFrameCache::get()->spriteFrameByName(
-        ty == FileSettingV3::FileType::File ? "file.png"_spr : "folderIcon_001.png"
+        this->getSetting()->isFolder() ? "folderIcon_001.png" : "file.png"_spr
     ));
     limitNodeSize(m_fileIcon, ccp(10, 10), 1.f, .1f);
-    m_nameLabel->setString(m_path.filename().string().c_str());
-    m_nameLabel->limitLabelWidth(75, .4f, .1f);
+    if (m_path.empty()) {
+        m_nameLabel->setString(this->getSetting()->isFolder() ? "No Folder Selected" : "No File Selected");
+        m_nameLabel->setColor(ccGRAY);
+        m_nameLabel->setOpacity(155);
+    }
+    else {
+        m_nameLabel->setString(m_path.filename().string().c_str());
+        m_nameLabel->setColor(ccWHITE);
+        m_nameLabel->setOpacity(255);
+    }
+    m_nameLabel->limitLabelWidth(75, .35f, .1f);
 }
 
 void FileSettingNodeV3::onCommit() {
@@ -407,9 +410,9 @@ void FileSettingNodeV3::onPickFile(CCObject*) {
         }
     });
     m_pickListener.setFilter(file::pick(
-        this->getSetting()->getFileType() == FileSettingV3::FileType::Folder ?
-            file::PickMode::OpenFolder :
-            file::PickMode::OpenFile, 
+        this->getSetting()->isFolder() ? 
+            file::PickMode::OpenFolder : 
+            (this->getSetting()->useSaveDialog() ? file::PickMode::SaveFile : file::PickMode::OpenFile), 
         {
             dirs::getGameDir(),
             this->getSetting()->getFilters().value_or(std::vector<file::FilePickOptions::Filter>())
