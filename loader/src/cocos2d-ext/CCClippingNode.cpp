@@ -2,25 +2,14 @@
 
 using namespace cocos2d;
 
+#ifdef GEODE_IS_IOS
+
 #pragma warning(push)
 #pragma warning(disable : 4273)
 
 // hopefully if broma supports global functions i can remove this hack
-
-#ifdef GEODE_IS_IOS
 #define kmGLPushMatrixOffset 0x17420c
 #define kmGLPopMatrixOffset 0x174250
-#endif
-
-#ifdef GEODE_IS_ARM_MAC
-#define kmGLPushMatrixOffset 0x8008135
-#define kmGLPopMatrixOffset 0x8008135
-#endif
-
-#ifdef GEODE_IS_INTEL_MAC
-#define kmGLPushMatrixOffset 0x8008135
-#define kmGLPopMatrixOffset 0x8008135
-#endif
 
 static GLint g_sStencilBits = -1;
 
@@ -391,3 +380,4 @@ void CCClippingNode::setInverted(bool bInverted)
 }
 
 #pragma warning(pop)
+#endif
