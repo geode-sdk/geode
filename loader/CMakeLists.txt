@@ -331,7 +331,7 @@ if (APPLE)
 			${CMAKE_INSTALL_NAME_TOOL} -id \"/Library/MobileSubstrate/DynamicLibraries/Geode.dylib\"
 			$<TARGET_FILE:geode-loader>)
 
-		// Used for File Picker API
+		# Used for File Picker API
    		find_library(UNIFORM_TYPE_IDENTIFIERS_FRAMEWORK UniformTypeIdentifiers)
      		target_link_libraries(${PROJECT_NAME} ${UNIFORM_TYPE_IDENTIFIERS_FRAMEWORK})
 	endif()
