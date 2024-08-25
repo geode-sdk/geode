@@ -142,16 +142,21 @@ unsigned int gdTimestamp = 0;
 // this function will set the current working directory to the game's directory
 // to avoid the game crashing due to not being able to find the resources
 static void fixCWD() {
-    WCHAR cwd[MAX_PATH];
-    DWORD size = GetModuleFileNameW(NULL, cwd, sizeof(cwd));
-    if (size == sizeof(cwd)) return;
-    for (int i = size - 1; i >= 0; i--) {
+    std::array<WCHAR, MAX_PATH> cwd;
+    
+    DWORD size = GetModuleFileNameW(NULL, cwd.data(), cwd.size());
+    if (size == cwd.size()) return;
+    
+    int i;
+    for (i = (int)size - 1; i >= 0; i--) {
         if (cwd[i] == '\\') {
-            cwd[i] = '\0';
+            cwd[i] = 0;
             break;
         }
     }
-    SetCurrentDirectoryW(cwd);
+    if (i < 0) return;
+
+    SetCurrentDirectoryW(cwd.data());
 }
 
 int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
