@@ -4,6 +4,7 @@ using namespace geode::prelude;
 
 #include <Geode/loader/Dirs.hpp>
 #include <UIKit/UIKit.h>
+#include <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #include <iostream>
 #include <sstream>
 #include <Geode/utils/web.hpp>
@@ -30,6 +31,51 @@ void utils::web::openLinkInBrowser(std::string const& url) {
         openURL:[NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]]];
 }
 
+#pragma region Folder Pick Delegate
+
+@interface PickerDelegate : NSObject <UIDocumentPickerDelegate>
+@property (nonatomic, copy) void (^completion)(NSArray<NSURL*>* urls, NSError* error);
+- (instancetype)initWithCompletion:(void (^)(NSArray<NSURL*>* urls, NSError* error))completion;
+@end
+
+@implementation PickerDelegate
+- (instancetype)initWithCompletion:(void (^)(NSArray<NSURL*>* urls, NSError* error))completion {
+    self = [super init];
+    if (self) {
+        _completion = [completion copy];
+    }
+    return self;
+}
+
+- (void)documentPicker:(UIDocumentPickerViewController*)controller didPickDocumentsAtURLs:(NSArray<NSURL*>*)urls {
+    if (self.completion) {
+        self.completion(urls, nil);
+    }
+}
+
+- (void)documentPickerWasCancelled:(UIDocumentPickerViewController*)controller {
+    if (self.completion) {
+        self.completion(nil, [NSError errorWithDomain:NSCocoaErrorDomain code:NSUserCancelledError userInfo:nil]);
+    }
+}
+
+@end
+
+PickerDelegate* PickerDelegate_instance = nil;
+
+#pragma endregion
+
+UIViewController* getCurrentViewController() {
+    UIWindow *window = [[UIApplication sharedApplication] keyWindow];
+    UIViewController *rootViewController = window.rootViewController;
+    
+    while (rootViewController.presentedViewController) {
+        rootViewController = rootViewController.presentedViewController;
+    }
+    
+    return rootViewController;
+}
+
 bool utils::file::openFolder(std::filesystem::path const& path) {
     // TODO: maybe we can just copy the one from mac
     return false;
@@ -39,6 +85,92 @@ GEODE_DLL Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, fi
     using RetTask = Task<Result<std::filesystem::path>>;
     return RetTask::runWithCallback([mode, options](auto resultCallback, auto progress, auto cancelled) {
         resultCallback(RetTask::Cancel()); // TODO !!!!
+    });
+}
+
+GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> file::pickMany(file::FilePickOptions const& options) {
+    using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
+    return RetTask::runWithCallback([options](auto resultCallback, auto progress, auto cancelled) {
+        NSMutableArray<NSString*> *documentTypes = [NSMutableArray array];
+        for (const auto& filter : options.filters) {
+            for (const auto& file : filter.files) {
+                NSString* uti = [UTType typeWithFilenameExtension:@(file.c_str())].identifier;
+                if (uti) {
+                    [documentTypes addObject:uti];
+                }
+            }
+        }
+        if (documentTypes.count == 0) {
+            [documentTypes addObject:(NSString*)UTTypeItem.identifier]; // Default to any file type if no filters are provided
+        }
+
+        UIDocumentPickerViewController* picker = [[UIDocumentPickerViewController alloc] initWithDocumentTypes:documentTypes inMode:UIDocumentPickerModeOpen];
+        picker.allowsMultipleSelection = true;
+        
+        PickerDelegate_instance = [[PickerDelegate alloc] initWithCompletion:^(NSArray<NSURL*>* urls, NSError* error) {
+            PickerDelegate_instance = nil;
+            
+            if (urls && urls.count > 0)
+            {
+                std::vector<std::filesystem::path> paths;
+                
+                for (NSURL* url : urls)
+                {
+                    if (url && url.path)
+                    {
+                        std::string pathStr = std::string([url.path UTF8String]);
+                        
+                        if ([url startAccessingSecurityScopedResource])
+                        {
+                            auto path = std::filesystem::path(pathStr);
+                            
+                            std::filesystem::path tempPath = dirs::getGameDir() / "geode" / "temp" / path.filename();
+                            std::filesystem::copy(path, tempPath, std::filesystem::copy_options::overwrite_existing);
+                            
+                            paths.push_back(tempPath);
+                        }
+                        else
+                        {
+                            resultCallback(Err("Failed to access security-scoped resource: {}", pathStr));
+                        }
+                    }
+                }
+                
+                resultCallback(Ok(paths));
+                
+                for (NSURL* url : urls)
+                {
+                    if (url && url.path)
+                    {
+                        [url stopAccessingSecurityScopedResource];
+                    }
+                }
+                
+                for (auto path : paths)
+                {
+                    Loader::get()->queueInMainThread([path]{
+                        Loader::get()->queueInMainThread([path]{
+                            if (std::filesystem::exists(path))
+                                std::filesystem::remove_all(path);
+                        });
+                    });
+                }
+            }
+            else if (cancelled()) {
+                resultCallback(RetTask::Cancel());
+            } else if (error) {
+                resultCallback(RetTask::Err(std::string([[error localizedDescription] UTF8String])));
+            } else {
+                resultCallback(RetTask::Cancel());
+            }
+        }];
+        
+        picker.delegate = PickerDelegate_instance;
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+            UIViewController *currentViewController = getCurrentViewController();
+            [currentViewController presentViewController:picker animated:YES completion:nil];
+        });
     });
 }
 
