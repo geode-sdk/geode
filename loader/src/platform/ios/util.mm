@@ -159,7 +159,7 @@ GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> file::pickMany(file::
             else if (cancelled()) {
                 resultCallback(RetTask::Cancel());
             } else if (error) {
-                resultCallback(RetTask::Err(std::string([[error localizedDescription] UTF8String])));
+                resultCallback(Err(std::string([[error localizedDescription] UTF8String])));
             } else {
                 resultCallback(RetTask::Cancel());
             }
