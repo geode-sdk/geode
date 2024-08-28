@@ -32,6 +32,8 @@ protected:
     CCMenuItemToggler* m_toggle;
 
     bool init(std::shared_ptr<BoolSettingV3> setting, float width);
+    
+    void updateState() override;
 
     void onCommit() override;
     void onToggle(CCObject*);
@@ -57,6 +59,10 @@ protected:
     CCMenuItemSpriteExtra* m_bigArrowLeftBtn;
     CCMenuItemSpriteExtra* m_arrowRightBtn;
     CCMenuItemSpriteExtra* m_bigArrowRightBtn;
+    CCSprite* m_arrowLeftBtnSpr;
+    CCSprite* m_bigArrowLeftBtnSpr;
+    CCSprite* m_arrowRightBtnSpr;
+    CCSprite* m_bigArrowRightBtnSpr;
 
     float valueToSlider(ValueType value) {
         auto min = this->getSetting()->getMinValue().value_or(-100);
@@ -79,28 +85,28 @@ protected:
         if (!SettingNodeV3::init(setting, width))
             return false;
 
-        auto bigArrowLeftSpr = CCSprite::create();
-        bigArrowLeftSpr->setCascadeColorEnabled(true);
-        bigArrowLeftSpr->setCascadeOpacityEnabled(true);
+        m_bigArrowLeftBtnSpr = CCSprite::create();
+        m_bigArrowLeftBtnSpr->setCascadeColorEnabled(true);
+        m_bigArrowLeftBtnSpr->setCascadeOpacityEnabled(true);
+        
         auto bigArrowLeftSpr1 = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
         auto bigArrowLeftSpr2 = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
-        
-        bigArrowLeftSpr->setContentSize(bigArrowLeftSpr1->getContentSize() + ccp(20, 0));
-        bigArrowLeftSpr->addChildAtPosition(bigArrowLeftSpr2, Anchor::Center, ccp(10, 0));
-        bigArrowLeftSpr->addChildAtPosition(bigArrowLeftSpr1, Anchor::Center, ccp(-10, 0));
-        bigArrowLeftSpr->setScale(.3f);
+        m_bigArrowLeftBtnSpr->setContentSize(bigArrowLeftSpr1->getContentSize() + ccp(20, 0));
+        m_bigArrowLeftBtnSpr->addChildAtPosition(bigArrowLeftSpr2, Anchor::Center, ccp(10, 0));
+        m_bigArrowLeftBtnSpr->addChildAtPosition(bigArrowLeftSpr1, Anchor::Center, ccp(-10, 0));
+        m_bigArrowLeftBtnSpr->setScale(.3f);
 
         m_bigArrowLeftBtn = CCMenuItemSpriteExtra::create(
-            bigArrowLeftSpr, this, menu_selector(NumberSettingNodeV3::onArrow)
+            m_bigArrowLeftBtnSpr, this, menu_selector(NumberSettingNodeV3::onArrow)
         );
         m_bigArrowLeftBtn->setUserObject(ObjWrapper<ValueType>::create(-setting->getBigArrowStepSize()));
         m_bigArrowLeftBtn->setVisible(setting->isBigArrowsEnabled());
         this->getButtonMenu()->addChildAtPosition(m_bigArrowLeftBtn, Anchor::Left, ccp(5, 0));
 
-        auto arrowLeftSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png");
-        arrowLeftSpr->setScale(.5f);
+        m_arrowLeftBtnSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png");
+        m_arrowLeftBtnSpr->setScale(.5f);
         m_arrowLeftBtn = CCMenuItemSpriteExtra::create(
-            arrowLeftSpr, this, menu_selector(NumberSettingNodeV3::onArrow)
+            m_arrowLeftBtnSpr, this, menu_selector(NumberSettingNodeV3::onArrow)
         );
         m_arrowLeftBtn->setUserObject(ObjWrapper<ValueType>::create(-setting->getArrowStepSize()));
         m_arrowLeftBtn->setVisible(setting->isArrowsEnabled());
@@ -119,31 +125,31 @@ protected:
         }
         this->getButtonMenu()->addChildAtPosition(m_input, Anchor::Center);
 
-        auto arrowRightSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png");
-        arrowRightSpr->setFlipX(true);
-        arrowRightSpr->setScale(.5f);
+        m_arrowRightBtnSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png");
+        m_arrowRightBtnSpr->setFlipX(true);
+        m_arrowRightBtnSpr->setScale(.5f);
         m_arrowRightBtn = CCMenuItemSpriteExtra::create(
-            arrowRightSpr, this, menu_selector(NumberSettingNodeV3::onArrow)
+            m_arrowRightBtnSpr, this, menu_selector(NumberSettingNodeV3::onArrow)
         );
         m_arrowRightBtn->setUserObject(ObjWrapper<ValueType>::create(setting->getArrowStepSize()));
         m_arrowRightBtn->setVisible(setting->isArrowsEnabled());
         this->getButtonMenu()->addChildAtPosition(m_arrowRightBtn, Anchor::Right, ccp(-22, 0));
 
-        auto bigArrowRightSpr = CCSprite::create();
-        bigArrowRightSpr->setCascadeColorEnabled(true);
-        bigArrowRightSpr->setCascadeOpacityEnabled(true);
+        m_bigArrowRightBtnSpr = CCSprite::create();
+        m_bigArrowRightBtnSpr->setCascadeColorEnabled(true);
+        m_bigArrowRightBtnSpr->setCascadeOpacityEnabled(true);
         auto bigArrowRightSpr1 = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
         bigArrowRightSpr1->setFlipX(true);
         auto bigArrowRightSpr2 = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
         bigArrowRightSpr2->setFlipX(true);
         
-        bigArrowRightSpr->setContentSize(bigArrowRightSpr1->getContentSize() + ccp(20, 0));
-        bigArrowRightSpr->addChildAtPosition(bigArrowRightSpr1, Anchor::Center, ccp(-10, 0));
-        bigArrowRightSpr->addChildAtPosition(bigArrowRightSpr2, Anchor::Center, ccp(10, 0));
-        bigArrowRightSpr->setScale(.3f);
+        m_bigArrowRightBtnSpr->setContentSize(bigArrowRightSpr1->getContentSize() + ccp(20, 0));
+        m_bigArrowRightBtnSpr->addChildAtPosition(bigArrowRightSpr1, Anchor::Center, ccp(-10, 0));
+        m_bigArrowRightBtnSpr->addChildAtPosition(bigArrowRightSpr2, Anchor::Center, ccp(10, 0));
+        m_bigArrowRightBtnSpr->setScale(.3f);
 
         m_bigArrowRightBtn = CCMenuItemSpriteExtra::create(
-            bigArrowRightSpr, this, menu_selector(NumberSettingNodeV3::onArrow)
+            m_bigArrowRightBtnSpr, this, menu_selector(NumberSettingNodeV3::onArrow)
         );
         m_bigArrowRightBtn->setUserObject(ObjWrapper<ValueType>::create(setting->getBigArrowStepSize()));
         m_bigArrowRightBtn->setVisible(setting->isBigArrowsEnabled());
@@ -166,27 +172,35 @@ protected:
 
     void updateState() override {
         SettingNodeV3::updateState();
+        auto enable = this->getSetting()->shouldEnable();
+        if (this->getSetting()->isInputEnabled()) {
+            m_input->setEnabled(enable);
+        }
+
+        auto min = this->getSetting()->getMinValue();
+        auto enableLeft = enable && (!min || this->getCurrentValue() > *min);
+        m_arrowLeftBtn->setEnabled(enableLeft);
+        m_bigArrowLeftBtn->setEnabled(enableLeft);
+        m_arrowLeftBtnSpr->setOpacity(enableLeft ? 255 : 155);
+        m_arrowLeftBtnSpr->setColor(enableLeft ? ccWHITE : ccGRAY);
+        m_bigArrowLeftBtnSpr->setOpacity(enableLeft ? 255 : 155);
+        m_bigArrowLeftBtnSpr->setColor(enableLeft ? ccWHITE : ccGRAY);
+
+        auto max = this->getSetting()->getMaxValue();
+        auto enableRight = enable && (!max || this->getCurrentValue() < *max);
+        m_arrowRightBtn->setEnabled(enableRight);
+        m_bigArrowRightBtn->setEnabled(enableRight);
+        m_arrowRightBtnSpr->setOpacity(enableRight ? 255 : 155);
+        m_arrowRightBtnSpr->setColor(enableRight ? ccWHITE : ccGRAY);
+        m_bigArrowRightBtnSpr->setOpacity(enableRight ? 255 : 155);
+        m_bigArrowRightBtnSpr->setColor(enableRight ? ccWHITE : ccGRAY);
+
         if (m_slider) {
             m_slider->m_touchLogic->m_thumb->setValue(this->valueToSlider(this->getCurrentValue()));
             m_slider->updateBar();
-        }
-        if (auto min = this->getSetting()->getMinValue()) {
-            auto enable = this->getCurrentValue() > *min;
-            m_arrowLeftBtn->setEnabled(enable);
-            m_bigArrowLeftBtn->setEnabled(enable);
-            static_cast<CCSprite*>(m_arrowLeftBtn->getNormalImage())->setOpacity(enable ? 255 : 155);
-            static_cast<CCSprite*>(m_arrowLeftBtn->getNormalImage())->setColor(enable ? ccWHITE : ccGRAY);
-            static_cast<CCSprite*>(m_bigArrowLeftBtn->getNormalImage())->setOpacity(enable ? 255 : 155);
-            static_cast<CCSprite*>(m_bigArrowLeftBtn->getNormalImage())->setColor(enable ? ccWHITE : ccGRAY);
-        }
-        if (auto max = this->getSetting()->getMaxValue()) {
-            auto enable = this->getCurrentValue() < *max;
-            m_arrowRightBtn->setEnabled(enable);
-            m_bigArrowRightBtn->setEnabled(enable);
-            static_cast<CCSprite*>(m_arrowRightBtn->getNormalImage())->setOpacity(enable ? 255 : 155);
-            static_cast<CCSprite*>(m_arrowRightBtn->getNormalImage())->setColor(enable ? ccWHITE : ccGRAY);
-            static_cast<CCSprite*>(m_bigArrowRightBtn->getNormalImage())->setOpacity(enable ? 255 : 155);
-            static_cast<CCSprite*>(m_bigArrowRightBtn->getNormalImage())->setColor(enable ? ccWHITE : ccGRAY);
+            m_slider->m_sliderBar->setColor(enable ? ccWHITE : ccGRAY);
+            m_slider->m_touchLogic->m_thumb->setColor(enable ? ccWHITE : ccGRAY);
+            m_slider->m_touchLogic->m_thumb->setEnabled(enable);
         }
     }
 
@@ -250,12 +264,16 @@ using FloatSettingNodeV3 = NumberSettingNodeV3<FloatSettingV3>;
 class StringSettingNodeV3 : public SettingNodeV3 {
 protected:
     TextInput* m_input;
+    CCSprite* m_arrowLeftSpr = nullptr;
+    CCSprite* m_arrowRightSpr = nullptr;
 
     bool init(std::shared_ptr<StringSettingV3> setting, float width);
 
-    void onCommit() override;
+    void updateState() override;
 
     void onArrow(CCObject* sender);
+
+    void onCommit() override;
 
 public:
     static StringSettingNodeV3* create(std::shared_ptr<StringSettingV3> setting, float width);
@@ -273,6 +291,8 @@ protected:
     std::filesystem::path m_path;
     CCLabelBMFont* m_nameLabel;
     EventListener<Task<Result<std::filesystem::path>>> m_pickListener;
+    CCMenuItemSpriteExtra* m_selectBtn;
+    CCSprite* m_selectBtnSpr;
 
     bool init(std::shared_ptr<FileSettingV3> setting, float width);
 
@@ -294,6 +314,7 @@ public:
 class Color3BSettingNodeV3 : public SettingNodeV3, public ColorPickPopupDelegate {
 protected:
     ccColor3B m_value;
+    CCMenuItemSpriteExtra* m_colorBtn;
     ColorChannelSprite* m_colorSprite;
 
     bool init(std::shared_ptr<Color3BSettingV3> setting, float width);
@@ -317,6 +338,7 @@ public:
 class Color4BSettingNodeV3 : public SettingNodeV3, public ColorPickPopupDelegate {
 protected:
     ccColor4B m_value;
+    CCMenuItemSpriteExtra* m_colorBtn;
     ColorChannelSprite* m_colorSprite;
 
     bool init(std::shared_ptr<Color4BSettingV3> setting, float width);

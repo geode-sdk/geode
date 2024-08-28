@@ -9,8 +9,9 @@
 // this unfortunately has to be included because of C++ templates
 #include "../utils/JsonValidation.hpp"
 
-// todo in v4: these can be removed as well as the friend decl in LegacyCustomSettingV3
+// todo in v4: this can be removed as well as the friend decl in LegacyCustomSettingV3
 class LegacyCustomSettingToV3Node;
+class ModSettingsPopup;
 
 namespace geode {
     class ModSettingsManager;
@@ -59,6 +60,11 @@ namespace geode {
          * Get the "enable-if" scheme for this setting
          */
         std::optional<std::string> getEnableIf() const;
+        /**
+         * Check if this setting should be enabled based on the "enable-if" scheme
+         */
+        bool shouldEnable() const;
+        std::optional<std::string> getEnableIfDescription() const;
         /**
          * Whether this setting requires a restart on change
          */
@@ -402,6 +408,8 @@ namespace geode {
     private:
         class Impl;
         std::shared_ptr<Impl> m_impl;
+        
+        friend class ::ModSettingsPopup;
 
     protected:
         bool init(std::shared_ptr<SettingV3> setting, float width);
@@ -453,7 +461,7 @@ namespace geode {
         SettingNodeSizeChangeEventV3(SettingNodeV3* node);
         virtual ~SettingNodeSizeChangeEventV3();
 
-        SettingNodeV3* getTargetNode() const;
+        SettingNodeV3* getNode() const;
     };
     class GEODE_DLL SettingNodeValueChangeEventV3 : public Event {
     private:
@@ -461,9 +469,10 @@ namespace geode {
         std::shared_ptr<Impl> m_impl;
     
     public:
-        SettingNodeValueChangeEventV3(bool commit);
+        SettingNodeValueChangeEventV3(SettingNodeV3* node, bool commit);
         virtual ~SettingNodeValueChangeEventV3();
 
+        SettingNodeV3* getNode() const;
         bool isCommit() const;
     };
 

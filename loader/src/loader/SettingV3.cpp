@@ -5,6 +5,398 @@
 
 using namespace geode::prelude;
 
+namespace enable_if_parsing {
+    struct Component {
+        virtual ~Component() = default;
+        virtual Result<> check() const = 0;
+        virtual Result<> eval(std::string const& defaultModID) const = 0;
+    };
+    struct RequireModLoaded final : public Component {
+        std::string modID;
+        RequireModLoaded(std::string const& modID)
+          : modID(modID) {}
+        
+        Result<> check() const override {
+            return Ok();
+        }
+        Result<> eval(std::string const& defaultModID) const override {
+            if (Loader::get()->getLoadedMod(modID)) {
+                return Ok();
+            }
+            auto modName = modID;
+            if (auto mod = Loader::get()->getInstalledMod(modID)) {
+                modName = mod->getName();
+            }
+            return Err("Enable the mod {}", modName);
+        }
+    };
+    struct RequireSettingEnabled final : public Component {
+        std::string modID;
+        std::string settingID;
+        RequireSettingEnabled(std::string const& modID, std::string const& settingID)
+          : modID(modID), settingID(settingID) {}
+        
+        Result<> check() const override {
+            if (auto mod = Loader::get()->getInstalledMod(modID)) {
+                if (!mod->hasSetting(settingID)) {
+                    return Err("Mod '{}' does not have setting '{}'", mod->getName(), settingID);
+                }
+                if (!typeinfo_pointer_cast<BoolSettingV3>(mod->getSettingV3(settingID))) {
+                    return Err("Setting '{}' in mod '{}' is not a boolean setting", settingID, mod->getName());
+                }
+            }
+            return Ok();
+        }
+        Result<> eval(std::string const& defaultModID) const override {
+            if (auto mod = Loader::get()->getLoadedMod(modID)) {
+                if (mod->template getSettingValue<bool>(settingID)) {
+                    return Ok();
+                }
+                // This is an if-check just in case, even though check() should already 
+                // make sure that getSettingV3 is guaranteed to return true
+                auto name = settingID;
+                if (auto sett = mod->getSettingV3(settingID)) {
+                    name = sett->getDisplayName();
+                }
+                if (modID == defaultModID) {
+                    return Err("Enable the setting '{}'", name);
+                }
+                return Err("Enable the setting '{}' from the mod {}", name, mod->getName());
+            }
+            auto modName = modID;
+            if (auto mod = Loader::get()->getInstalledMod(modID)) {
+                modName = mod->getName();
+            }
+            return Err("Enable the mod {}", modName);
+        }
+    };
+    struct RequireSavedValueEnabled final : public Component {
+        std::string modID;
+        std::string savedValue;
+        RequireSavedValueEnabled(std::string const& modID, std::string const& savedValue)
+          : modID(modID), savedValue(savedValue) {}
+        
+        Result<> check() const override {
+            return Ok();
+        }
+        Result<> eval(std::string const& defaultModID) const override {
+            if (auto mod = Loader::get()->getLoadedMod(modID)) {
+                if (mod->template getSavedValue<bool>(savedValue)) {
+                    return Ok();
+                }
+                if (modID == defaultModID) {
+                    return Err("Enable the value '{}'", savedValue);
+                }
+                return Err("Enable the value '{}' from the mod {}", savedValue, mod->getName());
+            }
+            auto modName = modID;
+            if (auto mod = Loader::get()->getInstalledMod(modID)) {
+                modName = mod->getName();
+            }
+            return Err("Enable the mod {}", modName);
+        }
+    };
+    struct RequireNot final : public Component {
+        std::unique_ptr<Component> component;
+        RequireNot(std::unique_ptr<Component>&& component)
+          : component(std::move(component)) {}
+        
+        Result<> check() const override {
+            return component->check();
+        }
+        Result<> eval(std::string const& defaultModID) const override {
+            if (auto res = component->eval(defaultModID)) {
+                // Surely this will never break!
+                auto str = res.unwrapErr();
+                string::replaceIP(str, "Enable", "___TEMP");
+                string::replaceIP(str, "Disable", "Enable");
+                string::replaceIP(str, "___TEMP", "Disable");
+                return Err(str);
+            }
+            return Ok();
+        }
+    };
+    struct RequireAll final : public Component {
+        std::vector<std::unique_ptr<Component>> components;
+        RequireAll(std::vector<std::unique_ptr<Component>>&& components)
+          : components(std::move(components)) {}
+
+        Result<> check() const override {
+            for (auto& comp : components) {
+                GEODE_UNWRAP(comp->check());
+            }
+            return Ok();
+        }
+        Result<> eval(std::string const& defaultModID) const override {
+            // Only print out whatever the first erroring condition is to not shit out 
+            // "Please enable X and Y and Z and Ö and Å and"
+            for (auto& comp : components) {
+                GEODE_UNWRAP(comp->eval(defaultModID));
+            }
+            return Ok();
+        }
+    };
+    struct RequireSome final : public Component {
+        std::vector<std::unique_ptr<Component>> components;
+        RequireSome(std::vector<std::unique_ptr<Component>>&& components)
+          : components(std::move(components)) {}
+
+        Result<> check() const override {
+            for (auto& comp : components) {
+                GEODE_UNWRAP(comp->check());
+            }
+            return Ok();
+        }
+        Result<> eval(std::string const& defaultModID) const override {
+            Result<> err = Ok();
+            for (auto& comp : components) {
+                auto res = comp->eval(defaultModID);
+                if (res) {
+                    return Ok();
+                }
+                // Only show first condition that isn't met
+                if (err.isOk()) {
+                    err = Err(res.unwrapErr());
+                }
+            }
+            return err;
+        }
+    };
+
+    static bool isComponentStartChar(char c) {
+        return
+            ('a' <= c && c <= 'z') ||
+            ('A' <= c && c <= 'Z') ||
+            c == '_';
+    }
+    static bool isComponentContinueChar(char c) {
+        return
+            ('a' <= c && c <= 'z') ||
+            ('A' <= c && c <= 'Z') ||
+            ('0' <= c && c <= '9') ||
+            c == '_' || c == '-' || c == '/' ||
+            c == '.' || c == ':';
+    }
+
+    class Parser final {
+    private:
+        std::string_view m_src;
+        size_t m_index = 0;
+        std::string m_defaultModID;
+
+        static bool isUnOpWord(std::string_view op) {
+            return op == "!";
+        }
+        static bool isBiOpWord(std::string_view op) {
+            return op == "&&" || op == "||";
+        }
+        
+        Result<std::optional<std::string_view>> nextWord() {
+            // Skip whitespace
+            while (m_index < m_src.size() && std::isspace(m_src[m_index])) {
+                m_index += 1;
+            }
+            if (m_index == m_src.size()) {
+                return Ok(std::nullopt);
+            }
+            // Parentheses & single operators
+            if (m_src[m_index] == '(' || m_src[m_index] == ')' || m_src[m_index] == '!') {
+                m_index += 1;
+                return Ok(m_src.substr(m_index - 1, 1));
+            }
+            // Double-character operators
+            if (m_src[m_index] == '&' || m_src[m_index] == '|') {
+                // Consume first character
+                m_index += 1;
+                // Next character must be the same
+                if (m_index == m_src.size() || m_src[m_index - 1] != m_src[m_index]) {
+                    return Err("Expected '{}' at index {}", m_src[m_index - 1], m_index - 1);
+                }
+                // Consume second character
+                m_index += 1;
+                return Ok(m_src.substr(m_index - 2, 2));
+            }
+            // Components
+            if (isComponentStartChar(m_src[m_index])) {
+                auto start = m_index;
+                m_index += 1;
+                while (m_index < m_src.size() && isComponentContinueChar(m_src[m_index])) {
+                    m_index += 1;
+                }
+                return Ok(m_src.substr(start, m_index - start));
+            }
+            return Err("Unexpected character '{}' at index {}", m_src[m_index], m_index);
+        }
+        std::optional<std::string_view> peekWord() {
+            auto original = m_index;
+            auto ret = this->nextWord();
+            m_index = original;
+            return ret ? *ret : std::nullopt;
+        }
+        Result<std::unique_ptr<Component>> nextComponent() {
+            GEODE_UNWRAP_INTO(auto maybeWord, this->nextWord());
+            if (!maybeWord) {
+                return Err("Expected component, got end-of-enable-if-string");
+            }
+            const auto word = *maybeWord;
+            if (isUnOpWord(word) || isBiOpWord(word)) {
+                return Err("Expected component, got operator \"{}\" at index {}", word, m_index - word.size());
+            }
+            if (word == ")") {
+                return Err("Unexpected closing parenthesis at index {}", m_index - 1);
+            }
+            if (word == "(") {
+                GEODE_UNWRAP_INTO(auto op, this->next());
+                GEODE_UNWRAP_INTO(auto maybeClosing, this->nextWord());
+                if (!maybeClosing) {
+                    return Err("Expected closing parenthesis, got end-of-enable-if-string");
+                }
+                if (maybeClosing != ")") {
+                    return Err(
+                        "Expected closing parenthesis, got \"{}\" at index {}",
+                        *maybeClosing, m_index - maybeClosing->size()
+                    );
+                }
+                return Ok(std::move(op));
+            }
+            std::string_view ty = "setting";
+            std::string_view value = word;
+            if (word.find(':') != std::string::npos) {
+                ty = word.substr(0, word.find(':'));
+                value = word.substr(word.find(':') + 1);
+            }
+            switch (hash(ty)) {
+                case hash("setting"): {
+                    std::string modID = m_defaultModID;
+                    std::string settingID = std::string(value);
+                    // mod.id/setting-id
+                    if (value.find('/') != std::string::npos) {
+                        modID = value.substr(0, value.find('/'));
+                        settingID = value.substr(value.find('/') + 1);
+                    }
+                    if (!ModMetadata::validateID(std::string(modID))) {
+                        return Err("Invalid mod ID '{}'", modID);
+                    }
+                    return Ok(std::make_unique<RequireSettingEnabled>(modID, settingID));
+                } break;
+
+                case hash("saved"): {
+                    std::string modID = m_defaultModID;
+                    std::string savedValue = std::string(value);
+                    // mod.id/setting-id
+                    if (value.find('/') != std::string::npos) {
+                        modID = value.substr(0, value.find('/'));
+                        savedValue = value.substr(value.find('/') + 1);
+                    }
+                    if (!ModMetadata::validateID(std::string(modID))) {
+                        return Err("Invalid mod ID '{}'", modID);
+                    }
+                    return Ok(std::make_unique<RequireSavedValueEnabled>(modID, savedValue));
+                } break;
+
+                case hash("loaded"): {
+                    if (!ModMetadata::validateID(std::string(value))) {
+                        return Err("Invalid mod ID '{}'", value);
+                    }
+                    return Ok(std::make_unique<RequireModLoaded>(std::string(value)));
+                } break;
+
+                default: {
+                    return Err("Invalid designator '{}' at index {}", ty, m_index - word.size());
+                } break;
+            }
+        }
+        Result<std::unique_ptr<Component>> nextUnOp() {
+            std::string op;
+            if (auto peek = this->peekWord()) {
+                if (isUnOpWord(*peek)) {
+                    op = *peek;
+                }
+            }
+            GEODE_UNWRAP_INTO(auto comp, this->nextComponent());
+            if (op.empty()) {
+                return Ok(std::move(comp));
+            }
+            switch (hash(op)) {
+                case hash("!"): {
+                    return Ok(std::make_unique<RequireNot>(std::move(comp)));
+                } break;
+                default: {
+                    return Err(
+                        "THIS SHOULD BE UNREACHABLE!! \"{}\" was an unhandled "
+                        "unary operator despite isUnOpWord claiming it's valid! "
+                        "REPORT THIS BUG TO GEODE DEVELOPERS",
+                        op
+                    );
+                } break;
+            }
+        }
+        Result<std::unique_ptr<Component>> nextBiOp() {
+            GEODE_UNWRAP_INTO(auto first, this->nextUnOp());
+            std::string firstOp;
+            std::vector<std::unique_ptr<Component>> components;
+            while (auto peek = this->peekWord()) {
+                if (!isBiOpWord(*peek)) {
+                    break;
+                }
+                GEODE_UNWRAP_INTO(auto word, this->nextWord());
+                auto op = *word;
+                if (firstOp.empty()) {
+                    firstOp = op;
+                }
+                if (op != firstOp) {
+                    return Err(
+                        "Expected operator \"{}\", got operator \"{}\" - "
+                        "parentheses are required to disambiguate operator chains",
+                        firstOp, op
+                    );
+                }
+                GEODE_UNWRAP_INTO(auto comp, this->nextUnOp());
+                components.emplace_back(std::move(comp));
+            }
+            if (components.size()) {
+                components.emplace(components.begin(), std::move(first));
+                switch (hash(firstOp)) {
+                    case hash("&&"): {
+                        return Ok(std::make_unique<RequireAll>(std::move(components)));
+                    } break;
+                    case hash("||"): {
+                        return Ok(std::make_unique<RequireSome>(std::move(components)));
+                    } break;
+                    default: {
+                        return Err(
+                            "THIS SHOULD BE UNREACHABLE!! \"{}\" was an unhandled "
+                            "binary operator despite isBiOpWord claiming it's valid! "
+                            "REPORT THIS BUG TO GEODE DEVELOPERS",
+                            firstOp
+                        );
+                    } break;
+                }
+            }
+            return Ok(std::move(first));
+        }
+        Result<std::unique_ptr<Component>> next() {
+            return this->nextBiOp();
+        }
+    
+    public:
+        static Result<std::unique_ptr<Component>> parse(std::string_view str, std::string const& defaultModID) {
+            auto ret = Parser();
+            ret.m_src = str;
+            ret.m_defaultModID = defaultModID;
+            GEODE_UNWRAP_INTO(auto comp, ret.next());
+            GEODE_UNWRAP_INTO(auto shouldBeEOF, ret.nextWord());
+            if (shouldBeEOF) {
+                return Err(
+                    "Expected end-of-enable-if-string, got \"{}\" at index {}",
+                    *shouldBeEOF, ret.m_index - shouldBeEOF->size()
+                );
+            }
+            return Ok(std::move(comp));
+        }
+    };
+}
+
 class SettingV3::GeodeImpl {
 public:
     std::string modID;
@@ -12,6 +404,8 @@ public:
     std::optional<std::string> name;
     std::optional<std::string> description;
     std::optional<std::string> enableIf;
+    std::unique_ptr<enable_if_parsing::Component> enableIfTree;
+    std::optional<std::string> enableIfDescription;
     bool requiresRestart = false;
 };
 
@@ -30,8 +424,16 @@ void SettingV3::parseSharedProperties(std::string const& key, std::string const&
     value.has("name").into(m_impl->name);
     value.has("description").into(m_impl->description);
     if (!onlyNameAndDesc) {
-        value.has("enable-if").into(m_impl->enableIf);
         value.has("requires-restart").into(m_impl->requiresRestart);
+        value.has("enable-if")
+            .template mustBe<std::string>("a valid \"enable-if\" scheme", [this](std::string const& str) -> Result<> {
+                GEODE_UNWRAP_INTO(auto tree, enable_if_parsing::Parser::parse(str, m_impl->modID));
+                GEODE_UNWRAP(tree->check());
+                m_impl->enableIfTree = std::move(tree);
+                return Ok();
+            })
+            .into(m_impl->enableIf);
+        value.has("enable-if-description").into(m_impl->enableIfDescription);
     }
 }
 void SettingV3::init(std::string const& key, std::string const& modID) {
@@ -56,6 +458,25 @@ std::optional<std::string> SettingV3::getDescription() const {
 }
 std::optional<std::string> SettingV3::getEnableIf() const {
     return m_impl->enableIf;
+}
+bool SettingV3::shouldEnable() const {
+    if (m_impl->enableIfTree) {
+        return m_impl->enableIfTree->eval(m_impl->modID).isOk();
+    }
+    return true;
+}
+std::optional<std::string> SettingV3::getEnableIfDescription() const {
+    if (m_impl->enableIfDescription) {
+        return *m_impl->enableIfDescription;
+    }
+    if (!m_impl->enableIfTree) {
+        return std::nullopt;
+    }
+    auto res = m_impl->enableIfTree->eval(m_impl->modID);
+    if (res) {
+        return std::nullopt;
+    }
+    return res.unwrapErr();
 }
 bool SettingV3::requiresRestart() const {
     return m_impl->requiresRestart;

@@ -16,8 +16,7 @@ protected:
     EventListener<EventFilter<SettingNodeValueChangeEventV3>> m_changeListener;
 
     bool setup(Mod* mod) override;
-    void updateState();
-    void onChangeEvent(SettingNodeValueChangeEventV3* event);
+    void updateState(SettingNodeV3* invoker = nullptr);
     bool hasUncommitted() const;
     void onClose(CCObject*) override;
     void onApply(CCObject*);

@@ -87,8 +87,8 @@ bool ModSettingsPopup::setup(Mod* mod) {
     );
     m_buttonMenu->addChildAtPosition(openDirBtn, Anchor::BottomRight, ccp(-53, 20));
 
-    m_changeListener.bind([this](auto) {
-        this->updateState();
+    m_changeListener.bind([this](auto* ev) {
+        this->updateState(ev->getNode());
         return ListenerResult::Propagate;
     });
     this->updateState();
@@ -125,7 +125,17 @@ void ModSettingsPopup::onResetAll(CCObject*) {
     );
 }
 
-void ModSettingsPopup::updateState() {
+void ModSettingsPopup::updateState(SettingNodeV3* invoker) {
+    // Update all settings with "enable-if" schemes
+    for (auto& sett : m_settings) {
+        // Avoid infinite loops
+        if (sett == invoker) {
+            continue;
+        }
+        if (sett->getSetting()->getEnableIf()) {
+            sett->updateState();
+        }
+    }
     m_applyBtnSpr->setCascadeColorEnabled(true);
     m_applyBtnSpr->setCascadeOpacityEnabled(true);
     if (this->hasUncommitted()) {

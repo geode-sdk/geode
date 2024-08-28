@@ -427,6 +427,19 @@ namespace geode {
             }
             return *this;
         }
+        template <class T>
+        JsonExpectedValue& mustBe(std::string_view name, auto predicate) requires requires {
+            { predicate(std::declval<T>()) } -> std::convertible_to<Result<>>;
+        } {
+            if (this->hasError()) return *this;
+            if (auto v = this->template tryGet<T>()) {
+                auto p = predicate(*v);
+                if (!p) {
+                    this->setError("json value is not {}: {}", name, p.unwrapErr());
+                }
+            }
+            return *this;
+        }
 
         // -- Dealing with objects --
 
