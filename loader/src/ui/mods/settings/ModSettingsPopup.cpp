@@ -2,6 +2,7 @@
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Setting.hpp>
+#include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/ui/General.hpp>
@@ -63,13 +64,26 @@ bool ModSettingsPopup::setup(Mod* mod) {
 
     // buttons
 
+    m_applyMenu = CCMenu::create();
+    m_applyMenu->setContentWidth(150);
+    m_applyMenu->setLayout(RowLayout::create());
+    m_applyMenu->getLayout()->ignoreInvisibleChildren(true);
+
+    auto restartBtnSpr = createGeodeButton("Restart Now", true);
+    restartBtnSpr->setScale(.6f);
+    m_restartBtn = CCMenuItemSpriteExtra::create(
+        restartBtnSpr, this, menu_selector(ModSettingsPopup::onRestart)
+    );
+    m_applyMenu->addChildAtPosition(m_restartBtn, Anchor::Bottom, ccp(0, 20));
+
     m_applyBtnSpr = createGeodeButton("Apply", true);
     m_applyBtnSpr->setScale(.6f);
-
     m_applyBtn = CCMenuItemSpriteExtra::create(
         m_applyBtnSpr, this, menu_selector(ModSettingsPopup::onApply)
     );
-    m_buttonMenu->addChildAtPosition(m_applyBtn, Anchor::Bottom, ccp(0, 20));
+    m_applyMenu->addChildAtPosition(m_applyBtn, Anchor::Bottom, ccp(0, 20));
+
+    m_mainLayer->addChildAtPosition(m_applyMenu, Anchor::Bottom, ccp(0, 20));
 
     auto resetBtnSpr = createGeodeButton("Reset All", true);
     resetBtnSpr->setScale(.6f);
@@ -79,13 +93,28 @@ bool ModSettingsPopup::setup(Mod* mod) {
     );
     m_buttonMenu->addChildAtPosition(resetBtn, Anchor::BottomLeft, ccp(45, 20));
 
-    auto openDirBtnSpr = createGeodeButton("Open Folder", true);
-    openDirBtnSpr->setScale(.6f);
+    auto configFolderSpr = CCSprite::createWithSpriteFrameName("folderIcon_001.png");
+    m_openConfigDirBtnSpr = createGeodeButton(configFolderSpr, "");
+    m_openConfigDirBtnSpr->setScale(.6f);
+    m_openConfigDirBtnSpr->getIcon()->setScale(m_openConfigDirBtnSpr->getIcon()->getScale() * 1.4f);
+    auto openConfigDirBtn = CCMenuItemSpriteExtra::create(
+        m_openConfigDirBtnSpr, this, menu_selector(ModSettingsPopup::onOpenConfigDirectory)
+    );
+    m_buttonMenu->addChildAtPosition(openConfigDirBtn, Anchor::BottomRight, ccp(-50, 20));
 
+    auto settingFolderSpr = CCSprite::createWithSpriteFrameName("folderIcon_001.png");
+    auto settingFolderSprSub = CCSprite::createWithSpriteFrameName("settings.png"_spr);
+    settingFolderSprSub->setColor(ccBLACK);
+    settingFolderSprSub->setOpacity(155);
+    settingFolderSprSub->setScale(.55f);
+    settingFolderSpr->addChildAtPosition(settingFolderSprSub, Anchor::Center, ccp(0, -3));
+    auto openDirBtnSpr = createGeodeButton(settingFolderSpr, "");
+    openDirBtnSpr->setScale(.6f);
+    openDirBtnSpr->getIcon()->setScale(openDirBtnSpr->getIcon()->getScale() * 1.4f);
     auto openDirBtn = CCMenuItemSpriteExtra::create(
         openDirBtnSpr, this, menu_selector(ModSettingsPopup::onOpenSaveDirectory)
     );
-    m_buttonMenu->addChildAtPosition(openDirBtn, Anchor::BottomRight, ccp(-53, 20));
+    m_buttonMenu->addChildAtPosition(openDirBtn, Anchor::BottomRight, ccp(-20, 20));
 
     m_changeListener.bind([this](auto* ev) {
         this->updateState(ev->getNode());
@@ -108,7 +137,21 @@ void ModSettingsPopup::onApply(CCObject*) {
         FLAlertLayer::create("Info", "No changes have been made.", "OK")->show();
     }
 }
+void ModSettingsPopup::onRestart(CCObject*) {
+    // Update button state to let user know it's restarting but it might take a bit
+    m_restartBtn->setEnabled(false);
+    static_cast<ButtonSprite*>(m_restartBtn->getNormalImage())->setString("Restarting...");
+    m_restartBtn->updateSprite();
 
+    // Actually restart
+    Loader::get()->queueInMainThread([] {
+        // Delayed by 2 frames - one is needed to render the "Restarting text"
+        Loader::get()->queueInMainThread([] {
+            // the other never finishes rendering because the game actually restarts at this point
+            game::restart();
+        });
+    });
+}
 void ModSettingsPopup::onResetAll(CCObject*) {
     createQuickPopup(
         "Reset All",
@@ -124,8 +167,24 @@ void ModSettingsPopup::onResetAll(CCObject*) {
         }
     );
 }
+void ModSettingsPopup::onOpenSaveDirectory(CCObject*) {
+    file::openFolder(m_mod->getSaveDir());
+}
+void ModSettingsPopup::onOpenConfigDirectory(CCObject*) {
+    file::openFolder(m_mod->getConfigDir());
+    this->updateState();
+}
 
 void ModSettingsPopup::updateState(SettingNodeV3* invoker) {
+    m_restartBtn->setVisible(ModSettingsManager::from(m_mod)->restartRequired());
+    m_applyMenu->updateLayout();
+
+    auto configDirExists = std::filesystem::exists(m_mod->getConfigDir(false));
+    m_openConfigDirBtnSpr->setCascadeColorEnabled(true);
+    m_openConfigDirBtnSpr->setCascadeOpacityEnabled(true);
+    m_openConfigDirBtnSpr->setColor(configDirExists ? ccWHITE : ccGRAY);
+    m_openConfigDirBtnSpr->setOpacity(configDirExists ? 255 : 155);
+
     // Update all settings with "enable-if" schemes
     for (auto& sett : m_settings) {
         // Avoid infinite loops
@@ -136,6 +195,7 @@ void ModSettingsPopup::updateState(SettingNodeV3* invoker) {
             sett->updateState();
         }
     }
+
     m_applyBtnSpr->setCascadeColorEnabled(true);
     m_applyBtnSpr->setCascadeOpacityEnabled(true);
     if (this->hasUncommitted()) {
@@ -173,10 +233,6 @@ void ModSettingsPopup::onClose(CCObject* sender) {
         return;
     }
     Popup<Mod*>::onClose(sender);
-}
-
-void ModSettingsPopup::onOpenSaveDirectory(CCObject*) {
-    file::openFolder(m_mod->getSaveDir());
 }
 
 ModSettingsPopup* ModSettingsPopup::create(Mod* mod) {
