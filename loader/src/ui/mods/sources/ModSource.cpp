@@ -1,6 +1,7 @@
 #include "ModSource.hpp"
 
 #include <Geode/loader/ModMetadata.hpp>
+#include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <server/DownloadManager.hpp>
 #include <Geode/binding/GameObject.hpp>
@@ -106,7 +107,8 @@ bool ModSource::wantsRestart() const {
     }
     return std::visit(makeVisitor {
         [](Mod* mod) {
-            return mod->getRequestedAction() != ModRequestedAction::None;
+            return mod->getRequestedAction() != ModRequestedAction::None ||
+                ModSettingsManager::from(mod)->restartRequired();
         },
         [](server::ServerModMetadata const& metdata) {
             return false;
