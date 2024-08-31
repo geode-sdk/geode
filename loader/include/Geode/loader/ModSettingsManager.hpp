@@ -9,6 +9,10 @@ namespace geode {
         class Impl;
         std::unique_ptr<Impl> m_impl;
 
+        friend class ::geode::SettingV3;
+
+        void markRestartRequired();
+
     public:
         static ModSettingsManager* from(Mod* mod);
 
@@ -42,5 +46,11 @@ namespace geode {
         std::shared_ptr<SettingV3> get(std::string_view key);
         std::shared_ptr<SettingValue> getLegacy(std::string_view key);
         std::optional<Setting> getLegacyDefinition(std::string_view key);
+
+        /**
+         * Returns true if any setting with the `"restart-required"` attribute 
+         * has been altered
+         */
+        bool restartRequired() const;
     };
 }

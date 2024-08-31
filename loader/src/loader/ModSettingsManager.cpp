@@ -78,6 +78,7 @@ public:
     };
     std::string modID;
     std::unordered_map<std::string, SettingInfo> settings;
+    bool restartRequired = false;
 
     void createSettings() {
         for (auto& [key, setting] : settings) {
@@ -103,6 +104,7 @@ public:
 };
 
 ModSettingsManager* ModSettingsManager::from(Mod* mod) {
+    if (!mod) return nullptr;
     return ModImpl::getImpl(mod)->m_settings.get();
 }
 
@@ -135,6 +137,10 @@ ModSettingsManager::ModSettingsManager(ModMetadata const& metadata)
 }
 ModSettingsManager::~ModSettingsManager() {}
 ModSettingsManager::ModSettingsManager(ModSettingsManager&&) = default;
+
+void ModSettingsManager::markRestartRequired() {
+    m_impl->restartRequired = true;
+}
 
 Result<> ModSettingsManager::registerCustomSettingType(std::string_view type, SettingGenerator generator) {
     GEODE_UNWRAP(SharedSettingTypesPool::get().add(m_impl->modID, type, generator));
@@ -229,4 +235,8 @@ std::optional<Setting> ModSettingsManager::getLegacyDefinition(std::string_view 
         return s->convertToLegacy();
     }
     return std::nullopt;
+}
+
+bool ModSettingsManager::restartRequired() const {
+    return m_impl->restartRequired;
 }

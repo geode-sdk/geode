@@ -8,6 +8,7 @@
 #include "../utils/cocos.hpp"
 // this unfortunately has to be included because of C++ templates
 #include "../utils/JsonValidation.hpp"
+#include "../utils/function.hpp"
 
 // todo in v4: this can be removed as well as the friend decl in LegacyCustomSettingV3
 class LegacyCustomSettingToV3Node;
@@ -16,6 +17,8 @@ class ModSettingsPopup;
 namespace geode {
     class ModSettingsManager;
     class SettingNodeV3;
+    // todo in v4: remove this
+    class SettingValue;
 
     class GEODE_DLL SettingV3 : public std::enable_shared_from_this<SettingV3> {
     private:
@@ -26,6 +29,14 @@ namespace geode {
         void init(std::string const& key, std::string const& modID);
         Result<> parseSharedProperties(std::string const& key, std::string const& modID, matjson::Value const& value, bool onlyNameAndDesc = false);
         void parseSharedProperties(std::string const& key, std::string const& modID, JsonExpectedValue& value, bool onlyNameAndDesc = false);
+
+        /**
+         * Mark that the value of this setting has changed. This should be 
+         * ALWAYS called on every setter that can modify the setting's state!
+         */
+        void markChanged();
+
+        friend class ::geode::SettingValue;
 
     public:
         SettingV3();
@@ -120,6 +131,7 @@ namespace geode {
             }
             void setValue(V value) {
                 this->getValueMut() = this->isValid(value) ? value : this->getDefaultValue();
+                this->markChanged();
             }
             virtual Result<> isValid(V value) const = 0;
             
@@ -452,6 +464,38 @@ namespace geode {
         std::shared_ptr<SettingV3> getSetting() const;
     };
 
+    class GEODE_DLL SettingChangedEventV3 final : public Event {
+    private:
+        class Impl;
+        std::shared_ptr<Impl> m_impl;
+    
+    public:
+        SettingChangedEventV3(std::shared_ptr<SettingV3> setting);
+
+        std::shared_ptr<SettingV3> getSetting() const;
+    };
+    class GEODE_DLL SettingChangedFilterV3 final : public EventFilter<SettingChangedEventV3> {
+    private:
+        class Impl;
+        std::shared_ptr<Impl> m_impl;
+    
+    public:
+        using Callback = void(std::shared_ptr<SettingV3>);
+
+        ListenerResult handle(utils::MiniFunction<Callback> fn, SettingChangedEventV3* event);
+        /**
+         * Listen to changes on a setting, or all settings
+         * @param modID Mod whose settings to listen to
+         * @param settingKey Setting to listen to, or all settings if nullopt
+         */
+        SettingChangedFilterV3(
+            std::string const& modID,
+            std::optional<std::string> const& settingKey
+        );
+        SettingChangedFilterV3(Mod* mod, std::optional<std::string> const& settingKey);
+        SettingChangedFilterV3(SettingChangedFilterV3 const&);
+    };
+
     class GEODE_DLL SettingNodeSizeChangeEventV3 : public Event {
     private:
         class Impl;
@@ -512,4 +556,25 @@ namespace geode {
     struct SettingTypeForValueType<cocos2d::ccColor4B> {
         using SettingType = Color4BSettingV3;
     };
+
+    template <class T>
+    EventListener<SettingChangedFilterV3>* listenForSettingChanges(std::string_view settingKey, auto&& callback, Mod* mod = getMod()) {
+        using Ty = typename SettingTypeForValueType<T>::SettingType;
+        return new EventListener(
+            [callback = std::move(callback)](std::shared_ptr<SettingV3> setting) {
+                if (auto ty = typeinfo_pointer_cast<Ty>(setting)) {
+                    callback(ty->getValue());
+                }
+            },
+            SettingChangedFilterV3(mod, std::string(settingKey))
+        );
+    }
+    EventListener<SettingChangedFilterV3>* listenForSettingChanges(std::string_view settingKey, auto&& callback, Mod* mod = getMod()) {
+        using T = std::remove_cvref_t<utils::function::Arg<0, decltype(callback)>>;
+        return listenForSettingChanges<T>(settingKey, std::move(callback), mod);
+    }
+    GEODE_DLL EventListener<SettingChangedFilterV3>* listenForAllSettingChanges(
+        std::function<void(std::shared_ptr<SettingV3>)> const& callback,
+        Mod* mod = getMod()
+    );
 }

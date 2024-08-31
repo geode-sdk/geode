@@ -280,10 +280,10 @@ std::string SettingValue::getModID() const {
 }
 
 void SettingValue::valueChanged() {
-    // this is actually p neat because now if the mod gets disabled this wont 
-    // post the event so that side-effect is automatically handled :3
     if (auto mod = Loader::get()->getLoadedMod(m_modID)) {
-        SettingChangedEvent(mod, this).post();
+        if (auto sett = mod->getSettingV3(m_key)) {
+            sett->markChanged();
+        }
     }
 }
 

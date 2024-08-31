@@ -1,4 +1,6 @@
 #include <Geode/loader/SettingV3.hpp>
+#include <Geode/loader/SettingEvent.hpp>
+#include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <regex>
 #include "SettingNodeV3.hpp"
@@ -397,6 +399,63 @@ namespace enable_if_parsing {
     };
 }
 
+class SettingChangedEventV3::Impl final {
+public:
+    std::shared_ptr<SettingV3> setting;
+};
+
+SettingChangedEventV3::SettingChangedEventV3(std::shared_ptr<SettingV3> setting)
+  : m_impl(std::make_shared<Impl>()) 
+{
+    m_impl->setting = setting;
+}
+
+std::shared_ptr<SettingV3> SettingChangedEventV3::getSetting() const {
+    return m_impl->setting;
+}
+
+class SettingChangedFilterV3::Impl final {
+public:
+    std::string modID;
+    std::optional<std::string> settingKey;
+};
+
+ListenerResult SettingChangedFilterV3::handle(utils::MiniFunction<Callback> fn, SettingChangedEventV3* event) {
+    if (
+        event->getSetting()->getModID() == m_impl->modID &&
+        !m_impl->settingKey || event->getSetting()->getKey() == m_impl->settingKey
+    ) {
+        fn(event->getSetting());
+    }
+    return ListenerResult::Propagate;
+}
+
+SettingChangedFilterV3::SettingChangedFilterV3(
+    std::string const& modID,
+    std::optional<std::string> const& settingKey
+) : m_impl(std::make_shared<Impl>())
+{
+    m_impl->modID = modID;
+    m_impl->settingKey = settingKey;
+}
+
+SettingChangedFilterV3::SettingChangedFilterV3(Mod* mod, std::optional<std::string> const& settingKey)
+  : SettingChangedFilterV3(mod->getID(), settingKey) {}
+
+SettingChangedFilterV3::SettingChangedFilterV3(SettingChangedFilterV3 const&) = default;
+
+EventListener<SettingChangedFilterV3>* geode::listenForAllSettingChanges(
+    std::function<void(std::shared_ptr<SettingV3>)> const& callback,
+    Mod* mod
+) {
+    return new EventListener(
+        [callback](std::shared_ptr<SettingV3> setting) {
+            callback(setting);
+        },
+        SettingChangedFilterV3(mod->getID(), std::nullopt)
+    );
+}
+
 class SettingV3::GeodeImpl {
 public:
     std::string modID;
@@ -483,6 +542,19 @@ bool SettingV3::requiresRestart() const {
 }
 Mod* SettingV3::getMod() const {
     return Loader::get()->getInstalledMod(m_impl->modID);
+}
+
+void SettingV3::markChanged() {
+    auto manager = ModSettingsManager::from(this->getMod());
+    if (m_impl->requiresRestart) {
+        manager->markRestartRequired();
+    }
+    SettingChangedEventV3(shared_from_this()).post();
+    if (manager) {
+        // Use ModSettingsManager rather than convertToLegacyValue since it 
+        // caches the result and we want to have that for performance
+        SettingChangedEvent(this->getMod(), manager->getLegacy(this->getKey()).get()).post();
+    }
 }
 
 std::optional<Setting> SettingV3::convertToLegacy() const {

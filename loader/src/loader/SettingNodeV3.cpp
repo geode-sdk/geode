@@ -125,7 +125,7 @@ void SettingNodeV3::updateState() {
             m_impl->errorLabel->setString(desc->c_str());
         }
     }
-    if (m_impl->setting->requiresRestart() && (this->hasUncommittedChanges() || m_impl->committed)) {
+    if (m_impl->setting->requiresRestart() && m_impl->committed) {
         m_impl->errorLabel->setVisible(true);
         m_impl->errorLabel->setColor("mod-list-restart-required-label"_cc3b);
         m_impl->errorLabel->setString("Restart Required");
