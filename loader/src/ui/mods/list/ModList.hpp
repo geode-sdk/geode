@@ -2,7 +2,7 @@
 
 #include <Geode/ui/General.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
-#include <Geode/ui/TextArea.hpp>
+#include <Geode/ui/TextAreaV2.hpp>
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/binding/TextArea.hpp>
@@ -26,7 +26,7 @@ protected:
     ScrollLayer* m_list;
     CCMenu* m_statusContainer;
     CCLabelBMFont* m_statusTitle;
-    SimpleTextArea* m_statusDetails;
+    TextAreaV2* m_statusDetails;
     CCMenuItemSpriteExtra* m_statusDetailsBtn;
     CCNode* m_statusLoadingCircle;
     Slider* m_statusLoadingBar;

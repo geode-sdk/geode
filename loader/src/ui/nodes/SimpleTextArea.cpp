@@ -1,4 +1,4 @@
-#include <Geode/ui/TextArea.hpp>
+#include <Geode/ui/SimpleTextArea.hpp>
 
 using namespace geode::prelude;
 

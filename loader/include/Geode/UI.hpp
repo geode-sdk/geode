@@ -18,5 +18,6 @@
 #include "ui/ScrollLayer.hpp"
 #include "ui/SelectList.hpp"
 #include "ui/Scrollbar.hpp"
-#include "ui/TextArea.hpp"
+#include "ui/TextAreaV2.hpp"
+#include "ui/SimpleTextArea.hpp"
 #include "ui/TextRenderer.hpp"

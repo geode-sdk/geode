@@ -2,7 +2,7 @@
 
 #include <Geode/ui/General.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
-#include <Geode/ui/TextArea.hpp>
+#include <Geode/ui/TextAreaV2.hpp>
 #include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/binding/SetTextPopupDelegate.hpp>
 #include <Geode/binding/SetIDPopupDelegate.hpp>

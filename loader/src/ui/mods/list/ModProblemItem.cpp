@@ -11,7 +11,7 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <Geode/ui/TextArea.hpp>
+#include <Geode/ui/TextAreaV2.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <GUI/CCControlExtension/CCScale9Sprite.h>
@@ -57,15 +57,15 @@ bool ModProblemItem::init(Mod* source, LoadProblem problem, CCSize const& size) 
         CCPoint { 10.0f, 0.0f }
     );
 
-    auto label = SimpleTextArea::create(
+    auto label = TextAreaV2::create(
         message.c_str(),
         "bigFont.fnt"
     );
-    label->setWrappingMode(WrappingMode::SPACE_WRAP);
+    label->setWrappingMode(TextAreaV2::WrappingMode::SpaceWrap);
     label->setAnchorPoint({ 0.0f, 0.5f });
     label->setMaxLines(4);
     if (this->showFixButton() || this->showInfoButton()) {
-        label->setWidth(size.width * 0.7f);
+        label->setMaxWidth(size.width * 0.7f);
 
         auto helpMenu = CCMenu::create();
         helpMenu->setAnchorPoint({ 1.0f, 0.5f });
@@ -92,7 +92,7 @@ bool ModProblemItem::init(Mod* source, LoadProblem problem, CCSize const& size) 
         // Left + Right + Space between
         constexpr float paddings = 30.0f;
         float calc = size.width - paddings - icon->getScaledContentWidth();
-        label->setWidth(calc);
+        label->setMaxWidth(calc);
     }
     label->setScale(0.4f);
     this->addChildAtPosition(
