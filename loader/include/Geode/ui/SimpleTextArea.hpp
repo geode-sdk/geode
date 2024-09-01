@@ -22,7 +22,7 @@ namespace geode {
      * 
      * Contact me on Discord (\@smjs) if you have any questions, suggestions or bugs.
     */
-    class GEODE_DLL [[deprecated("Use TextArea instead")]] SimpleTextArea : public cocos2d::CCNode {
+    class GEODE_DLL [[deprecated("Use TextAreaV2 instead")]] SimpleTextArea : public cocos2d::CCNode {
     public:
         static SimpleTextArea* create(const std::string& text, const std::string& font = "chatFont.fnt", const float scale = 1);
         static SimpleTextArea* create(const std::string& text, const std::string& font, const float scale, const float width);
