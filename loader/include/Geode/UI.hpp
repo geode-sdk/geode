@@ -12,6 +12,7 @@
 #include "ui/MDPopup.hpp"
 #include "ui/MDTextArea.hpp"
 #include "ui/Notification.hpp"
+#include "ui/PaddingNode.hpp"
 #include "ui/Popup.hpp"
 #include "ui/SceneManager.hpp"
 #include "ui/ScrollLayer.hpp"
