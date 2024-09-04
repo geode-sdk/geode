@@ -179,6 +179,7 @@ void SettingNodeV3::commit() {
 }
 void SettingNodeV3::resetToDefault() {
     m_impl->setting->reset();
+    m_impl->committed = true;
     this->onResetToDefault();
     this->updateState();
     SettingNodeValueChangeEventV3(this, false).post();
