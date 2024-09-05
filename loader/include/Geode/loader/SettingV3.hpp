@@ -562,7 +562,7 @@ namespace geode {
         using Ty = typename SettingTypeForValueType<T>::SettingType;
         return new EventListener(
             [callback = std::move(callback)](std::shared_ptr<SettingV3> setting) {
-                if (auto ty = typeinfo_pointer_cast<Ty>(setting)) {
+                if (auto ty = geode::cast::typeinfo_pointer_cast<Ty>(setting)) {
                     callback(ty->getValue());
                 }
             },
