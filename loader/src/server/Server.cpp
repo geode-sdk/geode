@@ -799,14 +799,20 @@ ServerRequest<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCach
         [](auto mod) { return mod->getID(); }
     );
 
+    // if there's no mods, the request would just be empty anyways
+    if (modIDs.empty()) {
+        // you would think it could infer like literally anything
+        return ServerRequest<std::vector<ServerModUpdate>>::immediate(
+            Ok<std::vector<ServerModUpdate>>({})
+        );
+    }
+
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
     req.param("platform", GEODE_PLATFORM_SHORT_IDENTIFIER);
     req.param("gd", GEODE_GD_VERSION_STR);
     req.param("geode", Loader::get()->getVersion().toNonVString());
-    if (modIDs.size()) {
-        req.param("ids", ranges::join(modIDs, ";"));
-    }
+    req.param("ids", ranges::join(modIDs, ";"));
     return req.get(formatServerURL("/mods/updates")).map(
         [](web::WebResponse* response) -> Result<std::vector<ServerModUpdate>, ServerError> {
             if (response->ok()) {
