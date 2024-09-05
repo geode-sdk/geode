@@ -3,6 +3,7 @@
 #include "cplatform.h"
 #include <string>
 #include <functional>
+#include <memory>
 
 #if !defined(__PRETTY_FUNCTION__) && !defined(__GNUC__)
     #define GEODE_PRETTY_FUNCTION std::string(__FUNCSIG__)

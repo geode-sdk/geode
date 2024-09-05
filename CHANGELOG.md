@@ -1,5 +1,16 @@
 # Geode Changelog
 
+## v3.5.0
+ * Major rework of the entire settings system with lots of new features; see the [docs page](todo) for more
+ * Rework JSON validation; now uses the `JsonExpectedValue` class with the `checkJson` helper (89d1a51)
+ * Add `Task::cancelled` for creating immediately cancelled Tasks (1a82d12)
+ * Add function type utilities in `utils/function.hpp` (659c168)
+ * Add `typeinfo_pointer_cast` for casting `std::shared_ptr`s (28cc6fd)
+ * Add `GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH` (1032d9a)
+ * Rename `toByteArray` to `toBytes` (6eb0797)
+ * Improve `AxisLayout::getSizeHint` (85e7b5e)
+ * Fix issues with file dialogs on Windows (62b6241, 971e3fb)
+
 ## v3.4.0
  * Add an API for modifying the Geode UI via events; see [the corresponding docs page](https://docs.geode-sdk.org/tutorials/modify-geode) (2a3c35f)
  * Add `openInfoPopup` overload that accepts a mod ID and can open both an installed mod page or a server page (028bbf9)
