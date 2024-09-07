@@ -52,17 +52,25 @@ public:
         return Ok();
     }
     std::optional<SettingGenerator> find(std::string_view modID, std::string_view fullType) {
-        auto full = std::string(
-            fullType.starts_with("custom:") ?
-                fullType.substr(fullType.find(':') + 1) : 
-                fullType
-        );
-        if (!full.find('/')) {
-            full = fmt::format("{}/{}", modID, full);
+        // Find custom settings via namespaced lookup
+        if (fullType.starts_with("custom:")) {
+            auto full = std::string(fullType.substr(fullType.find(':') + 1));
+            // If there's no mod ID in the type name, use the current mod's ID
+            if (full.find('/') == std::string_view::npos) {
+                full = fmt::format("{}/{}", modID, full);
+            }
+            if (m_types.contains(full)) {
+                return m_types.at(full);
+            }
         }
-        if (m_types.contains(full)) {
-            return m_types.at(full);
+        // Otherwise find a built-in setting
+        else {
+            auto full = std::string(fullType);
+            if (m_types.contains(full)) {
+                return m_types.at(full);
+            }
         }
+        // Return null if nothing was found
         return std::nullopt;
     }
 };
@@ -171,12 +179,15 @@ Result<> ModSettingsManager::load(matjson::Value const& json) {
     auto root = checkJson(json, "Settings");
     for (auto const& [key, value] : root.properties()) {
         if (m_impl->settings.contains(key)) {
+            auto& sett = m_impl->settings.at(key);
+            if (!sett.v3) continue;
             try {
-                if (!m_impl->settings.at(key).v3->load(value.json())) {
+                if (!sett.v3->load(value.json())) {
                     log::error("Unable to load setting '{}' for mod {}", key, m_impl->modID);
                 }
             }
-            catch(matjson::JsonException const& e) {
+            // matjson::JsonException doesn't catch all possible json errors
+            catch(std::exception const& e) {
                 log::error("Unable to load setting '{}' for mod {} (JSON exception): {}", key, m_impl->modID, e.what());
             }
         }

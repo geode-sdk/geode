@@ -6,6 +6,7 @@
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/ui/General.hpp>
+#include <loader/SettingNodeV3.hpp>
 
 bool ModSettingsPopup::setup(Mod* mod) {
     m_noElasticity = true;
@@ -33,10 +34,9 @@ bool ModSettingsPopup::setup(Mod* mod) {
             node = sett->createNode(layerSize.width);
         }
         else {
-            // todo: placeholder node
-            continue;
+            node = UnresolvedCustomSettingNodeV3::create(key, layerSize.width);
         }
-        node->setBGColor(ccc4(0, 0, 0, bg ? 60 : 20));
+        node->setDefaultBGColor(ccc4(0, 0, 0, bg ? 60 : 20));
     
         // auto separator = CCLayerColor::create({ 0, 0, 0, 50 }, layerSize.width, 1.f);
         // separator->setOpacity(bg ? 100 : 50);
@@ -191,8 +191,8 @@ void ModSettingsPopup::updateState(SettingNodeV3* invoker) {
         if (sett == invoker) {
             continue;
         }
-        if (sett->getSetting()->getEnableIf()) {
-            sett->updateState();
+        if (sett->getSetting() && sett->getSetting()->getEnableIf()) {
+            sett->updateState(nullptr);
         }
     }
 

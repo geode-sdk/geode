@@ -92,7 +92,7 @@
             "name": "Show Platform Console",
             "description": "Show the native console (if one exists). <cr>This setting is meant for developers</c>",
             "platforms": ["win", "mac"],
-            "restart-required": true
+            "requires-restart": true
         },
         "server-cache-size-limit": {
             "type": "int",

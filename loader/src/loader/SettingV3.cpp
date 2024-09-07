@@ -471,12 +471,12 @@ public:
 SettingV3::SettingV3() : m_impl(std::make_shared<GeodeImpl>()) {}
 SettingV3::~SettingV3() = default;
 
-Result<> SettingV3::parseSharedProperties(std::string const& key, std::string const& modID, matjson::Value const& value, bool onlyNameAndDesc) {
+Result<> SettingV3::parseBaseProperties(std::string const& key, std::string const& modID, matjson::Value const& value, bool onlyNameAndDesc) {
     auto json = checkJson(value, "SettingV3");
-    this->parseSharedProperties(key, modID, json, onlyNameAndDesc);
+    this->parseBaseProperties(key, modID, json, onlyNameAndDesc);
     return json.ok();
 }
-void SettingV3::parseSharedProperties(std::string const& key, std::string const& modID, JsonExpectedValue& value, bool onlyNameAndDesc) {
+void SettingV3::parseBaseProperties(std::string const& key, std::string const& modID, JsonExpectedValue& value, bool onlyNameAndDesc) {
     this->init(key, modID);
     value.needs("type");
     value.has("platforms");
@@ -573,7 +573,7 @@ TitleSettingV3::TitleSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>())
 Result<std::shared_ptr<TitleSettingV3>> TitleSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
     auto ret = std::make_shared<TitleSettingV3>(PrivateMarker());
     auto root = checkJson(json, "TitleSettingV3");
-    ret->parseSharedProperties(key, modID, root, true);
+    ret->parseBaseProperties(key, modID, root, true);
     root.checkUnknownKeys();
     return root.ok(ret);
 }
@@ -628,9 +628,7 @@ SettingNodeV3* LegacyCustomSettingV3::createNode(float width) {
             std::static_pointer_cast<LegacyCustomSettingV3>(shared_from_this()), width
         );
     }
-    return UnresolvedCustomSettingNodeV3::create(
-        std::static_pointer_cast<LegacyCustomSettingV3>(shared_from_this()), width
-    );
+    return UnresolvedCustomSettingNodeV3::create(this->getKey(), width);
 }
 
 bool LegacyCustomSettingV3::isDefaultValue() const {
@@ -649,45 +647,22 @@ std::optional<std::shared_ptr<SettingValue>> LegacyCustomSettingV3::convertToLeg
 
 class BoolSettingV3::Impl final {
 public:
-    bool value;
-    bool defaultValue;
 };
 
 BoolSettingV3::BoolSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
 Result<std::shared_ptr<BoolSettingV3>> BoolSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
     auto ret = std::make_shared<BoolSettingV3>(PrivateMarker());
-
     auto root = checkJson(json, "BoolSettingV3");
-    ret->parseSharedProperties(key, modID, root);
-    ret->parseDefaultValue(root, ret->m_impl->defaultValue);
-    ret->m_impl->value = ret->m_impl->defaultValue;
-
+    ret->parseBaseProperties(key, modID, root);
     root.checkUnknownKeys();
     return root.ok(ret);
 }
 
-bool& BoolSettingV3::getValueMut() const {
-    return m_impl->value;
-}
-bool BoolSettingV3::getDefaultValue() const {
-    return m_impl->defaultValue;
-}
 Result<> BoolSettingV3::isValid(bool value) const {
     return Ok();
 }
 
-bool BoolSettingV3::load(matjson::Value const& json) {
-    if (json.is_bool()) {
-        m_impl->value = json.as_bool();
-        return true;
-    }
-    return false;
-}
-bool BoolSettingV3::save(matjson::Value& json) const {
-    json = m_impl->value;
-    return true;
-}
 SettingNodeV3* BoolSettingV3::createNode(float width) {
     return BoolSettingNodeV3::create(
         std::static_pointer_cast<BoolSettingV3>(shared_from_this()), width
@@ -707,8 +682,6 @@ std::optional<std::shared_ptr<SettingValue>> BoolSettingV3::convertToLegacyValue
 
 class IntSettingV3::Impl final {
 public:
-    int64_t value;
-    int64_t defaultValue;
     std::optional<int64_t> minValue;
     std::optional<int64_t> maxValue;
 
@@ -726,9 +699,7 @@ Result<std::shared_ptr<IntSettingV3>> IntSettingV3::parse(std::string const& key
     auto ret = std::make_shared<IntSettingV3>(PrivateMarker());
     
     auto root = checkJson(json, "IntSettingV3");
-    ret->parseSharedProperties(key, modID, root);
-    ret->parseDefaultValue(root, ret->m_impl->defaultValue);
-    ret->m_impl->value = ret->m_impl->defaultValue;
+    ret->parseBaseProperties(key, modID, root);
 
     root.has("min").into(ret->m_impl->minValue);
     root.has("max").into(ret->m_impl->maxValue);
@@ -773,12 +744,6 @@ Result<std::shared_ptr<IntSettingV3>> IntSettingV3::parse(std::string const& key
 
 IntSettingV3::IntSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
-int64_t& IntSettingV3::getValueMut() const {
-    return m_impl->value;
-}
-int64_t IntSettingV3::getDefaultValue() const {
-    return m_impl->defaultValue;
-}
 Result<> IntSettingV3::isValid(int64_t value) const {
     if (m_impl->minValue && value < *m_impl->minValue) {
         return Err("Value must be at least {}", *m_impl->minValue);
@@ -818,17 +783,6 @@ bool IntSettingV3::isInputEnabled() const {
     return m_impl->controls.textInputEnabled;
 }
 
-bool IntSettingV3::load(matjson::Value const& json) {
-    if (json.is_number()) {
-        m_impl->value = json.as_int();
-        return true;
-    }
-    return false;
-}
-bool IntSettingV3::save(matjson::Value& json) const {
-    json = m_impl->value;
-    return true;
-}
 SettingNodeV3* IntSettingV3::createNode(float width) {
     return IntSettingNodeV3::create(
         std::static_pointer_cast<IntSettingV3>(shared_from_this()), width
@@ -859,8 +813,6 @@ std::optional<std::shared_ptr<SettingValue>> IntSettingV3::convertToLegacyValue(
 
 class FloatSettingV3::Impl final {
 public:
-    double value;
-    double defaultValue;
     std::optional<double> minValue;
     std::optional<double> maxValue;
 
@@ -880,9 +832,7 @@ Result<std::shared_ptr<FloatSettingV3>> FloatSettingV3::parse(std::string const&
     auto ret = std::make_shared<FloatSettingV3>(PrivateMarker());
 
     auto root = checkJson(json, "FloatSettingV3");
-    ret->parseSharedProperties(key, modID, root);
-    ret->parseDefaultValue(root, ret->m_impl->defaultValue);
-    ret->m_impl->value = ret->m_impl->defaultValue;
+    ret->parseBaseProperties(key, modID, root);
 
     root.has("min").into(ret->m_impl->minValue);
     root.has("max").into(ret->m_impl->maxValue);
@@ -923,12 +873,6 @@ Result<std::shared_ptr<FloatSettingV3>> FloatSettingV3::parse(std::string const&
     return root.ok(ret);
 }
 
-double& FloatSettingV3::getValueMut() const {
-    return m_impl->value;
-}
-double FloatSettingV3::getDefaultValue() const {
-    return m_impl->defaultValue;
-}
 Result<> FloatSettingV3::isValid(double value) const {
     if (m_impl->minValue && value < *m_impl->minValue) {
         return Err("Value must be at least {}", *m_impl->minValue);
@@ -968,17 +912,6 @@ bool FloatSettingV3::isInputEnabled() const {
     return m_impl->controls.textInputEnabled;
 }
 
-bool FloatSettingV3::load(matjson::Value const& json) {
-    if (json.is_number()) {
-        m_impl->value = json.as_double();
-        return true;
-    }
-    return false;
-}
-bool FloatSettingV3::save(matjson::Value& json) const {
-    json = m_impl->value;
-    return true;
-}
 SettingNodeV3* FloatSettingV3::createNode(float width) {
     return FloatSettingNodeV3::create(
         std::static_pointer_cast<FloatSettingV3>(shared_from_this()), width
@@ -1009,8 +942,6 @@ std::optional<std::shared_ptr<SettingValue>> FloatSettingV3::convertToLegacyValu
 
 class StringSettingV3::Impl final {
 public:
-    std::string value;
-    std::string defaultValue;
     std::optional<std::string> match;
     std::optional<std::string> filter;
     std::optional<std::vector<std::string>> oneOf;
@@ -1022,9 +953,7 @@ Result<std::shared_ptr<StringSettingV3>> StringSettingV3::parse(std::string cons
     auto ret = std::make_shared<StringSettingV3>(PrivateMarker());
 
     auto root = checkJson(json, "StringSettingV3");
-    ret->parseSharedProperties(key, modID, root);
-    ret->parseDefaultValue(root, ret->m_impl->defaultValue);
-    ret->m_impl->value = ret->m_impl->defaultValue;
+    ret->parseBaseProperties(key, modID, root);
 
     root.has("match").into(ret->m_impl->match);
     root.has("filter").into(ret->m_impl->filter);
@@ -1037,12 +966,6 @@ Result<std::shared_ptr<StringSettingV3>> StringSettingV3::parse(std::string cons
     return root.ok(ret);
 }
 
-std::string& StringSettingV3::getValueMut() const {
-    return m_impl->value;
-}
-std::string StringSettingV3::getDefaultValue() const {
-    return m_impl->defaultValue;
-}
 Result<> StringSettingV3::isValid(std::string_view value) const {
     if (m_impl->match) {
         if (!std::regex_match(std::string(value), std::regex(*m_impl->match))) {
@@ -1067,17 +990,6 @@ std::optional<std::vector<std::string>> StringSettingV3::getEnumOptions() const 
     return m_impl->oneOf;
 }
 
-bool StringSettingV3::load(matjson::Value const& json) {
-    if (json.is_string()) {
-        m_impl->value = json.as_string();
-        return true;
-    }
-    return false;
-}
-bool StringSettingV3::save(matjson::Value& json) const {
-    json = m_impl->value;
-    return true;
-}
 SettingNodeV3* StringSettingV3::createNode(float width) {
     return StringSettingNodeV3::create(
         std::static_pointer_cast<StringSettingV3>(shared_from_this()), width
@@ -1100,8 +1012,6 @@ std::optional<std::shared_ptr<SettingValue>> StringSettingV3::convertToLegacyVal
 
 class FileSettingV3::Impl final {
 public:
-    std::filesystem::path value;
-    std::filesystem::path defaultValue;
     bool folder = false;
     bool useSaveDialog = false; // this option makes no sense if folder = true
     std::optional<std::vector<utils::file::FilePickOptions::Filter>> filters;
@@ -1113,25 +1023,23 @@ Result<std::shared_ptr<FileSettingV3>> FileSettingV3::parse(std::string const& k
     auto ret = std::make_shared<FileSettingV3>(PrivateMarker());
 
     auto root = checkJson(json, "FileSettingV3");
-    ret->parseSharedProperties(key, modID, root);
-    ret->parseDefaultValue(root, ret->m_impl->defaultValue);
-    ret->m_impl->value = ret->m_impl->defaultValue;
+    ret->parseBaseProperties(key, modID, root);
 
     // Replace known paths like `{gd-save-dir}/`
     try {
-        ret->m_impl->defaultValue = fmt::format(
-            fmt::runtime(ret->m_impl->defaultValue.string()),
+        ret->setDefaultValue(fmt::format(
+            fmt::runtime(ret->getDefaultValue().string()),
             fmt::arg("gd_dir", dirs::getGameDir()),
             fmt::arg("gd_save_dir", dirs::getSaveDir()),
             fmt::arg("mod_config_dir", dirs::getModConfigDir() / modID),
             fmt::arg("mod_save_dir", dirs::getModsSaveDir() / modID),
             fmt::arg("temp_dir", dirs::getTempDir())
-        );
+        ));
     }
     catch(fmt::format_error const& e) {
         return Err("Invalid format string for file setting path: {}", e.what());
     }
-    ret->m_impl->value = ret->m_impl->defaultValue;
+    ret->setValue(ret->getDefaultValue());
 
     std::string type;
     root.needs("type").into(type);
@@ -1175,12 +1083,6 @@ Result<std::shared_ptr<FileSettingV3>> FileSettingV3::parse(std::string const& k
     return root.ok(ret);
 }
 
-std::filesystem::path& FileSettingV3::getValueMut() const {
-    return m_impl->value;
-}
-std::filesystem::path FileSettingV3::getDefaultValue() const {
-    return m_impl->defaultValue;
-}
 Result<> FileSettingV3::isValid(std::filesystem::path const& value) const {
     std::error_code ec;
     if (m_impl->folder) {
@@ -1207,17 +1109,6 @@ std::optional<std::vector<utils::file::FilePickOptions::Filter>> FileSettingV3::
     return m_impl->filters;
 }
 
-bool FileSettingV3::load(matjson::Value const& json) {
-    if (json.is_string()) {
-        m_impl->value = json.as_string();
-        return true;
-    }
-    return false;
-}
-bool FileSettingV3::save(matjson::Value& json) const {
-    json = m_impl->value;
-    return true;
-}
 SettingNodeV3* FileSettingV3::createNode(float width) {
     return FileSettingNodeV3::create(
         std::static_pointer_cast<FileSettingV3>(shared_from_this()), width
@@ -1238,45 +1129,22 @@ std::optional<std::shared_ptr<SettingValue>> FileSettingV3::convertToLegacyValue
 
 class Color3BSettingV3::Impl final {
 public:
-    ccColor3B value;
-    ccColor3B defaultValue;
 };
 
 Color3BSettingV3::Color3BSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
 Result<std::shared_ptr<Color3BSettingV3>> Color3BSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
     auto ret = std::make_shared<Color3BSettingV3>(PrivateMarker());
-
     auto root = checkJson(json, "Color3BSettingV3");
-    ret->parseSharedProperties(key, modID, root);
-    ret->parseDefaultValue(root, ret->m_impl->defaultValue);
-    ret->m_impl->value = ret->m_impl->defaultValue;
-
+    ret->parseBaseProperties(key, modID, root);
     root.checkUnknownKeys();
     return root.ok(ret);
 }
 
-ccColor3B& Color3BSettingV3::getValueMut() const {
-    return m_impl->value;
-}
-ccColor3B Color3BSettingV3::getDefaultValue() const {
-    return m_impl->defaultValue;
-}
 Result<> Color3BSettingV3::isValid(ccColor3B value) const {
     return Ok();
 }
 
-bool Color3BSettingV3::load(matjson::Value const& json) {
-    if (json.template is<ccColor3B>()) {
-        m_impl->value = json.template as<ccColor3B>();
-        return true;
-    }
-    return false;
-}
-bool Color3BSettingV3::save(matjson::Value& json) const {
-    json = m_impl->value;
-    return true;
-}
 SettingNodeV3* Color3BSettingV3::createNode(float width) {
     return Color3BSettingNodeV3::create(
         std::static_pointer_cast<Color3BSettingV3>(shared_from_this()), width
@@ -1296,45 +1164,22 @@ std::optional<std::shared_ptr<SettingValue>> Color3BSettingV3::convertToLegacyVa
 
 class Color4BSettingV3::Impl final {
 public:
-    ccColor4B value;
-    ccColor4B defaultValue;
 };
 
 Color4BSettingV3::Color4BSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
 Result<std::shared_ptr<Color4BSettingV3>> Color4BSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
     auto ret = std::make_shared<Color4BSettingV3>(PrivateMarker());
-
     auto root = checkJson(json, "Color4BSettingV3");
-    ret->parseSharedProperties(key, modID, root);
-    ret->parseDefaultValue(root, ret->m_impl->defaultValue);
-    ret->m_impl->value = ret->m_impl->defaultValue;
-
+    ret->parseBaseProperties(key, modID, root);
     root.checkUnknownKeys();
     return root.ok(ret);
 }
 
-ccColor4B& Color4BSettingV3::getValueMut() const {
-    return m_impl->value;
-}
-ccColor4B Color4BSettingV3::getDefaultValue() const {
-    return m_impl->defaultValue;
-}
 Result<> Color4BSettingV3::isValid(ccColor4B value) const {
     return Ok();
 }
 
-bool Color4BSettingV3::load(matjson::Value const& json) {
-    if (json.template is<ccColor4B>()) {
-        m_impl->value = json.template as<ccColor4B>();
-        return true;
-    }
-    return false;
-}
-bool Color4BSettingV3::save(matjson::Value& json) const {
-    json = m_impl->value;
-    return true;
-}
 SettingNodeV3* Color4BSettingV3::createNode(float width) {
     return Color4BSettingNodeV3::create(
         std::static_pointer_cast<Color4BSettingV3>(shared_from_this()), width

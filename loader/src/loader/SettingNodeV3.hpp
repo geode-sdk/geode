@@ -27,31 +27,26 @@ public:
     std::shared_ptr<TitleSettingV3> getSetting() const;
 };
 
-class BoolSettingNodeV3 : public SettingNodeV3 {
+class BoolSettingNodeV3 : public SettingValueNodeV3<BoolSettingV3> {
 protected:
     CCMenuItemToggler* m_toggle;
 
     bool init(std::shared_ptr<BoolSettingV3> setting, float width);
-    
-    void updateState() override;
-
-    void onCommit() override;
+    void updateState(CCNode* invoker) override;
     void onToggle(CCObject*);
 
 public:
-    static BoolSettingNodeV3* create(std::shared_ptr<BoolSettingV3> setting, float width);
-    
-    bool hasUncommittedChanges() const override;
-    bool hasNonDefaultValue() const override;
-    void onResetToDefault() override;
+    bool getValue() const override;
+    void onSetValue(bool value) override;
 
-    std::shared_ptr<BoolSettingV3> getSetting() const;
+    static BoolSettingNodeV3* create(std::shared_ptr<BoolSettingV3> setting, float width);
 };
 
 template <class S>
-class NumberSettingNodeV3 : public SettingNodeV3 {
+class NumberSettingNodeV3 : public SettingValueNodeV3<S> {
 protected:
     using ValueType = typename S::ValueType;
+    using ValueAssignType = typename S::ValueAssignType;
 
     TextInput* m_input;
     Slider* m_slider;
@@ -82,7 +77,7 @@ protected:
     }
 
     bool init(std::shared_ptr<S> setting, float width) {
-        if (!SettingNodeV3::init(setting, width))
+        if (!SettingValueNodeV3<S>::init(setting, width))
             return false;
 
         m_bigArrowLeftBtnSpr = CCSprite::create();
@@ -115,7 +110,7 @@ protected:
         m_input = TextInput::create(this->getButtonMenu()->getContentWidth() - 40, "Num");
         m_input->setScale(.7f);
         m_input->setCallback([this](auto const&) {
-            this->markChanged();
+            this->markChanged(m_input);
         });
         if (!setting->isInputEnabled()) {
             m_input->getBGSprite()->setVisible(false);
@@ -164,21 +159,21 @@ protected:
             this->getButtonMenu()->addChildAtPosition(m_slider, Anchor::Center, ccp(0, -20), ccp(0, 0));
         }
 
-        this->setCurrentValue(setting->getValue());
-        this->updateState();
+        this->setValue(setting->getValue(), nullptr);
+        this->updateState(nullptr);
 
         return true;
     }
 
-    void updateState() override {
-        SettingNodeV3::updateState();
+    void updateState(CCNode* invoker) override {
+        SettingNodeV3::updateState(invoker);
         auto enable = this->getSetting()->shouldEnable();
         if (this->getSetting()->isInputEnabled()) {
             m_input->setEnabled(enable);
         }
 
         auto min = this->getSetting()->getMinValue();
-        auto enableLeft = enable && (!min || this->getCurrentValue() > *min);
+        auto enableLeft = enable && (!min || this->getValue() > *min);
         m_arrowLeftBtn->setEnabled(enableLeft);
         m_bigArrowLeftBtn->setEnabled(enableLeft);
         m_arrowLeftBtnSpr->setOpacity(enableLeft ? 255 : 155);
@@ -187,7 +182,7 @@ protected:
         m_bigArrowLeftBtnSpr->setColor(enableLeft ? ccWHITE : ccGRAY);
 
         auto max = this->getSetting()->getMaxValue();
-        auto enableRight = enable && (!max || this->getCurrentValue() < *max);
+        auto enableRight = enable && (!max || this->getValue() < *max);
         m_arrowRightBtn->setEnabled(enableRight);
         m_bigArrowRightBtn->setEnabled(enableRight);
         m_arrowRightBtnSpr->setOpacity(enableRight ? 255 : 155);
@@ -196,7 +191,7 @@ protected:
         m_bigArrowRightBtnSpr->setColor(enableRight ? ccWHITE : ccGRAY);
 
         if (m_slider) {
-            m_slider->m_touchLogic->m_thumb->setValue(this->valueToSlider(this->getCurrentValue()));
+            m_slider->m_touchLogic->m_thumb->setValue(this->valueToSlider(this->getValue()));
             m_slider->updateBar();
             m_slider->m_sliderBar->setColor(enable ? ccWHITE : ccGRAY);
             m_slider->m_touchLogic->m_thumb->setColor(enable ? ccWHITE : ccGRAY);
@@ -204,11 +199,8 @@ protected:
         }
     }
 
-    void onCommit() override {
-        this->getSetting()->setValue(this->getCurrentValue());
-    }
     void onArrow(CCObject* sender) {
-        auto value = this->getCurrentValue() + static_cast<ObjWrapper<ValueType>*>(
+        auto value = this->getValue() + static_cast<ObjWrapper<ValueType>*>(
             static_cast<CCNode*>(sender)->getUserObject()
         )->getValue();
         if (auto min = this->getSetting()->getMinValue()) {
@@ -217,19 +209,18 @@ protected:
         if (auto max = this->getSetting()->getMaxValue()) {
             value = std::min(*max, value);
         }
-        this->setCurrentValue(value);
+        this->setValue(value, static_cast<CCNode*>(sender));
     }
     void onSlider(CCObject*) {
-        this->setCurrentValue(this->valueFromSlider(m_slider->m_touchLogic->m_thumb->getValue()));
+        this->setValue(this->valueFromSlider(m_slider->m_touchLogic->m_thumb->getValue()), m_slider);
     }
 
-    ValueType getCurrentValue() const {
+    ValueType getValue() const override {
         return numFromString<ValueType>(m_input->getString())
             .value_or(this->getSetting()->getDefaultValue());
     }
-    void setCurrentValue(ValueType value) {
+    void onSetValue(ValueAssignType value) override {
         m_input->setString(numToString(value));
-        this->markChanged();
     }
 
 public:
@@ -242,50 +233,29 @@ public:
         CC_SAFE_DELETE(ret);
         return nullptr;
     }
-    
-    bool hasUncommittedChanges() const override {
-        return this->getSetting()->getValue() != this->getCurrentValue();
-    }
-    bool hasNonDefaultValue() const override {
-        return this->getSetting()->getDefaultValue() != this->getCurrentValue();
-    }
-    void onResetToDefault() override {
-        this->setCurrentValue(this->getSetting()->getDefaultValue());
-    }
-
-    std::shared_ptr<S> getSetting() const {
-        return std::static_pointer_cast<S>(SettingNodeV3::getSetting());
-    }
 };
 
 using IntSettingNodeV3 = NumberSettingNodeV3<IntSettingV3>;
 using FloatSettingNodeV3 = NumberSettingNodeV3<FloatSettingV3>;
 
-class StringSettingNodeV3 : public SettingNodeV3 {
+class StringSettingNodeV3 : public SettingValueNodeV3<StringSettingV3> {
 protected:
     TextInput* m_input;
     CCSprite* m_arrowLeftSpr = nullptr;
     CCSprite* m_arrowRightSpr = nullptr;
 
     bool init(std::shared_ptr<StringSettingV3> setting, float width);
-
-    void updateState() override;
-
+    void updateState(CCNode* invoker) override;
     void onArrow(CCObject* sender);
-
-    void onCommit() override;
 
 public:
     static StringSettingNodeV3* create(std::shared_ptr<StringSettingV3> setting, float width);
-    
-    bool hasUncommittedChanges() const override;
-    bool hasNonDefaultValue() const override;
-    void onResetToDefault() override;
 
-    std::shared_ptr<StringSettingV3> getSetting() const;
+    std::string getValue() const override;
+    void onSetValue(std::string_view value) override;
 };
 
-class FileSettingNodeV3 : public SettingNodeV3 {
+class FileSettingNodeV3 : public SettingValueNodeV3<FileSettingV3> {
 protected:
     CCSprite* m_fileIcon;
     std::filesystem::path m_path;
@@ -295,84 +265,66 @@ protected:
     CCSprite* m_selectBtnSpr;
 
     bool init(std::shared_ptr<FileSettingV3> setting, float width);
-
-    void updateState() override;
-
-    void onCommit() override;
+    void updateState(CCNode* invoker) override;
     void onPickFile(CCObject*);
 
 public:
     static FileSettingNodeV3* create(std::shared_ptr<FileSettingV3> setting, float width);
-    
-    bool hasUncommittedChanges() const override;
-    bool hasNonDefaultValue() const override;
-    void onResetToDefault() override;
 
-    std::shared_ptr<FileSettingV3> getSetting() const;
+    std::filesystem::path getValue() const override;
+    void onSetValue(std::filesystem::path const& value) override;
 };
 
-class Color3BSettingNodeV3 : public SettingNodeV3, public ColorPickPopupDelegate {
+class Color3BSettingNodeV3 : public SettingValueNodeV3<Color3BSettingV3>, public ColorPickPopupDelegate {
 protected:
     ccColor3B m_value;
     CCMenuItemSpriteExtra* m_colorBtn;
     ColorChannelSprite* m_colorSprite;
 
     bool init(std::shared_ptr<Color3BSettingV3> setting, float width);
-
-    void updateState() override;
-
-    void onCommit() override;
+    void updateState(CCNode* invoker) override;
     void onSelectColor(CCObject*);
     void updateColor(ccColor4B const& color) override;
 
 public:
     static Color3BSettingNodeV3* create(std::shared_ptr<Color3BSettingV3> setting, float width);
-    
-    bool hasUncommittedChanges() const override;
-    bool hasNonDefaultValue() const override;
-    void onResetToDefault() override;
 
-    std::shared_ptr<Color3BSettingV3> getSetting() const;
+    ccColor3B getValue() const override;
+    void onSetValue(ccColor3B value) override;
 };
 
-class Color4BSettingNodeV3 : public SettingNodeV3, public ColorPickPopupDelegate {
+class Color4BSettingNodeV3 : public SettingValueNodeV3<Color4BSettingV3>, public ColorPickPopupDelegate {
 protected:
     ccColor4B m_value;
     CCMenuItemSpriteExtra* m_colorBtn;
     ColorChannelSprite* m_colorSprite;
 
     bool init(std::shared_ptr<Color4BSettingV3> setting, float width);
-
-    void updateState() override;
-
-    void onCommit() override;
+    void updateState(CCNode* invoker) override;
     void onSelectColor(CCObject*);
     void updateColor(ccColor4B const& color) override;
 
 public:
     static Color4BSettingNodeV3* create(std::shared_ptr<Color4BSettingV3> setting, float width);
     
-    bool hasUncommittedChanges() const override;
-    bool hasNonDefaultValue() const override;
-    void onResetToDefault() override;
-
-    std::shared_ptr<Color4BSettingV3> getSetting() const;
+    ccColor4B getValue() const override;
+    void onSetValue(ccColor4B value) override;
 };
 
 class UnresolvedCustomSettingNodeV3 : public SettingNodeV3 {
 protected:
-    bool init(std::shared_ptr<LegacyCustomSettingV3> setting, float width);
+    bool init(std::string_view key, float width);
+
+    void updateState(CCNode* invoker) override;
 
     void onCommit() override;
 
 public:
-    static UnresolvedCustomSettingNodeV3* create(std::shared_ptr<LegacyCustomSettingV3> setting, float width);
+    static UnresolvedCustomSettingNodeV3* create(std::string_view key, float width);
     
     bool hasUncommittedChanges() const override;
     bool hasNonDefaultValue() const override;
     void onResetToDefault() override;
-
-    std::shared_ptr<LegacyCustomSettingV3> getSetting() const;
 };
 
 // If these classes do get exposed in headers, 
