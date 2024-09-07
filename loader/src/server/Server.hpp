@@ -7,7 +7,6 @@
 #include <chrono>
 #include <matjson.hpp>
 #include <vector>
-#include <span>
 
 using namespace geode::prelude;
 
