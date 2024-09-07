@@ -577,6 +577,7 @@ void ModList::updateState() {
     filterSpr->setState(!isDefaultQuery);
 
     auto clearSpr = static_cast<GeodeSquareSprite*>(m_clearFiltersBtn->getNormalImage());
+    m_clearFiltersBtn->setEnabled(!isDefaultQuery);
     clearSpr->setColor(isDefaultQuery ? ccGRAY : ccWHITE);
     clearSpr->setOpacity(isDefaultQuery ? 90 : 255);
     clearSpr->getTopSprite()->setColor(isDefaultQuery ? ccGRAY : ccWHITE);
