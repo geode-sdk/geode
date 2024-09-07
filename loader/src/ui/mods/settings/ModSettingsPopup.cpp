@@ -7,6 +7,32 @@
 #include <Geode/utils/cocos.hpp>
 #include <Geode/ui/General.hpp>
 #include <loader/SettingNodeV3.hpp>
+// needed for weightedFuzzyMatch
+#include <ui/mods/sources/ModListSource.hpp>
+
+static bool matchSearch(SettingNodeV3* node, std::string const& query) {
+    if (typeinfo_cast<TitleSettingNodeV3*>(node)) {
+        return true;
+    }
+    bool addToList = false;
+    auto setting = node->getSetting();
+    double weighted = 0;
+    if (auto name = setting->getName()) {
+        addToList |= weightedFuzzyMatch(setting->getKey(), query, 0.5, weighted);
+        addToList |= weightedFuzzyMatch(*name, query, 1, weighted);
+    }
+    // If there's no name, give full weight to key
+    else {
+        addToList |= weightedFuzzyMatch(setting->getKey(), query, 1, weighted);
+    }
+    if (auto desc = setting->getDescription()) {
+        addToList |= weightedFuzzyMatch(*desc, query, 0.02, weighted);
+    }
+    if (weighted < 2) {
+        addToList = false;
+    }
+    return addToList;
+}
 
 bool ModSettingsPopup::setup(Mod* mod) {
     m_noElasticity = true;
@@ -20,10 +46,34 @@ bool ModSettingsPopup::setup(Mod* mod) {
 
     auto layerBG = CCLayerColor::create({ 0, 0, 0, 75 });
     layerBG->setContentSize(layerSize);
-    m_mainLayer->addChildAtPosition(layerBG, Anchor::Center, -layerSize / 2);
+    layerBG->ignoreAnchorPointForPosition(false);
+    m_mainLayer->addChildAtPosition(layerBG, Anchor::Center);
 
-    auto layer = ScrollLayer::create(layerSize);
-    layer->setTouchEnabled(true);
+    auto searchContainer = CCMenu::create();
+    searchContainer->setContentSize({ layerSize.width, 30 });
+
+    m_searchInput = TextInput::create((layerSize.width - 15) / .7f - 40, "Search Settings...");
+    m_searchInput->setTextAlign(TextInputAlign::Left);
+    m_searchInput->setScale(.7f);
+    m_searchInput->setCallback([this](auto const&) {
+        this->updateState();
+        m_list->moveToTop();
+    });
+    m_searchInput->setID("search-input");
+    searchContainer->addChildAtPosition(m_searchInput, Anchor::Left, ccp(7.5f, 0), ccp(0, .5f));
+
+    auto searchClearSpr = GeodeSquareSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png");
+    searchClearSpr->setScale(.45f);
+    m_searchClearBtn = CCMenuItemSpriteExtra::create(
+        searchClearSpr, this, menu_selector(ModSettingsPopup::onClearSearch)
+    );
+    m_searchClearBtn->setID("clear-search-button");
+    searchContainer->addChildAtPosition(m_searchClearBtn, Anchor::Right, ccp(-20, 0));
+
+    layerBG->addChildAtPosition(searchContainer, Anchor::Top, ccp(0, 0), ccp(.5f, 1));
+
+    m_list = ScrollLayer::create(layerSize - ccp(0, searchContainer->getContentHeight()));
+    m_list->setTouchEnabled(true);
 
     bool bg = false;
     for (auto& key : mod->getSettingKeys()) {
@@ -44,9 +94,9 @@ bool ModSettingsPopup::setup(Mod* mod) {
         // bg->addChildAtPosition(separator, Anchor::Bottom, ccp(0, 0), ccp(.5f, .5f));
 
         m_settings.push_back(node);
-        layer->m_contentLayer->addChild(node);
+        m_list->m_contentLayer->addChild(node);
     }
-    layer->m_contentLayer->setLayout(
+    m_list->m_contentLayer->setLayout(
         ColumnLayout::create()
             ->setAxisReverse(true)
             ->setAutoGrowAxis(layerSize.height)
@@ -54,13 +104,13 @@ bool ModSettingsPopup::setup(Mod* mod) {
             ->setAxisAlignment(AxisAlignment::End)
             ->setGap(0)
     );
-    layer->moveToTop();
+    m_list->moveToTop();
 
-    layerBG->addChild(layer);
+    layerBG->addChildAtPosition(m_list, Anchor::BottomLeft);
 
     // layer borders
 
-    m_mainLayer->addChildAtPosition(createGeodeListBorders({layerSize.width, layerSize.height - 2}), Anchor::Center);
+    m_mainLayer->addChildAtPosition(createGeodeListBorders(layerSize), Anchor::Center);
 
     // buttons
 
@@ -174,8 +224,16 @@ void ModSettingsPopup::onOpenConfigDirectory(CCObject*) {
     file::openFolder(m_mod->getConfigDir());
     this->updateState();
 }
+void ModSettingsPopup::onClearSearch(CCObject*) {
+    m_searchInput->setString("");
+    this->updateState();
+    m_list->moveToTop();
+}
 
 void ModSettingsPopup::updateState(SettingNodeV3* invoker) {
+    auto search = m_searchInput->getString();
+    auto hasSearch = !search.empty();
+
     m_restartBtn->setVisible(ModSettingsManager::from(m_mod)->restartRequired());
     m_applyMenu->updateLayout();
 
@@ -185,8 +243,12 @@ void ModSettingsPopup::updateState(SettingNodeV3* invoker) {
     m_openConfigDirBtnSpr->setColor(configDirExists ? ccWHITE : ccGRAY);
     m_openConfigDirBtnSpr->setOpacity(configDirExists ? 255 : 155);
 
-    // Update all settings with "enable-if" schemes
+    // Update search visibility + all settings with "enable-if" schemes
     for (auto& sett : m_settings) {
+        sett->removeFromParent();
+        if (!hasSearch || matchSearch(sett, search)) {
+            m_list->m_contentLayer->addChild(sett);
+        }
         // Avoid infinite loops
         if (sett == invoker) {
             continue;
@@ -195,6 +257,7 @@ void ModSettingsPopup::updateState(SettingNodeV3* invoker) {
             sett->updateState(nullptr);
         }
     }
+    m_list->m_contentLayer->updateLayout();
 
     m_applyBtnSpr->setCascadeColorEnabled(true);
     m_applyBtnSpr->setCascadeOpacityEnabled(true);
@@ -208,6 +271,13 @@ void ModSettingsPopup::updateState(SettingNodeV3* invoker) {
         m_applyBtnSpr->setOpacity(155);
         m_applyBtn->setEnabled(false);
     }
+    
+    auto clearSpr = static_cast<GeodeSquareSprite*>(m_searchClearBtn->getNormalImage());
+    m_searchClearBtn->setEnabled(hasSearch);
+    clearSpr->setColor(hasSearch ? ccWHITE : ccGRAY);
+    clearSpr->setOpacity(hasSearch ? 255 : 90);
+    clearSpr->getTopSprite()->setColor(hasSearch ? ccWHITE : ccGRAY);
+    clearSpr->getTopSprite()->setOpacity(hasSearch ? 255 : 90);
 }
 
 bool ModSettingsPopup::hasUncommitted() const {

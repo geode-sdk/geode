@@ -10,12 +10,15 @@ using namespace geode::prelude;
 class ModSettingsPopup : public GeodePopup<Mod*> {
 protected:
     Mod* m_mod;
-    std::vector<SettingNodeV3*> m_settings;
+    ScrollLayer* m_list;
+    std::vector<Ref<SettingNodeV3>> m_settings;
     CCMenu* m_applyMenu;
     CCMenuItemSpriteExtra* m_applyBtn;
     CCMenuItemSpriteExtra* m_restartBtn;
     ButtonSprite* m_applyBtnSpr;
     IconButtonSprite* m_openConfigDirBtnSpr;
+    TextInput* m_searchInput;
+    CCMenuItemSpriteExtra* m_searchClearBtn;
     EventListener<EventFilter<SettingNodeValueChangeEventV3>> m_changeListener;
 
     bool setup(Mod* mod) override;
@@ -27,6 +30,7 @@ protected:
     void onResetAll(CCObject*);
     void onOpenSaveDirectory(CCObject*);
     void onOpenConfigDirectory(CCObject*);
+    void onClearSearch(CCObject*);
 
 public:
     static ModSettingsPopup* create(Mod* mod);
