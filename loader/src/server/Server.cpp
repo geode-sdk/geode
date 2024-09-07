@@ -830,9 +830,8 @@ void server::queueBatches(
         if (result->ok()) {
             auto serverValues = result->unwrap();
 
-            // we should probably do deduplication here as well
             accum->reserve(accum->size() + serverValues.size());
-            std::copy(serverValues.begin(), serverValues.end(), std::back_inserter(*accum));
+            accum->insert(accum->end(), serverValues.begin(), serverValues.end());
 
             if (batches->size() > 1) {
                 batches->pop_back();
@@ -868,7 +867,7 @@ ServerRequest<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCach
 
     auto modBatches = std::make_shared<std::vector<std::vector<std::string>>>();
     auto modCount = modIDs.size();
-    std::size_t maxMods = 200u; // this quite literally affects 0.03% of users
+    std::size_t maxMods = 200u; // this affects 0.03% of users
 
     if (modCount <= maxMods) {
         // no tricks needed
@@ -888,7 +887,7 @@ ServerRequest<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCach
     return ServerRequest<std::vector<ServerModUpdate>>::runWithCallback(
         [modBatches](auto finish, auto progress, auto hasBeenCancelled) {
             auto accum = std::make_shared<std::vector<ServerModUpdate>>();
-            queueBatches(finish, modBatches, std::move(accum));
+            queueBatches(finish, modBatches, accum);
         },
         "Mod Update Check"
     );
