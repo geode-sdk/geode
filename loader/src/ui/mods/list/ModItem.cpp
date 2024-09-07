@@ -9,6 +9,7 @@
 #include "../popups/DevPopup.hpp"
 #include "ui/mods/popups/ModErrorPopup.hpp"
 #include "ui/mods/sources/ModSource.hpp"
+#include "../../GeodeUIEvent.hpp"
 
 bool ModItem::init(ModSource&& source) {
     if (!CCNode::init())
@@ -422,6 +423,8 @@ void ModItem::updateState() {
             on->setOpacity(105);
         }
     }
+
+    ModItemUIEvent(std::make_unique<ModItemUIEvent::Impl>(this)).post();
 }
 
 void ModItem::updateSize(float width, bool big) {
@@ -554,4 +557,8 @@ ModItem* ModItem::create(ModSource&& source) {
     }
     delete ret;
     return nullptr;
+}
+
+ModSource& ModItem::getSource() & {
+    return m_source;
 }

@@ -52,6 +52,8 @@ std::string calculateSHA256Text(std::filesystem::path const& path) {
     return picosha2::bytes_to_hex_string(hash.begin(), hash.end());
 }
 
-std::string calculateHash(std::filesystem::path const& path) {
-    return calculateSHA3_256(path);
+std::string calculateHash(std::span<const uint8_t> data) {
+    std::vector<uint8_t> hash(picosha2::k_digest_size);
+    picosha2::hash256(data.begin(), data.end(), hash);
+    return picosha2::bytes_to_hex_string(hash.begin(), hash.end());
 }

@@ -119,7 +119,16 @@ function(setup_geode_mod proname)
     endif()
 
     # Check dependencies using CLI
-    if (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "2.0.0")
+    if (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "3.2.0")
+        execute_process(
+            COMMAND ${GEODE_CLI} project check ${CMAKE_CURRENT_BINARY_DIR}
+                --externals ${GEODE_MODS_BEING_BUILT} ${DONT_UPDATE_INDEX_ARG}
+                --platform ${GEODE_TARGET_PLATFORM_SHORT}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMAND_ERROR_IS_FATAL ANY
+        )
+    elseif (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "2.0.0")
+        message(WARNING "If you use platform-specific dependencies, upgrade Geode CLI to version 3.2.0 or greater!")
         execute_process(
             COMMAND ${GEODE_CLI} project check ${CMAKE_CURRENT_BINARY_DIR}
                 --externals ${GEODE_MODS_BEING_BUILT} ${DONT_UPDATE_INDEX_ARG}

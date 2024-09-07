@@ -14,7 +14,7 @@ using geode::stl::StringImpl;
 #define impl implFor((*this))
 
 namespace gd {
-#if !defined(GEODE_IS_MACOS) && !defined(GEODE_IS_WINDOWS)
+#if !defined(GEODE_IS_MACOS) && !defined(GEODE_IS_IOS) && !defined(GEODE_IS_WINDOWS)
     string::string() {
         impl.setEmpty();
     }
@@ -32,6 +32,10 @@ namespace gd {
 
     string::string(char const* str) {
         impl.setStorage(str);
+    }
+
+    string::string(char const* str, size_t size) {
+        impl.setStorage(std::string_view(str, size));
     }
 
     string::string(std::string const& str) {

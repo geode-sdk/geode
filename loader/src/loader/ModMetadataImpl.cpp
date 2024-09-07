@@ -3,6 +3,7 @@
 #include <Geode/utils/VersionInfo.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/string.hpp>
+#include <Geode/utils/general.hpp>
 #include <about.hpp>
 #include <matjson.hpp>
 #include <utility>
@@ -149,13 +150,9 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
             ver = "0.000";
         }
         if (ver != "*") {
-            double val = 0.0;
-            errno = 0;
-            if (std::setlocale(LC_NUMERIC, "en_US.utf8")) {
-                val = std::strtod(ver.c_str(), nullptr);
-                if (errno == ERANGE) {
-                    return Err("[mod.json] has invalid target GD version");
-                }
+            auto res = numFromString<double>(ver);
+            if (res.isErr()) {
+                return Err("[mod.json] has invalid target GD version");
             }
             impl->m_gdVersion = ver;
         }
@@ -567,7 +564,11 @@ Result<> ModMetadata::checkGameVersion() const {
     if (!m_impl->m_gdVersion.empty()) {
         auto const ver = m_impl->m_gdVersion;
 
-        double modTargetVer = std::stod(ver);
+        auto res = numFromString<double>(ver);
+        if (res.isErr()) {
+            return Err("Invalid target GD version");
+        }
+        double modTargetVer = res.unwrap();
 
         if (modTargetVer == 0.0) { // O.o
             return Err(fmt::format("This mod doesn't support the current platform."));

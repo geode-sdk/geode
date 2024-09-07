@@ -131,11 +131,11 @@ Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string const& rawHexValue
     if (hexValue.size() > 6) {
         return Err("Hex value too large");
     }
-    size_t numValue;
-    auto res = std::from_chars(hexValue.data(), hexValue.data() + hexValue.size(), numValue, 16);
-    if (res.ec != std::errc()) {
+    auto res = numFromString<uint32_t>(hexValue, 16);
+    if (!res) {
         return Err("Invalid hex value '{}'", hexValue);
     }
+    auto numValue = res.unwrap();
     switch (hexValue.size()) {
         case 6: {
             auto r = static_cast<uint8_t>((numValue & 0xFF0000) >> 16);
@@ -189,11 +189,11 @@ Result<ccColor4B> geode::cocos::cc4bFromHexString(std::string const& rawHexValue
     if (hexValue.size() > 8) {
         return Err("Hex value too large");
     }
-    size_t numValue;
-    auto res = std::from_chars(hexValue.data(), hexValue.data() + hexValue.size(), numValue, 16);
-    if (res.ec != std::errc()) {
+    auto res = numFromString<uint32_t>(hexValue, 16);
+    if (!res) {
         return Err("Invalid hex value '{}'", hexValue);
     }
+    auto numValue = res.unwrap();
     switch (hexValue.size()) {
         case 8: {
             auto r = static_cast<uint8_t>((numValue & 0xFF000000) >> 24);

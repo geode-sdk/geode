@@ -8,6 +8,7 @@
 #include <mutex>
 #include <deque>
 #include <unordered_set>
+#include <atomic>
 
 namespace geode {
     class Mod;

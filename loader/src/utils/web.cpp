@@ -188,6 +188,8 @@ std::optional<float> WebProgress::uploadProgress() const {
 
 class WebRequest::Impl {
 public:
+    static std::atomic_size_t s_idCounter;
+
     std::string m_method;
     std::string m_url;
     std::unordered_map<std::string, std::string> m_headers;
@@ -203,6 +205,9 @@ public:
     std::string m_CABundleContent;
     ProxyOpts m_proxyOpts = {};
     HttpVersion m_httpVersion = HttpVersion::DEFAULT;
+    size_t m_id;
+
+    Impl() : m_id(s_idCounter++) {}
 
     WebResponse makeError(int code, std::string const& msg) {
         auto res = WebResponse();
@@ -211,6 +216,8 @@ public:
         return res;
     }
 };
+
+std::atomic_size_t WebRequest::Impl::s_idCounter = 0;
 
 WebRequest::WebRequest() : m_impl(std::make_shared<Impl>()) {}
 WebRequest::~WebRequest() {}
@@ -488,7 +495,13 @@ WebRequest& WebRequest::header(std::string_view name, std::string_view value) {
             const size_t comma = value.find(',', numStart);
             const size_t numLength = (comma == std::string::npos ? value.size() : comma) - numStart;
 
-            timeout(std::chrono::seconds(std::stol(std::string(value.substr(numStart, numLength)))));
+            int timeoutValue = 5;
+            auto res = numFromString<int>(value.substr(numStart, numLength));
+            if (res) {
+                timeoutValue = res.value();
+            }
+
+            timeout(std::chrono::seconds(timeoutValue));
 
             return *this;
         }
@@ -499,8 +512,18 @@ WebRequest& WebRequest::header(std::string_view name, std::string_view value) {
     return *this;
 }
 
+WebRequest& WebRequest::removeHeader(std::string_view name) {
+    m_impl->m_headers.erase(std::string(name));
+    return *this;
+}
+
 WebRequest& WebRequest::param(std::string_view name, std::string_view value) {
     m_impl->m_urlParameters.insert_or_assign(std::string(name), std::string(value));
+    return *this;
+}
+
+WebRequest& WebRequest::removeParam(std::string_view name) {
+    m_impl->m_urlParameters.erase(std::string(name));
     return *this;
 }
 
@@ -566,6 +589,10 @@ WebRequest& WebRequest::bodyJSON(matjson::Value const& json) {
     std::string str = json.dump(matjson::NO_INDENTATION);
     m_impl->m_body = ByteVector { str.begin(), str.end() };
     return *this;
+}
+
+size_t WebRequest::getID() const {
+    return m_impl->m_id;
 }
 
 std::string WebRequest::getMethod() const {

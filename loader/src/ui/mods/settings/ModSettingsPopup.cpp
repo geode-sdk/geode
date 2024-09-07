@@ -145,22 +145,22 @@ void ModSettingsPopup::onResetAll(CCObject*) {
 
 void ModSettingsPopup::settingValueCommitted(SettingNode*) {
     if (this->hasUncommitted()) {
-        m_applyBtnSpr->setColor(cc3x(0xf));
+        m_applyBtnSpr->setColor({0xff, 0xff, 0xff});
         m_applyBtn->setEnabled(true);
     }
     else {
-        m_applyBtnSpr->setColor(cc3x(0x4));
+        m_applyBtnSpr->setColor({0x44, 0x44, 0x44});
         m_applyBtn->setEnabled(false);
     }
 }
 
 void ModSettingsPopup::settingValueChanged(SettingNode*) {
     if (this->hasUncommitted()) {
-        m_applyBtnSpr->setColor(cc3x(0xf));
+        m_applyBtnSpr->setColor({0xff, 0xff, 0xff});
         m_applyBtn->setEnabled(true);
     }
     else {
-        m_applyBtnSpr->setColor(cc3x(0x4));
+        m_applyBtnSpr->setColor({0x44, 0x44, 0x44});
         m_applyBtn->setEnabled(false);
     }
 }
