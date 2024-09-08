@@ -13,6 +13,7 @@ icon = "loader/resources/logos/geode-circle.png"
 dir = "docs"
 assets = [
     "docs/assets/*.png",
+    "docs/assets/settings/*.png",
     "docs/assets/handbook/vol1/*.png",
     "docs/assets/handbook/vol2/*.png",
 ]
