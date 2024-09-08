@@ -460,6 +460,7 @@ class SettingV3::GeodeImpl {
 public:
     std::string modID;
     std::string key;
+    std::vector<PlatformID> platforms;
     std::optional<std::string> name;
     std::optional<std::string> description;
     std::optional<std::string> enableIf;
@@ -471,33 +472,49 @@ public:
 SettingV3::SettingV3() : m_impl(std::make_shared<GeodeImpl>()) {}
 SettingV3::~SettingV3() = default;
 
-Result<> SettingV3::parseBaseProperties(std::string const& key, std::string const& modID, matjson::Value const& value, bool onlyNameAndDesc) {
-    auto json = checkJson(value, "SettingV3");
-    this->parseBaseProperties(key, modID, json, onlyNameAndDesc);
-    return json.ok();
-}
-void SettingV3::parseBaseProperties(std::string const& key, std::string const& modID, JsonExpectedValue& value, bool onlyNameAndDesc) {
-    this->init(key, modID);
-    value.needs("type");
-    value.has("platforms");
-    value.has("name").into(m_impl->name);
-    value.has("description").into(m_impl->description);
-    if (!onlyNameAndDesc) {
-        value.has("requires-restart").into(m_impl->requiresRestart);
-        value.has("enable-if")
-            .template mustBe<std::string>("a valid \"enable-if\" scheme", [this](std::string const& str) -> Result<> {
-                GEODE_UNWRAP_INTO(auto tree, enable_if_parsing::Parser::parse(str, m_impl->modID));
-                GEODE_UNWRAP(tree->check());
-                m_impl->enableIfTree = std::move(tree);
-                return Ok();
-            })
-            .into(m_impl->enableIf);
-        value.has("enable-if-description").into(m_impl->enableIfDescription);
-    }
-}
 void SettingV3::init(std::string const& key, std::string const& modID) {
     m_impl->key = key;
     m_impl->modID = modID;
+}
+void SettingV3::init(std::string const& key, std::string const& modID, JsonExpectedValue& json) {
+    this->init(key, modID);
+
+    // Keys every setting must have
+    json.needs("type");
+    for (auto& plat : json.has("platforms").items()) {
+        m_impl->platforms.push_back(PlatformID::from(plat.template get<std::string>()));
+    }
+}
+
+void SettingV3::parseNameAndDescription(JsonExpectedValue& json) {
+    json.needs("name").into(m_impl->name);
+    json.has("description").into(m_impl->description);
+}
+void SettingV3::parseEnableIf(JsonExpectedValue& json) {
+    json.has("enable-if")
+        .template mustBe<std::string>("a valid \"enable-if\" scheme", [this](std::string const& str) -> Result<> {
+            GEODE_UNWRAP_INTO(auto tree, enable_if_parsing::Parser::parse(str, m_impl->modID));
+            GEODE_UNWRAP(tree->check());
+            m_impl->enableIfTree = std::move(tree);
+            return Ok();
+        })
+        .into(m_impl->enableIf);
+    json.has("enable-if-description").into(m_impl->enableIfDescription);
+}
+void SettingV3::parseValueProperties(JsonExpectedValue& json) {
+    json.has("requires-restart").into(m_impl->requiresRestart);
+}
+
+Result<> SettingV3::parseBaseProperties(std::string const& key, std::string const& modID, matjson::Value const& value) {
+    auto json = checkJson(value, "SettingV3");
+    this->parseBaseProperties(key, modID, json);
+    return json.ok();
+}
+void SettingV3::parseBaseProperties(std::string const& key, std::string const& modID, JsonExpectedValue& json) {
+    this->init(key, modID, json);
+    this->parseNameAndDescription(json);
+    this->parseValueProperties(json);
+    this->parseEnableIf(json);
 }
 
 std::string SettingV3::getKey() const {
@@ -540,6 +557,9 @@ std::optional<std::string> SettingV3::getEnableIfDescription() const {
 bool SettingV3::requiresRestart() const {
     return m_impl->requiresRestart;
 }
+std::vector<PlatformID> SettingV3::getPlatforms() const {
+    return m_impl->platforms;
+}
 Mod* SettingV3::getMod() const {
     return Loader::get()->getInstalledMod(m_impl->modID);
 }
@@ -573,7 +593,8 @@ TitleSettingV3::TitleSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>())
 Result<std::shared_ptr<TitleSettingV3>> TitleSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
     auto ret = std::make_shared<TitleSettingV3>(PrivateMarker());
     auto root = checkJson(json, "TitleSettingV3");
-    ret->parseBaseProperties(key, modID, root, true);
+    ret->init(key, modID, root);
+    ret->parseNameAndDescription(root);
     root.checkUnknownKeys();
     return root.ok(ret);
 }

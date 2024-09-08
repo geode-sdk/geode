@@ -26,9 +26,98 @@ namespace geode {
         std::shared_ptr<GeodeImpl> m_impl;
     
     protected:
+        /**
+         * Only call this function if you aren't going to call 
+         * `parseBaseProperties`, which will call it for you!
+         * If you don't want to call `parseBaseProperties`, at the very least 
+         * you **must** call this!
+         * Select which properties you want to parse using the `parseX` 
+         * functions
+         * @param key The setting's key as defined in `mod.json`
+         * @param modID The ID of the mod this settings is being parsed for 
+         * @param json The current JSON checking instance being used. This 
+         * should be the JSON object that defines the setting. If you aren't 
+         * using Geode's JSON checking utilities, you can use the other 
+         * overload of `init`
+         */
+        void init(std::string const& key, std::string const& modID, JsonExpectedValue& json);
+        /**
+         * Only call this function if you aren't going to call 
+         * `parseBaseProperties`, which will call it for you!
+         * If you don't want to call `parseBaseProperties`, at the very least 
+         * you **must** call this!
+         * Select which properties you want to parse using the `parseX` 
+         * functions
+         * @param key The setting's key as defined in `mod.json`
+         * @param modID The ID of the mod this settings is being parsed for 
+         * @note If you are using Geode's JSON checking utilities 
+         * (`checkJson` / `JsonExpectedValue`), you should be using the other 
+         * overload that takes a `JsonExpectedValue&`!
+         */
         void init(std::string const& key, std::string const& modID);
-        Result<> parseBaseProperties(std::string const& key, std::string const& modID, matjson::Value const& value, bool onlyNameAndDesc = false);
-        void parseBaseProperties(std::string const& key, std::string const& modID, JsonExpectedValue& value, bool onlyNameAndDesc = false);
+
+        /**
+         * Parses the `"name"` and `"description"` keys from the setting's 
+         * definition in `mod.json` (if they exist), so their values can be 
+         * accessed via `getName` and `getDescription`.
+         * @param json The current JSON checking instance being used. This 
+         * should be the JSON object that defines the setting
+         * @warning In most cases, you should be using `parseBaseProperties` 
+         * instead to do all of this in one go! 
+         * If you do need the fine-grained control however, make sure to call 
+         * `init` before calling these parsing functions!
+         */
+        void parseNameAndDescription(JsonExpectedValue& json);
+        /**
+         * Parses the `"enable-if"` and `"enable-if-description"` keys from 
+         * the setting's definition in `mod.json` (if they exist), so 
+         * `shouldEnable` and `getEnableIfDescription` work.
+         * @param json The current JSON checking instance being used. This 
+         * should be the JSON object that defines the setting
+         * @warning In most cases, you should be using `parseBaseProperties` 
+         * instead to do all of this in one go! 
+         * If you do need the fine-grained control however, make sure to call 
+         * `init` before calling these parsing functions!
+         */
+        void parseEnableIf(JsonExpectedValue& json);
+        /**
+         * Parses the `"requires-restart"` key from the setting's definition in 
+         * `mod.json` (if they exist), so `requiresRestart` works.
+         * @param json The current JSON checking instance being used. This 
+         * should be the JSON object that defines the setting
+         * @warning In most cases, you should be using `parseBaseProperties` 
+         * instead to do all of this in one go! 
+         * If you do need the fine-grained control however, make sure to call 
+         * `init` before calling these parsing functions!
+         */
+        void parseValueProperties(JsonExpectedValue& json);
+
+        /**
+         * Parse all of the base properties such as `"name"` and `"description"` 
+         * for this setting
+         * @param key The setting's key as defined in `mod.json`
+         * @param modID The ID of the mod this settings is being parsed for 
+         * @param json The current JSON checking instance being used. If you 
+         * aren't using Geode's JSON checking utilities, use the other overload 
+         * of this function
+         * @note If you don't want to parse some of the base properties, such as 
+         * `"requires-restart"` (because you're doing a cosmetic setting), then 
+         * you can call `init` instead and then the specific `parseX` functions
+         */
+        void parseBaseProperties(std::string const& key, std::string const& modID, JsonExpectedValue& json);
+        /**
+         * Parse all of the base properties such as `"name"` and `"description"` 
+         * for this setting
+         * @param key The setting's key as defined in `mod.json`
+         * @param modID The ID of the mod this settings is being parsed for 
+         * @param json The JSON value. If you are using Geode's JSON checking 
+         * utilities (`checkJson` / `JsonExpectedValue`), you should use the 
+         * other overload directly!
+         * @note If you don't want to parse some of the base properties, such as 
+         * `"requires-restart"` (because you're doing a cosmetic setting), then 
+         * you can call `init` instead and then the specific `parseX` functions
+         */
+        Result<> parseBaseProperties(std::string const& key, std::string const& modID, matjson::Value const& json);
 
         /**
          * Mark that the value of this setting has changed. This should be 
@@ -80,6 +169,10 @@ namespace geode {
          * Whether this setting requires a restart on change
          */
         bool requiresRestart() const;
+        /**
+         * Get the platforms this setting is available on
+         */
+        std::vector<PlatformID> getPlatforms() const;
 
         virtual bool load(matjson::Value const& json) = 0;
         virtual bool save(matjson::Value& json) const = 0;
@@ -91,9 +184,15 @@ namespace geode {
          */
         virtual void reset() = 0;
 
-        [[deprecated("This function will be removed alongside legacy settings in 4.0.0!")]]
+        [[deprecated(
+            "This function will be removed alongside legacy settings in 4.0.0! "
+            "You should NOT be implementing it for your own custom setting classes"
+        )]]
         virtual std::optional<Setting> convertToLegacy() const;
-        [[deprecated("This function will be removed alongside legacy settings in 4.0.0!")]]
+        [[deprecated(
+            "This function will be removed alongside legacy settings in 4.0.0! "
+            "You should NOT be implementing it for your own custom setting classes"
+        )]]
         virtual std::optional<std::shared_ptr<SettingValue>> convertToLegacyValue() const;
     };
     
@@ -123,15 +222,17 @@ namespace geode {
     
     protected:
         /**
-         * Parse shared value, including the default value for this setting
-         * @param key The key of the setting
-         * @param modID The ID of the mod this setting is being parsed for
-         * @param json The current JSON checking instance being used. If you 
-         * aren't using Geode's JSON checking utilities, use the other overload 
-         * of this function
+         * Parses the `"default"` key from the setting's definition in 
+         * `mod.json`. The key may also be defined per-platform, i.e. 
+         * `"default": { "win": ..., "android": ... }`
+         * @param json The current JSON checking instance being used. This 
+         * should be the JSON object that defines the setting
+         * @warning In most cases, you should be using `parseBaseProperties` 
+         * instead to do all of this in one go! 
+         * If you do need the fine-grained control however, make sure to call 
+         * `init` before calling these parsing functions!
          */
-        void parseBaseProperties(std::string const& key, std::string const& modID, JsonExpectedValue& json) {
-            SettingV3::parseBaseProperties(key, modID, json, false);
+        void parseDefaultValue(JsonExpectedValue& json) {
             auto root = json.needs("default");
             // Check if this is a platform-specific default value
             if (root.isObject() && root.has(GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH)) {
@@ -141,6 +242,19 @@ namespace geode {
                 root.into(m_impl->defaultValue);
             }
             m_impl->value = m_impl->defaultValue;
+        }
+
+        /**
+         * Parse shared value, including the default value for this setting
+         * @param key The key of the setting
+         * @param modID The ID of the mod this setting is being parsed for
+         * @param json The current JSON checking instance being used. If you 
+         * aren't using Geode's JSON checking utilities, use the other overload 
+         * of this function
+         */
+        void parseBaseProperties(std::string const& key, std::string const& modID, JsonExpectedValue& json) {
+            SettingV3::parseBaseProperties(key, modID, json);
+            this->parseDefaultValue(json);
         }
         /**
          * Parse shared value, including the default value for this setting
