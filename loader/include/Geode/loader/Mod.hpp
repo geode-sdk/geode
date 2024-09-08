@@ -173,13 +173,30 @@ namespace geode {
          */
         std::filesystem::path getConfigDir(bool create = true) const;
 
+        /**
+         * Returns true if this mod has any settings
+         */
         bool hasSettings() const;
+        /**
+         * Get a list of all this mod's setting keys (in the order they were 
+         * declared in `mod.json`)
+         */
         std::vector<std::string> getSettingKeys() const;
         bool hasSetting(std::string_view const key) const;
+
+        // todo in v4: remove these
         [[deprecated("Use Mod::getSettingV3")]]
         std::optional<Setting> getSettingDefinition(std::string_view const key) const;
         [[deprecated("Use Mod::getSettingV3")]]
         SettingValue* getSetting(std::string_view const key) const;
+
+        // todo in v4: possibly rename this to getSetting?
+        /**
+         * Get the definition of a setting, or null if the setting was not found, 
+         * or if it's a custom setting that has not yet been registered using 
+         * `Mod::registerCustomSettingType`
+         * @param key The key of the setting as defined in `mod.json`
+         */
         std::shared_ptr<SettingV3> getSettingV3(std::string_view const key) const;
 
         /**
@@ -213,7 +230,12 @@ namespace geode {
         }
 
         /**
-         * Register a custom setting type
+         * Register a custom setting type. See 
+         * [the setting docs](https://docs.geode-sdk.org/mods/settings) for more
+         * @param type The type of the setting. This should **not** include the 
+         * `custom:` prefix!
+         * @param generator A pointer to a function that, when called, returns a 
+         * newly-created instance of the setting type
          */
         Result<> registerCustomSettingType(std::string_view type, SettingGenerator generator);
 

@@ -36,9 +36,6 @@ protected:
     void onToggle(CCObject*);
 
 public:
-    bool getValue() const override;
-    void onSetValue(bool value) override;
-
     static BoolSettingNodeV3* create(std::shared_ptr<BoolSettingV3> setting, float width);
 };
 
@@ -172,6 +169,10 @@ protected:
             m_input->setEnabled(enable);
         }
 
+        if (invoker != m_input) {
+            m_input->setString(numToString(this->getValue()));
+        }
+
         auto min = this->getSetting()->getMinValue();
         auto enableLeft = enable && (!min || this->getValue() > *min);
         m_arrowLeftBtn->setEnabled(enableLeft);
@@ -215,14 +216,6 @@ protected:
         this->setValue(this->valueFromSlider(m_slider->m_touchLogic->m_thumb->getValue()), m_slider);
     }
 
-    ValueType getValue() const override {
-        return numFromString<ValueType>(m_input->getString())
-            .value_or(this->getSetting()->getDefaultValue());
-    }
-    void onSetValue(ValueAssignType value) override {
-        m_input->setString(numToString(value));
-    }
-
 public:
     static NumberSettingNodeV3* create(std::shared_ptr<S> setting, float width) {
         auto ret = new NumberSettingNodeV3();
@@ -250,15 +243,11 @@ protected:
 
 public:
     static StringSettingNodeV3* create(std::shared_ptr<StringSettingV3> setting, float width);
-
-    std::string getValue() const override;
-    void onSetValue(std::string_view value) override;
 };
 
 class FileSettingNodeV3 : public SettingValueNodeV3<FileSettingV3> {
 protected:
     CCSprite* m_fileIcon;
-    std::filesystem::path m_path;
     CCLabelBMFont* m_nameLabel;
     EventListener<Task<Result<std::filesystem::path>>> m_pickListener;
     CCMenuItemSpriteExtra* m_selectBtn;
@@ -270,14 +259,10 @@ protected:
 
 public:
     static FileSettingNodeV3* create(std::shared_ptr<FileSettingV3> setting, float width);
-
-    std::filesystem::path getValue() const override;
-    void onSetValue(std::filesystem::path const& value) override;
 };
 
 class Color3BSettingNodeV3 : public SettingValueNodeV3<Color3BSettingV3>, public ColorPickPopupDelegate {
 protected:
-    ccColor3B m_value;
     CCMenuItemSpriteExtra* m_colorBtn;
     ColorChannelSprite* m_colorSprite;
 
@@ -288,14 +273,10 @@ protected:
 
 public:
     static Color3BSettingNodeV3* create(std::shared_ptr<Color3BSettingV3> setting, float width);
-
-    ccColor3B getValue() const override;
-    void onSetValue(ccColor3B value) override;
 };
 
 class Color4BSettingNodeV3 : public SettingValueNodeV3<Color4BSettingV3>, public ColorPickPopupDelegate {
 protected:
-    ccColor4B m_value;
     CCMenuItemSpriteExtra* m_colorBtn;
     ColorChannelSprite* m_colorSprite;
 
@@ -306,9 +287,6 @@ protected:
 
 public:
     static Color4BSettingNodeV3* create(std::shared_ptr<Color4BSettingV3> setting, float width);
-    
-    ccColor4B getValue() const override;
-    void onSetValue(ccColor4B value) override;
 };
 
 class UnresolvedCustomSettingNodeV3 : public SettingNodeV3 {

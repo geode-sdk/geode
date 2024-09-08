@@ -523,33 +523,45 @@ namespace geode {
     template <class S>
     class SettingValueNodeV3 : public SettingNodeV3 {
     protected:
+    private:
+        class Impl final {
+        private:
+            typename S::ValueType currentValue;
+            friend class SettingValueNodeV3;
+        };
+        std::shared_ptr<Impl> m_impl;
+    
+    protected:
         bool init(std::shared_ptr<S> setting, float width) {
             if (!SettingNodeV3::init(setting, width))
                 return false;
+            
+            m_impl = std::make_shared<Impl>();
+            m_impl->currentValue = setting->getValue();
             
             return true;
         }
 
         void onCommit() override {
-            this->getSetting()->setValue(this->getValue());
+            this->getSetting()->setValue(m_impl->currentValue);
         }
         bool hasUncommittedChanges() const override {
-            return this->getValue() != this->getSetting()->getValue();
+            return m_impl->currentValue != this->getSetting()->getValue();
         }
         bool hasNonDefaultValue() const override {
-            return this->getValue() != this->getSetting()->getDefaultValue();
+            return m_impl->currentValue != this->getSetting()->getDefaultValue();
         }
         void onResetToDefault() override {
             this->setValue(this->getSetting()->getDefaultValue(), nullptr);
         }
 
-        virtual void onSetValue(typename S::ValueAssignType value) = 0;
-
     public:
         /**
          * Get the **uncommitted** value for this node
          */
-        virtual typename S::ValueType getValue() const = 0;
+        typename S::ValueType getValue() const {
+            return m_impl->currentValue;
+        }
         /**
          * Set the **uncommitted** value for this node
          * @param value The value to set
@@ -557,7 +569,7 @@ namespace geode {
          * for `SettingNodeV3::updateState` to know more
          */
         void setValue(typename S::ValueAssignType value, cocos2d::CCNode* invoker) {
-            this->onSetValue(value);
+            m_impl->currentValue = value;
             this->markChanged(invoker);
         }
 

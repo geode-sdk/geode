@@ -278,6 +278,7 @@ bool BoolSettingNodeV3::init(std::shared_ptr<BoolSettingV3> setting, float width
 void BoolSettingNodeV3::updateState(CCNode* invoker) {
     SettingNodeV3::updateState(invoker);
     auto enable = this->getSetting()->shouldEnable();
+    m_toggle->toggle(this->getValue());
     m_toggle->setCascadeColorEnabled(true);
     m_toggle->setCascadeOpacityEnabled(true);
     m_toggle->setEnabled(enable);
@@ -286,15 +287,8 @@ void BoolSettingNodeV3::updateState(CCNode* invoker) {
 }
 
 void BoolSettingNodeV3::onToggle(CCObject*) {
-    m_toggle->toggle(!m_toggle->isToggled());
+    this->setValue(!m_toggle->isToggled(), m_toggle);
     this->markChanged(m_toggle);
-}
-
-bool BoolSettingNodeV3::getValue() const {
-    return m_toggle->isToggled();
-}
-void BoolSettingNodeV3::onSetValue(bool value) {
-    m_toggle->toggle(value);
 }
 
 BoolSettingNodeV3* BoolSettingNodeV3::create(std::shared_ptr<BoolSettingV3> setting, float width) {
@@ -352,6 +346,11 @@ bool StringSettingNodeV3::init(std::shared_ptr<StringSettingV3> setting, float w
 
 void StringSettingNodeV3::updateState(CCNode* invoker) {
     SettingNodeV3::updateState(invoker);
+
+    if (invoker != m_input) {
+        m_input->setString(this->getValue());
+    }
+
     auto enable = this->getSetting()->shouldEnable();
     if (!this->getSetting()->getEnumOptions()) {
         m_input->setEnabled(enable);
@@ -366,22 +365,14 @@ void StringSettingNodeV3::updateState(CCNode* invoker) {
 
 void StringSettingNodeV3::onArrow(CCObject* sender) {
     auto options = *this->getSetting()->getEnumOptions();
-    auto index = ranges::indexOf(options, m_input->getString()).value_or(0);
+    auto index = ranges::indexOf(options, this->getValue()).value_or(0);
     if (sender->getTag() > 0) {
         index = index < options.size() - 1 ? index + 1 : 0;
     }
     else {
         index = index > 0 ? index - 1 : options.size() - 1;
     }
-    m_input->setString(options.at(index));
-    this->updateState(static_cast<CCNode*>(sender));
-}
-
-std::string StringSettingNodeV3::getValue() const {
-    return m_input->getString();
-}
-void StringSettingNodeV3::onSetValue(std::string_view value) {
-    m_input->setString(std::string(value));
+    this->setValue(options.at(index), static_cast<CCNode*>(sender));
 }
 
 StringSettingNodeV3* StringSettingNodeV3::create(std::shared_ptr<StringSettingV3> setting, float width) {
@@ -400,8 +391,6 @@ bool FileSettingNodeV3::init(std::shared_ptr<FileSettingV3> setting, float width
     if (!SettingValueNodeV3::init(setting, width))
         return false;
     
-    m_path = setting->getValue();
-
     auto labelBG = extension::CCScale9Sprite::create("square02b_001.png", { 0, 0, 80, 80 });
     labelBG->setScale(.25f);
     labelBG->setColor({ 0, 0, 0 });
@@ -433,13 +422,13 @@ void FileSettingNodeV3::updateState(CCNode* invoker) {
         this->getSetting()->isFolder() ? "folderIcon_001.png" : "file.png"_spr
     ));
     limitNodeSize(m_fileIcon, ccp(10, 10), 1.f, .1f);
-    if (m_path.empty()) {
+    if (this->getValue().empty()) {
         m_nameLabel->setString(this->getSetting()->isFolder() ? "No Folder Selected" : "No File Selected");
         m_nameLabel->setColor(ccGRAY);
         m_nameLabel->setOpacity(155);
     }
     else {
-        m_nameLabel->setString(m_path.filename().string().c_str());
+        m_nameLabel->setString(this->getValue().filename().string().c_str());
         m_nameLabel->setColor(ccWHITE);
         m_nameLabel->setOpacity(255);
     }
@@ -458,8 +447,7 @@ void FileSettingNodeV3::onPickFile(CCObject*) {
             return;
         }
         if (value->isOk()) {
-            m_path = value->unwrap().string();
-            this->markChanged(nullptr);
+            this->setValue(value->unwrap(), nullptr);
         }
         else {
             FLAlertLayer::create(
@@ -476,17 +464,12 @@ void FileSettingNodeV3::onPickFile(CCObject*) {
             (this->getSetting()->useSaveDialog() ? file::PickMode::SaveFile : file::PickMode::OpenFile), 
         {
             // Prefer opening the current path directly if possible
-            m_path.empty() || !std::filesystem::exists(m_path.parent_path(), ec) ? dirs::getGameDir() : m_path,
+            this->getValue().empty() || !std::filesystem::exists(this->getValue().parent_path(), ec) ? 
+                dirs::getGameDir() : 
+                this->getValue(),
             this->getSetting()->getFilters().value_or(std::vector<file::FilePickOptions::Filter>())
         }
     ));
-}
-
-std::filesystem::path FileSettingNodeV3::getValue() const {
-    return m_path;
-}
-void FileSettingNodeV3::onSetValue(std::filesystem::path const& value) {
-    m_path = value;
 }
 
 FileSettingNodeV3* FileSettingNodeV3::create(std::shared_ptr<FileSettingV3> setting, float width) {
@@ -505,8 +488,6 @@ bool Color3BSettingNodeV3::init(std::shared_ptr<Color3BSettingV3> setting, float
     if (!SettingValueNodeV3::init(setting, width))
         return false;
     
-    m_value = setting->getValue();
-
     m_colorSprite = ColorChannelSprite::create();
     m_colorSprite->setScale(.65f);
 
@@ -522,7 +503,7 @@ bool Color3BSettingNodeV3::init(std::shared_ptr<Color3BSettingV3> setting, float
 
 void Color3BSettingNodeV3::updateState(CCNode* invoker) {
     SettingNodeV3::updateState(invoker);
-    m_colorSprite->setColor(m_value);
+    m_colorSprite->setColor(this->getValue());
     
     auto enable = this->getSetting()->shouldEnable();
     m_colorSprite->setOpacity(enable ? 255 : 155);
@@ -530,20 +511,12 @@ void Color3BSettingNodeV3::updateState(CCNode* invoker) {
 }
 
 void Color3BSettingNodeV3::onSelectColor(CCObject*) {
-    auto popup = ColorPickPopup::create(m_value);
+    auto popup = ColorPickPopup::create(this->getValue());
     popup->setDelegate(this);
     popup->show();
 }
 void Color3BSettingNodeV3::updateColor(ccColor4B const& color) {
-    m_value = to3B(color);
-    this->markChanged(nullptr);
-}
-
-ccColor3B Color3BSettingNodeV3::getValue() const {
-    return m_value;
-}
-void Color3BSettingNodeV3::onSetValue(ccColor3B value) {
-    m_value = value;
+    this->setValue(to3B(color), nullptr);
 }
 
 Color3BSettingNodeV3* Color3BSettingNodeV3::create(std::shared_ptr<Color3BSettingV3> setting, float width) {
@@ -562,8 +535,6 @@ bool Color4BSettingNodeV3::init(std::shared_ptr<Color4BSettingV3> setting, float
     if (!SettingValueNodeV3::init(setting, width))
         return false;
     
-    m_value = setting->getValue();
-
     m_colorSprite = ColorChannelSprite::create();
     m_colorSprite->setScale(.65f);
 
@@ -579,8 +550,8 @@ bool Color4BSettingNodeV3::init(std::shared_ptr<Color4BSettingV3> setting, float
 
 void Color4BSettingNodeV3::updateState(CCNode* invoker) {
     SettingNodeV3::updateState(invoker);
-    m_colorSprite->setColor(to3B(m_value));
-    m_colorSprite->updateOpacity(m_value.a / 255.f);
+    m_colorSprite->setColor(to3B(this->getValue()));
+    m_colorSprite->updateOpacity(this->getValue().a / 255.f);
     
     auto enable = this->getSetting()->shouldEnable();
     m_colorSprite->setOpacity(enable ? 255 : 155);
@@ -588,20 +559,12 @@ void Color4BSettingNodeV3::updateState(CCNode* invoker) {
 }
 
 void Color4BSettingNodeV3::onSelectColor(CCObject*) {
-    auto popup = ColorPickPopup::create(m_value);
+    auto popup = ColorPickPopup::create(this->getValue());
     popup->setDelegate(this);
     popup->show();
 }
 void Color4BSettingNodeV3::updateColor(ccColor4B const& color) {
-    m_value = color;
-    this->markChanged(nullptr);
-}
-
-ccColor4B Color4BSettingNodeV3::getValue() const {
-    return m_value;
-}
-void Color4BSettingNodeV3::onSetValue(ccColor4B value) {
-    m_value = value;
+    this->setValue(color, nullptr);
 }
 
 Color4BSettingNodeV3* Color4BSettingNodeV3::create(std::shared_ptr<Color4BSettingV3> setting, float width) {

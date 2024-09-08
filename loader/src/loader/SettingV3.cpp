@@ -1055,17 +1055,18 @@ Result<std::shared_ptr<FileSettingV3>> FileSettingV3::parse(std::string const& k
                 key, modID
             );
         }
-        std::string dialogType;
-        root.has("dialog").into(dialogType);
-        switch (hash(dialogType)) {
-            case hash("save"): ret->m_impl->useSaveDialog = true; break;
-            case hash("open"): ret->m_impl->useSaveDialog = false; break;
-            case hash(""): break;
-            default: return Err("Setting '{}' in mod {}: unknown \"dialog\" type \"{}\"", key, modID, dialogType);
-        }
 
-        // Filter controls only make sense for files but not for folders
+        // Controls only make sense for files but not for folders
         if (auto controls = root.has("control")) {
+            std::string dialogType;
+            controls.has("dialog").into(dialogType);
+            switch (hash(dialogType)) {
+                case hash("save"): ret->m_impl->useSaveDialog = true; break;
+                case hash("open"): ret->m_impl->useSaveDialog = false; break;
+                case hash(""): break;
+                default: return Err("Setting '{}' in mod {}: unknown \"dialog\" type \"{}\"", key, modID, dialogType);
+            }
+            
             auto filters = std::vector<file::FilePickOptions::Filter>();
             for (auto& item : controls.has("filters").items()) {
                 utils::file::FilePickOptions::Filter filter;
