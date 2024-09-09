@@ -228,6 +228,16 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     }
 
     for (auto& incompat : root.has("incompatibilities").items()) {
+        bool onThisPlatform = !incompat.has("platforms");
+        for (auto& plat : incompat.has("platforms").items()) {
+            if (PlatformID::coveredBy(plat.get<std::string>(), GEODE_PLATFORM_TARGET)) {
+                onThisPlatform = true;
+            }
+        }
+        if (!onThisPlatform) {
+            continue;
+        }
+
         Incompatibility incompatibility;
         incompat.needs("id").mustBe<std::string>(ID_REGEX, &ModMetadata::Impl::validateOldID).into(incompatibility.id);
         incompat.needs("version").into(incompatibility.version);
