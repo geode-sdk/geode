@@ -1,5 +1,26 @@
 # Geode Changelog
 
+## v3.5.0
+ * Move CCLighting to cocos headers (#1036)
+ * Add new `gd::string` constructor (bae22b4)
+ * Use `getChildren` instead of member in `getChildByID` (fe730ed)
+ * Fix sprite order in `CCMenuItemExt::createToggler` (d729a12, 59a0ade)
+ * Add restart button to windows's crashlog window (#1025)
+ * Update FMOD headers (63b82f9)
+ * Change SwelvyBG sprites to be 2048x512 (#1029)
+ * Fix missing `GEODE_DLL` (e4054d4)
+ * Add code of conduct (80693c1, ab8ace0, ca3a2a3)
+ * Add ID system to Geode's web requests (#1040, 1f2aa2c, 1b5ae86)
+ * Add `Notification::cancel` (cd5a66c)
+ * Update matjson (e5dd2c9)
+ * Update TulipHook (a31c68f)
+ * Fix a bug where only 1 word wrap variant can exist (#1058)
+ * Fix ScrollLayer when anchor point is not ignored (d95a43b)
+ * Move macOS builds to using apple clang, fixing issues on older macOS versions (#1030)
+ * Allow dashes when searching for developers (#1023)
+ * Split update checks into multiple batches (#1066)
+ * Show invalid mods on mod search (#1065)
+
 ## v3.4.0
  * Add an API for modifying the Geode UI via events; see [the corresponding docs page](https://docs.geode-sdk.org/tutorials/modify-geode) (2a3c35f)
  * Add `openInfoPopup` overload that accepts a mod ID and can open both an installed mod page or a server page (028bbf9)
