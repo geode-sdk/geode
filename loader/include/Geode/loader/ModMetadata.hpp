@@ -243,6 +243,8 @@ namespace geode {
         void setTags(std::unordered_set<std::string> const& value);
         void setNeedsEarlyLoad(bool const& value);
         void setIsAPI(bool const& value);
+        void setGameVersion(std::string const& value);
+        void setGeodeVersion(VersionInfo const& value);
         ModMetadataLinks& getLinksMut();
 #endif
 
