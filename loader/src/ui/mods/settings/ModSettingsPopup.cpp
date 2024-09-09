@@ -290,19 +290,21 @@ bool ModSettingsPopup::hasUncommitted() const {
 }
 
 void ModSettingsPopup::onClose(CCObject* sender) {
-    if (sender && this->hasUncommitted()) {
+    if (this->hasUncommitted()) {
         createQuickPopup(
             "Unsaved Changes",
             "You have <cr>unsaved changes</c>! Are you sure you "
             "want to exit?",
             "Cancel", "Discard",
             [this](FLAlertLayer*, bool btn2) {
-                if (btn2) this->onClose(nullptr);
+                if (btn2) {
+                    GeodePopup::onClose(nullptr);
+                }
             }
         );
         return;
     }
-    Popup<Mod*>::onClose(sender);
+    GeodePopup::onClose(sender);
 }
 
 ModSettingsPopup* ModSettingsPopup::create(Mod* mod) {
