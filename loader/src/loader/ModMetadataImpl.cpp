@@ -654,6 +654,12 @@ void ModMetadata::setNeedsEarlyLoad(bool const& value) {
 void ModMetadata::setIsAPI(bool const& value) {
     m_impl->m_isAPI = value;
 }
+void ModMetadata::setGameVersion(std::string const& value) {
+    m_impl->m_gdVersion = value;
+}
+void ModMetadata::setGeodeVersion(VersionInfo const& value) {
+    m_impl->m_geodeVersion = value;
+}
 ModMetadataLinks& ModMetadata::getLinksMut() {
     return m_impl->m_links;
 }

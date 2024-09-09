@@ -134,12 +134,27 @@ bool ModItem::init(ModSource&& source) {
     m_viewMenu->setAnchorPoint({ 1.f, .5f });
     m_viewMenu->setScale(.55f);
 
-    ButtonSprite* spr;
-    if (Loader::get()->isModInstalled(m_source.getID())) {
-        spr = createGeodeButton("View", 50, false, true);
-    } else {
-        spr = createGeodeButton("Get", 50, false, true, GeodeButtonSprite::Install);
+    ButtonSprite* spr = nullptr;
+    if (auto serverMod = m_source.asServer(); serverMod != nullptr) {
+        auto version = serverMod->latestVersion();
+
+        auto geodeValid = Loader::get()->isModVersionSupported(version.getGeodeVersion());
+        auto gameVersion = version.getGameVersion();
+        auto gdValid = gameVersion == "*" || gameVersion == GEODE_STR(GEODE_GD_VERSION);
+
+        if (!geodeValid || !gdValid) {
+            spr = createGeodeButton("NA", 50, false, true, GeodeButtonSprite::Default);
+        }
     }
+
+    if (!spr) {
+        if (Loader::get()->isModInstalled(m_source.getID())) {
+            spr = createGeodeButton("View", 50, false, true);
+        } else {
+            spr = createGeodeButton("Get", 50, false, true, GeodeButtonSprite::Install);
+        }
+    }
+
     auto viewBtn = CCMenuItemSpriteExtra::create(
         spr,
         this, menu_selector(ModItem::onView)
@@ -471,6 +486,25 @@ void ModItem::onView(CCObject*) {
             "<cp>The paid content may not be available in your country.</c>",
             "OK", nullptr, 360
         )->show();
+    }
+
+    if (auto serverMod = m_source.asServer(); serverMod != nullptr) {
+        auto version = serverMod->latestVersion();
+        auto geodeVersion = version.getGeodeVersion();
+        auto geodeValid = Loader::get()->isModVersionSupported(geodeVersion);
+
+        if (auto res = version.checkGameVersion(); !res) {
+            FLAlertLayer::create(nullptr, "Unavailable", res.unwrapErr(), "Close", nullptr)->show();
+            return;
+        } else if (!geodeValid) {
+            auto msg = fmt::format(
+                "Geode {} is required to view this mod. You currently have {}.",
+                geodeVersion.toVString(),
+                Loader::get()->getVersion().toVString()
+            );
+            FLAlertLayer::create(nullptr, "Unavailable", msg, "Close", nullptr)->show();
+            return;
+        }
     }
 
     // Always open up the popup for the installed mod page if that is possible
