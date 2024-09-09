@@ -163,7 +163,7 @@ protected:
     }
 
     void updateState(CCNode* invoker) override {
-        SettingNodeV3::updateState(invoker);
+        SettingValueNodeV3<S>::updateState(invoker);
         auto enable = this->getSetting()->shouldEnable();
         if (this->getSetting()->isInputEnabled()) {
             m_input->setEnabled(enable);

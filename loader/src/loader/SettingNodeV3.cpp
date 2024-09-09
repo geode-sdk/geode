@@ -48,7 +48,7 @@ public:
     CCMenu* nameMenu;
     CCMenu* buttonMenu;
     CCMenuItemSpriteExtra* resetButton;
-    CCLabelBMFont* errorLabel;
+    CCLabelBMFont* statusLabel;
     ccColor4B bgColor = ccc4(0, 0, 0, 0);
     bool committed = false;
 };
@@ -75,9 +75,9 @@ bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
     m_impl->nameLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.1f, .4f)->setScalePriority(1));
     m_impl->nameMenu->addChild(m_impl->nameLabel);
 
-    m_impl->errorLabel = CCLabelBMFont::create("", "bigFont.fnt");
-    m_impl->errorLabel->setScale(.25f);
-    this->addChildAtPosition(m_impl->errorLabel, Anchor::Left, ccp(10, -10), ccp(0, .5f));
+    m_impl->statusLabel = CCLabelBMFont::create("", "bigFont.fnt");
+    m_impl->statusLabel->setScale(.25f);
+    this->addChildAtPosition(m_impl->statusLabel, Anchor::Left, ccp(10, -10), ccp(0, .5f));
 
     if (setting && setting->getDescription()) {
         auto descSpr = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
@@ -111,7 +111,7 @@ bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
 }
 
 void SettingNodeV3::updateState(CCNode* invoker) {
-    m_impl->errorLabel->setVisible(false);
+    m_impl->statusLabel->setVisible(false);
 
     m_impl->nameLabel->setColor(this->hasUncommittedChanges() ? ccc3(17, 221, 0) : ccWHITE);
     m_impl->resetButton->setVisible(this->hasNonDefaultValue());
@@ -122,15 +122,15 @@ void SettingNodeV3::updateState(CCNode* invoker) {
     if (m_impl->setting && !m_impl->setting->shouldEnable()) {
         if (auto desc = m_impl->setting->getEnableIfDescription()) {
             m_impl->nameLabel->setColor(ccGRAY);
-            m_impl->errorLabel->setVisible(true);
-            m_impl->errorLabel->setColor("mod-list-errors-found"_cc3b);
-            m_impl->errorLabel->setString(desc->c_str());
+            m_impl->statusLabel->setVisible(true);
+            m_impl->statusLabel->setColor("mod-list-errors-found"_cc3b);
+            m_impl->statusLabel->setString(desc->c_str());
         }
     }
     if (m_impl->setting && m_impl->setting->requiresRestart() && m_impl->committed) {
-        m_impl->errorLabel->setVisible(true);
-        m_impl->errorLabel->setColor("mod-list-restart-required-label"_cc3b);
-        m_impl->errorLabel->setString("Restart Required");
+        m_impl->statusLabel->setVisible(true);
+        m_impl->statusLabel->setColor("mod-list-restart-required-label"_cc3b);
+        m_impl->statusLabel->setString("Restart Required");
         m_impl->bg->setColor("mod-list-restart-required-label-bg"_cc3b);
         m_impl->bg->setOpacity(75);
     }
@@ -198,6 +198,9 @@ void SettingNodeV3::setContentSize(CCSize const& size) {
 
 CCLabelBMFont* SettingNodeV3::getNameLabel() const {
     return m_impl->nameLabel;
+}
+CCLabelBMFont* SettingNodeV3::getStatusLabel() const {
+    return m_impl->statusLabel;
 }
 CCMenu* SettingNodeV3::getNameMenu() const {
     return m_impl->nameMenu;
@@ -276,7 +279,7 @@ bool BoolSettingNodeV3::init(std::shared_ptr<BoolSettingV3> setting, float width
 }
 
 void BoolSettingNodeV3::updateState(CCNode* invoker) {
-    SettingNodeV3::updateState(invoker);
+    SettingValueNodeV3::updateState(invoker);
     auto enable = this->getSetting()->shouldEnable();
     m_toggle->toggle(this->getValue());
     m_toggle->setCascadeColorEnabled(true);
@@ -345,7 +348,7 @@ bool StringSettingNodeV3::init(std::shared_ptr<StringSettingV3> setting, float w
 }
 
 void StringSettingNodeV3::updateState(CCNode* invoker) {
-    SettingNodeV3::updateState(invoker);
+    SettingValueNodeV3::updateState(invoker);
 
     if (invoker != m_input) {
         m_input->setString(this->getValue());
@@ -417,7 +420,7 @@ bool FileSettingNodeV3::init(std::shared_ptr<FileSettingV3> setting, float width
 }
 
 void FileSettingNodeV3::updateState(CCNode* invoker) {
-    SettingNodeV3::updateState(invoker);
+    SettingValueNodeV3::updateState(invoker);
     m_fileIcon->setDisplayFrame(CCSpriteFrameCache::get()->spriteFrameByName(
         this->getSetting()->isFolder() ? "folderIcon_001.png" : "file.png"_spr
     ));
@@ -502,7 +505,7 @@ bool Color3BSettingNodeV3::init(std::shared_ptr<Color3BSettingV3> setting, float
 }
 
 void Color3BSettingNodeV3::updateState(CCNode* invoker) {
-    SettingNodeV3::updateState(invoker);
+    SettingValueNodeV3::updateState(invoker);
     m_colorSprite->setColor(this->getValue());
     
     auto enable = this->getSetting()->shouldEnable();
@@ -549,7 +552,7 @@ bool Color4BSettingNodeV3::init(std::shared_ptr<Color4BSettingV3> setting, float
 }
 
 void Color4BSettingNodeV3::updateState(CCNode* invoker) {
-    SettingNodeV3::updateState(invoker);
+    SettingValueNodeV3::updateState(invoker);
     m_colorSprite->setColor(to3B(this->getValue()));
     m_colorSprite->updateOpacity(this->getValue().a / 255.f);
     

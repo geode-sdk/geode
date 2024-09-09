@@ -621,6 +621,7 @@ namespace geode {
         void setDefaultBGColor(cocos2d::ccColor4B color);
 
         cocos2d::CCLabelBMFont* getNameLabel() const;
+        cocos2d::CCLabelBMFont* getStatusLabel() const;
         cocos2d::CCMenu* getNameMenu() const;
         cocos2d::CCMenu* getButtonMenu() const;
         cocos2d::CCLayerColor* getBG() const;
@@ -654,6 +655,16 @@ namespace geode {
             m_impl->currentValue = setting->getValue();
             
             return true;
+        }
+
+        void updateState(cocos2d::CCNode* invoker) {
+            SettingNodeV3::updateState(invoker);
+            auto validate = this->getSetting()->isValid(m_impl->currentValue);
+            if (!validate) {
+                this->getStatusLabel()->setVisible(true);
+                this->getStatusLabel()->setString(validate.unwrapErr().c_str());
+                this->getStatusLabel()->setColor(cocos2d::ccc3(235, 35, 52));
+            }
         }
 
         void onCommit() override {

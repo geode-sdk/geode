@@ -482,7 +482,7 @@ void SettingV3::init(std::string const& key, std::string const& modID, JsonExpec
     // Keys every setting must have
     json.needs("type");
     for (auto& plat : json.has("platforms").items()) {
-        m_impl->platforms.push_back(PlatformID::from(plat.template get<std::string>()));
+        ranges::push(m_impl->platforms, PlatformID::getCovered(plat.template get<std::string>()));
     }
 }
 
