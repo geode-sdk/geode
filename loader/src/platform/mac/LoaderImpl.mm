@@ -5,6 +5,7 @@
 #include <loader/console.hpp>
 #include <loader/IPC.hpp>
 #include <loader/ModImpl.hpp>
+#undef CommentType
 #import <Foundation/Foundation.h>
 #include <sys/stat.h>
 #include <loader/LogImpl.hpp>
