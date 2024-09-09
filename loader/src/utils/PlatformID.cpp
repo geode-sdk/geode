@@ -49,6 +49,9 @@ bool PlatformID::coveredBy(std::string const& str, PlatformID t) {
 
 std::vector<PlatformID> PlatformID::getCovered(std::string_view str) {
     switch (hash(str)) {
+        case hash("desktop"): return { PlatformID::Windows, PlatformID::MacArm, PlatformID::MacIntel };
+        case hash("mobile"): return { PlatformID::iOS, PlatformID::Android32, PlatformID::Android64 };
+
         case hash("win"): return { PlatformID::Windows };
 
         case hash("mac"): return { PlatformID::MacIntel, PlatformID::MacArm };
