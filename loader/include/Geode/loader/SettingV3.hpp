@@ -432,7 +432,7 @@ namespace geode {
         size_t getArrowStepSize() const;
         size_t getBigArrowStepSize() const;
         bool isSliderEnabled() const;
-        std::optional<int64_t> getSliderSnap() const;
+        int64_t getSliderSnap() const;
         bool isInputEnabled() const;
     
         SettingNodeV3* createNode(float width) override;
@@ -464,7 +464,7 @@ namespace geode {
         double getArrowStepSize() const;
         double getBigArrowStepSize() const;
         bool isSliderEnabled() const;
-        std::optional<double> getSliderSnap() const;
+        double getSliderSnap() const;
         bool isInputEnabled() const;
         
         SettingNodeV3* createNode(float width) override;
@@ -669,6 +669,9 @@ namespace geode {
 
         void onCommit() override {
             this->getSetting()->setValue(m_impl->currentValue);
+            // The value may be different, if the current value was an invalid
+            // value for the setting
+            this->setValue(this->getSetting()->getValue(), nullptr);
         }
         bool hasUncommittedChanges() const override {
             return m_impl->currentValue != this->getSetting()->getValue();

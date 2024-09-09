@@ -67,8 +67,9 @@ protected:
         auto max = this->getSetting()->getMaxValue().value_or(+100);
         auto range = max - min;
         auto value = static_cast<ValueType>(num * range + min);
-        if (auto step = this->getSetting()->getSliderSnap()) {
-            value = static_cast<ValueType>(round(value / *step) * (*step));
+        auto step = this->getSetting()->getSliderSnap();
+        if (step > 0) {
+            value = static_cast<ValueType>(round(value / step) * step);
         }
         return value;
     }
@@ -106,8 +107,8 @@ protected:
         
         m_input = TextInput::create(this->getButtonMenu()->getContentWidth() - 40, "Num");
         m_input->setScale(.7f);
-        m_input->setCallback([this](auto const&) {
-            this->markChanged(m_input);
+        m_input->setCallback([this, setting](auto const& str) {
+            this->setValue(numFromString<ValueType>(str).unwrapOr(setting->getDefaultValue()), m_input);
         });
         if (!setting->isInputEnabled()) {
             m_input->getBGSprite()->setVisible(false);

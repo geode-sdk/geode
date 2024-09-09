@@ -311,8 +311,8 @@ bool StringSettingNodeV3::init(std::shared_ptr<StringSettingV3> setting, float w
         return false;
 
     m_input = TextInput::create(setting->getEnumOptions() ? width / 2 - 50 : width / 2, "Text");
-    m_input->setCallback([this](auto const&) {
-        this->markChanged(m_input);
+    m_input->setCallback([this](auto const& str) {
+        this->setValue(str, m_input);
     });
     m_input->setScale(.7f);
     m_input->setString(this->getSetting()->getValue());

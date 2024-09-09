@@ -487,7 +487,7 @@ void SettingV3::init(std::string const& key, std::string const& modID, JsonExpec
 }
 
 void SettingV3::parseNameAndDescription(JsonExpectedValue& json) {
-    json.needs("name").into(m_impl->name);
+    json.has("name").into(m_impl->name);
     json.has("description").into(m_impl->description);
 }
 void SettingV3::parseEnableIf(JsonExpectedValue& json) {
@@ -711,7 +711,7 @@ public:
         size_t arrowStepSize = 1;
         size_t bigArrowStepSize = 5;
         bool sliderEnabled = true;
-        std::optional<int64_t> sliderSnap;
+        int64_t sliderSnap = 1;
         bool textInputEnabled = true;
     } controls;
 };
@@ -797,7 +797,7 @@ size_t IntSettingV3::getBigArrowStepSize() const {
 bool IntSettingV3::isSliderEnabled() const {
     return m_impl->controls.sliderEnabled;
 }
-std::optional<int64_t> IntSettingV3::getSliderSnap() const {
+int64_t IntSettingV3::getSliderSnap() const {
     return m_impl->controls.sliderSnap;
 }
 bool IntSettingV3::isInputEnabled() const {
@@ -842,7 +842,7 @@ public:
         double arrowStepSize = 1;
         double bigArrowStepSize = 5;
         bool sliderEnabled = true;
-        std::optional<double> sliderSnap;
+        double sliderSnap = 0.1;
         bool textInputEnabled = true;
     } controls;
 };
@@ -926,7 +926,7 @@ double FloatSettingV3::getBigArrowStepSize() const {
 bool FloatSettingV3::isSliderEnabled() const {
     return m_impl->controls.sliderEnabled;
 }
-std::optional<double> FloatSettingV3::getSliderSnap() const {
+double FloatSettingV3::getSliderSnap() const {
     return m_impl->controls.sliderSnap;
 }
 bool FloatSettingV3::isInputEnabled() const {
