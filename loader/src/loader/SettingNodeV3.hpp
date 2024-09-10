@@ -13,12 +13,17 @@ using namespace geode::prelude;
 
 class TitleSettingNodeV3 : public SettingNodeV3 {
 protected:
+    CCMenuItemToggler* m_collapseToggle;
+
     bool init(std::shared_ptr<TitleSettingV3> setting, float width);
 
     void onCommit() override;
+    void onCollapse(CCObject*);
 
 public:
     static TitleSettingNodeV3* create(std::shared_ptr<TitleSettingV3> setting, float width);
+
+    bool isCollapsed() const;
     
     bool hasUncommittedChanges() const override;
     bool hasNonDefaultValue() const override;

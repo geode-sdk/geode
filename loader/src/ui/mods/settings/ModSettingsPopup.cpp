@@ -75,10 +75,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
     m_list = ScrollLayer::create(layerSize - ccp(0, searchContainer->getContentHeight()));
     m_list->setTouchEnabled(true);
 
-    bool bg = false;
     for (auto& key : mod->getSettingKeys()) {
-        bg = !bg;
-
         SettingNodeV3* node;
         if (auto sett = mod->getSettingV3(key)) {
             node = sett->createNode(layerSize.width);
@@ -86,7 +83,6 @@ bool ModSettingsPopup::setup(Mod* mod) {
         else {
             node = UnresolvedCustomSettingNodeV3::create(key, mod, layerSize.width);
         }
-        node->setDefaultBGColor(ccc4(0, 0, 0, bg ? 60 : 20));
     
         // auto separator = CCLayerColor::create({ 0, 0, 0, 50 }, layerSize.width, 1.f);
         // separator->setOpacity(bg ? 100 : 50);
@@ -248,11 +244,27 @@ void ModSettingsPopup::updateState(SettingNodeV3* invoker) {
     m_openConfigDirBtnSpr->setColor(configDirExists ? ccWHITE : ccGRAY);
     m_openConfigDirBtnSpr->setOpacity(configDirExists ? 255 : 155);
 
-    // Update search visibility + all settings with "enable-if" schemes
+    auto listPosBefore = m_list->m_contentLayer->getPositionY();
+    auto listHeightBefore = m_list->m_contentLayer->getContentHeight();
+
+    // Update search visibility + all settings with "enable-if" schemes + 
+    // checkerboard BG
+    TitleSettingNodeV3* lastTitle = nullptr;
+    bool bg = false;
     for (auto& sett : m_settings) {
+        if (auto asTitle = typeinfo_cast<TitleSettingNodeV3*>(sett.data())) {
+            lastTitle = asTitle;
+        }
         sett->removeFromParent();
-        if (!hasSearch || matchSearch(sett, search)) {
+        if (
+            // Show if the setting is not a title and is not subject to a collapsed title
+            !(lastTitle && lastTitle != sett && lastTitle->isCollapsed()) &&
+            // Show if there's no search query or if the setting matches it
+            (!hasSearch || matchSearch(sett, search))
+        ) {
             m_list->m_contentLayer->addChild(sett);
+            sett->setDefaultBGColor(ccc4(0, 0, 0, bg ? 60 : 20));
+            bg = !bg;
         }
         // Avoid infinite loops
         if (sett == invoker) {
@@ -263,6 +275,12 @@ void ModSettingsPopup::updateState(SettingNodeV3* invoker) {
         }
     }
     m_list->m_contentLayer->updateLayout();
+
+    // Preserve relative list position if something has been collapsed
+    m_list->m_contentLayer->setPositionY(
+        listPosBefore + 
+            (listHeightBefore - m_list->m_contentLayer->getContentHeight())
+    );
 
     m_applyBtnSpr->setCascadeColorEnabled(true);
     m_applyBtnSpr->setCascadeOpacityEnabled(true);

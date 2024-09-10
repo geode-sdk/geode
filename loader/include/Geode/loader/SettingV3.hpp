@@ -653,7 +653,7 @@ namespace geode {
             
             m_impl = std::make_shared<Impl>();
             m_impl->currentValue = setting->getValue();
-            
+
             return true;
         }
 

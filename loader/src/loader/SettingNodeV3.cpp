@@ -222,6 +222,30 @@ bool TitleSettingNodeV3::init(std::shared_ptr<TitleSettingV3> setting, float wid
     if (!SettingNodeV3::init(setting, width))
         return false;
     
+    auto collapseSprBG = CCSprite::create("square02c_001.png");
+    collapseSprBG->setColor(ccc3(25, 25, 25));
+    collapseSprBG->setOpacity(105);
+    auto collapseSpr = CCSprite::createWithSpriteFrameName("edit_downBtn_001.png");
+    collapseSpr->setScale(1.9f);
+    collapseSprBG->addChildAtPosition(collapseSpr, Anchor::Center);
+    collapseSprBG->setScale(.2f);
+
+    auto uncollapseSprBG = CCSprite::create("square02c_001.png");
+    uncollapseSprBG->setColor(ccc3(25, 25, 25));
+    uncollapseSprBG->setOpacity(105);
+    auto uncollapseSpr = CCSprite::createWithSpriteFrameName("edit_delCBtn_001.png");
+    uncollapseSpr->setScale(1.5f);
+    uncollapseSprBG->addChildAtPosition(uncollapseSpr, Anchor::Center);
+    uncollapseSprBG->setScale(.2f);
+    
+    m_collapseToggle = CCMenuItemToggler::create(
+        collapseSprBG, uncollapseSprBG,
+        this, menu_selector(TitleSettingNodeV3::onCollapse)
+    );
+    m_collapseToggle->m_notClickable = true;
+    this->getButtonMenu()->setContentWidth(20);
+    this->getButtonMenu()->addChildAtPosition(m_collapseToggle, Anchor::Center);
+    
     this->getNameLabel()->setFntFile("goldFont.fnt");
     this->getNameMenu()->updateLayout();
     this->setContentHeight(20);
@@ -230,7 +254,16 @@ bool TitleSettingNodeV3::init(std::shared_ptr<TitleSettingV3> setting, float wid
     return true;
 }
 
+void TitleSettingNodeV3::onCollapse(CCObject* sender) {
+    m_collapseToggle->toggle(!m_collapseToggle->isToggled());
+    // This triggers popup state to update due to SettingNodeValueChangeEventV3 being posted
+    this->markChanged(static_cast<CCNode*>(sender));
+}
 void TitleSettingNodeV3::onCommit() {}
+
+bool TitleSettingNodeV3::isCollapsed() const {
+    return m_collapseToggle->isToggled();
+}
 
 bool TitleSettingNodeV3::hasUncommittedChanges() const {
     return false;
