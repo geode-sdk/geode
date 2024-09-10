@@ -184,7 +184,12 @@ namespace geode {
          * Mod settings
          * @note Not a map because insertion order must be preserved
          */
-        [[nodiscard]] std::vector<std::pair<std::string, Setting>> getSettings() const;
+        [[nodiscard, deprecated("Use getSettingsV3")]] std::vector<std::pair<std::string, Setting>> getSettings() const;
+        /**
+         * Mod settings
+         * @note Not a map because insertion order must be preserved
+         */
+        [[nodiscard]] std::vector<std::pair<std::string, matjson::Value>> getSettingsV3() const;
         /**
          * Get the tags for this mod
          */
@@ -232,10 +237,14 @@ namespace geode {
         void setDependencies(std::vector<Dependency> const& value);
         void setIncompatibilities(std::vector<Incompatibility> const& value);
         void setSpritesheets(std::vector<std::string> const& value);
+        [[deprecated("This function does NOTHING")]]
         void setSettings(std::vector<std::pair<std::string, Setting>> const& value);
+        void setSettings(std::vector<std::pair<std::string, matjson::Value>> const& value);
         void setTags(std::unordered_set<std::string> const& value);
         void setNeedsEarlyLoad(bool const& value);
         void setIsAPI(bool const& value);
+        void setGameVersion(std::string const& value);
+        void setGeodeVersion(VersionInfo const& value);
         ModMetadataLinks& getLinksMut();
 #endif
 

@@ -264,22 +264,17 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
 
     auto res = ServerModVersion();
 
-    // Verify target Geode version
-    auto version = root.needs("geode").template get<VersionInfo>();
-    if (!semverCompare(Loader::get()->getVersion(), version)) {
-        return Err(
-            "Mod targets version {} but Geode is version {}",
-            version, Loader::get()->getVersion()
-        );
-    }
+    res.metadata.setGeodeVersion(root.needs("geode").template get<VersionInfo>());
 
     // Verify target GD version
-    auto gd = root.needs("gd").obj().needs(GEODE_PLATFORM_SHORT_IDENTIFIER).template get<std::string>();
-    if (gd != GEODE_GD_VERSION_STR && gd != "*") {
-        return Err(
-            "Mod targets GD version {} but current is version {}",
-            gd, GEODE_GD_VERSION_STR
-        );
+    auto gd_obj = root.needs("gd").obj();
+    std::string gd = "0.000";
+    if (gd_obj.has(GEODE_PLATFORM_SHORT_IDENTIFIER)) {
+        gd = gd_obj.has(GEODE_PLATFORM_SHORT_IDENTIFIER).template get<std::string>();
+    }
+
+    if (gd != "*") {
+        res.metadata.setGameVersion(gd);
     }
 
     // Get server info
@@ -571,14 +566,15 @@ ServerRequest<ServerModsList> server::getMods(ModsQuery const& query, bool useCa
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
 
-    // Always target current GD version and Loader version
-    req.param("gd", GEODE_GD_VERSION_STR);
-    req.param("geode", Loader::get()->getVersion().toNonVString());
-
     // Add search params
     if (query.query) {
         req.param("query", *query.query);
+    } else {
+        // Target current GD version and Loader version when query is not set
+        req.param("gd", GEODE_GD_VERSION_STR);
+        req.param("geode", Loader::get()->getVersion().toNonVString());
     }
+
     if (query.platforms.size()) {
         std::string plats = "";
         bool first = true;
@@ -789,24 +785,14 @@ ServerRequest<std::optional<ServerModUpdate>> server::checkUpdates(Mod const* mo
     );
 }
 
-ServerRequest<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCache) {
-    if (useCache) {
-        return getCache<checkAllUpdates>().get();
-    }
-
-    auto modIDs = ranges::map<std::vector<std::string>>(
-        Loader::get()->getAllMods(),
-        [](auto mod) { return mod->getID(); }
-    );
-
+ServerRequest<std::vector<ServerModUpdate>> server::batchedCheckUpdates(std::vector<std::string> const& batch) {
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
     req.param("platform", GEODE_PLATFORM_SHORT_IDENTIFIER);
     req.param("gd", GEODE_GD_VERSION_STR);
     req.param("geode", Loader::get()->getVersion().toNonVString());
-    if (modIDs.size()) {
-        req.param("ids", ranges::join(modIDs, ";"));
-    }
+
+    req.param("ids", ranges::join(batch, ";"));
     return req.get(formatServerURL("/mods/updates")).map(
         [](web::WebResponse* response) -> Result<std::vector<ServerModUpdate>, ServerError> {
             if (response->ok()) {
@@ -827,6 +813,79 @@ ServerRequest<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCach
         [](web::WebProgress* progress) {
             return parseServerProgress(*progress, "Checking updates for mods");
         }
+    );
+}
+
+void server::queueBatches(
+    ServerRequest<std::vector<ServerModUpdate>>::PostResult const resolve,
+    std::shared_ptr<std::vector<std::vector<std::string>>> const batches,
+    std::shared_ptr<std::vector<ServerModUpdate>> accum
+) {
+    // we have to do the copy here, or else our values die
+    batchedCheckUpdates(batches->back()).listen([resolve, batches, accum](auto result) {
+        if (result->ok()) {
+            auto serverValues = result->unwrap();
+
+            accum->reserve(accum->size() + serverValues.size());
+            accum->insert(accum->end(), serverValues.begin(), serverValues.end());
+
+            if (batches->size() > 1) {
+                batches->pop_back();
+                queueBatches(resolve, batches, accum);
+            }
+            else {
+                resolve(Ok(*accum));
+            }
+        }
+        else {
+            resolve(*result);
+        }
+    });
+}
+
+ServerRequest<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCache) {
+    if (useCache) {
+        return getCache<checkAllUpdates>().get();
+    }
+
+    auto modIDs = ranges::map<std::vector<std::string>>(
+        Loader::get()->getAllMods(),
+        [](auto mod) { return mod->getID(); }
+    );
+
+    // if there's no mods, the request would just be empty anyways
+    if (modIDs.empty()) {
+        // you would think it could infer like literally anything
+        return ServerRequest<std::vector<ServerModUpdate>>::immediate(
+            Ok<std::vector<ServerModUpdate>>({})
+        );
+    }
+
+    auto modBatches = std::make_shared<std::vector<std::vector<std::string>>>();
+    auto modCount = modIDs.size();
+    std::size_t maxMods = 200u; // this affects 0.03% of users
+
+    if (modCount <= maxMods) {
+        // no tricks needed
+        return batchedCheckUpdates(modIDs);
+    }
+
+    // even out the mod count, so a request with 230 mods sends two 115 mod requests
+    auto batchCount = modCount / maxMods + 1;
+    auto maxBatchSize = modCount / batchCount + 1;
+
+    for (std::size_t i = 0u; i < modCount; i += maxBatchSize) {
+        auto end = std::min(modCount, i + maxBatchSize);
+        modBatches->emplace_back(modIDs.begin() + i, modIDs.begin() + end);
+    }
+
+    // chain requests to avoid doing too many large requests at once
+    return ServerRequest<std::vector<ServerModUpdate>>::runWithCallback(
+        [modBatches](auto finish, auto progress, auto hasBeenCancelled) {
+            auto accum = std::make_shared<std::vector<ServerModUpdate>>();
+            queueBatches(finish, modBatches, accum);
+        },
+        "Mod Update Check"
     );
 }
 

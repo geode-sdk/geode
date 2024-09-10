@@ -53,7 +53,7 @@ Result<> Mod::Impl::setup() {
     // always create temp dir for all mods, even if disabled, so resources can be loaded
     GEODE_UNWRAP(this->createTempDir().expect("Unable to create temp dir: {error}"));
 
-    this->setupSettings();
+    m_settings = std::make_unique<ModSettingsManager>(m_metadata);
     auto loadRes = this->loadData();
     if (!loadRes) {
         log::warn("Unable to load data for \"{}\": {}", m_metadata.getID(), loadRes.unwrapErr());
@@ -182,49 +182,11 @@ Result<> Mod::Impl::loadData() {
     // Check if settings exist
     auto settingPath = m_saveDirPath / "settings.json";
     if (std::filesystem::exists(settingPath)) {
-        GEODE_UNWRAP_INTO(auto settingData, utils::file::readString(settingPath));
-        // parse settings.json
-        std::string error;
-        auto res = matjson::parse(settingData, error);
-        if (error.size() > 0) {
-            return Err("Unable to parse settings.json: " + error);
-        }
-        auto json = res.value();
-
-        JsonChecker checker(json);
-        auto root = checker.root(fmt::format("[{}/settings.json]", this->getID()));
-
+        GEODE_UNWRAP_INTO(auto json, utils::file::readJson(settingPath));
         m_savedSettingsData = json;
-        
-        for (auto& [key, value] : root.items()) {
-            // check if this is a known setting
-            if (auto setting = this->getSetting(key)) {
-                // load its value
-                if (!setting->load(value.json())) {
-                    log::logImpl(
-                        Severity::Error,
-                        m_self,
-                        "{}: Unable to load value for setting \"{}\"",
-                        m_metadata.getID(),
-                        key
-                    );
-                }
-            }
-            else {
-                if (auto definition = this->getSettingDefinition(key)) {
-                    // Found a definition for this setting, it's most likely a custom setting
-                    // Don't warn it, as it's expected to be loaded by the mod
-                }
-                else {
-                    log::logImpl(
-                        Severity::Warning,
-                        m_self,
-                        "Encountered unknown setting \"{}\" while loading "
-                        "settings",
-                        key
-                    );
-                }
-            }
+        auto load = m_settings->load(json);
+        if (!load) {
+            log::warn("Unable to load settings: {}", load.unwrapErr());
         }
     }
 
@@ -253,103 +215,45 @@ Result<> Mod::Impl::saveData() {
         return Ok();
     }
 
-    // saveData is expected to be synchronous, and always called from GD thread
-    ModStateEvent(m_self, ModEventType::DataSaved).post();
-
     // Data saving should be fully fail-safe
-
-    std::unordered_set<std::string> coveredSettings;
-
-    // Settings
-    matjson::Value json = matjson::Object();
-    for (auto& [key, value] : m_settings) {
-        coveredSettings.insert(key);
-        if (!value->save(json[key])) {
-            log::error("Unable to save setting \"{}\"", key);
-        }
-    }
-
-    // if some settings weren't provided a custom settings handler (for example,
+    // If some settings weren't provided a custom settings handler (for example,
     // the mod was not loaded) then make sure to save their previous state in
     // order to not lose data
-    log::debug("Check covered");
     if (!m_savedSettingsData.is_object()) {
         m_savedSettingsData = matjson::Object();
     }
-    for (auto& [key, value] : m_savedSettingsData.as_object()) {
-        log::debug("Check if {} is saved", key);
-        if (!coveredSettings.contains(key)) {
-            json[key] = value;
-        }
-    }
+    matjson::Value json = m_savedSettingsData;
+    m_settings->save(json);
 
-    std::string settingsStr = json.dump();
-    std::string savedStr = m_saved.dump();
-
-    auto res = utils::file::writeString(m_saveDirPath / "settings.json", settingsStr);
+    auto res = utils::file::writeString(m_saveDirPath / "settings.json", json.dump());
     if (!res) {
         log::error("Unable to save settings: {}", res.unwrapErr());
     }
-
-    auto res2 = utils::file::writeString(m_saveDirPath / "saved.json", savedStr);
+    auto res2 = utils::file::writeString(m_saveDirPath / "saved.json", m_saved.dump());
     if (!res2) {
         log::error("Unable to save values: {}", res2.unwrapErr());
     }
 
+    // saveData is expected to be synchronous, and always called from GD thread
+    ModStateEvent(m_self, ModEventType::DataSaved).post();
+
     return Ok();
 }
 
-void Mod::Impl::setupSettings() {
-    for (auto& [key, sett] : m_metadata.getSettings()) {
-        if (auto value = sett.createDefaultValue()) {
-            m_settings.emplace(key, std::move(value));
-        }
-    }
-}
-
-void Mod::Impl::registerCustomSetting(std::string_view const key, std::unique_ptr<SettingValue> value) {
-    auto keystr = std::string(key);
-    if (!m_settings.count(keystr)) {
-        // load data
-        if (m_savedSettingsData.contains(key)) {
-            value->load(m_savedSettingsData[key]);
-        }
-        m_settings.emplace(keystr, std::move(value));
-    }
-}
-
 bool Mod::Impl::hasSettings() const {
-    return m_metadata.getSettings().size();
+    return m_metadata.getSettingsV3().size();
 }
 
 std::vector<std::string> Mod::Impl::getSettingKeys() const {
     std::vector<std::string> keys;
-    for (auto& [key, _] : m_metadata.getSettings()) {
+    for (auto& [key, _] : m_metadata.getSettingsV3()) {
         keys.push_back(key);
     }
     return keys;
 }
 
-std::optional<Setting> Mod::Impl::getSettingDefinition(std::string_view const key) const {
-    for (auto& setting : m_metadata.getSettings()) {
-        if (setting.first == key) {
-            return setting.second;
-        }
-    }
-    return std::nullopt;
-}
-
-SettingValue* Mod::Impl::getSetting(std::string_view const key) const {
-    auto keystr = std::string(key);
-
-    if (m_settings.count(keystr)) {
-        return m_settings.at(keystr).get();
-    }
-    return nullptr;
-}
-
 bool Mod::Impl::hasSetting(std::string_view const key) const {
-    for (auto& setting : m_metadata.getSettings()) {
+    for (auto& setting : m_metadata.getSettingsV3()) {
         if (setting.first == key) {
             return true;
         }

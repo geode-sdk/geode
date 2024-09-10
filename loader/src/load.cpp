@@ -185,6 +185,7 @@ int geodeEntry(void* platformData) {
     log::popNest();
 
     // download and install new loader update in the background
+    
     if (Mod::get()->getSettingValue<bool>("auto-check-updates")) {
         log::info("Starting loader update check");
         updater::checkForLoaderUpdates();

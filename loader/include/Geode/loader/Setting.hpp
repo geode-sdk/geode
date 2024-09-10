@@ -286,9 +286,7 @@ namespace geode {
             return Setting(m_key, m_modID, m_definition);
         }
 
-        ValueType getValue() const {
-            return m_value;
-        }
+        GEODE_DLL ValueType getValue() const;
         GEODE_DLL void setValue(ValueType const& value);
         GEODE_DLL Result<> validate(ValueType const& value) const;
     };
@@ -301,8 +299,10 @@ namespace geode {
     using ColorSettingValue      = GeodeSettingValue<ColorSetting>;
     using ColorAlphaSettingValue = GeodeSettingValue<ColorAlphaSetting>;
 
+    // todo: remove in v3
+
     template<class T>
-    struct GEODE_DLL SettingValueSetter {
+    struct [[deprecated("Use SettingTypeForValueType from SettingV3 instead")]] GEODE_DLL SettingValueSetter {
         static T get(SettingValue* setting);
         static void set(SettingValue* setting, T const& value);
     };

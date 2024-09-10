@@ -156,6 +156,7 @@ public:
         });
 
         auto req = web::WebRequest();
+        req.userAgent(getServerUserAgent());
         m_downloadListener.setFilter(req.get(version.downloadURL));
         ModDownloadEvent(m_id).post();
     }

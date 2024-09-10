@@ -30,6 +30,7 @@ protected:
     CCMenuItemSpriteExtra* m_cancelBtn;
     CCLabelBMFont* m_installStatusLabel;
     CCScale9Sprite* m_installBG;
+    CCScale9Sprite* m_settingsBG;
     CCLabelBMFont* m_enabledStatusLabel;
     ButtonSprite* m_restartRequiredLabel;
     CCNode* m_rightColumn;
@@ -40,6 +41,7 @@ protected:
     EventListener<server::ServerRequest<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
     EventListener<UpdateModListStateFilter> m_updateStateListener;
     EventListener<server::ModDownloadFilter> m_downloadListener;
+    EventListener<EventFilter<SettingNodeValueChangeEventV3>> m_settingNodeListener;
 
     bool setup(ModSource&& src) override;
     void updateState();

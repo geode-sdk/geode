@@ -256,6 +256,12 @@ namespace geode {
             }
             return std::nullopt;
         }
+
+        /**
+         * Completely disregard the result. Only recommended if the result is
+         * inconsequential
+         */
+        constexpr void disregard() && {}
     };
 
     template <class T = impl::DefaultValue>

@@ -29,11 +29,11 @@ void ScrollLayer::visit() {
         glEnable(GL_SCISSOR_TEST);
             
         if (this->getParent()) {
-            CCPoint const offset = this->isIgnoreAnchorPointForPosition() 
-                ? ccp(0, 0) : CCPoint(this->getContentSize() * -this->getAnchorPoint());
+            // CCPoint const offset = this->isIgnoreAnchorPointForPosition() 
+            //     ? ccp(0, 0) : CCPoint(this->getContentSize() * -this->getAnchorPoint());
 
-            auto const bottomLeft = this->convertToWorldSpace(ccp(0, 0) - offset);
-            auto const topRight = this->convertToWorldSpace(this->getContentSize() - offset);
+            auto const bottomLeft = this->convertToWorldSpace(ccp(0, 0));
+            auto const topRight = this->convertToWorldSpace(this->getContentSize());
             CCSize const size = topRight - bottomLeft;
 
             CCEGLView::get()->setScissorInPoints(bottomLeft.x, bottomLeft.y, size.width, size.height);

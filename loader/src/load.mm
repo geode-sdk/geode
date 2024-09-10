@@ -3,10 +3,10 @@
 
 #ifdef GEODE_IS_MACOS
 
+#include <AppKit/AppKit.h>
 #include <loader/LoaderImpl.hpp>
 #include <loader/LogImpl.hpp>
 #include <CoreGraphics/CoreGraphics.h>
-#include <AppKit/AppKit.h>
 #include <Cocoa/Cocoa.h>
 
 bool safeModeCheck() {

@@ -391,6 +391,15 @@ namespace geode {
         }
         
         /**
+         * Create a new Task that is immediately cancelled
+         * @param name The name of the Task; used for debugging
+         */
+        static Task cancelled(std::string_view const name = "<Cancelled Task>") {
+            auto task = Task(Handle::create(name));
+            Task::cancel(task.m_handle);
+            return task;
+        }
+        /**
          * Create a new Task that immediately finishes with the given 
          * value
          * @param value The value the Task shall be finished with
