@@ -77,7 +77,9 @@ namespace geode {
     struct JsonMaybeObject;
     struct JsonMaybeValue;
 
-    struct GEODE_DLL JsonMaybeSomething {
+    struct GEODE_DLL 
+    [[deprecated("Use JsonExpectedValue via the checkJson function instead")]]
+    JsonMaybeSomething {
     protected:
         JsonChecker& m_checker;
         matjson::Value& m_json;
@@ -102,7 +104,9 @@ namespace geode {
         operator bool() const;
     };
 
-    struct GEODE_DLL JsonMaybeValue : public JsonMaybeSomething {
+    struct GEODE_DLL 
+    [[deprecated("Use JsonExpectedValue via the checkJson function instead")]]
+    JsonMaybeValue : public JsonMaybeSomething {
         bool m_inferType = true;
 
         JsonMaybeValue(
@@ -254,7 +258,9 @@ namespace geode {
         Iterator<std::pair<std::string, JsonMaybeValue>> items();
     };
 
-    struct GEODE_DLL JsonMaybeObject : JsonMaybeSomething {
+    struct 
+    [[deprecated("Use JsonExpectedValue via the checkJson function instead")]]
+    GEODE_DLL JsonMaybeObject : JsonMaybeSomething {
         std::set<std::string> m_knownKeys;
 
         JsonMaybeObject(
@@ -276,7 +282,9 @@ namespace geode {
         void checkUnknownKeys();
     };
 
-    struct GEODE_DLL JsonChecker {
+    struct
+    [[deprecated("Use JsonExpectedValue via the checkJson function instead")]]
+    GEODE_DLL JsonChecker {
         std::variant<std::monostate, std::string> m_result;
         matjson::Value& m_json;
 
@@ -289,4 +297,208 @@ namespace geode {
         JsonMaybeValue root(std::string const& hierarchy);
     };
 
+    class GEODE_DLL JsonExpectedValue final {
+    protected:
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
+
+        JsonExpectedValue();
+        JsonExpectedValue(Impl* from, matjson::Value& scope, std::string_view key);
+
+        static const char* matJsonTypeToString(matjson::Type ty);
+
+        bool hasError() const;
+        void setError(std::string_view error);
+
+        matjson::Value const& getJSONRef() const;
+
+        template <class... Args>
+        void setError(fmt::format_string<Args...> error, Args&&... args) {
+            this->setError(fmt::format(error, std::forward<Args>(args)...));
+        }
+
+        template <class T>
+        std::optional<T> tryGet() {
+            if (this->hasError()) return std::nullopt;
+            if constexpr (std::is_same_v<T, matjson::Value>) {
+                return this->getJSONRef();
+            }
+            else {
+                try {
+                    if (this->getJSONRef().template is<T>()) {
+                        return this->getJSONRef().template as<T>();
+                    }
+                    else {
+                        this->setError(
+                            "unexpected type {}",
+                            this->matJsonTypeToString(this->getJSONRef().type())
+                        );
+                    }
+                }
+                // matjson can throw variant exceptions too so you need to do this
+                catch(std::exception const& e) {
+                    this->setError("unable to parse json: {}", e);
+                }
+            }
+            return std::nullopt;
+        }
+
+    public:
+        JsonExpectedValue(matjson::Value const& value, std::string_view rootScopeName);
+        ~JsonExpectedValue();
+
+        JsonExpectedValue(JsonExpectedValue&&);
+        JsonExpectedValue& operator=(JsonExpectedValue&&);
+        JsonExpectedValue(JsonExpectedValue const&) = delete;
+        JsonExpectedValue& operator=(JsonExpectedValue const&) = delete;
+
+        /**
+         * Get a copy of the underlying raw JSON value
+         */
+        matjson::Value json() const;
+        /**
+         * Get the key name of this JSON value. If this is an array index, 
+         * returns the index as a string. If this is the root object, 
+         * returns the root scope name. 
+         */
+        std::string key() const;
+
+        /**
+         * Check the type of this JSON value. Does not set an error. If an 
+         * error is already set, always returns false
+         */
+        bool is(matjson::Type type) const;
+        bool isNull() const;
+        bool isBool() const;
+        bool isNumber() const;
+        bool isString() const;
+        bool isArray() const;
+        bool isObject() const;
+        /**
+         * Asserts that this JSON value is of the specified type. If it is 
+         * not, an error is set and all subsequent operations are no-ops
+         * @returns Itself
+         */
+        JsonExpectedValue& assertIs(matjson::Type type);
+        JsonExpectedValue& assertIsNull();
+        JsonExpectedValue& assertIsBool();
+        JsonExpectedValue& assertIsNumber();
+        JsonExpectedValue& assertIsString();
+        JsonExpectedValue& assertIsArray();
+        JsonExpectedValue& assertIsObject();
+        /**
+         * Asserts that this JSON value is one of a list of specified types
+         * @returns Itself
+         */
+        JsonExpectedValue& assertIs(std::initializer_list<matjson::Type> type);
+
+        // -- Dealing with values --
+
+        template <class T>
+        T get(T const& defaultValue = T()) {
+            if (auto v = this->template tryGet<T>()) {
+                return *std::move(v);
+            }
+            return defaultValue;
+        }
+        template <class T>
+        JsonExpectedValue& into(T& value) {
+            if (auto v = this->template tryGet<T>()) {
+                value = *std::move(v);
+            }
+            return *this;
+        }
+        template <class T>
+        JsonExpectedValue& into(std::optional<T>& value) {
+            if (auto v = this->template tryGet<T>()) {
+                value.emplace(*std::move(v));
+            }
+            return *this;
+        }
+        template <class T>
+        JsonExpectedValue& mustBe(std::string_view name, auto predicate) requires requires {
+            { predicate(std::declval<T>()) } -> std::convertible_to<bool>;
+        } {
+            if (this->hasError()) return *this;
+            if (auto v = this->template tryGet<T>()) {
+                if (!predicate(*v)) {
+                    this->setError("json value is not {}", name);
+                }
+            }
+            return *this;
+        }
+        template <class T>
+        JsonExpectedValue& mustBe(std::string_view name, auto predicate) requires requires {
+            { predicate(std::declval<T>()) } -> std::convertible_to<Result<>>;
+        } {
+            if (this->hasError()) return *this;
+            if (auto v = this->template tryGet<T>()) {
+                auto p = predicate(*v);
+                if (!p) {
+                    this->setError("json value is not {}: {}", name, p.unwrapErr());
+                }
+            }
+            return *this;
+        }
+
+        // -- Dealing with objects --
+
+        /**
+         * Check if this object has an optional key. Asserts that this JSON 
+         * value is an object. If the key doesn't exist, returns a 
+         * `JsonExpectValue` that does nothing
+         * @returns The key, which is a no-op value if it didn't exist
+         */
+        JsonExpectedValue has(std::string_view key);
+        /**
+         * Check if this object has an optional key. Asserts that this JSON 
+         * value is an object. If the key doesn't exist, sets an error and 
+         * returns a `JsonExpectValue` that does nothing
+         * @returns The key, which is a no-op value if it didn't exist
+         */
+        JsonExpectedValue needs(std::string_view key);
+        /**
+         * Asserts that this JSON value is an object. Get all object 
+         * properties
+         */
+        std::vector<std::pair<std::string, JsonExpectedValue>> properties();
+        /**
+         * Asserts that this JSON value is an object. Logs unknown keys to 
+         * the console as warnings
+         */
+        void checkUnknownKeys();
+
+        // -- Dealing with arrays --
+
+        /**
+         * Asserts that this JSON value is an array. Returns the length of 
+         * the array, or 0 on error
+         */
+        size_t length();
+        /**
+         * Asserts that this JSON value is an array. Returns the value at 
+         * the specified index. If there is no value at that index, sets an 
+         * error
+         */
+        JsonExpectedValue at(size_t index);
+        /**
+         * Asserts that this JSON value is an array. Returns the array items
+         * @warning The old JsonChecker used `items` for iterating object 
+         * properties - on this new API that function is called `properties`!
+         */
+        std::vector<JsonExpectedValue> items();
+
+        operator bool() const;
+
+        Result<> ok();
+        template <class T>
+        Result<T> ok(T value) {
+            auto ok = this->ok();
+            if (!ok) {
+                return Err(ok.unwrapErr());
+            }
+            return Ok(std::forward<T>(value));
+        }
+    };
+    GEODE_DLL JsonExpectedValue checkJson(matjson::Value const& json, std::string_view rootScopeName);
 }

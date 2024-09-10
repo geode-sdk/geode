@@ -1,3 +1,4 @@
+#import <Foundation/Foundation.h>
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Log.hpp>
 #include <iostream>
@@ -5,7 +6,6 @@
 #include <loader/console.hpp>
 #include <loader/IPC.hpp>
 #include <loader/ModImpl.hpp>
-#import <Foundation/Foundation.h>
 #include <sys/stat.h>
 #include <loader/LogImpl.hpp>
 

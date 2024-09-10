@@ -64,13 +64,6 @@
         }
     },
     "settings": {
-        "show-platform-console": {
-            "type": "bool",
-            "default": false,
-            "name": "Show Platform Console",
-            "description": "Show the native console (if one exists). <cr>This setting is meant for developers</c>",
-            "platforms": ["win", "mac"]
-        },
         "auto-check-updates": {
             "type": "bool",
             "default": true,
@@ -83,6 +76,24 @@
             "name": "Disable Crash Popup",
             "description": "Disables the popup at startup asking if you'd like to send a bug report; intended for developers"
         },
+        "enable-geode-theme": {
+            "type": "bool",
+            "default": true,
+            "name": "Enable Geode-Themed Colors",
+            "description": "When enabled, the Geode menu has a <ca>Geode-themed color scheme</c>. <cy>This does not affect any other menus!</c>"
+        },
+        "developer-title": {
+            "type": "title",
+            "name": "Developer Settings"
+        },
+        "show-platform-console": {
+            "type": "bool",
+            "default": false,
+            "name": "Show Platform Console",
+            "description": "Show the native console (if one exists). <cr>This setting is meant for developers</c>",
+            "platforms": ["win", "mac"],
+            "requires-restart": true
+        },
         "server-cache-size-limit": {
             "type": "int",
             "default": 20,
@@ -90,12 +101,6 @@
             "max": 100,
             "name": "Server Cache Size Limit",
             "description": "Limits the size of the cache used for loading mods. Higher values result in higher memory usage."
-        },
-        "enable-geode-theme": {
-            "type": "bool",
-            "default": true,
-            "name": "Enable Geode-Themed Colors",
-            "description": "When enabled, the Geode menu has a <ca>Geode-themed color scheme</c>. <cy>This does not affect any other menus!</c>"
         }
     },
     "issues": {

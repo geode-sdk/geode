@@ -90,6 +90,11 @@ bool ModsStatusNode::init() {
 
     m_downloadListener.bind([this](auto) { this->updateState(); });
 
+    m_settingNodeListener.bind([this](SettingNodeValueChangeEventV3* ev) {
+        this->updateState();
+        return ListenerResult::Propagate;
+    });
+
     this->updateState();
     
     return true;

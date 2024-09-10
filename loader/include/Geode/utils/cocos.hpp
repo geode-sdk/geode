@@ -401,6 +401,9 @@ namespace geode {
 
         WeakRef(std::shared_ptr<WeakRefController> obj) : m_controller(obj) {}
 
+        friend class std::hash<WeakRef<T>>;
+
+
     public:
         /**
          * Construct a WeakRef of an object. A weak reference is one that will 
@@ -714,6 +717,24 @@ namespace geode::cocos {
     GEODE_DLL void limitNodeSize(cocos2d::CCNode* node, cocos2d::CCSize const& size, float def, float min);
 
     /**
+     * Rescale node to fit inside given width
+     * @param node Node to rescale
+     * @param width Width to fit inside
+     * @param def Default scale
+     * @param min Minimum scale
+     */
+    GEODE_DLL void limitNodeWidth(cocos2d::CCNode* node, float width, float def, float min);
+
+    /**
+     * Rescale node to fit inside given height
+     * @param node Node to rescale
+     * @param height Height to fit inside
+     * @param def Default scale
+     * @param min Minimum scale
+     */
+    GEODE_DLL void limitNodeHeight(cocos2d::CCNode* node, float height, float def, float min);
+
+    /**
      * Checks if a node is visible (recursively
      * checks parent visibility)
      * @param node Node to check if visible
@@ -970,6 +991,13 @@ namespace std {
     struct hash<geode::Ref<T>> {
         size_t operator()(geode::Ref<T> const& ref) const {
             return std::hash<T*>()(ref.data());
+        }
+    };
+
+    template <typename T>
+    struct std::hash<geode::WeakRef<T>> {
+        size_t operator()(geode::WeakRef<T> const& ref) const {
+            return hash{}(ref.m_controller);
         }
     };
 }

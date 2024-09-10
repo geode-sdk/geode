@@ -123,11 +123,13 @@ Task<Result<std::filesystem::path>> file::pick(PickMode mode, FilePickOptions co
     Result<std::filesystem::path> result;
     auto pickresult = nfdPick(nfdMode, options, &path);
     if (pickresult.isErr()) {
-        result = Err(pickresult.err().value());
+        if (pickresult.unwrapErr() == "Dialog cancelled") {
+            return RetTask::cancelled();
+        }
+        return RetTask::immediate(Err(pickresult.unwrapErr()));
     } else {
-        result = Ok(path);
+        return RetTask::immediate(Ok(path));
     }
-    return RetTask::immediate(std::move(result));
 }
 
 Task<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions const& options) {
