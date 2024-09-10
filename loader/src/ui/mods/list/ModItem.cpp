@@ -143,7 +143,7 @@ bool ModItem::init(ModSource&& source) {
         auto gdValid = gameVersion == "*" || gameVersion == GEODE_STR(GEODE_GD_VERSION);
 
         if (!geodeValid || !gdValid) {
-            spr = createGeodeButton("N/A", 50, false, true, GeodeButtonSprite::Default);
+            spr = createGeodeButton("N/A", 50, false, true, GeodeButtonSprite::Gray);
         }
     }
 
@@ -493,22 +493,26 @@ void ModItem::onView(CCObject*) {
         )->show();
     }
 
-    if (auto serverMod = m_source.asServer(); serverMod != nullptr) {
-        auto version = serverMod->latestVersion();
-        auto geodeVersion = version.getGeodeVersion();
-        auto geodeValid = Loader::get()->isModVersionSupported(geodeVersion);
-
-        if (auto res = version.checkGameVersion(); !res) {
-            FLAlertLayer::create(nullptr, "Unavailable", res.unwrapErr(), "Close", nullptr)->show();
-            return;
-        } else if (!geodeValid) {
-            auto msg = fmt::format(
-                "Geode {} is required to view this mod. You currently have {}.",
-                geodeVersion.toVString(),
-                Loader::get()->getVersion().toVString()
-            );
-            FLAlertLayer::create(nullptr, "Unavailable", msg, "Close", nullptr)->show();
-            return;
+    // Show popups for invalid mods
+    if (m_source.asServer()) {
+        auto version = m_source.asServer()->latestVersion();
+        if (!Loader::get()->isModVersionSupported(version.getGeodeVersion())) {
+            return FLAlertLayer::create(
+                nullptr,
+                "Outdated",
+                "This mod is targets an <cr>outdated version of Geode</c>. "
+                "<co>Please wait for its developer to update it.</c>",
+                "OK", nullptr, 360
+            )->show();
+        }
+        if (version.getGameVersion() != "*" && version.getGameVersion() != GEODE_STR(GEODE_GD_VERSION)) {
+            return FLAlertLayer::create(
+                nullptr,
+                "Outdated",
+                "This mod is targets a <cr>different version of Geometry Dash</c>. "
+                "<co>Please wait for its developer to update it.</c>",
+                "OK", nullptr, 360
+            )->show();
         }
     }
 
