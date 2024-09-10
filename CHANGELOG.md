@@ -8,9 +8,14 @@
  * Add `typeinfo_pointer_cast` for casting `std::shared_ptr`s (28cc6fd)
  * Add `GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH` (1032d9a)
  * Add `PlatformID::getCovered` (d5718be)
+ * Add `limitNodeWidth` and `limitNodeHeight` utils (e8751bf)
+ * Add `std::hash<WeakRef>` (2d9ce8f)
+ * Allow limiting image width/height in `MDTextArea` (e8751bf)
+ * The current working directory is automatically always set to the game directory (7c558ee)
  * Rename `toByteArray` to `toBytes` (6eb0797)
  * Improve `AxisLayout::getSizeHint` (85e7b5e)
  * Fix issues with file dialogs on Windows (62b6241, 971e3fb)
+ * Fix PCH issues (aedd986)
  * Mod incompatibilities may now be platform-specific (9f1c70a)
 
 ## v3.5.0

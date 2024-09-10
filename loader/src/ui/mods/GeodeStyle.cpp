@@ -150,6 +150,7 @@ const char* getGeodeButtonSpriteName(GeodeButtonSprite spr) {
             case GeodeButtonSprite::Install: return "GE_button_01.png"_spr;
             case GeodeButtonSprite::Delete: return "GJ_button_06.png";
             case GeodeButtonSprite::Enable: return "GJ_button_01.png";
+            case GeodeButtonSprite::Gray: return "GJ_button_05.png";
         }
     }
     else {
@@ -159,6 +160,7 @@ const char* getGeodeButtonSpriteName(GeodeButtonSprite spr) {
             case GeodeButtonSprite::Install: return "GE_button_01.png"_spr;
             case GeodeButtonSprite::Delete: return "GJ_button_06.png";
             case GeodeButtonSprite::Enable: return "GJ_button_02.png";
+            case GeodeButtonSprite::Gray: return "GJ_button_05.png";
         }
     }
 }

@@ -71,6 +71,7 @@ enum class GeodeButtonSprite {
     Install,
     Delete,
     Enable,
+    Gray,
 };
 const char* getGeodeButtonSpriteName(GeodeButtonSprite spr);
 IconButtonSprite* createGeodeButton(CCNode* icon, std::string const& text, GeodeButtonSprite bg = GeodeButtonSprite::Default);
