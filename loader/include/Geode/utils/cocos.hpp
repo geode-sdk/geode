@@ -401,6 +401,9 @@ namespace geode {
 
         WeakRef(std::shared_ptr<WeakRefController> obj) : m_controller(obj) {}
 
+        friend class std::hash<WeakRef<T>>;
+
+
     public:
         /**
          * Construct a WeakRef of an object. A weak reference is one that will 
@@ -970,6 +973,13 @@ namespace std {
     struct hash<geode::Ref<T>> {
         size_t operator()(geode::Ref<T> const& ref) const {
             return std::hash<T*>()(ref.data());
+        }
+    };
+
+    template <typename T>
+    struct std::hash<geode::WeakRef<T>> {
+        size_t operator()(geode::WeakRef<T> const& ref) const {
+            return hash{}(ref.m_controller);
         }
     };
 }
