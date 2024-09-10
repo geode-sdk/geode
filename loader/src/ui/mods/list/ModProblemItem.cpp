@@ -156,6 +156,21 @@ bool ModProblemItem::showFixButton() {
 
 std::string ModProblemItem::createProblemMessage() {
     std::stringstream ss;
+    std::string modName;
+    
+    auto extractModName = [this, &modName]() {
+        std::string id = m_problem.message.substr(0, m_problem.message.find(" "));
+        if (auto found = Loader::get()->getInstalledMod(id)) {
+            modName = found->getName();
+        } else {
+            modName = id;
+        }
+    };
+
+    auto getPronoun = [&modName]() {
+        return modName == "Jesus" ? "His" : "its";
+    };
+
     ss << m_source->getName() << " ";
 
     switch (m_problem.type) {
@@ -163,57 +178,37 @@ std::string ModProblemItem::createProblemMessage() {
             ss << "has encountered an unknown error while loading.";
             return ss.str();
         case LoadProblem::Type::Suggestion: {
-            std::string id = m_problem.message.substr(0, m_problem.message.find(" "));
-            if (auto found = Loader::get()->getInstalledMod(id)) {
-                ss << fmt::format(
-                    "suggests enabling the {} mod.",
-                    found->getName()
-                );
-            } else {
-                ss << "suggests " << m_problem.message << " to be installed.";
-            }
+            extractModName();
+            ss << fmt::format(
+                "suggests enabling the {} mod.",
+                modName
+            );
             return ss.str();
         }
         case LoadProblem::Type::Recommendation: {
-            std::string id = m_problem.message.substr(0, m_problem.message.find(" "));
-            if (auto found = Loader::get()->getInstalledMod(id)) {
-                ss << fmt::format(
-                    "recommends enabling the {} mod.",
-                    found->getName()
-                );
-            } else {
-                ss << "recommends" << m_problem.message << " to be installed.";
-            }
+            extractModName();
+            ss << fmt::format(
+                "recommends enabling the {} mod.",
+                modName
+            );
             return ss.str();
         }
         case LoadProblem::Type::OutdatedConflict:
         case LoadProblem::Type::Conflict: {
-            if (auto found = Loader::get()->getInstalledMod(m_problem.message)) {
-                ss << fmt::format(
-                    "conflicts with the {} mod.",
-                    found->getName()
-                );
-            } else {
-                ss << fmt::format(
-                    "conflicts with the {} mod.",
-                    m_problem.message
-                );
-            }
+            extractModName();
+            ss << fmt::format(
+                "conflicts with the {} mod.",
+                modName
+            );
             return ss.str();
         }
         case LoadProblem::Type::OutdatedIncompatibility:
         case LoadProblem::Type::PresentIncompatibility: {
-            if (auto found = Loader::get()->getInstalledMod(m_problem.message)) {
-                ss << fmt::format(
-                    "cannot work if the {} mod is enabled.",
-                    found->getName()
-                );
-            } else {
-                ss << fmt::format(
-                    "cannot work if the {} mod is enabled.",
-                    m_problem.message
-                );
-            }
+            extractModName();
+            ss << fmt::format(
+                "cannot work if the {} mod is enabled.",
+                modName
+            );
             return ss.str();
         }
         case LoadProblem::Type::InvalidFile: {
@@ -229,10 +224,9 @@ std::string ModProblemItem::createProblemMessage() {
             return ss.str();
         }
         case LoadProblem::Type::LoadFailed: {
-            ss << "couldn't load its binary.";
+            ss << "couldn't load " << getPronoun() << " binary.";
             return ss.str();
         }
-        // This one isn't set in LoaderImpl at all
         case LoadProblem::Type::EnableFailed: {
             ss << "couldn't be enabled.";
             return ss.str();
@@ -254,31 +248,19 @@ std::string ModProblemItem::createProblemMessage() {
             return ss.str();
         }
         case LoadProblem::Type::OutdatedDependency: {
-            if (auto found = Loader::get()->getInstalledMod(m_problem.message)) {
-                ss << fmt::format(
-                    "requires the {} mod to be updated.",
-                    found->getName()
-                );
-            } else {
-                ss << fmt::format(
-                    "requires the {} mod to be updated.",
-                    m_problem.message
-                );
-            }
+            extractModName();
+            ss << fmt::format(
+                "requires the {} mod to be updated.",
+                modName
+            );
             return ss.str();
         }
         case LoadProblem::Type::DisabledDependency: {
-            if (auto found = Loader::get()->getInstalledMod(m_problem.message)) {
-                ss << fmt::format(
-                    "requires the {} mod to be enabled.",
-                    found->getName()
-                );
-            } else {
-                ss << fmt::format(
-                    "requires the {} mod to be enabled.",
-                    m_problem.message
-                );
-            }
+            extractModName();
+            ss << fmt::format(
+                "requires the {} mod to be enabled.",
+                modName
+            );
             return ss.str();
         }
         case LoadProblem::Type::MissingDependency: {
