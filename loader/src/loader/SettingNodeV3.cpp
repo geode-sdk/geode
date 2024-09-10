@@ -582,17 +582,22 @@ Color4BSettingNodeV3* Color4BSettingNodeV3::create(std::shared_ptr<Color4BSettin
 
 // UnresolvedCustomSettingNodeV3
 
-bool UnresolvedCustomSettingNodeV3::init(std::string_view key, float width) {
+bool UnresolvedCustomSettingNodeV3::init(std::string_view key, Mod* mod, float width) {
     if (!SettingNodeV3::init(nullptr, width))
         return false;
     
-    this->setContentHeight(30);
+    m_mod = mod;
     
+    this->setContentHeight(30);
+
     auto label = CCLabelBMFont::create(
-        fmt::format("Missing setting '{}'", key).c_str(),
+        (mod && mod->isEnabled() ?
+            fmt::format("Missing setting '{}'", key) : 
+            fmt::format("Enable the Mod to Edit '{}'", key)
+        ).c_str(),
         "bigFont.fnt"
     );
-    label->setColor("mod-list-errors-found-2"_cc3b);
+    label->setColor(mod && mod->isEnabled() ? "mod-list-errors-found-2"_cc3b : "mod-list-gray"_cc3b);
     label->limitLabelWidth(width - m_obContentSize.height, .3f, .1f);
     this->addChildAtPosition(label, Anchor::Left, ccp(m_obContentSize.height / 2, 0), ccp(0, .5f));
 
@@ -601,7 +606,7 @@ bool UnresolvedCustomSettingNodeV3::init(std::string_view key, float width) {
 
 void UnresolvedCustomSettingNodeV3::updateState(CCNode* invoker) {
     SettingNodeV3::updateState(invoker);
-    this->getBG()->setColor("mod-list-errors-found"_cc3b);
+    this->getBG()->setColor(m_mod && m_mod->isEnabled() ? "mod-list-errors-found-2"_cc3b : "mod-list-gray"_cc3b);
     this->getBG()->setOpacity(75);
 }
 
@@ -615,9 +620,9 @@ bool UnresolvedCustomSettingNodeV3::hasNonDefaultValue() const {
 }
 void UnresolvedCustomSettingNodeV3::onResetToDefault() {}
 
-UnresolvedCustomSettingNodeV3* UnresolvedCustomSettingNodeV3::create(std::string_view key, float width) {
+UnresolvedCustomSettingNodeV3* UnresolvedCustomSettingNodeV3::create(std::string_view key, Mod* mod, float width) {
     auto ret = new UnresolvedCustomSettingNodeV3();
-    if (ret && ret->init(key, width)) {
+    if (ret && ret->init(key, mod, width)) {
         ret->autorelease();
         return ret;
     }

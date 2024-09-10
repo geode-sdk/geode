@@ -292,14 +292,16 @@ public:
 
 class UnresolvedCustomSettingNodeV3 : public SettingNodeV3 {
 protected:
-    bool init(std::string_view key, float width);
+    Mod* m_mod;
+
+    bool init(std::string_view key, Mod* mod, float width);
 
     void updateState(CCNode* invoker) override;
 
     void onCommit() override;
 
 public:
-    static UnresolvedCustomSettingNodeV3* create(std::string_view key, float width);
+    static UnresolvedCustomSettingNodeV3* create(std::string_view key, Mod* mod, float width);
     
     bool hasUncommittedChanges() const override;
     bool hasNonDefaultValue() const override;

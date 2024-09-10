@@ -649,7 +649,7 @@ SettingNodeV3* LegacyCustomSettingV3::createNode(float width) {
             std::static_pointer_cast<LegacyCustomSettingV3>(shared_from_this()), width
         );
     }
-    return UnresolvedCustomSettingNodeV3::create(this->getKey(), width);
+    return UnresolvedCustomSettingNodeV3::create(this->getKey(), this->getMod(), width);
 }
 
 bool LegacyCustomSettingV3::isDefaultValue() const {

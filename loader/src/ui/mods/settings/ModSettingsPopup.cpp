@@ -84,7 +84,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
             node = sett->createNode(layerSize.width);
         }
         else {
-            node = UnresolvedCustomSettingNodeV3::create(key, layerSize.width);
+            node = UnresolvedCustomSettingNodeV3::create(key, mod, layerSize.width);
         }
         node->setDefaultBGColor(ccc4(0, 0, 0, bg ? 60 : 20));
     
@@ -111,6 +111,11 @@ bool ModSettingsPopup::setup(Mod* mod) {
     // layer borders
 
     m_mainLayer->addChildAtPosition(createGeodeListBorders(layerSize), Anchor::Center);
+
+    auto scrollBar = Scrollbar::create(m_list);
+    m_mainLayer->addChildAtPosition(
+        scrollBar, Anchor::Center, ccp(layerBG->getContentWidth() / 2 + 10, 0)
+    );
 
     // buttons
 
