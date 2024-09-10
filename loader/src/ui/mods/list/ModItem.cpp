@@ -499,9 +499,16 @@ void ModItem::onView(CCObject*) {
         if (!Loader::get()->isModVersionSupported(version.getGeodeVersion())) {
             return FLAlertLayer::create(
                 nullptr,
-                "Outdated",
-                "This mod is targets an <cr>outdated version of Geode</c>. "
-                "<co>Please wait for its developer to update it.</c>",
+                "Unavailable",
+                "This mod targets an <cr>unsupported version of Geode</c>.",
+                "OK", nullptr, 360
+            )->show();
+        }
+        if (version.getGameVersion() == "0.000") {
+            return FLAlertLayer::create(
+                nullptr,
+                "Invalid Platform",
+                "This mod is <cr>not available</c> for your current platform.",
                 "OK", nullptr, 360
             )->show();
         }
@@ -509,7 +516,7 @@ void ModItem::onView(CCObject*) {
             return FLAlertLayer::create(
                 nullptr,
                 "Outdated",
-                "This mod is targets a <cr>different version of Geometry Dash</c>. "
+                "This mod targets a <cr>different version of Geometry Dash</c>. "
                 "<co>Please wait for its developer to update it.</c>",
                 "OK", nullptr, 360
             )->show();
