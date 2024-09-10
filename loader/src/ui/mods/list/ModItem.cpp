@@ -143,7 +143,7 @@ bool ModItem::init(ModSource&& source) {
         auto gdValid = gameVersion == "*" || gameVersion == GEODE_STR(GEODE_GD_VERSION);
 
         if (!geodeValid || !gdValid) {
-            spr = createGeodeButton("NA", 50, false, true, GeodeButtonSprite::Default);
+            spr = createGeodeButton("N/A", 50, false, true, GeodeButtonSprite::Default);
         }
     }
 
