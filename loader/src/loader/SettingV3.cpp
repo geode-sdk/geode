@@ -1106,6 +1106,11 @@ Result<std::shared_ptr<FileSettingV3>> FileSettingV3::parse(std::string const& k
 }
 
 Result<> FileSettingV3::isValid(std::filesystem::path const& value) const {
+    // This is because people tend to put `"default": "Please pick a good file"` 
+    // which is clever and good UX but also a hack so I also need to hack to support that
+    if (value == this->getDefaultValue()) {
+        return Ok();
+    }
     std::error_code ec;
     if (m_impl->folder) {
         if (!std::filesystem::is_directory(value, ec)) {

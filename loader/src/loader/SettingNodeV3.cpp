@@ -453,13 +453,28 @@ bool FileSettingNodeV3::init(std::shared_ptr<FileSettingV3> setting, float width
 }
 
 void FileSettingNodeV3::updateState(CCNode* invoker) {
+    // This is because people tend to put `"default": "Please pick a good file"` 
+    // which is clever and good UX but also a hack so I also need to hack to support that
+    const auto isTextualDefaultValue = [this, setting = this->getSetting()]() {
+        if (this->hasNonDefaultValue()) return false;
+        std::error_code ec;
+        return setting->isFolder() ? 
+            !std::filesystem::is_directory(setting->getDefaultValue(), ec) :
+            !std::filesystem::is_regular_file(setting->getDefaultValue(), ec);
+    }();
+
     SettingValueNodeV3::updateState(invoker);
     m_fileIcon->setDisplayFrame(CCSpriteFrameCache::get()->spriteFrameByName(
         this->getSetting()->isFolder() ? "folderIcon_001.png" : "file.png"_spr
     ));
     limitNodeSize(m_fileIcon, ccp(10, 10), 1.f, .1f);
-    if (this->getValue().empty()) {
-        m_nameLabel->setString(this->getSetting()->isFolder() ? "No Folder Selected" : "No File Selected");
+    if (this->getValue().empty() || isTextualDefaultValue) {
+        if (isTextualDefaultValue) {
+            m_nameLabel->setString(this->getSetting()->getDefaultValue().string().c_str());
+        }
+        else {
+            m_nameLabel->setString(this->getSetting()->isFolder() ? "No Folder Selected" : "No File Selected");
+        }
         m_nameLabel->setColor(ccGRAY);
         m_nameLabel->setOpacity(155);
     }
