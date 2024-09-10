@@ -380,17 +380,6 @@ bool ModsLayer::init() {
     folderBtn->setID("mods-folder-button");
     actionsMenu->addChild(folderBtn);
 
-    auto copySpr = createGeodeCircleButton(
-        CCSprite::createWithSpriteFrameName("copy.png"_spr), 1.f,
-        CircleBaseSize::Medium
-    );
-    copySpr->setScale(.8f);
-    auto copyBtn = CCMenuItemSpriteExtra::create(
-        copySpr, this, menu_selector(ModsLayer::onCopy)
-    );
-    copyBtn->setID("copy-button");
-    actionsMenu->addChild(copyBtn);
-
     actionsMenu->setLayout(
         ColumnLayout::create()
             ->setAxisAlignment(AxisAlignment::Start)
@@ -716,40 +705,6 @@ void ModsLayer::onTheme(CCObject*) {
 }
 void ModsLayer::onSettings(CCObject*) {
     openSettingsPopup(Mod::get());
-}
-
-void ModsLayer::onCopy(CCObject*) {
-    auto mods = Loader::get()->getAllMods();
-    if (mods.empty()) {
-        Notification::create("No mods installed", NotificationIcon::Info, 0.5f)->show();
-        return;
-    }
-
-    std::sort(mods.begin(), mods.end(), [](Mod* a, Mod* b) {
-        auto const s1 = a->getID();
-        auto const s2 = b->getID();
-        return std::lexicographical_compare(s1.begin(), s1.end(), s2.begin(), s2.end(), [](auto a, auto b) {
-            return std::tolower(a) < std::tolower(b);
-        });
-    });
-
-    std::stringstream ss;
-    using namespace std::string_view_literals;
-    for (int i = 0; i < mods.size(); i++) {
-        auto& mod = mods[i];
-        ss << fmt::format("{} | [{}] {}",
-            mod->isEnabled() ? "x"sv : 
-            mod->hasProblems() ? "!"sv :
-            " "sv,
-            mod->getVersion().toVString(), mod->getID()
-        );
-        if (i != mods.size() - 1) {
-            ss << "\n";
-        }
-    }
-    clipboard::write(ss.str());
-
-    Notification::create("Mods list copied to clipboard", NotificationIcon::Info, 0.5f)->show();
 }
 
 ModsLayer* ModsLayer::create() {

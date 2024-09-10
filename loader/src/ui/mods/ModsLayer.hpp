@@ -82,7 +82,6 @@ protected:
     void onRefreshList(CCObject*);
     void onTheme(CCObject*);
     void onSettings(CCObject*);
-    void onCopy(CCObject*);
     void onBack(CCObject*);
 
     void updateState();

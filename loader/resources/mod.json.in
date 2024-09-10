@@ -82,6 +82,9 @@
             "name": "Enable Geode-Themed Colors",
             "description": "When enabled, the Geode menu has a <ca>Geode-themed color scheme</c>. <cy>This does not affect any other menus!</c>"
         },
+        "copy-mods": {
+            "type": "custom:copy-mods"
+        },
         "developer-title": {
             "type": "title",
             "name": "Developer Settings"
