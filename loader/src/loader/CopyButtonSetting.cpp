@@ -1,7 +1,7 @@
 #include "CopyButtonSetting.hpp"
 #include <Geode/loader/Mod.hpp>
 
-$execute {
+$on_mod(Loaded) {
     (void)Mod::get()->registerCustomSettingType("copy-mods", &CopyButtonSetting::parse);
 }
 
