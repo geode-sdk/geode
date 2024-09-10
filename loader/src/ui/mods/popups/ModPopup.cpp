@@ -3,6 +3,7 @@
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/utils/web.hpp>
 #include <Geode/loader/Loader.hpp>
+#include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include "ConfirmUninstallPopup.hpp"
@@ -557,6 +558,13 @@ bool ModPopup::setup(ModSource&& src) {
     mainContainer->updateLayout();
     m_mainLayer->addChildAtPosition(mainContainer, Anchor::Center);
 
+    m_settingsBG = CCScale9Sprite::create("square02b_001.png");
+    m_settingsBG->setColor({ 0, 0, 0 });
+    m_settingsBG->setOpacity(75);
+    m_settingsBG->setScale(.3f);
+    m_settingsBG->setContentSize(ccp(35, 30) / linksBG->getScale());
+    m_buttonMenu->addChildAtPosition(m_settingsBG, Anchor::BottomLeft, ccp(28, 25));
+
     auto settingsSpr = createGeodeCircleButton(CCSprite::createWithSpriteFrameName("settings.png"_spr));
     settingsSpr->setScale(.6f);
     auto settingsBtn = CCMenuItemSpriteExtra::create(
@@ -601,15 +609,30 @@ bool ModPopup::setup(ModSource&& src) {
     m_downloadListener.bind([this](auto) { this->updateState(); });
     m_downloadListener.setFilter(m_source.getID());
 
+    m_settingNodeListener.bind([this](SettingNodeValueChangeEventV3*) {
+        this->updateState();
+        return ListenerResult::Propagate;
+    });
+
     return true;
 }
 
 void ModPopup::updateState() {
     auto asMod = m_source.asMod();
     auto wantsRestart = m_source.wantsRestart();
+    auto wantsRestartBecauseOfSettings = asMod && ModSettingsManager::from(asMod)->restartRequired();
 
-    m_installBG->setColor(wantsRestart ? to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)) : ccc3(0, 0, 0));
-    m_installBG->setOpacity(wantsRestart ? 40 : 75);
+    m_installBG->setColor((wantsRestart && !wantsRestartBecauseOfSettings) ?
+        to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)) : 
+        ccBLACK
+    );
+    m_installBG->setOpacity((wantsRestart && !wantsRestartBecauseOfSettings) ? 40 : 75);
+    m_settingsBG->setColor(wantsRestartBecauseOfSettings ?
+        to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)) : 
+        ccBLACK
+    );
+    m_settingsBG->setOpacity(wantsRestartBecauseOfSettings ? 40 : 75);
+    m_settingsBG->setVisible(wantsRestartBecauseOfSettings);
     m_restartRequiredLabel->setVisible(wantsRestart);
 
     if (!wantsRestart && asMod) {

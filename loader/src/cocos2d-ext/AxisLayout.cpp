@@ -823,6 +823,13 @@ CCSize AxisLayout::getSizeHint(CCNode* on) const {
             axis.crossLength = cross;
         }
     }
+    if (auto l = m_impl->m_autoGrowAxisMinLength) {
+        length = std::max(length, *l);
+    }
+    // No overflow
+    else {
+        length = std::min(length, nodeAxis(on, m_impl->m_axis, 1.f).axisLength);
+    }
     if (!m_impl->m_allowCrossAxisOverflow) {
         cross = nodeAxis(on, m_impl->m_axis, 1.f).crossLength;
     }

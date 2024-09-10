@@ -125,45 +125,28 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     }
     catch (...) { }
 
-    JsonChecker checker(impl->m_rawJSON);
-    auto root = checker.root(checkerRoot).obj();
-
+    auto root = checkJson(impl->m_rawJSON, checkerRoot);
     root.needs("geode").into(impl->m_geodeVersion);
-    root.addKnownKey("gd");
-
-    // Check GD version
-    // (use rawJson because i dont like JsonMaybeValue)
-    if (rawJson.contains("gd")) {
-        std::string ver;
-        if (rawJson["gd"].is_object()) {
-            auto key = PlatformID::toShortString(GEODE_PLATFORM_TARGET, true);
-            if (rawJson["gd"].contains(key) && rawJson["gd"][key].is_string())
-                ver = rawJson["gd"][key].as_string();
-        } else if (rawJson["gd"].is_string()) {
+    
+    if (auto gd = root.needs("gd")) {
+        // In the future when we get rid of support for string format just 
+        // change all of this to the gd.needs(...) stuff
+        gd.assertIs({ matjson::Type::Object, matjson::Type::String });
+        if (gd.isObject()) {
+            gd.needs(GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH)
+                .mustBe<std::string>("a valid gd version", [](auto const& str) {
+                    return str == "*" || numFromString<double>(str).isOk();
+                })
+                .into(impl->m_gdVersion);
+        }
+        else if (gd.isString()) {
             impl->m_softInvalidReason = "mod.json uses old syntax";
-            goto dontCheckVersion;
-        } else {
-            return Err("[mod.json] has invalid target GD version");
         }
-        if (ver.empty()) {
-            // this will show an error later on, but will at least load the rest of the metadata
-            ver = "0.000";
-        }
-        if (ver != "*") {
-            auto res = numFromString<double>(ver);
-            if (res.isErr()) {
-                return Err("[mod.json] has invalid target GD version");
-            }
-            impl->m_gdVersion = ver;
-        }
-    } else {
-        return Err("[mod.json] is missing target GD version");
     }
-    dontCheckVersion:
 
+    constexpr auto ID_REGEX = "[a-z0-9\\-_]+\\.[a-z0-9\\-_]+";
     root.needs("id")
-        // todo: make this use validateID in full 2.0.0 release
-        .validate(MiniFunction<bool(std::string const&)>(&ModMetadata::Impl::validateOldID))
+        .mustBe<std::string>(ID_REGEX, &ModMetadata::Impl::validateOldID)
         .into(impl->m_id);
 
     // if (!isDeprecatedIDForm(impl->m_id)) {
@@ -180,7 +163,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         if (root.has("developer")) {
             return Err("[mod.json] can not have both \"developer\" and \"developers\" specified");
         }
-        for (auto& dev : root.needs("developers").iterate()) {
+        for (auto& dev : root.needs("developers").items()) {
             impl->m_developers.push_back(dev.template get<std::string>());
         }
     }
@@ -205,11 +188,9 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         });
     }
 
-    for (auto& dep : root.has("dependencies").iterate()) {
-        auto obj = dep.obj();
-
-        bool onThisPlatform = !obj.has("platforms");
-        for (auto& plat : obj.has("platforms").iterate()) {
+    for (auto& dep : root.has("dependencies").items()) {
+        bool onThisPlatform = !dep.has("platforms");
+        for (auto& plat : dep.has("platforms").items()) {
             if (PlatformID::coveredBy(plat.get<std::string>(), GEODE_PLATFORM_TARGET)) {
                 onThisPlatform = true;
             }
@@ -219,11 +200,10 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         }
 
         Dependency dependency;
-        // todo: make this use validateID in full 2.0.0 release
-        obj.needs("id").validate(MiniFunction<bool(std::string const&)>(&ModMetadata::Impl::validateOldID)).into(dependency.id);
-        obj.needs("version").into(dependency.version);
-        obj.has("importance").into(dependency.importance);
-        obj.checkUnknownKeys();
+        dep.needs("id").mustBe<std::string>(ID_REGEX, &ModMetadata::Impl::validateOldID).into(dependency.id);
+        dep.needs("version").into(dependency.version);
+        dep.has("importance").into(dependency.importance);
+        dep.checkUnknownKeys();
 
         if (
             dependency.version.getComparison() != VersionCompare::MoreEq &&
@@ -247,24 +227,30 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         impl->m_dependencies.push_back(dependency);
     }
 
-    for (auto& incompat : root.has("incompatibilities").iterate()) {
-        auto obj = incompat.obj();
+    for (auto& incompat : root.has("incompatibilities").items()) {
+        bool onThisPlatform = !incompat.has("platforms");
+        for (auto& plat : incompat.has("platforms").items()) {
+            if (PlatformID::coveredBy(plat.get<std::string>(), GEODE_PLATFORM_TARGET)) {
+                onThisPlatform = true;
+            }
+        }
+        if (!onThisPlatform) {
+            continue;
+        }
 
         Incompatibility incompatibility;
-        obj.needs("id").validate(MiniFunction<bool(std::string const&)>(&ModMetadata::Impl::validateOldID)).into(incompatibility.id);
-        obj.needs("version").into(incompatibility.version);
-        obj.has("importance").into(incompatibility.importance);
-        obj.checkUnknownKeys();
-
+        incompat.needs("id").mustBe<std::string>(ID_REGEX, &ModMetadata::Impl::validateOldID).into(incompatibility.id);
+        incompat.needs("version").into(incompatibility.version);
+        incompat.has("importance").into(incompatibility.importance);
+        incompat.checkUnknownKeys();
         impl->m_incompatibilities.push_back(incompatibility);
     }
 
-    for (auto& [key, value] : root.has("settings").items()) {
+    for (auto& [key, value] : root.has("settings").properties()) {
         // Skip settings not on this platform
-        if (value.template is<matjson::Object>()) {
-            auto obj = value.obj();
-            bool onThisPlatform = !obj.has("platforms");
-            for (auto& plat : obj.has("platforms").iterate()) {
+        if (value.is(matjson::Type::Object)) {
+            bool onThisPlatform = !value.has("platforms");
+            for (auto& plat : value.has("platforms").items()) {
                 if (PlatformID::coveredBy(plat.get<std::string>(), GEODE_PLATFORM_TARGET)) {
                     onThisPlatform = true;
                 }
@@ -273,25 +259,23 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
                 continue;
             }
         }
-
-        GEODE_UNWRAP_INTO(auto sett, Setting::parse(key, impl->m_id, value));
-        impl->m_settings.emplace_back(key, sett);
+        impl->m_settings.emplace_back(key, value.json());
     }
 
-    if (auto resources = root.has("resources").obj()) {
-        for (auto& [key, _] : resources.has("spritesheets").items()) {
+    if (auto resources = root.has("resources")) {
+        for (auto& [key, _] : resources.has("spritesheets").properties()) {
             impl->m_spritesheets.push_back(impl->m_id + "/" + key);
         }
     }
 
-    if (auto issues = root.has("issues").obj()) {
+    if (auto issues = root.has("issues")) {
         IssuesInfo issuesInfo;
         issues.needs("info").into(issuesInfo.info);
-        issues.has("url").intoAs<std::string>(issuesInfo.url);
+        issues.has("url").into(issuesInfo.url);
         impl->m_issues = issuesInfo;
     }
 
-    if (auto links = root.has("links").obj()) {
+    if (auto links = root.has("links")) {
         links.has("homepage").into(info.getLinksMut().getImpl()->m_homepage);
         links.has("source").into(info.getLinksMut().getImpl()->m_source);
         links.has("community").into(info.getLinksMut().getImpl()->m_community);
@@ -299,19 +283,16 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     }
 
     // Tags. Actual validation is done when interacting with the server in the UI
-    for (auto& tag : root.has("tags").iterate()) {
+    for (auto& tag : root.has("tags").items()) {
         impl->m_tags.insert(tag.template get<std::string>());
     }
 
     // with new cli, binary name is always mod id
     impl->m_binaryName = impl->m_id + GEODE_PLATFORM_EXTENSION;
 
-    if (checker.isError()) {
-        return Err(checker.getError());
-    }
     root.checkUnknownKeys();
 
-    return Ok(info);
+    return root.ok(info);
 }
 
 Result<ModMetadata> ModMetadata::Impl::create(ModJson const& json) {
@@ -542,6 +523,18 @@ std::vector<std::string> ModMetadata::getSpritesheets() const {
     return m_impl->m_spritesheets;
 }
 std::vector<std::pair<std::string, Setting>> ModMetadata::getSettings() const {
+    std::vector<std::pair<std::string, Setting>> res;
+    for (auto [key, sett] : m_impl->m_settings) {
+        auto checker = JsonChecker(sett);
+        auto value = checker.root("");
+        auto legacy = Setting::parse(key, m_impl->m_id, value);
+        if (!checker.isError() && legacy.isOk()) {
+            res.push_back(std::make_pair(key, *legacy));
+        }
+    }
+    return res;
+}
+std::vector<std::pair<std::string, matjson::Value>> ModMetadata::getSettingsV3() const {
     return m_impl->m_settings;
 }
 std::unordered_set<std::string> ModMetadata::getTags() const {
@@ -561,7 +554,7 @@ VersionInfo ModMetadata::getGeodeVersion() const {
     return m_impl->m_geodeVersion;
 }
 Result<> ModMetadata::checkGameVersion() const {
-    if (!m_impl->m_gdVersion.empty()) {
+    if (!m_impl->m_gdVersion.empty() && m_impl->m_gdVersion != "*") {
         auto const ver = m_impl->m_gdVersion;
 
         auto res = numFromString<double>(ver);
@@ -643,6 +636,10 @@ void ModMetadata::setSpritesheets(std::vector<std::string> const& value) {
     m_impl->m_spritesheets = value;
 }
 void ModMetadata::setSettings(std::vector<std::pair<std::string, Setting>> const& value) {
+    // intentionally no-op because no one is supposed to be using this 
+    // without subscribing to "internals are not stable" mentality
+}
+void ModMetadata::setSettings(std::vector<std::pair<std::string, matjson::Value>> const& value) {
     m_impl->m_settings = value;
 }
 void ModMetadata::setTags(std::unordered_set<std::string> const& value) {

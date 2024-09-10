@@ -3,6 +3,7 @@
 #include "cplatform.h"
 #include <string>
 #include <functional>
+#include <memory>
 
 #if !defined(__PRETTY_FUNCTION__) && !defined(__GNUC__)
     #define GEODE_PRETTY_FUNCTION std::string(__FUNCSIG__)
@@ -113,15 +114,16 @@
 namespace geode {
     class PlatformID {
     public:
+        // todo in v4: make these flags and add archless Mac and Android as well as Desktop and Mobile and remove Linux
         enum {
-            Unknown = -1,
-            Windows,
-            MacIntel,
-            MacArm,
-            iOS,
-            Android32,
-            Android64,
-            Linux,
+            Unknown   = -1,
+            Windows   = 0,
+            MacIntel  = 1,
+            MacArm    = 2,
+            iOS       = 3,
+            Android32 = 4,
+            Android64 = 5,
+            Linux     = 6,
         };
 
         using Type = decltype(Unknown);
@@ -171,7 +173,14 @@ namespace geode {
          */
         static GEODE_DLL bool coveredBy(const char* str, PlatformID t);
         static GEODE_DLL bool coveredBy(std::string const& str, PlatformID t);
+        /**
+         * Returns the list of platforms covered by this string name. For 
+         * example, "android" would return both Android32 and Android64
+         * todo in v4: deprecate this as the flagged version deals with this
+         */
+        static GEODE_DLL std::vector<PlatformID> getCovered(std::string_view str);
 
+        // todo in v4: this does not need to be constexpr in the header. dllexport it
         static constexpr char const* toString(Type lp) {
             switch (lp) {
                 case Unknown: return "Unknown";
@@ -187,6 +196,7 @@ namespace geode {
             return "Undefined";
         }
 
+        // todo in v4: this does not need to be constexpr in the header. dllexport it
         static constexpr char const* toShortString(Type lp, bool ignoreArch = false) {
             switch (lp) {
                 case Unknown: return "unknown";
@@ -242,3 +252,13 @@ namespace std {
 #elif defined(GEODE_IS_ANDROID64)
     #define GEODE_PLATFORM_TARGET PlatformID::Android64
 #endif
+
+// this is cross-platform so not duplicating it across the typeinfo_cast definitions
+namespace geode::cast {
+    template<class T, class U>
+    std::shared_ptr<T> typeinfo_pointer_cast(std::shared_ptr<U> const& r) noexcept {
+        // https://en.cppreference.com/w/cpp/memory/shared_ptr/pointer_cast
+        auto p = typeinfo_cast<typename std::shared_ptr<T>::element_type*>(r.get());
+        return std::shared_ptr<T>(r, p);
+    }
+}

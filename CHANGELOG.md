@@ -1,5 +1,18 @@
 # Geode Changelog
 
+## v3.6.0
+ * Major rework of the entire settings system with lots of new features; see the [docs page](https://docs.geode-sdk.org/mods/settings) for more
+ * Rework JSON validation; now uses the `JsonExpectedValue` class with the `checkJson` helper (89d1a51)
+ * Add `Task::cancelled` for creating immediately cancelled Tasks (1a82d12)
+ * Add function type utilities in `utils/function.hpp` (659c168)
+ * Add `typeinfo_pointer_cast` for casting `std::shared_ptr`s (28cc6fd)
+ * Add `GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH` (1032d9a)
+ * Add `PlatformID::getCovered` (d5718be)
+ * Rename `toByteArray` to `toBytes` (6eb0797)
+ * Improve `AxisLayout::getSizeHint` (85e7b5e)
+ * Fix issues with file dialogs on Windows (62b6241, 971e3fb)
+ * Mod incompatibilities may now be platform-specific (9f1c70a)
+
 ## v3.5.0
  * Move CCLighting to cocos headers (#1036)
  * Add new `gd::string` constructor (bae22b4)

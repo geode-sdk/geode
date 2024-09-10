@@ -1,5 +1,6 @@
 #include "ModListSource.hpp"
 #include <server/DownloadManager.hpp>
+#include <Geode/loader/ModSettingsManager.hpp>
 
 #define FTS_FUZZY_MATCH_IMPLEMENTATION
 #include <Geode/external/fts/fts_fuzzy_match.h>
@@ -88,6 +89,9 @@ void ModListSource::clearAllCaches() {
 bool ModListSource::isRestartRequired() {
     for (auto mod : Loader::get()->getAllMods()) {
         if (mod->getRequestedAction() != ModRequestedAction::None) {
+            return true;
+        }
+        if (ModSettingsManager::from(mod)->restartRequired()) {
             return true;
         }
     }
