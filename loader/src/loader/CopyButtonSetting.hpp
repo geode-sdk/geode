@@ -10,6 +10,7 @@ public:
         auto root = checkJson(json, "CopyButtonSetting");
 
         res->init(key, modID, root);
+        res->parseNameAndDescription(root);
 
         return root.ok(res);
     }
@@ -41,7 +42,8 @@ protected:
             buttonSprite, this, menu_selector(CopyButtonSettingNode::onCopy)
         );
         this->getButtonMenu()->addChildAtPosition(button, Anchor::Center);
-        this->getButtonMenu()->setContentWidth(60);
+        this->getButtonMenu()->setPosition(getContentSize() / 2);
+        this->getButtonMenu()->setAnchorPoint({ .5f, .5f });
         this->getButtonMenu()->updateLayout();
 
         this->updateState(nullptr);
