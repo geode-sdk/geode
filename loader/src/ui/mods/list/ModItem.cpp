@@ -140,7 +140,7 @@ bool ModItem::init(ModSource&& source) {
 
         auto geodeValid = Loader::get()->isModVersionSupported(version.getGeodeVersion());
         auto gameVersion = version.getGameVersion();
-        auto gdValid = gameVersion == "*" || gameVersion == GEODE_STR(GEODE_GD_VERSION);
+        auto gdValid = !gameVersion || gameVersion == "*" || gameVersion == GEODE_STR(GEODE_GD_VERSION);
 
         if (!geodeValid || !gdValid) {
             spr = createGeodeButton("N/A", 50, false, true, GeodeButtonSprite::Gray);
@@ -496,15 +496,8 @@ void ModItem::onView(CCObject*) {
     // Show popups for invalid mods
     if (m_source.asServer()) {
         auto version = m_source.asServer()->latestVersion();
-        if (!Loader::get()->isModVersionSupported(version.getGeodeVersion())) {
-            return FLAlertLayer::create(
-                nullptr,
-                "Unavailable",
-                "This mod targets an <cr>unsupported version of Geode</c>.",
-                "OK", nullptr, 360
-            )->show();
-        }
-        if (version.getGameVersion() == "0.000") {
+        auto gameVersion = version.getGameVersion();
+        if (gameVersion == "0.000") {
             return FLAlertLayer::create(
                 nullptr,
                 "Invalid Platform",
@@ -512,12 +505,19 @@ void ModItem::onView(CCObject*) {
                 "OK", nullptr, 360
             )->show();
         }
-        if (version.getGameVersion() != "*" && version.getGameVersion() != GEODE_STR(GEODE_GD_VERSION)) {
+        if (gameVersion && gameVersion != "*" && gameVersion != GEODE_STR(GEODE_GD_VERSION)) {
             return FLAlertLayer::create(
                 nullptr,
-                "Outdated",
-                "This mod targets a <cr>different version of Geometry Dash</c>. "
-                "<co>Please wait for its developer to update it.</c>",
+                "Unavailable",
+                "This mod targets an <cr>unsupported version of Geometry Dash</c>.",
+                "OK", nullptr, 360
+            )->show();
+        }
+        if (!Loader::get()->isModVersionSupported(version.getGeodeVersion())) {
+            return FLAlertLayer::create(
+                nullptr,
+                "Unavailable",
+                "This mod targets an <cr>unsupported version of Geode</c>.",
                 "OK", nullptr, 360
             )->show();
         }
