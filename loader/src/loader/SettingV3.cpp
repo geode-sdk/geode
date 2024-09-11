@@ -638,9 +638,15 @@ void LegacyCustomSettingV3::setValue(std::shared_ptr<SettingValue> value) {
 }
 
 bool LegacyCustomSettingV3::load(matjson::Value const& json) {
+    if (m_impl->legacyValue) {
+        return m_impl->legacyValue->load(json);
+    }
     return true;
 }
 bool LegacyCustomSettingV3::save(matjson::Value& json) const {
+    if (m_impl->legacyValue) {
+        return m_impl->legacyValue->save(json);
+    }
     return true;
 }
 SettingNodeV3* LegacyCustomSettingV3::createNode(float width) {
