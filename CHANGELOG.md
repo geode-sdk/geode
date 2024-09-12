@@ -17,6 +17,12 @@
  * Fix issues with file dialogs on Windows (62b6241, 971e3fb)
  * Fix PCH issues (aedd986)
  * Mod incompatibilities may now be platform-specific (9f1c70a)
+ * Show appropriate popup for unavailable mods (6944f80, 30dc70c)
+ * Add support for description as a default value on file settings (75186f6)
+ * Remove early ub related to console (54ff48c)
+ * Temporary workaround for Wine crash due to console (dc170d7)
+ * Check also for incompatibilities with newly installed mods when downloading (9115091)
+ * Make cocos geometry classes constexpr (db8a6c8)
 
 ## v3.5.0
  * Move CCLighting to cocos headers (#1036)
