@@ -12,7 +12,7 @@ constexpr static auto MAX_PATH_CHARS = 32768u;
 static HMODULE getXInput() {
     static auto xinput = []() -> HMODULE {
         std::wstring path(MAX_PATH_CHARS, L'\0');
-        auto size = GetSystemDirectoryW(const_cast<wchar_t*>(path.data()), path.size());
+        auto size = GetSystemDirectoryW(path.data(), path.size());
         if (size) {
             path.resize(size);
             return LoadLibraryW((path + L"\\XInput1_4.dll").c_str());
