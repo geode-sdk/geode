@@ -83,11 +83,6 @@ bool ModSettingsPopup::setup(Mod* mod) {
         else {
             node = UnresolvedCustomSettingNodeV3::create(key, mod, layerSize.width);
         }
-    
-        // auto separator = CCLayerColor::create({ 0, 0, 0, 50 }, layerSize.width, 1.f);
-        // separator->setOpacity(bg ? 100 : 50);
-        // separator->ignoreAnchorPointForPosition(false);
-        // bg->addChildAtPosition(separator, Anchor::Bottom, ccp(0, 0), ccp(.5f, .5f));
 
         m_settings.push_back(node);
         m_list->m_contentLayer->addChild(node);
@@ -101,6 +96,11 @@ bool ModSettingsPopup::setup(Mod* mod) {
             ->setGap(0)
     );
     m_list->moveToTop();
+
+    const int buttonPriority = m_list->getTouchPriority() - 1;
+
+    m_buttonMenu->setTouchPriority(buttonPriority);
+    searchContainer->setTouchPriority(buttonPriority);
 
     layerBG->addChildAtPosition(m_list, Anchor::BottomLeft);
 
@@ -119,6 +119,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
     m_applyMenu->setContentWidth(150);
     m_applyMenu->setLayout(RowLayout::create());
     m_applyMenu->getLayout()->ignoreInvisibleChildren(true);
+    m_applyMenu->setTouchPriority(buttonPriority);
 
     auto restartBtnSpr = createGeodeButton("Restart Now", true);
     restartBtnSpr->setScale(.6f);
