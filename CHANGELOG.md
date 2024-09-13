@@ -31,7 +31,7 @@
  * Fix rip displacement issues when hooking some functions on Windows (175dc27)
 
 ## v3.5.0
- * Move CCLighting to cocos headers (#1036)
+ * Move CCLightning to cocos headers (#1036)
  * Add new `gd::string` constructor (bae22b4)
  * Use `getChildren` instead of member in `getChildByID` (fe730ed)
  * Fix sprite order in `CCMenuItemExt::createToggler` (d729a12, 59a0ade)
