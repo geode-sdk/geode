@@ -1,5 +1,10 @@
 # Geode Changelog
 
+## v3.6.1
+ * Fix modrm rip relative instruction displacement saving the clobbered register (ddfe8e2)
+ * Fix `DataSaved` and `DataLoaded` events (8615bbd, 43adb35)
+ * Fix file settings mixed separators (1281c76)
+
 ## v3.6.0
  * Major rework of the entire settings system with lots of new features; see the [docs page](https://docs.geode-sdk.org/mods/settings) for more
  * Rework JSON validation; now uses the `JsonExpectedValue` class with the `checkJson` helper (89d1a51)
