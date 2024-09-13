@@ -126,7 +126,7 @@ public:
     }
 
     inline constexpr bool equals(const CCPoint& target) const {
-        return (fabs(this->x - target.x) < FLT_EPSILON) && (fabs(this->y - target.y) < FLT_EPSILON);
+        return this->fuzzyEquals(target, FLT_EPSILON);
     }
     
     /** @returns if points have fuzzy equality which means equal with some degree of variance.
@@ -145,7 +145,7 @@ public:
      * @since v2.1.4
      * @lua NA
      */
-    inline constexpr float getLength() const {
+    inline float getLength() const {
         return sqrtf(x*x + y*y);
     };
 
@@ -177,14 +177,14 @@ public:
     /** @returns the angle in radians between this vector and the x axis
      @since v2.1.4
     */
-    inline constexpr float getAngle() const {
+    inline float getAngle() const {
         return atan2f(y, x);
     };
 
     /** @returns the angle in radians between two vector directions
      @since v2.1.4
     */
-    inline constexpr float getAngle(const CCPoint& other) const {
+    inline float getAngle(const CCPoint& other) const {
         CCPoint a2 = normalize();
         CCPoint b2 = other.normalize();
         float angle = atan2f(a2.cross(b2), a2.dot(b2));
@@ -375,7 +375,14 @@ public:
      * @lua NA
      */
     inline constexpr bool equals(const CCSize& target) const {
-        return (fabs(this->width  - target.width)  < FLT_EPSILON) && (fabs(this->height - target.height) < FLT_EPSILON);
+        return this->fuzzyEquals(target, FLT_EPSILON);
+    }
+
+    inline constexpr bool fuzzyEquals(const CCSize& b, float var) const {
+        if(width - var <= b.width && b.width <= width + var)
+            if(height - var <= b.height && b.height <= height + var)
+                return true;
+        return false;
     }
     /**
      * Get the aspect ratio of this CCSize
