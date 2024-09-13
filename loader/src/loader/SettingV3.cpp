@@ -1052,6 +1052,8 @@ Result<std::shared_ptr<FileSettingV3>> FileSettingV3::parse(std::string const& k
     auto root = checkJson(json, "FileSettingV3");
     ret->parseBaseProperties(key, modID, root);
 
+    ret->setDefaultValue(ret->getDefaultValue().make_preferred());
+
     // Replace known paths like `{gd-save-dir}/`
     try {
         ret->setDefaultValue(fmt::format(
