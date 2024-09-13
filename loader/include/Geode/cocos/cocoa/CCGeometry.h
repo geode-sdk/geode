@@ -170,7 +170,7 @@ public:
      @return float
      @since v2.1.4
      */
-    inline constexpr float getDistance(const CCPoint& other) const {
+    inline float getDistance(const CCPoint& other) const {
         return (*this - other).getLength();
     };
 
@@ -255,7 +255,7 @@ public:
      @return CCPoint
      @since v2.1.4
      */
-    inline constexpr CCPoint normalize() const {
+    inline CCPoint normalize() const {
         float length = getLength();
         if(length == 0.) return CCPoint(1.f, 0);
         return *this / getLength();
@@ -278,11 +278,11 @@ public:
      @returns the rotated point
      @since v2.1.4
      */
-    inline constexpr CCPoint rotateByAngle(const CCPoint& pivot, float angle) const {
+    inline CCPoint rotateByAngle(const CCPoint& pivot, float angle) const {
         return pivot + (*this - pivot).rotate(CCPoint::forAngle(angle));
     }
 
-    static inline constexpr CCPoint forAngle(const float a)
+    static inline CCPoint forAngle(const float a)
     {
     	return CCPoint(cosf(a), sinf(a));
     }
