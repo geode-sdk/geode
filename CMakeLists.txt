@@ -274,9 +274,11 @@ target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
 add_subdirectory(${GEODE_BINDINGS_REPO_PATH} ${CMAKE_BINARY_DIR}/bindings)
 
 if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
-	target_precompile_headers(GeodeBindings INTERFACE
-		"$<$<COMPILE_LANGUAGE:CXX>:${GEODE_LOADER_PATH}/include/Geode/Bindings.hpp>"
-	)
+	if (!APPLE)
+		target_precompile_headers(GeodeBindings INTERFACE
+			"$<$<COMPILE_LANGUAGE:CXX>:${GEODE_LOADER_PATH}/include/Geode/Bindings.hpp>"
+		)
+  	endif()
 endif()
 
 target_include_directories(GeodeBindings PUBLIC
@@ -312,11 +314,13 @@ if (PROJECT_IS_TOP_LEVEL)
 elseif (EXISTS ${GEODE_PLATFORM_BIN_PATH})
 	target_link_libraries(${PROJECT_NAME} INTERFACE "${GEODE_PLATFORM_BIN_PATH}")
 	if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
-		target_precompile_headers(${PROJECT_NAME} INTERFACE
-			"$<$<COMPILE_LANGUAGE:CXX>:${GEODE_LOADER_PATH}/include/Geode/DefaultInclude.hpp>"
-			"$<$<COMPILE_LANGUAGE:CXX>:${GEODE_LOADER_PATH}/include/Geode/Geode.hpp>"
-			# please stop adding modify here its not here because it makes windows compilation take longer than geode 1.0 release date
-		)
+ 		if (!APPLE)
+			target_precompile_headers(${PROJECT_NAME} INTERFACE
+				"$<$<COMPILE_LANGUAGE:CXX>:${GEODE_LOADER_PATH}/include/Geode/DefaultInclude.hpp>"
+				"$<$<COMPILE_LANGUAGE:CXX>:${GEODE_LOADER_PATH}/include/Geode/Geode.hpp>"
+				# please stop adding modify here its not here because it makes windows compilation take longer than geode 1.0 release date
+			)
+   		endif()
 	endif()
 else()
 	message(FATAL_ERROR
