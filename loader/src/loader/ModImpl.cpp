@@ -174,10 +174,6 @@ std::vector<Patch*> Mod::Impl::getPatches() const {
 // Settings and saved values
 
 Result<> Mod::Impl::loadData() {
-    Loader::get()->queueInMainThread([&]() {
-        ModStateEvent(m_self, ModEventType::DataLoaded).post();
-    });
-
     // Settings
     // Check if settings exist
     auto settingPath = m_saveDirPath / "settings.json";
@@ -331,6 +327,7 @@ Result<> Mod::Impl::loadBinary() {
 
     ModStateEvent(m_self, ModEventType::Loaded).post();
     ModStateEvent(m_self, ModEventType::Enabled).post();
+    ModStateEvent(m_self, ModEventType::DataLoaded).post();
 
     m_isCurrentlyLoading = false;
 
