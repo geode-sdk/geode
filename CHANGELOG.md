@@ -23,6 +23,7 @@
  * Temporary workaround for Wine crash due to console (dc170d7)
  * Check also for incompatibilities with newly installed mods when downloading (9115091)
  * Make cocos geometry classes constexpr (db8a6c8)
+ * Fix rip displacement issues when hooking some functions on Windows (175dc27)
 
 ## v3.5.0
  * Move CCLighting to cocos headers (#1036)
