@@ -603,7 +603,7 @@ void Loader::Impl::findProblems() {
         }
 
         for (auto const& dep : mod->getMetadata().getIncompatibilities()) {
-            if (!dep.mod || !dep.version.compare(dep.mod->getVersion()))
+            if (!dep.mod || !dep.version.compare(dep.mod->getVersion()) || !dep.mod->isEnabled())
                 continue;
             switch(dep.importance) {
                 case ModMetadata::Incompatibility::Importance::Conflicting: {

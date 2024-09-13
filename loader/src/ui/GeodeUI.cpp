@@ -2,11 +2,78 @@
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/MDPopup.hpp>
+#include <Geode/ui/LoadingSpinner.hpp>
 #include <Geode/utils/web.hpp>
 #include <server/Server.hpp>
 #include "mods/GeodeStyle.hpp"
 #include "mods/settings/ModSettingsPopup.hpp"
 #include "mods/popups/ModPopup.hpp"
+#include "GeodeUIEvent.hpp"
+
+class LoadServerModLayer : public Popup<std::string const&> {
+protected:
+    std::string m_id;
+    EventListener<server::ServerRequest<server::ServerModMetadata>> m_listener;
+
+    bool setup(std::string const& id) override {
+        m_closeBtn->setVisible(false);
+
+        this->setTitle("Loading mod...");
+
+        auto spinner = LoadingSpinner::create(40);
+        m_mainLayer->addChildAtPosition(spinner, Anchor::Center, ccp(0, -10));
+
+        m_id = id;
+        m_listener.bind(this, &LoadServerModLayer::onRequest);
+        m_listener.setFilter(server::getMod(id));
+
+        return true;
+    }
+
+    void onRequest(server::ServerRequest<server::ServerModMetadata>::Event* event) {
+        if (auto res = event->getValue()) {
+            if (res->isOk()) {
+                // Copy info first as onClose may free the listener which will free the event
+                auto info = **res;
+                this->onClose(nullptr);
+                // Run this on next frame because otherwise the popup is unable to call server::getMod for some reason
+                Loader::get()->queueInMainThread([info = std::move(info)]() mutable {
+                    ModPopup::create(ModSource(std::move(info)))->show();
+                });
+            }
+            else {
+                auto id = m_id;
+                this->onClose(nullptr);
+                FLAlertLayer::create(
+                    "Error Loading Mod",
+                    fmt::format("Unable to find mod with the ID <cr>{}</c>!", id),
+                    "OK"
+                )->show();
+            }
+        }
+        else if (event->isCancelled()) {
+            this->onClose(nullptr);
+        }
+    }
+
+public:
+    Task<bool> listen() const {
+        return m_listener.getFilter().map(
+            [](auto* result) -> bool { return result->isOk(); },
+            [](auto) -> std::monostate { return std::monostate(); }
+        );
+    }
+
+    static LoadServerModLayer* create(std::string const& id) {
+        auto ret = new LoadServerModLayer();
+        if (ret && ret->initAnchored(180, 100, id, "square01_001.png", CCRectZero)) {
+            ret->autorelease();
+            return ret;
+        }
+        CC_SAFE_RELEASE(ret);
+        return nullptr;
+    }
+};
 
 void geode::openModsList() {
     ModsLayer::scene();
@@ -68,6 +135,18 @@ void geode::openSupportPopup(ModMetadata const& metadata) {
 void geode::openInfoPopup(Mod* mod) {
     ModPopup::create(mod)->show();
 }
+Task<bool> geode::openInfoPopup(std::string const& modID) {
+    if (auto mod = Loader::get()->getInstalledMod(modID)) {
+        openInfoPopup(mod);
+        return Task<bool>::immediate(true);
+    }
+    else {
+        auto popup = LoadServerModLayer::create(modID);
+        auto task = popup->listen();
+        popup->show();
+        return task;
+    }
+}
 void geode::openIndexPopup(Mod* mod) {
     // deprecated func
     openInfoPopup(mod);
@@ -98,6 +177,9 @@ protected:
         this->setAnchorPoint({ .5f, .5f });
         this->setContentSize({ 50, 50 });
 
+        // This is a default ID, nothing should ever rely on the ID of any ModLogoSprite being this
+        this->setID(std::string(Mod::get()->expandSpriteName(fmt::format("sprite-{}", id))));
+
         m_modID = id;
         m_listener.bind(this, &ModLogoSprite::onFetch);
 
@@ -105,19 +187,22 @@ protected:
         if (!fetch) {
             this->setSprite(id == "geode.loader" ? 
                 CCSprite::createWithSpriteFrameName("geode-logo.png"_spr) : 
-                CCSprite::create(fmt::format("{}/logo.png", id).c_str())
+                CCSprite::create(fmt::format("{}/logo.png", id).c_str()),
+                false
             );
         }
         // Asynchronously fetch from server
         else {
-            this->setSprite(createLoadingCircle(25));
+            this->setSprite(createLoadingCircle(25), false);
             m_listener.setFilter(server::getModLogo(id));
         }
+
+        ModLogoUIEvent(std::make_unique<ModLogoUIEvent::Impl>(this, id)).post();
 
         return true;
     }
 
-    void setSprite(CCNode* sprite) {
+    void setSprite(CCNode* sprite, bool postEvent) {
         // Remove any existing sprite
         if (m_sprite) {
             m_sprite->removeFromParent();
@@ -129,28 +214,33 @@ protected:
         }
         // Set sprite and scale it to node size
         m_sprite = sprite;
+        m_sprite->setID("sprite");
         limitNodeSize(m_sprite, m_obContentSize, 99.f, 0.f);
         this->addChildAtPosition(m_sprite, Anchor::Center);
+
+        if (postEvent) {
+            ModLogoUIEvent(std::make_unique<ModLogoUIEvent::Impl>(this, m_modID)).post();
+        }
     }
 
     void onFetch(server::ServerRequest<ByteVector>::Event* event) {
         if (auto result = event->getValue()) {
             // Set default sprite on error
             if (result->isErr()) {
-                this->setSprite(nullptr);
+                this->setSprite(nullptr, true);
             }
             // Otherwise load downloaded sprite to memory
             else {
                 auto data = result->unwrap();
                 auto image = Ref(new CCImage());
-                image->initWithImageData(const_cast<uint8_t*>(data.data()), data.size());
+                image->initWithImageData(data.data(), data.size());
 
                 auto texture = CCTextureCache::get()->addUIImage(image, m_modID.c_str());
-                this->setSprite(CCSprite::createWithTexture(texture));
+                this->setSprite(CCSprite::createWithTexture(texture), true);
             }
         }
         else if (event->isCancelled()) {
-            this->setSprite(nullptr);
+            this->setSprite(nullptr, true);
         }
     }
 

@@ -101,7 +101,7 @@ public:
             .percentage = 0,
         };
 
-        m_downloadListener.bind([this, hash = version.hash](web::WebTask::Event* event) {
+        m_downloadListener.bind([this, hash = version.hash, version = version](web::WebTask::Event* event) {
             if (auto value = event->getValue()) {
                 if (value->ok()) {
                     if (auto actualHash = ::calculateHash(value->data()); actualHash != hash) {
@@ -134,7 +134,9 @@ public:
                             };
                         }
                         else {
-                            m_status = DownloadStatusDone();
+                            m_status = DownloadStatusDone {
+                                .version = version
+                            };
                         }
                     }
                 }
@@ -156,6 +158,7 @@ public:
         });
 
         auto req = web::WebRequest();
+        req.userAgent(getServerUserAgent());
         m_downloadListener.setFilter(req.get(version.downloadURL));
         ModDownloadEvent(m_id).post();
     }
@@ -318,6 +321,11 @@ bool ModDownloadManager::checkAutoConfirm() {
                 if (inc.mod && (!download.getVersion().has_value() || inc.version.compare(download.getVersion().value()))) {
                     return false;
                 }
+                for (auto download : ModDownloadManager::get()->getDownloads()) {
+                    if (download.isDone() && inc.id == download.getID() && (!download.getVersion().has_value() || inc.version.compare(download.getVersion().value()))) {
+                        return false;
+                    }
+                }
             }
             // If some installed mod is incompatible with this one,
             // we need to ask for confirmation
@@ -325,6 +333,19 @@ bool ModDownloadManager::checkAutoConfirm() {
                 for (auto inc : mod->getMetadata().getIncompatibilities()) {
                     if (inc.id == download.getID() && (!download.getVersion().has_value() || inc.version.compare(download.getVersion().value()))) {
                         return false;
+                    }
+                }
+            }
+
+            // If some newly downloaded mods are incompatible with this one, 
+            // we need to ask for confirmation
+            for (auto download : ModDownloadManager::get()->getDownloads()) {
+                auto status = download.getStatus();
+                if (auto done = std::get_if<DownloadStatusDone>(&status)) {
+                    for (auto inc : done->version.metadata.getIncompatibilities()) {
+                        if (inc.id == download.getID() && inc.version.compare(done->version.metadata.getVersion())) {
+                            return false;
+                        }
                     }
                 }
             }

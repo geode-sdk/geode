@@ -4,6 +4,7 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/VersionInfo.hpp>
+#include <Geode/loader/SettingV3.hpp>
 
 using namespace geode::prelude;
 
@@ -36,7 +37,7 @@ namespace geode {
         std::vector<Dependency> m_dependencies;
         std::vector<Incompatibility> m_incompatibilities;
         std::vector<std::string> m_spritesheets;
-        std::vector<std::pair<std::string, Setting>> m_settings;
+        std::vector<std::pair<std::string, matjson::Value>> m_settings;
         std::unordered_set<std::string> m_tags;
         bool m_needsEarlyLoad = false;
         bool m_isAPI = false;

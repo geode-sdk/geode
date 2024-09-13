@@ -211,3 +211,11 @@ void Notification::hide() {
         nullptr
     ));
 }
+
+void Notification::cancel() {
+    if(m_pParent) return this->hide();
+
+    if (s_queue->containsObject(this)) {
+        s_queue->removeObject(this);
+    }
+}

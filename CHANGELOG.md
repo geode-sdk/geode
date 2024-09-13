@@ -1,5 +1,70 @@
 # Geode Changelog
 
+## v3.6.1
+ * Fix modrm rip relative instruction displacement saving the clobbered register (ddfe8e2)
+ * Fix `DataSaved` and `DataLoaded` events (8615bbd, 43adb35)
+ * Fix file settings mixed separators (1281c76)
+
+## v3.6.0
+ * Major rework of the entire settings system with lots of new features; see the [docs page](https://docs.geode-sdk.org/mods/settings) for more
+ * Rework JSON validation; now uses the `JsonExpectedValue` class with the `checkJson` helper (89d1a51)
+ * Add `Task::cancelled` for creating immediately cancelled Tasks (1a82d12)
+ * Add function type utilities in `utils/function.hpp` (659c168)
+ * Add `typeinfo_pointer_cast` for casting `std::shared_ptr`s (28cc6fd)
+ * Add `GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH` (1032d9a)
+ * Add `PlatformID::getCovered` (d5718be)
+ * Add `limitNodeWidth` and `limitNodeHeight` utils (e8751bf)
+ * Add `std::hash<WeakRef>` (2d9ce8f)
+ * Allow limiting image width/height in `MDTextArea` (e8751bf)
+ * The current working directory is automatically always set to the game directory (7c558ee)
+ * Rename `toByteArray` to `toBytes` (6eb0797)
+ * Improve `AxisLayout::getSizeHint` (85e7b5e)
+ * Fix issues with file dialogs on Windows (62b6241, 971e3fb)
+ * Fix PCH issues (aedd986)
+ * Mod incompatibilities may now be platform-specific (9f1c70a)
+ * Show appropriate popup for unavailable mods (6944f80, 30dc70c)
+ * Add support for description as a default value on file settings (75186f6)
+ * Remove early ub related to console (54ff48c)
+ * Temporary workaround for Wine crash due to console (dc170d7)
+ * Check also for incompatibilities with newly installed mods when downloading (9115091)
+ * Make cocos geometry classes constexpr (db8a6c8)
+ * Fix rip displacement issues when hooking some functions on Windows (175dc27)
+
+## v3.5.0
+ * Move CCLightning to cocos headers (#1036)
+ * Add new `gd::string` constructor (bae22b4)
+ * Use `getChildren` instead of member in `getChildByID` (fe730ed)
+ * Fix sprite order in `CCMenuItemExt::createToggler` (d729a12, 59a0ade)
+ * Add restart button to windows's crashlog window (#1025)
+ * Update FMOD headers (63b82f9)
+ * Change SwelvyBG sprites to be 2048x512 (#1029)
+ * Fix missing `GEODE_DLL` (e4054d4)
+ * Add code of conduct (80693c1, ab8ace0, ca3a2a3)
+ * Add ID system to Geode's web requests (#1040, 1f2aa2c, 1b5ae86)
+ * Add `Notification::cancel` (cd5a66c)
+ * Update matjson (e5dd2c9)
+ * Update TulipHook (a31c68f)
+ * Fix a bug where only 1 word wrap variant can exist (#1058)
+ * Fix ScrollLayer when anchor point is not ignored (d95a43b)
+ * Move macOS builds to using apple clang, fixing issues on older macOS versions (#1030)
+ * Allow dashes when searching for developers (#1023)
+ * Split update checks into multiple batches (#1066)
+ * Show invalid mods on mod search (#1065)
+
+## v3.4.0
+ * Add an API for modifying the Geode UI via events; see [the corresponding docs page](https://docs.geode-sdk.org/tutorials/modify-geode) (2a3c35f)
+ * Add `openInfoPopup` overload that accepts a mod ID and can open both an installed mod page or a server page (028bbf9)
+ * Add `LoadingSpinner` for creating loading circles easily (5c84012)
+ * Add `TextInput::focus` and `TextInput::unfocus` (749fdf1)
+ * MDTextArea changes: hex colors are now formatted as `<c-XXXXXX></c>`; added support for `<cc>`, `<cd>`, `<cf>`, and `<cs>`; fixed `mod:` links (028bbf9)
+ * Deprecate `cc3x` (6080fdb)
+ * Don't cancel subtasks on `Task` destructor (4b4bc0e)
+
+## v3.3.1
+ * Move ObjectDecoder and its delegate to Cocos headers (95f9eeb, dceb91e)
+ * Fix weird behavior with textures, objects and more by changing en-US.utf8 locale to C (2cd1a9e)
+ * Change all C number parsing to use `numFromString` to further remove the risk of this happening again (006ede8)
+
 ## v3.3.0
  * Update network libraries, fixing problems with old Wine versions (e26fe95)
  * Fix scale on mod logos for low quality (ba7b0fa)

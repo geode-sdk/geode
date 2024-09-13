@@ -30,28 +30,28 @@ struct matjson::Serialize<cocos2d::ccColor4B> {
 
 // operators for CC geometry
 namespace cocos2d {
-    static cocos2d::CCPoint& operator*=(cocos2d::CCPoint& pos, float mul) {
+    static constexpr cocos2d::CCPoint& operator*=(cocos2d::CCPoint& pos, float mul) {
         pos.x *= mul;
         pos.y *= mul;
         return pos;
     }
-    static cocos2d::CCSize& operator*=(cocos2d::CCSize& size, float mul) {
+    static constexpr cocos2d::CCSize& operator*=(cocos2d::CCSize& size, float mul) {
         size.width *= mul;
         size.height *= mul;
         return size;
     }
-    static cocos2d::CCSize operator*(cocos2d::CCSize const& size, cocos2d::CCPoint const& point) {
+    static constexpr cocos2d::CCSize operator*(cocos2d::CCSize const& size, cocos2d::CCPoint const& point) {
         return {
             size.width * point.x,
             size.height * point.y,
         };
     }
-    static cocos2d::CCRect operator*=(cocos2d::CCRect& rect, float mul) {
+    static constexpr cocos2d::CCRect operator*=(cocos2d::CCRect& rect, float mul) {
         rect.origin *= mul;
         rect.size *= mul;
         return rect;
     }
-    static cocos2d::CCRect operator*(cocos2d::CCRect const& rect, float mul) {
+    static constexpr cocos2d::CCRect operator*(cocos2d::CCRect const& rect, float mul) {
         return {
             rect.origin.x * mul,
             rect.origin.y * mul,
@@ -59,131 +59,131 @@ namespace cocos2d {
             rect.size.height * mul,
         };
     }
-    static cocos2d::CCPoint operator/=(cocos2d::CCPoint& pos, float div) {
+    static constexpr cocos2d::CCPoint operator/=(cocos2d::CCPoint& pos, float div) {
         pos.x /= div;
         pos.y /= div;
         return pos;
     }
-    static cocos2d::CCSize operator/=(cocos2d::CCSize& size, float div) {
+    static constexpr cocos2d::CCSize operator/=(cocos2d::CCSize& size, float div) {
         size.width /= div;
         size.height /= div;
         return size;
     }
-    static cocos2d::CCRect operator/=(cocos2d::CCRect& rect, float div) {
+    static constexpr cocos2d::CCRect operator/=(cocos2d::CCRect& rect, float div) {
         rect.origin /= div;
         rect.size /= div;
         return rect;
     }
-    static cocos2d::CCPoint operator+=(cocos2d::CCPoint& pos, cocos2d::CCPoint const& add) {
+    static constexpr cocos2d::CCPoint operator+=(cocos2d::CCPoint& pos, cocos2d::CCPoint const& add) {
         pos.x += add.x;
         pos.y += add.y;
         return pos;
     }
-    static cocos2d::CCSize operator+=(cocos2d::CCSize& size, cocos2d::CCPoint const& add) {
+    static constexpr cocos2d::CCSize operator+=(cocos2d::CCSize& size, cocos2d::CCPoint const& add) {
         size.width += add.x;
         size.height += add.y;
         return size;
     }
-    static cocos2d::CCSize operator+=(cocos2d::CCSize& size, cocos2d::CCSize const& add) {
+    static constexpr cocos2d::CCSize operator+=(cocos2d::CCSize& size, cocos2d::CCSize const& add) {
         size.width += add.width;
         size.height += add.height;
         return size;
     }
-    static cocos2d::CCRect operator+=(cocos2d::CCRect& rect, cocos2d::CCPoint const& add) {
+    static constexpr cocos2d::CCRect operator+=(cocos2d::CCRect& rect, cocos2d::CCPoint const& add) {
         rect.origin += add;
         return rect;
     }
-    static cocos2d::CCRect operator+=(cocos2d::CCRect& rect, cocos2d::CCSize const& add) {
+    static constexpr cocos2d::CCRect operator+=(cocos2d::CCRect& rect, cocos2d::CCSize const& add) {
         rect.size += add;
         return rect;
     }
-    static cocos2d::CCRect operator+=(cocos2d::CCRect& rect, cocos2d::CCRect const& add) {
+    static constexpr cocos2d::CCRect operator+=(cocos2d::CCRect& rect, cocos2d::CCRect const& add) {
         rect.origin += add.origin;
         rect.size += add.size;
         return rect;
     }
-    static cocos2d::CCPoint operator-=(cocos2d::CCPoint& pos, cocos2d::CCPoint const& add) {
+    static constexpr cocos2d::CCPoint operator-=(cocos2d::CCPoint& pos, cocos2d::CCPoint const& add) {
         pos.x -= add.x;
         pos.y -= add.y;
         return pos;
     }
-    static cocos2d::CCSize operator-=(cocos2d::CCSize& size, cocos2d::CCPoint const& add) {
+    static constexpr cocos2d::CCSize operator-=(cocos2d::CCSize& size, cocos2d::CCPoint const& add) {
         size.width -= add.x;
         size.height -= add.y;
         return size;
     }
-    static cocos2d::CCSize operator-=(cocos2d::CCSize& size, cocos2d::CCSize const& add) {
+    static constexpr cocos2d::CCSize operator-=(cocos2d::CCSize& size, cocos2d::CCSize const& add) {
         size.width -= add.width;
         size.height -= add.height;
         return size;
     }
-    static cocos2d::CCRect operator-=(cocos2d::CCRect& rect, cocos2d::CCPoint const& add) {
+    static constexpr cocos2d::CCRect operator-=(cocos2d::CCRect& rect, cocos2d::CCPoint const& add) {
         rect.origin -= add;
         return rect;
     }
-    static cocos2d::CCRect operator-=(cocos2d::CCRect& rect, cocos2d::CCSize const& add) {
+    static constexpr cocos2d::CCRect operator-=(cocos2d::CCRect& rect, cocos2d::CCSize const& add) {
         rect.size -= add;
         return rect;
     }
-    static cocos2d::CCRect operator-=(cocos2d::CCRect& rect, cocos2d::CCRect const& add) {
+    static constexpr cocos2d::CCRect operator-=(cocos2d::CCRect& rect, cocos2d::CCRect const& add) {
         rect.origin -= add.origin;
         rect.size -= add.size;
         return rect;
     }
-    static cocos2d::CCSize operator-(cocos2d::CCSize const& size, float f) {
+    static constexpr cocos2d::CCSize operator-(cocos2d::CCSize const& size, float f) {
         return {size.width - f, size.height - f};
     }
-    static cocos2d::CCSize operator-(cocos2d::CCSize const& size) {
+    static constexpr cocos2d::CCSize operator-(cocos2d::CCSize const& size) {
         return {-size.width, -size.height};
     }
-    static bool operator==(cocos2d::CCPoint const& p1, cocos2d::CCPoint const& p2) {
+    static constexpr bool operator==(cocos2d::CCPoint const& p1, cocos2d::CCPoint const& p2) {
         return p1.x == p2.x && p1.y == p2.y;
     }
-    static bool operator!=(cocos2d::CCPoint const& p1, cocos2d::CCPoint const& p2) {
+    static constexpr bool operator!=(cocos2d::CCPoint const& p1, cocos2d::CCPoint const& p2) {
         return p1.x != p2.x || p1.y != p2.y;
     }
-    static bool operator==(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
+    static constexpr bool operator==(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
         return s1.width == s2.width && s1.height == s2.height;
     }
-    static bool operator!=(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
+    static constexpr bool operator!=(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
         return s1.width != s2.width || s1.height != s2.height;
     }
-    static bool operator<(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
-        return s1.width < s2.width || s1.height < s2.height;
+    static constexpr bool operator<(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
+        return s1.width < s2.width && s1.height < s2.height;
     }
-    static bool operator<=(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
-        return s1.width <= s2.width || s1.height <= s2.height;
+    static constexpr bool operator<=(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
+        return s1.width <= s2.width && s1.height <= s2.height;
     }
-    static bool operator>(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
-        return s1.width > s2.width || s1.height > s2.height;
+    static constexpr bool operator>(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
+        return s1.width > s2.width && s1.height > s2.height;
     }
-    static bool operator>=(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
-        return s1.width >= s2.width || s1.height >= s2.height;
+    static constexpr bool operator>=(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
+        return s1.width >= s2.width && s1.height >= s2.height;
     }
-    static bool operator==(cocos2d::CCRect const& r1, cocos2d::CCRect const& r2) {
+    static constexpr bool operator==(cocos2d::CCRect const& r1, cocos2d::CCRect const& r2) {
         return r1.origin == r2.origin && r1.size == r2.size;
     }
-    static bool operator!=(cocos2d::CCRect const& r1, cocos2d::CCRect const& r2) {
+    static constexpr bool operator!=(cocos2d::CCRect const& r1, cocos2d::CCRect const& r2) {
         return r1.origin != r2.origin || r1.size != r2.size;
     }
-    static bool operator==(cocos2d::ccColor4B const& c1, cocos2d::ccColor4B const& c2) {
+    static constexpr bool operator==(cocos2d::ccColor4B const& c1, cocos2d::ccColor4B const& c2) {
         return c1.r == c2.r && c1.g == c2.g && c1.b == c2.b && c1.a == c2.a;
     }
-    static bool operator!=(cocos2d::ccColor4B const& c1, cocos2d::ccColor4B const& c2) {
+    static constexpr bool operator!=(cocos2d::ccColor4B const& c1, cocos2d::ccColor4B const& c2) {
         return c1.r != c2.r || c1.g != c2.g || c1.b != c2.b || c1.a != c2.a;
     }
-    static bool operator==(cocos2d::ccColor3B const& c1, cocos2d::ccColor3B const& c2) {
+    static constexpr bool operator==(cocos2d::ccColor3B const& c1, cocos2d::ccColor3B const& c2) {
         return c1.r == c2.r && c1.g == c2.g && c1.b == c2.b;
     }
-    static bool operator!=(cocos2d::ccColor3B const& c1, cocos2d::ccColor3B const& c2) {
+    static constexpr bool operator!=(cocos2d::ccColor3B const& c1, cocos2d::ccColor3B const& c2) {
         return c1.r != c2.r || c1.g != c2.g || c1.b != c2.b;
     }
-    static bool operator==(cocos2d::ccHSVValue const& c1, cocos2d::ccHSVValue const& c2) {
+    static constexpr bool operator==(cocos2d::ccHSVValue const& c1, cocos2d::ccHSVValue const& c2) {
         return c1.h == c2.h && c1.s == c2.s && c1.v == c2.v && 
             c1.absoluteSaturation == c2.absoluteSaturation && 
             c1.absoluteBrightness == c2.absoluteBrightness;
     }
-    static bool operator!=(cocos2d::ccHSVValue const& c1, cocos2d::ccHSVValue const& c2) {
+    static constexpr bool operator!=(cocos2d::ccHSVValue const& c1, cocos2d::ccHSVValue const& c2) {
         return !(c1 == c2);
     }
 }
@@ -400,6 +400,9 @@ namespace geode {
         std::shared_ptr<WeakRefController> m_controller;
 
         WeakRef(std::shared_ptr<WeakRefController> obj) : m_controller(obj) {}
+
+        friend class std::hash<WeakRef<T>>;
+
 
     public:
         /**
@@ -714,6 +717,24 @@ namespace geode::cocos {
     GEODE_DLL void limitNodeSize(cocos2d::CCNode* node, cocos2d::CCSize const& size, float def, float min);
 
     /**
+     * Rescale node to fit inside given width
+     * @param node Node to rescale
+     * @param width Width to fit inside
+     * @param def Default scale
+     * @param min Minimum scale
+     */
+    GEODE_DLL void limitNodeWidth(cocos2d::CCNode* node, float width, float def, float min);
+
+    /**
+     * Rescale node to fit inside given height
+     * @param node Node to rescale
+     * @param height Height to fit inside
+     * @param def Default scale
+     * @param min Minimum scale
+     */
+    GEODE_DLL void limitNodeHeight(cocos2d::CCNode* node, float height, float def, float min);
+
+    /**
      * Checks if a node is visible (recursively
      * checks parent visibility)
      * @param node Node to check if visible
@@ -861,6 +882,7 @@ namespace geode::cocos {
         return {color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f};
     }
 
+    [[deprecated("This function may have unintended behavior, use cc3bFromHexString or manually expand the color instead")]]
     constexpr cocos2d::ccColor3B cc3x(int hexValue) {
         if (hexValue <= 0xf)
             return cocos2d::ccColor3B{
@@ -969,6 +991,13 @@ namespace std {
     struct hash<geode::Ref<T>> {
         size_t operator()(geode::Ref<T> const& ref) const {
             return std::hash<T*>()(ref.data());
+        }
+    };
+
+    template <typename T>
+    struct std::hash<geode::WeakRef<T>> {
+        size_t operator()(geode::WeakRef<T> const& ref) const {
+            return hash{}(ref.m_controller);
         }
     };
 }
@@ -1300,7 +1329,7 @@ namespace geode::cocos {
             cocos2d::CCNode* offSprite,
             utils::MiniFunction<void(CCMenuItemToggler*)>&& callback
         ) {
-            auto item = CCMenuItemToggler::create(onSprite, offSprite, nullptr, nullptr);
+            auto item = CCMenuItemToggler::create(offSprite, onSprite, nullptr, nullptr);
             assignCallback(item, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
             return item;
         }
@@ -1315,7 +1344,7 @@ namespace geode::cocos {
             offSprite->setScale(scale);
             onSprite->setScale(scale);
 
-            return createToggler(offSprite, onSprite, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+            return createToggler(onSprite, offSprite, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
         }
 
         static CCMenuItemToggler* createTogglerWithFilename(
@@ -1330,7 +1359,7 @@ namespace geode::cocos {
             offSprite->setScale(scale);
             onSprite->setScale(scale);
 
-            return createToggler(offSprite, onSprite, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+            return createToggler(onSprite, offSprite, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
         }
 
         static CCMenuItemToggler* createTogglerWithFrameName(
@@ -1345,7 +1374,7 @@ namespace geode::cocos {
             offSprite->setScale(scale);
             onSprite->setScale(scale);
 
-            return createToggler(offSprite, onSprite, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+            return createToggler(onSprite, offSprite, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
         }
 
         template <class Node>

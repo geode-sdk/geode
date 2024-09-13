@@ -10,26 +10,54 @@
 
 using namespace geode::prelude;
 
-static GLubyte parseInt(char const* str) {
-    int i = 0;
-    auto res = std::from_chars(str, str + strlen(str), i);
-    if (res.ec == std::errc()) {
-        return static_cast<GLubyte>(i);
-    }
-    return 255;
-}
+// class ColorPickPopupEvent::Impl final {
+// public:
+//     ColorPickPopup* popup;
+//     ccColor4B color;
+//     bool closed = false;
+// };
 
-static GLubyte parseFloat(char const* str) {
-    float val = 0.0f;
-    errno = 0;
-    if (std::setlocale(LC_NUMERIC, "en_US.utf8")) {
-        val = std::strtof(str, nullptr);
-        if (errno == 0) {
-            return val;
-        }
-    }
-    return 255.f;
-}
+// ColorPickPopupEvent::ColorPickPopupEvent(ColorPickPopup* popup, ccColor4B const& color)
+//   : m_impl(std::make_shared<Impl>())
+// {
+//     m_impl->popup = popup;
+//     m_impl->color = color;
+// }
+// ColorPickPopupEvent::~ColorPickPopupEvent() = default;
+
+// ColorPickPopup* ColorPickPopupEvent::getPopup() const {
+//     return m_impl->popup;
+// }
+// ccColor4B ColorPickPopupEvent::getColor() const {
+//     return m_impl->color;
+// }
+// bool ColorPickPopupEvent::isPopupClosed() const {
+//     return m_impl->closed;
+// }
+
+// class ColorPickPopupEventFilter::Impl final {
+// public:
+//     ColorPickPopup* popup;
+// };
+
+// ListenerResult ColorPickPopupEventFilter::handle(utils::MiniFunction<Callback> fn, ColorPickPopupEvent* event) {
+//     if (event->getPopup() == m_impl->popup) {
+//         if (event->isPopupClosed()) {
+//             m_impl->popup = nullptr;
+//         }
+//         else {
+//             fn(event);
+//         }
+//     }
+//     return ListenerResult::Propagate;
+// }
+// ColorPickPopupEventFilter::ColorPickPopupEventFilter() : ColorPickPopupEventFilter(nullptr) {}
+// ColorPickPopupEventFilter::ColorPickPopupEventFilter(ColorPickPopup* popup)
+//   : m_impl(std::make_shared<Impl>())
+// {
+//     m_impl->popup = popup;
+// }
+// ColorPickPopupEventFilter::~ColorPickPopupEventFilter() = default;
 
 bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
     m_noElasticity = true;
@@ -307,8 +335,7 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
         sliderWrapper->addChildAtPosition(m_opacitySlider, Anchor::Center, ccp(0, 0));
         sliderColumn->addChild(sliderWrapper);
 
-        m_opacityInput = TextInput::create(60.f, "0.00");
-        m_opacityInput->setPosition(85.f, -95.f);
+        m_opacityInput = TextInput::create(60.f, "Opacity");
         m_opacityInput->setScale(.7f);
         m_opacityInput->setDelegate(this, TAG_OPACITY_INPUT);
         m_opacityInput->setID("opacity-input");
@@ -356,7 +383,9 @@ void ColorPickPopup::updateState(CCNode* except) {
     }
     m_resetBtn->setVisible(m_originalColor != m_color);
     m_newColorSpr->setColor(to3B(m_color));
-    if (m_delegate) m_delegate->updateColor(m_color);
+    if (m_delegate) {
+        m_delegate->updateColor(m_color);
+    }
 }
 
 void ColorPickPopup::onOpacitySlider(CCObject* sender) {
@@ -382,15 +411,27 @@ void ColorPickPopup::textChanged(CCTextInputNode* input) {
                 }
                 break;
 
-            case TAG_OPACITY_INPUT:
-                {
-                    m_color.a = parseFloat(input->getString().c_str());
-                }
+            case TAG_OPACITY_INPUT: {
+                auto res = numFromString<float>(input->getString().c_str());
+                if (res) m_color.a = std::clamp(static_cast<int>(res.unwrap() * 255.f), 0, 255);
                 break;
+            }
 
-            case TAG_R_INPUT: m_color.r = parseInt(input->getString().c_str()); break;
-            case TAG_G_INPUT: m_color.g = parseInt(input->getString().c_str()); break;
-            case TAG_B_INPUT: m_color.b = parseInt(input->getString().c_str()); break;
+            case TAG_R_INPUT: {
+                auto res = numFromString<uint32_t>(input->getString().c_str());
+                if (res) m_color.r = std::clamp(res.unwrap(), 0u, 255u);
+                break;
+            }
+            case TAG_G_INPUT: {
+                auto res = numFromString<uint32_t>(input->getString().c_str());
+                if (res) m_color.g = std::clamp(res.unwrap(), 0u, 255u);
+                break;
+            }
+            case TAG_B_INPUT: {
+                auto res = numFromString<uint32_t>(input->getString().c_str());
+                if (res) m_color.b = std::clamp(res.unwrap(), 0u, 255u);
+                break;
+            }
 
             default: break;
         }

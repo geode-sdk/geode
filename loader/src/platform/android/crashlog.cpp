@@ -264,7 +264,11 @@ int writeAndGetPid() {
             log::warn("Failed to read last-pid file: {}", res.error());
         }
         else {
-            lastPid = std::stoi(res.unwrap());
+            auto res = numFromString<int>(res.unwrap());
+            if (!res) {
+                log::warn("Failed to parse last-pid file: {}", res.error());
+            }
+            else lastPid = res.unwrap();
         }
 
         std::error_code ec;

@@ -35,6 +35,7 @@ protected:
     EventListener<server::ServerRequest<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
     EventListener<server::ModDownloadFilter> m_downloadListener;
     std::optional<server::ServerModUpdate> m_availableUpdate;
+    EventListener<EventFilter<SettingNodeValueChangeEventV3>> m_settingNodeListener;
 
     /**
      * @warning Make sure `getMetadata` and `createModLogo` are callable 
@@ -56,4 +57,6 @@ public:
     static ModItem* create(ModSource&& source);
 
     void updateSize(float width, bool big);
+
+    ModSource& getSource() &;
 };

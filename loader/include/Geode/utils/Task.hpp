@@ -163,9 +163,12 @@ namespace geode {
                     m_status = Status::Cancelled;
                     // If this task carries extra data, call the extra data's 
                     // handling method
-                    if (m_extraData) {
-                        m_extraData->cancel();
-                    }
+                    // Actually: don't do this! This will cancel tasks even if
+                    // they have other listeners! The extra data's destructor 
+                    // will handle cancellation if it has no other listeners!
+                    // if (m_extraData) {
+                    //     m_extraData->cancel();
+                    // }
                     // No need to actually post an event because this Task is 
                     // unlisteanable
                     m_finalEventPosted = true;
@@ -387,6 +390,15 @@ namespace geode {
             return m_handle == nullptr;
         }
         
+        /**
+         * Create a new Task that is immediately cancelled
+         * @param name The name of the Task; used for debugging
+         */
+        static Task cancelled(std::string_view const name = "<Cancelled Task>") {
+            auto task = Task(Handle::create(name));
+            Task::cancel(task.m_handle);
+            return task;
+        }
         /**
          * Create a new Task that immediately finishes with the given 
          * value

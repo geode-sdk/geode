@@ -3,6 +3,7 @@
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/loader/SettingEvent.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
+#include <Geode/ui/LoadingSpinner.hpp>
 
 $on_mod(Loaded) {
     // todo: these names should probably be shorter so they fit in SSO...
@@ -17,6 +18,7 @@ $on_mod(Loaded) {
     ColorProvider::get()->define("mod-list-updates-available-bg-2"_spr, { 45, 110, 222, 255 });
     ColorProvider::get()->define("mod-list-errors-found"_spr, { 235, 35, 112, 255 });
     ColorProvider::get()->define("mod-list-errors-found-2"_spr, { 245, 27, 27, 255 });
+    ColorProvider::get()->define("mod-list-gray"_spr, { 205, 205, 205, 255 });
     ColorProvider::get()->define("mod-list-tab-deselected-bg"_spr, { 26, 24, 29, 255 });
     ColorProvider::get()->define("mod-list-tab-selected-bg"_spr, { 168, 147, 185, 255 });
     ColorProvider::get()->define("mod-list-tab-selected-bg-alt"_spr, { 147, 163, 185, 255 });
@@ -134,51 +136,6 @@ void GeodeSquareSprite::setState(bool state) {
     }
 }
 
-class LoadingSpinner : public CCNode {
-protected:
-    CCSprite* m_spinner;
-
-    bool init(float sideLength) {
-        if (!CCNode::init())
-            return false;
-
-        this->setID("loading-spinner");
-        this->setContentSize({ sideLength, sideLength });
-        this->setAnchorPoint({ .5f, .5f });
-
-        m_spinner = CCSprite::create("loadingCircle.png");
-        m_spinner->setBlendFunc({ GL_ONE, GL_ONE });
-        limitNodeSize(m_spinner, m_obContentSize, 1.f, .1f);
-        this->addChildAtPosition(m_spinner, Anchor::Center);
-
-        this->spin();
-
-        return true;
-    }
-
-    void spin() {
-        m_spinner->runAction(CCRepeatForever::create(CCRotateBy::create(1.f, 360.f)));
-    }
-
-public:
-    static LoadingSpinner* create(float sideLength) {
-        auto ret = new LoadingSpinner();
-        if (ret->init(sideLength)) {
-            ret->autorelease();
-            return ret;
-        }
-        delete ret;
-        return nullptr;
-    }
-
-    void setVisible(bool visible) override {
-        CCNode::setVisible(visible);
-        if (visible) {
-            this->spin();
-        }
-    }
-};
-
 CCNode* createLoadingCircle(float sideLength, const char* id) {
     auto spinner = LoadingSpinner::create(sideLength);
     spinner->setID(id);
@@ -193,6 +150,7 @@ const char* getGeodeButtonSpriteName(GeodeButtonSprite spr) {
             case GeodeButtonSprite::Install: return "GE_button_01.png"_spr;
             case GeodeButtonSprite::Delete: return "GJ_button_06.png";
             case GeodeButtonSprite::Enable: return "GJ_button_01.png";
+            case GeodeButtonSprite::Gray: return "GJ_button_05.png";
         }
     }
     else {
@@ -202,6 +160,7 @@ const char* getGeodeButtonSpriteName(GeodeButtonSprite spr) {
             case GeodeButtonSprite::Install: return "GE_button_01.png"_spr;
             case GeodeButtonSprite::Delete: return "GJ_button_06.png";
             case GeodeButtonSprite::Enable: return "GJ_button_02.png";
+            case GeodeButtonSprite::Gray: return "GJ_button_05.png";
         }
     }
 }

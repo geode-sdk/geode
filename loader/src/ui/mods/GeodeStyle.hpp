@@ -19,8 +19,8 @@ enum class GeodePopupStyle {
 template <class... Args>
 class GeodePopup : public Popup<Args...> {
 protected:
-    bool init(float width, float height, Args... args, GeodePopupStyle style = GeodePopupStyle::Default) {
-        const bool geodeTheme = Mod::get()->template getSettingValue<bool>("enable-geode-theme");
+    bool init(float width, float height, Args... args, GeodePopupStyle style = GeodePopupStyle::Default, bool forceDisableTheme = false) {
+        const bool geodeTheme = !forceDisableTheme && Mod::get()->template getSettingValue<bool>("enable-geode-theme");
         const char* bg;
         switch (style) {
             default:
@@ -71,6 +71,7 @@ enum class GeodeButtonSprite {
     Install,
     Delete,
     Enable,
+    Gray,
 };
 const char* getGeodeButtonSpriteName(GeodeButtonSprite spr);
 IconButtonSprite* createGeodeButton(CCNode* icon, std::string const& text, GeodeButtonSprite bg = GeodeButtonSprite::Default);

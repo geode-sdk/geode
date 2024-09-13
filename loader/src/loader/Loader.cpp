@@ -9,7 +9,7 @@ Loader::Loader() : m_impl(new Impl) {}
 Loader::~Loader() {}
 
 Loader* Loader::get() {
-    static auto g_geode = new Loader;
+    static auto g_geode = new Loader();
     return g_geode;
 }
 

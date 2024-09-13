@@ -1,6 +1,7 @@
 #include <ui/mods/settings/GeodeSettingNode.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Setting.hpp>
+#include <Geode/loader/SettingV3.hpp>
 #include <Geode/loader/SettingEvent.hpp>
 #include <Geode/loader/SettingNode.hpp>
 #include <Geode/utils/general.hpp>
@@ -279,10 +280,10 @@ std::string SettingValue::getModID() const {
 }
 
 void SettingValue::valueChanged() {
-    // this is actually p neat because now if the mod gets disabled this wont 
-    // post the event so that side-effect is automatically handled :3
     if (auto mod = Loader::get()->getLoadedMod(m_modID)) {
-        SettingChangedEvent(mod, this).post();
+        if (auto sett = mod->getSettingV3(m_key)) {
+            sett->markChanged();
+        }
     }
 }
 
@@ -296,29 +297,49 @@ void SettingValue::valueChanged() {
         return type_##SettingNode::create(this, width);                 \
     }                                                                   \
     template<>                                                          \
+    typename GeodeSettingValue<type_##Setting>::ValueType               \
+    GeodeSettingValue<type_##Setting>::getValue() const {               \
+        using S = typename SettingTypeForValueType<ValueType>::SettingType;     \
+        if (auto mod = Loader::get()->getInstalledMod(m_modID)) {               \
+            if (auto setting = typeinfo_pointer_cast<S>(mod->getSettingV3(m_key))) {\
+                return setting->getValue();                                     \
+            }                                                                   \
+        }                                                                       \
+        return m_value;                                                         \
+    }                                                                   \
+    template<>                                                          \
     void GeodeSettingValue<                                             \
         type_##Setting                                                  \
     >::setValue(ValueType const& value) {                               \
-        m_value = this->toValid(value).first;                           \
-        this->valueChanged();                                           \
+        using S = typename SettingTypeForValueType<ValueType>::SettingType;     \
+        if (auto mod = Loader::get()->getInstalledMod(m_modID)) {               \
+            if (auto setting = typeinfo_pointer_cast<S>(mod->getSettingV3(m_key))) {\
+                return setting->setValue(value);                                \
+            }                                                                   \
+        }                                                                       \
     }                                                                   \
     template<>                                                          \
     Result<> GeodeSettingValue<                                         \
         type_##Setting                                                  \
     >::validate(ValueType const& value) const {                         \
-        auto reason = this->toValid(value).second;                      \
-        if (reason.has_value()) {                                       \
-            return Err(static_cast<std::string>(reason.value()));       \
-        }                                                               \
-        return Ok();                                                    \
+        using S = typename SettingTypeForValueType<ValueType>::SettingType;     \
+        if (auto mod = Loader::get()->getInstalledMod(m_modID)) {               \
+            if (auto setting = typeinfo_pointer_cast<S>(mod->getSettingV3(m_key))) {\
+                return setting->isValid(value);                                 \
+            }                                                                   \
+        }                                                                       \
+        return Ok();                                                            \
     }                                                                   \
     template<>                                                          \
     typename type_##Setting::ValueType SettingValueSetter<              \
         typename type_##Setting::ValueType                              \
     >::get(SettingValue* setting) {                                     \
-        if (auto b = typeinfo_cast<type_##SettingValue*>(setting)) {    \
-            return b->getValue();                                       \
-        }                                                               \
+        using S = typename SettingTypeForValueType<typename type_##Setting::ValueType>::SettingType;    \
+        if (auto mod = Loader::get()->getInstalledMod(setting->getModID())) {                           \
+            if (auto sett = typeinfo_pointer_cast<S>(mod->getSettingV3(setting->getKey()))) {           \
+                return sett->getValue();                                                                \
+            }                                                                                           \
+        }                                                                                               \
         return typename type_##Setting::ValueType();                    \
     }                                                                   \
     template<>                                                          \
@@ -328,9 +349,12 @@ void SettingValue::valueChanged() {
         SettingValue* setting,                                          \
         typename type_##Setting::ValueType const& value                 \
     ) {                                                                 \
-        if (auto b = typeinfo_cast<type_##SettingValue*>(setting)) {    \
-            b->setValue(value);                                         \
-        }                                                               \
+        using S = typename SettingTypeForValueType<typename type_##Setting::ValueType>::SettingType;    \
+        if (auto mod = Loader::get()->getInstalledMod(setting->getModID())) {                           \
+            if (auto sett = typeinfo_pointer_cast<S>(mod->getSettingV3(setting->getKey()))) {           \
+                return sett->setValue(value);                                                           \
+            }                                                                                           \
+        }                                                                                               \
     }
 
 #define IMPL_TO_VALID(type_) \

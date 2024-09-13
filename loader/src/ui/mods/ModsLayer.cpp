@@ -90,6 +90,11 @@ bool ModsStatusNode::init() {
 
     m_downloadListener.bind([this](auto) { this->updateState(); });
 
+    m_settingNodeListener.bind([this](SettingNodeValueChangeEventV3* ev) {
+        this->updateState();
+        return ListenerResult::Propagate;
+    });
+
     this->updateState();
     
     return true;
@@ -350,17 +355,17 @@ bool ModsLayer::init() {
     reloadBtn->setID("reload-button");
     actionsMenu->addChild(reloadBtn);
 
-    auto themeSpr = createGeodeCircleButton(
+    auto settingsSpr = createGeodeCircleButton(
         CCSprite::createWithSpriteFrameName("settings.png"_spr), 1.f,
         CircleBaseSize::Medium
     );
-    themeSpr->setScale(.8f);
-    themeSpr->setTopOffset(ccp(.5f, 0));
-    auto themeBtn = CCMenuItemSpriteExtra::create(
-        themeSpr, this, menu_selector(ModsLayer::onSettings)
+    settingsSpr->setScale(.8f);
+    settingsSpr->setTopOffset(ccp(.5f, 0));
+    auto settingsBtn = CCMenuItemSpriteExtra::create(
+        settingsSpr, this, menu_selector(ModsLayer::onSettings)
     );
-    themeBtn->setID("theme-button");
-    actionsMenu->addChild(themeBtn);
+    settingsBtn->setID("settings-button");
+    actionsMenu->addChild(settingsBtn);
 
     auto folderSpr = createGeodeCircleButton(
         CCSprite::createWithSpriteFrameName("gj_folderBtn_001.png"), 1.f,

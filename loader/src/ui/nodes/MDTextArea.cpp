@@ -15,6 +15,8 @@
 #include <md4c.h>
 #include <charconv>
 #include <Geode/loader/Log.hpp>
+#include <Geode/ui/GeodeUI.hpp>
+#include <server/Server.hpp>
 
 using namespace geode::prelude;
 
@@ -22,7 +24,7 @@ static constexpr float g_fontScale = .5f;
 static constexpr float g_paragraphPadding = 7.f;
 static constexpr float g_indent = 7.f;
 static constexpr float g_codeBlockIndent = 8.f;
-static constexpr ccColor3B g_linkColor = cc3x(0x7ff4f4);
+static constexpr ccColor3B g_linkColor = {0x7f, 0xf4, 0xf4};
 
 TextRenderer::Font g_mdFont = [](int style) -> TextRenderer::Label {
     if ((style & TextStyleBold) && (style & TextStyleItalic)) {
@@ -77,14 +79,12 @@ public:
 };
 
 Result<ccColor3B> colorForIdentifier(std::string const& tag) {
-    if (utils::string::contains(tag, ' ')) {
-        auto hexStr = utils::string::split(utils::string::normalize(tag), " ").at(1);
-        int hex = 0;
-        auto res = std::from_chars(hexStr.data(), hexStr.data() + hexStr.size(), hex, 16);
-        if (res.ec != std::errc()) {
-            return Err("Invalid hex");
-        }
-        return Ok(cc3x(hex));
+    if (tag.length() > 2 && tag[1] == '-') {
+        return cc3bFromHexString(tag.substr(2));
+    }
+    // Support the old form of <carbitaryletters hex>
+    else if (tag.find(' ') != std::string::npos) {
+        return cc3bFromHexString(string::trim(tag.substr(tag.find(' ') + 1)));
     }
     else {
         auto colorText = tag.substr(1);
@@ -96,15 +96,19 @@ Result<ccColor3B> colorForIdentifier(std::string const& tag) {
         }
         else {
             switch (colorText.front()) {
-                case 'a': return Ok(cc3x(0x9632ff)); break;
-                case 'b': return Ok(cc3x(0x4a52e1)); break;
-                case 'g': return Ok(cc3x(0x40e348)); break;
-                case 'l': return Ok(cc3x(0x60abef)); break;
-                case 'j': return Ok(cc3x(0x32c8ff)); break;
-                case 'y': return Ok(cc3x(0xffff00)); break;
-                case 'o': return Ok(cc3x(0xffa54b)); break;
-                case 'r': return Ok(cc3x(0xff5a5a)); break;
-                case 'p': return Ok(cc3x(0xff00ff)); break;
+                case 'a': return Ok(ccc3(150, 50, 255)); break;
+                case 'b': return Ok(ccc3(74, 82, 225)); break;
+                case 'c': return Ok(ccc3(255, 255, 150)); break;
+                case 'd': return Ok(ccc3(255, 150, 255)); break;
+                case 'f': return Ok(ccc3(150, 255, 255)); break;
+                case 'g': return Ok(ccc3(64, 227, 72)); break;
+                case 'j': return Ok(ccc3(50, 200, 255)); break;
+                case 'l': return Ok(ccc3(96, 171, 239)); break;
+                case 'o': return Ok(ccc3(255, 165, 75)); break;
+                case 'p': return Ok(ccc3(255, 0, 255)); break;
+                case 'r': return Ok(ccc3(255, 90, 90)); break;
+                case 's': return Ok(ccc3(255, 220, 65)); break;
+                case 'y': return Ok(ccc3(255, 255, 0)); break;
                 default: return Err("Unknown color " + colorText);
             }
         }
@@ -190,82 +194,44 @@ void MDTextArea::onGDProfile(CCObject* pSender) {
     auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject());
     auto profile = std::string(href->getCString());
     profile = profile.substr(profile.find(":") + 1);
-    int id = 0;
-    auto res = std::from_chars(profile.data(), profile.data() + profile.size(), id);
-    if (res.ec != std::errc()) {
+    auto res = numFromString<int>(profile);
+    if (res.isErr()) {
         FLAlertLayer::create(
             "Error",
             "Invalid profile ID: <cr>" + profile +
                 "</c>. This is "
                 "probably the mod developer's fault, report the bug to them.",
             "OK"
-        )
-            ->show();
+        )->show();
         return;
     }
-    ProfilePage::create(id, false)->show();
+    ProfilePage::create(res.unwrap(), false)->show();
 }
 
 void MDTextArea::onGDLevel(CCObject* pSender) {
     auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject());
     auto level = std::string(href->getCString());
     level = level.substr(level.find(":") + 1);
-    int id = 0;
-    auto res = std::from_chars(level.data(), level.data() + level.size(), id);
-    if (res.ec != std::errc()) {
+    auto res = numFromString<int>(level);
+    if (res.isErr()) {
         FLAlertLayer::create(
             "Error",
             "Invalid level ID: <cr>" + level +
                 "</c>. This is "
                 "probably the mod developers's fault, report the bug to them.",
             "OK"
-        )
-            ->show();
+        )->show();
         return;
     }
-    auto searchObject = GJSearchObject::create(SearchType::Type19, fmt::format("{}&gameVersion=22", id));
+    auto searchObject = GJSearchObject::create(SearchType::Type19, fmt::format("{}&gameVersion=22", res.unwrap()));
     auto scene = LevelBrowserLayer::scene(searchObject);
     CCDirector::sharedDirector()->replaceScene(CCTransitionFade::create(0.5f, scene));
 }
 
-void MDTextArea::onGeodeMod(CCObject* pSender) {
-    // TODO
-    // auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject());
-    // auto modString = std::string(href->getCString());
-    // modString = modString.substr(modString.find(":") + 1);
-    // auto loader = Loader::get();
-    // auto index = Index::get();
-    // Mod* mod;
-    // bool success = false;
-    // IndexItemHandle indexItem;
-    // bool isIndexMod = !loader->isModInstalled(modString);
-
-    // if (isIndexMod) {
-    //     auto indexSearch = index->getItemsByModID(modString);
-    //     if (indexSearch.size() != 0) {
-    //         indexItem = indexSearch.back();
-    //         Mod mod2 = Mod(indexItem->getMetadata());
-    //         mod = &mod2;
-    //         auto item = Index::get()->getItem(mod);
-    //         IndexItemInfoPopup::create(item, nullptr)->show();
-    //         success = true;
-    //     }
-    // } else {
-    //     mod = loader->getLoadedMod(modString);
-    //     LocalModInfoPopup::create(mod, nullptr)->show();
-    //     success = true;
-    // }
-
-    // if (!success) {
-    //     FLAlertLayer::create(
-    //         "Error",
-    //         "Invalid mod ID: <cr>" + modString +
-    //             "</c>. This is "
-    //             "probably the mod developers's fault, report the bug to them.",
-    //         "OK"
-    //     )
-    //         ->show();
-    // }
+void MDTextArea::onGeodeMod(CCObject* sender) {
+    auto href = as<CCString*>(as<CCNode*>(sender)->getUserObject());
+    auto modID = std::string(href->getCString());
+    (void)openInfoPopup(modID.substr(modID.find(":") + 1));
 }
 
 void MDTextArea::FLAlert_Clicked(FLAlertLayer* layer, bool btn) {
@@ -368,12 +334,26 @@ struct MDParser {
                         }
 
                         float spriteScale = 1.0f;
+                        float spriteWidth = 0.0f;
+                        float spriteHeight = 0.0f;
 
                         for (auto [key, value] : imgArguments) {
                             if (key == "scale") {
                                 auto scaleRes = utils::numFromString<float>(value);
                                 if (scaleRes) {
                                     spriteScale = *scaleRes;
+                                }
+                            }
+                            else if (key == "width") {
+                                auto widthRes = utils::numFromString<float>(value);
+                                if (widthRes) {
+                                    spriteWidth = *widthRes;
+                                }
+                            }
+                            else if (key == "height") {
+                                auto heightRes = utils::numFromString<float>(value);
+                                if (heightRes) {
+                                    spriteHeight = *heightRes;
                                 }
                             }
                         }
@@ -391,6 +371,15 @@ struct MDParser {
                         }
                         if (spr && spr->getUserObject("geode.texture-loader/fallback") == nullptr) {
                             spr->setScale(spriteScale);
+                            if (spriteWidth > 0.0f && spriteHeight <= 0.0f) {
+                                limitNodeWidth(spr, spriteWidth, 999.f, .1f);
+                            }
+                            else if (spriteHeight > 0.0f && spriteWidth <= 0.0f) {
+                                limitNodeHeight(spr, spriteHeight, 999.f, .1f);
+                            }
+                            else if (spriteWidth > 0.0f && spriteHeight > 0.0f) {
+                                limitNodeSize(spr, { spriteWidth, spriteHeight }, 999.f, .1f);
+                            }
                             renderer->renderNode(spr);
                         }
                         else {

@@ -131,11 +131,11 @@ Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string const& rawHexValue
     if (hexValue.size() > 6) {
         return Err("Hex value too large");
     }
-    size_t numValue;
-    auto res = std::from_chars(hexValue.data(), hexValue.data() + hexValue.size(), numValue, 16);
-    if (res.ec != std::errc()) {
+    auto res = numFromString<uint32_t>(hexValue, 16);
+    if (!res) {
         return Err("Invalid hex value '{}'", hexValue);
     }
+    auto numValue = res.unwrap();
     switch (hexValue.size()) {
         case 6: {
             auto r = static_cast<uint8_t>((numValue & 0xFF0000) >> 16);
@@ -189,11 +189,11 @@ Result<ccColor4B> geode::cocos::cc4bFromHexString(std::string const& rawHexValue
     if (hexValue.size() > 8) {
         return Err("Hex value too large");
     }
-    size_t numValue;
-    auto res = std::from_chars(hexValue.data(), hexValue.data() + hexValue.size(), numValue, 16);
-    if (res.ec != std::errc()) {
+    auto res = numFromString<uint32_t>(hexValue, 16);
+    if (!res) {
         return Err("Invalid hex value '{}'", hexValue);
     }
+    auto numValue = res.unwrap();
     switch (hexValue.size()) {
         case 8: {
             auto r = static_cast<uint8_t>((numValue & 0xFF000000) >> 24);
@@ -453,6 +453,14 @@ CCRect geode::cocos::calculateChildCoverage(CCNode* parent) {
 
 void geode::cocos::limitNodeSize(CCNode* spr, CCSize const& size, float def, float min) {
     spr->setScale(clamp(std::min(size.height / spr->getContentHeight(), size.width / spr->getContentWidth()), min, def));
+}
+
+void geode::cocos::limitNodeWidth(CCNode* spr, float width, float def, float min) {
+    spr->setScale(clamp(width / spr->getContentSize().width, min, def));
+}
+
+void geode::cocos::limitNodeHeight(CCNode* spr, float height, float def, float min) {
+    spr->setScale(clamp(height / spr->getContentSize().height, min, def));
 }
 
 bool geode::cocos::nodeIsVisible(CCNode* node) {

@@ -17,6 +17,7 @@ enum {
     ID_BUTTON_CLOSE = 102,
     ID_BUTTON_OPEN_FOLDER = 103,
     ID_BUTTON_COPY_CLIPBOARD = 104,
+    ID_BUTTON_RESTART_GAME = 105,
 };
 #define TO_HMENU(x) reinterpret_cast<HMENU>(static_cast<size_t>(x))
 
@@ -94,6 +95,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             hwnd, TO_HMENU(ID_BUTTON_COPY_CLIPBOARD), NULL, NULL
         );
         SendMessage(button, WM_SETFONT, WPARAM(guiFont), TRUE);
+
+        button = CreateWindowA(
+            "BUTTON", "Restart game",
+            WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+            0, 0, layout::BUTTON_WIDTH, layout::BUTTON_HEIGHT,
+            hwnd, TO_HMENU(ID_BUTTON_RESTART_GAME), NULL, NULL
+        );
+        SendMessage(button, WM_SETFONT, WPARAM(guiFont), TRUE);
     } break;
 
     case WM_SIZE: {
@@ -126,6 +135,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             0, 0,
             SWP_NOZORDER | SWP_NOSIZE
         );
+        SetWindowPos(
+            GetDlgItem(hwnd, ID_BUTTON_RESTART_GAME), NULL,
+            clientRect.right - layout::BUTTON_WIDTH * 3 - layout::BUTTON_SPACING * 2 - layout::PADDING, buttonY,
+            0, 0,
+            SWP_NOZORDER | SWP_NOSIZE
+        );
+
+        // force redraw buttons to fix weird artifacts
+        RedrawWindow(GetDlgItem(hwnd, ID_BUTTON_CLOSE), NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_FRAME);
+        RedrawWindow(GetDlgItem(hwnd, ID_BUTTON_OPEN_FOLDER), NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_FRAME);
+        RedrawWindow(GetDlgItem(hwnd, ID_BUTTON_COPY_CLIPBOARD), NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_FRAME);
+        RedrawWindow(GetDlgItem(hwnd, ID_BUTTON_RESTART_GAME), NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_FRAME);
     } break;
 
     case WM_CTLCOLORSTATIC: {
@@ -140,6 +161,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             geode::utils::file::openFolder(g_crashlogPath);
         } else if (id == ID_BUTTON_COPY_CLIPBOARD) {
             geode::utils::clipboard::write(g_crashlogText);
+        } else if (id == ID_BUTTON_RESTART_GAME) {
+            geode::utils::game::restart();
         }
     } break;
 

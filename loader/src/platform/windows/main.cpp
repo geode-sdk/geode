@@ -138,10 +138,24 @@ void* mainTrampolineAddr;
 #include "gdTimestampMap.hpp"
 unsigned int gdTimestamp = 0;
 
+// In case the game is launched from a different directory through command line
+// this function will set the current working directory to the game's directory
+// to avoid the game crashing due to not being able to find the resources
+void fixCurrentWorkingDirectory() {
+    std::array<WCHAR, MAX_PATH> cwd;
+    
+    auto size = GetModuleFileNameW(nullptr, cwd.data(), cwd.size());
+    if (size == cwd.size()) return;
+
+    SetCurrentDirectoryW(std::filesystem::path(cwd.data()).parent_path().wstring().c_str());
+}
+
 int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
     // MessageBoxA(NULL, "Hello from gdMainHook!", "Hi", 0);
 
     updateGeode();
+
+    fixCurrentWorkingDirectory();
 
     if (versionToTimestamp(GEODE_STR(GEODE_GD_VERSION)) > gdTimestamp) {
         console::messageBox(

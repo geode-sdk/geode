@@ -12,6 +12,7 @@ void askConfirmModInstalls() {
         size_t replacementCount = 0;
         size_t dependencyCount = 0;
         std::unordered_set<Mod*> toDisable;
+        std::unordered_set<std::string> toDisableModId;
         std::unordered_set<Mod*> toEnable;
     };
 
@@ -39,12 +40,28 @@ void askConfirmModInstalls() {
                     if (inc.mod && inc.version.compare(conf->version.metadata.getVersion()) && inc.mod->isOrWillBeEnabled()) {
                         toConfirm.toDisable.insert(inc.mod);
                     }
+                    for (auto download : ModDownloadManager::get()->getDownloads()) {
+                        if (download.isDone() && inc.id == download.getID() && inc.version.compare(conf->version.metadata.getVersion())) {
+                            toConfirm.toDisableModId.insert(inc.id);
+                        }
+                    }
                 }
                 // If some installed mods are incompatible with this one, disable them
                 for (auto mod : Loader::get()->getAllMods()) {
                     for (auto inc : mod->getMetadata().getIncompatibilities()) {
                         if (inc.id == conf->version.metadata.getID() && inc.version.compare(mod->getVersion()) && mod->isOrWillBeEnabled()) {
                             toConfirm.toDisable.insert(mod);
+                        }
+                    }
+                }
+                // If some newly downloaded mods are incompatible with this one, disable them
+                for (auto download : ModDownloadManager::get()->getDownloads()) {
+                    auto status = download.getStatus();
+                    if (auto done = std::get_if<DownloadStatusDone>(&status)) {
+                        for (auto inc : done->version.metadata.getIncompatibilities()) {
+                            if (inc.id == conf->version.metadata.getID() && inc.version.compare(done->version.metadata.getVersion())) {
+                                toConfirm.toDisableModId.insert(download.getID());
+                            }
                         }
                     }
                 }
@@ -71,6 +88,20 @@ void askConfirmModInstalls() {
         );
     };
 
+    auto joinIdsToIDs = [](std::unordered_set<std::string> const& ids) {
+        return ranges::join(
+            ranges::map<std::vector<std::string>>(
+                ids, [](std::string const& id) { return fmt::format("<cp>{}</c>", id); }
+            ),
+            ", "
+        );
+    };
+
+    std::unordered_set<std::string> idsToDisable = toConfirm.toDisableModId;
+    for (auto mod : toConfirm.toDisable) {
+        idsToDisable.insert(mod->getID());
+    }
+
     createQuickPopup(
         "Confirm Install",
         fmt::format(
@@ -78,7 +109,7 @@ void askConfirmModInstalls() {
             "<cr>{} mods will be force-disabled, as they are incompatible</c>: {}\n"
             "<cg>{} mods will be force-enabled</c>: {}",
             toConfirm.modCount, toConfirm.dependencyCount, toConfirm.replacementCount,
-            toConfirm.toDisable.size(), joinModsToIDs(toConfirm.toDisable),
+            idsToDisable.size(), joinIdsToIDs(idsToDisable),
             toConfirm.toEnable.size(), joinModsToIDs(toConfirm.toEnable)
         ),
         "Cancel", "Continue",
@@ -86,6 +117,9 @@ void askConfirmModInstalls() {
             if (btn2) {
                 for (auto mod : toConfirm.toDisable) {
                     (void)mod->disable();
+                }
+                for (auto modId : toConfirm.toDisableModId) {
+                    Mod::get()->setSavedValue("should-load-" + modId, false);
                 }
                 for (auto mod : toConfirm.toEnable) {
                     (void)mod->enable();

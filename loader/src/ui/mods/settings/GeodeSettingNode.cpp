@@ -9,36 +9,12 @@
 #include <Geode/binding/CCMenuItemToggler.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Dirs.hpp>
+#include <Geode/utils/general.hpp>
 #include <charconv>
 #include <clocale>
 #include <filesystem>
 
 // Helpers
-
-template <class Num>
-Num parseNumForInput(std::string const& str) {
-    if constexpr (std::is_same_v<Num, int64_t>) {
-        int64_t i = 0;
-        auto res = std::from_chars(str.data(), str.data() + str.size(), i);
-        if (res.ec == std::errc()) {
-            return i;
-        }
-    }
-    else if constexpr (std::is_same_v<Num, double>) {
-        double val = 0.0;
-        errno = 0;
-        if (std::setlocale(LC_NUMERIC, "en_US.utf8")) {
-            val = std::strtod(str.c_str(), nullptr);
-            if (errno == 0) {
-                return val;
-            }
-        }
-    }
-    else {
-        static_assert(!std::is_same_v<Num, Num>, "Impl Num for parseNumForInput");
-    }
-    return 0;
-}
 
 template<class T>
 static float valueToSlider(T const& setting, typename T::ValueType value) {
@@ -193,7 +169,9 @@ void IntSettingNode::onArrow(CCObject* sender) {
 }
 
 void IntSettingNode::textChanged(CCTextInputNode* input) {
-    m_uncommittedValue = parseNumForInput<ValueType>(input->getString());
+    auto res = numFromString<ValueType>(input->getString());
+    if (!res) return;
+    m_uncommittedValue = res.unwrap();
     this->valueChanged(false);
 }
 
@@ -275,7 +253,9 @@ void FloatSettingNode::onArrow(CCObject* sender) {
 }
 
 void FloatSettingNode::textChanged(CCTextInputNode* input) {
-    m_uncommittedValue = parseNumForInput<ValueType>(input->getString());
+    auto res = numFromString<ValueType>(input->getString());
+    if (!res) return;
+    m_uncommittedValue = res.unwrap();
     this->valueChanged(false);
 }
 
