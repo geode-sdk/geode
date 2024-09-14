@@ -56,4 +56,9 @@ namespace geode::dirs {
      * Directory where crashlogs are stored
      */
     GEODE_DLL std::filesystem::path getCrashlogsDir();
+    /**
+     * Directory where mods' persistent files lie
+     * This directory is not deleted even when Geode is uninstalled
+     */
+    GEODE_DLL std::filesystem::path getModPersistentDir();
 }

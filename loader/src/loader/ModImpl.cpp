@@ -656,6 +656,14 @@ std::filesystem::path Mod::Impl::getConfigDir(bool create) const {
     return dir;
 }
 
+std::filesystem::path Mod::Impl::getPersistentDir(bool create) const {
+    auto dir = dirs::getModPersistentDir() / m_metadata.getID();
+    if (create) {
+        (void)file::createDirectoryAll(dir);
+    }
+    return dir;
+}
+
 std::string_view Mod::Impl::expandSpriteName(std::string_view name) {
     std::string nameKey(name);
     if (m_expandedSprites.contains(nameKey)) return m_expandedSprites[nameKey];

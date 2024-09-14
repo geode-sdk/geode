@@ -143,6 +143,10 @@ std::filesystem::path Mod::getConfigDir(bool create) const {
     return m_impl->getConfigDir(create);
 }
 
+std::filesystem::path Mod::getPersistentDir(bool create) const {
+    return m_impl->getPersistentDir(create);
+}
+
 bool Mod::hasSettings() const {
     return m_impl->hasSettings();
 }

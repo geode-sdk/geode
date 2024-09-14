@@ -113,6 +113,7 @@ namespace geode {
 
         std::filesystem::path getSaveDir() const;
         std::filesystem::path getConfigDir(bool create = true) const;
+        std::filesystem::path getPersistentDir(bool create = true) const;
 
         bool hasSettings() const;
         std::vector<std::string> getSettingKeys() const;
