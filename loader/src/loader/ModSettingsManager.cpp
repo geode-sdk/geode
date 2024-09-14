@@ -131,7 +131,8 @@ ModSettingsManager::ModSettingsManager(ModMetadata const& metadata)
                     "Setting \"{}\" in mod {} has the old \"custom\" type - "
                     "this type has been deprecated and will be removed in Geode v4.0.0. "
                     "Use the new \"custom:type-name-here\" syntax for defining custom "
-                    "setting types - see more in INSERT TUTORIAL HERE",
+                    "setting types - see more in "
+                    "https://docs.geode-sdk.org/mods/settings/#custom-settings",
                     key, m_impl->modID
                 );
             }
