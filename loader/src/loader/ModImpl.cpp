@@ -138,10 +138,6 @@ matjson::Value& Mod::Impl::getSaveContainer() {
     return m_saved;
 }
 
-matjson::Value& Mod::Impl::getSavedSettingsData() {
-    return m_savedSettingsData;
-}
-
 bool Mod::Impl::isEnabled() const {
     return m_enabled || this->isInternal();
 }
@@ -182,7 +178,6 @@ Result<> Mod::Impl::loadData() {
     auto settingPath = m_saveDirPath / "settings.json";
     if (std::filesystem::exists(settingPath)) {
         GEODE_UNWRAP_INTO(auto json, utils::file::readJson(settingPath));
-        m_savedSettingsData = json;
         auto load = m_settings->load(json);
         if (!load) {
             log::warn("Unable to load settings: {}", load.unwrapErr());
@@ -214,14 +209,8 @@ Result<> Mod::Impl::saveData() {
         return Ok();
     }
 
-    // Data saving should be fully fail-safe
-    // If some settings weren't provided a custom settings handler (for example,
-    // the mod was not loaded) then make sure to save their previous state in
-    // order to not lose data
-    if (!m_savedSettingsData.is_object()) {
-        m_savedSettingsData = matjson::Object();
-    }
-    matjson::Value json = m_savedSettingsData;
+    // ModSettingsManager keeps track of the whole savedata
+    matjson::Value json;
     m_settings->save(json);
 
     // saveData is expected to be synchronous, and always called from GD thread

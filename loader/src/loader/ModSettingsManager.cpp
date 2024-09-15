@@ -83,13 +83,13 @@ public:
         std::shared_ptr<SettingV3> v3 = nullptr;
         // todo: remove in v4
         std::shared_ptr<SettingValue> legacy = nullptr;
-    };
+    };  
     std::string modID;
     std::unordered_map<std::string, SettingInfo> settings;
     // Stored so custom settings registered after the fact can be loaded
     // If the ability to unregister custom settings is ever added, remember to 
     // update this by calling saveSettingValueToSave
-    matjson::Object savedata;
+    matjson::Value savedata;
     bool restartRequired = false;
 
     void loadSettingValueFromSave(std::string const& key) {
@@ -232,13 +232,12 @@ void ModSettingsManager::save(matjson::Value& json) {
     for (auto& [key, _] : m_impl->settings) {
         m_impl->saveSettingValueToSave(key);
     }
-    // Doing this indirection instead of just `json = m_impl->savedata` because 
-    // we do NOT want to accidentally discard keys present in `json` but not in 
-    // `m_impl->savedata`
-    for (auto& [key, value] : m_impl->savedata) {
-        json[key] = value;
-    }
+    // Doing this since `ModSettingsManager` is expected to manage savedata fully
+    json = m_impl->savedata;
 }
+// matjson::Value& ModSettingsManager::getSaveData() {
+//     return m_impl->savedata;
+// }
 
 std::shared_ptr<SettingV3> ModSettingsManager::get(std::string_view key) {
     auto id = std::string(key);
@@ -274,4 +273,10 @@ std::optional<Setting> ModSettingsManager::getLegacyDefinition(std::string_view 
 
 bool ModSettingsManager::restartRequired() const {
     return m_impl->restartRequired;
+}
+
+// todo in 3.7.0: move Mod::getSavedSettingsData() back to Mod.cpp and make it 
+// use ModSettingsManager::getSaveData()
+matjson::Value& Mod::getSavedSettingsData() {
+    return m_impl->m_settings->m_impl->savedata;
 }
