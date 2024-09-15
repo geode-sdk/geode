@@ -110,6 +110,7 @@ public:
     void saveSettingValueToSave(std::string const& key) {
         if (this->settings.contains(key)) {
             auto& sett = this->settings.at(key);
+            if (!sett.v3) return;
             // Store the value in an intermediary so if `save` fails the existing 
             // value loaded from disk isn't overwritten
             matjson::Value value;
