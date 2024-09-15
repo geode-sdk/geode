@@ -1,5 +1,8 @@
 # Geode Changelog
 
+## v3.6.2
+ * Fix settings with custom types not being saved & loaded properly (f0b6a70)
+
 ## v3.6.1
  * Fix modrm rip relative instruction displacement saving the clobbered register (ddfe8e2)
  * Fix `DataSaved` and `DataLoaded` events (8615bbd, 43adb35)
