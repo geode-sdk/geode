@@ -92,7 +92,7 @@ public:
     matjson::Object savedata;
     bool restartRequired = false;
 
-    void loadSettingValueFromSave(std::string_view key) {
+    void loadSettingValueFromSave(std::string const& key) {
         if (this->savedata.contains(key) && this->settings.contains(key)) {
             auto& sett = this->settings.at(key);
             if (!sett.v3) return;
@@ -107,7 +107,7 @@ public:
             }
         }
     }
-    void saveSettingValueToSave(std::string_view key) {
+    void saveSettingValueToSave(std::string const& key) {
         if (this->settings.contains(key)) {
             auto& sett = this->settings.at(key);
             // Store the value in an intermediary so if `save` fails the existing 
@@ -118,11 +118,11 @@ public:
                     this->savedata[key] = value;
                 }
                 else {
-                    log::error("Unable to save setting '{}' for mod {}", key, m_impl->modID);
+                    log::error("Unable to save setting '{}' for mod {}", key, this->modID);
                 }
             }
             catch(matjson::JsonException const& e) {
-                log::error("Unable to save setting '{}' for mod {} (JSON exception): {}", key, m_impl->modID, e.what());
+                log::error("Unable to save setting '{}' for mod {} (JSON exception): {}", key, this->modID, e.what());
             }
         }
     }
@@ -205,6 +205,7 @@ Result<> ModSettingsManager::registerLegacyCustomSetting(std::string_view key, s
     if (auto custom = typeinfo_pointer_cast<LegacyCustomSettingV3>(sett.v3)) {
         if (!custom->getValue()) {
             custom->setValue(std::move(ptr));
+            m_impl->loadSettingValueFromSave(id);
         }
         else {
             return Err("Setting '{}' in mod {} has already been registed", id, m_impl->modID);
