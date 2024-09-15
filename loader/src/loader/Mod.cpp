@@ -48,8 +48,9 @@ matjson::Value& Mod::getSaveContainer() {
     return m_impl->getSaveContainer();
 }
 
-// todo in 3.7.0: move Mod::getSavedSettingsData() back here from 
-// ModSettingsManager.cpp and make it use ModSettingsManager::getSaveData()
+matjson::Value& Mod::getSavedSettingsData() {
+    return m_impl->m_settings->getSaveData();
+}
 
 bool Mod::isEnabled() const {
     return m_impl->isEnabled();

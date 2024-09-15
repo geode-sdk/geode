@@ -235,9 +235,9 @@ void ModSettingsManager::save(matjson::Value& json) {
     // Doing this since `ModSettingsManager` is expected to manage savedata fully
     json = m_impl->savedata;
 }
-// matjson::Value& ModSettingsManager::getSaveData() {
-//     return m_impl->savedata;
-// }
+matjson::Value& ModSettingsManager::getSaveData() {
+    return m_impl->savedata;
+}
 
 std::shared_ptr<SettingV3> ModSettingsManager::get(std::string_view key) {
     auto id = std::string(key);
@@ -273,10 +273,4 @@ std::optional<Setting> ModSettingsManager::getLegacyDefinition(std::string_view 
 
 bool ModSettingsManager::restartRequired() const {
     return m_impl->restartRequired;
-}
-
-// todo in 3.7.0: move Mod::getSavedSettingsData() back to Mod.cpp and make it 
-// use ModSettingsManager::getSaveData()
-matjson::Value& Mod::getSavedSettingsData() {
-    return m_impl->m_settings->m_impl->savedata;
 }

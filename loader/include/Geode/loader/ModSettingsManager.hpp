@@ -47,7 +47,6 @@ namespace geode {
          */
         void save(matjson::Value& json);
 
-        // todo in 3.7.0: add this
         /**
          * Get the savedata for settings, aka the JSON object that contains all 
          * the settings' saved states that was loaded up from disk and will be 
@@ -55,7 +54,7 @@ namespace geode {
          * @warning Modifying this will modify the value of the settings - use 
          * carefully!
          */
-        // matjson::Value& getSaveData();
+        matjson::Value& getSaveData();
 
         Result<> registerCustomSettingType(std::string_view type, SettingGenerator generator);
         // todo in v4: remove this
