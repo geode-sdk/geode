@@ -1,6 +1,8 @@
 # Geode Changelog
 
-## v3.6.2
+## v3.7.0
+ * Add persistent directory for mods to save data that won't be deleted when the mod/Geode is uninstalled (68ab475)
+ * Fix touch priority issues in the settings popup (b3d5474)
  * Fix settings with custom types not being saved & loaded properly (f0b6a70)
 
 ## v3.6.1
