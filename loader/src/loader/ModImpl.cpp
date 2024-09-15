@@ -66,7 +66,10 @@ Result<> Mod::Impl::setup() {
             CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
         });
 
-        const auto binariesDir = searchPathRoot / m_metadata.getID() / "binaries" / PlatformID::toShortString(GEODE_PLATFORM_TARGET);
+        // binaries on macos are merged, so make the platform binaries merged as well
+        auto const binaryPlatformId = PlatformID::toShortString(GEODE_PLATFORM_TARGET GEODE_MACOS(, true));
+
+        auto const binariesDir = searchPathRoot / m_metadata.getID() / "binaries" / binaryPlatformId;
         if (std::filesystem::exists(binariesDir))
             LoaderImpl::get()->addNativeBinariesPath(binariesDir);
 

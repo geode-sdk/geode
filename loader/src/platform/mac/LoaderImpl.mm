@@ -8,6 +8,7 @@
 #include <loader/ModImpl.hpp>
 #include <sys/stat.h>
 #include <loader/LogImpl.hpp>
+#include <dlfcn.h>
 
 using namespace geode::prelude;
 
@@ -132,7 +133,31 @@ bool Loader::Impl::userTriedToLoadDLLs() const {
 }
 
 void Loader::Impl::addNativeBinariesPath(std::filesystem::path const& path) {
-    log::warn("LoaderImpl::addNativeBinariesPath not implement on this platform, not adding path {}", path.string());
+    // this takes advantage of dyld using already loaded binaries when loading relative shared libraries
+    // however, this also means that the binaries are loaded, which could have some weird side effects
+    // but if you could use dlopen (and thus control when libraries are loaded), then you wouldn't be using this, would you?
+
+    for (const auto& entry : std::filesystem::directory_iterator(path)) {
+        if (!entry.is_regular_file()) {
+            continue;
+        }
+
+        auto& entry_path = entry.path();
+
+        if (entry_path.extension() != ".dylib") {
+            continue;
+        }
+
+        auto handle = dlopen(entry_path.string().c_str(), RTLD_LAZY);
+
+        if (!handle) {
+            auto err = dlerror();
+            log::warn("failed to load native binary at {}: dlerror returned ({})", entry_path.string(), err);
+            continue;
+        }
+
+        dlclose(handle);
+    }
 }
 
 std::string Loader::Impl::getGameVersion() {
