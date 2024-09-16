@@ -1,5 +1,8 @@
 # Geode Changelog
 
+## v3.7.2
+ * Fix `followThunkFunction` following through into hook handlers (ad26357)
+
 ## v3.7.1
  * Fix crash with saving older custom settings (c3e7f23)
  * Add missing CCDrawNode::drawRect overload (145adb2)
