@@ -212,6 +212,11 @@ if (WIN32)
 	endif()
 endif()
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+	# force an error on a missing return type, as this is unfortunately a common mistake people make
+	target_compile_options(${PROJECT_NAME} INTERFACE -Werror=return-type)
+endif()
+
 # if (APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 # 	set_property(TARGET ${PROJECT_NAME} PROPERTY LINKER_TYPE LLD)
 # 	target_link_options(${PROJECT_NAME} INTERFACE -fuse-ld=lld)
