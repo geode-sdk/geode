@@ -94,14 +94,6 @@ bool redirectStd(FILE* which, std::string const& name, const Severity sev) {
     return true;
 }
 
-static bool isWine() {
-    if (auto mod = GetModuleHandle("ntdll.dll")) {
-        return GetProcAddress(mod, "wine_get_version") != nullptr;
-    }
-
-    return false;
-}
-
 void console::setup() {
     // if the game launched from a console or with a console already attached,
     // this is where we find that out and save its handle
@@ -126,7 +118,7 @@ void console::setup() {
             // count == 0 => not a console and not a file, assume it's closed
             // wine does something weird with /dev/null? not sure tbh but it's definitely up to no good
             // TODO: the isWine check is pretty hacky but without it the game does not launch at all and i cba to figure it out rn
-            if ((count == 0 || path.ends_with("\\dev\\null")) && !isWine()) {
+            if ((count == 0 || path.ends_with("\\dev\\null"))) {
                 s_outHandle = nullptr;
                 CloseHandle(GetStdHandle(STD_OUTPUT_HANDLE));
                 CloseHandle(GetStdHandle(STD_INPUT_HANDLE));
