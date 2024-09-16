@@ -1,5 +1,9 @@
 # Geode Changelog
 
+## v3.7.1
+ * Fix crash with saving older custom settings (c3e7f23)
+ * Add missing CCDrawNode::drawRect overload (145adb2)
+
 ## v3.7.0
  * Add persistent directory for mods to save data that won't be deleted when the mod/Geode is uninstalled (68ab475)
  * Fix touch priority issues in the settings popup (b3d5474)
