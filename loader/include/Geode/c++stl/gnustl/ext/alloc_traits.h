@@ -116,7 +116,7 @@ template<typename _Alloc>
     template<typename _Ptr>
       using __is_custom_pointer
 	= std::conjunction<std::is_same<pointer, _Ptr>,
-		      __not_<std::is_pointer<_Ptr>>>;
+		      geode::stl::__not_<std::is_pointer<_Ptr>>>;
 
   public:
     // overload construct for non-standard pointer types

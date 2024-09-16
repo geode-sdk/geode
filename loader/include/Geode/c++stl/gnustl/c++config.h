@@ -8,4 +8,7 @@
 # include "c++config-armeabi-v7a.h"
 #endif
 
-template <typename T> using __not_ = std::integral_constant<bool, !T::value>;
+// i put this here cuz it's used all over the place
+namespace geode::stl {
+    template <typename T> using __not_ = std::integral_constant<bool, !T::value>;
+}

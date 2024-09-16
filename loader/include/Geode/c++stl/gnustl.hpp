@@ -20,6 +20,7 @@ namespace geode::base {
     #include "gnustl/hash_specialization.hpp"
     #undef _GLIBCXX_RELEASE
     #undef __GLIBCXX__
+    #undef _GLIBCXX_USE_DUAL_ABI
 
 namespace gd {
     using namespace geode::stl;
