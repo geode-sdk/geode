@@ -151,7 +151,7 @@ intptr_t Addresser::followThunkFunction(intptr_t address) {
         auto checkAddress = *reinterpret_cast<uintptr_t*>(address + 6 + offset);
         
         // only follow the thunk if it's not a hook handler
-        if (GeodeFunctionTableAccess64(GetCurrentProcess(), reinterpret_cast<DWORD64>(checkAddress)) == nullptr) {
+        if (GeodeFunctionTableAccess64(GetCurrentProcess(), static_cast<DWORD64>(checkAddress)) == nullptr) {
             address = checkAddress;
         }
     }
