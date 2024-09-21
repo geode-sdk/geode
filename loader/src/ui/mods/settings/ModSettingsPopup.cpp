@@ -345,9 +345,9 @@ void ModSettingsPopup::onClose(CCObject* sender) {
     GeodePopup::onClose(sender);
 }
 
-ModSettingsPopup* ModSettingsPopup::create(Mod* mod) {
+ModSettingsPopup* ModSettingsPopup::create(Mod* mod, bool forceDisableTheme) {
     auto ret = new ModSettingsPopup();
-    if (ret->init(440, 280, mod)) {
+    if (ret->init(440, 280, mod, GeodePopupStyle::Default, forceDisableTheme)) {
         ret->autorelease();
         return ret;
     }
