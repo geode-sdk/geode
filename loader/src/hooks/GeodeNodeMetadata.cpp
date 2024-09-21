@@ -294,7 +294,7 @@ CCNode* CCNode::querySelector(std::string const& queryStr) {
         return nullptr;
     }
     auto query = std::move(res.unwrap());
-    log::info("parsed query: {}", query->toString());
+    // log::info("parsed query: {}", query->toString());
     return query->match(this);
 }
 
