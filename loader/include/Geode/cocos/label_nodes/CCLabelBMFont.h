@@ -337,7 +337,7 @@ protected:
     // @note RobTop Addition
     CCTexture2D* m_pSomeTexture;
     // @note RobTop Addition
-    void* m_pUnknown; // 2.2 addition, might be positioned somewhere else
+    int m_nExtraKerning;
 
 };
 
