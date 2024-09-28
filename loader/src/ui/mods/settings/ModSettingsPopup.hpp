@@ -16,7 +16,6 @@ protected:
     CCMenuItemSpriteExtra* m_applyBtn;
     CCMenuItemSpriteExtra* m_restartBtn;
     ButtonSprite* m_applyBtnSpr;
-    IconButtonSprite* m_openConfigDirBtnSpr;
     TextInput* m_searchInput;
     CCMenuItemSpriteExtra* m_searchClearBtn;
     EventListener<EventFilter<SettingNodeValueChangeEventV3>> m_changeListener;
@@ -30,6 +29,7 @@ protected:
     void onResetAll(CCObject*);
     void onOpenSaveDirectory(CCObject*);
     void onOpenConfigDirectory(CCObject*);
+    void onOpenPersistentDirectory(CCObject*);
     void onClearSearch(CCObject*);
 
 public:

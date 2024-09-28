@@ -103,19 +103,21 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         if (!shownTriedToLoadDlls) {
             shownTriedToLoadDlls = true;
             if (LoaderImpl::get()->userTriedToLoadDLLs()) {
-                auto popup = FLAlertLayer::create(
-                    "Hold up!",
-                    "It appears that you have tried to <cr>load DLLs</c> with Geode. "
-                    "Please note that <cy>Geode is incompatible with ALL DLLs</c>, "
-                    "as they can cause Geode mods to <cr>error</c>, or even "
-                    "<cr>crash</c>.\n\n"
-                    "Remove the DLLs / other mod loaders you have, or <cr>proceed at "
-                    "your own risk.</c>",
-                    "OK"
-                );
-                popup->m_scene = this;
-                popup->m_noElasticity = true;
-                popup->show();
+                Loader::get()->queueInMainThread([] {
+                    auto popup = FLAlertLayer::create(
+                        "Hold up!",
+                        "It appears that you have tried to <cr>load DLLs</c> with Geode. "
+                        "Please note that <cy>Geode is incompatible with ALL DLLs</c>, "
+                        "as they can cause Geode mods to <cr>error</c>, or even "
+                        "<cr>crash</c>.\n\n"
+                        "Remove the DLLs / other mod loaders you have, or <cr>proceed at "
+                        "your own risk.</c>",
+                        "OK"
+                    );
+
+                    popup->m_noElasticity = true;
+                    popup->show();
+                });
             }
         }
 
@@ -123,15 +125,18 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         static bool shownUpdateInfo = false;
         if (updater::isNewUpdateDownloaded() && !shownUpdateInfo) {
             shownUpdateInfo = true;
-            auto popup = FLAlertLayer::create(
-                "Update downloaded",
-                "A new <cy>update</c> for Geode has been installed! "
-                "Please <cy>restart the game</c> to apply.",
-                "OK"
-            );
-            popup->m_scene = this;
-            popup->m_noElasticity = true;
-            popup->show();
+
+            Loader::get()->queueInMainThread([] {
+                auto popup = FLAlertLayer::create(
+                    "Update downloaded",
+                    "A new <cy>update</c> for Geode has been installed! "
+                    "Please <cy>restart the game</c> to apply.",
+                    "OK"
+                );
+
+                popup->m_noElasticity = true;
+                popup->show();
+            });
         }
 
         // show crash info
@@ -142,22 +147,26 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             !Mod::get()->template getSettingValue<bool>("disable-last-crashed-popup")
         ) {
             shownLastCrash = true;
-            auto popup = createQuickPopup(
-                "Crashed",
-                "It appears that the last session crashed. Would you like to "
-                "open the <cy>crashlog folder</c>?",
-                "No",
-                "Yes",
-                [](auto, bool btn2) {
-                    if (btn2) {
-                        file::openFolder(dirs::getCrashlogsDir());
-                    }
-                },
-                false
-            );
-            popup->m_scene = this;
-            popup->m_noElasticity = true;
-            popup->show();
+
+            // open the dialog a frame later (after the scene is set) for proper key priority
+            Loader::get()->queueInMainThread([] {
+                auto popup = createQuickPopup(
+                    "Crashed",
+                    "It appears that the last session crashed. Would you like to "
+                    "open the <cy>crashlog folder</c>?",
+                    "No",
+                    "Yes",
+                    [](auto, bool btn2) {
+                        if (btn2) {
+                            file::openFolder(dirs::getCrashlogsDir());
+                        }
+                    },
+                    false
+                );
+                popup->m_noElasticity = true;
+
+                popup->show();
+            });
         }
 
         // Check for mod updates

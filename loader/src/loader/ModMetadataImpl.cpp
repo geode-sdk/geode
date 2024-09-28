@@ -133,11 +133,17 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         // change all of this to the gd.needs(...) stuff
         gd.assertIs({ matjson::Type::Object, matjson::Type::String });
         if (gd.isObject()) {
-            gd.needs(GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH)
-                .mustBe<std::string>("a valid gd version", [](auto const& str) {
-                    return str == "*" || numFromString<double>(str).isOk();
-                })
-                .into(impl->m_gdVersion);
+            if (gd.has(GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH)) {
+                gd.needs(GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH)
+                    .mustBe<std::string>("a valid gd version", [](auto const& str) {
+                        return str == "*" || numFromString<double>(str).isOk();
+                    })
+                    .into(impl->m_gdVersion);
+            } else {
+                // this will error later on, but try to load the rest of the metadata
+                // so that the mod can show up in the mods listing
+                impl->m_gdVersion = "0.000";
+            }
         }
         else if (gd.isString()) {
             impl->m_softInvalidReason = "mod.json uses old syntax";

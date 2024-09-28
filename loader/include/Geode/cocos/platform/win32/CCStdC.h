@@ -71,13 +71,7 @@ THE SOFTWARE.
     #include "./compat/stdint.h"
 #endif
 
-#define _WINSOCKAPI_
-// Structure timeval has define in winsock.h, include windows.h for it.
-#include <Windows.h>
-
-#ifndef __MINGW32__
-
-// #include <WinSock2.h>
+struct timeval;
 
 NS_CC_BEGIN
 
@@ -90,12 +84,6 @@ struct timezone
 int CC_DLL gettimeofday(struct timeval *, struct timezone *);
 
 NS_CC_END
-
-#else
-
-#include <winsock.h>
-
-#endif // __MINGW32__
 
 #endif  // __CC_STD_C_H__
 

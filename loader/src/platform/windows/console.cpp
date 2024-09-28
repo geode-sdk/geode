@@ -117,7 +117,8 @@ void console::setup() {
 
             // count == 0 => not a console and not a file, assume it's closed
             // wine does something weird with /dev/null? not sure tbh but it's definitely up to no good
-            if ((count == 0 || path.ends_with("\\dev\\null")) && Mod::get()->getSettingValue<bool>("show-platform-console")) {
+            // TODO: the isWine check is pretty hacky but without it the game does not launch at all and i cba to figure it out rn
+            if ((count == 0 || path.ends_with("\\dev\\null"))) {
                 s_outHandle = nullptr;
                 CloseHandle(GetStdHandle(STD_OUTPUT_HANDLE));
                 CloseHandle(GetStdHandle(STD_INPUT_HANDLE));

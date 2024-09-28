@@ -17,7 +17,7 @@ struct matjson::Serialize<std::filesystem::path> {
         return path.string();
     }
     static std::filesystem::path from_json(matjson::Value const& value) {
-        return value.as_string();
+        return std::filesystem::path(value.as_string()).make_preferred();
     }
     static bool is_json(matjson::Value const& value) {
         return value.is_string();

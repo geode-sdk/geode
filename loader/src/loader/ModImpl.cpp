@@ -66,7 +66,10 @@ Result<> Mod::Impl::setup() {
             CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
         });
 
-        const auto binariesDir = searchPathRoot / m_metadata.getID() / "binaries" / PlatformID::toShortString(GEODE_PLATFORM_TARGET);
+        // binaries on macos are merged, so make the platform binaries merged as well
+        auto const binaryPlatformId = PlatformID::toShortString(GEODE_PLATFORM_TARGET GEODE_MACOS(, true));
+
+        auto const binariesDir = searchPathRoot / m_metadata.getID() / "binaries" / binaryPlatformId;
         if (std::filesystem::exists(binariesDir))
             LoaderImpl::get()->addNativeBinariesPath(binariesDir);
 
@@ -135,10 +138,6 @@ matjson::Value& Mod::Impl::getSaveContainer() {
     return m_saved;
 }
 
-matjson::Value& Mod::Impl::getSavedSettingsData() {
-    return m_savedSettingsData;
-}
-
 bool Mod::Impl::isEnabled() const {
     return m_enabled || this->isInternal();
 }
@@ -174,16 +173,11 @@ std::vector<Patch*> Mod::Impl::getPatches() const {
 // Settings and saved values
 
 Result<> Mod::Impl::loadData() {
-    Loader::get()->queueInMainThread([&]() {
-        ModStateEvent(m_self, ModEventType::DataLoaded).post();
-    });
-
     // Settings
     // Check if settings exist
     auto settingPath = m_saveDirPath / "settings.json";
     if (std::filesystem::exists(settingPath)) {
         GEODE_UNWRAP_INTO(auto json, utils::file::readJson(settingPath));
-        m_savedSettingsData = json;
         auto load = m_settings->load(json);
         if (!load) {
             log::warn("Unable to load settings: {}", load.unwrapErr());
@@ -215,15 +209,12 @@ Result<> Mod::Impl::saveData() {
         return Ok();
     }
 
-    // Data saving should be fully fail-safe
-    // If some settings weren't provided a custom settings handler (for example,
-    // the mod was not loaded) then make sure to save their previous state in
-    // order to not lose data
-    if (!m_savedSettingsData.is_object()) {
-        m_savedSettingsData = matjson::Object();
-    }
-    matjson::Value json = m_savedSettingsData;
+    // ModSettingsManager keeps track of the whole savedata
+    matjson::Value json;
     m_settings->save(json);
+
+    // saveData is expected to be synchronous, and always called from GD thread
+    ModStateEvent(m_self, ModEventType::DataSaved).post();
 
     auto res = utils::file::writeString(m_saveDirPath / "settings.json", json.dump());
     if (!res) {
@@ -233,9 +224,6 @@ Result<> Mod::Impl::saveData() {
     if (!res2) {
         log::error("Unable to save values: {}", res2.unwrapErr());
     }
-
-    // saveData is expected to be synchronous, and always called from GD thread
-    ModStateEvent(m_self, ModEventType::DataSaved).post();
 
     return Ok();
 }
@@ -331,6 +319,7 @@ Result<> Mod::Impl::loadBinary() {
 
     ModStateEvent(m_self, ModEventType::Loaded).post();
     ModStateEvent(m_self, ModEventType::Enabled).post();
+    ModStateEvent(m_self, ModEventType::DataLoaded).post();
 
     m_isCurrentlyLoading = false;
 
@@ -653,6 +642,14 @@ Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
 
 std::filesystem::path Mod::Impl::getConfigDir(bool create) const {
     auto dir = dirs::getModConfigDir() / m_metadata.getID();
+    if (create) {
+        (void)file::createDirectoryAll(dir);
+    }
+    return dir;
+}
+
+std::filesystem::path Mod::Impl::getPersistentDir(bool create) const {
+    auto dir = dirs::getModPersistentDir() / m_metadata.getID();
     if (create) {
         (void)file::createDirectoryAll(dir);
     }

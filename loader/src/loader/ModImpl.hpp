@@ -53,10 +53,6 @@ namespace geode {
          */
         std::unique_ptr<ModSettingsManager> m_settings = nullptr;
         /**
-         * Settings save data. Stored for efficient loading of custom settings
-         */
-        matjson::Value m_savedSettingsData = matjson::Object();
-        /**
          * Whether the mod resources are loaded or not
          */
         bool m_resourcesLoaded = false;
@@ -101,7 +97,6 @@ namespace geode {
         std::filesystem::path getBinaryPath() const;
 
         matjson::Value& getSaveContainer();
-        matjson::Value& getSavedSettingsData();
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
         void setMetadata(ModMetadata const& metadata);
@@ -113,6 +108,7 @@ namespace geode {
 
         std::filesystem::path getSaveDir() const;
         std::filesystem::path getConfigDir(bool create = true) const;
+        std::filesystem::path getPersistentDir(bool create = true) const;
 
         bool hasSettings() const;
         std::vector<std::string> getSettingKeys() const;

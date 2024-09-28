@@ -172,6 +172,11 @@ namespace geode {
          * Get the mod's config directory path
          */
         std::filesystem::path getConfigDir(bool create = true) const;
+        /**
+         * Get the mod's persistent directory path
+         * This directory is not deleted even when Geode/mod is uninstalled
+         */
+        std::filesystem::path getPersistentDir(bool create = true) const;
 
         /**
          * Returns true if this mod has any settings

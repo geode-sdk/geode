@@ -638,9 +638,15 @@ void LegacyCustomSettingV3::setValue(std::shared_ptr<SettingValue> value) {
 }
 
 bool LegacyCustomSettingV3::load(matjson::Value const& json) {
+    if (m_impl->legacyValue) {
+        return m_impl->legacyValue->load(json);
+    }
     return true;
 }
 bool LegacyCustomSettingV3::save(matjson::Value& json) const {
+    if (m_impl->legacyValue) {
+        return m_impl->legacyValue->save(json);
+    }
     return true;
 }
 SettingNodeV3* LegacyCustomSettingV3::createNode(float width) {
@@ -1045,6 +1051,8 @@ Result<std::shared_ptr<FileSettingV3>> FileSettingV3::parse(std::string const& k
 
     auto root = checkJson(json, "FileSettingV3");
     ret->parseBaseProperties(key, modID, root);
+
+    ret->setDefaultValue(ret->getDefaultValue().make_preferred());
 
     // Replace known paths like `{gd-save-dir}/`
     try {

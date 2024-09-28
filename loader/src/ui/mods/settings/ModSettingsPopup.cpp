@@ -83,11 +83,6 @@ bool ModSettingsPopup::setup(Mod* mod) {
         else {
             node = UnresolvedCustomSettingNodeV3::create(key, mod, layerSize.width);
         }
-    
-        // auto separator = CCLayerColor::create({ 0, 0, 0, 50 }, layerSize.width, 1.f);
-        // separator->setOpacity(bg ? 100 : 50);
-        // separator->ignoreAnchorPointForPosition(false);
-        // bg->addChildAtPosition(separator, Anchor::Bottom, ccp(0, 0), ccp(.5f, .5f));
 
         m_settings.push_back(node);
         m_list->m_contentLayer->addChild(node);
@@ -101,6 +96,11 @@ bool ModSettingsPopup::setup(Mod* mod) {
             ->setGap(0)
     );
     m_list->moveToTop();
+
+    const int buttonPriority = m_list->getTouchPriority() - 1;
+
+    m_buttonMenu->setTouchPriority(buttonPriority);
+    searchContainer->setTouchPriority(buttonPriority);
 
     layerBG->addChildAtPosition(m_list, Anchor::BottomLeft);
 
@@ -119,6 +119,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
     m_applyMenu->setContentWidth(150);
     m_applyMenu->setLayout(RowLayout::create());
     m_applyMenu->getLayout()->ignoreInvisibleChildren(true);
+    m_applyMenu->setTouchPriority(buttonPriority);
 
     auto restartBtnSpr = createGeodeButton("Restart Now", true);
     restartBtnSpr->setScale(.6f);
@@ -144,28 +145,46 @@ bool ModSettingsPopup::setup(Mod* mod) {
     );
     m_buttonMenu->addChildAtPosition(resetBtn, Anchor::BottomLeft, ccp(45, 20));
 
-    auto configFolderSpr = CCSprite::createWithSpriteFrameName("folderIcon_001.png");
-    m_openConfigDirBtnSpr = createGeodeButton(configFolderSpr, "");
-    m_openConfigDirBtnSpr->setScale(.6f);
-    m_openConfigDirBtnSpr->getIcon()->setScale(m_openConfigDirBtnSpr->getIcon()->getScale() * 1.4f);
-    auto openConfigDirBtn = CCMenuItemSpriteExtra::create(
-        m_openConfigDirBtnSpr, this, menu_selector(ModSettingsPopup::onOpenConfigDirectory)
-    );
-    m_buttonMenu->addChildAtPosition(openConfigDirBtn, Anchor::BottomRight, ccp(-50, 20));
+    auto foldersMenu = CCMenu::create();
+    foldersMenu->setContentSize({ 0, 30 });
+    foldersMenu->setAnchorPoint(ccp(1, 0));
+    foldersMenu->setLayout(RowLayout::create()
+        ->setAxisReverse(true)
+        ->setGap(5)
+        ->setAutoGrowAxis(30)
+        ->setGrowCrossAxis(true));
+    m_buttonMenu->addChildAtPosition(foldersMenu, Anchor::BottomRight, ccp(-5, 10));
 
-    auto settingFolderSpr = CCSprite::createWithSpriteFrameName("folderIcon_001.png");
-    auto settingFolderSprSub = CCSprite::createWithSpriteFrameName("settings.png"_spr);
-    settingFolderSprSub->setColor(ccBLACK);
-    settingFolderSprSub->setOpacity(155);
-    settingFolderSprSub->setScale(.55f);
-    settingFolderSpr->addChildAtPosition(settingFolderSprSub, Anchor::Center, ccp(0, -3));
-    auto openDirBtnSpr = createGeodeButton(settingFolderSpr, "");
-    openDirBtnSpr->setScale(.6f);
-    openDirBtnSpr->getIcon()->setScale(openDirBtnSpr->getIcon()->getScale() * 1.4f);
-    auto openDirBtn = CCMenuItemSpriteExtra::create(
-        openDirBtnSpr, this, menu_selector(ModSettingsPopup::onOpenSaveDirectory)
-    );
-    m_buttonMenu->addChildAtPosition(openDirBtn, Anchor::BottomRight, ccp(-20, 20));
+    auto createFolderButton = [&, this](auto subSprName, auto callback) {
+        auto folderSpr = CCSprite::createWithSpriteFrameName("folderIcon_001.png");
+        auto folderSprSub = CCSprite::createWithSpriteFrameName(subSprName);
+        folderSprSub->setColor(ccBLACK);
+        folderSprSub->setOpacity(155);
+        folderSprSub->setScale(.55f);
+        folderSpr->addChildAtPosition(folderSprSub, Anchor::Center, ccp(0, -3));
+        auto buttonSpr = createGeodeButton(folderSpr, "");
+        buttonSpr->setScale(.6f);
+        buttonSpr->getIcon()->setScale(buttonSpr->getIcon()->getScale() * 1.4f);
+        auto folderBtn = CCMenuItemSpriteExtra::create(
+            buttonSpr, this, static_cast<SEL_MenuHandler>(callback)
+        );
+        foldersMenu->addChild(folderBtn);
+        return folderBtn;
+    };
+
+    createFolderButton("save.png"_spr, &ModSettingsPopup::onOpenSaveDirectory);
+    createFolderButton("settings.png"_spr, &ModSettingsPopup::onOpenConfigDirectory);
+    auto persistentBtn = createFolderButton("persistent.png"_spr, &ModSettingsPopup::onOpenPersistentDirectory);
+    if (!std::filesystem::exists(mod->getPersistentDir(false))) {
+        persistentBtn->setEnabled(false);
+        auto spr = static_cast<CCSprite*>(persistentBtn->getNormalImage());
+        spr->setCascadeColorEnabled(true);
+        spr->setCascadeOpacityEnabled(true);
+        spr->setColor(ccGRAY);
+        spr->setOpacity(155);
+    }
+
+    foldersMenu->updateLayout();
 
     m_changeListener.bind([this](auto* ev) {
         this->updateState(ev->getNode());
@@ -223,7 +242,9 @@ void ModSettingsPopup::onOpenSaveDirectory(CCObject*) {
 }
 void ModSettingsPopup::onOpenConfigDirectory(CCObject*) {
     file::openFolder(m_mod->getConfigDir());
-    this->updateState();
+}
+void ModSettingsPopup::onOpenPersistentDirectory(CCObject*) {
+    file::openFolder(m_mod->getPersistentDir());
 }
 void ModSettingsPopup::onClearSearch(CCObject*) {
     m_searchInput->setString("");
@@ -237,12 +258,6 @@ void ModSettingsPopup::updateState(SettingNodeV3* invoker) {
 
     m_restartBtn->setVisible(ModSettingsManager::from(m_mod)->restartRequired());
     m_applyMenu->updateLayout();
-
-    auto configDirExists = std::filesystem::exists(m_mod->getConfigDir(false));
-    m_openConfigDirBtnSpr->setCascadeColorEnabled(true);
-    m_openConfigDirBtnSpr->setCascadeOpacityEnabled(true);
-    m_openConfigDirBtnSpr->setColor(configDirExists ? ccWHITE : ccGRAY);
-    m_openConfigDirBtnSpr->setOpacity(configDirExists ? 255 : 155);
 
     auto listPosBefore = m_list->m_contentLayer->getPositionY();
     auto listHeightBefore = m_list->m_contentLayer->getContentHeight();

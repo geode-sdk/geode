@@ -16,6 +16,7 @@ namespace server {
         bool operator==(DownloadStatusDownloading const&) const = default;
     };
     struct DownloadStatusDone {
+        ServerModVersion version;
         bool operator==(DownloadStatusDone const&) const = default;
     };
     struct DownloadStatusError {

@@ -233,7 +233,7 @@ protected:
             else {
                 auto data = result->unwrap();
                 auto image = Ref(new CCImage());
-                image->initWithImageData(const_cast<uint8_t*>(data.data()), data.size());
+                image->initWithImageData(data.data(), data.size());
 
                 auto texture = CCTextureCache::get()->addUIImage(image, m_modID.c_str());
                 this->setSprite(CCSprite::createWithTexture(texture), true);
