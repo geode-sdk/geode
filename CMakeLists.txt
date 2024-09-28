@@ -193,7 +193,12 @@ if (NOT DEFINED GEODE_GD_VERSION)
 	set(GEODE_COMP_GD_VERSION 22060)
 endif()
 
-target_compile_definitions(${PROJECT_NAME} INTERFACE GEODE_GD_VERSION=${GEODE_GD_VERSION} GEODE_COMP_GD_VERSION=${GEODE_COMP_GD_VERSION})
+target_compile_definitions(
+	${PROJECT_NAME} INTERFACE
+	GEODE_GD_VERSION=${GEODE_GD_VERSION}
+	GEODE_COMP_GD_VERSION=${GEODE_COMP_GD_VERSION}
+	GEODE_GD_VERSION_STRING="${GEODE_GD_VERSION}"
+)
 
 if (WIN32)
 	# This allows you to compile in debug mode
@@ -261,7 +266,7 @@ if (DEFINED GEODE_TULIPHOOK_REPO_PATH)
 	message(STATUS "Using ${GEODE_TULIPHOOK_REPO_PATH} for TulipHook")
 	add_subdirectory(${GEODE_TULIPHOOK_REPO_PATH} ${GEODE_TULIPHOOK_REPO_PATH}/build)
 else()
-	CPMAddPackage("gh:geode-sdk/TulipHook#ddfe8e2")
+	CPMAddPackage("gh:geode-sdk/TulipHook#d1d9559")
 endif()
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 
