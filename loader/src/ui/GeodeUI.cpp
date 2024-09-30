@@ -159,9 +159,15 @@ void geode::openChangelogPopup(Mod* mod) {
 }
 
 void geode::openSettingsPopup(Mod* mod) {
+    openSettingsPopup(mod, true);
+}
+Popup<Mod*>* geode::openSettingsPopup(Mod* mod, bool disableGeodeTheme) {
     if (mod->hasSettings()) {
-        ModSettingsPopup::create(mod)->show();
+        auto popup = ModSettingsPopup::create(mod, disableGeodeTheme);
+        popup->show();
+        return popup;
     }
+    return nullptr;
 }
 
 class ModLogoSprite : public CCNode {

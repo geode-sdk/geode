@@ -33,5 +33,5 @@ protected:
     void onClearSearch(CCObject*);
 
 public:
-    static ModSettingsPopup* create(Mod* mod);
+    static ModSettingsPopup* create(Mod* mod, bool forceDisableTheme = false);
 };
