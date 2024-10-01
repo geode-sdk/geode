@@ -11,7 +11,7 @@ class CCLightning : public CCNode, public CCRGBAProtocol {
 public:
     CCLightning();
     virtual ~CCLightning();
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCLightning, CCNode);
+    GEODE_CUSTOM_CONSTRUCTOR_GD(CCLightning, CCNode);
 
     static CCLightning* lightningWithStrikePoint(CCPoint strikePoint, CCPoint strikePoint2, float duration);
     static CCLightning* lightningWithStrikePoint(CCPoint strikePoint);
