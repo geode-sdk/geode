@@ -1,6 +1,10 @@
 # Geode Changelog
 
-## v3.7.2
+## v3.8.0
+ * Add Modtober integration! For more about Modtober, join [the GDP Discord server](https://discord.gg/gd-programming-646101505417674758) (964624b)
+ * Add `Popup::CloseEvent` (6270e1c)
+ * Add `openSettingsPopup` overload that returns the created `Popup` (dc8d271)
+ * Fix `CCNode::querySelector` logspamming (b53759f)
  * Fix `followThunkFunction` following through into hook handlers (ad26357)
 
 ## v3.7.1
