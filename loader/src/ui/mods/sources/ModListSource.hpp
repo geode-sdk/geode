@@ -166,6 +166,7 @@ public:
     server::ModsQuery const& getQuery() const;
     InvalidateQueryAfter<server::ModsQuery> getQueryMut();
     bool isDefaultQuery() const override;
+    server::ModsQuery createDefaultQuery() const;
     ServerModListType getType() const;
 };
 
