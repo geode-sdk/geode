@@ -1,5 +1,10 @@
 # Geode Changelog
 
+## v3.8.1
+ * Fix CCLightning header
+ * Fix server query default value (8be97b7)
+ * Fix importance resolving in disabled mods (d40ba6d)
+
 ## v3.8.0
  * Add Modtober integration! For more about Modtober, join [the GDP Discord server](https://discord.gg/gd-programming-646101505417674758) (964624b)
  * Add `Popup::CloseEvent` (6270e1c)
