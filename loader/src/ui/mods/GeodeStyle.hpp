@@ -80,8 +80,10 @@ ButtonSprite* createGeodeButton(std::string const& text, bool gold = false, Geod
 
 CircleButtonSprite* createGeodeCircleButton(CCSprite* top, float scale = 1.f, CircleBaseSize size = CircleBaseSize::Medium, bool altColor = false);
 
-ButtonSprite* createGeodeTagLabel(std::string const& text, std::optional<std::pair<ccColor3B, ccColor3B>> const& color = std::nullopt);
-std::pair<ccColor3B, ccColor3B> geodeTagColor(std::string_view const& text);
+ButtonSprite* createTagLabel(std::string const& text, std::pair<ccColor3B, ccColor3B> const& color);
+ButtonSprite* createGeodeTagLabel(std::string_view tag);
+std::pair<ccColor3B, ccColor3B> geodeTagColors(std::string_view tag);
+std::string geodeTagName(std::string_view tag);
 
 ListBorders* createGeodeListBorders(CCSize const& size);
 

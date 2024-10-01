@@ -10,6 +10,7 @@
 #include "../settings/ModSettingsPopup.hpp"
 #include "../../../internal/about.hpp"
 #include "../../GeodeUIEvent.hpp"
+#include "../popups/ModtoberPopup.hpp"
 
 class FetchTextArea : public CCNode {
 public:
@@ -300,12 +301,12 @@ bool ModPopup::setup(ModSource&& src) {
     manageTitle->setOpacity(195);
     manageContainer->addChildAtPosition(manageTitle, Anchor::Left, ccp(0, 0), ccp(0, .5f));
 
-    m_restartRequiredLabel = createGeodeTagLabel(
+    m_restartRequiredLabel = createTagLabel(
         "Restart Required",
-        {{
+        {
             to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)),
             to3B(ColorProvider::get()->color("mod-list-restart-required-label-bg"_spr))
-        }}
+        }
     );
     m_restartRequiredLabel->setScale(.3f);
     manageContainer->addChildAtPosition(m_restartRequiredLabel, Anchor::Right, ccp(0, 0), ccp(1, .5f));
@@ -880,16 +881,54 @@ void ModPopup::onLoadTags(typename server::ServerRequest<std::unordered_set<std:
         m_tags->removeAllChildren();
         
         for (auto& tag : data) {
-            auto readable = tag;
-            readable[0] = std::toupper(readable[0]);
-            auto colors = geodeTagColor(tag);
-            m_tags->addChild(createGeodeTagLabel(readable));
+            m_tags->addChild(createGeodeTagLabel(tag));
         }
         
         if (data.empty()) {
             auto label = CCLabelBMFont::create("No tags found", "bigFont.fnt");
             label->setOpacity(120);
             m_tags->addChild(label);
+        }
+        // This should probably be kept even after modtober ends, 
+        // so the banner sprite must be kept
+        // If the build times from the cool popup become too long then we can 
+        // probably move that to a normal FLAlert that explains "Modtober was 
+        // this contest blah blah this mod was made for it"
+        else if (data.contains("modtober24")) {
+            auto menu = CCMenu::create();
+            menu->setID("modtober-banner");
+            menu->ignoreAnchorPointForPosition(false);
+            menu->setContentSize({ m_rightColumn->getContentWidth(), 25 });
+
+            auto banner = CCSprite::createWithSpriteFrameName("modtober24-banner-2.png"_spr);
+            limitNodeWidth(banner, m_rightColumn->getContentWidth(), 1.f, .1f);
+            menu->addChildAtPosition(banner, Anchor::Center);
+
+            auto label = CCLabelBMFont::create("Entry for Modtober 2024", "bigFont.fnt");
+            label->setScale(.35f);
+            menu->addChildAtPosition(label, Anchor::Left, ccp(10, 0), ccp(0, .5f));
+
+            auto aboutSpr = createGeodeButton("About");
+            aboutSpr->setScale(.35f);
+            auto aboutBtn = CCMenuItemSpriteExtra::create(
+                aboutSpr, this, menu_selector(ModPopup::onModtoberInfo)
+            );
+            menu->addChildAtPosition(aboutBtn, Anchor::Right, ccp(-25, 0));
+            
+            m_rightColumn->addChildAtPosition(menu, Anchor::Bottom, ccp(0, 0), ccp(.5f, 0));
+
+            m_modtoberBanner = menu;
+
+            // Force reload of all the tabs since otherwise their contents will overflow
+            for (auto& [_, tab] : m_tabs) {
+                if (tab.second && tab.second->getParent()) {
+                    tab.second->removeFromParent();
+                }
+                tab.second = nullptr;
+            }
+            // This might cause a minor inconvenience to someone who opens the popup and 
+            // immediately switches to changelog but is then forced back into details
+            this->loadTab(Tab::Details);
         }
 
         m_tags->updateLayout();
@@ -920,12 +959,17 @@ void ModPopup::loadTab(ModPopup::Tab tab) {
         btn.first->select(value == tab);
     }
 
+    float modtoberBannerHeight = 0;
+    if (m_modtoberBanner) {
+        modtoberBannerHeight = 30;
+    }
+
     if (auto existing = m_tabs.at(tab).second) {
         m_currentTabPage = existing;
-        m_rightColumn->addChildAtPosition(existing, Anchor::Bottom);
+        m_rightColumn->addChildAtPosition(existing, Anchor::Bottom, ccp(0, modtoberBannerHeight));
     }
     else {
-        const auto size = (m_rightColumn->getContentSize() - ccp(0, 30));
+        const auto size = (m_rightColumn->getContentSize() - ccp(0, 30 + modtoberBannerHeight));
         const float mdScale = .85f;
         switch (tab) {
             case Tab::Details: {
@@ -955,7 +999,7 @@ void ModPopup::loadTab(ModPopup::Tab tab) {
             } break;
         }
         m_currentTabPage->setAnchorPoint({ .5f, .0f });
-        m_rightColumn->addChildAtPosition(m_currentTabPage, Anchor::Bottom);
+        m_rightColumn->addChildAtPosition(m_currentTabPage, Anchor::Bottom, ccp(0, modtoberBannerHeight));
         m_tabs.at(tab).second = m_currentTabPage;
     }
 }
@@ -1029,6 +1073,12 @@ void ModPopup::onLink(CCObject* sender) {
 
 void ModPopup::onSupport(CCObject*) {
     openSupportPopup(m_source.getMetadata());
+}
+void ModPopup::onModtoberInfo(CCObject*) {
+    // todo: if we want to get rid of the modtober popup sprite (because it's fucking massive)
+    // then we can just replace this with a normal FLAlert explaining 
+    // "this mod was an entry for modtober 2024 blah blah blah"
+    ModtoberPopup::create()->show();
 }
 
 ModPopup* ModPopup::create(ModSource&& src) {

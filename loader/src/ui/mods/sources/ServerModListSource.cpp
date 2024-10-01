@@ -23,6 +23,12 @@ void ServerModListSource::resetQuery() {
                 .sorting = server::ModsSort::RecentlyPublished,
             };
         } break;
+
+        case ServerModListType::Modtober24: {
+            m_query = server::ModsQuery {
+                .tags = { "modtober24" },
+            };
+        } break;
     }
 }
 
@@ -76,6 +82,11 @@ ServerModListSource* ServerModListSource::get(ServerModListType type) {
             static auto inst = new ServerModListSource(ServerModListType::Recent);
             return inst;
         } break;
+
+        case ServerModListType::Modtober24: {
+            static auto inst = new ServerModListSource(ServerModListType::Modtober24);
+            return inst;
+        } break;
     }
 }
 
@@ -107,4 +118,8 @@ bool ServerModListSource::isDefaultQuery() const {
     return !m_query.query.has_value() &&
         m_query.tags.empty() &&
         !m_query.developer.has_value();
+}
+
+ServerModListType ServerModListSource::getType() const {
+    return m_type;
 }

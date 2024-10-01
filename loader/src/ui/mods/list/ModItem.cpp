@@ -84,12 +84,12 @@ bool ModItem::init(ModSource&& source) {
     );
     m_infoContainer->addChild(m_developers);
 
-    m_restartRequiredLabel = createGeodeTagLabel(
+    m_restartRequiredLabel = createTagLabel(
         "Restart Required",
-        {{
+        {
             to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)),
             to3B(ColorProvider::get()->color("mod-list-restart-required-label-bg"_spr))
-        }}
+        }
     );
     m_restartRequiredLabel->setID("restart-required-label");
     m_restartRequiredLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(std::nullopt, .75f));
@@ -207,6 +207,11 @@ bool ModItem::init(ModSource&& source) {
                 auto paidModLabel = CCSprite::createWithSpriteFrameName("tag-paid.png"_spr);
                 paidModLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.1f, .8f));
                 m_titleContainer->addChild(paidModLabel);
+            }
+            if (metadata.tags.contains("modtober24")) {
+                auto modtoberLabel = CCSprite::createWithSpriteFrameName("tag-modtober.png"_spr);
+                modtoberLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.1f, .8f));
+                m_titleContainer->addChild(modtoberLabel);
             }
 
             // Show mod download count here already so people can make informed decisions 
@@ -363,7 +368,10 @@ void ModItem::updateState() {
                 m_bg->setColor("mod-list-paid-color"_cc3b);
                 m_bg->setOpacity(55);
             }
-            
+            if (metadata.tags.contains("modtober24")) {
+                m_bg->setColor(ccc3(63, 91, 138));
+                m_bg->setOpacity(85);
+            }
             if (isGeodeTheme() && metadata.featured) {
                 m_bg->setColor("mod-list-featured-color"_cc3b);
                 m_bg->setOpacity(65);

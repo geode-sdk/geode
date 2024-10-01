@@ -143,6 +143,7 @@ enum class ServerModListType {
     Featured,
     Trending,
     Recent,
+    Modtober24,
 };
 
 class ServerModListSource : public ModListSource {
@@ -165,6 +166,7 @@ public:
     server::ModsQuery const& getQuery() const;
     InvalidateQueryAfter<server::ModsQuery> getQueryMut();
     bool isDefaultQuery() const override;
+    ServerModListType getType() const;
 };
 
 class ModPackListSource : public ModListSource {

@@ -35,6 +35,7 @@ protected:
     ButtonSprite* m_restartRequiredLabel;
     CCNode* m_rightColumn;
     CCNode* m_currentTabPage = nullptr;
+    CCNode* m_modtoberBanner = nullptr;
     std::unordered_map<Tab, std::pair<GeodeTabSprite*, Ref<CCNode>>> m_tabs;
     EventListener<server::ServerRequest<server::ServerModMetadata>> m_statsListener;
     EventListener<server::ServerRequest<std::unordered_set<std::string>>> m_tagsListener;
@@ -63,6 +64,7 @@ protected:
     void onSettings(CCObject*);
     void onLink(CCObject*);
     void onSupport(CCObject*);
+    void onModtoberInfo(CCObject*);
 
 public:
     void loadTab(Tab tab);

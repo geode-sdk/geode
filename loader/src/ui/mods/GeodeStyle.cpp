@@ -184,21 +184,16 @@ CircleButtonSprite* createGeodeCircleButton(CCSprite* top, float scale, CircleBa
     return ret;
 }
 
-ButtonSprite* createGeodeTagLabel(std::string const& text, std::optional<std::pair<ccColor3B, ccColor3B>> const& color) {
+ButtonSprite* createTagLabel(std::string const& text, std::pair<ccColor3B, ccColor3B> const& color) {
     auto label = ButtonSprite::create(text.c_str(), "bigFont.fnt", "white-square.png"_spr, .8f);
-    if (color) {
-        label->m_label->setColor(color->first);
-        label->m_BGSprite->setColor(color->second);
-    }
-    else {
-        auto def = geodeTagColor(text);
-        label->m_label->setColor(def.first);
-        label->m_BGSprite->setColor(def.second);
-    }
+    label->m_label->setColor(color.first);
+    label->m_BGSprite->setColor(color.second);
     return label;
 }
-
-std::pair<ccColor3B, ccColor3B> geodeTagColor(std::string_view const& text) {
+ButtonSprite* createGeodeTagLabel(std::string_view tag) {
+    return createTagLabel(geodeTagName(tag), geodeTagColors(tag));
+}
+std::pair<ccColor3B, ccColor3B> geodeTagColors(std::string_view tag) {
     static std::array TAG_COLORS {
         std::make_pair(ccc3(240, 233, 255), ccc3(130, 123, 163)),
         std::make_pair(ccc3(234, 255, 245), ccc3(123, 163, 136)),
@@ -206,7 +201,20 @@ std::pair<ccColor3B, ccColor3B> geodeTagColor(std::string_view const& text) {
         std::make_pair(ccc3(255, 253, 240), ccc3(163, 157, 123)),
         std::make_pair(ccc3(255, 242, 240), ccc3(163, 128, 123)),
     };
-    return TAG_COLORS[hash(text) % 5932 % TAG_COLORS.size()];
+    if (tag == "modtober24") {
+        return std::make_pair(ccc3(225, 236, 245), ccc3(82, 139, 201));
+    }
+    return TAG_COLORS[hash(tag) % 5932 % TAG_COLORS.size()];
+}
+std::string geodeTagName(std::string_view tag) {
+    // todo in v4: rework tags to use a server-provided display name instead
+    if (tag == "modtober24") {
+        return "Modtober 2024";
+    }
+    // Everything else just capitalize and that's it
+    auto readable = std::string(tag);
+    readable[0] = std::toupper(readable[0]);
+    return readable;
 }
 
 ListBorders* createGeodeListBorders(CCSize const& size) {
