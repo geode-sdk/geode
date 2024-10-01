@@ -57,7 +57,7 @@ bool ModMetadata::Dependency::isResolved() const {
 
 bool ModMetadata::Incompatibility::isResolved() const {
     return this->importance != Importance::Breaking ||
-        (!this->mod || !this->version.compare(this->mod->getVersion()));
+        (!this->mod || !this->mod->isEnabled() || !this->version.compare(this->mod->getVersion()));
 }
 
 static std::string sanitizeDetailsData(std::string const& str) {
