@@ -450,7 +450,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
           __node_alloc_traits::_S_propagate_on_move_assign()
           || __node_alloc_traits::_S_always_equal();
         _M_move_assign(std::move(__ht),
-                       integral_constant<bool, __move_storage>());
+                       std::integral_constant<bool, __move_storage>());
 	return *this;
       }
 
