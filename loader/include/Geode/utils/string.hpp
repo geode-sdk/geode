@@ -1,7 +1,6 @@
 #pragma once
 
-#include <Geode/DefaultInclude.hpp>
-#include <functional>
+#include <string_view>
 #include <string>
 #include <vector>
 #include <compare>
