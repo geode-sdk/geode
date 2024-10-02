@@ -159,7 +159,7 @@ $register_ids(MenuLayer) {
     // but prolly a place mods want to add stuff
 
     auto topRightMenu = CCMenu::create();
-    topRightMenu->setPosition(winSize.width - 200.f / 2, winSize.height - 50.f / 2);
+    topRightMenu->setPosition(winSize.width - 210.f / 2, winSize.height - 50.f / 2);
     topRightMenu->setID("top-right-menu");
     topRightMenu->setContentSize({ 200.f, 50.f });
     topRightMenu->setLayout(
