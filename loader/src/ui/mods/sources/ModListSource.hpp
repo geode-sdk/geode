@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/utils/cocos.hpp>
+#include <Geode/utils/string.hpp>
 #include <server/Server.hpp>
 #include "../list/ModItem.hpp"
 
