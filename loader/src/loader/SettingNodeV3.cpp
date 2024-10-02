@@ -1,6 +1,8 @@
 #include "SettingNodeV3.hpp"
 #include <Geode/loader/SettingNode.hpp>
 #include <Geode/utils/ColorProvider.hpp>
+#include <Geode/utils/ranges.hpp>
+#include <Geode/loader/Dirs.hpp>
 #include <ui/mods/GeodeStyle.hpp>
 
 class SettingNodeSizeChangeEventV3::Impl final {

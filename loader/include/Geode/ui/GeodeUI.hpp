@@ -2,6 +2,7 @@
 
 #include "../loader/Mod.hpp"
 #include <Geode/binding/FLAlertLayer.hpp>
+#include <Geode/ui/Popup.hpp>
 
 class ModPopup;
 class ModItem;

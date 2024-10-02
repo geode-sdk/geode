@@ -6,6 +6,7 @@
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/ui/General.hpp>
+#include <Geode/ui/Scrollbar.hpp>
 #include <loader/SettingNodeV3.hpp>
 // needed for weightedFuzzyMatch
 #include <ui/mods/sources/ModListSource.hpp>

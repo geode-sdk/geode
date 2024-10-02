@@ -1,6 +1,9 @@
 #include <Geode/loader/SettingV3.hpp>
 #include <Geode/loader/SettingEvent.hpp>
 #include <Geode/loader/ModSettingsManager.hpp>
+#include <Geode/utils/ranges.hpp>
+#include <Geode/utils/string.hpp>
+#include <Geode/loader/Dirs.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <regex>
 #include "SettingNodeV3.hpp"

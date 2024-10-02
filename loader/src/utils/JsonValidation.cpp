@@ -1,4 +1,5 @@
 #include <Geode/utils/JsonValidation.hpp>
+#include <Geode/utils/ranges.hpp>
 
 using namespace geode::prelude;
 
