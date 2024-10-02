@@ -194,6 +194,7 @@ void filterModsWithLocalQuery(ModListSource::ProvidedMods& mods, Query const& qu
     std::vector<std::pair<ModSource, double>> filtered;
 
     // Filter installed mods based on query
+    // TODO: maybe skip fuzzy matching altogether if query is empty?
     for (auto& src : mods.mods) {
         double weighted = 0;
         bool addToList = true;
@@ -226,7 +227,10 @@ void filterModsWithLocalQuery(ModListSource::ProvidedMods& mods, Query const& qu
             return a.second > b.second;
         }
         // Sort secondarily alphabetically
-        return a.first.getMetadata().getName() < b.first.getMetadata().getName();
+        return utils::string::caseInsensitiveCompare(
+            a.first.getMetadata().getName(),
+            b.first.getMetadata().getName()
+        ) == std::strong_ordering::less;
     });
 
     mods.mods.clear();
