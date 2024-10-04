@@ -137,8 +137,9 @@ namespace geode {
                 if constexpr (std::is_floating_point_v<Num>) res = std::from_chars(str.data(), str.data() + str.size(), result);
                 else res = std::from_chars(str.data(), str.data() + str.size(), result, base);
 
-                auto [_, ec] = res;
+                auto [ptr, ec] = res;
                 if (ec == std::errc()) return Ok(result);
+                else if (ptr != str.data() + str.size()) return Err("String contains trailing extra data");
                 else if (ec == std::errc::invalid_argument) return Err("String is not a number");
                 else if (ec == std::errc::result_out_of_range) return Err("Number is too large to fit");
                 else return Err("Unknown error");
