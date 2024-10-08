@@ -521,7 +521,7 @@ void ModList::updateTopContainer() {
     auto oldPosition = oldPositionArea > 0.f ?
         m_list->m_contentLayer->getPositionY() / oldPositionArea : 
         -1.f;
-        
+
     // Update list size to account for the top menu 
     // (giving a little bit of extra padding for it, the same size as gap)
     m_list->setContentHeight(
@@ -530,6 +530,8 @@ void ModList::updateTopContainer() {
                 static_cast<AxisLayout*>(m_list->m_contentLayer->getLayout())->getGap() : 
             this->getContentHeight()
     );
+    as<ColumnLayout*>(m_list->m_contentLayer->getLayout())->setAutoGrowAxis(m_list->getContentHeight());
+    m_list->m_contentLayer->updateLayout();
 
     // Preserve relative scroll position
     m_list->m_contentLayer->setPositionY((
