@@ -75,6 +75,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
 
     m_list = ScrollLayer::create(layerSize - ccp(0, searchContainer->getContentHeight()));
     m_list->setTouchEnabled(true);
+    m_list->setMouseEnabled(true);
 
     for (auto& key : mod->getSettingKeys()) {
         SettingNodeV3* node;
@@ -129,7 +130,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
     );
     m_applyMenu->addChildAtPosition(m_restartBtn, Anchor::Bottom, ccp(0, 20));
 
-    m_applyBtnSpr = createGeodeButton("Apply", true);
+    m_applyBtnSpr = createGeodeButton("Apply", true, GeodeButtonSprite::Default, m_forceDisableTheme);
     m_applyBtnSpr->setScale(.6f);
     m_applyBtn = CCMenuItemSpriteExtra::create(
         m_applyBtnSpr, this, menu_selector(ModSettingsPopup::onApply)
