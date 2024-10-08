@@ -75,7 +75,6 @@ bool ModSettingsPopup::setup(Mod* mod) {
 
     m_list = ScrollLayer::create(layerSize - ccp(0, searchContainer->getContentHeight()));
     m_list->setTouchEnabled(true);
-    m_list->setMouseEnabled(true);
 
     for (auto& key : mod->getSettingKeys()) {
         SettingNodeV3* node;
