@@ -20,7 +20,7 @@ template <class... Args>
 class GeodePopup : public Popup<Args...> {
 protected:
     bool init(float width, float height, Args... args, GeodePopupStyle style = GeodePopupStyle::Default, bool forceDisableTheme = false) {
-        const bool geodeTheme = !forceDisableTheme && Mod::get()->template getSettingValue<bool>("enable-geode-theme");
+        const bool geodeTheme = forceDisableTheme != Mod::get()->template getSettingValue<bool>("enable-geode-theme");
         const char* bg;
         switch (style) {
             default:
