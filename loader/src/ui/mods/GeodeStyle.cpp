@@ -224,10 +224,13 @@ std::string geodeTagName(std::string_view tag) {
 
 ListBorders* createGeodeListBorders(CCSize const& size, bool forceDisableTheme) {
     auto ret = ListBorders::create();
-    if (isGeodeTheme(forceDisableTheme)) {
+    const bool geodeTheme = isGeodeTheme(forceDisableTheme);
+    if (geodeTheme) {
         ret->setSpriteFrames("geode-list-top.png"_spr, "geode-list-side.png"_spr, 2);
+        ret->setContentSize(size);
+    } else {
+        ret->setContentSize(size + ccp(5, 5));
     }
-    ret->setContentSize(size);
     return ret;
 }
 
