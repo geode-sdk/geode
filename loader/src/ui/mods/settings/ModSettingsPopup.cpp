@@ -26,10 +26,7 @@ static bool matchSearch(SettingNodeV3* node, std::string const& query) {
     else {
         addToList |= weightedFuzzyMatch(setting->getKey(), query, 1, weighted);
     }
-    if (auto desc = setting->getDescription()) {
-        addToList |= weightedFuzzyMatch(*desc, query, 0.02, weighted);
-    }
-    if (weighted < 2) {
+    if (weighted < 60 + 10 * query.size()) {
         addToList = false;
     }
     return addToList;
