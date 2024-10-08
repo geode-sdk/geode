@@ -705,7 +705,7 @@ void ModsLayer::onTheme(CCObject*) {
     );
 }
 void ModsLayer::onSettings(CCObject*) {
-    openSettingsPopup(Mod::get());
+    openSettingsPopup(Mod::get(), false);
 }
 
 ModsLayer* ModsLayer::create() {
