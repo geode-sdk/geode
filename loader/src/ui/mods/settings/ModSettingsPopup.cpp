@@ -91,7 +91,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
     m_list->m_contentLayer->setLayout(
         ColumnLayout::create()
             ->setAxisReverse(true)
-            ->setAutoGrowAxis(layerSize.height)
+            ->setAutoGrowAxis(m_list->getContentHeight())
             ->setCrossAxisOverflow(false)
             ->setAxisAlignment(AxisAlignment::End)
             ->setGap(0)
