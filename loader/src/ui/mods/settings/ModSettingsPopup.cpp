@@ -26,10 +26,7 @@ static bool matchSearch(SettingNodeV3* node, std::string const& query) {
     else {
         addToList |= weightedFuzzyMatch(setting->getKey(), query, 1, weighted);
     }
-    if (auto desc = setting->getDescription()) {
-        addToList |= weightedFuzzyMatch(*desc, query, 0.02, weighted);
-    }
-    if (weighted < 2) {
+    if (weighted < 60 + 10 * query.size()) {
         addToList = false;
     }
     return addToList;
@@ -63,7 +60,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
     m_searchInput->setID("search-input");
     searchContainer->addChildAtPosition(m_searchInput, Anchor::Left, ccp(7.5f, 0), ccp(0, .5f));
 
-    auto searchClearSpr = GeodeSquareSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png");
+    auto searchClearSpr = GeodeSquareSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png", nullptr, m_forceDisableTheme);
     searchClearSpr->setScale(.45f);
     m_searchClearBtn = CCMenuItemSpriteExtra::create(
         searchClearSpr, this, menu_selector(ModSettingsPopup::onClearSearch)
@@ -91,7 +88,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
     m_list->m_contentLayer->setLayout(
         ColumnLayout::create()
             ->setAxisReverse(true)
-            ->setAutoGrowAxis(layerSize.height)
+            ->setAutoGrowAxis(m_list->getContentHeight())
             ->setCrossAxisOverflow(false)
             ->setAxisAlignment(AxisAlignment::End)
             ->setGap(0)
@@ -107,7 +104,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
 
     // layer borders
 
-    m_mainLayer->addChildAtPosition(createGeodeListBorders(layerSize), Anchor::Center);
+    m_mainLayer->addChildAtPosition(createGeodeListBorders(layerSize, m_forceDisableTheme), Anchor::Center);
 
     auto scrollBar = Scrollbar::create(m_list);
     m_mainLayer->addChildAtPosition(
@@ -122,14 +119,14 @@ bool ModSettingsPopup::setup(Mod* mod) {
     m_applyMenu->getLayout()->ignoreInvisibleChildren(true);
     m_applyMenu->setTouchPriority(buttonPriority);
 
-    auto restartBtnSpr = createGeodeButton("Restart Now", true);
+    auto restartBtnSpr = createGeodeButton("Restart Now", true, GeodeButtonSprite::Default, m_forceDisableTheme);
     restartBtnSpr->setScale(.6f);
     m_restartBtn = CCMenuItemSpriteExtra::create(
         restartBtnSpr, this, menu_selector(ModSettingsPopup::onRestart)
     );
     m_applyMenu->addChildAtPosition(m_restartBtn, Anchor::Bottom, ccp(0, 20));
 
-    m_applyBtnSpr = createGeodeButton("Apply", true);
+    m_applyBtnSpr = createGeodeButton("Apply", true, GeodeButtonSprite::Default, m_forceDisableTheme);
     m_applyBtnSpr->setScale(.6f);
     m_applyBtn = CCMenuItemSpriteExtra::create(
         m_applyBtnSpr, this, menu_selector(ModSettingsPopup::onApply)
@@ -138,7 +135,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
 
     m_mainLayer->addChildAtPosition(m_applyMenu, Anchor::Bottom, ccp(0, 20));
 
-    auto resetBtnSpr = createGeodeButton("Reset All", true);
+    auto resetBtnSpr = createGeodeButton("Reset All", true, GeodeButtonSprite::Default, m_forceDisableTheme);
     resetBtnSpr->setScale(.6f);
 
     auto resetBtn = CCMenuItemSpriteExtra::create(
@@ -163,7 +160,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
         folderSprSub->setOpacity(155);
         folderSprSub->setScale(.55f);
         folderSpr->addChildAtPosition(folderSprSub, Anchor::Center, ccp(0, -3));
-        auto buttonSpr = createGeodeButton(folderSpr, "");
+        auto buttonSpr = createGeodeButton(folderSpr, "", GeodeButtonSprite::Default, m_forceDisableTheme);
         buttonSpr->setScale(.6f);
         buttonSpr->getIcon()->setScale(buttonSpr->getIcon()->getScale() * 1.4f);
         auto folderBtn = CCMenuItemSpriteExtra::create(

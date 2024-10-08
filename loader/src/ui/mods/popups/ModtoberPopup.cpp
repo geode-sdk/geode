@@ -9,7 +9,7 @@ bool ModtoberPopup::setup() {
     auto bg = CCSprite::createWithSpriteFrameName("modtober24-popup.png"_spr);
     m_mainLayer->addChildAtPosition(bg, Anchor::Center);
 
-    auto supportSpr = createGeodeButton("Join");
+    auto supportSpr = createGeodeButton("Join", false, GeodeButtonSprite::Default, m_forceDisableTheme);
     supportSpr->setScale(.8f);
     auto supportBtn = CCMenuItemSpriteExtra::create(
         supportSpr, this, menu_selector(ModtoberPopup::onDiscord)

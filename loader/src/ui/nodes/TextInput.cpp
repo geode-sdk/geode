@@ -151,7 +151,6 @@ void TextInput::setCallback(std::function<void(std::string const&)> onInput) {
     m_onInput = onInput;
 }
 void TextInput::setEnabled(bool enabled) {
-    m_input->setMouseEnabled(enabled);
     m_input->setTouchEnabled(enabled);
     m_input->m_placeholderLabel->setOpacity(enabled ? 255 : 150);
 }

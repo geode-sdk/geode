@@ -86,7 +86,7 @@ namespace geode {
     public:
         static ListBorders* create();
 
-        void setSpriteFrames(const char* topAndBottom, const char* sides, float topPadding = 7.5f);
+        void setSpriteFrames(const char* topAndBottom, const char* sides, float horizontalPadding = 7.5f);
         void setSprites(
             cocos2d::extension::CCScale9Sprite* top,
             cocos2d::extension::CCScale9Sprite* bottom,

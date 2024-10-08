@@ -151,14 +151,14 @@ ListBorders* ListBorders::create() {
     return nullptr;
 }
 
-void ListBorders::setSpriteFrames(const char* topAndBottom, const char* side, float topPadding) {
+void ListBorders::setSpriteFrames(const char* topAndBottom, const char* side, float horizontalPadding) {
     this->setSprites(
         CCScale9Sprite::createWithSpriteFrameName(topAndBottom),
         CCScale9Sprite::createWithSpriteFrameName(topAndBottom),
         CCSprite::createWithSpriteFrameName(side),
         CCSprite::createWithSpriteFrameName(side),
-        topPadding,
-        topPadding
+        horizontalPadding,
+        horizontalPadding
     );
     m_bottom->setScaleY(-1);
     m_right->setFlipX(true);
