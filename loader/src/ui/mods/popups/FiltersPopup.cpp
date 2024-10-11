@@ -131,7 +131,7 @@ bool FiltersPopup::setup(ModListSource* src) {
         m_mainLayer->addChildAtPosition(inputContainer, Anchor::Bottom, ccp(0, 60), ccp(.5f, .5f));
     }
 
-    auto okSpr = createGeodeButton("OK");
+    auto okSpr = createGeodeButton("OK", false, GeodeButtonSprite::Default, m_forceDisableTheme);
     okSpr->setScale(.7f);
     auto okBtn = CCMenuItemSpriteExtra::create(
         okSpr, this, menu_selector(FiltersPopup::onClose)
