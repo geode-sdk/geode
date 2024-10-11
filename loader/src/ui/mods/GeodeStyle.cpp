@@ -70,12 +70,12 @@ $on_mod(Loaded) {
     Loader::get()->queueInMainThread([updateColors = updateColors] {
         // this code is ran during static init, where settings aren't loaded yet, and getSettingValue will always return false.
         // because of that, we have to delay it until next frame.
-        updateColors(Mod::get()->template getSettingValue<bool>("enable-geode-theme"));
+        updateColors(Mod::get()->getSettingValue<bool>("enable-geode-theme"));
     });
 }
 
 bool isGeodeTheme(bool forceDisableTheme) {
-    return !forceDisableTheme && Mod::get()->template getSettingValue<bool>("enable-geode-theme");
+    return !forceDisableTheme && Mod::get()->getSettingValue<bool>("enable-geode-theme");
 }
 
 bool GeodeSquareSprite::init(CCSprite* top, bool* state, bool forceDisableTheme) {

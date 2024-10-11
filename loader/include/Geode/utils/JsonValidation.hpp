@@ -148,14 +148,14 @@ namespace geode {
         template <class T>
         bool is() {
             if (this->isError()) return false;
-            return self().m_json.template is<T>();
+            return self().m_json.is<T>();
         }
 
         template <class T>
         JsonMaybeValue& validate(JsonValueValidator<T> validator) {
             if (this->isError()) return *this;
-            if (self().m_json.template is<T>()) {
-                if (!validator(self().m_json.template as<T>())) {
+            if (self().m_json.is<T>()) {
+                if (!validator(self().m_json.as<T>())) {
                     this->setError(self().m_hierarchy + ": Invalid value format");
                 }
             }
@@ -196,9 +196,9 @@ namespace geode {
             this->inferType<A>();
             if (this->isError()) return *this;
 
-            if (self().m_json.template is<A>()) {
+            if (self().m_json.is<A>()) {
                 try {
-                    target = self().m_json.template as<A>();
+                    target = self().m_json.as<A>();
                 }
                 catch(matjson::JsonException const& e) {
                     this->setError(
@@ -220,8 +220,8 @@ namespace geode {
         T get() {
             this->inferType<T>();
             if (this->isError()) return T();
-            if (self().m_json.template is<T>()) {
-                return self().m_json.template as<T>();
+            if (self().m_json.is<T>()) {
+                return self().m_json.as<T>();
             }
             return T();
         }
@@ -326,8 +326,8 @@ namespace geode {
             }
             else {
                 try {
-                    if (this->getJSONRef().template is<T>()) {
-                        return this->getJSONRef().template as<T>();
+                    if (this->getJSONRef().is<T>()) {
+                        return this->getJSONRef().as<T>();
                     }
                     else {
                         this->setError(
@@ -397,21 +397,21 @@ namespace geode {
 
         template <class T>
         T get(T const& defaultValue = T()) {
-            if (auto v = this->template tryGet<T>()) {
+            if (auto v = this->tryGet<T>()) {
                 return *std::move(v);
             }
             return defaultValue;
         }
         template <class T>
         JsonExpectedValue& into(T& value) {
-            if (auto v = this->template tryGet<T>()) {
+            if (auto v = this->tryGet<T>()) {
                 value = *std::move(v);
             }
             return *this;
         }
         template <class T>
         JsonExpectedValue& into(std::optional<T>& value) {
-            if (auto v = this->template tryGet<T>()) {
+            if (auto v = this->tryGet<T>()) {
                 value.emplace(*std::move(v));
             }
             return *this;
@@ -421,7 +421,7 @@ namespace geode {
             { predicate(std::declval<T>()) } -> std::convertible_to<bool>;
         } {
             if (this->hasError()) return *this;
-            if (auto v = this->template tryGet<T>()) {
+            if (auto v = this->tryGet<T>()) {
                 if (!predicate(*v)) {
                     this->setError("json value is not {}", name);
                 }
@@ -433,7 +433,7 @@ namespace geode {
             { predicate(std::declval<T>()) } -> std::convertible_to<Result<>>;
         } {
             if (this->hasError()) return *this;
-            if (auto v = this->template tryGet<T>()) {
+            if (auto v = this->tryGet<T>()) {
                 auto p = predicate(*v);
                 if (!p) {
                     this->setError("json value is not {}: {}", name, p.unwrapErr());
