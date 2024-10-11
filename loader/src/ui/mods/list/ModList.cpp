@@ -530,7 +530,7 @@ void ModList::updateTopContainer() {
                 static_cast<AxisLayout*>(m_list->m_contentLayer->getLayout())->getGap() : 
             this->getContentHeight()
     );
-    as<ColumnLayout*>(m_list->m_contentLayer->getLayout())->setAutoGrowAxis(m_list->getContentHeight());
+    static_cast<ColumnLayout*>(m_list->m_contentLayer->getLayout())->setAutoGrowAxis(m_list->getContentHeight());
     m_list->m_contentLayer->updateLayout();
 
     // Preserve relative scroll position
