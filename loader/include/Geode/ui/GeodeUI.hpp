@@ -2,6 +2,7 @@
 
 #include "../loader/Mod.hpp"
 #include <Geode/binding/FLAlertLayer.hpp>
+#include <Geode/ui/Popup.hpp>
 
 class ModPopup;
 class ModItem;
@@ -141,6 +142,16 @@ namespace geode {
      * Open the settings popup for a mod (if it has any settings)
      */
     GEODE_DLL void openSettingsPopup(Mod* mod);
+    /**
+     * Open the settings popup for a mod (if it has any settings)
+     * @param mod Mod the open the popup for
+     * @param disableGeodeTheme If false, the popup follows the user's chosen 
+     * theme options. If true, the popup is always in the GD theme (not Geode's 
+     * dark purple colors)
+     * @returns A pointer to the created Popup, or null if the mod has no 
+     * settings
+     */
+    GEODE_DLL Popup<Mod*>* openSettingsPopup(Mod* mod, bool disableGeodeTheme);
     /**
      * Create a default logo sprite
      */

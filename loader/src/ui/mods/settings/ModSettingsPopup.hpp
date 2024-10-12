@@ -3,6 +3,9 @@
 #include <Geode/loader/SettingV3.hpp>
 #include <Geode/ui/Popup.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/ui/ScrollLayer.hpp>
+#include <Geode/ui/TextInput.hpp>
+
 #include "../GeodeStyle.hpp"
 
 using namespace geode::prelude;
@@ -33,5 +36,5 @@ protected:
     void onClearSearch(CCObject*);
 
 public:
-    static ModSettingsPopup* create(Mod* mod);
+    static ModSettingsPopup* create(Mod* mod, bool forceDisableTheme = false);
 };

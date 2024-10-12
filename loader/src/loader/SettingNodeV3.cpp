@@ -1,6 +1,8 @@
 #include "SettingNodeV3.hpp"
 #include <Geode/loader/SettingNode.hpp>
 #include <Geode/utils/ColorProvider.hpp>
+#include <Geode/utils/ranges.hpp>
+#include <Geode/loader/Dirs.hpp>
 #include <ui/mods/GeodeStyle.hpp>
 
 class SettingNodeSizeChangeEventV3::Impl final {
@@ -349,6 +351,10 @@ bool StringSettingNodeV3::init(std::shared_ptr<StringSettingV3> setting, float w
     });
     m_input->setScale(.7f);
     m_input->setString(this->getSetting()->getValue());
+    if (auto filter = this->getSetting()->getAllowedCharacters()) {
+        m_input->setFilter(*filter);
+    }
+    
     this->getButtonMenu()->addChildAtPosition(m_input, Anchor::Center);
     
     if (setting->getEnumOptions()) {

@@ -6,8 +6,59 @@
 #include <Geode/utils/cocos.hpp>
 
 namespace geode {
-    template <typename... InitArgs>
+    template <class... InitArgs>
     class Popup : public FLAlertLayer {
+    public:
+        /**
+         * Event posted when this popup is being closed
+         */
+        class CloseEvent final : public ::geode::Event {
+        private:
+            class Impl final {
+            private:
+                Popup* popup;
+                friend class CloseEvent;
+            };
+            std::shared_ptr<Impl> m_impl;
+
+            friend class Popup;
+
+            CloseEvent(Popup* popup) : m_impl(std::make_shared<Impl>()) {
+                m_impl->popup = popup;
+            }
+
+        public:
+            Popup* getPopup() const {
+                return m_impl->popup;
+            }
+        };
+        class CloseEventFilter final : public ::geode::EventFilter<CloseEvent> {
+        public:
+		    using Callback = void(CloseEvent*);
+
+        private:
+            class Impl final {
+            private:
+                Popup* popup;
+                friend class CloseEventFilter;
+            };
+            std::shared_ptr<Impl> m_impl;
+
+            friend class Popup;
+
+            CloseEventFilter(Popup* popup) : m_impl(std::make_shared<Impl>()) {
+                m_impl->popup = popup;
+            }
+
+        public:
+            ListenerResult handle(utils::MiniFunction<Callback> fn, CloseEvent* event) {
+                if (event->getPopup() == m_impl->popup) {
+                    fn(event);
+                }
+                return ListenerResult::Propagate;
+            }
+        };
+
     protected:
         cocos2d::CCSize m_size;
         cocos2d::extension::CCScale9Sprite* m_bgSprite;
@@ -115,6 +166,7 @@ namespace geode {
         }
 
         virtual void onClose(cocos2d::CCObject*) {
+            CloseEvent(this).post();
             this->setKeypadEnabled(false);
             this->setTouchEnabled(false);
             this->removeFromParentAndCleanup(true);
@@ -157,6 +209,13 @@ namespace geode {
             spr->setPosition(orig->getPosition());
             spr->setAnchorPoint(orig->getAnchorPoint());
             m_closeBtn->setContentSize(origSize);
+        }
+
+        /**
+         * Returns an event filter that listens for when this popup is closed
+         */
+        CloseEventFilter listenForClose() {
+            return CloseEventFilter(this);
         }
     };
 

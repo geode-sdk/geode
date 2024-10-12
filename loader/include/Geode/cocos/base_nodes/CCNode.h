@@ -1115,7 +1115,7 @@ public:
         geode::utils::MiniFunction<typename Filter::Callback> callback,
         Args&&... args
     ) {
-        return this->template addEventListener<Filter, Args...>(
+        return this->addEventListener<Filter, Args...>(
             "", callback, std::forward<Args>(args)...
         );
     }

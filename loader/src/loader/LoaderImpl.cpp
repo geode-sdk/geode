@@ -535,7 +535,7 @@ void Loader::Impl::findProblems() {
 
             switch(dep.importance) {
                 case ModMetadata::Dependency::Importance::Suggested:
-                    if (!Mod::get()->template getSavedValue<bool>(dismissKey)) {
+                    if (!Mod::get()->getSavedValue<bool>(dismissKey)) {
                         this->addProblem({
                             LoadProblem::Type::Suggestion,
                             mod,
@@ -548,7 +548,7 @@ void Loader::Impl::findProblems() {
                     }
                     break;
                 case ModMetadata::Dependency::Importance::Recommended:
-                    if (!Mod::get()->template getSavedValue<bool>(dismissKey)) {
+                    if (!Mod::get()->getSavedValue<bool>(dismissKey)) {
                         this->addProblem({
                             LoadProblem::Type::Recommendation,
                             mod,

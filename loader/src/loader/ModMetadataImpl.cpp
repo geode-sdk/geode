@@ -57,7 +57,7 @@ bool ModMetadata::Dependency::isResolved() const {
 
 bool ModMetadata::Incompatibility::isResolved() const {
     return this->importance != Importance::Breaking ||
-        (!this->mod || !this->version.compare(this->mod->getVersion()));
+        (!this->mod || !this->mod->isEnabled() || !this->version.compare(this->mod->getVersion()));
 }
 
 static std::string sanitizeDetailsData(std::string const& str) {
@@ -170,7 +170,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
             return Err("[mod.json] can not have both \"developer\" and \"developers\" specified");
         }
         for (auto& dev : root.needs("developers").items()) {
-            impl->m_developers.push_back(dev.template get<std::string>());
+            impl->m_developers.push_back(dev.get<std::string>());
         }
     }
     else {
@@ -290,7 +290,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
 
     // Tags. Actual validation is done when interacting with the server in the UI
     for (auto& tag : root.has("tags").items()) {
-        impl->m_tags.insert(tag.template get<std::string>());
+        impl->m_tags.insert(tag.get<std::string>());
     }
 
     // with new cli, binary name is always mod id

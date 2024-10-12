@@ -181,6 +181,7 @@ public:
      * @lua NA
      */
     CCDictionary();
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCDictionary, CCObject);
 
     /**
      * The destructor of CCDictionary

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/utils/cocos.hpp>
+#include <Geode/utils/string.hpp>
 #include <server/Server.hpp>
 #include "../list/ModItem.hpp"
 
@@ -143,6 +144,7 @@ enum class ServerModListType {
     Featured,
     Trending,
     Recent,
+    Modtober24,
 };
 
 class ServerModListSource : public ModListSource {
@@ -165,6 +167,8 @@ public:
     server::ModsQuery const& getQuery() const;
     InvalidateQueryAfter<server::ModsQuery> getQueryMut();
     bool isDefaultQuery() const override;
+    server::ModsQuery createDefaultQuery() const;
+    ServerModListType getType() const;
 };
 
 class ModPackListSource : public ModListSource {
@@ -191,6 +195,7 @@ void filterModsWithLocalQuery(ModListSource::ProvidedMods& mods, Query const& qu
     std::vector<std::pair<ModSource, double>> filtered;
 
     // Filter installed mods based on query
+    // TODO: maybe skip fuzzy matching altogether if query is empty?
     for (auto& src : mods.mods) {
         double weighted = 0;
         bool addToList = true;
@@ -223,7 +228,10 @@ void filterModsWithLocalQuery(ModListSource::ProvidedMods& mods, Query const& qu
             return a.second > b.second;
         }
         // Sort secondarily alphabetically
-        return a.first.getMetadata().getName() < b.first.getMetadata().getName();
+        return utils::string::caseInsensitiveCompare(
+            a.first.getMetadata().getName(),
+            b.first.getMetadata().getName()
+        ) == std::strong_ordering::less;
     });
 
     mods.mods.clear();

@@ -3,6 +3,8 @@
 #include <Geode/loader/SettingV3.hpp>
 #include <Geode/loader/SettingNode.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
+#include <Geode/binding/ColorChannelSprite.hpp>
+#include <Geode/binding/Slider.hpp>
 #include <Geode/ui/ColorPickPopup.hpp>
 
 using namespace geode::prelude;
