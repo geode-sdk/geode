@@ -1126,7 +1126,7 @@ public:
     GEODE_DLL size_t getEventListenerCount();
 
     template <class T = CCNode>
-    T* getChildOfType(int index) {
+    T* getChildByType(int index) {
         size_t indexCounter = 0;
         if (this->getChildrenCount() == 0) return nullptr;
         // start from end for negative index

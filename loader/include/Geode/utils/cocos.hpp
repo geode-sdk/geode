@@ -622,7 +622,7 @@ namespace geode::cocos {
      */
     template <class Type = cocos2d::CCNode>
     static Type* getChildOfType(cocos2d::CCNode* node, int index) {
-        return node->getChildOfType<Type>(index);
+        return node->getChildByType<Type>(index);
     }
 
     /**
