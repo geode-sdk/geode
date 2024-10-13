@@ -620,7 +620,9 @@ namespace geode::cocos {
      * @returns Child at index cast to the given type,
      * or nullptr if index exceeds bounds
      */
+
     template <class Type = cocos2d::CCNode>
+    [[deprecated("Use CCNode::getChildByType instead")]]
     static Type* getChildOfType(cocos2d::CCNode* node, int index) {
         return node->getChildByType<Type>(index);
     }

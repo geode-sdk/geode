@@ -1125,6 +1125,11 @@ public:
     GEODE_DLL geode::EventListenerProtocol* getEventListener(std::string const& id);
     GEODE_DLL size_t getEventListenerCount();
 
+    /**
+     * Get nth child that is a given type. Checks bounds.
+     * @returns Child at index cast to the given type,
+     * or nullptr if index exceeds bounds
+     */
     template <class T = CCNode>
     T* getChildByType(int index) {
         size_t indexCounter = 0;
