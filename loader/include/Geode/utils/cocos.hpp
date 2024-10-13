@@ -622,35 +622,7 @@ namespace geode::cocos {
      */
     template <class Type = cocos2d::CCNode>
     static Type* getChildOfType(cocos2d::CCNode* node, int index) {
-        size_t indexCounter = 0;
-        if (node->getChildrenCount() == 0) return nullptr;
-        // start from end for negative index
-        if (index < 0) {
-            index = -index - 1;
-            for (size_t i = node->getChildrenCount() - 1; i >= 0; i--) {
-                auto obj = cast::typeinfo_cast<Type*>(node->getChildren()->objectAtIndex(i));
-                if (obj != nullptr) {
-                    if (indexCounter == index) {
-                        return obj;
-                    }
-                    ++indexCounter;
-                }
-                if (i == 0) break;
-            }
-        }
-        else {
-            for (size_t i = 0; i < node->getChildrenCount(); i++) {
-                auto obj = cast::typeinfo_cast<Type*>(node->getChildren()->objectAtIndex(i));
-                if (obj != nullptr) {
-                    if (indexCounter == index) {
-                        return obj;
-                    }
-                    ++indexCounter;
-                }
-            }
-        }
-
-        return nullptr;
+        return node->getChildOfType<Type>(index);
     }
 
     /**
