@@ -90,12 +90,14 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
                 Notification::create("There were errors - see Geode page!", NotificationIcon::Error)->show();
             }
 
-            m_fields->m_exclamation = CCSprite::createWithSpriteFrameName("exMark_001.png");
-            m_fields->m_exclamation->setPosition(m_fields->m_geodeButton->getContentSize() - ccp(10, 10));
-            m_fields->m_exclamation->setID("errors-found");
-            m_fields->m_exclamation->setZOrder(99);
-            m_fields->m_exclamation->setScale(.6f);
-            m_fields->m_geodeButton->addChild(m_fields->m_exclamation);
+            if (m_fields->m_geodeButton) {
+                m_fields->m_exclamation = CCSprite::createWithSpriteFrameName("exMark_001.png");
+                m_fields->m_exclamation->setPosition(m_fields->m_geodeButton->getContentSize() - ccp(10, 10));
+                m_fields->m_exclamation->setID("errors-found");
+                m_fields->m_exclamation->setZOrder(99);
+                m_fields->m_exclamation->setScale(.6f);
+                m_fields->m_geodeButton->addChild(m_fields->m_exclamation);
+            }
         }
         
         // show if the user tried to be naughty and load arbitrary DLLs
@@ -178,9 +180,9 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
                 [this](server::ServerRequest<std::vector<std::string>>::Value* result) {
                     if (result->isOk()) {
                         auto updatesFound = result->unwrap();
-                        if (updatesFound.size() && !m_fields->m_geodeButton->getChildByID("updates-available")) {
+                        if (updatesFound.size() && m_fields->m_geodeButton && !m_fields->m_geodeButton->getChildByID("updates-available")) {
                             log::info("Found updates for mods: {}!", updatesFound);
-                            
+
                             if(auto icon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr)) {
                                 // Remove errors icon if it was added, to prevent overlap
                                 if (m_fields->m_exclamation) {
