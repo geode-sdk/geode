@@ -971,7 +971,8 @@ namespace std {
     template <typename T>
     struct std::hash<geode::WeakRef<T>> {
         size_t operator()(geode::WeakRef<T> const& ref) const {
-            return hash{}(ref.m_controller);
+            // the explicit template argument is needed here because it would otherwise cast to WeakRef and recurse
+            return hash<std::shared_ptr<geode::WeakRefController>>{}(ref.m_controller);
         }
     };
 }
