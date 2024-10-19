@@ -1363,6 +1363,40 @@ namespace geode::cocos {
         }
     };
 
+    // CCCallFunc alternative that accepts a lambda (or any function object)
+    template <std::invocable F>
+    class CallFuncExtImpl : public cocos2d::CCActionInstant {
+    public:
+        static CallFuncExtImpl* create(const F& func) {
+            auto ret = new CallFuncExtImpl;
+            ret->m_func = func;
+            ret->autorelease();
+            return ret;
+        }
+
+        static CallFuncExtImpl* create(F&& func) {
+            auto ret = new CallFuncExtImpl;
+            ret->m_func = std::move(func);
+            ret->autorelease();
+            return ret;
+        }
+
+    private:
+        F m_func;
+
+        void update(float) override {
+            if (m_func) this->m_func();
+        }
+    };
+
+    // small hack to allow template deduction
+    struct CallFuncExt {
+        template <std::invocable F>
+        static CallFuncExtImpl<F>* create(F&& func) {
+            return CallFuncExtImpl<F>::create(std::forward<F>(func));
+        }
+    };
+
     void GEODE_DLL handleTouchPriorityWith(cocos2d::CCNode* node, int priority, bool force = false);
     void GEODE_DLL handleTouchPriority(cocos2d::CCNode* node, bool force = false);
 }
