@@ -1392,8 +1392,10 @@ namespace geode::cocos {
     // small hack to allow template deduction
     struct CallFuncExt {
         template <std::invocable F>
-        static CallFuncExtImpl<F>* create(F&& func) {
-            return CallFuncExtImpl<F>::create(std::forward<F>(func));
+        static auto create(F&& func) {
+            using Fd = std::decay_t<F>;
+            
+            return CallFuncExtImpl<Fd>::create(std::forward<F>(func));
         }
     };
 
