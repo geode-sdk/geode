@@ -1,5 +1,22 @@
 # Geode Changelog
 
+## v3.9.0
+ * Many changes to the settings ui (#1108)
+   * Fuzzy search is now more reasonable
+ * Add `CCNode::getChildByType` utility method, replacing the `getChildOfType` util (0089d13, c8aa2e3, 5f70080)
+ * Add `geode::utils::string::caseInsensitiveCompare` (f3d38a7)
+   * Now local mods are ordered correctly
+ * Add `CCCallFuncExt` util, which accepts lambdas and such (d1053b1, 1d31576)
+ * Add missing `m_nExtraKerning` to `CCLabelBMFont` (#1088)
+ * Truncate numbers in `numToAbbreviatedString`, no longer rounding up (82e703b)
+ * Fix string settings not having their character filters applied (6d0b583)
+ * Error on `numFromString` when string has left over data (d4ca28c)
+ * Change positioning of MenuLayer `top-right-menu` menu (6d2557b)
+ * Fix android `std::unordered_map` copy constructor (67f59e7)
+ * Fix crash on Linux when piping output to terminal (8ecb1c5)
+ * Fix crash when geode menu is disabled (b69f810)
+ * Fix infinite recursion in `WeakRef` hashing (d68e358)
+
 ## v3.8.1
  * Fix CCLightning header
  * Fix server query default value (8be97b7)
