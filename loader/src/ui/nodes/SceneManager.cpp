@@ -3,39 +3,37 @@
 
 using namespace geode::prelude;
 
-bool SceneManager::setup() {
-    m_persistedNodes = CCArray::create();
-    m_persistedNodes->retain();
-    return true;
-}
-
 SceneManager* SceneManager::get() {
     static SceneManager* inst = nullptr;
     if (!inst) {
         inst = new SceneManager();
-        inst->setup();
     }
     return inst;
 }
 
-SceneManager::~SceneManager() {
-    m_persistedNodes->release();
-}
+SceneManager::~SceneManager() {}
 
 void SceneManager::keepAcrossScenes(CCNode* node) {
+    if (ranges::contains(m_persistedNodes, node)) {
+        return;
+    }
     if (m_lastScene) {
         node->removeFromParentAndCleanup(false);
         m_lastScene->addChild(node);
     }
-    m_persistedNodes->addObject(node);
+    m_persistedNodes.push_back(node);
 }
 
 void SceneManager::forget(CCNode* node) {
-    m_persistedNodes->removeObject(node);
+    std::erase(m_persistedNodes, node);
+}
+
+std::span<Ref<CCNode> const> SceneManager::getPersistedNodes() {
+    return m_persistedNodes;
 }
 
 void SceneManager::willSwitchToScene(CCScene* scene) {
-    for (auto node : CCArrayExt<CCNode*>(m_persistedNodes)) {
+    for (auto& node : m_persistedNodes) {
         // no cleanup in order to keep actions running
         node->removeFromParentAndCleanup(false);
         scene->addChild(node);
