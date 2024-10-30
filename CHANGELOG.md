@@ -12,6 +12,7 @@
  * Fix string settings not having their character filters applied (6d0b583)
  * Error on `numFromString` when string has left over data (d4ca28c)
  * Change positioning of MenuLayer `top-right-menu` menu (6d2557b)
+ * Add `SceneManager::getPersistedNodes` (5009caa)
  * Fix android `std::unordered_map` copy constructor (67f59e7)
  * Fix crash on Linux when piping output to terminal (8ecb1c5)
  * Fix crash when geode menu is disabled (b69f810)
