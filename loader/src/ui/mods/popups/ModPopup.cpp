@@ -934,6 +934,9 @@ void ModPopup::onLoadTags(typename server::ServerRequest<std::unordered_set<std:
                 }
                 tab.second = nullptr;
             }
+
+            m_currentTabPage = nullptr;
+
             // This might cause a minor inconvenience to someone who opens the popup and 
             // immediately switches to changelog but is then forced back into details
             this->loadTab(Tab::Details);
