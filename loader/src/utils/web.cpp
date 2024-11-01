@@ -202,6 +202,7 @@ public:
     bool m_certVerification = true;
     bool m_transferBody = true;
     bool m_followRedirects = true;
+    bool m_ignoreContentLength = false;
     std::string m_CABundleContent;
     ProxyOpts m_proxyOpts = {};
     HttpVersion m_httpVersion = HttpVersion::DEFAULT;
@@ -382,6 +383,9 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         // Follow request through 3xx responses
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, impl->m_followRedirects ? 1L : 0L);
 
+        // Ignore content length
+        curl_easy_setopt(curl, CURLOPT_IGNORE_CONTENT_LENGTH, impl->m_ignoreContentLength ? 1L : 0L);
+
         // Track progress
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
 
@@ -553,6 +557,11 @@ WebRequest& WebRequest::transferBody(bool enabled) {
 
 WebRequest& WebRequest::followRedirects(bool enabled) {
     m_impl->m_followRedirects = enabled;
+    return *this;
+}
+
+WebRequest& WebRequest::ignoreContentLength(bool enabled) {
+    m_impl->m_ignoreContentLength = enabled;
     return *this;
 }
 

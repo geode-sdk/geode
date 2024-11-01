@@ -204,6 +204,15 @@ namespace geode::utils::web {
         WebRequest& followRedirects(bool enabled);
 
         /**
+         * Enables or disables ignoring the content length header.
+         * The default is false.
+         *
+         * @param enabled
+         * @return WebRequest&
+         */
+        WebRequest& ignoreContentLength(bool enabled);
+
+        /**
          * Sets the Certificate Authority (CA) bundle content.
          * Defaults to not sending a CA bundle.
          *
