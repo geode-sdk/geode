@@ -48,7 +48,7 @@ $register_ids(MenuLayer) {
     setIDSafe<CCLabelBMFont>(this, labelOffset++, "player-username");
     
     // main menu
-    if (auto menu = getChildOfType<CCMenu>(this, 0)) {
+    if (auto menu = this->getChildByType<CCMenu>(0)) {
         menu->setID("main-menu");
         auto playBtn = setIDSafe(menu, 0, "play-button");
         auto iconBtn = setIDSafe(menu, 1, "icon-kit-button");
@@ -83,7 +83,7 @@ $register_ids(MenuLayer) {
     }
 
     // bottom menu
-    if (auto menu = getChildOfType<CCMenu>(this, 1)) {
+    if (auto menu = this->getChildByType<CCMenu>(1)) {
         menu->setID("bottom-menu");
         auto ach = setIDSafe(menu, 0, "achievements-button");
         setIDSafe(menu, 1, "settings-button");
@@ -110,7 +110,7 @@ $register_ids(MenuLayer) {
     }
     
     // social media menu
-    if (auto menu = getChildOfType<CCMenu>(this, 2)) {
+    if (auto menu = this->getChildByType<CCMenu>(2)) {
         menu->setID("social-media-menu");
         setIDSafe(menu, 0, "robtop-logo-button");
         setIDSafe(menu, 1, "facebook-button");
@@ -121,7 +121,7 @@ $register_ids(MenuLayer) {
     }
     
     // more games menu
-    if (auto menu = getChildOfType<CCMenu>(this, 3)) {
+    if (auto menu = this->getChildByType<CCMenu>(3)) {
         menu->setID("more-games-menu");
         auto moreGamesBtn = setIDSafe(menu, 0, "more-games-button");
 
@@ -159,7 +159,7 @@ $register_ids(MenuLayer) {
     // but prolly a place mods want to add stuff
 
     auto topRightMenu = CCMenu::create();
-    topRightMenu->setPosition(winSize.width - 200.f / 2, winSize.height - 50.f / 2);
+    topRightMenu->setPosition(winSize.width - 210.f / 2, winSize.height - 50.f / 2);
     topRightMenu->setID("top-right-menu");
     topRightMenu->setContentSize({ 200.f, 50.f });
     topRightMenu->setLayout(

@@ -15,6 +15,12 @@ namespace geode::base {
 #if defined(GEODE_IS_ANDROID)
 
     #include "gnustl-map.hpp"
+    #include "gnustl/unordered_map.hpp"
+    #include "gnustl/unordered_set.hpp"
+    #include "gnustl/hash_specialization.hpp"
+    #undef _GLIBCXX_RELEASE
+    #undef __GLIBCXX__
+    #undef _GLIBCXX_USE_DUAL_ABI
 
 namespace gd {
     using namespace geode::stl;
@@ -686,11 +692,11 @@ namespace gd {
     template <class V>
     using set = void*[6];
 
-    template <class K, class V>
-    using unordered_map = void*[7];
+    template <class Key, class Tp, class Hash = geode::stl::hash<Key>, class Pred = geode::stl::equal_to<Key>, class Alloc = std::allocator<std::pair<const Key, Tp>>>
+    using unordered_map = geode::stl::unordered_map<Key, Tp, Hash, Pred, Alloc>;
 
-    template <class V>
-    using unordered_set = void*[7];
+    template <class Value, class Hash = geode::stl::hash<Value>, class Pred = geode::stl::equal_to<Value>, class Alloc = std::allocator<Value>>
+    using unordered_set = geode::stl::unordered_set<Value, Hash, Pred, Alloc>;
 };
 
 #elif defined(GEODE_IS_IOS)

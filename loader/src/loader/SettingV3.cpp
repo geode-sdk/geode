@@ -1,6 +1,9 @@
 #include <Geode/loader/SettingV3.hpp>
 #include <Geode/loader/SettingEvent.hpp>
 #include <Geode/loader/ModSettingsManager.hpp>
+#include <Geode/utils/ranges.hpp>
+#include <Geode/utils/string.hpp>
+#include <Geode/loader/Dirs.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <regex>
 #include "SettingNodeV3.hpp"
@@ -51,7 +54,7 @@ namespace enable_if_parsing {
         }
         Result<> eval(std::string const& defaultModID) const override {
             if (auto mod = Loader::get()->getLoadedMod(modID)) {
-                if (mod->template getSettingValue<bool>(settingID)) {
+                if (mod->getSettingValue<bool>(settingID)) {
                     return Ok();
                 }
                 // This is an if-check just in case, even though check() should already 
@@ -83,7 +86,7 @@ namespace enable_if_parsing {
         }
         Result<> eval(std::string const& defaultModID) const override {
             if (auto mod = Loader::get()->getLoadedMod(modID)) {
-                if (mod->template getSavedValue<bool>(savedValue)) {
+                if (mod->getSavedValue<bool>(savedValue)) {
                     return Ok();
                 }
                 if (modID == defaultModID) {
@@ -482,7 +485,7 @@ void SettingV3::init(std::string const& key, std::string const& modID, JsonExpec
     // Keys every setting must have
     json.needs("type");
     for (auto& plat : json.has("platforms").items()) {
-        ranges::push(m_impl->platforms, PlatformID::getCovered(plat.template get<std::string>()));
+        ranges::push(m_impl->platforms, PlatformID::getCovered(plat.get<std::string>()));
     }
 }
 
@@ -492,7 +495,7 @@ void SettingV3::parseNameAndDescription(JsonExpectedValue& json) {
 }
 void SettingV3::parseEnableIf(JsonExpectedValue& json) {
     json.has("enable-if")
-        .template mustBe<std::string>("a valid \"enable-if\" scheme", [this](std::string const& str) -> Result<> {
+        .mustBe<std::string>("a valid \"enable-if\" scheme", [this](std::string const& str) -> Result<> {
             GEODE_UNWRAP_INTO(auto tree, enable_if_parsing::Parser::parse(str, m_impl->modID));
             GEODE_UNWRAP(tree->check());
             m_impl->enableIfTree = std::move(tree);
@@ -638,9 +641,15 @@ void LegacyCustomSettingV3::setValue(std::shared_ptr<SettingValue> value) {
 }
 
 bool LegacyCustomSettingV3::load(matjson::Value const& json) {
+    if (m_impl->legacyValue) {
+        return m_impl->legacyValue->load(json);
+    }
     return true;
 }
 bool LegacyCustomSettingV3::save(matjson::Value& json) const {
+    if (m_impl->legacyValue) {
+        return m_impl->legacyValue->save(json);
+    }
     return true;
 }
 SettingNodeV3* LegacyCustomSettingV3::createNode(float width) {
@@ -739,10 +748,10 @@ Result<std::shared_ptr<IntSettingV3>> IntSettingV3::parse(std::string const& key
     // This silly code is because step size being 0 is what defines if they are enabled
 
     // Small arrows are enabled by default
-    if (!root.has("control").has("arrows").template get<bool>(true)) {
+    if (!root.has("control").has("arrows").get<bool>(true)) {
         ret->m_impl->controls.arrowStepSize = 0;
     }
-    if (!root.has("control").has("big-arrows").template get<bool>()) {
+    if (!root.has("control").has("big-arrows").get<bool>()) {
         ret->m_impl->controls.bigArrowStepSize = 0;
     }
 
@@ -870,10 +879,10 @@ Result<std::shared_ptr<FloatSettingV3>> FloatSettingV3::parse(std::string const&
 
     // Disable arrows if they aren't enabled
     // Small arrows are enabled by default
-    if (!root.has("control").has("arrows").template get<bool>(true)) {
+    if (!root.has("control").has("arrows").get<bool>(true)) {
         ret->m_impl->controls.arrowStepSize = 0;
     }
-    if (!root.has("control").has("big-arrows").template get<bool>()) {
+    if (!root.has("control").has("big-arrows").get<bool>()) {
         ret->m_impl->controls.bigArrowStepSize = 0;
     }
 
@@ -1046,6 +1055,8 @@ Result<std::shared_ptr<FileSettingV3>> FileSettingV3::parse(std::string const& k
     auto root = checkJson(json, "FileSettingV3");
     ret->parseBaseProperties(key, modID, root);
 
+    ret->setDefaultValue(ret->getDefaultValue().make_preferred());
+
     // Replace known paths like `{gd-save-dir}/`
     try {
         ret->setDefaultValue(fmt::format(
@@ -1106,6 +1117,11 @@ Result<std::shared_ptr<FileSettingV3>> FileSettingV3::parse(std::string const& k
 }
 
 Result<> FileSettingV3::isValid(std::filesystem::path const& value) const {
+    // This is because people tend to put `"default": "Please pick a good file"` 
+    // which is clever and good UX but also a hack so I also need to hack to support that
+    if (value == this->getDefaultValue()) {
+        return Ok();
+    }
     std::error_code ec;
     if (m_impl->folder) {
         if (!std::filesystem::is_directory(value, ec)) {

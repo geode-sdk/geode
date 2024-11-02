@@ -16,7 +16,7 @@ static void parseCommon(T& sett, JsonMaybeObject& obj) {
     obj.has("description").into(sett.description);
     if (auto defValue = obj.needs("default")) {
         // Platform-specific default value
-        if (defValue.template is<matjson::Object>()) {
+        if (defValue.is<matjson::Object>()) {
             auto def = defValue.obj();
             if (auto plat = def.has(PlatformID::toShortString(GEODE_PLATFORM_TARGET, true))) {
                 plat.into(sett.defaultValue);

@@ -39,6 +39,7 @@
 #include "../include/CCProtocols.h"
 #include "Layout.hpp"
 #include "../../loader/Event.hpp"
+#include <Geode/utils/casts.hpp>
 
 #ifndef GEODE_IS_MEMBER_TEST
 #include <matjson.hpp>
@@ -1115,7 +1116,7 @@ public:
         geode::utils::MiniFunction<typename Filter::Callback> callback,
         Args&&... args
     ) {
-        return this->template addEventListener<Filter, Args...>(
+        return this->addEventListener<Filter, Args...>(
             "", callback, std::forward<Args>(args)...
         );
     }
@@ -1123,6 +1124,44 @@ public:
     GEODE_DLL void removeEventListener(std::string const& id);
     GEODE_DLL geode::EventListenerProtocol* getEventListener(std::string const& id);
     GEODE_DLL size_t getEventListenerCount();
+
+    /**
+     * Get nth child that is a given type. Checks bounds.
+     * @returns Child at index cast to the given type,
+     * or nullptr if index exceeds bounds
+     */
+    template <class T = CCNode>
+    T* getChildByType(int index) {
+        size_t indexCounter = 0;
+        if (this->getChildrenCount() == 0) return nullptr;
+        // start from end for negative index
+        if (index < 0) {
+            index = -index - 1;
+            for (size_t i = this->getChildrenCount() - 1; i >= 0; i--) {
+                auto obj = geode::cast::typeinfo_cast<T*>(this->getChildren()->objectAtIndex(i));
+                if (obj != nullptr) {
+                    if (indexCounter == index) {
+                        return obj;
+                    }
+                    ++indexCounter;
+                }
+                if (i == 0) break;
+            }
+        }
+        else {
+            for (size_t i = 0; i < this->getChildrenCount(); i++) {
+                auto obj = geode::cast::typeinfo_cast<T*>(this->getChildren()->objectAtIndex(i));
+                if (obj != nullptr) {
+                    if (indexCounter == index) {
+                        return obj;
+                    }
+                    ++indexCounter;
+                }
+            }
+        }
+
+        return nullptr;
+    }
     
     /// @{
     /// @name Shader Program

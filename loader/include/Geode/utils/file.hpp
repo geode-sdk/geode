@@ -17,7 +17,7 @@ struct matjson::Serialize<std::filesystem::path> {
         return path.string();
     }
     static std::filesystem::path from_json(matjson::Value const& value) {
-        return value.as_string();
+        return std::filesystem::path(value.as_string()).make_preferred();
     }
     static bool is_json(matjson::Value const& value) {
         return value.is_string();
@@ -32,10 +32,10 @@ namespace geode::utils::file {
     template <class T>
     Result<T> readFromJson(std::filesystem::path const& file) {
         GEODE_UNWRAP_INTO(auto json, readJson(file));
-        if (!json.template is<T>()) {
+        if (!json.is<T>()) {
             return Err("JSON is not of type {}", typeid(T).name());
         }
-        return Ok(json.template as<T>());
+        return Ok(json.as<T>());
     }
 
     GEODE_DLL Result<> writeString(std::filesystem::path const& path, std::string const& data);

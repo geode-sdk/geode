@@ -99,9 +99,22 @@ namespace geode {
          */
         template <std::integral Num>
         std::string numToAbbreviatedString(Num num) {
-            if (num >= 1'000'000'000) return fmt::format("{:0.3}B", num / 1'000'000'000.f);
-            if (num >= 1'000'000) return fmt::format("{:0.3}M", num / 1'000'000.f);
-            if (num >= 1'000) return fmt::format("{:0.3}K", num / 1'000.f);
+            // it's a mess... i'm sorry...
+            constexpr auto numToFixedTrunc = [](float num) {
+
+                // calculate the number of digits we keep from the decimal
+                auto remaining = std::max(3 - static_cast<int>(std::log10(num)) - 1, 0);
+
+                auto factor = std::pow(10, remaining);
+                auto trunc = std::trunc(num * factor) / factor;
+
+                // doing this dynamic format thing lets the .0 show when needed
+                return fmt::format("{:0.{}f}", trunc, static_cast<int>(remaining));
+            };
+
+            if (num >= 1'000'000'000) return fmt::format("{}B", numToFixedTrunc(num / 1'000'000'000.f));
+            if (num >= 1'000'000) return fmt::format("{}M", numToFixedTrunc(num / 1'000'000.f));
+            if (num >= 1'000) return fmt::format("{}K", numToFixedTrunc(num / 1'000.f));
             return numToString(num);
         }
 
@@ -137,8 +150,9 @@ namespace geode {
                 if constexpr (std::is_floating_point_v<Num>) res = std::from_chars(str.data(), str.data() + str.size(), result);
                 else res = std::from_chars(str.data(), str.data() + str.size(), result, base);
 
-                auto [_, ec] = res;
+                auto [ptr, ec] = res;
                 if (ec == std::errc()) return Ok(result);
+                else if (ptr != str.data() + str.size()) return Err("String contains trailing extra data");
                 else if (ec == std::errc::invalid_argument) return Err("String is not a number");
                 else if (ec == std::errc::result_out_of_range) return Err("Number is too large to fit");
                 else return Err("Unknown error");

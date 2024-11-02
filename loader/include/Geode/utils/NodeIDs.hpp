@@ -14,7 +14,7 @@ namespace geode::node_ids {
                 return child;
             }
         } else {
-            if (auto child = cocos::getChildOfType<T>(node, index)) {
+            if (auto child = node->getChildByType<T>(index)) {
                 child->setID(id);
                 return child;
             }

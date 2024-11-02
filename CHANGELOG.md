@@ -1,5 +1,49 @@
 # Geode Changelog
 
+## v3.9.0
+ * Many changes to the settings ui (#1108)
+   * Fuzzy search is now more reasonable
+ * Add `CCNode::getChildByType` utility method, replacing the `getChildOfType` util (0089d13, c8aa2e3, 5f70080)
+ * Add `geode::utils::string::caseInsensitiveCompare` (f3d38a7)
+   * Now local mods are ordered correctly
+ * Add `CCCallFuncExt` util, which accepts lambdas and such (d1053b1, 1d31576)
+ * Add missing `m_nExtraKerning` to `CCLabelBMFont` (#1088)
+ * Truncate numbers in `numToAbbreviatedString`, no longer rounding up (82e703b)
+ * Fix string settings not having their character filters applied (6d0b583)
+ * Error on `numFromString` when string has left over data (d4ca28c)
+ * Change positioning of MenuLayer `top-right-menu` menu (6d2557b)
+ * Add `SceneManager::getPersistedNodes` (5009caa)
+ * Fix android `std::unordered_map` copy constructor (67f59e7)
+ * Fix crash on Linux when piping output to terminal (8ecb1c5)
+ * Fix crash when geode menu is disabled (b69f810)
+ * Fix infinite recursion in `WeakRef` hashing (d68e358)
+
+## v3.8.1
+ * Fix CCLightning header
+ * Fix server query default value (8be97b7)
+ * Fix importance resolving in disabled mods (d40ba6d)
+
+## v3.8.0
+ * Add Modtober integration! For more about Modtober, join [the GDP Discord server](https://discord.gg/gd-programming-646101505417674758) (964624b)
+ * Add `Popup::CloseEvent` (6270e1c)
+ * Add `openSettingsPopup` overload that returns the created `Popup` (dc8d271)
+ * Fix `CCNode::querySelector` logspamming (b53759f)
+ * Fix `followThunkFunction` following through into hook handlers (ad26357)
+
+## v3.7.1
+ * Fix crash with saving older custom settings (c3e7f23)
+ * Add missing CCDrawNode::drawRect overload (145adb2)
+
+## v3.7.0
+ * Add persistent directory for mods to save data that won't be deleted when the mod/Geode is uninstalled (68ab475)
+ * Fix touch priority issues in the settings popup (b3d5474)
+ * Fix settings with custom types not being saved & loaded properly (f0b6a70)
+
+## v3.6.1
+ * Fix modrm rip relative instruction displacement saving the clobbered register (ddfe8e2)
+ * Fix `DataSaved` and `DataLoaded` events (8615bbd, 43adb35)
+ * Fix file settings mixed separators (1281c76)
+
 ## v3.6.0
  * Major rework of the entire settings system with lots of new features; see the [docs page](https://docs.geode-sdk.org/mods/settings) for more
  * Rework JSON validation; now uses the `JsonExpectedValue` class with the `checkJson` helper (89d1a51)
@@ -17,9 +61,16 @@
  * Fix issues with file dialogs on Windows (62b6241, 971e3fb)
  * Fix PCH issues (aedd986)
  * Mod incompatibilities may now be platform-specific (9f1c70a)
+ * Show appropriate popup for unavailable mods (6944f80, 30dc70c)
+ * Add support for description as a default value on file settings (75186f6)
+ * Remove early ub related to console (54ff48c)
+ * Temporary workaround for Wine crash due to console (dc170d7)
+ * Check also for incompatibilities with newly installed mods when downloading (9115091)
+ * Make cocos geometry classes constexpr (db8a6c8)
+ * Fix rip displacement issues when hooking some functions on Windows (175dc27)
 
 ## v3.5.0
- * Move CCLighting to cocos headers (#1036)
+ * Move CCLightning to cocos headers (#1036)
  * Add new `gd::string` constructor (bae22b4)
  * Use `getChildren` instead of member in `getChildByID` (fe730ed)
  * Fix sprite order in `CCMenuItemExt::createToggler` (d729a12, 59a0ade)

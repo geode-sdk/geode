@@ -189,7 +189,7 @@ static ServerError parseServerError(web::WebResponse const& error) {
         if (json.is_object() && json.contains("error")) {
             return ServerError(
                 error.code(),
-                "{}", json.template get<std::string>("error")
+                "{}", json.get<std::string>("error")
             );
         }
         else {
@@ -264,13 +264,13 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
 
     auto res = ServerModVersion();
 
-    res.metadata.setGeodeVersion(root.needs("geode").template get<VersionInfo>());
+    res.metadata.setGeodeVersion(root.needs("geode").get<VersionInfo>());
 
     // Verify target GD version
     auto gd_obj = root.needs("gd").obj();
     std::string gd = "0.000";
     if (gd_obj.has(GEODE_PLATFORM_SHORT_IDENTIFIER)) {
-        gd = gd_obj.has(GEODE_PLATFORM_SHORT_IDENTIFIER).template get<std::string>();
+        gd = gd_obj.has(GEODE_PLATFORM_SHORT_IDENTIFIER). get<std::string>();
     }
 
     if (gd != "*") {
@@ -283,11 +283,11 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
     root.needs("hash").into(res.hash);
 
     // Get mod metadata info
-    res.metadata.setID(root.needs("mod_id").template get<std::string>());
-    res.metadata.setName(root.needs("name").template get<std::string>());
-    res.metadata.setDescription(root.needs("description").template get<std::string>());
-    res.metadata.setVersion(root.needs("version").template get<VersionInfo>());
-    res.metadata.setIsAPI(root.needs("api").template get<bool>());
+    res.metadata.setID(root.needs("mod_id").get<std::string>());
+    res.metadata.setName(root.needs("name").get<std::string>());
+    res.metadata.setDescription(root.needs("description").get<std::string>());
+    res.metadata.setVersion(root.needs("version").get<VersionInfo>());
+    res.metadata.setIsAPI(root.needs("api").get<bool>());
 
     std::vector<ModMetadata::Dependency> dependencies {};
     for (auto dep : root.has("dependencies").iterate()) {
@@ -433,10 +433,10 @@ Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
     root.has("changelog").into(res.changelog);
     root.has("repository").into(res.repository);
     if (root.has("created_at")) {
-        GEODE_UNWRAP_INTO(res.createdAt, ServerDateTime::parse(root.has("created_at").template get<std::string>()));
+        GEODE_UNWRAP_INTO(res.createdAt, ServerDateTime::parse(root.has("created_at").get<std::string>()));
     }
     if (root.has("updated_at")) {
-        GEODE_UNWRAP_INTO(res.updatedAt, ServerDateTime::parse(root.has("updated_at").template get<std::string>()));
+        GEODE_UNWRAP_INTO(res.updatedAt, ServerDateTime::parse(root.has("updated_at").get<std::string>()));
     }
 
     std::vector<std::string> developerNames;
@@ -470,7 +470,7 @@ Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
     }
 
     for (auto item : root.has("tags").iterate()) {
-        res.tags.insert(item.template get<std::string>());
+        res.tags.insert(item.get<std::string>());
     }
 
     root.needs("download_count").into(res.downloadCount);

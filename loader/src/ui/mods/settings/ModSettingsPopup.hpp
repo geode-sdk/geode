@@ -3,6 +3,9 @@
 #include <Geode/loader/SettingV3.hpp>
 #include <Geode/ui/Popup.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/ui/ScrollLayer.hpp>
+#include <Geode/ui/TextInput.hpp>
+
 #include "../GeodeStyle.hpp"
 
 using namespace geode::prelude;
@@ -16,7 +19,6 @@ protected:
     CCMenuItemSpriteExtra* m_applyBtn;
     CCMenuItemSpriteExtra* m_restartBtn;
     ButtonSprite* m_applyBtnSpr;
-    IconButtonSprite* m_openConfigDirBtnSpr;
     TextInput* m_searchInput;
     CCMenuItemSpriteExtra* m_searchClearBtn;
     EventListener<EventFilter<SettingNodeValueChangeEventV3>> m_changeListener;
@@ -30,8 +32,9 @@ protected:
     void onResetAll(CCObject*);
     void onOpenSaveDirectory(CCObject*);
     void onOpenConfigDirectory(CCObject*);
+    void onOpenPersistentDirectory(CCObject*);
     void onClearSearch(CCObject*);
 
 public:
-    static ModSettingsPopup* create(Mod* mod);
+    static ModSettingsPopup* create(Mod* mod, bool forceDisableTheme = false);
 };

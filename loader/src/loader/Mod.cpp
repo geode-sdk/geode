@@ -49,7 +49,7 @@ matjson::Value& Mod::getSaveContainer() {
 }
 
 matjson::Value& Mod::getSavedSettingsData() {
-    return m_impl->getSavedSettingsData();
+    return m_impl->m_settings->getSaveData();
 }
 
 bool Mod::isEnabled() const {
@@ -141,6 +141,10 @@ std::filesystem::path Mod::getSaveDir() const {
 
 std::filesystem::path Mod::getConfigDir(bool create) const {
     return m_impl->getConfigDir(create);
+}
+
+std::filesystem::path Mod::getPersistentDir(bool create) const {
+    return m_impl->getPersistentDir(create);
 }
 
 bool Mod::hasSettings() const {

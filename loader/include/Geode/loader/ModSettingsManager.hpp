@@ -4,12 +4,16 @@
 #include "SettingV3.hpp"
 
 namespace geode {
+    class Mod;
+    class SettingV3;
+
     class GEODE_DLL ModSettingsManager final {
     private:
         class Impl;
         std::unique_ptr<Impl> m_impl;
 
         friend class ::geode::SettingV3;
+        friend class ::geode::Mod;
 
         void markRestartRequired();
 
@@ -36,8 +40,21 @@ namespace geode {
          * The format of the savedata will be an object with the keys being 
          * setting IDs and then the values the values of the saved settings
          * @note If saving a setting fails, it will log a warning to the console
+         * @warning This will overwrite the whole `json` parameter - be sure to 
+         * pass the full settings savedata to `load()` so you can be sure that 
+         * unregistered custom settings' saved values don't disappear!
+         * @todo in v4: make this return the value instead lol
          */
         void save(matjson::Value& json);
+
+        /**
+         * Get the savedata for settings, aka the JSON object that contains all 
+         * the settings' saved states that was loaded up from disk and will be 
+         * saved to disk
+         * @warning Modifying this will modify the value of the settings - use 
+         * carefully!
+         */
+        matjson::Value& getSaveData();
 
         Result<> registerCustomSettingType(std::string_view type, SettingGenerator generator);
         // todo in v4: remove this

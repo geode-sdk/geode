@@ -83,10 +83,50 @@ public:
         std::shared_ptr<SettingV3> v3 = nullptr;
         // todo: remove in v4
         std::shared_ptr<SettingValue> legacy = nullptr;
-    };
+    };  
     std::string modID;
     std::unordered_map<std::string, SettingInfo> settings;
+    // Stored so custom settings registered after the fact can be loaded
+    // If the ability to unregister custom settings is ever added, remember to 
+    // update this by calling saveSettingValueToSave
+    matjson::Value savedata;
     bool restartRequired = false;
+
+    void loadSettingValueFromSave(std::string const& key) {
+        if (this->savedata.contains(key) && this->settings.contains(key)) {
+            auto& sett = this->settings.at(key);
+            if (!sett.v3) return;
+            try {
+                if (!sett.v3->load(this->savedata[key])) {
+                    log::error("Unable to load setting '{}' for mod {}", key, this->modID);
+                }
+            }
+            // matjson::JsonException doesn't catch all possible json errors
+            catch(std::exception const& e) {
+                log::error("Unable to load setting '{}' for mod {} (JSON exception): {}", key, this->modID, e.what());
+            }
+        }
+    }
+    void saveSettingValueToSave(std::string const& key) {
+        if (this->settings.contains(key)) {
+            auto& sett = this->settings.at(key);
+            if (!sett.v3) return;
+            // Store the value in an intermediary so if `save` fails the existing 
+            // value loaded from disk isn't overwritten
+            matjson::Value value;
+            try {
+                if (sett.v3->save(value)) {
+                    this->savedata[key] = value;
+                }
+                else {
+                    log::error("Unable to save setting '{}' for mod {}", key, this->modID);
+                }
+            }
+            catch(matjson::JsonException const& e) {
+                log::error("Unable to save setting '{}' for mod {} (JSON exception): {}", key, this->modID, e.what());
+            }
+        }
+    }
 
     void createSettings() {
         for (auto& [key, setting] : settings) {
@@ -100,6 +140,7 @@ public:
             }
             if (auto v3 = (*gen)(key, modID, setting.json)) {
                 setting.v3 = *v3;
+                this->loadSettingValueFromSave(key);
             }
             else {
                 log::error(
@@ -131,7 +172,8 @@ ModSettingsManager::ModSettingsManager(ModMetadata const& metadata)
                     "Setting \"{}\" in mod {} has the old \"custom\" type - "
                     "this type has been deprecated and will be removed in Geode v4.0.0. "
                     "Use the new \"custom:type-name-here\" syntax for defining custom "
-                    "setting types - see more in INSERT TUTORIAL HERE",
+                    "setting types - see more in "
+                    "https://docs.geode-sdk.org/mods/settings/#custom-settings",
                     key, m_impl->modID
                 );
             }
@@ -164,6 +206,7 @@ Result<> ModSettingsManager::registerLegacyCustomSetting(std::string_view key, s
     if (auto custom = typeinfo_pointer_cast<LegacyCustomSettingV3>(sett.v3)) {
         if (!custom->getValue()) {
             custom->setValue(std::move(ptr));
+            m_impl->loadSettingValueFromSave(id);
         }
         else {
             return Err("Setting '{}' in mod {} has already been registed", id, m_impl->modID);
@@ -176,44 +219,25 @@ Result<> ModSettingsManager::registerLegacyCustomSetting(std::string_view key, s
 }
 
 Result<> ModSettingsManager::load(matjson::Value const& json) {
-    auto root = checkJson(json, "Settings");
-    for (auto const& [key, value] : root.properties()) {
-        if (m_impl->settings.contains(key)) {
-            auto& sett = m_impl->settings.at(key);
-            if (!sett.v3) continue;
-            try {
-                if (!sett.v3->load(value.json())) {
-                    log::error("Unable to load setting '{}' for mod {}", key, m_impl->modID);
-                }
-            }
-            // matjson::JsonException doesn't catch all possible json errors
-            catch(std::exception const& e) {
-                log::error("Unable to load setting '{}' for mod {} (JSON exception): {}", key, m_impl->modID, e.what());
-            }
+    if (json.is_object()) {
+        // Save this so when custom settings are registered they can load their 
+        // values properly
+        m_impl->savedata = json.as_object();
+        for (auto const& [key, _] : json.as_object()) {
+           m_impl->loadSettingValueFromSave(key);
         }
     }
     return Ok();
 }
 void ModSettingsManager::save(matjson::Value& json) {
-    for (auto& [key, sett] : m_impl->settings) {
-        if (!sett.v3) {
-            continue;
-        }
-        // Store the value in an intermediary so if `save` fails the existing 
-        // value loaded from disk isn't overwritten
-        matjson::Value value;
-        try {
-            if (sett.v3->save(value)) {
-                json[key] = value;
-            }
-            else {
-                log::error("Unable to save setting '{}' for mod {}", key, m_impl->modID);
-            }
-        }
-        catch(matjson::JsonException const& e) {
-            log::error("Unable to save setting '{}' for mod {} (JSON exception): {}", key, m_impl->modID, e.what());
-        }
+    for (auto& [key, _] : m_impl->settings) {
+        m_impl->saveSettingValueToSave(key);
     }
+    // Doing this since `ModSettingsManager` is expected to manage savedata fully
+    json = m_impl->savedata;
+}
+matjson::Value& ModSettingsManager::getSaveData() {
+    return m_impl->savedata;
 }
 
 std::shared_ptr<SettingV3> ModSettingsManager::get(std::string_view key) {

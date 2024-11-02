@@ -109,9 +109,9 @@ void updater::downloadLatestLoaderResources() {
             // find release asset
             for (auto asset : root.needs("assets").iterate()) {
                 auto obj = asset.obj();
-                if (obj.needs("name").template get<std::string>() == "resources.zip") {
+                if (obj.needs("name").get<std::string>() == "resources.zip") {
                     updater::tryDownloadLoaderResources(
-                        obj.needs("browser_download_url").template get<std::string>(),
+                        obj.needs("browser_download_url").get<std::string>(),
                         false
                     );
                     return;
@@ -213,9 +213,9 @@ void updater::downloadLoaderResources(bool useLatestRelease) {
                     // find release asset
                     for (auto asset : root.needs("assets").iterate()) {
                         auto obj = asset.obj();
-                        if (obj.needs("name").template get<std::string>() == "resources.zip") {
+                        if (obj.needs("name").get<std::string>() == "resources.zip") {
                             updater::tryDownloadLoaderResources(
-                                obj.needs("browser_download_url").template get<std::string>(),
+                                obj.needs("browser_download_url").get<std::string>(),
                                 false
                             );
                             return *response;
@@ -391,11 +391,11 @@ void updater::checkForLoaderUpdates() {
             for (auto asset : root.needs("assets").iterate()) {
                 auto obj = asset.obj();
                 if (string::endsWith(
-                    obj.needs("name").template get<std::string>(),
+                    obj.needs("name").get<std::string>(),
                     fmt::format("{}.zip", PlatformID::toShortString(GEODE_PLATFORM_TARGET, true))
                 )) {
                     updater::downloadLoaderUpdate(
-                        obj.needs("browser_download_url").template get<std::string>()
+                        obj.needs("browser_download_url").get<std::string>()
                     );
                     return;
                 }

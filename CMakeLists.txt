@@ -193,7 +193,12 @@ if (NOT DEFINED GEODE_GD_VERSION)
 	set(GEODE_COMP_GD_VERSION 22060)
 endif()
 
-target_compile_definitions(${PROJECT_NAME} INTERFACE GEODE_GD_VERSION=${GEODE_GD_VERSION} GEODE_COMP_GD_VERSION=${GEODE_COMP_GD_VERSION})
+target_compile_definitions(
+	${PROJECT_NAME} INTERFACE
+	GEODE_GD_VERSION=${GEODE_GD_VERSION}
+	GEODE_COMP_GD_VERSION=${GEODE_COMP_GD_VERSION}
+	GEODE_GD_VERSION_STRING="${GEODE_GD_VERSION}"
+)
 
 if (WIN32)
 	# This allows you to compile in debug mode
@@ -210,6 +215,11 @@ if (WIN32)
 		add_compile_options(--target=x86_64-pc-windows-msvc)
 		add_link_options(--target=x86_64-pc-windows-msvc)
 	endif()
+endif()
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+	# force an error on a missing return type, as this is unfortunately a common mistake people make
+	target_compile_options(${PROJECT_NAME} INTERFACE -Werror=return-type)
 endif()
 
 # if (APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -256,7 +266,7 @@ if (DEFINED GEODE_TULIPHOOK_REPO_PATH)
 	message(STATUS "Using ${GEODE_TULIPHOOK_REPO_PATH} for TulipHook")
 	add_subdirectory(${GEODE_TULIPHOOK_REPO_PATH} ${GEODE_TULIPHOOK_REPO_PATH}/build)
 else()
-	CPMAddPackage("gh:geode-sdk/TulipHook#c8a445c")
+	CPMAddPackage("gh:geode-sdk/TulipHook#d1d9559")
 endif()
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 

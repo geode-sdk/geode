@@ -1,29 +1,7 @@
 #include "ModListSource.hpp"
 
 void ServerModListSource::resetQuery() {
-    switch (m_type) {
-        case ServerModListType::Download: {
-            m_query = server::ModsQuery {};
-        } break;
-
-        case ServerModListType::Featured: {
-            m_query = server::ModsQuery {
-                .featured = true,
-            };
-        } break;
-
-        case ServerModListType::Trending: {
-            m_query = server::ModsQuery {
-                .sorting = server::ModsSort::RecentlyUpdated,
-            };
-        } break;
-
-        case ServerModListType::Recent: {
-            m_query = server::ModsQuery {
-                .sorting = server::ModsSort::RecentlyPublished,
-            };
-        } break;
-    }
+    m_query = this->createDefaultQuery();
 }
 
 ServerModListSource::ProviderTask ServerModListSource::fetchPage(size_t page, size_t pageSize, bool forceUpdate) {
@@ -56,7 +34,7 @@ ServerModListSource::ServerModListSource(ServerModListType type)
 
 ServerModListSource* ServerModListSource::get(ServerModListType type) {
     switch (type) {
-        default:
+        default: [[fallthrough]];
         case ServerModListType::Download: {
             static auto inst = new ServerModListSource(ServerModListType::Download);
             return inst;
@@ -74,6 +52,11 @@ ServerModListSource* ServerModListSource::get(ServerModListType type) {
 
         case ServerModListType::Recent: {
             static auto inst = new ServerModListSource(ServerModListType::Recent);
+            return inst;
+        } break;
+
+        case ServerModListType::Modtober24: {
+            static auto inst = new ServerModListSource(ServerModListType::Modtober24);
             return inst;
         } break;
     }
@@ -104,7 +87,31 @@ InvalidateQueryAfter<server::ModsQuery> ServerModListSource::getQueryMut() {
     return InvalidateQueryAfter(m_query, this);
 }
 bool ServerModListSource::isDefaultQuery() const {
-    return !m_query.query.has_value() &&
-        m_query.tags.empty() &&
-        !m_query.developer.has_value();
+    return m_query == this->createDefaultQuery();
+}
+
+server::ModsQuery ServerModListSource::createDefaultQuery() const {
+    switch (m_type) {
+        case ServerModListType::Download: return server::ModsQuery {};
+
+        case ServerModListType::Featured: return server::ModsQuery {
+            .featured = true,
+        };
+
+        case ServerModListType::Trending: return server::ModsQuery {
+            .sorting = server::ModsSort::RecentlyUpdated,
+        };
+
+        case ServerModListType::Recent: return server::ModsQuery {
+            .sorting = server::ModsSort::RecentlyPublished,
+        };
+
+        case ServerModListType::Modtober24: return server::ModsQuery {
+            .tags = { "modtober24" },
+        };
+    }
+}
+
+ServerModListType ServerModListSource::getType() const {
+    return m_type;
 }

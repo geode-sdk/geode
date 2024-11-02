@@ -1,9 +1,9 @@
 #pragma once
 
-#include <Geode/DefaultInclude.hpp>
-#include <functional>
+#include <string_view>
 #include <string>
 #include <vector>
+#include <compare>
 
 namespace geode::utils::string {
     /**
@@ -64,4 +64,10 @@ namespace geode::utils::string {
 
     GEODE_DLL bool startsWith(std::string const& str, std::string const& prefix);
     GEODE_DLL bool endsWith(std::string const& str, std::string const& suffix);
+
+    /**
+     * Similar to strcmp, but case insensitive.
+     * Uses std::tolower, but could change in the future for better locale support
+     */
+    GEODE_DLL std::strong_ordering caseInsensitiveCompare(std::string_view a, std::string_view b);
 }

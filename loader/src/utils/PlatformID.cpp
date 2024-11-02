@@ -1,6 +1,7 @@
 
 #include <Geode/platform/platform.hpp>
 #include <Geode/utils/general.hpp>
+#include <Geode/utils/ranges.hpp>
 
 using namespace geode::prelude;
 

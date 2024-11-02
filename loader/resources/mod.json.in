@@ -60,6 +60,9 @@
             ],
             "BlankSheet": [
                 "blanks/*.png"
+            ],
+            "EventSheet": [
+                "modtober/*.png"
             ]
         }
     },

@@ -324,8 +324,8 @@ namespace geode {
         }
 
         bool load(matjson::Value const& json) override {
-            if (json.template is<T>()) {
-                m_impl->value = json.template as<T>();
+            if (json.is<T>()) {
+                m_impl->value = json.as<T>();
                 return true;
             }
             return false;

@@ -274,9 +274,9 @@ public:
     void limitLabelWidth(float width, float defaultScale, float minScale);
 
 	// @note RobTop Addition
-    int getExtraKerning() const;
+    inline int getExtraKerning() const { return m_nExtraKerning; }
 	// @note RobTop Addition
-    void setExtraKerning(int);
+    inline void setExtraKerning(int extraKerning) { m_nExtraKerning = extraKerning; }
 
 	// @note RobTop Addition
     bool getIsBatched() const;
@@ -337,7 +337,7 @@ protected:
     // @note RobTop Addition
     CCTexture2D* m_pSomeTexture;
     // @note RobTop Addition
-    void* m_pUnknown; // 2.2 addition, might be positioned somewhere else
+    int m_nExtraKerning;
 
 };
 

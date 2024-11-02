@@ -83,6 +83,8 @@ FARPROC WINAPI delayLoadHook(unsigned dliNotify, PDelayLoadInfo pdli) {
 }
 
 extern "C" const PfnDliHook __pfnDliFailureHook2 = delayLoadHook;
+
+PVOID GeodeFunctionTableAccess64(HANDLE hProcess, DWORD64 AddrBase);
 #endif
 
 intptr_t Addresser::followThunkFunction(intptr_t address) {
@@ -146,7 +148,12 @@ intptr_t Addresser::followThunkFunction(intptr_t address) {
     if (address && checkByteSequence(address, {0xFF, 0x25})) {
         const auto offset = *reinterpret_cast<int32_t*>(address + 2);
         // rip is at address + 6 (size of the instruction)
-        address = *reinterpret_cast<uintptr_t*>(address + 6 + offset);
+        auto checkAddress = *reinterpret_cast<uintptr_t*>(address + 6 + offset);
+        
+        // only follow the thunk if it's not a hook handler
+        if (GeodeFunctionTableAccess64(GetCurrentProcess(), static_cast<DWORD64>(checkAddress)) == nullptr) {
+            address = checkAddress;
+        }
     }
 
     // if it starts with lea eax,..., it's a delay loaded func
