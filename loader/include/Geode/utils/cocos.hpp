@@ -1080,7 +1080,7 @@ namespace geode::cocos {
         }
 
         T* pop_back() {
-            T ret = m_arr->lastObject();
+            T* ret = static_cast<T*>(m_arr->lastObject());
             m_arr->removeLastObject();
             return ret;
         }
