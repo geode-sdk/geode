@@ -4,7 +4,7 @@
 #include "../loader/Log.hpp"
 #include <set>
 #include <variant>
-#include <Geode/utils/Result.hpp>
+#include <Geode/Result.hpp>
 
 namespace geode {
     struct JsonChecker;

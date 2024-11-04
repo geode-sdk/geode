@@ -14,9 +14,9 @@ LoadModSuggestionTask loadModSuggestion(LoadProblem const& problem) {
 
         if (auto suggestionVersionRes = ComparableVersionInfo::parse(suggestionVersionStr)) {
             server::ModVersion suggestionVersion = server::ModVersionLatest();
-            if (suggestionVersionRes->getComparison() == VersionCompare::MoreEq) {
+            if (suggestionVersionRes.unwrap().getComparison() == VersionCompare::MoreEq) {
                 suggestionVersion = server::ModVersionMajor {
-                    .major = suggestionVersionRes->getUnderlyingVersion().getMajor()
+                    .major = suggestionVersionRes.unwrap().getUnderlyingVersion().getMajor()
                 };
             }
             // todo: if mods are allowed to specify other type of version comparisons in the future, 
@@ -195,7 +195,7 @@ server::ServerRequest<std::unordered_set<std::string>> ModSource::fetchValidTags
                         }
                         return Ok(finalTags);
                     }
-                    return *result;
+                    return Ok(result->unwrap());
                 },
                 [](server::ServerProgress* progress) {
                     return *progress;

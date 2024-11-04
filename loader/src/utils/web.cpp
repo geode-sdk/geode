@@ -1,4 +1,4 @@
-#include <Geode/utils/Result.hpp>
+#include <Geode/Result.hpp>
 #include <Geode/utils/general.hpp>
 #include <filesystem>
 #include <fmt/core.h>
@@ -498,7 +498,7 @@ WebRequest& WebRequest::header(std::string_view name, std::string_view value) {
             int timeoutValue = 5;
             auto res = numFromString<int>(value.substr(numStart, numLength));
             if (res) {
-                timeoutValue = res.value();
+                timeoutValue = res.unwrap();
             }
 
             timeout(std::chrono::seconds(timeoutValue));

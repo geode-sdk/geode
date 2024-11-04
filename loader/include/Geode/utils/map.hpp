@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Result.hpp"
+#include <Geode/Result.hpp>
 
 #include <Geode/DefaultInclude.hpp>
 #include <functional>

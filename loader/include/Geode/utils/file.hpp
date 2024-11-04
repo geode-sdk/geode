@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Result.hpp"
+#include <Geode/Result.hpp>
 #include "general.hpp"
 #include "../loader/Event.hpp"
 #include "Task.hpp"

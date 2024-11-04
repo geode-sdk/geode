@@ -158,7 +158,7 @@ namespace geode::modifier {
             for (auto& [uuid, hook] : m_hooks) {
                 auto res = Mod::get()->claimHook(hook);
                 if (!res) {
-                    log::error("Failed to claim hook {}: {}", hook->getDisplayName(), res.error());
+                    log::error("Failed to claim hook {}: {}", hook->getDisplayName(), res.unwrapErr());
                 }
                 else {
                     added.push_back(uuid);

@@ -496,20 +496,20 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
             thread::setName("Mod Unzip");
             log::loadNest(nest);
             auto res = unzipFunction();
+            auto prevNest = log::saveNest();
+            log::loadNest(nest);
+            if (!res) {
+                this->addProblem({
+                    LoadProblem::Type::UnzipFailed,
+                    node,
+                    res.unwrapErr()
+                });
+                log::error("Failed to unzip: {}", res.unwrapErr());
+                m_refreshingModCount -= 1;
+                log::loadNest(prevNest);
+                return;
+            }
             this->queueInMainThread([=, this]() {
-                auto prevNest = log::saveNest();
-                log::loadNest(nest);
-                if (!res) {
-                    this->addProblem({
-                        LoadProblem::Type::UnzipFailed,
-                        node,
-                        res.unwrapErr()
-                    });
-                    log::error("Failed to unzip: {}", res.unwrapErr());
-                    m_refreshingModCount -= 1;
-                    log::loadNest(prevNest);
-                    return;
-                }
                 loadFunction();
                 log::loadNest(prevNest);
             });

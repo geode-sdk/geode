@@ -83,7 +83,7 @@ void updater::fetchLatestGithubRelease(
                         }
                         else {
                             Mod::get()->setSavedValue("last-modified-auto-update-check", response->header("Last-Modified").value_or(""));
-                            s_latestGithubRelease = *json;
+                            s_latestGithubRelease = json.unwrap();
                             then(*s_latestGithubRelease);
                         }
                     }
@@ -141,7 +141,7 @@ void updater::tryDownloadLoaderResources(std::string const& url, bool tryLatestO
                 // unzip resources zip
                 auto unzip = file::Unzip::create(response->data());
                 if (unzip) {
-                    auto ok = unzip->extractAllTo(resourcesDir);
+                    auto ok = unzip.unwrap().extractAllTo(resourcesDir);
                     if (ok) {
                         updater::updateSpecialFiles();
                         ResourceDownloadEvent(UpdateFinished()).post();
@@ -308,7 +308,7 @@ void updater::downloadLoaderUpdate(std::string const& url) {
                     // unzip resources zip
                     auto unzip = file::Unzip::create(response->data());
                     if (unzip) {
-                        auto ok = unzip->extractAllTo(targetDir);
+                        auto ok = unzip.unwrap().extractAllTo(targetDir);
                         if (ok) {
                             s_isNewUpdateDownloaded = true;
                             LoaderUpdateEvent(UpdateFinished()).post();

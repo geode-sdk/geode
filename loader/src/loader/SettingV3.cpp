@@ -152,18 +152,21 @@ namespace enable_if_parsing {
             return Ok();
         }
         Result<> eval(std::string const& defaultModID) const override {
-            Result<> err = Ok();
+            std::optional<std::string> err;
             for (auto& comp : components) {
                 auto res = comp->eval(defaultModID);
                 if (res) {
                     return Ok();
                 }
                 // Only show first condition that isn't met
-                if (err.isOk()) {
-                    err = Err(res.unwrapErr());
+                if (!err.has_value()) {
+                    err = res.unwrapErr();
                 }
             }
-            return err;
+            if (err.has_value()) {
+                return Err(*err);
+            }
+            return Ok();
         }
     };
 
@@ -235,7 +238,10 @@ namespace enable_if_parsing {
             auto original = m_index;
             auto ret = this->nextWord();
             m_index = original;
-            return ret ? *ret : std::nullopt;
+            if (!ret) {
+                return std::nullopt;
+            }
+            return ret.unwrap();
         }
         Result<std::unique_ptr<Component>> nextComponent() {
             GEODE_UNWRAP_INTO(auto maybeWord, this->nextWord());

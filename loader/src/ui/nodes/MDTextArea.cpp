@@ -329,19 +329,19 @@ struct MDParser {
                             if (key == "scale") {
                                 auto scaleRes = utils::numFromString<float>(value);
                                 if (scaleRes) {
-                                    spriteScale = *scaleRes;
+                                    spriteScale = scaleRes.unwrap();
                                 }
                             }
                             else if (key == "width") {
                                 auto widthRes = utils::numFromString<float>(value);
                                 if (widthRes) {
-                                    spriteWidth = *widthRes;
+                                    spriteWidth = widthRes.unwrap();
                                 }
                             }
                             else if (key == "height") {
                                 auto heightRes = utils::numFromString<float>(value);
                                 if (heightRes) {
-                                    spriteHeight = *heightRes;
+                                    spriteHeight = heightRes.unwrap();
                                 }
                             }
                         }

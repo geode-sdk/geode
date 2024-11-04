@@ -51,7 +51,9 @@ Result<> Mod::Impl::setup() {
     (void) utils::file::createDirectoryAll(m_saveDirPath);
 
     // always create temp dir for all mods, even if disabled, so resources can be loaded
-    GEODE_UNWRAP(this->createTempDir().expect("Unable to create temp dir: {error}"));
+    GEODE_UNWRAP(this->createTempDir().mapErr([](auto const& err) {
+        return fmt::format("Unable to create temp dir: {}", err);
+    }));
 
     m_settings = std::make_unique<ModSettingsManager>(m_metadata);
     auto loadRes = this->loadData();

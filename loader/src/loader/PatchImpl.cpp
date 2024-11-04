@@ -92,8 +92,8 @@ Result<> Patch::Impl::updateBytes(const ByteVector& bytes) {
     if (m_enabled) {
         auto res = this->disable();
         if (!res) return Err("Failed to update patch: {}", res.unwrapErr());
-        res = this->enable();
-        if (!res) return Err("Failed to update patch: {}", res.unwrapErr());
+        auto res2 = this->enable();
+        if (!res2) return Err("Failed to update patch: {}", res2.unwrapErr());
     }
 
     return Ok();

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Result.hpp"
+#include <Geode/Result.hpp>
 
 #include "../DefaultInclude.hpp"
 #include <chrono>
@@ -13,6 +13,7 @@
 #include <charconv>
 #include <clocale>
 #include <type_traits>
+#include <fmt/format.h>
 
 namespace geode {
     using ByteVector = std::vector<uint8_t>;
@@ -158,6 +159,12 @@ namespace geode {
          * On most platforms this is 1.0, but on retina displays for example this returns 2.0.
         */
         GEODE_DLL float getDisplayFactor();
+    }
+
+    template <class... Args>
+    requires (sizeof...(Args) > 0)
+    constexpr auto Err(fmt::format_string<Args...> fmt, Args&&... args) {
+        return Err(fmt::format(fmt, std::forward<Args>(args)...));
     }
 }
 

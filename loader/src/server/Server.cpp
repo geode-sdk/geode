@@ -783,7 +783,7 @@ void server::queueBatches(
 ) {
     // we have to do the copy here, or else our values die
     batchedCheckUpdates(batches->back()).listen([resolve, batches, accum](auto result) {
-        if (result->ok()) {
+        if (result->isOk()) {
             auto serverValues = result->unwrap();
 
             accum->reserve(accum->size() + serverValues.size());
@@ -798,7 +798,12 @@ void server::queueBatches(
             }
         }
         else {
-            resolve(*result);
+            if (result->isOk()) {
+                resolve(Ok(result->unwrap()));
+            }
+            else {
+                resolve(Err(result->unwrapErr()));
+            }
         }
     });
 }

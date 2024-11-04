@@ -248,7 +248,7 @@ namespace geode {
 
         using Value            = T;
         using Progress         = P;
-        using PostResult       = std::function<void(Result)>;
+        using PostResult       = std::function<void(Result&&)>;
         using PostProgress     = std::function<void(P)>;
         using HasBeenCancelled = std::function<bool()>;
         using Run              = std::function<Result(PostProgress, HasBeenCancelled)>;

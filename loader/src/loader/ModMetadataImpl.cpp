@@ -307,8 +307,11 @@ Result<ModMetadata> ModMetadata::Impl::create(ModJson const& json) {
     if (json.contains("geode") && json["geode"].is_string()) {
         GEODE_UNWRAP_INTO(
             schema,
-            VersionInfo::parse(json["geode"].as_string())
-                .expect("[mod.json] has invalid target loader version: {error}")
+            VersionInfo::parse(json["geode"].as_string()).mapErr(
+                [](auto const& err) {
+                    return fmt::format("[mod.json] has invalid target loader version: {}", err);
+                }
+            )
         );
     }
     else {
@@ -382,7 +385,9 @@ Result<ModMetadata> ModMetadata::Impl::createFromGeodeZip(file::Unzip& unzip) {
 
     // Read mod.json & parse if possible
     GEODE_UNWRAP_INTO(
-        auto jsonData, unzip.extract("mod.json").expect("Unable to read mod.json: {error}")
+        auto jsonData, unzip.extract("mod.json").mapErr([](auto const& err) {
+            return fmt::format("Unable to extract mod.json: {}", err);
+        })
     );
 
     std::string error;
@@ -400,7 +405,9 @@ Result<ModMetadata> ModMetadata::Impl::createFromGeodeZip(file::Unzip& unzip) {
     auto impl = info.m_impl.get();
     impl->m_path = unzip.getPath();
 
-    GEODE_UNWRAP(info.addSpecialFiles(unzip).expect("Unable to add extra files: {error}"));
+    GEODE_UNWRAP(info.addSpecialFiles(unzip).mapErr([](auto const& err) {
+        return fmt::format("Unable to add extra files: {}", err);
+    }));
 
     return Ok(info);
 }
@@ -409,7 +416,9 @@ Result<> ModMetadata::Impl::addSpecialFiles(file::Unzip& unzip) {
     // unzip known MD files
     for (auto& [file, target] : this->getSpecialFiles()) {
         if (unzip.hasEntry(file)) {
-            GEODE_UNWRAP_INTO(auto data, unzip.extract(file).expect("Unable to extract \"{}\"", file));
+            GEODE_UNWRAP_INTO(auto data, unzip.extract(file).mapErr([&](auto const& err) {
+                return fmt::format("Unable to extract \"{}\": {}", file, err);
+            }));
             *target = sanitizeDetailsData(std::string(data.begin(), data.end()));
         }
     }

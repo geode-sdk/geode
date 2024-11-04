@@ -1,7 +1,7 @@
 #pragma once
 
 #include <filesystem>
-#include "../utils/Result.hpp"
+#include <Geode/Result.hpp>
 #include "Log.hpp"
 #include "ModEvent.hpp"
 #include "ModMetadata.hpp"

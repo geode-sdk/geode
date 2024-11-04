@@ -8,22 +8,36 @@ using namespace geode::prelude;
 // #1 no need to duplicate the built-in settings between all mods
 // #2 easier lookup of custom settings if a mod uses another mod's custom setting type
 
+
+namespace {
+    auto changeToGenerator(auto&& function) {
+        return [function](
+            std::string const& key,
+            std::string const& modID,
+            matjson::Value const& json
+        ) -> Result<std::shared_ptr<SettingV3>> {
+            return function(key, modID, json).map([](auto&& ptr) {
+                return std::shared_ptr<SettingV3>(ptr);
+            });
+        };
+    }
+}
 class SharedSettingTypesPool final {
 private:
     std::unordered_map<std::string, SettingGenerator> m_types;
 
     SharedSettingTypesPool() : m_types({
-        { "title", &TitleSetting::parse },
-        { "bool", &BoolSetting::parse },
-        { "int", &IntSetting::parse },
-        { "float", &FloatSetting::parse },
-        { "string", &StringSetting::parse },
-        { "file", &FileSetting::parse },
-        { "folder", &FileSetting::parse },
-        { "path", &FileSetting::parse },
-        { "rgb", &Color3BSetting::parse },
-        { "color", &Color3BSetting::parse },
-        { "rgba", &Color4BSetting::parse },
+        { "title", changeToGenerator(TitleSettingV3::parse) },
+        { "bool", changeToGenerator(BoolSettingV3::parse) },
+        { "int", changeToGenerator(IntSettingV3::parse) },
+        { "float", changeToGenerator(FloatSettingV3::parse) },
+        { "string", changeToGenerator(StringSettingV3::parse) },
+        { "file", changeToGenerator(FileSettingV3::parse) },
+        { "folder", changeToGenerator(FileSettingV3::parse) },
+        { "path", changeToGenerator(FileSettingV3::parse) },
+        { "rgb", changeToGenerator(Color3BSettingV3::parse) },
+        { "color", changeToGenerator(Color3BSettingV3::parse) },
+        { "rgba", changeToGenerator(Color4BSettingV3::parse) },
     }) {}
 
 public:
@@ -135,7 +149,7 @@ public:
                 continue;
             }
             if (auto v3 = (*gen)(key, modID, setting.json)) {
-                setting.v3 = *v3;
+                setting.v3 = v3.unwrap();
                 this->loadSettingValueFromSave(key);
             }
             else {

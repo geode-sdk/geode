@@ -57,7 +57,7 @@ Result<matjson::Value> utils::file::readJson(std::filesystem::path const& path) 
     if (!str)
         return Err(str.unwrapErr());
     std::string error;
-    auto res = matjson::parse(str.value(), error);
+    auto res = matjson::parse(str.unwrap(), error);
     if (error.size())
         return Err("Unable to parse JSON: " + error);
     return Ok(res.value());
@@ -304,7 +304,9 @@ public:
 
         GEODE_UNWRAP(
             mzTry(mz_zip_entry_read_open(m_handle, 0, nullptr))
-            .expect("Unable to open entry (code {error})")
+            .mapErr([&](auto error) {
+                return fmt::format("Unable to open entry (code {})", error);
+            })
         );
 
         // if the file is empty, its data is empty (duh)
@@ -323,7 +325,9 @@ public:
         mz_zip_entry_close(m_handle);
 
         GEODE_UNWRAP(file::createDirectoryAll((dir / name).parent_path()));
-        GEODE_UNWRAP(file::writeBinary(dir / name, res).expect("Unable to write to {}: {error}", dir / name));
+        GEODE_UNWRAP(file::writeBinary(dir / name, res).mapErr([&](auto error) {
+            return fmt::format("Unable to write to {}: {}", dir / name, error);
+        }));
 
         return Ok();
     }
@@ -333,14 +337,18 @@ public:
 
         GEODE_UNWRAP(
             mzTry(mz_zip_goto_first_entry(m_handle))
-            .expect("Unable to navigate to first entry (code {error})")
+            .mapErr([&](auto error) {
+                return fmt::format("Unable to navigate to first entry (code {})", error);
+            })
         );
 
         uint64_t numEntries;
 
         GEODE_UNWRAP(
             mzTry(mz_zip_get_number_entry(m_handle, &numEntries))
-            .expect("Unable to get number of entries (code {error})")
+            .mapErr([&](auto error) {
+                return fmt::format("Unable to get number of entries (code {})", error);
+            })
         );
 
         uint32_t currentEntry = 0;
@@ -395,7 +403,9 @@ public:
 
         GEODE_UNWRAP(
             mzTry(mz_zip_goto_first_entry(m_handle))
-            .expect("Unable to navigate to first entry (code {error})")
+            .mapErr([&](auto error) {
+                return fmt::format("Unable to navigate to first entry (code {})", error);
+            })
         );
 
         GEODE_UNWRAP(
@@ -403,12 +413,17 @@ public:
                 m_handle,
                 reinterpret_cast<const char*>(name.u8string().c_str()),
                 1
-            )).expect("Unable to navigate to entry (code {error})")
+            ))
+            .mapErr([&](auto error) {
+                return fmt::format("Unable to locate entry (code {})", error);
+            })
         );
 
         GEODE_UNWRAP(
             mzTry(mz_zip_entry_read_open(m_handle, 0, nullptr))
-            .expect("Unable to open entry (code {error})")
+            .mapErr([&](auto error) {
+                return fmt::format("Unable to open entry (code {})", error);
+            })
         );
 
         // if the file is empty, its data is empty (duh)
@@ -448,7 +463,9 @@ public:
 
         GEODE_UNWRAP(
             mzTry(mz_zip_entry_write_open(m_handle, &info, MZ_COMPRESS_LEVEL_DEFAULT, 0, nullptr))
-            .expect("Unable to open entry for writing (code {error})")
+            .mapErr([&](auto error) {
+                return fmt::format("Unable to open entry for writing (code {})", error);
+            })
         );
         mz_zip_entry_close(m_handle);
 
@@ -465,7 +482,9 @@ public:
 
         GEODE_UNWRAP(
             mzTry(mz_zip_entry_write_open(m_handle, &info, MZ_COMPRESS_LEVEL_DEFAULT, 0, nullptr))
-            .expect("Unable to open entry for writing (code {error})")
+            .mapErr([&](auto error) {
+                return fmt::format("Unable to open entry for writing (code {})", error);
+            })
         );
         auto written = mz_zip_entry_write(m_handle, data.data(), data.size());
         if (written < 0) {
@@ -550,16 +569,22 @@ bool Unzip::hasEntry(Path const& name) {
 }
 
 Result<ByteVector> Unzip::extract(Path const& name) {
-    return m_impl->extract(name).expect("{error} (entry {})", name.string());
+    return m_impl->extract(name).mapErr([&](auto error) {
+        return fmt::format("Unable to extract entry {}: {}", name.string(), error);
+    });
 }
 
 Result<> Unzip::extractTo(Path const& name, Path const& path) {
-    GEODE_UNWRAP_INTO(auto bytes, m_impl->extract(name).expect("{error} (entry {})", name.string()));
+    GEODE_UNWRAP_INTO(auto bytes, m_impl->extract(name).mapErr([&](auto error) {
+        return fmt::format("Unable to extract entry {}: {}", name.string(), error);
+    }));
     // create containing directories for target path
     if (path.has_parent_path()) {
         GEODE_UNWRAP(file::createDirectoryAll(path.parent_path()));
     }
-    GEODE_UNWRAP(file::writeBinary(path, bytes).expect("Unable to write file {}: {error}", path.string()));
+    GEODE_UNWRAP(file::writeBinary(path, bytes).mapErr([&](auto error) {
+        return fmt::format("Unable to write file {}: {}", path.string(), error);
+    }));
     return Ok();
 }
 

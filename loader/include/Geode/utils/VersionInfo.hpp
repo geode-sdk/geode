@@ -4,7 +4,7 @@
 #include <string_view>
 #include <matjson.hpp>
 #include <tuple>
-#include "../utils/Result.hpp"
+#include <Geode/Result.hpp>
 
 namespace geode {
     enum class VersionCompare {

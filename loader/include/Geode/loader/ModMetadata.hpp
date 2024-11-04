@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../utils/Result.hpp"
+#include <Geode/Result.hpp>
 #include "../utils/VersionInfo.hpp"
 #include "Types.hpp"
 
