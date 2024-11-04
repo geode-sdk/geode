@@ -9,7 +9,7 @@
 #include "Loader.hpp" // very nice circular dependency fix
 #include "Hook.hpp"
 #include "ModMetadata.hpp"
-#include "SettingV3.hpp"
+#include "Setting.hpp"
 #include "Types.hpp"
 #include "Loader.hpp"
 
@@ -22,9 +22,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace geode {
-    class SettingV3;
-    
+namespace geode {    
     template <class T>
     struct HandleToSaved : public T {
         Mod* m_mod;
@@ -182,7 +180,7 @@ namespace geode {
          * `Mod::registerCustomSettingType`
          * @param key The key of the setting as defined in `mod.json`
          */
-        std::shared_ptr<SettingV3> getSettingV3(std::string_view const key) const;
+        std::shared_ptr<Setting> getSetting(std::string_view const key) const;
 
         /**
          * Register a custom setting type. See 
@@ -245,7 +243,7 @@ namespace geode {
         template <class T>
         T getSettingValue(std::string_view const key) const {
             using S = typename SettingTypeForValueType<T>::SettingType;
-            if (auto sett = cast::typeinfo_pointer_cast<S>(this->getSettingV3(key))) {
+            if (auto sett = cast::typeinfo_pointer_cast<S>(this->getSetting(key))) {
                 return sett->getValue();
             }
             return T();
@@ -254,7 +252,7 @@ namespace geode {
         template <class T>
         T setSettingValue(std::string_view const key, T const& value) {
             using S = typename SettingTypeForValueType<T>::SettingType;
-            if (auto sett = cast::typeinfo_pointer_cast<S>(this->getSettingV3(key))) {
+            if (auto sett = cast::typeinfo_pointer_cast<S>(this->getSetting(key))) {
                 auto old = sett->getValue();
                 sett->setValue(value);
                 return old;

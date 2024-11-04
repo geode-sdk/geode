@@ -13,17 +13,17 @@ private:
     std::unordered_map<std::string, SettingGenerator> m_types;
 
     SharedSettingTypesPool() : m_types({
-        { "title", &TitleSettingV3::parse },
-        { "bool", &BoolSettingV3::parse },
-        { "int", &IntSettingV3::parse },
-        { "float", &FloatSettingV3::parse },
-        { "string", &StringSettingV3::parse },
-        { "file", &FileSettingV3::parse },
-        { "folder", &FileSettingV3::parse },
-        { "path", &FileSettingV3::parse },
-        { "rgb", &Color3BSettingV3::parse },
-        { "color", &Color3BSettingV3::parse },
-        { "rgba", &Color4BSettingV3::parse },
+        { "title", &TitleSetting::parse },
+        { "bool", &BoolSetting::parse },
+        { "int", &IntSetting::parse },
+        { "float", &FloatSetting::parse },
+        { "string", &StringSetting::parse },
+        { "file", &FileSetting::parse },
+        { "folder", &FileSetting::parse },
+        { "path", &FileSetting::parse },
+        { "rgb", &Color3BSetting::parse },
+        { "color", &Color3BSetting::parse },
+        { "rgba", &Color4BSetting::parse },
     }) {}
 
 public:
@@ -78,9 +78,7 @@ public:
     struct SettingInfo final {
         std::string type;
         matjson::Value json;
-        std::shared_ptr<SettingV3> v3 = nullptr;
-        // todo: remove in v4
-        std::shared_ptr<SettingValue> legacy = nullptr;
+        std::shared_ptr<Setting> v3 = nullptr;
     };  
     std::string modID;
     std::unordered_map<std::string, SettingInfo> settings;
@@ -159,7 +157,7 @@ ModSettingsManager::ModSettingsManager(ModMetadata const& metadata)
   : m_impl(std::make_unique<Impl>())
 {
     m_impl->modID = metadata.getID();
-    for (auto const& [key, json] : metadata.getSettingsV3()) {
+    for (auto const& [key, json] : metadata.getSettings()) {
         auto setting = Impl::SettingInfo();
         setting.json = json;
         auto root = checkJson(json, "setting");
@@ -195,13 +193,6 @@ Result<> ModSettingsManager::registerCustomSettingType(std::string_view type, Se
     m_impl->createSettings();
     return Ok();
 }
-Result<> ModSettingsManager::registerLegacyCustomSetting(std::string_view key, std::unique_ptr<SettingValue>&& ptr) {
-    auto id = std::string(key);
-    if (!m_impl->settings.count(id)) {
-        return Err("No such setting '{}' in mod {}", id, m_impl->modID);
-    }
-    return Ok();
-}
 
 Result<> ModSettingsManager::load(matjson::Value const& json) {
     if (json.is_object()) {
@@ -225,7 +216,7 @@ matjson::Value& ModSettingsManager::getSaveData() {
     return m_impl->savedata;
 }
 
-std::shared_ptr<SettingV3> ModSettingsManager::get(std::string_view key) {
+std::shared_ptr<Setting> ModSettingsManager::get(std::string_view key) {
     auto id = std::string(key);
     return m_impl->settings.count(id) ? m_impl->settings.at(id).v3 : nullptr;
 }

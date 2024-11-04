@@ -229,19 +229,19 @@ Result<> Mod::Impl::saveData() {
 }
 
 bool Mod::Impl::hasSettings() const {
-    return m_metadata.getSettingsV3().size();
+    return m_metadata.getSettings().size();
 }
 
 std::vector<std::string> Mod::Impl::getSettingKeys() const {
     std::vector<std::string> keys;
-    for (auto& [key, _] : m_metadata.getSettingsV3()) {
+    for (auto& [key, _] : m_metadata.getSettings()) {
         keys.push_back(key);
     }
     return keys;
 }
 
 bool Mod::Impl::hasSetting(std::string_view const key) const {
-    for (auto& setting : m_metadata.getSettingsV3()) {
+    for (auto& setting : m_metadata.getSettings()) {
         if (setting.first == key) {
             return true;
         }
@@ -681,8 +681,6 @@ ModJson Mod::Impl::getRuntimeInfo() const {
     for (auto patch : m_patches) {
         obj["patches"].as_array().push_back(ModJson(patch->getRuntimeInfo()));
     }
-    // TODO: so which one is it
-    // obj["enabled"] = m_enabled;
     obj["loaded"] = m_enabled;
     obj["temp-dir"] = this->getTempDir();
     obj["save-dir"] = this->getSaveDir();

@@ -519,7 +519,7 @@ std::vector<ModMetadata::Incompatibility> ModMetadata::getIncompatibilities() co
 std::vector<std::string> ModMetadata::getSpritesheets() const {
     return m_impl->m_spritesheets;
 }
-std::vector<std::pair<std::string, matjson::Value>> ModMetadata::getSettingsV3() const {
+std::vector<std::pair<std::string, matjson::Value>> ModMetadata::getSettings() const {
     return m_impl->m_settings;
 }
 std::unordered_set<std::string> ModMetadata::getTags() const {

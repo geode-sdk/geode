@@ -618,7 +618,7 @@ bool ModPopup::setup(ModSource&& src) {
     m_downloadListener.bind([this](auto) { this->updateState(); });
     m_downloadListener.setFilter(m_source.getID());
 
-    m_settingNodeListener.bind([this](SettingNodeValueChangeEventV3*) {
+    m_settingNodeListener.bind([this](SettingNodeValueChangeEvent*) {
         this->updateState();
         return ListenerResult::Propagate;
     });

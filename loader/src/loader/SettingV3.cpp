@@ -1,4 +1,4 @@
-#include <Geode/loader/SettingV3.hpp>
+#include <Geode/loader/Setting.hpp>
 #include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/string.hpp>
@@ -45,7 +45,7 @@ namespace enable_if_parsing {
                 if (!mod->hasSetting(settingID)) {
                     return Err("Mod '{}' does not have setting '{}'", mod->getName(), settingID);
                 }
-                if (!typeinfo_pointer_cast<BoolSettingV3>(mod->getSettingV3(settingID))) {
+                if (!typeinfo_pointer_cast<BoolSettingV3>(mod->getSetting(settingID))) {
                     return Err("Setting '{}' in mod '{}' is not a boolean setting", settingID, mod->getName());
                 }
             }
@@ -59,7 +59,7 @@ namespace enable_if_parsing {
                 // This is an if-check just in case, even though check() should already 
                 // make sure that getSettingV3 is guaranteed to return true
                 auto name = settingID;
-                if (auto sett = mod->getSettingV3(settingID)) {
+                if (auto sett = mod->getSetting(settingID)) {
                     name = sett->getDisplayName();
                 }
                 if (modID == defaultModID) {
@@ -446,7 +446,7 @@ SettingChangedFilterV3::SettingChangedFilterV3(Mod* mod, std::optional<std::stri
 
 SettingChangedFilterV3::SettingChangedFilterV3(SettingChangedFilterV3 const&) = default;
 
-EventListener<SettingChangedFilterV3>* geode::listenForAllSettingChanges(
+EventListener<SettingChangedFilterV3>* geode::listenForAllSettingChangesV3(
     std::function<void(std::shared_ptr<SettingV3>)> const& callback,
     Mod* mod
 ) {
@@ -572,12 +572,6 @@ void SettingV3::markChanged() {
         manager->markRestartRequired();
     }
     SettingChangedEventV3(shared_from_this()).post();
-    if (manager) {
-        // TODO: v4
-        // Use ModSettingsManager rather than convertToLegacyValue since it 
-        // caches the result and we want to have that for performance
-        // SettingChangedEvent(this->getMod(), manager->getLegacy(this->getKey()).get()).post();
-    }
 }
 class TitleSettingV3::Impl final {
 public:

@@ -152,7 +152,7 @@ bool Mod::hasSetting(std::string_view const key) const {
     return m_impl->hasSetting(key);
 }
 
-std::shared_ptr<SettingV3> Mod::getSettingV3(std::string_view const key) const {
+std::shared_ptr<Setting> Mod::getSetting(std::string_view const key) const {
     return m_impl->m_settings->get(std::string(key));
 }
 

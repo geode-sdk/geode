@@ -171,7 +171,7 @@ namespace geode {
          * Mod settings
          * @note Not a map because insertion order must be preserved
          */
-        [[nodiscard]] std::vector<std::pair<std::string, matjson::Value>> getSettingsV3() const;
+        [[nodiscard]] std::vector<std::pair<std::string, matjson::Value>> getSettings() const;
         /**
          * Get the tags for this mod
          */

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Geode/DefaultInclude.hpp>
-#include "SettingV3.hpp"
+#include "Setting.hpp"
 
 namespace geode {
     class Mod;
@@ -57,12 +57,8 @@ namespace geode {
         matjson::Value& getSaveData();
 
         Result<> registerCustomSettingType(std::string_view type, SettingGenerator generator);
-        // todo in v4: remove this
-        Result<> registerLegacyCustomSetting(std::string_view key, std::unique_ptr<SettingValue>&& ptr);
 
-        std::shared_ptr<SettingV3> get(std::string_view key);
-        std::shared_ptr<SettingValue> getLegacy(std::string_view key);
-        std::optional<Setting> getLegacyDefinition(std::string_view key);
+        std::shared_ptr<Setting> get(std::string_view key);
 
         /**
          * Returns true if any setting with the `"restart-required"` attribute 

@@ -4,7 +4,7 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/VersionInfo.hpp>
-#include <Geode/loader/SettingV3.hpp>
+#include <Geode/loader/Setting.hpp>
 
 using namespace geode::prelude;
 

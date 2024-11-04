@@ -2,10 +2,15 @@
 
 using namespace geode::prelude;
 
+#ifdef GEODE_IS_WINDOWS
+#include <Geode/modify/AppDelegate.hpp>
+#else
+#include <Geode/modify/AchievementNotifier.hpp>
+#endif
+
+namespace geode {
 
 #ifdef GEODE_IS_WINDOWS
-
-#include <Geode/modify/AppDelegate.hpp>
 struct SceneSwitch : Modify<SceneSwitch, AppDelegate> {
     GEODE_FORWARD_COMPAT_DISABLE_HOOKS("persist disabled")
     void willSwitchToScene(CCScene* scene) {
@@ -15,8 +20,6 @@ struct SceneSwitch : Modify<SceneSwitch, AppDelegate> {
 };
 
 #else
-
-#include <Geode/modify/AchievementNotifier.hpp>
 struct SceneSwitch : Modify<SceneSwitch, AchievementNotifier> {
     GEODE_FORWARD_COMPAT_DISABLE_HOOKS("persist disabled")
     void willSwitchToScene(CCScene* scene) {
@@ -26,3 +29,5 @@ struct SceneSwitch : Modify<SceneSwitch, AchievementNotifier> {
 };
 
 #endif
+
+}

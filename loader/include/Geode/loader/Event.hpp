@@ -51,6 +51,7 @@ namespace geode {
 
     private:
         static DefaultEventListenerPool* create();
+        DefaultEventListenerPool();
 
     public:
         bool add(EventListenerProtocol* listener) override;
@@ -63,10 +64,7 @@ namespace geode {
         friend class DispatchEvent;
 
         template <class... Args>
-        friend class DispatchFilter;
-
-        // todo: make this private in Geode 4.0.0
-        DefaultEventListenerPool();
+        friend class DispatchFilter;        
     };
 
     class GEODE_DLL EventListenerProtocol {

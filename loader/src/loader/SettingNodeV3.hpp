@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Geode/loader/SettingV3.hpp>
+#include <Geode/loader/Setting.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
 #include <Geode/binding/ColorChannelSprite.hpp>
 #include <Geode/binding/Slider.hpp>

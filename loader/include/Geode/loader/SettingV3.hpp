@@ -14,8 +14,6 @@ class ModSettingsPopup;
 namespace geode {
     class ModSettingsManager;
     class SettingNodeV3;
-    // todo in v4: remove this
-    class SettingValue;
 
     class GEODE_DLL SettingV3 : public std::enable_shared_from_this<SettingV3> {
     private:
@@ -122,8 +120,6 @@ namespace geode {
          */
         void markChanged();
 
-        friend class ::geode::SettingValue;
-
     public:
         SettingV3();
         virtual ~SettingV3();
@@ -182,7 +178,7 @@ namespace geode {
         virtual void reset() = 0;
     };
     
-    using SettingGenerator = std::function<Result<std::shared_ptr<SettingV3>>(
+    using SettingGeneratorV3 = std::function<Result<std::shared_ptr<SettingV3>>(
         std::string const& key,
         std::string const& modID,
         matjson::Value const& json
@@ -697,45 +693,45 @@ namespace geode {
     };
 
     template <class T>
-    struct SettingTypeForValueType {
+    struct SettingTypeForValueTypeV3 {
         static_assert(
             !std::is_same_v<T, T>,
-            "specialize the SettingTypeForValueType class to use Mod::getSettingValue for custom settings"
+            "specialize the SettingTypeForValueTypeV3 class to use Mod::getSettingValue for custom settings"
         );
     };
 
     template <>
-    struct SettingTypeForValueType<bool> {
+    struct SettingTypeForValueTypeV3<bool> {
         using SettingType = BoolSettingV3;
     };
     template <>
-    struct SettingTypeForValueType<int64_t> {
+    struct SettingTypeForValueTypeV3<int64_t> {
         using SettingType = IntSettingV3;
     };
     template <>
-    struct SettingTypeForValueType<double> {
+    struct SettingTypeForValueTypeV3<double> {
         using SettingType = FloatSettingV3;
     };
     template <>
-    struct SettingTypeForValueType<std::string> {
+    struct SettingTypeForValueTypeV3<std::string> {
         using SettingType = StringSettingV3;
     };
     template <>
-    struct SettingTypeForValueType<std::filesystem::path> {
+    struct SettingTypeForValueTypeV3<std::filesystem::path> {
         using SettingType = FileSettingV3;
     };
     template <>
-    struct SettingTypeForValueType<cocos2d::ccColor3B> {
+    struct SettingTypeForValueTypeV3<cocos2d::ccColor3B> {
         using SettingType = Color3BSettingV3;
     };
     template <>
-    struct SettingTypeForValueType<cocos2d::ccColor4B> {
+    struct SettingTypeForValueTypeV3<cocos2d::ccColor4B> {
         using SettingType = Color4BSettingV3;
     };
 
     template <class T>
-    EventListener<SettingChangedFilterV3>* listenForSettingChanges(std::string_view settingKey, auto&& callback, Mod* mod = getMod()) {
-        using Ty = typename SettingTypeForValueType<T>::SettingType;
+    EventListener<SettingChangedFilterV3>* listenForSettingChangesV3(std::string_view settingKey, auto&& callback, Mod* mod = getMod()) {
+        using Ty = typename SettingTypeForValueTypeV3<T>::SettingType;
         return new EventListener(
             [callback = std::move(callback)](std::shared_ptr<SettingV3> setting) {
                 if (auto ty = geode::cast::typeinfo_pointer_cast<Ty>(setting)) {
@@ -745,11 +741,11 @@ namespace geode {
             SettingChangedFilterV3(mod, std::string(settingKey))
         );
     }
-    EventListener<SettingChangedFilterV3>* listenForSettingChanges(std::string_view settingKey, auto&& callback, Mod* mod = getMod()) {
+    EventListener<SettingChangedFilterV3>* listenForSettingChangesV3(std::string_view settingKey, auto&& callback, Mod* mod = getMod()) {
         using T = std::remove_cvref_t<utils::function::Arg<0, decltype(callback)>>;
-        return listenForSettingChanges<T>(settingKey, std::move(callback), mod);
+        return listenForSettingChangesV3<T>(settingKey, std::move(callback), mod);
     }
-    GEODE_DLL EventListener<SettingChangedFilterV3>* listenForAllSettingChanges(
+    GEODE_DLL EventListener<SettingChangedFilterV3>* listenForAllSettingChangesV3(
         std::function<void(std::shared_ptr<SettingV3>)> const& callback,
         Mod* mod = getMod()
     );

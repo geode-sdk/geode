@@ -33,8 +33,6 @@ PlatformID PlatformID::from(const char* str) {
         case hash("Android64"):
         case hash("android64"): return PlatformID::Android64;
 
-        case hash("Linux"):
-        case hash("linux"): return PlatformID::Linux;
         default: return PlatformID::Unknown;
     }
 }
@@ -64,9 +62,6 @@ std::vector<PlatformID> PlatformID::getCovered(std::string_view str) {
         case hash("android"): return { PlatformID::Android32, PlatformID::Android64 };
         case hash("android32"): return { PlatformID::Android32 };
         case hash("android64"): return { PlatformID::Android64 };
-
-        // todo in v4: no linux
-        case hash("linux"): return { PlatformID::Linux };
         
         default: return {};
     }

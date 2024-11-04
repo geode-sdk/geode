@@ -89,14 +89,11 @@ namespace geode {
     constexpr std::string_view GEODE_MOD_EXTENSION = ".geode";
 
     class Mod;
-    class Setting;
     class Loader;
     class Hook;
     class VersionInfo;
 
     class Unknown;
-    using unknownmemfn_t = void (Unknown::*)();
-    using unknownfn_t = void (*)();
 
     namespace modifier {
         template <class, class>
