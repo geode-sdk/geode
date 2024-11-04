@@ -610,54 +610,6 @@ bool TitleSettingV3::isDefaultValue() const {
 }
 void TitleSettingV3::reset() {}
 
-class LegacyCustomSettingV3::Impl final {
-public:
-    matjson::Value json;
-    std::shared_ptr<SettingValue> legacyValue = nullptr;
-};
-
-LegacyCustomSettingV3::LegacyCustomSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
-
-Result<std::shared_ptr<LegacyCustomSettingV3>> LegacyCustomSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
-    auto ret = std::make_shared<LegacyCustomSettingV3>(PrivateMarker());
-    ret->init(key, modID);
-    ret->m_impl->json = json;
-    return Ok(ret);
-}
-
-std::shared_ptr<SettingValue> LegacyCustomSettingV3::getValue() const {
-    return m_impl->legacyValue;
-}
-void LegacyCustomSettingV3::setValue(std::shared_ptr<SettingValue> value) {
-    m_impl->legacyValue = value;
-}
-
-bool LegacyCustomSettingV3::load(matjson::Value const& json) {
-    if (m_impl->legacyValue) {
-        return m_impl->legacyValue->load(json);
-    }
-    return true;
-}
-bool LegacyCustomSettingV3::save(matjson::Value& json) const {
-    if (m_impl->legacyValue) {
-        return m_impl->legacyValue->save(json);
-    }
-    return true;
-}
-SettingNodeV3* LegacyCustomSettingV3::createNode(float width) {
-    if (m_impl->legacyValue) {
-        return LegacyCustomSettingToV3Node::create(
-            std::static_pointer_cast<LegacyCustomSettingV3>(shared_from_this()), width
-        );
-    }
-    return UnresolvedCustomSettingNodeV3::create(this->getKey(), this->getMod(), width);
-}
-
-bool LegacyCustomSettingV3::isDefaultValue() const {
-    return true;
-}
-void LegacyCustomSettingV3::reset() {}
-
 class BoolSettingV3::Impl final {
 public:
 };

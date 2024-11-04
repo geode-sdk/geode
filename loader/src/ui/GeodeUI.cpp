@@ -147,10 +147,6 @@ Task<bool> geode::openInfoPopup(std::string const& modID) {
         return task;
     }
 }
-void geode::openIndexPopup(Mod* mod) {
-    // deprecated func
-    openInfoPopup(mod);
-}
 
 void geode::openChangelogPopup(Mod* mod) {
     auto popup = ModPopup::create(mod);

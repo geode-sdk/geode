@@ -105,8 +105,7 @@ void updater::downloadLatestLoaderResources() {
             auto root = checkJson(raw, "[]");
 
             // find release asset
-            for (auto asset : root.needs("assets").iterate()) {
-                auto obj = asset.obj();
+            for (auto& obj : root.needs("assets").items()) {
                 if (obj.needs("name").get<std::string>() == "resources.zip") {
                     updater::tryDownloadLoaderResources(
                         obj.needs("browser_download_url").get<std::string>(),
@@ -207,8 +206,7 @@ void updater::downloadLoaderResources(bool useLatestRelease) {
                     auto root = checkJson(ok.unwrap(), "[]");
 
                     // find release asset
-                    for (auto asset : root.needs("assets").iterate()) {
-                        auto obj = asset.obj();
+                    for (auto& obj : root.needs("assets").items()) {
                         if (obj.needs("name").get<std::string>() == "resources.zip") {
                             updater::tryDownloadLoaderResources(
                                 obj.needs("browser_download_url").get<std::string>(),
@@ -382,8 +380,7 @@ void updater::checkForLoaderUpdates() {
             }
 
             // find release asset
-            for (auto asset : root.needs("assets").iterate()) {
-                auto obj = asset.obj();
+            for (auto& obj : root.needs("assets").items()) {
                 if (string::endsWith(
                     obj.needs("name").get<std::string>(),
                     fmt::format("{}.zip", PlatformID::toShortString(GEODE_PLATFORM_TARGET, true))

@@ -477,12 +477,6 @@ std::string ModMetadata::getName() const {
     return m_impl->m_name;
 }
 
-std::string ModMetadata::getDeveloper() const {
-    // m_developers should be guaranteed to never be empty, but this is 
-    // just in case it is anyway somehow
-    return m_impl->m_developers.empty() ? "" : m_impl->m_developers.front();
-}
-
 std::string ModMetadata::formatDeveloperDisplayString(std::vector<std::string> const& developers) {
     switch (developers.size()) {
         case 0: return "Unknown"; break;
@@ -509,9 +503,6 @@ std::optional<std::string> ModMetadata::getChangelog() const {
 }
 std::optional<std::string> ModMetadata::getSupportInfo() const {
     return m_impl->m_supportInfo;
-}
-std::optional<std::string> ModMetadata::getRepository() const {
-    return m_impl->m_links.getSourceURL();
 }
 ModMetadataLinks ModMetadata::getLinks() const {
     return m_impl->m_links;
@@ -628,10 +619,6 @@ void ModMetadata::setIncompatibilities(std::vector<Incompatibility> const& value
 }
 void ModMetadata::setSpritesheets(std::vector<std::string> const& value) {
     m_impl->m_spritesheets = value;
-}
-void ModMetadata::setSettings(std::vector<std::pair<std::string, Setting>> const& value) {
-    // intentionally no-op because no one is supposed to be using this 
-    // without subscribing to "internals are not stable" mentality
 }
 void ModMetadata::setSettings(std::vector<std::pair<std::string, matjson::Value>> const& value) {
     m_impl->m_settings = value;
