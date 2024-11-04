@@ -19,7 +19,7 @@ ipc::IPCEvent::IPCEvent(
 
 ipc::IPCEvent::~IPCEvent() {}
 
-ListenerResult ipc::IPCFilter::handle(utils::MiniFunction<Callback> fn, IPCEvent* event) {
+ListenerResult ipc::IPCFilter::handle(std::function<Callback> fn, IPCEvent* event) {
     if (event->targetModID == m_modID && event->messageID == m_messageID) {
         event->replyData = fn(event);
         return ListenerResult::Stop;

@@ -10,7 +10,6 @@
 #include <Geode/utils/Result.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/ranges.hpp>
-#include <Geode/utils/MiniFunction.hpp>
 #include "ModImpl.hpp"
 #include <crashlog.hpp>
 #include <mutex>
@@ -41,7 +40,7 @@ namespace geode {
 
         LoadingState m_loadingState = LoadingState::None;
 
-        std::vector<utils::MiniFunction<void(void)>> m_mainThreadQueue;
+        std::vector<std::function<void(void)>> m_mainThreadQueue;
         mutable std::mutex m_mainThreadMutex;
         std::vector<std::pair<Hook*, Mod*>> m_uninitializedHooks;
         bool m_readyToHook = false;

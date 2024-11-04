@@ -16,7 +16,7 @@ updater::ResourceDownloadEvent::ResourceDownloadEvent(
 ) : status(std::move(status)) {}
 
 ListenerResult updater::ResourceDownloadFilter::handle(
-    const utils::MiniFunction<Callback>& fn,
+    const std::function<Callback>& fn,
     ResourceDownloadEvent* event
 ) {
     fn(event);
@@ -30,7 +30,7 @@ updater::LoaderUpdateEvent::LoaderUpdateEvent(
 ) : status(std::move(status)) {}
 
 ListenerResult updater::LoaderUpdateFilter::handle(
-    const utils::MiniFunction<Callback>& fn,
+    const std::function<Callback>& fn,
     LoaderUpdateEvent* event
 ) {
     fn(event);
@@ -45,8 +45,8 @@ std::optional<matjson::Value> s_latestGithubRelease;
 bool s_isNewUpdateDownloaded = false;
 
 void updater::fetchLatestGithubRelease(
-    const utils::MiniFunction<void(matjson::Value const&)>& then,
-    utils::MiniFunction<void(std::string const&)> expect, bool force
+    const std::function<void(matjson::Value const&)>& then,
+    std::function<void(std::string const&)> expect, bool force
 ) {
     if (s_latestGithubRelease) {
         return then(s_latestGithubRelease.value());

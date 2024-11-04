@@ -15,7 +15,7 @@ static size_t ceildiv(size_t a, size_t b) {
 
 InvalidateCacheEvent::InvalidateCacheEvent(ModListSource* src) : source(src) {}
 
-ListenerResult InvalidateCacheFilter::handle(MiniFunction<Callback> fn, InvalidateCacheEvent* event) {
+ListenerResult InvalidateCacheFilter::handle(std::function<Callback> fn, InvalidateCacheEvent* event) {
     if (event->source == m_source) {
         fn(event);
     }

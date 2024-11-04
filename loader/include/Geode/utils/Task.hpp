@@ -1,7 +1,6 @@
 #pragma once
 
 #include "general.hpp"
-#include "MiniFunction.hpp"
 #include "../loader/Event.hpp"
 #include "../loader/Loader.hpp"
 #include <mutex>
@@ -249,11 +248,11 @@ namespace geode {
 
         using Value            = T;
         using Progress         = P;
-        using PostResult       = utils::MiniFunction<void(Result)>;
-        using PostProgress     = utils::MiniFunction<void(P)>;
-        using HasBeenCancelled = utils::MiniFunction<bool()>;
-        using Run              = utils::MiniFunction<Result(PostProgress, HasBeenCancelled)>;
-        using RunWithCallback  = utils::MiniFunction<void(PostResult, PostProgress, HasBeenCancelled)>;
+        using PostResult       = std::function<void(Result)>;
+        using PostProgress     = std::function<void(P)>;
+        using HasBeenCancelled = std::function<bool()>;
+        using Run              = std::function<Result(PostProgress, HasBeenCancelled)>;
+        using RunWithCallback  = std::function<void(PostResult, PostProgress, HasBeenCancelled)>;
 
         using Callback = void(Event*);
 
@@ -752,7 +751,7 @@ namespace geode {
             this->listen(std::move(onResult), [](auto const&) {}, [] {});
         }
 
-        ListenerResult handle(utils::MiniFunction<Callback> fn, Event* e) {
+        ListenerResult handle(std::function<Callback> fn, Event* e) {
             if (e->m_handle == m_handle && (!e->m_for || e->m_for == m_listener)) {
                 fn(e);
             }

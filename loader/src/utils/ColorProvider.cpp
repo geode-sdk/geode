@@ -6,7 +6,7 @@ using namespace geode::prelude;
 ColorProvidedEvent::ColorProvidedEvent(std::string const& id, cocos2d::ccColor4B const& color)
   : id(id), color(color) {}
 
-ListenerResult ColorProvidedFilter::handle(MiniFunction<Callback> fn, ColorProvidedEvent* event) {
+ListenerResult ColorProvidedFilter::handle(std::function<Callback> fn, ColorProvidedEvent* event) {
     if (event->id == m_id) {
         fn(event);
     }

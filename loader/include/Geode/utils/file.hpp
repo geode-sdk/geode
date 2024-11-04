@@ -162,7 +162,7 @@ namespace geode::utils::file {
          * @param callback Callback to call with the progress of the unzip operation
          */
         void setProgressCallback(
-            utils::MiniFunction<void(uint32_t, uint32_t)> callback
+            std::function<void(uint32_t, uint32_t)> callback
         );
 
         /**
@@ -213,7 +213,7 @@ namespace geode::utils::file {
         );
 
         static Result<> intoDir(
-            utils::MiniFunction<void(uint32_t, uint32_t)> progressCallback,
+            std::function<void(uint32_t, uint32_t)> progressCallback,
             Path const& from,
             Path const& to,
             bool deleteZipAfter = false
@@ -281,7 +281,7 @@ namespace geode::utils::file {
     public:
         using Callback = void(FileWatchEvent*);
 
-        ListenerResult handle(utils::MiniFunction<Callback> callback, FileWatchEvent* event);
+        ListenerResult handle(std::function<Callback> callback, FileWatchEvent* event);
         FileWatchFilter(std::filesystem::path const& path);
     };
 

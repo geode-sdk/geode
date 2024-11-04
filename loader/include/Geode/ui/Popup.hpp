@@ -2,7 +2,6 @@
 
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
-#include <Geode/utils/MiniFunction.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/ui/Layout.hpp>
 
@@ -52,7 +51,7 @@ namespace geode {
             }
 
         public:
-            ListenerResult handle(utils::MiniFunction<Callback> fn, CloseEvent* event) {
+            ListenerResult handle(std::function<Callback> fn, CloseEvent* event) {
                 if (event->getPopup() == m_impl->popup) {
                     fn(event);
                 }
@@ -214,21 +213,21 @@ namespace geode {
 
     GEODE_DLL FLAlertLayer* createQuickPopup(
         char const* title, std::string const& content, char const* btn1, char const* btn2,
-        utils::MiniFunction<void(FLAlertLayer*, bool)> selected, bool doShow = true
+        std::function<void(FLAlertLayer*, bool)> selected, bool doShow = true
     );
 
     GEODE_DLL FLAlertLayer* createQuickPopup(
         char const* title, std::string const& content, char const* btn1, char const* btn2,
-        float width, utils::MiniFunction<void(FLAlertLayer*, bool)> selected, bool doShow = true
+        float width, std::function<void(FLAlertLayer*, bool)> selected, bool doShow = true
     );
 
     GEODE_DLL FLAlertLayer* createQuickPopup(
         char const* title, std::string const& content, char const* btn1, char const* btn2,
-        utils::MiniFunction<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
+        std::function<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
     );
 
     GEODE_DLL FLAlertLayer* createQuickPopup(
         char const* title, std::string const& content, char const* btn1, char const* btn2,
-        float width, utils::MiniFunction<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
+        float width, std::function<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
     );
 }

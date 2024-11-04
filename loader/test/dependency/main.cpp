@@ -12,7 +12,7 @@ std::string TestEvent::getData() const {
 
 TestEvent::TestEvent(std::string const& data) : data(data) {}
 
-ListenerResult TestEventFilter::handle(utils::MiniFunction<Callback> fn, TestEvent* event) {
+ListenerResult TestEventFilter::handle(std::function<Callback> fn, TestEvent* event) {
     fn(event);
     return ListenerResult::Propagate;
 }

@@ -335,7 +335,7 @@ void CCNode::updateLayout(bool updateChildOrder) {
 UserObjectSetEvent::UserObjectSetEvent(CCNode* node, std::string const& id, CCObject* value)
   : node(node), id(id), value(value) {}
 
-ListenerResult AttributeSetFilter::handle(MiniFunction<Callback> fn, UserObjectSetEvent* event) {
+ListenerResult AttributeSetFilter::handle(std::function<Callback> fn, UserObjectSetEvent* event) {
     if (event->id == m_targetID) {
         fn(event);
     }

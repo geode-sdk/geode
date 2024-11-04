@@ -4,7 +4,6 @@
 #include "../loader/Log.hpp"
 #include <set>
 #include <variant>
-#include <Geode/utils/MiniFunction.hpp>
 #include <Geode/utils/Result.hpp>
 
 namespace geode {
@@ -73,7 +72,7 @@ namespace geode {
     }
 
     template <class T>
-    using JsonValueValidator = utils::MiniFunction<bool(T const&)>;
+    using JsonValueValidator = std::function<bool(T const&)>;
 
     struct JsonMaybeObject;
     struct JsonMaybeValue;

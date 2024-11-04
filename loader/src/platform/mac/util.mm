@@ -309,7 +309,7 @@ bool geode::utils::permission::getPermissionStatus(Permission permission) {
     return true; // unimplemented
 }
 
-void geode::utils::permission::requestPermission(Permission permission, utils::MiniFunction<void(bool)> callback) {
+void geode::utils::permission::requestPermission(Permission permission, std::function<void(bool)> callback) {
     callback(true); // unimplemented
 }
 

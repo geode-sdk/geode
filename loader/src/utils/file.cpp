@@ -180,7 +180,7 @@ private:
     int32_t m_mode;
     std::variant<Path, ByteVector> m_srcDest;
     std::unordered_map<Path, ZipEntry, path_hash_t> m_entries;
-    utils::MiniFunction<void(uint32_t, uint32_t)> m_progressCallback;
+    std::function<void(uint32_t, uint32_t)> m_progressCallback;
 
     Result<> init() {
         // open stream from file
@@ -295,7 +295,7 @@ public:
         return Ok(std::move(ret));
     }
 
-    void setProgressCallback(utils::MiniFunction<void(uint32_t, uint32_t)> callback) {
+    void setProgressCallback(std::function<void(uint32_t, uint32_t)> callback) {
         m_progressCallback = callback;
     }
 
@@ -536,7 +536,7 @@ Unzip::Path Unzip::getPath() const {
 }
 
 void Unzip::setProgressCallback(
-    utils::MiniFunction<void(uint32_t, uint32_t)> callback
+    std::function<void(uint32_t, uint32_t)> callback
 ) {
     return m_impl->setProgressCallback(callback);
 }
@@ -587,7 +587,7 @@ Result<> Unzip::intoDir(
 }
 
 Result<> Unzip::intoDir(
-    utils::MiniFunction<void(uint32_t, uint32_t)> progressCallback,
+    std::function<void(uint32_t, uint32_t)> progressCallback,
     Path const& from,
     Path const& to,
     bool deleteZipAfter
@@ -677,7 +677,7 @@ std::filesystem::path FileWatchEvent::getPath() const {
 }
 
 ListenerResult FileWatchFilter::handle(
-    MiniFunction<Callback> callback,
+    std::function<Callback> callback,
     FileWatchEvent* event
 ) {
     std::error_code ec;

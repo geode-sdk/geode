@@ -422,7 +422,7 @@ public:
     std::optional<std::string> settingKey;
 };
 
-ListenerResult SettingChangedFilterV3::handle(utils::MiniFunction<Callback> fn, SettingChangedEventV3* event) {
+ListenerResult SettingChangedFilterV3::handle(std::function<Callback> fn, SettingChangedEventV3* event) {
     if (
         event->getSetting()->getModID() == m_impl->modID &&
         !m_impl->settingKey || event->getSetting()->getKey() == m_impl->settingKey

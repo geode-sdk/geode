@@ -12,5 +12,4 @@
 #include "utils/permission.hpp"
 #include "utils/general.hpp"
 #include "utils/timer.hpp"
-#include "utils/MiniFunction.hpp"
 #include "utils/ObjcHook.hpp"

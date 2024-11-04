@@ -658,7 +658,7 @@ namespace geode {
     public:
         using Callback = void(std::shared_ptr<SettingV3>);
 
-        ListenerResult handle(utils::MiniFunction<Callback> fn, SettingChangedEventV3* event);
+        ListenerResult handle(std::function<Callback> fn, SettingChangedEventV3* event);
         /**
          * Listen to changes on a setting, or all settings
          * @param modID Mod whose settings to listen to

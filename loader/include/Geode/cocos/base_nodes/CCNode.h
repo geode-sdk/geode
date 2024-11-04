@@ -1095,7 +1095,7 @@ public:
     template <class Filter, class... Args>
     geode::EventListenerProtocol* addEventListener(
         std::string const& id,
-        geode::utils::MiniFunction<typename Filter::Callback> callback,
+        std::function<typename Filter::Callback> callback,
         Args&&... args
     ) {
         auto listener = new geode::EventListener<Filter>(
@@ -1106,7 +1106,7 @@ public:
     }
     template <class Filter, class... Args>
     geode::EventListenerProtocol* addEventListener(
-        geode::utils::MiniFunction<typename Filter::Callback> callback,
+        std::function<typename Filter::Callback> callback,
         Args&&... args
     ) {
         return this->addEventListener<Filter, Args...>(
@@ -1916,7 +1916,7 @@ namespace geode {
 		std::string m_targetID;
 	
 	public:
-        ListenerResult handle(utils::MiniFunction<Callback> fn, UserObjectSetEvent* event);
+        ListenerResult handle(std::function<Callback> fn, UserObjectSetEvent* event);
 
 		AttributeSetFilter(std::string const& id);
     };

@@ -20,7 +20,7 @@ protected:
         std::string content;
         std::string optionA;
         std::string optionB;
-        MiniFunction<void(bool)> after;
+        std::function<void(bool)> after;
     };
 
     EventListener<server::ModDownloadFilter> m_download;

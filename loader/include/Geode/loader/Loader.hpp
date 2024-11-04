@@ -2,7 +2,6 @@
 
 #include <filesystem>
 #include "../utils/Result.hpp"
-#include "../utils/MiniFunction.hpp"
 #include "Log.hpp"
 #include "ModEvent.hpp"
 #include "ModMetadata.hpp"
@@ -15,7 +14,7 @@
 #include <string_view>
 
 namespace geode {
-    using ScheduledFunction = utils::MiniFunction<void()>;
+    using ScheduledFunction = std::function<void()>;
 
     struct InvalidGeodeFile {
         std::filesystem::path path;

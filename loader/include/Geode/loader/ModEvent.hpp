@@ -43,7 +43,7 @@ namespace geode {
         Mod* m_mod;
 
     public:
-        ListenerResult handle(utils::MiniFunction<Callback> fn, ModStateEvent* event);
+        ListenerResult handle(std::function<Callback> fn, ModStateEvent* event);
 
         /**
          * Create a mod state listener
