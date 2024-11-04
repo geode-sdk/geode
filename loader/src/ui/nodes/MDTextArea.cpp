@@ -317,21 +317,9 @@ struct MDParser {
                         auto split = splitOnce(s_lastImage, '?');
                         s_lastImage = split.first;
 
-                        // TODO: remove this in v4.0.0
-                        // check if this image is using the old format "my.mod/image.png&scale:0.5"
-                        // this will be deprecated and then removed in the future
-                        if (utils::string::contains(s_lastImage, "&")) {
-                            split = splitOnce(s_lastImage, '&');
-                            s_lastImage = split.first;
-                            imgArguments = ranges::map<decltype(imgArguments)>(utils::string::split(split.second, "&"), [&](auto str) {
-                                return splitOnce(str, ':');
-                            });
-                        } else {
-                            // new format "my.mod/image.png?scale=0.5"
-                            imgArguments = ranges::map<decltype(imgArguments)>(utils::string::split(split.second, "&"), [&](auto str) {
-                                return splitOnce(str, '=');
-                            });
-                        }
+                        imgArguments = ranges::map<decltype(imgArguments)>(utils::string::split(split.second, "&"), [&](auto str) {
+                            return splitOnce(str, '=');
+                        });
 
                         float spriteScale = 1.0f;
                         float spriteWidth = 0.0f;

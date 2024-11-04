@@ -528,18 +528,6 @@ std::vector<ModMetadata::Incompatibility> ModMetadata::getIncompatibilities() co
 std::vector<std::string> ModMetadata::getSpritesheets() const {
     return m_impl->m_spritesheets;
 }
-std::vector<std::pair<std::string, Setting>> ModMetadata::getSettings() const {
-    std::vector<std::pair<std::string, Setting>> res;
-    for (auto [key, sett] : m_impl->m_settings) {
-        auto checker = JsonChecker(sett);
-        auto value = checker.root("");
-        auto legacy = Setting::parse(key, m_impl->m_id, value);
-        if (!checker.isError() && legacy.isOk()) {
-            res.push_back(std::make_pair(key, *legacy));
-        }
-    }
-    return res;
-}
 std::vector<std::pair<std::string, matjson::Value>> ModMetadata::getSettingsV3() const {
     return m_impl->m_settings;
 }

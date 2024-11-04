@@ -9,7 +9,6 @@
 #include "Loader.hpp" // very nice circular dependency fix
 #include "Hook.hpp"
 #include "ModMetadata.hpp"
-#include "Setting.hpp"
 #include "SettingV3.hpp"
 #include "Types.hpp"
 #include "Loader.hpp"
@@ -108,8 +107,6 @@ namespace geode {
 
         std::string getID() const;
         std::string getName() const;
-        [[deprecated("Use Mod::getDevelopers instead")]]
-        std::string getDeveloper() const;
         std::vector<std::string> getDevelopers() const;
         std::optional<std::string> getDescription() const;
         std::optional<std::string> getDetails() const;
@@ -136,17 +133,6 @@ namespace geode {
         void setMetadata(ModMetadata const& metadata);
         std::vector<Mod*> getDependants() const;
 #endif
-
-        /**
-         * Check if this Mod has updates available on the mods index. If 
-         * you're using this for automatic update checking, use 
-         * `openInfoPopup` or `openIndexPopup` from the `ui/GeodeUI.hpp` 
-         * header to open the Mod's page to let the user install the update
-         * @returns The latest available version on the index if there are 
-         * updates for this mod
-         */
-        [[deprecated("Use Mod::checkUpdates instead; this function always returns nullopt")]]
-        std::optional<VersionInfo> hasAvailableUpdate() const;
 
         using CheckUpdatesTask = Task<Result<std::optional<VersionInfo>, std::string>>;
         /**
@@ -189,12 +175,6 @@ namespace geode {
         std::vector<std::string> getSettingKeys() const;
         bool hasSetting(std::string_view const key) const;
 
-        // todo in v4: remove these
-        [[deprecated("Use Mod::getSettingV3")]]
-        std::optional<Setting> getSettingDefinition(std::string_view const key) const;
-        [[deprecated("Use Mod::getSettingV3")]]
-        SettingValue* getSetting(std::string_view const key) const;
-
         // todo in v4: possibly rename this to getSetting?
         /**
          * Get the definition of a setting, or null if the setting was not found, 
@@ -203,36 +183,6 @@ namespace geode {
          * @param key The key of the setting as defined in `mod.json`
          */
         std::shared_ptr<SettingV3> getSettingV3(std::string_view const key) const;
-
-        /**
-         * Register a custom setting's value class. See Mod::addCustomSetting
-         * for a convenience wrapper that creates the value in-place to avoid
-         * code duplication. Also see
-         * [the tutorial page](https://docs.geode-sdk.org/mods/settings) for
-         * more information about custom settings
-         * @param key The setting's key
-         * @param value The SettingValue class that shall handle this setting
-         * @see addCustomSetting
-         */
-        [[deprecated("Use Mod::registerCustomSettingType")]]
-        void registerCustomSetting(std::string_view const key, std::unique_ptr<SettingValue> value);
-        /**
-         * Register a custom setting's value class. The new SettingValue class
-         * will be created in-place using `std::make_unique`. See
-         * [the tutorial page](https://docs.geode-sdk.org/mods/settings) for
-         * more information about custom settings
-         * @param key The setting's key
-         * @param value The value of the custom setting
-         * @example
-         * $on_mod(Loaded) {
-         *     Mod::get()->addCustomSetting<MySettingValue>("setting-key", DEFAULT_VALUE);
-         * }
-         */
-        template <class T, class V>
-        [[deprecated("Use Mod::registerCustomSettingType")]]
-        void addCustomSetting(std::string_view const key, V const& value) {
-            this->registerCustomSetting(key, std::make_unique<T>(std::string(key), this->getID(), value));
-        }
 
         /**
          * Register a custom setting type. See 

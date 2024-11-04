@@ -37,13 +37,18 @@
 #include "../kazmath/include/kazmath/kazmath.h"
 #include "../script_support/CCScriptSupport.h"
 #include "../include/CCProtocols.h"
-#include "Layout.hpp"
 #include "../../loader/Event.hpp"
 #include <Geode/utils/casts.hpp>
 
 #ifndef GEODE_IS_MEMBER_TEST
 #include <matjson.hpp>
 #endif
+
+namespace geode {
+    class Layout;
+    class LayoutOptions;
+    enum class Anchor;
+}
 
 NS_CC_BEGIN
 
@@ -871,25 +876,13 @@ public:
 private:
     friend class geode::modifier::FieldContainer;
 
-    [[deprecated("Will be removed, it's an ABI break")]]
-    GEODE_DLL geode::modifier::FieldContainer* getFieldContainer();
     GEODE_DLL geode::modifier::FieldContainer* getFieldContainer(char const* forClass);
     GEODE_DLL void addEventListenerInternal(
         std::string const& id,
         geode::EventListenerProtocol* protocol
     );
 
-#ifdef GEODE_EXPORTING
-    [[deprecated("Will be removed, it's an ABI break")]]
-    GEODE_DLL std::optional<matjson::Value> getAttributeInternal(std::string const& attribute);
-#endif
-
-public:
-#ifdef GEODE_EXPORTING
-    [[deprecated("Will be removed, it's an ABI break")]]
-    GEODE_DLL void setAttribute(std::string const& attribute, matjson::Value const& value);
-#endif
-
+public: 
     /**
      * Get the string ID of this node
      * @returns The ID, or an empty string if the node has no ID.
@@ -990,13 +983,13 @@ public:
      * CCLayers / CCMenus, this will change where the children are located
      * @note Geode addition
      */
-    GEODE_DLL void setLayout(Layout* layout, bool apply = true, bool respectAnchor = true);
+    GEODE_DLL void setLayout(geode::Layout* layout, bool apply = true, bool respectAnchor = true);
     /**
      * Get the Layout for this node
      * @returns The current layout, or nullptr if no layout is set
      * @note Geode addition
      */
-    GEODE_DLL Layout* getLayout();
+    GEODE_DLL geode::Layout* getLayout();
     /**
      * Update the layout of this node using the current Layout. If no layout is 
      * set, nothing happens
@@ -1011,13 +1004,13 @@ public:
      * @param apply Whether to update the layout of the parent node
      * @note Geode addition
      */
-    GEODE_DLL void setLayoutOptions(LayoutOptions* options, bool apply = true);
+    GEODE_DLL void setLayoutOptions(geode::LayoutOptions* options, bool apply = true);
     /**
      * Get the layout options for this node
      * @returns The current layout options, or nullptr if no options are set
      * @note Geode addition
      */
-    GEODE_DLL LayoutOptions* getLayoutOptions();
+    GEODE_DLL geode::LayoutOptions* getLayoutOptions();
     /**
      * Adds a child at an anchored position with an offset. The node is placed 
      * in its parent where the anchor specifies, and then the offset is used to 
@@ -1029,7 +1022,7 @@ public:
      * if no other layout is already specified
      * @note Geode addition
      */
-    GEODE_DLL void addChildAtPosition(CCNode* child, Anchor anchor, CCPoint const& offset = CCPointZero, bool useAnchorLayout = true);
+    GEODE_DLL void addChildAtPosition(CCNode* child, geode::Anchor anchor, CCPoint const& offset = CCPointZero, bool useAnchorLayout = true);
     /**
      * Adds a child at an anchored position with an offset. The node is placed 
      * in its parent where the anchor specifies, and then the offset is used to 
@@ -1044,7 +1037,7 @@ public:
      */
     GEODE_DLL void addChildAtPosition(
         CCNode* child,
-        Anchor anchor,
+        geode::Anchor anchor,
         CCPoint const& offset,
         CCPoint const& nodeAnchor,
         bool useAnchorLayout = true
@@ -1057,7 +1050,7 @@ public:
      * @param offset Where to place the child relative to the anchor
      * @note Geode addition
      */
-    GEODE_DLL void updateAnchoredPosition(Anchor anchor, CCPoint const& offset = CCPointZero);
+    GEODE_DLL void updateAnchoredPosition(geode::Anchor anchor, CCPoint const& offset = CCPointZero);
     /**
      * Updates the anchored position of a child. Requires the child to already 
      * have a parent; if the child already has AnchorLayoutOptions set, those 
@@ -1068,7 +1061,7 @@ public:
      * @note Geode addition
      */
     GEODE_DLL void updateAnchoredPosition(
-        Anchor anchor,
+        geode::Anchor anchor,
         CCPoint const& offset,
         CCPoint const& nodeAnchor
     );

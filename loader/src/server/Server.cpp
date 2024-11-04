@@ -258,9 +258,7 @@ Result<ServerDateTime> ServerDateTime::parse(std::string const& str) {
 }
 
 Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
-    auto json = raw;
-    JsonChecker checker(json);
-    auto root = checker.root("ServerModVersion").obj();
+    auto root = checkJson(raw, "ServerModVersion");
 
     auto res = ServerModVersion();
 
@@ -356,9 +354,7 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
 }
 
 Result<ServerModReplacement> ServerModReplacement::parse(matjson::Value const& raw) {
-    auto json = raw;
-    JsonChecker checker(json);
-    auto root = checker.root("ServerModReplacement").obj();
+    auto root = checkJson(raw, "ServerModReplacement");
     auto res = ServerModReplacement();
 
     root.needs("id").into(res.id);
@@ -371,9 +367,7 @@ Result<ServerModReplacement> ServerModReplacement::parse(matjson::Value const& r
 }
 
 Result<ServerModUpdate> ServerModUpdate::parse(matjson::Value const& raw) {
-    auto json = raw;
-    JsonChecker checker(json);
-    auto root = checker.root("ServerModUpdate").obj();
+    auto root = checkJson(raw, "ServerModUpdate");
 
     auto res = ServerModUpdate();
 
@@ -391,9 +385,7 @@ Result<ServerModUpdate> ServerModUpdate::parse(matjson::Value const& raw) {
 }
 
 Result<std::vector<ServerModUpdate>> ServerModUpdate::parseList(matjson::Value const& raw) {
-    auto json = raw;
-    JsonChecker checker(json);
-    auto payload = checker.root("ServerModUpdatesList").array();
+    auto payload = checkJson(raw, "ServerModUpdatesList");
 
     std::vector<ServerModUpdate> list {};
     for (auto item : payload.iterate()) {
@@ -421,9 +413,7 @@ bool ServerModUpdate::hasUpdateForInstalledMod() const {
 }
 
 Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
-    auto json = raw;
-    JsonChecker checker(json);
-    auto root = checker.root("ServerModMetadata").obj();
+    auto root = checkJson(raw, "ServerModMetadata");
 
     auto res = ServerModMetadata();
     root.needs("id").into(res.id);
@@ -501,9 +491,7 @@ std::string ServerModMetadata::formatDevelopersToString() const {
 }
 
 Result<ServerModsList> ServerModsList::parse(matjson::Value const& raw) {
-    auto json = raw;
-    JsonChecker checker(json);
-    auto payload = checker.root("ServerModsList").obj();
+    auto payload = checkJson(raw, "ServerModsList");
 
     auto list = ServerModsList();
     for (auto item : payload.needs("data").iterate()) {

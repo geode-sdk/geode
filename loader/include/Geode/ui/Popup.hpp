@@ -4,6 +4,7 @@
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/utils/MiniFunction.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/ui/Layout.hpp>
 
 namespace geode {
     template <class... InitArgs>
@@ -104,7 +105,7 @@ namespace geode {
                 m_mainLayer->setPosition(winSize / 2);
                 m_mainLayer->setContentSize(m_size);
                 m_mainLayer->setLayout(
-                    cocos2d::CopySizeLayout::create()
+                    geode::CopySizeLayout::create()
                         ->add(m_buttonMenu)
                         ->add(m_bgSprite)
                 );
@@ -119,7 +120,7 @@ namespace geode {
                 closeSpr, this, (cocos2d::SEL_MenuHandler)(&Popup::onClose)
             );
             if (dynamic) {
-                m_buttonMenu->addChildAtPosition(m_closeBtn, cocos2d::Anchor::TopLeft, { 3.f, -3.f });
+                m_buttonMenu->addChildAtPosition(m_closeBtn, geode::Anchor::TopLeft, { 3.f, -3.f });
             }
             else {
                 m_closeBtn->setPosition(-m_size.width / 2 + 3.f, m_size.height / 2 - 3.f);
@@ -137,14 +138,6 @@ namespace geode {
         }
 
     protected:
-        [[deprecated("Use Popup::initAnchored instead, as it has more reasonable menu and layer content sizes")]]
-        bool init(
-            float width, float height, InitArgs... args, char const* bg = "GJ_square01.png",
-            cocos2d::CCRect bgRect = { 0, 0, 80, 80 }
-        ) {
-            return this->initBase(width, height, std::forward<InitArgs>(args)..., bg, bgRect, false);
-        }
-
         /**
          * Init with AnchorLayout and the content size of `m_buttonMenu` and 
          * `m_bgSprite` being tied to the size of `m_mainLayer` (rather than 
@@ -185,7 +178,7 @@ namespace geode {
                 m_title = cocos2d::CCLabelBMFont::create(title.c_str(), font);
                 m_title->setZOrder(2);
                 if (m_dynamic) {
-                    m_mainLayer->addChildAtPosition(m_title, cocos2d::Anchor::Top, ccp(0, -offset));
+                    m_mainLayer->addChildAtPosition(m_title, geode::Anchor::Top, ccp(0, -offset));
                 }
                 else {
                     auto winSize = cocos2d::CCDirector::get()->getWinSize();

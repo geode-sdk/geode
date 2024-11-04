@@ -616,18 +616,6 @@ namespace geode::cocos {
     }
 
     /**
-     * Get nth child that is a given type. Checks bounds.
-     * @returns Child at index cast to the given type,
-     * or nullptr if index exceeds bounds
-     */
-
-    template <class Type = cocos2d::CCNode>
-    [[deprecated("Use CCNode::getChildByType instead")]]
-    static Type* getChildOfType(cocos2d::CCNode* node, int index) {
-        return node->getChildByType<Type>(index);
-    }
-
-    /**
      * Return a node, or create a default one if it's
      * nullptr. Syntactic sugar function
      */
@@ -854,30 +842,6 @@ namespace geode::cocos {
 
     inline cocos2d::ccColor4F to4F(cocos2d::ccColor4B const& color) {
         return {color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f};
-    }
-
-    [[deprecated("This function may have unintended behavior, use cc3bFromHexString or manually expand the color instead")]]
-    constexpr cocos2d::ccColor3B cc3x(int hexValue) {
-        if (hexValue <= 0xf)
-            return cocos2d::ccColor3B{
-                static_cast<GLubyte>(hexValue * 17),
-                static_cast<GLubyte>(hexValue * 17),
-                static_cast<GLubyte>(hexValue * 17)};
-        if (hexValue <= 0xff)
-            return cocos2d::ccColor3B{
-                static_cast<GLubyte>(hexValue),
-                static_cast<GLubyte>(hexValue),
-                static_cast<GLubyte>(hexValue)};
-        if (hexValue <= 0xfff)
-            return cocos2d::ccColor3B{
-                static_cast<GLubyte>((hexValue >> 8 & 0xf) * 17),
-                static_cast<GLubyte>((hexValue >> 4 & 0xf) * 17),
-                static_cast<GLubyte>((hexValue >> 0 & 0xf) * 17)};
-        else
-            return cocos2d::ccColor3B{
-                static_cast<GLubyte>(hexValue >> 16 & 0xff),
-                static_cast<GLubyte>(hexValue >> 8 & 0xff),
-                static_cast<GLubyte>(hexValue >> 0 & 0xff)};
     }
 
     /**

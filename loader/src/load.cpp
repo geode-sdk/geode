@@ -7,7 +7,6 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <Geode/loader/SettingEvent.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <loader/LogImpl.hpp>
 
@@ -30,8 +29,7 @@ $on_mod(Loaded) {
         std::vector<matjson::Value> res;
 
         auto args = *event->messageData;
-        JsonChecker checker(args);
-        auto root = checker.root("[ipc/list-mods]").obj();
+        auto root = checkJson(args, "[ipc/list-mods]");
 
         auto includeRunTimeInfo = root.has("include-runtime-info").get<bool>();
         auto dontIncludeLoader = root.has("dont-include-loader").get<bool>();

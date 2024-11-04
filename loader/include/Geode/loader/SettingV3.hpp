@@ -3,15 +3,12 @@
 #include "../DefaultInclude.hpp"
 #include <optional>
 #include <cocos2d.h>
-// todo: remove this header in 4.0.0
-#include "Setting.hpp"
 #include "../utils/cocos.hpp"
+#include "../utils/file.hpp"
 // this unfortunately has to be included because of C++ templates
 #include "../utils/JsonValidation.hpp"
 #include "../utils/function.hpp"
 
-// todo in v4: this can be removed as well as the friend decl in LegacyCustomSettingV3
-class LegacyCustomSettingToV3Node;
 class ModSettingsPopup;
 
 namespace geode {
@@ -183,17 +180,6 @@ namespace geode {
          * Reset this setting's value back to its original value
          */
         virtual void reset() = 0;
-
-        [[deprecated(
-            "This function will be removed alongside legacy settings in 4.0.0! "
-            "You should NOT be implementing it for your own custom setting classes"
-        )]]
-        virtual std::optional<Setting> convertToLegacy() const;
-        [[deprecated(
-            "This function will be removed alongside legacy settings in 4.0.0! "
-            "You should NOT be implementing it for your own custom setting classes"
-        )]]
-        virtual std::optional<std::shared_ptr<SettingValue>> convertToLegacyValue() const;
     };
     
     using SettingGenerator = std::function<Result<std::shared_ptr<SettingV3>>(
@@ -357,37 +343,6 @@ namespace geode {
         void reset() override;
     };
 
-    // todo in v4: remove this class completely
-    class GEODE_DLL LegacyCustomSettingV3 final : public SettingV3 {
-    private:
-        class Impl;
-        std::shared_ptr<Impl> m_impl;
-
-        friend class ::geode::ModSettingsManager;
-        friend class ::LegacyCustomSettingToV3Node;
-    
-    private:
-        class PrivateMarker {};
-        friend class SettingV3;
-
-    public:
-        LegacyCustomSettingV3(PrivateMarker);
-        static Result<std::shared_ptr<LegacyCustomSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
-
-        std::shared_ptr<SettingValue> getValue() const;
-        void setValue(std::shared_ptr<SettingValue> value);
-
-        bool load(matjson::Value const& json) override;
-        bool save(matjson::Value& json) const override;
-        SettingNodeV3* createNode(float width) override;
-
-        bool isDefaultValue() const override;
-        void reset() override;
-        
-        std::optional<Setting> convertToLegacy() const override;
-        std::optional<std::shared_ptr<SettingValue>> convertToLegacyValue() const override;
-    };
-
     class GEODE_DLL BoolSettingV3 final : public SettingBaseValueV3<bool> {
     private:
         class Impl;
@@ -404,9 +359,6 @@ namespace geode {
         Result<> isValid(bool value) const override;
         
         SettingNodeV3* createNode(float width) override;
-
-        std::optional<Setting> convertToLegacy() const override;
-        std::optional<std::shared_ptr<SettingValue>> convertToLegacyValue() const override;
     };
 
     class GEODE_DLL IntSettingV3 final : public SettingBaseValueV3<int64_t> {
@@ -436,9 +388,6 @@ namespace geode {
         bool isInputEnabled() const;
     
         SettingNodeV3* createNode(float width) override;
-
-        std::optional<Setting> convertToLegacy() const override;
-        std::optional<std::shared_ptr<SettingValue>> convertToLegacyValue() const override;
     };
 
     class GEODE_DLL FloatSettingV3 final : public SettingBaseValueV3<double> {
@@ -468,9 +417,6 @@ namespace geode {
         bool isInputEnabled() const;
         
         SettingNodeV3* createNode(float width) override;
-
-        std::optional<Setting> convertToLegacy() const override;
-        std::optional<std::shared_ptr<SettingValue>> convertToLegacyValue() const override;
     };
 
     class GEODE_DLL StringSettingV3 final : public SettingBaseValueV3<std::string, std::string_view> {
@@ -493,9 +439,6 @@ namespace geode {
         std::optional<std::vector<std::string>> getEnumOptions() const;
         
         SettingNodeV3* createNode(float width) override;
-
-        std::optional<Setting> convertToLegacy() const override;
-        std::optional<std::shared_ptr<SettingValue>> convertToLegacyValue() const override;
     };
 
     class GEODE_DLL FileSettingV3 final : public SettingBaseValueV3<std::filesystem::path, std::filesystem::path const&> {
@@ -519,9 +462,6 @@ namespace geode {
         std::optional<std::vector<utils::file::FilePickOptions::Filter>> getFilters() const;
         
         SettingNodeV3* createNode(float width) override;
-
-        std::optional<Setting> convertToLegacy() const override;
-        std::optional<std::shared_ptr<SettingValue>> convertToLegacyValue() const override;
     };
 
     class GEODE_DLL Color3BSettingV3 final : public SettingBaseValueV3<cocos2d::ccColor3B> {
@@ -540,9 +480,6 @@ namespace geode {
         Result<> isValid(cocos2d::ccColor3B value) const override;
 
         SettingNodeV3* createNode(float width) override;
-
-        std::optional<Setting> convertToLegacy() const override;
-        std::optional<std::shared_ptr<SettingValue>> convertToLegacyValue() const override;
     };
 
     class GEODE_DLL Color4BSettingV3 final : public SettingBaseValueV3<cocos2d::ccColor4B> {
@@ -561,9 +498,6 @@ namespace geode {
         Result<> isValid(cocos2d::ccColor4B value) const override;
 
         SettingNodeV3* createNode(float width) override;
-
-        std::optional<Setting> convertToLegacy() const override;
-        std::optional<std::shared_ptr<SettingValue>> convertToLegacyValue() const override;
     };
 
     class GEODE_DLL SettingNodeV3 : public cocos2d::CCNode {

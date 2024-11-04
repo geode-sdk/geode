@@ -20,10 +20,6 @@ std::string Mod::getName() const {
     return m_impl->getName();
 }
 
-std::string Mod::getDeveloper() const {
-    return m_impl->getDevelopers().empty() ? "" : m_impl->getDevelopers().front();
-}
-
 std::vector<std::string> Mod::getDevelopers() const {
     return m_impl->getDevelopers();
 }
@@ -101,9 +97,6 @@ std::vector<Mod*> Mod::getDependants() const {
 }
 #endif
 
-std::optional<VersionInfo> Mod::hasAvailableUpdate() const {
-    return std::nullopt;
-}
 Mod::CheckUpdatesTask Mod::checkUpdates() const {
     return server::checkUpdates(this).map(
         [](auto* result) -> Mod::CheckUpdatesTask::Value {
@@ -159,24 +152,10 @@ bool Mod::hasSetting(std::string_view const key) const {
     return m_impl->hasSetting(key);
 }
 
-std::optional<Setting> Mod::getSettingDefinition(std::string_view const key) const {
-    return m_impl->m_settings->getLegacyDefinition(std::string(key));
-}
-
-SettingValue* Mod::getSetting(std::string_view const key) const {
-    return m_impl->m_settings->getLegacy(std::string(key)).get();
-}
-
 std::shared_ptr<SettingV3> Mod::getSettingV3(std::string_view const key) const {
     return m_impl->m_settings->get(std::string(key));
 }
 
-void Mod::registerCustomSetting(std::string_view const key, std::unique_ptr<SettingValue> value) {
-    auto reg = m_impl->m_settings->registerLegacyCustomSetting(key, std::move(value));
-    if (!reg) {
-        log::error("Unable to register custom setting: {}", reg.unwrapErr());
-    }
-}
 Result<> Mod::registerCustomSettingType(std::string_view type, SettingGenerator generator) {
     return m_impl->m_settings->registerCustomSettingType(type, generator);
 }

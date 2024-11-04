@@ -102,9 +102,7 @@ void updater::downloadLatestLoaderResources() {
     log::debug("Downloading latest resources", Loader::get()->getVersion().toVString());
     fetchLatestGithubRelease(
         [](matjson::Value const& raw) {
-            auto json = raw;
-            JsonChecker checker(json);
-            auto root = checker.root("[]").obj();
+            auto root = checkJson(raw, "[]");
 
             // find release asset
             for (auto asset : root.needs("assets").iterate()) {
@@ -206,9 +204,7 @@ void updater::downloadLoaderResources(bool useLatestRelease) {
             RUNNING_REQUESTS.erase("@downloadLoaderResources");
             if (response->ok()) {
                 if (auto ok = response->json()) {
-                    auto json = ok.unwrap();
-                    JsonChecker checker(json);
-                    auto root = checker.root("[]").obj();
+                    auto root = checkJson(ok.unwrap(), "[]");
 
                     // find release asset
                     for (auto asset : root.needs("assets").iterate()) {
@@ -362,9 +358,7 @@ void updater::checkForLoaderUpdates() {
     // Check for updates in the background
     fetchLatestGithubRelease(
         [](matjson::Value const& raw) {
-            auto json = raw;
-            JsonChecker checker(json);
-            auto root = checker.root("[]").obj();
+            auto root = checkJson(raw, "[]");
 
             VersionInfo ver { 0, 0, 0 };
             root.needs("tag_name").into(ver);

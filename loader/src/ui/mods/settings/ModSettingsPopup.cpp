@@ -1,7 +1,6 @@
 #include "ModSettingsPopup.hpp"
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <Geode/loader/Setting.hpp>
 #include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/utils/cocos.hpp>

@@ -134,11 +134,6 @@ namespace geode {
     GEODE_DLL void openSupportPopup(Mod* mod);
     GEODE_DLL void openSupportPopup(ModMetadata const& metadata);
     /**
-     * Open the store page for a mod (if it exists)
-     */
-    [[deprecated("Will be removed, use openInfoPopup instead")]]
-    GEODE_DLL void openIndexPopup(Mod* mod);
-    /**
      * Open the settings popup for a mod (if it has any settings)
      */
     GEODE_DLL void openSettingsPopup(Mod* mod);

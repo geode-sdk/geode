@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Geode/loader/SettingV3.hpp>
-#include <Geode/loader/SettingNode.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
 #include <Geode/binding/ColorChannelSprite.hpp>
 #include <Geode/binding/Slider.hpp>
@@ -310,28 +309,6 @@ protected:
 public:
     static UnresolvedCustomSettingNodeV3* create(std::string_view key, Mod* mod, float width);
     
-    bool hasUncommittedChanges() const override;
-    bool hasNonDefaultValue() const override;
-    void onResetToDefault() override;
-};
-
-// If these classes do get exposed in headers, 
-// LegacyCustomSettingToV3Node SHOULD NOT BE EXPOSED!!!!!! DO NOT DO THAT!!!!
-
-class LegacyCustomSettingToV3Node : public SettingNodeV3, public SettingNodeDelegate {
-protected:
-    SettingNode* m_original;
-
-    bool init(std::shared_ptr<LegacyCustomSettingV3> original, float width);
-
-    void onCommit() override;
-
-    void settingValueChanged(SettingNode*) override;
-    void settingValueCommitted(SettingNode*) override;
-
-public:
-    static LegacyCustomSettingToV3Node* create(std::shared_ptr<LegacyCustomSettingV3> original, float width);
-
     bool hasUncommittedChanges() const override;
     bool hasNonDefaultValue() const override;
     void onResetToDefault() override;

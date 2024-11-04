@@ -17,15 +17,6 @@
 namespace geode {
     using ByteVector = std::vector<uint8_t>;
 
-    // todo in v4: remove this
-    template <typename T>
-    [[deprecated("Use geode::toBytes instead")]]
-    ByteVector toByteArray(T const& a) {
-        ByteVector out;
-        out.resize(sizeof(T));
-        std::memcpy(out.data(), &a, sizeof(T));
-        return out;
-    }
     template <typename T>
     ByteVector toBytes(T const& a) {
         ByteVector out;

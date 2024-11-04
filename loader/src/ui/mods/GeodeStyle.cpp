@@ -1,7 +1,6 @@
 #include "GeodeStyle.hpp"
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/ColorProvider.hpp>
-#include <Geode/loader/SettingEvent.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/ui/LoadingSpinner.hpp>
 

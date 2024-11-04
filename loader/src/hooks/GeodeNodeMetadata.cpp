@@ -62,10 +62,6 @@ public:
         return meta;
     }
 
-    FieldContainer* getFieldContainer() {
-        return nullptr;
-    }
-
     FieldContainer* getFieldContainer(char const* forClass) {
         if (!m_classFieldContainers.count(forClass)) {
             m_classFieldContainers[forClass] = new FieldContainer();
@@ -102,11 +98,6 @@ struct ProxyCCNode : Modify<ProxyCCNode, CCNode> {
 static inline std::unordered_map<std::string, size_t> s_nextIndex;
 size_t modifier::getFieldIndexForClass(char const* name) {
 	return s_nextIndex[name]++;
-}
-
-// not const because might modify contents
-FieldContainer* CCNode::getFieldContainer() {
-    return GeodeNodeMetadata::set(this)->getFieldContainer();
 }
 
 FieldContainer* CCNode::getFieldContainer(char const* forClass) {
@@ -454,14 +445,5 @@ void CCNode::updateAnchoredPosition(Anchor anchor, CCPoint const& offset, CCPoin
         opts->setOffset(offset);
     }
 }
-
-#ifdef GEODE_EXPORTING
-
-void CCNode::setAttribute(std::string const& attr, matjson::Value const& value) {}
-std::optional<matjson::Value> CCNode::getAttributeInternal(std::string const& attr) {
-    return std::nullopt;
-}
-
-#endif
 
 #pragma warning(pop)

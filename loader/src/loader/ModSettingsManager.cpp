@@ -13,8 +13,6 @@ private:
     std::unordered_map<std::string, SettingGenerator> m_types;
 
     SharedSettingTypesPool() : m_types({
-        // todo in v4: remove this
-        { "custom", &LegacyCustomSettingV3::parse },
         { "title", &TitleSettingV3::parse },
         { "bool", &BoolSettingV3::parse },
         { "int", &IntSettingV3::parse },
@@ -202,19 +200,6 @@ Result<> ModSettingsManager::registerLegacyCustomSetting(std::string_view key, s
     if (!m_impl->settings.count(id)) {
         return Err("No such setting '{}' in mod {}", id, m_impl->modID);
     }
-    auto& sett = m_impl->settings.at(id);
-    if (auto custom = typeinfo_pointer_cast<LegacyCustomSettingV3>(sett.v3)) {
-        if (!custom->getValue()) {
-            custom->setValue(std::move(ptr));
-            m_impl->loadSettingValueFromSave(id);
-        }
-        else {
-            return Err("Setting '{}' in mod {} has already been registed", id, m_impl->modID);
-        }
-    }
-    else {
-        return Err("Setting '{}' in mod {} is not a legacy custom setting", id, m_impl->modID);
-    }
     return Ok();
 }
 
@@ -243,33 +228,6 @@ matjson::Value& ModSettingsManager::getSaveData() {
 std::shared_ptr<SettingV3> ModSettingsManager::get(std::string_view key) {
     auto id = std::string(key);
     return m_impl->settings.count(id) ? m_impl->settings.at(id).v3 : nullptr;
-}
-std::shared_ptr<SettingValue> ModSettingsManager::getLegacy(std::string_view key) {
-    auto id = std::string(key);
-    if (!m_impl->settings.count(id)) {
-        return nullptr;
-    }
-    auto& info = m_impl->settings.at(id);
-    // If this setting has alreay been given a legacy interface, give that
-    if (info.legacy) {
-        return info.legacy;
-    }
-    // Uninitialized settings are null
-    if (!info.v3) {
-        return nullptr;
-    }
-    // Generate new legacy interface
-    if (auto legacy = info.v3->convertToLegacyValue()) {
-        info.legacy.swap(*legacy);
-        return info.legacy;
-    }
-    return nullptr;
-}
-std::optional<Setting> ModSettingsManager::getLegacyDefinition(std::string_view key) {
-    if (auto s = this->get(key)) {
-        return s->convertToLegacy();
-    }
-    return std::nullopt;
 }
 
 bool ModSettingsManager::restartRequired() const {
