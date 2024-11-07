@@ -416,6 +416,8 @@ Result<> ModMetadata::Impl::addSpecialFiles(file::Unzip& unzip) {
     // unzip known MD files
     for (auto& [file, target] : this->getSpecialFiles()) {
         if (unzip.hasEntry(file)) {
+            // reference to local binding 'file' declared in enclosing function 
+            std::string_view file(file); 
             GEODE_UNWRAP_INTO(auto data, unzip.extract(file).mapErr([&](auto const& err) {
                 return fmt::format("Unable to extract \"{}\": {}", file, err);
             }));
