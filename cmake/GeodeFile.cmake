@@ -156,12 +156,6 @@ function(setup_geode_mod proname)
         set(INSTALL_ARG "--install")
     endif()
 
-    if (GEODE_BUNDLE_PDB AND WIN32)
-    	set(PDB_ARG "--pdb")
-    else()
-    	set(PDB_ARG "")
-    endif()
-
     # The lib binary should be passed only if some headers were provided
     if (MOD_HAS_API)
         message(STATUS "Including library & headers with ${proname}")
@@ -170,14 +164,34 @@ function(setup_geode_mod proname)
         set(HAS_HEADERS Off)
     endif()
 
-    if (HAS_HEADERS AND WIN32)
+    if (GEODE_BUNDLE_PDB AND WIN32 AND (CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo"))
+        if (HAS_HEADERS)
+            add_custom_target(${proname}_PACKAGE ALL
+                DEPENDS ${proname} ${CMAKE_CURRENT_SOURCE_DIR}/mod.json
+                COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
+                    --binary $<TARGET_FILE:${proname}> $<TARGET_LINKER_FILE:${proname}> $<TARGET_PDB_FILE:${proname}>
+                    --output ${CMAKE_CURRENT_BINARY_DIR}/${MOD_ID}.geode
+                    ${INSTALL_ARG} ${PDB_ARG}
+                VERBATIM USES_TERMINAL
+            )
+        else()
+            add_custom_target(${proname}_PACKAGE ALL
+                DEPENDS ${proname} ${CMAKE_CURRENT_SOURCE_DIR}/mod.json
+                COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
+                    --binary $<TARGET_FILE:${proname}> $<TARGET_PDB_FILE:${proname}>
+                    --output ${CMAKE_CURRENT_BINARY_DIR}/${MOD_ID}.geode
+                    ${INSTALL_ARG} ${PDB_ARG}
+                VERBATIM USES_TERMINAL
+            )
+        endif()
+    elseif (HAS_HEADERS AND WIN32)
         # this adds the .lib file on windows, which is needed for linking with the headers
         add_custom_target(${proname}_PACKAGE ALL
             DEPENDS ${proname} ${CMAKE_CURRENT_SOURCE_DIR}/mod.json
             COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
                 --binary $<TARGET_FILE:${proname}> $<TARGET_LINKER_FILE:${proname}>
                 --output ${CMAKE_CURRENT_BINARY_DIR}/${MOD_ID}.geode
-                ${INSTALL_ARG} ${PDB_ARG}
+                ${INSTALL_ARG}
             VERBATIM USES_TERMINAL
         )
     else()
@@ -186,7 +200,7 @@ function(setup_geode_mod proname)
             COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
                 --binary $<TARGET_FILE:${proname}>
                 --output ${CMAKE_CURRENT_BINARY_DIR}/${MOD_ID}.geode
-                ${INSTALL_ARG} ${PDB_ARG}
+                ${INSTALL_ARG}
             VERBATIM USES_TERMINAL
         )
     endif()
