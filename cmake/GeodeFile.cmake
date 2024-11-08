@@ -156,6 +156,12 @@ function(setup_geode_mod proname)
         set(INSTALL_ARG "--install")
     endif()
 
+    if (GEODE_BUNDLE_PDB AND WIN32)
+    	set(PDB_ARG "--pdb")
+    else()
+    	set(PDB_ARG "")
+    endif()
+
     # The lib binary should be passed only if some headers were provided
     if (MOD_HAS_API)
         message(STATUS "Including library & headers with ${proname}")
@@ -171,7 +177,7 @@ function(setup_geode_mod proname)
             COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
                 --binary $<TARGET_FILE:${proname}> $<TARGET_LINKER_FILE:${proname}>
                 --output ${CMAKE_CURRENT_BINARY_DIR}/${MOD_ID}.geode
-                ${INSTALL_ARG}
+                ${INSTALL_ARG} ${PDB_ARG}
             VERBATIM USES_TERMINAL
         )
     else()
@@ -180,7 +186,7 @@ function(setup_geode_mod proname)
             COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
                 --binary $<TARGET_FILE:${proname}>
                 --output ${CMAKE_CURRENT_BINARY_DIR}/${MOD_ID}.geode
-                ${INSTALL_ARG}
+                ${INSTALL_ARG} ${PDB_ARG}
             VERBATIM USES_TERMINAL
         )
     endif()
