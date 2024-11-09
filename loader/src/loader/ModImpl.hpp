@@ -1,6 +1,6 @@
 #pragma once
 
-#include <matjson.hpp>
+#include <matjson3.hpp>
 #include "ModPatch.hpp"
 #include <Geode/loader/Loader.hpp>
 #include <string_view>
@@ -47,7 +47,7 @@ namespace geode {
         /**
          * Saved values
          */
-        matjson::Value m_saved = matjson::Object();
+        matjson::Value m_saved = matjson::Value();
         /**
          * Setting values. This is behind unique_ptr for interior mutability
          */

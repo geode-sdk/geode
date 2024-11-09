@@ -3,7 +3,7 @@
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/string.hpp>
-#include <matjson.hpp>
+#include <matjson3.hpp>
 #include <fstream>
 #include <mz.h>
 #include <mz_os.h>

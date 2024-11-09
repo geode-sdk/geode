@@ -8,7 +8,7 @@
 #include "Types.hpp"
 
 #include <atomic>
-#include <matjson.hpp>
+#include <matjson3.hpp>
 #include <mutex>
 #include <optional>
 #include <string_view>
@@ -121,7 +121,7 @@ namespace geode {
          * @param name The argument name
          */
         template <class T>
-        std::optional<T> parseLaunchArgument(std::string_view const name) const {
+        Result<T> parseLaunchArgument(std::string_view const name) const {
             auto str = this->getLaunchArgument(name);
             if (!str.has_value()) {
                 return std::nullopt;
@@ -133,10 +133,7 @@ namespace geode {
                 return std::nullopt;
             }
             auto value = jsonOpt.value();
-            if (!value.is<T>()) {
-                return std::nullopt;
-            }
-            return value.as<T>();
+            return value.template as<T>();
         }
 
         void queueInMainThread(ScheduledFunction&& func);

@@ -5,7 +5,7 @@
 #include "../loader/Event.hpp"
 #include "Task.hpp"
 
-#include <matjson.hpp>
+#include <matjson3.hpp>
 #include <Geode/DefaultInclude.hpp>
 #include <filesystem>
 #include <string>
@@ -13,14 +13,15 @@
 
 template <>
 struct matjson::Serialize<std::filesystem::path> {
-    static matjson::Value to_json(std::filesystem::path const& path) {
-        return path.string();
+    static geode::Result<std::filesystem::path, std::string> fromJson(Value const& value)
+    {
+        auto str = GEODE_UNWRAP(value.asString());
+        return geode::Ok(std::filesystem::path(str).make_preferred());
     }
-    static std::filesystem::path from_json(matjson::Value const& value) {
-        return std::filesystem::path(value.as_string()).make_preferred();
-    }
-    static bool is_json(matjson::Value const& value) {
-        return value.is_string();
+
+    static Value toJson(std::filesystem::path const& value)
+    {
+        return Value(value.string());
     }
 };
 
@@ -32,10 +33,7 @@ namespace geode::utils::file {
     template <class T>
     Result<T> readFromJson(std::filesystem::path const& file) {
         GEODE_UNWRAP_INTO(auto json, readJson(file));
-        if (!json.is<T>()) {
-            return Err("JSON is not of type {}", typeid(T).name());
-        }
-        return Ok(json.as<T>());
+        return json.as<T>();
     }
 
     GEODE_DLL Result<> writeString(std::filesystem::path const& path, std::string const& data);

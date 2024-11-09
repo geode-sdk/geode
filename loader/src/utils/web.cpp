@@ -3,7 +3,7 @@
 #include <filesystem>
 #include <fmt/core.h>
 #include <fstream>
-#include <matjson.hpp>
+#include <matjson3.hpp>
 #include <system_error>
 #define CURL_STATICLIB
 #include <curl/curl.h>

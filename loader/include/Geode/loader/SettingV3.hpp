@@ -306,14 +306,15 @@ namespace geode {
         }
 
         bool load(matjson::Value const& json) override {
-            if (json.is<T>()) {
-                m_impl->value = json.as<T>();
-                return true;
+            auto res = json.as<T>();
+            if (res.isErr()) {
+                return false;
             }
-            return false;
+            m_impl->value = res.unwrap();
+            return true;
         }
         bool save(matjson::Value& json) const override {
-            json = m_impl->value;
+            json = matjson::Value(m_impl->value);
             return true;
         }
     };

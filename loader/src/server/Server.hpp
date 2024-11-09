@@ -4,7 +4,7 @@
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/utils/web.hpp>
 #include <chrono>
-#include <matjson.hpp>
+#include <matjson3.hpp>
 #include <vector>
 
 using namespace geode::prelude;

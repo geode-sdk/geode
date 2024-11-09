@@ -1,6 +1,6 @@
 #include <Geode/loader/IPC.hpp>
 #include "IPC.hpp"
-#include <matjson.hpp>
+#include <matjson3.hpp>
 #include <Geode/loader/Mod.hpp>
 
 using namespace geode::prelude;

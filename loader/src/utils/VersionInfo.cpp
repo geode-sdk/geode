@@ -4,7 +4,7 @@
 
 #include <Geode/utils/VersionInfo.hpp>
 #include <Geode/utils/general.hpp>
-#include <matjson.hpp>
+#include <matjson3.hpp>
 
 using namespace geode::prelude;
 

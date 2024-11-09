@@ -1,6 +1,6 @@
 #pragma once
 
-#include <matjson.hpp>
+#include <matjson3.hpp>
 #include "../loader/Log.hpp"
 #include <set>
 #include <variant>
@@ -104,21 +104,14 @@ namespace geode {
                 return this->getJSONRef();
             }
             else {
-                try {
-                    if (this->getJSONRef().is<T>()) {
-                        return this->getJSONRef().as<T>();
-                    }
-                    else {
-                        this->setError(
-                            "unexpected type {}",
-                            this->matJsonTypeToString(this->getJSONRef().type())
-                        );
-                    }
+                auto res = this->getJSONRef().as<T>();
+                if (res) {
+                    return res.unwrap();
                 }
-                // matjson can throw variant exceptions too so you need to do this
-                catch(std::exception const& e) {
-                    this->setError("unable to parse json: {}", e);
-                }
+                this->setError(
+                    "unexpected type {}",
+                    this->matJsonTypeToString(this->getJSONRef().type())
+                );
             }
             return std::nullopt;
         }

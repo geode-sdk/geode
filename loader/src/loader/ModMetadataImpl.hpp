@@ -74,52 +74,44 @@ namespace geode {
 
 template <>
 struct matjson::Serialize<geode::ModMetadata::Dependency::Importance> {
-    static matjson::Value GEODE_DLL to_json(geode::ModMetadata::Dependency::Importance const& importance) {
-        switch (importance) {
-            case geode::ModMetadata::Dependency::Importance::Required: return {"required"};
-            case geode::ModMetadata::Dependency::Importance::Recommended: return {"recommended"};
-            case geode::ModMetadata::Dependency::Importance::Suggested: return {"suggested"};
-            default: return {"unknown"};
-        }
-    }
-    static geode::ModMetadata::Dependency::Importance GEODE_DLL from_json(matjson::Value const& importance) {
-        auto impStr = importance.as_string();
-        if (impStr == "required")
-            return geode::ModMetadata::Dependency::Importance::Required;
-        if (impStr == "recommended")
-            return geode::ModMetadata::Dependency::Importance::Recommended;
-        if (impStr == "suggested")
-            return geode::ModMetadata::Dependency::Importance::Suggested;
-        throw matjson::JsonException(R"(Expected importance to be "required", "recommended" or "suggested")");
+    static geode::Result<geode::ModMetadata::Dependency::Importance, std::string> fromJson(Value const& value)
+    {
+        auto str = GEODE_UNWRAP(value.asString());
+        if (str == "required") return geode::Ok(geode::ModMetadata::Dependency::Importance::Required);
+        if (str == "recommended") return geode::Ok(geode::ModMetadata::Dependency::Importance::Recommended);
+        if (str == "suggested") return geode::Ok(geode::ModMetadata::Dependency::Importance::Suggested);
+        return geode::Err("Invalid importance");
     }
 
-    static bool is_json(matjson::Value const& value) {
-        return value.is_string();
+    static Value toJson(geode::ModMetadata::Dependency::Importance const& value)
+    {
+        switch (value) {
+            case geode::ModMetadata::Dependency::Importance::Required: return "required";
+            case geode::ModMetadata::Dependency::Importance::Recommended: return "recommended";
+            case geode::ModMetadata::Dependency::Importance::Suggested: return "suggested";
+        }
+        return "unknown";
     }
 };
 
 template <>
 struct matjson::Serialize<geode::ModMetadata::Incompatibility::Importance> {
-    static matjson::Value GEODE_DLL to_json(geode::ModMetadata::Incompatibility::Importance const& importance) {
-        switch (importance) {
-            case geode::ModMetadata::Incompatibility::Importance::Breaking: return {"breaking"};
-            case geode::ModMetadata::Incompatibility::Importance::Conflicting: return {"conflicting"};
-            case geode::ModMetadata::Incompatibility::Importance::Superseded: return {"superseded"};
-            default: return {"unknown"};
-        }
-    }
-    static geode::ModMetadata::Incompatibility::Importance GEODE_DLL from_json(matjson::Value const& importance) {
-        auto impStr = importance.as_string();
-        if (impStr == "breaking")
-            return geode::ModMetadata::Incompatibility::Importance::Breaking;
-        if (impStr == "conflicting")
-            return geode::ModMetadata::Incompatibility::Importance::Conflicting;
-        if (impStr == "superseded")
-            return geode::ModMetadata::Incompatibility::Importance::Superseded;
-        throw matjson::JsonException(R"(Expected importance to be "breaking", "conflicting", or "superseded")");
+    static geode::Result<geode::ModMetadata::Incompatibility::Importance, std::string> fromJson(Value const& value)
+    {
+        auto str = GEODE_UNWRAP(value.asString());
+        if (str == "breaking") return geode::Ok(geode::ModMetadata::Incompatibility::Importance::Breaking);
+        if (str == "conflicting") return geode::Ok(geode::ModMetadata::Incompatibility::Importance::Conflicting);
+        if (str == "superseded") return geode::Ok(geode::ModMetadata::Incompatibility::Importance::Superseded);
+        return geode::Err("Invalid importance");
     }
 
-    static bool is_json(matjson::Value const& value) {
-        return value.is_string();
+    static Value toJson(geode::ModMetadata::Incompatibility::Importance const& value)
+    {
+        switch (value) {
+            case geode::ModMetadata::Incompatibility::Importance::Breaking: return "breaking";
+            case geode::ModMetadata::Incompatibility::Importance::Conflicting: return "conflicting";
+            case geode::ModMetadata::Incompatibility::Importance::Superseded: return "superseded";
+        }
+        return "unknown";
     }
 };

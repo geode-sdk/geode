@@ -5,7 +5,7 @@
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/general.hpp>
 #include <about.hpp>
-#include <matjson.hpp>
+#include <matjson3.hpp>
 #include <utility>
 #include <clocale>
 
