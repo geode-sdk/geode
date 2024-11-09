@@ -2,7 +2,7 @@
 
 #include "FileWatcher.hpp"
 
-#include <matjson3.hpp>
+#include <matjson.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>

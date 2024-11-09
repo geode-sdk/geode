@@ -41,7 +41,7 @@
 #include <Geode/utils/casts.hpp>
 
 #ifndef GEODE_IS_MEMBER_TEST
-#include <matjson3.hpp>
+#include <matjson.hpp>
 #endif
 
 namespace geode {

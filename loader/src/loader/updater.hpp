@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <string>
-#include <matjson3.hpp>
+#include <matjson.hpp>
 #include <Geode/loader/Event.hpp>
 
 namespace geode::updater {

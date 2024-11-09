@@ -3,7 +3,7 @@
 #include <filesystem>
 #include <fmt/core.h>
 #include <fstream>
-#include <matjson3.hpp>
+#include <matjson.hpp>
 #include <system_error>
 #define CURL_STATICLIB
 #include <curl/curl.h>
@@ -130,12 +130,9 @@ Result<std::string> WebResponse::string() const {
 }
 Result<matjson::Value> WebResponse::json() const {
     GEODE_UNWRAP_INTO(auto value, this->string());
-    std::string error;
-    auto res = matjson::parse(value, error);
-    if (error.size() > 0) {
-        return Err("Error parsing JSON: " + error);
-    }
-    return Ok(res.value());
+    return matjson::parse(value).mapErr([&](auto const& err) {
+        return fmt::format("Error parsing JSON: {}", err);
+    });
 }
 ByteVector WebResponse::data() const {
     return m_impl->m_data;
@@ -595,7 +592,8 @@ WebRequest& WebRequest::bodyString(std::string_view str) {
 }
 WebRequest& WebRequest::bodyJSON(matjson::Value const& json) {
     this->header("Content-Type", "application/json");
-    std::string str = json.dump(matjson::NO_INDENTATION);
+    // TODO: mat
+    std::string str = json.dump(matjson::NO_INDENTATION).unwrapOr("");
     m_impl->m_body = ByteVector { str.begin(), str.end() };
     return *this;
 }

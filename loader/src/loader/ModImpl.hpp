@@ -1,6 +1,6 @@
 #pragma once
 
-#include <matjson3.hpp>
+#include <matjson.hpp>
 #include "ModPatch.hpp"
 #include <Geode/loader/Loader.hpp>
 #include <string_view>

@@ -190,15 +190,12 @@ Result<> Mod::Impl::loadData() {
     auto savedPath = m_saveDirPath / "saved.json";
     if (std::filesystem::exists(savedPath)) {
         GEODE_UNWRAP_INTO(auto data, utils::file::readString(savedPath));
-        std::string error;
-        auto res = matjson::parse(data, error);
-        if (error.size() > 0) {
-            return Err("Unable to parse saved values: " + error);
-        }
-        m_saved = res.value();
-        if (!m_saved.is_object()) {
+        m_saved = GEODE_UNWRAP(matjson::parse(data).mapErr([](auto&& err) {
+            return fmt::format("Unable to parse saved values: {}", err);
+        }));
+        if (!m_saved.isObject()) {
             log::warn("saved.json was somehow not an object, forcing it to one");
-            m_saved = matjson::Object();
+            m_saved = matjson::Value::object();
         }
     }
 
@@ -218,11 +215,15 @@ Result<> Mod::Impl::saveData() {
     // saveData is expected to be synchronous, and always called from GD thread
     ModStateEvent(m_self, ModEventType::DataSaved).post();
 
-    auto res = utils::file::writeString(m_saveDirPath / "settings.json", json.dump());
+    auto res = json.dump().andThen([&](auto const& str) {
+        return utils::file::writeString(m_saveDirPath / "settings.json", str);
+    });
     if (!res) {
         log::error("Unable to save settings: {}", res.unwrapErr());
     }
-    auto res2 = utils::file::writeString(m_saveDirPath / "saved.json", m_saved.dump());
+    auto res2 = m_saved.dump().andThen([&](auto const& str) {
+        return utils::file::writeString(m_saveDirPath / "saved.json", str);
+    });
     if (!res2) {
         log::error("Unable to save values: {}", res2.unwrapErr());
     }
@@ -387,7 +388,7 @@ Result<> Mod::Impl::uninstall(bool deleteSaveData) {
         ModRequestedAction::Uninstall;
 
     // Make loader forget the mod should be disabled
-    Mod::get()->getSaveContainer().try_erase("should-load-" + m_metadata.getID());
+    Mod::get()->getSaveContainer().erase("should-load-" + m_metadata.getID());
 
     std::error_code ec;
     std::filesystem::remove(m_metadata.getPath(), ec);
@@ -674,14 +675,14 @@ std::string_view Mod::Impl::expandSpriteName(std::string_view name) {
 ModJson Mod::Impl::getRuntimeInfo() const {
     auto json = m_metadata.toJSON();
 
-    auto obj = matjson::Object();
-    obj["hooks"] = matjson::Array();
+    auto obj = matjson::Value::object();
+    obj["hooks"] = matjson::Value::array();
     for (auto hook : m_hooks) {
-        obj["hooks"].as_array().push_back(ModJson(hook->getRuntimeInfo()));
+        obj["hooks"].push(ModJson(hook->getRuntimeInfo()));
     }
-    obj["patches"] = matjson::Array();
+    obj["patches"] = matjson::Value::array();
     for (auto patch : m_patches) {
-        obj["patches"].as_array().push_back(ModJson(patch->getRuntimeInfo()));
+        obj["patches"].push(ModJson(patch->getRuntimeInfo()));
     }
     obj["loaded"] = m_enabled;
     obj["temp-dir"] = this->getTempDir();
@@ -722,12 +723,9 @@ std::vector<LoadProblem> Mod::Impl::getProblems() const {
 }
 
 static Result<ModMetadata> getModImplInfo() {
-    std::string error;
-    auto res = matjson::parse(about::getLoaderModJson(), error);
-    if (error.size() > 0) {
-        return Err("Unable to parse mod.json: " + error);
-    }
-    matjson::Value json = res.value();
+    auto json = GEODE_UNWRAP(matjson::parse(about::getLoaderModJson()).mapErr([](auto&& err) {
+        return fmt::format("Unable to parse mod.json: {}", err);
+    }));
 
     GEODE_UNWRAP_INTO(auto info, ModMetadata::create(json));
     return Ok(info);

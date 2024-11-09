@@ -5,7 +5,7 @@
 #include "../loader/Event.hpp"
 #include "Task.hpp"
 
-#include <matjson3.hpp>
+#include <matjson.hpp>
 #include <Geode/DefaultInclude.hpp>
 #include <filesystem>
 #include <string>
@@ -15,7 +15,7 @@ template <>
 struct matjson::Serialize<std::filesystem::path> {
     static geode::Result<std::filesystem::path, std::string> fromJson(Value const& value)
     {
-        auto str = GEODE_UNWRAP(value.asString());
+        GEODE_UNWRAP_INTO(auto str, value.asString());
         return geode::Ok(std::filesystem::path(str).make_preferred());
     }
 

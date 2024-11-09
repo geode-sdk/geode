@@ -1,6 +1,6 @@
 #include <Geode/modify/LoadingLayer.hpp>
 #include <Geode/utils/cocos.hpp>
-#include <matjson3.hpp>
+#include <matjson.hpp>
 #include <charconv>
 #include <Geode/binding/CCTextInputNode.hpp>
 #include <Geode/binding/GameManager.hpp>
@@ -32,6 +32,7 @@ Result<cocos2d::ccColor3B, std::string> matjson::Serialize<ccColor3B>::fromJson(
         }
         return Ok(res.unwrap());
     }
+    return Err("Expected color to be array, object or hex string");
 }
 matjson::Value matjson::Serialize<ccColor3B>::toJson(cocos2d::ccColor3B const& value) {
     return matjson::makeObject({
@@ -68,6 +69,7 @@ Result<cocos2d::ccColor4B, std::string> matjson::Serialize<ccColor4B>::fromJson(
         }
         return Ok(res.unwrap());
     }
+    return Err("Expected color to be array, object or hex string");
 }
 
 matjson::Value matjson::Serialize<ccColor4B>::toJson(cocos2d::ccColor4B const& value) {

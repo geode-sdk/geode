@@ -2,7 +2,7 @@
 
 #include "../DefaultInclude.hpp"
 #include <string_view>
-#include <matjson3.hpp>
+#include <matjson.hpp>
 #include <tuple>
 #include <Geode/Result.hpp>
 
@@ -258,9 +258,9 @@ requires std::is_same_v<V, geode::VersionInfo> || std::is_same_v<V, geode::Compa
 struct matjson::Serialize<V> {
     static geode::Result<V, std::string> fromJson(Value const& value)
     {
-        auto str = GEODE_UNWRAP(value.asString());
-        auto version = GEODE_UNWRAP(V::parse(str).mapErr([](auto&& err) {
-            return geode::Err("Invalid version format: {}", err);
+        GEODE_UNWRAP_INTO(auto str, value.asString());
+        GEODE_UNWRAP_INTO(auto version, V::parse(str).mapErr([](auto&& err) {
+            return fmt::format("Invalid version format: {}", err);
         }));
         return geode::Ok(version);
     }

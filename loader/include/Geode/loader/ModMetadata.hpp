@@ -4,7 +4,7 @@
 #include "../utils/VersionInfo.hpp"
 #include "Types.hpp"
 
-#include <matjson3.hpp>
+#include <matjson.hpp>
 #include <memory>
 
 namespace geode {

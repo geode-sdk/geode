@@ -124,16 +124,11 @@ public:
             // Store the value in an intermediary so if `save` fails the existing 
             // value loaded from disk isn't overwritten
             matjson::Value value;
-            try {
-                if (sett.v3->save(value)) {
-                    this->savedata[key] = value;
-                }
-                else {
-                    log::error("Unable to save setting '{}' for mod {}", key, this->modID);
-                }
+            if (sett.v3->save(value)) {
+                this->savedata[key] = value;
             }
-            catch(matjson::JsonException const& e) {
-                log::error("Unable to save setting '{}' for mod {} (JSON exception): {}", key, this->modID, e.what());
+            else {
+                log::error("Unable to save setting '{}' for mod {}", key, this->modID);
             }
         }
     }
@@ -209,11 +204,11 @@ Result<> ModSettingsManager::registerCustomSettingType(std::string_view type, Se
 }
 
 Result<> ModSettingsManager::load(matjson::Value const& json) {
-    if (json.is_object()) {
+    if (json.isObject()) {
         // Save this so when custom settings are registered they can load their 
         // values properly
-        m_impl->savedata = json.as_object();
-        for (auto const& [key, _] : json.as_object()) {
+        m_impl->savedata = json;
+        for (auto const& [key, _] : json) {
            m_impl->loadSettingValueFromSave(key);
         }
     }

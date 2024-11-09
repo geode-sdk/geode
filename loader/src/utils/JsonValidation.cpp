@@ -168,6 +168,19 @@ JsonExpectedValue JsonExpectedValue::has(std::string_view key) {
     }
     return JsonExpectedValue(m_impl.get(), m_impl->scope[key], key);
 }
+JsonExpectedValue JsonExpectedValue::hasNullable(std::string_view key) {
+    if (this->hasError()) {
+        return JsonExpectedValue();
+    }
+    if (!this->assertIs(matjson::Type::Object)) {
+        return JsonExpectedValue();
+    }
+    m_impl->knownKeys.insert(std::string(key));
+    if (!m_impl->scope.contains(key) || m_impl->scope[key].isNull()) {
+        return JsonExpectedValue();
+    }
+    return JsonExpectedValue(m_impl.get(), m_impl->scope[key], key);
+}
 JsonExpectedValue JsonExpectedValue::needs(std::string_view key) {
     if (this->hasError()) {
         return JsonExpectedValue();
@@ -190,7 +203,7 @@ std::vector<std::pair<std::string, JsonExpectedValue>> JsonExpectedValue::proper
         return std::vector<std::pair<std::string, JsonExpectedValue>>();
     }
     std::vector<std::pair<std::string, JsonExpectedValue>> res;
-    for (auto& [k, v] : m_impl->scope.as_object()) {
+    for (auto& [k, v] : m_impl->scope) {
         res.push_back(std::make_pair(k, JsonExpectedValue(m_impl.get(), v, k)));
     }
     return res;
@@ -211,7 +224,7 @@ size_t JsonExpectedValue::length() {
     if (!this->assertIs(matjson::Type::Array)) {
         return 0;
     }
-    return m_impl->scope.as_array().size();
+    return m_impl->scope.size();
 }
 JsonExpectedValue JsonExpectedValue::at(size_t index) {
     if (this->hasError()) {
@@ -220,15 +233,14 @@ JsonExpectedValue JsonExpectedValue::at(size_t index) {
     if (!this->assertIs(matjson::Type::Array)) {
         return JsonExpectedValue();
     }
-    auto& arr = m_impl->scope.as_array();
-    if (arr.size() <= index) {
+    if (index >= m_impl->scope.size()) {
         this->setError(
             "array expected to have at least size {}, but its size was only {}",
-            index + 1, arr.size()
+            index + 1, m_impl->scope.size()
         );
         return JsonExpectedValue();
     }
-    return JsonExpectedValue(m_impl.get(), arr.at(index), std::to_string(index));
+    return JsonExpectedValue(m_impl.get(), m_impl->scope[index], std::to_string(index));
 }
 std::vector<JsonExpectedValue> JsonExpectedValue::items() {
     if (this->hasError()) {
@@ -239,7 +251,7 @@ std::vector<JsonExpectedValue> JsonExpectedValue::items() {
     }
     std::vector<JsonExpectedValue> res;
     size_t i = 0;
-    for (auto& v : m_impl->scope.as_array()) {
+    for (auto& v : m_impl->scope) {
         res.push_back(JsonExpectedValue(m_impl.get(), v, std::to_string(i++)));
     }
     return res;

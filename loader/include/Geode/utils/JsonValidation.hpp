@@ -1,6 +1,6 @@
 #pragma once
 
-#include <matjson3.hpp>
+#include <matjson.hpp>
 #include "../loader/Log.hpp"
 #include <set>
 #include <variant>
@@ -223,6 +223,13 @@ namespace geode {
          * @returns The key, which is a no-op value if it didn't exist
          */
         JsonExpectedValue has(std::string_view key);
+        /**
+         * Check if this object has an optional key. Asserts that this JSON 
+         * value is an object. If the key doesn't exist, or the value is null, returns a 
+         * `JsonExpectValue` that does nothing
+         * @returns The key, which is a no-op value if it didn't exist, or was null
+         */
+        JsonExpectedValue hasNullable(std::string_view key);
         /**
          * Check if this object has an optional key. Asserts that this JSON 
          * value is an object. If the key doesn't exist, sets an error and 

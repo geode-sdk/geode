@@ -3,7 +3,7 @@
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/string.hpp>
-#include <matjson3.hpp>
+#include <matjson.hpp>
 #include <fstream>
 #include <mz.h>
 #include <mz_os.h>
@@ -53,14 +53,10 @@ Result<std::string> utils::file::readString(std::filesystem::path const& path) {
 }
 
 Result<matjson::Value> utils::file::readJson(std::filesystem::path const& path) {
-    auto str = utils::file::readString(path);
-    if (!str)
-        return Err(str.unwrapErr());
-    std::string error;
-    auto res = matjson::parse(str.unwrap(), error);
-    if (error.size())
-        return Err("Unable to parse JSON: " + error);
-    return Ok(res.value());
+    auto str = GEODE_UNWRAP(utils::file::readString(path));
+    return matjson::parse(str).mapErr([&](auto const& err) {
+        return fmt::format("Unable to parse JSON: {}", err);
+    });
 }
 
 Result<ByteVector> utils::file::readBinary(std::filesystem::path const& path) {

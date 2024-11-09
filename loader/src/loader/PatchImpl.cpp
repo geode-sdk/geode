@@ -104,7 +104,7 @@ uintptr_t Patch::Impl::getAddress() const {
 }
 
 matjson::Value Patch::Impl::getRuntimeInfo() const {
-    auto json = matjson::Object();
+    auto json = matjson::Value::object();
     json["address"] = std::to_string(reinterpret_cast<uintptr_t>(m_address));
     json["original"] = m_original;
     json["patch"] = m_patch;

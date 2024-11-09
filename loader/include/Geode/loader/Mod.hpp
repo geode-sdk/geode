@@ -13,7 +13,7 @@
 #include "Types.hpp"
 #include "Loader.hpp"
 
-#include <matjson3.hpp>
+#include <matjson.hpp>
 #include <matjson/stl_serialize.hpp>
 #include <optional>
 #include <string_view>

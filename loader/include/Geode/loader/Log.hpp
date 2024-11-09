@@ -7,7 +7,7 @@
 #include <ccTypes.h>
 #include <chrono>
 #include <filesystem>
-#include <matjson3.hpp>
+#include <matjson.hpp>
 #include <type_traits>
 #include <fmt/core.h>
 // for formatting std::vector and such

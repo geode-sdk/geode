@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 #include <filesystem>
-#include <matjson3.hpp>
+#include <matjson.hpp>
 #include <charconv>
 #include <clocale>
 #include <type_traits>
@@ -170,9 +170,8 @@ namespace geode {
 
 template<>
 struct matjson::Serialize<geode::ByteVector> {
-    static Value toJson(geode::ByteVector const& bytes)
-    {
-        return matjson::Array(bytes.begin(), bytes.end());
+    static Value toJson(geode::ByteVector const& bytes) {
+        return std::vector<matjson::Value>(bytes.begin(), bytes.end());
     }
 };
 

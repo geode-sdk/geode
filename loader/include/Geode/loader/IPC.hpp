@@ -3,7 +3,7 @@
 #include "Event.hpp"
 #include "Loader.hpp"
 #include "Mod.hpp"
-#include <matjson3.hpp>
+#include <matjson.hpp>
 
 namespace geode::ipc {
     #ifdef GEODE_IS_WINDOWS

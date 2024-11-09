@@ -5,7 +5,7 @@
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/general.hpp>
 #include <about.hpp>
-#include <matjson3.hpp>
+#include <matjson.hpp>
 #include <utility>
 #include <clocale>
 
@@ -113,14 +113,14 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
 
     auto checkerRoot = fmt::format(
         "[{}/v0.0.0/mod.json]",
-        rawJson.contains("id") ? rawJson["id"].as_string() : "unknown.mod"
+        rawJson.contains("id") ? GEODE_UNWRAP(rawJson["id"].asString()) : "unknown.mod"
     );
     // JsonChecker did it this way too
     try {
         checkerRoot = fmt::format(
             "[{}/{}/mod.json]",
-            rawJson.contains("id") ? rawJson["id"].as_string() : "unknown.mod",
-            rawJson.contains("version") ? rawJson["version"].as<VersionInfo>().toVString() : "v0.0.0"
+            rawJson.contains("id") ? GEODE_UNWRAP(rawJson["id"].asString()) : "unknown.mod",
+            rawJson.contains("version") ? GEODE_UNWRAP(rawJson["version"].as<VersionInfo>()).toVString() : "v0.0.0"
         );
     }
     catch (...) { }
@@ -304,10 +304,10 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
 Result<ModMetadata> ModMetadata::Impl::create(ModJson const& json) {
     // Check mod.json target version
     auto schema = about::getLoaderVersion();
-    if (json.contains("geode") && json["geode"].is_string()) {
+    if (json.contains("geode") && json["geode"].isString()) {
         GEODE_UNWRAP_INTO(
             schema,
-            VersionInfo::parse(json["geode"].as_string()).mapErr(
+            VersionInfo::parse(GEODE_UNWRAP(json["geode"].asString())).mapErr(
                 [](auto const& err) {
                     return fmt::format("[mod.json] has invalid target loader version: {}", err);
                 }
@@ -355,13 +355,9 @@ Result<ModMetadata> ModMetadata::Impl::create(ModJson const& json) {
 Result<ModMetadata> ModMetadata::Impl::createFromFile(std::filesystem::path const& path) {
     GEODE_UNWRAP_INTO(auto read, utils::file::readString(path));
 
-    std::string error;
-    auto res = matjson::parse(read, error);
-    if (error.size() > 0) {
-        return Err(std::string("Unable to parse mod.json: ") + error);
-    }
-
-    GEODE_UNWRAP_INTO(auto info, ModMetadata::create(res.value()));
+    GEODE_UNWRAP_INTO(auto info, ModMetadata::create(GEODE_UNWRAP(matjson::parse(read).mapErr([&](auto const& err) {
+        return fmt::format("Unable to parse mod.json: {}", err);
+    }))));
 
     auto impl = info.m_impl.get();
 
@@ -390,18 +386,13 @@ Result<ModMetadata> ModMetadata::Impl::createFromGeodeZip(file::Unzip& unzip) {
         })
     );
 
-    std::string error;
-    auto res = matjson::parse(std::string(jsonData.begin(), jsonData.end()), error);
-    if (error.size() > 0) {
-        return Err(std::string("Unable to parse mod.json: ") + error);
-    }
-    ModJson json = res.value();
+    ModJson json = GEODE_UNWRAP(matjson::parse(std::string(jsonData.begin(), jsonData.end())).mapErr([](auto const& err) {
+        return fmt::format("Unable to parse mod.json: {}", err);
+    }));
 
-    auto res2 = ModMetadata::create(json);
-    if (!res2) {
-        return Err("\"" + unzip.getPath().string() + "\" - " + res2.unwrapErr());
-    }
-    auto info = res2.unwrap();
+    auto info = GEODE_UNWRAP(ModMetadata::create(json).mapErr([&](auto const& err) {
+        return fmt::format("\"{}\" - {}", unzip.getPath().string(), err);
+    }));
     auto impl = info.m_impl.get();
     impl->m_path = unzip.getPath();
 

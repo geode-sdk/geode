@@ -8,7 +8,7 @@
 #include "Types.hpp"
 
 #include <atomic>
-#include <matjson3.hpp>
+#include <matjson.hpp>
 #include <mutex>
 #include <optional>
 #include <string_view>

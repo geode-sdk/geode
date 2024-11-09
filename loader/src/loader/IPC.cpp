@@ -1,6 +1,6 @@
 #include <Geode/loader/IPC.hpp>
 #include "IPC.hpp"
-#include <matjson3.hpp>
+#include <matjson.hpp>
 #include <Geode/loader/Mod.hpp>
 
 using namespace geode::prelude;
@@ -34,7 +34,7 @@ matjson::Value ipc::processRaw(void* rawHandle, std::string const& buffer) {
     matjson::Value reply;
 
     auto res = matjson::Value::parse(buffer);
-    if (error.size() > 0) {
+    if (!res) {
         log::warn("Received IPC message that isn't valid JSON: {}", res.unwrapErr());
         return reply;
     }

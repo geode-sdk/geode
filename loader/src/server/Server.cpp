@@ -172,24 +172,23 @@ static Result<matjson::Value, ServerError> parseServerPayload(web::WebResponse c
         return Err(ServerError(response.code(), "Response was not valid JSON: {}", asJson.unwrapErr()));
     }
     auto json = std::move(asJson).unwrap();
-    if (!json.is_object()) {
+    if (!json.isObject()) {
         return Err(ServerError(response.code(), "Expected object, got {}", jsonTypeToString(json.type())));
     }
-    auto obj = json.as_object();
-    if (!obj.contains("payload")) {
-        return Err(ServerError(response.code(), "Object does not contain \"payload\" key - got {}", json.dump()));
+    if (!json.contains("payload")) {
+        return Err(ServerError(response.code(), "Object does not contain \"payload\" key - got {}", json.dump().unwrapOr("?")));
     }
-    return Ok(obj["payload"]);
+    return Ok(json["payload"]);
 }
 
 static ServerError parseServerError(web::WebResponse const& error) {
     // The server should return errors as `{ "error": "...", "payload": "" }`
     if (auto asJson = error.json()) {
         auto json = asJson.unwrap();
-        if (json.is_object() && json.contains("error")) {
+        if (json.isObject() && json.contains("error") && json["error"].isString()) {
             return ServerError(
                 error.code(),
-                "{}", json.get<std::string>("error")
+                "{}", json["error"].asString().unwrapOr("Unknown (no error message)")
             );
         }
         else {
@@ -267,8 +266,8 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
     // Verify target GD version
     auto gd_obj = root.needs("gd");
     std::string gd = "0.000";
-    if (gd_obj.has(GEODE_PLATFORM_SHORT_IDENTIFIER)) {
-        gd = gd_obj.has(GEODE_PLATFORM_SHORT_IDENTIFIER). get<std::string>();
+    if (gd_obj.hasNullable(GEODE_PLATFORM_SHORT_IDENTIFIER)) {
+        gd = gd_obj.hasNullable(GEODE_PLATFORM_SHORT_IDENTIFIER). get<std::string>();
     }
 
     if (gd != "*") {
@@ -288,11 +287,11 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
     res.metadata.setIsAPI(root.needs("api").get<bool>());
 
     std::vector<ModMetadata::Dependency> dependencies {};
-    for (auto& obj : root.has("dependencies").items()) {
+    for (auto& obj : root.hasNullable("dependencies").items()) {
         // todo: this should probably be generalized to use the same function as mod.json
 
-        bool onThisPlatform = !obj.has("platforms");
-        for (auto& plat : obj.has("platforms").items()) {
+        bool onThisPlatform = !obj.hasNullable("platforms");
+        for (auto& plat : obj.hasNullable("platforms").items()) {
             if (PlatformID::coveredBy(plat.get<std::string>(), GEODE_PLATFORM_TARGET)) {
                 onThisPlatform = true;
             }
@@ -304,7 +303,7 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
         ModMetadata::Dependency dependency;
         obj.needs("mod_id").mustBe<std::string>("a valid id", &ModMetadata::validateID).into(dependency.id);
         obj.needs("version").into(dependency.version);
-        obj.has("importance").into(dependency.importance);
+        obj.hasNullable("importance").into(dependency.importance);
 
         // Check if this dependency is installed, and if so assign the `mod` member to mark that
         auto mod = Loader::get()->getInstalledMod(dependency.id);
@@ -317,9 +316,9 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
     res.metadata.setDependencies(dependencies);
 
     std::vector<ModMetadata::Incompatibility> incompatibilities {};
-    for (auto& obj : root.has("incompatibilities").items()) {
+    for (auto& obj : root.hasNullable("incompatibilities").items()) {
         ModMetadata::Incompatibility incompatibility;
-        obj.has("importance").into(incompatibility.importance);
+        obj.hasNullable("importance").into(incompatibility.importance);
 
         auto modIdValue = obj.needs("mod_id");
 
@@ -362,8 +361,8 @@ Result<ServerModUpdate> ServerModUpdate::parse(matjson::Value const& raw) {
 
     root.needs("id").into(res.id);
     root.needs("version").into(res.version);
-    if (root.has("replacement")) {
-        GEODE_UNWRAP_INTO(res.replacement, ServerModReplacement::parse(root.has("replacement").json()));
+    if (root.hasNullable("replacement")) {
+        GEODE_UNWRAP_INTO(res.replacement, ServerModReplacement::parse(root.hasNullable("replacement").json()));
     }
 
     return root.ok(res);
@@ -400,9 +399,9 @@ Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
     root.needs("id").into(res.id);
     root.needs("featured").into(res.featured);
     root.needs("download_count").into(res.downloadCount);
-    root.has("about").into(res.about);
-    root.has("changelog").into(res.changelog);
-    root.has("repository").into(res.repository);
+    root.hasNullable("about").into(res.about);
+    root.hasNullable("changelog").into(res.changelog);
+    root.hasNullable("repository").into(res.repository);
     if (root.has("created_at")) {
         GEODE_UNWRAP_INTO(res.createdAt, ServerDateTime::parse(root.has("created_at").get<std::string>()));
     }
@@ -439,7 +438,7 @@ Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
         return Err("Mod '{}' has no (valid) versions", res.id);
     }
 
-    for (auto& item : root.has("tags").items()) {
+    for (auto& item : root.hasNullable("tags").items()) {
         res.tags.insert(item.get<std::string>());
     }
 
@@ -705,16 +704,16 @@ ServerRequest<std::unordered_set<std::string>> server::getTags(bool useCache) {
                     return Err(payload.unwrapErr());
                 }
                 matjson::Value json = payload.unwrap();
-                if (!json.is_array()) {
+                if (!json.isArray()) {
                     return Err(ServerError(response->code(), "Expected a string array"));
                 }
 
                 std::unordered_set<std::string> tags;
-                for (auto item : json.as_array()) {
-                    if (!item.is_string()) {
+                for (auto item : json) {
+                    if (!item.isString()) {
                         return Err(ServerError(response->code(), "Expected a string array"));
                     }
-                    tags.insert(item.as_string());
+                    tags.insert(item.asString().unwrap());
                 }
                 return Ok(tags);
             }
