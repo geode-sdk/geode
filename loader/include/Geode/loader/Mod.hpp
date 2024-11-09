@@ -265,7 +265,7 @@ namespace geode {
             }); res.isOk()) {
                 return res.unwrap();
             }
-            saved[key] = defaultValue;
+            saved[key] = matjson::Value(defaultValue);
             return defaultValue;
         }
 

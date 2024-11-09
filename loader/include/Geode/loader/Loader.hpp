@@ -121,18 +121,16 @@ namespace geode {
          * @param name The argument name
          */
         template <class T>
-        Result<T> parseLaunchArgument(std::string_view const name) const {
+        Result<T, std::string_view> parseLaunchArgument(std::string_view const name) const {
             auto str = this->getLaunchArgument(name);
             if (!str.has_value()) {
-                return std::nullopt;
+                return Err("Launch argument '{}' not found", name);
             }
-            std::string parseError;
-            auto jsonOpt = matjson::parse(str.value(), parseError);
-            if (!jsonOpt.has_value()) {
-                log::debug("Parsing launch argument '{}' failed: {}", name, parseError);
-                return std::nullopt;
+            auto jsonOpt = matjson::Value::parse(str.value());
+            if (jsonOpt.isErr()) {
+                return Err("Parsing launch argument '{}' failed: {}", name, jsonOpt.unwrapErr());
             }
-            auto value = jsonOpt.value();
+            auto value = jsonOpt.unwrap();
             return value.template as<T>();
         }
 
