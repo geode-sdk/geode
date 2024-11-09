@@ -142,7 +142,7 @@ public:
     /**
      * @note RobTop addition
      */
-    void toggleFullScreen(bool fullscreen, bool borderless);
+    void toggleFullScreen(bool fullscreen, bool borderless, bool fix);
 
     /**
      * @note RobTop addition
