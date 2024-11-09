@@ -189,8 +189,8 @@ include(cmake/Platform.cmake)
 include(cmake/GeodeFile.cmake)
 
 if (NOT DEFINED GEODE_GD_VERSION)
-	set(GEODE_GD_VERSION 2.206)
-	set(GEODE_COMP_GD_VERSION 22060)
+	set(GEODE_GD_VERSION 2.207)
+	set(GEODE_COMP_GD_VERSION 22070)
 endif()
 
 target_compile_definitions(
