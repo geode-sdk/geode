@@ -46,7 +46,7 @@ protected:
     }
 
     void onRequest(Request::Event* event) {
-        if (event->getValue() && event->getValue()->isOk() && event->getValue()->unwrap()) {
+        if (event->getValue() && event->getValue()->isOk() && event->getValue()->inspect([](auto&& value) { return value.has_value(); })) {
             m_loading->removeFromParent();
             m_textarea->setString(event->getValue()->unwrap()->c_str());
         }
