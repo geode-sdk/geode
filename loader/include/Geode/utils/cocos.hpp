@@ -15,14 +15,14 @@
 
 template <>
 struct matjson::Serialize<cocos2d::ccColor3B> {
-    static geode::Result<cocos2d::ccColor3B, std::string> fromJson(Value const& value);
-    static Value toJson(cocos2d::ccColor3B const& value);
+    static geode::Result<cocos2d::ccColor3B> GEODE_DLL fromJson(Value const& value);
+    static Value GEODE_DLL toJson(cocos2d::ccColor3B const& value);
 };
 
 template <>
 struct matjson::Serialize<cocos2d::ccColor4B> {
-    static geode::Result<cocos2d::ccColor4B, std::string> fromJson(Value const& value);
-    static Value toJson(cocos2d::ccColor4B const& value);
+    static geode::Result<cocos2d::ccColor4B> GEODE_DLL fromJson(Value const& value);
+    static Value GEODE_DLL toJson(cocos2d::ccColor4B const& value);
 };
 
 // operators for CC geometry
@@ -930,10 +930,10 @@ namespace std {
     };
 
     template <typename T>
-    struct std::hash<geode::WeakRef<T>> {
+    struct hash<geode::WeakRef<T>> {
         size_t operator()(geode::WeakRef<T> const& ref) const {
             // the explicit template argument is needed here because it would otherwise cast to WeakRef and recurse
-            return hash<std::shared_ptr<geode::WeakRefController>>{}(ref.m_controller);
+            return std::hash<std::shared_ptr<geode::WeakRefController>>{}(ref.m_controller);
         }
     };
 }

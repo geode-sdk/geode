@@ -121,7 +121,7 @@ namespace geode {
          * @param name The argument name
          */
         template <class T>
-        Result<T, std::string_view> parseLaunchArgument(std::string_view const name) const {
+        Result<T> parseLaunchArgument(std::string_view const name) const {
             auto str = this->getLaunchArgument(name);
             if (!str.has_value()) {
                 return Err("Launch argument '{}' not found", name);

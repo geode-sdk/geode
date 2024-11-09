@@ -41,7 +41,8 @@ namespace geode::utils::file {
 
     template <class T>
     Result<> writeToJson(std::filesystem::path const& path, T const& data) {
-        GEODE_UNWRAP(writeString(path, matjson::Value(data).dump()));
+        GEODE_UNWRAP_INTO(auto str, matjson::Value(data).dump());
+        GEODE_UNWRAP(writeString(path, str));
         return Ok();
     }
 
