@@ -1,5 +1,6 @@
 #include <Geode/ui/SceneManager.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/utils/ranges.hpp>
 
 using namespace geode::prelude;
 

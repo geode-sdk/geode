@@ -10,6 +10,8 @@
 #include "../loader/Event.hpp"
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
+#include "../ui/Layout.hpp"
+#include "../ui/SpacerNode.hpp"
 
 // support converting ccColor3B / ccColor4B to / from json
 

@@ -1,3 +1,4 @@
+#include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Setting.hpp>
 #include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/utils/ranges.hpp>
@@ -6,6 +7,7 @@
 #include <Geode/utils/JsonValidation.hpp>
 #include <regex>
 #include "SettingNodeV3.hpp"
+#include <matjson/std.hpp>
 
 using namespace geode::prelude;
 

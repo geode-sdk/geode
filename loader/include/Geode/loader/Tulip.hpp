@@ -2,6 +2,7 @@
 
 #include <Geode/platform/platform.hpp>
 #include <tulip/TulipHook.hpp>
+#include "../Prelude.hpp"
 
 namespace geode::hook {
     /**

@@ -5,6 +5,7 @@
 #include <matjson.hpp>
 #include <tuple>
 #include <Geode/Result.hpp>
+#include <fmt/format.h>
 
 namespace geode {
     enum class VersionCompare {
@@ -256,8 +257,7 @@ namespace geode {
 template <class V>
 requires std::is_same_v<V, geode::VersionInfo> || std::is_same_v<V, geode::ComparableVersionInfo>
 struct matjson::Serialize<V> {
-    static geode::Result<V, std::string> fromJson(Value const& value)
-    {
+    static geode::Result<V, std::string> fromJson(Value const& value) {
         GEODE_UNWRAP_INTO(auto str, value.asString());
         GEODE_UNWRAP_INTO(auto version, V::parse(str).mapErr([](auto&& err) {
             return fmt::format("Invalid version format: {}", err);
@@ -265,8 +265,7 @@ struct matjson::Serialize<V> {
         return geode::Ok(version);
     }
 
-    static Value toJson(V const& value)
-    {
+    static Value toJson(V const& value) {
         return Value(value.toString());
     }
 };
