@@ -592,8 +592,7 @@ WebRequest& WebRequest::bodyString(std::string_view str) {
 }
 WebRequest& WebRequest::bodyJSON(matjson::Value const& json) {
     this->header("Content-Type", "application/json");
-    // TODO: mat
-    std::string str = json.dump(matjson::NO_INDENTATION).unwrapOr("");
+    std::string str = json.dump(matjson::NO_INDENTATION);
     m_impl->m_body = ByteVector { str.begin(), str.end() };
     return *this;
 }

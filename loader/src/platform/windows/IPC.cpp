@@ -21,11 +21,7 @@ void ipcPipeThread(HANDLE pipe) {
     if (ReadFile(pipe, buffer, sizeof(buffer) - 1, &read, nullptr)) {
         buffer[read] = '\0';
 
-        auto res = ipc::processRaw((void*)pipe, buffer).dump();
-        if (!res) {
-            log::warn("Failed to process IPC message: {}", res.unwrapErr());
-        }
-        std::string reply = res.unwrapOr("");
+        std::string reply = ipc::processRaw((void*)pipe, buffer).dump();
 
         DWORD written;
         WriteFile(pipe, reply.c_str(), reply.size(), &written, nullptr);

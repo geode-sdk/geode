@@ -176,7 +176,7 @@ static Result<matjson::Value, ServerError> parseServerPayload(web::WebResponse c
         return Err(ServerError(response.code(), "Expected object, got {}", jsonTypeToString(json.type())));
     }
     if (!json.contains("payload")) {
-        return Err(ServerError(response.code(), "Object does not contain \"payload\" key - got {}", json.dump().unwrapOr("?")));
+        return Err(ServerError(response.code(), "Object does not contain \"payload\" key - got {}", json.dump()));
     }
     return Ok(json["payload"]);
 }

@@ -241,8 +241,8 @@ if (ANDROID)
 endif()
 
 set(MAT_JSON_AS_INTERFACE ON)
-CPMAddPackage("gh:geode-sdk/result@1.1.0")
-CPMAddPackage("gh:geode-sdk/json#8c6c325")
+CPMAddPackage("gh:geode-sdk/result@1.1.1")
+CPMAddPackage("gh:geode-sdk/json@3.0.1")
 CPMAddPackage("gh:fmtlib/fmt#11.0.2")
 
 target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)

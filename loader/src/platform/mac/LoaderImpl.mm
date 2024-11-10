@@ -98,11 +98,7 @@ CFDataRef msgPortCallback(CFMessagePortRef port, SInt32 messageID, CFDataRef dat
 
     std::string cdata(reinterpret_cast<char const*>(CFDataGetBytePtr(data)), CFDataGetLength(data));
 
-    auto res = geode::ipc::processRaw(port, cdata).dump();
-    if (!res) {
-        log::warn("Failed to process IPC message: {}", res.unwrapErr());
-    }
-    std::string reply = res.unwrapOr("");
+    std::string reply = geode::ipc::processRaw(port, cdata).dump();
 
     return CFDataCreate(NULL, (UInt8 const*)reply.data(), reply.size());
 }
