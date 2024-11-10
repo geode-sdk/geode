@@ -84,7 +84,7 @@ void tryShowForwardCompat() {
 #ifdef GEODE_IS_WINDOWS
 bool safeModeCheck() {
     // yes this is quite funny
-    if (GetAsyncKeyState(VK_SHIFT) == 0) {
+    if (!(GetAsyncKeyState(VK_SHIFT) & (1 << 15))) {
         return false;
     }
 
