@@ -252,8 +252,16 @@ bool Mod::hasSavedValue(std::string_view const key) {
     return this->getSaveContainer().contains(key);
 }
 
-bool Mod::hasProblems() const {
-    return m_impl->hasProblems();
+bool Mod::hasLoadProblems() const {
+    return m_impl->hasLoadProblems();
+}
+bool Mod::targetsOutdatedGDVersion() const {
+    for (auto problem : this->getAllProblems()) {
+        if (problem.type == LoadProblem::Type::UnsupportedVersion) {
+            return true;
+        }
+    }
+    return false;
 }
 std::vector<LoadProblem> Mod::getAllProblems() const {
     return m_impl->getProblems();
@@ -263,7 +271,8 @@ std::vector<LoadProblem> Mod::getProblems() const {
     for (auto problem : this->getAllProblems()) {
         if (
             problem.type != LoadProblem::Type::Recommendation && 
-            problem.type != LoadProblem::Type::Suggestion
+            problem.type != LoadProblem::Type::Suggestion &&
+            problem.type != LoadProblem::Type::UnsupportedVersion
         ) {
             result.push_back(problem);
         }

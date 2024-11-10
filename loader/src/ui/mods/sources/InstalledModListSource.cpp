@@ -12,8 +12,11 @@ bool InstalledModsQuery::preCheck(ModSource const& src) const {
         return false;
     }
     // If only errors requested, only show mods with errors (duh)
+    if (type == InstalledModListType::OnlyOutdated) {
+        return src.asMod()->targetsOutdatedGDVersion();
+    }
     if (type == InstalledModListType::OnlyErrors) {
-        return src.asMod()->hasProblems();
+        return src.asMod()->hasLoadProblems();
     }
     return true;
 }
@@ -57,6 +60,11 @@ InstalledModListSource* InstalledModListSource::get(InstalledModListType type) {
 
         case InstalledModListType::OnlyErrors: {
             static auto inst = new InstalledModListSource(InstalledModListType::OnlyErrors);
+            return inst;
+        } break;
+
+        case InstalledModListType::OnlyOutdated: {
+            static auto inst = new InstalledModListSource(InstalledModListType::OnlyOutdated);
             return inst;
         } break;
     }

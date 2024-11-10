@@ -91,7 +91,8 @@ namespace geode {
         Mod* getLoadedMod(std::string const& id) const;
         std::vector<Mod*> getAllMods();
         std::vector<LoadProblem> getAllProblems() const;
-        std::vector<LoadProblem> getProblems() const;
+        std::vector<LoadProblem> getLoadProblems() const;
+        std::vector<LoadProblem> getOutdated() const;
         std::vector<LoadProblem> getRecommendations() const;
 
         /**

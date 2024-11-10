@@ -111,7 +111,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
 
         m_topContainer->addChild(m_updateAllContainer);
 
-        if (Loader::get()->getProblems().size()) {
+        if (Loader::get()->getLoadProblems().size()) {
             m_errorsContainer = CCNode::create();
             m_errorsContainer->setID("errors-container");
             m_errorsContainer->ignoreAnchorPointForPosition(false);
@@ -549,7 +549,7 @@ void ModList::updateTopContainer() {
 
     // If there are errors, show the error banner
     if (m_errorsContainer) {
-        auto noErrors = Loader::get()->getProblems().empty();
+        auto noErrors = Loader::get()->getLoadProblems().empty();
         m_errorsContainer->setVisible(!noErrors);
     }
 

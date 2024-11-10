@@ -708,11 +708,15 @@ bool Mod::Impl::isCurrentlyLoading() const {
     return m_isCurrentlyLoading;
 }
 
-bool Mod::Impl::hasProblems() const {
-    for (auto const& item : m_problems) {
-        if (item.type <= LoadProblem::Type::Recommendation)
-            continue;
-        return true;
+bool Mod::Impl::hasLoadProblems() const {
+    for (auto const& problem : m_problems) {
+        if (
+            problem.type != LoadProblem::Type::Recommendation && 
+            problem.type != LoadProblem::Type::Suggestion &&
+            problem.type != LoadProblem::Type::UnsupportedVersion
+        ) {
+            return true;
+        }
     }
     return false;
 }

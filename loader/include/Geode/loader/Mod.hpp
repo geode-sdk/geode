@@ -446,7 +446,8 @@ namespace geode {
         bool isLoggingEnabled() const;
         void setLoggingEnabled(bool enabled);
 
-        bool hasProblems() const;
+        bool targetsOutdatedGDVersion() const;
+        bool hasLoadProblems() const;
         std::vector<LoadProblem> getAllProblems() const;
         std::vector<LoadProblem> getProblems() const;
         std::vector<LoadProblem> getRecommendations() const;

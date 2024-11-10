@@ -110,6 +110,7 @@ enum class InstalledModListType {
     All,
     OnlyUpdates,
     OnlyErrors,
+    OnlyOutdated,
 };
 struct InstalledModsQuery final : public LocalModsQueryBase {
     InstalledModListType type = InstalledModListType::All;

@@ -68,13 +68,23 @@ std::vector<Mod*> Loader::getAllMods() {
 std::vector<LoadProblem> Loader::getAllProblems() const {
     return m_impl->getProblems();
 }
-std::vector<LoadProblem> Loader::getProblems() const {
+std::vector<LoadProblem> Loader::getLoadProblems() const {
     std::vector<LoadProblem> result;
     for (auto problem : this->getAllProblems()) {
         if (
             problem.type != LoadProblem::Type::Recommendation && 
-            problem.type != LoadProblem::Type::Suggestion
+            problem.type != LoadProblem::Type::Suggestion &&
+            problem.type != LoadProblem::Type::UnsupportedVersion
         ) {
+            result.push_back(problem);
+        }
+    }
+    return result;
+}
+std::vector<LoadProblem> Loader::getOutdated() const {
+    std::vector<LoadProblem> result;
+    for (auto problem : this->getAllProblems()) {
+        if (problem.type == LoadProblem::Type::UnsupportedVersion) {
             result.push_back(problem);
         }
     }

@@ -151,7 +151,7 @@ namespace geode {
 
         std::vector<LoadProblem> getProblems() const;
 
-        bool hasProblems() const;
+        bool hasLoadProblems() const;
         bool shouldLoad() const;
         bool isCurrentlyLoading() const;
     };
