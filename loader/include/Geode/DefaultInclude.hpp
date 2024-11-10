@@ -5,19 +5,6 @@
 #include <Geode/platform/platform.hpp>
 #include <variant>
 
-#define GEODE_STATIC_PTR(type, name)          \
-    static type* s_##name;                    \
-    inline type* name() {                     \
-        if (!s_##name) s_##name = new type(); \
-        return s_##name;                      \
-    }
-
-#define GEODE_STATIC_VAR(type, name) \
-    inline type& name() {            \
-        static type s_##name;        \
-        return s_##name;             \
-    }
-
 #if !defined(GEODE_CONCAT)
     #define GEODE_WRAPPER_CONCAT(x, y) x##y
     #define GEODE_CONCAT(x, y) GEODE_WRAPPER_CONCAT(x, y)
