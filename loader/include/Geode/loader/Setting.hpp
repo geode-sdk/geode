@@ -1,4 +1,5 @@
 #pragma once
+
 #include "SettingV3.hpp"
 
 namespace geode {
@@ -25,9 +26,6 @@ namespace geode {
     using SettingChangedFilter = SettingChangedFilterV3;
     using SettingNodeSizeChangeEvent = SettingNodeSizeChangeEventV3;
     using SettingNodeValueChangeEvent = SettingNodeValueChangeEventV3;
-
-    template <class T>
-    using SettingTypeForValueType = SettingTypeForValueTypeV3<T>;
 
     template <class T, class Lambda>
     EventListener<SettingChangedFilter>* listenForSettingChanges(std::string_view settingKey, Lambda&& callback, Mod* mod = getMod()) {

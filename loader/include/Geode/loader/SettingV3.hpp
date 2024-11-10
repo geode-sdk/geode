@@ -694,45 +694,45 @@ namespace geode {
     };
 
     template <class T>
-    struct SettingTypeForValueTypeV3 {
+    struct SettingTypeForValueType {
         static_assert(
             !std::is_same_v<T, T>,
-            "specialize the SettingTypeForValueTypeV3 class to use Mod::getSettingValue for custom settings"
+            "specialize the SettingTypeForValueType class to use Mod::getSettingValue for custom settings"
         );
     };
 
     template <>
-    struct SettingTypeForValueTypeV3<bool> {
+    struct SettingTypeForValueType<bool> {
         using SettingType = BoolSettingV3;
     };
     template <>
-    struct SettingTypeForValueTypeV3<int64_t> {
+    struct SettingTypeForValueType<int64_t> {
         using SettingType = IntSettingV3;
     };
     template <>
-    struct SettingTypeForValueTypeV3<double> {
+    struct SettingTypeForValueType<double> {
         using SettingType = FloatSettingV3;
     };
     template <>
-    struct SettingTypeForValueTypeV3<std::string> {
+    struct SettingTypeForValueType<std::string> {
         using SettingType = StringSettingV3;
     };
     template <>
-    struct SettingTypeForValueTypeV3<std::filesystem::path> {
+    struct SettingTypeForValueType<std::filesystem::path> {
         using SettingType = FileSettingV3;
     };
     template <>
-    struct SettingTypeForValueTypeV3<cocos2d::ccColor3B> {
+    struct SettingTypeForValueType<cocos2d::ccColor3B> {
         using SettingType = Color3BSettingV3;
     };
     template <>
-    struct SettingTypeForValueTypeV3<cocos2d::ccColor4B> {
+    struct SettingTypeForValueType<cocos2d::ccColor4B> {
         using SettingType = Color4BSettingV3;
     };
 
     template <class T>
     EventListener<SettingChangedFilterV3>* listenForSettingChangesV3(std::string_view settingKey, auto&& callback, Mod* mod = getMod()) {
-        using Ty = typename SettingTypeForValueTypeV3<T>::SettingType;
+        using Ty = typename SettingTypeForValueType<T>::SettingType;
         return new EventListener(
             [callback = std::move(callback)](std::shared_ptr<SettingV3> setting) {
                 if (auto ty = geode::cast::typeinfo_pointer_cast<Ty>(setting)) {
