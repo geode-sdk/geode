@@ -18,8 +18,10 @@
         return s_##name;             \
     }
 
-#define GEODE_WRAPPER_CONCAT(x, y) x##y
-#define GEODE_CONCAT(x, y) GEODE_WRAPPER_CONCAT(x, y)
+#if !defined(GEODE_CONCAT)
+    #define GEODE_WRAPPER_CONCAT(x, y) x##y
+    #define GEODE_CONCAT(x, y) GEODE_WRAPPER_CONCAT(x, y)
+#endif
 
 #define GEODE_WRAPPER_STR(...) #__VA_ARGS__
 #define GEODE_STR(...) GEODE_WRAPPER_STR(__VA_ARGS__)
