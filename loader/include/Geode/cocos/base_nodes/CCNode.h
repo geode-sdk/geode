@@ -888,7 +888,7 @@ public:
      * @returns The ID, or an empty string if the node has no ID.
      * @note Geode addition
      */
-    GEODE_DLL std::string getID();
+    GEODE_DLL const std::string& getID();
     /**
      * Set the string ID of this node. String IDs are a Geode addition 
      * that are much safer to use to get nodes than absolute indexes
@@ -900,12 +900,22 @@ public:
     GEODE_DLL void setID(std::string const& id);
 
     /**
+     * Set the string ID of this node. String IDs are a Geode addition 
+     * that are much safer to use to get nodes than absolute indexes
+     * @param id The ID of the node, recommended to be in kebab case 
+     * without any spaces or uppercase letters. If the node is added 
+     * by a mod, use the _spr literal to append the mod ID to it
+     * @note Geode addition
+     */
+    GEODE_DLL void setID(std::string&& id);
+
+    /**
      * Get a child by its string ID
      * @param id ID of the child
      * @returns The child, or nullptr if none was found
      * @note Geode addition
      */
-    GEODE_DLL CCNode* getChildByID(std::string const& id);
+    GEODE_DLL CCNode* getChildByID(std::string_view id);
 
     /**
      * Get a child by its string ID. Recursively searches all the children
@@ -913,7 +923,7 @@ public:
      * @returns The child, or nullptr if none was found
      * @note Geode addition
      */
-    GEODE_DLL CCNode* getChildByIDRecursive(std::string const& id);
+    GEODE_DLL CCNode* getChildByIDRecursive(std::string_view id);
 
     /**
      * Get a child based on a query. Searches the child tree for a matching 
@@ -929,14 +939,14 @@ public:
      * ->getChildByID("mod.id/epic-button")`
      * @returns The first matching node, or nullptr if none was found
      */
-    GEODE_DLL CCNode* querySelector(std::string const& query);
+    GEODE_DLL CCNode* querySelector(std::string_view query);
 
     /** 
      * Removes a child from the container by its ID.
      * @param id The ID of the node
      * @note Geode addition
      */
-    GEODE_DLL void removeChildByID(std::string const& id);
+    GEODE_DLL void removeChildByID(std::string_view id);
 
     /**
      * Add a child before a specified existing child

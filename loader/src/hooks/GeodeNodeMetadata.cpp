@@ -104,7 +104,7 @@ FieldContainer* CCNode::getFieldContainer(char const* forClass) {
     return GeodeNodeMetadata::set(this)->getFieldContainer(forClass);
 }
 
-std::string CCNode::getID() {
+const std::string& CCNode::getID() {
     return GeodeNodeMetadata::set(this)->m_id;
 }
 
@@ -112,7 +112,11 @@ void CCNode::setID(std::string const& id) {
     GeodeNodeMetadata::set(this)->m_id = id;
 }
 
-CCNode* CCNode::getChildByID(std::string const& id) {
+void CCNode::setID(std::string&& id) {
+    GeodeNodeMetadata::set(this)->m_id = std::move(id);
+}
+
+CCNode* CCNode::getChildByID(std::string_view id) {
     for (auto child : CCArrayExt<CCNode*>(this->getChildren())) {
         if (child->getID() == id) {
             return child;
@@ -121,7 +125,7 @@ CCNode* CCNode::getChildByID(std::string const& id) {
     return nullptr;
 }
 
-CCNode* CCNode::getChildByIDRecursive(std::string const& id) {
+CCNode* CCNode::getChildByIDRecursive(std::string_view id) {
     if (auto child = this->getChildByID(id)) {
         return child;
     }
@@ -180,7 +184,7 @@ private:
     std::unique_ptr<NodeQuery> m_next = nullptr;
 
 public:
-    static Result<std::unique_ptr<NodeQuery>> parse(std::string const& query) {
+    static Result<std::unique_ptr<NodeQuery>> parse(std::string_view query) {
         if (query.empty()) {
             return Err("Query may not be empty");
         }
@@ -278,7 +282,7 @@ public:
     }
 };
 
-CCNode* CCNode::querySelector(std::string const& queryStr) {
+CCNode* CCNode::querySelector(std::string_view queryStr) {
     auto res = NodeQuery::parse(queryStr);
     if (!res) {
         log::error("Invalid CCNode::querySelector query '{}': {}", queryStr, res.unwrapErr());
@@ -289,7 +293,7 @@ CCNode* CCNode::querySelector(std::string const& queryStr) {
     return query->match(this);
 }
 
-void CCNode::removeChildByID(std::string const& id) {
+void CCNode::removeChildByID(std::string_view id) {
     if (auto child = this->getChildByID(id)) {
         this->removeChild(child);
     }
