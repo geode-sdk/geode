@@ -465,12 +465,12 @@ bool ModsLayer::init() {
     bigSizeBtn->setID("list-size-button");
     listActionsMenu->addChild(bigSizeBtn);
 
-    auto searchBtn = CCMenuItemSpriteExtra::create(
-        GeodeSquareSprite::createWithSpriteFrameName("search.png"_spr, &m_showSearch),
-        this, menu_selector(ModsLayer::onSearch)
-    );
-    searchBtn->setID("search-button");
-    listActionsMenu->addChild(searchBtn);
+    // auto searchBtn = CCMenuItemSpriteExtra::create(
+    //     GeodeSquareSprite::createWithSpriteFrameName("search.png"_spr, &m_showSearch),
+    //     this, menu_selector(ModsLayer::onSearch)
+    // );
+    // searchBtn->setID("search-button");
+    // listActionsMenu->addChild(searchBtn);
 
     listActionsMenu->setLayout(ColumnLayout::create());
     m_frame->addChildAtPosition(listActionsMenu, Anchor::Left, ccp(-5, 25));
