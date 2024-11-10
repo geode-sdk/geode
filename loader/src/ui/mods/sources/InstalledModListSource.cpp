@@ -68,9 +68,15 @@ void InstalledModListSource::resetQuery() {
     };
 }
 
-InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t page, size_t pageSize, bool forceUpdate) {
+InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t page, bool forceUpdate) {
     m_query.page = page;
-    m_query.pageSize = pageSize;
+    m_query.pageSize = m_pageSize;
+
+    // Infinite mods list option
+    if (Mod::get()->template getSettingValue<bool>("infinite-local-mods-list")) {
+        m_query.page = 0;
+        m_query.pageSize = Loader::get()->getAllMods().size();
+    }
 
     auto content = ModListSource::ProvidedMods();
     for (auto& mod : Loader::get()->getAllMods()) {
@@ -121,4 +127,13 @@ InvalidateQueryAfter<InstalledModsQuery> InstalledModListSource::getQueryMut() {
 }
 bool InstalledModListSource::isDefaultQuery() const {
     return m_query.isDefault();
+}
+
+$execute {
+    listenForSettingChanges("infinite-local-mods-list", [](bool value) {
+        auto size = value ? std::numeric_limits<size_t>::max() : 10;
+        InstalledModListSource::get(InstalledModListType::All)->setPageSize(size);
+        InstalledModListSource::get(InstalledModListType::OnlyErrors)->setPageSize(size);
+        // Updates is technically a server mod list :-) So I left it out here
+    });
 }

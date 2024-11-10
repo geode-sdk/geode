@@ -5,7 +5,6 @@
 #define FTS_FUZZY_MATCH_IMPLEMENTATION
 #include <Geode/external/fts/fts_fuzzy_match.h>
 
-static constexpr size_t PER_PAGE = 10;
 static std::vector<ModListSource*> ALL_EXTANT_SOURCES {};
 
 static size_t ceildiv(size_t a, size_t b) {
@@ -33,7 +32,7 @@ typename ModListSource::PageLoadTask ModListSource::loadPage(size_t page, bool f
         return PageLoadTask::immediate(Ok(m_cachedPages.at(page)));
     }
     m_cachedPages.erase(page);
-    return this->fetchPage(page, PER_PAGE, forceUpdate).map(
+    return this->fetchPage(page, forceUpdate).map(
         [this, page](Result<ProvidedMods, LoadPageError>* result) -> Result<Page, LoadPageError> {
             if (result->isOk()) {
                 auto data = result->unwrap();
@@ -56,11 +55,14 @@ typename ModListSource::PageLoadTask ModListSource::loadPage(size_t page, bool f
 }
 
 std::optional<size_t> ModListSource::getPageCount() const {
-    return m_cachedItemCount ? std::optional(ceildiv(m_cachedItemCount.value(), PER_PAGE)) : std::nullopt;
+    return m_cachedItemCount ? std::optional(ceildiv(m_cachedItemCount.value(), m_pageSize)) : std::nullopt;
 }
-
 std::optional<size_t> ModListSource::getItemCount() const {
     return m_cachedItemCount;
+}
+void ModListSource::setPageSize(size_t size) {
+    m_pageSize = size;
+    this->reset();
 }
 
 void ModListSource::reset() {
