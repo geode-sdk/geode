@@ -308,7 +308,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
             ->setAxisAlignment(AxisAlignment::End)
             ->setAxisReverse(true)
     );
-    this->addChildAtPosition(pageLeftMenu, Anchor::Left, ccp(-5, 0));
+    this->addChildAtPosition(pageLeftMenu, Anchor::Left, ccp(-20, 0));
 
     auto pageRightMenu = CCMenu::create();
     pageRightMenu->setID("page-right-menu");
@@ -329,7 +329,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         RowLayout::create()
             ->setAxisAlignment(AxisAlignment::Start)
     );
-    this->addChildAtPosition(pageRightMenu, Anchor::Right, ccp(5, 0));
+    this->addChildAtPosition(pageRightMenu, Anchor::Right, ccp(20, 0));
 
     // Status
 
