@@ -112,13 +112,13 @@ namespace geode {
 
         bool hasSettings() const;
         std::vector<std::string> getSettingKeys() const;
-        bool hasSetting(std::string_view const key) const;
+        bool hasSetting(std::string_view key) const;
 
-        std::string getLaunchArgumentName(std::string_view const name) const;
+        std::string getLaunchArgumentName(std::string_view name) const;
         std::vector<std::string> getLaunchArgumentNames() const;
-        bool hasLaunchArgument(std::string_view const name) const;
-        std::optional<std::string> getLaunchArgument(std::string_view const name) const;
-        bool getLaunchFlag(std::string_view const name) const;
+        bool hasLaunchArgument(std::string_view name) const;
+        std::optional<std::string> getLaunchArgument(std::string_view name) const;
+        bool getLaunchFlag(std::string_view name) const;
 
         Result<Hook*> claimHook(std::shared_ptr<Hook> hook);
         Result<> disownHook(Hook* hook);
@@ -136,7 +136,7 @@ namespace geode {
         // 1.3.0 additions
         ModRequestedAction getRequestedAction() const;
 
-        bool depends(std::string_view const id) const;
+        bool depends(std::string_view id) const;
         Result<> updateDependencies();
         bool hasUnresolvedDependencies() const;
         bool hasUnresolvedIncompatibilities() const;

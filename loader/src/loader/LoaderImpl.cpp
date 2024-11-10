@@ -927,11 +927,11 @@ std::vector<std::string> Loader::Impl::getLaunchArgumentNames() const {
     return map::keys(m_launchArgs);
 }
 
-bool Loader::Impl::hasLaunchArgument(std::string_view const name) const {
+bool Loader::Impl::hasLaunchArgument(std::string_view name) const {
     return m_launchArgs.find(std::string(name)) != m_launchArgs.end();
 }
 
-std::optional<std::string> Loader::Impl::getLaunchArgument(std::string_view const name) const {
+std::optional<std::string> Loader::Impl::getLaunchArgument(std::string_view name) const {
     auto value = m_launchArgs.find(std::string(name));
     if (value == m_launchArgs.end()) {
         return std::nullopt;
@@ -939,7 +939,7 @@ std::optional<std::string> Loader::Impl::getLaunchArgument(std::string_view cons
     return std::optional(value->second);
 }
 
-bool Loader::Impl::getLaunchFlag(std::string_view const name) const {
+bool Loader::Impl::getLaunchFlag(std::string_view name) const {
     auto arg = this->getLaunchArgument(name);
     return arg.has_value() && arg.value() == "true";
 }

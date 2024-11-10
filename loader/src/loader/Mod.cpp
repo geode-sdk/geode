@@ -148,11 +148,11 @@ std::vector<std::string> Mod::getSettingKeys() const {
     return m_impl->getSettingKeys();
 }
 
-bool Mod::hasSetting(std::string_view const key) const {
+bool Mod::hasSetting(std::string_view key) const {
     return m_impl->hasSetting(key);
 }
 
-std::shared_ptr<Setting> Mod::getSetting(std::string_view const key) const {
+std::shared_ptr<Setting> Mod::getSetting(std::string_view key) const {
     return m_impl->m_settings->get(std::string(key));
 }
 
@@ -164,15 +164,15 @@ std::vector<std::string> Mod::getLaunchArgumentNames() const {
     return m_impl->getLaunchArgumentNames();
 }
 
-bool Mod::hasLaunchArgument(std::string_view const name) const {
+bool Mod::hasLaunchArgument(std::string_view name) const {
     return m_impl->hasLaunchArgument(name);
 }
 
-std::optional<std::string> Mod::getLaunchArgument(std::string_view const name) const {
+std::optional<std::string> Mod::getLaunchArgument(std::string_view name) const {
     return m_impl->getLaunchArgument(name);
 }
 
-bool Mod::getLaunchFlag(std::string_view const name) const {
+bool Mod::getLaunchFlag(std::string_view name) const {
     return m_impl->getLaunchFlag(name);
 }
 
@@ -220,7 +220,7 @@ ModRequestedAction Mod::getRequestedAction() const {
     return m_impl->getRequestedAction();
 }
 
-bool Mod::depends(std::string_view const id) const {
+bool Mod::depends(std::string_view id) const {
     return m_impl->depends(id);
 }
 
@@ -248,7 +248,7 @@ void Mod::setLoggingEnabled(bool enabled) {
     m_impl->setLoggingEnabled(enabled);
 }
 
-bool Mod::hasSavedValue(std::string_view const key) {
+bool Mod::hasSavedValue(std::string_view key) {
     return this->getSaveContainer().contains(key);
 }
 

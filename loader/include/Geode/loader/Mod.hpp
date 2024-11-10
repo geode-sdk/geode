@@ -155,7 +155,7 @@ namespace geode {
          * declared in `mod.json`)
          */
         std::vector<std::string> getSettingKeys() const;
-        bool hasSetting(std::string_view const key) const;
+        bool hasSetting(std::string_view key) const;
 
         /**
          * Get the definition of a setting, or null if the setting was not found, 
@@ -163,7 +163,7 @@ namespace geode {
          * `Mod::registerCustomSettingType`
          * @param key The key of the setting as defined in `mod.json`
          */
-        std::shared_ptr<Setting> getSetting(std::string_view const key) const;
+        std::shared_ptr<Setting> getSetting(std::string_view key) const;
 
         /**
          * Register a custom setting type. See 
@@ -179,7 +179,7 @@ namespace geode {
          * Returns a prefixed launch argument name. See `Mod::getLaunchArgument`
          * for details about mod-specific launch arguments.
          */
-        std::string getLaunchArgumentName(std::string_view const name) const;
+        std::string getLaunchArgumentName(std::string_view name) const;
         /**
          * Returns the names of the available mod-specific launch arguments.
          */
@@ -189,7 +189,7 @@ namespace geode {
          * for details about mod-specific launch arguments.
          * @param name The argument name
          */
-        bool hasLaunchArgument(std::string_view const name) const;
+        bool hasLaunchArgument(std::string_view name) const;
         /**
          * Get a mod-specific launch argument. This is equivalent to `Loader::getLaunchArgument`
          * with the argument name prefixed by the mod ID. For example, a launch argument named
@@ -197,20 +197,20 @@ namespace geode {
          * @param name The argument name
          * @return The value, if present
          */
-        std::optional<std::string> getLaunchArgument(std::string_view const name) const;
+        std::optional<std::string> getLaunchArgument(std::string_view name) const;
         /**
          * Equivalent to a prefixed `Loader::getLaunchFlag` call. See `Mod::getLaunchArgument`
          * for details about mod-specific launch arguments.
          * @param name The argument name
          */
-        bool getLaunchFlag(std::string_view const name) const;
+        bool getLaunchFlag(std::string_view name) const;
         /**
          * Equivalent to a prefixed `Loader::parseLaunchArgument` call. See `Mod::getLaunchArgument`
          * for details about mod-specific launch arguments.
          * @param name The argument name
          */
         template <class T>
-        std::optional<T> parseLaunchArgument(std::string_view const name) const {
+        std::optional<T> parseLaunchArgument(std::string_view name) const {
             return Loader::get()->parseLaunchArgument<T>(this->getLaunchArgumentName(name));
         }
 
@@ -224,7 +224,7 @@ namespace geode {
          * setting type has a `getValue` function which returns the value
          */
         template <class T>
-        T getSettingValue(std::string_view const key) const {
+        T getSettingValue(std::string_view key) const {
             using S = typename SettingTypeForValueType<T>::SettingType;
             if (auto sett = cast::typeinfo_pointer_cast<S>(this->getSetting(key))) {
                 return sett->getValue();
@@ -233,7 +233,7 @@ namespace geode {
         }
 
         template <class T>
-        T setSettingValue(std::string_view const key, T const& value) {
+        T setSettingValue(std::string_view key, T const& value) {
             using S = typename SettingTypeForValueType<T>::SettingType;
             if (auto sett = cast::typeinfo_pointer_cast<S>(this->getSetting(key))) {
                 auto old = sett->getValue();
@@ -243,10 +243,10 @@ namespace geode {
             return T();
         }
 
-        bool hasSavedValue(std::string_view const key);
+        bool hasSavedValue(std::string_view key);
 
         template <class T>
-        T getSavedValue(std::string_view const key) {
+        T getSavedValue(std::string_view key) {
             auto& saved = this->getSaveContainer();
             if (auto res = saved.get(key).andThen([](auto&& v) {
                 return v.template as<T>();
@@ -257,7 +257,7 @@ namespace geode {
         }
 
         template <class T>
-        T getSavedValue(std::string_view const key, T const& defaultValue) {
+        T getSavedValue(std::string_view key, T const& defaultValue) {
             auto& saved = this->getSaveContainer();
             if (auto res = saved.get(key).andThen([](auto&& v) {
                 return v.template as<T>();
@@ -276,7 +276,7 @@ namespace geode {
          * @returns The old value
          */
         template <class T>
-        T setSavedValue(std::string_view const key, T const& value) {
+        T setSavedValue(std::string_view key, T const& value) {
             auto& saved = this->getSaveContainer();
             auto old = this->getSavedValue<T>(key);
             saved[key] = value;
@@ -417,7 +417,7 @@ namespace geode {
          * Check whether or not this Mod
          * depends on another mod
          */
-        bool depends(std::string_view const id) const;
+        bool depends(std::string_view id) const;
 
         /**
          * Check whether all the required

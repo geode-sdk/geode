@@ -243,7 +243,7 @@ std::vector<std::string> Mod::Impl::getSettingKeys() const {
     return keys;
 }
 
-bool Mod::Impl::hasSetting(std::string_view const key) const {
+bool Mod::Impl::hasSetting(std::string_view key) const {
     for (auto& setting : m_metadata.getSettings()) {
         if (setting.first == key) {
             return true;
@@ -252,7 +252,7 @@ bool Mod::Impl::hasSetting(std::string_view const key) const {
     return false;
 }
 
-std::string Mod::Impl::getLaunchArgumentName(std::string_view const name) const {
+std::string Mod::Impl::getLaunchArgumentName(std::string_view name) const {
     return this->getID() + "." + std::string(name);
 }
 
@@ -267,15 +267,15 @@ std::vector<std::string> Mod::Impl::getLaunchArgumentNames() const {
     return names;
 }
 
-bool Mod::Impl::hasLaunchArgument(std::string_view const name) const {
+bool Mod::Impl::hasLaunchArgument(std::string_view name) const {
     return Loader::get()->hasLaunchArgument(this->getLaunchArgumentName(name));
 }
 
-std::optional<std::string> Mod::Impl::getLaunchArgument(std::string_view const name) const {
+std::optional<std::string> Mod::Impl::getLaunchArgument(std::string_view name) const {
     return Loader::get()->getLaunchArgument(this->getLaunchArgumentName(name));
 }
 
-bool Mod::Impl::getLaunchFlag(std::string_view const name) const {
+bool Mod::Impl::getLaunchFlag(std::string_view name) const {
     return Loader::get()->getLaunchFlag(this->getLaunchArgumentName(name));
 }
 
@@ -442,7 +442,7 @@ bool Mod::Impl::hasUnresolvedIncompatibilities() const {
     return false;
 }
 
-bool Mod::Impl::depends(std::string_view const id) const {
+bool Mod::Impl::depends(std::string_view id) const {
     return utils::ranges::contains(m_metadata.getDependencies(), [id](ModMetadata::Dependency const& t) {
         return t.id == id;
     });

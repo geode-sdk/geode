@@ -103,26 +103,26 @@ namespace geode {
          * Returns whether the specified launch argument was passed in via the command line.
          * @param name The argument name
          */
-        bool hasLaunchArgument(std::string_view const name) const;
+        bool hasLaunchArgument(std::string_view name) const;
         /**
          * Get a launch argument. These are passed into the game as command-line arguments
          * with the format `--geode:arg-name=value`.
          * @param name The argument name
          * @return The value, if present
          */
-        std::optional<std::string> getLaunchArgument(std::string_view const name) const;
+        std::optional<std::string> getLaunchArgument(std::string_view name) const;
         /**
          * Get a launch argument flag. Returns whether the argument is present and its
          * value is exactly `true`.
          * @param name The argument name
          */
-        bool getLaunchFlag(std::string_view const name) const;
+        bool getLaunchFlag(std::string_view name) const;
         /**
          * Get and parse a launch argument value using the setting value system.
          * @param name The argument name
          */
         template <class T>
-        Result<T> parseLaunchArgument(std::string_view const name) const {
+        Result<T> parseLaunchArgument(std::string_view name) const {
             auto str = this->getLaunchArgument(name);
             if (!str.has_value()) {
                 return Err(fmt::format("Launch argument '{}' not found", name));

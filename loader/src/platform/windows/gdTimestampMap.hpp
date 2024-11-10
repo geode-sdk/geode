@@ -49,7 +49,7 @@ static std::string timestampToVersion(uint32_t timestamp) {
     }
 }
 
-static uint32_t versionToTimestamp(std::string_view const targetVersion) {
+static uint32_t versionToTimestamp(std::string_view targetVersion) {
     for (const auto& [stamp, ver] : getGDVersionTimestampMap()) {
         if (ver == targetVersion) {
             return stamp;

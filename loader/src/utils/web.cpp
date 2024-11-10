@@ -221,7 +221,7 @@ WebRequest::WebRequest() : m_impl(std::make_shared<Impl>()) {}
 WebRequest::~WebRequest() {}
 
 // Encodes a url param
-std::string urlParamEncode(std::string_view const input) {
+static std::string urlParamEncode(std::string_view input) {
     std::ostringstream ss;
     ss << std::hex << std::uppercase;
     for (char c : input) {

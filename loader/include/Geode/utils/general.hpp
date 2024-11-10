@@ -117,7 +117,7 @@ namespace geode {
          * @returns String as number, or Err if the string couldn't be converted
          */
         template <class Num>
-        Result<Num> numFromString(std::string_view const str, int base = 10) {
+        Result<Num> numFromString(std::string_view str, int base = 10) {
             if constexpr (std::is_floating_point_v<Num> 
                 #if defined(__cpp_lib_to_chars)
                     && false
