@@ -321,7 +321,6 @@ Result<> Mod::Impl::loadBinary() {
 
 
     ModStateEvent(m_self, ModEventType::Loaded).post();
-    ModStateEvent(m_self, ModEventType::Enabled).post();
     ModStateEvent(m_self, ModEventType::DataLoaded).post();
 
     m_isCurrentlyLoading = false;

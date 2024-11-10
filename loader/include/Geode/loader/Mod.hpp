@@ -157,7 +157,6 @@ namespace geode {
         std::vector<std::string> getSettingKeys() const;
         bool hasSetting(std::string_view const key) const;
 
-        // todo in v4: possibly rename this to getSetting?
         /**
          * Get the definition of a setting, or null if the setting was not found, 
          * or if it's a custom setting that has not yet been registered using 

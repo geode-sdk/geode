@@ -10,9 +10,6 @@ namespace geode {
 
     enum class ModEventType {
         Loaded,
-        Unloaded,
-        Enabled,
-        Disabled,
         DataLoaded,
         DataSaved,
     };
