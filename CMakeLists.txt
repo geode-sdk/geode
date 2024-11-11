@@ -189,13 +189,10 @@ include(cmake/Platform.cmake)
 include(cmake/GeodeFile.cmake)
 
 if (NOT DEFINED GEODE_GD_VERSION)
-	if (GEODE_TARGET_PLATFORM STREQUAL "Win64" OR GEODE_TARGET_PLATFORM STREQUAL "MacOS")
-		set(GEODE_GD_VERSION 2.2073)
-		set(GEODE_COMP_GD_VERSION 22073)
-	else()
-		set(GEODE_GD_VERSION 2.206)
-		set(GEODE_COMP_GD_VERSION 22060)
-	endif()
+	# this is incorrect!
+	# Android and iOS are on 2.2074 so please fix when 2.2074 releases for desktop :(
+	set(GEODE_GD_VERSION 2.2073)
+	set(GEODE_COMP_GD_VERSION 22073)
 endif()
 
 target_compile_definitions(

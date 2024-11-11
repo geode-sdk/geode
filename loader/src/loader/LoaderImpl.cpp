@@ -42,6 +42,11 @@ Loader::Impl::~Impl() = default;
 // Initialization
 
 bool Loader::Impl::isForwardCompatMode() {
+#ifdef GEODE_IS_ANDROID
+    // forward compat mode doesn't really make sense on android
+    return false;
+#endif
+
     if (!m_forwardCompatMode.has_value()) {
         m_forwardCompatMode = !this->getGameVersion().empty() &&
             this->getGameVersion() != GEODE_STR(GEODE_GD_VERSION);
