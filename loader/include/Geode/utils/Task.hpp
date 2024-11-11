@@ -751,6 +751,93 @@ namespace geode {
             this->listen(std::move(onResult), [](auto const&) {}, [] {});
         }
 
+        /**
+         * Create a new Task that listens to this Task and maps the values using
+         * the provided function. The new Task will only start when this Task finishes.
+         * @param mapper Function that makes a new task given the finished value of this task.
+         * The function signature should be `Task<NewType, NewProgress>(T*)`, and it will be executed
+         * on the main thread.
+         * @param name The name of the Task; used for debugging.
+         * @return The new Task that will run when this Task finishes.
+         * @note Progress from this task is not sent through, only progress from the new task is.
+         */
+        template <std::invocable<T*> Mapper>
+        auto chain(Mapper mapper, std::string_view name = "<Chained Task>") const -> decltype(mapper(std::declval<T*>())) {
+            using NewTask = decltype(mapper(std::declval<T*>()));
+            using NewType = typename NewTask::Value;
+            using NewProgress = typename NewTask::Progress;
+
+            std::unique_lock<std::recursive_mutex> lock(m_handle->m_mutex);
+
+            if (m_handle->m_status == Status::Cancelled) {
+                // if the current task has been cancelled already, make an immediate cancelled task
+                return NewTask::cancelled();
+            }
+            else if (m_handle->m_status == Status::Finished) {
+                // if the current task is already done, we can just call the mapper directly
+                return mapper(&*m_handle->m_resultValue);
+            }
+
+            // otherwise, make a wrapper task that waits for the current task to finish,
+            // and then runs the mapper on the result. this new task will also wait for the task
+            // created by the mapper to finish, and will just forward the values through.
+            // do this because we cant really change the handle of the task we already returned
+
+            NewTask task = NewTask::Handle::create(fmt::format("{} <- {}", name, m_handle->m_name));
+
+            task.m_handle->m_extraData = std::make_unique<typename NewTask::Handle::ExtraData>(
+                // make the first event listener that waits for the current task
+                static_cast<void*>(new EventListener<Task>(
+                    [handle = std::weak_ptr(task.m_handle), mapper = std::move(mapper)](Event* event) mutable {
+                        if (auto v = event->getValue()) {
+                            auto newInnerTask = mapper(v);
+                            // this is scary.. but it doesn't seem to crash lol
+                            handle.lock()->m_extraData = std::make_unique<typename NewTask::Handle::ExtraData>(
+                                // make the second event listener that waits for the mapper's task
+                                // and just forwards everything through
+                                static_cast<void*>(new EventListener<NewTask>(
+                                    [handle](Event* event) mutable {
+                                        if (auto v = event->getValue()) {
+                                            NewTask::finish(handle.lock(), std::move(*v));
+                                        }
+                                        else if (auto p = event->getProgress()) {
+                                            NewTask::progress(handle.lock(), std::move(*p));
+                                        }
+                                        else if (event->isCancelled()) {
+                                            NewTask::cancel(handle.lock());
+                                        }
+                                    },
+                                    std::move(newInnerTask)
+                                )),
+                                +[](void* ptr) {
+                                    delete static_cast<EventListener<NewTask>*>(ptr);
+                                },
+                                +[](void* ptr) {
+                                    static_cast<EventListener<NewTask>*>(ptr)->getFilter().cancel();
+                                }
+                            );
+                        }
+                        else if (auto p = event->getProgress()) {
+                            // no guarantee P and NewProgress are compatible
+                            // nor does it seem like the intended behavior?
+                            // TODO: maybe add a mapper for progress?
+                        }
+                        else if (event->isCancelled()) {
+                            NewTask::cancel(handle.lock());
+                        }
+                    },
+                    *this
+                )),
+                +[](void* ptr) {
+                    delete static_cast<EventListener<Task>*>(ptr);
+                },
+                +[](void* ptr) {
+                    static_cast<EventListener<Task>*>(ptr)->getFilter().cancel();
+                }
+            );
+            return task;
+        }
+
         ListenerResult handle(std::function<Callback> fn, Event* e) {
             if (e->m_handle == m_handle && (!e->m_for || e->m_for == m_listener)) {
                 fn(e);
