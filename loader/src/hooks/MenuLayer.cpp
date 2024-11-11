@@ -75,6 +75,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
             this->fixSocialMenu();
 
+            //this code doesnt run have fun figuring out why idc enough
             if (auto node = this->getChildByID("settings-gamepad-icon")) {
                 node->setPositionX(
                     bottomMenu->getChildByID("settings-button")->getPositionX() + winSize.width / 2
