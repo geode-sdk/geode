@@ -161,7 +161,7 @@ namespace geode::modifier {
             if (!res) {
                 return Err(std::move(res).unwrapErr());
             }
-            res.unwrap()->setPriority(priority);
+            std::move(res).unwrap()->setPriority(priority);
             return Ok();
         }
 
@@ -200,8 +200,8 @@ namespace geode::modifier {
                     for (auto modHook : hooks) {
                         if (modHook->getAddress() != hook->getAddress()) continue;
                         auto priority = hook->getPriority();
-                        if (priority < mod->getPriority()) {
-                            hook->setPriority(mod->getPriority() + 1);
+                        if (priority < modHook->getPriority()) {
+                            hook->setPriority(modHook->getPriority() + 1);
                         }
                     }
                 };
@@ -234,8 +234,8 @@ namespace geode::modifier {
                     for (auto modHook : hooks) {
                         if (modHook->getAddress() != hook->getAddress()) continue;
                         auto priority = hook->getPriority();
-                        if (priority > mod->getPriority()) {
-                            hook->setPriority(mod->getPriority() - 1);
+                        if (priority > modHook->getPriority()) {
+                            hook->setPriority(modHook->getPriority() - 1);
                         }
                     }
                 };
