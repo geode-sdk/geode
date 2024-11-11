@@ -25,6 +25,7 @@ protected:
     CCNode* m_recommendedBy;
     CCLabelBMFont* m_developerLabel;
     ButtonSprite* m_restartRequiredLabel;
+    ButtonSprite* m_outdatedLabel;
     CCNode* m_downloadWaiting;
     CCNode* m_downloadBarContainer;
     Slider* m_downloadBar;

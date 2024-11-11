@@ -706,11 +706,7 @@ bool Mod::Impl::isCurrentlyLoading() const {
 
 bool Mod::Impl::hasLoadProblems() const {
     for (auto const& problem : m_problems) {
-        if (
-            problem.type != LoadProblem::Type::Recommendation && 
-            problem.type != LoadProblem::Type::Suggestion &&
-            problem.type != LoadProblem::Type::UnsupportedVersion
-        ) {
+        if (problem.isProblem()) {
             return true;
         }
     }

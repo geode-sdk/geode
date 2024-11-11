@@ -46,6 +46,21 @@ namespace geode {
         Type type;
         std::variant<std::filesystem::path, ModMetadata, Mod*> cause;
         std::string message;
+
+        bool isSuggestion() const {
+            return 
+                type == LoadProblem::Type::Recommendation || 
+                type == LoadProblem::Type::Suggestion;
+        }
+        bool isOutdated() const {
+            return 
+                type == LoadProblem::Type::UnsupportedVersion ||
+                type == LoadProblem::Type::NeedsNewerGeodeVersion ||
+                type == LoadProblem::Type::UnsupportedGeodeVersion;
+        }
+        bool isProblem() const {
+            return !isSuggestion() && !isOutdated();
+        }
     };
 
     class LoaderImpl;

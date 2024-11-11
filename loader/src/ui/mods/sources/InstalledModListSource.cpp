@@ -13,7 +13,7 @@ bool InstalledModsQuery::preCheck(ModSource const& src) const {
     }
     // If only errors requested, only show mods with errors (duh)
     if (type == InstalledModListType::OnlyOutdated) {
-        return src.asMod()->targetsOutdatedGDVersion();
+        return src.asMod()->targetsOutdatedVersion().has_value();
     }
     if (type == InstalledModListType::OnlyErrors) {
         return src.asMod()->hasLoadProblems();

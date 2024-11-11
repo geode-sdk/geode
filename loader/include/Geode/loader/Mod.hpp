@@ -446,7 +446,16 @@ namespace geode {
         bool isLoggingEnabled() const;
         void setLoggingEnabled(bool enabled);
 
-        bool targetsOutdatedGDVersion() const;
+        /**
+         * If this mod is built for an outdated GD or Geode version, returns the 
+         * `LoadProblem` describing the situation. Otherwise `nullopt` if the 
+         * mod is made for the correct version of the game and Geode
+         */
+        std::optional<LoadProblem> targetsOutdatedVersion() const;
+        /**
+         * @note Make sure to also call `targetsOutdatedVersion` if you want to 
+         * make sure the mod is actually loadable
+         */
         bool hasLoadProblems() const;
         std::vector<LoadProblem> getAllProblems() const;
         std::vector<LoadProblem> getProblems() const;

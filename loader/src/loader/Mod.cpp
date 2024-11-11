@@ -255,13 +255,13 @@ bool Mod::hasSavedValue(std::string_view key) {
 bool Mod::hasLoadProblems() const {
     return m_impl->hasLoadProblems();
 }
-bool Mod::targetsOutdatedGDVersion() const {
+std::optional<LoadProblem> Mod::targetsOutdatedVersion() const {
     for (auto problem : this->getAllProblems()) {
-        if (problem.type == LoadProblem::Type::UnsupportedVersion) {
-            return true;
+        if (problem.isOutdated()) {
+            return problem;
         }
     }
-    return false;
+    return std::nullopt;
 }
 std::vector<LoadProblem> Mod::getAllProblems() const {
     return m_impl->getProblems();
@@ -269,11 +269,7 @@ std::vector<LoadProblem> Mod::getAllProblems() const {
 std::vector<LoadProblem> Mod::getProblems() const {
     std::vector<LoadProblem> result;
     for (auto problem : this->getAllProblems()) {
-        if (
-            problem.type != LoadProblem::Type::Recommendation && 
-            problem.type != LoadProblem::Type::Suggestion &&
-            problem.type != LoadProblem::Type::UnsupportedVersion
-        ) {
+        if (problem.isProblem()) {
             result.push_back(problem);
         }
     }
@@ -282,10 +278,7 @@ std::vector<LoadProblem> Mod::getProblems() const {
 std::vector<LoadProblem> Mod::getRecommendations() const {
     std::vector<LoadProblem> result;
     for (auto problem : this->getAllProblems()) {
-        if (
-            problem.type == LoadProblem::Type::Recommendation || 
-            problem.type == LoadProblem::Type::Suggestion
-        ) {
+        if (problem.isSuggestion()) {
             result.push_back(problem);
         }
     }

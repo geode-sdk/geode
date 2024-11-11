@@ -46,7 +46,7 @@ void crashlog::printMods(std::stringstream& stream) {
             mod->isCurrentlyLoading() ? "o"sv : 
             mod->isEnabled() ? "x"sv : 
             mod->hasLoadProblems() ? "!"sv : // thank you for this bug report
-            mod->targetsOutdatedGDVersion() ? "*"sv : // thank you very much for this bug report
+            mod->targetsOutdatedVersion() ? "*"sv : // thank you very much for this bug report
             mod->shouldLoad() ? "~"sv : 
             " "sv,
             mod->getVersion().toVString(), mod->getID()

@@ -230,7 +230,13 @@ void filterModsWithLocalQuery(ModListSource::ProvidedMods& mods, Query const& qu
         if (a.second != b.second) {
             return a.second > b.second;
         }
-        // Sort secondarily alphabetically
+        // Make sure outdated mods are always last by default
+        auto aIsOutdated = a.first.getMetadata().checkGameVersion().isErr();
+        auto bIsOutdated = b.first.getMetadata().checkGameVersion().isErr();
+        if (aIsOutdated != bIsOutdated) {
+            return !aIsOutdated;
+        }
+        // Fallback sort alphabetically
         return utils::string::caseInsensitiveCompare(
             a.first.getMetadata().getName(),
             b.first.getMetadata().getName()

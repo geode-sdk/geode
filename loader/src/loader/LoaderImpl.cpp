@@ -384,6 +384,37 @@ void Loader::Impl::buildModGraph() {
 }
 
 void Loader::Impl::loadModGraph(Mod* node, bool early) {
+    // Check version first, as it's not worth trying to load a mod with an 
+    // invalid target version
+    // Also this makes it so that when GD updates, outdated mods get shown as 
+    // "Outdated" in the UI instead of "Missing Dependencies"
+    auto res = node->getMetadata().checkGameVersion();
+    if (!res) {
+        this->addProblem({
+            LoadProblem::Type::UnsupportedVersion,
+            node,
+            res.unwrapErr()
+        });
+        log::error("{}", res.unwrapErr());
+        log::popNest();
+        return;
+    }
+
+    if (!this->isModVersionSupported(node->getMetadata().getGeodeVersion())) {
+        this->addProblem({
+            node->getMetadata().getGeodeVersion() > this->getVersion() ? LoadProblem::Type::NeedsNewerGeodeVersion : LoadProblem::Type::UnsupportedGeodeVersion,
+            node,
+            fmt::format(
+                "Geode version {}\nis required to run this mod\n(installed: {})",
+                node->getMetadata().getGeodeVersion().toVString(),
+                this->getVersion().toVString()
+            )
+        });
+        log::error("Unsupported Geode version: {}", node->getMetadata().getGeodeVersion());
+        log::popNest();
+        return;
+    }
+    
     if (node->hasUnresolvedDependencies()) {
         log::debug("{} {} has unresolved dependencies", node->getID(), node->getVersion());
         return;
@@ -444,35 +475,6 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
             log::popNest();
             return;
         }
-
-        auto res = node->getMetadata().checkGameVersion();
-        if (!res) {
-            this->addProblem({
-                LoadProblem::Type::UnsupportedVersion,
-                node,
-                res.unwrapErr()
-            });
-            log::error("{}", res.unwrapErr());
-            m_refreshingModCount -= 1;
-            log::popNest();
-            return;
-        }
-
-        if (!this->isModVersionSupported(node->getMetadata().getGeodeVersion())) {
-            this->addProblem({
-                node->getMetadata().getGeodeVersion() > this->getVersion() ? LoadProblem::Type::NeedsNewerGeodeVersion : LoadProblem::Type::UnsupportedGeodeVersion,
-                node,
-                fmt::format(
-                    "Geode version {}\nis required to run this mod\n(installed: {})",
-                    node->getMetadata().getGeodeVersion().toVString(),
-                    this->getVersion().toVString()
-                )
-            });
-            log::error("Unsupported Geode version: {}", node->getMetadata().getGeodeVersion());
-            m_refreshingModCount -= 1;
-            log::popNest();
-            return;
-        }
     }
 
     if (early) {
@@ -522,6 +524,10 @@ void Loader::Impl::findProblems() {
     for (auto const& [id, mod] : m_mods) {
         if (!mod->shouldLoad()) {
             log::debug("{} is not enabled", id);
+            continue;
+        }
+        if (mod->targetsOutdatedVersion()) {
+            log::debug("{} is outdated", id);
             continue;
         }
         log::debug("{}", id);
