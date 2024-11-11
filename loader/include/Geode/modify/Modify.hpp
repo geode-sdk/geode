@@ -157,11 +157,8 @@ namespace geode::modifier {
         /// @param priority The priority to set the hook to
         /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
         Result<> setHookPriority(std::string const& name, int32_t priority = Priority::Normal) {
-            auto res = this->getHook(name);
-            if (!res) {
-                return Err(std::move(res).unwrapErr());
-            }
-            std::move(res).unwrap()->setPriority(priority);
+            GEODE_UNWRAP_INTO(auto hook, this->getHook(name));
+            hook->setPriority(priority);
             return Ok();
         }
 
@@ -187,11 +184,7 @@ namespace geode::modifier {
         /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
         template<class... C> requires (std::is_convertible_v<C, std::string> && ...)
         Result<> setHookPriorityAfter(std::string const& name, C&&... after) {
-            auto res = this->getHook(name);
-            if (!res) {
-                return Err(std::move(res).unwrapErr());
-            }
-            auto hook = std::move(res).unwrap();
+            GEODE_UNWRAP_INTO(auto hook, this->getHook(name));
             ([&](){
                 auto mod = Loader::get()->getInstalledMod(after);
                 if (!mod) return;
@@ -221,11 +214,7 @@ namespace geode::modifier {
         /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
         template<class... C> requires (std::is_convertible_v<C, std::string> && ...)
         Result<> setHookPriorityBefore(std::string const& name, C&&... before) {
-            auto res = this->getHook(name);
-            if (!res) {
-                return Err(std::move(res).unwrapErr());
-            }
-            auto hook = std::move(res).unwrap();
+            GEODE_UNWRAP_INTO(auto hook, this->getHook(name));
             ([&](){
                 auto mod = Loader::get()->getInstalledMod(before);
                 if (!mod) return;
