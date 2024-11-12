@@ -1,15 +1,19 @@
 #include "ModItem.hpp"
+
+#include <optional>
+#include <string>
+#include <vector>
+
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/loader/Loader.hpp>
-#include <vector>
-#include "../GeodeStyle.hpp"
-#include "../popups/ModPopup.hpp"
-#include "../popups/DevPopup.hpp"
+#include "ui/mods/GeodeStyle.hpp"
+#include "ui/mods/popups/ModPopup.hpp"
+#include "ui/mods/popups/DevPopup.hpp"
 #include "ui/mods/popups/ModErrorPopup.hpp"
 #include "ui/mods/sources/ModSource.hpp"
-#include "../../GeodeUIEvent.hpp"
+#include "ui/GeodeUIEvent.hpp"
 
 bool ModItem::init(ModSource&& source) {
     if (!CCNode::init())
@@ -426,9 +430,20 @@ void ModItem::updateState() {
             m_bg->setColor("mod-list-errors-found"_cc3b);
             m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
         }
-        if (m_source.asMod()->targetsOutdatedVersion()) {
+        if (std::optional<LoadProblem> opt = m_source.asMod()->targetsOutdatedVersion()) {
+            LoadProblem problem = opt.value();
             m_bg->setColor("mod-list-outdated-label"_cc3b);
             m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
+            std::string content;
+            if (
+                problem.type == LoadProblem::Type::UnsupportedGeodeVersion ||
+                problem.type == LoadProblem::Type::NeedsNewerGeodeVersion
+            ) {
+                content = fmt::format("Outdated (Geode {})", m_source.getMetadata().getGeodeVersion().toNonVString());
+            } else {
+                content = fmt::format("Outdated (GD {})", m_source.getMetadata().getGameVersion().value_or("*"));
+            }
+            m_outdatedLabel->setString(content.c_str());
             m_outdatedLabel->setVisible(true);
             m_developers->setVisible(false);
         }
