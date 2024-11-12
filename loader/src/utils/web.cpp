@@ -1,4 +1,4 @@
-#include <Geode/utils/Result.hpp>
+#include <Geode/Result.hpp>
 #include <Geode/utils/general.hpp>
 #include <filesystem>
 #include <fmt/core.h>
@@ -130,12 +130,9 @@ Result<std::string> WebResponse::string() const {
 }
 Result<matjson::Value> WebResponse::json() const {
     GEODE_UNWRAP_INTO(auto value, this->string());
-    std::string error;
-    auto res = matjson::parse(value, error);
-    if (error.size() > 0) {
-        return Err("Error parsing JSON: " + error);
-    }
-    return Ok(res.value());
+    return matjson::parse(value).mapErr([&](auto const& err) {
+        return fmt::format("Error parsing JSON: {}", err);
+    });
 }
 ByteVector WebResponse::data() const {
     return m_impl->m_data;
@@ -188,6 +185,8 @@ std::optional<float> WebProgress::uploadProgress() const {
 
 class WebRequest::Impl {
 public:
+    static std::atomic_size_t s_idCounter;
+
     std::string m_method;
     std::string m_url;
     std::unordered_map<std::string, std::string> m_headers;
@@ -200,9 +199,13 @@ public:
     bool m_certVerification = true;
     bool m_transferBody = true;
     bool m_followRedirects = true;
+    bool m_ignoreContentLength = false;
     std::string m_CABundleContent;
     ProxyOpts m_proxyOpts = {};
     HttpVersion m_httpVersion = HttpVersion::DEFAULT;
+    size_t m_id;
+
+    Impl() : m_id(s_idCounter++) {}
 
     WebResponse makeError(int code, std::string const& msg) {
         auto res = WebResponse();
@@ -212,11 +215,13 @@ public:
     }
 };
 
+std::atomic_size_t WebRequest::Impl::s_idCounter = 0;
+
 WebRequest::WebRequest() : m_impl(std::make_shared<Impl>()) {}
 WebRequest::~WebRequest() {}
 
 // Encodes a url param
-std::string urlParamEncode(std::string_view const input) {
+static std::string urlParamEncode(std::string_view input) {
     std::ostringstream ss;
     ss << std::hex << std::uppercase;
     for (char c : input) {
@@ -375,6 +380,9 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         // Follow request through 3xx responses
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, impl->m_followRedirects ? 1L : 0L);
 
+        // Ignore content length
+        curl_easy_setopt(curl, CURLOPT_IGNORE_CONTENT_LENGTH, impl->m_ignoreContentLength ? 1L : 0L);
+
         // Track progress
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
 
@@ -491,7 +499,7 @@ WebRequest& WebRequest::header(std::string_view name, std::string_view value) {
             int timeoutValue = 5;
             auto res = numFromString<int>(value.substr(numStart, numLength));
             if (res) {
-                timeoutValue = res.value();
+                timeoutValue = res.unwrap();
             }
 
             timeout(std::chrono::seconds(timeoutValue));
@@ -549,6 +557,11 @@ WebRequest& WebRequest::followRedirects(bool enabled) {
     return *this;
 }
 
+WebRequest& WebRequest::ignoreContentLength(bool enabled) {
+    m_impl->m_ignoreContentLength = enabled;
+    return *this;
+}
+
 WebRequest& WebRequest::CABundleContent(std::string_view content) {
     m_impl->m_CABundleContent = content;
     return *this;
@@ -582,6 +595,10 @@ WebRequest& WebRequest::bodyJSON(matjson::Value const& json) {
     std::string str = json.dump(matjson::NO_INDENTATION);
     m_impl->m_body = ByteVector { str.begin(), str.end() };
     return *this;
+}
+
+size_t WebRequest::getID() const {
+    return m_impl->m_id;
 }
 
 std::string WebRequest::getMethod() const {

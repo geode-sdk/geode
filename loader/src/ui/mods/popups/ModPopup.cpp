@@ -1,14 +1,17 @@
 #include "ModPopup.hpp"
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/ui/MDTextArea.hpp>
+#include <Geode/ui/TextInput.hpp>
 #include <Geode/utils/web.hpp>
 #include <Geode/loader/Loader.hpp>
+#include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include "ConfirmUninstallPopup.hpp"
 #include "../settings/ModSettingsPopup.hpp"
 #include "../../../internal/about.hpp"
 #include "../../GeodeUIEvent.hpp"
+#include "../popups/ModtoberPopup.hpp"
 
 class FetchTextArea : public CCNode {
 public:
@@ -43,7 +46,7 @@ protected:
     }
 
     void onRequest(Request::Event* event) {
-        if (event->getValue() && event->getValue()->isOk() && event->getValue()->unwrap()) {
+        if (event->getValue() && event->getValue()->isOk() && event->getValue()->inspect([](auto&& value) { return value.has_value(); })) {
             m_loading->removeFromParent();
             m_textarea->setString(event->getValue()->unwrap()->c_str());
         }
@@ -299,12 +302,12 @@ bool ModPopup::setup(ModSource&& src) {
     manageTitle->setOpacity(195);
     manageContainer->addChildAtPosition(manageTitle, Anchor::Left, ccp(0, 0), ccp(0, .5f));
 
-    m_restartRequiredLabel = createGeodeTagLabel(
+    m_restartRequiredLabel = createTagLabel(
         "Restart Required",
-        {{
+        {
             to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)),
             to3B(ColorProvider::get()->color("mod-list-restart-required-label-bg"_spr))
-        }}
+        }
     );
     m_restartRequiredLabel->setScale(.3f);
     manageContainer->addChildAtPosition(m_restartRequiredLabel, Anchor::Right, ccp(0, 0), ccp(1, .5f));
@@ -333,7 +336,8 @@ bool ModPopup::setup(ModSource&& src) {
     auto updateModSpr = createGeodeButton(
         CCSprite::createWithSpriteFrameName("update.png"_spr),
         "Update",
-        GeodeButtonSprite::Install
+        GeodeButtonSprite::Install,
+        m_forceDisableTheme
     );
     updateModSpr->setScale(.5f);
     m_updateBtn = CCMenuItemSpriteExtra::create(
@@ -344,13 +348,15 @@ bool ModPopup::setup(ModSource&& src) {
     auto enableModOffSpr = createGeodeButton(
         CCSprite::createWithSpriteFrameName("GJ_completesIcon_001.png"),
         "Enable",
-        GeodeButtonSprite::Enable
+        GeodeButtonSprite::Enable,
+        m_forceDisableTheme
     );
     enableModOffSpr->setScale(.5f);
     auto enableModOnSpr = createGeodeButton(
         CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"),
         "Disable",
-        GeodeButtonSprite::Delete
+        GeodeButtonSprite::Delete,
+        m_forceDisableTheme
     );
     enableModOnSpr->setScale(.5f);
     m_enableBtn = CCMenuItemToggler::create(
@@ -363,7 +369,8 @@ bool ModPopup::setup(ModSource&& src) {
     auto reenableModOffSpr = createGeodeButton(
         CCSprite::createWithSpriteFrameName("reset.png"_spr),
         "Re-Enable",
-        GeodeButtonSprite::Default
+        GeodeButtonSprite::Default,
+        m_forceDisableTheme
     );
     reenableModOffSpr->setScale(.5f);
     auto reenableModOnSpr = createGeodeButton(
@@ -382,7 +389,8 @@ bool ModPopup::setup(ModSource&& src) {
     auto installModSpr = createGeodeButton(
         CCSprite::createWithSpriteFrameName("GJ_downloadsIcon_001.png"),
         "Install",
-        GeodeButtonSprite::Install
+        GeodeButtonSprite::Install,
+        m_forceDisableTheme
     );
     installModSpr->setScale(.5f);
     m_installBtn = CCMenuItemSpriteExtra::create(
@@ -393,7 +401,8 @@ bool ModPopup::setup(ModSource&& src) {
     auto uninstallModSpr = createGeodeButton(
         CCSprite::createWithSpriteFrameName("delete-white.png"_spr),
         "Uninstall",
-        GeodeButtonSprite::Default
+        GeodeButtonSprite::Default,
+        m_forceDisableTheme
     );
     uninstallModSpr->setScale(.5f);
     m_uninstallBtn = CCMenuItemSpriteExtra::create(
@@ -404,7 +413,8 @@ bool ModPopup::setup(ModSource&& src) {
     auto cancelDownloadSpr = createGeodeButton(
         CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"),
         "Cancel",
-        GeodeButtonSprite::Default
+        GeodeButtonSprite::Default,
+        m_forceDisableTheme
     );
     cancelDownloadSpr->setScale(.5f);
     m_cancelBtn = CCMenuItemSpriteExtra::create(
@@ -557,7 +567,14 @@ bool ModPopup::setup(ModSource&& src) {
     mainContainer->updateLayout();
     m_mainLayer->addChildAtPosition(mainContainer, Anchor::Center);
 
-    auto settingsSpr = createGeodeCircleButton(CCSprite::createWithSpriteFrameName("settings.png"_spr));
+    m_settingsBG = CCScale9Sprite::create("square02b_001.png");
+    m_settingsBG->setColor({ 0, 0, 0 });
+    m_settingsBG->setOpacity(75);
+    m_settingsBG->setScale(.3f);
+    m_settingsBG->setContentSize(ccp(35, 30) / linksBG->getScale());
+    m_buttonMenu->addChildAtPosition(m_settingsBG, Anchor::BottomLeft, ccp(28, 25));
+
+    auto settingsSpr = createGeodeCircleButton(CCSprite::createWithSpriteFrameName("settings.png"_spr), 1.f, CircleBaseSize::Medium, false, m_forceDisableTheme);
     settingsSpr->setScale(.6f);
     auto settingsBtn = CCMenuItemSpriteExtra::create(
         settingsSpr, this, menu_selector(ModPopup::onSettings)
@@ -601,15 +618,30 @@ bool ModPopup::setup(ModSource&& src) {
     m_downloadListener.bind([this](auto) { this->updateState(); });
     m_downloadListener.setFilter(m_source.getID());
 
+    m_settingNodeListener.bind([this](SettingNodeValueChangeEvent*) {
+        this->updateState();
+        return ListenerResult::Propagate;
+    });
+
     return true;
 }
 
 void ModPopup::updateState() {
     auto asMod = m_source.asMod();
     auto wantsRestart = m_source.wantsRestart();
+    auto wantsRestartBecauseOfSettings = asMod && ModSettingsManager::from(asMod)->restartRequired();
 
-    m_installBG->setColor(wantsRestart ? to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)) : ccc3(0, 0, 0));
-    m_installBG->setOpacity(wantsRestart ? 40 : 75);
+    m_installBG->setColor((wantsRestart && !wantsRestartBecauseOfSettings) ?
+        to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)) : 
+        ccBLACK
+    );
+    m_installBG->setOpacity((wantsRestart && !wantsRestartBecauseOfSettings) ? 40 : 75);
+    m_settingsBG->setColor(wantsRestartBecauseOfSettings ?
+        to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)) : 
+        ccBLACK
+    );
+    m_settingsBG->setOpacity(wantsRestartBecauseOfSettings ? 40 : 75);
+    m_settingsBG->setVisible(wantsRestartBecauseOfSettings);
     m_restartRequiredLabel->setVisible(wantsRestart);
 
     if (!wantsRestart && asMod) {
@@ -857,16 +889,57 @@ void ModPopup::onLoadTags(typename server::ServerRequest<std::unordered_set<std:
         m_tags->removeAllChildren();
         
         for (auto& tag : data) {
-            auto readable = tag;
-            readable[0] = std::toupper(readable[0]);
-            auto colors = geodeTagColor(tag);
-            m_tags->addChild(createGeodeTagLabel(readable));
+            m_tags->addChild(createGeodeTagLabel(tag));
         }
         
         if (data.empty()) {
             auto label = CCLabelBMFont::create("No tags found", "bigFont.fnt");
             label->setOpacity(120);
             m_tags->addChild(label);
+        }
+        // This should probably be kept even after modtober ends, 
+        // so the banner sprite must be kept
+        // If the build times from the cool popup become too long then we can 
+        // probably move that to a normal FLAlert that explains "Modtober was 
+        // this contest blah blah this mod was made for it"
+        else if (data.contains("modtober24")) {
+            auto menu = CCMenu::create();
+            menu->setID("modtober-banner");
+            menu->ignoreAnchorPointForPosition(false);
+            menu->setContentSize({ m_rightColumn->getContentWidth(), 25 });
+
+            auto banner = CCSprite::createWithSpriteFrameName("modtober24-banner-2.png"_spr);
+            limitNodeWidth(banner, m_rightColumn->getContentWidth(), 1.f, .1f);
+            menu->addChildAtPosition(banner, Anchor::Center);
+
+            auto label = CCLabelBMFont::create("Entry for Modtober 2024", "bigFont.fnt");
+            label->setScale(.35f);
+            menu->addChildAtPosition(label, Anchor::Left, ccp(10, 0), ccp(0, .5f));
+
+            auto aboutSpr = createGeodeButton("About", false, GeodeButtonSprite::Default, m_forceDisableTheme);
+            aboutSpr->setScale(.35f);
+            auto aboutBtn = CCMenuItemSpriteExtra::create(
+                aboutSpr, this, menu_selector(ModPopup::onModtoberInfo)
+            );
+            menu->addChildAtPosition(aboutBtn, Anchor::Right, ccp(-25, 0));
+            
+            m_rightColumn->addChildAtPosition(menu, Anchor::Bottom, ccp(0, 0), ccp(.5f, 0));
+
+            m_modtoberBanner = menu;
+
+            // Force reload of all the tabs since otherwise their contents will overflow
+            for (auto& [_, tab] : m_tabs) {
+                if (tab.second && tab.second->getParent()) {
+                    tab.second->removeFromParent();
+                }
+                tab.second = nullptr;
+            }
+
+            m_currentTabPage = nullptr;
+
+            // This might cause a minor inconvenience to someone who opens the popup and 
+            // immediately switches to changelog but is then forced back into details
+            this->loadTab(Tab::Details);
         }
 
         m_tags->updateLayout();
@@ -897,12 +970,17 @@ void ModPopup::loadTab(ModPopup::Tab tab) {
         btn.first->select(value == tab);
     }
 
+    float modtoberBannerHeight = 0;
+    if (m_modtoberBanner) {
+        modtoberBannerHeight = 30;
+    }
+
     if (auto existing = m_tabs.at(tab).second) {
         m_currentTabPage = existing;
-        m_rightColumn->addChildAtPosition(existing, Anchor::Bottom);
+        m_rightColumn->addChildAtPosition(existing, Anchor::Bottom, ccp(0, modtoberBannerHeight));
     }
     else {
-        const auto size = (m_rightColumn->getContentSize() - ccp(0, 30));
+        const auto size = (m_rightColumn->getContentSize() - ccp(0, 30 + modtoberBannerHeight));
         const float mdScale = .85f;
         switch (tab) {
             case Tab::Details: {
@@ -932,7 +1010,7 @@ void ModPopup::loadTab(ModPopup::Tab tab) {
             } break;
         }
         m_currentTabPage->setAnchorPoint({ .5f, .0f });
-        m_rightColumn->addChildAtPosition(m_currentTabPage, Anchor::Bottom);
+        m_rightColumn->addChildAtPosition(m_currentTabPage, Anchor::Bottom, ccp(0, modtoberBannerHeight));
         m_tabs.at(tab).second = m_currentTabPage;
     }
 }
@@ -1006,6 +1084,12 @@ void ModPopup::onLink(CCObject* sender) {
 
 void ModPopup::onSupport(CCObject*) {
     openSupportPopup(m_source.getMetadata());
+}
+void ModPopup::onModtoberInfo(CCObject*) {
+    // todo: if we want to get rid of the modtober popup sprite (because it's fucking massive)
+    // then we can just replace this with a normal FLAlert explaining 
+    // "this mod was an entry for modtober 2024 blah blah blah"
+    ModtoberPopup::create()->show();
 }
 
 ModPopup* ModPopup::create(ModSource&& src) {

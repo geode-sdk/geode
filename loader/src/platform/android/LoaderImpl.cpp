@@ -21,6 +21,7 @@ std::string Loader::Impl::getGameVersion() {
             case 37: m_gdVersion = "2.200"; break;
             case 38: m_gdVersion = "2.205"; break;
             case 39: m_gdVersion = "2.206"; break;
+            case 40: m_gdVersion = "2.2074"; break;
             default: m_gdVersion = std::to_string(version_code);
         }
     }

@@ -34,7 +34,7 @@ protected:
         if (auto res = event->getValue()) {
             if (res->isOk()) {
                 // Copy info first as onClose may free the listener which will free the event
-                auto info = **res;
+                auto info = res->unwrap();
                 this->onClose(nullptr);
                 // Run this on next frame because otherwise the popup is unable to call server::getMod for some reason
                 Loader::get()->queueInMainThread([info = std::move(info)]() mutable {
@@ -147,10 +147,6 @@ Task<bool> geode::openInfoPopup(std::string const& modID) {
         return task;
     }
 }
-void geode::openIndexPopup(Mod* mod) {
-    // deprecated func
-    openInfoPopup(mod);
-}
 
 void geode::openChangelogPopup(Mod* mod) {
     auto popup = ModPopup::create(mod);
@@ -159,9 +155,15 @@ void geode::openChangelogPopup(Mod* mod) {
 }
 
 void geode::openSettingsPopup(Mod* mod) {
+    openSettingsPopup(mod, true);
+}
+Popup<Mod*>* geode::openSettingsPopup(Mod* mod, bool disableGeodeTheme) {
     if (mod->hasSettings()) {
-        ModSettingsPopup::create(mod)->show();
+        auto popup = ModSettingsPopup::create(mod, disableGeodeTheme);
+        popup->show();
+        return popup;
     }
+    return nullptr;
 }
 
 class ModLogoSprite : public CCNode {
@@ -233,7 +235,7 @@ protected:
             else {
                 auto data = result->unwrap();
                 auto image = Ref(new CCImage());
-                image->initWithImageData(const_cast<uint8_t*>(data.data()), data.size());
+                image->initWithImageData(data.data(), data.size());
 
                 auto texture = CCTextureCache::get()->addUIImage(image, m_modID.c_str());
                 this->setSprite(CCSprite::createWithTexture(texture), true);

@@ -84,16 +84,27 @@ bool ModItem::init(ModSource&& source) {
     );
     m_infoContainer->addChild(m_developers);
 
-    m_restartRequiredLabel = createGeodeTagLabel(
+    m_restartRequiredLabel = createTagLabel(
         "Restart Required",
-        {{
+        {
             to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)),
             to3B(ColorProvider::get()->color("mod-list-restart-required-label-bg"_spr))
-        }}
+        }
     );
     m_restartRequiredLabel->setID("restart-required-label");
     m_restartRequiredLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(std::nullopt, .75f));
     m_infoContainer->addChild(m_restartRequiredLabel);
+
+    m_outdatedLabel = createTagLabel(
+        fmt::format("Outdated (GD {})", m_source.getMetadata().getGameVersion().value_or("*")),
+        {
+            to3B(ColorProvider::get()->color("mod-list-outdated-label"_spr)),
+            to3B(ColorProvider::get()->color("mod-list-outdated-label-bg"_spr))
+        }
+    );
+    m_outdatedLabel->setID("outdated-label");
+    m_outdatedLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(std::nullopt, .75f));
+    m_infoContainer->addChild(m_outdatedLabel);
 
     m_downloadBarContainer = CCNode::create();
     m_downloadBarContainer->setID("download-bar-container");
@@ -134,12 +145,27 @@ bool ModItem::init(ModSource&& source) {
     m_viewMenu->setAnchorPoint({ 1.f, .5f });
     m_viewMenu->setScale(.55f);
 
-    ButtonSprite* spr;
-    if (Loader::get()->isModInstalled(m_source.getID())) {
-        spr = createGeodeButton("View", 50, false, true);
-    } else {
-        spr = createGeodeButton("Get", 50, false, true, GeodeButtonSprite::Install);
+    ButtonSprite* spr = nullptr;
+    if (auto serverMod = m_source.asServer(); serverMod != nullptr) {
+        auto version = serverMod->latestVersion();
+
+        auto geodeValid = Loader::get()->isModVersionSupported(version.getGeodeVersion());
+        auto gameVersion = version.getGameVersion();
+        auto gdValid = !gameVersion || gameVersion == "*" || gameVersion == GEODE_STR(GEODE_GD_VERSION);
+
+        if (!geodeValid || !gdValid) {
+            spr = createGeodeButton("N/A", 50, false, true, GeodeButtonSprite::Gray);
+        }
     }
+
+    if (!spr) {
+        if (Loader::get()->isModInstalled(m_source.getID())) {
+            spr = createGeodeButton("View", 50, false, true);
+        } else {
+            spr = createGeodeButton("Get", 50, false, true, GeodeButtonSprite::Install);
+        }
+    }
+
     auto viewBtn = CCMenuItemSpriteExtra::create(
         spr,
         this, menu_selector(ModItem::onView)
@@ -170,7 +196,7 @@ bool ModItem::init(ModSource&& source) {
                 m_viewMenu->addChild(m_enableToggle);
                 m_viewMenu->updateLayout();
             }
-            if (mod->hasProblems()) {
+            if (mod->hasLoadProblems() || mod->targetsOutdatedVersion()) {
                 auto viewErrorSpr = createGeodeCircleButton(
                     CCSprite::createWithSpriteFrameName("exclamation.png"_spr), 1.f,
                     CircleBaseSize::Small
@@ -192,6 +218,11 @@ bool ModItem::init(ModSource&& source) {
                 auto paidModLabel = CCSprite::createWithSpriteFrameName("tag-paid.png"_spr);
                 paidModLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.1f, .8f));
                 m_titleContainer->addChild(paidModLabel);
+            }
+            if (metadata.tags.contains("modtober24")) {
+                auto modtoberLabel = CCSprite::createWithSpriteFrameName("tag-modtober.png"_spr);
+                modtoberLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.1f, .8f));
+                m_titleContainer->addChild(modtoberLabel);
             }
 
             // Show mod download count here already so people can make informed decisions 
@@ -283,6 +314,11 @@ bool ModItem::init(ModSource&& source) {
     m_downloadListener.bind([this](auto) { this->updateState(); });
     m_downloadListener.setFilter(server::ModDownloadFilter(m_source.getID()));
 
+    m_settingNodeListener.bind([this](SettingNodeValueChangeEvent*) {
+        this->updateState();
+        return ListenerResult::Propagate;
+    });
+
     return true;
 }
 
@@ -317,7 +353,6 @@ void ModItem::updateState() {
         m_downloadBarContainer->setVisible(false);
         m_downloadWaiting->setVisible(false);
     }
-    m_infoContainer->updateLayout();
 
     // Set default colors based on source to start off with 
     // (possibly overriding later based on state)
@@ -343,7 +378,10 @@ void ModItem::updateState() {
                 m_bg->setColor("mod-list-paid-color"_cc3b);
                 m_bg->setOpacity(55);
             }
-            
+            if (metadata.tags.contains("modtober24")) {
+                m_bg->setColor(ccc3(63, 91, 138));
+                m_bg->setOpacity(85);
+            }
             if (isGeodeTheme() && metadata.featured) {
                 m_bg->setColor("mod-list-featured-color"_cc3b);
                 m_bg->setOpacity(65);
@@ -382,11 +420,22 @@ void ModItem::updateState() {
     m_titleContainer->updateLayout();
 
     // If there were problems, tint the BG red
-    if (m_source.asMod() && m_source.asMod()->hasProblems()) {
-        m_bg->setColor("mod-list-errors-found"_cc3b);
-        m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
+    m_outdatedLabel->setVisible(false);
+    if (m_source.asMod()) {
+        if (m_source.asMod()->hasLoadProblems()) {
+            m_bg->setColor("mod-list-errors-found"_cc3b);
+            m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
+        }
+        if (m_source.asMod()->targetsOutdatedVersion()) {
+            m_bg->setColor("mod-list-outdated-label"_cc3b);
+            m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
+            m_outdatedLabel->setVisible(true);
+            m_developers->setVisible(false);
+        }
     }
 
+    m_infoContainer->updateLayout();
+    
     // Highlight item via BG if it wants to restart for extra UI attention
     if (wantsRestart) {
         m_bg->setColor("mod-list-restart-required-label"_cc3b);
@@ -473,12 +522,73 @@ void ModItem::onView(CCObject*) {
         )->show();
     }
 
+    // Show popups for invalid mods
+    if (m_source.asServer()) {
+        auto version = m_source.asServer()->latestVersion();
+        auto gameVersion = version.getGameVersion();
+        if (gameVersion == "0.000") {
+            return FLAlertLayer::create(
+                nullptr,
+                "Invalid Platform",
+                "This mod is <cr>not available</c> for your current platform.",
+                "OK", nullptr, 360
+            )->show();
+        }
+        if (gameVersion && gameVersion != "*" && gameVersion != GEODE_STR(GEODE_GD_VERSION)) {
+            return FLAlertLayer::create(
+                nullptr,
+                "Unavailable",
+                "This mod targets an <cr>unsupported version of Geometry Dash</c>.",
+                "OK", nullptr, 360
+            )->show();
+        }
+        if (!Loader::get()->isModVersionSupported(version.getGeodeVersion())) {
+            return FLAlertLayer::create(
+                nullptr,
+                "Unavailable",
+                "This mod targets an <cr>unsupported version of Geode</c>.",
+                "OK", nullptr, 360
+            )->show();
+        }
+    }
+
     // Always open up the popup for the installed mod page if that is possible
     ModPopup::create(m_source.convertForPopup())->show();
 }
 void ModItem::onViewError(CCObject*) {
     if (auto mod = m_source.asMod()) {
-        ModErrorPopup::create(mod)->show();
+        if (auto problem = mod->targetsOutdatedVersion()) {
+            std::string issue;
+            std::string howToFix;
+            switch (problem->type) {
+                default:
+                case LoadProblem::Type::UnsupportedVersion: {
+                    issue = fmt::format("<cy>{}</c>", problem->message);
+                    howToFix = "wait for the developer to <cj>release an update to "
+                        "the mod</c> that supports the newer version.";
+                } break;
+
+                case LoadProblem::Type::UnsupportedGeodeVersion: {
+                    issue = "This mod is made for a <cp>newer version of Geode</c>.";
+                    howToFix = "<cp>update Geode</c> by enabling <co>Automatic Updates</c> "
+                        "or redownloading it from the Geode website.";
+                } break;
+
+                case LoadProblem::Type::NeedsNewerGeodeVersion: {
+                    issue = "This mod is made for an <cy>older version of Geode</c>.";
+                    howToFix = "wait for the developer to <cj>release an update to "
+                        "the mod</c> that supports the newer version.";
+                } break;
+            }
+            FLAlertLayer::create(
+                "Outdated",
+                fmt::format("{} Please {}", issue, howToFix),
+                "OK"
+            )->show();
+        }
+        else {
+            ModErrorPopup::create(mod)->show();
+        }
     }
 }
 void ModItem::onEnable(CCObject*) {

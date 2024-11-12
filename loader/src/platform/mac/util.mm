@@ -78,7 +78,7 @@ namespace {
 
 @interface FileDialog : NSObject
 +(Result<std::vector<std::filesystem::path>>) filePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult;
-+(void) dispatchFilePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult onCompletion:(void(^)(FileResult))onCompletion;
++(void) dispatchFilePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult onCompletion:(void(^)(FileResult&&))onCompletion;
 @end
 
 @implementation FileDialog
@@ -152,10 +152,10 @@ namespace {
     }
 }
 
-+(void) dispatchFilePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult onCompletion:(void(^)(FileResult))onCompletion {
++(void) dispatchFilePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult onCompletion:(void(^)(FileResult&&))onCompletion {
     dispatch_async(dispatch_get_main_queue(), ^{
         auto result = [self filePickerWithMode:mode options:options multiple:mult];
-        onCompletion(result);
+        onCompletion(std::move(result));
     });
 }
 
@@ -164,7 +164,7 @@ namespace {
 GEODE_DLL Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, file::FilePickOptions const& options) {
     using RetTask = Task<Result<std::filesystem::path>>;
     return RetTask::runWithCallback([mode, options](auto resultCallback, auto progress, auto cancelled) {
-        [FileDialog dispatchFilePickerWithMode:mode options:options multiple:false onCompletion: ^(FileResult result) {
+        [FileDialog dispatchFilePickerWithMode:mode options:options multiple:false onCompletion: ^(FileResult&& result) {
             if (cancelled()) {
                 resultCallback(RetTask::Cancel());
             } else {
@@ -182,11 +182,11 @@ GEODE_DLL Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, fi
 GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> file::pickMany(file::FilePickOptions const& options) {
     using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
     return RetTask::runWithCallback([options](auto resultCallback, auto progress, auto cancelled) {
-        [FileDialog dispatchFilePickerWithMode: file::PickMode::OpenFile options:options multiple:true onCompletion: ^(FileResult result) {
+        [FileDialog dispatchFilePickerWithMode: file::PickMode::OpenFile options:options multiple:true onCompletion: ^(FileResult&& result) {
             if (cancelled()) {
                 resultCallback(RetTask::Cancel());
             } else {
-                resultCallback(result);
+                resultCallback(std::move(result));
             }
         }];
     });
@@ -325,7 +325,7 @@ bool geode::utils::permission::getPermissionStatus(Permission permission) {
     return true; // unimplemented
 }
 
-void geode::utils::permission::requestPermission(Permission permission, utils::MiniFunction<void(bool)> callback) {
+void geode::utils::permission::requestPermission(Permission permission, std::function<void(bool)> callback) {
     callback(true); // unimplemented
 }
 

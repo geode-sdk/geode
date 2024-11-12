@@ -192,3 +192,20 @@ std::string utils::string::normalize(std::string const& str) {
     auto ret = str;
     return utils::string::normalizeIP(ret);
 }
+
+std::strong_ordering utils::string::caseInsensitiveCompare(std::string_view str1, std::string_view str2) {
+    for (size_t i = 0; i < str1.size() && i < str2.size(); i++) {
+        auto const a = std::tolower(str1[i]);
+        auto const b = std::tolower(str2[i]);
+        if (a < b) {
+            return std::strong_ordering::less;
+        } else if (a > b) {
+            return std::strong_ordering::greater;
+        }
+    }
+    if (str1.size() < str2.size())
+        return std::strong_ordering::less;
+    else if (str1.size() > str2.size())
+        return std::strong_ordering::greater;
+    return std::strong_ordering::equal;
+}

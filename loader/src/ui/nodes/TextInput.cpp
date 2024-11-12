@@ -47,7 +47,7 @@ const char* geode::getCommonFilterAllowedChars(CommonFilter filter) {
         case CommonFilter::Float:        return "-.0123456789";
         case CommonFilter::ID:           return "abcdefghijklmnopqrstuvwxyz0123456789-_.";
         case CommonFilter::Name:         return "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_ ";
-        case CommonFilter::Any:          return "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-+/\\&$%^~*\'\"{}()[]<>=!?@,;.:|• ";
+        case CommonFilter::Any:          return "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ#_-+/\\&$%^~*\'\"{}()[]<>=!?@,;.:|• ";
         case CommonFilter::Hex:          return "0123456789abcdefABCDEF";
         case CommonFilter::Base64Normal: return "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+/=";
         case CommonFilter::Base64URL:    return "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_=";
@@ -151,7 +151,6 @@ void TextInput::setCallback(std::function<void(std::string const&)> onInput) {
     m_onInput = onInput;
 }
 void TextInput::setEnabled(bool enabled) {
-    m_input->setMouseEnabled(enabled);
     m_input->setTouchEnabled(enabled);
     m_input->m_placeholderLabel->setOpacity(enabled ? 255 : 150);
 }

@@ -1,7 +1,7 @@
 #include "ModDeveloperList.hpp"
 
 #include <Geode/cocos/base_nodes/CCNode.h>
-#include <Geode/cocos/base_nodes/Layout.hpp>
+#include <Geode/ui/Layout.hpp>
 #include <Geode/cocos/cocoa/CCGeometry.h>
 #include <Geode/cocos/platform/CCPlatformMacros.h>
 #include <Geode/utils/cocos.hpp>

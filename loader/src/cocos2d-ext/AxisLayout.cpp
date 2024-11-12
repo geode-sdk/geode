@@ -823,6 +823,13 @@ CCSize AxisLayout::getSizeHint(CCNode* on) const {
             axis.crossLength = cross;
         }
     }
+    if (auto l = m_impl->m_autoGrowAxisMinLength) {
+        length = std::max(length, *l);
+    }
+    // No overflow
+    else {
+        length = std::min(length, nodeAxis(on, m_impl->m_axis, 1.f).axisLength);
+    }
     if (!m_impl->m_allowCrossAxisOverflow) {
         cross = nodeAxis(on, m_impl->m_axis, 1.f).crossLength;
     }
@@ -1019,14 +1026,6 @@ std::optional<AxisAlignment> AxisLayoutOptions::getCrossAxisAlignment() const {
     return m_impl->m_crossAxisAlignment;
 }
 
-AxisLayoutOptions* AxisLayoutOptions::setMaxScale(float scale) {
-    m_impl->m_scaleLimits.second = scale;
-    return this;
-}
-AxisLayoutOptions* AxisLayoutOptions::setMinScale(float scale) {
-    m_impl->m_scaleLimits.first = scale;
-    return this;
-}
 AxisLayoutOptions* AxisLayoutOptions::setScaleLimits(std::optional<float> min, std::optional<float> max) {
     m_impl->m_scaleLimits = { min, max };
     return this;

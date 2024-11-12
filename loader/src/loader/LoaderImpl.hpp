@@ -7,10 +7,9 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <Geode/utils/Result.hpp>
+#include <Geode/Result.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/ranges.hpp>
-#include <Geode/utils/MiniFunction.hpp>
 #include "ModImpl.hpp"
 #include <crashlog.hpp>
 #include <mutex>
@@ -41,7 +40,7 @@ namespace geode {
 
         LoadingState m_loadingState = LoadingState::None;
 
-        std::vector<utils::MiniFunction<void(void)>> m_mainThreadQueue;
+        std::vector<std::function<void(void)>> m_mainThreadQueue;
         mutable std::mutex m_mainThreadMutex;
         std::vector<std::pair<Hook*, Mod*>> m_uninitializedHooks;
         bool m_readyToHook = false;
@@ -116,9 +115,9 @@ namespace geode {
         std::string getLaunchCommand() const;
         void initLaunchArguments();
         std::vector<std::string> getLaunchArgumentNames() const;
-        bool hasLaunchArgument(std::string_view const name) const;
-        std::optional<std::string> getLaunchArgument(std::string_view const name) const;
-        bool getLaunchFlag(std::string_view const name) const;
+        bool hasLaunchArgument(std::string_view name) const;
+        std::optional<std::string> getLaunchArgument(std::string_view name) const;
+        bool getLaunchFlag(std::string_view name) const;
 
         void updateResources(bool forceReload);
 

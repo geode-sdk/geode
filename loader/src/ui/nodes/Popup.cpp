@@ -71,7 +71,7 @@ using namespace geode::prelude;
 
 class QuickPopup : public FLAlertLayer, public FLAlertLayerProtocol {
 protected:
-    MiniFunction<void(FLAlertLayer*, bool)> m_selected;
+    std::function<void(FLAlertLayer*, bool)> m_selected;
     bool m_cancelledByEscape;
     bool m_usedEscape = false;
 
@@ -92,7 +92,7 @@ protected:
 public:
     static QuickPopup* create(
         char const* title, std::string const& content, char const* btn1, char const* btn2,
-        float width, MiniFunction<void(FLAlertLayer*, bool)> selected, bool cancelledByEscape
+        float width, std::function<void(FLAlertLayer*, bool)> selected, bool cancelledByEscape
     ) {
         auto inst = new QuickPopup;
         inst->m_selected = selected;
@@ -109,7 +109,7 @@ public:
 
 FLAlertLayer* geode::createQuickPopup(
     char const* title, std::string const& content, char const* btn1, char const* btn2, float width,
-    MiniFunction<void(FLAlertLayer*, bool)> selected, bool doShow
+    std::function<void(FLAlertLayer*, bool)> selected, bool doShow
 ) {
     auto ret = QuickPopup::create(title, content, btn1, btn2, width, selected, false);
     if (doShow) {
@@ -120,14 +120,14 @@ FLAlertLayer* geode::createQuickPopup(
 
 FLAlertLayer* geode::createQuickPopup(
     char const* title, std::string const& content, char const* btn1, char const* btn2,
-    MiniFunction<void(FLAlertLayer*, bool)> selected, bool doShow
+    std::function<void(FLAlertLayer*, bool)> selected, bool doShow
 ) {
     return createQuickPopup(title, content, btn1, btn2, 350.f, selected, doShow);
 }
 
 FLAlertLayer* geode::createQuickPopup(
     char const* title, std::string const& content, char const* btn1, char const* btn2, float width,
-    MiniFunction<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
+    std::function<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
 ) {
     auto ret = QuickPopup::create(title, content, btn1, btn2, width, selected, cancelledByEscape);
     if (doShow) {
@@ -138,7 +138,7 @@ FLAlertLayer* geode::createQuickPopup(
 
 FLAlertLayer* geode::createQuickPopup(
     char const* title, std::string const& content, char const* btn1, char const* btn2,
-    MiniFunction<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
+    std::function<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
 ) {
     return createQuickPopup(title, content, btn1, btn2, 350.f, selected, doShow, cancelledByEscape);
 }

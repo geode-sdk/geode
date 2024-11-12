@@ -4,6 +4,7 @@
 #include "ModPatch.hpp"
 #include <Geode/loader/Loader.hpp>
 #include <string_view>
+#include <Geode/loader/ModSettingsManager.hpp>
 
 namespace geode {
     class Mod::Impl {
@@ -46,15 +47,11 @@ namespace geode {
         /**
          * Saved values
          */
-        matjson::Value m_saved = matjson::Object();
+        matjson::Value m_saved = matjson::Value();
         /**
-         * Setting values
+         * Setting values. This is behind unique_ptr for interior mutability
          */
-        std::unordered_map<std::string, std::unique_ptr<SettingValue>> m_settings;
-        /**
-         * Settings save data. Stored for efficient loading of custom settings
-         */
-        matjson::Value m_savedSettingsData = matjson::Object();
+        std::unique_ptr<ModSettingsManager> m_settings = nullptr;
         /**
          * Whether the mod resources are loaded or not
          */
@@ -74,6 +71,8 @@ namespace geode {
 
         Impl(Mod* self, ModMetadata const& metadata);
         ~Impl();
+        Impl(Impl const&) = delete;
+        Impl(Impl&&) = delete;
 
         Result<> setup();
 
@@ -82,8 +81,6 @@ namespace geode {
 
         // called on a separate thread
         Result<> unzipGeodeFile(ModMetadata metadata);
-
-        void setupSettings();
 
         std::string getID() const;
         std::string getName() const;
@@ -100,7 +97,6 @@ namespace geode {
         std::filesystem::path getBinaryPath() const;
 
         matjson::Value& getSaveContainer();
-        matjson::Value& getSavedSettingsData();
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
         void setMetadata(ModMetadata const& metadata);
@@ -112,19 +108,17 @@ namespace geode {
 
         std::filesystem::path getSaveDir() const;
         std::filesystem::path getConfigDir(bool create = true) const;
+        std::filesystem::path getPersistentDir(bool create = true) const;
 
         bool hasSettings() const;
         std::vector<std::string> getSettingKeys() const;
-        bool hasSetting(std::string_view const key) const;
-        std::optional<Setting> getSettingDefinition(std::string_view const key) const;
-        SettingValue* getSetting(std::string_view const key) const;
-        void registerCustomSetting(std::string_view const key, std::unique_ptr<SettingValue> value);
+        bool hasSetting(std::string_view key) const;
 
-        std::string getLaunchArgumentName(std::string_view const name) const;
+        std::string getLaunchArgumentName(std::string_view name) const;
         std::vector<std::string> getLaunchArgumentNames() const;
-        bool hasLaunchArgument(std::string_view const name) const;
-        std::optional<std::string> getLaunchArgument(std::string_view const name) const;
-        bool getLaunchFlag(std::string_view const name) const;
+        bool hasLaunchArgument(std::string_view name) const;
+        std::optional<std::string> getLaunchArgument(std::string_view name) const;
+        bool getLaunchFlag(std::string_view name) const;
 
         Result<Hook*> claimHook(std::shared_ptr<Hook> hook);
         Result<> disownHook(Hook* hook);
@@ -142,7 +136,7 @@ namespace geode {
         // 1.3.0 additions
         ModRequestedAction getRequestedAction() const;
 
-        bool depends(std::string_view const id) const;
+        bool depends(std::string_view id) const;
         Result<> updateDependencies();
         bool hasUnresolvedDependencies() const;
         bool hasUnresolvedIncompatibilities() const;
@@ -157,7 +151,7 @@ namespace geode {
 
         std::vector<LoadProblem> getProblems() const;
 
-        bool hasProblems() const;
+        bool hasLoadProblems() const;
         bool shouldLoad() const;
         bool isCurrentlyLoading() const;
     };

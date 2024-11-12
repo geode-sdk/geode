@@ -16,11 +16,16 @@ enum class GeodePopupStyle {
     Alt2,
 };
 
+bool isGeodeTheme(bool forceDisableTheme = false);
+
 template <class... Args>
 class GeodePopup : public Popup<Args...> {
 protected:
-    bool init(float width, float height, Args... args, GeodePopupStyle style = GeodePopupStyle::Default) {
-        const bool geodeTheme = Mod::get()->template getSettingValue<bool>("enable-geode-theme");
+    bool m_forceDisableTheme = false;
+
+    bool init(float width, float height, Args... args, GeodePopupStyle style = GeodePopupStyle::Default, bool forceDisableTheme = false) {
+        m_forceDisableTheme = forceDisableTheme;
+        const bool geodeTheme = isGeodeTheme(forceDisableTheme);
         const char* bg;
         switch (style) {
             default:
@@ -49,16 +54,17 @@ class GeodeSquareSprite : public CCSprite {
 protected:
     bool* m_stateSrc = nullptr;
     bool m_state = false;
+    bool m_forceDisableTheme = false; 
     CCSprite* m_topSprite;
 
-    bool init(CCSprite* top, bool* state);
+    bool init(CCSprite* top, bool* state, bool forceDisableTheme = false);
 
     void update(float dt) override;
     void updateImage();
 
 public:
-    static GeodeSquareSprite* create(const char* top, bool* state = nullptr);
-    static GeodeSquareSprite* createWithSpriteFrameName(const char* top, bool* state = nullptr);
+    static GeodeSquareSprite* create(const char* top, bool* state = nullptr, bool forceDisableTheme = false);
+    static GeodeSquareSprite* createWithSpriteFrameName(const char* top, bool* state = nullptr, bool forceDisableTheme = false);
 
     CCSprite* getTopSprite() const;
     void setState(bool state);
@@ -71,20 +77,21 @@ enum class GeodeButtonSprite {
     Install,
     Delete,
     Enable,
+    Gray,
 };
-const char* getGeodeButtonSpriteName(GeodeButtonSprite spr);
-IconButtonSprite* createGeodeButton(CCNode* icon, std::string const& text, GeodeButtonSprite bg = GeodeButtonSprite::Default);
-ButtonSprite* createGeodeButton(std::string const& text, int width, bool absolute = false, bool gold = false, GeodeButtonSprite bg = GeodeButtonSprite::Default);
-ButtonSprite* createGeodeButton(std::string const& text, bool gold = false, GeodeButtonSprite bg = GeodeButtonSprite::Default);
+const char* getGeodeButtonSpriteName(GeodeButtonSprite spr, bool forceDisableTheme = false);
+IconButtonSprite* createGeodeButton(CCNode* icon, std::string const& text, GeodeButtonSprite bg = GeodeButtonSprite::Default, bool forceDisableTheme = false);
+ButtonSprite* createGeodeButton(std::string const& text, int width, bool absolute = false, bool gold = false, GeodeButtonSprite bg = GeodeButtonSprite::Default, bool forceDisableTheme = false);
+ButtonSprite* createGeodeButton(std::string const& text, bool gold = false, GeodeButtonSprite bg = GeodeButtonSprite::Default, bool forceDisableTheme = false);
 
-CircleButtonSprite* createGeodeCircleButton(CCSprite* top, float scale = 1.f, CircleBaseSize size = CircleBaseSize::Medium, bool altColor = false);
+CircleButtonSprite* createGeodeCircleButton(CCSprite* top, float scale = 1.f, CircleBaseSize size = CircleBaseSize::Medium, bool altColor = false, bool forceDisableTheme = false);
 
-ButtonSprite* createGeodeTagLabel(std::string const& text, std::optional<std::pair<ccColor3B, ccColor3B>> const& color = std::nullopt);
-std::pair<ccColor3B, ccColor3B> geodeTagColor(std::string_view const& text);
+ButtonSprite* createTagLabel(std::string const& text, std::pair<ccColor3B, ccColor3B> const& color);
+ButtonSprite* createGeodeTagLabel(std::string_view tag);
+std::pair<ccColor3B, ccColor3B> geodeTagColors(std::string_view tag);
+std::string geodeTagName(std::string_view tag);
 
-ListBorders* createGeodeListBorders(CCSize const& size);
-
-bool isGeodeTheme();
+ListBorders* createGeodeListBorders(CCSize const& size, bool forceDisableTheme = false);
 
 class GeodeTabSprite : public CCNode {
 protected:

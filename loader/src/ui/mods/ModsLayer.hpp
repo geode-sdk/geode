@@ -12,6 +12,7 @@
 #include "sources/ModListSource.hpp"
 #include "UpdateModListState.hpp"
 #include <server/DownloadManager.hpp>
+#include <Geode/loader/Setting.hpp>
 
 using namespace geode::prelude;
 
@@ -39,6 +40,7 @@ protected:
     EventListener<UpdateModListStateFilter> m_updateStateListener;
     EventListener<server::ModDownloadFilter> m_downloadListener;
     DownloadState m_lastState = DownloadState::None;
+    EventListener<EventFilter<SettingNodeValueChangeEvent>> m_settingNodeListener;
     
     bool init();
     void updateState();

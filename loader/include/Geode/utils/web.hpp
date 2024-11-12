@@ -2,7 +2,7 @@
 
 #include <Geode/loader/Loader.hpp> // another great circular dependency fix
 #include <matjson.hpp>
-#include "Result.hpp"
+#include <Geode/Result.hpp>
 #include "Task.hpp"
 #include <chrono>
 #include <optional>
@@ -113,7 +113,6 @@ namespace geode::utils::web {
         class Impl;
 
         std::shared_ptr<Impl> m_impl;
-
     public:
         WebRequest();
         ~WebRequest();
@@ -205,6 +204,15 @@ namespace geode::utils::web {
         WebRequest& followRedirects(bool enabled);
 
         /**
+         * Enables or disables ignoring the content length header.
+         * The default is false.
+         *
+         * @param enabled
+         * @return WebRequest&
+         */
+        WebRequest& ignoreContentLength(bool enabled);
+
+        /**
          * Sets the Certificate Authority (CA) bundle content.
          * Defaults to not sending a CA bundle.
          *
@@ -252,6 +260,13 @@ namespace geode::utils::web {
          * @return WebRequest&
          */
         WebRequest& bodyJSON(matjson::Value const& json);
+
+        /**
+         * Gets the unique request ID
+         *
+         * @return size_t
+         */
+        size_t getID() const;
 
 
         /**

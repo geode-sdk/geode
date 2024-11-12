@@ -65,12 +65,6 @@ namespace std::filesystem {
     }
 }
 
-namespace matjson {
-    GEODE_INLINE GEODE_HIDDEN std::string format_as(matjson::Value const& value) {
-        return value.dump(matjson::NO_INDENTATION);
-    }
-}
-
 namespace geode {
 
     class Mod;

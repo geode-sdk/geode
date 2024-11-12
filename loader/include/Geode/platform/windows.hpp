@@ -8,6 +8,7 @@
 #include <cstring>
 #include <type_traits>
 #include <typeinfo>
+#include <memory>
 
 namespace geode {
     struct PlatformInfo {

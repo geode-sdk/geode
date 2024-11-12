@@ -30,16 +30,19 @@ protected:
     CCMenuItemSpriteExtra* m_cancelBtn;
     CCLabelBMFont* m_installStatusLabel;
     CCScale9Sprite* m_installBG;
+    CCScale9Sprite* m_settingsBG;
     CCLabelBMFont* m_enabledStatusLabel;
     ButtonSprite* m_restartRequiredLabel;
     CCNode* m_rightColumn;
     CCNode* m_currentTabPage = nullptr;
+    CCNode* m_modtoberBanner = nullptr;
     std::unordered_map<Tab, std::pair<GeodeTabSprite*, Ref<CCNode>>> m_tabs;
     EventListener<server::ServerRequest<server::ServerModMetadata>> m_statsListener;
     EventListener<server::ServerRequest<std::unordered_set<std::string>>> m_tagsListener;
     EventListener<server::ServerRequest<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
     EventListener<UpdateModListStateFilter> m_updateStateListener;
     EventListener<server::ModDownloadFilter> m_downloadListener;
+    EventListener<EventFilter<SettingNodeValueChangeEvent>> m_settingNodeListener;
 
     bool setup(ModSource&& src) override;
     void updateState();
@@ -61,6 +64,7 @@ protected:
     void onSettings(CCObject*);
     void onLink(CCObject*);
     void onSupport(CCObject*);
+    void onModtoberInfo(CCObject*);
 
 public:
     void loadTab(Tab tab);

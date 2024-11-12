@@ -1,9 +1,11 @@
+#pragma once
+#include <Geode/modify/Modify.hpp>
 #include "cocos.hpp"
 
 namespace geode::node_ids {
     using namespace cocos2d;
 
-    static constexpr int32_t GEODE_ID_PRIORITY = 0x100000;
+    static constexpr int32_t GEODE_ID_PRIORITY = Priority::VeryEarlyPost;
 
     template <class T = CCNode>
         requires std::is_base_of_v<CCNode, T>
@@ -14,7 +16,7 @@ namespace geode::node_ids {
                 return child;
             }
         } else {
-            if (auto child = cocos::getChildOfType<T>(node, index)) {
+            if (auto child = node->getChildByType<T>(index)) {
                 child->setID(id);
                 return child;
             }

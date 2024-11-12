@@ -3,7 +3,6 @@
 #include "Geode/utils/VersionInfo.hpp"
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/utils/web.hpp>
-#include <Geode/loader/SettingEvent.hpp>
 #include <chrono>
 #include <matjson.hpp>
 #include <vector>
@@ -151,7 +150,15 @@ namespace server {
     ServerRequest<std::unordered_set<std::string>> getTags(bool useCache = true);
 
     ServerRequest<std::optional<ServerModUpdate>> checkUpdates(Mod const* mod);
+
+    ServerRequest<std::vector<ServerModUpdate>> batchedCheckUpdates(std::vector<std::string> const& batch);
+    void queueBatches(
+        ServerRequest<std::vector<ServerModUpdate>>::PostResult const finish,
+        std::shared_ptr<std::vector<std::vector<std::string>>> const batches,
+        std::shared_ptr<std::vector<ServerModUpdate>> const accum
+    );
+
     ServerRequest<std::vector<ServerModUpdate>> checkAllUpdates(bool useCache = true);
-    
+
     void clearServerCaches(bool clearGlobalCaches = false);
 }

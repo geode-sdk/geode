@@ -55,64 +55,64 @@ public:
     float y;
     // alk modifications: all defined
 
-    inline CCPoint() : x(0), y(0) {}
-    inline CCPoint(float x, float y) : x(x), y(y) {}
+    inline constexpr CCPoint() : x(0), y(0) {}
+    inline constexpr CCPoint(float x, float y) : x(x), y(y) {}
     /**
      * @lua NA
      */
-    inline CCPoint(const CCPoint& other) : x(other.x), y(other.y) {}
+    inline constexpr CCPoint(const CCPoint& other) : x(other.x), y(other.y) {}
     /**
      * @lua NA
      */
-    inline CCPoint(const CCSize& size);
+    inline constexpr CCPoint(const CCSize& size);
     /**
      * @lua NA
      */
-    inline CCPoint& operator= (const CCPoint& other) {
+    inline constexpr CCPoint& operator= (const CCPoint& other) {
         setPoint(other.x, other.y);
         return *this;
     }
     /**
      * @lua NA
      */
-    inline CCPoint& operator= (const CCSize& size);
+    inline constexpr CCPoint& operator= (const CCSize& size);
     /**
      * @lua NA
      */
-    inline CCPoint operator+(const CCPoint& right) const {
+    inline constexpr CCPoint operator+(const CCPoint& right) const {
         return CCPoint(this->x + right.x, this->y + right.y);
     }
     /**
      * @lua NA
      */
-    inline CCPoint operator-(const CCPoint& right) const {
+    inline constexpr CCPoint operator-(const CCPoint& right) const {
         return CCPoint(this->x - right.x, this->y - right.y);
     }
     /**
      * @lua NA
      */
-    inline CCPoint operator-() const {
+    inline constexpr CCPoint operator-() const {
         return CCPoint(-x, -y);
     }
     /**
      * @lua NA
      */
-    inline CCPoint operator*(float a) const {
+    inline constexpr CCPoint operator*(float a) const {
         return CCPoint(this->x * a, this->y * a);
     }
     /**
      * @lua NA
      */
-    inline CCPoint operator/(float a) const {
+    inline constexpr CCPoint operator/(float a) const {
         return CCPoint(this->x / a, this->y / a);
     }
 
 
     // camila modification
-    inline CCPoint operator*(const CCPoint& right) const {
+    inline constexpr CCPoint operator*(const CCPoint& right) const {
         return CCPoint(x * right.x, y * right.y);
     }
-    inline CCPoint operator/(const CCPoint& right) const {
+    inline constexpr CCPoint operator/(const CCPoint& right) const {
         return CCPoint(x / right.x, y / right.y);
     }
     //314
@@ -120,20 +120,20 @@ public:
     /**
      * @lua NA
      */
-    inline void setPoint(float x, float y) {
+    inline constexpr void setPoint(float x, float y) {
         this->x = x;
         this->y = y;
     }
 
-    inline bool equals(const CCPoint& target) const {
-        return (fabs(this->x - target.x) < FLT_EPSILON) && (fabs(this->y - target.y) < FLT_EPSILON);
+    inline constexpr bool equals(const CCPoint& target) const {
+        return this->fuzzyEquals(target, FLT_EPSILON);
     }
     
     /** @returns if points have fuzzy equality which means equal with some degree of variance.
      * @since v2.1.4
      * @lua NA
      */
-    inline bool fuzzyEquals(const CCPoint& b, float var) const {
+    inline constexpr bool fuzzyEquals(const CCPoint& b, float var) const {
         if(x - var <= b.x && b.x <= x + var)
             if(y - var <= b.y && b.y <= y + var)
                 return true;
@@ -154,7 +154,7 @@ public:
      * @since v2.1.4
      * @lua NA
      */
-    inline float getLengthSq() const {
+    inline constexpr float getLengthSq() const {
         return dot(*this); //x*x + y*y;
     };
 
@@ -162,7 +162,7 @@ public:
      @return float
      @since v2.1.4
     */
-    inline float getDistanceSq(const CCPoint& other) const {
+    inline constexpr float getDistanceSq(const CCPoint& other) const {
         return (*this - other).getLengthSq();
     };
 
@@ -196,7 +196,7 @@ public:
      @return float
      @since v2.1.4
      */
-    inline float dot(const CCPoint& other) const {
+    inline constexpr float dot(const CCPoint& other) const {
         return x*other.x + y*other.y;
     };
 
@@ -204,7 +204,7 @@ public:
      @return float
      @since v2.1.4
      */
-    inline float cross(const CCPoint& other) const {
+    inline constexpr float cross(const CCPoint& other) const {
         return x*other.y - y*other.x;
     };
 
@@ -212,7 +212,7 @@ public:
      @return CCPoint
      @since v2.1.4
      */
-    inline CCPoint getPerp() const {
+    inline constexpr CCPoint getPerp() const {
         return CCPoint(-y, x);
     };
 
@@ -220,7 +220,7 @@ public:
      @return CCPoint
      @since v2.1.4
      */
-    inline CCPoint getRPerp() const {
+    inline constexpr CCPoint getRPerp() const {
         return CCPoint(y, -x);
     };
 
@@ -228,7 +228,7 @@ public:
      @return CCPoint
      @since v2.1.4
      */
-    inline CCPoint project(const CCPoint& other) const {
+    inline constexpr CCPoint project(const CCPoint& other) const {
         return other * (dot(other)/other.dot(other));
     };
 
@@ -237,7 +237,7 @@ public:
      and a length of this.getLength() * other.getLength().
      @since v2.1.4
      */
-    inline CCPoint rotate(const CCPoint& other) const {
+    inline constexpr CCPoint rotate(const CCPoint& other) const {
         return CCPoint(x*other.x - y*other.y, x*other.y + y*other.x);
     };
 
@@ -246,7 +246,7 @@ public:
      and a length of this.getLength() * other.getLength().
      @since v2.1.4
      */
-    inline CCPoint unrotate(const CCPoint& other) const {
+    inline constexpr CCPoint unrotate(const CCPoint& other) const {
         return CCPoint(x*other.x + y*other.y, y*other.x - x*other.y);
     };
 
@@ -268,7 +268,7 @@ public:
         otherwise a value between a..b
      @since v2.1.4
      */
-    inline CCPoint lerp(const CCPoint& other, float alpha) const {
+    inline constexpr CCPoint lerp(const CCPoint& other, float alpha) const {
         return *this * (1.f - alpha) + other * alpha;
     };
 
@@ -287,11 +287,21 @@ public:
     	return CCPoint(cosf(a), sinf(a));
     }
 
-	void add(int, float);
-	float at(int);
-	bool isZero() const;
-	void set(int, float);
-	void swap();
+	constexpr void add(int idx, float val) {
+        idx == 0 ? x += val : y += val;
+    }
+	constexpr float at(int idx) {
+        return idx == 0 ? x : y;
+    }
+	constexpr bool isZero() const {
+        return x == 0.f && y == 0.f;
+    }
+	constexpr void set(int idx, float val) {
+        idx == 0 ? x = val : y = val;
+    }
+	constexpr void swap() {
+        std::swap(x, y);
+    }
 
 };
 
@@ -306,86 +316,104 @@ public:
     float height;
 
 public:
-    inline CCSize() : width(0), height(0) {}
-    inline CCSize(float width, float height) : width(width), height(height) {}
+    inline constexpr CCSize() : width(0), height(0) {}
+    inline constexpr CCSize(float width, float height) : width(width), height(height) {}
     /**
      * @lua NA
      */
-    inline CCSize(const CCSize& other) : width(other.width), height(other.height) {}
+    inline constexpr CCSize(const CCSize& other) : width(other.width), height(other.height) {}
     /**
      * @lua NA
      */
-    inline CCSize(const CCPoint& point) : width(point.x), height(point.y) {}
+    inline constexpr CCSize(const CCPoint& point) : width(point.x), height(point.y) {}
     /**
      * @lua NA
      */
-    inline CCSize& operator= (const CCSize& other) {
+    inline constexpr CCSize& operator= (const CCSize& other) {
         setSize(other.width, other.height);
         return *this;
     }
     /**
      * @lua NA
      */
-    inline CCSize& operator= (const CCPoint& point) {
+    inline constexpr CCSize& operator= (const CCPoint& point) {
         setSize(point.x, point.y);
         return *this;
     }
     /**
      * @lua NA
      */
-    inline CCSize operator+(const CCSize& right) const {
+    inline constexpr CCSize operator+(const CCSize& right) const {
         return CCSize(this->width + right.width, this->height + right.height);
     }
     /**
      * @lua NA
      */
-    inline CCSize operator-(const CCSize& right) const {
+    inline constexpr CCSize operator-(const CCSize& right) const {
         return CCSize(this->width - right.width, this->height - right.height);
     }
     /**
      * @lua NA
      */
-    inline CCSize operator*(float a) const {
+    inline constexpr CCSize operator*(float a) const {
         return CCSize(this->width * a, this->height * a);
     }
     /**
      * @lua NA
      */
-    inline CCSize operator/(float a) const {
+    inline constexpr CCSize operator/(float a) const {
         return CCSize(this->width / a, this->height / a);
     }
     /**
      * @lua NA
      */
-    inline void setSize(float width, float height) {
+    inline constexpr void setSize(float width, float height) {
         this->width = width;
         this->height = height;
     }
     /**
      * @lua NA
      */
-    inline bool equals(const CCSize& target) const {
-        return (fabs(this->width  - target.width)  < FLT_EPSILON) && (fabs(this->height - target.height) < FLT_EPSILON);
+    inline constexpr bool equals(const CCSize& target) const {
+        return this->fuzzyEquals(target, FLT_EPSILON);
+    }
+
+    inline constexpr bool fuzzyEquals(const CCSize& b, float var) const {
+        if(width - var <= b.width && b.width <= width + var)
+            if(height - var <= b.height && b.height <= height + var)
+                return true;
+        return false;
     }
     /**
      * Get the aspect ratio of this CCSize
      * @note Geode addition
      */
-    inline float aspect() const {
+    inline constexpr float aspect() const {
         return this->width / this->height;
     }
 
-	void add(int, float);
-	float at(int);
-	void set(int, float);
-
+    constexpr void add(int idx, float val) {
+        idx == 0 ? width += val : height += val;
+    }
+	constexpr float at(int idx) {
+        return idx == 0 ? width : height;
+    }
+	constexpr bool isZero() const {
+        return width == 0.f && height == 0.f;
+    }
+	constexpr void set(int idx, float val) {
+        idx == 0 ? width = val : height = val;
+    }
+	constexpr void swap() {
+        std::swap(width, height);
+    }
 };
 
 // alk cont
 
-CCPoint::CCPoint(const CCSize& size) : x(size.width), y(size.height) {}
+constexpr CCPoint::CCPoint(const CCSize& size) : x(size.width), y(size.height) {}
 
-CCPoint& CCPoint::operator= (const CCSize& size) {
+constexpr CCPoint& CCPoint::operator= (const CCSize& size) {
     setPoint(size.width, size.height);
     return *this;
 }
@@ -402,29 +430,29 @@ public:
     CCSize  size;
 
 public:
-    inline CCRect() {
+    inline constexpr CCRect() {
         setRect(0.0f, 0.0f, 0.0f, 0.0f);
     }
-    inline CCRect(float x, float y, float width, float height) {
+    inline constexpr CCRect(float x, float y, float width, float height) {
         setRect(x, y, width, height);
     }
-    inline CCRect(CCPoint const& a, CCPoint const& b) {
+    inline constexpr CCRect(CCPoint const& a, CCPoint const& b) {
         setRect(a.x, a.y, b.x, b.y);
     }
     /**
      * @lua NA
      */
-    inline CCRect(const CCRect& other) {
+    inline constexpr CCRect(const CCRect& other) {
         setRect(other.origin.x, other.origin.y, other.size.width, other.size.height);
     }
     /**
      * @lua NA
      */
-    inline CCRect& operator= (const CCRect& other) {
+    inline constexpr CCRect& operator= (const CCRect& other) {
         setRect(other.origin.x, other.origin.y, other.size.width, other.size.height);
         return *this;
     }
-    inline void setRect(float x, float y, float width, float height) {
+    inline constexpr void setRect(float x, float y, float width, float height) {
         // CGRect can support width<0 or height<0
         // CCAssert(width >= 0.0f && height >= 0.0f, "width and height of Rect must not less than 0.");
 
@@ -435,28 +463,28 @@ public:
         size.height = height;
     }
 
-    inline float getMinX() const {
+    inline constexpr float getMinX() const {
         return origin.x;
     } /// return the leftmost x-value of current rect
-    inline float getMidX() const {
+    inline constexpr float getMidX() const {
         return (float)(origin.x + size.width / 2.0);
     } /// return the midpoint x-value of current rect
-    inline float getMaxX() const {
+    inline constexpr float getMaxX() const {
         return (float)(origin.x + size.width);
     } /// return the rightmost x-value of current rect
-    inline float getMinY() const {
+    inline constexpr float getMinY() const {
         return origin.y;
     } /// return the bottommost y-value of current rect
-    inline float getMidY() const {
+    inline constexpr float getMidY() const {
         return (float)(origin.y + size.height / 2.0);
     } /// return the midpoint y-value of current rect
-    inline float getMaxY() const {
+    inline constexpr float getMaxY() const {
         return origin.y + size.height;
     } /// return the topmost y-value of current rect
-    inline bool equals(const CCRect& rect) const {
+    inline constexpr bool equals(const CCRect& rect) const {
         return (origin.equals(rect.origin) && size.equals(rect.size));
     }
-    inline bool containsPoint(const CCPoint& point) const {
+    inline constexpr bool containsPoint(const CCPoint& point) const {
         bool bRet = false;
 
         if (point.x >= getMinX() && point.x <= getMaxX()
@@ -468,7 +496,7 @@ public:
         return bRet;
     }
 
-    inline bool intersectsRect(const CCRect& rect) const {
+    inline constexpr bool intersectsRect(const CCRect& rect) const {
         // lmao
         return !(     getMaxX() < rect.getMinX() ||
                  rect.getMaxX() <      getMinX() ||
@@ -476,8 +504,12 @@ public:
                  rect.getMaxY() <      getMinY());
     }
 
-	float getMax(int);
-	float getMin(int);
+	constexpr float getMax(int idx) {
+        return idx == 0 ? getMaxX() : getMaxY();
+    }
+	constexpr float getMin(int idx) {
+         return idx == 0 ? getMinX() : getMinY();
+    }
 };
 
 

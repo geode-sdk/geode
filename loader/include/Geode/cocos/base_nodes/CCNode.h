@@ -37,12 +37,18 @@
 #include "../kazmath/include/kazmath/kazmath.h"
 #include "../script_support/CCScriptSupport.h"
 #include "../include/CCProtocols.h"
-#include "Layout.hpp"
 #include "../../loader/Event.hpp"
+#include <Geode/utils/casts.hpp>
 
 #ifndef GEODE_IS_MEMBER_TEST
 #include <matjson.hpp>
 #endif
+
+namespace geode {
+    class Layout;
+    class LayoutOptions;
+    enum class Anchor;
+}
 
 NS_CC_BEGIN
 
@@ -870,31 +876,19 @@ public:
 private:
     friend class geode::modifier::FieldContainer;
 
-    [[deprecated("Will be removed, it's an ABI break")]]
-    GEODE_DLL geode::modifier::FieldContainer* getFieldContainer();
     GEODE_DLL geode::modifier::FieldContainer* getFieldContainer(char const* forClass);
     GEODE_DLL void addEventListenerInternal(
         std::string const& id,
         geode::EventListenerProtocol* protocol
     );
 
-#ifdef GEODE_EXPORTING
-    [[deprecated("Will be removed, it's an ABI break")]]
-    GEODE_DLL std::optional<matjson::Value> getAttributeInternal(std::string const& attribute);
-#endif
-
-public:
-#ifdef GEODE_EXPORTING
-    [[deprecated("Will be removed, it's an ABI break")]]
-    GEODE_DLL void setAttribute(std::string const& attribute, matjson::Value const& value);
-#endif
-
+public: 
     /**
      * Get the string ID of this node
      * @returns The ID, or an empty string if the node has no ID.
      * @note Geode addition
      */
-    GEODE_DLL std::string getID();
+    GEODE_DLL const std::string& getID();
     /**
      * Set the string ID of this node. String IDs are a Geode addition 
      * that are much safer to use to get nodes than absolute indexes
@@ -906,12 +900,22 @@ public:
     GEODE_DLL void setID(std::string const& id);
 
     /**
+     * Set the string ID of this node. String IDs are a Geode addition 
+     * that are much safer to use to get nodes than absolute indexes
+     * @param id The ID of the node, recommended to be in kebab case 
+     * without any spaces or uppercase letters. If the node is added 
+     * by a mod, use the _spr literal to append the mod ID to it
+     * @note Geode addition
+     */
+    GEODE_DLL void setID(std::string&& id);
+
+    /**
      * Get a child by its string ID
      * @param id ID of the child
      * @returns The child, or nullptr if none was found
      * @note Geode addition
      */
-    GEODE_DLL CCNode* getChildByID(std::string const& id);
+    GEODE_DLL CCNode* getChildByID(std::string_view id);
 
     /**
      * Get a child by its string ID. Recursively searches all the children
@@ -919,7 +923,7 @@ public:
      * @returns The child, or nullptr if none was found
      * @note Geode addition
      */
-    GEODE_DLL CCNode* getChildByIDRecursive(std::string const& id);
+    GEODE_DLL CCNode* getChildByIDRecursive(std::string_view id);
 
     /**
      * Get a child based on a query. Searches the child tree for a matching 
@@ -935,14 +939,14 @@ public:
      * ->getChildByID("mod.id/epic-button")`
      * @returns The first matching node, or nullptr if none was found
      */
-    GEODE_DLL CCNode* querySelector(std::string const& query);
+    GEODE_DLL CCNode* querySelector(std::string_view query);
 
     /** 
      * Removes a child from the container by its ID.
      * @param id The ID of the node
      * @note Geode addition
      */
-    GEODE_DLL void removeChildByID(std::string const& id);
+    GEODE_DLL void removeChildByID(std::string_view id);
 
     /**
      * Add a child before a specified existing child
@@ -989,13 +993,13 @@ public:
      * CCLayers / CCMenus, this will change where the children are located
      * @note Geode addition
      */
-    GEODE_DLL void setLayout(Layout* layout, bool apply = true, bool respectAnchor = true);
+    GEODE_DLL void setLayout(geode::Layout* layout, bool apply = true, bool respectAnchor = true);
     /**
      * Get the Layout for this node
      * @returns The current layout, or nullptr if no layout is set
      * @note Geode addition
      */
-    GEODE_DLL Layout* getLayout();
+    GEODE_DLL geode::Layout* getLayout();
     /**
      * Update the layout of this node using the current Layout. If no layout is 
      * set, nothing happens
@@ -1010,13 +1014,13 @@ public:
      * @param apply Whether to update the layout of the parent node
      * @note Geode addition
      */
-    GEODE_DLL void setLayoutOptions(LayoutOptions* options, bool apply = true);
+    GEODE_DLL void setLayoutOptions(geode::LayoutOptions* options, bool apply = true);
     /**
      * Get the layout options for this node
      * @returns The current layout options, or nullptr if no options are set
      * @note Geode addition
      */
-    GEODE_DLL LayoutOptions* getLayoutOptions();
+    GEODE_DLL geode::LayoutOptions* getLayoutOptions();
     /**
      * Adds a child at an anchored position with an offset. The node is placed 
      * in its parent where the anchor specifies, and then the offset is used to 
@@ -1028,7 +1032,7 @@ public:
      * if no other layout is already specified
      * @note Geode addition
      */
-    GEODE_DLL void addChildAtPosition(CCNode* child, Anchor anchor, CCPoint const& offset = CCPointZero, bool useAnchorLayout = true);
+    GEODE_DLL void addChildAtPosition(CCNode* child, geode::Anchor anchor, CCPoint const& offset = CCPointZero, bool useAnchorLayout = true);
     /**
      * Adds a child at an anchored position with an offset. The node is placed 
      * in its parent where the anchor specifies, and then the offset is used to 
@@ -1043,7 +1047,7 @@ public:
      */
     GEODE_DLL void addChildAtPosition(
         CCNode* child,
-        Anchor anchor,
+        geode::Anchor anchor,
         CCPoint const& offset,
         CCPoint const& nodeAnchor,
         bool useAnchorLayout = true
@@ -1056,7 +1060,7 @@ public:
      * @param offset Where to place the child relative to the anchor
      * @note Geode addition
      */
-    GEODE_DLL void updateAnchoredPosition(Anchor anchor, CCPoint const& offset = CCPointZero);
+    GEODE_DLL void updateAnchoredPosition(geode::Anchor anchor, CCPoint const& offset = CCPointZero);
     /**
      * Updates the anchored position of a child. Requires the child to already 
      * have a parent; if the child already has AnchorLayoutOptions set, those 
@@ -1067,7 +1071,7 @@ public:
      * @note Geode addition
      */
     GEODE_DLL void updateAnchoredPosition(
-        Anchor anchor,
+        geode::Anchor anchor,
         CCPoint const& offset,
         CCPoint const& nodeAnchor
     );
@@ -1101,7 +1105,7 @@ public:
     template <class Filter, class... Args>
     geode::EventListenerProtocol* addEventListener(
         std::string const& id,
-        geode::utils::MiniFunction<typename Filter::Callback> callback,
+        std::function<typename Filter::Callback> callback,
         Args&&... args
     ) {
         auto listener = new geode::EventListener<Filter>(
@@ -1112,10 +1116,10 @@ public:
     }
     template <class Filter, class... Args>
     geode::EventListenerProtocol* addEventListener(
-        geode::utils::MiniFunction<typename Filter::Callback> callback,
+        std::function<typename Filter::Callback> callback,
         Args&&... args
     ) {
-        return this->template addEventListener<Filter, Args...>(
+        return this->addEventListener<Filter, Args...>(
             "", callback, std::forward<Args>(args)...
         );
     }
@@ -1123,6 +1127,44 @@ public:
     GEODE_DLL void removeEventListener(std::string const& id);
     GEODE_DLL geode::EventListenerProtocol* getEventListener(std::string const& id);
     GEODE_DLL size_t getEventListenerCount();
+
+    /**
+     * Get nth child that is a given type. Checks bounds.
+     * @returns Child at index cast to the given type,
+     * or nullptr if index exceeds bounds
+     */
+    template <class T = CCNode>
+    T* getChildByType(int index) {
+        size_t indexCounter = 0;
+        if (this->getChildrenCount() == 0) return nullptr;
+        // start from end for negative index
+        if (index < 0) {
+            index = -index - 1;
+            for (size_t i = this->getChildrenCount() - 1; i >= 0; i--) {
+                auto obj = geode::cast::typeinfo_cast<T*>(this->getChildren()->objectAtIndex(i));
+                if (obj != nullptr) {
+                    if (indexCounter == index) {
+                        return obj;
+                    }
+                    ++indexCounter;
+                }
+                if (i == 0) break;
+            }
+        }
+        else {
+            for (size_t i = 0; i < this->getChildrenCount(); i++) {
+                auto obj = geode::cast::typeinfo_cast<T*>(this->getChildren()->objectAtIndex(i));
+                if (obj != nullptr) {
+                    if (indexCounter == index) {
+                        return obj;
+                    }
+                    ++indexCounter;
+                }
+            }
+        }
+
+        return nullptr;
+    }
     
     /// @{
     /// @name Shader Program
@@ -1884,7 +1926,7 @@ namespace geode {
 		std::string m_targetID;
 	
 	public:
-        ListenerResult handle(utils::MiniFunction<Callback> fn, UserObjectSetEvent* event);
+        ListenerResult handle(std::function<Callback> fn, UserObjectSetEvent* event);
 
 		AttributeSetFilter(std::string const& id);
     };

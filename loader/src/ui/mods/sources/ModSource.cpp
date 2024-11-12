@@ -1,6 +1,7 @@
 #include "ModSource.hpp"
 
 #include <Geode/loader/ModMetadata.hpp>
+#include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <server/DownloadManager.hpp>
 #include <Geode/binding/GameObject.hpp>
@@ -13,9 +14,9 @@ LoadModSuggestionTask loadModSuggestion(LoadProblem const& problem) {
 
         if (auto suggestionVersionRes = ComparableVersionInfo::parse(suggestionVersionStr)) {
             server::ModVersion suggestionVersion = server::ModVersionLatest();
-            if (suggestionVersionRes->getComparison() == VersionCompare::MoreEq) {
+            if (suggestionVersionRes.unwrap().getComparison() == VersionCompare::MoreEq) {
                 suggestionVersion = server::ModVersionMajor {
-                    .major = suggestionVersionRes->getUnderlyingVersion().getMajor()
+                    .major = suggestionVersionRes.unwrap().getUnderlyingVersion().getMajor()
                 };
             }
             // todo: if mods are allowed to specify other type of version comparisons in the future, 
@@ -106,7 +107,8 @@ bool ModSource::wantsRestart() const {
     }
     return std::visit(makeVisitor {
         [](Mod* mod) {
-            return mod->getRequestedAction() != ModRequestedAction::None;
+            return mod->getRequestedAction() != ModRequestedAction::None ||
+                ModSettingsManager::from(mod)->restartRequired();
         },
         [](server::ServerModMetadata const& metdata) {
             return false;
@@ -193,7 +195,7 @@ server::ServerRequest<std::unordered_set<std::string>> ModSource::fetchValidTags
                         }
                         return Ok(finalTags);
                     }
-                    return *result;
+                    return Ok(result->unwrap());
                 },
                 [](server::ServerProgress* progress) {
                     return *progress;

@@ -3,28 +3,42 @@
 #include "../DefaultInclude.hpp"
 
 #include <cocos2d.h>
-
-namespace cocos2d {
-    class CCArray;
-    class CCNode;
-}
+#include <vector>
+#include <span>
+#include <Geode/utils/cocos.hpp>
 
 namespace geode {
+    struct SceneSwitch;
+
     class GEODE_DLL SceneManager final {
     protected:
-        cocos2d::CCArray* m_persistedNodes;
+        std::vector<Ref<cocos2d::CCNode>> m_persistedNodes;
         cocos2d::CCScene* m_lastScene = nullptr;
 
-        bool setup();
-
         virtual ~SceneManager();
+
+        void willSwitchToScene(cocos2d::CCScene* scene);
+
+        friend struct SceneSwitch;
 
     public:
         static SceneManager* get();
 
+        /**
+         * Adds a node to the list of persisted nodes, which are kept across scene changes.
+         * @param node The node to keep across scenes.
+         */
         void keepAcrossScenes(cocos2d::CCNode* node);
+
+        /**
+         * Removes a node from the list of persisted nodes.
+         * @param node The node to forget.
+         */
         void forget(cocos2d::CCNode* node);
 
-        void willSwitchToScene(cocos2d::CCScene* scene);
+        /**
+         * Gets a span of the persisted nodes. To add new nodes to the list, use keepAcrossScenes.
+         */
+        std::span<Ref<cocos2d::CCNode> const> getPersistedNodes();
     };
 }

@@ -42,6 +42,11 @@ Loader::Impl::~Impl() = default;
 // Initialization
 
 bool Loader::Impl::isForwardCompatMode() {
+#ifdef GEODE_IS_ANDROID
+    // forward compat mode doesn't really make sense on android
+    return false;
+#endif
+
     if (!m_forwardCompatMode.has_value()) {
         m_forwardCompatMode = !this->getGameVersion().empty() &&
             this->getGameVersion() != GEODE_STR(GEODE_GD_VERSION);
@@ -384,6 +389,37 @@ void Loader::Impl::buildModGraph() {
 }
 
 void Loader::Impl::loadModGraph(Mod* node, bool early) {
+    // Check version first, as it's not worth trying to load a mod with an 
+    // invalid target version
+    // Also this makes it so that when GD updates, outdated mods get shown as 
+    // "Outdated" in the UI instead of "Missing Dependencies"
+    auto res = node->getMetadata().checkGameVersion();
+    if (!res) {
+        this->addProblem({
+            LoadProblem::Type::UnsupportedVersion,
+            node,
+            res.unwrapErr()
+        });
+        log::error("{}", res.unwrapErr());
+        log::popNest();
+        return;
+    }
+
+    if (!this->isModVersionSupported(node->getMetadata().getGeodeVersion())) {
+        this->addProblem({
+            node->getMetadata().getGeodeVersion() > this->getVersion() ? LoadProblem::Type::NeedsNewerGeodeVersion : LoadProblem::Type::UnsupportedGeodeVersion,
+            node,
+            fmt::format(
+                "Geode version {}\nis required to run this mod\n(installed: {})",
+                node->getMetadata().getGeodeVersion().toVString(),
+                this->getVersion().toVString()
+            )
+        });
+        log::error("Unsupported Geode version: {}", node->getMetadata().getGeodeVersion());
+        log::popNest();
+        return;
+    }
+    
     if (node->hasUnresolvedDependencies()) {
         log::debug("{} {} has unresolved dependencies", node->getID(), node->getVersion());
         return;
@@ -444,35 +480,6 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
             log::popNest();
             return;
         }
-
-        auto res = node->getMetadata().checkGameVersion();
-        if (!res) {
-            this->addProblem({
-                LoadProblem::Type::UnsupportedVersion,
-                node,
-                res.unwrapErr()
-            });
-            log::error("{}", res.unwrapErr());
-            m_refreshingModCount -= 1;
-            log::popNest();
-            return;
-        }
-
-        if (!this->isModVersionSupported(node->getMetadata().getGeodeVersion())) {
-            this->addProblem({
-                node->getMetadata().getGeodeVersion() > this->getVersion() ? LoadProblem::Type::NeedsNewerGeodeVersion : LoadProblem::Type::UnsupportedGeodeVersion,
-                node,
-                fmt::format(
-                    "Geode version {}\nis required to run this mod\n(installed: {})",
-                    node->getMetadata().getGeodeVersion().toVString(),
-                    this->getVersion().toVString()
-                )
-            });
-            log::error("Unsupported Geode version: {}", node->getMetadata().getGeodeVersion());
-            m_refreshingModCount -= 1;
-            log::popNest();
-            return;
-        }
     }
 
     if (early) {
@@ -496,20 +503,20 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
             thread::setName("Mod Unzip");
             log::loadNest(nest);
             auto res = unzipFunction();
+            auto prevNest = log::saveNest();
+            log::loadNest(nest);
+            if (!res) {
+                this->addProblem({
+                    LoadProblem::Type::UnzipFailed,
+                    node,
+                    res.unwrapErr()
+                });
+                log::error("Failed to unzip: {}", res.unwrapErr());
+                m_refreshingModCount -= 1;
+                log::loadNest(prevNest);
+                return;
+            }
             this->queueInMainThread([=, this]() {
-                auto prevNest = log::saveNest();
-                log::loadNest(nest);
-                if (!res) {
-                    this->addProblem({
-                        LoadProblem::Type::UnzipFailed,
-                        node,
-                        res.unwrapErr()
-                    });
-                    log::error("Failed to unzip: {}", res.unwrapErr());
-                    m_refreshingModCount -= 1;
-                    log::loadNest(prevNest);
-                    return;
-                }
                 loadFunction();
                 log::loadNest(prevNest);
             });
@@ -524,6 +531,10 @@ void Loader::Impl::findProblems() {
             log::debug("{} is not enabled", id);
             continue;
         }
+        if (mod->targetsOutdatedVersion()) {
+            log::debug("{} is outdated", id);
+            continue;
+        }
         log::debug("{}", id);
         log::pushNest();
 
@@ -535,7 +546,7 @@ void Loader::Impl::findProblems() {
 
             switch(dep.importance) {
                 case ModMetadata::Dependency::Importance::Suggested:
-                    if (!Mod::get()->template getSavedValue<bool>(dismissKey)) {
+                    if (!Mod::get()->getSavedValue<bool>(dismissKey)) {
                         this->addProblem({
                             LoadProblem::Type::Suggestion,
                             mod,
@@ -548,7 +559,7 @@ void Loader::Impl::findProblems() {
                     }
                     break;
                 case ModMetadata::Dependency::Importance::Recommended:
-                    if (!Mod::get()->template getSavedValue<bool>(dismissKey)) {
+                    if (!Mod::get()->getSavedValue<bool>(dismissKey)) {
                         this->addProblem({
                             LoadProblem::Type::Recommendation,
                             mod,
@@ -603,7 +614,7 @@ void Loader::Impl::findProblems() {
         }
 
         for (auto const& dep : mod->getMetadata().getIncompatibilities()) {
-            if (!dep.mod || !dep.version.compare(dep.mod->getVersion()))
+            if (!dep.mod || !dep.version.compare(dep.mod->getVersion()) || !dep.mod->isEnabled())
                 continue;
             switch(dep.importance) {
                 case ModMetadata::Incompatibility::Importance::Conflicting: {
@@ -927,11 +938,11 @@ std::vector<std::string> Loader::Impl::getLaunchArgumentNames() const {
     return map::keys(m_launchArgs);
 }
 
-bool Loader::Impl::hasLaunchArgument(std::string_view const name) const {
+bool Loader::Impl::hasLaunchArgument(std::string_view name) const {
     return m_launchArgs.find(std::string(name)) != m_launchArgs.end();
 }
 
-std::optional<std::string> Loader::Impl::getLaunchArgument(std::string_view const name) const {
+std::optional<std::string> Loader::Impl::getLaunchArgument(std::string_view name) const {
     auto value = m_launchArgs.find(std::string(name));
     if (value == m_launchArgs.end()) {
         return std::nullopt;
@@ -939,7 +950,7 @@ std::optional<std::string> Loader::Impl::getLaunchArgument(std::string_view cons
     return std::optional(value->second);
 }
 
-bool Loader::Impl::getLaunchFlag(std::string_view const name) const {
+bool Loader::Impl::getLaunchFlag(std::string_view name) const {
     auto arg = this->getLaunchArgument(name);
     return arg.has_value() && arg.value() == "true";
 }

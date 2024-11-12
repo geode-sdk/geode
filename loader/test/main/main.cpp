@@ -54,7 +54,7 @@ struct $modify(MenuLayer) {
         log::popNest();
         log::info("Mod has launch arg 'mod-arg': {}", Mod::get()->hasLaunchArgument("mod-arg"));
         log::info("Loader flag 'bool-arg': {}", Loader::get()->getLaunchFlag("bool-arg"));
-        log::info("Loader int 'int-arg': {}", Loader::get()->parseLaunchArgument<int>("int-arg"));
+        log::info("Loader int 'int-arg': {}", Loader::get()->parseLaunchArgument<int>("int-arg").unwrapOr(0));
         log::popNest();
 
         return true;

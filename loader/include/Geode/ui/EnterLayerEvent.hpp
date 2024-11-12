@@ -30,7 +30,7 @@ namespace geode {
 		std::optional<std::string> m_targetID;
 	
 	public:
-        ListenerResult handle(utils::MiniFunction<Callback> fn, AEnterLayerEvent* event);
+        ListenerResult handle(std::function<Callback> fn, AEnterLayerEvent* event);
 
 		AEnterLayerFilter(
 			std::optional<std::string> const& id
@@ -63,7 +63,7 @@ namespace geode {
 		std::optional<std::string> m_targetID;
 	
 	public:
-        ListenerResult handle(utils::MiniFunction<Callback> fn, EnterLayerEvent<N>* event) {
+        ListenerResult handle(std::function<Callback> fn, EnterLayerEvent<N>* event) {
             if (m_targetID == event->getID()) {
                 fn(static_cast<T*>(event));
             }

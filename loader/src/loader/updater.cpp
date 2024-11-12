@@ -16,7 +16,7 @@ updater::ResourceDownloadEvent::ResourceDownloadEvent(
 ) : status(std::move(status)) {}
 
 ListenerResult updater::ResourceDownloadFilter::handle(
-    const utils::MiniFunction<Callback>& fn,
+    const std::function<Callback>& fn,
     ResourceDownloadEvent* event
 ) {
     fn(event);
@@ -30,7 +30,7 @@ updater::LoaderUpdateEvent::LoaderUpdateEvent(
 ) : status(std::move(status)) {}
 
 ListenerResult updater::LoaderUpdateFilter::handle(
-    const utils::MiniFunction<Callback>& fn,
+    const std::function<Callback>& fn,
     LoaderUpdateEvent* event
 ) {
     fn(event);
@@ -45,8 +45,8 @@ std::optional<matjson::Value> s_latestGithubRelease;
 bool s_isNewUpdateDownloaded = false;
 
 void updater::fetchLatestGithubRelease(
-    const utils::MiniFunction<void(matjson::Value const&)>& then,
-    utils::MiniFunction<void(std::string const&)> expect, bool force
+    const std::function<void(matjson::Value const&)>& then,
+    std::function<void(std::string const&)> expect, bool force
 ) {
     if (s_latestGithubRelease) {
         return then(s_latestGithubRelease.value());
@@ -83,7 +83,7 @@ void updater::fetchLatestGithubRelease(
                         }
                         else {
                             Mod::get()->setSavedValue("last-modified-auto-update-check", response->header("Last-Modified").value_or(""));
-                            s_latestGithubRelease = *json;
+                            s_latestGithubRelease = json.unwrap();
                             then(*s_latestGithubRelease);
                         }
                     }
@@ -102,16 +102,13 @@ void updater::downloadLatestLoaderResources() {
     log::debug("Downloading latest resources", Loader::get()->getVersion().toVString());
     fetchLatestGithubRelease(
         [](matjson::Value const& raw) {
-            auto json = raw;
-            JsonChecker checker(json);
-            auto root = checker.root("[]").obj();
+            auto root = checkJson(raw, "[]");
 
             // find release asset
-            for (auto asset : root.needs("assets").iterate()) {
-                auto obj = asset.obj();
-                if (obj.needs("name").template get<std::string>() == "resources.zip") {
+            for (auto& obj : root.needs("assets").items()) {
+                if (obj.needs("name").get<std::string>() == "resources.zip") {
                     updater::tryDownloadLoaderResources(
-                        obj.needs("browser_download_url").template get<std::string>(),
+                        obj.needs("browser_download_url").get<std::string>(),
                         false
                     );
                     return;
@@ -144,7 +141,7 @@ void updater::tryDownloadLoaderResources(std::string const& url, bool tryLatestO
                 // unzip resources zip
                 auto unzip = file::Unzip::create(response->data());
                 if (unzip) {
-                    auto ok = unzip->extractAllTo(resourcesDir);
+                    auto ok = unzip.unwrap().extractAllTo(resourcesDir);
                     if (ok) {
                         updater::updateSpecialFiles();
                         ResourceDownloadEvent(UpdateFinished()).post();
@@ -206,16 +203,13 @@ void updater::downloadLoaderResources(bool useLatestRelease) {
             RUNNING_REQUESTS.erase("@downloadLoaderResources");
             if (response->ok()) {
                 if (auto ok = response->json()) {
-                    auto json = ok.unwrap();
-                    JsonChecker checker(json);
-                    auto root = checker.root("[]").obj();
+                    auto root = checkJson(ok.unwrap(), "[]");
 
                     // find release asset
-                    for (auto asset : root.needs("assets").iterate()) {
-                        auto obj = asset.obj();
-                        if (obj.needs("name").template get<std::string>() == "resources.zip") {
+                    for (auto& obj : root.needs("assets").items()) {
+                        if (obj.needs("name").get<std::string>() == "resources.zip") {
                             updater::tryDownloadLoaderResources(
-                                obj.needs("browser_download_url").template get<std::string>(),
+                                obj.needs("browser_download_url").get<std::string>(),
                                 false
                             );
                             return *response;
@@ -314,7 +308,7 @@ void updater::downloadLoaderUpdate(std::string const& url) {
                     // unzip resources zip
                     auto unzip = file::Unzip::create(response->data());
                     if (unzip) {
-                        auto ok = unzip->extractAllTo(targetDir);
+                        auto ok = unzip.unwrap().extractAllTo(targetDir);
                         if (ok) {
                             s_isNewUpdateDownloaded = true;
                             LoaderUpdateEvent(UpdateFinished()).post();
@@ -362,9 +356,7 @@ void updater::checkForLoaderUpdates() {
     // Check for updates in the background
     fetchLatestGithubRelease(
         [](matjson::Value const& raw) {
-            auto json = raw;
-            JsonChecker checker(json);
-            auto root = checker.root("[]").obj();
+            auto root = checkJson(raw, "[]");
 
             VersionInfo ver { 0, 0, 0 };
             root.needs("tag_name").into(ver);
@@ -388,14 +380,13 @@ void updater::checkForLoaderUpdates() {
             }
 
             // find release asset
-            for (auto asset : root.needs("assets").iterate()) {
-                auto obj = asset.obj();
+            for (auto& obj : root.needs("assets").items()) {
                 if (string::endsWith(
-                    obj.needs("name").template get<std::string>(),
+                    obj.needs("name").get<std::string>(),
                     fmt::format("{}.zip", PlatformID::toShortString(GEODE_PLATFORM_TARGET, true))
                 )) {
                     updater::downloadLoaderUpdate(
-                        obj.needs("browser_download_url").template get<std::string>()
+                        obj.needs("browser_download_url").get<std::string>()
                     );
                     return;
                 }

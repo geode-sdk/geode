@@ -103,6 +103,7 @@ bool FiltersPopup::setup(ModListSource* src) {
 
         m_developerNameInput = TextInput::create(inputContainer->getContentWidth(), "Developer Name");
         m_developerNameInput->setTextAlign(TextInputAlign::Left);
+        m_developerNameInput->setFilter("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-");
         m_developerNameInput->setString(src->getQuery().developer.value_or(""));
         inputContainer->addChildAtPosition(m_developerNameInput, Anchor::Center);
 
@@ -130,7 +131,7 @@ bool FiltersPopup::setup(ModListSource* src) {
         m_mainLayer->addChildAtPosition(inputContainer, Anchor::Bottom, ccp(0, 60), ccp(.5f, .5f));
     }
 
-    auto okSpr = createGeodeButton("OK");
+    auto okSpr = createGeodeButton("OK", false, GeodeButtonSprite::Default, m_forceDisableTheme);
     okSpr->setScale(.7f);
     auto okBtn = CCMenuItemSpriteExtra::create(
         okSpr, this, menu_selector(FiltersPopup::onClose)

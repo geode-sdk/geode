@@ -1,34 +1,12 @@
 #include "ModListSource.hpp"
 
 void ServerModListSource::resetQuery() {
-    switch (m_type) {
-        case ServerModListType::Download: {
-            m_query = server::ModsQuery {};
-        } break;
-
-        case ServerModListType::Featured: {
-            m_query = server::ModsQuery {
-                .featured = true,
-            };
-        } break;
-
-        case ServerModListType::Trending: {
-            m_query = server::ModsQuery {
-                .sorting = server::ModsSort::RecentlyUpdated,
-            };
-        } break;
-
-        case ServerModListType::Recent: {
-            m_query = server::ModsQuery {
-                .sorting = server::ModsSort::RecentlyPublished,
-            };
-        } break;
-    }
+    m_query = this->createDefaultQuery();
 }
 
-ServerModListSource::ProviderTask ServerModListSource::fetchPage(size_t page, size_t pageSize, bool forceUpdate) {
+ServerModListSource::ProviderTask ServerModListSource::fetchPage(size_t page, bool forceUpdate) {
     m_query.page = page;
-    m_query.pageSize = pageSize;
+    m_query.pageSize = m_pageSize;
     return server::getMods(m_query, !forceUpdate).map(
         [](Result<server::ServerModsList, server::ServerError>* result) -> ProviderTask::Value {
             if (result->isOk()) {
@@ -56,7 +34,7 @@ ServerModListSource::ServerModListSource(ServerModListType type)
 
 ServerModListSource* ServerModListSource::get(ServerModListType type) {
     switch (type) {
-        default:
+        default: [[fallthrough]];
         case ServerModListType::Download: {
             static auto inst = new ServerModListSource(ServerModListType::Download);
             return inst;
@@ -76,11 +54,22 @@ ServerModListSource* ServerModListSource::get(ServerModListType type) {
             static auto inst = new ServerModListSource(ServerModListType::Recent);
             return inst;
         } break;
+
+        case ServerModListType::Modtober24: {
+            static auto inst = new ServerModListSource(ServerModListType::Modtober24);
+            return inst;
+        } break;
     }
 }
 
 void ServerModListSource::setSearchQuery(std::string const& query) {
-    m_query.query = query.size() ? std::optional(query) : std::nullopt;
+    if (query.empty()) {
+        m_query.query = std::nullopt;
+        m_query.platforms = { GEODE_PLATFORM_TARGET };
+    } else {
+        m_query.query = std::optional(query);
+        m_query.platforms = {};
+    }
 }
 
 std::unordered_set<std::string> ServerModListSource::getModTags() const {
@@ -98,7 +87,31 @@ InvalidateQueryAfter<server::ModsQuery> ServerModListSource::getQueryMut() {
     return InvalidateQueryAfter(m_query, this);
 }
 bool ServerModListSource::isDefaultQuery() const {
-    return !m_query.query.has_value() &&
-        m_query.tags.empty() &&
-        !m_query.developer.has_value();
+    return m_query == this->createDefaultQuery();
+}
+
+server::ModsQuery ServerModListSource::createDefaultQuery() const {
+    switch (m_type) {
+        case ServerModListType::Download: return server::ModsQuery {};
+
+        case ServerModListType::Featured: return server::ModsQuery {
+            .featured = true,
+        };
+
+        case ServerModListType::Trending: return server::ModsQuery {
+            .sorting = server::ModsSort::RecentlyUpdated,
+        };
+
+        case ServerModListType::Recent: return server::ModsQuery {
+            .sorting = server::ModsSort::RecentlyPublished,
+        };
+
+        case ServerModListType::Modtober24: return server::ModsQuery {
+            .tags = { "modtober24" },
+        };
+    }
+}
+
+ServerModListType ServerModListSource::getType() const {
+    return m_type;
 }

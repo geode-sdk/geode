@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Result.hpp"
+#include <Geode/Result.hpp>
 
 #include "../DefaultInclude.hpp"
 #include <chrono>
@@ -13,12 +13,13 @@
 #include <charconv>
 #include <clocale>
 #include <type_traits>
+#include <fmt/format.h>
 
 namespace geode {
     using ByteVector = std::vector<uint8_t>;
 
     template <typename T>
-    ByteVector toByteArray(T const& a) {
+    ByteVector toBytes(T const& a) {
         ByteVector out;
         out.resize(sizeof(T));
         std::memcpy(out.data(), &a, sizeof(T));
@@ -90,9 +91,22 @@ namespace geode {
          */
         template <std::integral Num>
         std::string numToAbbreviatedString(Num num) {
-            if (num >= 1'000'000'000) return fmt::format("{:0.3}B", num / 1'000'000'000.f);
-            if (num >= 1'000'000) return fmt::format("{:0.3}M", num / 1'000'000.f);
-            if (num >= 1'000) return fmt::format("{:0.3}K", num / 1'000.f);
+            // it's a mess... i'm sorry...
+            constexpr auto numToFixedTrunc = [](float num) {
+
+                // calculate the number of digits we keep from the decimal
+                auto remaining = std::max(3 - static_cast<int>(std::log10(num)) - 1, 0);
+
+                auto factor = std::pow(10, remaining);
+                auto trunc = std::trunc(num * factor) / factor;
+
+                // doing this dynamic format thing lets the .0 show when needed
+                return fmt::format("{:0.{}f}", trunc, static_cast<int>(remaining));
+            };
+
+            if (num >= 1'000'000'000) return fmt::format("{}B", numToFixedTrunc(num / 1'000'000'000.f));
+            if (num >= 1'000'000) return fmt::format("{}M", numToFixedTrunc(num / 1'000'000.f));
+            if (num >= 1'000) return fmt::format("{}K", numToFixedTrunc(num / 1'000.f));
             return numToString(num);
         }
 
@@ -103,7 +117,7 @@ namespace geode {
          * @returns String as number, or Err if the string couldn't be converted
          */
         template <class Num>
-        Result<Num> numFromString(std::string_view const str, int base = 10) {
+        Result<Num> numFromString(std::string_view str, int base = 10) {
             if constexpr (std::is_floating_point_v<Num> 
                 #if defined(__cpp_lib_to_chars)
                     && false
@@ -128,8 +142,9 @@ namespace geode {
                 if constexpr (std::is_floating_point_v<Num>) res = std::from_chars(str.data(), str.data() + str.size(), result);
                 else res = std::from_chars(str.data(), str.data() + str.size(), result, base);
 
-                auto [_, ec] = res;
+                auto [ptr, ec] = res;
                 if (ec == std::errc()) return Ok(result);
+                else if (ptr != str.data() + str.size()) return Err("String contains trailing extra data");
                 else if (ec == std::errc::invalid_argument) return Err("String is not a number");
                 else if (ec == std::errc::result_out_of_range) return Err("Number is too large to fit");
                 else return Err("Unknown error");
@@ -145,12 +160,18 @@ namespace geode {
         */
         GEODE_DLL float getDisplayFactor();
     }
+
+    template <class... Args>
+    requires (sizeof...(Args) > 0)
+    constexpr auto Err(fmt::format_string<Args...> fmt, Args&&... args) {
+        return Err(fmt::format(fmt, std::forward<Args>(args)...));
+    }
 }
 
 template<>
 struct matjson::Serialize<geode::ByteVector> {
-    static matjson::Value to_json(geode::ByteVector const& bytes) {
-        return matjson::Array(bytes.begin(), bytes.end());
+    static Value toJson(geode::ByteVector const& bytes) {
+        return std::vector<matjson::Value>(bytes.begin(), bytes.end());
     }
 };
 

@@ -41,7 +41,7 @@
 #define NFD_UTF8_BOM "\xEF\xBB\xBF"
 
 #include <stddef.h>
-#include <Geode/utils/Result.hpp>
+#include <Geode/Result.hpp>
 #include <Geode/utils/file.hpp>
 
 using namespace geode::prelude;

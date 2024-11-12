@@ -100,11 +100,11 @@ namespace gd {
     bool string::operator==(string const& other) const {
         return std::string_view(*this) == std::string_view(other);
     }
-	bool string::operator==(std::string_view const other) const {
+	bool string::operator==(std::string_view other) const {
         return std::string_view(*this) == other;
     }
 
-    std::strong_ordering string::operator<=>(std::string_view const other) const {
+    std::strong_ordering string::operator<=>(std::string_view other) const {
         return static_cast<std::strong_ordering>(std::string_view(*this).compare(other) <=> 0);
     }
 

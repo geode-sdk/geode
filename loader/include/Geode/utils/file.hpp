@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Result.hpp"
+#include <Geode/Result.hpp>
 #include "general.hpp"
 #include "../loader/Event.hpp"
 #include "Task.hpp"
@@ -13,14 +13,15 @@
 
 template <>
 struct matjson::Serialize<std::filesystem::path> {
-    static matjson::Value to_json(std::filesystem::path const& path) {
-        return path.string();
+    static geode::Result<std::filesystem::path, std::string> fromJson(Value const& value)
+    {
+        GEODE_UNWRAP_INTO(auto str, value.asString());
+        return geode::Ok(std::filesystem::path(str).make_preferred());
     }
-    static std::filesystem::path from_json(matjson::Value const& value) {
-        return value.as_string();
-    }
-    static bool is_json(matjson::Value const& value) {
-        return value.is_string();
+
+    static Value toJson(std::filesystem::path const& value)
+    {
+        return Value(value.string());
     }
 };
 
@@ -32,10 +33,7 @@ namespace geode::utils::file {
     template <class T>
     Result<T> readFromJson(std::filesystem::path const& file) {
         GEODE_UNWRAP_INTO(auto json, readJson(file));
-        if (!json.template is<T>()) {
-            return Err("JSON is not of type {}", typeid(T).name());
-        }
-        return Ok(json.template as<T>());
+        return json.as<T>();
     }
 
     GEODE_DLL Result<> writeString(std::filesystem::path const& path, std::string const& data);
@@ -162,7 +160,7 @@ namespace geode::utils::file {
          * @param callback Callback to call with the progress of the unzip operation
          */
         void setProgressCallback(
-            utils::MiniFunction<void(uint32_t, uint32_t)> callback
+            std::function<void(uint32_t, uint32_t)> callback
         );
 
         /**
@@ -213,7 +211,7 @@ namespace geode::utils::file {
         );
 
         static Result<> intoDir(
-            utils::MiniFunction<void(uint32_t, uint32_t)> progressCallback,
+            std::function<void(uint32_t, uint32_t)> progressCallback,
             Path const& from,
             Path const& to,
             bool deleteZipAfter = false
@@ -281,7 +279,7 @@ namespace geode::utils::file {
     public:
         using Callback = void(FileWatchEvent*);
 
-        ListenerResult handle(utils::MiniFunction<Callback> callback, FileWatchEvent* event);
+        ListenerResult handle(std::function<Callback> callback, FileWatchEvent* event);
         FileWatchFilter(std::filesystem::path const& path);
     };
 

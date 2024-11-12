@@ -1,3 +1,4 @@
+#import <Foundation/Foundation.h>
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Log.hpp>
 #include <iostream>
@@ -5,9 +6,9 @@
 #include <loader/console.hpp>
 #include <loader/IPC.hpp>
 #include <loader/ModImpl.hpp>
-#import <Foundation/Foundation.h>
 #include <sys/stat.h>
 #include <loader/LogImpl.hpp>
+#include <dlfcn.h>
 
 using namespace geode::prelude;
 
@@ -98,6 +99,7 @@ CFDataRef msgPortCallback(CFMessagePortRef port, SInt32 messageID, CFDataRef dat
     std::string cdata(reinterpret_cast<char const*>(CFDataGetBytePtr(data)), CFDataGetLength(data));
 
     std::string reply = geode::ipc::processRaw(port, cdata).dump();
+
     return CFDataCreate(NULL, (UInt8 const*)reply.data(), reply.size());
 }
 
@@ -132,7 +134,31 @@ bool Loader::Impl::userTriedToLoadDLLs() const {
 }
 
 void Loader::Impl::addNativeBinariesPath(std::filesystem::path const& path) {
-    log::warn("LoaderImpl::addNativeBinariesPath not implement on this platform, not adding path {}", path.string());
+    // this takes advantage of dyld using already loaded binaries when loading relative shared libraries
+    // however, this also means that the binaries are loaded, which could have some weird side effects
+    // but if you could use dlopen (and thus control when libraries are loaded), then you wouldn't be using this, would you?
+
+    for (const auto& entry : std::filesystem::directory_iterator(path)) {
+        if (!entry.is_regular_file()) {
+            continue;
+        }
+
+        auto& entry_path = entry.path();
+
+        if (entry_path.extension() != ".dylib") {
+            continue;
+        }
+
+        auto handle = dlopen(entry_path.string().c_str(), RTLD_LAZY);
+
+        if (!handle) {
+            auto err = dlerror();
+            log::warn("failed to load native binary at {}: dlerror returned ({})", entry_path.string(), err);
+            continue;
+        }
+
+        dlclose(handle);
+    }
 }
 
 std::string Loader::Impl::getGameVersion() {

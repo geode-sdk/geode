@@ -20,10 +20,6 @@ std::string Mod::getName() const {
     return m_impl->getName();
 }
 
-std::string Mod::getDeveloper() const {
-    return m_impl->getDevelopers().empty() ? "" : m_impl->getDevelopers().front();
-}
-
 std::vector<std::string> Mod::getDevelopers() const {
     return m_impl->getDevelopers();
 }
@@ -49,7 +45,7 @@ matjson::Value& Mod::getSaveContainer() {
 }
 
 matjson::Value& Mod::getSavedSettingsData() {
-    return m_impl->getSavedSettingsData();
+    return m_impl->m_settings->getSaveData();
 }
 
 bool Mod::isEnabled() const {
@@ -101,9 +97,6 @@ std::vector<Mod*> Mod::getDependants() const {
 }
 #endif
 
-std::optional<VersionInfo> Mod::hasAvailableUpdate() const {
-    return std::nullopt;
-}
 Mod::CheckUpdatesTask Mod::checkUpdates() const {
     return server::checkUpdates(this).map(
         [](auto* result) -> Mod::CheckUpdatesTask::Value {
@@ -143,6 +136,10 @@ std::filesystem::path Mod::getConfigDir(bool create) const {
     return m_impl->getConfigDir(create);
 }
 
+std::filesystem::path Mod::getPersistentDir(bool create) const {
+    return m_impl->getPersistentDir(create);
+}
+
 bool Mod::hasSettings() const {
     return m_impl->hasSettings();
 }
@@ -151,35 +148,31 @@ std::vector<std::string> Mod::getSettingKeys() const {
     return m_impl->getSettingKeys();
 }
 
-bool Mod::hasSetting(std::string_view const key) const {
+bool Mod::hasSetting(std::string_view key) const {
     return m_impl->hasSetting(key);
 }
 
-std::optional<Setting> Mod::getSettingDefinition(std::string_view const key) const {
-    return m_impl->getSettingDefinition(key);
+std::shared_ptr<Setting> Mod::getSetting(std::string_view key) const {
+    return m_impl->m_settings->get(std::string(key));
 }
 
-SettingValue* Mod::getSetting(std::string_view const key) const {
-    return m_impl->getSetting(key);
-}
-
-void Mod::registerCustomSetting(std::string_view const key, std::unique_ptr<SettingValue> value) {
-    return m_impl->registerCustomSetting(key, std::move(value));
+Result<> Mod::registerCustomSettingType(std::string_view type, SettingGenerator generator) {
+    return m_impl->m_settings->registerCustomSettingType(type, generator);
 }
 
 std::vector<std::string> Mod::getLaunchArgumentNames() const {
     return m_impl->getLaunchArgumentNames();
 }
 
-bool Mod::hasLaunchArgument(std::string_view const name) const {
+bool Mod::hasLaunchArgument(std::string_view name) const {
     return m_impl->hasLaunchArgument(name);
 }
 
-std::optional<std::string> Mod::getLaunchArgument(std::string_view const name) const {
+std::optional<std::string> Mod::getLaunchArgument(std::string_view name) const {
     return m_impl->getLaunchArgument(name);
 }
 
-bool Mod::getLaunchFlag(std::string_view const name) const {
+bool Mod::getLaunchFlag(std::string_view name) const {
     return m_impl->getLaunchFlag(name);
 }
 
@@ -227,7 +220,7 @@ ModRequestedAction Mod::getRequestedAction() const {
     return m_impl->getRequestedAction();
 }
 
-bool Mod::depends(std::string_view const id) const {
+bool Mod::depends(std::string_view id) const {
     return m_impl->depends(id);
 }
 
@@ -255,12 +248,20 @@ void Mod::setLoggingEnabled(bool enabled) {
     m_impl->setLoggingEnabled(enabled);
 }
 
-bool Mod::hasSavedValue(std::string_view const key) {
+bool Mod::hasSavedValue(std::string_view key) {
     return this->getSaveContainer().contains(key);
 }
 
-bool Mod::hasProblems() const {
-    return m_impl->hasProblems();
+bool Mod::hasLoadProblems() const {
+    return m_impl->hasLoadProblems();
+}
+std::optional<LoadProblem> Mod::targetsOutdatedVersion() const {
+    for (auto problem : this->getAllProblems()) {
+        if (problem.isOutdated()) {
+            return problem;
+        }
+    }
+    return std::nullopt;
 }
 std::vector<LoadProblem> Mod::getAllProblems() const {
     return m_impl->getProblems();
@@ -268,10 +269,7 @@ std::vector<LoadProblem> Mod::getAllProblems() const {
 std::vector<LoadProblem> Mod::getProblems() const {
     std::vector<LoadProblem> result;
     for (auto problem : this->getAllProblems()) {
-        if (
-            problem.type != LoadProblem::Type::Recommendation && 
-            problem.type != LoadProblem::Type::Suggestion
-        ) {
+        if (problem.isProblem()) {
             result.push_back(problem);
         }
     }
@@ -280,10 +278,7 @@ std::vector<LoadProblem> Mod::getProblems() const {
 std::vector<LoadProblem> Mod::getRecommendations() const {
     std::vector<LoadProblem> result;
     for (auto problem : this->getAllProblems()) {
-        if (
-            problem.type == LoadProblem::Type::Recommendation || 
-            problem.type == LoadProblem::Type::Suggestion
-        ) {
+        if (problem.isSuggestion()) {
             result.push_back(problem);
         }
     }

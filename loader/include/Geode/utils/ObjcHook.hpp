@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../loader/Hook.hpp"
-#include "Result.hpp"
+#include <Geode/Result.hpp>
 
 namespace geode {
     namespace hook {

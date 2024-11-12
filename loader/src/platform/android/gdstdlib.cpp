@@ -101,7 +101,7 @@ namespace geode::stl {
     }
     // TODO: add a copyFrom(string const&) to take advantage
     // of gnustl refcounted strings
-    void StringImpl::setStorage(const std::string_view str) {
+    void StringImpl::setStorage(std::string_view str) {
         this->free();
 
         if (str.size() == 0) {

@@ -143,18 +143,31 @@ endif()
 if (DEFINED GEODE_CCACHE_VARIANT)
 	if (NOT DEFINED GEODE_DISABLE_PRECOMPILED_HEADERS)
 		if (${GEODE_CCACHE_VARIANT} STREQUAL "sccache" AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-			message(NOTICE "Using ${GEODE_CCACHE_VARIANT} with ${CMAKE_CXX_COMPILER_ID}, PCH will be enabled.")
-			set(GEODE_DISABLE_PRECOMPILED_HEADERS OFF)
+			if (APPLE AND DEFINED CMAKE_OSX_ARCHITECTURES AND (CMAKE_OSX_ARCHITECTURES STREQUAL "arm64;x86_64" OR CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64;arm64"))
+				message(NOTICE "Using ${GEODE_CCACHE_VARIANT} with ${CMAKE_CXX_COMPILER_ID} while building multiple architectures, PCH will be disabled due to issues with sccache.")
+				message("(You can override this by setting GEODE_DISABLE_PRECOMPILED_HEADERS to ON).")
+
+				set(GEODE_DISABLE_PRECOMPILED_HEADERS ON)
+			else()
+				message(NOTICE "Using ${GEODE_CCACHE_VARIANT} with ${CMAKE_CXX_COMPILER_ID}, PCH will be enabled.")
+				set(GEODE_DISABLE_PRECOMPILED_HEADERS OFF)
+			endif()
 		else()
 			message(NOTICE "Using ${GEODE_CCACHE_VARIANT} with ${CMAKE_CXX_COMPILER_ID}, PCH will be disabled.")
 			set(GEODE_DISABLE_PRECOMPILED_HEADERS ON)
 		endif()
 	endif()
 else()
-	message(NOTICE "Not using a caching compiler (ccache/sccache). "
-		"It is recommended to install one to improve build times.")
-	message(NOTICE "We recommend sccache, check its README for installation instructions, "
-		"normally you can just use your usual package manager (e.g. 'scoop install sccache').")
+	if (APPLE)
+		# when building for multiple architectures, a caching compiler is not recommended
+		message(NOTICE "Not using a caching compiler (ccache/sccache).")
+	else()
+		message(NOTICE "Not using a caching compiler (ccache/sccache). "
+			"It is recommended to install one to improve build times.")
+		message(NOTICE "We recommend sccache, check its README for installation instructions, "
+			"normally you can just use your usual package manager (e.g. 'scoop install sccache').")
+	endif()
+
 	if (NOT DEFINED GEODE_DISABLE_PRECOMPILED_HEADERS)
 		message(NOTICE "Because of this, PCH will be enabled.")
 		set(GEODE_DISABLE_PRECOMPILED_HEADERS OFF)
@@ -186,11 +199,16 @@ include(cmake/Platform.cmake)
 include(cmake/GeodeFile.cmake)
 
 if (NOT DEFINED GEODE_GD_VERSION)
-	set(GEODE_GD_VERSION 2.206)
-	set(GEODE_COMP_GD_VERSION 22060)
+	set(GEODE_GD_VERSION 2.2074)
+	set(GEODE_COMP_GD_VERSION 22074)
 endif()
 
-target_compile_definitions(${PROJECT_NAME} INTERFACE GEODE_GD_VERSION=${GEODE_GD_VERSION} GEODE_COMP_GD_VERSION=${GEODE_COMP_GD_VERSION})
+target_compile_definitions(
+	${PROJECT_NAME} INTERFACE
+	GEODE_GD_VERSION=${GEODE_GD_VERSION}
+	GEODE_COMP_GD_VERSION=${GEODE_COMP_GD_VERSION}
+	GEODE_GD_VERSION_STRING="${GEODE_GD_VERSION}"
+)
 
 if (WIN32)
 	# This allows you to compile in debug mode
@@ -209,6 +227,11 @@ if (WIN32)
 	endif()
 endif()
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+	# force an error on a missing return type, as this is unfortunately a common mistake people make
+	target_compile_options(${PROJECT_NAME} INTERFACE -Werror=return-type)
+endif()
+
 # if (APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 # 	set_property(TARGET ${PROJECT_NAME} PROPERTY LINKER_TYPE LLD)
 # 	target_link_options(${PROJECT_NAME} INTERFACE -fuse-ld=lld)
@@ -223,8 +246,9 @@ if (ANDROID)
 endif()
 
 set(MAT_JSON_AS_INTERFACE ON)
-CPMAddPackage("gh:geode-sdk/json#3a79c51")
-CPMAddPackage("gh:fmtlib/fmt#10.2.1")
+CPMAddPackage("gh:geode-sdk/result@1.2.0")
+CPMAddPackage("gh:geode-sdk/json@3.0.2")
+CPMAddPackage("gh:fmtlib/fmt#11.0.2")
 
 target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)
 
@@ -253,7 +277,7 @@ if (DEFINED GEODE_TULIPHOOK_REPO_PATH)
 	message(STATUS "Using ${GEODE_TULIPHOOK_REPO_PATH} for TulipHook")
 	add_subdirectory(${GEODE_TULIPHOOK_REPO_PATH} ${GEODE_TULIPHOOK_REPO_PATH}/build)
 else()
-	CPMAddPackage("gh:geode-sdk/TulipHook#fbf79b4")
+	CPMAddPackage("gh:geode-sdk/TulipHook@2.4.0")
 endif()
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 
@@ -283,7 +307,7 @@ target_include_directories(GeodeBindings PUBLIC
 	${GEODE_LOADER_PATH}/include/Geode/fmod
 )
 target_link_directories(GeodeBindings PUBLIC ${GEODE_LOADER_PATH}/include/link)
-target_link_libraries(GeodeBindings PUBLIC fmt TulipHookInclude mat-json)
+target_link_libraries(GeodeBindings PUBLIC fmt TulipHookInclude mat-json GeodeResult)
 target_link_libraries(${PROJECT_NAME} INTERFACE GeodeBindings)
 
 if (NOT EXISTS ${GEODE_BIN_PATH})

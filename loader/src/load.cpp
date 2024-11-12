@@ -7,7 +7,6 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <Geode/loader/SettingEvent.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <loader/LogImpl.hpp>
 
@@ -30,11 +29,10 @@ $on_mod(Loaded) {
         std::vector<matjson::Value> res;
 
         auto args = *event->messageData;
-        JsonChecker checker(args);
-        auto root = checker.root("[ipc/list-mods]").obj();
+        auto root = checkJson(args, "[ipc/list-mods]");
 
-        auto includeRunTimeInfo = root.has("include-runtime-info").template get<bool>();
-        auto dontIncludeLoader = root.has("dont-include-loader").template get<bool>();
+        auto includeRunTimeInfo = root.has("include-runtime-info").get<bool>();
+        auto dontIncludeLoader = root.has("dont-include-loader").get<bool>();
 
         if (!dontIncludeLoader) {
             res.push_back(
@@ -86,7 +84,7 @@ void tryShowForwardCompat() {
 #ifdef GEODE_IS_WINDOWS
 bool safeModeCheck() {
     // yes this is quite funny
-    if (GetAsyncKeyState(VK_SHIFT) == 0) {
+    if (!(GetAsyncKeyState(VK_SHIFT) & (1 << 15))) {
         return false;
     }
 
@@ -189,6 +187,7 @@ int geodeEntry(void* platformData) {
     log::popNest();
 
     // download and install new loader update in the background
+    
     if (Mod::get()->getSettingValue<bool>("auto-check-updates")) {
         log::info("Starting loader update check");
         updater::checkForLoaderUpdates();

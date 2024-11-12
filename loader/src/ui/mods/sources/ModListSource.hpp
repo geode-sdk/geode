@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/utils/cocos.hpp>
+#include <Geode/utils/string.hpp>
 #include <server/Server.hpp>
 #include "../list/ModItem.hpp"
 
@@ -20,7 +21,7 @@ protected:
 public:
     using Callback = void(InvalidateCacheEvent*);
 
-    ListenerResult handle(MiniFunction<Callback> fn, InvalidateCacheEvent* event);
+    ListenerResult handle(std::function<Callback> fn, InvalidateCacheEvent* event);
 
     InvalidateCacheFilter() = default;
     InvalidateCacheFilter(ModListSource* src);
@@ -50,9 +51,10 @@ public:
 protected:
     std::unordered_map<size_t, Page> m_cachedPages;
     std::optional<size_t> m_cachedItemCount;
+    size_t m_pageSize = 10;
 
     virtual void resetQuery() = 0;
-    virtual ProviderTask fetchPage(size_t page, size_t pageSize, bool forceUpdate) = 0;
+    virtual ProviderTask fetchPage(size_t page, bool forceUpdate) = 0;
     virtual void setSearchQuery(std::string const& query) = 0;
 
     ModListSource();
@@ -74,6 +76,7 @@ public:
     PageLoadTask loadPage(size_t page, bool forceUpdate = false);
     std::optional<size_t> getPageCount() const;
     std::optional<size_t> getItemCount() const;
+    void setPageSize(size_t size);
     
     static void clearAllCaches();
     static bool isRestartRequired();
@@ -107,6 +110,7 @@ enum class InstalledModListType {
     All,
     OnlyUpdates,
     OnlyErrors,
+    OnlyOutdated,
 };
 struct InstalledModsQuery final : public LocalModsQueryBase {
     InstalledModListType type = InstalledModListType::All;
@@ -122,7 +126,7 @@ protected:
     InstalledModsQuery m_query;
 
     void resetQuery() override;
-    ProviderTask fetchPage(size_t page, size_t pageSize, bool forceUpdate) override;
+    ProviderTask fetchPage(size_t page, bool forceUpdate) override;
     void setSearchQuery(std::string const& query) override;
 
     InstalledModListSource(InstalledModListType type);
@@ -143,6 +147,7 @@ enum class ServerModListType {
     Featured,
     Trending,
     Recent,
+    Modtober24,
 };
 
 class ServerModListSource : public ModListSource {
@@ -151,7 +156,7 @@ protected:
     server::ModsQuery m_query;
 
     void resetQuery() override;
-    ProviderTask fetchPage(size_t page, size_t pageSize, bool forceUpdate) override;
+    ProviderTask fetchPage(size_t page, bool forceUpdate) override;
     void setSearchQuery(std::string const& query) override;
 
     ServerModListSource(ServerModListType type);
@@ -165,12 +170,14 @@ public:
     server::ModsQuery const& getQuery() const;
     InvalidateQueryAfter<server::ModsQuery> getQueryMut();
     bool isDefaultQuery() const override;
+    server::ModsQuery createDefaultQuery() const;
+    ServerModListType getType() const;
 };
 
 class ModPackListSource : public ModListSource {
 protected:
     void resetQuery() override;
-    ProviderTask fetchPage(size_t page, size_t pageSize, bool forceUpdate) override;
+    ProviderTask fetchPage(size_t page, bool forceUpdate) override;
     void setSearchQuery(std::string const& query) override;
 
     ModPackListSource();
@@ -191,6 +198,7 @@ void filterModsWithLocalQuery(ModListSource::ProvidedMods& mods, Query const& qu
     std::vector<std::pair<ModSource, double>> filtered;
 
     // Filter installed mods based on query
+    // TODO: maybe skip fuzzy matching altogether if query is empty?
     for (auto& src : mods.mods) {
         double weighted = 0;
         bool addToList = true;
@@ -222,8 +230,17 @@ void filterModsWithLocalQuery(ModListSource::ProvidedMods& mods, Query const& qu
         if (a.second != b.second) {
             return a.second > b.second;
         }
-        // Sort secondarily alphabetically
-        return a.first.getMetadata().getName() < b.first.getMetadata().getName();
+        // Make sure outdated mods are always last by default
+        auto aIsOutdated = a.first.getMetadata().checkGameVersion().isErr();
+        auto bIsOutdated = b.first.getMetadata().checkGameVersion().isErr();
+        if (aIsOutdated != bIsOutdated) {
+            return !aIsOutdated;
+        }
+        // Fallback sort alphabetically
+        return utils::string::caseInsensitiveCompare(
+            a.first.getMetadata().getName(),
+            b.first.getMetadata().getName()
+        ) == std::strong_ordering::less;
     });
 
     mods.mods.clear();
