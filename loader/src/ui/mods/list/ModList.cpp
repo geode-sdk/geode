@@ -649,7 +649,10 @@ void ModList::showStatus(ModListStatus status, std::string const& message, std::
     m_statusContainer->setVisible(true);
     m_statusDetails->setVisible(false);
     m_statusDetailsBtn->setVisible(details.has_value());
-    m_statusLoadingCircle->setVisible(std::holds_alternative<ModListUnkProgressStatus>(status));
+    m_statusLoadingCircle->setVisible(
+        std::holds_alternative<ModListUnkProgressStatus>(status)
+        || std::holds_alternative<ModListProgressStatus>(status)
+    );
     
     // the loading bar makes no sense to display - it's meant for progress of mod list page loading
     // however the mod list pages are so small, that there usually isn't a scenario where the loading
