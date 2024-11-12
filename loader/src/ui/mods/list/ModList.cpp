@@ -352,7 +352,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_statusDetailsBtn->setID("status-details-button");
     m_statusContainer->addChild(m_statusDetailsBtn);
 
-    m_statusDetails = SimpleTextArea::create("", "chatFont.fnt", .6f);
+    m_statusDetails = SimpleTextArea::create("", "chatFont.fnt", .6f, 650.f);
     m_statusDetails->setID("status-details-input");
     m_statusDetails->setAlignment(kCCTextAlignmentCenter);
     m_statusContainer->addChild(m_statusDetails);
