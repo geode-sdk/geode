@@ -434,17 +434,25 @@ void ModItem::updateState() {
             LoadProblem problem = opt.value();
             m_bg->setColor("mod-list-outdated-label"_cc3b);
             m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
-            std::string content;
-            if (
-                problem.type == LoadProblem::Type::UnsupportedGeodeVersion ||
-                problem.type == LoadProblem::Type::NeedsNewerGeodeVersion
-            ) {
-                content = fmt::format("Outdated (Geode {})", m_source.getMetadata().getGeodeVersion().toNonVString());
-            } else {
-                content = fmt::format("Outdated (GD {})", m_source.getMetadata().getGameVersion().value_or("*"));
+            if (!wantsRestart) {
+                std::string content;
+                if (
+                    problem.type == LoadProblem::Type::UnsupportedGeodeVersion ||
+                    problem.type == LoadProblem::Type::NeedsNewerGeodeVersion
+                ) {
+                    content = fmt::format(
+                        "Outdated (Geode {})",
+                        m_source.getMetadata().getGeodeVersion().toNonVString()
+                    );
+                } else {
+                    content = fmt::format(
+                        "Outdated (GD {})",
+                        m_source.getMetadata().getGameVersion().value_or("*")
+                    );
+                }
+                m_outdatedLabel->setString(content.c_str());
+                m_outdatedLabel->setVisible(true);
             }
-            m_outdatedLabel->setString(content.c_str());
-            m_outdatedLabel->setVisible(true);
             m_developers->setVisible(false);
         }
     }
