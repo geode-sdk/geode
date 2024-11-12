@@ -976,7 +976,7 @@ namespace geode {
                 }
                 // this should be fine because the parent task can only have
                 // one pending task at a time
-                std::shared_ptr<Task<U>::Handle> parentHandle = handle.promise().m_handle.lock();
+                auto parentHandle = handle.promise().m_handle.lock();
                 if (!parentHandle) {
                     handle.destroy();
                     return;
