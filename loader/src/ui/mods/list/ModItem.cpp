@@ -568,13 +568,13 @@ void ModItem::onViewError(CCObject*) {
                         "the mod</c> that supports the newer version.";
                 } break;
 
-                case LoadProblem::Type::UnsupportedGeodeVersion: {
+                case LoadProblem::Type::NeedsNewerGeodeVersion: {
                     issue = "This mod is made for a <cp>newer version of Geode</c>.";
                     howToFix = "<cp>update Geode</c> by enabling <co>Automatic Updates</c> "
                         "or redownloading it from the Geode website.";
                 } break;
 
-                case LoadProblem::Type::NeedsNewerGeodeVersion: {
+                case LoadProblem::Type::UnsupportedGeodeVersion: {
                     issue = "This mod is made for an <cy>older version of Geode</c>.";
                     howToFix = "wait for the developer to <cj>release an update to "
                         "the mod</c> that supports the newer version.";
