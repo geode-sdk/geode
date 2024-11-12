@@ -426,33 +426,32 @@ void ModItem::updateState() {
     // If there were problems, tint the BG red
     m_outdatedLabel->setVisible(false);
     if (m_source.asMod()) {
+        std::optional<LoadProblem> targetsOutdated = m_source.asMod()->targetsOutdatedVersion();
         if (m_source.asMod()->hasLoadProblems()) {
             m_bg->setColor("mod-list-errors-found"_cc3b);
             m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
         }
-        if (std::optional<LoadProblem> opt = m_source.asMod()->targetsOutdatedVersion()) {
-            LoadProblem problem = opt.value();
+        if (!wantsRestart && targetsOutdated) {
+            LoadProblem problem = targetsOutdated.value();
             m_bg->setColor("mod-list-outdated-label"_cc3b);
             m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
-            if (!wantsRestart) {
-                std::string content;
-                if (
-                    problem.type == LoadProblem::Type::UnsupportedGeodeVersion ||
-                    problem.type == LoadProblem::Type::NeedsNewerGeodeVersion
-                ) {
-                    content = fmt::format(
-                        "Outdated (Geode {})",
-                        m_source.getMetadata().getGeodeVersion().toNonVString()
-                    );
-                } else {
-                    content = fmt::format(
-                        "Outdated (GD {})",
-                        m_source.getMetadata().getGameVersion().value_or("*")
-                    );
-                }
-                m_outdatedLabel->setString(content.c_str());
-                m_outdatedLabel->setVisible(true);
+            std::string content;
+            if (
+                problem.type == LoadProblem::Type::UnsupportedGeodeVersion ||
+                problem.type == LoadProblem::Type::NeedsNewerGeodeVersion
+            ) {
+                content = fmt::format(
+                    "Outdated (Geode {})",
+                    m_source.getMetadata().getGeodeVersion().toNonVString()
+                );
+            } else {
+                content = fmt::format(
+                    "Outdated (GD {})",
+                    m_source.getMetadata().getGameVersion().value_or("*")
+                );
             }
+            m_outdatedLabel->setString(content.c_str());
+            m_outdatedLabel->setVisible(true);
             m_developers->setVisible(false);
         }
     }
