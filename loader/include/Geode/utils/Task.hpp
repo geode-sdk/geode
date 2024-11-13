@@ -817,7 +817,7 @@ namespace geode {
                                 // make the second event listener that waits for the mapper's task
                                 // and just forwards everything through
                                 static_cast<void*>(new EventListener<NewTask>(
-                                    [handle](Event* event) mutable {
+                                    [handle](typename NewTask::Event* event) mutable {
                                         if (auto v = event->getValue()) {
                                             NewTask::finish(handle.lock(), std::move(*v));
                                         }
