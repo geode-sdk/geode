@@ -137,7 +137,6 @@ jobs:
   build-mac:
     name: Build macOS
     runs-on: macos-latest
-    if: false
 
     env:
       SCCACHE_CACHE_MULTIARCH: 1
