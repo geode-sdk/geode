@@ -10,8 +10,7 @@
    * Rewritten matjson library
    * Settings V2 completely removed, use V3 now
    * `JsonChecker` removed
- * Add new system for ordered hook priority (673317d, 6db3084)
-   * See docs: LINK HERE!!
+ * Add new system for ordered hook priority, [see docs](https://docs.geode-sdk.org/tutorials/hookpriority) (673317d, 6db3084)
  * C++20 coroutine support for `geode::Task`, [see docs](https://docs.geode-sdk.org/tutorials/tasks#coroutines) (e61b2c0, ab196b9)
  * Add `Task::chain`, [see docs](https://docs.geode-sdk.org/tutorials/tasks#chaining-tasks) (3248831)
  * Single page local mods list (efb1fbf)
