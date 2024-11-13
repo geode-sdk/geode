@@ -13,7 +13,7 @@
  * Add new system for ordered hook priority (673317d, 6db3084)
    * See docs: LINK HERE!!
  * C++20 coroutine support for `geode::Task`, [see docs](https://docs.geode-sdk.org/tutorials/tasks#coroutines) (e61b2c0, ab196b9)
- * Add `Task::chain`, [see docs](https://docs.geode-sdk.org/tutorials/tasks#chaining-tasks)
+ * Add `Task::chain`, [see docs](https://docs.geode-sdk.org/tutorials/tasks#chaining-tasks) (3248831)
  * Single page local mods list (efb1fbf)
  * Split mod problems into load and outdated (12e8bbb, 09fa872, df2528c)
    * This means mods made for outdated gd or geode versions no longer count as actual errors, resulting in less clutter in the ui
