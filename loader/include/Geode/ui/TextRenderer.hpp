@@ -122,7 +122,7 @@ namespace geode {
          * to distinguish between bold, italic and
          * regular text.
          */
-        using Font = utils::MiniFunction<Label(int)>;
+        using Font = std::function<Label(int)>;
 
     protected:
         cocos2d::CCPoint m_origin = cocos2d::CCPointZero;

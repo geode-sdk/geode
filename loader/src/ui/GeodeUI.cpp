@@ -34,7 +34,7 @@ protected:
         if (auto res = event->getValue()) {
             if (res->isOk()) {
                 // Copy info first as onClose may free the listener which will free the event
-                auto info = **res;
+                auto info = res->unwrap();
                 this->onClose(nullptr);
                 // Run this on next frame because otherwise the popup is unable to call server::getMod for some reason
                 Loader::get()->queueInMainThread([info = std::move(info)]() mutable {
@@ -146,10 +146,6 @@ Task<bool> geode::openInfoPopup(std::string const& modID) {
         popup->show();
         return task;
     }
-}
-void geode::openIndexPopup(Mod* mod) {
-    // deprecated func
-    openInfoPopup(mod);
 }
 
 void geode::openChangelogPopup(Mod* mod) {

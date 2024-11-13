@@ -1,15 +1,19 @@
 #include "ModItem.hpp"
+
+#include <optional>
+#include <string>
+#include <vector>
+
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/loader/Loader.hpp>
-#include <vector>
-#include "../GeodeStyle.hpp"
-#include "../popups/ModPopup.hpp"
-#include "../popups/DevPopup.hpp"
+#include "ui/mods/GeodeStyle.hpp"
+#include "ui/mods/popups/ModPopup.hpp"
+#include "ui/mods/popups/DevPopup.hpp"
 #include "ui/mods/popups/ModErrorPopup.hpp"
 #include "ui/mods/sources/ModSource.hpp"
-#include "../../GeodeUIEvent.hpp"
+#include "ui/GeodeUIEvent.hpp"
 
 bool ModItem::init(ModSource&& source) {
     if (!CCNode::init())
@@ -94,6 +98,17 @@ bool ModItem::init(ModSource&& source) {
     m_restartRequiredLabel->setID("restart-required-label");
     m_restartRequiredLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(std::nullopt, .75f));
     m_infoContainer->addChild(m_restartRequiredLabel);
+
+    m_outdatedLabel = createTagLabel(
+        fmt::format("Outdated (GD {})", m_source.getMetadata().getGameVersion().value_or("*")),
+        {
+            to3B(ColorProvider::get()->color("mod-list-outdated-label"_spr)),
+            to3B(ColorProvider::get()->color("mod-list-outdated-label-bg"_spr))
+        }
+    );
+    m_outdatedLabel->setID("outdated-label");
+    m_outdatedLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(std::nullopt, .75f));
+    m_infoContainer->addChild(m_outdatedLabel);
 
     m_downloadBarContainer = CCNode::create();
     m_downloadBarContainer->setID("download-bar-container");
@@ -185,7 +200,7 @@ bool ModItem::init(ModSource&& source) {
                 m_viewMenu->addChild(m_enableToggle);
                 m_viewMenu->updateLayout();
             }
-            if (mod->hasProblems()) {
+            if (mod->hasLoadProblems() || mod->targetsOutdatedVersion()) {
                 auto viewErrorSpr = createGeodeCircleButton(
                     CCSprite::createWithSpriteFrameName("exclamation.png"_spr), 1.f,
                     CircleBaseSize::Small
@@ -303,7 +318,7 @@ bool ModItem::init(ModSource&& source) {
     m_downloadListener.bind([this](auto) { this->updateState(); });
     m_downloadListener.setFilter(server::ModDownloadFilter(m_source.getID()));
 
-    m_settingNodeListener.bind([this](SettingNodeValueChangeEventV3*) {
+    m_settingNodeListener.bind([this](SettingNodeValueChangeEvent*) {
         this->updateState();
         return ListenerResult::Propagate;
     });
@@ -342,7 +357,6 @@ void ModItem::updateState() {
         m_downloadBarContainer->setVisible(false);
         m_downloadWaiting->setVisible(false);
     }
-    m_infoContainer->updateLayout();
 
     // Set default colors based on source to start off with 
     // (possibly overriding later based on state)
@@ -410,11 +424,40 @@ void ModItem::updateState() {
     m_titleContainer->updateLayout();
 
     // If there were problems, tint the BG red
-    if (m_source.asMod() && m_source.asMod()->hasProblems()) {
-        m_bg->setColor("mod-list-errors-found"_cc3b);
-        m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
+    m_outdatedLabel->setVisible(false);
+    if (m_source.asMod()) {
+        std::optional<LoadProblem> targetsOutdated = m_source.asMod()->targetsOutdatedVersion();
+        if (m_source.asMod()->hasLoadProblems()) {
+            m_bg->setColor("mod-list-errors-found"_cc3b);
+            m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
+        }
+        if (!wantsRestart && targetsOutdated) {
+            LoadProblem problem = targetsOutdated.value();
+            m_bg->setColor("mod-list-outdated-label"_cc3b);
+            m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
+            std::string content;
+            if (
+                problem.type == LoadProblem::Type::UnsupportedGeodeVersion ||
+                problem.type == LoadProblem::Type::NeedsNewerGeodeVersion
+            ) {
+                content = fmt::format(
+                    "Outdated (Geode {})",
+                    m_source.getMetadata().getGeodeVersion().toNonVString()
+                );
+            } else {
+                content = fmt::format(
+                    "Outdated (GD {})",
+                    m_source.getMetadata().getGameVersion().value_or("*")
+                );
+            }
+            m_outdatedLabel->setString(content.c_str());
+            m_outdatedLabel->setVisible(true);
+            m_developers->setVisible(false);
+        }
     }
 
+    m_infoContainer->updateLayout();
+    
     // Highlight item via BG if it wants to restart for extra UI attention
     if (wantsRestart) {
         m_bg->setColor("mod-list-restart-required-label"_cc3b);
@@ -536,7 +579,38 @@ void ModItem::onView(CCObject*) {
 }
 void ModItem::onViewError(CCObject*) {
     if (auto mod = m_source.asMod()) {
-        ModErrorPopup::create(mod)->show();
+        if (auto problem = mod->targetsOutdatedVersion()) {
+            std::string issue;
+            std::string howToFix;
+            switch (problem->type) {
+                default:
+                case LoadProblem::Type::UnsupportedVersion: {
+                    issue = fmt::format("<cy>{}</c>", problem->message);
+                    howToFix = "wait for the developer to <cj>release an update to "
+                        "the mod</c> that supports the newer version.";
+                } break;
+
+                case LoadProblem::Type::NeedsNewerGeodeVersion: {
+                    issue = "This mod is made for a <cp>newer version of Geode</c>.";
+                    howToFix = "<cp>update Geode</c> by enabling <co>Automatic Updates</c> "
+                        "or redownloading it from the Geode website.";
+                } break;
+
+                case LoadProblem::Type::UnsupportedGeodeVersion: {
+                    issue = "This mod is made for an <cy>older version of Geode</c>.";
+                    howToFix = "wait for the developer to <cj>release an update to "
+                        "the mod</c> that supports the newer version.";
+                } break;
+            }
+            FLAlertLayer::create(
+                "Outdated",
+                fmt::format("{} Please {}", issue, howToFix),
+                "OK"
+            )->show();
+        }
+        else {
+            ModErrorPopup::create(mod)->show();
+        }
     }
 }
 void ModItem::onEnable(CCObject*) {

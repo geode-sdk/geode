@@ -49,7 +49,7 @@ namespace server {
         std::string m_id;
 
     public:
-        ListenerResult handle(MiniFunction<Callback> fn, ModDownloadEvent* event);
+        ListenerResult handle(std::function<Callback> fn, ModDownloadEvent* event);
 
         ModDownloadFilter();
         ModDownloadFilter(std::string const& id);

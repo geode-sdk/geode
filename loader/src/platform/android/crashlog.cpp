@@ -261,12 +261,12 @@ int writeAndGetPid() {
 
         auto res = file::readString(pidFile);
         if (!res) {
-            log::warn("Failed to read last-pid file: {}", res.error());
+            log::warn("Failed to read last-pid file: {}", res.unwrapErr());
         }
         else {
             auto res = numFromString<int>(res.unwrap());
             if (!res) {
-                log::warn("Failed to parse last-pid file: {}", res.error());
+                log::warn("Failed to parse last-pid file: {}", res.unwrapErr());
             }
             else lastPid = res.unwrap();
         }
@@ -281,7 +281,7 @@ int writeAndGetPid() {
 
     auto res = file::writeString(pidFile, std::to_string(getpid()));
     if (!res) {
-        log::warn("Failed to write last-pid file: {}", res.error());
+        log::warn("Failed to write last-pid file: {}", res.unwrapErr());
     }
 
     return lastPid;

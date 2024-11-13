@@ -7,117 +7,78 @@
 
 using namespace geode::prelude;
 
-bool matjson::Serialize<ccColor3B>::is_json(matjson::Value const& json) {
-    if (json.is_array()) {
-        return json.as_array().size() == 3;
+Result<cocos2d::ccColor3B, std::string> matjson::Serialize<ccColor3B>::fromJson(matjson::Value const& value) {
+    if (value.isArray()) {
+        auto arr = GEODE_UNWRAP(value.asArray());
+        if (arr.size() == 3) {
+            auto r = GEODE_UNWRAP(arr[0].asInt());
+            auto g = GEODE_UNWRAP(arr[1].asInt());
+            auto b = GEODE_UNWRAP(arr[2].asInt());
+            return Ok(cocos2d::ccc3(r, g, b));
+        }
+        return Err("Expected color array to have 3 items");
     }
-    if (json.is_object()) {
-        return json.contains("r") && json.contains("g") && json.contains("b");
+    if (value.isObject()) {
+        auto r = GEODE_UNWRAP(GEODE_UNWRAP(value.get("r")).asInt());
+        auto g = GEODE_UNWRAP(GEODE_UNWRAP(value.get("g")).asInt());
+        auto b = GEODE_UNWRAP(GEODE_UNWRAP(value.get("b")).asInt());
+        return Ok(cocos2d::ccc3(r, g, b));
     }
-    if (json.is_string()) {
-        return !cc3bFromHexString(json.as_string()).isErr();
+    if (value.isString()) {
+        auto hex = GEODE_UNWRAP(value.asString());
+        auto res = cc3bFromHexString(hex);
+        if (!res) {
+            return Err("Invalid hex color string: {}", res.unwrapErr());
+        }
+        return Ok(res.unwrap());
     }
-    return false;
+    return Err("Expected color to be array, object or hex string");
+}
+matjson::Value matjson::Serialize<ccColor3B>::toJson(cocos2d::ccColor3B const& value) {
+    return matjson::makeObject({
+        { "r", value.r },
+        { "g", value.g },
+        { "b", value.b }
+    });
 }
 
-matjson::Value matjson::Serialize<ccColor3B>::to_json(ccColor3B const& color) {
-    return matjson::Object {
-        { "r", color.r },
-        { "g", color.g },
-        { "b", color.b }
-    };
+Result<cocos2d::ccColor4B, std::string> matjson::Serialize<ccColor4B>::fromJson(matjson::Value const& value) {
+    if (value.isArray()) {
+        auto arr = GEODE_UNWRAP(value.asArray());
+        if (arr.size() == 4) {
+            auto r = GEODE_UNWRAP(arr[0].asInt());
+            auto g = GEODE_UNWRAP(arr[1].asInt());
+            auto b = GEODE_UNWRAP(arr[2].asInt());
+            auto a = GEODE_UNWRAP(arr[3].asInt());
+            return Ok(cocos2d::ccc4(r, g, b, a));
+        }
+        return Err("Expected color array to have 4 items");
+    }
+    if (value.isObject()) {
+        auto r = GEODE_UNWRAP(GEODE_UNWRAP(value.get("r")).asInt());
+        auto g = GEODE_UNWRAP(GEODE_UNWRAP(value.get("g")).asInt());
+        auto b = GEODE_UNWRAP(GEODE_UNWRAP(value.get("b")).asInt());
+        auto a = GEODE_UNWRAP(GEODE_UNWRAP(value.get("a")).asInt());
+        return Ok(cocos2d::ccc4(r, g, b, a));
+    }
+    if (value.isString()) {
+        auto hex = GEODE_UNWRAP(value.asString());
+        auto res = cc4bFromHexString(hex);
+        if (!res) {
+            return Err("Invalid hex color string: {}", res.unwrapErr());
+        }
+        return Ok(res.unwrap());
+    }
+    return Err("Expected color to be array, object or hex string");
 }
 
-ccColor3B matjson::Serialize<ccColor3B>::from_json(matjson::Value const& json) {
-    ccColor3B color;
-    // array
-    if (json.is_array()) {
-        if (json.as_array().size() == 3) {
-            color.r = json[0].as_int();
-            color.g = json[1].as_int();
-            color.b = json[2].as_int();
-        }
-        else {
-            throw matjson::JsonException("Expected color array to have 3 items");
-        }
-    }
-    // object
-    else if (json.is_object()) {
-        color.r = json["r"].as_int();
-        color.g = json["g"].as_int();
-        color.b = json["b"].as_int();
-    }
-    // hex string
-    else if (json.is_string()) {
-        auto c = cc3bFromHexString(json.as_string());
-        if (!c) {
-            throw matjson::JsonException("Invalid color hex string");
-        }
-        color = c.unwrap();
-    }
-    // bad
-    else {
-        throw matjson::JsonException("Expected color to be array, object or hex string");
-    }
-    return color;
-}
-
-bool matjson::Serialize<ccColor4B>::is_json(matjson::Value const& json) {
-    if (json.is_array()) {
-        return json.as_array().size() == 4;
-    }
-    if (json.is_object()) {
-        return json.contains("r") && json.contains("g") && json.contains("b") && json.contains("a");
-    }
-    if (json.is_string()) {
-        return !cc4bFromHexString(json.as_string()).isErr();
-    }
-    return false;
-}
-
-matjson::Value matjson::Serialize<ccColor4B>::to_json(ccColor4B const& color) {
-    return matjson::Object {
-        { "r", color.r },
-        { "g", color.g },
-        { "b", color.b },
-        { "a", color.a }
-    };
-}
-
-ccColor4B matjson::Serialize<ccColor4B>::from_json(matjson::Value const& json) {
-    ccColor4B color;
-    // array
-    if (json.is_array()) {
-        if (json.as_array().size() == 4) {
-            color.r = json[0].as_int();
-            color.g = json[1].as_int();
-            color.b = json[2].as_int();
-            color.a = json[3].as_int();
-        }
-        else {
-            throw matjson::JsonException("Expected color array to have 4 items");
-        }
-    }
-    // object
-    else if (json.is_object()) {
-        color.r = json["r"].as_int();
-        color.g = json["g"].as_int();
-        color.b = json["b"].as_int();
-        color.a = json["a"].as_int();
-    }
-    // hex string
-    else if (json.is_string()) {
-        auto c = cc4bFromHexString(json.as_string());
-        if (!c) {
-            throw matjson::JsonException("Invalid color hex string: " + c.unwrapErr());
-        }
-        color = c.unwrap();
-    }
-    // bad
-    else {
-        throw matjson::JsonException("Expected color to be array, object or hex string");
-    }
-    return color;
+matjson::Value matjson::Serialize<ccColor4B>::toJson(cocos2d::ccColor4B const& value) {
+    return matjson::makeObject({
+        { "r", value.r },
+        { "g", value.g },
+        { "b", value.b },
+        { "a", value.a }
+    });
 }
 
 Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string const& rawHexValue, bool permissive) {

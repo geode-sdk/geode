@@ -1,5 +1,5 @@
 #include "ModErrorPopup.hpp"
-#include "Geode/cocos/base_nodes/Layout.hpp"
+#include <Geode/ui/Layout.hpp>
 #include "ui/mods/GeodeStyle.hpp"
 #include "ui/mods/list/ModProblemList.hpp"
 

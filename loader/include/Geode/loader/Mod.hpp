@@ -2,7 +2,7 @@
 
 #include "../DefaultInclude.hpp"
 #include "../cocos/support/zip_support/ZipUtils.h"
-#include "../utils/Result.hpp"
+#include <Geode/Result.hpp>
 #include "../utils/VersionInfo.hpp"
 #include "../utils/general.hpp"
 
@@ -10,7 +10,6 @@
 #include "Hook.hpp"
 #include "ModMetadata.hpp"
 #include "Setting.hpp"
-#include "SettingV3.hpp"
 #include "Types.hpp"
 #include "Loader.hpp"
 
@@ -23,9 +22,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace geode {
-    class SettingV3;
-    
+namespace geode {    
     template <class T>
     struct HandleToSaved : public T {
         Mod* m_mod;
@@ -52,22 +49,6 @@ namespace geode {
     }
     static constexpr bool modRequestedActionIsUninstall(ModRequestedAction action) {
         return action == ModRequestedAction::Uninstall || action == ModRequestedAction::UninstallWithSaveData;
-    }
-
-    template <class T>
-    static consteval bool typeImplementsIsJSON() {
-        using namespace matjson;
-        if constexpr (requires(const Value& json) { Serialize<std::decay_t<T>>::is_json(json); })
-            return true;
-        if constexpr (std::is_same_v<T, Value>) return true;
-        if constexpr (std::is_same_v<T, Array>) return true;
-        if constexpr (std::is_same_v<T, Object>) return true;
-        if constexpr (std::is_constructible_v<std::string, T>) return true;
-        if constexpr (std::is_integral_v<T> || std::is_floating_point_v<T>) return true;
-        if constexpr (std::is_same_v<T, bool>) return true;
-        if constexpr (std::is_same_v<T, std::nullptr_t>) return true;
-
-        return false;
     }
 
     GEODE_HIDDEN Mod* takeNextLoaderMod();
@@ -108,8 +89,6 @@ namespace geode {
 
         std::string getID() const;
         std::string getName() const;
-        [[deprecated("Use Mod::getDevelopers instead")]]
-        std::string getDeveloper() const;
         std::vector<std::string> getDevelopers() const;
         std::optional<std::string> getDescription() const;
         std::optional<std::string> getDetails() const;
@@ -136,17 +115,6 @@ namespace geode {
         void setMetadata(ModMetadata const& metadata);
         std::vector<Mod*> getDependants() const;
 #endif
-
-        /**
-         * Check if this Mod has updates available on the mods index. If 
-         * you're using this for automatic update checking, use 
-         * `openInfoPopup` or `openIndexPopup` from the `ui/GeodeUI.hpp` 
-         * header to open the Mod's page to let the user install the update
-         * @returns The latest available version on the index if there are 
-         * updates for this mod
-         */
-        [[deprecated("Use Mod::checkUpdates instead; this function always returns nullopt")]]
-        std::optional<VersionInfo> hasAvailableUpdate() const;
 
         using CheckUpdatesTask = Task<Result<std::optional<VersionInfo>, std::string>>;
         /**
@@ -187,52 +155,15 @@ namespace geode {
          * declared in `mod.json`)
          */
         std::vector<std::string> getSettingKeys() const;
-        bool hasSetting(std::string_view const key) const;
+        bool hasSetting(std::string_view key) const;
 
-        // todo in v4: remove these
-        [[deprecated("Use Mod::getSettingV3")]]
-        std::optional<Setting> getSettingDefinition(std::string_view const key) const;
-        [[deprecated("Use Mod::getSettingV3")]]
-        SettingValue* getSetting(std::string_view const key) const;
-
-        // todo in v4: possibly rename this to getSetting?
         /**
          * Get the definition of a setting, or null if the setting was not found, 
          * or if it's a custom setting that has not yet been registered using 
          * `Mod::registerCustomSettingType`
          * @param key The key of the setting as defined in `mod.json`
          */
-        std::shared_ptr<SettingV3> getSettingV3(std::string_view const key) const;
-
-        /**
-         * Register a custom setting's value class. See Mod::addCustomSetting
-         * for a convenience wrapper that creates the value in-place to avoid
-         * code duplication. Also see
-         * [the tutorial page](https://docs.geode-sdk.org/mods/settings) for
-         * more information about custom settings
-         * @param key The setting's key
-         * @param value The SettingValue class that shall handle this setting
-         * @see addCustomSetting
-         */
-        [[deprecated("Use Mod::registerCustomSettingType")]]
-        void registerCustomSetting(std::string_view const key, std::unique_ptr<SettingValue> value);
-        /**
-         * Register a custom setting's value class. The new SettingValue class
-         * will be created in-place using `std::make_unique`. See
-         * [the tutorial page](https://docs.geode-sdk.org/mods/settings) for
-         * more information about custom settings
-         * @param key The setting's key
-         * @param value The value of the custom setting
-         * @example
-         * $on_mod(Loaded) {
-         *     Mod::get()->addCustomSetting<MySettingValue>("setting-key", DEFAULT_VALUE);
-         * }
-         */
-        template <class T, class V>
-        [[deprecated("Use Mod::registerCustomSettingType")]]
-        void addCustomSetting(std::string_view const key, V const& value) {
-            this->registerCustomSetting(key, std::make_unique<T>(std::string(key), this->getID(), value));
-        }
+        std::shared_ptr<Setting> getSetting(std::string_view key) const;
 
         /**
          * Register a custom setting type. See 
@@ -248,7 +179,7 @@ namespace geode {
          * Returns a prefixed launch argument name. See `Mod::getLaunchArgument`
          * for details about mod-specific launch arguments.
          */
-        std::string getLaunchArgumentName(std::string_view const name) const;
+        std::string getLaunchArgumentName(std::string_view name) const;
         /**
          * Returns the names of the available mod-specific launch arguments.
          */
@@ -258,7 +189,7 @@ namespace geode {
          * for details about mod-specific launch arguments.
          * @param name The argument name
          */
-        bool hasLaunchArgument(std::string_view const name) const;
+        bool hasLaunchArgument(std::string_view name) const;
         /**
          * Get a mod-specific launch argument. This is equivalent to `Loader::getLaunchArgument`
          * with the argument name prefixed by the mod ID. For example, a launch argument named
@@ -266,20 +197,20 @@ namespace geode {
          * @param name The argument name
          * @return The value, if present
          */
-        std::optional<std::string> getLaunchArgument(std::string_view const name) const;
+        std::optional<std::string> getLaunchArgument(std::string_view name) const;
         /**
          * Equivalent to a prefixed `Loader::getLaunchFlag` call. See `Mod::getLaunchArgument`
          * for details about mod-specific launch arguments.
          * @param name The argument name
          */
-        bool getLaunchFlag(std::string_view const name) const;
+        bool getLaunchFlag(std::string_view name) const;
         /**
          * Equivalent to a prefixed `Loader::parseLaunchArgument` call. See `Mod::getLaunchArgument`
          * for details about mod-specific launch arguments.
          * @param name The argument name
          */
         template <class T>
-        std::optional<T> parseLaunchArgument(std::string_view const name) const {
+        std::optional<T> parseLaunchArgument(std::string_view name) const {
             return Loader::get()->parseLaunchArgument<T>(this->getLaunchArgumentName(name));
         }
 
@@ -293,18 +224,18 @@ namespace geode {
          * setting type has a `getValue` function which returns the value
          */
         template <class T>
-        T getSettingValue(std::string_view const key) const {
+        T getSettingValue(std::string_view key) const {
             using S = typename SettingTypeForValueType<T>::SettingType;
-            if (auto sett = cast::typeinfo_pointer_cast<S>(this->getSettingV3(key))) {
+            if (auto sett = cast::typeinfo_pointer_cast<S>(this->getSetting(key))) {
                 return sett->getValue();
             }
             return T();
         }
 
         template <class T>
-        T setSettingValue(std::string_view const key, T const& value) {
+        T setSettingValue(std::string_view key, T const& value) {
             using S = typename SettingTypeForValueType<T>::SettingType;
-            if (auto sett = cast::typeinfo_pointer_cast<S>(this->getSettingV3(key))) {
+            if (auto sett = cast::typeinfo_pointer_cast<S>(this->getSetting(key))) {
                 auto old = sett->getValue();
                 sett->setValue(value);
                 return old;
@@ -312,30 +243,28 @@ namespace geode {
             return T();
         }
 
-        bool hasSavedValue(std::string_view const key);
+        bool hasSavedValue(std::string_view key);
 
         template <class T>
-        T getSavedValue(std::string_view const key) {
-            static_assert(geode::typeImplementsIsJSON<T>(), "T must implement is_json in matjson::Serialize<T>, otherwise this always returns default value.");
+        T getSavedValue(std::string_view key) {
             auto& saved = this->getSaveContainer();
-            if (saved.contains(key)) {
-                if (auto value = saved.try_get<T>(key)) {
-                    return *value;
-                }
+            if (auto res = saved.get(key).andThen([](auto&& v) {
+                return v.template as<T>();
+            }); res.isOk()) {
+                return res.unwrap();
             }
             return T();
         }
 
         template <class T>
-        T getSavedValue(std::string_view const key, T const& defaultValue) {
-            static_assert(geode::typeImplementsIsJSON<T>(), "T must implement is_json in matjson::Serialize<T>, otherwise this always returns default value.");
+        T getSavedValue(std::string_view key, T const& defaultValue) {
             auto& saved = this->getSaveContainer();
-            if (saved.contains(key)) {
-                if (auto value = saved.try_get<T>(key)) {
-                    return *value;
-                }
+            if (auto res = saved.get(key).andThen([](auto&& v) {
+                return v.template as<T>();
+            }); res.isOk()) {
+                return res.unwrap();
             }
-            saved[key] = defaultValue;
+            saved[key] = matjson::Value(defaultValue);
             return defaultValue;
         }
 
@@ -347,7 +276,7 @@ namespace geode {
          * @returns The old value
          */
         template <class T>
-        T setSavedValue(std::string_view const key, T const& value) {
+        T setSavedValue(std::string_view key, T const& value) {
             auto& saved = this->getSaveContainer();
             auto old = this->getSavedValue<T>(key);
             saved[key] = value;
@@ -488,7 +417,7 @@ namespace geode {
          * Check whether or not this Mod
          * depends on another mod
          */
-        bool depends(std::string_view const id) const;
+        bool depends(std::string_view id) const;
 
         /**
          * Check whether all the required
@@ -517,7 +446,17 @@ namespace geode {
         bool isLoggingEnabled() const;
         void setLoggingEnabled(bool enabled);
 
-        bool hasProblems() const;
+        /**
+         * If this mod is built for an outdated GD or Geode version, returns the 
+         * `LoadProblem` describing the situation. Otherwise `nullopt` if the 
+         * mod is made for the correct version of the game and Geode
+         */
+        std::optional<LoadProblem> targetsOutdatedVersion() const;
+        /**
+         * @note Make sure to also call `targetsOutdatedVersion` if you want to 
+         * make sure the mod is actually loadable
+         */
+        bool hasLoadProblems() const;
         std::vector<LoadProblem> getAllProblems() const;
         std::vector<LoadProblem> getProblems() const;
         std::vector<LoadProblem> getRecommendations() const;

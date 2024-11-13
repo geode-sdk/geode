@@ -1,7 +1,6 @@
 #include "GeodeStyle.hpp"
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/ColorProvider.hpp>
-#include <Geode/loader/SettingEvent.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/ui/LoadingSpinner.hpp>
 
@@ -13,6 +12,8 @@ $on_mod(Loaded) {
     ColorProvider::get()->define("mod-list-version-label-updates-available"_spr, ccc3(88, 202, 255));
     ColorProvider::get()->define("mod-list-restart-required-label"_spr, ccc3(153, 245, 245));
     ColorProvider::get()->define("mod-list-restart-required-label-bg"_spr, ccc3(123, 156, 163));
+    ColorProvider::get()->define("mod-list-outdated-label"_spr, ccc3(245, 153, 245));
+    ColorProvider::get()->define("mod-list-outdated-label-bg"_spr, ccc3(156, 123, 163));
     ColorProvider::get()->define("mod-list-search-bg"_spr, { 83, 65, 109, 255 });
     ColorProvider::get()->define("mod-list-updates-available-bg"_spr, { 139, 89, 173, 255 });
     ColorProvider::get()->define("mod-list-updates-available-bg-2"_spr, { 45, 110, 222, 255 });

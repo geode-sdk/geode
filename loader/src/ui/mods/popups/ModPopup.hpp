@@ -42,7 +42,7 @@ protected:
     EventListener<server::ServerRequest<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
     EventListener<UpdateModListStateFilter> m_updateStateListener;
     EventListener<server::ModDownloadFilter> m_downloadListener;
-    EventListener<EventFilter<SettingNodeValueChangeEventV3>> m_settingNodeListener;
+    EventListener<EventFilter<SettingNodeValueChangeEvent>> m_settingNodeListener;
 
     bool setup(ModSource&& src) override;
     void updateState();

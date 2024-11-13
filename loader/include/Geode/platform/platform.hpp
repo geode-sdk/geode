@@ -116,14 +116,22 @@ namespace geode {
     public:
         // todo in v4: make these flags and add archless Mac and Android as well as Desktop and Mobile and remove Linux
         enum {
-            Unknown   = -1,
-            Windows   = 0,
-            MacIntel  = 1,
-            MacArm    = 2,
-            iOS       = 3,
-            Android32 = 4,
-            Android64 = 5,
-            Linux     = 6,
+            Unknown    = 0b000000,
+            Windows    = 0b000001,
+            Android32  = 0b000010,
+            Android64  = 0b000100,
+            MacIntel   = 0b001000,
+            MacArm     = 0b010000,
+            iOS        = 0b100000,
+            Android    = Android32 | Android64,
+            Mac        = MacIntel | MacArm,
+            Apple      = Mac | iOS,
+            X64        = MacIntel | Windows,
+            X86        = Unknown,
+            ArmV7      = Android32,
+            ArmV8      = Android64 | MacArm | iOS,
+            Desktop    = Windows | Mac,
+            Mobile     = Android | iOS,
         };
 
         using Type = decltype(Unknown);
@@ -190,7 +198,6 @@ namespace geode {
                 case iOS: return "iOS";
                 case Android32: return "Android32";
                 case Android64: return "Android64";
-                case Linux: return "Linux";
                 default: break;
             }
             return "Undefined";
@@ -206,7 +213,6 @@ namespace geode {
                 case iOS: return "ios";
                 case Android32: return ignoreArch ? "android" : "android32";
                 case Android64: return ignoreArch ? "android" : "android64";
-                case Linux: return "linux";
                 default: break;
             }
             return "undefined";

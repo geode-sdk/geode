@@ -24,34 +24,34 @@ namespace geode {
     */
     class GEODE_DLL SimpleTextArea : public cocos2d::CCNode {
     public:
-        static SimpleTextArea* create(const std::string& text, const std::string& font = "chatFont.fnt", const float scale = 1);
-        static SimpleTextArea* create(const std::string& text, const std::string& font, const float scale, const float width);
+        static SimpleTextArea* create(const std::string& text, const std::string& font = "chatFont.fnt", float scale = 1.0f);
+        static SimpleTextArea* create(const std::string& text, const std::string& font, float scale, float width);
 
         void setFont(const std::string& font);
         std::string getFont();
         void setColor(const cocos2d::ccColor4B& color);
         cocos2d::ccColor4B getColor();
-        void setAlignment(const cocos2d::CCTextAlignment alignment);
+        void setAlignment(cocos2d::CCTextAlignment alignment);
         cocos2d::CCTextAlignment getAlignment();
-        void setWrappingMode(const WrappingMode mode);
+        void setWrappingMode(WrappingMode mode);
         WrappingMode getWrappingMode();
         void setText(const std::string& text);
         std::string getText();
-        void setMaxLines(const size_t maxLines);
+        void setMaxLines(size_t maxLines);
         size_t getMaxLines();
-        void setWidth(const float width);
+        void setWidth(float width);
         float getWidth();
-        void setScale(const float scale) override;
+        void setScale(float scale) override;
         float getScale() override;
-        void setLinePadding(const float padding);
+        void setLinePadding(float padding);
         float getLinePadding();
         std::vector<cocos2d::CCLabelBMFont*> getLines();
         float getHeight();
         float getLineHeight();
     private:
-        static SimpleTextArea* create(const std::string& font, const std::string& text, const float scale, const float width, const bool artificialWidth);
+        static SimpleTextArea* create(const std::string& font, const std::string& text, float scale, float width, const bool artificialWidth);
 
-        bool init(const std::string& font, const std::string& text, const float scale, const float width, const bool artificialWidth);
+        bool init(const std::string& font, const std::string& text, float scale, float width, const bool artificialWidth);
 
         bool m_shouldUpdate = false;
         bool m_artificialWidth = false;
@@ -67,9 +67,9 @@ namespace geode {
         float m_lineHeight = 0.f;
         float m_linePadding = 0.f;
 
-        cocos2d::CCLabelBMFont* createLabel(const std::string& text, const float top);
+        cocos2d::CCLabelBMFont* createLabel(const std::string& text, float top);
         float calculateOffset(cocos2d::CCLabelBMFont* label);
-        void charIteration(const std::function<cocos2d::CCLabelBMFont*(cocos2d::CCLabelBMFont* line, const char c, const float top)>& overflowHandling);
+        void charIteration(const std::function<cocos2d::CCLabelBMFont*(cocos2d::CCLabelBMFont* line, char c, float top)>& overflowHandling);
         void updateLinesNoWrap();
         void updateLinesWordWrap(bool spaceWrap);
         void updateLinesCutoffWrap();

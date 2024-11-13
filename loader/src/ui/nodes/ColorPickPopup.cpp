@@ -40,7 +40,7 @@ using namespace geode::prelude;
 //     ColorPickPopup* popup;
 // };
 
-// ListenerResult ColorPickPopupEventFilter::handle(utils::MiniFunction<Callback> fn, ColorPickPopupEvent* event) {
+// ListenerResult ColorPickPopupEventFilter::handle(std::function<Callback> fn, ColorPickPopupEvent* event) {
 //     if (event->getPopup() == m_impl->popup) {
 //         if (event->isPopupClosed()) {
 //             m_impl->popup = nullptr;

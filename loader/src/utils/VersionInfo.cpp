@@ -113,9 +113,6 @@ Result<VersionInfo> VersionInfo::parse(std::string const& string) {
     return Ok(VersionInfo(major, minor, patch, tag));
 }
 
-std::string VersionInfo::toString(bool includeTag) const {
-    return this->toVString();
-}
 std::string VersionInfo::toVString(bool includeTag) const {
     return fmt::format("v{}", this->toNonVString(includeTag));
 }

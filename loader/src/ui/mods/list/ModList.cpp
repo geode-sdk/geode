@@ -111,7 +111,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
 
         m_topContainer->addChild(m_updateAllContainer);
 
-        if (Loader::get()->getProblems().size()) {
+        if (Loader::get()->getLoadProblems().size()) {
             m_errorsContainer = CCNode::create();
             m_errorsContainer->setID("errors-container");
             m_errorsContainer->ignoreAnchorPointForPosition(false);
@@ -308,7 +308,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
             ->setAxisAlignment(AxisAlignment::End)
             ->setAxisReverse(true)
     );
-    this->addChildAtPosition(pageLeftMenu, Anchor::Left, ccp(-5, 0));
+    this->addChildAtPosition(pageLeftMenu, Anchor::Left, ccp(-20, 0));
 
     auto pageRightMenu = CCMenu::create();
     pageRightMenu->setID("page-right-menu");
@@ -329,7 +329,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         RowLayout::create()
             ->setAxisAlignment(AxisAlignment::Start)
     );
-    this->addChildAtPosition(pageRightMenu, Anchor::Right, ccp(5, 0));
+    this->addChildAtPosition(pageRightMenu, Anchor::Right, ccp(20, 0));
 
     // Status
 
@@ -352,7 +352,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_statusDetailsBtn->setID("status-details-button");
     m_statusContainer->addChild(m_statusDetailsBtn);
 
-    m_statusDetails = SimpleTextArea::create("", "chatFont.fnt", .6f);
+    m_statusDetails = SimpleTextArea::create("", "chatFont.fnt", .6f, 650.f);
     m_statusDetails->setID("status-details-input");
     m_statusDetails->setAlignment(kCCTextAlignmentCenter);
     m_statusContainer->addChild(m_statusDetails);
@@ -549,7 +549,7 @@ void ModList::updateTopContainer() {
 
     // If there are errors, show the error banner
     if (m_errorsContainer) {
-        auto noErrors = Loader::get()->getProblems().empty();
+        auto noErrors = Loader::get()->getLoadProblems().empty();
         m_errorsContainer->setVisible(!noErrors);
     }
 
@@ -649,8 +649,19 @@ void ModList::showStatus(ModListStatus status, std::string const& message, std::
     m_statusContainer->setVisible(true);
     m_statusDetails->setVisible(false);
     m_statusDetailsBtn->setVisible(details.has_value());
-    m_statusLoadingCircle->setVisible(std::holds_alternative<ModListUnkProgressStatus>(status));
-    m_statusLoadingBar->setVisible(std::holds_alternative<ModListProgressStatus>(status));
+    m_statusLoadingCircle->setVisible(
+        std::holds_alternative<ModListUnkProgressStatus>(status)
+        || std::holds_alternative<ModListProgressStatus>(status)
+    );
+    
+    // the loading bar makes no sense to display - it's meant for progress of mod list page loading
+    // however the mod list pages are so small, that there usually isn't a scenario where the loading
+    // takes longer than a single frame - therefore this is useless
+    // server processing time isn't included in this - it's only after the server starts responding
+    // that we get any progress information
+    // also the position is wrong if you wanna restore the functionality
+    //m_statusLoadingBar->setVisible(std::holds_alternative<ModListProgressStatus>(status));
+    m_statusLoadingBar->setVisible(false);
 
     // Update progress bar
     if (auto per = std::get_if<ModListProgressStatus>(&status)) {

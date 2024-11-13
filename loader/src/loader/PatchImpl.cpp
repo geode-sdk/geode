@@ -92,8 +92,8 @@ Result<> Patch::Impl::updateBytes(const ByteVector& bytes) {
     if (m_enabled) {
         auto res = this->disable();
         if (!res) return Err("Failed to update patch: {}", res.unwrapErr());
-        res = this->enable();
-        if (!res) return Err("Failed to update patch: {}", res.unwrapErr());
+        auto res2 = this->enable();
+        if (!res2) return Err("Failed to update patch: {}", res2.unwrapErr());
     }
 
     return Ok();
@@ -104,7 +104,7 @@ uintptr_t Patch::Impl::getAddress() const {
 }
 
 matjson::Value Patch::Impl::getRuntimeInfo() const {
-    auto json = matjson::Object();
+    auto json = matjson::Value::object();
     json["address"] = std::to_string(reinterpret_cast<uintptr_t>(m_address));
     json["original"] = m_original;
     json["patch"] = m_patch;

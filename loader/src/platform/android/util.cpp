@@ -6,14 +6,13 @@ using namespace geode::prelude;
 #include <Geode/utils/web.hpp>
 #include <filesystem>
 #include <Geode/utils/general.hpp>
-#include <Geode/utils/MiniFunction.hpp>
 #include <Geode/utils/permission.hpp>
 #include <Geode/utils/Task.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/binding/AppDelegate.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/binding/MenuLayer.hpp>
-#include <Geode/utils/Result.hpp>
+#include <Geode/Result.hpp>
 #include <Geode/DefaultInclude.hpp>
 #include <optional>
 #include <mutex>
@@ -139,9 +138,9 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
 }
 
 std::mutex s_callbackMutex;
-static utils::MiniFunction<void(Result<std::filesystem::path>)> s_fileCallback {};
-static utils::MiniFunction<void(Result<std::vector<std::filesystem::path>>)> s_filesCallback {};
-static utils::MiniFunction<bool()> s_taskCancelled {};
+static std::function<void(Result<std::filesystem::path>)> s_fileCallback {};
+static std::function<void(Result<std::vector<std::filesystem::path>>)> s_filesCallback {};
+static std::function<bool()> s_taskCancelled {};
 
 extern "C"
 JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_selectFileCallback(
@@ -356,7 +355,7 @@ bool geode::utils::permission::getPermissionStatus(Permission permission) {
     return false;
 }
 
-static MiniFunction<void(bool)> s_permissionCallback;
+static std::function<void(bool)> s_permissionCallback;
 
 extern "C"
 JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_permissionCallback(
@@ -371,7 +370,7 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_permissionCallba
     }
 }
 
-void geode::utils::permission::requestPermission(Permission permission, utils::MiniFunction<void(bool)> callback) {
+void geode::utils::permission::requestPermission(Permission permission, std::function<void(bool)> callback) {
     s_permissionCallback = callback;
     JniMethodInfo info;
     if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "requestPermission", "(Ljava/lang/String;)V")) {

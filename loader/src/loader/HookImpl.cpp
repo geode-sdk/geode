@@ -98,7 +98,7 @@ std::string_view Hook::Impl::getDisplayName() const {
 }
 
 matjson::Value Hook::Impl::getRuntimeInfo() const {
-    auto json = matjson::Object();
+    matjson::Value json;
     json["address"] = std::to_string(reinterpret_cast<uintptr_t>(m_address));
     json["detour"] = std::to_string(reinterpret_cast<uintptr_t>(m_detour));
     json["name"] = m_displayName;

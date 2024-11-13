@@ -4,8 +4,7 @@
 #include "../loader/Log.hpp"
 #include <set>
 #include <variant>
-#include <Geode/utils/MiniFunction.hpp>
-#include <Geode/utils/Result.hpp>
+#include <Geode/Result.hpp>
 
 namespace geode {
     struct JsonChecker;
@@ -73,230 +72,10 @@ namespace geode {
     }
 
     template <class T>
-    using JsonValueValidator = utils::MiniFunction<bool(T const&)>;
+    using JsonValueValidator = std::function<bool(T const&)>;
 
     struct JsonMaybeObject;
     struct JsonMaybeValue;
-
-    struct GEODE_DLL 
-    [[deprecated("Use JsonExpectedValue via the checkJson function instead")]]
-    JsonMaybeSomething {
-    protected:
-        JsonChecker& m_checker;
-        matjson::Value& m_json;
-        std::string m_hierarchy;
-        bool m_hasValue;
-
-        friend struct JsonMaybeObject;
-        friend struct JsonMaybeValue;
-
-        void setError(std::string const& error);
-
-    public:
-        matjson::Value& json();
-
-        JsonMaybeSomething(
-            JsonChecker& checker, matjson::Value& json, std::string const& hierarchy, bool hasValue
-        );
-
-        bool isError() const;
-        std::string getError() const;
-
-        operator bool() const;
-    };
-
-    struct GEODE_DLL 
-    [[deprecated("Use JsonExpectedValue via the checkJson function instead")]]
-    JsonMaybeValue : public JsonMaybeSomething {
-        bool m_inferType = true;
-
-        JsonMaybeValue(
-            JsonChecker& checker, matjson::Value& json, std::string const& hierarchy, bool hasValue
-        );
-
-        JsonMaybeSomething& self();
-
-        template <matjson::Type T>
-        JsonMaybeValue& as() {
-            if (this->isError()) return *this;
-            if (!jsonConvertibleTo(self().m_json.type(), T)) {
-                this->setError(
-                    self().m_hierarchy + ": Invalid type \"" + jsonValueTypeToString(self().m_json.type()) +
-                    "\", expected \"" + jsonValueTypeToString(T) + "\""
-                );
-            }
-            m_inferType = false;
-            return *this;
-        }
-
-        JsonMaybeValue& array();
-
-        template <matjson::Type... T>
-        JsonMaybeValue& asOneOf() {
-            if (this->isError()) return *this;
-            bool isOneOf = (... || jsonConvertibleTo(self().m_json.type(), T));
-            if (!isOneOf) {
-                this->setError(
-                    self().m_hierarchy + ": Invalid type \"" + jsonValueTypeToString(self().m_json.type()) +
-                    "\", expected one of \"" + (jsonValueTypeToString(T), ...) + "\""
-                );
-            }
-            m_inferType = false;
-            return *this;
-        }
-
-        template <class T>
-        bool is() {
-            if (this->isError()) return false;
-            return self().m_json.is<T>();
-        }
-
-        template <class T>
-        JsonMaybeValue& validate(JsonValueValidator<T> validator) {
-            if (this->isError()) return *this;
-            if (self().m_json.is<T>()) {
-                if (!validator(self().m_json.as<T>())) {
-                    this->setError(self().m_hierarchy + ": Invalid value format");
-                }
-            }
-            else {
-                this->setError(
-                    self().m_hierarchy + ": Invalid type \"" +
-                    std::string(jsonValueTypeToString(self().m_json.type())) + "\""
-                );
-            }
-            return *this;
-        }
-
-        template <class T>
-        JsonMaybeValue& inferType() {
-            if (this->isError() || !m_inferType) return *this;
-            return this->as<getJsonType<T>()>();
-        }
-
-        template <class T>
-        JsonMaybeValue& intoRaw(T& target) {
-            if (this->isError()) return *this;
-            target = self().m_json;
-            return *this;
-        }
-
-        template <class T>
-        JsonMaybeValue& into(T& target) {
-            return this->intoAs<T, T>(target);
-        }
-
-        template <class T>
-        JsonMaybeValue& into(std::optional<T>& target) {
-            return this->intoAs<T, std::optional<T>>(target);
-        }
-
-        template <class A, class T>
-        JsonMaybeValue& intoAs(T& target) {
-            this->inferType<A>();
-            if (this->isError()) return *this;
-
-            if (self().m_json.is<A>()) {
-                try {
-                    target = self().m_json.as<A>();
-                }
-                catch(matjson::JsonException const& e) {
-                    this->setError(
-                        self().m_hierarchy + ": Error parsing JSON: " + std::string(e.what())
-                    );
-                }
-            }
-            else {
-                this->setError(
-                    self().m_hierarchy + ": Invalid type \"" +
-                    std::string(jsonValueTypeToString(self().m_json.type())) + "\""
-                );
-            }
-
-            return *this;
-        }
-
-        template <class T>
-        T get() {
-            this->inferType<T>();
-            if (this->isError()) return T();
-            if (self().m_json.is<T>()) {
-                return self().m_json.as<T>();
-            }
-            return T();
-        }
-
-        JsonMaybeObject obj();
-
-        template <class T>
-        struct Iterator {
-            std::vector<T> m_values;
-
-            using iterator = typename std::vector<T>::iterator;
-            using const_iterator = typename std::vector<T>::const_iterator;
-
-            iterator begin() {
-                return m_values.begin();
-            }
-
-            iterator end() {
-                return m_values.end();
-            }
-
-            const_iterator begin() const {
-                return m_values.begin();
-            }
-
-            const_iterator end() const {
-                return m_values.end();
-            }
-        };
-
-        JsonMaybeValue at(size_t i);
-
-        Iterator<JsonMaybeValue> iterate();
-
-        Iterator<std::pair<std::string, JsonMaybeValue>> items();
-    };
-
-    struct 
-    [[deprecated("Use JsonExpectedValue via the checkJson function instead")]]
-    GEODE_DLL JsonMaybeObject : JsonMaybeSomething {
-        std::set<std::string> m_knownKeys;
-
-        JsonMaybeObject(
-            JsonChecker& checker, matjson::Value& json, std::string const& hierarchy, bool hasValue
-        );
-
-        JsonMaybeSomething& self();
-
-        void addKnownKey(std::string const& key);
-
-        matjson::Value& json();
-
-        JsonMaybeValue emptyValue();
-
-        JsonMaybeValue has(std::string const& key);
-
-        JsonMaybeValue needs(std::string const& key);
-
-        void checkUnknownKeys();
-    };
-
-    struct
-    [[deprecated("Use JsonExpectedValue via the checkJson function instead")]]
-    GEODE_DLL JsonChecker {
-        std::variant<std::monostate, std::string> m_result;
-        matjson::Value& m_json;
-
-        JsonChecker(matjson::Value& json);
-
-        bool isError() const;
-
-        std::string getError() const;
-
-        JsonMaybeValue root(std::string const& hierarchy);
-    };
 
     class GEODE_DLL JsonExpectedValue final {
     protected:
@@ -325,21 +104,14 @@ namespace geode {
                 return this->getJSONRef();
             }
             else {
-                try {
-                    if (this->getJSONRef().is<T>()) {
-                        return this->getJSONRef().as<T>();
-                    }
-                    else {
-                        this->setError(
-                            "unexpected type {}",
-                            this->matJsonTypeToString(this->getJSONRef().type())
-                        );
-                    }
+                auto res = this->getJSONRef().as<T>();
+                if (res) {
+                    return res.unwrap();
                 }
-                // matjson can throw variant exceptions too so you need to do this
-                catch(std::exception const& e) {
-                    this->setError("unable to parse json: {}", e);
-                }
+                this->setError(
+                    "unexpected type {}",
+                    this->matJsonTypeToString(this->getJSONRef().type())
+                );
             }
             return std::nullopt;
         }
@@ -451,6 +223,13 @@ namespace geode {
          * @returns The key, which is a no-op value if it didn't exist
          */
         JsonExpectedValue has(std::string_view key);
+        /**
+         * Check if this object has an optional key. Asserts that this JSON 
+         * value is an object. If the key doesn't exist, or the value is null, returns a 
+         * `JsonExpectValue` that does nothing
+         * @returns The key, which is a no-op value if it didn't exist, or was null
+         */
+        JsonExpectedValue hasNullable(std::string_view key);
         /**
          * Check if this object has an optional key. Asserts that this JSON 
          * value is an object. If the key doesn't exist, sets an error and 

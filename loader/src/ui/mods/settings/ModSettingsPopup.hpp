@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Geode/loader/SettingV3.hpp>
+#include <Geode/loader/Setting.hpp>
 #include <Geode/ui/Popup.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
@@ -14,17 +14,17 @@ class ModSettingsPopup : public GeodePopup<Mod*> {
 protected:
     Mod* m_mod;
     ScrollLayer* m_list;
-    std::vector<Ref<SettingNodeV3>> m_settings;
+    std::vector<Ref<SettingNode>> m_settings;
     CCMenu* m_applyMenu;
     CCMenuItemSpriteExtra* m_applyBtn;
     CCMenuItemSpriteExtra* m_restartBtn;
     ButtonSprite* m_applyBtnSpr;
     TextInput* m_searchInput;
     CCMenuItemSpriteExtra* m_searchClearBtn;
-    EventListener<EventFilter<SettingNodeValueChangeEventV3>> m_changeListener;
+    EventListener<EventFilter<SettingNodeValueChangeEvent>> m_changeListener;
 
     bool setup(Mod* mod) override;
-    void updateState(SettingNodeV3* invoker = nullptr);
+    void updateState(SettingNode* invoker = nullptr);
     bool hasUncommitted() const;
     void onClose(CCObject*) override;
     void onApply(CCObject*);

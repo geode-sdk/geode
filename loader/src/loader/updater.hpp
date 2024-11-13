@@ -2,7 +2,6 @@
 
 #include <string>
 #include <matjson.hpp>
-#include <Geode/utils/MiniFunction.hpp>
 #include <Geode/loader/Event.hpp>
 
 namespace geode::updater {
@@ -20,7 +19,7 @@ namespace geode::updater {
     public:
         using Callback = void(ResourceDownloadEvent*);
 
-        static ListenerResult handle(const utils::MiniFunction<Callback>& fn, ResourceDownloadEvent* event);
+        static ListenerResult handle(const std::function<Callback>& fn, ResourceDownloadEvent* event);
         ResourceDownloadFilter();
     };
 
@@ -33,7 +32,7 @@ namespace geode::updater {
     public:
         using Callback = void(LoaderUpdateEvent*);
 
-        static ListenerResult handle(const utils::MiniFunction<Callback>& fn, LoaderUpdateEvent* event);
+        static ListenerResult handle(const std::function<Callback>& fn, LoaderUpdateEvent* event);
         LoaderUpdateFilter();
     };
 
@@ -43,8 +42,8 @@ namespace geode::updater {
     void downloadLatestLoaderResources();
     void downloadLoaderUpdate(std::string const& url);
     void fetchLatestGithubRelease(
-        const utils::MiniFunction<void(matjson::Value const&)>& then,
-        utils::MiniFunction<void(std::string const&)> expect,
+        const std::function<void(matjson::Value const&)>& then,
+        std::function<void(std::string const&)> expect,
         bool force = false
     );
 

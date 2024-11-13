@@ -1,4 +1,5 @@
 #include "ConfirmInstall.hpp"
+#include <Geode/loader/Mod.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/ui/Popup.hpp>
 #include <server/DownloadManager.hpp>

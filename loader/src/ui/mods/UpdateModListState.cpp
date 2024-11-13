@@ -2,7 +2,7 @@
 
 UpdateModListStateEvent::UpdateModListStateEvent(UpdateState&& target) : target(target) {}
 
-ListenerResult UpdateModListStateFilter::handle(MiniFunction<Callback> fn, UpdateModListStateEvent* event) {
+ListenerResult UpdateModListStateFilter::handle(std::function<Callback> fn, UpdateModListStateEvent* event) {
     if (
         // If the listener wants to hear all state updates then let it
         std::holds_alternative<UpdateWholeState>(m_target) || 

@@ -1,4 +1,4 @@
-#include <Geode/utils/Result.hpp>
+#include <Geode/Result.hpp>
 #include <Geode/utils/general.hpp>
 #include <filesystem>
 #include <fmt/core.h>
@@ -130,12 +130,9 @@ Result<std::string> WebResponse::string() const {
 }
 Result<matjson::Value> WebResponse::json() const {
     GEODE_UNWRAP_INTO(auto value, this->string());
-    std::string error;
-    auto res = matjson::parse(value, error);
-    if (error.size() > 0) {
-        return Err("Error parsing JSON: " + error);
-    }
-    return Ok(res.value());
+    return matjson::parse(value).mapErr([&](auto const& err) {
+        return fmt::format("Error parsing JSON: {}", err);
+    });
 }
 ByteVector WebResponse::data() const {
     return m_impl->m_data;
@@ -224,7 +221,7 @@ WebRequest::WebRequest() : m_impl(std::make_shared<Impl>()) {}
 WebRequest::~WebRequest() {}
 
 // Encodes a url param
-std::string urlParamEncode(std::string_view const input) {
+static std::string urlParamEncode(std::string_view input) {
     std::ostringstream ss;
     ss << std::hex << std::uppercase;
     for (char c : input) {
@@ -502,7 +499,7 @@ WebRequest& WebRequest::header(std::string_view name, std::string_view value) {
             int timeoutValue = 5;
             auto res = numFromString<int>(value.substr(numStart, numLength));
             if (res) {
-                timeoutValue = res.value();
+                timeoutValue = res.unwrap();
             }
 
             timeout(std::chrono::seconds(timeoutValue));

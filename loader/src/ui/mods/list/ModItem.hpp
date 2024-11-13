@@ -25,6 +25,7 @@ protected:
     CCNode* m_recommendedBy;
     CCLabelBMFont* m_developerLabel;
     ButtonSprite* m_restartRequiredLabel;
+    ButtonSprite* m_outdatedLabel;
     CCNode* m_downloadWaiting;
     CCNode* m_downloadBarContainer;
     Slider* m_downloadBar;
@@ -35,7 +36,7 @@ protected:
     EventListener<server::ServerRequest<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
     EventListener<server::ModDownloadFilter> m_downloadListener;
     std::optional<server::ServerModUpdate> m_availableUpdate;
-    EventListener<EventFilter<SettingNodeValueChangeEventV3>> m_settingNodeListener;
+    EventListener<EventFilter<SettingNodeValueChangeEvent>> m_settingNodeListener;
 
     /**
      * @warning Make sure `getMetadata` and `createModLogo` are callable 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Result.hpp"
+#include <Geode/Result.hpp>
 
 #include "../DefaultInclude.hpp"
 #include <chrono>
@@ -13,19 +13,11 @@
 #include <charconv>
 #include <clocale>
 #include <type_traits>
+#include <fmt/format.h>
 
 namespace geode {
     using ByteVector = std::vector<uint8_t>;
 
-    // todo in v4: remove this
-    template <typename T>
-    [[deprecated("Use geode::toBytes instead")]]
-    ByteVector toByteArray(T const& a) {
-        ByteVector out;
-        out.resize(sizeof(T));
-        std::memcpy(out.data(), &a, sizeof(T));
-        return out;
-    }
     template <typename T>
     ByteVector toBytes(T const& a) {
         ByteVector out;
@@ -125,7 +117,7 @@ namespace geode {
          * @returns String as number, or Err if the string couldn't be converted
          */
         template <class Num>
-        Result<Num> numFromString(std::string_view const str, int base = 10) {
+        Result<Num> numFromString(std::string_view str, int base = 10) {
             if constexpr (std::is_floating_point_v<Num> 
                 #if defined(__cpp_lib_to_chars)
                     && false
@@ -168,12 +160,18 @@ namespace geode {
         */
         GEODE_DLL float getDisplayFactor();
     }
+
+    template <class... Args>
+    requires (sizeof...(Args) > 0)
+    constexpr auto Err(fmt::format_string<Args...> fmt, Args&&... args) {
+        return Err(fmt::format(fmt, std::forward<Args>(args)...));
+    }
 }
 
 template<>
 struct matjson::Serialize<geode::ByteVector> {
-    static matjson::Value to_json(geode::ByteVector const& bytes) {
-        return matjson::Array(bytes.begin(), bytes.end());
+    static Value toJson(geode::ByteVector const& bytes) {
+        return std::vector<matjson::Value>(bytes.begin(), bytes.end());
     }
 };
 
