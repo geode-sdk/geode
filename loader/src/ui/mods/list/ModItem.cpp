@@ -330,9 +330,10 @@ void ModItem::updateState() {
     auto wantsRestart = m_source.wantsRestart();
 
     auto download = server::ModDownloadManager::get()->getDownload(m_source.getID());
+    bool isDownloading = download && download->isActive();
 
     // If there is an active download ongoing, show that in place of developer name 
-    if (download && download->isActive()) {
+    if (isDownloading) {
         m_updateBtn->setVisible(false);
         m_restartRequiredLabel->setVisible(false);
         m_developers->setVisible(false);
@@ -431,7 +432,7 @@ void ModItem::updateState() {
             m_bg->setColor("mod-list-errors-found"_cc3b);
             m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
         }
-        if (!wantsRestart && targetsOutdated) {
+        if (!wantsRestart && targetsOutdated && !isDownloading) {
             LoadProblem problem = targetsOutdated.value();
             m_bg->setColor("mod-list-outdated-label"_cc3b);
             m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
