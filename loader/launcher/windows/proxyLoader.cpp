@@ -6,6 +6,7 @@
 
 struct XINPUT_STATE;
 struct XINPUT_CAPABILITIES;
+struct XINPUT_VIBRATION;
 
 constexpr static auto MAX_PATH_CHARS = 32768u;
 
@@ -36,6 +37,17 @@ extern "C" DWORD XInputGetState(DWORD dwUserIndex, XINPUT_STATE *pState) {
     if (fp) {
         using FPType = decltype(&XInputGetState);
         return reinterpret_cast<FPType>(fp)(dwUserIndex, pState);
+    }
+
+    return ERROR_DEVICE_NOT_CONNECTED;
+}
+
+#pragma comment(linker, "/export:XInputSetState,@3")
+extern "C" DWORD XInputSetState(DWORD dwUserIndex, XINPUT_VIBRATION* pVibration) {
+    static auto fp = getFP("XInputSetState");
+    if (fp) {
+        using FPType = decltype(&XInputSetState);
+        return reinterpret_cast<FPType>(fp)(dwUserIndex, pVibration);
     }
 
     return ERROR_DEVICE_NOT_CONNECTED;
