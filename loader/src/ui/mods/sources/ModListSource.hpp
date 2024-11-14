@@ -79,7 +79,6 @@ public:
     void setPageSize(size_t size);
     
     static void clearAllCaches();
-    static bool isRestartRequired();
 };
 
 template <class T>
@@ -231,8 +230,8 @@ void filterModsWithLocalQuery(ModListSource::ProvidedMods& mods, Query const& qu
             return a.second > b.second;
         }
         // Make sure outdated mods are always last by default
-        auto aIsOutdated = a.first.getMetadata().checkGameVersion().isErr();
-        auto bIsOutdated = b.first.getMetadata().checkGameVersion().isErr();
+        auto aIsOutdated = a.first.getMetadata().checkTargetVersions().isErr();
+        auto bIsOutdated = b.first.getMetadata().checkTargetVersions().isErr();
         if (aIsOutdated != bIsOutdated) {
             return !aIsOutdated;
         }

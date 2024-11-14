@@ -64,11 +64,6 @@ bool ModDeveloperList::init(DevListPopup* popup, ModSource const& source, CCSize
                 m_list->m_contentLayer->addChild(ModDeveloperItem::create(popup, dev.username, itemSize, dev.displayName));
             }
         },
-        [this, popup, itemSize](ModSuggestion const& suggestion) {
-            for (std::string& dev : suggestion.suggestion.getDevelopers()) {
-                m_list->m_contentLayer->addChild(ModDeveloperItem::create(popup, dev, itemSize, std::nullopt, false));
-            }
-        },
     });
     m_list->m_contentLayer->updateLayout();
     m_list->scrollToTop();

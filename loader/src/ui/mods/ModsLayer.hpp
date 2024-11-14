@@ -76,6 +76,7 @@ protected:
     
     void onTab(CCObject* sender);
     void onOpenModsFolder(CCObject*);
+    void onAddModFromFile(CCObject*);
     void onBigView(CCObject*);
     void onSearch(CCObject*);
     void onGoToPage(CCObject*);

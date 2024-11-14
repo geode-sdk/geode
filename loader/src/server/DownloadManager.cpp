@@ -4,6 +4,7 @@
 #include <Geode/utils/map.hpp>
 #include <optional>
 #include <hash/hash.hpp>
+#include <loader/ModImpl.hpp>
 
 using namespace server;
 
@@ -124,6 +125,8 @@ public:
                                 .details = fmt::format("Unable to delete existing .geode package (code {})", ec),
                             };
                         }
+                        // Mark mod as updated
+                        ModImpl::getImpl(mod)->m_requestedAction = ModRequestedAction::Update;
                     }
                     // If this was an update, delete the old file first
                     if (!removingInstalledWasError) {

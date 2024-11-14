@@ -138,6 +138,12 @@ namespace geode {
         bool isSafeMode() const;
         // enables safe mode, even if the launch arg wasnt provided
         void forceSafeMode();
+
+        // This will potentially start a whole sequence of popups that guide the 
+        // user through installing the specific .geode file
+        void installModManuallyFromFile(std::filesystem::path const& path, std::function<void()> after);
+
+        bool isRestartRequired() const;
     };
 
     class LoaderImpl : public Loader::Impl {

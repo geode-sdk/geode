@@ -1,6 +1,7 @@
 #include "ModListSource.hpp"
 #include <server/DownloadManager.hpp>
 #include <Geode/loader/ModSettingsManager.hpp>
+#include <loader/LoaderImpl.hpp>
 
 #define FTS_FUZZY_MATCH_IMPLEMENTATION
 #include <Geode/external/fts/fts_fuzzy_match.h>
@@ -87,20 +88,6 @@ void ModListSource::clearAllCaches() {
     for (auto src : ALL_EXTANT_SOURCES) {
         src->clearCache();
     }
-}
-bool ModListSource::isRestartRequired() {
-    for (auto mod : Loader::get()->getAllMods()) {
-        if (mod->getRequestedAction() != ModRequestedAction::None) {
-            return true;
-        }
-        if (ModSettingsManager::from(mod)->restartRequired()) {
-            return true;
-        }
-    }
-    if (server::ModDownloadManager::get()->wantsRestart()) {
-        return true;
-    }
-    return false;
 }
 
 bool weightedFuzzyMatch(std::string const& str, std::string const& kw, double weight, double& out) {

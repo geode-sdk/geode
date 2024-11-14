@@ -41,7 +41,8 @@ namespace geode {
         Enable,
         Disable,
         Uninstall,
-        UninstallWithSaveData
+        UninstallWithSaveData,
+        Update
     };
 
     static constexpr bool modRequestedActionIsToggle(ModRequestedAction action) {

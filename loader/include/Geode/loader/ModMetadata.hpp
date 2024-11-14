@@ -198,9 +198,19 @@ namespace geode {
 
         /**
          * Checks if mod can be installed on the current GD version.
-         * Returns Ok() if it can, Err otherwise.
+         * Returns Ok() if it can, Err explaining why not otherwise.
         */
         Result<> checkGameVersion() const;
+        /**
+         * Checks if mod can be installed on the current Geode version.
+         * Returns Ok() if it can, Err explaining why not otherwise.
+        */
+        Result<> checkGeodeVersion() const;
+        /**
+         * Checks if mod can be installed on the current GD & Geode version.
+         * Returns Ok() if it can, Err explaining why not otherwise.
+        */
+        Result<> checkTargetVersions() const;
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
         void setPath(std::filesystem::path const& value);

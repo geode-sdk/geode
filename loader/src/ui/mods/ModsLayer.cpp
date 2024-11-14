@@ -145,7 +145,7 @@ void ModsStatusNode::updateState() {
     switch (state) {
         // If there are no downloads happening, just show the restart button if needed
         case DownloadState::None: {
-            m_restartBtn->setVisible(ModListSource::isRestartRequired());
+            m_restartBtn->setVisible(LoaderImpl::get()->isRestartRequired());
         } break;
 
         // If some downloads were cancelled, show the restart button normally
@@ -154,7 +154,7 @@ void ModsStatusNode::updateState() {
             m_status->setColor(ccWHITE);
             m_status->setVisible(true);
 
-            m_restartBtn->setVisible(ModListSource::isRestartRequired());
+            m_restartBtn->setVisible(LoaderImpl::get()->isRestartRequired());
         } break;
 
         // If all downloads were finished, show the restart button normally 
@@ -170,7 +170,7 @@ void ModsStatusNode::updateState() {
             m_status->setVisible(true);
             m_statusBG->setVisible(true);
             
-            m_restartBtn->setVisible(ModListSource::isRestartRequired());
+            m_restartBtn->setVisible(LoaderImpl::get()->isRestartRequired());
         } break;
 
         case DownloadState::SomeErrored: {
@@ -272,6 +272,39 @@ void ModsStatusNode::onCancel(CCObject*) {
 
 void ModsLayer::onOpenModsFolder(CCObject*) {
     file::openFolder(dirs::getModsDir());
+}
+
+void ModsLayer::onAddModFromFile(CCObject*) {
+    if (!Mod::get()->setSavedValue("shown-manual-install-info", true)) {
+        return FLAlertLayer::create(
+            nullptr,
+            "Manually Installing Mods",
+            "You can <cg>manually install mods</c> by selecting their <cd>.geode</c> files. "
+            "Do note that manually installed mods <co>are not verified to be safe and stable</c>!\n"
+            "<cr>Proceed at your own risk!</c>",
+            "OK", nullptr,
+            350
+        )->show();
+    }
+    file::pick(file::PickMode::OpenFile, file::FilePickOptions {
+        .filters = { file::FilePickOptions::Filter {
+            .description = "Geode Mods",
+            .files = { "*.geode" },
+        }}
+    }).listen([](Result<std::filesystem::path>* path) {
+        if (*path) {
+            LoaderImpl::get()->installModManuallyFromFile(path->unwrap(), []() {
+                InstalledModListSource::get(InstalledModListType::All)->clearCache();
+            });
+        }
+        else {
+            FLAlertLayer::create(
+                "Unable to Select File",
+                path->unwrapErr(),
+                "OK"
+            )->show();
+        }
+    });
 }
 
 void ModsStatusNode::onRestart(CCObject*) {
@@ -379,6 +412,20 @@ bool ModsLayer::init() {
     );
     folderBtn->setID("mods-folder-button");
     actionsMenu->addChild(folderBtn);
+
+    auto addSpr = createGeodeCircleButton(
+        CCSprite::createWithSpriteFrameName("file-add.png"_spr), 1.f,
+        CircleBaseSize::Medium
+    );
+    addSpr->setScale(.8f);
+    addSpr->setTopRelativeScale(.8f);
+    auto addBtn = CCMenuItemSpriteExtra::create(
+        addSpr,
+        this,
+        menu_selector(ModsLayer::onAddModFromFile)
+    );
+    addBtn->setID("mods-add-button");
+    actionsMenu->addChild(addBtn);
 
     actionsMenu->setLayout(
         ColumnLayout::create()

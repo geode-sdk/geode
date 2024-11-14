@@ -30,6 +30,7 @@ static constexpr const char* humanReadableDescForAction(ModRequestedAction actio
         case ModRequestedAction::Disable: return "Mod has been disabled";
         case ModRequestedAction::Uninstall: return "Mod has been uninstalled";
         case ModRequestedAction::UninstallWithSaveData: return "Mod has been uninstalled";
+        case ModRequestedAction::Update: return "Mod has been updated";
     }
 }
 
