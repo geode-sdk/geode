@@ -82,7 +82,7 @@ namespace geode::utils::web {
         Result<> into(std::filesystem::path const& path) const;
 
         std::vector<std::string> headers() const;
-        std::optional<std::string> header(std::string_view name) const;
+        std::optional<std::string> header(std::string_view name, int index = 0) const;
     };
 
     class GEODE_DLL WebProgress final {
@@ -288,7 +288,7 @@ namespace geode::utils::web {
          *
          * @return std::unordered_map<std::string, std::string>
          */
-        std::unordered_map<std::string, std::string> getHeaders() const;
+        std::unordered_map<std::string, std::vector<std::string>> getHeaders() const;
 
         /**
          * Gets the parameters inside the URL
