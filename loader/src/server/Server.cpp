@@ -8,6 +8,7 @@
 #include <fmt/chrono.h>
 #include <loader/LoaderImpl.hpp>
 #include "../internal/about.hpp"
+#include "Geode/loader/Loader.hpp"
 
 using namespace server;
 
@@ -688,7 +689,7 @@ ServerRequest<ServerModVersion> server::getModVersion(std::string const& id, Mod
         },
     }, version);
 
-    return req.get(formatServerURL("/mods/{}/versions/{}", id, versionURL)).map(
+    return req.get(formatServerURL("/mods/{}/versions/{}?gd={}", id, versionURL, Loader::get()->getGameVersion())).map(
         [](web::WebResponse* response) -> Result<ServerModVersion, ServerError> {
             if (response->ok()) {
                 // Parse payload

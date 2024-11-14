@@ -49,4 +49,5 @@ public:
     server::ServerRequest<std::optional<std::string>> fetchChangelog() const;
     server::ServerRequest<std::unordered_set<std::string>> fetchValidTags() const;
     server::ServerRequest<std::optional<server::ServerModUpdate>> checkUpdates();
+    void startInstall();
 };
