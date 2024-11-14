@@ -1,5 +1,8 @@
 # Geode Changelog
 
+## v3.9.2
+ * Fix searching for mods returning unavailable mods (#1149)
+
 ## v3.9.1
  * Fix mod downloads not checking version (f575187)
 
