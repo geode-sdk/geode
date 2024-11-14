@@ -1,15 +1,20 @@
 #include "ModItem.hpp"
+
+#include <optional>
+#include <string>
+#include <vector>
+
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/loader/Loader.hpp>
-#include <vector>
-#include "../GeodeStyle.hpp"
-#include "../popups/ModPopup.hpp"
-#include "../popups/DevPopup.hpp"
+#include "server/DownloadManager.hpp"
+#include "ui/mods/GeodeStyle.hpp"
+#include "ui/mods/popups/ModPopup.hpp"
+#include "ui/mods/popups/DevPopup.hpp"
 #include "ui/mods/popups/ModErrorPopup.hpp"
 #include "ui/mods/sources/ModSource.hpp"
-#include "../../GeodeUIEvent.hpp"
+#include "ui/GeodeUIEvent.hpp"
 
 bool ModItem::init(ModSource&& source) {
     if (!CCNode::init())
@@ -326,9 +331,10 @@ void ModItem::updateState() {
     auto wantsRestart = m_source.wantsRestart();
 
     auto download = server::ModDownloadManager::get()->getDownload(m_source.getID());
+    bool isDownloading = download && download->isActive();
 
     // If there is an active download ongoing, show that in place of developer name 
-    if (download && download->isActive()) {
+    if (isDownloading) {
         m_updateBtn->setVisible(false);
         m_restartRequiredLabel->setVisible(false);
         m_developers->setVisible(false);
@@ -422,13 +428,31 @@ void ModItem::updateState() {
     // If there were problems, tint the BG red
     m_outdatedLabel->setVisible(false);
     if (m_source.asMod()) {
+        std::optional<LoadProblem> targetsOutdated = m_source.asMod()->targetsOutdatedVersion();
         if (m_source.asMod()->hasLoadProblems()) {
             m_bg->setColor("mod-list-errors-found"_cc3b);
             m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
         }
-        if (m_source.asMod()->targetsOutdatedVersion()) {
+        if (!wantsRestart && targetsOutdated && !isDownloading) {
+            LoadProblem problem = targetsOutdated.value();
             m_bg->setColor("mod-list-outdated-label"_cc3b);
             m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
+            std::string content;
+            if (
+                problem.type == LoadProblem::Type::UnsupportedGeodeVersion ||
+                problem.type == LoadProblem::Type::NeedsNewerGeodeVersion
+            ) {
+                content = fmt::format(
+                    "Outdated (Geode {})",
+                    m_source.getMetadata().getGeodeVersion().toNonVString()
+                );
+            } else {
+                content = fmt::format(
+                    "Outdated (GD {})",
+                    m_source.getMetadata().getGameVersion().value_or("*")
+                );
+            }
+            m_outdatedLabel->setString(content.c_str());
             m_outdatedLabel->setVisible(true);
             m_developers->setVisible(false);
         }
@@ -568,13 +592,13 @@ void ModItem::onViewError(CCObject*) {
                         "the mod</c> that supports the newer version.";
                 } break;
 
-                case LoadProblem::Type::UnsupportedGeodeVersion: {
+                case LoadProblem::Type::NeedsNewerGeodeVersion: {
                     issue = "This mod is made for a <cp>newer version of Geode</c>.";
                     howToFix = "<cp>update Geode</c> by enabling <co>Automatic Updates</c> "
                         "or redownloading it from the Geode website.";
                 } break;
 
-                case LoadProblem::Type::NeedsNewerGeodeVersion: {
+                case LoadProblem::Type::UnsupportedGeodeVersion: {
                     issue = "This mod is made for an <cy>older version of Geode</c>.";
                     howToFix = "wait for the developer to <cj>release an update to "
                         "the mod</c> that supports the newer version.";
@@ -608,18 +632,7 @@ void ModItem::onEnable(CCObject*) {
     UpdateModListStateEvent(UpdateModState(m_source.getID())).post();
 }
 void ModItem::onInstall(CCObject*) {
-    if (auto updates = m_source.hasUpdates()) {
-        if (updates->replacement.has_value()) {
-            server::ModDownloadManager::get()->startDownload(
-                updates->replacement->id,
-                updates->replacement->version,
-                std::nullopt,
-                m_source.getID()
-            );
-            return;
-        }
-    }
-    server::ModDownloadManager::get()->startDownload(m_source.getID(), std::nullopt);
+    m_source.startInstall();
 }
 void ModItem::onDevelopers(CCObject*) {
     DevListPopup::create(m_source)->show();

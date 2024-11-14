@@ -5,6 +5,7 @@
 #include <Geode/ui/GeodeUI.hpp>
 #include <server/DownloadManager.hpp>
 #include <Geode/binding/GameObject.hpp>
+#include <unordered_set>
 
 LoadModSuggestionTask loadModSuggestion(LoadProblem const& problem) {
     // Recommended / suggested are essentially the same thing for the purposes of this
@@ -183,19 +184,22 @@ server::ServerRequest<std::unordered_set<std::string>> ModSource::fetchValidTags
     return std::visit(makeVisitor {
         [](Mod* mod) {
             return server::getTags().map(
-                [mod](auto* result) -> Result<std::unordered_set<std::string>, server::ServerError> {
+                [mod](Result<std::unordered_set<std::string>, server::ServerError>* result) 
+                    -> Result<std::unordered_set<std::string>, server::ServerError> {
+                    std::unordered_set<std::string> finalTags;
+                    auto modTags = mod->getMetadata().getTags();
+
                     if (result->isOk()) {
+                        std::unordered_set<std::string> fetched = result->unwrap();
                         // Filter out invalid tags
-                        auto modTags = mod->getMetadata().getTags();
-                        auto finalTags = std::unordered_set<std::string>();
-                        for (auto& tag : modTags) {
-                            if (result->unwrap().contains(tag)) {
+                        for (std::string const& tag : modTags) {
+                            if (fetched.contains(tag)) {
                                 finalTags.insert(tag);
                             }
                         }
-                        return Ok(finalTags);
                     }
-                    return Ok(result->unwrap());
+
+                    return Ok(finalTags);
                 },
                 [](server::ServerProgress* progress) {
                     return *progress;
@@ -235,4 +239,28 @@ server::ServerRequest<std::optional<server::ServerModUpdate>> ModSource::checkUp
             return server::ServerRequest<std::optional<server::ServerModUpdate>>::immediate(Ok(std::nullopt));
         },
     }, m_value);
+}
+void ModSource::startInstall() {
+    if (auto updates = this->hasUpdates()) {
+        if (updates->replacement.has_value()) {
+            server::ModDownloadManager::get()->startDownload(
+                updates->replacement->id,
+                updates->replacement->version,
+                std::nullopt,
+                this->getID()
+            );
+        } else {
+            server::ModDownloadManager::get()->startDownload(
+                this->getID(),
+                updates->version
+            );
+        }
+    } else {
+        server::ModDownloadManager::get()->startDownload(
+            this->getID(),
+            this->asServer()
+                ? std::optional{this->asServer()->latestVersion().getVersion()}
+                : std::nullopt
+        );
+    }
 }

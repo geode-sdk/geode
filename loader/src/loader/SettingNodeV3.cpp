@@ -136,7 +136,7 @@ void SettingNodeV3::updateState(CCNode* invoker) {
         m_impl->bg->setOpacity(75);
     }
 
-    m_impl->nameMenu->setContentWidth(this->getContentWidth() - m_impl->buttonMenu->getContentWidth() - 20);
+    m_impl->nameMenu->setContentWidth(this->getContentWidth() - m_impl->buttonMenu->getContentWidth() - 25);
     m_impl->nameMenu->updateLayout();
 }
 
@@ -462,6 +462,7 @@ void FileSettingNodeV3::updateState(CCNode* invoker) {
     // which is clever and good UX but also a hack so I also need to hack to support that
     const auto isTextualDefaultValue = [this, setting = this->getSetting()]() {
         if (this->hasNonDefaultValue()) return false;
+        if (setting->getDefaultValue().string().size() > 20) return false;
         std::error_code ec;
         return setting->isFolder() ? 
             !std::filesystem::is_directory(setting->getDefaultValue(), ec) :

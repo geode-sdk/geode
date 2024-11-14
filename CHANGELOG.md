@@ -1,5 +1,29 @@
 # Geode Changelog
 
+## v4.0.0-alpha.1
+ * Support for the 2.2074 update
+ * Developers, see [this page for a migration guide](https://docs.geode-sdk.org/tutorials/migrate-v4)
+ * Major API breaks:
+   * Remove everything previously marked deprecated
+   * `utils::MiniFunction` removed
+   * Rewritten `geode::Result` class
+   * Rewritten matjson library
+   * Settings V2 completely removed, use V3 now
+   * `JsonChecker` removed
+ * Add new system for ordered hook priority, [see docs](https://docs.geode-sdk.org/tutorials/hookpriority) (673317d, 6db3084)
+ * C++20 coroutine support for `geode::Task`, [see docs](https://docs.geode-sdk.org/tutorials/tasks#coroutines) (e61b2c0, ab196b9)
+ * Add `Task::chain`, [see docs](https://docs.geode-sdk.org/tutorials/tasks#chaining-tasks) (3248831)
+ * Single page local mods list (efb1fbf)
+ * Split mod problems into load and outdated (12e8bbb, 09fa872, df2528c)
+   * This means mods made for outdated gd or geode versions no longer count as actual errors, resulting in less clutter in the ui
+ * Fix safe mode popup on windows showing up when not supposed to (038788b)
+ * WebRequest::ignoreContentLength (#1126)
+ * Lots of smaller fixes to the geode ui (c9afa75, f5f3365, 2d66279, 02845d9, 9b95301, 6d13f78, 123b3ab, 0b2fc66, f96ea5e, cad670f)
+ * Fix CCArrayExt::pop_back() return type (#1130)
+ * Add missing spanish translations to installer (#1145)
+ * Add hashtag symbol to CommonFilter::Any (#1131)
+ * Disable forward compat on android (c9e97af)
+
 ## v3.9.0
  * Many changes to the settings ui (#1108)
    * Fuzzy search is now more reasonable
