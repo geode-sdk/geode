@@ -256,7 +256,7 @@ std::optional<ModDownload> ModDownloadManager::startDownload(
     std::optional<DependencyFor> const& dependencyFor,
     std::optional<std::string> const& replacesMod
 ) {
-    // If this mod has already been succesfully downloaded or is currently
+    // If this mod has already been successfully downloaded or is currently
     // being downloaded, return as you can't download multiple versions of the
     // same mod simultaniously, since that wouldn't make sense. I mean the new
     // version would just immediately override to the other one
