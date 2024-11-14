@@ -418,9 +418,7 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
                 if (headers.contains(key)) {
                     headers.at(key).push_back(value);
                 } else {
-                    std::vector<std::string> headerValues;
-                    headerValues.push_back(value);
-                    headers.insert_or_assign(key, headerValues);
+                    headers.insert_or_assign(key, std::vector{value});
                 }
             }
             return size * nitems;
@@ -529,9 +527,7 @@ WebRequest& WebRequest::header(std::string_view name, std::string_view value) {
     if (m_impl->m_headers.contains(strName)) {
         m_impl->m_headers.at(strName).push_back(strValue);
     } else {
-        std::vector<std::string> headerValues;
-        headerValues.push_back(strValue);
-        m_impl->m_headers.insert_or_assign(strName, headerValues);
+        m_impl->m_headers.insert_or_assign(strName, std::vector{strValue});
     }
 
     return *this;
