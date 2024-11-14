@@ -1,4 +1,7 @@
 #include "ModPopup.hpp"
+
+#include <optional>
+
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/ui/TextInput.hpp>
