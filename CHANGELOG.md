@@ -1,5 +1,16 @@
 # Geode Changelog
 
+## v4.0.0-alpha.2
+ * Button to manually install mods from files (e881dc5)
+ * Add `ModRequestedAction::Update` (e881dc5)
+ * Add `ModMetadata::checkGeodeVersion` and `ModMetadata::checkTargetVersions` (e881dc5)
+ * Add `geode::createModLogo` for creating a logo from a `.geode` package (e881dc5)
+ * Tags now use names provided by the server (893b03e)
+ * Fix `Task::chain` using the wrong type in the impl (22a11b9)
+ * Fix installing mods not checking the current version (#1148)
+ * Fix crash when checking tags (01807fe)
+ * Fix 'Outdated' label being visible while updating (6679a69)
+
 ## v4.0.0-alpha.1
  * Support for the 2.2074 update
  * Developers, see [this page for a migration guide](https://docs.geode-sdk.org/tutorials/migrate-v4)
