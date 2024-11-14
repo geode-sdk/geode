@@ -240,3 +240,27 @@ server::ServerRequest<std::optional<server::ServerModUpdate>> ModSource::checkUp
         },
     }, m_value);
 }
+void ModSource::startInstall() {
+    if (auto updates = this->hasUpdates()) {
+        if (updates->replacement.has_value()) {
+            server::ModDownloadManager::get()->startDownload(
+                updates->replacement->id,
+                updates->replacement->version,
+                std::nullopt,
+                this->getID()
+            );
+        } else {
+            server::ModDownloadManager::get()->startDownload(
+                this->getID(),
+                updates->version
+            );
+        }
+    } else {
+        server::ModDownloadManager::get()->startDownload(
+            this->getID(),
+            this->asServer()
+                ? std::optional{this->asServer()->latestVersion().getVersion()}
+                : std::nullopt
+        );
+    }
+}

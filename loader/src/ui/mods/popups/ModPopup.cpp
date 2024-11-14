@@ -7,11 +7,13 @@
 #include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/utils/ColorProvider.hpp>
+#include <optional>
 #include "ConfirmUninstallPopup.hpp"
 #include "../settings/ModSettingsPopup.hpp"
 #include "../../../internal/about.hpp"
 #include "../../GeodeUIEvent.hpp"
 #include "../popups/ModtoberPopup.hpp"
+#include "server/DownloadManager.hpp"
 
 class FetchTextArea : public CCNode {
 public:
@@ -1047,7 +1049,9 @@ void ModPopup::onInstall(CCObject*) {
             return;
         }
     }
-    server::ModDownloadManager::get()->startDownload(m_source.getID(), std::nullopt);
+
+    m_source.startInstall();
+
     this->onClose(nullptr);
 }
 
