@@ -570,11 +570,10 @@ ServerRequest<ServerModsList> server::getMods(ModsQuery const& query, bool useCa
     // Add search params
     if (query.query) {
         req.param("query", *query.query);
-    } else {
-        // Target current GD version and Loader version when query is not set
-        req.param("gd", GEODE_GD_VERSION_STR);
-        req.param("geode", Loader::get()->getVersion().toNonVString());
     }
+
+    req.param("gd", GEODE_GD_VERSION_STR);
+    req.param("geode", Loader::get()->getVersion().toNonVString());
 
     if (query.platforms.size()) {
         std::string plats = "";
