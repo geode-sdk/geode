@@ -1,5 +1,8 @@
 # Geode Changelog
 
+## v3.9.1
+ * Fix mod downloads not checking version (f575187)
+
 ## v3.9.0
  * Many changes to the settings ui (#1108)
    * Fuzzy search is now more reasonable
