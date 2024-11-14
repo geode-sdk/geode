@@ -80,7 +80,10 @@ std::string Loader::Impl::getGameVersion() {
     NSBundle* mainBundle = [NSBundle mainBundle];
     NSDictionary* infoDictionary = [mainBundle infoDictionary];
 
-    NSString *version = infoDictionary[@"CFBundleShortVersionString"];
+    std::string version = [infoDictionary[@"CFBundleShortVersionString"] UTF8String];
 
-    return std::string([version UTF8String]);
+    // temporary workaround - the bundle version is 2.207 although the actual game is 2.2074
+    if (version == "2.207") return "2.2074";
+
+    return version;
 }
