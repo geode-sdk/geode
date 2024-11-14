@@ -145,14 +145,16 @@ std::vector<std::string> WebResponse::headers() const {
     return map::keys(m_impl->m_headers);
 }
 
-std::optional<std::string> WebResponse::header(std::string_view name, int index) const {
-    auto str = std::string(name);
-    if (m_impl->m_headers.contains(str)) {
-        const auto headersWithName = m_impl->m_headers.at(str);
-        if (headersWithName.size() > index) {
-            return headersWithName.at(index);
-        }
-        return std::nullopt;
+std::optional<std::string> WebResponse::header(std::string_view name) const {
+    if (auto str = std::string(name); m_impl->m_headers.contains(str)) {
+        return m_impl->m_headers.at(str).at(0);
+    }
+    return std::nullopt;
+}
+
+std::optional<std::vector<std::string>> WebResponse::headersWithName(std::string_view name) const {
+    if (auto str = std::string(name); m_impl->m_headers.contains(str)) {
+        return m_impl->m_headers.at(str);
     }
     return std::nullopt;
 }

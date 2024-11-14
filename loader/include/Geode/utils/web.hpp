@@ -82,7 +82,8 @@ namespace geode::utils::web {
         Result<> into(std::filesystem::path const& path) const;
 
         std::vector<std::string> headers() const;
-        std::optional<std::string> header(std::string_view name, int index = 0) const;
+        std::optional<std::string> header(std::string_view name) const;
+        std::optional<std::vector<std::string>> headersWithName(std::string_view name) const;
     };
 
     class GEODE_DLL WebProgress final {
