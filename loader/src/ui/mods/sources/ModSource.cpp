@@ -163,34 +163,41 @@ server::ServerRequest<server::ServerModMetadata> ModSource::fetchServerInfo() co
     // should deal with performance issues
     return server::getMod(this->getID());
 }
-server::ServerRequest<std::unordered_set<std::string>> ModSource::fetchValidTags() const {
-    return std::visit(makeVisitor {
-        [](server::ServerModMetadata const& metadata) {
-            // Server info tags are always certain to be valid since the server has already validated them
-            return server::ServerRequest<std::unordered_set<std::string>>::immediate(Ok(metadata.tags));
+server::ServerRequest<std::vector<server::ServerTag>> ModSource::fetchValidTags() const {
+    std::unordered_set<std::string> modTags;
+    std::visit(makeVisitor {
+        [&](Mod* mod) {
+            modTags = mod->getMetadata().getTags();
         },
-        [this](auto const&) {
-            return server::getTags().map(
-                [modTags = this->getMetadata().getTags()](auto* result) -> Result<std::unordered_set<std::string>, server::ServerError> {
-                    if (result->isOk()) {
-                        std::unordered_set<std::string> fetched = result->unwrap();
-                        // Filter out invalid tags
-                        auto finalTags = std::unordered_set<std::string>();
-                        for (auto& tag : modTags) {
-                            if (result->unwrap().contains(tag)) {
-                                finalTags.insert(tag);
-                            }
-                        }
-                    }
-
-                    return Ok(finalTags);
-                },
-                [](server::ServerProgress* progress) {
-                    return *progress;
-                }
-            );
+        [&](server::ServerModMetadata const& metadata) {
+            modTags = metadata.tags;
         },
     }, m_value);
+    
+    // This does two things: 
+    // 1. For installed mods, it filters out invalid tags
+    // 2. For everything else, it gets the rest of the tag info (display name) from the server
+    return server::getTags().map(
+        [modTags = std::move(modTags)](auto* result) -> Result<std::vector<server::ServerTag>, server::ServerError> {
+            auto finalTags = std::vector<server::ServerTag>();
+            if (result->isOk()) {
+                auto fetched = result->unwrap();
+                // Filter out invalid tags
+                for (auto& tag : modTags) {
+                    auto stag = ranges::find(fetched, [&tag](server::ServerTag const& stag) {
+                        return stag.name == tag;
+                    });
+                    if (stag) {
+                        finalTags.push_back(*stag);
+                    }
+                }
+            }
+            return Ok(finalTags);
+        },
+        [](server::ServerProgress* progress) {
+            return *progress;
+        }
+    );
 }
 server::ServerRequest<std::optional<server::ServerModUpdate>> ModSource::checkUpdates() {
     m_availableUpdate = std::nullopt;

@@ -885,7 +885,7 @@ void ModPopup::onCheckUpdates(typename server::ServerRequest<std::optional<serve
     }
 }
 
-void ModPopup::onLoadTags(typename server::ServerRequest<std::unordered_set<std::string>>::Event* event) {
+void ModPopup::onLoadTags(typename server::ServerRequest<std::vector<server::ServerTag>>::Event* event) {
     if (event->getValue() && event->getValue()->isOk()) {
         auto data = event->getValue()->unwrap();
         m_tags->removeAllChildren();
@@ -904,7 +904,7 @@ void ModPopup::onLoadTags(typename server::ServerRequest<std::unordered_set<std:
         // If the build times from the cool popup become too long then we can 
         // probably move that to a normal FLAlert that explains "Modtober was 
         // this contest blah blah this mod was made for it"
-        else if (data.contains("modtober24")) {
+        else if (ranges::contains(data, [](auto const& tag) { return tag.name == "modtober24"; })) {
             auto menu = CCMenu::create();
             menu->setID("modtober-banner");
             menu->ignoreAnchorPointForPosition(false);

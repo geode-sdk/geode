@@ -47,7 +47,7 @@ public:
     server::ServerRequest<server::ServerModMetadata> fetchServerInfo() const;
     server::ServerRequest<std::optional<std::string>> fetchAbout() const;
     server::ServerRequest<std::optional<std::string>> fetchChangelog() const;
-    server::ServerRequest<std::unordered_set<std::string>> fetchValidTags() const;
+    server::ServerRequest<std::vector<server::ServerTag>> fetchValidTags() const;
     server::ServerRequest<std::optional<server::ServerModUpdate>> checkUpdates();
     void startInstall();
 };

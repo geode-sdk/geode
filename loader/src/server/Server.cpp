@@ -246,6 +246,31 @@ std::string ServerDateTime::toAgoString() const {
     return fmt::format("{:%b %d %Y}", value);
 }
 
+Result<ServerTag> ServerTag::parse(matjson::Value const& raw) {
+    auto root = checkJson(raw, "ServerTag");
+    auto res = ServerTag();
+
+    root.needs("id").into(res.id);
+    root.needs("name").into(res.name);
+    root.needs("display_name").into(res.displayName);
+
+    return root.ok(res);
+}
+Result<std::vector<ServerTag>> ServerTag::parseList(matjson::Value const& raw) {
+    auto payload = checkJson(raw, "ServerTagsList");
+    std::vector<ServerTag> list {};
+    for (auto& item : payload.items()) {
+        auto mod = ServerTag::parse(item.json());
+        if (mod) {
+            list.push_back(mod.unwrap());
+        }
+        else {
+            log::error("Unable to parse tag from the server: {}", mod.unwrapErr());
+        }
+    }
+    return payload.ok(list);
+}
+
 Result<ServerDateTime> ServerDateTime::parse(std::string const& str) {
     std::stringstream ss(str);
     date::sys_seconds seconds;
@@ -690,33 +715,25 @@ ServerRequest<ByteVector> server::getModLogo(std::string const& id, bool useCach
     );
 }
 
-ServerRequest<std::unordered_set<std::string>> server::getTags(bool useCache) {
+ServerRequest<std::vector<ServerTag>> server::getTags(bool useCache) {
     if (useCache) {
         return getCache<getTags>().get();
     }
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
-    return req.get(formatServerURL("/tags")).map(
-        [](web::WebResponse* response) -> Result<std::unordered_set<std::string>, ServerError> {
+    return req.get(formatServerURL("/detailed-tags")).map(
+        [](web::WebResponse* response) -> Result<std::vector<ServerTag>, ServerError> {
             if (response->ok()) {
                 // Parse payload
                 auto payload = parseServerPayload(*response);
                 if (!payload) {
                     return Err(payload.unwrapErr());
                 }
-                matjson::Value json = payload.unwrap();
-                if (!json.isArray()) {
-                    return Err(ServerError(response->code(), "Expected a string array"));
+                auto list = ServerTag::parseList(payload.unwrap());
+                if (!list) {
+                    return Err(ServerError(response->code(), "Unable to parse response: {}", list.unwrapErr()));
                 }
-
-                std::unordered_set<std::string> tags;
-                for (auto item : json) {
-                    if (!item.isString()) {
-                        return Err(ServerError(response->code(), "Expected a string array"));
-                    }
-                    tags.insert(item.asString().unwrap());
-                }
-                return Ok(tags);
+                return Ok(list.unwrap());
             }
             return Err(parseServerError(*response));
         },
