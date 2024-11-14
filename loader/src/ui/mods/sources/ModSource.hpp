@@ -2,6 +2,7 @@
 
 #include <Geode/loader/Mod.hpp>
 #include <server/Server.hpp>
+#include <loader/LoaderImpl.hpp>
 
 using namespace geode::prelude;
 
@@ -23,7 +24,6 @@ public:
     ModSource() = default;
     ModSource(Mod* mod);
     ModSource(server::ServerModMetadata&& metadata);
-    ModSource(ModSuggestion&& suggestion);
 
     std::string getID() const;
     ModMetadata getMetadata() const;

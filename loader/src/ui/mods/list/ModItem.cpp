@@ -285,7 +285,7 @@ bool ModItem::init(ModSource&& source) {
                     m_recommendedBy->addChild(nameLabel);
 
                     m_recommendedBy->setLayout(
-                RowLayout::create()
+                        RowLayout::create()
                             ->setDefaultScaleLimits(.1f, 1.f)
                             ->setAxisAlignment(AxisAlignment::Start)
                     );
@@ -392,10 +392,6 @@ void ModItem::updateState() {
                 m_bg->setColor("mod-list-featured-color"_cc3b);
                 m_bg->setOpacity(65);
             }
-        },
-        [this](ModSuggestion const& suggestion) {
-            m_bg->setColor("mod-list-recommended-bg"_cc3b);
-            m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
         }
     });
 

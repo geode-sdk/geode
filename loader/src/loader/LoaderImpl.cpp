@@ -29,6 +29,9 @@
 #include <string_view>
 #include <vector>
 
+#include <server/DownloadManager.hpp>
+#include <Geode/ui/Popup.hpp>
+
 using namespace geode::prelude;
 
 Loader::Impl* LoaderImpl::get() {
@@ -405,17 +408,16 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
         return;
     }
 
-    if (!this->isModVersionSupported(node->getMetadata().getGeodeVersion())) {
+    auto geodeVerRes = node->getMetadata().checkGeodeVersion();
+    if (!geodeVerRes) {
         this->addProblem({
-            node->getMetadata().getGeodeVersion() > this->getVersion() ? LoadProblem::Type::NeedsNewerGeodeVersion : LoadProblem::Type::UnsupportedGeodeVersion,
+            node->getMetadata().getGeodeVersion() > this->getVersion() ?
+                LoadProblem::Type::NeedsNewerGeodeVersion : 
+                LoadProblem::Type::UnsupportedGeodeVersion,
             node,
-            fmt::format(
-                "Geode version {}\nis required to run this mod\n(installed: {})",
-                node->getMetadata().getGeodeVersion().toVString(),
-                this->getVersion().toVString()
-            )
+            geodeVerRes.unwrapErr()
         });
-        log::error("Unsupported Geode version: {}", node->getMetadata().getGeodeVersion());
+        log::error("{}", geodeVerRes.unwrapErr());
         log::popNest();
         return;
     }
@@ -977,4 +979,171 @@ bool Loader::Impl::isSafeMode() const {
 
 void Loader::Impl::forceSafeMode() {
     m_forceSafeMode = true;
+}
+
+void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path, std::function<void()> after) {
+    auto res = ModMetadata::createFromGeodeFile(path);
+    if (!res) {
+        FLAlertLayer::create(
+            "Invalid File",
+            fmt::format(
+                "The path <cy>'{}'</c> is not a valid Geode mod: {}",
+                path.string(),
+                res.unwrapErr()
+            ),
+            "OK"
+        )->show();
+        return;
+    }
+    auto meta = res.unwrap();
+
+    auto check = meta.checkTargetVersions();
+    if (!check) {
+        FLAlertLayer::create(
+            "Invalid Mod Version",
+            fmt::format(
+                "The mod <cy>{}</c> can not be installed: {}",
+                meta.getID(),
+                check.unwrapErr()
+            ),
+            "OK"
+        )->show();
+    }
+
+    auto doInstallModFromFile = [this, path, meta, after]() {
+        std::error_code ec;
+
+        static size_t MAX_ATTEMPTS = 10;
+
+        // Figure out a free path to install to
+        auto installTo = dirs::getModsDir() / fmt::format("{}.geode", meta.getID());
+        size_t counter = 0;
+        while (std::filesystem::exists(installTo, ec) && counter < MAX_ATTEMPTS) {
+            installTo = dirs::getModsDir() / fmt::format("{}-{}.geode", meta.getID(), counter);
+            counter += 1;
+        }
+
+        // This is incredibly unlikely but theoretically possible
+        if (counter >= MAX_ATTEMPTS) {
+            FLAlertLayer::create(
+                "Unable to Install",
+                fmt::format(
+                    "Unable to install mod <co>{}</c>: Can't find a free filename!",
+                    meta.getID()
+                ),
+                "OK"
+            )->show();
+            return;
+        }
+
+        // Actually copy the file over to the install directory
+        std::filesystem::copy_file(path, installTo, ec);
+        if (ec) {
+            FLAlertLayer::create(
+                "Unable to Install",
+                fmt::format(
+                    "Unable to install mod <co>{}</c>: {} (Error code <cr>{}</c>)",
+                    meta.getID(), ec.message(), ec.value()
+                ),
+                "OK"
+            )->show();
+            return;
+        }
+
+        // Mark an updated mod as updated or add to the mods list
+        if (m_mods.contains(meta.getID())) {
+            m_mods.at(meta.getID())->m_impl->m_requestedAction = ModRequestedAction::Update;
+        }
+        // Otherwise add a new Mod
+        // This should be safe as all of the scary stuff in setup() is only relevant 
+        // for mods that are actually running
+        else {
+            auto mod = new Mod(meta);
+            auto res = mod->m_impl->setup();
+            if (!res) {
+                log::error("Unable to set up manually installed mod: {}", res.unwrapErr());
+            }
+            (void)mod->enable();
+            m_mods.insert({ meta.getID(), mod });
+        }
+
+        if (after) after();
+
+        // No need for the user to go and manually clean up the file
+        createQuickPopup(
+            "Mod Installed",
+            fmt::format(
+                "Mod <co>{}</c> has been succesfully installed from file! "
+                "<cy>Do you want to delete the original file?</c>",
+                meta.getName()
+            ),
+            "OK", "Delete File",
+            [path](auto, bool btn2) {
+                if (btn2) {
+                    std::error_code ec;
+                    std::filesystem::remove(path, ec);
+                    if (ec) {
+                        FLAlertLayer::create(
+                            "Unable to Delete",
+                            fmt::format(
+                                "Unable to delete <cy>{}</c>: {} (Error code <cr>{}</c>)",
+                                path, ec.message(), ec.value()
+                            ),
+                            "OK"
+                        )->show();
+                    }
+                    // No need to show a confirmation popup if succesful since that's 
+                    // to be assumed via pressing the button on the previous popup
+                }
+            }
+        );
+    };
+
+    if (auto existing = Loader::get()->getInstalledMod(meta.getID())) {
+        createQuickPopup(
+            "Already Installed",
+            fmt::format(
+                "The mod <cy>{}</c> <cj>v{}</c> has already been installed "
+                "as version <cl>{}</c>. Do you want to <co>replace the "
+                "installed version with the file</c>?",
+                meta.getID(), meta.getVersion(),
+                existing->getVersion()
+            ),
+            "Cancel", "Replace",
+            [doInstallModFromFile, path, existing, meta](auto, bool btn2) mutable {
+                std::error_code ec;
+                std::filesystem::remove(existing->getPackagePath(), ec);
+                if (ec) {
+                    FLAlertLayer::create(
+                        "Unable to Uninstall",
+                        fmt::format(
+                            "Unable to uninstall <cy>{}</c>: {} (Error code <cr>{}</c>)",
+                            existing->getID(), ec.message(), ec.value()
+                        ),
+                        "OK"
+                    )->show();
+                    return;
+                }
+                doInstallModFromFile();
+            }
+        );
+        return;
+    }
+
+    doInstallModFromFile();
+}
+
+bool Loader::Impl::isRestartRequired() const {
+    for (auto mod : Loader::get()->getAllMods()) {
+        if (mod->getRequestedAction() != ModRequestedAction::None) {
+            return true;
+        }
+        if (ModSettingsManager::from(mod)->restartRequired()) {
+            return true;
+        }
+    }
+    if (server::ModDownloadManager::get()->wantsRestart()) {
+        return true;
+    }
+    return false;
 }

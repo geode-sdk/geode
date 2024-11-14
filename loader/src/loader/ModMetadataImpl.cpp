@@ -572,6 +572,29 @@ Result<> ModMetadata::checkGameVersion() const {
     }
     return Ok();
 }
+Result<> ModMetadata::checkGeodeVersion() const {
+    if (!LoaderImpl::get()->isModVersionSupported(m_impl->m_geodeVersion)) {
+        auto current = LoaderImpl::get()->getVersion();
+        if (m_impl->m_geodeVersion > current) {
+            return Err(
+                "This mod was made for a newer version of Geode ({}). You currently have version {}.",
+                m_impl->m_geodeVersion, current
+            );
+        }
+        else {
+            return Err(
+                "This mod was made for an older version of Geode ({}). You currently have version {}.",
+                m_impl->m_geodeVersion, current
+            );
+        }
+    }
+    return Ok();
+}
+Result<> ModMetadata::checkTargetVersions() const {
+    GEODE_UNWRAP(this->checkGameVersion());
+    GEODE_UNWRAP(this->checkGeodeVersion());
+    return Ok();
+}
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
 void ModMetadata::setPath(std::filesystem::path const& value) {

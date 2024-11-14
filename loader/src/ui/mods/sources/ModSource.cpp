@@ -52,9 +52,6 @@ std::string ModSource::getID() const {
         [](server::ServerModMetadata const& metadata) {
             return metadata.id;
         },
-        [](ModSuggestion const& suggestion) {
-            return suggestion.suggestion.getID();
-        },
     }, m_value);
 }
 ModMetadata ModSource::getMetadata() const {
@@ -65,9 +62,6 @@ ModMetadata ModSource::getMetadata() const {
         [](server::ServerModMetadata const& metadata) {
             // Versions should be guaranteed to have at least one item
             return metadata.versions.front().metadata;
-        },
-        [](ModSuggestion const& suggestion) {
-            return suggestion.suggestion;
         },
     }, m_value);
 }
@@ -81,9 +75,6 @@ std::string ModSource::formatDevelopers() const {
             // Versions should be guaranteed to have at least one item
             return metadata.formatDevelopersToString();
         },
-        [](ModSuggestion const& suggestion) {
-            return ModMetadata::formatDeveloperDisplayString(suggestion.suggestion.getDevelopers());
-        },
     }, m_value);
 }
 
@@ -94,9 +85,6 @@ CCNode* ModSource::createModLogo() const {
         },
         [](server::ServerModMetadata const& metadata) {
             return createServerModLogo(metadata.id);
-        },
-        [](ModSuggestion const& suggestion) {
-            return createServerModLogo(suggestion.suggestion.getID());
         },
     }, m_value);
 }
@@ -112,9 +100,6 @@ bool ModSource::wantsRestart() const {
                 ModSettingsManager::from(mod)->restartRequired();
         },
         [](server::ServerModMetadata const& metdata) {
-            return false;
-        },
-        [](ModSuggestion const& suggestion) {
             return false;
         },
     }, m_value);
@@ -134,9 +119,6 @@ ModSource ModSource::convertForPopup() const {
             }
             return ModSource(server::ServerModMetadata(metadata));
         },
-        [](ModSuggestion const& suggestion) {
-            return ModSource(ModSuggestion(suggestion));
-        },
     }, m_value);
 }
 
@@ -149,6 +131,7 @@ server::ServerModMetadata const* ModSource::asServer() const {
 }
 
 server::ServerRequest<std::optional<std::string>> ModSource::fetchAbout() const {
+    // todo: write as visit
     if (auto mod = this->asMod()) {
         return server::ServerRequest<std::optional<std::string>>::immediate(Ok(mod->getMetadata().getDetails()));
     }
@@ -182,18 +165,19 @@ server::ServerRequest<server::ServerModMetadata> ModSource::fetchServerInfo() co
 }
 server::ServerRequest<std::unordered_set<std::string>> ModSource::fetchValidTags() const {
     return std::visit(makeVisitor {
-        [](Mod* mod) {
+        [](server::ServerModMetadata const& metadata) {
+            // Server info tags are always certain to be valid since the server has already validated them
+            return server::ServerRequest<std::unordered_set<std::string>>::immediate(Ok(metadata.tags));
+        },
+        [this](auto const&) {
             return server::getTags().map(
-                [mod](Result<std::unordered_set<std::string>, server::ServerError>* result) 
-                    -> Result<std::unordered_set<std::string>, server::ServerError> {
-                    std::unordered_set<std::string> finalTags;
-                    auto modTags = mod->getMetadata().getTags();
-
+                [modTags = this->getMetadata().getTags()](auto* result) -> Result<std::unordered_set<std::string>, server::ServerError> {
                     if (result->isOk()) {
                         std::unordered_set<std::string> fetched = result->unwrap();
                         // Filter out invalid tags
-                        for (std::string const& tag : modTags) {
-                            if (fetched.contains(tag)) {
+                        auto finalTags = std::unordered_set<std::string>();
+                        for (auto& tag : modTags) {
+                            if (result->unwrap().contains(tag)) {
                                 finalTags.insert(tag);
                             }
                         }
@@ -205,14 +189,6 @@ server::ServerRequest<std::unordered_set<std::string>> ModSource::fetchValidTags
                     return *progress;
                 }
             );
-        },
-        [](server::ServerModMetadata const& metadata) {
-            // Server info tags are always certain to be valid since the server has already validated them
-            return server::ServerRequest<std::unordered_set<std::string>>::immediate(Ok(metadata.tags));
-        },
-        [](ModSuggestion const& suggestion) {
-            // Suggestions are also guaranteed to be valid since they come from the server
-            return server::ServerRequest<std::unordered_set<std::string>>::immediate(Ok(suggestion.suggestion.getTags()));
         },
     }, m_value);
 }
@@ -232,10 +208,6 @@ server::ServerRequest<std::optional<server::ServerModUpdate>> ModSource::checkUp
         },
         [](server::ServerModMetadata const& metadata) {
             // Server mods aren't installed so you can't install updates for them
-            return server::ServerRequest<std::optional<server::ServerModUpdate>>::immediate(Ok(std::nullopt));
-        },
-        [](ModSuggestion const& suggestion) {
-            // Suggestions also aren't installed so you can't install updates for them
             return server::ServerRequest<std::optional<server::ServerModUpdate>>::immediate(Ok(std::nullopt));
         },
     }, m_value);
