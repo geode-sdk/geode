@@ -1073,7 +1073,7 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
         createQuickPopup(
             "Mod Installed",
             fmt::format(
-                "Mod <co>{}</c> has been succesfully installed from file! "
+                "Mod <co>{}</c> has been successfully installed from file! "
                 "<cy>Do you want to delete the original file?</c>",
                 meta.getName()
             ),
@@ -1092,7 +1092,7 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
                             "OK"
                         )->show();
                     }
-                    // No need to show a confirmation popup if succesful since that's 
+                    // No need to show a confirmation popup if successful since that's 
                     // to be assumed via pressing the button on the previous popup
                 }
             }
