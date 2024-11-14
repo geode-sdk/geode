@@ -35,6 +35,12 @@
  * Add hashtag symbol to CommonFilter::Any (#1131)
  * Disable forward compat on android (c9e97af)
 
+## v3.9.2
+ * Fix searching for mods returning unavailable mods (#1149)
+
+## v3.9.1
+ * Fix mod downloads not checking version (f575187)
+
 ## v3.9.0
  * Many changes to the settings ui (#1108)
    * Fuzzy search is now more reasonable
