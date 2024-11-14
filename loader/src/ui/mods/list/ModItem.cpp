@@ -8,6 +8,7 @@
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/loader/Loader.hpp>
+#include "server/DownloadManager.hpp"
 #include "ui/mods/GeodeStyle.hpp"
 #include "ui/mods/popups/ModPopup.hpp"
 #include "ui/mods/popups/DevPopup.hpp"
@@ -631,18 +632,7 @@ void ModItem::onEnable(CCObject*) {
     UpdateModListStateEvent(UpdateModState(m_source.getID())).post();
 }
 void ModItem::onInstall(CCObject*) {
-    if (auto updates = m_source.hasUpdates()) {
-        if (updates->replacement.has_value()) {
-            server::ModDownloadManager::get()->startDownload(
-                updates->replacement->id,
-                updates->replacement->version,
-                std::nullopt,
-                m_source.getID()
-            );
-            return;
-        }
-    }
-    server::ModDownloadManager::get()->startDownload(m_source.getID(), std::nullopt);
+    m_source.startInstall();
 }
 void ModItem::onDevelopers(CCObject*) {
     DevListPopup::create(m_source)->show();
