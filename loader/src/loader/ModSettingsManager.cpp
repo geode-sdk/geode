@@ -214,12 +214,12 @@ Result<> ModSettingsManager::load(matjson::Value const& json) {
     }
     return Ok();
 }
-void ModSettingsManager::save(matjson::Value& json) {
+matjson::Value ModSettingsManager::save() {
     for (auto& [key, _] : m_impl->settings) {
         m_impl->saveSettingValueToSave(key);
     }
     // Doing this since `ModSettingsManager` is expected to manage savedata fully
-    json = m_impl->savedata;
+    return m_impl->savedata;
 }
 matjson::Value& ModSettingsManager::getSaveData() {
     return m_impl->savedata;

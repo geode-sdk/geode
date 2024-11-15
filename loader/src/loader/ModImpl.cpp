@@ -210,8 +210,7 @@ Result<> Mod::Impl::saveData() {
     }
 
     // ModSettingsManager keeps track of the whole savedata
-    matjson::Value json;
-    m_settings->save(json);
+    matjson::Value json = m_settings->save();
 
     // saveData is expected to be synchronous, and always called from GD thread
     ModStateEvent(m_self, ModEventType::DataSaved).post();
