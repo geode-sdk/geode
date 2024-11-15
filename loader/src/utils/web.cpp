@@ -152,7 +152,7 @@ std::optional<std::string> WebResponse::header(std::string_view name) const {
     return std::nullopt;
 }
 
-std::optional<std::vector<std::string>> WebResponse::headersWithName(std::string_view name) const {
+std::optional<std::vector<std::string>> WebResponse::getAllHeadersNamed(std::string_view name) const {
     if (auto str = std::string(name); m_impl->m_headers.contains(str)) {
         return m_impl->m_headers.at(str);
     }

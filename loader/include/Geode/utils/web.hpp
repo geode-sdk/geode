@@ -91,7 +91,7 @@ namespace geode::utils::web {
          * @param name name of the header
          * @return std::optional<std::vector<std::string>>
          */
-        std::optional<std::vector<std::string>> headersWithName(std::string_view name) const;
+        std::optional<std::vector<std::string>> getAllHeadersNamed(std::string_view name) const;
     };
 
     class GEODE_DLL WebProgress final {
