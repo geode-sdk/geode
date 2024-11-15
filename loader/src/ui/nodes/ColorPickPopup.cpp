@@ -10,59 +10,33 @@
 
 using namespace geode::prelude;
 
-// class ColorPickPopupEvent::Impl final {
-// public:
-//     ColorPickPopup* popup;
-//     ccColor4B color;
-//     bool closed = false;
-// };
+class ColorPickPopup::Impl final {
+public:
+    cocos2d::ccColor4B m_color;
+    cocos2d::ccColor4B m_originalColor;
+    cocos2d::extension::CCControlColourPicker* m_picker;
+    Slider* m_opacitySlider = nullptr;
+    TextInput* m_rInput;
+    TextInput* m_gInput;
+    TextInput* m_bInput;
+    TextInput* m_hexInput;
+    TextInput* m_opacityInput = nullptr;
+    ColorPickPopupDelegate* m_delegate = nullptr;
+    cocos2d::CCSprite* m_newColorSpr;
+    CCMenuItemSpriteExtra* m_resetBtn;
+};
 
-// ColorPickPopupEvent::ColorPickPopupEvent(ColorPickPopup* popup, ccColor4B const& color)
-//   : m_impl(std::make_shared<Impl>())
-// {
-//     m_impl->popup = popup;
-//     m_impl->color = color;
-// }
-// ColorPickPopupEvent::~ColorPickPopupEvent() = default;
+ColorPickPopup::ColorPickPopup() {
+    m_impl = std::make_unique<Impl>();
+}
 
-// ColorPickPopup* ColorPickPopupEvent::getPopup() const {
-//     return m_impl->popup;
-// }
-// ccColor4B ColorPickPopupEvent::getColor() const {
-//     return m_impl->color;
-// }
-// bool ColorPickPopupEvent::isPopupClosed() const {
-//     return m_impl->closed;
-// }
+ColorPickPopup::~ColorPickPopup() {}
 
-// class ColorPickPopupEventFilter::Impl final {
-// public:
-//     ColorPickPopup* popup;
-// };
-
-// ListenerResult ColorPickPopupEventFilter::handle(std::function<Callback> fn, ColorPickPopupEvent* event) {
-//     if (event->getPopup() == m_impl->popup) {
-//         if (event->isPopupClosed()) {
-//             m_impl->popup = nullptr;
-//         }
-//         else {
-//             fn(event);
-//         }
-//     }
-//     return ListenerResult::Propagate;
-// }
-// ColorPickPopupEventFilter::ColorPickPopupEventFilter() : ColorPickPopupEventFilter(nullptr) {}
-// ColorPickPopupEventFilter::ColorPickPopupEventFilter(ColorPickPopup* popup)
-//   : m_impl(std::make_shared<Impl>())
-// {
-//     m_impl->popup = popup;
-// }
-// ColorPickPopupEventFilter::~ColorPickPopupEventFilter() = default;
 
 bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
     m_noElasticity = true;
-    m_color = color;
-    m_originalColor = color;
+    m_impl->m_color = color;
+    m_impl->m_originalColor = color;
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
@@ -115,25 +89,25 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
 
     // picker
 
-    m_picker = CCControlColourPicker::colourPicker();
-    m_picker->setDelegate(this);
-    m_picker->setID("color-picker");
+    m_impl->m_picker = CCControlColourPicker::colourPicker();
+    m_impl->m_picker->setDelegate(this);
+    m_impl->m_picker->setID("color-picker");
 
     auto pickerWrapper = CCNode::create();
-    pickerWrapper->setContentSize(m_picker->getContentSize());
+    pickerWrapper->setContentSize(m_impl->m_picker->getContentSize());
     pickerWrapper->setID("picker-wrapper");
-    pickerWrapper->addChildAtPosition(m_picker, Anchor::Center, ccp(0, 0));
+    pickerWrapper->addChildAtPosition(m_impl->m_picker, Anchor::Center, ccp(0, 0));
     pickerRow->addChild(pickerWrapper);
 
     auto oldColorSpr = CCSprite::createWithSpriteFrameName("whiteSquare60_001.png");
-    oldColorSpr->setColor(to3B(m_color));
+    oldColorSpr->setColor(to3B(m_impl->m_color));
     oldColorSpr->setID("old-color-spr");
     colorMenu->addChild(oldColorSpr);
 
-    m_newColorSpr = CCSprite::createWithSpriteFrameName("whiteSquare60_001.png");
-    m_newColorSpr->setColor(to3B(m_color));
-    m_newColorSpr->setID("new-color-spr");
-    colorMenu->addChild(m_newColorSpr);
+    m_impl->m_newColorSpr = CCSprite::createWithSpriteFrameName("whiteSquare60_001.png");
+    m_impl->m_newColorSpr->setColor(to3B(m_impl->m_color));
+    m_impl->m_newColorSpr->setID("new-color-spr");
+    colorMenu->addChild(m_impl->m_newColorSpr);
 
     auto resetBtnSpr = ButtonSprite::create(
         CCSprite::createWithSpriteFrameName("reset-gold.png"_spr), 0x20, true, 0.f,
@@ -141,16 +115,16 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
     );
     resetBtnSpr->setScale(.6f);
 
-    m_resetBtn =
+    m_impl->m_resetBtn =
         CCMenuItemSpriteExtra::create(resetBtnSpr, this, menu_selector(ColorPickPopup::onReset));
-    m_resetBtn->setPosition({ -165.f, -50.f });
-    m_resetBtn->setLayoutOptions(
+    m_impl->m_resetBtn->setPosition({ -165.f, -50.f });
+    m_impl->m_resetBtn->setLayoutOptions(
         AxisLayoutOptions::create()
             ->setPrevGap(10.f)
             ->setNextGap(10.f)
     );
-    m_resetBtn->setID("reset-btn");
-    colorMenu->addChild(m_resetBtn);
+    m_impl->m_resetBtn->setID("reset-btn");
+    colorMenu->addChild(m_impl->m_resetBtn);
 
 
 
@@ -194,11 +168,11 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
     rText->setID("r-text");
     rColumn->addChild(rText);
 
-    m_rInput = TextInput::create(50.f, "R");
-    m_rInput->setScale(.7f);
-    m_rInput->setDelegate(this, TAG_R_INPUT);
-    m_rInput->setID("r-input");
-    rColumn->addChild(m_rInput);
+    m_impl->m_rInput = TextInput::create(50.f, "R");
+    m_impl->m_rInput->setScale(.7f);
+    m_impl->m_rInput->setDelegate(this, TAG_R_INPUT);
+    m_impl->m_rInput->setID("r-input");
+    rColumn->addChild(m_impl->m_rInput);
 
     rColumn->updateLayout();
     auto rRect = calculateChildCoverage(rColumn);
@@ -223,11 +197,11 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
     gText->setID("g-text");
     gColumn->addChild(gText);
 
-    m_gInput = TextInput::create(50.f, "G");
-    m_gInput->setScale(.7f);
-    m_gInput->setDelegate(this, TAG_G_INPUT);
-    m_gInput->setID("g-input");
-    gColumn->addChild(m_gInput);
+    m_impl->m_gInput = TextInput::create(50.f, "G");
+    m_impl->m_gInput->setScale(.7f);
+    m_impl->m_gInput->setDelegate(this, TAG_G_INPUT);
+    m_impl->m_gInput->setID("g-input");
+    gColumn->addChild(m_impl->m_gInput);
 
     gColumn->updateLayout();
     auto gRect = calculateChildCoverage(gColumn);
@@ -252,11 +226,11 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
     bText->setID("b-text");
     bColumn->addChild(bText);
 
-    m_bInput = TextInput::create(50.f, "B");
-    m_bInput->setScale(.7f);
-    m_bInput->setDelegate(this, TAG_B_INPUT);
-    m_bInput->setID("b-input");
-    bColumn->addChild(m_bInput);
+    m_impl->m_bInput = TextInput::create(50.f, "B");
+    m_impl->m_bInput->setScale(.7f);
+    m_impl->m_bInput->setDelegate(this, TAG_B_INPUT);
+    m_impl->m_bInput->setID("b-input");
+    bColumn->addChild(m_impl->m_bInput);
 
     bColumn->updateLayout();
     auto bRect = calculateChildCoverage(bColumn);
@@ -281,11 +255,11 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
     hexText->setID("hex-text");
     hexColumn->addChild(hexText);
 
-    m_hexInput = TextInput::create(165.f, "Hex");
-    m_hexInput->setScale(.7f);
-    m_hexInput->setDelegate(this, TAG_HEX_INPUT);
-    m_hexInput->setID("hex-input");
-    hexColumn->addChild(m_hexInput);
+    m_impl->m_hexInput = TextInput::create(165.f, "Hex");
+    m_impl->m_hexInput->setScale(.7f);
+    m_impl->m_hexInput->setDelegate(this, TAG_HEX_INPUT);
+    m_impl->m_hexInput->setID("hex-input");
+    hexColumn->addChild(m_impl->m_hexInput);
 
     hexColumn->updateLayout();
     rgbRow->updateLayout();
@@ -324,22 +298,22 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
         opacityText->setID("opacity-text");
         sliderColumn->addChild(opacityText);
 
-        m_opacitySlider =
+        m_impl->m_opacitySlider =
             Slider::create(this, menu_selector(ColorPickPopup::onOpacitySlider), .75f);
-        m_opacitySlider->setValue(color.a / 255.f);
-        m_opacitySlider->setID("opacity-slider");
+        m_impl->m_opacitySlider->setValue(color.a / 255.f);
+        m_impl->m_opacitySlider->setID("opacity-slider");
         
         auto sliderWrapper = CCNode::create();
-        sliderWrapper->setContentSize(ccp(m_opacitySlider->m_width, m_opacitySlider->m_height) * .75f);
+        sliderWrapper->setContentSize(ccp(m_impl->m_opacitySlider->m_width, m_impl->m_opacitySlider->m_height) * .75f);
         sliderWrapper->setID("slider-wrapper");
-        sliderWrapper->addChildAtPosition(m_opacitySlider, Anchor::Center, ccp(0, 0));
+        sliderWrapper->addChildAtPosition(m_impl->m_opacitySlider, Anchor::Center, ccp(0, 0));
         sliderColumn->addChild(sliderWrapper);
 
-        m_opacityInput = TextInput::create(60.f, "Opacity");
-        m_opacityInput->setScale(.7f);
-        m_opacityInput->setDelegate(this, TAG_OPACITY_INPUT);
-        m_opacityInput->setID("opacity-input");
-        opacitySection->addChild(m_opacityInput);
+        m_impl->m_opacityInput = TextInput::create(60.f, "Opacity");
+        m_impl->m_opacityInput->setScale(.7f);
+        m_impl->m_opacityInput->setDelegate(this, TAG_OPACITY_INPUT);
+        m_impl->m_opacityInput->setID("opacity-input");
+        opacitySection->addChild(m_impl->m_opacityInput);
         
         sliderColumn->updateLayout();
         opacitySection->updateLayout();
@@ -366,35 +340,35 @@ void ColorPickPopup::updateState(CCNode* except) {
         inp->setString(value, false);              \
     }
 
-    IF_NOT_EXCEPT(m_rInput, numToString<int>(m_color.r));
-    IF_NOT_EXCEPT(m_gInput, numToString<int>(m_color.g));
-    IF_NOT_EXCEPT(m_bInput, numToString<int>(m_color.b));
-    IF_NOT_EXCEPT(m_hexInput, cc3bToHexString(to3B(m_color)));
-    if (m_opacityInput) {
-        IF_NOT_EXCEPT(m_opacityInput, numToString(m_color.a / 255.f, 2));
+    IF_NOT_EXCEPT(m_impl->m_rInput, numToString<int>(m_impl->m_color.r));
+    IF_NOT_EXCEPT(m_impl->m_gInput, numToString<int>(m_impl->m_color.g));
+    IF_NOT_EXCEPT(m_impl->m_bInput, numToString<int>(m_impl->m_color.b));
+    IF_NOT_EXCEPT(m_impl->m_hexInput, cc3bToHexString(to3B(m_impl->m_color)));
+    if (m_impl->m_opacityInput) {
+        IF_NOT_EXCEPT(m_impl->m_opacityInput, numToString(m_impl->m_color.a / 255.f, 2));
     }
-    if (m_opacitySlider) {
-        m_opacitySlider->setValue(m_color.a / 255.f);
+    if (m_impl->m_opacitySlider) {
+        m_impl->m_opacitySlider->setValue(m_impl->m_color.a / 255.f);
     }
-    if (m_picker != except) {
-        m_picker->setDelegate(nullptr);
-        m_picker->setColorValue(to3B(m_color));
-        m_picker->setDelegate(this);
+    if (m_impl->m_picker != except) {
+        m_impl->m_picker->setDelegate(nullptr);
+        m_impl->m_picker->setColorValue(to3B(m_impl->m_color));
+        m_impl->m_picker->setDelegate(this);
     }
-    m_resetBtn->setVisible(m_originalColor != m_color);
-    m_newColorSpr->setColor(to3B(m_color));
-    if (m_delegate) {
-        m_delegate->updateColor(m_color);
+    m_impl->m_resetBtn->setVisible(m_impl->m_originalColor != m_impl->m_color);
+    m_impl->m_newColorSpr->setColor(to3B(m_impl->m_color));
+    if (m_impl->m_delegate) {
+        m_impl->m_delegate->updateColor(m_impl->m_color);
     }
 }
 
 void ColorPickPopup::onOpacitySlider(CCObject* sender) {
-    m_color.a = static_cast<GLubyte>(static_cast<SliderThumb*>(sender)->getValue() * 255.f);
+    m_impl->m_color.a = static_cast<GLubyte>(static_cast<SliderThumb*>(sender)->getValue() * 255.f);
     this->updateState();
 }
 
 void ColorPickPopup::onReset(CCObject*) {
-    m_color = m_originalColor;
+    m_impl->m_color = m_impl->m_originalColor;
     this->updateState();
 }
 
@@ -404,32 +378,32 @@ void ColorPickPopup::textChanged(CCTextInputNode* input) {
             case TAG_HEX_INPUT:
                 {
                     if (auto color = cc3bFromHexString(input->getString(), true)) {
-                        m_color.r = color.unwrap().r;
-                        m_color.g = color.unwrap().g;
-                        m_color.b = color.unwrap().b;
+                        m_impl->m_color.r = color.unwrap().r;
+                        m_impl->m_color.g = color.unwrap().g;
+                        m_impl->m_color.b = color.unwrap().b;
                     }
                 }
                 break;
 
             case TAG_OPACITY_INPUT: {
                 auto res = numFromString<float>(input->getString().c_str());
-                if (res) m_color.a = std::clamp(static_cast<int>(res.unwrap() * 255.f), 0, 255);
+                if (res) m_impl->m_color.a = std::clamp(static_cast<int>(res.unwrap() * 255.f), 0, 255);
                 break;
             }
 
             case TAG_R_INPUT: {
                 auto res = numFromString<uint32_t>(input->getString().c_str());
-                if (res) m_color.r = std::clamp(res.unwrap(), 0u, 255u);
+                if (res) m_impl->m_color.r = std::clamp(res.unwrap(), 0u, 255u);
                 break;
             }
             case TAG_G_INPUT: {
                 auto res = numFromString<uint32_t>(input->getString().c_str());
-                if (res) m_color.g = std::clamp(res.unwrap(), 0u, 255u);
+                if (res) m_impl->m_color.g = std::clamp(res.unwrap(), 0u, 255u);
                 break;
             }
             case TAG_B_INPUT: {
                 auto res = numFromString<uint32_t>(input->getString().c_str());
-                if (res) m_color.b = std::clamp(res.unwrap(), 0u, 255u);
+                if (res) m_impl->m_color.b = std::clamp(res.unwrap(), 0u, 255u);
                 break;
             }
 
@@ -440,18 +414,18 @@ void ColorPickPopup::textChanged(CCTextInputNode* input) {
 }
 
 void ColorPickPopup::colorValueChanged(ccColor3B color) {
-    m_color.r = color.r;
-    m_color.g = color.g;
-    m_color.b = color.b;
-    this->updateState(m_picker);
+    m_impl->m_color.r = color.r;
+    m_impl->m_color.g = color.g;
+    m_impl->m_color.b = color.b;
+    this->updateState(m_impl->m_picker);
 }
 
 void ColorPickPopup::setDelegate(ColorPickPopupDelegate* delegate) {
-    m_delegate = delegate;
+    m_impl->m_delegate = delegate;
 }
 
 void ColorPickPopup::setColorTarget(cocos2d::CCSprite* spr) {
-    m_picker->setColorTarget(spr);
+    m_impl->m_picker->setColorTarget(spr);
 }
 
 ColorPickPopup* ColorPickPopup::create(ccColor4B const& color, bool isRGBA) {
