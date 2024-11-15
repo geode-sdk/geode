@@ -39,6 +39,7 @@ namespace geode {
 
         void onOpacitySlider(cocos2d::CCObject* sender);
         void onReset(cocos2d::CCObject* sender);
+        void onClose(cocos2d::CCObject* sender) override;
 
         void textChanged(CCTextInputNode* input) override;
         void colorValueChanged(cocos2d::ccColor3B color) override;

@@ -335,10 +335,10 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
 }
 
 void ColorPickPopup::updateState(CCNode* except) {
-#define IF_NOT_EXCEPT(inp, value)                  \
-    if (inp->getInputNode() != except) {           \
-        inp->setString(value, false);              \
-    }
+    #define IF_NOT_EXCEPT(inp, value)                  \
+        if (inp->getInputNode() != except) {           \
+            inp->setString(value, false);              \
+        }
 
     IF_NOT_EXCEPT(m_impl->m_rInput, numToString<int>(m_impl->m_color.r));
     IF_NOT_EXCEPT(m_impl->m_gInput, numToString<int>(m_impl->m_color.g));
@@ -357,9 +357,6 @@ void ColorPickPopup::updateState(CCNode* except) {
     }
     m_impl->m_resetBtn->setVisible(m_impl->m_originalColor != m_impl->m_color);
     m_impl->m_newColorSpr->setColor(to3B(m_impl->m_color));
-    if (m_impl->m_delegate) {
-        m_impl->m_delegate->updateColor(m_impl->m_color);
-    }
 }
 
 void ColorPickPopup::onOpacitySlider(CCObject* sender) {
@@ -370,6 +367,13 @@ void ColorPickPopup::onOpacitySlider(CCObject* sender) {
 void ColorPickPopup::onReset(CCObject*) {
     m_impl->m_color = m_impl->m_originalColor;
     this->updateState();
+}
+
+void ColorPickPopup::onClose(CCObject* sender) {
+    if (m_impl->m_delegate) {
+        m_impl->m_delegate->updateColor(m_impl->m_color);
+    }
+    Popup::onClose(sender);
 }
 
 void ColorPickPopup::textChanged(CCTextInputNode* input) {
