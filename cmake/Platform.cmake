@@ -80,7 +80,6 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Win64")
 		${GEODE_LOADER_PATH}/include/link/win64/ngtcp2_crypto_boringssl.lib
 		${GEODE_LOADER_PATH}/include/link/win64/libcurl.lib
 		${GEODE_LOADER_PATH}/include/link/win64/glew32.lib
-		${GEODE_LOADER_PATH}/include/link/win64/gdstring.lib
 		${GEODE_LOADER_PATH}/include/link/win64/fmod.lib
 		opengl32
 	)
