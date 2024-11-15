@@ -95,7 +95,7 @@ namespace geode {
         enum class Status {
             /// The task is still running or waiting to start
             Pending,
-            /// The task has succesfully finished
+            /// The task has successfully finished
             Finished,
             /// The task has been cancelled
             Cancelled,

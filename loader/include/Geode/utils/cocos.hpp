@@ -850,7 +850,7 @@ namespace geode::cocos {
      * @param permissive If true, strings like "f" are considered valid 
      * representations of the color white. Useful for UIs that allow entering 
      * a hex color. Empty strings evaluate to pure white
-     * @returns A ccColor3B if it could be succesfully parsed, or an error 
+     * @returns A ccColor3B if it could be successfully parsed, or an error 
      * indicating the failure reason
      */
     GEODE_DLL Result<cocos2d::ccColor3B> cc3bFromHexString(std::string const& hexValue, bool permissive = false);
@@ -863,7 +863,7 @@ namespace geode::cocos {
      * @param permissive If true, strings like "f" are considered valid 
      * representations of the color white. Useful for UIs that allow entering 
      * a hex color. Empty strings evaluate to pure white
-     * @returns A ccColor4B if it could be succesfully parsed, or an error 
+     * @returns A ccColor4B if it could be successfully parsed, or an error 
      * indicating the failure reason
      */
     GEODE_DLL Result<cocos2d::ccColor4B> cc4bFromHexString(std::string const& hexValue, bool requireAlpha = false, bool permissive = false);
