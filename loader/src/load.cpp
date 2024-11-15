@@ -67,13 +67,13 @@ void tryShowForwardCompat() {
         return;
 
     // TODO: change text later
-    console::messageBox(
-        "Forward Compatibility Warning",
-        "Geode is running in a newer version of GD than Geode targets.\n"
-        "UI is going to be disabled, platform console is forced on and crashes can be more common.\n"
-        "However, if your game crashes, it is probably caused by an outdated mod and not Geode itself.",
-        Severity::Warning
-    );
+    // console::messageBox(
+    //     "Forward Compatibility Warning",
+    //     "Geode is running in a newer version of GD than Geode targets.\n"
+    //     "UI is going to be disabled, platform console is forced on and crashes can be more common.\n"
+    //     "However, if your game crashes, it is probably caused by an outdated mod and not Geode itself.",
+    //     Severity::Warning
+    // );
 
     Mod::get()->setSavedValue<std::string>(
         "last-forward-compat-warn-popup-ver",
