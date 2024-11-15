@@ -5,7 +5,6 @@
 #include "../DefaultInclude.hpp"
 #include <chrono>
 #include <iomanip>
-#include <sstream>
 #include <string>
 #include <vector>
 #include <filesystem>
@@ -64,9 +63,7 @@ namespace geode {
 
         template <typename T>
         std::string intToHex(T i) {
-            std::stringstream stream;
-            stream << std::showbase << std::setbase(16) << (uint64_t)i;
-            return stream.str();
+            return fmt::format("{:#x}", i);
         }
 
         /**
@@ -75,15 +72,16 @@ namespace geode {
          * @param num Number to convert to string
          * @param precision Precision of the converted number
          * @returns Number as string
+         * @note Precision has no effect on integers
          */
         template <class Num>
         std::string numToString(Num num, size_t precision = 0) {
-            std::stringstream ss;
-            if (precision) {
-                ss << std::fixed << std::setprecision(precision);
+            if constexpr (std::is_floating_point_v<Num>) {
+                if (precision) {
+                    return fmt::format("{:.{}f}", num, precision);
+                }
             }
-            ss << num;
-            return ss.str();
+            return fmt::to_string(num);
         }
 
         /**
