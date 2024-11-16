@@ -58,6 +58,8 @@ struct $modify(MenuLayer) {
         log::info("Loader flag 'bool-arg': {}", Loader::get()->getLaunchFlag("bool-arg"));
         log::info("Loader int 'int-arg': {}", Loader::get()->parseLaunchArgument<int>("int-arg").unwrapOr(0));
 
+        log::debug("should run second!");
+
         return true;
     }
 };
