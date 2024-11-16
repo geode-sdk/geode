@@ -28,6 +28,7 @@ public:
     DownloadStatus m_status;
     EventListener<ServerRequest<ServerModVersion>> m_infoListener;
     EventListener<web::WebTask> m_downloadListener;
+    unsigned int m_scheduledEventForFrame = 0;
 
     Impl(
         std::string const& id,
@@ -83,7 +84,14 @@ public:
             }
 
             if (!ModDownloadManager::get()->checkAutoConfirm()) {
-                ModDownloadEvent(m_id).post();
+                // Throttle events to only once per frame to not cause a 
+                // billion UI updates at once 
+                if (m_scheduledEventForFrame != CCDirector::get()->getTotalFrames()) {
+                    m_scheduledEventForFrame = CCDirector::get()->getTotalFrames();
+                    Loader::get()->queueInMainThread([id = m_id]() {
+                        ModDownloadEvent(id).post();
+                    });
+                }
             }
         });
         auto fetchVersion = version.has_value() ? ModVersion(*version) : ModVersion(ModVersionLatest());
@@ -157,7 +165,14 @@ public:
             else if (event->isCancelled()) {
                 m_status = DownloadStatusCancelled();
             }
-            ModDownloadEvent(m_id).post();
+            // Throttle events to only once per frame to not cause a 
+            // billion UI updates at once 
+            if (m_scheduledEventForFrame != CCDirector::get()->getTotalFrames()) {
+                m_scheduledEventForFrame = CCDirector::get()->getTotalFrames();
+                Loader::get()->queueInMainThread([id = m_id]() {
+                    ModDownloadEvent(id).post();
+                });
+            }
         });
 
         auto req = web::WebRequest();
