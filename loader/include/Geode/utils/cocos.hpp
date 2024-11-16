@@ -1331,15 +1331,13 @@ namespace geode::cocos {
     class CallFuncExtImpl : public cocos2d::CCActionInstant {
     public:
         static CallFuncExtImpl* create(const F& func) {
-            auto ret = new CallFuncExtImpl;
-            ret->m_func = func;
+            auto ret = new CallFuncExtImpl(func);
             ret->autorelease();
             return ret;
         }
 
         static CallFuncExtImpl* create(F&& func) {
-            auto ret = new CallFuncExtImpl;
-            ret->m_func = std::move(func);
+            auto ret = new CallFuncExtImpl(std::move(func));
             ret->autorelease();
             return ret;
         }
@@ -1347,8 +1345,17 @@ namespace geode::cocos {
     private:
         F m_func;
 
+        // F may not be default-constructible
+        CallFuncExtImpl(F&& func) : m_func(std::move(func)) {}
+        CallFuncExtImpl(F const& func) : m_func(func) {}
+
         void update(float) override {
-            if (m_func) this->m_func();
+            // Make sure any `std::function`s are valid
+            if constexpr (requires { static_cast<bool>(m_func); }) {
+                if (m_func) m_func();
+            } else {
+                m_func();
+            }
         }
     };
 
