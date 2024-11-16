@@ -14,7 +14,7 @@ namespace geode
     I added this, a simple class to add nodes to a general notification node so that mods dont interfere with each other.
     */
 
-    class GEODE_DLL OverlayManager : public cocos2d::CCNode
+    class GEODE_DLL OverlayManager : private cocos2d::CCNode
     {
         private:
             std::vector<cocos2d::CCNode*> nodes;
@@ -28,9 +28,6 @@ namespace geode
 
             /// @brief Removes a node from the overlay manager, stopping it from being drawn. This will release the node
             void removeNode(cocos2d::CCNode* node);
-
-            /// @brief Sorts all overlays by their ZOrder and draws them
-            virtual void visit();
 
             /// @brief Util to get the highest ZOrder of all nodes
             int getHighestOverlayZOrder();

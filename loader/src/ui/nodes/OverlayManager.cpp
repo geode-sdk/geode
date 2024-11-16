@@ -18,34 +18,21 @@ OverlayManager* OverlayManager::get()
 
 void OverlayManager::addNode(CCNode* node)
 {
-    node->retain();
+    this->addChild(node);
 
     nodes.push_back(node);
 }
 
 void OverlayManager::removeNode(CCNode* node)
 {
-    node->release();
+    this->removeChild(node);
 
     std::erase(nodes, node);
 }
 
-void OverlayManager::visit()
-{
-    std::sort(nodes.begin(), nodes.end(), [](CCNode* a, CCNode* b)
-    {
-        return a->getZOrder() < b->getZOrder();
-    });
-
-    for (auto node : nodes)
-    {
-        node->visit();
-    }
-}
-
 int OverlayManager::getHighestOverlayZOrder()
 {
-    int z = 0;
+    int z = INT_MIN;
 
     for (auto node : nodes)
     {
@@ -58,7 +45,7 @@ int OverlayManager::getHighestOverlayZOrder()
 
 int OverlayManager::getLowestOverlayZOrder()
 {
-    int z = 0;
+    int z = INT_MAX;
 
     for (auto node : nodes)
     {
