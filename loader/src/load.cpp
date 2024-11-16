@@ -138,17 +138,18 @@ int geodeEntry(void* platformData) {
 
     // set up internal mod, settings and data
     log::info("Setting up internal mod");
-    log::pushNest();
-    auto internalSetupRes = LoaderImpl::get()->setupInternalMod();
-    log::popNest();
-    if (!internalSetupRes) {
-        console::messageBox(
-            "Unable to Load Geode!",
-            "There was a fatal error setting up "
-            "the internal mod and Geode can not be loaded: " + internalSetupRes.unwrapErr()
-        );
-        LoaderImpl::get()->forceReset();
-        return 1;
+    {
+        log::NestScope nest;
+        auto internalSetupRes = LoaderImpl::get()->setupInternalMod();
+        if (!internalSetupRes) {
+            console::messageBox(
+                "Unable to Load Geode!",
+                "There was a fatal error setting up "
+                "the internal mod and Geode can not be loaded: " + internalSetupRes.unwrapErr()
+            );
+            LoaderImpl::get()->forceReset();
+            return 1;
+        }
     }
 
     tryShowForwardCompat();
@@ -161,26 +162,28 @@ int geodeEntry(void* platformData) {
 
     // set up loader, load mods, etc.
     log::info("Setting up loader");
-    log::pushNest();
-    auto setupRes = LoaderImpl::get()->setup();
-    log::popNest();
-    if (!setupRes) {
-        console::messageBox(
-            "Unable to Load Geode!",
-            "There was an unknown fatal error setting up "
-            "the loader and Geode can not be loaded. "
-            "(" + setupRes.unwrapErr() + ")"
-        );
-        LoaderImpl::get()->forceReset();
-        return 1;
+    {
+        log::NestScope nest;
+        auto setupRes = LoaderImpl::get()->setup();
+        if (!setupRes) {
+            console::messageBox(
+                "Unable to Load Geode!",
+                "There was an unknown fatal error setting up "
+                "the loader and Geode can not be loaded. "
+                "(" + setupRes.unwrapErr() + ")"
+            );
+            LoaderImpl::get()->forceReset();
+            return 1;
+        }
     }
 
     crashlog::setupPlatformHandlerPost();
 
     log::debug("Setting up IPC");
-    log::pushNest();
-    ipc::setup();
-    log::popNest();
+    {
+        log::NestScope nest;
+        ipc::setup();
+    }
 
     // download and install new loader update in the background
     

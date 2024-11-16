@@ -114,6 +114,37 @@ namespace geode {
             popNest(getMod());
         }
 
+        struct NestScope {
+        private:
+            bool m_active = true;
+        public:
+            NestScope() {
+                pushNest();
+            }
+
+            NestScope(NestScope const&) {
+                pushNest();
+            }
+
+            NestScope(NestScope&& other) {
+                other.m_active = false;
+            }
+
+            NestScope& operator=(NestScope const&) {
+                pushNest();
+                return *this;
+            }
+
+            NestScope& operator=(NestScope&& other) {
+                other.m_active = false;
+                return *this;
+            }
+
+            ~NestScope() {
+                if (m_active) popNest();
+            }
+        };
+
         class Nest final {
         private:
             class Impl;

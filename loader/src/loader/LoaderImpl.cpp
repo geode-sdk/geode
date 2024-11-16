@@ -81,35 +81,32 @@ Result<> Loader::Impl::setup() {
 
     if (this->supportsLaunchArguments()) {
         log::debug("Loading launch arguments");
-        log::pushNest();
+        log::NestScope nest;
         this->initLaunchArguments();
-        log::popNest();
     }
 
     // on some platforms, using the crash handler overrides more convenient native handlers
     if (!this->getLaunchFlag("disable-crash-handler")) {
         log::debug("Setting up crash handler");
-        log::pushNest();
+        log::NestScope nest;
         if (!crashlog::setupPlatformHandler()) {
             log::debug("Failed to set up crash handler");
         }
-        log::popNest();
     } else {
         log::debug("Crash handler setup skipped");
     }
 
     log::debug("Loading hooks");
-    log::pushNest();
-    if (!this->loadHooks()) {
+    if (log::NestScope nest; !this->loadHooks()) {
         return Err("There were errors loading some hooks, see console for details");
     }
-    log::popNest();
 
     log::debug("Setting up directories");
-    log::pushNest();
-    this->createDirectories();
-    this->addSearchPaths();
-    log::popNest();
+    {
+        log::NestScope nest;
+        this->createDirectories();
+        this->addSearchPaths();
+    }
 
     // Trigger on_mod(Loaded) for the internal mod
     // this function is already on the gd thread, so this should be fine
@@ -129,7 +126,7 @@ void Loader::Impl::addSearchPaths() {
 
 void Loader::Impl::updateResources(bool forceReload) {
     log::debug("Adding resources");
-    log::pushNest();
+    log::NestScope nest;
     for (auto const& [_, mod] : m_mods) {
         if (!forceReload && ModImpl::getImpl(mod)->m_resourcesLoaded)
             continue;
@@ -140,7 +137,6 @@ void Loader::Impl::updateResources(bool forceReload) {
     // we have to call it in both places since setup is only called once ever, but updateResources is called
     // on every texture reload
     CCFileUtils::get()->updatePaths();
-    log::popNest();
 }
 
 std::vector<Mod*> Loader::Impl::getAllMods() {
@@ -178,24 +174,22 @@ bool Loader::Impl::isModVersionSupported(VersionInfo const& target) {
 void Loader::Impl::saveData() {
     for (auto& [id, mod] : m_mods) {
         log::debug("{}", mod->getID());
-        log::pushNest();
+        log::NestScope nest;
         auto r = mod->saveData();
         if (!r) {
             log::warn("Unable to save data for mod \"{}\": {}", mod->getID(), r.unwrapErr());
         }
-        log::popNest();
     }
 }
 
 void Loader::Impl::loadData() {
     for (auto& [_, mod] : m_mods) {
         log::debug("{}", mod->getID());
-        log::pushNest();
+        log::NestScope nest;
         auto r = mod->loadData();
         if (!r) {
             log::warn("Unable to load data for mod \"{}\": {}", mod->getID(), r.unwrapErr());
         }
-        log::popNest();
     }
 }
 
@@ -238,7 +232,7 @@ void Loader::Impl::updateModResources(Mod* mod) {
         return;
 
     log::debug("{}", mod->getID());
-    log::pushNest();
+    log::NestScope nest;
 
     for (auto const& sheet : mod->getMetadata().getSpritesheets()) {
         log::debug("Adding sheet {}", sheet);
@@ -258,8 +252,6 @@ void Loader::Impl::updateModResources(Mod* mod) {
             CCSpriteFrameCache::get()->addSpriteFramesWithFile(plist.c_str());
         }
     }
-
-    log::popNest();
 }
 
 void Loader::Impl::addProblem(LoadProblem const& problem) {
@@ -275,14 +267,14 @@ void Loader::Impl::addProblem(LoadProblem const& problem) {
 void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
     for (auto const& dir : m_modSearchDirectories) {
         log::debug("Searching {}", dir);
-        log::pushNest();
+        log::NestScope nest;
         for (auto const& entry : std::filesystem::directory_iterator(dir)) {
             if (!std::filesystem::is_regular_file(entry) ||
                 entry.path().extension() != GEODE_MOD_EXTENSION)
                 continue;
 
             log::debug("Found {}", entry.path().filename());
-            log::pushNest();
+            log::NestScope nest;
 
             auto res = ModMetadata::createFromGeodeFile(entry.path());
             if (!res) {
@@ -292,7 +284,6 @@ void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
                     res.unwrapErr()
                 });
                 log::error("Failed to queue: {}", res.unwrapErr());
-                log::popNest();
                 continue;
             }
             auto modMetadata = res.unwrap();
@@ -310,14 +301,11 @@ void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
                     "A mod with the same ID is already present."
                 });
                 log::error("Failed to queue: a mod with the same ID is already queued");
-                log::popNest();
                 continue;
             }
 
             modQueue.push_back(modMetadata);
-            log::popNest();
         }
-        log::popNest();
     }
 }
 
@@ -335,7 +323,7 @@ void Loader::Impl::populateModList(std::vector<ModMetadata>& modQueue) {
 
     for (auto const& metadata : modQueue) {
         log::debug("{} {}", metadata.getID(), metadata.getVersion());
-        log::pushNest();
+        log::NestScope nest;
 
         auto mod = new Mod(metadata);
 
@@ -347,20 +335,17 @@ void Loader::Impl::populateModList(std::vector<ModMetadata>& modQueue) {
                 res.unwrapErr()
             });
             log::error("Failed to set up: {}", res.unwrapErr());
-            log::popNest();
             continue;
         }
 
         m_mods.insert({metadata.getID(), mod});
-
-        log::popNest();
     }
 }
 
 void Loader::Impl::buildModGraph() {
     for (auto const& [id, mod] : m_mods) {
         log::debug("{}", mod->getID());
-        log::pushNest();
+        log::NestScope nest;
         for (auto& dependency : mod->m_impl->m_metadata.m_impl->m_dependencies) {
             log::debug("{}", dependency.id);
             if (!m_mods.contains(dependency.id)) {
@@ -387,7 +372,6 @@ void Loader::Impl::buildModGraph() {
             incompatibility.mod =
                 m_mods.contains(incompatibility.id) ? m_mods[incompatibility.id] : nullptr;
         }
-        log::popNest();
     }
 }
 
@@ -404,7 +388,6 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
             res.unwrapErr()
         });
         log::error("{}", res.unwrapErr());
-        log::popNest();
         return;
     }
 
@@ -418,7 +401,6 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
             geodeVerRes.unwrapErr()
         });
         log::error("{}", geodeVerRes.unwrapErr());
-        log::popNest();
         return;
     }
     
@@ -431,12 +413,10 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
         return;
     }
 
-    log::debug("{} {}", node->getID(), node->getVersion());
-    log::pushNest();
+    log::NestScope nest;
 
     if (node->isEnabled()) {
         log::warn("Mod {} already loaded, this should never happen", node->getID());
-        log::popNest();
         return;
     }
 
@@ -447,6 +427,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
 
     auto unzipFunction = [this, node]() {
         log::debug("Unzip");
+        log::NestScope nest;
         auto res = node->m_impl->unzipGeodeFile(node->getMetadata());
         return res;
     };
@@ -454,6 +435,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
     auto loadFunction = [this, node, early]() {
         if (node->shouldLoad()) {
             log::debug("Load");
+            log::NestScope nest;
             auto res = node->m_impl->loadBinary();
             if (!res) {
                 this->addProblem({
@@ -479,7 +461,6 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
             });
             log::error("{}", reason.value());
             m_refreshingModCount -= 1;
-            log::popNest();
             return;
         }
     }
@@ -494,7 +475,6 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
             });
             log::error("Failed to unzip: {}", res.unwrapErr());
             m_refreshingModCount -= 1;
-            log::popNest();
             return;
         }
         loadFunction();
@@ -524,7 +504,6 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
             });
         }).detach();
     }
-    log::popNest();
 }
 
 void Loader::Impl::findProblems() {
@@ -538,7 +517,7 @@ void Loader::Impl::findProblems() {
             continue;
         }
         log::debug("{}", id);
-        log::pushNest();
+        log::NestScope nest;
 
         for (auto const& dep : mod->getMetadata().getDependencies()) {
             if (dep.mod && dep.mod->isEnabled() && dep.version.compare(dep.mod->getVersion()))
@@ -665,18 +644,15 @@ void Loader::Impl::findProblems() {
             });
             log::error("{} failed to load for an unknown reason", id);
         }
-
-        log::popNest();
     }
 }
 
 void Loader::Impl::refreshModGraph() {
     log::info("Refreshing mod graph");
-    log::pushNest();
+    log::NestScope nest;
 
     if (m_isSetup) {
         log::error("Cannot refresh mod graph after startup");
-        log::popNest();
         return;
     }
 
@@ -686,48 +662,51 @@ void Loader::Impl::refreshModGraph() {
 
     m_loadingState = LoadingState::Queue;
     log::debug("Queueing mods");
-    log::pushNest();
     std::vector<ModMetadata> modQueue;
-    this->queueMods(modQueue);
-    log::popNest();
+    {
+        log::NestScope nest;
+        this->queueMods(modQueue);
+    }
 
     m_loadingState = LoadingState::List;
     log::debug("Populating mod list");
-    log::pushNest();
-    this->populateModList(modQueue);
-    modQueue.clear();
-    log::popNest();
+    {
+        log::NestScope nest;
+        this->populateModList(modQueue);
+        modQueue.clear();
+    }
 
     m_loadingState = LoadingState::Graph;
     log::debug("Building mod graph");
-    log::pushNest();
-    this->buildModGraph();
-    log::popNest();
+    {
+        log::NestScope nest;
+        this->buildModGraph();
+    }
 
     log::debug("Ordering mod stack");
-    log::pushNest();
-    this->orderModStack();
-    log::popNest();
+    {
+        log::NestScope nest;
+        this->orderModStack();
+    }
 
     m_loadingState = LoadingState::EarlyMods;
     log::debug("Loading early mods");
-    log::pushNest();
-    while (!m_modsToLoad.empty() && m_modsToLoad.front()->needsEarlyLoad()) {
-        auto mod = m_modsToLoad.front();
-        m_modsToLoad.pop_front();
-        this->loadModGraph(mod, true);
+    {
+        log::NestScope nest;
+        while (!m_modsToLoad.empty() && m_modsToLoad.front()->needsEarlyLoad()) {
+            auto mod = m_modsToLoad.front();
+            m_modsToLoad.pop_front();
+            this->loadModGraph(mod, true);
+        }
     }
-    log::popNest();
 
     auto end = std::chrono::high_resolution_clock::now();
     auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
     log::info("Took {}s. Continuing next frame...", static_cast<float>(time) / 1000.f);
 
-    log::popNest();
-
     m_loadingState = LoadingState::Mods;
 
-    queueInMainThread([&]() {
+    queueInMainThread([this]() {
         this->continueRefreshModGraph();
     });
 }
@@ -781,7 +760,7 @@ void Loader::Impl::orderModStack() {
 
 void Loader::Impl::continueRefreshModGraph() {
     if (m_refreshingModCount != 0) {
-        queueInMainThread([&]() {
+        queueInMainThread([this]() {
             this->continueRefreshModGraph();
         });
         return;
@@ -794,28 +773,27 @@ void Loader::Impl::continueRefreshModGraph() {
     }
 
     log::info("Continuing mod graph refresh...");
-    log::pushNest();
+    log::NestScope nest;
 
     m_timerBegin = std::chrono::high_resolution_clock::now();
 
     switch (m_loadingState) {
         case LoadingState::Mods:
             if (!m_modsToLoad.empty()) {
-                log::debug("Loading mods");
-                log::pushNest();
                 auto mod = m_modsToLoad.front();
                 m_modsToLoad.pop_front();
+                log::debug("Loading mod {} {}", mod->getID(), mod->getVersion());
                 this->loadModGraph(mod, false);
-                log::popNest();
                 break;
             }
             m_loadingState = LoadingState::Problems;
             [[fallthrough]];
         case LoadingState::Problems:
             log::debug("Finding problems");
-            log::pushNest();
-            this->findProblems();
-            log::popNest();
+            {
+                log::NestScope nest;
+                this->findProblems();
+            }
             m_loadingState = LoadingState::Done;
             {
                 auto end = std::chrono::high_resolution_clock::now();
@@ -831,12 +809,10 @@ void Loader::Impl::continueRefreshModGraph() {
     }
 
     if (m_loadingState != LoadingState::Done) {
-        queueInMainThread([&]() {
+        queueInMainThread([this]() {
             this->continueRefreshModGraph();
         });
     }
-
-    log::popNest();
 }
 
 std::vector<LoadProblem> Loader::Impl::getProblems() const {

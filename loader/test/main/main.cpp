@@ -39,23 +39,24 @@ struct $modify(MenuLayer) {
 
         // Launch arguments
         log::info("Testing launch args...");
-        log::pushNest();
+        log::NestScope nest;
         log::info("For global context:");
-        log::pushNest();
-        for (const auto& arg : Loader::get()->getLaunchArgumentNames()) {
-            log::info("{}", arg);
+        {
+            log::NestScope nest;
+            for (const auto& arg : Loader::get()->getLaunchArgumentNames()) {
+                log::info("{}", arg);
+            }
         }
-        log::popNest();
         log::info("For this mod:");
-        log::pushNest();
-        for (const auto& arg : Mod::get()->getLaunchArgumentNames()) {
-            log::info("{}", arg);
+        {
+            log::NestScope nest;
+            for (const auto& arg : Mod::get()->getLaunchArgumentNames()) {
+                log::info("{}", arg);
+            }
         }
-        log::popNest();
         log::info("Mod has launch arg 'mod-arg': {}", Mod::get()->hasLaunchArgument("mod-arg"));
         log::info("Loader flag 'bool-arg': {}", Loader::get()->getLaunchFlag("bool-arg"));
         log::info("Loader int 'int-arg': {}", Loader::get()->parseLaunchArgument<int>("int-arg").unwrapOr(0));
-        log::popNest();
 
         return true;
     }
