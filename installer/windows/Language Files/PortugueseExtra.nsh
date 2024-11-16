@@ -1,4 +1,4 @@
-!insertmacro LANGFILE_EXT PortuguesePT
+!insertmacro LANGFILE_EXT Portuguese
 
 !pragma warning disable 6030
 ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "O instalador irá guiá-lo através da instalação de $(^NameDA).$\r$\n$\r$\nAntes de iniciar a instalação, certifique-se de que o Geometry Dash não está aberto.$\r$\n$\r$\n$_CLICK"
