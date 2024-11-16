@@ -466,8 +466,12 @@ void ModItem::updateState() {
     if (m_enableToggle && m_source.asMod()) {
         m_enableToggle->toggle(m_source.asMod()->isOrWillBeEnabled());
 
-        // Disable the toggle if the mod has been uninstalled
-        if (modRequestedActionIsUninstall(m_source.asMod()->getRequestedAction())) {
+        // Disable the toggle if the mod has been uninstalled or if the mod is 
+        // outdated
+        if (
+            modRequestedActionIsUninstall(m_source.asMod()->getRequestedAction()) || 
+            m_source.asMod()->targetsOutdatedVersion()
+        ) {
             m_enableToggle->setEnabled(false);
             auto off = typeinfo_cast<CCRGBAProtocol*>(m_enableToggle->m_offButton->getNormalImage());
             auto on = typeinfo_cast<CCRGBAProtocol*>(m_enableToggle->m_onButton->getNormalImage());

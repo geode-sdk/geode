@@ -672,7 +672,11 @@ void ModPopup::updateState() {
     m_cancelBtn->setVisible(false);
 
     m_enableBtn->toggle(asMod && asMod->isOrWillBeEnabled());
-    m_enableBtn->setVisible(asMod && asMod->getRequestedAction() == ModRequestedAction::None);
+    m_enableBtn->setVisible(
+        asMod &&
+        asMod->getRequestedAction() == ModRequestedAction::None &&
+        !asMod->targetsOutdatedVersion()
+    );
 
     m_reenableBtn->toggle(m_enableBtn->isToggled());
     m_reenableBtn->setVisible(asMod && modRequestedActionIsToggle(asMod->getRequestedAction()));
