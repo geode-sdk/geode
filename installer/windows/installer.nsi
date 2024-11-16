@@ -59,6 +59,7 @@
     !insertmacro GEODE_LANGUAGE "Polish"
     !insertmacro GEODE_LANGUAGE "Russian"
     !insertmacro GEODE_LANGUAGE "PortugueseBR"
+    !insertmacro GEODE_LANGUAGE "PortuguesePT"
     !insertmacro GEODE_LANGUAGE "Ukrainian"
     !insertmacro GEODE_LANGUAGE "Czech"
     !insertmacro GEODE_LANGUAGE "Turkish"
