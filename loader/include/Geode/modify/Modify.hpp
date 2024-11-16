@@ -272,7 +272,7 @@ namespace geode::modifier {
         /// @param before The mod id of the mod to set the priority before
         /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
         Result<> setHookPriorityBeforePre(std::string_view name, std::string_view before) {
-            return this->setHookPriorityBefore(name, CERT_NOT_BEFORE_FILETIME_PROP_ID);
+            return this->setHookPriorityBefore(name, before);
         }
 
         /// @brief Set the priority of a hook to be before another hook in different mods
