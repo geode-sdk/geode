@@ -18,13 +18,6 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_source->reset();
     
     m_list = ScrollLayer::create(size);
-    m_list->m_contentLayer->setLayout(
-        ColumnLayout::create()
-            ->setAxisReverse(true)
-            ->setAxisAlignment(AxisAlignment::End)
-            ->setAutoGrowAxis(size.height)
-            ->setGap(2.5f)
-    );
     this->addChildAtPosition(m_list, Anchor::Bottom, ccp(-m_list->getScaledContentWidth() / 2, 0));
 
     m_topContainer = CCNode::create();
@@ -410,7 +403,7 @@ void ModList::onPromise(ModListSource::PageLoadTask::Event* event) {
                 first = false;
                 m_list->m_contentLayer->addChild(item);
             }
-            this->updateSize(m_bigSize);
+            this->updateDisplay(m_display);
 
             // Scroll list to top
             auto listTopScrollPos = -m_list->m_contentLayer->getContentHeight() + m_list->getContentHeight();
@@ -526,12 +519,10 @@ void ModList::updateTopContainer() {
     // (giving a little bit of extra padding for it, the same size as gap)
     m_list->setContentHeight(
         m_topContainer->getContentHeight() > 0.f ?
-            this->getContentHeight() - m_topContainer->getContentHeight() - 
-                static_cast<AxisLayout*>(m_list->m_contentLayer->getLayout())->getGap() : 
+            this->getContentHeight() - m_topContainer->getContentHeight() - 2.5f : 
             this->getContentHeight()
     );
-    static_cast<ColumnLayout*>(m_list->m_contentLayer->getLayout())->setAutoGrowAxis(m_list->getContentHeight());
-    m_list->m_contentLayer->updateLayout();
+    this->updateDisplay(m_display);
 
     // Preserve relative scroll position
     m_list->m_contentLayer->setPositionY((
@@ -557,14 +548,14 @@ void ModList::updateTopContainer() {
     this->updateLayout();
 }
 
-void ModList::updateSize(bool big) {
-    m_bigSize = big;
+void ModList::updateDisplay(ModListDisplay display) {
+    m_display = display;
 
     // Update all BaseModItems that are children of the list
     // There may be non-BaseModItems there (like separators) so gotta be type-safe
     for (auto& node : CCArrayExt<CCNode*>(m_list->m_contentLayer->getChildren())) {
         if (auto item = typeinfo_cast<ModItem*>(node)) {
-            item->updateSize(m_list->getContentWidth(), big);
+            item->updateDisplay(m_list->getContentWidth(), display);
         }
     }
 
@@ -574,8 +565,24 @@ void ModList::updateSize(bool big) {
         m_list->m_contentLayer->getPositionY() / oldPositionArea : 
         -1.f;
 
-    // Auto-grow the size of the list content
-    m_list->m_contentLayer->updateLayout();
+    // Update the list layout based on the display model
+    if (display == ModListDisplay::Grid) {
+        m_list->m_contentLayer->setLayout(
+            RowLayout::create()
+                ->setGrowCrossAxis(true)
+                ->setAxisAlignment(AxisAlignment::Center)
+                ->setGap(2.5f)
+        );
+    }
+    else {
+        m_list->m_contentLayer->setLayout(
+            ColumnLayout::create()
+                ->setAxisReverse(true)
+                ->setAxisAlignment(AxisAlignment::End)
+                ->setAutoGrowAxis(m_obContentSize.height)
+                ->setGap(2.5f)
+        );
+    }
 
     // Preserve relative scroll position
     m_list->m_contentLayer->setPositionY((

@@ -10,11 +10,13 @@
 #include <unistd.h>
 
 void Loader::Impl::platformMessageBox(char const* title, std::string const& info) {
+    // @geode-ignore(geode-alternative)
     std::cout << title << ": " << info << std::endl;
 }
 
 void Loader::Impl::logConsoleMessageWithSeverity(std::string const& msg, Severity severity) {
     if (m_platformConsoleOpen) {
+        // @geode-ignore(geode-alternative)
         std::cout << msg << "\n" << std::flush;
     }
 }

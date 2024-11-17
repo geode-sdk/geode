@@ -12,6 +12,12 @@
 
 using namespace geode::prelude;
 
+enum class ModListDisplay {
+    SmallList,
+    BigList,
+    Grid,
+};
+
 class ModItem : public CCNode {
 protected:
     ModSource m_source;
@@ -19,10 +25,11 @@ protected:
     CCNode* m_logo;
     CCNode* m_infoContainer;
     CCNode* m_titleContainer;
-    CCLabelBMFont* m_titleLabel;
+    Ref<CCLabelBMFont> m_titleLabel;
     CCLabelBMFont* m_versionLabel;
     CCNode* m_developers;
     CCNode* m_recommendedBy;
+    CCScale9Sprite* m_description;
     CCLabelBMFont* m_developerLabel;
     ButtonSprite* m_restartRequiredLabel;
     ButtonSprite* m_outdatedLabel;
@@ -37,6 +44,10 @@ protected:
     EventListener<server::ModDownloadFilter> m_downloadListener;
     std::optional<server::ServerModUpdate> m_availableUpdate;
     EventListener<EventFilter<SettingNodeValueChangeEvent>> m_settingNodeListener;
+    Ref<CCNode> m_badgeContainer = nullptr;
+    Ref<CCNode> m_downloadCountContainer;
+    ModListDisplay m_display = ModListDisplay::SmallList;
+    float m_targetWidth = 300;
 
     /**
      * @warning Make sure `getMetadata` and `createModLogo` are callable 
@@ -57,7 +68,7 @@ protected:
 public:
     static ModItem* create(ModSource&& source);
 
-    void updateSize(float width, bool big);
+    void updateDisplay(float width, ModListDisplay display);
 
     ModSource& getSource() &;
 };

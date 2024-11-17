@@ -499,28 +499,48 @@ bool ModsLayer::init() {
 
     // Actions
 
-    auto listActionsMenu = CCMenu::create();
-    listActionsMenu->setID("list-actions-menu");
-    listActionsMenu->setContentHeight(100);
-    listActionsMenu->setAnchorPoint({ 1, 0 });
-    listActionsMenu->setScale(.65f);
+    auto listDisplayMenu = CCMenu::create();
+    listDisplayMenu->setID("list-actions-menu");
+    listDisplayMenu->setContentHeight(100);
+    listDisplayMenu->setAnchorPoint({ 1, 0 });
+    listDisplayMenu->setScale(.65f);
+
+    auto smallSizeBtn = CCMenuItemSpriteExtra::create(
+        GeodeSquareSprite::createWithSpriteFrameName("GJ_smallModeIcon_001.png"),
+        this, menu_selector(ModsLayer::onDisplay)
+    );
+    smallSizeBtn->setTag(static_cast<int>(ModListDisplay::SmallList));
+    smallSizeBtn->setID("list-normal-size-button");
+    listDisplayMenu->addChild(smallSizeBtn);
+    m_displayBtns.push_back(smallSizeBtn);
 
     auto bigSizeBtn = CCMenuItemSpriteExtra::create(
-        GeodeSquareSprite::createWithSpriteFrameName("GJ_smallModeIcon_001.png", &m_bigView),
-        this, menu_selector(ModsLayer::onBigView)
+        GeodeSquareSprite::createWithSpriteFrameName("GJ_extendedIcon_001.png"),
+        this, menu_selector(ModsLayer::onDisplay)
     );
+    bigSizeBtn->setTag(static_cast<int>(ModListDisplay::BigList));
     bigSizeBtn->setID("list-size-button");
-    listActionsMenu->addChild(bigSizeBtn);
+    listDisplayMenu->addChild(bigSizeBtn);
+    m_displayBtns.push_back(bigSizeBtn);
+
+    auto gridBtn = CCMenuItemSpriteExtra::create(
+        GeodeSquareSprite::createWithSpriteFrameName("grid-view.png"_spr),
+        this, menu_selector(ModsLayer::onDisplay)
+    );
+    gridBtn->setTag(static_cast<int>(ModListDisplay::Grid));
+    gridBtn->setID("list-size-button");
+    listDisplayMenu->addChild(gridBtn);
+    m_displayBtns.push_back(gridBtn);
 
     // auto searchBtn = CCMenuItemSpriteExtra::create(
     //     GeodeSquareSprite::createWithSpriteFrameName("search.png"_spr, &m_showSearch),
     //     this, menu_selector(ModsLayer::onSearch)
     // );
     // searchBtn->setID("search-button");
-    // listActionsMenu->addChild(searchBtn);
+    // listDisplayMenu->addChild(searchBtn);
 
-    listActionsMenu->setLayout(ColumnLayout::create());
-    m_frame->addChildAtPosition(listActionsMenu, Anchor::Left, ccp(-5, 25));
+    listDisplayMenu->setLayout(ColumnLayout::create()->setAxisReverse(true));
+    m_frame->addChildAtPosition(listDisplayMenu, Anchor::Left, ccp(-5, 25));
 
     m_statusNode = ModsStatusNode::create();
     m_statusNode->setZOrder(4);
@@ -629,7 +649,7 @@ void ModsLayer::gotoTab(ModListSource* src) {
     m_currentSource = src;
 
     // Update the state of the current list
-    m_lists.at(m_currentSource)->updateSize(m_bigView);
+    m_lists.at(m_currentSource)->updateDisplay(m_display);
     m_lists.at(m_currentSource)->activateSearch(m_showSearch);
     m_lists.at(m_currentSource)->updateState();
 }
@@ -687,6 +707,13 @@ void ModsLayer::updateState() {
     else {
         m_pageMenu->setVisible(false);
     }
+
+    // Update display button
+    for (auto btn : m_displayBtns) {
+        static_cast<GeodeSquareSprite*>(btn->getNormalImage())->setState(
+            static_cast<ModListDisplay>(btn->getTag()) == m_display
+        );
+    }
 }
 
 void ModsLayer::onTab(CCObject* sender) {
@@ -716,12 +743,13 @@ void ModsLayer::onGoToPage(CCObject*) {
     popup->setID("go-to-page"_spr);
     popup->show();
 }
-void ModsLayer::onBigView(CCObject*) {
-    m_bigView = !m_bigView;
+void ModsLayer::onDisplay(CCObject* sender) {
+    m_display = static_cast<ModListDisplay>(sender->getTag());
     // Make sure to avoid a crash
     if (m_currentSource) {
-        m_lists.at(m_currentSource)->updateSize(m_bigView);
+        m_lists.at(m_currentSource)->updateDisplay(m_display);
     }
+    this->updateState();
 }
 void ModsLayer::onSearch(CCObject*) {
     m_showSearch = !m_showSearch;
