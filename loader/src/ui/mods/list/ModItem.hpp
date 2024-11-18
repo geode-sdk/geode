@@ -48,6 +48,7 @@ protected:
     Ref<CCNode> m_downloadCountContainer;
     ModListDisplay m_display = ModListDisplay::SmallList;
     float m_targetWidth = 300;
+    CCLabelBMFont* m_versionDownloadSeparator;
 
     /**
      * @warning Make sure `getMetadata` and `createModLogo` are callable 

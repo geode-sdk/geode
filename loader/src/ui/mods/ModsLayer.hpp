@@ -66,7 +66,6 @@ protected:
     ModsStatusNode* m_statusNode;
     EventListener<UpdateModListStateFilter> m_updateStateListener;
     bool m_showSearch = true;
-    ModListDisplay m_display = ModListDisplay::SmallList;
     std::vector<CCMenuItemSpriteExtra*> m_displayBtns;
 
     bool init();

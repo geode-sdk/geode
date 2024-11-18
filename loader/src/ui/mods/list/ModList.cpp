@@ -6,6 +6,22 @@
 #include "../ModsLayer.hpp"
 #include "../popups/ModtoberPopup.hpp"
 
+static size_t getDisplayPageSize(ModListSource* src, ModListDisplay display) {
+    if (src->isLocalModsOnly() && Mod::get()->template getSettingValue<bool>("infinite-local-mods-list")) {
+        return std::numeric_limits<size_t>::max();
+    }
+    return display == ModListDisplay::Grid ? 16 : 10;
+}
+
+$execute {
+    listenForSettingChanges("infinite-local-mods-list", [](bool value) {
+        InstalledModListSource::get(InstalledModListType::All)->reset();
+        InstalledModListSource::get(InstalledModListType::OnlyErrors)->reset();
+        InstalledModListSource::get(InstalledModListType::OnlyOutdated)->reset();
+        // Updates is technically a server mod list :-) So I left it out here
+    });
+}
+
 bool ModList::init(ModListSource* src, CCSize const& size) {
     if (!CCNode::init())
         return false;
@@ -179,7 +195,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_searchInput->setCallback([this](auto const&) {
         // If the source is already in memory, we can immediately update the 
         // search query
-        if (typeinfo_cast<InstalledModListSource*>(m_source)) {
+        if (m_source->isLocalModsOnly()) {
             m_source->search(m_searchInput->getString());
             return;
         }
@@ -550,6 +566,7 @@ void ModList::updateTopContainer() {
 
 void ModList::updateDisplay(ModListDisplay display) {
     m_display = display;
+    m_source->setPageSize(getDisplayPageSize(m_source, m_display));
 
     // Update all BaseModItems that are children of the list
     // There may be non-BaseModItems there (like separators) so gotta be type-safe
@@ -570,7 +587,7 @@ void ModList::updateDisplay(ModListDisplay display) {
         m_list->m_contentLayer->setLayout(
             RowLayout::create()
                 ->setGrowCrossAxis(true)
-                ->setAxisAlignment(AxisAlignment::Center)
+                ->setAxisAlignment(AxisAlignment::Start)
                 ->setGap(2.5f)
         );
     }
@@ -634,6 +651,9 @@ void ModList::gotoPage(size_t page, bool update) {
     // Clear list contents
     m_list->m_contentLayer->removeAllChildren();
     m_page = page;
+
+    // Update page size (if needed)
+    m_source->setPageSize(getDisplayPageSize(m_source, m_display));
     
     // Start loading new page with generic loading message
     this->showStatus(ModListUnkProgressStatus(), "Loading...");

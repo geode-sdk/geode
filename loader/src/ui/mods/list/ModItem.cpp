@@ -53,6 +53,10 @@ bool ModItem::init(ModSource&& source) {
     m_versionLabel->setID("version-label");
     m_versionLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(std::nullopt, .7f));
     m_titleContainer->addChild(m_versionLabel);
+
+    m_versionDownloadSeparator = CCLabelBMFont::create("•", "bigFont.fnt");
+    m_versionDownloadSeparator->setOpacity(155);
+    m_titleContainer->addChild(m_versionDownloadSeparator);
     
     m_titleContainer->setLayout(
         RowLayout::create()
@@ -180,10 +184,7 @@ bool ModItem::init(ModSource&& source) {
         }
     }
 
-    auto viewBtn = CCMenuItemSpriteExtra::create(
-        spr,
-        this, menu_selector(ModItem::onView)
-    );
+    auto viewBtn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(ModItem::onView));
     viewBtn->setID("view-button");
     m_viewMenu->addChild(viewBtn);
 
@@ -229,10 +230,23 @@ bool ModItem::init(ModSource&& source) {
                 m_badgeContainer->addChild(CCSprite::createWithSpriteFrameName("tag-featured.png"_spr));
             }
             if (metadata.tags.contains("paid")) {
-                m_badgeContainer->addChild(CCSprite::createWithSpriteFrameName("tag-paid.png"_spr));
+                auto shortVer = CCSprite::createWithSpriteFrameName("tag-paid.png"_spr);
+                shortVer->setTag(1);
+                m_badgeContainer->addChild(shortVer);
+                auto longVer = CCSprite::createWithSpriteFrameName("tag-paid-long.png"_spr);
+                longVer->setTag(2);
+                m_badgeContainer->addChild(longVer);
+            }
+            if (metadata.tags.contains("joke")) {
+                m_badgeContainer->addChild(CCSprite::createWithSpriteFrameName("tag-joke.png"_spr));
             }
             if (metadata.tags.contains("modtober24")) {
-                m_badgeContainer->addChild(CCSprite::createWithSpriteFrameName("tag-modtober.png"_spr));
+                auto shortVer = CCSprite::createWithSpriteFrameName("tag-modtober.png"_spr);
+                shortVer->setTag(1);
+                m_badgeContainer->addChild(shortVer);
+                auto longVer = CCSprite::createWithSpriteFrameName("tag-modtober-long.png"_spr);
+                longVer->setTag(2);
+                m_badgeContainer->addChild(longVer);
             }
 
             // Show mod download count here already so people can make informed decisions 
@@ -242,17 +256,18 @@ bool ModItem::init(ModSource&& source) {
             auto downloads = CCLabelBMFont::create(numToAbbreviatedString(metadata.downloadCount).c_str(), "bigFont.fnt");
             downloads->setID("downloads-label");
             downloads->setColor("mod-list-version-label"_cc3b);
-            downloads->limitLabelWidth(80, .5f, .1f);
+            downloads->limitLabelWidth(125, 1.f, .1f);
             m_downloadCountContainer->addChildAtPosition(downloads, Anchor::Right, ccp(-0, 0), ccp(1, .5f));
 
             auto downloadsIcon = CCSprite::createWithSpriteFrameName("GJ_downloadsIcon_001.png");
             downloadsIcon->setID("downloads-icon-sprite");
-            downloadsIcon->setScale(.75f);
-            m_downloadCountContainer->addChildAtPosition(downloadsIcon, Anchor::Left, ccp(5, 0));
+            downloadsIcon->setScale(1.2f);
+            m_downloadCountContainer->addChildAtPosition(downloadsIcon, Anchor::Left, ccp(8, 0));
 
+            // m_downloadCountContainer scale is controlled in updateState
             m_downloadCountContainer->setContentSize({
                 downloads->getScaledContentWidth() + downloadsIcon->getScaledContentWidth(),
-                25
+                30
             });
             m_downloadCountContainer->updateLayout();
 
@@ -338,7 +353,7 @@ void ModItem::updateState() {
 
     // Update the size of the mod cell itself
     if (m_display == ModListDisplay::Grid) {
-        auto widthWithoutGaps = m_targetWidth - 10;
+        auto widthWithoutGaps = m_targetWidth - 7.5f;
         this->setContentSize(ccp(widthWithoutGaps / roundf(widthWithoutGaps / 80), 100));
         m_bg->setContentSize(m_obContentSize / m_bg->getScale());
     }
@@ -358,14 +373,19 @@ void ModItem::updateState() {
         m_titleContainer->insertBefore(m_titleLabel, nullptr);
     }
 
+    // Show download separator if there is something to separate and we're in grid view
+    m_versionDownloadSeparator->setVisible(m_downloadCountContainer && m_display == ModListDisplay::Grid);
+
     // Download counts go next to the version like on the website on grid view
     if (m_downloadCountContainer) {
         m_downloadCountContainer->removeFromParent();
         if (m_display == ModListDisplay::Grid) {
-            m_titleContainer->insertAfter(m_downloadCountContainer, m_versionLabel);
+            m_titleContainer->insertAfter(m_downloadCountContainer, m_versionDownloadSeparator);
+            m_downloadCountContainer->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.1f, .7f));
         }
         else {
             m_viewMenu->addChild(m_downloadCountContainer);
+            m_downloadCountContainer->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.1f, .6f));
         }
     }
 
@@ -373,14 +393,31 @@ void ModItem::updateState() {
     if (m_badgeContainer) {
         m_badgeContainer->removeFromParent();
         if (m_display == ModListDisplay::Grid) {
-            m_badgeContainer->setLayout(ColumnLayout::create()->setAutoGrowAxis(true));
-            m_badgeContainer->setScale(.25f);
-            this->addChildAtPosition(m_badgeContainer, Anchor::TopLeft, ccp(5, -5), ccp(0, 1));
+            m_badgeContainer->setLayout(
+                ColumnLayout::create()
+                    ->setAxisReverse(true)
+                    ->setAutoGrowAxis(true)
+                    ->setAxisAlignment(AxisAlignment::Start)
+            );
+            m_badgeContainer->getLayout()->ignoreInvisibleChildren(true);
+            m_badgeContainer->setScale(.3f);
+            this->addChildAtPosition(m_badgeContainer, Anchor::TopLeft, ccp(5, -2), ccp(0, 1));
         }
         else {
-            m_badgeContainer->setLayout(RowLayout::create()->setAutoGrowAxis(true));
+            m_badgeContainer->setLayout(
+                RowLayout::create()
+                    ->setAutoGrowAxis(true)
+            );
+            m_badgeContainer->getLayout()->ignoreInvisibleChildren(true);
             m_titleContainer->addChild(m_badgeContainer);
         }
+        // Long tags don't fit in the grid UI
+        for (auto child : CCArrayExt<CCNode*>(m_badgeContainer->getChildren())) {
+            if (child->getTag() > 0) {
+                child->setVisible(child->getTag() == (m_display == ModListDisplay::Grid ? 1 : 2));
+            }
+        }
+        m_badgeContainer->updateLayout();
     }
 
     // On Grid View logo has constant size
@@ -557,6 +594,9 @@ void ModItem::updateState() {
         m_recommendedBy->setContentWidth(titleSpace.width / m_infoContainer->getScale());
         m_recommendedBy->updateLayout();
     }
+
+    limitNodeWidth(m_downloadWaiting, m_titleContainer->getContentWidth(), 1.f, .1f);
+    limitNodeWidth(m_downloadBarContainer, m_titleContainer->getContentWidth(), 1.f, .1f);
 
     // Update positioning (jesus)
     switch (m_display) {
