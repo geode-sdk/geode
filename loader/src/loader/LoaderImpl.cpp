@@ -1079,7 +1079,7 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
         createQuickPopup(
             "Already Installed",
             fmt::format(
-                "The mod <cy>{}</c> <cj>v{}</c> has already been installed "
+                "The mod <cy>{}</c> <cj>{}</c> has already been installed "
                 "as version <cl>{}</c>. Do you want to <co>replace the "
                 "installed version with the file</c>?",
                 meta.getID(), meta.getVersion(),
