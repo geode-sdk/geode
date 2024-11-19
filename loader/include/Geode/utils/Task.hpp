@@ -539,12 +539,18 @@ namespace geode {
                 }
             );
 
+            // Make sure the taskResults vector is large enough to fit all the 
+            // results. By default, any cancelled Task becomes nullptr.
+            // Order of results must be preserved so when a Task finishes, it 
+            // replaces the nullptr in the results vector at its place
+            static_cast<Waiting*>(task.m_handle->m_extraData->ptr)->taskResults.resize(tasks.size());
+
             // Store the task count in case some tasks finish immediately during the loop 
             static_cast<Waiting*>(task.m_handle->m_extraData->ptr)->taskCount = tasks.size();
 
             // Make sure to only give a weak pointer to avoid circular references!
             // (Tasks should NEVER own themselves!!)
-            auto markAsDone = [handle = std::weak_ptr(task.m_handle)](T* result) {
+            auto markAsDone = [handle = std::weak_ptr(task.m_handle)](size_t index, T* result) {
                 auto lock = handle.lock();
 
                 // If this task handle has expired, consider the task cancelled
@@ -556,13 +562,21 @@ namespace geode {
                 // Get the waiting handle from the task handle
                 auto waiting = static_cast<Waiting*>(lock->m_extraData->ptr);
 
+                // Mark the task as done by decrementing amount of tasks left
+                // (making sure not to underflow, even though that should 100% 
+                // be impossible and if that happened something has gone 
+                // extremely catastrophically wrong)
+                if (waiting->taskCount > 0) {
+                    waiting->taskCount -= 1;
+                }
+
                 // SAFETY: The lifetime of result pointer is the same as the task that 
                 // produced that pointer, so as long as we have an owning reference to 
                 // the tasks through `taskListeners` we can be sure `result` is valid
-                waiting->taskResults.push_back(result);
+                waiting->taskResults[index] = result;
 
                 // If all tasks are done, finish
-                if (waiting->taskResults.size() >= waiting->taskCount) {
+                if (waiting->taskCount == 0) {
                     // SAFETY: The task results' lifetimes are tied to the tasks 
                     // which could have their only owner be `waiting->taskListeners`, 
                     // but since Waiting is owned by the returned AllTask it should 
@@ -572,15 +586,17 @@ namespace geode {
             };
 
             // Iterate the tasks & start listening to them using
+            size_t index = 0;
             for (auto& taskToWait : tasks) {
                 static_cast<Waiting*>(task.m_handle->m_extraData->ptr)->taskListeners.emplace_back(taskToWait.map(
-                    [markAsDone](auto* result) {
-                        markAsDone(result);
+                    [index, markAsDone](auto* result) {
+                        markAsDone(index, result);
                         return std::monostate();
                     },
                     [](auto*) { return std::monostate(); },
-                    [markAsDone]() { markAsDone(nullptr); }
+                    [index, markAsDone]() { markAsDone(index, nullptr); }
                 ));
+                index += 1;
             }
             return task;
         }
