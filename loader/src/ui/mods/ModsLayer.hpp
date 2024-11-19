@@ -67,6 +67,7 @@ protected:
     EventListener<UpdateModListStateFilter> m_updateStateListener;
     bool m_showSearch = true;
     std::vector<CCMenuItemSpriteExtra*> m_displayBtns;
+    ModListDisplay m_modListDisplay;
 
     bool init();
 

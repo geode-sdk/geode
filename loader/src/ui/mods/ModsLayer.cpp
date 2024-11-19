@@ -19,8 +19,6 @@
 #include "ui/mods/sources/ModListSource.hpp"
 #include <loader/LoaderImpl.hpp>
 
-static ModListDisplay MOD_LIST_DISPLAY = ModListDisplay::SmallList;
-
 bool ModsStatusNode::init() {
     if (!CCNode::init())
         return false;
@@ -354,7 +352,9 @@ bool ModsLayer::init() {
             addSideArt(this);
         }
     }
-    
+
+    m_modListDisplay = Mod::get()->getSavedValue<ModListDisplay>("mod-list-display-type");
+
     auto backMenu = CCMenu::create();
     backMenu->setID("back-menu");
     backMenu->setContentWidth(100.f);
@@ -651,7 +651,7 @@ void ModsLayer::gotoTab(ModListSource* src) {
     m_currentSource = src;
 
     // Update the state of the current list
-    m_lists.at(m_currentSource)->updateDisplay(MOD_LIST_DISPLAY);
+    m_lists.at(m_currentSource)->updateDisplay(m_modListDisplay);
     m_lists.at(m_currentSource)->activateSearch(m_showSearch);
     m_lists.at(m_currentSource)->updateState();
 }
@@ -713,7 +713,7 @@ void ModsLayer::updateState() {
     // Update display button
     for (auto btn : m_displayBtns) {
         static_cast<GeodeSquareSprite*>(btn->getNormalImage())->setState(
-            static_cast<ModListDisplay>(btn->getTag()) == MOD_LIST_DISPLAY
+            static_cast<ModListDisplay>(btn->getTag()) == m_modListDisplay
         );
     }
 }
@@ -746,10 +746,12 @@ void ModsLayer::onGoToPage(CCObject*) {
     popup->show();
 }
 void ModsLayer::onDisplay(CCObject* sender) {
-    MOD_LIST_DISPLAY = static_cast<ModListDisplay>(sender->getTag());
+    m_modListDisplay = static_cast<ModListDisplay>(sender->getTag());
+    Mod::get()->setSavedValue("mod-list-display-type", m_modListDisplay);
+
     // Make sure to avoid a crash
     if (m_currentSource) {
-        m_lists.at(m_currentSource)->updateDisplay(MOD_LIST_DISPLAY);
+        m_lists.at(m_currentSource)->updateDisplay(m_modListDisplay);
         m_lists.at(m_currentSource)->reloadPage();
     }
     this->updateState();

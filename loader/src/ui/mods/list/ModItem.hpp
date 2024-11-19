@@ -18,6 +18,39 @@ enum class ModListDisplay {
     Grid,
 };
 
+// i made it this way just in case someone wanted to add to the enum in the future
+// mat is allowed to judge
+template<>
+struct matjson::Serialize<ModListDisplay> {
+    static Result<ModListDisplay> fromJson(matjson::Value const& value) {
+        auto saved = GEODE_UNWRAP(value.asString());
+        if (saved == "small-list") {
+            return Ok(ModListDisplay::SmallList);
+        } else if (saved == "big-list") {
+            return Ok(ModListDisplay::BigList);
+        } else if (saved == "grid") {
+            return Ok(ModListDisplay::Grid);
+        }
+
+        return Err("unknown display type");
+    }
+
+    static matjson::Value toJson(ModListDisplay const& value) {
+        switch (value) {
+            default:
+            case ModListDisplay::SmallList:
+                return "small-list";
+                break;
+            case ModListDisplay::BigList:
+                return "big-list";
+                break;
+            case ModListDisplay::Grid:
+                return "grid";
+                break;
+        }
+    }
+};
+
 class ModItem : public CCNode {
 protected:
     ModSource m_source;
