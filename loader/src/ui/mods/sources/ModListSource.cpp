@@ -64,7 +64,7 @@ std::optional<size_t> ModListSource::getItemCount() const {
 void ModListSource::setPageSize(size_t size) {
     if (m_pageSize != size) {
         m_pageSize = size;
-        this->reset();
+        this->clearCache();
     }
 }
 
