@@ -15,9 +15,9 @@ static size_t getDisplayPageSize(ModListSource* src, ModListDisplay display) {
 
 $execute {
     listenForSettingChanges("infinite-local-mods-list", [](bool value) {
-        InstalledModListSource::get(InstalledModListType::All)->reset();
-        InstalledModListSource::get(InstalledModListType::OnlyErrors)->reset();
-        InstalledModListSource::get(InstalledModListType::OnlyOutdated)->reset();
+        InstalledModListSource::get(InstalledModListType::All)->clearCache();
+        InstalledModListSource::get(InstalledModListType::OnlyErrors)->clearCache();
+        InstalledModListSource::get(InstalledModListType::OnlyOutdated)->clearCache();
         // Updates is technically a server mod list :-) So I left it out here
     });
 }
@@ -599,6 +599,16 @@ void ModList::updateDisplay(ModListDisplay display) {
                 ->setAutoGrowAxis(m_obContentSize.height)
                 ->setGap(2.5f)
         );
+    }
+
+    // Make sure list isn't too small
+    // NOTE: Do NOT call `updateLayout` on m_list, it'll undo this!
+    if (m_list->m_contentLayer->getContentHeight() < m_list->getContentHeight()) {
+        auto diff = m_list->getContentHeight() - m_list->m_contentLayer->getContentHeight();
+        m_list->m_contentLayer->setContentHeight(m_list->getContentHeight());
+        for (auto child : CCArrayExt<CCNode*>(m_list->m_contentLayer->getChildren())) {
+            child->setPositionY(child->getPositionY() + diff);
+        }
     }
 
     // Preserve relative scroll position
