@@ -30,7 +30,7 @@ void CopyButtonSettingNode::onCopy(CCObject*) {
         auto& mod = mods[i];
         ss << fmt::format("{} | [{}] {}",
             mod->isEnabled() ? "x"sv : 
-            mod->hasProblems() ? "!"sv :
+            mod->hasLoadProblems() ? "!"sv :
             mod->targetsOutdatedVersion() ? "*"sv :
             " "sv,
             mod->getVersion().toVString(), mod->getID()
