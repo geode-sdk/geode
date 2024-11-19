@@ -1,5 +1,21 @@
 # Geode Changelog
 
+## v4.0.0-beta.2
+ * Add grid view to mod list (7bcf50d, 1ff24f0)
+ * Add safe mode tip to windows crashlog window (38f3385)
+ * Disable enabled button on outdated mods (302eea1)
+ * Add a button to copy list of mods to clipboard (#1039)
+ * Fix VersionInfo toJson (f6c2322)
+ * Add `GEODE_DESKTOP(...)` and `GEODE_MOBILE(...)` macros (d6f0c59)
+ * Fix CCCallFuncExt (b9fb2f6)
+ * Fix `utils::string::replaceIP` when filter is empty (4d5e465)
+ * Fix more log nesting issues (2221095)
+ * Fix new before/after priority system (17bf772)
+ * Added European Portuguese translation (#1160)
+ * Add missing CCHttpRequest methods and members (#1161)
+ * Fix downloading many mods at once causing the UI to lag (c94a533)
+ * Fix vv version (6e86b38)
+
 ## v4.0.0-beta.1
  * Button to manually install mods from files (e881dc5)
  * Add `ModRequestedAction::Update` (e881dc5)
