@@ -2,6 +2,7 @@
 
 ## v4.0.0
  * Make chosen display type in mod list be saved between startups (07d92a3)
+ * Fix `Task::all` not returning results in order (227adb0)
  * Fix bugs with changing display type (555ebe3, f90461f)
 
 ## v4.0.0-beta.2
