@@ -24,20 +24,18 @@ void CopyButtonSettingNode::onCopy(CCObject*) {
         });
     });
 
-    std::stringstream ss;
+    std::string modsList;
     using namespace std::string_view_literals;
     for (int i = 0; i < mods.size(); i++) {
         auto& mod = mods[i];
-        ss << fmt::format("{} | [{}] {}",
+        modsList += fmt::format("{} | [{}] {}{}",
             mod->isEnabled() ? "x"sv : 
             mod->hasLoadProblems() ? "!"sv :
             mod->targetsOutdatedVersion() ? "*"sv :
             " "sv,
-            mod->getVersion().toVString(), mod->getID()
+            mod->getVersion().toVString(), mod->getID(),
+            i < mods.size() ? "\n" : ""
         );
-        if (i != mods.size() - 1) {
-            ss << "\n";
-        }
     }
     clipboard::write(ss.str());
 
