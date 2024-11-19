@@ -65,12 +65,6 @@ namespace std::filesystem {
     }
 }
 
-namespace matjson {
-    GEODE_INLINE GEODE_HIDDEN std::string format_as(matjson::Value const& value) {
-        return value.dump(matjson::NO_INDENTATION);
-    }
-}
-
 namespace geode {
 
     class Mod;
@@ -119,6 +113,37 @@ namespace geode {
         inline void popNest() {
             popNest(getMod());
         }
+
+        struct NestScope {
+        private:
+            bool m_active = true;
+        public:
+            NestScope() {
+                pushNest();
+            }
+
+            NestScope(NestScope const&) {
+                pushNest();
+            }
+
+            NestScope(NestScope&& other) {
+                other.m_active = false;
+            }
+
+            NestScope& operator=(NestScope const&) {
+                pushNest();
+                return *this;
+            }
+
+            NestScope& operator=(NestScope&& other) {
+                other.m_active = false;
+                return *this;
+            }
+
+            ~NestScope() {
+                if (m_active) popNest();
+            }
+        };
 
         class Nest final {
         private:

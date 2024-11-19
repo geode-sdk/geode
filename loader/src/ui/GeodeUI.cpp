@@ -34,7 +34,7 @@ protected:
         if (auto res = event->getValue()) {
             if (res->isOk()) {
                 // Copy info first as onClose may free the listener which will free the event
-                auto info = **res;
+                auto info = res->unwrap();
                 this->onClose(nullptr);
                 // Run this on next frame because otherwise the popup is unable to call server::getMod for some reason
                 Loader::get()->queueInMainThread([info = std::move(info)]() mutable {
@@ -147,10 +147,6 @@ Task<bool> geode::openInfoPopup(std::string const& modID) {
         return task;
     }
 }
-void geode::openIndexPopup(Mod* mod) {
-    // deprecated func
-    openInfoPopup(mod);
-}
 
 void geode::openChangelogPopup(Mod* mod) {
     auto popup = ModPopup::create(mod);
@@ -170,40 +166,55 @@ Popup<Mod*>* geode::openSettingsPopup(Mod* mod, bool disableGeodeTheme) {
     return nullptr;
 }
 
+using ModLogoSrc = std::variant<Mod*, std::string, std::filesystem::path>;
+
 class ModLogoSprite : public CCNode {
 protected:
     std::string m_modID;
     CCNode* m_sprite = nullptr;
     EventListener<server::ServerRequest<ByteVector>> m_listener;
 
-    bool init(std::string const& id, bool fetch) {
+    bool init(ModLogoSrc&& src) {
         if (!CCNode::init())
             return false;
         
         this->setAnchorPoint({ .5f, .5f });
         this->setContentSize({ 50, 50 });
 
-        // This is a default ID, nothing should ever rely on the ID of any ModLogoSprite being this
-        this->setID(std::string(Mod::get()->expandSpriteName(fmt::format("sprite-{}", id))));
-
-        m_modID = id;
         m_listener.bind(this, &ModLogoSprite::onFetch);
+    
+        std::visit(makeVisitor {
+            [this](Mod* mod) {
+                m_modID = mod->getID();
 
-        // Load from Resources
-        if (!fetch) {
-            this->setSprite(id == "geode.loader" ? 
-                CCSprite::createWithSpriteFrameName("geode-logo.png"_spr) : 
-                CCSprite::create(fmt::format("{}/logo.png", id).c_str()),
-                false
-            );
-        }
-        // Asynchronously fetch from server
-        else {
-            this->setSprite(createLoadingCircle(25), false);
-            m_listener.setFilter(server::getModLogo(id));
-        }
+                // Load from Resources
+                this->setSprite(mod->isInternal() ? 
+                    CCSprite::createWithSpriteFrameName("geode-logo.png"_spr) : 
+                    CCSprite::create(fmt::format("{}/logo.png", mod->getID()).c_str()),
+                    false
+                );
+            },
+            [this](std::string const& id) {
+                m_modID = id;
+                
+                // Asynchronously fetch from server
+                this->setSprite(createLoadingCircle(25), false);
+                m_listener.setFilter(server::getModLogo(id));
+            },
+            [this](std::filesystem::path const& path) {
+                this->setSprite(nullptr, false);
+                if (auto unzip = file::Unzip::create(path)) {
+                    if (auto logo = unzip.unwrap().extract("logo.png")) {
+                        this->setSprite(std::move(logo.unwrap()), false);
+                    }
+                }
+            },
+        }, src);
 
-        ModLogoUIEvent(std::make_unique<ModLogoUIEvent::Impl>(this, id)).post();
+        // This is a default ID, nothing should ever rely on the ID of any ModLogoSprite being this
+        this->setID(std::string(Mod::get()->expandSpriteName(fmt::format("sprite-{}", m_modID))));
+
+        ModLogoUIEvent(std::make_unique<ModLogoUIEvent::Impl>(this, m_modID)).post();
 
         return true;
     }
@@ -228,6 +239,13 @@ protected:
             ModLogoUIEvent(std::make_unique<ModLogoUIEvent::Impl>(this, m_modID)).post();
         }
     }
+    void setSprite(ByteVector&& data, bool postEvent) {
+        auto image = Ref(new CCImage());
+        image->initWithImageData(data.data(), data.size());
+
+        auto texture = CCTextureCache::get()->addUIImage(image, m_modID.c_str());
+        this->setSprite(CCSprite::createWithTexture(texture), postEvent);
+    }
 
     void onFetch(server::ServerRequest<ByteVector>::Event* event) {
         if (auto result = event->getValue()) {
@@ -237,12 +255,7 @@ protected:
             }
             // Otherwise load downloaded sprite to memory
             else {
-                auto data = result->unwrap();
-                auto image = Ref(new CCImage());
-                image->initWithImageData(data.data(), data.size());
-
-                auto texture = CCTextureCache::get()->addUIImage(image, m_modID.c_str());
-                this->setSprite(CCSprite::createWithTexture(texture), true);
+                this->setSprite(std::move(result->unwrap()), true);
             }
         }
         else if (event->isCancelled()) {
@@ -251,9 +264,9 @@ protected:
     }
 
 public:
-    static ModLogoSprite* create(std::string const& id, bool fetch = false) {
+    static ModLogoSprite* create(ModLogoSrc&& src) {
         auto ret = new ModLogoSprite();
-        if (ret->init(id, fetch)) {
+        if (ret->init(std::move(src))) {
             ret->autorelease();
             return ret;
         }
@@ -263,13 +276,17 @@ public:
 };
 
 CCNode* geode::createDefaultLogo() {
-    return ModLogoSprite::create("");
+    return ModLogoSprite::create(ModLogoSrc(nullptr));
 }
 
 CCNode* geode::createModLogo(Mod* mod) {
-    return ModLogoSprite::create(mod->getID());
+    return ModLogoSprite::create(ModLogoSrc(mod));
+}
+
+CCNode* geode::createModLogo(std::filesystem::path const& geodePackage) {
+    return ModLogoSprite::create(ModLogoSrc(geodePackage));
 }
 
 CCNode* geode::createServerModLogo(std::string const& id) {
-    return ModLogoSprite::create(id, true);
+    return ModLogoSprite::create(ModLogoSrc(id));
 }

@@ -46,6 +46,11 @@ $register_ids(MenuLayer) {
     }
     
     setIDSafe<CCLabelBMFont>(this, labelOffset++, "player-username");
+
+    if(auto node = this->getChildByID("settings-gamepad-icon")) {
+        // hide it until someone figures out how to bind the positioning to the actual button
+        node->setVisible(false);
+    }
     
     // main menu
     if (auto menu = this->getChildByType<CCMenu>(0)) {

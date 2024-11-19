@@ -1,4 +1,7 @@
 #include "ModPopup.hpp"
+
+#include <optional>
+
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/ui/TextInput.hpp>
@@ -7,11 +10,13 @@
 #include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/utils/ColorProvider.hpp>
+#include <optional>
 #include "ConfirmUninstallPopup.hpp"
 #include "../settings/ModSettingsPopup.hpp"
 #include "../../../internal/about.hpp"
 #include "../../GeodeUIEvent.hpp"
 #include "../popups/ModtoberPopup.hpp"
+#include "server/DownloadManager.hpp"
 
 class FetchTextArea : public CCNode {
 public:
@@ -46,11 +51,16 @@ protected:
     }
 
     void onRequest(Request::Event* event) {
-        if (event->getValue() && event->getValue()->isOk() && event->getValue()->unwrap()) {
-            m_loading->removeFromParent();
-            m_textarea->setString(event->getValue()->unwrap()->c_str());
+        if (auto* res = event->getValue(); res && res->isOk()) {
+            auto value = std::move(*res).unwrap();
+            if (value) {
+                m_loading->removeFromParent();
+                std::string str = std::move(value).value();
+                m_textarea->setString(str.c_str());
+                return;
+            }
         }
-        else if (!event->getProgress()) {
+        if (!event->getProgress()) {
             m_loading->removeFromParent();
             m_textarea->setString(m_noneText.c_str());
         }
@@ -618,7 +628,7 @@ bool ModPopup::setup(ModSource&& src) {
     m_downloadListener.bind([this](auto) { this->updateState(); });
     m_downloadListener.setFilter(m_source.getID());
 
-    m_settingNodeListener.bind([this](SettingNodeValueChangeEventV3*) {
+    m_settingNodeListener.bind([this](SettingNodeValueChangeEvent*) {
         this->updateState();
         return ListenerResult::Propagate;
     });
@@ -662,7 +672,11 @@ void ModPopup::updateState() {
     m_cancelBtn->setVisible(false);
 
     m_enableBtn->toggle(asMod && asMod->isOrWillBeEnabled());
-    m_enableBtn->setVisible(asMod && asMod->getRequestedAction() == ModRequestedAction::None);
+    m_enableBtn->setVisible(
+        asMod &&
+        asMod->getRequestedAction() == ModRequestedAction::None &&
+        !asMod->targetsOutdatedVersion()
+    );
 
     m_reenableBtn->toggle(m_enableBtn->isToggled());
     m_reenableBtn->setVisible(asMod && modRequestedActionIsToggle(asMod->getRequestedAction()));
@@ -883,7 +897,7 @@ void ModPopup::onCheckUpdates(typename server::ServerRequest<std::optional<serve
     }
 }
 
-void ModPopup::onLoadTags(typename server::ServerRequest<std::unordered_set<std::string>>::Event* event) {
+void ModPopup::onLoadTags(typename server::ServerRequest<std::vector<server::ServerTag>>::Event* event) {
     if (event->getValue() && event->getValue()->isOk()) {
         auto data = event->getValue()->unwrap();
         m_tags->removeAllChildren();
@@ -902,7 +916,7 @@ void ModPopup::onLoadTags(typename server::ServerRequest<std::unordered_set<std:
         // If the build times from the cool popup become too long then we can 
         // probably move that to a normal FLAlert that explains "Modtober was 
         // this contest blah blah this mod was made for it"
-        else if (data.contains("modtober24")) {
+        else if (ranges::contains(data, [](auto const& tag) { return tag.name == "modtober24"; })) {
             auto menu = CCMenu::create();
             menu->setID("modtober-banner");
             menu->ignoreAnchorPointForPosition(false);
@@ -1047,7 +1061,9 @@ void ModPopup::onInstall(CCObject*) {
             return;
         }
     }
-    server::ModDownloadManager::get()->startDownload(m_source.getID(), std::nullopt);
+
+    m_source.startInstall();
+
     this->onClose(nullptr);
 }
 

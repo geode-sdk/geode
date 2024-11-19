@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Geode/DefaultInclude.hpp>
-#include "SettingV3.hpp"
+#include "Setting.hpp"
 
 namespace geode {
     class Mod;
@@ -40,12 +40,8 @@ namespace geode {
          * The format of the savedata will be an object with the keys being 
          * setting IDs and then the values the values of the saved settings
          * @note If saving a setting fails, it will log a warning to the console
-         * @warning This will overwrite the whole `json` parameter - be sure to 
-         * pass the full settings savedata to `load()` so you can be sure that 
-         * unregistered custom settings' saved values don't disappear!
-         * @todo in v4: make this return the value instead lol
          */
-        void save(matjson::Value& json);
+        matjson::Value save();
 
         /**
          * Get the savedata for settings, aka the JSON object that contains all 
@@ -57,12 +53,8 @@ namespace geode {
         matjson::Value& getSaveData();
 
         Result<> registerCustomSettingType(std::string_view type, SettingGenerator generator);
-        // todo in v4: remove this
-        Result<> registerLegacyCustomSetting(std::string_view key, std::unique_ptr<SettingValue>&& ptr);
 
-        std::shared_ptr<SettingV3> get(std::string_view key);
-        std::shared_ptr<SettingValue> getLegacy(std::string_view key);
-        std::optional<Setting> getLegacyDefinition(std::string_view key);
+        std::shared_ptr<Setting> get(std::string_view key);
 
         /**
          * Returns true if any setting with the `"restart-required"` attribute 

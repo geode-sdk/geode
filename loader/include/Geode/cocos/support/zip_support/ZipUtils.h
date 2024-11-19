@@ -208,9 +208,9 @@ namespace cocos2d
     
         /**
          * Custom function added for geode; returns if the 
-         * zip file was succesfully decoded.
+         * zip file was successfully decoded.
          * 
-         * @return true if the zip was succesfully loaded, 
+         * @return true if the zip was successfully loaded, 
          *         false otherwise.
          * 
          * @since geode v1.0.0

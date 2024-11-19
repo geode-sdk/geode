@@ -1,4 +1,4 @@
-#include <Geode/utils/Result.hpp>
+#include <Geode/Result.hpp>
 #include <Geode/utils/general.hpp>
 #include <filesystem>
 #include <fmt/core.h>
@@ -96,7 +96,7 @@ class WebResponse::Impl {
 public:
     int m_code;
     ByteVector m_data;
-    std::unordered_map<std::string, std::string> m_headers;
+    std::unordered_map<std::string, std::vector<std::string>> m_headers;
 
     Result<> into(std::filesystem::path const& path) const;
 };
@@ -130,12 +130,9 @@ Result<std::string> WebResponse::string() const {
 }
 Result<matjson::Value> WebResponse::json() const {
     GEODE_UNWRAP_INTO(auto value, this->string());
-    std::string error;
-    auto res = matjson::parse(value, error);
-    if (error.size() > 0) {
-        return Err("Error parsing JSON: " + error);
-    }
-    return Ok(res.value());
+    return matjson::parse(value).mapErr([&](auto const& err) {
+        return fmt::format("Error parsing JSON: {}", err);
+    });
 }
 ByteVector WebResponse::data() const {
     return m_impl->m_data;
@@ -149,8 +146,14 @@ std::vector<std::string> WebResponse::headers() const {
 }
 
 std::optional<std::string> WebResponse::header(std::string_view name) const {
-    auto str = std::string(name);
-    if (m_impl->m_headers.contains(str)) {
+    if (auto str = std::string(name); m_impl->m_headers.contains(str)) {
+        return m_impl->m_headers.at(str).at(0);
+    }
+    return std::nullopt;
+}
+
+std::optional<std::vector<std::string>> WebResponse::getAllHeadersNamed(std::string_view name) const {
+    if (auto str = std::string(name); m_impl->m_headers.contains(str)) {
         return m_impl->m_headers.at(str);
     }
     return std::nullopt;
@@ -192,7 +195,7 @@ public:
 
     std::string m_method;
     std::string m_url;
-    std::unordered_map<std::string, std::string> m_headers;
+    std::unordered_map<std::string, std::vector<std::string>> m_headers;
     std::unordered_map<std::string, std::string> m_urlParameters;
     std::optional<std::string> m_userAgent;
     std::optional<std::string> m_acceptEncodingType;
@@ -202,6 +205,7 @@ public:
     bool m_certVerification = true;
     bool m_transferBody = true;
     bool m_followRedirects = true;
+    bool m_ignoreContentLength = false;
     std::string m_CABundleContent;
     ProxyOpts m_proxyOpts = {};
     HttpVersion m_httpVersion = HttpVersion::DEFAULT;
@@ -223,7 +227,7 @@ WebRequest::WebRequest() : m_impl(std::make_shared<Impl>()) {}
 WebRequest::~WebRequest() {}
 
 // Encodes a url param
-std::string urlParamEncode(std::string_view const input) {
+static std::string urlParamEncode(std::string_view input) {
     std::ostringstream ss;
     ss << std::hex << std::uppercase;
     for (char c : input) {
@@ -272,15 +276,17 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
 
         // Set headers
         curl_slist* headers = nullptr;
-        for (auto& [name, value] : impl->m_headers) {
+        for (auto& [name, values] : impl->m_headers) {
             // Sanitize header name
             auto header = name;
             header.erase(std::remove_if(header.begin(), header.end(), [](char c) {
                 return c == '\r' || c == '\n';
             }), header.end());
             // Append value
-            header += ": " + value;
-            headers = curl_slist_append(headers, header.c_str());
+            for (const auto& value: values) {
+                header += ": " + value;
+                headers = curl_slist_append(headers, header.c_str());
+            }
         }
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
@@ -382,6 +388,9 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         // Follow request through 3xx responses
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, impl->m_followRedirects ? 1L : 0L);
 
+        // Ignore content length
+        curl_easy_setopt(curl, CURLOPT_IGNORE_CONTENT_LENGTH, impl->m_ignoreContentLength ? 1L : 0L);
+
         // Track progress
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
 
@@ -405,7 +414,12 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
                 if (value.ends_with('\r')) {
                     value = value.substr(0, value.size() - 1);
                 }
-                headers.insert_or_assign(key, value);
+                // Create a new vector and add to it or add to an already existing one
+                if (headers.contains(key)) {
+                    headers.at(key).push_back(value);
+                } else {
+                    headers.insert_or_assign(key, std::vector{value});
+                }
             }
             return size * nitems;
         }));
@@ -498,7 +512,7 @@ WebRequest& WebRequest::header(std::string_view name, std::string_view value) {
             int timeoutValue = 5;
             auto res = numFromString<int>(value.substr(numStart, numLength));
             if (res) {
-                timeoutValue = res.value();
+                timeoutValue = res.unwrap();
             }
 
             timeout(std::chrono::seconds(timeoutValue));
@@ -507,7 +521,14 @@ WebRequest& WebRequest::header(std::string_view name, std::string_view value) {
         }
     }
 
-    m_impl->m_headers.insert_or_assign(std::string(name), std::string(value));
+    // Create a new vector and add to it or add to an already existing one
+    std::string strName = std::string(name);
+    std::string strValue = std::string(value);
+    if (m_impl->m_headers.contains(strName)) {
+        m_impl->m_headers.at(strName).push_back(strValue);
+    } else {
+        m_impl->m_headers.insert_or_assign(strName, std::vector{strValue});
+    }
 
     return *this;
 }
@@ -553,6 +574,11 @@ WebRequest& WebRequest::transferBody(bool enabled) {
 
 WebRequest& WebRequest::followRedirects(bool enabled) {
     m_impl->m_followRedirects = enabled;
+    return *this;
+}
+
+WebRequest& WebRequest::ignoreContentLength(bool enabled) {
+    m_impl->m_ignoreContentLength = enabled;
     return *this;
 }
 
@@ -603,7 +629,7 @@ std::string WebRequest::getUrl() const {
     return m_impl->m_url;
 }
 
-std::unordered_map<std::string, std::string> WebRequest::getHeaders() const {
+std::unordered_map<std::string, std::vector<std::string>> WebRequest::getHeaders() const {
     return m_impl->m_headers;
 }
 

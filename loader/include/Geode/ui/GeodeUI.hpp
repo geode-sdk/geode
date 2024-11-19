@@ -134,11 +134,6 @@ namespace geode {
     GEODE_DLL void openSupportPopup(Mod* mod);
     GEODE_DLL void openSupportPopup(ModMetadata const& metadata);
     /**
-     * Open the store page for a mod (if it exists)
-     */
-    [[deprecated("Will be removed, use openInfoPopup instead")]]
-    GEODE_DLL void openIndexPopup(Mod* mod);
-    /**
      * Open the settings popup for a mod (if it has any settings)
      */
     GEODE_DLL void openSettingsPopup(Mod* mod);
@@ -160,6 +155,10 @@ namespace geode {
      * Create a logo sprite for a mod
      */
     GEODE_DLL cocos2d::CCNode* createModLogo(Mod* mod);
+    /**
+     * Create a logo sprite for a mod from a .geode file
+     */
+    GEODE_DLL cocos2d::CCNode* createModLogo(std::filesystem::path const& geodePackage);
     /**
      * Create a logo sprite for a mod downloaded from the Geode servers. The 
      * logo is initially a loading circle, with the actual sprite downloaded 

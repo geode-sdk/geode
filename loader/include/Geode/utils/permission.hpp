@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Geode/DefaultInclude.hpp>
-#include "MiniFunction.hpp"
 #include <string_view>
 
 namespace geode::utils::permission {
@@ -21,5 +20,5 @@ namespace geode::utils::permission {
      * @param permission The permission
      * @param callback The callback, passed value is 'true' if permission was granted and 'false' otherwise.
      */
-    void GEODE_DLL requestPermission(Permission permission, utils::MiniFunction<void(bool)> callback);
+    void GEODE_DLL requestPermission(Permission permission, std::function<void(bool)> callback);
 }

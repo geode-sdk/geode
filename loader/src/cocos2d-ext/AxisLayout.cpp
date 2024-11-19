@@ -1026,14 +1026,6 @@ std::optional<AxisAlignment> AxisLayoutOptions::getCrossAxisAlignment() const {
     return m_impl->m_crossAxisAlignment;
 }
 
-AxisLayoutOptions* AxisLayoutOptions::setMaxScale(float scale) {
-    m_impl->m_scaleLimits.second = scale;
-    return this;
-}
-AxisLayoutOptions* AxisLayoutOptions::setMinScale(float scale) {
-    m_impl->m_scaleLimits.first = scale;
-    return this;
-}
 AxisLayoutOptions* AxisLayoutOptions::setScaleLimits(std::optional<float> min, std::optional<float> max) {
     m_impl->m_scaleLimits = { min, max };
     return this;

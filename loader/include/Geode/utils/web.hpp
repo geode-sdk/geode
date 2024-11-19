@@ -2,7 +2,7 @@
 
 #include <Geode/loader/Loader.hpp> // another great circular dependency fix
 #include <matjson.hpp>
-#include "Result.hpp"
+#include <Geode/Result.hpp>
 #include "Task.hpp"
 #include <chrono>
 #include <optional>
@@ -83,6 +83,15 @@ namespace geode::utils::web {
 
         std::vector<std::string> headers() const;
         std::optional<std::string> header(std::string_view name) const;
+
+        /**
+         * Retrieves a list of all headers from the response with a given name - there can be
+         * multiple headers with the same name, such as Set-Cookie, with each cookie in a separate
+         * header
+         * @param name name of the header
+         * @return std::optional<std::vector<std::string>>
+         */
+        std::optional<std::vector<std::string>> getAllHeadersNamed(std::string_view name) const;
     };
 
     class GEODE_DLL WebProgress final {
@@ -204,6 +213,15 @@ namespace geode::utils::web {
         WebRequest& followRedirects(bool enabled);
 
         /**
+         * Enables or disables ignoring the content length header.
+         * The default is false.
+         *
+         * @param enabled
+         * @return WebRequest&
+         */
+        WebRequest& ignoreContentLength(bool enabled);
+
+        /**
          * Sets the Certificate Authority (CA) bundle content.
          * Defaults to not sending a CA bundle.
          *
@@ -277,9 +295,9 @@ namespace geode::utils::web {
         /**
          * Gets the request headers
          *
-         * @return std::unordered_map<std::string, std::string>
+         * @return std::unordered_map<std::string, std::vector<std::string>>
          */
-        std::unordered_map<std::string, std::string> getHeaders() const;
+        std::unordered_map<std::string, std::vector<std::string>> getHeaders() const;
 
         /**
          * Gets the parameters inside the URL

@@ -72,18 +72,26 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Win64")
 	target_link_libraries(${PROJECT_NAME} INTERFACE 
 		${GEODE_LOADER_PATH}/include/link/win64/libcocos2d.lib
 		${GEODE_LOADER_PATH}/include/link/win64/libExtensions.lib
-		${GEODE_LOADER_PATH}/include/link/win64/ssl.lib
-		${GEODE_LOADER_PATH}/include/link/win64/crypto.lib
-		${GEODE_LOADER_PATH}/include/link/win64/nghttp2.lib
-		${GEODE_LOADER_PATH}/include/link/win64/ngtcp2.lib
-		${GEODE_LOADER_PATH}/include/link/win64/nghttp3.lib
-		${GEODE_LOADER_PATH}/include/link/win64/ngtcp2_crypto_boringssl.lib
-		${GEODE_LOADER_PATH}/include/link/win64/libcurl.lib
 		${GEODE_LOADER_PATH}/include/link/win64/glew32.lib
-		${GEODE_LOADER_PATH}/include/link/win64/gdstring.lib
 		${GEODE_LOADER_PATH}/include/link/win64/fmod.lib
 		opengl32
 	)
+
+	if (PROJECT_IS_TOP_LEVEL AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+		target_link_libraries(${PROJECT_NAME} INTERFACE
+			${GEODE_LOADER_PATH}/include/link/win64/gd-libcurl.lib
+		)
+	else()
+		target_link_libraries(${PROJECT_NAME} INTERFACE
+			${GEODE_LOADER_PATH}/include/link/win64/ssl.lib
+			${GEODE_LOADER_PATH}/include/link/win64/crypto.lib
+			${GEODE_LOADER_PATH}/include/link/win64/nghttp2.lib
+			${GEODE_LOADER_PATH}/include/link/win64/ngtcp2.lib
+			${GEODE_LOADER_PATH}/include/link/win64/nghttp3.lib
+			${GEODE_LOADER_PATH}/include/link/win64/ngtcp2_crypto_boringssl.lib
+			${GEODE_LOADER_PATH}/include/link/win64/libcurl.lib
+		)
+	endif()
 
 	# Windows links against .lib and not .dll
 	set(GEODE_OUTPUT_NAME "Geode")

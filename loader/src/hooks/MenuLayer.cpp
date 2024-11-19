@@ -75,6 +75,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
             this->fixSocialMenu();
 
+            //this code doesnt run have fun figuring out why idc enough
             if (auto node = this->getChildByID("settings-gamepad-icon")) {
                 node->setPositionX(
                     bottomMenu->getChildByID("settings-button")->getPositionX() + winSize.width / 2
@@ -83,13 +84,12 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         }
 
         // show if some mods failed to load
-        if (Loader::get()->getProblems().size()) {
+        if (Loader::get()->getLoadProblems().size()) {
             static bool shownProblemPopup = false;
             if (!shownProblemPopup) {
                 shownProblemPopup = true;
                 Notification::create("There were errors - see Geode page!", NotificationIcon::Error)->show();
             }
-
             if (m_fields->m_geodeButton) {
                 m_fields->m_exclamation = CCSprite::createWithSpriteFrameName("exMark_001.png");
                 m_fields->m_exclamation->setPosition(m_fields->m_geodeButton->getContentSize() - ccp(10, 10));

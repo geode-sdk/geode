@@ -104,8 +104,36 @@
         }                                                                                                        \
     } while (0);
 
-namespace geode::modifier {
+namespace geode {
+    class Priority {
+    public:
+        static inline constexpr int32_t First = -3000;
+        static inline constexpr int32_t VeryEarly = -2000;
+        static inline constexpr int32_t Early = -1000;
+        static inline constexpr int32_t Normal = 0;
+        static inline constexpr int32_t Late = 1000;
+        static inline constexpr int32_t VeryLate = 2000;
+        static inline constexpr int32_t Last = 3000;
 
+        static inline constexpr int32_t FirstPre = First;
+        static inline constexpr int32_t VeryEarlyPre = VeryEarly;
+        static inline constexpr int32_t EarlyPre = Early;
+        static inline constexpr int32_t NormalPre = Normal;
+        static inline constexpr int32_t LatePre = Late;
+        static inline constexpr int32_t VeryLatePre = VeryLate;
+        static inline constexpr int32_t LastPre = Last;
+
+        static inline constexpr int32_t FirstPost = Last;
+        static inline constexpr int32_t VeryEarlyPost = VeryLate;
+        static inline constexpr int32_t EarlyPost = Late;
+        static inline constexpr int32_t NormalPost = Normal;
+        static inline constexpr int32_t LatePost = Early;
+        static inline constexpr int32_t VeryLatePost = VeryEarly;
+        static inline constexpr int32_t LastPost = First;
+    };
+}
+
+namespace geode::modifier {
     template <class Derived, class Base>
     class ModifyDerive;
 
@@ -114,20 +142,177 @@ namespace geode::modifier {
     public:
         std::map<std::string, std::shared_ptr<Hook>> m_hooks;
 
-        Result<Hook*> getHook(std::string const& name) {
-            if (m_hooks.find(name) == m_hooks.end()) {
+        /// @brief Get a hook by name
+        /// @param name The name of the hook to get
+        /// @returns Ok if the hook was found, Err if the hook was not found
+        Result<Hook*> getHook(std::string_view name) {
+            auto key = std::string(name);
+            if (m_hooks.find(key) == m_hooks.end()) {
                 return Err("Hook not in this modify");
             }
-            return Ok(m_hooks[name].get());
+            return Ok(m_hooks[key].get());
         }
 
-        Result<> setHookPriority(std::string const& name, int32_t priority) {
-            auto res = this->getHook(name);
-            if (!res) {
-                return Err(res.unwrapErr());
-            }
-            res.unwrap()->setPriority(priority);
+        /// @brief Set the priority of a hook
+        /// @param name The name of the hook to set the priority of
+        /// @param priority The priority to set the hook to
+        /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
+        Result<> setHookPriority(std::string_view name, int32_t priority = Priority::Normal) {
+            GEODE_UNWRAP_INTO(auto hook, this->getHook(name));
+            hook->setPriority(priority);
             return Ok();
+        }
+
+        /// @brief Set the priority of a hook
+        /// @param name The name of the hook to set the priority of
+        /// @param priority The priority to set the hook to
+        /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
+        Result<> setHookPriorityPre(std::string_view name, int32_t priority = Priority::Normal) {
+            return this->setHookPriority(name, priority);
+        }
+
+        /// @brief Set the priority of a hook
+        /// @param name The name of the hook to set the priority of
+        /// @param priority The priority to set the hook to
+        /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
+        Result<> setHookPriorityPost(std::string_view name, int32_t priority = Priority::Normal) {
+            return this->setHookPriority(name, -priority);
+        }
+
+        /// @brief Set the priority of a hook to be after another hook in different mods
+        /// @param name The name of the hook to set the priority of
+        /// @param after The mod to set the priority after
+        /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
+        Result<> setHookPriorityAfter(std::string_view name, Mod* mod) {
+            GEODE_UNWRAP_INTO(auto hook, this->getHook(name));
+            auto func = [=](ModStateEvent* event){
+                auto hooks = mod->getHooks();
+                for (auto modHook : hooks) {
+                    if (modHook->getAddress() != hook->getAddress()) continue;
+                    auto priority = modHook->getPriority();
+                    if (hook->getPriority() <= priority) {
+                        hook->setPriority(priority + 1);
+                    }
+                }
+                return ListenerResult::Propagate;
+            };
+            if (mod->isEnabled()) {
+                func(nullptr);
+            }
+            else {
+                new EventListener(func, ModStateFilter(mod, ModEventType::Loaded));
+            }
+            return Ok();
+        }
+
+        /// @brief Set the priority of a hook to be after another hook in different mods
+        /// @param name The name of the hook to set the priority of
+        /// @param after The mod id of the mod to set the priority after
+        /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
+        Result<> setHookPriorityAfter(std::string_view name, std::string_view after) {
+            auto mod = Loader::get()->getInstalledMod(std::string(after));
+            if (!mod) return Err("Mod not found");
+            return this->setHookPriorityAfter(name, mod);
+        }
+
+        /// @brief Set the priority of a hook to be before another hook in different mods
+        /// @param name The name of the hook to set the priority of
+        /// @param before The mod to set the priority before
+        /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
+        Result<> setHookPriorityBefore(std::string_view name, Mod* mod) {
+            GEODE_UNWRAP_INTO(auto hook, this->getHook(name));
+            auto func = [=](ModStateEvent* event){
+                auto hooks = mod->getHooks();
+                for (auto modHook : hooks) {
+                    if (modHook->getAddress() != hook->getAddress()) continue;
+                    auto priority = modHook->getPriority();
+                    if (hook->getPriority() >= priority) {
+                        hook->setPriority(priority - 1);
+                    }
+                }
+                return ListenerResult::Propagate;
+            };
+            if (mod->isEnabled()) {
+                func(nullptr);
+            }
+            else {
+                new EventListener(func, ModStateFilter(mod, ModEventType::Loaded));
+            }
+            return Ok();
+        }
+
+        /// @brief Set the priority of a hook to be before another hook in different mods
+        /// @param name The name of the hook to set the priority of
+        /// @param before The mod id of the mod to set the priority before
+        /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
+        Result<> setHookPriorityBefore(std::string_view name, std::string_view before) {
+            auto mod = Loader::get()->getInstalledMod(std::string(before));
+            if (!mod) return Err("Mod not found");
+            return this->setHookPriorityBefore(name, mod);
+        }
+
+        /// @brief Set the priority of a hook to be after another hook in different mods
+        /// @param name The name of the hook to set the priority of
+        /// @param after The mod id of the mod to set the priority after
+        /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
+        Result<> setHookPriorityAfterPre(std::string_view name, std::string_view after) {
+            return this->setHookPriorityAfter(name, after);
+        }
+
+        /// @brief Set the priority of a hook to be after another hook in different mods
+        /// @param name The name of the hook to set the priority of
+        /// @param before The mod to set the priority after
+        /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
+        Result<> setHookPriorityAfterPre(std::string_view name, Mod* mod) {
+            return this->setHookPriorityAfter(name, mod);
+        }
+
+        /// @brief Set the priority of a hook to be before another hook in different mods
+        /// @param name The name of the hook to set the priority of
+        /// @param before The mod id of the mod to set the priority before
+        /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
+        Result<> setHookPriorityBeforePre(std::string_view name, std::string_view before) {
+            return this->setHookPriorityBefore(name, before);
+        }
+
+        /// @brief Set the priority of a hook to be before another hook in different mods
+        /// @param name The name of the hook to set the priority of
+        /// @param before The mod to set the priority before
+        /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
+        Result<> setHookPriorityBeforePre(std::string_view name, Mod* mod) {
+            return this->setHookPriorityBefore(name, mod);
+        }
+
+        /// @brief Set the priority of a hook to be after another hook in different mods
+        /// @param name The name of the hook to set the priority of
+        /// @param after The mod id of the mod to set the priority after
+        /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
+        Result<> setHookPriorityAfterPost(std::string_view name, std::string_view after) {
+            return this->setHookPriorityBefore(name, after);
+        }
+
+        /// @brief Set the priority of a hook to be after another hook in different mods
+        /// @param name The name of the hook to set the priority of
+        /// @param before The mod to set the priority after
+        /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
+        Result<> setHookPriorityAfterPost(std::string_view name, Mod* mod) {
+            return this->setHookPriorityBefore(name, mod);
+        }
+
+        /// @brief Set the priority of a hook to be before another hook in different mods
+        /// @param name The name of the hook to set the priority of
+        /// @param before The mod id of the mod to set the priority before
+        /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
+        Result<> setHookPriorityBeforePost(std::string_view name, std::string_view before) {
+            return this->setHookPriorityAfter(name, before);
+        }
+
+        /// @brief Set the priority of a hook to be before another hook in different mods
+        /// @param name The name of the hook to set the priority of
+        /// @param before The mod to set the priority before
+        /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
+        Result<> setHookPriorityBeforePost(std::string_view name, Mod* mod) {
+            return this->setHookPriorityAfter(name, mod);
         }
 
         // unordered_map<handles> idea
@@ -158,7 +343,7 @@ namespace geode::modifier {
             for (auto& [uuid, hook] : m_hooks) {
                 auto res = Mod::get()->claimHook(hook);
                 if (!res) {
-                    log::error("Failed to claim hook {}: {}", hook->getDisplayName(), res.error());
+                    log::error("Failed to claim hook {}: {}", hook->getDisplayName(), res.unwrapErr());
                 }
                 else {
                     added.push_back(uuid);

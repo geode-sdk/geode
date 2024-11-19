@@ -1,8 +1,7 @@
 #pragma once
 
 #include <filesystem>
-#include "../utils/Result.hpp"
-#include "../utils/MiniFunction.hpp"
+#include <Geode/Result.hpp>
 #include "Log.hpp"
 #include "ModEvent.hpp"
 #include "ModMetadata.hpp"
@@ -15,7 +14,7 @@
 #include <string_view>
 
 namespace geode {
-    using ScheduledFunction = utils::MiniFunction<void()>;
+    using ScheduledFunction = std::function<void()>;
 
     struct InvalidGeodeFile {
         std::filesystem::path path;
@@ -47,6 +46,21 @@ namespace geode {
         Type type;
         std::variant<std::filesystem::path, ModMetadata, Mod*> cause;
         std::string message;
+
+        bool isSuggestion() const {
+            return 
+                type == LoadProblem::Type::Recommendation || 
+                type == LoadProblem::Type::Suggestion;
+        }
+        bool isOutdated() const {
+            return 
+                type == LoadProblem::Type::UnsupportedVersion ||
+                type == LoadProblem::Type::NeedsNewerGeodeVersion ||
+                type == LoadProblem::Type::UnsupportedGeodeVersion;
+        }
+        bool isProblem() const {
+            return !isSuggestion() && !isOutdated();
+        }
     };
 
     class LoaderImpl;
@@ -92,7 +106,8 @@ namespace geode {
         Mod* getLoadedMod(std::string const& id) const;
         std::vector<Mod*> getAllMods();
         std::vector<LoadProblem> getAllProblems() const;
-        std::vector<LoadProblem> getProblems() const;
+        std::vector<LoadProblem> getLoadProblems() const;
+        std::vector<LoadProblem> getOutdated() const;
         std::vector<LoadProblem> getRecommendations() const;
 
         /**
@@ -103,41 +118,36 @@ namespace geode {
          * Returns whether the specified launch argument was passed in via the command line.
          * @param name The argument name
          */
-        bool hasLaunchArgument(std::string_view const name) const;
+        bool hasLaunchArgument(std::string_view name) const;
         /**
          * Get a launch argument. These are passed into the game as command-line arguments
          * with the format `--geode:arg-name=value`.
          * @param name The argument name
          * @return The value, if present
          */
-        std::optional<std::string> getLaunchArgument(std::string_view const name) const;
+        std::optional<std::string> getLaunchArgument(std::string_view name) const;
         /**
          * Get a launch argument flag. Returns whether the argument is present and its
          * value is exactly `true`.
          * @param name The argument name
          */
-        bool getLaunchFlag(std::string_view const name) const;
+        bool getLaunchFlag(std::string_view name) const;
         /**
          * Get and parse a launch argument value using the setting value system.
          * @param name The argument name
          */
         template <class T>
-        std::optional<T> parseLaunchArgument(std::string_view const name) const {
+        Result<T> parseLaunchArgument(std::string_view name) const {
             auto str = this->getLaunchArgument(name);
             if (!str.has_value()) {
-                return std::nullopt;
+                return Err(fmt::format("Launch argument '{}' not found", name));
             }
-            std::string parseError;
-            auto jsonOpt = matjson::parse(str.value(), parseError);
-            if (!jsonOpt.has_value()) {
-                log::debug("Parsing launch argument '{}' failed: {}", name, parseError);
-                return std::nullopt;
+            auto jsonOpt = matjson::Value::parse(str.value());
+            if (jsonOpt.isErr()) {
+                return Err(fmt::format("Parsing launch argument '{}' failed: {}", name, jsonOpt.unwrapErr()));
             }
-            auto value = jsonOpt.value();
-            if (!value.is<T>()) {
-                return std::nullopt;
-            }
-            return value.as<T>();
+            auto value = jsonOpt.unwrap();
+            return value.template as<T>();
         }
 
         void queueInMainThread(ScheduledFunction&& func);

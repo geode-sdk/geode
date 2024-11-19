@@ -52,7 +52,7 @@ protected:
     EventListener<InvalidateCacheFilter> m_invalidateCacheListener;
     EventListener<server::ServerRequest<std::vector<std::string>>> m_checkUpdatesListener;
     EventListener<server::ModDownloadFilter> m_downloadListener;
-    bool m_bigSize = false;
+    ModListDisplay m_display = ModListDisplay::SmallList;
     bool m_exiting = false;
     std::atomic<size_t> m_searchInputThreads = 0;
 
@@ -83,7 +83,7 @@ public:
     void showStatus(ModListStatus status, std::string const& message, std::optional<std::string> const& details = std::nullopt);
 
     void updateState();
-    void updateSize(bool big);
+    void updateDisplay(ModListDisplay display);
     void activateSearch(bool activate);
     void setIsExiting(bool exiting);
 };

@@ -6,6 +6,22 @@
 #include "../ModsLayer.hpp"
 #include "../popups/ModtoberPopup.hpp"
 
+static size_t getDisplayPageSize(ModListSource* src, ModListDisplay display) {
+    if (src->isLocalModsOnly() && Mod::get()->template getSettingValue<bool>("infinite-local-mods-list")) {
+        return std::numeric_limits<size_t>::max();
+    }
+    return display == ModListDisplay::Grid ? 16 : 10;
+}
+
+$execute {
+    listenForSettingChanges("infinite-local-mods-list", [](bool value) {
+        InstalledModListSource::get(InstalledModListType::All)->reset();
+        InstalledModListSource::get(InstalledModListType::OnlyErrors)->reset();
+        InstalledModListSource::get(InstalledModListType::OnlyOutdated)->reset();
+        // Updates is technically a server mod list :-) So I left it out here
+    });
+}
+
 bool ModList::init(ModListSource* src, CCSize const& size) {
     if (!CCNode::init())
         return false;
@@ -18,13 +34,6 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_source->reset();
     
     m_list = ScrollLayer::create(size);
-    m_list->m_contentLayer->setLayout(
-        ColumnLayout::create()
-            ->setAxisReverse(true)
-            ->setAxisAlignment(AxisAlignment::End)
-            ->setAutoGrowAxis(size.height)
-            ->setGap(2.5f)
-    );
     this->addChildAtPosition(m_list, Anchor::Bottom, ccp(-m_list->getScaledContentWidth() / 2, 0));
 
     m_topContainer = CCNode::create();
@@ -111,7 +120,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
 
         m_topContainer->addChild(m_updateAllContainer);
 
-        if (Loader::get()->getProblems().size()) {
+        if (Loader::get()->getLoadProblems().size()) {
             m_errorsContainer = CCNode::create();
             m_errorsContainer->setID("errors-container");
             m_errorsContainer->ignoreAnchorPointForPosition(false);
@@ -186,7 +195,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_searchInput->setCallback([this](auto const&) {
         // If the source is already in memory, we can immediately update the 
         // search query
-        if (typeinfo_cast<InstalledModListSource*>(m_source)) {
+        if (m_source->isLocalModsOnly()) {
             m_source->search(m_searchInput->getString());
             return;
         }
@@ -308,7 +317,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
             ->setAxisAlignment(AxisAlignment::End)
             ->setAxisReverse(true)
     );
-    this->addChildAtPosition(pageLeftMenu, Anchor::Left, ccp(-5, 0));
+    this->addChildAtPosition(pageLeftMenu, Anchor::Left, ccp(-20, 0));
 
     auto pageRightMenu = CCMenu::create();
     pageRightMenu->setID("page-right-menu");
@@ -329,7 +338,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         RowLayout::create()
             ->setAxisAlignment(AxisAlignment::Start)
     );
-    this->addChildAtPosition(pageRightMenu, Anchor::Right, ccp(5, 0));
+    this->addChildAtPosition(pageRightMenu, Anchor::Right, ccp(20, 0));
 
     // Status
 
@@ -352,7 +361,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_statusDetailsBtn->setID("status-details-button");
     m_statusContainer->addChild(m_statusDetailsBtn);
 
-    m_statusDetails = SimpleTextArea::create("", "chatFont.fnt", .6f);
+    m_statusDetails = SimpleTextArea::create("", "chatFont.fnt", .6f, 650.f);
     m_statusDetails->setID("status-details-input");
     m_statusDetails->setAlignment(kCCTextAlignmentCenter);
     m_statusContainer->addChild(m_statusDetails);
@@ -410,7 +419,7 @@ void ModList::onPromise(ModListSource::PageLoadTask::Event* event) {
                 first = false;
                 m_list->m_contentLayer->addChild(item);
             }
-            this->updateSize(m_bigSize);
+            this->updateDisplay(m_display);
 
             // Scroll list to top
             auto listTopScrollPos = -m_list->m_contentLayer->getContentHeight() + m_list->getContentHeight();
@@ -526,12 +535,10 @@ void ModList::updateTopContainer() {
     // (giving a little bit of extra padding for it, the same size as gap)
     m_list->setContentHeight(
         m_topContainer->getContentHeight() > 0.f ?
-            this->getContentHeight() - m_topContainer->getContentHeight() - 
-                static_cast<AxisLayout*>(m_list->m_contentLayer->getLayout())->getGap() : 
+            this->getContentHeight() - m_topContainer->getContentHeight() - 2.5f : 
             this->getContentHeight()
     );
-    static_cast<ColumnLayout*>(m_list->m_contentLayer->getLayout())->setAutoGrowAxis(m_list->getContentHeight());
-    m_list->m_contentLayer->updateLayout();
+    this->updateDisplay(m_display);
 
     // Preserve relative scroll position
     m_list->m_contentLayer->setPositionY((
@@ -549,7 +556,7 @@ void ModList::updateTopContainer() {
 
     // If there are errors, show the error banner
     if (m_errorsContainer) {
-        auto noErrors = Loader::get()->getProblems().empty();
+        auto noErrors = Loader::get()->getLoadProblems().empty();
         m_errorsContainer->setVisible(!noErrors);
     }
 
@@ -557,14 +564,15 @@ void ModList::updateTopContainer() {
     this->updateLayout();
 }
 
-void ModList::updateSize(bool big) {
-    m_bigSize = big;
+void ModList::updateDisplay(ModListDisplay display) {
+    m_display = display;
+    m_source->setPageSize(getDisplayPageSize(m_source, m_display));
 
     // Update all BaseModItems that are children of the list
     // There may be non-BaseModItems there (like separators) so gotta be type-safe
     for (auto& node : CCArrayExt<CCNode*>(m_list->m_contentLayer->getChildren())) {
         if (auto item = typeinfo_cast<ModItem*>(node)) {
-            item->updateSize(m_list->getContentWidth(), big);
+            item->updateDisplay(m_list->getContentWidth(), display);
         }
     }
 
@@ -574,8 +582,24 @@ void ModList::updateSize(bool big) {
         m_list->m_contentLayer->getPositionY() / oldPositionArea : 
         -1.f;
 
-    // Auto-grow the size of the list content
-    m_list->m_contentLayer->updateLayout();
+    // Update the list layout based on the display model
+    if (display == ModListDisplay::Grid) {
+        m_list->m_contentLayer->setLayout(
+            RowLayout::create()
+                ->setGrowCrossAxis(true)
+                ->setAxisAlignment(AxisAlignment::Start)
+                ->setGap(2.5f)
+        );
+    }
+    else {
+        m_list->m_contentLayer->setLayout(
+            ColumnLayout::create()
+                ->setAxisReverse(true)
+                ->setAxisAlignment(AxisAlignment::End)
+                ->setAutoGrowAxis(m_obContentSize.height)
+                ->setGap(2.5f)
+        );
+    }
 
     // Preserve relative scroll position
     m_list->m_contentLayer->setPositionY((
@@ -627,6 +651,9 @@ void ModList::gotoPage(size_t page, bool update) {
     // Clear list contents
     m_list->m_contentLayer->removeAllChildren();
     m_page = page;
+
+    // Update page size (if needed)
+    m_source->setPageSize(getDisplayPageSize(m_source, m_display));
     
     // Start loading new page with generic loading message
     this->showStatus(ModListUnkProgressStatus(), "Loading...");
@@ -649,8 +676,19 @@ void ModList::showStatus(ModListStatus status, std::string const& message, std::
     m_statusContainer->setVisible(true);
     m_statusDetails->setVisible(false);
     m_statusDetailsBtn->setVisible(details.has_value());
-    m_statusLoadingCircle->setVisible(std::holds_alternative<ModListUnkProgressStatus>(status));
-    m_statusLoadingBar->setVisible(std::holds_alternative<ModListProgressStatus>(status));
+    m_statusLoadingCircle->setVisible(
+        std::holds_alternative<ModListUnkProgressStatus>(status)
+        || std::holds_alternative<ModListProgressStatus>(status)
+    );
+    
+    // the loading bar makes no sense to display - it's meant for progress of mod list page loading
+    // however the mod list pages are so small, that there usually isn't a scenario where the loading
+    // takes longer than a single frame - therefore this is useless
+    // server processing time isn't included in this - it's only after the server starts responding
+    // that we get any progress information
+    // also the position is wrong if you wanna restore the functionality
+    //m_statusLoadingBar->setVisible(std::holds_alternative<ModListProgressStatus>(status));
+    m_statusLoadingBar->setVisible(false);
 
     // Update progress bar
     if (auto per = std::get_if<ModListProgressStatus>(&status)) {

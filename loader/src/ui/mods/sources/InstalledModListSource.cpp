@@ -12,8 +12,11 @@ bool InstalledModsQuery::preCheck(ModSource const& src) const {
         return false;
     }
     // If only errors requested, only show mods with errors (duh)
+    if (type == InstalledModListType::OnlyOutdated) {
+        return src.asMod() && src.asMod()->targetsOutdatedVersion().has_value();
+    }
     if (type == InstalledModListType::OnlyErrors) {
-        return src.asMod()->hasProblems();
+        return src.asMod() && src.asMod()->hasLoadProblems();
     }
     return true;
 }
@@ -59,6 +62,11 @@ InstalledModListSource* InstalledModListSource::get(InstalledModListType type) {
             static auto inst = new InstalledModListSource(InstalledModListType::OnlyErrors);
             return inst;
         } break;
+
+        case InstalledModListType::OnlyOutdated: {
+            static auto inst = new InstalledModListSource(InstalledModListType::OnlyOutdated);
+            return inst;
+        } break;
     }
 }
 
@@ -68,9 +76,15 @@ void InstalledModListSource::resetQuery() {
     };
 }
 
-InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t page, size_t pageSize, bool forceUpdate) {
+InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t page, bool forceUpdate) {
     m_query.page = page;
-    m_query.pageSize = pageSize;
+    m_query.pageSize = m_pageSize;
+
+    // Infinite mods list option
+    if (Mod::get()->template getSettingValue<bool>("infinite-local-mods-list")) {
+        m_query.page = 0;
+        m_query.pageSize = Loader::get()->getAllMods().size();
+    }
 
     auto content = ModListSource::ProvidedMods();
     for (auto& mod : Loader::get()->getAllMods()) {
@@ -121,4 +135,10 @@ InvalidateQueryAfter<InstalledModsQuery> InstalledModListSource::getQueryMut() {
 }
 bool InstalledModListSource::isDefaultQuery() const {
     return m_query.isDefault();
+}
+
+bool InstalledModListSource::isLocalModsOnly() const {
+    return m_type == InstalledModListType::All || 
+        m_type == InstalledModListType::OnlyErrors ||
+        m_type == InstalledModListType::OnlyOutdated;
 }

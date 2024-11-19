@@ -1,7 +1,7 @@
 #include "ModListSource.hpp"
 
 void ModPackListSource::resetQuery() {}
-ModPackListSource::ProviderTask ModPackListSource::fetchPage(size_t page, size_t pageSize, bool forceUpdate) {
+ModPackListSource::ProviderTask ModPackListSource::fetchPage(size_t page, bool forceUpdate) {
     return ProviderTask::immediate(Err(LoadPageError("Coming soon ;)")));
 }
 
@@ -20,4 +20,8 @@ std::unordered_set<std::string> ModPackListSource::getModTags() const {
 void ModPackListSource::setModTags(std::unordered_set<std::string> const& set) {}
 bool ModPackListSource::isDefaultQuery() const {
     return true;
+}
+
+bool ModPackListSource::isLocalModsOnly() const {
+    return false;
 }

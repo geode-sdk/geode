@@ -144,7 +144,7 @@ bool FiltersPopup::setup(ModListSource* src) {
     return true;
 }
 
-void FiltersPopup::onLoadTags(typename server::ServerRequest<std::unordered_set<std::string>>::Event* event) {
+void FiltersPopup::onLoadTags(typename server::ServerRequest<std::vector<server::ServerTag>>::Event* event) {
     if (event->getValue() && event->getValue()->isOk()) {
         auto tags = event->getValue()->unwrap();
         m_tagsMenu->removeAllChildren();
@@ -157,7 +157,7 @@ void FiltersPopup::onLoadTags(typename server::ServerRequest<std::unordered_set<
                 offSpr, onSpr, this, menu_selector(FiltersPopup::onSelectTag)
             );
             btn->m_notClickable = true;
-            btn->setUserObject("tag", CCString::create(tag));
+            btn->setUserObject("tag", CCString::create(tag.name));
             m_tagsMenu->addChild(btn);
         }
         m_tagsMenu->updateLayout();

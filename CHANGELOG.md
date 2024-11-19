@@ -1,5 +1,56 @@
 # Geode Changelog
 
+## v4.0.0-beta.1
+ * Button to manually install mods from files (e881dc5)
+ * Add `ModRequestedAction::Update` (e881dc5)
+ * Add `ModMetadata::checkGeodeVersion` and `ModMetadata::checkTargetVersions` (e881dc5)
+ * Add `geode::createModLogo` for creating a logo from a `.geode` package (e881dc5)
+ * Tags now use names provided by the server (893b03e)
+ * Add web support for multiple request headers with same name (#1150)
+ * Fix `Task::chain` using the wrong type in the impl (22a11b9)
+ * Fix installing mods not checking the current version (#1148)
+ * Fix searching for mods ignoring geode and gd version (#1153)
+ * Fix crash when checking tags (01807fe)
+ * Fix 'Outdated' label being visible while updating (6679a69)
+ * Fix log nesting issue (0e8d4c6)
+ * Remove forward compat message box as it confuses users (5592ef6)
+ * Fix crash on opening mod changelogs (9834cb2)
+ * Make `ColorPickPopup` pimpl (1a201e1)
+ * Fix lag issue in `ColorPickPopup` (3081164)
+ * Change return type of `ModSettingsManager::save` (da92090)
+ * Fix every misspelling of successfully (#1151)
+ * Allow building geode itself in debug mode (5645399)
+
+## v4.0.0-alpha.1
+ * Support for the 2.2074 update
+ * Developers, see [this page for a migration guide](https://docs.geode-sdk.org/tutorials/migrate-v4)
+ * Major API breaks:
+   * Remove everything previously marked deprecated
+   * `utils::MiniFunction` removed
+   * Rewritten `geode::Result` class
+   * Rewritten matjson library
+   * Settings V2 completely removed, use V3 now
+   * `JsonChecker` removed
+ * Add new system for ordered hook priority, [see docs](https://docs.geode-sdk.org/tutorials/hookpriority) (673317d, 6db3084)
+ * C++20 coroutine support for `geode::Task`, [see docs](https://docs.geode-sdk.org/tutorials/tasks#coroutines) (e61b2c0, ab196b9)
+ * Add `Task::chain`, [see docs](https://docs.geode-sdk.org/tutorials/tasks#chaining-tasks) (3248831)
+ * Single page local mods list (efb1fbf)
+ * Split mod problems into load and outdated (12e8bbb, 09fa872, df2528c)
+   * This means mods made for outdated gd or geode versions no longer count as actual errors, resulting in less clutter in the ui
+ * Fix safe mode popup on windows showing up when not supposed to (038788b)
+ * WebRequest::ignoreContentLength (#1126)
+ * Lots of smaller fixes to the geode ui (c9afa75, f5f3365, 2d66279, 02845d9, 9b95301, 6d13f78, 123b3ab, 0b2fc66, f96ea5e, cad670f)
+ * Fix CCArrayExt::pop_back() return type (#1130)
+ * Add missing spanish translations to installer (#1145)
+ * Add hashtag symbol to CommonFilter::Any (#1131)
+ * Disable forward compat on android (c9e97af)
+
+## v3.9.2
+ * Fix searching for mods returning unavailable mods (#1149)
+
+## v3.9.1
+ * Fix mod downloads not checking version (f575187)
+
 ## v3.9.0
  * Many changes to the settings ui (#1108)
    * Fuzzy search is now more reasonable

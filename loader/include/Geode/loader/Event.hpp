@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../utils/casts.hpp"
-#include "../utils/MiniFunction.hpp"
 
 #include <Geode/DefaultInclude.hpp>
 #include <type_traits>
@@ -52,6 +51,7 @@ namespace geode {
 
     private:
         static DefaultEventListenerPool* create();
+        DefaultEventListenerPool();
 
     public:
         bool add(EventListenerProtocol* listener) override;
@@ -64,10 +64,7 @@ namespace geode {
         friend class DispatchEvent;
 
         template <class... Args>
-        friend class DispatchFilter;
-
-        // todo: make this private in Geode 4.0.0
-        DefaultEventListenerPool();
+        friend class DispatchFilter;        
     };
 
     class GEODE_DLL EventListenerProtocol {
@@ -103,7 +100,7 @@ namespace geode {
         using Callback = ListenerResult(T*);
         using Event = T;
 
-        ListenerResult handle(utils::MiniFunction<Callback> fn, T* e) {
+        ListenerResult handle(std::function<Callback> fn, T* e) {
             return fn(e);
         }
 
@@ -156,7 +153,7 @@ namespace geode {
             this->enable();
         }
 
-        EventListener(utils::MiniFunction<Callback> fn, T filter = T())
+        EventListener(std::function<Callback> fn, T filter = T())
           : m_callback(fn), m_filter(filter)
         {
             m_filter.setListener(this);
@@ -193,10 +190,7 @@ namespace geode {
             this->enable();
         }
 
-        void bind(utils::MiniFunction<Callback> const& fn) {
-            m_callback = fn;
-        }
-        void bind(utils::MiniFunction<Callback>&& fn) {
+        void bind(std::function<Callback> fn) {
             m_callback = fn;
         }
 
@@ -218,12 +212,12 @@ namespace geode {
             return m_filter;
         }
 
-        utils::MiniFunction<Callback>& getCallback() {
+        std::function<Callback>& getCallback() {
             return m_callback;
         }
 
     protected:
-        utils::MiniFunction<Callback> m_callback = nullptr;
+        std::function<Callback> m_callback = nullptr;
         T m_filter;
     };
 

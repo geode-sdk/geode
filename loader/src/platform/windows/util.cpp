@@ -120,7 +120,6 @@ Task<Result<std::filesystem::path>> file::pick(PickMode mode, FilePickOptions co
             return RetTask::immediate(Err<std::string>("Invalid pick mode"));
     }
     std::filesystem::path path;
-    Result<std::filesystem::path> result;
     auto pickresult = nfdPick(nfdMode, options, &path);
     if (pickresult.isErr()) {
         if (pickresult.unwrapErr() == "Dialog cancelled") {
@@ -137,13 +136,11 @@ Task<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions 
 
     std::vector<std::filesystem::path> paths;
     auto pickResult = nfdPick(NFDMode::OpenFiles, options, &paths);
-    Result<std::vector<std::filesystem::path>> result;
     if (pickResult.isErr()) {
-        result = Err(pickResult.err().value());
+        return RetTask::immediate(Err(pickResult.err().value()));
     } else {
-        result = Ok(paths);
+        return RetTask::immediate(Ok(paths));
     }
-    return RetTask::immediate(std::move(result));
     // return Task<Result<std::vector<std::filesystem::path>>>::immediate(std::move(file::pickFiles(options)));
 }
 
@@ -275,7 +272,7 @@ bool geode::utils::permission::getPermissionStatus(Permission permission) {
     return true; // unimplemented
 }
 
-void geode::utils::permission::requestPermission(Permission permission, utils::MiniFunction<void(bool)> callback) {
+void geode::utils::permission::requestPermission(Permission permission, std::function<void(bool)> callback) {
     callback(true); // unimplemented
 }
 

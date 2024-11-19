@@ -20,7 +20,7 @@ protected:
         std::string content;
         std::string optionA;
         std::string optionB;
-        MiniFunction<void(bool)> after;
+        std::function<void(bool)> after;
     };
 
     EventListener<server::ModDownloadFilter> m_download;
@@ -79,7 +79,7 @@ protected:
 
 public:
     void start() {
-        for (auto problem : Loader::get()->getProblems()) {
+        for (auto problem : Loader::get()->getAllProblems()) {
             switch (problem.type) {
                 // Errors where the correct solution is to just delete the invalid .geode package
                 case LoadProblem::Type::InvalidFile:
