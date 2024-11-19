@@ -91,6 +91,10 @@
             "name": "Expand Installed Mods List",
             "description": "Make the installed mods list a single infinite scrollable list instead of having pages"
         },
+        "copy-mods": {
+            "type": "custom:copy-mods",
+            "name": ""
+        },
         "developer-title": {
             "type": "title",
             "name": "Developer Settings"
