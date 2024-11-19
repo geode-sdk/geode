@@ -6,7 +6,7 @@
 using namespace geode::prelude;
 
 PlatformID PlatformID::from(const char* str) {
-    // todo in v4: this should just be
+    // todo in v5: this should just be
     // "win" -> Windows
     // "mac", "mac-intel", "mac-arm" -> Mac
     // "ios" -> iOS
@@ -38,7 +38,7 @@ PlatformID PlatformID::from(const char* str) {
 }
 
 bool PlatformID::coveredBy(const char* str, PlatformID t) {
-    // todo in v4: this is ridiculously inefficient currently - in v4 just use a flag check!
+    // todo in v5: this is ridiculously inefficient currently - in v5 just use a flag check!
     return ranges::contains(getCovered(str), t);
 }
 

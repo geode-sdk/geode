@@ -13,12 +13,6 @@ namespace geode {
         virtual void updateColor(cocos2d::ccColor4B const& color) {}
     };
 
-    // todo in v4: maybe use events over the delegate?
-    // thing with events is that if you just filter via ColorPickPopup* it 
-    // won't work unless you automatically detach the filter when closing the 
-    // popup (otherwise opening another popup really quickly will just be 
-    // allocated into the same memory and now the old filter is catching the 
-    // new popup too)
     class GEODE_DLL ColorPickPopup :
         public Popup<cocos2d::ccColor4B const&, bool>,
         public cocos2d::extension::ColorPickerDelegate,

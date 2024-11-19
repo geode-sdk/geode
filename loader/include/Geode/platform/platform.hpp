@@ -114,7 +114,6 @@
 namespace geode {
     class PlatformID {
     public:
-        // todo in v4: make these flags and add archless Mac and Android as well as Desktop and Mobile and remove Linux
         enum {
             Unknown    = 0b000000,
             Windows    = 0b000001,
@@ -184,11 +183,11 @@ namespace geode {
         /**
          * Returns the list of platforms covered by this string name. For 
          * example, "android" would return both Android32 and Android64
-         * todo in v4: deprecate this as the flagged version deals with this
+         * todo in v5: deprecate this as the flagged version deals with this
          */
         static GEODE_DLL std::vector<PlatformID> getCovered(std::string_view str);
 
-        // todo in v4: this does not need to be constexpr in the header. dllexport it
+        // todo in v5: this does not need to be constexpr in the header. dllexport it
         static constexpr char const* toString(Type lp) {
             switch (lp) {
                 case Unknown: return "Unknown";
@@ -203,7 +202,7 @@ namespace geode {
             return "Undefined";
         }
 
-        // todo in v4: this does not need to be constexpr in the header. dllexport it
+        // todo in v5: this does not need to be constexpr in the header. dllexport it
         static constexpr char const* toShortString(Type lp, bool ignoreArch = false) {
             switch (lp) {
                 case Unknown: return "unknown";
