@@ -37,7 +37,7 @@ void CopyButtonSettingNode::onCopy(CCObject*) {
             i < mods.size() ? "\n" : ""
         );
     }
-    clipboard::write(ss.str());
+    clipboard::write(modsList);
 
     Notification::create("Mods list copied to clipboard", NotificationIcon::Info, 0.5f)->show();
 }
