@@ -61,6 +61,8 @@ class CC_DLL CCRenderTexture : public CCNode
     */
     CC_PROPERTY(CCSprite*, m_pSprite, Sprite)
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCRenderTexture, CCNode)
+
     /**
      * @js ctor
      */
