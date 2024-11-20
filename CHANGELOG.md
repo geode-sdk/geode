@@ -1,5 +1,8 @@
 # Geode Changelog
 
+## v4.0.1
+ * Add cutoff constructor for CCRenderTexture (#1171)
+
 ## v4.0.0
  * Make chosen display type in mod list be saved between startups (07d92a3)
  * Fix `Task::all` not returning results in order (227adb0)
