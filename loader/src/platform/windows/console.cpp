@@ -218,5 +218,9 @@ void console::messageBox(char const* title, std::string const& info, Severity se
             icon = MB_ICONERROR;
             break;
     }
-    MessageBoxA(nullptr, info.c_str(), title, icon);
+
+    //run in another thread so auto update can run in the background
+    std::thread([info, title, icon]{
+        MessageBoxA(nullptr, info.c_str(), title, icon | MB_SETFOREGROUND);
+    }).detach();
 }

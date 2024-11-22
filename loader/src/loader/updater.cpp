@@ -52,6 +52,11 @@ void updater::fetchLatestGithubRelease(
         return then(s_latestGithubRelease.value());
     }
 
+    //quick hack to make sure it always attempts an update check in forward compat
+    if(Loader::get()->isForwardCompatMode()) {
+        force = true;
+    }
+
     auto version = VersionInfo::parse(
         Mod::get()->getSavedValue("latest-version-auto-update-check", std::string("0.0.0"))
     );
@@ -68,9 +73,14 @@ void updater::fetchLatestGithubRelease(
     auto req = web::WebRequest();
     req.header("If-Modified-Since", modifiedSince);
     req.userAgent("github_api/1.0");
+    //Force fetching v4.0.1 as the latest release for forward compat mode
     RUNNING_REQUESTS.emplace(
         "@loaderAutoUpdateCheck",
-        req.get("https://api.github.com/repos/geode-sdk/geode/releases/latest").map(
+        req.get(
+            Loader::get()->isForwardCompatMode()
+            ? "https://api.github.com/repos/geode-sdk/geode/releases/tags/v4.0.1"
+            : "https://api.github.com/repos/geode-sdk/geode/releases/latest"
+        ).map(
             [expect = std::move(expect), then = std::move(then)](web::WebResponse* response) {
                 if (response->ok()) {
                     if (response->data().empty()) {
@@ -318,6 +328,10 @@ void updater::downloadLoaderUpdate(std::string const& url) {
                         if (ok) {
                             s_isNewUpdateDownloaded = true;
                             LoaderUpdateEvent(UpdateFinished()).post();
+                            if(
+                                Loader::get()->isForwardCompatMode()
+                                && CCScene::get()->getChildByType<MenuLayer>(0)
+                            ) utils::game::restart();
                         }
                         else {
                             LoaderUpdateEvent(
@@ -382,8 +396,8 @@ void updater::checkForLoaderUpdates() {
                 return;
             }
 
-            // don't auto-update major versions
-            if (ver.getMajor() > Loader::get()->getVersion().getMajor()) {
+            // don't auto-update major versions when not on forward compat
+            if (!Loader::get()->isForwardCompatMode() && ver.getMajor() > Loader::get()->getVersion().getMajor()) {
                 return;
             }
 
