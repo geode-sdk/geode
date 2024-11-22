@@ -69,6 +69,11 @@
  * Add hashtag symbol to CommonFilter::Any (#1131)
  * Disable forward compat on android (c9e97af)
 
+## v3.9.3
+ * Add cutoff constructor for CCRenderTexture (#1171)
+ * Add XInputSetState export in proxy loader, fixing certain steam emus (480b12)
+ * Force update to 4.0.1 on forward compat (2ed1886)
+
 ## v3.9.2
  * Fix searching for mods returning unavailable mods (#1149)
 
