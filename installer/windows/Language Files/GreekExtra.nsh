@@ -8,8 +8,8 @@ ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Το setup θα σας καθο�
 ; installer
 
 ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nΑυτό το path δεν έχει το Geometry Dash εγκατεστημένο!"
-${LangFileString} GEODE_TEXT_GD_OLD "$\r$\n$\r$\nYour version of Geometry Dash is too old for this version of Geode!"
-${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "This path has other mods installed!$\r$\nThey will be overwritten by Geode. (the dll trademark)"
+${LangFileString} GEODE_TEXT_GD_OLD "$\r$\n$\r$\nΗ έκδοση του Geometry Dash σας είναι πολύ παλιά για αυτή την έκδοση του Geode!"
+${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "Αυτή η διαδρομή έχει ήδη εγκατεστημένα άλλα mods!$\r$\nΘα αντικατασταθούν από το Geode. (το εμπορικό σήμα dll)"
 
 ; uninstaller
 
