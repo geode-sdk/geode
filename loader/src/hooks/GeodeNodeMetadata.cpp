@@ -24,6 +24,7 @@ private:
     std::unordered_map<std::string, Ref<CCObject>> m_userObjects;
     std::unordered_set<std::unique_ptr<EventListenerProtocol>> m_eventListeners;
     std::unordered_map<std::string, std::unique_ptr<EventListenerProtocol>> m_idEventListeners;
+    std::unordered_map<std::string, std::function<CCNode*(CCNode*)>> m_proxies;
 
     friend class ProxyCCNode;
     friend class cocos2d::CCNode;
@@ -117,6 +118,15 @@ void CCNode::setID(std::string&& id) {
 }
 
 CCNode* CCNode::getChildByID(std::string_view id) {
+    return this->getChildByID(id, true);
+}
+CCNode* CCNode::getChildByID(std::string_view id, bool considerProxies) {
+    if (considerProxies) {
+        auto meta = GeodeNodeMetadata::set(this);
+        if (meta->m_proxies.contains(std::string(id))) {
+            return meta->m_proxies.at(std::string(id))(this);
+        }
+    }
     for (auto child : CCArrayExt<CCNode*>(this->getChildren())) {
         if (child->getID() == id) {
             return child;
@@ -124,7 +134,6 @@ CCNode* CCNode::getChildByID(std::string_view id) {
     }
     return nullptr;
 }
-
 CCNode* CCNode::getChildByIDRecursive(std::string_view id) {
     if (auto child = this->getChildByID(id)) {
         return child;
@@ -294,9 +303,35 @@ CCNode* CCNode::querySelector(std::string_view queryStr) {
 }
 
 void CCNode::removeChildByID(std::string_view id) {
-    if (auto child = this->getChildByID(id)) {
-        this->removeChild(child);
+    // Remove proxies with this ID
+    if (this->isProxyID(id)) {
+        this->removeProxyID(id);
     }
+    // Technically there can be multiple children with the same ID in addition 
+    // to the proxy ID. However, this is very bad practice, and removing actual 
+    // children only when there's no proxies with the ID mirrors the fact that 
+    // if there's four children with the same ID, you need to call 
+    // `removeChildByID` four times to remove them all
+    else {
+        if (auto child = this->getChildByID(id, false)) {
+            this->removeChild(child);
+        }
+    }
+}
+
+bool CCNode::addProxyID(std::string_view id, std::function<CCNode*(CCNode*)> getter) {
+    auto meta = GeodeNodeMetadata::set(this);
+    if (meta->m_proxies.contains(std::string(id))) {
+        return false;
+    }
+    meta->m_proxies.insert({ std::string(id), getter });
+    return true;
+}
+void CCNode::removeProxyID(std::string_view id) {
+    GeodeNodeMetadata::set(this)->m_proxies.erase(std::string(id));
+}
+bool CCNode::isProxyID(std::string_view id) {
+    return GeodeNodeMetadata::set(this)->m_proxies.contains(std::string(id));
 }
 
 void CCNode::setLayout(Layout* layout, bool apply, bool respectAnchor) {

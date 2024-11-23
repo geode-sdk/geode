@@ -916,13 +916,24 @@ public:
      * @note Geode addition
      */
     GEODE_DLL CCNode* getChildByID(std::string_view id);
+    /**
+     * Get a child by its string ID
+     * @param id ID of the child
+     * @param considerProxies If true, proxy IDs will be checked first
+     * @returns The child, or nullptr if none was found
+     * @note Geode addition
+     * @todo in v5: merge this with getChildByID and add default value considerProxies = true
+     */
+    GEODE_DLL CCNode* getChildByID(std::string_view id, bool considerProxies);
 
     /**
      * Get a child by its string ID. Recursively searches all the children
      * @param id ID of the child
      * @returns The child, or nullptr if none was found
      * @note Geode addition
+     * @todo in v5: remove
      */
+    [[deprecated("Use CCNode::querySelector instead")]]
     GEODE_DLL CCNode* getChildByIDRecursive(std::string_view id);
 
     /**
@@ -945,8 +956,50 @@ public:
      * Removes a child from the container by its ID.
      * @param id The ID of the node
      * @note Geode addition
+     * @note Will not follow proxies but just delete the proxy; if you want to 
+     * actually remove the node the proxy points to itself, use 
+     * `getChildByID(id)->removeFromParent()`
      */
     GEODE_DLL void removeChildByID(std::string_view id);
+
+    /**
+     * Add a Proxy ID to this node. A Proxy ID is an ID of a node that is 
+     * logically the child of this node, but might not actually be. In other 
+     * words, when using `CCNode::getChildByID` or other related functions, it 
+     * will first check if there is a proxy ID on that node, and follow those 
+     * if one does exist.
+     * 
+     * For example, if a mod moves a button to another CCMenu, it should leave 
+     * behind a proxy ID into the old CCMenu so any other mod trying to find the 
+     * button in the old menu will still get it.
+     * 
+     * Another example: if a mod makes a CCMenu paged, it will probably add lots 
+     * of wrapper nodes into the node tree, but any buttons of the CCMenu still 
+     * logically stay children of the CCMenu. That mod would then use proxy IDs 
+     * so the menu will appear like nothing has changed for other mods which try 
+     * to work with it.
+     * 
+     * @param id The ID of the proxy node
+     * @param getter When the ID is queried, returns the actual node it points 
+     * to. Needs not be a child of this node. May return nullptr if the node no 
+     * longer exists
+     * @returns True if the ID was added, or false if it this ID has already 
+     * been added
+     */
+    GEODE_DLL bool addProxyID(std::string_view id, std::function<CCNode*(CCNode*)> getter);
+    /**
+     * Remove a Proxy ID from this node 
+     * @param id The ID of the Proxy. If the ID does not point to a proxy, 
+     * nothing happens
+     */
+    GEODE_DLL void removeProxyID(std::string_view id);
+    /**
+     * Check if the given ID is of a proxy node or of an actual child
+     * @returns True if the ID is of a proxy
+     * @note Technically there may also be children with the same ID, but this 
+     * function will return true if there is a proxy
+     */
+    GEODE_DLL bool isProxyID(std::string_view id);
 
     /**
      * Add a child before a specified existing child
