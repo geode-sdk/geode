@@ -1133,7 +1133,7 @@ public:
      * @returns Child at index cast to the given type,
      * or nullptr if index exceeds bounds
      */
-    template <class T = CCNode>
+    template <class InpT = CCNode*, class T = std::remove_pointer_t<InpT>>
     T* getChildByType(int index) {
         size_t indexCounter = 0;
         if (this->getChildrenCount() == 0) return nullptr;
