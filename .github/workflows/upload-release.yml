@@ -60,4 +60,4 @@ jobs:
       - name: Create release
         shell: bash
         run: |
-          curl --json '{"prerelease": ${{ github.event.release.prerelease }}, "commit_hash": "$GITHUB_SHA", "tag": ${{ github.event.release.tag_name }}, "gd": ${{ steps.release-data.output.PLATFORM_INFO }}}' -H "Authorization: Bearer ${{ secrets.INDEX_TOKEN }}"
+          curl -d '{"prerelease": ${{ github.event.release.prerelease }}, "commit_hash": "$GITHUB_SHA", "tag": ${{ github.event.release.tag_name }}, "gd": ${{ steps.release-data.output.PLATFORM_INFO }}}' -H "Content-Type: application/json" -H "Authorization: Bearer ${{ secrets.INDEX_TOKEN }}" https://api.geode-sdk.org/v1/loader/versions
