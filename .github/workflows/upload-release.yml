@@ -56,14 +56,14 @@ jobs:
           env_file = os.getenv("GITHUB_OUTPUT")
           with open(env_file, "a") as gh_env:
             data = json.dumps(platform_info)
-            gh_env.write(f"PLATFORM_INFO<<EOF\n{data}\nEOF")
+            gh_env.write(f"PLATFORM_INFO<<EOF\n{data}\nEOF\n")
 
           print("Success!")
 
       - name: Create release
         shell: bash
         run: |
-          CODE=`curl -d '{"prerelease": ${{ github.event.release.prerelease }}, "commit_hash": "${{ github.sha }}", "tag": ${{ github.event.release.tag_name }}, "gd": ${{ steps.release-data.output.PLATFORM_INFO }}}' \
+          CODE=`curl -d '{"prerelease": ${{ github.event.release.prerelease }}, "commit_hash": "${{ github.sha }}", "tag": ${{ github.event.release.tag_name }}, "gd": ${{ steps.release-data.outputs.PLATFORM_INFO }}}' \
             --write-out "%{http_code}" \
             --silent \
             --output /dev/null \
