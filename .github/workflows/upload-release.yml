@@ -12,6 +12,9 @@ jobs:
     name: Upload release info
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Generate release data
         id: release-data
         shell: python
