@@ -19,7 +19,6 @@ jobs:
         id: release-data
         shell: python
         run: |
-          import re
           import sys
           import json
           import os
@@ -30,28 +29,28 @@ jobs:
             "mac": None,
           }
 
-          gd_ver_match = re.compile("^set\s*\(\s*GEODE_GD_VERSION\s+(\d\.\d+)\s*\)\s*#\s*(.*)$")
+          in_parse_section = False
           with open("${{ github.workspace }}/CMakeLists.txt", "r") as f:
             for line in f:
-              match = re.search(gd_ver_match, line.strip())
-              if match:
-                [version, platform_str] = match.groups()
-                platforms = platform_str.split(",")
-                for p in platforms:
-                  platform = p.strip()
+              if in_parse_section:
+                [platform, version] = [x.strip() for x in line.removeprefix("#").split(":")]
+                if platform in platform_info:
+                  platform_info[platform] = version
+                else:
+                  print(f"WARNING: unknown platform {platform} with version {version}")
 
-                  if platform in platform_info:
-                    platform_info[platform] = version
-                  elif platform == "all":
-                    platform_info = {k: version for k in platform_info}
-                  else:
-                    print(f"WARNING: unknown platform {platform} with version {version}")
+              elif line == "# begin GEODE_GD_VERSION":
+                in_parse_section = True
+
+              elif line == "# end GEODE_GD_VERSION":
+                in_parse_section = False
+                break
 
           for k, v in platform_info.items():
             if not v:
               print(f"WARNING: missing version for platform {k}")
             else:
-              print(f"platform {k} = {v}")
+              print(f"{k}: {v}")
 
           env_file = os.getenv("GITHUB_OUTPUT")
           with open(env_file, "a") as gh_env:
