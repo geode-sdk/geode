@@ -50,6 +50,8 @@ jobs:
           for k, v in platform_info.items():
             if not v:
               print(f"WARNING: missing version for platform {k}")
+            else:
+              print(f"platform {k} = {v}")
 
           env_file = os.getenv("GITHUB_OUTPUT")
           with open(env_file, "a") as gh_env:
