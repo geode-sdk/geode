@@ -51,22 +51,23 @@ jobs:
             if not v:
               print(f"WARNING: missing version for platform {k}")
 
-          env_file = os.getenv("GITHUB_ENV")
+          env_file = os.getenv("GITHUB_OUTPUT")
           with open(env_file, "a") as gh_env:
-            gh_env.write("PLATFORM_INFO=" + json.dumps(platform_info))
+            data = json.dumps(platform_info)
+            gh_env.write(f"PLATFORM_INFO<<EOF\n{data}\nEOF")
 
           print("Success!")
 
       - name: Create release
         shell: bash
         run: |
-          CODE=`curl -d '{"prerelease": ${{ github.event.release.prerelease }}, "commit_hash": "$GITHUB_SHA", "tag": ${{ github.event.release.tag_name }}, "gd": ${{ steps.release-data.output.PLATFORM_INFO }}}' \
-            --write-out "%{http_code}"
-            --silent
-            --output /dev/null
+          CODE=`curl -d '{"prerelease": ${{ github.event.release.prerelease }}, "commit_hash": "${{ github.sha }}", "tag": ${{ github.event.release.tag_name }}, "gd": ${{ steps.release-data.output.PLATFORM_INFO }}}' \
+            --write-out "%{http_code}" \
+            --silent \
+            --output /dev/null \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${{ secrets.GEODE_INDEX_TOKEN }}" \
-            https://api.geode-sdk.org/v1/loader/versions`
+            "https://api.geode-sdk.org/v1/loader/versions"`
 
           if [ $CODE != "204" ]
           then
