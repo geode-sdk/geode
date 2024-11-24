@@ -62,7 +62,7 @@ jobs:
       - name: Create release
         shell: bash
         run: |
-          CODE=`curl -d '{"prerelease": ${{ github.event.release.prerelease }}, "commit_hash": "${{ github.sha }}", "tag": ${{ github.event.release.tag_name }}, "gd": ${{ steps.release-data.outputs.PLATFORM_INFO }}}' \
+          CODE=`curl -d '{"prerelease": ${{ github.event.release.prerelease }}, "commit_hash": "${{ github.sha }}", "tag": "${{ github.event.release.tag_name }}", "gd": ${{ steps.release-data.outputs.PLATFORM_INFO }}}' \
             --write-out "%{http_code}" \
             --silent \
             --output /dev/null \
