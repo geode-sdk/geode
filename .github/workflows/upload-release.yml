@@ -28,7 +28,7 @@ jobs:
           }
 
           gd_ver_match = re.compile("^set\s*\(\s*GEODE_GD_VERSION\s+(\d\.\d+)\s*\)\s*#\s*(.*)$")
-          with open("CMakeLists.txt", "r") as f:
+          with open("${{ github.workspace }}/CMakeLists.txt", "r") as f:
             for line in f:
               match = re.search(gd_ver_match, line.strip())
               if match:
