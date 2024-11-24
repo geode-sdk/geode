@@ -1,0 +1,60 @@
+# Update the loader version on the Index
+name: Upload release info
+
+on:
+  # trigger when a new release is released
+  release:
+    types:
+      - published
+
+jobs:
+  publish:
+    name: Upload release info
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate release data
+        id: release-data
+        shell: python
+        run: |
+          import re
+          import sys
+          import json
+          import os
+
+          platform_info = {
+            "win": None,
+            "android": None,
+            "mac": None,
+          }
+
+          gd_ver_match = re.compile("^set\s*\(\s*GEODE_GD_VERSION\s+(\d\.\d+)\s*\)\s*#\s*(.*)$")
+          with open("CMakeLists.txt", "r") as f:
+            for line in f:
+              match = re.search(gd_ver_match, line.strip())
+              if match:
+                [version, platform_str] = match.groups()
+                platforms = platform_str.split(",")
+                for p in platforms:
+                  platform = p.strip()
+
+                  if platform in platform_info:
+                    platform_info[platform] = version
+                  elif platform == "all":
+                    platform_info = {k: version for k in platform_info}
+                  else:
+                    print(f"WARNING: unknown platform {platform} with version {version}")
+
+          for k, v in platform_info.items():
+            if not v:
+              print(f"WARNING: missing version for platform {k}")
+
+          env_file = os.getenv("GITHUB_ENV")
+          with open(env_file, "a") as gh_env:
+            gh_env.write("PLATFORM_INFO=" + json.dumps(platform_info))
+
+          print("Success!")
+
+      - name: Create release
+        shell: bash
+        run: |
+          curl --json '{"prerelease": ${{ github.event.release.prerelease }}, "commit_hash": "$GITHUB_SHA", "tag": ${{ github.event.release.tag_name }}, "gd": ${{ steps.release-data.output.PLATFORM_INFO }}}' -H "Authorization: Bearer ${{ secrets.INDEX_TOKEN }}"

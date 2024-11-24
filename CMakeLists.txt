@@ -188,8 +188,12 @@ set(GEODE_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 include(cmake/Platform.cmake)
 include(cmake/GeodeFile.cmake)
 
+# we have a script that runs over these lines to determine the gd version
+# so please prefix your set lines with the platform it's intended to target
+# [win, android, mac, all]
+
 if (NOT DEFINED GEODE_GD_VERSION)
-	set(GEODE_GD_VERSION 2.2074)
+	set(GEODE_GD_VERSION 2.2074) # all
 	set(GEODE_COMP_GD_VERSION 22074)
 endif()
 
