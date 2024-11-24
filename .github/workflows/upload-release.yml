@@ -32,6 +32,10 @@ jobs:
           in_parse_section = False
           with open("${{ github.workspace }}/CMakeLists.txt", "r") as f:
             for line in f:
+              if line == "# end GEODE_GD_VERSION\n":
+                in_parse_section = False
+                break
+
               if in_parse_section:
                 [platform, version] = [x.strip() for x in line.removeprefix("#").split(":")]
                 if platform in platform_info:
@@ -39,12 +43,8 @@ jobs:
                 else:
                   print(f"WARNING: unknown platform {platform} with version {version}")
 
-              elif line == "# begin GEODE_GD_VERSION":
+              if line == "# begin GEODE_GD_VERSION\n":
                 in_parse_section = True
-
-              elif line == "# end GEODE_GD_VERSION":
-                in_parse_section = False
-                break
 
           for k, v in platform_info.items():
             if not v:
