@@ -5,6 +5,12 @@
 #include <Geode/platform/platform.hpp>
 #include <variant>
 
+#if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
+    #if !defined(__clang__)
+        #error Geode Loader only compiles with Clang.
+    #endif 
+#endif
+
 #if !defined(GEODE_CONCAT)
     #define GEODE_WRAPPER_CONCAT(x, y) x##y
     #define GEODE_CONCAT(x, y) GEODE_WRAPPER_CONCAT(x, y)
