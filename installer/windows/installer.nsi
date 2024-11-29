@@ -50,6 +50,7 @@
     ; TODO: add the commented out languages (other available languages are listed here: https://nsis.sourceforge.io/Examples/Modern%20UI/MultiLanguage.nsi)
     !insertmacro GEODE_LANGUAGE "English"
     !insertmacro GEODE_LANGUAGE "French"
+    !insertmacro GEODE_LANGUAGE "German"
     !insertmacro GEODE_LANGUAGE "Spanish"
     !insertmacro GEODE_LANGUAGE "SpanishInternational"
     !insertmacro GEODE_LANGUAGE "Swedish"
