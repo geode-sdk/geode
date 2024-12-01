@@ -775,7 +775,6 @@ void AxisLayout::apply(CCNode* on) {
         }
         if (first) {
             minMaxPrio = { prio, prio };
-            first = false;
         }
         else {
             if (prio < minMaxPrio.first) {
@@ -786,9 +785,13 @@ void AxisLayout::apply(CCNode* on) {
             }
         }
         if (m_impl->m_autoGrowAxisMinLength.has_value()) {
-            totalLength += nodeAxis(node, m_impl->m_axis, 1.f).axisLength + m_impl->nextGap(prev, opts);
+            totalLength += nodeAxis(node, m_impl->m_axis, 1.f).axisLength;
+            if (!first) {
+                totalLength += m_impl->nextGap(prev, opts);
+            }
             prev = opts;
         }
+        first = false;
     }
 
     if (m_impl->m_autoGrowAxisMinLength.has_value()) {
