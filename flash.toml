@@ -58,3 +58,19 @@ build-dir = "build-docs"
 
 # The file we use to get all the include paths and such
 infer-args-from = "loader/src/load.cpp"
+
+[[scripts.css]]
+name = "default.css"
+content = "docs/flash-template/default.css"
+
+[[scripts.css]]
+name = "nav.css"
+content = "docs/flash-template/nav.css"
+
+[[scripts.css]]
+name = "content.css"
+content = "docs/flash-template/content.css"
+
+[[scripts.css]]
+name = "themes.css"
+content = "docs/flash-template/themes.css"
