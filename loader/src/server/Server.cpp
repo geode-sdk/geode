@@ -463,12 +463,14 @@ Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
             version.metadata.setChangelog(res.changelog);
             version.metadata.setDevelopers(developerNames);
             version.metadata.setRepository(res.repository);
-            auto linkRes = ServerModLinks::parse(root.hasNullable("links").json());
-            if (linkRes) {
-                auto links = linkRes.unwrap();
-                version.metadata.getLinksMut().getImpl()->m_community = links.community;
-                version.metadata.getLinksMut().getImpl()->m_homepage = links.homepage;
-                version.metadata.getLinksMut().getImpl()->m_source = links.source;
+            if (root.hasNullable("links")) {
+                auto linkRes = ServerModLinks::parse(root.hasNullable("links").json());
+                if (linkRes) {
+                    auto links = linkRes.unwrap();
+                    version.metadata.getLinksMut().getImpl()->m_community = links.community;
+                    version.metadata.getLinksMut().getImpl()->m_homepage = links.homepage;
+                    if (links.source.has_value()) version.metadata.setRepository(links.source);
+                }
             }
             res.versions.push_back(version);
         }
