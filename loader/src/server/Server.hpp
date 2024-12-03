@@ -88,7 +88,6 @@ namespace server {
         std::optional<std::string> repository;
         std::optional<ServerDateTime> createdAt;
         std::optional<ServerDateTime> updatedAt;
-        std::optional<ServerModLinks> links;
 
         static Result<ServerModMetadata> parse(matjson::Value const& json);
 
