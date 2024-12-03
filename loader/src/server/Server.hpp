@@ -74,7 +74,7 @@ namespace server {
         std::optional<std::string> source;
 
         static Result<ServerModLinks> parse(matjson::Value const& json);
-    }
+    };
 
     struct ServerModMetadata final {
         std::string id;
