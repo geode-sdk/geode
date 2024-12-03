@@ -418,6 +418,17 @@ bool ServerModUpdate::hasUpdateForInstalledMod() const {
     return false;
 }
 
+Result<ServerModLinks> ServerModLinks::parse(matjson::Value const& raw) {
+    auto payload = checkJson(raw, "ServerModLinks");
+    auto res = ServerModLinks();
+
+    root.hasNullable("community").into(res.community);
+    root.hasNullable("homepage").into(res.homepage);
+    root.hasNullable("source").into(res.source);
+
+    return root.ok(res);
+}
+
 Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
     auto root = checkJson(raw, "ServerModMetadata");
 
@@ -469,6 +480,10 @@ Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
     }
 
     root.needs("download_count").into(res.downloadCount);
+
+    if (root.hasNullable("links")) {
+        GEODE_UNWRAP_INTO(res.links, ServerModLinks::parse(root.hasNullable("links").json()));
+    }
 
     return root.ok(res);
 }
