@@ -252,11 +252,13 @@ std::string Loader::Impl::getGameVersion() {
     return versionStr;
 }
 
-// TODO
 bool Loader::Impl::supportsLaunchArguments() const {
-    return false;
+    return true;
 }
 
 std::string Loader::Impl::getLaunchCommand() const {
-    return std::string(); // Empty
+    NSArray* arguments = [[NSProcessInfo processInfo] arguments];
+    NSString* joinedString = [arguments componentsJoinedByString:@" "];
+    std::string fullString([joinedString UTF8String]);
+    return fullString;
 }
