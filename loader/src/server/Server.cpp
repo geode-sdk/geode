@@ -422,11 +422,11 @@ Result<ServerModLinks> ServerModLinks::parse(matjson::Value const& raw) {
     auto payload = checkJson(raw, "ServerModLinks");
     auto res = ServerModLinks();
 
-    root.hasNullable("community").into(res.community);
-    root.hasNullable("homepage").into(res.homepage);
-    root.hasNullable("source").into(res.source);
+    payload.hasNullable("community").into(res.community);
+    payload.hasNullable("homepage").into(res.homepage);
+    payload.hasNullable("source").into(res.source);
 
-    return root.ok(res);
+    return payload.ok(res);
 }
 
 Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
@@ -463,6 +463,13 @@ Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
             version.metadata.setChangelog(res.changelog);
             version.metadata.setDevelopers(developerNames);
             version.metadata.setRepository(res.repository);
+            auto linkRes = ServerModLinks::parse(root.hasNullable("links").json());
+            if (linkRes) {
+                auto links = linkRes.unwrap();
+                version.metadata.getLinksMut().getImpl()->m_community = links.community;
+                version.metadata.getLinksMut().getImpl()->m_homepage = links.homepage;
+                version.metadata.getLinksMut().getImpl()->m_source = links.source;
+            }
             res.versions.push_back(version);
         }
         else {
@@ -480,10 +487,6 @@ Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
     }
 
     root.needs("download_count").into(res.downloadCount);
-
-    if (root.hasNullable("links")) {
-        GEODE_UNWRAP_INTO(res.links, ServerModLinks::parse(root.hasNullable("links").json()));
-    }
 
     return root.ok(res);
 }
