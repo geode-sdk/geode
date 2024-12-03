@@ -1,5 +1,12 @@
 # Geode Changelog
 
+## v4.0.2
+ * Allow passing pointers to `getChildByType`, `CCArrayExt`, `CCDictExt` (b956596)
+ * Add `getHighestChildZ` crash fix (24189b1)
+ * Add Greek and German to Windows installer (bff6324, f7559ec)
+ * Fix trailing gap on `AxisLayout` when auto grow enabled (4b5d112)
+ * Update Result, matjson, TulipHook (12069db)
+
 ## v4.0.1
  * Add cutoff constructor for CCRenderTexture (#1171)
 
