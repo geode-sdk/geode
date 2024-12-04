@@ -225,6 +225,7 @@ bool ModItem::init(ModSource&& source) {
         },
         [this](server::ServerModMetadata const& metadata) {
             m_badgeContainer = CCNode::create();
+            m_badgeContainer->setID("badge-container");
             m_badgeContainer->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.1f, .8f));
             if (metadata.featured) {
                 m_badgeContainer->addChild(CCSprite::createWithSpriteFrameName("tag-featured.png"_spr));
