@@ -7,9 +7,10 @@ jobs:
   draft:
     name: Draft Release
     runs-on: ubuntu-latest
+
     steps:
-      - name: Download Development Release
-        uses: robinraju/release-downloader@v1.9
+      - name: Download development release
+        uses: robinraju/release-downloader@v1
         with:
           tag: nightly
           fileName: '*'
@@ -17,14 +18,14 @@ jobs:
           zipBall: true
           out-file-path: 'dev'
 
-      - name: Declare Version Variable
+      - name: Declare version variable
         id: ref
         shell: bash
         run: |
           VERSION=$(unzip -p ${{ github.workspace }}/dev/geode-nightly.zip geode-sdk-geode-*/VERSION | xargs)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-          # test if release already exists
+          # Test if release already exists
           set +e
           curl --fail "https://api.github.com/repos/geode-sdk/geode/releases/tags/v$VERSION" --silent --output /dev/null
           RESULT=$?
@@ -35,7 +36,7 @@ jobs:
             exit 1
           fi
 
-      - name: Move Files
+      - name: Move files
         run: |
           mv dev/geode-installer-*-win.exe geode-installer-v${{ steps.ref.outputs.version }}-win.exe
           mv dev/geode-installer-*-mac.pkg geode-installer-v${{ steps.ref.outputs.version }}-mac.pkg
@@ -45,8 +46,8 @@ jobs:
           mv dev/geode-*-android64.zip geode-v${{ steps.ref.outputs.version }}-android64.zip
           mv dev/resources.zip resources.zip
 
-      - name: Create Draft Release
-        uses: softprops/action-gh-release@v1
+      - name: Create draft release
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -54,9 +55,9 @@ jobs:
           name: Geode v${{ steps.ref.outputs.version }}
           body: |
             TODO before publishing:
-             - mark if pre-release
-             - add changelog
-             - remove this
+             - Mark if pre-release
+             - Add changelog
+             - Remove this
           draft: true
           files: |
             ./geode-installer-v${{ steps.ref.outputs.version }}-win.exe

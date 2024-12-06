@@ -1,5 +1,4 @@
-# check the changelog for non ascii characters
-name: Check CHANGELOG.md
+name: Check Changelog
 
 on:
   push:
@@ -11,16 +10,19 @@ on:
 
 jobs:
   check:
-    name: Check CHANGELOG.md
+    name: Check Changelog
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
-      
-      - run: |
-          if grep -q -P -n "[\x80-\xFF]" CHANGELOG.md
-          then
-              exit 1;
+
+      - name: Check for non-ASCII characters in changelog
+        run: |
+          if grep -q -P -n "[\x80-\xFF]" CHANGELOG.md; then
+            echo "Non-ASCII characters found in CHANGELOG.md"
+            exit 1
+          else
+            echo "No non-ASCII characters found in CHANGELOG.md"
           fi
