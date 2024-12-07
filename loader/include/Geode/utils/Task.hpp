@@ -938,8 +938,7 @@ namespace geode {
 // by the coroutine is cancelled, the coroutine will be destroyed as well and execution
 // stops as soon as possible.
 //
-// The body of the coroutine is ran in whatever thread it got called in.
-// TODO: maybe guarantee main thread?
+// The body of the coroutine is ran in the main thread.
 //
 // The coroutine can also yield progress values using `co_yield`:
 // ```
@@ -963,7 +962,12 @@ namespace geode {
                 MyTask::cancel(m_handle.lock());
             }
 
-            std::suspend_never initial_suspend() noexcept { return {}; }
+            std::suspend_always initial_suspend() noexcept {
+                queueInMainThread([this] {
+                    std::coroutine_handle<TaskPromise>::from_promise(*this).resume();
+                });
+                return {};
+            }
             std::suspend_never final_suspend() noexcept { return {}; }
             // TODO: do something here?
             void unhandled_exception() {}
