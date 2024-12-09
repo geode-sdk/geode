@@ -68,6 +68,14 @@ namespace server {
         bool hasUpdateForInstalledMod() const;
     };
 
+    struct ServerModLinks final {
+        std::optional<std::string> community;
+        std::optional<std::string> homepage;
+        std::optional<std::string> source;
+
+        static Result<ServerModLinks> parse(matjson::Value const& json);
+    };
+
     struct ServerModMetadata final {
         std::string id;
         bool featured;

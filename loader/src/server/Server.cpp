@@ -418,6 +418,17 @@ bool ServerModUpdate::hasUpdateForInstalledMod() const {
     return false;
 }
 
+Result<ServerModLinks> ServerModLinks::parse(matjson::Value const& raw) {
+    auto payload = checkJson(raw, "ServerModLinks");
+    auto res = ServerModLinks();
+
+    payload.hasNullable("community").into(res.community);
+    payload.hasNullable("homepage").into(res.homepage);
+    payload.hasNullable("source").into(res.source);
+
+    return payload.ok(res);
+}
+
 Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
     auto root = checkJson(raw, "ServerModMetadata");
 
@@ -452,6 +463,15 @@ Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
             version.metadata.setChangelog(res.changelog);
             version.metadata.setDevelopers(developerNames);
             version.metadata.setRepository(res.repository);
+            if (root.hasNullable("links")) {
+                auto linkRes = ServerModLinks::parse(root.hasNullable("links").json());
+                if (linkRes) {
+                    auto links = linkRes.unwrap();
+                    version.metadata.getLinksMut().getImpl()->m_community = links.community;
+                    version.metadata.getLinksMut().getImpl()->m_homepage = links.homepage;
+                    if (links.source.has_value()) version.metadata.setRepository(links.source);
+                }
+            }
             res.versions.push_back(version);
         }
         else {
