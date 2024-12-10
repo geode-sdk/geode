@@ -1,10 +1,17 @@
 # Geode Changelog
 
 ## v4.1.0
- * Allow passing pointers to `getChildByType`, `CCArrayExt`, `CCDictExt` (b956596)
+ * Add Modtober winner announcement (0aa2449)
  * Add `getHighestChildZ` crash fix (24189b1)
  * Add Greek and German to Windows installer (bff6324, f7559ec)
+ * Add command line arg support for MacOS (6a62813)
+ * Add ID for ModItem badge container (d7177c1)
+ * Add `Stub` and `Replace` hook priorities (1f50390)
+ * Allow passing pointers to `getChildByType`, `CCArrayExt`, `CCDictExt` (b956596)
+ * Make `CCEGLView` members public (0d607bf)
+ * Fix links not appearing on non-installed mods (#1184)
  * Fix trailing gap on `AxisLayout` when auto grow enabled (4b5d112)
+ * Fix `null` not being convertible to `std::optional` in `JsonExpectedValue` (15a1b34)
  * Update Result, matjson, TulipHook (12069db)
 
 ## v4.0.1
