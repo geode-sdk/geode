@@ -228,6 +228,10 @@ bool EventWinnerAnimation::init() {
             ));
             this->addChildAtPosition(okBtn, Anchor::Center, ccp(0, -110));
         }),
+        CCDelayTime::create(10.f),
+        CallFuncExt::create([this]() {
+            this->onClose(nullptr);
+        }),
         nullptr
     ));
 
@@ -237,6 +241,7 @@ bool EventWinnerAnimation::init() {
 }
 
 void EventWinnerAnimation::onClose(CCObject*) {
+    this->stopAllActions();
     m_bg->runAction(CCFadeTo::create(1.f, 0));
     float offset = 0.f;
     for (auto child : CCArrayExt<CCNode*>(this->getChildren())) {
