@@ -18,6 +18,7 @@
 #include "GeodeStyle.hpp"
 #include "ui/mods/sources/ModListSource.hpp"
 #include <loader/LoaderImpl.hpp>
+#include "events/EventWinnerAnimation.hpp"
 
 bool ModsStatusNode::init() {
     if (!CCNode::init())
@@ -620,6 +621,14 @@ bool ModsLayer::init() {
     }
 
     return true;
+}
+
+void ModsLayer::onEnterTransitionDidFinish() {
+    CCLayer::onEnterTransitionDidFinish();
+    // todo: generic system for this for any contest event
+    if (!Mod::get()->setSavedValue("shown-modtober-winner", true)) {
+        this->addChild(EventWinnerAnimation::create());
+    }
 }
 
 void ModsLayer::gotoTab(ModListSource* src) {

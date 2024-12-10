@@ -71,7 +71,7 @@ protected:
     void onToggleUpdates(CCObject*);
     void onToggleErrors(CCObject*);
     void onUpdateAll(CCObject*);
-    void onModtoberInfo(CCObject*);
+    void onEventInfo(CCObject*);
 
 public:
     static ModList* create(ModListSource* src, CCSize const& size);

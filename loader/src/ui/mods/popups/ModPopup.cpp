@@ -15,7 +15,6 @@
 #include "../settings/ModSettingsPopup.hpp"
 #include "../../../internal/about.hpp"
 #include "../../GeodeUIEvent.hpp"
-#include "../popups/ModtoberPopup.hpp"
 #include "server/DownloadManager.hpp"
 
 class FetchTextArea : public CCNode {
@@ -1102,10 +1101,12 @@ void ModPopup::onSupport(CCObject*) {
     openSupportPopup(m_source.getMetadata());
 }
 void ModPopup::onModtoberInfo(CCObject*) {
-    // todo: if we want to get rid of the modtober popup sprite (because it's fucking massive)
-    // then we can just replace this with a normal FLAlert explaining 
-    // "this mod was an entry for modtober 2024 blah blah blah"
-    ModtoberPopup::create()->show();
+    FLAlertLayer::create(
+        "Modtober 2024",
+        "This mod was an entry for <cj>Modtober 2024</c>, a contest to create "
+        "the best mod with the theme <cc>\"The Sky's the Limit\"</c>",
+        "OK"
+    )->show();
 }
 
 ModPopup* ModPopup::create(ModSource&& src) {

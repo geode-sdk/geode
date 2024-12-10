@@ -1,10 +1,10 @@
 #include "ModList.hpp"
 #include <Geode/utils/ColorProvider.hpp>
+#include <Geode/ui/GeodeUI.hpp>
 #include "../popups/FiltersPopup.hpp"
 #include "../popups/SortPopup.hpp"
 #include "../GeodeStyle.hpp"
 #include "../ModsLayer.hpp"
-#include "../popups/ModtoberPopup.hpp"
 
 static size_t getDisplayPageSize(ModListSource* src, ModListDisplay display) {
     if (src->isLocalModsOnly() && Mod::get()->template getSettingValue<bool>("infinite-local-mods-list")) {
@@ -273,14 +273,14 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         limitNodeWidth(banner, size.width, 1.f, .1f);
         menu->addChildAtPosition(banner, Anchor::Center);
 
-        auto label = CCLabelBMFont::create("Modtober 2024 is Here!", "bigFont.fnt");
-        label->setScale(.5f);
+        auto label = CCLabelBMFont::create("Modtober 2024 Winner: Geome3Dash!", "bigFont.fnt");
+        label->setScale(.35f);
         menu->addChildAtPosition(label, Anchor::Left, ccp(10, 0), ccp(0, .5f));
 
-        auto aboutSpr = createGeodeButton("About");
+        auto aboutSpr = createGeodeButton("View");
         aboutSpr->setScale(.5f);
         auto aboutBtn = CCMenuItemSpriteExtra::create(
-            aboutSpr, this, menu_selector(ModList::onModtoberInfo)
+            aboutSpr, this, menu_selector(ModList::onEventInfo)
         );
         menu->addChildAtPosition(aboutBtn, Anchor::Right, ccp(-35, 0));
         
@@ -738,8 +738,8 @@ void ModList::onToggleErrors(CCObject*) {
 void ModList::onUpdateAll(CCObject*) {
     server::ModDownloadManager::get()->startUpdateAll();
 }
-void ModList::onModtoberInfo(CCObject*) {
-    ModtoberPopup::create()->show();
+void ModList::onEventInfo(CCObject*) {
+    openInfoPopup("rainixgd.geome3dash").listen([](bool) {});
 }
 
 size_t ModList::getPage() const {

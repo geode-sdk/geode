@@ -197,6 +197,10 @@ bool ModItem::init(ModSource&& source) {
     m_viewMenu->getLayout()->ignoreInvisibleChildren(true);
     this->addChildAtPosition(m_viewMenu, Anchor::Right, ccp(-10, 0));
 
+    m_badgeContainer = CCNode::create();
+    m_badgeContainer->setID("badge-container");
+    m_badgeContainer->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.1f, .8f));
+
     // Handle source-specific stuff
     m_source.visit(makeVisitor {
         [this](Mod* mod) {
@@ -224,9 +228,7 @@ bool ModItem::init(ModSource&& source) {
             }
         },
         [this](server::ServerModMetadata const& metadata) {
-            m_badgeContainer = CCNode::create();
-            m_badgeContainer->setID("badge-container");
-            m_badgeContainer->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.1f, .8f));
+            // todo: there has to be a better way to deal with the short/long alternatives
             if (metadata.featured) {
                 m_badgeContainer->addChild(CCSprite::createWithSpriteFrameName("tag-featured.png"_spr));
             }
@@ -241,7 +243,17 @@ bool ModItem::init(ModSource&& source) {
             if (metadata.tags.contains("joke")) {
                 m_badgeContainer->addChild(CCSprite::createWithSpriteFrameName("tag-joke.png"_spr));
             }
-            if (metadata.tags.contains("modtober24")) {
+            // todo: modtober winner tag
+            if (metadata.tags.contains("modtober24winner") || m_source.getID() == "rainixgd.geome3dash") {
+                auto shortVer = CCSprite::createWithSpriteFrameName("tag-modtober-winner.png"_spr);
+                shortVer->setTag(1);
+                m_badgeContainer->addChild(shortVer);
+                auto longVer = CCSprite::createWithSpriteFrameName("tag-modtober-winner-long.png"_spr);
+                longVer->setTag(2);
+                m_badgeContainer->addChild(longVer);
+            }
+            // Only show default Modtober tag if not a winner
+            else if (metadata.tags.contains("modtober24")) {
                 auto shortVer = CCSprite::createWithSpriteFrameName("tag-modtober.png"_spr);
                 shortVer->setTag(1);
                 m_badgeContainer->addChild(shortVer);
@@ -502,6 +514,11 @@ void ModItem::updateState() {
             }
             if (metadata.tags.contains("modtober24")) {
                 m_bg->setColor(ccc3(63, 91, 138));
+                m_bg->setOpacity(85);
+            }
+            // todo: modtober winner tag
+            if (metadata.tags.contains("modtober24winner") || m_source.getID() == "rainixgd.geome3dash") {
+                m_bg->setColor(ccc3(104, 63, 138));
                 m_bg->setOpacity(85);
             }
             if (isGeodeTheme() && metadata.featured) {
