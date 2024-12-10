@@ -282,7 +282,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         auto aboutBtn = CCMenuItemSpriteExtra::create(
             aboutSpr, this, menu_selector(ModList::onEventInfo)
         );
-        menu->addChildAtPosition(aboutBtn, Anchor::Right, ccp(-35, 0));
+        menu->addChildAtPosition(aboutBtn, Anchor::Right, ccp(-30, 0));
         
         m_topContainer->addChild(menu);
     }
