@@ -115,11 +115,12 @@ bool EventWinnerAnimation::init() {
     auto cloud = CCSprite::createWithSpriteFrameName("d_artCloud_03_001.png");
     cloud->setColor(ccBLACK);
     cloud->runAction(CCSequence::create(
-        CCSpawn::create(
-            ShakeyWakey::create(2.f),
-            CCScaleTo::create(2.f, 2.f),
-            CCTintTo::create(2.f, 255, 255, 255),
-            nullptr
+        CCSpawn::createWithTwoActions(
+            CCSpawn::createWithTwoActions(
+                ShakeyWakey::create(2.f),
+                CCScaleTo::create(2.f, 2.f),
+            ),
+            CCTintTo::create(2.f, 255, 255, 255)
         ),
         nullptr
     ));
