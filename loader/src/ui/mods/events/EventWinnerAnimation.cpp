@@ -118,7 +118,7 @@ bool EventWinnerAnimation::init() {
         CCSpawn::createWithTwoActions(
             CCSpawn::createWithTwoActions(
                 ShakeyWakey::create(2.f),
-                CCScaleTo::create(2.f, 2.f),
+                CCScaleTo::create(2.f, 2.f)
             ),
             CCTintTo::create(2.f, 255, 255, 255)
         ),
