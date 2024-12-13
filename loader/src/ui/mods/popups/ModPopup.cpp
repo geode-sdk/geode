@@ -696,7 +696,7 @@ void ModPopup::updateState() {
 
     m_updateBtn->setVisible(m_source.hasUpdates().has_value() && asMod->getRequestedAction() == ModRequestedAction::None);
     m_installBtn->setVisible(this->availableForInstall());
-    m_unavailableBtn->setVisible(m_source.asServer() && this->availableForInstall());
+    m_unavailableBtn->setVisible(m_source.asServer() && !this->availableForInstall());
     m_uninstallBtn->setVisible(asMod && asMod->getRequestedAction() == ModRequestedAction::None);
 
     if (asMod && modRequestedActionIsUninstall(asMod->getRequestedAction())) {
