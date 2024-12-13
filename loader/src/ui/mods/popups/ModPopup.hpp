@@ -26,6 +26,7 @@ protected:
     CCMenuItemToggler* m_reenableBtn;
     CCMenuItemSpriteExtra* m_uninstallBtn;
     CCMenuItemSpriteExtra* m_installBtn;
+    CCMenuItemSpriteExtra* m_unavailableBtn;
     CCMenuItemSpriteExtra* m_updateBtn;
     CCMenuItemSpriteExtra* m_cancelBtn;
     CCLabelBMFont* m_installStatusLabel;
@@ -65,6 +66,8 @@ protected:
     void onLink(CCObject*);
     void onSupport(CCObject*);
     void onModtoberInfo(CCObject*);
+
+    bool availableForInstall() const;
 
 public:
     void loadTab(Tab tab);

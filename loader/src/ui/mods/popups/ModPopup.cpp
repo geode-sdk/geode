@@ -395,6 +395,20 @@ bool ModPopup::setup(ModSource&& src) {
     m_reenableBtn->m_notClickable = true;
     m_installMenu->addChild(m_reenableBtn);
 
+    auto unavailableSpr = createGeodeButton(
+        CCSprite::createWithSpriteFrameName("exclamation.png"_spr),
+        "Unavailable",
+        GeodeButtonSprite::Gray,
+        m_forceDisableTheme
+    );
+    unavailableSpr->setColor({ 155, 155, 155 });
+    unavailableSpr->setScale(.5f);
+    m_unavailableBtn = CCMenuItemSpriteExtra::create(
+        unavailableSpr, this, nullptr
+    );
+    m_unavailableBtn->setEnabled(false);
+    m_installMenu->addChild(m_unavailableBtn);
+
     auto installModSpr = createGeodeButton(
         CCSprite::createWithSpriteFrameName("GJ_downloadsIcon_001.png"),
         "Install",
@@ -681,7 +695,8 @@ void ModPopup::updateState() {
     m_reenableBtn->setVisible(asMod && modRequestedActionIsToggle(asMod->getRequestedAction()));
 
     m_updateBtn->setVisible(m_source.hasUpdates().has_value() && asMod->getRequestedAction() == ModRequestedAction::None);
-    m_installBtn->setVisible(m_source.asServer());
+    m_installBtn->setVisible(this->availableForInstall());
+    m_unavailableBtn->setVisible(m_source.asServer() && this->availableForInstall());
     m_uninstallBtn->setVisible(asMod && asMod->getRequestedAction() == ModRequestedAction::None);
 
     if (asMod && modRequestedActionIsUninstall(asMod->getRequestedAction())) {
@@ -1125,4 +1140,21 @@ ModPopup* ModPopup::create(ModSource&& src) {
 
 ModSource& ModPopup::getSource() & {
     return m_source;
+}
+
+bool ModPopup::availableForInstall() const {
+    // Adapted from ModItem.cpp ModItem::onView
+    if (auto serverSource = m_source.asServer()) {
+        auto version = serverSource->latestVersion();
+        auto gameVersion = version.getGameVersion();
+
+        if (
+            (gameVersion == "0.000") || 
+            (gameVersion && gameVersion != "*" && gameVersion != GEODE_STR(GEODE_GD_VERSION)) || 
+            (!Loader::get()->isModVersionSupported(version.getGeodeVersion()))) {
+            return false;
+        } 
+        return true;
+    }
+    return false;
 }
