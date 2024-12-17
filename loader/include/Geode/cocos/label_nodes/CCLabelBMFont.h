@@ -125,7 +125,7 @@ public://@public
     tCCKerningHashElement *m_pKerningDictionary;
 
     // Character Set defines the letters that actually exist in the font
-    std::set<unsigned int> *m_pCharacterSet;
+    gd::set<unsigned int> *m_pCharacterSet;
 public:
     CCBMFontConfiguration();
     /**
@@ -148,9 +148,9 @@ public:
     inline const char* getAtlasName(){ return m_sAtlasName.c_str(); }
     inline void setAtlasName(const char* atlasName) { m_sAtlasName = atlasName; }
 
-    inline std::set<unsigned int>* getCharacterSet() const { return m_pCharacterSet; }
+    inline gd::set<unsigned int>* getCharacterSet() const { return m_pCharacterSet; }
 private:
-    std::set<unsigned int>* parseConfigFile(const char *controlFile);
+    gd::set<unsigned int>* parseConfigFile(const char *controlFile);
     void parseCharacterDefinition(gd::string line, ccBMFontDef *characterDefinition);
     void parseInfoArguments(gd::string line);
     void parseCommonArguments(gd::string line);
