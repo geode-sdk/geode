@@ -1,6 +1,9 @@
 #ifndef __CCSPRITEEXTRA_H__
 #define __CCSPRITEEXTRA_H__
 
+#include "../../include/ccMacros.h"
+#include "../../sprite_ndoes/CCSprite.h"
+
 NS_CC_BEGIN
 
 // @note RobTop Addition
