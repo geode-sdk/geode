@@ -7,7 +7,6 @@
 NS_CC_BEGIN
 
 // @note RobTop Addition
-
 class CC_DLL CCFontSprite : public CCSpriteExtra {
 public:
     CCFontSprite() {}
