@@ -10,7 +10,7 @@ NS_CC_BEGIN
 
 class CC_DLL CCSpriteExtra : public CCSprite {
 public:
-    CCSpriteExtra();
+    CCSpriteExtra() {}
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCSpriteExtra, CCSprite);
 
     inline float getXOffset() const { return m_fXOffset; }
