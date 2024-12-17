@@ -2,7 +2,7 @@
 #define __CCSPRITEEXTRA_H__
 
 #include "../../include/ccMacros.h"
-#include "../../sprite_ndoes/CCSprite.h"
+#include "../../sprite_nodes/CCSprite.h"
 
 NS_CC_BEGIN
 
