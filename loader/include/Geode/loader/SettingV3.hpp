@@ -2,6 +2,7 @@
 
 #include "../DefaultInclude.hpp"
 #include <optional>
+#include <concepts>
 #include <cocos2d.h>
 #include "../utils/cocos.hpp"
 #include "../utils/file.hpp"
@@ -705,12 +706,12 @@ namespace geode {
     struct SettingTypeForValueType<bool> {
         using SettingType = BoolSettingV3;
     };
-    template <>
-    struct SettingTypeForValueType<int64_t> {
+    template <std::integral T>
+    struct SettingTypeForValueType<T> {
         using SettingType = IntSettingV3;
     };
-    template <>
-    struct SettingTypeForValueType<double> {
+    template <std::floating_point T>
+    struct SettingTypeForValueType<T> {
         using SettingType = FloatSettingV3;
     };
     template <>
