@@ -8,7 +8,7 @@ NS_CC_BEGIN
 
 // @note RobTop Addition
 
-class CCSpriteExtra : public CCSprite {
+class CC_DLL CCSpriteExtra : public CCSprite {
 public:
     CCSpriteExtra();
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCSpriteExtra, CCSprite);
