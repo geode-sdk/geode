@@ -6,6 +6,7 @@
  * Fix `fmt::join` on logs (22e4cbf, #979)
  * Allow any float or int type in `getSettingValue` (d08e141)
  * Fix cocos headers (9dd7128, 6c039c6)
+ * Fix target Geode version comparison with tags (ec2e8d8)
 
 ## v4.1.0
  * Add Modtober winner announcement (0aa2449)
