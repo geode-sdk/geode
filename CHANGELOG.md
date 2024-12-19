@@ -1,5 +1,12 @@
 # Geode Changelog
 
+## v4.1.1
+ * Check is mod is available for current version in ModPopup (fdf4348)
+ * Revert earlier commit that broke incompatibilities (ded70bb)
+ * Fix `fmt::join` on logs (22e4cbf, #979)
+ * Allow any float or int type in `getSettingValue` (d08e141)
+ * Fix cocos headers (9dd7128, 6c039c6)
+
 ## v4.1.0
  * Add Modtober winner announcement (0aa2449)
  * Add `getHighestChildZ` crash fix (24189b1)
