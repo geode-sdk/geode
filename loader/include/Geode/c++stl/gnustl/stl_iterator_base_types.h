@@ -61,6 +61,7 @@
 
 #include "c++config.h"
 #include <type_traits>
+#include "ptr_traits.h"
 
 namespace geode::stl {
 _GLIBCXX_BEGIN_NAMESPACE_VERSION
@@ -140,7 +141,7 @@ _GLIBCXX_HAS_NESTED_TYPE(iterator_category)
     struct __iterator_traits { };
 
   template<typename _Iterator>
-    struct stl::__iterator_traits<_Iterator, true>
+    struct __iterator_traits<_Iterator, true>
     {
       typedef typename _Iterator::iterator_category iterator_category;
       typedef typename _Iterator::value_type        value_type;
@@ -166,7 +167,7 @@ _GLIBCXX_HAS_NESTED_TYPE(iterator_category)
 
   /// Partial specialization for pointer types.
   template<typename _Tp>
-    struct stl::iterator_traits<_Tp*>
+    struct iterator_traits<_Tp*>
     {
       typedef random_access_iterator_tag iterator_category;
       typedef _Tp                         value_type;
@@ -177,7 +178,7 @@ _GLIBCXX_HAS_NESTED_TYPE(iterator_category)
 
   /// Partial specialization for const pointer types.
   template<typename _Tp>
-    struct stl::iterator_traits<const _Tp*>
+    struct iterator_traits<const _Tp*>
     {
       typedef random_access_iterator_tag iterator_category;
       typedef _Tp                         value_type;
