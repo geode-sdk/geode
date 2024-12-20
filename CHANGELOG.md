@@ -7,6 +7,8 @@
  * Allow any float or int type in `getSettingValue` (d08e141)
  * Fix cocos headers (9dd7128, 6c039c6)
  * Fix target Geode version comparison with tags (ec2e8d8)
+ * Fix "GD 0.000" from being displayed in mod listing (fb85530)
+ * Id overload for `openInfoPopup` now fetches the latest mod version (c6666a3, bda9444)
 
 ## v4.1.0
  * Add Modtober winner announcement (0aa2449)

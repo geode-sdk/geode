@@ -125,6 +125,7 @@ CCSprite* ModProblemItem::createSeverityIcon() {
 }
 
 void ModProblemItem::onInfo(CCObject*) {
+    // someone should really add that fix button. not me though
     if (m_problem.type == LoadProblem::Type::MissingDependency) {
         (void)openInfoPopup(m_problem.message);
         return;
