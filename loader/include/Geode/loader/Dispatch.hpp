@@ -53,7 +53,7 @@ namespace geode {
             return dispatchPools()[m_id];
         }
 
-        ListenerResult handle(utils::MiniFunction<Callback> fn, Ev* event) {
+        ListenerResult handle(std::function<Callback> fn, Ev* event) {
             if (event->getID() == m_id) {
                 return std::apply(fn, event->getArgs());
             }

@@ -4,7 +4,8 @@
 #include <string_view>
 #include <matjson.hpp>
 #include <tuple>
-#include "../utils/Result.hpp"
+#include <Geode/Result.hpp>
+#include <fmt/format.h>
 
 namespace geode {
     enum class VersionCompare {
@@ -186,8 +187,6 @@ namespace geode {
                 std::tie(other.m_major, other.m_minor, other.m_patch, other.m_tag);
         }
 
-        [[deprecated("Use toNonVString or toVString instead")]]
-        std::string toString(bool includeTag = true) const;
         std::string toVString(bool includeTag = true) const;
         std::string toNonVString(bool includeTag = true) const;
  
@@ -258,25 +257,15 @@ namespace geode {
 template <class V>
 requires std::is_same_v<V, geode::VersionInfo> || std::is_same_v<V, geode::ComparableVersionInfo>
 struct matjson::Serialize<V> {
-    static matjson::Value to_json(V const& info) {
-        return info.toString();
+    static geode::Result<V, std::string> fromJson(Value const& value) {
+        GEODE_UNWRAP_INTO(auto str, value.asString());
+        GEODE_UNWRAP_INTO(auto version, V::parse(str).mapErr([](auto&& err) {
+            return fmt::format("Invalid version format: {}", err);
+        }));
+        return geode::Ok(version);
     }
 
-    static bool is_json(matjson::Value const& json) {
-        if (json.is_string()) {
-            auto ver = V::parse(json.as_string());
-            return !ver.isErr();
-        }
-        return false;
-    }
-
-    static V from_json(matjson::Value const& json) {
-        auto ver = V::parse(json.as_string());
-        if (!ver) {
-            throw matjson::JsonException(
-                "Invalid version format: " + ver.unwrapErr()
-            );
-        }
-        return ver.unwrap();
+    static Value toJson(V const& value) {
+        return Value(value.toNonVString());
     }
 };

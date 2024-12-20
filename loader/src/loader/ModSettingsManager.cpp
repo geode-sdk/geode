@@ -8,24 +8,36 @@ using namespace geode::prelude;
 // #1 no need to duplicate the built-in settings between all mods
 // #2 easier lookup of custom settings if a mod uses another mod's custom setting type
 
+
+namespace {
+    auto changeToGenerator(auto&& function) {
+        return [function](
+            std::string const& key,
+            std::string const& modID,
+            matjson::Value const& json
+        ) -> Result<std::shared_ptr<SettingV3>> {
+            return function(key, modID, json).map([](auto&& ptr) {
+                return std::shared_ptr<SettingV3>(ptr);
+            });
+        };
+    }
+}
 class SharedSettingTypesPool final {
 private:
     std::unordered_map<std::string, SettingGenerator> m_types;
 
     SharedSettingTypesPool() : m_types({
-        // todo in v4: remove this
-        { "custom", &LegacyCustomSettingV3::parse },
-        { "title", &TitleSettingV3::parse },
-        { "bool", &BoolSettingV3::parse },
-        { "int", &IntSettingV3::parse },
-        { "float", &FloatSettingV3::parse },
-        { "string", &StringSettingV3::parse },
-        { "file", &FileSettingV3::parse },
-        { "folder", &FileSettingV3::parse },
-        { "path", &FileSettingV3::parse },
-        { "rgb", &Color3BSettingV3::parse },
-        { "color", &Color3BSettingV3::parse },
-        { "rgba", &Color4BSettingV3::parse },
+        { "title", changeToGenerator(TitleSettingV3::parse) },
+        { "bool", changeToGenerator(BoolSettingV3::parse) },
+        { "int", changeToGenerator(IntSettingV3::parse) },
+        { "float", changeToGenerator(FloatSettingV3::parse) },
+        { "string", changeToGenerator(StringSettingV3::parse) },
+        { "file", changeToGenerator(FileSettingV3::parse) },
+        { "folder", changeToGenerator(FileSettingV3::parse) },
+        { "path", changeToGenerator(FileSettingV3::parse) },
+        { "rgb", changeToGenerator(Color3BSettingV3::parse) },
+        { "color", changeToGenerator(Color3BSettingV3::parse) },
+        { "rgba", changeToGenerator(Color4BSettingV3::parse) },
     }) {}
 
 public:
@@ -80,9 +92,7 @@ public:
     struct SettingInfo final {
         std::string type;
         matjson::Value json;
-        std::shared_ptr<SettingV3> v3 = nullptr;
-        // todo: remove in v4
-        std::shared_ptr<SettingValue> legacy = nullptr;
+        std::shared_ptr<Setting> v3 = nullptr;
     };  
     std::string modID;
     std::unordered_map<std::string, SettingInfo> settings;
@@ -114,16 +124,11 @@ public:
             // Store the value in an intermediary so if `save` fails the existing 
             // value loaded from disk isn't overwritten
             matjson::Value value;
-            try {
-                if (sett.v3->save(value)) {
-                    this->savedata[key] = value;
-                }
-                else {
-                    log::error("Unable to save setting '{}' for mod {}", key, this->modID);
-                }
+            if (sett.v3->save(value)) {
+                this->savedata[key] = value;
             }
-            catch(matjson::JsonException const& e) {
-                log::error("Unable to save setting '{}' for mod {} (JSON exception): {}", key, this->modID, e.what());
+            else {
+                log::error("Unable to save setting '{}' for mod {}", key, this->modID);
             }
         }
     }
@@ -139,7 +144,7 @@ public:
                 continue;
             }
             if (auto v3 = (*gen)(key, modID, setting.json)) {
-                setting.v3 = *v3;
+                setting.v3 = v3.unwrap();
                 this->loadSettingValueFromSave(key);
             }
             else {
@@ -161,22 +166,12 @@ ModSettingsManager::ModSettingsManager(ModMetadata const& metadata)
   : m_impl(std::make_unique<Impl>())
 {
     m_impl->modID = metadata.getID();
-    for (auto const& [key, json] : metadata.getSettingsV3()) {
+    for (auto const& [key, json] : metadata.getSettings()) {
         auto setting = Impl::SettingInfo();
         setting.json = json;
         auto root = checkJson(json, "setting");
         root.needs("type").into(setting.type);
         if (root) {
-            if (setting.type == "custom") {
-                log::warn(
-                    "Setting \"{}\" in mod {} has the old \"custom\" type - "
-                    "this type has been deprecated and will be removed in Geode v4.0.0. "
-                    "Use the new \"custom:type-name-here\" syntax for defining custom "
-                    "setting types - see more in "
-                    "https://docs.geode-sdk.org/mods/settings/#custom-settings",
-                    key, m_impl->modID
-                );
-            }
             m_impl->settings.emplace(key, setting);
         }
         else {
@@ -197,79 +192,32 @@ Result<> ModSettingsManager::registerCustomSettingType(std::string_view type, Se
     m_impl->createSettings();
     return Ok();
 }
-Result<> ModSettingsManager::registerLegacyCustomSetting(std::string_view key, std::unique_ptr<SettingValue>&& ptr) {
-    auto id = std::string(key);
-    if (!m_impl->settings.count(id)) {
-        return Err("No such setting '{}' in mod {}", id, m_impl->modID);
-    }
-    auto& sett = m_impl->settings.at(id);
-    if (auto custom = typeinfo_pointer_cast<LegacyCustomSettingV3>(sett.v3)) {
-        if (!custom->getValue()) {
-            custom->setValue(std::move(ptr));
-            m_impl->loadSettingValueFromSave(id);
-        }
-        else {
-            return Err("Setting '{}' in mod {} has already been registed", id, m_impl->modID);
-        }
-    }
-    else {
-        return Err("Setting '{}' in mod {} is not a legacy custom setting", id, m_impl->modID);
-    }
-    return Ok();
-}
 
 Result<> ModSettingsManager::load(matjson::Value const& json) {
-    if (json.is_object()) {
+    if (json.isObject()) {
         // Save this so when custom settings are registered they can load their 
         // values properly
-        m_impl->savedata = json.as_object();
-        for (auto const& [key, _] : json.as_object()) {
+        m_impl->savedata = json;
+        for (auto const& [key, _] : json) {
            m_impl->loadSettingValueFromSave(key);
         }
     }
     return Ok();
 }
-void ModSettingsManager::save(matjson::Value& json) {
+matjson::Value ModSettingsManager::save() {
     for (auto& [key, _] : m_impl->settings) {
         m_impl->saveSettingValueToSave(key);
     }
     // Doing this since `ModSettingsManager` is expected to manage savedata fully
-    json = m_impl->savedata;
+    return m_impl->savedata;
 }
 matjson::Value& ModSettingsManager::getSaveData() {
     return m_impl->savedata;
 }
 
-std::shared_ptr<SettingV3> ModSettingsManager::get(std::string_view key) {
+std::shared_ptr<Setting> ModSettingsManager::get(std::string_view key) {
     auto id = std::string(key);
     return m_impl->settings.count(id) ? m_impl->settings.at(id).v3 : nullptr;
-}
-std::shared_ptr<SettingValue> ModSettingsManager::getLegacy(std::string_view key) {
-    auto id = std::string(key);
-    if (!m_impl->settings.count(id)) {
-        return nullptr;
-    }
-    auto& info = m_impl->settings.at(id);
-    // If this setting has alreay been given a legacy interface, give that
-    if (info.legacy) {
-        return info.legacy;
-    }
-    // Uninitialized settings are null
-    if (!info.v3) {
-        return nullptr;
-    }
-    // Generate new legacy interface
-    if (auto legacy = info.v3->convertToLegacyValue()) {
-        info.legacy.swap(*legacy);
-        return info.legacy;
-    }
-    return nullptr;
-}
-std::optional<Setting> ModSettingsManager::getLegacyDefinition(std::string_view key) {
-    if (auto s = this->get(key)) {
-        return s->convertToLegacy();
-    }
-    return std::nullopt;
 }
 
 bool ModSettingsManager::restartRequired() const {

@@ -291,7 +291,7 @@ public:
         return attemptRescale;
     }
 
-    float nextGap(AxisLayoutOptions const* now, AxisLayoutOptions const* next) const {
+    float nextGap(AxisLayoutOptions const* now, AxisLayoutOptions const* next, size_t ix) const {
         std::optional<float> gap;
         if (now) {
             gap = now->getNextGap();
@@ -299,7 +299,7 @@ public:
         if (next && (!gap || gap.value() < next->getPrevGap())) {
             gap = next->getPrevGap();
         }
-        return gap.value_or(m_gap);
+        return gap.value_or(ix ? m_gap : 0);
     }
 
     Row* fitInRow(
@@ -355,7 +355,7 @@ public:
                     res->addObject(node);
                 }
                 if (ix) {
-                    auto gap = nextGap(prev, opts);
+                    auto gap = nextGap(prev, opts, ix);
                     // if we've exhausted all priority scale options, scale gap too
                     if (prio == minMaxPrios.first) {
                         nextAxisScalableLength += gap * scale * squish;
@@ -690,10 +690,10 @@ public:
                 else {
                     if (ix != 0) {
                         if (row->prio == minMaxPrios.first) {
-                            rowAxisPos += this->nextGap(prev, opts) * row->scale * row->squish;
+                            rowAxisPos += this->nextGap(prev, opts, ix) * row->scale * row->squish;
                         }
                         else {
-                            rowAxisPos += this->nextGap(prev, opts) * row->squish;
+                            rowAxisPos += this->nextGap(prev, opts, ix) * row->squish;
                         }
                     }
                     axisPos = rowAxisPos + pos.axisLength * pos.axisAnchor;
@@ -751,7 +751,7 @@ void AxisLayout::apply(CCNode* on) {
     float totalLength = 0;
     AxisLayoutOptions const* prev = nullptr;
 
-    bool first = true;
+    size_t ix = 0;
     for (auto node : CCArrayExt<CCNode*>(nodes)) {
         // Require all nodes not to have this stupid option enabled because it 
         // screws up all position calculations
@@ -773,9 +773,8 @@ void AxisLayout::apply(CCNode* on) {
                 doAutoScale = true;
             }
         }
-        if (first) {
+        if (ix == 0) {
             minMaxPrio = { prio, prio };
-            first = false;
         }
         else {
             if (prio < minMaxPrio.first) {
@@ -786,9 +785,10 @@ void AxisLayout::apply(CCNode* on) {
             }
         }
         if (m_impl->m_autoGrowAxisMinLength.has_value()) {
-            totalLength += nodeAxis(node, m_impl->m_axis, 1.f).axisLength + m_impl->nextGap(prev, opts);
+            totalLength += nodeAxis(node, m_impl->m_axis, 1.f).axisLength + m_impl->nextGap(prev, opts, ix);
             prev = opts;
         }
+        ix++;
     }
 
     if (m_impl->m_autoGrowAxisMinLength.has_value()) {
@@ -1026,14 +1026,6 @@ std::optional<AxisAlignment> AxisLayoutOptions::getCrossAxisAlignment() const {
     return m_impl->m_crossAxisAlignment;
 }
 
-AxisLayoutOptions* AxisLayoutOptions::setMaxScale(float scale) {
-    m_impl->m_scaleLimits.second = scale;
-    return this;
-}
-AxisLayoutOptions* AxisLayoutOptions::setMinScale(float scale) {
-    m_impl->m_scaleLimits.first = scale;
-    return this;
-}
 AxisLayoutOptions* AxisLayoutOptions::setScaleLimits(std::optional<float> min, std::optional<float> max) {
     m_impl->m_scaleLimits = { min, max };
     return this;

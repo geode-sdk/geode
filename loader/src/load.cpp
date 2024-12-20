@@ -7,7 +7,6 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <Geode/loader/SettingEvent.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <loader/LogImpl.hpp>
 
@@ -30,8 +29,7 @@ $on_mod(Loaded) {
         std::vector<matjson::Value> res;
 
         auto args = *event->messageData;
-        JsonChecker checker(args);
-        auto root = checker.root("[ipc/list-mods]").obj();
+        auto root = checkJson(args, "[ipc/list-mods]");
 
         auto includeRunTimeInfo = root.has("include-runtime-info").get<bool>();
         auto dontIncludeLoader = root.has("dont-include-loader").get<bool>();
@@ -69,13 +67,13 @@ void tryShowForwardCompat() {
         return;
 
     // TODO: change text later
-    console::messageBox(
-        "Forward Compatibility Warning",
-        "Geode is running in a newer version of GD than Geode targets.\n"
-        "UI is going to be disabled, platform console is forced on and crashes can be more common.\n"
-        "However, if your game crashes, it is probably caused by an outdated mod and not Geode itself.",
-        Severity::Warning
-    );
+    // console::messageBox(
+    //     "Forward Compatibility Warning",
+    //     "Geode is running in a newer version of GD than Geode targets.\n"
+    //     "UI is going to be disabled, platform console is forced on and crashes can be more common.\n"
+    //     "However, if your game crashes, it is probably caused by an outdated mod and not Geode itself.",
+    //     Severity::Warning
+    // );
 
     Mod::get()->setSavedValue<std::string>(
         "last-forward-compat-warn-popup-ver",
@@ -86,7 +84,7 @@ void tryShowForwardCompat() {
 #ifdef GEODE_IS_WINDOWS
 bool safeModeCheck() {
     // yes this is quite funny
-    if (GetAsyncKeyState(VK_SHIFT) == 0) {
+    if (!(GetAsyncKeyState(VK_SHIFT) & (1 << 15))) {
         return false;
     }
 
@@ -140,17 +138,18 @@ int geodeEntry(void* platformData) {
 
     // set up internal mod, settings and data
     log::info("Setting up internal mod");
-    log::pushNest();
-    auto internalSetupRes = LoaderImpl::get()->setupInternalMod();
-    log::popNest();
-    if (!internalSetupRes) {
-        console::messageBox(
-            "Unable to Load Geode!",
-            "There was a fatal error setting up "
-            "the internal mod and Geode can not be loaded: " + internalSetupRes.unwrapErr()
-        );
-        LoaderImpl::get()->forceReset();
-        return 1;
+    {
+        log::NestScope nest;
+        auto internalSetupRes = LoaderImpl::get()->setupInternalMod();
+        if (!internalSetupRes) {
+            console::messageBox(
+                "Unable to Load Geode!",
+                "There was a fatal error setting up "
+                "the internal mod and Geode can not be loaded: " + internalSetupRes.unwrapErr()
+            );
+            LoaderImpl::get()->forceReset();
+            return 1;
+        }
     }
 
     tryShowForwardCompat();
@@ -163,26 +162,28 @@ int geodeEntry(void* platformData) {
 
     // set up loader, load mods, etc.
     log::info("Setting up loader");
-    log::pushNest();
-    auto setupRes = LoaderImpl::get()->setup();
-    log::popNest();
-    if (!setupRes) {
-        console::messageBox(
-            "Unable to Load Geode!",
-            "There was an unknown fatal error setting up "
-            "the loader and Geode can not be loaded. "
-            "(" + setupRes.unwrapErr() + ")"
-        );
-        LoaderImpl::get()->forceReset();
-        return 1;
+    {
+        log::NestScope nest;
+        auto setupRes = LoaderImpl::get()->setup();
+        if (!setupRes) {
+            console::messageBox(
+                "Unable to Load Geode!",
+                "There was an unknown fatal error setting up "
+                "the loader and Geode can not be loaded. "
+                "(" + setupRes.unwrapErr() + ")"
+            );
+            LoaderImpl::get()->forceReset();
+            return 1;
+        }
     }
 
     crashlog::setupPlatformHandlerPost();
 
     log::debug("Setting up IPC");
-    log::pushNest();
-    ipc::setup();
-    log::popNest();
+    {
+        log::NestScope nest;
+        ipc::setup();
+    }
 
     // download and install new loader update in the background
     

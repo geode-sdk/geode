@@ -1,13 +1,21 @@
 #pragma once
 
 #include "general.hpp"
-#include "MiniFunction.hpp"
 #include "../loader/Event.hpp"
 #include "../loader/Loader.hpp"
 #include <mutex>
 #include <string_view>
+#include <coroutine>
 
 namespace geode {
+    namespace geode_internal {
+        template <class T, class P>
+        struct TaskPromise;
+
+        template <class T, class P>
+        struct TaskAwaiter;
+    }
+
     /**
      * Tasks represent an asynchronous operation that will be finished at some 
      * unknown point in the future. Tasks can report their progress, and will 
@@ -87,7 +95,7 @@ namespace geode {
         enum class Status {
             /// The task is still running or waiting to start
             Pending,
-            /// The task has succesfully finished
+            /// The task has successfully finished
             Finished,
             /// The task has been cancelled
             Cancelled,
@@ -141,7 +149,7 @@ namespace geode {
 
             class PrivateMarker final {};
 
-            static std::shared_ptr<Handle> create(std::string_view const name) {
+            static std::shared_ptr<Handle> create(std::string_view name) {
                 return std::make_shared<Handle>(PrivateMarker(), name);
             }
 
@@ -153,8 +161,14 @@ namespace geode {
             template <std::move_constructible T2, std::move_constructible P2>
             friend class Task;
 
+            template <class, class>
+            friend struct geode_internal::TaskPromise;
+
+            template <class, class>
+            friend struct geode_internal::TaskAwaiter;
+
         public:
-            Handle(PrivateMarker, std::string_view const name) : m_name(name) {}
+            Handle(PrivateMarker, std::string_view name) : m_name(name) {}
             ~Handle() {
                 // If this Task was still pending when the Handle was destroyed, 
                 // it can no longer be listened to so just cancel and cleanup
@@ -249,11 +263,11 @@ namespace geode {
 
         using Value            = T;
         using Progress         = P;
-        using PostResult       = utils::MiniFunction<void(Result)>;
-        using PostProgress     = utils::MiniFunction<void(P)>;
-        using HasBeenCancelled = utils::MiniFunction<bool()>;
-        using Run              = utils::MiniFunction<Result(PostProgress, HasBeenCancelled)>;
-        using RunWithCallback  = utils::MiniFunction<void(PostResult, PostProgress, HasBeenCancelled)>;
+        using PostResult       = std::function<void(Result&&)>;
+        using PostProgress     = std::function<void(P)>;
+        using HasBeenCancelled = std::function<bool()>;
+        using Run              = std::function<Result(PostProgress, HasBeenCancelled)>;
+        using RunWithCallback  = std::function<void(PostResult, PostProgress, HasBeenCancelled)>;
 
         using Callback = void(Event*);
 
@@ -307,6 +321,12 @@ namespace geode {
 
         template <std::move_constructible T2, std::move_constructible P2>
         friend class Task;
+
+        template <class, class>
+        friend struct geode_internal::TaskPromise;
+
+        template <class, class>
+        friend struct geode_internal::TaskAwaiter;
 
     public:
         // Allow default-construction
@@ -394,7 +414,7 @@ namespace geode {
          * Create a new Task that is immediately cancelled
          * @param name The name of the Task; used for debugging
          */
-        static Task cancelled(std::string_view const name = "<Cancelled Task>") {
+        static Task cancelled(std::string_view name = "<Cancelled Task>") {
             auto task = Task(Handle::create(name));
             Task::cancel(task.m_handle);
             return task;
@@ -405,7 +425,7 @@ namespace geode {
          * @param value The value the Task shall be finished with
          * @param name The name of the Task; used for debugging
          */
-        static Task immediate(T value, std::string_view const name = "<Immediate Task>") {
+        static Task immediate(T value, std::string_view name = "<Immediate Task>") {
             auto task = Task(Handle::create(name));
             Task::finish(task.m_handle, std::move(value));
             return task;
@@ -417,7 +437,7 @@ namespace geode {
          * function MUST be synchronous - Task creates the thread for you!
          * @param name The name of the Task; used for debugging
          */
-        static Task run(Run&& body, std::string_view const name = "<Task>") {
+        static Task run(Run&& body, std::string_view name = "<Task>") {
             auto task = Task(Handle::create(name));
             std::thread([handle = std::weak_ptr(task.m_handle), name = std::string(name), body = std::move(body)] {
                 utils::thread::setName(fmt::format("Task '{}'", name));
@@ -450,7 +470,7 @@ namespace geode {
          * calls will always be ignored
          * @param name The name of the Task; used for debugging
          */
-        static Task runWithCallback(RunWithCallback&& body, std::string_view const name = "<Callback Task>") {
+        static Task runWithCallback(RunWithCallback&& body, std::string_view name = "<Callback Task>") {
             auto task = Task(Handle::create(name));
             std::thread([handle = std::weak_ptr(task.m_handle), name = std::string(name), body = std::move(body)] {
                 utils::thread::setName(fmt::format("Task '{}'", name));
@@ -485,7 +505,7 @@ namespace geode {
          * were cancelled!
          */
         template <std::move_constructible NP>
-        static Task<std::vector<T*>, std::monostate> all(std::vector<Task<T, NP>>&& tasks, std::string_view const name = "<Multiple Tasks>") {
+        static Task<std::vector<T*>, std::monostate> all(std::vector<Task<T, NP>>&& tasks, std::string_view name = "<Multiple Tasks>") {
             using AllTask = Task<std::vector<T*>, std::monostate>;
 
             // If there are no tasks, return an immediate task that does nothing
@@ -519,12 +539,18 @@ namespace geode {
                 }
             );
 
+            // Make sure the taskResults vector is large enough to fit all the 
+            // results. By default, any cancelled Task becomes nullptr.
+            // Order of results must be preserved so when a Task finishes, it 
+            // replaces the nullptr in the results vector at its place
+            static_cast<Waiting*>(task.m_handle->m_extraData->ptr)->taskResults.resize(tasks.size());
+
             // Store the task count in case some tasks finish immediately during the loop 
             static_cast<Waiting*>(task.m_handle->m_extraData->ptr)->taskCount = tasks.size();
 
             // Make sure to only give a weak pointer to avoid circular references!
             // (Tasks should NEVER own themselves!!)
-            auto markAsDone = [handle = std::weak_ptr(task.m_handle)](T* result) {
+            auto markAsDone = [handle = std::weak_ptr(task.m_handle)](size_t index, T* result) {
                 auto lock = handle.lock();
 
                 // If this task handle has expired, consider the task cancelled
@@ -536,13 +562,21 @@ namespace geode {
                 // Get the waiting handle from the task handle
                 auto waiting = static_cast<Waiting*>(lock->m_extraData->ptr);
 
+                // Mark the task as done by decrementing amount of tasks left
+                // (making sure not to underflow, even though that should 100% 
+                // be impossible and if that happened something has gone 
+                // extremely catastrophically wrong)
+                if (waiting->taskCount > 0) {
+                    waiting->taskCount -= 1;
+                }
+
                 // SAFETY: The lifetime of result pointer is the same as the task that 
                 // produced that pointer, so as long as we have an owning reference to 
                 // the tasks through `taskListeners` we can be sure `result` is valid
-                waiting->taskResults.push_back(result);
+                waiting->taskResults[index] = result;
 
                 // If all tasks are done, finish
-                if (waiting->taskResults.size() >= waiting->taskCount) {
+                if (waiting->taskCount == 0) {
                     // SAFETY: The task results' lifetimes are tied to the tasks 
                     // which could have their only owner be `waiting->taskListeners`, 
                     // but since Waiting is owned by the returned AllTask it should 
@@ -552,15 +586,17 @@ namespace geode {
             };
 
             // Iterate the tasks & start listening to them using
+            size_t index = 0;
             for (auto& taskToWait : tasks) {
                 static_cast<Waiting*>(task.m_handle->m_extraData->ptr)->taskListeners.emplace_back(taskToWait.map(
-                    [markAsDone](auto* result) {
-                        markAsDone(result);
+                    [index, markAsDone](auto* result) {
+                        markAsDone(index, result);
                         return std::monostate();
                     },
                     [](auto*) { return std::monostate(); },
-                    [markAsDone]() { markAsDone(nullptr); }
+                    [index, markAsDone]() { markAsDone(index, nullptr); }
                 ));
+                index += 1;
             }
             return task;
         }
@@ -582,7 +618,7 @@ namespace geode {
          * the mapped task is appended to the end
          */
         template <class ResultMapper, class ProgressMapper, class OnCancelled>
-        auto map(ResultMapper&& resultMapper, ProgressMapper&& progressMapper, OnCancelled&& onCancelled, std::string_view const name = "<Mapping Task>") const {
+        auto map(ResultMapper&& resultMapper, ProgressMapper&& progressMapper, OnCancelled&& onCancelled, std::string_view name = "<Mapping Task>") const {
             using T2 = decltype(resultMapper(std::declval<T*>()));
             using P2 = decltype(progressMapper(std::declval<P*>()));
 
@@ -652,7 +688,7 @@ namespace geode {
          * @param name The name of the Task; used for debugging. The name of 
          * the mapped task is appended to the end
          */        template <class ResultMapper, class ProgressMapper>
-        auto map(ResultMapper&& resultMapper, ProgressMapper&& progressMapper, std::string_view const name = "<Mapping Task>") const {
+        auto map(ResultMapper&& resultMapper, ProgressMapper&& progressMapper, std::string_view name = "<Mapping Task>") const {
             return this->map(std::move(resultMapper), std::move(progressMapper), +[]() {}, name);
         }
 
@@ -670,7 +706,7 @@ namespace geode {
          * the mapped task is appended to the end
          */        template <class ResultMapper>
             requires std::copy_constructible<P>
-        auto map(ResultMapper&& resultMapper, std::string_view const name = "<Mapping Task>") const {
+        auto map(ResultMapper&& resultMapper, std::string_view name = "<Mapping Task>") const {
             return this->map(std::move(resultMapper), +[](P* p) -> P { return *p; }, name);
         }
 
@@ -752,7 +788,94 @@ namespace geode {
             this->listen(std::move(onResult), [](auto const&) {}, [] {});
         }
 
-        ListenerResult handle(utils::MiniFunction<Callback> fn, Event* e) {
+        /**
+         * Create a new Task that listens to this Task and maps the values using
+         * the provided function. The new Task will only start when this Task finishes.
+         * @param mapper Function that makes a new task given the finished value of this task.
+         * The function signature should be `Task<NewType, NewProgress>(T*)`, and it will be executed
+         * on the main thread.
+         * @param name The name of the Task; used for debugging.
+         * @return The new Task that will run when this Task finishes.
+         * @note Progress from this task is not sent through, only progress from the new task is.
+         */
+        template <std::invocable<T*> Mapper>
+        auto chain(Mapper mapper, std::string_view name = "<Chained Task>") const -> decltype(mapper(std::declval<T*>())) {
+            using NewTask = decltype(mapper(std::declval<T*>()));
+            using NewType = typename NewTask::Value;
+            using NewProgress = typename NewTask::Progress;
+
+            std::unique_lock<std::recursive_mutex> lock(m_handle->m_mutex);
+
+            if (m_handle->m_status == Status::Cancelled) {
+                // if the current task has been cancelled already, make an immediate cancelled task
+                return NewTask::cancelled();
+            }
+            else if (m_handle->m_status == Status::Finished) {
+                // if the current task is already done, we can just call the mapper directly
+                return mapper(&*m_handle->m_resultValue);
+            }
+
+            // otherwise, make a wrapper task that waits for the current task to finish,
+            // and then runs the mapper on the result. this new task will also wait for the task
+            // created by the mapper to finish, and will just forward the values through.
+            // do this because we cant really change the handle of the task we already returned
+
+            NewTask task = NewTask::Handle::create(fmt::format("{} <- {}", name, m_handle->m_name));
+
+            task.m_handle->m_extraData = std::make_unique<typename NewTask::Handle::ExtraData>(
+                // make the first event listener that waits for the current task
+                static_cast<void*>(new EventListener<Task>(
+                    [handle = std::weak_ptr(task.m_handle), mapper = std::move(mapper)](Event* event) mutable {
+                        if (auto v = event->getValue()) {
+                            auto newInnerTask = mapper(v);
+                            // this is scary.. but it doesn't seem to crash lol
+                            handle.lock()->m_extraData = std::make_unique<typename NewTask::Handle::ExtraData>(
+                                // make the second event listener that waits for the mapper's task
+                                // and just forwards everything through
+                                static_cast<void*>(new EventListener<NewTask>(
+                                    [handle](typename NewTask::Event* event) mutable {
+                                        if (auto v = event->getValue()) {
+                                            NewTask::finish(handle.lock(), std::move(*v));
+                                        }
+                                        else if (auto p = event->getProgress()) {
+                                            NewTask::progress(handle.lock(), std::move(*p));
+                                        }
+                                        else if (event->isCancelled()) {
+                                            NewTask::cancel(handle.lock());
+                                        }
+                                    },
+                                    std::move(newInnerTask)
+                                )),
+                                +[](void* ptr) {
+                                    delete static_cast<EventListener<NewTask>*>(ptr);
+                                },
+                                +[](void* ptr) {
+                                    static_cast<EventListener<NewTask>*>(ptr)->getFilter().cancel();
+                                }
+                            );
+                        }
+                        else if (auto p = event->getProgress()) {
+                            // no guarantee P and NewProgress are compatible
+                            // nor does it seem like the intended behavior?
+                            // TODO: maybe add a mapper for progress?
+                        }
+                        else if (event->isCancelled()) {
+                            NewTask::cancel(handle.lock());
+                        }
+                    },
+                    *this
+                )),
+                +[](void* ptr) {
+                    delete static_cast<EventListener<Task>*>(ptr);
+                },
+                +[](void* ptr) {
+                    static_cast<EventListener<Task>*>(ptr)->getFilter().cancel();
+                }
+            );
+            return task;
+        }
+
+        ListenerResult handle(std::function<Callback> fn, Event* e) {
             if (e->m_handle == m_handle && (!e->m_for || e->m_for == m_listener)) {
                 fn(e);
             }
@@ -797,3 +920,136 @@ namespace geode {
 
     static_assert(is_filter<Task<int>>, "The Task class must be a valid event filter!");
 }
+
+// - C++20 coroutine support for Task - //
+
+// Example usage (function must return a Task):
+// ```
+// Task<int> someTask() {
+//     auto response = co_await web::WebRequest().get("https://example.com");
+//     co_return response.code();
+// }
+// ```
+// This will create a Task that will finish with the response code of the
+// web request.
+//
+// Note: If the Task the coroutine is waiting on is cancelled, the coroutine
+// will be destroyed and the Task will be cancelled as well. If the Task returned
+// by the coroutine is cancelled, the coroutine will be destroyed as well and execution
+// stops as soon as possible.
+//
+// The body of the coroutine is ran in the main thread.
+//
+// The coroutine can also yield progress values using `co_yield`:
+// ```
+// Task<std::string, int> someTask() {
+//     for (int i = 0; i < 10; i++) {
+//         co_yield i;
+//     }
+//     co_return "done!";
+// }
+// ```
+
+namespace geode {
+    namespace geode_internal {
+        template <class T, class P>
+        struct TaskPromise {
+            using MyTask = Task<T, P>;
+            std::weak_ptr<typename MyTask::Handle> m_handle;
+
+            ~TaskPromise() {
+                // does nothing if its not pending
+                MyTask::cancel(m_handle.lock());
+            }
+
+            std::suspend_always initial_suspend() noexcept {
+                queueInMainThread([this] {
+                    std::coroutine_handle<TaskPromise>::from_promise(*this).resume();
+                });
+                return {};
+            }
+            std::suspend_never final_suspend() noexcept { return {}; }
+            // TODO: do something here?
+            void unhandled_exception() {}
+
+            MyTask get_return_object() {
+                auto handle = MyTask::Handle::create("<Coroutine Task>");
+                m_handle = handle;
+                return handle;
+            }
+
+            void return_value(T x) {
+                MyTask::finish(m_handle.lock(), std::move(x));
+            }
+
+            std::suspend_never yield_value(P value) {
+                MyTask::progress(m_handle.lock(), std::move(value));
+                return {};
+            }
+
+            bool isCancelled() {
+                if (auto p = m_handle.lock()) {
+                    return p->is(MyTask::Status::Cancelled);
+                }
+                return true;
+            }
+        };
+
+        template <class T, class P>
+        struct TaskAwaiter {
+            Task<T, P> task;
+
+            bool await_ready() {
+                return task.isFinished();
+            }
+
+            template <class U, class V>
+            void await_suspend(std::coroutine_handle<TaskPromise<U, V>> handle) {
+                if (handle.promise().isCancelled()) {
+                    handle.destroy();
+                    return;
+                }
+                // this should be fine because the parent task can only have
+                // one pending task at a time
+                auto parentHandle = handle.promise().m_handle.lock();
+                if (!parentHandle) {
+                    handle.destroy();
+                    return;
+                }
+                parentHandle->m_extraData = std::make_unique<typename Task<U, V>::Handle::ExtraData>(
+                    static_cast<void*>(new EventListener<Task<T, P>>(
+                        [handle](auto* event) {
+                            if (event->getValue()) {
+                                handle.resume();
+                            }
+                            if (event->isCancelled()) {
+                                handle.destroy();
+                            }
+                        },
+                        task
+                    )),
+                    +[](void* ptr) {
+                        delete static_cast<EventListener<Task<T, P>>*>(ptr);
+                    },
+                    +[](void* ptr) {
+                        static_cast<EventListener<Task<T, P>>*>(ptr)->getFilter().cancel();
+                    }
+                );
+            }
+
+            T await_resume() {
+                return std::move(*task.getFinishedValue());
+            }
+        };
+    }
+}
+
+template <class T, class P>
+auto operator co_await(geode::Task<T, P> task) {
+    return geode::geode_internal::TaskAwaiter<T, P>{task};
+}
+
+template <class T, class P, class... Args>
+struct std::coroutine_traits<geode::Task<T, P>, Args...> {
+    using promise_type = geode::geode_internal::TaskPromise<T, P>;
+};

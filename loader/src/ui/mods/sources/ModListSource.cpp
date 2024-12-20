@@ -1,11 +1,11 @@
 #include "ModListSource.hpp"
 #include <server/DownloadManager.hpp>
 #include <Geode/loader/ModSettingsManager.hpp>
+#include <loader/LoaderImpl.hpp>
 
 #define FTS_FUZZY_MATCH_IMPLEMENTATION
 #include <Geode/external/fts/fts_fuzzy_match.h>
 
-static constexpr size_t PER_PAGE = 10;
 static std::vector<ModListSource*> ALL_EXTANT_SOURCES {};
 
 static size_t ceildiv(size_t a, size_t b) {
@@ -15,7 +15,7 @@ static size_t ceildiv(size_t a, size_t b) {
 
 InvalidateCacheEvent::InvalidateCacheEvent(ModListSource* src) : source(src) {}
 
-ListenerResult InvalidateCacheFilter::handle(MiniFunction<Callback> fn, InvalidateCacheEvent* event) {
+ListenerResult InvalidateCacheFilter::handle(std::function<Callback> fn, InvalidateCacheEvent* event) {
     if (event->source == m_source) {
         fn(event);
     }
@@ -33,7 +33,7 @@ typename ModListSource::PageLoadTask ModListSource::loadPage(size_t page, bool f
         return PageLoadTask::immediate(Ok(m_cachedPages.at(page)));
     }
     m_cachedPages.erase(page);
-    return this->fetchPage(page, PER_PAGE, forceUpdate).map(
+    return this->fetchPage(page, forceUpdate).map(
         [this, page](Result<ProvidedMods, LoadPageError>* result) -> Result<Page, LoadPageError> {
             if (result->isOk()) {
                 auto data = result->unwrap();
@@ -56,11 +56,16 @@ typename ModListSource::PageLoadTask ModListSource::loadPage(size_t page, bool f
 }
 
 std::optional<size_t> ModListSource::getPageCount() const {
-    return m_cachedItemCount ? std::optional(ceildiv(m_cachedItemCount.value(), PER_PAGE)) : std::nullopt;
+    return m_cachedItemCount ? std::optional(ceildiv(m_cachedItemCount.value(), m_pageSize)) : std::nullopt;
 }
-
 std::optional<size_t> ModListSource::getItemCount() const {
     return m_cachedItemCount;
+}
+void ModListSource::setPageSize(size_t size) {
+    if (m_pageSize != size) {
+        m_pageSize = size;
+        this->clearCache();
+    }
 }
 
 void ModListSource::reset() {
@@ -85,20 +90,6 @@ void ModListSource::clearAllCaches() {
     for (auto src : ALL_EXTANT_SOURCES) {
         src->clearCache();
     }
-}
-bool ModListSource::isRestartRequired() {
-    for (auto mod : Loader::get()->getAllMods()) {
-        if (mod->getRequestedAction() != ModRequestedAction::None) {
-            return true;
-        }
-        if (ModSettingsManager::from(mod)->restartRequired()) {
-            return true;
-        }
-    }
-    if (server::ModDownloadManager::get()->wantsRestart()) {
-        return true;
-    }
-    return false;
 }
 
 bool weightedFuzzyMatch(std::string const& str, std::string const& kw, double weight, double& out) {

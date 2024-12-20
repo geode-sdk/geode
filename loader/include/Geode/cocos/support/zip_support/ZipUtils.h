@@ -155,12 +155,12 @@ namespace cocos2d
         static gd::string base64EncodeEnc(gd::string const&, gd::string);
         static gd::string base64URLDecode(gd::string const&);
         static gd::string base64URLEncode(gd::string const&);
-        static int ccDeflateMemory(unsigned char*, unsigned int, unsigned char**);
+        static int ccDeflateMemory(unsigned char* data, unsigned int size, unsigned char** out);
         static int ccDeflateMemoryWithHint(unsigned char*, unsigned int, unsigned char**, unsigned int);
-        static gd::string compressString(gd::string const&, bool, int);
-        static gd::string decompressString(gd::string const&, bool, int);
-        static gd::string decompressString2(unsigned char*, bool, int, int);
-        static gd::string encryptDecrypt(gd::string const&, int);
+        static gd::string compressString(gd::string const& data, bool encrypt, int encryptionKey);
+        static gd::string decompressString(gd::string const& data, bool encrypt, int encryptionKey);
+        static gd::string decompressString2(unsigned char* data, bool encrypt, int size, int encryptionKey);
+        static gd::string encryptDecrypt(gd::string const& data, int encryptionKey);
         static gd::string encryptDecryptWKey(gd::string const&, gd::string);
         static unsigned char hexToChar(const gd::string&);
         static gd::string urlDecode(const gd::string&);
@@ -208,9 +208,9 @@ namespace cocos2d
     
         /**
          * Custom function added for geode; returns if the 
-         * zip file was succesfully decoded.
+         * zip file was successfully decoded.
          * 
-         * @return true if the zip was succesfully loaded, 
+         * @return true if the zip was successfully loaded, 
          *         false otherwise.
          * 
          * @since geode v1.0.0

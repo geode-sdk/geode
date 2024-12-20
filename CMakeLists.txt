@@ -189,8 +189,8 @@ include(cmake/Platform.cmake)
 include(cmake/GeodeFile.cmake)
 
 if (NOT DEFINED GEODE_GD_VERSION)
-	set(GEODE_GD_VERSION 2.206)
-	set(GEODE_COMP_GD_VERSION 22060)
+	set(GEODE_GD_VERSION 2.2074)
+	set(GEODE_COMP_GD_VERSION 22074)
 endif()
 
 target_compile_definitions(
@@ -236,8 +236,9 @@ if (ANDROID)
 endif()
 
 set(MAT_JSON_AS_INTERFACE ON)
-CPMAddPackage("gh:geode-sdk/json#cda9807")
-CPMAddPackage("gh:fmtlib/fmt#10.2.1")
+CPMAddPackage("gh:geode-sdk/result@1.3.2")
+CPMAddPackage("gh:geode-sdk/json@3.1.5")
+CPMAddPackage("gh:fmtlib/fmt#11.0.2")
 
 target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)
 
@@ -266,7 +267,7 @@ if (DEFINED GEODE_TULIPHOOK_REPO_PATH)
 	message(STATUS "Using ${GEODE_TULIPHOOK_REPO_PATH} for TulipHook")
 	add_subdirectory(${GEODE_TULIPHOOK_REPO_PATH} ${GEODE_TULIPHOOK_REPO_PATH}/build)
 else()
-	CPMAddPackage("gh:geode-sdk/TulipHook#d1d9559")
+	CPMAddPackage("gh:geode-sdk/TulipHook@2.4.2")
 endif()
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 
@@ -296,7 +297,7 @@ target_include_directories(GeodeBindings PUBLIC
 	${GEODE_LOADER_PATH}/include/Geode/fmod
 )
 target_link_directories(GeodeBindings PUBLIC ${GEODE_LOADER_PATH}/include/link)
-target_link_libraries(GeodeBindings PUBLIC fmt TulipHookInclude mat-json)
+target_link_libraries(GeodeBindings PUBLIC fmt TulipHookInclude mat-json GeodeResult)
 target_link_libraries(${PROJECT_NAME} INTERFACE GeodeBindings)
 
 if (NOT EXISTS ${GEODE_BIN_PATH})

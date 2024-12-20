@@ -29,8 +29,11 @@ namespace geode::log::impl {
     // So instead, we just wrap everything and pass it a string instead.
 
     template <class T>
+    concept IsWrappedCocos = std::is_pointer_v<std::decay_t<T>> && requires(T ptr) { geode::format_as(ptr); };
+
+    template <class T>
     GEODE_INLINE GEODE_HIDDEN decltype(auto) wrapCocosObj(T&& value) {
-        if constexpr (std::is_pointer_v<std::decay_t<T>> && requires(T ptr) { geode::format_as(ptr); }) {
+        if constexpr (IsWrappedCocos<T>) {
             return geode::format_as(value);
         } else {
             return std::forward<T>(value);
@@ -38,7 +41,11 @@ namespace geode::log::impl {
     }
 
     template <class T>
-    using TransformType = decltype(wrapCocosObj<T>(std::declval<T>()));
+    using TransformType = std::conditional_t<
+        IsWrappedCocos<T>,
+        decltype(wrapCocosObj<T>(std::declval<T>())),
+        T
+    >;
 
     template <class... Args>
     using FmtStr = fmt::format_string<TransformType<Args>...>;
@@ -62,12 +69,6 @@ namespace gd {
 namespace std::filesystem {
     GEODE_INLINE GEODE_HIDDEN std::string format_as(std::filesystem::path const& value) {
         return value.string();
-    }
-}
-
-namespace matjson {
-    GEODE_INLINE GEODE_HIDDEN std::string format_as(matjson::Value const& value) {
-        return value.dump(matjson::NO_INDENTATION);
     }
 }
 
@@ -119,6 +120,37 @@ namespace geode {
         inline void popNest() {
             popNest(getMod());
         }
+
+        struct NestScope {
+        private:
+            bool m_active = true;
+        public:
+            NestScope() {
+                pushNest();
+            }
+
+            NestScope(NestScope const&) {
+                pushNest();
+            }
+
+            NestScope(NestScope&& other) {
+                other.m_active = false;
+            }
+
+            NestScope& operator=(NestScope const&) {
+                pushNest();
+                return *this;
+            }
+
+            NestScope& operator=(NestScope&& other) {
+                other.m_active = false;
+                return *this;
+            }
+
+            ~NestScope() {
+                if (m_active) popNest();
+            }
+        };
 
         class Nest final {
         private:

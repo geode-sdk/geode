@@ -6,7 +6,7 @@
 using namespace geode::prelude;
 
 PlatformID PlatformID::from(const char* str) {
-    // todo in v4: this should just be
+    // todo in v5: this should just be
     // "win" -> Windows
     // "mac", "mac-intel", "mac-arm" -> Mac
     // "ios" -> iOS
@@ -33,14 +33,12 @@ PlatformID PlatformID::from(const char* str) {
         case hash("Android64"):
         case hash("android64"): return PlatformID::Android64;
 
-        case hash("Linux"):
-        case hash("linux"): return PlatformID::Linux;
         default: return PlatformID::Unknown;
     }
 }
 
 bool PlatformID::coveredBy(const char* str, PlatformID t) {
-    // todo in v4: this is ridiculously inefficient currently - in v4 just use a flag check!
+    // todo in v5: this is ridiculously inefficient currently - in v5 just use a flag check!
     return ranges::contains(getCovered(str), t);
 }
 
@@ -64,9 +62,6 @@ std::vector<PlatformID> PlatformID::getCovered(std::string_view str) {
         case hash("android"): return { PlatformID::Android32, PlatformID::Android64 };
         case hash("android32"): return { PlatformID::Android32 };
         case hash("android64"): return { PlatformID::Android64 };
-
-        // todo in v4: no linux
-        case hash("linux"): return { PlatformID::Linux };
         
         default: return {};
     }

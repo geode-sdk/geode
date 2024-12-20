@@ -59,6 +59,8 @@ std::string utils::string::toUpper(std::string const& str) {
 }
 
 std::string& utils::string::replaceIP(std::string& str, std::string const& orig, std::string const& repl) {
+    if (orig.empty()) return str;
+    
     std::string::size_type n = 0;
     while ((n = str.find(orig, n)) != std::string::npos) {
         str.replace(n, orig.size(), repl);

@@ -1,5 +1,5 @@
-#include <Geode/loader/SettingV3.hpp>
-#include <Geode/loader/SettingEvent.hpp>
+#include <Geode/loader/Mod.hpp>
+#include <Geode/loader/Setting.hpp>
 #include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/string.hpp>
@@ -7,6 +7,7 @@
 #include <Geode/utils/JsonValidation.hpp>
 #include <regex>
 #include "SettingNodeV3.hpp"
+#include <matjson/std.hpp>
 
 using namespace geode::prelude;
 
@@ -46,7 +47,7 @@ namespace enable_if_parsing {
                 if (!mod->hasSetting(settingID)) {
                     return Err("Mod '{}' does not have setting '{}'", mod->getName(), settingID);
                 }
-                if (!typeinfo_pointer_cast<BoolSettingV3>(mod->getSettingV3(settingID))) {
+                if (!typeinfo_pointer_cast<BoolSettingV3>(mod->getSetting(settingID))) {
                     return Err("Setting '{}' in mod '{}' is not a boolean setting", settingID, mod->getName());
                 }
             }
@@ -60,7 +61,7 @@ namespace enable_if_parsing {
                 // This is an if-check just in case, even though check() should already 
                 // make sure that getSettingV3 is guaranteed to return true
                 auto name = settingID;
-                if (auto sett = mod->getSettingV3(settingID)) {
+                if (auto sett = mod->getSetting(settingID)) {
                     name = sett->getDisplayName();
                 }
                 if (modID == defaultModID) {
@@ -153,18 +154,21 @@ namespace enable_if_parsing {
             return Ok();
         }
         Result<> eval(std::string const& defaultModID) const override {
-            Result<> err = Ok();
+            std::optional<std::string> err;
             for (auto& comp : components) {
                 auto res = comp->eval(defaultModID);
                 if (res) {
                     return Ok();
                 }
                 // Only show first condition that isn't met
-                if (err.isOk()) {
-                    err = Err(res.unwrapErr());
+                if (!err.has_value()) {
+                    err = res.unwrapErr();
                 }
             }
-            return err;
+            if (err.has_value()) {
+                return Err(*err);
+            }
+            return Ok();
         }
     };
 
@@ -236,7 +240,10 @@ namespace enable_if_parsing {
             auto original = m_index;
             auto ret = this->nextWord();
             m_index = original;
-            return ret ? *ret : std::nullopt;
+            if (!ret) {
+                return std::nullopt;
+            }
+            return ret.unwrap();
         }
         Result<std::unique_ptr<Component>> nextComponent() {
             GEODE_UNWRAP_INTO(auto maybeWord, this->nextWord());
@@ -423,7 +430,7 @@ public:
     std::optional<std::string> settingKey;
 };
 
-ListenerResult SettingChangedFilterV3::handle(utils::MiniFunction<Callback> fn, SettingChangedEventV3* event) {
+ListenerResult SettingChangedFilterV3::handle(std::function<Callback> fn, SettingChangedEventV3* event) {
     if (
         event->getSetting()->getModID() == m_impl->modID &&
         !m_impl->settingKey || event->getSetting()->getKey() == m_impl->settingKey
@@ -447,7 +454,7 @@ SettingChangedFilterV3::SettingChangedFilterV3(Mod* mod, std::optional<std::stri
 
 SettingChangedFilterV3::SettingChangedFilterV3(SettingChangedFilterV3 const&) = default;
 
-EventListener<SettingChangedFilterV3>* geode::listenForAllSettingChanges(
+EventListener<SettingChangedFilterV3>* geode::listenForAllSettingChangesV3(
     std::function<void(std::shared_ptr<SettingV3>)> const& callback,
     Mod* mod
 ) {
@@ -573,20 +580,7 @@ void SettingV3::markChanged() {
         manager->markRestartRequired();
     }
     SettingChangedEventV3(shared_from_this()).post();
-    if (manager) {
-        // Use ModSettingsManager rather than convertToLegacyValue since it 
-        // caches the result and we want to have that for performance
-        SettingChangedEvent(this->getMod(), manager->getLegacy(this->getKey()).get()).post();
-    }
 }
-
-std::optional<Setting> SettingV3::convertToLegacy() const {
-    return std::nullopt;
-}
-std::optional<std::shared_ptr<SettingValue>> SettingV3::convertToLegacyValue() const {
-    return std::nullopt;
-}
-
 class TitleSettingV3::Impl final {
 public:
 };
@@ -618,63 +612,6 @@ bool TitleSettingV3::isDefaultValue() const {
 }
 void TitleSettingV3::reset() {}
 
-class LegacyCustomSettingV3::Impl final {
-public:
-    matjson::Value json;
-    std::shared_ptr<SettingValue> legacyValue = nullptr;
-};
-
-LegacyCustomSettingV3::LegacyCustomSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
-
-Result<std::shared_ptr<LegacyCustomSettingV3>> LegacyCustomSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
-    auto ret = std::make_shared<LegacyCustomSettingV3>(PrivateMarker());
-    ret->init(key, modID);
-    ret->m_impl->json = json;
-    return Ok(ret);
-}
-
-std::shared_ptr<SettingValue> LegacyCustomSettingV3::getValue() const {
-    return m_impl->legacyValue;
-}
-void LegacyCustomSettingV3::setValue(std::shared_ptr<SettingValue> value) {
-    m_impl->legacyValue = value;
-}
-
-bool LegacyCustomSettingV3::load(matjson::Value const& json) {
-    if (m_impl->legacyValue) {
-        return m_impl->legacyValue->load(json);
-    }
-    return true;
-}
-bool LegacyCustomSettingV3::save(matjson::Value& json) const {
-    if (m_impl->legacyValue) {
-        return m_impl->legacyValue->save(json);
-    }
-    return true;
-}
-SettingNodeV3* LegacyCustomSettingV3::createNode(float width) {
-    if (m_impl->legacyValue) {
-        return LegacyCustomSettingToV3Node::create(
-            std::static_pointer_cast<LegacyCustomSettingV3>(shared_from_this()), width
-        );
-    }
-    return UnresolvedCustomSettingNodeV3::create(this->getKey(), this->getMod(), width);
-}
-
-bool LegacyCustomSettingV3::isDefaultValue() const {
-    return true;
-}
-void LegacyCustomSettingV3::reset() {}
-
-std::optional<Setting> LegacyCustomSettingV3::convertToLegacy() const {
-    return Setting(this->getKey(), this->getModID(), SettingKind(CustomSetting {
-        .json = std::make_shared<ModJson>(m_impl->json)
-    }));
-}
-std::optional<std::shared_ptr<SettingValue>> LegacyCustomSettingV3::convertToLegacyValue() const {
-    return m_impl->legacyValue ? std::optional(m_impl->legacyValue) : std::nullopt;
-}
-
 class BoolSettingV3::Impl final {
 public:
 };
@@ -697,17 +634,6 @@ SettingNodeV3* BoolSettingV3::createNode(float width) {
     return BoolSettingNodeV3::create(
         std::static_pointer_cast<BoolSettingV3>(shared_from_this()), width
     );
-}
-
-std::optional<Setting> BoolSettingV3::convertToLegacy() const {
-    return Setting(this->getKey(), this->getModID(), SettingKind(BoolSetting {
-        .name = this->getName(),
-        .description = this->getDescription(),
-        .defaultValue = this->getDefaultValue(),
-    }));
-}
-std::optional<std::shared_ptr<SettingValue>> BoolSettingV3::convertToLegacyValue() const {
-    return this->convertToLegacy()->createDefaultValue();
 }
 
 class IntSettingV3::Impl final {
@@ -819,28 +745,6 @@ SettingNodeV3* IntSettingV3::createNode(float width) {
     );
 }
 
-std::optional<Setting> IntSettingV3::convertToLegacy() const {
-    return Setting(this->getKey(), this->getModID(), SettingKind(IntSetting {
-        .name = this->getName(),
-        .description = this->getDescription(),
-        .defaultValue = this->getDefaultValue(),
-        .min = this->getMinValue(),
-        .max = this->getMaxValue(),
-        .controls = {
-            .arrows = this->isArrowsEnabled(),
-            .bigArrows = this->isBigArrowsEnabled(),
-            .arrowStep = this->getArrowStepSize(),
-            .bigArrowStep = this->getBigArrowStepSize(),
-            .slider = this->isSliderEnabled(),
-            .sliderStep = this->getSliderSnap(),
-            .input = this->isInputEnabled(),
-        },
-    }));
-}
-std::optional<std::shared_ptr<SettingValue>> IntSettingV3::convertToLegacyValue() const {
-    return this->convertToLegacy()->createDefaultValue();
-}
-
 class FloatSettingV3::Impl final {
 public:
     std::optional<double> minValue;
@@ -948,27 +852,6 @@ SettingNodeV3* FloatSettingV3::createNode(float width) {
     );
 }
 
-std::optional<Setting> FloatSettingV3::convertToLegacy() const {
-    return Setting(this->getKey(), this->getModID(), SettingKind(FloatSetting {
-        .name = this->getName(),
-        .description = this->getDescription(),
-        .defaultValue = this->getDefaultValue(),
-        .min = this->getMinValue(),
-        .max = this->getMaxValue(),
-        .controls = {
-            .arrows = this->isArrowsEnabled(),
-            .bigArrows = this->isBigArrowsEnabled(),
-            .arrowStep = static_cast<size_t>(this->getArrowStepSize()),
-            .bigArrowStep = static_cast<size_t>(this->getBigArrowStepSize()),
-            .slider = this->isSliderEnabled(),
-            .sliderStep = this->getSliderSnap(),
-            .input = this->isInputEnabled(),
-        },
-    }));
-}
-std::optional<std::shared_ptr<SettingValue>> FloatSettingV3::convertToLegacyValue() const {
-    return this->convertToLegacy()->createDefaultValue();
-}
 
 class StringSettingV3::Impl final {
 public:
@@ -1024,20 +907,6 @@ SettingNodeV3* StringSettingV3::createNode(float width) {
     return StringSettingNodeV3::create(
         std::static_pointer_cast<StringSettingV3>(shared_from_this()), width
     );
-}
-
-std::optional<Setting> StringSettingV3::convertToLegacy() const {
-    auto setting = StringSetting();
-    setting.name = this->getName();
-    setting.description = this->getDescription();
-    setting.defaultValue = this->getDefaultValue();
-    setting.controls->filter = this->getAllowedCharacters();
-    setting.controls->match = this->getRegexValidator();
-    setting.controls->options = this->getEnumOptions();
-    return Setting(this->getKey(), this->getModID(), SettingKind(setting));
-}
-std::optional<std::shared_ptr<SettingValue>> StringSettingV3::convertToLegacyValue() const {
-    return this->convertToLegacy()->createDefaultValue();
 }
 
 class FileSettingV3::Impl final {
@@ -1153,18 +1022,6 @@ SettingNodeV3* FileSettingV3::createNode(float width) {
     );
 }
 
-std::optional<Setting> FileSettingV3::convertToLegacy() const {
-    auto setting = FileSetting();
-    setting.name = this->getName();
-    setting.description = this->getDescription();
-    setting.defaultValue = this->getDefaultValue();
-    setting.controls.filters = this->getFilters().value_or(std::vector<utils::file::FilePickOptions::Filter>());
-    return Setting(this->getKey(), this->getModID(), SettingKind(setting));
-}
-std::optional<std::shared_ptr<SettingValue>> FileSettingV3::convertToLegacyValue() const {
-    return this->convertToLegacy()->createDefaultValue();
-}
-
 class Color3BSettingV3::Impl final {
 public:
 };
@@ -1189,17 +1046,6 @@ SettingNodeV3* Color3BSettingV3::createNode(float width) {
     );
 }
 
-std::optional<Setting> Color3BSettingV3::convertToLegacy() const {
-    auto setting = ColorSetting();
-    setting.name = this->getName();
-    setting.description = this->getDescription();
-    setting.defaultValue = this->getDefaultValue();
-    return Setting(this->getKey(), this->getModID(), SettingKind(setting));
-}
-std::optional<std::shared_ptr<SettingValue>> Color3BSettingV3::convertToLegacyValue() const {
-    return this->convertToLegacy()->createDefaultValue();
-}
-
 class Color4BSettingV3::Impl final {
 public:
 };
@@ -1222,15 +1068,4 @@ SettingNodeV3* Color4BSettingV3::createNode(float width) {
     return Color4BSettingNodeV3::create(
         std::static_pointer_cast<Color4BSettingV3>(shared_from_this()), width
     );
-}
-
-std::optional<Setting> Color4BSettingV3::convertToLegacy() const {
-    auto setting = ColorAlphaSetting();
-    setting.name = this->getName();
-    setting.description = this->getDescription();
-    setting.defaultValue = this->getDefaultValue();
-    return Setting(this->getKey(), this->getModID(), SettingKind(setting));
-}
-std::optional<std::shared_ptr<SettingValue>> Color4BSettingV3::convertToLegacyValue() const {
-    return this->convertToLegacy()->createDefaultValue();
 }

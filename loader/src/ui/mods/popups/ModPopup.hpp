@@ -26,6 +26,7 @@ protected:
     CCMenuItemToggler* m_reenableBtn;
     CCMenuItemSpriteExtra* m_uninstallBtn;
     CCMenuItemSpriteExtra* m_installBtn;
+    CCMenuItemSpriteExtra* m_unavailableBtn;
     CCMenuItemSpriteExtra* m_updateBtn;
     CCMenuItemSpriteExtra* m_cancelBtn;
     CCLabelBMFont* m_installStatusLabel;
@@ -38,11 +39,11 @@ protected:
     CCNode* m_modtoberBanner = nullptr;
     std::unordered_map<Tab, std::pair<GeodeTabSprite*, Ref<CCNode>>> m_tabs;
     EventListener<server::ServerRequest<server::ServerModMetadata>> m_statsListener;
-    EventListener<server::ServerRequest<std::unordered_set<std::string>>> m_tagsListener;
+    EventListener<server::ServerRequest<std::vector<server::ServerTag>>> m_tagsListener;
     EventListener<server::ServerRequest<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
     EventListener<UpdateModListStateFilter> m_updateStateListener;
     EventListener<server::ModDownloadFilter> m_downloadListener;
-    EventListener<EventFilter<SettingNodeValueChangeEventV3>> m_settingNodeListener;
+    EventListener<EventFilter<SettingNodeValueChangeEvent>> m_settingNodeListener;
 
     bool setup(ModSource&& src) override;
     void updateState();
@@ -52,7 +53,7 @@ protected:
     void setStatValue(CCNode* stat, std::optional<std::string> const& value);
 
     void onLoadServerInfo(typename server::ServerRequest<server::ServerModMetadata>::Event* event);
-    void onLoadTags(typename server::ServerRequest<std::unordered_set<std::string>>::Event* event);
+    void onLoadTags(typename server::ServerRequest<std::vector<server::ServerTag>>::Event* event);
     void onCheckUpdates(typename server::ServerRequest<std::optional<server::ServerModUpdate>>::Event* event);
     
     void onTab(CCObject* sender);
@@ -65,6 +66,8 @@ protected:
     void onLink(CCObject*);
     void onSupport(CCObject*);
     void onModtoberInfo(CCObject*);
+
+    bool availableForInstall() const;
 
 public:
     void loadTab(Tab tab);

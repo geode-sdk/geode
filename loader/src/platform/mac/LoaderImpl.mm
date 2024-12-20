@@ -99,6 +99,7 @@ CFDataRef msgPortCallback(CFMessagePortRef port, SInt32 messageID, CFDataRef dat
     std::string cdata(reinterpret_cast<char const*>(CFDataGetBytePtr(data)), CFDataGetLength(data));
 
     std::string reply = geode::ipc::processRaw(port, cdata).dump();
+
     return CFDataCreate(NULL, (UInt8 const*)reply.data(), reply.size());
 }
 
@@ -160,20 +161,104 @@ void Loader::Impl::addNativeBinariesPath(std::filesystem::path const& path) {
     }
 }
 
+bool gameVersionIsAmbiguous(std::string gameVersion) {
+    return gameVersion == "2.207";
+}
+
+std::array<std::uint8_t, 16> getBinaryUUID() {
+    auto imageCount = _dyld_image_count();
+
+    auto binaryHeader = _dyld_get_image_header(0);
+    for (auto i = 0u; i < imageCount; i++) {
+        auto headerCandidate = _dyld_get_image_header(i);
+        if (headerCandidate->filetype == MH_EXECUTE) {
+            auto imageName = _dyld_get_image_name(i);
+
+            binaryHeader = headerCandidate;
+            break;
+        }
+    }
+
+    auto commandCount = binaryHeader->ncmds;
+    auto commandSize = binaryHeader->sizeofcmds;
+
+    // for whatever reason _dyld_get_image_header returns a 32bit mach header, not a 64bit one
+    // that's okay but we do have to account for that issue here
+    auto commands = reinterpret_cast<const std::uint8_t*>(binaryHeader) + sizeof(struct mach_header_64);
+
+    for (auto i = 0u; i < commandCount; i++) {
+        auto cCommand = reinterpret_cast<const struct load_command*>(commands);
+        if (cCommand->cmd == LC_UUID) {
+            auto uuidCommand = reinterpret_cast<const struct uuid_command*>(commands);
+            return std::to_array(uuidCommand->uuid);
+        }
+
+        commands += cCommand->cmdsize;
+    }
+
+    return {};
+}
+
+const auto& uuidToVersionMap() {
+    // we only need to define versions that are ambiguous
+    // so for now, 2.207
+    // you can get these hashes from otool, just look for the LC_UUID load command!
+    static std::unordered_map<std::string, std::string> uuidToVersionName{
+#if defined(GEODE_IS_ARM_MAC)
+        {"27044C8B-76BD-303C-A035-5314AF1D9E6E", "2.2074"},
+#elif defined(GEODE_IS_INTEL_MAC)
+        {"DB5CADC0-E533-3123-8A63-5A434FE391ED", "2.2074"}
+#endif
+    };
+
+    return uuidToVersionName;
+}
+
 std::string Loader::Impl::getGameVersion() {
     NSBundle* mainBundle = [NSBundle mainBundle];
     NSDictionary* infoDictionary = [mainBundle infoDictionary];
 
     NSString *version = infoDictionary[@"CFBundleShortVersionString"];
 
-    return std::string([version UTF8String]);
+    auto versionStr = std::string([version UTF8String]);
+
+    if (gameVersionIsAmbiguous(versionStr)) {
+        static std::string manualVersionStr = []() -> std::string {
+            auto uuid = getBinaryUUID();
+            if (uuid.empty()) {
+                // i wonder if this might cause issues
+                return {};
+            }
+
+            auto uuidStr = fmt::format("{:02X}{:02X}{:02X}{:02X}-{:02X}{:02X}-{:02X}{:02X}-{:02X}{:02X}-{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}",
+                uuid[0], uuid[1], uuid[2], uuid[3], uuid[4], uuid[5], uuid[6], uuid[7],
+                uuid[8], uuid[9], uuid[10], uuid[11], uuid[12], uuid[13], uuid[14], uuid[15]
+            );
+
+            auto& versionMap = uuidToVersionMap();
+            auto versionElem = versionMap.find(uuidStr);
+            if (versionElem != versionMap.end()) {
+                return versionElem->second;
+            }
+
+            // return the uuid as a fallback
+            // in this situation, geode (and any mods) won't load, so it's not really a big deal
+            return uuidStr;
+        }();
+
+        return manualVersionStr;
+    }
+
+    return versionStr;
 }
 
-// TODO
 bool Loader::Impl::supportsLaunchArguments() const {
-    return false;
+    return true;
 }
 
 std::string Loader::Impl::getLaunchCommand() const {
-    return std::string(); // Empty
+    NSArray* arguments = [[NSProcessInfo processInfo] arguments];
+    NSString* joinedString = [arguments componentsJoinedByString:@" "];
+    std::string fullString([joinedString UTF8String]);
+    return fullString;
 }

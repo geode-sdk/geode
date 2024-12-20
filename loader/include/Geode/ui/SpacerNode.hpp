@@ -1,8 +1,8 @@
 #pragma once
 
-#include "CCNode.h"
+#include <cocos2d.h>
 
-NS_CC_BEGIN
+namespace geode {
 
 #pragma warning(push)
 #pragma warning(disable: 4275)
@@ -22,7 +22,7 @@ NS_CC_BEGIN
  * @note If you want to specify a minimum width for a SpacerNode, add 
  * AxisLayoutOptions for it and use setLength
  */
-class GEODE_DLL SpacerNode : public CCNode {
+class GEODE_DLL SpacerNode : public cocos2d::CCNode {
 protected:
     size_t m_grow;
 
@@ -61,9 +61,9 @@ public:
  */
 class GEODE_DLL SpacerNodeChild : public SpacerNode {
 protected:
-    CCNode* m_child = nullptr;
+    cocos2d::CCNode* m_child = nullptr;
 
-    bool init(CCNode* child, size_t grow);
+    bool init(cocos2d::CCNode* child, size_t grow);
 
 public:
     /**
@@ -73,11 +73,11 @@ public:
      * factors (akin to CSS flew grow)
      * @param grow The grow factor for this node. Default is 1
     */
-    static SpacerNodeChild* create(CCNode* child, size_t grow = 1);
+    static SpacerNodeChild* create(cocos2d::CCNode* child, size_t grow = 1);
 
-    void setContentSize(CCSize const& size) override;
+    void setContentSize(cocos2d::CCSize const& size) override;
 };
 
 #pragma warning(pop)
 
-NS_CC_END
+}

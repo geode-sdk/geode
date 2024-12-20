@@ -57,7 +57,7 @@ bool ModMetadata::Dependency::isResolved() const {
 
 bool ModMetadata::Incompatibility::isResolved() const {
     return this->importance != Importance::Breaking ||
-        (!this->mod || !this->mod->isEnabled() || !this->version.compare(this->mod->getVersion()));
+        (!this->mod || !this->version.compare(this->mod->getVersion()));
 }
 
 static std::string sanitizeDetailsData(std::string const& str) {
@@ -113,14 +113,14 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
 
     auto checkerRoot = fmt::format(
         "[{}/v0.0.0/mod.json]",
-        rawJson.contains("id") ? rawJson["id"].as_string() : "unknown.mod"
+        rawJson.contains("id") ? GEODE_UNWRAP(rawJson["id"].asString()) : "unknown.mod"
     );
     // JsonChecker did it this way too
     try {
         checkerRoot = fmt::format(
             "[{}/{}/mod.json]",
-            rawJson.contains("id") ? rawJson["id"].as_string() : "unknown.mod",
-            rawJson.contains("version") ? rawJson["version"].as<VersionInfo>().toVString() : "v0.0.0"
+            rawJson.contains("id") ? GEODE_UNWRAP(rawJson["id"].asString()) : "unknown.mod",
+            rawJson.contains("version") ? GEODE_UNWRAP(rawJson["version"].as<VersionInfo>()).toVString() : "v0.0.0"
         );
     }
     catch (...) { }
@@ -304,11 +304,14 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
 Result<ModMetadata> ModMetadata::Impl::create(ModJson const& json) {
     // Check mod.json target version
     auto schema = about::getLoaderVersion();
-    if (json.contains("geode") && json["geode"].is_string()) {
+    if (json.contains("geode") && json["geode"].isString()) {
         GEODE_UNWRAP_INTO(
             schema,
-            VersionInfo::parse(json["geode"].as_string())
-                .expect("[mod.json] has invalid target loader version: {error}")
+            VersionInfo::parse(GEODE_UNWRAP(json["geode"].asString())).mapErr(
+                [](auto const& err) {
+                    return fmt::format("[mod.json] has invalid target loader version: {}", err);
+                }
+            )
         );
     }
     else {
@@ -352,13 +355,9 @@ Result<ModMetadata> ModMetadata::Impl::create(ModJson const& json) {
 Result<ModMetadata> ModMetadata::Impl::createFromFile(std::filesystem::path const& path) {
     GEODE_UNWRAP_INTO(auto read, utils::file::readString(path));
 
-    std::string error;
-    auto res = matjson::parse(read, error);
-    if (error.size() > 0) {
-        return Err(std::string("Unable to parse mod.json: ") + error);
-    }
-
-    GEODE_UNWRAP_INTO(auto info, ModMetadata::create(res.value()));
+    GEODE_UNWRAP_INTO(auto info, ModMetadata::create(GEODE_UNWRAP(matjson::parse(read).mapErr([&](auto const& err) {
+        return fmt::format("Unable to parse mod.json: {}", err);
+    }))));
 
     auto impl = info.m_impl.get();
 
@@ -382,25 +381,24 @@ Result<ModMetadata> ModMetadata::Impl::createFromGeodeZip(file::Unzip& unzip) {
 
     // Read mod.json & parse if possible
     GEODE_UNWRAP_INTO(
-        auto jsonData, unzip.extract("mod.json").expect("Unable to read mod.json: {error}")
+        auto jsonData, unzip.extract("mod.json").mapErr([](auto const& err) {
+            return fmt::format("Unable to extract mod.json: {}", err);
+        })
     );
 
-    std::string error;
-    auto res = matjson::parse(std::string(jsonData.begin(), jsonData.end()), error);
-    if (error.size() > 0) {
-        return Err(std::string("Unable to parse mod.json: ") + error);
-    }
-    ModJson json = res.value();
+    ModJson json = GEODE_UNWRAP(matjson::parse(std::string(jsonData.begin(), jsonData.end())).mapErr([](auto const& err) {
+        return fmt::format("Unable to parse mod.json: {}", err);
+    }));
 
-    auto res2 = ModMetadata::create(json);
-    if (!res2) {
-        return Err("\"" + unzip.getPath().string() + "\" - " + res2.unwrapErr());
-    }
-    auto info = res2.unwrap();
+    auto info = GEODE_UNWRAP(ModMetadata::create(json).mapErr([&](auto const& err) {
+        return fmt::format("\"{}\" - {}", unzip.getPath().string(), err);
+    }));
     auto impl = info.m_impl.get();
     impl->m_path = unzip.getPath();
 
-    GEODE_UNWRAP(info.addSpecialFiles(unzip).expect("Unable to add extra files: {error}"));
+    GEODE_UNWRAP(info.addSpecialFiles(unzip).mapErr([](auto const& err) {
+        return fmt::format("Unable to add extra files: {}", err);
+    }));
 
     return Ok(info);
 }
@@ -409,7 +407,11 @@ Result<> ModMetadata::Impl::addSpecialFiles(file::Unzip& unzip) {
     // unzip known MD files
     for (auto& [file, target] : this->getSpecialFiles()) {
         if (unzip.hasEntry(file)) {
-            GEODE_UNWRAP_INTO(auto data, unzip.extract(file).expect("Unable to extract \"{}\"", file));
+            // reference to local binding 'file' declared in enclosing function 
+            std::string_view fileStr(file); 
+            GEODE_UNWRAP_INTO(auto data, unzip.extract(fileStr).mapErr([&](auto const& err) {
+                return fmt::format("Unable to extract \"{}\": {}", fileStr, err);
+            }));
             *target = sanitizeDetailsData(std::string(data.begin(), data.end()));
         }
     }
@@ -477,12 +479,6 @@ std::string ModMetadata::getName() const {
     return m_impl->m_name;
 }
 
-std::string ModMetadata::getDeveloper() const {
-    // m_developers should be guaranteed to never be empty, but this is 
-    // just in case it is anyway somehow
-    return m_impl->m_developers.empty() ? "" : m_impl->m_developers.front();
-}
-
 std::string ModMetadata::formatDeveloperDisplayString(std::vector<std::string> const& developers) {
     switch (developers.size()) {
         case 0: return "Unknown"; break;
@@ -510,9 +506,6 @@ std::optional<std::string> ModMetadata::getChangelog() const {
 std::optional<std::string> ModMetadata::getSupportInfo() const {
     return m_impl->m_supportInfo;
 }
-std::optional<std::string> ModMetadata::getRepository() const {
-    return m_impl->m_links.getSourceURL();
-}
 ModMetadataLinks ModMetadata::getLinks() const {
     return m_impl->m_links;
 }
@@ -528,19 +521,7 @@ std::vector<ModMetadata::Incompatibility> ModMetadata::getIncompatibilities() co
 std::vector<std::string> ModMetadata::getSpritesheets() const {
     return m_impl->m_spritesheets;
 }
-std::vector<std::pair<std::string, Setting>> ModMetadata::getSettings() const {
-    std::vector<std::pair<std::string, Setting>> res;
-    for (auto [key, sett] : m_impl->m_settings) {
-        auto checker = JsonChecker(sett);
-        auto value = checker.root("");
-        auto legacy = Setting::parse(key, m_impl->m_id, value);
-        if (!checker.isError() && legacy.isOk()) {
-            res.push_back(std::make_pair(key, *legacy));
-        }
-    }
-    return res;
-}
-std::vector<std::pair<std::string, matjson::Value>> ModMetadata::getSettingsV3() const {
+std::vector<std::pair<std::string, matjson::Value>> ModMetadata::getSettings() const {
     return m_impl->m_settings;
 }
 std::unordered_set<std::string> ModMetadata::getTags() const {
@@ -589,6 +570,29 @@ Result<> ModMetadata::checkGameVersion() const {
             );
         }
     }
+    return Ok();
+}
+Result<> ModMetadata::checkGeodeVersion() const {
+    if (!LoaderImpl::get()->isModVersionSupported(m_impl->m_geodeVersion)) {
+        auto current = LoaderImpl::get()->getVersion();
+        if (m_impl->m_geodeVersion > current) {
+            return Err(
+                "This mod was made for a newer version of Geode ({}). You currently have version {}.",
+                m_impl->m_geodeVersion, current
+            );
+        }
+        else {
+            return Err(
+                "This mod was made for an older version of Geode ({}). You currently have version {}.",
+                m_impl->m_geodeVersion, current
+            );
+        }
+    }
+    return Ok();
+}
+Result<> ModMetadata::checkTargetVersions() const {
+    GEODE_UNWRAP(this->checkGameVersion());
+    GEODE_UNWRAP(this->checkGeodeVersion());
     return Ok();
 }
 
@@ -640,10 +644,6 @@ void ModMetadata::setIncompatibilities(std::vector<Incompatibility> const& value
 }
 void ModMetadata::setSpritesheets(std::vector<std::string> const& value) {
     m_impl->m_spritesheets = value;
-}
-void ModMetadata::setSettings(std::vector<std::pair<std::string, Setting>> const& value) {
-    // intentionally no-op because no one is supposed to be using this 
-    // without subscribing to "internals are not stable" mentality
 }
 void ModMetadata::setSettings(std::vector<std::pair<std::string, matjson::Value>> const& value) {
     m_impl->m_settings = value;

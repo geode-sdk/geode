@@ -1,18 +1,18 @@
 #include "ModSettingsPopup.hpp"
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <Geode/loader/Setting.hpp>
 #include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/ui/General.hpp>
 #include <Geode/ui/Scrollbar.hpp>
-#include <loader/SettingNodeV3.hpp>
+#include <Geode/loader/Setting.hpp>
+#include <loader/SettingNode.hpp>
 // needed for weightedFuzzyMatch
 #include <ui/mods/sources/ModListSource.hpp>
 
-static bool matchSearch(SettingNodeV3* node, std::string const& query) {
-    if (typeinfo_cast<TitleSettingNodeV3*>(node)) {
+static bool matchSearch(SettingNode* node, std::string const& query) {
+    if (typeinfo_cast<TitleSettingNode*>(node)) {
         return true;
     }
     bool addToList = false;
@@ -74,12 +74,12 @@ bool ModSettingsPopup::setup(Mod* mod) {
     m_list->setTouchEnabled(true);
 
     for (auto& key : mod->getSettingKeys()) {
-        SettingNodeV3* node;
-        if (auto sett = mod->getSettingV3(key)) {
+        SettingNode* node;
+        if (auto sett = mod->getSetting(key)) {
             node = sett->createNode(layerSize.width);
         }
         else {
-            node = UnresolvedCustomSettingNodeV3::create(key, mod, layerSize.width);
+            node = UnresolvedCustomSettingNode::create(key, mod, layerSize.width);
         }
 
         m_settings.push_back(node);
@@ -250,7 +250,7 @@ void ModSettingsPopup::onClearSearch(CCObject*) {
     m_list->moveToTop();
 }
 
-void ModSettingsPopup::updateState(SettingNodeV3* invoker) {
+void ModSettingsPopup::updateState(SettingNode* invoker) {
     auto search = m_searchInput->getString();
     auto hasSearch = !search.empty();
 
@@ -262,10 +262,10 @@ void ModSettingsPopup::updateState(SettingNodeV3* invoker) {
 
     // Update search visibility + all settings with "enable-if" schemes + 
     // checkerboard BG
-    TitleSettingNodeV3* lastTitle = nullptr;
+    TitleSettingNode* lastTitle = nullptr;
     bool bg = false;
     for (auto& sett : m_settings) {
-        if (auto asTitle = typeinfo_cast<TitleSettingNodeV3*>(sett.data())) {
+        if (auto asTitle = typeinfo_cast<TitleSettingNode*>(sett.data())) {
             lastTitle = asTitle;
         }
         sett->removeFromParent();

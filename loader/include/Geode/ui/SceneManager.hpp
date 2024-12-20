@@ -8,12 +8,18 @@
 #include <Geode/utils/cocos.hpp>
 
 namespace geode {
+    struct SceneSwitch;
+
     class GEODE_DLL SceneManager final {
     protected:
         std::vector<Ref<cocos2d::CCNode>> m_persistedNodes;
         cocos2d::CCScene* m_lastScene = nullptr;
 
         virtual ~SceneManager();
+
+        void willSwitchToScene(cocos2d::CCScene* scene);
+
+        friend struct SceneSwitch;
 
     public:
         static SceneManager* get();
@@ -34,9 +40,5 @@ namespace geode {
          * Gets a span of the persisted nodes. To add new nodes to the list, use keepAcrossScenes.
          */
         std::span<Ref<cocos2d::CCNode> const> getPersistedNodes();
-
-        // This method should only be called by geode itself
-        // TODO(v4): hide this
-        void willSwitchToScene(cocos2d::CCScene* scene);
     };
 }

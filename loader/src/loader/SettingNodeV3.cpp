@@ -1,5 +1,4 @@
 #include "SettingNodeV3.hpp"
-#include <Geode/loader/SettingNode.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/loader/Dirs.hpp>
@@ -137,7 +136,7 @@ void SettingNodeV3::updateState(CCNode* invoker) {
         m_impl->bg->setOpacity(75);
     }
 
-    m_impl->nameMenu->setContentWidth(this->getContentWidth() - m_impl->buttonMenu->getContentWidth() - 20);
+    m_impl->nameMenu->setContentWidth(this->getContentWidth() - m_impl->buttonMenu->getContentWidth() - 25);
     m_impl->nameMenu->updateLayout();
 }
 
@@ -463,6 +462,7 @@ void FileSettingNodeV3::updateState(CCNode* invoker) {
     // which is clever and good UX but also a hack so I also need to hack to support that
     const auto isTextualDefaultValue = [this, setting = this->getSetting()]() {
         if (this->hasNonDefaultValue()) return false;
+        if (setting->getDefaultValue().string().size() > 20) return false;
         std::error_code ec;
         return setting->isFolder() ? 
             !std::filesystem::is_directory(setting->getDefaultValue(), ec) :
@@ -677,54 +677,6 @@ void UnresolvedCustomSettingNodeV3::onResetToDefault() {}
 UnresolvedCustomSettingNodeV3* UnresolvedCustomSettingNodeV3::create(std::string_view key, Mod* mod, float width) {
     auto ret = new UnresolvedCustomSettingNodeV3();
     if (ret && ret->init(key, mod, width)) {
-        ret->autorelease();
-        return ret;
-    }
-    CC_SAFE_DELETE(ret);
-    return nullptr;
-}
-
-// LegacyCustomSettingToV3Node
-
-bool LegacyCustomSettingToV3Node::init(std::shared_ptr<LegacyCustomSettingV3> original, float width) {
-    if (!SettingNodeV3::init(original, width))
-        return false;
-    
-    this->getNameMenu()->setVisible(false);
-    this->getButtonMenu()->setVisible(false);
-
-    m_original = original->getValue()->createNode(width);
-    m_original->setDelegate(this);
-    this->setContentSize({ width, m_original->getContentHeight() });
-    this->addChildAtPosition(m_original, Anchor::BottomLeft, ccp(0, 0), ccp(0, 0));
-    
-    return true;
-}
-
-void LegacyCustomSettingToV3Node::settingValueChanged(SettingNode*) {
-    SettingNodeValueChangeEventV3(this, false).post();
-}
-void LegacyCustomSettingToV3Node::settingValueCommitted(SettingNode*) {
-    SettingNodeValueChangeEventV3(this, true).post();
-}
-
-void LegacyCustomSettingToV3Node::onCommit() {
-    m_original->commit();
-}
-
-bool LegacyCustomSettingToV3Node::hasUncommittedChanges() const {
-    return m_original->hasUncommittedChanges();
-}
-bool LegacyCustomSettingToV3Node::hasNonDefaultValue() const {
-    return m_original->hasNonDefaultValue();
-}
-void LegacyCustomSettingToV3Node::onResetToDefault() {
-    m_original->resetToDefault();
-}
-
-LegacyCustomSettingToV3Node* LegacyCustomSettingToV3Node::create(std::shared_ptr<LegacyCustomSettingV3> original, float width) {
-    auto ret = new LegacyCustomSettingToV3Node();
-    if (ret && ret->init(original, width)) {
         ret->autorelease();
         return ret;
     }

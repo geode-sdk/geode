@@ -85,6 +85,16 @@
             "name": "Enable Geode-Themed Colors",
             "description": "When enabled, the Geode menu has a <ca>Geode-themed color scheme</c>. <cy>This does not affect any other menus!</c>"
         },
+        "infinite-local-mods-list": {
+            "type": "bool",
+            "default": false,
+            "name": "Expand Installed Mods List",
+            "description": "Make the installed mods list a single infinite scrollable list instead of having pages"
+        },
+        "copy-mods": {
+            "type": "custom:copy-mods",
+            "name": ""
+        },
         "developer-title": {
             "type": "title",
             "name": "Developer Settings"

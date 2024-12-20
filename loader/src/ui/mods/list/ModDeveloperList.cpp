@@ -1,7 +1,7 @@
 #include "ModDeveloperList.hpp"
 
 #include <Geode/cocos/base_nodes/CCNode.h>
-#include <Geode/cocos/base_nodes/Layout.hpp>
+#include <Geode/ui/Layout.hpp>
 #include <Geode/cocos/cocoa/CCGeometry.h>
 #include <Geode/cocos/platform/CCPlatformMacros.h>
 #include <Geode/utils/cocos.hpp>
@@ -62,11 +62,6 @@ bool ModDeveloperList::init(DevListPopup* popup, ModSource const& source, CCSize
         [this, popup, itemSize](server::ServerModMetadata const& metadata) {
             for (auto& dev : metadata.developers) {
                 m_list->m_contentLayer->addChild(ModDeveloperItem::create(popup, dev.username, itemSize, dev.displayName));
-            }
-        },
-        [this, popup, itemSize](ModSuggestion const& suggestion) {
-            for (std::string& dev : suggestion.suggestion.getDevelopers()) {
-                m_list->m_contentLayer->addChild(ModDeveloperItem::create(popup, dev, itemSize, std::nullopt, false));
             }
         },
     });

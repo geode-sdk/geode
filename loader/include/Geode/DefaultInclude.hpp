@@ -5,21 +5,16 @@
 #include <Geode/platform/platform.hpp>
 #include <variant>
 
-#define GEODE_STATIC_PTR(type, name)          \
-    static type* s_##name;                    \
-    inline type* name() {                     \
-        if (!s_##name) s_##name = new type(); \
-        return s_##name;                      \
-    }
+#if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
+    #if !defined(__clang__)
+        #error Geode Loader only compiles with Clang.
+    #endif 
+#endif
 
-#define GEODE_STATIC_VAR(type, name) \
-    inline type& name() {            \
-        static type s_##name;        \
-        return s_##name;             \
-    }
-
-#define GEODE_WRAPPER_CONCAT(x, y) x##y
-#define GEODE_CONCAT(x, y) GEODE_WRAPPER_CONCAT(x, y)
+#if !defined(GEODE_CONCAT)
+    #define GEODE_WRAPPER_CONCAT(x, y) x##y
+    #define GEODE_CONCAT(x, y) GEODE_WRAPPER_CONCAT(x, y)
+#endif
 
 #define GEODE_WRAPPER_STR(...) #__VA_ARGS__
 #define GEODE_STR(...) GEODE_WRAPPER_STR(__VA_ARGS__)

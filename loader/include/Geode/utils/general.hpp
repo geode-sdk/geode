@@ -1,11 +1,10 @@
 #pragma once
 
-#include "Result.hpp"
+#include <Geode/Result.hpp>
 
 #include "../DefaultInclude.hpp"
 #include <chrono>
 #include <iomanip>
-#include <sstream>
 #include <string>
 #include <vector>
 #include <filesystem>
@@ -13,19 +12,11 @@
 #include <charconv>
 #include <clocale>
 #include <type_traits>
+#include <fmt/format.h>
 
 namespace geode {
     using ByteVector = std::vector<uint8_t>;
 
-    // todo in v4: remove this
-    template <typename T>
-    [[deprecated("Use geode::toBytes instead")]]
-    ByteVector toByteArray(T const& a) {
-        ByteVector out;
-        out.resize(sizeof(T));
-        std::memcpy(out.data(), &a, sizeof(T));
-        return out;
-    }
     template <typename T>
     ByteVector toBytes(T const& a) {
         ByteVector out;
@@ -72,9 +63,7 @@ namespace geode {
 
         template <typename T>
         std::string intToHex(T i) {
-            std::stringstream stream;
-            stream << std::showbase << std::setbase(16) << (uint64_t)i;
-            return stream.str();
+            return fmt::format("{:#x}", i);
         }
 
         /**
@@ -83,15 +72,16 @@ namespace geode {
          * @param num Number to convert to string
          * @param precision Precision of the converted number
          * @returns Number as string
+         * @note Precision has no effect on integers
          */
         template <class Num>
         std::string numToString(Num num, size_t precision = 0) {
-            std::stringstream ss;
-            if (precision) {
-                ss << std::fixed << std::setprecision(precision);
+            if constexpr (std::is_floating_point_v<Num>) {
+                if (precision) {
+                    return fmt::format("{:.{}f}", num, precision);
+                }
             }
-            ss << num;
-            return ss.str();
+            return fmt::to_string(num);
         }
 
         /**
@@ -125,7 +115,7 @@ namespace geode {
          * @returns String as number, or Err if the string couldn't be converted
          */
         template <class Num>
-        Result<Num> numFromString(std::string_view const str, int base = 10) {
+        Result<Num> numFromString(std::string_view str, int base = 10) {
             if constexpr (std::is_floating_point_v<Num> 
                 #if defined(__cpp_lib_to_chars)
                     && false
@@ -168,12 +158,18 @@ namespace geode {
         */
         GEODE_DLL float getDisplayFactor();
     }
+
+    template <class... Args>
+    requires (sizeof...(Args) > 0)
+    constexpr auto Err(fmt::format_string<Args...> fmt, Args&&... args) {
+        return Err(fmt::format(fmt, std::forward<Args>(args)...));
+    }
 }
 
 template<>
 struct matjson::Serialize<geode::ByteVector> {
-    static matjson::Value to_json(geode::ByteVector const& bytes) {
-        return matjson::Array(bytes.begin(), bytes.end());
+    static Value toJson(geode::ByteVector const& bytes) {
+        return std::vector<matjson::Value>(bytes.begin(), bytes.end());
     }
 };
 

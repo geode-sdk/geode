@@ -30,6 +30,7 @@ static constexpr const char* humanReadableDescForAction(ModRequestedAction actio
         case ModRequestedAction::Disable: return "Mod has been disabled";
         case ModRequestedAction::Uninstall: return "Mod has been uninstalled";
         case ModRequestedAction::UninstallWithSaveData: return "Mod has been uninstalled";
+        case ModRequestedAction::Update: return "Mod has been updated";
     }
 }
 
@@ -51,7 +52,9 @@ Result<> Mod::Impl::setup() {
     (void) utils::file::createDirectoryAll(m_saveDirPath);
 
     // always create temp dir for all mods, even if disabled, so resources can be loaded
-    GEODE_UNWRAP(this->createTempDir().expect("Unable to create temp dir: {error}"));
+    GEODE_UNWRAP(this->createTempDir().mapErr([](auto const& err) {
+        return fmt::format("Unable to create temp dir: {}", err);
+    }));
 
     m_settings = std::make_unique<ModSettingsManager>(m_metadata);
     auto loadRes = this->loadData();
@@ -188,15 +191,12 @@ Result<> Mod::Impl::loadData() {
     auto savedPath = m_saveDirPath / "saved.json";
     if (std::filesystem::exists(savedPath)) {
         GEODE_UNWRAP_INTO(auto data, utils::file::readString(savedPath));
-        std::string error;
-        auto res = matjson::parse(data, error);
-        if (error.size() > 0) {
-            return Err("Unable to parse saved values: " + error);
-        }
-        m_saved = res.value();
-        if (!m_saved.is_object()) {
+        m_saved = GEODE_UNWRAP(matjson::parse(data).mapErr([](auto&& err) {
+            return fmt::format("Unable to parse saved values: {}", err);
+        }));
+        if (!m_saved.isObject()) {
             log::warn("saved.json was somehow not an object, forcing it to one");
-            m_saved = matjson::Object();
+            m_saved = matjson::Value::object();
         }
     }
 
@@ -210,8 +210,7 @@ Result<> Mod::Impl::saveData() {
     }
 
     // ModSettingsManager keeps track of the whole savedata
-    matjson::Value json;
-    m_settings->save(json);
+    matjson::Value json = m_settings->save();
 
     // saveData is expected to be synchronous, and always called from GD thread
     ModStateEvent(m_self, ModEventType::DataSaved).post();
@@ -229,19 +228,19 @@ Result<> Mod::Impl::saveData() {
 }
 
 bool Mod::Impl::hasSettings() const {
-    return m_metadata.getSettingsV3().size();
+    return m_metadata.getSettings().size();
 }
 
 std::vector<std::string> Mod::Impl::getSettingKeys() const {
     std::vector<std::string> keys;
-    for (auto& [key, _] : m_metadata.getSettingsV3()) {
+    for (auto& [key, _] : m_metadata.getSettings()) {
         keys.push_back(key);
     }
     return keys;
 }
 
-bool Mod::Impl::hasSetting(std::string_view const key) const {
-    for (auto& setting : m_metadata.getSettingsV3()) {
+bool Mod::Impl::hasSetting(std::string_view key) const {
+    for (auto& setting : m_metadata.getSettings()) {
         if (setting.first == key) {
             return true;
         }
@@ -249,7 +248,7 @@ bool Mod::Impl::hasSetting(std::string_view const key) const {
     return false;
 }
 
-std::string Mod::Impl::getLaunchArgumentName(std::string_view const name) const {
+std::string Mod::Impl::getLaunchArgumentName(std::string_view name) const {
     return this->getID() + "." + std::string(name);
 }
 
@@ -264,15 +263,15 @@ std::vector<std::string> Mod::Impl::getLaunchArgumentNames() const {
     return names;
 }
 
-bool Mod::Impl::hasLaunchArgument(std::string_view const name) const {
+bool Mod::Impl::hasLaunchArgument(std::string_view name) const {
     return Loader::get()->hasLaunchArgument(this->getLaunchArgumentName(name));
 }
 
-std::optional<std::string> Mod::Impl::getLaunchArgument(std::string_view const name) const {
+std::optional<std::string> Mod::Impl::getLaunchArgument(std::string_view name) const {
     return Loader::get()->getLaunchArgument(this->getLaunchArgumentName(name));
 }
 
-bool Mod::Impl::getLaunchFlag(std::string_view const name) const {
+bool Mod::Impl::getLaunchFlag(std::string_view name) const {
     return Loader::get()->getLaunchFlag(this->getLaunchArgumentName(name));
 }
 
@@ -318,7 +317,6 @@ Result<> Mod::Impl::loadBinary() {
 
 
     ModStateEvent(m_self, ModEventType::Loaded).post();
-    ModStateEvent(m_self, ModEventType::Enabled).post();
     ModStateEvent(m_self, ModEventType::DataLoaded).post();
 
     m_isCurrentlyLoading = false;
@@ -385,7 +383,7 @@ Result<> Mod::Impl::uninstall(bool deleteSaveData) {
         ModRequestedAction::Uninstall;
 
     // Make loader forget the mod should be disabled
-    Mod::get()->getSaveContainer().try_erase("should-load-" + m_metadata.getID());
+    Mod::get()->getSaveContainer().erase("should-load-" + m_metadata.getID());
 
     std::error_code ec;
     std::filesystem::remove(m_metadata.getPath(), ec);
@@ -440,7 +438,7 @@ bool Mod::Impl::hasUnresolvedIncompatibilities() const {
     return false;
 }
 
-bool Mod::Impl::depends(std::string_view const id) const {
+bool Mod::Impl::depends(std::string_view id) const {
     return utils::ranges::contains(m_metadata.getDependencies(), [id](ModMetadata::Dependency const& t) {
         return t.id == id;
     });
@@ -672,17 +670,15 @@ std::string_view Mod::Impl::expandSpriteName(std::string_view name) {
 ModJson Mod::Impl::getRuntimeInfo() const {
     auto json = m_metadata.toJSON();
 
-    auto obj = matjson::Object();
-    obj["hooks"] = matjson::Array();
+    auto obj = matjson::Value::object();
+    obj["hooks"] = matjson::Value::array();
     for (auto hook : m_hooks) {
-        obj["hooks"].as_array().push_back(ModJson(hook->getRuntimeInfo()));
+        obj["hooks"].push(ModJson(hook->getRuntimeInfo()));
     }
-    obj["patches"] = matjson::Array();
+    obj["patches"] = matjson::Value::array();
     for (auto patch : m_patches) {
-        obj["patches"].as_array().push_back(ModJson(patch->getRuntimeInfo()));
+        obj["patches"].push(ModJson(patch->getRuntimeInfo()));
     }
-    // TODO: so which one is it
-    // obj["enabled"] = m_enabled;
     obj["loaded"] = m_enabled;
     obj["temp-dir"] = this->getTempDir();
     obj["save-dir"] = this->getSaveDir();
@@ -708,11 +704,11 @@ bool Mod::Impl::isCurrentlyLoading() const {
     return m_isCurrentlyLoading;
 }
 
-bool Mod::Impl::hasProblems() const {
-    for (auto const& item : m_problems) {
-        if (item.type <= LoadProblem::Type::Recommendation)
-            continue;
-        return true;
+bool Mod::Impl::hasLoadProblems() const {
+    for (auto const& problem : m_problems) {
+        if (problem.isProblem()) {
+            return true;
+        }
     }
     return false;
 }
@@ -722,12 +718,9 @@ std::vector<LoadProblem> Mod::Impl::getProblems() const {
 }
 
 static Result<ModMetadata> getModImplInfo() {
-    std::string error;
-    auto res = matjson::parse(about::getLoaderModJson(), error);
-    if (error.size() > 0) {
-        return Err("Unable to parse mod.json: " + error);
-    }
-    matjson::Value json = res.value();
+    auto json = GEODE_UNWRAP(matjson::parse(about::getLoaderModJson()).mapErr([](auto&& err) {
+        return fmt::format("Unable to parse mod.json: {}", err);
+    }));
 
     GEODE_UNWRAP_INTO(auto info, ModMetadata::create(json));
     return Ok(info);

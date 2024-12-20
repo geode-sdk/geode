@@ -71,6 +71,7 @@ namespace geode::utils {
         std::string m_msg;
         Timer<Clock> m_timer;
 
+        // @geode-ignore(geode-alternative)
         LogPerformance(std::string const& msg = "", std::ostream& out = std::cout) :
             m_msg(msg), m_output(out) {
             m_timer = Timer<Clock>();

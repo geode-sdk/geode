@@ -4,9 +4,9 @@ void ServerModListSource::resetQuery() {
     m_query = this->createDefaultQuery();
 }
 
-ServerModListSource::ProviderTask ServerModListSource::fetchPage(size_t page, size_t pageSize, bool forceUpdate) {
+ServerModListSource::ProviderTask ServerModListSource::fetchPage(size_t page, bool forceUpdate) {
     m_query.page = page;
-    m_query.pageSize = pageSize;
+    m_query.pageSize = m_pageSize;
     return server::getMods(m_query, !forceUpdate).map(
         [](Result<server::ServerModsList, server::ServerError>* result) -> ProviderTask::Value {
             if (result->isOk()) {
@@ -114,4 +114,8 @@ server::ModsQuery ServerModListSource::createDefaultQuery() const {
 
 ServerModListType ServerModListSource::getType() const {
     return m_type;
+}
+
+bool ServerModListSource::isLocalModsOnly() const {
+    return false;
 }

@@ -18,6 +18,7 @@ enum {
     ID_BUTTON_OPEN_FOLDER = 103,
     ID_BUTTON_COPY_CLIPBOARD = 104,
     ID_BUTTON_RESTART_GAME = 105,
+    ID_SAFE_MODE_TIP_TEXT = 106,
 };
 #define TO_HMENU(x) reinterpret_cast<HMENU>(static_cast<size_t>(x))
 
@@ -62,6 +63,25 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
             DEFAULT_PITCH | FF_DONTCARE, TEXT("Consolas"));
         auto guiFont = static_cast<HFONT>(GetStockObject(DEFAULT_GUI_FONT));
+
+        auto calculateTextSize = [&](std::string_view text) -> SIZE {
+            HDC hdc = GetDC(hwnd);
+            SelectObject(hdc, monoFont);
+            SIZE size;
+            GetTextExtentPoint32A(hdc, text.data(), text.size(), &size);
+            ReleaseDC(hwnd, hdc);
+            return size;
+        };
+        auto tipTextStr = "Tip: You can hold shift while launching the game to enter safe mode.";
+        auto tipTextSize = calculateTextSize(tipTextStr);
+
+        auto tipText = CreateWindowA(
+            "STATIC", tipTextStr,
+            WS_CHILD | WS_VISIBLE | SS_SIMPLE,
+            0, 0, tipTextSize.cx, tipTextSize.cy,
+            hwnd, TO_HMENU(ID_SAFE_MODE_TIP_TEXT), NULL, NULL
+        );
+        SendMessage(tipText, WM_SETFONT, WPARAM(monoFont), TRUE);
 
         auto handleText = CreateWindowA(
             "EDIT", "Crashlog text goes here", WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_LEFT | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL | WS_BORDER,
@@ -109,10 +129,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         RECT clientRect;
         GetClientRect(hwnd, &clientRect);
 
+        RECT textRect;
+        GetClientRect(GetDlgItem(hwnd, ID_SAFE_MODE_TIP_TEXT), &textRect);
+
+        SetWindowPos(
+            GetDlgItem(hwnd, ID_SAFE_MODE_TIP_TEXT), NULL,
+            layout::PADDING, layout::PADDING,
+            0, 0,
+            SWP_NOZORDER | SWP_NOSIZE
+        );
+
         SetWindowPos(
             GetDlgItem(hwnd, ID_CRASHLOG_TEXT), NULL,
-            layout::PADDING, layout::PADDING,
-            clientRect.right - layout::PADDING * 2, clientRect.bottom - layout::BUTTON_HEIGHT - layout::PADDING * 3,
+            layout::PADDING, layout::PADDING * 2 + textRect.bottom,
+            clientRect.right - layout::PADDING * 2, clientRect.bottom - layout::BUTTON_HEIGHT - layout::PADDING * 4 - textRect.bottom,
             SWP_NOZORDER
         );
 
@@ -150,6 +180,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     } break;
 
     case WM_CTLCOLORSTATIC: {
+        auto hdc = (HDC)wParam;
+        // make every text have transparent background
+        SetBkMode(hdc, TRANSPARENT);
         return (LRESULT)(COLOR_WINDOWFRAME);
     } break;
 
