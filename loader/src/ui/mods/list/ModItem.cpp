@@ -570,18 +570,20 @@ void ModItem::updateState() {
                 m_outdatedLabel->setString("Outdated");
             }
             else {
-                m_outdatedLabel->setString((
-                    (targetsOutdated->type == LoadProblem::Type::UnsupportedGeodeVersion ||
-                    targetsOutdated->type == LoadProblem::Type::NeedsNewerGeodeVersion) ? 
-                    fmt::format(
-                        "Outdated (Geode {})",
-                        m_source.getMetadata().getGeodeVersion().toNonVString()
-                    ) :
-                    fmt::format(
-                        "Outdated (GD {})",
-                        m_source.getMetadata().getGameVersion().value_or("*")
-                    )
-                ).c_str());
+                if (targetsOutdated->type == LoadProblem::Type::UnsupportedGeodeVersion || targetsOutdated->type == LoadProblem::Type::NeedsNewerGeodeVersion) {
+                    m_outdatedLabel->setString(fmt::format(
+                        "Outdated (Geode {})", m_source.getMetadata().getGeodeVersion().toNonVString()
+                    ).c_str());
+                } else {
+                    // TODO: this is dumb but i didn't want to figure out the LoadProblem. sorry
+                    if (m_source.getMetadata().getGameVersion() == "0.000") {
+                        m_outdatedLabel->setString("Unavailable");
+                    } else {
+                        m_outdatedLabel->setString(fmt::format(
+                            "Outdated (GD {})", m_source.getMetadata().getGameVersion().value_or("*")
+                        ).c_str());
+                    }
+                }
             }
         }
     }
