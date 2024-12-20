@@ -63,6 +63,7 @@
 #include "cpp_type_traits.h"
 #include "ext/alloc_traits.h"
 #include "ext/aligned_buffer.h"
+#include "exception_defines.h"
 
 namespace geode::stl {
 _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
