@@ -14,6 +14,9 @@ class LoadServerModLayer : public Popup<std::string const&> {
 protected:
     std::string m_id;
     EventListener<server::ServerRequest<server::ServerModMetadata>> m_listener;
+    EventListener<server::ServerRequest<server::ServerModVersion>> m_versionListener;
+
+    std::optional<server::ServerModMetadata> m_loadedMod{};
 
     bool setup(std::string const& id) override {
         m_closeBtn->setVisible(false);
@@ -24,22 +27,21 @@ protected:
         m_mainLayer->addChildAtPosition(spinner, Anchor::Center, ccp(0, -10));
 
         m_id = id;
-        m_listener.bind(this, &LoadServerModLayer::onRequest);
+        m_listener.bind(this, &LoadServerModLayer::onModRequest);
         m_listener.setFilter(server::getMod(id));
 
         return true;
     }
 
-    void onRequest(server::ServerRequest<server::ServerModMetadata>::Event* event) {
+    void onModRequest(server::ServerRequest<server::ServerModMetadata>::Event* event) {
         if (auto res = event->getValue()) {
             if (res->isOk()) {
                 // Copy info first as onClose may free the listener which will free the event
                 auto info = res->unwrap();
-                this->onClose(nullptr);
-                // Run this on next frame because otherwise the popup is unable to call server::getMod for some reason
-                Loader::get()->queueInMainThread([info = std::move(info)]() mutable {
-                    ModPopup::create(ModSource(std::move(info)))->show();
-                });
+                m_loadedMod = std::move(info);
+
+                m_versionListener.bind(this, &LoadServerModLayer::onVersionRequest);
+                m_versionListener.setFilter(server::getModVersion(m_id));
             }
             else {
                 auto id = m_id;
@@ -50,6 +52,33 @@ protected:
                     "OK"
                 )->show();
             }
+        }
+        else if (event->isCancelled()) {
+            this->onClose(nullptr);
+        }
+    }
+
+    void onVersionRequest(server::ServerRequest<server::ServerModVersion>::Event* event) {
+        if (auto res = event->getValue()) {
+            // this is promised non optional by this point
+            auto info = std::move(*m_loadedMod);
+
+            if (res->isOk()) {
+                // i don't actually think there's a better way to do this
+                // sorry guys
+
+                auto versionInfo = res->unwrap();
+                info.versions = {versionInfo};
+            }
+
+            // if there's an error, just load whatever the last fetched version was
+            // (this can happen for mods not on current gd version)
+
+            this->onClose(nullptr);
+            // Run this on next frame because otherwise the popup is unable to call server::getMod for some reason
+            Loader::get()->queueInMainThread([info = std::move(info)]() mutable {
+                ModPopup::create(ModSource(std::move(info)))->show();
+            });
         }
         else if (event->isCancelled()) {
             this->onClose(nullptr);
