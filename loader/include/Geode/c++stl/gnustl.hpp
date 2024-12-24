@@ -15,6 +15,7 @@ namespace geode::base {
 #if defined(GEODE_IS_ANDROID)
 
     #include "gnustl-map.hpp"
+    #include "gnustl/stl_set.h"
     #include "gnustl/unordered_map.hpp"
     #include "gnustl/unordered_set.hpp"
     #include "gnustl/hash_specialization.hpp"
@@ -686,11 +687,8 @@ namespace gd {
         }
     };
 
-    // 2.2 TODO: Implement set, unordered_map and unordered_set
-
-    // the sizes of these are always the same, no matter the type
-    template <class V>
-    using set = void*[6];
+    template<typename Key, typename Compare = geode::stl::less<Key>, typename Alloc = std::allocator<Key>>
+    using set = geode::stl::set<Key, Compare, Alloc>;
 
     template <class Key, class Tp, class Hash = geode::stl::hash<Key>, class Pred = geode::stl::equal_to<Key>, class Alloc = std::allocator<std::pair<const Key, Tp>>>
     using unordered_map = geode::stl::unordered_map<Key, Tp, Hash, Pred, Alloc>;
