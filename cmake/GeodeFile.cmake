@@ -90,7 +90,10 @@ function(setup_geode_mod proname)
     string(JSON MOD_HAS_API ERROR_VARIABLE MOD_DOESNT_HAVE_API GET "${MOD_JSON}" "api")
     string(JSON MOD_HAS_DEPS ERROR_VARIABLE MOD_DOESNT_HAVE_DEPS GET "${MOD_JSON}" "dependencies")
 
-    if ("${TARGET_GEODE_VERSION}" STREQUAL "${GEODE_VERSION_FULL}")
+    string(REGEX REPLACE "([0-9]+\\.[0-9]+)\\.[0-9]+" "\\1" TARGET_GEODE_VERSION_SHORT ${TARGET_GEODE_VERSION})
+    string(REGEX REPLACE "([0-9]+\\.[0-9]+)\\.[0-9]+" "\\1" GEODE_VERSION_SHORT ${GEODE_VERSION_FULL})
+
+    if ("${TARGET_GEODE_VERSION_SHORT}" STREQUAL "${GEODE_VERSION_SHORT}")
         message(STATUS "Mod ${MOD_ID} is compiling for Geode version ${GEODE_VERSION_FULL}")
     else()
         message(FATAL_ERROR
