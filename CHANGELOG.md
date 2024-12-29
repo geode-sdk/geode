@@ -1,5 +1,11 @@
 # Geode Changelog
 
+## v4.1.2
+ * Prevent crashlog recursion on MacOS (a69c4c2)
+ * Fix a grave misspelling error (#1203)
+ * Fix a logic bug in SettingChangedFilter (3665da9)
+ * Less strict sdk version checking for developers (100be49)
+
 ## v4.1.1
  * Check is mod is available for current version in ModPopup (fdf4348)
  * Revert earlier commit that broke incompatibilities (ded70bb)
