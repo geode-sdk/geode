@@ -433,7 +433,7 @@ public:
 ListenerResult SettingChangedFilterV3::handle(std::function<Callback> fn, SettingChangedEventV3* event) {
     if (
         event->getSetting()->getModID() == m_impl->modID &&
-        !m_impl->settingKey || event->getSetting()->getKey() == m_impl->settingKey
+        (!m_impl->settingKey || event->getSetting()->getKey() == m_impl->settingKey)
     ) {
         fn(event->getSetting());
     }
