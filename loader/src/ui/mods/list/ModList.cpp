@@ -152,11 +152,11 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
 
             auto showErrorsSpr = createGeodeButton(
                 CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
-                "Show Errors Only", GeodeButtonSprite::Delete
+                "Show Broken Mods", GeodeButtonSprite::Delete
             );
             auto hideErrorsSpr = createGeodeButton(
                 CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
-                "Hide Errors Only", GeodeButtonSprite::Default
+                "Show All Mods", GeodeButtonSprite::Default
             );
             m_toggleErrorsOnlyBtn = CCMenuItemToggler::create(
                 showErrorsSpr, hideErrorsSpr, this, menu_selector(ModList::onToggleErrors)
@@ -487,14 +487,14 @@ void ModList::onCheckUpdates(typename server::ServerRequest<std::vector<std::str
             if (mods.size() == 1) {
                 m_updateCountLabel->setString(fmt::format("There is <cg>{}</c> update available!", mods.size()));
                 m_updateAllSpr->setString("");
-                m_showUpdatesSpr->setString("Show Update");
-                m_hideUpdatesSpr->setString("Hide Update");
+                m_showUpdatesSpr->setString("Show Updateable Mod");
+                m_hideUpdatesSpr->setString("Show All Mods");
             }
             else {
                 m_updateCountLabel->setString(fmt::format("There are <cg>{}</c> updates available!", mods.size()));
-                m_updateAllSpr->setString("Update All");
-                m_showUpdatesSpr->setString("Show Updates");
-                m_hideUpdatesSpr->setString("Hide Updates");
+                m_updateAllSpr->setString("Update All Mods");
+                m_showUpdatesSpr->setString("Show Updateable Mods");
+                m_hideUpdatesSpr->setString("Show All Mods");
             }
 
             // Recreate the button with the updated label.
