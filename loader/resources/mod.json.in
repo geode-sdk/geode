@@ -107,6 +107,21 @@
             "platforms": ["win", "mac"],
             "requires-restart": true
         },
+        "console-log-level": {
+            "type": "string",
+            "default": "info",
+            "name": "Console Log Level",
+            "description": "Sets the log level for the <cb>platform console</c>.",
+            "platforms": ["win", "mac"],
+            "one-of": ["debug", "info", "warn", "error"]
+        },
+        "file-log-level": {
+            "type": "string",
+            "default": "warn",
+            "name": "File Log Level",
+            "description": "Sets the log level for the <cb>log files</c>.",
+            "one-of": ["debug", "info", "warn", "error"]
+        },
         "server-cache-size-limit": {
             "type": "int",
             "default": 20,

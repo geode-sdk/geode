@@ -88,8 +88,12 @@ void console::openIfClosed() {
 
     s_isOpen = true;
 
+    Severity consoleLevel = log::Logger::get()->getConsoleLogLevel();
+
     for (auto const& log : log::Logger::get()->list()) {
-        console::log(log.toString(), log.getSeverity());
+        if (log.getSeverity() >= consoleLevel) {
+            console::log(log.toString(), log.getSeverity());
+        }
     }
 }
 
