@@ -117,7 +117,7 @@
         },
         "file-log-level": {
             "type": "string",
-            "default": "warn",
+            "default": "info",
             "name": "File Log Level",
             "description": "Sets the log level for the <cb>log files</c>.",
             "one-of": ["debug", "info", "warn", "error"]
