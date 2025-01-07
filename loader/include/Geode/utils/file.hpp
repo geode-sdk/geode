@@ -7,21 +7,39 @@
 
 #include <matjson.hpp>
 #include <Geode/DefaultInclude.hpp>
+#include <Geode/utils/string.hpp>
 #include <filesystem>
 #include <string>
 #include <unordered_set>
 
 template <>
 struct matjson::Serialize<std::filesystem::path> {
-    static geode::Result<std::filesystem::path, std::string> fromJson(Value const& value)
+    static geode::Result<std::filesystem::path, std::string> fromJson(matjson::Value const& value)
     {
-        GEODE_UNWRAP_INTO(auto str, value.asString());
+        GEODE_UNWRAP_INTO(const std::string str, value.asString());
+
+#ifdef GEODE_IS_WINDOWS
+        // On Windows, paths are stored as utf16, and matjson uses utf8 internally
+        // This is not an issue until paths actually use unicode characters
+        // So we do this conversion to make sure it stores the characters correctly
+        return geode::Ok(
+            std::filesystem::path(geode::utils::string::utf8ToWide(str)).make_preferred()
+        );
+#else
         return geode::Ok(std::filesystem::path(str).make_preferred());
+#endif
     }
 
-    static Value toJson(std::filesystem::path const& value)
+    static matjson::Value toJson(std::filesystem::path const& value)
     {
-        return Value(value.string());
+#ifdef GEODE_IS_WINDOWS
+        // On Windows, paths are stored as utf16, and matjson uses utf8 internally
+        // This is not an issue until paths actually use unicode characters
+        // So we do this conversion to make sure it stores the characters correctly
+        return matjson::Value(geode::utils::string::wideToUtf8(value.wstring()));
+#else
+        return matjson::Value(value.string());
+#endif
     }
 };
 
