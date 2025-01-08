@@ -95,7 +95,7 @@ namespace {
     // default path
     if (options.defaultPath) {
         auto defaultPath = [NSString stringWithUTF8String:options.defaultPath->c_str()];
-        [panel setDirectoryURL: [NSURL URLWithString: defaultPath]];
+        [panel setDirectoryURL: [NSURL fileURLWithPath: defaultPath]];
     }
 
     // other
@@ -153,8 +153,9 @@ namespace {
 }
 
 +(void) dispatchFilePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult onCompletion:(void(^)(FileResult&&))onCompletion {
+    file::FilePickOptions optionsCopy = options;
     dispatch_async(dispatch_get_main_queue(), ^{
-        auto result = [self filePickerWithMode:mode options:options multiple:mult];
+        auto result = [self filePickerWithMode:mode options:optionsCopy multiple:mult];
         onCompletion(std::move(result));
     });
 }
