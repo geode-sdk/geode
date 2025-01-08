@@ -477,6 +477,7 @@ public:
     std::unique_ptr<enable_if_parsing::Component> enableIfTree;
     std::optional<std::string> enableIfDescription;
     bool requiresRestart = false;
+    bool scrollableDescription = false;
 };
 
 SettingV3::SettingV3() : m_impl(std::make_shared<GeodeImpl>()) {}
@@ -514,6 +515,9 @@ void SettingV3::parseEnableIf(JsonExpectedValue& json) {
 void SettingV3::parseValueProperties(JsonExpectedValue& json) {
     json.has("requires-restart").into(m_impl->requiresRestart);
 }
+void SettingV3::parseScrollableDescription(JsonExpectedValue& json) {
+    json.has("scroll-desc").into(m_impl->scrollableDescription);
+}
 
 Result<> SettingV3::parseBaseProperties(std::string const& key, std::string const& modID, matjson::Value const& value) {
     auto json = checkJson(value, "SettingV3");
@@ -525,6 +529,7 @@ void SettingV3::parseBaseProperties(std::string const& key, std::string const& m
     this->parseNameAndDescription(json);
     this->parseValueProperties(json);
     this->parseEnableIf(json);
+    this->parseScrollableDescription(json);
 }
 
 std::string SettingV3::getKey() const {
@@ -566,6 +571,9 @@ std::optional<std::string> SettingV3::getEnableIfDescription() const {
 }
 bool SettingV3::requiresRestart() const {
     return m_impl->requiresRestart;
+}
+bool SettingV3::getScrollableDescription() const {
+    return m_impl->scrollableDescription;
 }
 std::vector<PlatformID> SettingV3::getPlatforms() const {
     return m_impl->platforms;
