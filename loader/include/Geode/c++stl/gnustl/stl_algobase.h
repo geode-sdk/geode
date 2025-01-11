@@ -990,7 +990,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	    typename iterator_traits<_ForwardIterator>::value_type, _Tp>)
       __glibcxx_requires_partitioned_lower(__first, __last, __val);
 
-      return std::__lower_bound(__first, __last, __val,
+      return geode::stl::__lower_bound(__first, __last, __val,
 				__gnu_cxx::__ops::__iter_less_val());
     }
 
