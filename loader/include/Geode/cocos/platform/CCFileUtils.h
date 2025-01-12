@@ -448,7 +448,8 @@ protected:
      *  @note This method is used internally.
      */
     virtual CCArray* createCCArrayWithContentsOfFile(const gd::string& filename);
-    
+
+public:
     /** Dictionary used to lookup filenames based on a key.
      *  It is used internally by the following methods:
      *
@@ -484,7 +485,8 @@ protected:
      *  This variable is used for improving the performance of file search.
      */
     gd::map<gd::string, gd::string> m_fullPathCache;
-    
+
+protected:
     /**
      *  The singleton pointer of CCFileUtils.
      */

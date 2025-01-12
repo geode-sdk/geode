@@ -144,8 +144,8 @@ private:
                          struct libwebsocket *wsi,
                          enum libwebsocket_callback_reasons reason,
                          void *user, void *in, size_t len);
-    
-private:
+
+public:
 	State        _readyState;
     gd::string  _host;
     unsigned int _port;

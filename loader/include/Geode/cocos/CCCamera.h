@@ -64,7 +64,7 @@ using the camera.
 class CC_DLL CCCamera : public CCObject
 {
     GEODE_FRIEND_MODIFY
-protected:
+public:
     float m_fEyeX;
     float m_fEyeY;
     float m_fEyeZ;

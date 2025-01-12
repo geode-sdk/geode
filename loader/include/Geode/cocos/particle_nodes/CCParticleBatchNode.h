@@ -127,7 +127,7 @@ private:
     void updateBlendFunc(void);
     /** the texture atlas used for drawing the quads */
     CC_SYNTHESIZE(CCTextureAtlas*, m_pTextureAtlas, TextureAtlas);
-private:
+public:
     /** the blend function used for drawing the quads */
     ccBlendFunc m_tBlendFunc;
 };

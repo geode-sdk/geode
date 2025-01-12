@@ -86,6 +86,7 @@ protected:
     /** Stop the autorepeat. */
     void stopAutorepeat();
 
+public:
     /** The numeric value of the stepper. */
     double                  m_dValue;
     /** The continuous vs. noncontinuous state of the stepper. */

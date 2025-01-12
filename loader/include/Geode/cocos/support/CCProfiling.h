@@ -66,6 +66,7 @@ public:
     /** releases all timers */
     void releaseAllTimers();
 
+public:
     CCDictionary* m_pActiveTimers;
 };
 /**
@@ -83,6 +84,7 @@ public:
     /** resets the timer properties */
     void reset();
 
+public:
     gd::string m_NameStr;
     int               numberOfCalls;
     int               m_dAverageTime1;

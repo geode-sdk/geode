@@ -121,7 +121,7 @@ public:
      */
     inline CCObject* getObject() const { return m_pObject; }
 
-private:
+public:
     // The max length of string key.
     #define   MAX_KEY_LEN   256
     // char array is needed for HASH_ADD_STR in UT_HASH.
