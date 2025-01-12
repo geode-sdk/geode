@@ -133,7 +133,10 @@ namespace {
             NSMutableArray* allowedFileTypes = [NSMutableArray new];
             for (auto& filter : options.filters) {
                 for (auto& ext : filter.files) {
-                    [allowedFileTypes addObject: intoNS(ext)];
+                    if (ext.size() > 2 && strncmp(ext.c_str(), "*.", 2) == 0)
+                        [allowedFileTypes addObject: intoNS(ext.substr(2))];
+                    else
+                        [allowedFileTypes addObject: intoNS(ext)];
                 }
             }
             [openPanel setAllowedFileTypes: allowedFileTypes];
