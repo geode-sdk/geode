@@ -205,8 +205,19 @@ const auto& uuidToVersionMap() {
     // you can get these hashes from otool, just look for the LC_UUID load command!
     static std::unordered_map<std::string, std::string> uuidToVersionName{
 #if defined(GEODE_IS_ARM_MAC)
+        {"620B0C9B-8F75-3043-BD34-3BB9DD201C3A", "2.206"},
+        {"48C25B63-0D7C-3F67-B831-DF935524C043", "2.207"},
+        {"4933391F-D6C1-3188-99E8-23D64C674B64", "2.2071"},
+        {"9C1D62A7-7C2F-3514-AEFB-D1AB7BBD48FF", "2.2072"},
+        {"0B1FCFE4-79E8-3246-8ECB-500FDBDCFD9A", "2.2073"},
         {"27044C8B-76BD-303C-A035-5314AF1D9E6E", "2.2074"},
 #elif defined(GEODE_IS_INTEL_MAC)
+        {"29549F90-F083-35A8-B917-9962262FE112", "2.200"},
+        {"AE6DFCCC-153A-32AB-BFD5-6F2478BC41B6", "2.206"},
+        {"D497E431-5C3F-3EB4-9DF7-115B861578EE", "2.207"},
+        {"08E24832-EC11-3637-910E-7CB6C0EF8EC0", "2.2071"},
+        {"E53731FD-D1B6-33D2-BFA4-3B5D8D55279F", "2.2072"},
+        {"1F4AFF98-DB51-382D-9BB2-59C911B88EB2", "2.2073"},
         {"DB5CADC0-E533-3123-8A63-5A434FE391ED", "2.2074"}
 #endif
     };
