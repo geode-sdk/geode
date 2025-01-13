@@ -265,7 +265,7 @@ Severity Logger::getFileLogLevel() {
     } else if (level == "error") {
         return Severity::Error;
     } else {
-        return Severity::Warning;
+        return Severity::Info;
     }
 }
 
