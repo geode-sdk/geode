@@ -5,6 +5,7 @@
 #include "../popups/SortPopup.hpp"
 #include "../GeodeStyle.hpp"
 #include "../ModsLayer.hpp"
+#include "../events/EventWinnerAnimation.hpp"
 
 static size_t getDisplayPageSize(ModListSource* src, ModListDisplay display) {
     if (src->isLocalModsOnly() && Mod::get()->template getSettingValue<bool>("infinite-local-mods-list")) {
@@ -264,6 +265,11 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         auto src = typeinfo_cast<ServerModListSource*>(m_source);
         src && src->getType() == ServerModListType::Modtober24
     ) {
+        // todo: generic system for this for any contest event
+        if (!Mod::get()->setSavedValue("shown-modtober-winner", true)) {
+            CCScene::get()->addChild(EventWinnerAnimation::create());
+        }
+
         auto menu = CCMenu::create();
         menu->setID("modtober-banner");
         menu->ignoreAnchorPointForPosition(false);
