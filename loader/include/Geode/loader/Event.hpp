@@ -3,11 +3,14 @@
 #include "../utils/casts.hpp"
 
 #include <Geode/DefaultInclude.hpp>
+#include <Geode/loader/Log.hpp>
+#include <functional>
+#include <memory>
 #include <type_traits>
 #include <mutex>
 #include <deque>
-#include <unordered_set>
 #include <atomic>
+#include <vector>
 
 namespace geode {
     class Mod;
@@ -190,6 +193,32 @@ namespace geode {
             this->enable();
         }
 
+        EventListener& operator=(EventListener const& other) {
+            if (this == &other) {
+                return *this;
+            }
+
+            m_callback = other.m_callback;
+            m_filter = other.m_filter;
+            m_filter.setListener(this);
+
+            return *this; 
+        }
+
+        EventListener& operator=(EventListener&& other) {
+            if (this == &other) {
+                return *this;
+            }
+
+            m_callback = std::move(other.m_callback);
+            m_filter = std::move(other.m_filter);
+
+            m_filter.setListener(this);
+            other.disable();
+
+            return *this; 
+        }
+
         void bind(std::function<Callback> fn) {
             m_callback = fn;
         }
@@ -239,4 +268,11 @@ namespace geode {
         
         virtual ~Event();
     };
+
+    // Creates an EventListener that is active for the entire lifetime of the game. You have no way of disabling the listener, so only use this if you want to always listen for certain events!
+    template <is_filter T>
+    void globalListen(typename T::Callback callback, T filter = T()) {
+        static std::vector<std::unique_ptr<EventListenerProtocol>> listeners;
+        listeners.push_back(std::make_unique<EventListener<T>>(EventListener<T> {callback, filter}));
+    }
 }
