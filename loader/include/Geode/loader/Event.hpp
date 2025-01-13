@@ -272,6 +272,6 @@ namespace geode {
     // Creates an EventListener that is active for the entire lifetime of the game. You have no way of disabling the listener, so only use this if you want to always listen for certain events!
     template <is_filter T>
     void globalListen(typename T::Callback callback, T filter = T()) {
-        new EventListener<T>({callback, filter});
+        new EventListener<T>(callback, filter);
     }
 }
