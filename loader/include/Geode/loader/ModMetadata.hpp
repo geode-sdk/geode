@@ -63,6 +63,7 @@ namespace geode {
         ModMetadata& operator=(ModMetadata&& other) noexcept;
         ~ModMetadata();
 
+        // todo in v5: pimpl this :sob:
         struct GEODE_DLL Dependency {
             enum class Importance : uint8_t { Required, Recommended, Suggested };
             std::string id;
@@ -72,6 +73,7 @@ namespace geode {
             [[nodiscard]] bool isResolved() const;
         };
 
+        // todo in v5: pimpl this :sob:
         struct GEODE_DLL Incompatibility {
             enum class Importance : uint8_t {
                 Breaking,
@@ -85,6 +87,7 @@ namespace geode {
             [[nodiscard]] bool isResolved() const;
         };
 
+        // todo in v5: pimpl this :sob:
         struct IssuesInfo {
             std::string info;
             std::optional<std::string> url;

@@ -315,9 +315,17 @@ Result<> Mod::Impl::loadBinary() {
 
     LoaderImpl::get()->releaseNextMod();
 
-
     ModStateEvent(m_self, ModEventType::Loaded).post();
     ModStateEvent(m_self, ModEventType::DataLoaded).post();
+
+    // do we not have a function for getting all the dependencies of a mod directly? ok then
+    // Anyway this lets all of this mod's dependencies know it has been loaded
+    // In case they're API mods and want to know those kinds of things
+    for (auto const& dep : ModMetadataImpl::getImpl(m_metadata).m_dependencies) {
+        if (auto depMod = Loader::get()->getLoadedMod(dep.id)) {
+            DependencyLoadedEvent(depMod, m_self).post();
+        }
+    }
 
     m_isCurrentlyLoading = false;
 

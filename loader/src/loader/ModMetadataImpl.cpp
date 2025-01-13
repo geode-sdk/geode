@@ -65,6 +65,7 @@ static std::string sanitizeDetailsData(std::string const& str) {
     return utils::string::replace(str, "\r", "");
 }
 
+// todo in v5: remove all support for old mod IDs and replace any calls to this with just validateID
 bool ModMetadata::Impl::validateOldID(std::string const& id) {
     // Old IDs may not be empty
     if (id.empty()) return false;
@@ -129,8 +130,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     root.needs("geode").into(impl->m_geodeVersion);
     
     if (auto gd = root.needs("gd")) {
-        // In the future when we get rid of support for string format just 
-        // change all of this to the gd.needs(...) stuff
+        // todo in v5: get rid of the string alternative and makes this always be an object
         gd.assertIs({ matjson::Type::Object, matjson::Type::String });
         if (gd.isObject()) {
             if (gd.has(GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH)) {
@@ -194,62 +194,101 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         });
     }
 
-    for (auto& dep : root.has("dependencies").items()) {
-        bool onThisPlatform = !dep.has("platforms");
-        for (auto& plat : dep.has("platforms").items()) {
-            if (PlatformID::coveredBy(plat.get<std::string>(), GEODE_PLATFORM_TARGET)) {
-                onThisPlatform = true;
+    if (auto deps = root.has("dependencies")) {
+        auto addDependency = [&impl](std::string const& id, JsonExpectedValue& dep) -> Result<> {
+            if (!ModMetadata::Impl::validateOldID(id)) {
+                return Err("[mod.json].dependencies.\"{}\" is not a valid Mod ID ({})", id, ID_REGEX);
+            }
+
+            bool onThisPlatform = !dep.has("platforms");
+            for (auto& plat : dep.has("platforms").items()) {
+                if (PlatformID::coveredBy(plat.get<std::string>(), GEODE_PLATFORM_TARGET)) {
+                    onThisPlatform = true;
+                }
+            }
+            if (!onThisPlatform) {
+                return Ok();
+            }
+
+            matjson::Value dependencySettings;
+
+            Dependency dependency;
+            dependency.id = id;
+            dep.needs("id").mustBe<std::string>(ID_REGEX, &ModMetadata::Impl::validateOldID).into(dependency.id);
+            dep.needs("version").into(dependency.version);
+            dep.has("importance").into(dependency.importance);
+            dep.has("settings").into(dependencySettings);
+            dep.checkUnknownKeys();
+
+            if (
+                dependency.version.getComparison() != VersionCompare::MoreEq &&
+                dependency.version.getComparison() != VersionCompare::Any
+            ) {
+                return Err(
+                    "[mod.json].dependencies.\"{}\".version must be either a more-than "
+                    "comparison for a specific version or a wildcard for any version",
+                    dependency.id
+                );
+            }
+
+            impl->m_dependencies.push_back(dependency);
+            // todo in v5: make Dependency pimpl and move this as a member there 
+            // `dep.has("settings").into(dependency.settings);`
+            impl->m_dependencySettings.insert({ id, dependencySettings });
+
+            return Ok();
+        };
+
+        // todo in v5: make this always be an object
+        deps.assertIs({ matjson::Type::Object, matjson::Type::Array });
+        if (deps.isObject()) {
+            for (auto& [id, dep] : deps.properties()) {
+                GEODE_UNWRAP(addDependency(id, dep));
             }
         }
-        if (!onThisPlatform) {
-            continue;
+        else {
+            for (auto& dep : deps.items()) {
+                GEODE_UNWRAP(addDependency(dep.needs("id").template get<std::string>(), dep));
+            }
         }
-
-        Dependency dependency;
-        dep.needs("id").mustBe<std::string>(ID_REGEX, &ModMetadata::Impl::validateOldID).into(dependency.id);
-        dep.needs("version").into(dependency.version);
-        dep.has("importance").into(dependency.importance);
-        dep.checkUnknownKeys();
-
-        if (
-            dependency.version.getComparison() != VersionCompare::MoreEq &&
-            dependency.version.getComparison() != VersionCompare::Any
-        ) {
-            return Err(
-                "[mod.json].dependencies.{}.version must be either a more-than "
-                "comparison for a specific version or a wildcard for any version",
-                dependency.id
-            );
-        }
-
-        // if (isDeprecatedIDForm(dependency.id)) {
-        //     log::warn(
-        //         "Dependency ID '{}' will be rejected in the future - "
-        //         "IDs must match the regex `[a-z0-9\\-_]+\\.[a-z0-9\\-_]+`",
-        //         impl->m_id
-        //     );
-        // }
-
-        impl->m_dependencies.push_back(dependency);
     }
 
-    for (auto& incompat : root.has("incompatibilities").items()) {
-        bool onThisPlatform = !incompat.has("platforms");
-        for (auto& plat : incompat.has("platforms").items()) {
-            if (PlatformID::coveredBy(plat.get<std::string>(), GEODE_PLATFORM_TARGET)) {
-                onThisPlatform = true;
+    if (auto incompats = root.has("incompatibilities")) {
+        auto addIncompat = [&impl](std::string const& id, JsonExpectedValue& incompat) -> Result<> {
+            if (!ModMetadata::Impl::validateOldID(id)) {
+                return Err("[mod.json].incompatibilities.\"{}\" is not a valid Mod ID ({})", id, ID_REGEX);
+            }
+
+            bool onThisPlatform = !incompat.has("platforms");
+            for (auto& plat : incompat.has("platforms").items()) {
+                if (PlatformID::coveredBy(plat.get<std::string>(), GEODE_PLATFORM_TARGET)) {
+                    onThisPlatform = true;
+                }
+            }
+            if (!onThisPlatform) {
+                return Ok();
+            }
+
+            Incompatibility incompatibility;
+            incompatibility.id = id;
+            incompat.needs("version").into(incompatibility.version);
+            incompat.has("importance").into(incompatibility.importance);
+            incompat.checkUnknownKeys();
+            impl->m_incompatibilities.push_back(incompatibility);
+        };
+
+        // todo in v5: make this always be an object
+        incompats.assertIs({ matjson::Type::Object, matjson::Type::Array });
+        if (incompats.isObject()) {
+            for (auto& [id, incompat] : incompats.properties()) {
+                GEODE_UNWRAP(addIncompat(id, incompat));
             }
         }
-        if (!onThisPlatform) {
-            continue;
+        else {
+            for (auto& incompat : incompats.items()) {
+                GEODE_UNWRAP(addIncompat(incompat.needs("id").template get<std::string>(), incompat));
+            }
         }
-
-        Incompatibility incompatibility;
-        incompat.needs("id").mustBe<std::string>(ID_REGEX, &ModMetadata::Impl::validateOldID).into(incompatibility.id);
-        incompat.needs("version").into(incompatibility.version);
-        incompat.has("importance").into(incompatibility.importance);
-        incompat.checkUnknownKeys();
-        impl->m_incompatibilities.push_back(incompatibility);
     }
 
     for (auto& [key, value] : root.has("settings").properties()) {

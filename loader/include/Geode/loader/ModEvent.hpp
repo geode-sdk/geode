@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Event.hpp"
-
+#include <matjson.hpp>
 #include <optional>
 
 namespace geode {
@@ -50,6 +50,40 @@ namespace geode {
          */
         ModStateFilter(Mod* mod, ModEventType type);
         ModStateFilter(ModStateFilter const&) = default;
+    };
+
+    /**
+     * Event posted to a mod when another mod that depends on it is loaded
+     */
+    class GEODE_DLL DependencyLoadedEvent final : public Event {
+    protected:
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
+    
+    public:
+        DependencyLoadedEvent(Mod* target, Mod* dependency);
+
+        Mod* getTarget() const;
+        Mod* getDependency() const;
+        matjson::Value getDependencySettings() const;
+    };
+
+    /**
+     * Listen for in a mod when a mod that depends on it is loaded
+     */
+    class GEODE_DLL DependencyLoadedFilter final : public EventFilter<DependencyLoadedEvent> {
+    public:
+        using Callback = void(DependencyLoadedEvent*);
+
+    protected:
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
+
+    public:
+        ListenerResult handle(std::function<Callback> fn, DependencyLoadedEvent* event);
+
+        DependencyLoadedFilter(Mod* target = geode::getMod());
+        DependencyLoadedFilter(DependencyLoadedFilter const&);
     };
 }
 

@@ -35,6 +35,8 @@ namespace geode {
         ModMetadataLinks m_links;
         std::optional<IssuesInfo> m_issues;
         std::vector<Dependency> m_dependencies;
+        // todo in v5: make Dependency pimpl and move this as a member there (`matjson::Value settings;`)
+        std::unordered_map<std::string, matjson::Value> m_dependencySettings;
         std::vector<Incompatibility> m_incompatibilities;
         std::vector<std::string> m_spritesheets;
         std::vector<std::pair<std::string, matjson::Value>> m_settings;
