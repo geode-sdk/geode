@@ -30,6 +30,7 @@ namespace geode::log {
     private:
         std::vector<Log> m_logs;
         std::ofstream m_logStream;
+        std::filesystem::path m_logPath;
 
         Logger() = default;
     public:
@@ -42,6 +43,8 @@ namespace geode::log {
 
         std::vector<Log> const& list();
         void clear();
+
+        std::filesystem::path const& getLogPath() const;
     };
 
     class Nest::Impl {

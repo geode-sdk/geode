@@ -106,6 +106,10 @@ void log::vlogImpl(Severity sev, Mod* mod, fmt::string_view format, fmt::format_
         fmt::vformat(format, args));
 }
 
+std::filesystem::path const& log::getCurrentLogPath() {
+    return Logger::get()->getLogPath();
+}
+
 
 Log::Log(Severity sev, std::string&& thread, std::string&& source, int32_t nestCount,
     std::string&& content) :
@@ -212,7 +216,8 @@ Logger* Logger::get() {
 }
 
 void Logger::setup() {
-    m_logStream = std::ofstream(dirs::getGeodeLogDir() / log::generateLogName());
+    m_logPath = dirs::getGeodeLogDir() / log::generateLogName();
+    m_logStream = std::ofstream(m_logPath);
 }
 
 std::mutex& getLogMutex() {
@@ -243,6 +248,10 @@ std::vector<Log> const& Logger::list() {
 void Logger::clear() {
     std::lock_guard g(getLogMutex());
     m_logs.clear();
+}
+
+std::filesystem::path const& Logger::getLogPath() const {
+    return m_logPath;
 }
 
 // Misc
