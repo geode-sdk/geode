@@ -46,12 +46,12 @@ bool ModItem::init(ModSource&& source) {
 
     m_titleLabel = CCLabelBMFont::create(m_source.getMetadata().getName().c_str(), "bigFont.fnt");
     m_titleLabel->setID("title-label");
-    m_titleLabel->setLayoutOptions(AxisLayoutOptions::create()->setScalePriority(1));
+    m_titleLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.3f, std::nullopt));
     m_titleContainer->addChild(m_titleLabel);
 
     m_versionLabel = CCLabelBMFont::create("", "bigFont.fnt");
     m_versionLabel->setID("version-label");
-    m_versionLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(std::nullopt, .7f));
+    m_versionLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.5f, .7f)->setScalePriority(1));
     m_titleContainer->addChild(m_versionLabel);
 
     m_versionDownloadSeparator = CCLabelBMFont::create("•", "bigFont.fnt");
