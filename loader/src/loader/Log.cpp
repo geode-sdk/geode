@@ -2,8 +2,10 @@
 #include "LogImpl.hpp"
 
 #include <Geode/loader/Dirs.hpp>
+#include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/loader/Types.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/general.hpp>
 #include <fmt/chrono.h>
@@ -216,6 +218,10 @@ Logger* Logger::get() {
 }
 
 void Logger::setup() {
+    if (m_initialized) {
+        return;
+    }
+
     auto logDir = dirs::getGeodeLogDir();
 
     // on the first launch, this doesn't exist yet..
@@ -226,6 +232,19 @@ void Logger::setup() {
 
     m_logPath = logDir / log::generateLogName();
     m_logStream = std::ofstream(m_logPath);
+
+    // Logs can and will probably be added before setup() is called, so we'll write them now
+    for (Log const& log : m_logs) {
+        const std::string logStr = log.toString();
+        if (log.getSeverity() >= this->getConsoleLogLevel()) {
+            console::log(logStr, log.getSeverity());
+        }
+        if (log.getSeverity() >= this->getFileLogLevel()) {
+            m_logStream << logStr << std::endl;
+        }
+    }
+
+    m_initialized = true;
 }
 
 void Logger::deleteOldLogs(size_t maxAgeHours) {
@@ -260,6 +279,37 @@ std::mutex& getLogMutex() {
     return mutex;
 }
 
+Severity Logger::getConsoleLogLevel() {
+    const std::string level = Mod::get()->getSettingValue<std::string>("console-log-level");
+    if (level == "debug") {
+        return Severity::Debug;
+    } else if (level == "info") {
+        return Severity::Info;
+    } else if (level == "warn") {
+        return Severity::Warning;
+    } else if (level == "error") {
+        return Severity::Error;
+    } else {
+        return Severity::Info;
+    }
+}
+
+Severity Logger::getFileLogLevel() {
+    const std::string level = Mod::get()->getSettingValue<std::string>("file-log-level");
+    if (level == "debug") {
+        return Severity::Debug;
+    } else if (level == "info") {
+        return Severity::Info;
+    } else if (level == "warn") {
+        return Severity::Warning;
+    } else if (level == "error") {
+        return Severity::Error;
+    } else {
+        return Severity::Info;
+    }
+}
+
+
 void Logger::push(Severity sev, std::string&& thread, std::string&& source, int32_t nestCount,
     std::string&& content) {
     std::lock_guard g(getLogMutex());
@@ -267,9 +317,19 @@ void Logger::push(Severity sev, std::string&& thread, std::string&& source, int3
     Log& log = m_logs.emplace_back(sev, std::move(thread), std::move(source), nestCount,
             std::move(content));
 
+    // If logger is not initialized, store the log anyway. When the logger is initialized the pending logs will be logged.
+    if (!m_initialized) {
+        return;
+    }
+
     auto const logStr = log.toString();
-    console::log(logStr, log.getSeverity());
-    m_logStream << logStr << std::endl;
+
+    if (sev >= this->getConsoleLogLevel()) {
+        console::log(logStr, log.getSeverity());
+    }
+    if (sev >= this->getFileLogLevel()) {
+        m_logStream << logStr << std::endl;
+    }
 }
 
 Nest::Nest(std::shared_ptr<Nest::Impl> impl) : m_impl(std::move(impl)) { }

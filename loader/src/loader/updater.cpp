@@ -221,11 +221,11 @@ void updater::downloadLoaderResources(bool useLatestRelease) {
                 }
             }
             if (useLatestRelease) {
-                log::debug("Loader version {} does not exist, trying to download latest resources", Loader::get()->getVersion().toVString());
+                log::info("Loader version {} does not exist, trying to download latest resources", Loader::get()->getVersion().toVString());
                 downloadLatestLoaderResources();
             }
             else {
-                log::debug("Loader version {} does not exist on GitHub, not downloading the resources", Loader::get()->getVersion().toVString());
+                log::warn("Loader version {} does not exist on GitHub, not downloading the resources", Loader::get()->getVersion().toVString());
                 ResourceDownloadEvent(UpdateFinished()).post();
             }
             return *response;
@@ -361,7 +361,7 @@ void updater::checkForLoaderUpdates() {
             VersionInfo ver { 0, 0, 0 };
             root.needs("tag_name").into(ver);
 
-            log::info("Latest version is {}", ver.toVString());
+            log::info("Latest Geode version is {}", ver.toVString());
             Mod::get()->setSavedValue("latest-version-auto-update-check", ver.toVString());
 
             // make sure release is newer

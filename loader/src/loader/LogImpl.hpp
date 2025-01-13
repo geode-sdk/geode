@@ -3,6 +3,7 @@
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/loader/Types.hpp>
 #include <vector>
 #include <fstream>
 #include <string>
@@ -29,6 +30,7 @@ namespace geode::log {
 
     class Logger {
     private:
+        bool m_initialized = false;
         std::vector<Log> m_logs;
         std::ofstream m_logStream;
         std::filesystem::path m_logPath;
@@ -43,6 +45,8 @@ namespace geode::log {
             std::string&& content);
 
         std::vector<Log> const& list();
+        Severity getConsoleLogLevel();
+        Severity getFileLogLevel();
         void clear();
 
         std::filesystem::path const& getLogPath() const;

@@ -108,7 +108,6 @@ bool safeModeCheck() {
 int geodeEntry(void* platformData) {
     thread::setName("Main");
 
-    log::Logger::get()->setup();
     console::setup();
     if (LoaderImpl::get()->isForwardCompatMode()) {
         console::openIfClosed();
@@ -151,6 +150,10 @@ int geodeEntry(void* platformData) {
             return 1;
         }
     }
+
+    // Setup logger here so that internal mod is setup and we can read log level
+    // Logging before this point does store the log, and everything gets logged in this setup call
+    log::Logger::get()->setup();
 
     tryShowForwardCompat();
 
