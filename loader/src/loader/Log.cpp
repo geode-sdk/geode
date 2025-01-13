@@ -233,13 +233,16 @@ void Logger::setup() {
     m_logPath = logDir / log::generateLogName();
     m_logStream = std::ofstream(m_logPath);
 
+    Severity consoleLogLevel = this->getConsoleLogLevel();
+    Severity fileLogLevel = this->getFileLogLevel();
+
     // Logs can and will probably be added before setup() is called, so we'll write them now
     for (Log const& log : m_logs) {
         const std::string logStr = log.toString();
-        if (log.getSeverity() >= this->getConsoleLogLevel()) {
+        if (log.getSeverity() >= consoleLogLevel) {
             console::log(logStr, log.getSeverity());
         }
-        if (log.getSeverity() >= this->getFileLogLevel()) {
+        if (log.getSeverity() >= fileLogLevel) {
             m_logStream << logStr << std::endl;
         }
     }
