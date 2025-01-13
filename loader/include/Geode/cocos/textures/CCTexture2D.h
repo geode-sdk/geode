@@ -274,7 +274,7 @@ public:
 
 private:
     bool initPremultipliedATextureWithImage(CCImage * image, unsigned int pixelsWide, unsigned int pixelsHigh);
-    
+public:
     // By default PVR images are treated as if they don't have the alpha channel premultiplied
     bool m_bPVRHaveAlphaPremultiplied;
 

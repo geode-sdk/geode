@@ -223,7 +223,7 @@ public:
     inline void setTMXFileName(const char *fileName){ m_sTMXFileName = fileName; }
 private:
     void internalInit(const char* tmxFileName, const char* resourcePath);
-protected:
+public:
     //! tmx filename
     gd::string m_sTMXFileName;
     // tmx resource path

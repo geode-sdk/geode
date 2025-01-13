@@ -79,7 +79,7 @@ public:
     /** Sets the bottom side inset */
     CC_PROPERTY(float, m_insetBottom, InsetBottom);
 
-protected:
+public:
     bool m_bSpritesGenerated;
     CCRect m_spriteRect;
     bool   m_bSpriteFrameRotated;
@@ -100,7 +100,8 @@ protected:
     bool _opacityModifyRGB;
     GLubyte _opacity;
     ccColor3B _color;
-    
+
+protected:
     void updateCapInset();
     void updatePositions();
 

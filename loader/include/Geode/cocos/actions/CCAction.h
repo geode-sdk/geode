@@ -120,7 +120,7 @@ public:
 public:
     /** Create an action */
     static CCAction* create();
-protected:
+public:
     CCNode    *m_pOriginalTarget;
     /** The "target".
     The target will be set with the 'startWithTarget' method.
@@ -167,7 +167,7 @@ public:
 
     /** returns a reversed action */
     virtual CCFiniteTimeAction* reverse(void);
-protected:
+public:
     //! duration in seconds
     float m_fDuration;
 };
@@ -225,7 +225,7 @@ public:
 public:
     /** create the action */
     static CCSpeed* create(CCActionInterval* pAction, float fSpeed);
-protected:
+public:
     float m_fSpeed;
     CCActionInterval *m_pInnerAction;
 };
@@ -281,7 +281,7 @@ public:
     It will work with no boundary if @param rect is equal to CCRectZero.
     */
     static CCFollow* create(CCNode *pFollowedNode, const CCRect& rect = CCRectZero);
-protected:
+public:
     // node to follow
     CCNode *m_pobFollowedNode;
 

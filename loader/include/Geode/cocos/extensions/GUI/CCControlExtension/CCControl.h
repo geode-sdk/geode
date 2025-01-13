@@ -87,7 +87,7 @@ typedef unsigned int CCControlState;
  */
 class CC_DLL CCControl : public CCLayerRGBA
 {
-
+public:
     //CCRGBAProtocol
     bool m_bIsOpacityModifyRGB;
 
@@ -97,7 +97,7 @@ class CC_DLL CCControl : public CCLayerRGBA
     CC_SYNTHESIZE_READONLY_NV(CCControlState, m_eState, State);
 
     /** True if all of the controls parents are visible */
-protected:
+public:
     bool m_hasVisibleParents;
 
 public:

@@ -142,7 +142,7 @@ private:
     static CCConfiguration *s_gSharedConfiguration;
 	static gd::string		s_sConfigfile;
     
-protected:
+public:
     GLint           m_nMaxTextureSize;
     GLint           m_nMaxModelviewStackDepth;
     bool            m_bSupportsPVRTC;

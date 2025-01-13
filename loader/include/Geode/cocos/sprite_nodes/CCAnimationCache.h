@@ -104,8 +104,9 @@ public:
 private:
     void parseVersion1(CCDictionary* animations);
     void parseVersion2(CCDictionary* animations);
-private:
+public:
     CCDictionary* m_pAnimations;
+private:
     static CCAnimationCache* s_pSharedAnimationCache;
 };
 

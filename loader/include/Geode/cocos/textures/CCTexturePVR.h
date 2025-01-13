@@ -126,7 +126,7 @@ private:
     bool unpackPVRv3Data(unsigned char* dataPointer, unsigned int dataLength);
     bool createGLTexture();
     
-protected:
+public:
     struct CCPVRMipmap m_asMipmaps[CC_PVRMIPMAP_MAX];   // pointer to mipmap images    
     unsigned int m_uNumberOfMipmaps;                    // number of mipmap used
     

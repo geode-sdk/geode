@@ -398,7 +398,7 @@ public:
      */
     void touchDownAction(CCObject *sender, CCControlEvent controlEvent);
     
-protected:
+public:
     CCEditBoxImpl*      m_pEditBoxImpl;
     CCEditBoxDelegate*  m_pDelegate;
     

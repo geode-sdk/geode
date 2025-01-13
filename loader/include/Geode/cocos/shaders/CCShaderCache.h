@@ -82,7 +82,7 @@ public:
 private:
     bool init();
     void loadDefaultShader(CCGLProgram *program, int type);
-
+public:
     CCDictionary* m_pPrograms;
 
 };

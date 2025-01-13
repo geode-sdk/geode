@@ -296,6 +296,7 @@ private:
 
 protected:
     virtual void setString(unsigned short *newString, bool needUpdateLabel);
+public:
     // string to render
     unsigned short* m_sString;
 

@@ -89,9 +89,10 @@ protected:
 	void setSkeletonData (SkeletonData* skeletonData, bool ownsSkeletonData);
 	cocos2d::CCTextureAtlas* getTextureAtlas (RegionAttachment* regionAttachment) const;
 
-private:
+public:
 	bool ownsSkeletonData;
 	Atlas* atlas;
+private:
 	void initialize ();
 };
 

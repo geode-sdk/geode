@@ -41,7 +41,7 @@ NS_CC_BEGIN
 class CC_DLL CCClippingNode : public CCNode
 {
     GEODE_FRIEND_MODIFY
-protected:
+public:
 
 
     CCNode* m_pStencil;
