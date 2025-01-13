@@ -235,7 +235,7 @@ private:
     // if not found, create a new one
     static VolatileTexture* findVolotileTexture(CCTexture2D *tt);
 
-protected:
+public:
     CCTexture2D *texture;
     
     CCImage *uiImage;

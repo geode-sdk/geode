@@ -82,7 +82,7 @@ class CC_DLL CCTransitionScene : public CCScene
 {
     GEODE_FRIEND_MODIFY
 
-protected:
+public:
     CCScene    * m_pInScene;
     CCScene    * m_pOutScene;
     float    m_fDuration;
@@ -138,7 +138,7 @@ private:
 class CC_DLL CCTransitionSceneOriented : public CCTransitionScene
 {
     GEODE_FRIEND_MODIFY
-protected:
+public:
 
 
     tOrientation m_eOrientation;
@@ -616,7 +616,7 @@ Fade out the outgoing scene and then fade in the incoming scene.'''
 class CC_DLL CCTransitionFade : public CCTransitionScene
 {
     GEODE_FRIEND_MODIFY
-protected:
+public:
 
 
     ccColor4B    m_tColor;

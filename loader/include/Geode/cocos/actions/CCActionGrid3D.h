@@ -59,7 +59,7 @@ public:
 public:
     /** creates an action with duration, grid size, waves and amplitude */
     static CCWaves3D* create(float duration, const CCSize& gridSize, unsigned int waves, float amplitude);
-protected:
+public:
     unsigned int m_nWaves;
     float m_fAmplitude;
     float m_fAmplitudeRate;
@@ -129,7 +129,7 @@ public:
 public:
     /** creates the action with center position, radius, a grid size and duration */
     static CCLens3D* create(float duration, const CCSize& gridSize, const CCPoint& position, float radius);
-protected:
+public:
     /* lens center position */
     CCPoint m_position;
     float m_fRadius;
@@ -169,7 +169,7 @@ public:
 public:
     /** creates the action with radius, number of waves, amplitude, a grid size and duration */
     static CCRipple3D* create(float duration, const CCSize& gridSize, const CCPoint& position, float radius, unsigned int waves, float amplitude);
-protected:
+public:
     /* center position */
     CCPoint m_position;
     float m_fRadius;
@@ -195,7 +195,7 @@ public:
 public:
     /** creates the action with a range, shake Z vertices, a grid and duration */
     static CCShaky3D* create(float duration, const CCSize& gridSize, int range, bool shakeZ);
-protected:
+public:
     int m_nRandrange;
     bool m_bShakeZ;
 };
@@ -223,7 +223,7 @@ public:
 public:
     /** creates the action with amplitude, a grid and duration */
     static CCLiquid* create(float duration, const CCSize& gridSize, unsigned int waves, float amplitude);
-protected:
+public:
     unsigned int m_nWaves;
     float m_fAmplitude;
     float m_fAmplitudeRate;
@@ -253,7 +253,7 @@ public:
 
     /** initializes the action with amplitude, horizontal sin, vertical sin, a grid and duration */
     static CCWaves* create(float duration, const CCSize& gridSize, unsigned int waves, float amplitude, bool horizontal, bool vertical);
-protected:
+public:
     unsigned int m_nWaves;
     float m_fAmplitude;
     float m_fAmplitudeRate;
@@ -289,7 +289,7 @@ public:
 public:
     /** creates the action with center position, number of twirls, amplitude, a grid size and duration */
     static CCTwirl* create(float duration, const CCSize& gridSize, CCPoint position, unsigned int twirls, float amplitude);
-protected:
+public:
     /* twirl center */
     CCPoint m_position;
     unsigned int m_nTwirls;

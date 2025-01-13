@@ -108,6 +108,10 @@ void log::vlogImpl(Severity sev, Mod* mod, fmt::string_view format, fmt::format_
         fmt::vformat(format, args));
 }
 
+std::filesystem::path const& log::getCurrentLogPath() {
+    return Logger::get()->getLogPath();
+}
+
 
 Log::Log(Severity sev, std::string&& thread, std::string&& source, int32_t nestCount,
     std::string&& content) :
@@ -218,7 +222,16 @@ void Logger::setup() {
         return;
     }
 
-    m_logStream = std::ofstream(dirs::getGeodeLogDir() / log::generateLogName());
+    auto logDir = dirs::getGeodeLogDir();
+
+    // on the first launch, this doesn't exist yet..
+    if (!std::filesystem::exists(logDir)) {
+        std::error_code ec;
+        std::filesystem::create_directories(logDir, ec);
+    }
+
+    m_logPath = logDir / log::generateLogName();
+    m_logStream = std::ofstream(m_logPath);
 
     // Logs can and will probably be added before setup() is called, so we'll write them now
     for (Log const& log : m_logs) {
@@ -232,6 +245,33 @@ void Logger::setup() {
     }
 
     m_initialized = true;
+}
+
+void Logger::deleteOldLogs(size_t maxAgeHours) {
+    auto logDir = dirs::getGeodeLogDir();
+
+    auto now = std::chrono::file_clock::now();
+
+    std::error_code ec;
+    auto iterator = std::filesystem::directory_iterator(logDir, ec);
+    if (ec != std::error_code{}) {
+        log::error("Failed to delete old logs: {}", ec.message());
+        return;
+    }
+
+    for (auto const& entry : iterator) {
+        if (entry.is_regular_file() && entry.path().extension() == ".log") {
+            auto time = std::filesystem::last_write_time(entry, ec);
+            if (ec != std::error_code{}) {
+                continue;
+            }
+
+            auto diff = now - time;
+            if (diff > std::chrono::hours(maxAgeHours)) {
+                std::filesystem::remove(entry, ec);
+            }
+        }
+    }
 }
 
 std::mutex& getLogMutex() {
@@ -303,6 +343,10 @@ std::vector<Log> const& Logger::list() {
 void Logger::clear() {
     std::lock_guard g(getLogMutex());
     m_logs.clear();
+}
+
+std::filesystem::path const& Logger::getLogPath() const {
+    return m_logPath;
 }
 
 // Misc

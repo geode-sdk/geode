@@ -71,7 +71,7 @@ public:
     virtual void visit(void);
 private:
     CCPoint absolutePosition();
-protected:
+public:
     CCPoint    m_tLastPosition;
 };
 

@@ -107,7 +107,8 @@ private:
 
     // Check whether the observer exists by the specified target and name.
     bool observerExisted(CCObject *target,const char *name);
-    
+
+public:
     // variables
     //
     CCArray *m_observers;

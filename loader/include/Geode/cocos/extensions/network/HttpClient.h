@@ -107,7 +107,7 @@ private:
     /** Poll function called from main thread to dispatch callbacks when http requests finished **/
     void dispatchResponseCallbacks(float delta);
     
-private:
+public:
     int _timeoutForConnect;
     int _timeoutForRead;
     

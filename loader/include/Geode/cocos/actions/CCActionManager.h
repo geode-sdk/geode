@@ -131,7 +131,7 @@ protected:
     void actionAllocWithHashElement(struct _hashElement *pElement);
     void update(float dt);
 
-protected:
+public:
     struct _hashElement    *m_pTargets;
     struct _hashElement    *m_pCurrentTarget;
     bool            m_bCurrentTargetSalvaged;

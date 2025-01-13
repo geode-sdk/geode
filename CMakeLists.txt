@@ -237,7 +237,7 @@ endif()
 
 set(MAT_JSON_AS_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/result@1.3.2")
-CPMAddPackage("gh:geode-sdk/json@3.1.5")
+CPMAddPackage("gh:geode-sdk/json@3.2.0")
 CPMAddPackage("gh:fmtlib/fmt#11.0.2")
 
 target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)
@@ -332,7 +332,6 @@ elseif (EXISTS ${GEODE_PLATFORM_BIN_PATH})
 else()
 	message(FATAL_ERROR
 		"No valid loader binary to link to! Install pre-built binaries with `geode sdk install-binaries`, "
-		"or build Geode from source and add `set(GEODE_LINK_NIGHTLY ON)` to your CMakeLists.txt "
-		"in the line before calling add_subdirectory for Geode."
+		"or build Geode from source."
 	)
 endif()

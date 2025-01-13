@@ -24,7 +24,7 @@ public:
 
 	bool dispatchScrollMSG(float x, float y);
 
-protected:
+public:
 	CCArray* m_pMouseHandlers;
 	bool m_bLocked;
 	bool m_bToAdd;

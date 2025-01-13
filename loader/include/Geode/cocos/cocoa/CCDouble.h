@@ -57,7 +57,7 @@ public:
     /* override functions */
     virtual void acceptVisitor(CCDataVisitor &visitor) { visitor.visit(this); }
 
-private:
+public:
     double m_dValue;
 };
 

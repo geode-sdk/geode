@@ -15,9 +15,15 @@ using namespace geode::prelude;
 #import <Cocoa/Cocoa.h>
 #undef CommentType
 
+
+NSString* intoNS(std::string const& str) {
+    return [NSString stringWithUTF8String:str.c_str()];
+}
+
+
 bool utils::clipboard::write(std::string const& data) {
     [[NSPasteboard generalPasteboard] clearContents];
-    [[NSPasteboard generalPasteboard] setString:[NSString stringWithUTF8String:data.c_str()]
+    [[NSPasteboard generalPasteboard] setString:intoNS(data)
                                         forType:NSPasteboardTypeString];
 
     return true;
@@ -31,7 +37,7 @@ std::string utils::clipboard::read() {
 }
 
 bool utils::file::openFolder(std::filesystem::path const& path) {
-    NSURL* fileURL = [NSURL fileURLWithPath:[NSString stringWithUTF8String:path.string().c_str()]];
+    NSURL* fileURL = [NSURL fileURLWithPath:intoNS(path.string())];
     NSURL* folderURL = [fileURL URLByDeletingLastPathComponent];
     [[NSWorkspace sharedWorkspace] openURL:folderURL];
     return true;
@@ -39,7 +45,7 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
 
 void utils::web::openLinkInBrowser(std::string const& url) {
     [[NSWorkspace sharedWorkspace]
-        openURL:[NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]]];
+        openURL:[NSURL URLWithString:intoNS(url)]];
 }
 
 /*@interface FileDialog : NSObject
@@ -94,11 +100,21 @@ namespace {
 
     // default path
     if (options.defaultPath) {
-        auto defaultPath = [NSString stringWithUTF8String:options.defaultPath->c_str()];
-        [panel setDirectoryURL: [NSURL URLWithString: defaultPath]];
+        auto path = options.defaultPath.value();
+
+        if (std::filesystem::is_directory(path) || mode == file::PickMode::OpenFolder) {
+            auto defaultPath = intoNS(options.defaultPath.value());
+            [panel setDirectoryURL: [NSURL fileURLWithPath: defaultPath]];
+        } else {
+            auto defaultPath = intoNS(options.defaultPath->parent_path());
+            auto name = intoNS(options.defaultPath->filename());
+
+            [panel setDirectoryURL: [NSURL fileURLWithPath: defaultPath]];
+            [panel setNameFieldStringValue: name];
+        }
     }
 
-    // other
+    // title
     if (mode != file::PickMode::SaveFile) {
         auto openPanel = (NSOpenPanel*)panel;
 
@@ -113,21 +129,18 @@ namespace {
 
         [openPanel setAllowsMultipleSelection: mult];
 
-        // allowed files
-        // TODO: allowed files using the NSOpenSavePanelDelegate xd
-        // NSMutableArray* allowed = [NSMutableArray array];
-
-        // for (auto& f : options.filters) {
-        //     for (auto& i : f.files) {
-        //         auto nsstr = [NSString stringWithUTF8String: i.c_str()];
-
-        //         if (![allowed containsObject: nsstr])
-        //             [allowed addObject: nsstr];
-        //     }
-        // }
-
-        // if (options.filters.size())
-        //     [panel setAllowedFileTypes: allowed];
+        if (options.filters.size() > 0) {
+            NSMutableArray* allowedFileTypes = [NSMutableArray new];
+            for (auto& filter : options.filters) {
+                for (auto& ext : filter.files) {
+                    if (ext.size() > 2 && strncmp(ext.c_str(), "*.", 2) == 0)
+                        [allowedFileTypes addObject: intoNS(ext.substr(2))];
+                    else
+                        [allowedFileTypes addObject: intoNS(ext)];
+                }
+            }
+            [openPanel setAllowedFileTypes: allowedFileTypes];
+        }
     }
 
     // run thing
@@ -153,8 +166,9 @@ namespace {
 }
 
 +(void) dispatchFilePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult onCompletion:(void(^)(FileResult&&))onCompletion {
+    file::FilePickOptions optionsCopy = options;
     dispatch_async(dispatch_get_main_queue(), ^{
-        auto result = [self filePickerWithMode:mode options:options multiple:mult];
+        auto result = [self filePickerWithMode:mode options:optionsCopy multiple:mult];
         onCompletion(std::move(result));
     });
 }
@@ -268,7 +282,7 @@ void geode::utils::game::restart() {
         auto gdExec = dirs::getGameDir() / "MacOS" / "Geometry Dash";
 
         NSTask *task = [NSTask new];
-        [task setLaunchPath: [NSString stringWithUTF8String: gdExec.string().c_str()]];
+        [task setLaunchPath: intoNS(gdExec.string())];
         [task launch];
     };
 

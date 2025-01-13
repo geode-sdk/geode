@@ -66,7 +66,7 @@ public:
     void setOwner(CCNode *pOwner);
     CCNode* getOwner() const;
     
-protected:
+public:
     CCNode *m_pOwner;
     gd::string m_strName;
     bool m_bEnabled;

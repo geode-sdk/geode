@@ -280,7 +280,7 @@ private:
     bool compileShader(GLuint * shader, GLenum type, const GLchar* source);
     const char* logForOpenGLObject(GLuint object, GLInfoFunction infoFunc, GLLogFunction logFunc);
 
-protected:
+public:
     GLuint            m_uProgram;
     GLuint            m_uVertShader;
     GLuint            m_uFragShader;
