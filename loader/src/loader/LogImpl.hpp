@@ -6,6 +6,7 @@
 #include <vector>
 #include <fstream>
 #include <string>
+#include <chrono>
 
 namespace geode::log {
     class Log final {
@@ -45,6 +46,13 @@ namespace geode::log {
         void clear();
 
         std::filesystem::path const& getLogPath() const;
+
+        void deleteOldLogs(size_t maxAgeHours);
+
+        template <typename Rep, typename Period>
+        void deleteOldLogs(std::chrono::duration<Rep, Period> const& maxAge) {
+            this->deleteOldLogs(std::chrono::duration_cast<std::chrono::hours>(maxAge).count());
+        }
     };
 
     class Nest::Impl {

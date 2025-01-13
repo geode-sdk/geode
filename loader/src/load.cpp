@@ -179,6 +179,19 @@ int geodeEntry(void* platformData) {
 
     crashlog::setupPlatformHandlerPost();
 
+    // delete old log files
+
+    int logMaxAge = Mod::get()->getSettingValue<int>("log-retention-period");
+
+    // 0 means no deletion
+    if (logMaxAge > 0) {
+        // put it in a thread so that it doesn't slow down launch times
+        std::thread([logMaxAge] {
+            log::Logger::get()->deleteOldLogs(std::chrono::days{logMaxAge});
+        }).detach();
+    }
+
+
     log::debug("Setting up IPC");
     {
         log::NestScope nest;

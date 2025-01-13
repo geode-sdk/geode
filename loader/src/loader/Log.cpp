@@ -216,8 +216,43 @@ Logger* Logger::get() {
 }
 
 void Logger::setup() {
-    m_logPath = dirs::getGeodeLogDir() / log::generateLogName();
+    auto logDir = dirs::getGeodeLogDir();
+
+    // on the first launch, this doesn't exist yet..
+    if (!std::filesystem::exists(logDir)) {
+        std::error_code ec;
+        std::filesystem::create_directories(logDir, ec);
+    }
+
+    m_logPath = logDir / log::generateLogName();
     m_logStream = std::ofstream(m_logPath);
+}
+
+void Logger::deleteOldLogs(size_t maxAgeHours) {
+    auto logDir = dirs::getGeodeLogDir();
+
+    auto now = std::chrono::file_clock::now();
+
+    std::error_code ec;
+    auto iterator = std::filesystem::directory_iterator(logDir, ec);
+    if (ec != std::error_code{}) {
+        log::error("Failed to delete old logs: {}", ec.message());
+        return;
+    }
+
+    for (auto const& entry : iterator) {
+        if (entry.is_regular_file() && entry.path().extension() == ".log") {
+            auto time = std::filesystem::last_write_time(entry, ec);
+            if (ec != std::error_code{}) {
+                continue;
+            }
+
+            auto diff = now - time;
+            if (diff > std::chrono::hours(maxAgeHours)) {
+                std::filesystem::remove(entry, ec);
+            }
+        }
+    }
 }
 
 std::mutex& getLogMutex() {
