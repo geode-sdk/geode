@@ -142,20 +142,23 @@ void SettingNodeV3::updateState(CCNode* invoker) {
 
 void SettingNodeV3::onDescription(CCObject*) {
     auto title = m_impl->setting->getDisplayName();
-    if (!m_impl->setting->getScrollableDescription()) FLAlertLayer::create(
-        nullptr,
-        title.c_str(),
-        m_impl->setting->getDescription().value_or("No description provided"),
-        "OK", nullptr,
-        clamp(title.size() * 16, 300, 400)
-    )->show();
-    else FLAlertLayer::create(
-        nullptr,
-        title.c_str(),
-        m_impl->setting->getDescription().value_or("No description provided"),
-        "OK", nullptr,
-        420.f, true, 320.f, 1.0f // params in order: width, scrollable bool, height, textScale
-    )->show();
+    if (!m_impl->setting->getScrollableDescription()) {
+        FLAlertLayer::create(
+            nullptr,
+            title.c_str(),
+            m_impl->setting->getDescription().value_or("No description provided"),
+            "OK", nullptr,
+            clamp(title.size() * 16, 300, 400)
+        )->show();
+    } else {
+        FLAlertLayer::create(
+            nullptr,
+            title.c_str(),
+            m_impl->setting->getDescription().value_or("No description provided"),
+            "OK", nullptr,
+            420.f, true, 320.f, 1.0f // params in order: width, scrollable bool, height, textScale
+        )->show();
+    }
 }
 void SettingNodeV3::onReset(CCObject*) {
     createQuickPopup(
