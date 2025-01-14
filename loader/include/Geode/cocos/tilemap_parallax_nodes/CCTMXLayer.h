@@ -200,7 +200,7 @@ private:
     // index
     unsigned int atlasIndexForExistantZ(unsigned int z);
     unsigned int atlasIndexForNewZ(int z);
-protected:
+public:
     //! name of the layer
     gd::string m_sLayerName;
     //! TMX Layer supports opacity

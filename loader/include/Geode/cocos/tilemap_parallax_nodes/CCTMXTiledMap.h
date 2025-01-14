@@ -164,7 +164,7 @@ private:
     CCTMXLayer * parseLayer(CCTMXLayerInfo *layerInfo, CCTMXMapInfo *mapInfo);
     CCTMXTilesetInfo * tilesetForLayer(CCTMXLayerInfo *layerInfo, CCTMXMapInfo *mapInfo);
     void buildWithMapInfo(CCTMXMapInfo* mapInfo);
-protected:
+public:
     //! tile properties
     CCDictionary* m_pTileProperties;
 

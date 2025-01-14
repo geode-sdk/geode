@@ -45,7 +45,7 @@ NS_CC_BEGIN
 class CC_DLL CCDrawNode : public CCNodeRGBA
 {
     GEODE_FRIEND_MODIFY
-protected:
+public:
 
     GLuint      m_uVao;
     GLuint      m_uVbo;

@@ -79,6 +79,7 @@ namespace geode {
         ~Impl();
 
         void createDirectories();
+        void removeDirectories();
 
         void updateModResources(Mod* mod);
         void addSearchPaths();

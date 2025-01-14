@@ -230,7 +230,7 @@ public:
 
     void setDelegate(CCKeyboardDelegate* pDelegate);
 
-protected:
+public:
     CCKeyboardDelegate* m_pDelegate;
 };
 

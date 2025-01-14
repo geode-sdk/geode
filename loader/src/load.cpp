@@ -108,7 +108,6 @@ bool safeModeCheck() {
 int geodeEntry(void* platformData) {
     thread::setName("Main");
 
-    log::Logger::get()->setup();
     console::setup();
     if (LoaderImpl::get()->isForwardCompatMode()) {
         console::openIfClosed();
@@ -152,6 +151,10 @@ int geodeEntry(void* platformData) {
         }
     }
 
+    // Setup logger here so that internal mod is setup and we can read log level
+    // Logging before this point does store the log, and everything gets logged in this setup call
+    log::Logger::get()->setup();
+
     tryShowForwardCompat();
 
     // open console
@@ -178,6 +181,19 @@ int geodeEntry(void* platformData) {
     }
 
     crashlog::setupPlatformHandlerPost();
+
+    // delete old log files
+
+    int logMaxAge = Mod::get()->getSettingValue<int>("log-retention-period");
+
+    // 0 means no deletion
+    if (logMaxAge > 0) {
+        // put it in a thread so that it doesn't slow down launch times
+        std::thread([logMaxAge] {
+            log::Logger::get()->deleteOldLogs(std::chrono::days{logMaxAge});
+        }).detach();
+    }
+
 
     log::debug("Setting up IPC");
     {

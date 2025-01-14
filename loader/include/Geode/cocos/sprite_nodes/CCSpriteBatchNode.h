@@ -192,7 +192,7 @@ private:
     void swap(int oldIndex, int newIndex);
     void updateBlendFunc();
 
-protected:
+public:
     CCTextureAtlas *m_pobTextureAtlas;
     ccBlendFunc m_blendFunc;
 

@@ -105,6 +105,7 @@ public:
     virtual void visit(const CCSet *p);
 private:
     void setIndentLevel(int indentLevel);
+public:
     int _indentLevel;
     gd::string _indentStr;
     gd::string _result;

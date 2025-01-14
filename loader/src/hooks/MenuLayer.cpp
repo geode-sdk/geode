@@ -173,6 +173,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
         // Check for mod updates
         static bool checkedModUpdates = false;
+        static bool foundModUpdates = false;
         if (!checkedModUpdates) {
             // only run it once
             checkedModUpdates = true;
@@ -180,24 +181,10 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
                 [this](server::ServerRequest<std::vector<std::string>>::Value* result) {
                     if (result->isOk()) {
                         auto updatesFound = result->unwrap();
-                        if (updatesFound.size() && m_fields->m_geodeButton && !m_fields->m_geodeButton->getChildByID("updates-available")) {
+                        if (updatesFound.size()) {
                             log::info("Found updates for mods: {}!", updatesFound);
-
-                            if(auto icon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr)) {
-                                // Remove errors icon if it was added, to prevent overlap
-                                if (m_fields->m_exclamation) {
-                                    m_fields->m_exclamation->removeFromParent();
-                                    m_fields->m_exclamation = nullptr;
-                                }
-
-                                icon->setPosition(
-                                    m_fields->m_geodeButton->getContentSize() - CCSize { 10.f, 10.f }
-                                );
-                                icon->setID("updates-available");
-                                icon->setZOrder(99);
-                                icon->setScale(.5f);
-                                m_fields->m_geodeButton->addChild(icon);
-                            }
+                            showUpdatesFound();
+                            foundModUpdates = true;
                         }
                         else {
                             log::info("All mods up to date!");
@@ -213,6 +200,11 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             );
         }
 
+        // also display if updates were found in a previous MenuLayer iteration
+        if(foundModUpdates) {
+            showUpdatesFound();
+        }
+
         for (auto mod : Loader::get()->getAllMods()) {
             if (mod->getMetadata().usesDeprecatedIDForm()) {
                 log::error(
@@ -224,6 +216,26 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         }
     
         return true;
+    }
+
+    void showUpdatesFound() {
+        if(m_fields->m_geodeButton && !m_fields->m_geodeButton->getChildByID("updates-available")) {
+            if(auto icon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr)) {
+                // Remove errors icon if it was added, to prevent overlap
+                if (m_fields->m_exclamation) {
+                    m_fields->m_exclamation->removeFromParent();
+                    m_fields->m_exclamation = nullptr;
+                }
+
+                icon->setPosition(
+                    m_fields->m_geodeButton->getContentSize() - CCSize { 10.f, 10.f }
+                );
+                icon->setID("updates-available");
+                icon->setZOrder(99);
+                icon->setScale(.5f);
+                m_fields->m_geodeButton->addChild(icon);
+            }
+        }
     }
 
     void fixSocialMenu() {

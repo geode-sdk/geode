@@ -96,7 +96,7 @@ private:
     void updateAtlasValueAt(const CCPoint& pos, const ccColor3B& value, unsigned int index);
     void updateAtlasValues();
 
-protected:
+public:
     //! x,y to atlas dictionary
     CCDictionary* m_pPosToAtlasIndex;
     //! numbers of tiles to render

@@ -166,7 +166,7 @@ public:
     
 protected:
     bool initWithRequest(CCHttpRequest* request);
-    
+public:
     // properties
     CCHttpRequest*        _pHttpRequest;  /// the corresponding HttpRequest pointer who leads to this response 
     bool                _succeed;       /// to indecate if the http reqeust is successful simply
