@@ -195,17 +195,17 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     }
 
     if (auto deps = root.has("dependencies")) {
-        auto addDependency = [&impl](std::string const& id, JsonExpectedValue& dep, bool allowStringShorthand) -> Result<> {
+        auto addDependency = [&impl, ID_REGEX](std::string const& id, JsonExpectedValue& dep, bool legacy) -> Result<> {
             if (!ModMetadata::Impl::validateOldID(id)) {
                 return Err("[mod.json].dependencies.\"{}\" is not a valid Mod ID ({})", id, ID_REGEX);
             }
 
-            // todo in v5: array style wont exists so this bool will always be true
-            if (allowStringShorthand) {
-                dep.assertIs({ matjson::Type::Object, matjson::Type::String });
+            // todo in v5: array style wont exist so this bool will always be false
+            if (legacy) {
+                dep.assertIsObject();
             }
             else {
-                dep.assertIsObject();
+                dep.assertIs({ matjson::Type::Object, matjson::Type::String });
             }
             
             if (dep.isObject()) {
@@ -229,11 +229,15 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
                 dependency.importance = Dependency::Importance::Required;
             }
             else {
-                dep.needs("id").mustBe<std::string>(ID_REGEX, &ModMetadata::Impl::validateOldID).into(dependency.id);
                 dep.needs("version").into(dependency.version);
                 dep.has("importance").into(dependency.importance);
                 dep.has("settings").into(dependencySettings);
                 dep.checkUnknownKeys();
+            }
+
+            // Check if parsing had errors
+            if (!dep) {
+                return dep.ok();
             }
 
             if (
@@ -241,9 +245,9 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
                 dependency.version.getComparison() != VersionCompare::Any
             ) {
                 return Err(
-                    "[mod.json].dependencies.\"{}\".version must be either a more-than "
+                    "[mod.json].dependencies.\"{}\".version (\"{}\") must be either a more-than "
                     "comparison for a specific version or a wildcard for any version",
-                    dependency.id
+                    dependency.id, dependency.version
                 );
             }
 
@@ -259,28 +263,28 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         deps.assertIs({ matjson::Type::Object, matjson::Type::Array });
         if (deps.isObject()) {
             for (auto& [id, dep] : deps.properties()) {
-                GEODE_UNWRAP(addDependency(id, dep, true));
+                GEODE_UNWRAP(addDependency(id, dep, false));
             }
         }
         else {
             for (auto& dep : deps.items()) {
-                GEODE_UNWRAP(addDependency(dep.needs("id").template get<std::string>(), dep, false));
+                GEODE_UNWRAP(addDependency(dep.needs("id").template get<std::string>(), dep, true));
             }
         }
     }
 
     if (auto incompats = root.has("incompatibilities")) {
-        auto addIncompat = [&impl](std::string const& id, JsonExpectedValue& incompat, bool allowStringShorthand) -> Result<> {
+        auto addIncompat = [&impl, ID_REGEX](std::string const& id, JsonExpectedValue& incompat, bool legacy) -> Result<> {
             if (!ModMetadata::Impl::validateOldID(id)) {
                 return Err("[mod.json].incompatibilities.\"{}\" is not a valid Mod ID ({})", id, ID_REGEX);
             }
 
             // todo in v5: array style wont exists so this bool will always be true
-            if (allowStringShorthand) {
-                incompat.assertIs({ matjson::Type::Object, matjson::Type::String });
+            if (legacy) {
+                incompat.assertIsObject();
             }
             else {
-                incompat.assertIsObject();
+                incompat.assertIs({ matjson::Type::Object, matjson::Type::String });
             }
 
             if (incompat.isObject()) {
@@ -307,19 +311,27 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
                 incompat.has("importance").into(incompatibility.importance);
                 incompat.checkUnknownKeys();
             }
+
+            // Check if parsing had errors
+            if (!incompat) {
+                return incompat.ok();
+            }
+
             impl->m_incompatibilities.push_back(incompatibility);
+
+            return Ok();
         };
 
         // todo in v5: make this always be an object
         incompats.assertIs({ matjson::Type::Object, matjson::Type::Array });
         if (incompats.isObject()) {
             for (auto& [id, incompat] : incompats.properties()) {
-                GEODE_UNWRAP(addIncompat(id, incompat, true));
+                GEODE_UNWRAP(addIncompat(id, incompat, false));
             }
         }
         else {
             for (auto& incompat : incompats.items()) {
-                GEODE_UNWRAP(addIncompat(incompat.needs("id").template get<std::string>(), incompat, false));
+                GEODE_UNWRAP(addIncompat(incompat.needs("id").template get<std::string>(), incompat, true));
             }
         }
     }

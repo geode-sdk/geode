@@ -35,6 +35,7 @@ DependencyLoadedEvent::DependencyLoadedEvent(Mod* target, Mod* dependency)
     m_impl->target = target;
     m_impl->dependency = dependency;
 }
+DependencyLoadedEvent::~DependencyLoadedEvent() = default;
 
 Mod* DependencyLoadedEvent::getTarget() const {
     return m_impl->target;
@@ -58,9 +59,27 @@ ListenerResult DependencyLoadedFilter::handle(std::function<Callback> fn, Depend
     return ListenerResult::Propagate;
 }
 
-DependencyLoadedFilter::DependencyLoadedFilter(Mod* target = geode::getMod())
+DependencyLoadedFilter::DependencyLoadedFilter(Mod* target)
   : m_impl(std::make_unique<Impl>())
 {
     m_impl->target = target;
 }
-DependencyLoadedFilter::DependencyLoadedFilter(DependencyLoadedFilter const&) = default;
+DependencyLoadedFilter::DependencyLoadedFilter(DependencyLoadedFilter const& other)
+  : m_impl(std::make_unique<Impl>())
+{
+    m_impl->target = other.m_impl->target;
+}
+DependencyLoadedFilter::DependencyLoadedFilter(DependencyLoadedFilter&& other)
+  : m_impl(std::move(other.m_impl))
+{}
+
+DependencyLoadedFilter& DependencyLoadedFilter::operator=(DependencyLoadedFilter const& other) {
+    m_impl->target = other.m_impl->target;
+    return *this;
+}
+DependencyLoadedFilter& DependencyLoadedFilter::operator=(DependencyLoadedFilter&& other) {
+    m_impl.reset(other.m_impl.release());
+    return *this;
+}
+
+DependencyLoadedFilter::~DependencyLoadedFilter() = default;

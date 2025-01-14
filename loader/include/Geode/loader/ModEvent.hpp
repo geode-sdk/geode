@@ -62,6 +62,7 @@ namespace geode {
     
     public:
         DependencyLoadedEvent(Mod* target, Mod* dependency);
+        virtual ~DependencyLoadedEvent();
 
         Mod* getTarget() const;
         Mod* getDependency() const;
@@ -83,7 +84,11 @@ namespace geode {
         ListenerResult handle(std::function<Callback> fn, DependencyLoadedEvent* event);
 
         DependencyLoadedFilter(Mod* target = geode::getMod());
+        DependencyLoadedFilter(DependencyLoadedFilter&&);
         DependencyLoadedFilter(DependencyLoadedFilter const&);
+        DependencyLoadedFilter& operator=(DependencyLoadedFilter const&);
+        DependencyLoadedFilter& operator=(DependencyLoadedFilter&&);
+        ~DependencyLoadedFilter();
     };
 }
 
