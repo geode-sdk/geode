@@ -74,6 +74,16 @@ void Loader::Impl::createDirectories() {
     }
 }
 
+void Loader::Impl::removeDirectories() {
+    // clean up of stale data from Geode v2
+    if(std::filesystem::exists(dirs::getGeodeDir() / "index")) {
+        std::thread([] {
+            std::error_code ec;
+            std::filesystem::remove_all(dirs::getGeodeDir() / "index", ec);
+        }).detach();
+    }
+}
+
 Result<> Loader::Impl::setup() {
     if (m_isSetup) {
         return Ok();
@@ -105,6 +115,7 @@ Result<> Loader::Impl::setup() {
     {
         log::NestScope nest;
         this->createDirectories();
+        this->removeDirectories();
         this->addSearchPaths();
     }
 
