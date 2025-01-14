@@ -40,7 +40,7 @@ struct SceneSwitch2 : Modify<SceneSwitch2, CCDirector> {
     #ifdef GEODE_IS_WINDOWS
         AppDelegate::get()->willSwitchToScene(m_pNextScene);
     #else
-        AchievementNotifier::get()->willSwitchToScene(m_pNextScene);
+        AchievementNotifier::sharedState()->willSwitchToScene(m_pNextScene);
     #endif
     }
 
@@ -49,7 +49,7 @@ struct SceneSwitch2 : Modify<SceneSwitch2, CCDirector> {
     #ifdef GEODE_IS_WINDOWS
         AppDelegate::get()->willSwitchToScene(m_pNextScene);
     #else
-        AchievementNotifier::get()->willSwitchToScene(m_pNextScene);
+        AchievementNotifier::sharedState()->willSwitchToScene(m_pNextScene);
     #endif
     }
 };
