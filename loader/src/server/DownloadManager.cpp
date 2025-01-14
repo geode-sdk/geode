@@ -153,8 +153,10 @@ public:
                 }
                 else {
                     m_status = DownloadStatusError {
-                        .details = value->string().unwrapOr("Unknown error"),
+                        .details = fmt::format("Server returned error {}", event->getValue()->code()),
                     };
+                    log::error("Failed to download {}, server returned error {}", m_id, event->getValue()->code());
+                    log::error("{}", event->getValue()->string().unwrapOr("No response"));
                 }
             }
             else if (auto progress = event->getProgress()) {
