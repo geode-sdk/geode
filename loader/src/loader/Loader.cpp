@@ -89,7 +89,7 @@ std::vector<LoadProblem> Loader::getOutdated() const {
 std::vector<LoadProblem> Loader::getRecommendations() const {
     std::vector<LoadProblem> result;
     for (auto problem : this->getAllProblems()) {
-        if (problem.isSuggestion()) {
+        if (problem.type == LoadProblem::Type::Recommendation) {
             result.push_back(problem);
         }
     }
