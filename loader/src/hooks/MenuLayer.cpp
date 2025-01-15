@@ -1,4 +1,5 @@
 #include "../ui/mods/ModsLayer.hpp"
+#include <Geode/loader/GameEvent.hpp>
 #include <Geode/modify/MenuLayer.hpp>
 #include <Geode/modify/Modify.hpp>
 #include <Geode/modify/IDManager.hpp>
@@ -213,6 +214,16 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
                     mod->getID()
                 );
             }
+        }
+
+        // Delay the event by a frame so that MenuLayer is already in the scene
+        // and popups show up fine
+        static bool gameEventPosted = false;
+        if (!gameEventPosted) {
+            gameEventPosted = true;
+            Loader::get()->queueInMainThread([] {
+                GameEvent(GameEventType::Loaded).post();
+            });
         }
     
         return true;
