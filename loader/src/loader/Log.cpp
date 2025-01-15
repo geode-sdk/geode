@@ -12,6 +12,7 @@
 #include <fmt/format.h>
 #include <iomanip>
 #include <memory>
+#include <ostream>
 #include <utility>
 
 using namespace geode::prelude;
@@ -243,9 +244,11 @@ void Logger::setup() {
             console::log(logStr, log.getSeverity());
         }
         if (log.getSeverity() >= fileLogLevel) {
-            m_logStream << logStr << std::endl;
+            m_logStream << fmt::format("{}\n", logStr);
         }
     }
+
+    m_logStream << std::flush;
 
     m_initialized = true;
 }
