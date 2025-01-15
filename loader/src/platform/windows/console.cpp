@@ -31,14 +31,6 @@ void setupConsole(bool forceUseEscapeCodes = false) {
             SetConsoleCursorPosition(s_outHandle, preInfo.dwCursorPosition);
         }
     }
-
-    Severity consoleLevel = log::Logger::get()->getConsoleLogLevel();
-
-    for (auto const& log : log::Logger::get()->list()) {
-        if (log.getSeverity() >= consoleLevel) {
-            console::log(log.toString(), log.getSeverity());
-        }
-    }
 }
 
 struct stdData {

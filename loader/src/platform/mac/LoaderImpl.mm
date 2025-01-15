@@ -87,14 +87,6 @@ void console::openIfClosed() {
     }
 
     s_isOpen = true;
-
-    Severity consoleLevel = log::Logger::get()->getConsoleLogLevel();
-
-    for (auto const& log : log::Logger::get()->list()) {
-        if (log.getSeverity() >= consoleLevel) {
-            console::log(log.toString(), log.getSeverity());
-        }
-    }
 }
 
 CFDataRef msgPortCallback(CFMessagePortRef port, SInt32 messageID, CFDataRef data, void* info) {
