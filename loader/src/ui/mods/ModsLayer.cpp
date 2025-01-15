@@ -770,8 +770,16 @@ void ModsLayer::onDisplay(CCObject* sender) {
 
     // Make sure to avoid a crash
     if (m_currentSource) {
+        if (m_lists.at(m_currentSource)->getDisplay() == m_modListDisplay) {
+            // No need to do stuff
+            return;
+        }
         m_lists.at(m_currentSource)->updateDisplay(m_modListDisplay);
-        m_lists.at(m_currentSource)->reloadPage();
+
+        // Hi, Flame here, I made all display types have the same page size
+        // So there's no need for this now
+        // If anything breaks, make sure to tell me I'm a dumbass
+        // m_lists.at(m_currentSource)->reloadPage();
     }
     this->updateState();
 }

@@ -5,12 +5,13 @@
 #include "../popups/SortPopup.hpp"
 #include "../GeodeStyle.hpp"
 #include "../ModsLayer.hpp"
+#include "ModItem.hpp"
 
 static size_t getDisplayPageSize(ModListSource* src, ModListDisplay display) {
     if (src->isLocalModsOnly() && Mod::get()->template getSettingValue<bool>("infinite-local-mods-list")) {
         return std::numeric_limits<size_t>::max();
     }
-    return display == ModListDisplay::Grid ? 16 : 10;
+    return 16;
 }
 
 $execute {
@@ -562,6 +563,10 @@ void ModList::updateTopContainer() {
 
     // ModList uses an anchor layout, so this puts the list in the right place
     this->updateLayout();
+}
+
+ModListDisplay ModList::getDisplay() {
+    return m_display;
 }
 
 void ModList::updateDisplay(ModListDisplay display) {

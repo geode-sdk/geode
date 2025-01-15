@@ -84,6 +84,7 @@ public:
 
     void updateState();
     void updateDisplay(ModListDisplay display);
+    ModListDisplay getDisplay();
     void activateSearch(bool activate);
     void setIsExiting(bool exiting);
 };
