@@ -7,17 +7,18 @@ using namespace geode::prelude;
 
 HANDLE s_outHandle = nullptr;
 bool s_useEscapeCodes = false;
+bool s_forceEscapeCodes = false;
 
-void setupConsole(bool forceUseEscapeCodes = false) {
+void setupConsole() {
     SetConsoleCP(CP_UTF8);
 
     // set output mode to handle ansi color sequences
     DWORD consoleMode = 0;
-    s_useEscapeCodes = forceUseEscapeCodes || GetConsoleMode(s_outHandle, &consoleMode) &&
+    s_useEscapeCodes = s_forceEscapeCodes || GetConsoleMode(s_outHandle, &consoleMode) &&
         SetConsoleMode(s_outHandle, consoleMode | ENABLE_PROCESSED_OUTPUT |
             ENABLE_VIRTUAL_TERMINAL_PROCESSING);
 
-    if (s_useEscapeCodes && !forceUseEscapeCodes) {
+    if (s_useEscapeCodes && !s_forceEscapeCodes) {
         // test if the console *actually* supports escape codes (thanks wine)
         s_useEscapeCodes = false;
         DWORD written;
@@ -127,7 +128,7 @@ void console::setup() {
         }
 
         // clion console supports escape codes but we can't query that because it's a named pipe
-        setupConsole(string::contains(path, "cidr-"));
+        s_forceEscapeCodes = string::contains(path, "cidr-");
     }
 
     auto oldStdout = _dup(_fileno(stdout));
