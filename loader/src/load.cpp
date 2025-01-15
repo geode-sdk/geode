@@ -151,17 +151,15 @@ int geodeEntry(void* platformData) {
         }
     }
 
+    tryShowForwardCompat();
+
+    if (Mod::get()->getSettingValue<bool>("show-platform-console")) {
+        console::openIfClosed();
+    }
+
     // Setup logger here so that internal mod is setup and we can read log level
     // Logging before this point does store the log, and everything gets logged in this setup call
     log::Logger::get()->setup();
-
-    tryShowForwardCompat();
-
-    // open console
-    if (!LoaderImpl::get()->isForwardCompatMode() &&
-        Mod::get()->getSettingValue<bool>("show-platform-console")) {
-        console::openIfClosed();
-    }
 
     // set up loader, load mods, etc.
     log::info("Setting up loader");
