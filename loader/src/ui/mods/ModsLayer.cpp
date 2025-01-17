@@ -378,6 +378,11 @@ bool ModsLayer::init() {
     actionsMenu->setContentHeight(200.f);
     actionsMenu->setAnchorPoint({ .5f, .0f });
 
+    auto rightActionsMenu = CCMenu::create();
+    rightActionsMenu->setID("right-actions-menu");
+    rightActionsMenu->setContentHeight(200.0f);
+    rightActionsMenu->setAnchorPoint({ .5f, .0f });
+
     auto reloadSpr = createGeodeCircleButton(
         CCSprite::createWithSpriteFrameName("reload.png"_spr), 1.f,
         CircleBaseSize::Medium
@@ -388,7 +393,7 @@ bool ModsLayer::init() {
         reloadSpr, this, menu_selector(ModsLayer::onRefreshList)
     );
     reloadBtn->setID("reload-button");
-    actionsMenu->addChild(reloadBtn);
+    rightActionsMenu->addChild(reloadBtn);
 
     auto settingsSpr = createGeodeCircleButton(
         CCSprite::createWithSpriteFrameName("settings.png"_spr), 1.f,
@@ -433,7 +438,21 @@ bool ModsLayer::init() {
         ColumnLayout::create()
             ->setAxisAlignment(AxisAlignment::Start)
     );
-    this->addChildAtPosition(actionsMenu, Anchor::BottomLeft, ccp(35, 12), false);
+
+    rightActionsMenu->setLayout(
+        ColumnLayout::create()
+            ->setAxisAlignment(AxisAlignment::Start)
+    );
+
+    // positioning based on size of mod list frame and maximum width of buttons
+    // i would apologize
+    auto actionsMenuX = std::min(35.0f, (winSize.width - 380.0f - 10.0f) / 4.0f);
+
+    // center buttons when the actionsMenu is moved
+    auto actionsMenuY = std::min(actionsMenuX - 20.0f, 12.0f);
+
+    this->addChildAtPosition(actionsMenu, Anchor::BottomLeft, ccp(actionsMenuX, actionsMenuY), false);
+    this->addChildAtPosition(rightActionsMenu, Anchor::BottomRight, ccp(-actionsMenuX, actionsMenuY), false);
 
     m_frame = CCNode::create();
     m_frame->setID("mod-list-frame");
