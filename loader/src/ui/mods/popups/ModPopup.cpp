@@ -83,7 +83,8 @@ bool ModPopup::setup(ModSource&& src) {
 
     this->setID(std::string(Mod::get()->expandSpriteName(fmt::format("popup-{}", src.getID()))));
 
-    if (src.asMod() == Mod::get()) {
+    auto isGeode = src.asMod() == Mod::get();
+    if (isGeode) {
         // Display commit hashes
         auto loaderHash = about::getLoaderCommitHash();
         auto bindingsHash = about::getBindingsCommitHash();
@@ -581,6 +582,10 @@ bool ModPopup::setup(ModSource&& src) {
     externalLinkBtn->setUserObject("url", CCString::create(modUrl));
     externalLinkBtn->setID("mod-online-page-button");
     m_buttonMenu->addChildAtPosition(externalLinkBtn, Anchor::TopRight, ccp(-14, -16));
+
+    if (isGeode) {
+        externalLinkBtn->setVisible(false);
+    }
 
     tabsMenu->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::Start));
     m_rightColumn->addChildAtPosition(tabsMenu, Anchor::Top);
