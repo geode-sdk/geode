@@ -14,6 +14,8 @@ enum class AxisScaling {
     Grow,
     // Fits the layout to the items
     Fit,
+    // Shrinks gaps if needed to fit, then scales down items
+    ScaleDownGaps,
 };
 
 enum class ScalingPriority {
