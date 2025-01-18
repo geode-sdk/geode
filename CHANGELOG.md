@@ -29,6 +29,7 @@
  * Icon for pending mod updates is now persistent (0969ec3)
  * Cleanup stale files from old index version (4d6c173)
  * Rename Loader to Geode in LoadingLayer text (203c819)
+ * Add `GEODE_BUNDLE_PDB` option in CMake to allow bundling PDB files with mods (#1134)
 
 ## v4.1.2
  * Prevent crashlog recursion on MacOS (a69c4c2)
