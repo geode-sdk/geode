@@ -531,11 +531,6 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
 bool crashlog::setupPlatformHandler() {
     SetUnhandledExceptionFilter(exceptionHandler);
 
-    g_unzippedSearchPaths.clear();
-    for (auto& mod : Loader::get()->getAllMods()) {
-        g_unzippedSearchPaths += mod->getTempDir().string() + ";";
-    }
-
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
     if (std::filesystem::exists(lastCrashedFile)) {
         g_lastLaunchCrashed = true;
@@ -552,7 +547,12 @@ bool crashlog::didLastLaunchCrash() {
     return g_lastLaunchCrashed;
 }
 
-void crashlog::setupPlatformHandlerPost() {}
+void crashlog::setupPlatformHandlerPost() {
+    g_unzippedSearchPaths.clear();
+    for (auto& mod : Loader::get()->getAllMods()) {
+        g_unzippedSearchPaths += mod->getTempDir().string() + ";";
+    }
+}
 
 std::filesystem::path crashlog::getCrashLogDirectory() {
     return dirs::getGeodeDir() / "crashlogs";
