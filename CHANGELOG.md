@@ -16,7 +16,7 @@
  * Cascade color and opacity for BasedButtonSprite (17107a2)
  * Add Event v2 classes, wrapper around current event system (728df4e)
  * Serialize std::filesystem::path as UTF-8 for matjson (#1210)
- * Improve UIPopup (56a8ced)
+ * Improve MDPopup (56a8ced)
  * Fix macOS file picker, add file ext filters (0b61b50, 241be1b, b8cff6d)
  * Add UUIDs for old GD versions on macOS (#1213)
  * Add CCFontSprite and CCSpriteExtra to cocos (#1194)
