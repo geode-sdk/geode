@@ -322,6 +322,7 @@ namespace enable_if_parsing {
             std::string op;
             if (auto peek = this->peekWord()) {
                 if (isUnOpWord(*peek)) {
+                    (void)this->nextWord();
                     op = *peek;
                 }
             }

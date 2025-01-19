@@ -1,5 +1,8 @@
 # Geode Changelog
 
+## v4.2.1
+ * Fix settings `enable-if` parsing
+
 ## v4.2.0
  * Implement gd::set for android (#1197, #1207)
  * Log levels for console and file logging (#1208)
