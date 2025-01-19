@@ -952,7 +952,7 @@ Result<tulip::hook::HandlerHandle> Loader::Impl::getHandler(void* address) {
 }
 
 Result<tulip::hook::HandlerHandle> Loader::Impl::getOrCreateHandler(void* address, tulip::hook::HandlerMetadata const& metadata) {
-    if (m_handlerHandles.count(address)) {
+    if (m_handlerHandles.count(address) && m_handlerHandles[address].second > 0) {
         m_handlerHandles[address].second++;
         return Ok(m_handlerHandles[address].first);
     }
