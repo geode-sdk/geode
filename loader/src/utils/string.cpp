@@ -144,13 +144,13 @@ size_t utils::string::count(std::string const& str, char countC) {
     return res;
 }
 
-
+constexpr char WHITESPACE[] = " \f\n\r\t\v";
 std::string& utils::string::trimLeftIP(std::string& str, std::string const& chars) {
     str.erase(0, str.find_first_not_of(chars));
     return str;
 }
 std::string& utils::string::trimLeftIP(std::string& str) {
-    return utils::string::trimLeftIP(str, " \f\n\r\t\v");
+    return utils::string::trimLeftIP(str, WHITESPACE);
 }
 
 std::string& utils::string::trimRightIP(std::string& str, std::string const& chars) {
@@ -158,7 +158,7 @@ std::string& utils::string::trimRightIP(std::string& str, std::string const& cha
     return str;
 }
 std::string& utils::string::trimRightIP(std::string& str) {
-    return utils::string::trimRightIP(str, " \f\n\r\t\v");
+    return utils::string::trimRightIP(str, WHITESPACE);
 }
 
 std::string& utils::string::trimIP(std::string& str, std::string const& chars) {
@@ -169,30 +169,25 @@ std::string& utils::string::trimIP(std::string& str) {
 }
 
 std::string utils::string::trimLeft(std::string const& str, std::string const& chars) {
-    auto s2 = str;
-    return utils::string::trimLeftIP(s2, chars);
+    return str.substr(str.find_first_not_of(chars));
 }
 std::string utils::string::trimLeft(std::string const& str) {
-    auto s2 = str;
-    return utils::string::trimLeftIP(s2);
+    return utils::string::trimLeft(str, WHITESPACE);
 }
 
 std::string utils::string::trimRight(std::string const& str, std::string const& chars) {
-    auto ret = str;
-    return utils::string::trimRightIP(ret, chars);
+    return str.substr(0, str.find_last_not_of(chars) + 1);
 }
 std::string utils::string::trimRight(std::string const& str) {
-    auto ret = str;
-    return utils::string::trimRightIP(ret);
+    return utils::string::trimRight(str, WHITESPACE);
 }
 
 std::string utils::string::trim(std::string const& str, std::string const& chars) {
-    auto ret = str;
-    return utils::string::trimIP(ret, chars);
+    size_t start = str.find_first_not_of(chars);
+    return str.substr(start, str.find_last_not_of(chars) + 1 - start);
 }
 std::string utils::string::trim(std::string const& str) {
-    auto ret = str;
-    return utils::string::trimIP(ret);
+    return utils::string::trim(str, WHITESPACE);
 }
 
 std::string& utils::string::normalizeIP(std::string& str) {
