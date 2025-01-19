@@ -144,41 +144,52 @@ size_t utils::string::count(std::string const& str, char countC) {
     return res;
 }
 
+
+std::string& utils::string::trimLeftIP(std::string& str, std::string const& chars) {
+    str.erase(0, str.find_first_not_of(chars));
+    return str;
+}
 std::string& utils::string::trimLeftIP(std::string& str) {
-    str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](auto ch) {
-                  return !std::isspace(ch);
-              }));
-    return str;
+    return utils::string::trimLeftIP(str, " \f\n\r\t\v");
 }
 
+std::string& utils::string::trimRightIP(std::string& str, std::string const& chars) {
+    str.erase(str.find_last_not_of(chars) + 1);
+    return str;
+}
 std::string& utils::string::trimRightIP(std::string& str) {
-    str.erase(
-        std::find_if(
-            str.rbegin(),
-            str.rend(),
-            [](auto ch) {
-                return !std::isspace(ch);
-            }
-        ).base(),
-        str.end()
-    );
-    return str;
+    return utils::string::trimRightIP(str, " \f\n\r\t\v");
 }
 
+std::string& utils::string::trimIP(std::string& str, std::string const& chars) {
+    return utils::string::trimLeftIP(utils::string::trimRightIP(str, chars), chars);
+}
 std::string& utils::string::trimIP(std::string& str) {
     return utils::string::trimLeftIP(utils::string::trimRightIP(str));
 }
 
+std::string utils::string::trimLeft(std::string const& str, std::string const& chars) {
+    auto s2 = str;
+    return utils::string::trimLeftIP(s2, chars);
+}
 std::string utils::string::trimLeft(std::string const& str) {
     auto s2 = str;
     return utils::string::trimLeftIP(s2);
 }
 
+std::string utils::string::trimRight(std::string const& str, std::string const& chars) {
+    auto ret = str;
+    return utils::string::trimRightIP(ret, chars);
+}
 std::string utils::string::trimRight(std::string const& str) {
     auto ret = str;
     return utils::string::trimRightIP(ret);
 }
 
+std::string utils::string::trim(std::string const& str, std::string const& chars) {
+    auto ret = str;
+    return utils::string::trimIP(ret, chars);
+}
 std::string utils::string::trim(std::string const& str) {
     auto ret = str;
     return utils::string::trimIP(ret);
