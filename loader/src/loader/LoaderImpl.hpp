@@ -72,7 +72,8 @@ namespace geode {
 
         Result<tulip::hook::HandlerHandle> getHandler(void* address);
         Result<tulip::hook::HandlerHandle> getOrCreateHandler(void* address, tulip::hook::HandlerMetadata const& metadata);
-        Result<tulip::hook::HandlerHandle> getOrRemoveHandler(void* address);
+        Result<tulip::hook::HandlerHandle> getAndDecreaseHandler(void* address);
+        Result<> removeHandlerIfNeeded(void* address);
 
         bool loadHooks();
 

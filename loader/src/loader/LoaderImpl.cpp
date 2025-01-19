@@ -962,16 +962,24 @@ Result<tulip::hook::HandlerHandle> Loader::Impl::getOrCreateHandler(void* addres
     return Ok(handle);
 }
 
-Result<tulip::hook::HandlerHandle> Loader::Impl::getOrRemoveHandler(void* address) {
+Result<tulip::hook::HandlerHandle> Loader::Impl::getAndDecreaseHandler(void* address) {
     if (!m_handlerHandles.count(address)) {
         return Err("Handler does not exist at address");
     }
     auto handle = m_handlerHandles[address].first;
-    if (m_handlerHandles[address].second == 1) {
-        GEODE_UNWRAP(tulip::hook::removeHandler(handle));
-    }
     m_handlerHandles[address].second--;
     return Ok(handle);
+}
+
+Result<> Loader::Impl::removeHandlerIfNeeded(void* address) {
+    if (!m_handlerHandles.count(address)) {
+        return Err("Handler does not exist at address");
+    }
+    auto handle = m_handlerHandles[address].first;
+    if (m_handlerHandles[address].second == 0) {
+        GEODE_UNWRAP(tulip::hook::removeHandler(handle));
+    }
+    return Ok();
 }
 
 bool Loader::Impl::isSafeMode() const {
