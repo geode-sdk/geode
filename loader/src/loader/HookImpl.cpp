@@ -82,7 +82,7 @@ Result<> Hook::Impl::enable() {
 Result<> Hook::Impl::disable() {
     if (!m_enabled)
         return Ok();
-    GEODE_UNWRAP_INTO(auto handler, LoaderImpl::get()->getHandler(m_address));
+    GEODE_UNWRAP_INTO(auto handler, LoaderImpl::get()->getOrRemoveHandler(m_address));
     tulip::hook::removeHook(handler, m_handle);
     m_enabled = false;
     log::debug("Disabled {} hook", m_displayName);

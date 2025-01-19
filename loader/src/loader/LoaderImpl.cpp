@@ -948,15 +948,29 @@ Result<tulip::hook::HandlerHandle> Loader::Impl::getHandler(void* address) {
     if (!m_handlerHandles.count(address)) {
         return Err("Handler does not exist at address");
     }
-    return Ok(m_handlerHandles[address]);
+    return Ok(m_handlerHandles[address].first);
 }
 
 Result<tulip::hook::HandlerHandle> Loader::Impl::getOrCreateHandler(void* address, tulip::hook::HandlerMetadata const& metadata) {
     if (m_handlerHandles.count(address)) {
-        return Ok(m_handlerHandles[address]);
+        m_handlerHandles[address].second++;
+        return Ok(m_handlerHandles[address].first);
     }
     GEODE_UNWRAP_INTO(auto handle, tulip::hook::createHandler(address, metadata));
-    m_handlerHandles[address] = handle;
+    m_handlerHandles[address].first = handle;
+    m_handlerHandles[address].second = 1;
+    return Ok(handle);
+}
+
+Result<tulip::hook::HandlerHandle> Loader::Impl::getOrRemoveHandler(void* address) {
+    if (!m_handlerHandles.count(address)) {
+        return Err("Handler does not exist at address");
+    }
+    auto handle = m_handlerHandles[address].first;
+    if (m_handlerHandles[address].second == 1) {
+        GEODE_UNWRAP(tulip::hook::removeHandler(handle));
+    }
+    m_handlerHandles[address].second--;
     return Ok(handle);
 }
 
