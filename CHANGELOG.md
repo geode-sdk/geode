@@ -1,7 +1,7 @@
 # Geode Changelog
 
 ## v4.2.1
- * Fix settings `enable-if` parsing
+ * Fix settings `enable-if` parsing (315bf46, 1542e29)
 
 ## v4.2.0
  * Implement gd::set for android (#1197, #1207)
