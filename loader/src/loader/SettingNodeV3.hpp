@@ -177,7 +177,8 @@ protected:
         }
 
         if (invoker != m_input) {
-            m_input->setString(numToString(this->getValue()));
+            // round to 5 decimal places to avoid floating point errors
+            m_input->setString(numToString(round(this->getValue() * 100000.0) / 100000.0));
         }
 
         auto min = this->getSetting()->getMinValue();
