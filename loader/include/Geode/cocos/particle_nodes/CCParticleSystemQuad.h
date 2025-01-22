@@ -119,7 +119,7 @@ struct ParticleStruct
     float frictionRot = .0f;
     float frictionRotVar = .0f;
 
-    gd::string sFrame = "";
+    gd::string sFrame;
 };
 
 /**
