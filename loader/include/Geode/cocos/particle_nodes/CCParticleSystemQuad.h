@@ -35,91 +35,91 @@ class CCSpriteFrame;
 
 struct ParticleStruct
 {
-    int TotalParticles;
-    float Duration;
-    float Life;
-    float LifeVar;
-    int EmissionRate;
-    int Angle;
-    int AngleVar;
-    int Speed;
-    int SpeedVar;
-    int PosVarX;
-    int PosVarY;
-    int GravityX;
-    int GravityY;
-    int RadialAccel;
-    int RadialAccelVar;
-    int TangentialAccel;
-    int TangentialAccelVar;
+    int TotalParticles = 0;
+    float Duration = .0f;
+    float Life = .0f;
+    float LifeVar = .0f;
+    int EmissionRate = 0;
+    int Angle = 0;
+    int AngleVar = 0;
+    int Speed = 0;
+    int SpeedVar = 0;
+    int PosVarX = 0;
+    int PosVarY = 0;
+    int GravityX = 0;
+    int GravityY = 0;
+    int RadialAccel = 0;
+    int RadialAccelVar = 0;
+    int TangentialAccel = 0;
+    int TangentialAccelVar = 0;
 
-    int StartSize;
-    int StartSizeVar;
-    int StartSpin;
-    int StartSpinVar;
-    float StartColorR;
-    float StartColorVarR;
-    float StartColorG;
-    float StartColorVarG;
-    float StartColorB;
-    float StartColorVarB;
-    float StartColorA;
-    float StartColorVarA;
+    int StartSize = 0;
+    int StartSizeVar = 0;
+    int StartSpin = 0;
+    int StartSpinVar = 0;
+    float StartColorR = .0f;
+    float StartColorVarR = .0f;
+    float StartColorG = .0f;
+    float StartColorVarG = .0f;
+    float StartColorB = .0f;
+    float StartColorVarB = .0f;
+    float StartColorA = .0f;
+    float StartColorVarA = .0f;
 
-    int EndSize;
-    int EndSizeVar;
-    int EndSpin;
-    int EndSpinVar;
-    float EndColorR;
-    float EndColorVarR;
-    float EndColorG;
-    float EndColorVarG;
-    float EndColorB;
-    float EndColorVarB;
-    float EndColorA;
-    float EndColorVarA;
- 
-    float FadeInTime;
-    float FadeInTimeVar;
-    float FadeOutTime;
-    float FadeOutTimeVar;
+    int EndSize = 0;
+    int EndSizeVar = 0;
+    int EndSpin = 0;
+    int EndSpinVar = 0;
+    float EndColorR = .0f;
+    float EndColorVarR = .0f;
+    float EndColorG = .0f;
+    float EndColorVarG = .0f;
+    float EndColorB = .0f;
+    float EndColorVarB = .0f;
+    float EndColorA = .0f;
+    float EndColorVarA = .0f;
 
-    int StartRadius;
-    int StartRadiusVar;
-    int EndRadius;
-    int EndRadiusVar;
-    int RotatePerSecond;
-    int RotatePerSecondVar;
+    float FadeInTime = .0f;
+    float FadeInTimeVar = .0f;
+    float FadeOutTime = .0f;
+    float FadeOutTimeVar = .0f;
 
-    int EmitterMode;
-    int PositionType;
-    bool isBlendAdditive;
-    bool startSpinEqualToEndSpin;
-    bool rotationIsDir;
-    bool dynamicRotationIsDir;
-    int customParticleIdx;
-    bool uniformColorMode;
+    int StartRadius = 0;
+    int StartRadiusVar = 0;
+    int EndRadius = 0;
+    int EndRadiusVar = 0;
+    int RotatePerSecond = 0;
+    int RotatePerSecondVar = 0;
 
-    float frictionPos;
-    float frictionPosVar;
+    int EmitterMode = 0;
+    int PositionType = 0;
+    bool isBlendAdditive = false;
+    bool startSpinEqualToEndSpin = false;
+    bool rotationIsDir = false;
+    bool dynamicRotationIsDir = false;
+    int customParticleIdx = 0;
+    bool uniformColorMode = false;
 
-    float respawn;
-    float respawnVar;
+    float frictionPos = .0f;
+    float frictionPosVar = .0f;
 
-    bool orderSensitive;
-    bool startSizeEqualToEndSize;
-    bool startRadiusEqualToEndRadius;
+    float respawn = .0f;
+    float respawnVar = .0f;
 
-    bool startRGBVarSync;
-    bool endRGBVarSync;
+    bool orderSensitive = false;
+    bool startSizeEqualToEndSize = false;
+    bool startRadiusEqualToEndRadius = false;
 
-    float frictionSize;
-    float frictionSizeVar;
+    bool startRGBVarSync = false;
+    bool endRGBVarSync = false;
 
-    float frictionRot;
-    float frictionRotVar;
+    float frictionSize = .0f;
+    float frictionSizeVar = .0f;
 
-    gd::string sFrame;
+    float frictionRot = .0f;
+    float frictionRotVar = .0f;
+
+    gd::string sFrame = "";
 };
 
 /**
