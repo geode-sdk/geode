@@ -52,7 +52,7 @@ struct ParticleStruct
     int RadialAccelVar;
     int TangentialAccel;
     int TangentialAccelVar;
- 
+
     int StartSize;
     int StartSizeVar;
     int StartSpin;
@@ -65,7 +65,7 @@ struct ParticleStruct
     float StartColorVarB;
     float StartColorA;
     float StartColorVarA;
- 
+
     int EndSize;
     int EndSizeVar;
     int EndSpin;
@@ -83,14 +83,14 @@ struct ParticleStruct
     float FadeInTimeVar;
     float FadeOutTime;
     float FadeOutTimeVar;
- 
+
     int StartRadius;
     int StartRadiusVar;
     int EndRadius;
     int EndRadiusVar;
     int RotatePerSecond;
     int RotatePerSecondVar;
- 
+
     int EmitterMode;
     int PositionType;
     bool isBlendAdditive;
@@ -99,113 +99,27 @@ struct ParticleStruct
     bool dynamicRotationIsDir;
     int customParticleIdx;
     bool uniformColorMode;
- 
+
     float frictionPos;
     float frictionPosVar;
- 
+
     float respawn;
     float respawnVar;
- 
+
     bool orderSensitive;
     bool startSizeEqualToEndSize;
     bool startRadiusEqualToEndRadius;
- 
+
     bool startRGBVarSync;
     bool endRGBVarSync;
- 
+
     float frictionSize;
     float frictionSizeVar;
- 
+
     float frictionRot;
     float frictionRotVar;
- 
+
     gd::string sFrame;
- 
-    ParticleStruct()
-        : TotalParticles(0)
-        , Duration(0)
-        , Life(0)
-        , LifeVar(0)
-        , EmissionRate(0)
-        , Angle(0)
-        , AngleVar(0)
-        , Speed(0)
-        , SpeedVar(0)
-        , PosVarX(0)
-        , PosVarY(0)
-        , GravityX(0)
-        , GravityY(0)
-        , RadialAccel(0)
-        , RadialAccelVar(0)
-        , TangentialAccel(0)
-        , TangentialAccelVar(0)
- 
-        , StartSize(0)
-        , StartSizeVar(0)
-        , StartSpin(0)
-        , StartSpinVar(0)
-        , StartColorR(0)
-        , StartColorVarR(0)
-        , StartColorG(0)
-        , StartColorVarG(0)
-        , StartColorB(0)
-        , StartColorVarB(0)
-        , StartColorA(0)
-        , StartColorVarA(0)
- 
-        , EndSize(0)
-        , EndSizeVar(0)
-        , EndSpin(0)
-        , EndSpinVar(0)
-        , EndColorR(0)
-        , EndColorVarR(0)
-        , EndColorG(0)
-        , EndColorVarG(0)
-        , EndColorB(0)
-        , EndColorVarB(0)
-        , EndColorA(0)
-        , EndColorVarA(0)
- 
-        , FadeInTime(0)
-        , FadeInTimeVar(0)
-        , FadeOutTime(0)
-        , FadeOutTimeVar(0)
- 
-        , StartRadius(0)
-        , StartRadiusVar(0)
-        , EndRadius(0)
-        , EndRadiusVar(0)
-        , RotatePerSecond(0)
-        , RotatePerSecondVar(0)
- 
-        , EmitterMode(0)
-        , PositionType(0)
-        , isBlendAdditive(false)
-        , startSpinEqualToEndSpin(false)
-        , rotationIsDir(false)
-        , dynamicRotationIsDir(false)
-        , customParticleIdx(0)
-        , uniformColorMode(false)
- 
-        , frictionPos(0)
-        , frictionPosVar(0)
- 
-        , respawn(0)
-        , respawnVar(0)
- 
-        , orderSensitive(false)
-        , startSizeEqualToEndSize(false)
-        , startRadiusEqualToEndRadius(false)
- 
-        , startRGBVarSync(false)
-        , endRGBVarSync(false)
- 
-        , frictionSize(0)
-        , frictionSizeVar(0)
- 
-        , frictionRot(0)
-        , frictionRotVar(0)
-    {}
 };
 
 /**
