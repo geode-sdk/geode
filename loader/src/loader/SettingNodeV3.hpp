@@ -113,6 +113,7 @@ protected:
         
         m_input = TextInput::create(this->getButtonMenu()->getContentWidth() - 40, "Num");
         m_input->setScale(.7f);
+        m_input->setCommonFilter(std::is_floating_point_v<typename S::ValueType> ? CommonFilter::Float : CommonFilter::Int);
         m_input->setCallback([this, setting](auto const& str) {
             this->setValue(numFromString<ValueType>(str).unwrapOr(setting->getDefaultValue()), m_input);
         });
@@ -176,7 +177,7 @@ protected:
             m_input->setEnabled(enable);
         }
 
-        if (invoker != m_input) {
+        if (invoker != m_input && (invoker != nullptr || !m_input->getInputNode()->m_selected)) {
             // round to 5 decimal places to avoid floating point errors
             m_input->setString(numToString(round(this->getValue() * 100000.0) / 100000.0));
         }
