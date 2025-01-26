@@ -2,6 +2,7 @@
 
 #include "../load.hpp"
 #include <Windows.h>
+#include <cstdlib>
 
 #include "loader/LoaderImpl.hpp"
 #include "loader/console.hpp"
@@ -187,7 +188,24 @@ int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 #define MSG_BOX_DEBUG(...)
 #endif
 
+bool isRunningOnWine() {
+    HMODULE ntdll = GetModuleHandleA("ntdll");
+    if (ntdll) {
+        FARPROC wine_get_version = GetProcAddress(ntdll, "wine_get_version");
+        return wine_get_version != nullptr;
+    }
+    return false;
+}
+
 std::string loadGeode() {
+    auto wine = isRunningOnWine();
+
+    if (wine) {
+        MessageBoxW(NULL, L"SCREW YOU FUCKING LINUX USERS", L"Geode", MB_ICONERROR);
+        exit(-1);
+        return "fuck you";
+    }
+
     auto process = GetCurrentProcess();
     auto dosHeader = reinterpret_cast<IMAGE_DOS_HEADER*>(geode::base::get());
     auto ntHeader = reinterpret_cast<PIMAGE_NT_HEADERS>(geode::base::get() + dosHeader->e_lfanew);
