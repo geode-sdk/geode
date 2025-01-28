@@ -37,12 +37,8 @@
 #include "../kazmath/include/kazmath/kazmath.h"
 #include "../script_support/CCScriptSupport.h"
 #include "../include/CCProtocols.h"
-#include "../../loader/Event.hpp"
+#include <Geode/loader/Event.hpp>
 #include <Geode/utils/casts.hpp>
-
-#ifndef GEODE_IS_MEMBER_TEST
-#include <matjson.hpp>
-#endif
 
 namespace geode {
     class Layout;
