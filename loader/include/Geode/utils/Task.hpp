@@ -10,7 +10,7 @@
 namespace geode {
     namespace geode_internal {
         template <class T, class P>
-        struct TaskPromise;
+        struct TaskPromiseBase;
 
         template <class T, class P>
         struct TaskAwaiter;
@@ -162,7 +162,7 @@ namespace geode {
             friend class Task;
 
             template <class, class>
-            friend struct geode_internal::TaskPromise;
+            friend struct geode_internal::TaskPromiseBase;
 
             template <class, class>
             friend struct geode_internal::TaskAwaiter;
@@ -323,7 +323,7 @@ namespace geode {
         friend class Task;
 
         template <class, class>
-        friend struct geode_internal::TaskPromise;
+        friend struct geode_internal::TaskPromiseBase;
 
         template <class, class>
         friend struct geode_internal::TaskAwaiter;
@@ -951,20 +951,22 @@ namespace geode {
 // ```
 
 namespace geode {
+    struct TaskVoid {};
+
     namespace geode_internal {
         template <class T, class P>
-        struct TaskPromise {
+        struct TaskPromiseBase {
             using MyTask = Task<T, P>;
             std::weak_ptr<typename MyTask::Handle> m_handle;
 
-            ~TaskPromise() {
+            ~TaskPromiseBase() {
                 // does nothing if its not pending
                 MyTask::cancel(m_handle.lock());
             }
 
             std::suspend_always initial_suspend() noexcept {
                 queueInMainThread([this] {
-                    std::coroutine_handle<TaskPromise>::from_promise(*this).resume();
+                    std::coroutine_handle<TaskPromiseBase>::from_promise(*this).resume();
                 });
                 return {};
             }
@@ -978,13 +980,13 @@ namespace geode {
                 return handle;
             }
 
-            void return_value(T x) {
-                MyTask::finish(m_handle.lock(), std::move(x));
-            }
-
             std::suspend_never yield_value(P value) {
                 MyTask::progress(m_handle.lock(), std::move(value));
                 return {};
+            }
+
+            void return_base(T value) {
+                MyTask::finish(m_handle.lock(), std::move(value));
             }
 
             bool isCancelled() {
@@ -992,6 +994,19 @@ namespace geode {
                     return p->is(MyTask::Status::Cancelled);
                 }
                 return true;
+            }
+        };
+
+        template <class T, class P>
+        struct TaskPromise : public TaskPromiseBase<T, P> {
+            void return_value(T value) {
+                this->return_base(value);
+            }
+        };
+        template <class P>
+        struct TaskPromise<TaskVoid, P> : public TaskPromiseBase<TaskVoid, P> {
+            void return_void() {
+                this->return_base({});
             }
         };
 
