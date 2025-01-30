@@ -19,5 +19,10 @@ namespace geode::event::v2 {
 	template <typename T>
 	struct EventHandler : public EventListener<WrapFilter<T>> {
 	    EventHandler(std::function<bool(T*)> filterFunc) : EventListener<WrapFilter<T>>(WrapFilter(filterFunc)) {}
+
+		EventHandler& listen(std::function<ListenerResult(T*)> fn) {
+			bind(fn);
+			return *this;
+		}
 	};
 }
