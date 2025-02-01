@@ -103,7 +103,7 @@ Result<int> api::addNumbers(int a, int b) {
 
 // once this is set in stone we should not change it ever
 #define GEODE_EVENT_EXPORT_ID_FOR(fnPtrStr, callArgsStr) \
-    (std::string(MY_MOD_ID "/") + (fnPtrStr[0] == '&' ? (fnPtrStr + 1) : fnPtrStr))
+    (std::string(MY_MOD_ID "/") + (fnPtrStr[0] == '&' ? &fnPtrStr[1] : fnPtrStr))
 
 #define GEODE_EVENT_EXPORT_CALL(fnPtr, callArgs, eventID)                  \
     {                                                                      \
