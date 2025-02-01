@@ -572,7 +572,7 @@ bool ModPopup::setup(ModSource&& src) {
     }
 
     // placeholder external link until versions tab is implemented
-    auto modUrl = fmt::format("https://geode-sdk.org/mods/{}", m_source.getID());
+    auto modUrl = fmt::format("http://localhost:8080/mods/{}", m_source.getID());
     auto externalLinkSpr = CCSprite::createWithSpriteFrameName("external-link.png"_spr);
 
     externalLinkSpr->setScale(0.35f);

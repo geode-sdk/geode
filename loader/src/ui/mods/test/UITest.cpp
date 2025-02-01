@@ -129,7 +129,7 @@ protected:
     }
 
     void makeRequest() {
-        auto task = web::WebRequest().get("https://api.geode-sdk.org/");
+        auto task = web::WebRequest().get("http://localhost:8080/");
         m_rawListener.setFilter(task);
         m_strListener.setFilter(task.map(
             [](auto* result) {
