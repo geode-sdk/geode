@@ -17,6 +17,9 @@ namespace geode {
         struct TaskAwaiter;
     }
 
+    template <typename T>
+    concept is_task_type = std::move_constructible<T> || std::same_as<T, void>;
+
     /**
      * Tasks represent an asynchronous operation that will be finished at some 
      * unknown point in the future. Tasks can report their progress, and will 
@@ -40,17 +43,17 @@ namespace geode {
      * Once a Task has finished or has been cancelled, it can no longer be 
      * revived
      * @tparam T The type the Task will eventually finish to. This type must be 
-     * move-constructible; though as there is no way to move the value out 
+     * move-constructible or void; though as there is no way to move the value out 
      * of the Task (because of potentially multiple listeners), one 
      * should ensure they can reasonably copy the value out in some form if they 
      * wish to gain ownership of it after the Task is finished
      * @tparam P The type of the progress values the Task (may) post
      */
-    template <typename T, std::move_constructible P = std::monostate>
-        requires std::move_constructible<T> || std::same_as<T, void>
+    template <is_task_type T, std::move_constructible P = std::monostate>
     class [[nodiscard]] Task final  {
-        using Type = std::conditional_t<std::same_as<T, void>, TaskVoid, T>;
     public:
+        using Type = std::conditional_t<std::same_as<T, void>, TaskVoid, T>;
+
         /**
          * A struct used for cancelling Tasks; Tasks may return an instance of
          * this struct to cancel themselves, or to mark they have handled 
@@ -78,8 +81,7 @@ namespace geode {
                 return m_value.index() == 1;
             }
 
-            template <typename T2, std::move_constructible P2>
-                requires std::move_constructible<T2> || std::same_as<T2, void>
+            template <is_task_type T2, std::move_constructible P2>
             friend class Task;
 
         public:
@@ -170,8 +172,7 @@ namespace geode {
                 return m_status == status;
             }
 
-            template <typename T2, std::move_constructible P2>
-                requires std::move_constructible<T2> || std::same_as<T2, void>
+            template <is_task_type T2, std::move_constructible P2>
             friend class Task;
 
             template <class, class>
@@ -227,8 +228,7 @@ namespace geode {
                 return Event(handle, std::variant<Type*, P*, Cancel>(std::in_place_index<2>, Cancel()));
             }
 
-            template <typename T2, std::move_constructible P2>
-                requires std::move_constructible<T2> || std::same_as<T2, void>
+            template <is_task_type T2, std::move_constructible P2>
             friend class Task;
 
         public:
@@ -333,8 +333,7 @@ namespace geode {
             }
         }
 
-        template <typename T2, std::move_constructible P2>
-            requires std::move_constructible<T2> || std::same_as<T2, void>
+        template <is_task_type T2, std::move_constructible P2>
         friend class Task;
 
         template <class, class>
@@ -1094,7 +1093,7 @@ namespace geode {
                 );
             }
 
-            T await_resume() {
+            Task<T, P>::Type await_resume() {
                 return std::move(*task.getFinishedValue());
             }
         };
