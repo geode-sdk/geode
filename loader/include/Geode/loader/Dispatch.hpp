@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Event.hpp"
+#include "../modify/Traits.hpp"
 
 #include <functional>
 #include <string>
@@ -107,27 +108,35 @@ Result<int> api::addNumbers(int a, int b) {
 
 #define GEODE_EVENT_EXPORT_CALL(fnPtr, callArgs, eventID)                  \
     {                                                                      \
-        static decltype(fnPtr) _functionStorage = [] {                     \
-            decltype(fnPtr) ptr = nullptr;                                 \
-            geode::DispatchEvent<decltype(fnPtr)*>(eventID, &ptr).post();  \
-            return ptr;                                                    \
+        static decltype(auto) _functionStorage = [] {                      \
+            using Type = decltype(fnPtr);                                  \
+            using StaticType = geode::modifier::AsStaticType<Type>::type;  \
+            Type ptr = nullptr;                                            \
+            geode::DispatchEvent<Type*>(eventID, &ptr).post();             \
+            return std::function<std::remove_pointer_t<StaticType>>(ptr);  \
         }();                                                               \
         if (!_functionStorage) return geode::Err("Unable to call method"); \
         return _functionStorage callArgs;                                  \
     }
 
-#define GEODE_EVENT_EXPORT_DEFINE(fnPtr, callArgs, eventID) \
-    ;                                                       \
-    $execute {                                              \
-        using Type = decltype(fnPtr);                       \
-        new geode::EventListener(                           \
-            +[](Type* ptr) {                                \
-                *ptr = fnPtr;                               \
-                return geode::ListenerResult::Stop;         \
-            },                                              \
-            geode::DispatchFilter<Type*>(eventID)           \
-        );                                                  \
-    }
+#define GEODE_EVENT_EXPORT_DEFINE(fnPtr, callArgs, eventID)                \
+    ;                                                                      \
+    template <auto>                                                        \
+    struct EventExportDefine;                                              \
+    template <>                                                            \
+    struct EventExportDefine<geode::modifier::FunctionUUID<fnPtr>::value> {\
+        using Type = decltype(fnPtr);                                      \
+        static inline bool val = (                                         \
+            new geode::EventListener(                                      \
+                +[](Type* ptr) {                                           \
+                    *ptr = fnPtr;                                          \
+                    return geode::ListenerResult::Stop;                    \
+                },                                                         \
+                geode::DispatchFilter<Type*>(eventID)                      \
+            ), true                                                        \
+        );                                                                 \
+        static inline auto nonOmitted = &val;                              \
+    };
 
 #ifndef GEODE_DEFINE_EVENT_EXPORTS
 
