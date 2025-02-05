@@ -209,7 +209,7 @@ namespace geode::utils::ranges {
     template <ValidContainer C, ValidCUnaryPredicate<C> Predicate>
     C filter(C const& container, Predicate filterFun) {
         auto res = C();
-        std::copy_if(container.begin(), container.end(), res.end(), filterFun);
+        std::copy_if(container.begin(), container.end(), std::back_inserter(res), filterFun);
         return res;
     }
 
