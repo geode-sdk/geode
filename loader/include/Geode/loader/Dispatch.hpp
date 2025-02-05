@@ -106,36 +106,43 @@ Result<int> api::addNumbers(int a, int b) {
 #define GEODE_EVENT_EXPORT_ID_FOR(fnPtrStr, callArgsStr) \
     (std::string(MY_MOD_ID "/") + (fnPtrStr[0] == '&' ? &fnPtrStr[1] : fnPtrStr))
 
-#define GEODE_EVENT_EXPORT_CALL(fnPtr, callArgs, eventID)                  \
-    {                                                                      \
-        static decltype(auto) _functionStorage = [] {                      \
-            using Type = decltype(fnPtr);                                  \
-            using StaticType = geode::modifier::AsStaticType<Type>::type;  \
-            Type ptr = nullptr;                                            \
-            geode::DispatchEvent<Type*>(eventID, &ptr).post();             \
-            return std::function<std::remove_pointer_t<StaticType>>(ptr);  \
-        }();                                                               \
-        if (!_functionStorage) return geode::Err("Unable to call method"); \
-        return _functionStorage callArgs;                                  \
+namespace geode::modifier {
+    template <class Fn>
+    inline auto callEventExportListener(Fn fnPtr, auto eventID) {
+        using StaticType = geode::modifier::AsStaticType<Fn>::type;
+        Fn ptr = nullptr;
+        geode::DispatchEvent<Fn*>(eventID, &ptr).post();
+        return std::function<std::remove_pointer_t<StaticType>>(ptr);
     }
 
-#define GEODE_EVENT_EXPORT_DEFINE(fnPtr, callArgs, eventID)                \
-    ;                                                                      \
-    template <auto>                                                        \
-    struct EventExportDefine;                                              \
-    template <>                                                            \
-    struct EventExportDefine<geode::modifier::FunctionUUID<fnPtr>::value> {\
-        using Type = decltype(fnPtr);                                      \
-        static inline bool val = (                                         \
-            new geode::EventListener(                                      \
-                +[](Type* ptr) {                                           \
-                    *ptr = fnPtr;                                          \
-                    return geode::ListenerResult::Stop;                    \
-                },                                                         \
-                geode::DispatchFilter<Type*>(eventID)                      \
-            ), true                                                        \
-        );                                                                 \
-        static inline auto nonOmitted = &val;                              \
+    template <class Fn>
+    inline bool getEventExportListener(Fn fnPtr, auto eventID) {
+        new geode::EventListener(
+            [=](Fn* ptr) {
+                *ptr = fnPtr;
+                return geode::ListenerResult::Stop;
+            }, 
+            geode::DispatchFilter<Fn*>(eventID)
+        );
+        return true;
+    }
+}
+
+#define GEODE_EVENT_EXPORT_CALL(fnPtr, callArgs, eventID)                               \
+    {                                                                                   \
+        static auto storage = geode::modifier::callEventExportListener(fnPtr, eventID); \
+        if (!storage) return geode::Err("Unable to call method");                       \
+        return storage callArgs;                                                        \
+    }
+
+#define GEODE_EVENT_EXPORT_DEFINE(fnPtr, callArgs, eventID)                                     \
+    ;                                                                                           \
+    template <auto>                                                                             \
+    struct EventExportDefine;                                                                   \
+    template <>                                                                                 \
+    struct EventExportDefine<geode::modifier::FunctionUUID<fnPtr>::value> {                     \
+        static inline bool val = geode::modifier::getEventExportListener(fnPtr, eventID);       \
+        static inline auto nonOmitted = &val;                                                   \
     };
 
 #ifndef GEODE_DEFINE_EVENT_EXPORTS
