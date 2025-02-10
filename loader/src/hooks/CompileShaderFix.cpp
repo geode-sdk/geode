@@ -30,7 +30,7 @@ $execute {
     ) + 0xdc;
 
     (void) Mod::get()->patch(reinterpret_cast<void*>(addr), {
-        0xf5, 0xff, 0xff, 0x17 // b -11 (to a nearby ret)
+        0xef, 0xff, 0xff, 0x17 // b -11 (to a nearby ret)
     });
 #endif
 #else
