@@ -27,10 +27,18 @@ $execute {
 #elif defined(GEODE_IS_ANDROID64)
     auto addr = reinterpret_cast<uintptr_t>(
         dlsym(RTLD_DEFAULT, "_ZN7cocos2d11CCGLProgram13compileShaderEPjjPKc")
-    ) + 0xdc;
+    ) + 0x74;
 
     (void) Mod::get()->patch(reinterpret_cast<void*>(addr), {
-        0xef, 0xff, 0xff, 0x17 // b -17 (to a nearby ret)
+        0x1f, 0x20, 0x03, 0xd5 // nop (skip if statement)
+    });
+#elif defined(GEODE_IS_ANDROID32)
+    auto addr = reinterpret_cast<uintptr_t>(
+        dlsym(RTLD_DEFAULT, "_ZN7cocos2d11CCGLProgram13compileShaderEPjjPKc")
+    ) + 0x44;
+
+    (void) Mod::get()->patch(reinterpret_cast<void*>(addr), {
+        0x14, 0xe0 // b +2c (skip if statement)
     });
 #endif
 #else
