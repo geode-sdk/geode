@@ -35,7 +35,9 @@ $execute {
 #elif defined(GEODE_IS_ANDROID32)
     auto addr = reinterpret_cast<uintptr_t>(
         dlsym(RTLD_DEFAULT, "_ZN7cocos2d11CCGLProgram13compileShaderEPjjPKc")
-    ) + 0x44;
+    );
+    log::info("Patching CCGLProgram::compileShader at 0x{:x} + 0x44", addr);
+    addr += 0x44;
 
     (void) Mod::get()->patch(reinterpret_cast<void*>(addr), {
         0x14, 0xe0 // b +2c (skip if statement)
