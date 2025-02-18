@@ -238,7 +238,7 @@ namespace geode::utils::ranges {
     typename C::value_type min(C const& container) {
         auto it = std::min_element(container.begin(), container.end());
         if (it == container.end()) {
-            return C::value_type();
+            return typename C::value_type();
         }
         return *it;
     }
@@ -264,7 +264,7 @@ namespace geode::utils::ranges {
     typename C::value_type max(C const& container) {
         auto it = std::max_element(container.begin(), container.end());
         if (it == container.end()) {
-            return C::value_type();
+            return typename C::value_type();
         }
         return *it;
     }
