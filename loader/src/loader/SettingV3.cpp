@@ -585,6 +585,12 @@ std::string SettingV3::getDisplayName() const {
 std::optional<std::string> SettingV3::getDescription() const {
     return m_impl->description;
 }
+void SettingV3::setDisplayName(std::string_view name) {
+	m_impl->name = name;
+}
+void SettingV3::setDescription(std::string_view description) {
+	m_impl->description = description;
+}
 std::optional<std::string> SettingV3::getEnableIf() const {
     return m_impl->enableIf;
 }
