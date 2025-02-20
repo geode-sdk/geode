@@ -233,7 +233,7 @@ class CC_DLL CCRepeatForever : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCRepeatForerver, CCActionInterval);
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCRepeatForever, CCActionInterval)
     /**
      *  @js ctor
      */
