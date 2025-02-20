@@ -1,14 +1,14 @@
 #ifndef __DS_DICTIONARY_H__
 #define __DS_DICTIONARY_H__
 
+#include "pugixml.hpp"
 #include <vector>
 #include "../../include/cocos2d.h"
 
 class CC_DLL DS_Dictionary {
 public:
-    // Following 2 fields use pugixml, to prevent incompatibilities the 2 fields are padded out
-    PAD(200); // pugi::xml_document doc;
-    PAD(sizeof(gd::vector<void*>)); // gd::vector<pugi::xml_node> dictTree;
+	pugi::xml_document doc;
+	gd::vector<pugi::xml_node> dictTree;
 	bool compatible;
 
 public:
