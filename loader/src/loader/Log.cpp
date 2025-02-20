@@ -92,6 +92,10 @@ std::string cocos2d::format_as(cocos2d::ccColor4B const& col) {
     return fmt::format("rgba({}, {}, {}, {})", col.r, col.g, col.b, col.a);
 }
 
+std::string cocos2d::format_as(cocos2d::ccColor4F const& col) {
+    return fmt::format("rgba({}, {}, {}, {})", col.r, col.g, col.b, col.a);
+}
+
 // Log
 
 inline static thread_local int32_t s_nestLevel = 0;
