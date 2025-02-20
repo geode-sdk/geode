@@ -4,8 +4,8 @@
 #include <Geode/loader/Mod.hpp>
 #include <loader/ModMetadataImpl.hpp>
 #include <optional>
-#include <string_view>
 #include <server/Server.hpp>
+#include <string_view>
 
 using namespace geode::prelude;
 
@@ -123,7 +123,9 @@ Mod::CheckUpdatesTask Mod::checkUpdates() const {
             auto err = result->unwrapErr();
             return Err("{} (code {})", err.details, err.code);
         },
-        [](auto*) { return std::monostate(); }
+        [](auto*) {
+            return std::monostate();
+        }
     );
 }
 
@@ -161,6 +163,18 @@ bool Mod::hasSetting(std::string_view key) const {
 
 std::shared_ptr<Setting> Mod::getSetting(std::string_view key) const {
     return m_impl->m_settings->get(std::string(key));
+}
+
+void Mod::setSettingName(std::string_view key, std::string const& name) {
+    if (auto setting = getSetting(key)) {
+        setting->setDisplayName(name);
+    }
+}
+
+void Mod::setSettingDescription(std::string_view key, std::string const& description) {
+    if (auto setting = getSetting(key)) {
+        setting->setDescription(description);
+    }
 }
 
 Result<> Mod::registerCustomSettingType(std::string_view type, SettingGenerator generator) {
@@ -262,6 +276,7 @@ bool Mod::hasSavedValue(std::string_view key) {
 bool Mod::hasLoadProblems() const {
     return m_impl->hasLoadProblems();
 }
+
 std::optional<LoadProblem> Mod::targetsOutdatedVersion() const {
     for (auto problem : this->getAllProblems()) {
         if (problem.isOutdated()) {
@@ -270,9 +285,11 @@ std::optional<LoadProblem> Mod::targetsOutdatedVersion() const {
     }
     return std::nullopt;
 }
+
 std::vector<LoadProblem> Mod::getAllProblems() const {
     return m_impl->getProblems();
 }
+
 std::vector<LoadProblem> Mod::getProblems() const {
     std::vector<LoadProblem> result;
     for (auto problem : this->getAllProblems()) {
@@ -282,6 +299,7 @@ std::vector<LoadProblem> Mod::getProblems() const {
     }
     return result;
 }
+
 std::vector<LoadProblem> Mod::getRecommendations() const {
     std::vector<LoadProblem> result;
     for (auto problem : this->getAllProblems()) {
@@ -291,9 +309,11 @@ std::vector<LoadProblem> Mod::getRecommendations() const {
     }
     return result;
 }
+
 bool Mod::shouldLoad() const {
     return m_impl->shouldLoad();
 }
+
 bool Mod::isCurrentlyLoading() const {
     return m_impl->isCurrentlyLoading();
 }

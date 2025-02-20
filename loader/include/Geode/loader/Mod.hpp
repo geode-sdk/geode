@@ -2,17 +2,16 @@
 
 #include "../DefaultInclude.hpp"
 #include "../cocos/support/zip_support/ZipUtils.h"
-#include <Geode/Result.hpp>
 #include "../utils/VersionInfo.hpp"
 #include "../utils/general.hpp"
-
-#include "Loader.hpp" // very nice circular dependency fix
 #include "Hook.hpp"
+#include "Loader.hpp" // very nice circular dependency fix
+#include "Loader.hpp"
 #include "ModMetadata.hpp"
 #include "Setting.hpp"
 #include "Types.hpp"
-#include "Loader.hpp"
 
+#include <Geode/Result.hpp>
 #include <matjson.hpp>
 #include <matjson/stl_serialize.hpp>
 #include <optional>
@@ -22,7 +21,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace geode {    
+namespace geode {
     template <class T>
     struct HandleToSaved : public T {
         Mod* m_mod;
@@ -48,8 +47,10 @@ namespace geode {
     static constexpr bool modRequestedActionIsToggle(ModRequestedAction action) {
         return action == ModRequestedAction::Enable || action == ModRequestedAction::Disable;
     }
+
     static constexpr bool modRequestedActionIsUninstall(ModRequestedAction action) {
-        return action == ModRequestedAction::Uninstall || action == ModRequestedAction::UninstallWithSaveData;
+        return action == ModRequestedAction::Uninstall ||
+            action == ModRequestedAction::UninstallWithSaveData;
     }
 
     GEODE_HIDDEN Mod* takeNextLoaderMod();
@@ -113,11 +114,11 @@ namespace geode {
         std::filesystem::path getResourcesDir() const;
 
         /**
-         * Get the dependency settings for a specific dependency via its ID. For 
-         * example, if this mod depends on Custom Keybinds, it can specify the 
-         * keybinds it wants to add in `mod.json` under 
+         * Get the dependency settings for a specific dependency via its ID. For
+         * example, if this mod depends on Custom Keybinds, it can specify the
+         * keybinds it wants to add in `mod.json` under
          * `dependencies."geode.custom-keybinds".settings.keybinds`
-         * @returns Null JSON value if there are no settings or if the mod 
+         * @returns Null JSON value if there are no settings or if the mod
          * doesn't depend on the given mod ID
          */
         matjson::Value getDependencySettingsFor(std::string_view dependencyID) const;
@@ -129,13 +130,13 @@ namespace geode {
 
         using CheckUpdatesTask = Task<Result<std::optional<VersionInfo>, std::string>>;
         /**
-         * Check if this Mod has updates available on the mods index. If 
-         * you're using this for automatic update checking, use 
-         * `openInfoPopup` from the `ui/GeodeUI.hpp` header to open the Mod's 
+         * Check if this Mod has updates available on the mods index. If
+         * you're using this for automatic update checking, use
+         * `openInfoPopup` from the `ui/GeodeUI.hpp` header to open the Mod's
          * page to let the user install the update
-         * @returns A task that resolves to an option, either the latest 
-         * available version on the index if there are updates available, or 
-         * `std::nullopt` if there are no updates. On error, the Task returns 
+         * @returns A task that resolves to an option, either the latest
+         * available version on the index if there are updates available, or
+         * `std::nullopt` if there are no updates. On error, the Task returns
          * an error
          */
         CheckUpdatesTask checkUpdates() const;
@@ -162,26 +163,26 @@ namespace geode {
          */
         bool hasSettings() const;
         /**
-         * Get a list of all this mod's setting keys (in the order they were 
+         * Get a list of all this mod's setting keys (in the order they were
          * declared in `mod.json`)
          */
         std::vector<std::string> getSettingKeys() const;
         bool hasSetting(std::string_view key) const;
 
         /**
-         * Get the definition of a setting, or null if the setting was not found, 
-         * or if it's a custom setting that has not yet been registered using 
+         * Get the definition of a setting, or null if the setting was not found,
+         * or if it's a custom setting that has not yet been registered using
          * `Mod::registerCustomSettingType`
          * @param key The key of the setting as defined in `mod.json`
          */
         std::shared_ptr<Setting> getSetting(std::string_view key) const;
 
         /**
-         * Register a custom setting type. See 
+         * Register a custom setting type. See
          * [the setting docs](https://docs.geode-sdk.org/mods/settings) for more
-         * @param type The type of the setting. This should **not** include the 
+         * @param type The type of the setting. This should **not** include the
          * `custom:` prefix!
-         * @param generator A pointer to a function that, when called, returns a 
+         * @param generator A pointer to a function that, when called, returns a
          * newly-created instance of the setting type
          */
         Result<> registerCustomSettingType(std::string_view type, SettingGenerator generator);
@@ -215,6 +216,7 @@ namespace geode {
          * @param name The argument name
          */
         bool getLaunchFlag(std::string_view name) const;
+
         /**
          * Equivalent to a prefixed `Loader::parseLaunchArgument` call. See `Mod::getLaunchArgument`
          * for details about mod-specific launch arguments.
@@ -229,9 +231,9 @@ namespace geode {
         matjson::Value& getSavedSettingsData();
 
         /**
-         * Get the value of a [setting](https://docs.geode-sdk.org/mods/settings). 
-         * To use this for custom settings, first specialize the 
-         * `SettingTypeForValueType` class, and then make sure your custom 
+         * Get the value of a [setting](https://docs.geode-sdk.org/mods/settings).
+         * To use this for custom settings, first specialize the
+         * `SettingTypeForValueType` class, and then make sure your custom
          * setting type has a `getValue` function which returns the value
          */
         template <class T>
@@ -260,8 +262,9 @@ namespace geode {
         T getSavedValue(std::string_view key) {
             auto& saved = this->getSaveContainer();
             if (auto res = saved.get(key).andThen([](auto&& v) {
-                return v.template as<T>();
-            }); res.isOk()) {
+                    return v.template as<T>();
+                });
+                res.isOk()) {
                 return res.unwrap();
             }
             return T();
@@ -271,8 +274,9 @@ namespace geode {
         T getSavedValue(std::string_view key, T const& defaultValue) {
             auto& saved = this->getSaveContainer();
             if (auto res = saved.get(key).andThen([](auto&& v) {
-                return v.template as<T>();
-            }); res.isOk()) {
+                    return v.template as<T>();
+                });
+                res.isOk()) {
                 return res.unwrap();
             }
             saved[key] = matjson::Value(defaultValue);
@@ -293,6 +297,20 @@ namespace geode {
             saved[key] = value;
             return old;
         }
+
+        /**
+         * Set the name of a setting.
+         * @param key Setting key
+         * @param name New name
+         */
+        void setSettingName(std::string_view key, std::string const& name);
+
+        /**
+         * Set the description of a setting.
+         * @param key Setting key
+         * @param description New description
+         */
+        void setSettingDescription(std::string_view key, std::string const& description);
 
         /**
          * Get the Mod of the current mod being developed
@@ -321,7 +339,7 @@ namespace geode {
          * Hook pointer, errorful result with info on
          * error
          */
-        template<class DetourType>
+        template <class DetourType>
         Result<Hook*> hook(
             void* address, DetourType detour, std::string const& displayName = "",
             tulip::hook::TulipConvention convention = tulip::hook::TulipConvention::Default,
@@ -458,13 +476,13 @@ namespace geode {
         void setLoggingEnabled(bool enabled);
 
         /**
-         * If this mod is built for an outdated GD or Geode version, returns the 
-         * `LoadProblem` describing the situation. Otherwise `nullopt` if the 
+         * If this mod is built for an outdated GD or Geode version, returns the
+         * `LoadProblem` describing the situation. Otherwise `nullopt` if the
          * mod is made for the correct version of the game and Geode
          */
         std::optional<LoadProblem> targetsOutdatedVersion() const;
         /**
-         * @note Make sure to also call `targetsOutdatedVersion` if you want to 
+         * @note Make sure to also call `targetsOutdatedVersion` if you want to
          * make sure the mod is actually loadable
          */
         bool hasLoadProblems() const;
@@ -484,7 +502,8 @@ namespace geode::geode_internal {
     struct StringConcatModIDSlash {
         static constexpr size_t extra = sizeof(GEODE_MOD_ID);
         char buffer[extra + N]{};
-        constexpr StringConcatModIDSlash(const char (&pp)[N]) {
+
+        constexpr StringConcatModIDSlash(char const (&pp)[N]) {
             char id[] = GEODE_MOD_ID;
             for (int i = 0; i < sizeof(id); ++i) {
                 buffer[i] = id[i];
