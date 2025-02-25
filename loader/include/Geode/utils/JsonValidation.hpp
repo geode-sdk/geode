@@ -183,6 +183,7 @@ namespace geode {
         }
         template <class T>
         JsonExpectedValue& into(std::optional<T>& value) {
+            if (this->isNull()) return *this;
             if (auto v = this->tryGet<T>()) {
                 value.emplace(*std::move(v));
             }

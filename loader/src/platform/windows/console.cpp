@@ -31,10 +31,6 @@ void setupConsole(bool forceUseEscapeCodes = false) {
             SetConsoleCursorPosition(s_outHandle, preInfo.dwCursorPosition);
         }
     }
-
-    for (auto const& log : log::Logger::get()->list()) {
-        console::log(log.toString(), log.getSeverity());
-    }
 }
 
 struct stdData {

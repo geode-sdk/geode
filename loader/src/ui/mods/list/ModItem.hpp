@@ -12,6 +12,45 @@
 
 using namespace geode::prelude;
 
+enum class ModListDisplay {
+    SmallList,
+    BigList,
+    Grid,
+};
+
+// i made it this way just in case someone wanted to add to the enum in the future
+// mat is allowed to judge
+template<>
+struct matjson::Serialize<ModListDisplay> {
+    static Result<ModListDisplay> fromJson(matjson::Value const& value) {
+        auto saved = GEODE_UNWRAP(value.asString());
+        if (saved == "small-list") {
+            return Ok(ModListDisplay::SmallList);
+        } else if (saved == "big-list") {
+            return Ok(ModListDisplay::BigList);
+        } else if (saved == "grid") {
+            return Ok(ModListDisplay::Grid);
+        }
+
+        return Err("unknown display type");
+    }
+
+    static matjson::Value toJson(ModListDisplay const& value) {
+        switch (value) {
+            default:
+            case ModListDisplay::SmallList:
+                return "small-list";
+                break;
+            case ModListDisplay::BigList:
+                return "big-list";
+                break;
+            case ModListDisplay::Grid:
+                return "grid";
+                break;
+        }
+    }
+};
+
 class ModItem : public CCNode {
 protected:
     ModSource m_source;
@@ -19,10 +58,11 @@ protected:
     CCNode* m_logo;
     CCNode* m_infoContainer;
     CCNode* m_titleContainer;
-    CCLabelBMFont* m_titleLabel;
+    Ref<CCLabelBMFont> m_titleLabel;
     CCLabelBMFont* m_versionLabel;
     CCNode* m_developers;
     CCNode* m_recommendedBy;
+    CCScale9Sprite* m_description;
     CCLabelBMFont* m_developerLabel;
     ButtonSprite* m_restartRequiredLabel;
     ButtonSprite* m_outdatedLabel;
@@ -37,6 +77,11 @@ protected:
     EventListener<server::ModDownloadFilter> m_downloadListener;
     std::optional<server::ServerModUpdate> m_availableUpdate;
     EventListener<EventFilter<SettingNodeValueChangeEvent>> m_settingNodeListener;
+    Ref<CCNode> m_badgeContainer = nullptr;
+    Ref<CCNode> m_downloadCountContainer;
+    ModListDisplay m_display = ModListDisplay::SmallList;
+    float m_targetWidth = 300;
+    CCLabelBMFont* m_versionDownloadSeparator;
 
     /**
      * @warning Make sure `getMetadata` and `createModLogo` are callable 
@@ -57,7 +102,7 @@ protected:
 public:
     static ModItem* create(ModSource&& source);
 
-    void updateSize(float width, bool big);
+    void updateDisplay(float width, ModListDisplay display);
 
     ModSource& getSource() &;
 };

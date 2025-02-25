@@ -62,7 +62,7 @@ public:
     CCControlColourPicker();
     virtual ~CCControlColourPicker();
 
-protected:
+public:
     // @note RobTop Addition
     ccColor3B m_rgb;
     HSV m_hsv;

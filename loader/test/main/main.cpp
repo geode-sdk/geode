@@ -1,7 +1,9 @@
 #include <Geode/Loader.hpp>
 #include <Geode/loader/ModEvent.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <chrono>
 #include "../dependency/main.hpp"
+#include "Geode/utils/general.hpp"
 
 using namespace geode::prelude;
 
@@ -25,6 +27,39 @@ $execute {
     });
 }
 
+// Coroutines
+#include <Geode/utils/async.hpp>
+auto advanceFrame() {
+    auto [task, finish, progress, cancelled] = Task<void>::spawn();
+    queueInMainThread(std::bind(finish, true));
+
+    return task;
+}
+
+$execute {
+    $async() {
+        auto start = std::chrono::steady_clock::now();
+        log::info("Waiting for 10 frames...");
+        for (int i = 0; i < 10; ++i)
+            co_await advanceFrame();
+
+        log::info("Finished waiting! Took {} seconds", std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::steady_clock::now() - start
+        ).count());
+    };
+
+    auto output = $try<VersionInfo> {
+        log::info("Parsing number 123: {}", co_await utils::numFromString<int>("123"));
+        log::info("Parsing number 12.3: {}", co_await utils::numFromString<int>("12.3"));
+
+        co_return VersionInfo::parse("1.2.3-alpha.4");
+    };
+
+    if (!output) {
+        log::info("$try successfully caught error");
+    }
+}
+
 #include <Geode/modify/MenuLayer.hpp>
 struct $modify(MenuLayer) {
     bool init() {
@@ -39,23 +74,26 @@ struct $modify(MenuLayer) {
 
         // Launch arguments
         log::info("Testing launch args...");
-        log::pushNest();
+        log::NestScope nest;
         log::info("For global context:");
-        log::pushNest();
-        for (const auto& arg : Loader::get()->getLaunchArgumentNames()) {
-            log::info("{}", arg);
+        {
+            log::NestScope nest;
+            for (const auto& arg : Loader::get()->getLaunchArgumentNames()) {
+                log::info("{}", arg);
+            }
         }
-        log::popNest();
         log::info("For this mod:");
-        log::pushNest();
-        for (const auto& arg : Mod::get()->getLaunchArgumentNames()) {
-            log::info("{}", arg);
+        {
+            log::NestScope nest;
+            for (const auto& arg : Mod::get()->getLaunchArgumentNames()) {
+                log::info("{}", arg);
+            }
         }
-        log::popNest();
         log::info("Mod has launch arg 'mod-arg': {}", Mod::get()->hasLaunchArgument("mod-arg"));
         log::info("Loader flag 'bool-arg': {}", Loader::get()->getLaunchFlag("bool-arg"));
         log::info("Loader int 'int-arg': {}", Loader::get()->parseLaunchArgument<int>("int-arg").unwrapOr(0));
-        log::popNest();
+
+        log::debug("should run second!");
 
         return true;
     }

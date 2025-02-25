@@ -172,16 +172,6 @@ ModSettingsManager::ModSettingsManager(ModMetadata const& metadata)
         auto root = checkJson(json, "setting");
         root.needs("type").into(setting.type);
         if (root) {
-            if (setting.type == "custom") {
-                log::warn(
-                    "Setting \"{}\" in mod {} has the old \"custom\" type - "
-                    "this type has been deprecated and will be removed in Geode v4.0.0. "
-                    "Use the new \"custom:type-name-here\" syntax for defining custom "
-                    "setting types - see more in "
-                    "https://docs.geode-sdk.org/mods/settings/#custom-settings",
-                    key, m_impl->modID
-                );
-            }
             m_impl->settings.emplace(key, setting);
         }
         else {
@@ -214,12 +204,12 @@ Result<> ModSettingsManager::load(matjson::Value const& json) {
     }
     return Ok();
 }
-void ModSettingsManager::save(matjson::Value& json) {
+matjson::Value ModSettingsManager::save() {
     for (auto& [key, _] : m_impl->settings) {
         m_impl->saveSettingValueToSave(key);
     }
     // Doing this since `ModSettingsManager` is expected to manage savedata fully
-    json = m_impl->savedata;
+    return m_impl->savedata;
 }
 matjson::Value& ModSettingsManager::getSaveData() {
     return m_impl->savedata;

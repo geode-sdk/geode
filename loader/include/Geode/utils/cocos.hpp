@@ -850,7 +850,7 @@ namespace geode::cocos {
      * @param permissive If true, strings like "f" are considered valid 
      * representations of the color white. Useful for UIs that allow entering 
      * a hex color. Empty strings evaluate to pure white
-     * @returns A ccColor3B if it could be succesfully parsed, or an error 
+     * @returns A ccColor3B if it could be successfully parsed, or an error 
      * indicating the failure reason
      */
     GEODE_DLL Result<cocos2d::ccColor3B> cc3bFromHexString(std::string const& hexValue, bool permissive = false);
@@ -863,7 +863,7 @@ namespace geode::cocos {
      * @param permissive If true, strings like "f" are considered valid 
      * representations of the color white. Useful for UIs that allow entering 
      * a hex color. Empty strings evaluate to pure white
-     * @returns A ccColor4B if it could be succesfully parsed, or an error 
+     * @returns A ccColor4B if it could be successfully parsed, or an error 
      * indicating the failure reason
      */
     GEODE_DLL Result<cocos2d::ccColor4B> cc4bFromHexString(std::string const& hexValue, bool requireAlpha = false, bool permissive = false);
@@ -963,6 +963,9 @@ namespace geode::cocos {
     };
 
     template <class T>
+    concept CocosObject = std::derived_from<T, cocos2d::CCObject>;
+
+    template <class T>
     concept CocosObjectPtr = std::is_pointer_v<T> && std::is_convertible_v<T, cocos2d::CCObject const*>;
 
     template <class K>
@@ -984,11 +987,10 @@ namespace geode::cocos {
      *   log::info("{}", obj->m_objectID);
      * }
      */
-    template <CocosObjectPtr Type>
+    template <class InpT, CocosObject T = std::remove_pointer_t<InpT>>
     class CCArrayExt {
     protected:
         Ref<cocos2d::CCArray> m_arr;
-        using T = std::remove_pointer_t<Type>;
 
     public:
         using value_type = T*;
@@ -1053,19 +1055,19 @@ namespace geode::cocos {
         }
     };
 
-    template <typename K, typename T>
+    template <class K, class InpT, CocosObject T = std::remove_pointer_t<InpT>>
     struct CCDictIterator {
     public:
         CCDictIterator(cocos2d::CCDictElement* p) : m_ptr(p) {}
 
         cocos2d::CCDictElement* m_ptr;
 
-        std::pair<K, T> operator*() {
+        std::pair<K, T*> operator*() {
             if constexpr (std::is_same_v<K, std::string> || std::is_same_v<K, gd::string>) {
-                return {m_ptr->getStrKey(), static_cast<T>(m_ptr->getObject())};
+                return {m_ptr->getStrKey(), static_cast<T*>(m_ptr->getObject())};
             }
             else {
-                return {m_ptr->getIntKey(), static_cast<T>(m_ptr->getObject())};
+                return {m_ptr->getIntKey(), static_cast<T*>(m_ptr->getObject())};
             }
         }
 
@@ -1074,11 +1076,11 @@ namespace geode::cocos {
             return *this;
         }
 
-        friend bool operator==(CCDictIterator<K, T> const& a, CCDictIterator<K, T> const& b) {
+        friend bool operator==(CCDictIterator<K, InpT> const& a, CCDictIterator<K, InpT> const& b) {
             return a.m_ptr == b.m_ptr;
         };
 
-        friend bool operator!=(CCDictIterator<K, T> const& a, CCDictIterator<K, T> const& b) {
+        friend bool operator!=(CCDictIterator<K, InpT> const& a, CCDictIterator<K, InpT> const& b) {
             return a.m_ptr != b.m_ptr;
         };
 
@@ -1087,22 +1089,22 @@ namespace geode::cocos {
         }
     };
 
-    template <typename K, typename T>
+    template <class K, class InpT, CocosObject T = std::remove_pointer_t<InpT>>
     struct CCDictEntry {
         K m_key;
         cocos2d::CCDictionary* m_dict;
 
         CCDictEntry(K key, cocos2d::CCDictionary* dict) : m_key(key), m_dict(dict) {}
 
-        T operator->() {
-            return static_cast<T>(m_dict->objectForKey(m_key));
+        T* operator->() {
+            return static_cast<T*>(m_dict->objectForKey(m_key));
         }
 
-        operator T() {
-            return static_cast<T>(m_dict->objectForKey(m_key));
+        operator T*() {
+            return static_cast<T*>(m_dict->objectForKey(m_key));
         }
 
-        CCDictEntry& operator=(T f) {
+        CCDictEntry& operator=(T* f) {
             m_dict->setObject(f, m_key);
             return *this;
         }
@@ -1125,9 +1127,11 @@ namespace geode::cocos {
      *   log::info("{}: {}", name, level->m_levelID);
      * }
      */
-    template <CocosDictionaryKey Key, CocosObjectPtr ValuePtr>
+    template <CocosDictionaryKey Key, class ValueInpT, CocosObject Value = std::remove_pointer_t<ValueInpT>>
     struct CCDictionaryExt {
     protected:
+        using ValuePtr = Value*;
+
         Ref<cocos2d::CCDictionary> m_dict;
 
     public:
@@ -1331,15 +1335,13 @@ namespace geode::cocos {
     class CallFuncExtImpl : public cocos2d::CCActionInstant {
     public:
         static CallFuncExtImpl* create(const F& func) {
-            auto ret = new CallFuncExtImpl;
-            ret->m_func = func;
+            auto ret = new CallFuncExtImpl(func);
             ret->autorelease();
             return ret;
         }
 
         static CallFuncExtImpl* create(F&& func) {
-            auto ret = new CallFuncExtImpl;
-            ret->m_func = std::move(func);
+            auto ret = new CallFuncExtImpl(std::move(func));
             ret->autorelease();
             return ret;
         }
@@ -1347,8 +1349,17 @@ namespace geode::cocos {
     private:
         F m_func;
 
+        // F may not be default-constructible
+        CallFuncExtImpl(F&& func) : m_func(std::move(func)) {}
+        CallFuncExtImpl(F const& func) : m_func(func) {}
+
         void update(float) override {
-            if (m_func) this->m_func();
+            // Make sure any `std::function`s are valid
+            if constexpr (requires { static_cast<bool>(m_func); }) {
+                if (m_func) m_func();
+            } else {
+                m_func();
+            }
         }
     };
 

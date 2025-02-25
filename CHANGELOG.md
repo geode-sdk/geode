@@ -1,5 +1,114 @@
 # Geode Changelog
 
+## v4.2.1
+ * Fix settings `enable-if` parsing (315bf46, 1542e29)
+
+## v4.2.0
+ * Implement gd::set for android (#1197, #1207)
+ * Log levels for console and file logging (#1208)
+   * Now in the Geode settings you can set the minimum severity for logs
+ * Add GameEvent::Loaded, to avoid hooking Menulayer (c04bcaa)
+   * Check the header for more info
+ * Add setColor shorthands to RGBAProtocol (961c7c8)
+ * New dependency list syntax, also add per dependency settings (1161e18, 889fb0d, c1d3a53)
+   * The dependencies can then read these settings from their dependants
+ * Add auto log deletion after period of time (8f60c3c)
+   * Period length can be changed in settings
+ * Add `log::getCurrentLogPath()` (4c9f990)
+ * Load changelog and mod about page from latest version on the index, instead of local (1d716fc)
+ * Cascade color and opacity for BasedButtonSprite (17107a2)
+ * Add Event v2 classes, wrapper around current event system (728df4e)
+ * Serialize std::filesystem::path as UTF-8 for matjson (#1210)
+ * Improve MDPopup (56a8ced)
+ * Fix macOS file picker, add file ext filters (0b61b50, 241be1b, b8cff6d)
+ * Add UUIDs for old GD versions on macOS (#1213)
+ * Add CCFontSprite and CCSpriteExtra to cocos (#1194)
+ * Reorganize buttons in Geode layer on 4:3 aspect ratio screens (54c93c4)
+ * Patch CCGLProgram::compileShader to prevent closing the game on shader errors (0340f52)
+ * Make all cocos members public (#1214)
+ * Remove modtober animation (f1bf2b6)
+ * Only show "Recommended by X mod" text on recommended dependencies, not suggested (5f64d77)
+ * Fix SceneManager use-after-free (8707a1b)
+ * Icon for pending mod updates is now persistent (0969ec3)
+ * Cleanup stale files from old index version (4d6c173)
+ * Rename Loader to Geode in LoadingLayer text (203c819)
+ * Add `GEODE_BUNDLE_PDB` option in CMake to allow bundling PDB files with mods (#1134)
+
+## v4.1.2
+ * Prevent crashlog recursion on MacOS (a69c4c2)
+ * Fix a grave misspelling error (#1203)
+ * Fix a logic bug in SettingChangedFilter (3665da9)
+ * Less strict sdk version checking for developers (100be49)
+
+## v4.1.1
+ * Check is mod is available for current version in ModPopup (fdf4348)
+ * Revert earlier commit that broke incompatibilities (ded70bb)
+ * Fix `fmt::join` on logs (22e4cbf, #979)
+ * Allow any float or int type in `getSettingValue` (d08e141)
+ * Fix cocos headers (9dd7128, 6c039c6)
+ * Fix target Geode version comparison with tags (ec2e8d8)
+ * Fix "GD 0.000" from being displayed in mod listing (fb85530)
+ * Id overload for `openInfoPopup` now fetches the latest mod version (c6666a3, bda9444)
+
+## v4.1.0
+ * Add Modtober winner announcement (0aa2449)
+ * Add `getHighestChildZ` crash fix (24189b1)
+ * Add Greek and German to Windows installer (bff6324, f7559ec)
+ * Add command line arg support for MacOS (6a62813)
+ * Add ID for ModItem badge container (d7177c1)
+ * Add `Stub` and `Replace` hook priorities (1f50390)
+ * Allow passing pointers to `getChildByType`, `CCArrayExt`, `CCDictExt` (b956596)
+ * Make `CCEGLView` members public (0d607bf)
+ * Fix links not appearing on non-installed mods (#1184)
+ * Fix trailing gap on `AxisLayout` when auto grow enabled (4b5d112)
+ * Fix `null` not being convertible to `std::optional` in `JsonExpectedValue` (15a1b34)
+ * Update Result, matjson, TulipHook (12069db)
+
+## v4.0.1
+ * Add cutoff constructor for CCRenderTexture (#1171)
+
+## v4.0.0
+ * Make chosen display type in mod list be saved between startups (07d92a3)
+ * Fix `Task::all` not returning results in order (227adb0)
+ * Fix bugs with changing display type (555ebe3, f90461f)
+
+## v4.0.0-beta.2
+ * Add grid view to mod list (7bcf50d, 1ff24f0)
+ * Add safe mode tip to windows crashlog window (38f3385)
+ * Disable enabled button on outdated mods (302eea1)
+ * Add a button to copy list of mods to clipboard (#1039)
+ * Fix VersionInfo toJson (f6c2322)
+ * Add `GEODE_DESKTOP(...)` and `GEODE_MOBILE(...)` macros (d6f0c59)
+ * Fix CCCallFuncExt (b9fb2f6)
+ * Fix `utils::string::replaceIP` when filter is empty (4d5e465)
+ * Fix more log nesting issues (2221095)
+ * Fix new before/after priority system (17bf772)
+ * Added European Portuguese translation (#1160)
+ * Add missing CCHttpRequest methods and members (#1161)
+ * Fix downloading many mods at once causing the UI to lag (c94a533)
+ * Fix vv version (6e86b38)
+
+## v4.0.0-beta.1
+ * Button to manually install mods from files (e881dc5)
+ * Add `ModRequestedAction::Update` (e881dc5)
+ * Add `ModMetadata::checkGeodeVersion` and `ModMetadata::checkTargetVersions` (e881dc5)
+ * Add `geode::createModLogo` for creating a logo from a `.geode` package (e881dc5)
+ * Tags now use names provided by the server (893b03e)
+ * Add web support for multiple request headers with same name (#1150)
+ * Fix `Task::chain` using the wrong type in the impl (22a11b9)
+ * Fix installing mods not checking the current version (#1148)
+ * Fix searching for mods ignoring geode and gd version (#1153)
+ * Fix crash when checking tags (01807fe)
+ * Fix 'Outdated' label being visible while updating (6679a69)
+ * Fix log nesting issue (0e8d4c6)
+ * Remove forward compat message box as it confuses users (5592ef6)
+ * Fix crash on opening mod changelogs (9834cb2)
+ * Make `ColorPickPopup` pimpl (1a201e1)
+ * Fix lag issue in `ColorPickPopup` (3081164)
+ * Change return type of `ModSettingsManager::save` (da92090)
+ * Fix every misspelling of successfully (#1151)
+ * Allow building geode itself in debug mode (5645399)
+
 ## v4.0.0-alpha.1
  * Support for the 2.2074 update
  * Developers, see [this page for a migration guide](https://docs.geode-sdk.org/tutorials/migrate-v4)
@@ -23,6 +132,17 @@
  * Add missing spanish translations to installer (#1145)
  * Add hashtag symbol to CommonFilter::Any (#1131)
  * Disable forward compat on android (c9e97af)
+
+## v3.9.3
+ * Add cutoff constructor for CCRenderTexture (#1171)
+ * Add XInputSetState export in proxy loader, fixing certain steam emus (480b12)
+ * Force update to 4.0.1 on forward compat (2ed1886)
+
+## v3.9.2
+ * Fix searching for mods returning unavailable mods (#1149)
+
+## v3.9.1
+ * Fix mod downloads not checking version (f575187)
 
 ## v3.9.0
  * Many changes to the settings ui (#1108)

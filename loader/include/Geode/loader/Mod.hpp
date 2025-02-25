@@ -41,7 +41,8 @@ namespace geode {
         Enable,
         Disable,
         Uninstall,
-        UninstallWithSaveData
+        UninstallWithSaveData,
+        Update
     };
 
     static constexpr bool modRequestedActionIsToggle(ModRequestedAction action) {
@@ -110,6 +111,16 @@ namespace geode {
          * of its resources)
          */
         std::filesystem::path getResourcesDir() const;
+
+        /**
+         * Get the dependency settings for a specific dependency via its ID. For 
+         * example, if this mod depends on Custom Keybinds, it can specify the 
+         * keybinds it wants to add in `mod.json` under 
+         * `dependencies."geode.custom-keybinds".settings.keybinds`
+         * @returns Null JSON value if there are no settings or if the mod 
+         * doesn't depend on the given mod ID
+         */
+        matjson::Value getDependencySettingsFor(std::string_view dependencyID) const;
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
         void setMetadata(ModMetadata const& metadata);

@@ -59,7 +59,7 @@ class CC_DLL CCControlSaturationBrightnessPicker : public CCControl
     CC_SYNTHESIZE_READONLY(CCSprite*, m_slider, Slider);
     CC_SYNTHESIZE_READONLY(CCPoint, m_startPos, StartPos);
 
-protected:
+public:
     int         boxPos;
     int         boxSize;
     

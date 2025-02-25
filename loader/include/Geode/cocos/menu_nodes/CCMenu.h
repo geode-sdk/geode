@@ -56,6 +56,7 @@ enum {
 class CC_DLL CCMenu : public CCLayerRGBA
 {
     GEODE_FRIEND_MODIFY
+public:
     /** whether or not the menu will receive events */
     bool m_bEnabled;
     
@@ -190,6 +191,7 @@ public:
 protected:
     CCMenuItem* itemForTouch(CCTouch * touch);
     CCMenuItem* itemForTouch(CCTouch * touch, bool);
+public:
     tCCMenuState m_eState;
     CCMenuItem *m_pSelectedItem;
 };

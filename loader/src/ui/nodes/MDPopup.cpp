@@ -8,16 +8,17 @@ bool MDPopup::setup(
     std::string const& title, std::string const& info, char const* btn1Text, char const* btn2Text,
     std::function<void(bool)> onClick
 ) {
-    this->setTitle(title.c_str(), "goldFont.fnt", .9f, 33.f);
-
     m_onClick = onClick;
 
     auto contentSize = CCSize {
-        m_size.width - 70.f,
-        m_size.height - 120.f,
+        m_size.width - 50.f,
+        m_size.height - 100.f,
     };
     auto content = MDTextArea::create(info, contentSize);
     m_mainLayer->addChildAtPosition(content, Anchor::Center, ccp(0, 0));
+
+    this->setTitle(title.c_str(), "goldFont.fnt", .9f, 28.f);
+    m_title->limitLabelWidth(contentSize.width - 4.f, .9f, .1f);
 
     auto btnSpr = ButtonSprite::create(btn1Text);
 
@@ -41,6 +42,8 @@ bool MDPopup::setup(
         menu->addChild(btn2);
     }
 
+    m_closeBtn->setVisible(false);
+
     m_buttonMenu->addChildAtPosition(menu, Anchor::Bottom, ccp(0, 30));
     menu->updateLayout();
 
@@ -55,7 +58,7 @@ void MDPopup::onBtn(CCObject* sender) {
 }
 
 float MDPopup::estimateHeight(std::string const& content) {
-    return clamp(string::count(content, '\n') * 30.f, 200.f, 280.f);
+    return clamp(string::count(content, '\n') * 50.f, 180.f, 280.f);
 }
 
 MDPopup* MDPopup::create(
@@ -64,7 +67,7 @@ MDPopup* MDPopup::create(
 ) {
     auto ret = new MDPopup();
     if (ret->initAnchored(
-            320.f, MDPopup::estimateHeight(content), title, content, btn1, btn2, onClick,
+            400.f, MDPopup::estimateHeight(content), title, content, btn1, btn2, onClick,
             "square01_001.png", { 0, 0, 94, 94 }
         )) {
         ret->autorelease();

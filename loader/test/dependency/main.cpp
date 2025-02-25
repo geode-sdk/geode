@@ -160,6 +160,38 @@ struct MyMenuLayer : Modify<MyMenuLayer, MenuLayer> {
     }
 };
 
+struct AfterMenuLayer : Modify<AfterMenuLayer, MenuLayer> {
+    static void onModify(auto& self) {
+        if (self.setHookPriorityAfterPost("MenuLayer::init", "geode.test")) {
+            log::debug("priority set after test");
+        }
+    }
+
+    bool init() {
+        if (!MenuLayer::init()) return false;
+
+        log::debug("should run third!");
+
+        return true;
+    }
+};
+
+struct BeforeMenuLayer : Modify<BeforeMenuLayer, MenuLayer> {
+    static void onModify(auto& self) {
+        if (self.setHookPriorityBeforePost("MenuLayer::init", "geode.test")) {
+            log::debug("priority set before test");
+        }
+    }
+
+    bool init() {
+        if (!MenuLayer::init()) return false;
+
+        log::debug("should run first!");
+
+        return true;
+    }
+};
+
 $on_mod(Loaded) {
     // Mod::get()->addCustomSetting<MySettingValue>("overcast-skies", DEFAULT_ICON);
 

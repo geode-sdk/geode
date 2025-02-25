@@ -103,6 +103,7 @@ public:
 private:
     NSPoint    convertDesignCoordToScreenCoord(const CCPoint& designCoord, bool bInRetinaMode);
     void       adjustTextFieldPosition();
+public:
     CCSize     m_tContentSize;
     CCPoint    m_obPosition;
     CCPoint    m_obAnchorPoint;

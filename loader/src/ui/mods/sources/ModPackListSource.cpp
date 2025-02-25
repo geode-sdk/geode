@@ -21,3 +21,7 @@ void ModPackListSource::setModTags(std::unordered_set<std::string> const& set) {
 bool ModPackListSource::isDefaultQuery() const {
     return true;
 }
+
+bool ModPackListSource::isLocalModsOnly() const {
+    return false;
+}

@@ -64,7 +64,7 @@ public:
 private:
 	Platform::String^ stringToPlatformString(gd::string strSrc);
 	gd::string PlatformStringTostring(Platform::String^ strSrc);
-private:
+public:
 
 	CCLabelTTF* m_pLabel;
 	CCLabelTTF* m_pLabelPlaceHolder;

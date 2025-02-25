@@ -201,6 +201,9 @@ bool BasedButtonSprite::init(CCNode* ontop, BaseType type, int size, int color) 
         this->addChild(m_onTop);
     }
 
+    this->setCascadeColorEnabled(true);
+    this->setCascadeOpacityEnabled(true);
+
     return true;
 }
 

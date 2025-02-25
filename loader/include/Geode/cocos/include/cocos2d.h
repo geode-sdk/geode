@@ -326,6 +326,9 @@ THE SOFTWARE.
 
 #include "../robtop/special_nodes/CCLightning.h"
 
+#include "../robtop/sprite_nodes/CCFontSprite.h"
+#include "../robtop/sprite_nodes/CCSpriteExtra.h"
+
 #include "../robtop/xml/DS_Dictionary.h"
 #include "../robtop/xml/ObjectDecoder.h"
 

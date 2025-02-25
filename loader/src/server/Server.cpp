@@ -246,6 +246,31 @@ std::string ServerDateTime::toAgoString() const {
     return fmt::format("{:%b %d %Y}", value);
 }
 
+Result<ServerTag> ServerTag::parse(matjson::Value const& raw) {
+    auto root = checkJson(raw, "ServerTag");
+    auto res = ServerTag();
+
+    root.needs("id").into(res.id);
+    root.needs("name").into(res.name);
+    root.needs("display_name").into(res.displayName);
+
+    return root.ok(res);
+}
+Result<std::vector<ServerTag>> ServerTag::parseList(matjson::Value const& raw) {
+    auto payload = checkJson(raw, "ServerTagsList");
+    std::vector<ServerTag> list {};
+    for (auto& item : payload.items()) {
+        auto mod = ServerTag::parse(item.json());
+        if (mod) {
+            list.push_back(mod.unwrap());
+        }
+        else {
+            log::error("Unable to parse tag from the server: {}", mod.unwrapErr());
+        }
+    }
+    return payload.ok(list);
+}
+
 Result<ServerDateTime> ServerDateTime::parse(std::string const& str) {
     std::stringstream ss(str);
     date::sys_seconds seconds;
@@ -393,6 +418,17 @@ bool ServerModUpdate::hasUpdateForInstalledMod() const {
     return false;
 }
 
+Result<ServerModLinks> ServerModLinks::parse(matjson::Value const& raw) {
+    auto payload = checkJson(raw, "ServerModLinks");
+    auto res = ServerModLinks();
+
+    payload.hasNullable("community").into(res.community);
+    payload.hasNullable("homepage").into(res.homepage);
+    payload.hasNullable("source").into(res.source);
+
+    return payload.ok(res);
+}
+
 Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
     auto root = checkJson(raw, "ServerModMetadata");
 
@@ -427,6 +463,15 @@ Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
             version.metadata.setChangelog(res.changelog);
             version.metadata.setDevelopers(developerNames);
             version.metadata.setRepository(res.repository);
+            if (root.hasNullable("links")) {
+                auto linkRes = ServerModLinks::parse(root.hasNullable("links").json());
+                if (linkRes) {
+                    auto links = linkRes.unwrap();
+                    version.metadata.getLinksMut().getImpl()->m_community = links.community;
+                    version.metadata.getLinksMut().getImpl()->m_homepage = links.homepage;
+                    if (links.source.has_value()) version.metadata.setRepository(links.source);
+                }
+            }
             res.versions.push_back(version);
         }
         else {
@@ -529,11 +574,10 @@ ServerRequest<ServerModsList> server::getMods(ModsQuery const& query, bool useCa
     // Add search params
     if (query.query) {
         req.param("query", *query.query);
-    } else {
-        // Target current GD version and Loader version when query is not set
-        req.param("gd", GEODE_GD_VERSION_STR);
-        req.param("geode", Loader::get()->getVersion().toNonVString());
     }
+
+    req.param("gd", GEODE_GD_VERSION_STR);
+    req.param("geode", Loader::get()->getVersion().toNonVString());
 
     if (query.platforms.size()) {
         std::string plats = "";
@@ -648,7 +692,7 @@ ServerRequest<ServerModVersion> server::getModVersion(std::string const& id, Mod
         },
     }, version);
 
-    return req.get(formatServerURL("/mods/{}/versions/{}?gd={}", id, versionURL, Loader::get()->getGameVersion())).map(
+    return req.get(formatServerURL("/mods/{}/versions/{}?gd={}&platforms={}", id, versionURL, Loader::get()->getGameVersion(), GEODE_PLATFORM_SHORT_IDENTIFIER)).map(
         [](web::WebResponse* response) -> Result<ServerModVersion, ServerError> {
             if (response->ok()) {
                 // Parse payload
@@ -690,33 +734,25 @@ ServerRequest<ByteVector> server::getModLogo(std::string const& id, bool useCach
     );
 }
 
-ServerRequest<std::unordered_set<std::string>> server::getTags(bool useCache) {
+ServerRequest<std::vector<ServerTag>> server::getTags(bool useCache) {
     if (useCache) {
         return getCache<getTags>().get();
     }
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
-    return req.get(formatServerURL("/tags")).map(
-        [](web::WebResponse* response) -> Result<std::unordered_set<std::string>, ServerError> {
+    return req.get(formatServerURL("/detailed-tags")).map(
+        [](web::WebResponse* response) -> Result<std::vector<ServerTag>, ServerError> {
             if (response->ok()) {
                 // Parse payload
                 auto payload = parseServerPayload(*response);
                 if (!payload) {
                     return Err(payload.unwrapErr());
                 }
-                matjson::Value json = payload.unwrap();
-                if (!json.isArray()) {
-                    return Err(ServerError(response->code(), "Expected a string array"));
+                auto list = ServerTag::parseList(payload.unwrap());
+                if (!list) {
+                    return Err(ServerError(response->code(), "Unable to parse response: {}", list.unwrapErr()));
                 }
-
-                std::unordered_set<std::string> tags;
-                for (auto item : json) {
-                    if (!item.isString()) {
-                        return Err(ServerError(response->code(), "Expected a string array"));
-                    }
-                    tags.insert(item.asString().unwrap());
-                }
-                return Ok(tags);
+                return Ok(list.unwrap());
             }
             return Err(parseServerError(*response));
         },

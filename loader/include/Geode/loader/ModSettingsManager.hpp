@@ -40,12 +40,8 @@ namespace geode {
          * The format of the savedata will be an object with the keys being 
          * setting IDs and then the values the values of the saved settings
          * @note If saving a setting fails, it will log a warning to the console
-         * @warning This will overwrite the whole `json` parameter - be sure to 
-         * pass the full settings savedata to `load()` so you can be sure that 
-         * unregistered custom settings' saved values don't disappear!
-         * @todo in v4: make this return the value instead lol
          */
-        void save(matjson::Value& json);
+        matjson::Value save();
 
         /**
          * Get the savedata for settings, aka the JSON object that contains all 

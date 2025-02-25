@@ -129,7 +129,7 @@ public:
     /** allocates a TargetedTouchHandler with a delegate, a priority and whether or not it swallows touches or not */
     static CCTargetedTouchHandler* handlerWithDelegate(CCTouchDelegate *pDelegate, int nPriority, bool bSwallow);
 
-protected:
+public:
     bool m_bSwallowsTouches;
     CCSet *m_pClaimedTouches;
 };

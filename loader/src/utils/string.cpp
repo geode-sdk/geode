@@ -59,6 +59,8 @@ std::string utils::string::toUpper(std::string const& str) {
 }
 
 std::string& utils::string::replaceIP(std::string& str, std::string const& orig, std::string const& repl) {
+    if (orig.empty()) return str;
+    
     std::string::size_type n = 0;
     while ((n = str.find(orig, n)) != std::string::npos) {
         str.replace(n, orig.size(), repl);
@@ -142,44 +144,50 @@ size_t utils::string::count(std::string const& str, char countC) {
     return res;
 }
 
+constexpr char WHITESPACE[] = " \f\n\r\t\v";
+std::string& utils::string::trimLeftIP(std::string& str, std::string const& chars) {
+    str.erase(0, str.find_first_not_of(chars));
+    return str;
+}
 std::string& utils::string::trimLeftIP(std::string& str) {
-    str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](auto ch) {
-                  return !std::isspace(ch);
-              }));
-    return str;
+    return utils::string::trimLeftIP(str, WHITESPACE);
 }
 
+std::string& utils::string::trimRightIP(std::string& str, std::string const& chars) {
+    str.erase(str.find_last_not_of(chars) + 1);
+    return str;
+}
 std::string& utils::string::trimRightIP(std::string& str) {
-    str.erase(
-        std::find_if(
-            str.rbegin(),
-            str.rend(),
-            [](auto ch) {
-                return !std::isspace(ch);
-            }
-        ).base(),
-        str.end()
-    );
-    return str;
+    return utils::string::trimRightIP(str, WHITESPACE);
 }
 
+std::string& utils::string::trimIP(std::string& str, std::string const& chars) {
+    return utils::string::trimLeftIP(utils::string::trimRightIP(str, chars), chars);
+}
 std::string& utils::string::trimIP(std::string& str) {
     return utils::string::trimLeftIP(utils::string::trimRightIP(str));
 }
 
+std::string utils::string::trimLeft(std::string const& str, std::string const& chars) {
+    return str.substr(str.find_first_not_of(chars));
+}
 std::string utils::string::trimLeft(std::string const& str) {
-    auto s2 = str;
-    return utils::string::trimLeftIP(s2);
+    return utils::string::trimLeft(str, WHITESPACE);
 }
 
+std::string utils::string::trimRight(std::string const& str, std::string const& chars) {
+    return str.substr(0, str.find_last_not_of(chars) + 1);
+}
 std::string utils::string::trimRight(std::string const& str) {
-    auto ret = str;
-    return utils::string::trimRightIP(ret);
+    return utils::string::trimRight(str, WHITESPACE);
 }
 
+std::string utils::string::trim(std::string const& str, std::string const& chars) {
+    size_t start = str.find_first_not_of(chars);
+    return str.substr(start, str.find_last_not_of(chars) + 1 - start);
+}
 std::string utils::string::trim(std::string const& str) {
-    auto ret = str;
-    return utils::string::trimIP(ret);
+    return utils::string::trim(str, WHITESPACE);
 }
 
 std::string& utils::string::normalizeIP(std::string& str) {

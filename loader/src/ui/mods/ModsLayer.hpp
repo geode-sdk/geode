@@ -66,7 +66,8 @@ protected:
     ModsStatusNode* m_statusNode;
     EventListener<UpdateModListStateFilter> m_updateStateListener;
     bool m_showSearch = true;
-    bool m_bigView = false;
+    std::vector<CCMenuItemSpriteExtra*> m_displayBtns;
+    ModListDisplay m_modListDisplay;
 
     bool init();
 
@@ -76,7 +77,8 @@ protected:
     
     void onTab(CCObject* sender);
     void onOpenModsFolder(CCObject*);
-    void onBigView(CCObject*);
+    void onAddModFromFile(CCObject*);
+    void onDisplay(CCObject*);
     void onSearch(CCObject*);
     void onGoToPage(CCObject*);
     void onRefreshList(CCObject*);

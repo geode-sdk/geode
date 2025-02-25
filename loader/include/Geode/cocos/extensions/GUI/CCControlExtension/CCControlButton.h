@@ -97,7 +97,7 @@ protected:
 	virtual void setColor(const ccColor3B&);
     
     /** Flag to know if the button is currently pushed.  */
-protected:
+public:
     bool m_isPushed;
     bool m_bParentInited;
 public:

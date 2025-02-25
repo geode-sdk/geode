@@ -115,3 +115,7 @@ server::ModsQuery ServerModListSource::createDefaultQuery() const {
 ServerModListType ServerModListSource::getType() const {
     return m_type;
 }
+
+bool ServerModListSource::isLocalModsOnly() const {
+    return false;
+}

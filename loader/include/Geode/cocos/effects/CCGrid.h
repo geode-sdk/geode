@@ -147,7 +147,7 @@ public:
      */
     void set2DProjection(void);
 
-protected:
+public:
     bool m_bActive;
     int  m_nReuseGrid;
     CCSize m_sGridSize;

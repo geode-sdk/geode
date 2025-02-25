@@ -13,10 +13,10 @@ bool InstalledModsQuery::preCheck(ModSource const& src) const {
     }
     // If only errors requested, only show mods with errors (duh)
     if (type == InstalledModListType::OnlyOutdated) {
-        return src.asMod()->targetsOutdatedVersion().has_value();
+        return src.asMod() && src.asMod()->targetsOutdatedVersion().has_value();
     }
     if (type == InstalledModListType::OnlyErrors) {
-        return src.asMod()->hasLoadProblems();
+        return src.asMod() && src.asMod()->hasLoadProblems();
     }
     return true;
 }
@@ -137,11 +137,8 @@ bool InstalledModListSource::isDefaultQuery() const {
     return m_query.isDefault();
 }
 
-$execute {
-    listenForSettingChanges("infinite-local-mods-list", [](bool value) {
-        auto size = value ? std::numeric_limits<size_t>::max() : 10;
-        InstalledModListSource::get(InstalledModListType::All)->setPageSize(size);
-        InstalledModListSource::get(InstalledModListType::OnlyErrors)->setPageSize(size);
-        // Updates is technically a server mod list :-) So I left it out here
-    });
+bool InstalledModListSource::isLocalModsOnly() const {
+    return m_type == InstalledModListType::All || 
+        m_type == InstalledModListType::OnlyErrors ||
+        m_type == InstalledModListType::OnlyOutdated;
 }

@@ -23,6 +23,7 @@ static siginfo_t* s_siginfo = nullptr;
 static ucontext_t* s_context = nullptr;
 static size_t s_backtraceSize = 0;
 static std::array<void*, FRAME_SIZE> s_backtrace;
+static int s_crashIter = 0;
 
 static std::string_view getSignalCodeString() {
     switch(s_signal) {
@@ -169,6 +170,12 @@ static std::string getInfo(void* address, Mod* faultyMod) {
 }
 
 extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext) {
+    if (s_crashIter > 3) {
+        // the crashlog crashed too much so maybe we shouldn't try
+        std::abort();
+    }
+    s_crashIter++;
+
 	auto context = reinterpret_cast<ucontext_t*>(vcontext);
 	s_backtraceSize = backtrace(s_backtrace.data(), FRAME_SIZE);
 
@@ -192,6 +199,8 @@ extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext)
     s_cv.notify_all();
     std::unique_lock<std::mutex> lock(s_mutex);
     s_cv.wait(lock, [] { return s_signal == 0; });
+
+    s_crashIter--;
 	std::_Exit(EXIT_FAILURE);
 }
 

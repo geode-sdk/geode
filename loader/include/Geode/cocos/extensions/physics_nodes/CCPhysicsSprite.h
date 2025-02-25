@@ -50,7 +50,7 @@ NS_CC_EXT_BEGIN
  */
 class CC_DLL CCPhysicsSprite : public CCSprite
 {
-protected:
+public:
     bool    m_bIgnoreBodyRotation;
 #if CC_ENABLE_CHIPMUNK_INTEGRATION
     cpBody  *m_pCPBody;

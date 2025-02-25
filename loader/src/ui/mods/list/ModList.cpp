@@ -1,10 +1,27 @@
 #include "ModList.hpp"
 #include <Geode/utils/ColorProvider.hpp>
+#include <Geode/ui/GeodeUI.hpp>
 #include "../popups/FiltersPopup.hpp"
 #include "../popups/SortPopup.hpp"
 #include "../GeodeStyle.hpp"
 #include "../ModsLayer.hpp"
-#include "../popups/ModtoberPopup.hpp"
+#include "ModItem.hpp"
+
+static size_t getDisplayPageSize(ModListSource* src, ModListDisplay display) {
+    if (src->isLocalModsOnly() && Mod::get()->template getSettingValue<bool>("infinite-local-mods-list")) {
+        return std::numeric_limits<size_t>::max();
+    }
+    return 16;
+}
+
+$execute {
+    listenForSettingChanges("infinite-local-mods-list", [](bool value) {
+        InstalledModListSource::get(InstalledModListType::All)->clearCache();
+        InstalledModListSource::get(InstalledModListType::OnlyErrors)->clearCache();
+        InstalledModListSource::get(InstalledModListType::OnlyOutdated)->clearCache();
+        // Updates is technically a server mod list :-) So I left it out here
+    });
+}
 
 bool ModList::init(ModListSource* src, CCSize const& size) {
     if (!CCNode::init())
@@ -18,13 +35,6 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_source->reset();
     
     m_list = ScrollLayer::create(size);
-    m_list->m_contentLayer->setLayout(
-        ColumnLayout::create()
-            ->setAxisReverse(true)
-            ->setAxisAlignment(AxisAlignment::End)
-            ->setAutoGrowAxis(size.height)
-            ->setGap(2.5f)
-    );
     this->addChildAtPosition(m_list, Anchor::Bottom, ccp(-m_list->getScaledContentWidth() / 2, 0));
 
     m_topContainer = CCNode::create();
@@ -186,7 +196,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_searchInput->setCallback([this](auto const&) {
         // If the source is already in memory, we can immediately update the 
         // search query
-        if (typeinfo_cast<InstalledModListSource*>(m_source)) {
+        if (m_source->isLocalModsOnly()) {
             m_source->search(m_searchInput->getString());
             return;
         }
@@ -264,16 +274,16 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         limitNodeWidth(banner, size.width, 1.f, .1f);
         menu->addChildAtPosition(banner, Anchor::Center);
 
-        auto label = CCLabelBMFont::create("Modtober 2024 is Here!", "bigFont.fnt");
-        label->setScale(.5f);
+        auto label = CCLabelBMFont::create("Modtober 2024 Winner: Geome3Dash!", "bigFont.fnt");
+        label->setScale(.35f);
         menu->addChildAtPosition(label, Anchor::Left, ccp(10, 0), ccp(0, .5f));
 
-        auto aboutSpr = createGeodeButton("About");
+        auto aboutSpr = createGeodeButton("View");
         aboutSpr->setScale(.5f);
         auto aboutBtn = CCMenuItemSpriteExtra::create(
-            aboutSpr, this, menu_selector(ModList::onModtoberInfo)
+            aboutSpr, this, menu_selector(ModList::onEventInfo)
         );
-        menu->addChildAtPosition(aboutBtn, Anchor::Right, ccp(-35, 0));
+        menu->addChildAtPosition(aboutBtn, Anchor::Right, ccp(-30, 0));
         
         m_topContainer->addChild(menu);
     }
@@ -410,7 +420,7 @@ void ModList::onPromise(ModListSource::PageLoadTask::Event* event) {
                 first = false;
                 m_list->m_contentLayer->addChild(item);
             }
-            this->updateSize(m_bigSize);
+            this->updateDisplay(m_display);
 
             // Scroll list to top
             auto listTopScrollPos = -m_list->m_contentLayer->getContentHeight() + m_list->getContentHeight();
@@ -526,12 +536,10 @@ void ModList::updateTopContainer() {
     // (giving a little bit of extra padding for it, the same size as gap)
     m_list->setContentHeight(
         m_topContainer->getContentHeight() > 0.f ?
-            this->getContentHeight() - m_topContainer->getContentHeight() - 
-                static_cast<AxisLayout*>(m_list->m_contentLayer->getLayout())->getGap() : 
+            this->getContentHeight() - m_topContainer->getContentHeight() - 2.5f : 
             this->getContentHeight()
     );
-    static_cast<ColumnLayout*>(m_list->m_contentLayer->getLayout())->setAutoGrowAxis(m_list->getContentHeight());
-    m_list->m_contentLayer->updateLayout();
+    this->updateDisplay(m_display);
 
     // Preserve relative scroll position
     m_list->m_contentLayer->setPositionY((
@@ -557,14 +565,19 @@ void ModList::updateTopContainer() {
     this->updateLayout();
 }
 
-void ModList::updateSize(bool big) {
-    m_bigSize = big;
+ModListDisplay ModList::getDisplay() {
+    return m_display;
+}
+
+void ModList::updateDisplay(ModListDisplay display) {
+    m_display = display;
+    m_source->setPageSize(getDisplayPageSize(m_source, m_display));
 
     // Update all BaseModItems that are children of the list
     // There may be non-BaseModItems there (like separators) so gotta be type-safe
     for (auto& node : CCArrayExt<CCNode*>(m_list->m_contentLayer->getChildren())) {
         if (auto item = typeinfo_cast<ModItem*>(node)) {
-            item->updateSize(m_list->getContentWidth(), big);
+            item->updateDisplay(m_list->getContentWidth(), display);
         }
     }
 
@@ -574,8 +587,34 @@ void ModList::updateSize(bool big) {
         m_list->m_contentLayer->getPositionY() / oldPositionArea : 
         -1.f;
 
-    // Auto-grow the size of the list content
-    m_list->m_contentLayer->updateLayout();
+    // Update the list layout based on the display model
+    if (display == ModListDisplay::Grid) {
+        m_list->m_contentLayer->setLayout(
+            RowLayout::create()
+                ->setGrowCrossAxis(true)
+                ->setAxisAlignment(AxisAlignment::Start)
+                ->setGap(2.5f)
+        );
+    }
+    else {
+        m_list->m_contentLayer->setLayout(
+            ColumnLayout::create()
+                ->setAxisReverse(true)
+                ->setAxisAlignment(AxisAlignment::End)
+                ->setAutoGrowAxis(m_obContentSize.height)
+                ->setGap(2.5f)
+        );
+    }
+
+    // Make sure list isn't too small
+    // NOTE: Do NOT call `updateLayout` on m_list, it'll undo this!
+    if (m_list->m_contentLayer->getContentHeight() < m_list->getContentHeight()) {
+        auto diff = m_list->getContentHeight() - m_list->m_contentLayer->getContentHeight();
+        m_list->m_contentLayer->setContentHeight(m_list->getContentHeight());
+        for (auto child : CCArrayExt<CCNode*>(m_list->m_contentLayer->getChildren())) {
+            child->setPositionY(child->getPositionY() + diff);
+        }
+    }
 
     // Preserve relative scroll position
     m_list->m_contentLayer->setPositionY((
@@ -627,6 +666,9 @@ void ModList::gotoPage(size_t page, bool update) {
     // Clear list contents
     m_list->m_contentLayer->removeAllChildren();
     m_page = page;
+
+    // Update page size (if needed)
+    m_source->setPageSize(getDisplayPageSize(m_source, m_display));
     
     // Start loading new page with generic loading message
     this->showStatus(ModListUnkProgressStatus(), "Loading...");
@@ -701,8 +743,8 @@ void ModList::onToggleErrors(CCObject*) {
 void ModList::onUpdateAll(CCObject*) {
     server::ModDownloadManager::get()->startUpdateAll();
 }
-void ModList::onModtoberInfo(CCObject*) {
-    ModtoberPopup::create()->show();
+void ModList::onEventInfo(CCObject*) {
+    openInfoPopup("rainixgd.geome3dash").listen([](bool) {});
 }
 
 size_t ModList::getPage() const {

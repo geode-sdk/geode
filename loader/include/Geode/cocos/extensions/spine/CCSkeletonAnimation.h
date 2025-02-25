@@ -61,10 +61,11 @@ public:
 protected:
 	CCSkeletonAnimation ();
 
-private:
+public:
 	typedef CCSkeleton super;
 	gd::vector<AnimationStateData*> stateDatas;
 
+private:
 	void initialize ();
 };
 

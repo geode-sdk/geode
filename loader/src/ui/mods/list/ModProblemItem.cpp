@@ -11,6 +11,7 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/TextArea.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/ColorProvider.hpp>
@@ -124,6 +125,12 @@ CCSprite* ModProblemItem::createSeverityIcon() {
 }
 
 void ModProblemItem::onInfo(CCObject*) {
+    // someone should really add that fix button. not me though
+    if (m_problem.type == LoadProblem::Type::MissingDependency) {
+        (void)openInfoPopup(m_problem.message);
+        return;
+    }
+
     if (m_problem.message.length() > 400) {
         // show message in a scrolling layer if it's too long
         FLAlertLayer::create(nullptr, "Error Details", m_problem.message, "OK", nullptr, 400.0f, true, 280.0f, 1.0f)->show();
@@ -143,6 +150,7 @@ bool ModProblemItem::showInfoButton() {
         case LoadProblem::Type::InvalidFile:
         case LoadProblem::Type::LoadFailed:
         case LoadProblem::Type::EnableFailed:
+        case LoadProblem::Type::MissingDependency:
             return true;
         default:
             return false;

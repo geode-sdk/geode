@@ -57,7 +57,7 @@ bool ModMetadata::Dependency::isResolved() const {
 
 bool ModMetadata::Incompatibility::isResolved() const {
     return this->importance != Importance::Breaking ||
-        (!this->mod || !this->mod->isEnabled() || !this->version.compare(this->mod->getVersion()));
+        (!this->mod || !this->version.compare(this->mod->getVersion()) || !this->mod->shouldLoad());
 }
 
 static std::string sanitizeDetailsData(std::string const& str) {
@@ -65,6 +65,7 @@ static std::string sanitizeDetailsData(std::string const& str) {
     return utils::string::replace(str, "\r", "");
 }
 
+// todo in v5: remove all support for old mod IDs and replace any calls to this with just validateID
 bool ModMetadata::Impl::validateOldID(std::string const& id) {
     // Old IDs may not be empty
     if (id.empty()) return false;
@@ -129,8 +130,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     root.needs("geode").into(impl->m_geodeVersion);
     
     if (auto gd = root.needs("gd")) {
-        // In the future when we get rid of support for string format just 
-        // change all of this to the gd.needs(...) stuff
+        // todo in v5: get rid of the string alternative and makes this always be an object
         gd.assertIs({ matjson::Type::Object, matjson::Type::String });
         if (gd.isObject()) {
             if (gd.has(GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH)) {
@@ -194,62 +194,146 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         });
     }
 
-    for (auto& dep : root.has("dependencies").items()) {
-        bool onThisPlatform = !dep.has("platforms");
-        for (auto& plat : dep.has("platforms").items()) {
-            if (PlatformID::coveredBy(plat.get<std::string>(), GEODE_PLATFORM_TARGET)) {
-                onThisPlatform = true;
+    if (auto deps = root.has("dependencies")) {
+        auto addDependency = [&impl, ID_REGEX](std::string const& id, JsonExpectedValue& dep, bool legacy) -> Result<> {
+            if (!ModMetadata::Impl::validateOldID(id)) {
+                return Err("[mod.json].dependencies.\"{}\" is not a valid Mod ID ({})", id, ID_REGEX);
+            }
+
+            // todo in v5: array style wont exist so this bool will always be false
+            if (legacy) {
+                dep.assertIsObject();
+            }
+            else {
+                dep.assertIs({ matjson::Type::Object, matjson::Type::String });
+            }
+            
+            if (dep.isObject()) {
+                bool onThisPlatform = !dep.has("platforms");
+                for (auto& plat : dep.has("platforms").items()) {
+                    if (PlatformID::coveredBy(plat.get<std::string>(), GEODE_PLATFORM_TARGET)) {
+                        onThisPlatform = true;
+                    }
+                }
+                if (!onThisPlatform) {
+                    return Ok();
+                }
+            }
+
+            matjson::Value dependencySettings;
+            Dependency dependency;
+            dependency.id = id;
+
+            if (dep.isString()) {
+                dep.into(dependency.version);
+                dependency.importance = Dependency::Importance::Required;
+            }
+            else {
+                dep.needs("version").into(dependency.version);
+                dep.has("importance").into(dependency.importance);
+                dep.has("settings").into(dependencySettings);
+                dep.checkUnknownKeys();
+            }
+
+            // Check if parsing had errors
+            if (!dep) {
+                return dep.ok();
+            }
+
+            if (
+                dependency.version.getComparison() != VersionCompare::MoreEq &&
+                dependency.version.getComparison() != VersionCompare::Any
+            ) {
+                return Err(
+                    "[mod.json].dependencies.\"{}\".version (\"{}\") must be either a more-than "
+                    "comparison for a specific version or a wildcard for any version",
+                    dependency.id, dependency.version
+                );
+            }
+
+            impl->m_dependencies.push_back(dependency);
+            // todo in v5: make Dependency pimpl and move this as a member there 
+            // `dep.has("settings").into(dependency.settings);`
+            impl->m_dependencySettings.insert({ id, dependencySettings });
+
+            return Ok();
+        };
+
+        // todo in v5: make this always be an object
+        deps.assertIs({ matjson::Type::Object, matjson::Type::Array });
+        if (deps.isObject()) {
+            for (auto& [id, dep] : deps.properties()) {
+                GEODE_UNWRAP(addDependency(id, dep, false));
             }
         }
-        if (!onThisPlatform) {
-            continue;
+        else {
+            for (auto& dep : deps.items()) {
+                GEODE_UNWRAP(addDependency(dep.needs("id").template get<std::string>(), dep, true));
+            }
         }
-
-        Dependency dependency;
-        dep.needs("id").mustBe<std::string>(ID_REGEX, &ModMetadata::Impl::validateOldID).into(dependency.id);
-        dep.needs("version").into(dependency.version);
-        dep.has("importance").into(dependency.importance);
-        dep.checkUnknownKeys();
-
-        if (
-            dependency.version.getComparison() != VersionCompare::MoreEq &&
-            dependency.version.getComparison() != VersionCompare::Any
-        ) {
-            return Err(
-                "[mod.json].dependencies.{}.version must be either a more-than "
-                "comparison for a specific version or a wildcard for any version",
-                dependency.id
-            );
-        }
-
-        // if (isDeprecatedIDForm(dependency.id)) {
-        //     log::warn(
-        //         "Dependency ID '{}' will be rejected in the future - "
-        //         "IDs must match the regex `[a-z0-9\\-_]+\\.[a-z0-9\\-_]+`",
-        //         impl->m_id
-        //     );
-        // }
-
-        impl->m_dependencies.push_back(dependency);
     }
 
-    for (auto& incompat : root.has("incompatibilities").items()) {
-        bool onThisPlatform = !incompat.has("platforms");
-        for (auto& plat : incompat.has("platforms").items()) {
-            if (PlatformID::coveredBy(plat.get<std::string>(), GEODE_PLATFORM_TARGET)) {
-                onThisPlatform = true;
+    if (auto incompats = root.has("incompatibilities")) {
+        auto addIncompat = [&impl, ID_REGEX](std::string const& id, JsonExpectedValue& incompat, bool legacy) -> Result<> {
+            if (!ModMetadata::Impl::validateOldID(id)) {
+                return Err("[mod.json].incompatibilities.\"{}\" is not a valid Mod ID ({})", id, ID_REGEX);
+            }
+
+            // todo in v5: array style wont exists so this bool will always be true
+            if (legacy) {
+                incompat.assertIsObject();
+            }
+            else {
+                incompat.assertIs({ matjson::Type::Object, matjson::Type::String });
+            }
+
+            if (incompat.isObject()) {
+                bool onThisPlatform = !incompat.has("platforms");
+                for (auto& plat : incompat.has("platforms").items()) {
+                    if (PlatformID::coveredBy(plat.get<std::string>(), GEODE_PLATFORM_TARGET)) {
+                        onThisPlatform = true;
+                    }
+                }
+                if (!onThisPlatform) {
+                    return Ok();
+                }
+            }
+
+            Incompatibility incompatibility;
+            incompatibility.id = id;
+
+            if (incompat.isString()) {
+                incompat.into(incompatibility.version);
+                incompatibility.importance = Incompatibility::Importance::Breaking;
+            }
+            else {
+                incompat.needs("version").into(incompatibility.version);
+                incompat.has("importance").into(incompatibility.importance);
+                incompat.checkUnknownKeys();
+            }
+
+            // Check if parsing had errors
+            if (!incompat) {
+                return incompat.ok();
+            }
+
+            impl->m_incompatibilities.push_back(incompatibility);
+
+            return Ok();
+        };
+
+        // todo in v5: make this always be an object
+        incompats.assertIs({ matjson::Type::Object, matjson::Type::Array });
+        if (incompats.isObject()) {
+            for (auto& [id, incompat] : incompats.properties()) {
+                GEODE_UNWRAP(addIncompat(id, incompat, false));
             }
         }
-        if (!onThisPlatform) {
-            continue;
+        else {
+            for (auto& incompat : incompats.items()) {
+                GEODE_UNWRAP(addIncompat(incompat.needs("id").template get<std::string>(), incompat, true));
+            }
         }
-
-        Incompatibility incompatibility;
-        incompat.needs("id").mustBe<std::string>(ID_REGEX, &ModMetadata::Impl::validateOldID).into(incompatibility.id);
-        incompat.needs("version").into(incompatibility.version);
-        incompat.has("importance").into(incompatibility.importance);
-        incompat.checkUnknownKeys();
-        impl->m_incompatibilities.push_back(incompatibility);
     }
 
     for (auto& [key, value] : root.has("settings").properties()) {
@@ -570,6 +654,29 @@ Result<> ModMetadata::checkGameVersion() const {
             );
         }
     }
+    return Ok();
+}
+Result<> ModMetadata::checkGeodeVersion() const {
+    if (!LoaderImpl::get()->isModVersionSupported(m_impl->m_geodeVersion)) {
+        auto current = LoaderImpl::get()->getVersion();
+        if (m_impl->m_geodeVersion > current) {
+            return Err(
+                "This mod was made for a newer version of Geode ({}). You currently have version {}.",
+                m_impl->m_geodeVersion, current
+            );
+        }
+        else {
+            return Err(
+                "This mod was made for an older version of Geode ({}). You currently have version {}.",
+                m_impl->m_geodeVersion, current
+            );
+        }
+    }
+    return Ok();
+}
+Result<> ModMetadata::checkTargetVersions() const {
+    GEODE_UNWRAP(this->checkGameVersion());
+    GEODE_UNWRAP(this->checkGeodeVersion());
     return Ok();
 }
 

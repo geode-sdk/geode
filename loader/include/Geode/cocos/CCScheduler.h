@@ -102,7 +102,7 @@ public:
      */
     inline int getScriptHandler() { return m_nScriptHandler; };
 
-protected:
+public:
     CCObject *m_pTarget;
     float m_fElapsed;
     bool m_bRunForever;
@@ -300,7 +300,7 @@ private:
     void priorityIn(struct _listEntry **ppList, CCObject *pTarget, int nPriority, bool bPaused);
     void appendIn(struct _listEntry **ppList, CCObject *pTarget, bool bPaused);
 
-protected:
+public:
     float m_fTimeScale;
 
     //

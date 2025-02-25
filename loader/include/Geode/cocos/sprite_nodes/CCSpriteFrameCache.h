@@ -163,7 +163,7 @@ private:
 public:
     CCDictionary* m_pSpriteFrames;
     CCDictionary* m_pSpriteFramesAliases;
-    std::set<gd::string>*  m_pLoadedFileNames;
+    gd::set<gd::string>*  m_pLoadedFileNames;
 };
 
 // end of sprite_nodes group

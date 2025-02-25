@@ -57,7 +57,7 @@ public:
 private:
     void alloc(void);
     
-private:
+public:
     CCDictionary *m_pComponents;        ///< Dictionary of components
     CCNode *m_pOwner;
     

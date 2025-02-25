@@ -10,6 +10,8 @@
 using namespace geode::prelude;
 
 namespace server {
+    // todo: replace parse()s with Serialize::fromJson now that it uses Results
+
     struct ServerDateTime final {
         using Clock = std::chrono::system_clock;
         using Value = std::chrono::time_point<Clock>;
@@ -19,6 +21,15 @@ namespace server {
         std::string toAgoString() const;
 
         static Result<ServerDateTime> parse(std::string const& str);
+    };
+
+    struct ServerTag final {
+        size_t id;
+        std::string name;
+        std::string displayName;
+
+        static Result<ServerTag> parse(matjson::Value const& json);
+        static Result<std::vector<ServerTag>> parseList(matjson::Value const& json);
     };
 
     struct ServerDeveloper final {
@@ -55,6 +66,14 @@ namespace server {
         static Result<std::vector<ServerModUpdate>> parseList(matjson::Value const& json);
         
         bool hasUpdateForInstalledMod() const;
+    };
+
+    struct ServerModLinks final {
+        std::optional<std::string> community;
+        std::optional<std::string> homepage;
+        std::optional<std::string> source;
+
+        static Result<ServerModLinks> parse(matjson::Value const& json);
     };
 
     struct ServerModMetadata final {
@@ -147,7 +166,7 @@ namespace server {
     ServerRequest<ServerModMetadata> getMod(std::string const& id, bool useCache = true);
     ServerRequest<ServerModVersion> getModVersion(std::string const& id, ModVersion const& version = ModVersionLatest(), bool useCache = true);
     ServerRequest<ByteVector> getModLogo(std::string const& id, bool useCache = true);
-    ServerRequest<std::unordered_set<std::string>> getTags(bool useCache = true);
+    ServerRequest<std::vector<ServerTag>> getTags(bool useCache = true);
 
     ServerRequest<std::optional<ServerModUpdate>> checkUpdates(Mod const* mod);
 

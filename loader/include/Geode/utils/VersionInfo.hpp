@@ -266,6 +266,6 @@ struct matjson::Serialize<V> {
     }
 
     static Value toJson(V const& value) {
-        return Value(value.toString());
+        return Value(value.toNonVString());
     }
 };

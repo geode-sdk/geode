@@ -76,7 +76,7 @@ public:
     void setDelegate(CCEditBoxDelegate* pDelegate) { m_pDelegate = pDelegate; };
     CCEditBoxDelegate* getDelegate() { return m_pDelegate; };
     CCEditBox* getCCEditBox() { return m_pEditBox; };
-protected:
+public:
     CCEditBoxDelegate* m_pDelegate;
     CCEditBox* m_pEditBox;
 };

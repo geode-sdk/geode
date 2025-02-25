@@ -145,7 +145,7 @@ void ModsStatusNode::updateState() {
     switch (state) {
         // If there are no downloads happening, just show the restart button if needed
         case DownloadState::None: {
-            m_restartBtn->setVisible(ModListSource::isRestartRequired());
+            m_restartBtn->setVisible(LoaderImpl::get()->isRestartRequired());
         } break;
 
         // If some downloads were cancelled, show the restart button normally
@@ -154,7 +154,7 @@ void ModsStatusNode::updateState() {
             m_status->setColor(ccWHITE);
             m_status->setVisible(true);
 
-            m_restartBtn->setVisible(ModListSource::isRestartRequired());
+            m_restartBtn->setVisible(LoaderImpl::get()->isRestartRequired());
         } break;
 
         // If all downloads were finished, show the restart button normally 
@@ -170,7 +170,7 @@ void ModsStatusNode::updateState() {
             m_status->setVisible(true);
             m_statusBG->setVisible(true);
             
-            m_restartBtn->setVisible(ModListSource::isRestartRequired());
+            m_restartBtn->setVisible(LoaderImpl::get()->isRestartRequired());
         } break;
 
         case DownloadState::SomeErrored: {
@@ -274,6 +274,39 @@ void ModsLayer::onOpenModsFolder(CCObject*) {
     file::openFolder(dirs::getModsDir());
 }
 
+void ModsLayer::onAddModFromFile(CCObject*) {
+    if (!Mod::get()->setSavedValue("shown-manual-install-info", true)) {
+        return FLAlertLayer::create(
+            nullptr,
+            "Manually Installing Mods",
+            "You can <cg>manually install mods</c> by selecting their <cd>.geode</c> files. "
+            "Do note that manually installed mods <co>are not verified to be safe and stable</c>!\n"
+            "<cr>Proceed at your own risk!</c>",
+            "OK", nullptr,
+            350
+        )->show();
+    }
+    file::pick(file::PickMode::OpenFile, file::FilePickOptions {
+        .filters = { file::FilePickOptions::Filter {
+            .description = "Geode Mods",
+            .files = { "*.geode" },
+        }}
+    }).listen([](Result<std::filesystem::path>* path) {
+        if (*path) {
+            LoaderImpl::get()->installModManuallyFromFile(path->unwrap(), []() {
+                InstalledModListSource::get(InstalledModListType::All)->clearCache();
+            });
+        }
+        else {
+            FLAlertLayer::create(
+                "Unable to Select File",
+                path->unwrapErr(),
+                "OK"
+            )->show();
+        }
+    });
+}
+
 void ModsStatusNode::onRestart(CCObject*) {
     // Update button state to let user know it's restarting but it might take a bit
     m_restartBtn->setEnabled(false);
@@ -319,7 +352,9 @@ bool ModsLayer::init() {
             addSideArt(this);
         }
     }
-    
+
+    m_modListDisplay = Mod::get()->getSavedValue<ModListDisplay>("mod-list-display-type");
+
     auto backMenu = CCMenu::create();
     backMenu->setID("back-menu");
     backMenu->setContentWidth(100.f);
@@ -343,6 +378,11 @@ bool ModsLayer::init() {
     actionsMenu->setContentHeight(200.f);
     actionsMenu->setAnchorPoint({ .5f, .0f });
 
+    auto rightActionsMenu = CCMenu::create();
+    rightActionsMenu->setID("right-actions-menu");
+    rightActionsMenu->setContentHeight(200.0f);
+    rightActionsMenu->setAnchorPoint({ .5f, .0f });
+
     auto reloadSpr = createGeodeCircleButton(
         CCSprite::createWithSpriteFrameName("reload.png"_spr), 1.f,
         CircleBaseSize::Medium
@@ -353,7 +393,7 @@ bool ModsLayer::init() {
         reloadSpr, this, menu_selector(ModsLayer::onRefreshList)
     );
     reloadBtn->setID("reload-button");
-    actionsMenu->addChild(reloadBtn);
+    rightActionsMenu->addChild(reloadBtn);
 
     auto settingsSpr = createGeodeCircleButton(
         CCSprite::createWithSpriteFrameName("settings.png"_spr), 1.f,
@@ -380,11 +420,39 @@ bool ModsLayer::init() {
     folderBtn->setID("mods-folder-button");
     actionsMenu->addChild(folderBtn);
 
+    auto addSpr = createGeodeCircleButton(
+        CCSprite::createWithSpriteFrameName("file-add.png"_spr), 1.f,
+        CircleBaseSize::Medium
+    );
+    addSpr->setScale(.8f);
+    addSpr->setTopRelativeScale(.8f);
+    auto addBtn = CCMenuItemSpriteExtra::create(
+        addSpr,
+        this,
+        menu_selector(ModsLayer::onAddModFromFile)
+    );
+    addBtn->setID("mods-add-button");
+    actionsMenu->addChild(addBtn);
+
     actionsMenu->setLayout(
         ColumnLayout::create()
             ->setAxisAlignment(AxisAlignment::Start)
     );
-    this->addChildAtPosition(actionsMenu, Anchor::BottomLeft, ccp(35, 12), false);
+
+    rightActionsMenu->setLayout(
+        ColumnLayout::create()
+            ->setAxisAlignment(AxisAlignment::Start)
+    );
+
+    // positioning based on size of mod list frame and maximum width of buttons
+    // i would apologize
+    auto actionsMenuX = std::min(35.0f, (winSize.width - 380.0f - 10.0f) / 4.0f);
+
+    // center buttons when the actionsMenu is moved
+    auto actionsMenuY = std::min(actionsMenuX - 20.0f, 12.0f);
+
+    this->addChildAtPosition(actionsMenu, Anchor::BottomLeft, ccp(actionsMenuX, actionsMenuY), false);
+    this->addChildAtPosition(rightActionsMenu, Anchor::BottomRight, ccp(-actionsMenuX, actionsMenuY), false);
 
     m_frame = CCNode::create();
     m_frame->setID("mod-list-frame");
@@ -452,28 +520,48 @@ bool ModsLayer::init() {
 
     // Actions
 
-    auto listActionsMenu = CCMenu::create();
-    listActionsMenu->setID("list-actions-menu");
-    listActionsMenu->setContentHeight(100);
-    listActionsMenu->setAnchorPoint({ 1, 0 });
-    listActionsMenu->setScale(.65f);
+    auto listDisplayMenu = CCMenu::create();
+    listDisplayMenu->setID("list-actions-menu");
+    listDisplayMenu->setContentHeight(100);
+    listDisplayMenu->setAnchorPoint({ 1, 0 });
+    listDisplayMenu->setScale(.65f);
+
+    auto smallSizeBtn = CCMenuItemSpriteExtra::create(
+        GeodeSquareSprite::createWithSpriteFrameName("GJ_smallModeIcon_001.png"),
+        this, menu_selector(ModsLayer::onDisplay)
+    );
+    smallSizeBtn->setTag(static_cast<int>(ModListDisplay::SmallList));
+    smallSizeBtn->setID("list-normal-size-button");
+    listDisplayMenu->addChild(smallSizeBtn);
+    m_displayBtns.push_back(smallSizeBtn);
 
     auto bigSizeBtn = CCMenuItemSpriteExtra::create(
-        GeodeSquareSprite::createWithSpriteFrameName("GJ_smallModeIcon_001.png", &m_bigView),
-        this, menu_selector(ModsLayer::onBigView)
+        GeodeSquareSprite::createWithSpriteFrameName("GJ_extendedIcon_001.png"),
+        this, menu_selector(ModsLayer::onDisplay)
     );
+    bigSizeBtn->setTag(static_cast<int>(ModListDisplay::BigList));
     bigSizeBtn->setID("list-size-button");
-    listActionsMenu->addChild(bigSizeBtn);
+    listDisplayMenu->addChild(bigSizeBtn);
+    m_displayBtns.push_back(bigSizeBtn);
+
+    auto gridBtn = CCMenuItemSpriteExtra::create(
+        GeodeSquareSprite::createWithSpriteFrameName("grid-view.png"_spr),
+        this, menu_selector(ModsLayer::onDisplay)
+    );
+    gridBtn->setTag(static_cast<int>(ModListDisplay::Grid));
+    gridBtn->setID("list-size-button");
+    listDisplayMenu->addChild(gridBtn);
+    m_displayBtns.push_back(gridBtn);
 
     // auto searchBtn = CCMenuItemSpriteExtra::create(
     //     GeodeSquareSprite::createWithSpriteFrameName("search.png"_spr, &m_showSearch),
     //     this, menu_selector(ModsLayer::onSearch)
     // );
     // searchBtn->setID("search-button");
-    // listActionsMenu->addChild(searchBtn);
+    // listDisplayMenu->addChild(searchBtn);
 
-    listActionsMenu->setLayout(ColumnLayout::create());
-    m_frame->addChildAtPosition(listActionsMenu, Anchor::Left, ccp(-5, 25));
+    listDisplayMenu->setLayout(ColumnLayout::create()->setAxisReverse(true));
+    m_frame->addChildAtPosition(listDisplayMenu, Anchor::Left, ccp(-5, 25));
 
     m_statusNode = ModsStatusNode::create();
     m_statusNode->setZOrder(4);
@@ -582,7 +670,7 @@ void ModsLayer::gotoTab(ModListSource* src) {
     m_currentSource = src;
 
     // Update the state of the current list
-    m_lists.at(m_currentSource)->updateSize(m_bigView);
+    m_lists.at(m_currentSource)->updateDisplay(m_modListDisplay);
     m_lists.at(m_currentSource)->activateSearch(m_showSearch);
     m_lists.at(m_currentSource)->updateState();
 }
@@ -640,6 +728,13 @@ void ModsLayer::updateState() {
     else {
         m_pageMenu->setVisible(false);
     }
+
+    // Update display button
+    for (auto btn : m_displayBtns) {
+        static_cast<GeodeSquareSprite*>(btn->getNormalImage())->setState(
+            static_cast<ModListDisplay>(btn->getTag()) == m_modListDisplay
+        );
+    }
 }
 
 void ModsLayer::onTab(CCObject* sender) {
@@ -669,12 +764,24 @@ void ModsLayer::onGoToPage(CCObject*) {
     popup->setID("go-to-page"_spr);
     popup->show();
 }
-void ModsLayer::onBigView(CCObject*) {
-    m_bigView = !m_bigView;
+void ModsLayer::onDisplay(CCObject* sender) {
+    m_modListDisplay = static_cast<ModListDisplay>(sender->getTag());
+    Mod::get()->setSavedValue("mod-list-display-type", m_modListDisplay);
+
     // Make sure to avoid a crash
     if (m_currentSource) {
-        m_lists.at(m_currentSource)->updateSize(m_bigView);
+        if (m_lists.at(m_currentSource)->getDisplay() == m_modListDisplay) {
+            // No need to do stuff
+            return;
+        }
+        m_lists.at(m_currentSource)->updateDisplay(m_modListDisplay);
+
+        // Hi, Flame here, I made all display types have the same page size
+        // So there's no need for this now
+        // If anything breaks, make sure to tell me I'm a dumbass
+        // m_lists.at(m_currentSource)->reloadPage();
     }
+    this->updateState();
 }
 void ModsLayer::onSearch(CCObject*) {
     m_showSearch = !m_showSearch;

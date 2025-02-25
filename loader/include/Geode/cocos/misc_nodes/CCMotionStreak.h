@@ -154,7 +154,7 @@ public:
         m_bStartingPositionInitialized = bStartingPositionInitialized;
     }
 
-protected:
+public:
     bool m_bFastMode;
     bool m_bStartingPositionInitialized;
     bool m_bStroke;

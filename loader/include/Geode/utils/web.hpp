@@ -83,6 +83,15 @@ namespace geode::utils::web {
 
         std::vector<std::string> headers() const;
         std::optional<std::string> header(std::string_view name) const;
+
+        /**
+         * Retrieves a list of all headers from the response with a given name - there can be
+         * multiple headers with the same name, such as Set-Cookie, with each cookie in a separate
+         * header
+         * @param name name of the header
+         * @return std::optional<std::vector<std::string>>
+         */
+        std::optional<std::vector<std::string>> getAllHeadersNamed(std::string_view name) const;
     };
 
     class GEODE_DLL WebProgress final {
@@ -286,9 +295,9 @@ namespace geode::utils::web {
         /**
          * Gets the request headers
          *
-         * @return std::unordered_map<std::string, std::string>
+         * @return std::unordered_map<std::string, std::vector<std::string>>
          */
-        std::unordered_map<std::string, std::string> getHeaders() const;
+        std::unordered_map<std::string, std::vector<std::string>> getHeaders() const;
 
         /**
          * Gets the parameters inside the URL

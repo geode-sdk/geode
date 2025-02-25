@@ -77,9 +77,10 @@ public:
     std::optional<size_t> getPageCount() const;
     std::optional<size_t> getItemCount() const;
     void setPageSize(size_t size);
+
+    virtual bool isLocalModsOnly() const = 0;
     
     static void clearAllCaches();
-    static bool isRestartRequired();
 };
 
 template <class T>
@@ -140,6 +141,8 @@ public:
     InstalledModsQuery const& getQuery() const;
     InvalidateQueryAfter<InstalledModsQuery> getQueryMut();
     bool isDefaultQuery() const override;
+
+    bool isLocalModsOnly() const override;
 };
 
 enum class ServerModListType {
@@ -172,6 +175,8 @@ public:
     bool isDefaultQuery() const override;
     server::ModsQuery createDefaultQuery() const;
     ServerModListType getType() const;
+
+    bool isLocalModsOnly() const override;
 };
 
 class ModPackListSource : public ModListSource {
@@ -188,6 +193,8 @@ public:
     std::unordered_set<std::string> getModTags() const override;
     void setModTags(std::unordered_set<std::string> const& tags) override;
     bool isDefaultQuery() const override;
+    
+    bool isLocalModsOnly() const override;
 };
 
 bool weightedFuzzyMatch(std::string const& str, std::string const& kw, double weight, double& out);
@@ -231,8 +238,8 @@ void filterModsWithLocalQuery(ModListSource::ProvidedMods& mods, Query const& qu
             return a.second > b.second;
         }
         // Make sure outdated mods are always last by default
-        auto aIsOutdated = a.first.getMetadata().checkGameVersion().isErr();
-        auto bIsOutdated = b.first.getMetadata().checkGameVersion().isErr();
+        auto aIsOutdated = a.first.getMetadata().checkTargetVersions().isErr();
+        auto bIsOutdated = b.first.getMetadata().checkTargetVersions().isErr();
         if (aIsOutdated != bIsOutdated) {
             return !aIsOutdated;
         }

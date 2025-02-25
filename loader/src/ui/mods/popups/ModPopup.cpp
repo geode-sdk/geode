@@ -1,4 +1,7 @@
 #include "ModPopup.hpp"
+
+#include <optional>
+
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/ui/TextInput.hpp>
@@ -12,7 +15,6 @@
 #include "../settings/ModSettingsPopup.hpp"
 #include "../../../internal/about.hpp"
 #include "../../GeodeUIEvent.hpp"
-#include "../popups/ModtoberPopup.hpp"
 #include "server/DownloadManager.hpp"
 
 class FetchTextArea : public CCNode {
@@ -48,11 +50,16 @@ protected:
     }
 
     void onRequest(Request::Event* event) {
-        if (event->getValue() && event->getValue()->isOk() && event->getValue()->inspect([](auto&& value) { return value.has_value(); })) {
-            m_loading->removeFromParent();
-            m_textarea->setString(event->getValue()->unwrap()->c_str());
+        if (auto* res = event->getValue(); res && res->isOk()) {
+            auto value = std::move(*res).unwrap();
+            if (value) {
+                m_loading->removeFromParent();
+                std::string str = std::move(value).value();
+                m_textarea->setString(str.c_str());
+                return;
+            }
         }
-        else if (!event->getProgress()) {
+        if (!event->getProgress()) {
             m_loading->removeFromParent();
             m_textarea->setString(m_noneText.c_str());
         }
@@ -76,7 +83,8 @@ bool ModPopup::setup(ModSource&& src) {
 
     this->setID(std::string(Mod::get()->expandSpriteName(fmt::format("popup-{}", src.getID()))));
 
-    if (src.asMod() == Mod::get()) {
+    auto isGeode = src.asMod() == Mod::get();
+    if (isGeode) {
         // Display commit hashes
         auto loaderHash = about::getLoaderCommitHash();
         auto bindingsHash = about::getBindingsCommitHash();
@@ -388,6 +396,20 @@ bool ModPopup::setup(ModSource&& src) {
     m_reenableBtn->m_notClickable = true;
     m_installMenu->addChild(m_reenableBtn);
 
+    auto unavailableSpr = createGeodeButton(
+        CCSprite::createWithSpriteFrameName("exclamation.png"_spr),
+        "Unavailable",
+        GeodeButtonSprite::Gray,
+        m_forceDisableTheme
+    );
+    unavailableSpr->setColor({ 155, 155, 155 });
+    unavailableSpr->setScale(.5f);
+    m_unavailableBtn = CCMenuItemSpriteExtra::create(
+        unavailableSpr, this, nullptr
+    );
+    m_unavailableBtn->setEnabled(false);
+    m_installMenu->addChild(m_unavailableBtn);
+
     auto installModSpr = createGeodeButton(
         CCSprite::createWithSpriteFrameName("GJ_downloadsIcon_001.png"),
         "Install",
@@ -561,6 +583,10 @@ bool ModPopup::setup(ModSource&& src) {
     externalLinkBtn->setID("mod-online-page-button");
     m_buttonMenu->addChildAtPosition(externalLinkBtn, Anchor::TopRight, ccp(-14, -16));
 
+    if (isGeode) {
+        externalLinkBtn->setVisible(false);
+    }
+
     tabsMenu->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::Start));
     m_rightColumn->addChildAtPosition(tabsMenu, Anchor::Top);
 
@@ -664,13 +690,18 @@ void ModPopup::updateState() {
     m_cancelBtn->setVisible(false);
 
     m_enableBtn->toggle(asMod && asMod->isOrWillBeEnabled());
-    m_enableBtn->setVisible(asMod && asMod->getRequestedAction() == ModRequestedAction::None);
+    m_enableBtn->setVisible(
+        asMod &&
+        asMod->getRequestedAction() == ModRequestedAction::None &&
+        !asMod->targetsOutdatedVersion()
+    );
 
     m_reenableBtn->toggle(m_enableBtn->isToggled());
     m_reenableBtn->setVisible(asMod && modRequestedActionIsToggle(asMod->getRequestedAction()));
 
     m_updateBtn->setVisible(m_source.hasUpdates().has_value() && asMod->getRequestedAction() == ModRequestedAction::None);
-    m_installBtn->setVisible(m_source.asServer());
+    m_installBtn->setVisible(this->availableForInstall());
+    m_unavailableBtn->setVisible(m_source.asServer() && !this->availableForInstall());
     m_uninstallBtn->setVisible(asMod && asMod->getRequestedAction() == ModRequestedAction::None);
 
     if (asMod && modRequestedActionIsUninstall(asMod->getRequestedAction())) {
@@ -885,7 +916,7 @@ void ModPopup::onCheckUpdates(typename server::ServerRequest<std::optional<serve
     }
 }
 
-void ModPopup::onLoadTags(typename server::ServerRequest<std::unordered_set<std::string>>::Event* event) {
+void ModPopup::onLoadTags(typename server::ServerRequest<std::vector<server::ServerTag>>::Event* event) {
     if (event->getValue() && event->getValue()->isOk()) {
         auto data = event->getValue()->unwrap();
         m_tags->removeAllChildren();
@@ -904,7 +935,7 @@ void ModPopup::onLoadTags(typename server::ServerRequest<std::unordered_set<std:
         // If the build times from the cool popup become too long then we can 
         // probably move that to a normal FLAlert that explains "Modtober was 
         // this contest blah blah this mod was made for it"
-        else if (data.contains("modtober24")) {
+        else if (ranges::contains(data, [](auto const& tag) { return tag.name == "modtober24"; })) {
             auto menu = CCMenu::create();
             menu->setID("modtober-banner");
             menu->ignoreAnchorPointForPosition(false);
@@ -1090,10 +1121,12 @@ void ModPopup::onSupport(CCObject*) {
     openSupportPopup(m_source.getMetadata());
 }
 void ModPopup::onModtoberInfo(CCObject*) {
-    // todo: if we want to get rid of the modtober popup sprite (because it's fucking massive)
-    // then we can just replace this with a normal FLAlert explaining 
-    // "this mod was an entry for modtober 2024 blah blah blah"
-    ModtoberPopup::create()->show();
+    FLAlertLayer::create(
+        "Modtober 2024",
+        "This mod was an entry for <cj>Modtober 2024</c>, a contest to create "
+        "the best mod with the theme <cc>\"The Sky's the Limit\"</c>",
+        "OK"
+    )->show();
 }
 
 ModPopup* ModPopup::create(ModSource&& src) {
@@ -1112,4 +1145,21 @@ ModPopup* ModPopup::create(ModSource&& src) {
 
 ModSource& ModPopup::getSource() & {
     return m_source;
+}
+
+bool ModPopup::availableForInstall() const {
+    // Adapted from ModItem.cpp ModItem::onView
+    if (auto serverSource = m_source.asServer()) {
+        auto version = serverSource->latestVersion();
+        auto gameVersion = version.getGameVersion();
+
+        if (
+            (gameVersion == "0.000") || 
+            (gameVersion && gameVersion != "*" && gameVersion != GEODE_STR(GEODE_GD_VERSION)) || 
+            (!Loader::get()->isModVersionSupported(version.getGeodeVersion()))) {
+            return false;
+        } 
+        return true;
+    }
+    return false;
 }

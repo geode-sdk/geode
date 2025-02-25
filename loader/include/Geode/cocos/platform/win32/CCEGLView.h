@@ -183,8 +183,8 @@ public:
 	void updateFrameSize();
 
 
-protected:
-	static CCEGLView* s_pEglView;
+public:
+    static CCEGLView* s_pEglView;
     // @note unknown members here
     uint8_t m_unkPad[8];
     bool m_bCaptured;

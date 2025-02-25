@@ -67,13 +67,13 @@ void tryShowForwardCompat() {
         return;
 
     // TODO: change text later
-    console::messageBox(
-        "Forward Compatibility Warning",
-        "Geode is running in a newer version of GD than Geode targets.\n"
-        "UI is going to be disabled, platform console is forced on and crashes can be more common.\n"
-        "However, if your game crashes, it is probably caused by an outdated mod and not Geode itself.",
-        Severity::Warning
-    );
+    // console::messageBox(
+    //     "Forward Compatibility Warning",
+    //     "Geode is running in a newer version of GD than Geode targets.\n"
+    //     "UI is going to be disabled, platform console is forced on and crashes can be more common.\n"
+    //     "However, if your game crashes, it is probably caused by an outdated mod and not Geode itself.",
+    //     Severity::Warning
+    // );
 
     Mod::get()->setSavedValue<std::string>(
         "last-forward-compat-warn-popup-ver",
@@ -108,7 +108,6 @@ bool safeModeCheck() {
 int geodeEntry(void* platformData) {
     thread::setName("Main");
 
-    log::Logger::get()->setup();
     console::setup();
     if (LoaderImpl::get()->isForwardCompatMode()) {
         console::openIfClosed();
@@ -141,17 +140,18 @@ int geodeEntry(void* platformData) {
 
     // set up internal mod, settings and data
     log::info("Setting up internal mod");
-    log::pushNest();
-    auto internalSetupRes = LoaderImpl::get()->setupInternalMod();
-    log::popNest();
-    if (!internalSetupRes) {
-        console::messageBox(
-            "Unable to Load Geode!",
-            "There was a fatal error setting up "
-            "the internal mod and Geode can not be loaded: " + internalSetupRes.unwrapErr()
-        );
-        LoaderImpl::get()->forceReset();
-        return 1;
+    {
+        log::NestScope nest;
+        auto internalSetupRes = LoaderImpl::get()->setupInternalMod();
+        if (!internalSetupRes) {
+            console::messageBox(
+                "Unable to Load Geode!",
+                "There was a fatal error setting up "
+                "the internal mod and Geode can not be loaded: " + internalSetupRes.unwrapErr()
+            );
+            LoaderImpl::get()->forceReset();
+            return 1;
+        }
     }
 
     tryShowForwardCompat();
@@ -159,32 +159,51 @@ int geodeEntry(void* platformData) {
     // IOS TODO: remove this
     Mod::get()->setSettingValue<bool>("show-platform-console", true);
     // open console
-    if (!LoaderImpl::get()->isForwardCompatMode() && Mod::get()->getSettingValue<bool>("show-platform-console")) {
+    if (Mod::get()->getSettingValue<bool>("show-platform-console")) {
         console::openIfClosed();
     }
 
+    // Setup logger here so that internal mod is setup and we can read log level
+    // Logging before this point does store the log, and everything gets logged in this setup call
+    log::Logger::get()->setup();
+
     // set up loader, load mods, etc.
     log::info("Setting up loader");
-    log::pushNest();
-    auto setupRes = LoaderImpl::get()->setup();
-    log::popNest();
-    if (!setupRes) {
-        console::messageBox(
-            "Unable to Load Geode!",
-            "There was an unknown fatal error setting up "
-            "the loader and Geode can not be loaded. "
-            "(" + setupRes.unwrapErr() + ")"
-        );
-        LoaderImpl::get()->forceReset();
-        return 1;
+    {
+        log::NestScope nest;
+        auto setupRes = LoaderImpl::get()->setup();
+        if (!setupRes) {
+            console::messageBox(
+                "Unable to Load Geode!",
+                "There was an unknown fatal error setting up "
+                "the loader and Geode can not be loaded. "
+                "(" + setupRes.unwrapErr() + ")"
+            );
+            LoaderImpl::get()->forceReset();
+            return 1;
+        }
     }
 
     crashlog::setupPlatformHandlerPost();
 
+    // delete old log files
+
+    int logMaxAge = Mod::get()->getSettingValue<int>("log-retention-period");
+
+    // 0 means no deletion
+    if (logMaxAge > 0) {
+        // put it in a thread so that it doesn't slow down launch times
+        std::thread([logMaxAge] {
+            log::Logger::get()->deleteOldLogs(std::chrono::days{logMaxAge});
+        }).detach();
+    }
+
+
     log::debug("Setting up IPC");
-    log::pushNest();
-    ipc::setup();
-    log::popNest();
+    {
+        log::NestScope nest;
+        ipc::setup();
+    }
 
     // download and install new loader update in the background
     

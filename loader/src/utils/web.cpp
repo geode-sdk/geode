@@ -96,7 +96,7 @@ class WebResponse::Impl {
 public:
     int m_code;
     ByteVector m_data;
-    std::unordered_map<std::string, std::string> m_headers;
+    std::unordered_map<std::string, std::vector<std::string>> m_headers;
 
     Result<> into(std::filesystem::path const& path) const;
 };
@@ -146,8 +146,14 @@ std::vector<std::string> WebResponse::headers() const {
 }
 
 std::optional<std::string> WebResponse::header(std::string_view name) const {
-    auto str = std::string(name);
-    if (m_impl->m_headers.contains(str)) {
+    if (auto str = std::string(name); m_impl->m_headers.contains(str)) {
+        return m_impl->m_headers.at(str).at(0);
+    }
+    return std::nullopt;
+}
+
+std::optional<std::vector<std::string>> WebResponse::getAllHeadersNamed(std::string_view name) const {
+    if (auto str = std::string(name); m_impl->m_headers.contains(str)) {
         return m_impl->m_headers.at(str);
     }
     return std::nullopt;
@@ -189,7 +195,7 @@ public:
 
     std::string m_method;
     std::string m_url;
-    std::unordered_map<std::string, std::string> m_headers;
+    std::unordered_map<std::string, std::vector<std::string>> m_headers;
     std::unordered_map<std::string, std::string> m_urlParameters;
     std::optional<std::string> m_userAgent;
     std::optional<std::string> m_acceptEncodingType;
@@ -270,15 +276,17 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
 
         // Set headers
         curl_slist* headers = nullptr;
-        for (auto& [name, value] : impl->m_headers) {
+        for (auto& [name, values] : impl->m_headers) {
             // Sanitize header name
             auto header = name;
             header.erase(std::remove_if(header.begin(), header.end(), [](char c) {
                 return c == '\r' || c == '\n';
             }), header.end());
             // Append value
-            header += ": " + value;
-            headers = curl_slist_append(headers, header.c_str());
+            for (const auto& value: values) {
+                header += ": " + value;
+                headers = curl_slist_append(headers, header.c_str());
+            }
         }
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
@@ -406,7 +414,12 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
                 if (value.ends_with('\r')) {
                     value = value.substr(0, value.size() - 1);
                 }
-                headers.insert_or_assign(key, value);
+                // Create a new vector and add to it or add to an already existing one
+                if (headers.contains(key)) {
+                    headers.at(key).push_back(value);
+                } else {
+                    headers.insert_or_assign(key, std::vector{value});
+                }
             }
             return size * nitems;
         }));
@@ -508,7 +521,14 @@ WebRequest& WebRequest::header(std::string_view name, std::string_view value) {
         }
     }
 
-    m_impl->m_headers.insert_or_assign(std::string(name), std::string(value));
+    // Create a new vector and add to it or add to an already existing one
+    std::string strName = std::string(name);
+    std::string strValue = std::string(value);
+    if (m_impl->m_headers.contains(strName)) {
+        m_impl->m_headers.at(strName).push_back(strValue);
+    } else {
+        m_impl->m_headers.insert_or_assign(strName, std::vector{strValue});
+    }
 
     return *this;
 }
@@ -609,7 +629,7 @@ std::string WebRequest::getUrl() const {
     return m_impl->m_url;
 }
 
-std::unordered_map<std::string, std::string> WebRequest::getHeaders() const {
+std::unordered_map<std::string, std::vector<std::string>> WebRequest::getHeaders() const {
     return m_impl->m_headers;
 }
 

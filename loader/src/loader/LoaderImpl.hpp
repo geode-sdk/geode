@@ -68,10 +68,12 @@ namespace geode {
         Mod* takeNextMod();
         void releaseNextMod();
 
-        std::unordered_map<void*, tulip::hook::HandlerHandle> m_handlerHandles;
+        std::unordered_map<void*, std::pair<tulip::hook::HandlerHandle, size_t>> m_handlerHandles;
 
         Result<tulip::hook::HandlerHandle> getHandler(void* address);
         Result<tulip::hook::HandlerHandle> getOrCreateHandler(void* address, tulip::hook::HandlerMetadata const& metadata);
+        Result<tulip::hook::HandlerHandle> getAndDecreaseHandler(void* address);
+        Result<> removeHandlerIfNeeded(void* address);
 
         bool loadHooks();
 
@@ -79,6 +81,7 @@ namespace geode {
         ~Impl();
 
         void createDirectories();
+        void removeDirectories();
 
         void updateModResources(Mod* mod);
         void addSearchPaths();
@@ -138,6 +141,12 @@ namespace geode {
         bool isSafeMode() const;
         // enables safe mode, even if the launch arg wasnt provided
         void forceSafeMode();
+
+        // This will potentially start a whole sequence of popups that guide the 
+        // user through installing the specific .geode file
+        void installModManuallyFromFile(std::filesystem::path const& path, std::function<void()> after);
+
+        bool isRestartRequired() const;
     };
 
     class LoaderImpl : public Loader::Impl {

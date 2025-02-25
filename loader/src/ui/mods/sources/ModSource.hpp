@@ -2,6 +2,7 @@
 
 #include <Geode/loader/Mod.hpp>
 #include <server/Server.hpp>
+#include <loader/LoaderImpl.hpp>
 
 using namespace geode::prelude;
 
@@ -23,7 +24,6 @@ public:
     ModSource() = default;
     ModSource(Mod* mod);
     ModSource(server::ServerModMetadata&& metadata);
-    ModSource(ModSuggestion&& suggestion);
 
     std::string getID() const;
     ModMetadata getMetadata() const;
@@ -47,7 +47,7 @@ public:
     server::ServerRequest<server::ServerModMetadata> fetchServerInfo() const;
     server::ServerRequest<std::optional<std::string>> fetchAbout() const;
     server::ServerRequest<std::optional<std::string>> fetchChangelog() const;
-    server::ServerRequest<std::unordered_set<std::string>> fetchValidTags() const;
+    server::ServerRequest<std::vector<server::ServerTag>> fetchValidTags() const;
     server::ServerRequest<std::optional<server::ServerModUpdate>> checkUpdates();
     void startInstall();
 };

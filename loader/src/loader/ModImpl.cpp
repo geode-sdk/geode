@@ -30,6 +30,7 @@ static constexpr const char* humanReadableDescForAction(ModRequestedAction actio
         case ModRequestedAction::Disable: return "Mod has been disabled";
         case ModRequestedAction::Uninstall: return "Mod has been uninstalled";
         case ModRequestedAction::UninstallWithSaveData: return "Mod has been uninstalled";
+        case ModRequestedAction::Update: return "Mod has been updated";
     }
 }
 
@@ -209,8 +210,7 @@ Result<> Mod::Impl::saveData() {
     }
 
     // ModSettingsManager keeps track of the whole savedata
-    matjson::Value json;
-    m_settings->save(json);
+    matjson::Value json = m_settings->save();
 
     // saveData is expected to be synchronous, and always called from GD thread
     ModStateEvent(m_self, ModEventType::DataSaved).post();
@@ -315,9 +315,17 @@ Result<> Mod::Impl::loadBinary() {
 
     LoaderImpl::get()->releaseNextMod();
 
-
     ModStateEvent(m_self, ModEventType::Loaded).post();
     ModStateEvent(m_self, ModEventType::DataLoaded).post();
+
+    // do we not have a function for getting all the dependencies of a mod directly? ok then
+    // Anyway this lets all of this mod's dependencies know it has been loaded
+    // In case they're API mods and want to know those kinds of things
+    for (auto const& dep : ModMetadataImpl::getImpl(m_metadata).m_dependencies) {
+        if (auto depMod = Loader::get()->getLoadedMod(dep.id)) {
+            DependencyLoadedEvent(depMod, m_self).post();
+        }
+    }
 
     m_isCurrentlyLoading = false;
 

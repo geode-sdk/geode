@@ -37,12 +37,8 @@
 #include "../kazmath/include/kazmath/kazmath.h"
 #include "../script_support/CCScriptSupport.h"
 #include "../include/CCProtocols.h"
-#include "../../loader/Event.hpp"
+#include <Geode/loader/Event.hpp>
 #include <Geode/utils/casts.hpp>
-
-#ifndef GEODE_IS_MEMBER_TEST
-#include <matjson.hpp>
-#endif
 
 namespace geode {
     class Layout;
@@ -1133,7 +1129,7 @@ public:
      * @returns Child at index cast to the given type,
      * or nullptr if index exceeds bounds
      */
-    template <class T = CCNode>
+    template <class InpT = CCNode*, class T = std::remove_pointer_t<InpT>>
     T* getChildByType(int index) {
         size_t indexCounter = 0;
         if (this->getChildrenCount() == 0) return nullptr;
@@ -1761,7 +1757,7 @@ private:
      */
     CCPoint convertToWindowSpace(const CCPoint& nodePoint);
 
-protected:
+public:
     float m_fRotationX;                 ///< rotation angle on x-axis
     float m_fRotationY;                 ///< rotation angle on y-axis
     
@@ -1894,7 +1890,7 @@ public:
     virtual void setOpacityModifyRGB(bool bValue) {CC_UNUSED_PARAM(bValue);};
     virtual bool isOpacityModifyRGB() { return false; };
 
-protected:
+public:
 	GLubyte		_displayedOpacity;
     GLubyte     _realOpacity;
 	ccColor3B	_displayedColor;

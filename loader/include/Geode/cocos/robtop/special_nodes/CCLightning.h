@@ -43,7 +43,7 @@ public:
     bool isCascadeOpacityEnabled();
     void setCascadeColorEnabled(bool);
 
-protected:
+public:
     CCPoint m_strikePoint;
     CCPoint m_strikePoint2;
     bool m_split;

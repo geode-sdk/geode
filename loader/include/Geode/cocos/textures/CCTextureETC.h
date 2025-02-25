@@ -50,7 +50,7 @@ public:
 private:
     bool loadTexture(const char* file);
 
-private:
+public:
     GLuint _name;
     unsigned int _width;
     unsigned int _height;

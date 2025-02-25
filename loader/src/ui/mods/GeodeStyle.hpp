@@ -7,6 +7,7 @@
 #include <Geode/ui/BasedButtonSprite.hpp>
 #include <Geode/ui/Popup.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <server/Server.hpp>
 
 using namespace geode::prelude;
 
@@ -87,9 +88,8 @@ ButtonSprite* createGeodeButton(std::string const& text, bool gold = false, Geod
 CircleButtonSprite* createGeodeCircleButton(CCSprite* top, float scale = 1.f, CircleBaseSize size = CircleBaseSize::Medium, bool altColor = false, bool forceDisableTheme = false);
 
 ButtonSprite* createTagLabel(std::string const& text, std::pair<ccColor3B, ccColor3B> const& color);
-ButtonSprite* createGeodeTagLabel(std::string_view tag);
-std::pair<ccColor3B, ccColor3B> geodeTagColors(std::string_view tag);
-std::string geodeTagName(std::string_view tag);
+ButtonSprite* createGeodeTagLabel(server::ServerTag const& tag);
+std::pair<ccColor3B, ccColor3B> geodeTagColors(server::ServerTag const& tag);
 
 ListBorders* createGeodeListBorders(CCSize const& size, bool forceDisableTheme = false);
 

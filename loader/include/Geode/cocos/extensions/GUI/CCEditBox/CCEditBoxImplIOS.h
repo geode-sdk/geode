@@ -109,7 +109,8 @@ private:
 	void			setInactiveText(const char* pText);
 	void			adjustTextFieldPosition();
     void            placeInactiveLabels();
-	
+
+public:
     CCLabelTTF*     m_pLabel;
     CCLabelTTF*     m_pLabelPlaceHolder;
     CCSize          m_tContentSize;

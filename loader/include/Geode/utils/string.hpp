@@ -53,12 +53,18 @@ namespace geode::utils::string {
     GEODE_DLL size_t count(std::string const& str, char c);
 
     GEODE_DLL std::string& trimLeftIP(std::string& str);
+    GEODE_DLL std::string& trimLeftIP(std::string& str, std::string const& chars);
     GEODE_DLL std::string& trimRightIP(std::string& str);
+    GEODE_DLL std::string& trimRightIP(std::string& str, std::string const& chars);
     GEODE_DLL std::string& trimIP(std::string& str);
+    GEODE_DLL std::string& trimIP(std::string& str, std::string const& chars);
 
     GEODE_DLL std::string trimLeft(std::string const& str);
+    GEODE_DLL std::string trimLeft(std::string const& str, std::string const& chars);
     GEODE_DLL std::string trimRight(std::string const& str);
+    GEODE_DLL std::string trimRight(std::string const& str, std::string const& chars);
     GEODE_DLL std::string trim(std::string const& str);
+    GEODE_DLL std::string trim(std::string const& str, std::string const& chars);
 
     GEODE_DLL std::string& normalizeIP(std::string& str);
     GEODE_DLL std::string normalize(std::string const& str);

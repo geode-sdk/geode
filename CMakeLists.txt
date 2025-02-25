@@ -246,8 +246,8 @@ if (ANDROID)
 endif()
 
 set(MAT_JSON_AS_INTERFACE ON)
-CPMAddPackage("gh:geode-sdk/result@1.2.1")
-CPMAddPackage("gh:geode-sdk/json@3.0.3")
+CPMAddPackage("gh:geode-sdk/result@1.3.3")
+CPMAddPackage("gh:geode-sdk/json@3.2.1")
 CPMAddPackage("gh:fmtlib/fmt#11.0.2")
 
 target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)
@@ -277,7 +277,7 @@ if (DEFINED GEODE_TULIPHOOK_REPO_PATH)
 	message(STATUS "Using ${GEODE_TULIPHOOK_REPO_PATH} for TulipHook")
 	add_subdirectory(${GEODE_TULIPHOOK_REPO_PATH} ${GEODE_TULIPHOOK_REPO_PATH}/build)
 else()
-	CPMAddPackage("gh:geode-sdk/TulipHook@2.4.1")
+	CPMAddPackage("gh:geode-sdk/TulipHook@2.4.2")
 endif()
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 
@@ -342,7 +342,6 @@ elseif (EXISTS ${GEODE_PLATFORM_BIN_PATH})
 else()
 	message(FATAL_ERROR
 		"No valid loader binary to link to! Install pre-built binaries with `geode sdk install-binaries`, "
-		"or build Geode from source and add `set(GEODE_LINK_NIGHTLY ON)` to your CMakeLists.txt "
-		"in the line before calling add_subdirectory for Geode."
+		"or build Geode from source."
 	)
 endif()
