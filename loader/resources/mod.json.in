@@ -41,7 +41,8 @@
         },
         "sprites": [
             "images/*.png",
-            "swelve/*.png"
+            "swelve/*.png",
+            "gdtextures/*.png"
         ],
         "files": [
             "sounds/*.ogg",
