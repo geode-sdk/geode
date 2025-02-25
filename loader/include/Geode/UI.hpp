@@ -17,6 +17,7 @@
 #include "ui/SceneManager.hpp"
 #include "ui/ScrollLayer.hpp"
 #include "ui/SelectList.hpp"
+#include "ui/SimpleAxisLayout.hpp"
 #include "ui/Scrollbar.hpp"
 #include "ui/TextArea.hpp"
 #include "ui/TextRenderer.hpp"
