@@ -1,7 +1,9 @@
 #include <Geode/Loader.hpp>
 #include <Geode/loader/ModEvent.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <chrono>
 #include "../dependency/main.hpp"
+#include "Geode/utils/general.hpp"
 
 using namespace geode::prelude;
 
@@ -23,6 +25,39 @@ $execute {
         log::info("Received event: {}", event->getData());
         s_recievedEvent = event->getData();
     });
+}
+
+// Coroutines
+#include <Geode/utils/async.hpp>
+auto advanceFrame() {
+    auto [task, finish, progress, cancelled] = Task<void>::spawn();
+    queueInMainThread(std::bind(finish, true));
+
+    return task;
+}
+
+$execute {
+    $async() {
+        auto start = std::chrono::steady_clock::now();
+        log::info("Waiting for 10 frames...");
+        for (int i = 0; i < 10; ++i)
+            co_await advanceFrame();
+
+        log::info("Finished waiting! Took {} seconds", std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::steady_clock::now() - start
+        ).count());
+    };
+
+    auto output = $try<VersionInfo> {
+        log::info("Parsing number 123: {}", co_await utils::numFromString<int>("123"));
+        log::info("Parsing number 12.3: {}", co_await utils::numFromString<int>("12.3"));
+
+        co_return VersionInfo::parse("1.2.3-alpha.4");
+    };
+
+    if (!output) {
+        log::info("$try successfully caught error");
+    }
 }
 
 #include <Geode/modify/MenuLayer.hpp>

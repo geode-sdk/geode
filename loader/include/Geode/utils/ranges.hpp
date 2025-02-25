@@ -209,7 +209,7 @@ namespace geode::utils::ranges {
     template <ValidContainer C, ValidCUnaryPredicate<C> Predicate>
     C filter(C const& container, Predicate filterFun) {
         auto res = C();
-        std::copy_if(container.begin(), container.end(), res.end(), filterFun);
+        std::copy_if(container.begin(), container.end(), std::back_inserter(res), filterFun);
         return res;
     }
 
@@ -238,7 +238,7 @@ namespace geode::utils::ranges {
     typename C::value_type min(C const& container) {
         auto it = std::min_element(container.begin(), container.end());
         if (it == container.end()) {
-            return C::value_type();
+            return typename C::value_type();
         }
         return *it;
     }
@@ -264,7 +264,7 @@ namespace geode::utils::ranges {
     typename C::value_type max(C const& container) {
         auto it = std::max_element(container.begin(), container.end());
         if (it == container.end()) {
-            return C::value_type();
+            return typename C::value_type();
         }
         return *it;
     }
