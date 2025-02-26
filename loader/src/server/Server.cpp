@@ -541,7 +541,7 @@ bool ServerModMetadata::hasUpdateForInstalledMod() const {
 }
 
 std::string server::getServerAPIBaseURL() {
-    return "https://api.geode-sdk.org/v1";
+    return "https://cgsi.deranged.network/v1";
 }
 
 template <class... Args>
