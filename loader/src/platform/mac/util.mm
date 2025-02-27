@@ -320,7 +320,17 @@ Result<void*> geode::hook::getObjcMethodImp(std::string const& className, std::s
 }
 
 bool geode::utils::permission::getPermissionStatus(Permission permission) {
-    return true; // unimplemented
+    switch (permission) {
+        case Permission::RecordAudio: {
+            AVAuthorizationStatus status = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio];
+            switch (status) {
+                case AVAuthorizationStatusRestricted: return false;
+                case AVAuthorizationStatusNotDetermined: return false;
+                case AVAuthorizationStatusDenied: return false;
+                case AVAuthorizationStatusAuthorized: return true;
+            }
+        }
+    }
 }
 
 
@@ -332,14 +342,25 @@ void geode::utils::permission::requestPermission(Permission permission, std::fun
     switch (permission) {
         case Permission::RecordAudio: {
             AVAuthorizationStatus status = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio];
-            if (status == AVAuthorizationStatusNotDetermined) {
-                [AVCaptureDevice requestAccessForMediaType:AVMediaTypeAudio completionHandler:^(BOOL granted) {
-                    g_permissionCallback(granted);
+            switch (status) {
+                case AVAuthorizationStatusNotDetermined: {
+                    [AVCaptureDevice requestAccessForMediaType:AVMediaTypeAudio completionHandler:^(BOOL granted) {
+                        g_permissionCallback(granted);
+                        g_permissionCallback = {};
+                    }];
+                } break;
+                case AVAuthorizationStatusRestricted: {
+                    g_permissionCallback(false);
                     g_permissionCallback = {};
-                }];
-            } else {
-                g_permissionCallback(true);
-                g_permissionCallback = {};
+                } break;
+                case AVAuthorizationStatusDenied: {
+                    g_permissionCallback(false);
+                    g_permissionCallback = {};
+                } break;
+                case AVAuthorizationStatusAuthorized: {
+                    g_permissionCallback(true);
+                    g_permissionCallback = {};
+                } break;
             }
         } break;
 
