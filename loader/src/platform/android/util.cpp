@@ -393,3 +393,8 @@ std::string geode::utils::thread::getDefaultName() {
 void geode::utils::thread::platformSetName(std::string const& name) {
     pthread_setname_np(pthread_self(), name.c_str());
 }
+
+std::string geode::utils::getEnvironmentVariable(const char* name) {
+    auto result = std::getenv(name);
+    return result ? result : "";
+}
