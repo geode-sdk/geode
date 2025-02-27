@@ -219,21 +219,7 @@ int geodeEntry(void* platformData) {
     tryLogForwardCompat();
 
 #ifdef GEODE_IS_MACOS
-    // Check if mic permissions are present in Info.plist
-    std::thread([] {
-        // Load the plist and check for microphone key
-        std::string plistPath = (dirs::getGameDir / "Info.plist").string();
-        CCDictionary* plist = CCDictionary::createWithContentsOfFileThreadSafe(plistPath.c_str());
-        if (plist->objectForKey("NSMicrophoneUsageDescription") == NULL) {
-            // If the microphone key doesnt exist, create it and restart game
-            auto micKeyDescription = new CCString("A mod you have installed has requested microphone access");
-            plist->setObject(micKeyDescription, "NSMicrophoneUsageDescription");
-            static_cast<CCFileUtilsMac*>(CCFileUtils::get())->writeToFile(plist, plistPath.c_str());
-            micKeyDescription->release();
-        }
-
-        plist->release();
-    }).detach();
+    checkPermissionPlist();
 #endif
 
     return 0;

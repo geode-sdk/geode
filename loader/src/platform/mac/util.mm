@@ -5,6 +5,7 @@ using namespace geode::prelude;
 
 #include <Geode/loader/Dirs.hpp>
 #import <AppKit/AppKit.h>
+#import <AVFoundation/AVFoundation.h>
 #include <Geode/Utils.hpp>
 #include <Geode/binding/GameManager.hpp>
 #include <objc/runtime.h>
@@ -330,6 +331,8 @@ bool geode::utils::permission::getPermissionStatus(Permission permission) {
                 case AVAuthorizationStatusAuthorized: return true;
             }
         }
+
+        default: return false;
     }
 }
 
