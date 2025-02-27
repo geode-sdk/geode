@@ -225,7 +225,7 @@ int geodeEntry(void* platformData) {
         CCDictionary* plist = CCDictionary::createWithContentsOfFileThreadSafe(fmt::format("{}/Info.plist", dirs::getGameDir()).c_str());
         if (plist->objectForKey("NSMicrophoneUsageDescription") == NULL) {
             // If the microphone key doesnt exist, create it and restart game
-            auto micKeyDescription = new CCString("Geode requires microphone access for some mods to function correctly");
+            auto micKeyDescription = new CCString("A mod you have installed has requested microphone access");
             plist->setObject(micKeyDescription, "NSMicrophoneUsageDescription");
             static_cast<CCFileUtilsMac*>(CCFileUtils::get())->writeToFile(plist, fmt::format("{}/Info.plist", dirs::getGameDir()).c_str());
             micKeyDescription->release();
