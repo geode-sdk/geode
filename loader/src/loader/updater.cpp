@@ -52,6 +52,11 @@ void updater::fetchLatestGithubRelease(
         return then(s_latestGithubRelease.value());
     }
 
+    //quick hack to make sure it always attempts an update check in forward compat
+    if(Loader::get()->isForwardCompatMode()) {
+        force = true;
+    }
+
     auto version = VersionInfo::parse(
         Mod::get()->getSavedValue("latest-version-auto-update-check", std::string("0.0.0"))
     );
@@ -374,8 +379,8 @@ void updater::checkForLoaderUpdates() {
                 return;
             }
 
-            // don't auto-update major versions
-            if (ver.getMajor() > Loader::get()->getVersion().getMajor()) {
+            // don't auto-update major versions when not on forward compat
+            if (!Loader::get()->isForwardCompatMode() && ver.getMajor() > Loader::get()->getVersion().getMajor()) {
                 return;
             }
 
