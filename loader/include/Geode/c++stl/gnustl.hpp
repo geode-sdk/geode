@@ -494,6 +494,71 @@ namespace gd {
             m_reserveEnd = nullptr;
         }
 
+        void reserve(std::size_t newCap) {
+            if (newCap == this->capacity()) return;
+
+            auto newStart = this->allocator().allocate(newCap);
+            auto newFinish = newStart + this->size();
+
+            std::uninitialized_default_construct(newStart, newFinish);
+            std::copy(m_start, m_finish, newStart);
+
+            std::destroy(m_start, m_finish);
+            this->allocator().deallocate(m_start, this->capacity());
+
+            m_start = newStart;
+            m_finish = newFinish;
+            m_reserveEnd = newStart + newCap;
+        }
+
+        void resize(std::size_t newSize) {
+            if (newSize < this->size()) {
+                std::destroy(m_start + newSize, m_finish);
+                m_finish = m_start + newSize;
+                return;
+            }
+
+            if (newSize > this->size()) {
+                if (newSize > this->capacity()) {
+                    auto capacity = nextCapacity(newSize);
+                    auto newStart = this->allocator().allocate(capacity);
+                    auto newFinish = newStart + newSize;
+
+                    std::uninitialized_default_construct(newStart, newFinish);
+                    std::copy(m_start, m_finish, newStart);
+
+                    std::destroy(m_start, m_finish);
+                    this->allocator().deallocate(m_start, this->capacity());
+
+                    m_start = newStart;
+                    m_finish = newFinish;
+                    m_reserveEnd = newStart + capacity;
+                    return;
+                }
+                std::uninitialized_default_construct(m_finish, m_start + newSize);
+                m_finish = m_start + newSize;
+                return;
+            }
+        }
+
+        void swap(gd::vector<T>& other) {
+            T* startTemp = m_start;
+            T* finishTemp = m_finish;
+            T* reserveEndTemp = m_reserveEnd;
+
+            m_start = other.m_start;
+            m_finish = other.m_finish;
+            m_reserveEnd = other.m_reserveEnd;
+
+            other.m_start = startTemp;
+            other.m_finish = finishTemp;
+            other.m_reserveEnd = reserveEndTemp;
+        }
+
+        T* data() {
+            return m_start;
+        }
+
         T& operator[](size_t index) {
             return m_start[index];
         }
