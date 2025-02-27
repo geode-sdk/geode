@@ -3,6 +3,8 @@
 #include <loader/IPC.hpp>
 #include <loader/updater.hpp>
 
+#include <Geode/cocos/cocoa/CCDictionary.h>
+#include <Geode/cocos/platform/mac/CCFileUtilsMac.h>
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
@@ -215,6 +217,23 @@ int geodeEntry(void* platformData) {
 
     // also log after entry so that users are more likely to notice
     tryLogForwardCompat();
+
+#ifdef GEODE_IS_MACOS
+    // Check if mic permissions are present in Info.plist
+    std::thread([] {
+        // Load the plist and check for microphone key
+        CCDictionary* plist = CCDictionary::createWithContentsOfFileThreadSafe(fmt::format("{}/Info.plist", dirs::getGameDir()).c_str());
+        if (plist->objectForKey("NSMicrophoneUsageDescription") == NULL) {
+            // If the microphone key doesnt exist, create it and restart game
+            auto micKeyDescription = new CCString("Geode requires microphone access for some mods to function correctly");
+            plist->setObject(micKeyDescription, "NSMicrophoneUsageDescription");
+            static_cast<CCFileUtilsMac*>(CCFileUtils::get())->writeToFile(plist, fmt::format("{}/Info.plist", dirs::getGameDir()).c_str());
+            micKeyDescription->release();
+        }
+
+        plist->release();
+    }).detach();
+#endif
 
     return 0;
 }

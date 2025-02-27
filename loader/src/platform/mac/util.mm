@@ -323,8 +323,31 @@ bool geode::utils::permission::getPermissionStatus(Permission permission) {
     return true; // unimplemented
 }
 
+
+static std::function<void(bool)> g_permissionCallback;
+
 void geode::utils::permission::requestPermission(Permission permission, std::function<void(bool)> callback) {
-    callback(true); // unimplemented
+    g_permissionCallback = std::move(callback);
+
+    switch (permission) {
+        case Permission::RecordAudio: {
+            AVAuthorizationStatus status = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio];
+            if (status == AVAuthorizationStatusNotDetermined) {
+                [AVCaptureDevice requestAccessForMediaType:AVMediaTypeAudio completionHandler:^(BOOL granted) {
+                    g_permissionCallback(granted);
+                    g_permissionCallback = {};
+                }];
+            } else {
+                g_permissionCallback(true);
+                g_permissionCallback = {};
+            }
+        } break;
+
+        default: {
+            g_permissionCallback(false);
+            g_permissionCallback = {};
+        } break;
+    };
 }
 
 #include "../../utils/thread.hpp"
