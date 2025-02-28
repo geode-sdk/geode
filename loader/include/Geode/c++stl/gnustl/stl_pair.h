@@ -56,7 +56,7 @@
 #ifndef _STL_PAIR_H
 #define _STL_PAIR_H 1
 
-#include "move.h" // for std::move / std::forward, and std::swap
+#include "move.h" // for std::move / std::forward, and swap
 
 #if __cplusplus >= 201103L
 #include <type_traits> // for std::__decay_and_strip too
@@ -194,7 +194,6 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       noexcept(noexcept(swap(first, __p.first))
 	       && noexcept(swap(second, __p.second)))
       {
-	using std::swap;
 	swap(first, __p.first);
 	swap(second, __p.second);
       }
@@ -246,7 +245,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 
 #if __cplusplus >= 201103L
   /// See std::pair::swap().
-  // Note:  no std::swap overloads in C++03 mode, this has performance
+  // Note:  no swap overloads in C++03 mode, this has performance
   //        implications, see, eg, libstdc++/38466.
   template<class _T1, class _T2>
     inline void
@@ -268,11 +267,6 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
   // _GLIBCXX_RESOLVE_LIB_DEFECTS
   // 181.  make_pair() unintended behavior
 #if __cplusplus >= 201103L
-  template <typename _Tp>
-	struct __strip_reference_wrapper { using __type = _Tp; };
-  template <typename _Tp>
-	struct __strip_reference_wrapper<std::reference_wrapper<_Tp>> { using __type = _Tp&; };
-  template <typename T> using __decay_and_strip = __strip_reference_wrapper<std::decay_t<T>>;
 
   // NB: DR 706.
   template<class _T1, class _T2>

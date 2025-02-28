@@ -33,6 +33,11 @@
 #include "c++config.h"
 #include "exception_defines.h"
 #include "ext/aligned_buffer.h"
+#include "stl_iterator_base_types.h"
+#include "stl_iterator_base_funcs.h"
+#include "initializer_list.h"
+#include "ext/alloc_traits.h"
+#include "type_traits.h"
 
 namespace geode::stl {
 _GLIBCXX_BEGIN_NAMESPACE_VERSION
@@ -62,28 +67,28 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
   // Helper function: return distance(first, last) for forward
   // iterators, or 0 for input iterators.
   template<class _Iterator>
-    inline typename std::iterator_traits<_Iterator>::difference_type
+    inline typename iterator_traits<_Iterator>::difference_type
     __distance_fw(_Iterator __first, _Iterator __last,
-		  std::input_iterator_tag)
+		  input_iterator_tag)
     { return 0; }
 
   template<class _Iterator>
-    inline typename std::iterator_traits<_Iterator>::difference_type
+    inline typename iterator_traits<_Iterator>::difference_type
     __distance_fw(_Iterator __first, _Iterator __last,
-		  std::forward_iterator_tag)
+		  forward_iterator_tag)
     { return std::distance(__first, __last); }
 
   template<class _Iterator>
-    inline typename std::iterator_traits<_Iterator>::difference_type
+    inline typename iterator_traits<_Iterator>::difference_type
     __distance_fw(_Iterator __first, _Iterator __last)
     {
-      typedef typename std::iterator_traits<_Iterator>::iterator_category _Tag;
+      typedef typename iterator_traits<_Iterator>::iterator_category _Tag;
       return __distance_fw(__first, __last, _Tag());
     }
 
   // Helper type used to detect whether the hash functor is noexcept.
   template <typename _Key, typename _Hash>
-    struct __is_noexcept_hash : std::integral_constant<bool,
+    struct __is_noexcept_hash : integral_constant<bool,
 	noexcept(std::declval<const _Hash&>()(std::declval<const _Key&>()))>
     { };
 
@@ -214,7 +219,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     struct _Hashtable_traits
     {
       template<bool _Cond>
-	using __bool_constant = std::integral_constant<bool, _Cond>;
+	using __bool_constant = integral_constant<bool, _Cond>;
 
       using __hash_cached = __bool_constant<_Cache_hash_code>;
       using __constant_iterators = __bool_constant<_Constant_iterators>;
@@ -343,12 +348,12 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     public:
       typedef _Value					value_type;
       typedef std::ptrdiff_t				difference_type;
-      typedef std::forward_iterator_tag			iterator_category;
+      typedef forward_iterator_tag			iterator_category;
 
-      using pointer = typename std::conditional<__constant_iterators,
+      using pointer = typename conditional<__constant_iterators,
 						const _Value*, _Value*>::type;
 
-      using reference = typename std::conditional<__constant_iterators,
+      using reference = typename conditional<__constant_iterators,
 						  const _Value&, _Value&>::type;
 
       _Node_iterator() noexcept
@@ -394,7 +399,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     public:
       typedef _Value					value_type;
       typedef std::ptrdiff_t				difference_type;
-      typedef std::forward_iterator_tag			iterator_category;
+      typedef forward_iterator_tag			iterator_category;
 
       typedef const _Value*				pointer;
       typedef const _Value&				reference;
@@ -651,7 +656,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       __node_type* __p = __h->_M_find_node(__n, __k, __code);
 
       if (!__p)
-	std::__throw_out_of_range(__N("_Map_base::at"));
+	__throw_out_of_range(__N("_Map_base::at"));
       return __p->_M_v().second;
     }
 
@@ -671,7 +676,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       __node_type* __p = __h->_M_find_node(__n, __k, __code);
 
       if (!__p)
-	std::__throw_out_of_range(__N("_Map_base::at"));
+	__throw_out_of_range(__N("_Map_base::at"));
       return __p->_M_v().second;
     }
 
@@ -734,7 +739,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       }
 
       void
-      insert(std::initializer_list<value_type> __l)
+      insert(initializer_list<value_type> __l)
       { this->insert(__l.begin(), __l.end()); }
 
       template<typename _InputIterator>
@@ -1106,8 +1111,8 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       void
       _M_swap(_Hash_code_base& __x)
       {
-	std::swap(_M_extract(), __x._M_extract());
-	std::swap(_M_ranged_hash(), __x._M_ranged_hash());
+	swap(_M_extract(), __x._M_extract());
+	swap(_M_ranged_hash(), __x._M_ranged_hash());
       }
 
       const _ExtractKey&
@@ -1198,9 +1203,9 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       void
       _M_swap(_Hash_code_base& __x)
       {
-	std::swap(_M_extract(), __x._M_extract());
-	std::swap(_M_h1(), __x._M_h1());
-	std::swap(_M_h2(), __x._M_h2());
+	swap(_M_extract(), __x._M_extract());
+	swap(_M_h1(), __x._M_h1());
+	swap(_M_h2(), __x._M_h2());
       }
 
       const _ExtractKey&
@@ -1284,9 +1289,9 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       void
       _M_swap(_Hash_code_base& __x)
       {
-	std::swap(_M_extract(), __x._M_extract());
-	std::swap(_M_h1(), __x._M_h1());
-	std::swap(_M_h2(), __x._M_h2());
+	swap(_M_extract(), __x._M_extract());
+	swap(_M_h1(), __x._M_h1());
+	swap(_M_h2(), __x._M_h2());
       }
 
       const _ExtractKey&
@@ -1532,14 +1537,14 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       using __hash_code_base = typename __base_type::__hash_code_base;
     public:
       typedef _Value					value_type;
-      typedef typename std::conditional<__constant_iterators,
+      typedef typename conditional<__constant_iterators,
 					const _Value*, _Value*>::type
 						       pointer;
-      typedef typename std::conditional<__constant_iterators,
+      typedef typename conditional<__constant_iterators,
 					const _Value&, _Value&>::type
 						       reference;
       typedef std::ptrdiff_t				difference_type;
-      typedef std::forward_iterator_tag			iterator_category;
+      typedef forward_iterator_tag			iterator_category;
 
       _Local_iterator() = default;
 
@@ -1591,7 +1596,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       typedef const _Value*				pointer;
       typedef const _Value&				reference;
       typedef std::ptrdiff_t				difference_type;
-      typedef std::forward_iterator_tag			iterator_category;
+      typedef forward_iterator_tag			iterator_category;
 
       _Local_const_iterator() = default;
 
@@ -1688,7 +1693,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 					__constant_iterators::value,
 					__hash_cached::value>;
 
-    using __ireturn_type = typename std::conditional<__unique_keys::value,
+    using __ireturn_type = typename conditional<__unique_keys::value,
 						     std::pair<iterator, bool>,
 						     iterator>::type;
   private:
@@ -1713,7 +1718,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     _M_swap(_Hashtable_base& __x)
     {
       __hash_code_base::_M_swap(__x);
-      std::swap(_M_eq(), __x._M_eq());
+      swap(_M_eq(), __x._M_eq());
     }
 
     const _Equal&
@@ -1896,18 +1901,18 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       using __node_type = typename _NodeAlloc::value_type;
       using __node_alloc_type = _NodeAlloc;
       // Use __gnu_cxx to benefit from _S_always_equal and al.
-      using __node_alloc_traits = __gnu_cxx::__alloc_traits<__node_alloc_type>;
+      using __node_alloc_traits = __alloc_traits<__node_alloc_type>;
 
       using __value_type = typename __node_type::value_type;
       using __value_alloc_type =
 	typename __alloctr_rebind<__node_alloc_type, __value_type>::__type;
-      using __value_alloc_traits = std::allocator_traits<__value_alloc_type>;
+      using __value_alloc_traits = allocator_traits<__value_alloc_type>;
 
       using __node_base = __detail::_Hash_node_base;
       using __bucket_type = __node_base*;      
       using __bucket_alloc_type =
 	typename __alloctr_rebind<__node_alloc_type, __bucket_type>::__type;
-      using __bucket_alloc_traits = std::allocator_traits<__bucket_alloc_type>;
+      using __bucket_alloc_traits = allocator_traits<__bucket_alloc_type>;
 
       _Hashtable_alloc(const _Hashtable_alloc&) = default;
       _Hashtable_alloc(_Hashtable_alloc&&) = default;

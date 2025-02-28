@@ -73,7 +73,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 #if __cplusplus >= 201103L
       // _GLIBCXX_RESOLVE_LIB_DEFECTS
       // 2103. propagate_on_container_move_assignment
-      typedef std::true_type propagate_on_container_move_assignment;
+      typedef geode::stl::true_type propagate_on_container_move_assignment;
 #endif
 
       new_allocator() _GLIBCXX_USE_NOEXCEPT { }
@@ -87,11 +87,11 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 
       pointer
       address(reference __x) const _GLIBCXX_NOEXCEPT
-      { return std::__addressof(__x); }
+      { return __addressof(__x); }
 
       const_pointer
       address(const_reference __x) const _GLIBCXX_NOEXCEPT
-      { return std::__addressof(__x); }
+      { return __addressof(__x); }
 
       // NB: __n is permitted to be 0.  The C++ standard says nothing
       // about what the return value is when __n == 0.

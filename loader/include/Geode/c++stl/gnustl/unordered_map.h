@@ -42,7 +42,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 	   typename _Tp,
 	   typename _Hash = hash<_Key>,
 	   typename _Pred = std::equal_to<_Key>,
-	   typename _Alloc = std::allocator<std::pair<const _Key, _Tp> >,
+	   typename _Alloc = allocator<std::pair<const _Key, _Tp> >,
 	   typename _Tr = __umap_traits<__cache_default<_Key, _Hash>::value>>
     using __umap_hashtable = _Hashtable<_Key, std::pair<const _Key, _Tp>,
                                         _Alloc, __detail::_Select1st,
@@ -59,7 +59,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 	   typename _Tp,
 	   typename _Hash = hash<_Key>,
 	   typename _Pred = std::equal_to<_Key>,
-	   typename _Alloc = std::allocator<std::pair<const _Key, _Tp> >,
+	   typename _Alloc = allocator<std::pair<const _Key, _Tp> >,
 	   typename _Tr = __ummap_traits<__cache_default<_Key, _Hash>::value>>
     using __ummap_hashtable = _Hashtable<_Key, std::pair<const _Key, _Tp>,
 					 _Alloc, __detail::_Select1st,
@@ -81,7 +81,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
    *  @tparam  _Pred   Predicate function object type, defaults
    *                   to equal_to<_Value>.
    *  @tparam  _Alloc  Allocator type, defaults to 
-   *                   std::allocator<std::pair<const _Key, _Tp>>.
+   *                   allocator<std::pair<const _Key, _Tp>>.
    *
    *  Meets the requirements of a <a href="tables.html#65">container</a>, and
    *  <a href="tables.html#xx">unordered associative container</a>
@@ -94,7 +94,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
   template<class _Key, class _Tp,
 	   class _Hash = hash<_Key>,
 	   class _Pred = std::equal_to<_Key>,
-	   class _Alloc = std::allocator<std::pair<const _Key, _Tp> > >
+	   class _Alloc = allocator<std::pair<const _Key, _Tp> > >
     class unordered_map
     {
       typedef __umap_hashtable<_Key, _Tp, _Hash, _Pred, _Alloc>  _Hashtable;
@@ -211,7 +211,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  Create an %unordered_map consisting of copies of the elements in the
        *  list. This is linear in N (where N is @a __l.size()).
        */
-      unordered_map(std::initializer_list<value_type> __l,
+      unordered_map(initializer_list<value_type> __l,
 		    size_type __n = 0,
 		    const hasher& __hf = hasher(),
 		    const key_equal& __eql = key_equal(),
@@ -239,7 +239,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  of elements assigned.  Old data may be lost.
        */
       unordered_map&
-      operator=(std::initializer_list<value_type> __l)
+      operator=(initializer_list<value_type> __l)
       {
 	_M_h = __l;
 	return *this;
@@ -450,13 +450,13 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 
       /**
        *  @brief Attempts to insert a list of elements into the %unordered_map.
-       *  @param  __l  A std::initializer_list<value_type> of elements
+       *  @param  __l  A initializer_list<value_type> of elements
        *               to be inserted.
        *
        *  Complexity similar to that of the range constructor.
        */
       void
-      insert(std::initializer_list<value_type> __l)
+      insert(initializer_list<value_type> __l)
       { _M_h.insert(__l); }
 
       //@{
@@ -533,8 +533,8 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  types.
        *
        *  This exchanges the elements between two %unordered_map in constant time.
-       *  Note that the global std::swap() function is specialized such that
-       *  std::swap(m1,m2) will feed to this function.
+       *  Note that the global swap() function is specialized such that
+       *  swap(m1,m2) will feed to this function.
        */
       void
       swap(unordered_map& __x)
@@ -798,7 +798,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
    *  @tparam  _Pred   Predicate function object type, defaults
    *                   to equal_to<_Value>.
    *  @tparam  _Alloc  Allocator type, defaults to
-   *                   std::allocator<std::pair<const _Key, _Tp>>.
+   *                   allocator<std::pair<const _Key, _Tp>>.
    *
    *  Meets the requirements of a <a href="tables.html#65">container</a>, and
    *  <a href="tables.html#xx">unordered associative container</a>
@@ -811,7 +811,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
   template<class _Key, class _Tp,
 	   class _Hash = hash<_Key>,
 	   class _Pred = std::equal_to<_Key>,
-	   class _Alloc = std::allocator<std::pair<const _Key, _Tp> > >
+	   class _Alloc = allocator<std::pair<const _Key, _Tp> > >
     class unordered_multimap
     {
       typedef __ummap_hashtable<_Key, _Tp, _Hash, _Pred, _Alloc>  _Hashtable;
@@ -928,7 +928,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  Create an %unordered_multimap consisting of copies of the elements in
        *  the list. This is linear in N (where N is @a __l.size()).
        */
-      unordered_multimap(std::initializer_list<value_type> __l,
+      unordered_multimap(initializer_list<value_type> __l,
 			 size_type __n = 0,
 			 const hasher& __hf = hasher(),
 			 const key_equal& __eql = key_equal(),
@@ -956,7 +956,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  number of elements assigned.  Old data may be lost.
        */
       unordered_multimap&
-      operator=(std::initializer_list<value_type> __l)
+      operator=(initializer_list<value_type> __l)
       {
 	_M_h = __l;
 	return *this;
@@ -1150,13 +1150,13 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       /**
        *  @brief Attempts to insert a list of elements into the
        *  %unordered_multimap.
-       *  @param  __l  A std::initializer_list<value_type> of elements
+       *  @param  __l  A initializer_list<value_type> of elements
        *               to be inserted.
        *
        *  Complexity similar to that of the range constructor.
        */
       void
-      insert(std::initializer_list<value_type> __l)
+      insert(initializer_list<value_type> __l)
       { _M_h.insert(__l); }
 
       //@{
@@ -1234,8 +1234,8 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *
        *  This exchanges the elements between two %unordered_multimap in
        *  constant time.
-       *  Note that the global std::swap() function is specialized such that
-       *  std::swap(m1,m2) will feed to this function.
+       *  Note that the global swap() function is specialized such that
+       *  swap(m1,m2) will feed to this function.
        */
       void
       swap(unordered_multimap& __x)
