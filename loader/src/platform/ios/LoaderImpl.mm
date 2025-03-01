@@ -65,11 +65,11 @@ bool Loader::Impl::userTriedToLoadDLLs() const {
 }
 
 bool Loader::Impl::supportsLaunchArguments() const {
-    return false;
+    return true;
 }
 
 std::string Loader::Impl::getLaunchCommand() const {
-    return std::string(); // Empty
+    return (getenv("LAUNCHARGS")) ? getenv("LAUNCHARGS") : std::string();
 }
 
 void Loader::Impl::addNativeBinariesPath(std::filesystem::path const& path) {
