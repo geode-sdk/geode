@@ -57,7 +57,6 @@
 
 #include "stl_algobase.h"
 #include "allocator.h"
-#include "functexcept.h"
 #include "concept_check.h"
 #include "initializer_list.h"
 #include "ext/alloc_traits.h"
@@ -79,8 +78,8 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
     geode::stl::vector<_Tp, _Alloc>::
     reserve(size_type __n)
     {
-    //   if (__n > this->max_size())
-	// __throw_length_error(__N("vector::reserve"));
+      if (__n > this->max_size())
+	__throw_length_error(__N("vector::reserve"));
       if (this->capacity() < __n)
 	{
 	  const size_type __old_size = size();

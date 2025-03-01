@@ -26,11 +26,11 @@
  *  This file is a GNU extension to the Standard C++ Library.
  */
 
-#ifndef _NEW_ALLOCATOR_H
-#define _NEW_ALLOCATOR_H 1
+#pragma once
 
 #include "../c++config.h"
 #include <new>
+#include "../functexcept.h"
 #if __cplusplus >= 201103L
 #include "../type_traits.h"
 #endif
@@ -100,7 +100,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       allocate(size_type __n, const void* = 0)
       { 
 	if (__n > this->max_size())
-	  std::__throw_bad_alloc();
+	  geode::stl::__throw_bad_alloc();
 
 	return static_cast<_Tp*>(::operator new(__n * sizeof(_Tp)));
       }
@@ -154,5 +154,3 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 
 _GLIBCXX_END_NAMESPACE_VERSION
 } // namespace
-
-#endif

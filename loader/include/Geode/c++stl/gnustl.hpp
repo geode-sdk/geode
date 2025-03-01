@@ -14,6 +14,7 @@ namespace geode::base {
 
 #if defined(GEODE_IS_ANDROID)
 
+    #include "gnustl/functexcept.h"
     #include "gnustl/stl_vector.h"
     #include "gnustl/stl_bvector.h"
     #include "gnustl/vector.tcc"

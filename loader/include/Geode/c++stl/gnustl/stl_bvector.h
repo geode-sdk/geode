@@ -61,7 +61,6 @@
 #include "functexcept.h"
 #include "ext/alloc_traits.h"
 
-
 namespace geode::stl
 {
 _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
@@ -805,8 +804,8 @@ template<typename _Alloc>
     void
     reserve(size_type __n)
     {
-    //   if (__n > max_size())
-	// __throw_length_error(__N("vector::reserve"));
+      if (__n > max_size())
+	__throw_length_error(__N("vector::reserve"));
       if (capacity() < __n)
 	_M_reallocate(__n);
     }
@@ -1157,8 +1156,8 @@ template<typename _Alloc>
     size_type
     _M_check_len(size_type __n, const char* __s) const
     {
-    //   if (max_size() - size() < __n)
-	// __throw_length_error(__N(__s));
+      if (max_size() - size() < __n)
+	__throw_length_error(__N(__s));
 
       const size_type __len = size() + std::max(size(), __n);
       return (__len < size() || __len > max_size()) ? max_size() : __len;

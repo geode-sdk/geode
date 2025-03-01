@@ -31,8 +31,8 @@
 
 #include "c++config.h"
 #include <new>
-#include <bits/functexcept.h>
-#include <bits/move.h>
+#include "functexcept.h"
+#include "move.h"
 #if __cplusplus >= 201103L
 #include <type_traits>
 #endif
@@ -99,7 +99,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       allocate(size_type __n, const void* = 0)
       { 
 	if (__n > this->max_size())
-	  std::__throw_bad_alloc();
+	  geode::stl::__throw_bad_alloc();
 
 	return static_cast<_Tp*>(::operator new(__n * sizeof(_Tp)));
       }

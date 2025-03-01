@@ -33,7 +33,7 @@
 #include "c++config.h"
 
 #include <type_traits>
-#define _GLIBCXX_HAS_NESTED_TYPE(_NTYPE)				\
+#define _GLIBCXX_HAS_NESTED_TYPE_PTR(_NTYPE)				\
   template<typename _Tp, typename = std::void_t<>>				\
     struct __has_##_NTYPE						\
     : geode::stl::false_type							\
@@ -46,8 +46,8 @@
 namespace geode::stl {
 _GLIBCXX_BEGIN_NAMESPACE_VERSION
 
-_GLIBCXX_HAS_NESTED_TYPE(element_type)
-_GLIBCXX_HAS_NESTED_TYPE(difference_type)
+_GLIBCXX_HAS_NESTED_TYPE_PTR(element_type)
+_GLIBCXX_HAS_NESTED_TYPE_PTR(difference_type)
 
   template<typename _Tp, bool = __has_element_type<_Tp>::value>
     struct __ptrtr_elt_type;
