@@ -330,12 +330,11 @@ bool geode::utils::permission::getPermissionStatus(Permission permission) {
                 case AVAuthorizationStatusDenied: return false;
                 case AVAuthorizationStatusAuthorized: return true;
             }
-        }
-
-        default: return false;
+        } break;
     }
-}
 
+    return false;
+}
 
 static std::function<void(bool)> g_permissionCallback;
 

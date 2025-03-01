@@ -3,8 +3,6 @@
 #include <loader/IPC.hpp>
 #include <loader/updater.hpp>
 
-#include <Geode/cocos/cocoa/CCDictionary.h>
-#include <Geode/cocos/platform/mac/CCFileUtilsMac.h>
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
