@@ -98,6 +98,9 @@ public:
      *  @lua NA
      */
     ~CCSpriteFrame(void);
+    CCSpriteFrame();
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCSpriteFrame, CCObject);
+
     /**
      *  @js NA
      *  @lua NA
