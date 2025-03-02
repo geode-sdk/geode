@@ -34,6 +34,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 	set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
 
 	target_link_libraries(${PROJECT_NAME} INTERFACE
+		"-framework AVFoundation"
 		"-framework Cocoa"
 		"-framework OpenGL"
 		"-framework SystemConfiguration"
