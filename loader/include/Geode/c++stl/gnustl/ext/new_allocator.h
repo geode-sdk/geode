@@ -26,13 +26,13 @@
  *  This file is a GNU extension to the Standard C++ Library.
  */
 
-#ifndef _NEW_ALLOCATOR_H
-#define _NEW_ALLOCATOR_H 1
+#pragma once
 
 #include "../c++config.h"
 #include <new>
+#include "../functexcept.h"
 #if __cplusplus >= 201103L
-#include <type_traits>
+#include "../type_traits.h"
 #endif
 
 namespace __gnu_cxx _GLIBCXX_VISIBILITY(default)
@@ -71,7 +71,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 #if __cplusplus >= 201103L
       // _GLIBCXX_RESOLVE_LIB_DEFECTS
       // 2103. propagate_on_container_move_assignment
-      typedef std::true_type propagate_on_container_move_assignment;
+      typedef geode::stl::true_type propagate_on_container_move_assignment;
 #endif
 
       new_allocator() _GLIBCXX_USE_NOEXCEPT { }
@@ -80,6 +80,9 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 
       template<typename _Tp1>
         new_allocator(const new_allocator<_Tp1>&) _GLIBCXX_USE_NOEXCEPT { }
+
+	  template<typename _Tp1>
+        new_allocator(const std::allocator<_Tp1>&) _GLIBCXX_USE_NOEXCEPT { }
 
       ~new_allocator() _GLIBCXX_USE_NOEXCEPT { }
 
@@ -97,7 +100,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       allocate(size_type __n, const void* = 0)
       { 
 	if (__n > this->max_size())
-	  std::__throw_bad_alloc();
+	  geode::stl::__throw_bad_alloc();
 
 	return static_cast<_Tp*>(::operator new(__n * sizeof(_Tp)));
       }
@@ -151,5 +154,3 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 
 _GLIBCXX_END_NAMESPACE_VERSION
 } // namespace
-
-#endif

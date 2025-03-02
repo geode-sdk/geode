@@ -75,7 +75,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 #if __cplusplus >= 201103L
       // _GLIBCXX_RESOLVE_LIB_DEFECTS
       // 2103. std::allocator propagate_on_container_move_assignment
-      typedef std::true_type propagate_on_container_move_assignment;
+      typedef geode::stl::true_type propagate_on_container_move_assignment;
 #endif
     };
 
@@ -106,12 +106,15 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 #if __cplusplus >= 201103L
       // _GLIBCXX_RESOLVE_LIB_DEFECTS
       // 2103. std::allocator propagate_on_container_move_assignment
-      typedef std::true_type propagate_on_container_move_assignment;
+      typedef geode::stl::true_type propagate_on_container_move_assignment;
 #endif
 
       allocator() throw() { }
 
       allocator(const allocator& __a) throw()
+      : __allocator_base<_Tp>(__a) { }
+
+	  allocator(const std::allocator<_Tp>& __a) throw()
       : __allocator_base<_Tp>(__a) { }
 
       template<typename _Tp1>
