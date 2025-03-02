@@ -16,6 +16,7 @@ using namespace geode::prelude;
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/Utils.hpp>
 #include <objc/runtime.h>
+#include <stdlib.h>
 
 bool utils::clipboard::write(std::string const& data) {
     [UIPasteboard generalPasteboard].string = [NSString stringWithUTF8String:data.c_str()];
@@ -185,21 +186,46 @@ void geode::utils::game::exit() {
     AppDelegate::get()->trySaveGame(true);
     // AppDelegate::get()->showLoadingCircle(false, true);
 
+    class Exit : public CCObject {
+        public:
+        void shutdown() {
+            // someone please look into this, I'm unsure if this will cause issues with saving!
+            std::exit(0);
+        }
+    }
+
     CCDirector::get()->getActionManager()->addAction(CCSequence::create(
         CCDelayTime::create(0.5f),
-        CCCallFunc::create(nullptr, callfunc_selector(MenuLayer::endGame)),
+        CCCallFunc::create(nullptr, callfunc_selector(Exit::shutdown)),
         nullptr
     ), CCDirector::get()->getRunningScene(), false);
 }
 
 void geode::utils::game::restart() {
-    log::error("Restarting the game is not implemented on iOS");
+    AppDelegate::get()->trySaveGame(true);
 
-    FLAlertLayer::create(
-        "Unavailable",
-        "Restarting is currently <cr>unavailable</c> on iOS. Please <cy>restart the game</c> manually.",
-        "OK"
-    )->show();
+    class Exit : public CCObject {
+        public:
+        void shutdown() {
+            NSURL* url = [NSURL URLWithString:@"geode://launch"];
+            if ([[NSClassFromString(@"UIApplication") sharedApplication] canOpenURL:url]) {
+                [[NSClassFromString(@"UIApplication") sharedApplication] openURL:url options:@{} completionHandler:nil];
+            } else {
+                // this would only happen if you don't have the launcher
+                FLAlertLayer::create(
+                     "Unavailable",
+                     "Restarting is currently <cr>unavailable</c>. Please <cy>restart the game</c> manually.",
+                     "OK"
+                 )->show();
+            }
+        }
+    }
+
+    CCDirector::get()->getActionManager()->addAction(CCSequence::create(
+        CCDelayTime::create(0.5f),
+        CCCallFunc::create(nullptr, callfunc_selector(Exit::shutdown)),
+        nullptr
+    ), CCDirector::get()->getRunningScene(), false);
 }
 
 void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
