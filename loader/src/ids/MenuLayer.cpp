@@ -109,16 +109,6 @@ $register_ids(MenuLayer) {
             menu->updateLayout();
         }
 
-        for (int i = 0; i < 5; ++i) {
-            auto myButton = CCMenuItemSpriteExtra::create(
-                CCSprite::createWithSpriteFrameName("GJ_likeBtn_001.png"),
-                this,
-                nullptr
-            );
-
-            menu->addChild(myButton);
-        }
-
         menu->setContentSize({ winSize.width - 220.f, 65.f });
         menu->setLayout(
             SimpleRowLayout::create()
