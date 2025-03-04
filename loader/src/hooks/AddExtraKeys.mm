@@ -127,8 +127,7 @@ bool isKeyNumpad(NSEvent* event) {
 
 
 static void(*s_keyDownExecOrig)(void*, SEL, NSEvent*);
-void keyDownExecHook(void* self, SEL sel, NSEvent* event)
-{
+void keyDownExecHook(void* self, SEL sel, NSEvent* event) {
     bool extraKey = isExtraKey(event);
     bool numpad = isKeyNumpad(event);
     if (!extraKey && !numpad) {
@@ -149,8 +148,7 @@ void keyDownExecHook(void* self, SEL sel, NSEvent* event)
 }
 
 static void(*s_keyUpExecOrig)(void*, SEL, NSEvent*);
-void keyUpExecHook(void* self, SEL sel, NSEvent* event)
-{
+void keyUpExecHook(void* self, SEL sel, NSEvent* event) {
     bool extraKey = isExtraKey(event);
     bool numpad = isKeyNumpad(event);
     if (!extraKey && !numpad) {
@@ -171,8 +169,7 @@ void keyUpExecHook(void* self, SEL sel, NSEvent* event)
 }
 
 static void(*s_mouseDownExecOrig)(void*, SEL, NSEvent*);
-void mouseDownExecHook(void* self, SEL sel, NSEvent* event)
-{
+void mouseDownExecHook(void* self, SEL sel, NSEvent* event) {
     if (!isExtraMouseButton(event)) {
         return s_mouseDownExecOrig(self, sel, event);
     }
@@ -182,8 +179,7 @@ void mouseDownExecHook(void* self, SEL sel, NSEvent* event)
 }
 
 static void(*s_mouseUpExecOrig)(void*, SEL, NSEvent*);
-void mouseUpExecHook(void* self, SEL sel, NSEvent* event)
-{
+void mouseUpExecHook(void* self, SEL sel, NSEvent* event) {
     if (!isExtraMouseButton(event)) {
         return s_mouseUpExecOrig(self, sel, event);
     }
