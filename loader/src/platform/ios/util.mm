@@ -192,7 +192,7 @@ void geode::utils::game::exit() {
             // someone please look into this, I'm unsure if this will cause issues with saving!
             std::exit(0);
         }
-    }
+    };
 
     CCDirector::get()->getActionManager()->addAction(CCSequence::create(
         CCDelayTime::create(0.5f),
@@ -219,7 +219,7 @@ void geode::utils::game::restart() {
                  )->show();
             }
         }
-    }
+    };
 
     CCDirector::get()->getActionManager()->addAction(CCSequence::create(
         CCDelayTime::create(0.5f),
