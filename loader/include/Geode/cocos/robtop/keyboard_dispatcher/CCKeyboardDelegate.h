@@ -6,12 +6,12 @@
 
 NS_CC_BEGIN
 
-	/*no clue if this is accurate.
-	* https://github.com/cocos2d/cocos2d-x/blob/cocos2d-x-3.13/cocos/base/CCEventKeyboard.h#L48
-	* https://github.com/reneklacan/cocos2d-x/wiki/Keyboard-keycodes-enum
-	* not sure which one is which
+    /*no clue if this is accurate.
+    * https://github.com/cocos2d/cocos2d-x/blob/cocos2d-x-3.13/cocos/base/CCEventKeyboard.h#L48
+    * https://github.com/reneklacan/cocos2d-x/wiki/Keyboard-keycodes-enum
+    * not sure which one is which
     * @note RobTop Addition
-	*/
+    */
     typedef enum
     {
         KEY_Unknown = -0x01,

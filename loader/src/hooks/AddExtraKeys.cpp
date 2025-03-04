@@ -1,4 +1,4 @@
-#ifdef GEODE_IS_DESKTOP
+#ifdef GEODE_IS_WINDOWS
 
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/cocos/robtop/glfw/glfw3.h>
@@ -13,7 +13,6 @@ using namespace geode::prelude;
 
 class $modify(GeodeCCEGLView, CCEGLView) {
     void onGLFWKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-        log::info("glfw key {}", key);
         bool extraKey = isExtraKey(key);
         bool numpad = isKeyNumpad(key);
         if (!extraKey && !numpad) {
