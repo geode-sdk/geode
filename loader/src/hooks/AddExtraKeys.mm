@@ -5,6 +5,7 @@
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDispatcher.h>
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDelegate.h>
+#import <Geode/cocos/platform/mac/EAGLView.h>
 #include <Geode/cocos/text_input_node/CCIMEDispatcher.h>
 #include <Geode/modify/Modify.hpp>
 #include <Geode/modify/CCKeyboardDispatcher.hpp>
@@ -126,15 +127,16 @@ bool isKeyNumpad(NSEvent* event) {
 }
 
 
-static void(*s_keyDownExecOrig)(void*, SEL, NSEvent*);
-void keyDownExecHook(void* self, SEL sel, NSEvent* event) {
+void keyDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     bool extraKey = isExtraKey(event);
     bool numpad = isKeyNumpad(event);
     if (!extraKey && !numpad) {
-        return s_keyDownExecOrig(self, sel, event);
+        [self performSelector:sel withObject:event];
+        return;
     }
     if (CCIMEDispatcher::sharedDispatcher()->hasDelegate()) {
-        return s_keyDownExecOrig(self, sel, event);
+        [self performSelector:sel withObject:event];
+        return;
     }
 
     enumKeyCodes keyCode = enumKeyCodes::KEY_Unknown;
@@ -147,15 +149,16 @@ void keyDownExecHook(void* self, SEL sel, NSEvent* event) {
     CCKeyboardDispatcher::get()->dispatchKeyboardMSG(keyCode, true, [event isARepeat]);
 }
 
-static void(*s_keyUpExecOrig)(void*, SEL, NSEvent*);
-void keyUpExecHook(void* self, SEL sel, NSEvent* event) {
+void keyUpExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     bool extraKey = isExtraKey(event);
     bool numpad = isKeyNumpad(event);
     if (!extraKey && !numpad) {
-        return s_keyUpExecOrig(self, sel, event);
+        [self performSelector:sel withObject:event];
+        return;
     }
     if (CCIMEDispatcher::sharedDispatcher()->hasDelegate()) {
-        return s_keyUpExecOrig(self, sel, event);
+        [self performSelector:sel withObject:event];
+        return;
     }
 
     enumKeyCodes keyCode = enumKeyCodes::KEY_Unknown;
@@ -168,20 +171,20 @@ void keyUpExecHook(void* self, SEL sel, NSEvent* event) {
     CCKeyboardDispatcher::get()->dispatchKeyboardMSG(keyCode, false, [event isARepeat]);
 }
 
-static void(*s_mouseDownExecOrig)(void*, SEL, NSEvent*);
-void mouseDownExecHook(void* self, SEL sel, NSEvent* event) {
+void mouseDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     if (!isExtraMouseButton(event)) {
-        return s_mouseDownExecOrig(self, sel, event);
+        [self performSelector:sel withObject:event];
+        return;
     }
 
     enumKeyCodes keyCode = mouseButtonToKeyCode(event);
     CCKeyboardDispatcher::get()->dispatchKeyboardMSG(keyCode, true, false);
 }
 
-static void(*s_mouseUpExecOrig)(void*, SEL, NSEvent*);
-void mouseUpExecHook(void* self, SEL sel, NSEvent* event) {
+void mouseUpExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     if (!isExtraMouseButton(event)) {
-        return s_mouseUpExecOrig(self, sel, event);
+        [self performSelector:sel withObject:event];
+        return;
     }
 
     enumKeyCodes keyCode = mouseButtonToKeyCode(event);
@@ -237,17 +240,16 @@ class $modify(CCKeyboardDispatcher) {
 };
 
 
-#define OBJC_SWIZZLE(klass, methodName) \
-    auto methodName##Method = class_getInstanceMethod(klass, @selector(methodName:)); \
-    s_##methodName##Orig = reinterpret_cast<decltype(s_##methodName##Orig)>(method_getImplementation(methodName##Method)); \
-    method_setImplementation(methodName##Method, reinterpret_cast<IMP>(&methodName##Hook));
+#define HOOK_OBJC_METHOD(klass, methodName) \
+    auto methodName##Addr = class_getInstanceMethod(klass, @selector(methodName:)); \
+    static_cast<void>(Mod::get()->hook(reinterpret_cast<void*>(method_getImplementation(methodName##Addr)), &methodName##Hook, #klass " " #methodName));
 
 __attribute__((constructor)) void initialize_newKeyboardMSGKeysHooks() {
     auto eaglView = objc_getClass("EAGLView");
 
-    OBJC_SWIZZLE(eaglView, keyDownExec);
-    OBJC_SWIZZLE(eaglView, keyUpExec);
+    HOOK_OBJC_METHOD(eaglView, keyDownExec);
+    HOOK_OBJC_METHOD(eaglView, keyUpExec);
 
-    OBJC_SWIZZLE(eaglView, mouseDownExec);
-    OBJC_SWIZZLE(eaglView, mouseUpExec);
+    HOOK_OBJC_METHOD(eaglView, mouseDownExec);
+    HOOK_OBJC_METHOD(eaglView, mouseUpExec);
 }
