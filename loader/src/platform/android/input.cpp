@@ -88,7 +88,7 @@ namespace {
         // Geode Additions
         {AKEYCODE_SEMICOLON, cocos2d::KEY_Semicolon},
         {AKEYCODE_APOSTROPHE, cocos2d::KEY_Apostrophe},
-        {AKEYCODE_SLASH, cocos2d::Key_Slash},
+        {AKEYCODE_SLASH, cocos2d::KEY_Slash},
         {AKEYCODE_EQUALS, cocos2d::KEY_OEMEqual},
         {AKEYCODE_LEFT_BRACKET, cocos2d::KEY_LeftBracket},
         {AKEYCODE_BACKSLASH, cocos2d::KEY_Backslash},
