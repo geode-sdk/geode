@@ -5,6 +5,7 @@ using namespace geode::prelude;
 #include <Geode/loader/Dirs.hpp>
 #include <UIKit/UIKit.h>
 #include <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
+#include <AVFoundation/AVFoundation.h>
 #include <iostream>
 #include <sstream>
 #include <Geode/utils/web.hpp>
@@ -17,6 +18,8 @@ using namespace geode::prelude;
 #include <Geode/Utils.hpp>
 #include <objc/runtime.h>
 #include <stdlib.h>
+
+using geode::utils::permission::Permission;
 
 bool utils::clipboard::write(std::string const& data) {
     [UIPasteboard generalPasteboard].string = [NSString stringWithUTF8String:data.c_str()];
@@ -78,14 +81,116 @@ UIViewController* getCurrentViewController() {
 }
 
 bool utils::file::openFolder(std::filesystem::path const& path) {
-    // TODO: maybe we can just copy the one from mac
+    std::string newPath = fmt::format("shareddocuments://{}", path);
+    NSURL *url = [NSURL URLWithString:[NSString stringWithUTF8String:newPath.c_str()]];
+    if ([[UIApplication sharedApplication] canOpenURL:url]) {
+        [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+        return true;
+    }
     return false;
 }
 
 GEODE_DLL Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, file::FilePickOptions const& options) {
     using RetTask = Task<Result<std::filesystem::path>>;
     return RetTask::runWithCallback([mode, options](auto resultCallback, auto progress, auto cancelled) {
-        resultCallback(RetTask::Cancel()); // TODO !!!!
+
+        NSMutableArray<UTType*> *documentTypes = [NSMutableArray array];
+        for (const auto& filter : options.filters) {
+            for (const auto& file : filter.files) {
+                UTType* uti = [UTType typeWithFilenameExtension:@(file.c_str())];
+                if (uti) {
+                    [documentTypes addObject:uti];
+                }
+            }
+        }
+
+        NSURL *FileURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:@"temp.file"]];
+        if (options.defaultPath) {
+            auto FileExtension = [NSString stringWithUTF8String:options.defaultPath->c_str()];
+            FileURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:FileExtension]];
+        }
+        // just for the picker not to crash, it gotta have a file to "save" then the writing is handled in the mod once we save the file somewhere
+        [@"" writeToURL:FileURL atomically:NO encoding:NSUTF8StringEncoding error:nil];
+
+        if (documentTypes.count == 0) {
+            [documentTypes addObject:UTTypeItem]; // Default to any file type if no filters are provided
+        }
+
+        UIDocumentPickerViewController *picker;
+        switch (mode) {
+            case file::PickMode::OpenFile:
+                picker = [[UIDocumentPickerViewController alloc]
+                    initForOpeningContentTypes:documentTypes
+                    asCopy:YES];
+                break;
+            case file::PickMode::SaveFile:
+                picker = [[UIDocumentPickerViewController alloc] 
+                    initForExportingURLs:@[FileURL]
+                    asCopy:YES];
+                break;
+            case file::PickMode::OpenFolder:
+                picker = [[UIDocumentPickerViewController alloc]
+                    initForOpeningContentTypes:@[UTTypeFolder]
+                    asCopy:YES];
+                break;
+        }
+        picker.allowsMultipleSelection = NO;
+        picker.shouldShowFileExtensions = YES;
+
+        PickerDelegate_instance = [[PickerDelegate alloc] initWithCompletion:^(NSArray<NSURL*>* urls, NSError* error) {
+            PickerDelegate_instance = nil;
+            
+            
+            if (urls && urls.count > 0)
+            {
+                std::filesystem::path paths;
+                
+                for (NSURL* url : urls)
+                {
+                    if (url && url.path)
+                    {
+                        std::string pathStr = std::string([url.path UTF8String]);
+                        auto path = std::filesystem::path(pathStr);
+                            
+                        std::filesystem::path tempPath = dirs::getGameDir() / "geode" / "temp" / path.filename();
+                        std::filesystem::copy(path, tempPath, std::filesystem::copy_options::overwrite_existing);
+                        
+                        paths = tempPath;
+                    }
+                }
+                
+                resultCallback(Ok(paths));
+                
+                for (NSURL* url : urls)
+                {
+                    if (url && url.path)
+                    {
+                        [url stopAccessingSecurityScopedResource];
+                    }
+                }
+                
+                Loader::get()->queueInMainThread([paths]{
+                    Loader::get()->queueInMainThread([paths]{
+                        if (std::filesystem::exists(paths))
+                            std::filesystem::remove_all(paths);
+                    });
+                });
+            }
+            else if (cancelled()) {
+                resultCallback(RetTask::Cancel());
+            } else if (error) {
+                resultCallback(Err(std::string([[error localizedDescription] UTF8String])));
+            } else {
+                resultCallback(RetTask::Cancel());
+            }
+        }];
+        
+        picker.delegate = PickerDelegate_instance;
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+            UIViewController *currentViewController = getCurrentViewController();
+            [currentViewController presentViewController:picker animated:YES completion:nil];
+        });
     });
 }
 
@@ -207,9 +312,9 @@ void geode::utils::game::restart() {
     class Exit : public CCObject {
         public:
         void shutdown() {
-            NSURL* url = [NSURL URLWithString:@"geode://launch"];
-            if ([[NSClassFromString(@"UIApplication") sharedApplication] canOpenURL:url]) {
-                [[NSClassFromString(@"UIApplication") sharedApplication] openURL:url options:@{} completionHandler:nil];
+            NSURL* url = [NSURL URLWithString:@"geode://relaunch"];
+            if ([[UIApplication sharedApplication] canOpenURL:url]) {
+                [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
             } else {
                 // this would only happen if you don't have the launcher
                 FLAlertLayer::create(
@@ -267,13 +372,24 @@ std::filesystem::path dirs::getSaveDir() {
 }
 
 bool geode::utils::permission::getPermissionStatus(Permission permission) {
-    return true; // unimplemented
+    switch (permission) {
+        case Permission::RecordAudio: 
+            return [[AVAudioSession sharedInstance] recordPermission] == AVAudioSessionRecordPermissionGranted;
+        default: 
+            return false;
+    }
 }
 
 void geode::utils::permission::requestPermission(Permission permission, std::function<void(bool)> callback) {
-    callback(true); // unimplemented
+    switch (permission) {
+        case Permission::RecordAudio: 
+            return [[AVAudioSession sharedInstance] requestRecordPermission:^(BOOL granted) {
+                callback(granted == YES);
+            }];
+        default: // ios doesnt have a "access all files" permission
+            return callback(false);
+    }
 }
-
 
 #include "../../utils/thread.hpp"
 
