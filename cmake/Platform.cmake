@@ -43,9 +43,9 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 		  "-framework CoreFoundation"
 			"-framework Foundation"
 			  "-framework CoreGraphics"
-		#"-framework Cocoa"
+		"-framework AudioToolbox" # needed for fmod
 		${GEODE_LOADER_PATH}/include/link/ios/libcurl.a
-		#${GEODE_LOADER_PATH}/include/link/libfmod.dylib
+		${GEODE_LOADER_PATH}/include/link/ios/libfmod_iphoneos.a
 	)
 
 	target_compile_definitions(${PROJECT_NAME} INTERFACE
