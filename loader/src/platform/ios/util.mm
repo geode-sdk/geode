@@ -151,11 +151,8 @@ GEODE_DLL Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, fi
                     {
                         std::string pathStr = std::string([url.path UTF8String]);
                         auto path = std::filesystem::path(pathStr);
-                            
-                        std::filesystem::path tempPath = dirs::getGameDir() / "geode" / "temp" / path.filename();
-                        std::filesystem::copy(path, tempPath, std::filesystem::copy_options::overwrite_existing);
                         
-                        paths = tempPath;
+                        paths = path;
                     }
                 }
                 
@@ -168,13 +165,6 @@ GEODE_DLL Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, fi
                         [url stopAccessingSecurityScopedResource];
                     }
                 }
-                
-                Loader::get()->queueInMainThread([paths]{
-                    Loader::get()->queueInMainThread([paths]{
-                        if (std::filesystem::exists(paths))
-                            std::filesystem::remove_all(paths);
-                    });
-                });
             }
             else if (cancelled()) {
                 resultCallback(RetTask::Cancel());
@@ -230,10 +220,7 @@ GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> file::pickMany(file::
                         {
                             auto path = std::filesystem::path(pathStr);
                             
-                            std::filesystem::path tempPath = dirs::getGameDir() / "geode" / "temp" / path.filename();
-                            std::filesystem::copy(path, tempPath, std::filesystem::copy_options::overwrite_existing);
-                            
-                            paths.push_back(tempPath);
+                            paths.push_back(path);
                         }
                         else
                         {
@@ -250,16 +237,6 @@ GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> file::pickMany(file::
                     {
                         [url stopAccessingSecurityScopedResource];
                     }
-                }
-                
-                for (auto path : paths)
-                {
-                    Loader::get()->queueInMainThread([path]{
-                        Loader::get()->queueInMainThread([path]{
-                            if (std::filesystem::exists(path))
-                                std::filesystem::remove_all(path);
-                        });
-                    });
                 }
             }
             else if (cancelled()) {
