@@ -53,7 +53,7 @@ bool applicationDidFinishLaunchingHook(void* self, SEL sel, void* p1, void* p2) 
     if (!LoaderImpl::get()->isForwardCompatMode())
     {
         // Patches the depth format of gd to be GL_DEPTH24_STENCIL8_OES, fixing the CCClippingNode recreation
-        if (!LoaderImpl::get()->getInternalMod()->patch(reinterpret_cast<void*>(geode::base::get() + 0x27955c), { 0x03, 0x1e, 0x91, 0x52 }).isOk())
+        if (!LoaderImpl::get()->getInternalMod()->patch(reinterpret_cast<void*>(geode::base::get() + 0x268b38), { 0x03, 0x1e, 0x91, 0x52 }).isOk())
             return false;
     }
     
