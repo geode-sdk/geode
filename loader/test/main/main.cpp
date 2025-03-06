@@ -95,6 +95,22 @@ struct $modify(MenuLayer) {
 
         log::debug("should run second!");
 
+        if (GEODE_UNWRAP_IF_OK(val, api::addNumbers(5, 6))) {
+            log::info("5 + 6 = {}", val);
+        }
+        else {
+            log::error("Failed to API (function)");
+        }
+
+        api::Test test;
+        if (GEODE_UNWRAP_IF_OK(val, test.addNumbers(5, 6))) {
+            log::info("5 + 6 = {}", val);
+        }
+        else {
+            log::error("Failed to API (method)");
+        }
+        
+
         return true;
     }
 };

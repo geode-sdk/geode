@@ -157,6 +157,8 @@ namespace geode {
          * On most platforms this is 1.0, but on retina displays for example this returns 2.0.
         */
         GEODE_DLL float getDisplayFactor();
+        
+        GEODE_DLL std::string getEnvironmentVariable(const char* name);
     }
 
     template <class... Args>

@@ -319,3 +319,13 @@ void geode::utils::thread::platformSetName(std::string const& name) {
     }
     obliterate(name);
 }
+
+std::string geode::utils::getEnvironmentVariable(const char* name) {
+    char buffer[1024];
+    size_t count = 0;
+    if (0 == getenv_s(&count, buffer, name) && count != 0) {
+        return buffer;
+    }
+    
+    return "";
+}

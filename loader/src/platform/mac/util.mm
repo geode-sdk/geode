@@ -368,3 +368,8 @@ float geode::utils::getDisplayFactor() {
     }
     return displayScale;
 }
+
+std::string geode::utils::getEnvironmentVariable(const char* name) {
+    auto result = std::getenv(name);
+    return result ? result : "";
+}

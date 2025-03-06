@@ -1,7 +1,21 @@
 # Geode Changelog
 
-## v4.2.1
+## v4.3.0
+ * Event export macro (#1243)
+   * See [the docs](https://docs.geode-sdk.org/mods/dependencies#event-macro) for more info
  * Fix settings `enable-if` parsing (315bf46, 1542e29)
+ * Add environment variable for forcing terminal colors (39b1bef)
+ * Fix crashlog PDB search paths (#1222)
+ * Add utils::string::trim* overloads for specific charset (0d4dcb3, 17faf36)
+ * Round number settings to 5 decimal places (c9dbc4b)
+ * Allow number inputs to be invalid while typing and active (6c6215b)
+ * Allow `Task<void>`, useful for coroutines (2bfff1a, 463ea22)
+ * Add some coroutine utils (99cefab)
+ * Remove handler from function if no hooks are active (dc14d4c)
+ * Fix some bugs in `geode::utils::ranges` methods (#1236, #1239)
+ * Add patch for `CCGLProgram::compileShader` on remaining platforms (#1241)
+ * Update the pugixml headers to be v1.15 compatible (#1247)
+ * Allow auto update across major versions if running in forward compat mode (4bb17a9)
 
 ## v4.2.0
  * Implement gd::set for android (#1197, #1207)
