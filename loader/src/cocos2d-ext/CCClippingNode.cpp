@@ -1,4 +1,5 @@
 #include <cocos2d.h>
+#include <Geode/platform/platform.hpp>
 
 using namespace cocos2d;
 
@@ -6,10 +7,6 @@ using namespace cocos2d;
 
 #pragma warning(push)
 #pragma warning(disable : 4273)
-
-// hopefully if broma supports global functions i can remove this hack
-#define kmGLPushMatrixOffset 0x17420c
-#define kmGLPopMatrixOffset 0x174250
 
 static GLint g_sStencilBits = -1;
 
@@ -248,13 +245,13 @@ void CCClippingNode::visit()
     
     // enable alpha test only if the alpha threshold < 1,
     // indeed if alpha threshold == 1, every pixel will be drawn anyways
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_MAC || CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+#ifdef GEODE_IS_DESKTOP
     GLboolean currentAlphaTestEnabled = GL_FALSE;
     GLenum currentAlphaTestFunc = GL_ALWAYS;
     GLclampf currentAlphaTestRef = 1;
 #endif
     if (m_fAlphaThreshold < 1) {
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_MAC || CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+#ifdef GEODE_IS_DESKTOP
         // manually save the alpha test state
         currentAlphaTestEnabled = glIsEnabled(GL_ALPHA_TEST);
         glGetIntegerv(GL_ALPHA_TEST_FUNC, (GLint *)&currentAlphaTestFunc);
@@ -282,23 +279,15 @@ void CCClippingNode::visit()
     
     // draw the stencil node as if it was one of our child
     // (according to the stencil test func/op and alpha (or alpha shader) test)
-    #ifdef __APPLE__
-    reinterpret_cast<void(__cdecl*)()>(geode::base::get() + kmGLPushMatrixOffset)();
-    #else
     kmGLPushMatrix();
-    #endif
     transform();
     m_pStencil->visit();
-    #ifdef __APPLE__
-    reinterpret_cast<void(__cdecl*)()>(geode::base::get() + kmGLPopMatrixOffset)();
-    #else
     kmGLPopMatrix();
-    #endif
     
     // restore alpha test state
     if (m_fAlphaThreshold < 1)
     {
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_MAC || CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+#ifdef GEODE_IS_DESKTOP
         // manually restore the alpha test state
         glAlphaFunc(currentAlphaTestFunc, currentAlphaTestRef);
         if (!currentAlphaTestEnabled)
