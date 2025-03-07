@@ -329,7 +329,7 @@ Result<void*> geode::hook::replaceObjcMethod(std::string const& className, std::
     auto method = class_getInstanceMethod(cls, sel);
     if (!method)
         return Err("Method not found");
-    
+
     auto oldImp = method_setImplementation(method, (IMP)imp);
 
     return Ok((void*)oldImp);

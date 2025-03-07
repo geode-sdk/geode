@@ -72,11 +72,11 @@ PickerDelegate* PickerDelegate_instance = nil;
 UIViewController* getCurrentViewController() {
     UIWindow *window = [[UIApplication sharedApplication] keyWindow];
     UIViewController *rootViewController = window.rootViewController;
-    
+
     while (rootViewController.presentedViewController) {
         rootViewController = rootViewController.presentedViewController;
     }
-    
+
     return rootViewController;
 }
 
@@ -124,7 +124,7 @@ GEODE_DLL Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, fi
                     asCopy:YES];
                 break;
             case file::PickMode::SaveFile:
-                picker = [[UIDocumentPickerViewController alloc] 
+                picker = [[UIDocumentPickerViewController alloc]
                     initForExportingURLs:@[FileURL]
                     asCopy:YES];
                 break;
@@ -139,25 +139,24 @@ GEODE_DLL Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, fi
 
         PickerDelegate_instance = [[PickerDelegate alloc] initWithCompletion:^(NSArray<NSURL*>* urls, NSError* error) {
             PickerDelegate_instance = nil;
-            
-            
+
             if (urls && urls.count > 0)
             {
                 std::filesystem::path paths;
-                
+
                 for (NSURL* url : urls)
                 {
                     if (url && url.path)
                     {
                         std::string pathStr = std::string([url.path UTF8String]);
                         auto path = std::filesystem::path(pathStr);
-                        
+
                         paths = path;
                     }
                 }
-                
+
                 resultCallback(Ok(paths));
-                
+
                 for (NSURL* url : urls)
                 {
                     if (url && url.path)
@@ -174,7 +173,7 @@ GEODE_DLL Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, fi
                 resultCallback(RetTask::Cancel());
             }
         }];
-        
+
         picker.delegate = PickerDelegate_instance;
 
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -202,24 +201,24 @@ GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> file::pickMany(file::
 
         UIDocumentPickerViewController* picker = [[UIDocumentPickerViewController alloc] initWithDocumentTypes:documentTypes inMode:UIDocumentPickerModeOpen];
         picker.allowsMultipleSelection = true;
-        
+
         PickerDelegate_instance = [[PickerDelegate alloc] initWithCompletion:^(NSArray<NSURL*>* urls, NSError* error) {
             PickerDelegate_instance = nil;
-            
+
             if (urls && urls.count > 0)
             {
                 std::vector<std::filesystem::path> paths;
-                
+
                 for (NSURL* url : urls)
                 {
                     if (url && url.path)
                     {
                         std::string pathStr = std::string([url.path UTF8String]);
-                        
+
                         if ([url startAccessingSecurityScopedResource])
                         {
                             auto path = std::filesystem::path(pathStr);
-                            
+
                             paths.push_back(path);
                         }
                         else
@@ -228,9 +227,9 @@ GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> file::pickMany(file::
                         }
                     }
                 }
-                
+
                 resultCallback(Ok(paths));
-                
+
                 for (NSURL* url : urls)
                 {
                     if (url && url.path)
@@ -247,7 +246,7 @@ GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> file::pickMany(file::
                 resultCallback(RetTask::Cancel());
             }
         }];
-        
+
         picker.delegate = PickerDelegate_instance;
 
         dispatch_async(dispatch_get_main_queue(), ^{
