@@ -1,8 +1,11 @@
+#include <Geode/DefaultInclude.hpp>
+
+#ifdef GEODE_IS_MACOS
+
 #import <Cocoa/Cocoa.h>
 #include <objc/runtime.h>
 #include <Carbon/Carbon.h>
 
-#include <Geode/DefaultInclude.hpp>
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDispatcher.h>
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDelegate.h>
 #import <Geode/cocos/platform/mac/EAGLView.h>
@@ -253,3 +256,5 @@ __attribute__((constructor)) void initialize_newKeyboardMSGKeysHooks() {
     HOOK_OBJC_METHOD(eaglView, mouseDownExec);
     HOOK_OBJC_METHOD(eaglView, mouseUpExec);
 }
+
+#endif
