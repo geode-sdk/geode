@@ -35,14 +35,10 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 	)
 
 	target_link_libraries(${PROJECT_NAME} INTERFACE
-		"-framework OpenGLES"
-		  "-framework GLKit"
-			"-framework UIKit"
-			  "-framework WebKit"
-		"-framework AVFoundation"
-		  "-framework CoreFoundation"
-			"-framework Foundation"
-			  "-framework CoreGraphics"
+		"-framework OpenGLES"     # needed for CCClippingNode reimpl and ScrollLayer
+		"-framework UIKit"        # needed for file picking (UIApplication)
+		"-framework Foundation"   # needed for many things
+		"-framework AVFoundation" # needed for fmod
 		"-framework AudioToolbox" # needed for fmod
 		${GEODE_LOADER_PATH}/include/link/ios/libcurl.a
 		${GEODE_LOADER_PATH}/include/link/ios/libfmod_iphoneos.a
