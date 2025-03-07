@@ -1,6 +1,6 @@
-#ifdef GEODE_IS_WINDOWS
-
 #include <Geode/DefaultInclude.hpp>
+
+#ifdef GEODE_IS_WINDOWS
 #include <Geode/cocos/robtop/glfw/glfw3.h>
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDispatcher.h>
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDelegate.h>
