@@ -325,8 +325,6 @@ if (APPLE)
 		APPLE_SILICON_PROCESSOR x86_64
 	)
 
-	add_subdirectory(launcher/mac)
-
 	if(GEODE_TARGET_PLATFORM STREQUAL "iOS")
 		add_custom_command(TARGET geode-loader
 			POST_BUILD COMMAND
@@ -336,9 +334,11 @@ if (APPLE)
 		# Used for File Picker API
 		find_library(UNIFORM_TYPE_IDENTIFIERS_FRAMEWORK UniformTypeIdentifiers)
 		target_link_libraries(${PROJECT_NAME} ${UNIFORM_TYPE_IDENTIFIERS_FRAMEWORK})
+	else()
+		# geodebootstrapper is unused on ios
+		add_subdirectory(launcher/mac)
+		set(LAUNCHER_TARGET GeodeBootstrapper)
 	endif()
-
-	set(LAUNCHER_TARGET GeodeBootstrapper)
 elseif (WIN32)
 	add_subdirectory(launcher/windows)
 
