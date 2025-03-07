@@ -319,22 +319,18 @@ endif()
 
 # Create launcher
 if (APPLE)
-	set_target_properties(geode-loader PROPERTIES 
-		SYSTEM_NAME MacOS
-		OSX_DEPLOYMENT_TARGET 10.15
-		APPLE_SILICON_PROCESSOR x86_64
-	)
 
 	if(GEODE_TARGET_PLATFORM STREQUAL "iOS")
-		add_custom_command(TARGET geode-loader
-			POST_BUILD COMMAND
-			${CMAKE_INSTALL_NAME_TOOL} -id \"/Library/MobileSubstrate/DynamicLibraries/Geode.dylib\"
-			$<TARGET_FILE:geode-loader>)
-
 		# Used for File Picker API
 		find_library(UNIFORM_TYPE_IDENTIFIERS_FRAMEWORK UniformTypeIdentifiers)
 		target_link_libraries(${PROJECT_NAME} ${UNIFORM_TYPE_IDENTIFIERS_FRAMEWORK})
 	else()
+		set_target_properties(geode-loader PROPERTIES 
+			SYSTEM_NAME MacOS
+			OSX_DEPLOYMENT_TARGET 10.15
+			APPLE_SILICON_PROCESSOR x86_64
+		)
+
 		# geodebootstrapper is unused on ios
 		add_subdirectory(launcher/mac)
 		set(LAUNCHER_TARGET GeodeBootstrapper)
