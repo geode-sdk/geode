@@ -3,6 +3,7 @@
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/NodeIDs.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/binding/GameManager.hpp>
 #include <Geode/binding/PlatformToolbox.hpp>
 

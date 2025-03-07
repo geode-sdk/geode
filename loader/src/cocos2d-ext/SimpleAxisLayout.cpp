@@ -1,4 +1,6 @@
 #include <Geode/ui/SimpleAxisLayout.hpp>
+#include <Geode/ui/SpacerNode.hpp>
+#include <Geode/utils/cocos.hpp>
 
 using namespace geode::prelude;
 
