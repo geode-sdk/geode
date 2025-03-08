@@ -1,10 +1,12 @@
 #include <Geode/DefaultInclude.hpp>
 
-#ifdef GEODE_IS_MACOS
-
 #import <Cocoa/Cocoa.h>
 #include <objc/runtime.h>
 #include <Carbon/Carbon.h>
+
+#ifdef GEODE_IS_IOS
+#include <AppKit/AppKit.h>
+#endif
 
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDispatcher.h>
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDelegate.h>
@@ -134,11 +136,11 @@ void keyDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     bool extraKey = isExtraKey(event);
     bool numpad = isKeyNumpad(event);
     if (!extraKey && !numpad) {
-        [self performSelector:sel withObject:event];
+        GEODE_MACOS([self performSelector:sel withObject:event]);
         return;
     }
     if (CCIMEDispatcher::sharedDispatcher()->hasDelegate()) {
-        [self performSelector:sel withObject:event];
+        GEODE_MACOS([self performSelector:sel withObject:event]);
         return;
     }
 
@@ -156,11 +158,11 @@ void keyUpExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     bool extraKey = isExtraKey(event);
     bool numpad = isKeyNumpad(event);
     if (!extraKey && !numpad) {
-        [self performSelector:sel withObject:event];
+        GEODE_MACOS([self performSelector:sel withObject:event]);
         return;
     }
     if (CCIMEDispatcher::sharedDispatcher()->hasDelegate()) {
-        [self performSelector:sel withObject:event];
+        GEODE_MACOS([self performSelector:sel withObject:event]);
         return;
     }
 
@@ -176,7 +178,7 @@ void keyUpExecHook(EAGLView* self, SEL sel, NSEvent* event) {
 
 void mouseDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     if (!isExtraMouseButton(event)) {
-        [self performSelector:sel withObject:event];
+        GEODE_MACOS([self performSelector:sel withObject:event]);
         return;
     }
 
@@ -186,7 +188,7 @@ void mouseDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
 
 void mouseUpExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     if (!isExtraMouseButton(event)) {
-        [self performSelector:sel withObject:event];
+        GEODE_MACOS([self performSelector:sel withObject:event]);
         return;
     }
 
@@ -194,7 +196,7 @@ void mouseUpExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     CCKeyboardDispatcher::get()->dispatchKeyboardMSG(keyCode, false, false);
 }
 
-
+#ifdef GEODE_IS_MACOS
 class $modify(CCKeyboardDispatcher) {
     GEODE_FORWARD_COMPAT_DISABLE_HOOKS("CCKeyboardDispatcher new keys")
 
@@ -241,6 +243,7 @@ class $modify(CCKeyboardDispatcher) {
         }
     }
 };
+#endif
 
 
 #define HOOK_OBJC_METHOD(klass, methodName) \
@@ -248,6 +251,7 @@ class $modify(CCKeyboardDispatcher) {
     static_cast<void>(Mod::get()->hook(reinterpret_cast<void*>(method_getImplementation(methodName##Addr)), &methodName##Hook, #klass " " #methodName));
 
 __attribute__((constructor)) void initialize_newKeyboardMSGKeysHooks() {
+#if defined(GEODE_IS_MACOS)
     auto eaglView = objc_getClass("EAGLView");
 
     HOOK_OBJC_METHOD(eaglView, keyDownExec);
@@ -255,6 +259,28 @@ __attribute__((constructor)) void initialize_newKeyboardMSGKeysHooks() {
 
     HOOK_OBJC_METHOD(eaglView, mouseDownExec);
     HOOK_OBJC_METHOD(eaglView, mouseUpExec);
-}
+#elif defined(GEODE_IS_IOS)
+    @autoreleasepool
+    {
+        [NSEvent addGlobalMonitorForEventsMatchingMask:NSEventTypeKeyDown handler: ^(NSEvent* event) {
+            keyDownExecHook(nullptr, 0, event);
+        }];
+        [NSEvent addGlobalMonitorForEventsMatchingMask:NSEventTypeKeyUp handler: ^(NSEvent* event) {
+            keyUpExecHook(nullptr, 0, event);
+        }];
 
+        [NSEvent
+            addGlobalMonitorForEventsMatchingMask:NSEventTypeLeftMouseDown | NSEventTypeRightMouseDown | NSEventTypeOtherMouseDown
+                handler: ^(NSEvent* event) {
+                    mouseDownExecHook(nullptr, 0, event);
+                }
+        ];
+        [NSEvent
+            addGlobalMonitorForEventsMatchingMask:NSEventTypeLeftMouseUp | NSEventTypeRightMouseUp | NSEventTypeOtherMouseUp
+                handler: ^(NSEvent* event) {
+                    mouseUpExecHook(nullptr, 0, event);
+                }
+        ];
+    }
 #endif
+}
