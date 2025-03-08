@@ -15,6 +15,12 @@ endif()
 
 option(GEODE_USE_BREAKPAD "Enables the use of the Breakpad library for crash dumps." ON)
 
+# Check if git is installed, raise a fatal error if not
+find_program(GIT_EXECUTABLE git)
+if (NOT GIT_EXECUTABLE)
+	message(FATAL_ERROR "Git not found! Please install Git and try again.\nhttps://git-scm.com/")
+endif()
+
 # Read version
 file(READ VERSION GEODE_VERSION)
 string(STRIP "${GEODE_VERSION}" GEODE_VERSION)
