@@ -84,6 +84,33 @@ namespace {
         {AKEYCODE_BUTTON_L1, cocos2d::CONTROLLER_LB},
         {AKEYCODE_BUTTON_R2, cocos2d::CONTROLLER_RT},
         {AKEYCODE_BUTTON_L2, cocos2d::CONTROLLER_LT},
+
+        // Geode Additions
+        {AKEYCODE_SEMICOLON, cocos2d::KEY_Semicolon},
+        {AKEYCODE_APOSTROPHE, cocos2d::KEY_Apostrophe},
+        {AKEYCODE_SLASH, cocos2d::KEY_Slash},
+        {AKEYCODE_EQUALS, cocos2d::KEY_OEMEqual},
+        {AKEYCODE_LEFT_BRACKET, cocos2d::KEY_LeftBracket},
+        {AKEYCODE_BACKSLASH, cocos2d::KEY_Backslash},
+        {AKEYCODE_RIGHT_BRACKET, cocos2d::KEY_RightBracket},
+        {AKEYCODE_GRAVE, cocos2d::KEY_GraveAccent},
+        {AKEYCODE_NUMPAD_0, cocos2d::KEY_NumPad0},
+        {AKEYCODE_NUMPAD_1, cocos2d::KEY_NumPad1},
+        {AKEYCODE_NUMPAD_2, cocos2d::KEY_NumPad2},
+        {AKEYCODE_NUMPAD_3, cocos2d::KEY_NumPad3},
+        {AKEYCODE_NUMPAD_4, cocos2d::KEY_NumPad4},
+        {AKEYCODE_NUMPAD_5, cocos2d::KEY_NumPad5},
+        {AKEYCODE_NUMPAD_6, cocos2d::KEY_NumPad6},
+        {AKEYCODE_NUMPAD_7, cocos2d::KEY_NumPad7},
+        {AKEYCODE_NUMPAD_8, cocos2d::KEY_NumPad8},
+        {AKEYCODE_NUMPAD_9, cocos2d::KEY_NumPad9},
+        {AKEYCODE_NUMPAD_DOT, cocos2d::KEY_Decimal},
+        {AKEYCODE_NUMPAD_DIVIDE, cocos2d::KEY_Divide},
+        {AKEYCODE_NUMPAD_MULTIPLY, cocos2d::KEY_Multiply},
+        {AKEYCODE_NUMPAD_SUBTRACT, cocos2d::KEY_Subtract},
+        {AKEYCODE_NUMPAD_ADD, cocos2d::KEY_Add},
+        {AKEYCODE_NUMPAD_ENTER, cocos2d::KEY_NumEnter},
+        {AKEYCODE_NUMPAD_EQUALS, cocos2d::KEY_Equal}
     };
 
     cocos2d::enumKeyCodes translateAndroidKeyCodeToWindows(int keyCode) {
