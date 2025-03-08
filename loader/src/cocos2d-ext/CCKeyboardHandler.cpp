@@ -28,14 +28,14 @@ CCKeyboardHandler* CCKeyboardHandler::handlerWithDelegate(CCKeyboardDelegate* pD
 bool CCKeyboardHandler::initWithDelegate(CCKeyboardDelegate* pDelegate)
 {
     m_pDelegate = pDelegate;
-    dynamic_cast<CCObject*>(pDelegate)->retain();
+    //dynamic_cast<CCObject*>(pDelegate)->retain();
 
     return true;
 }
 
 void CCKeyboardHandler::setDelegate(CCKeyboardDelegate* pDelegate)
 {
-    if (pDelegate)
+    /*if (pDelegate)
     {
         dynamic_cast<CCObject*>(pDelegate)->retain();
     }
@@ -43,7 +43,7 @@ void CCKeyboardHandler::setDelegate(CCKeyboardDelegate* pDelegate)
     if (m_pDelegate)
     {
         dynamic_cast<CCObject*>(m_pDelegate)->release();
-    }
+    }*/
 
     m_pDelegate = pDelegate;
 }
