@@ -86,6 +86,7 @@ class CC_DLL CCEaseRateAction : public CCActionEase
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEaseRateAction, CCActionEase);
     /**
      *  @js NA
      *  @lua NA
