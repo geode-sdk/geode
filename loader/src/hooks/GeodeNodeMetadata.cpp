@@ -15,9 +15,19 @@ constexpr auto METADATA_TAG = 0xB324ABC;
 
 struct ProxyCCNode;
 
+static uint64_t fnv1aHash(char const* str) {
+    uint64_t hash = 0xcbf29ce484222325;
+    while (*str) {
+        hash ^= *str++;
+        hash *= 0x100000001b3;
+    }
+    return hash;
+}
+
 class GeodeNodeMetadata final : public cocos2d::CCObject {
 private:
-    std::unordered_map<std::string, FieldContainer*> m_classFieldContainers;
+    // for performance reasons, this key is the hash of the class name
+    std::unordered_map<uint64_t, FieldContainer*> m_classFieldContainers;
     std::string m_id = "";
     Ref<Layout> m_layout = nullptr;
     Ref<LayoutOptions> m_layoutOptions = nullptr;
@@ -63,10 +73,14 @@ public:
     }
 
     FieldContainer* getFieldContainer(char const* forClass) {
-        if (!m_classFieldContainers.count(forClass)) {
-            m_classFieldContainers[forClass] = new FieldContainer();
+        auto hash = fnv1aHash(forClass);
+
+        auto& container = m_classFieldContainers[hash];
+        if (!container) {
+            container = new FieldContainer();
         }
-        return m_classFieldContainers[forClass];
+
+        return container;
     }
 };
 
@@ -78,7 +92,7 @@ struct ProxyCCNode : Modify<ProxyCCNode, CCNode> {
             return asNode->getUserObject("");
         }
         else {
-            // apparently this function is the same as 
+            // apparently this function is the same as
             // CCDirector::getNextScene so yeah
             return m_pUserObject;
         }
@@ -224,7 +238,7 @@ public:
                 }
                 collectedID.push_back(c);
             }
-            // Any other character is syntax error due to needing to reserve 
+            // Any other character is syntax error due to needing to reserve
             // stuff for possible future features
             else {
                 return Err("Unexpected character '{}' at index {}", c, i);
