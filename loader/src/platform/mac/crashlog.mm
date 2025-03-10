@@ -11,7 +11,11 @@
 
 #include <mach-o/dyld_images.h>
 #include <mach-o/dyld.h>
+#define CommentType CommentTypeDummy
 #import <Foundation/Foundation.h>
+#undef CommentType
+
+using namespace geode::prelude;
 
 // https://gist.github.com/jvranish/4441299
 
