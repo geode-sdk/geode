@@ -91,6 +91,8 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 file(GLOB OBJC_SOURCES
 	src/platform/Objcpp.mm
 	src/load.mm
+
+	src/hooks/AddExtraKeys.mm
 )
 set_source_files_properties(${OBJC_SOURCES} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 
