@@ -10,6 +10,7 @@
 #include <array>
 #include <filesystem>
 #include <Geode/Loader.hpp>
+#include "../../loader/console.hpp"
 #include "../../loader/LoaderImpl.hpp"
 #include <thread>
 #include <variant>
