@@ -42,6 +42,9 @@ class CC_DLL CCGridAction : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCGridAction, CCActionInterval)
+    CCGridAction() {}
+
     /**
      *  @js NA
      *  @lua NA
@@ -76,6 +79,9 @@ class CC_DLL CCGrid3DAction : public CCGridAction
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCGrid3DAction, CCGridAction)
+    CCGrid3DAction() {}
+
     /** returns the grid */
     virtual CCGridBase* getGrid(void);
     /** returns the vertex than belongs to certain position in the grid */
@@ -98,6 +104,9 @@ class CC_DLL CCTiledGrid3DAction : public CCGridAction
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTiledGrid3DAction, CCGridAction)
+    CCTiledGrid3DAction() {}
+
     /** returns the tile that belongs to a certain position of the grid */
     ccQuad3 tile(const CCPoint& position);
     /** returns the non-transformed tile that belongs to a certain position of the grid */
@@ -226,6 +235,9 @@ class CC_DLL CCStopGrid : public CCActionInstant
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCStopGrid, CCActionInstant)
+    CCStopGrid() {}
+
     virtual void startWithTarget(CCNode *pTarget);
 
 public:
@@ -238,6 +250,9 @@ class CC_DLL CCReuseGrid : public CCActionInstant
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCReuseGrid, CCActionInstant)
+    CCReuseGrid() {}
+
     /** initializes an action with the number of times that the current grid will be reused */
     bool initWithTimes(int times);
 

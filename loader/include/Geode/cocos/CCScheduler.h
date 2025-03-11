@@ -53,6 +53,7 @@ class CC_DLL CCTimer : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTimer, CCObject)
     /**
      *  @js  ctor
      *  @lua NA
