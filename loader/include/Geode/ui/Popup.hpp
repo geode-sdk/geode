@@ -138,8 +138,8 @@ namespace geode {
 
     protected:
         /**
-         * Init with AnchorLayout and the content size of `m_buttonMenu` and
-         * `m_bgSprite` being tied to the size of `m_mainLayer` (rather than
+         * Init with AnchorLayout and the content size of `m_buttonMenu` and 
+         * `m_bgSprite` being tied to the size of `m_mainLayer` (rather than 
          * being the size of the window)
          */
         bool initAnchored(

@@ -220,6 +220,8 @@ public:
     
     virtual ~CCKeyboardHandler();
 
+    CCKeyboardHandler& operator=(const CCKeyboardHandler&);
+
     CCKeyboardDelegate* getDelegate();
 
     static CCKeyboardHandler* handlerWithDelegate(CCKeyboardDelegate* pDelegate);
