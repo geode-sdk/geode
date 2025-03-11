@@ -92,13 +92,13 @@ if (IOS)
 	file(GLOB OBJC_SOURCES CONFIGURE_DEPENDS
 		src/platform/ios/*.mm
 		src/load.mm
-    src/hooks/AddExtraKeys.mm
+		src/hooks/AddExtraKeys.mm
 	)
 else()
 	file(GLOB OBJC_SOURCES CONFIGURE_DEPENDS
 		src/platform/mac/*.mm
 		src/load.mm
-    src/hooks/AddExtraKeys.mm
+		src/hooks/AddExtraKeys.mm
 	)
 endif()
 set_source_files_properties(${OBJC_SOURCES} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
