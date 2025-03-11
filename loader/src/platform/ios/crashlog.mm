@@ -13,6 +13,8 @@
 #include <mach-o/dyld.h>
 #import <Foundation/Foundation.h>
 
+using namespace geode::prelude;
+
 // https://gist.github.com/jvranish/4441299
 
 static constexpr size_t FRAME_SIZE = 64;

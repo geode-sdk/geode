@@ -3,6 +3,7 @@
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/Utils.hpp>
 #include "../load.hpp"
+#include "../../loader/LoaderImpl.hpp"
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
 #include <unistd.h>
