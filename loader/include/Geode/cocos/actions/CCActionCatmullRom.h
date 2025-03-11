@@ -231,8 +231,6 @@ class CC_DLL CCCatmullRomTo : public CCCardinalSplineTo
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCCatmullRomTo, CCCardinalSplineTo)
-    
     /** creates an action with a Cardinal Spline array of points and tension 
      *  @code
      *  when this function bound to js,the input params are changed
@@ -257,8 +255,6 @@ class CC_DLL CCCatmullRomBy : public CCCardinalSplineBy
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCCatmullRomBy, CCCardinalSplineBy)
-    
     /** creates an action with a Cardinal Spline array of points and tension 
      *  @code
      *  when this function bound to js,the input params are changed
