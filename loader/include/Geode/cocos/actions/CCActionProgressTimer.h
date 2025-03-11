@@ -42,9 +42,6 @@ class CC_DLL CCProgressTo : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCProgressTo, CCActionInterval)
-    CCProgressTo() {}
-
     /** Initializes with a duration and a percent */
     bool initWithDuration(float duration, float fPercent);
     /**
@@ -71,9 +68,6 @@ class CC_DLL CCProgressFromTo : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCProgressFromTo, CCActionInterval)
-    CCProgressFromTo() {}
-
     /** Initializes the action with a duration, a "from" percentage and a "to" percentage */
     bool initWithDuration(float duration, float fFromPercentage, float fToPercentage);
     /**

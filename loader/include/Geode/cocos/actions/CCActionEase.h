@@ -126,9 +126,6 @@ class CC_DLL CCEaseIn : public CCEaseRateAction
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEaseIn, CCEaseRateAction)
-    CCEaseIn() {}
-
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
     /**
@@ -150,9 +147,6 @@ class CC_DLL CCEaseOut : public CCEaseRateAction
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEaseOut, CCEaseRateAction)
-    CCEaseOut() {}
-
     virtual void update(float time);
     virtual CCActionInterval* reverse();
     /**
@@ -175,9 +169,6 @@ class CC_DLL CCEaseInOut : public CCEaseRateAction
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEaseInOut, CCEaseRateAction)
-    CCEaseInOut() {}
-
     virtual void update(float time);
     /**
      *  @js NA
@@ -200,9 +191,6 @@ class CC_DLL CCEaseExponentialIn : public CCActionEase
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEaseExponentialIn, CCActionEase)
-    CCEaseExponentialIn() {}
-
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
     /**
@@ -224,9 +212,6 @@ class CC_DLL CCEaseExponentialOut : public CCActionEase
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEaseExponentialOut, CCActionEase)
-    CCEaseExponentialOut() {}
-
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
     /**
@@ -248,9 +233,6 @@ class CC_DLL CCEaseExponentialInOut : public CCActionEase
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEaseExponentialInOut, CCActionEase)
-    CCEaseExponentialInOut() {}
-
     virtual void update(float time);
     /**
      *  @js NA
@@ -273,9 +255,6 @@ class CC_DLL CCEaseSineIn : public CCActionEase
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEaseSineIn, CCActionEase)
-    CCEaseSineIn() {}
-
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
     /**
@@ -297,9 +276,6 @@ class CC_DLL CCEaseSineOut : public CCActionEase
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEaseSineOut, CCActionEase)
-    CCEaseSineOut() {}
-
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
     /**
@@ -322,9 +298,6 @@ class CC_DLL CCEaseSineInOut : public CCActionEase
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEaseSineInOut, CCActionEase)
-    CCEaseSineInOut() {}
-
     virtual void update(float time);
     /**
      *  @js NA
@@ -348,9 +321,6 @@ class CC_DLL CCEaseElastic : public CCActionEase
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEaseElastic, CCActionEase)
-    CCEaseElastic() {}
-
     /** get period of the wave in radians. default is 0.3 */
     inline float getPeriod(void) { return m_fPeriod; }
     /** set period of the wave in radians. */
@@ -385,9 +355,6 @@ class CC_DLL CCEaseElasticIn : public CCEaseElastic
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEaseElasticIn, CCEaseElastic)
-    CCEaseElasticIn() {}
-
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
     /**
@@ -413,9 +380,6 @@ class CC_DLL CCEaseElasticOut : public CCEaseElastic
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEaseElasticOut, CCEaseElastic)
-    CCEaseElasticOut() {}
-
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
     /**
@@ -441,9 +405,6 @@ class CC_DLL CCEaseElasticInOut : public CCEaseElastic
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEaseElasticInOut, CCEaseElastic)
-    CCEaseElasticInOut() {}
-
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
     /**
@@ -468,9 +429,6 @@ class CC_DLL CCEaseBounce : public CCActionEase
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEaseBounce, CCActionEase)
-    CCEaseBounce() {}
-
     float bounceTime(float time);
     /**
      *  @js NA
@@ -495,9 +453,6 @@ class CC_DLL CCEaseBounceIn : public CCEaseBounce
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEaseBounceIn, CCEaseBounce)
-    CCEaseBounceIn() {}
-
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
     /**
@@ -522,9 +477,6 @@ class CC_DLL CCEaseBounceOut : public CCEaseBounce
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEaseBounceOut, CCEaseBounce)
-    CCEaseBounceOut() {}
-
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
     /**
@@ -549,9 +501,6 @@ class CC_DLL CCEaseBounceInOut : public CCEaseBounce
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEaseBounceInOut, CCEaseBounce)
-    CCEaseBounceInOut() {}
-
     virtual void update(float time);
     /**
      *  @js NA
@@ -576,9 +525,6 @@ class CC_DLL CCEaseBackIn : public CCActionEase
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEaseBackIn, CCActionEase)
-    CCEaseBackIn() {}
-
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
     /**
@@ -603,9 +549,6 @@ class CC_DLL CCEaseBackOut : public CCActionEase
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEaseBackOut, CCActionEase)
-    CCEaseBackOut() {}
-
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
     /**
@@ -630,9 +573,6 @@ class CC_DLL CCEaseBackInOut : public CCActionEase
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEaseBackInOut, CCActionEase)
-    CCEaseBackInOut() {}
-
     virtual void update(float time);
     /**
      *  @js NA

@@ -91,7 +91,6 @@ class CC_DLL CCOrbitCamera : public CCActionCamera //<NSCopying>
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCOrbitCamera, CCActionCamera)
     /**
      *  @js ctor
      */

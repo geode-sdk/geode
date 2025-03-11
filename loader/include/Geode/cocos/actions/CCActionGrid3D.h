@@ -41,9 +41,6 @@ class CC_DLL CCWaves3D : public CCGrid3DAction
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCWaves3D, CCGrid3DAction)
-    CCWaves3D() {}
-
     inline float getAmplitude(void) { return m_fAmplitude; }
     inline void setAmplitude(float fAmplitude) { m_fAmplitude = fAmplitude; }
 
@@ -73,9 +70,6 @@ class CC_DLL CCFlipX3D : public CCGrid3DAction
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCFlipX3D, CCGrid3DAction)
-    CCFlipX3D() {}
-
     /** initializes the action with duration */
     virtual bool initWithDuration(float duration);
     virtual bool initWithSize(const CCSize& gridSize, float duration);
@@ -96,9 +90,6 @@ class CC_DLL CCFlipY3D : public CCFlipX3D
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCFlipY3D, CCFlipX3D)
-    CCFlipY3D() {}
-
     virtual void update(float time);
     /**
      *  @js NA
@@ -116,9 +107,6 @@ class CC_DLL CCLens3D : public CCGrid3DAction
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCLens3D, CCGrid3DAction)
-    CCLens3D() {}
-
     /** Get lens center position */
     inline float getLensEffect(void) { return m_fLensEffect; }
     /** Set lens center position */
@@ -158,9 +146,6 @@ class CC_DLL CCRipple3D : public CCGrid3DAction
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCRipple3D, CCGrid3DAction)
-    CCRipple3D() {}
-
     /** get center position */
     inline const CCPoint& getPosition(void) { return m_position; }
     /** set center position */
@@ -198,9 +183,6 @@ class CC_DLL CCShaky3D : public CCGrid3DAction
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCShaky3D, CCGrid3DAction)
-    CCShaky3D() {}
-
     /** initializes the action with a range, shake Z vertices, a grid and duration */
     bool initWithDuration(float duration, const CCSize& gridSize, int range, bool shakeZ);
     /**
@@ -223,9 +205,6 @@ class CC_DLL CCLiquid : public CCGrid3DAction
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCLiquid, CCGrid3DAction)
-    CCLiquid() {}
-
     inline float getAmplitude(void) { return m_fAmplitude; }
     inline void setAmplitude(float fAmplitude) { m_fAmplitude = fAmplitude; }
 
@@ -255,9 +234,6 @@ class CC_DLL CCWaves : public CCGrid3DAction
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCWaves, CCGrid3DAction)
-    CCWaves() {}
-
     inline float getAmplitude(void) { return m_fAmplitude; }
     inline void setAmplitude(float fAmplitude) { m_fAmplitude = fAmplitude; }
 
@@ -290,9 +266,6 @@ class CC_DLL CCTwirl : public CCGrid3DAction
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTwirl, CCGrid3DAction)
-    CCTwirl() {}
-
     /** get twirl center */
     inline const CCPoint& getPosition(void) { return m_position; }
     /** set twirl center */

@@ -76,7 +76,6 @@ class CC_DLL CCShow : public CCActionInstant
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCShow, CCActionInstant)
     /**
      *  @js ctor
      *  @lua NA
@@ -110,7 +109,6 @@ class CC_DLL CCHide : public CCActionInstant
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCHide, CCActionInstant)
     /**
      *  @js ctor
      *  @lua NA
@@ -144,7 +142,6 @@ class CC_DLL CCToggleVisibility : public CCActionInstant
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCToggleVisibility, CCActionInstant)
     /**
      *  @js ctor
      */
@@ -176,8 +173,6 @@ class CC_DLL CCRemoveSelf : public CCActionInstant
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCRemoveSelf, CCActionInstant)
-
 	CCRemoveSelf(){}
 	virtual ~CCRemoveSelf(){}
 	//super methods
@@ -202,7 +197,6 @@ class CC_DLL CCFlipX : public CCActionInstant
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCFlipX, CCActionInstant)
     /**
      *  @js ctor
      */
@@ -241,7 +235,6 @@ class CC_DLL CCFlipY : public CCActionInstant
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCFlipY, CCActionInstant)
     /**
      *  @js ctor
      */
@@ -277,7 +270,6 @@ class CC_DLL CCPlace : public CCActionInstant //<NSCopying>
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCPlace, CCActionInstant)
     /**
      *  @js ctor
      */
@@ -403,7 +395,6 @@ class CC_DLL CCCallFuncN : public CCCallFunc, public TypeInfo
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCCallFuncN, CCCallFunc)
     /**
      * @js ctor
      * @lua NA
@@ -460,9 +451,6 @@ class CC_DLL CCCallFuncND : public CCCallFuncN
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCCallFuncND, CCCallFuncN)
-    CCCallFuncND() {};
-
     virtual long getClassTypeInfo() {
         static const long id = cocos2d::getHashCodeByString(typeid(cocos2d::CCCallFunc).name());
 		return id;
