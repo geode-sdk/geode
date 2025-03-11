@@ -21,7 +21,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
-#ifndef GEODE_IS_MEMBER_TEST
 #ifndef __SUPPORT_ZIPUTILS_H__
 #define __SUPPORT_ZIPUTILS_H__
 
@@ -272,5 +271,3 @@ namespace cocos2d
     };
 } // end of namespace cocos2d
 #endif // __SUPPORT_ZIPUTILS_H__
-
-#endif
