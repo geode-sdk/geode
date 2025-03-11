@@ -24,10 +24,21 @@ static uint64_t fnv1aHash(char const* str) {
     return hash;
 }
 
+template <typename T>
+class NoHashHasher;
+
+template <>
+class NoHashHasher<uint64_t> {
+public:
+    size_t operator()(uint64_t key) const {
+        return key;
+    }
+};
+
 class GeodeNodeMetadata final : public cocos2d::CCObject {
 private:
     // for performance reasons, this key is the hash of the class name
-    std::unordered_map<uint64_t, FieldContainer*> m_classFieldContainers;
+    std::unordered_map<uint64_t, FieldContainer*, NoHashHasher<uint64_t>> m_classFieldContainers;
     std::string m_id = "";
     Ref<Layout> m_layout = nullptr;
     Ref<LayoutOptions> m_layoutOptions = nullptr;
