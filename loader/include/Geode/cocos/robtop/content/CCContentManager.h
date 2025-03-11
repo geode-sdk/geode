@@ -19,6 +19,8 @@ public:
     cocos2d::CCDictionary* addDictDS(const char* dict);
 
     void clearCache();
+public:
+    cocos2d::CCDictionary* m_pDictCache;
 };
 
 #endif

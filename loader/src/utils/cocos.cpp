@@ -290,6 +290,10 @@ void WeakRefPool::check(CCObject* obj) {
 }
 
 std::shared_ptr<WeakRefController> WeakRefPool::manage(CCObject* obj) {
+    if (!obj) {
+        return std::shared_ptr<WeakRefController>();
+    }
+
     if (!m_pool.contains(obj)) {
         CC_SAFE_RETAIN(obj);
         auto controller = std::make_shared<WeakRefController>();
