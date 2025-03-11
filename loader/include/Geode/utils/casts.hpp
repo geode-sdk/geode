@@ -5,12 +5,6 @@
 #include <string>
 #include <type_traits>
 
-// without this, typeinfo_cast doesn't compile sometimes
-#include <Geode/platform/cplatform.h>
-#ifdef GEODE_IS_IOS
-#include <Geode/platform/ItaniumCast.hpp>
-#endif
-
 namespace geode::cast {
     /**
      * Alias for static_cast

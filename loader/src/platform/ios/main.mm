@@ -11,35 +11,6 @@
 
 using namespace geode::prelude;
 
-// void dynamicEntry() {
-//     auto dylib = dlopen("GeodeBootstrapper.dylib", RTLD_NOLOAD);
-//     dlclose(dylib);
-
-//     auto workingDir = std::filesystem::path(dirs::getGameDir());
-//     auto libDir = workingDir / "Frameworks";
-//     auto updatesDir = workingDir / "geode" / "update";
-
-//     auto error = std::error_code();
-
-//     if (std::filesystem::exists(updatesDir / "GeodeBootstrapper.dylib", error) && !error) {
-//         std::filesystem::rename(
-//             updatesDir / "GeodeBootstrapper.dylib", libDir / "GeodeBootstrapper.dylib", error
-//         );
-//         if (error) return;
-//     }
-
-//     geodeEntry(nullptr);
-// }
-
-// extern "C" __attribute__((visibility("default"))) void dynamicTrigger() {
-//     std::thread(&dynamicEntry).detach();
-// }
-
-
-// remove when we can figure out how to not remove it
-// auto dynamicTriggerRef = &dynamicTrigger;
-
-
 static bool(*s_applicationDidFinishLaunchingOrig)(void*, SEL, void*, void*);
 
 bool applicationDidFinishLaunchingHook(void* self, SEL sel, void* p1, void* p2) {
