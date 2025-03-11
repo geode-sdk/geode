@@ -60,7 +60,7 @@ class CC_DLL CCPointArray : public CCObject
     GEODE_FRIEND_MODIFY
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCPointArray, CCObject)
-
+    
     /** creates and initializes a Points array with capacity 
      * @lua NA
      */
@@ -256,7 +256,7 @@ class CC_DLL CCCatmullRomBy : public CCCardinalSplineBy
 {
     GEODE_FRIEND_MODIFY
 public:
-
+    
     /** creates an action with a Cardinal Spline array of points and tension 
      *  @code
      *  when this function bound to js,the input params are changed
