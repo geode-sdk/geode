@@ -39,6 +39,9 @@ class CC_DLL CCShakyTiles3D : public CCTiledGrid3DAction
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCShakyTiles3D, CCTiledGrid3DAction)
+    CCShakyTiles3D() {}
+
     /** initializes the action with a range, whether or not to shake Z vertices, a grid size, and duration */
     virtual bool initWithDuration(float duration, const CCSize& gridSize, int nRange, bool bShakeZ);
     /**
@@ -63,6 +66,9 @@ class CC_DLL CCShatteredTiles3D : public CCTiledGrid3DAction
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCShatteredTiles3D, CCTiledGrid3DAction)
+    CCShatteredTiles3D() {}
+
     /** initializes the action with a range, whether or not to shatter Z vertices, a grid size and duration */
     virtual bool initWithDuration(float duration, const CCSize& gridSize, int nRange, bool bShatterZ);
     /**
