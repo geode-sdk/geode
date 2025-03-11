@@ -169,7 +169,8 @@ std::string& utils::string::trimIP(std::string& str) {
 }
 
 std::string utils::string::trimLeft(std::string const& str, std::string const& chars) {
-    return str.substr(str.find_first_not_of(chars));
+    size_t start = str.find_first_not_of(chars);
+    return start == -1 ? std::string() : str.substr(start);
 }
 std::string utils::string::trimLeft(std::string const& str) {
     return utils::string::trimLeft(str, WHITESPACE);
@@ -184,7 +185,7 @@ std::string utils::string::trimRight(std::string const& str) {
 
 std::string utils::string::trim(std::string const& str, std::string const& chars) {
     size_t start = str.find_first_not_of(chars);
-    return str.substr(start, str.find_last_not_of(chars) + 1 - start);
+    return start == -1 ? std::string() : str.substr(start, str.find_last_not_of(chars) + 1 - start);
 }
 std::string utils::string::trim(std::string const& str) {
     return utils::string::trim(str, WHITESPACE);
