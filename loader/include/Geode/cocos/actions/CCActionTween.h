@@ -68,6 +68,9 @@ class CC_DLL CCActionTween : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCActionTween, CCActionInterval)
+    CCActionTween() {}
+
     /** creates an initializes the action with the property name (key), and the from and to parameters. */
     static CCActionTween* create(float aDuration, const char* key, float from, float to);
 

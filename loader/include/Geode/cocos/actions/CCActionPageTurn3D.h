@@ -47,6 +47,9 @@ class CC_DLL CCPageTurn3D : public CCGrid3DAction
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCPageTurn3D, CCGrid3DAction)
+    CCPageTurn3D() {}
+
     virtual void update(float time);
 
 public:

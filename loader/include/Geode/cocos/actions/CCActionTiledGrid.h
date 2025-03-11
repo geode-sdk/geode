@@ -90,6 +90,8 @@ class CC_DLL CCShuffleTiles : public CCTiledGrid3DAction
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCShuffleTiles, CCTiledGrid3DAction)
+    CCShuffleTiles() {}
     /**
      *  @js NA
      *  @lua NA
@@ -126,6 +128,9 @@ class CC_DLL CCFadeOutTRTiles : public CCTiledGrid3DAction
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCFadeOutTRTiles, CCTiledGrid3DAction)
+    CCFadeOutTRTiles() {}
+
     virtual float testFunc(const CCSize& pos, float time);
     void turnOnTile(const CCPoint& pos);
     void turnOffTile(const CCPoint& pos);
@@ -145,6 +150,9 @@ class CC_DLL CCFadeOutBLTiles : public CCFadeOutTRTiles
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCFadeOutBLTiles, CCFadeOutTRTiles)
+    CCFadeOutBLTiles() {}
+
     virtual float testFunc(const CCSize& pos, float time);
 
 public:
@@ -160,6 +168,9 @@ class CC_DLL CCFadeOutUpTiles : public CCFadeOutTRTiles
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCFadeOutUpTiles, CCFadeOutTRTiles)
+    CCFadeOutUpTiles() {}
+
     virtual float testFunc(const CCSize& pos, float time);
     virtual void transformTile(const CCPoint& pos, float distance);
 
@@ -176,6 +187,9 @@ class CC_DLL CCFadeOutDownTiles : public CCFadeOutUpTiles
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCFadeOutDownTiles, CCFadeOutUpTiles)
+    CCFadeOutDownTiles() {}
+
     virtual float testFunc(const CCSize& pos, float time);
 
 public:
@@ -191,6 +205,8 @@ class CC_DLL CCTurnOffTiles : public CCTiledGrid3DAction
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTurnOffTiles, CCTiledGrid3DAction)
+    CCTurnOffTiles() {}
     /**
      *  @js NA
      *  @lua NA
@@ -227,6 +243,9 @@ class CC_DLL CCWavesTiles3D : public CCTiledGrid3DAction
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCWavesTiles3D, CCTiledGrid3DAction)
+    CCWavesTiles3D() {}
+
     /** waves amplitude */
     inline float getAmplitude(void) { return m_fAmplitude; }
     inline void setAmplitude(float fAmplitude) { m_fAmplitude = fAmplitude; }
@@ -260,6 +279,9 @@ class CC_DLL CCJumpTiles3D : public CCTiledGrid3DAction
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCJumpTiles3D, CCTiledGrid3DAction)
+    CCJumpTiles3D() {}
+
     /** amplitude of the sin*/
     inline float getAmplitude(void) { return m_fAmplitude; }
     inline void setAmplitude(float fAmplitude) { m_fAmplitude = fAmplitude; }
@@ -292,6 +314,9 @@ class CC_DLL CCSplitRows : public CCTiledGrid3DAction
 {
     GEODE_FRIEND_MODIFY
 public :
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCSplitRows, CCTiledGrid3DAction)
+    CCSplitRows() {}
+
     /** initializes the action with the number of rows to split and the duration */
     virtual bool initWithDuration(float duration, unsigned int nRows);
     /**
@@ -316,6 +341,9 @@ class CC_DLL CCSplitCols : public CCTiledGrid3DAction
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCSplitCols, CCTiledGrid3DAction)
+    CCSplitCols() {}
+
     /** initializes the action with the number of columns to split and the duration */
     virtual bool initWithDuration(float duration, unsigned int nCols);
     /**
