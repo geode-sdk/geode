@@ -161,6 +161,10 @@ public:
     }
 
     void setScale(CCNode* on, float scale) {
+        // CCMenuItemSpriteExtra is quirky af
+        if (auto btn = typeinfo_cast<CCMenuItemSpriteExtra*>(on)) {
+            btn->m_baseScale = scale;
+        }
         on->setScale(scale);
     }
 
