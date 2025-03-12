@@ -36,6 +36,8 @@ class CC_DLL CCNotificationCenter : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCNotificationCenter, CCObject)
+
     /** CCNotificationCenter constructor */
     CCNotificationCenter();
 
@@ -123,6 +125,9 @@ class CC_DLL CCNotificationObserver : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCNotificationObserver, CCObject)
+    CCNotificationObserver() {}
+
     /** @brief CCNotificationObserver constructor
      *  @param target The target which wants to observer notification events.
      *  @param selector The callback function which will be invoked when the specified notification event was posted.

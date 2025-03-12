@@ -38,6 +38,7 @@ protected:
 
     CCComponent(void);
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCComponent, CCObject)
     /**
      *  @js NA
      *  @lua NA

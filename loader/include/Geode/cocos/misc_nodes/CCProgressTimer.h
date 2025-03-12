@@ -60,6 +60,7 @@ class CC_DLL CCProgressTimer : public CCNodeRGBA
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCProgressTimer, CCNodeRGBA)
     /**
      * @js ctor
      */

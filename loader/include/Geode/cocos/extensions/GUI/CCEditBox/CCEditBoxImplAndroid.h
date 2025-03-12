@@ -40,6 +40,9 @@ class CC_DLL CCEditBox;
 class CC_DLL CCEditBoxImplAndroid : public CCEditBoxImpl
 {
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEditBoxImplAndroid, CCEditBoxImpl)
+    CCEditBoxImplAndroid() {}
+
     CCEditBoxImplAndroid(CCEditBox* pEditText);
     virtual ~CCEditBoxImplAndroid();
     

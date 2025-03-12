@@ -101,6 +101,7 @@ public:
     unsigned int        m_uMaxGID;
     CCPoint             m_tOffset;
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTMXLayerInfo, CCObject)
     CCTMXLayerInfo();
     virtual ~CCTMXLayerInfo();
 };
@@ -129,6 +130,7 @@ public:
     //! size in pixels of the image
     CCSize          m_tImageSize;
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTMXTilesetInfo, CCObject)
     CCTMXTilesetInfo();
     virtual ~CCTMXTilesetInfo();
     CCRect rectForGID(unsigned int gid);
@@ -174,6 +176,7 @@ public:
     /// properties
     CC_PROPERTY(CCDictionary*, m_pProperties, Properties);
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTMXMapInfo, CCObject)
     /**
      * @js  ctor
      * @lua NA

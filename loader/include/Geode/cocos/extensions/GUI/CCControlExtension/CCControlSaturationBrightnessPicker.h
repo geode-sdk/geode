@@ -64,6 +64,7 @@ public:
     int         boxSize;
     
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCControlSaturationBrightnessPicker, CCControl)
     CCControlSaturationBrightnessPicker();
     virtual ~CCControlSaturationBrightnessPicker();
     virtual bool initWithTargetAndPos(CCNode* target, CCPoint pos);

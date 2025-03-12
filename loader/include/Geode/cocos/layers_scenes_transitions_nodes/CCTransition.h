@@ -195,6 +195,7 @@ class CC_DLL CCTransitionJumpZoom : public CCTransitionScene
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionJumpZoom, CCTransitionScene)
     /**
      *  @js ctor
      */
@@ -220,6 +221,7 @@ class CC_DLL CCTransitionMoveInL : public CCTransitionScene, public CCTransition
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionMoveInL, CCTransitionScene)
     /**
      *  @js ctor
      */
@@ -251,6 +253,7 @@ class CC_DLL CCTransitionMoveInR : public CCTransitionMoveInL
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionMoveInR, CCTransitionMoveInL)
     /**
      *  @js ctor
      */
@@ -272,6 +275,7 @@ class CC_DLL CCTransitionMoveInT : public CCTransitionMoveInL
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionMoveInT, CCTransitionMoveInL)
     /**
      *  @js ctor
      */
@@ -293,6 +297,7 @@ class CC_DLL CCTransitionMoveInB : public CCTransitionMoveInL
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionMoveInB, CCTransitionMoveInL)
     /**
      *  @js ctor
      */
@@ -314,6 +319,7 @@ class CC_DLL CCTransitionSlideInL : public CCTransitionScene, public CCTransitio
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionSlideInL, CCTransitionScene)
     /**
      *  @js ctor
      */
@@ -348,6 +354,7 @@ class CC_DLL CCTransitionSlideInR : public CCTransitionSlideInL
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionSlideInR, CCTransitionSlideInL)
     /**
      *  @js ctor
      */
@@ -375,6 +382,7 @@ class CC_DLL CCTransitionSlideInB : public CCTransitionSlideInL
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionSlideInB, CCTransitionSlideInL)
     /**
      *  @js ctor
      */
@@ -402,6 +410,7 @@ class CC_DLL CCTransitionSlideInT : public CCTransitionSlideInL
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionSlideInT, CCTransitionSlideInL)
     /**
      *  @js ctor
      */
@@ -429,6 +438,7 @@ class CC_DLL CCTransitionShrinkGrow : public CCTransitionScene , public CCTransi
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionShrinkGrow, CCTransitionScene)
     /**
      *  @js ctor
      */
@@ -456,6 +466,7 @@ class CC_DLL CCTransitionFlipX : public CCTransitionSceneOriented
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionFlipX, CCTransitionSceneOriented)
     /**
      *  @js ctor
      */
@@ -483,6 +494,7 @@ class CC_DLL CCTransitionFlipY : public CCTransitionSceneOriented
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionFlipY, CCTransitionSceneOriented)
     /**
      *  @js ctor
      */
@@ -510,6 +522,7 @@ class CC_DLL CCTransitionFlipAngular : public CCTransitionSceneOriented
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionFlipAngular, CCTransitionSceneOriented)
     /**
      *  @js ctor
      */
@@ -537,6 +550,7 @@ class CC_DLL CCTransitionZoomFlipX : public CCTransitionSceneOriented
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionZoomFlipX, CCTransitionSceneOriented)
     /**
      *  @js ctor
      */
@@ -564,6 +578,7 @@ class CC_DLL CCTransitionZoomFlipY : public CCTransitionSceneOriented
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionZoomFlipY, CCTransitionSceneOriented)
     /**
      *  @js ctor
      */
@@ -591,6 +606,7 @@ class CC_DLL CCTransitionZoomFlipAngular : public CCTransitionSceneOriented
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionZoomFlipAngular, CCTransitionSceneOriented)
     /**
      *  @js ctor
      */
@@ -664,6 +680,7 @@ class CC_DLL CCTransitionCrossFade : public CCTransitionScene
 {
     GEODE_FRIEND_MODIFY
 public :
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionCrossFade, CCTransitionScene)
     /**
      *  @js ctor
      */
@@ -697,6 +714,7 @@ class CC_DLL CCTransitionTurnOffTiles : public CCTransitionScene ,public CCTrans
 {
     GEODE_FRIEND_MODIFY
 public :
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionTurnOffTiles, CCTransitionScene)
     /**
      *  @js ctor
      */
@@ -726,6 +744,7 @@ class CC_DLL CCTransitionSplitCols : public CCTransitionScene , public CCTransit
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionSplitCols, CCTransitionScene)
     /**
      *  @js ctor
      */
@@ -756,6 +775,7 @@ class CC_DLL CCTransitionSplitRows : public CCTransitionSplitCols
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionSplitRows, CCTransitionSplitCols)
     /**
      *  @js ctor
      */
@@ -780,6 +800,7 @@ class CC_DLL CCTransitionFadeTR : public CCTransitionScene , public CCTransition
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionFadeTR, CCTransitionScene)
     /**
      *  @js ctor
      */
@@ -811,6 +832,7 @@ class CC_DLL CCTransitionFadeBL : public CCTransitionFadeTR
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionFadeBL, CCTransitionFadeTR)
     /**
      *  @js ctor
      */
@@ -834,6 +856,7 @@ class CC_DLL CCTransitionFadeUp : public CCTransitionFadeTR
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionFadeUp, CCTransitionFadeTR)
     /**
      *  @js ctor
      */
@@ -857,6 +880,7 @@ class CC_DLL CCTransitionFadeDown : public CCTransitionFadeTR
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionFadeDown, CCTransitionFadeTR)
     /**
      *  @js ctor
      */
