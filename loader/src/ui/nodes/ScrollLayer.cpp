@@ -26,8 +26,9 @@ void GenericContentLayer::setPosition(CCPoint const& pos) {
     for (auto child : CCArrayExt<CCNode*>(m_pChildren)) {
         float childY = this->getPositionY() + child->getPositionY();
         auto anchor = child->isIgnoreAnchorPointForPosition() ? CCPoint{ 0, 0 } : child->getAnchorPoint();
-        float childTop = childY + (1.f - anchor.y) * child->getScaledContentSize().height;
-        float childBottom = childY - child->getAnchorPoint().y * child->getScaledContentSize().height;
+        float scaleY = child->getScaleY();
+        float childTop = scaleY * (childY + (1.f - anchor.y) * child->getScaledContentSize().height);
+        float childBottom = scaleY * (childY - child->getAnchorPoint().y * child->getScaledContentSize().height);
         bool visible = childTop > 0 && childBottom < scrollLayerSize.height;
 
         child->setVisible(visible);
