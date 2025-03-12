@@ -45,6 +45,8 @@ protected:
     
 public:
     GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCComponentContainer)
+    CCComponentContainer() {}
+
     virtual ~CCComponentContainer(void);
     virtual CCComponent* get(const char *pName) const;
     virtual bool add(CCComponent *pCom);
