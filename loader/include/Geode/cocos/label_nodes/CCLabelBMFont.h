@@ -127,6 +127,7 @@ public://@public
     // Character Set defines the letters that actually exist in the font
     gd::set<unsigned int> *m_pCharacterSet;
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCBMFontConfiguration, CCObject)
     CCBMFontConfiguration();
     /**
      *  @js NA
