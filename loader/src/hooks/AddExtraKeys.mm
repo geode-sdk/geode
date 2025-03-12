@@ -122,6 +122,14 @@ enumKeyCodes numpadToKeyCode(NSEvent* event) {
             return enumKeyCodes::KEY_NumEnter;
         case '=':
             return enumKeyCodes::KEY_Equal;
+        case 0xf700:
+            return enumKeyCodes::KEY_Up;
+        case 0xf701:
+            return enumKeyCodes::KEY_Down;
+        case 0xf702:
+            return enumKeyCodes::KEY_Left;
+        case 0xf703:
+            return enumKeyCodes::KEY_Right;
         default:
             return enumKeyCodes::KEY_Unknown;
     }
