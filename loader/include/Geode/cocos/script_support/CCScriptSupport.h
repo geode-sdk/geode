@@ -271,6 +271,7 @@ class CC_DLL CCScriptEngineManager
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCScriptEngineManager)
     ~CCScriptEngineManager(void);
     
     CCScriptEngineProtocol* getScriptEngine(void) {

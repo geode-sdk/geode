@@ -52,6 +52,7 @@ class CC_DLL CCProfiler : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCProfiler, CCObject)
     ~CCProfiler(void);
     /** display the timers */
     void displayTimers(void);
@@ -76,6 +77,7 @@ public:
 class CCProfilingTimer : public CCObject
 {
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCProfilingTimer, CCObject)
     CCProfilingTimer();
     ~CCProfilingTimer();
     bool initWithName(const char* timerName);

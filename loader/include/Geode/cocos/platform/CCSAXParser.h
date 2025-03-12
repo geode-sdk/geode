@@ -59,6 +59,7 @@ class CC_DLL CCSAXParser
     CCSAXDelegator*    m_pDelegator;
 public:
 
+    GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCSAXParser)
     CCSAXParser();
     ~CCSAXParser(void);
 

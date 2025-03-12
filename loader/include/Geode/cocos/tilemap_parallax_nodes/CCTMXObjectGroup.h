@@ -52,6 +52,7 @@ class CC_DLL CCTMXObjectGroup : public CCObject
     /** array of the objects */
     CC_PROPERTY(CCArray*, m_pObjects, Objects);
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTMXObjectGroup, CCObject)
     /**
      * @js ctor
      */

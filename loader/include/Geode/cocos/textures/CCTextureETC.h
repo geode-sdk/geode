@@ -38,6 +38,7 @@ class CC_DLL CCTextureETC : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTextureETC, CCObject)
     CCTextureETC();
     virtual ~CCTextureETC();
 
