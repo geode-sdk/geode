@@ -1,5 +1,10 @@
 # Geode Changelog
 
+## v4.3.1
+ * Fix `SimpleAxisLayout` not respecting `Layout::ignoreInvisibleChildren` (a16d230)
+ * Fix MacOS arrow keys (#1267)
+ * Fix ScrollLayer culling with scaled children (f03cee8)
+
 ## v4.3.0
  * Event export macro (#1243)
    * See [the docs](https://docs.geode-sdk.org/mods/dependencies#event-macro) for more info
