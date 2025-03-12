@@ -13,6 +13,8 @@ class CC_DLL CCContentManager : public cocos2d::CCObject
 public:
     static CCContentManager* sharedManager();
     CCContentManager() {}
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCContentManager, CCObject)
+
     bool init();
 
     cocos2d::CCDictionary* addDict(const char* dict, bool unk);
