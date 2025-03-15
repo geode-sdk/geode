@@ -82,6 +82,9 @@ UIViewController* getCurrentViewController() {
 
 bool utils::file::openFolder(std::filesystem::path const& path) {
     std::string newPath = fmt::format("shareddocuments://{}", path);
+    if (getenv("GEODEINJECT_LOADED")) {
+        newPath = fmt::format("filza://{}", path);
+    }
     NSURL *url = [NSURL URLWithString:[NSString stringWithUTF8String:newPath.c_str()]];
     if ([[UIApplication sharedApplication] canOpenURL:url]) {
         [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
