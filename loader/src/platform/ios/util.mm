@@ -32,7 +32,7 @@ std::string utils::clipboard::read() {
 
 void utils::web::openLinkInBrowser(std::string const& url) {
     [[UIApplication sharedApplication]
-        openURL:[NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]]];
+        openURL:[NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]] options:{} completionHandler:nil];
 }
 
 #pragma region Folder Pick Delegate
@@ -81,10 +81,7 @@ UIViewController* getCurrentViewController() {
 }
 
 bool utils::file::openFolder(std::filesystem::path const& path) {
-    std::string newPath = fmt::format("shareddocuments://{}", path);
-    if (getenv("GEODEINJECT_LOADED")) {
-        newPath = fmt::format("filza://{}", path);
-    }
+    std::string newPath = fmt::format("{}://{}", getenv("GEODEINJECT_LOADED") ? "filza" : "shareddocuments", path);
     NSURL *url = [NSURL URLWithString:[NSString stringWithUTF8String:newPath.c_str()]];
     if ([[UIApplication sharedApplication] canOpenURL:url]) {
         [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
