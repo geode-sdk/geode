@@ -11,6 +11,8 @@
 
 #include <mach-o/dyld_images.h>
 #include <mach-o/dyld.h>
+#include <unistd.h>
+#include <fcntl.h>
 #import <Foundation/Foundation.h>
 
 using namespace geode::prelude;
@@ -18,13 +20,12 @@ using namespace geode::prelude;
 // https://gist.github.com/jvranish/4441299
 
 static constexpr size_t FRAME_SIZE = 64;
-static std::mutex s_mutex;
-static std::condition_variable s_cv;
 static int s_signal = 0;
 static siginfo_t* s_siginfo = nullptr;
 static ucontext_t* s_context = nullptr;
 static size_t s_backtraceSize = 0;
 static std::array<void*, FRAME_SIZE> s_backtrace;
+static int s_pipe[2];
 
 static std::string_view getSignalCodeString() {
     switch(s_signal) {
@@ -145,8 +146,8 @@ static Mod* modFromAddress(void const* addr) {
     if (!std::filesystem::exists(imagePath)) {
         return nullptr;
     }
-    auto geodePath = dirs::getGameDir() / "Frameworks" / "Geode.dylib";
-    if (std::filesystem::equivalent(imagePath, geodePath)) {
+    auto geodePath = dirs::getGeodeDir() / "Geode.ios.dylib";
+    if (imagePath.filename() == geodePath.filename()) {
         return Mod::get();
     }
 
@@ -171,26 +172,20 @@ static std::string getInfo(void* address, Mod* faultyMod) {
 }
 
 extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext) {
-	auto context = reinterpret_cast<ucontext_t*>(vcontext);
+	/*auto context = reinterpret_cast<ucontext_t*>(vcontext);
 	s_backtraceSize = backtrace(s_backtrace.data(), FRAME_SIZE);
 
     // for some reason this is needed, dont ask me why
 	s_backtrace[2] = reinterpret_cast<void*>(context->uc_mcontext->__ss.__pc);
 	if (s_backtraceSize < FRAME_SIZE) {
 		s_backtrace[s_backtraceSize] = nullptr;
-	}
+	}*/
 
-    {
-        std::unique_lock<std::mutex> lock(s_mutex);
-        s_signal = signal;
-        s_siginfo = signalInfo;
-        s_context = context;
-    }
-
-    s_cv.notify_all();
-    std::unique_lock<std::mutex> lock(s_mutex);
-    s_cv.wait(lock, [] { return s_signal == 0; });
-	std::_Exit(EXIT_FAILURE);
+	s_signal = signal;
+	s_siginfo = signalInfo;
+	s_context = reinterpret_cast<ucontext_t*>(vcontext);
+	char buf = '1';
+	write(s_pipe[1], &buf, 1);
 }
 
 // https://stackoverflow.com/questions/8278691/how-to-fix-backtrace-line-number-error-in-c
@@ -270,8 +265,6 @@ static std::string getStacktrace() {
         else {
             std::getline(stream, function);
 
-            // TODO: temp pls uncomment 
-            /*
             cutoff = function.find("+");
             stream = std::stringstream(function.substr(cutoff));
             stream >> offset;
@@ -289,7 +282,6 @@ static std::string getStacktrace() {
             stacktrace << "- " << binary;
             stacktrace << " @ " << std::showbase << std::hex << address << std::dec;
             stacktrace << " (" << function << " + " << offset << ")\n";
-            */
             stacktrace << "- " << function << "\n";
         }
     }
@@ -346,33 +338,57 @@ static std::string getRegisters() {
 }
 
 static void handlerThread() {
-    std::unique_lock<std::mutex> lock(s_mutex);
-    s_cv.wait(lock, [] { return s_signal != 0; });
+    // no more mutex deadlocker
+    char buf;
+    while (read(s_pipe[0], &buf, 1) != 0) {
+        auto signalAddress = reinterpret_cast<void*>(s_context->uc_mcontext->__ss.__pc);
+        // as you can tell, i moved code from signalHandler to here
+	if (s_context) {
+            //s_backtraceSize = backtrace(s_backtrace.data(), FRAME_SIZE);
+            // i can't use 2 because then it'll show the actual stacktrace to be lower than what it actually is
+            s_backtrace[s_backtraceSize++] = signalAddress;
+            void* current_fp = reinterpret_cast<void*>(s_context->uc_mcontext->__ss.__fp);
+            /*
+            if (s_backtraceSize < FRAME_SIZE) {
+                s_backtrace[s_backtraceSize] = nullptr;
+            }
+            */
+            while (s_backtraceSize < FRAME_SIZE && current_fp) {
+                void** frame = reinterpret_cast<void**>(current_fp);
+                void* next_fp = frame[0];
+                void* lr = frame[1];
+                
+                if (next_fp == current_fp || lr == nullptr) break;
+                
+                s_backtrace[s_backtraceSize++] = lr;
+                current_fp = next_fp;
+            }
+        }
+	Mod* faultyMod = modFromAddress(signalAddress);
+    
+        // Mod* faultyMod = nullptr;
+        // for (int i = 1; i < s_backtraceSize; ++i) {
+        //     auto mod = modFromAddress(s_backtrace[i]);
+        //     if (mod != nullptr) {
+        //         faultyMod = mod;
+        //         break;
+        //     }
+        // }
+        auto text = crashlog::writeCrashlog(faultyMod, getInfo(signalAddress, faultyMod), getStacktrace(), getRegisters());
 
-    auto signalAddress = reinterpret_cast<void*>(s_context->uc_mcontext->__ss.__pc);
-    // Mod* faultyMod = nullptr;
-    // for (int i = 1; i < s_backtraceSize; ++i) {
-    //     auto mod = modFromAddress(s_backtrace[i]);
-    //     if (mod != nullptr) {
-    //         faultyMod = mod;
-    //         break;
-    //     }
-    // }
-    Mod* faultyMod = modFromAddress(signalAddress);
-
-    auto text = crashlog::writeCrashlog(faultyMod, getInfo(signalAddress, faultyMod), getStacktrace(), getRegisters());
-
-    log::error("Geode crashed!\n{}", text);
-
-    s_signal = 0;
-    s_cv.notify_all();
-
-    log::debug("Notified");
+        log::error("Geode crashed!\n{}", text);
+        std::_Exit(EXIT_FAILURE);
+	//s_signal = 0;
+    }
 }
 
 static bool s_lastLaunchCrashed;
 
 bool crashlog::setupPlatformHandler() {
+    // for whatever reason, i can't just do int*
+    if (pipe(s_pipe) != 0) return false;
+    fcntl(s_pipe[0], F_SETFD, FD_CLOEXEC);
+    fcntl(s_pipe[1], F_SETFD, FD_CLOEXEC);
     struct sigaction action;
     action.sa_sigaction = &signalHandler;
     action.sa_flags = SA_SIGINFO;
@@ -391,11 +407,7 @@ bool crashlog::setupPlatformHandler() {
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
     if (std::filesystem::exists(lastCrashedFile)) {
         s_lastLaunchCrashed = true;
-        try {
-            std::filesystem::remove(lastCrashedFile);
-        }
-        catch (...) {
-        }
+        std::filesystem::remove(lastCrashedFile);
     }
     return true;
 }
