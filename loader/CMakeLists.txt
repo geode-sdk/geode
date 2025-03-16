@@ -92,7 +92,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "iOS")
 	file(GLOB OBJC_SOURCES CONFIGURE_DEPENDS
 		src/platform/ios/*.mm
 		src/load.mm
-		# src/hooks/AddExtraKeys.mm
+		src/hooks/AddExtraKeys.mm
 	)
 else()
 	file(GLOB OBJC_SOURCES CONFIGURE_DEPENDS
