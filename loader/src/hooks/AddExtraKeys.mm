@@ -18,6 +18,8 @@
 
 using namespace geode::prelude;
 
+#ifdef GEODE_IS_MACOS
+
 // https://github.com/SpaghettDev/BetterInputs/blob/44f249cd94f4cc19fca4de570dfab28f4efa3db8/src/platform/macos.mm#L121
 // we use this instead of [event keyCode] because the returned value of keyCode for letters is keyboard locale-specific
 int normalizedCodeFromEvent(NSEvent* event) {
@@ -197,7 +199,7 @@ void mouseUpExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     CCKeyboardDispatcher::get()->dispatchKeyboardMSG(keyCode, false, false);
 }
 
-#ifdef GEODE_IS_MACOS
+
 class $modify(CCKeyboardDispatcher) {
     GEODE_FORWARD_COMPAT_DISABLE_HOOKS("CCKeyboardDispatcher new keys")
 
