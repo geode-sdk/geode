@@ -81,22 +81,12 @@ if (NOT GEODE_BINDINGS_REPO_PATH)
 		"contribute new bindings) then set GEODE_BINDINGS_REPO_PATH to where you have "
 		"cloned the repository (system environment variables are supported)."
 	)
-	if ("${CMAKE_SYSTEM_NAME}" STREQUAL "iOS")
-	message(STATUS "Using ios repo for bindings")
-        CPMAddPackage(NAME "bindings"
-                GITHUB_REPOSITORY "geode-catgirls/bindings"
-                GIT_TAG "main"
-                DOWNLOAD_ONLY YES
-                NO_CACHE YES
-        )
-	else()
 	CPMAddPackage(NAME "bindings"
 		GITHUB_REPOSITORY "geode-sdk/bindings"
 		GIT_TAG "main"
 		DOWNLOAD_ONLY YES
 		NO_CACHE YES
 	)
-	endif()
 	set(GEODE_BINDINGS_REPO_PATH ${bindings_SOURCE_DIR})
 else()
 	message(STATUS "Using ${GEODE_BINDINGS_REPO_PATH} for bindings repo")
