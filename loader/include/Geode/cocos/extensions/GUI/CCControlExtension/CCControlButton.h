@@ -53,6 +53,7 @@ NS_CC_EXT_BEGIN
 class CC_DLL CCControlButton : public CCControl
 {        
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCControlButton, CCControl)
     CCControlButton();
     virtual ~CCControlButton();
     virtual void needsLayout(void);

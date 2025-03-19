@@ -185,6 +185,7 @@ class CC_DLL CCSpeed : public CCAction
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCSpeed, CCAction)
     /**
      *  @js ctor
      */
@@ -243,6 +244,7 @@ class CC_DLL CCFollow : public CCAction
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCFollow, CCAction)
     /**
      *  @js ctor
      */

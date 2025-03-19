@@ -149,7 +149,7 @@ endif()
 
 
 if (ANDROID AND GEODE_USE_BREAKPAD)
-	CPMAddPackage("gh:qimiko/breakpad#161e908")
+	CPMAddPackage("gh:qimiko/breakpad#169df6a")
 endif()
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})

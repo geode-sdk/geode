@@ -59,11 +59,12 @@ public:
     float m_gap = 0.f;
     std::optional<float> m_minRelativeScale = 0.5f;
     std::optional<float> m_maxRelativeScale = 2.f;
+    SimpleAxisLayout* m_layout = nullptr;
 
     std::unordered_map<CCNode*, float> m_originalScalesPerNode;
     std::unordered_map<CCNode*, float> m_relativeScalesPerNode;
 
-    Impl(Axis axis) : m_axis(axis) {
+    Impl(Axis axis, SimpleAxisLayout* parent) : m_axis(axis), m_layout(parent) {
         switch (axis) {
             case Axis::Column:
                 m_mainAxisDirection = AxisDirection::TopToBottom;
@@ -161,6 +162,10 @@ public:
     }
 
     void setScale(CCNode* on, float scale) {
+        // CCMenuItemSpriteExtra is quirky af
+        if (auto btn = typeinfo_cast<CCMenuItemSpriteExtra*>(on)) {
+            btn->m_baseScale = scale;
+        }
         on->setScale(scale);
     }
 
@@ -678,7 +683,7 @@ void SimpleAxisLayout::Impl::apply(cocos2d::CCNode* layout) {
     std::vector<AxisGap*> gaps;
     float totalGap = 0.f;
     CCNode* lastChild = nullptr;
-    for (auto child : CCArrayExt<CCNode*>(layout->getChildren())) {
+    for (auto child : CCArrayExt<CCNode*>(m_layout->getNodesToPosition(layout))) {
         if (auto spacer = typeinfo_cast<SpacerNode*>(child)) {
             spacers.push_back(spacer);
             positionChildren.push_back(spacer);
@@ -756,7 +761,7 @@ void SimpleAxisLayout::Impl::apply(cocos2d::CCNode* layout) {
     this->applyMainPositioning(layout, positionChildren, spacers, totalGap);
 }
 
-SimpleAxisLayout::SimpleAxisLayout(Axis axis) : m_impl(std::make_unique<Impl>(axis)) {}
+SimpleAxisLayout::SimpleAxisLayout(Axis axis) : m_impl(std::make_unique<Impl>(axis, this)) {}
 
 SimpleAxisLayout::~SimpleAxisLayout() = default;
 

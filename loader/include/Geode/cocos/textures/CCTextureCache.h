@@ -67,6 +67,7 @@ private:
     /// todo: void addImageWithAsyncObject(CCAsyncObject* async);
     void addImageAsyncCallBack(float dt);
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTextureCache, CCObject)
     /**
      *  @js ctor
      *  @lua NA

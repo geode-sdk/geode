@@ -115,6 +115,7 @@ class CC_DLL CCArray : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCArray, CCObject)
     /**
      * @lua NA
      */

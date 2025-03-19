@@ -9,7 +9,7 @@ NS_CC_BEGIN
 // @note RobTop Addition
 class CC_DLL CCSpriteExtra : public CCSprite {
 public:
-    CCSpriteExtra() {}
+    CCSpriteExtra() : m_fXOffset(0.0f), m_fYOffset(0.0f) {}
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCSpriteExtra, CCSprite);
 
     inline float getXOffset() const { return m_fXOffset; }

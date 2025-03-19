@@ -49,6 +49,7 @@ typedef enum
 class CC_DLL CCControlStepper : public CCControl
 {
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCControlStepper, CCControl)
     CCControlStepper();
     virtual ~CCControlStepper();
 

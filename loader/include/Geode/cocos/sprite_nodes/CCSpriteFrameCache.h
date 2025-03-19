@@ -67,6 +67,8 @@ protected:
      */
     CCSpriteFrameCache(void) : m_pSpriteFrames(NULL), m_pSpriteFramesAliases(NULL){}
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCSpriteFrameCache, CCObject)
+
     bool init(void);
     /**
      * @js NA

@@ -56,6 +56,7 @@ class CC_DLL CCAnimationFrame : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCAnimationFrame, CCObject)
     /**
      * @js ctor
      */
@@ -98,6 +99,7 @@ class CC_DLL CCAnimation : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCAnimation, CCObject)
     /**
      * @js ctor
      */

@@ -43,6 +43,7 @@ class CC_DLL CCIMEDispatcher
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCIMEDispatcher)
     ~CCIMEDispatcher();
 
     /**

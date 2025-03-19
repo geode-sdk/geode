@@ -1,6 +1,9 @@
 #include <Geode/DefaultInclude.hpp>
 
 #ifdef GEODE_IS_WINDOWS
+// GLEW needs to be included before GL but GLFW3 doesn't do that so this is 
+// just to make sure all of the GL-related headers are in order
+#include <Geode/cocos/include/cocos2d.h>
 #include <Geode/cocos/robtop/glfw/glfw3.h>
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDispatcher.h>
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDelegate.h>
