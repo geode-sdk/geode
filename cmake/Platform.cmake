@@ -46,6 +46,8 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 
 	if (NOT ${PROJECT_NAME} STREQUAL ${CMAKE_PROJECT_NAME})
 		set(GEODE_TARGET_PLATFORM_SHORT "ios" PARENT_SCOPE)
+		# this is needed because else loading mods will fail below ios 14.5
+		set(CMAKE_OSX_DEPLOYMENT_TARGET "14.0" PARENT_SCOPE)
 	else()
 		set(GEODE_TARGET_PLATFORM_SHORT "ios")
 	endif()
