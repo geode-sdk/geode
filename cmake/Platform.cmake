@@ -5,19 +5,12 @@ if (NOT ${PROJECT_NAME} STREQUAL ${CMAKE_PROJECT_NAME})
 endif()
 
 if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
-# since geode does not set these, I will manually set them!
+	# make sure that we get the ios sdk
 	execute_process(COMMAND xcrun --show-sdk-path --sdk iphoneos
 	OUTPUT_VARIABLE GEODE_IOS_SDK
 		OUTPUT_STRIP_TRAILING_WHITESPACE
 	)
-	# execute_process(COMMAND xcrun --sdk iphoneos --find clang
-	#	 OUTPUT_VARIABLE CMAKE_C_COMPILER
-	#	 OUTPUT_STRIP_TRAILING_WHITESPACE
-	# )
-	# execute_process(COMMAND xcrun --sdk iphoneos --find clang++
-	#	 OUTPUT_VARIABLE CMAKE_CXX_COMPILER
-	#	 OUTPUT_STRIP_TRAILING_WHITESPACE
-	# )
+
 	message(STATUS "iOS c++ compiler: ${CMAKE_CXX_COMPILER}")
 	set(CMAKE_OSX_ARCHITECTURES arm64)
 	set(CMAKE_OSX_SYSROOT ${GEODE_IOS_SDK})
@@ -27,7 +20,6 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 	# this fails on ios builds
 	set(BUILD_MD2HTML_EXECUTABLE "OFF")
 
-	# camila, why did you not set GEODE_IOS_SDK anywhere
 	set_target_properties(${PROJECT_NAME} PROPERTIES
 		SYSTEM_NAME iOS
 		OSX_SYSROOT ${GEODE_IOS_SDK}
@@ -58,7 +50,7 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 		set(GEODE_TARGET_PLATFORM_SHORT "ios")
 	endif()
 elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
-	set_target_properties(${PROJECT_NAME} PROPERTIES
+	set_target_properties(${PROJECT_NAME} PROPERTIES 
 		SYSTEM_NAME MacOS
 	)
 
