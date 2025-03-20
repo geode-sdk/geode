@@ -1,11 +1,11 @@
 #include <Geode/platform/cplatform.h>
 
 #ifdef GEODE_IS_ANDROID
-#include <loader/LoaderImpl.hpp>
+#include <Geode/loader/Mod.hpp>
 
 using namespace geode::prelude;
 
-uintptr_t g_decodeAddress = 0;
+void* g_decodeAddress = nullptr;
 
 int base64DecodeHook(uint8_t* input, uint32_t length, uint8_t** output, bool urlSafe) {
     *output = new uint8_t[(size_t)(length * 3) / 4 + 4];
@@ -22,19 +22,14 @@ int base64DecodeHook(uint8_t* input, uint32_t length, uint8_t** output, bool url
 }
 
 $execute {
-    if (LoaderImpl::get()->isForwardCompatMode()) return;
-
     // This fixes a crash when using the base64Decode function in cocos2d-x, due to
     // floating-point precision errors causing the output buffer to be too small.
     // This issue can cause large save files to crash the game.
 
     auto handle = dlopen("libcocos2dcpp.so", RTLD_LAZY | RTLD_NOLOAD);
-    g_decodeAddress = reinterpret_cast<uintptr_t>(dlsym(handle, "_ZN7cocos2d13_base64DecodeEPKhjPhPjb"));
+    g_decodeAddress = dlsym(handle, "_ZN7cocos2d13_base64DecodeEPKhjPhPjb");
+    auto decodeAddress = dlsym(handle, "base64Decode");
 
-    (void) Mod::get()->hook(
-        reinterpret_cast<void*>(dlsym(handle, "base64Decode")),
-        &base64DecodeHook,
-        "base64Decode"
-    );
+    if (g_decodeAddress && decodeAddress) (void)Mod::get()->hook(decodeAddress, &base64DecodeHook, "base64Decode");
 }
 #endif
