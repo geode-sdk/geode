@@ -30,10 +30,9 @@ $execute {
 
     auto handle = dlopen("libcocos2dcpp.so", RTLD_LAZY | RTLD_NOLOAD);
     g_decodeAddress = reinterpret_cast<uintptr_t>(dlsym(handle, "_ZN7cocos2d13_base64DecodeEPKhjPhPjb"));
-    auto decodeAddress = dlsym(handle, "base64Decode");
 
     (void) Mod::get()->hook(
-        reinterpret_cast<void*>(decodeAddress),
+        reinterpret_cast<void*>(dlsym(handle, "base64Decode")),
         &base64DecodeHook,
         "base64Decode"
     );
