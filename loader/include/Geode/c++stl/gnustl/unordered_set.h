@@ -41,7 +41,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
   template<typename _Value,
 	   typename _Hash = hash<_Value>,
 	   typename _Pred = std::equal_to<_Value>,
-  	   typename _Alloc = std::allocator<_Value>,
+  	   typename _Alloc = allocator<_Value>,
 	   typename _Tr = __uset_traits<__cache_default<_Value, _Hash>::value>>
     using __uset_hashtable = _Hashtable<_Value, _Value, _Alloc,
 					__detail::_Identity, _Pred, _Hash,
@@ -56,7 +56,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
   template<typename _Value,
 	   typename _Hash = hash<_Value>,
 	   typename _Pred = std::equal_to<_Value>,
-	   typename _Alloc = std::allocator<_Value>,
+	   typename _Alloc = allocator<_Value>,
 	   typename _Tr = __umset_traits<__cache_default<_Value, _Hash>::value>>
     using __umset_hashtable = _Hashtable<_Value, _Value, _Alloc,
 					 __detail::_Identity,
@@ -89,7 +89,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
   template<class _Value,
 	   class _Hash = hash<_Value>,
 	   class _Pred = std::equal_to<_Value>,
-	   class _Alloc = std::allocator<_Value> >
+	   class _Alloc = allocator<_Value> >
     class unordered_set
     {
       typedef __uset_hashtable<_Value, _Hash, _Pred, _Alloc>  _Hashtable;
@@ -204,7 +204,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  Create an %unordered_set consisting of copies of the elements in the
        *  list. This is linear in N (where N is @a __l.size()).
        */
-      unordered_set(std::initializer_list<value_type> __l,
+      unordered_set(initializer_list<value_type> __l,
 		    size_type __n = 0,
 		    const hasher& __hf = hasher(),
 		    const key_equal& __eql = key_equal(),
@@ -232,7 +232,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  of elements assigned.  Old data may be lost.
        */
       unordered_set&
-      operator=(std::initializer_list<value_type> __l)
+      operator=(initializer_list<value_type> __l)
       {
 	_M_h = __l;
 	return *this;
@@ -423,13 +423,13 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 
       /**
        *  @brief Attempts to insert a list of elements into the %unordered_set.
-       *  @param  __l  A std::initializer_list<value_type> of elements
+       *  @param  __l  A initializer_list<value_type> of elements
        *               to be inserted.
        *
        *  Complexity similar to that of the range constructor.
        */
       void
-      insert(std::initializer_list<value_type> __l)
+      insert(initializer_list<value_type> __l)
       { _M_h.insert(__l); }
 
       //@{
@@ -506,8 +506,8 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  types.
        *
        *  This exchanges the elements between two sets in constant time.
-       *  Note that the global std::swap() function is specialized such that
-       *  std::swap(s1,s2) will feed to this function.
+       *  Note that the global swap() function is specialized such that
+       *  swap(s1,s2) will feed to this function.
        */
       void
       swap(unordered_set& __x)
@@ -724,7 +724,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
   template<class _Value,
 	   class _Hash = hash<_Value>,
 	   class _Pred = std::equal_to<_Value>,
-	   class _Alloc = std::allocator<_Value> >
+	   class _Alloc = allocator<_Value> >
     class unordered_multiset
     {
       typedef __umset_hashtable<_Value, _Hash, _Pred, _Alloc>  _Hashtable;
@@ -810,7 +810,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  Create an %unordered_multiset consisting of copies of the elements in
        *  the list. This is linear in N (where N is @a __l.size()).
        */
-      unordered_multiset(std::initializer_list<value_type> __l,
+      unordered_multiset(initializer_list<value_type> __l,
 			 size_type __n = 0,
 			 const hasher& __hf = hasher(),
 			 const key_equal& __eql = key_equal(),
@@ -867,7 +867,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  of elements assigned.  Old data may be lost.
        */
       unordered_multiset&
-      operator=(std::initializer_list<value_type> __l)
+      operator=(initializer_list<value_type> __l)
       {
 	_M_h = __l;
 	return *this;
@@ -1036,13 +1036,13 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 
       /**
        *  @brief Inserts a list of elements into the %unordered_multiset.
-       *  @param  __l  A std::initializer_list<value_type> of elements to be
+       *  @param  __l  A initializer_list<value_type> of elements to be
        *              inserted.
        *
        *  Complexity similar to that of the range constructor.
        */
       void
-      insert(std::initializer_list<value_type> __l)
+      insert(initializer_list<value_type> __l)
       { _M_h.insert(__l); }
 
       //@{
@@ -1124,8 +1124,8 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  types.
        *
        *  This exchanges the elements between two sets in constant time.
-       *  Note that the global std::swap() function is specialized such that
-       *  std::swap(s1,s2) will feed to this function.
+       *  Note that the global swap() function is specialized such that
+       *  swap(s1,s2) will feed to this function.
        */
       void
       swap(unordered_multiset& __x)
