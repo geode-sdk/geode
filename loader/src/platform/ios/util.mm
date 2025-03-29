@@ -105,10 +105,14 @@ GEODE_DLL Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, fi
         }
 
         NSURL *FileURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:@"temp.file"]];
-        if (options.defaultPath) {
+        if (options.defaultPath && !options.defaultPath->parent_path().empty()) {
+            FileURL = [NSURL fileURLWithPath:[NSString stringWithUTF8String:options.defaultPath->c_str()]];
+        }
+        else if (options.defaultPath) {
             auto FileExtension = [NSString stringWithUTF8String:options.defaultPath->c_str()];
             FileURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:FileExtension]];
         }
+        
         // just for the picker not to crash, it gotta have a file to "save" then the writing is handled in the mod once we save the file somewhere
         [@"" writeToURL:FileURL atomically:NO encoding:NSUTF8StringEncoding error:nil];
 
