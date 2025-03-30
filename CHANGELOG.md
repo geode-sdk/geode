@@ -1,21 +1,33 @@
 # Geode Changelog
 
+## v4.3.1
+ * Fix `SimpleAxisLayout` not respecting `Layout::ignoreInvisibleChildren` (a16d230)
+ * Fix MacOS arrow keys (#1267)
+ * Fix ScrollLayer culling with scaled children (f03cee8)
+
 ## v4.3.0
  * Event export macro (#1243)
    * See [the docs](https://docs.geode-sdk.org/mods/dependencies#event-macro) for more info
  * Fix settings `enable-if` parsing (315bf46, 1542e29)
+ * Add `SimpleAxisLayout` (#1223)
+   * A simpler and faster alternative to `AxisLayout`. Some features may be missing
  * Add environment variable for forcing terminal colors (39b1bef)
  * Fix crashlog PDB search paths (#1222)
+ * Add support for missing keys and mouse buttons (#1258)
  * Add utils::string::trim* overloads for specific charset (0d4dcb3, 17faf36)
  * Round number settings to 5 decimal places (c9dbc4b)
  * Allow number inputs to be invalid while typing and active (6c6215b)
+ * Optimize m_fields access to perform no allocations (7548421)
  * Allow `Task<void>`, useful for coroutines (2bfff1a, 463ea22)
  * Add some coroutine utils (99cefab)
+ * Fix culling on ScrollLayer (b136e3b, b733c36)
+ * Fix `WeakRef` behavior with nullptr (9a8939f)
  * Remove handler from function if no hooks are active (dc14d4c)
  * Fix some bugs in `geode::utils::ranges` methods (#1236, #1239)
  * Add patch for `CCGLProgram::compileShader` on remaining platforms (#1241)
  * Update the pugixml headers to be v1.15 compatible (#1247)
  * Allow auto update across major versions if running in forward compat mode (4bb17a9)
+ * Re-add console log level to android (b1dc29a)
 
 ## v4.2.0
  * Implement gd::set for android (#1197, #1207)

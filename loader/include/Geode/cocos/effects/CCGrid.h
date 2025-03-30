@@ -53,6 +53,8 @@ class CC_DLL CCGridBase : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCGridBase, CCObject)
+    CCGridBase() {}
     /**
      *  @js NA
      *  @lua NA
@@ -170,6 +172,7 @@ class CC_DLL CCGrid3D : public CCGridBase
 #endif // EMSCRIPTEN
 {
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCGrid3D, CCGridBase)
     CCGrid3D();
     ~CCGrid3D(void);
 
@@ -209,6 +212,7 @@ class CC_DLL CCTiledGrid3D : public CCGridBase
 #endif // EMSCRIPTEN
 {
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTiledGrid3D, CCGridBase)
     CCTiledGrid3D();
     ~CCTiledGrid3D(void);
 

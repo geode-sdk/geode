@@ -42,6 +42,9 @@ class CC_DLL CCGridAction : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCGridAction, CCActionInterval)
+    CCGridAction() {}
+
     /**
      *  @js NA
      *  @lua NA
@@ -98,6 +101,9 @@ class CC_DLL CCTiledGrid3DAction : public CCGridAction
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTiledGrid3DAction, CCGridAction)
+    CCTiledGrid3DAction() {}
+
     /** returns the tile that belongs to a certain position of the grid */
     ccQuad3 tile(const CCPoint& position);
     /** returns the non-transformed tile that belongs to a certain position of the grid */

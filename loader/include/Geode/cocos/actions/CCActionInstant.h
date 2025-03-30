@@ -301,6 +301,7 @@ class CC_DLL CCCallFunc : public CCActionInstant //<NSCopying>
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCCallFunc, CCActionInstant)
     /**
      *  @js ctor
      */
@@ -485,6 +486,8 @@ class CC_DLL CCCallFuncO : public CCCallFunc, public TypeInfo
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCCallFuncO, CCCallFunc)
+
     CCCallFuncO();
     virtual ~CCCallFuncO();
 

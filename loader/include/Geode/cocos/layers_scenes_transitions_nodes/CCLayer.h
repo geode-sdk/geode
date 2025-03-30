@@ -430,6 +430,7 @@ protected:
     unsigned int m_nEnabledLayer;
     CCArray*     m_pLayers;
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCLayerMultiplex, CCLayer)
     /**
      * @js ctor
      * @lua NA

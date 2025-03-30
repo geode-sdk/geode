@@ -88,10 +88,19 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 )
 
 # Obj-c sources
-file(GLOB OBJC_SOURCES
-	src/platform/Objcpp.mm
-	src/load.mm
-)
+if (IOS)
+	file(GLOB OBJC_SOURCES CONFIGURE_DEPENDS
+		src/platform/ios/*.mm
+		src/load.mm
+		src/hooks/AddExtraKeys.mm
+	)
+else()
+	file(GLOB OBJC_SOURCES CONFIGURE_DEPENDS
+		src/platform/mac/*.mm
+		src/load.mm
+		src/hooks/AddExtraKeys.mm
+	)
+endif()
 set_source_files_properties(${OBJC_SOURCES} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 
 if (WIN32)
@@ -142,7 +151,7 @@ endif()
 
 
 if (ANDROID AND GEODE_USE_BREAKPAD)
-	CPMAddPackage("gh:qimiko/breakpad#161e908")
+	CPMAddPackage("gh:qimiko/breakpad#169df6a")
 endif()
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})

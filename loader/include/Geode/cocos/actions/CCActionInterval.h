@@ -107,6 +107,9 @@ class CC_DLL CCSequence : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCSequence, CCActionInterval)
+    CCSequence() {}
+
     /**
      * @js NA
      * @lua NA
@@ -178,6 +181,9 @@ class CC_DLL CCRepeat : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCRepeat, CCActionInterval)
+    CCRepeat() {}
+
     /**
      *  @js NA
      *  @lua NA
@@ -288,6 +294,9 @@ class CC_DLL CCSpawn : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCSpawn, CCActionInterval)
+    CCSpawn() {}
+
     /**
      * @js NA
      * @lua NA
@@ -470,6 +479,7 @@ class CC_DLL CCSkewTo : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCSkewTo, CCActionInterval)
     /**
      *  @js ctor
      */
@@ -890,6 +900,7 @@ class CC_DLL CCReverseTime : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCReverseTime, CCActionInterval)
     /**
      *  @js ctor
      */
@@ -925,6 +936,7 @@ class CC_DLL CCAnimate : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCAnimate, CCActionInterval)
     /**
      *  @js ctor
      */
@@ -972,6 +984,7 @@ class CC_DLL CCTargetedAction : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTargetedAction, CCActionInterval)
     /**
      *  @js ctor
      */
