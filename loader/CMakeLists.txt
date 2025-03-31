@@ -88,7 +88,7 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 )
 
 # Obj-c sources
-if (${CMAKE_SYSTEM_NAME} STREQUAL "iOS")
+if ("${CMAKE_SYSTEM_NAME}" STREQUAL "iOS" OR IOS)
 	file(GLOB OBJC_SOURCES CONFIGURE_DEPENDS
 		src/platform/ios/*.mm
 		src/load.mm
@@ -118,7 +118,7 @@ if (WIN32)
 	)
 	list(APPEND SOURCES ${WIN_SOURCES})
 
-elseif(${CMAKE_SYSTEM_NAME} STREQUAL "iOS")
+elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "iOS" OR IOS)
 	file(GLOB IOS_SOURCES CONFIGURE_DEPENDS
 		src/platform/ios/*.cpp
 		src/platform/mac/Cocos2d.cpp # identical on ios, so we just use the mac one
@@ -326,7 +326,7 @@ endif()
 # Create launcher
 if (APPLE)
 
-	if(GEODE_TARGET_PLATFORM STREQUAL "iOS")
+	if("${CMAKE_SYSTEM_NAME}" STREQUAL "iOS" OR IOS)
 		# Used for File Picker API
 		find_library(UNIFORM_TYPE_IDENTIFIERS_FRAMEWORK UniformTypeIdentifiers)
 		target_link_libraries(${PROJECT_NAME} ${UNIFORM_TYPE_IDENTIFIERS_FRAMEWORK})
