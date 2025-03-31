@@ -50,6 +50,12 @@ $execute {
     (void) Mod::get()->patch(reinterpret_cast<void*>(addr), {
         0x48, 0x90, // nop (skip if statement)
     });
+#elif defined(GEODE_IS_IOS)
+    auto addr = base::get() + 0x138390;
+
+    (void) Mod::get()->patch(reinterpret_cast<void*>(addr), {
+        0x1f, 0x20, 0x03, 0xd5 // nop (skip if statement)
+    });
 #endif
 #else
     #pragma message("Unsupported GD version!")

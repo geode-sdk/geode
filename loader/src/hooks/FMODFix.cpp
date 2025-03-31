@@ -1,5 +1,8 @@
 #include <Geode/Geode.hpp>
 
+// ios does not link to fmod.
+#ifndef GEODE_IS_IOS
+
 using namespace geode::prelude;
 
 auto g_systemInitialized = false;
@@ -63,3 +66,5 @@ struct AndroidFMODFix : Modify<AndroidFMODFix, FMODAudioEngine> {
     }
 };
 */
+
+#endif

@@ -319,6 +319,22 @@ Result<void*> geode::hook::getObjcMethodImp(std::string const& className, std::s
     return Ok((void*)method_getImplementation(method));
 }
 
+Result<void*> geode::hook::replaceObjcMethod(std::string const& className, std::string const& selectorName, void* imp) {
+    auto cls = objc_getClass(className.c_str());
+    if (!cls)
+        return Err("Class not found");
+
+    auto sel = sel_registerName(selectorName.c_str());
+
+    auto method = class_getInstanceMethod(cls, sel);
+    if (!method)
+        return Err("Method not found");
+
+    auto oldImp = method_setImplementation(method, (IMP)imp);
+
+    return Ok((void*)oldImp);
+}
+
 bool geode::utils::permission::getPermissionStatus(Permission permission) {
     return true; // unimplemented
 }

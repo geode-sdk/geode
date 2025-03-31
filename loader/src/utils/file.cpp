@@ -18,7 +18,7 @@
 #include <filesystem>
 #endif
 
-#if defined(GEODE_IS_ANDROID) || defined(GEODE_IS_MACOS)
+#if defined(GEODE_IS_ANDROID) || defined(GEODE_IS_MACOS) || defined(GEODE_IS_IOS)
 struct path_hash_t {
     std::size_t operator()(std::filesystem::path const& path) const noexcept {
         return std::filesystem::hash_value(path);
