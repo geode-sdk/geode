@@ -11,6 +11,9 @@ $execute {
     #if defined(GEODE_IS_MACOS) && GEODE_COMP_GD_VERSION != 22074
         #error "Unsupported version for macOS dynamic cast fix, please update the addresses"
     #endif
+    #if defined(GEODE_IS_IOS) && GEODE_COMP_GD_VERSION != 22074
+        #error "Unsupported version for iOS dynamic cast fix, please update the addresses"
+    #endif
 
     #if defined(GEODE_IS_INTEL_MAC)
         void* dynamicCastAddr = reinterpret_cast<void*>(base::get() + 0x7ba1d8);
