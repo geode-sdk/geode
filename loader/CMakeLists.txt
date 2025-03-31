@@ -121,6 +121,7 @@ if (WIN32)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "iOS")
 	file(GLOB IOS_SOURCES CONFIGURE_DEPENDS
 		src/platform/ios/*.cpp
+		src/platform/mac/Cocos2d.cpp # identical on ios, so we just use the mac one
 	)
 	list(APPEND SOURCES ${IOS_SOURCES})
 	list(APPEND SOURCES ${OBJC_SOURCES})
