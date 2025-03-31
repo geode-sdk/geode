@@ -20,10 +20,8 @@
 // see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
 // <http://www.gnu.org/licenses/>.
 
-#pragma once
-
-#include <Geode/c++stl/gnustl/functexcept.h>
-#include <Geode/c++stl/gnustl/regex_error.h>
+#include "../../include/Geode/c++stl/gnustl/functexcept.h"
+#include "../../include/Geode/c++stl/gnustl/regex_error.h"
 #include <ios>
 #include <system_error>
 #include <future>

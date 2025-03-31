@@ -1269,7 +1269,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
   template<typename _Tp>
     struct is_trivially_destructible
     : public __and_<is_destructible<_Tp>, integral_constant<bool,
-			      __has_trivial_destructor(_Tp)>>::type
+			      __is_trivially_destructible(_Tp)>>::type
     { };
 
   /// has_trivial_default_constructor (temporary legacy)

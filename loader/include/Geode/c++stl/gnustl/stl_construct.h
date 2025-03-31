@@ -123,7 +123,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     {
       typedef typename iterator_traits<_ForwardIterator>::value_type
                        _Value_type;
-      _Destroy_aux<__has_trivial_destructor(_Value_type)>::
+      _Destroy_aux<__is_trivially_destructible(_Value_type)>::
 	__destroy(__first, __last);
     }
 
