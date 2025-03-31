@@ -145,31 +145,6 @@ public:
                             };
                         }
                         else {
-                            #ifdef GEODE_IS_IOS
-                            // Unzipping because for JIT-Less, dylibs need to be signed, and we can't really sign them if they're archived...
-                            auto tempDir = dirs::getModRuntimeDir() / m_id;
-                            auto datePath = tempDir / "modified-at";
-                            auto modifiedDate = std::filesystem::last_write_time(dirs::getModsDir() / (m_id + ".geode"));
-                            auto modifiedCount = std::chrono::duration_cast<std::chrono::milliseconds>(modifiedDate.time_since_epoch());
-                            auto modifiedHash = std::to_string(modifiedCount.count());
-                            std::error_code ec;
-                            std::filesystem::remove_all(tempDir, ec);
-                            if (!ec) {
-                                (void)utils::file::createDirectoryAll(tempDir);
-                                auto res = file::writeString(datePath, modifiedHash);
-                                if (!res) {
-                                    log::warn("Failed to write modified date of geode zip: {}", res.unwrapErr());
-                                }
-                                auto unzip = file::Unzip::create(dirs::getModsDir() / (m_id + ".geode"));
-                                if (unzip.isOk()) {
-                                    if (!unzip.unwrap().hasEntry(m_id + GEODE_PLATFORM_EXTENSION)) {
-                                        log::error("Unable to find platform binary under the name \"{}\"", m_id + GEODE_PLATFORM_EXTENSION);
-                                    }
-                                    (void)unzip.unwrap().extractAllTo(tempDir);
-                                    log::debug("Extracted {}", m_id);
-                                }
-                            }
-                            #endif
                             m_status = DownloadStatusDone {
                                 .version = version
                             };
