@@ -295,10 +295,74 @@ jobs:
         target: ${{ matrix.config.id }}
       if: inputs.build-debug-info && (success() || failure())
 
+  build-ios:
+    name: Build iOS
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Prepare for Build Debug Info
+      id: build-debug-info
+      uses: ./.github/actions/build-debug-info
+      with:
+        has-sccache: ${{ inputs.use-ccache }}
+      if: inputs.build-debug-info
+
+    - name: Setup caches
+      uses: ./.github/actions/setup-cache
+      with:
+        host: mac
+        target: ios
+        use-ccache: ${{ github.event_name != 'workflow_dispatch' || inputs.use-ccache }}
+
+    - name: Setup Ninja
+      uses: ./.github/actions/setup-ninja
+      with:
+        host: mac
+
+    - name: Install LLVM
+      run: |
+        brew install llvm
+        echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
+
+    - name: Setup CLI
+      uses: geode-sdk/cli/.github/actions/setup@main
+
+    - name: Configure
+      run: >
+        ${{ env.base-configure-command }}
+        -DGEODE_TARGET_PLATFORM=iOS
+        -DCMAKE_SYSTEM_NAME=iOS
+        -DGEODE_DONT_BUILD_TEST_MODS=ON
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo
+        ${{ steps.build-debug-info.outputs.extra-configure }}
+
+    - name: Build
+      run: |
+        ${{ env.base-build-command }}
+        ${{ steps.build-debug-info.outputs.extra-build }}
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: geode-ios
+        path: ./bin/nightly
+
+    - name: Complete Build Debug Info
+      uses: ./.github/actions/build-debug-info-post
+      with:
+        target: mac
+      if: inputs.build-debug-info && (success() || failure())
+
+
   publish:
     name: Publish
     runs-on: ubuntu-latest
-    needs: [ build-windows, build-mac, build-android ]
+    needs: [ build-windows, build-mac, build-android, build-ios ]
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
@@ -342,6 +406,12 @@ jobs:
           files: geode-android64/Geode.android64.so geode-android64/Geode.android64.so.sym
           dest: geode-${{ steps.ref.outputs.hash }}-android64.zip
 
+      - name: Zip iOS Artifacts
+        uses: vimtor/action-zip@v1.2
+        with:
+          files: geode-ios/Geode.ios.dylib
+          dest: geode-${{ steps.ref.outputs.hash }}-ios.zip
+
       - name: Zip Resources
         uses: vimtor/action-zip@v1.2
         with:
@@ -364,4 +434,5 @@ jobs:
             ./geode-${{ steps.ref.outputs.hash }}-mac.zip
             ./geode-${{ steps.ref.outputs.hash }}-android32.zip
             ./geode-${{ steps.ref.outputs.hash }}-android64.zip
+            ./geode-${{ steps.ref.outputs.hash }}-ios.zip
             ./resources.zip
