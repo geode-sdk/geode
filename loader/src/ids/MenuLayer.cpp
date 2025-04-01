@@ -3,6 +3,7 @@
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/NodeIDs.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/binding/GameManager.hpp>
 #include <Geode/binding/PlatformToolbox.hpp>
 
@@ -63,8 +64,9 @@ $register_ids(MenuLayer) {
         if (auto pfp = setIDSafe(menu, 3, "profile-button")) {
             auto profileMenu = detachAndCreateMenu(
                 this, "profile-menu",
-                RowLayout::create()
-                    ->setAxisAlignment(AxisAlignment::Start),
+                SimpleRowLayout::create()
+                    ->setMainAxisAlignment(MainAxisAlignment::Start)
+                    ->setGap(5.f),
                 pfp
             );
             profileMenu->setContentSize({ 150.f, 50.f });
@@ -81,9 +83,9 @@ $register_ids(MenuLayer) {
 
         menu->setContentSize({ winSize.width - 140.f, 65.f });
         menu->setLayout(
-            RowLayout::create()
+            SimpleRowLayout::create()
                 ->setGap(18.f)
-                ->setCrossAxisOverflow(true)
+                ->setCrossAxisScaling(AxisScaling::Grow)
         );
     }
 
@@ -110,7 +112,8 @@ $register_ids(MenuLayer) {
 
         menu->setContentSize({ winSize.width - 220.f, 65.f });
         menu->setLayout(
-            RowLayout::create()
+            SimpleRowLayout::create()
+                ->setGap(5.f)
         );
     }
     
@@ -136,8 +139,9 @@ $register_ids(MenuLayer) {
             auto closeMenu = detachAndCreateMenu(
                 this,
                 "close-menu",
-                RowLayout::create()
-                    ->setAxisAlignment(AxisAlignment::Start),
+                SimpleRowLayout::create()
+                    ->setMainAxisAlignment(MainAxisAlignment::Start)
+                    ->setGap(5.f),
                 closeBtn
             );
             closeMenu->setContentSize({ 200.f, 50.f });
@@ -154,9 +158,10 @@ $register_ids(MenuLayer) {
                 getSizeSafe(moreGamesBtn).width / 2
         );
         menu->setLayout(
-            RowLayout::create()
-                ->setAxisAlignment(AxisAlignment::End)
-                ->setAxisReverse(true)
+            SimpleRowLayout::create()
+                ->setMainAxisAlignment(MainAxisAlignment::Start)
+                ->setMainAxisDirection(AxisDirection::RightToLeft)
+                ->setGap(5.f)
         );
     }
 
@@ -168,9 +173,10 @@ $register_ids(MenuLayer) {
     topRightMenu->setID("top-right-menu");
     topRightMenu->setContentSize({ 200.f, 50.f });
     topRightMenu->setLayout(
-        RowLayout::create()
-            ->setAxisReverse(true)
-            ->setAxisAlignment(AxisAlignment::End)
+        SimpleRowLayout::create()
+            ->setMainAxisDirection(AxisDirection::RightToLeft)
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
+            ->setGap(5.f)
     );
     this->addChild(topRightMenu);
 

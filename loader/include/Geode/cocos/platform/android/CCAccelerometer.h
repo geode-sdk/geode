@@ -34,6 +34,7 @@ class CC_DLL CCAccelerometer
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCAccelerometer)
     CCAccelerometer();
     ~CCAccelerometer();
 

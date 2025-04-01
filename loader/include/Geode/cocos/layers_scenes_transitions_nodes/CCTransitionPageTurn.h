@@ -55,6 +55,7 @@ public:
     bool    m_bBack;
     
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionPageTurn, CCTransitionScene)
     /**
      *  @js ctor
      */

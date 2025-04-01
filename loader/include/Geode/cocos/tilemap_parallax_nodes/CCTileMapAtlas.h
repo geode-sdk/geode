@@ -60,6 +60,7 @@ class CC_DLL CCTileMapAtlas : public CCAtlasNode
     /** TileMap info */
     CC_PROPERTY(struct sImageTGA*, m_pTGAInfo, TGAInfo);
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTileMapAtlas, CCAtlasNode)
     /**
      * @js ctor
      */

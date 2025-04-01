@@ -74,6 +74,9 @@ class CC_DLL CCEditBox;
 class CC_DLL CCEditBoxImplIOS : public CCEditBoxImpl
 {
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEditBoxImplIOS, CCEditBoxImpl)
+    CCEditBoxImplIOS() {}
+
     CCEditBoxImplIOS(CCEditBox* pEditText);
     virtual ~CCEditBoxImplIOS();
     

@@ -413,7 +413,7 @@ namespace geode {
          * to it is freed or locked
          * @param obj Object to construct the WeakRef from
          */
-        WeakRef(T* obj) : m_controller(WeakRefPool::get()->manage(obj)) {}
+        WeakRef(T* obj) : m_controller(obj ? WeakRefPool::get()->manage(obj) : nullptr) {}
 
         WeakRef(WeakRef<T> const& other) : WeakRef(other.m_controller) {}
 
@@ -437,7 +437,7 @@ namespace geode {
          * a null Ref if the object has been freed
          */
         Ref<T> lock() const {
-            if (m_controller->isManaged()) {
+            if (m_controller && m_controller->isManaged()) {
                 return Ref(static_cast<T*>(m_controller->get()));
             }
             return Ref<T>(nullptr);
@@ -447,7 +447,7 @@ namespace geode {
          * Check if the WeakRef points to a valid object
          */
         bool valid() const {
-            return m_controller->isManaged();
+            return m_controller && m_controller->isManaged();
         }
 
         /**
@@ -456,7 +456,13 @@ namespace geode {
          * @param other The new object to swap to
          */
         void swap(T* other) {
-            m_controller->swap(other);
+            if (m_controller) {
+                m_controller->swap(other);
+            } else if (other) {
+                m_controller = WeakRefPool::get()->manage(other);
+            } else {
+                m_controller = nullptr;
+            }
         }
 
         Ref<T> operator=(T* obj) {
@@ -465,7 +471,7 @@ namespace geode {
         }
 
         WeakRef<T>& operator=(WeakRef<T> const& other) {
-            this->swap(static_cast<T*>(other.m_controller->get()));
+            this->swap(static_cast<T*>(other.m_controller ? other.m_controller->get() : nullptr));
             return *this;
         }
 
@@ -479,33 +485,40 @@ namespace geode {
         }
 
         bool operator==(T* other) const {
-            return m_controller->get() == other;
+            return (m_controller && m_controller->get() == other) || (!m_controller && !other);
         }
 
         bool operator==(WeakRef<T> const& other) const {
+            if (!m_controller && !other.m_controller) return true;
+            if (!m_controller || !other.m_controller) return false;
+
             return m_controller->get() == other.m_controller->get();
         }
 
         bool operator!=(T* other) const {
-            return m_controller->get() != other;
+            return !(*this == other);
         }
 
         bool operator!=(WeakRef<T> const& other) const {
-            return m_controller->get() != other.m_controller->get();
+            return !(*this == other);
         }
 
         // for containers
         bool operator<(WeakRef<T> const& other) const {
+            if (!m_controller && !other.m_controller) return false;
+            if (!m_controller) return true;
+            if (!other.m_controller) return false;
+
             return m_controller->get() < other.m_controller->get();
         }
         bool operator<=(WeakRef<T> const& other) const {
-            return m_controller->get() <= other.m_controller->get();
+            return !(*this > other);
         }
         bool operator>(WeakRef<T> const& other) const {
-            return m_controller->get() > other.m_controller->get();
+            return other < *this;
         }
         bool operator>=(WeakRef<T> const& other) const {
-            return m_controller->get() >= other.m_controller->get();
+            return !(*this < other);
         }
     };
 

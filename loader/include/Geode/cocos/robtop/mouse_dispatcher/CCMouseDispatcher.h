@@ -11,6 +11,7 @@ class CC_DLL CCMouseDispatcher : public CCObject
 {
 	GEODE_FRIEND_MODIFY
 public:
+	GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCMouseDispatcher, CCObject)
 	CCMouseDispatcher();
 	virtual ~CCMouseDispatcher();
 

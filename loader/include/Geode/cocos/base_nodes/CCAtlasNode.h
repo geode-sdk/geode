@@ -80,6 +80,7 @@ public:
     bool m_bIgnoreContentScaleFactor;
     
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCAtlasNode, CCNodeRGBA)
     /**
      *  @js ctor
      */

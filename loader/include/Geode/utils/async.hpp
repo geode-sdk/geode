@@ -35,7 +35,7 @@ namespace geode {
         } invoke;
     };
 
-    namespace internal {
+    namespace geode_internal {
         template <typename T, typename E>
         struct promise_type {
             using Inner = std::optional<Result<T, E>>;
@@ -91,10 +91,10 @@ namespace geode {
 
 template <typename T = void, typename E = std::string>
 auto operator co_await(geode::Result<T, E>&& res) {
-    return geode::internal::Awaiter { std::move(res) };
+    return geode::geode_internal::Awaiter { std::move(res) };
 }
 
 template <typename T, typename E, typename ...Args>
 struct std::coroutine_traits<geode::Result<T, E>, Args...> {
-    using promise_type = geode::internal::promise_type<T, E>;
+    using promise_type = geode::geode_internal::promise_type<T, E>;
 };

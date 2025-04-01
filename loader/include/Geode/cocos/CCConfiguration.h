@@ -63,6 +63,7 @@ public:
     static void purgeConfiguration(void);
 
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCConfiguration, CCObject)
     /**
      *  @js NA
      *  @lua NA

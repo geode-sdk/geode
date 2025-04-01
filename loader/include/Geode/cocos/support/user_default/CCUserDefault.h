@@ -46,6 +46,7 @@ class CC_DLL CCUserDefault
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCUserDefault)
     ~CCUserDefault();
 
     // get value methods
