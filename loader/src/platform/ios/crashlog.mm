@@ -164,9 +164,15 @@ static Mod* modFromAddress(void const* addr) {
 
 static std::string getInfo(void* address, Mod* faultyMod) {
     std::stringstream stream;
-    stream << "Faulty Lib: " << getImageName(imageFromAddress(address)) << "\n";
+    auto image = imageFromAddress(address);
+    auto imageName = getImageName(image);
+    stream << "Faulty Lib: " << imageName << "\n";
     stream << "Faulty Mod: " << (faultyMod ? faultyMod->getID() : "<Unknown>") << "\n";
-    stream << "Instruction Address: " << address << "\n";
+    stream << "Instruction Address: " << address;
+    if (image) {
+        stream << " (" << imageName << " + " << std::showbase << std::hex << ((uintptr_t)address - (uintptr_t)image->imageLoadAddress) << std::dec << ")";
+    }
+    stream << "\n";
     stream << "Signal Code: " << std::hex << s_signal << " (" << getSignalCodeString() << ")" << std::dec << "\n";
     return stream.str();
 }
@@ -279,8 +285,12 @@ static std::string getStacktrace() {
                 free(demangle);
             }
 
-            stacktrace << "- " << binary;
-            stacktrace << " @ " << std::showbase << std::hex << address << std::dec;
+            if (auto image = imageFromAddress(reinterpret_cast<void*>(address))) {
+                stacktrace << "- " << getImageName(image) << " + " << std::showbase << std::hex << (address - (uintptr_t)image->imageLoadAddress) << std::dec;
+            }
+            else {
+                stacktrace << "- " << binary << " @ " << std::showbase << std::hex << address << std::dec;
+            }
             stacktrace << " (" << function << " + " << offset << ")\n";
             stacktrace << "- " << function << "\n";
         }
