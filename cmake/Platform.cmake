@@ -32,6 +32,9 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 		"-framework Foundation"   # needed for many things
 		"-framework AVFoundation" # needed for fmod
 		"-framework AudioToolbox" # needed for fmod
+                ${GEODE_LOADER_PATH}/include/link/ios/libssl.a
+                ${GEODE_LOADER_PATH}/include/link/ios/libcrypto.a
+                ${GEODE_LOADER_PATH}/include/link/ios/libnghttp2.a
 		${GEODE_LOADER_PATH}/include/link/ios/libcurl.a
 		${GEODE_LOADER_PATH}/include/link/ios/libfmod_iphoneos.a
 	)
