@@ -43,6 +43,7 @@ namespace geode {
         CCTextInputNode* m_input;
         std::function<void(std::string const&)> m_onInput = nullptr;
         cocos2d::CCLabelBMFont* m_label = nullptr;
+        bool m_callbackEnabled = true;
 
         bool init(float width, std::string const& placeholder, std::string const& font);
 
@@ -112,6 +113,10 @@ namespace geode {
          */
         void setCallback(std::function<void(std::string const&)> onInput);
         /**
+         * Enables/disables the callback.
+         */
+        void setCallbackEnabled(bool enabled);
+        /**
          * Enable/disable the input
          */
         void setEnabled(bool enabled);
@@ -137,6 +142,10 @@ namespace geode {
          * Get the current value of the input
          */
         std::string getString() const;
+        /**
+         * Gets if the callback is enabled or not.
+         */
+        bool isCallbackEnabled() const;
 
         /**
          * Focus this input (activate the cursor)

@@ -91,7 +91,7 @@ TextInput* TextInput::create(float width, std::string const& placeholder, std::s
 }
 
 void TextInput::textChanged(CCTextInputNode* input) {
-    if (m_onInput) {
+    if (m_onInput && m_callbackEnabled) {
         m_onInput(input->getString());
     }
 }
@@ -150,6 +150,9 @@ void TextInput::setCallback(std::function<void(std::string const&)> onInput) {
     this->setDelegate(this);
     m_onInput = onInput;
 }
+void TextInput::setCallbackEnabled(bool enabled) {
+    m_callbackEnabled = enabled;
+}
 void TextInput::setEnabled(bool enabled) {
     m_input->setTouchEnabled(enabled);
     m_input->m_placeholderLabel->setOpacity(enabled ? 255 : 150);
@@ -188,6 +191,9 @@ void TextInput::setString(std::string const& str, bool triggerCallback) {
 
 std::string TextInput::getString() const {
     return m_input->getString();
+}
+bool TextInput::isCallbackEnabled() const {
+    return m_callbackEnabled;
 }
 
 void TextInput::focus() {
