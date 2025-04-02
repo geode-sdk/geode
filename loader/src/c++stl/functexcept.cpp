@@ -20,6 +20,8 @@
 // see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
 // <http://www.gnu.org/licenses/>.
 
+#if defined(GEODE_IS_ANDROID)
+
 #include "../../include/Geode/c++stl/gnustl/functexcept.h"
 #include "../../include/Geode/c++stl/gnustl/regex_error.h"
 #include <ios>
@@ -130,3 +132,5 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 
 _GLIBCXX_END_NAMESPACE_VERSION
 } // namespace
+
+#endif
