@@ -23,4 +23,18 @@ bool safeModeCheck() {
     return false;
 }
 
+void checkPermissionPlist() {
+    std::thread([] {
+        // Load the plist and check for microphone key
+        std::string plistPath = (dirs::getGameDir() / "Info.plist").string();
+        NSString* nsPlistPath = [NSString stringWithUTF8String:plistPath.c_str()];
+
+        NSMutableDictionary* plist = [NSMutableDictionary dictionaryWithContentsOfFile:nsPlistPath];
+        if (![plist objectForKey:@"NSMicrophoneUsageDescription"]) {
+            // If the microphone key doesn't exist, create it
+            [plist setObject:@"A mod you installed is requesting microphone access" forKey:@"NSMicrophoneUsageDescription"];
+            [plist writeToFile:nsPlistPath atomically:YES];
+        }
+    }).detach(); 
+}
 #endif
