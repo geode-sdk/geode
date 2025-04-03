@@ -291,7 +291,7 @@ static std::string getStacktrace() {
             else {
                 stacktrace << "- " << binary << " @ " << std::showbase << std::hex << address << std::dec;
             }
-            stacktrace << " (" << function << " + " << offset << ") @ " << std::showbase << std::hex << address << std::dec;
+            stacktrace << " (" << function << " + " << offset << ") @ " << std::showbase << std::hex << address << std::dec << "\n";
         }
     }
 
