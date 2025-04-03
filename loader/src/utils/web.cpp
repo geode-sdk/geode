@@ -96,6 +96,7 @@ class WebResponse::Impl {
 public:
     int m_code;
     ByteVector m_data;
+    std::string m_errMessage;
     std::unordered_map<std::string, std::vector<std::string>> m_headers;
 
     Result<> into(std::filesystem::path const& path) const;
@@ -157,6 +158,10 @@ std::optional<std::vector<std::string>> WebResponse::getAllHeadersNamed(std::str
         return m_impl->m_headers.at(str);
     }
     return std::nullopt;
+}
+
+std::string const& WebResponse::errorMessage() const {
+    return m_impl->m_errMessage;
 }
 
 class WebProgress::Impl {
@@ -400,6 +405,11 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         // Do not fail if response code is 4XX or 5XX
         curl_easy_setopt(curl, CURLOPT_FAILONERROR, 0L);
 
+        // If an error happens, we want to get a more specific description of the issue
+        char errorBuf[CURL_ERROR_SIZE];
+        errorBuf[0] = '\0';
+        curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorBuf);
+
         // Get headers from the response
         curl_easy_setopt(curl, CURLOPT_HEADERDATA, &responseData);
         curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, (+[](char* buffer, size_t size, size_t nitems, void* ptr) {
@@ -454,6 +464,8 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         long code = 0;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &code);
         responseData.response.m_impl->m_code = static_cast<int>(code);
+
+        responseData.response.m_impl->m_errMessage = std::string(errorBuf);
 
         // Free up curl memory
         curl_slist_free_all(headers);
