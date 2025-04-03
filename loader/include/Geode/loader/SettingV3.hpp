@@ -78,7 +78,7 @@ namespace geode {
         void parseEnableIf(JsonExpectedValue& json);
         /**
          * Parses the `"requires-restart"` key from the setting's definition in 
-         * `mod.json` (if they exist), so `requiresRestart` works.
+         * `mod.json` (if it exists), so `requiresRestart` works.
          * @param json The current JSON checking instance being used. This 
          * should be the JSON object that defines the setting
          * @warning In most cases, you should be using `parseBaseProperties` 
@@ -87,6 +87,17 @@ namespace geode {
          * `init` before calling these parsing functions!
          */
         void parseValueProperties(JsonExpectedValue& json);
+        /**
+         * Parses the `"scroll-desc"` key from the setting's definition in 
+         * `mod.json` (if it exists), so `scrollableDescription` works.
+         * @param json The current JSON checking instance being used. This 
+         * should be the JSON object that defines the setting
+         * @warning In most cases, you should be using `parseBaseProperties` 
+         * instead to do all of this in one go! 
+         * If you do need the fine-grained control however, make sure to call 
+         * `init` before calling these parsing functions!
+         */
+        void parseScrollableDescription(JsonExpectedValue& json);
 
         /**
          * Parse all of the base properties such as `"name"` and `"description"` 
@@ -163,6 +174,10 @@ namespace geode {
          * Whether this setting requires a restart on change
          */
         bool requiresRestart() const;
+        /**
+         * Whether this setting wants its description to be scrollable
+         */
+        bool getScrollableDescription() const;
         /**
          * Get the platforms this setting is available on
          */
