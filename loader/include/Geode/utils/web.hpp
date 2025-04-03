@@ -92,6 +92,13 @@ namespace geode::utils::web {
          * @return std::optional<std::vector<std::string>>
          */
         std::optional<std::vector<std::string>> getAllHeadersNamed(std::string_view name) const;
+
+        /**
+         * Returns additional error information, in case the request failed.
+         * In case the request did not fail, or no more information is available beyond what `string` returns,
+         * an empty string is returned.
+         */
+        std::string const& errorMessage() const;
     };
 
     class GEODE_DLL WebProgress final {
