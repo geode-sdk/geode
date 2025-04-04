@@ -7,6 +7,8 @@ on:
     types:
       - published
 
+  workflow_dispatch:
+
 jobs:
   publish:
     name: Upload release info
@@ -14,6 +16,26 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Fetch release info
+        uses: actions/github-script@v7
+        id: fetch-release
+        with:
+          result-encoding: string
+          script: |
+            const releases = await github.rest.repos.listReleases({
+              owner: "${{ github.repository_owner }}",
+              repo: "${{ github.event.repository.name }}",
+              per_page: 2
+            });
+
+            const release = releases.find((r) => r.tag != "nightly");
+            const release_data = {
+              prerelease: release.prerelease,
+              tag: release.tag,
+            };
+
+            return release_data;
 
       - name: Generate release data
         id: release-data
