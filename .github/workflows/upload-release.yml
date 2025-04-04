@@ -35,7 +35,7 @@ jobs:
             }
 
             core.setOutput("PRERELEASE", release.prerelease);
-            core.setOutput("TAG", release.tag);
+            core.setOutput("TAG", release.tag_name);
 
       - name: Generate release data
         id: release-data
