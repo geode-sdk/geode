@@ -1,5 +1,5 @@
 # Update the loader version on the Index
-name: Upload release info
+name: Upload Release Info
 
 on:
   # trigger when a new release is released
