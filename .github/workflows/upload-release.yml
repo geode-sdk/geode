@@ -11,7 +11,7 @@ on:
 
 jobs:
   publish:
-    name: Upload release info
+    name: Upload Release Info
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -28,6 +28,7 @@ jobs:
               repo: "${{ github.event.repository.name }}",
               per_page: 2
             });
+            console.log(releases);
 
             const release = releases.find((r) => r.tag != "nightly");
             const release_data = {
