@@ -29,7 +29,7 @@ jobs:
               per_page: 2
             });
 
-            const release = releases.data.find((r) => r.tag != "nightly");
+            const release = releases.data.find((r) => r.tag_name != "nightly");
             if (!release) {
               throw new Error("Could not identify a non nightly release");
             }
