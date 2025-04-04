@@ -1,0 +1,59 @@
+# Update the loader version on the Index
+name: Upload Release Info
+
+on:
+  # trigger when a new release is released
+  release:
+    types:
+      - published
+
+  workflow_dispatch:
+
+jobs:
+  publish:
+    name: Upload Release Info
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch release info
+        uses: actions/github-script@v7
+        id: fetch-release
+        with:
+          result-encoding: string
+          script: |
+            const releases = await github.rest.repos.listReleases({
+              owner: "${{ github.repository_owner }}",
+              repo: "${{ github.event.repository.name }}",
+              per_page: 2
+            });
+
+            const release = releases.data.find((r) => r.tag_name != "nightly");
+            if (!release) {
+              throw new Error("Could not identify a non nightly release");
+            }
+
+            core.setOutput("PRERELEASE", release.prerelease);
+            core.setOutput("TAG", release.tag_name);
+
+      - name: Generate release data
+        id: release-data
+        run: python ${{ github.workspace }}/.github/scripts/parse-release.py
+
+      - name: Create release
+        shell: bash
+        run: |
+          CODE=`curl -d '{"prerelease": ${{ steps.fetch-release.outputs.PRERELEASE }}, "commit_hash": "${{ github.sha }}", "tag": "${{ steps.fetch-release.outputs.TAG }}", "gd": ${{ steps.release-data.outputs.PLATFORM_INFO }}}' \
+            --write-out "%{http_code}" \
+            --silent \
+            --output /dev/null \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.GEODE_INDEX_TOKEN }}" \
+            "https://api.geode-sdk.org/v1/loader/versions"`
+
+          if [ $CODE != "204" ]
+          then
+            echo "Request failed with response $CODE"
+            exit 1
+          fi
