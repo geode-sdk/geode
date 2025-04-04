@@ -6,6 +6,7 @@ platform_info = {
 	"win": None,
 	"android": None,
 	"mac": None,
+	"ios": None,
 }
 
 in_parse_section = False

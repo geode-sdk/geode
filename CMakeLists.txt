@@ -194,6 +194,7 @@ include(cmake/GeodeFile.cmake)
 # begin GEODE_GD_VERSION
 # win:     2.2074
 # mac:     2.2074
+# ios:     2.2074
 # android: 2.2074
 # end GEODE_GD_VERSION
 
