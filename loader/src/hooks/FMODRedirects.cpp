@@ -1,6 +1,7 @@
 #include <Geode/platform/cplatform.h>
 
 #ifdef GEODE_IS_IOS
+#include <fmod.hpp>
 #include <Geode/loader/Mod.hpp>
 
 using namespace geode::prelude;
