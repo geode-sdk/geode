@@ -41,6 +41,7 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 
 	target_compile_definitions(${PROJECT_NAME} INTERFACE
 		-DCommentType=CommentTypeDummy
+		-DGLES_SILENCE_DEPRECATION
 	)
 
 	set(GEODE_OUTPUT_NAME "Geode.ios")
