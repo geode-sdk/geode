@@ -119,6 +119,10 @@ std::filesystem::path dirs::getModRuntimeDir() {
     return std::filesystem::path(cachedResult) / "geode" / "unzipped";
 }
 
+std::filesystem::path dirs::getResourcesDir() {
+    return "assets";
+}
+
 void utils::web::openLinkInBrowser(std::string const& url) {
     CCApplication::sharedApplication()->openURL(url.c_str());
 }

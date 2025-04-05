@@ -246,6 +246,10 @@ std::filesystem::path dirs::getModRuntimeDir() {
     return dirs::getGeodeDir() / "unzipped";
 }
 
+std::filesystem::path dirs::getResourcesDir() {
+    return dirs::getGameDir() / "Resources";
+}
+
 void geode::utils::game::exit() {
     if (CCApplication::sharedApplication() &&
         (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
