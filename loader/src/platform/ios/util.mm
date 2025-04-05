@@ -425,3 +425,8 @@ Result<void*> geode::hook::replaceObjcMethod(std::string const& className, std::
 
     return Ok((void*)oldImp);
 }
+
+cocos2d::CCRect geode::utils::getSafeAreaRect() {
+    auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
+    return cocos2d::CCRect(0.0f, 0.0f, winSize.width, winSize.height);
+}

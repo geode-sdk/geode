@@ -398,3 +398,53 @@ std::string geode::utils::getEnvironmentVariable(const char* name) {
     auto result = std::getenv(name);
     return result ? result : "";
 }
+
+namespace {
+    // in order of left, bottom, right, top
+    std::array<int, 4> getScreenInsetsJNI() {
+        std::array<int, 4> insets{};
+        JniMethodInfo info;
+
+        if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "getScreenInsets", "()[I")) {
+            auto arr = reinterpret_cast<jintArray>(info.env->CallStaticObjectMethod(info.classID, info.methodID));
+
+            if (arr) {
+                auto elems = info.env->GetIntArrayElements(arr, nullptr);
+                std::copy_n(elems, 4, insets.begin());
+
+                info.env->ReleaseIntArrayElements(arr, elems, 0);
+            }
+
+            info.env->DeleteLocalRef(info.classID);
+        } else {
+            clearJNIException();
+        }
+
+        return insets;
+    }
+}
+
+cocos2d::CCRect geode::utils::getSafeAreaRect() {
+    static auto insets = [] {
+        return getScreenInsetsJNI();
+    }();
+    auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
+
+    auto scaleX = cocos2d::CCEGLView::sharedOpenGLView()->getScaleX();
+    auto scaleY = cocos2d::CCEGLView::sharedOpenGLView()->getScaleY();
+
+    auto insetLeft = insets[0] / scaleX;
+    auto insetBottom = insets[1] / scaleY;
+    auto insetRight = insets[2] / scaleX;
+    auto insetTop = insets[3] / scaleY;
+
+    auto insetX = std::max(insetLeft, insetRight);
+    auto insetY = std::max(insetTop, insetBottom);
+
+    return cocos2d::CCRect(
+        insetX,
+        insetY,
+        winSize.width - 2 * insetX,
+        winSize.height - 2 * insetY
+    );
+}

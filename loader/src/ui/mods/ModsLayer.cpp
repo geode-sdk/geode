@@ -339,6 +339,8 @@ bool ModsLayer::init() {
 
     this->setID("ModsLayer");
 
+    auto safeArea = geode::utils::getSafeAreaRect();
+
     auto winSize = CCDirector::get()->getWinSize();
     const bool isSafeMode = LoaderImpl::get()->isSafeMode();
     
@@ -371,7 +373,10 @@ bool ModsLayer::init() {
         RowLayout::create()
             ->setAxisAlignment(AxisAlignment::Start)
     );
-    this->addChildAtPosition(backMenu, Anchor::TopLeft, ccp(12, -25), false);
+
+    auto safeOffsetTop = winSize.height - (safeArea.size.height + safeArea.origin.y);
+
+    this->addChildAtPosition(backMenu, Anchor::TopLeft, ccp(safeArea.origin.x + 12, -25 - safeOffsetTop), false);
 
     auto actionsMenu = CCMenu::create();
     actionsMenu->setID("actions-menu");
@@ -447,12 +452,13 @@ bool ModsLayer::init() {
     // positioning based on size of mod list frame and maximum width of buttons
     // i would apologize
     auto actionsMenuX = std::min(35.0f, (winSize.width - 380.0f - 10.0f) / 4.0f);
+    auto safeOffsetRight = winSize.width - (safeArea.size.width + safeArea.origin.x);
 
     // center buttons when the actionsMenu is moved
-    auto actionsMenuY = std::min(actionsMenuX - 20.0f, 12.0f);
+    auto actionsMenuY = std::min(actionsMenuX - 20.0f, 12.0f) + safeArea.origin.y;
 
-    this->addChildAtPosition(actionsMenu, Anchor::BottomLeft, ccp(actionsMenuX, actionsMenuY), false);
-    this->addChildAtPosition(rightActionsMenu, Anchor::BottomRight, ccp(-actionsMenuX, actionsMenuY), false);
+    this->addChildAtPosition(actionsMenu, Anchor::BottomLeft, ccp(actionsMenuX + safeArea.origin.x, actionsMenuY), false);
+    this->addChildAtPosition(rightActionsMenu, Anchor::BottomRight, ccp(-actionsMenuX - safeOffsetRight, actionsMenuY), false);
 
     m_frame = CCNode::create();
     m_frame->setID("mod-list-frame");
@@ -590,7 +596,7 @@ bool ModsLayer::init() {
             ->setAxisReverse(true)
             ->setAxisAlignment(AxisAlignment::End)
     );
-    this->addChildAtPosition(m_pageMenu, Anchor::TopRight, ccp(-5, -5), false);
+    this->addChildAtPosition(m_pageMenu, Anchor::TopRight, ccp(-5 - safeOffsetRight, -5 - safeOffsetTop), false);
 
     // Go to installed mods list
     this->gotoTab(InstalledModListSource::get(InstalledModListType::All));
