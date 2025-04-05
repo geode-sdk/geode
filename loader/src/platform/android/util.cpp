@@ -434,10 +434,5 @@ cocos2d::CCRect geode::utils::getSafeAreaRect() {
     auto insetX = std::max(insetLeft, insetRight);
     auto insetY = std::max(insetTop, insetBottom);
 
-    return cocos2d::CCRect(
-        insetX,
-        insetY,
-        winSize.width - 2 * insetX,
-        winSize.height - 2 * insetY
-    );
+    return cocos2d::CCRect(insetX, insetY, winSize.width - 2 * insetX, winSize.height - 2 * insetY);
 }
