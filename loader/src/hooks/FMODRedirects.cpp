@@ -280,7 +280,7 @@ void doHook(uintptr_t address, T detour, std::string_view display) {
     }
 }
 
-$on_mod(Loaded) {
+$execute {
     static_assert(GEODE_COMP_GD_VERSION == 22074, "Incompatible GD version, please update the addresses.");
 
     doHook(0x44b138, &FMOD_Channel_GetDSPClock_hook, "FMOD_Channel_GetDSPClock");
