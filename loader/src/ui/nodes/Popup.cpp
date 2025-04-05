@@ -92,12 +92,12 @@ protected:
 public:
     static QuickPopup* create(
         char const* title, std::string const& content, char const* btn1, char const* btn2,
-        float width, std::function<void(FLAlertLayer*, bool)> selected, bool cancelledByEscape
+        float width, std::function<void(FLAlertLayer*, bool)> selected, bool cancelledByEscape, bool scroll
     ) {
         auto inst = new QuickPopup;
         inst->m_selected = selected;
         inst->m_cancelledByEscape = cancelledByEscape;
-        if (inst->init(inst, title, content, btn1, btn2, width, false, .0f, 1.0f)) {
+        if (inst->init(inst, title, content, btn1, btn2, width, scroll, 280.0f, 1.0f)) {
             inst->autorelease();
             return inst;
         }
@@ -105,7 +105,26 @@ public:
         delete inst;
         return nullptr;
     }
+
+    static QuickPopup* create(
+        char const* title, std::string const& content, char const* btn1, char const* btn2,
+        float width, std::function<void(FLAlertLayer*, bool)> selected, bool cancelledByEscape
+    ) {
+        return QuickPopup::create(title, content, btn1, btn2, width, selected, cancelledByEscape, false);
+    }
 };
+
+FLAlertLayer* geode::createQuickPopup(
+    char const* title, std::string const& content, char const* btn1, char const* btn2,
+    float width, std::function<void(FLAlertLayer*, bool)> selected, bool doShow,
+    bool cancelledByEscape, bool scroll
+) {
+    auto ret = QuickPopup::create(title, content, btn1, btn2, width, selected, cancelledByEscape, scroll);
+    if (doShow) {
+        ret->show();
+    }
+    return ret;
+}
 
 FLAlertLayer* geode::createQuickPopup(
     char const* title, std::string const& content, char const* btn1, char const* btn2, float width,

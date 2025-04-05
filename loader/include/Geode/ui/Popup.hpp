@@ -230,4 +230,9 @@ namespace geode {
         char const* title, std::string const& content, char const* btn1, char const* btn2,
         float width, std::function<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
     );
+
+    GEODE_DLL FLAlertLayer* createQuickPopup(
+        char const* title, std::string const& content, char const* btn1, char const* btn2,
+        float width, std::function<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape, bool scroll
+    );
 }

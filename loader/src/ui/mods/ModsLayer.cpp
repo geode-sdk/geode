@@ -253,14 +253,16 @@ void ModsStatusNode::onViewErrors(CCObject*) {
             errors.push_back(fmt::format("<cr>{}</c>: {}", download.getID(), error->details));
         }
     }
+    auto errorsLabel = ranges::join(errors, "\n");
     createQuickPopup(
-        "Download Errors", ranges::join(errors, "\n"),
-        "OK", "Dismiss", 
+        "Download Errors", errorsLabel,
+        "OK", "Dismiss", 350.0f,
         [](auto, bool btn2) {
             if (btn2) {
                 server::ModDownloadManager::get()->dismissAll();
             }
-        }
+        },
+        true, false, errorsLabel.size() > 250
     );
 }
 void ModsStatusNode::onConfirm(CCObject*) {
