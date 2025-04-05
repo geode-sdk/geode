@@ -399,9 +399,8 @@ std::string geode::utils::getEnvironmentVariable(const char* name) {
     return result ? result : "";
 }
 
-namespace {
-    // in order of left, bottom, right, top
-    std::array<int, 4> getScreenInsetsJNI() {
+cocos2d::CCRect geode::utils::getSafeAreaRect() {
+    static auto insets = []{
         std::array<int, 4> insets{};
         JniMethodInfo info;
 
@@ -421,12 +420,6 @@ namespace {
         }
 
         return insets;
-    }
-}
-
-cocos2d::CCRect geode::utils::getSafeAreaRect() {
-    static auto insets = [] {
-        return getScreenInsetsJNI();
     }();
     auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
 
