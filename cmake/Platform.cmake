@@ -30,6 +30,7 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 		"-framework OpenGLES"     # needed for CCClippingNode reimpl and ScrollLayer
 		"-framework UIKit"        # needed for file picking (UIApplication)
 		"-framework Foundation"   # needed for many things
+		"-framework AVFoundation" # needed for microphone access
 		${GEODE_LOADER_PATH}/include/link/ios/libssl.a
 		${GEODE_LOADER_PATH}/include/link/ios/libcrypto.a
 		${GEODE_LOADER_PATH}/include/link/ios/libnghttp2.a

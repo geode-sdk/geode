@@ -202,14 +202,7 @@ package_geode_resources_now(
 	${CMAKE_CURRENT_SOURCE_DIR}/src/internal/resources.hpp
 )
 
-if ("${CMAKE_SYSTEM_NAME}" STREQUAL "iOS" OR IOS)
-	# Static link to libfmod_iphoneos.a
-	target_link_libraries(${PROJECT_NAME}
-		"-framework AVFoundation"
-		"-framework AudioToolbox"
-		${GEODE_LOADER_PATH}/include/link/ios/libfmod_iphoneos.a
-	)
-elseif(APPLE)
+if (NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "iOS" AND NOT IOS AND APPLE)
 	# I don't care a single bit where to put this
 	file(COPY ${GEODE_LOADER_PATH}/include/link/macos/libfmod.dylib DESTINATION ${GEODE_BIN_PATH}/nightly)
 endif()
