@@ -18,6 +18,7 @@
 #include "GeodeStyle.hpp"
 #include "ui/mods/sources/ModListSource.hpp"
 #include <loader/LoaderImpl.hpp>
+#include <Geode/ui/MDPopup.hpp>
 
 bool ModsStatusNode::init() {
     if (!CCNode::init())
@@ -253,15 +254,15 @@ void ModsStatusNode::onViewErrors(CCObject*) {
             errors.push_back(fmt::format("<cr>{}</c>: {}", download.getID(), error->details));
         }
     }
-    createQuickPopup(
-        "Download Errors", ranges::join(errors, "\n"),
-        "OK", "Dismiss", 
-        [](auto, bool btn2) {
+    MDPopup::create(
+        "Download Errors", ranges::join(errors, "\n\n"),
+        "OK", "Dismiss",
+        [](bool btn2) {
             if (btn2) {
                 server::ModDownloadManager::get()->dismissAll();
             }
         }
-    );
+    )->show();
 }
 void ModsStatusNode::onConfirm(CCObject*) {
     askConfirmModInstalls();
