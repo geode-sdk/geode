@@ -374,9 +374,7 @@ bool ModsLayer::init() {
             ->setAxisAlignment(AxisAlignment::Start)
     );
 
-    auto safeOffsetTop = winSize.height - (safeArea.size.height + safeArea.origin.y);
-
-    this->addChildAtPosition(backMenu, Anchor::TopLeft, ccp(safeArea.origin.x + 12, -25 - safeOffsetTop), false);
+    this->addChildAtPosition(backMenu, Anchor::TopLeft, ccp(12, -25), false);
 
     auto actionsMenu = CCMenu::create();
     actionsMenu->setID("actions-menu");
@@ -596,7 +594,7 @@ bool ModsLayer::init() {
             ->setAxisReverse(true)
             ->setAxisAlignment(AxisAlignment::End)
     );
-    this->addChildAtPosition(m_pageMenu, Anchor::TopRight, ccp(-5 - safeOffsetRight, -5 - safeOffsetTop), false);
+    this->addChildAtPosition(m_pageMenu, Anchor::TopRight, ccp(-5, -5), false);
 
     // Go to installed mods list
     this->gotoTab(InstalledModListSource::get(InstalledModListType::All));
