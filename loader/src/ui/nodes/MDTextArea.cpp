@@ -778,8 +778,7 @@ void MDTextArea::updateLabel() {
             textContent = MDTextArea::translateNewlines(m_text);
 
             // ery proofing...
-            std::regex colorRe("<c_>");
-            textContent = std::regex_replace(textContent, colorRe, "<c->");
+            textContent = utils::string::replace(textContent, "<c_>", "<c->");
         }
     }
 
