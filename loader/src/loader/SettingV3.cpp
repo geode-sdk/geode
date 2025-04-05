@@ -973,7 +973,8 @@ Result<std::shared_ptr<FileSettingV3>> FileSettingV3::parse(std::string const& k
             fmt::arg("gd_save_dir", dirs::getSaveDir()),
             fmt::arg("mod_config_dir", dirs::getModConfigDir() / modID),
             fmt::arg("mod_save_dir", dirs::getModsSaveDir() / modID),
-            fmt::arg("temp_dir", dirs::getTempDir())
+            fmt::arg("temp_dir", dirs::getTempDir()),
+            fmt::arg("gd_resources_dir", dirs::getResourcesDir())
         ));
     }
     catch(fmt::format_error const& e) {
