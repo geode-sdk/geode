@@ -13,6 +13,7 @@
 #include <clocale>
 #include <type_traits>
 #include <fmt/format.h>
+#include <cocos2d.h>
 
 namespace geode {
     using ByteVector = std::vector<uint8_t>;
@@ -159,6 +160,12 @@ namespace geode {
         GEODE_DLL float getDisplayFactor();
         
         GEODE_DLL std::string getEnvironmentVariable(const char* name);
+
+        /**
+         * Returns the safe area rectangle, or the area that is not covered by device elements (such as a display cutout or home bar)
+         * This is relative to the winSize.
+         */
+        GEODE_DLL cocos2d::CCRect getSafeAreaRect();
     }
 
     template <class... Args>
