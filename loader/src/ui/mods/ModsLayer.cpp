@@ -373,7 +373,6 @@ bool ModsLayer::init() {
         RowLayout::create()
             ->setAxisAlignment(AxisAlignment::Start)
     );
-
     this->addChildAtPosition(backMenu, Anchor::TopLeft, ccp(12, -25), false);
 
     auto actionsMenu = CCMenu::create();
