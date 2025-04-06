@@ -453,7 +453,7 @@ bool ModsLayer::init() {
     auto safeOffsetRight = winSize.width - (safeArea.size.width + safeArea.origin.x);
 
     // center buttons when the actionsMenu is moved
-    auto actionsMenuY = std::min(actionsMenuX - 20.0f, 12.0f) + safeArea.origin.y;
+    auto actionsMenuY = std::min(actionsMenuX - 20.0f, 12.0f);
 
     this->addChildAtPosition(actionsMenu, Anchor::BottomLeft, ccp(actionsMenuX + safeArea.origin.x, actionsMenuY), false);
     this->addChildAtPosition(rightActionsMenu, Anchor::BottomRight, ccp(-actionsMenuX - safeOffsetRight, actionsMenuY), false);
