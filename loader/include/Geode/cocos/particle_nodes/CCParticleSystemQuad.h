@@ -153,6 +153,15 @@ public:
 
     GLuint                m_pBuffersVBO[2]; //0: vertex  1: indices
 
+    // @note Robtop Addition
+    CCRect m_tTextureRect;
+    // @note Robtop Addition
+    ccColor4B m_tQuadColor;
+    // @note Robtop Addition
+    GLushort m_uParticleIdx;
+    // @note Robtop Addition
+    GLubyte m_uOpacity;
+
 public:
     /**
      * @js ctor
@@ -227,8 +236,8 @@ public:
     static CCParticleSystemQuad * create(const char*, bool);
     static CCParticleSystemQuad * createWithTotalParticles(unsigned int numberOfParticles, bool);
 
-	unsigned char getOpacity();
-	void setOpacity(unsigned char);
+	GLubyte getOpacity() { return m_uOpacity; }
+	void setOpacity(GLubyte opacity) { m_uOpacity = opacity; }
 
 	void updateTexCoords();
 

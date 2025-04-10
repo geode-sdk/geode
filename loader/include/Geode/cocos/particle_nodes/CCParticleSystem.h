@@ -487,6 +487,16 @@ public:
 protected:
     virtual void updateBlendFunc();
 public:
+    // @note RobTop Addition
+    bool m_bWorldPosUninitialized;
+    // @note RobTop Addition
+    CCPoint m_tWorldPos;
+    // @note RobTop Addition
+    ccColor4F m_tUniformColor;
+    // @note RobTop Addition
+    ccColor4F m_tUniformDeltaColor;
+    // @note RobTop Addition
+    bool m_bUseUniformColorMode;
         // saved/loaded in loadDefaults, loadScaledDefaults and saveDefaults
 
         // @note RobTop Addition
@@ -500,11 +510,15 @@ public:
         // @note RobTop Addition
         float m_fDefaultEndSize;
         // @note RobTop Addition
+        float m_fDefaultAngle;
+        // @note RobTop Addition
         float m_fDefaultModeASpeed;
         // @note RobTop Addition
         float m_fDefaultModeASpeedVar;
         // @note RobTop Addition
         CCPoint m_tDefaultPosVar;
+        // @note RobTop Addition
+        int m_nCustomParticleIndex;
 public:
     // @note RobTop Addition
     void saveDefaults(void);
