@@ -3,6 +3,7 @@
 #include <Geode/utils/ranges.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <ui/mods/GeodeStyle.hpp>
+#include <Geode/ui/MDPopup.hpp>
 
 class SettingNodeSizeChangeEventV3::Impl final {
 public:
@@ -142,12 +143,10 @@ void SettingNodeV3::updateState(CCNode* invoker) {
 
 void SettingNodeV3::onDescription(CCObject*) {
     auto title = m_impl->setting->getDisplayName();
-    FLAlertLayer::create(
-        nullptr,
-        title.c_str(),
+    MDPopup::create(true,
+        title,
         m_impl->setting->getDescription().value_or("No description provided"),
-        "OK", nullptr,
-        clamp(title.size() * 16, 300, 400)
+        "OK"
     )->show();
 }
 void SettingNodeV3::onReset(CCObject*) {

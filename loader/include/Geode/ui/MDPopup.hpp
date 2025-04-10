@@ -29,5 +29,10 @@ namespace geode {
             std::string const& title, std::string const& content, char const* btn1,
             char const* btn2 = nullptr, std::function<void(bool)> onClick = nullptr
         );
+
+        static MDPopup* create(
+            bool compatibilityMode, std::string const& title, std::string const& content,
+            char const* btn1, char const* btn2 = nullptr, std::function<void(bool)> onClick = nullptr
+        );
     };
 }
