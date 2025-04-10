@@ -38,7 +38,7 @@ class CCZone;
  * @{
  */
 
-/** 
+/**
  @brief Base class for Easing actions
  @ingroup Actions
  */
@@ -78,7 +78,7 @@ public:
     CCActionInterval *m_pInner;
 };
 
-/** 
+/**
  @brief Base class for Easing actions with rate parameters
  @ingroup Actions
  */
@@ -118,7 +118,7 @@ public:
     float m_fRate;
 };
 
-/** 
+/**
  @brief CCEaseIn action with a rate
  @ingroup Actions
  */

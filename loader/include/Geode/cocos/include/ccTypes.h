@@ -42,19 +42,19 @@ NS_CC_BEGIN
 /** RGB color composed of bytes 3 bytes
 @since v0.8
  */
-typedef struct _ccColor3B
+struct ccColor3B
 {
     GLubyte r;
     GLubyte g;
     GLubyte b;
-} ccColor3B;
+};
 
-typedef struct _ccHSVValue
+struct ccHSVValue
 {
     float h, s, v;
     bool absoluteSaturation;
     bool absoluteBrightness;
-} ccHSVValue;
+};
 
 static inline ccHSVValue
 cchsv(const float vh, const float vs, const float vv, const bool as, const bool ab)
@@ -112,13 +112,13 @@ static const ccColor3B ccGRAY={166,166,166};
 /** RGBA color composed of 4 bytes
 @since v0.8
 */
-typedef struct _ccColor4B
+struct ccColor4B
 {
     GLubyte r;
     GLubyte g;
     GLubyte b;
     GLubyte a;
-} ccColor4B;
+};
 //! helper macro that creates an ccColor4B type
 static inline ccColor4B
 ccc4(const GLubyte r, const GLubyte g, const GLubyte b, const GLubyte o)
@@ -131,12 +131,12 @@ ccc4(const GLubyte r, const GLubyte g, const GLubyte b, const GLubyte o)
 /** RGBA color composed of 4 floats
 @since v0.8
 */
-typedef struct _ccColor4F {
+struct ccColor4F {
     GLfloat r;
     GLfloat g;
     GLfloat b;
     GLfloat a;
-} ccColor4F;
+};
 
 
 /** Returns a ccColor4F from a ccColor3B. Alpha will be 1.
@@ -149,7 +149,7 @@ static inline ccColor4F ccc4FFromccc3B(ccColor3B c)
 }
 
 //! helper that creates a ccColor4f type
-static inline ccColor4F 
+static inline ccColor4F
 ccc4f(const GLfloat r, const GLfloat g, const GLfloat b, const GLfloat a)
 {
     ccColor4F c4 = {r, g, b, a};
@@ -182,11 +182,11 @@ static inline bool ccc4FEqual(ccColor4F a, ccColor4F b)
 /** A vertex composed of 2 floats: x, y
  @since v0.8
  */
-typedef struct _ccVertex2F
+struct ccVertex2F
 {
     GLfloat x;
     GLfloat y;
-} ccVertex2F;
+};
 
 static inline ccVertex2F vertex2(const float x, const float y)
 {
@@ -198,26 +198,26 @@ static inline ccVertex2F vertex2(const float x, const float y)
 /** A vertex composed of 2 floats: x, y
  @since v0.8
  */
-typedef struct _ccVertex3F
+struct ccVertex3F
 {
     GLfloat x;
     GLfloat y;
     GLfloat z;
-} ccVertex3F;
+};
 
 static inline ccVertex3F vertex3(const float x, const float y, const float z)
 {
     ccVertex3F c = {x, y, z};
     return c;
 }
-        
+
 /** A texcoord composed of 2 floats: u, y
  @since v0.8
  */
-typedef struct _ccTex2F {
+struct ccTex2F {
      GLfloat u;
      GLfloat v;
-} ccTex2F;
+};
 
 static inline ccTex2F tex2(const float u, const float v)
 {
@@ -225,34 +225,34 @@ static inline ccTex2F tex2(const float u, const float v)
     return t;
 }
 
- 
+
 //! Point Sprite component
-typedef struct _ccPointSprite
+struct ccPointSprite
 {
     ccVertex2F    pos;        // 8 bytes
     ccColor4B    color;        // 4 bytes
     GLfloat        size;        // 4 bytes
-} ccPointSprite;
+};
 
 //!    A 2D Quad. 4 * 2 floats
-typedef struct _ccQuad2 {
+struct ccQuad2 {
     ccVertex2F        tl;
     ccVertex2F        tr;
     ccVertex2F        bl;
     ccVertex2F        br;
-} ccQuad2;
+};
 
 
 //!    A 3D Quad. 4 * 3 floats
-typedef struct _ccQuad3 {
+struct ccQuad3 {
     ccVertex3F        bl;
     ccVertex3F        br;
     ccVertex3F        tl;
     ccVertex3F        tr;
-} ccQuad3;
+};
 
 //! a Point with a vertex point, a tex coord point and a color 4B
-typedef struct _ccV2F_C4B_T2F
+struct ccV2F_C4B_T2F
 {
     //! vertices (2F)
     ccVertex2F        vertices;
@@ -260,10 +260,10 @@ typedef struct _ccV2F_C4B_T2F
     ccColor4B        colors;
     //! tex coords (2F)
     ccTex2F            texCoords;
-} ccV2F_C4B_T2F;
+};
 
 //! a Point with a vertex point, a tex coord point and a color 4F
-typedef struct _ccV2F_C4F_T2F
+struct ccV2F_C4F_T2F
 {
     //! vertices (2F)
     ccVertex2F        vertices;
@@ -271,10 +271,10 @@ typedef struct _ccV2F_C4F_T2F
     ccColor4F        colors;
     //! tex coords (2F)
     ccTex2F            texCoords;
-} ccV2F_C4F_T2F;
+};
 
 //! a Point with a vertex point, a tex coord point and a color 4B
-typedef struct _ccV3F_C4B_T2F
+struct ccV3F_C4B_T2F
 {
     //! vertices (3F)
     ccVertex3F        vertices;            // 12 bytes
@@ -286,10 +286,10 @@ typedef struct _ccV3F_C4B_T2F
 
     // tex coords (2F)
     ccTex2F            texCoords;            // 8 bytes
-} ccV3F_C4B_T2F;
+};
 
 //! A Triangle of ccV2F_C4B_T2F
-typedef struct _ccV2F_C4B_T2F_Triangle
+struct ccV2F_C4B_T2F_Triangle
 {
 	//! Point A
 	ccV2F_C4B_T2F a;
@@ -297,10 +297,10 @@ typedef struct _ccV2F_C4B_T2F_Triangle
 	ccV2F_C4B_T2F b;
 	//! Point B
 	ccV2F_C4B_T2F c;
-} ccV2F_C4B_T2F_Triangle;
+};
 
 //! A Quad of ccV2F_C4B_T2F
-typedef struct _ccV2F_C4B_T2F_Quad
+struct ccV2F_C4B_T2F_Quad
 {
     //! bottom left
     ccV2F_C4B_T2F    bl;
@@ -310,10 +310,10 @@ typedef struct _ccV2F_C4B_T2F_Quad
     ccV2F_C4B_T2F    tl;
     //! top right
     ccV2F_C4B_T2F    tr;
-} ccV2F_C4B_T2F_Quad;
+};
 
 //! 4 ccVertex3FTex2FColor4B
-typedef struct _ccV3F_C4B_T2F_Quad
+struct ccV3F_C4B_T2F_Quad
 {
     //! top left
     ccV3F_C4B_T2F    tl;
@@ -323,10 +323,10 @@ typedef struct _ccV3F_C4B_T2F_Quad
     ccV3F_C4B_T2F    tr;
     //! bottom right
     ccV3F_C4B_T2F    br;
-} ccV3F_C4B_T2F_Quad;
+};
 
 //! 4 ccVertex2FTex2FColor4F Quad
-typedef struct _ccV2F_C4F_T2F_Quad
+struct ccV2F_C4F_T2F_Quad
 {
     //! bottom left
     ccV2F_C4F_T2F    bl;
@@ -336,41 +336,41 @@ typedef struct _ccV2F_C4F_T2F_Quad
     ccV2F_C4F_T2F    tl;
     //! top right
     ccV2F_C4F_T2F    tr;
-} ccV2F_C4F_T2F_Quad;
+};
 
 //! Blend Function used for textures
-typedef struct _ccBlendFunc
+struct ccBlendFunc
 {
     //! source blend function
     GLenum src;
     //! destination blend function
     GLenum dst;
-} ccBlendFunc;
+};
 
 static const ccBlendFunc kCCBlendFuncDisable = {GL_ONE, GL_ZERO};
 
 // XXX: If any of these enums are edited and/or reordered, update CCTexture2D.m
 //! Vertical text alignment type
-typedef enum
+enum class CCVerticalTextAlignment
 {
     kCCVerticalTextAlignmentTop,
     kCCVerticalTextAlignmentCenter,
     kCCVerticalTextAlignmentBottom,
-} CCVerticalTextAlignment;
+};
 
 // XXX: If any of these enums are edited and/or reordered, update CCTexture2D.m
 //! Horizontal text alignment type
-typedef enum
+enum class CCTextAlignment
 {
     kCCTextAlignmentLeft,
     kCCTextAlignmentCenter,
     kCCTextAlignmentRight,
-} CCTextAlignment;
+};
 
 // types for animation in particle systems
 
 // texture coordinates for a quad
-typedef struct _ccT2F_Quad
+struct ccT2F_Quad
 {
     //! bottom left
     ccTex2F    bl;
@@ -380,15 +380,15 @@ typedef struct _ccT2F_Quad
     ccTex2F    tl;
     //! top right
     ccTex2F    tr;
-} ccT2F_Quad;
+};
 
 // struct that holds the size in pixels, texture coordinates and delays for animated CCParticleSystemQuad
-typedef struct
+struct ccAnimationFrameData
 {
     ccT2F_Quad texCoords;
     float delay;
-    CCSize size; 
-} ccAnimationFrameData;
+    CCSize size;
+};
 
 
 
@@ -397,13 +397,11 @@ typedef struct
  */
 
 // shadow attributes
-typedef struct _ccFontShadow
-{
+struct ccFontShadow
+nullccAnimationFrameData {
 public:
-    
     // shadow is not enabled by default
-    _ccFontShadow(): m_shadowEnabled(false) {}
-    
+    ccFontShadow(): m_shadowEnabled(false) {}
     // true if shadow enabled
     bool   m_shadowEnabled;
     // shadow x and y offset
@@ -412,40 +410,34 @@ public:
 	float  m_shadowBlur;
     // shadow opacity
 	float  m_shadowOpacity;
-    
-} ccFontShadow;
+};
 
 // stroke attributes
-typedef struct _ccFontStroke
+struct ccFontStroke
 {
 public:
-    
     // stroke is disabled by default
-    _ccFontStroke(): m_strokeEnabled(false) {}
-    
+    ccFontStroke(): m_strokeEnabled(false) {}
     // true if stroke enabled
     bool        m_strokeEnabled;
     // stroke color
 	ccColor3B   m_strokeColor;
     // stroke size
     float       m_strokeSize;
-    
-} ccFontStroke;
+};
 
 // font attributes
 /**
  *  @js NA
  *  @lua NA
  */
-typedef struct _ccFontDefinition
+struct ccFontDefinition
 {
 public:
-    
-    _ccFontDefinition():  m_alignment(kCCTextAlignmentCenter),
+    ccFontDefinition():  m_alignment(kCCTextAlignmentCenter),
     m_vertAlignment(kCCVerticalTextAlignmentTop),
     m_fontFillColor(ccWHITE)
     { m_dimensions = CCSizeMake(0,0); }
-    
     // font name
     gd::string             m_fontName;
     // font size
@@ -462,7 +454,6 @@ public:
     ccFontShadow            m_shadow;
     // font stroke
     ccFontStroke            m_stroke;
-    
 } ccFontDefinition;
 
 
