@@ -78,13 +78,13 @@ size_t getImageSize(struct mach_header_64 const* header) {
     if (header == nullptr) {
         return 0;
     }
-    size_t sz = sizeof(struct mach_header_64); // Size of the header
-    sz += header->sizeofcmds;    // Size of the load commands
+    size_t sz = 0;
 
     auto lc = (struct load_command const*) (header + 1);
     for (uint32_t i = 0; i < header->ncmds; i++) {
-        if (lc->cmd == LC_SEGMENT) {
-            sz += ((struct segment_command_64 const*) lc)->vmsize; // Size of segments
+        auto seg = (struct segment_command_64 const*) lc;
+        if (lc->cmd == LC_SEGMENT_64 && strcmp(seg->segname, SEG_PAGEZERO) != 0) {
+            sz += seg->vmsize; // Size of segments
         }
         lc = (struct load_command const*) ((char *) lc + lc->cmdsize);
     }
@@ -125,9 +125,9 @@ static struct dyld_image_info const* imageFromAddress(void const* addr) {
     --iter;
 
     auto image = *iter;
-    // auto imageSize = getImageSize((struct mach_header_64 const*)image->imageLoadAddress);
+    auto imageSize = getImageSize((struct mach_header_64 const*)image->imageLoadAddress);
     auto imageAddress = (uintptr_t)image->imageLoadAddress;
-    if ((uintptr_t)addr >= imageAddress/* && (uintptr_t)addr < imageAddress + imageSize*/) {
+    if ((uintptr_t)addr >= imageAddress && (uintptr_t)addr < imageAddress + imageSize) {
         return image;
     }
     return nullptr;
@@ -164,9 +164,15 @@ static Mod* modFromAddress(void const* addr) {
 
 static std::string getInfo(void* address, Mod* faultyMod) {
     std::stringstream stream;
-    stream << "Faulty Lib: " << getImageName(imageFromAddress(address)) << "\n";
+    auto image = imageFromAddress(address);
+    auto imageName = getImageName(image);
+    stream << "Faulty Lib: " << imageName << "\n";
     stream << "Faulty Mod: " << (faultyMod ? faultyMod->getID() : "<Unknown>") << "\n";
-    stream << "Instruction Address: " << address << "\n";
+    stream << "Instruction Address: " << address;
+    if (image) {
+        stream << " (" << imageName << " + " << std::showbase << std::hex << ((uintptr_t)address - (uintptr_t)image->imageLoadAddress) << std::dec << ")";
+    }
+    stream << "\n";
     stream << "Signal Code: " << std::hex << s_signal << " (" << getSignalCodeString() << ")" << std::dec << "\n";
     return stream.str();
 }
@@ -279,10 +285,13 @@ static std::string getStacktrace() {
                 free(demangle);
             }
 
-            stacktrace << "- " << binary;
-            stacktrace << " @ " << std::showbase << std::hex << address << std::dec;
-            stacktrace << " (" << function << " + " << offset << ")\n";
-            stacktrace << "- " << function << "\n";
+            if (auto image = imageFromAddress(reinterpret_cast<void*>(address))) {
+                stacktrace << "- " << getImageName(image) << " + " << std::showbase << std::hex << (address - (uintptr_t)image->imageLoadAddress) << std::dec;
+            }
+            else {
+                stacktrace << "- " << binary << " @ " << std::showbase << std::hex << address << std::dec;
+            }
+            stacktrace << " (" << function << " + " << offset << ") @ " << std::showbase << std::hex << address << std::dec << "\n";
         }
     }
 

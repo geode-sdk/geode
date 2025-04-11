@@ -30,14 +30,15 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 		"-framework OpenGLES"     # needed for CCClippingNode reimpl and ScrollLayer
 		"-framework UIKit"        # needed for file picking (UIApplication)
 		"-framework Foundation"   # needed for many things
-		"-framework AVFoundation" # needed for fmod
-		"-framework AudioToolbox" # needed for fmod
+		"-framework AVFoundation" # needed for microphone access
+		${GEODE_LOADER_PATH}/include/link/ios/libssl.a
+		${GEODE_LOADER_PATH}/include/link/ios/libcrypto.a
+		${GEODE_LOADER_PATH}/include/link/ios/libnghttp2.a
 		${GEODE_LOADER_PATH}/include/link/ios/libcurl.a
-		${GEODE_LOADER_PATH}/include/link/ios/libfmod_iphoneos.a
 	)
 
 	target_compile_definitions(${PROJECT_NAME} INTERFACE
-		-DCommentType=CommentTypeDummy
+		-DGLES_SILENCE_DEPRECATION
 	)
 
 	set(GEODE_OUTPUT_NAME "Geode.ios")
