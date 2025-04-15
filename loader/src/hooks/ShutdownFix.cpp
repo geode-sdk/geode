@@ -1,6 +1,6 @@
 #include <Geode/platform/cplatform.h>
 #ifdef GEODE_IS_MACOS
-#include <Geode/loader/Mod.hpp>
+#include <Geode/utils/ObjcHook.hpp>
 #include <objc/runtime.h>
 
 using namespace geode::prelude;
@@ -17,17 +17,8 @@ void shutdownGameHook(void* self, SEL sel) {
 }
 
 $execute {
-    auto appController = objc_getClass("AppController");
-    if (!appController) return;
-
-    auto shutdownGame = class_getInstanceMethod(appController, sel_registerName("shutdownGame"));
-    if (!shutdownGame) return;
-
-    s_originalShutdownGame = reinterpret_cast<decltype(s_originalShutdownGame)>(method_getImplementation(shutdownGame));
-    if (s_originalShutdownGame) (void)Mod::get()->hook(
-        reinterpret_cast<void*>(s_originalShutdownGame),
-        &shutdownGameHook,
-        "AppController::shutdownGame"
-    );
+    if (auto original = hook::replaceObjcMethod("AppController", "shutdownGame", reinterpret_cast<void*>(&shutdownGameHook))) {
+        s_originalShutdownGame = reinterpret_cast<decltype(s_originalShutdownGame)>(original.unwrap());
+    }
 };
 #endif
