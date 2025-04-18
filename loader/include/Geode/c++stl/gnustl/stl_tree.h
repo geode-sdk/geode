@@ -64,6 +64,7 @@
 #include "ext/alloc_traits.h"
 #include "ext/aligned_buffer.h"
 #include "exception_defines.h"
+#include "type_traits.h"
 
 namespace geode::stl {
 _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
@@ -543,7 +544,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 	else 
 	  __z->_M_parent->_M_right = __y;
 	__y->_M_parent = __z->_M_parent;
-	std::swap(__y->_M_color, __z->_M_color);
+	swap(__y->_M_color, __z->_M_color);
 	__y = __z;
 	// __y now points to node to be actually deleted
       }
@@ -663,10 +664,10 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
            typename _Compare, typename _Alloc = allocator<_Val> >
     class _Rb_tree
     {
-      typedef typename __gnu_cxx::__alloc_traits<_Alloc>::template
+      typedef typename __alloc_traits<_Alloc>::template
         rebind<_Rb_tree_node<_Val> >::other _Node_allocator;
 
-      typedef __gnu_cxx::__alloc_traits<_Node_allocator> _Alloc_traits;
+      typedef __alloc_traits<_Node_allocator> _Alloc_traits;
 
     protected:
       typedef _Rb_tree_node_base* 		_Base_ptr;
@@ -1102,7 +1103,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       : _M_impl(__x._M_impl._M_key_compare, __x._M_get_Node_allocator())
       {
 	if (__x._M_root() != 0)
-	  _M_move_data(__x, std::true_type());
+	  _M_move_data(__x, geode::stl::true_type());
       }
 
       _Rb_tree(_Rb_tree&& __x, const allocator_type& __a)
@@ -1339,12 +1340,12 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
     private:
       // Move elements from container with equal allocator.
       void
-      _M_move_data(_Rb_tree&, std::true_type);
+      _M_move_data(_Rb_tree&, geode::stl::true_type);
 
       // Move elements from container with possibly non-equal allocator,
       // which might result in a copy not a move.
       void
-      _M_move_data(_Rb_tree&, std::false_type);
+      _M_move_data(_Rb_tree&, geode::stl::false_type);
     };
 
   template<typename _Key, typename _Val, typename _KeyOfValue,
@@ -1408,7 +1409,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
     _Rb_tree(_Rb_tree&& __x, _Node_allocator&& __a)
     : _M_impl(__x._M_impl._M_key_compare, std::move(__a))
     {
-      using __eq = std::integral_constant<bool, _Alloc_traits::_S_always_equal()>;
+      using __eq = integral_constant<bool, _Alloc_traits::_S_always_equal()>;
       if (__x._M_root() != nullptr)
 	_M_move_data(__x, __eq());
     }
@@ -1417,7 +1418,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
            typename _Compare, typename _Alloc>
     void
     _Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::
-    _M_move_data(_Rb_tree& __x, std::true_type)
+    _M_move_data(_Rb_tree& __x, geode::stl::true_type)
     {
       _M_root() = __x._M_root();
       _M_leftmost() = __x._M_leftmost();
@@ -1436,10 +1437,10 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
            typename _Compare, typename _Alloc>
     void
     _Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::
-    _M_move_data(_Rb_tree& __x, std::false_type)
+    _M_move_data(_Rb_tree& __x, geode::stl::false_type)
     {
       if (_M_get_Node_allocator() == __x._M_get_Node_allocator())
-	  _M_move_data(__x, std::true_type());
+	  _M_move_data(__x, geode::stl::true_type());
       else
 	{
 	  _Alloc_node __an(*this);
@@ -1470,7 +1471,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 	{
 	  clear();
 	  if (__x._M_root() != nullptr)
-	    _M_move_data(__x, std::true_type());
+	    _M_move_data(__x, geode::stl::true_type());
 	  __alloc_on_move(_M_get_Node_allocator(),
 			       __x._M_get_Node_allocator());
 	  return *this;
@@ -1830,16 +1831,16 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 	}
       else
 	{
-	  std::swap(_M_root(),__t._M_root());
-	  std::swap(_M_leftmost(),__t._M_leftmost());
-	  std::swap(_M_rightmost(),__t._M_rightmost());
+	  swap(_M_root(),__t._M_root());
+	  swap(_M_leftmost(),__t._M_leftmost());
+	  swap(_M_rightmost(),__t._M_rightmost());
 
 	  _M_root()->_M_parent = _M_end();
 	  __t._M_root()->_M_parent = __t._M_end();
-	  std::swap(this->_M_impl._M_node_count, __t._M_impl._M_node_count);
+	  swap(this->_M_impl._M_node_count, __t._M_impl._M_node_count);
 	}
       // No need to swap header's color as it does not change.
-      std::swap(this->_M_impl._M_key_compare, __t._M_impl._M_key_compare);
+      swap(this->_M_impl._M_key_compare, __t._M_impl._M_key_compare);
 
       _Alloc_traits::_S_on_swap(_M_get_Node_allocator(),
 				__t._M_get_Node_allocator());
