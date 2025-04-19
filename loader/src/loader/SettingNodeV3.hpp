@@ -222,7 +222,11 @@ protected:
         this->setValue(value, static_cast<CCNode*>(sender));
     }
     void onSlider(CCObject*) {
-        this->setValue(this->valueFromSlider(m_slider->m_touchLogic->m_thumb->getValue()), m_slider);
+        auto value = this->valueFromSlider(m_slider->m_touchLogic->m_thumb->getValue());
+
+        if (value != this->getValue()) {
+            this->setValue(value, m_slider);
+        }
     }
 
 public:
