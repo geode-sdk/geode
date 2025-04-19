@@ -126,9 +126,11 @@ void utils::web::openLinkInBrowser(std::string const& url) {
 void utils::web::openWebview(std::string const& url) {
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "openWebview", "(Ljava/lang/String;)V")) {
-        jstring url = t.env->NewStringUTF(url.c_str());
-        t.env->CallStaticVoidMethod(t.classID, t.methodID, url);
-        t.env->DeleteLocalRef(url);
+        jstring urlArg = t.env->NewStringUTF(url.c_str());
+
+        t.env->CallStaticVoidMethod(t.classID, t.methodID, urlArg);
+
+        t.env->DeleteLocalRef(urlArg);
         t.env->DeleteLocalRef(t.classID);
     } else {
         clearJNIException();
