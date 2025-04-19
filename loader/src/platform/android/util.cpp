@@ -120,10 +120,6 @@ std::filesystem::path dirs::getModRuntimeDir() {
 }
 
 void utils::web::openLinkInBrowser(std::string const& url) {
-    CCApplication::sharedApplication()->openURL(url.c_str());
-}
-
-void utils::web::openWebview(std::string const& url) {
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "openWebview", "(Ljava/lang/String;)V")) {
         jstring urlArg = t.env->NewStringUTF(url.c_str());

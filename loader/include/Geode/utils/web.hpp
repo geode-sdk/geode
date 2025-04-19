@@ -9,15 +9,7 @@
 
 namespace geode::utils::web {
     GEODE_DLL void openLinkInBrowser(std::string const& url);
-
-#ifdef GEODE_IS_ANDROID
-    /**
-     * Opens a native webview window in the launcher activity.
-     * @param url URL to open.
-     */
-    GEODE_DLL void openWebview(std::string const& url);
-#endif
-
+    
     // https://curl.se/libcurl/c/CURLOPT_HTTPAUTH.html
     namespace http_auth {
         constexpr static long BASIC = 0x0001;
