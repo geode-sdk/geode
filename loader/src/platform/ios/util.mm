@@ -351,6 +351,10 @@ std::filesystem::path dirs::getSaveDir() {
     return getBaseDir() / "save";
 }
 
+std::filesystem::path dirs::getResourcesDir() {
+    return [[[NSBundle mainBundle] resourcePath] UTF8String];
+}
+
 bool geode::utils::permission::getPermissionStatus(Permission permission) {
     switch (permission) {
         case Permission::RecordAudio: 

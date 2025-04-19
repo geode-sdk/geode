@@ -61,4 +61,9 @@ namespace geode::dirs {
      * This directory is not deleted even when Geode is uninstalled
      */
     GEODE_DLL std::filesystem::path getModPersistentDir();
+    /**
+     * Directory where Geometry Dash's resources are stored
+     * On Android, the resources are stored in the APK, so this just returns "assets"
+     */
+    GEODE_DLL std::filesystem::path getResourcesDir();
 }
