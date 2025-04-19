@@ -123,6 +123,18 @@ void utils::web::openLinkInBrowser(std::string const& url) {
     CCApplication::sharedApplication()->openURL(url.c_str());
 }
 
+void utils::web::openWebview(std::string const& url) {
+    JniMethodInfo t;
+    if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "openWebview", "(Ljava/lang/String;)V")) {
+        jstring url = t.env->NewStringUTF(url.c_str());
+        t.env->CallStaticVoidMethod(t.classID, t.methodID, url);
+        t.env->DeleteLocalRef(url);
+        t.env->DeleteLocalRef(t.classID);
+    } else {
+        clearJNIException();
+    }
+}
+
 bool utils::file::openFolder(std::filesystem::path const& path) {
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "openFolder", "(Ljava/lang/String;)Z")) {
