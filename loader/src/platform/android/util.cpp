@@ -130,6 +130,7 @@ void utils::web::openLinkInBrowser(std::string const& url) {
         t.env->DeleteLocalRef(t.classID);
     } else {
         clearJNIException();
+        CCApplication::sharedApplication()->openURL(url.c_str());
     }
 }
 
