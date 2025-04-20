@@ -12,7 +12,9 @@ using namespace geode::prelude;
 static void(*s_originalShutdownGame)(void* self, SEL sel);
 
 void shutdownGameHook(void* self, SEL sel) {
-    CCDirector::sharedDirector()->getScheduler()->unscheduleAll();
+    auto director = CCDirector::sharedDirector();
+    director->pause();
+    director->getScheduler()->unscheduleAll();
     s_originalShutdownGame(self, sel);
 }
 
