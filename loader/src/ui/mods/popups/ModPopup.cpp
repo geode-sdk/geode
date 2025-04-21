@@ -6,6 +6,7 @@
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/utils/web.hpp>
+#include <Geode/loader/Event.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/ui/GeodeUI.hpp>
@@ -646,7 +647,10 @@ bool ModPopup::setup(ModSource&& src) {
     m_downloadListener.bind([this](auto) { this->updateState(); });
     m_downloadListener.setFilter(m_source.getID());
 
-    m_settingNodeListener.bind([this](SettingNodeValueChangeEvent*) {
+    m_settingNodeListener.bind([this](SettingNodeValueChangeEvent* ev) {
+        if (!ev->isCommit()) {
+            return ListenerResult::Propagate;
+        }
         this->updateState();
         return ListenerResult::Propagate;
     });

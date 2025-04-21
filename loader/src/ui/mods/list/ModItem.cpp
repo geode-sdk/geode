@@ -7,6 +7,7 @@
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
+#include <Geode/loader/Event.hpp>
 #include <Geode/loader/Loader.hpp>
 #include "server/DownloadManager.hpp"
 #include "ui/mods/GeodeStyle.hpp"
@@ -350,7 +351,10 @@ bool ModItem::init(ModSource&& source) {
     m_downloadListener.bind([this](auto) { this->updateState(); });
     m_downloadListener.setFilter(server::ModDownloadFilter(m_source.getID()));
 
-    m_settingNodeListener.bind([this](SettingNodeValueChangeEvent*) {
+    m_settingNodeListener.bind([this](SettingNodeValueChangeEvent* ev) {
+        if (!ev->isCommit()) {
+            return ListenerResult::Propagate;
+        }
         this->updateState();
         return ListenerResult::Propagate;
     });
