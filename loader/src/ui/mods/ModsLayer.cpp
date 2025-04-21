@@ -503,7 +503,6 @@ bool ModsLayer::init() {
         { "GJ_starsIcon_001.png", "Featured", ServerModListSource::get(ServerModListType::Featured), "featured-button", false },
         { "globe.png"_spr, "Download", ServerModListSource::get(ServerModListType::Download), "download-button", false },
         { "GJ_timeIcon_001.png", "Recent", ServerModListSource::get(ServerModListType::Recent), "recent-button", false },
-        { "d_artCloud_03_001.png", "Modtober", ServerModListSource::get(ServerModListType::Modtober24), "modtober-button", true },
     }) {
         auto btn = CCMenuItemSpriteExtra::create(
             GeodeTabSprite::create(std::get<0>(item), std::get<1>(item), 100, std::get<4>(item)),
