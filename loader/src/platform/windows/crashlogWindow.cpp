@@ -195,7 +195,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         } else if (id == ID_BUTTON_COPY_CLIPBOARD) {
             geode::utils::clipboard::write(g_crashlogText);
         } else if (id == ID_BUTTON_RESTART_GAME) {
-            geode::utils::game::restart();
+            geode::utils::game::restart(false);
         }
     } break;
 
