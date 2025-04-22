@@ -465,11 +465,11 @@ namespace geode {
         void setLoggingEnabled(bool enabled);
 
         /**
-         * Get the current log level for this mod.
+         * Get the minimum log level for this mod.
          */
         Severity getLogLevel() const;
         /**
-         * Set the log level for this mod.
+         * Set the minimum log level for this mod.
          * @param level The new log level
          */
         void setLogLevel(Severity level);
