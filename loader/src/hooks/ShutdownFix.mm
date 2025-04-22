@@ -25,7 +25,7 @@ $execute {
     if (auto hook = ObjcHook::create(
         "AppController",
         "shutdownGame",
-        shutdownGameHook
+        &shutdownGameHook
     )) {
         (void) Mod::get()->claimHook(hook.unwrap());
     }
