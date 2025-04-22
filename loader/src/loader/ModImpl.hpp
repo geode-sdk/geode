@@ -63,7 +63,7 @@ namespace geode {
         /**
          * The minimum log level for this mod
          */
-        geode::Severity m_logLevel = geode::Severity::Debug;
+        Severity m_logLevel = Severity::Debug;
 
         std::unordered_map<std::string, char const*> m_expandedSprites;
 
