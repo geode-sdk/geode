@@ -102,7 +102,7 @@ inline static thread_local int32_t s_nestLevel = 0;
 inline static thread_local int32_t s_nestCountOffset = 0;
 
 void log::vlogImpl(Severity sev, Mod* mod, fmt::string_view format, fmt::format_args args) {
-    if (!mod->isLoggingEnabled(sev)) return;
+    if (!mod->isLoggingEnabled() || sev < mod->getLogLevel()) return;
 
     auto nestCount = s_nestLevel * 2;
     if (nestCount != 0) {

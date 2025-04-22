@@ -696,17 +696,20 @@ ModJson Mod::Impl::getRuntimeInfo() const {
     return json;
 }
 
-bool Mod::Impl::isLoggingEnabled(Severity severity) const {
-    if (severity >= Severity::Debug && severity <= Severity::Error) {
-        return m_loggingEnabled[severity];
-    }
-    return false;
+bool Mod::Impl::isLoggingEnabled() const {
+    return m_loggingEnabled;
 }
 
-void Mod::Impl::setLoggingEnabled(Severity severity, bool enabled) {
-    if (severity >= Severity::Debug && severity <= Severity::Error) {
-        m_loggingEnabled[severity] = enabled;
-    }
+void Mod::Impl::setLoggingEnabled(bool enabled) {
+    m_loggingEnabled = enabled;
+}
+
+Severity Mod::Impl::getLogLevel() const {
+    return m_logLevel;
+}
+
+void Mod::Impl::setLogLevel(Severity level) {
+    m_logLevel = level;
 }
 
 bool Mod::Impl::shouldLoad() const {

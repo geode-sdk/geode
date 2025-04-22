@@ -57,9 +57,13 @@ namespace geode {
          */
         bool m_resourcesLoaded = false;
         /**
-         * Whether logging for each severity is enabled for this mod
+         * Whether logging is enabled for this mod
          */
-        std::array<bool, 4> m_loggingEnabled = { true, true, true, true };
+        bool m_loggingEnabled = true;
+        /**
+         * The minimum log level for this mod
+         */
+        geode::Severity m_logLevel = geode::Severity::Debug;
 
         std::unordered_map<std::string, char const*> m_expandedSprites;
 
@@ -146,8 +150,10 @@ namespace geode {
         std::string_view expandSpriteName(std::string_view name);
         ModJson getRuntimeInfo() const;
 
-        bool isLoggingEnabled(geode::Severity severity) const;
-        void setLoggingEnabled(geode::Severity severity, bool enabled);
+        bool isLoggingEnabled() const;
+        void setLoggingEnabled(bool enabled);
+        Severity getLogLevel() const;
+        void setLogLevel(Severity level);
 
         std::vector<LoadProblem> getProblems() const;
 

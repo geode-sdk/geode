@@ -465,16 +465,14 @@ namespace geode {
         void setLoggingEnabled(bool enabled);
 
         /**
-         * Get this mod's logging status for a specific severity level.
-         * @param severity The severity level
+         * Get the current log level for this mod.
          */
-        bool isLoggingEnabled(geode::Severity severity) const;
+        Severity getLogLevel() const;
         /**
-         * Set this mod's logging status for a specific severity level.
-         * @param severity The severity level
-         * @param enabled Whether to enable or disable logging
+         * Set the log level for this mod.
+         * @param level The new log level
          */
-        void setLoggingEnabled(geode::Severity severity, bool enabled);
+        void setLogLevel(Severity level);
 
         /**
          * If this mod is built for an outdated GD or Geode version, returns the 
