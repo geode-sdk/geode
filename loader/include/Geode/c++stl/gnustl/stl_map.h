@@ -60,7 +60,7 @@
 #include "ext/rb_tree.h"
 #include "initializer_list.h"
 #include "stl_function.h"
-#include <tuple>
+#include "tuple.h"
 
 namespace geode::stl
 {
@@ -90,14 +90,14 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
    *  multimap; the distinction is made entirely in how the tree functions are
    *  called (*_unique versus *_equal, same as the standard).
   */
-  template <typename _Key, typename _Tp, typename _Compare = std::less<_Key>,
-            typename _Alloc = allocator<std::pair<const _Key, _Tp> > >
+  template <typename _Key, typename _Tp, typename _Compare = less<_Key>,
+            typename _Alloc = allocator<pair<const _Key, _Tp> > >
     class map
     {
     public:
       typedef _Key                                          key_type;
       typedef _Tp                                           mapped_type;
-      typedef std::pair<const _Key, _Tp>                    value_type;
+      typedef pair<const _Key, _Tp>                    value_type;
       typedef _Compare                                      key_compare;
       typedef _Alloc                                        allocator_type;
 
@@ -495,9 +495,9 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 	// __i->first is greater than or equivalent to __k.
 	if (__i == end() || key_comp()(__k, (*__i).first))
 #if __cplusplus >= 201103L
-	  __i = _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
-					    std::tuple<const key_type&>(__k),
-					    std::tuple<>());
+	  __i = _M_t._M_emplace_hint_unique(__i, piecewise_construct,
+					    tuple<const key_type&>(__k),
+					    tuple<>());
 #else
           __i = insert(__i, value_type(__k, mapped_type()));
 #endif
@@ -514,9 +514,9 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 	iterator __i = lower_bound(__k);
 	// __i->first is greater than or equivalent to __k.
 	if (__i == end() || key_comp()(__k, (*__i).first))
-	  __i = _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
-					std::forward_as_tuple(std::move(__k)),
-					std::tuple<>());
+	  __i = _M_t._M_emplace_hint_unique(__i, piecewise_construct,
+					forward_as_tuple(move(__k)),
+					tuple<>());
 	return (*__i).second;
       }
 #endif
@@ -569,7 +569,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  Insertion requires logarithmic time.
        */
       template<typename... _Args>
-	std::pair<iterator, bool>
+	pair<iterator, bool>
 	emplace(_Args&&... __args)
 	{ return _M_t._M_emplace_unique(std::forward<_Args>(__args)...); }
 
@@ -623,7 +623,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *
        *  Insertion requires logarithmic time.
        */
-      std::pair<iterator, bool>
+      pair<iterator, bool>
       insert(const value_type& __x)
       { return _M_t._M_insert_unique(__x); }
 
@@ -631,7 +631,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       template<typename _Pair, typename = typename
 	       std::enable_if<std::is_constructible<value_type,
 						    _Pair&&>::value>::type>
-        std::pair<iterator, bool>
+        pair<iterator, bool>
         insert(_Pair&& __x)
         { return _M_t._M_insert_unique(std::forward<_Pair>(__x)); }
 #endif
@@ -949,7 +949,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *
        *  This function probably only makes sense for multimaps.
        */
-      std::pair<iterator, iterator>
+      pair<iterator, iterator>
       equal_range(const key_type& __x)
       { return _M_t.equal_range(__x); }
 
@@ -968,7 +968,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *
        *  This function probably only makes sense for multimaps.
        */
-      std::pair<const_iterator, const_iterator>
+      pair<const_iterator, const_iterator>
       equal_range(const key_type& __x) const
       { return _M_t.equal_range(__x); }
 

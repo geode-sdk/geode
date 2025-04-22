@@ -598,10 +598,10 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       size_type
       count(const key_type& __k) const;
 
-      std::pair<iterator, iterator>
+      pair<iterator, iterator>
       equal_range(const key_type& __k);
 
-      std::pair<const_iterator, const_iterator>
+      pair<const_iterator, const_iterator>
       equal_range(const key_type& __k) const;
 
     protected:
@@ -656,7 +656,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 			   __hash_code __code, __node_type* __n);
 
       template<typename... _Args>
-	std::pair<iterator, bool>
+	pair<iterator, bool>
 	_M_emplace(geode::stl::true_type, _Args&&... __args);
 
       template<typename... _Args>
@@ -675,7 +675,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	_M_emplace(const_iterator, geode::stl::false_type, _Args&&... __args);
 
       template<typename _Arg, typename _NodeGenerator>
-	std::pair<iterator, bool>
+	pair<iterator, bool>
 	_M_insert(_Arg&&, const _NodeGenerator&, geode::stl::true_type);
 
       template<typename _Arg, typename _NodeGenerator>
@@ -1360,7 +1360,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	   typename _Alloc, typename _ExtractKey, typename _Equal,
 	   typename _H1, typename _H2, typename _Hash, typename _RehashPolicy,
 	   typename _Traits>
-    std::pair<typename _Hashtable<_Key, _Value, _Alloc,
+    pair<typename _Hashtable<_Key, _Value, _Alloc,
 				  _ExtractKey, _Equal, _H1,
 				  _H2, _Hash, _RehashPolicy,
 				  _Traits>::iterator,
@@ -1383,17 +1383,17 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 		 && this->_M_equals(__k, __code, __p1))
 	    __p1 = __p1->_M_next();
 
-	  return std::make_pair(iterator(__p), iterator(__p1));
+	  return make_pair(iterator(__p), iterator(__p1));
 	}
       else
-	return std::make_pair(end(), end());
+	return make_pair(end(), end());
     }
 
   template<typename _Key, typename _Value,
 	   typename _Alloc, typename _ExtractKey, typename _Equal,
 	   typename _H1, typename _H2, typename _Hash, typename _RehashPolicy,
 	   typename _Traits>
-    std::pair<typename _Hashtable<_Key, _Value, _Alloc,
+    pair<typename _Hashtable<_Key, _Value, _Alloc,
 				  _ExtractKey, _Equal, _H1,
 				  _H2, _Hash, _RehashPolicy,
 				  _Traits>::const_iterator,
@@ -1416,10 +1416,10 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 		 && this->_M_equals(__k, __code, __p1))
 	    __p1 = __p1->_M_next();
 
-	  return std::make_pair(const_iterator(__p), const_iterator(__p1));
+	  return make_pair(const_iterator(__p), const_iterator(__p1));
 	}
       else
-	return std::make_pair(end(), end());
+	return make_pair(end(), end());
     }
 
   // Find the node whose key compares equal to k in the bucket n.
@@ -1530,7 +1530,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	   typename _H1, typename _H2, typename _Hash, typename _RehashPolicy,
 	   typename _Traits>
     template<typename... _Args>
-      std::pair<typename _Hashtable<_Key, _Value, _Alloc,
+      pair<typename _Hashtable<_Key, _Value, _Alloc,
 				    _ExtractKey, _Equal, _H1,
 				    _H2, _Hash, _RehashPolicy,
 				    _Traits>::iterator, bool>
@@ -1557,11 +1557,11 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	  {
 	    // There is already an equivalent node, no insertion
 	    this->_M_deallocate_node(__node);
-	    return std::make_pair(iterator(__p), false);
+	    return make_pair(iterator(__p), false);
 	  }
 
 	// Insert the node
-	return std::make_pair(_M_insert_unique_node(__bkt, __code, __node),
+	return make_pair(_M_insert_unique_node(__bkt, __code, __node),
 			      true);
       }
 
@@ -1608,7 +1608,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 			  __node_type* __node)
     {
       const __rehash_state& __saved_state = _M_rehash_policy._M_state();
-      std::pair<bool, std::size_t> __do_rehash
+      pair<bool, std::size_t> __do_rehash
 	= _M_rehash_policy._M_need_rehash(_M_bucket_count, _M_element_count, 1);
 
       __try
@@ -1648,7 +1648,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 			 __node_type* __node)
     {
       const __rehash_state& __saved_state = _M_rehash_policy._M_state();
-      std::pair<bool, std::size_t> __do_rehash
+      pair<bool, std::size_t> __do_rehash
 	= _M_rehash_policy._M_need_rehash(_M_bucket_count, _M_element_count, 1);
 
       __try
@@ -1705,7 +1705,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	   typename _H1, typename _H2, typename _Hash, typename _RehashPolicy,
 	   typename _Traits>
     template<typename _Arg, typename _NodeGenerator>
-      std::pair<typename _Hashtable<_Key, _Value, _Alloc,
+      pair<typename _Hashtable<_Key, _Value, _Alloc,
 				    _ExtractKey, _Equal, _H1,
 				    _H2, _Hash, _RehashPolicy,
 				    _Traits>::iterator, bool>
@@ -1719,10 +1719,10 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 
 	__node_type* __n = _M_find_node(__bkt, __k, __code);
 	if (__n)
-	  return std::make_pair(iterator(__n), false);
+	  return make_pair(iterator(__n), false);
 
 	__n = __node_gen(std::forward<_Arg>(__v));
-	return std::make_pair(_M_insert_unique_node(__bkt, __code, __n), true);
+	return make_pair(_M_insert_unique_node(__bkt, __code, __n), true);
       }
 
   // Insert v unconditionally.

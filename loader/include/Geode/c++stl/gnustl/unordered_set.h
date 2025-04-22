@@ -325,7 +325,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  Insertion requires amortized constant time.
        */
       template<typename... _Args>
-	std::pair<iterator, bool>
+	pair<iterator, bool>
 	emplace(_Args&&... __args)
 	{ return _M_h.emplace(std::forward<_Args>(__args)...); }
 
@@ -369,11 +369,11 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *
        *  Insertion requires amortized constant time.
        */
-      std::pair<iterator, bool>
+      pair<iterator, bool>
       insert(const value_type& __x)
       { return _M_h.insert(__x); }
 
-      std::pair<iterator, bool>
+      pair<iterator, bool>
       insert(value_type&& __x)
       { return _M_h.insert(std::move(__x)); }
       //@}
@@ -573,11 +573,11 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *
        *  This function probably only makes sense for multisets.
        */
-      std::pair<iterator, iterator>
+      pair<iterator, iterator>
       equal_range(const key_type& __x)
       { return _M_h.equal_range(__x); }
 
-      std::pair<const_iterator, const_iterator>
+      pair<const_iterator, const_iterator>
       equal_range(const key_type& __x) const
       { return _M_h.equal_range(__x); }
       //@}
@@ -1185,11 +1185,11 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  @return  Pair of iterators that possibly points to the subsequence
        *           matching given key.
        */
-      std::pair<iterator, iterator>
+      pair<iterator, iterator>
       equal_range(const key_type& __x)
       { return _M_h.equal_range(__x); }
 
-      std::pair<const_iterator, const_iterator>
+      pair<const_iterator, const_iterator>
       equal_range(const key_type& __x) const
       { return _M_h.equal_range(__x); }
       //@}

@@ -29,6 +29,9 @@
 
 #pragma once
 #include "c++config.h"
+#include "stl_pair.h"
+#include "hashtable.h"
+#include "stl_function.h"
 
 namespace geode::stl
 {
@@ -41,10 +44,10 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
   template<typename _Key,
 	   typename _Tp,
 	   typename _Hash = hash<_Key>,
-	   typename _Pred = std::equal_to<_Key>,
-	   typename _Alloc = allocator<std::pair<const _Key, _Tp> >,
+	   typename _Pred = equal_to<_Key>,
+	   typename _Alloc = allocator<pair<const _Key, _Tp> >,
 	   typename _Tr = __umap_traits<__cache_default<_Key, _Hash>::value>>
-    using __umap_hashtable = _Hashtable<_Key, std::pair<const _Key, _Tp>,
+    using __umap_hashtable = _Hashtable<_Key, pair<const _Key, _Tp>,
                                         _Alloc, __detail::_Select1st,
 				        _Pred, _Hash,
 				        __detail::_Mod_range_hashing,
@@ -58,10 +61,10 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
   template<typename _Key,
 	   typename _Tp,
 	   typename _Hash = hash<_Key>,
-	   typename _Pred = std::equal_to<_Key>,
-	   typename _Alloc = allocator<std::pair<const _Key, _Tp> >,
+	   typename _Pred = equal_to<_Key>,
+	   typename _Alloc = allocator<pair<const _Key, _Tp> >,
 	   typename _Tr = __ummap_traits<__cache_default<_Key, _Hash>::value>>
-    using __ummap_hashtable = _Hashtable<_Key, std::pair<const _Key, _Tp>,
+    using __ummap_hashtable = _Hashtable<_Key, pair<const _Key, _Tp>,
 					 _Alloc, __detail::_Select1st,
 					 _Pred, _Hash,
 					 __detail::_Mod_range_hashing,
@@ -81,20 +84,20 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
    *  @tparam  _Pred   Predicate function object type, defaults
    *                   to equal_to<_Value>.
    *  @tparam  _Alloc  Allocator type, defaults to 
-   *                   allocator<std::pair<const _Key, _Tp>>.
+   *                   allocator<pair<const _Key, _Tp>>.
    *
    *  Meets the requirements of a <a href="tables.html#65">container</a>, and
    *  <a href="tables.html#xx">unordered associative container</a>
    *
-   * The resulting value type of the container is std::pair<const _Key, _Tp>.
+   * The resulting value type of the container is pair<const _Key, _Tp>.
    *
    *  Base is _Hashtable, dispatched at compile time via template
    *  alias __umap_hashtable.
    */
   template<class _Key, class _Tp,
 	   class _Hash = hash<_Key>,
-	   class _Pred = std::equal_to<_Key>,
-	   class _Alloc = allocator<std::pair<const _Key, _Tp> > >
+	   class _Pred = equal_to<_Key>,
+	   class _Alloc = allocator<pair<const _Key, _Tp> > >
     class unordered_map
     {
       typedef __umap_hashtable<_Key, _Tp, _Hash, _Pred, _Alloc>  _Hashtable;
@@ -317,7 +320,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       // modifiers.
 
       /**
-       *  @brief Attempts to build and insert a std::pair into the %unordered_map.
+       *  @brief Attempts to build and insert a pair into the %unordered_map.
        *
        *  @param __args  Arguments used to generate a new pair instance (see
        *	        std::piecewise_contruct for passing arguments to each
@@ -336,12 +339,12 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  Insertion requires amortized constant time.
        */
       template<typename... _Args>
-	std::pair<iterator, bool>
+	pair<iterator, bool>
 	emplace(_Args&&... __args)
 	{ return _M_h.emplace(std::forward<_Args>(__args)...); }
 
       /**
-       *  @brief Attempts to build and insert a std::pair into the %unordered_map.
+       *  @brief Attempts to build and insert a pair into the %unordered_map.
        *
        *  @param  __pos  An iterator that serves as a hint as to where the pair
        *                should be inserted.
@@ -349,8 +352,8 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *	         std::piecewise_contruct for passing arguments to each
        *	         part of the pair constructor).
        *  @return An iterator that points to the element with key of the
-       *          std::pair built from @a __args (may or may not be that
-       *          std::pair).
+       *          pair built from @a __args (may or may not be that
+       *          pair).
        *
        *  This function is not concerned about whether the insertion took place,
        *  and thus does not return a boolean like the single-argument emplace()
@@ -372,7 +375,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 
       //@{
       /**
-       *  @brief Attempts to insert a std::pair into the %unordered_map.
+       *  @brief Attempts to insert a pair into the %unordered_map.
 
        *  @param __x Pair to be inserted (see std::make_pair for easy
        *	     creation of pairs).
@@ -388,21 +391,21 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *
        *  Insertion requires amortized constant time.
        */
-      std::pair<iterator, bool>
+      pair<iterator, bool>
       insert(const value_type& __x)
       { return _M_h.insert(__x); }
 
       template<typename _Pair, typename = typename
 	       std::enable_if<std::is_constructible<value_type,
 						    _Pair&&>::value>::type>
-	std::pair<iterator, bool>
+	pair<iterator, bool>
 	insert(_Pair&& __x)
         { return _M_h.insert(std::forward<_Pair>(__x)); }
       //@}
 
       //@{
       /**
-       *  @brief Attempts to insert a std::pair into the %unordered_map.
+       *  @brief Attempts to insert a pair into the %unordered_map.
        *  @param  __hint  An iterator that serves as a hint as to where the
        *                 pair should be inserted.
        *  @param  __x  Pair to be inserted (see std::make_pair for easy creation
@@ -605,11 +608,11 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *
        *  This function probably only makes sense for %unordered_multimap.
        */
-      std::pair<iterator, iterator>
+      pair<iterator, iterator>
       equal_range(const key_type& __x)
       { return _M_h.equal_range(__x); }
 
-      std::pair<const_iterator, const_iterator>
+      pair<const_iterator, const_iterator>
       equal_range(const key_type& __x) const
       { return _M_h.equal_range(__x); }
       //@}
@@ -798,20 +801,20 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
    *  @tparam  _Pred   Predicate function object type, defaults
    *                   to equal_to<_Value>.
    *  @tparam  _Alloc  Allocator type, defaults to
-   *                   allocator<std::pair<const _Key, _Tp>>.
+   *                   allocator<pair<const _Key, _Tp>>.
    *
    *  Meets the requirements of a <a href="tables.html#65">container</a>, and
    *  <a href="tables.html#xx">unordered associative container</a>
    *
-   * The resulting value type of the container is std::pair<const _Key, _Tp>.
+   * The resulting value type of the container is pair<const _Key, _Tp>.
    *
    *  Base is _Hashtable, dispatched at compile time via template
    *  alias __ummap_hashtable.
    */
   template<class _Key, class _Tp,
 	   class _Hash = hash<_Key>,
-	   class _Pred = std::equal_to<_Key>,
-	   class _Alloc = allocator<std::pair<const _Key, _Tp> > >
+	   class _Pred = equal_to<_Key>,
+	   class _Alloc = allocator<pair<const _Key, _Tp> > >
     class unordered_multimap
     {
       typedef __ummap_hashtable<_Key, _Tp, _Hash, _Pred, _Alloc>  _Hashtable;
@@ -1034,7 +1037,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       // modifiers.
 
       /**
-       *  @brief Attempts to build and insert a std::pair into the
+       *  @brief Attempts to build and insert a pair into the
        *  %unordered_multimap.
        *
        *  @param __args  Arguments used to generate a new pair instance (see
@@ -1054,7 +1057,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 	{ return _M_h.emplace(std::forward<_Args>(__args)...); }
 
       /**
-       *  @brief Attempts to build and insert a std::pair into the %unordered_multimap.
+       *  @brief Attempts to build and insert a pair into the %unordered_multimap.
        *
        *  @param  __pos  An iterator that serves as a hint as to where the pair
        *                should be inserted.
@@ -1062,7 +1065,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *	         std::piecewise_contruct for passing arguments to each
        *	         part of the pair constructor).
        *  @return An iterator that points to the element with key of the
-       *          std::pair built from @a __args.
+       *          pair built from @a __args.
        *
        *  Note that the first parameter is only a hint and can potentially
        *  improve the performance of the insertion process. A bad hint would
@@ -1081,7 +1084,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 
       //@{
       /**
-       *  @brief Inserts a std::pair into the %unordered_multimap.
+       *  @brief Inserts a pair into the %unordered_multimap.
        *  @param __x Pair to be inserted (see std::make_pair for easy
        *	     creation of pairs).
        *
@@ -1103,7 +1106,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 
       //@{
       /**
-       *  @brief Inserts a std::pair into the %unordered_multimap.
+       *  @brief Inserts a pair into the %unordered_multimap.
        *  @param  __hint  An iterator that serves as a hint as to where the
        *                 pair should be inserted.
        *  @param  __x  Pair to be inserted (see std::make_pair for easy creation
@@ -1295,11 +1298,11 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  @return  Pair of iterators that possibly points to the subsequence
        *           matching given key.
        */
-      std::pair<iterator, iterator>
+      pair<iterator, iterator>
       equal_range(const key_type& __x)
       { return _M_h.equal_range(__x); }
 
-      std::pair<const_iterator, const_iterator>
+      pair<const_iterator, const_iterator>
       equal_range(const key_type& __x) const
       { return _M_h.equal_range(__x); }
       //@}

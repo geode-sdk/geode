@@ -38,6 +38,9 @@
 #include "initializer_list.h"
 #include "ext/alloc_traits.h"
 #include "type_traits.h"
+#include "tuple.h"
+#include "functexcept.h"
+#include "utility.h"
 
 namespace geode::stl {
 _GLIBCXX_BEGIN_NAMESPACE_VERSION
@@ -76,7 +79,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     inline typename iterator_traits<_Iterator>::difference_type
     __distance_fw(_Iterator __first, _Iterator __last,
 		  forward_iterator_tag)
-    { return std::distance(__first, __last); }
+    { return distance(__first, __last); }
 
   template<class _Iterator>
     inline typename iterator_traits<_Iterator>::difference_type
@@ -105,8 +108,8 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     template<typename _Tp>
       auto
       operator()(_Tp&& __x) const
-      -> decltype(std::get<0>(std::forward<_Tp>(__x)))
-      { return std::get<0>(std::forward<_Tp>(__x)); }
+      -> decltype(get<0>(std::forward<_Tp>(__x)))
+      { return get<0>(std::forward<_Tp>(__x)); }
   };
 
   template<typename _NodeAlloc>
@@ -487,7 +490,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     // and __n_ins is number of elements to be inserted.  Do we need to
     // increase bucket count?  If so, return make_pair(true, n), where n
     // is the new bucket count.  If not, return make_pair(false, 0).
-    std::pair<bool, std::size_t>
+    pair<bool, std::size_t>
     _M_need_rehash(std::size_t __n_bkt, std::size_t __n_elt,
 		   std::size_t __n_ins) const;
 
@@ -545,7 +548,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     struct _Map_base<_Key, _Pair, _Alloc, _Select1st, _Equal,
 		     _H1, _H2, _Hash, _RehashPolicy, _Traits, false>
     {
-      using mapped_type = typename std::tuple_element<1, _Pair>::type;
+      using mapped_type = typename tuple_element<1, _Pair>::type;
     };
 
   /// Partial specialization, __unique_keys set to true.
@@ -571,7 +574,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     public:
       using key_type = typename __hashtable_base::key_type;
       using iterator = typename __hashtable_base::iterator;
-      using mapped_type = typename std::tuple_element<1, _Pair>::type;
+      using mapped_type = typename tuple_element<1, _Pair>::type;
 
       mapped_type&
       operator[](const key_type& __k);
@@ -605,9 +608,9 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 
       if (!__p)
 	{
-	  __p = __h->_M_allocate_node(std::piecewise_construct,
-				      std::tuple<const key_type&>(__k),
-				      std::tuple<>());
+	  __p = __h->_M_allocate_node(piecewise_construct,
+				      tuple<const key_type&>(__k),
+				      tuple<>());
 	  return __h->_M_insert_unique_node(__n, __code, __p)->second;
 	}
 
@@ -631,9 +634,9 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 
       if (!__p)
 	{
-	  __p = __h->_M_allocate_node(std::piecewise_construct,
-				      std::forward_as_tuple(std::move(__k)),
-				      std::tuple<>());
+	  __p = __h->_M_allocate_node(piecewise_construct,
+				      forward_as_tuple(move(__k)),
+				      tuple<>());
 	  return __h->_M_insert_unique_node(__n, __code, __p)->second;
 	}
 
@@ -765,7 +768,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       {
 	using __rehash_type = typename __hashtable::__rehash_type;
 	using __rehash_state = typename __hashtable::__rehash_state;
-	using pair_type = std::pair<bool, std::size_t>;
+	using pair_type = pair<bool, std::size_t>;
 
 	size_type __n_elt = __detail::__distance_fw(__first, __last);
 
@@ -819,12 +822,12 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 
       using __base_type::insert;
 
-      std::pair<iterator, bool>
+      pair<iterator, bool>
       insert(value_type&& __v)
       {
 	__hashtable& __h = this->_M_conjure_hashtable();
 	__node_gen_type __node_gen(__h);
-	return __h._M_insert(std::move(__v), __node_gen, __unique_keys());
+	return __h._M_insert(move(__v), __node_gen, __unique_keys());
       }
 
       iterator
@@ -832,7 +835,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       {
 	__hashtable& __h = this->_M_conjure_hashtable();
 	__node_gen_type __node_gen(__h);
-	return __h._M_insert(__hint, std::move(__v), __node_gen,
+	return __h._M_insert(__hint, move(__v), __node_gen,
 			     __unique_keys());
       }
     };
@@ -865,7 +868,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       {
 	__hashtable& __h = this->_M_conjure_hashtable();
 	__node_gen_type __node_gen(__h);
-	return __h._M_insert(std::move(__v), __node_gen, __unique_keys());
+	return __h._M_insert(move(__v), __node_gen, __unique_keys());
       }
 
       iterator
@@ -873,7 +876,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       {
 	__hashtable& __h = this->_M_conjure_hashtable();
 	__node_gen_type __node_gen(__h);
-	return __h._M_insert(__hint, std::move(__v), __node_gen,
+	return __h._M_insert(__hint, move(__v), __node_gen,
 			     __unique_keys());
       }
     };
@@ -1694,7 +1697,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 					__hash_cached::value>;
 
     using __ireturn_type = typename conditional<__unique_keys::value,
-						     std::pair<iterator, bool>,
+						     pair<iterator, bool>,
 						     iterator>::type;
   private:
     using _EqualEBO = _Hashtable_ebo_helper<0, _Equal>;
@@ -2126,7 +2129,7 @@ namespace geode::stl::__detail {
     constexpr auto __last_prime = __prime_list + __n_primes - 1;
 
     const unsigned long* __next_bkt =
-      std::lower_bound(__prime_list + 6, __last_prime, __n);
+      lower_bound(__prime_list + 6, __last_prime, __n);
 
     if (__next_bkt == __last_prime)
       // Set next resize to the max value so that we never try to rehash again
@@ -2140,7 +2143,7 @@ namespace geode::stl::__detail {
     return *__next_bkt;
   }
 
-  inline std::pair<bool, std::size_t>
+  inline pair<bool, std::size_t>
   _Prime_rehash_policy::
   _M_need_rehash(std::size_t __n_bkt, std::size_t __n_elt,
 		 std::size_t __n_ins) const
@@ -2151,11 +2154,11 @@ namespace geode::stl::__detail {
 	// far and that we start inserting elements. In this case we start
 	// with an initial bucket size of 11.
 	double __min_bkts
-	  = std::max<std::size_t>(__n_elt + __n_ins, _M_next_resize ? 0 : 11)
+	  = max<std::size_t>(__n_elt + __n_ins, _M_next_resize ? 0 : 11)
 	  / (double)_M_max_load_factor;
 	if (__min_bkts >= __n_bkt)
 	  return { true,
-	    _M_next_bkt(std::max<std::size_t>(__builtin_floor(__min_bkts) + 1,
+	    _M_next_bkt(max<std::size_t>(__builtin_floor(__min_bkts) + 1,
 					      __n_bkt * _S_growth_factor)) };
 
 	_M_next_resize
