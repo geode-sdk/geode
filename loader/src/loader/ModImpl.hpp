@@ -57,21 +57,9 @@ namespace geode {
          */
         bool m_resourcesLoaded = false;
         /**
-         * Whether debug logging is enabled for this mod
+         * Whether logging for each severity is enabled for this mod
          */
-        bool m_debugLoggingEnabled = true;
-        /**
-         * Whether info logging is enabled for this mod
-         */
-        bool m_infoLoggingEnabled = true;
-        /**
-         * Whether warning logging is enabled for this mod
-         */
-        bool m_warningLoggingEnabled = true;
-        /**
-         * Whether error logging is enabled for this mod
-         */
-        bool m_errorLoggingEnabled = true;
+        std::array<bool, 4> m_loggingEnabled = { true, true, true, true };
 
         std::unordered_map<std::string, char const*> m_expandedSprites;
 

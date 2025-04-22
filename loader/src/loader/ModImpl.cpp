@@ -696,35 +696,16 @@ ModJson Mod::Impl::getRuntimeInfo() const {
     return json;
 }
 
-bool Mod::Impl::isLoggingEnabled(geode::Severity severity) const {
-    switch (severity) {
-        case geode::Severity::Debug:
-            return m_debugLoggingEnabled;
-        case geode::Severity::Info:
-            return m_infoLoggingEnabled;
-        case geode::Severity::Warning:
-            return m_warningLoggingEnabled;
-        case geode::Severity::Error:
-            return m_errorLoggingEnabled;
-        default:
-            return false;
+bool Mod::Impl::isLoggingEnabled(Severity severity) const {
+    if (severity >= Severity::Debug && severity <= Severity::Error) {
+        return m_loggingEnabled[severity];
     }
+    return false;
 }
 
-void Mod::Impl::setLoggingEnabled(geode::Severity severity, bool enabled) {
-    switch (severity) {
-        case geode::Severity::Debug:
-            m_debugLoggingEnabled = enabled;
-            break;
-        case geode::Severity::Info:
-            m_infoLoggingEnabled = enabled;
-            break;
-        case geode::Severity::Warning:
-            m_warningLoggingEnabled = enabled;
-            break;
-        case geode::Severity::Error:
-            m_errorLoggingEnabled = enabled;
-            break;
+void Mod::Impl::setLoggingEnabled(Severity severity, bool enabled) {
+    if (severity >= Severity::Debug && severity <= Severity::Error) {
+        m_loggingEnabled[severity] = enabled;
     }
 }
 

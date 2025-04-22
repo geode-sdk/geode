@@ -261,11 +261,11 @@ void Mod::setLoggingEnabled(bool enabled) {
     m_impl->setLoggingEnabled(Severity::Error, enabled);
 }
 
-bool Mod::isLoggingEnabled(geode::Severity severity) const {
+bool Mod::isLoggingEnabled(Severity severity) const {
     return m_impl->isLoggingEnabled(severity);
 }
 
-void Mod::setLoggingEnabled(geode::Severity severity, bool enabled) {
+void Mod::setLoggingEnabled(Severity severity, bool enabled) {
     m_impl->setLoggingEnabled(severity, enabled);
 }
 
