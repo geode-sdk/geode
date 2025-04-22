@@ -15,3 +15,7 @@ Found a bug? Do you have an idea that could make Geode better? You can submit an
 Before starting work on a Pull Request, please read our code style guidelines, which you can find [here](https://docs.geode-sdk.org/source/styling).
 
 Make sure you have tested the feature or bugfix that you have implemented. If you need additional help testing other platforms that you cannot access, you can ask around for help on our [Discord server](https://discord.com/invite/9e43WMKzhp).
+
+## Submitting bindings
+
+If you want to help reverse engineer the game and submit bindings / class members, go to our [bindings repository](https://github.com/geode-sdk/bindings).
