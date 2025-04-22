@@ -248,11 +248,25 @@ ModJson Mod::getRuntimeInfo() const {
 }
 
 bool Mod::isLoggingEnabled() const {
-    return m_impl->isLoggingEnabled();
+    return m_impl->isLoggingEnabled(Severity::Debug) ||
+           m_impl->isLoggingEnabled(Severity::Info) ||
+           m_impl->isLoggingEnabled(Severity::Warning) ||
+           m_impl->isLoggingEnabled(Severity::Error);
 }
 
 void Mod::setLoggingEnabled(bool enabled) {
-    m_impl->setLoggingEnabled(enabled);
+    m_impl->setLoggingEnabled(Severity::Debug, enabled);
+    m_impl->setLoggingEnabled(Severity::Info, enabled);
+    m_impl->setLoggingEnabled(Severity::Warning, enabled);
+    m_impl->setLoggingEnabled(Severity::Error, enabled);
+}
+
+bool Mod::isLoggingEnabled(geode::Severity severity) const {
+    return m_impl->isLoggingEnabled(severity);
+}
+
+void Mod::setLoggingEnabled(geode::Severity severity, bool enabled) {
+    m_impl->setLoggingEnabled(severity, enabled);
 }
 
 bool Mod::hasSavedValue(std::string_view key) {

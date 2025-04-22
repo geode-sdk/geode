@@ -57,9 +57,21 @@ namespace geode {
          */
         bool m_resourcesLoaded = false;
         /**
-         * Whether logging is enabled for this mod
+         * Whether debug logging is enabled for this mod
          */
-        bool m_loggingEnabled = true;
+        bool m_debugLoggingEnabled = true;
+        /**
+         * Whether info logging is enabled for this mod
+         */
+        bool m_infoLoggingEnabled = true;
+        /**
+         * Whether warning logging is enabled for this mod
+         */
+        bool m_warningLoggingEnabled = true;
+        /**
+         * Whether error logging is enabled for this mod
+         */
+        bool m_errorLoggingEnabled = true;
 
         std::unordered_map<std::string, char const*> m_expandedSprites;
 
@@ -146,8 +158,8 @@ namespace geode {
         std::string_view expandSpriteName(std::string_view name);
         ModJson getRuntimeInfo() const;
 
-        bool isLoggingEnabled() const;
-        void setLoggingEnabled(bool enabled);
+        bool isLoggingEnabled(geode::Severity severity) const;
+        void setLoggingEnabled(geode::Severity severity, bool enabled);
 
         std::vector<LoadProblem> getProblems() const;
 
