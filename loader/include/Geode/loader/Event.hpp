@@ -3,7 +3,6 @@
 #include "../utils/casts.hpp"
 
 #include <Geode/DefaultInclude.hpp>
-#include <Geode/loader/Log.hpp>
 #include <functional>
 #include <memory>
 #include <type_traits>
