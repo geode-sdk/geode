@@ -1,5 +1,4 @@
 #include <Geode/DefaultInclude.hpp>
-#include <Geode/utils/ObjcHook.hpp>
 
 #import <Cocoa/Cocoa.h>
 #include <objc/runtime.h>
