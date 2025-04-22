@@ -124,7 +124,18 @@ std::filesystem::path dirs::getResourcesDir() {
 }
 
 void utils::web::openLinkInBrowser(std::string const& url) {
-    CCApplication::sharedApplication()->openURL(url.c_str());
+    JniMethodInfo t;
+    if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "openWebview", "(Ljava/lang/String;)V")) {
+        jstring urlArg = t.env->NewStringUTF(url.c_str());
+
+        t.env->CallStaticVoidMethod(t.classID, t.methodID, urlArg);
+
+        t.env->DeleteLocalRef(urlArg);
+        t.env->DeleteLocalRef(t.classID);
+    } else {
+        clearJNIException();
+        CCApplication::sharedApplication()->openURL(url.c_str());
+    }
 }
 
 bool utils::file::openFolder(std::filesystem::path const& path) {
