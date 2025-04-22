@@ -176,6 +176,8 @@ class CC_DLL CCEditBox
 , public CCIMEDelegate
 {
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEditBox, CCControlButton)
+
     /**
      * Constructor.
      */
@@ -398,7 +400,7 @@ public:
      */
     void touchDownAction(CCObject *sender, CCControlEvent controlEvent);
     
-protected:
+public:
     CCEditBoxImpl*      m_pEditBoxImpl;
     CCEditBoxDelegate*  m_pDelegate;
     

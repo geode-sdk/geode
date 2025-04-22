@@ -11,6 +11,7 @@ NS_CC_BEGIN
 class CC_DLL CCKeyboardDispatcher : public CCObject 
 {
 public:
+	GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCKeyboardDispatcher, CCObject)
 	CCKeyboardDispatcher();
 	virtual ~CCKeyboardDispatcher();
 
@@ -51,7 +52,7 @@ public:
 		this->m_bBlockRepeat = blockRepeat;
 	}
 
-protected:
+public:
 	CCArray* m_pDelegates;	// 0x34
 	bool m_bUnknown38;			// 0x38
 	bool m_bUnknown39;      // 0x39

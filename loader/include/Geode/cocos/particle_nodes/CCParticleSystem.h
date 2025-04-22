@@ -175,7 +175,7 @@ emitter.startSpin = 0;
 class CC_DLL CCParticleSystem : public CCNode, public CCTextureProtocol
 {
     GEODE_FRIEND_MODIFY
-protected:
+public:
     gd::string m_sPlistFile;
     //! time elapsed since the start of the system (in seconds)
     float m_fElapsed;
@@ -408,7 +408,7 @@ public:
     By default it is false.
     @since v0.8
     */
-protected:
+public:
     bool m_bIsAutoRemoveOnFinish;
 public:
     virtual bool isAutoRemoveOnFinish();
@@ -486,7 +486,17 @@ public:
 
 protected:
     virtual void updateBlendFunc();
-
+public:
+    // @note RobTop Addition
+    bool m_bWorldPosUninitialized;
+    // @note RobTop Addition
+    CCPoint m_tWorldPos;
+    // @note RobTop Addition
+    ccColor4F m_tUniformColor;
+    // @note RobTop Addition
+    ccColor4F m_tUniformDeltaColor;
+    // @note RobTop Addition
+    bool m_bUseUniformColorMode;
         // saved/loaded in loadDefaults, loadScaledDefaults and saveDefaults
 
         // @note RobTop Addition
@@ -500,11 +510,15 @@ protected:
         // @note RobTop Addition
         float m_fDefaultEndSize;
         // @note RobTop Addition
+        float m_fDefaultAngle;
+        // @note RobTop Addition
         float m_fDefaultModeASpeed;
         // @note RobTop Addition
         float m_fDefaultModeASpeedVar;
         // @note RobTop Addition
         CCPoint m_tDefaultPosVar;
+        // @note RobTop Addition
+        int m_nCustomParticleIndex;
 public:
     // @note RobTop Addition
     void saveDefaults(void);

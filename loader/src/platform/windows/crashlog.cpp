@@ -191,6 +191,30 @@ static void printAddr(std::ostream& stream, void const* addr, bool fullPath = tr
     }
 }
 
+static void printExtraParameters(std::ostream& stream, DWORD code, ULONG_PTR* params, size_t count) {
+    switch (code) {
+        case EXCEPTION_ACCESS_VIOLATION: {
+            const char* what;
+            switch (params[0]) {
+                case 0: what = "read from memory"; break;
+                case 1: what = "write to memory"; break;
+                case 8: what = "execute memory (DEP violation)"; break;
+                default: what = "???"; break;
+            }
+
+            stream << fmt::format(
+                "Exception Details: Failed to {} at 0x{:X}",
+                what, params[1]
+            ) << "\n";
+        } break;
+
+        default: {
+            // if we can't deduce any useful information, just print the number of parameters
+            stream << "Number Parameters: " << count << "\n";
+        } break;
+    }
+}
+
 // https://stackoverflow.com/a/50208684/9124836
 static std::string getStacktrace(PCONTEXT context, Mod*& suspectedFaultyMod) {
     std::stringstream stream;
@@ -450,11 +474,16 @@ static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod, Mod* suspe
             << getExceptionCodeString(info->ExceptionRecord->ExceptionCode) << ")" << std::dec
             << "\n"
             << "Exception Flags: " << info->ExceptionRecord->ExceptionFlags << "\n"
-            << "Exception Address: " << info->ExceptionRecord->ExceptionAddress << " (";
+            << "Instruction Address: " << info->ExceptionRecord->ExceptionAddress << " (";
         printAddr(stream, info->ExceptionRecord->ExceptionAddress, false);
-        stream << ")"
-            << "\n"
-            << "Number Parameters: " << info->ExceptionRecord->NumberParameters << "\n";
+        stream << ")\n";
+
+        printExtraParameters(
+            stream,
+            info->ExceptionRecord->ExceptionCode,
+            info->ExceptionRecord->ExceptionInformation,
+            info->ExceptionRecord->NumberParameters
+        );
     }
 
     // show the thread that crashed
@@ -531,11 +560,6 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
 bool crashlog::setupPlatformHandler() {
     SetUnhandledExceptionFilter(exceptionHandler);
 
-    g_unzippedSearchPaths.clear();
-    for (auto& mod : Loader::get()->getAllMods()) {
-        g_unzippedSearchPaths += mod->getTempDir().string() + ";";
-    }
-
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
     if (std::filesystem::exists(lastCrashedFile)) {
         g_lastLaunchCrashed = true;
@@ -552,7 +576,12 @@ bool crashlog::didLastLaunchCrash() {
     return g_lastLaunchCrashed;
 }
 
-void crashlog::setupPlatformHandlerPost() {}
+void crashlog::setupPlatformHandlerPost() {
+    g_unzippedSearchPaths.clear();
+    for (auto& mod : Loader::get()->getAllMods()) {
+        g_unzippedSearchPaths += mod->getTempDir().string() + ";";
+    }
+}
 
 std::filesystem::path crashlog::getCrashLogDirectory() {
     return dirs::getGeodeDir() / "crashlogs";

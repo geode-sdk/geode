@@ -172,12 +172,12 @@ private:
         
     private:
         void handleUpdateSucceed(Message *msg);
-        
+    public:
         std::list<Message*> *_messageQueue;
         pthread_mutex_t _messageQueueMutex;
     };
     
-private:
+public:
     //! The path to store downloaded resources.
     gd::string _storagePath;
     

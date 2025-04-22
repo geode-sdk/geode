@@ -60,6 +60,7 @@ class CC_DLL CCTileMapAtlas : public CCAtlasNode
     /** TileMap info */
     CC_PROPERTY(struct sImageTGA*, m_pTGAInfo, TGAInfo);
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTileMapAtlas, CCAtlasNode)
     /**
      * @js ctor
      */
@@ -96,7 +97,7 @@ private:
     void updateAtlasValueAt(const CCPoint& pos, const ccColor3B& value, unsigned int index);
     void updateAtlasValues();
 
-protected:
+public:
     //! x,y to atlas dictionary
     CCDictionary* m_pPosToAtlasIndex;
     //! numbers of tiles to render

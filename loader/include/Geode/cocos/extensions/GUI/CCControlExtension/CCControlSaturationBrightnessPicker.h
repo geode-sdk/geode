@@ -59,11 +59,12 @@ class CC_DLL CCControlSaturationBrightnessPicker : public CCControl
     CC_SYNTHESIZE_READONLY(CCSprite*, m_slider, Slider);
     CC_SYNTHESIZE_READONLY(CCPoint, m_startPos, StartPos);
 
-protected:
+public:
     int         boxPos;
     int         boxSize;
     
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCControlSaturationBrightnessPicker, CCControl)
     CCControlSaturationBrightnessPicker();
     virtual ~CCControlSaturationBrightnessPicker();
     virtual bool initWithTargetAndPos(CCNode* target, CCPoint pos);

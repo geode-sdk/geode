@@ -74,7 +74,6 @@ protected:
     void keyDown(enumKeyCodes key) override;
     void keyBackClicked() override;
     void setIDPopupClosed(SetIDPopup*, int value) override;
-    void onEnterTransitionDidFinish() override;
     
     void onTab(CCObject* sender);
     void onOpenModsFolder(CCObject*);

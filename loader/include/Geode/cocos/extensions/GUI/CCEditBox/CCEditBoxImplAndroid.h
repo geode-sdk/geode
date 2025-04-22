@@ -40,6 +40,9 @@ class CC_DLL CCEditBox;
 class CC_DLL CCEditBoxImplAndroid : public CCEditBoxImpl
 {
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEditBoxImplAndroid, CCEditBoxImpl)
+    CCEditBoxImplAndroid() {}
+
     CCEditBoxImplAndroid(CCEditBox* pEditText);
     virtual ~CCEditBoxImplAndroid();
     
@@ -71,7 +74,7 @@ public:
     virtual void openKeyboard();
     virtual void closeKeyboard();
     
-private:
+public:
     CCLabelTTF* m_pLabel;
     CCLabelTTF* m_pLabelPlaceHolder;
     EditBoxInputMode    m_eEditBoxInputMode;

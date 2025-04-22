@@ -5,12 +5,13 @@
 #include "../popups/SortPopup.hpp"
 #include "../GeodeStyle.hpp"
 #include "../ModsLayer.hpp"
+#include "ModItem.hpp"
 
 static size_t getDisplayPageSize(ModListSource* src, ModListDisplay display) {
     if (src->isLocalModsOnly() && Mod::get()->template getSettingValue<bool>("infinite-local-mods-list")) {
         return std::numeric_limits<size_t>::max();
     }
-    return display == ModListDisplay::Grid ? 16 : 10;
+    return 16;
 }
 
 $execute {
@@ -258,34 +259,6 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_searchMenu->addChildAtPosition(searchFiltersMenu, Anchor::Right, ccp(-10, 0));
 
     m_topContainer->addChild(m_searchMenu);
-
-    // Modtober banner; this can be removed after Modtober 2024 is over!
-    if (
-        auto src = typeinfo_cast<ServerModListSource*>(m_source);
-        src && src->getType() == ServerModListType::Modtober24
-    ) {
-        auto menu = CCMenu::create();
-        menu->setID("modtober-banner");
-        menu->ignoreAnchorPointForPosition(false);
-        menu->setContentSize({ size.width, 30 });
-
-        auto banner = CCSprite::createWithSpriteFrameName("modtober24-banner.png"_spr);
-        limitNodeWidth(banner, size.width, 1.f, .1f);
-        menu->addChildAtPosition(banner, Anchor::Center);
-
-        auto label = CCLabelBMFont::create("Modtober 2024 Winner: Geome3Dash!", "bigFont.fnt");
-        label->setScale(.35f);
-        menu->addChildAtPosition(label, Anchor::Left, ccp(10, 0), ccp(0, .5f));
-
-        auto aboutSpr = createGeodeButton("View");
-        aboutSpr->setScale(.5f);
-        auto aboutBtn = CCMenuItemSpriteExtra::create(
-            aboutSpr, this, menu_selector(ModList::onEventInfo)
-        );
-        menu->addChildAtPosition(aboutBtn, Anchor::Right, ccp(-30, 0));
-        
-        m_topContainer->addChild(menu);
-    }
 
     m_topContainer->setLayout(
         ColumnLayout::create()
@@ -562,6 +535,10 @@ void ModList::updateTopContainer() {
 
     // ModList uses an anchor layout, so this puts the list in the right place
     this->updateLayout();
+}
+
+ModListDisplay ModList::getDisplay() {
+    return m_display;
 }
 
 void ModList::updateDisplay(ModListDisplay display) {

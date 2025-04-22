@@ -425,7 +425,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
        *  Insertion requires logarithmic time.
        */
       template<typename... _Args>
-	std::pair<iterator, bool>
+	pair<iterator, bool>
 	emplace(_Args&&... __args)
 	{ return _M_t._M_emplace_unique(std::forward<_Args>(__args)...); }
 
@@ -472,21 +472,21 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
        *
        *  Insertion requires logarithmic time.
        */
-      std::pair<iterator, bool>
+      pair<iterator, bool>
       insert(const value_type& __x)
       {
-	std::pair<typename _Rep_type::iterator, bool> __p =
+	pair<typename _Rep_type::iterator, bool> __p =
 	  _M_t._M_insert_unique(__x);
-	return std::pair<iterator, bool>(__p.first, __p.second);
+	return pair<iterator, bool>(__p.first, __p.second);
       }
 
 #if __cplusplus >= 201103L
-      std::pair<iterator, bool>
+      pair<iterator, bool>
       insert(value_type&& __x)
       {
-	std::pair<typename _Rep_type::iterator, bool> __p =
+	pair<typename _Rep_type::iterator, bool> __p =
 	  _M_t._M_insert_unique(std::move(__x));
-	return std::pair<iterator, bool>(__p.first, __p.second);
+	return pair<iterator, bool>(__p.first, __p.second);
       }
 #endif
 
@@ -749,11 +749,11 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
        *
        *  This function probably only makes sense for multisets.
        */
-      std::pair<iterator, iterator>
+      pair<iterator, iterator>
       equal_range(const key_type& __x)
       { return _M_t.equal_range(__x); }
 
-      std::pair<const_iterator, const_iterator>
+      pair<const_iterator, const_iterator>
       equal_range(const key_type& __x) const
       { return _M_t.equal_range(__x); }
       //@}

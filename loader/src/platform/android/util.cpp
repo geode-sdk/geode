@@ -119,6 +119,10 @@ std::filesystem::path dirs::getModRuntimeDir() {
     return std::filesystem::path(cachedResult) / "geode" / "unzipped";
 }
 
+std::filesystem::path dirs::getResourcesDir() {
+    return "assets";
+}
+
 void utils::web::openLinkInBrowser(std::string const& url) {
     CCApplication::sharedApplication()->openURL(url.c_str());
 }
@@ -392,4 +396,9 @@ std::string geode::utils::thread::getDefaultName() {
 
 void geode::utils::thread::platformSetName(std::string const& name) {
     pthread_setname_np(pthread_self(), name.c_str());
+}
+
+std::string geode::utils::getEnvironmentVariable(const char* name) {
+    auto result = std::getenv(name);
+    return result ? result : "";
 }

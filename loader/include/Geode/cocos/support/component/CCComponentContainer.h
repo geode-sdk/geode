@@ -44,6 +44,9 @@ protected:
     CCComponentContainer(CCNode *pNode);
     
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCComponentContainer)
+    CCComponentContainer() {}
+
     virtual ~CCComponentContainer(void);
     virtual CCComponent* get(const char *pName) const;
     virtual bool add(CCComponent *pCom);
@@ -57,7 +60,7 @@ public:
 private:
     void alloc(void);
     
-private:
+public:
     CCDictionary *m_pComponents;        ///< Dictionary of components
     CCNode *m_pOwner;
     

@@ -11,6 +11,7 @@ class CC_DLL CCMouseDispatcher : public CCObject
 {
 	GEODE_FRIEND_MODIFY
 public:
+	GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCMouseDispatcher, CCObject)
 	CCMouseDispatcher();
 	virtual ~CCMouseDispatcher();
 
@@ -24,7 +25,7 @@ public:
 
 	bool dispatchScrollMSG(float x, float y);
 
-protected:
+public:
 	CCArray* m_pMouseHandlers;
 	bool m_bLocked;
 	bool m_bToAdd;

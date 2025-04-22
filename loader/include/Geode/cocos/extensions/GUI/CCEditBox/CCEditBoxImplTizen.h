@@ -44,6 +44,9 @@ class CC_DLL CCEditBox;
 class CC_DLL CCEditBoxImplTizen : public CCEditBoxImpl
 {
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEditBoxImplTizen, CCEditBoxImpl)
+    CCEditBoxImplTizen() {}
+
     CCEditBoxImplTizen(CCEditBox* pEditText);
     virtual ~CCEditBoxImplTizen();
 
@@ -72,7 +75,7 @@ public:
     virtual void openKeyboard();
     virtual void closeKeyboard();
 
-private:
+public:
     CCLabelTTF* m_pLabel;
     CCLabelTTF* m_pLabelPlaceHolder;
     EditBoxInputMode    m_eEditBoxInputMode;

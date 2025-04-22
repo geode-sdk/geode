@@ -75,7 +75,7 @@ protected:
         newEntryId++;
         m_nEntryId = newEntryId;
     }
-    
+public:
     int m_nHandler;
     int m_nEntryId;
 };
@@ -119,7 +119,7 @@ private:
     {
     }
     bool init(float fInterval, bool bPaused);
-    
+public:
     cocos2d::CCTimer*   m_pTimer;
     bool                m_bPaused;
     bool                m_bMarkedForDeletion;
@@ -157,7 +157,7 @@ private:
     {
     }
     bool init(bool bIsMultiTouches, int nPriority, bool bSwallowsTouches);
-    
+public:
     bool    m_bIsMultiTouches;
     int     m_nPriority;
     bool    m_bSwallowsTouches;
@@ -271,6 +271,7 @@ class CC_DLL CCScriptEngineManager
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCScriptEngineManager)
     ~CCScriptEngineManager(void);
     
     CCScriptEngineProtocol* getScriptEngine(void) {
@@ -287,7 +288,7 @@ private:
     : m_pScriptEngine(NULL)
     {
     }
-    
+public:
     CCScriptEngineProtocol *m_pScriptEngine;
 };
 

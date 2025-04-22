@@ -51,7 +51,7 @@ All features from CCNode are valid, plus the following features:
 class CC_DLL CCAtlasNode : public CCNodeRGBA, public CCTextureProtocol
 {
     GEODE_FRIEND_MODIFY
-protected:
+public:
 
     //! chars per row
     unsigned int m_uItemsPerRow;
@@ -80,6 +80,7 @@ protected:
     bool m_bIgnoreContentScaleFactor;
     
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCAtlasNode, CCNodeRGBA)
     /**
      *  @js ctor
      */

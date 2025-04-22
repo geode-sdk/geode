@@ -87,6 +87,7 @@ class CC_DLL CCTMXLayer : public CCSpriteBatchNode
     /** properties from the layer. They can be added using Tiled */
     CC_PROPERTY(CCDictionary*, m_pProperties, Properties);
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTMXLayer, CCSpriteBatchNode)
     /**
      * @js ctor
      * @lua NA
@@ -200,7 +201,7 @@ private:
     // index
     unsigned int atlasIndexForExistantZ(unsigned int z);
     unsigned int atlasIndexForNewZ(int z);
-protected:
+public:
     //! name of the layer
     gd::string m_sLayerName;
     //! TMX Layer supports opacity

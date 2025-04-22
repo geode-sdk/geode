@@ -46,6 +46,7 @@ class CC_DLL CCShaderCache : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCShaderCache, CCObject)
     /**
      * @js ctor
      */
@@ -82,7 +83,7 @@ public:
 private:
     bool init();
     void loadDefaultShader(CCGLProgram *program, int type);
-
+public:
     CCDictionary* m_pPrograms;
 
 };

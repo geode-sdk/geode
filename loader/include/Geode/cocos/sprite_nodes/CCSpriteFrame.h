@@ -98,6 +98,9 @@ public:
      *  @lua NA
      */
     ~CCSpriteFrame(void);
+    inline CCSpriteFrame() {}
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCSpriteFrame, CCObject);
+
     /**
      *  @js NA
      *  @lua NA
@@ -150,7 +153,7 @@ public:
 	gd::string getFrameName() const;
 	void setFrameName(gd::string);
 
-protected:
+public:
     CCPoint m_obOffset;
     CCSize m_obOriginalSize;
     CCRect m_obRectInPixels;

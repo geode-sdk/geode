@@ -34,6 +34,7 @@ class CC_DLL CCAccelerometer
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCAccelerometer)
     CCAccelerometer();
     ~CCAccelerometer();
 
@@ -41,7 +42,7 @@ public:
     void setAccelerometerInterval(float interval);
     void update(float x, float y, float z, long sensorTimeStamp);
 
-private:
+public:
     CCAccelerometerDelegate* m_pAccelDelegate;
     CCAcceleration m_obAccelerationValue;
 };

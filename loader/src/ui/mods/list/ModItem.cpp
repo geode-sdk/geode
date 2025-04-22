@@ -7,6 +7,7 @@
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
+#include <Geode/loader/Event.hpp>
 #include <Geode/loader/Loader.hpp>
 #include "server/DownloadManager.hpp"
 #include "ui/mods/GeodeStyle.hpp"
@@ -46,12 +47,12 @@ bool ModItem::init(ModSource&& source) {
 
     m_titleLabel = CCLabelBMFont::create(m_source.getMetadata().getName().c_str(), "bigFont.fnt");
     m_titleLabel->setID("title-label");
-    m_titleLabel->setLayoutOptions(AxisLayoutOptions::create()->setScalePriority(1));
+    m_titleLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.3f, std::nullopt));
     m_titleContainer->addChild(m_titleLabel);
 
     m_versionLabel = CCLabelBMFont::create("", "bigFont.fnt");
     m_versionLabel->setID("version-label");
-    m_versionLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(std::nullopt, .7f));
+    m_versionLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.5f, .7f)->setScalePriority(1));
     m_titleContainer->addChild(m_versionLabel);
 
     m_versionDownloadSeparator = CCLabelBMFont::create("•", "bigFont.fnt");
@@ -243,7 +244,6 @@ bool ModItem::init(ModSource&& source) {
             if (metadata.tags.contains("joke")) {
                 m_badgeContainer->addChild(CCSprite::createWithSpriteFrameName("tag-joke.png"_spr));
             }
-            // todo: modtober winner tag
             if (metadata.tags.contains("modtober24winner") || m_source.getID() == "rainixgd.geome3dash") {
                 auto shortVer = CCSprite::createWithSpriteFrameName("tag-modtober-winner.png"_spr);
                 shortVer->setTag(1);
@@ -351,7 +351,10 @@ bool ModItem::init(ModSource&& source) {
     m_downloadListener.bind([this](auto) { this->updateState(); });
     m_downloadListener.setFilter(server::ModDownloadFilter(m_source.getID()));
 
-    m_settingNodeListener.bind([this](SettingNodeValueChangeEvent*) {
+    m_settingNodeListener.bind([this](SettingNodeValueChangeEvent* ev) {
+        if (!ev->isCommit()) {
+            return ListenerResult::Propagate;
+        }
         this->updateState();
         return ListenerResult::Propagate;
     });
@@ -516,7 +519,6 @@ void ModItem::updateState() {
                 m_bg->setColor(ccc3(63, 91, 138));
                 m_bg->setOpacity(85);
             }
-            // todo: modtober winner tag
             if (metadata.tags.contains("modtober24winner") || m_source.getID() == "rainixgd.geome3dash") {
                 m_bg->setColor(ccc3(104, 63, 138));
                 m_bg->setOpacity(85);

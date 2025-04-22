@@ -37,12 +37,8 @@
 #include "../kazmath/include/kazmath/kazmath.h"
 #include "../script_support/CCScriptSupport.h"
 #include "../include/CCProtocols.h"
-#include "../../loader/Event.hpp"
+#include <Geode/loader/Event.hpp>
 #include <Geode/utils/casts.hpp>
-
-#ifndef GEODE_IS_MEMBER_TEST
-#include <matjson.hpp>
-#endif
 
 namespace geode {
     class Layout;
@@ -1761,7 +1757,7 @@ private:
      */
     CCPoint convertToWindowSpace(const CCPoint& nodePoint);
 
-protected:
+public:
     float m_fRotationX;                 ///< rotation angle on x-axis
     float m_fRotationY;                 ///< rotation angle on y-axis
     
@@ -1894,7 +1890,7 @@ public:
     virtual void setOpacityModifyRGB(bool bValue) {CC_UNUSED_PARAM(bValue);};
     virtual bool isOpacityModifyRGB() { return false; };
 
-protected:
+public:
 	GLubyte		_displayedOpacity;
     GLubyte     _realOpacity;
 	ccColor3B	_displayedColor;

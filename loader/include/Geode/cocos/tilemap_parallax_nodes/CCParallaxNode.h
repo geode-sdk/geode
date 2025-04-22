@@ -50,6 +50,7 @@ class CC_DLL CCParallaxNode : public CCNode
     CC_SYNTHESIZE(struct _ccArray *, m_pParallaxArray, ParallaxArray)
 
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCParallaxNode, CCNode)
     /** Adds a child to the container with a z-order, a parallax ratio and a position offset
     It returns self, so you can chain several addChilds.
     @since v0.8
@@ -71,7 +72,7 @@ public:
     virtual void visit(void);
 private:
     CCPoint absolutePosition();
-protected:
+public:
     CCPoint    m_tLastPosition;
 };
 

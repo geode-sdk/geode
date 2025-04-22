@@ -1,5 +1,87 @@
 # Geode Changelog
 
+## v4.4.0
+
+ * Experimental support for iOS! (#1275, #1280, #1282, and a lot more other commits...)
+ * Fix a vanilla crash that could happen with large save files on Android (#1270)
+ * Fix warnings from clang 20 (df03f8a)
+ * Correctly check image size in MacOS crashlogs (#1274)
+ * Fix a MacOS crash related to extra keys added by Geode (f7d44f3)
+ * Print more useful information in Windows crashlogs when an access violation happens (c3d2b4e)
+ * Fix memory leaks in `CCImage` usage (f38fe30)
+ * Add members for `CCParticleSystem` (#1273)
+ * Update minimum CMake version to `3.21` (023274b)
+ * Add optional saving for `geode::utils::game::exit` and `geode::utils::game::restart` (061c335)
+ * Remove Modtober tab (#1299)
+ * Optimize UI state updates on mod setting value changes (#1296)
+ * Fix small issues with installer spanish translation (#1254, c851dc7)
+ * Remove libstdc++ update from workflow (#1302)
+ * Fix link buttons not being disabled when needed in `ModPopup` (#1303)
+ * Fix a small visual bug in `ModDeveloperList` (#1303)
+ * Fix a vanilla MacOS crash that could happen on game close (#1304, 7b877db, eb043db, 75c8efa, 8982011, 8bd735a)
+ * Let our `libcurl` use the native system CA, alongside our bundle (#1301)
+ * Fix `gnustl` set functions returning wrong type (ac1de8a)
+
+## v4.3.1
+ * Fix `SimpleAxisLayout` not respecting `Layout::ignoreInvisibleChildren` (a16d230)
+ * Fix MacOS arrow keys (#1267)
+ * Fix ScrollLayer culling with scaled children (f03cee8)
+
+## v4.3.0
+ * Event export macro (#1243)
+   * See [the docs](https://docs.geode-sdk.org/mods/dependencies#event-macro) for more info
+ * Fix settings `enable-if` parsing (315bf46, 1542e29)
+ * Add `SimpleAxisLayout` (#1223)
+   * A simpler and faster alternative to `AxisLayout`. Some features may be missing
+ * Add environment variable for forcing terminal colors (39b1bef)
+ * Fix crashlog PDB search paths (#1222)
+ * Add support for missing keys and mouse buttons (#1258)
+ * Add utils::string::trim* overloads for specific charset (0d4dcb3, 17faf36)
+ * Round number settings to 5 decimal places (c9dbc4b)
+ * Allow number inputs to be invalid while typing and active (6c6215b)
+ * Optimize m_fields access to perform no allocations (7548421)
+ * Allow `Task<void>`, useful for coroutines (2bfff1a, 463ea22)
+ * Add some coroutine utils (99cefab)
+ * Fix culling on ScrollLayer (b136e3b, b733c36)
+ * Fix `WeakRef` behavior with nullptr (9a8939f)
+ * Remove handler from function if no hooks are active (dc14d4c)
+ * Fix some bugs in `geode::utils::ranges` methods (#1236, #1239)
+ * Add patch for `CCGLProgram::compileShader` on remaining platforms (#1241)
+ * Update the pugixml headers to be v1.15 compatible (#1247)
+ * Allow auto update across major versions if running in forward compat mode (4bb17a9)
+ * Re-add console log level to android (b1dc29a)
+
+## v4.2.0
+ * Implement gd::set for android (#1197, #1207)
+ * Log levels for console and file logging (#1208)
+   * Now in the Geode settings you can set the minimum severity for logs
+ * Add GameEvent::Loaded, to avoid hooking Menulayer (c04bcaa)
+   * Check the header for more info
+ * Add setColor shorthands to RGBAProtocol (961c7c8)
+ * New dependency list syntax, also add per dependency settings (1161e18, 889fb0d, c1d3a53)
+   * The dependencies can then read these settings from their dependants
+ * Add auto log deletion after period of time (8f60c3c)
+   * Period length can be changed in settings
+ * Add `log::getCurrentLogPath()` (4c9f990)
+ * Load changelog and mod about page from latest version on the index, instead of local (1d716fc)
+ * Cascade color and opacity for BasedButtonSprite (17107a2)
+ * Add Event v2 classes, wrapper around current event system (728df4e)
+ * Serialize std::filesystem::path as UTF-8 for matjson (#1210)
+ * Improve MDPopup (56a8ced)
+ * Fix macOS file picker, add file ext filters (0b61b50, 241be1b, b8cff6d)
+ * Add UUIDs for old GD versions on macOS (#1213)
+ * Add CCFontSprite and CCSpriteExtra to cocos (#1194)
+ * Reorganize buttons in Geode layer on 4:3 aspect ratio screens (54c93c4)
+ * Patch CCGLProgram::compileShader to prevent closing the game on shader errors (0340f52)
+ * Make all cocos members public (#1214)
+ * Remove modtober animation (f1bf2b6)
+ * Only show "Recommended by X mod" text on recommended dependencies, not suggested (5f64d77)
+ * Fix SceneManager use-after-free (8707a1b)
+ * Icon for pending mod updates is now persistent (0969ec3)
+ * Cleanup stale files from old index version (4d6c173)
+ * Rename Loader to Geode in LoadingLayer text (203c819)
+ * Add `GEODE_BUNDLE_PDB` option in CMake to allow bundling PDB files with mods (#1134)
+
 ## v4.1.2
  * Prevent crashlog recursion on MacOS (a69c4c2)
  * Fix a grave misspelling error (#1203)

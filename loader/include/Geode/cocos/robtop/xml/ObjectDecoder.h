@@ -12,9 +12,9 @@ public:
 // @note RobTop Addition
 class CC_DLL ObjectDecoder : public cocos2d::CCNode {
 public:
-	ObjectDecoder();
+	ObjectDecoder() : m_delegate(nullptr) {}
 	~ObjectDecoder() {}
-	GEODE_CUSTOM_CONSTRUCTOR_BEGIN(ObjectDecoder)
+	GEODE_CUSTOM_CONSTRUCTOR_COCOS(ObjectDecoder, cocos2d::CCNode);
 
 	static ObjectDecoder* sharedDecoder();
 

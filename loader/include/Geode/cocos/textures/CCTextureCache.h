@@ -67,6 +67,7 @@ private:
     /// todo: void addImageWithAsyncObject(CCAsyncObject* async);
     void addImageAsyncCallBack(float dt);
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTextureCache, CCObject)
     /**
      *  @js ctor
      *  @lua NA
@@ -235,7 +236,7 @@ private:
     // if not found, create a new one
     static VolatileTexture* findVolotileTexture(CCTexture2D *tt);
 
-protected:
+public:
     CCTexture2D *texture;
     
     CCImage *uiImage;

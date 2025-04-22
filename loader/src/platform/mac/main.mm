@@ -7,9 +7,11 @@
 #include <mach-o/dyld.h>
 #include <unistd.h>
 #include <tulip/TulipHook.hpp>
+#include <Geode/utils/ObjcHook.hpp>
 #include <array>
 #include <filesystem>
 #include <Geode/Loader.hpp>
+#include "../../loader/console.hpp"
 #include "../../loader/LoaderImpl.hpp"
 #include <thread>
 #include <variant>
@@ -140,14 +142,14 @@ bool loadGeode() {
         return false;
     }
 
-    auto appController = objc_getClass("AppController");
-    auto adflMethod = class_getInstanceMethod(appController, @selector(applicationDidFinishLaunching:));
-    s_applicationDidFinishLaunchingOrig = reinterpret_cast<decltype(s_applicationDidFinishLaunchingOrig)>(method_getImplementation(adflMethod));
-    if (!s_applicationDidFinishLaunchingOrig) {
+    // this uses the internal hooking system because it needs to be fast
+    if (auto imp = hook::replaceObjcMethod("AppController", "applicationDidFinishLaunching:", (void*)applicationDidFinishLaunchingHook)) {
+        s_applicationDidFinishLaunchingOrig = reinterpret_cast<decltype(s_applicationDidFinishLaunchingOrig)>(imp.unwrap());
+    }
+    else {
         return false;
     }
 
-    method_setImplementation(adflMethod, (IMP)&applicationDidFinishLaunchingHook);
     return true;
 }
 

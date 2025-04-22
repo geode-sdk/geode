@@ -35,177 +35,91 @@ class CCSpriteFrame;
 
 struct ParticleStruct
 {
-    int TotalParticles;
-    float Duration;
-    float Life;
-    float LifeVar;
-    int EmissionRate;
-    int Angle;
-    int AngleVar;
-    int Speed;
-    int SpeedVar;
-    int PosVarX;
-    int PosVarY;
-    int GravityX;
-    int GravityY;
-    int RadialAccel;
-    int RadialAccelVar;
-    int TangentialAccel;
-    int TangentialAccelVar;
- 
-    int StartSize;
-    int StartSizeVar;
-    int StartSpin;
-    int StartSpinVar;
-    float StartColorR;
-    float StartColorVarR;
-    float StartColorG;
-    float StartColorVarG;
-    float StartColorB;
-    float StartColorVarB;
-    float StartColorA;
-    float StartColorVarA;
- 
-    int EndSize;
-    int EndSizeVar;
-    int EndSpin;
-    int EndSpinVar;
-    float EndColorR;
-    float EndColorVarR;
-    float EndColorG;
-    float EndColorVarG;
-    float EndColorB;
-    float EndColorVarB;
-    float EndColorA;
-    float EndColorVarA;
- 
-    float FadeInTime;
-    float FadeInTimeVar;
-    float FadeOutTime;
-    float FadeOutTimeVar;
- 
-    int StartRadius;
-    int StartRadiusVar;
-    int EndRadius;
-    int EndRadiusVar;
-    int RotatePerSecond;
-    int RotatePerSecondVar;
- 
-    int EmitterMode;
-    int PositionType;
-    bool isBlendAdditive;
-    bool startSpinEqualToEndSpin;
-    bool rotationIsDir;
-    bool dynamicRotationIsDir;
-    int customParticleIdx;
-    bool uniformColorMode;
- 
-    float frictionPos;
-    float frictionPosVar;
- 
-    float respawn;
-    float respawnVar;
- 
-    bool orderSensitive;
-    bool startSizeEqualToEndSize;
-    bool startRadiusEqualToEndRadius;
- 
-    bool startRGBVarSync;
-    bool endRGBVarSync;
- 
-    float frictionSize;
-    float frictionSizeVar;
- 
-    float frictionRot;
-    float frictionRotVar;
- 
+    int TotalParticles = 0;
+    float Duration = .0f;
+    float Life = .0f;
+    float LifeVar = .0f;
+    int EmissionRate = 0;
+    int Angle = 0;
+    int AngleVar = 0;
+    int Speed = 0;
+    int SpeedVar = 0;
+    int PosVarX = 0;
+    int PosVarY = 0;
+    int GravityX = 0;
+    int GravityY = 0;
+    int RadialAccel = 0;
+    int RadialAccelVar = 0;
+    int TangentialAccel = 0;
+    int TangentialAccelVar = 0;
+
+    int StartSize = 0;
+    int StartSizeVar = 0;
+    int StartSpin = 0;
+    int StartSpinVar = 0;
+    float StartColorR = .0f;
+    float StartColorVarR = .0f;
+    float StartColorG = .0f;
+    float StartColorVarG = .0f;
+    float StartColorB = .0f;
+    float StartColorVarB = .0f;
+    float StartColorA = .0f;
+    float StartColorVarA = .0f;
+
+    int EndSize = 0;
+    int EndSizeVar = 0;
+    int EndSpin = 0;
+    int EndSpinVar = 0;
+    float EndColorR = .0f;
+    float EndColorVarR = .0f;
+    float EndColorG = .0f;
+    float EndColorVarG = .0f;
+    float EndColorB = .0f;
+    float EndColorVarB = .0f;
+    float EndColorA = .0f;
+    float EndColorVarA = .0f;
+
+    float FadeInTime = .0f;
+    float FadeInTimeVar = .0f;
+    float FadeOutTime = .0f;
+    float FadeOutTimeVar = .0f;
+
+    int StartRadius = 0;
+    int StartRadiusVar = 0;
+    int EndRadius = 0;
+    int EndRadiusVar = 0;
+    int RotatePerSecond = 0;
+    int RotatePerSecondVar = 0;
+
+    int EmitterMode = 0;
+    int PositionType = 0;
+    bool isBlendAdditive = false;
+    bool startSpinEqualToEndSpin = false;
+    bool rotationIsDir = false;
+    bool dynamicRotationIsDir = false;
+    int customParticleIdx = 0;
+    bool uniformColorMode = false;
+
+    float frictionPos = .0f;
+    float frictionPosVar = .0f;
+
+    float respawn = .0f;
+    float respawnVar = .0f;
+
+    bool orderSensitive = false;
+    bool startSizeEqualToEndSize = false;
+    bool startRadiusEqualToEndRadius = false;
+
+    bool startRGBVarSync = false;
+    bool endRGBVarSync = false;
+
+    float frictionSize = .0f;
+    float frictionSizeVar = .0f;
+
+    float frictionRot = .0f;
+    float frictionRotVar = .0f;
+
     gd::string sFrame;
- 
-    ParticleStruct()
-        : TotalParticles(0)
-        , Duration(0)
-        , Life(0)
-        , LifeVar(0)
-        , EmissionRate(0)
-        , Angle(0)
-        , AngleVar(0)
-        , Speed(0)
-        , SpeedVar(0)
-        , PosVarX(0)
-        , PosVarY(0)
-        , GravityX(0)
-        , GravityY(0)
-        , RadialAccel(0)
-        , RadialAccelVar(0)
-        , TangentialAccel(0)
-        , TangentialAccelVar(0)
- 
-        , StartSize(0)
-        , StartSizeVar(0)
-        , StartSpin(0)
-        , StartSpinVar(0)
-        , StartColorR(0)
-        , StartColorVarR(0)
-        , StartColorG(0)
-        , StartColorVarG(0)
-        , StartColorB(0)
-        , StartColorVarB(0)
-        , StartColorA(0)
-        , StartColorVarA(0)
- 
-        , EndSize(0)
-        , EndSizeVar(0)
-        , EndSpin(0)
-        , EndSpinVar(0)
-        , EndColorR(0)
-        , EndColorVarR(0)
-        , EndColorG(0)
-        , EndColorVarG(0)
-        , EndColorB(0)
-        , EndColorVarB(0)
-        , EndColorA(0)
-        , EndColorVarA(0)
- 
-        , FadeInTime(0)
-        , FadeInTimeVar(0)
-        , FadeOutTime(0)
-        , FadeOutTimeVar(0)
- 
-        , StartRadius(0)
-        , StartRadiusVar(0)
-        , EndRadius(0)
-        , EndRadiusVar(0)
-        , RotatePerSecond(0)
-        , RotatePerSecondVar(0)
- 
-        , EmitterMode(0)
-        , PositionType(0)
-        , isBlendAdditive(false)
-        , startSpinEqualToEndSpin(false)
-        , rotationIsDir(false)
-        , dynamicRotationIsDir(false)
-        , customParticleIdx(0)
-        , uniformColorMode(false)
- 
-        , frictionPos(0)
-        , frictionPosVar(0)
- 
-        , respawn(0)
-        , respawnVar(0)
- 
-        , orderSensitive(false)
-        , startSizeEqualToEndSize(false)
-        , startRadiusEqualToEndRadius(false)
- 
-        , startRGBVarSync(false)
-        , endRGBVarSync(false)
- 
-        , frictionSize(0)
-        , frictionSizeVar(0)
- 
-        , frictionRot(0)
-        , frictionRotVar(0)
-    {}
 };
 
 /**
@@ -228,7 +142,7 @@ Special features and Limitations:
 class CC_DLL CCParticleSystemQuad : public CCParticleSystem
 {
     GEODE_FRIEND_MODIFY
-protected:
+public:
 
     ccV3F_C4B_T2F_Quad    *m_pQuads;        // quads to be rendered
     GLushort            *m_pIndices;    // indices
@@ -238,6 +152,15 @@ protected:
 #endif
 
     GLuint                m_pBuffersVBO[2]; //0: vertex  1: indices
+
+    // @note Robtop Addition
+    CCRect m_tTextureRect;
+    // @note Robtop Addition
+    ccColor4B m_tQuadColor;
+    // @note Robtop Addition
+    GLushort m_uParticleIdx;
+    // @note Robtop Addition
+    GLubyte m_uOpacity;
 
 public:
     /**
@@ -313,8 +236,8 @@ public:
     static CCParticleSystemQuad * create(const char*, bool);
     static CCParticleSystemQuad * createWithTotalParticles(unsigned int numberOfParticles, bool);
 
-	unsigned char getOpacity();
-	void setOpacity(unsigned char);
+	GLubyte getOpacity() { return m_uOpacity; }
+	void setOpacity(GLubyte opacity) { m_uOpacity = opacity; }
 
 	void updateTexCoords();
 

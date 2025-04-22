@@ -140,6 +140,7 @@ public:
 class CC_DLL CCTableView : public CCScrollView, public CCScrollViewDelegate
 {
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTableView, CCScrollView)
     /**
      *  @js ctor
      */
@@ -234,8 +235,7 @@ public:
     virtual void ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent);
     virtual void ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent);
 
-protected:
-
+public:
     CCTableViewCell *m_pTouchedCell;
     /**
      * vertical direction of cell filling
@@ -245,7 +245,7 @@ protected:
     /**
      * index set to query the indexes of the cells used.
      */
-    std::set<unsigned int>* m_pIndices;
+    gd::set<unsigned int>* m_pIndices;
 
     /**
      * vector with all cell positions
@@ -271,6 +271,7 @@ protected:
 
 	CCScrollViewDirection m_eOldDirection;
 
+protected:
     int __indexFromOffset(CCPoint offset);
     unsigned int _indexFromOffset(CCPoint offset);
     CCPoint __offsetFromIndex(unsigned int index);

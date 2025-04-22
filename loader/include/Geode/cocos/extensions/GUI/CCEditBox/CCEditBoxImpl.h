@@ -36,6 +36,9 @@ NS_CC_EXT_BEGIN
 class CC_DLL CCEditBoxImpl
 {
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCEditBoxImpl)
+    CCEditBoxImpl() {}
+
     CCEditBoxImpl(CCEditBox* pEditBox) : m_pDelegate(NULL),m_pEditBox(pEditBox) {}
     virtual ~CCEditBoxImpl() {}
     
@@ -76,7 +79,7 @@ public:
     void setDelegate(CCEditBoxDelegate* pDelegate) { m_pDelegate = pDelegate; };
     CCEditBoxDelegate* getDelegate() { return m_pDelegate; };
     CCEditBox* getCCEditBox() { return m_pEditBox; };
-protected:
+public:
     CCEditBoxDelegate* m_pDelegate;
     CCEditBox* m_pEditBox;
 };

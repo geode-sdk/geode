@@ -42,6 +42,7 @@ NS_CC_EXT_BEGIN
 class CC_DLL CCControlPotentiometer : public CCControl
 {
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCControlPotentiometer, CCControl)
     CCControlPotentiometer();
     virtual ~CCControlPotentiometer();
     /** 
@@ -73,7 +74,7 @@ public:
     virtual void ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent);
     virtual void ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent);
 
-protected:
+public:
     CC_SYNTHESIZE_RETAIN(CCSprite*, m_pThumbSprite, ThumbSprite)
     CC_SYNTHESIZE_RETAIN(CCProgressTimer*, m_pProgressTimer, ProgressTimer)
     CC_SYNTHESIZE(CCPoint, m_tPreviousLocation, PreviousLocation)
@@ -85,6 +86,8 @@ protected:
     /** Contains the maximum value of the receiver. 
     * The default value of this property is 1.0. */
     float           m_fMaximumValue;
+
+protected:
     /** Factorize the event dispath into these methods. */
     void potentiometerBegan(CCPoint location);
     void potentiometerMoved(CCPoint location);

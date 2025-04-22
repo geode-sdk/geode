@@ -171,7 +171,7 @@ public:
      */
     virtual void setEnabled(bool enabled);
     
-protected:
+public:
     ccColor3B    m_tColorBackup;
     float        m_fOriginalScale;
 };
@@ -265,7 +265,7 @@ public:
     
 protected:
     void recreateLabel();
-    
+public:
     unsigned int m_uFontSize;
     gd::string m_strFontName;
 };
@@ -393,6 +393,7 @@ class CC_DLL CCMenuItemToggle : public CCMenuItem
      */
     CC_PROPERTY(CCArray*, m_pSubItems, SubItems);
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCMenuItemToggle, CCMenuItem)
     /**
      * @js ctor
      */

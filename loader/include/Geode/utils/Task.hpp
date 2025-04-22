@@ -8,13 +8,17 @@
 #include <coroutine>
 
 namespace geode {
+    struct TaskVoid {};
     namespace geode_internal {
         template <class T, class P>
-        struct TaskPromise;
+        struct TaskPromiseBase;
 
         template <class T, class P>
         struct TaskAwaiter;
     }
+
+    template <typename T>
+    concept is_task_type = std::move_constructible<T> || std::same_as<T, void>;
 
     /**
      * Tasks represent an asynchronous operation that will be finished at some 
@@ -39,15 +43,17 @@ namespace geode {
      * Once a Task has finished or has been cancelled, it can no longer be 
      * revived
      * @tparam T The type the Task will eventually finish to. This type must be 
-     * move-constructible; though as there is no way to move the value out 
+     * move-constructible or void; though as there is no way to move the value out 
      * of the Task (because of potentially multiple listeners), one 
      * should ensure they can reasonably copy the value out in some form if they 
      * wish to gain ownership of it after the Task is finished
      * @tparam P The type of the progress values the Task (may) post
      */
-    template <std::move_constructible T, std::move_constructible P = std::monostate>
-    class [[nodiscard]] Task final {
+    template <is_task_type T, std::move_constructible P = std::monostate>
+    class [[nodiscard]] Task final  {
     public:
+        using Type = std::conditional_t<std::same_as<T, void>, TaskVoid, T>;
+
         /**
          * A struct used for cancelling Tasks; Tasks may return an instance of
          * this struct to cancel themselves, or to mark they have handled 
@@ -63,9 +69,9 @@ namespace geode {
          */
         class Result final {
         private:
-            std::variant<T, Cancel> m_value;
+            std::variant<Type, Cancel> m_value;
 
-            std::optional<T> getValue() && {
+            std::optional<Type> getValue() && {
                 if (m_value.index() == 0) {
                     return std::optional(std::move(std::get<0>(std::move(m_value))));
                 }
@@ -75,18 +81,26 @@ namespace geode {
                 return m_value.index() == 1;
             }
 
-            template <std::move_constructible T2, std::move_constructible P2>
+            template <is_task_type T2, std::move_constructible P2>
             friend class Task;
 
         public:
             Result(Result&&) = default;
             Result(Result const&) = delete;
-            Result(T&& value) : m_value(std::in_place_index<0>, std::forward<T>(value)) {}
+            Result(Type&& value) : m_value(std::in_place_index<0>, std::forward<Type>(value)) {}
             Result(Cancel const&) : m_value(std::in_place_index<1>, Cancel()) {}
+
+            // For Result<TaskVoid>, allows constructing a Result from a bool
+            Result(bool res) requires std::same_as<Type, TaskVoid> {
+                if (res)
+                    m_value = TaskVoid();
+                else
+                    m_value = Cancel();
+            }
 
             // Allow constructing Results using anything that can be used to construct T
             template <class V>
-            Result(V&& value) requires std::is_constructible_v<T, V&&>
+            Result(V&& value) requires std::is_constructible_v<Type, V&&>
               : m_value(std::in_place_index<0>, std::forward<V>(value))
             {}
         };
@@ -142,7 +156,7 @@ namespace geode {
 
             std::recursive_mutex m_mutex;
             Status m_status = Status::Pending;
-            std::optional<T> m_resultValue;
+            std::optional<Type> m_resultValue;
             bool m_finalEventPosted = false;
             std::string m_name;
             std::unique_ptr<ExtraData> m_extraData = nullptr;
@@ -158,11 +172,11 @@ namespace geode {
                 return m_status == status;
             }
 
-            template <std::move_constructible T2, std::move_constructible P2>
+            template <is_task_type T2, std::move_constructible P2>
             friend class Task;
 
             template <class, class>
-            friend struct geode_internal::TaskPromise;
+            friend struct geode_internal::TaskPromiseBase;
 
             template <class, class>
             friend struct geode_internal::TaskAwaiter;
@@ -198,23 +212,23 @@ namespace geode {
         class Event final : public geode::Event {
         private:
             std::shared_ptr<Handle> m_handle;
-            std::variant<T*, P*, Cancel> m_value;
+            std::variant<Type*, P*, Cancel> m_value;
             EventListenerProtocol* m_for = nullptr;
 
-            Event(std::shared_ptr<Handle> handle, std::variant<T*, P*, Cancel>&& value)
+            Event(std::shared_ptr<Handle> handle, std::variant<Type*, P*, Cancel>&& value)
               : m_handle(handle), m_value(std::move(value)) {}
             
-            static Event createFinished(std::shared_ptr<Handle> handle, T* value) {
-                return Event(handle, std::variant<T*, P*, Cancel>(std::in_place_index<0>, value));
+            static Event createFinished(std::shared_ptr<Handle> handle, Type* value) {
+                return Event(handle, std::variant<Type*, P*, Cancel>(std::in_place_index<0>, value));
             }
             static Event createProgressed(std::shared_ptr<Handle> handle, P* value) {
-                return Event(handle, std::variant<T*, P*, Cancel>(std::in_place_index<1>, value));
+                return Event(handle, std::variant<Type*, P*, Cancel>(std::in_place_index<1>, value));
             }
             static Event createCancelled(std::shared_ptr<Handle> handle) {
-                return Event(handle, std::variant<T*, P*, Cancel>(std::in_place_index<2>, Cancel()));
+                return Event(handle, std::variant<Type*, P*, Cancel>(std::in_place_index<2>, Cancel()));
             }
 
-            template <std::move_constructible T2, std::move_constructible P2>
+            template <is_task_type T2, std::move_constructible P2>
             friend class Task;
 
         public:
@@ -222,14 +236,14 @@ namespace geode {
              * Get a reference to the contained finish value, or null if this 
              * event holds a progress value or represents cancellation instead
              */
-            T* getValue() {
+            Type* getValue() {
                 return m_value.index() == 0 ? std::get<0>(m_value) : nullptr;
             }
             /**
              * Get a reference to the contained finish value, or null if this 
              * event holds a progress value or represents cancellation instead
              */  
-            T const* getValue() const {
+            Type const* getValue() const {
                 return m_value.index() == 0 ? std::get<0>(m_value) : nullptr;
             }
             /**
@@ -261,7 +275,7 @@ namespace geode {
             }
         };
 
-        using Value            = T;
+        using Value            = Type;
         using Progress         = P;
         using PostResult       = std::function<void(Result&&)>;
         using PostProgress     = std::function<void(P)>;
@@ -277,7 +291,7 @@ namespace geode {
 
         Task(std::shared_ptr<Handle> handle) : m_handle(handle) {}
 
-        static void finish(std::shared_ptr<Handle> handle, T&& value) {
+        static void finish(std::shared_ptr<Handle> handle, Type&& value) {
             if (!handle) return;
             std::unique_lock<std::recursive_mutex> lock(handle->m_mutex);
             if (handle->m_status == Status::Pending) {
@@ -319,11 +333,11 @@ namespace geode {
             }
         }
 
-        template <std::move_constructible T2, std::move_constructible P2>
+        template <is_task_type T2, std::move_constructible P2>
         friend class Task;
 
         template <class, class>
-        friend struct geode_internal::TaskPromise;
+        friend struct geode_internal::TaskPromiseBase;
 
         template <class, class>
         friend struct geode_internal::TaskAwaiter;
@@ -343,7 +357,7 @@ namespace geode {
             return *this;
         }
 
-        bool operator==(Task const& other) const {
+        bool operator==(Task const& other) {
             return m_handle == other.m_handle;
         }
         bool operator!=(Task const& other) const {
@@ -367,7 +381,7 @@ namespace geode {
          * or null otherwise. Note that this is simply a mutable reference to 
          * the value - *you may not move out of it!*
          */
-        T* getFinishedValue() {
+        Type* getFinishedValue() {
             if (m_handle && m_handle->m_resultValue) {
                 return &*m_handle->m_resultValue;
             }
@@ -420,12 +434,11 @@ namespace geode {
             return task;
         }
         /**
-         * Create a new Task that immediately finishes with the given 
-         * value
+         * Create a new Task that immediately finishes with the given value
          * @param value The value the Task shall be finished with
          * @param name The name of the Task; used for debugging
          */
-        static Task immediate(T value, std::string_view name = "<Immediate Task>") {
+        static Task immediate(Type value, std::string_view name = "<Immediate Task>") {
             auto task = Task(Handle::create(name));
             Task::finish(task.m_handle, std::move(value));
             return task;
@@ -497,6 +510,36 @@ namespace geode {
             return task;
         }
         /**
+         * Create a new Task that can be manually controlled by the caller. 
+         * The caller is responsible for calling the finish and progress methods
+         * @param name The name of the Task; used for debugging
+         * @return A tuple of the Task, a function for finishing it, a function for 
+         * reporting progress, and a function for checking if it's been cancelled
+         */
+        static std::tuple<Task, PostResult, PostProgress, HasBeenCancelled> spawn(std::string_view name = "<Task>") {
+            auto task = Task(Handle::create(name));
+            return {
+                task,
+                [handle = std::weak_ptr(task.m_handle)](Result result) {
+                    if (result.isCancelled()) {
+                        Task::cancel(handle.lock());
+                    }
+                    else {
+                        Task::finish(handle.lock(), std::move(*std::move(result).getValue()));
+                    }
+                },
+                [handle = std::weak_ptr(task.m_handle)](P progress) {
+                    Task::progress(handle.lock(), std::move(progress));
+                },
+                [handle = std::weak_ptr(task.m_handle)]() -> bool {
+                    // The task has been cancelled if the user has explicitly cancelled it, 
+                    // or if there is no one listening anymore
+                    auto lock = handle.lock();
+                    return !lock || lock->is(Status::Cancelled);
+                }
+            };
+        }
+        /**
          * Create a Task that waits for a list of other Tasks to finish, and then 
          * finishes with a list of their finish values
          * @param tasks The tasks to wait for
@@ -505,8 +548,8 @@ namespace geode {
          * were cancelled!
          */
         template <std::move_constructible NP>
-        static Task<std::vector<T*>, std::monostate> all(std::vector<Task<T, NP>>&& tasks, std::string_view name = "<Multiple Tasks>") {
-            using AllTask = Task<std::vector<T*>, std::monostate>;
+        static Task<std::vector<Type*>, std::monostate> all(std::vector<Task<Type, NP>>&& tasks, std::string_view name = "<Multiple Tasks>") {
+            using AllTask = Task<std::vector<Type*>, std::monostate>;
 
             // If there are no tasks, return an immediate task that does nothing
             if (tasks.empty()) {
@@ -519,7 +562,7 @@ namespace geode {
             // Storage for storing the results received so far & keeping 
             // ownership of the running tasks
             struct Waiting final {
-                std::vector<T*> taskResults;
+                std::vector<Type*> taskResults;
                 std::vector<Task<std::monostate>> taskListeners;
                 size_t taskCount;
             };
@@ -550,7 +593,7 @@ namespace geode {
 
             // Make sure to only give a weak pointer to avoid circular references!
             // (Tasks should NEVER own themselves!!)
-            auto markAsDone = [handle = std::weak_ptr(task.m_handle)](size_t index, T* result) {
+            auto markAsDone = [handle = std::weak_ptr(task.m_handle)](size_t index, Type* result) {
                 auto lock = handle.lock();
 
                 // If this task handle has expired, consider the task cancelled
@@ -619,7 +662,7 @@ namespace geode {
          */
         template <class ResultMapper, class ProgressMapper, class OnCancelled>
         auto map(ResultMapper&& resultMapper, ProgressMapper&& progressMapper, OnCancelled&& onCancelled, std::string_view name = "<Mapping Task>") const {
-            using T2 = decltype(resultMapper(std::declval<T*>()));
+            using T2 = decltype(resultMapper(std::declval<Type*>()));
             using P2 = decltype(progressMapper(std::declval<P*>()));
 
             static_assert(std::is_move_constructible_v<T2>, "The type being mapped to must be move-constructible!");
@@ -798,9 +841,9 @@ namespace geode {
          * @return The new Task that will run when this Task finishes.
          * @note Progress from this task is not sent through, only progress from the new task is.
          */
-        template <std::invocable<T*> Mapper>
-        auto chain(Mapper mapper, std::string_view name = "<Chained Task>") const -> decltype(mapper(std::declval<T*>())) {
-            using NewTask = decltype(mapper(std::declval<T*>()));
+        template <std::invocable<Type*> Mapper>
+        auto chain(Mapper mapper, std::string_view name = "<Chained Task>") const -> decltype(mapper(std::declval<Type*>())) {
+            using NewTask = decltype(mapper(std::declval<Type*>()));
             using NewType = typename NewTask::Value;
             using NewProgress = typename NewTask::Progress;
 
@@ -953,18 +996,18 @@ namespace geode {
 namespace geode {
     namespace geode_internal {
         template <class T, class P>
-        struct TaskPromise {
+        struct TaskPromiseBase {
             using MyTask = Task<T, P>;
             std::weak_ptr<typename MyTask::Handle> m_handle;
 
-            ~TaskPromise() {
+            ~TaskPromiseBase() {
                 // does nothing if its not pending
                 MyTask::cancel(m_handle.lock());
             }
 
             std::suspend_always initial_suspend() noexcept {
                 queueInMainThread([this] {
-                    std::coroutine_handle<TaskPromise>::from_promise(*this).resume();
+                    std::coroutine_handle<TaskPromiseBase>::from_promise(*this).resume();
                 });
                 return {};
             }
@@ -978,13 +1021,13 @@ namespace geode {
                 return handle;
             }
 
-            void return_value(T x) {
-                MyTask::finish(m_handle.lock(), std::move(x));
-            }
-
             std::suspend_never yield_value(P value) {
                 MyTask::progress(m_handle.lock(), std::move(value));
                 return {};
+            }
+
+            void return_base(MyTask::Type value) {
+                MyTask::finish(m_handle.lock(), std::move(value));
             }
 
             bool isCancelled() {
@@ -992,6 +1035,19 @@ namespace geode {
                     return p->is(MyTask::Status::Cancelled);
                 }
                 return true;
+            }
+        };
+
+        template <class T, class P>
+        struct TaskPromise : public TaskPromiseBase<T, P> {
+            void return_value(T value) {
+                this->return_base(value);
+            }
+        };
+        template <class P>
+        struct TaskPromise<void, P> : public TaskPromiseBase<void, P> {
+            void return_void() {
+                this->return_base({});
             }
         };
 
@@ -1037,7 +1093,7 @@ namespace geode {
                 );
             }
 
-            T await_resume() {
+            Task<T, P>::Type await_resume() {
                 return std::move(*task.getFinishedValue());
             }
         };

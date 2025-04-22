@@ -59,6 +59,7 @@ class CC_DLL CCPointArray : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCPointArray, CCObject)
     
     /** creates and initializes a Points array with capacity 
      * @lua NA
@@ -108,7 +109,7 @@ public:
     const gd::vector<CCPoint*>* getControlPoints();
 
     void setControlPoints(gd::vector<CCPoint*> *controlPoints);
-private:
+public:
     /** Array that contains the control points */
     gd::vector<CCPoint*> *m_pControlPoints;
 };
@@ -121,6 +122,7 @@ class CC_DLL CCCardinalSplineTo : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCCardinalSplineTo, CCActionInterval)
 
     /** creates an action with a Cardinal Spline array of points and tension 
      *  @code
@@ -176,7 +178,7 @@ public:
         m_pPoints = points;
     }
     
-protected:
+public:
     /** Array of control points */
     CCPointArray *m_pPoints;
     float m_fDeltaT;
@@ -193,6 +195,7 @@ class CC_DLL CCCardinalSplineBy : public CCCardinalSplineTo
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCCardinalSplineBy, CCCardinalSplineTo)
     
     /** creates an action with a Cardinal Spline array of points and tension 
      *  @code
@@ -215,7 +218,7 @@ public:
      *  @lua NA
      */
     virtual void updatePosition(CCPoint &newPos);
-protected:
+public:
     CCPoint m_startPosition;
 };
 

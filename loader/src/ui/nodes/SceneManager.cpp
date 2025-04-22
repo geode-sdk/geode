@@ -18,11 +18,11 @@ void SceneManager::keepAcrossScenes(CCNode* node) {
     if (ranges::contains(m_persistedNodes, node)) {
         return;
     }
+    m_persistedNodes.push_back(node);
     if (m_lastScene) {
         node->removeFromParentAndCleanup(false);
         m_lastScene->addChild(node);
     }
-    m_persistedNodes.push_back(node);
 }
 
 void SceneManager::forget(CCNode* node) {
@@ -37,7 +37,7 @@ void SceneManager::willSwitchToScene(CCScene* scene) {
     for (auto& node : m_persistedNodes) {
         // no cleanup in order to keep actions running
         node->removeFromParentAndCleanup(false);
-        scene->addChild(node);
+        if(scene) scene->addChild(node);
     }
     m_lastScene = scene;
 }

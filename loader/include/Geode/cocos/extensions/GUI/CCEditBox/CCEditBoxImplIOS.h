@@ -74,6 +74,9 @@ class CC_DLL CCEditBox;
 class CC_DLL CCEditBoxImplIOS : public CCEditBoxImpl
 {
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEditBoxImplIOS, CCEditBoxImpl)
+    CCEditBoxImplIOS() {}
+
     CCEditBoxImplIOS(CCEditBox* pEditText);
     virtual ~CCEditBoxImplIOS();
     
@@ -109,7 +112,8 @@ private:
 	void			setInactiveText(const char* pText);
 	void			adjustTextFieldPosition();
     void            placeInactiveLabels();
-	
+
+public:
     CCLabelTTF*     m_pLabel;
     CCLabelTTF*     m_pLabelPlaceHolder;
     CCSize          m_tContentSize;

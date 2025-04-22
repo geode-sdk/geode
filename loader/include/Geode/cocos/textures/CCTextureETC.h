@@ -38,6 +38,7 @@ class CC_DLL CCTextureETC : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTextureETC, CCObject)
     CCTextureETC();
     virtual ~CCTextureETC();
 
@@ -50,7 +51,7 @@ public:
 private:
     bool loadTexture(const char* file);
 
-private:
+public:
     GLuint _name;
     unsigned int _width;
     unsigned int _height;

@@ -60,6 +60,7 @@ class CC_DLL CCProgressTimer : public CCNodeRGBA
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCProgressTimer, CCNodeRGBA)
     /**
      * @js ctor
      */
@@ -113,7 +114,7 @@ protected:
     void updateColor(void);
     CCPoint boundaryTexCoord(char index);
 
-protected:
+public:
     CCProgressTimerType m_eType;
     float m_fPercentage;
     CCSprite *m_pSprite;

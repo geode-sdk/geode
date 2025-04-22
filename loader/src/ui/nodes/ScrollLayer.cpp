@@ -18,9 +18,20 @@ void GenericContentLayer::setPosition(CCPoint const& pos) {
     // all be TableViewCells
     CCLayerColor::setPosition(pos);
 
+    CCSize scrollLayerSize{};
+    if (auto parent = this->getParent()) {
+        scrollLayerSize = parent->getContentSize();
+    }
+
     for (auto child : CCArrayExt<CCNode*>(m_pChildren)) {
-        auto y = this->getPositionY() + child->getPositionY();
-        child->setVisible(!((m_obContentSize.height < y) || (y < -child->getContentSize().height)));
+        float childY = this->getPositionY() + child->getPositionY();
+        auto anchor = child->isIgnoreAnchorPointForPosition() ? CCPoint{ 0, 0 } : child->getAnchorPoint();
+        float scaleY = child->getScaleY();
+        float childTop = scaleY * (childY + (1.f - anchor.y) * child->getScaledContentSize().height);
+        float childBottom = scaleY * (childY - child->getAnchorPoint().y * child->getScaledContentSize().height);
+        bool visible = childTop > 0 && childBottom < scrollLayerSize.height;
+
+        child->setVisible(visible);
     }
 }
 

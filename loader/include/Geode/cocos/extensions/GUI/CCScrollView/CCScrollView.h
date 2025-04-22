@@ -253,7 +253,7 @@ private:
 
 protected:
     CCRect getViewRect();
-    
+public:
     /**
      * current zoom scale
      */
@@ -345,7 +345,7 @@ public:
     void registerScriptHandler(int nFunID,int nScriptEventType);
     void unregisterScriptHandler(int nScriptEventType);
     int  getScriptHandler(int nScriptEventType);
-private:
+public:
     gd::map<int,int> m_mapScriptHandler;
 };
 

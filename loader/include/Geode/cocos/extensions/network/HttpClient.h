@@ -49,6 +49,8 @@ class CC_DLL CCHttpClient : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCHttpClient, CCObject)
+
     /** Return the shared instance **/
     static CCHttpClient *getInstance();
     
@@ -107,7 +109,7 @@ private:
     /** Poll function called from main thread to dispatch callbacks when http requests finished **/
     void dispatchResponseCallbacks(float delta);
     
-private:
+public:
     int _timeoutForConnect;
     int _timeoutForRead;
     

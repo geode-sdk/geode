@@ -4,6 +4,7 @@
 #include <Geode/ui/BasedButtonSprite.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/cocos/cocoa/CCObject.h>
+#include <Geode/loader/Event.hpp>
 #include "SwelvyBG.hpp"
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/utils/ColorProvider.hpp>
@@ -18,7 +19,6 @@
 #include "GeodeStyle.hpp"
 #include "ui/mods/sources/ModListSource.hpp"
 #include <loader/LoaderImpl.hpp>
-#include "events/EventWinnerAnimation.hpp"
 
 bool ModsStatusNode::init() {
     if (!CCNode::init())
@@ -92,6 +92,9 @@ bool ModsStatusNode::init() {
     m_downloadListener.bind([this](auto) { this->updateState(); });
 
     m_settingNodeListener.bind([this](SettingNodeValueChangeEvent* ev) {
+        if (!ev->isCommit()) {
+            return ListenerResult::Propagate;
+        }
         this->updateState();
         return ListenerResult::Propagate;
     });
@@ -379,6 +382,11 @@ bool ModsLayer::init() {
     actionsMenu->setContentHeight(200.f);
     actionsMenu->setAnchorPoint({ .5f, .0f });
 
+    auto rightActionsMenu = CCMenu::create();
+    rightActionsMenu->setID("right-actions-menu");
+    rightActionsMenu->setContentHeight(200.0f);
+    rightActionsMenu->setAnchorPoint({ .5f, .0f });
+
     auto reloadSpr = createGeodeCircleButton(
         CCSprite::createWithSpriteFrameName("reload.png"_spr), 1.f,
         CircleBaseSize::Medium
@@ -389,7 +397,7 @@ bool ModsLayer::init() {
         reloadSpr, this, menu_selector(ModsLayer::onRefreshList)
     );
     reloadBtn->setID("reload-button");
-    actionsMenu->addChild(reloadBtn);
+    rightActionsMenu->addChild(reloadBtn);
 
     auto settingsSpr = createGeodeCircleButton(
         CCSprite::createWithSpriteFrameName("settings.png"_spr), 1.f,
@@ -434,7 +442,21 @@ bool ModsLayer::init() {
         ColumnLayout::create()
             ->setAxisAlignment(AxisAlignment::Start)
     );
-    this->addChildAtPosition(actionsMenu, Anchor::BottomLeft, ccp(35, 12), false);
+
+    rightActionsMenu->setLayout(
+        ColumnLayout::create()
+            ->setAxisAlignment(AxisAlignment::Start)
+    );
+
+    // positioning based on size of mod list frame and maximum width of buttons
+    // i would apologize
+    auto actionsMenuX = std::min(35.0f, (winSize.width - 380.0f - 10.0f) / 4.0f);
+
+    // center buttons when the actionsMenu is moved
+    auto actionsMenuY = std::min(actionsMenuX - 20.0f, 12.0f);
+
+    this->addChildAtPosition(actionsMenu, Anchor::BottomLeft, ccp(actionsMenuX, actionsMenuY), false);
+    this->addChildAtPosition(rightActionsMenu, Anchor::BottomRight, ccp(-actionsMenuX, actionsMenuY), false);
 
     m_frame = CCNode::create();
     m_frame->setID("mod-list-frame");
@@ -485,7 +507,6 @@ bool ModsLayer::init() {
         { "GJ_starsIcon_001.png", "Featured", ServerModListSource::get(ServerModListType::Featured), "featured-button", false },
         { "globe.png"_spr, "Download", ServerModListSource::get(ServerModListType::Download), "download-button", false },
         { "GJ_timeIcon_001.png", "Recent", ServerModListSource::get(ServerModListType::Recent), "recent-button", false },
-        { "d_artCloud_03_001.png", "Modtober", ServerModListSource::get(ServerModListType::Modtober24), "modtober-button", true },
     }) {
         auto btn = CCMenuItemSpriteExtra::create(
             GeodeTabSprite::create(std::get<0>(item), std::get<1>(item), 100, std::get<4>(item)),
@@ -623,14 +644,6 @@ bool ModsLayer::init() {
     return true;
 }
 
-void ModsLayer::onEnterTransitionDidFinish() {
-    CCLayer::onEnterTransitionDidFinish();
-    // todo: generic system for this for any contest event
-    if (!Mod::get()->setSavedValue("shown-modtober-winner", true)) {
-        this->addChild(EventWinnerAnimation::create());
-    }
-}
-
 void ModsLayer::gotoTab(ModListSource* src) {
     // Update selected tab
     for (auto tab : m_tabs) {
@@ -760,8 +773,16 @@ void ModsLayer::onDisplay(CCObject* sender) {
 
     // Make sure to avoid a crash
     if (m_currentSource) {
+        if (m_lists.at(m_currentSource)->getDisplay() == m_modListDisplay) {
+            // No need to do stuff
+            return;
+        }
         m_lists.at(m_currentSource)->updateDisplay(m_modListDisplay);
-        m_lists.at(m_currentSource)->reloadPage();
+
+        // Hi, Flame here, I made all display types have the same page size
+        // So there's no need for this now
+        // If anything breaks, make sure to tell me I'm a dumbass
+        // m_lists.at(m_currentSource)->reloadPage();
     }
     this->updateState();
 }

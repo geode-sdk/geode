@@ -2,6 +2,7 @@
 
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <loader/ModMetadataImpl.hpp>
 #include <optional>
 #include <string_view>
 #include <server/Server.hpp>
@@ -85,6 +86,12 @@ std::filesystem::path Mod::getBinaryPath() const {
 
 std::filesystem::path Mod::getResourcesDir() const {
     return dirs::getModRuntimeDir() / this->getID() / "resources" / this->getID();
+}
+
+matjson::Value Mod::getDependencySettingsFor(std::string_view dependencyID) const {
+    auto id = std::string(dependencyID);
+    auto const& settings = ModMetadataImpl::getImpl(m_impl->m_metadata).m_dependencySettings;
+    return settings.contains(id) ? settings.at(id) : matjson::Value();
 }
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)

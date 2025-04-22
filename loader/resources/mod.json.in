@@ -104,8 +104,25 @@
             "default": false,
             "name": "Show Platform Console",
             "description": "Show the native console (if one exists). <cr>This setting is meant for developers</c>",
-            "platforms": ["win", "mac"],
+            "platforms": [
+                "win",
+                "mac"
+            ],
             "requires-restart": true
+        },
+        "console-log-level": {
+            "type": "string",
+            "default": "info",
+            "name": "Console Log Level",
+            "description": "Sets the log level for the <cb>platform console</c>.",
+            "one-of": ["debug", "info", "warn", "error"]
+        },
+        "file-log-level": {
+            "type": "string",
+            "default": "info",
+            "name": "File Log Level",
+            "description": "Sets the log level for the <cb>log files</c>.",
+            "one-of": ["debug", "info", "warn", "error"]
         },
         "server-cache-size-limit": {
             "type": "int",
@@ -114,6 +131,14 @@
             "max": 100,
             "name": "Server Cache Size Limit",
             "description": "Limits the size of the cache used for loading mods. Higher values result in higher memory usage."
+        },
+        "log-retention-period": {
+            "type": "int",
+            "default": 30,
+            "min": 0,
+            "max": 365,
+            "name": "Log Retention Period",
+            "description": "The number of days to keep logs for. Logs older than this will be deleted every launch. 0 to disable deletion."
         }
     },
     "issues": {

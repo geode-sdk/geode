@@ -152,9 +152,18 @@ public:
                     }
                 }
                 else {
+                    auto resp = event->getValue();
+
                     m_status = DownloadStatusError {
-                        .details = value->string().unwrapOr("Unknown error"),
+                        .details = fmt::format("Server returned error {}", resp->code()),
                     };
+                    log::error("Failed to download {}, server returned error {}", m_id, resp->code());
+                    log::error("{}", resp->string().unwrapOr("No response"));
+
+                    const auto& extErr = resp->errorMessage();
+                    if (!extErr.empty()) {
+                        log::error("Extended error info: {}", extErr);
+                    }
                 }
             }
             else if (auto progress = event->getProgress()) {

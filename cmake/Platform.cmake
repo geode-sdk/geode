@@ -5,10 +5,40 @@ if (NOT ${PROJECT_NAME} STREQUAL ${CMAKE_PROJECT_NAME})
 endif()
 
 if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
+	# make sure that we get the ios sdk
+	execute_process(COMMAND xcrun --show-sdk-path --sdk iphoneos
+	OUTPUT_VARIABLE GEODE_IOS_SDK
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
+
+	message(STATUS "iOS c++ compiler: ${CMAKE_CXX_COMPILER}")
+	set(CMAKE_OSX_ARCHITECTURES arm64)
+	set(CMAKE_OSX_SYSROOT ${GEODE_IOS_SDK})
+	set(CMAKE_OSX_DEPLOYMENT_TARGET "14.0")
+	set(CMAKE_SYSTEM_NAME "iOS")
+
+	# this fails on ios builds
+	set(BUILD_MD2HTML_EXECUTABLE "OFF")
+
 	set_target_properties(${PROJECT_NAME} PROPERTIES
 		SYSTEM_NAME iOS
 		OSX_SYSROOT ${GEODE_IOS_SDK}
 		OSX_ARCHITECTURES arm64
+	)
+
+	target_link_libraries(${PROJECT_NAME} INTERFACE
+		"-framework OpenGLES"     # needed for CCClippingNode reimpl and ScrollLayer
+		"-framework UIKit"        # needed for file picking (UIApplication)
+		"-framework Foundation"   # needed for many things
+		"-framework AVFoundation" # needed for microphone access
+		${GEODE_LOADER_PATH}/include/link/ios/libssl.a
+		${GEODE_LOADER_PATH}/include/link/ios/libcrypto.a
+		${GEODE_LOADER_PATH}/include/link/ios/libnghttp2.a
+		${GEODE_LOADER_PATH}/include/link/ios/libcurl.a
+	)
+
+	target_compile_definitions(${PROJECT_NAME} INTERFACE
+		-DGLES_SILENCE_DEPRECATION
 	)
 
 	set(GEODE_OUTPUT_NAME "Geode.ios")
@@ -17,6 +47,8 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 
 	if (NOT ${PROJECT_NAME} STREQUAL ${CMAKE_PROJECT_NAME})
 		set(GEODE_TARGET_PLATFORM_SHORT "ios" PARENT_SCOPE)
+		# this is needed because else loading mods will fail below ios 14.5
+		set(CMAKE_OSX_DEPLOYMENT_TARGET "14.0" PARENT_SCOPE)
 	else()
 		set(GEODE_TARGET_PLATFORM_SHORT "ios")
 	endif()

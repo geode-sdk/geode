@@ -132,8 +132,10 @@ server::ServerModMetadata const* ModSource::asServer() const {
 
 server::ServerRequest<std::optional<std::string>> ModSource::fetchAbout() const {
     // todo: write as visit
-    if (auto mod = this->asMod()) {
-        return server::ServerRequest<std::optional<std::string>>::immediate(Ok(mod->getMetadata().getDetails()));
+    if(!this->hasUpdates()) {
+        if (auto mod = this->asMod()) {
+            return server::ServerRequest<std::optional<std::string>>::immediate(Ok(mod->getMetadata().getDetails()));
+        }
     }
     return server::getMod(this->getID()).map(
         [](auto* result) -> Result<std::optional<std::string>, server::ServerError> {
@@ -145,8 +147,10 @@ server::ServerRequest<std::optional<std::string>> ModSource::fetchAbout() const 
     );
 }
 server::ServerRequest<std::optional<std::string>> ModSource::fetchChangelog() const {
-    if (auto mod = this->asMod()) {
-        return server::ServerRequest<std::optional<std::string>>::immediate(Ok(mod->getMetadata().getChangelog()));
+    if(!this->hasUpdates()) {
+        if (auto mod = this->asMod()) {
+            return server::ServerRequest<std::optional<std::string>>::immediate(Ok(mod->getMetadata().getChangelog()));
+        }
     }
     return server::getMod(this->getID()).map(
         [](auto* result) -> Result<std::optional<std::string>, server::ServerError> {

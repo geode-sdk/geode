@@ -74,37 +74,48 @@ void Loader::Impl::createDirectories() {
     }
 }
 
+void Loader::Impl::removeDirectories() {
+    // clean up of stale data from Geode v2
+    if(std::filesystem::exists(dirs::getGeodeDir() / "index")) {
+        std::thread([] {
+            std::error_code ec;
+            std::filesystem::remove_all(dirs::getGeodeDir() / "index", ec);
+        }).detach();
+    }
+}
+
 Result<> Loader::Impl::setup() {
     if (m_isSetup) {
         return Ok();
     }
 
     if (this->supportsLaunchArguments()) {
-        log::debug("Loading launch arguments");
+        log::info("Loading launch arguments");
         log::NestScope nest;
         this->initLaunchArguments();
     }
 
     // on some platforms, using the crash handler overrides more convenient native handlers
     if (!this->getLaunchFlag("disable-crash-handler")) {
-        log::debug("Setting up crash handler");
+        log::info("Setting up crash handler");
         log::NestScope nest;
         if (!crashlog::setupPlatformHandler()) {
             log::debug("Failed to set up crash handler");
         }
     } else {
-        log::debug("Crash handler setup skipped");
+        log::info("Crash handler setup skipped");
     }
 
-    log::debug("Loading hooks");
+    log::info("Loading hooks");
     if (log::NestScope nest; !this->loadHooks()) {
         return Err("There were errors loading some hooks, see console for details");
     }
 
-    log::debug("Setting up directories");
+    log::info("Setting up directories");
     {
         log::NestScope nest;
         this->createDirectories();
+        this->removeDirectories();
         this->addSearchPaths();
     }
 
@@ -112,6 +123,7 @@ Result<> Loader::Impl::setup() {
     // this function is already on the gd thread, so this should be fine
     ModStateEvent(Mod::get(), ModEventType::Loaded).post();
 
+    log::info("Refreshing mod graph");
     this->refreshModGraph();
 
     m_isSetup = true;
@@ -405,18 +417,18 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
     }
     
     if (node->hasUnresolvedDependencies()) {
-        log::debug("{} {} has unresolved dependencies", node->getID(), node->getVersion());
+        log::warn("{} {} has unresolved dependencies", node->getID(), node->getVersion());
         return;
     }
     if (node->hasUnresolvedIncompatibilities()) {
-        log::debug("{} {} has unresolved incompatibilities", node->getID(), node->getVersion());
+        log::warn("{} {} has unresolved incompatibilities", node->getID(), node->getVersion());
         return;
     }
 
     log::NestScope nest;
 
     if (node->isEnabled()) {
-        log::warn("Mod {} already loaded, this should never happen", node->getID());
+        log::error("Mod {} already loaded, this should never happen", node->getID());
         return;
     }
 
@@ -426,16 +438,14 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
     m_lateRefreshedModCount += early ? 0 : 1;
 
     auto unzipFunction = [this, node]() {
-        log::debug("Unzip");
-        log::NestScope nest;
+        log::debug("Unzipping .geode file");
         auto res = node->m_impl->unzipGeodeFile(node->getMetadata());
         return res;
     };
 
     auto loadFunction = [this, node, early]() {
         if (node->shouldLoad()) {
-            log::debug("Load");
-            log::NestScope nest;
+            log::debug("Loading binary");
             auto res = node->m_impl->loadBinary();
             if (!res) {
                 this->addProblem({
@@ -513,7 +523,7 @@ void Loader::Impl::findProblems() {
             continue;
         }
         if (mod->targetsOutdatedVersion()) {
-            log::debug("{} is outdated", id);
+            log::warn("{} is outdated", id);
             continue;
         }
         log::debug("{}", id);
@@ -536,7 +546,7 @@ void Loader::Impl::findProblems() {
                         log::info("{} suggests {} {}", id, dep.id, dep.version);
                     }
                     else {
-                        log::info("{} suggests {} {}, but that suggestion was dismissed", id, dep.id, dep.version);
+                        log::debug("{} suggests {} {}, but that suggestion was dismissed", id, dep.id, dep.version);
                     }
                     break;
                 case ModMetadata::Dependency::Importance::Recommended:
@@ -546,10 +556,10 @@ void Loader::Impl::findProblems() {
                             mod,
                             fmt::format("{} {}", dep.id, dep.version.toString())
                         });
-                        log::warn("{} recommends {} {}", id, dep.id, dep.version);
+                        log::info("{} recommends {} {}", id, dep.id, dep.version);
                     }
                     else {
-                        log::warn("{} recommends {} {}, but that suggestion was dismissed", id, dep.id, dep.version);
+                        log::debug("{} recommends {} {}, but that suggestion was dismissed", id, dep.id, dep.version);
                     }
                     break;
                 case ModMetadata::Dependency::Importance::Required:
@@ -648,7 +658,6 @@ void Loader::Impl::findProblems() {
 }
 
 void Loader::Impl::refreshModGraph() {
-    log::info("Refreshing mod graph");
     log::NestScope nest;
 
     if (m_isSetup) {
@@ -661,7 +670,7 @@ void Loader::Impl::refreshModGraph() {
     m_problems.clear();
 
     m_loadingState = LoadingState::Queue;
-    log::debug("Queueing mods");
+    log::info("Queueing mods");
     std::vector<ModMetadata> modQueue;
     {
         log::NestScope nest;
@@ -669,7 +678,7 @@ void Loader::Impl::refreshModGraph() {
     }
 
     m_loadingState = LoadingState::List;
-    log::debug("Populating mod list");
+    log::info("Populating mod list");
     {
         log::NestScope nest;
         this->populateModList(modQueue);
@@ -677,36 +686,38 @@ void Loader::Impl::refreshModGraph() {
     }
 
     m_loadingState = LoadingState::Graph;
-    log::debug("Building mod graph");
+    log::info("Building mod graph");
     {
         log::NestScope nest;
         this->buildModGraph();
     }
 
-    log::debug("Ordering mod stack");
+    log::info("Ordering mod stack");
     {
         log::NestScope nest;
         this->orderModStack();
     }
 
     m_loadingState = LoadingState::EarlyMods;
-    log::debug("Loading early mods");
+    log::info("Loading early mods");
     {
         log::NestScope nest;
         while (!m_modsToLoad.empty() && m_modsToLoad.front()->needsEarlyLoad()) {
             auto mod = m_modsToLoad.front();
             m_modsToLoad.pop_front();
+            log::info("Loading mod {} {}", mod->getID(), mod->getVersion());
             this->loadModGraph(mod, true);
         }
     }
 
     auto end = std::chrono::high_resolution_clock::now();
     auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
-    log::info("Took {}s. Continuing next frame...", static_cast<float>(time) / 1000.f);
+    log::debug("Took {}s. Continuing next frame...", static_cast<float>(time) / 1000.f);
 
     m_loadingState = LoadingState::Mods;
 
     queueInMainThread([this]() {
+        log::info("Loading non-early mods");
         this->continueRefreshModGraph();
     });
 }
@@ -769,10 +780,10 @@ void Loader::Impl::continueRefreshModGraph() {
     if  (m_lateRefreshedModCount > 0) {
         auto end = std::chrono::high_resolution_clock::now();
         auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - m_timerBegin).count();
-        log::info("Took {}s", static_cast<float>(time) / 1000.f);
+        log::debug("Took {}s", static_cast<float>(time) / 1000.f);
     }
 
-    log::info("Continuing mod graph refresh...");
+    log::debug("Continuing mod graph refresh...");
     log::NestScope nest;
 
     m_timerBegin = std::chrono::high_resolution_clock::now();
@@ -782,14 +793,14 @@ void Loader::Impl::continueRefreshModGraph() {
             if (!m_modsToLoad.empty()) {
                 auto mod = m_modsToLoad.front();
                 m_modsToLoad.pop_front();
-                log::debug("Loading mod {} {}", mod->getID(), mod->getVersion());
+                log::info("Loading mod {} {}", mod->getID(), mod->getVersion());
                 this->loadModGraph(mod, false);
                 break;
             }
             m_loadingState = LoadingState::Problems;
             [[fallthrough]];
         case LoadingState::Problems:
-            log::debug("Finding problems");
+            log::info("Finding problems");
             {
                 log::NestScope nest;
                 this->findProblems();
@@ -798,7 +809,7 @@ void Loader::Impl::continueRefreshModGraph() {
             {
                 auto end = std::chrono::high_resolution_clock::now();
                 auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - m_timerBegin).count();
-                log::info("Took {}s", static_cast<float>(time) / 1000.f);
+                log::debug("Took {}s", static_cast<float>(time) / 1000.f);
             }
             break;
         default:
@@ -937,16 +948,38 @@ Result<tulip::hook::HandlerHandle> Loader::Impl::getHandler(void* address) {
     if (!m_handlerHandles.count(address)) {
         return Err("Handler does not exist at address");
     }
-    return Ok(m_handlerHandles[address]);
+    return Ok(m_handlerHandles[address].first);
 }
 
 Result<tulip::hook::HandlerHandle> Loader::Impl::getOrCreateHandler(void* address, tulip::hook::HandlerMetadata const& metadata) {
-    if (m_handlerHandles.count(address)) {
-        return Ok(m_handlerHandles[address]);
+    if (m_handlerHandles.count(address) && m_handlerHandles[address].second > 0) {
+        m_handlerHandles[address].second++;
+        return Ok(m_handlerHandles[address].first);
     }
     GEODE_UNWRAP_INTO(auto handle, tulip::hook::createHandler(address, metadata));
-    m_handlerHandles[address] = handle;
+    m_handlerHandles[address].first = handle;
+    m_handlerHandles[address].second = 1;
     return Ok(handle);
+}
+
+Result<tulip::hook::HandlerHandle> Loader::Impl::getAndDecreaseHandler(void* address) {
+    if (!m_handlerHandles.count(address)) {
+        return Err("Handler does not exist at address");
+    }
+    auto handle = m_handlerHandles[address].first;
+    m_handlerHandles[address].second--;
+    return Ok(handle);
+}
+
+Result<> Loader::Impl::removeHandlerIfNeeded(void* address) {
+    if (!m_handlerHandles.count(address)) {
+        return Err("Handler does not exist at address");
+    }
+    auto handle = m_handlerHandles[address].first;
+    if (m_handlerHandles[address].second == 0) {
+        GEODE_UNWRAP(tulip::hook::removeHandler(handle));
+    }
+    return Ok();
 }
 
 bool Loader::Impl::isSafeMode() const {

@@ -73,6 +73,9 @@ class CC_DLL CCEditBox;
 class CC_DLL CCEditBoxImplMac : public CCEditBoxImpl
 {
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEditBoxImplMac, CCEditBoxImpl)
+    CCEditBoxImplMac() {}
+
     CCEditBoxImplMac(CCEditBox* pEditText);
     virtual ~CCEditBoxImplMac();
     
@@ -103,6 +106,7 @@ public:
 private:
     NSPoint    convertDesignCoordToScreenCoord(const CCPoint& designCoord, bool bInRetinaMode);
     void       adjustTextFieldPosition();
+public:
     CCSize     m_tContentSize;
     CCPoint    m_obPosition;
     CCPoint    m_obAnchorPoint;

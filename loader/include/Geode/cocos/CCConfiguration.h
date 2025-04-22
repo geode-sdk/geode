@@ -63,6 +63,7 @@ public:
     static void purgeConfiguration(void);
 
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCConfiguration, CCObject)
     /**
      *  @js NA
      *  @lua NA
@@ -142,7 +143,7 @@ private:
     static CCConfiguration *s_gSharedConfiguration;
 	static gd::string		s_sConfigfile;
     
-protected:
+public:
     GLint           m_nMaxTextureSize;
     GLint           m_nMaxModelviewStackDepth;
     bool            m_bSupportsPVRTC;

@@ -52,6 +52,7 @@ class CC_DLL CCKeypadDispatcher : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCKeypadDispatcher, CCObject);
     CCKeypadDispatcher();
     ~CCKeypadDispatcher();
 
@@ -80,7 +81,7 @@ public:
     */
     bool dispatchKeypadMSG(ccKeypadMSGType nMsgType);
 
-protected:
+public:
 
     CCArray* m_pDelegates;
     bool m_bLocked;

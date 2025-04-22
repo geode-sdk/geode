@@ -14,26 +14,34 @@ using namespace geode::prelude;
 namespace enable_if_parsing {
     struct Component {
         virtual ~Component() = default;
-        virtual Result<> check() const = 0;
-        virtual Result<> eval(std::string const& defaultModID) const = 0;
+        virtual Result<> checkSemantics() const = 0;
+        virtual bool shouldEnableSetting(std::string const& defaultModID) const = 0;
+        virtual std::string shouldEnableReason(std::string const& defaultModID) const = 0;
     };
     struct RequireModLoaded final : public Component {
         std::string modID;
         RequireModLoaded(std::string const& modID)
           : modID(modID) {}
         
-        Result<> check() const override {
+        Result<> checkSemantics() const override {
             return Ok();
         }
-        Result<> eval(std::string const& defaultModID) const override {
+        bool shouldEnableSetting(std::string const& defaultModID) const override {
             if (Loader::get()->getLoadedMod(modID)) {
-                return Ok();
+                return true;
             }
             auto modName = modID;
             if (auto mod = Loader::get()->getInstalledMod(modID)) {
                 modName = mod->getName();
             }
-            return Err("Enable the mod {}", modName);
+            return false;
+        }
+        std::string shouldEnableReason(std::string const&) const override {
+            auto modName = modID;
+            if (auto mod = Loader::get()->getInstalledMod(modID)) {
+                modName = mod->getName();
+            }
+            return fmt::format("Enable the mod {}", modName);
         }
     };
     struct RequireSettingEnabled final : public Component {
@@ -42,7 +50,7 @@ namespace enable_if_parsing {
         RequireSettingEnabled(std::string const& modID, std::string const& settingID)
           : modID(modID), settingID(settingID) {}
         
-        Result<> check() const override {
+        Result<> checkSemantics() const override {
             if (auto mod = Loader::get()->getInstalledMod(modID)) {
                 if (!mod->hasSetting(settingID)) {
                     return Err("Mod '{}' does not have setting '{}'", mod->getName(), settingID);
@@ -53,27 +61,31 @@ namespace enable_if_parsing {
             }
             return Ok();
         }
-        Result<> eval(std::string const& defaultModID) const override {
+        bool shouldEnableSetting(std::string const& defaultModID) const override {
             if (auto mod = Loader::get()->getLoadedMod(modID)) {
                 if (mod->getSettingValue<bool>(settingID)) {
-                    return Ok();
+                    return true;
                 }
-                // This is an if-check just in case, even though check() should already 
-                // make sure that getSettingV3 is guaranteed to return true
+                return false;
+            }
+            return false;
+        }
+        std::string shouldEnableReason(std::string const& defaultModID) const override {
+            if (auto mod = Loader::get()->getLoadedMod(modID)) {
                 auto name = settingID;
                 if (auto sett = mod->getSetting(settingID)) {
                     name = sett->getDisplayName();
                 }
                 if (modID == defaultModID) {
-                    return Err("Enable the setting '{}'", name);
+                    return fmt::format("Enable the setting '{}'", name);
                 }
-                return Err("Enable the setting '{}' from the mod {}", name, mod->getName());
+                return fmt::format("Enable the setting '{}' from the mod {}", name, mod->getName());
             }
             auto modName = modID;
             if (auto mod = Loader::get()->getInstalledMod(modID)) {
                 modName = mod->getName();
             }
-            return Err("Enable the mod {}", modName);
+            return fmt::format("Enable the mod {}", modName);
         }
     };
     struct RequireSavedValueEnabled final : public Component {
@@ -82,24 +94,34 @@ namespace enable_if_parsing {
         RequireSavedValueEnabled(std::string const& modID, std::string const& savedValue)
           : modID(modID), savedValue(savedValue) {}
         
-        Result<> check() const override {
+        Result<> checkSemantics() const override {
             return Ok();
         }
-        Result<> eval(std::string const& defaultModID) const override {
+        bool shouldEnableSetting(std::string const& defaultModID) const override {
             if (auto mod = Loader::get()->getLoadedMod(modID)) {
                 if (mod->getSavedValue<bool>(savedValue)) {
-                    return Ok();
+                    return true;
                 }
-                if (modID == defaultModID) {
-                    return Err("Enable the value '{}'", savedValue);
-                }
-                return Err("Enable the value '{}' from the mod {}", savedValue, mod->getName());
+                return false;
             }
             auto modName = modID;
             if (auto mod = Loader::get()->getInstalledMod(modID)) {
                 modName = mod->getName();
             }
-            return Err("Enable the mod {}", modName);
+            return false;
+        }
+        std::string shouldEnableReason(std::string const& defaultModID) const override {
+            if (auto mod = Loader::get()->getLoadedMod(modID)) {
+                if (modID == defaultModID) {
+                    return fmt::format("Enable the value '{}'", savedValue);
+                }
+                return fmt::format("Enable the value '{}' from the mod {}", savedValue, mod->getName());
+            }
+            auto modName = modID;
+            if (auto mod = Loader::get()->getInstalledMod(modID)) {
+                modName = mod->getName();
+            }
+            return fmt::format("Enable the mod {}", modName);
         }
     };
     struct RequireNot final : public Component {
@@ -107,19 +129,19 @@ namespace enable_if_parsing {
         RequireNot(std::unique_ptr<Component>&& component)
           : component(std::move(component)) {}
         
-        Result<> check() const override {
-            return component->check();
+        Result<> checkSemantics() const override {
+            return component->checkSemantics();
         }
-        Result<> eval(std::string const& defaultModID) const override {
-            if (auto res = component->eval(defaultModID)) {
-                // Surely this will never break!
-                auto str = res.unwrapErr();
-                string::replaceIP(str, "Enable", "___TEMP");
-                string::replaceIP(str, "Disable", "Enable");
-                string::replaceIP(str, "___TEMP", "Disable");
-                return Err(str);
-            }
-            return Ok();
+        bool shouldEnableSetting(std::string const& defaultModID) const override {
+            return !component->shouldEnableSetting(defaultModID);
+        }
+        std::string shouldEnableReason(std::string const& defaultModID) const override {
+            // Surely this will never break!
+            auto str = component->shouldEnableReason(defaultModID);
+            string::replaceIP(str, "Enable", "___TEMP");
+            string::replaceIP(str, "Disable", "Enable");
+            string::replaceIP(str, "___TEMP", "Disable");
+            return str;
         }
     };
     struct RequireAll final : public Component {
@@ -127,19 +149,31 @@ namespace enable_if_parsing {
         RequireAll(std::vector<std::unique_ptr<Component>>&& components)
           : components(std::move(components)) {}
 
-        Result<> check() const override {
+        Result<> checkSemantics() const override {
             for (auto& comp : components) {
-                GEODE_UNWRAP(comp->check());
+                GEODE_UNWRAP(comp->checkSemantics());
             }
             return Ok();
         }
-        Result<> eval(std::string const& defaultModID) const override {
+        bool shouldEnableSetting(std::string const& defaultModID) const override {
             // Only print out whatever the first erroring condition is to not shit out 
             // "Please enable X and Y and Z and Ö and Å and"
             for (auto& comp : components) {
-                GEODE_UNWRAP(comp->eval(defaultModID));
+                if (!comp->shouldEnableSetting(defaultModID)) {
+                    return false;
+                }
             }
-            return Ok();
+            return true;
+        }
+        std::string shouldEnableReason(std::string const& defaultModID) const override {
+            for (auto& comp : components) {
+                // Yes this does require double evaluation which is cringe
+                // shouldEnableSetting() is guaranteed to be side-effect-free though
+                if (!comp->shouldEnableSetting(defaultModID)) {
+                    return comp->shouldEnableReason(defaultModID);
+                }
+            }
+            return "If you see this, Geode is broken";
         }
     };
     struct RequireSome final : public Component {
@@ -147,28 +181,36 @@ namespace enable_if_parsing {
         RequireSome(std::vector<std::unique_ptr<Component>>&& components)
           : components(std::move(components)) {}
 
-        Result<> check() const override {
+        Result<> checkSemantics() const override {
             for (auto& comp : components) {
-                GEODE_UNWRAP(comp->check());
+                GEODE_UNWRAP(comp->checkSemantics());
             }
             return Ok();
         }
-        Result<> eval(std::string const& defaultModID) const override {
+        bool shouldEnableSetting(std::string const& defaultModID) const override {
+            for (auto& comp : components) {
+                if (comp->shouldEnableSetting(defaultModID)) {
+                    return true;
+                }
+            }
+            return components.empty();
+        }
+        std::string shouldEnableReason(std::string const& defaultModID) const override {
             std::optional<std::string> err;
             for (auto& comp : components) {
-                auto res = comp->eval(defaultModID);
+                auto res = comp->shouldEnableSetting(defaultModID);
                 if (res) {
-                    return Ok();
+                    return "If you see this, Geode is broken";
                 }
                 // Only show first condition that isn't met
                 if (!err.has_value()) {
-                    err = res.unwrapErr();
+                    err = comp->shouldEnableReason(defaultModID);
                 }
             }
             if (err.has_value()) {
-                return Err(*err);
+                return *err;
             }
-            return Ok();
+            return "If you see this, Geode is broken";
         }
     };
 
@@ -322,6 +364,7 @@ namespace enable_if_parsing {
             std::string op;
             if (auto peek = this->peekWord()) {
                 if (isUnOpWord(*peek)) {
+                    (void)this->nextWord();
                     op = *peek;
                 }
             }
@@ -504,7 +547,7 @@ void SettingV3::parseEnableIf(JsonExpectedValue& json) {
     json.has("enable-if")
         .mustBe<std::string>("a valid \"enable-if\" scheme", [this](std::string const& str) -> Result<> {
             GEODE_UNWRAP_INTO(auto tree, enable_if_parsing::Parser::parse(str, m_impl->modID));
-            GEODE_UNWRAP(tree->check());
+            GEODE_UNWRAP(tree->checkSemantics());
             m_impl->enableIfTree = std::move(tree);
             return Ok();
         })
@@ -547,7 +590,7 @@ std::optional<std::string> SettingV3::getEnableIf() const {
 }
 bool SettingV3::shouldEnable() const {
     if (m_impl->enableIfTree) {
-        return m_impl->enableIfTree->eval(m_impl->modID).isOk();
+        return m_impl->enableIfTree->shouldEnableSetting(m_impl->modID);
     }
     return true;
 }
@@ -558,11 +601,7 @@ std::optional<std::string> SettingV3::getEnableIfDescription() const {
     if (!m_impl->enableIfTree) {
         return std::nullopt;
     }
-    auto res = m_impl->enableIfTree->eval(m_impl->modID);
-    if (res) {
-        return std::nullopt;
-    }
-    return res.unwrapErr();
+    return m_impl->enableIfTree->shouldEnableReason(m_impl->modID);
 }
 bool SettingV3::requiresRestart() const {
     return m_impl->requiresRestart;
@@ -934,7 +973,8 @@ Result<std::shared_ptr<FileSettingV3>> FileSettingV3::parse(std::string const& k
             fmt::arg("gd_save_dir", dirs::getSaveDir()),
             fmt::arg("mod_config_dir", dirs::getModConfigDir() / modID),
             fmt::arg("mod_save_dir", dirs::getModsSaveDir() / modID),
-            fmt::arg("temp_dir", dirs::getTempDir())
+            fmt::arg("temp_dir", dirs::getTempDir()),
+            fmt::arg("gd_resources_dir", dirs::getResourcesDir())
         ));
     }
     catch(fmt::format_error const& e) {

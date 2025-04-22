@@ -49,6 +49,7 @@ class CC_DLL CCControlSwitchSprite;
 class CC_DLL CCControlSwitch : public CCControl
 {
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCControlSwitch, CCControl)
     CCControlSwitch();
     virtual ~CCControlSwitch();
     /** Initializes a switch with a mask sprite, on/off sprites for on/off states and a thumb sprite. */
@@ -86,7 +87,7 @@ public:
     virtual void ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent);
     virtual void ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent);
 
-protected:
+public:
     /** Sprite which represents the view. */
     CCControlSwitchSprite* m_pSwitchSprite;
     float m_fInitialTouchXPosition;

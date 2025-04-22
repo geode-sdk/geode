@@ -2,6 +2,7 @@
 #include <loader/LogImpl.hpp>
 #include <io.h>
 #include <Geode/utils/string.hpp>
+#include <Geode/utils/general.hpp>
 
 using namespace geode::prelude;
 
@@ -30,10 +31,6 @@ void setupConsole(bool forceUseEscapeCodes = false) {
                 preInfo.dwCursorPosition.Y == postInfo.dwCursorPosition.Y;
             SetConsoleCursorPosition(s_outHandle, preInfo.dwCursorPosition);
         }
-    }
-
-    for (auto const& log : log::Logger::get()->list()) {
-        console::log(log.toString(), log.getSeverity());
     }
 }
 
@@ -131,7 +128,12 @@ void console::setup() {
         }
 
         // clion console supports escape codes but we can't query that because it's a named pipe
-        setupConsole(string::contains(path, "cidr-"));
+        // allow the user to forcefully enable colors via an environment variable too
+
+        setupConsole(
+            string::contains(path, "cidr-")
+            || geode::utils::getEnvironmentVariable("GEODE_FORCE_ENABLE_TERMINAL_COLORS") == "1"
+        );
     }
 
     auto oldStdout = _dup(_fileno(stdout));

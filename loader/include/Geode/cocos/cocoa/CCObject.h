@@ -97,7 +97,7 @@ public:
     unsigned int        m_uID;
     // Lua reference id
     int                 m_nLuaID;
-protected:
+public:
     // the object's tag
     int m_nTag;
     // count of references

@@ -49,6 +49,7 @@ typedef enum
 class CC_DLL CCControlStepper : public CCControl
 {
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCControlStepper, CCControl)
     CCControlStepper();
     virtual ~CCControlStepper();
 
@@ -86,6 +87,7 @@ protected:
     /** Stop the autorepeat. */
     void stopAutorepeat();
 
+public:
     /** The numeric value of the stepper. */
     double                  m_dValue;
     /** The continuous vs. noncontinuous state of the stepper. */

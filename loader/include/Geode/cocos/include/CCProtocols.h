@@ -48,6 +48,27 @@ public:
     virtual void setColor(const ccColor3B& color) = 0;
 
     /**
+     * Changes the color with R,G,B,A bytes
+     *
+     * @param color Example: ccc4(255,100,0,255) means R=255, G=100, B=0, A=255
+     * @note Geode addition
+    */
+    inline void setColor(const ccColor4B& color) {
+        this->setColor(ccColor3B{color.r, color.g, color.b});
+        this->setOpacity(color.a);
+    }
+
+    /**
+     * Changes the color with R,G,B,A floats
+     *
+     * @param color Example: ccc4f(1.0, 0.5, 0.25, 1.0) means R=255, G=127, B=63, A=255
+     * @note Geode addition
+    */
+    inline void setColor(const ccColor4F& color) {
+        this->setColor(ccc4BFromccc4F(color));
+    }
+
+    /**
      * Returns color that is currently used.
      *
      * @return The ccColor3B contains R,G,B bytes.

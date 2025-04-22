@@ -73,7 +73,7 @@ public:
     /** creates the action */
     static CCActionEase* create(CCActionInterval *pAction);
 
-protected:
+public:
     /** The inner action */
     CCActionInterval *m_pInner;
 };
@@ -86,6 +86,9 @@ class CC_DLL CCEaseRateAction : public CCActionEase
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEaseRateAction, CCActionEase);
+    CCEaseRateAction() {}
+
     /**
      *  @js NA
      *  @lua NA
@@ -111,7 +114,7 @@ public:
     /** Creates the action with the inner action and the rate parameter */
     static CCEaseRateAction* create(CCActionInterval* pAction, float fRate);
 
-protected:
+public:
     float m_fRate;
 };
 
@@ -338,7 +341,7 @@ public:
     /** Creates the action with the inner action and the period in radians (default is 0.3) */
     static CCEaseElastic* create(CCActionInterval *pAction, float fPeriod);
     static CCEaseElastic* create(CCActionInterval *pAction);
-protected:
+public:
     float m_fPeriod;
 };
 

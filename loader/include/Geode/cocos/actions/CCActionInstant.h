@@ -184,7 +184,7 @@ public:
 	static CCRemoveSelf * create(bool isNeedCleanUp = true);
 	/** init the action */
 	bool init(bool isNeedCleanUp);
-protected:
+public:
 	bool m_bIsNeedCleanUp;
 };
 
@@ -222,7 +222,7 @@ public:
      */
     virtual CCObject* copyWithZone(CCZone *pZone);
 
-protected:
+public:
     bool    m_bFlipX;
 };
 
@@ -260,7 +260,7 @@ public:
      */
     virtual CCObject* copyWithZone(CCZone *pZone);
 
-protected:
+public:
     bool    m_bFlipY;
 };
 
@@ -291,7 +291,7 @@ public:
      *  @lua NA
      */
     virtual CCObject* copyWithZone(CCZone *pZone);
-protected:
+public:
     CCPoint m_tPosition;
 };
 
@@ -301,6 +301,7 @@ class CC_DLL CCCallFunc : public CCActionInstant //<NSCopying>
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCCallFunc, CCActionInstant)
     /**
      *  @js ctor
      */
@@ -370,7 +371,7 @@ public:
      * @lua NA
      */
     inline int getScriptHandler() { return m_nScriptHandler; };
-protected:
+public:
     /** Target that will be called */
     CCObject*   m_pSelectorTarget;
 
@@ -468,7 +469,7 @@ public:
     virtual CCObject* copyWithZone(CCZone *pZone);
     virtual void execute();
 
-protected:
+public:
     void            *m_pData;
 };
 
@@ -485,6 +486,8 @@ class CC_DLL CCCallFuncO : public CCCallFunc, public TypeInfo
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCCallFuncO, CCCallFunc)
+
     CCCallFuncO();
     virtual ~CCCallFuncO();
 
@@ -527,7 +530,7 @@ public:
         }
     }
 
-protected:
+public:
     /** object to be passed as argument */
     CCObject* m_pObject;
 };
