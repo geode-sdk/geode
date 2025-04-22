@@ -48,7 +48,6 @@ namespace geode {
             GEODE_UNWRAP_INTO(auto imp, geode::hook::getObjcMethodImp(className, selectorName));
 
             return Ok(Hook::create(
-                getMod(),
                 imp,
                 function,
                 className + "::" + selectorName,

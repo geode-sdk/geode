@@ -9,18 +9,21 @@ using namespace geode::prelude;
 // where the game tries to call Steam API functions
 // after the Steam API has been shut down.
 
-static void(*s_originalShutdownGame)(void* self, SEL sel);
-
 void shutdownGameHook(void* self, SEL sel) {
     auto director = CCDirector::sharedDirector();
     director->pause();
     director->getScheduler()->unscheduleAll();
-    s_originalShutdownGame(self, sel);
+    // call the original
+    [self performSelector:sel];
 }
 
 $execute {
-    if (auto original = hook::replaceObjcMethod("AppController", "shutdownGame", reinterpret_cast<void*>(&shutdownGameHook))) {
-        s_originalShutdownGame = reinterpret_cast<decltype(s_originalShutdownGame)>(original.unwrap());
+    if (auto hook = ObjcHook::create(
+        "AppController",
+        "shutdownGame",
+        shutdownGameHook,
+    )) {
+        Mod::get()->claimHook(hook);
     }
 };
 #endif

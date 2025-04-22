@@ -141,14 +141,14 @@ bool loadGeode() {
         return false;
     }
 
-    auto appController = objc_getClass("AppController");
-    auto adflMethod = class_getInstanceMethod(appController, @selector(applicationDidFinishLaunching:));
-    s_applicationDidFinishLaunchingOrig = reinterpret_cast<decltype(s_applicationDidFinishLaunchingOrig)>(method_getImplementation(adflMethod));
-    if (!s_applicationDidFinishLaunchingOrig) {
+    // this uses the internal hooking system because it needs to be fast
+    if (auto imp = hook::replaceObjcMethod("AppController", "applicationDidFinishLaunching:", (void*)applicationDidFinishLaunchingHook)) {
+        s_applicationDidFinishLaunchingOrig = reinterpret_cast<decltype(s_applicationDidFinishLaunchingOrig)>(imp);
+    }
+    else {
         return false;
     }
 
-    method_setImplementation(adflMethod, (IMP)&applicationDidFinishLaunchingHook);
     return true;
 }
 
