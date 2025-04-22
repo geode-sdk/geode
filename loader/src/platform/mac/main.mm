@@ -7,6 +7,7 @@
 #include <mach-o/dyld.h>
 #include <unistd.h>
 #include <tulip/TulipHook.hpp>
+#include <Geode/utils/ObjcHook.hpp>
 #include <array>
 #include <filesystem>
 #include <Geode/Loader.hpp>
