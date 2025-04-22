@@ -1,5 +1,27 @@
 # Geode Changelog
 
+## v4.4.0
+
+ * Experimental support for iOS! (#1275, #1280, #1282, and a lot more other commits...)
+ * Fix a vanilla crash that could happen with large save files on Android (#1270)
+ * Fix warnings from clang 20 (df03f8a)
+ * Correctly check image size in MacOS crashlogs (#1274)
+ * Fix a MacOS crash related to special keys (f7d44f3)
+ * Print more useful information in Windows crashlogs when an access violation happens (c3d2b4e)
+ * Fix `CCImage` memory leaks (f38fe30)
+ * Add members for `CCParticleSystem` (#1273)
+ * Update minimum CMake version to `3.21` (023274b)
+ * Add optional saving for `geode::utils::game::exit` and `geode::utils::game::restart` (061c335)
+ * Remove Modtober tab (#1299)
+ * Optimize UI state updates on mod setting value changes (#1296)
+ * Fix small issues with installer spanish translation (#1254, c851dc7)
+ * Remove libstdc++ update from workflow (#1302)
+ * Fix link buttons not being disabled when needed in `ModPopup` (#1303)
+ * Fix a small visual bug in `ModDeveloperList` (#1303)
+ * Fix a MacOS crash that could happen on game close (#1304, 7b877db, eb043db, 75c8efa, 8982011, 8bd735a)
+ * Let our `libcurl` use the native system CA, alongside our bundle (#1301)
+ * Fix `gnustl` set functions returning wrong type (ac1de8a)
+
 ## v4.3.1
  * Fix `SimpleAxisLayout` not respecting `Layout::ignoreInvisibleChildren` (a16d230)
  * Fix MacOS arrow keys (#1267)
