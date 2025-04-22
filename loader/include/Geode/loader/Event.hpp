@@ -184,6 +184,14 @@ namespace geode {
             this->enable();
         }
 
+        EventListener(EventListener const& other)
+          : m_callback(other.m_callback),
+            m_filter(other.m_filter)
+        {
+            m_filter.setListener(this);
+            this->enable();
+        }
+
         EventListener& operator=(EventListener&& other) {
             if (this == &other) {
                 return *this;
