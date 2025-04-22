@@ -1,5 +1,6 @@
 #include <Geode/platform/cplatform.h>
 #ifdef GEODE_IS_MACOS
+#include <Geode/loader/Mod.hpp>
 #include <Geode/utils/ObjcHook.hpp>
 #include <objc/runtime.h>
 
@@ -14,16 +15,19 @@ void shutdownGameHook(id self, SEL sel) {
     director->pause();
     director->getScheduler()->unscheduleAll();
     // call the original
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wobjc-method-access"
     [self performSelector:sel];
+    #pragma clang diagnostic pop
 }
 
 $execute {
     if (auto hook = ObjcHook::create(
         "AppController",
         "shutdownGame",
-        shutdownGameHook,
+        shutdownGameHook
     )) {
-        Mod::get()->claimHook(hook);
+        (void)Mod::get()->claimHook(hook.unwrap());
     }
 };
 #endif

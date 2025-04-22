@@ -99,6 +99,7 @@ else()
 		src/platform/mac/*.mm
 		src/load.mm
 		src/hooks/AddExtraKeys.mm
+		src/hooks/ShutdownFix.mm
 	)
 endif()
 set_source_files_properties(${OBJC_SOURCES} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
