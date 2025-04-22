@@ -144,7 +144,7 @@ bool loadGeode() {
 
     // this uses the internal hooking system because it needs to be fast
     if (auto imp = hook::replaceObjcMethod("AppController", "applicationDidFinishLaunching:", (void*)applicationDidFinishLaunchingHook)) {
-        s_applicationDidFinishLaunchingOrig = reinterpret_cast<decltype(s_applicationDidFinishLaunchingOrig)>(imp);
+        s_applicationDidFinishLaunchingOrig = reinterpret_cast<decltype(s_applicationDidFinishLaunchingOrig)>(imp.unwrap());
     }
     else {
         return false;
