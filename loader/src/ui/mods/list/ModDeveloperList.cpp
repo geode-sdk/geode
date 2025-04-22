@@ -6,6 +6,7 @@
 #include <Geode/cocos/platform/CCPlatformMacros.h>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <GUI/CCControlExtension/CCScale9Sprite.h>
@@ -36,10 +37,10 @@ bool ModDeveloperList::init(DevListPopup* popup, ModSource const& source, CCSize
     // mfw fod created a scrolllayer with layouts
     m_list = ScrollLayer::create({ size.width - 10.f, size.height - 10.f });
     m_list->m_contentLayer->setLayout(
-        ColumnLayout::create()
-            ->setAxisReverse(true)
-            ->setAxisAlignment(AxisAlignment::End)
-            ->setAutoGrowAxis(size.height)
+        SimpleColumnLayout::create()
+            ->setMainAxisDirection(AxisDirection::BottomToTop)
+            ->setMainAxisAlignment(MainAxisAlignment::End)
+            ->setMainAxisScaling(AxisScaling::Grow)
             ->setGap(5.0f)
     );
     this->addChildAtPosition(

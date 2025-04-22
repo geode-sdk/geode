@@ -19,7 +19,7 @@ using namespace geode::prelude;
 
 // https://gist.github.com/jvranish/4441299
 
-static constexpr size_t FRAME_SIZE = 64;
+static constexpr size_t FRAME_SIZE = 128;
 static int s_signal = 0;
 static siginfo_t* s_siginfo = nullptr;
 static ucontext_t* s_context = nullptr;
@@ -70,6 +70,16 @@ static std::string getImageName(struct dyld_image_info const* image) {
     if (imageName.empty()) {
         imageName = "<Unknown>";
     }
+
+    // don't print those really long paths
+    if (
+        imageName.ends_with("Geode.ios.dylib")
+        || imageName.ends_with("GeometryJump")
+        || imageName.find("game/geode/unzipped") != std::string::npos
+    ) {
+        imageName = imageName.substr(imageName.find_last_of('/') + 1);
+    }
+
     return imageName;
 }
 
@@ -178,20 +188,20 @@ static std::string getInfo(void* address, Mod* faultyMod) {
 }
 
 extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext) {
-	/*auto context = reinterpret_cast<ucontext_t*>(vcontext);
-	s_backtraceSize = backtrace(s_backtrace.data(), FRAME_SIZE);
+    /*auto context = reinterpret_cast<ucontext_t*>(vcontext);
+    s_backtraceSize = backtrace(s_backtrace.data(), FRAME_SIZE);
 
     // for some reason this is needed, dont ask me why
-	s_backtrace[2] = reinterpret_cast<void*>(context->uc_mcontext->__ss.__pc);
-	if (s_backtraceSize < FRAME_SIZE) {
-		s_backtrace[s_backtraceSize] = nullptr;
-	}*/
+    s_backtrace[2] = reinterpret_cast<void*>(context->uc_mcontext->__ss.__pc);
+    if (s_backtraceSize < FRAME_SIZE) {
+        s_backtrace[s_backtraceSize] = nullptr;
+    }*/
 
-	s_signal = signal;
-	s_siginfo = signalInfo;
-	s_context = reinterpret_cast<ucontext_t*>(vcontext);
-	char buf = '1';
-	write(s_pipe[1], &buf, 1);
+    s_signal = signal;
+    s_siginfo = signalInfo;
+    s_context = reinterpret_cast<ucontext_t*>(vcontext);
+    char buf = '1';
+    write(s_pipe[1], &buf, 1);
 }
 
 // https://stackoverflow.com/questions/8278691/how-to-fix-backtrace-line-number-error-in-c
@@ -223,9 +233,9 @@ static std::string getStacktrace() {
     std::stringstream stacktrace;
 
     auto messages = backtrace_symbols(s_backtrace.data(), s_backtraceSize);
-	if (s_backtraceSize < FRAME_SIZE) {
-		messages[s_backtraceSize] = nullptr;
-	}
+    if (s_backtraceSize < FRAME_SIZE) {
+        messages[s_backtraceSize] = nullptr;
+    }
 
     std::stringstream lines(addr2Line());
 
@@ -272,7 +282,7 @@ static std::string getStacktrace() {
             std::getline(stream, function);
 
             cutoff = function.find("+");
-            stream = std::stringstream(function.substr(cutoff));
+            stream = std::stringstream(function.substr(cutoff + 1));
             stream >> offset;
             function = geode::utils::string::trim(function.substr(0, cutoff));
 
@@ -285,13 +295,25 @@ static std::string getStacktrace() {
                 free(demangle);
             }
 
+            // don't display the (function + offset) part if it will be bogus.
+            // the first case (0x0) happens with hook handlers, while the second happens because
+            // GD exports a few fmt symbols, so backtrace_symbols thinks every function in GD is the last fmt symbol in the binary
+            if (function == "0x0" || (binary == "GeometryJump" && offset > 0x1000)) {
+                function = "";
+            }
+
             if (auto image = imageFromAddress(reinterpret_cast<void*>(address))) {
                 stacktrace << "- " << getImageName(image) << " + " << std::showbase << std::hex << (address - (uintptr_t)image->imageLoadAddress) << std::dec;
             }
             else {
-                stacktrace << "- " << binary << " @ " << std::showbase << std::hex << address << std::dec;
+                stacktrace << "- " << binary;
             }
-            stacktrace << " (" << function << " + " << offset << ") @ " << std::showbase << std::hex << address << std::dec << "\n";
+
+            if (!function.empty()) {
+                stacktrace << " (" << function << " + " << offset << ")";
+            }
+
+            stacktrace << " @ " << std::showbase << std::hex << address << std::dec << "\n";
         }
     }
 
@@ -352,7 +374,7 @@ static void handlerThread() {
     while (read(s_pipe[0], &buf, 1) != 0) {
         auto signalAddress = reinterpret_cast<void*>(s_context->uc_mcontext->__ss.__pc);
         // as you can tell, i moved code from signalHandler to here
-	if (s_context) {
+        if (s_context) {
             //s_backtraceSize = backtrace(s_backtrace.data(), FRAME_SIZE);
             // i can't use 2 because then it'll show the actual stacktrace to be lower than what it actually is
             s_backtrace[s_backtraceSize++] = signalAddress;
@@ -366,15 +388,15 @@ static void handlerThread() {
                 void** frame = reinterpret_cast<void**>(current_fp);
                 void* next_fp = frame[0];
                 void* lr = frame[1];
-                
+
                 if (next_fp == current_fp || lr == nullptr) break;
-                
+
                 s_backtrace[s_backtraceSize++] = lr;
                 current_fp = next_fp;
             }
         }
-	Mod* faultyMod = modFromAddress(signalAddress);
-    
+        Mod* faultyMod = modFromAddress(signalAddress);
+
         // Mod* faultyMod = nullptr;
         // for (int i = 1; i < s_backtraceSize; ++i) {
         //     auto mod = modFromAddress(s_backtrace[i]);
@@ -387,7 +409,7 @@ static void handlerThread() {
 
         log::error("Geode crashed!\n{}", text);
         std::_Exit(EXIT_FAILURE);
-	//s_signal = 0;
+        //s_signal = 0;
     }
 }
 

@@ -49,10 +49,10 @@ namespace geode {
             return h >= str.size() ? 5381 : (hash(str, h + 1) * 33) ^ str[h];
         }
 
-        constexpr size_t operator"" _h(char const* txt, size_t) {
+        constexpr size_t operator""_h(char const* txt, size_t) {
             return geode::utils::hash(txt);
         }
-        constexpr size_t operator"" _h(wchar_t const* txt, size_t) {
+        constexpr size_t operator""_h(wchar_t const* txt, size_t) {
             return geode::utils::hash(txt);
         }
 
@@ -181,8 +181,10 @@ namespace geode::utils::clipboard {
 }
 
 namespace geode::utils::game {
-    GEODE_DLL void exit();
-    GEODE_DLL void restart();
+    GEODE_DLL void exit(); // TODO: left for abi compat
+    GEODE_DLL void exit(bool saveData /* = true */);
+    GEODE_DLL void restart(); // TODO: left for abi compat
+    GEODE_DLL void restart(bool saveData /* = true */);
     GEODE_DLL void launchLoaderUninstaller(bool deleteSaveData);
 }
 

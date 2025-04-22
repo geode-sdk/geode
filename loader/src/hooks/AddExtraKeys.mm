@@ -147,10 +147,23 @@ void keyDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     bool extraKey = isExtraKey(event);
     bool numpad = isKeyNumpad(event);
     if (!extraKey && !numpad) {
+        if ([[event characters] length] == 0) {
+            // really dumb workaround for a really dumb crash
+            // basically the game tries to read the 1st character on every keydown
+            // but rob uses this instead of ignoring modifiers or whatever so sometimes there is no 1st character!!
+            // hopefully fixed in 2.208 :(
+            return;
+        }
+
         GEODE_MACOS([self performSelector:sel withObject:event]);
         return;
     }
     if (CCIMEDispatcher::sharedDispatcher()->hasDelegate()) {
+        if ([[event characters] length] == 0) {
+            // we need this for every original call to keyDown btw
+            return;
+        }
+
         GEODE_MACOS([self performSelector:sel withObject:event]);
         return;
     }

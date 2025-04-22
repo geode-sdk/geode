@@ -343,6 +343,8 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
             caBundleBlob.len = impl->m_CABundleContent.size();
             caBundleBlob.flags = CURL_BLOB_COPY;
             curl_easy_setopt(curl, CURLOPT_CAINFO_BLOB, &caBundleBlob);
+            // Also add the native CA, for good measure
+            curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA);
         }
 
         // Transfer body
