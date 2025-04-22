@@ -506,13 +506,17 @@ bool ModPopup::setup(ModSource&& src) {
             spr->setColor({ 155, 155, 155 });
             spr->setOpacity(155);
         }
+
+        SEL_MenuHandler handler = std::get<2>(stat).has_value() ?
+            (std::get<3>(stat) ? std::get<3>(stat) : menu_selector(ModPopup::onLink)) : 
+            nullptr;
+
         auto btn = CCMenuItemSpriteExtra::create(
-            spr, this, (
-                std::get<2>(stat).has_value() ?
-                    (std::get<3>(stat) ? std::get<3>(stat) : menu_selector(ModPopup::onLink)) : 
-                    nullptr
-            )
+            spr, this, handler
         );
+
+        btn->setEnabled(handler != nullptr);
+
         btn->setID(std::get<0>(stat));
         if (!std::get<3>(stat) && std::get<2>(stat)) {
             btn->setUserObject("url", CCString::create(*std::get<2>(stat)));
