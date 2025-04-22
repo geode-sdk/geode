@@ -15,7 +15,7 @@ void shutdownGameHook(void* self, SEL sel) {
     director->pause();
     director->getScheduler()->unscheduleAll();
     // call the original
-    reinterpret_cast<void (*)(void*, SEL)>(objc_msgSend)(self, sel);
+    reinterpret_cast<void(*)(void*, SEL)>(objc_msgSend)(self, sel);
 }
 
 $execute {
