@@ -27,7 +27,7 @@ $execute {
         "shutdownGame",
         shutdownGameHook
     )) {
-        (void)Mod::get()->claimHook(hook.unwrap());
+        (void) Mod::get()->claimHook(hook.unwrap());
     }
 };
 #endif
