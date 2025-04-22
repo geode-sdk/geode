@@ -9,7 +9,7 @@ using namespace geode::prelude;
 // where the game tries to call Steam API functions
 // after the Steam API has been shut down.
 
-void shutdownGameHook(void* self, SEL sel) {
+void shutdownGameHook(id self, SEL sel) {
     auto director = CCDirector::sharedDirector();
     director->pause();
     director->getScheduler()->unscheduleAll();
