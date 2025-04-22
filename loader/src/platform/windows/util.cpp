@@ -201,6 +201,10 @@ std::filesystem::path dirs::getModRuntimeDir() {
     return dirs::getGeodeDir() / "unzipped";
 }
 
+std::filesystem::path dirs::getResourcesDir() {
+    return dirs::getGameDir() / "Resources";
+}
+
 void geode::utils::game::exit(bool saveData) {
     // TODO: mat
     #if 0
