@@ -21,7 +21,6 @@
  * Fix a vanilla MacOS crash that could happen on game close (#1304, 7b877db, eb043db, 75c8efa, 8982011, 8bd735a)
  * Let our `libcurl` use the native system CA, alongside our bundle (#1301)
  * Fix `gnustl` set functions returning wrong type (ac1de8a)
- * Add `geode::dirs::getResourcesDir()` and `{gd_resources_dir}` setting variable (#1285)
 
 ## v4.3.1
  * Fix `SimpleAxisLayout` not respecting `Layout::ignoreInvisibleChildren` (a16d230)
