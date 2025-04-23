@@ -17,6 +17,7 @@ using namespace geode::prelude;
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/Utils.hpp>
 #include <objc/runtime.h>
+#include <objc/message.h>
 #include <stdlib.h>
 
 using geode::utils::permission::Permission;
@@ -351,6 +352,10 @@ std::filesystem::path dirs::getSaveDir() {
     return getBaseDir() / "save";
 }
 
+std::filesystem::path dirs::getResourcesDir() {
+    return [[[NSBundle mainBundle] resourcePath] UTF8String];
+}
+
 bool geode::utils::permission::getPermissionStatus(Permission permission) {
     switch (permission) {
         case Permission::RecordAudio: 
@@ -424,4 +429,29 @@ Result<void*> geode::hook::replaceObjcMethod(std::string const& className, std::
     auto oldImp = method_setImplementation(method, (IMP)imp);
 
     return Ok((void*)oldImp);
+}
+
+cocos2d::CCRect geode::utils::getSafeAreaRect() {
+    // making calls to get primitive types is annoying... >~<
+    id eaglView = [NSClassFromString(@"EAGLView") performSelector:@selector(sharedEGLView)];
+    auto screenInsets = reinterpret_cast<UIEdgeInsets(*)(id, SEL)>(objc_msgSend)(eaglView, @selector(safeAreaInsets));
+    auto scaleFactor = reinterpret_cast<CGFloat(*)(id, SEL)>(objc_msgSend)(eaglView, @selector(contentScaleFactor));
+
+    auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
+    auto glView = cocos2d::CCDirector::sharedDirector()->getOpenGLView();
+    auto scaleX = glView->m_fScaleX;
+    auto scaleY = glView->m_fScaleY;
+
+    auto insetLeft = scaleFactor * screenInsets.left / scaleX;
+    auto insetBottom = scaleFactor * screenInsets.bottom / scaleY;
+    auto insetRight = scaleFactor * screenInsets.right / scaleX;
+    auto insetTop = scaleFactor * screenInsets.top / scaleY;
+
+    auto insetX = std::max(insetLeft, insetRight);
+    auto insetY = std::max(insetTop, insetBottom);
+
+    return cocos2d::CCRect(
+        insetX, insetY,
+        winSize.width - 2 * insetX, winSize.height - 2 * insetY
+    );
 }

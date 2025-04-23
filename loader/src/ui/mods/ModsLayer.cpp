@@ -4,6 +4,7 @@
 #include <Geode/ui/BasedButtonSprite.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/cocos/cocoa/CCObject.h>
+#include <Geode/loader/Event.hpp>
 #include "SwelvyBG.hpp"
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/utils/ColorProvider.hpp>
@@ -91,6 +92,9 @@ bool ModsStatusNode::init() {
     m_downloadListener.bind([this](auto) { this->updateState(); });
 
     m_settingNodeListener.bind([this](SettingNodeValueChangeEvent* ev) {
+        if (!ev->isCommit()) {
+            return ListenerResult::Propagate;
+        }
         this->updateState();
         return ListenerResult::Propagate;
     });
@@ -339,6 +343,8 @@ bool ModsLayer::init() {
 
     this->setID("ModsLayer");
 
+    auto safeArea = geode::utils::getSafeAreaRect();
+
     auto winSize = CCDirector::get()->getWinSize();
     const bool isSafeMode = LoaderImpl::get()->isSafeMode();
     
@@ -447,12 +453,13 @@ bool ModsLayer::init() {
     // positioning based on size of mod list frame and maximum width of buttons
     // i would apologize
     auto actionsMenuX = std::min(35.0f, (winSize.width - 380.0f - 10.0f) / 4.0f);
+    auto safeOffsetRight = winSize.width - (safeArea.size.width + safeArea.origin.x);
 
     // center buttons when the actionsMenu is moved
     auto actionsMenuY = std::min(actionsMenuX - 20.0f, 12.0f);
 
-    this->addChildAtPosition(actionsMenu, Anchor::BottomLeft, ccp(actionsMenuX, actionsMenuY), false);
-    this->addChildAtPosition(rightActionsMenu, Anchor::BottomRight, ccp(-actionsMenuX, actionsMenuY), false);
+    this->addChildAtPosition(actionsMenu, Anchor::BottomLeft, ccp(actionsMenuX + safeArea.origin.x, actionsMenuY), false);
+    this->addChildAtPosition(rightActionsMenu, Anchor::BottomRight, ccp(-actionsMenuX - safeOffsetRight, actionsMenuY), false);
 
     m_frame = CCNode::create();
     m_frame->setID("mod-list-frame");
@@ -503,7 +510,6 @@ bool ModsLayer::init() {
         { "GJ_starsIcon_001.png", "Featured", ServerModListSource::get(ServerModListType::Featured), "featured-button", false },
         { "globe.png"_spr, "Download", ServerModListSource::get(ServerModListType::Download), "download-button", false },
         { "GJ_timeIcon_001.png", "Recent", ServerModListSource::get(ServerModListType::Recent), "recent-button", false },
-        { "d_artCloud_03_001.png", "Modtober", ServerModListSource::get(ServerModListType::Modtober24), "modtober-button", true },
     }) {
         auto btn = CCMenuItemSpriteExtra::create(
             GeodeTabSprite::create(std::get<0>(item), std::get<1>(item), 100, std::get<4>(item)),

@@ -255,12 +255,6 @@ jobs:
       uses: ./.github/actions/setup-dump-sym
       id: breakpad-tools
 
-    - name: Fix Ubuntu libcstd++
-      run: |
-        sudo add-apt-repository ppa:ubuntu-toolchain-r/test
-        sudo apt-get update
-        sudo apt-get install --only-upgrade libstdc++6
-
     - name: Configure
       run: >
         ${{ env.base-configure-command }}

@@ -255,6 +255,14 @@ void Mod::setLoggingEnabled(bool enabled) {
     m_impl->setLoggingEnabled(enabled);
 }
 
+Severity Mod::getLogLevel() const {
+    return m_impl->getLogLevel();
+}
+
+void Mod::setLogLevel(Severity level) {
+    m_impl->setLogLevel(level);
+}
+
 bool Mod::hasSavedValue(std::string_view key) {
     return this->getSaveContainer().contains(key);
 }

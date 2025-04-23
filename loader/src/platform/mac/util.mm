@@ -246,6 +246,10 @@ std::filesystem::path dirs::getModRuntimeDir() {
     return dirs::getGeodeDir() / "unzipped";
 }
 
+std::filesystem::path dirs::getResourcesDir() {
+    return dirs::getGameDir() / "Resources";
+}
+
 void geode::utils::game::exit() {
     if (CCApplication::sharedApplication() &&
         (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
@@ -372,4 +376,9 @@ float geode::utils::getDisplayFactor() {
 std::string geode::utils::getEnvironmentVariable(const char* name) {
     auto result = std::getenv(name);
     return result ? result : "";
+}
+
+cocos2d::CCRect geode::utils::getSafeAreaRect() {
+    auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
+    return cocos2d::CCRect(0.0f, 0.0f, winSize.width, winSize.height);
 }

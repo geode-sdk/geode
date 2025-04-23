@@ -6,6 +6,7 @@
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/utils/web.hpp>
+#include <Geode/loader/Event.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/ui/GeodeUI.hpp>
@@ -505,13 +506,17 @@ bool ModPopup::setup(ModSource&& src) {
             spr->setColor({ 155, 155, 155 });
             spr->setOpacity(155);
         }
+
+        SEL_MenuHandler handler = std::get<2>(stat).has_value() ?
+            (std::get<3>(stat) ? std::get<3>(stat) : menu_selector(ModPopup::onLink)) : 
+            nullptr;
+
         auto btn = CCMenuItemSpriteExtra::create(
-            spr, this, (
-                std::get<2>(stat).has_value() ?
-                    (std::get<3>(stat) ? std::get<3>(stat) : menu_selector(ModPopup::onLink)) : 
-                    nullptr
-            )
+            spr, this, handler
         );
+
+        btn->setEnabled(handler != nullptr);
+
         btn->setID(std::get<0>(stat));
         if (!std::get<3>(stat) && std::get<2>(stat)) {
             btn->setUserObject("url", CCString::create(*std::get<2>(stat)));
@@ -646,7 +651,10 @@ bool ModPopup::setup(ModSource&& src) {
     m_downloadListener.bind([this](auto) { this->updateState(); });
     m_downloadListener.setFilter(m_source.getID());
 
-    m_settingNodeListener.bind([this](SettingNodeValueChangeEvent*) {
+    m_settingNodeListener.bind([this](SettingNodeValueChangeEvent* ev) {
+        if (!ev->isCommit()) {
+            return ListenerResult::Propagate;
+        }
         this->updateState();
         return ListenerResult::Propagate;
     });

@@ -194,6 +194,16 @@ set(GEODE_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 include(cmake/Platform.cmake)
 include(cmake/GeodeFile.cmake)
 
+# there is now a script that runs over these lines to determine the gd version
+# so please update them when you set the game version
+
+# begin GEODE_GD_VERSION
+# win:     2.2074
+# mac:     2.2074
+# ios:     2.2074
+# android: 2.2074
+# end GEODE_GD_VERSION
+
 if (NOT DEFINED GEODE_GD_VERSION)
 	set(GEODE_GD_VERSION 2.2074)
 	set(GEODE_COMP_GD_VERSION 22074)
@@ -273,7 +283,7 @@ if (DEFINED GEODE_TULIPHOOK_REPO_PATH)
 	message(STATUS "Using ${GEODE_TULIPHOOK_REPO_PATH} for TulipHook")
 	add_subdirectory(${GEODE_TULIPHOOK_REPO_PATH} ${GEODE_TULIPHOOK_REPO_PATH}/build)
 else()
-	CPMAddPackage("gh:geode-sdk/TulipHook@2.4.3")
+	CPMAddPackage("gh:geode-sdk/TulipHook@2.4.4")
 endif()
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 
