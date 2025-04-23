@@ -126,6 +126,11 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       constexpr pair(const pair&) = default;
       constexpr pair(pair&&) = default;
 
+    template<class _U1, class _U2>
+    operator std::pair<_U1, _U2>() {
+        return std::pair(first,second);
+    }
+
       // DR 811.
       template<class _U1, class = typename
 	       std::enable_if<std::is_convertible<_U1, _T1>::value>::type>
