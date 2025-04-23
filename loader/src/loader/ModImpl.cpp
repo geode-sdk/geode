@@ -704,6 +704,14 @@ void Mod::Impl::setLoggingEnabled(bool enabled) {
     m_loggingEnabled = enabled;
 }
 
+Severity Mod::Impl::getLogLevel() const {
+    return m_logLevel;
+}
+
+void Mod::Impl::setLogLevel(Severity level) {
+    m_logLevel = level;
+}
+
 bool Mod::Impl::shouldLoad() const {
     return Mod::get()->getSavedValue<bool>("should-load-" + m_metadata.getID(), true) || this->isInternal();
 }
