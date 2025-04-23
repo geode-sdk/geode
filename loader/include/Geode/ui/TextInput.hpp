@@ -34,19 +34,51 @@ namespace geode {
         Left,
     };
 
+    enum class TextInputArrow {
+        None,
+        // See edit_leftBtn_001.png in GJ_GameSheet03
+        Editor,
+        // See edit_leftBtn2_001.png in GJ_GameSheet03
+        EditorDouble,
+        // See edit_leftBtn3_001.png in GJ_GameSheet03
+        EditorTriple
+        // See edit_leftBtn5_001.png in GJ_GameSheet03
+        EditorHalf,
+        // See GJ_arrow_01_001.png in GJ_GameSheet03
+        Green,
+        // See GJ_arrow_02_001.png in GJ_GameSheet03
+        Blue,
+        // See GJ_arrow_03_001.png in GJ_GameSheet03
+        Pink
+        // See GJ_backBtn_001.png in GJ_GameSheet03
+        BackBtn,
+        // See navArrowBtn_01_001.png in GJ_GameSheet03
+        White,
+    };
+
     /**
      * A single-line text input node
      */
     class GEODE_DLL TextInput : public cocos2d::CCNode, public TextInputDelegate {
     protected:
+
         cocos2d::extension::CCScale9Sprite* m_bgSprite;
         CCTextInputNode* m_input;
         std::function<void(std::string const&)> m_onInput = nullptr;
         cocos2d::CCLabelBMFont* m_label = nullptr;
 
+        cocos2d::CCMenu* m_buttonMenu;
+        CCMenuItemSpriteExtra* m_leftArrow;
+        CCMenuItemSpriteExtra* m_rightArrow;
+
+        float m_arrowIncrementation;
+
+
         bool init(float width, std::string const& placeholder, std::string const& font);
 
         void textChanged(CCTextInputNode* input) override;
+
+        void onArrow(CCObject* sender);
 
     public:
         /**
@@ -147,7 +179,22 @@ namespace geode {
          */
         void defocus();
 
+        /**
+         * Set the type of arrows the Text Input will have, or add new ones if.
+         * if there weren't already. Only works with number filters.
+         * @param type Arrow type (texture) to use. 
+         * If `TextInputArrow::None`, will remove the arrows. 
+         * @param incrementation Sets the amount to increment the input by
+         * each time you press the arrow.
+         */
+        void setArrowType(TextInputArrow type, float incrementation = 1.f);
+
         CCTextInputNode* getInputNode() const;
         cocos2d::extension::CCScale9Sprite* getBGSprite() const;
+        cocos2d::CCLabelBMFont* getLabel() const;
+
+        cocos2d::CCMenu* getButtonMenu() const;
+        CCMenuItemSpriteExtra* getLeftArrow() const;
+        CCMenuItemSpriteExtra* getRightArrow() const;
     };
 }

@@ -301,6 +301,7 @@ public:
      * If not `std::nullopt`, then the axis will be automatically extended to 
      * fit all items in a single row whose minimum length is the specified. 
      * Useful for scrollable list layer contents
+     * @note Overrides `GrowCrossAxis` and `CrossAxisOverflow`.
      */
     AxisLayout* setAutoGrowAxis(std::optional<float> allowAndMinLength);
     /**
