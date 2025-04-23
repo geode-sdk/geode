@@ -151,6 +151,7 @@ namespace geode {
         }
 
         void queueInMainThread(ScheduledFunction&& func);
+        void queueInMainThreadAtEndOfFrame(ScheduledFunction&& func);
 
         /**
          * Returns the current game version.

@@ -1,4 +1,4 @@
-// #define GEODE_UI_TEST
+#define GEODE_UI_TEST
 #ifdef GEODE_UI_TEST
 
 #include <Geode/modify/MenuLayer.hpp>
@@ -7,6 +7,7 @@
 #include <Geode/utils/web.hpp>
 #include <server/Server.hpp>
 #include "../sources/ModListSource.hpp"
+#include <Geode/utils/Signals.hpp>
 
 using namespace geode::prelude;
 
@@ -158,12 +159,121 @@ protected:
     }
     void onServerCacheClear(CCObject*) {
         server::clearServerCaches(true);
-        clearAllModListSourceCaches();
     }
 
 public:
     static GUITestPopup* create() {
         auto ret = new GUITestPopup();
+        if (ret->initAnchored(320, 280)) {
+            ret->autorelease();
+            return ret;
+        }
+        delete ret;
+        return nullptr;
+    }
+};
+
+class SignalsTestPopup : public Popup<> {
+protected:
+    Signal<int> m_count = 0;
+    SignalObserver m_endOfFrameObserver;
+    SignalObserver m_immediateObserver;
+    Signal<int> m_count2 = 0;
+    Signal<int> m_count3 = 0;
+
+    bool setup() override {
+        m_noElasticity = true;
+        this->setTitle("Signals Test Popup");
+
+        auto label = ButtonSprite::create("", "goldFont.fnt", "GJ_button_01.png", .8f);
+        m_endOfFrameObserver = SignalObserver(
+            [this, label]() {
+                // log::debug("updating UI for count: {}", *m_count);
+                label->setString(fmt::format("Clicked {} times", *m_count).c_str());
+            },
+            SignalObserverTime::EndOfFrame
+        );
+        m_immediateObserver = SignalObserver(
+            [this]() {
+                log::debug("count changed: {}", *m_count);
+            },
+            SignalObserverTime::Immediate
+        );
+
+        auto button = CCMenuItemSpriteExtra::create(
+            label, this, menu_selector(SignalsTestPopup::onClick)
+        );
+        m_buttonMenu->addChildAtPosition(button, Anchor::Center, ccp(0, 30));
+
+        m_buttonMenu->addChildAtPosition(CCMenuItemExt::createSpriteExtra(
+            ButtonSprite::create("-"),
+            [this](auto) {
+                m_count2 -= 1;
+            }
+        ), Anchor::Bottom, ccp(-50, 20));
+        m_buttonMenu->addChildAtPosition(CCMenuItemExt::createSpriteExtra(
+            ButtonSprite::create("+"),
+            [this](auto) {
+                m_count2 += 1;
+            }
+        ), Anchor::Bottom, ccp(-20, 20));
+        m_buttonMenu->addChildAtPosition(CCMenuItemExt::createSpriteExtra(
+            ButtonSprite::create("-"),
+            [this](auto) {
+                m_count3 -= 1;
+            }
+        ), Anchor::Bottom, ccp(20, 20));
+        m_buttonMenu->addChildAtPosition(CCMenuItemExt::createSpriteExtra(
+            ButtonSprite::create("+"),
+            [this](auto) {
+                m_count3 += 1;
+            }
+        ), Anchor::Bottom, ccp(50, 20));
+
+        this->reactToChanges([this]() {
+            // log::debug("rerendering count2");
+
+            auto label = CCLabelBMFont::create(fmt::format("{}", *m_count2).c_str(), "bigFont.fnt");
+            m_mainLayer->addChildAtPosition(label, Anchor::Center, ccp(-20, -20));
+
+            onSignalDispose([label]() { label->removeFromParent(); });
+        });
+        this->reactToChanges([this]() {
+            // log::debug("rerendering count3");
+
+            auto label = CCLabelBMFont::create(fmt::format("{}", *m_count3).c_str(), "bigFont.fnt");
+            m_mainLayer->addChildAtPosition(label, Anchor::Center, ccp(20, -20));
+            
+            onSignalDispose([label]() { label->removeFromParent(); });
+        });
+        this->reactToChanges([this]() {
+            // log::debug("rerendering count2 == count3");
+
+            auto label = CCLabelBMFont::create(
+                (m_count3 == m_count2 ? "Counts are equal" : "Counts are not equal"),
+                "bigFont.fnt"
+            );
+            if (m_count3 != m_count2) {
+                label->setColor(ccRED);
+            }
+            label->setScale(.5f);
+            m_mainLayer->addChildAtPosition(label, Anchor::Center, ccp(0, -40));
+
+            onSignalDispose([label]() { label->removeFromParent(); });
+        });
+
+        return true;
+    }
+
+    void onClick(CCObject*) {
+        m_count += 2;
+        m_count -= 2;
+        m_count.update(+[](int count) { return count + 1; });
+    }
+
+public:
+    static SignalsTestPopup* create() {
+        auto ret = new SignalsTestPopup();
         if (ret->initAnchored(320, 280)) {
             ret->autorelease();
             return ret;
@@ -189,7 +299,7 @@ class $modify(GUILayer, MenuLayer) {
     }
 
     void onTestPopup(CCObject*) {
-        GUITestPopup::create()->show();
+        SignalsTestPopup::create()->show();
     }
 };
 

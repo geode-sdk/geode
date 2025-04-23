@@ -1124,6 +1124,8 @@ public:
     GEODE_DLL geode::EventListenerProtocol* getEventListener(std::string const& id);
     GEODE_DLL size_t getEventListenerCount();
 
+    GEODE_DLL void reactToChanges(std::function<void()> onChanges);
+
     /**
      * Get nth child that is a given type. Checks bounds.
      * @returns Child at index cast to the given type,

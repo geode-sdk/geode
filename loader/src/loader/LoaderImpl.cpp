@@ -511,7 +511,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
                 }
                 loadFunction();
                 log::loadNest(prevNest);
-            });
+            }, false);
         }).detach();
     }
 }
@@ -719,7 +719,7 @@ void Loader::Impl::refreshModGraph() {
     queueInMainThread([this]() {
         log::info("Loading non-early mods");
         this->continueRefreshModGraph();
-    });
+    }, false);
 }
 
 void Loader::Impl::orderModStack() {
@@ -773,7 +773,7 @@ void Loader::Impl::continueRefreshModGraph() {
     if (m_refreshingModCount != 0) {
         queueInMainThread([this]() {
             this->continueRefreshModGraph();
-        });
+        }, false);
         return;
     }
 
@@ -822,7 +822,7 @@ void Loader::Impl::continueRefreshModGraph() {
     if (m_loadingState != LoadingState::Done) {
         queueInMainThread([this]() {
             this->continueRefreshModGraph();
-        });
+        }, false);
     }
 }
 
@@ -862,18 +862,29 @@ bool Loader::Impl::loadHooks() {
     return !hadErrors;
 }
 
-void Loader::Impl::queueInMainThread(ScheduledFunction&& func) {
-    std::lock_guard<std::mutex> lock(m_mainThreadMutex);
-    m_mainThreadQueue.push_back(std::forward<ScheduledFunction>(func));
+void Loader::Impl::queueInMainThread(ScheduledFunction&& func, bool endOfFrame) {
+    if (endOfFrame) {
+        std::lock_guard<std::mutex> lock(m_mainThreadEndOfFrameMutex);
+        m_mainThreadEndOfFrameQueue.push_back(std::forward<ScheduledFunction>(func));
+    }
+    else {
+        std::lock_guard<std::mutex> lock(m_mainThreadMutex);
+        m_mainThreadQueue.push_back(std::forward<ScheduledFunction>(func));
+    }
 }
-
-void Loader::Impl::executeMainThreadQueue() {
+void Loader::Impl::executeMainThreadQueue(bool endOfFrame) {
     // copy queue to avoid locking mutex if someone is
     // running addToMainThread inside their function
-    m_mainThreadMutex.lock();
-    auto queue = m_mainThreadQueue;
-    m_mainThreadQueue.clear();
-    m_mainThreadMutex.unlock();
+
+    decltype(m_mainThreadQueue) queue;
+    if (endOfFrame) {
+        std::lock_guard<std::mutex> lock(m_mainThreadEndOfFrameMutex);
+        queue = std::move(m_mainThreadEndOfFrameQueue);
+    }
+    else {
+        std::lock_guard<std::mutex> lock(m_mainThreadMutex);
+        queue = std::move(m_mainThreadQueue);
+    }
 
     // call queue
     for (auto const& func : queue) {

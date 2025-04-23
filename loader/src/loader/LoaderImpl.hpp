@@ -40,8 +40,10 @@ namespace geode {
 
         LoadingState m_loadingState = LoadingState::None;
 
-        std::vector<std::function<void(void)>> m_mainThreadQueue;
         mutable std::mutex m_mainThreadMutex;
+        std::vector<std::function<void(void)>> m_mainThreadQueue;
+        mutable std::mutex m_mainThreadEndOfFrameMutex;
+        std::vector<std::function<void(void)>> m_mainThreadEndOfFrameQueue;
         std::vector<std::pair<Hook*, Mod*>> m_uninitializedHooks;
         bool m_readyToHook = false;
 
@@ -124,8 +126,8 @@ namespace geode {
 
         void updateResources(bool forceReload);
 
-        void queueInMainThread(ScheduledFunction&& func);
-        void executeMainThreadQueue();
+        void queueInMainThread(ScheduledFunction&& func, bool endOfFrame);
+        void executeMainThreadQueue(bool endOfFrame);
 
         bool isReadyToHook() const;
         void addUninitializedHook(Hook* hook, Mod* mod);

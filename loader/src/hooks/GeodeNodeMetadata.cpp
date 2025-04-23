@@ -2,6 +2,7 @@
 #include <Geode/utils/cocos.hpp>
 #include <Geode/modify/Field.hpp>
 #include <Geode/modify/CCNode.hpp>
+#include <Geode/utils/Signals.hpp>
 #include <cocos2d.h>
 #include <queue>
 
@@ -45,6 +46,7 @@ private:
     std::unordered_map<std::string, Ref<CCObject>> m_userObjects;
     std::unordered_set<std::unique_ptr<EventListenerProtocol>> m_eventListeners;
     std::unordered_map<std::string, std::unique_ptr<EventListenerProtocol>> m_idEventListeners;
+    std::vector<SignalObserver> m_signalObservers;
 
     friend class ProxyCCNode;
     friend class cocos2d::CCNode;
@@ -473,6 +475,11 @@ void CCNode::updateAnchoredPosition(Anchor anchor, CCPoint const& offset, CCPoin
         opts->setAnchor(anchor);
         opts->setOffset(offset);
     }
+}
+
+void CCNode::reactToChanges(std::function<void()> onChanges) {
+    auto meta = GeodeNodeMetadata::set(this);
+    meta->m_signalObservers.push_back(SignalObserver(onChanges, SignalObserverTime::EndOfFrame));
 }
 
 #pragma warning(pop)
