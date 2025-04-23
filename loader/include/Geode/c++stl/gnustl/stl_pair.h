@@ -126,8 +126,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       constexpr pair(const pair&) = default;
       constexpr pair(pair&&) = default;
 
-    template<class _U1, class _U2>
-    operator std::pair<_U1, _U2>() {
+    operator std::pair<_T1, _T2>() {
         return std::pair(first,second);
     }
 
