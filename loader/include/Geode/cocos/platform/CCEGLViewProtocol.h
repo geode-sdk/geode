@@ -198,6 +198,7 @@ public:
     float  m_fScaleX;
     float  m_fScaleY;
     ResolutionPolicy m_eResolutionPolicy;
+    float m_fUnknown;
 };
 
 // end of platform group

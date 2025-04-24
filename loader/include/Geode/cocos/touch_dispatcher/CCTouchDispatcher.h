@@ -243,11 +243,11 @@ protected:
     // 2.2 changes
 
     // @note RobTop Addition
-    CC_SYNTHESIZE_NV(int, m_forcePrio, ForcePrio);
-    // @note RobTop Addition
-    void* m_unknown;
-    // @note RobTop Addition
     CC_SYNTHESIZE_NV(int, m_targetPrio, TargetPrio);
+    // @note RobTop Addition
+    CCDictionary* m_pForcePrioDict;
+    // @note RobTop Addition
+    int m_forcePrio;
 };
 
 // end of input group
