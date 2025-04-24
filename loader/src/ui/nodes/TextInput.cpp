@@ -110,7 +110,7 @@ void TextInput::textChanged(CCTextInputNode* input) {
 void TextInput::onArrow(CCObject* sender) {
     float value = stof(this->getString());
     value += m_arrowIncrementation * sender->getTag();
-    if (std::string(m_input->m_allowedChars).contains(".")) {
+    if (std::string(m_input->m_allowedChars).find(".") != std::string::npos) {
         m_input->setString(fmt::format("{:.3f}", value));
     }
     else {
@@ -219,11 +219,12 @@ void TextInput::defocus() {
     m_input->detachWithIME();
 }
 
-void TextInput::setArrowType(TextInputArrow type) {
+void TextInput::setArrowType(TextInputArrow type, float incrementation) {
+    m_arrowIncrementation = incrementation;
     if (
         m_input->m_allowedChars !=   "0123456789" &&
         m_input->m_allowedChars !=  "-0123456789" &&
-        m_input->m_allowedChars != "-.0123456789")
+        m_input->m_allowedChars != "-.0123456789"
     ) return;
 
     if (m_leftArrow) {
@@ -254,7 +255,7 @@ void TextInput::setArrowType(TextInputArrow type) {
     if (type == TextInputArrow::White) leftSpr->setFlipX(true);
     m_leftArrow = CCMenuItemSpriteExtra::create(leftSpr, this, menu_selector(TextInput::onArrow));
     m_leftArrow->setScale(25.f / m_leftArrow->getContentHeight());
-    m_leftArrow->setAnchotPoint(ccp(1.f, .5f));
+    m_leftArrow->setAnchorPoint(ccp(1.f, .5f));
     m_leftArrow->setTag(-1);
     m_buttonMenu->addChildAtPosition(m_leftArrow, Anchor::Left, ccp(-5.f, 0.f));
 
@@ -263,7 +264,7 @@ void TextInput::setArrowType(TextInputArrow type) {
     if (type != TextInputArrow::White) rightSpr->setFlipX(true);
     m_rightArrow = CCMenuItemSpriteExtra::create(rightSpr, this, menu_selector(TextInput::onArrow));
     m_rightArrow->setScale(25.f / m_rightArrow->getContentHeight());
-    m_rightArrow->setAnchotPoint(ccp(0.f, .5f));
+    m_rightArrow->setAnchorPoint(ccp(0.f, .5f));
     m_rightArrow->setTag(1);
     m_buttonMenu->addChildAtPosition(m_rightArrow, Anchor::Right, ccp(5.f, 0.f));
 

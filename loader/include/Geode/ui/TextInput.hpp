@@ -41,7 +41,7 @@ namespace geode {
         // See edit_leftBtn2_001.png in GJ_GameSheet03
         EditorDouble,
         // See edit_leftBtn3_001.png in GJ_GameSheet03
-        EditorTriple
+        EditorTriple,
         // See edit_leftBtn5_001.png in GJ_GameSheet03
         EditorHalf,
         // See GJ_arrow_01_001.png in GJ_GameSheet03
@@ -49,7 +49,7 @@ namespace geode {
         // See GJ_arrow_02_001.png in GJ_GameSheet03
         Blue,
         // See GJ_arrow_03_001.png in GJ_GameSheet03
-        Pink
+        Pink,
         // See GJ_backBtn_001.png in GJ_GameSheet03
         BackBtn,
         // See navArrowBtn_01_001.png in GJ_GameSheet03

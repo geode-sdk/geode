@@ -1,5 +1,7 @@
 #pragma once
 
+#pragma clang diagnostic ignored "-Wnodeprecated-declarations"
+
 #include <cocos2d.h>
 #include <Geode/platform/platform.hpp>
 #include <optional>
