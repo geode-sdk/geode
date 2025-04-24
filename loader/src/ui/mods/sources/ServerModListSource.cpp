@@ -54,11 +54,6 @@ ServerModListSource* ServerModListSource::get(ServerModListType type) {
             static auto inst = new ServerModListSource(ServerModListType::Recent);
             return inst;
         } break;
-
-        case ServerModListType::Modtober24: {
-            static auto inst = new ServerModListSource(ServerModListType::Modtober24);
-            return inst;
-        } break;
     }
 }
 
@@ -104,10 +99,6 @@ server::ModsQuery ServerModListSource::createDefaultQuery() const {
 
         case ServerModListType::Recent: return server::ModsQuery {
             .sorting = server::ModsSort::RecentlyPublished,
-        };
-
-        case ServerModListType::Modtober24: return server::ModsQuery {
-            .tags = { "modtober24" },
         };
     }
 }

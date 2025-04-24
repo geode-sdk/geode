@@ -269,10 +269,12 @@ protected:
         }
     }
     void setSprite(ByteVector&& data, bool postEvent) {
-        auto image = Ref(new CCImage());
+        auto image = new CCImage();
         image->initWithImageData(data.data(), data.size());
 
         auto texture = CCTextureCache::get()->addUIImage(image, m_modID.c_str());
+        image->release();
+
         this->setSprite(CCSprite::createWithTexture(texture), postEvent);
     }
 
