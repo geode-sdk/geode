@@ -1,5 +1,6 @@
 #include <simdutf.h>
 #include <Geode/utils/base64.hpp>
+#include <Geode/Prelude.hpp>
 
 using namespace geode::prelude;
 
