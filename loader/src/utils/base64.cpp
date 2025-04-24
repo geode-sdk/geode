@@ -3,11 +3,12 @@
 #include <Geode/Prelude.hpp>
 
 using namespace geode::prelude;
+using simdutf::base64_options;
 
 std::string base64::encode(std::span<std::uint8_t const> data, Base64Variant var) {
     std::string buffer;
     buffer.resize(simdutf::base64_length_from_binary(data.size()));
-    using simdutf::base64_options;
+
     base64_options opt;
     switch (var) {
         case Base64Variant::Normal: opt = base64_options::base64_default; break;
@@ -15,6 +16,7 @@ std::string base64::encode(std::span<std::uint8_t const> data, Base64Variant var
         case Base64Variant::Url: opt = base64_options::base64_url; break;
         case Base64Variant::UrlWithPad: opt = base64_options::base64_url_with_padding; break;
     }
+
     std::ignore = simdutf::binary_to_base64(data, buffer, opt);
     return buffer;
 }
@@ -22,8 +24,9 @@ std::string base64::encode(std::span<std::uint8_t const> data, Base64Variant var
 std::string base64::encode(std::string_view str, Base64Variant var) {
     return base64::encode(
         std::span(
-            reinterpret_cast<uint8_t const*>(str.data()),
-            reinterpret_cast<uint8_t const*>(str.data() + str.size())),
+            reinterpret_cast<std::uint8_t const*>(str.data()),
+            reinterpret_cast<std::uint8_t const*>(str.data() + str.size())
+        ),
         var
     );
 }
@@ -40,7 +43,6 @@ Result<Container> decodeImpl(std::string_view str, base64::Base64Variant var) {
         str = str.substr(0, i);
     }
 
-    using simdutf::base64_options;
     base64_options opt;
     switch (var) {
         case Base64Variant::NormalNoPad:
