@@ -6,9 +6,6 @@ using namespace geode::prelude;
 using simdutf::base64_options;
 
 std::string base64::encode(std::span<std::uint8_t const> data, Base64Variant var) {
-    std::string buffer;
-    buffer.resize(simdutf::base64_length_from_binary(data.size()));
-
     base64_options opt;
     switch (var) {
         case Base64Variant::Normal: opt = base64_options::base64_default; break;
@@ -17,6 +14,9 @@ std::string base64::encode(std::span<std::uint8_t const> data, Base64Variant var
         case Base64Variant::UrlWithPad: opt = base64_options::base64_url_with_padding; break;
     }
 
+    std::string buffer;
+    buffer.resize(simdutf::base64_length_from_binary(data.size(), opt));
+    // returned size is the same as above
     std::ignore = simdutf::binary_to_base64(data, buffer, opt);
     return buffer;
 }
