@@ -512,8 +512,6 @@ public:
     /// @} End of Sprite properties getter/setters
 
 	cocos2d::CCPoint const& getUnflippedOffsetPosition();
-	bool getUseVertexMod() const;
-	void setUseVertexMod(bool);
 
     
 protected:
@@ -569,6 +567,8 @@ public:
     // @note RobTop Addition
     CC_SYNTHESIZE_NV(bool, m_bDontDraw, DontDraw);
     // @note RobTop Addition
+    CC_SYNTHESIZE_NV(bool, m_bUseVertexMod, UseVertexMod);
+    // @note RobTop Addition
     CC_SYNTHESIZE_NV(float, m_fTlVertexMod, TlVertexMod);
     // @note RobTop Addition
     CC_SYNTHESIZE_NV(float, m_fTrVertexMod, TrVertexMod);
@@ -577,9 +577,13 @@ public:
     // @note RobTop Addition
     CC_SYNTHESIZE_NV(float, m_fBrVertexMod, BrVertexMod);
     // @note RobTop Addition
-    PAD(16);
+    float m_fTextureLeft;
     // @note RobTop Addition
-    bool m_bUnknown;
+    float m_fTextureRight;
+    // @note RobTop Addition
+    float m_fTextureBottom;
+    // @note RobTop Addition
+    float m_fTextureTop;
 };
 
 
