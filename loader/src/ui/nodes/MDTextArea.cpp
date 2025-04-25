@@ -7,6 +7,7 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/ui/MDTextArea.hpp>
+#include <Geode/ui/BreakLine.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/web.hpp>
@@ -155,29 +156,6 @@ bool MDTextArea::init(std::string const& str, CCSize const& size) {
 MDTextArea::~MDTextArea() {
     CC_SAFE_RELEASE(m_renderer);
 }
-
-class BreakLine : public CCNode {
-protected:
-    void draw() override {
-        // some nodes sometimes set the blend func to
-        // something else without resetting it back
-        ccGLBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        ccDrawSolidRect({ 0, 0 }, this->getContentSize(), { 1.f, 1.f, 1.f, .2f });
-        CCNode::draw();
-    }
-
-public:
-    static BreakLine* create(float width) {
-        auto ret = new BreakLine;
-        if (ret->init()) {
-            ret->autorelease();
-            ret->setContentSize({ width, 1.f });
-            return ret;
-        }
-        delete ret;
-        return nullptr;
-    }
-};
 
 void MDTextArea::onLink(CCObject* pSender) {
     auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject());
