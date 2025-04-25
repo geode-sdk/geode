@@ -8,6 +8,10 @@
 namespace geode {
     template <class T>
     class Signal;
+    
+    namespace detail {
+        class SignalImpl;
+    }
 
     void onSignalDispose(std::function<void()> callback);
 
@@ -18,7 +22,6 @@ namespace geode {
 
     class GEODE_DLL SignalObserver final {
     public:
-        using OnUnsubscribe = std::function<void()>;
         using OnNotify = std::function<void()>;
 
     private:
@@ -27,30 +30,9 @@ namespace geode {
 
         template <class T>
         friend class Signal;
-
+        friend class detail::SignalImpl;
         friend void onSignalDispose(std::function<void()> callback);
     
-        class Ref final {
-        private:
-            Impl* m_impl;
-
-            friend class SignalObserver;
-            friend void onSignalDispose(std::function<void()> callback);
-
-            void execute();
-            void dispose();
-
-        public:
-            Ref(Impl*);
-
-            void onSubscribed(OnUnsubscribe unsubscribe);
-            void notify();
-
-            bool operator<(Ref const& other) const;
-        };
-
-        static std::optional<SignalObserver::Ref> getCurrentObserver();
-
     public:
         SignalObserver();
         SignalObserver(OnNotify onNotify, SignalObserverTime time = SignalObserverTime::EndOfFrame);
@@ -65,15 +47,31 @@ namespace geode {
         void notify();
     };
 
+    namespace detail {
+        class GEODE_DLL SignalImpl final {
+        private:
+            class Impl;
+            std::unique_ptr<Impl> m_impl;
+
+            friend class geode::SignalObserver;
+        
+        public:
+            SignalImpl();
+            ~SignalImpl();
+
+            void valueObserved() const;
+            void valueModified() const;
+        };
+    }
+
     template <class T>
     class Signal final {
     private:
         T m_value;
-        mutable std::multiset<SignalObserver::Ref> m_observers;
+        detail::SignalImpl m_impl;
 
-        // currently this crashes because i think ~Signal is called before ~SignalObserver which results in UB
-        // so SignalObserver should probably own its Signals in some way
-    
+        friend class SignalObserver;
+
     public:
         Signal(T const& value) requires std::copy_constructible<T>
           : m_value(value) {}
@@ -87,29 +85,16 @@ namespace geode {
         Signal& operator=(Signal const&) = delete;
 
         T const& get() const {
-            auto obs = SignalObserver::getCurrentObserver();
-            if (obs && !m_observers.contains(*obs)) {
-                m_observers.insert(*obs);
-                obs->onSubscribed([this, obs = *obs]() {
-                    m_observers.erase(obs);
-                });
-            }
+            m_impl.valueObserved();
             return m_value;
-        }
-        void modified() {
-            // notify() calls unsubscribe methods which will mutate m_observers 
-            auto observers = m_observers;
-            for (auto observer : observers) {
-                observer.notify();
-            }
         }
         void set(T const& value) requires std::copy_constructible<T> {
             m_value = value;
-            this->modified();
+            m_impl.valueModified();
         }
         void set(T&& value) requires std::move_constructible<T> {
             m_value = std::move(value);
-            this->modified();
+            m_impl.valueModified();
         }
         void update(auto&& updater) {
             this->set(updater(m_value));
@@ -137,22 +122,22 @@ namespace geode {
         }
         Signal& operator+=(T const& value) requires requires(T& a, T const& b) { a += b; } {
             m_value += value;
-            this->modified();
+            m_impl.valueModified();
             return *this;
         }
         Signal& operator-=(T const& value) requires requires(T& a, T const& b) { a -= b; } {
             m_value -= value;
-            this->modified();
+            m_impl.valueModified();
             return *this;
         }
         Signal& operator*=(T const& value) requires requires(T& a, T const& b) { a *= b; } {
             m_value *= value;
-            this->modified();
+            m_impl.valueModified();
             return *this;
         }
         Signal& operator/=(T const& value) requires requires(T& a, T const& b) { a /= b; } {
             m_value /= value;
-            this->modified();
+            m_impl.valueModified();
             return *this;
         }
     };
