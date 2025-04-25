@@ -116,14 +116,6 @@ void TextInput::onArrow(CCObject* sender) {
 	else {
 		m_input->setString(fmt::format("{}", (int)value));
 	}
-    float value = stof(this->getString());
-    value += m_arrowIncrementation * sender->getTag();
-    if (std::string(m_input->m_allowedChars).find(".") != std::string::npos) {
-        m_input->setString(fmt::format("{:.3f}", value));
-    }
-    else {
-        m_input->setString(fmt::format("{}", (int)value));
-    }
 }
 
 void TextInput::setPlaceholder(std::string const& placeholder) {
@@ -227,13 +219,6 @@ void TextInput::defocus() {
 	m_input->detachWithIME();
 }
 
-void TextInput::setArrowType(TextInputArrow type, float incrementation) {
-    m_arrowIncrementation = incrementation;
-    if (
-        m_input->m_allowedChars !=   "0123456789" &&
-        m_input->m_allowedChars !=  "-0123456789" &&
-        m_input->m_allowedChars != "-.0123456789"
-    ) return;
 void TextInput::setArrowType(TextInputArrow type) {
 	if (
 		m_input->m_allowedChars !=   "0123456789" &&

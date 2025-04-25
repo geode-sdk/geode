@@ -36,8 +36,8 @@ GSlider::GSliderThumb* GSlider::GSliderThumb::create(CCNode* normalSprite, CCNod
 
 bool GSlider::init(
 	float minValue, float maxValue,
-	cocos2d::extension::CCScale9Sprite*, cocos2d::CCSprite* fill,
-	cocos2d::CCNode* thumb, cocos2d::CCNode* thumbHeld
+	CCScale9Sprite* outline, CCSprite* fill,
+	CCNode* thumb, CCNode* thumbHeld
 ) {
 
 	return true;
