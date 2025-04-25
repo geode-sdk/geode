@@ -13,231 +13,239 @@ namespace geode {
  */
 class GEODE_DLL GSliderDelegate {
 
-    friend class GSlider;
+	friend class GSlider;
 
 protected:
 
-    /**
-     * Override this function in your class to make something happen when
-     * the slider starts moving.
-     */
-    virtual void sliderStarted(GSlider* slider, float value) = 0;
-    /**
-     * Override this function in your class to make something happen when
-     * the slider has been moved.
-     */
-    virtual void sliderChanged(GSlider* slider, float value, float difference) = 0;
-    /**
-     * Override this function in your class to make something happen when
-     * the slider is released.
-     */
-    virtual void sliderEnded(GSlider* slider, float value, float difference) = 0;
+	virtual ~GSliderDelegate() = 0;
 
-    /**
-     * Override this function in your class to make something happen when
-     * the slider reaches its minimum value.
-     */
-    virtual void sliderReachedMinimum(GSlider* slider) = 0;
-    /**
-     * Override this function in your class to make something happen when
-     * the slider reaches its maximum value.     *
-     */
-    virtual void sliderReachedMaximum(GSlider* slider) = 0;
+	/**
+	 * Override this function in your class to make something happen when
+	 * the slider starts moving.
+	 */
+	virtual void sliderStarted(GSlider* slider, float value) = 0;
+	/**
+	 * Override this function in your class to make something happen when
+	 * the slider has been moved.
+	 */
+	virtual void sliderChanged(GSlider* slider, float value, float difference) = 0;
+	/**
+	 * Override this function in your class to make something happen when
+	 * the slider is released.
+	 */
+	virtual void sliderEnded(GSlider* slider, float value, float difference) = 0;
+
+	/**
+	 * Override this function in your class to make something happen when
+	 * the slider reaches its minimum value.
+	 */
+	virtual void sliderReachedMinimum(GSlider* slider) = 0;
+	/**
+	 * Override this function in your class to make something happen when
+	 * the slider reaches its maximum value.     *
+	 */
+	virtual void sliderReachedMaximum(GSlider* slider) = 0;
 };
 
 /**
- * Slider class with varioue utilities that are not provided by GD's sliders.
+ * Slider class with various utilities that are not provided by GD's sliders.
  * GSlider stands for **G**eode **Slider**, the G is there to prevent name
  * collisions with GD's `Slider` class.
  */
 class GEODE_DLL GSlider : public cocos2d::CCLayerRGBA {
 protected:
 
-    class GSliderThumb : public cocos2d::CCNodeRGBA {
+	class GEODE_DLL GSliderThumb : public cocos2d::CCNodeRGBA {
 
-        friend class GSlider;
+		friend class GSlider;
 
-    protected:
+	protected:
 
-        cocos2d::CCNode* m_normalSprite;
-        cocos2d::CCNode* m_heldSprite;
+		cocos2d::CCNode* m_normalSprite;
+		cocos2d::CCNode* m_heldSprite;
 
-        bool init(cocos2d::CCNode* normalSprite, cocos2d::CCNode* heldSprite);
-        static GSliderThumb* create(cocos2d::CCNode* normalSprite, cocos2d::CCNode* heldSprite);
-    };
+		bool init(cocos2d::CCNode* normalSprite, cocos2d::CCNode* heldSprite);
+		static GSliderThumb* create(cocos2d::CCNode* normalSprite, cocos2d::CCNode* heldSprite);
+	};
 
-    /**
-     * Delegates to post events to.
-     */
-    std::unordered_map<std::string, GSliderDelegate*> m_delegates;
-    /**
-     * Callbacks to be activated when the slider is moved.
-     */
-    std::map<std::string, std::function<void(float, float)> m_onSliderCallbacks;
+	/**
+	 * Delegates to post events to.
+	 */
+	std::unordered_map<std::string, GSliderDelegate*> m_delegates;
+	/**
+	 * Callbacks to be activated when the slider is moved.
+	 */
+	std::map<std::string, std::function<void(float, float)>> m_callbacks;
 
-    /**
-     * Visual label attached to the slider.
-     */
-    cocos2d::CCLabelBMFont* m_label = nullptr;
-    /**
-     * Shows the value of the slider in real time.
-     */
-    cocos2d::CCLabelBMFont* m_valueLabel = nullptr;
+	/**
+	 * Visual label attached to the slider.
+	 */
+	cocos2d::CCLabelBMFont* m_label = nullptr;
+	/**
+	 * Shows the value of the slider in real time.
+	 */
+	cocos2d::CCLabelBMFont* m_valueLabel = nullptr;
 
-    /**
-     * The outline of the slider. Needs to be `CCScale9Sprite` to make it
-     * possible to make the slider wider or shorter.
-     */
-    cocos2d::extension::CCScale9Sprite* m_barOutline;
-    /**
-     * The fill of the slider.
-     *
-     */
-    cocos2d::CCSprite* m_barFill;
-    /**
-     * The thumb of the slider.
-     * `GSliderThumb` contains one sprite for the normal state of the thumb,
-     * and one sprite for the selected state of it.
-     */
-    GSliderThumb* m_thumb;
+	/**
+	 * The outline of the slider. Needs to be `CCScale9Sprite` to make it
+	 * possible to stretch the slider without it looking bad.
+	 */
+	cocos2d::extension::CCScale9Sprite* m_barOutline;
+	/**
+	 * The fill of the slider.
+	 */
+	cocos2d::CCSprite* m_barFill;
+	/**
+	 * The thumb of the slider.
+	 * `GSliderThumb` contains one sprite for the normal state of the thumb,
+	 * and one sprite for the selected state of it.
+	 */
+	GSliderThumb* m_thumb;
 
-    float m_minValue = 0.f;
-    float m_maxValue = 1.f;
+	/** 
+	 * The value of the slider.
+	 */
+	float m_value;
 
-    /**
-     * Level of accuracy the snapping uses.
-     */
-    float snap = .01f;
+	float m_minValue = 0.f;
+	float m_maxValue = 1.f;
 
-    /**
-     * Initializes the slider.
-     * See the create functionss for more info.
-     */
-    bool init(
-        float minValue, float minValue,
-        std::string const& outline, std::string const& fill,
-        std::string const& thumb, std::string const& thumbSelected
-    );
+	/**
+	 * Level of accuracy the snapping uses.
+	 */
+	float snap = .01f;
 
-    virtual bool ccTouchBegan    (CCTouch* touch, CCEvent* event) override;
-    virtual void ccTouchMoved    (CCTouch* touch, CCEvent* event) override;
-    virtual void ccTouchEnded    (CCTouch* touch, CCEvent* event) override;
-    virtual void ccTouchCancelled(CCTouch* touch, CCEvent* event) override;
+	/**
+	 * Initializes the slider.
+	 * See the create functionss for more info.
+	 */
+	bool init(
+		float minValue, float maxValue,
+		cocos2d::extension::CCScale9Sprite*, cocos2d::CCSprite* fill,
+		cocos2d::CCNode* thumb, cocos2d::CCNode* thumbHeld
+	);
+
+	virtual bool ccTouchBegan    (cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
+	virtual void ccTouchMoved    (cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
+	virtual void ccTouchEnded    (cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
+	virtual void ccTouchCancelled(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
+
+	/**
+	 * Updates the state of the slider.
+	 */
+	virtual void updateState();
 
 public:
-    /**
-     * Creates and initializes a slider. Use the non-static member functions
-     * to configure it.
-     * The minimum value will be 0 and the maximum will be 1.
-     */
-    static GSlider* create();
-    /**
-     * Creates a slider with the input min and max values.
-     * @param minValue Minimum value the slider could be.
-     * @param minValue Minimum value the slider could be.
-     */
-    static GSlider* create(float minValue, float maxValue);
-    /**
-     * Lets you specify what texture to use for each part of the slider.
-     * @param minValue Minimum value the slider could be.
-     * @param maxValue Maximum value the slider could be.
-     * @param outline Node for the outline of the slider. Provide nullptr for default.
-     * @param fill Node for the filling of the slider. Optional.
-     * @param thumb Node for the thumb of the slider. Optional.
-     * @param thumbSelected Node for the thumb while it's held. Optional.
-     * @return Slider with the specified components
-     */
-    static GSlider* create(
-        float minValue, float maxValue,
-        cocos2d::extension::CCScale9Sprite* outline = nullptr,
-        cocos2d::CCSprite* fill                     = CCSprite::create("sliderBar.png"),
-        CCNode* thumb                               = CCSprite::create("sliderthumb.png"),
-        CCNode* thumbSelected                       = CCSprite::create("sliderthumbsel.png")
-    );
+	/**
+	 * Creates and initializes a slider. Use the non-static member functions
+	 * to configure it.
+	 * The minimum value will be 0 and the maximum will be 1.
+	 */
+	static GSlider* create();
+	/**
+	 * Lets you specify what texture to use for each part of the slider.
+	 * @param minValue Minimum value the slider could be.
+	 * @param maxValue Maximum value the slider could be.
+	 * @param outline Node for the outline of the slider. Optional.
+	 * @param fill Node for the filling of the slider. Optional.
+	 * @param thumb Node for the thumb of the slider. Optional.
+	 * @param thumbHeld Node for the thumb while it's held. Optional.
+	 * @return Slider with the specified components
+	 */
+	static GSlider* create(
+		float minValue, float maxValue,
+		cocos2d::extension::CCScale9Sprite* outline = cocos2d::extension::CCScale9Sprite::create(
+			"slidergroove.png", { 0.f, 0.f, 210.f, 16.f }, { 5.5f, 7.5f, 199.f, 1.f }
+		),
+		cocos2d::CCSprite* fill                     = cocos2d::CCSprite::create("sliderBar.png"),
+		cocos2d::CCNode* thumb                      = cocos2d::CCSprite::create("sliderthumb.png"),
+		cocos2d::CCNode* thumbHeld                  = cocos2d::CCSprite::create("sliderthumbsel.png")
+	);
 
-    /**
-     * Sets the actual value of the slider.
-     */
-    void setValue(float value, bool triggerCallback);
-    /**
-     * Sets the minimum value that the slider can get to..
-     */
-    void setMinValue(float minValue);
-    /**
-     * Sets the maximum value that the slider can get to.
-     */
-    void setMaxValue(float maxValue);
-    /**
-     * Sets the level of accuracy the snapping uses.
-     * For example, if the snap is set to 0.1, the slider will snap
-     * to 0.1, then 0.2, then 0.3, etc.
-     */
-    void setSnap(float snapAccuracy);
-    /**
-     * Sets the string of the label that is attached to the slider.
-     * Always prefer to keep it short.
-     */
-    void setLabel(std::string const& label);
-    /**
-     * If true, the value label will be visible. Otherwise, it will be invisible.
-     */
-    void showValueLabel(bool show);
-    /**
-     * Add a callback to be activated when the slider is moved.
-     * First float is the current value, second float is the difference
-     * from when you started holding the slider.
-     * @param ID Uniqur identifirer for the callback.
-     * @param callback The callback to add to the slider.
-     */
-    void addCallback(std::string const& ID, std::function<void(float, float)> callback);
-    /**
-     * Remove a callback by its unique ID.
-     */
-    void removeCallback(std::string const& ID);
-    /**
-     * Get a callback by its unique ID.
-     * @param ID The unique identifier for the desired callback.
-     * @return The desired callback.
-     */
-    std::function<void(float, float)> getCallback(std::string const& ID);
+	/**
+	 * Sets the actual value of the slider.
+	 */
+	void setValue(float value, bool triggerCallback);
+	/**
+	 * Sets the minimum value that the slider can get to..
+	 */
+	void setMinValue(float minValue);
+	/**
+	 * Sets the maximum value that the slider can get to.
+	 */
+	void setMaxValue(float maxValue);
+	/**
+	 * Sets the level of accuracy the snapping uses.
+	 * For example, if the snap is set to 0.1, the slider will snap
+	 * to 0.1, then 0.2, then 0.3, etc.
+	 */
+	void setSnap(float snapAccuracy);
+	/**
+	 * Sets the string of the label that is attached to the slider.
+	 * Always prefer to keep it short.
+	 */
+	void setLabel(std::string const& label);
+	/**
+	 * If true, the value label will be visible. Otherwise, it will be invisible.
+	 */
+	void showValueLabel(bool show);
 
-    /**
-     * Add a slider delegate to be activated when the slider is moved.
-     * First float is the current value, second float is the difference
-     * from when you started holding the slider.
-     * @param ID Uniqur identifirer for the delegate.
-     * @param delegate The delegate to add to the slider.
-     */
-    void addDelegate(std::string const& ID, GSliderDelegate* delegate);
-    /**
-     * Remove a delegate by its unique ID.
-     */
-    void removeDelegate(std::string const& ID);
-    /**
-     * Get a slider delegate by its unique ID.
-     * @param ID The unique identifier for the desired delegate.
-     * @return The desired delegate.
-     */
-    GSliderDelegate* getDelegate(std::string const& ID);
+	/**
+	 * Add a callback to be activated when the slider is moved.
+	 * First float is the current value, second float is the difference
+	 * from when you started holding the slider.
+	 * @param ID Unique identifirer for the callback.
+	 * @param callback The callback to add to the slider.
+	 */
+	void addCallback(std::string const& ID, std::function<void(float, float)> callback);
+	/**
+	 * Remove a callback by its unique ID.
+	 */
+	 void removeCallback(std::string const& ID);
+	 /**
+	 * Get a callback by its unique ID.
+	 * @param ID The unique identifier for the desired callback.
+	 * @return The desired callback, or `nullptr` if it doesn't exist.
+	 */
+	std::function<void(float, float)> getCallback(std::string const& ID);
 
-    /**
-     * @return Current value of the slider.
-     */
-    float getValue() const;
-    /**
-     * @return Minimum value set.
-     */
-    float getMinValue() const;
-    /**
-     * @return Maximum value set
-     */
-    float getMaxValue() const;
+	/**
+	 * Add a slider delegate to be activated when the slider is moved.
+	 * First float is the current value, second float is the difference
+	 * from when you started holding the slider.
+	 * @param ID Uniqur identifirer for the delegate.
+	 * @param delegate The delegate to add to the slider.
+	 */
+	void addDelegate(std::string const& ID, GSliderDelegate* delegate);
+	/**
+	 * Remove a delegate by its unique ID.
+	 */
+	void removeDelegate(std::string const& ID);
+	/**
+	 * Get a slider delegate by its unique ID.
+	 * @param ID The unique identifier for the desired delegate.
+	 * @return The desired delegate, or `nullptr` if it doesn't exist.
+	 */
+	GSliderDelegate* getDelegate(std::string const& ID);
 
-    cocos2d::CCLabelBMFont* getLabel() const;
-    cocos2d::CCLabelBMFont* getValueLabel() const;
-    cocos2d::extension::CCScale9Sprite* getBarOutline() const;
-    cocos2d::CCSprite* getBarFill() const;
-    GSliderThumb* getThumb() const;
+	/**
+	 * @return Current value of the slider.
+	 */
+	float getValue() const;
+	/**
+	 * @return Minimum value set.
+	 */
+	float getMinValue() const;
+	/**
+	 * @return Maximum value set
+	 */
+	float getMaxValue() const;
+
+	cocos2d::CCLabelBMFont* getLabel() const;
+	cocos2d::CCLabelBMFont* getValueLabel() const;
+	cocos2d::extension::CCScale9Sprite* getBarOutline() const;
+	cocos2d::CCSprite* getBarFill() const;
+	GSliderThumb* getThumb() const;
 
 };
 
