@@ -26,6 +26,13 @@
  * Make `geode::utils::web::openLinkInBrowser` open the system webview on Android (#1295)
  * Add safe area API for Android and iOS node placement (#1284)
  * Update `TulipHook` to 2.4.4
+ * Add API to change log level per mod (#1305)
+ * Add base64 utils (#1307)
+ * Fix CCSprite members (#1308)
+ * Use MDPopup for mod setting descriptions (#1286)
+ * Add unicode conversion utils (#1310)
+ * Fix UB in path handling on file utils
+ * Expose `BreakLine` class (#1309)
 
 ## v4.3.1
  * Fix `SimpleAxisLayout` not respecting `Layout::ignoreInvisibleChildren` (a16d230)
