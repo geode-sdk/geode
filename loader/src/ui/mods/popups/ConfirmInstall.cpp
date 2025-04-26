@@ -72,7 +72,7 @@ void askConfirmModInstalls() {
                     if (
                         dep.importance == ModMetadata::Dependency::Importance::Required &&
                         dep.mod && !dep.mod->isOrWillBeEnabled()
-                        ) {
+                    ) {
                         toConfirm.toEnable.insert(dep.mod);
                     }
                 }
@@ -87,7 +87,7 @@ void askConfirmModInstalls() {
             ),
             ", "
         );
-        };
+    };
 
     auto joinIdsToIDs = [](std::unordered_set<std::string> const& ids) {
         return ranges::join(
@@ -96,7 +96,7 @@ void askConfirmModInstalls() {
             ),
             ", "
         );
-        };
+    };
 
     std::unordered_set<std::string> idsToDisable = toConfirm.toDisableModId;
     for (auto mod : toConfirm.toDisable) {
@@ -123,13 +123,13 @@ void askConfirmModInstalls() {
         [toConfirm](auto*, bool btn2) {
             if (btn2) {
                 for (auto mod : toConfirm.toDisable) {
-                    (void) mod->disable();
+                    (void)mod->disable();
                 }
                 for (auto modId : toConfirm.toDisableModId) {
                     Mod::get()->setSavedValue("should-load-" + modId, false);
                 }
                 for (auto mod : toConfirm.toEnable) {
-                    (void) mod->enable();
+                    (void)mod->enable();
                 }
                 ModDownloadManager::get()->confirmAll();
             }
