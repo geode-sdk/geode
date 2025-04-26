@@ -57,6 +57,9 @@ bool GSlider::init(
 	CCScale9Sprite* outline, CCSprite* fill,
 	CCNode* thumb, CCNode* thumbHeld
 ) {
+	this->registerWithTouchDispatcher();
+	this->setTouchEnabled(true);
+	this->setTouchMode(kCCTouchesOneByOne);
 
 	m_obContentSize = CCSize(width - 10.f, 16.f); 
 
