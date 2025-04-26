@@ -55,16 +55,27 @@ protected:
 class GEODE_DLL GSlider : public cocos2d::CCLayerRGBA {
 protected:
 
-	class GEODE_DLL GSliderThumb : public cocos2d::CCNodeRGBA {
+	class GSliderThumb : public cocos2d::CCNodeRGBA {
 
 		friend class GSlider;
 
+		void update(float) override;
+
+		// i dont wanna have to deal with this shit
+		void setAnchorPoint(cocos2d::CCPoint const&) override {}
+		void ignoreAnchorPointForPosition(bool) override {}
+
 	protected:
+
+		bool m_held = false;
 
 		cocos2d::CCNode* m_normalSprite;
 		cocos2d::CCNode* m_heldSprite;
 
 		bool init(cocos2d::CCNode* normalSprite, cocos2d::CCNode* heldSprite);
+
+		virtual void updateState(bool isHeld);
+
 		static GSliderThumb* create(cocos2d::CCNode* normalSprite, cocos2d::CCNode* heldSprite);
 	};
 
@@ -75,7 +86,7 @@ protected:
 	/**
 	 * Callbacks to be activated when the slider is moved.
 	 */
-	std::map<std::string, std::function<void(float, float)>> m_callbacks;
+	std::unordered_map<std::string, std::function<void(float, float)>> m_callbacks;
 
 	/**
 	 * Visual label attached to the slider.
@@ -113,18 +124,24 @@ protected:
 	/**
 	 * Level of accuracy the snapping uses.
 	 */
-	float snap = .01f;
+	float m_snapStep = .01f;
+	bool m_useSnap = false;
 
 	/**
 	 * Initializes the slider.
 	 * See the create functionss for more info.
 	 */
 	bool init(
-		float minValue, float maxValue,
+		float minValue, float maxValue, float width,
 		cocos2d::extension::CCScale9Sprite*, cocos2d::CCSprite* fill,
 		cocos2d::CCNode* thumb, cocos2d::CCNode* thumbHeld
 	);
 
+private: 
+	cocos2d::CCPoint m_touchStartPos;
+	float m_touchStartValue;
+
+protected:
 	virtual bool ccTouchBegan    (cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
 	virtual void ccTouchMoved    (cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
 	virtual void ccTouchEnded    (cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
@@ -133,27 +150,40 @@ protected:
 	/**
 	 * Updates the state of the slider.
 	 */
-	virtual void updateState();
+	virtual void updateState(float newValue);
 
 public:
 	/**
-	 * Creates and initializes a slider. Use the non-static member functions
-	 * to configure it.
+	 * Creates and initializes a slider. Use the non-static member 
+	 * functionsto configure it.
 	 * The minimum value will be 0 and the maximum will be 1.
+	 * @return Slider with default settings
 	 */
 	static GSlider* create();
 	/**
-	 * Lets you specify what texture to use for each part of the slider.
+	 * Creates a slider with a custom range of values.
 	 * @param minValue Minimum value the slider could be.
 	 * @param maxValue Maximum value the slider could be.
-	 * @param outline Node for the outline of the slider. Optional.
-	 * @param fill Node for the filling of the slider. Optional.
+	 * @return Slider with the specified minimum and maximum values, 
+	 * default width and textures
+	 */
+	static GSlider* create(float minValue, float maxValue);
+	/**
+	 * Creates a slider, and lets you specify what texture 
+	 * to use for each part of the slider.
+	 * @param minValue Minimum value the slider could be.
+	 * @param maxValue Maximum value the slider could be.
+	 * @param width Width for the slider.
+	 * @param outline Node for the outline of the bar. Optional.
+	 * @param fill Node for the filling of the bar. Optional.
 	 * @param thumb Node for the thumb of the slider. Optional.
 	 * @param thumbHeld Node for the thumb while it's held. Optional.
 	 * @return Slider with the specified components
+	 * @warning The bar's outline and fill will be automatically 
+	 * resized to fit the size of GD sliders.
 	 */
 	static GSlider* create(
-		float minValue, float maxValue,
+		float minValue, float maxValue, float width,
 		cocos2d::extension::CCScale9Sprite* outline = cocos2d::extension::CCScale9Sprite::create(
 			"slidergroove.png", { 0.f, 0.f, 210.f, 16.f }, { 5.5f, 7.5f, 199.f, 1.f }
 		),
@@ -162,12 +192,20 @@ public:
 		cocos2d::CCNode* thumbHeld                  = cocos2d::CCSprite::create("sliderthumbsel.png")
 	);
 
+	/** 
+	 * Resizes the slider and all of its components to fit the new size.
+	 */
+	virtual void setContentSize(cocos2d::CCSize const& size) override;
+
 	/**
 	 * Sets the actual value of the slider.
+	 * @param value Value the slider should change to.
+	 * @param triggerCallback Whether to trigger the callback
+	 * function / delegate's sliderChanged event.
 	 */
 	void setValue(float value, bool triggerCallback);
 	/**
-	 * Sets the minimum value that the slider can get to..
+	 * Sets the minimum value that the slider can get to.
 	 */
 	void setMinValue(float minValue);
 	/**
@@ -175,16 +213,22 @@ public:
 	 */
 	void setMaxValue(float maxValue);
 	/**
-	 * Sets the level of accuracy the snapping uses.
+	 * Sets the size of step the snapping uses.
 	 * For example, if the snap is set to 0.1, the slider will snap
 	 * to 0.1, then 0.2, then 0.3, etc.
+	 * @param snapStep Step between each snap
+	 * @param useSnap Wheter to actually snap. Defaults to true
 	 */
-	void setSnap(float snapAccuracy);
+	void setSnap(float snapStep, bool useSnap = true);
 	/**
 	 * Sets the string of the label that is attached to the slider.
 	 * Always prefer to keep it short.
 	 */
-	void setLabel(std::string const& label);
+	void setLabel(std::string const& label, std::string const& font);
+	/** 
+	 * Allows you to make the thumb switch to its held state. Visual only
+	 */
+	void setHeld(bool held);
 	/**
 	 * If true, the value label will be visible. Otherwise, it will be invisible.
 	 */

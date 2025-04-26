@@ -83,10 +83,10 @@ bool TextInput::init(float width, std::string const& placeholder, std::string co
 	m_input->setUserObject("fix-text-input", CCBool::create(true));
 	this->addChildAtPosition(m_input, Anchor::Center);
 
-	m_buttonMenu = CCMenu::create();
-	m_buttonMenu->setContentSize(m_obContentSize);
-	m_buttonMenu->ignoreAnchorPointForPosition(false);
-	this->addChildAtPosition(m_buttonMenu, Anchor::Center);
+	// m_buttonMenu = CCMenu::create();
+	// m_buttonMenu->setContentSize(m_obContentSize);
+	// m_buttonMenu->ignoreAnchorPointForPosition(false);
+	// this->addChildAtPosition(m_buttonMenu, Anchor::Center);
 
 	return true;
 }
@@ -107,6 +107,7 @@ void TextInput::textChanged(CCTextInputNode* input) {
 	}
 }
 
+/*
 void TextInput::onArrow(CCObject* sender) {
 	float value = stof(this->getString());
 	value += m_arrowIncrementation * sender->getTag();
@@ -117,6 +118,7 @@ void TextInput::onArrow(CCObject* sender) {
 		m_input->setString(fmt::format("{}", (int)value));
 	}
 }
+*/
 
 void TextInput::setPlaceholder(std::string const& placeholder) {
 	m_input->m_caption = placeholder;
@@ -219,6 +221,7 @@ void TextInput::defocus() {
 	m_input->detachWithIME();
 }
 
+/*
 void TextInput::setArrowType(TextInputArrow type) {
 	if (
 		m_input->m_allowedChars !=   "0123456789" &&
@@ -268,6 +271,7 @@ void TextInput::setArrowType(TextInputArrow type) {
 	m_buttonMenu->addChildAtPosition(m_rightArrow, Anchor::Right, ccp(5.f, 0.f));
 
 }
+*/
 
 CCTextInputNode* TextInput::getInputNode() const {
 	return m_input;
@@ -279,6 +283,7 @@ CCLabelBMFont* TextInput::getLabel() const {
 	return m_label;
 }
 
+/*
 CCMenu* TextInput::getButtonMenu() const {
 	return m_buttonMenu;
 }
@@ -288,3 +293,4 @@ CCMenuItemSpriteExtra* TextInput::getLeftArrow() const {
 CCMenuItemSpriteExtra* TextInput::getRightArrow() const {
 	return m_rightArrow;
 }
+*/
