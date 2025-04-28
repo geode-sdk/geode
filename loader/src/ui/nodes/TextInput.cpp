@@ -19,9 +19,15 @@ struct TextInputNodeFix : Modify<TextInputNodeFix, CCTextInputNode> {
             return false;
         }
 
-        auto const touchPos = touch->getLocation();
+        auto touchPos = touch->getLocation();
         auto const size = this->getContentSize();
         auto const pos = this->convertToNodeSpace(touchPos) + m_textField->getAnchorPoint() * size;
+
+        if (TextInput* parent = typeinfo_cast<TextInput*>(this->getParent())) {
+            CCPoint nodeSpace = convertToNodeSpace(touchPos);
+            nodeSpace = nodeSpace / parent->getScale();
+            touchPos = convertToWorldSpace(nodeSpace);
+        }
 
         if (pos.x < 0 || pos.x > size.width || pos.y < 0 || pos.y > size.height) {
             this->onClickTrackNode(false);
