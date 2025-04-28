@@ -32,11 +32,23 @@ bool InstalledModsQuery::queryCheck(ModSource const& src, double& weighted) cons
     if (addToList && src.asMod()->isInternal()) {
         weighted += 5;
     }
+    if (addToList && enabledFirst && src.asMod()->isEnabled()) {
+        weighted += 3;
+    }
     // todo: favorites
     return addToList;
 }
 bool InstalledModsQuery::isDefault() const {
-    return LocalModsQueryBase::isDefault() && !enabledOnly.has_value();
+    return LocalModsQueryBase::isDefault() && !enabledOnly.value_or(false);
+}
+
+matjson::Value InstalledModsQuery::dumpFilters() const {
+    matjson::Value out;
+    out["tags"] = this->tags;
+    out["enabledOnly"] = this->enabledOnly.value_or(false);
+    out["enabledFirst"] = this->enabledFirst.value_or(false);
+
+    return out;
 }
 
 InstalledModListSource::InstalledModListSource(InstalledModListType type)
@@ -74,6 +86,29 @@ void InstalledModListSource::resetQuery() {
     m_query = InstalledModsQuery {
         .type = m_type,
     };
+    
+    // load filter if applicable
+    auto value = Mod::get()->getSavedValue<matjson::Value>("mod-list-installed-filters");
+
+    if (auto res = value["tags"].asArray()) {
+        for (auto elem : res.unwrap()) {
+            if (auto str = elem.asString()) {
+                m_query.tags.insert(str.unwrap());
+            }
+        }
+    }
+
+    m_query.enabledOnly = value["enabledOnly"].asBool().ok();
+    m_query.enabledFirst = value["enabledFirst"].asBool().ok();
+
+    // plenty of code checks for the option not being None instead of the inner value :/
+    if (!m_query.enabledOnly.value_or(false)) {
+        m_query.enabledOnly = std::nullopt;
+    }
+    
+    if (!m_query.enabledFirst.value_or(false)) {
+        m_query.enabledFirst = std::nullopt;
+    }
 }
 
 InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t page, bool forceUpdate) {
