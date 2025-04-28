@@ -23,12 +23,17 @@ struct TextInputNodeFix : Modify<TextInputNodeFix, CCTextInputNode> {
         auto const size = this->getContentSize();
         auto const pos = this->convertToNodeSpace(touchPos) + m_textField->getAnchorPoint() * size;
 
-        if (TextInput* parent = typeinfo_cast<TextInput*>(this->getParent())) {
-            CCPoint nodeSpace = convertToNodeSpace(touchPos);
-            nodeSpace = nodeSpace / parent->getScale();
-            touchPos = convertToWorldSpace(nodeSpace);
+        float parentScale = 1.f;
+        CCNode* currentParent = this;
+        
+        while ((currentParent = currentParent->getParent())) {
+            parentScale *= currentParent->getScale();
         }
 
+        CCPoint nodeSpace = this->convertToNodeSpace(touchPos);
+        nodeSpace = nodeSpace / parentScale;
+        touchPos = this->convertToWorldSpace(nodeSpace);
+        
         if (pos.x < 0 || pos.x > size.width || pos.y < 0 || pos.y > size.height) {
             this->onClickTrackNode(false);
             return false;
