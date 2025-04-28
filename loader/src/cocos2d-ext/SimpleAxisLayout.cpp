@@ -829,6 +829,46 @@ SimpleAxisLayout* SimpleAxisLayout::setMaxRelativeScale(std::optional<float> sca
     return this;
 }
 
+Axis SimpleAxisLayout::getAxis() const {
+    return m_impl->m_axis;
+}
+
+AxisScaling SimpleAxisLayout::getMainAxisScaling() const {
+    return m_impl->m_mainAxisScaling;
+}
+
+AxisScaling SimpleAxisLayout::getCrossAxisScaling() const {
+    return m_impl->m_crossAxisScaling;
+}
+
+MainAxisAlignment SimpleAxisLayout::getMainAxisAlignment() const {
+    return m_impl->m_mainAxisAlignment;
+}
+
+CrossAxisAlignment SimpleAxisLayout::getCrossAxisAlignment() const {
+    return m_impl->m_crossAxisAlignment;
+}
+
+AxisDirection SimpleAxisLayout::getMainAxisDirection() const {
+    return m_impl->m_mainAxisDirection;
+}
+
+AxisDirection SimpleAxisLayout::getCrossAxisDirection() const {
+    return m_impl->m_crossAxisDirection;
+}
+
+float SimpleAxisLayout::getGap() const {
+    return m_impl->m_gap;
+}
+
+std::optional<float> SimpleAxisLayout::getMinRelativeScale() const {
+    return m_impl->m_minRelativeScale;
+}
+
+std::optional<float> SimpleAxisLayout::getMaxRelativeScale() const {
+    return m_impl->m_maxRelativeScale;
+}
+
 SimpleRowLayout::SimpleRowLayout() : SimpleAxisLayout(Axis::Row) {}
 
 SimpleRowLayout::~SimpleRowLayout() = default;
