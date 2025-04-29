@@ -226,7 +226,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
 
     auto searchFiltersMenu = CCMenu::create();
     searchFiltersMenu->setID("search-filters-menu");
-    searchFiltersMenu->setContentWidth(size.width - m_searchInput->getScaledContentWidth() - 5);
+    searchFiltersMenu->setContentSize({size.width - m_searchInput->getScaledContentWidth() - 5, 30});
     searchFiltersMenu->setAnchorPoint({ 1, .5f });
     searchFiltersMenu->setScale(.75f);
     // Set higher prio to not let list items override touch
@@ -261,8 +261,10 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     searchFiltersMenu->addChild(m_clearFiltersBtn);
 
     searchFiltersMenu->setLayout(
-        RowLayout::create()
-            ->setAxisAlignment(AxisAlignment::End)
+        SimpleRowLayout::create()
+            ->setMainAxisAlignment(MainAxisAlignment::End)
+            ->setMainAxisScaling(AxisScaling::Scale)
+            ->setGap(5.f)
     );
     m_searchMenu->addChildAtPosition(searchFiltersMenu, Anchor::Right, ccp(-10, 0));
 
