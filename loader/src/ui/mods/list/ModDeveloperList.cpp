@@ -38,8 +38,8 @@ bool ModDeveloperList::init(DevListPopup* popup, ModSource const& source, CCSize
     m_list = ScrollLayer::create({ size.width - 10.f, size.height - 10.f });
     m_list->m_contentLayer->setLayout(
         SimpleColumnLayout::create()
-            ->setMainAxisDirection(AxisDirection::BottomToTop)
-            ->setMainAxisAlignment(MainAxisAlignment::End)
+            ->setMainAxisDirection(AxisDirection::TopToBottom)
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
             ->setMainAxisScaling(AxisScaling::Grow)
             ->setGap(5.0f)
     );
