@@ -570,6 +570,9 @@ void ModList::updateDisplay(ModListDisplay display) {
         m_list->m_contentLayer->getPositionY() / oldPositionArea : 
         -1.f;
 
+    // fix initial width being 0
+    m_list->m_contentLayer->setContentWidth(m_list->getContentWidth());
+    
     // Update the list layout based on the display model
     if (display == ModListDisplay::Grid) {
         m_list->m_contentLayer->setLayout(
@@ -581,10 +584,10 @@ void ModList::updateDisplay(ModListDisplay display) {
     }
     else {
         m_list->m_contentLayer->setLayout(
-            ColumnLayout::create()
-                ->setAxisReverse(true)
-                ->setAxisAlignment(AxisAlignment::End)
-                ->setAutoGrowAxis(m_obContentSize.height)
+            SimpleColumnLayout::create()
+                ->setMainAxisDirection(AxisDirection::TopToBottom)
+                ->setMainAxisAlignment(MainAxisAlignment::End)
+                ->setMainAxisScaling(AxisScaling::Fit)
                 ->setGap(2.5f)
         );
     }
