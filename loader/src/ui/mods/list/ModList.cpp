@@ -171,9 +171,12 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
             errorsMenu->addChild(m_toggleErrorsOnlyBtn);
 
             errorsMenu->setLayout(
-                RowLayout::create()
-                    ->setAxisAlignment(AxisAlignment::End)
-                    ->setDefaultScaleLimits(.1f, .6f)
+                SimpleRowLayout::create()
+                    ->setMainAxisAlignment(MainAxisAlignment::End)
+                    ->setMinRelativeScale(.1f)
+                    ->setMaxRelativeScale(.6f)
+                    ->setGap(5)
+                    ->setCrossAxisScaling(AxisScaling::Scale)
             );
             m_errorsContainer->addChildAtPosition(errorsMenu, Anchor::Right, ccp(-10, 0));
 
