@@ -644,13 +644,13 @@ void SimpleAxisLayout::Impl::applyMainPositioning(CCNode* layout, std::vector<CC
     for (auto node : nodes) {
         // apply the gap between the nodes
         if (auto gap = typeinfo_cast<AxisGap*>(node)) {
-            offset += gap->getGap() * gapPercentage;
+            offset += (gap->getGap() * gapPercentage) * (m_mainAxisDirection == AxisDirection::BackToFront ? -1.f : 1.f);
             lastChild = nullptr;
             continue;
         }
         // otherwise use the default gap
         if (lastChild) {
-            offset += m_gap * gapPercentage;
+            offset += (m_gap * gapPercentage) * (m_mainAxisDirection == AxisDirection::BackToFront ? -1.f : 1.f);
         }
 
         auto const height = this->getContentHeight(node) * this->getScale(node);
