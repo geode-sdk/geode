@@ -378,6 +378,14 @@ if (NOT GEODE_BUILDING_DOCS)
 				RUNTIME
 				DESTINATION "${GEODE_PROFILE_GD_PATH}"
 			)
+			# Also add the .pdb when building debug
+			if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo"))
+				install(
+					FILES $<TARGET_PDB_FILE:${PROJECT_NAME}>
+					DESTINATION "${GEODE_PROFILE_GD_PATH}"
+					OPTIONAL
+				)
+			endif()
 			file(GLOB RESOURCE_FILES ${GEODE_BIN_PATH}/nightly/resources/*.*)
 			install(
 				FILES ${RESOURCE_FILES}
