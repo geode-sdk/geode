@@ -591,7 +591,7 @@ bool ModsLayer::init() {
 
     m_pageMenu = CCMenu::create();
     m_pageMenu->setID("page-menu");
-    m_pageMenu->setContentWidth(200.f);
+    m_pageMenu->setContentSize({200.f, 16.f});
     m_pageMenu->setAnchorPoint({ 1.f, 1.f });
     m_pageMenu->setScale(.65f);
 
@@ -608,9 +608,12 @@ bool ModsLayer::init() {
     m_pageMenu->addChild(m_goToPageBtn);
 
     m_pageMenu->setLayout(
-        RowLayout::create()
-            ->setAxisReverse(true)
-            ->setAxisAlignment(AxisAlignment::End)
+        SimpleRowLayout::create()
+            ->setMainAxisDirection(AxisDirection::RightToLeft)
+            ->setMainAxisAlignment(MainAxisAlignment::End)
+            ->setCrossAxisAlignment(CrossAxisAlignment::End)
+            ->setMainAxisScaling(AxisScaling::ScaleDown)
+            ->setGap(5.f)
     );
     this->addChildAtPosition(m_pageMenu, Anchor::TopRight, ccp(-5, -5), false);
 
