@@ -360,8 +360,9 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_statusContainer->addChild(m_statusLoadingBar);
 
     m_statusContainer->setLayout(
-        ColumnLayout::create()
-            ->setAxisReverse(true)
+        SimpleColumnLayout::create()
+            ->setMainAxisDirection(AxisDirection::TopToBottom)
+            ->setGap(5.f)
     );
     m_statusContainer->getLayout()->ignoreInvisibleChildren(true);
     this->addChildAtPosition(m_statusContainer, Anchor::Center);
