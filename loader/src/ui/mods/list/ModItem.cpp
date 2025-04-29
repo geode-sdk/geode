@@ -213,7 +213,11 @@ bool ModItem::init(ModSource&& source) {
 
     m_badgeContainer = CCNode::create();
     m_badgeContainer->setID("badge-container");
-    m_badgeContainer->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.1f, .8f));
+    m_badgeContainer->setLayoutOptions(
+        SimpleAxisLayoutOptions::create()
+            ->setMinRelativeScale(1.2f)
+            ->setMaxRelativeScale(1.5f)
+    );
 
     // Handle source-specific stuff
     m_source.visit(makeVisitor {
@@ -446,8 +450,11 @@ void ModItem::updateState() {
         }
         else {
             m_badgeContainer->setLayout(
-                RowLayout::create()
-                    ->setAutoGrowAxis(true)
+                SimpleRowLayout::create()
+                    ->setMainAxisAlignment(MainAxisAlignment::Start)
+                    ->setMainAxisScaling(AxisScaling::Grow)
+                    ->setCrossAxisScaling(AxisScaling::Scale)
+                    ->setGap(5.f)
             );
             m_badgeContainer->getLayout()->ignoreInvisibleChildren(true);
             m_titleContainer->addChild(m_badgeContainer);
@@ -619,7 +626,6 @@ void ModItem::updateState() {
     // On grid view, m_titleContainer contains the version and download count 
     // but not the actual title lol
     m_titleContainer->setContentWidth(titleSpace.width / m_infoContainer->getScale());
-    m_titleContainer->setContentHeight(30.f);
     if (m_display == ModListDisplay::Grid) {
         static_cast<SimpleRowLayout*>(m_titleContainer->getLayout())
             ->setGap(10)
@@ -634,7 +640,6 @@ void ModItem::updateState() {
         static_cast<SimpleRowLayout*>(m_developers->getLayout())
             ->setMainAxisAlignment(MainAxisAlignment::Start);
     }
-    m_titleContainer->updateLayout();
     m_developers->setContentWidth(titleSpace.width / m_infoContainer->getScale());
     m_developers->setContentHeight(30.f);
     m_developers->updateLayout();
@@ -647,13 +652,17 @@ void ModItem::updateState() {
     limitNodeWidth(m_downloadWaiting, m_titleContainer->getContentWidth(), 1.f, .1f);
     limitNodeWidth(m_downloadBarContainer, m_titleContainer->getContentWidth(), 1.f, .1f);
 
+    // reset options before updating
+    m_titleLabel->setLayoutOptions(nullptr);
     // Update positioning (jesus)
     switch (m_display) {
         case ModListDisplay::Grid: {
             m_infoContainer->updateAnchoredPosition(Anchor::Center, ccp(0, -5), ccp(.5f, .5f));
             // m_description is hidden
-
-            m_titleLabel->updateAnchoredPosition(Anchor::Top, ccp(0, -10), ccp(.5f, .5f));
+            m_titleLabel->setLayoutOptions(AnchorLayoutOptions::create()
+                ->setAnchor(Anchor::Top)
+                ->setOffset(ccp(0, -10))
+            );
             limitNodeWidth(m_titleLabel, m_titleContainer->getContentWidth(), .8f, .1f);
             m_titleContainer->updateAnchoredPosition(Anchor::Center, ccp(0, 0), ccp(.5f, .5f));
             m_developers->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
@@ -701,11 +710,12 @@ void ModItem::updateState() {
             }
         } break;
     }
+    
     m_infoContainer->setContentSize(ccp(titleSpace.width, titleSpace.height) / m_infoContainer->getScale());
     m_infoContainer->updateLayout();
-    
+
+    m_titleContainer->updateLayout();
     // Update button menu state
-    m_viewMenu->setContentHeight(40.f);
 
     if (m_display == ModListDisplay::Grid) {
         m_viewMenu->setContentWidth(m_obContentSize.width / m_viewMenu->getScaleX());
@@ -719,6 +729,8 @@ void ModItem::updateState() {
         m_viewMenu->setScale(.55f);
         static_cast<SimpleRowLayout*>(m_viewMenu->getLayout())->setMainAxisAlignment(MainAxisAlignment::Start);
     }
+
+    m_viewMenu->setContentHeight(40.f);
     m_viewMenu->updateLayout();
 
     // Highlight item via BG if it wants to restart for extra UI attention
