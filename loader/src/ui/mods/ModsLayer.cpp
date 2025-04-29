@@ -610,9 +610,9 @@ bool ModsLayer::init() {
     m_pageMenu->setLayout(
         SimpleRowLayout::create()
             ->setMainAxisDirection(AxisDirection::RightToLeft)
-            ->setMainAxisAlignment(MainAxisAlignment::End)
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
             ->setCrossAxisAlignment(CrossAxisAlignment::End)
-            ->setMainAxisScaling(AxisScaling::ScaleDown)
+            ->setCrossAxisScaling(AxisScaling::ScaleDown)
             ->setGap(5.f)
     );
     this->addChildAtPosition(m_pageMenu, Anchor::TopRight, ccp(-5, -5), false);

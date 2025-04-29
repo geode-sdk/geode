@@ -81,7 +81,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         
         m_updateAllMenu = CCMenu::create();
         m_updateAllMenu->setID("update-all-menu");
-        m_updateAllMenu->setContentWidth(size.width / 2);
+        m_updateAllMenu->setContentSize({size.width / 2, 21});
         m_updateAllMenu->setAnchorPoint({ 1, .5f });
 
         m_showUpdatesSpr = createGeodeButton(
@@ -113,9 +113,12 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         m_updateAllMenu->addChild(m_updateAllLoadingCircle);
 
         m_updateAllMenu->setLayout(
-            RowLayout::create()
-                ->setAxisAlignment(AxisAlignment::End)
-                ->setDefaultScaleLimits(.1f, .6f)
+            SimpleRowLayout::create()
+                ->setMainAxisAlignment(MainAxisAlignment::End)
+                ->setMinRelativeScale(.1f)
+                ->setMaxRelativeScale(.6f)
+                ->setGap(5)
+                ->setCrossAxisScaling(AxisScaling::Scale)
         );
         m_updateAllMenu->getLayout()->ignoreInvisibleChildren(true);
         m_updateAllContainer->addChildAtPosition(m_updateAllMenu, Anchor::Right, ccp(-10, 0));
