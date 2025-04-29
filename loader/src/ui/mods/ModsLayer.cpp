@@ -364,7 +364,7 @@ bool ModsLayer::init() {
 
     auto backMenu = CCMenu::create();
     backMenu->setID("back-menu");
-    backMenu->setContentWidth(100.f);
+    backMenu->setContentSize({100.f, 40.f});
     backMenu->setAnchorPoint({ .0f, .5f });
     
     auto backSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
@@ -375,8 +375,8 @@ bool ModsLayer::init() {
     backMenu->addChild(backBtn);
 
     backMenu->setLayout(
-        RowLayout::create()
-            ->setAxisAlignment(AxisAlignment::Start)
+        SimpleRowLayout::create()
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
     );
     this->addChildAtPosition(backMenu, Anchor::TopLeft, ccp(12, -25), false);
 
@@ -501,7 +501,7 @@ bool ModsLayer::init() {
     auto mainTabs = CCMenu::create();
     mainTabs->setID("tabs-menu");
     mainTabs->setContentWidth(tabsTop->getContentWidth() - 45);
-    mainTabs->setContentHeight(32);
+    mainTabs->setContentHeight(32.f);
     mainTabs->setAnchorPoint({ .5f, .0f });
     mainTabs->setPosition(m_frame->convertToWorldSpace(tabsTop->getPosition() + ccp(0, 6)));
     // Increment touch priority so the mods in the list don't override
