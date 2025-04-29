@@ -56,10 +56,11 @@ bool ModItem::init(ModSource&& source) {
 
     m_versionLabel = CCLabelBMFont::create("", "bigFont.fnt");
     m_versionLabel->setID("version-label");
+    m_versionLabel->setScale(0.7f);
     m_versionLabel->setLayoutOptions(
         SimpleAxisLayoutOptions::create()
-            ->setMinRelativeScale(.5f)
-            ->setMaxRelativeScale(.7f)
+            ->setMinRelativeScale(.6f)
+            ->setMaxRelativeScale(1.f)
         );
     m_titleContainer->addChild(m_versionLabel);
 
@@ -227,9 +228,10 @@ bool ModItem::init(ModSource&& source) {
                 m_enableToggle = CCMenuItemToggler::createWithStandardSprites(
                     this, menu_selector(ModItem::onEnable), 1.f
                 );
+                m_enableToggle->setScale(0.9f);
                 m_enableToggle->setLayoutOptions(
                     SimpleAxisLayoutOptions::create()
-                        ->setMaxRelativeScale(.9f)
+                        ->setMaxRelativeScale(1.f)
                 );
                 m_enableToggle->setID("enable-toggler");
                 // Manually handle toggle state
@@ -415,13 +417,14 @@ void ModItem::updateState() {
 
     // Download counts go next to the version like on the website on grid view
     if (m_downloadCountContainer) {
+        m_downloadCountContainer->setScale(0.7f);
         m_downloadCountContainer->removeFromParent();
         if (m_display == ModListDisplay::Grid) {
             m_titleContainer->insertAfter(m_downloadCountContainer, m_versionDownloadSeparator);
             m_downloadCountContainer->setLayoutOptions(
                 SimpleAxisLayoutOptions::create()
                     ->setMinRelativeScale(.1f)
-                    ->setMaxRelativeScale(.7f)
+                    ->setMaxRelativeScale(1.f)
                 );
         }
         else {
@@ -429,7 +432,7 @@ void ModItem::updateState() {
             m_downloadCountContainer->setLayoutOptions( 
                 SimpleAxisLayoutOptions::create()
                     ->setMinRelativeScale(.1f)
-                    ->setMaxRelativeScale(.7f)
+                    ->setMaxRelativeScale(1.f)
             );
         }
     }
