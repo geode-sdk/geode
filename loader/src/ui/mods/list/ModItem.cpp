@@ -47,12 +47,19 @@ bool ModItem::init(ModSource&& source) {
 
     m_titleLabel = CCLabelBMFont::create(m_source.getMetadata().getName().c_str(), "bigFont.fnt");
     m_titleLabel->setID("title-label");
-    m_titleLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.3f, std::nullopt));
+    m_titleLabel->setLayoutOptions(
+        SimpleAxisLayoutOptions::create()
+            ->setMinRelativeScale(.3f)
+        );
     m_titleContainer->addChild(m_titleLabel);
 
     m_versionLabel = CCLabelBMFont::create("", "bigFont.fnt");
     m_versionLabel->setID("version-label");
-    m_versionLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.5f, .7f)->setScalePriority(1));
+    m_versionLabel->setLayoutOptions(
+        SimpleAxisLayoutOptions::create()
+            ->setMinRelativeScale(.5f)
+            ->setMaxRelativeScale(.7f)
+        );
     m_titleContainer->addChild(m_versionLabel);
 
     m_versionDownloadSeparator = CCLabelBMFont::create("•", "bigFont.fnt");
@@ -60,9 +67,11 @@ bool ModItem::init(ModSource&& source) {
     m_titleContainer->addChild(m_versionDownloadSeparator);
     
     m_titleContainer->setLayout(
-        RowLayout::create()
-            ->setDefaultScaleLimits(.1f, 1.f)
-            ->setAxisAlignment(AxisAlignment::Start)
+        SimpleRowLayout::create()
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
+            ->setMainAxisScaling(AxisScaling::Scale)
+            ->setCrossAxisScaling(AxisScaling::Grow)
+            ->setGap(5.f)
     );
     m_titleContainer->getLayout()->ignoreInvisibleChildren(true);
     m_infoContainer->addChildAtPosition(m_titleContainer, Anchor::Left);
@@ -401,7 +410,7 @@ void ModItem::updateState() {
             m_titleContainer->insertAfter(m_downloadCountContainer, m_versionDownloadSeparator);
             m_downloadCountContainer->setLayoutOptions(
                 SimpleAxisLayoutOptions::create()
-                    ->setMaxRelativeScale(.1f)
+                    ->setMinRelativeScale(.1f)
                     ->setMaxRelativeScale(.7f)
                 );
         }
@@ -409,7 +418,7 @@ void ModItem::updateState() {
             m_viewMenu->addChild(m_downloadCountContainer);
             m_downloadCountContainer->setLayoutOptions( 
                 SimpleAxisLayoutOptions::create()
-                    ->setMaxRelativeScale(.1f)
+                    ->setMinRelativeScale(.1f)
                     ->setMaxRelativeScale(.7f)
             );
         }
@@ -604,19 +613,20 @@ void ModItem::updateState() {
     // On grid view, m_titleContainer contains the version and download count 
     // but not the actual title lol
     m_titleContainer->setContentWidth(titleSpace.width / m_infoContainer->getScale());
+    m_titleContainer->setContentHeight(30);
     if (m_display == ModListDisplay::Grid) {
-        static_cast<RowLayout*>(m_titleContainer->getLayout())
+        static_cast<SimpleRowLayout*>(m_titleContainer->getLayout())
             ->setGap(10)
-            ->setAxisAlignment(AxisAlignment::Center);
-        static_cast<RowLayout*>(m_developers->getLayout())
-            ->setAxisAlignment(AxisAlignment::Center);
+            ->setMainAxisAlignment(MainAxisAlignment::Center);
+        static_cast<SimpleRowLayout*>(m_developers->getLayout())
+            ->setMainAxisAlignment(MainAxisAlignment::Center);
     }
     else {
-        static_cast<RowLayout*>(m_titleContainer->getLayout())
+        static_cast<SimpleRowLayout*>(m_titleContainer->getLayout())
             ->setGap(5)
-            ->setAxisAlignment(AxisAlignment::Start);
-        static_cast<RowLayout*>(m_developers->getLayout())
-            ->setAxisAlignment(AxisAlignment::Start);
+            ->setMainAxisAlignment(MainAxisAlignment::Start);
+        static_cast<SimpleRowLayout*>(m_developers->getLayout())
+            ->setMainAxisAlignment(MainAxisAlignment::Start);
     }
     m_titleContainer->updateLayout();
     m_developers->setContentWidth(titleSpace.width / m_infoContainer->getScale());
