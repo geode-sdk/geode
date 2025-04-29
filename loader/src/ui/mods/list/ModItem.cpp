@@ -190,9 +190,11 @@ bool ModItem::init(ModSource&& source) {
     m_viewMenu->addChild(viewBtn);
 
     m_viewMenu->setLayout(
-        RowLayout::create()
-            ->setAxisReverse(true)
-            ->setAxisAlignment(AxisAlignment::End)
+        SimpleRowLayout::create()
+            ->setMainAxisDirection(AxisDirection::RightToLeft)
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
+            ->setMainAxisScaling(AxisScaling::Scale)
+            ->setCrossAxisScaling(AxisScaling::Scale)
             ->setGap(10)
     );
     m_viewMenu->getLayout()->ignoreInvisibleChildren(true);
@@ -397,14 +399,22 @@ void ModItem::updateState() {
         m_downloadCountContainer->removeFromParent();
         if (m_display == ModListDisplay::Grid) {
             m_titleContainer->insertAfter(m_downloadCountContainer, m_versionDownloadSeparator);
-            m_downloadCountContainer->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.1f, .7f));
+            m_downloadCountContainer->setLayoutOptions(
+                SimpleAxisLayoutOptions::create()
+                    ->setMaxRelativeScale(.1f)
+                    ->setMaxRelativeScale(.7f)
+                );
         }
         else {
             m_viewMenu->addChild(m_downloadCountContainer);
-            m_downloadCountContainer->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.1f, .6f));
+            m_downloadCountContainer->setLayoutOptions( 
+                SimpleAxisLayoutOptions::create()
+                    ->setMaxRelativeScale(.1f)
+                    ->setMaxRelativeScale(.7f)
+            );
         }
     }
-
+    
     // Move badges to either be next to the title or in the top left corner in grid view
     if (m_badgeContainer) {
         m_badgeContainer->removeFromParent();
@@ -678,17 +688,19 @@ void ModItem::updateState() {
     m_infoContainer->updateLayout();
     
     // Update button menu state
+    m_viewMenu->setContentHeight(40.f);
+
     if (m_display == ModListDisplay::Grid) {
         m_viewMenu->setContentWidth(m_obContentSize.width / m_viewMenu->getScaleX());
         m_viewMenu->updateAnchoredPosition(Anchor::Bottom, ccp(0, 5), ccp(.5f, 0));
         m_viewMenu->setScale(.45f);
-        static_cast<RowLayout*>(m_viewMenu->getLayout())->setAxisAlignment(AxisAlignment::Center);
+        static_cast<SimpleRowLayout*>(m_viewMenu->getLayout())->setMainAxisAlignment(MainAxisAlignment::Center);
     }
     else {
         m_viewMenu->setContentWidth(m_obContentSize.width / m_viewMenu->getScaleX() / 2 - 20);
         m_viewMenu->updateAnchoredPosition(Anchor::Right, ccp(-10, 0), ccp(1, .5f));
         m_viewMenu->setScale(.55f);
-        static_cast<RowLayout*>(m_viewMenu->getLayout())->setAxisAlignment(AxisAlignment::End);
+        static_cast<SimpleRowLayout*>(m_viewMenu->getLayout())->setMainAxisAlignment(MainAxisAlignment::Start);
     }
     m_viewMenu->updateLayout();
 
