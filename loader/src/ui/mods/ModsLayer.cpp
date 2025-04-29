@@ -501,8 +501,9 @@ bool ModsLayer::init() {
     auto mainTabs = CCMenu::create();
     mainTabs->setID("tabs-menu");
     mainTabs->setContentWidth(tabsTop->getContentWidth() - 45);
+    mainTabs->setContentHeight(32);
     mainTabs->setAnchorPoint({ .5f, .0f });
-    mainTabs->setPosition(m_frame->convertToWorldSpace(tabsTop->getPosition() + ccp(0, 8)));
+    mainTabs->setPosition(m_frame->convertToWorldSpace(tabsTop->getPosition() + ccp(0, 6)));
     // Increment touch priority so the mods in the list don't override
     mainTabs->setTouchPriority(-150);
 
@@ -522,7 +523,10 @@ bool ModsLayer::init() {
         m_tabs.push_back(btn);
     }
 
-    mainTabs->setLayout(RowLayout::create());
+    mainTabs->setLayout(
+        SimpleRowLayout::create()
+            ->setMainAxisScaling(AxisScaling::Scale)
+    );
     this->addChild(mainTabs);
 
     // Actions
