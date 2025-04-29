@@ -91,8 +91,9 @@ bool ModItem::init(ModSource&& source) {
     m_developers->addChild(developersBtn);
 
     m_developers->setLayout(
-        RowLayout::create()
-            ->setAxisAlignment(AxisAlignment::Start)
+        SimpleRowLayout::create()
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
+            ->setGap(5.f)
     );
     m_infoContainer->addChildAtPosition(m_developers, Anchor::Left);
 
@@ -613,7 +614,7 @@ void ModItem::updateState() {
     // On grid view, m_titleContainer contains the version and download count 
     // but not the actual title lol
     m_titleContainer->setContentWidth(titleSpace.width / m_infoContainer->getScale());
-    m_titleContainer->setContentHeight(30);
+    m_titleContainer->setContentHeight(30.f);
     if (m_display == ModListDisplay::Grid) {
         static_cast<SimpleRowLayout*>(m_titleContainer->getLayout())
             ->setGap(10)
@@ -630,6 +631,7 @@ void ModItem::updateState() {
     }
     m_titleContainer->updateLayout();
     m_developers->setContentWidth(titleSpace.width / m_infoContainer->getScale());
+    m_developers->setContentHeight(30.f);
     m_developers->updateLayout();
 
     if (m_recommendedBy) {
