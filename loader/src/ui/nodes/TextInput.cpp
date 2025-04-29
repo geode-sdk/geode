@@ -51,6 +51,8 @@ const char* geode::getCommonFilterAllowedChars(CommonFilter filter) {
         case CommonFilter::Hex:          return "0123456789abcdefABCDEF";
         case CommonFilter::Base64Normal: return "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+/=";
         case CommonFilter::Base64URL:    return "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_=";
+        case CommonFilter::Alphanumeric: return "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        case CommonFilter::Alphabetic:   return "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
     }
 }
 
