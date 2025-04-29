@@ -50,6 +50,7 @@ bool ModItem::init(ModSource&& source) {
     m_titleLabel->setLayoutOptions(
         SimpleAxisLayoutOptions::create()
             ->setMinRelativeScale(.3f)
+            ->setMaxRelativeScale(1.f)
         );
     m_titleContainer->addChild(m_titleLabel);
 
@@ -221,6 +222,10 @@ bool ModItem::init(ModSource&& source) {
             if (!mod->isInternal()) {
                 m_enableToggle = CCMenuItemToggler::createWithStandardSprites(
                     this, menu_selector(ModItem::onEnable), 1.f
+                );
+                m_enableToggle->setLayoutOptions(
+                    SimpleAxisLayoutOptions::create()
+                        ->setMaxRelativeScale(.9f)
                 );
                 m_enableToggle->setID("enable-toggler");
                 // Manually handle toggle state
@@ -665,7 +670,7 @@ void ModItem::updateState() {
         default:
         case ModListDisplay::SmallList: {
             m_infoContainer->updateAnchoredPosition(Anchor::Left, ccp(m_obContentSize.height + 10, 0), ccp(0, .5f));
-            m_titleContainer->updateAnchoredPosition(Anchor::TopLeft, ccp(0, 0), ccp(0, 1));
+            m_titleContainer->updateAnchoredPosition(Anchor::TopLeft, ccp(0, 2), ccp(0, 1));
 
             // m_description is hidden
             m_developers->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
