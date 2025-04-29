@@ -377,6 +377,7 @@ bool ModsLayer::init() {
     backMenu->setLayout(
         SimpleRowLayout::create()
             ->setMainAxisAlignment(MainAxisAlignment::Start)
+            ->setGap(5.f)
     );
     this->addChildAtPosition(backMenu, Anchor::TopLeft, ccp(12, -25), false);
 
@@ -445,12 +446,14 @@ bool ModsLayer::init() {
         SimpleColumnLayout::create()
             ->setMainAxisAlignment(MainAxisAlignment::Start)
             ->setMainAxisDirection(AxisDirection::BottomToTop)
+            ->setGap(5.f)
     );
 
     rightActionsMenu->setLayout(
         SimpleColumnLayout::create()
             ->setMainAxisAlignment(MainAxisAlignment::Start)
             ->setMainAxisDirection(AxisDirection::BottomToTop)
+            ->setGap(5.f)
     );
 
     // positioning based on size of mod list frame and maximum width of buttons
@@ -528,6 +531,7 @@ bool ModsLayer::init() {
     mainTabs->setLayout(
         SimpleRowLayout::create()
             ->setMainAxisScaling(AxisScaling::Scale)
+            ->setGap(5.f)
     );
     this->addChild(mainTabs);
 
@@ -535,7 +539,7 @@ bool ModsLayer::init() {
 
     auto listDisplayMenu = CCMenu::create();
     listDisplayMenu->setID("list-actions-menu");
-    listDisplayMenu->setContentHeight(100);
+    listDisplayMenu->setContentSize({30, 100});
     listDisplayMenu->setAnchorPoint({ 1, 0 });
     listDisplayMenu->setScale(.65f);
 
@@ -573,7 +577,12 @@ bool ModsLayer::init() {
     // searchBtn->setID("search-button");
     // listDisplayMenu->addChild(searchBtn);
 
-    listDisplayMenu->setLayout(ColumnLayout::create()->setAxisReverse(true));
+    listDisplayMenu->setLayout(
+        SimpleColumnLayout::create()
+            ->setMainAxisDirection(AxisDirection::TopToBottom)
+            ->setMainAxisScaling(AxisScaling::Scale)
+            ->setGap(2.f)
+    );
     m_frame->addChildAtPosition(listDisplayMenu, Anchor::Left, ccp(-5, 25));
 
     m_statusNode = ModsStatusNode::create();
