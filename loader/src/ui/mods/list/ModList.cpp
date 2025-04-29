@@ -296,9 +296,9 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     pageLeftMenu->addChild(m_pagePrevBtn);
 
     pageLeftMenu->setLayout(
-        RowLayout::create()
-            ->setAxisAlignment(AxisAlignment::End)
-            ->setAxisReverse(true)
+        SimpleRowLayout::create()
+            ->setMainAxisAlignment(MainAxisAlignment::End)
+            ->setMainAxisDirection(AxisDirection::RightToLeft)
     );
     this->addChildAtPosition(pageLeftMenu, Anchor::Left, ccp(-20, 0));
 
@@ -318,8 +318,8 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     pageRightMenu->addChild(m_pageNextBtn);
 
     pageRightMenu->setLayout(
-        RowLayout::create()
-            ->setAxisAlignment(AxisAlignment::Start)
+        SimpleRowLayout::create()
+        ->setMainAxisAlignment(MainAxisAlignment::Start)
     );
     this->addChildAtPosition(pageRightMenu, Anchor::Right, ccp(20, 0));
 
