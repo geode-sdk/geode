@@ -115,7 +115,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
    */
   template<typename _Tp>
     constexpr typename
-    std::conditional<__move_if_noexcept_cond<_Tp>::value, const _Tp&, _Tp&&>::type
+    conditional<__move_if_noexcept_cond<_Tp>::value, const _Tp&, _Tp&&>::type
     move_if_noexcept(_Tp& __x) noexcept
     { return std::move(__x); }
 
@@ -185,7 +185,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     }
 
   // _GLIBCXX_RESOLVE_LIB_DEFECTS
-  // DR 809. std::swap should be overloaded for array types.
+  // DR 809. swap should be overloaded for array types.
   /// Swap the contents of two arrays.
   template<typename _Tp, size_t _Nm>
     inline void
