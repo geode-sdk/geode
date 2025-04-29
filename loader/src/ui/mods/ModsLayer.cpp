@@ -382,12 +382,12 @@ bool ModsLayer::init() {
 
     auto actionsMenu = CCMenu::create();
     actionsMenu->setID("actions-menu");
-    actionsMenu->setContentHeight(200.f);
+    actionsMenu->setContentSize({38.f, 200.f});
     actionsMenu->setAnchorPoint({ .5f, .0f });
 
     auto rightActionsMenu = CCMenu::create();
     rightActionsMenu->setID("right-actions-menu");
-    rightActionsMenu->setContentHeight(200.0f);
+    rightActionsMenu->setContentSize({38.f, 200.f});
     rightActionsMenu->setAnchorPoint({ .5f, .0f });
 
     auto reloadSpr = createGeodeCircleButton(
@@ -442,13 +442,15 @@ bool ModsLayer::init() {
     actionsMenu->addChild(addBtn);
 
     actionsMenu->setLayout(
-        ColumnLayout::create()
-            ->setAxisAlignment(AxisAlignment::Start)
+        SimpleColumnLayout::create()
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
+            ->setMainAxisDirection(AxisDirection::BottomToTop)
     );
 
     rightActionsMenu->setLayout(
-        ColumnLayout::create()
-            ->setAxisAlignment(AxisAlignment::Start)
+        SimpleColumnLayout::create()
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
+            ->setMainAxisDirection(AxisDirection::BottomToTop)
     );
 
     // positioning based on size of mod list frame and maximum width of buttons
