@@ -202,7 +202,7 @@ bool ModItem::init(ModSource&& source) {
             ->setMainAxisDirection(AxisDirection::RightToLeft)
             ->setMainAxisAlignment(MainAxisAlignment::Start)
             ->setMainAxisScaling(AxisScaling::Scale)
-            ->setCrossAxisScaling(AxisScaling::Grow)
+            ->setCrossAxisScaling(AxisScaling::Scale)
             ->setMinRelativeScale(1.f)
             ->setGap(10)
     );
