@@ -116,9 +116,10 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         m_updateAllMenu->setLayout(
             SimpleRowLayout::create()
                 ->setMainAxisAlignment(MainAxisAlignment::End)
-                ->setMinRelativeScale(.1f)
-                ->setMaxRelativeScale(.6f)
+                ->setMinRelativeScale(.5f)
+                ->setMaxRelativeScale(1.f)
                 ->setGap(5)
+                ->setMainAxisScaling(AxisScaling::Grow)
                 ->setCrossAxisScaling(AxisScaling::Scale)
         );
         m_updateAllMenu->getLayout()->ignoreInvisibleChildren(true);
@@ -174,9 +175,10 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
             errorsMenu->setLayout(
                 SimpleRowLayout::create()
                     ->setMainAxisAlignment(MainAxisAlignment::End)
-                    ->setMinRelativeScale(.1f)
-                    ->setMaxRelativeScale(.6f)
+                    ->setMinRelativeScale(.5f)
+                    ->setMaxRelativeScale(1.f)
                     ->setGap(5)
+                    ->setMainAxisScaling(AxisScaling::Grow)
                     ->setCrossAxisScaling(AxisScaling::Scale)
             );
             m_errorsContainer->addChildAtPosition(errorsMenu, Anchor::Right, ccp(-10, 0));
