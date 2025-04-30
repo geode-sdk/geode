@@ -81,7 +81,7 @@ InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t pa
     m_query.pageSize = m_pageSize;
 
     // Infinite mods list option
-    if (Mod::get()->template getSettingValue<bool>("infinite-local-mods-list")) {
+    if (Mod::get()->getSettingValue<bool>("infinite-local-mods-list")) {
         m_query.page = 0;
         m_query.pageSize = Loader::get()->getAllMods().size();
     }

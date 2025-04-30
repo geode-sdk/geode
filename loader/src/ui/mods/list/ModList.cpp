@@ -9,7 +9,7 @@
 #include "ModItem.hpp"
 
 static size_t getDisplayPageSize(ModListSource* src, ModListDisplay display) {
-    if (src->isLocalModsOnly() && Mod::get()->template getSettingValue<bool>("infinite-local-mods-list")) {
+    if (src->isLocalModsOnly() && Mod::get()->getSettingValue<bool>("infinite-local-mods-list")) {
         return std::numeric_limits<size_t>::max();
     }
     return 16;
