@@ -446,14 +446,14 @@ bool ModsLayer::init() {
         SimpleColumnLayout::create()
             ->setMainAxisAlignment(MainAxisAlignment::Start)
             ->setMainAxisDirection(AxisDirection::BottomToTop)
-            ->setGap(5.f)
+            ->setGap(2.f)
     );
 
     rightActionsMenu->setLayout(
         SimpleColumnLayout::create()
             ->setMainAxisAlignment(MainAxisAlignment::Start)
             ->setMainAxisDirection(AxisDirection::BottomToTop)
-            ->setGap(5.f)
+            ->setGap(2.f)
     );
 
     // positioning based on size of mod list frame and maximum width of buttons
