@@ -274,11 +274,7 @@ bool ModItem::init(ModSource&& source) {
             // Only show default Modtober tag if not a winner
             else if (metadata.tags.contains("modtober24")) {
                 auto shortVer = CCSprite::createWithSpriteFrameName("tag-modtober.png"_spr);
-                shortVer->setTag(1);
                 m_badgeContainer->addChild(shortVer);
-                auto longVer = CCSprite::createWithSpriteFrameName("tag-modtober-long.png"_spr);
-                longVer->setTag(2);
-                m_badgeContainer->addChild(longVer);
             }
 
             // Show mod download count here already so people can make informed decisions 
