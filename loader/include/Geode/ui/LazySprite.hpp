@@ -9,7 +9,7 @@
 
 namespace geode {
     /**
-     * A sprite that is initialized that is loaded asynchronously.
+     * A sprite that is loaded asynchronously.
      * It can be initialized to either a blank texture or a loading circle,
      * and then given either a URL, file path, or raw image data that will be processed
      * in the background to avoid freezes.
