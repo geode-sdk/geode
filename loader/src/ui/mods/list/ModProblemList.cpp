@@ -37,10 +37,10 @@ bool ModProblemList::init(
     // mfw fod created a scrolllayer with layouts
     m_list = ScrollLayer::create({ size.width - 10.f, size.height - 10.f });
     m_list->m_contentLayer->setLayout(
-        ColumnLayout::create()
-            ->setAxisReverse(true)
-            ->setAxisAlignment(AxisAlignment::End)
-            ->setAutoGrowAxis(size.height)
+        SimpleColumnLayout::create()
+            ->setMainAxisDirection(AxisDirection::TopToBottom)
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
+            ->setMainAxisScaling(AxisScaling::Grow)
             ->setGap(5.0f)
     );
     this->addChildAtPosition(
