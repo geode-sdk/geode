@@ -678,7 +678,7 @@ void ModItem::updateState() {
             m_titleContainer->updateAnchoredPosition(Anchor::TopLeft, ccp(0, 2), ccp(0, 1));
             m_titleLabel->setLayoutOptions(
                 SimpleAxisLayoutOptions::create()
-                    ->setMinRelativeScale(.4f)
+                    ->setMinRelativeScale(.5f)
                     ->setMaxRelativeScale(1.f)
                 );
             // m_description is hidden
@@ -698,7 +698,7 @@ void ModItem::updateState() {
             m_titleContainer->updateAnchoredPosition(Anchor::TopLeft, ccp(0, 0), ccp(0, 1));
             m_titleLabel->setLayoutOptions(
                 SimpleAxisLayoutOptions::create()
-                    ->setMinRelativeScale(.4f)
+                    ->setMinRelativeScale(.5f)
                     ->setMaxRelativeScale(1.f)
                 );
             m_developers->updateAnchoredPosition(Anchor::Left, ccp(0, 0), ccp(0, .5f));
