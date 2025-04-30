@@ -82,7 +82,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         
         m_updateAllMenu = CCMenu::create();
         m_updateAllMenu->setID("update-all-menu");
-        m_updateAllMenu->setContentSize({size.width / 2, 21});
+        m_updateAllMenu->setContentSize({size.width / 2, 20});
         m_updateAllMenu->setAnchorPoint({ 1, .5f });
 
         m_showUpdatesSpr = createGeodeButton(
@@ -119,8 +119,8 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
                 ->setMinRelativeScale(.5f)
                 ->setMaxRelativeScale(1.f)
                 ->setGap(5)
-                ->setMainAxisScaling(AxisScaling::Grow)
-                ->setCrossAxisScaling(AxisScaling::Scale)
+                ->setMainAxisScaling(AxisScaling::Scale)
+                ->setCrossAxisScaling(AxisScaling::ScaleDownGaps)
         );
         m_updateAllMenu->getLayout()->ignoreInvisibleChildren(true);
         m_updateAllContainer->addChildAtPosition(m_updateAllMenu, Anchor::Right, ccp(-10, 0));
@@ -154,7 +154,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
             
             auto errorsMenu = CCMenu::create();
             errorsMenu->setID("errors-menu");
-            errorsMenu->setContentWidth(size.width / 2);
+            errorsMenu->setContentSize({size.width / 2, 20});
             errorsMenu->setAnchorPoint({ 1, .5f });
 
             auto showErrorsSpr = createGeodeButton(
@@ -178,8 +178,8 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
                     ->setMinRelativeScale(.5f)
                     ->setMaxRelativeScale(1.f)
                     ->setGap(5)
-                    ->setMainAxisScaling(AxisScaling::Grow)
-                    ->setCrossAxisScaling(AxisScaling::Scale)
+                    ->setMainAxisScaling(AxisScaling::Scale)
+                    ->setCrossAxisScaling(AxisScaling::ScaleDownGaps)
             );
             m_errorsContainer->addChildAtPosition(errorsMenu, Anchor::Right, ccp(-10, 0));
 
