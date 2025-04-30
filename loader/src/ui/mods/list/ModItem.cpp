@@ -47,11 +47,6 @@ bool ModItem::init(ModSource&& source) {
 
     m_titleLabel = CCLabelBMFont::create(m_source.getMetadata().getName().c_str(), "bigFont.fnt");
     m_titleLabel->setID("title-label");
-    m_titleLabel->setLayoutOptions(
-        SimpleAxisLayoutOptions::create()
-            ->setMinRelativeScale(.3f)
-            ->setMaxRelativeScale(1.f)
-        );
     m_titleContainer->addChild(m_titleLabel);
 
     m_versionLabel = CCLabelBMFont::create("", "bigFont.fnt");
@@ -59,7 +54,7 @@ bool ModItem::init(ModSource&& source) {
     m_versionLabel->setScale(0.7f);
     m_versionLabel->setLayoutOptions(
         SimpleAxisLayoutOptions::create()
-            ->setMinRelativeScale(.6f)
+            ->setMinRelativeScale(.7f)
             ->setMaxRelativeScale(1.f)
         );
     m_titleContainer->addChild(m_versionLabel);
@@ -206,7 +201,8 @@ bool ModItem::init(ModSource&& source) {
             ->setMainAxisDirection(AxisDirection::RightToLeft)
             ->setMainAxisAlignment(MainAxisAlignment::Start)
             ->setMainAxisScaling(AxisScaling::Scale)
-            ->setCrossAxisScaling(AxisScaling::Scale)
+            ->setCrossAxisScaling(AxisScaling::Grow)
+            ->setMinRelativeScale(1.f)
             ->setGap(10)
     );
     m_viewMenu->getLayout()->ignoreInvisibleChildren(true);
@@ -216,8 +212,8 @@ bool ModItem::init(ModSource&& source) {
     m_badgeContainer->setID("badge-container");
     m_badgeContainer->setLayoutOptions(
         SimpleAxisLayoutOptions::create()
-            ->setMinRelativeScale(1.2f)
-            ->setMaxRelativeScale(1.5f)
+            ->setMinRelativeScale(.8f)
+            ->setMaxRelativeScale(1.f)
     );
 
     // Handle source-specific stuff
@@ -417,7 +413,7 @@ void ModItem::updateState() {
 
     // Download counts go next to the version like on the website on grid view
     if (m_downloadCountContainer) {
-        m_downloadCountContainer->setScale(0.7f);
+        m_downloadCountContainer->setScale(0.6f);
         m_downloadCountContainer->removeFromParent();
         if (m_display == ModListDisplay::Grid) {
             m_titleContainer->insertAfter(m_downloadCountContainer, m_versionDownloadSeparator);
@@ -441,6 +437,7 @@ void ModItem::updateState() {
     if (m_badgeContainer) {
         m_badgeContainer->removeFromParent();
         if (m_display == ModListDisplay::Grid) {
+            m_badgeContainer->setScale(.3f);
             m_badgeContainer->setLayout(
                 ColumnLayout::create()
                     ->setAxisReverse(true)
@@ -448,10 +445,11 @@ void ModItem::updateState() {
                     ->setAxisAlignment(AxisAlignment::Start)
             );
             m_badgeContainer->getLayout()->ignoreInvisibleChildren(true);
-            m_badgeContainer->setScale(.3f);
             this->addChildAtPosition(m_badgeContainer, Anchor::TopLeft, ccp(5, -2), ccp(0, 1));
         }
         else {
+            m_badgeContainer->setContentHeight(30.f);
+            m_badgeContainer->setScale(1.f);
             m_badgeContainer->setLayout(
                 SimpleRowLayout::create()
                     ->setMainAxisAlignment(MainAxisAlignment::Start)
@@ -628,6 +626,7 @@ void ModItem::updateState() {
     // Update size and direction of title
     // On grid view, m_titleContainer contains the version and download count 
     // but not the actual title lol
+    m_titleContainer->setContentHeight(30.f);
     m_titleContainer->setContentWidth(titleSpace.width / m_infoContainer->getScale());
     if (m_display == ModListDisplay::Grid) {
         static_cast<SimpleRowLayout*>(m_titleContainer->getLayout())
@@ -655,8 +654,6 @@ void ModItem::updateState() {
     limitNodeWidth(m_downloadWaiting, m_titleContainer->getContentWidth(), 1.f, .1f);
     limitNodeWidth(m_downloadBarContainer, m_titleContainer->getContentWidth(), 1.f, .1f);
 
-    // reset options before updating
-    m_titleLabel->setLayoutOptions(nullptr);
     // Update positioning (jesus)
     switch (m_display) {
         case ModListDisplay::Grid: {
@@ -683,7 +680,11 @@ void ModItem::updateState() {
         case ModListDisplay::SmallList: {
             m_infoContainer->updateAnchoredPosition(Anchor::Left, ccp(m_obContentSize.height + 10, 0), ccp(0, .5f));
             m_titleContainer->updateAnchoredPosition(Anchor::TopLeft, ccp(0, 2), ccp(0, 1));
-
+            m_titleLabel->setLayoutOptions(
+                SimpleAxisLayoutOptions::create()
+                    ->setMinRelativeScale(.4f)
+                    ->setMaxRelativeScale(1.f)
+                );
             // m_description is hidden
             m_developers->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
             m_restartRequiredLabel->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
@@ -699,7 +700,11 @@ void ModItem::updateState() {
         case ModListDisplay::BigList: {
             m_infoContainer->updateAnchoredPosition(Anchor::Left, ccp(m_obContentSize.height + 10, 0), ccp(0, .5f));
             m_titleContainer->updateAnchoredPosition(Anchor::TopLeft, ccp(0, 0), ccp(0, 1));
-
+            m_titleLabel->setLayoutOptions(
+                SimpleAxisLayoutOptions::create()
+                    ->setMinRelativeScale(.4f)
+                    ->setMaxRelativeScale(1.f)
+                );
             m_developers->updateAnchoredPosition(Anchor::Left, ccp(0, 0), ccp(0, .5f));
 
             m_description->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 0), ccp(0, 0));
