@@ -26,7 +26,7 @@ public:
     ModSource(server::ServerModMetadata&& metadata);
 
     std::string getID() const;
-    ModMetadata getMetadata() const;
+    ModMetadata const& getMetadata() const;
     CCNode* createModLogo() const;
     bool wantsRestart() const;
     // note: be sure to call checkUpdates first...
@@ -36,7 +36,7 @@ public:
         return std::visit(func, m_value);
     }
 
-    // Returns a new ModSource that is either a copy of the current source or 
+    // Returns a new ModSource that is either a copy of the current source or
     // an installed version of a server mod
     ModSource convertForPopup() const;
 

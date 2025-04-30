@@ -2,11 +2,11 @@
 
 bool InstalledModsQuery::preCheck(ModSource const& src) const {
     // If we only want mods with updates, then only give mods with updates
-    // NOTE: The caller of filterModsWithQuery() should have ensured that 
+    // NOTE: The caller of filterModsWithQuery() should have ensured that
     // `src.checkUpdates()` has been called and has finished
     if (
         auto updates = src.hasUpdates();
-        type == InstalledModListType::OnlyUpdates && 
+        type == InstalledModListType::OnlyUpdates &&
         !(updates && updates->hasUpdateForInstalledMod())
     ) {
         return false;
@@ -26,7 +26,7 @@ bool InstalledModsQuery::queryCheck(ModSource const& src, double& weighted) cons
         addToList = src.asMod()->isEnabled() == *enabledOnly;
     }
     if (query) {
-        addToList = modFuzzyMatch(src.asMod()->getMetadata(), *query, weighted);
+        addToList = modFuzzyMatch(src.asMod()->getMetadataRef(), *query, weighted);
     }
     // Loader gets boost to ensure it's normally always top of the list
     if (addToList && src.asMod()->isInternal()) {
@@ -90,7 +90,7 @@ InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t pa
     for (auto& mod : Loader::get()->getAllMods()) {
         content.mods.push_back(ModSource(mod));
     }
-    // If we're only checking mods that have updates, we first have to run 
+    // If we're only checking mods that have updates, we first have to run
     // update checks every mod...
     if (m_query.type == InstalledModListType::OnlyUpdates && content.mods.size()) {
         using UpdateTask = server::ServerRequest<std::optional<server::ServerModUpdate>>;
@@ -100,7 +100,7 @@ InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t pa
         }
         return UpdateTask::all(std::move(tasks)).map(
             [content = std::move(content), query = m_query](auto*) mutable -> ProviderTask::Value {
-                // Filter the results based on the current search 
+                // Filter the results based on the current search
                 // query and return them
                 filterModsWithLocalQuery(content, query);
                 return Ok(content);
@@ -138,7 +138,7 @@ bool InstalledModListSource::isDefaultQuery() const {
 }
 
 bool InstalledModListSource::isLocalModsOnly() const {
-    return m_type == InstalledModListType::All || 
+    return m_type == InstalledModListType::All ||
         m_type == InstalledModListType::OnlyErrors ||
         m_type == InstalledModListType::OnlyOutdated;
 }

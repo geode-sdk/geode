@@ -84,8 +84,8 @@ public:
             }
 
             if (!ModDownloadManager::get()->checkAutoConfirm()) {
-                // Throttle events to only once per frame to not cause a 
-                // billion UI updates at once 
+                // Throttle events to only once per frame to not cause a
+                // billion UI updates at once
                 if (m_scheduledEventForFrame != CCDirector::get()->getTotalFrames()) {
                     m_scheduledEventForFrame = CCDirector::get()->getTotalFrames();
                     Loader::get()->queueInMainThread([id = m_id]() {
@@ -106,11 +106,13 @@ public:
         if (!confirm) return;
 
         auto version = confirm->version;
+        auto downloadURL = version.downloadURL;
+
         m_status = DownloadStatusDownloading {
             .percentage = 0,
         };
 
-        m_downloadListener.bind([this, hash = version.hash, version = version](web::WebTask::Event* event) {
+        m_downloadListener.bind([this, hash = std::move(version.hash), version = std::move(version)](web::WebTask::Event* event) {
             if (auto value = event->getValue()) {
                 if (value->ok()) {
                     if (auto actualHash = ::calculateHash(value->data()); actualHash != hash) {
@@ -174,8 +176,8 @@ public:
             else if (event->isCancelled()) {
                 m_status = DownloadStatusCancelled();
             }
-            // Throttle events to only once per frame to not cause a 
-            // billion UI updates at once 
+            // Throttle events to only once per frame to not cause a
+            // billion UI updates at once
             if (m_scheduledEventForFrame != CCDirector::get()->getTotalFrames()) {
                 m_scheduledEventForFrame = CCDirector::get()->getTotalFrames();
                 Loader::get()->queueInMainThread([id = m_id]() {
@@ -186,7 +188,7 @@ public:
 
         auto req = web::WebRequest();
         req.userAgent(getServerUserAgent());
-        m_downloadListener.setFilter(req.get(version.downloadURL));
+        m_downloadListener.setFilter(req.get(downloadURL));
         ModDownloadEvent(m_id).post();
     }
 };
@@ -357,14 +359,14 @@ bool ModDownloadManager::checkAutoConfirm() {
             // If some installed mod is incompatible with this one,
             // we need to ask for confirmation
             for (auto mod : Loader::get()->getAllMods()) {
-                for (auto inc : mod->getMetadata().getIncompatibilities()) {
+                for (auto inc : mod->getMetadataRef().getIncompatibilities()) {
                     if (inc.id == download.getID() && (!download.getVersion().has_value() || inc.version.compare(download.getVersion().value()))) {
                         return false;
                     }
                 }
             }
 
-            // If some newly downloaded mods are incompatible with this one, 
+            // If some newly downloaded mods are incompatible with this one,
             // we need to ask for confirmation
             for (auto download : ModDownloadManager::get()->getDownloads()) {
                 auto status = download.getStatus();
