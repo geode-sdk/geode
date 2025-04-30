@@ -212,7 +212,7 @@ bool ModItem::init(ModSource&& source) {
     m_badgeContainer->setID("badge-container");
     m_badgeContainer->setLayoutOptions(
         SimpleAxisLayoutOptions::create()
-            ->setMinRelativeScale(.8f)
+            ->setMinRelativeScale(.6f)
             ->setMaxRelativeScale(1.f)
     );
 
@@ -453,7 +453,7 @@ void ModItem::updateState() {
             m_badgeContainer->setLayout(
                 SimpleRowLayout::create()
                     ->setMainAxisAlignment(MainAxisAlignment::Start)
-                    ->setMainAxisScaling(AxisScaling::Grow)
+                    ->setMainAxisScaling(AxisScaling::Fit)
                     ->setCrossAxisScaling(AxisScaling::Scale)
                     ->setGap(5.f)
             );
