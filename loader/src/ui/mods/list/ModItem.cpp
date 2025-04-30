@@ -68,7 +68,7 @@ bool ModItem::init(ModSource&& source) {
         SimpleRowLayout::create()
             ->setMainAxisAlignment(MainAxisAlignment::Start)
             ->setMainAxisScaling(AxisScaling::Scale)
-            ->setCrossAxisScaling(AxisScaling::Grow)
+            ->setCrossAxisScaling(AxisScaling::ScaleDownGaps)
             ->setGap(5.f)
     );
     m_titleContainer->getLayout()->ignoreInvisibleChildren(true);
@@ -626,6 +626,7 @@ void ModItem::updateState() {
     // Update size and direction of title
     // On grid view, m_titleContainer contains the version and download count 
     // but not the actual title lol
+    m_titleLabel->setScale(1.f);
     m_titleContainer->setContentHeight(30.f);
     m_titleContainer->setContentWidth(titleSpace.width / m_infoContainer->getScale());
     if (m_display == ModListDisplay::Grid) {
