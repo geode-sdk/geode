@@ -81,11 +81,15 @@ bool ModDeveloperItem::init(
         menu->setContentSize({size.width/2, size.height});
         menu->setScale(0.6f);
 
-        auto layout = RowLayout::create();
-        layout->setDefaultScaleLimits(0.5f, 0.7f);
-        layout->setAxisAlignment(AxisAlignment::End);
-        layout->setAxisReverse(true);
-        menu->setLayout(layout);
+        menu->setLayout(
+            SimpleRowLayout::create()
+                ->setMinRelativeScale(.65f)
+                ->setMaxRelativeScale(1.0f)
+                ->setMainAxisAlignment(MainAxisAlignment::End)
+                ->setMainAxisDirection(AxisDirection::LeftToRight)
+                ->setCrossAxisScaling(AxisScaling::Scale)
+                ->setGap(5.0f)
+        );
 
         this->addChildAtPosition(
             menu,
