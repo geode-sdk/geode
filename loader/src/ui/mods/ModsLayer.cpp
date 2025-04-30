@@ -10,6 +10,7 @@
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/ui/GeodeUI.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/binding/Slider.hpp>
 #include <Geode/binding/SetTextPopup.hpp>
 #include <Geode/binding/SetIDPopup.hpp>

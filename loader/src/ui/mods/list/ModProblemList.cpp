@@ -2,6 +2,7 @@
 
 #include <Geode/cocos/base_nodes/CCNode.h>
 #include <Geode/ui/Layout.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/cocos/cocoa/CCGeometry.h>
 #include <Geode/cocos/platform/CCPlatformMacros.h>
 #include <Geode/utils/cocos.hpp>

@@ -2,6 +2,7 @@
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/TextInput.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
 #include "../popups/FiltersPopup.hpp"
 #include "../popups/SortPopup.hpp"
 #include "../GeodeStyle.hpp"
