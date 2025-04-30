@@ -44,7 +44,6 @@ bool InstalledModsQuery::isDefault() const {
 
 matjson::Value InstalledModsQuery::dumpFilters() const {
     matjson::Value out;
-    out["tags"] = this->tags;
     out["enabledOnly"] = this->enabledOnly.value_or(false);
     out["enabledFirst"] = this->enabledFirst.value_or(false);
 
@@ -87,16 +86,8 @@ void InstalledModListSource::resetQuery() {
         .type = m_type,
     };
     
-    // load filter if applicable
+    // load the enabled only / enable first values if applicable
     auto value = Mod::get()->getSavedValue<matjson::Value>("mod-list-installed-filters");
-
-    if (auto res = value["tags"].asArray()) {
-        for (auto elem : res.unwrap()) {
-            if (auto str = elem.asString()) {
-                m_query.tags.insert(str.unwrap());
-            }
-        }
-    }
 
     m_query.enabledOnly = value["enabledOnly"].asBool().ok();
     m_query.enabledFirst = value["enabledFirst"].asBool().ok();
