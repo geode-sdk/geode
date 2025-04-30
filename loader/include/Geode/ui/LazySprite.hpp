@@ -2,6 +2,7 @@
 
 #include "LoadingSpinner.hpp"
 #include <Geode/utils/web.hpp>
+#include <Geode/utils/cocos.hpp>
 
 #include <cocos2d.h>
 #include <filesystem>
