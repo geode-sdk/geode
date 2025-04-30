@@ -5,6 +5,9 @@
 
 #include <cocos2d.h>
 #include <filesystem>
+#include <string>
+#include <functional>
+#include <span>
 #include <stdint.h>
 
 namespace geode {
