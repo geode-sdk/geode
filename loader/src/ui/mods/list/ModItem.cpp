@@ -433,15 +433,18 @@ void ModItem::updateState() {
     if (m_badgeContainer) {
         m_badgeContainer->removeFromParent();
         if (m_display == ModListDisplay::Grid) {
-            m_badgeContainer->setScale(.3f);
+            m_badgeContainer->setScale(.35f);
+            m_badgeContainer->setContentWidth(30.f);
             m_badgeContainer->setLayout(
-                ColumnLayout::create()
-                    ->setAxisReverse(true)
-                    ->setAutoGrowAxis(true)
-                    ->setAxisAlignment(AxisAlignment::Start)
+                SimpleColumnLayout::create()
+                    ->setMainAxisAlignment(MainAxisAlignment::Start)
+                    ->setMainAxisDirection(AxisDirection::TopToBottom)
+                    ->setMainAxisScaling(AxisScaling::Fit)
+                    ->setCrossAxisScaling(AxisScaling::Scale)
+                    ->setGap(5.f)
             );
             m_badgeContainer->getLayout()->ignoreInvisibleChildren(true);
-            this->addChildAtPosition(m_badgeContainer, Anchor::TopLeft, ccp(5, -2), ccp(0, 1));
+            this->addChildAtPosition(m_badgeContainer, Anchor::TopLeft, ccp(4, -4), ccp(0, 1));
         }
         else {
             m_badgeContainer->setContentHeight(30.f);
