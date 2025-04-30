@@ -60,7 +60,7 @@ bool ModsStatusNode::init() {
     m_btnMenu = CCMenu::create();
     m_btnMenu->setID("button-menu");
     m_btnMenu->setContentWidth(m_obContentSize.width);
-
+    m_btnMenu->setContentHeight(25.f);
     auto restartSpr = createGeodeButton("Restart Now");
     restartSpr->setScale(.65f);
     m_restartBtn = CCMenuItemSpriteExtra::create(
@@ -83,7 +83,10 @@ bool ModsStatusNode::init() {
     m_cancelBtn->setID("cancel-button");
     m_btnMenu->addChild(m_cancelBtn);
 
-    m_btnMenu->setLayout(RowLayout::create());
+    m_btnMenu->setLayout(
+        SimpleRowLayout::create()
+            ->setGap(5.f)
+    );
     m_btnMenu->getLayout()->ignoreInvisibleChildren(true);
     this->addChildAtPosition(m_btnMenu, Anchor::Center, ccp(0, 5));
 
