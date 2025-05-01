@@ -39,7 +39,7 @@ namespace geode {
 
     template <class... Args>
     class DispatchFilter;
-    
+
     class GEODE_DLL DefaultEventListenerPool : public EventListenerPool {
     protected:
         // fix this in Geode 4.0.0
@@ -66,7 +66,7 @@ namespace geode {
         friend class DispatchEvent;
 
         template <class... Args>
-        friend class DispatchFilter;        
+        friend class DispatchFilter;
     };
 
     class GEODE_DLL EventListenerProtocol {
@@ -92,7 +92,7 @@ namespace geode {
 
     template <typename T>
     concept is_event = std::is_base_of_v<Event, T>;
-    
+
     template <is_event T>
     class EventFilter {
     protected:
@@ -102,7 +102,8 @@ namespace geode {
         using Callback = ListenerResult(T*);
         using Event = T;
 
-        ListenerResult handle(std::function<Callback> fn, T* e) {
+        template <typename F> requires (std::is_invocable_r_v<ListenerResult, F, T*>)
+        ListenerResult handle(F&& fn, T* e) {
             return fn(e);
         }
 
@@ -203,11 +204,11 @@ namespace geode {
             m_filter.setListener(this);
             other.disable();
 
-            return *this; 
+            return *this;
         }
 
         void bind(std::function<Callback> fn) {
-            m_callback = fn;
+            m_callback = std::move(fn);
         }
 
         template <typename C>
@@ -216,7 +217,7 @@ namespace geode {
         }
 
         void setFilter(T filter) {
-            m_filter = filter;
+            m_filter = std::move(filter);
             m_filter.setListener(this);
         }
 
@@ -252,7 +253,7 @@ namespace geode {
         ListenerResult post() {
             return postFromMod(getMod());
         }
-        
+
         virtual ~Event();
     };
 

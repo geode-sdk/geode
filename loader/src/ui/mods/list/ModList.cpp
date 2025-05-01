@@ -1,6 +1,7 @@
 #include "ModList.hpp"
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/ui/GeodeUI.hpp>
+#include <Geode/ui/TextInput.hpp>
 #include "../popups/FiltersPopup.hpp"
 #include "../popups/SortPopup.hpp"
 #include "../GeodeStyle.hpp"
@@ -8,7 +9,7 @@
 #include "ModItem.hpp"
 
 static size_t getDisplayPageSize(ModListSource* src, ModListDisplay display) {
-    if (src->isLocalModsOnly() && Mod::get()->template getSettingValue<bool>("infinite-local-mods-list")) {
+    if (src->isLocalModsOnly() && Mod::get()->getSettingValue<bool>("infinite-local-mods-list")) {
         return std::numeric_limits<size_t>::max();
     }
     return 16;
@@ -193,6 +194,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_searchInput->setScale(.75f);
     m_searchInput->setAnchorPoint({ 0, .5f });
     m_searchInput->setTextAlign(TextInputAlign::Left);
+    m_searchInput->setCommonFilter(CommonFilter::Any);
     m_searchInput->setCallback([this](auto const&) {
         // If the source is already in memory, we can immediately update the 
         // search query

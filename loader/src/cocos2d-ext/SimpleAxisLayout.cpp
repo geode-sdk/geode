@@ -644,13 +644,13 @@ void SimpleAxisLayout::Impl::applyMainPositioning(CCNode* layout, std::vector<CC
     for (auto node : nodes) {
         // apply the gap between the nodes
         if (auto gap = typeinfo_cast<AxisGap*>(node)) {
-            offset += gap->getGap() * gapPercentage;
+            offset += (gap->getGap() * gapPercentage) * (m_mainAxisDirection == AxisDirection::BackToFront ? -1.f : 1.f);
             lastChild = nullptr;
             continue;
         }
         // otherwise use the default gap
         if (lastChild) {
-            offset += m_gap * gapPercentage;
+            offset += (m_gap * gapPercentage) * (m_mainAxisDirection == AxisDirection::BackToFront ? -1.f : 1.f);
         }
 
         auto const height = this->getContentHeight(node) * this->getScale(node);
@@ -733,13 +733,11 @@ void SimpleAxisLayout::Impl::apply(cocos2d::CCNode* layout) {
     // calculate required cross scaling
     auto crossScales = this->calculateCrossScaling(layout, realChildren);
     for (auto child : realChildren) {
-        auto scale = 1.f;
         if (crossScales.contains(child)) {
-            scale *= crossScales[child];
+            m_relativeScalesPerNode[child] *= crossScales[child];
         }
 
-        this->setScale(child, scale);
-        m_relativeScalesPerNode[child] = scale;
+        this->setScale(child, m_originalScalesPerNode[child] * m_relativeScalesPerNode[child]);
     }
 
     // calculate required main scaling
@@ -747,13 +745,11 @@ void SimpleAxisLayout::Impl::apply(cocos2d::CCNode* layout) {
     // minScale and maxScale functions account for this change
     auto mainScales = this->calculateMainScaling(layout, realChildren, totalGap);
     for (auto child : realChildren) {
-        auto scale = m_relativeScalesPerNode[child];
         if (mainScales.contains(child)) {
-            scale *= mainScales[child];
+            m_relativeScalesPerNode[child] *= mainScales[child];
         }
 
-        this->setScale(child, scale);
-        m_relativeScalesPerNode[child] = scale;
+        this->setScale(child, m_originalScalesPerNode[child] * m_relativeScalesPerNode[child]);
     }
 
     // apply positions
@@ -827,6 +823,46 @@ SimpleAxisLayout* SimpleAxisLayout::setMinRelativeScale(std::optional<float> sca
 SimpleAxisLayout* SimpleAxisLayout::setMaxRelativeScale(std::optional<float> scale) {
     m_impl->m_maxRelativeScale = scale;
     return this;
+}
+
+Axis SimpleAxisLayout::getAxis() const {
+    return m_impl->m_axis;
+}
+
+AxisScaling SimpleAxisLayout::getMainAxisScaling() const {
+    return m_impl->m_mainAxisScaling;
+}
+
+AxisScaling SimpleAxisLayout::getCrossAxisScaling() const {
+    return m_impl->m_crossAxisScaling;
+}
+
+MainAxisAlignment SimpleAxisLayout::getMainAxisAlignment() const {
+    return m_impl->m_mainAxisAlignment;
+}
+
+CrossAxisAlignment SimpleAxisLayout::getCrossAxisAlignment() const {
+    return m_impl->m_crossAxisAlignment;
+}
+
+AxisDirection SimpleAxisLayout::getMainAxisDirection() const {
+    return m_impl->m_mainAxisDirection;
+}
+
+AxisDirection SimpleAxisLayout::getCrossAxisDirection() const {
+    return m_impl->m_crossAxisDirection;
+}
+
+float SimpleAxisLayout::getGap() const {
+    return m_impl->m_gap;
+}
+
+std::optional<float> SimpleAxisLayout::getMinRelativeScale() const {
+    return m_impl->m_minRelativeScale;
+}
+
+std::optional<float> SimpleAxisLayout::getMaxRelativeScale() const {
+    return m_impl->m_maxRelativeScale;
 }
 
 SimpleRowLayout::SimpleRowLayout() : SimpleAxisLayout(Axis::Row) {}
