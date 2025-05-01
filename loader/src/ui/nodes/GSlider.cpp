@@ -1,5 +1,9 @@
 #include <Geode/ui/GSlider.hpp>
 
+#include <cocos2d.h>
+#include <Geode/ui/Layout.hpp>
+#include <fmt/core.h>
+
 using namespace geode::prelude;
 
 
@@ -23,8 +27,8 @@ bool GSlider::GSliderThumb::init(CCNode* normalSprite, CCNode* heldSprite) {
 
 	heldSprite->setVisible(false);
 
-	this->addChildAtPosition(m_normalSprite, Anchor::Center/* , {}, false */);
-	this->addChildAtPosition(m_heldSprite,   Anchor::Center/* , {}, false */);
+	this->addChildAtPosition(m_normalSprite, Anchor::Center);
+	this->addChildAtPosition(m_heldSprite,   Anchor::Center);
 
 	return true;
 }
