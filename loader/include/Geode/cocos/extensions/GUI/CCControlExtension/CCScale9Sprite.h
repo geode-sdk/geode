@@ -66,7 +66,7 @@ public:
     CC_PROPERTY(CCSize, m_preferredSize, PreferredSize); 
     /** 
      * The end-cap insets. 
-     * On a non-resizeable sprite, this property is set to CGRectZero; the sprite 
+     * On a non-resizeable sprite, this property is set to CCRectZero; the sprite 
      * does not use end caps and the entire sprite is subject to stretching. 
      */
     CC_PROPERTY(CCRect, m_capInsets, CapInsets);

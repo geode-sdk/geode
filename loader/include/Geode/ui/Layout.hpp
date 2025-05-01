@@ -1,7 +1,5 @@
 #pragma once
 
-#pragma clang diagnostic ignored "-Wnodeprecated-declarations"
-
 #include <cocos2d.h>
 #include <Geode/platform/platform.hpp>
 #include <optional>
@@ -21,63 +19,63 @@ namespace geode {
  */
 class GEODE_DLL Layout : public cocos2d::CCObject {
 protected:
-    cocos2d::CCArray* getNodesToPosition(cocos2d::CCNode* forNode) const;
+	cocos2d::CCArray* getNodesToPosition(cocos2d::CCNode* forNode) const;
 
-    bool m_ignoreInvisibleChildren = false;
+	bool m_ignoreInvisibleChildren = false;
 
 public:
-    /**
-     * Automatically apply the layout's positioning on a set of nodes
-     * @param on Node to apply the layout on. Position's the node's children 
-     * according to the layout. The content size of the node should be 
-     * respected as a boundary the layout shouldn't overflow. The node may be 
-     * rescaled to better fit its contents
-     */
-    virtual void apply(cocos2d::CCNode* on) = 0;
+	/**
+	 * Automatically apply the layout's positioning on a set of nodes
+	 * @param on Node to apply the layout on. Position's the node's children 
+	 * according to the layout. The content size of the node should be 
+	 * respected as a boundary the layout shouldn't overflow. The node may be 
+	 * rescaled to better fit its contents
+	 */
+	virtual void apply(cocos2d::CCNode* on) = 0;
 
-    /**
-     * Get how much space this layout would like to take up for a given target
-     */
-    virtual cocos2d::CCSize getSizeHint(cocos2d::CCNode* on) const = 0;
+	/**
+	 * Get how much space this layout would like to take up for a given target
+	 */
+	virtual cocos2d::CCSize getSizeHint(cocos2d::CCNode* on) const = 0;
 
-    void ignoreInvisibleChildren(bool ignore);
-    bool isIgnoreInvisibleChildren() const;
+	void ignoreInvisibleChildren(bool ignore);
+	bool isIgnoreInvisibleChildren() const;
 
-    virtual ~Layout() = default;
+	virtual ~Layout() = default;
 };
 
 class GEODE_DLL LayoutOptions : public cocos2d::CCObject {
 public:
-    virtual ~LayoutOptions() = default;
+	virtual ~LayoutOptions() = default;
 };
 
 /**
  * The direction of an AxisLayout
  */
 enum class Axis {
-    Row,
-    Column,
+	Row,
+	Column,
 };
 
 /**
  * Specifies the alignment of something in an AxisLayout
  */
 enum class AxisAlignment {
-    // Align items to the start
-    // |ooo......|
-    Start,
-    // All items are centered
-    // |...ooo...|
-    Center,
-    // Align items to the end
-    // |......ooo|
-    End,
-    // Each item gets the same portion from the layout (disregards gap)
-    // |.o..o..o.|
-    Even,
-    // Space between each item is the same (disregards gap)
-    // |o...o...o|
-    Between,
+	// Align items to the start
+	// |ooo......|
+	Start,
+	// All items are centered
+	// |...ooo...|
+	Center,
+	// Align items to the end
+	// |......ooo|
+	End,
+	// Each item gets the same portion from the layout (disregards gap)
+	// |.o..o..o.|
+	Even,
+	// Space between each item is the same (disregards gap)
+	// |o...o...o|
+	Between,
 };
 
 constexpr float AXISLAYOUT_DEFAULT_MIN_SCALE = 0.65f;
@@ -96,95 +94,95 @@ constexpr int AXISLAYOUT_DEFAULT_PRIORITY = 0;
  */
 class GEODE_DLL AxisLayoutOptions : public LayoutOptions {
 protected:
-    class Impl;
+	class Impl;
 
-    std::unique_ptr<Impl> m_impl;
+	std::unique_ptr<Impl> m_impl;
 
-    AxisLayoutOptions();
+	AxisLayoutOptions();
 
 public:
-    static AxisLayoutOptions* create();
+	static AxisLayoutOptions* create();
 
-    virtual ~AxisLayoutOptions();
+	virtual ~AxisLayoutOptions();
 
-    std::optional<bool> getAutoScale() const;
-    // @note Use hasExplicitMaxScale to know if the default scale has been overwritten
-    float getMaxScale() const;
-    // @note Use hasExplicitMinScale to know if the default scale has been overwritten
-    float getMinScale() const;
-    bool hasExplicitMaxScale() const;
-    bool hasExplicitMinScale() const;
-    float getRelativeScale() const;
-    std::optional<float> getLength() const;
-    std::optional<float> getPrevGap() const;
-    std::optional<float> getNextGap() const;
-    bool getBreakLine() const;
-    bool getSameLine() const;
-    int getScalePriority() const;
-    std::optional<AxisAlignment> getCrossAxisAlignment() const;
+	std::optional<bool> getAutoScale() const;
+	// @note Use hasExplicitMaxScale to know if the default scale has been overwritten
+	float getMaxScale() const;
+	// @note Use hasExplicitMinScale to know if the default scale has been overwritten
+	float getMinScale() const;
+	bool hasExplicitMaxScale() const;
+	bool hasExplicitMinScale() const;
+	float getRelativeScale() const;
+	std::optional<float> getLength() const;
+	std::optional<float> getPrevGap() const;
+	std::optional<float> getNextGap() const;
+	bool getBreakLine() const;
+	bool getSameLine() const;
+	int getScalePriority() const;
+	std::optional<AxisAlignment> getCrossAxisAlignment() const;
 
-    /**
-     * Set the limits to what the node can be scaled to. Passing `std::nullopt` 
-     * uses the parent layout's default min / max scales
-     */
-    AxisLayoutOptions* setScaleLimits(std::optional<float> min, std::optional<float> max);
+	/**
+	 * Set the limits to what the node can be scaled to. Passing `std::nullopt` 
+	 * uses the parent layout's default min / max scales
+	 */
+	AxisLayoutOptions* setScaleLimits(std::optional<float> min, std::optional<float> max);
 
-    /**
-     * Set the relative scale of this node compared to other nodes if it's 
-     * contained in an auto-scaled layout. Default is 1
-     */
-    AxisLayoutOptions* setRelativeScale(float scale);
+	/**
+	 * Set the relative scale of this node compared to other nodes if it's 
+	 * contained in an auto-scaled layout. Default is 1
+	 */
+	AxisLayoutOptions* setRelativeScale(float scale);
 
-    /**
-     * Set auto-scaling for this node, overriding the layout's auto-scale 
-     * setting. If nullopt, the layout's auto-scale options will be used
-    */
-    AxisLayoutOptions* setAutoScale(std::optional<bool> enabled);
+	/**
+	 * Set auto-scaling for this node, overriding the layout's auto-scale 
+	 * setting. If nullopt, the layout's auto-scale options will be used
+	*/
+	AxisLayoutOptions* setAutoScale(std::optional<bool> enabled);
 
-    /**
-     * Set an absolute length for this node. If nullopt, the length will be 
-     * dynamically calculated based on content size
-     */
-    AxisLayoutOptions* setLength(std::optional<float> length);
+	/**
+	 * Set an absolute length for this node. If nullopt, the length will be 
+	 * dynamically calculated based on content size
+	 */
+	AxisLayoutOptions* setLength(std::optional<float> length);
 
-    /**
-     * Override the default gap in the layout between this node and the 
-     * previous one. If nullopt, the default gap of the layout will be used
-     */
-    AxisLayoutOptions* setPrevGap(std::optional<float> gap);
+	/**
+	 * Override the default gap in the layout between this node and the 
+	 * previous one. If nullopt, the default gap of the layout will be used
+	 */
+	AxisLayoutOptions* setPrevGap(std::optional<float> gap);
 
-    /**
-     * Override the default gap in the layout between this node and the next 
-     * one. If nullopt, the default gap of the layout will be used
-     */
-    AxisLayoutOptions* setNextGap(std::optional<float> gap);
+	/**
+	 * Override the default gap in the layout between this node and the next 
+	 * one. If nullopt, the default gap of the layout will be used
+	 */
+	AxisLayoutOptions* setNextGap(std::optional<float> gap);
 
-    /**
-     * If enabled, the node will always cause a growable axis layout to break 
-     * into a new line even if the current line could've fit the next node
-     */
-    AxisLayoutOptions* setBreakLine(bool enable);
+	/**
+	 * If enabled, the node will always cause a growable axis layout to break 
+	 * into a new line even if the current line could've fit the next node
+	 */
+	AxisLayoutOptions* setBreakLine(bool enable);
 
-    /**
-     * If enabled, the node will be forced to be on the same line as the 
-     * previous node even if doing this would overflow
-     */
-    AxisLayoutOptions* setSameLine(bool enable);
+	/**
+	 * If enabled, the node will be forced to be on the same line as the 
+	 * previous node even if doing this would overflow
+	 */
+	AxisLayoutOptions* setSameLine(bool enable);
 
-    /**
-     * Set the scale priority of this node. Nodes with higher priority will be 
-     * scaled down first before nodes with lower priority when an auto-scaled 
-     * layout attempts to fit its contents. Default is 
-     * AXISLAYOUT_DEFAULT_PRIORITY
-     * @note For optimal performance, the priorities should all be close to 
-     * each other with no gaps
-     */
-    AxisLayoutOptions* setScalePriority(int priority);
+	/**
+	 * Set the scale priority of this node. Nodes with higher priority will be 
+	 * scaled down first before nodes with lower priority when an auto-scaled 
+	 * layout attempts to fit its contents. Default is 
+	 * AXISLAYOUT_DEFAULT_PRIORITY
+	 * @note For optimal performance, the priorities should all be close to 
+	 * each other with no gaps
+	 */
+	AxisLayoutOptions* setScalePriority(int priority);
 
-    /**
-     * Override the cross axis alignment for this node in the layout
-     */
-    AxisLayoutOptions* setCrossAxisAlignment(std::optional<AxisAlignment> alignment);
+	/**
+	 * Override the cross axis alignment for this node in the layout
+	 */
+	AxisLayoutOptions* setCrossAxisAlignment(std::optional<AxisAlignment> alignment);
 };
 
 /**
@@ -216,100 +214,100 @@ public:
  */
 class GEODE_DLL AxisLayout : public Layout {
 protected:
-    class Impl;
+	class Impl;
 
-    std::unique_ptr<Impl> m_impl;
+	std::unique_ptr<Impl> m_impl;
 
-    AxisLayout(Axis);
+	AxisLayout(Axis);
 
 public:
-    /**
-     * Create a new AxisLayout. Note that this class is not automatically 
-     * managed by default, so you must assign it to a CCNode or manually 
-     * manage the memory yourself. See the chainable setters on AxisLayout for 
-     * what options you can customize for the layout
-     * @param axis The direction of the layout
-     * @note For convenience, you can use the RowLayout and ColumnLayout 
-     * classes, which are just thin wrappers over AxisLayout
-     * @returns Created AxisLayout
-     */
-    static AxisLayout* create(Axis axis = Axis::Row);
+	/**
+	 * Create a new AxisLayout. Note that this class is not automatically 
+	 * managed by default, so you must assign it to a CCNode or manually 
+	 * manage the memory yourself. See the chainable setters on AxisLayout for 
+	 * what options you can customize for the layout
+	 * @param axis The direction of the layout
+	 * @note For convenience, you can use the RowLayout and ColumnLayout 
+	 * classes, which are just thin wrappers over AxisLayout
+	 * @returns Created AxisLayout
+	 */
+	static AxisLayout* create(Axis axis = Axis::Row);
 
-    virtual ~AxisLayout();
+	virtual ~AxisLayout();
 
-    void apply(cocos2d::CCNode* on) override;
-    cocos2d::CCSize getSizeHint(cocos2d::CCNode* on) const override;
+	void apply(cocos2d::CCNode* on) override;
+	cocos2d::CCSize getSizeHint(cocos2d::CCNode* on) const override;
 
-    Axis getAxis() const;
-    AxisAlignment getAxisAlignment() const;
-    AxisAlignment getCrossAxisAlignment() const;
-    AxisAlignment getCrossAxisLineAlignment() const;
-    float getGap() const;
-    bool getAxisReverse() const;
-    bool getCrossAxisReverse() const;
-    bool getAutoScale() const;
-    bool getGrowCrossAxis() const;
-    bool getCrossAxisOverflow() const;
-    std::optional<float> getAutoGrowAxis() const;
-    float getDefaultMinScale() const;
-    float getDefaultMaxScale() const;
+	Axis getAxis() const;
+	AxisAlignment getAxisAlignment() const;
+	AxisAlignment getCrossAxisAlignment() const;
+	AxisAlignment getCrossAxisLineAlignment() const;
+	float getGap() const;
+	bool getAxisReverse() const;
+	bool getCrossAxisReverse() const;
+	bool getAutoScale() const;
+	bool getGrowCrossAxis() const;
+	bool getCrossAxisOverflow() const;
+	std::optional<float> getAutoGrowAxis() const;
+	float getDefaultMinScale() const;
+	float getDefaultMaxScale() const;
 
-    AxisLayout* setAxis(Axis axis);
-    /**
-     * Sets where to align the target node's children on the main axis (X-axis 
-     * for Row, Y-axis for Column)
-     */
-    AxisLayout* setAxisAlignment(AxisAlignment align);
-    /**
-     * Sets where to align the target node's children on the cross-axis (Y-axis 
-     * for Row, X-axis for Column)
-     */
-    AxisLayout* setCrossAxisAlignment(AxisAlignment align);
-    /**
-     * Sets where to align the target node's children on the cross-axis for 
-     * each row (Y-axis for Row, X-axis for Column)
-     */
-    AxisLayout* setCrossAxisLineAlignment(AxisAlignment align);
-    /**
-     * The spacing between the children of the node this layout applies to. 
-     * Measured as the space between their edges, not centres. Does not apply 
-     * on the main / cross axis if their alignment is AxisAlignment::Even
-     */
-    AxisLayout* setGap(float gap);
-    /**
-     * Whether to reverse the direction of the children in this layout or not
-     */
-    AxisLayout* setAxisReverse(bool reverse);
-    /**
-     * Whether to reverse the direction of the rows on the cross-axis or not
-     */
-    AxisLayout* setCrossAxisReverse(bool reverse);
-    /**
-     * If enabled, then the layout may scale the target's children if they are 
-     * about to overflow. Assumes that all the childrens' intended scale is 1
-     */
-    AxisLayout* setAutoScale(bool enable);
-    /**
-     * If true, if the main axis overflows extra nodes will be placed on new 
-     * rows/columns on the cross-axis
-     */
-    AxisLayout* setGrowCrossAxis(bool expand);
-    /**
-     * If true, the cross-axis content size of the target node will be 
-     * automatically adjusted to fit the children
-     */
-    AxisLayout* setCrossAxisOverflow(bool allow);
-    /**
-     * If not `std::nullopt`, then the axis will be automatically extended to 
-     * fit all items in a single row whose minimum length is the specified. 
-     * Useful for scrollable list layer contents
-     * @note Overrides `GrowCrossAxis` and `CrossAxisOverflow`.
-     */
-    AxisLayout* setAutoGrowAxis(std::optional<float> allowAndMinLength);
-    /**
-     * Set the default minimum/maximum scales for nodes in the layout
-     */
-    AxisLayout* setDefaultScaleLimits(float min, float max);
+	AxisLayout* setAxis(Axis axis);
+	/**
+	 * Sets where to align the target node's children on the main axis (X-axis 
+	 * for Row, Y-axis for Column)
+	 */
+	AxisLayout* setAxisAlignment(AxisAlignment align);
+	/**
+	 * Sets where to align the target node's children on the cross-axis (Y-axis 
+	 * for Row, X-axis for Column)
+	 */
+	AxisLayout* setCrossAxisAlignment(AxisAlignment align);
+	/**
+	 * Sets where to align the target node's children on the cross-axis for 
+	 * each row (Y-axis for Row, X-axis for Column)
+	 */
+	AxisLayout* setCrossAxisLineAlignment(AxisAlignment align);
+	/**
+	 * The spacing between the children of the node this layout applies to. 
+	 * Measured as the space between their edges, not centres. Does not apply 
+	 * on the main / cross axis if their alignment is AxisAlignment::Even
+	 */
+	AxisLayout* setGap(float gap);
+	/**
+	 * Whether to reverse the direction of the children in this layout or not
+	 */
+	AxisLayout* setAxisReverse(bool reverse);
+	/**
+	 * Whether to reverse the direction of the rows on the cross-axis or not
+	 */
+	AxisLayout* setCrossAxisReverse(bool reverse);
+	/**
+	 * If enabled, then the layout may scale the target's children if they are 
+	 * about to overflow. Assumes that all the childrens' intended scale is 1
+	 */
+	AxisLayout* setAutoScale(bool enable);
+	/**
+	 * If true, if the main axis overflows extra nodes will be placed on new 
+	 * rows/columns on the cross-axis
+	 */
+	AxisLayout* setGrowCrossAxis(bool expand);
+	/**
+	 * If true, the cross-axis content size of the target node will be 
+	 * automatically adjusted to fit the children
+	 */
+	AxisLayout* setCrossAxisOverflow(bool allow);
+	/**
+	 * If not `std::nullopt`, then the axis will be automatically extended to 
+	 * fit all items in a single row whose minimum length is the specified. 
+	 * Useful for scrollable list layer contents
+	 * @note Overrides `GrowCrossAxis` and `CrossAxisOverflow`.
+	 */
+	AxisLayout* setAutoGrowAxis(std::optional<float> allowAndMinLength);
+	/**
+	 * Set the default minimum/maximum scales for nodes in the layout
+	 */
+	AxisLayout* setDefaultScaleLimits(float min, float max);
 };
 
 /**
@@ -317,15 +315,15 @@ public:
  */
 class GEODE_DLL RowLayout : public AxisLayout {
 protected:
-    RowLayout();
+	RowLayout();
 
 public:
-    /**
-     * Create a new RowLayout. See the chainable setters on RowLayout for 
-     * what options you can customize for the layout
-     * @returns Created RowLayout
-     */
-    static RowLayout* create();
+	/**
+	 * Create a new RowLayout. See the chainable setters on AxisLayout for 
+	 * what options you can customize for the layout
+	 * @returns Created RowLayout
+	 */
+	static RowLayout* create();
 };
 
 /**
@@ -333,30 +331,65 @@ public:
  */
 class GEODE_DLL ColumnLayout : public AxisLayout {
 protected:
-    ColumnLayout();
+	ColumnLayout();
 
 public:
-    /**
-     * Create a new ColumnLayout. See the chainable setters on RowLayout for 
-     * what options you can customize for the layout
-     * @returns Created ColumnLayout
-     */
-    static ColumnLayout* create();
+	/**
+	 * Create a new ColumnLayout. See the chainable setters on AxisLayout for 
+	 * what options you can customize for the layout
+	 * @returns Created ColumnLayout
+	 */
+	static ColumnLayout* create();
+};
+
+class GEODE_DLL GridLayout : public Layout {
+protected:
+	class Impl;
+
+	std::unique_ptr<Impl> m_impl;
+
+	GridLayout();
+
+public:
+	static GridLayout* create();
+
+	virtual ~GridLayout();
+
+	void apply(cocos2d::CCNode* on) override;
+	cocos2d::CCSize getSizeHint(cocos2d::CCNode* on) const override;
+
+	Axis getExpandAxis() const;
+	float getGapX() const;
+	float getGapY() const;
+	int getMaxCountCrossExpandAxis() const;
+	// bool doesExpand() const;
+	bool isAutoAdjustSize() const;
+	bool isReverseExpandAxis() const;
+	bool isReverseCrossExpandAxis() const;
+
+	GridLayout* setExpandAxis(Axis axis);
+	GridLayout* setGapX(float gapX);
+	GridLayout* setGapY(float gapY);
+	GridLayout* setMaxCountCrossExpandAxis(int value);
+	// GridLayout* expand(bool allow);
+	GridLayout* autoAdjustSize(bool allow);
+	GridLayout* reverseExpandAxis(bool reverse);
+	GridLayout* reverseCrossExpandAxis(bool reverse);
 };
 
 /**
  * The relative position of a node to its parent in an AnchorLayout
  */
 enum class Anchor {
-    Center,
-    TopLeft,
-    Top,
-    TopRight,
-    Right,
-    BottomRight,
-    Bottom,
-    BottomLeft,
-    Left,
+	Center,
+	TopLeft,
+	Top,
+	TopRight,
+	Right,
+	BottomRight,
+	Bottom,
+	BottomLeft,
+	Left,
 };
 
 /**
@@ -364,17 +397,17 @@ enum class Anchor {
  */
 class GEODE_DLL AnchorLayoutOptions : public LayoutOptions {
 protected:
-    Anchor m_anchor = Anchor::Center;
-    cocos2d::CCPoint m_offset = cocos2d::CCPointZero;
+	Anchor m_anchor = Anchor::Center;
+	cocos2d::CCPoint m_offset = cocos2d::CCPointZero;
 
 public:
-    static AnchorLayoutOptions* create();
+	static AnchorLayoutOptions* create();
 
-    Anchor getAnchor() const;
-    cocos2d::CCPoint getOffset() const;
+	Anchor getAnchor() const;
+	cocos2d::CCPoint getOffset() const;
 
-    AnchorLayoutOptions* setAnchor(Anchor anchor);
-    AnchorLayoutOptions* setOffset(cocos2d::CCPoint const& offset);
+	AnchorLayoutOptions* setAnchor(Anchor anchor);
+	AnchorLayoutOptions* setOffset(cocos2d::CCPoint const& offset);
 };
 
 /**
@@ -385,20 +418,20 @@ public:
  */
 class GEODE_DLL AnchorLayout : public Layout {
 public:
-    static AnchorLayout* create();
+	static AnchorLayout* create();
 
-    void apply(cocos2d::CCNode* on) override;
-    cocos2d::CCSize getSizeHint(cocos2d::CCNode* on) const override;
+	void apply(cocos2d::CCNode* on) override;
+	cocos2d::CCSize getSizeHint(cocos2d::CCNode* on) const override;
 
-    /**
-     * Get a position according to anchoring rules, with the same algorithm as 
-     * `AnchorLayout` uses to position its nodes
-     * @param in The node whose content size to use as a reference
-     * @param anchor The anchor position
-     * @param offset Offset from the anchor
-     * @returns A position in `in` for the anchored and offsetted location
-     */
-    static cocos2d::CCPoint getAnchoredPosition(cocos2d::CCNode* in, Anchor anchor, cocos2d::CCPoint const& offset);
+	/**
+	 * Get a position according to anchoring rules, with the same algorithm as 
+	 * `AnchorLayout` uses to position its nodes
+	 * @param in The node whose content size to use as a reference
+	 * @param anchor The anchor position
+	 * @param offset Offset from the anchor
+	 * @returns A position in `in` for the anchored and offsetted location
+	 */
+	static cocos2d::CCPoint getAnchoredPosition(cocos2d::CCNode* in, Anchor anchor, cocos2d::CCPoint const& offset);
 };
 
 /**
@@ -408,24 +441,24 @@ public:
  */
 class GEODE_DLL CopySizeLayout : public AnchorLayout {
 protected:
-    cocos2d::CCArray* m_targets;
+	cocos2d::CCArray* m_targets;
 
 public:
-    static CopySizeLayout* create();
-    virtual ~CopySizeLayout();
+	static CopySizeLayout* create();
+	virtual ~CopySizeLayout();
 
-    /**
-     * Add a target to be automatically resized. Any targets' layouts will 
-     * also be updated when this layout is updated
-     */
-    CopySizeLayout* add(cocos2d::CCNode* target);
-    /**
-     * Remove a target from being automatically resized
-     */
-    CopySizeLayout* remove(cocos2d::CCNode* target);
+	/**
+	 * Add a target to be automatically resized. Any targets' layouts will 
+	 * also be updated when this layout is updated
+	 */
+	CopySizeLayout* add(cocos2d::CCNode* target);
+	/**
+	 * Remove a target from being automatically resized
+	 */
+	CopySizeLayout* remove(cocos2d::CCNode* target);
 
-    void apply(cocos2d::CCNode* in) override;
-    cocos2d::CCSize getSizeHint(cocos2d::CCNode* in) const override;
+	void apply(cocos2d::CCNode* in) override;
+	cocos2d::CCSize getSizeHint(cocos2d::CCNode* in) const override;
 };
 
 #pragma warning(pop)
