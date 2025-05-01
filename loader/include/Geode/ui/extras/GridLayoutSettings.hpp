@@ -1,5 +1,12 @@
 #include "../Layout.hpp"
 
+#include <Geode/binding/CCMenuItemToggler.hpp>
+#include <Geode/binding/Slider.hpp>
+#include <Geode/ui/TextInput.hpp>
+#include <Geode/ui/Popup.hpp>
+
+#include <fmt/core.h>
+
 namespace geode {
 
 class GEODE_DLL GridLayoutSettings : public Popup<GridLayout*, cocos2d::CCNode*> {
