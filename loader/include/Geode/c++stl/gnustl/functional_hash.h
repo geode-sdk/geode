@@ -198,11 +198,11 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
   // Default behavior is to consider that hasher are fast unless specified
   // otherwise.
   template<typename _Hash>
-    struct __is_fast_hash : public std::true_type
+    struct __is_fast_hash : public geode::stl::true_type
     { };
 
   template<>
-    struct __is_fast_hash<hash<long double>> : public std::false_type
+    struct __is_fast_hash<hash<long double>> : public geode::stl::false_type
     { };
 
 _GLIBCXX_END_NAMESPACE_VERSION

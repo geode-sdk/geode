@@ -96,7 +96,7 @@ namespace geode {
         bool isEnabled() const;
         bool isInternal() const;
         bool needsEarlyLoad() const;
-        ModMetadata getMetadata() const;
+        ModMetadata const& getMetadata() const;
         std::filesystem::path getTempDir() const;
         std::filesystem::path getBinaryPath() const;
 

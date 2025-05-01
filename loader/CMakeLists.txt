@@ -286,9 +286,13 @@ if (NOT GEODE_BUILDING_DOCS)
 	# Cool date library
 	CPMAddPackage("gh:HowardHinnant/date#1ead671")
 
+	set(SIMDUTF_TESTS OFF)
+	set(SIMDUTF_TOOLS OFF)
+	CPMAddPackage("gh:simdutf/simdutf#v6.5.0")
+
 	target_include_directories(${PROJECT_NAME} PRIVATE ${md4c_SOURCE_DIR}/src)
 
-	target_link_libraries(${PROJECT_NAME} md4c minizip date)
+	target_link_libraries(${PROJECT_NAME} md4c minizip date simdutf)
 endif()
 
 target_link_libraries(${PROJECT_NAME} TulipHook geode-sdk mat-json-impl)

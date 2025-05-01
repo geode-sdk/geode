@@ -240,13 +240,13 @@ void Loader::Impl::updateModResources(Mod* mod) {
     }
 
     // only thing needs previous setup is spritesheets
-    if (mod->getMetadata().getSpritesheets().empty())
+    if (mod->getMetadataRef().getSpritesheets().empty())
         return;
 
     log::debug("{}", mod->getID());
     log::NestScope nest;
 
-    for (auto const& sheet : mod->getMetadata().getSpritesheets()) {
+    for (auto const& sheet : mod->getMetadataRef().getSpritesheets()) {
         log::debug("Adding sheet {}", sheet);
         auto png = sheet + ".png";
         auto plist = sheet + ".plist";
@@ -388,11 +388,11 @@ void Loader::Impl::buildModGraph() {
 }
 
 void Loader::Impl::loadModGraph(Mod* node, bool early) {
-    // Check version first, as it's not worth trying to load a mod with an 
+    // Check version first, as it's not worth trying to load a mod with an
     // invalid target version
-    // Also this makes it so that when GD updates, outdated mods get shown as 
+    // Also this makes it so that when GD updates, outdated mods get shown as
     // "Outdated" in the UI instead of "Missing Dependencies"
-    auto res = node->getMetadata().checkGameVersion();
+    auto res = node->getMetadataRef().checkGameVersion();
     if (!res) {
         this->addProblem({
             LoadProblem::Type::UnsupportedVersion,
@@ -403,11 +403,11 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
         return;
     }
 
-    auto geodeVerRes = node->getMetadata().checkGeodeVersion();
+    auto geodeVerRes = node->getMetadataRef().checkGeodeVersion();
     if (!geodeVerRes) {
         this->addProblem({
-            node->getMetadata().getGeodeVersion() > this->getVersion() ?
-                LoadProblem::Type::NeedsNewerGeodeVersion : 
+            node->getMetadataRef().getGeodeVersion() > this->getVersion() ?
+                LoadProblem::Type::NeedsNewerGeodeVersion :
                 LoadProblem::Type::UnsupportedGeodeVersion,
             node,
             geodeVerRes.unwrapErr()
@@ -415,7 +415,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
         log::error("{}", geodeVerRes.unwrapErr());
         return;
     }
-    
+
     if (node->hasUnresolvedDependencies()) {
         log::warn("{} {} has unresolved dependencies", node->getID(), node->getVersion());
         return;
@@ -439,7 +439,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
 
     auto unzipFunction = [this, node]() {
         log::debug("Unzipping .geode file");
-        auto res = node->m_impl->unzipGeodeFile(node->getMetadata());
+        auto res = node->m_impl->unzipGeodeFile(node->getMetadataRef());
         return res;
     };
 
@@ -463,7 +463,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
     };
 
     {   // version checking
-        if (auto reason = node->getMetadata().m_impl->m_softInvalidReason) {
+        if (auto reason = node->getMetadataRef().m_impl->m_softInvalidReason) {
             this->addProblem({
                 LoadProblem::Type::InvalidFile,
                 node,
@@ -529,7 +529,7 @@ void Loader::Impl::findProblems() {
         log::debug("{}", id);
         log::NestScope nest;
 
-        for (auto const& dep : mod->getMetadata().getDependencies()) {
+        for (auto const& dep : mod->getMetadataRef().getDependencies()) {
             if (dep.mod && dep.mod->isEnabled() && dep.version.compare(dep.mod->getVersion()))
                 continue;
 
@@ -604,7 +604,7 @@ void Loader::Impl::findProblems() {
             }
         }
 
-        for (auto const& dep : mod->getMetadata().getIncompatibilities()) {
+        for (auto const& dep : mod->getMetadataRef().getIncompatibilities()) {
             if (!dep.mod || !dep.version.compare(dep.mod->getVersion()) || !dep.mod->shouldLoad())
                 continue;
             switch(dep.importance) {
@@ -731,8 +731,8 @@ void Loader::Impl::orderModStack() {
         for (auto const& mod : ModImpl::get()->m_dependants) {
             if (visited.count(mod) != 0) continue;
 
-            for (auto dep : mod->getMetadata().getDependencies()) {
-                if (dep.mod && dep.importance == ModMetadata::Dependency::Importance::Required && 
+            for (auto dep : mod->getMetadataRef().getDependencies()) {
+                if (dep.mod && dep.importance == ModMetadata::Dependency::Importance::Required &&
                     visited.count(dep.mod) == 0) {
                     // the dependency is not visited yet
                     // so we cant select this mod
@@ -1064,7 +1064,7 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
             m_mods.at(meta.getID())->m_impl->m_requestedAction = ModRequestedAction::Update;
         }
         // Otherwise add a new Mod
-        // This should be safe as all of the scary stuff in setup() is only relevant 
+        // This should be safe as all of the scary stuff in setup() is only relevant
         // for mods that are actually running
         else {
             auto mod = new Mod(meta);
@@ -1101,7 +1101,7 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
                             "OK"
                         )->show();
                     }
-                    // No need to show a confirmation popup if successful since that's 
+                    // No need to show a confirmation popup if successful since that's
                     // to be assumed via pressing the button on the previous popup
                 }
             }
