@@ -59,12 +59,6 @@ protected:
 
 		friend class GSlider;
 
-		void update(float) override;
-
-		// i dont wanna have to deal with this shit
-		void setAnchorPoint(cocos2d::CCPoint const&) override {}
-		void ignoreAnchorPointForPosition(bool) override {}
-
 	protected:
 
 		bool m_held = false;
@@ -75,6 +69,8 @@ protected:
 		bool init(cocos2d::CCNode* normalSprite, cocos2d::CCNode* heldSprite);
 
 		virtual void updateState(bool isHeld);
+		
+	public:
 
 		static GSliderThumb* create(cocos2d::CCNode* normalSprite, cocos2d::CCNode* heldSprite);
 	};
@@ -127,6 +123,12 @@ protected:
 	float m_snapStep = .01f;
 	bool m_useSnap = false;
 
+private: 
+	float m_xOffsetOfTouchFromThumb;
+	float m_touchStartValue;
+	
+protected:
+
 	/**
 	 * Initializes the slider.
 	 * See the create functionss for more info.
@@ -137,11 +139,6 @@ protected:
 		cocos2d::CCNode* thumb, cocos2d::CCNode* thumbHeld
 	);
 
-private: 
-	cocos2d::CCPoint m_touchStartPos;
-	float m_touchStartValue;
-
-protected:
 	virtual bool ccTouchBegan    (cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
 	virtual void ccTouchMoved    (cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
 	virtual void ccTouchEnded    (cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
@@ -224,7 +221,7 @@ public:
 	 * Sets the string of the label that is attached to the slider.
 	 * Always prefer to keep it short.
 	 */
-	void setLabel(std::string const& label, std::string const& font);
+	void setLabel(std::string const& label, std::string const& font = "bigFont.fnt");
 	/** 
 	 * Allows you to make the thumb switch to its held state. Visual only
 	 */

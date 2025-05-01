@@ -7,16 +7,11 @@ using namespace geode::prelude;
 inline GSliderDelegate::~GSliderDelegate() = default;
 
 
-void GSlider::GSliderThumb::update(float) {
-	m_obAnchorPoint = CCPoint(.5f, .5f);
-	m_bIgnoreAnchorPointForPosition = false;
-}
-
 bool GSlider::GSliderThumb::init(CCNode* normalSprite, CCNode* heldSprite) {
 	if (!CCNodeRGBA::init()) return false;
 
-	m_obAnchorPoint = CCPoint(.5f, .5f);
-	m_bIgnoreAnchorPointForPosition = false;
+	this->setCascadeColorEnabled(true);
+	this->setCascadeOpacityEnabled(true);
 
 	if (!normalSprite) normalSprite = CCSprite::create("sliderthumb.png");
 	if (!heldSprite) heldSprite = CCSprite::create("sliderthumbsel.png");
@@ -28,8 +23,8 @@ bool GSlider::GSliderThumb::init(CCNode* normalSprite, CCNode* heldSprite) {
 
 	heldSprite->setVisible(false);
 
-	this->addChildAtPosition(normalSprite, Anchor::Center);
-	this->addChildAtPosition(heldSprite, Anchor::Center);
+	this->addChildAtPosition(normalSprite, Anchor::Center, {}, false);
+	this->addChildAtPosition(heldSprite, Anchor::Center, {}, false);
 
 	return true;
 }
@@ -61,72 +56,74 @@ bool GSlider::init(
 	this->setTouchEnabled(true);
 	this->setTouchMode(kCCTouchesOneByOne);
 
-	m_obContentSize = CCSize(width - 10.f, 16.f); 
+	this->setCascadeColorEnabled(true);
+	this->setCascadeOpacityEnabled(true);
 
-	m_obAnchorPoint = CCPoint(.5f, .5f);
-	m_bIgnoreAnchorPointForPosition = false;
+	m_obContentSize = CCSize(width, 16.f); 
+
+	// idk why i need to do this but for some reason i do
+	this->setAnchorPoint({});
+	this->setAnchorPoint({.5f, .5f});
+
+	this->ignoreAnchorPointForPosition(false);
 
 	m_minValue = minValue;
 	m_maxValue = maxValue;
-	m_value = (m_maxValue - m_minValue) / 2;
+	m_value = (m_maxValue + m_minValue) / 2;
 
 	m_barOutline = outline;
 	m_barOutline->setContentSize({width, m_obContentSize.height});
 
 	m_barFill = fill;
 	m_barFill->setContentWidth(m_barFill->getContentWidth() / 2);
-	m_barFill->setAnchorPoint({0.f, 0.f});
 	m_barFill->setZOrder(-1);
 	m_barFill->setTextureRect({ 0.f, 0.f, (width - 4.f) / 2, 8.f });
-	ccTexParams texParams = {GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT};
-	m_barFill->getTexture()->setTexParameters(&texParams);
+	m_barFill->getTexture()->setTexParameters(new ccTexParams{ GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT });
 
 	m_thumb = GSliderThumb::create(thumb, thumbHeld);
-	m_thumb->m_obAnchorPoint = CCPoint(.5f, .5f);
-	m_thumb->m_bIgnoreAnchorPointForPosition = false;
-	m_thumb->setPosition(m_obContentSize / 2);
-
+	// again - why do i have to do this? idk
+	m_thumb->setAnchorPoint({});
+	m_thumb->setAnchorPoint({.5f, .5f});
 
 	m_valueLabel = CCLabelBMFont::create(fmt::format("{}", m_value).c_str(), "bigFont.fnt");
 	m_valueLabel->setVisible(false);
+	m_valueLabel->setScale(.75f);
 
 	this->addChildAtPosition(m_barOutline, Anchor::Center);
-	m_barOutline->addChildAtPosition(m_barFill, Anchor::Center);
-	this->addChild(m_thumb);
+	m_barOutline->addChildAtPosition(m_barFill, Anchor::Left, {2.f, 0.f}, {0.f, .5f});
+	this->addChildAtPosition(m_thumb, Anchor::Left, {m_obContentSize.width / 2, 0.f}, {.5f, .5f});
 	this->addChildAtPosition(m_valueLabel, Anchor::Right, {10.f, 0.f}, {0.f, .5f});
 
 	updateState(m_value);
+
 	return true;
 }
 
 bool GSlider::ccTouchBegan(CCTouch* touch, CCEvent* event) {
-	auto pos = this->convertTouchToNodeSpace(touch);
-	auto thumbPos = m_thumb->getPosition();
 	auto thumbSize = m_thumb->getContentSize();
+	auto thumbPos = m_thumb->getPosition();
+	auto touchPos = this->convertTouchToNodeSpace(touch);
+	m_xOffsetOfTouchFromThumb = touchPos.x - m_thumb->getPosition().x;
 
-	bool sliderStart = false;
+	bool sliderStarted = false;
 	if (
-		pos.x > thumbPos.x - (thumbSize.width / 2) && pos.y > thumbPos.y - (thumbSize.height / 2) &&
-		pos.x < thumbPos.x + (thumbSize.width / 2) && pos.y < thumbPos.y + (thumbSize.height / 2)
+		touchPos.x > thumbPos.x - (thumbSize.width / 2) && touchPos.y > thumbPos.y - (thumbSize.height / 2) &&
+		touchPos.x < thumbPos.x + (thumbSize.width / 2) && touchPos.y < thumbPos.y + (thumbSize.height / 2)
 	) {
 		m_touchStartValue = m_value;
-		sliderStart = true;
+		sliderStarted = true;
 		for (auto [key, delegate] : m_delegates) {
-			delegate->sliderStarted(this, m_value);
+			if (delegate) delegate->sliderStarted(this, m_value);
 		}
 	}
 
-	m_touchStartPos = pos;
-	m_thumb->updateState(sliderStart);
-	updateState(m_value);
-	return sliderStart;
+	m_thumb->updateState(sliderStarted);
+	return sliderStarted;
 }
 void GSlider::ccTouchMoved(CCTouch* touch, CCEvent* event) {
-	float deltaX = touch->getLocation().x - m_touchStartPos.x;
+	float newThumbXPos = this->convertTouchToNodeSpace(touch).x - m_xOffsetOfTouchFromThumb;
 
-	float newThumbXPos = m_thumb->getPositionX() + deltaX;
-
-	auto width = m_obContentSize.width;
+	float width = m_obContentSize.width;
 
 	bool sliderAtMin = false;
 	bool sliderAtMax = false;
@@ -140,29 +137,27 @@ void GSlider::ccTouchMoved(CCTouch* touch, CCEvent* event) {
 
 	float newValue = (m_maxValue - m_minValue) * (newThumbXPos / width) + m_minValue;
 	for (auto [key, delegate] : m_delegates) {
-		delegate->sliderChanged(this, newValue, newValue - m_touchStartValue);
+		if (delegate) delegate->sliderChanged(this, newValue, newValue - m_touchStartValue);
 	}
 
 	if (sliderAtMin) 
 		for (auto [key, delegate] : m_delegates) {
-			delegate->sliderReachedMinimum(this);
+			if (delegate) delegate->sliderReachedMinimum(this);
 		}
 	else if (sliderAtMax)  
 		for (auto [key, delegate] : m_delegates) {
-			delegate->sliderReachedMaximum(this);
+			if (delegate) delegate->sliderReachedMaximum(this);
 		}
 
 	updateState(newValue);
 }
 void GSlider::ccTouchEnded(CCTouch* touch, CCEvent* event) {
+
 	m_thumb->updateState(false);
+
 	for (auto [key, delegate] : m_delegates) {
-		delegate->sliderEnded(this, m_value, m_value - m_touchStartValue);
+		if (delegate) delegate->sliderEnded(this, m_value, m_value - m_touchStartValue);
 	}
-
-	updateState(m_value);
-
-	m_touchStartPos = CCPoint(0.f, 0.f);
 }
 void GSlider::ccTouchCancelled(CCTouch* touch, CCEvent* event) {
 	ccTouchEnded(touch, event);
@@ -170,27 +165,38 @@ void GSlider::ccTouchCancelled(CCTouch* touch, CCEvent* event) {
 
 void GSlider::updateState(float newValue) {
 
-	if (m_useSnap) m_value = std::round(newValue / m_snapStep) * m_snapStep;
+	if (m_useSnap) {
+		m_value = std::min(std::max(
+			std::round((newValue - m_minValue) / m_snapStep) * m_snapStep + m_minValue, 
+		m_minValue), m_maxValue);
+		if (m_value + (m_snapStep / 2) > m_maxValue) m_value = m_maxValue;
+	}
 	else m_value = newValue;
+
+	// between 1 and 0
+	float partOfSliderCovered = (m_value - m_minValue) / (m_maxValue - m_minValue);
 
 	m_barFill->setTextureRect({ 
 		0.f, 0.f, 
-		(m_obContentSize.width + 6.f) * ((m_value - m_minValue) / (m_maxValue - m_minValue)), 
+		(m_obContentSize.width - 4.f) * partOfSliderCovered, 
 		8.f 
 	});
-
 	m_barFill->setContentWidth(
-		(m_obContentSize.width + 6.f) * ((m_value - m_minValue) / (m_maxValue - m_minValue))
+		(m_obContentSize.width - 4.f) * partOfSliderCovered
 	);
 	
-	m_thumb->m_obAnchorPoint = CCPoint(.5f, .5f);
-	m_thumb->m_bIgnoreAnchorPointForPosition = false;
-	m_thumb->setPositionX(m_obContentSize.width * ((m_value - m_minValue) / (m_maxValue - m_minValue)));
+	m_thumb->updateAnchoredPosition(
+		Anchor::Left, 
+		{(m_obContentSize.width - 10.f) * partOfSliderCovered + 5.f, 0.f}, 
+		{.5f, .5f}
+	);
+
+	if (m_label) m_label->limitLabelWidth(m_obContentSize.width, .4f, .2f);
 
 	m_valueLabel->setString(fmt::format("{:.2f}", m_value).c_str());
 
 	for (auto [key, callback] : m_callbacks) {
-		callback(newValue, newValue - m_touchStartValue);
+		if (callback) callback(newValue, newValue - m_touchStartValue);
 	}
 }
 
@@ -219,13 +225,18 @@ void GSlider::setContentSize(cocos2d::CCSize const& size) {
 	if (size.width == m_obContentSize.width) return CCLayerRGBA::setContentSize(size);
 	CCLayerRGBA::setContentSize(size);
 	m_barOutline->setContentWidth(size.width);
-	m_obContentSize.width = size.width - 10.f;
 	updateState(m_value);
-};
+}
+
 
 void GSlider::setValue(float value, bool triggerCallback) {
 	auto tempCallbacks = m_callbacks;
-	if (!triggerCallback) m_callbacks = {};
+	if (!triggerCallback) {
+		m_callbacks = {};
+		for (auto [key, delegate] : m_delegates) {
+			if (delegate) delegate->sliderChanged(this, value, 0.f);
+		}
+	}
 	updateState(value);
 	m_callbacks = tempCallbacks;
 }
@@ -248,7 +259,7 @@ void GSlider::setLabel(std::string const& label, std::string const& font) {
 		}
 		else {
 			m_label = CCLabelBMFont::create(label.c_str(), font.c_str());
-			this->addChildAtPosition(m_label, Anchor::Top, {0.f, 5.f}, {.5f, 0.f});
+			this->addChildAtPosition(m_label, Anchor::Top, {0.f, 15.f}, {.5f, 0.f});
 		}
 		m_label->limitLabelWidth(m_obContentSize.width, .4f, .2f);
 	}

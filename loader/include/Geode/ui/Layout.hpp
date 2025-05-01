@@ -319,7 +319,7 @@ protected:
 
 public:
 	/**
-	 * Create a new RowLayout. See the chainable setters on RowLayout for 
+	 * Create a new RowLayout. See the chainable setters on AxisLayout for 
 	 * what options you can customize for the layout
 	 * @returns Created RowLayout
 	 */
@@ -335,7 +335,7 @@ protected:
 
 public:
 	/**
-	 * Create a new ColumnLayout. See the chainable setters on RowLayout for 
+	 * Create a new ColumnLayout. See the chainable setters on AxisLayout for 
 	 * what options you can customize for the layout
 	 * @returns Created ColumnLayout
 	 */
