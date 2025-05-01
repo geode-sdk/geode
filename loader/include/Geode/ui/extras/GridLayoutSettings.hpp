@@ -1,5 +1,6 @@
 #include "../Layout.hpp"
 
+#include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
 #include <Geode/binding/Slider.hpp>
 #include <Geode/ui/TextInput.hpp>
