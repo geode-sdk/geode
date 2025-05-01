@@ -3,7 +3,8 @@
     "gd": {
         "win": "*",
         "mac": "*",
-        "android": "*"
+        "android": "*",
+        "ios": "*"
     },
 	"version":      "1.0.0",
 	"id":           "geode.test",

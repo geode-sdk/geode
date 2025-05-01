@@ -20,9 +20,9 @@ LoadModSuggestionTask loadModSuggestion(LoadProblem const& problem) {
                     .major = suggestionVersionRes.unwrap().getUnderlyingVersion().getMajor()
                 };
             }
-            // todo: if mods are allowed to specify other type of version comparisons in the future, 
+            // todo: if mods are allowed to specify other type of version comparisons in the future,
             // add support for that here
-            
+
             if (auto mod = std::get_if<Mod*>(&problem.cause)) {
                 return server::getModVersion(suggestionID, suggestionVersion).map(
                     [mod = *mod](auto* result) -> LoadModSuggestionTask::Value {
@@ -54,12 +54,14 @@ std::string ModSource::getID() const {
         },
     }, m_value);
 }
-ModMetadata ModSource::getMetadata() const {
+ModMetadata const& ModSource::getMetadata() const {
     return std::visit(makeVisitor {
-        [](Mod* mod) {
-            return mod->getMetadata();
+        // the return type annotation is super important here or else for some unknown to me reason
+        // those lambdas decide to return a value and thus the function will return a ref to a temporary
+        [](Mod* mod) -> ModMetadata const& {
+            return mod->getMetadataRef();
         },
-        [](server::ServerModMetadata const& metadata) {
+        [](server::ServerModMetadata const& metadata) -> ModMetadata const& {
             // Versions should be guaranteed to have at least one item
             return metadata.versions.front().metadata;
         },
@@ -69,7 +71,7 @@ ModMetadata ModSource::getMetadata() const {
 std::string ModSource::formatDevelopers() const {
     return std::visit(makeVisitor {
         [](Mod* mod) {
-            return ModMetadata::formatDeveloperDisplayString(mod->getMetadata().getDevelopers());
+            return ModMetadata::formatDeveloperDisplayString(mod->getMetadataRef().getDevelopers());
         },
         [](server::ServerModMetadata const& metadata) {
             // Versions should be guaranteed to have at least one item
@@ -134,7 +136,7 @@ server::ServerRequest<std::optional<std::string>> ModSource::fetchAbout() const 
     // todo: write as visit
     if(!this->hasUpdates()) {
         if (auto mod = this->asMod()) {
-            return server::ServerRequest<std::optional<std::string>>::immediate(Ok(mod->getMetadata().getDetails()));
+            return server::ServerRequest<std::optional<std::string>>::immediate(Ok(mod->getMetadataRef().getDetails()));
         }
     }
     return server::getMod(this->getID()).map(
@@ -149,7 +151,7 @@ server::ServerRequest<std::optional<std::string>> ModSource::fetchAbout() const 
 server::ServerRequest<std::optional<std::string>> ModSource::fetchChangelog() const {
     if(!this->hasUpdates()) {
         if (auto mod = this->asMod()) {
-            return server::ServerRequest<std::optional<std::string>>::immediate(Ok(mod->getMetadata().getChangelog()));
+            return server::ServerRequest<std::optional<std::string>>::immediate(Ok(mod->getMetadataRef().getChangelog()));
         }
     }
     return server::getMod(this->getID()).map(
@@ -162,8 +164,8 @@ server::ServerRequest<std::optional<std::string>> ModSource::fetchChangelog() co
     );
 }
 server::ServerRequest<server::ServerModMetadata> ModSource::fetchServerInfo() const {
-    // Request the info even if this is already a server mod because this might 
-    // not have the full details (for example changelog) and the server cache 
+    // Request the info even if this is already a server mod because this might
+    // not have the full details (for example changelog) and the server cache
     // should deal with performance issues
     return server::getMod(this->getID());
 }
@@ -171,14 +173,14 @@ server::ServerRequest<std::vector<server::ServerTag>> ModSource::fetchValidTags(
     std::unordered_set<std::string> modTags;
     std::visit(makeVisitor {
         [&](Mod* mod) {
-            modTags = mod->getMetadata().getTags();
+            modTags = mod->getMetadataRef().getTags();
         },
         [&](server::ServerModMetadata const& metadata) {
             modTags = metadata.tags;
         },
     }, m_value);
-    
-    // This does two things: 
+
+    // This does two things:
     // 1. For installed mods, it filters out invalid tags
     // 2. For everything else, it gets the rest of the tag info (display name) from the server
     return server::getTags().map(

@@ -109,7 +109,7 @@ void geode::openModsList() {
 }
 
 void geode::openIssueReportPopup(Mod* mod) {
-    if (mod->getMetadata().getIssues()) {
+    if (mod->getMetadataRef().getIssues()) {
         MDPopup::create(
             "Issue Report",
                 "Please report the issue to the mod that caused the crash.\n"
@@ -121,9 +121,9 @@ void geode::openIssueReportPopup(Mod* mod) {
                 if (btn2) {
                     file::openFolder(dirs::getCrashlogsDir());
                     return;
-                } 
+                }
 
-                auto issues = mod->getMetadata().getIssues();
+                auto issues = mod->getMetadataRef().getIssues();
                 if (issues && issues.value().url) {
                     auto url = issues.value().url.value();
                     web::openLinkInBrowser(url);
@@ -146,7 +146,7 @@ void geode::openIssueReportPopup(Mod* mod) {
 }
 
 void geode::openSupportPopup(Mod* mod) {
-    openSupportPopup(mod->getMetadata());
+    openSupportPopup(mod->getMetadataRef());
 }
 
 void geode::openSupportPopup(ModMetadata const& metadata) {
@@ -206,26 +206,26 @@ protected:
     bool init(ModLogoSrc&& src) {
         if (!CCNode::init())
             return false;
-        
+
         this->setAnchorPoint({ .5f, .5f });
         this->setContentSize({ 50, 50 });
 
         m_listener.bind(this, &ModLogoSprite::onFetch);
-    
+
         std::visit(makeVisitor {
             [this](Mod* mod) {
                 m_modID = mod->getID();
 
                 // Load from Resources
-                this->setSprite(mod->isInternal() ? 
-                    CCSprite::createWithSpriteFrameName("geode-logo.png"_spr) : 
+                this->setSprite(mod->isInternal() ?
+                    CCSprite::createWithSpriteFrameName("geode-logo.png"_spr) :
                     CCSprite::create(fmt::format("{}/logo.png", mod->getID()).c_str()),
                     false
                 );
             },
             [this](std::string const& id) {
                 m_modID = id;
-                
+
                 // Asynchronously fetch from server
                 this->setSprite(createLoadingCircle(25), false);
                 m_listener.setFilter(server::getModLogo(id));

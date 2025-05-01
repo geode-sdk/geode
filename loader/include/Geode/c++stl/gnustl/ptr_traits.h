@@ -33,21 +33,21 @@
 #include "c++config.h"
 
 #include <type_traits>
-#define _GLIBCXX_HAS_NESTED_TYPE(_NTYPE)				\
+#define _GLIBCXX_HAS_NESTED_TYPE_PTR(_NTYPE)				\
   template<typename _Tp, typename = std::void_t<>>				\
     struct __has_##_NTYPE						\
-    : std::false_type							\
+    : geode::stl::false_type							\
     { };								\
   template<typename _Tp>						\
     struct __has_##_NTYPE<_Tp, std::void_t<typename _Tp::_NTYPE>>		\
-    : std::true_type								\
+    : geode::stl::true_type								\
     { };
 
 namespace geode::stl {
 _GLIBCXX_BEGIN_NAMESPACE_VERSION
 
-_GLIBCXX_HAS_NESTED_TYPE(element_type)
-_GLIBCXX_HAS_NESTED_TYPE(difference_type)
+_GLIBCXX_HAS_NESTED_TYPE_PTR(element_type)
+_GLIBCXX_HAS_NESTED_TYPE_PTR(difference_type)
 
   template<typename _Tp, bool = __has_element_type<_Tp>::value>
     struct __ptrtr_elt_type;
@@ -81,11 +81,11 @@ _GLIBCXX_HAS_NESTED_TYPE(difference_type)
     class __ptrtr_rebind_helper
     {
       template<typename _Ptr2, typename _Up2>
-	static constexpr std::true_type
+	static constexpr geode::stl::true_type
 	_S_chk(typename _Ptr2::template rebind<_Up2>*);
 
       template<typename, typename>
-	static constexpr std::false_type
+	static constexpr geode::stl::false_type
 	_S_chk(...);
 
     public:

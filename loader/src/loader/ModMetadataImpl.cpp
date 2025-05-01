@@ -268,7 +268,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         }
         else {
             for (auto& dep : deps.items()) {
-                GEODE_UNWRAP(addDependency(dep.needs("id").template get<std::string>(), dep, true));
+                GEODE_UNWRAP(addDependency(dep.needs("id").get<std::string>(), dep, true));
             }
         }
     }
@@ -331,7 +331,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         }
         else {
             for (auto& incompat : incompats.items()) {
-                GEODE_UNWRAP(addIncompat(incompat.needs("id").template get<std::string>(), incompat, true));
+                GEODE_UNWRAP(addIncompat(incompat.needs("id").get<std::string>(), incompat, true));
             }
         }
     }
