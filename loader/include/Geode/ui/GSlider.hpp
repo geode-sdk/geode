@@ -8,6 +8,8 @@ namespace geode {
 #pragma warning(push)
 #pragma warning(disable: 4275)
 
+class GSlider;
+
 /**
  * Delegate for the `GSlider` class.
  */
