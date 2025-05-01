@@ -1,6 +1,5 @@
 #include <Geode/ui/GSlider.hpp>
 
-#include <cocos2d.h>
 #include <Geode/ui/Layout.hpp>
 #include <fmt/core.h>
 

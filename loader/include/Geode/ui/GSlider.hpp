@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cocos2d.h>
+#include <Geode/cocos/extensions/GUI/CCControlExtension/CCScale9Sprite.h>
 #include <Geode/platform/platform.hpp>
 
 namespace geode {
