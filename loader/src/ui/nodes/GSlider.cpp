@@ -19,12 +19,12 @@ bool GSlider::GSliderThumb::init(CCNode* normalSprite, CCNode* heldSprite) {
 	m_normalSprite = normalSprite;
 	m_heldSprite = heldSprite;
 
-	m_obContentSize = normalSprite->getContentSize();
+	m_obContentSize = m_normalSprite->getContentSize();
 
 	heldSprite->setVisible(false);
 
-	this->addChildAtPosition(normalSprite, Anchor::Center, {}, false);
-	this->addChildAtPosition(heldSprite, Anchor::Center, {}, false);
+	this->addChildAtPosition(m_normalSprite, Anchor::Center/* , {}, false */);
+	this->addChildAtPosition(m_heldSprite,   Anchor::Center/* , {}, false */);
 
 	return true;
 }
@@ -52,6 +52,9 @@ bool GSlider::init(
 	CCScale9Sprite* outline, CCSprite* fill,
 	CCNode* thumb, CCNode* thumbHeld
 ) {
+
+	if (!CCLayerRGBA::init()) return false;
+
 	this->registerWithTouchDispatcher();
 	this->setTouchEnabled(true);
 	this->setTouchMode(kCCTouchesOneByOne);
@@ -59,11 +62,7 @@ bool GSlider::init(
 	this->setCascadeColorEnabled(true);
 	this->setCascadeOpacityEnabled(true);
 
-	m_obContentSize = CCSize(width, 16.f); 
-
-	// idk why i need to do this but for some reason i do
-	this->setAnchorPoint({});
-	this->setAnchorPoint({.5f, .5f});
+	this->setContentSize({width, 16.f}); 
 
 	this->ignoreAnchorPointForPosition(false);
 
@@ -71,17 +70,25 @@ bool GSlider::init(
 	m_maxValue = maxValue;
 	m_value = (m_maxValue + m_minValue) / 2;
 
+	if (!outline) outline = CCScale9Sprite::create("slidergroove.png", 
+		{ 0.f, 0.f, 210.f, 16.f }, { 5.5f, 7.5f, 199.f, 1.f }
+	);
 	m_barOutline = outline;
 	m_barOutline->setContentSize({width, m_obContentSize.height});
+	m_barOutline->setCascadeColorEnabled(true);
+	m_barOutline->setCascadeOpacityEnabled(true);
 
+	if (!fill) fill = CCSprite::create("sliderBar.png");
 	m_barFill = fill;
 	m_barFill->setContentWidth(m_barFill->getContentWidth() / 2);
 	m_barFill->setZOrder(-1);
 	m_barFill->setTextureRect({ 0.f, 0.f, (width - 4.f) / 2, 8.f });
 	m_barFill->getTexture()->setTexParameters(new ccTexParams{ GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT });
 
+	if (!thumb)     thumb     = CCSprite::create("sliderthumb.png");
+	if (!thumbHeld) thumbHeld = CCSprite::create("sliderthumbsel.png");
 	m_thumb = GSliderThumb::create(thumb, thumbHeld);
-	// again - why do i have to do this? idk
+	// idk why i need to do this but for some reason i do
 	m_thumb->setAnchorPoint({});
 	m_thumb->setAnchorPoint({.5f, .5f});
 
@@ -89,10 +96,10 @@ bool GSlider::init(
 	m_valueLabel->setVisible(false);
 	m_valueLabel->setScale(.75f);
 
-	this->addChildAtPosition(m_barOutline, Anchor::Center);
 	m_barOutline->addChildAtPosition(m_barFill, Anchor::Left, {2.f, 0.f}, {0.f, .5f});
-	this->addChildAtPosition(m_thumb, Anchor::Left, {m_obContentSize.width / 2, 0.f}, {.5f, .5f});
-	this->addChildAtPosition(m_valueLabel, Anchor::Right, {10.f, 0.f}, {0.f, .5f});
+	this->addChildAtPosition(m_barOutline, Anchor::Center);
+	this->addChildAtPosition(m_thumb,      Anchor::Left,  {m_obContentSize.width / 2, 0.f}, {.5f, .5f});
+	this->addChildAtPosition(m_valueLabel, Anchor::Right, {10.f, 0.f},                      {0.f, .5f});
 
 	updateState(m_value);
 
@@ -166,9 +173,9 @@ void GSlider::ccTouchCancelled(CCTouch* touch, CCEvent* event) {
 void GSlider::updateState(float newValue) {
 
 	if (m_useSnap) {
-		m_value = std::min(std::max(
+		m_value = std::min(
 			std::round((newValue - m_minValue) / m_snapStep) * m_snapStep + m_minValue, 
-		m_minValue), m_maxValue);
+		m_maxValue);
 		if (m_value + (m_snapStep / 2) > m_maxValue) m_value = m_maxValue;
 	}
 	else m_value = newValue;
@@ -190,8 +197,6 @@ void GSlider::updateState(float newValue) {
 		{(m_obContentSize.width - 10.f) * partOfSliderCovered + 5.f, 0.f}, 
 		{.5f, .5f}
 	);
-
-	if (m_label) m_label->limitLabelWidth(m_obContentSize.width, .4f, .2f);
 
 	m_valueLabel->setString(fmt::format("{:.2f}", m_value).c_str());
 
@@ -224,8 +229,19 @@ GSlider* GSlider::create(
 void GSlider::setContentSize(cocos2d::CCSize const& size) {
 	if (size.width == m_obContentSize.width) return CCLayerRGBA::setContentSize(size);
 	CCLayerRGBA::setContentSize(size);
-	m_barOutline->setContentWidth(size.width);
-	updateState(m_value);
+
+	if (m_label)      m_label->limitLabelWidth(m_obContentSize.width, .4f, .2f);
+	if (m_barOutline) m_barOutline->setContentWidth(size.width);
+	if (m_barFill) {
+		m_barFill->setTextureRect({ 
+			0.f, 0.f, 
+			(m_obContentSize.width - 4.f) * (m_value - m_minValue) / (m_maxValue - m_minValue), 
+			8.f 
+		});
+		m_barFill->setContentWidth(
+			(m_obContentSize.width - 4.f) * (m_value - m_minValue) / (m_maxValue - m_minValue)
+		);
+	}
 }
 
 
