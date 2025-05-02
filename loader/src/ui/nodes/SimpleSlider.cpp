@@ -43,7 +43,7 @@ void SimpleSlider::SimpleSliderThumb::updateState(bool isHeld) {
 	this->setContentSize((isHeld ? m_heldSprite : m_normalSprite)->getContentSize());
 }
 
-class SimpleSlider::Impl {
+class SimpleSlider::Impl final {
 	friend class SimpleSlider;
 
 	float m_xOffsetOfTouchFromThumb;
@@ -103,6 +103,7 @@ protected:
 };
 
 SimpleSlider::SimpleSlider() : m_impl(std::make_unique<Impl>()) { }
+SimpleSlider::~SimpleSlider() { }
 
 SimpleSlider::SimpleSliderThumb* SimpleSlider::SimpleSliderThumb::create(CCNode* normalSprite, CCNode* heldSprite) {
 	auto ret = new SimpleSliderThumb();

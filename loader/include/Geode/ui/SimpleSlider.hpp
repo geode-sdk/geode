@@ -79,6 +79,7 @@ protected:
 	static auto constexpr HEIGHT = 16.f;
 
 	SimpleSlider();
+	~SimpleSlider();
 
 	/**
 	 * Initializes the slider.
