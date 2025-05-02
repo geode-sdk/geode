@@ -71,35 +71,35 @@ namespace geode {
         std::function<void(std::string const&)> m_onInput = nullptr;
         cocos2d::CCLabelBMFont* m_label = nullptr;
 
-		/*
+        /*
 
-		commented until v5 to keep the api working :3
+        commented until v5 to keep the api working :3
 
-		cocos2d::CCMenu* m_buttonMenu;
-		CCMenuItemSpriteExtra* m_leftArrow;
-		CCMenuItemSpriteExtra* m_rightArrow;
-		float m_arrowIncrementation;
+        cocos2d::CCMenu* m_buttonMenu;
+        CCMenuItemSpriteExtra* m_leftArrow;
+        CCMenuItemSpriteExtra* m_rightArrow;
+        float m_arrowIncrementation;
 
-		 */
+         */
 
-		bool init(float width, std::string const& placeholder, std::string const& font);
+        bool init(float width, std::string const& placeholder, std::string const& font);
 
         void textChanged(CCTextInputNode* input) override;
 
-		// void onArrow(CCObject* sender);
+        // void onArrow(CCObject* sender);
 
-	public:
-		/**
-		 * Create a single-line text input with a background.
-		 * Can either be used in delegate or callback mode; 
-		 * with callback mode, you don't need to deal with adding 
-		 * TextInputDelegate to your class' base list, you just install a 
-		 * callback function directly to the input itself
-		 * @param width The width of the input
-		 * @param placeholder Placeholder text for the input
-		 * @param font The font to use 
-		 */
-		static TextInput* create(float width, std::string const& placeholder, std::string const& font = "bigFont.fnt");
+    public:
+        /**
+         * Create a single-line text input with a background.
+         * Can either be used in delegate or callback mode; 
+         * with callback mode, you don't need to deal with adding 
+         * TextInputDelegate to your class' base list, you just install a 
+         * callback function directly to the input itself
+         * @param width The width of the input
+         * @param placeholder Placeholder text for the input
+         * @param font The font to use 
+         */
+        static TextInput* create(float width, std::string const& placeholder, std::string const& font = "bigFont.fnt");
 
         /**
          * Set the placeholder label for this input
@@ -178,34 +178,34 @@ namespace geode {
          */
         std::string getString() const;
 
-		/**
-		 * Focus this input (activate the cursor)
-		 */
-		void focus();
-		/**
-		 * Defocus this input (deactivate the cursor)
-		 */
-		void defocus();
+        /**
+         * Focus this input (activate the cursor)
+         */
+        void focus();
+        /**
+         * Defocus this input (deactivate the cursor)
+         */
+        void defocus();
 
-		/**
-		 * Set the type of arrows the Text Input will have, or add new ones if
-		 * if there weren't already. Only works with number filters.
-		 * @param type Arrow type (texture) to use. 
-		 * If `TextInputArrow::None`, will remove the arrows. 
-		 * @param incrementation Sets the amount to increment the input by
-		 * each time you press the arrow.
-		 */ 
-		// void setArrowType(TextInputArrow type, float incrementation = 1.f);
-		
+        /**
+         * Set the type of arrows the Text Input will have, or add new ones if
+         * if there weren't already. Only works with number filters.
+         * @param type Arrow type (texture) to use. 
+         * If `TextInputArrow::None`, will remove the arrows. 
+         * @param incrementation Sets the amount to increment the input by
+         * each time you press the arrow.
+         */ 
+        // void setArrowType(TextInputArrow type, float incrementation = 1.f);
+        
 
-		CCTextInputNode* getInputNode() const;
-		cocos2d::extension::CCScale9Sprite* getBGSprite() const;
-		cocos2d::CCLabelBMFont* getLabel() const;
+        CCTextInputNode* getInputNode() const;
+        cocos2d::extension::CCScale9Sprite* getBGSprite() const;
+        cocos2d::CCLabelBMFont* getLabel() const;
 
-		/*
-		cocos2d::CCMenu* getButtonMenu() const;
-		CCMenuItemSpriteExtra* getLeftArrow() const;
-		CCMenuItemSpriteExtra* getRightArrow() const;
-		*/
-	};
+        /*
+        cocos2d::CCMenu* getButtonMenu() const;
+        CCMenuItemSpriteExtra* getLeftArrow() const;
+        CCMenuItemSpriteExtra* getRightArrow() const;
+        */
+    };
 }
