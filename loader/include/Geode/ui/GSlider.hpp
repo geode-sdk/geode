@@ -26,7 +26,7 @@ protected:
 	 * Override this function in your class to make something happen when
 	 * the slider starts moving.
 	 */
-	virtual void sliderStarted(GSlider* slider, float value) = 0;
+	virtual void sliderStarted(GSlider* slider, float value);
 	/**
 	 * Override this function in your class to make something happen when
 	 * the slider has been moved.
@@ -36,18 +36,18 @@ protected:
 	 * Override this function in your class to make something happen when
 	 * the slider is released.
 	 */
-	virtual void sliderEnded(GSlider* slider, float value, float difference) = 0;
+	virtual void sliderEnded(GSlider* slider, float value, float difference);
 
 	/**
 	 * Override this function in your class to make something happen when
 	 * the slider reaches its minimum value.
 	 */
-	virtual void sliderReachedMinimum(GSlider* slider) = 0;
+	virtual void sliderReachedMinimum(GSlider* slider);
 	/**
 	 * Override this function in your class to make something happen when
 	 * the slider reaches its maximum value.     *
 	 */
-	virtual void sliderReachedMaximum(GSlider* slider) = 0;
+	virtual void sliderReachedMaximum(GSlider* slider);
 };
 
 /**
@@ -57,6 +57,8 @@ protected:
  */
 class GEODE_DLL GSlider : public cocos2d::CCLayerRGBA {
 protected:
+	class Impl;
+	std::shared_ptr<Impl> m_impl;
 
 	class GSliderThumb : public cocos2d::CCNodeRGBA {
 
@@ -77,60 +79,8 @@ protected:
 
 		static GSliderThumb* create(cocos2d::CCNode* normalSprite, cocos2d::CCNode* heldSprite);
 	};
-
-	/**
-	 * Delegates to post events to.
-	 */
-	std::unordered_map<std::string, GSliderDelegate*> m_delegates;
-	/**
-	 * Callbacks to be activated when the slider is moved.
-	 */
-	std::unordered_map<std::string, std::function<void(float, float)>> m_callbacks;
-
-	/**
-	 * Visual label attached to the slider.
-	 */
-	cocos2d::CCLabelBMFont* m_label = nullptr;
-	/**
-	 * Shows the value of the slider in real time.
-	 */
-	cocos2d::CCLabelBMFont* m_valueLabel = nullptr;
-
-	/**
-	 * The outline of the slider. Needs to be `CCScale9Sprite` to make it
-	 * possible to stretch the slider without it looking bad.
-	 */
-	cocos2d::extension::CCScale9Sprite* m_barOutline;
-	/**
-	 * The fill of the slider.
-	 */
-	cocos2d::CCSprite* m_barFill;
-	/**
-	 * The thumb of the slider.
-	 * `GSliderThumb` contains one sprite for the normal state of the thumb,
-	 * and one sprite for the selected state of it.
-	 */
-	GSliderThumb* m_thumb;
-
-	/** 
-	 * The value of the slider.
-	 */
-	float m_value;
-
-	float m_minValue = 0.f;
-	float m_maxValue = 1.f;
-
-	/**
-	 * Level of accuracy the snapping uses.
-	 */
-	float m_snapStep = .01f;
-	bool m_useSnap = false;
-
-private: 
-	float m_xOffsetOfTouchFromThumb;
-	float m_touchStartValue;
 	
-protected:
+	static auto constexpr HEIGHT = 16.f;
 
 	/**
 	 * Initializes the slider.
