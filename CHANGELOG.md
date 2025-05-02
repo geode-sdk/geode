@@ -6,6 +6,8 @@
  * Add a new filter that shows enabled mods before disabled ones on the install page (#1315)
  * Save filters from `InstalledModListSource` to disk (#1315)
  * Fix a rare crash that could happen when searching for mods (eb874ad)
+ * Fix a small visual bug that happened when viewing mod problems (967b6ad)
+ * Fix some file access related crashes that could happen when loading mods (27ca8b6)
  * Add `geode::dirs::getResourcesDir()` and `{gd_resources_dir}` setting variable (#1285)
  * Add `geode::globalListen()` and `EventListener` operator= move (#1218)
  * Add base64 utils (#1307)
