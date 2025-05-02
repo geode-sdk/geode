@@ -65,6 +65,7 @@ protected:
 	float m_snapStep = .01f;
 	bool m_useSnap = false;
 	
+	int m_amountOfDigitsToShow = 2;
 };
 
 bool GSlider::GSliderThumb::init(CCNode* normalSprite, CCNode* heldSprite) {
@@ -152,7 +153,7 @@ bool GSlider::init(
 	m_impl->m_thumb->setAnchorPoint({});
 	m_impl->m_thumb->setAnchorPoint({.5f, .5f});
 
-	m_impl->m_valueLabel = CCLabelBMFont::create(fmt::format("{}", m_value).c_str(), "bigFont.fnt");
+	m_impl->m_valueLabel = CCLabelBMFont::create(fmt::format("{:.2f}", m_value).c_str(), "bigFont.fnt");
 	m_impl->m_valueLabel->setVisible(false);
 	m_impl->m_valueLabel->setScale(.75f);
 
@@ -179,9 +180,8 @@ bool GSlider::ccTouchBegan(CCTouch* touch, CCEvent* event) {
 	) {
 		m_impl->m_touchStartValue = m_value;
 		sliderStarted = true;
-		for (auto& [key, delegate] : m_impl->m_delegates) {
+		for (auto& [key, delegate] : m_impl->m_delegates) 
 			if (delegate) delegate->sliderStarted(this, m_value);
-		}
 	}
 
 	m_impl->m_thumb->updateState(sliderStarted);
@@ -203,18 +203,13 @@ void GSlider::ccTouchMoved(CCTouch* touch, CCEvent* event) {
 	}
 
 	float newValue = (m_impl->m_maxValue - m_impl->m_minValue) * (newThumbXPos / width) + m_impl->m_minValue;
-	for (auto& [key, delegate] : m_impl->m_delegates) {
+	for (auto& [key, delegate] : m_impl->m_delegates) 
 		if (delegate) delegate->sliderChanged(this, newValue, newValue - m_impl->m_touchStartValue);
-	}
 
-	if (sliderAtMin) 
-		for (auto& [key, delegate] : m_impl->m_delegates) {
-			if (delegate) delegate->sliderReachedMinimum(this);
-		}
-	else if (sliderAtMax)  
-		for (auto& [key, delegate] : m_impl->m_delegates) {
-			if (delegate) delegate->sliderReachedMaximum(this);
-		}
+	if (sliderAtMin) for (auto& [key, delegate] : m_impl->m_delegates) 
+		if (delegate) delegate->sliderReachedMinimum(this);
+	else if (sliderAtMax)  for (auto& [key, delegate] : m_impl->m_delegates) 
+		if (delegate) delegate->sliderReachedMaximum(this);
 
 	updateState(newValue);
 }
@@ -222,9 +217,8 @@ void GSlider::ccTouchEnded(CCTouch* touch, CCEvent* event) {
 
 	m_thumb->updateState(false);
 
-	for (auto& [key, delegate] : m_delegates) {
+	for (auto& [key, delegate] : m_impl->m_delegates) 
 		if (delegate) delegate->sliderEnded(this, m_impl->m_value, m_impl->m_value - m_impl->m_touchStartValue);
-	}
 }
 void GSlider::ccTouchCancelled(CCTouch* touch, CCEvent* event) {
 	ccTouchEnded(touch, event);
@@ -258,11 +252,10 @@ void GSlider::updateState(float newValue) {
 		{.5f, .5f}
 	);
 
-	m_impl->m_valueLabel->setString(fmt::format("{:.2f}", m_value).c_str());
+	m_impl->m_valueLabel->setString(fmt::format("{:.{}f}", m_value, m_impl->m_amountOfDigitsToShow).c_str());
 
-	for (auto& [key, callback] : m_impl->m_callbacks) {
+	for (auto& [key, callback] : m_impl->m_callbacks) 
 		if (callback) callback(newValue, newValue - m_impl->m_touchStartValue);
-	}
 }
 
 GSlider* GSlider::create() {
@@ -301,15 +294,11 @@ void GSlider::setContentSize(cocos2d::CCSize const& size) {
 
 
 void GSlider::setValue(float value, bool triggerCallback) {
-	auto tempCallbacks = m_impl->m_callbacks;
-	if (!triggerCallback) {
-		m_impl->m_callbacks = {};
-		for (auto& [key, delegate] : m_impl->m_delegates) {
-			if (delegate) delegate->sliderChanged(this, value, 0.f);
-		}
-	}
+	auto tempCallbacks = std::move(m_impl->m_callbacks); // std::move for better performance
+	if (triggerCallback) for (auto& [key, delegate] : m_impl->m_delegates) 
+		if (delegate) delegate->sliderChanged(this, value, 0.f);
 	updateState(value);
-	m_impl->m_callbacks = tempCallbacks;
+	m_impl->m_callbacks = std::move(tempCallbacks);
 }
 void GSlider::setMinValue(float minValue) {
 	m_impl->m_minValue = minValue;
@@ -344,7 +333,7 @@ void GSlider::setLabel(std::string const& label, std::string const& font) {
 void GSlider::setHeld(bool held) {
 	m_impl->m_thumb->updateState(held);
 }
-void GSlider::showValueLabel(bool show) {
+void GSlider::showValueLabel(bool show, size_t amountOfDigitsToShow) {
 	m_impl->m_valueLabel->setVisible(show);
 }
 

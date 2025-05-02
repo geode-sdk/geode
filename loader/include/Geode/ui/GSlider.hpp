@@ -79,7 +79,7 @@ protected:
 
 		static GSliderThumb* create(cocos2d::CCNode* normalSprite, cocos2d::CCNode* heldSprite);
 	};
-	
+
 	static auto constexpr HEIGHT = 16.f;
 
 	/**
@@ -182,7 +182,7 @@ public:
 	/**
 	 * If true, the value label will be visible. Otherwise, it will be invisible.
 	 */
-	void showValueLabel(bool show);
+	void showValueLabel(bool show, size_t amountOfDigitsToShow = 2);
 
 	/**
 	 * Add a callback to be activated when the slider is moved.
