@@ -16,44 +16,44 @@ struct TextInputNodeFix : Modify<TextInputNodeFix, CCTextInputNode> {
 	}
 
 	bool ccTouchBegan(CCTouch* touch, CCEvent* event) {
-        if (!this->getUserObject("fix-text-input")) {
-            return CCTextInputNode::ccTouchBegan(touch, event);
-        }
+		if (!this->getUserObject("fix-text-input")) {
+			return CCTextInputNode::ccTouchBegan(touch, event);
+		}
 
-        if (!nodeIsVisible(this)) {
-            this->onClickTrackNode(false);
-            return false;
-        }
+		if (!nodeIsVisible(this)) {
+			this->onClickTrackNode(false);
+			return false;
+		}
 
-        auto touchPos = touch->getLocation();
-        auto const size = this->getContentSize();
-        auto const pos = this->convertToNodeSpace(touchPos) + m_textField->getAnchorPoint() * size;
+		auto touchPos = touch->getLocation();
+		auto const size = this->getContentSize();
+		auto const pos = this->convertToNodeSpace(touchPos) + m_textField->getAnchorPoint() * size;
 
-        float parentScale = 1.f;
-        CCNode* currentParent = this;
-        
-        while ((currentParent = currentParent->getParent())) {
-            parentScale *= currentParent->getScale();
-        }
+		float parentScale = 1.f;
+		CCNode* currentParent = this;
+		
+		while ((currentParent = currentParent->getParent())) {
+			parentScale *= currentParent->getScale();
+		}
 
-        CCPoint nodeSpace = this->convertToNodeSpace(touchPos);
-        nodeSpace = nodeSpace / parentScale;
-        touchPos = this->convertToWorldSpace(nodeSpace);
-        
-        if (pos.x < 0 || pos.x > size.width || pos.y < 0 || pos.y > size.height) {
-            this->onClickTrackNode(false);
-            return false;
-        }
-        if (m_delegate && !m_delegate->allowTextInput(this)) {
-            this->onClickTrackNode(false);
-            return false;
-        }
+		CCPoint nodeSpace = this->convertToNodeSpace(touchPos);
+		nodeSpace = nodeSpace / parentScale;
+		touchPos = this->convertToWorldSpace(nodeSpace);
+		
+		if (pos.x < 0 || pos.x > size.width || pos.y < 0 || pos.y > size.height) {
+			this->onClickTrackNode(false);
+			return false;
+		}
+		if (m_delegate && !m_delegate->allowTextInput(this)) {
+			this->onClickTrackNode(false);
+			return false;
+		}
 
-        this->onClickTrackNode(true);
-        this->updateCursorPosition(touchPos, {{0, 0}, size});
+		this->onClickTrackNode(true);
+		this->updateCursorPosition(touchPos, {{0, 0}, size});
 
-        return true;
-    }
+		return true;
+	}
 };
 
 const char* geode::getCommonFilterAllowedChars(CommonFilter filter) {
@@ -69,7 +69,7 @@ const char* geode::getCommonFilterAllowedChars(CommonFilter filter) {
 		case CommonFilter::Base64Normal: return "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+/=";
 		case CommonFilter::Base64URL:    return "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_=";
 		case CommonFilter::Alphanumeric: return "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        case CommonFilter::Alphabetic:   return "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		case CommonFilter::Alphabetic:   return "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	}
 }
 
@@ -96,6 +96,11 @@ bool TextInput::init(float width, std::string const& placeholder, std::string co
 	m_input->setUserObject("fix-text-input", CCBool::create(true));
 	this->addChildAtPosition(m_input, Anchor::Center);
 
+	// m_buttonMenu = CCMenu::create();
+	// m_buttonMenu->setContentSize(m_obContentSize);
+	// m_buttonMenu->ignoreAnchorPointForPosition(false);
+	// this->addChildAtPosition(m_buttonMenu, Anchor::Center);
+
 	return true;
 }
 
@@ -114,6 +119,19 @@ void TextInput::textChanged(CCTextInputNode* input) {
 		m_onInput(input->getString());
 	}
 }
+
+/*
+void TextInput::onArrow(CCObject* sender) {
+	float value = numFromString<float>(this->getString());
+	value += m_arrowIncrementation * sender->getTag();
+	if (std::string(m_input->m_allowedChars).find(".") != std::string::npos) {
+		m_input->setString(fmt::format("{:.3f}", value));
+	}
+	else {
+		m_input->setString(fmt::format("{}", (int)value));
+	}
+}
+*/
 
 void TextInput::setPlaceholder(std::string const& placeholder) {
 	m_input->m_caption = placeholder;
@@ -216,6 +234,58 @@ void TextInput::defocus() {
 	m_input->detachWithIME();
 }
 
+/*
+void TextInput::setArrowType(TextInputArrow type) {
+	if (
+		m_input->m_allowedChars !=   "0123456789" &&
+		m_input->m_allowedChars !=  "-0123456789" &&
+		m_input->m_allowedChars != "-.0123456789"
+	) return;
+
+	if (m_leftArrow) {
+		m_leftArrow->removeFromParent();
+		m_leftArrow = nullptr;
+	}
+	if (m_rightArrow) {
+		m_rightArrow->removeFromParent();
+		m_rightArrow = nullptr;
+	}
+
+	std::string arrowSpr;
+	switch (type) {
+		case TextInputArrow::None:         return;
+		case TextInputArrow::Editor:       arrowSpr = "edit_leftBtn_001.png";   break;
+		case TextInputArrow::EditorDouble: arrowSpr = "edit_leftBtn2_001.png";  break;
+		case TextInputArrow::EditorTriple: arrowSpr = "edit_leftBtn3_001.png";  break;
+		case TextInputArrow::EditorHalf:   arrowSpr = "edit_leftBtn5_001.png";  break;
+		case TextInputArrow::Green:        arrowSpr = "GJ_arrow_01_001.png";    break;
+		case TextInputArrow::Blue:         arrowSpr = "GJ_arrow_02_001.png";    break;
+		case TextInputArrow::Pink:         arrowSpr = "GJ_arrow_03_001.png";    break;
+		case TextInputArrow::BackBtn:      arrowSpr = "GJ_backBtn_001.png";     break;
+		case TextInputArrow::White:        arrowSpr = "navArrowBtn_01_001.png"; break;
+	}
+
+	auto leftSpr = CCSprite::createWithSpriteFrameName(arrowSpr.c_str());
+	// specifically the white sprite is flipped...
+	leftSpr->setFlipX(type == TextInputArrow::White);
+	m_leftArrow = CCMenuItemSpriteExtra::create(leftSpr, this, menu_selector(TextInput::onArrow));
+	m_leftArrow->setScale(25.f / m_leftArrow->getContentHeight());
+	m_leftArrow->setAnchorPoint(ccp(1.f, .5f));
+	m_leftArrow->setTag(-1);
+	m_buttonMenu->addChildAtPosition(m_leftArrow, Anchor::Left, ccp(-5.f, 0.f));
+
+	auto rightSpr = CCSprite::createWithSpriteFrameName(arrowSpr.c_str());
+	// ...
+	rightSpr->setFlipX(type != TextInputArrow::White);
+	m_rightArrow = CCMenuItemSpriteExtra::create(rightSpr, this, menu_selector(TextInput::onArrow));
+	m_rightArrow->setScale(25.f / m_rightArrow->getContentHeight());
+	m_rightArrow->setAnchorPoint(ccp(0.f, .5f));
+	m_rightArrow->setTag(1);
+	m_buttonMenu->addChildAtPosition(m_rightArrow, Anchor::Right, ccp(5.f, 0.f));
+
+}
+*/
+
 CCTextInputNode* TextInput::getInputNode() const {
 	return m_input;
 }
@@ -225,3 +295,15 @@ CCScale9Sprite* TextInput::getBGSprite() const {
 CCLabelBMFont* TextInput::getLabel() const {
 	return m_label;
 }
+
+/*
+CCMenu* TextInput::getButtonMenu() const {
+	return m_buttonMenu;
+}
+CCMenuItemSpriteExtra* TextInput::getLeftArrow() const {
+	return m_leftArrow;
+}
+CCMenuItemSpriteExtra* TextInput::getRightArrow() const {
+	return m_rightArrow;
+}
+*/
