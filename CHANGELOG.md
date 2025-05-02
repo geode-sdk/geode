@@ -3,6 +3,8 @@
 ## v4.4.0
  * Experimental support for iOS! (#1275, #1280, #1282, and a lot more other commits...)
  * Use MDPopup for mod setting descriptions (#1286)
+ * Add a new filter that shows enabled mods before disabled ones on the install page (#1315)
+ * Save filters from `InstalledModListSource` to disk (#1315)
  * Add `geode::dirs::getResourcesDir()` and `{gd_resources_dir}` setting variable (#1285)
  * Add `geode::globalListen()` and `EventListener` operator= move (#1218)
  * Add base64 utils (#1307)
@@ -37,6 +39,7 @@
  * Fix `gnustl` set functions returning wrong type (ac1de8a)
  * Fix `SimpleAxisLayout` scaling not working properly in some cases (22f01bb)
  * Fix `SimpleAxisLayout` offset gaps in `BackToFront` disrection (f4deccd)
+ * Fix `TextArea` not handling scale properly on touches (#1313)
  * Rename `2.207` to `2.2070` in the timestamp map (79ba633)
  * Update `TulipHook` to 2.4.4
  * Fix UB in path handling on file utils
