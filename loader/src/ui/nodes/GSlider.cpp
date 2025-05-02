@@ -5,8 +5,12 @@
 
 using namespace geode::prelude;
 
-// needed to make the class fully abstract so that i dont need to implement the other pure virtuals
-inline GSliderDelegate::~GSliderDelegate() = default;
+
+void GSliderDelegate::sliderStarted       (GSlider* slider, float value)                   { }
+void GSliderDelegate::sliderChanged       (GSlider* slider, float value, float difference) { }
+void GSliderDelegate::sliderEnded         (GSlider* slider, float value, float difference) { }
+void GSliderDelegate::sliderReachedMinimum(GSlider* slider)                                { }
+void GSliderDelegate::sliderReachedMaximum(GSlider* slider)                                { }
 
 
 class GSlider::Impl {
@@ -209,7 +213,7 @@ void GSlider::ccTouchMoved(CCTouch* touch, CCEvent* event) {
 	if (sliderAtMin) for (auto& [key, delegate] : m_impl->m_delegates) {
 		if (delegate) delegate->sliderReachedMinimum(this);
 	}
-	else if (sliderAtMax)  for (auto& [key, delegate] : m_impl->m_delegates) 
+	else if (sliderAtMax) for (auto& [key, delegate] : m_impl->m_delegates) 
 		if (delegate) delegate->sliderReachedMaximum(this);
 
 	updateState(newValue);
@@ -271,6 +275,7 @@ GSlider* GSlider::create(
 	float minValue, float maxValue, float width, 
 	CCScale9Sprite* outline, CCSprite* fill, CCNode* thumb, CCNode* thumbHeld
 ) {
+	if (minValue == maxValue) maxValue = minValue + 1;
 	auto ret = new GSlider();
 	if (ret->init(minValue, maxValue, width, outline, fill, thumb, thumbHeld)) {
 		ret->autorelease();

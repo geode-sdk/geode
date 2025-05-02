@@ -20,8 +20,6 @@ class GEODE_DLL GSliderDelegate {
 
 protected:
 
-	virtual ~GSliderDelegate() = 0;
-
 	/**
 	 * Override this function in your class to make something happen when
 	 * the slider starts moving.
@@ -31,7 +29,7 @@ protected:
 	 * Override this function in your class to make something happen when
 	 * the slider has been moved.
 	 */
-	virtual void sliderChanged(GSlider* slider, float value, float difference) = 0;
+	virtual void sliderChanged(GSlider* slider, float value, float difference);
 	/**
 	 * Override this function in your class to make something happen when
 	 * the slider is released.
