@@ -37,7 +37,7 @@ static void patchCall(uintptr_t addr, uintptr_t newCall) {
 $execute {
     if (LoaderImpl::get()->isForwardCompatMode()) return;
     
-#if GEODE_COMP_GD_VERSION == 22040 // someone change this and fix the offsets
+#if GEODE_COMP_GD_VERSION == 22040
     // BitmapDC::~BitmapDC
     patchCall(0xC9A56, (uintptr_t)&RemoveFontResourceWHook);
 
