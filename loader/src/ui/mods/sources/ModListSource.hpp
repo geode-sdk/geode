@@ -116,9 +116,11 @@ enum class InstalledModListType {
 struct InstalledModsQuery final : public LocalModsQueryBase {
     InstalledModListType type = InstalledModListType::All;
     std::optional<bool> enabledOnly;
+    std::optional<bool> enabledFirst;
     bool preCheck(ModSource const& src) const;
     bool queryCheck(ModSource const& src, double& weighted) const;
     bool isDefault() const;
+    matjson::Value dumpFilters() const;
 };
 
 class InstalledModListSource : public ModListSource {
