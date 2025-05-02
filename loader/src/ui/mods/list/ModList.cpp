@@ -1,4 +1,6 @@
 #include "ModList.hpp"
+#include <Geode/cocos/actions/CCActionInterval.h>
+#include <Geode/utils/cocos.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/TextInput.hpp>
@@ -205,25 +207,23 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_searchInput->setTextAlign(TextInputAlign::Left);
     m_searchInput->setCommonFilter(CommonFilter::Any);
     m_searchInput->setCallback([this](auto const&) {
-        // If the source is already in memory, we can immediately update the 
-        // search query
+        float bufferTime = 0.4f;
+
         if (m_source->isLocalModsOnly()) {
-            m_source->search(m_searchInput->getString());
-            return;
+            bufferTime = 0.1f;
         }
-        // Otherwise buffer inputs by a bit
-        // This avoids spamming servers for every character typed, 
-        // instead waiting for input to stop to actually do the search
-        std::thread([this] {
-            m_searchInputThreads += 1;
-            std::this_thread::sleep_for(std::chrono::milliseconds(400));
-            m_searchInputThreads -= 1;
-            if (m_searchInputThreads == 0) {
-                Loader::get()->queueInMainThread([this] {
-                    m_source->search(m_searchInput->getString());
-                });
-            }
-        }).detach();
+
+        CCSequence* seq = CCSequence::create(
+            CCDelayTime::create(bufferTime),
+            CallFuncExt::create([this] {
+                m_source->search(m_searchInput->getString());
+            }),
+            nullptr
+        );
+
+        seq->setTag(123123);
+        this->stopActionByTag(123123);
+        this->runAction(seq);
     });
     m_searchMenu->addChildAtPosition(m_searchInput, Anchor::Left, ccp(7.5f, 0));
 
