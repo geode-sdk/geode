@@ -387,6 +387,10 @@ void ModList::onPromise(ModListSource::PageLoadTask::Event* event) {
     if (event->getValue()) {
         auto result = event->getValue();
         if (result->isOk()) {
+            if (m_list->m_contentLayer->getChildrenCount() > 0) {
+                m_list->m_contentLayer->removeAllChildren();
+            }
+
             // Hide status
             m_statusContainer->setVisible(false);
 
@@ -653,14 +657,18 @@ void ModList::reloadPage() {
 
 void ModList::gotoPage(size_t page, bool update) {
     // Clear list contents
-    m_list->m_contentLayer->removeAllChildren();
+    if (!m_source->isLocalModsOnly()) {
+        m_list->m_contentLayer->removeAllChildren();
+    }
     m_page = page;
 
     // Update page size (if needed)
     m_source->setPageSize(getDisplayPageSize(m_source, m_display));
     
-    // Start loading new page with generic loading message
-    this->showStatus(ModListUnkProgressStatus(), "Loading...");
+    if (!m_source->isLocalModsOnly()) {
+        // Start loading new page with generic loading message
+        this->showStatus(ModListUnkProgressStatus(), "Loading...");
+    }
     m_listener.setFilter(m_source->loadPage(page, update));
 
     // Do initial eager update on page UI (to prevent user spamming arrows 
