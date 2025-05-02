@@ -264,8 +264,7 @@ bool updater::verifyLoaderResources() {
         // if we hash anything other than text, change this
         auto hash = calculateSHA256Text(file.path());
         const auto& expected = LOADER_RESOURCE_HASHES.at(name);
-        // if (hash != expected) {
-        if (true) {
+        if (hash != expected) {
             log::debug("Resource hash mismatch: {} ({}, {})", name, hash.substr(0, 7), expected.substr(0, 7));
             updater::downloadLoaderResources();
             return false;
