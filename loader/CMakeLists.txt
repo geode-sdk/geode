@@ -74,8 +74,6 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 	src/utils/*.cpp
 	src/ui/*.cpp
 	src/ui/nodes/*.cpp
-	# feel free to remove this lol
-	src/ui/nodes/extras/*.cpp
 	src/ui/other/*.cpp
 	src/ui/mods/*.cpp
 	src/ui/mods/list/*.cpp
