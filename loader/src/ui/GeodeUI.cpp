@@ -300,7 +300,7 @@ protected:
                 m_sprite->setLoadCallback([this](Result<> res) {
                     this->onLoaded(std::move(res));
                 });
-                m_sprite->loadFromData(std::move(result->unwrap()));
+                m_sprite->loadFromData(result->unwrap());
             }
         }
         else if (event->isCancelled()) {
