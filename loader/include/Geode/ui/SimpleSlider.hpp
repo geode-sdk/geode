@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cocos2d.h>
-#include <Geode/cocos/extensions/GUI/CCControlExtension/CCScale9Sprite.h>
+#include <GUI/CCControlExtension/CCScale9Sprite.h>
 #include <Geode/platform/platform.hpp>
 
 namespace geode {
@@ -54,7 +54,7 @@ protected:
 class GEODE_DLL SimpleSlider : public cocos2d::CCLayerRGBA {
 protected:
 	class Impl;
-	std::shared_ptr<Impl> m_impl;
+	std::unique_ptr<Impl> m_impl;
 
 	class SimpleSliderThumb : public cocos2d::CCNodeRGBA {
 
@@ -77,6 +77,8 @@ protected:
 	};
 
 	static auto constexpr HEIGHT = 16.f;
+
+	SimpleSlider();
 
 	/**
 	 * Initializes the slider.

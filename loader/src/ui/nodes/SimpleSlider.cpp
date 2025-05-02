@@ -13,6 +13,36 @@ void SimpleSliderDelegate::sliderReachedMinimum(SimpleSlider* slider)           
 void SimpleSliderDelegate::sliderReachedMaximum(SimpleSlider* slider)                                { }
 
 
+bool SimpleSlider::SimpleSliderThumb::init(CCNode* normalSprite, CCNode* heldSprite) {
+	if (!CCNodeRGBA::init()) return false;
+
+	this->setCascadeColorEnabled(true);
+	this->setCascadeOpacityEnabled(true);
+
+	if (!normalSprite) normalSprite = CCSprite::create("sliderthumb.png");
+	if (!heldSprite) heldSprite = CCSprite::create("sliderthumbsel.png");
+
+	m_normalSprite = normalSprite;
+	m_heldSprite = heldSprite;
+
+	this->setContentSize(m_normalSprite->getContentSize());
+
+	heldSprite->setVisible(false);
+
+	this->addChildAtPosition(m_normalSprite, Anchor::Center);
+	this->addChildAtPosition(m_heldSprite,   Anchor::Center);
+
+	return true;
+}
+
+void SimpleSlider::SimpleSliderThumb::updateState(bool isHeld) {
+	m_held = isHeld;
+
+	m_normalSprite->setVisible(!isHeld);
+	m_heldSprite->setVisible(isHeld);
+	this->setContentSize((isHeld ? m_heldSprite : m_normalSprite)->getContentSize());
+}
+
 class SimpleSlider::Impl {
 	friend class SimpleSlider;
 
@@ -72,35 +102,7 @@ protected:
 	int m_amountOfDigitsToShow = 2;
 };
 
-bool SimpleSlider::SimpleSliderThumb::init(CCNode* normalSprite, CCNode* heldSprite) {
-	if (!CCNodeRGBA::init()) return false;
-
-	this->setCascadeColorEnabled(true);
-	this->setCascadeOpacityEnabled(true);
-
-	if (!normalSprite) normalSprite = CCSprite::create("sliderthumb.png");
-	if (!heldSprite) heldSprite = CCSprite::create("sliderthumbsel.png");
-
-	m_normalSprite = normalSprite;
-	m_heldSprite = heldSprite;
-
-	this->setContentSize(m_normalSprite->getContentSize());
-
-	heldSprite->setVisible(false);
-
-	this->addChildAtPosition(m_normalSprite, Anchor::Center);
-	this->addChildAtPosition(m_heldSprite,   Anchor::Center);
-
-	return true;
-}
-
-void SimpleSlider::SimpleSliderThumb::updateState(bool isHeld) {
-	m_held = isHeld;
-
-	m_normalSprite->setVisible(!isHeld);
-	m_heldSprite->setVisible(isHeld);
-	this->setContentSize((isHeld ? m_heldSprite : m_normalSprite)->getContentSize());
-}
+SimpleSlider::SimpleSlider() : m_impl(std::make_unique<Impl>()) { }
 
 SimpleSlider::SimpleSliderThumb* SimpleSlider::SimpleSliderThumb::create(CCNode* normalSprite, CCNode* heldSprite) {
 	auto ret = new SimpleSliderThumb();

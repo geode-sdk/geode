@@ -82,6 +82,8 @@ namespace geode {
 
 		void textChanged(CCTextInputNode* input) override;
 
+		// void onArrow(CCObject* sender);
+
 	public:
 		/**
 		 * Create a single-line text input with a background.
@@ -181,10 +183,25 @@ namespace geode {
 		 */
 		void defocus();
 
+		/**
+		 * Set the type of arrows the Text Input will have, or add new ones if
+		 * if there weren't already. Only works with number filters.
+		 * @param type Arrow type (texture) to use. 
+		 * If `TextInputArrow::None`, will remove the arrows. 
+		 * @param incrementation Sets the amount to increment the input by
+		 * each time you press the arrow.
+		 */ 
+		// void setArrowType(TextInputArrow type, float incrementation = 1.f);
+		
 
 		CCTextInputNode* getInputNode() const;
 		cocos2d::extension::CCScale9Sprite* getBGSprite() const;
 		cocos2d::CCLabelBMFont* getLabel() const;
 
+		/*
+		cocos2d::CCMenu* getButtonMenu() const;
+		CCMenuItemSpriteExtra* getLeftArrow() const;
+		CCMenuItemSpriteExtra* getRightArrow() const;
+		*/
 	};
 }
