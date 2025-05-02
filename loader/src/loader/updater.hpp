@@ -32,7 +32,7 @@ namespace geode::updater {
     class LoaderUpdateFilter : public EventFilter<LoaderUpdateEvent> {
     public:
         template <typename F> requires (std::is_invocable_r_v<ListenerResult, F, LoaderUpdateEvent*>)
-        ListenerResult handle(F& fn, LoaderUpdateEvent* event) {
+        ListenerResult handle(F&& fn, LoaderUpdateEvent* event) {
             return fn(event);
         }
         LoaderUpdateFilter();
