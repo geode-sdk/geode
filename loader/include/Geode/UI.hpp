@@ -8,6 +8,7 @@
 #include "ui/EnterLayerEvent.hpp"
 #include "ui/SpacerNode.hpp"
 #include "ui/General.hpp"
+#include "ui/GSlider.hpp"
 #include "ui/IconButtonSprite.hpp"
 #include "ui/Layout.hpp"
 #include "ui/ListView.hpp"

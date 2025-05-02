@@ -29,21 +29,21 @@ protected:
 	/**
 	 * Visual label attached to the slider.
 	 */
-	cocos2d::CCLabelBMFont* m_label = nullptr;
+	CCLabelBMFont* m_label = nullptr;
 	/**
 	 * Shows the value of the slider in real time.
 	 */
-	cocos2d::CCLabelBMFont* m_valueLabel = nullptr;
+	CCLabelBMFont* m_valueLabel = nullptr;
 
 	/**
 	 * The outline of the slider. Needs to be `CCScale9Sprite` to make it
 	 * possible to stretch the slider without it looking bad.
 	 */
-	cocos2d::extension::CCScale9Sprite* m_barOutline;
+	CCScale9Sprite* m_barOutline;
 	/**
 	 * The fill of the slider.
 	 */
-	cocos2d::CCSprite* m_barFill;
+	CCSprite* m_barFill;
 	/**
 	 * The thumb of the slider.
 	 * `GSliderThumb` contains one sprite for the normal state of the thumb,
