@@ -17,9 +17,10 @@ namespace geode::updater {
 
     class ResourceDownloadFilter : public EventFilter<ResourceDownloadEvent> {
     public:
-        using Callback = void(ResourceDownloadEvent*);
-
-        static ListenerResult handle(const std::function<Callback>& fn, ResourceDownloadEvent* event);
+        template <typename F> requires (std::is_invocable_r_v<ListenerResult, F, ResourceDownloadEvent*>)
+        ListenerResult handle(F&& fn, ResourceDownloadEvent* event) {
+            return fn(event);
+        }
         ResourceDownloadFilter();
     };
 
@@ -30,9 +31,10 @@ namespace geode::updater {
 
     class LoaderUpdateFilter : public EventFilter<LoaderUpdateEvent> {
     public:
-        using Callback = void(LoaderUpdateEvent*);
-
-        static ListenerResult handle(const std::function<Callback>& fn, LoaderUpdateEvent* event);
+        template <typename F> requires (std::is_invocable_r_v<ListenerResult, F, LoaderUpdateEvent*>)
+        ListenerResult handle(F& fn, LoaderUpdateEvent* event) {
+            return fn(event);
+        }
         LoaderUpdateFilter();
     };
 

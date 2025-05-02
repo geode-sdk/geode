@@ -1,3 +1,4 @@
+#include "Geode/loader/Event.hpp"
 #include <Geode/modify/LoadingLayer.hpp>
 #include <Geode/modify/CCLayer.hpp>
 #include <Geode/utils/cocos.hpp>
@@ -113,7 +114,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         });
     }
 
-    void updateResourcesProgress(updater::ResourceDownloadEvent* event) {
+    ListenerResult updateResourcesProgress(updater::ResourceDownloadEvent* event) {
         std::visit(makeVisitor {
             [&](updater::UpdateProgress const& progress) {
                 this->setSmallText(fmt::format(
@@ -140,6 +141,8 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
                 this->continueLoadAssets();
             }
         }, event->status);
+
+        return ListenerResult::Propagate;
     }
 
     void setupModResources() {
