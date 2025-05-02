@@ -153,7 +153,7 @@ bool GSlider::init(
 	m_impl->m_thumb->setAnchorPoint({});
 	m_impl->m_thumb->setAnchorPoint({.5f, .5f});
 
-	m_impl->m_valueLabel = CCLabelBMFont::create(fmt::format("{:.2f}", m_value).c_str(), "bigFont.fnt");
+	m_impl->m_valueLabel = CCLabelBMFont::create(fmt::format("{:.2f}", m_impl->m_value).c_str(), "bigFont.fnt");
 	m_impl->m_valueLabel->setVisible(false);
 	m_impl->m_valueLabel->setScale(.75f);
 
@@ -178,10 +178,10 @@ bool GSlider::ccTouchBegan(CCTouch* touch, CCEvent* event) {
 		touchPos.x > thumbPos.x - (thumbSize.width / 2) && touchPos.y > thumbPos.y - (thumbSize.height / 2) &&
 		touchPos.x < thumbPos.x + (thumbSize.width / 2) && touchPos.y < thumbPos.y + (thumbSize.height / 2)
 	) {
-		m_impl->m_touchStartValue = m_value;
+		m_impl->m_touchStartValue = m_impl->m_value;
 		sliderStarted = true;
 		for (auto& [key, delegate] : m_impl->m_delegates) 
-			if (delegate) delegate->sliderStarted(this, m_value);
+			if (delegate) delegate->sliderStarted(this, m_impl->m_value);
 	}
 
 	m_impl->m_thumb->updateState(sliderStarted);
@@ -206,8 +206,9 @@ void GSlider::ccTouchMoved(CCTouch* touch, CCEvent* event) {
 	for (auto& [key, delegate] : m_impl->m_delegates) 
 		if (delegate) delegate->sliderChanged(this, newValue, newValue - m_impl->m_touchStartValue);
 
-	if (sliderAtMin) for (auto& [key, delegate] : m_impl->m_delegates) 
+	if (sliderAtMin) for (auto& [key, delegate] : m_impl->m_delegates) {
 		if (delegate) delegate->sliderReachedMinimum(this);
+	}
 	else if (sliderAtMax)  for (auto& [key, delegate] : m_impl->m_delegates) 
 		if (delegate) delegate->sliderReachedMaximum(this);
 
@@ -215,7 +216,7 @@ void GSlider::ccTouchMoved(CCTouch* touch, CCEvent* event) {
 }
 void GSlider::ccTouchEnded(CCTouch* touch, CCEvent* event) {
 
-	m_thumb->updateState(false);
+	m_impl->m_thumb->updateState(false);
 
 	for (auto& [key, delegate] : m_impl->m_delegates) 
 		if (delegate) delegate->sliderEnded(this, m_impl->m_value, m_impl->m_value - m_impl->m_touchStartValue);
@@ -228,7 +229,7 @@ void GSlider::updateState(float newValue) {
 
 	if (m_impl->m_useSnap) {
 		m_impl->m_value = std::min(
-			std::round((newValue - m_impl->m_minValue) / m_snapStep) * m_impl->m_snapStep + m_impl->m_minValue, 
+			std::round((newValue - m_impl->m_minValue) / m_impl->m_snapStep) * m_impl->m_snapStep + m_impl->m_minValue, 
 			m_impl->m_maxValue);
 		if (m_impl->m_value + (m_impl->m_snapStep / 2) > m_impl->m_maxValue) m_impl->m_value = m_impl->m_maxValue;
 	}
@@ -252,7 +253,7 @@ void GSlider::updateState(float newValue) {
 		{.5f, .5f}
 	);
 
-	m_impl->m_valueLabel->setString(fmt::format("{:.{}f}", m_value, m_impl->m_amountOfDigitsToShow).c_str());
+	m_impl->m_valueLabel->setString(fmt::format("{:.{}f}", m_impl->m_value, m_impl->m_amountOfDigitsToShow).c_str());
 
 	for (auto& [key, callback] : m_impl->m_callbacks) 
 		if (callback) callback(newValue, newValue - m_impl->m_touchStartValue);
@@ -319,7 +320,7 @@ void GSlider::setLabel(std::string const& label, std::string const& font) {
 		}
 		else {
 			m_impl->m_label = CCLabelBMFont::create(label.c_str(), font.c_str());
-			this->addChildAtPosition(m_label, Anchor::Top, {0.f, 15.f}, {.5f, 0.f});
+			this->addChildAtPosition(m_impl->m_label, Anchor::Top, {0.f, 15.f}, {.5f, 0.f});
 		}
 		m_impl->m_label->limitLabelWidth(m_obContentSize.width, .4f, .2f);
 	}
