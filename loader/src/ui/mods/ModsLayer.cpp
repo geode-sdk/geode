@@ -10,6 +10,7 @@
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/ui/GeodeUI.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/binding/Slider.hpp>
 #include <Geode/binding/SetTextPopup.hpp>
 #include <Geode/binding/SetIDPopup.hpp>
@@ -60,7 +61,7 @@ bool ModsStatusNode::init() {
     m_btnMenu = CCMenu::create();
     m_btnMenu->setID("button-menu");
     m_btnMenu->setContentWidth(m_obContentSize.width);
-
+    m_btnMenu->setContentHeight(25.f);
     auto restartSpr = createGeodeButton("Restart Now");
     restartSpr->setScale(.65f);
     m_restartBtn = CCMenuItemSpriteExtra::create(
@@ -83,7 +84,10 @@ bool ModsStatusNode::init() {
     m_cancelBtn->setID("cancel-button");
     m_btnMenu->addChild(m_cancelBtn);
 
-    m_btnMenu->setLayout(RowLayout::create());
+    m_btnMenu->setLayout(
+        SimpleRowLayout::create()
+            ->setGap(5.f)
+    );
     m_btnMenu->getLayout()->ignoreInvisibleChildren(true);
     this->addChildAtPosition(m_btnMenu, Anchor::Center, ccp(0, 5));
 
@@ -364,7 +368,7 @@ bool ModsLayer::init() {
 
     auto backMenu = CCMenu::create();
     backMenu->setID("back-menu");
-    backMenu->setContentWidth(100.f);
+    backMenu->setContentSize({100.f, 40.f});
     backMenu->setAnchorPoint({ .0f, .5f });
     
     auto backSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
@@ -375,19 +379,20 @@ bool ModsLayer::init() {
     backMenu->addChild(backBtn);
 
     backMenu->setLayout(
-        RowLayout::create()
-            ->setAxisAlignment(AxisAlignment::Start)
+        SimpleRowLayout::create()
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
+            ->setGap(5.f)
     );
     this->addChildAtPosition(backMenu, Anchor::TopLeft, ccp(12, -25), false);
 
     auto actionsMenu = CCMenu::create();
     actionsMenu->setID("actions-menu");
-    actionsMenu->setContentHeight(200.f);
+    actionsMenu->setContentSize({38.f, 200.f});
     actionsMenu->setAnchorPoint({ .5f, .0f });
 
     auto rightActionsMenu = CCMenu::create();
     rightActionsMenu->setID("right-actions-menu");
-    rightActionsMenu->setContentHeight(200.0f);
+    rightActionsMenu->setContentSize({38.f, 200.f});
     rightActionsMenu->setAnchorPoint({ .5f, .0f });
 
     auto reloadSpr = createGeodeCircleButton(
@@ -442,13 +447,17 @@ bool ModsLayer::init() {
     actionsMenu->addChild(addBtn);
 
     actionsMenu->setLayout(
-        ColumnLayout::create()
-            ->setAxisAlignment(AxisAlignment::Start)
+        SimpleColumnLayout::create()
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
+            ->setMainAxisDirection(AxisDirection::BottomToTop)
+            ->setGap(2.f)
     );
 
     rightActionsMenu->setLayout(
-        ColumnLayout::create()
-            ->setAxisAlignment(AxisAlignment::Start)
+        SimpleColumnLayout::create()
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
+            ->setMainAxisDirection(AxisDirection::BottomToTop)
+            ->setGap(2.f)
     );
 
     // positioning based on size of mod list frame and maximum width of buttons
@@ -501,8 +510,9 @@ bool ModsLayer::init() {
     auto mainTabs = CCMenu::create();
     mainTabs->setID("tabs-menu");
     mainTabs->setContentWidth(tabsTop->getContentWidth() - 45);
+    mainTabs->setContentHeight(32.f);
     mainTabs->setAnchorPoint({ .5f, .0f });
-    mainTabs->setPosition(m_frame->convertToWorldSpace(tabsTop->getPosition() + ccp(0, 8)));
+    mainTabs->setPosition(m_frame->convertToWorldSpace(tabsTop->getPosition() + ccp(0, 6)));
     // Increment touch priority so the mods in the list don't override
     mainTabs->setTouchPriority(-150);
 
@@ -522,14 +532,18 @@ bool ModsLayer::init() {
         m_tabs.push_back(btn);
     }
 
-    mainTabs->setLayout(RowLayout::create());
+    mainTabs->setLayout(
+        SimpleRowLayout::create()
+            ->setMainAxisScaling(AxisScaling::Scale)
+            ->setGap(5.f)
+    );
     this->addChild(mainTabs);
 
     // Actions
 
     auto listDisplayMenu = CCMenu::create();
     listDisplayMenu->setID("list-actions-menu");
-    listDisplayMenu->setContentHeight(100);
+    listDisplayMenu->setContentSize({30, 100});
     listDisplayMenu->setAnchorPoint({ 1, 0 });
     listDisplayMenu->setScale(.65f);
 
@@ -567,7 +581,12 @@ bool ModsLayer::init() {
     // searchBtn->setID("search-button");
     // listDisplayMenu->addChild(searchBtn);
 
-    listDisplayMenu->setLayout(ColumnLayout::create()->setAxisReverse(true));
+    listDisplayMenu->setLayout(
+        SimpleColumnLayout::create()
+            ->setMainAxisDirection(AxisDirection::TopToBottom)
+            ->setMainAxisScaling(AxisScaling::Scale)
+            ->setGap(2.f)
+    );
     m_frame->addChildAtPosition(listDisplayMenu, Anchor::Left, ccp(-5, 25));
 
     m_statusNode = ModsStatusNode::create();
@@ -576,7 +595,7 @@ bool ModsLayer::init() {
 
     m_pageMenu = CCMenu::create();
     m_pageMenu->setID("page-menu");
-    m_pageMenu->setContentWidth(200.f);
+    m_pageMenu->setContentSize({200.f, 16.f});
     m_pageMenu->setAnchorPoint({ 1.f, 1.f });
     m_pageMenu->setScale(.65f);
 
@@ -593,9 +612,12 @@ bool ModsLayer::init() {
     m_pageMenu->addChild(m_goToPageBtn);
 
     m_pageMenu->setLayout(
-        RowLayout::create()
-            ->setAxisReverse(true)
-            ->setAxisAlignment(AxisAlignment::End)
+        SimpleRowLayout::create()
+            ->setMainAxisDirection(AxisDirection::RightToLeft)
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
+            ->setCrossAxisAlignment(CrossAxisAlignment::End)
+            ->setCrossAxisScaling(AxisScaling::ScaleDown)
+            ->setGap(5.f)
     );
     this->addChildAtPosition(m_pageMenu, Anchor::TopRight, ccp(-5, -5), false);
 

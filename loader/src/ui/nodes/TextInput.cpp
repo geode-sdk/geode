@@ -16,33 +16,44 @@ struct TextInputNodeFix : Modify<TextInputNodeFix, CCTextInputNode> {
 	}
 
 	bool ccTouchBegan(CCTouch* touch, CCEvent* event) {
-		if (!this->getUserObject("fix-text-input")) {
-			return CCTextInputNode::ccTouchBegan(touch, event);
-		}
+        if (!this->getUserObject("fix-text-input")) {
+            return CCTextInputNode::ccTouchBegan(touch, event);
+        }
 
-		if (!nodeIsVisible(this)) {
-			this->onClickTrackNode(false);
-			return false;
-		}
+        if (!nodeIsVisible(this)) {
+            this->onClickTrackNode(false);
+            return false;
+        }
 
-		auto const touchPos = touch->getLocation();
-		auto const size = this->getContentSize();
-		auto const pos = this->convertToNodeSpace(touchPos) + m_textField->getAnchorPoint() * size;
+        auto touchPos = touch->getLocation();
+        auto const size = this->getContentSize();
+        auto const pos = this->convertToNodeSpace(touchPos) + m_textField->getAnchorPoint() * size;
 
-		if (pos.x < 0 || pos.x > size.width || pos.y < 0 || pos.y > size.height) {
-			this->onClickTrackNode(false);
-			return false;
-		}
-		if (m_delegate && !m_delegate->allowTextInput(this)) {
-			this->onClickTrackNode(false);
-			return false;
-		}
+        float parentScale = 1.f;
+        CCNode* currentParent = this;
+        
+        while ((currentParent = currentParent->getParent())) {
+            parentScale *= currentParent->getScale();
+        }
 
-		this->onClickTrackNode(true);
-		this->updateCursorPosition(touchPos, {{0, 0}, size});
+        CCPoint nodeSpace = this->convertToNodeSpace(touchPos);
+        nodeSpace = nodeSpace / parentScale;
+        touchPos = this->convertToWorldSpace(nodeSpace);
+        
+        if (pos.x < 0 || pos.x > size.width || pos.y < 0 || pos.y > size.height) {
+            this->onClickTrackNode(false);
+            return false;
+        }
+        if (m_delegate && !m_delegate->allowTextInput(this)) {
+            this->onClickTrackNode(false);
+            return false;
+        }
 
-		return true;
-	}
+        this->onClickTrackNode(true);
+        this->updateCursorPosition(touchPos, {{0, 0}, size});
+
+        return true;
+    }
 };
 
 const char* geode::getCommonFilterAllowedChars(CommonFilter filter) {

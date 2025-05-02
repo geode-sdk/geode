@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <Geode/ui/GeodeUI.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/loader/Event.hpp>
@@ -47,12 +48,16 @@ bool ModItem::init(ModSource&& source) {
 
     m_titleLabel = CCLabelBMFont::create(m_source.getMetadata().getName().c_str(), "bigFont.fnt");
     m_titleLabel->setID("title-label");
-    m_titleLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.3f, std::nullopt));
     m_titleContainer->addChild(m_titleLabel);
 
     m_versionLabel = CCLabelBMFont::create("", "bigFont.fnt");
     m_versionLabel->setID("version-label");
-    m_versionLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.5f, .7f)->setScalePriority(1));
+    m_versionLabel->setScale(0.7f);
+    m_versionLabel->setLayoutOptions(
+        SimpleAxisLayoutOptions::create()
+            ->setMinRelativeScale(.7f)
+            ->setMaxRelativeScale(1.f)
+        );
     m_titleContainer->addChild(m_versionLabel);
 
     m_versionDownloadSeparator = CCLabelBMFont::create("•", "bigFont.fnt");
@@ -60,9 +65,11 @@ bool ModItem::init(ModSource&& source) {
     m_titleContainer->addChild(m_versionDownloadSeparator);
     
     m_titleContainer->setLayout(
-        RowLayout::create()
-            ->setDefaultScaleLimits(.1f, 1.f)
-            ->setAxisAlignment(AxisAlignment::Start)
+        SimpleRowLayout::create()
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
+            ->setMainAxisScaling(AxisScaling::Scale)
+            ->setCrossAxisScaling(AxisScaling::ScaleDownGaps)
+            ->setGap(5.f)
     );
     m_titleContainer->getLayout()->ignoreInvisibleChildren(true);
     m_infoContainer->addChildAtPosition(m_titleContainer, Anchor::Left);
@@ -82,8 +89,9 @@ bool ModItem::init(ModSource&& source) {
     m_developers->addChild(developersBtn);
 
     m_developers->setLayout(
-        RowLayout::create()
-            ->setAxisAlignment(AxisAlignment::Start)
+        SimpleRowLayout::create()
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
+            ->setGap(5.f)
     );
     m_infoContainer->addChildAtPosition(m_developers, Anchor::Left);
 
@@ -190,9 +198,12 @@ bool ModItem::init(ModSource&& source) {
     m_viewMenu->addChild(viewBtn);
 
     m_viewMenu->setLayout(
-        RowLayout::create()
-            ->setAxisReverse(true)
-            ->setAxisAlignment(AxisAlignment::End)
+        SimpleRowLayout::create()
+            ->setMainAxisDirection(AxisDirection::RightToLeft)
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
+            ->setMainAxisScaling(AxisScaling::Scale)
+            ->setCrossAxisScaling(AxisScaling::Scale)
+            ->setMinRelativeScale(1.f)
             ->setGap(10)
     );
     m_viewMenu->getLayout()->ignoreInvisibleChildren(true);
@@ -200,7 +211,11 @@ bool ModItem::init(ModSource&& source) {
 
     m_badgeContainer = CCNode::create();
     m_badgeContainer->setID("badge-container");
-    m_badgeContainer->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.1f, .8f));
+    m_badgeContainer->setLayoutOptions(
+        SimpleAxisLayoutOptions::create()
+            ->setMinRelativeScale(.6f)
+            ->setMaxRelativeScale(1.f)
+    );
 
     // Handle source-specific stuff
     m_source.visit(makeVisitor {
@@ -209,6 +224,11 @@ bool ModItem::init(ModSource&& source) {
             if (!mod->isInternal()) {
                 m_enableToggle = CCMenuItemToggler::createWithStandardSprites(
                     this, menu_selector(ModItem::onEnable), 1.f
+                );
+                m_enableToggle->setScale(0.9f);
+                m_enableToggle->setLayoutOptions(
+                    SimpleAxisLayoutOptions::create()
+                        ->setMaxRelativeScale(1.f)
                 );
                 m_enableToggle->setID("enable-toggler");
                 // Manually handle toggle state
@@ -255,11 +275,7 @@ bool ModItem::init(ModSource&& source) {
             // Only show default Modtober tag if not a winner
             else if (metadata.tags.contains("modtober24")) {
                 auto shortVer = CCSprite::createWithSpriteFrameName("tag-modtober.png"_spr);
-                shortVer->setTag(1);
                 m_badgeContainer->addChild(shortVer);
-                auto longVer = CCSprite::createWithSpriteFrameName("tag-modtober-long.png"_spr);
-                longVer->setTag(2);
-                m_badgeContainer->addChild(longVer);
             }
 
             // Show mod download count here already so people can make informed decisions 
@@ -394,35 +410,52 @@ void ModItem::updateState() {
 
     // Download counts go next to the version like on the website on grid view
     if (m_downloadCountContainer) {
+        m_downloadCountContainer->setScale(0.6f);
         m_downloadCountContainer->removeFromParent();
         if (m_display == ModListDisplay::Grid) {
             m_titleContainer->insertAfter(m_downloadCountContainer, m_versionDownloadSeparator);
-            m_downloadCountContainer->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.1f, .7f));
+            m_downloadCountContainer->setLayoutOptions(
+                SimpleAxisLayoutOptions::create()
+                    ->setMinRelativeScale(.1f)
+                    ->setMaxRelativeScale(1.f)
+                );
         }
         else {
             m_viewMenu->addChild(m_downloadCountContainer);
-            m_downloadCountContainer->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.1f, .6f));
+            m_downloadCountContainer->setLayoutOptions( 
+                SimpleAxisLayoutOptions::create()
+                    ->setMinRelativeScale(.1f)
+                    ->setMaxRelativeScale(1.f)
+            );
         }
     }
-
+    
     // Move badges to either be next to the title or in the top left corner in grid view
     if (m_badgeContainer) {
         m_badgeContainer->removeFromParent();
         if (m_display == ModListDisplay::Grid) {
+            m_badgeContainer->setScale(.35f);
+            m_badgeContainer->setContentWidth(30.f);
             m_badgeContainer->setLayout(
-                ColumnLayout::create()
-                    ->setAxisReverse(true)
-                    ->setAutoGrowAxis(true)
-                    ->setAxisAlignment(AxisAlignment::Start)
+                SimpleColumnLayout::create()
+                    ->setMainAxisAlignment(MainAxisAlignment::Start)
+                    ->setMainAxisDirection(AxisDirection::TopToBottom)
+                    ->setMainAxisScaling(AxisScaling::Fit)
+                    ->setCrossAxisScaling(AxisScaling::Scale)
+                    ->setGap(5.f)
             );
             m_badgeContainer->getLayout()->ignoreInvisibleChildren(true);
-            m_badgeContainer->setScale(.3f);
-            this->addChildAtPosition(m_badgeContainer, Anchor::TopLeft, ccp(5, -2), ccp(0, 1));
+            this->addChildAtPosition(m_badgeContainer, Anchor::TopLeft, ccp(4, -4), ccp(0, 1));
         }
         else {
+            m_badgeContainer->setContentHeight(30.f);
+            m_badgeContainer->setScale(1.f);
             m_badgeContainer->setLayout(
-                RowLayout::create()
-                    ->setAutoGrowAxis(true)
+                SimpleRowLayout::create()
+                    ->setMainAxisAlignment(MainAxisAlignment::Start)
+                    ->setMainAxisScaling(AxisScaling::Fit)
+                    ->setCrossAxisScaling(AxisScaling::Scale)
+                    ->setGap(5.f)
             );
             m_badgeContainer->getLayout()->ignoreInvisibleChildren(true);
             m_titleContainer->addChild(m_badgeContainer);
@@ -458,7 +491,7 @@ void ModItem::updateState() {
 
     auto titleSpace = m_display == ModListDisplay::Grid ?
         CCSize(m_obContentSize.width - 10, 35) :
-        CCSize(m_obContentSize.width / 2 - m_obContentSize.height, m_obContentSize.height - 5);
+        CCSize(m_obContentSize.width / 1.75 - m_obContentSize.height, m_obContentSize.height - 5);
 
     // Divide by scale of info container since that actually determines the size
     // (Since the scale of m_titleContainer and m_developers is managed by its layout)
@@ -593,23 +626,25 @@ void ModItem::updateState() {
     // Update size and direction of title
     // On grid view, m_titleContainer contains the version and download count 
     // but not the actual title lol
+    m_titleLabel->setScale(1.f);
+    m_titleContainer->setContentHeight(30.f);
     m_titleContainer->setContentWidth(titleSpace.width / m_infoContainer->getScale());
     if (m_display == ModListDisplay::Grid) {
-        static_cast<RowLayout*>(m_titleContainer->getLayout())
+        static_cast<SimpleRowLayout*>(m_titleContainer->getLayout())
             ->setGap(10)
-            ->setAxisAlignment(AxisAlignment::Center);
-        static_cast<RowLayout*>(m_developers->getLayout())
-            ->setAxisAlignment(AxisAlignment::Center);
+            ->setMainAxisAlignment(MainAxisAlignment::Center);
+        static_cast<SimpleRowLayout*>(m_developers->getLayout())
+            ->setMainAxisAlignment(MainAxisAlignment::Center);
     }
     else {
-        static_cast<RowLayout*>(m_titleContainer->getLayout())
+        static_cast<SimpleRowLayout*>(m_titleContainer->getLayout())
             ->setGap(5)
-            ->setAxisAlignment(AxisAlignment::Start);
-        static_cast<RowLayout*>(m_developers->getLayout())
-            ->setAxisAlignment(AxisAlignment::Start);
+            ->setMainAxisAlignment(MainAxisAlignment::Start);
+        static_cast<SimpleRowLayout*>(m_developers->getLayout())
+            ->setMainAxisAlignment(MainAxisAlignment::Start);
     }
-    m_titleContainer->updateLayout();
     m_developers->setContentWidth(titleSpace.width / m_infoContainer->getScale());
+    m_developers->setContentHeight(30.f);
     m_developers->updateLayout();
 
     if (m_recommendedBy) {
@@ -625,8 +660,10 @@ void ModItem::updateState() {
         case ModListDisplay::Grid: {
             m_infoContainer->updateAnchoredPosition(Anchor::Center, ccp(0, -5), ccp(.5f, .5f));
             // m_description is hidden
-
-            m_titleLabel->updateAnchoredPosition(Anchor::Top, ccp(0, -10), ccp(.5f, .5f));
+            m_titleLabel->setLayoutOptions(AnchorLayoutOptions::create()
+                ->setAnchor(Anchor::Top)
+                ->setOffset(ccp(0, -10))
+            );
             limitNodeWidth(m_titleLabel, m_titleContainer->getContentWidth(), .8f, .1f);
             m_titleContainer->updateAnchoredPosition(Anchor::Center, ccp(0, 0), ccp(.5f, .5f));
             m_developers->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
@@ -643,8 +680,12 @@ void ModItem::updateState() {
         default:
         case ModListDisplay::SmallList: {
             m_infoContainer->updateAnchoredPosition(Anchor::Left, ccp(m_obContentSize.height + 10, 0), ccp(0, .5f));
-            m_titleContainer->updateAnchoredPosition(Anchor::TopLeft, ccp(0, 0), ccp(0, 1));
-
+            m_titleContainer->updateAnchoredPosition(Anchor::TopLeft, ccp(0, 2), ccp(0, 1));
+            m_titleLabel->setLayoutOptions(
+                SimpleAxisLayoutOptions::create()
+                    ->setMinRelativeScale(.5f)
+                    ->setMaxRelativeScale(1.f)
+                );
             // m_description is hidden
             m_developers->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
             m_restartRequiredLabel->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
@@ -660,7 +701,11 @@ void ModItem::updateState() {
         case ModListDisplay::BigList: {
             m_infoContainer->updateAnchoredPosition(Anchor::Left, ccp(m_obContentSize.height + 10, 0), ccp(0, .5f));
             m_titleContainer->updateAnchoredPosition(Anchor::TopLeft, ccp(0, 0), ccp(0, 1));
-
+            m_titleLabel->setLayoutOptions(
+                SimpleAxisLayoutOptions::create()
+                    ->setMinRelativeScale(.5f)
+                    ->setMaxRelativeScale(1.f)
+                );
             m_developers->updateAnchoredPosition(Anchor::Left, ccp(0, 0), ccp(0, .5f));
 
             m_description->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 0), ccp(0, 0));
@@ -674,22 +719,27 @@ void ModItem::updateState() {
             }
         } break;
     }
+    
     m_infoContainer->setContentSize(ccp(titleSpace.width, titleSpace.height) / m_infoContainer->getScale());
     m_infoContainer->updateLayout();
-    
+
+    m_titleContainer->updateLayout();
     // Update button menu state
+
     if (m_display == ModListDisplay::Grid) {
         m_viewMenu->setContentWidth(m_obContentSize.width / m_viewMenu->getScaleX());
         m_viewMenu->updateAnchoredPosition(Anchor::Bottom, ccp(0, 5), ccp(.5f, 0));
         m_viewMenu->setScale(.45f);
-        static_cast<RowLayout*>(m_viewMenu->getLayout())->setAxisAlignment(AxisAlignment::Center);
+        static_cast<SimpleRowLayout*>(m_viewMenu->getLayout())->setMainAxisAlignment(MainAxisAlignment::Center);
     }
     else {
         m_viewMenu->setContentWidth(m_obContentSize.width / m_viewMenu->getScaleX() / 2 - 20);
         m_viewMenu->updateAnchoredPosition(Anchor::Right, ccp(-10, 0), ccp(1, .5f));
         m_viewMenu->setScale(.55f);
-        static_cast<RowLayout*>(m_viewMenu->getLayout())->setAxisAlignment(AxisAlignment::End);
+        static_cast<SimpleRowLayout*>(m_viewMenu->getLayout())->setMainAxisAlignment(MainAxisAlignment::Start);
     }
+
+    m_viewMenu->setContentHeight(40.f);
     m_viewMenu->updateLayout();
 
     // Highlight item via BG if it wants to restart for extra UI attention

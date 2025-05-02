@@ -3,6 +3,7 @@
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/MDPopup.hpp>
 #include <Geode/ui/LoadingSpinner.hpp>
+#include <Geode/ui/LazySprite.hpp>
 #include <Geode/utils/web.hpp>
 #include <server/Server.hpp>
 #include "mods/GeodeStyle.hpp"
@@ -199,8 +200,8 @@ using ModLogoSrc = std::variant<Mod*, std::string, std::filesystem::path>;
 
 class ModLogoSprite : public CCNode {
 protected:
+    LazySprite* m_sprite;
     std::string m_modID;
-    CCNode* m_sprite = nullptr;
     EventListener<server::ServerRequest<ByteVector>> m_listener;
 
     bool init(ModLogoSrc&& src) {
@@ -210,32 +211,46 @@ protected:
         this->setAnchorPoint({ .5f, .5f });
         this->setContentSize({ 50, 50 });
 
+        m_sprite = LazySprite::create(this->getContentSize());
+        this->addChildAtPosition(m_sprite, Anchor::Center);
+
         m_listener.bind(this, &ModLogoSprite::onFetch);
 
         std::visit(makeVisitor {
             [this](Mod* mod) {
                 m_modID = mod->getID();
 
+                m_sprite->setLoadCallback([this](Result<> res) {
+                    this->onLoaded(std::move(res));
+                });
+
                 // Load from Resources
-                this->setSprite(mod->isInternal() ?
-                    CCSprite::createWithSpriteFrameName("geode-logo.png"_spr) :
-                    CCSprite::create(fmt::format("{}/logo.png", mod->getID()).c_str()),
-                    false
-                );
+                if (!mod->isInternal()) {
+                    m_sprite->loadFromFile(dirs::getModRuntimeDir() / mod->getID() / "logo.png");
+                } else {
+                    m_sprite->initWithSpriteFrameName("geode-logo.png"_spr);
+                }
             },
             [this](std::string const& id) {
                 m_modID = id;
 
                 // Asynchronously fetch from server
-                this->setSprite(createLoadingCircle(25), false);
                 m_listener.setFilter(server::getModLogo(id));
             },
             [this](std::filesystem::path const& path) {
-                this->setSprite(nullptr, false);
+                m_sprite->setLoadCallback([this](Result<> res) {
+                    this->onLoaded(std::move(res));
+                });
+
                 if (auto unzip = file::Unzip::create(path)) {
                     if (auto logo = unzip.unwrap().extract("logo.png")) {
-                        this->setSprite(std::move(logo.unwrap()), false);
+                        m_sprite->loadFromData(std::move(logo).unwrap());
                     }
+                }
+                
+                // if the logo.png was not found then switch to fallback label
+                if (!m_sprite->isLoading()) {
+                    this->onLoadFailed(true);
                 }
             },
         }, src);
@@ -248,49 +263,48 @@ protected:
         return true;
     }
 
-    void setSprite(CCNode* sprite, bool postEvent) {
-        // Remove any existing sprite
-        if (m_sprite) {
-            m_sprite->removeFromParent();
-        }
-        // Fallback to default logo if the sprite is null
-        if (!sprite || sprite->getUserObject("geode.texture-loader/fallback")) {
-            sprite = CCLabelBMFont::create("N/A", "bigFont.fnt");
-            static_cast<CCLabelBMFont*>(sprite)->setOpacity(90);
-        }
-        // Set sprite and scale it to node size
-        m_sprite = sprite;
-        m_sprite->setID("sprite");
-        limitNodeSize(m_sprite, m_obContentSize, 99.f, 0.f);
-        this->addChildAtPosition(m_sprite, Anchor::Center);
-
-        if (postEvent) {
-            ModLogoUIEvent(std::make_unique<ModLogoUIEvent::Impl>(this, m_modID)).post();
-        }
+    void doPostEvent() {
+        ModLogoUIEvent(std::make_unique<ModLogoUIEvent::Impl>(this, m_modID)).post();
     }
-    void setSprite(ByteVector&& data, bool postEvent) {
-        auto image = new CCImage();
-        image->initWithImageData(data.data(), data.size());
 
-        auto texture = CCTextureCache::get()->addUIImage(image, m_modID.c_str());
-        image->release();
+    void onLoaded(Result<> res) {
+        if (!res) {
+            log::debug("Failed to load image: {}", res.err().value_or(std::string{}));
+            this->onLoadFailed(true);
+            return;
+        }
 
-        this->setSprite(CCSprite::createWithTexture(texture), postEvent);
+        limitNodeSize(m_sprite, m_obContentSize, 99.f, 0.f);
+        this->doPostEvent();
+    }
+
+    void onLoadFailed(bool postEvent) {
+        // Fallback to default logo if the image failed to load
+        auto sprite = CCLabelBMFont::create("N/A", "bigFont.fnt");
+        sprite->setPosition(this->getScaledContentSize() / 2.f + CCSize{1.f, 2.f});
+        sprite->setOpacity(90);
+        limitNodeSize(sprite, m_obContentSize, 99.f, 0.f);
+        this->addChildAtPosition(sprite, Anchor::Center);
+        
+        this->doPostEvent();
     }
 
     void onFetch(server::ServerRequest<ByteVector>::Event* event) {
         if (auto result = event->getValue()) {
             // Set default sprite on error
             if (result->isErr()) {
-                this->setSprite(nullptr, true);
+                this->onLoadFailed(true);
             }
             // Otherwise load downloaded sprite to memory
             else {
-                this->setSprite(std::move(result->unwrap()), true);
+                m_sprite->setLoadCallback([this](Result<> res) {
+                    this->onLoaded(std::move(res));
+                });
+                m_sprite->loadFromData(result->unwrap());
             }
         }
         else if (event->isCancelled()) {
-            this->setSprite(nullptr, true);
+            this->onLoadFailed(true);
         }
     }
 
