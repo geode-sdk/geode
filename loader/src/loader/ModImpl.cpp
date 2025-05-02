@@ -108,7 +108,7 @@ std::optional<std::string> Mod::Impl::getDetails() const {
     return m_metadata.getDetails();
 }
 
-ModMetadata Mod::Impl::getMetadata() const {
+ModMetadata const& Mod::Impl::getMetadata() const {
     return m_metadata;
 }
 

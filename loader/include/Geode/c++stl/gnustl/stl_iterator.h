@@ -793,6 +793,11 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       const _Iterator&
       base() const _GLIBCXX_NOEXCEPT
       { return _M_current; }
+
+      // geode addition
+      operator ::std::__wrap_iter<_Iterator> () {
+        return *reinterpret_cast<::std::__wrap_iter<_Iterator>*>(this);
+      }
     };
 
   // Note: In what follows, the left- and right-hand-side iterators are

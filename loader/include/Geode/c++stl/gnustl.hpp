@@ -109,6 +109,9 @@ namespace gd {
     using unordered_set = geode::stl::unordered_set<Value, Hash, Pred, Alloc>;
 };
 
+template <>
+struct std::__ndk1::iterator_traits<typename gd::vector<char>::iterator> : std::__ndk1::iterator_traits<char*> {};
+
 #elif defined(GEODE_IS_IOS)
 namespace gd {
     class GEODE_DLL string {

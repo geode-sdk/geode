@@ -110,7 +110,7 @@ void geode::openModsList() {
 }
 
 void geode::openIssueReportPopup(Mod* mod) {
-    if (mod->getMetadata().getIssues()) {
+    if (mod->getMetadataRef().getIssues()) {
         MDPopup::create(
             "Issue Report",
                 "Please report the issue to the mod that caused the crash.\n"
@@ -122,9 +122,9 @@ void geode::openIssueReportPopup(Mod* mod) {
                 if (btn2) {
                     file::openFolder(dirs::getCrashlogsDir());
                     return;
-                } 
+                }
 
-                auto issues = mod->getMetadata().getIssues();
+                auto issues = mod->getMetadataRef().getIssues();
                 if (issues && issues.value().url) {
                     auto url = issues.value().url.value();
                     web::openLinkInBrowser(url);
@@ -147,7 +147,7 @@ void geode::openIssueReportPopup(Mod* mod) {
 }
 
 void geode::openSupportPopup(Mod* mod) {
-    openSupportPopup(mod->getMetadata());
+    openSupportPopup(mod->getMetadataRef());
 }
 
 void geode::openSupportPopup(ModMetadata const& metadata) {
@@ -215,7 +215,7 @@ protected:
         this->addChildAtPosition(m_sprite, Anchor::Center);
 
         m_listener.bind(this, &ModLogoSprite::onFetch);
-    
+
         std::visit(makeVisitor {
             [this](Mod* mod) {
                 m_modID = mod->getID();
@@ -233,7 +233,7 @@ protected:
             },
             [this](std::string const& id) {
                 m_modID = id;
-                
+
                 // Asynchronously fetch from server
                 m_listener.setFilter(server::getModLogo(id));
             },
