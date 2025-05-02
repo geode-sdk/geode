@@ -275,7 +275,7 @@ GSlider* GSlider::create(
 	float minValue, float maxValue, float width, 
 	CCScale9Sprite* outline, CCSprite* fill, CCNode* thumb, CCNode* thumbHeld
 ) {
-	if (minValue == maxValue) maxValue = minValue + 1;
+	if (minValue >= maxValue) maxValue = minValue + 1;
 	auto ret = new GSlider();
 	if (ret->init(minValue, maxValue, width, outline, fill, thumb, thumbHeld)) {
 		ret->autorelease();
