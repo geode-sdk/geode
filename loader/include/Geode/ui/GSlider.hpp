@@ -9,14 +9,14 @@ namespace geode {
 #pragma warning(push)
 #pragma warning(disable: 4275)
 
-class GSlider;
+class SimpleSlider;
 
 /**
- * Delegate for the `GSlider` class.
+ * Delegate for the `SimpleSlider` class.
  */
-class GEODE_DLL GSliderDelegate {
+class GEODE_DLL SimpleSliderDelegate {
 
-	friend class GSlider;
+	friend class SimpleSlider;
 
 protected:
 
@@ -24,43 +24,41 @@ protected:
 	 * Override this function in your class to make something happen when
 	 * the slider starts moving.
 	 */
-	virtual void sliderStarted(GSlider* slider, float value);
+	virtual void sliderStarted(SimpleSlider* slider, float value);
 	/**
 	 * Override this function in your class to make something happen when
 	 * the slider has been moved.
 	 */
-	virtual void sliderChanged(GSlider* slider, float value, float difference);
+	virtual void sliderChanged(SimpleSlider* slider, float value, float difference);
 	/**
 	 * Override this function in your class to make something happen when
 	 * the slider is released.
 	 */
-	virtual void sliderEnded(GSlider* slider, float value, float difference);
+	virtual void sliderEnded(SimpleSlider* slider, float value, float difference);
 
 	/**
 	 * Override this function in your class to make something happen when
 	 * the slider reaches its minimum value.
 	 */
-	virtual void sliderReachedMinimum(GSlider* slider);
+	virtual void sliderReachedMinimum(SimpleSlider* slider);
 	/**
 	 * Override this function in your class to make something happen when
 	 * the slider reaches its maximum value.     *
 	 */
-	virtual void sliderReachedMaximum(GSlider* slider);
+	virtual void sliderReachedMaximum(SimpleSlider* slider);
 };
 
 /**
  * Slider class with various utilities that are not provided by GD's sliders.
- * GSlider stands for **G**eode **Slider**, the G is there to prevent name
- * collisions with GD's `Slider` class.
  */
-class GEODE_DLL GSlider : public cocos2d::CCLayerRGBA {
+class GEODE_DLL SimpleSlider : public cocos2d::CCLayerRGBA {
 protected:
 	class Impl;
 	std::shared_ptr<Impl> m_impl;
 
-	class GSliderThumb : public cocos2d::CCNodeRGBA {
+	class SimpleSliderThumb : public cocos2d::CCNodeRGBA {
 
-		friend class GSlider;
+		friend class SimpleSlider;
 
 	protected:
 
@@ -75,7 +73,7 @@ protected:
 		
 	public:
 
-		static GSliderThumb* create(cocos2d::CCNode* normalSprite, cocos2d::CCNode* heldSprite);
+		static SimpleSliderThumb* create(cocos2d::CCNode* normalSprite, cocos2d::CCNode* heldSprite);
 	};
 
 	static auto constexpr HEIGHT = 16.f;
@@ -107,7 +105,7 @@ public:
 	 * The minimum value will be 0 and the maximum will be 1.
 	 * @return Slider with default settings
 	 */
-	static GSlider* create();
+	static SimpleSlider* create();
 	/**
 	 * Creates a slider with a custom range of values.
 	 * @param minValue Minimum value the slider could be.
@@ -115,7 +113,7 @@ public:
 	 * @return Slider with the specified minimum and maximum values, 
 	 * default width and textures
 	 */
-	static GSlider* create(float minValue, float maxValue);
+	static SimpleSlider* create(float minValue, float maxValue);
 	/**
 	 * Creates a slider, and lets you specify what texture 
 	 * to use for each part of the slider.
@@ -130,7 +128,7 @@ public:
 	 * @warning The bar's outline and fill will be automatically 
 	 * resized to fit the size of GD sliders.
 	 */
-	static GSlider* create(
+	static SimpleSlider* create(
 		float minValue, float maxValue, float width,
 		cocos2d::extension::CCScale9Sprite* outline = cocos2d::extension::CCScale9Sprite::create(
 			"slidergroove.png", { 0.f, 0.f, 210.f, 16.f }, { 5.5f, 7.5f, 199.f, 1.f }
@@ -208,7 +206,7 @@ public:
 	 * @param ID Uniqur identifirer for the delegate.
 	 * @param delegate The delegate to add to the slider.
 	 */
-	void addDelegate(std::string const& ID, GSliderDelegate* delegate);
+	void addDelegate(std::string const& ID, SimpleSliderDelegate* delegate);
 	/**
 	 * Remove a delegate by its unique ID.
 	 */
@@ -218,7 +216,7 @@ public:
 	 * @param ID The unique identifier for the desired delegate.
 	 * @return The desired delegate, or `nullptr` if it doesn't exist.
 	 */
-	GSliderDelegate* getDelegate(std::string const& ID);
+	SimpleSliderDelegate* getDelegate(std::string const& ID);
 
 	/**
 	 * @return Current value of the slider.
@@ -237,7 +235,7 @@ public:
 	cocos2d::CCLabelBMFont* getValueLabel() const;
 	cocos2d::extension::CCScale9Sprite* getBarOutline() const;
 	cocos2d::CCSprite* getBarFill() const;
-	GSliderThumb* getThumb() const;
+	SimpleSliderThumb* getThumb() const;
 
 };
 

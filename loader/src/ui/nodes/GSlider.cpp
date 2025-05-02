@@ -1,4 +1,4 @@
-#include <Geode/ui/GSlider.hpp>
+#include <Geode/ui/SimpleSlider.hpp>
 
 #include <Geode/ui/Layout.hpp>
 #include <fmt/core.h>
@@ -6,15 +6,15 @@
 using namespace geode::prelude;
 
 
-void GSliderDelegate::sliderStarted       (GSlider* slider, float value)                   { }
-void GSliderDelegate::sliderChanged       (GSlider* slider, float value, float difference) { }
-void GSliderDelegate::sliderEnded         (GSlider* slider, float value, float difference) { }
-void GSliderDelegate::sliderReachedMinimum(GSlider* slider)                                { }
-void GSliderDelegate::sliderReachedMaximum(GSlider* slider)                                { }
+void SimpleSliderDelegate::sliderStarted       (SimpleSlider* slider, float value)                   { }
+void SimpleSliderDelegate::sliderChanged       (SimpleSlider* slider, float value, float difference) { }
+void SimpleSliderDelegate::sliderEnded         (SimpleSlider* slider, float value, float difference) { }
+void SimpleSliderDelegate::sliderReachedMinimum(SimpleSlider* slider)                                { }
+void SimpleSliderDelegate::sliderReachedMaximum(SimpleSlider* slider)                                { }
 
 
-class GSlider::Impl {
-	friend class GSlider;
+class SimpleSlider::Impl {
+	friend class SimpleSlider;
 
 	float m_xOffsetOfTouchFromThumb;
 	float m_touchStartValue;
@@ -24,7 +24,7 @@ protected:
 	/**
 	 * Delegates to post events to.
 	 */
-	std::unordered_map<std::string, GSliderDelegate*> m_delegates;
+	std::unordered_map<std::string, SimpleSliderDelegate*> m_delegates;
 	/**
 	 * Callbacks to be activated when the slider is moved.
 	 */
@@ -50,10 +50,10 @@ protected:
 	CCSprite* m_barFill;
 	/**
 	 * The thumb of the slider.
-	 * `GSliderThumb` contains one sprite for the normal state of the thumb,
+	 * `SimpleSliderThumb` contains one sprite for the normal state of the thumb,
 	 * and one sprite for the selected state of it.
 	 */
-	GSliderThumb* m_thumb;
+	SimpleSliderThumb* m_thumb;
 
 	/** 
 	 * The value of the slider.
@@ -72,7 +72,7 @@ protected:
 	int m_amountOfDigitsToShow = 2;
 };
 
-bool GSlider::GSliderThumb::init(CCNode* normalSprite, CCNode* heldSprite) {
+bool SimpleSlider::SimpleSliderThumb::init(CCNode* normalSprite, CCNode* heldSprite) {
 	if (!CCNodeRGBA::init()) return false;
 
 	this->setCascadeColorEnabled(true);
@@ -94,7 +94,7 @@ bool GSlider::GSliderThumb::init(CCNode* normalSprite, CCNode* heldSprite) {
 	return true;
 }
 
-void GSlider::GSliderThumb::updateState(bool isHeld) {
+void SimpleSlider::SimpleSliderThumb::updateState(bool isHeld) {
 	m_held = isHeld;
 
 	m_normalSprite->setVisible(!isHeld);
@@ -102,8 +102,8 @@ void GSlider::GSliderThumb::updateState(bool isHeld) {
 	this->setContentSize((isHeld ? m_heldSprite : m_normalSprite)->getContentSize());
 }
 
-GSlider::GSliderThumb* GSlider::GSliderThumb::create(CCNode* normalSprite, CCNode* heldSprite) {
-	auto ret = new GSliderThumb();
+SimpleSlider::SimpleSliderThumb* SimpleSlider::SimpleSliderThumb::create(CCNode* normalSprite, CCNode* heldSprite) {
+	auto ret = new SimpleSliderThumb();
 	if (ret->init(normalSprite, heldSprite)) {
 		ret->autorelease();
 		return ret;
@@ -112,7 +112,7 @@ GSlider::GSliderThumb* GSlider::GSliderThumb::create(CCNode* normalSprite, CCNod
 	return nullptr;
 }
 
-bool GSlider::init(
+bool SimpleSlider::init(
 	float minValue, float maxValue, float width,
 	CCScale9Sprite* outline, CCSprite* fill,
 	CCNode* thumb, CCNode* thumbHeld
@@ -152,7 +152,7 @@ bool GSlider::init(
 
 	if (!thumb)     thumb     = CCSprite::create("sliderthumb.png");
 	if (!thumbHeld) thumbHeld = CCSprite::create("sliderthumbsel.png");
-	m_impl->m_thumb = GSliderThumb::create(thumb, thumbHeld);
+	m_impl->m_thumb = SimpleSliderThumb::create(thumb, thumbHeld);
 	// idk why i need to do this but for some reason i do
 	m_impl->m_thumb->setAnchorPoint({});
 	m_impl->m_thumb->setAnchorPoint({.5f, .5f});
@@ -171,7 +171,7 @@ bool GSlider::init(
 	return true;
 }
 
-bool GSlider::ccTouchBegan(CCTouch* touch, CCEvent* event) {
+bool SimpleSlider::ccTouchBegan(CCTouch* touch, CCEvent* event) {
 	auto thumbSize = m_impl->m_thumb->getContentSize();
 	auto thumbPos = m_impl->m_thumb->getPosition();
 	auto touchPos = this->convertTouchToNodeSpace(touch);
@@ -191,7 +191,7 @@ bool GSlider::ccTouchBegan(CCTouch* touch, CCEvent* event) {
 	m_impl->m_thumb->updateState(sliderStarted);
 	return sliderStarted;
 }
-void GSlider::ccTouchMoved(CCTouch* touch, CCEvent* event) {
+void SimpleSlider::ccTouchMoved(CCTouch* touch, CCEvent* event) {
 	float newThumbXPos = this->convertTouchToNodeSpace(touch).x - m_impl->m_xOffsetOfTouchFromThumb;
 
 	float width = m_obContentSize.width;
@@ -218,18 +218,18 @@ void GSlider::ccTouchMoved(CCTouch* touch, CCEvent* event) {
 
 	updateState(newValue);
 }
-void GSlider::ccTouchEnded(CCTouch* touch, CCEvent* event) {
+void SimpleSlider::ccTouchEnded(CCTouch* touch, CCEvent* event) {
 
 	m_impl->m_thumb->updateState(false);
 
 	for (auto& [key, delegate] : m_impl->m_delegates) 
 		if (delegate) delegate->sliderEnded(this, m_impl->m_value, m_impl->m_value - m_impl->m_touchStartValue);
 }
-void GSlider::ccTouchCancelled(CCTouch* touch, CCEvent* event) {
+void SimpleSlider::ccTouchCancelled(CCTouch* touch, CCEvent* event) {
 	ccTouchEnded(touch, event);
 }
 
-void GSlider::updateState(float newValue) {
+void SimpleSlider::updateState(float newValue) {
 
 	if (m_impl->m_useSnap) {
 		m_impl->m_value = std::min(
@@ -263,20 +263,20 @@ void GSlider::updateState(float newValue) {
 		if (callback) callback(newValue, newValue - m_impl->m_touchStartValue);
 }
 
-GSlider* GSlider::create() {
+SimpleSlider* SimpleSlider::create() {
 	return create(0.f, 1.f);
 }
 
-GSlider* GSlider::create(float minValue, float maxValue) {
+SimpleSlider* SimpleSlider::create(float minValue, float maxValue) {
 	return create(minValue, maxValue, 210.f); 
 }
 
-GSlider* GSlider::create(
+SimpleSlider* SimpleSlider::create(
 	float minValue, float maxValue, float width, 
 	CCScale9Sprite* outline, CCSprite* fill, CCNode* thumb, CCNode* thumbHeld
 ) {
 	if (minValue >= maxValue) maxValue = minValue + 1;
-	auto ret = new GSlider();
+	auto ret = new SimpleSlider();
 	if (ret->init(minValue, maxValue, width, outline, fill, thumb, thumbHeld)) {
 		ret->autorelease();
 		return ret;
@@ -285,7 +285,7 @@ GSlider* GSlider::create(
 	return nullptr;
 }
 
-void GSlider::setContentSize(cocos2d::CCSize const& size) {
+void SimpleSlider::setContentSize(cocos2d::CCSize const& size) {
 	if (size.width == m_obContentSize.width) return CCLayerRGBA::setContentSize(size);
 	CCLayerRGBA::setContentSize(size);
 
@@ -299,25 +299,25 @@ void GSlider::setContentSize(cocos2d::CCSize const& size) {
 }
 
 
-void GSlider::setValue(float value, bool triggerCallback) {
+void SimpleSlider::setValue(float value, bool triggerCallback) {
 	auto tempCallbacks = std::move(m_impl->m_callbacks); // std::move for better performance
 	if (triggerCallback) for (auto& [key, delegate] : m_impl->m_delegates) 
 		if (delegate) delegate->sliderChanged(this, value, 0.f);
 	updateState(value);
 	m_impl->m_callbacks = std::move(tempCallbacks);
 }
-void GSlider::setMinValue(float minValue) {
+void SimpleSlider::setMinValue(float minValue) {
 	m_impl->m_minValue = minValue;
 }
-void GSlider::setMaxValue(float maxValue) {
+void SimpleSlider::setMaxValue(float maxValue) {
 	m_impl->m_maxValue = maxValue;
 }
-void GSlider::setSnap(float snapStep, bool useSnap) {
+void SimpleSlider::setSnap(float snapStep, bool useSnap) {
 	m_impl->m_snapStep = snapStep;
 	m_impl->m_useSnap = useSnap;
 }
 // all of this is stolen from the text input labels code lmao (except the font part)
-void GSlider::setLabel(std::string const& label, std::string const& font) { 
+void SimpleSlider::setLabel(std::string const& label, std::string const& font) { 
 	if (label.size()) {
 		if (m_impl->m_label) {
 			m_impl->m_label->setString(label.c_str());
@@ -336,57 +336,57 @@ void GSlider::setLabel(std::string const& label, std::string const& font) {
 		}
 	}
 }
-void GSlider::setHeld(bool held) {
+void SimpleSlider::setHeld(bool held) {
 	m_impl->m_thumb->updateState(held);
 }
-void GSlider::showValueLabel(bool show, size_t amountOfDigitsToShow) {
+void SimpleSlider::showValueLabel(bool show, size_t amountOfDigitsToShow) {
 	m_impl->m_valueLabel->setVisible(show);
 }
 
-void GSlider::addCallback(std::string const& ID, std::function<void(float, float)> callback) {
+void SimpleSlider::addCallback(std::string const& ID, std::function<void(float, float)> callback) {
 	m_impl->m_callbacks[ID] = callback;
 }
-void GSlider::removeCallback(std::string const& ID) {
+void SimpleSlider::removeCallback(std::string const& ID) {
 	m_impl->m_callbacks.erase(ID);
 }
-std::function<void(float, float)> GSlider::getCallback(std::string const& ID) {
+std::function<void(float, float)> SimpleSlider::getCallback(std::string const& ID) {
 	if (m_impl->m_callbacks.contains(ID)) return m_impl->m_callbacks[ID];
 	else return nullptr;
 }
 
-void GSlider::addDelegate(std::string const& ID, GSliderDelegate* delegate) {
+void SimpleSlider::addDelegate(std::string const& ID, SimpleSliderDelegate* delegate) {
 	m_impl->m_delegates[ID] = delegate;
 }
-void GSlider::removeDelegate(std::string const& ID) {
+void SimpleSlider::removeDelegate(std::string const& ID) {
 	m_impl->m_delegates.erase(ID);
 }
-GSliderDelegate* GSlider::getDelegate(std::string const& ID) {
+SimpleSliderDelegate* SimpleSlider::getDelegate(std::string const& ID) {
 	if (m_impl->m_delegates.contains(ID)) return m_impl->m_delegates[ID];
 	else return nullptr;
 }
 
-float GSlider::getValue() const {
+float SimpleSlider::getValue() const {
 	return m_impl->m_value;
 }
-float GSlider::getMinValue() const {
+float SimpleSlider::getMinValue() const {
 	return m_impl->m_minValue;
 }
-float GSlider::getMaxValue() const {
+float SimpleSlider::getMaxValue() const {
 	return m_impl->m_maxValue;
 }
 
-CCLabelBMFont* GSlider::getLabel() const {
+CCLabelBMFont* SimpleSlider::getLabel() const {
 	return m_impl->m_label;
 }
-CCLabelBMFont* GSlider::getValueLabel() const {
+CCLabelBMFont* SimpleSlider::getValueLabel() const {
 	return m_impl->m_valueLabel;
 }
-CCScale9Sprite* GSlider::getBarOutline() const {
+CCScale9Sprite* SimpleSlider::getBarOutline() const {
 	return m_impl->m_barOutline;
 }
-CCSprite* GSlider::getBarFill() const {
+CCSprite* SimpleSlider::getBarFill() const {
 	return m_impl->m_barFill;
 }
-GSlider::GSliderThumb* GSlider::getThumb() const {
+SimpleSlider::SimpleSliderThumb* SimpleSlider::getThumb() const {
 	return m_impl->m_thumb;
 }
