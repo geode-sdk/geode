@@ -49,7 +49,7 @@ class SimpleSlider::Impl final {
 	float m_xOffsetOfTouchFromThumb;
 	float m_touchStartValue;
 	
-protected:
+public:
 
 	/**
 	 * Delegates to post events to.
