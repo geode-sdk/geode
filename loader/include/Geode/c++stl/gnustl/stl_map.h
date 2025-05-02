@@ -857,6 +857,10 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       find(const key_type& __x)
       { return _M_t.find(__x); }
 
+      bool contains(const key_type& __x) {
+            return find(__x) != end();
+      }
+
       /**
        *  @brief Tries to locate an element in a %map.
        *  @param  __x  Key of (key, value) %pair to be located.
