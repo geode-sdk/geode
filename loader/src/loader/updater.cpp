@@ -189,7 +189,14 @@ void updater::downloadLoaderResources(bool useLatestRelease) {
         "@downloadLoaderResources",
         req.get("https://api.github.com/repos/geode-sdk/geode/releases/tags/" + Loader::get()->getVersion().toVString()).map(
         [useLatestRelease](web::WebResponse* response) {
-            RUNNING_REQUESTS.erase("@downloadLoaderResources");
+            // PLEASE make sure the erase happens at the end of this function
+            // i have spent too much time debugging this crash
+            auto doErase = [&] {
+                auto retval = *response;
+                RUNNING_REQUESTS.erase("@downloadLoaderResources");
+                return retval;
+            };
+
             if (response->ok()) {
                 if (auto ok = response->json()) {
                     auto root = checkJson(ok.unwrap(), "[]");
@@ -201,12 +208,12 @@ void updater::downloadLoaderResources(bool useLatestRelease) {
                                 obj.needs("browser_download_url").get<std::string>(),
                                 false
                             );
-                            return *response;
+                            return doErase();
                         }
                     }
 
                     ResourceDownloadEvent(UpdateFailed("Unable to find resources in release")).post();
-                    return *response;
+                    return doErase();
                 }
             }
             if (useLatestRelease) {
@@ -217,7 +224,8 @@ void updater::downloadLoaderResources(bool useLatestRelease) {
                 log::warn("Loader version {} does not exist on GitHub, not downloading the resources", Loader::get()->getVersion().toVString());
                 ResourceDownloadEvent(UpdateFinished()).post();
             }
-            return *response;
+
+            return doErase();
         }
     ));
 }
@@ -385,7 +393,7 @@ void updater::checkForLoaderUpdates() {
             LoaderUpdateEvent(
                 UpdateFailed("Unable to find release asset for " GEODE_PLATFORM_NAME)
             ).post();
-            
+
             Mod::get()->setSavedValue("last-modified-auto-update-check", std::string());
         },
         [](std::string const& info) {
