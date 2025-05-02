@@ -93,7 +93,7 @@ $execute {
         if (std::holds_alternative<UpdateFinished>(event->status)) {
             updateFiles();
         }
-        return;
+        return ListenerResult::Propagate;
     }, LoaderUpdateFilter());
 };
 
