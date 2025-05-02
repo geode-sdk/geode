@@ -122,7 +122,7 @@ void TextInput::textChanged(CCTextInputNode* input) {
 
 /*
 void TextInput::onArrow(CCObject* sender) {
-	float value = stof(this->getString());
+	float value = numFromString<float>(this->getString());
 	value += m_arrowIncrementation * sender->getTag();
 	if (std::string(m_input->m_allowedChars).find(".") != std::string::npos) {
 		m_input->setString(fmt::format("{:.3f}", value));
