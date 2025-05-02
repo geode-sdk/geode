@@ -216,7 +216,7 @@ void LazySprite::loadFromFile(const std::filesystem::path& path, Format format, 
             if (!self) return;
     
             if (!res) { 
-                self->onError(fmt::format("failed to load from file: {}", res.unwrapErr()));
+                self->onError(fmt::format("failed to load from file {}: {}", path, res.unwrapErr()));
                 return;
             }
     
