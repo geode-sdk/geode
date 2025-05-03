@@ -6,13 +6,6 @@
 using namespace geode::prelude;
 
 
-void SimpleSliderDelegate::sliderStarted (SimpleSlider* slider, float value) { }
-void SimpleSliderDelegate::sliderChanged (SimpleSlider* slider, float value, float difference) { }
-void SimpleSliderDelegate::sliderEnded (SimpleSlider* slider, float value, float difference) { }
-void SimpleSliderDelegate::sliderReachedMinimum(SimpleSlider* slider) { }
-void SimpleSliderDelegate::sliderReachedMaximum(SimpleSlider* slider) { }
-
-
 bool SimpleSlider::SimpleSliderThumb::init(CCNode* normalSprite, CCNode* heldSprite) {
 	if (!CCNodeRGBA::init()) return false;
 
@@ -51,10 +44,6 @@ class SimpleSlider::Impl final {
 	
 public:
 
-	/**
-	 * Delegates to post events to.
-	 */
-	std::unordered_map<std::string, SimpleSliderDelegate*> m_delegates;
 	/**
 	 * Callbacks to be activated when the slider is moved.
 	 */
@@ -187,8 +176,6 @@ bool SimpleSlider::ccTouchBegan(CCTouch* touch, CCEvent* event) {
 	) {
 		m_impl->m_touchStartValue = m_impl->m_value;
 		sliderStarted = true;
-		for (auto& [key, delegate] : m_impl->m_delegates) 
-			if (delegate) delegate->sliderStarted(this, m_impl->m_value);
 	}
 
 	m_impl->m_thumb->updateState(sliderStarted);
@@ -196,37 +183,12 @@ bool SimpleSlider::ccTouchBegan(CCTouch* touch, CCEvent* event) {
 }
 void SimpleSlider::ccTouchMoved(CCTouch* touch, CCEvent* event) {
 	float newThumbXPos = this->convertTouchToNodeSpace(touch).x - m_impl->m_xOffsetOfTouchFromThumb;
-
 	float width = m_obContentSize.width;
-
-	bool sliderAtMin = false;
-	bool sliderAtMax = false;
-	if (newThumbXPos < 0.f) {
-		newThumbXPos = 0.f;
-		sliderAtMin = true;
-	} else if (newThumbXPos > width) {
-		newThumbXPos = width;
-		sliderAtMax = true;
-	}
-
 	float newValue = (m_impl->m_maxValue - m_impl->m_minValue) * (newThumbXPos / width) + m_impl->m_minValue;
-	for (auto& [key, delegate] : m_impl->m_delegates) 
-		if (delegate) delegate->sliderChanged(this, newValue, newValue - m_impl->m_touchStartValue);
-
-	if (sliderAtMin) for (auto& [key, delegate] : m_impl->m_delegates) {
-		if (delegate) delegate->sliderReachedMinimum(this);
-	}
-	else if (sliderAtMax) for (auto& [key, delegate] : m_impl->m_delegates) 
-		if (delegate) delegate->sliderReachedMaximum(this);
-
 	updateState(newValue);
 }
 void SimpleSlider::ccTouchEnded(CCTouch* touch, CCEvent* event) {
-
 	m_impl->m_thumb->updateState(false);
-
-	for (auto& [key, delegate] : m_impl->m_delegates) 
-		if (delegate) delegate->sliderEnded(this, m_impl->m_value, m_impl->m_value - m_impl->m_touchStartValue);
 }
 void SimpleSlider::ccTouchCancelled(CCTouch* touch, CCEvent* event) {
 	ccTouchEnded(touch, event);
@@ -304,8 +266,6 @@ void SimpleSlider::setContentSize(cocos2d::CCSize const& size) {
 
 void SimpleSlider::setValue(float value, bool triggerCallback) {
 	auto tempCallbacks = std::move(m_impl->m_callbacks); // std::move for better performance
-	if (triggerCallback) for (auto& [key, delegate] : m_impl->m_delegates) 
-		if (delegate) delegate->sliderChanged(this, value, 0.f);
 	updateState(value);
 	m_impl->m_callbacks = std::move(tempCallbacks);
 }
@@ -354,17 +314,6 @@ void SimpleSlider::removeCallback(std::string const& ID) {
 }
 std::function<void(float, float)> SimpleSlider::getCallback(std::string const& ID) {
 	if (m_impl->m_callbacks.contains(ID)) return m_impl->m_callbacks[ID];
-	else return nullptr;
-}
-
-void SimpleSlider::addDelegate(std::string const& ID, SimpleSliderDelegate* delegate) {
-	m_impl->m_delegates[ID] = delegate;
-}
-void SimpleSlider::removeDelegate(std::string const& ID) {
-	m_impl->m_delegates.erase(ID);
-}
-SimpleSliderDelegate* SimpleSlider::getDelegate(std::string const& ID) {
-	if (m_impl->m_delegates.contains(ID)) return m_impl->m_delegates[ID];
 	else return nullptr;
 }
 

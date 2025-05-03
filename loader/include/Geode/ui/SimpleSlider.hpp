@@ -9,44 +9,6 @@ namespace geode {
 #pragma warning(push)
 #pragma warning(disable: 4275)
 
-class SimpleSlider;
-
-/**
- * Delegate for the `SimpleSlider` class.
- */
-class GEODE_DLL SimpleSliderDelegate {
-
-	friend class SimpleSlider;
-
-protected:
-
-	/**
-	 * Override this function in your class to make something happen when
-	 * the slider starts moving.
-	 */
-	virtual void sliderStarted(SimpleSlider* slider, float value);
-	/**
-	 * Override this function in your class to make something happen when
-	 * the slider has been moved.
-	 */
-	virtual void sliderChanged(SimpleSlider* slider, float value, float difference);
-	/**
-	 * Override this function in your class to make something happen when
-	 * the slider is released.
-	 */
-	virtual void sliderEnded(SimpleSlider* slider, float value, float difference);
-
-	/**
-	 * Override this function in your class to make something happen when
-	 * the slider reaches its minimum value.
-	 */
-	virtual void sliderReachedMinimum(SimpleSlider* slider);
-	/**
-	 * Override this function in your class to make something happen when
-	 * the slider reaches its maximum value.     *
-	 */
-	virtual void sliderReachedMaximum(SimpleSlider* slider);
-};
 
 /**
  * Slider class with various utilities that are not provided by GD's sliders.
@@ -201,25 +163,6 @@ public:
 	 * @return The desired callback, or `nullptr` if it doesn't exist.
 	 */
 	std::function<void(float, float)> getCallback(std::string const& ID);
-
-	/**
-	 * Add a slider delegate to be activated when the slider is moved.
-	 * First float is the current value, second float is the difference
-	 * from when you started holding the slider.
-	 * @param ID Uniqur identifirer for the delegate.
-	 * @param delegate The delegate to add to the slider.
-	 */
-	void addDelegate(std::string const& ID, SimpleSliderDelegate* delegate);
-	/**
-	 * Remove a delegate by its unique ID.
-	 */
-	void removeDelegate(std::string const& ID);
-	/**
-	 * Get a slider delegate by its unique ID.
-	 * @param ID The unique identifier for the desired delegate.
-	 * @return The desired delegate, or `nullptr` if it doesn't exist.
-	 */
-	SimpleSliderDelegate* getDelegate(std::string const& ID);
 
 	/**
 	 * @return Current value of the slider.
