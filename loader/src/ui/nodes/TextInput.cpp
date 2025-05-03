@@ -216,6 +216,3 @@ CCTextInputNode* TextInput::getInputNode() const {
 CCScale9Sprite* TextInput::getBGSprite() const {
     return m_bgSprite;
 }
-CCLabelBMFont* TextInput::getLabel() const {
-    return m_label;
-}

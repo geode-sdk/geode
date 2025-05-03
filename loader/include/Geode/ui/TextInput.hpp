@@ -153,6 +153,5 @@ namespace geode {
 
         CCTextInputNode* getInputNode() const;
         cocos2d::extension::CCScale9Sprite* getBGSprite() const;
-        cocos2d::CCLabelBMFont* getLabel() const;
     };
 }
