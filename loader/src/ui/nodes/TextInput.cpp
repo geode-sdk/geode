@@ -9,12 +9,6 @@ using namespace geode::prelude;
 struct TextInputNodeFix : Modify<TextInputNodeFix, CCTextInputNode> {
     GEODE_FORWARD_COMPAT_DISABLE_HOOKS("TextInputNode fix")
 
-    bool init(float p0, float p1, char const* p2, char const* p3, int p4, char const* p5) {
-        if (!CCTextInputNode::init(p0, p1, p2, p3, p4, p5)) return false;
-        m_placeholderLabel->limitLabelWidth(m_obContentSize.width - 10.f, .5f, .1f);
-        return true;
-    }
-
     bool ccTouchBegan(CCTouch* touch, CCEvent* event) {
         if (!this->getUserObject("fix-text-input")) {
             return CCTextInputNode::ccTouchBegan(touch, event);
