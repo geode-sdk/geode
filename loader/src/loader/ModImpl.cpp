@@ -73,8 +73,11 @@ Result<> Mod::Impl::setup() {
         auto const binaryPlatformId = PlatformID::toShortString(GEODE_PLATFORM_TARGET GEODE_MACOS(, true));
 
         auto const binariesDir = searchPathRoot / m_metadata.getID() / "binaries" / binaryPlatformId;
-        if (std::filesystem::exists(binariesDir))
+
+        std::error_code code;
+        if (std::filesystem::exists(binariesDir, code) && !code) {
             LoaderImpl::get()->addNativeBinariesPath(binariesDir);
+        }
 
         m_resourcesLoaded = true;
     }
@@ -616,14 +619,7 @@ Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
         auto message = ec.message();
         #ifdef GEODE_IS_WINDOWS
             // Force the error message into English
-            char* errorBuf = nullptr;
-            FormatMessageA(
-                FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS,
-                nullptr, ec.value(), MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPSTR)&errorBuf, 0, nullptr);
-            if (errorBuf) {
-                message = errorBuf;
-                LocalFree(errorBuf);
-            }
+            message = formatSystemError(ec.value());
         #endif
         return Err("Unable to delete temp dir: " + message);
     }

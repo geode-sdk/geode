@@ -89,11 +89,11 @@ void updateFiles() {
 
 $execute {
     using namespace geode::updater;
-    new EventListener(+[](LoaderUpdateEvent* event) {
+    globalListen([](LoaderUpdateEvent* event) {
         if (std::holds_alternative<UpdateFinished>(event->status)) {
             updateFiles();
         }
-        return;
+        return ListenerResult::Propagate;
     }, LoaderUpdateFilter());
 };
 
