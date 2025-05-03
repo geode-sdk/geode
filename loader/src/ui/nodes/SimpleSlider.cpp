@@ -6,11 +6,11 @@
 using namespace geode::prelude;
 
 
-void SimpleSliderDelegate::sliderStarted       (SimpleSlider* slider, float value)                   { }
-void SimpleSliderDelegate::sliderChanged       (SimpleSlider* slider, float value, float difference) { }
-void SimpleSliderDelegate::sliderEnded         (SimpleSlider* slider, float value, float difference) { }
-void SimpleSliderDelegate::sliderReachedMinimum(SimpleSlider* slider)                                { }
-void SimpleSliderDelegate::sliderReachedMaximum(SimpleSlider* slider)                                { }
+void SimpleSliderDelegate::sliderStarted (SimpleSlider* slider, float value) { }
+void SimpleSliderDelegate::sliderChanged (SimpleSlider* slider, float value, float difference) { }
+void SimpleSliderDelegate::sliderEnded (SimpleSlider* slider, float value, float difference) { }
+void SimpleSliderDelegate::sliderReachedMinimum(SimpleSlider* slider) { }
+void SimpleSliderDelegate::sliderReachedMaximum(SimpleSlider* slider) { }
 
 
 bool SimpleSlider::SimpleSliderThumb::init(CCNode* normalSprite, CCNode* heldSprite) {
