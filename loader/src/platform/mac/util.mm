@@ -38,8 +38,7 @@ std::string utils::clipboard::read() {
 }
 
 bool utils::file::openFolder(std::filesystem::path const& path) {
-    NSURL* fileURL = [NSURL fileURLWithPath:intoNS(path.string())];
-    NSURL* folderURL = [fileURL URLByDeletingLastPathComponent];
+    NSURL* folderURL = [NSURL fileURLWithPath:intoNS(path.string())];
     [[NSWorkspace sharedWorkspace] openURL:folderURL];
     return true;
 }
