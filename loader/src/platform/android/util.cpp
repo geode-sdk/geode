@@ -296,14 +296,16 @@ void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
     log::error("Launching Geode uninstaller is not supported on android");
 }
 
-void geode::utils::game::exit() {
+void geode::utils::game::exit(bool save) {
     // TODO: yeah
     // if (CCApplication::sharedApplication() &&
     //     (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
     //     log::error("Cannot exit in PlayLayer or LevelEditorLayer!");
     //     return;
     // }
-    AppDelegate::get()->trySaveGame(true);
+    if (save) {
+        AppDelegate::get()->trySaveGame(true);
+    }
     // AppDelegate::get()->showLoadingCircle(false, true);
 
     CCDirector::get()->getActionManager()->addAction(CCSequence::create(
@@ -313,7 +315,11 @@ void geode::utils::game::exit() {
     ), CCDirector::get()->getRunningScene(), false);
 }
 
-void geode::utils::game::restart() {
+void geode::utils::game::exit() {
+    exit(true);
+}
+
+void geode::utils::game::restart(bool save) {
     // if (CCApplication::sharedApplication() &&
     //     (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
     //     log::error("Cannot restart in PlayLayer or LevelEditorLayer!");
@@ -334,7 +340,9 @@ void geode::utils::game::restart() {
     // Not implemented
     // log::error("Restarting the game is not implemented on android");
 
-    AppDelegate::get()->trySaveGame(true);
+    if (save) {
+        AppDelegate::get()->trySaveGame(true);
+    }
     // AppDelegate::get()->showLoadingCircle(false, true);
 
     CCDirector::get()->getActionManager()->addAction(CCSequence::create(
@@ -342,6 +350,10 @@ void geode::utils::game::restart() {
         CCCallFunc::create(nullptr, callfunc_selector(Exit::restart)),
         nullptr
     ), CCDirector::get()->getRunningScene(), false);
+}
+
+void geode::utils::game::restart() {
+    restart(true);
 }
 
 static const char* permissionToName(Permission permission) {
