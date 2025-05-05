@@ -298,8 +298,9 @@ void LazySprite::doInitFromBytes(std::vector<uint8_t> data, std::string cacheKey
 
             image->release();   // deallocate the image, not needed anymore
             texture->release(); // bring texture's refcount back to 1
-
-            if (!self->initWithTexture(texture)) {
+            
+            // this is weird but don't touch it unless you should
+            if (!self->CCSprite::initWithTexture(texture)) {
                 // this should never happen tbh
                 self->onError("failed to initialize the sprite");
             }
@@ -323,7 +324,7 @@ CCTexture2D* LazySprite::lookupCache(char const* key) {
 
 bool LazySprite::initFromCache(char const* key) {
     if (auto tex = this->lookupCache(key)) {
-        return this->initWithTexture(tex);
+        return CCSprite::initWithTexture(tex); // this will end up calling our overriden 2-arg func, which is what we want
     }
 
     return false;
@@ -335,20 +336,12 @@ bool LazySprite::initWithTexture(CCTexture2D* texture, const CCRect& rect) {
     return this->postInit(CCSprite::initWithTexture(texture, rect));
 }
 
-bool LazySprite::initWithTexture(CCTexture2D* texture) {
-    return this->postInit(CCSprite::initWithTexture(texture));
-}
-
 bool LazySprite::initWithSpriteFrame(CCSpriteFrame* sf) {
     return this->postInit(CCSprite::initWithSpriteFrame(sf));
 }
 
 bool LazySprite::initWithSpriteFrameName(const char* fn) {
     return this->postInit(CCSprite::initWithSpriteFrameName(fn));
-}
-
-bool LazySprite::initWithFile(const char* fn) {
-    return this->postInit(CCSprite::initWithFile(fn));
 }
 
 bool LazySprite::initWithFile(const char* fn, const CCRect& rect) {
