@@ -255,19 +255,13 @@ void LazySprite::doInitFromBytes(std::vector<uint8_t> data, std::string cacheKey
         auto image = new CCImage();
         bool res = image->initWithImageData(data.data(), data.size(), format);
 
-        auto self = selfref.lock();
-        if (!self) {
-            delete image;
-            return;
-        }
-
         if (!res) {
             delete image;
 
             Loader::get()->queueInMainThread([selfref = std::move(selfref)]() mutable {
                 auto self = selfref.lock();
                 if (self) {
-                    self->onError("invalid image data");
+                    self->onError("invalid image data or format");
                 }
             });
 
