@@ -67,7 +67,7 @@ public:
 	/**
 	 * Creates and initializes a slider. Use the non-static member 
 	 * functionsto configure it.
-	 * The minimum value will be 0 and the maximum will be 1.
+	 * The minimum value will be 0 and the maximum will be 1. 
 	 * @return Slider with default settings
 	 */
 	static SimpleSlider* create();
