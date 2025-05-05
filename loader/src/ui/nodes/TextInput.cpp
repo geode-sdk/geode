@@ -165,20 +165,20 @@ void TextInput::setCallback(std::function<void(std::string const&)> onInput) {
 }
 void TextInput::setEnabled(bool enabled) {
     m_input->setTouchEnabled(enabled);
-    m_input->m_placeholderLabel->setOpacity(enabled ? 255 : 150);
+    m_input->m_textLabel->setOpacity(enabled ? 255 : 150);
 }
 void TextInput::setTextAlign(TextInputAlign align) {
     switch (align) {
         default:
         case TextInputAlign::Center: {
             m_input->m_textField->setAnchorPoint({ .5f, .5f });
-            m_input->m_placeholderLabel->setAnchorPoint({ .5f, .5f });
+            m_input->m_textLabel->setAnchorPoint({ .5f, .5f });
             m_input->updateAnchoredPosition(Anchor::Center);
         } break;
 
         case TextInputAlign::Left: {
             m_input->m_textField->setAnchorPoint({ .0f, .5f });
-            m_input->m_placeholderLabel->setAnchorPoint({ .0f, .5f });
+            m_input->m_textLabel->setAnchorPoint({ .0f, .5f });
             m_input->updateAnchoredPosition(Anchor::Left, ccp(5, 0));
         } break;
     }
