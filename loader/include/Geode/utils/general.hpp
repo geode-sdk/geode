@@ -162,6 +162,12 @@ namespace geode {
         GEODE_DLL std::string getEnvironmentVariable(const char* name);
 
         /**
+         * Formats an error code (from `GetLastError()` or `errno`) to a user readable string,
+         * using `FormatMessageA` on Windows and `strerror` on other platforms.
+         */
+        GEODE_DLL std::string formatSystemError(int code);
+
+        /**
          * Returns the safe area rectangle, or the area that is not covered by device elements (such as a display cutout or home bar)
          * This is relative to the winSize.
          */

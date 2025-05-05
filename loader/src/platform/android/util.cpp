@@ -16,6 +16,7 @@ using namespace geode::prelude;
 #include <Geode/DefaultInclude.hpp>
 #include <optional>
 #include <mutex>
+#include <string.h>
 
 #include <jni.h>
 #include <Geode/cocos/platform/android/jni/JniHelper.h>
@@ -412,6 +413,10 @@ void geode::utils::thread::platformSetName(std::string const& name) {
 std::string geode::utils::getEnvironmentVariable(const char* name) {
     auto result = std::getenv(name);
     return result ? result : "";
+}
+
+std::string geode::utils::formatSystemError(int code) {
+    return strerror(code);
 }
 
 cocos2d::CCRect geode::utils::getSafeAreaRect() {

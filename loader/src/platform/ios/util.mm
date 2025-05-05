@@ -19,6 +19,7 @@ using namespace geode::prelude;
 #include <objc/runtime.h>
 #include <objc/message.h>
 #include <stdlib.h>
+#include <string.h>
 
 using geode::utils::permission::Permission;
 
@@ -429,6 +430,10 @@ Result<void*> geode::hook::replaceObjcMethod(std::string const& className, std::
     auto oldImp = method_setImplementation(method, (IMP)imp);
 
     return Ok((void*)oldImp);
+}
+
+std::string geode::utils::formatSystemError(int code) {
+    return strerror(code);
 }
 
 cocos2d::CCRect geode::utils::getSafeAreaRect() {

@@ -40,7 +40,9 @@ static std::string pathToString(std::filesystem::path const& path) {
 }
 
 Result<std::string> utils::file::readString(std::filesystem::path const& path) {
-    if (!std::filesystem::exists(path))
+    std::error_code ec;
+
+    if (!std::filesystem::exists(path, ec) || ec)
         return Err("File does not exist");
 
     std::ifstream in(path, std::ios::in | std::ios::binary);
@@ -65,7 +67,9 @@ Result<matjson::Value> utils::file::readJson(std::filesystem::path const& path) 
 }
 
 Result<ByteVector> utils::file::readBinary(std::filesystem::path const& path) {
-    if (!std::filesystem::exists(path))
+    std::error_code ec;
+
+    if (!std::filesystem::exists(path, ec) || ec)
         return Err("File does not exist");
 
     std::ifstream in(path, std::ios::in | std::ios::binary);
@@ -125,11 +129,12 @@ Result<> utils::file::createDirectoryAll(std::filesystem::path const& path) {
 Result<std::vector<std::filesystem::path>> utils::file::readDirectory(
     std::filesystem::path const& path, bool recursive
 ) {
-    if (!std::filesystem::exists(path)) {
+    std::error_code ec;
+
+    if (!std::filesystem::exists(path, ec) || ec) {
         return Err("Directory does not exist");
     }
 
-    std::error_code ec;
     if (!std::filesystem::is_directory(path, ec) || ec) {
         return Err("Path is not a directory");
     }

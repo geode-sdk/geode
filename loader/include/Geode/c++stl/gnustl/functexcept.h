@@ -37,71 +37,104 @@
 
 #include "c++config.h"
 #include "exception_defines.h"
+#include <cstdio>
+
+#include <ios>
+#include <system_error>
+#include <future>
+
+# define _msg_functexcept(msgid)   (msgid)
 
 namespace geode::stl
 {
 _GLIBCXX_BEGIN_NAMESPACE_VERSION
 
-  // Helper for exception objects in <except>
-  void
-  __throw_bad_exception(void) __attribute__((__noreturn__));
+  inline __attribute__((noreturn)) void
+  __throw_bad_exception()
+  { _GLIBCXX_THROW_OR_ABORT(std::bad_exception()); }
 
-  // Helper for exception objects in <new>
-  void
-  __throw_bad_alloc(void) __attribute__((__noreturn__));
+  inline __attribute__((noreturn)) void
+  __throw_bad_alloc()
+  { _GLIBCXX_THROW_OR_ABORT(std::bad_alloc()); }
 
-  // Helper for exception objects in <typeinfo>
-  void
-  __throw_bad_cast(void) __attribute__((__noreturn__));
+  inline __attribute__((noreturn)) void
+  __throw_bad_cast()
+  { _GLIBCXX_THROW_OR_ABORT(std::bad_cast()); }
 
-  void
-  __throw_bad_typeid(void) __attribute__((__noreturn__));
+  inline __attribute__((noreturn)) void
+  __throw_bad_typeid()
+  { _GLIBCXX_THROW_OR_ABORT(std::bad_typeid()); }
 
-  // Helpers for exception objects in <stdexcept>
-  void
-  __throw_logic_error(const char*) __attribute__((__noreturn__));
+  inline __attribute__((noreturn)) void
+  __throw_logic_error(const char* __s __attribute__((unused)))
+  { _GLIBCXX_THROW_OR_ABORT(std::logic_error(_msg_functexcept(__s))); }
 
-  void
-  __throw_domain_error(const char*) __attribute__((__noreturn__));
+  inline __attribute__((noreturn)) void
+  __throw_domain_error(const char* __s __attribute__((unused)))
+  { _GLIBCXX_THROW_OR_ABORT(std::domain_error(_msg_functexcept(__s))); }
 
-  void
-  __throw_invalid_argument(const char*) __attribute__((__noreturn__));
+  inline __attribute__((noreturn)) void
+  __throw_invalid_argument(const char* __s __attribute__((unused)))
+  { _GLIBCXX_THROW_OR_ABORT(std::invalid_argument(_msg_functexcept(__s))); }
 
-  void
-  __throw_length_error(const char*) __attribute__((__noreturn__));
+  inline __attribute__((noreturn)) void
+  __throw_length_error(const char* __s __attribute__((unused)))
+  { _GLIBCXX_THROW_OR_ABORT(std::length_error(_msg_functexcept(__s))); }
 
-  void
-  __throw_out_of_range(const char*) __attribute__((__noreturn__));
+  inline __attribute__((noreturn)) void
+  __throw_out_of_range(const char* __s __attribute__((unused)))
+  { _GLIBCXX_THROW_OR_ABORT(std::out_of_range(_msg_functexcept(__s))); }
 
-  void
-  __throw_out_of_range_fmt(const char*, ...) __attribute__((__noreturn__))
-    __attribute__((__format__(__printf__, 1, 2)));
+  inline __attribute__((noreturn)) void
+  __throw_out_of_range_fmt(const char* __fmt, ...)
+  {
+    const size_t __len = __builtin_strlen(__fmt);
+    // We expect at most 2 numbers, and 1 short string. The additional
+    // 512 bytes should provide more than enough space for expansion.
+    const size_t __alloca_size = __len + 512;
+    char *const __s = static_cast<char*>(__builtin_alloca(__alloca_size));
+    va_list __ap;
 
-  void
-  __throw_runtime_error(const char*) __attribute__((__noreturn__));
+    va_start(__ap, __fmt);
+    std::snprintf(__s, __alloca_size, __fmt, __ap);
+    _GLIBCXX_THROW_OR_ABORT(std::out_of_range(_msg_functexcept(__s)));
+    va_end(__ap);  // Not reached.
+  }
 
-  void
-  __throw_range_error(const char*) __attribute__((__noreturn__));
+  inline __attribute__((noreturn)) void
+  __throw_runtime_error(const char* __s __attribute__((unused)))
+  { _GLIBCXX_THROW_OR_ABORT(std::runtime_error(_msg_functexcept(__s))); }
 
-  void
-  __throw_overflow_error(const char*) __attribute__((__noreturn__));
+  inline __attribute__((noreturn)) void
+  __throw_range_error(const char* __s __attribute__((unused)))
+  { _GLIBCXX_THROW_OR_ABORT(std::range_error(_msg_functexcept(__s))); }
 
-  void
-  __throw_underflow_error(const char*) __attribute__((__noreturn__));
+  inline __attribute__((noreturn)) void
+  __throw_overflow_error(const char* __s __attribute__((unused)))
+  { _GLIBCXX_THROW_OR_ABORT(std::overflow_error(_msg_functexcept(__s))); }
 
-  // Helpers for exception objects in <ios>
-  void
-  __throw_ios_failure(const char*) __attribute__((__noreturn__));
+  inline __attribute__((noreturn)) void
+  __throw_underflow_error(const char* __s __attribute__((unused)))
+  { _GLIBCXX_THROW_OR_ABORT(std::underflow_error(_msg_functexcept(__s))); }
 
-  void
-  __throw_system_error(int) __attribute__((__noreturn__));
+  inline __attribute__((noreturn)) void
+  __throw_ios_failure(const char* __s __attribute__((unused)))
+  { _GLIBCXX_THROW_OR_ABORT(std::ios_base::failure(_msg_functexcept(__s))); }
 
-  void
-  __throw_future_error(int) __attribute__((__noreturn__));
+  inline __attribute__((noreturn)) void
+  __throw_system_error(int __i __attribute__((unused)))
+  { _GLIBCXX_THROW_OR_ABORT(std::system_error(std::error_code(__i,
+                std::generic_category()))); }
 
-  // Helpers for exception objects in <functional>
-  void
-  __throw_bad_function_call() __attribute__((__noreturn__));
+                inline __attribute__((noreturn)) void
+  __throw_future_error(int __i __attribute__((unused)))
+  { _GLIBCXX_THROW_OR_ABORT(std::bad_exception()); }
+
+  inline __attribute__((noreturn)) void
+  __throw_bad_function_call()
+  { _GLIBCXX_THROW_OR_ABORT(std::bad_function_call()); }
 
 _GLIBCXX_END_NAMESPACE_VERSION
 } // namespace
+
+#undef _msg_functexcept

@@ -10,6 +10,7 @@ using namespace geode::prelude;
 #include <objc/runtime.h>
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/Task.hpp>
+#include <string.h>
 
 #define CommentType CommentTypeDummy
 #import <Cocoa/Cocoa.h>
@@ -376,6 +377,10 @@ float geode::utils::getDisplayFactor() {
 std::string geode::utils::getEnvironmentVariable(const char* name) {
     auto result = std::getenv(name);
     return result ? result : "";
+}
+
+std::string geode::utils::formatSystemError(int code) {
+    return strerror(code);
 }
 
 cocos2d::CCRect geode::utils::getSafeAreaRect() {

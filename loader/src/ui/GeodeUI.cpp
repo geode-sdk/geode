@@ -1,4 +1,5 @@
 #include "mods/ModsLayer.hpp"
+#include <Geode/cocos/base_nodes/CCNode.h>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/MDPopup.hpp>
@@ -198,7 +199,7 @@ Popup<Mod*>* geode::openSettingsPopup(Mod* mod, bool disableGeodeTheme) {
 
 using ModLogoSrc = std::variant<Mod*, std::string, std::filesystem::path>;
 
-class ModLogoSprite : public CCNode {
+class ModLogoSprite : public CCNodeRGBA {
 protected:
     LazySprite* m_sprite;
     std::string m_modID;
