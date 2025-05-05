@@ -150,6 +150,14 @@ namespace geode {
          * Get the description of this setting
          */
         std::optional<std::string> getDescription() const;
+		/**
+		 * Set the display name of this setting
+		 */
+		void setDisplayName(std::string_view name);
+		/**
+		 * Set the description of this setting
+		 */
+		void setDescription(std::string_view desc);
         /**
          * Get the "enable-if" scheme for this setting
          */
