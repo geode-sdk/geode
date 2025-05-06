@@ -1,5 +1,3 @@
-using namespace geode::prelude;
-
 #include <Geode/utils/cocos.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/utils/file.hpp>
@@ -22,6 +20,7 @@ using namespace geode::prelude;
 #include <Geode/cocos/platform/android/jni/JniHelper.h>
 
 using geode::utils::permission::Permission;
+using namespace geode::prelude;
 
 bool utils::clipboard::write(std::string const& data) {
     JniMethodInfo t;
