@@ -149,11 +149,11 @@ void LazySprite::loadFromUrl(char const* url, Format format, bool ignoreCache) {
     if (!ignoreCache && this->initFromCache(url)) {
         return;
     }
-    
+
     m_expectedFormat = format;
     m_isLoading = true;
 
-    m_listener.bind([this, cacheKey = std::string(url)](web::WebTask::Event* event) mutable {
+    m_listener.bind([this, cacheKey = ignoreCache ? std::string{} : std::string(url)](web::WebTask::Event* event) mutable {
         if (!event || !event->getValue()) return;
 
         auto resp = event->getValue();
@@ -214,12 +214,12 @@ void LazySprite::loadFromFile(const std::filesystem::path& path, Format format, 
         ]() mutable {
             auto self = selfref.lock();
             if (!self) return;
-    
-            if (!res) { 
+
+            if (!res) {
                 self->onError(fmt::format("failed to load from file {}: {}", path, res.unwrapErr()));
                 return;
             }
-    
+
             self->doInitFromBytes(std::move(res).unwrap(), std::move(cacheKey));
         });
     });
@@ -287,17 +287,20 @@ void LazySprite::doInitFromBytes(std::vector<uint8_t> data, std::string cacheKey
                 return;
             }
 
-            // store texture
-            CCTextureCache::get()->m_pTextures->setObject(texture, cacheKey.c_str());
+            image->release(); // deallocate the image, not needed anymore
 
-            image->release();   // deallocate the image, not needed anymore
-            texture->release(); // bring texture's refcount back to 1
-            
+            // store texture
+            if (!cacheKey.empty()) {
+                CCTextureCache::get()->m_pTextures->setObject(texture, cacheKey.c_str());
+            }
+
             // this is weird but don't touch it unless you should
             if (!self->CCSprite::initWithTexture(texture)) {
                 // this should never happen tbh
                 self->onError("failed to initialize the sprite");
             }
+
+            texture->release(); // bring texture's refcount back to 1
         });
     });
 }
