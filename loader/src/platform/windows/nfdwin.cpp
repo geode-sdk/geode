@@ -224,7 +224,13 @@ Result<> nfdPick(
         }
     }
 
-    switch (dialog->Show(nullptr)) {
+    auto fgWindow = GetForegroundWindow();
+    auto taskbar = FindWindow("Shell_TrayWnd", NULL);
+    SetForegroundWindow(taskbar);
+    auto dialogResult = dialog->Show(fgWindow);
+    ShowWindow(fgWindow, SW_RESTORE);
+
+    switch (dialogResult) {
         case S_OK: {
             switch (mode) {
                 case NFDMode::OpenFile:
