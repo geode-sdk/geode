@@ -1,3 +1,4 @@
+#include <fmt/format.h>
 #include <loader/LoaderImpl.hpp>
 #include <loader/console.hpp>
 #include <loader/IPC.hpp>
@@ -11,6 +12,7 @@
 #include <loader/LogImpl.hpp>
 
 #include <array>
+#include <optional>
 
 using namespace geode::prelude;
 
@@ -121,14 +123,25 @@ int geodeEntry(void* platformData) {
     if (LoaderImpl::get()->isForwardCompatMode())
         forwardCompatSuffix = " (forward compatibility mode)";
 
+    std::optional<WineInfo> wineInfo = LoaderImpl::get()->getWineInfo();
+    std::string platformStr = wineInfo
+        ? fmt::format(
+            "{} (Wine {} | {} {})",
+            PlatformID::toString(GEODE_PLATFORM_TARGET),
+            wineInfo->wineVersion,
+            wineInfo->hostSystem,
+            wineInfo->hostVersion
+        )
+        : PlatformID::toString(GEODE_PLATFORM_TARGET);
+
     if (LoaderImpl::get()->getGameVersion().empty()) {
         log::info("Running {} {}{} on {}", Mod::get()->getName(), Mod::get()->getVersion(),
-            forwardCompatSuffix, PlatformID::toString(GEODE_PLATFORM_TARGET));
+            forwardCompatSuffix, platformStr);
     }
     else {
         log::info("Running {} {} in Geometry Dash v{}{} on {}", Mod::get()->getName(),
             Mod::get()->getVersion(), LoaderImpl::get()->getGameVersion(), forwardCompatSuffix,
-            PlatformID::toString(GEODE_PLATFORM_TARGET));
+            platformStr);
     }
 
     tryLogForwardCompat();

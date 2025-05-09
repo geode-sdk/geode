@@ -7,6 +7,7 @@
 #include <loader/IPC.hpp>
 #include <loader/console.hpp>
 #include <iostream>
+#include <optional>
 #include <pwd.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -86,4 +87,8 @@ std::string Loader::Impl::getGameVersion() {
     if (version == "2.207") return "2.2074";
 
     return version;
+}
+
+std::optional<WineInfo> Loader::Impl::getWineInfo() const {
+    return std::nullopt;
 }

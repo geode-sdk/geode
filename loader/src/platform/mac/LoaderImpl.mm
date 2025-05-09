@@ -1,4 +1,5 @@
 #import <Foundation/Foundation.h>
+#include <optional>
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Log.hpp>
 #include <iostream>
@@ -268,4 +269,8 @@ std::string Loader::Impl::getLaunchCommand() const {
     NSString* joinedString = [arguments componentsJoinedByString:@" "];
     std::string fullString([joinedString UTF8String]);
     return fullString;
+}
+
+std::optional<WineInfo> Loader::Impl::getWineInfo() const {
+    return std::nullopt;
 }

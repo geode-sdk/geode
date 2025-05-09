@@ -62,3 +62,7 @@ std::string Loader::Impl::getLaunchCommand() const {
 
     return launchArgs;
 }
+
+std::optional<WineInfo> Loader::Impl::getWineInfo() const {
+    return std::nullopt;
+}

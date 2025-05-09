@@ -3,6 +3,9 @@
 #include <loader/ModImpl.hpp>
 #include <loader/LoaderImpl.hpp>
 #include <Geode/utils/string.hpp>
+#include <libloaderapi.h>
+#include <minwindef.h>
+#include <optional>
 #include <processenv.h>
 
 using namespace geode::prelude;
@@ -96,4 +99,38 @@ bool Loader::Impl::supportsLaunchArguments() const {
 
 std::string Loader::Impl::getLaunchCommand() const {
     return GetCommandLineA();
+}
+
+std::optional<WineInfo> Loader::Impl::getWineInfo() const {
+    // We only need to do this once
+    static std::optional<WineInfo> result = []() -> std::optional<WineInfo> {
+        HMODULE ntdll = GetModuleHandle("ntdll.dll");
+        if (!ntdll) {
+            // Well, okay, I guess?
+            return std::nullopt;
+        }
+
+        typedef void (*wine_get_host_version)(const char** sysname, const char** release);
+        typedef const char* (*wine_get_version)(void);
+
+        auto wghv = reinterpret_cast<wine_get_host_version>(GetProcAddress(ntdll, "wine_get_host_version"));
+        auto wgv = reinterpret_cast<wine_get_version>(GetProcAddress(ntdll, "wine_get_version"));
+
+        if (!wghv || !wgv) {
+            return std::nullopt;
+        }
+
+        const char* system = nullptr;
+        const char* systemRelease = nullptr;
+
+        wghv(&system, &systemRelease);
+
+        return WineInfo {
+            .hostSystem = system,
+            .hostVersion = systemRelease,
+            .wineVersion = wgv(),
+        };
+    }();
+
+    return result;
 }

@@ -147,6 +147,8 @@ namespace geode {
         void installModManuallyFromFile(std::filesystem::path const& path, std::function<void()> after);
 
         bool isRestartRequired() const;
+
+        std::optional<WineInfo> getWineInfo() const;
     };
 
     class LoaderImpl : public Loader::Impl {

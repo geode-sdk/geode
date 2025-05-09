@@ -11,6 +11,7 @@
 #include <matjson.hpp>
 #include <mutex>
 #include <optional>
+#include <string>
 #include <string_view>
 
 namespace geode {
@@ -19,6 +20,12 @@ namespace geode {
     struct InvalidGeodeFile {
         std::filesystem::path path;
         std::string reason;
+    };
+
+    struct WineInfo {
+        std::string hostSystem;
+        std::string hostVersion;
+        std::string wineVersion;
     };
 
     struct LoadProblem {
@@ -157,6 +164,11 @@ namespace geode {
          * @return The game version
          */
         std::string getGameVersion();
+
+        /**
+         * Returns info about the current Wine environment, if the game runs using Wine.
+         */
+        std::optional<WineInfo> getWineInfo() const;
 
         friend class LoaderImpl;
 
