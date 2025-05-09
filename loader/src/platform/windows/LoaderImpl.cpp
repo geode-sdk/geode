@@ -120,13 +120,13 @@ std::optional<WineInfo> Loader::Impl::getWineInfo() const {
             return std::nullopt;
         }
 
-        const char* system = nullptr;
+        const char* systemName = nullptr;
         const char* systemRelease = nullptr;
 
-        wghv(&system, &systemRelease);
+        wghv(&systemName, &systemRelease);
 
         return WineInfo {
-            .hostSystem = system,
+            .hostSystem = systemName,
             .hostVersion = systemRelease,
             .wineVersion = wgv(),
         };
