@@ -1,3 +1,4 @@
+#include <Geode/loader/Log.hpp>
 #include <Geode/Result.hpp>
 #include <Geode/utils/general.hpp>
 #include <filesystem>
@@ -252,7 +253,8 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         // Init Curl
         auto curl = curl_easy_init();
         if (!curl) {
-            return impl->makeError(-1, "Curl not initialized");
+            log::error("Failed to initialize cURL");
+            return impl->makeError(-1, "Failed to initialize curl");
         }
 
         // todo: in the future, we might want to support downloading directly into 
@@ -329,8 +331,8 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         }
 
         // Cert verification
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, impl->m_certVerification ? 1 : 0);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, impl->m_certVerification ? 1L : 0L);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
 
         if (impl->m_certVerification) {
             curl_blob caBundleBlob = {};
@@ -399,7 +401,7 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         curl_easy_setopt(curl, CURLOPT_IGNORE_CONTENT_LENGTH, impl->m_ignoreContentLength ? 1L : 0L);
 
         // Track progress
-        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
+        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 
         // don't change the method from POST to GET when following a redirect
         curl_easy_setopt(curl, CURLOPT_POSTREDIR, CURL_REDIR_POST_ALL);
@@ -476,10 +478,13 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         // Check if the request failed on curl's side or because of cancellation
         if (curlResponse != CURLE_OK) {
             if (hasBeenCancelled()) {
+                log::debug("Request cancelled");
                 return WebTask::Cancel();
             }
             else {
-                return impl->makeError(-1, "Curl failed: " + std::string(curl_easy_strerror(curlResponse)));
+                std::string const err = curl_easy_strerror(curlResponse);
+                log::error("cURL failure, error: {}", err);
+                return impl->makeError(-1, "Curl failed: " + err);
             }
         }
         
@@ -490,7 +495,7 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
 
         // Otherwise resolve with success :-)
         return std::move(responseData.response);
-    }, fmt::format("{} request to {}", method, url));
+    }, fmt::format("{} {}", method, url));
 }
 WebTask WebRequest::post(std::string_view url) {
     return this->send("POST", url);

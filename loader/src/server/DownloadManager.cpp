@@ -2,6 +2,7 @@
 #include "Geode/loader/Mod.hpp"
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/utils/map.hpp>
+#include <fmt/format.h>
 #include <optional>
 #include <hash/hash.hpp>
 #include <loader/ModImpl.hpp>
@@ -156,9 +157,23 @@ public:
                 else {
                     auto resp = event->getValue();
 
-                    m_status = DownloadStatusError {
-                        .details = fmt::format("Server returned error {}", resp->code()),
-                    };
+                    if (resp->code() == -1) {
+                        m_status = DownloadStatusError {
+                            .details = fmt::format(
+                                "Failed to make request to download endpoint. Error: {}",
+                                resp->string().unwrapOr("No message")
+                            )
+                        };
+                    } else {
+                        m_status = DownloadStatusError {
+                            .details = fmt::format(
+                                "Server returned error {} with message: {}",
+                                resp->code(),
+                                resp->string().unwrapOr("No message")
+                            )
+                        };
+                    }
+
                     log::error("Failed to download {}, server returned error {}", m_id, resp->code());
                     log::error("{}", resp->string().unwrapOr("No response"));
 
