@@ -216,5 +216,9 @@ int geodeEntry(void* platformData) {
     // also log after entry so that users are more likely to notice
     tryLogForwardCompat();
 
+#ifdef GEODE_IS_MACOS
+    checkPermissionPlist();
+#endif
+
     return 0;
 }
