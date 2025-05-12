@@ -187,6 +187,15 @@ public:
     GLclampf     m_fClearDepth;
     GLint        m_nClearStencil;
     bool         m_bAutoDraw;
+
+    // @note RobTop Addition
+    float m_fInternalScaleX;
+    // @note RobTop Addition
+    float m_fInternalScaleY;
+    // @note RobTop Addition
+    int m_nWidth;
+    // @note RobTop Addition
+    int m_nHeight;
 };
 
 // end of textures group
