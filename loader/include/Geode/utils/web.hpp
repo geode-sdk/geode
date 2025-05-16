@@ -60,6 +60,52 @@ namespace geode::utils::web {
         bool certVerification = true; // Enable HTTPS certificate verification
     };
 
+    class GEODE_DLL MultipartForm final {
+    private:
+        class Impl;
+
+        std::shared_ptr<Impl> m_impl;
+
+    public:
+        MultipartForm();
+
+        MultipartForm& param(std::string_view name, std::string_view value);
+        template <std::integral T>
+        MultipartForm& param(std::string_view name, T value) {
+            return this->param(name, std::to_string(value));
+        }
+
+        MultipartForm& file(std::string_view name, ByteVector const& data, std::string_view filename, std::string_view mime = "application/octet-stream");
+        Result<MultipartForm&> file(std::string_view name, std::filesystem::path const& path, std::string_view mime = "application/octet-stream");
+
+        /**
+         * Finalizes the form and generates the boundary string.
+         * @return MultipartForm&
+         */
+        MultipartForm& build();
+
+        /**
+         * Returns the unique boundary string used in the multipart form.
+         * If build() was not called, it will be called automatically.
+         * @return std::string const&
+         */
+        std::string const& getBoundary();
+
+        /**
+         * Returns the value for the Content-Type header with unique boundary string.
+         * If build() was not called, it will be called automatically.
+         * @return std::string
+         */
+        std::string getHeader();
+
+        /**
+         * Returns merged body of all parameters and files, with the correct boundary.
+         * If build() was not called, it will be called automatically.
+         * @return ByteVector const&
+         */
+        ByteVector const& getBody();
+    };
+
     class WebRequest;
 
     class GEODE_DLL WebResponse final {
@@ -277,6 +323,13 @@ namespace geode::utils::web {
          * @return WebRequest&
          */
         WebRequest& bodyJSON(matjson::Value const& json);
+        /**
+         * Sets the body of the request to a multipart form.
+         *
+         * @param form The multipart form to set as the body.
+         * @return WebRequest&
+         */
+        WebRequest& bodyMultipart(MultipartForm& form);
 
         /**
          * Gets the unique request ID
