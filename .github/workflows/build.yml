@@ -101,7 +101,8 @@ jobs:
 
     - name: Install Clang 19
       run: |
-        sudo apt install clang-19 clang-tools-19 lld-19
+        sudo rm -f /var/lib/man-db/auto-update
+        sudo apt install -y clang-19 clang-tools-19 lld-19
 
     - name: Configure
       run: ${{ env.base-configure-command }} -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN ${{ steps.build-debug-info.outputs.extra-configure }}
