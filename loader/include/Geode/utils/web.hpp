@@ -7,6 +7,7 @@
 #include <chrono>
 #include <optional>
 #include <string_view>
+#include <span>
 
 namespace geode::utils::web {
     GEODE_DLL void openLinkInBrowser(std::string const& url);
