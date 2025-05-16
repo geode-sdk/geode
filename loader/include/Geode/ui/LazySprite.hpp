@@ -50,6 +50,12 @@ namespace geode {
         bool isLoaded();
         bool isLoading();
 
+        /**
+         * Cancel the sprite loading process. Does nothing if `isLoading == false`.
+         * Callback will not be called, and sprite loading will be halted as soon as possible.
+         */
+        void cancelLoad();
+
         virtual bool initWithTexture(cocos2d::CCTexture2D* pTexture, const cocos2d::CCRect& rect) override;
         virtual bool initWithSpriteFrame(cocos2d::CCSpriteFrame* pSpriteFrame) override;
         virtual bool initWithSpriteFrameName(const char* pszSpriteFrameName) override;
@@ -61,7 +67,7 @@ namespace geode {
         Format m_expectedFormat;
         EventListener<utils::web::WebTask> m_listener;
         bool m_isLoading = false;
-        bool m_hasLoaded = false;
+        std::atomic_bool m_hasLoaded = false;
         bool m_autoresize;
         cocos2d::CCSize m_targetSize;
 

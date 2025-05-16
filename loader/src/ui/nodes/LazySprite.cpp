@@ -213,7 +213,9 @@ void LazySprite::loadFromFile(const std::filesystem::path& path, Format format, 
             res = std::move(res)
         ]() mutable {
             auto self = selfref.lock();
-            if (!self) return;
+
+            // if sprite was destructed or loading has been cancelled, do nothing
+            if (!self || !self->m_isLoading) return;
 
             if (!res) {
                 self->onError(fmt::format("failed to load from file {}: {}", path, res.unwrapErr()));
@@ -260,7 +262,7 @@ void LazySprite::doInitFromBytes(std::vector<uint8_t> data, std::string cacheKey
 
             Loader::get()->queueInMainThread([selfref = std::move(selfref)]() mutable {
                 auto self = selfref.lock();
-                if (self) {
+                if (self && self->m_isLoading) {
                     self->onError("invalid image data or format");
                 }
             });
@@ -269,7 +271,7 @@ void LazySprite::doInitFromBytes(std::vector<uint8_t> data, std::string cacheKey
         }
 
         // image initialization succeeded, all we need to do now is to
-        // create the opengl texture (must be on main thread!) and then set this sprite to use that.
+        // create the OpenGL texture (must be on main thread!) and then set this sprite to use that.
 
         Loader::get()->queueInMainThread([
             selfref = std::move(selfref),
@@ -277,7 +279,7 @@ void LazySprite::doInitFromBytes(std::vector<uint8_t> data, std::string cacheKey
             cacheKey = std::move(cacheKey)
         ] {
             auto self = selfref.lock();
-            if (!self) return;
+            if (!self || !self->m_isLoading) return;
 
             auto texture = new CCTexture2D();
             if (!texture->initWithImage(image)) {
@@ -397,6 +399,15 @@ bool LazySprite::isLoaded() {
 
 bool LazySprite::isLoading() {
     return m_isLoading;
+}
+
+void LazySprite::cancelLoad() {
+    m_isLoading = false;
+
+    if (m_loadingCircle) {
+        m_loadingCircle->removeFromParent();
+        m_loadingCircle = nullptr;
+    }
 }
 
 LazySprite* LazySprite::create(CCSize size, bool loadingCircle) {
