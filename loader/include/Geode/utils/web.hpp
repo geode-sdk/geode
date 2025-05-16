@@ -75,7 +75,7 @@ namespace geode::utils::web {
             return this->param(name, std::to_string(value));
         }
 
-        MultipartForm& file(std::string_view name, ByteVector const& data, std::string_view filename, std::string_view mime = "application/octet-stream");
+        MultipartForm& file(std::string_view name, std::span<uint8_t const> data, std::string_view filename, std::string_view mime = "application/octet-stream");
         Result<MultipartForm&> file(std::string_view name, std::filesystem::path const& path, std::string_view mime = "application/octet-stream");
 
         /**

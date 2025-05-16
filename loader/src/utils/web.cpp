@@ -218,9 +218,9 @@ Result<MultipartForm&> MultipartForm::file(std::string_view name, std::filesyste
     return Ok(*this);
 }
 
-MultipartForm& MultipartForm::file(std::string_view name, ByteVector const& data, std::string_view filename, std::string_view mime) {
+MultipartForm& MultipartForm::file(std::string_view name, std::span<uint8_t const> data, std::string_view filename, std::string_view mime) {
     m_impl->m_files.insert_or_assign(std::string(name), MultipartFile{
-        .data = data,
+        .data = ByteVector(data.begin(), data.end()),
         .filename = std::string(filename),
         .mime = std::string(mime),
     });
