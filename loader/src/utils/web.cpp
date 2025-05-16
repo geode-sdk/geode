@@ -213,6 +213,7 @@ Result<MultipartForm&> MultipartForm::file(std::string_view name, std::filesyste
         .filename = path.filename().string(),
         .mime = std::string(mime),
     });
+    m_impl->m_built = false;
     return Ok(*this);
 }
 
@@ -222,6 +223,7 @@ MultipartForm& MultipartForm::file(std::string_view name, ByteVector const& data
         .filename = std::string(filename),
         .mime = std::string(mime),
     });
+    m_impl->m_built = false;
     return *this;
 }
 
