@@ -11,6 +11,7 @@
 #include <ca_bundle.h>
 
 #include <Geode/utils/web.hpp>
+#include <Geode/utils/file.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/terminate.hpp>
 #include <sstream>
