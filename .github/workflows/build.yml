@@ -105,8 +105,8 @@ jobs:
         SPLAT_DIR: ${{ github.workspace }}/.xwin-cache/splat
         TOOLCHAIN: ${{ github.workspace }}/toolchain/clang-cl-msvc.cmake
         HOST_ARCH: x86_64
-        CLANG_VER: 18
-        LLVM_VER: 18
+        CLANG_VER: 20
+        LLVM_VER: 20
 
     - name: Build
       run: |
