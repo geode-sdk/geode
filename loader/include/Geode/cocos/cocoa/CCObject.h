@@ -53,16 +53,14 @@ namespace geode {
 
 NS_CC_BEGIN
 
-#ifndef GEODE_USE_NEW_DESTRUCTOR_LOCK
 class [[deprecated("Please update to newest bindings, this will be removed in v5")]] CCDestructor {
-private:
+public:
 	static std::unordered_map<void*, bool>& destructorLock();
 public:
 	static bool& globalLock();
 	static bool& lock(void* self);
 	~CCDestructor();
 };
-#endif
 
 /**
  * @addtogroup base_nodes
