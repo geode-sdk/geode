@@ -56,14 +56,11 @@ NS_CC_BEGIN
 #ifndef GEODE_USE_NEW_DESTRUCTOR_LOCK
 class [[deprecated("Please update to newest bindings, this will be removed in v5")]] CCDestructor {
 private:
-	static std::unordered_map<void*, bool>& destructorLock() {
-        static thread_local std::unordered_map<void*, bool> s_destructorLock;
-        return s_destructorLock;
-    }
+	static std::unordered_map<void*, bool>& destructorLock();
 public:
-	static bool& lock(void* self) {
-        return destructorLock()[self];
-    }
+	static bool& globalLock();
+	static bool& lock(void* self);
+	~CCDestructor();
 };
 #endif
 
