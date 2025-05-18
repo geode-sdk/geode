@@ -258,6 +258,10 @@ CPMAddPackage("gh:fmtlib/fmt#11.1.4")
 
 target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)
 
+target_compile_definitions(${PROJECT_NAME} INTERFACE
+	GEODE_USE_NEW_DESTRUCTOR_LOCK=1
+)
+
 # this is needed for cross compilation on linux,
 # since fmtlib will fail to compile otherwise
 if (GEODE_DISABLE_FMT_CONSTEVAL)
