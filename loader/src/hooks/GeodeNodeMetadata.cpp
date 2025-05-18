@@ -2,8 +2,10 @@
 #include <Geode/utils/cocos.hpp>
 #include <Geode/modify/Field.hpp>
 #include <Geode/modify/CCNode.hpp>
+#include <Geode/utils/terminate.hpp>
 #include <cocos2d.h>
 #include <queue>
+#include <stack>
 
 using namespace geode::prelude;
 using namespace geode::modifier;
@@ -472,6 +474,57 @@ void CCNode::updateAnchoredPosition(Anchor anchor, CCPoint const& offset, CCPoin
     if (auto opts = typeinfo_cast<AnchorLayoutOptions*>(this->getLayoutOptions())) {
         opts->setAnchor(anchor);
         opts->setOffset(offset);
+    }
+}
+
+namespace {
+    template <class T, size_t N>
+    struct LocalStack {
+        std::array<T, N> m_stack;
+        size_t m_index = 0;
+
+        bool push(T value) {
+            if (m_index >= N) return false;
+            m_stack[m_index] = value;
+            m_index++;
+            return true;
+        }
+
+        bool pop() {
+            if (m_index == 0) return false;
+            m_index--;
+            return true;
+        }
+
+        T top() {
+            if (m_index == 0) return nullptr;
+            return m_stack[m_index - 1];
+        }
+
+        bool empty() {
+            return m_index == 0;
+        }
+    };
+
+    static thread_local LocalStack<void*, 32> s_lockStack;
+}
+
+bool geode::DestructorLock::isLocked(void* self) {
+    // only the top of the stack matters
+    if (s_lockStack.empty()) return false;
+    return s_lockStack.top() == self;
+}
+void geode::DestructorLock::addLock(void* self) {
+    if (!s_lockStack.push(self)) {
+        geode::utils::terminate("DestructorLock lock stack overflow (tried to add too many locks at once)");
+    }
+}
+void geode::DestructorLock::removeLock(void* self) {
+    if (s_lockStack.top() != self) {
+        geode::utils::terminate("DestructorLock lock stack corruption (tried to unlock a destructor that was not the top of the stack)");
+    }
+    if (!s_lockStack.pop()) {
+        geode::utils::terminate("DestructorLock lock stack underflow (tried to unlock a destructor that was never locked)");
     }
 }
 
