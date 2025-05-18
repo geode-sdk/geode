@@ -5,6 +5,7 @@
 #include <Geode/utils/terminate.hpp>
 #include <cocos2d.h>
 #include <queue>
+#include <stack>
 
 using namespace geode::prelude;
 using namespace geode::modifier;
@@ -476,39 +477,55 @@ void CCNode::updateAnchoredPosition(Anchor anchor, CCPoint const& offset, CCPoin
     }
 }
 
-static thread_local size_t s_lockIndex = 0;
-static thread_local std::array<void*, 64> s_lockStack;
+namespace {
+    template <class T, size_t N>
+    struct LocalStack {
+        std::array<T, N> m_stack;
+        size_t m_index = 0;
+
+        bool push(T value) {
+            if (m_index >= N) return false;
+            m_stack[m_index] = value;
+            m_index++;
+            return true;
+        }
+
+        bool pop() {
+            if (m_index == 0) return false;
+            m_index--;
+            return true;
+        }
+
+        T top() {
+            if (m_index == 0) return nullptr;
+            return m_stack[m_index - 1];
+        }
+
+        bool empty() {
+            return m_index == 0;
+        }
+    };
+
+    static thread_local LocalStack<void*, 32> s_lockStack;
+}
 
 bool geode::DestructorLock::isLocked(void* self) {
-    log::debug("checking lock for {}", self);
     // only the top of the stack matters
-    if (s_lockIndex == 0) return false;
-    return s_lockStack[s_lockIndex - 1] == self;
+    if (s_lockStack.empty()) return false;
+    return s_lockStack.top() == self;
 }
 void geode::DestructorLock::addLock(void* self) {
-    log::debug("adding lock for {}", self);
-    if (s_lockIndex >= s_lockStack.size()) {
-        log::error("CCDestructor lock stack overflow");
-        log::error("lock stack: {}", fmt::join(s_lockStack, ", "));
-        log::error("lock index: {}", s_lockIndex);
-        geode::utils::terminate("CCDestructor lock stack overflow (exceeded 64 destructions, how did that happen?)");
+    if (!s_lockStack.push(self)) {
+        geode::utils::terminate("DestructorLock lock stack overflow (tried to add too many locks at once)");
     }
-    s_lockStack[s_lockIndex++] = self;
 }
 void geode::DestructorLock::removeLock(void* self) {
-    log::debug("removing lock for {}", self);
-    if (s_lockIndex == 0) {
-        log::error("CCDestructor lock stack underflow");
-        log::error("lock stack: {}", fmt::join(s_lockStack, ", "));
-        log::error("lock index: {}", s_lockIndex);
-        geode::utils::terminate("CCDestructor lock stack underflow (tried to unlock a destructor that was never locked)");
+    if (s_lockStack.top() != self) {
+        geode::utils::terminate("DestructorLock lock stack corruption (tried to unlock a destructor that was not the top of the stack)");
     }
-    if (s_lockStack[s_lockIndex - 1] != self) {
-        log::error("CCDestructor lock stack corruption");
-        log::error("lock stack: {}", fmt::join(s_lockStack, ", "));
-        geode::utils::terminate("CCDestructor lock stack corruption (tried to unlock a destructor that was not the top of the stack)");
+    if (!s_lockStack.pop()) {
+        geode::utils::terminate("DestructorLock lock stack underflow (tried to unlock a destructor that was never locked)");
     }
-    s_lockStack[--s_lockIndex] = nullptr;
 }
 
 #pragma warning(pop)
