@@ -176,7 +176,9 @@ public:
 class SignalsTestPopup : public Popup<> {
 protected:
     Signal<int> m_count = 0;
-    ImmutableSignal<int> m_countDoubled = 0;
+    DerivedSignal<int> m_countDoubled = DerivedSignal<int>([this]() {
+        return *m_count * 2;
+    });
     SignalObserver m_endOfFrameObserver;
     SignalObserver m_immediateObserver;
     Signal<int> m_count2 = 0;
@@ -186,9 +188,6 @@ protected:
         m_noElasticity = true;
         this->setTitle("Signals Test Popup");
 
-        m_countDoubled = std::move(Signal<int>::derived([this]() {
-            return *m_count * 2;
-        }));
         this->reactToChanges([this] {
             log::debug("doubled count: {}", *m_countDoubled);
         });
