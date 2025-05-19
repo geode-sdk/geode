@@ -1,5 +1,3 @@
-using namespace geode::prelude;
-
 #include <Geode/utils/cocos.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/utils/file.hpp>
@@ -20,6 +18,8 @@ using namespace geode::prelude;
 
 #include <jni.h>
 #include <Geode/cocos/platform/android/jni/JniHelper.h>
+
+using namespace geode::prelude;
 
 using geode::utils::permission::Permission;
 
