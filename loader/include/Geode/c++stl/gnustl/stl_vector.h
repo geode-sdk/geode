@@ -70,6 +70,344 @@ namespace geode::stl
 {
 _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 
+
+  // This iterator adapter is @a normal in the sense that it does not
+  // change the semantics of any of the operators of its iterator
+  // parameter.  Its primary purpose is to convert an iterator that is
+  // not a class, e.g. a pointer, into an iterator that is a class.
+  // The _Container parameter exists solely so that different containers
+  // using this template can instantiate different types, even if the
+  // _Iterator parameter is the same.
+  template<typename _Iterator, typename _Container>
+    class __normal_iterator
+    {
+    protected:
+      _Iterator _M_current;
+
+      typedef std::iterator_traits<_Iterator>		__traits_type;
+
+#if __cplusplus >= 201103L && ! defined __glibcxx_concepts
+      template<typename _Iter>
+	using __convertible_from
+	  = std::__enable_if_t<std::is_convertible<_Iter, _Iterator>::value>;
+#endif
+
+    public:
+      typedef _Iterator					iterator_type;
+      typedef typename __traits_type::iterator_category iterator_category;
+      typedef typename __traits_type::value_type  	value_type;
+      typedef typename __traits_type::difference_type 	difference_type;
+      typedef typename __traits_type::reference 	reference;
+      typedef typename __traits_type::pointer   	pointer;
+
+#ifdef __glibcxx_ranges
+      using iterator_concept = std::__detail::__iter_concept<_Iterator>;
+#endif
+
+      __attribute__((__always_inline__))
+      _GLIBCXX_CONSTEXPR
+      __normal_iterator() _GLIBCXX_NOEXCEPT
+      : _M_current() { }
+
+      __attribute__((__always_inline__))
+      explicit _GLIBCXX_CONSTEXPR
+      __normal_iterator(const _Iterator& __i) _GLIBCXX_NOEXCEPT
+      : _M_current(__i) { }
+
+      // Allow iterator to const_iterator conversion
+#if __cplusplus >= 201103L
+# ifdef __glibcxx_concepts
+      template<typename _Iter> requires std::is_convertible_v<_Iter, _Iterator>
+# else
+      template<typename _Iter, typename = __convertible_from<_Iter>>
+# endif
+	[[__gnu__::__always_inline__]]
+	constexpr
+	__normal_iterator(const __normal_iterator<_Iter, _Container>& __i)
+	noexcept
+#else
+      // N.B. _Container::pointer is not actually in container requirements,
+      // but is present in std::vector and std::basic_string.
+      template<typename _Iter>
+	__attribute__((__always_inline__))
+	__normal_iterator(const __normal_iterator<_Iter,
+			  typename __enable_if<
+	       (std::__are_same<_Iter, typename _Container::pointer>::__value),
+		      _Container>::__type>& __i)
+#endif
+        : _M_current(__i.base()) { }
+
+      _GLIBCXX_NODISCARD __attribute__((__always_inline__))
+      _GLIBCXX_CONSTEXPR
+      __normal_iterator<_Iterator, _Container> _M_const_cast() const
+      { return __normal_iterator<_Iterator, _Container>(_M_current); }
+
+      // Forward iterator requirements
+
+      _GLIBCXX_NODISCARD __attribute__((__always_inline__))
+      _GLIBCXX_CONSTEXPR
+      reference
+      operator*() const _GLIBCXX_NOEXCEPT
+      { return *_M_current; }
+
+      _GLIBCXX_NODISCARD __attribute__((__always_inline__))
+      _GLIBCXX_CONSTEXPR
+      pointer
+      operator->() const _GLIBCXX_NOEXCEPT
+      { return _M_current; }
+
+      __attribute__((__always_inline__))
+      _GLIBCXX14_CONSTEXPR
+      __normal_iterator&
+      operator++() _GLIBCXX_NOEXCEPT
+      {
+	++_M_current;
+	return *this;
+      }
+
+      __attribute__((__always_inline__))
+      _GLIBCXX14_CONSTEXPR
+      __normal_iterator
+      operator++(int) _GLIBCXX_NOEXCEPT
+      { return __normal_iterator(_M_current++); }
+
+      // Bidirectional iterator requirements
+
+      __attribute__((__always_inline__))
+      _GLIBCXX14_CONSTEXPR
+      __normal_iterator&
+      operator--() _GLIBCXX_NOEXCEPT
+      {
+	--_M_current;
+	return *this;
+      }
+
+      __attribute__((__always_inline__))
+      _GLIBCXX14_CONSTEXPR
+      __normal_iterator
+      operator--(int) _GLIBCXX_NOEXCEPT
+      { return __normal_iterator(_M_current--); }
+
+      // Random access iterator requirements
+
+      _GLIBCXX_NODISCARD __attribute__((__always_inline__))
+      _GLIBCXX_CONSTEXPR
+      reference
+      operator[](difference_type __n) const _GLIBCXX_NOEXCEPT
+      { return _M_current[__n]; }
+
+      __attribute__((__always_inline__))
+      _GLIBCXX14_CONSTEXPR
+      __normal_iterator&
+      operator+=(difference_type __n) _GLIBCXX_NOEXCEPT
+      { _M_current += __n; return *this; }
+
+      _GLIBCXX_NODISCARD __attribute__((__always_inline__))
+      _GLIBCXX_CONSTEXPR
+      __normal_iterator
+      operator+(difference_type __n) const _GLIBCXX_NOEXCEPT
+      { return __normal_iterator(_M_current + __n); }
+
+      __attribute__((__always_inline__))
+      _GLIBCXX14_CONSTEXPR
+      __normal_iterator&
+      operator-=(difference_type __n) _GLIBCXX_NOEXCEPT
+      { _M_current -= __n; return *this; }
+
+      _GLIBCXX_NODISCARD __attribute__((__always_inline__))
+      _GLIBCXX_CONSTEXPR
+      __normal_iterator
+      operator-(difference_type __n) const _GLIBCXX_NOEXCEPT
+      { return __normal_iterator(_M_current - __n); }
+
+      _GLIBCXX_NODISCARD __attribute__((__always_inline__))
+      _GLIBCXX_CONSTEXPR
+      const _Iterator&
+      base() const _GLIBCXX_NOEXCEPT
+      { return _M_current; }
+    };
+
+  // Note: In what follows, the left- and right-hand-side iterators are
+  // allowed to vary in types (conceptually in cv-qualification) so that
+  // comparison between cv-qualified and non-cv-qualified iterators be
+  // valid.  However, the greedy and unfriendly operators in std::rel_ops
+  // will make overload resolution ambiguous (when in scope) if we don't
+  // provide overloads whose operands are of the same type.  Can someone
+  // remind me what generic programming is about? -- Gaby
+
+#ifdef __cpp_lib_three_way_comparison
+  template<typename _IteratorL, typename _IteratorR, typename _Container>
+    [[nodiscard, __gnu__::__always_inline__]]
+    constexpr bool
+    operator==(const __normal_iterator<_IteratorL, _Container>& __lhs,
+	       const __normal_iterator<_IteratorR, _Container>& __rhs)
+    noexcept(noexcept(__lhs.base() == __rhs.base()))
+    requires requires {
+      { __lhs.base() == __rhs.base() } -> std::convertible_to<bool>;
+    }
+    { return __lhs.base() == __rhs.base(); }
+
+  template<typename _IteratorL, typename _IteratorR, typename _Container>
+    [[nodiscard, __gnu__::__always_inline__]]
+    constexpr std::__detail::__synth3way_t<_IteratorR, _IteratorL>
+    operator<=>(const __normal_iterator<_IteratorL, _Container>& __lhs,
+		const __normal_iterator<_IteratorR, _Container>& __rhs)
+    noexcept(noexcept(std::__detail::__synth3way(__lhs.base(), __rhs.base())))
+    { return std::__detail::__synth3way(__lhs.base(), __rhs.base()); }
+
+  template<typename _Iterator, typename _Container>
+    [[nodiscard, __gnu__::__always_inline__]]
+    constexpr bool
+    operator==(const __normal_iterator<_Iterator, _Container>& __lhs,
+	       const __normal_iterator<_Iterator, _Container>& __rhs)
+    noexcept(noexcept(__lhs.base() == __rhs.base()))
+    requires requires {
+      { __lhs.base() == __rhs.base() } -> std::convertible_to<bool>;
+    }
+    { return __lhs.base() == __rhs.base(); }
+
+  template<typename _Iterator, typename _Container>
+    [[nodiscard, __gnu__::__always_inline__]]
+    constexpr std::__detail::__synth3way_t<_Iterator>
+    operator<=>(const __normal_iterator<_Iterator, _Container>& __lhs,
+		const __normal_iterator<_Iterator, _Container>& __rhs)
+    noexcept(noexcept(std::__detail::__synth3way(__lhs.base(), __rhs.base())))
+    { return std::__detail::__synth3way(__lhs.base(), __rhs.base()); }
+#else
+   // Forward iterator requirements
+  template<typename _IteratorL, typename _IteratorR, typename _Container>
+    _GLIBCXX_NODISCARD __attribute__((__always_inline__)) _GLIBCXX_CONSTEXPR
+    inline bool
+    operator==(const __normal_iterator<_IteratorL, _Container>& __lhs,
+	       const __normal_iterator<_IteratorR, _Container>& __rhs)
+    _GLIBCXX_NOEXCEPT
+    { return __lhs.base() == __rhs.base(); }
+
+  template<typename _Iterator, typename _Container>
+    _GLIBCXX_NODISCARD __attribute__((__always_inline__)) _GLIBCXX_CONSTEXPR
+    inline bool
+    operator==(const __normal_iterator<_Iterator, _Container>& __lhs,
+	       const __normal_iterator<_Iterator, _Container>& __rhs)
+    _GLIBCXX_NOEXCEPT
+    { return __lhs.base() == __rhs.base(); }
+
+  template<typename _IteratorL, typename _IteratorR, typename _Container>
+    _GLIBCXX_NODISCARD __attribute__((__always_inline__)) _GLIBCXX_CONSTEXPR
+    inline bool
+    operator!=(const __normal_iterator<_IteratorL, _Container>& __lhs,
+	       const __normal_iterator<_IteratorR, _Container>& __rhs)
+    _GLIBCXX_NOEXCEPT
+    { return __lhs.base() != __rhs.base(); }
+
+  template<typename _Iterator, typename _Container>
+    _GLIBCXX_NODISCARD __attribute__((__always_inline__)) _GLIBCXX_CONSTEXPR
+    inline bool
+    operator!=(const __normal_iterator<_Iterator, _Container>& __lhs,
+	       const __normal_iterator<_Iterator, _Container>& __rhs)
+    _GLIBCXX_NOEXCEPT
+    { return __lhs.base() != __rhs.base(); }
+
+  // Random access iterator requirements
+  template<typename _IteratorL, typename _IteratorR, typename _Container>
+    _GLIBCXX_NODISCARD __attribute__((__always_inline__)) _GLIBCXX_CONSTEXPR
+    inline bool
+    operator<(const __normal_iterator<_IteratorL, _Container>& __lhs,
+	      const __normal_iterator<_IteratorR, _Container>& __rhs)
+    _GLIBCXX_NOEXCEPT
+    { return __lhs.base() < __rhs.base(); }
+
+  template<typename _Iterator, typename _Container>
+    _GLIBCXX_NODISCARD __attribute__((__always_inline__)) _GLIBCXX20_CONSTEXPR
+    inline bool
+    operator<(const __normal_iterator<_Iterator, _Container>& __lhs,
+	      const __normal_iterator<_Iterator, _Container>& __rhs)
+    _GLIBCXX_NOEXCEPT
+    { return __lhs.base() < __rhs.base(); }
+
+  template<typename _IteratorL, typename _IteratorR, typename _Container>
+    _GLIBCXX_NODISCARD __attribute__((__always_inline__)) _GLIBCXX_CONSTEXPR
+    inline bool
+    operator>(const __normal_iterator<_IteratorL, _Container>& __lhs,
+	      const __normal_iterator<_IteratorR, _Container>& __rhs)
+    _GLIBCXX_NOEXCEPT
+    { return __lhs.base() > __rhs.base(); }
+
+  template<typename _Iterator, typename _Container>
+    _GLIBCXX_NODISCARD __attribute__((__always_inline__)) _GLIBCXX_CONSTEXPR
+    inline bool
+    operator>(const __normal_iterator<_Iterator, _Container>& __lhs,
+	      const __normal_iterator<_Iterator, _Container>& __rhs)
+    _GLIBCXX_NOEXCEPT
+    { return __lhs.base() > __rhs.base(); }
+
+  template<typename _IteratorL, typename _IteratorR, typename _Container>
+    _GLIBCXX_NODISCARD __attribute__((__always_inline__)) _GLIBCXX_CONSTEXPR
+    inline bool
+    operator<=(const __normal_iterator<_IteratorL, _Container>& __lhs,
+	       const __normal_iterator<_IteratorR, _Container>& __rhs)
+    _GLIBCXX_NOEXCEPT
+    { return __lhs.base() <= __rhs.base(); }
+
+  template<typename _Iterator, typename _Container>
+    _GLIBCXX_NODISCARD __attribute__((__always_inline__)) _GLIBCXX_CONSTEXPR
+    inline bool
+    operator<=(const __normal_iterator<_Iterator, _Container>& __lhs,
+	       const __normal_iterator<_Iterator, _Container>& __rhs)
+    _GLIBCXX_NOEXCEPT
+    { return __lhs.base() <= __rhs.base(); }
+
+  template<typename _IteratorL, typename _IteratorR, typename _Container>
+    _GLIBCXX_NODISCARD __attribute__((__always_inline__)) _GLIBCXX_CONSTEXPR
+    inline bool
+    operator>=(const __normal_iterator<_IteratorL, _Container>& __lhs,
+	       const __normal_iterator<_IteratorR, _Container>& __rhs)
+    _GLIBCXX_NOEXCEPT
+    { return __lhs.base() >= __rhs.base(); }
+
+  template<typename _Iterator, typename _Container>
+    _GLIBCXX_NODISCARD __attribute__((__always_inline__)) _GLIBCXX_CONSTEXPR
+    inline bool
+    operator>=(const __normal_iterator<_Iterator, _Container>& __lhs,
+	       const __normal_iterator<_Iterator, _Container>& __rhs)
+    _GLIBCXX_NOEXCEPT
+    { return __lhs.base() >= __rhs.base(); }
+#endif // three-way comparison
+
+  // _GLIBCXX_RESOLVE_LIB_DEFECTS
+  // According to the resolution of DR179 not only the various comparison
+  // operators but also operator- must accept mixed iterator/const_iterator
+  // parameters.
+  template<typename _IteratorL, typename _IteratorR, typename _Container>
+#if __cplusplus >= 201103L
+    // DR 685.
+    [[__nodiscard__, __gnu__::__always_inline__]]
+    constexpr auto
+    operator-(const __normal_iterator<_IteratorL, _Container>& __lhs,
+	      const __normal_iterator<_IteratorR, _Container>& __rhs) noexcept
+    -> decltype(__lhs.base() - __rhs.base())
+#else
+    inline typename __normal_iterator<_IteratorL, _Container>::difference_type
+    operator-(const __normal_iterator<_IteratorL, _Container>& __lhs,
+	      const __normal_iterator<_IteratorR, _Container>& __rhs)
+#endif
+    { return __lhs.base() - __rhs.base(); }
+
+  template<typename _Iterator, typename _Container>
+    _GLIBCXX_NODISCARD __attribute__((__always_inline__)) _GLIBCXX_CONSTEXPR
+    inline typename __normal_iterator<_Iterator, _Container>::difference_type
+    operator-(const __normal_iterator<_Iterator, _Container>& __lhs,
+	      const __normal_iterator<_Iterator, _Container>& __rhs)
+    _GLIBCXX_NOEXCEPT
+    { return __lhs.base() - __rhs.base(); }
+
+  template<typename _Iterator, typename _Container>
+    _GLIBCXX_NODISCARD __attribute__((__always_inline__)) _GLIBCXX_CONSTEXPR
+    inline __normal_iterator<_Iterator, _Container>
+    operator+(typename __normal_iterator<_Iterator, _Container>::difference_type
+	      __n, const __normal_iterator<_Iterator, _Container>& __i)
+    _GLIBCXX_NOEXCEPT
+    { return __normal_iterator<_Iterator, _Container>(__i.base() + __n); }
+
   /// See bits/stl_deque.h's _Deque_base for an explanation.
   template<typename _Tp, typename _Alloc>
     struct _Vector_base
@@ -227,8 +565,8 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       typedef typename _Alloc_traits::const_pointer      const_pointer;
       typedef typename _Alloc_traits::reference          reference;
       typedef typename _Alloc_traits::const_reference    const_reference;
-      typedef __gnu_cxx::__normal_iterator<pointer, vector> iterator;
-      typedef __gnu_cxx::__normal_iterator<const_pointer, vector>
+      typedef geode::stl::__normal_iterator<pointer, vector> iterator;
+      typedef geode::stl::__normal_iterator<const_pointer, vector>
       const_iterator;
       typedef std::reverse_iterator<const_iterator>  const_reverse_iterator;
       typedef std::reverse_iterator<iterator>		 reverse_iterator;
