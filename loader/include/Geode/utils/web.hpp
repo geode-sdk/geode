@@ -61,6 +61,18 @@ namespace geode::utils::web {
         bool certVerification = true; // Enable HTTPS certificate verification
     };
 
+    /// Represents a multipart-form object to be sent in a `WebRequest`.
+    ///
+    /// @example
+    /// web::MultipartForm form;
+    /// form.param("key", "value");
+    /// form.param("key2", "value2");
+    /// form.file("file", { 0xAA, 0xBB, 0xCC }, "raw.bin");
+    /// form.file("file2", "path/to/image.png", "screenshot.png", "image/png");
+    /// 
+    /// auto req = web::WebRequest()
+    ///     .bodyMultipart(form)
+    ///     .get(url);
     class GEODE_DLL MultipartForm final {
     private:
         class Impl;
@@ -81,6 +93,8 @@ namespace geode::utils::web {
 
         /**
          * Finalizes the form and generates the boundary string.
+         * Only call this manually if you know what you're doing,
+         * `WebRequest` takes care of it otherwise.
          * @return MultipartForm&
          */
         MultipartForm& build();
