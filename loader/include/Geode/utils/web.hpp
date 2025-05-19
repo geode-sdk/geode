@@ -81,6 +81,7 @@ namespace geode::utils::web {
 
     public:
         MultipartForm();
+        ~MultipartForm();
 
         MultipartForm& param(std::string_view name, std::string_view value);
         template <std::integral T>
@@ -97,28 +98,28 @@ namespace geode::utils::web {
          * `WebRequest` takes care of it otherwise.
          * @return MultipartForm&
          */
-        MultipartForm& build();
+        MultipartForm& build() const;
 
         /**
          * Returns the unique boundary string used in the multipart form.
          * If build() was not called, it will be called automatically.
          * @return std::string const&
          */
-        std::string const& getBoundary();
+        std::string const& getBoundary() const;
 
         /**
          * Returns the value for the Content-Type header with unique boundary string.
          * If build() was not called, it will be called automatically.
          * @return std::string
          */
-        std::string getHeader();
+        std::string getHeader() const;
 
         /**
          * Returns merged body of all parameters and files, with the correct boundary.
          * If build() was not called, it will be called automatically.
-         * @return ByteVector const&
+         * @return ByteVector
          */
-        ByteVector const& getBody();
+        ByteVector getBody() const;
     };
 
     class WebRequest;
@@ -344,7 +345,7 @@ namespace geode::utils::web {
          * @param form The multipart form to set as the body.
          * @return WebRequest&
          */
-        WebRequest& bodyMultipart(MultipartForm& form);
+        WebRequest& bodyMultipart(MultipartForm const& form);
 
         /**
          * Gets the unique request ID

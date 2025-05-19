@@ -129,11 +129,13 @@ class MultipartForm::Impl {
 public:
     std::unordered_map<std::string, std::string> m_params;
     std::unordered_map<std::string, MultipartFile> m_files;
-    std::string m_boundary;
-    ByteVector m_data;
-    bool m_built = false;
+    mutable std::string m_boundary;
 
-    bool isBoundaryUnique(std::string_view boundary) {
+    bool isBuilt() const {
+        return !m_boundary.empty();
+    }
+
+    bool isBoundaryUnique(std::string_view boundary) const {
         // make sure params and files don't contain the boundary
         for (auto const& [name, value] : m_params) {
             if (name.find(boundary) != std::string::npos || value.find(boundary) != std::string::npos) {
@@ -157,93 +159,97 @@ public:
         return true;
     }
 
-    void generateBoundary() {
+    void pickUniqueBoundary() const {
+        if (isBuilt()) {
+            return;
+        }
+
         auto timestamp = std::chrono::system_clock::now().time_since_epoch().count();
         do {
             m_boundary = fmt::format("----GeodeWebBoundary{}", timestamp++);
         } while (!isBoundaryUnique(m_boundary));
     }
 
-    void build() {
-        if (m_built) {
-            return;
-        }
+    ByteVector getBody() const {
+        pickUniqueBoundary();
 
-        this->generateBoundary();
-        m_data.clear();
-
+        ByteVector data;
         const auto addText = [&](std::string_view value) {
-            m_data.insert(m_data.end(), value.begin(), value.end());
+            data.insert(data.end(), value.begin(), value.end());
         };
 
         // add params
         for (auto const& [name, value] : m_params) {
-            addText(fmt::format("--{}\r\nContent-Disposition: form-data; name=\"{}\"\r\n\r\n{}\r\n", m_boundary, name, value));
+            addText(fmt::format(
+                "--{}\r\nContent-Disposition: form-data; name=\"{}\"\r\n\r\n{}\r\n",
+                m_boundary, name, value
+            ));
         }
 
         // add files
         for (auto const& [name, file] : m_files) {
-            addText(fmt::format("--{}\r\nContent-Disposition: form-data; name=\"{}\"; filename=\"{}\"\r\nContent-Type: {}\r\n\r\n", m_boundary, name, file.filename, file.mime));
-            m_data.insert(m_data.end(), file.data.begin(), file.data.end());
+            addText(fmt::format(
+                "--{}\r\nContent-Disposition: form-data; name=\"{}\"; filename=\"{}\"\r\nContent-Type: {}\r\n\r\n",
+                m_boundary, name, file.filename, file.mime
+            ));
+            data.insert(data.end(), file.data.begin(), file.data.end());
             addText("\r\n");
         }
 
         addText(fmt::format("--{}--\r\n", m_boundary));
-
-        m_built = true;
+        return data;
     }
 };
 
 MultipartForm::MultipartForm() : m_impl(std::make_shared<Impl>()) {}
+MultipartForm::~MultipartForm() = default;
 
 MultipartForm& MultipartForm::param(std::string_view name, std::string_view value) {
-    m_impl->m_params.insert_or_assign(std::string(name), std::string(value));
-    m_impl->m_built = false;
+    if (!m_impl->isBuilt()) {
+        m_impl->m_params.insert_or_assign(std::string(name), std::string(value));
+    }
     return *this;
 }
 
 Result<MultipartForm&> MultipartForm::file(std::string_view name, std::filesystem::path const& path, std::string_view mime) {
-    GEODE_UNWRAP_INTO(auto data, utils::file::readBinary(path));
-    m_impl->m_files.insert_or_assign(std::string(name), MultipartFile{
-        .data = std::move(data),
-        .filename = path.filename().string(),
-        .mime = std::string(mime),
-    });
-    m_impl->m_built = false;
+    if (!m_impl->isBuilt()) {
+        GEODE_UNWRAP_INTO(auto data, utils::file::readBinary(path));
+        m_impl->m_files.insert_or_assign(std::string(name), MultipartFile{
+            .data = std::move(data),
+            .filename = path.filename().string(),
+            .mime = std::string(mime),
+        });
+    }
     return Ok(*this);
 }
 
 MultipartForm& MultipartForm::file(std::string_view name, std::span<uint8_t const> data, std::string_view filename, std::string_view mime) {
-    m_impl->m_files.insert_or_assign(std::string(name), MultipartFile{
-        .data = ByteVector(data.begin(), data.end()),
-        .filename = std::string(filename),
-        .mime = std::string(mime),
-    });
-    m_impl->m_built = false;
-    return *this;
-}
-
-MultipartForm& MultipartForm::build() {
-    m_impl->build();
-    return *this;
-}
-
-std::string const& MultipartForm::getBoundary() {
-    if (!m_impl->m_built) {
-        this->build();
+    if (!m_impl->isBuilt()) {
+        m_impl->m_files.insert_or_assign(std::string(name), MultipartFile{
+            .data = ByteVector(data.begin(), data.end()),
+            .filename = std::string(filename),
+            .mime = std::string(mime),
+        });
     }
+    return *this;
+}
+
+MultipartForm& MultipartForm::build() const {
+    m_impl->pickUniqueBoundary();
+    return *this;
+}
+
+std::string const& MultipartForm::getBoundary() const {
+    m_impl->pickUniqueBoundary();
     return m_impl->m_boundary;
 }
 
-std::string MultipartForm::getHeader() {
+std::string MultipartForm::getHeader() const {
     return fmt::format("multipart/form-data; boundary={}", getBoundary());
 }
 
-ByteVector const& MultipartForm::getBody() {
-    if (!m_impl->m_built) {
-        this->build();
-    }
-    return m_impl->m_data;
+ByteVector MultipartForm::getBody() const {
+    return m_impl->getBody();
 }
 
 WebResponse::WebResponse() : m_impl(std::make_shared<Impl>()) {}
@@ -760,11 +766,10 @@ WebRequest& WebRequest::bodyString(std::string_view str) {
 WebRequest& WebRequest::bodyJSON(matjson::Value const& json) {
     this->header("Content-Type", "application/json");
     std::string str = json.dump(matjson::NO_INDENTATION);
-    m_impl->m_body = ByteVector{str.begin(), str.end()};
+    m_impl->m_body = ByteVector { str.begin(), str.end() };
     return *this;
 }
-
-WebRequest& WebRequest::bodyMultipart(MultipartForm& form) {
+WebRequest& WebRequest::bodyMultipart(MultipartForm const& form) {
     this->header("Content-Type", form.getHeader());
     m_impl->m_body = form.getBody();
     return *this;
