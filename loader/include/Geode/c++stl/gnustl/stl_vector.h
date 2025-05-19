@@ -157,7 +157,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       { return _M_current; }
 
       __attribute__((__always_inline__))
-      _GLIBCXX_CONSTEXPR
+      _GLIBCXX14_CONSTEXPR
       __normal_iterator&
       operator++() _GLIBCXX_NOEXCEPT
       {
@@ -166,7 +166,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       }
 
       __attribute__((__always_inline__))
-      _GLIBCXX_CONSTEXPR
+      _GLIBCXX14_CONSTEXPR
       __normal_iterator
       operator++(int) _GLIBCXX_NOEXCEPT
       { return __normal_iterator(_M_current++); }
@@ -174,7 +174,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       // Bidirectional iterator requirements
 
       __attribute__((__always_inline__))
-      _GLIBCXX_CONSTEXPR
+      _GLIBCXX14_CONSTEXPR
       __normal_iterator&
       operator--() _GLIBCXX_NOEXCEPT
       {
@@ -183,7 +183,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       }
 
       __attribute__((__always_inline__))
-      _GLIBCXX_CONSTEXPR
+      _GLIBCXX14_CONSTEXPR
       __normal_iterator
       operator--(int) _GLIBCXX_NOEXCEPT
       { return __normal_iterator(_M_current--); }
@@ -197,7 +197,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       { return _M_current[__n]; }
 
       __attribute__((__always_inline__))
-      _GLIBCXX_CONSTEXPR
+      _GLIBCXX14_CONSTEXPR
       __normal_iterator&
       operator+=(difference_type __n) _GLIBCXX_NOEXCEPT
       { _M_current += __n; return *this; }
@@ -209,7 +209,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       { return __normal_iterator(_M_current + __n); }
 
       __attribute__((__always_inline__))
-      _GLIBCXX_CONSTEXPR
+      _GLIBCXX14_CONSTEXPR
       __normal_iterator&
       operator-=(difference_type __n) _GLIBCXX_NOEXCEPT
       { _M_current -= __n; return *this; }
