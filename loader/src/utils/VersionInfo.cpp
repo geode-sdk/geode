@@ -1,7 +1,3 @@
-#ifndef _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES
-    #define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 1
-#endif
-
 #include <Geode/utils/VersionInfo.hpp>
 #include <Geode/utils/general.hpp>
 #include <matjson.hpp>

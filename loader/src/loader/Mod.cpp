@@ -76,6 +76,10 @@ ModMetadata Mod::getMetadata() const {
     return m_impl->getMetadata();
 }
 
+ModMetadata const& Mod::getMetadataRef() const {
+    return m_impl->getMetadata();
+}
+
 std::filesystem::path Mod::getTempDir() const {
     return m_impl->getTempDir();
 }

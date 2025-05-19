@@ -345,6 +345,27 @@ std::string geode::utils::getEnvironmentVariable(const char* name) {
     return "";
 }
 
+std::string geode::utils::formatSystemError(int code) {
+    char errorBuf[512]; // enough for most messages
+
+    auto result = FormatMessageA(
+        FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        nullptr, code, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), errorBuf, sizeof(errorBuf), nullptr);
+
+    if (result == 0) {
+        return fmt::format("Unknown ({})", code);
+    } else {
+        std::string msg = std::string(errorBuf, errorBuf + result);
+
+        // the string sometimes includes a crlf, strip it, also remove unprintable chars
+        msg.erase(std::find_if(msg.rbegin(), msg.rend(), [](unsigned char ch) {
+            return ch != '\r' && ch != '\n' && ch < 127;
+        }).base(), msg.end());
+
+        return msg;
+    }
+}
+
 cocos2d::CCRect geode::utils::getSafeAreaRect() {
     auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
     return cocos2d::CCRect(0.0f, 0.0f, winSize.width, winSize.height);

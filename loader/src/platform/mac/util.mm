@@ -10,6 +10,7 @@ using namespace geode::prelude;
 #include <objc/runtime.h>
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/Task.hpp>
+#include <string.h>
 
 #define CommentType CommentTypeDummy
 #import <Cocoa/Cocoa.h>
@@ -37,8 +38,7 @@ std::string utils::clipboard::read() {
 }
 
 bool utils::file::openFolder(std::filesystem::path const& path) {
-    NSURL* fileURL = [NSURL fileURLWithPath:intoNS(path.string())];
-    NSURL* folderURL = [fileURL URLByDeletingLastPathComponent];
+    NSURL* folderURL = [NSURL fileURLWithPath:intoNS(path.string())];
     [[NSWorkspace sharedWorkspace] openURL:folderURL];
     return true;
 }
@@ -250,7 +250,7 @@ std::filesystem::path dirs::getResourcesDir() {
     return dirs::getGameDir() / "Resources";
 }
 
-void geode::utils::game::exit() {
+void geode::utils::game::exit(bool save) {
     if (CCApplication::sharedApplication() &&
         (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
         log::error("Cannot exit in PlayLayer or LevelEditorLayer!");
@@ -265,16 +265,24 @@ void geode::utils::game::exit() {
             [[[NSClassFromString(@"AppControllerManager") sharedInstance] controller] shutdownGame];
 #pragma clang diagnostic pop
         }
+
+        void shutdownNoSave() {
+            std::exit(0); // i don't know if this is the best
+        }
     };
 
     CCDirector::get()->getActionManager()->addAction(CCSequence::create(
         CCDelayTime::create(0.5f),
-        CCCallFunc::create(nullptr, callfunc_selector(Exit::shutdown)),
+        CCCallFunc::create(nullptr, save ? callfunc_selector(Exit::shutdown) : callfunc_selector(Exit::shutdownNoSave)),
         nullptr
     ), CCDirector::get()->getRunningScene(), false);
 }
 
-void geode::utils::game::restart() {
+void geode::utils::game::exit() {
+    exit(true);
+}
+
+void geode::utils::game::restart(bool save) {
     if (CCApplication::sharedApplication() &&
         (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
         log::error("Cannot restart in PlayLayer or LevelEditorLayer!");
@@ -291,7 +299,11 @@ void geode::utils::game::restart() {
     };
 
     std::atexit(restart);
-    exit();
+    exit(save);
+}
+
+void geode::utils::game::restart() {
+    restart(true);
 }
 
 void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
@@ -376,6 +388,10 @@ float geode::utils::getDisplayFactor() {
 std::string geode::utils::getEnvironmentVariable(const char* name) {
     auto result = std::getenv(name);
     return result ? result : "";
+}
+
+std::string geode::utils::formatSystemError(int code) {
+    return strerror(code);
 }
 
 cocos2d::CCRect geode::utils::getSafeAreaRect() {

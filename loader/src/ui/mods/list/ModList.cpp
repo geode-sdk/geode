@@ -1,6 +1,10 @@
 #include "ModList.hpp"
+#include <Geode/cocos/actions/CCActionInterval.h>
+#include <Geode/utils/cocos.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/ui/GeodeUI.hpp>
+#include <Geode/ui/TextInput.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
 #include "../popups/FiltersPopup.hpp"
 #include "../popups/SortPopup.hpp"
 #include "../GeodeStyle.hpp"
@@ -8,7 +12,7 @@
 #include "ModItem.hpp"
 
 static size_t getDisplayPageSize(ModListSource* src, ModListDisplay display) {
-    if (src->isLocalModsOnly() && Mod::get()->template getSettingValue<bool>("infinite-local-mods-list")) {
+    if (src->isLocalModsOnly() && Mod::get()->getSettingValue<bool>("infinite-local-mods-list")) {
         return std::numeric_limits<size_t>::max();
     }
     return 16;
@@ -80,7 +84,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         
         m_updateAllMenu = CCMenu::create();
         m_updateAllMenu->setID("update-all-menu");
-        m_updateAllMenu->setContentWidth(size.width / 2);
+        m_updateAllMenu->setContentSize({size.width / 2, 20});
         m_updateAllMenu->setAnchorPoint({ 1, .5f });
 
         m_showUpdatesSpr = createGeodeButton(
@@ -112,9 +116,13 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         m_updateAllMenu->addChild(m_updateAllLoadingCircle);
 
         m_updateAllMenu->setLayout(
-            RowLayout::create()
-                ->setAxisAlignment(AxisAlignment::End)
-                ->setDefaultScaleLimits(.1f, .6f)
+            SimpleRowLayout::create()
+                ->setMainAxisAlignment(MainAxisAlignment::End)
+                ->setMinRelativeScale(.5f)
+                ->setMaxRelativeScale(1.f)
+                ->setGap(5)
+                ->setMainAxisScaling(AxisScaling::Scale)
+                ->setCrossAxisScaling(AxisScaling::ScaleDownGaps)
         );
         m_updateAllMenu->getLayout()->ignoreInvisibleChildren(true);
         m_updateAllContainer->addChildAtPosition(m_updateAllMenu, Anchor::Right, ccp(-10, 0));
@@ -148,7 +156,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
             
             auto errorsMenu = CCMenu::create();
             errorsMenu->setID("errors-menu");
-            errorsMenu->setContentWidth(size.width / 2);
+            errorsMenu->setContentSize({size.width / 2, 20});
             errorsMenu->setAnchorPoint({ 1, .5f });
 
             auto showErrorsSpr = createGeodeButton(
@@ -167,9 +175,13 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
             errorsMenu->addChild(m_toggleErrorsOnlyBtn);
 
             errorsMenu->setLayout(
-                RowLayout::create()
-                    ->setAxisAlignment(AxisAlignment::End)
-                    ->setDefaultScaleLimits(.1f, .6f)
+                SimpleRowLayout::create()
+                    ->setMainAxisAlignment(MainAxisAlignment::End)
+                    ->setMinRelativeScale(.5f)
+                    ->setMaxRelativeScale(1.f)
+                    ->setGap(5)
+                    ->setMainAxisScaling(AxisScaling::Scale)
+                    ->setCrossAxisScaling(AxisScaling::ScaleDownGaps)
             );
             m_errorsContainer->addChildAtPosition(errorsMenu, Anchor::Right, ccp(-10, 0));
 
@@ -193,32 +205,31 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_searchInput->setScale(.75f);
     m_searchInput->setAnchorPoint({ 0, .5f });
     m_searchInput->setTextAlign(TextInputAlign::Left);
+    m_searchInput->setCommonFilter(CommonFilter::Any);
     m_searchInput->setCallback([this](auto const&) {
-        // If the source is already in memory, we can immediately update the 
-        // search query
+        float bufferTime = 0.4f;
+
         if (m_source->isLocalModsOnly()) {
-            m_source->search(m_searchInput->getString());
-            return;
+            bufferTime = 0.1f;
         }
-        // Otherwise buffer inputs by a bit
-        // This avoids spamming servers for every character typed, 
-        // instead waiting for input to stop to actually do the search
-        std::thread([this] {
-            m_searchInputThreads += 1;
-            std::this_thread::sleep_for(std::chrono::milliseconds(400));
-            m_searchInputThreads -= 1;
-            if (m_searchInputThreads == 0) {
-                Loader::get()->queueInMainThread([this] {
-                    m_source->search(m_searchInput->getString());
-                });
-            }
-        }).detach();
+
+        CCSequence* seq = CCSequence::create(
+            CCDelayTime::create(bufferTime),
+            CallFuncExt::create([this] {
+                m_source->search(m_searchInput->getString());
+            }),
+            nullptr
+        );
+
+        seq->setTag(123123);
+        this->stopActionByTag(123123);
+        this->runAction(seq);
     });
     m_searchMenu->addChildAtPosition(m_searchInput, Anchor::Left, ccp(7.5f, 0));
 
     auto searchFiltersMenu = CCMenu::create();
     searchFiltersMenu->setID("search-filters-menu");
-    searchFiltersMenu->setContentWidth(size.width - m_searchInput->getScaledContentWidth() - 5);
+    searchFiltersMenu->setContentSize({size.width - m_searchInput->getScaledContentWidth() - 5, 30});
     searchFiltersMenu->setAnchorPoint({ 1, .5f });
     searchFiltersMenu->setScale(.75f);
     // Set higher prio to not let list items override touch
@@ -253,8 +264,10 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     searchFiltersMenu->addChild(m_clearFiltersBtn);
 
     searchFiltersMenu->setLayout(
-        RowLayout::create()
-            ->setAxisAlignment(AxisAlignment::End)
+        SimpleRowLayout::create()
+            ->setMainAxisAlignment(MainAxisAlignment::End)
+            ->setMainAxisScaling(AxisScaling::Scale)
+            ->setGap(5.f)
     );
     m_searchMenu->addChildAtPosition(searchFiltersMenu, Anchor::Right, ccp(-10, 0));
 
@@ -286,9 +299,9 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     pageLeftMenu->addChild(m_pagePrevBtn);
 
     pageLeftMenu->setLayout(
-        RowLayout::create()
-            ->setAxisAlignment(AxisAlignment::End)
-            ->setAxisReverse(true)
+        SimpleRowLayout::create()
+            ->setMainAxisAlignment(MainAxisAlignment::End)
+            ->setMainAxisDirection(AxisDirection::RightToLeft)
     );
     this->addChildAtPosition(pageLeftMenu, Anchor::Left, ccp(-20, 0));
 
@@ -308,8 +321,8 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     pageRightMenu->addChild(m_pageNextBtn);
 
     pageRightMenu->setLayout(
-        RowLayout::create()
-            ->setAxisAlignment(AxisAlignment::Start)
+        SimpleRowLayout::create()
+        ->setMainAxisAlignment(MainAxisAlignment::Start)
     );
     this->addChildAtPosition(pageRightMenu, Anchor::Right, ccp(20, 0));
 
@@ -350,8 +363,9 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_statusContainer->addChild(m_statusLoadingBar);
 
     m_statusContainer->setLayout(
-        ColumnLayout::create()
-            ->setAxisReverse(true)
+        SimpleColumnLayout::create()
+            ->setMainAxisDirection(AxisDirection::TopToBottom)
+            ->setGap(5.f)
     );
     m_statusContainer->getLayout()->ignoreInvisibleChildren(true);
     this->addChildAtPosition(m_statusContainer, Anchor::Center);
@@ -373,6 +387,10 @@ void ModList::onPromise(ModListSource::PageLoadTask::Event* event) {
     if (event->getValue()) {
         auto result = event->getValue();
         if (result->isOk()) {
+            if (m_list->m_contentLayer->getChildrenCount() > 0) {
+                m_list->m_contentLayer->removeAllChildren();
+            }
+
             // Hide status
             m_statusContainer->setVisible(false);
 
@@ -559,6 +577,9 @@ void ModList::updateDisplay(ModListDisplay display) {
         m_list->m_contentLayer->getPositionY() / oldPositionArea : 
         -1.f;
 
+    // fix initial width being 0
+    m_list->m_contentLayer->setContentWidth(m_list->getContentWidth());
+    
     // Update the list layout based on the display model
     if (display == ModListDisplay::Grid) {
         m_list->m_contentLayer->setLayout(
@@ -570,10 +591,10 @@ void ModList::updateDisplay(ModListDisplay display) {
     }
     else {
         m_list->m_contentLayer->setLayout(
-            ColumnLayout::create()
-                ->setAxisReverse(true)
-                ->setAxisAlignment(AxisAlignment::End)
-                ->setAutoGrowAxis(m_obContentSize.height)
+            SimpleColumnLayout::create()
+                ->setMainAxisDirection(AxisDirection::TopToBottom)
+                ->setMainAxisAlignment(MainAxisAlignment::End)
+                ->setMainAxisScaling(AxisScaling::Fit)
                 ->setGap(2.5f)
         );
     }
@@ -636,14 +657,18 @@ void ModList::reloadPage() {
 
 void ModList::gotoPage(size_t page, bool update) {
     // Clear list contents
-    m_list->m_contentLayer->removeAllChildren();
+    if (!m_source->isLocalModsOnly()) {
+        m_list->m_contentLayer->removeAllChildren();
+    }
     m_page = page;
 
     // Update page size (if needed)
     m_source->setPageSize(getDisplayPageSize(m_source, m_display));
     
-    // Start loading new page with generic loading message
-    this->showStatus(ModListUnkProgressStatus(), "Loading...");
+    if (!m_source->isLocalModsOnly()) {
+        // Start loading new page with generic loading message
+        this->showStatus(ModListUnkProgressStatus(), "Loading...");
+    }
     m_listener.setFilter(m_source->loadPage(page, update));
 
     // Do initial eager update on page UI (to prevent user spamming arrows 

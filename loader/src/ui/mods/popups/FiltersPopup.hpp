@@ -15,6 +15,7 @@ protected:
     std::unordered_set<std::string> m_selectedTags;
     EventListener<server::ServerRequest<std::vector<server::ServerTag>>> m_tagsListener;
     CCMenuItemToggler* m_enabledModsOnly = nullptr;
+    CCMenuItemToggler* m_enabledModsFirst = nullptr;
     TextInput* m_developerNameInput = nullptr;
 
     bool setup(ModListSource* src) override;

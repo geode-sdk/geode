@@ -26,6 +26,11 @@ namespace geode::base {
         static uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandleA("libcocos2d.dll"));
         return base;
     }
+
+    GEODE_NOINLINE inline uintptr_t getExtensions() {
+        static uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandleA("libExtensions.dll"));
+        return base;
+    }
 }
 
 

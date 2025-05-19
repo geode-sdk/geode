@@ -56,7 +56,7 @@ bool FiltersPopup::setup(ModListSource* src) {
 
     if (auto src = typeinfo_cast<InstalledModListSource*>(m_source)) {
         auto optionsContainer = CCNode::create();
-        optionsContainer->setContentSize(ccp(160, 35));
+        optionsContainer->setContentSize(ccp(240, 35));
         optionsContainer->setAnchorPoint({ .5f, .5f });
 
         auto optionsBG = CCScale9Sprite::create("square02b_001.png");
@@ -68,14 +68,29 @@ bool FiltersPopup::setup(ModListSource* src) {
 
         auto optionsMenu = CCMenu::create();
         optionsMenu->setContentSize(optionsContainer->getContentSize() - ccp(10, 10));
+        optionsMenu->setLayout(
+            RowLayout::create()
+                ->setAutoScale(false)
+        );
 
-        m_enabledModsOnly = CCMenuItemToggler::createWithStandardSprites(this, nullptr, .6f);
-        m_enabledModsOnly->toggle(src->getQuery().enabledOnly.has_value());
-        optionsMenu->addChildAtPosition(m_enabledModsOnly, Anchor::Left, ccp(15, 0));
+        m_enabledModsOnly = CCMenuItemExt::createTogglerWithStandardSprites(.6f, [](auto) {});
+        m_enabledModsOnly->toggle(src->getQuery().enabledOnly.value_or(false));
+        optionsMenu->addChild(m_enabledModsOnly);
 
-        auto enabledOnlyLabel = CCLabelBMFont::create("Enabled Mods Only", "bigFont.fnt");
+        auto enabledOnlyLabel = CCLabelBMFont::create("Enabled Only", "bigFont.fnt");
         enabledOnlyLabel->setScale(.35f);
-        optionsMenu->addChildAtPosition(enabledOnlyLabel, Anchor::Left, ccp(30, 0), ccp(0, .5f));
+        optionsMenu->addChild(enabledOnlyLabel);
+
+        m_enabledModsFirst = CCMenuItemExt::createTogglerWithStandardSprites(.6f, [](auto) {});
+        m_enabledModsFirst->toggle(src->getQuery().enabledFirst.value_or(false));
+        m_enabledModsFirst->setLayoutOptions(AxisLayoutOptions::create()->setPrevGap(10.f));
+        optionsMenu->addChild(m_enabledModsFirst);
+        
+        auto enabledFirstLabel = CCLabelBMFont::create("Enabled First", "bigFont.fnt");
+        enabledFirstLabel->setScale(.35f);
+        optionsMenu->addChild(enabledFirstLabel);
+
+        optionsMenu->updateLayout();
 
         optionsContainer->addChildAtPosition(optionsMenu, Anchor::Center);
 
@@ -204,6 +219,10 @@ void FiltersPopup::onClose(CCObject* sender) {
     m_source->setModTags(m_selectedTags);
     if (auto src = typeinfo_cast<InstalledModListSource*>(m_source)) {
         src->getQueryMut()->enabledOnly = m_enabledModsOnly->isToggled() ? std::optional(true) : std::nullopt;
+        src->getQueryMut()->enabledFirst = m_enabledModsFirst->isToggled() ? std::optional(true) : std::nullopt;
+
+        auto filters = src->getQuery().dumpFilters();
+        Mod::get()->setSavedValue("mod-list-installed-filters", filters);
     }
     else if (auto src = typeinfo_cast<ServerModListSource*>(m_source)) {
         src->getQueryMut()->developer = m_developerNameInput->getString();

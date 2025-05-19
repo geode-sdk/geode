@@ -79,7 +79,7 @@ public:
 
     std::unordered_map<CCNode*, float> calculateCrossScaling(CCNode* layout, std::vector<CCNode*> const& nodes);
     std::unordered_map<CCNode*, float> calculateMainScaling(CCNode* layout, std::vector<CCNode*> const& nodes, float totalGap);
-    
+
     void applyCrossPositioning(CCNode* layout, std::vector<CCNode*> const& nodes);
     void applyMainPositioning(CCNode* layout, std::vector<CCNode*> const& nodes, std::vector<SpacerNode*> const& spacers, float totalGap);
 
@@ -161,7 +161,13 @@ public:
         return on->getScale();
     }
 
+    float getUncommitedScale(CCNode* on) {
+        return m_originalScalesPerNode[on] * m_relativeScalesPerNode[on];
+    }
+
     void setScale(CCNode* on, float scale) {
+        if (on->getScale() == scale) return;
+
         // CCMenuItemSpriteExtra is quirky af
         if (auto btn = typeinfo_cast<CCMenuItemSpriteExtra*>(on)) {
             btn->m_baseScale = scale;
@@ -195,9 +201,9 @@ public:
 
     // get the maximum allowed scale for the node
     // based on the layout's width and the node's width
-    float getMaxCrossScale(CCNode* layout, CCNode* on) const {
+    float getMaxCrossScale(CCNode* layout, CCNode* on) {
         auto const layoutWidth = this->getContentWidth(layout);
-        auto const width = this->getContentWidth(on) * this->getScale(on);
+        auto const width = this->getContentWidth(on) * this->getUncommitedScale(on);
         auto const maxAllowedScale = layoutWidth / width;
         auto const maxScale = this->getMaxScale(on);
         if (maxScale) return std::min(maxAllowedScale, *maxScale);
@@ -213,7 +219,7 @@ std::unordered_map<CCNode*, float> SimpleAxisLayout::Impl::calculateCrossScaling
 
     // get the limits we are working with
     for (auto node : nodes) {
-        auto const width = this->getContentWidth(node) * this->getScale(node);
+        auto const width = this->getContentWidth(node) * this->getUncommitedScale(node);
         if (width > maxWidth) {
             maxWidth = width;
         }
@@ -239,7 +245,7 @@ std::unordered_map<CCNode*, float> SimpleAxisLayout::Impl::calculateCrossScaling
         switch (m_crossAxisScaling) {
             case AxisScaling::ScaleDownGaps:
             case AxisScaling::ScaleDown: {
-                auto const width = this->getContentWidth(node) * this->getScale(node);
+                auto const width = this->getContentWidth(node) * this->getUncommitedScale(node);
                 auto const minScale = this->getMinScale(node);
 
                 // scale down if needed
@@ -249,7 +255,7 @@ std::unordered_map<CCNode*, float> SimpleAxisLayout::Impl::calculateCrossScaling
                 break;
             }
             case AxisScaling::Scale: {
-                auto const width = this->getContentWidth(node) * this->getScale(node);
+                auto const width = this->getContentWidth(node) * this->getUncommitedScale(node);
                 auto const minScale = this->getMinScale(node);
                 auto const maxScale = this->getMaxCrossScale(layout, node);
 
@@ -274,7 +280,7 @@ std::unordered_map<CCNode*, float> SimpleAxisLayout::Impl::calculateMainScaling(
 
     // get the limits we are working with
     for (auto node : nodes) {
-        auto const height = this->getContentHeight(node) * this->getScale(node);
+        auto const height = this->getContentHeight(node) * this->getUncommitedScale(node);
         totalHeight += height;
     }
 
@@ -316,7 +322,7 @@ std::unordered_map<CCNode*, float> SimpleAxisLayout::Impl::calculateMainScaling(
         switch (m_mainAxisScaling) {
             case AxisScaling::ScaleDownGaps:
             case AxisScaling::ScaleDown: {
-                auto const height = this->getContentHeight(node) * this->getScale(node);
+                auto const height = this->getContentHeight(node) * this->getUncommitedScale(node);
                 auto const minScale = this->getMinScale(node);
 
                 // scale down if needed
@@ -327,7 +333,7 @@ std::unordered_map<CCNode*, float> SimpleAxisLayout::Impl::calculateMainScaling(
                 break;
             }
             case AxisScaling::Scale: {
-                auto const height = this->getContentHeight(node) * this->getScale(node);
+                auto const height = this->getContentHeight(node) * this->getUncommitedScale(node);
                 auto const minScale = this->getMinScale(node);
                 auto const maxScale = this->getMaxCrossScale(layout, node);
 
@@ -382,9 +388,9 @@ std::unordered_map<CCNode*, float> SimpleAxisLayout::Impl::calculateMainScaling(
         }
     }
 
-    for (auto priority : { 
-        ScalingPriority::First, ScalingPriority::Early, ScalingPriority::Normal, 
-        ScalingPriority::Late, ScalingPriority::Last 
+    for (auto priority : {
+        ScalingPriority::First, ScalingPriority::Early, ScalingPriority::Normal,
+        ScalingPriority::Late, ScalingPriority::Last
     }) {
         if (totalHeight > layoutHeight) {
             // scale down the nodes, we are over the limit
@@ -394,7 +400,7 @@ std::unordered_map<CCNode*, float> SimpleAxisLayout::Impl::calculateMainScaling(
                 // only partially scale down, should be the last priority to scale
                 auto priorityHeight = 0.f;
                 for (auto node : sortedNodes[priority]) {
-                    auto const height = this->getContentHeight(node) * this->getScale(node);
+                    auto const height = this->getContentHeight(node) * this->getUncommitedScale(node);
                     priorityHeight += height;
                 }
                 // remainingHeight stores unscaled remaining height
@@ -405,7 +411,7 @@ std::unordered_map<CCNode*, float> SimpleAxisLayout::Impl::calculateMainScaling(
                 auto targetScale = (remainingHeight - difference) / remainingHeight;
                 // minScales are sorted in a decreasing priority
                 for (auto node : sortedNodes[priority]) {
-                    auto const height = this->getContentHeight(node) * this->getScale(node);
+                    auto const height = this->getContentHeight(node) * this->getUncommitedScale(node);
                     auto const minScale = this->getMinScale(node);
 
                     auto const scale = std::max(targetScale, minScale.value_or(0.f));
@@ -443,7 +449,7 @@ std::unordered_map<CCNode*, float> SimpleAxisLayout::Impl::calculateMainScaling(
                 // only partially scale up, should be the last priority to scale
                 auto priorityHeight = 0.f;
                 for (auto node : sortedNodes[priority]) {
-                    auto const height = this->getContentHeight(node) * this->getScale(node);
+                    auto const height = this->getContentHeight(node) * this->getUncommitedScale(node);
                     priorityHeight += height;
                 }
                 // remainingHeight stores unscaled remaining height
@@ -454,7 +460,7 @@ std::unordered_map<CCNode*, float> SimpleAxisLayout::Impl::calculateMainScaling(
                 auto targetScale = (remainingHeight + difference) / remainingHeight;
                 // maxScales are sorted in an increasing priority
                 for (auto node : sortedNodes[priority]) {
-                    auto const height = this->getContentHeight(node) * this->getScale(node);
+                    auto const height = this->getContentHeight(node) * this->getUncommitedScale(node);
                     auto const maxScale = this->getMaxCrossScale(layout, node);
 
                     auto const scale = std::min(targetScale, maxScale);
@@ -644,17 +650,17 @@ void SimpleAxisLayout::Impl::applyMainPositioning(CCNode* layout, std::vector<CC
     for (auto node : nodes) {
         // apply the gap between the nodes
         if (auto gap = typeinfo_cast<AxisGap*>(node)) {
-            offset += gap->getGap() * gapPercentage;
+            offset += (gap->getGap() * gapPercentage) * (m_mainAxisDirection == AxisDirection::BackToFront ? -1.f : 1.f);
             lastChild = nullptr;
             continue;
         }
         // otherwise use the default gap
         if (lastChild) {
-            offset += m_gap * gapPercentage;
+            offset += (m_gap * gapPercentage) * (m_mainAxisDirection == AxisDirection::BackToFront ? -1.f : 1.f);
         }
 
         auto const height = this->getContentHeight(node) * this->getScale(node);
-        
+
         node->ignoreAnchorPointForPosition(false);
         node->setAnchorPoint(ccp(0.5f, 0.5f));
 
@@ -724,22 +730,20 @@ void SimpleAxisLayout::Impl::apply(cocos2d::CCNode* layout) {
             // the new scale as the original scale
             m_originalScalesPerNode[child] = scale;
         }
-        else {
-            this->setScale(child, m_originalScalesPerNode[child]);
-        }
+        // else {
+        //     this->setScale(child, m_originalScalesPerNode[child]);
+        // }
         m_relativeScalesPerNode[child] = 1.f;
     }
 
     // calculate required cross scaling
     auto crossScales = this->calculateCrossScaling(layout, realChildren);
     for (auto child : realChildren) {
-        auto scale = 1.f;
         if (crossScales.contains(child)) {
-            scale *= crossScales[child];
+            m_relativeScalesPerNode[child] *= crossScales[child];
         }
 
-        this->setScale(child, scale);
-        m_relativeScalesPerNode[child] = scale;
+        // this->setScale(child, m_originalScalesPerNode[child] * m_relativeScalesPerNode[child]);
     }
 
     // calculate required main scaling
@@ -747,13 +751,15 @@ void SimpleAxisLayout::Impl::apply(cocos2d::CCNode* layout) {
     // minScale and maxScale functions account for this change
     auto mainScales = this->calculateMainScaling(layout, realChildren, totalGap);
     for (auto child : realChildren) {
-        auto scale = m_relativeScalesPerNode[child];
         if (mainScales.contains(child)) {
-            scale *= mainScales[child];
+            m_relativeScalesPerNode[child] *= mainScales[child];
         }
 
-        this->setScale(child, scale);
-        m_relativeScalesPerNode[child] = scale;
+        // this->setScale(child, m_originalScalesPerNode[child] * m_relativeScalesPerNode[child]);
+    }
+
+    for (auto child : realChildren) {
+        this->setScale(child, m_originalScalesPerNode[child] * m_relativeScalesPerNode[child]);
     }
 
     // apply positions
@@ -827,6 +833,46 @@ SimpleAxisLayout* SimpleAxisLayout::setMinRelativeScale(std::optional<float> sca
 SimpleAxisLayout* SimpleAxisLayout::setMaxRelativeScale(std::optional<float> scale) {
     m_impl->m_maxRelativeScale = scale;
     return this;
+}
+
+Axis SimpleAxisLayout::getAxis() const {
+    return m_impl->m_axis;
+}
+
+AxisScaling SimpleAxisLayout::getMainAxisScaling() const {
+    return m_impl->m_mainAxisScaling;
+}
+
+AxisScaling SimpleAxisLayout::getCrossAxisScaling() const {
+    return m_impl->m_crossAxisScaling;
+}
+
+MainAxisAlignment SimpleAxisLayout::getMainAxisAlignment() const {
+    return m_impl->m_mainAxisAlignment;
+}
+
+CrossAxisAlignment SimpleAxisLayout::getCrossAxisAlignment() const {
+    return m_impl->m_crossAxisAlignment;
+}
+
+AxisDirection SimpleAxisLayout::getMainAxisDirection() const {
+    return m_impl->m_mainAxisDirection;
+}
+
+AxisDirection SimpleAxisLayout::getCrossAxisDirection() const {
+    return m_impl->m_crossAxisDirection;
+}
+
+float SimpleAxisLayout::getGap() const {
+    return m_impl->m_gap;
+}
+
+std::optional<float> SimpleAxisLayout::getMinRelativeScale() const {
+    return m_impl->m_minRelativeScale;
+}
+
+std::optional<float> SimpleAxisLayout::getMaxRelativeScale() const {
+    return m_impl->m_maxRelativeScale;
 }
 
 SimpleRowLayout::SimpleRowLayout() : SimpleAxisLayout(Axis::Row) {}

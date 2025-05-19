@@ -72,40 +72,19 @@ namespace geode {
     Class_(geode::CutoffConstructorType, void*)
 
 #define GEODE_CUTOFF_CONSTRUCTOR_BEGIN(Class_)                      \
-    GEODE_MACOS(GEODE_FILL_CONSTRUCTOR(Class_, 0){})                \
-    GEODE_IOS(GEODE_FILL_CONSTRUCTOR(Class_, 0){})                  \
-    GEODE_WINDOWS(Class_(geode::CutoffConstructorType, size_t fill) \
-                  : Class_() {})                                    \
-    GEODE_ANDROID(GEODE_FILL_CONSTRUCTOR(Class_, 0){})
+    GEODE_FILL_CONSTRUCTOR(Class_, 0){}
 
 #define GEODE_CUTOFF_CONSTRUCTOR_COCOS(Class_, Base_)               \
-    GEODE_MACOS(Class_(geode::CutoffConstructorType, size_t fill)   \
-                : Base_(geode::CutoffConstructor, fill){})          \
-    GEODE_IOS(Class_(geode::CutoffConstructorType, size_t fill)     \
-              : Base_(geode::CutoffConstructor, fill){})            \
-    GEODE_WINDOWS(Class_(geode::CutoffConstructorType, size_t fill) \
-                  : Class_() {})                                    \
-    GEODE_ANDROID(Class_(geode::CutoffConstructorType, size_t fill)   \
-                : Base_(geode::CutoffConstructor, fill){})
+    Class_(geode::CutoffConstructorType, size_t fill)               \
+    : Base_(geode::CutoffConstructor, fill){}
 
 #define GEODE_CUTOFF_CONSTRUCTOR_GD(Class_, Base_)                  \
-    GEODE_WINDOWS(Class_(geode::CutoffConstructorType, size_t fill) \
-                  : Base_(geode::CutoffConstructor, fill){})        \
-    GEODE_MACOS(Class_(geode::CutoffConstructorType, size_t fill)   \
-                : Base_(geode::CutoffConstructor, fill){})          \
-    GEODE_IOS(Class_(geode::CutoffConstructorType, size_t fill)     \
-              : Base_(geode::CutoffConstructor, fill){})            \
-    GEODE_ANDROID(Class_(geode::CutoffConstructorType, size_t fill) \
-              : Base_(geode::CutoffConstructor, fill){})
+    Class_(geode::CutoffConstructorType, size_t fill)               \
+    : Base_(geode::CutoffConstructor, fill) {}
 
-#define GEODE_CUTOFF_CONSTRUCTOR_CUTOFF(Class_, Base_)                       \
-    GEODE_WINDOWS(GEODE_FILL_CONSTRUCTOR(Class_, sizeof(Base_)) : Base_(){}) \
-    GEODE_ANDROID(Class_(geode::CutoffConstructorType, size_t fill)          \
-                : Base_(geode::CutoffConstructor, fill){})                   \
-    GEODE_MACOS(Class_(geode::CutoffConstructorType, size_t fill)            \
-                : Base_(geode::CutoffConstructor, fill){})                   \
-    GEODE_IOS(Class_(geode::CutoffConstructorType, size_t fill)              \
-              : Base_(geode::CutoffConstructor, fill){})
+#define GEODE_CUTOFF_CONSTRUCTOR_CUTOFF(Class_, Base_)              \
+    Class_(geode::CutoffConstructorType, size_t fill)               \
+    : Base_(geode::CutoffConstructor, fill) {}
 
 #define GEODE_NUMBER_OF_ARGS(...) \
     GEODE_EXPAND(GEODE_NUMBER_OF_ARGS_(__VA_ARGS__, GEODE_NUMBER_SEQUENCE(), ))

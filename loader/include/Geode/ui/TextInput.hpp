@@ -25,6 +25,10 @@ namespace geode {
         Base64Normal,
         // Allow a URL-safe Base64 number
         Base64URL,
+        // Allow letters, numbers
+        Alphanumeric,
+        // Allow letters
+        Alphabetic,
     };
 
     GEODE_DLL const char* getCommonFilterAllowedChars(CommonFilter filter);
