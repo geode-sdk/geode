@@ -9,7 +9,10 @@
 namespace geode {
     template <class T>
     class Signal;
-    
+
+    class Mod;
+    Mod* getMod();
+
     namespace detail {
         class SignalImpl;
     }
@@ -45,7 +48,7 @@ namespace geode {
         SignalObserver(SignalObserver const&) = delete;
         SignalObserver& operator=(SignalObserver const&) = delete;
 
-        void notify();
+        void notify(Mod* mod);
     };
 
     namespace detail {
@@ -60,45 +63,39 @@ namespace geode {
             SignalImpl();
             ~SignalImpl();
 
-            void valueObserved() const;
-            void valueModified() const;
+            SignalImpl(SignalImpl&&);
+            SignalImpl& operator=(SignalImpl&&);
+
+            void valueObserved(Mod* mod) const;
+            void valueModified(Mod* mod) const;
+            void derive(geode::SignalObserver&& observer);
         };
     }
 
     template <class T>
-    class Signal final {
-    private:
-        T m_value;
+    class ImmutableSignal {
+    protected:
+        std::unique_ptr<T> m_value;
         detail::SignalImpl m_impl;
 
         friend class SignalObserver;
+        friend class Signal<T>; // needed for Signal::derived
 
     public:
-        Signal(T const& value) requires std::copy_constructible<T>
-          : m_value(value) {}
-        Signal(T&& value) requires std::move_constructible<T>
-          : m_value(std::move(value)) {}
+        ImmutableSignal(T const& value) requires std::copy_constructible<T>
+          : m_value(std::make_unique<T>(value)) {}
+        ImmutableSignal(T&& value) requires std::move_constructible<T>
+          : m_value(std::make_unique<T>(std::move(value))) {}
 
-        Signal(Signal&&) = default;
-        Signal& operator=(Signal&&) = default;
+        ImmutableSignal(ImmutableSignal&&) = default;
+        ImmutableSignal& operator=(ImmutableSignal&&) = default;
 
-        Signal(Signal const&) = delete;
-        Signal& operator=(Signal const&) = delete;
+        ImmutableSignal(ImmutableSignal const&) = delete;
+        ImmutableSignal& operator=(ImmutableSignal const&) = delete;
 
-        T const& get() const {
-            m_impl.valueObserved();
-            return m_value;
-        }
-        void set(T const& value) requires std::copy_constructible<T> {
-            m_value = value;
-            m_impl.valueModified();
-        }
-        void set(T&& value) requires std::move_constructible<T> {
-            m_value = std::move(value);
-            m_impl.valueModified();
-        }
-        void update(auto&& updater) {
-            this->set(updater(m_value));
+        T const& get(Mod* in = getMod()) const {
+            m_impl.valueObserved(in);
+            return *m_value;
         }
 
         bool operator==(T const& other) const requires std::equality_comparable<T> {
@@ -119,6 +116,48 @@ namespace geode {
         T const& operator->() const {
             return this->get();
         }
+    };
+
+    template <class T>
+    class Signal final : public ImmutableSignal<T> {
+    public:
+        Signal(T const& value) requires std::copy_constructible<T>
+          : ImmutableSignal<T>(value) {}
+        Signal(T&& value) requires std::move_constructible<T>
+          : ImmutableSignal<T>(std::move(value)) {}
+        
+        static ImmutableSignal<T> derived(std::function<T()> effect) {
+            ImmutableSignal<T> signal = ImmutableSignal<T>(effect());
+            signal.m_impl.derive(SignalObserver(
+                [value = signal.m_value.get(), effect = std::move(effect)]() {
+                    *value = effect();
+                    // Do NOT fire valueModified as signals are not normally 
+                    // allowed to be mutated in observed contexts and would 
+                    // terminate! 
+                },
+                SignalObserverTime::Immediate
+            ));
+            return signal;
+        }
+
+        Signal(Signal&&) = default;
+        Signal& operator=(Signal&&) = default;
+
+        Signal(Signal const&) = delete;
+        Signal& operator=(Signal const&) = delete;
+
+        void set(T const& value, Mod* in = getMod()) requires std::copy_constructible<T> {
+            *ImmutableSignal<T>::m_value = value;
+            ImmutableSignal<T>::m_impl.valueModified(in);
+        }
+        void set(T&& value, Mod* in = getMod()) requires std::move_constructible<T> {
+            *ImmutableSignal<T>::m_value = std::move(value);
+            ImmutableSignal<T>::m_impl.valueModified(in);
+        }
+        void update(auto&& updater) {
+            this->set(updater(this->get()));
+        }
+
         Signal& operator=(T const& value) requires std::copy_constructible<T> {
             this->set(value);
             return *this;
@@ -128,23 +167,27 @@ namespace geode {
             return *this;
         }
         Signal& operator+=(T const& value) requires requires(T& a, T const& b) { a += b; } {
-            m_value += value;
-            m_impl.valueModified();
+            ImmutableSignal<T>::m_impl.valueObserved(getMod());
+            *ImmutableSignal<T>::m_value += value;
+            ImmutableSignal<T>::m_impl.valueModified(getMod());
             return *this;
         }
         Signal& operator-=(T const& value) requires requires(T& a, T const& b) { a -= b; } {
-            m_value -= value;
-            m_impl.valueModified();
+            ImmutableSignal<T>::m_impl.valueObserved(getMod());
+            *ImmutableSignal<T>::m_value -= value;
+            ImmutableSignal<T>::m_impl.valueModified(getMod());
             return *this;
         }
         Signal& operator*=(T const& value) requires requires(T& a, T const& b) { a *= b; } {
-            m_value *= value;
-            m_impl.valueModified();
+            ImmutableSignal<T>::m_impl.valueObserved(getMod());
+            *ImmutableSignal<T>::m_value *= value;
+            ImmutableSignal<T>::m_impl.valueModified(getMod());
             return *this;
         }
         Signal& operator/=(T const& value) requires requires(T& a, T const& b) { a /= b; } {
-            m_value /= value;
-            m_impl.valueModified();
+            ImmutableSignal<T>::m_impl.valueObserved(getMod());
+            *ImmutableSignal<T>::m_value /= value;
+            ImmutableSignal<T>::m_impl.valueModified(getMod());
             return *this;
         }
     };

@@ -176,6 +176,7 @@ public:
 class SignalsTestPopup : public Popup<> {
 protected:
     Signal<int> m_count = 0;
+    ImmutableSignal<int> m_countDoubled = 0;
     SignalObserver m_endOfFrameObserver;
     SignalObserver m_immediateObserver;
     Signal<int> m_count2 = 0;
@@ -184,6 +185,13 @@ protected:
     bool setup() override {
         m_noElasticity = true;
         this->setTitle("Signals Test Popup");
+
+        m_countDoubled = std::move(Signal<int>::derived([this]() {
+            return *m_count * 2;
+        }));
+        this->reactToChanges([this] {
+            log::debug("doubled count: {}", *m_countDoubled);
+        });
 
         auto label = ButtonSprite::create("", "goldFont.fnt", "GJ_button_01.png", .8f);
         m_endOfFrameObserver = SignalObserver(

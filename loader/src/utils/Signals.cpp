@@ -1,14 +1,17 @@
 #include <Geode/utils/Signals.hpp>
 #include <Geode/loader/Loader.hpp>
+#include <Geode/loader/Mod.hpp>
+#include <Geode/utils/terminate.hpp>
 #include <unordered_set>
 
 using namespace geode;
 
 class detail::SignalImpl::Impl {
-    public:
-        std::multiset<SignalObserver::Impl*> observers;
-    };
-    
+public:
+    std::multiset<SignalObserver::Impl*> observers;
+    std::optional<SignalObserver> derivedObserver;
+};
+
 class SignalObserver::Impl {
 public:
     SignalObserverTime time = SignalObserverTime::EndOfFrame;
@@ -40,11 +43,15 @@ public:
         this->onDispose.clear();
     }
 
-    void notify() {
-        // Do not notify if this observer is actively observing to prevent an 
-        // infinite loop
-        for (auto& observer : CURRENT_OBSERVER_STACK) {
-            if (observer == this) return;
+    void notify(Mod* mod) {
+        // You are not allowed to mutate signals in observed contexts
+        if (CURRENT_OBSERVER_STACK.size()) {
+            utils::terminate(fmt::format(
+                "The mod '{}' attempted to mutate a signal in an observed context. "
+                "This is disallowed - use `Signal::derived` to create signals whose "
+                "values depend on other signals!",
+                mod->getID()
+            ));
         }
         if (this->time == SignalObserverTime::Immediate) {
             this->execute();
@@ -65,8 +72,10 @@ detail::SignalImpl::~SignalImpl() {
         observer->observedSignals.erase(m_impl.get());
     }
 }
+detail::SignalImpl::SignalImpl(SignalImpl&&) = default;
+detail::SignalImpl& detail::SignalImpl::operator=(SignalImpl&&) = default;
 
-void detail::SignalImpl::valueObserved() const {
+void detail::SignalImpl::valueObserved(Mod*) const {
     if (!SignalObserver::Impl::CURRENT_OBSERVER_STACK.empty()) {
         auto obs = SignalObserver::Impl::CURRENT_OBSERVER_STACK.back();
         if (!m_impl->observers.contains(obs)) {
@@ -75,12 +84,15 @@ void detail::SignalImpl::valueObserved() const {
         }
     }
 }
-void detail::SignalImpl::valueModified() const {
+void detail::SignalImpl::valueModified(Mod* mod) const {
     // notify() calls unsubscribe methods which will mutate m_observers 
     auto observers = m_impl->observers;
     for (auto observer : observers) {
-        observer->notify();
+        observer->notify(mod);
     }
+}
+void detail::SignalImpl::derive(geode::SignalObserver&& observer) {
+    m_impl->derivedObserver = std::move(observer);
 }
 
 void geode::onSignalDispose(std::function<void()> callback) {
@@ -105,6 +117,6 @@ SignalObserver::~SignalObserver() {
 SignalObserver::SignalObserver(SignalObserver&&) = default;
 SignalObserver& SignalObserver::operator=(SignalObserver&&) = default;
 
-void SignalObserver::notify() {
-    m_impl->notify();
+void SignalObserver::notify(Mod* mod) {
+    m_impl->notify(mod);
 }
