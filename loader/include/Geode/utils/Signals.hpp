@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../DefaultInclude.hpp"
+#include <compare>
 #include <set>
 #include <functional>
 #include <optional>
@@ -105,6 +106,12 @@ namespace geode {
         }
         bool operator==(Signal<T> const& other) const requires std::equality_comparable<T> {
             return this->get() == other.get();
+        }
+        bool operator<=>(T const& other) const requires std::three_way_comparable<T> {
+            return this->get() <=> other;
+        }
+        bool operator<=>(Signal<T> const& other) const requires std::three_way_comparable<T> {
+            return this->get() <=> other.get();
         }
         T const& operator*() const {
             return this->get();

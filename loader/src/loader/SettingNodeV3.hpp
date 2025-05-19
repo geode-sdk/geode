@@ -120,8 +120,8 @@ protected:
         if (!setting->isInputEnabled()) {
             m_input->getBGSprite()->setVisible(false);
             m_input->setEnabled(false);
-            m_input->getInputNode()->m_placeholderLabel->setOpacity(255);
-            m_input->getInputNode()->m_placeholderLabel->setColor(ccWHITE);
+            m_input->getInputNode()->m_textLabel->setOpacity(255);
+            m_input->getInputNode()->m_textLabel->setColor(ccWHITE);
         }
         this->getButtonMenu()->addChildAtPosition(m_input, Anchor::Center);
 
