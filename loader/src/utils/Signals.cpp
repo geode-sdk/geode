@@ -41,6 +41,11 @@ public:
     }
 
     void notify() {
+        // Do not notify if this observer is actively observing to prevent an 
+        // infinite loop
+        for (auto& observer : CURRENT_OBSERVER_STACK) {
+            if (observer == this) return;
+        }
         if (this->time == SignalObserverTime::Immediate) {
             this->execute();
         }
