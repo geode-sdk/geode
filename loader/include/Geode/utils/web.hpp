@@ -93,30 +93,22 @@ namespace geode::utils::web {
         Result<MultipartForm&> file(std::string_view name, std::filesystem::path const& path, std::string_view mime = "application/octet-stream");
 
         /**
-         * Finalizes the form and generates the boundary string.
-         * Only call this manually if you know what you're doing,
-         * `WebRequest` takes care of it otherwise.
-         * @return MultipartForm&
-         */
-        MultipartForm& build() const;
-
-        /**
          * Returns the unique boundary string used in the multipart form.
-         * If build() was not called, it will be called automatically.
+         * This will also finalize the form, so adding more parameters will not work.
          * @return std::string const&
          */
         std::string const& getBoundary() const;
 
         /**
          * Returns the value for the Content-Type header with unique boundary string.
-         * If build() was not called, it will be called automatically.
+         * This will also finalize the form, so adding more parameters will not work.
          * @return std::string
          */
         std::string getHeader() const;
 
         /**
          * Returns merged body of all parameters and files, with the correct boundary.
-         * If build() was not called, it will be called automatically.
+         * This will also finalize the form, so adding more parameters will not work.
          * @return ByteVector
          */
         ByteVector getBody() const;

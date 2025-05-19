@@ -234,11 +234,6 @@ MultipartForm& MultipartForm::file(std::string_view name, std::span<uint8_t cons
     return *this;
 }
 
-MultipartForm& MultipartForm::build() const {
-    m_impl->pickUniqueBoundary();
-    return *this;
-}
-
 std::string const& MultipartForm::getBoundary() const {
     m_impl->pickUniqueBoundary();
     return m_impl->m_boundary;
