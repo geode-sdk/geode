@@ -172,28 +172,23 @@ public:
         this->generateBoundary();
         m_data.clear();
 
-        const auto add_text = [&](std::string_view value) {
+        const auto addText = [&](std::string_view value) {
             m_data.insert(m_data.end(), value.begin(), value.end());
         };
 
         // add params
         for (auto const& [name, value] : m_params) {
-            add_text(fmt::format("--{}\r\n", m_boundary));
-            add_text(fmt::format("Content-Disposition: form-data; name=\"{}\"\r\n\r\n", name));
-            add_text(value);
-            add_text("\r\n");
+            addText(fmt::format("--{}\r\nContent-Disposition: form-data; name=\"{}\"\r\n\r\n{}\r\n", m_boundary, name, value));
         }
 
         // add files
         for (auto const& [name, file] : m_files) {
-            add_text(fmt::format("--{}\r\n", m_boundary));
-            add_text(fmt::format("Content-Disposition: form-data; name=\"{}\"; filename=\"{}\"\r\n", name, file.filename));
-            add_text(fmt::format("Content-Type: {}\r\n\r\n", file.mime));
+            addText(fmt::format("--{}\r\nContent-Disposition: form-data; name=\"{}\"; filename=\"{}\"\r\nContent-Type: {}\r\n\r\n", m_boundary, name, file.filename, file.mime));
             m_data.insert(m_data.end(), file.data.begin(), file.data.end());
-            add_text("\r\n");
+            addText("\r\n");
         }
 
-        add_text(fmt::format("--{}--\r\n", m_boundary));
+        addText(fmt::format("--{}--\r\n", m_boundary));
 
         m_built = true;
     }
