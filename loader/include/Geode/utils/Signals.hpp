@@ -17,7 +17,7 @@ namespace geode {
         class SignalImpl;
     }
 
-    void onSignalDispose(std::function<void()> callback);
+    GEODE_DLL void onSignalDispose(std::function<void()> callback);
 
     enum class SignalObserverTime : uint8_t {
         EndOfFrame,
@@ -35,7 +35,7 @@ namespace geode {
         template <class T>
         friend class Signal;
         friend class detail::SignalImpl;
-        friend void onSignalDispose(std::function<void()> callback);
+        GEODE_DLL friend void onSignalDispose(std::function<void()> callback);
     
     public:
         SignalObserver();
@@ -86,7 +86,7 @@ namespace geode {
             std::unique_ptr<T> m_value;
             detail::SignalImpl m_impl;
 
-            friend class SignalObserver;
+            friend class geode::SignalObserver;
             friend class Signal<T>; // needed for Signal::derived
 
         public:
