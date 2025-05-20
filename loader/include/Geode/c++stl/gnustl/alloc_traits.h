@@ -29,8 +29,7 @@
 
 #pragma once
 
-#if __cplusplus >= 201103L
-
+#include "move.h"
 #include "memoryfwd.h"
 #include "ptr_traits.h"
 #include "type_traits.h"
@@ -43,11 +42,11 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     class __alloctr_rebind_helper
     {
       template<typename _Alloc2, typename _Tp2>
-	static constexpr std::true_type
+	static constexpr geode::stl::true_type
 	_S_chk(typename _Alloc2::template rebind<_Tp2>::other*);
 
       template<typename, typename>
-	static constexpr std::false_type
+	static constexpr geode::stl::false_type
 	_S_chk(...);
 
     public:
@@ -156,37 +155,37 @@ _GLIBCXX_ALLOC_TR_NESTED_TYPE(size_type,
       typedef __size_type size_type;
 
 _GLIBCXX_ALLOC_TR_NESTED_TYPE(propagate_on_container_copy_assignment,
-			      std::false_type)
+			      geode::stl::false_type)
 
       /**
        * @brief   How the allocator is propagated on copy assignment
        *
        * @c Alloc::propagate_on_container_copy_assignment if that type exists,
-       * otherwise @c false_type
+       * otherwise @c geode::stl::false_type
       */
       typedef __propagate_on_container_copy_assignment
 	propagate_on_container_copy_assignment;
 
 _GLIBCXX_ALLOC_TR_NESTED_TYPE(propagate_on_container_move_assignment,
-			      std::false_type)
+			      geode::stl::false_type)
 
       /**
        * @brief   How the allocator is propagated on move assignment
        *
        * @c Alloc::propagate_on_container_move_assignment if that type exists,
-       * otherwise @c false_type
+       * otherwise @c geode::stl::false_type
       */
       typedef __propagate_on_container_move_assignment
 	propagate_on_container_move_assignment;
 
 _GLIBCXX_ALLOC_TR_NESTED_TYPE(propagate_on_container_swap,
-			      std::false_type)
+			      geode::stl::false_type)
 
       /**
        * @brief   How the allocator is propagated on swap
        *
        * @c Alloc::propagate_on_container_swap if that type exists,
-       * otherwise @c false_type
+       * otherwise @c geode::stl::false_type
       */
       typedef __propagate_on_container_swap propagate_on_container_swap;
 
@@ -205,10 +204,10 @@ _GLIBCXX_ALLOC_TR_NESTED_TYPE(propagate_on_container_swap,
 	    typename = decltype(std::declval<_Alloc3*>()->allocate(
 		  std::declval<size_type>(),
 		  std::declval<const_void_pointer>()))>
-	    static std::true_type __test(int);
+	    static geode::stl::true_type __test(int);
 
 	  template<typename>
-	    static std::false_type __test(...);
+	    static geode::stl::false_type __test(...);
 
 	  using type = decltype(__test<_Alloc>(0));
 	};
@@ -234,10 +233,10 @@ _GLIBCXX_ALLOC_TR_NESTED_TYPE(propagate_on_container_swap,
 	  template<typename _Alloc2,
 	    typename = decltype(std::declval<_Alloc2*>()->construct(
 		  std::declval<_Tp*>(), std::declval<_Args>()...))>
-	    static std::true_type __test(int);
+	    static geode::stl::true_type __test(int);
 
 	  template<typename>
-	    static std::false_type __test(...);
+	    static geode::stl::false_type __test(...);
 
 	  using type = decltype(__test<_Alloc>(0));
 	};
@@ -264,10 +263,10 @@ _GLIBCXX_ALLOC_TR_NESTED_TYPE(propagate_on_container_swap,
 	  template<typename _Alloc2,
 	    typename = decltype(std::declval<_Alloc2*>()->destroy(
 		  std::declval<_Tp*>()))>
-	    static std::true_type __test(int);
+	    static geode::stl::true_type __test(int);
 
 	  template<typename>
-	    static std::false_type __test(...);
+	    static geode::stl::false_type __test(...);
 
 	  using type = decltype(__test<_Alloc>(0));
 	};
@@ -290,10 +289,10 @@ _GLIBCXX_ALLOC_TR_NESTED_TYPE(propagate_on_container_swap,
 	{
 	  template<typename _Alloc3,
 	    typename = decltype(std::declval<_Alloc3*>()->max_size())>
-	    static std::true_type __test(int);
+	    static geode::stl::true_type __test(int);
 
 	  template<typename>
-	    static std::false_type __test(...);
+	    static geode::stl::false_type __test(...);
 
 	  using type = decltype(__test<_Alloc2>(0));
 	};
@@ -319,10 +318,10 @@ _GLIBCXX_ALLOC_TR_NESTED_TYPE(propagate_on_container_swap,
 	  template<typename _Alloc3, typename
 	    = decltype(std::declval<_Alloc3*>()
 		->select_on_container_copy_construction())>
-	    static std::true_type __test(int);
+	    static geode::stl::true_type __test(int);
 
 	  template<typename>
-	    static std::false_type __test(...);
+	    static geode::stl::false_type __test(...);
 
 	  using type = decltype(__test<_Alloc2>(0));
 	};
@@ -435,12 +434,12 @@ _GLIBCXX_ALLOC_TR_NESTED_TYPE(propagate_on_container_swap,
 
   template<typename _Alloc>
     inline void
-    __do_alloc_on_copy(_Alloc& __one, const _Alloc& __two, std::true_type)
+    __do_alloc_on_copy(_Alloc& __one, const _Alloc& __two, geode::stl::true_type)
     { __one = __two; }
 
   template<typename _Alloc>
     inline void
-    __do_alloc_on_copy(_Alloc&, const _Alloc&, std::false_type)
+    __do_alloc_on_copy(_Alloc&, const _Alloc&, geode::stl::false_type)
     { }
 
   template<typename _Alloc>
@@ -459,11 +458,11 @@ _GLIBCXX_ALLOC_TR_NESTED_TYPE(propagate_on_container_swap,
     }
 
   template<typename _Alloc>
-    inline void __do_alloc_on_move(_Alloc& __one, _Alloc& __two, std::true_type)
+    inline void __do_alloc_on_move(_Alloc& __one, _Alloc& __two, geode::stl::true_type)
     { __one = std::move(__two); }
 
   template<typename _Alloc>
-    inline void __do_alloc_on_move(_Alloc&, _Alloc&, std::false_type)
+    inline void __do_alloc_on_move(_Alloc&, _Alloc&, geode::stl::false_type)
     { }
 
   template<typename _Alloc>
@@ -475,14 +474,13 @@ _GLIBCXX_ALLOC_TR_NESTED_TYPE(propagate_on_container_swap,
     }
 
   template<typename _Alloc>
-    inline void __do_alloc_on_swap(_Alloc& __one, _Alloc& __two, std::true_type)
+    inline void __do_alloc_on_swap(_Alloc& __one, _Alloc& __two, geode::stl::true_type)
     {
-      using std::swap;
       swap(__one, __two);
     }
 
   template<typename _Alloc>
-    inline void __do_alloc_on_swap(_Alloc&, _Alloc&, std::false_type)
+    inline void __do_alloc_on_swap(_Alloc&, _Alloc&, geode::stl::false_type)
     { }
 
   template<typename _Alloc>
@@ -502,11 +500,11 @@ _GLIBCXX_ALLOC_TR_NESTED_TYPE(propagate_on_container_swap,
 	       = decltype(_Traits::construct(std::declval<_Alloc&>(),
 					     std::declval<_Up*>(),
 					     std::declval<const _Up&>()))>
-	static std::true_type
+	static geode::stl::true_type
 	_M_select(int);
 
       template<typename _Up>
-	static std::false_type
+	static geode::stl::false_type
 	_M_select(...);
 
     public:
@@ -519,7 +517,7 @@ _GLIBCXX_ALLOC_TR_NESTED_TYPE(propagate_on_container_swap,
     : __is_copy_insertable_impl<_Alloc>::type
     { };
 
-  // std::allocator<_Tp> just requires CopyConstructible
+  // allocator<_Tp> just requires CopyConstructible
   template<typename _Tp>
     struct __is_copy_insertable<allocator<_Tp>>
     : std::is_copy_constructible<_Tp>
@@ -527,5 +525,3 @@ _GLIBCXX_ALLOC_TR_NESTED_TYPE(propagate_on_container_swap,
 
 _GLIBCXX_END_NAMESPACE_VERSION
 } // namespace std
-
-#endif

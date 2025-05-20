@@ -6,6 +6,7 @@
 #include "Task.hpp"
 #include <chrono>
 #include <optional>
+#include <string_view>
 
 namespace geode::utils::web {
     GEODE_DLL void openLinkInBrowser(std::string const& url);
@@ -230,7 +231,7 @@ namespace geode::utils::web {
 
         /**
          * Sets the Certificate Authority (CA) bundle content.
-         * Defaults to not sending a CA bundle.
+         * Defaults to sending the Geode CA bundle, found here: https://github.com/geode-sdk/net_libs/blob/main/ca_bundle.h
          *
          * @param content
          * @return WebRequest&
@@ -248,7 +249,7 @@ namespace geode::utils::web {
 
         /**
          * Sets the request's HTTP version.
-         * The default is HttpVersion::VERSION_2TLS.
+         * The default is `HttpVersion::DEFAULT`.
          *
          * @param httpVersion
          * @return WebRequest&

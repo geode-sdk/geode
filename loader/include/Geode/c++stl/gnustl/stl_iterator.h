@@ -64,6 +64,8 @@
 //#include "ext/type_traits.h"
 #include "move.h"
 #include "ptr_traits.h"
+#include "stl_iterator_base_types.h"
+#include "stl_iterator_base_funcs.h"
 
 namespace geode::stl {
 _GLIBCXX_BEGIN_NAMESPACE_VERSION
@@ -791,6 +793,11 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       const _Iterator&
       base() const _GLIBCXX_NOEXCEPT
       { return _M_current; }
+
+      // geode addition
+      operator ::std::__wrap_iter<_Iterator> () {
+        return *reinterpret_cast<::std::__wrap_iter<_Iterator>*>(this);
+      }
     };
 
   // Note: In what follows, the left- and right-hand-side iterators are
@@ -1159,7 +1166,7 @@ _GLIBCXX_END_NAMESPACE_VERSION
 
 #define _GLIBCXX_MAKE_MOVE_ITERATOR(_Iter) std::make_move_iterator(_Iter)
 #define _GLIBCXX_MAKE_MOVE_IF_NOEXCEPT_ITERATOR(_Iter) \
-  std::__make_move_if_noexcept_iterator(_Iter)
+  __make_move_if_noexcept_iterator(_Iter)
 #else
 #define _GLIBCXX_MAKE_MOVE_ITERATOR(_Iter) (_Iter)
 #define _GLIBCXX_MAKE_MOVE_IF_NOEXCEPT_ITERATOR(_Iter) (_Iter)

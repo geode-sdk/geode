@@ -19,6 +19,7 @@ using namespace geode::prelude;
 #include <objc/runtime.h>
 #include <objc/message.h>
 #include <stdlib.h>
+#include <string.h>
 
 using geode::utils::permission::Permission;
 
@@ -262,14 +263,16 @@ GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> file::pickMany(file::
 }
 
 // TODO: copied those two from android but idk maybe shouldve copied from mac
-void geode::utils::game::exit() {
+void geode::utils::game::exit(bool save) {
     // TODO: yeah
     // if (CCApplication::sharedApplication() &&
     //     (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
     //     log::error("Cannot exit in PlayLayer or LevelEditorLayer!");
     //     return;
     // }
-    AppDelegate::get()->trySaveGame(true);
+    if (save) {
+        AppDelegate::get()->trySaveGame(true);
+    }
     // AppDelegate::get()->showLoadingCircle(false, true);
 
     class Exit : public CCObject {
@@ -287,8 +290,14 @@ void geode::utils::game::exit() {
     ), CCDirector::get()->getRunningScene(), false);
 }
 
-void geode::utils::game::restart() {
-    AppDelegate::get()->trySaveGame(true);
+void geode::utils::game::exit() {
+    exit(true);
+}
+
+void geode::utils::game::restart(bool save) {
+    if (save) {
+        AppDelegate::get()->trySaveGame(true);
+    }
 
     class Exit : public CCObject {
         public:
@@ -312,6 +321,10 @@ void geode::utils::game::restart() {
         CCCallFunc::create(nullptr, callfunc_selector(Exit::shutdown)),
         nullptr
     ), CCDirector::get()->getRunningScene(), false);
+}
+
+void geode::utils::game::restart() {
+    restart(true);
 }
 
 void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
@@ -429,6 +442,10 @@ Result<void*> geode::hook::replaceObjcMethod(std::string const& className, std::
     auto oldImp = method_setImplementation(method, (IMP)imp);
 
     return Ok((void*)oldImp);
+}
+
+std::string geode::utils::formatSystemError(int code) {
+    return strerror(code);
 }
 
 cocos2d::CCRect geode::utils::getSafeAreaRect() {

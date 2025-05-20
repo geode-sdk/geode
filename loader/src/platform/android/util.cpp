@@ -1,5 +1,3 @@
-using namespace geode::prelude;
-
 #include <Geode/utils/cocos.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/utils/file.hpp>
@@ -16,9 +14,12 @@ using namespace geode::prelude;
 #include <Geode/DefaultInclude.hpp>
 #include <optional>
 #include <mutex>
+#include <string.h>
 
 #include <jni.h>
 #include <Geode/cocos/platform/android/jni/JniHelper.h>
+
+using namespace geode::prelude;
 
 using geode::utils::permission::Permission;
 
@@ -295,14 +296,16 @@ void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
     log::error("Launching Geode uninstaller is not supported on android");
 }
 
-void geode::utils::game::exit() {
+void geode::utils::game::exit(bool save) {
     // TODO: yeah
     // if (CCApplication::sharedApplication() &&
     //     (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
     //     log::error("Cannot exit in PlayLayer or LevelEditorLayer!");
     //     return;
     // }
-    AppDelegate::get()->trySaveGame(true);
+    if (save) {
+        AppDelegate::get()->trySaveGame(true);
+    }
     // AppDelegate::get()->showLoadingCircle(false, true);
 
     CCDirector::get()->getActionManager()->addAction(CCSequence::create(
@@ -312,7 +315,11 @@ void geode::utils::game::exit() {
     ), CCDirector::get()->getRunningScene(), false);
 }
 
-void geode::utils::game::restart() {
+void geode::utils::game::exit() {
+    exit(true);
+}
+
+void geode::utils::game::restart(bool save) {
     // if (CCApplication::sharedApplication() &&
     //     (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
     //     log::error("Cannot restart in PlayLayer or LevelEditorLayer!");
@@ -333,7 +340,9 @@ void geode::utils::game::restart() {
     // Not implemented
     // log::error("Restarting the game is not implemented on android");
 
-    AppDelegate::get()->trySaveGame(true);
+    if (save) {
+        AppDelegate::get()->trySaveGame(true);
+    }
     // AppDelegate::get()->showLoadingCircle(false, true);
 
     CCDirector::get()->getActionManager()->addAction(CCSequence::create(
@@ -341,6 +350,10 @@ void geode::utils::game::restart() {
         CCCallFunc::create(nullptr, callfunc_selector(Exit::restart)),
         nullptr
     ), CCDirector::get()->getRunningScene(), false);
+}
+
+void geode::utils::game::restart() {
+    restart(true);
 }
 
 static const char* permissionToName(Permission permission) {
@@ -412,6 +425,10 @@ void geode::utils::thread::platformSetName(std::string const& name) {
 std::string geode::utils::getEnvironmentVariable(const char* name) {
     auto result = std::getenv(name);
     return result ? result : "";
+}
+
+std::string geode::utils::formatSystemError(int code) {
+    return strerror(code);
 }
 
 cocos2d::CCRect geode::utils::getSafeAreaRect() {

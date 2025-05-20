@@ -455,7 +455,7 @@ namespace geode {
         Modify() : Base(CutoffConstructor, sizeof(Base)) {}
 
         ~Modify() {
-            cocos2d::CCDestructor::lock(this) = true;
+            geode::DestructorLock::addLock(this);
         }
 
         Modify(Modify const&) = delete;

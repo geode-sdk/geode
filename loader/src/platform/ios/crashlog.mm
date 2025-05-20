@@ -25,6 +25,7 @@ static siginfo_t* s_siginfo = nullptr;
 static ucontext_t* s_context = nullptr;
 static size_t s_backtraceSize = 0;
 static std::array<void*, FRAME_SIZE> s_backtrace;
+static std::vector<struct dyld_image_info const*> s_images;
 static int s_pipe[2];
 
 static std::string_view getSignalCodeString() {
@@ -121,15 +122,11 @@ static struct dyld_image_info const* imageFromAddress(void const* addr) {
         return nullptr;
     }
 
-    auto loadedImages = getAllImages();
-    std::sort(loadedImages.begin(), loadedImages.end(), [](auto const a, auto const b) {
-        return (uintptr_t)a->imageLoadAddress < (uintptr_t)b->imageLoadAddress;
-    });
-    auto iter = std::upper_bound(loadedImages.begin(), loadedImages.end(), addr, [](auto const addr, auto const image) {
+    auto iter = std::upper_bound(s_images.begin(), s_images.end(), addr, [](auto const addr, auto const image) {
         return (uintptr_t)addr < (uintptr_t)image->imageLoadAddress;
     });
 
-    if (iter == loadedImages.begin()) {
+    if (iter == s_images.begin()) {
         return nullptr;
     }
     --iter;
@@ -172,18 +169,90 @@ static Mod* modFromAddress(void const* addr) {
     return nullptr;
 }
 
+// Formats a memory address into something that can more precisely point its location,
+// i.e. 0x12345678 -> "0x12345678 (GeometryDash + 0x5678)"
+static std::string formatAddress(void const* addr) {
+    auto image = imageFromAddress(addr);
+    
+    if (image) {
+        auto imageName = getImageName(image);
+        return fmt::format(
+            "{} ({} + {})",
+            addr,
+            imageName,
+            reinterpret_cast<void const*>((uintptr_t)addr - (uintptr_t)image->imageLoadAddress)
+        );
+    } else {
+        return fmt::format("{}", addr);
+    }
+}
+
 static std::string getInfo(void* address, Mod* faultyMod) {
     std::stringstream stream;
     auto image = imageFromAddress(address);
     auto imageName = getImageName(image);
     stream << "Faulty Lib: " << imageName << "\n";
     stream << "Faulty Mod: " << (faultyMod ? faultyMod->getID() : "<Unknown>") << "\n";
-    stream << "Instruction Address: " << address;
-    if (image) {
-        stream << " (" << imageName << " + " << std::showbase << std::hex << ((uintptr_t)address - (uintptr_t)image->imageLoadAddress) << std::dec << ")";
+    stream << "Instruction Address: " << formatAddress(address) << "\n";
+    stream << fmt::format("Signal Code: 0x{:x} ({})\n", s_signal, getSignalCodeString());
+
+    // these 5 have the si_addr field available as per `man sigaction`
+    if (s_signal == SIGILL || s_signal == SIGFPE || s_signal == SIGSEGV || s_signal == SIGBUS || s_signal == SIGTRAP) {
+        stream << "Signal Detail: ";
+
+        switch (s_signal) {
+            case SIGILL: {
+                stream << fmt::format("Illegal instruction was encountered at {}", formatAddress(s_siginfo->si_addr));
+            } break;
+
+            case SIGFPE: {
+                stream << fmt::format("Floating point exception was thrown at {}", formatAddress(s_siginfo->si_addr));
+            } break;
+
+            case SIGSEGV: {
+                stream << fmt::format("Could not access memory at {} (", formatAddress(s_siginfo->si_addr));
+                
+                switch (s_siginfo->si_code) {
+                    case SEGV_MAPERR: {
+                        stream << "address not mapped to an object";
+                    } break;
+
+                    case SEGV_ACCERR: {
+                        stream << "invalid permissions for mapped object";
+                    } break;
+                }
+
+                stream << ")";
+            } break;
+
+            case SIGBUS: {
+                stream << fmt::format("Bus error when trying to access memory at {} (", formatAddress(s_siginfo->si_addr));
+
+                switch (s_siginfo->si_code) {
+                    case BUS_ADRALN: {
+                        stream << "invalid address alignment";
+                    } break;
+
+                    case BUS_ADRERR: {
+                        stream << "nonexistent physical address";
+                    } break;
+
+                    case BUS_OBJERR: {
+                        stream << "object-specific hardware error";
+                    } break;
+                }
+
+                stream << ")";
+            } break;
+
+            case SIGTRAP: {
+                stream << fmt::format("Breakpoint was hit at {}", formatAddress(s_siginfo->si_addr));
+            } break;
+        }
+
+        stream << "\n";
     }
-    stream << "\n";
-    stream << "Signal Code: " << std::hex << s_signal << " (" << getSignalCodeString() << ")" << std::dec << "\n";
+
     return stream.str();
 }
 
@@ -239,27 +308,34 @@ static std::string getStacktrace() {
 
     std::stringstream lines(addr2Line());
 
-    for (int i = 1; i < s_backtraceSize; ++i) {
-        auto message = std::string(messages[i]);
-
-        auto stream = std::stringstream(message);
+    for (int i = 0; i < s_backtraceSize; ++i) {
         int index;
         std::string binary;
         uintptr_t address;
         std::string function;
         uintptr_t offset;
         std::string line;
+        size_t cutoff;
 
-        stream >> index;
+        auto message = std::string(i == 0 ? "" : messages[i]);
+        auto stream = std::stringstream(message);
 
-        if (!lines.eof()) {
-            std::getline(lines, line);
+        if (i > 0) {
+            stream >> index;
+
+            if (!lines.eof()) {
+                std::getline(lines, line);
+            }
+            std::getline(stream, binary);
+            cutoff = binary.find("0x");
+            stream = std::stringstream(binary.substr(cutoff));
+            binary = geode::utils::string::trim(binary.substr(0, cutoff));
+            stream >> std::hex >> address >> std::dec;
+        } else {
+            // first entry in the stacktrace, not present in `messages`
+            address = (uintptr_t) s_backtrace[0];
+            index = 0;
         }
-        std::getline(stream, binary);
-        auto cutoff = binary.find("0x");
-        stream = std::stringstream(binary.substr(cutoff));
-        binary = geode::utils::string::trim(binary.substr(0, cutoff));
-        stream >> std::hex >> address >> std::dec;
 
         if (!line.empty()) {
             // log::debug("address: {}", address);
@@ -279,20 +355,22 @@ static std::string getStacktrace() {
             stacktrace << ": " << line << "\n";
         }
         else {
-            std::getline(stream, function);
+            if (i > 0) {
+                std::getline(stream, function);
 
-            cutoff = function.find("+");
-            stream = std::stringstream(function.substr(cutoff + 1));
-            stream >> offset;
-            function = geode::utils::string::trim(function.substr(0, cutoff));
+                cutoff = function.find("+");
+                stream = std::stringstream(function.substr(cutoff + 1));
+                stream >> offset;
+                function = geode::utils::string::trim(function.substr(0, cutoff));
 
-            {
-                int status;
-                auto demangle = abi::__cxa_demangle(function.c_str(), 0, 0, &status);
-                if (status == 0) {
-                    function = demangle;
+                {
+                    int status;
+                    auto demangle = abi::__cxa_demangle(function.c_str(), 0, 0, &status);
+                    if (status == 0) {
+                        function = demangle;
+                    }
+                    free(demangle);
                 }
-                free(demangle);
             }
 
             // don't display the (function + offset) part if it will be bogus.
@@ -395,6 +473,12 @@ static void handlerThread() {
                 current_fp = next_fp;
             }
         }
+
+        s_images = getAllImages(); // load them once
+        std::sort(s_images.begin(), s_images.end(), [](auto const a, auto const b) {
+            return (uintptr_t)a->imageLoadAddress < (uintptr_t)b->imageLoadAddress;
+        });
+
         Mod* faultyMod = modFromAddress(signalAddress);
 
         // Mod* faultyMod = nullptr;
