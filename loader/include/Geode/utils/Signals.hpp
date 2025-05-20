@@ -107,10 +107,10 @@ namespace geode {
         bool operator==(Signal<T> const& other) const requires std::equality_comparable<T> {
             return this->get() == other.get();
         }
-        bool operator<=>(T const& other) const requires std::three_way_comparable<T> {
+        std::strong_ordering operator<=>(T const& other) const requires std::three_way_comparable<T> {
             return this->get() <=> other;
         }
-        bool operator<=>(Signal<T> const& other) const requires std::three_way_comparable<T> {
+        std::strong_ordering operator<=>(Signal<T> const& other) const requires std::three_way_comparable<T> {
             return this->get() <=> other.get();
         }
         T const& operator*() const {
