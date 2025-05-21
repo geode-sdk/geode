@@ -185,7 +185,7 @@ endif()
 # CA Bundle
 CPMAddPackage(
 	GITHUB_REPOSITORY geode-sdk/net_libs
-	GIT_TAG 1f5ffb3
+	GIT_TAG 6abd76c
 # CPM is bugged and will not allow an empty string.
 # https://github.com/cpm-cmake/CPM.cmake/issues/467
 # https://github.com/cpm-cmake/CPM.cmake/issues/461

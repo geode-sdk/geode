@@ -232,6 +232,7 @@ namespace geode::utils::web {
         /**
          * Sets the Certificate Authority (CA) bundle content.
          * Defaults to sending the Geode CA bundle, found here: https://github.com/geode-sdk/net_libs/blob/main/ca_bundle.h
+         * On Windows, defaults to using the system certificate store.
          *
          * @param content
          * @return WebRequest&
