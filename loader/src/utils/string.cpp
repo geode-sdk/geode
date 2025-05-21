@@ -63,7 +63,7 @@ Result<std::u32string> utils::string::utf8ToUtf32(std::string_view str) {
     return Ok(std::move(result));
 }
 
-std::string utils::string::pathToUtf8(std::filesystem::path const& path) {
+std::string utils::string::pathToString(std::filesystem::path const& path) {
 #ifdef GEODE_IS_WINDOWS
     return utils::string::wideToUtf8(path.wstring());
 #else
