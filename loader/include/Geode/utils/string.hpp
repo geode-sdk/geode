@@ -51,7 +51,7 @@ namespace geode::utils::string {
     /// Convert path to UTF-8 string
     /// @param path filesystem path
     /// @return UTF-8 encoded std::string
-    GEODE_DLL std::string pathToUtf8(std::filesystem::path const& path);
+    GEODE_DLL std::string pathToString(std::filesystem::path const& path);
 
     GEODE_DLL std::string& toLowerIP(std::string& str);
 
