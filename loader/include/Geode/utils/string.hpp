@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <compare>
+#include <filesystem>
 #include "../DefaultInclude.hpp"
 #include <Geode/Result.hpp>
 
@@ -46,6 +47,11 @@ namespace geode::utils::string {
     /// @param str UTF-8 string view
     /// @return UTF-32 encoded std::u32string, or an error
     GEODE_DLL Result<std::u32string> utf8ToUtf32(std::string_view str);
+
+    /// Convert path to UTF-8 string
+    /// @param path filesystem path
+    /// @return UTF-8 encoded std::string
+    GEODE_DLL std::string pathToUtf8(std::filesystem::path const& path);
 
     GEODE_DLL std::string& toLowerIP(std::string& str);
 
