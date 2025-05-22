@@ -61,6 +61,12 @@ public:
     std::optional<float> m_maxRelativeScale = 2.f;
     SimpleAxisLayout* m_layout = nullptr;
 
+    std::optional<float> m_minMainAxis;
+    std::optional<float> m_minCrossAxis;
+    // max sizes are currently unused, max layout size is planned
+    std::optional<float> m_maxMainAxis;
+    std::optional<float> m_maxCrossAxis;
+
     std::unordered_map<CCNode*, float> m_originalScalesPerNode;
     std::unordered_map<CCNode*, float> m_relativeScalesPerNode;
 
@@ -227,8 +233,9 @@ std::unordered_map<CCNode*, float> SimpleAxisLayout::Impl::calculateCrossScaling
 
     switch (m_crossAxisScaling) {
         case AxisScaling::Grow:
+            if (m_minCrossAxis == std::nullopt) m_minCrossAxis = layoutWidth;
             // grow the layout to fit the widest node
-            if (maxWidth > layoutWidth) layoutWidth = maxWidth;
+            layoutWidth = std::min(m_minCrossAxis.value(), maxWidth);
             break;
         case AxisScaling::Fit:
             // fit the layout to the widest node
@@ -286,8 +293,9 @@ std::unordered_map<CCNode*, float> SimpleAxisLayout::Impl::calculateMainScaling(
 
     switch (m_mainAxisScaling) {
         case AxisScaling::Grow:
+            if (m_minMainAxis == std::nullopt) m_minMainAxis = layoutHeight;
             // grow the layout to fit all the nodes
-            if (totalHeight > layoutHeight) layoutHeight = totalHeight;
+            layoutHeight = std::min(m_minMainAxis.value(), totalHeight);
             break;
         case AxisScaling::Fit:
             // fit the layout to all the nodes
@@ -503,7 +511,8 @@ void SimpleAxisLayout::Impl::applyCrossPositioning(CCNode* layout, std::vector<C
     // reapply grow/fit since main scaling may have changed the max width
     switch (m_crossAxisScaling) {
         case AxisScaling::Grow:
-            if (maxWidth > layoutWidth) layoutWidth = maxWidth;
+            if (m_minCrossAxis == std::nullopt) m_minCrossAxis = layoutWidth;
+            layoutWidth = std::min(m_minCrossAxis.value(), maxWidth);
             break;
         case AxisScaling::Fit:
             layoutWidth = maxWidth;
