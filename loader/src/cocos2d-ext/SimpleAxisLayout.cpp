@@ -235,7 +235,7 @@ std::unordered_map<CCNode*, float> SimpleAxisLayout::Impl::calculateCrossScaling
         case AxisScaling::Grow:
             if (m_minCrossAxis == std::nullopt) m_minCrossAxis = layoutWidth;
             // grow the layout to fit the widest node
-            layoutWidth = std::min(m_minCrossAxis.value(), maxWidth);
+            layoutWidth = std::max(m_minCrossAxis.value(), maxWidth);
             break;
         case AxisScaling::Fit:
             // fit the layout to the widest node
@@ -295,7 +295,7 @@ std::unordered_map<CCNode*, float> SimpleAxisLayout::Impl::calculateMainScaling(
         case AxisScaling::Grow:
             if (m_minMainAxis == std::nullopt) m_minMainAxis = layoutHeight;
             // grow the layout to fit all the nodes
-            layoutHeight = std::min(m_minMainAxis.value(), totalHeight);
+            layoutHeight = std::max(m_minMainAxis.value(), totalHeight);
             break;
         case AxisScaling::Fit:
             // fit the layout to all the nodes
@@ -512,7 +512,7 @@ void SimpleAxisLayout::Impl::applyCrossPositioning(CCNode* layout, std::vector<C
     switch (m_crossAxisScaling) {
         case AxisScaling::Grow:
             if (m_minCrossAxis == std::nullopt) m_minCrossAxis = layoutWidth;
-            layoutWidth = std::min(m_minCrossAxis.value(), maxWidth);
+            layoutWidth = std::max(m_minCrossAxis.value(), maxWidth);
             break;
         case AxisScaling::Fit:
             layoutWidth = maxWidth;
