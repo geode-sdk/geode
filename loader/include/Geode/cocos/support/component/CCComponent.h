@@ -60,13 +60,13 @@ public:
     virtual bool isEnabled() const;
     virtual void setEnabled(bool b);
     static CCComponent* create(void);
-    
+
     const char* getName() const;
     void setName(const char *pName);
-    
+
     void setOwner(CCNode *pOwner);
     CCNode* getOwner() const;
-    
+
 public:
     CCNode *m_pOwner;
     gd::string m_strName;

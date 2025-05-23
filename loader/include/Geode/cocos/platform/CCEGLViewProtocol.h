@@ -55,22 +55,22 @@ public:
      */
     virtual ~CCEGLViewProtocol();
 
-    /** Force destroying EGL view, subclass must implement this method. 
+    /** Force destroying EGL view, subclass must implement this method.
      * @lua NA
      */
     virtual void    end() {}
 
-    /** Get whether opengl render system is ready, subclass must implement this method. 
+    /** Get whether opengl render system is ready, subclass must implement this method.
      * @lua NA
      */
     virtual bool    isOpenGLReady() { return false; }
 
-    /** Exchanges the front and back buffers, subclass must implement this method. 
+    /** Exchanges the front and back buffers, subclass must implement this method.
      * @lua NA
      */
     virtual void    swapBuffers() {}
 
-    /** Open or close IME keyboard , subclass must implement this method. 
+    /** Open or close IME keyboard , subclass must implement this method.
      * @lua NA
      */
     virtual void    setIMEKeyboardState(bool bOpen) {}
@@ -145,7 +145,7 @@ public:
      */
     const char* getViewName();
 
-    /** Touch events are handled by default; if you want to customize your handlers, please override these functions: 
+    /** Touch events are handled by default; if you want to customize your handlers, please override these functions:
      * @lua NA
      */
     virtual void handleTouchesBegin(int num, int ids[], float xs[], float ys[]);

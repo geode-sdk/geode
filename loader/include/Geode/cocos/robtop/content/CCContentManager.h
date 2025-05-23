@@ -8,7 +8,7 @@
 
 // not in cocos2d namespace
 // @note RobTop Addition
-class CC_DLL CCContentManager : public cocos2d::CCObject 
+class CC_DLL CCContentManager : public cocos2d::CCObject
 {
 public:
     static CCContentManager* sharedManager();

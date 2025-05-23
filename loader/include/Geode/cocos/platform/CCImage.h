@@ -75,9 +75,9 @@ public:
         kAlignLeft          = 0x31, ///< Horizontal left and vertical center.
         kAlignTopLeft       = 0x11, ///< Horizontal left and vertical top.
     }ETextAlign;
-    
+
     /**
-    @brief  Load the image from the specified path. 
+    @brief  Load the image from the specified path.
     @param strPath   the absolute file path.
     @param imageType the type of image, currently only supporting two types.
     @return  true if loaded correctly.
@@ -103,8 +103,8 @@ public:
     @return true if loaded correctly.
     @js NA
     */
-    bool initWithImageData(void * pData, 
-                           int nDataLen, 
+    bool initWithImageData(void * pData,
+                           int nDataLen,
                            EImageFormat eFmt = kFmtUnKnown,
                            int nWidth = 0,
                            int nHeight = 0,
@@ -122,13 +122,13 @@ public:
     @js NA
     */
     bool initWithString(
-        const char *    pText, 
-        int             nWidth = 0, 
+        const char *    pText,
+        int             nWidth = 0,
         int             nHeight = 0,
         ETextAlign      eAlignMask = kAlignCenter,
         const char *    pFontName = 0,
         int             nSize = 0);
-    
+
     #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID) || (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
         /**
          * @js NA
@@ -154,11 +154,11 @@ public:
                                             float strokeG               = 1,
                                             float strokeB               = 1,
                                             float strokeSize            = 1
-                                        
+
                                         );
-    
+
     #endif
-    
+
 
     unsigned char *   getData()               { return m_pData; }
     int               getDataLen()            { return m_nWidth * m_nHeight; }

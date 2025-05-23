@@ -275,7 +275,7 @@ WeakRefPool* WeakRefPool::get() {
 }
 
 void WeakRefPool::check(CCObject* obj) {
-    // if this object's only reference is the WeakRefPool aka only weak 
+    // if this object's only reference is the WeakRefPool aka only weak
     // references exist to it, then release it
     if (obj && obj->retainCount() == 1) {
         this->forget(obj);
@@ -480,7 +480,7 @@ void geode::cocos::reloadTextures(CreateLayerFunc returnTo) {
 void GEODE_DLL geode::cocos::handleTouchPriorityWith(cocos2d::CCNode* node, int priority, bool force) {
     if (node == nullptr) return;
     if (node->getChildrenCount() == 0) return;
-    
+
     for (auto child : CCArrayExt<CCNode*>(node->getChildren())) {
         if (auto delegate = typeinfo_cast<CCTouchDelegate*>(child)) {
             if (auto handler = CCTouchDispatcher::get()->findHandler(delegate)) {

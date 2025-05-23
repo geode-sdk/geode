@@ -47,7 +47,7 @@ bool CCNode::hasAncestor(CCNode* ancestor) {
     return false;
 }
 
-// these use setContentSize and getContentSize because they're virtuals and 
+// these use setContentSize and getContentSize because they're virtuals and
 // some node may override those for wacky behaviour
 
 void CCNode::setScaledContentSize(CCSize const& size) {

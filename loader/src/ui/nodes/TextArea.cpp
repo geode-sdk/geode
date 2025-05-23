@@ -261,7 +261,7 @@ void SimpleTextArea::updateContainer() {
             this->updateLinesCutoffWrap();
         } break;
     }
-    
+
     const size_t lineCount = m_lines.size();
     const float width = this->getWidth();
 

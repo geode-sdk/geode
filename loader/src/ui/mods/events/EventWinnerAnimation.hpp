@@ -4,7 +4,7 @@
 
 using namespace geode::prelude;
 
-// NOTE: this has a generic name because we should have modtober info 
+// NOTE: this has a generic name because we should have modtober info
 
 class EventWinnerAnimation : public CCMenu {
 protected:

@@ -10,7 +10,7 @@
 
 namespace geode::utils::web {
     GEODE_DLL void openLinkInBrowser(std::string const& url);
-    
+
     // https://curl.se/libcurl/c/CURLOPT_HTTPAUTH.html
     namespace http_auth {
         constexpr static long BASIC = 0x0001;
@@ -109,7 +109,7 @@ namespace geode::utils::web {
         std::shared_ptr<Impl> m_impl;
 
         friend class WebRequest;
-    
+
     public:
         // Must be default-constructible for use in Promise
         WebProgress();
@@ -203,7 +203,7 @@ namespace geode::utils::web {
 
         /**
          * Enables or disabled getting the body of a request. For HTTP(S), this does a HEAD request.
-         * For most other protocols it means just not asking to transfer the body data. 
+         * For most other protocols it means just not asking to transfer the body data.
          * The default is true.
          *
          * @param enabled

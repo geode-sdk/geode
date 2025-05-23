@@ -147,7 +147,7 @@ Result<> nfdPick(
     void* result
 ) {
     auto coResult = COMInit();
-    if (!COMIsInitialized(coResult)) {        
+    if (!COMIsInitialized(coResult)) {
         return Err("Could not initialize COM");
     }
 

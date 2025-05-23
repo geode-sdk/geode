@@ -76,7 +76,7 @@ namespace geode::utils::file {
     private:
         class Impl;
         std::unique_ptr<Impl> m_impl;
-        
+
         Zip();
         Zip(std::unique_ptr<Impl>&& impl);
 
@@ -86,7 +86,7 @@ namespace geode::utils::file {
 
         // for sharing Impl
         friend class Unzip;
-    
+
     public:
         Zip(Zip const&) = delete;
         Zip(Zip&& other);
@@ -104,7 +104,7 @@ namespace geode::utils::file {
 
         /**
          * Path to the created zip
-         * @returns The path to the zip that is being created, or an empty path 
+         * @returns The path to the zip that is being created, or an empty path
          * if the zip was opened in memory
          */
         Path getPath() const;
@@ -123,8 +123,8 @@ namespace geode::utils::file {
          */
         Result<> add(Path const& entry, std::string const& data);
         /**
-         * Add an entry to the zip from a file on disk. If you want to add the 
-         * file with a different name, read it into memory first and add it 
+         * Add an entry to the zip from a file on disk. If you want to add the
+         * file with a different name, read it into memory first and add it
          * with Zip::add
          * @param file File on disk
          * @param entryDir Folder to place the file in in the zip
@@ -137,7 +137,7 @@ namespace geode::utils::file {
          */
         Result<> addAllFrom(Path const& dir);
         /**
-         * Add a folder entry to the zip. If you want to add a folder from disk, 
+         * Add a folder entry to the zip. If you want to add a folder from disk,
          * use Zip::addAllFrom
          * @param entry Folder path in zip
          */
@@ -181,7 +181,7 @@ namespace geode::utils::file {
 
         /**
          * Path to the opened zip
-         * @returns The path to the zip that is being read, or an empty path 
+         * @returns The path to the zip that is being read, or an empty path
          * if the zip was opened in memory
          */
         Path getPath() const;
@@ -255,7 +255,7 @@ namespace geode::utils::file {
         };
 
         /**
-         * On PickMode::SaveFile and PickMode::OpenFile, last item is assumed 
+         * On PickMode::SaveFile and PickMode::OpenFile, last item is assumed
          * to be a filename, unless it points to an extant directory.
          * On PickMode::OpenFolder, path is treated as leading up to a directory
          */
@@ -282,7 +282,7 @@ namespace geode::utils::file {
     class GEODE_DLL FileWatchEvent final : public Event {
     protected:
         std::filesystem::path m_path;
-    
+
     public:
         FileWatchEvent(std::filesystem::path const& path);
         std::filesystem::path getPath() const;
@@ -291,7 +291,7 @@ namespace geode::utils::file {
     class GEODE_DLL FileWatchFilter final : public EventFilter<FileWatchEvent> {
     protected:
         std::filesystem::path m_path;
-    
+
     public:
         using Callback = void(FileWatchEvent*);
 
@@ -300,12 +300,12 @@ namespace geode::utils::file {
     };
 
     /**
-     * Watch a file for changes. Whenever the file is modified on disk, a 
-     * FileWatchEvent is emitted. Add an EventListener with FileWatchFilter 
+     * Watch a file for changes. Whenever the file is modified on disk, a
+     * FileWatchEvent is emitted. Add an EventListener with FileWatchFilter
      * to catch these events
      * @param file The file to watch
-     * @note Watching uses file system equivalence instead of path equivalence, 
-     * so different paths that point to the same file will be considered the 
+     * @note Watching uses file system equivalence instead of path equivalence,
+     * so different paths that point to the same file will be considered the
      * same
      */
     GEODE_DLL Result<> watchFile(std::filesystem::path const& file);

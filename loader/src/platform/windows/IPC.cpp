@@ -1,4 +1,4 @@
-﻿#include <Geode/loader/IPC.hpp>
+#include <Geode/loader/IPC.hpp>
 #include <loader/IPC.hpp>
 
 #include <thread>

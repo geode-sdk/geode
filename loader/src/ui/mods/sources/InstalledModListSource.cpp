@@ -85,7 +85,7 @@ void InstalledModListSource::resetQuery() {
     m_query = InstalledModsQuery {
         .type = m_type,
     };
-    
+
     // load the enabled only / enable first values if applicable
     auto value = Mod::get()->getSavedValue<matjson::Value>("mod-list-installed-filters");
 
@@ -96,7 +96,7 @@ void InstalledModListSource::resetQuery() {
     if (!m_query.enabledOnly.value_or(false)) {
         m_query.enabledOnly = std::nullopt;
     }
-    
+
     if (!m_query.enabledFirst.value_or(false)) {
         m_query.enabledFirst = std::nullopt;
     }

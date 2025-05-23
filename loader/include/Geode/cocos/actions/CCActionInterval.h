@@ -41,7 +41,7 @@ NS_CC_BEGIN
  * @{
  */
 
-/** 
+/**
 @brief An interval action is an action that takes place within a certain period of time.
 It has an start time, and a finish time. The finish time is the parameter
 duration plus the start time.
@@ -89,7 +89,7 @@ public:
     static CCActionInterval* create(float d);
 
 public:
-    //extension in CCGridAction 
+    //extension in CCGridAction
     void setAmplitudeRate(float amp);
     float getAmplitudeRate(void);
 
@@ -116,7 +116,7 @@ public:
      */
     ~CCSequence(void);
 
-    /** initializes the action 
+    /** initializes the action
      * @lua NA
      */
     bool initWithTwoActions(CCFiniteTimeAction *pActionOne, CCFiniteTimeAction *pActionTwo);
@@ -141,7 +141,7 @@ public:
 
 public:
 
-    /** helper constructor to create an array of sequenceable actions 
+    /** helper constructor to create an array of sequenceable actions
      * @lua NA
      */
     static CCSequence* create(CCFiniteTimeAction *pAction1, ...) {
@@ -151,19 +151,19 @@ public:
 	    CCSequence *pRet = CCSequence::createWithVariableList(pAction1, params);
 
 	    va_end(params);
-	    
+
 	    return pRet;
 	}
-    /** helper constructor to create an array of sequenceable actions given an array 
+    /** helper constructor to create an array of sequenceable actions given an array
      * @js NA
      */
     static CCSequence* create(CCArray *arrayOfActions);
-    /** helper constructor to create an array of sequence-able actions 
+    /** helper constructor to create an array of sequence-able actions
      * @js NA
      * @lua NA
      */
     static CCSequence* createWithVariableList(CCFiniteTimeAction *pAction1, va_list args);
-    /** creates the action 
+    /** creates the action
      * @js NA
      */
     static CCSequence* createWithTwoActions(CCFiniteTimeAction *pActionOne, CCFiniteTimeAction *pActionTwo);
@@ -303,7 +303,7 @@ public:
      */
     ~CCSpawn(void);
 
-    /** initializes the Spawn action with the 2 actions to spawn 
+    /** initializes the Spawn action with the 2 actions to spawn
      * @lua NA
      */
     bool initWithTwoActions(CCFiniteTimeAction *pAction1, CCFiniteTimeAction *pAction2);
@@ -328,23 +328,23 @@ public:
 
 public:
 
-    /** helper constructor to create an array of spawned actions 
+    /** helper constructor to create an array of spawned actions
      * @lua NA
      */
     static CCSpawn* create(CCFiniteTimeAction *pAction1, ...);
-    
-    /** helper constructor to create an array of spawned actions 
+
+    /** helper constructor to create an array of spawned actions
      * @js  NA
      * @lua NA
      */
     static CCSpawn* createWithVariableList(CCFiniteTimeAction *pAction1, va_list args);
 
-    /** helper constructor to create an array of spawned actions given an array 
+    /** helper constructor to create an array of spawned actions given an array
      * @js NA
      */
     static CCSpawn* create(CCArray *arrayOfActions);
 
-    /** creates the Spawn action 
+    /** creates the Spawn action
      * @js NA
      */
     static CCSpawn* createWithTwoActions(CCFiniteTimeAction *pAction1, CCFiniteTimeAction *pAction2);
@@ -357,7 +357,7 @@ public:
 /** @brief Rotates a CCNode object to a certain angle by modifying it's
  rotation attribute.
  The direction will be decided by the shortest angle.
-*/ 
+*/
 class CC_DLL CCRotateTo : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
@@ -366,7 +366,7 @@ public:
     static CCRotateTo* create(float fDuration, float fDeltaAngle);
     /** initializes the action */
     bool initWithDuration(float fDuration, float fDeltaAngle);
-    
+
     /** creates the action with separate rotation angles */
     static CCRotateTo* create(float fDuration, float fDeltaAngleX, float fDeltaAngleY);
     virtual bool initWithDuration(float fDuration, float fDeltaAngleX, float fDeltaAngleY);
@@ -377,12 +377,12 @@ public:
     virtual CCObject* copyWithZone(CCZone* pZone);
     virtual void startWithTarget(CCNode *pTarget);
     virtual void update(float time);
-    
+
 public:
     float m_fDstAngleX;
     float m_fStartAngleX;
     float m_fDiffAngleX;
-    
+
     float m_fDstAngleY;
     float m_fStartAngleY;
     float m_fDiffAngleY;
@@ -398,7 +398,7 @@ public:
     static CCRotateBy* create(float fDuration, float fDeltaAngle);
     /** initializes the action */
     bool initWithDuration(float fDuration, float fDeltaAngle);
-    
+
     static CCRotateBy* create(float fDuration, float fDeltaAngleX, float fDeltaAngleY);
     bool initWithDuration(float fDuration, float fDeltaAngleX, float fDeltaAngleY);
     /**
@@ -409,7 +409,7 @@ public:
     virtual void startWithTarget(CCNode *pTarget);
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
-    
+
 public:
     float m_fAngleX;
     float m_fStartAngleX;
@@ -554,7 +554,7 @@ public:
 };
 
 /** @brief Moves a CCNode object to a parabolic position simulating a jump movement by modifying it's position attribute.
-*/ 
+*/
 class CC_DLL CCJumpTo : public CCJumpBy
 {
     GEODE_FRIEND_MODIFY
@@ -588,7 +588,7 @@ class CC_DLL CCBezierBy : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
-    /** initializes the action with a duration and a bezier configuration 
+    /** initializes the action with a duration and a bezier configuration
      *  @lua NA
      */
     bool initWithDuration(float t, const ccBezierConfig& c);
@@ -608,7 +608,7 @@ public:
     virtual CCActionInterval* reverse(void);
 
 public:
-    /** creates the action with a duration and a bezier configuration 
+    /** creates the action with a duration and a bezier configuration
      *  @code
      *  when this function bound to js,the input params are changed
      *  js: var create(var t, var pointTable)
@@ -651,7 +651,7 @@ public:
      *  @lua NA
      */
     bool initWithDuration(float t, const ccBezierConfig &c);
-    
+
 public:
     ccBezierConfig m_sToConfig;
 };
@@ -737,10 +737,10 @@ public:
 
     /** creates the action */
     static CCBlink* create(float duration, unsigned int uBlinks);
-    
+
     virtual void startWithTarget(CCNode *pTarget);
     virtual void stop();
-    
+
 public:
     unsigned int m_nTimes;
     bool m_bOriginalState;
@@ -890,7 +890,7 @@ public:
 };
 
 /** @brief Executes an action in reverse order, from time=duration to time=0
- 
+
  @warning Use this action carefully. This action is not
  sequenceable. Use it as the default "reversed" method
  of your own actions, but using it outside the "reversed"

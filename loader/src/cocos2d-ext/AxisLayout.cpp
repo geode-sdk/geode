@@ -152,7 +152,7 @@ public:
         // all layout calculations happen within a single frame so no Ref needed
         CCArray* nodes;
 
-        // calculated values for scale, squish and prio to fit the nodes in this 
+        // calculated values for scale, squish and prio to fit the nodes in this
         // row when positioning
         float scale;
         float squish;
@@ -207,7 +207,7 @@ public:
             }
         }
     };
-    
+
     float minScaleForPrio(CCArray* nodes, int prio) const {
         float min = m_defaultScaleLimits.first;
         bool first = true;
@@ -258,10 +258,10 @@ public:
         bool attemptRescale = false;
         auto minScaleForPrio = this->minScaleForPrio(nodes, prio);
         if (
-            // if the scale is less than the lowest min scale allowed, then 
+            // if the scale is less than the lowest min scale allowed, then
             // trying to scale will have no effect and not help anywmore
             crossScaleDownFactor < minScaleForPrio ||
-            // if the scale down factor is really close to the same as before, 
+            // if the scale down factor is really close to the same as before,
             // then we've entered an infinite loop (float == float is unreliable)
             (fabsf(crossScaleDownFactor - scale) < .001f)
         ) {
@@ -339,13 +339,13 @@ public:
                 else {
                     nextAxisUnscalableLength += pos.axisLength;
                 }
-                // if multiple rows are allowed and this row is full, time for the 
+                // if multiple rows are allowed and this row is full, time for the
                 // next row
-                // also force at least one object to be added to this row, because if 
+                // also force at least one object to be added to this row, because if
                 // it's too large for this row it's gonna be too large for all rows
                 if (
                     m_growCrossAxis && (
-                        (nextAxisScalableLength + nextAxisUnscalableLength > available.axisLength) && 
+                        (nextAxisScalableLength + nextAxisUnscalableLength > available.axisLength) &&
                         ix != 0 && !isOptsSameLine(opts)
                     )
                 ) {
@@ -419,20 +419,20 @@ public:
             auto first = static_cast<CCNode*>(res->firstObject());
             auto last = static_cast<CCNode*>(res->lastObject());
             axisEndsLength = (
-                first->getScaledContentSize().width * 
+                first->getScaledContentSize().width *
                     scaleByOpts(axisOpts(first), scale, prio, false, m_defaultScaleLimits.first, m_defaultScaleLimits.second) / 2 +
-                last->getScaledContentSize().width * 
+                last->getScaledContentSize().width *
                     scaleByOpts(axisOpts(last), scale, prio, false, m_defaultScaleLimits.first, m_defaultScaleLimits.second) / 2
             );
         }
 
         return new Row(
             // how much should the nodes be scaled down to fit the next row
-            // the .01f is because floating point arithmetic is imprecise and you 
+            // the .01f is because floating point arithmetic is imprecise and you
             // end up in a situation where it confidently tells you that
             // 241 > 241 == true
             scaleDownFactor,
-            // how much should the nodes be squished to fit the next item in this 
+            // how much should the nodes be squished to fit the next item in this
             // row
             squishFactor,
             axisLength, crossLength, axisEndsLength,
@@ -449,8 +449,8 @@ public:
         size_t depth
     ) const {
         // where do all of these magical calculations come from?
-        // idk i got tired of doing the math but they work so ¯\_(ツ)_/¯ 
-        // like i genuinely have no clue fr why some of these work tho, 
+        // idk i got tired of doing the math but they work so ¯\_(ツ)_/¯
+        // like i genuinely have no clue fr why some of these work tho,
         // i just threw in random equations and numbers until it worked
 
         auto rows = CCArray::create();
@@ -465,7 +465,7 @@ public:
                 spacer->setContentSize(CCSizeZero);
             }
         }
-        
+
         // fit everything into rows while possible
         size_t ix = 0;
         auto newNodes = nodes->shallowCopy();
@@ -508,13 +508,13 @@ public:
             return;
         }
 
-        // if cross axis overflow not allowed and it's overflowing, try to scale 
-        // down layout if there are any nodes with auto-scale enabled (or 
+        // if cross axis overflow not allowed and it's overflowing, try to scale
+        // down layout if there are any nodes with auto-scale enabled (or
         // auto-scale is enabled by default)
         if (
-            !m_allowCrossAxisOverflow && 
-            doAutoScale && 
-            totalRowCrossLength > available.crossLength && 
+            !m_allowCrossAxisOverflow &&
+            doAutoScale &&
+            totalRowCrossLength > available.crossLength &&
             depth < RECURSION_DEPTH_LIMIT
         ) {
             if (this->canTryScalingDown(nodes, prio, scale, crossScaleDownFactor, minMaxPrios)) {
@@ -531,10 +531,10 @@ public:
         // if we're still overflowing, squeeze nodes closer together
         if (
             !m_allowCrossAxisOverflow &&
-            totalRowCrossLength > available.crossLength && 
+            totalRowCrossLength > available.crossLength &&
             depth < RECURSION_DEPTH_LIMIT
         ) {
-            // if squishing rows would take less squishing that squishing columns, 
+            // if squishing rows would take less squishing that squishing columns,
             // then squish rows
             if (
                 !m_growCrossAxis ||
@@ -599,18 +599,18 @@ public:
             } break;
 
             case AxisAlignment::Center: {
-                rowCrossPos = available.crossLength / 2 + totalRowCrossLength / 2 - 
+                rowCrossPos = available.crossLength / 2 + totalRowCrossLength / 2 -
                     rowsEndsLength * 1.5f * scale * (1.f - columnSquish);
             } break;
 
             case AxisAlignment::End: {
-                rowCrossPos = available.crossLength - 
+                rowCrossPos = available.crossLength -
                     rowsEndsLength * 1.5f * scale * (1.f - columnSquish);
             } break;
         }
 
         float rowEvenSpace = available.crossLength / rows->count();
-        
+
         float rowCrossLengthTotal = ranges::reduce<float>(
             CCArrayExt<Row*>(rows),
             [](float& acc, Row* row) {
@@ -637,7 +637,7 @@ public:
             switch (m_axisAlignment) {
                 case AxisAlignment::Start:
                 case AxisAlignment::Between:
-                case AxisAlignment::Even: { 
+                case AxisAlignment::Even: {
                     rowAxisPos = 0.f;
                 } break;
 
@@ -680,7 +680,7 @@ public:
                 float axisPos;
                 if (m_axisAlignment == AxisAlignment::Even) {
                     axisPos = rowAxisPos + evenSpace / 2 - pos.axisLength * (.5f - pos.axisAnchor);
-                    rowAxisPos += evenSpace - 
+                    rowAxisPos += evenSpace -
                         row->axisEndsLength * row->scale * (1.f - row->squish) * 1.f / nodes->count();
                 }
                 else if (m_axisAlignment == AxisAlignment::Between) {
@@ -697,7 +697,7 @@ public:
                         }
                     }
                     axisPos = rowAxisPos + pos.axisLength * pos.axisAnchor;
-                    rowAxisPos += pos.axisLength - 
+                    rowAxisPos += pos.axisLength -
                         row->axisEndsLength * row->scale * (1.f - row->squish) * 1.f / nodes->count();
                 }
                 float crossOffset;
@@ -725,9 +725,9 @@ public:
                 prev = opts;
                 ix++;
             }
-        
+
             if (m_crossAlignment == AxisAlignment::Even) {
-                rowCrossPos -= rowEvenSpace / 2 - row->crossLength / 2 - 
+                rowCrossPos -= rowEvenSpace / 2 - row->crossLength / 2 -
                     rowsEndsLength * 1.5f * row->scale * (1.f - columnSquish) * 1.f / rows->count();
             }
             else if (m_crossAlignment == AxisAlignment::Between) {
@@ -735,7 +735,7 @@ public:
                     rowsEndsLength * 1.5f * row->scale * (1.f - columnSquish) * 1.f / rows->count();
             }
             else {
-                rowCrossPos -= m_gap * columnSquish - 
+                rowCrossPos -= m_gap * columnSquish -
                     rowsEndsLength * 1.5f * row->scale * (1.f - columnSquish) * 1.f / rows->count();
             }
         }
@@ -744,7 +744,7 @@ public:
 
 void AxisLayout::apply(CCNode* on) {
     auto nodes = getNodesToPosition(on);
-    
+
     std::pair<int, int> minMaxPrio;
     bool doAutoScale = false;
 
@@ -753,16 +753,16 @@ void AxisLayout::apply(CCNode* on) {
 
     size_t ix = 0;
     for (auto node : CCArrayExt<CCNode*>(nodes)) {
-        // Require all nodes not to have this stupid option enabled because it 
+        // Require all nodes not to have this stupid option enabled because it
         // screws up all position calculations
         node->ignoreAnchorPointForPosition(false);
         int prio = 0;
         auto opts = axisOpts(node);
         if (opts) {
             prio = opts->getScalePriority();
-            // this does cause a recheck of m_autoScale every iteration but it 
-            // should be pretty fast and this correctly handles the situation 
-            // where auto-scale is enabled on the layout but explicitly 
+            // this does cause a recheck of m_autoScale every iteration but it
+            // should be pretty fast and this correctly handles the situation
+            // where auto-scale is enabled on the layout but explicitly
             // disabled on all its children
             if (opts->getAutoScale().value_or(m_impl->m_autoScale)) {
                 doAutoScale = true;

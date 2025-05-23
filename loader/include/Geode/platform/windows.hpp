@@ -59,7 +59,7 @@ namespace geode::cast {
         int32_t m_attributes;
         ShrunkPointer<ClassDescriptorType> m_classDescriptor;
     };
-    
+
     struct BaseClassArrayType {
         ShrunkPointer<BaseClassDescriptorType> m_descriptorEntries[0x100];
     };

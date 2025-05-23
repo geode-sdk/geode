@@ -85,7 +85,7 @@ bool FiltersPopup::setup(ModListSource* src) {
         m_enabledModsFirst->toggle(src->getQuery().enabledFirst.value_or(false));
         m_enabledModsFirst->setLayoutOptions(AxisLayoutOptions::create()->setPrevGap(10.f));
         optionsMenu->addChild(m_enabledModsFirst);
-        
+
         auto enabledFirstLabel = CCLabelBMFont::create("Enabled First", "bigFont.fnt");
         enabledFirstLabel->setScale(.35f);
         optionsMenu->addChild(enabledFirstLabel);

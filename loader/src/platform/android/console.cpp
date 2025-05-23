@@ -1,4 +1,4 @@
-﻿#include <loader/console.hpp>
+#include <loader/console.hpp>
 #include <iostream>
 #include <Geode/loader/Log.hpp>
 #include <android/log.h>

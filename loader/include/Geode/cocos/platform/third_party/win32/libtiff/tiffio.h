@@ -126,7 +126,7 @@ typedef void* thandle_t;       /* client data handle */
 #define TIFFPRINT_JPEGACTABLES 0x200  /* JPEG AC tables */
 #define TIFFPRINT_JPEGDCTABLES 0x200  /* JPEG DC tables */
 
-/* 
+/*
  * Colour conversion stuff
  */
 
@@ -186,7 +186,7 @@ typedef struct _TIFFRGBAImage TIFFRGBAImage;
 /*
  * The image reading and conversion routines invoke
  * ``put routines'' to copy/image/whatever tiles of
- * raw image data.  A default set of routines are 
+ * raw image data.  A default set of routines are
  * provided to convert/copy raw image data to 8-bit
  * packed ABGR format rasters.  Applications can supply
  * alternate routines that unpack the data into a
@@ -310,7 +310,7 @@ TIFF_DLL extern void _TIFFfree(void* p);
 */
 TIFF_DLL extern int TIFFGetTagListCount( TIFF * );
 TIFF_DLL extern uint32 TIFFGetTagListEntry( TIFF *, int tag_index );
-    
+
 #define TIFF_ANY       TIFF_NOTYPE     /* for field descriptor searching */
 #define TIFF_VARIABLE  -1              /* marker for variable length tags */
 #define TIFF_SPP       -2              /* marker for SamplesPerPixel tags */
@@ -381,7 +381,7 @@ TIFF_DLL extern int TIFFIsMSB2LSB(TIFF*);
 TIFF_DLL extern int TIFFIsBigEndian(TIFF*);
 TIFF_DLL extern TIFFReadWriteProc TIFFGetReadProc(TIFF*);
 TIFF_DLL extern TIFFReadWriteProc TIFFGetWriteProc(TIFF*);
-TIFF_DLL extern TIFFSeekProc TIFFGetSeekProc(TIFF*);                                                          
+TIFF_DLL extern TIFFSeekProc TIFFGetSeekProc(TIFF*);
 TIFF_DLL extern TIFFCloseProc TIFFGetCloseProc(TIFF*);
 TIFF_DLL extern TIFFSizeProc TIFFGetSizeProc(TIFF*);
 TIFF_DLL extern TIFFMapFileProc TIFFGetMapFileProc(TIFF*);
@@ -393,7 +393,7 @@ TIFF_DLL extern uint64 TIFFCurrentDirOffset(TIFF*);
 TIFF_DLL extern uint32 TIFFCurrentStrip(TIFF*);
 TIFF_DLL extern uint32 TIFFCurrentTile(TIFF* tif);
 TIFF_DLL extern int TIFFReadBufferSetup(TIFF* tif, void* bp, tmsize_t size);
-TIFF_DLL extern int TIFFWriteBufferSetup(TIFF* tif, void* bp, tmsize_t size);  
+TIFF_DLL extern int TIFFWriteBufferSetup(TIFF* tif, void* bp, tmsize_t size);
 TIFF_DLL extern int TIFFSetupStrips(TIFF *);
 TIFF_DLL extern int TIFFWriteCheck(TIFF*, int, const char *);
 TIFF_DLL extern void TIFFFreeDirectory(TIFF*);
@@ -455,18 +455,18 @@ TIFF_DLL extern TIFFExtendProc TIFFSetTagExtender(TIFFExtendProc);
 TIFF_DLL extern uint32 TIFFComputeTile(TIFF* tif, uint32 x, uint32 y, uint32 z, uint16 s);
 TIFF_DLL extern int TIFFCheckTile(TIFF* tif, uint32 x, uint32 y, uint32 z, uint16 s);
 TIFF_DLL extern uint32 TIFFNumberOfTiles(TIFF*);
-TIFF_DLL extern tmsize_t TIFFReadTile(TIFF* tif, void* buf, uint32 x, uint32 y, uint32 z, uint16 s);  
+TIFF_DLL extern tmsize_t TIFFReadTile(TIFF* tif, void* buf, uint32 x, uint32 y, uint32 z, uint16 s);
 TIFF_DLL extern tmsize_t TIFFWriteTile(TIFF* tif, void* buf, uint32 x, uint32 y, uint32 z, uint16 s);
 TIFF_DLL extern uint32 TIFFComputeStrip(TIFF*, uint32, uint16);
 TIFF_DLL extern uint32 TIFFNumberOfStrips(TIFF*);
 TIFF_DLL extern tmsize_t TIFFReadEncodedStrip(TIFF* tif, uint32 strip, void* buf, tmsize_t size);
-TIFF_DLL extern tmsize_t TIFFReadRawStrip(TIFF* tif, uint32 strip, void* buf, tmsize_t size);  
-TIFF_DLL extern tmsize_t TIFFReadEncodedTile(TIFF* tif, uint32 tile, void* buf, tmsize_t size);  
-TIFF_DLL extern tmsize_t TIFFReadRawTile(TIFF* tif, uint32 tile, void* buf, tmsize_t size);  
+TIFF_DLL extern tmsize_t TIFFReadRawStrip(TIFF* tif, uint32 strip, void* buf, tmsize_t size);
+TIFF_DLL extern tmsize_t TIFFReadEncodedTile(TIFF* tif, uint32 tile, void* buf, tmsize_t size);
+TIFF_DLL extern tmsize_t TIFFReadRawTile(TIFF* tif, uint32 tile, void* buf, tmsize_t size);
 TIFF_DLL extern tmsize_t TIFFWriteEncodedStrip(TIFF* tif, uint32 strip, void* data, tmsize_t cc);
-TIFF_DLL extern tmsize_t TIFFWriteRawStrip(TIFF* tif, uint32 strip, void* data, tmsize_t cc);  
-TIFF_DLL extern tmsize_t TIFFWriteEncodedTile(TIFF* tif, uint32 tile, void* data, tmsize_t cc);  
-TIFF_DLL extern tmsize_t TIFFWriteRawTile(TIFF* tif, uint32 tile, void* data, tmsize_t cc);  
+TIFF_DLL extern tmsize_t TIFFWriteRawStrip(TIFF* tif, uint32 strip, void* data, tmsize_t cc);
+TIFF_DLL extern tmsize_t TIFFWriteEncodedTile(TIFF* tif, uint32 tile, void* data, tmsize_t cc);
+TIFF_DLL extern tmsize_t TIFFWriteRawTile(TIFF* tif, uint32 tile, void* data, tmsize_t cc);
 TIFF_DLL extern int TIFFDataWidth(TIFFDataType);    /* table of tag datatype widths */
 TIFF_DLL extern void TIFFSetWriteOffset(TIFF* tif, toff_t off);
 TIFF_DLL extern void TIFFSwabShort(uint16*);
@@ -536,7 +536,7 @@ typedef	struct {
 } TIFFFieldInfo;
 
 TIFF_DLL extern int TIFFMergeFieldInfo(TIFF*, const TIFFFieldInfo[], uint32);
-        
+
 #if defined(c_plusplus) || defined(__cplusplus)
 }
 #endif

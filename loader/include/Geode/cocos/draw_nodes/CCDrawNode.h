@@ -38,7 +38,7 @@ NS_CC_BEGIN
 /** CCDrawNode
  Node that draws dots, segments and polygons.
  Faster than the "drawing primitives" since they it draws everything in one single batch.
- 
+
  @since v2.1
  @lua NA
  */
@@ -49,15 +49,15 @@ public:
 
     GLuint      m_uVao;
     GLuint      m_uVbo;
-    
+
     unsigned int    m_uBufferCapacity;
     GLsizei         m_nBufferCount;
     ccV2F_C4B_T2F   *m_pBuffer;
-    
+
     ccBlendFunc     m_sBlendFunc;
-    
+
     bool            m_bDirty;
-    
+
 
     // @note RobTop Addition
     bool            m_bUseArea;
@@ -75,18 +75,18 @@ public:
 public:
     static CCDrawNode* create();
     virtual ~CCDrawNode();
-    
+
     virtual bool init();
     virtual void draw();
-    
+
 #if GEODE_COMP_GD_VERSION > 22000
     /** draw a dot at a position, with a given radius and color */
     bool drawDot(const CCPoint &pos, float radius, const ccColor4F &color);
-    
+
     /** draw a segment with a radius and color */
     bool drawSegment(const CCPoint &from, const CCPoint &to, float radius, const ccColor4F &color);
-    
-    /** draw a polygon with a fill color and line color 
+
+    /** draw a polygon with a fill color and line color
      * @code
      * when this funciton bound to js,the input params are changed
      * js:var drawPolygon(var verts, var fillColor,var borderWidth,var borderColor)
@@ -105,11 +105,11 @@ public:
 #else
     /** draw a dot at a position, with a given radius and color */
     void drawDot(const CCPoint &pos, float radius, const ccColor4F &color);
-    
+
     /** draw a segment with a radius and color */
     void drawSegment(const CCPoint &from, const CCPoint &to, float radius, const ccColor4F &color);
-    
-    /** draw a polygon with a fill color and line color 
+
+    /** draw a polygon with a fill color and line color
      * @code
      * when this funciton bound to js,the input params are changed
      * js:var drawPolygon(var verts, var fillColor,var borderWidth,var borderColor)
@@ -123,7 +123,7 @@ public:
 	void drawLines(cocos2d::CCPoint*, unsigned int, float, cocos2d::_ccColor4F const&);
 	void drawRect(cocos2d::CCPoint const&, cocos2d::CCPoint const&, cocos2d::_ccColor4F const&, float, cocos2d::_ccColor4F const&);
 #endif
-    
+
     /** Clear the geometry in the node's buffer. */
     void clear();
     /**
@@ -137,11 +137,11 @@ public:
      * @endcode
      */
     void setBlendFunc(const ccBlendFunc &blendFunc);
-    
+
     CCDrawNode();
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCDrawNode, CCNodeRGBA)
 
-    /** listen the event that coming to foreground on Android  
+    /** listen the event that coming to foreground on Android
      * @js NA
      */
     void listenBackToForeground(CCObject *obj);

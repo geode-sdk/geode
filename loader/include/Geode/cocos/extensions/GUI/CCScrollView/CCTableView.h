@@ -284,7 +284,7 @@ protected:
     void _updateCellPositions();
 public:
     void _updateContentSize();
-    
+
     enum TableViewScriptEventType
     {
         kTableViewScroll   = 0,

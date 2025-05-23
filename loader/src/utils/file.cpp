@@ -200,7 +200,7 @@ private:
             if (!m_stream) {
                 return Err("Unable to create memory stream");
             }
-            // mz_stream_mem_set_buffer doesn't memcpy so we gotta store the data 
+            // mz_stream_mem_set_buffer doesn't memcpy so we gotta store the data
             // elsewhere
             if (m_mode == MZ_OPEN_MODE_READ) {
                 mz_stream_mem_set_buffer(m_stream, src.data(), src.size());
@@ -357,7 +357,7 @@ public:
             Path filePath;
             filePath.assign(info->filename, info->filename + info->filename_size);
 
-            // make sure zip files like root/../../file.txt don't get extracted to 
+            // make sure zip files like root/../../file.txt don't get extracted to
             // avoid zip attacks
 #ifdef GEODE_IS_WINDOWS
             if (!std::filesystem::relative((dir / filePath).wstring(), dir.wstring()).empty()) {
@@ -595,7 +595,7 @@ Result<> Unzip::intoDir(
     Path const& to,
     bool deleteZipAfter
 ) {
-    // scope to ensure the zip is closed after extracting so the zip can be 
+    // scope to ensure the zip is closed after extracting so the zip can be
     // removed
     {
         GEODE_UNWRAP_INTO(auto unzip, Unzip::create(from));
@@ -710,10 +710,10 @@ ListenerResult FileWatchFilter::handle(
     return ListenerResult::Propagate;
 }
 
-FileWatchFilter::FileWatchFilter(std::filesystem::path const& path) 
+FileWatchFilter::FileWatchFilter(std::filesystem::path const& path)
   : m_path(path) {}
 
-// This is a vector because need to use std::filesystem::equivalent for 
+// This is a vector because need to use std::filesystem::equivalent for
 // comparisons and removal is not exactly performance-critical here
 // (who's going to add and remove 500 file watchers every frame)
 static std::vector<std::unique_ptr<FileWatcher>> FILE_WATCHERS {};

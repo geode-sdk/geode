@@ -121,7 +121,7 @@ namespace geode::geode_internal {
             [=](Fn* ptr) {
                 *ptr = fnPtr;
                 return geode::ListenerResult::Stop;
-            }, 
+            },
             geode::DispatchFilter<Fn*>(eventID)
         );
         return true;

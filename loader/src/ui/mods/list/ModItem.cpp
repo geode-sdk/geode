@@ -21,7 +21,7 @@
 bool ModItem::init(ModSource&& source) {
     if (!CCNode::init())
         return false;
-    
+
     m_source = std::move(source);
     this->setID("ModItem");
 
@@ -63,7 +63,7 @@ bool ModItem::init(ModSource&& source) {
     m_versionDownloadSeparator = CCLabelBMFont::create("•", "bigFont.fnt");
     m_versionDownloadSeparator->setOpacity(155);
     m_titleContainer->addChild(m_versionDownloadSeparator);
-    
+
     m_titleContainer->setLayout(
         SimpleRowLayout::create()
             ->setMainAxisAlignment(MainAxisAlignment::Start)
@@ -73,7 +73,7 @@ bool ModItem::init(ModSource&& source) {
     );
     m_titleContainer->getLayout()->ignoreInvisibleChildren(true);
     m_infoContainer->addChildAtPosition(m_titleContainer, Anchor::Left);
-    
+
     m_developers = CCMenu::create();
     m_developers->setID("developers-menu");
     m_developers->ignoreAnchorPointForPosition(false);
@@ -137,7 +137,7 @@ bool ModItem::init(ModSource&& source) {
     m_downloadBarContainer = CCNode::create();
     m_downloadBarContainer->setID("download-bar-container");
     m_downloadBarContainer->setContentSize({ 320, 30 });
-    
+
     m_downloadBar = Slider::create(nullptr, nullptr);
     m_downloadBar->setID("download-bar");
     m_downloadBar->m_touchLogic->m_thumb->setVisible(false);
@@ -149,7 +149,7 @@ bool ModItem::init(ModSource&& source) {
     m_downloadWaiting = CCNode::create();
     m_downloadWaiting->setID("download-waiting-container");
     m_downloadWaiting->setContentSize({ 225, 30 });
-    
+
     auto downloadWaitingLabel = CCLabelBMFont::create("Preparing Download...", "bigFont.fnt");
     downloadWaitingLabel->setScale(.75f);
     downloadWaitingLabel->setID("download-waiting-label");
@@ -157,7 +157,7 @@ bool ModItem::init(ModSource&& source) {
         downloadWaitingLabel, Anchor::Left,
         ccp(m_downloadWaiting->getContentHeight(), 0), ccp(0, .5f)
     );
-    
+
     auto downloadWaitingSpinner = createLoadingCircle(20);
     m_downloadWaiting->addChildAtPosition(
         downloadWaitingSpinner, Anchor::Left,
@@ -278,10 +278,10 @@ bool ModItem::init(ModSource&& source) {
                 m_badgeContainer->addChild(shortVer);
             }
 
-            // Show mod download count here already so people can make informed decisions 
+            // Show mod download count here already so people can make informed decisions
             // on which mods to install
             m_downloadCountContainer = CCNode::create();
-            
+
             auto downloads = CCLabelBMFont::create(numToAbbreviatedString(metadata.downloadCount).c_str(), "bigFont.fnt");
             downloads->setID("downloads-label");
             downloads->setColor("mod-list-version-label"_cc3b);
@@ -394,8 +394,8 @@ void ModItem::updateState() {
         m_bg->setContentSize((m_obContentSize - ccp(6, 0)) / m_bg->getScale());
     }
 
-    // On Grid layout the title is a direct child of info so it can be positioned 
-    // more cleanly, while m_titleContainer is just used to position the version 
+    // On Grid layout the title is a direct child of info so it can be positioned
+    // more cleanly, while m_titleContainer is just used to position the version
     // and downloads next to each other
     m_titleLabel->removeFromParent();
     if (m_display == ModListDisplay::Grid) {
@@ -422,14 +422,14 @@ void ModItem::updateState() {
         }
         else {
             m_viewMenu->addChild(m_downloadCountContainer);
-            m_downloadCountContainer->setLayoutOptions( 
+            m_downloadCountContainer->setLayoutOptions(
                 SimpleAxisLayoutOptions::create()
                     ->setMinRelativeScale(.1f)
                     ->setMaxRelativeScale(1.f)
             );
         }
     }
-    
+
     // Move badges to either be next to the title or in the top left corner in grid view
     if (m_badgeContainer) {
         m_badgeContainer->removeFromParent();
@@ -479,14 +479,14 @@ void ModItem::updateState() {
         limitNodeSize(m_logo, ccp(logoSize, logoSize), 999, .1f);
         m_logo->setPosition(m_obContentSize.height / 2 + 5, m_obContentSize.height / 2);
     }
-    
+
     // There's space to show the description only on the big list
-    // When we do, elements like the download progress bar should replace it 
+    // When we do, elements like the download progress bar should replace it
     // over the developer name since it's less important
     // Couldn't figure out a more concise name
     m_description->setVisible(m_display == ModListDisplay::BigList);
     m_developers->setVisible(true);
-    auto elementToReplaceWithOtherAbnormalElement = 
+    auto elementToReplaceWithOtherAbnormalElement =
         m_display == ModListDisplay::BigList ? m_description : m_developers;
 
     auto titleSpace = m_display == ModListDisplay::Grid ?
@@ -495,8 +495,8 @@ void ModItem::updateState() {
 
     // Divide by scale of info container since that actually determines the size
     // (Since the scale of m_titleContainer and m_developers is managed by its layout)
-    
-    // If there is an active download ongoing, show that in place of developer name 
+
+    // If there is an active download ongoing, show that in place of developer name
     // (or description on big view)
     if (isDownloading) {
         m_updateBtn->setVisible(false);
@@ -524,7 +524,7 @@ void ModItem::updateState() {
         m_downloadWaiting->setVisible(false);
     }
 
-    // Set default colors based on source to start off with 
+    // Set default colors based on source to start off with
     // (possibly overriding later based on state)
     m_source.visit(makeVisitor {
         [this](Mod* mod) {
@@ -624,7 +624,7 @@ void ModItem::updateState() {
     }
 
     // Update size and direction of title
-    // On grid view, m_titleContainer contains the version and download count 
+    // On grid view, m_titleContainer contains the version and download count
     // but not the actual title lol
     m_titleLabel->setScale(1.f);
     m_titleContainer->setContentHeight(30.f);
@@ -676,7 +676,7 @@ void ModItem::updateState() {
                 m_recommendedBy->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
             }
         } break;
-        
+
         default:
         case ModListDisplay::SmallList: {
             m_infoContainer->updateAnchoredPosition(Anchor::Left, ccp(m_obContentSize.height + 10, 0), ccp(0, .5f));
@@ -719,7 +719,7 @@ void ModItem::updateState() {
             }
         } break;
     }
-    
+
     m_infoContainer->setContentSize(ccp(titleSpace.width, titleSpace.height) / m_infoContainer->getScale());
     m_infoContainer->updateLayout();
 
@@ -752,10 +752,10 @@ void ModItem::updateState() {
     if (m_enableToggle && m_source.asMod()) {
         m_enableToggle->toggle(m_source.asMod()->isOrWillBeEnabled());
 
-        // Disable the toggle if the mod has been uninstalled or if the mod is 
+        // Disable the toggle if the mod has been uninstalled or if the mod is
         // outdated
         if (
-            modRequestedActionIsUninstall(m_source.asMod()->getRequestedAction()) || 
+            modRequestedActionIsUninstall(m_source.asMod()->getRequestedAction()) ||
             m_source.asMod()->targetsOutdatedVersion()
         ) {
             m_enableToggle->setEnabled(false);
@@ -786,7 +786,7 @@ void ModItem::onCheckUpdates(typename server::ServerRequest<std::optional<server
 }
 
 void ModItem::onView(CCObject*) {
-    // This is a local static and not a mod saved value because we might want 
+    // This is a local static and not a mod saved value because we might want
     // to periodically remind users that paid mods are paid
     static bool shownPaidNotif = false;
     if (m_source.asServer() && m_source.asServer()->tags.contains("paid") && !shownPaidNotif) {

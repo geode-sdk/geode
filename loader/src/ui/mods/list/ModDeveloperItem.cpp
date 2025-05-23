@@ -54,7 +54,7 @@ bool ModDeveloperItem::init(
         displayName.has_value() ? displayName->c_str() : developer.c_str(),
         "bigFont.fnt"
     );
-    
+
     // Left + Right + Space between
     constexpr float paddings = 30.0f;
     float calc = size.width - paddings;
@@ -120,7 +120,7 @@ ModDeveloperItem* ModDeveloperItem::create(
         ret->autorelease();
         return ret;
     }
-    
+
     delete ret;
     return nullptr;
 }

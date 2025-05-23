@@ -149,7 +149,7 @@ intptr_t Addresser::followThunkFunction(intptr_t address) {
         const auto offset = *reinterpret_cast<int32_t*>(address + 2);
         // rip is at address + 6 (size of the instruction)
         auto checkAddress = *reinterpret_cast<uintptr_t*>(address + 6 + offset);
-        
+
         // only follow the thunk if it's not a hook handler
         if (GeodeFunctionTableAccess64(GetCurrentProcess(), static_cast<DWORD64>(checkAddress)) == nullptr) {
             address = checkAddress;

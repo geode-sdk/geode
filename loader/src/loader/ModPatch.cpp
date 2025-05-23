@@ -1,4 +1,4 @@
-﻿#include "ModPatch.hpp"
+#include "ModPatch.hpp"
 
 Mod* ModPatch::getOwner() const {
     return m_owner;

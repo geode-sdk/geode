@@ -257,7 +257,7 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
             return impl->makeError(-1, "Failed to initialize curl");
         }
 
-        // todo: in the future, we might want to support downloading directly into 
+        // todo: in the future, we might want to support downloading directly into
         // files / in-memory streams like the old AsyncWebRequest class
 
         // Struct that holds values for the curl callbacks
@@ -340,7 +340,7 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
                 impl->m_CABundleContent = CA_BUNDLE_CONTENT;
             }
 #endif
-            
+
             if (!impl->m_CABundleContent.empty()) {
                 curl_blob caBundleBlob = {};
                 caBundleBlob.data = reinterpret_cast<void*>(impl->m_CABundleContent.data());
@@ -466,7 +466,7 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         // Make the actual web request
         auto curlResponse = curl_easy_perform(curl);
 
-        // Get the response code; note that this will be invalid if the 
+        // Get the response code; note that this will be invalid if the
         // curlResponse is not CURLE_OK
         long code = 0;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &code);
@@ -490,7 +490,7 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
                 return impl->makeError(-1, "Curl failed: " + err);
             }
         }
-        
+
         // Check if the response was an error code
         if (code >= 400 && code <= 600) {
             return std::move(responseData.response);

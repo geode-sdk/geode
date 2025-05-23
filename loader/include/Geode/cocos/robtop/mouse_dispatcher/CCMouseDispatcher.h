@@ -7,7 +7,7 @@
 NS_CC_BEGIN
 
 // @note RobTop Addition
-class CC_DLL CCMouseDispatcher : public CCObject 
+class CC_DLL CCMouseDispatcher : public CCObject
 {
 	GEODE_FRIEND_MODIFY
 public:

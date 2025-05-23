@@ -149,7 +149,7 @@ static inline ccColor4F ccc4FFromccc3B(ccColor3B c)
 }
 
 //! helper that creates a ccColor4f type
-static inline ccColor4F 
+static inline ccColor4F
 ccc4f(const GLfloat r, const GLfloat g, const GLfloat b, const GLfloat a)
 {
     ccColor4F c4 = {r, g, b, a};
@@ -210,7 +210,7 @@ static inline ccVertex3F vertex3(const float x, const float y, const float z)
     ccVertex3F c = {x, y, z};
     return c;
 }
-        
+
 /** A texcoord composed of 2 floats: u, y
  @since v0.8
  */
@@ -225,7 +225,7 @@ static inline ccTex2F tex2(const float u, const float v)
     return t;
 }
 
- 
+
 //! Point Sprite component
 typedef struct _ccPointSprite
 {
@@ -387,7 +387,7 @@ typedef struct
 {
     ccT2F_Quad texCoords;
     float delay;
-    CCSize size; 
+    CCSize size;
 } ccAnimationFrameData;
 
 
@@ -400,10 +400,10 @@ typedef struct
 typedef struct _ccFontShadow
 {
 public:
-    
+
     // shadow is not enabled by default
     _ccFontShadow(): m_shadowEnabled(false) {}
-    
+
     // true if shadow enabled
     bool   m_shadowEnabled;
     // shadow x and y offset
@@ -412,24 +412,24 @@ public:
 	float  m_shadowBlur;
     // shadow opacity
 	float  m_shadowOpacity;
-    
+
 } ccFontShadow;
 
 // stroke attributes
 typedef struct _ccFontStroke
 {
 public:
-    
+
     // stroke is disabled by default
     _ccFontStroke(): m_strokeEnabled(false) {}
-    
+
     // true if stroke enabled
     bool        m_strokeEnabled;
     // stroke color
 	ccColor3B   m_strokeColor;
     // stroke size
     float       m_strokeSize;
-    
+
 } ccFontStroke;
 
 // font attributes
@@ -440,12 +440,12 @@ public:
 typedef struct _ccFontDefinition
 {
 public:
-    
+
     _ccFontDefinition():  m_alignment(kCCTextAlignmentCenter),
     m_vertAlignment(kCCVerticalTextAlignmentTop),
     m_fontFillColor(ccWHITE)
     { m_dimensions = CCSizeMake(0,0); }
-    
+
     // font name
     gd::string             m_fontName;
     // font size
@@ -462,7 +462,7 @@ public:
     ccFontShadow            m_shadow;
     // font stroke
     ccFontStroke            m_stroke;
-    
+
 } ccFontDefinition;
 
 

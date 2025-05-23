@@ -90,7 +90,7 @@ namespace geode::stl {
 
         if (data.m_data[-1].m_refcount <= 0) {
             gd::operatorDelete(&data.m_data[-1]);
-            data.m_data = nullptr; 
+            data.m_data = nullptr;
         } else {
             --data.m_data[-1].m_refcount;
         }

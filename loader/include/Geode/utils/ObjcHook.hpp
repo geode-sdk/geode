@@ -17,7 +17,7 @@ namespace geode {
         Result<> addObjcMethod(std::string const& className, std::string const& selectorName, void* imp);
 
         /**
-         * Get the implementation of an Objective-C method. 
+         * Get the implementation of an Objective-C method.
          * @param className The name of the class whose method to get
          * @param selectorName The name of the method to get
          * @returns The implementation of the method, or an error.
@@ -25,7 +25,7 @@ namespace geode {
         Result<void*> getObjcMethodImp(std::string const& className, std::string const& selectorName);
 
         /**
-         * Replace an Objective-C method with a new implementation. 
+         * Replace an Objective-C method with a new implementation.
          * @param className The name of the class whose method to replace
          * @param selectorName The name of the method to replace
          * @param imp The new implementation of the method
@@ -41,7 +41,7 @@ namespace geode {
          * @param className The name of the class whose method to hook
          * @param selectorName The name of the method to hook
          * @param function The detour to run when the method is called
-         * @returns The created hook, or an error. 
+         * @returns The created hook, or an error.
          */
         template <class Func>
         static Result<std::shared_ptr<Hook>> create(std::string const& className, std::string const& selectorName, Func function, tulip::hook::HookMetadata const& metadata = tulip::hook::HookMetadata()) {
@@ -57,14 +57,14 @@ namespace geode {
         }
 
         /**
-         * Create a hook for a new Objective-C method. This method will be 
-         * created with a dummy implementation that does nothing. 
+         * Create a hook for a new Objective-C method. This method will be
+         * created with a dummy implementation that does nothing.
          * @param className The name of the class whose method to hook
          * @param selectorName The name of the method to hook
          * @param function The detour to run when the method is called
-         * @param empty A function that takes no arguments and returns nothing. 
+         * @param empty A function that takes no arguments and returns nothing.
          * This is used to create a dummy method that can be hooked.
-         * @returns The created hook, or an error. 
+         * @returns The created hook, or an error.
          */
         template <class Func>
         static Result<std::shared_ptr<Hook>> create(std::string const& className, std::string const& selectorName, Func function, void(*empty)(), tulip::hook::HookMetadata const& metadata = tulip::hook::HookMetadata()) {

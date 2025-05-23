@@ -180,10 +180,10 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
    * get() operation.
    */
   template<std::size_t _Idx, typename... _Elements>
-    struct _Tuple_impl; 
+    struct _Tuple_impl;
 
   /**
-   * Zero-element tuple implementation. This is the basis case for the 
+   * Zero-element tuple implementation. This is the basis case for the
    * inheritance recursion.
    */
   template<std::size_t _Idx>
@@ -234,7 +234,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       typedef _Tuple_impl<_Idx + 1, _Tail...> _Inherited;
       typedef _Head_base<_Idx, _Head, __empty_not_final<_Head>::value> _Base;
 
-      static constexpr _Head&  
+      static constexpr _Head&
       _M_head(_Tuple_impl& __t) noexcept { return _Base::_M_head(__t); }
 
       static constexpr const _Head&
@@ -249,12 +249,12 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       constexpr _Tuple_impl()
       : _Inherited(), _Base() { }
 
-      explicit 
+      explicit
       constexpr _Tuple_impl(const _Head& __head, const _Tail&... __tail)
       : _Inherited(__tail...), _Base(__head) { }
 
       template<typename _UHead, typename... _UTail, typename = typename
-               enable_if<sizeof...(_Tail) == sizeof...(_UTail)>::type> 
+               enable_if<sizeof...(_Tail) == sizeof...(_UTail)>::type>
         explicit
         constexpr _Tuple_impl(_UHead&& __head, _UTail&&... __tail)
     : _Inherited(std::forward<_UTail>(__tail)...),
@@ -266,7 +266,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       _Tuple_impl(_Tuple_impl&& __in)
       noexcept(__and_<is_nothrow_move_constructible<_Head>,
                   is_nothrow_move_constructible<_Inherited>>::value)
-      : _Inherited(std::move(_M_tail(__in))), 
+      : _Inherited(std::move(_M_tail(__in))),
     _Base(std::forward<_Head>(_M_head(__in))) { }
 
       template<typename... _UElements>
@@ -304,13 +304,13 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       template<typename _Alloc>
         _Tuple_impl(allocator_arg_t __tag, const _Alloc& __a,
                 const _Tuple_impl& __in)
-    : _Inherited(__tag, __a, _M_tail(__in)), 
+    : _Inherited(__tag, __a, _M_tail(__in)),
           _Base(__use_alloc<_Head, _Alloc, _Head>(__a), _M_head(__in)) { }
 
       template<typename _Alloc>
     _Tuple_impl(allocator_arg_t __tag, const _Alloc& __a,
                 _Tuple_impl&& __in)
-    : _Inherited(__tag, __a, std::move(_M_tail(__in))), 
+    : _Inherited(__tag, __a, std::move(_M_tail(__in))),
       _Base(__use_alloc<_Head, _Alloc, _Head>(__a),
             std::forward<_Head>(_M_head(__in))) { }
 
@@ -383,7 +383,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     };
 
   /// Primary class template, tuple
-  template<typename... _Elements> 
+  template<typename... _Elements>
     class tuple : public _Tuple_impl<0, _Elements...>
     {
       typedef _Tuple_impl<0, _Elements...> _Inherited;
@@ -405,7 +405,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 
       constexpr tuple(const tuple&) = default;
 
-      constexpr tuple(tuple&&) = default; 
+      constexpr tuple(tuple&&) = default;
 
       template<typename... _UElements, typename = typename
         enable_if<__and_<is_convertible<const _UElements&,
@@ -507,7 +507,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     };
 
   // Explicit specialization, zero-element tuple.
-  template<>  
+  template<>
     class tuple<>
     {
     public:
@@ -812,14 +812,14 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
   template<std::size_t __i, std::size_t __j, typename _Tp, typename _Up>
     struct __tuple_compare<0, __i, __j, _Tp, _Up>
     {
-      static constexpr bool 
+      static constexpr bool
       __eq(const _Tp& __t, const _Up& __u)
       {
     return (get<__i>(__t) == get<__i>(__u) &&
         __tuple_compare<0, __i + 1, __j, _Tp, _Up>::__eq(__t, __u));
       }
-     
-      static constexpr bool 
+
+      static constexpr bool
       __less(const _Tp& __t, const _Up& __u)
       {
     return ((get<__i>(__t) < get<__i>(__u))
@@ -831,10 +831,10 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
   template<std::size_t __i, typename _Tp, typename _Up>
     struct __tuple_compare<0, __i, __i, _Tp, _Up>
     {
-      static constexpr bool 
+      static constexpr bool
       __eq(const _Tp&, const _Up&) { return true; }
-     
-      static constexpr bool 
+
+      static constexpr bool
       __less(const _Tp&, const _Up&) { return false; }
     };
 
@@ -1055,7 +1055,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 
   /// swap
   template<typename... _Elements>
-    inline void 
+    inline void
     swap(tuple<_Elements...>& __x, tuple<_Elements...>& __y)
     noexcept(noexcept(__x.swap(__y)))
     { __x.swap(__y); }

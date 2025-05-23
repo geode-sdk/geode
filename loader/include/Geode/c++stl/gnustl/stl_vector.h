@@ -417,7 +417,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       typedef typename __alloc_traits<_Tp_alloc_type>::pointer
        	pointer;
 
-      struct _Vector_impl 
+      struct _Vector_impl
       : public _Tp_alloc_type
       {
 	pointer _M_start;
@@ -446,7 +446,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 	  swap(_M_end_of_storage, __x._M_end_of_storage);
 	}
       };
-      
+
     public:
       typedef _Alloc allocator_type;
 
@@ -554,7 +554,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       typedef typename _Alloc::value_type                _Alloc_value_type;
       __glibcxx_class_requires(_Tp, _SGIAssignableConcept)
       __glibcxx_class_requires2(_Tp, _Alloc_value_type, _SameTypeConcept)
-      
+
       typedef _Vector_base<_Tp, _Alloc>			 _Base;
       typedef typename _Base::_Tp_alloc_type		 _Tp_alloc_type;
       typedef __alloc_traits<_Tp_alloc_type>  _Alloc_traits;
@@ -1149,7 +1149,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       at(size_type __n)
       {
 	_M_range_check(__n);
-	return (*this)[__n]; 
+	return (*this)[__n];
       }
 
       /**
@@ -1193,7 +1193,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       reference
       back() _GLIBCXX_NOEXCEPT
       { return *(end() - 1); }
-      
+
       /**
        *  Returns a read-only (constant) reference to the data at the
        *  last element of the %vector.
@@ -1346,7 +1346,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  @param  __position  An iterator into the %vector.
        *  @param  __l  An initializer_list.
        *
-       *  This function will insert copies of the data in the 
+       *  This function will insert copies of the data in the
        *  initializer_list @a l into the %vector before the location
        *  specified by @a position.
        *
@@ -1618,7 +1618,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       void
       _M_fill_initialize(size_type __n, const value_type& __value)
       {
-	__uninitialized_fill_n_a(this->_M_impl._M_start, __n, __value, 
+	__uninitialized_fill_n_a(this->_M_impl._M_start, __n, __value,
 				      _M_get_Tp_allocator());
 	this->_M_impl._M_finish = this->_M_impl._M_end_of_storage;
       }
@@ -1628,7 +1628,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       void
       _M_default_initialize(size_type __n)
       {
-	__uninitialized_default_n_a(this->_M_impl._M_start, __n, 
+	__uninitialized_default_n_a(this->_M_impl._M_start, __n,
 					 _M_get_Tp_allocator());
 	this->_M_impl._M_finish = this->_M_impl._M_end_of_storage;
       }

@@ -95,8 +95,8 @@ public:
     // virtual void resize(int width, int height);
     // @note RobTop Addition
      void resizeWindow(int width, int height);
-	
-    /* 
+
+    /*
      * Set zoom factor for frame. This method is for debugging big resolution (e.g.new ipad) app on desktop.
      */
     void setFrameZoomFactor(float fZoomFactor);
@@ -107,13 +107,13 @@ public:
     bool windowShouldClose();
     // @note RobTop Addition
     void showCursor(bool state);
-	    
+
     typedef void (*LPFN_ACCELEROMETER_KEYHOOK)( UINT message,WPARAM wParam, LPARAM lParam );
     void setAccelerometerKeyHook( LPFN_ACCELEROMETER_KEYHOOK lpfnAccelerometerKeyHook );
 
     virtual void setViewPortInPoints(float x , float y , float w , float h);
     virtual void setScissorInPoints(float x , float y , float w , float h);
-    
+
     // static function
     /**
     @brief    get the shared main open gl window

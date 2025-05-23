@@ -65,7 +65,7 @@ typedef enum {
     //! 16-bit textures: RGBA4444
     kCCTexture2DPixelFormat_RGBA4444,
     //! 16-bit textures: RGB5A1
-    kCCTexture2DPixelFormat_RGB5A1,    
+    kCCTexture2DPixelFormat_RGB5A1,
     //! 4-bit PVRTC-compressed texture: PVRTC4
     kCCTexture2DPixelFormat_PVRTC4,
     //! 2-bit PVRTC-compressed texture: PVRTC2
@@ -102,7 +102,7 @@ typedef struct _ccTexParams {
 
 /** @brief CCTexture2D class.
 * This class allows to easily create OpenGL 2D textures from images, text or raw data.
-* The created CCTexture2D object will always have power-of-two dimensions. 
+* The created CCTexture2D object will always have power-of-two dimensions.
 * Depending on how you create the CCTexture2D object, the actual image area of the texture might be smaller than the texture dimensions i.e. "contentSize" != (pixelsWide, pixelsHigh) and (maxS, maxT) != (1.0, 1.0).
 * Be aware that the content of the generated textures will be upside-down!
 */
@@ -129,7 +129,7 @@ public:
      */
     const char* description(void);
 
-    /** These functions are needed to create mutable textures 
+    /** These functions are needed to create mutable textures
      * @js NA
      */
     void releaseData(void *data);
@@ -138,7 +138,7 @@ public:
      */
     void* keepData(void *data, unsigned int length);
 
-    /** Initializes with a texture2d with data 
+    /** Initializes with a texture2d with data
      * @js NA
      * @lua NA
      */
@@ -167,10 +167,10 @@ public:
     bool initWithString(const char *text, const char *fontName, float fontSize);
     /** Initializes a texture from a string using a text definition*/
     bool initWithString(const char *text, ccFontDefinition *textDefinition);
-    
+
     /** Initializes a texture from a PVR file */
     bool initWithPVRFile(const char* file);
-    
+
     /** Initializes a texture from a ETC file */
     bool initWithETCFile(const char* file);
 
@@ -222,7 +222,7 @@ public:
     /** returns the bits-per-pixel of the in-memory OpenGL texture
     @since v1.0
     */
-    unsigned int bitsPerPixelForFormat();  
+    unsigned int bitsPerPixelForFormat();
 
     /** Helper functions that returns bits per pixels for a given format.
      @since v2.0
@@ -257,16 +257,16 @@ public:
     /** treats (or not) PVR files as if they have alpha premultiplied.
      Since it is impossible to know at runtime if the PVR images have the alpha channel premultiplied, it is
      possible load them as if they have (or not) the alpha channel premultiplied.
-     
+
      By default it is disabled.
-     
+
      @since v0.99.5
      */
     static void PVRImagesHavePremultipliedAlpha(bool haveAlphaPremultiplied);
 
     /** content size */
     const CCSize& getContentSizeInPixels();
-    
+
     bool hasPremultipliedAlpha();
     bool hasMipmaps();
 

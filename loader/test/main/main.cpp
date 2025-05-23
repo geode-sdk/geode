@@ -65,7 +65,7 @@ struct $modify(MenuLayer) {
     bool init() {
         if (!MenuLayer::init())
             return false;
-        
+
         auto node = CCNode::create();
         auto ref = WeakRef(node);
         log::info("ref: {}", ref.lock().data());
@@ -109,7 +109,7 @@ struct $modify(MenuLayer) {
         else {
             log::error("Failed to API (method)");
         }
-        
+
 
         return true;
     }
@@ -176,7 +176,7 @@ struct GJGarageLayerTest2 : Modify<GJGarageLayerTest2, GJGarageLayer> {
     struct Fields {
         int myOtherValue = 80085;
     };
-    
+
     bool init() {
         if (!GJGarageLayer::init()) return false;
 

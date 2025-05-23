@@ -4,17 +4,17 @@
  *
  * Copyright 2011 Yannick Loriot.
  * http://yannickloriot.com
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -49,14 +49,14 @@ class CC_DLL CCInvocation;
 #define kControlEventTotalNumber 9
 
 /** Kinds of possible events for the control objects. */
-enum 
+enum
 {
     CCControlEventTouchDown           = 1 << 0,    // A touch-down event in the control.
     CCControlEventTouchDragInside     = 1 << 1,    // An event where a finger is dragged inside the bounds of the control.
-    CCControlEventTouchDragOutside    = 1 << 2,    // An event where a finger is dragged just outside the bounds of the control. 
+    CCControlEventTouchDragOutside    = 1 << 2,    // An event where a finger is dragged just outside the bounds of the control.
     CCControlEventTouchDragEnter      = 1 << 3,    // An event where a finger is dragged into the bounds of the control.
     CCControlEventTouchDragExit       = 1 << 4,    // An event where a finger is dragged from within a control to outside its bounds.
-    CCControlEventTouchUpInside       = 1 << 5,    // A touch-up event in the control where the finger is inside the bounds of the control. 
+    CCControlEventTouchUpInside       = 1 << 5,    // A touch-up event in the control where the finger is inside the bounds of the control.
     CCControlEventTouchUpOutside      = 1 << 6,    // A touch-up event in the control where the finger is outside the bounds of the control.
     CCControlEventTouchCancel         = 1 << 7,    // A system event canceling the current touches for the control.
     CCControlEventValueChanged        = 1 << 8      // A touch dragging or otherwise manipulating a control, causing it to emit a series of different values.
@@ -64,7 +64,7 @@ enum
 typedef unsigned int CCControlEvent;
 
 /** The possible state for a control.  */
-enum 
+enum
 {
     CCControlStateNormal       = 1 << 0, // The normal, or default state of a control��that is, enabled but neither selected nor highlighted.
     CCControlStateHighlighted  = 1 << 1, // Highlighted state of a control. A control enters this state when a touch down, drag inside or drag enter is performed. You can retrieve and set this value through the highlighted property.
@@ -75,11 +75,11 @@ typedef unsigned int CCControlState;
 
 /*
  * @class
- * CCControl is inspired by the UIControl API class from the UIKit library of 
- * CocoaTouch. It provides a base class for control CCSprites such as CCButton 
+ * CCControl is inspired by the UIControl API class from the UIKit library of
+ * CocoaTouch. It provides a base class for control CCSprites such as CCButton
  * or CCSlider that convey user intent to the application.
  *
- * The goal of CCControl is to define an interface and base implementation for 
+ * The goal of CCControl is to define an interface and base implementation for
  * preparing action messages and initially dispatching them to their targets when
  * certain events occur.
  *
@@ -91,7 +91,7 @@ public:
     //CCRGBAProtocol
     bool m_bIsOpacityModifyRGB;
 
-    /** The current control state constant. 
+    /** The current control state constant.
      * @note Robtop Addition: Made non virtual
     */
     CC_SYNTHESIZE_READONLY_NV(CCControlState, m_eState, State);
@@ -115,7 +115,7 @@ public:
      * Updates the control layout using its current internal state.
      */
     virtual void needsLayout();
-    
+
     virtual bool isOpacityModifyRGB();
     virtual void setOpacityModifyRGB(bool bOpacityModifyRGB);
 
@@ -124,7 +124,7 @@ protected:
     bool m_bSelected;
     bool m_bHighlighted;
 
-    /** 
+    /**
      * Table of connection between the CCControlEvents and their associated
      * target-actions pairs. For each CCButtonEvents a list of NSInvocation
      * (which contains the target-action pair) is linked.
@@ -137,7 +137,7 @@ public:
      */
     CCControl();
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCControl, CCLayerRGBA)
-    
+
     virtual bool init(void);
     /**
      *  @js NA
@@ -168,23 +168,23 @@ public:
     /**
     * Adds a target and action for a particular event (or events) to an internal
     * dispatch table.
-    * The action message may optionnaly include the sender and the event as 
+    * The action message may optionnaly include the sender and the event as
     * parameters, in that order.
     * When you call this method, target is not retained.
     *
-    * @param target The target object that is, the object to which the action 
+    * @param target The target object that is, the object to which the action
     * message is sent. It cannot be nil. The target is not retained.
     * @param action A selector identifying an action message. It cannot be NULL.
-    * @param controlEvents A bitmask specifying the control events for which the 
+    * @param controlEvents A bitmask specifying the control events for which the
     * action message is sent. See "CCControlEvent" for bitmask constants.
     */
     virtual void addTargetWithActionForControlEvents(CCObject* target, SEL_CCControlHandler action, CCControlEvent controlEvents);
 
     /**
-    * Removes a target and action for a particular event (or events) from an 
+    * Removes a target and action for a particular event (or events) from an
     * internal dispatch table.
     *
-    * @param target The target object�that is, the object to which the action 
+    * @param target The target object�that is, the object to which the action
     * message is sent. Pass nil to remove all targets paired with action and the
     * specified control events.
     * @param action A selector identifying an action message. Pass NULL to remove
@@ -195,13 +195,13 @@ public:
     virtual void removeTargetWithActionForControlEvents(CCObject* target, SEL_CCControlHandler action, CCControlEvent controlEvents);
 
     /**
-    * Returns a point corresponding to the touh location converted into the 
+    * Returns a point corresponding to the touh location converted into the
     * control space coordinates.
     * @param touch A CCTouch object that represents a touch.
     */
     virtual CCPoint getTouchLocation(CCTouch* touch);
 
-    
+
     /**
     * Returns a boolean value that indicates whether a touch is inside the bounds
     * of the receiver. The given touch must be relative to the world.
@@ -215,7 +215,7 @@ public:
 
 protected:
     /**
-     * Returns an CCInvocation object able to construct messages using a given 
+     * Returns an CCInvocation object able to construct messages using a given
      * target-action pair. (The invocation may optionnaly include the sender and
      * the event as parameters, in that order)
      *
@@ -224,7 +224,7 @@ protected:
      * @param controlEvent A control events for which the action message is sent.
      * See "CCControlEvent" for constants.
      *
-     * @return an CCInvocation object able to construct messages using a given 
+     * @return an CCInvocation object able to construct messages using a given
      * target-action pair.
      */
     CCInvocation* invocationWithTargetAndActionForControlEvent(CCObject* target, SEL_CCControlHandler action, CCControlEvent controlEvent);
@@ -243,25 +243,25 @@ protected:
     //<CCInvocation*>
     CCArray* dispatchListforControlEvent(CCControlEvent controlEvent);
     /**
-     * Adds a target and action for a particular event to an internal dispatch 
+     * Adds a target and action for a particular event to an internal dispatch
      * table.
-     * The action message may optionnaly include the sender and the event as 
+     * The action message may optionnaly include the sender and the event as
      * parameters, in that order.
      * When you call this method, target is not retained.
      *
-     * @param target The target object��that is, the object to which the action 
+     * @param target The target object��that is, the object to which the action
      * message is sent. It cannot be nil. The target is not retained.
      * @param action A selector identifying an action message. It cannot be NULL.
      * @param controlEvent A control event for which the action message is sent.
      * See "CCControlEvent" for constants.
      */
     void addTargetWithActionForControlEvent(CCObject* target, SEL_CCControlHandler action, CCControlEvent controlEvent);
-    
+
     /**
      * Removes a target and action for a particular event from an internal dispatch
      * table.
      *
-     * @param target The target object��that is, the object to which the action 
+     * @param target The target object��that is, the object to which the action
      * message is sent. Pass nil to remove all targets paired with action and the
      * specified control events.
      * @param action A selector identifying an action message. Pass NULL to remove

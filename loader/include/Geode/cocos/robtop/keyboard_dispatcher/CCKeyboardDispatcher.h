@@ -8,7 +8,7 @@
 NS_CC_BEGIN
 
 // @note RobTop Addition
-class CC_DLL CCKeyboardDispatcher : public CCObject 
+class CC_DLL CCKeyboardDispatcher : public CCObject
 {
 public:
 	GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCKeyboardDispatcher, CCObject)

@@ -54,7 +54,7 @@ This class is deprecated. It is maintained for compatibility reasons only.
 You SHOULD not use this class.
 Instead, use the newer TMX file format: CCTMXTiledMap
 */
-class CC_DLL CCTileMapAtlas : public CCAtlasNode 
+class CC_DLL CCTileMapAtlas : public CCAtlasNode
 {
     GEODE_FRIEND_MODIFY
     /** TileMap info */
@@ -70,12 +70,12 @@ public:
      * @lua NA
      */
     virtual ~CCTileMapAtlas();
-    
+
     /** creates a CCTileMap with a tile file (atlas) with a map file and the width and height of each tile in points.
     The tile file will be loaded using the TextureMgr.
     */
     static CCTileMapAtlas * create(const char *tile, const char *mapFile, int tileWidth, int tileHeight);
-   
+
     /** initializes a CCTileMap with a tile file (atlas) with a map file and the width and height of each tile in points.
     The file will be loaded using the TextureMgr.
     */

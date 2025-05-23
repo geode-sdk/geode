@@ -165,7 +165,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
             return item->shouldLoad();
         });
     }
-    
+
     int getCurrentStep() {
         return m_fields->m_geodeLoadStep + m_loadStep + getLoadedMods();
     }

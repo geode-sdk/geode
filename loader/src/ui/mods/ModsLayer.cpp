@@ -25,7 +25,7 @@
 bool ModsStatusNode::init() {
     if (!CCNode::init())
         return false;
-    
+
     this->ignoreAnchorPointForPosition(false);
     this->setAnchorPoint({ .5f, 1.f });
     this->setContentSize({ 300, 35 });
@@ -105,7 +105,7 @@ bool ModsStatusNode::init() {
     });
 
     this->updateState();
-    
+
     return true;
 }
 
@@ -166,7 +166,7 @@ void ModsStatusNode::updateState() {
             m_restartBtn->setVisible(LoaderImpl::get()->isRestartRequired());
         } break;
 
-        // If all downloads were finished, show the restart button normally 
+        // If all downloads were finished, show the restart button normally
         // but also a "all done" status
         case DownloadState::AllDone: {
             if (downloads.size() == 1) {
@@ -178,7 +178,7 @@ void ModsStatusNode::updateState() {
             m_status->setColor("mod-list-enabled"_cc3b);
             m_status->setVisible(true);
             m_statusBG->setVisible(true);
-            
+
             m_restartBtn->setVisible(LoaderImpl::get()->isRestartRequired());
         } break;
 
@@ -352,7 +352,7 @@ bool ModsLayer::init() {
 
     auto winSize = CCDirector::get()->getWinSize();
     const bool isSafeMode = LoaderImpl::get()->isSafeMode();
-    
+
     const bool geodeTheme = isGeodeTheme();
     if (!isSafeMode) {
         if (geodeTheme) {
@@ -370,7 +370,7 @@ bool ModsLayer::init() {
     backMenu->setID("back-menu");
     backMenu->setContentSize({100.f, 40.f});
     backMenu->setAnchorPoint({ .0f, .5f });
-    
+
     auto backSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
     auto backBtn = CCMenuItemSpriteExtra::create(
         backSpr, this, menu_selector(ModsLayer::onBack)
@@ -637,11 +637,11 @@ bool ModsLayer::init() {
                 auto src = ServerModListSource::get(ServerModListType::Download);
                 src->getQueryMut()->developer = *whole->searchByDeveloper;
                 this->gotoTab(src);
-                
+
                 m_showSearch = true;
                 m_lists.at(src)->activateSearch(m_showSearch);
             }
-        } 
+        }
         this->updateState();
     });
 
@@ -776,7 +776,7 @@ void ModsLayer::onRefreshList(CCObject*) {
 }
 void ModsLayer::onBack(CCObject*) {
     // Tell every list that we are about to exit the layer.
-    // This prevents any page from being cached when the 
+    // This prevents any page from being cached when the
     // cache invalidation event fires.
     for (auto& list : m_lists) {
         list.second->setIsExiting(true);

@@ -33,7 +33,7 @@ namespace geode {
 
         template<class T, class ... Args>
         constexpr T getOr(std::variant<Args...> const& variant, T const& defValue) {
-            return std::holds_alternative<T>(variant) ? 
+            return std::holds_alternative<T>(variant) ?
                 std::get<T>(variant) : defValue;
         }
 
@@ -117,7 +117,7 @@ namespace geode {
          */
         template <class Num>
         Result<Num> numFromString(std::string_view str, int base = 10) {
-            if constexpr (std::is_floating_point_v<Num> 
+            if constexpr (std::is_floating_point_v<Num>
                 #if defined(__cpp_lib_to_chars)
                     && false
                 #endif
@@ -158,7 +158,7 @@ namespace geode {
          * On most platforms this is 1.0, but on retina displays for example this returns 2.0.
         */
         GEODE_DLL float getDisplayFactor();
-        
+
         GEODE_DLL std::string getEnvironmentVariable(const char* name);
 
         /**

@@ -49,7 +49,7 @@
  */
 
 /** @file include/utility
- *  This is a Standard C++ Library header. 
+ *  This is a Standard C++ Library header.
  */
 
 #ifndef _GLIBCXX_UTILITY
@@ -92,7 +92,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
   template<class _Tp1, class _Tp2>
     struct tuple_element<0, pair<_Tp1, _Tp2>>
     { typedef _Tp1 type; };
- 
+
   template<class _Tp1, class _Tp2>
     struct tuple_element<1, pair<_Tp1, _Tp2>>
     { typedef _Tp2 type; };

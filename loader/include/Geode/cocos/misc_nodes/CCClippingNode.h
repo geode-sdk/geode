@@ -47,12 +47,12 @@ public:
     CCNode* m_pStencil;
     GLfloat m_fAlphaThreshold;
     bool    m_bInverted;
-    
+
 public:
     /** Creates and initializes a clipping node without a stencil.
      */
     static CCClippingNode* create();
-    
+
     /** Creates and initializes a clipping node with an other node as its stencil.
      The stencil node will be retained.
      */
@@ -62,11 +62,11 @@ public:
      * @lua NA
      */
     virtual ~CCClippingNode();
-    
+
     /** Initializes a clipping node without a stencil.
      */
     virtual bool init();
-    
+
     /** Initializes a clipping node with an other node as its stencil.
      The stencil node will be retained, and its parent will be set to this clipping node.
      */
@@ -92,14 +92,14 @@ public:
      */
     virtual void onExit();
     virtual void visit();
-    
+
     /** The CCNode to use as a stencil to do the clipping.
      The stencil node will be retained.
      This default to nil.
      */
     CCNode* getStencil() const;
     void setStencil(CCNode *pStencil);
-    
+
     /** The alpha threshold.
      The content is drawn only where the stencil have pixel with alpha greater than the alphaThreshold.
      Should be a float between 0 and 1.
@@ -107,14 +107,14 @@ public:
      */
     GLfloat getAlphaThreshold() const;
     void setAlphaThreshold(GLfloat fAlphaThreshold);
-    
+
     /** Inverted. If this is set to YES,
      the stencil is inverted, so the content is drawn where the stencil is NOT drawn.
      This default to NO.
      */
     bool isInverted() const;
     void setInverted(bool bInverted);
-    
+
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCClippingNode, CCNode);
 
 protected:

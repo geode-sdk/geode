@@ -142,7 +142,7 @@ bool CCKeyboardDispatcher::dispatchKeyboardMSG(enumKeyCodes key, bool isKeyDown,
         }
     }
     m_bUnknown38 = false;
-    
+
     if (m_bUnknown3a)
     {
         m_bUnknown3a = false;

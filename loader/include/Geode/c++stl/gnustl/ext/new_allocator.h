@@ -46,7 +46,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
    *  @brief  An allocator that uses global new, as per [20.4].
    *  @ingroup allocators
    *
-   *  This is precisely the allocator defined in the C++ Standard. 
+   *  This is precisely the allocator defined in the C++ Standard.
    *    - all allocation calls operator new
    *    - all deallocation calls operator delete
    *
@@ -98,7 +98,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       // about what the return value is when __n == 0.
       pointer
       allocate(size_type __n, const void* = 0)
-      { 
+      {
 	if (__n > this->max_size())
 	  geode::stl::__throw_bad_alloc();
 
@@ -128,16 +128,16 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	{ ::new((void *)__p) _Up(std::forward<_Args>(__args)...); }
 
       template<typename _Up>
-        void 
+        void
         destroy(_Up* __p) { __p->~_Up(); }
 #else
       // _GLIBCXX_RESOLVE_LIB_DEFECTS
       // 402. wrong new expression in [some_] allocator::construct
-      void 
-      construct(pointer __p, const _Tp& __val) 
+      void
+      construct(pointer __p, const _Tp& __val)
       { ::new((void *)__p) _Tp(__val); }
 
-      void 
+      void
       destroy(pointer __p) { __p->~_Tp(); }
 #endif
     };
@@ -146,7 +146,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     inline bool
     operator==(const new_allocator<_Tp>&, const new_allocator<_Tp>&)
     { return true; }
-  
+
   template<typename _Tp>
     inline bool
     operator!=(const new_allocator<_Tp>&, const new_allocator<_Tp>&)

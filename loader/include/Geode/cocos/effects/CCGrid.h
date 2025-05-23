@@ -1,7 +1,7 @@
 /****************************************************************************
 Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2009      On-Core
- 
+
 http://www.cocos2d-x.org
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -61,7 +61,7 @@ public:
      */
     virtual ~CCGridBase(void);
 
-    /** whether or not the grid is active 
+    /** whether or not the grid is active
      *  @lua NA
      */
     inline bool isActive(void) { return m_bActive; }
@@ -70,7 +70,7 @@ public:
      */
     void setActive(bool bActive);
 
-    /** number of times that the grid will be reused 
+    /** number of times that the grid will be reused
      *  @lua NA
      */
     inline int getReuseGrid(void) { return m_nReuseGrid; }
@@ -79,7 +79,7 @@ public:
      */
     inline void setReuseGrid(int nReuseGrid) { m_nReuseGrid = nReuseGrid; }
 
-    /** size of the grid 
+    /** size of the grid
      *  @lua NA
      */
     inline const CCSize& getGridSize(void) { return m_sGridSize; }
@@ -88,7 +88,7 @@ public:
      */
     inline void setGridSize(const CCSize& gridSize) { m_sGridSize = gridSize; }
 
-    /** pixels between the grids 
+    /** pixels between the grids
      *  @lua NA
      */
     inline const CCPoint& getStep(void) { return m_obStep; }
@@ -97,7 +97,7 @@ public:
      */
     inline void setStep(const CCPoint& step) { m_obStep = step; }
 
-    /** is texture flipped 
+    /** is texture flipped
      * @lua NA
      */
     inline bool isTextureFlipped(void) { return m_bIsTextureFlipped; }
@@ -136,11 +136,11 @@ public:
 
 public:
 
-    /** create one Grid 
+    /** create one Grid
      * @lua NA
      */
     static CCGridBase* create(const CCSize& gridSize, CCTexture2D *texture, bool flipped);
-    /** create one Grid 
+    /** create one Grid
      * @lua NA
      */
     static CCGridBase* create(const CCSize& gridSize);
@@ -192,7 +192,7 @@ public:
     static CCGrid3D* create(const CCSize& gridSize, CCTexture2D *pTexture, bool bFlipped);
     /** create one Grid */
     static CCGrid3D* create(const CCSize& gridSize);
-    
+
 protected:
     GLvoid *m_pTexCoordinates;
     GLvoid *m_pVertices;
@@ -233,7 +233,7 @@ public:
     static CCTiledGrid3D* create(const CCSize& gridSize, CCTexture2D *pTexture, bool bFlipped);
     /** create one Grid */
     static CCTiledGrid3D* create(const CCSize& gridSize);
-    
+
 protected:
     GLvoid *m_pTexCoordinates;
     GLvoid *m_pVertices;

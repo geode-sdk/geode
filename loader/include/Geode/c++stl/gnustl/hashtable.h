@@ -157,7 +157,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
    *  Pattern" (CRTP) technique, but uses a reconstructed, not
    *  explicitly passed, template pattern.
    *
-   *  Base class templates are: 
+   *  Base class templates are:
    *    - __detail::_Hashtable_base
    *    - __detail::_Map_base
    *    - __detail::_Insert
@@ -895,7 +895,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	__bucket_type* __former_buckets = nullptr;
 	std::size_t __former_bucket_count = _M_bucket_count;
 	const __rehash_state& __former_state = _M_rehash_policy._M_state();
-	
+
 	if (_M_bucket_count != __ht._M_bucket_count)
 	  {
 	    __former_buckets = _M_buckets;
@@ -913,7 +913,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	    _M_rehash_policy = __ht._M_rehash_policy;
 	    __reuse_or_alloc_node_type __roan(_M_begin(), *this);
 	    _M_before_begin._M_nxt = nullptr;
-	    _M_assign(__ht, 
+	    _M_assign(__ht,
 		      [&__roan](const __node_type* __n)
 		      { return __roan(__n->_M_v()); });
 	    if (__former_buckets)
@@ -1254,7 +1254,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	{
 	  __x._M_buckets = _M_buckets;
 	  _M_buckets = &_M_single_bucket;
-	}	
+	}
       else
 	swap(_M_buckets, __x._M_buckets);
 

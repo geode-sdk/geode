@@ -7,7 +7,7 @@ bool SwelvyBG::init() {
         return false;
 
     this->setID("SwelvyBG");
-    
+
     auto winSize = CCDirector::get()->getWinSize();
     this->setContentSize(winSize);
     this->setAnchorPoint({ 0.f, 0.f });

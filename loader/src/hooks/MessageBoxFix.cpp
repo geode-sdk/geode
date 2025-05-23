@@ -37,20 +37,20 @@ static void __cdecl fixedErrorHandler(CCEGLView*, int code, char const* descript
 $execute {
     // updated for 2.206
     // check xrefs to "GLFWError #%d Happen, %s\n", now there's two functions with the same exact
-    // behaviour, one is a member function though... 
+    // behaviour, one is a member function though...
     // hook them to call our own handler
     if (LoaderImpl::get()->isForwardCompatMode()) return;
 
 #if GEODE_COMP_GD_VERSION == 22074
     const uintptr_t offset1 = 0x75D90; // member function in CCEGLView
     const uintptr_t offset2 = 0x75DF0; // static function
-    
+
     (void) Mod::get()->hook(
         reinterpret_cast<void*>(geode::base::getCocos() + offset1),
         fixedErrorHandler,
         "onGLFWError"
     );
-    
+
     (void) Mod::get()->hook(
         reinterpret_cast<void*>(geode::base::getCocos() + offset2),
         fixedErrorHandler2,

@@ -127,7 +127,7 @@ void patchDelayLoad() {
                 jmpAddr = tailMergeAddr + 48 + 27;
                 std::memcpy(patch3.data() + 34, &jmpAddr, sizeof(jmpAddr));
                 (void) tulip::hook::writeMemory(reinterpret_cast<void*>(allocated + 42), patch3.data(), sizeof(patch3));
-            }            
+            }
         }
     }
 #endif
@@ -143,7 +143,7 @@ unsigned int gdTimestamp = 0;
 // to avoid the game crashing due to not being able to find the resources
 void fixCurrentWorkingDirectory() {
     std::array<WCHAR, MAX_PATH> cwd;
-    
+
     auto size = GetModuleFileNameW(nullptr, cwd.data(), cwd.size());
     if (size == cwd.size()) return;
 
@@ -194,7 +194,7 @@ std::string loadGeode() {
 
     gdTimestamp = ntHeader->FileHeader.TimeDateStamp;
 
-    constexpr size_t trampolineSize = GEODE_WINDOWS64(32) GEODE_WINDOWS32(12);    
+    constexpr size_t trampolineSize = GEODE_WINDOWS64(32) GEODE_WINDOWS32(12);
     mainTrampolineAddr = VirtualAlloc(
         nullptr, trampolineSize,
         MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE
@@ -211,10 +211,10 @@ std::string loadGeode() {
         panicMode = true;
     }
 #endif
-    
+
     MSG_BOX_DEBUG("Entry address: {:x}, {:x}", entryAddr, entryAddr - geode::base::get());
     // function that calls main
-    // 32 bit: 
+    // 32 bit:
     // e8 xx xx xx xx call (security)
     // e9 xx xx xx xx jmp
     // 64 bit:
@@ -291,7 +291,7 @@ std::string loadGeode() {
         0x48, 0x89, 0x74, 0x24, 0x10,
         // mov [rsp + 18], rdi
         0x48, 0x89, 0x7c, 0x24, 0x18,
-        // jmp [rip + 0] 
+        // jmp [rip + 0]
         0xff, 0x25, 0x00, 0x00, 0x00, 0x00,
         // pointer to main + 15
         static_cast<uint8_t>((jumpAddr >> 0) & 0xFF), static_cast<uint8_t>((jumpAddr >> 8) & 0xFF), static_cast<uint8_t>((jumpAddr >> 16) & 0xFF), static_cast<uint8_t>((jumpAddr >> 24) & 0xFF),
@@ -312,7 +312,7 @@ std::string loadGeode() {
         // nop to pad it out, helps the asm to show up properly on debuggers
         0x90
     };
-#else 
+#else
     constexpr size_t patchSize = 6;
 
     uint8_t trampolineBytes[trampolineSize] = {
@@ -321,7 +321,7 @@ std::string loadGeode() {
         // mov ebp, esp
         0x8b, 0xec,
         // and esp, ...
-        0x83, 0xe4, 0xf8, 
+        0x83, 0xe4, 0xf8,
         // jmp main + 6 (after our jmp detour)
         0xe9, JMP_BYTES(reinterpret_cast<uintptr_t>(mainTrampolineAddr) + 6, patchAddr + patchSize)
     };

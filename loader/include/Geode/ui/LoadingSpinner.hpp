@@ -4,9 +4,9 @@
 
 namespace geode {
     /**
-     * An eternally spinning loading circle. Essentially just a more convenient 
-     * alternative to RobTop's `LoadingCircle` class, as this one respects its 
-     * content size and is a lot more stripped down (not requiring a `show` 
+     * An eternally spinning loading circle. Essentially just a more convenient
+     * alternative to RobTop's `LoadingCircle` class, as this one respects its
+     * content size and is a lot more stripped down (not requiring a `show`
      * method or anything - it just works!)
      */
     class GEODE_DLL LoadingSpinner : public cocos2d::CCNode {

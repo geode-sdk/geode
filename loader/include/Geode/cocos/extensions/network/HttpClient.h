@@ -1,19 +1,19 @@
 /****************************************************************************
  Copyright (c) 2010-2012 cocos2d-x.org
  Copyright (c) 2012 greathqy
- 
+
  http://www.cocos2d-x.org
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -53,12 +53,12 @@ public:
 
     /** Return the shared instance **/
     static CCHttpClient *getInstance();
-    
+
     /** Relase the shared instance **/
     static void destroyInstance();
 
     virtual ~CCHttpClient();
-        
+
     /**
      * Add a get request to task queue
      * @param request a CCHttpRequest object, which includes url, response callback etc.
@@ -66,41 +66,41 @@ public:
      * @return NULL
      */
     void send(CCHttpRequest* request);
-  
-    
+
+
     /**
      * Change the connect timeout
-     * @param timeout 
+     * @param timeout
      * @return NULL
      */
     inline void setTimeoutForConnect(int value) {_timeoutForConnect = value;};
-    
+
     /**
      * Get connect timeout
      * @return int
      *
      */
     inline int getTimeoutForConnect() {return _timeoutForConnect;}
-    
-    
+
+
     /**
      * Change the download timeout
      * @param value
      * @return NULL
      */
     inline void setTimeoutForRead(int value) {_timeoutForRead = value;};
-    
+
 
     /**
      * Get download timeout
      * @return int
      */
     inline int getTimeoutForRead() {return _timeoutForRead;};
-        
+
 private:
     CCHttpClient();
     bool init(void);
-    
+
     /**
      * Init pthread mutex, semaphore, and create new thread for http requests
      * @return bool
@@ -108,11 +108,11 @@ private:
     bool lazyInitThreadSemphore();
     /** Poll function called from main thread to dispatch callbacks when http requests finished **/
     void dispatchResponseCallbacks(float delta);
-    
+
 public:
     int _timeoutForConnect;
     int _timeoutForRead;
-    
+
     // gd::string reqId;
 };
 

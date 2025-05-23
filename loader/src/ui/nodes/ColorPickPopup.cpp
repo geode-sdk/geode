@@ -302,7 +302,7 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
             Slider::create(this, menu_selector(ColorPickPopup::onOpacitySlider), .75f);
         m_impl->m_opacitySlider->setValue(color.a / 255.f);
         m_impl->m_opacitySlider->setID("opacity-slider");
-        
+
         auto sliderWrapper = CCNode::create();
         sliderWrapper->setContentSize(ccp(m_impl->m_opacitySlider->m_width, m_impl->m_opacitySlider->m_height) * .75f);
         sliderWrapper->setID("slider-wrapper");
@@ -314,7 +314,7 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
         m_impl->m_opacityInput->setDelegate(this, TAG_OPACITY_INPUT);
         m_impl->m_opacityInput->setID("opacity-input");
         opacitySection->addChild(m_impl->m_opacityInput);
-        
+
         sliderColumn->updateLayout();
         opacitySection->updateLayout();
     }

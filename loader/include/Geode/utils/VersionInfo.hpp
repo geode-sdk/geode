@@ -26,8 +26,8 @@ namespace geode {
     };
 
     /**
-     * A version label, like v1.0.0-alpha or v2.3.4-prerelease. Limited to these 
-     * options; arbitary identifiers are not supported. Additional numbering 
+     * A version label, like v1.0.0-alpha or v2.3.4-prerelease. Limited to these
+     * options; arbitary identifiers are not supported. Additional numbering
      * may be added after the identifier, such as v1.0.0-beta.1
      */
     struct VersionTag {
@@ -118,8 +118,8 @@ namespace geode {
     }
 
     /**
-     * Class representing version information. Uses a limited subset of SemVer;  
-     * identifiers are restricted to a few predefined ones, and only one 
+     * Class representing version information. Uses a limited subset of SemVer;
+     * identifiers are restricted to a few predefined ones, and only one
      * identifier is allowed. See VersionTag for details
      */
     class GEODE_DLL VersionInfo final {
@@ -145,7 +145,7 @@ namespace geode {
             m_patch = patch;
             m_tag = tag;
         }
-        
+
         static Result<VersionInfo> parse(std::string const& string);
 
         constexpr size_t getMajor() const {
@@ -189,7 +189,7 @@ namespace geode {
 
         std::string toVString(bool includeTag = true) const;
         std::string toNonVString(bool includeTag = true) const;
- 
+
         friend GEODE_DLL std::string format_as(VersionInfo const& version);
     };
 
@@ -233,7 +233,7 @@ namespace geode {
                 case VersionCompare::More:
                     return version > m_version ? VersionCompareResult::Match : VersionCompareResult::TooOld;
                 case VersionCompare::Exact:
-                    return version == m_version ? VersionCompareResult::Match : 
+                    return version == m_version ? VersionCompareResult::Match :
                         (version > m_version) ? VersionCompareResult::TooOld : VersionCompareResult::TooNew;
                 default:
                     return VersionCompareResult::GenericMismatch;

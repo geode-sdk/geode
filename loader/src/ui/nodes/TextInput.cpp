@@ -25,7 +25,7 @@ struct TextInputNodeFix : Modify<TextInputNodeFix, CCTextInputNode> {
 
         float parentScale = 1.f;
         CCNode* currentParent = this;
-        
+
         while ((currentParent = currentParent->getParent())) {
             parentScale *= currentParent->getScale();
         }
@@ -33,7 +33,7 @@ struct TextInputNodeFix : Modify<TextInputNodeFix, CCTextInputNode> {
         CCPoint nodeSpace = this->convertToNodeSpace(touchPos);
         nodeSpace = nodeSpace / parentScale;
         touchPos = this->convertToWorldSpace(nodeSpace);
-        
+
         if (pos.x < 0 || pos.x > size.width || pos.y < 0 || pos.y > size.height) {
             this->onClickTrackNode(false);
             return false;

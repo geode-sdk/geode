@@ -31,13 +31,13 @@ namespace geode {
          * After creating the hook object, we recommend you set its owner
          * by calling `Mod::claimHook`, see its docs for more info.
          * @param address The address to hook
-         * @param detour The detour to run when the hook is hit. The detour's 
+         * @param detour The detour to run when the hook is hit. The detour's
          * calling convention should be cdecl
-         * @param displayName A human-readable name describing the hook, 
+         * @param displayName A human-readable name describing the hook,
          * usually the fully qualified name of the function being hooked
          * @param handlerMetadata Metadata for the hook handler
          * @param hookMetadata Metadata for the hook itself
-         * @returns The created hook, or an error. Make sure to add the created 
+         * @returns The created hook, or an error. Make sure to add the created
          * hook to the mod that owns it using mod->claimHook(hook)!
          */
         static std::shared_ptr<Hook> create(

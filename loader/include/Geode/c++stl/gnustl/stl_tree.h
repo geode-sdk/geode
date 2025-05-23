@@ -145,16 +145,16 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
   inline _GLIBCXX_PURE _Rb_tree_node_base*
   _Rb_tree_increment(_Rb_tree_node_base* __x) throw ()
   {
-    if (__x->_M_right != 0) 
+    if (__x->_M_right != 0)
       {
         __x = __x->_M_right;
         while (__x->_M_left != 0)
           __x = __x->_M_left;
       }
-    else 
+    else
       {
         _Rb_tree_node_base* __y = __x->_M_parent;
-        while (__x == __y->_M_right) 
+        while (__x == __y->_M_right)
           {
             __x = __y;
             __y = __y->_M_parent;
@@ -174,20 +174,20 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
   inline _GLIBCXX_PURE _Rb_tree_node_base*
   _Rb_tree_decrement(_Rb_tree_node_base* __x) throw ()
   {
-    if (__x->_M_color == _S_red 
+    if (__x->_M_color == _S_red
         && __x->_M_parent->_M_parent == __x)
       __x = __x->_M_right;
-    else if (__x->_M_left != 0) 
+    else if (__x->_M_left != 0)
       {
         _Rb_tree_node_base* __y = __x->_M_left;
         while (__y->_M_right != 0)
           __y = __y->_M_right;
         __x = __y;
       }
-    else 
+    else
       {
         _Rb_tree_node_base* __y = __x->_M_parent;
-        while (__x == __y->_M_left) 
+        while (__x == __y->_M_left)
           {
             __x = __y;
             __y = __y->_M_parent;
@@ -366,7 +366,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
     { return __x._M_node != __y._M_node; }
 
   inline void
-  _Rb_tree_rotate_left(_Rb_tree_node_base* const __x, 
+  _Rb_tree_rotate_left(_Rb_tree_node_base* const __x,
 		                   _Rb_tree_node_base*& __root)
   {
     _Rb_tree_node_base* const __y = __x->_M_right;
@@ -375,7 +375,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
     if (__y->_M_left !=0)
       __y->_M_left->_M_parent = __x;
     __y->_M_parent = __x->_M_parent;
-    
+
     if (__x == __root)
       __root = __y;
     else if (__x == __x->_M_parent->_M_left)
@@ -387,7 +387,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
   }
 
   inline void
-  _Rb_tree_rotate_right(_Rb_tree_node_base* const __x, 
+  _Rb_tree_rotate_right(_Rb_tree_node_base* const __x,
 			                  _Rb_tree_node_base*& __root)
   {
     _Rb_tree_node_base* const __y = __x->_M_left;
@@ -445,24 +445,24 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
           __header._M_right = __x; // maintain rightmost pointing to max node
       }
     // Rebalance.
-    while (__x != __root 
-	   && __x->_M_parent->_M_color == _S_red) 
+    while (__x != __root
+	   && __x->_M_parent->_M_color == _S_red)
       {
 	_Rb_tree_node_base* const __xpp = __x->_M_parent->_M_parent;
 
-	if (__x->_M_parent == __xpp->_M_left) 
+	if (__x->_M_parent == __xpp->_M_left)
 	  {
 	    _Rb_tree_node_base* const __y = __xpp->_M_right;
-	    if (__y && __y->_M_color == _S_red) 
+	    if (__y && __y->_M_color == _S_red)
 	      {
 		__x->_M_parent->_M_color = _S_black;
 		__y->_M_color = _S_black;
 		__xpp->_M_color = _S_red;
 		__x = __xpp;
 	      }
-	    else 
+	    else
 	      {
-		if (__x == __x->_M_parent->_M_right) 
+		if (__x == __x->_M_parent->_M_right)
 		  {
 		    __x = __x->_M_parent;
 		    _Rb_tree_rotate_left(__x, __root);
@@ -472,19 +472,19 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 		_Rb_tree_rotate_right(__xpp, __root);
 	      }
 	  }
-	else 
+	else
 	  {
 	    _Rb_tree_node_base* const __y = __xpp->_M_left;
-	    if (__y && __y->_M_color == _S_red) 
+	    if (__y && __y->_M_color == _S_red)
 	      {
 		__x->_M_parent->_M_color = _S_black;
 		__y->_M_color = _S_black;
 		__xpp->_M_color = _S_red;
 		__x = __xpp;
 	      }
-	    else 
+	    else
 	      {
-		if (__x == __x->_M_parent->_M_left) 
+		if (__x == __x->_M_parent->_M_left)
 		  {
 		    __x = __x->_M_parent;
 		    _Rb_tree_rotate_right(__x, __root);
@@ -514,7 +514,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
     else
       if (__y->_M_right == 0)  // __z has exactly one non-null child. y == z.
 	__x = __y->_M_left;    // __x is not null.
-      else 
+      else
 	{
 	  // __z has two non-null children.  Set __y to
 	  __y = __y->_M_right;   //   __z's successor.  __x might be null.
@@ -522,12 +522,12 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 	    __y = __y->_M_left;
 	  __x = __y->_M_right;
 	}
-    if (__y != __z) 
+    if (__y != __z)
       {
 	// relink y in place of z.  y is z's successor
-	__z->_M_left->_M_parent = __y; 
+	__z->_M_left->_M_parent = __y;
 	__y->_M_left = __z->_M_left;
-	if (__y != __z->_M_right) 
+	if (__y != __z->_M_right)
 	  {
 	    __x_parent = __y->_M_parent;
 	    if (__x) __x->_M_parent = __y->_M_parent;
@@ -536,31 +536,31 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 	    __z->_M_right->_M_parent = __y;
 	  }
 	else
-	  __x_parent = __y;  
+	  __x_parent = __y;
 	if (__root == __z)
 	  __root = __y;
 	else if (__z->_M_parent->_M_left == __z)
 	  __z->_M_parent->_M_left = __y;
-	else 
+	else
 	  __z->_M_parent->_M_right = __y;
 	__y->_M_parent = __z->_M_parent;
 	swap(__y->_M_color, __z->_M_color);
 	__y = __z;
 	// __y now points to node to be actually deleted
       }
-    else 
+    else
       {                        // __y == __z
 	__x_parent = __y->_M_parent;
-	if (__x) 
-	  __x->_M_parent = __y->_M_parent;   
+	if (__x)
+	  __x->_M_parent = __y->_M_parent;
 	if (__root == __z)
 	  __root = __x;
-	else 
+	else
 	  if (__z->_M_parent->_M_left == __z)
 	    __z->_M_parent->_M_left = __x;
 	  else
 	    __z->_M_parent->_M_right = __x;
-	if (__leftmost == __z) 
+	if (__leftmost == __z)
 	  {
 	    if (__z->_M_right == 0)        // __z->_M_left must be null also
 	      __leftmost = __z->_M_parent;
@@ -568,41 +568,41 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 	    else
 	      __leftmost = _Rb_tree_node_base::_S_minimum(__x);
 	  }
-	if (__rightmost == __z)  
+	if (__rightmost == __z)
 	  {
 	    if (__z->_M_left == 0)         // __z->_M_right must be null also
-	      __rightmost = __z->_M_parent;  
+	      __rightmost = __z->_M_parent;
 	    // makes __rightmost == _M_header if __z == __root
 	    else                      // __x == __z->_M_left
 	      __rightmost = _Rb_tree_node_base::_S_maximum(__x);
 	  }
       }
-    if (__y->_M_color != _S_red) 
-      { 
+    if (__y->_M_color != _S_red)
+      {
 	while (__x != __root && (__x == 0 || __x->_M_color == _S_black))
-	  if (__x == __x_parent->_M_left) 
+	  if (__x == __x_parent->_M_left)
 	    {
 	      _Rb_tree_node_base* __w = __x_parent->_M_right;
-	      if (__w->_M_color == _S_red) 
+	      if (__w->_M_color == _S_red)
 		{
 		  __w->_M_color = _S_black;
 		  __x_parent->_M_color = _S_red;
 		  _Rb_tree_rotate_left(__x_parent, __root);
 		  __w = __x_parent->_M_right;
 		}
-	      if ((__w->_M_left == 0 || 
+	      if ((__w->_M_left == 0 ||
 		   __w->_M_left->_M_color == _S_black) &&
-		  (__w->_M_right == 0 || 
-		   __w->_M_right->_M_color == _S_black)) 
+		  (__w->_M_right == 0 ||
+		   __w->_M_right->_M_color == _S_black))
 		{
 		  __w->_M_color = _S_red;
 		  __x = __x_parent;
 		  __x_parent = __x_parent->_M_parent;
-		} 
-	      else 
+		}
+	      else
 		{
-		  if (__w->_M_right == 0 
-		      || __w->_M_right->_M_color == _S_black) 
+		  if (__w->_M_right == 0
+		      || __w->_M_right->_M_color == _S_black)
 		    {
 		      __w->_M_left->_M_color = _S_black;
 		      __w->_M_color = _S_red;
@@ -611,35 +611,35 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 		    }
 		  __w->_M_color = __x_parent->_M_color;
 		  __x_parent->_M_color = _S_black;
-		  if (__w->_M_right) 
+		  if (__w->_M_right)
 		    __w->_M_right->_M_color = _S_black;
 		  _Rb_tree_rotate_left(__x_parent, __root);
 		  break;
 		}
-	    } 
-	  else 
-	    {   
+	    }
+	  else
+	    {
 	      // same as above, with _M_right <-> _M_left.
 	      _Rb_tree_node_base* __w = __x_parent->_M_left;
-	      if (__w->_M_color == _S_red) 
+	      if (__w->_M_color == _S_red)
 		{
 		  __w->_M_color = _S_black;
 		  __x_parent->_M_color = _S_red;
 		  _Rb_tree_rotate_right(__x_parent, __root);
 		  __w = __x_parent->_M_left;
 		}
-	      if ((__w->_M_right == 0 || 
+	      if ((__w->_M_right == 0 ||
 		   __w->_M_right->_M_color == _S_black) &&
-		  (__w->_M_left == 0 || 
-		   __w->_M_left->_M_color == _S_black)) 
+		  (__w->_M_left == 0 ||
+		   __w->_M_left->_M_color == _S_black))
 		{
 		  __w->_M_color = _S_red;
 		  __x = __x_parent;
 		  __x_parent = __x_parent->_M_parent;
-		} 
-	      else 
+		}
+	      else
 		{
-		  if (__w->_M_left == 0 || __w->_M_left->_M_color == _S_black) 
+		  if (__w->_M_left == 0 || __w->_M_left->_M_color == _S_black)
 		    {
 		      __w->_M_right->_M_color = _S_black;
 		      __w->_M_color = _S_red;
@@ -648,7 +648,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 		    }
 		  __w->_M_color = __x_parent->_M_color;
 		  __x_parent->_M_color = _S_black;
-		  if (__w->_M_left) 
+		  if (__w->_M_left)
 		    __w->_M_left->_M_color = _S_black;
 		  _Rb_tree_rotate_right(__x_parent, __root);
 		  break;
@@ -2358,14 +2358,14 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
     if (__node == 0)
       return 0;
     unsigned int __sum = 0;
-    do 
+    do
       {
-	if (__node->_M_color == _S_black) 
+	if (__node->_M_color == _S_black)
 	  ++__sum;
-	if (__node == __root) 
+	if (__node == __root)
 	  break;
 	__node = __node->_M_parent;
-      } 
+      }
     while (1);
     return __sum;
   }

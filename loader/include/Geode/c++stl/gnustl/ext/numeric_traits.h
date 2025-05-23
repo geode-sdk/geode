@@ -61,7 +61,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       // NB: these two also available in std::numeric_limits as compile
       // time constants, but <limits> is big and we avoid including it.
       static const bool __is_signed = __glibcxx_signed(_Value);
-      static const int __digits = __glibcxx_digits(_Value);      
+      static const int __digits = __glibcxx_digits(_Value);
     };
 
   template<typename _Value>
@@ -99,7 +99,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
   template<typename _Value>
     struct __numeric_traits_floating
     {
-      // Only floating point types. See N1822. 
+      // Only floating point types. See N1822.
       static const int __max_digits10 = __glibcxx_max_digits10(_Value);
 
       // See above comment...

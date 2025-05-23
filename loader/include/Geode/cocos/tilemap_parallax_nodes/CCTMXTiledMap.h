@@ -148,12 +148,12 @@ public:
      */
     CCTMXLayer* layerNamed(const char *layerName);
 
-    /** return the TMXObjectGroup for the specific group 
+    /** return the TMXObjectGroup for the specific group
      *  @js getObjectGroup
      */
     CCTMXObjectGroup* objectGroupNamed(const char *groupName);
 
-    /** return the value for the specific property name 
+    /** return the value for the specific property name
      *  @js getProperty
      */
     CCString *propertyNamed(const char *propertyName);

@@ -177,7 +177,7 @@ class $modify(GUILayer, MenuLayer) {
     bool init() {
         if (!MenuLayer::init())
             return false;
-        
+
         auto btn = CCMenuItemSpriteExtra::create(
             CrossButtonSprite::create(CCLabelBMFont::create("test", "goldFont.fnt")),
             this, menu_selector(GUILayer::onTestPopup)

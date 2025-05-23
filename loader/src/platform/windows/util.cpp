@@ -341,7 +341,7 @@ std::string geode::utils::getEnvironmentVariable(const char* name) {
     if (0 == getenv_s(&count, buffer, name) && count != 0) {
         return buffer;
     }
-    
+
     return "";
 }
 

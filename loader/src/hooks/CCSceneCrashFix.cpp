@@ -7,6 +7,6 @@ class $modify(CCScene) {
     int getHighestChildZ() {
         if(this->getChildrenCount() == 0) return 0;
 
-        return CCScene::getHighestChildZ();      
+        return CCScene::getHighestChildZ();
     }
 };

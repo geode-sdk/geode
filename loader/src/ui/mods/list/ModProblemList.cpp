@@ -72,7 +72,7 @@ ModProblemList* ModProblemList::create(
         ret->autorelease();
         return ret;
     }
-    
+
     delete ret;
     return nullptr;
 }

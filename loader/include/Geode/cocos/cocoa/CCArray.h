@@ -123,7 +123,7 @@ public:
 
     /** Create an array */
     static CCArray* create();
-    /** Create an array with some objects 
+    /** Create an array with some objects
      *  @lua NA
      */
     static CCArray* create(CCObject* pObject, ...);
@@ -139,7 +139,7 @@ public:
      @return  The CCArray pointer generated from the file
      */
     static CCArray* createWithContentsOfFile(const char* pFileName);
-    
+
     /*
      @brief The same meaning as arrayWithContentsOfFile(), but it doesn't call autorelease, so the
      invoker should call release().
@@ -147,7 +147,7 @@ public:
      */
     static CCArray* createWithContentsOfFileThreadSafe(const char* pFileName);
 
-    /** Initializes an array 
+    /** Initializes an array
      *  @lua NA
      */
     bool init();
@@ -155,15 +155,15 @@ public:
      *  @lua NA
      */
     bool initWithObject(CCObject* pObject);
-    /** Initializes an array with some objects 
+    /** Initializes an array with some objects
      *  @lua NA
      */
     bool initWithObjects(CCObject* pObject, ...);
-    /** Initializes an array with capacity 
+    /** Initializes an array with capacity
      *  @lua NA
      */
     bool initWithCapacity(unsigned int capacity);
-    /** Initializes an array with an existing array 
+    /** Initializes an array with an existing array
      *  @lua NA
      */
     bool initWithArray(CCArray* otherArray);
@@ -178,12 +178,12 @@ public:
     unsigned int indexOfObject(CCObject* object) const;
     /** Returns an element with a certain index */
     CCObject* objectAtIndex(unsigned int index);
-    /** 
+    /**
      * Rob modification
      * Returns an element with a certain index casted to CCString */
     CCString* stringAtIndex(unsigned int index);
 
-    /** 
+    /**
      * Returns first element, or null if empty
      * @note Geode addition
      */
@@ -212,7 +212,7 @@ public:
 
     // Removing Objects
 
-    /** 
+    /**
      * Remove first object, or do nothing if array is empty
      * @note Geode addition
      */
@@ -231,7 +231,7 @@ public:
     void fastRemoveObject(CCObject* object);
     /** Fast way to remove an element with a certain index */
     void fastRemoveObjectAtIndex(unsigned int index);
-    /** 
+    /**
      * Fast way to remove an element with a certain index
      * @note RobTop addition
      */
@@ -257,15 +257,15 @@ public:
     void reverseObjects();
     /* Shrinks the array so the memory footprint corresponds with the number of items */
     void reduceMemoryFootprint();
-  
-    /** override functions 
+
+    /** override functions
      *  @js NA
      *  @lua NA
      */
     virtual CCObject* copyWithZone(CCZone* pZone);
 
     /**
-     * Creates a shallow copy of this array, aka only clones the pointers to 
+     * Creates a shallow copy of this array, aka only clones the pointers to
      * the array members and not the members themselves
      * @returns New array with same members
      */

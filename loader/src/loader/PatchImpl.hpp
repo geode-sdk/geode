@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <Geode/loader/Hook.hpp>
 #include <Geode/loader/Loader.hpp>
