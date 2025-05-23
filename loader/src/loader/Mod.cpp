@@ -171,6 +171,10 @@ Result<> Mod::registerCustomSettingType(std::string_view type, SettingGenerator 
     return m_impl->m_settings->registerCustomSettingType(type, generator);
 }
 
+std::string Mod::getLaunchArgumentName(std::string_view name) const {
+    return m_impl->getLaunchArgumentName(name);
+}
+
 std::vector<std::string> Mod::getLaunchArgumentNames() const {
     return m_impl->getLaunchArgumentNames();
 }
