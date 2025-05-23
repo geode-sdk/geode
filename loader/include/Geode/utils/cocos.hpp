@@ -363,7 +363,13 @@ namespace geode {
     
         void check(cocos2d::CCObject* obj);
 
+        // Releases the object from the pool, removing the strong reference to it
+        void forget(cocos2d::CCObject* obj);
+
         friend class WeakRefController;
+
+        template <class T>
+        friend class WeakRef;
 
     public:
         static WeakRefPool* get();
@@ -429,6 +435,11 @@ namespace geode {
             // If the WeakRef is moved, m_controller is null
             if (m_controller) {
                 m_controller->isManaged();
+
+                if (m_controller.use_count() == 2) {
+                    // if refcount is 2 (this WeakRef + pool), free the object to avoid leaks
+                    WeakRefPool::get()->forget(m_controller->get());
+                }
             }
         }
 

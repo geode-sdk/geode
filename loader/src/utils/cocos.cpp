@@ -277,16 +277,25 @@ WeakRefPool* WeakRefPool::get() {
 void WeakRefPool::check(CCObject* obj) {
     // if this object's only reference is the WeakRefPool aka only weak 
     // references exist to it, then release it
-    if (obj && m_pool.contains(obj) && obj->retainCount() == 1) {
-        // set delegates to null because those aren't retained!
-        if (auto input = typeinfo_cast<CCTextInputNode*>(obj)) {
-            input->m_delegate = nullptr;
-        }
-        obj->release();
-        // log::info("nullify {}", m_pool.at(obj).get());
-        m_pool.at(obj)->m_obj = nullptr;
-        m_pool.erase(obj);
+    if (obj && obj->retainCount() == 1) {
+        this->forget(obj);
     }
+}
+
+void WeakRefPool::forget(CCObject* obj) {
+    if (!obj || !m_pool.contains(obj)) {
+        return;
+    }
+
+    // set delegates to null because those aren't retained!
+    if (auto input = typeinfo_cast<CCTextInputNode*>(obj)) {
+        input->m_delegate = nullptr;
+    }
+
+    obj->release();
+    // log::info("nullify {}", m_pool.at(obj).get());
+    m_pool.at(obj)->m_obj = nullptr;
+    m_pool.erase(obj);
 }
 
 std::shared_ptr<WeakRefController> WeakRefPool::manage(CCObject* obj) {
@@ -295,7 +304,7 @@ std::shared_ptr<WeakRefController> WeakRefPool::manage(CCObject* obj) {
     }
 
     if (!m_pool.contains(obj)) {
-        CC_SAFE_RETAIN(obj);
+        obj->retain();
         auto controller = std::make_shared<WeakRefController>();
         controller->m_obj = obj;
         m_pool.insert({ obj, controller });
