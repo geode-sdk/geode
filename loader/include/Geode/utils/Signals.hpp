@@ -118,6 +118,9 @@ namespace geode {
             bool operator<=>(Signal<T> const& other) const requires std::three_way_comparable<T> {
                 return this->get() <=> other.get();
             }
+            bool operator!() const requires std::convertible_to<T, bool> {
+                return !this->get();
+            }
             T const& operator*() const {
                 return this->get();
             }
