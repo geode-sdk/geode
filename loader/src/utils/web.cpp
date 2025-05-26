@@ -11,6 +11,7 @@
 #include <ca_bundle.h>
 
 #include <Geode/utils/web.hpp>
+#include <Geode/utils/file.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/terminate.hpp>
 #include <sstream>
@@ -116,6 +117,150 @@ Result<> WebResponse::Impl::into(std::filesystem::path const& path) const {
     stream.close();
 
     return Ok();
+}
+
+struct MultipartFile {
+    ByteVector data;
+    std::string filename;
+    std::string mime;
+};
+
+class MultipartForm::Impl {
+public:
+    std::unordered_map<std::string, std::string> m_params;
+    std::unordered_map<std::string, MultipartFile> m_files;
+    mutable std::string m_boundary;
+
+    bool isBuilt() const {
+        return !m_boundary.empty();
+    }
+
+    bool isBoundaryUnique(std::string_view boundary) const {
+        // make sure params and files don't contain the boundary
+        for (auto const& [name, value] : m_params) {
+            if (name.find(boundary) != std::string::npos || value.find(boundary) != std::string::npos) {
+                return false;
+            }
+        }
+
+        // check files
+        for (auto const& [name, file] : m_files) {
+            if (name.find(boundary) != std::string::npos
+                || file.filename.find(boundary) != std::string::npos
+                || file.mime.find(boundary) != std::string::npos) {
+                return false;
+            }
+
+            if (std::ranges::search(file.data, boundary).begin() != file.data.end()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    void pickUniqueBoundary() const {
+        if (isBuilt()) {
+            return;
+        }
+
+        auto timestamp = std::chrono::system_clock::now().time_since_epoch().count();
+        do {
+            m_boundary = fmt::format("----GeodeWebBoundary{}", timestamp++);
+        } while (!isBoundaryUnique(m_boundary));
+    }
+
+    ByteVector getBody() const {
+        pickUniqueBoundary();
+
+        ByteVector data;
+        const auto addText = [&](std::string_view value) {
+            data.insert(data.end(), value.begin(), value.end());
+        };
+
+        // add params
+        for (auto const& [name, value] : m_params) {
+            addText(fmt::format(
+                "--{}\r\nContent-Disposition: form-data; name=\"{}\"\r\n\r\n{}\r\n",
+                m_boundary, name, value
+            ));
+        }
+
+        // add files
+        for (auto const& [name, file] : m_files) {
+            addText(fmt::format(
+                "--{}\r\nContent-Disposition: form-data; name=\"{}\"; filename=\"{}\"\r\nContent-Type: {}\r\n\r\n",
+                m_boundary, name, file.filename, file.mime
+            ));
+            data.insert(data.end(), file.data.begin(), file.data.end());
+            addText("\r\n");
+        }
+
+        addText(fmt::format("--{}--\r\n", m_boundary));
+        return data;
+    }
+};
+
+MultipartForm::MultipartForm() : m_impl(std::make_shared<Impl>()) {}
+MultipartForm::~MultipartForm() = default;
+
+MultipartForm& MultipartForm::param(std::string_view name, std::string_view value) {
+    if (!m_impl->isBuilt()) {
+        m_impl->m_params.insert_or_assign(std::string(name), std::string(value));
+    }
+    return *this;
+}
+
+Result<MultipartForm&> MultipartForm::file(std::string_view name, std::filesystem::path const& path, std::string_view mime) {
+    if (!m_impl->isBuilt()) {
+        GEODE_UNWRAP_INTO(auto data, utils::file::readBinary(path));
+
+        std::string filename;
+
+#ifdef GEODE_IS_WINDOWS
+        filename = geode::utils::string::wideToUtf8(path.filename().wstring());
+#else
+        filename = path.filename().string();
+#endif
+
+        // according to mdn, filenames should be ascii
+        for (unsigned char c : filename) {
+            if (c < 0x20 || c > 0x7E) {
+                return Err("Invalid character in filename (0x{:X}): '{}'", c, filename);
+            }
+        }
+
+        m_impl->m_files.insert_or_assign(std::string(name), MultipartFile{
+            .data = std::move(data),
+            .filename = std::move(filename),
+            .mime = std::string(mime),
+        });
+    }
+    return Ok(*this);
+}
+
+MultipartForm& MultipartForm::file(std::string_view name, std::span<uint8_t const> data, std::string_view filename, std::string_view mime) {
+    if (!m_impl->isBuilt()) {
+        m_impl->m_files.insert_or_assign(std::string(name), MultipartFile{
+            .data = ByteVector(data.begin(), data.end()),
+            .filename = std::string(filename),
+            .mime = std::string(mime),
+        });
+    }
+    return *this;
+}
+
+std::string const& MultipartForm::getBoundary() const {
+    m_impl->pickUniqueBoundary();
+    return m_impl->m_boundary;
+}
+
+std::string MultipartForm::getHeader() const {
+    return fmt::format("multipart/form-data; boundary={}", getBoundary());
+}
+
+ByteVector MultipartForm::getBody() const {
+    return m_impl->getBody();
 }
 
 WebResponse::WebResponse() : m_impl(std::make_shared<Impl>()) {}
@@ -636,6 +781,11 @@ WebRequest& WebRequest::bodyJSON(matjson::Value const& json) {
     this->header("Content-Type", "application/json");
     std::string str = json.dump(matjson::NO_INDENTATION);
     m_impl->m_body = ByteVector { str.begin(), str.end() };
+    return *this;
+}
+WebRequest& WebRequest::bodyMultipart(MultipartForm const& form) {
+    this->header("Content-Type", form.getHeader());
+    m_impl->m_body = form.getBody();
     return *this;
 }
 
