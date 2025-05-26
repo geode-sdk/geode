@@ -86,7 +86,7 @@ namespace geode::utils::web {
         MultipartForm& param(std::string_view name, std::string_view value);
         template <std::integral T>
         MultipartForm& param(std::string_view name, T value) {
-            return this->param(name, std::to_string(value));
+            return this->param(name, fmt::to_string(value));
         }
 
         MultipartForm& file(std::string_view name, std::span<uint8_t const> data, std::string_view filename, std::string_view mime = "application/octet-stream");
@@ -199,7 +199,7 @@ namespace geode::utils::web {
         WebRequest& param(std::string_view name, std::string_view value);
         template <std::integral T>
         WebRequest& param(std::string_view name, T value) {
-            return this->param(name, std::to_string(value));
+            return this->param(name, fmt::to_string(value));
         }
         WebRequest& removeParam(std::string_view name);
 

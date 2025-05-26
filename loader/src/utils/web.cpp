@@ -214,9 +214,25 @@ MultipartForm& MultipartForm::param(std::string_view name, std::string_view valu
 Result<MultipartForm&> MultipartForm::file(std::string_view name, std::filesystem::path const& path, std::string_view mime) {
     if (!m_impl->isBuilt()) {
         GEODE_UNWRAP_INTO(auto data, utils::file::readBinary(path));
+
+        std::string filename;
+
+#ifdef GEODE_IS_WINDOWS
+        filename = geode::utils::string::wideToUtf8(path.filename().wstring());
+#else
+        filename = path.filename().string();
+#endif
+
+        // according to mdn, filenames should be ascii
+        for (unsigned char c : filename) {
+            if (c < 0x20 || c > 0x7E) {
+                return Err("Invalid character in filename (0x{:X}): '{}'", c, filename);
+            }
+        }
+
         m_impl->m_files.insert_or_assign(std::string(name), MultipartFile{
             .data = std::move(data),
-            .filename = path.filename().string(),
+            .filename = std::move(filename),
             .mime = std::string(mime),
         });
     }
