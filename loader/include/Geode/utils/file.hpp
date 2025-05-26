@@ -30,14 +30,10 @@ struct matjson::Serialize<std::filesystem::path> {
     }
 
     static matjson::Value toJson(std::filesystem::path const& value) {
-#ifdef GEODE_IS_WINDOWS
         // On Windows, paths are stored as utf16, and matjson uses utf8 internally
         // This is not an issue until paths actually use unicode characters
         // So we do this conversion to make sure it stores the characters correctly
-        return matjson::Value(geode::utils::string::wideToUtf8(value.wstring()));
-#else
-        return matjson::Value(value.string());
-#endif
+        return matjson::Value(geode::utils::string::pathToString(value));
     }
 };
 

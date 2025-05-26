@@ -12,6 +12,7 @@
 
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/file.hpp>
+#include <Geode/utils/string.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/terminate.hpp>
 #include <sstream>
@@ -215,13 +216,7 @@ Result<MultipartForm&> MultipartForm::file(std::string_view name, std::filesyste
     if (!m_impl->isBuilt()) {
         GEODE_UNWRAP_INTO(auto data, utils::file::readBinary(path));
 
-        std::string filename;
-
-#ifdef GEODE_IS_WINDOWS
-        filename = geode::utils::string::wideToUtf8(path.filename().wstring());
-#else
-        filename = path.filename().string();
-#endif
+        std::string filename = utils::string::pathToString(path.filename());
 
         // according to mdn, filenames should be ascii
         for (unsigned char c : filename) {

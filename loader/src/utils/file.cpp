@@ -31,14 +31,6 @@ using path_hash_t = std::hash<std::filesystem::path>;
 using namespace geode::prelude;
 using namespace geode::utils::file;
 
-static std::string pathToString(std::filesystem::path const& path) {
-#ifdef GEODE_IS_WINDOWS
-    return geode::utils::string::wideToUtf8(path.wstring());
-#else
-    return path.string();
-#endif
-}
-
 Result<std::string> utils::file::readString(std::filesystem::path const& path) {
     std::error_code ec;
 
@@ -183,7 +175,7 @@ private:
                 return Err("Unable to open file");
             }
 
-            auto pathstr = pathToString(path);
+            auto pathstr = utils::string::pathToString(path);
 
             if (mz_stream_os_open(
                 m_stream,

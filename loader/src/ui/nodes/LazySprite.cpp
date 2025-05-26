@@ -308,13 +308,7 @@ void LazySprite::doInitFromBytes(std::vector<uint8_t> data, std::string cacheKey
 }
 
 std::string LazySprite::makeCacheKey(std::filesystem::path const& path) {
-#ifdef GEODE_IS_WINDOWS
-    std::string p = geode::utils::string::wideToUtf8(path.wstring());
-#else
-    std::string p = path.string();
-#endif
-
-    return p;
+    return utils::string::pathToString(path);
 }
 
 CCTexture2D* LazySprite::lookupCache(char const* key) {
