@@ -11,6 +11,7 @@ using namespace geode::prelude;
 
 namespace {
 
+#ifdef GEODE_IS_WINDOWS
 bool applyCondvarPatch() {
     if (getEnvironmentVariable("GEODE_FORCE_CONDVAR_PATCH") != "0") {
         return true;
@@ -39,6 +40,7 @@ bool applyCondvarPatch() {
 
     return true;
 }
+#endif
 
 // mini threadpool type thing
 class Manager {
@@ -51,12 +53,13 @@ public:
     }
 
     Manager() {
+#ifdef GEODE_IS_WINDOWS
         if (applyCondvarPatch()) {
             // on wine 10.0 and older, std::condition_variable may be broken
             m_spinlock = true;
             m_spinCounter = 0;
         }
-
+#endif
     }
 
     ~Manager() {
