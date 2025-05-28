@@ -609,8 +609,7 @@ namespace geode {
             return new ObjWrapper(value);
         }
 
-        // @note This returns a const& to allow move-only types to be returned!
-        T const& getValue() const& {
+        T& getValue() {
             return m_value;
         }
         void setValue(T&& value) {
