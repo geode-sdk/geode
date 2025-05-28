@@ -475,17 +475,15 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
 
         if (impl->m_certVerification) {
-#ifndef GEODE_IS_WINDOWS
             if (impl->m_CABundleContent.empty()) {
                 impl->m_CABundleContent = CA_BUNDLE_CONTENT;
             }
-#endif
 
             if (!impl->m_CABundleContent.empty()) {
                 curl_blob caBundleBlob = {};
                 caBundleBlob.data = reinterpret_cast<void*>(impl->m_CABundleContent.data());
                 caBundleBlob.len = impl->m_CABundleContent.size();
-                caBundleBlob.flags = CURL_BLOB_COPY;
+                caBundleBlob.flags = CURL_BLOB_NOCOPY;
                 curl_easy_setopt(curl, CURLOPT_CAINFO_BLOB, &caBundleBlob);
                 // Also add the native CA, for good measure
                 curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA);
@@ -631,12 +629,7 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
             }
         }
 
-        // Check if the response was an error code
-        if (code >= 400 && code <= 600) {
-            return std::move(responseData.response);
-        }
-
-        // Otherwise resolve with success :-)
+        // resolve with success :-)
         return std::move(responseData.response);
     }, fmt::format("{} {}", method, url));
 }

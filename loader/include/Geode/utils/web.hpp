@@ -69,7 +69,7 @@ namespace geode::utils::web {
     /// form.param("key2", "value2");
     /// form.file("file", { 0xAA, 0xBB, 0xCC }, "raw.bin");
     /// form.file("file2", "path/to/image.png", "screenshot.png", "image/png");
-    /// 
+    ///
     /// auto req = web::WebRequest()
     ///     .bodyMultipart(form)
     ///     .get(url);
@@ -286,7 +286,6 @@ namespace geode::utils::web {
         /**
          * Sets the Certificate Authority (CA) bundle content.
          * Defaults to sending the Geode CA bundle, found here: https://github.com/geode-sdk/net_libs/blob/main/ca_bundle.h
-         * On Windows, defaults to using the system certificate store.
          *
          * @param content
          * @return WebRequest&
