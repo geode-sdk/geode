@@ -54,19 +54,19 @@ bool utils::clipboard::write(std::string const& data) {
 std::string utils::clipboard::read() {
     if (!OpenClipboard(nullptr)) return "";
 
-    HANDLE hData = GetClipboardData(CF_TEXT);
+    HANDLE hData = GetClipboardData(CF_UNICODETEXT);
     if (hData == nullptr) {
         CloseClipboard();
         return "";
     }
 
-    char* pszText = static_cast<char*>(GlobalLock(hData));
+    auto pszText = static_cast<wchar_t*>(GlobalLock(hData));
     if (pszText == nullptr) {
         CloseClipboard();
         return "";
     }
 
-    std::string text(pszText);
+    std::string text = string::wideToUtf8(pszText);
 
     GlobalUnlock(hData);
     CloseClipboard();
