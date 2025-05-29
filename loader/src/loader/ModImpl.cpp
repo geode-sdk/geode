@@ -218,11 +218,11 @@ Result<> Mod::Impl::saveData() {
     // saveData is expected to be synchronous, and always called from GD thread
     ModStateEvent(m_self, ModEventType::DataSaved).post();
 
-    auto res = utils::file::writeString(m_saveDirPath / "settings.json", json.dump());
+    auto res = utils::file::writeStringSafe(m_saveDirPath / "settings.json", json.dump());
     if (!res) {
         log::error("Unable to save settings: {}", res.unwrapErr());
     }
-    auto res2 = utils::file::writeString(m_saveDirPath / "saved.json", m_saved.dump());
+    auto res2 = utils::file::writeStringSafe(m_saveDirPath / "saved.json", m_saved.dump());
     if (!res2) {
         log::error("Unable to save values: {}", res2.unwrapErr());
     }

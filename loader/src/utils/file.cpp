@@ -81,7 +81,43 @@ Result<> utils::file::writeString(std::filesystem::path const& path, std::string
     }
 
     file << data;
+    if (file.fail()) {
+        file.close();
+        return Err("Failed to write to file");
+    }
+
     file.close();
+
+    return Ok();
+}
+
+Result<> utils::file::writeStringSafe(std::filesystem::path const& path, std::string const& data) {
+    std::error_code ec;
+
+    auto tmpPath = path;
+    tmpPath += ".tmp";
+
+    auto res = utils::file::writeString(tmpPath, data);
+    if (!res) {
+        if (std::filesystem::exists(tmpPath, ec)) {
+            std::filesystem::remove(tmpPath, ec);
+        }
+        return res;
+    }
+
+    if (std::filesystem::exists(path, ec)) {
+        std::filesystem::remove(path, ec);
+    }
+
+    if (ec) {
+        return Err("Unable to remove old file: " + ec.message());
+    }
+
+    std::filesystem::rename(tmpPath, path, ec);
+    if (ec) {
+        return Err("Unable to rename temporary file: " + ec.message());
+    }
+
     return Ok();
 }
 

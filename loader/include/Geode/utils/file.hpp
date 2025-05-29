@@ -49,6 +49,7 @@ namespace geode::utils::file {
     }
 
     GEODE_DLL Result<> writeString(std::filesystem::path const& path, std::string const& data);
+    GEODE_DLL Result<> writeStringSafe(std::filesystem::path const& path, std::string const& data);
     GEODE_DLL Result<> writeBinary(std::filesystem::path const& path, ByteVector const& data);
 
     template <class T>
