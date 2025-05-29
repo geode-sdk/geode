@@ -447,6 +447,11 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 
         // Set HTTP version
+        auto useHttp1 = Loader::get()->getLaunchFlag("use-http1");
+        if (impl->m_httpVersion == HttpVersion::DEFAULT && useHttp1) {
+            impl->m_httpVersion = HttpVersion::VERSION_1_1; // Force HTTP/1.1 if the flag is set
+        }
+
         curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, unwrapHttpVersion(impl->m_httpVersion));
 
         // Set request method
@@ -474,6 +479,8 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, impl->m_certVerification ? 1L : 0L);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
 
+        int sslOptions = 0;
+
         if (impl->m_certVerification) {
             if (impl->m_CABundleContent.empty()) {
                 impl->m_CABundleContent = CA_BUNDLE_CONTENT;
@@ -486,9 +493,13 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
                 caBundleBlob.flags = CURL_BLOB_NOCOPY;
                 curl_easy_setopt(curl, CURLOPT_CAINFO_BLOB, &caBundleBlob);
                 // Also add the native CA, for good measure
-                curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA);
+                sslOptions |= CURLSSLOPT_NATIVE_CA;
             }
         }
+
+        // weird windows stuff, don't remove if we still use schannel!
+        GEODE_WINDOWS(sslOptions |= CURLSSLOPT_REVOKE_BEST_EFFORT);
+        curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, sslOptions);
 
         // Transfer body
         curl_easy_setopt(curl, CURLOPT_NOBODY, impl->m_transferBody ? 0L : 1L);
@@ -549,6 +560,46 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
 
         // Do not fail if response code is 4XX or 5XX
         curl_easy_setopt(curl, CURLOPT_FAILONERROR, 0L);
+
+        // Verbose logging
+        if (Mod::get()->getSettingValue<bool>("verbose-curl-logs")) {
+            curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+            curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, +[](CURL* handle, curl_infotype type, char* data, size_t size, void* clientp) {
+                while (size > 0 && (data[size - 1] == '\n' || data[size - 1] == '\r')) {
+                    size--; // remove trailing newline
+                }
+
+                switch (type) {
+                    case CURLINFO_TEXT:
+                        log::debug("[Curl] {}", std::string_view(data, size));
+                        break;
+                    case CURLINFO_HEADER_IN:
+                        log::debug("[Curl] Header in: {}", std::string_view(data, size));
+                        break;
+                    case CURLINFO_HEADER_OUT:
+                        log::debug("[Curl] Header out: {}", std::string_view(data, size));
+                        break;
+                    case CURLINFO_DATA_IN:
+                        log::debug("[Curl] Data in ({} bytes)", size);
+                        break;
+                    case CURLINFO_DATA_OUT:
+                        log::debug("[Curl] Data out ({} bytes)", size);
+                        break;
+                    case CURLINFO_SSL_DATA_IN:
+                        log::debug("[Curl] SSL data in ({} bytes)", size);
+                        break;
+                    case CURLINFO_SSL_DATA_OUT:
+                        log::debug("[Curl] SSL data out ({} bytes)", size);
+                        break;
+                    case CURLINFO_END:
+                        log::debug("[Curl] End of info");
+                        break;
+                    default:
+                        log::debug("[Curl] Unknown info type: {}", static_cast<int>(type));
+                        break;
+                }
+            });
+        }
 
         // If an error happens, we want to get a more specific description of the issue
         char errorBuf[CURL_ERROR_SIZE];
@@ -625,7 +676,13 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
             else {
                 std::string const err = curl_easy_strerror(curlResponse);
                 log::error("cURL failure, error: {}", err);
-                return impl->makeError(-1, "Curl failed: " + err);
+                log::warn("Error buffer: {}", errorBuf);
+                return impl->makeError(
+                    -1,
+                    !*errorBuf ?
+                          fmt::format("Curl failed: {}", err)
+                        : fmt::format("Curl failed: {} ({})", err, errorBuf)
+                );
             }
         }
 
