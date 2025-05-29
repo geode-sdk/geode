@@ -293,6 +293,8 @@ Result<> Mod::Impl::loadBinary() {
         return Ok();
 
     if (!std::filesystem::exists(this->getBinaryPath())) {
+        std::error_code ec;
+        std::filesystem::remove(m_tempDirName / "modified-at", ec);
         return Err(
             fmt::format(
                 "Failed to load {}: No binary could be found for current platform.\n"
