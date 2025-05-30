@@ -422,10 +422,11 @@ public:
 
             // make sure zip files like root/../../file.txt don't get extracted to
             // avoid zip attacks
+            std::error_code ec;
 #ifdef GEODE_IS_WINDOWS
-            if (!std::filesystem::relative((dir / filePath).wstring(), dir.wstring()).empty()) {
+            if (!std::filesystem::relative((dir / filePath).wstring(), dir.wstring(), ec).empty()) {
 #else
-            if (!std::filesystem::relative(dir / filePath, dir).empty()) {
+            if (!std::filesystem::relative(dir / filePath, dir, ec).empty()) {
 #endif
                 if (m_entries.at(filePath).isDirectory) {
                     GEODE_UNWRAP(file::createDirectoryAll(dir / filePath));
@@ -442,6 +443,10 @@ public:
                     "Zip entry '{}' is not contained within zip bounds",
                     dir / filePath
                 );
+
+                if (ec) {
+                    return Err(fmt::format("Unable to check relative: {}", ec.message()));
+                }
             }
         } while (mz_zip_goto_next_entry(m_handle) == MZ_OK);
 
