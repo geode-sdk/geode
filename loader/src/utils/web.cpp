@@ -10,6 +10,7 @@
 #include <curl/curl.h>
 #include <ca_bundle.h>
 
+#include <Geode/loader/Mod.hpp>
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/string.hpp>
