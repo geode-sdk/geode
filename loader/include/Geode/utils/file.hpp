@@ -48,9 +48,45 @@ namespace geode::utils::file {
         return json.as<T>();
     }
 
+    /**
+     * Write a string to a file
+     *
+     * @param path Path to the file to write to
+     * @param data Data to write to the file
+     * @returns Result indicating success or failure
+     */
     GEODE_DLL Result<> writeString(std::filesystem::path const& path, std::string const& data);
+
+    /**
+     * Write a string to a file. Unlike the regular writeString, it first writes to a temporary file
+     * and then renames it to the target file. This ensures that if the write fails, the original file
+     * is not corrupted, and if the write succeeds, the file is atomically replaced.
+     *
+     * @param path Path to the file to write to
+     * @param data Data to write to the file
+     * @returns Result indicating success or failure
+     */
     GEODE_DLL Result<> writeStringSafe(std::filesystem::path const& path, std::string const& data);
+
+    /**
+     * Write binary data to a file
+     *
+     * @param path Path to the file to write to
+     * @param data Data to write to the file
+     * @returns Result indicating success or failure
+     */
     GEODE_DLL Result<> writeBinary(std::filesystem::path const& path, ByteVector const& data);
+
+    /**
+     * Write binary data to a file. Unlike the regular writeBinary, it first writes to a temporary file
+     * and then renames it to the target file. This ensures that if the write fails, the original file
+     * is not corrupted, and if the write succeeds, the file is atomically replaced.
+     *
+     * @param path Path to the file to write to
+     * @param data Data to write to the file
+     * @returns Result indicating success or failure
+     */
+    GEODE_DLL Result<> writeBinarySafe(std::filesystem::path const& path, ByteVector const& data);
 
     template <class T>
     Result<> writeToJson(std::filesystem::path const& path, T const& data) {

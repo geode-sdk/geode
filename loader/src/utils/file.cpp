@@ -130,7 +130,42 @@ Result<> utils::file::writeBinary(std::filesystem::path const& path, ByteVector 
     }
 
     file.write(reinterpret_cast<char const*>(data.data()), data.size());
+    if (file.fail()) {
+        file.close();
+        return Err("Failed to write to file");
+    }
+
     file.close();
+    return Ok();
+}
+
+Result<> utils::file::writeBinarySafe(std::filesystem::path const& path, ByteVector const& data) {
+    std::error_code ec;
+
+    auto tmpPath = path;
+    tmpPath += ".tmp";
+
+    auto res = utils::file::writeBinary(tmpPath, data);
+    if (!res) {
+        if (std::filesystem::exists(tmpPath, ec)) {
+            std::filesystem::remove(tmpPath, ec);
+        }
+        return res;
+    }
+
+    if (std::filesystem::exists(path, ec)) {
+        std::filesystem::remove(path, ec);
+    }
+
+    if (ec) {
+        return Err("Unable to remove old file: " + ec.message());
+    }
+
+    std::filesystem::rename(tmpPath, path, ec);
+    if (ec) {
+        return Err("Unable to rename temporary file: " + ec.message());
+    }
+
     return Ok();
 }
 
