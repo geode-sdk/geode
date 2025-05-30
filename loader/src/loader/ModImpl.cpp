@@ -627,11 +627,6 @@ Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
     }
 
     (void)utils::file::createDirectoryAll(tempDir);
-    auto res = file::writeString(datePath, modifiedHash);
-    if (!res) {
-        log::warn("Failed to write modified date of geode zip: {}", res.unwrapErr());
-    }
-
 
     GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(metadata.getPath()));
     if (!unzip.hasEntry(metadata.getBinaryName())) {
@@ -640,6 +635,11 @@ Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
         );
     }
     GEODE_UNWRAP(unzip.extractAllTo(tempDir));
+    
+    auto res = file::writeString(datePath, modifiedHash);
+    if (!res) {
+        log::warn("Failed to write modified date of geode zip: {}", res.unwrapErr());
+    }
 
     return Ok();
 }
