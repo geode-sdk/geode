@@ -60,7 +60,7 @@ namespace geode::utils::file {
     /**
      * Write a string to a file. Unlike the regular writeString, it first writes to a temporary file
      * and then renames it to the target file. This ensures that if the write fails, the original file
-     * is not corrupted, and if the write succeeds, the file is atomically replaced.
+     * is not corrupted. Except Android where the "safe" part is disabled due to performance issues.
      *
      * @param path Path to the file to write to
      * @param data Data to write to the file
@@ -80,7 +80,7 @@ namespace geode::utils::file {
     /**
      * Write binary data to a file. Unlike the regular writeBinary, it first writes to a temporary file
      * and then renames it to the target file. This ensures that if the write fails, the original file
-     * is not corrupted, and if the write succeeds, the file is atomically replaced.
+     * is not corrupted. Except Android where the "safe" part is disabled due to performance issues.
      *
      * @param path Path to the file to write to
      * @param data Data to write to the file
