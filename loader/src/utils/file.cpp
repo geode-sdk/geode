@@ -92,6 +92,10 @@ Result<> utils::file::writeString(std::filesystem::path const& path, std::string
 }
 
 Result<> utils::file::writeStringSafe(std::filesystem::path const& path, std::string const& data) {
+    GEODE_ANDROID(
+        return utils::file::writeString(path, data); // safe approach causes significant performance issues on Android
+    )
+
     std::error_code ec;
 
     auto tmpPath = path;
@@ -132,6 +136,10 @@ Result<> utils::file::writeBinary(std::filesystem::path const& path, ByteVector 
 }
 
 Result<> utils::file::writeBinarySafe(std::filesystem::path const& path, ByteVector const& data) {
+    GEODE_ANDROID(
+        return utils::file::writeBinary(path, data); // safe approach causes significant performance issues on Android
+    )
+
     std::error_code ec;
 
     auto tmpPath = path;
