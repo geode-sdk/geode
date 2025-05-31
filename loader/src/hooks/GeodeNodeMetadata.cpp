@@ -2,8 +2,10 @@
 #include <Geode/utils/cocos.hpp>
 #include <Geode/modify/Field.hpp>
 #include <Geode/modify/CCNode.hpp>
+#include <Geode/utils/terminate.hpp>
 #include <cocos2d.h>
 #include <queue>
+#include <stack>
 
 using namespace geode::prelude;
 using namespace geode::modifier;
@@ -15,9 +17,30 @@ constexpr auto METADATA_TAG = 0xB324ABC;
 
 struct ProxyCCNode;
 
+static uint64_t fnv1aHash(char const* str) {
+    uint64_t hash = 0xcbf29ce484222325;
+    while (*str) {
+        hash ^= *str++;
+        hash *= 0x100000001b3;
+    }
+    return hash;
+}
+
+template <typename T>
+class NoHashHasher;
+
+template <>
+class NoHashHasher<uint64_t> {
+public:
+    size_t operator()(uint64_t key) const {
+        return key;
+    }
+};
+
 class GeodeNodeMetadata final : public cocos2d::CCObject {
 private:
-    std::unordered_map<std::string, FieldContainer*> m_classFieldContainers;
+    // for performance reasons, this key is the hash of the class name
+    std::unordered_map<uint64_t, FieldContainer*, NoHashHasher<uint64_t>> m_classFieldContainers;
     std::string m_id = "";
     Ref<Layout> m_layout = nullptr;
     Ref<LayoutOptions> m_layoutOptions = nullptr;
@@ -63,10 +86,14 @@ public:
     }
 
     FieldContainer* getFieldContainer(char const* forClass) {
-        if (!m_classFieldContainers.count(forClass)) {
-            m_classFieldContainers[forClass] = new FieldContainer();
+        auto hash = fnv1aHash(forClass);
+
+        auto& container = m_classFieldContainers[hash];
+        if (!container) {
+            container = new FieldContainer();
         }
-        return m_classFieldContainers[forClass];
+
+        return container;
     }
 };
 
@@ -78,7 +105,7 @@ struct ProxyCCNode : Modify<ProxyCCNode, CCNode> {
             return asNode->getUserObject("");
         }
         else {
-            // apparently this function is the same as 
+            // apparently this function is the same as
             // CCDirector::getNextScene so yeah
             return m_pUserObject;
         }
@@ -224,7 +251,7 @@ public:
                 }
                 collectedID.push_back(c);
             }
-            // Any other character is syntax error due to needing to reserve 
+            // Any other character is syntax error due to needing to reserve
             // stuff for possible future features
             else {
                 return Err("Unexpected character '{}' at index {}", c, i);
@@ -447,6 +474,57 @@ void CCNode::updateAnchoredPosition(Anchor anchor, CCPoint const& offset, CCPoin
     if (auto opts = typeinfo_cast<AnchorLayoutOptions*>(this->getLayoutOptions())) {
         opts->setAnchor(anchor);
         opts->setOffset(offset);
+    }
+}
+
+namespace {
+    template <class T, size_t N>
+    struct LocalStack {
+        std::array<T, N> m_stack;
+        size_t m_index = 0;
+
+        bool push(T value) {
+            if (m_index >= N) return false;
+            m_stack[m_index] = value;
+            m_index++;
+            return true;
+        }
+
+        bool pop() {
+            if (m_index == 0) return false;
+            m_index--;
+            return true;
+        }
+
+        T top() {
+            if (m_index == 0) return nullptr;
+            return m_stack[m_index - 1];
+        }
+
+        bool empty() {
+            return m_index == 0;
+        }
+    };
+
+    static thread_local LocalStack<void*, 32> s_lockStack;
+}
+
+bool geode::DestructorLock::isLocked(void* self) {
+    // only the top of the stack matters
+    if (s_lockStack.empty()) return false;
+    return s_lockStack.top() == self;
+}
+void geode::DestructorLock::addLock(void* self) {
+    if (!s_lockStack.push(self)) {
+        geode::utils::terminate("DestructorLock lock stack overflow (tried to add too many locks at once)");
+    }
+}
+void geode::DestructorLock::removeLock(void* self) {
+    if (s_lockStack.top() != self) {
+        geode::utils::terminate("DestructorLock lock stack corruption (tried to unlock a destructor that was not the top of the stack)");
+    }
+    if (!s_lockStack.pop()) {
+        geode::utils::terminate("DestructorLock lock stack underflow (tried to unlock a destructor that was never locked)");
     }
 }
 

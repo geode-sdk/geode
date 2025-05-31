@@ -53,8 +53,9 @@ public:
 
 
     bool    m_bBack;
-    
+
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionPageTurn, CCTransitionScene)
     /**
      *  @js ctor
      */
@@ -67,14 +68,14 @@ public:
 
     /**
     * Creates a base transition with duration and incoming scene.
-    * If back is true then the effect is reversed to appear as if the incoming 
+    * If back is true then the effect is reversed to appear as if the incoming
     * scene is being turned from left over the outgoing scene.
     */
     static CCTransitionPageTurn* create(float t,CCScene* scene,bool backwards);
 
     /**
     * Creates a base transition with duration and incoming scene.
-    * If back is true then the effect is reversed to appear as if the incoming 
+    * If back is true then the effect is reversed to appear as if the incoming
     * scene is being turned from left over the outgoing scene.
     */
     virtual bool initWithDuration(float t,CCScene* scene,bool backwards);

@@ -35,7 +35,7 @@ protected:
     bool init(std::shared_ptr<CopyButtonSetting> setting, float width) {
         if (!SettingNodeV3::init(setting, width))
             return false;
-    
+
         auto buttonSprite = createGeodeButton("Copy Mods");
         buttonSprite->setScale(.5f);
         auto button = CCMenuItemSpriteExtra::create(
@@ -47,10 +47,10 @@ protected:
         this->getButtonMenu()->updateLayout();
 
         this->updateState(nullptr);
-        
+
         return true;
     }
-    
+
     void onCopy(CCObject*);
 
     void onCommit() override {}

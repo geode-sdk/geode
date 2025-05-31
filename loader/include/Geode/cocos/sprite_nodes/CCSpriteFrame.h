@@ -48,7 +48,7 @@ class CCZone;
 
 
  You can modify the frame of a CCSprite by doing:
- 
+
     CCSpriteFrame *frame = CCSpriteFrame::frameWithTexture(texture, rect, offset);
     sprite->setDisplayFrame(frame);
  */
@@ -98,6 +98,9 @@ public:
      *  @lua NA
      */
     ~CCSpriteFrame(void);
+    inline CCSpriteFrame() {}
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCSpriteFrame, CCObject);
+
     /**
      *  @js NA
      *  @lua NA
@@ -108,12 +111,12 @@ public:
      It is assumed that the frame was not trimmed.
      */
     static CCSpriteFrame* create(const char* filename, const CCRect& rect);
-    
+
     /** Create a CCSpriteFrame with a texture filename, rect, rotated, offset and originalSize in pixels.
      The originalSize is the size in pixels of the frame before being trimmed.
      */
     static CCSpriteFrame* create(const char* filename, const CCRect& rect, bool rotated, const CCPoint& offset, const CCSize& originalSize);
-    
+
     /** Create a CCSpriteFrame with a texture, rect in points.
      It is assumed that the frame was not trimmed.
      */

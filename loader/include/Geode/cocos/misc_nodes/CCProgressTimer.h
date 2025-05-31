@@ -60,6 +60,7 @@ class CC_DLL CCProgressTimer : public CCNodeRGBA
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCProgressTimer, CCNodeRGBA)
     /**
      * @js ctor
      */
@@ -97,7 +98,7 @@ public:
     virtual const ccColor3B& getColor() const;
     virtual GLubyte getOpacity() const;
     virtual void setOpacity(GLubyte opacity);
-    
+
     inline bool isReverseDirection() { return m_bReverseDirection; };
     inline void setReverseDirection(bool value) { m_bReverseDirection = value; };
 

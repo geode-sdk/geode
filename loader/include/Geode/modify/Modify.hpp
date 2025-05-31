@@ -378,7 +378,7 @@ namespace geode::modifier {
         ModifyBase() {
             struct EboCheck : ModifyDerived::Base {
                 std::aligned_storage_t<
-                    std::alignment_of_v<typename ModifyDerived::Base>, 
+                    std::alignment_of_v<typename ModifyDerived::Base>,
                     std::alignment_of_v<typename ModifyDerived::Base>
                 > m_padding;
             };
@@ -455,7 +455,7 @@ namespace geode {
         Modify() : Base(CutoffConstructor, sizeof(Base)) {}
 
         ~Modify() {
-            cocos2d::CCDestructor::lock(this) = true;
+            geode::DestructorLock::addLock(this);
         }
 
         Modify(Modify const&) = delete;
@@ -542,9 +542,9 @@ namespace geode {
 #define $modify(...) \
     GEODE_INVOKE(GEODE_CONCAT(GEODE_CRTP, GEODE_NUMBER_OF_ARGS(__VA_ARGS__)), __VA_ARGS__)
 
-/** 
- * This function is meant to hook / override a GD function in a Modified class. 
- * **This is merely an annotation for clarity** - while there may be linters that 
+/**
+ * This function is meant to hook / override a GD function in a Modified class.
+ * **This is merely an annotation for clarity** - while there may be linters that
  * check for it, it is not required
  */
 #define $override

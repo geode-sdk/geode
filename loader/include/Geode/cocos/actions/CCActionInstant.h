@@ -38,10 +38,10 @@ NS_CC_BEGIN
  * @{
  */
 
-/** 
+/**
 @brief Instant actions are immediate actions. They don't have a duration like
 the CCIntervalAction actions.
-*/ 
+*/
 class CC_DLL CCActionInstant : public CCFiniteTimeAction //<NSCopying>
 {
     GEODE_FRIEND_MODIFY
@@ -102,7 +102,7 @@ public:
 
 
 
-/** 
+/**
 @brief Hide the node
 */
 class CC_DLL CCHide : public CCActionInstant
@@ -164,7 +164,7 @@ public:
     static CCToggleVisibility * create();
 };
 
-/** 
+/**
  @brief Remove the node
  @js NA
  @lua NA
@@ -188,7 +188,7 @@ public:
 	bool m_bIsNeedCleanUp;
 };
 
-/** 
+/**
 @brief Flips the sprite horizontally
 @since v0.99.0
 @js NA
@@ -226,7 +226,7 @@ public:
     bool    m_bFlipX;
 };
 
-/** 
+/**
 @brief Flips the sprite vertically
 @since v0.99.0
 @js NA
@@ -301,6 +301,7 @@ class CC_DLL CCCallFunc : public CCActionInstant //<NSCopying>
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCCallFunc, CCActionInstant)
     /**
      *  @js ctor
      */
@@ -316,25 +317,25 @@ public:
      */
     virtual ~CCCallFunc();
 
-    /** creates the action with the callback 
+    /** creates the action with the callback
 
     * typedef void (CCObject::*SEL_CallFunc)();
     * @lua NA
     */
     static CCCallFunc * create(CCObject* pSelectorTarget, SEL_CallFunc selector);
 
-	/** creates the action with the handler script function 
+	/** creates the action with the handler script function
      * @js NA
      */
 	static CCCallFunc * create(int nHandler);
 
-	/** initializes the action with the callback 
-    
+	/** initializes the action with the callback
+
     * typedef void (CCObject::*SEL_CallFunc)();
     * @lua NA
     */
     virtual bool initWithTarget(CCObject* pSelectorTarget);
-    /** executes the callback 
+    /** executes the callback
      * @lua NA
      */
     virtual void execute();
@@ -363,7 +364,7 @@ public:
         {
             CC_SAFE_RETAIN(pSel);
             CC_SAFE_RELEASE(m_pSelectorTarget);
-            m_pSelectorTarget = pSel; 
+            m_pSelectorTarget = pSel;
         }
     }
     /**
@@ -385,7 +386,7 @@ public:
     };
 };
 
-/** 
+/**
 @brief Calls a 'callback' with the node as the first argument
 N means Node
 * @js NA
@@ -412,7 +413,7 @@ public:
 		return id;
     }
 
-    /** creates the action with the callback 
+    /** creates the action with the callback
 
      * typedef void (CCObject::*SEL_CallFuncN)(CCNode*);
      * @lua NA
@@ -422,7 +423,7 @@ public:
 	/** creates the action with the handler script function*/
 	static CCCallFuncN * create(int nHandler);
 
-    /** initializes the action with the callback 
+    /** initializes the action with the callback
 
      * typedef void (CCObject::*SEL_CallFuncN)(CCNode*);
      * @lua NA
@@ -440,7 +441,7 @@ public:
 };
 
 
-/** 
+/**
 * @brief Calls a 'callback' with the node as the first argument and the 2nd argument is data
 * ND means: Node and Data. Data is void *, so it could be anything.
 * @js NA
@@ -485,6 +486,8 @@ class CC_DLL CCCallFuncO : public CCCallFunc, public TypeInfo
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCCallFuncO, CCCallFunc)
+
     CCCallFuncO();
     virtual ~CCCallFuncO();
 
@@ -493,13 +496,13 @@ public:
 		return id;
     }
 
-    /** creates the action with the callback 
+    /** creates the action with the callback
 
     typedef void (CCObject::*SEL_CallFuncO)(CCObject*);
     */
     static CCCallFuncO * create(CCObject* pSelectorTarget, SEL_CallFuncO selector, CCObject* pObject);
 
-    /** initializes the action with the callback 
+    /** initializes the action with the callback
 
     typedef void (CCObject::*SEL_CallFuncO)(CCObject*);
     */

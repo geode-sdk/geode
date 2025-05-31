@@ -1,7 +1,7 @@
 /****************************************************************************
 Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2009      On-Core
- 
+
 http://www.cocos2d-x.org
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -38,7 +38,7 @@ class CCTexture2D;
  * @{
  */
 
-/** FBO class that grabs the the contents of the screen 
+/** FBO class that grabs the the contents of the screen
  * @js NA
  * @lua NA
  */

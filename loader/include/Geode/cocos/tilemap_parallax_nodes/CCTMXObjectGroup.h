@@ -52,6 +52,7 @@ class CC_DLL CCTMXObjectGroup : public CCObject
     /** array of the objects */
     CC_PROPERTY(CCArray*, m_pObjects, Objects);
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTMXObjectGroup, CCObject)
     /**
      * @js ctor
      */
@@ -72,7 +73,7 @@ public:
     It will return the 1st object found on the array for the given name.
     */
     CCDictionary* objectNamed(const char *objectName);
-public:   
+public:
     /** name of the group */
     gd::string m_sGroupName;
 };

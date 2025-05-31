@@ -39,7 +39,7 @@ NS_CC_BEGIN
  * @{
  */
 
-/** 
+/**
 A CCCamera is used in every CCNode.
 Useful to look at the object from different views.
 The OpenGL gluLookAt() function is used to locate the
@@ -80,6 +80,7 @@ public:
     bool m_bDirty;
     kmMat4    m_lookupMatrix;
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCCamera, CCObject)
     /**
      *  @js ctor
      */
@@ -105,28 +106,28 @@ public:
     void restore(void);
     /** Sets the camera using gluLookAt using its eye, center and up_vector */
     void locate(void);
-    /** sets the eye values in points 
+    /** sets the eye values in points
      *  @js setEye
      */
     void setEyeXYZ(float fEyeX, float fEyeY, float fEyeZ);
-    /** sets the center values in points 
+    /** sets the center values in points
      *  @js setCenter
      */
     void setCenterXYZ(float fCenterX, float fCenterY, float fCenterZ);
-    /** sets the up values 
+    /** sets the up values
      *  @js setUp
      */
     void setUpXYZ(float fUpX, float fUpY, float fUpZ);
 
-    /** get the eye vector values in points 
+    /** get the eye vector values in points
      *  @js NA
      */
     void getEyeXYZ(float *pEyeX, float *pEyeY, float *pEyeZ);
-    /** get the center vector values int points 
+    /** get the center vector values int points
      *  @js NA
      */
     void getCenterXYZ(float *pCenterX, float *pCenterY, float *pCenterZ);
-    /** get the up vector values 
+    /** get the up vector values
      *  @js NA
      */
     void getUpXYZ(float *pUpX, float *pUpY, float *pUpZ);

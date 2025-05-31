@@ -68,6 +68,7 @@ class CC_DLL CCParticleBatchNode : public CCNode, public CCTextureProtocol
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCParticleBatchNode, CCNode)
     /**
      * @js ctor
      */

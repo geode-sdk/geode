@@ -76,6 +76,10 @@ ModMetadata Mod::getMetadata() const {
     return m_impl->getMetadata();
 }
 
+ModMetadata const& Mod::getMetadataRef() const {
+    return m_impl->getMetadata();
+}
+
 std::filesystem::path Mod::getTempDir() const {
     return m_impl->getTempDir();
 }
@@ -179,6 +183,10 @@ Result<> Mod::registerCustomSettingType(std::string_view type, SettingGenerator 
     return m_impl->m_settings->registerCustomSettingType(type, generator);
 }
 
+std::string Mod::getLaunchArgumentName(std::string_view name) const {
+    return m_impl->getLaunchArgumentName(name);
+}
+
 std::vector<std::string> Mod::getLaunchArgumentNames() const {
     return m_impl->getLaunchArgumentNames();
 }
@@ -265,6 +273,14 @@ bool Mod::isLoggingEnabled() const {
 
 void Mod::setLoggingEnabled(bool enabled) {
     m_impl->setLoggingEnabled(enabled);
+}
+
+Severity Mod::getLogLevel() const {
+    return m_impl->getLogLevel();
+}
+
+void Mod::setLogLevel(Severity level) {
+    m_impl->setLogLevel(level);
 }
 
 bool Mod::hasSavedValue(std::string_view key) {

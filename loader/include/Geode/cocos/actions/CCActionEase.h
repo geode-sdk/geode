@@ -38,7 +38,7 @@ class CCZone;
  * @{
  */
 
-/** 
+/**
  @brief Base class for Easing actions
  @ingroup Actions
  */
@@ -78,7 +78,7 @@ public:
     CCActionInterval *m_pInner;
 };
 
-/** 
+/**
  @brief Base class for Easing actions with rate parameters
  @ingroup Actions
  */
@@ -86,6 +86,9 @@ class CC_DLL CCEaseRateAction : public CCActionEase
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEaseRateAction, CCActionEase);
+    CCEaseRateAction() {}
+
     /**
      *  @js NA
      *  @lua NA
@@ -115,7 +118,7 @@ public:
     float m_fRate;
 };
 
-/** 
+/**
  @brief CCEaseIn action with a rate
  @ingroup Actions
  */
@@ -136,7 +139,7 @@ public:
     static CCEaseIn* create(CCActionInterval* pAction, float fRate);
 };
 
-/** 
+/**
  @brief CCEaseOut action with a rate
  @ingroup Actions
  */
@@ -158,7 +161,7 @@ public:
     static CCEaseOut* create(CCActionInterval* pAction, float fRate);
 };
 
-/** 
+/**
  @brief CCEaseInOut action with a rate
  @ingroup Actions
  */
@@ -180,7 +183,7 @@ public:
     static CCEaseInOut* create(CCActionInterval* pAction, float fRate);
 };
 
-/** 
+/**
  @brief CCEase Exponential In
  @ingroup Actions
  */
@@ -201,7 +204,7 @@ public:
     static CCEaseExponentialIn* create(CCActionInterval* pAction);
 };
 
-/** 
+/**
  @brief Ease Exponential Out
  @ingroup Actions
  */
@@ -222,7 +225,7 @@ public:
     static CCEaseExponentialOut* create(CCActionInterval* pAction);
 };
 
-/** 
+/**
  @brief Ease Exponential InOut
  @ingroup Actions
  */
@@ -244,7 +247,7 @@ public:
     static CCEaseExponentialInOut* create(CCActionInterval* pAction);
 };
 
-/** 
+/**
  @brief Ease Sine In
  @ingroup Actions
  */
@@ -265,7 +268,7 @@ public:
     static CCEaseSineIn* create(CCActionInterval* pAction);
 };
 
-/** 
+/**
  @brief Ease Sine Out
  @ingroup Actions
  */
@@ -287,7 +290,7 @@ public:
     static CCEaseSineOut* create(CCActionInterval* pAction);
 };
 
-/** 
+/**
  @brief Ease Sine InOut
  @ingroup Actions
  */
@@ -309,7 +312,7 @@ public:
     static CCEaseSineInOut* create(CCActionInterval* pAction);
 };
 
-/** 
+/**
  @brief Ease Elastic abstract class
  @since v0.8.2
  @ingroup Actions
@@ -342,7 +345,7 @@ public:
     float m_fPeriod;
 };
 
-/** 
+/**
  @brief Ease Elastic In action.
  @warning This action doesn't use a bijective function. Actions like Sequence might have an unexpected result when used with this action.
  @since v0.8.2
@@ -367,7 +370,7 @@ public:
     static CCEaseElasticIn* create(CCActionInterval *pAction);
 };
 
-/** 
+/**
  @brief Ease Elastic Out action.
  @warning This action doesn't use a bijective function. Actions like Sequence might have an unexpected result when used with this action.
  @since v0.8.2
@@ -392,7 +395,7 @@ public:
     static CCEaseElasticOut* create(CCActionInterval *pAction);
 };
 
-/** 
+/**
  @brief Ease Elastic InOut action.
  @warning This action doesn't use a bijective function. Actions like Sequence might have an unexpected result when used with this action.
  @since v0.8.2
@@ -417,7 +420,7 @@ public:
     static CCEaseElasticInOut* create(CCActionInterval *pAction);
 };
 
-/** 
+/**
  @brief CCEaseBounce abstract class.
  @since v0.8.2
  @ingroup Actions
@@ -440,7 +443,7 @@ public:
     static CCEaseBounce* create(CCActionInterval* pAction);
 };
 
-/** 
+/**
  @brief CCEaseBounceIn action.
  @warning This action doesn't use a bijective function. Actions like Sequence might have an unexpected result when used with this action.
  @since v0.8.2
@@ -464,7 +467,7 @@ public:
     static CCEaseBounceIn* create(CCActionInterval* pAction);
 };
 
-/** 
+/**
  @brief EaseBounceOut action.
  @warning This action doesn't use a bijective function. Actions like Sequence might have an unexpected result when used with this action.
  @since v0.8.2
@@ -488,7 +491,7 @@ public:
     static CCEaseBounceOut* create(CCActionInterval* pAction);
 };
 
-/** 
+/**
  @brief CCEaseBounceInOut action.
  @warning This action doesn't use a bijective function. Actions like Sequence might have an unexpected result when used with this action.
  @since v0.8.2
@@ -512,7 +515,7 @@ public:
     static CCEaseBounceInOut* create(CCActionInterval* pAction);
 };
 
-/** 
+/**
  @brief CCEaseBackIn action.
  @warning This action doesn't use a bijective function. Actions like Sequence might have an unexpected result when used with this action.
  @since v0.8.2
@@ -536,7 +539,7 @@ public:
     static CCEaseBackIn* create(CCActionInterval* pAction);
 };
 
-/** 
+/**
  @brief CCEaseBackOut action.
  @warning This action doesn't use a bijective function. Actions like Sequence might have an unexpected result when used with this action.
  @since v0.8.2
@@ -560,7 +563,7 @@ public:
     static CCEaseBackOut* create(CCActionInterval* pAction);
 };
 
-/** 
+/**
  @brief CCEaseBackInOut action.
  @warning This action doesn't use a bijective function. Actions like Sequence might have an unexpected result when used with this action.
  @since v0.8.2

@@ -43,13 +43,14 @@ struct _ccArray;
 The children will be moved faster / slower than the parent according the the parallax ratio.
 
 */
-class CC_DLL CCParallaxNode : public CCNode 
+class CC_DLL CCParallaxNode : public CCNode
 {
     GEODE_FRIEND_MODIFY
     /** array that holds the offset / ratio of the children */
     CC_SYNTHESIZE(struct _ccArray *, m_pParallaxArray, ParallaxArray)
 
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCParallaxNode, CCNode)
     /** Adds a child to the container with a z-order, a parallax ratio and a position offset
     It returns self, so you can chain several addChilds.
     @since v0.8

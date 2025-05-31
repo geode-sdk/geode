@@ -5,9 +5,9 @@ using namespace geode::prelude;
 
 #ifdef GEODE_IS_WINDOWS
 
-    #include <Windows.h>
-    #include <cwctype>
-    #include <stringapiset.h>
+#include <Windows.h>
+#include <cwctype>
+#include <stringapiset.h>
 
 std::string utils::string::wideToUtf8(std::wstring const& wstr) {
     int count = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), wstr.length(), NULL, 0, NULL, NULL);
@@ -24,6 +24,53 @@ std::wstring utils::string::utf8ToWide(std::string const& str) {
 }
 
 #endif
+
+#include <simdutf.h>
+
+Result<std::string> utils::string::utf16ToUtf8(std::u16string_view str) {
+    std::string result;
+    result.resize(simdutf::utf8_length_from_utf16(str));
+    if (simdutf::convert_utf16_to_utf8(str.data(), str.size(), result.data()) == 0) {
+        return Err("Invalid UTF-16 input");
+    }
+    return Ok(std::move(result));
+}
+
+Result<std::u16string> utils::string::utf8ToUtf16(std::string_view str) {
+    std::u16string result;
+    result.resize(simdutf::utf16_length_from_utf8(str));
+    if (simdutf::convert_utf8_to_utf16(str.data(), str.size(), result.data()) == 0) {
+        return Err("Invalid UTF-8 input");
+    }
+    return Ok(std::move(result));
+}
+
+Result<std::string> utils::string::utf32ToUtf8(std::u32string_view str) {
+    std::string result;
+    result.resize(simdutf::utf8_length_from_utf32(str));
+    if (simdutf::convert_utf32_to_utf8(str.data(), str.size(), result.data()) == 0) {
+        return Err("Invalid UTF-32 input");
+    }
+    return Ok(std::move(result));
+}
+
+Result<std::u32string> utils::string::utf8ToUtf32(std::string_view str) {
+    std::u32string result;
+    result.resize(simdutf::utf32_length_from_utf8(str));
+    if (simdutf::convert_utf8_to_utf32(str.data(), str.size(), result.data()) == 0) {
+        return Err("Invalid UTF-8 input");
+    }
+    return Ok(std::move(result));
+}
+
+std::string utils::string::pathToString(std::filesystem::path const& path) {
+#ifdef GEODE_IS_WINDOWS
+    return utils::string::wideToUtf8(path.wstring());
+#else
+    return path.string();
+#endif
+}
+
 
 bool utils::string::startsWith(std::string const& str, std::string const& prefix) {
     return str.rfind(prefix, 0) == 0;
@@ -60,7 +107,7 @@ std::string utils::string::toUpper(std::string const& str) {
 
 std::string& utils::string::replaceIP(std::string& str, std::string const& orig, std::string const& repl) {
     if (orig.empty()) return str;
-    
+
     std::string::size_type n = 0;
     while ((n = str.find(orig, n)) != std::string::npos) {
         str.replace(n, orig.size(), repl);
@@ -169,7 +216,8 @@ std::string& utils::string::trimIP(std::string& str) {
 }
 
 std::string utils::string::trimLeft(std::string const& str, std::string const& chars) {
-    return str.substr(str.find_first_not_of(chars));
+    size_t start = str.find_first_not_of(chars);
+    return start == -1 ? std::string() : str.substr(start);
 }
 std::string utils::string::trimLeft(std::string const& str) {
     return utils::string::trimLeft(str, WHITESPACE);
@@ -184,7 +232,7 @@ std::string utils::string::trimRight(std::string const& str) {
 
 std::string utils::string::trim(std::string const& str, std::string const& chars) {
     size_t start = str.find_first_not_of(chars);
-    return str.substr(start, str.find_last_not_of(chars) + 1 - start);
+    return start == -1 ? std::string() : str.substr(start, str.find_last_not_of(chars) + 1 - start);
 }
 std::string utils::string::trim(std::string const& str) {
     return utils::string::trim(str, WHITESPACE);

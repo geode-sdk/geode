@@ -1,6 +1,10 @@
 #include "ModList.hpp"
+#include <Geode/cocos/actions/CCActionInterval.h>
+#include <Geode/utils/cocos.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/ui/GeodeUI.hpp>
+#include <Geode/ui/TextInput.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
 #include "../popups/FiltersPopup.hpp"
 #include "../popups/SortPopup.hpp"
 #include "../GeodeStyle.hpp"
@@ -8,7 +12,7 @@
 #include "ModItem.hpp"
 
 static size_t getDisplayPageSize(ModListSource* src, ModListDisplay display) {
-    if (src->isLocalModsOnly() && Mod::get()->template getSettingValue<bool>("infinite-local-mods-list")) {
+    if (src->isLocalModsOnly() && Mod::get()->getSettingValue<bool>("infinite-local-mods-list")) {
         return std::numeric_limits<size_t>::max();
     }
     return 16;
@@ -26,14 +30,14 @@ $execute {
 bool ModList::init(ModListSource* src, CCSize const& size) {
     if (!CCNode::init())
         return false;
-    
+
     this->setContentSize(size);
     this->setAnchorPoint({ .5f, .5f });
     this->setID("ModList");
 
     m_source = src;
     m_source->reset();
-    
+
     m_list = ScrollLayer::create(size);
     this->addChildAtPosition(m_list, Anchor::Bottom, ccp(-m_list->getScaledContentWidth() / 2, 0));
 
@@ -73,14 +77,14 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         );
 
         m_updateAllContainer->addChildAtPosition(updateAllBG, Anchor::Center);
-        
+
         m_updateCountLabel = TextArea::create("", "bigFont.fnt", .35f, size.width / 2 - 30, ccp(0, 1), 12.f, false);
         m_updateCountLabel->setID("update-count-label");
         m_updateAllContainer->addChildAtPosition(m_updateCountLabel, Anchor::Left, ccp(10, 0), ccp(0, 0));
-        
+
         m_updateAllMenu = CCMenu::create();
         m_updateAllMenu->setID("update-all-menu");
-        m_updateAllMenu->setContentWidth(size.width / 2);
+        m_updateAllMenu->setContentSize({size.width / 2, 20});
         m_updateAllMenu->setAnchorPoint({ 1, .5f });
 
         m_showUpdatesSpr = createGeodeButton(
@@ -112,9 +116,13 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         m_updateAllMenu->addChild(m_updateAllLoadingCircle);
 
         m_updateAllMenu->setLayout(
-            RowLayout::create()
-                ->setAxisAlignment(AxisAlignment::End)
-                ->setDefaultScaleLimits(.1f, .6f)
+            SimpleRowLayout::create()
+                ->setMainAxisAlignment(MainAxisAlignment::End)
+                ->setMinRelativeScale(.5f)
+                ->setMaxRelativeScale(1.f)
+                ->setGap(5)
+                ->setMainAxisScaling(AxisScaling::Scale)
+                ->setCrossAxisScaling(AxisScaling::ScaleDownGaps)
         );
         m_updateAllMenu->getLayout()->ignoreInvisibleChildren(true);
         m_updateAllContainer->addChildAtPosition(m_updateAllMenu, Anchor::Right, ccp(-10, 0));
@@ -138,17 +146,17 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
             errorsBG->ignoreAnchorPointForPosition(false);
 
             m_errorsContainer->addChildAtPosition(errorsBG, Anchor::Center);
-            
+
             auto errorsLabel = TextArea::create(
                 "There were <cy>errors</c> loading some mods",
                 "bigFont.fnt", .35f, size.width / 2 - 30, ccp(0, 1), 12.f, false
             );
             errorsLabel->setID("errors-label");
             m_errorsContainer->addChildAtPosition(errorsLabel, Anchor::Left, ccp(10, 0), ccp(0, 0));
-            
+
             auto errorsMenu = CCMenu::create();
             errorsMenu->setID("errors-menu");
-            errorsMenu->setContentWidth(size.width / 2);
+            errorsMenu->setContentSize({size.width / 2, 20});
             errorsMenu->setAnchorPoint({ 1, .5f });
 
             auto showErrorsSpr = createGeodeButton(
@@ -167,9 +175,13 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
             errorsMenu->addChild(m_toggleErrorsOnlyBtn);
 
             errorsMenu->setLayout(
-                RowLayout::create()
-                    ->setAxisAlignment(AxisAlignment::End)
-                    ->setDefaultScaleLimits(.1f, .6f)
+                SimpleRowLayout::create()
+                    ->setMainAxisAlignment(MainAxisAlignment::End)
+                    ->setMinRelativeScale(.5f)
+                    ->setMaxRelativeScale(1.f)
+                    ->setGap(5)
+                    ->setMainAxisScaling(AxisScaling::Scale)
+                    ->setCrossAxisScaling(AxisScaling::ScaleDownGaps)
             );
             m_errorsContainer->addChildAtPosition(errorsMenu, Anchor::Right, ccp(-10, 0));
 
@@ -193,32 +205,31 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_searchInput->setScale(.75f);
     m_searchInput->setAnchorPoint({ 0, .5f });
     m_searchInput->setTextAlign(TextInputAlign::Left);
+    m_searchInput->setCommonFilter(CommonFilter::Any);
     m_searchInput->setCallback([this](auto const&) {
-        // If the source is already in memory, we can immediately update the 
-        // search query
+        float bufferTime = 0.4f;
+
         if (m_source->isLocalModsOnly()) {
-            m_source->search(m_searchInput->getString());
-            return;
+            bufferTime = 0.1f;
         }
-        // Otherwise buffer inputs by a bit
-        // This avoids spamming servers for every character typed, 
-        // instead waiting for input to stop to actually do the search
-        std::thread([this] {
-            m_searchInputThreads += 1;
-            std::this_thread::sleep_for(std::chrono::milliseconds(400));
-            m_searchInputThreads -= 1;
-            if (m_searchInputThreads == 0) {
-                Loader::get()->queueInMainThread([this] {
-                    m_source->search(m_searchInput->getString());
-                });
-            }
-        }).detach();
+
+        CCSequence* seq = CCSequence::create(
+            CCDelayTime::create(bufferTime),
+            CallFuncExt::create([this] {
+                m_source->search(m_searchInput->getString());
+            }),
+            nullptr
+        );
+
+        seq->setTag(123123);
+        this->stopActionByTag(123123);
+        this->runAction(seq);
     });
     m_searchMenu->addChildAtPosition(m_searchInput, Anchor::Left, ccp(7.5f, 0));
 
     auto searchFiltersMenu = CCMenu::create();
     searchFiltersMenu->setID("search-filters-menu");
-    searchFiltersMenu->setContentWidth(size.width - m_searchInput->getScaledContentWidth() - 5);
+    searchFiltersMenu->setContentSize({size.width - m_searchInput->getScaledContentWidth() - 5, 30});
     searchFiltersMenu->setAnchorPoint({ 1, .5f });
     searchFiltersMenu->setScale(.75f);
     // Set higher prio to not let list items override touch
@@ -253,40 +264,14 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     searchFiltersMenu->addChild(m_clearFiltersBtn);
 
     searchFiltersMenu->setLayout(
-        RowLayout::create()
-            ->setAxisAlignment(AxisAlignment::End)
+        SimpleRowLayout::create()
+            ->setMainAxisAlignment(MainAxisAlignment::End)
+            ->setMainAxisScaling(AxisScaling::Scale)
+            ->setGap(5.f)
     );
     m_searchMenu->addChildAtPosition(searchFiltersMenu, Anchor::Right, ccp(-10, 0));
 
     m_topContainer->addChild(m_searchMenu);
-
-    // Modtober banner; this can be removed after Modtober 2024 is over!
-    if (
-        auto src = typeinfo_cast<ServerModListSource*>(m_source);
-        src && src->getType() == ServerModListType::Modtober24
-    ) {
-        auto menu = CCMenu::create();
-        menu->setID("modtober-banner");
-        menu->ignoreAnchorPointForPosition(false);
-        menu->setContentSize({ size.width, 30 });
-
-        auto banner = CCSprite::createWithSpriteFrameName("modtober24-banner.png"_spr);
-        limitNodeWidth(banner, size.width, 1.f, .1f);
-        menu->addChildAtPosition(banner, Anchor::Center);
-
-        auto label = CCLabelBMFont::create("Modtober 2024 Winner: Geome3Dash!", "bigFont.fnt");
-        label->setScale(.35f);
-        menu->addChildAtPosition(label, Anchor::Left, ccp(10, 0), ccp(0, .5f));
-
-        auto aboutSpr = createGeodeButton("View");
-        aboutSpr->setScale(.5f);
-        auto aboutBtn = CCMenuItemSpriteExtra::create(
-            aboutSpr, this, menu_selector(ModList::onEventInfo)
-        );
-        menu->addChildAtPosition(aboutBtn, Anchor::Right, ccp(-30, 0));
-        
-        m_topContainer->addChild(menu);
-    }
 
     m_topContainer->setLayout(
         ColumnLayout::create()
@@ -314,9 +299,9 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     pageLeftMenu->addChild(m_pagePrevBtn);
 
     pageLeftMenu->setLayout(
-        RowLayout::create()
-            ->setAxisAlignment(AxisAlignment::End)
-            ->setAxisReverse(true)
+        SimpleRowLayout::create()
+            ->setMainAxisAlignment(MainAxisAlignment::End)
+            ->setMainAxisDirection(AxisDirection::RightToLeft)
     );
     this->addChildAtPosition(pageLeftMenu, Anchor::Left, ccp(-20, 0));
 
@@ -336,8 +321,8 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     pageRightMenu->addChild(m_pageNextBtn);
 
     pageRightMenu->setLayout(
-        RowLayout::create()
-            ->setAxisAlignment(AxisAlignment::Start)
+        SimpleRowLayout::create()
+        ->setMainAxisAlignment(MainAxisAlignment::Start)
     );
     this->addChildAtPosition(pageRightMenu, Anchor::Right, ccp(20, 0));
 
@@ -378,8 +363,9 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_statusContainer->addChild(m_statusLoadingBar);
 
     m_statusContainer->setLayout(
-        ColumnLayout::create()
-            ->setAxisReverse(true)
+        SimpleColumnLayout::create()
+            ->setMainAxisDirection(AxisDirection::TopToBottom)
+            ->setGap(5.f)
     );
     m_statusContainer->getLayout()->ignoreInvisibleChildren(true);
     this->addChildAtPosition(m_statusContainer, Anchor::Center);
@@ -390,7 +376,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_invalidateCacheListener.setFilter(InvalidateCacheFilter(m_source));
 
     m_downloadListener.bind([this](auto) { this->updateTopContainer(); });
-    
+
     this->gotoPage(0);
     this->updateTopContainer();
 
@@ -401,6 +387,10 @@ void ModList::onPromise(ModListSource::PageLoadTask::Event* event) {
     if (event->getValue()) {
         auto result = event->getValue();
         if (result->isOk()) {
+            if (m_list->m_contentLayer->getChildrenCount() > 0) {
+                m_list->m_contentLayer->removeAllChildren();
+            }
+
             // Hide status
             m_statusContainer->setVisible(false);
 
@@ -467,7 +457,7 @@ void ModList::onPage(CCObject* sender) {
     if (sender->getTag() < 0 && m_page >= -sender->getTag()) {
         m_page += sender->getTag();
     }
-    // Ig this can technically overflow, but why would there be over 4 billion pages 
+    // Ig this can technically overflow, but why would there be over 4 billion pages
     // (and why would someone manually scroll that far)
     else if (sender->getTag() > 0 && m_page + sender->getTag() < m_source->getPageCount()) {
         m_page += sender->getTag();
@@ -529,14 +519,14 @@ void ModList::updateTopContainer() {
     // Store old relative scroll position (ensuring no divide by zero happens)
     auto oldPositionArea = m_list->m_contentLayer->getContentHeight() - m_list->getContentHeight();
     auto oldPosition = oldPositionArea > 0.f ?
-        m_list->m_contentLayer->getPositionY() / oldPositionArea : 
+        m_list->m_contentLayer->getPositionY() / oldPositionArea :
         -1.f;
 
-    // Update list size to account for the top menu 
+    // Update list size to account for the top menu
     // (giving a little bit of extra padding for it, the same size as gap)
     m_list->setContentHeight(
         m_topContainer->getContentHeight() > 0.f ?
-            this->getContentHeight() - m_topContainer->getContentHeight() - 2.5f : 
+            this->getContentHeight() - m_topContainer->getContentHeight() - 2.5f :
             this->getContentHeight()
     );
     this->updateDisplay(m_display);
@@ -584,8 +574,11 @@ void ModList::updateDisplay(ModListDisplay display) {
     // Store old relative scroll position (ensuring no divide by zero happens)
     auto oldPositionArea = m_list->m_contentLayer->getContentHeight() - m_list->getContentHeight();
     auto oldPosition = oldPositionArea > 0.f ?
-        m_list->m_contentLayer->getPositionY() / oldPositionArea : 
+        m_list->m_contentLayer->getPositionY() / oldPositionArea :
         -1.f;
+
+    // fix initial width being 0
+    m_list->m_contentLayer->setContentWidth(m_list->getContentWidth());
 
     // Update the list layout based on the display model
     if (display == ModListDisplay::Grid) {
@@ -598,10 +591,10 @@ void ModList::updateDisplay(ModListDisplay display) {
     }
     else {
         m_list->m_contentLayer->setLayout(
-            ColumnLayout::create()
-                ->setAxisReverse(true)
-                ->setAxisAlignment(AxisAlignment::End)
-                ->setAutoGrowAxis(m_obContentSize.height)
+            SimpleColumnLayout::create()
+                ->setMainAxisDirection(AxisDirection::TopToBottom)
+                ->setMainAxisAlignment(MainAxisAlignment::End)
+                ->setMainAxisScaling(AxisScaling::Fit)
                 ->setGap(2.5f)
         );
     }
@@ -623,7 +616,7 @@ void ModList::updateDisplay(ModListDisplay display) {
 }
 
 void ModList::updateState() {
-    // Update the "Show Updates" and "Show Errors" buttons on 
+    // Update the "Show Updates" and "Show Errors" buttons on
     // the updates available / errors banners
     if (auto src = typeinfo_cast<InstalledModListSource*>(m_source)) {
         if (m_toggleUpdatesOnlyBtn) {
@@ -664,17 +657,21 @@ void ModList::reloadPage() {
 
 void ModList::gotoPage(size_t page, bool update) {
     // Clear list contents
-    m_list->m_contentLayer->removeAllChildren();
+    if (!m_source->isLocalModsOnly()) {
+        m_list->m_contentLayer->removeAllChildren();
+    }
     m_page = page;
 
     // Update page size (if needed)
     m_source->setPageSize(getDisplayPageSize(m_source, m_display));
-    
-    // Start loading new page with generic loading message
-    this->showStatus(ModListUnkProgressStatus(), "Loading...");
+
+    if (!m_source->isLocalModsOnly()) {
+        // Start loading new page with generic loading message
+        this->showStatus(ModListUnkProgressStatus(), "Loading...");
+    }
     m_listener.setFilter(m_source->loadPage(page, update));
 
-    // Do initial eager update on page UI (to prevent user spamming arrows 
+    // Do initial eager update on page UI (to prevent user spamming arrows
     // to access invalid pages)
     this->updateState();
 }
@@ -695,7 +692,7 @@ void ModList::showStatus(ModListStatus status, std::string const& message, std::
         std::holds_alternative<ModListUnkProgressStatus>(status)
         || std::holds_alternative<ModListProgressStatus>(status)
     );
-    
+
     // the loading bar makes no sense to display - it's meant for progress of mod list page loading
     // however the mod list pages are so small, that there usually isn't a scenario where the loading
     // takes longer than a single frame - therefore this is useless
@@ -727,16 +724,16 @@ void ModList::onClearFilters(CCObject*) {
 void ModList::onToggleUpdates(CCObject*) {
     if (auto src = typeinfo_cast<InstalledModListSource*>(m_source)) {
         auto mut = src->getQueryMut();
-        mut->type = mut->type == InstalledModListType::OnlyUpdates ? 
-            InstalledModListType::All : 
+        mut->type = mut->type == InstalledModListType::OnlyUpdates ?
+            InstalledModListType::All :
             InstalledModListType::OnlyUpdates;
     }
 }
 void ModList::onToggleErrors(CCObject*) {
     if (auto src = typeinfo_cast<InstalledModListSource*>(m_source)) {
         auto mut = src->getQueryMut();
-        mut->type = mut->type == InstalledModListType::OnlyErrors ? 
-            InstalledModListType::All : 
+        mut->type = mut->type == InstalledModListType::OnlyErrors ?
+            InstalledModListType::All :
             InstalledModListType::OnlyErrors;
     }
 }

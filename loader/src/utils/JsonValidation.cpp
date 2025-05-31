@@ -3,7 +3,7 @@
 
 using namespace geode::prelude;
 
-// This is used for null JsonExpectedValues (for example when doing 
+// This is used for null JsonExpectedValues (for example when doing
 // `json.has("key")` where "key" doesn't exist)
 static matjson::Value NULL_SCOPED_VALUE = nullptr;
 

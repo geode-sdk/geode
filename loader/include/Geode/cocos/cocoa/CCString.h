@@ -74,13 +74,13 @@ public:
      * @lua NA
      */
     virtual inline ~CCString() {}
-    
+
     /* override assignment operator
      * @lua NA
      */
     CCString& operator= (const CCString& other);
 
-    /** init a string with format, it's similar with the c function 'sprintf' 
+    /** init a string with format, it's similar with the c function 'sprintf'
      * @lua NA
      */
     bool initWithFormat(const char* format, ...) CC_FORMAT_PRINTF(2, 3);
@@ -109,14 +109,14 @@ public:
     /** compare to a c string */
     int compare(const char *) const;
 
-    /* override functions 
+    /* override functions
      * @lua NA
      * @js  NA
      */
     virtual CCObject* copyWithZone(CCZone* pZone);
     virtual bool isEqual(const CCObject* pObject);
 
-    /** create a string with std string, you can also pass a c string pointer because the default constructor of gd::string can access a c string pointer. 
+    /** create a string with std string, you can also pass a c string pointer because the default constructor of gd::string can access a c string pointer.
      *  @return A CCString pointer which is an autorelease object pointer,
      *          it means that you needn't do a release operation unless you retain it.
      */
@@ -130,7 +130,7 @@ public:
      *  @return A CCString pointer which is an autorelease object pointer,
      *          it means that you needn't do a release operation unless you retain it.
      *  @lua NA
-     */ 
+     */
     static inline CCString* createWithFormat(const char* format, ...) CC_FORMAT_PRINTF(1, 2) {
     	CCString* pRet = CCString::create("");
 	    va_list ap;
@@ -141,13 +141,13 @@ public:
 	    return pRet;
     }
 
-    /** create a string with binary data 
+    /** create a string with binary data
      *  @return A CCString pointer which is an autorelease object pointer,
      *          it means that you needn't do a release operation unless you retain it.
      */
     static CCString* createWithData(const unsigned char* pData, unsigned long nLen);
 
-    /** create a string with a file, 
+    /** create a string with a file,
      *  @return A CCString pointer which is an autorelease object pointer,
      *          it means that you needn't do a release operation unless you retain it.
      */

@@ -42,10 +42,11 @@ class CCGLProgram;
  Singleton that stores manages GL shaders
  @since v2.0
  */
-class CC_DLL CCShaderCache : public CCObject 
+class CC_DLL CCShaderCache : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCShaderCache, CCObject)
     /**
      * @js ctor
      */
@@ -55,7 +56,7 @@ public:
      * @lua NA
      */
     virtual ~CCShaderCache();
-    /** returns the shared instance 
+    /** returns the shared instance
      *  @js getInstance
      */
     static CCShaderCache* sharedShaderCache();
@@ -65,13 +66,13 @@ public:
 
     /** loads the default shaders */
     void loadDefaultShaders();
-    
+
     /** reload the default shaders */
     void reloadDefaultShaders();
 
 
 
-    /** returns a GL program for a given key 
+    /** returns a GL program for a given key
      *  @js getProgram
      */
     CCGLProgram * programForKey(const char* key);

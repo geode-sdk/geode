@@ -77,7 +77,7 @@ namespace gd {
 		string& operator=(std::string const&);
 
 		void clear();
-		
+
 		char& at(size_t pos);
 		char const& at(size_t pos) const;
 

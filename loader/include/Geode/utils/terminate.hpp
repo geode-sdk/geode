@@ -52,10 +52,10 @@ namespace geode::utils {
             );
         }
     #endif
-        
+
         std::terminate();
     }
-    
+
     template <class = void>
     [[noreturn]]
     void unreachable(std::string const& reason = "Unspecified", Mod* mod = getMod()) {

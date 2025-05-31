@@ -1,7 +1,7 @@
 /****************************************************************************
 Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2009      On-Core
- 
+
 http://www.cocos2d-x.org
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -53,13 +53,15 @@ class CC_DLL CCGridBase : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCGridBase, CCObject)
+    CCGridBase() {}
     /**
      *  @js NA
      *  @lua NA
      */
     virtual ~CCGridBase(void);
 
-    /** whether or not the grid is active 
+    /** whether or not the grid is active
      *  @lua NA
      */
     inline bool isActive(void) { return m_bActive; }
@@ -68,7 +70,7 @@ public:
      */
     void setActive(bool bActive);
 
-    /** number of times that the grid will be reused 
+    /** number of times that the grid will be reused
      *  @lua NA
      */
     inline int getReuseGrid(void) { return m_nReuseGrid; }
@@ -77,7 +79,7 @@ public:
      */
     inline void setReuseGrid(int nReuseGrid) { m_nReuseGrid = nReuseGrid; }
 
-    /** size of the grid 
+    /** size of the grid
      *  @lua NA
      */
     inline const CCSize& getGridSize(void) { return m_sGridSize; }
@@ -86,7 +88,7 @@ public:
      */
     inline void setGridSize(const CCSize& gridSize) { m_sGridSize = gridSize; }
 
-    /** pixels between the grids 
+    /** pixels between the grids
      *  @lua NA
      */
     inline const CCPoint& getStep(void) { return m_obStep; }
@@ -95,7 +97,7 @@ public:
      */
     inline void setStep(const CCPoint& step) { m_obStep = step; }
 
-    /** is texture flipped 
+    /** is texture flipped
      * @lua NA
      */
     inline bool isTextureFlipped(void) { return m_bIsTextureFlipped; }
@@ -134,11 +136,11 @@ public:
 
 public:
 
-    /** create one Grid 
+    /** create one Grid
      * @lua NA
      */
     static CCGridBase* create(const CCSize& gridSize, CCTexture2D *texture, bool flipped);
-    /** create one Grid 
+    /** create one Grid
      * @lua NA
      */
     static CCGridBase* create(const CCSize& gridSize);
@@ -170,6 +172,7 @@ class CC_DLL CCGrid3D : public CCGridBase
 #endif // EMSCRIPTEN
 {
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCGrid3D, CCGridBase)
     CCGrid3D();
     ~CCGrid3D(void);
 
@@ -189,7 +192,7 @@ public:
     static CCGrid3D* create(const CCSize& gridSize, CCTexture2D *pTexture, bool bFlipped);
     /** create one Grid */
     static CCGrid3D* create(const CCSize& gridSize);
-    
+
 protected:
     GLvoid *m_pTexCoordinates;
     GLvoid *m_pVertices;
@@ -209,6 +212,7 @@ class CC_DLL CCTiledGrid3D : public CCGridBase
 #endif // EMSCRIPTEN
 {
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTiledGrid3D, CCGridBase)
     CCTiledGrid3D();
     ~CCTiledGrid3D(void);
 
@@ -229,7 +233,7 @@ public:
     static CCTiledGrid3D* create(const CCSize& gridSize, CCTexture2D *pTexture, bool bFlipped);
     /** create one Grid */
     static CCTiledGrid3D* create(const CCSize& gridSize);
-    
+
 protected:
     GLvoid *m_pTexCoordinates;
     GLvoid *m_pVertices;

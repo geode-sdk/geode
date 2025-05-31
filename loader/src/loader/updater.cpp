@@ -1,4 +1,4 @@
-﻿#include "updater.hpp"
+#include "updater.hpp"
 #include <Geode/utils/web.hpp>
 #include <resources.hpp>
 #include <hash.hpp>
@@ -15,27 +15,11 @@ updater::ResourceDownloadEvent::ResourceDownloadEvent(
     UpdateStatus status
 ) : status(std::move(status)) {}
 
-ListenerResult updater::ResourceDownloadFilter::handle(
-    const std::function<Callback>& fn,
-    ResourceDownloadEvent* event
-) {
-    fn(event);
-    return ListenerResult::Propagate;
-}
-
 updater::ResourceDownloadFilter::ResourceDownloadFilter() = default;
 
 updater::LoaderUpdateEvent::LoaderUpdateEvent(
     UpdateStatus status
 ) : status(std::move(status)) {}
-
-ListenerResult updater::LoaderUpdateFilter::handle(
-    const std::function<Callback>& fn,
-    LoaderUpdateEvent* event
-) {
-    fn(event);
-    return ListenerResult::Propagate;
-}
 
 updater::LoaderUpdateFilter::LoaderUpdateFilter() = default;
 
@@ -50,6 +34,11 @@ void updater::fetchLatestGithubRelease(
 ) {
     if (s_latestGithubRelease) {
         return then(s_latestGithubRelease.value());
+    }
+
+    //quick hack to make sure it always attempts an update check in forward compat
+    if(Loader::get()->isForwardCompatMode()) {
+        force = true;
     }
 
     auto version = VersionInfo::parse(
@@ -200,7 +189,14 @@ void updater::downloadLoaderResources(bool useLatestRelease) {
         "@downloadLoaderResources",
         req.get("https://api.github.com/repos/geode-sdk/geode/releases/tags/" + Loader::get()->getVersion().toVString()).map(
         [useLatestRelease](web::WebResponse* response) {
-            RUNNING_REQUESTS.erase("@downloadLoaderResources");
+            // PLEASE make sure the erase happens at the end of this function
+            // i have spent too much time debugging this crash
+            auto doErase = [&] {
+                auto retval = *response;
+                RUNNING_REQUESTS.erase("@downloadLoaderResources");
+                return retval;
+            };
+
             if (response->ok()) {
                 if (auto ok = response->json()) {
                     auto root = checkJson(ok.unwrap(), "[]");
@@ -212,12 +208,12 @@ void updater::downloadLoaderResources(bool useLatestRelease) {
                                 obj.needs("browser_download_url").get<std::string>(),
                                 false
                             );
-                            return *response;
+                            return doErase();
                         }
                     }
 
                     ResourceDownloadEvent(UpdateFailed("Unable to find resources in release")).post();
-                    return *response;
+                    return doErase();
                 }
             }
             if (useLatestRelease) {
@@ -228,7 +224,8 @@ void updater::downloadLoaderResources(bool useLatestRelease) {
                 log::warn("Loader version {} does not exist on GitHub, not downloading the resources", Loader::get()->getVersion().toVString());
                 ResourceDownloadEvent(UpdateFinished()).post();
             }
-            return *response;
+
+            return doErase();
         }
     ));
 }
@@ -374,8 +371,8 @@ void updater::checkForLoaderUpdates() {
                 return;
             }
 
-            // don't auto-update major versions
-            if (ver.getMajor() > Loader::get()->getVersion().getMajor()) {
+            // don't auto-update major versions when not on forward compat
+            if (!Loader::get()->isForwardCompatMode() && ver.getMajor() > Loader::get()->getVersion().getMajor()) {
                 return;
             }
 
@@ -396,7 +393,7 @@ void updater::checkForLoaderUpdates() {
             LoaderUpdateEvent(
                 UpdateFailed("Unable to find release asset for " GEODE_PLATFORM_NAME)
             ).post();
-            
+
             Mod::get()->setSavedValue("last-modified-auto-update-check", std::string());
         },
         [](std::string const& info) {

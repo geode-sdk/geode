@@ -4,21 +4,54 @@
 #include <string>
 #include <vector>
 #include <compare>
+#include <filesystem>
 #include "../DefaultInclude.hpp"
+#include <Geode/Result.hpp>
 
 namespace geode::utils::string {
+#ifdef GEODE_IS_WINDOWS
     /**
      * Convert std::wstring to std::string (UTF-8)
      * @param str String to convert
      * @returns std::string
+     * @note The purpose of this method is only for wide winapi methods,
+     * as the conversion may be lossy.
      */
     GEODE_DLL std::string wideToUtf8(std::wstring const& str);
     /**
      * Convert std::string (UTF-8) to std::wstring
      * @param str String to convert
      * @returns std::wstring
+     * @note The purpose of this method is only for wide winapi methods,
+     * as the conversion may be lossy.
      */
     GEODE_DLL std::wstring utf8ToWide(std::string const& str);
+#endif
+
+    /// Convert UTF-16 string to UTF-8
+    /// @param str UTF-16 string view
+    /// @return UTF-8 encoded std::string, or an error
+    GEODE_DLL Result<std::string> utf16ToUtf8(std::u16string_view str);
+
+    /// Convert UTF-8 string to UTF-16
+    /// @param str UTF-8 string view
+    /// @return UTF-16 encoded std::u16string, or an error
+    GEODE_DLL Result<std::u16string> utf8ToUtf16(std::string_view str);
+
+    /// Convert UTF-32 string to UTF-8
+    /// @param str UTF-32 string view
+    /// @return UTF-8 encoded std::string, or an error
+    GEODE_DLL Result<std::string> utf32ToUtf8(std::u32string_view str);
+
+    /// Convert UTF-8 string to UTF-32
+    /// @param str UTF-8 string view
+    /// @return UTF-32 encoded std::u32string, or an error
+    GEODE_DLL Result<std::u32string> utf8ToUtf32(std::string_view str);
+
+    /// Convert path to UTF-8 string
+    /// @param path filesystem path
+    /// @return UTF-8 encoded std::string
+    GEODE_DLL std::string pathToString(std::filesystem::path const& path);
 
     GEODE_DLL std::string& toLowerIP(std::string& str);
 

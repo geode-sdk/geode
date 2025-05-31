@@ -3,7 +3,7 @@ Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2008-2010 Ricardo Quesada
 Copyright (c) 2009      Leonardo Kasperavičius
 Copyright (c) 2011      Zynga Inc.
- 
+
 http://www.cocos2d-x.org
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -131,7 +131,7 @@ struct ParticleStruct
 
 It includes all the features of ParticleSystem.
 
-Special features and Limitations:    
+Special features and Limitations:
 - Particle size can be any float number.
 - The system can be scaled
 - The particles can be rotated
@@ -153,6 +153,15 @@ public:
 
     GLuint                m_pBuffersVBO[2]; //0: vertex  1: indices
 
+    // @note Robtop Addition
+    CCRect m_tTextureRect;
+    // @note Robtop Addition
+    ccColor4B m_tQuadColor;
+    // @note Robtop Addition
+    GLushort m_uParticleIdx;
+    // @note Robtop Addition
+    GLubyte m_uOpacity;
+
 public:
     /**
      * @js ctor
@@ -166,7 +175,7 @@ public:
     virtual ~CCParticleSystemQuad();
 
     /** creates an initializes a CCParticleSystemQuad from a plist file.
-    This plist files can be created manually or with Particle Designer:  
+    This plist files can be created manually or with Particle Designer:
     */
     static CCParticleSystemQuad * create(const char *plistFile);
 
@@ -216,7 +225,7 @@ public:
      * @js NA
      */
     virtual void setTotalParticles(unsigned int tp);
-    
+
     /** listen the event that coming to foreground on Android
      *  @js NA
      *  @lua NA
@@ -227,8 +236,8 @@ public:
     static CCParticleSystemQuad * create(const char*, bool);
     static CCParticleSystemQuad * createWithTotalParticles(unsigned int numberOfParticles, bool);
 
-	unsigned char getOpacity();
-	void setOpacity(unsigned char);
+	GLubyte getOpacity() { return m_uOpacity; }
+	void setOpacity(GLubyte opacity) { m_uOpacity = opacity; }
 
 	void updateTexCoords();
 

@@ -43,11 +43,11 @@ void crashlog::printMods(std::stringstream& stream) {
     using namespace std::string_view_literals;
     for (auto& mod : mods) {
         stream << fmt::format("{} | [{}] {}\n",
-            mod->isCurrentlyLoading() ? "o"sv : 
-            mod->isEnabled() ? "x"sv : 
+            mod->isCurrentlyLoading() ? "o"sv :
+            mod->isEnabled() ? "x"sv :
             mod->hasLoadProblems() ? "!"sv : // thank you for this bug report
             mod->targetsOutdatedVersion() ? "*"sv : // thank you very much for this bug report
-            mod->shouldLoad() ? "~"sv : 
+            mod->shouldLoad() ? "~"sv :
             " "sv,
             mod->getVersion().toVString(), mod->getID()
         );
@@ -66,7 +66,7 @@ std::string crashlog::writeCrashlog(geode::Mod* faultyMod, std::string const& in
     // add a file to let Geode know on next launch that it crashed previously
     // this could also be done by saving a loader setting or smth but eh.
     (void)utils::file::writeBinary(crashlog::getCrashLogDirectory() / "last-crashed", {});
-    
+
     std::stringstream file;
 
     file << getDateString(false) << "\n"

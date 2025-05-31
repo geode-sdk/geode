@@ -59,8 +59,9 @@ class CC_DLL CCPointArray : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
-    
-    /** creates and initializes a Points array with capacity 
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCPointArray, CCObject)
+
+    /** creates and initializes a Points array with capacity
      * @lua NA
      */
     static CCPointArray* create(unsigned int capacity);
@@ -72,31 +73,31 @@ public:
      * @lua NA
      */
     CCPointArray();
-    
+
     /** initializes a Catmull Rom config with a capacity hint */
     bool initWithCapacity(unsigned int capacity);
-    
+
     /** appends a control point */
     void addControlPoint(CCPoint controlPoint);
-    
+
     /** inserts a controlPoint at index */
     void insertControlPoint(CCPoint &controlPoint, unsigned int index);
-    
+
     /** replaces an existing controlPoint at index */
     void replaceControlPoint(CCPoint &controlPoint, unsigned int index);
-    
+
     /** get the value of a controlPoint at a given index */
     CCPoint getControlPointAtIndex(unsigned int index);
-    
+
     /** deletes a control point at a given index */
     void removeControlPointAtIndex(unsigned int index);
-    
+
     /** returns the number of objects of the control point array */
     unsigned int count();
-    
+
     /** returns a new copy of the array reversed. User is responsible for releasing this copy */
     CCPointArray* reverse();
-    
+
     /** reverse the current control point array inline, without generating a new one */
     void reverseInline();
     /**
@@ -104,7 +105,7 @@ public:
      *  @lua NA
      */
     virtual CCObject* copyWithZone(CCZone *zone);
-    
+
     const gd::vector<CCPoint*>* getControlPoints();
 
     void setControlPoints(gd::vector<CCPoint*> *controlPoints);
@@ -121,8 +122,9 @@ class CC_DLL CCCardinalSplineTo : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCCardinalSplineTo, CCActionInterval)
 
-    /** creates an action with a Cardinal Spline array of points and tension 
+    /** creates an action with a Cardinal Spline array of points and tension
      *  @code
      *  when thie function bound to js,the input params are changed
      *  js:var create(var duration,var pointTable,var tension)
@@ -139,12 +141,12 @@ public:
      *  @lua NA
      */
     CCCardinalSplineTo();
-    
-    /** initializes the action with a duration and an array of points 
+
+    /** initializes the action with a duration and an array of points
      *  @lua NA
      */
     bool initWithDuration(float duration, CCPointArray* points, float tension);
-    
+
     // super virtual functions
     /**
      *  @js NA
@@ -164,7 +166,7 @@ public:
      *  @lua NA
      */
     virtual void updatePosition(CCPoint &newPos);
-    
+
     inline CCPointArray* getPoints() { return m_pPoints; }
     /**
      *  @js NA
@@ -175,7 +177,7 @@ public:
         CC_SAFE_RELEASE(m_pPoints);
         m_pPoints = points;
     }
-    
+
 public:
     /** Array of control points */
     CCPointArray *m_pPoints;
@@ -189,12 +191,13 @@ public:
  http://en.wikipedia.org/wiki/Cubic_Hermite_spline#Cardinal_spline
  @ingroup Actions
  */
-class CC_DLL CCCardinalSplineBy : public CCCardinalSplineTo 
+class CC_DLL CCCardinalSplineBy : public CCCardinalSplineTo
 {
     GEODE_FRIEND_MODIFY
 public:
-    
-    /** creates an action with a Cardinal Spline array of points and tension 
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCCardinalSplineBy, CCCardinalSplineTo)
+
+    /** creates an action with a Cardinal Spline array of points and tension
      *  @code
      *  when thie function bound to js,the input params are changed
      *  js:var create(var duration,var pointTable,var tension)
@@ -228,8 +231,8 @@ class CC_DLL CCCatmullRomTo : public CCCardinalSplineTo
 {
     GEODE_FRIEND_MODIFY
 public:
-    
-    /** creates an action with a Cardinal Spline array of points and tension 
+
+    /** creates an action with a Cardinal Spline array of points and tension
      *  @code
      *  when this function bound to js,the input params are changed
      *  js:var create(var dt,var pointTable)
@@ -237,7 +240,7 @@ public:
      */
     static CCCatmullRomTo* create(float dt, CCPointArray* points);
 
-    /** initializes the action with a duration and an array of points 
+    /** initializes the action with a duration and an array of points
      *  @js NA
      *  @lua NA
      */
@@ -253,8 +256,8 @@ class CC_DLL CCCatmullRomBy : public CCCardinalSplineBy
 {
     GEODE_FRIEND_MODIFY
 public:
-    
-    /** creates an action with a Cardinal Spline array of points and tension 
+
+    /** creates an action with a Cardinal Spline array of points and tension
      *  @code
      *  when this function bound to js,the input params are changed
      *  js:var create(var dt,var pointTable)
@@ -262,7 +265,7 @@ public:
      */
     static CCCatmullRomBy* create(float dt, CCPointArray* points);
 
-    /** initializes the action with a duration and an array of points 
+    /** initializes the action with a duration and an array of points
      *  @js NA
      *  @lua NA
      */

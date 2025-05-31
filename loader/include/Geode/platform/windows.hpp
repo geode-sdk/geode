@@ -26,6 +26,11 @@ namespace geode::base {
         static uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandleA("libcocos2d.dll"));
         return base;
     }
+
+    GEODE_NOINLINE inline uintptr_t getExtensions() {
+        static uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandleA("libExtensions.dll"));
+        return base;
+    }
 }
 
 
@@ -54,7 +59,7 @@ namespace geode::cast {
         int32_t m_attributes;
         ShrunkPointer<ClassDescriptorType> m_classDescriptor;
     };
-    
+
     struct BaseClassArrayType {
         ShrunkPointer<BaseClassDescriptorType> m_descriptorEntries[0x100];
     };

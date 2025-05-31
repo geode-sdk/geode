@@ -44,6 +44,8 @@ class CC_DLL CCTransitionProgress : public CCTransitionScene
     GEODE_FRIEND_MODIFY
 public:
     static CCTransitionProgress* create(float t, CCScene* scene);
+
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionProgress, CCTransitionScene)
     /**
      *  @js ctor
      */
@@ -79,7 +81,7 @@ public:
     static CCTransitionProgressRadialCCW* create(float t, CCScene* scene);
 protected:
     virtual CCProgressTimer* progressTimerNodeWithRenderTexture(CCRenderTexture* texture);
-  
+
 };
 
 

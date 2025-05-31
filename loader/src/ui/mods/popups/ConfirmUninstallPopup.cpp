@@ -8,7 +8,7 @@ bool ConfirmUninstallPopup::setup(Mod* mod) {
     this->setTitle("Uninstall " + mod->getName());
 
     auto text = TextArea::create(
-        fmt::format("Are you sure you want to \n<cr>uninstall {}</c>?", mod->getName()),
+        fmt::format("Are you sure you want to \n<cr>uninstall</c> <cy>{}</c>?", mod->getName()),
         "chatFont.fnt",
         1.f, m_size.width - 35,
         ccp(.5f, .5f), 20.f, false

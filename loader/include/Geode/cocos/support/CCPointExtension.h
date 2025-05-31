@@ -31,13 +31,13 @@ THE SOFTWARE.
  @file
  CCPoint extensions based on Chipmunk's cpVect file.
  These extensions work both with CCPoint and cpVect.
- 
+
  The "ccp" prefix means: "CoCos2d Point"
- 
+
  Examples:
   - ccpAdd( ccp(1,1), ccp(2,2) ); // preferred cocos2d way
   - ccpAdd( CCPointMake(1,1), CCPointMake(2,2) ); // also ok but more verbose
-  
+
   - cpvadd( cpv(1,1), cpv(2,2) ); // way of the chipmunk
   - ccpAdd( cpv(1,1), cpv(2,2) ); // mixing chipmunk and cocos2d (avoid)
   - cpvadd( CCPointMake(1,1), CCPointMake(2,2) ); // mixing chipmunk and CG (avoid)
@@ -298,27 +298,27 @@ float CC_DLL ccpAngle(const CCPoint& a, const CCPoint& b);
 CCPoint CC_DLL ccpRotateByAngle(const CCPoint& v, const CCPoint& pivot, float angle);
 
 /** A general line-line intersection test
- @param p1 
+ @param p1
     is the startpoint for the first line P1 = (p1 - p2)
- @param p2 
+ @param p2
     is the endpoint for the first line P1 = (p1 - p2)
- @param p3 
+ @param p3
     is the startpoint for the second line P2 = (p3 - p4)
- @param p4 
+ @param p4
     is the endpoint for the second line P2 = (p3 - p4)
- @param s 
+ @param s
     is the range for a hitpoint in P1 (pa = p1 + s*(p2 - p1))
  @param t
     is the range for a hitpoint in P3 (pa = p2 + t*(p4 - p3))
- @return bool 
+ @return bool
     indicating successful intersection of a line
-    note that to truly test intersection for segments we have to make 
+    note that to truly test intersection for segments we have to make
     sure that s & t lie within [0..1] and for rays, make sure s & t > 0
     the hit point is        p3 + t * (p4 - p3);
     the hit point also is    p1 + s * (p2 - p1);
  @since v0.99.1
  */
-bool CC_DLL ccpLineIntersect(const CCPoint& p1, const CCPoint& p2, 
+bool CC_DLL ccpLineIntersect(const CCPoint& p1, const CCPoint& p2,
                       const CCPoint& p3, const CCPoint& p4,
                       float *s, float *t);
 

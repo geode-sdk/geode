@@ -55,7 +55,7 @@ protected:
     void onLoadServerInfo(typename server::ServerRequest<server::ServerModMetadata>::Event* event);
     void onLoadTags(typename server::ServerRequest<std::vector<server::ServerTag>>::Event* event);
     void onCheckUpdates(typename server::ServerRequest<std::optional<server::ServerModUpdate>>::Event* event);
-    
+
     void onTab(CCObject* sender);
     void onEnable(CCObject*);
     void onInstall(CCObject*);

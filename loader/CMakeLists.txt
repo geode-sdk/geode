@@ -88,10 +88,19 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 )
 
 # Obj-c sources
-file(GLOB OBJC_SOURCES
-	src/platform/Objcpp.mm
-	src/load.mm
-)
+if ("${CMAKE_SYSTEM_NAME}" STREQUAL "iOS" OR IOS)
+	file(GLOB OBJC_SOURCES CONFIGURE_DEPENDS
+		src/platform/ios/*.mm
+		src/load.mm
+		src/hooks/*.mm
+	)
+else()
+	file(GLOB OBJC_SOURCES CONFIGURE_DEPENDS
+		src/platform/mac/*.mm
+		src/load.mm
+		src/hooks/*.mm
+	)
+endif()
 set_source_files_properties(${OBJC_SOURCES} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 
 if (WIN32)
@@ -109,17 +118,16 @@ if (WIN32)
 	)
 	list(APPEND SOURCES ${WIN_SOURCES})
 
-elseif(IOS)
-
-	file(GLOB IOS_SOURCES CONFIGURE_DEPENDS 
+elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "iOS" OR IOS)
+	file(GLOB IOS_SOURCES CONFIGURE_DEPENDS
 		src/platform/ios/*.cpp
+		src/platform/mac/Cocos2d.cpp # identical on ios, so we just use the mac one
 	)
 	list(APPEND SOURCES ${IOS_SOURCES})
 	list(APPEND SOURCES ${OBJC_SOURCES})
 
 elseif(APPLE)
-
-	file(GLOB MAC_SOURCES CONFIGURE_DEPENDS 
+	file(GLOB MAC_SOURCES CONFIGURE_DEPENDS
 		src/platform/mac/*.cpp
 	)
 	list(APPEND SOURCES ${MAC_SOURCES})
@@ -142,7 +150,7 @@ endif()
 
 
 if (ANDROID AND GEODE_USE_BREAKPAD)
-	CPMAddPackage("gh:qimiko/breakpad#161e908")
+	CPMAddPackage("gh:qimiko/breakpad#169df6a")
 endif()
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
@@ -177,7 +185,7 @@ endif()
 # CA Bundle
 CPMAddPackage(
 	GITHUB_REPOSITORY geode-sdk/net_libs
-	GIT_TAG 1f5ffb3
+	GIT_TAG 6abd76c
 # CPM is bugged and will not allow an empty string.
 # https://github.com/cpm-cmake/CPM.cmake/issues/467
 # https://github.com/cpm-cmake/CPM.cmake/issues/461
@@ -276,9 +284,13 @@ if (NOT GEODE_BUILDING_DOCS)
 	# Cool date library
 	CPMAddPackage("gh:HowardHinnant/date#1ead671")
 
+	set(SIMDUTF_TESTS OFF)
+	set(SIMDUTF_TOOLS OFF)
+	CPMAddPackage("gh:simdutf/simdutf#v6.5.0")
+
 	target_include_directories(${PROJECT_NAME} PRIVATE ${md4c_SOURCE_DIR}/src)
 
-	target_link_libraries(${PROJECT_NAME} md4c minizip date)
+	target_link_libraries(${PROJECT_NAME} md4c minizip date simdutf)
 endif()
 
 target_link_libraries(${PROJECT_NAME} TulipHook geode-sdk mat-json-impl)
@@ -317,22 +329,22 @@ endif()
 
 # Create launcher
 if (APPLE)
-	set_target_properties(geode-loader PROPERTIES 
-		SYSTEM_NAME MacOS
-		OSX_DEPLOYMENT_TARGET 10.15
-		APPLE_SILICON_PROCESSOR x86_64
-	)
 
-	add_subdirectory(launcher/mac)
+	if("${CMAKE_SYSTEM_NAME}" STREQUAL "iOS" OR IOS)
+		# Used for File Picker API
+		find_library(UNIFORM_TYPE_IDENTIFIERS_FRAMEWORK UniformTypeIdentifiers)
+		target_link_libraries(${PROJECT_NAME} ${UNIFORM_TYPE_IDENTIFIERS_FRAMEWORK})
+	else()
+		set_target_properties(geode-loader PROPERTIES 
+			SYSTEM_NAME MacOS
+			OSX_DEPLOYMENT_TARGET 10.15
+			APPLE_SILICON_PROCESSOR x86_64
+		)
 
-	if(GEODE_TARGET_PLATFORM STREQUAL "iOS")
-		add_custom_command(TARGET geode-loader
-			POST_BUILD COMMAND
-			${CMAKE_INSTALL_NAME_TOOL} -id \"/Library/MobileSubstrate/DynamicLibraries/Geode.dylib\"
-			$<TARGET_FILE:geode-loader>)
+		# geodebootstrapper is unused on ios
+		add_subdirectory(launcher/mac)
+		set(LAUNCHER_TARGET GeodeBootstrapper)
 	endif()
-
-	set(LAUNCHER_TARGET GeodeBootstrapper)
 elseif (WIN32)
 	add_subdirectory(launcher/windows)
 

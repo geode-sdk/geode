@@ -1,4 +1,4 @@
-﻿#include <Geode/DefaultInclude.hpp>
+#include <Geode/DefaultInclude.hpp>
 
 using namespace geode::prelude;
 

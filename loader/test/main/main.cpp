@@ -65,7 +65,7 @@ struct $modify(MenuLayer) {
     bool init() {
         if (!MenuLayer::init())
             return false;
-        
+
         auto node = CCNode::create();
         auto ref = WeakRef(node);
         log::info("ref: {}", ref.lock().data());
@@ -94,6 +94,22 @@ struct $modify(MenuLayer) {
         log::info("Loader int 'int-arg': {}", Loader::get()->parseLaunchArgument<int>("int-arg").unwrapOr(0));
 
         log::debug("should run second!");
+
+        if (GEODE_UNWRAP_IF_OK(val, api::addNumbers(5, 6))) {
+            log::info("5 + 6 = {}", val);
+        }
+        else {
+            log::error("Failed to API (function)");
+        }
+
+        api::Test test;
+        if (GEODE_UNWRAP_IF_OK(val, test.addNumbers(5, 6))) {
+            log::info("5 + 6 = {}", val);
+        }
+        else {
+            log::error("Failed to API (method)");
+        }
+
 
         return true;
     }
@@ -160,7 +176,7 @@ struct GJGarageLayerTest2 : Modify<GJGarageLayerTest2, GJGarageLayer> {
     struct Fields {
         int myOtherValue = 80085;
     };
-    
+
     bool init() {
         if (!GJGarageLayer::init()) return false;
 

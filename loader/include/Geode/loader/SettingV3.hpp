@@ -20,103 +20,103 @@ namespace geode {
     private:
         class GeodeImpl;
         std::shared_ptr<GeodeImpl> m_impl;
-    
+
     protected:
         /**
-         * Only call this function if you aren't going to call 
+         * Only call this function if you aren't going to call
          * `parseBaseProperties`, which will call it for you!
-         * If you don't want to call `parseBaseProperties`, at the very least 
+         * If you don't want to call `parseBaseProperties`, at the very least
          * you **must** call this!
-         * Select which properties you want to parse using the `parseX` 
+         * Select which properties you want to parse using the `parseX`
          * functions
          * @param key The setting's key as defined in `mod.json`
-         * @param modID The ID of the mod this settings is being parsed for 
-         * @param json The current JSON checking instance being used. This 
-         * should be the JSON object that defines the setting. If you aren't 
-         * using Geode's JSON checking utilities, you can use the other 
+         * @param modID The ID of the mod this settings is being parsed for
+         * @param json The current JSON checking instance being used. This
+         * should be the JSON object that defines the setting. If you aren't
+         * using Geode's JSON checking utilities, you can use the other
          * overload of `init`
          */
         void init(std::string const& key, std::string const& modID, JsonExpectedValue& json);
         /**
-         * Only call this function if you aren't going to call 
+         * Only call this function if you aren't going to call
          * `parseBaseProperties`, which will call it for you!
-         * If you don't want to call `parseBaseProperties`, at the very least 
+         * If you don't want to call `parseBaseProperties`, at the very least
          * you **must** call this!
-         * Select which properties you want to parse using the `parseX` 
+         * Select which properties you want to parse using the `parseX`
          * functions
          * @param key The setting's key as defined in `mod.json`
-         * @param modID The ID of the mod this settings is being parsed for 
-         * @note If you are using Geode's JSON checking utilities 
-         * (`checkJson` / `JsonExpectedValue`), you should be using the other 
+         * @param modID The ID of the mod this settings is being parsed for
+         * @note If you are using Geode's JSON checking utilities
+         * (`checkJson` / `JsonExpectedValue`), you should be using the other
          * overload that takes a `JsonExpectedValue&`!
          */
         void init(std::string const& key, std::string const& modID);
 
         /**
-         * Parses the `"name"` and `"description"` keys from the setting's 
-         * definition in `mod.json` (if they exist), so their values can be 
+         * Parses the `"name"` and `"description"` keys from the setting's
+         * definition in `mod.json` (if they exist), so their values can be
          * accessed via `getName` and `getDescription`.
-         * @param json The current JSON checking instance being used. This 
+         * @param json The current JSON checking instance being used. This
          * should be the JSON object that defines the setting
-         * @warning In most cases, you should be using `parseBaseProperties` 
-         * instead to do all of this in one go! 
-         * If you do need the fine-grained control however, make sure to call 
+         * @warning In most cases, you should be using `parseBaseProperties`
+         * instead to do all of this in one go!
+         * If you do need the fine-grained control however, make sure to call
          * `init` before calling these parsing functions!
          */
         void parseNameAndDescription(JsonExpectedValue& json);
         /**
-         * Parses the `"enable-if"` and `"enable-if-description"` keys from 
-         * the setting's definition in `mod.json` (if they exist), so 
+         * Parses the `"enable-if"` and `"enable-if-description"` keys from
+         * the setting's definition in `mod.json` (if they exist), so
          * `shouldEnable` and `getEnableIfDescription` work.
-         * @param json The current JSON checking instance being used. This 
+         * @param json The current JSON checking instance being used. This
          * should be the JSON object that defines the setting
-         * @warning In most cases, you should be using `parseBaseProperties` 
-         * instead to do all of this in one go! 
-         * If you do need the fine-grained control however, make sure to call 
+         * @warning In most cases, you should be using `parseBaseProperties`
+         * instead to do all of this in one go!
+         * If you do need the fine-grained control however, make sure to call
          * `init` before calling these parsing functions!
          */
         void parseEnableIf(JsonExpectedValue& json);
         /**
-         * Parses the `"requires-restart"` key from the setting's definition in 
+         * Parses the `"requires-restart"` key from the setting's definition in
          * `mod.json` (if they exist), so `requiresRestart` works.
-         * @param json The current JSON checking instance being used. This 
+         * @param json The current JSON checking instance being used. This
          * should be the JSON object that defines the setting
-         * @warning In most cases, you should be using `parseBaseProperties` 
-         * instead to do all of this in one go! 
-         * If you do need the fine-grained control however, make sure to call 
+         * @warning In most cases, you should be using `parseBaseProperties`
+         * instead to do all of this in one go!
+         * If you do need the fine-grained control however, make sure to call
          * `init` before calling these parsing functions!
          */
         void parseValueProperties(JsonExpectedValue& json);
 
         /**
-         * Parse all of the base properties such as `"name"` and `"description"` 
+         * Parse all of the base properties such as `"name"` and `"description"`
          * for this setting
          * @param key The setting's key as defined in `mod.json`
-         * @param modID The ID of the mod this settings is being parsed for 
-         * @param json The current JSON checking instance being used. If you 
-         * aren't using Geode's JSON checking utilities, use the other overload 
+         * @param modID The ID of the mod this settings is being parsed for
+         * @param json The current JSON checking instance being used. If you
+         * aren't using Geode's JSON checking utilities, use the other overload
          * of this function
-         * @note If you don't want to parse some of the base properties, such as 
-         * `"requires-restart"` (because you're doing a cosmetic setting), then 
+         * @note If you don't want to parse some of the base properties, such as
+         * `"requires-restart"` (because you're doing a cosmetic setting), then
          * you can call `init` instead and then the specific `parseX` functions
          */
         void parseBaseProperties(std::string const& key, std::string const& modID, JsonExpectedValue& json);
         /**
-         * Parse all of the base properties such as `"name"` and `"description"` 
+         * Parse all of the base properties such as `"name"` and `"description"`
          * for this setting
          * @param key The setting's key as defined in `mod.json`
-         * @param modID The ID of the mod this settings is being parsed for 
-         * @param json The JSON value. If you are using Geode's JSON checking 
-         * utilities (`checkJson` / `JsonExpectedValue`), you should use the 
+         * @param modID The ID of the mod this settings is being parsed for
+         * @param json The JSON value. If you are using Geode's JSON checking
+         * utilities (`checkJson` / `JsonExpectedValue`), you should use the
          * other overload directly!
-         * @note If you don't want to parse some of the base properties, such as 
-         * `"requires-restart"` (because you're doing a cosmetic setting), then 
+         * @note If you don't want to parse some of the base properties, such as
+         * `"requires-restart"` (because you're doing a cosmetic setting), then
          * you can call `init` instead and then the specific `parseX` functions
          */
         Result<> parseBaseProperties(std::string const& key, std::string const& modID, matjson::Value const& json);
 
         /**
-         * Mark that the value of this setting has changed. This should be 
+         * Mark that the value of this setting has changed. This should be
          * ALWAYS called on every setter that can modify the setting's state!
          */
         void markChanged();
@@ -134,18 +134,18 @@ namespace geode {
          */
         std::string getModID() const;
         /**
-         * Get the mod this setting is for. Note that this may return null 
+         * Get the mod this setting is for. Note that this may return null
          * while the mod is still being initialized
          */
         Mod* getMod() const;
         /**
          * Get the name of this setting
          */
-        std::optional<std::string> getName() const; 
+        std::optional<std::string> getName() const;
         /**
          * Get the name of this setting, or its key if it has no name
          */
-        std::string getDisplayName() const; 
+        std::string getDisplayName() const;
         /**
          * Get the description of this setting
          */
@@ -186,7 +186,7 @@ namespace geode {
          */
         virtual void reset() = 0;
     };
-    
+
     using SettingGeneratorV3 = std::function<Result<std::shared_ptr<SettingV3>>(
         std::string const& key,
         std::string const& modID,
@@ -194,8 +194,8 @@ namespace geode {
     )>;
 
     /**
-     * A helper class for creating a basic setting with a simple value. 
-     * Override the virtual function `isValid` to 
+     * A helper class for creating a basic setting with a simple value.
+     * Override the virtual function `isValid` to
      * @tparam T The type of the setting's value. This type must be JSON-
      * serializable and deserializable!
      * @tparam V The type used for the `setValue` function, if it differs from T
@@ -210,17 +210,17 @@ namespace geode {
             friend class SettingBaseValueV3;
         };
         std::shared_ptr<Impl> m_impl;
-    
+
     protected:
         /**
-         * Parses the `"default"` key from the setting's definition in 
-         * `mod.json`. The key may also be defined per-platform, i.e. 
+         * Parses the `"default"` key from the setting's definition in
+         * `mod.json`. The key may also be defined per-platform, i.e.
          * `"default": { "win": ..., "android": ... }`
-         * @param json The current JSON checking instance being used. This 
+         * @param json The current JSON checking instance being used. This
          * should be the JSON object that defines the setting
-         * @warning In most cases, you should be using `parseBaseProperties` 
-         * instead to do all of this in one go! 
-         * If you do need the fine-grained control however, make sure to call 
+         * @warning In most cases, you should be using `parseBaseProperties`
+         * instead to do all of this in one go!
+         * If you do need the fine-grained control however, make sure to call
          * `init` before calling these parsing functions!
          */
         void parseDefaultValue(JsonExpectedValue& json) {
@@ -239,8 +239,8 @@ namespace geode {
          * Parse shared value, including the default value for this setting
          * @param key The key of the setting
          * @param modID The ID of the mod this setting is being parsed for
-         * @param json The current JSON checking instance being used. If you 
-         * aren't using Geode's JSON checking utilities, use the other overload 
+         * @param json The current JSON checking instance being used. If you
+         * aren't using Geode's JSON checking utilities, use the other overload
          * of this function
          */
         void parseBaseProperties(std::string const& key, std::string const& modID, JsonExpectedValue& json) {
@@ -251,8 +251,8 @@ namespace geode {
          * Parse shared value, including the default value for this setting
          * @param key The key of the setting
          * @param modID The ID of the mod this setting is being parsed for
-         * @param json The JSON value. If you are using Geode's JSON checking 
-         * utilities (`checkJson` / `JsonExpectedValue`), you should use the 
+         * @param json The JSON value. If you are using Geode's JSON checking
+         * utilities (`checkJson` / `JsonExpectedValue`), you should use the
          * other overload directly!
          */
         Result<> parseBaseProperties(std::string const& key, std::string const& modID, matjson::Value const& json) {
@@ -262,7 +262,7 @@ namespace geode {
         }
 
         /**
-         * Set the default value. This does not check that the value is 
+         * Set the default value. This does not check that the value is
          * actually valid!
          */
         void setDefaultValue(V value) {
@@ -289,10 +289,10 @@ namespace geode {
             return m_impl->value;
         }
         /**
-         * Set the value of this setting. This will broadcast a new 
+         * Set the value of this setting. This will broadcast a new
          * SettingChangedEventV3, letting any listeners now the value has changed
-         * @param value The new value for the setting. If the value is not a 
-         * valid value for this setting (as determined by `isValue`), then the 
+         * @param value The new value for the setting. If the value is not a
+         * valid value for this setting (as determined by `isValue`), then the
          * setting's value is reset to the default value
          */
         void setValue(V value) {
@@ -300,13 +300,13 @@ namespace geode {
             this->markChanged();
         }
         /**
-         * Check if a given value is valid for this setting. If not, an error 
+         * Check if a given value is valid for this setting. If not, an error
          * describing why the value isn't valid is returned
          */
         virtual Result<> isValid(V value) const {
             return Ok();
         }
-        
+
         bool isDefaultValue() const override {
             return m_impl->value == m_impl->defaultValue;
         }
@@ -332,7 +332,7 @@ namespace geode {
     private:
         class Impl;
         std::shared_ptr<Impl> m_impl;
-    
+
     private:
         class PrivateMarker {};
         friend class SettingV3;
@@ -363,7 +363,7 @@ namespace geode {
         static Result<std::shared_ptr<BoolSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
 
         Result<> isValid(bool value) const override;
-        
+
         SettingNodeV3* createNode(float width) override;
     };
 
@@ -392,7 +392,7 @@ namespace geode {
         bool isSliderEnabled() const;
         int64_t getSliderSnap() const;
         bool isInputEnabled() const;
-    
+
         SettingNodeV3* createNode(float width) override;
     };
 
@@ -421,7 +421,7 @@ namespace geode {
         bool isSliderEnabled() const;
         double getSliderSnap() const;
         bool isInputEnabled() const;
-        
+
         SettingNodeV3* createNode(float width) override;
     };
 
@@ -443,7 +443,7 @@ namespace geode {
         std::optional<std::string> getRegexValidator() const;
         std::optional<std::string> getAllowedCharacters() const;
         std::optional<std::vector<std::string>> getEnumOptions() const;
-        
+
         SettingNodeV3* createNode(float width) override;
     };
 
@@ -466,7 +466,7 @@ namespace geode {
         bool useSaveDialog() const;
 
         std::optional<std::vector<utils::file::FilePickOptions::Filter>> getFilters() const;
-        
+
         SettingNodeV3* createNode(float width) override;
     };
 
@@ -510,38 +510,38 @@ namespace geode {
     private:
         class Impl;
         std::shared_ptr<Impl> m_impl;
-        
+
         friend class ::ModSettingsPopup;
 
     protected:
         bool init(std::shared_ptr<SettingV3> setting, float width);
 
         /**
-         * Update the state of this setting node, bringing all inputs 
-         * up-to-date with the current value. Derivatives of `SettingNodeV3` 
-         * should set update the state (such as visibility, value, etc.) of all 
-         * its controls, except for the one that's passed as the `invoker` 
-         * argument. Derivatives should remember to **always call the base 
-         * class's `updateState` function**, as it updates the built-in title 
+         * Update the state of this setting node, bringing all inputs
+         * up-to-date with the current value. Derivatives of `SettingNodeV3`
+         * should set update the state (such as visibility, value, etc.) of all
+         * its controls, except for the one that's passed as the `invoker`
+         * argument. Derivatives should remember to **always call the base
+         * class's `updateState` function**, as it updates the built-in title
          * label as well as the description and reset buttons!
-         * @param invoker The button or other interactive element that caused 
-         * this state update. If that element is for example a text input, it 
-         * may wish to ignore the state update, as it itself is the source of 
-         * truth for the node's value at that moment. May be nullptr to mark 
+         * @param invoker The button or other interactive element that caused
+         * this state update. If that element is for example a text input, it
+         * may wish to ignore the state update, as it itself is the source of
+         * truth for the node's value at that moment. May be nullptr to mark
          * that no specific node requested this state update
          */
         virtual void updateState(cocos2d::CCNode* invoker);
 
         /**
-         * Mark this setting as changed. This updates the UI for committing 
+         * Mark this setting as changed. This updates the UI for committing
          * the value, as well as posts a `SettingNodeValueChangeEventV3`
          * @param invoker The node to be passed onto `updateState`
          */
         void markChanged(cocos2d::CCNode* invoker);
 
         /**
-         * When the setting value is committed (aka can't be undone), this 
-         * function will be called. This should take care of actually saving 
+         * When the setting value is committed (aka can't be undone), this
+         * function will be called. This should take care of actually saving
          * the value in some sort of global manager
          */
         virtual void onCommit() = 0;
@@ -572,7 +572,7 @@ namespace geode {
     };
 
     /**
-     * Helper class for creating `SettingNode`s for simple settings that 
+     * Helper class for creating `SettingNode`s for simple settings that
      * implement `SettingBaseValueV3`
      */
     template <class S>
@@ -585,12 +585,12 @@ namespace geode {
             friend class SettingValueNodeV3;
         };
         std::shared_ptr<Impl> m_impl;
-    
+
     protected:
         bool init(std::shared_ptr<S> setting, float width) {
             if (!SettingNodeV3::init(setting, width))
                 return false;
-            
+
             m_impl = std::make_shared<Impl>();
             m_impl->currentValue = setting->getValue();
 
@@ -633,7 +633,7 @@ namespace geode {
         /**
          * Set the **uncommitted** value for this node
          * @param value The value to set
-         * @param invoker The node that invoked this value change; see the docs 
+         * @param invoker The node that invoked this value change; see the docs
          * for `SettingNodeV3::updateState` to know more
          */
         void setValue(typename S::ValueAssignType value, cocos2d::CCNode* invoker) {
@@ -650,7 +650,7 @@ namespace geode {
     private:
         class Impl;
         std::shared_ptr<Impl> m_impl;
-    
+
     public:
         SettingChangedEventV3(std::shared_ptr<SettingV3> setting);
 
@@ -660,7 +660,7 @@ namespace geode {
     private:
         class Impl;
         std::shared_ptr<Impl> m_impl;
-    
+
     public:
         using Callback = void(std::shared_ptr<SettingV3>);
 
@@ -682,7 +682,7 @@ namespace geode {
     private:
         class Impl;
         std::shared_ptr<Impl> m_impl;
-    
+
     public:
         SettingNodeSizeChangeEventV3(SettingNodeV3* node);
         virtual ~SettingNodeSizeChangeEventV3();
@@ -693,7 +693,7 @@ namespace geode {
     private:
         class Impl;
         std::shared_ptr<Impl> m_impl;
-    
+
     public:
         SettingNodeValueChangeEventV3(SettingNodeV3* node, bool commit);
         virtual ~SettingNodeValueChangeEventV3();

@@ -4,7 +4,7 @@
 
 [project]
 name = "Geode"
-version = "v3.0.0"
+version = "" # dont bother
 repository = "https://github.com/geode-sdk/geode"
 tree = "https://github.com/geode-sdk/geode/tree/main"
 icon = "loader/resources/logos/geode-circle.png"
@@ -17,6 +17,14 @@ assets = [
     "docs/assets/handbook/vol1/*.png",
     "docs/assets/handbook/vol2/*.png",
 ]
+
+[[external-libs]]
+pattern = "matjson"
+repository = "https://github.com/geode-sdk/json"
+
+[[external-libs]]
+pattern = "Result.hpp"
+repository = "https://github.com/geode-sdk/result"
 
 [[sources]]
 name = "Geode"
@@ -41,6 +49,23 @@ include = [
 ]
 # Bindings are generated at compile time
 exists-online = false
+
+[ignore]
+patterns-name = [
+    # anything that starts with a double underscore
+    # shouldnt be included
+    "^__",
+    "^tinyxml2$",
+    "^format_as$",
+    # operator overloads
+    "^operator\\W"
+]
+patterns-full = [
+    "^geode::modifier",
+    "^geode::prelude",
+    "^geode::stl",
+    "^geode::geode_internal"
+]
 
 # CMake options
 

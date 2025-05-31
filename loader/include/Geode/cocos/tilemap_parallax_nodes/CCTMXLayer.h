@@ -87,6 +87,7 @@ class CC_DLL CCTMXLayer : public CCSpriteBatchNode
     /** properties from the layer. They can be added using Tiled */
     CC_PROPERTY(CCDictionary*, m_pProperties, Properties);
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTMXLayer, CCSpriteBatchNode)
     /**
      * @js ctor
      * @lua NA
@@ -97,11 +98,11 @@ public:
      * @lua NA
      */
     virtual ~CCTMXLayer();
-  
+
     /** creates a CCTMXLayer with an tileset info, a layer info and a map info */
     static CCTMXLayer * create(CCTMXTilesetInfo *tilesetInfo, CCTMXLayerInfo *layerInfo, CCTMXMapInfo *mapInfo);
 
-    /** initializes a CCTMXLayer with a tileset info, a layer info and a map info 
+    /** initializes a CCTMXLayer with a tileset info, a layer info and a map info
      * @lua NA
      */
     bool initWithTilesetInfo(CCTMXTilesetInfo *tilesetInfo, CCTMXLayerInfo *layerInfo, CCTMXMapInfo *mapInfo);
@@ -145,7 +146,7 @@ public:
     /** sets the tile gid (gid = tile global id) at a given tile coordinate.
      The Tile GID can be obtained by using the method "tileGIDAt" or by using the TMX editor -> Tileset Mgr +1.
      If a tile is already placed at that position, then it will be removed.
-     
+
      Use withFlags if the tile flags need to be changed as well
      */
 
@@ -154,12 +155,12 @@ public:
     /** removes a tile at given tile coordinate */
     void removeTileAt(const CCPoint& tileCoordinate);
 
-    /** returns the position in points of a given tile coordinate 
+    /** returns the position in points of a given tile coordinate
      * @js getPositionAt
      */
     CCPoint positionAt(const CCPoint& tileCoordinate);
 
-    /** return the value for the specific property name 
+    /** return the value for the specific property name
      *  @js getProperty
      */
     CCString *propertyNamed(const char *propertyName);
@@ -216,9 +217,9 @@ public:
     //! used for optimization
     CCSprite            *m_pReusedTile;
     ccCArray            *m_pAtlasIndexArray;
-    
+
     // used for retina display
-    float               m_fContentScaleFactor;            
+    float               m_fContentScaleFactor;
 };
 
 // end of tilemap_parallax_nodes group

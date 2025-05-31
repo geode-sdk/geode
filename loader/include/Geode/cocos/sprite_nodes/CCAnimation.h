@@ -49,13 +49,14 @@ class CCSpriteFrame;
     - sprite frame name
     - # of delay units.
     - offset
- 
+
  @since v2.0
  */
 class CC_DLL CCAnimationFrame : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCAnimationFrame, CCObject)
     /**
      * @js ctor
      */
@@ -72,7 +73,7 @@ public:
     virtual CCObject* copyWithZone(CCZone* pZone);
     /** initializes the animation frame with a spriteframe, number of delay units and a notification user info */
     bool initWithSpriteFrame(CCSpriteFrame* spriteFrame, float delayUnits, CCDictionary* userInfo);
-    
+
     /** CCSpriteFrameName to be used */
     CC_SYNTHESIZE_RETAIN(CCSpriteFrame*, m_pSpriteFrame, SpriteFrame)
 
@@ -98,6 +99,7 @@ class CC_DLL CCAnimation : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCAnimation, CCObject)
     /**
      * @js ctor
      */
@@ -137,7 +139,7 @@ public:
      The frame will be added with one "delay unit".
      Added to facilitate the migration from v0.8 to v0.9.
      * @js addSpriteFrameWithFile
-     */  
+     */
     void addSpriteFrameWithFileName(const char *pszFileName);
 
     /** Adds a frame with a texture and a rect. Internally it will create a CCSpriteFrame and it will add it.

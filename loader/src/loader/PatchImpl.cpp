@@ -1,4 +1,4 @@
-﻿#include "PatchImpl.hpp"
+#include "PatchImpl.hpp"
 
 #include <utility>
 #include "LoaderImpl.hpp"

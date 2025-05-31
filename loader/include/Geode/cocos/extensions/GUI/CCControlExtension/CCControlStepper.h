@@ -4,17 +4,17 @@
  *
  * Copyright 2012 Yannick Loriot. All rights reserved.
  * http://yannickloriot.com
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -49,6 +49,7 @@ typedef enum
 class CC_DLL CCControlStepper : public CCControl
 {
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCControlStepper, CCControl)
     CCControlStepper();
     virtual ~CCControlStepper();
 
@@ -76,7 +77,7 @@ protected:
     CC_SYNTHESIZE_RETAIN(CCSprite*, m_pPlusSprite, PlusSprite)
     CC_SYNTHESIZE_RETAIN(CCLabelTTF*, m_pMinusLabel, MinusLabel)
     CC_SYNTHESIZE_RETAIN(CCLabelTTF*, m_pPlusLabel, PlusLabel)
-    
+
     /** Update the layout of the stepper with the given touch location. */
     void updateLayoutUsingTouchLocation(CCPoint location);
 

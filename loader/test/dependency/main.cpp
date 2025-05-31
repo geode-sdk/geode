@@ -1,5 +1,6 @@
 #include <Geode/Loader.hpp>
 #include <Geode/modify/MenuLayer.hpp>
+#define GEODE_DEFINE_EVENT_EXPORTS
 #include <Geode/loader/Dispatch.hpp>
 #include <Geode/Bindings.hpp>
 #include "main.hpp"
@@ -65,7 +66,7 @@ class MySettingValue;
 //     bool init(MySettingValue* value, float width) {
 //         if (!SettingNode::init(value))
 //             return false;
-        
+
 //         m_currentIcon = value->getIcon();
 //         this->setContentSize({ width, 40.f });
 
@@ -203,4 +204,12 @@ $on_mod(Loaded) {
     	gl->addChild(label);
         return ListenerResult::Propagate;
     }, MyDispatchFilter("geode.test/test-garage-open"));
+}
+
+Result<int> api::addNumbers(int a, int b) {
+    return Ok(a + b);
+}
+
+Result<int> api::Test::addNumbers(int a, int b) {
+    return Ok(a + b);
 }

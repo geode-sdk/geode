@@ -1,3 +1,4 @@
+#include <Geode/loader/Log.hpp>
 #include <Geode/Result.hpp>
 #include <Geode/utils/general.hpp>
 #include <filesystem>
@@ -9,7 +10,10 @@
 #include <curl/curl.h>
 #include <ca_bundle.h>
 
+#include <Geode/loader/Mod.hpp>
 #include <Geode/utils/web.hpp>
+#include <Geode/utils/file.hpp>
+#include <Geode/utils/string.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/terminate.hpp>
 #include <sstream>
@@ -96,6 +100,7 @@ class WebResponse::Impl {
 public:
     int m_code;
     ByteVector m_data;
+    std::string m_errMessage;
     std::unordered_map<std::string, std::vector<std::string>> m_headers;
 
     Result<> into(std::filesystem::path const& path) const;
@@ -114,6 +119,144 @@ Result<> WebResponse::Impl::into(std::filesystem::path const& path) const {
     stream.close();
 
     return Ok();
+}
+
+struct MultipartFile {
+    ByteVector data;
+    std::string filename;
+    std::string mime;
+};
+
+class MultipartForm::Impl {
+public:
+    std::unordered_map<std::string, std::string> m_params;
+    std::unordered_map<std::string, MultipartFile> m_files;
+    mutable std::string m_boundary;
+
+    bool isBuilt() const {
+        return !m_boundary.empty();
+    }
+
+    bool isBoundaryUnique(std::string_view boundary) const {
+        // make sure params and files don't contain the boundary
+        for (auto const& [name, value] : m_params) {
+            if (name.find(boundary) != std::string::npos || value.find(boundary) != std::string::npos) {
+                return false;
+            }
+        }
+
+        // check files
+        for (auto const& [name, file] : m_files) {
+            if (name.find(boundary) != std::string::npos
+                || file.filename.find(boundary) != std::string::npos
+                || file.mime.find(boundary) != std::string::npos) {
+                return false;
+            }
+
+            if (std::ranges::search(file.data, boundary).begin() != file.data.end()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    void pickUniqueBoundary() const {
+        if (isBuilt()) {
+            return;
+        }
+
+        auto timestamp = std::chrono::system_clock::now().time_since_epoch().count();
+        do {
+            m_boundary = fmt::format("----GeodeWebBoundary{}", timestamp++);
+        } while (!isBoundaryUnique(m_boundary));
+    }
+
+    ByteVector getBody() const {
+        pickUniqueBoundary();
+
+        ByteVector data;
+        const auto addText = [&](std::string_view value) {
+            data.insert(data.end(), value.begin(), value.end());
+        };
+
+        // add params
+        for (auto const& [name, value] : m_params) {
+            addText(fmt::format(
+                "--{}\r\nContent-Disposition: form-data; name=\"{}\"\r\n\r\n{}\r\n",
+                m_boundary, name, value
+            ));
+        }
+
+        // add files
+        for (auto const& [name, file] : m_files) {
+            addText(fmt::format(
+                "--{}\r\nContent-Disposition: form-data; name=\"{}\"; filename=\"{}\"\r\nContent-Type: {}\r\n\r\n",
+                m_boundary, name, file.filename, file.mime
+            ));
+            data.insert(data.end(), file.data.begin(), file.data.end());
+            addText("\r\n");
+        }
+
+        addText(fmt::format("--{}--\r\n", m_boundary));
+        return data;
+    }
+};
+
+MultipartForm::MultipartForm() : m_impl(std::make_shared<Impl>()) {}
+MultipartForm::~MultipartForm() = default;
+
+MultipartForm& MultipartForm::param(std::string_view name, std::string_view value) {
+    if (!m_impl->isBuilt()) {
+        m_impl->m_params.insert_or_assign(std::string(name), std::string(value));
+    }
+    return *this;
+}
+
+Result<MultipartForm&> MultipartForm::file(std::string_view name, std::filesystem::path const& path, std::string_view mime) {
+    if (!m_impl->isBuilt()) {
+        GEODE_UNWRAP_INTO(auto data, utils::file::readBinary(path));
+
+        std::string filename = utils::string::pathToString(path.filename());
+
+        // according to mdn, filenames should be ascii
+        for (unsigned char c : filename) {
+            if (c < 0x20 || c > 0x7E) {
+                return Err("Invalid character in filename (0x{:X}): '{}'", c, filename);
+            }
+        }
+
+        m_impl->m_files.insert_or_assign(std::string(name), MultipartFile{
+            .data = std::move(data),
+            .filename = std::move(filename),
+            .mime = std::string(mime),
+        });
+    }
+    return Ok(*this);
+}
+
+MultipartForm& MultipartForm::file(std::string_view name, std::span<uint8_t const> data, std::string_view filename, std::string_view mime) {
+    if (!m_impl->isBuilt()) {
+        m_impl->m_files.insert_or_assign(std::string(name), MultipartFile{
+            .data = ByteVector(data.begin(), data.end()),
+            .filename = std::string(filename),
+            .mime = std::string(mime),
+        });
+    }
+    return *this;
+}
+
+std::string const& MultipartForm::getBoundary() const {
+    m_impl->pickUniqueBoundary();
+    return m_impl->m_boundary;
+}
+
+std::string MultipartForm::getHeader() const {
+    return fmt::format("multipart/form-data; boundary={}", getBoundary());
+}
+
+ByteVector MultipartForm::getBody() const {
+    return m_impl->getBody();
 }
 
 WebResponse::WebResponse() : m_impl(std::make_shared<Impl>()) {}
@@ -157,6 +300,10 @@ std::optional<std::vector<std::string>> WebResponse::getAllHeadersNamed(std::str
         return m_impl->m_headers.at(str);
     }
     return std::nullopt;
+}
+
+std::string const& WebResponse::errorMessage() const {
+    return m_impl->m_errMessage;
 }
 
 class WebProgress::Impl {
@@ -247,10 +394,11 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         // Init Curl
         auto curl = curl_easy_init();
         if (!curl) {
-            return impl->makeError(-1, "Curl not initialized");
+            log::error("Failed to initialize cURL");
+            return impl->makeError(-1, "Failed to initialize curl");
         }
 
-        // todo: in the future, we might want to support downloading directly into 
+        // todo: in the future, we might want to support downloading directly into
         // files / in-memory streams like the old AsyncWebRequest class
 
         // Struct that holds values for the curl callbacks
@@ -300,6 +448,11 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 
         // Set HTTP version
+        auto useHttp1 = Loader::get()->getLaunchFlag("use-http1");
+        if (impl->m_httpVersion == HttpVersion::DEFAULT && useHttp1) {
+            impl->m_httpVersion = HttpVersion::VERSION_1_1; // Force HTTP/1.1 if the flag is set
+        }
+
         curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, unwrapHttpVersion(impl->m_httpVersion));
 
         // Set request method
@@ -324,21 +477,30 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         }
 
         // Cert verification
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, impl->m_certVerification ? 1 : 0);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, impl->m_certVerification ? 1L : 0L);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
+
+        int sslOptions = 0;
 
         if (impl->m_certVerification) {
-            curl_blob caBundleBlob = {};
-
             if (impl->m_CABundleContent.empty()) {
                 impl->m_CABundleContent = CA_BUNDLE_CONTENT;
             }
-            
-            caBundleBlob.data = reinterpret_cast<void*>(impl->m_CABundleContent.data());
-            caBundleBlob.len = impl->m_CABundleContent.size();
-            caBundleBlob.flags = CURL_BLOB_COPY;
-            curl_easy_setopt(curl, CURLOPT_CAINFO_BLOB, &caBundleBlob);
+
+            if (!impl->m_CABundleContent.empty()) {
+                curl_blob caBundleBlob = {};
+                caBundleBlob.data = reinterpret_cast<void*>(impl->m_CABundleContent.data());
+                caBundleBlob.len = impl->m_CABundleContent.size();
+                caBundleBlob.flags = CURL_BLOB_NOCOPY;
+                curl_easy_setopt(curl, CURLOPT_CAINFO_BLOB, &caBundleBlob);
+                // Also add the native CA, for good measure
+                sslOptions |= CURLSSLOPT_NATIVE_CA;
+            }
         }
+
+        // weird windows stuff, don't remove if we still use schannel!
+        GEODE_WINDOWS(sslOptions |= CURLSSLOPT_REVOKE_BEST_EFFORT);
+        curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, sslOptions);
 
         // Transfer body
         curl_easy_setopt(curl, CURLOPT_NOBODY, impl->m_transferBody ? 0L : 1L);
@@ -392,13 +554,58 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         curl_easy_setopt(curl, CURLOPT_IGNORE_CONTENT_LENGTH, impl->m_ignoreContentLength ? 1L : 0L);
 
         // Track progress
-        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
+        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 
         // don't change the method from POST to GET when following a redirect
         curl_easy_setopt(curl, CURLOPT_POSTREDIR, CURL_REDIR_POST_ALL);
 
         // Do not fail if response code is 4XX or 5XX
         curl_easy_setopt(curl, CURLOPT_FAILONERROR, 0L);
+
+        // Verbose logging
+        if (Mod::get()->getSettingValue<bool>("verbose-curl-logs")) {
+            curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+            curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, +[](CURL* handle, curl_infotype type, char* data, size_t size, void* clientp) {
+                while (size > 0 && (data[size - 1] == '\n' || data[size - 1] == '\r')) {
+                    size--; // remove trailing newline
+                }
+
+                switch (type) {
+                    case CURLINFO_TEXT:
+                        log::debug("[Curl] {}", std::string_view(data, size));
+                        break;
+                    case CURLINFO_HEADER_IN:
+                        log::debug("[Curl] Header in: {}", std::string_view(data, size));
+                        break;
+                    case CURLINFO_HEADER_OUT:
+                        log::debug("[Curl] Header out: {}", std::string_view(data, size));
+                        break;
+                    case CURLINFO_DATA_IN:
+                        log::debug("[Curl] Data in ({} bytes)", size);
+                        break;
+                    case CURLINFO_DATA_OUT:
+                        log::debug("[Curl] Data out ({} bytes)", size);
+                        break;
+                    case CURLINFO_SSL_DATA_IN:
+                        log::debug("[Curl] SSL data in ({} bytes)", size);
+                        break;
+                    case CURLINFO_SSL_DATA_OUT:
+                        log::debug("[Curl] SSL data out ({} bytes)", size);
+                        break;
+                    case CURLINFO_END:
+                        log::debug("[Curl] End of info");
+                        break;
+                    default:
+                        log::debug("[Curl] Unknown info type: {}", static_cast<int>(type));
+                        break;
+                }
+            });
+        }
+
+        // If an error happens, we want to get a more specific description of the issue
+        char errorBuf[CURL_ERROR_SIZE];
+        errorBuf[0] = '\0';
+        curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorBuf);
 
         // Get headers from the response
         curl_easy_setopt(curl, CURLOPT_HEADERDATA, &responseData);
@@ -449,11 +656,13 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         // Make the actual web request
         auto curlResponse = curl_easy_perform(curl);
 
-        // Get the response code; note that this will be invalid if the 
+        // Get the response code; note that this will be invalid if the
         // curlResponse is not CURLE_OK
         long code = 0;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &code);
         responseData.response.m_impl->m_code = static_cast<int>(code);
+
+        responseData.response.m_impl->m_errMessage = std::string(errorBuf);
 
         // Free up curl memory
         curl_slist_free_all(headers);
@@ -462,21 +671,25 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         // Check if the request failed on curl's side or because of cancellation
         if (curlResponse != CURLE_OK) {
             if (hasBeenCancelled()) {
+                log::debug("Request cancelled");
                 return WebTask::Cancel();
             }
             else {
-                return impl->makeError(-1, "Curl failed: " + std::string(curl_easy_strerror(curlResponse)));
+                std::string const err = curl_easy_strerror(curlResponse);
+                log::error("cURL failure, error: {}", err);
+                log::warn("Error buffer: {}", errorBuf);
+                return impl->makeError(
+                    -1,
+                    !*errorBuf ?
+                          fmt::format("Curl failed: {}", err)
+                        : fmt::format("Curl failed: {} ({})", err, errorBuf)
+                );
             }
         }
-        
-        // Check if the response was an error code
-        if (code >= 400 && code <= 600) {
-            return std::move(responseData.response);
-        }
 
-        // Otherwise resolve with success :-)
+        // resolve with success :-)
         return std::move(responseData.response);
-    }, fmt::format("{} request to {}", method, url));
+    }, fmt::format("{} {}", method, url));
 }
 WebTask WebRequest::post(std::string_view url) {
     return this->send("POST", url);
@@ -614,6 +827,11 @@ WebRequest& WebRequest::bodyJSON(matjson::Value const& json) {
     this->header("Content-Type", "application/json");
     std::string str = json.dump(matjson::NO_INDENTATION);
     m_impl->m_body = ByteVector { str.begin(), str.end() };
+    return *this;
+}
+WebRequest& WebRequest::bodyMultipart(MultipartForm const& form) {
+    this->header("Content-Type", form.getHeader());
+    m_impl->m_body = form.getBody();
     return *this;
 }
 

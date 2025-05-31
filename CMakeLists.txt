@@ -15,6 +15,12 @@ endif()
 
 option(GEODE_USE_BREAKPAD "Enables the use of the Breakpad library for crash dumps." ON)
 
+# Check if git is installed, raise a fatal error if not
+find_program(GIT_EXECUTABLE git)
+if (NOT GIT_EXECUTABLE)
+	message(FATAL_ERROR "Git not found! Please install Git and try again.\nhttps://git-scm.com/")
+endif()
+
 # Read version
 file(READ VERSION GEODE_VERSION)
 string(STRIP "${GEODE_VERSION}" GEODE_VERSION)
@@ -188,6 +194,16 @@ set(GEODE_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 include(cmake/Platform.cmake)
 include(cmake/GeodeFile.cmake)
 
+# there is now a script that runs over these lines to determine the gd version
+# so please update them when you set the game version
+
+# begin GEODE_GD_VERSION
+# win:     2.2074
+# mac:     2.2074
+# ios:     2.2074
+# android: 2.2074
+# end GEODE_GD_VERSION
+
 if (NOT DEFINED GEODE_GD_VERSION)
 	set(GEODE_GD_VERSION 2.2074)
 	set(GEODE_COMP_GD_VERSION 22074)
@@ -238,7 +254,7 @@ endif()
 set(MAT_JSON_AS_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/result@1.3.3")
 CPMAddPackage("gh:geode-sdk/json@3.2.1")
-CPMAddPackage("gh:fmtlib/fmt#11.0.2")
+CPMAddPackage("gh:fmtlib/fmt#11.1.4")
 
 target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)
 
@@ -267,7 +283,7 @@ if (DEFINED GEODE_TULIPHOOK_REPO_PATH)
 	message(STATUS "Using ${GEODE_TULIPHOOK_REPO_PATH} for TulipHook")
 	add_subdirectory(${GEODE_TULIPHOOK_REPO_PATH} ${GEODE_TULIPHOOK_REPO_PATH}/build)
 else()
-	CPMAddPackage("gh:geode-sdk/TulipHook@2.4.2")
+	CPMAddPackage("gh:geode-sdk/TulipHook@2.4.4")
 endif()
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 
@@ -297,6 +313,7 @@ target_include_directories(GeodeBindings PUBLIC
 	${GEODE_LOADER_PATH}/include/Geode/fmod
 )
 target_link_directories(GeodeBindings PUBLIC ${GEODE_LOADER_PATH}/include/link)
+target_compile_definitions(GeodeBindings PUBLIC GEODE_USE_NEW_DESTRUCTOR_LOCK=1)
 target_link_libraries(GeodeBindings PUBLIC fmt TulipHookInclude mat-json GeodeResult)
 target_link_libraries(${PROJECT_NAME} INTERFACE GeodeBindings)
 

@@ -67,4 +67,4 @@ namespace geode {
             &geodeInternalProvideIDsFor<GEODE_CONCAT(ProvideIDsFor, Layer_)>\
         );\
 	};\
-    void GEODE_CONCAT(ProvideIDsFor, Layer_)::provide() 
+    void GEODE_CONCAT(ProvideIDsFor, Layer_)::provide()

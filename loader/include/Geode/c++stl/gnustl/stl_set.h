@@ -57,7 +57,7 @@
 
 #include "concept_check.h"
 #include "ext/rb_tree.h"
-#include <initializer_list>
+#include "initializer_list.h"
 
 namespace geode::stl {
 _GLIBCXX_BEGIN_NAMESPACE_VERSION
@@ -83,7 +83,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
    *  called (*_unique versus *_equal, same as the standard).
   */
   template<typename _Key, typename _Compare = std::less<_Key>,
-	   typename _Alloc = std::allocator<_Key> >
+	   typename _Alloc = allocator<_Key> >
     class set
     {
       // concept requirements
@@ -105,14 +105,14 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       //@}
 
     private:
-      typedef typename __gnu_cxx::__alloc_traits<_Alloc>::template
+      typedef typename __alloc_traits<_Alloc>::template
 	rebind<_Key>::other _Key_alloc_type;
 
       typedef _Rb_tree<key_type, value_type, _Identity<value_type>,
 		       key_compare, _Key_alloc_type> _Rep_type;
       _Rep_type _M_t;  // Red-black tree representing set.
 
-      typedef __gnu_cxx::__alloc_traits<_Key_alloc_type> _Alloc_traits;
+      typedef __alloc_traits<_Key_alloc_type> _Alloc_traits;
 
     public:
       //@{
@@ -215,7 +215,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
        *  This is linear in N if the list is already sorted, and NlogN
        *  otherwise (where N is @a __l.size()).
        */
-      set(std::initializer_list<value_type> __l,
+      set(initializer_list<value_type> __l,
 	  const _Compare& __comp = _Compare(),
 	  const allocator_type& __a = allocator_type())
       : _M_t(__comp, _Key_alloc_type(__a))
@@ -237,7 +237,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       : _M_t(std::move(__x._M_t), _Key_alloc_type(__a)) { }
 
       /// Allocator-extended initialier-list constructor.
-      set(std::initializer_list<value_type> __l, const allocator_type& __a)
+      set(initializer_list<value_type> __l, const allocator_type& __a)
       : _M_t(_Compare(), _Key_alloc_type(__a))
       { _M_t._M_insert_unique(__l.begin(), __l.end()); }
 
@@ -280,7 +280,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
        *  of elements assigned.  Old data may be lost.
        */
       set&
-      operator=(std::initializer_list<value_type> __l)
+      operator=(initializer_list<value_type> __l)
       {
 	_M_t._M_assign_unique(__l.begin(), __l.end());
 	return *this;
@@ -399,8 +399,8 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
        *  time.  (It is only swapping a pointer, an integer, and an
        *  instance of the @c Compare type (which itself is often
        *  stateless and empty), so it should be quite fast.)  Note
-       *  that the global std::swap() function is specialized such
-       *  that std::swap(s1,s2) will feed to this function.
+       *  that the global swap() function is specialized such
+       *  that swap(s1,s2) will feed to this function.
        */
       void
       swap(set& __x)
@@ -425,7 +425,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
        *  Insertion requires logarithmic time.
        */
       template<typename... _Args>
-	std::pair<iterator, bool>
+	pair<iterator, bool>
 	emplace(_Args&&... __args)
 	{ return _M_t._M_emplace_unique(std::forward<_Args>(__args)...); }
 
@@ -472,21 +472,21 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
        *
        *  Insertion requires logarithmic time.
        */
-      std::pair<iterator, bool>
+      pair<iterator, bool>
       insert(const value_type& __x)
       {
-	std::pair<typename _Rep_type::iterator, bool> __p =
+	pair<typename _Rep_type::iterator, bool> __p =
 	  _M_t._M_insert_unique(__x);
-	return std::pair<iterator, bool>(__p.first, __p.second);
+	return pair<iterator, bool>(__p.first, __p.second);
       }
 
 #if __cplusplus >= 201103L
-      std::pair<iterator, bool>
+      pair<iterator, bool>
       insert(value_type&& __x)
       {
-	std::pair<typename _Rep_type::iterator, bool> __p =
+	pair<typename _Rep_type::iterator, bool> __p =
 	  _M_t._M_insert_unique(std::move(__x));
-	return std::pair<iterator, bool>(__p.first, __p.second);
+	return pair<iterator, bool>(__p.first, __p.second);
       }
 #endif
 
@@ -536,13 +536,13 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 #if __cplusplus >= 201103L
       /**
        *  @brief Attempts to insert a list of elements into the %set.
-       *  @param  __l  A std::initializer_list<value_type> of elements
+       *  @param  __l  A initializer_list<value_type> of elements
        *               to be inserted.
        *
        *  Complexity similar to that of the range constructor.
        */
       void
-      insert(std::initializer_list<value_type> __l)
+      insert(initializer_list<value_type> __l)
       { this->insert(__l.begin(), __l.end()); }
 #endif
 
@@ -749,11 +749,11 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
        *
        *  This function probably only makes sense for multisets.
        */
-      std::pair<iterator, iterator>
+      pair<iterator, iterator>
       equal_range(const key_type& __x)
       { return _M_t.equal_range(__x); }
 
-      std::pair<const_iterator, const_iterator>
+      pair<const_iterator, const_iterator>
       equal_range(const key_type& __x) const
       { return _M_t.equal_range(__x); }
       //@}

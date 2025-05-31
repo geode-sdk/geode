@@ -60,6 +60,10 @@ namespace geode {
          * Whether logging is enabled for this mod
          */
         bool m_loggingEnabled = true;
+        /**
+         * The minimum log level for this mod
+         */
+        Severity m_logLevel = Severity::Debug;
 
         std::unordered_map<std::string, char const*> m_expandedSprites;
 
@@ -92,7 +96,7 @@ namespace geode {
         bool isEnabled() const;
         bool isInternal() const;
         bool needsEarlyLoad() const;
-        ModMetadata getMetadata() const;
+        ModMetadata const& getMetadata() const;
         std::filesystem::path getTempDir() const;
         std::filesystem::path getBinaryPath() const;
 
@@ -148,6 +152,8 @@ namespace geode {
 
         bool isLoggingEnabled() const;
         void setLoggingEnabled(bool enabled);
+        Severity getLogLevel() const;
+        void setLogLevel(Severity level);
 
         std::vector<LoadProblem> getProblems() const;
 

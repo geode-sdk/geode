@@ -73,8 +73,11 @@ Result<> Mod::Impl::setup() {
         auto const binaryPlatformId = PlatformID::toShortString(GEODE_PLATFORM_TARGET GEODE_MACOS(, true));
 
         auto const binariesDir = searchPathRoot / m_metadata.getID() / "binaries" / binaryPlatformId;
-        if (std::filesystem::exists(binariesDir))
+
+        std::error_code code;
+        if (std::filesystem::exists(binariesDir, code) && !code) {
             LoaderImpl::get()->addNativeBinariesPath(binariesDir);
+        }
 
         m_resourcesLoaded = true;
     }
@@ -108,7 +111,7 @@ std::optional<std::string> Mod::Impl::getDetails() const {
     return m_metadata.getDetails();
 }
 
-ModMetadata Mod::Impl::getMetadata() const {
+ModMetadata const& Mod::Impl::getMetadata() const {
     return m_metadata;
 }
 
@@ -215,11 +218,11 @@ Result<> Mod::Impl::saveData() {
     // saveData is expected to be synchronous, and always called from GD thread
     ModStateEvent(m_self, ModEventType::DataSaved).post();
 
-    auto res = utils::file::writeString(m_saveDirPath / "settings.json", json.dump());
+    auto res = utils::file::writeStringSafe(m_saveDirPath / "settings.json", json.dump());
     if (!res) {
         log::error("Unable to save settings: {}", res.unwrapErr());
     }
-    auto res2 = utils::file::writeString(m_saveDirPath / "saved.json", m_saved.dump());
+    auto res2 = utils::file::writeStringSafe(m_saveDirPath / "saved.json", m_saved.dump());
     if (!res2) {
         log::error("Unable to save values: {}", res2.unwrapErr());
     }
@@ -290,6 +293,8 @@ Result<> Mod::Impl::loadBinary() {
         return Ok();
 
     if (!std::filesystem::exists(this->getBinaryPath())) {
+        std::error_code ec;
+        std::filesystem::remove(m_tempDirName / "modified-at", ec);
         return Err(
             fmt::format(
                 "Failed to load {}: No binary could be found for current platform.\n"
@@ -616,24 +621,12 @@ Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
         auto message = ec.message();
         #ifdef GEODE_IS_WINDOWS
             // Force the error message into English
-            char* errorBuf = nullptr;
-            FormatMessageA(
-                FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS,
-                nullptr, ec.value(), MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPSTR)&errorBuf, 0, nullptr);
-            if (errorBuf) {
-                message = errorBuf;
-                LocalFree(errorBuf);
-            }
+            message = formatSystemError(ec.value());
         #endif
         return Err("Unable to delete temp dir: " + message);
     }
 
     (void)utils::file::createDirectoryAll(tempDir);
-    auto res = file::writeString(datePath, modifiedHash);
-    if (!res) {
-        log::warn("Failed to write modified date of geode zip: {}", res.unwrapErr());
-    }
-
 
     GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(metadata.getPath()));
     if (!unzip.hasEntry(metadata.getBinaryName())) {
@@ -642,6 +635,11 @@ Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
         );
     }
     GEODE_UNWRAP(unzip.extractAllTo(tempDir));
+    
+    auto res = file::writeString(datePath, modifiedHash);
+    if (!res) {
+        log::warn("Failed to write modified date of geode zip: {}", res.unwrapErr());
+    }
 
     return Ok();
 }
@@ -702,6 +700,14 @@ bool Mod::Impl::isLoggingEnabled() const {
 
 void Mod::Impl::setLoggingEnabled(bool enabled) {
     m_loggingEnabled = enabled;
+}
+
+Severity Mod::Impl::getLogLevel() const {
+    return m_logLevel;
+}
+
+void Mod::Impl::setLogLevel(Severity level) {
+    m_logLevel = level;
 }
 
 bool Mod::Impl::shouldLoad() const {

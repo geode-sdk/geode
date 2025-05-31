@@ -17,7 +17,7 @@ namespace geode {
     using FileSetting = FileSettingV3;
     using Color3BSetting = Color3BSettingV3;
     using Color4BSetting = Color4BSettingV3;
-    
+
     using SettingNode = SettingNodeV3;
     template <class S>
     using SettingValueNode = SettingValueNodeV3<S>;

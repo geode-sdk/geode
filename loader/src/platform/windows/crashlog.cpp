@@ -38,12 +38,18 @@ static std::string getDateString(bool filesafe) {
     return oss.str();
 }
 
-static std::string getModuleName(HMODULE module, bool fullPath = true) {
+static std::string getModuleName(HMODULE module, bool fullPath = true, bool shortKnown = false) {
     char buffer[MAX_PATH];
     if (!GetModuleFileNameA(module, buffer, MAX_PATH)) {
         return "<Unknown>";
     }
     if (fullPath) {
+        if (shortKnown) {
+            auto gdDir = utils::string::wideToUtf8(dirs::getGameDir().wstring());
+            if (std::string_view(buffer).starts_with(gdDir)) {
+                return std::filesystem::path(buffer).filename().string();
+            }
+        }
         return buffer;
     }
     return std::filesystem::path(buffer).filename().string();
@@ -129,7 +135,7 @@ static void printAddr(std::ostream& stream, void const* addr, bool fullPath = tr
         )) {
         // calculate base + [address]
         auto const diff = reinterpret_cast<uintptr_t>(addr) - reinterpret_cast<uintptr_t>(module);
-        stream << getModuleName(module, fullPath) << " + " << std::hex << diff << std::dec;
+        stream << getModuleName(module, fullPath, true) << " + " << std::hex << diff << std::dec;
 
         // log symbol if possible
         if (g_symbolsInitialized) {
@@ -191,6 +197,30 @@ static void printAddr(std::ostream& stream, void const* addr, bool fullPath = tr
     }
 }
 
+static void printExtraParameters(std::ostream& stream, DWORD code, ULONG_PTR* params, size_t count) {
+    switch (code) {
+        case EXCEPTION_ACCESS_VIOLATION: {
+            const char* what;
+            switch (params[0]) {
+                case 0: what = "read from memory"; break;
+                case 1: what = "write to memory"; break;
+                case 8: what = "execute memory (DEP violation)"; break;
+                default: what = "???"; break;
+            }
+
+            stream << fmt::format(
+                "Exception Details: Failed to {} at 0x{:X}",
+                what, params[1]
+            ) << "\n";
+        } break;
+
+        default: {
+            // if we can't deduce any useful information, just print the number of parameters
+            stream << "Number Parameters: " << count << "\n";
+        } break;
+    }
+}
+
 // https://stackoverflow.com/a/50208684/9124836
 static std::string getStacktrace(PCONTEXT context, Mod*& suspectedFaultyMod) {
     std::stringstream stream;
@@ -224,7 +254,7 @@ static std::string getStacktrace(PCONTEXT context, Mod*& suspectedFaultyMod) {
                         return ret;
                     }
                     return SymFunctionTableAccess64(hProcess, AddrBase);
-                }, 
+                },
                 +[](HANDLE hProcess, DWORD64 dwAddr) -> DWORD64 {
                     auto ret = GeodeFunctionTableAccess64(hProcess, dwAddr);
                     if (ret) {
@@ -450,11 +480,16 @@ static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod, Mod* suspe
             << getExceptionCodeString(info->ExceptionRecord->ExceptionCode) << ")" << std::dec
             << "\n"
             << "Exception Flags: " << info->ExceptionRecord->ExceptionFlags << "\n"
-            << "Exception Address: " << info->ExceptionRecord->ExceptionAddress << " (";
+            << "Instruction Address: " << info->ExceptionRecord->ExceptionAddress << " (";
         printAddr(stream, info->ExceptionRecord->ExceptionAddress, false);
-        stream << ")"
-            << "\n"
-            << "Number Parameters: " << info->ExceptionRecord->NumberParameters << "\n";
+        stream << ")\n";
+
+        printExtraParameters(
+            stream,
+            info->ExceptionRecord->ExceptionCode,
+            info->ExceptionRecord->ExceptionInformation,
+            info->ExceptionRecord->NumberParameters
+        );
     }
 
     // show the thread that crashed
@@ -481,14 +516,14 @@ static void handleException(LPEXCEPTION_POINTERS info) {
         }
         else {
             // set the search path to include the mods' temp directories
-            if (std::array<char, 4096> searchPathBuffer; 
+            if (std::array<char, 4096> searchPathBuffer;
                 SymGetSearchPath(static_cast<HMODULE>(GetCurrentProcess()), searchPathBuffer.data(), searchPathBuffer.size())) {
                 std::string searchPath(searchPathBuffer.data());
                 searchPath += ";" + g_unzippedSearchPaths;
                 SymSetSearchPath(static_cast<HMODULE>(GetCurrentProcess()), searchPath.c_str());
             }
         }
-        
+
         // in some cases, we can be pretty certain that the first mod found while unwinding
         // is the one that caused the crash, so using `suspectedFaultyMod` is safe and correct.
         //

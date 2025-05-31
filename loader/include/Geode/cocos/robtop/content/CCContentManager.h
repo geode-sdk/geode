@@ -8,17 +8,21 @@
 
 // not in cocos2d namespace
 // @note RobTop Addition
-class CC_DLL CCContentManager : public cocos2d::CCObject 
+class CC_DLL CCContentManager : public cocos2d::CCObject
 {
 public:
     static CCContentManager* sharedManager();
-    CCContentManager();
+    CCContentManager() {}
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCContentManager, CCObject)
+
     bool init();
 
     cocos2d::CCDictionary* addDict(const char* dict, bool unk);
     cocos2d::CCDictionary* addDictDS(const char* dict);
 
     void clearCache();
+public:
+    cocos2d::CCDictionary* m_pDictCache;
 };
 
 #endif

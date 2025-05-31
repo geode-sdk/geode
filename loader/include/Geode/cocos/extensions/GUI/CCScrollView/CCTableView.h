@@ -140,6 +140,7 @@ public:
 class CC_DLL CCTableView : public CCScrollView, public CCScrollViewDelegate
 {
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTableView, CCScrollView)
     /**
      *  @js ctor
      */
@@ -283,7 +284,7 @@ protected:
     void _updateCellPositions();
 public:
     void _updateContentSize();
-    
+
     enum TableViewScriptEventType
     {
         kTableViewScroll   = 0,

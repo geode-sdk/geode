@@ -53,12 +53,13 @@ class CC_DLL CCTimer : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTimer, CCObject)
     /**
      *  @js  ctor
      *  @lua NA
      */
     CCTimer(void);
-    
+
     /** get interval in seconds */
     float getInterval(void) const;
     /** set interval in seconds */
@@ -67,34 +68,34 @@ public:
      *  @lua NA
      */
     SEL_SCHEDULE getSelector() const;
-    
-    /** Initializes a timer with a target and a selector. 
+
+    /** Initializes a timer with a target and a selector.
      *  @lua NA
      */
     bool initWithTarget(CCObject *pTarget, SEL_SCHEDULE pfnSelector);
-    
-    /** Initializes a timer with a target, a selector and an interval in seconds, repeat in number of times to repeat, delay in seconds. 
+
+    /** Initializes a timer with a target, a selector and an interval in seconds, repeat in number of times to repeat, delay in seconds.
      *  @lua NA
      */
     bool initWithTarget(CCObject *pTarget, SEL_SCHEDULE pfnSelector, float fSeconds, unsigned int nRepeat, float fDelay);
-    
+
     /** Initializes a timer with a script callback function and an interval in seconds. */
     bool initWithScriptHandler(int nHandler, float fSeconds);
-    
+
     /** triggers the timer */
     void update(float dt);
-    
+
 public:
-    /** Allocates a timer with a target and a selector. 
+    /** Allocates a timer with a target and a selector.
      *  @lua NA
      */
     static CCTimer* timerWithTarget(CCObject *pTarget, SEL_SCHEDULE pfnSelector);
-    
-    /** Allocates a timer with a target, a selector and an interval in seconds. 
+
+    /** Allocates a timer with a target, a selector and an interval in seconds.
      *  @lua NA
      */
     static CCTimer* timerWithTarget(CCObject *pTarget, SEL_SCHEDULE pfnSelector, float fSeconds);
-    
+
     /** Allocates a timer with a script callback function and an interval in seconds. */
     static CCTimer* timerWithScriptHandler(int nHandler, float fSeconds);
     /**
@@ -112,7 +113,7 @@ public:
     float m_fDelay;
     float m_fInterval;
     SEL_SCHEDULE m_pfnSelector;
-    
+
     int m_nScriptHandler;
 };
 
@@ -178,7 +179,7 @@ public:
      */
     void scheduleSelector(SEL_SCHEDULE pfnSelector, CCObject *pTarget, float fInterval, unsigned int repeat, float delay, bool bPaused);
 
-    /** calls scheduleSelector with kCCRepeatForever and a 0 delay 
+    /** calls scheduleSelector with kCCRepeatForever and a 0 delay
      *  @js NA
      *  @lua NA
      */
@@ -220,7 +221,7 @@ public:
      @lua NA
      */
     void unscheduleAll(void);
-    
+
     /** Unschedules all selectors from all targets with a minimum priority.
       You should only call this with kCCPriorityNonSystemMin or higher.
       @since v2.0.0
@@ -236,8 +237,8 @@ public:
      @js NA
      */
     unsigned int scheduleScriptFunc(unsigned int nHandler, float fInterval, bool bPaused);
-    
-    /** Unschedule a script entry. 
+
+    /** Unschedule a script entry.
      *  @js NA
      */
     void unscheduleScriptEntry(unsigned int uScheduleScriptEntryID);

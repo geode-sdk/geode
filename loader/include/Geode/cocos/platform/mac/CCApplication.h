@@ -38,22 +38,22 @@ public:
 	GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCApplication)
     CCApplication();
     virtual ~CCApplication();
-        
+
     /**
     @brief	Callback by CCDirector for limit FPS.
-    @interval       The time, which expressed in second in second, between current frame and next. 
+    @interval       The time, which expressed in second in second, between current frame and next.
     */
     virtual void setAnimationInterval(double interval);
-        
+
     /**
     @brief	Get status bar rectangle in EGLView window.
     */
-        
+
     /**
     @brief	Run the message loop.
     */
     int run();
-        
+
     /**
     @brief	Get current applicaiton instance.
     @return Current application instance pointer.
@@ -67,7 +67,7 @@ public:
     @return Current language config
     */
     virtual ccLanguageType getCurrentLanguage();
-		
+
     /**
      @brief Get target platform
      */
@@ -78,25 +78,25 @@ public:
      *  @deprecated Please use CCFileUtils::sharedFileUtils()->setSearchPaths() instead.
      */
     CC_DEPRECATED_ATTRIBUTE void setResourceRootPath(const gd::string& rootResDir);
-    
-    /** 
+
+    /**
      *  Gets the Resource root path.
-     *  @deprecated Please use CCFileUtils::sharedFileUtils()->getSearchPaths() instead. 
+     *  @deprecated Please use CCFileUtils::sharedFileUtils()->getSearchPaths() instead.
      */
     CC_DEPRECATED_ATTRIBUTE const gd::string& getResourceRootPath(void);
-    
+
     void setStartupScriptFilename(const gd::string& startupScriptFile);
-    
+
     const gd::string& getStartupScriptFilename(void);
 
     //Robtop modification
     virtual void openURL(char const* link);
 
     bool getControllerConnected() const;
-    
+
 protected:
     static CCApplication * sm_pSharedApplication;
-    
+
     gd::string m_resourceRootPath;
     gd::string m_startupScriptFilename;
 };

@@ -52,6 +52,7 @@ class CC_DLL CCKeypadDispatcher : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCKeypadDispatcher, CCObject);
     CCKeypadDispatcher();
     ~CCKeypadDispatcher();
 
@@ -92,7 +93,7 @@ public:
 };
 
 // end of input group
-/// @} 
+/// @}
 
 NS_CC_END
 

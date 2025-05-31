@@ -90,6 +90,8 @@ class CC_DLL CCShuffleTiles : public CCTiledGrid3DAction
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCShuffleTiles, CCTiledGrid3DAction)
+    CCShuffleTiles() {}
     /**
      *  @js NA
      *  @lua NA
@@ -191,6 +193,8 @@ class CC_DLL CCTurnOffTiles : public CCTiledGrid3DAction
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTurnOffTiles, CCTiledGrid3DAction)
+    CCTurnOffTiles() {}
     /**
      *  @js NA
      *  @lua NA

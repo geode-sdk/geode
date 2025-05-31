@@ -3,6 +3,7 @@
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/NodeIDs.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/binding/GameManager.hpp>
 #include <Geode/binding/PlatformToolbox.hpp>
 
@@ -44,14 +45,14 @@ $register_ids(MenuLayer) {
             setIDSafe<CCLabelBMFont>(this, labelOffset++, "click-gamepad-label");
         }
     }
-    
+
     setIDSafe<CCLabelBMFont>(this, labelOffset++, "player-username");
 
     if(auto node = this->getChildByID("settings-gamepad-icon")) {
         // hide it until someone figures out how to bind the positioning to the actual button
         node->setVisible(false);
     }
-    
+
     // main menu
     if (auto menu = this->getChildByType<CCMenu>(0)) {
         menu->setID("main-menu");
@@ -63,13 +64,14 @@ $register_ids(MenuLayer) {
         if (auto pfp = setIDSafe(menu, 3, "profile-button")) {
             auto profileMenu = detachAndCreateMenu(
                 this, "profile-menu",
-                RowLayout::create()
-                    ->setAxisAlignment(AxisAlignment::Start),
+                SimpleRowLayout::create()
+                    ->setMainAxisAlignment(MainAxisAlignment::Start)
+                    ->setGap(5.f),
                 pfp
             );
             profileMenu->setContentSize({ 150.f, 50.f });
             profileMenu->setPositionX(
-                profileMenu->getPositionX() + 150.f / 2 - 
+                profileMenu->getPositionX() + 150.f / 2 -
                     pfp->getScaledContentSize().height / 2
             );
             profileMenu->updateLayout();
@@ -81,9 +83,9 @@ $register_ids(MenuLayer) {
 
         menu->setContentSize({ winSize.width - 140.f, 65.f });
         menu->setLayout(
-            RowLayout::create()
+            SimpleRowLayout::create()
                 ->setGap(18.f)
-                ->setCrossAxisOverflow(true)
+                ->setCrossAxisScaling(AxisScaling::Grow)
         );
     }
 
@@ -110,10 +112,11 @@ $register_ids(MenuLayer) {
 
         menu->setContentSize({ winSize.width - 220.f, 65.f });
         menu->setLayout(
-            RowLayout::create()
+            SimpleRowLayout::create()
+                ->setGap(5.f)
         );
     }
-    
+
     // social media menu
     if (auto menu = this->getChildByType<CCMenu>(2)) {
         menu->setID("social-media-menu");
@@ -124,7 +127,7 @@ $register_ids(MenuLayer) {
         setIDSafe(menu, 4, "twitch-button");
         setIDSafe(menu, 5, "discord-button");
     }
-    
+
     // more games menu
     if (auto menu = this->getChildByType<CCMenu>(3)) {
         menu->setID("more-games-menu");
@@ -136,31 +139,33 @@ $register_ids(MenuLayer) {
             auto closeMenu = detachAndCreateMenu(
                 this,
                 "close-menu",
-                RowLayout::create()
-                    ->setAxisAlignment(AxisAlignment::Start),
+                SimpleRowLayout::create()
+                    ->setMainAxisAlignment(MainAxisAlignment::Start)
+                    ->setGap(5.f),
                 closeBtn
             );
             closeMenu->setContentSize({ 200.f, 50.f });
             closeMenu->setPositionX(
-                closeMenu->getPositionX() + 200.f / 2 - 
+                closeMenu->getPositionX() + 200.f / 2 -
                     closeBtn->getScaledContentSize().width / 2
             );
             closeMenu->updateLayout();
         }
-    
+
         menu->setContentSize({ 100.f, 50.f });
         menu->setPositionX(
-            menu->getPositionX() - 100.f / 2 + 
+            menu->getPositionX() - 100.f / 2 +
                 getSizeSafe(moreGamesBtn).width / 2
         );
         menu->setLayout(
-            RowLayout::create()
-                ->setAxisAlignment(AxisAlignment::End)
-                ->setAxisReverse(true)
+            SimpleRowLayout::create()
+                ->setMainAxisAlignment(MainAxisAlignment::Start)
+                ->setMainAxisDirection(AxisDirection::RightToLeft)
+                ->setGap(5.f)
         );
     }
 
-    // add a menu to the top right corner and middle left that are empty 
+    // add a menu to the top right corner and middle left that are empty
     // but prolly a place mods want to add stuff
 
     auto topRightMenu = CCMenu::create();
@@ -168,9 +173,10 @@ $register_ids(MenuLayer) {
     topRightMenu->setID("top-right-menu");
     topRightMenu->setContentSize({ 200.f, 50.f });
     topRightMenu->setLayout(
-        RowLayout::create()
-            ->setAxisReverse(true)
-            ->setAxisAlignment(AxisAlignment::End)
+        SimpleRowLayout::create()
+            ->setMainAxisDirection(AxisDirection::RightToLeft)
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
+            ->setGap(5.f)
     );
     this->addChild(topRightMenu);
 

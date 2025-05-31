@@ -31,7 +31,7 @@
     #if defined(GEODE_IS_WINDOWS64)
         #define GEODE_IS_X64
         #define GEODE_CDECL_CALL
-    #else 
+    #else
         #define GEODE_IS_X86
         #define GEODE_CDECL_CALL __cdecl
 	#endif
@@ -98,7 +98,7 @@
 
     #if defined(GEODE_IS_ANDROID64)
         #define GEODE_IS_X64
-    #else 
+    #else
         #define GEODE_IS_X86
     #endif
     #define GEODE_CDECL_CALL
@@ -167,7 +167,7 @@ namespace geode {
         }
 
         /**
-         * Parse string into PlatformID. String should be all-lowercase, for 
+         * Parse string into PlatformID. String should be all-lowercase, for
          * example "windows" or "linux"
          */
         static GEODE_DLL PlatformID from(const char* str);
@@ -181,7 +181,7 @@ namespace geode {
         static GEODE_DLL bool coveredBy(const char* str, PlatformID t);
         static GEODE_DLL bool coveredBy(std::string const& str, PlatformID t);
         /**
-         * Returns the list of platforms covered by this string name. For 
+         * Returns the list of platforms covered by this string name. For
          * example, "android" would return both Android32 and Android64
          * todo in v5: deprecate this as the flagged version deals with this
          */

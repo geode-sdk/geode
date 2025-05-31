@@ -48,12 +48,12 @@ namespace geode {
         std::string message;
 
         bool isSuggestion() const {
-            return 
-                type == LoadProblem::Type::Recommendation || 
+            return
+                type == LoadProblem::Type::Recommendation ||
                 type == LoadProblem::Type::Suggestion;
         }
         bool isOutdated() const {
-            return 
+            return
                 type == LoadProblem::Type::UnsupportedVersion ||
                 type == LoadProblem::Type::NeedsNewerGeodeVersion ||
                 type == LoadProblem::Type::UnsupportedGeodeVersion;
@@ -165,7 +165,7 @@ namespace geode {
 
     /**
      * @brief Queues a function to run on the main thread
-     * 
+     *
      * @param func the function to queue
     */
     inline GEODE_HIDDEN void queueInMainThread(ScheduledFunction&& func) {
