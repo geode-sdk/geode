@@ -105,14 +105,6 @@ Result<> utils::file::writeStringSafe(std::filesystem::path const& path, std::st
         return res;
     }
 
-    if (std::filesystem::exists(path, ec)) {
-        std::filesystem::remove(path, ec);
-    }
-
-    if (ec) {
-        return Err("Unable to remove old file: " + ec.message());
-    }
-
     std::filesystem::rename(tmpPath, path, ec);
     if (ec) {
         return Err("Unable to rename temporary file: " + ec.message());
@@ -151,14 +143,6 @@ Result<> utils::file::writeBinarySafe(std::filesystem::path const& path, ByteVec
             std::filesystem::remove(tmpPath, ec);
         }
         return res;
-    }
-
-    if (std::filesystem::exists(path, ec)) {
-        std::filesystem::remove(path, ec);
-    }
-
-    if (ec) {
-        return Err("Unable to remove old file: " + ec.message());
     }
 
     std::filesystem::rename(tmpPath, path, ec);
