@@ -56,7 +56,7 @@ bool ModMetadata::Dependency::isResolved() const {
 }
 
 bool ModMetadata::Incompatibility::isResolved() const {
-    return this->importance != Importance::Breaking ||
+    return this->importance == Importance::Conflicting ||
         (!this->mod || !this->version.compare(this->mod->getVersion()) || !this->mod->shouldLoad());
 }
 
