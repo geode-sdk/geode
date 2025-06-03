@@ -129,6 +129,7 @@ install() {
         exit 1
     fi
 
+    echo ""
     echo "Downloading Geode $TAG..."
     curl -L -o "$TEMP_DIR/geode.zip" "https://github.com/geode-sdk/geode/releases/download/$TAG/geode-$TAG-win.zip" 
     if [ ! 0 -eq $? ]; then
