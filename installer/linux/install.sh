@@ -23,12 +23,12 @@ verbose_log() {
 
 check_dependencies() {
     if ! [ -x "$(command -v unzip)" ]; then
-        echo -e '${RED}Error${NC}: unzip is not installed.' >&2
+        echo -e "${RED}Error${NC}: unzip is not installed." >&2
         exit 1
     fi
 
     if ! [ -x "$(command -v curl)" ]; then
-        echo -e '${RED}Error${NC}: curl is not installed.' >&2
+        echo -e "${RED}Error${NC}: curl is not installed." >&2
         exit 1
     fi
 }
