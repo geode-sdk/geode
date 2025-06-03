@@ -106,7 +106,7 @@ find_gd_installation() {
 
 # Defaults to yes
 confirm() {
-    while read -n1 -r -p "$(echo -e $1) [Y/n]: "; do
+    while read -n1 -r -p "$(echo -e $1) [Y/n]: " < /dev/tty; do
         case $REPLY in
             y) return 0 ;;
             n) echo ""; return -1 ;;
@@ -117,7 +117,7 @@ confirm() {
 
 ask_gd_path() {
     local POTENTIAL_PATH=""
-    while read -p "Enter the path where GeometryDash.exe is located: " POTENTIAL_PATH; do
+    while read -p "Enter the path where GeometryDash.exe is located: " POTENTIAL_PATH < /dev/tty; do
         local POTENTIAL_PATH=${POTENTIAL_PATH%"/GeometryDash.exe"}
         is_valid_gd_path "$POTENTIAL_PATH"
 
