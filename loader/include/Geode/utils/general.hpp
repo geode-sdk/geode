@@ -27,25 +27,76 @@ namespace geode {
     }
 
     namespace utils {
-        // helper for std::visit
+        /**
+         * A helper struct for std::visit.
+         * 
+         * @example
+         * return std::visit(utils::makeVisitor {
+         *     [](float value) {
+         *         return "float";
+         *     },
+         *     [](int value) {
+         *         return "int";
+         *     },
+         *     [](std::string const& value) {
+         *         return "string";
+         *     },
+         * }, stored);
+         */
         template<class... Ts> struct makeVisitor : Ts... { using Ts::operator()...; };
         template<class... Ts> makeVisitor(Ts...) -> makeVisitor<Ts...>;
 
+        /**
+         * A helper function to get a default value if a variant fails.
+         * 
+         * @param variant The variant
+         * @param defValue The fallback value
+         */
         template<class T, class ... Args>
         constexpr T getOr(std::variant<Args...> const& variant, T const& defValue) {
             return std::holds_alternative<T>(variant) ?
                 std::get<T>(variant) : defValue;
         }
 
+        /**
+         * A simple constexpr hash of `char const*` for switch cases and other 
+         * constexpr uses.
+         * 
+         * @param str The string
+         * @returns The computed hash
+         */
         constexpr unsigned int hash(char const* str, int h = 0) {
             return !str[h] ? 5381 : (hash(str, h + 1) * 33) ^ str[h];
         }
+
+        /**
+         * A simple constexpr hash of `std::string_view` for switch cases and other 
+         * constexpr uses.
+         * 
+         * @param str The string
+         * @returns The computed hash
+         */
         constexpr unsigned int hash(std::string_view str, int h = 0) {
             return h >= str.size() ? 5381 : (hash(str, h + 1) * 33) ^ str[h];
         }
+        /**
+         * A simple constexpr hash of `wchar_t const*` for switch cases and other 
+         * constexpr uses.
+         * 
+         * @param str The string
+         * @returns The computed hash
+         */
         constexpr unsigned int hash(wchar_t const* str, int h = 0) {
             return !str[h] ? 5381 : (hash(str, h + 1) * 33) ^ str[h];
         }
+
+        /**
+         * A simple constexpr hash of `std::wstring_view` for switch cases and other 
+         * constexpr uses.
+         * 
+         * @param str The string
+         * @returns The computed hash
+         */
         constexpr unsigned int hash(std::wstring_view str, int h = 0) {
             return h >= str.size() ? 5381 : (hash(str, h + 1) * 33) ^ str[h];
         }
@@ -57,13 +108,29 @@ namespace geode {
             return geode::utils::hash(txt);
         }
 
+        /**
+         * A simple function that clamps a value between two others.
+         * @deprecated Use std::clamp instead
+         * 
+         * @param value Value
+         * @param minValue The minimum value
+         * @param maxValue The maximum value
+         * @returns The clamped value
+         */
         template <typename T>
-        constexpr const T& clamp(const T& value, const std::type_identity_t<T>& minValue, const std::type_identity_t<T>& maxValue) {
+        [[deprecated]] constexpr const T& clamp(const T& value, const std::type_identity_t<T>& minValue, const std::type_identity_t<T>& maxValue) {
             return value < minValue ? minValue : maxValue < value ? maxValue : value;
         }
 
+        /**
+         * A simple function that converts an integer into a hexadecimal string
+         * @deprecated Use `fmt::format("{:#x}", value)` instead
+         * 
+         * @param i The integer
+         * @returns The hex string
+         */
         template <typename T>
-        std::string intToHex(T i) {
+        [[deprecated]] std::string intToHex(T i) {
             return fmt::format("{:#x}", i);
         }
 
@@ -87,6 +154,8 @@ namespace geode {
 
         /**
          * Turn a number into an abbreviated string, like `1253` to `1.25K`
+         * @param num Number to convert to string
+         * @returns Number as string
          */
         template <std::integral Num>
         std::string numToAbbreviatedString(Num num) {
@@ -150,6 +219,12 @@ namespace geode {
             }
         }
 
+        /**
+         * Converts the given time point into a string using `ctime`.
+         * 
+         * @param tp The timepoint
+         * @returns The converted string
+         */
         GEODE_DLL std::string timePointAsString(std::chrono::system_clock::time_point const& tp);
 
         /**
@@ -159,6 +234,12 @@ namespace geode {
         */
         GEODE_DLL float getDisplayFactor();
 
+        /**
+         * Gets an environment variable from the device.
+         * 
+         * @param name The key of the variable
+         * @returns The value of the variable
+         */
         GEODE_DLL std::string getEnvironmentVariable(const char* name);
 
         /**
@@ -174,6 +255,13 @@ namespace geode {
         GEODE_DLL cocos2d::CCRect getSafeAreaRect();
     }
 
+    /**
+     * A convenience function that creates a formatted `Err<std::string>`.
+     * 
+     * @param fmt The format string
+     * @param args The format args
+     * @returns An error `Result`
+     */
     template <class... Args>
     requires (sizeof...(Args) > 0)
     constexpr auto Err(fmt::format_string<Args...> fmt, Args&&... args) {
@@ -189,20 +277,78 @@ struct matjson::Serialize<geode::ByteVector> {
 };
 
 namespace geode::utils::clipboard {
+    /**
+     * Writes the given data into the clipboard as a string.
+     * 
+     * @param data The data to write
+     * @returns True if the operation was successful
+     */
     GEODE_DLL bool write(std::string const& data);
+
+    /**
+     * Reads the clipboards onto a string.
+     * 
+     * @returns The clipboard data if exists, an empty string on error.
+     */
     GEODE_DLL std::string read();
 }
 
 namespace geode::utils::game {
-    GEODE_DLL void exit(); // TODO: left for abi compat
+    /**
+     * Exits the game, saving the game data.
+     * 
+     * @deprecated Use `game::exit(true)` instead
+     */
+    [[deprecated]] GEODE_DLL void exit(); // TODO: left for abi compat
+
+    /**
+     * Exits the game, optionally saving the game data.
+     * 
+     * @param saveData Whether to save the game data
+     */
     GEODE_DLL void exit(bool saveData /* = true */);
-    GEODE_DLL void restart(); // TODO: left for abi compat
+
+    /**
+     * Restarts the game, saving the game data.
+     * 
+     * @deprecated Use `game::restart(true)` instead
+     */
+    [[deprecated]] GEODE_DLL void restart(); // TODO: left for abi compat
+
+    /**
+     * Restarts the game, optionally saving the game data.
+     * 
+     * @param saveData Whether to save the game data
+     */
     GEODE_DLL void restart(bool saveData /* = true */);
+
+    /**
+     * Lauched the loader uninstaller, optionally deleting saved data.
+     * 
+     * @param deleteSaveData  Whether to delete the saved game data
+     */
     GEODE_DLL void launchLoaderUninstaller(bool deleteSaveData);
 }
 
 namespace geode::utils::thread {
+    /**
+     * Gets the assigned name to a thread.
+     * 
+     * @returns The thread name if exists, an empty string if not.
+     */
     GEODE_DLL std::string getName();
+
+    /**
+     * Gets the default name to a thread.
+     * 
+     * @returns The default thread name.
+     */
     GEODE_DLL std::string getDefaultName();
+
+    /**
+     * Sets an assigned name to a thread.
+     * 
+     * @param name The thread name to assign
+     */
     GEODE_DLL void setName(std::string const& name);
 }

@@ -6,6 +6,10 @@
 #include "../loader/Event.hpp"
 
 namespace geode {
+    /**
+     * An event that gets posted whenever `ColorProvider` provides a color
+     * for a specific id.
+     */
     struct GEODE_DLL ColorProvidedEvent final : public Event {
         std::string id;
         cocos2d::ccColor4B color;
@@ -13,6 +17,10 @@ namespace geode {
         ColorProvidedEvent(std::string const& id, cocos2d::ccColor4B const& color);
     };
 
+    /**
+     * An event filter to track whenever `ColorProvider` provides a color
+     * for a specific id.
+     */
     class GEODE_DLL ColorProvidedFilter final : public EventFilter<ColorProvidedEvent> {
     public:
         using Callback = void(ColorProvidedEvent*);
