@@ -67,9 +67,7 @@ find_gd_installation() {
         local PATH_TEST="$GD_IDX/steamapps/common/Geometry Dash"
         verbose_log "- Testing path ${YELLOW}$PATH_TEST${NC}"
 
-        is_valid_gd_path "$PATH_TEST"
-
-        if [ 0 -eq $? ]; then
+        if is_valid_gd_path "$PATH_TEST"; then
             # Found it!
             GD_PATH="$PATH_TEST"
             verbose_log "* Found at ${YELLOW}$GD_PATH${NC}"
@@ -78,8 +76,7 @@ find_gd_installation() {
     done
 
     # Check some other random paths, maybe we find something
-    is_valid_gd_path "$HOME/Games/Geometry Dash"
-    if [ 0 -eq $? ]; then
+    if is_valid_gd_path "$HOME/Games/Geometry Dash"; then
         GD_PATH="$HOME/Games/Geometry Dash"
         return 0
     fi
@@ -102,12 +99,9 @@ ask_gd_path() {
     local POTENTIAL_PATH=""
     while read -p "Enter the path where GeometryDash.exe is located: " POTENTIAL_PATH < /dev/tty; do
         local POTENTIAL_PATH=${POTENTIAL_PATH%"/GeometryDash.exe"}
-        is_valid_gd_path "$POTENTIAL_PATH"
 
-        if [ $? -eq 0 ]; then
-            confirm "Do you want to install ${YELLOW}Geode${NC} to ${YELLOW}$POTENTIAL_PATH${NC}?"
-
-            if [ $? -eq 0 ]; then
+        if is_valid_gd_path "$POTENTIAL_PATH"; then
+            if confirm "Do you want to install ${YELLOW}Geode${NC} to ${YELLOW}$POTENTIAL_PATH${NC}?"; then
                 GD_PATH="$POTENTIAL_PATH"
                 break
             fi
@@ -135,15 +129,14 @@ install() {
 
     echo ""
     echo "Downloading Geode $TAG..."
-    curl -L -o "$TEMP_DIR/geode.zip" "https://github.com/geode-sdk/geode/releases/download/$TAG/geode-$TAG-win.zip" 
-    if [ ! 0 -eq $? ]; then
+    if ! curl -L -o "$TEMP_DIR/geode.zip" "https://github.com/geode-sdk/geode/releases/download/$TAG/geode-$TAG-win.zip"; then
         echo -e "${RED}Error:${NC} Failed to download Geode." >&2
         exit 1
     fi
 
     echo "Unzipping..."
-    unzip -qq "$TEMP_DIR/geode.zip" -d "$TEMP_DIR/geode"
-    if [ ! 0 -eq $? ]; then
+
+    if ! unzip -qq "$TEMP_DIR/geode.zip" -d "$TEMP_DIR/geode"; then
         echo -e "${RED}Error:${NC} Failed to unzip Geode." >&2
         exit 1
     fi
@@ -184,16 +177,14 @@ fi
 
 echo -e "Detected latest ${YELLOW}Geode${NC} version as ${BLUE}$TAG${NC}."
 
-find_gd_installation
-if [ ! $? -eq 0 ]; then
+if ! find_gd_installation; then
     echo -e "Didn't find ${YELLOW}Geometry Dash${NC} in any of the commonly used paths."
 
     ask_gd_path
 else
     echo -e "Found Geometry Dash at ${YELLOW}$GD_PATH${NC}."
-    confirm "Do you want to install ${YELLOW}Geode${NC} to ${YELLOW}$GD_PATH${NC}?"
 
-    if [ ! $? -eq 0 ]; then
+    if ! confirm "Do you want to install ${YELLOW}Geode${NC} to ${YELLOW}$GD_PATH${NC}?"; then
         ask_gd_path
     fi
 fi
