@@ -31,6 +31,11 @@ check_dependencies() {
         echo -e "${RED}Error${NC}: curl is not installed." >&2
         exit 1
     fi
+
+    if ! [ -x "$(command -v jq)" ]; then
+        echo -e "${RED}Error${NC}: jq is not installed." >&2
+        exit 1
+    fi
 }
 
 is_valid_gd_path() {
