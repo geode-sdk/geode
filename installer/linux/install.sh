@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 
-# Generate a random directory for the installer to use.
-# This hopefully gets rid of any possible permission issues.
-# The current user must have access to /tmp, right?
-RAND=$(shuf -er -n20  {A..Z} {a..z} {0..9} | tr -d '\n')
-TEMP_DIR="/tmp/geode-sdk-install-$RAND"
+TEMP_DIR=$(mktemp -d)
+echo $TEMP_DIR
 
 # Colors
 RED='\033[0;31m'
