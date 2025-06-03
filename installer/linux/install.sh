@@ -22,33 +22,15 @@ verbose_log() {
     fi
 }
 
-cleanup() {
-    rm -rf "$TEMP_DIR"
-}
-
-err_exit_and_cleanup() {
-    cleanup
-    exit 1
-}
-
 check_dependencies() {
     if ! [ -x "$(command -v unzip)" ]; then
         echo -e '${RED}Error${NC}: unzip is not installed.' >&2
-        err_exit_and_cleanup
+        exit 1
     fi
 
     if ! [ -x "$(command -v curl)" ]; then
         echo -e '${RED}Error${NC}: curl is not installed.' >&2
-        err_exit_and_cleanup
-    fi
-}
-
-create_tmp_dir() {
-    rm -rf "$TEMP_DIR"
-    mkdir "$TEMP_DIR"
-    if [ 0 -ne $? ]; then
-        echo 'Failed to create ${TEMP_DIR}.'
-        err_exit_and_cleanup
+        exit 1
     fi
 }
 
@@ -134,31 +116,31 @@ ask_gd_path() {
 install() {
     if [ ! -d "$GD_PATH" ]; then
         echo -e "${RED}Error:${NC} Geometry Dash path is not set." >&2
-        err_exit_and_cleanup
+        exit 1
     fi
 
     if [ -z "$TAG" ]; then
         echo -e "${RED}Error:${NC} Geode tag is not set." >&2
-        err_exit_and_cleanup
+        exit 1
     fi
 
     if [ ! -d "$TEMP_DIR" ]; then
         echo -e "${RED}Error:${NC} Download directory $TEMP_DIR doesn't exist." >&2
-        err_exit_and_cleanup
+        exit 1
     fi
 
     echo "Downloading Geode $TAG..."
     curl -L -o "$TEMP_DIR/geode.zip" "https://github.com/geode-sdk/geode/releases/download/$TAG/geode-$TAG-win.zip" 
     if [ ! 0 -eq $? ]; then
         echo -e "${RED}Error:${NC} Failed to download Geode." >&2
-        err_exit_and_cleanup
+        exit 1
     fi
 
     echo "Unzipping..."
     unzip -qq "$TEMP_DIR/geode.zip" -d "$TEMP_DIR/geode"
     if [ ! 0 -eq $? ]; then
         echo -e "${RED}Error:${NC} Failed to unzip Geode." >&2
-        err_exit_and_cleanup
+        exit 1
     fi
 
     echo "Installing..."
@@ -184,7 +166,6 @@ cat << "EOF"
       ...@@@@@@@@@@@@...      
 EOF
 echo "Installing Geode..."
-create_tmp_dir
 
 # Get latest tag from the Index
 VERSION_JSON="$(curl -s 'https://api.geode-sdk.org/v1/loader/versions/latest')"
@@ -192,7 +173,7 @@ TAG="$(echo $VERSION_JSON | jq -r .payload.tag)"
 
 if [ -z "$TAG" ]; then
     echo "Failed to get latest version from the Geode index."
-    err_exit_and_cleanup
+    exit 1
 fi
 
 echo -e "Detected latest ${YELLOW}Geode${NC} version as ${BLUE}$TAG${NC}."
@@ -218,5 +199,4 @@ echo -e "┏━━━━━━━━━━━━━━━━━━━━━━�
 echo -e "┃ Make sure to set \"${YELLOW}WINEDLLOVERRIDES=\"xinput1_4=n,b\" %command%${NC}\" as your ${YELLOW}launch options${NC} for Geometry Dash inside ${BLUE}Steam${NC}. ┃"
 echo -e "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"
 echo "Have fun modding!"
-
-cleanup
+echo ""
