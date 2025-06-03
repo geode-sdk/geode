@@ -41,18 +41,18 @@ check_dependencies() {
 is_valid_gd_path() {
     if [ -z "$1" ]; then
         LAST_VALID_GD_PATH_ERR="No path specified."
-        return -1
+        return 1
     fi
 
     if [ ! -d "$1" ]; then
         LAST_VALID_GD_PATH_ERR="Path is not a directory."
-        return -1
+        return 1
     fi
 
     # Check if cocos2d is there, for good measure
     if [ ! -f "$1/libcocos2d.dll" ]; then
         LAST_VALID_GD_PATH_ERR="Path doesn't contain Geometry Dash."
-        return -1
+        return 1
     fi
 
     return 0
@@ -84,7 +84,7 @@ find_gd_installation() {
         return 0
     fi
 
-    return -1
+    return 1
 }
 
 # Defaults to yes
@@ -92,7 +92,7 @@ confirm() {
     while read -n1 -r -p "$(echo -e $1) [Y/n]: " < /dev/tty; do
         case $REPLY in
             y) return 0 ;;
-            n) echo ""; return -1 ;;
+            n) echo ""; return 1 ;;
             *) return 0;;
         esac
     done
