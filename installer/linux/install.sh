@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 TEMP_DIR=$(mktemp -d)
-echo $TEMP_DIR
 
 # Colors
 RED='\033[0;31m'
@@ -150,6 +149,7 @@ install() {
 
 check_dependencies
 verbose_log "${YELLOW}Running in verbose mode.${NC}"
+verbose_log "Using $TEMP_DIR as temporary directory for installation."
 cat << "EOF"
       ...@@@@@@@@@@@@...      
     ..@@@@@@@@..@@@@@@@@..    
