@@ -413,8 +413,8 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
     if (!geodeVerRes) {
         this->addProblem({
             node->getMetadataRef().getGeodeVersion() > this->getVersion() ?
-                LoadProblem::Type::NeedsNewerGeodeVersion :
-                LoadProblem::Type::UnsupportedGeodeVersion,
+            LoadProblem::Type::NeedsNewerGeodeVersion :
+            LoadProblem::Type::UnsupportedGeodeVersion,
             node,
             geodeVerRes.unwrapErr()
         });

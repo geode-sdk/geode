@@ -392,8 +392,8 @@ Result<> Mod::Impl::uninstall(bool deleteSaveData) {
     }
 
     m_requestedAction = deleteSaveData ?
-            ModRequestedAction::UninstallWithSaveData :
-            ModRequestedAction::Uninstall;
+        ModRequestedAction::UninstallWithSaveData :
+        ModRequestedAction::Uninstall;
 
     // Make loader forget the mod should be disabled
     Mod::get()->getSaveContainer().erase("should-load-" + m_metadata.getID());
