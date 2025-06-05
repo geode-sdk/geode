@@ -76,7 +76,7 @@ void Loader::Impl::createDirectories() {
 
 void Loader::Impl::removeDirectories() {
     // clean up of stale data from Geode v2
-    if(std::filesystem::exists(dirs::getGeodeDir() / "index")) {
+    if (std::filesystem::exists(dirs::getGeodeDir() / "index")) {
         std::thread([] {
             std::error_code ec;
             std::filesystem::remove_all(dirs::getGeodeDir() / "index", ec);
@@ -305,8 +305,8 @@ void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
             log::debug("early: {}", modMetadata.needsEarlyLoad() ? "yes" : "no");
 
             if (std::find_if(modQueue.begin(), modQueue.end(), [&](auto& item) {
-                    return modMetadata.getID() == item.getID();
-                }) != modQueue.end()) {
+                return modMetadata.getID() == item.getID();
+            }) != modQueue.end()) {
                 this->addProblem({
                     LoadProblem::Type::Duplicate,
                     modMetadata,
@@ -449,10 +449,10 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
             auto res = node->m_impl->loadBinary();
             if (!res) {
                 this->addProblem({
-                    LoadProblem::Type::LoadFailed,
-                    node,
-                    res.unwrapErr()
-                });
+                        LoadProblem::Type::LoadFailed,
+                        node,
+                        res.unwrapErr()
+                    });
                 log::error("Failed to load binary: {}", res.unwrapErr());
                 m_refreshingModCount -= 1;
                 return;
@@ -500,10 +500,10 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
                 log::loadNest(nest);
                 if (!res) {
                     this->addProblem({
-                        LoadProblem::Type::UnzipFailed,
-                        node,
-                        res.unwrapErr()
-                    });
+                            LoadProblem::Type::UnzipFailed,
+                            node,
+                            res.unwrapErr()
+                        });
                     log::error("Failed to unzip: {}", res.unwrapErr());
                     m_refreshingModCount -= 1;
                     log::loadNest(prevNest);
@@ -535,7 +535,7 @@ void Loader::Impl::findProblems() {
 
             auto dismissKey = fmt::format("dismiss-optional-dependency-{}-for-{}", dep.id, id);
 
-            switch(dep.importance) {
+            switch (dep.importance) {
                 case ModMetadata::Dependency::Importance::Suggested:
                     if (!Mod::get()->getSavedValue<bool>(dismissKey)) {
                         this->addProblem({
@@ -563,7 +563,7 @@ void Loader::Impl::findProblems() {
                     }
                     break;
                 case ModMetadata::Dependency::Importance::Required:
-                    if(m_mods.find(dep.id) == m_mods.end()) {
+                    if (m_mods.find(dep.id) == m_mods.end()) {
                         this->addProblem({
                             LoadProblem::Type::MissingDependency,
                             mod,
@@ -574,7 +574,7 @@ void Loader::Impl::findProblems() {
                     } else {
                         auto installedDependency = m_mods.at(dep.id);
 
-                        if(!installedDependency->isEnabled()) {
+                        if (!installedDependency->isEnabled()) {
                             this->addProblem({
                                 LoadProblem::Type::DisabledDependency,
                                 mod,
@@ -582,7 +582,8 @@ void Loader::Impl::findProblems() {
                             });
                             log::error("{} requires {} {}", id, dep.id, dep.version);
                             break;
-                        } else if(dep.version.compareWithReason(installedDependency->getVersion()) == VersionCompareResult::TooOld) {
+                        } else if (dep.version.compareWithReason(installedDependency->getVersion()) ==
+                                   VersionCompareResult::TooOld) {
                             this->addProblem({
                                 LoadProblem::Type::OutdatedDependency,
                                 mod,
@@ -607,10 +608,11 @@ void Loader::Impl::findProblems() {
         for (auto const& dep : mod->getMetadataRef().getIncompatibilities()) {
             if (!dep.mod || !dep.version.compare(dep.mod->getVersion()) || !dep.mod->shouldLoad())
                 continue;
-            switch(dep.importance) {
+            switch (dep.importance) {
                 case ModMetadata::Incompatibility::Importance::Conflicting: {
                     this->addProblem({
-                        dep.version.toString()[0] == '<' ? LoadProblem::Type::OutdatedConflict : LoadProblem::Type::Conflict,
+                        dep.version.toString()[0] ==
+                        '<' ? LoadProblem::Type::OutdatedConflict : LoadProblem::Type::Conflict,
                         mod,
                         fmt::format("{}", dep.id)
                     });
@@ -619,7 +621,8 @@ void Loader::Impl::findProblems() {
 
                 case ModMetadata::Incompatibility::Importance::Breaking: {
                     this->addProblem({
-                        dep.version.toString()[0] == '<' ? LoadProblem::Type::OutdatedIncompatibility : LoadProblem::Type::PresentIncompatibility,
+                        dep.version.toString()[0] ==
+                        '<' ? LoadProblem::Type::OutdatedIncompatibility : LoadProblem::Type::PresentIncompatibility,
                         mod,
                         fmt::format("{}", dep.id)
                     });
@@ -951,7 +954,10 @@ Result<tulip::hook::HandlerHandle> Loader::Impl::getHandler(void* address) {
     return Ok(m_handlerHandles[address].first);
 }
 
-Result<tulip::hook::HandlerHandle> Loader::Impl::getOrCreateHandler(void* address, tulip::hook::HandlerMetadata const& metadata) {
+Result<tulip::hook::HandlerHandle> Loader::Impl::getOrCreateHandler(
+    void* address,
+    tulip::hook::HandlerMetadata const& metadata
+) {
     if (m_handlerHandles.count(address) && m_handlerHandles[address].second > 0) {
         m_handlerHandles[address].second++;
         return Ok(m_handlerHandles[address].first);
@@ -1088,23 +1094,23 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
             ),
             "OK", "Delete File",
             [path](auto, bool btn2) {
-                if (btn2) {
-                    std::error_code ec;
-                    std::filesystem::remove(path, ec);
-                    if (ec) {
-                        FLAlertLayer::create(
-                            "Unable to Delete",
-                            fmt::format(
-                                "Unable to delete <cy>{}</c>: {} (Error code <cr>{}</c>)",
-                                path, ec.message(), ec.value()
-                            ),
-                            "OK"
-                        )->show();
-                    }
-                    // No need to show a confirmation popup if successful since that's
-                    // to be assumed via pressing the button on the previous popup
+            if (btn2) {
+                std::error_code ec;
+                std::filesystem::remove(path, ec);
+                if (ec) {
+                    FLAlertLayer::create(
+                        "Unable to Delete",
+                        fmt::format(
+                            "Unable to delete <cy>{}</c>: {} (Error code <cr>{}</c>)",
+                            path, ec.message(), ec.value()
+                        ),
+                        "OK"
+                    )->show();
                 }
+                // No need to show a confirmation popup if successful since that's
+                // to be assumed via pressing the button on the previous popup
             }
+        }
         );
     };
 
@@ -1120,21 +1126,21 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
             ),
             "Cancel", "Replace",
             [doInstallModFromFile, path, existing, meta](auto, bool btn2) mutable {
-                std::error_code ec;
-                std::filesystem::remove(existing->getPackagePath(), ec);
-                if (ec) {
-                    FLAlertLayer::create(
-                        "Unable to Uninstall",
-                        fmt::format(
-                            "Unable to uninstall <cy>{}</c>: {} (Error code <cr>{}</c>)",
-                            existing->getID(), ec.message(), ec.value()
-                        ),
-                        "OK"
-                    )->show();
-                    return;
-                }
-                doInstallModFromFile();
+            std::error_code ec;
+            std::filesystem::remove(existing->getPackagePath(), ec);
+            if (ec) {
+                FLAlertLayer::create(
+                    "Unable to Uninstall",
+                    fmt::format(
+                        "Unable to uninstall <cy>{}</c>: {} (Error code <cr>{}</c>)",
+                        existing->getID(), ec.message(), ec.value()
+                    ),
+                    "OK"
+                )->show();
+                return;
             }
+            doInstallModFromFile();
+        }
         );
         return;
     }
