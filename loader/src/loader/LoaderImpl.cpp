@@ -252,8 +252,10 @@ void Loader::Impl::updateModResources(Mod* mod) {
         auto plist = sheet + ".plist";
         auto ccfu = CCFileUtils::get();
 
-        if (png == std::string(ccfu->fullPathForFilename(png.c_str(), false)) ||
-            plist == std::string(ccfu->fullPathForFilename(plist.c_str(), false))) {
+        if (
+            png == std::string(ccfu->fullPathForFilename(png.c_str(), false)) ||
+            plist == std::string(ccfu->fullPathForFilename(plist.c_str(), false))
+        ) {
             log::warn(
                 R"(The resource dir of "{}" is missing "{}" png and/or plist files)",
                 mod->getID(), sheet
@@ -281,8 +283,10 @@ void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
         log::debug("Searching {}", dir);
         log::NestScope nest;
         for (auto const& entry : std::filesystem::directory_iterator(dir)) {
-            if (!std::filesystem::is_regular_file(entry) ||
-                entry.path().extension() != GEODE_MOD_EXTENSION)
+            if (
+                !std::filesystem::is_regular_file(entry) ||
+                entry.path().extension() != GEODE_MOD_EXTENSION
+            )
                 continue;
 
             log::debug("Found {}", entry.path().filename());
@@ -304,9 +308,11 @@ void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
             log::debug("version: {}", modMetadata.getVersion());
             log::debug("early: {}", modMetadata.needsEarlyLoad() ? "yes" : "no");
 
-            if (std::find_if(modQueue.begin(), modQueue.end(), [&](auto& item) {
-                return modMetadata.getID() == item.getID();
-            }) != modQueue.end()) {
+            if (
+                std::find_if(modQueue.begin(), modQueue.end(), [&](auto& item) {
+                    return modMetadata.getID() == item.getID();
+                }) != modQueue.end()
+            ) {
                 this->addProblem({
                     LoadProblem::Type::Duplicate,
                     modMetadata,
@@ -582,8 +588,10 @@ void Loader::Impl::findProblems() {
                             });
                             log::error("{} requires {} {}", id, dep.id, dep.version);
                             break;
-                        } else if (dep.version.compareWithReason(installedDependency->getVersion()) ==
-                                   VersionCompareResult::TooOld) {
+                        } else if (
+                            dep.version.compareWithReason(installedDependency->getVersion()) ==
+                            VersionCompareResult::TooOld
+                        ) {
                             this->addProblem({
                                 LoadProblem::Type::OutdatedDependency,
                                 mod,
@@ -642,14 +650,16 @@ void Loader::Impl::findProblems() {
 
         Mod* myEpicMod = mod; // clang fix
         // if the mod is not loaded but there are no problems related to it
-        if (!mod->isEnabled() &&
+        if (
+            !mod->isEnabled() &&
             mod->shouldLoad() &&
             !std::any_of(m_problems.begin(), m_problems.end(), [myEpicMod](auto& item) {
                 return std::holds_alternative<ModMetadata>(item.cause) &&
                     std::get<ModMetadata>(item.cause).getID() == myEpicMod->getID() ||
                     std::holds_alternative<Mod*>(item.cause) &&
                     std::get<Mod*>(item.cause) == myEpicMod;
-            })) {
+            })
+        ) {
             this->addProblem({
                 LoadProblem::Type::Unknown,
                 mod,
@@ -735,8 +745,10 @@ void Loader::Impl::orderModStack() {
             if (visited.count(mod) != 0) continue;
 
             for (auto dep : mod->getMetadataRef().getDependencies()) {
-                if (dep.mod && dep.importance == ModMetadata::Dependency::Importance::Required &&
-                    visited.count(dep.mod) == 0) {
+                if (
+                    dep.mod && dep.importance == ModMetadata::Dependency::Importance::Required &&
+                    visited.count(dep.mod) == 0
+                ) {
                     // the dependency is not visited yet
                     // so we cant select this mod
                     goto skip_mod;
