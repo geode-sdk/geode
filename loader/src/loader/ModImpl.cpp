@@ -42,8 +42,7 @@ Mod::Impl* ModImpl::getImpl(Mod* mod)  {
     return mod->m_impl.get();
 }
 
-Mod::Impl::Impl(Mod* self, ModMetadata const& metadata) : m_self(self), m_metadata(metadata) {
-}
+Mod::Impl::Impl(Mod* self, ModMetadata const& metadata) : m_self(self), m_metadata(metadata) {}
 
 Mod::Impl::~Impl() = default;
 
@@ -70,7 +69,7 @@ Result<> Mod::Impl::setup() {
         });
 
         // binaries on macos are merged, so make the platform binaries merged as well
-        auto const binaryPlatformId = PlatformID::toShortString(GEODE_PLATFORM_TARGET GEODE_MACOS(, true));
+        auto const binaryPlatformId = PlatformID::toShortString(GEODE_PLATFORM_TARGET GEODE_MACOS( , true));
 
         auto const binariesDir = searchPathRoot / m_metadata.getID() / "binaries" / binaryPlatformId;
 
@@ -298,7 +297,8 @@ Result<> Mod::Impl::loadBinary() {
         return Err(
             fmt::format(
                 "Failed to load {}: No binary could be found for current platform.\n"
-                "This mod doesn't support this platform" GEODE_WINDOWS(" or something deleted it (like an antivirus)") ".",
+                "This mod doesn't support this platform" GEODE_WINDOWS(
+                    " or something deleted it (like an antivirus)") ".",
                 m_metadata.getID()
             )
         );
@@ -392,8 +392,8 @@ Result<> Mod::Impl::uninstall(bool deleteSaveData) {
     }
 
     m_requestedAction = deleteSaveData ?
-        ModRequestedAction::UninstallWithSaveData :
-        ModRequestedAction::Uninstall;
+            ModRequestedAction::UninstallWithSaveData :
+            ModRequestedAction::Uninstall;
 
     // Make loader forget the mod should be disabled
     Mod::get()->getSaveContainer().erase("should-load-" + m_metadata.getID());
@@ -499,8 +499,8 @@ Result<> Mod::Impl::disownHook(Hook* hook) {
     });
     if (foundIt == m_hooks.end())
         return Err("WEE, WOO !! Something just went horribly wrong! "
-                   "A hook that was getting disowned had its owner set but the owner "
-                   "didn't have the hook in m_hooks.");
+            "A hook that was getting disowned had its owner set but the owner "
+            "didn't have the hook in m_hooks.");
 
     m_hooks.erase(foundIt);
 
@@ -552,8 +552,8 @@ Result<> Mod::Impl::disownPatch(Patch* patch) {
     });
     if (foundIt == m_patches.end())
         return Err("WEE, WOO !! Something just went horribly wrong! "
-                   "A patch that was getting disowned had its owner set but the owner "
-                   "didn't have the patch in m_patches.");
+            "A patch that was getting disowned had its owner set but the owner "
+            "didn't have the patch in m_patches.");
 
 
     if (this->isEnabled() && patch->getAutoEnable()) {
@@ -620,8 +620,8 @@ Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
     if (ec) {
         auto message = ec.message();
         #ifdef GEODE_IS_WINDOWS
-            // Force the error message into English
-            message = formatSystemError(ec.value());
+        // Force the error message into English
+        message = formatSystemError(ec.value());
         #endif
         return Err("Unable to delete temp dir: " + message);
     }
@@ -635,7 +635,7 @@ Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
         );
     }
     GEODE_UNWRAP(unzip.extractAllTo(tempDir));
-    
+
     auto res = file::writeString(datePath, modifiedHash);
     if (!res) {
         log::warn("Failed to write modified date of geode zip: {}", res.unwrapErr());
@@ -745,7 +745,8 @@ Mod* Loader::Impl::getInternalMod() {
     if (mod)
         return mod;
     if (m_mods.contains("geode.loader")) {
-        log::warn("Something went wrong and Mod::sharedMod<> got unset after the internal mod was created! Setting sharedMod back...");
+        log::warn(
+            "Something went wrong and Mod::sharedMod<> got unset after the internal mod was created! Setting sharedMod back...");
         mod = m_mods["geode.loader"];
         return mod;
     }
@@ -754,9 +755,9 @@ Mod* Loader::Impl::getInternalMod() {
         console::messageBox(
             "Fatal Internal Error",
             "Unable to create internal mod info: \"" + infoRes.unwrapErr() +
-                "\"\n"
-                "This is a fatal internal error in the loader, please "
-                "contact Geode developers immediately!"
+            "\"\n"
+            "This is a fatal internal error in the loader, please "
+            "contact Geode developers immediately!"
         );
         mod = new Mod(ModMetadata("geode.loader"));
     }
