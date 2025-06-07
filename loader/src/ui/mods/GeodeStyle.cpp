@@ -256,7 +256,7 @@ bool GeodeTabSprite::init(const char* iconFrame, const char* text, float width, 
     this->addChildAtPosition(m_icon, Anchor::Left, ccp(16, 0), false);
 
     m_label = CCLabelBMFont::create(text, "bigFont.fnt");
-    m_label->limitLabelWidth(this->getContentWidth() - 45, clamp(width * .0045f, .35f, .55f), .1f);
+    m_label->limitLabelWidth(this->getContentWidth() - 45, std::clamp(width * .0045f, .35f, .55f), .1f);
     m_label->setAnchorPoint({ .5f, .5f });
     this->addChildAtPosition(m_label, Anchor::Left, ccp((itemSize.width - iconSize.width) / 2 + iconSize.width, 0), false);
 

@@ -24,7 +24,7 @@ void updateGeode() {
         std::filesystem::exists(updatesDir / "GeodeUpdater.exe"))
         std::filesystem::rename(updatesDir / "GeodeUpdater.exe", workingDir / "GeodeUpdater.exe");
 
-    utils::game::restart();
+    utils::game::restart(true);
 }
 
 void patchDelayLoad() {

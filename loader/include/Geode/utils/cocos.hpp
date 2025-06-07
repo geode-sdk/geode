@@ -887,9 +887,9 @@ namespace geode::cocos {
      */
     inline cocos2d::ccColor3B lighten3B(cocos2d::ccColor3B const& color, int amount) {
         return {
-            static_cast<GLubyte>(utils::clamp(color.r + amount, 0, 255)),
-            static_cast<GLubyte>(utils::clamp(color.g + amount, 0, 255)),
-            static_cast<GLubyte>(utils::clamp(color.b + amount, 0, 255)),
+            static_cast<GLubyte>(std::clamp(color.r + amount, 0, 255)),
+            static_cast<GLubyte>(std::clamp(color.g + amount, 0, 255)),
+            static_cast<GLubyte>(std::clamp(color.b + amount, 0, 255)),
         };
     }
 

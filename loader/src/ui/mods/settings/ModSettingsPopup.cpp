@@ -216,7 +216,7 @@ void ModSettingsPopup::onRestart(CCObject*) {
         // Delayed by 2 frames - one is needed to render the "Restarting text"
         Loader::get()->queueInMainThread([] {
             // the other never finishes rendering because the game actually restarts at this point
-            game::restart();
+            game::restart(true);
         });
     });
 }

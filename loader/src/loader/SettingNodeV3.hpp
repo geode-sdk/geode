@@ -66,7 +66,7 @@ protected:
         auto min = this->getSetting()->getMinValue().value_or(-100);
         auto max = this->getSetting()->getMaxValue().value_or(+100);
         auto range = max - min;
-        return static_cast<float>(clamp(static_cast<double>(value - min) / range, 0.0, 1.0));
+        return static_cast<float>(std::clamp(static_cast<double>(value - min) / range, 0.0, 1.0));
     }
     ValueType valueFromSlider(float num) {
         auto min = this->getSetting()->getMinValue().value_or(-100);
