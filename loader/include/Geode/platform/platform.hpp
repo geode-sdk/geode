@@ -41,7 +41,7 @@
 #elif defined(GEODE_IS_MACOS)
 
     #define GEODE_HIDDEN __attribute__((visibility("hidden")))
-    #define GEODE_INLINE inline __attribute__((always_inline))
+    #define GEODE_INLINE __attribute__((always_inline))
     #define GEODE_VIRTUAL_CONSTEXPR constexpr
     #define GEODE_NOINLINE __attribute__((noinline))
 
@@ -62,7 +62,7 @@
 #elif defined(GEODE_IS_IOS)
 
     #define GEODE_HIDDEN __attribute__((visibility("hidden")))
-    #define GEODE_INLINE inline __attribute__((always_inline))
+    #define GEODE_INLINE __attribute__((always_inline))
     #define GEODE_VIRTUAL_CONSTEXPR constexpr
     #define GEODE_NOINLINE __attribute__((noinline))
 
@@ -83,7 +83,7 @@
 #elif defined(GEODE_IS_ANDROID)
 
     #define GEODE_HIDDEN __attribute__((visibility("hidden")))
-    #define GEODE_INLINE inline __attribute__((always_inline))
+    #define GEODE_INLINE __attribute__((always_inline))
     #define GEODE_VIRTUAL_CONSTEXPR constexpr
     #define GEODE_NOINLINE __attribute__((noinline))
 
