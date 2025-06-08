@@ -168,7 +168,7 @@ namespace geode {
      *
      * @param func the function to queue
     */
-    inline GEODE_HIDDEN void queueInMainThread(ScheduledFunction&& func) {
+    inline void queueInMainThread(ScheduledFunction&& func) {
         Loader::get()->queueInMainThread(std::forward<ScheduledFunction>(func));
     }
 
@@ -177,7 +177,7 @@ namespace geode {
      *
      * @return Mod* The next mod to load
     */
-    inline GEODE_HIDDEN Mod* takeNextLoaderMod() {
+    inline Mod* takeNextLoaderMod() {
         return Loader::get()->takeNextMod();
     }
 }

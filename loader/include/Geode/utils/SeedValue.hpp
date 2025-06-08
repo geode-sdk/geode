@@ -240,31 +240,31 @@ namespace geode {
         GEODE_SEED_VALUE_COMMON_OPS();
     };
 
-    GEODE_INLINE GEODE_HIDDEN std::string format_as(SeedValueSR value) {
+    inline std::string format_as(SeedValueSR value) {
         return fmt::to_string(value.value());
     }
 
-    GEODE_INLINE GEODE_HIDDEN std::string format_as(SeedValueRS value) {
+    inline std::string format_as(SeedValueRS value) {
         return fmt::to_string(value.value());
     }
 
-    GEODE_INLINE GEODE_HIDDEN std::string format_as(SeedValueVRS value) {
+    inline std::string format_as(SeedValueVRS value) {
         return fmt::to_string(value.value());
     }
 
-    GEODE_INLINE GEODE_HIDDEN std::string format_as(SeedValueVSR value) {
+    inline std::string format_as(SeedValueVSR value) {
         return fmt::to_string(value.value());
     }
 
-    GEODE_INLINE GEODE_HIDDEN std::string format_as(SeedValueRVS value) {
+    inline std::string format_as(SeedValueRVS value) {
         return fmt::to_string(value.value());
     }
 
-    GEODE_INLINE GEODE_HIDDEN std::string format_as(SeedValueRSV value) {
+    inline std::string format_as(SeedValueRSV value) {
         return fmt::to_string(value.value());
     }
 
-    GEODE_INLINE GEODE_HIDDEN std::string format_as(SeedValueSVR value) {
+    inline std::string format_as(SeedValueSVR value) {
         return fmt::to_string(value.value());
     }
 

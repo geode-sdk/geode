@@ -52,7 +52,7 @@ namespace geode {
         return action == ModRequestedAction::Uninstall || action == ModRequestedAction::UninstallWithSaveData;
     }
 
-    GEODE_HIDDEN Mod* takeNextLoaderMod();
+    Mod* takeNextLoaderMod();
 
     class ModImpl;
 
