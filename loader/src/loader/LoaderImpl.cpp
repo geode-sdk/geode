@@ -95,6 +95,18 @@ Result<> Loader::Impl::setup() {
         this->initLaunchArguments();
     }
 
+    if (auto value = this->getLaunchArgument("use-common-handler-offset")) {
+        log::info("Using common handler offset: {}", value.value());
+        log::NestScope nest;
+        auto offset = numFromString<size_t>(value.value(), 16);
+        if (offset.isErr()) {
+            log::error("Could not parse common handler offset, falling back to default");
+        } else {
+            log::info("Disabling runtime intervening");
+            tulip::hook::disableRuntimeIntervening((void*)(base::get() + offset.unwrap()));
+        }
+    }
+
     // on some platforms, using the crash handler overrides more convenient native handlers
     if (!this->getLaunchFlag("disable-crash-handler")) {
         log::info("Setting up crash handler");
