@@ -65,7 +65,7 @@ void MDPopup::onBtn(CCObject* sender) {
 }
 
 float MDPopup::estimateHeight(std::string const& content) {
-    return clamp(string::count(content, '\n') * 50.f, 180.f, 280.f);
+    return std::clamp(string::count(content, '\n') * 50.f, 180.f, 280.f);
 }
 
 MDPopup* MDPopup::create(
