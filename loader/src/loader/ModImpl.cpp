@@ -387,7 +387,7 @@ Result<> Mod::Impl::uninstall(bool deleteSaveData) {
 
     if (this->isInternal()) {
         utils::game::launchLoaderUninstaller(deleteSaveData);
-        utils::game::exit();
+        utils::game::exit(true);
         return Ok();
     }
 
