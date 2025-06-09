@@ -23,8 +23,8 @@ namespace {
 struct SaveLoader : Modify<SaveLoader, AppDelegate> {
     GEODE_FORWARD_COMPAT_DISABLE_HOOKS("save moved to CCApplication::gameDidSave()")
     void trySaveGame(bool p0) {
-        AppDelegate::trySaveGame(p0);
         saveModData();
+        return AppDelegate::trySaveGame(p0);
     }
 };
 
@@ -33,8 +33,8 @@ struct SaveLoader : Modify<SaveLoader, AppDelegate> {
 struct FallbackSaveLoader : Modify<FallbackSaveLoader, CCApplication> {
     GEODE_FORWARD_COMPAT_ENABLE_HOOKS("")
     void gameDidSave() {
-        CCApplication::gameDidSave();
         saveModData();
+        return CCApplication::gameDidSave();
     }
 };
 

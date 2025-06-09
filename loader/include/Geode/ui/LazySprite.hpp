@@ -56,10 +56,14 @@ namespace geode {
          */
         void cancelLoad();
 
-        virtual bool initWithTexture(cocos2d::CCTexture2D* pTexture, const cocos2d::CCRect& rect) override;
+        virtual bool initWithTexture(cocos2d::CCTexture2D* pTexture, const cocos2d::CCRect& rect, bool rotated) override;
+        using CCSprite::initWithTexture;
+
         virtual bool initWithSpriteFrame(cocos2d::CCSpriteFrame* pSpriteFrame) override;
         virtual bool initWithSpriteFrameName(const char* pszSpriteFrameName) override;
+
         virtual bool initWithFile(const char* pszFilename, const cocos2d::CCRect& rect) override;
+        using CCSprite::initWithFile;
 
     private:
         Ref<LoadingSpinner> m_loadingCircle;
