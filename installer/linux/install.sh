@@ -40,7 +40,7 @@ check_dependencies() {
             py_cmd=python3
         else
             # we have neither jq nor python, error
-            echo -e "${RED}Error${NC}: neither jq nor python are not installed" >&2
+            echo -e "${RED}Error${NC}: neither jq nor python are installed" >&2
             exit 1
         fi
     fi
