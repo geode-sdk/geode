@@ -110,24 +110,6 @@ Result<> Loader::Impl::setup() {
                 log::info("Runtime intervening disabled successfully");
             }
         }
-
-        if (auto value = this->getLaunchArgument("original-bytes-file")) {
-            log::info("Using original bytes file: {}", value.value());
-            log::NestScope nest;
-            auto json = utils::file::readJson(value.value());
-            if (json.isOk()) {
-                for (auto const& [key, value] : json.unwrap()) {
-                    auto offset = numFromString<size_t>(key, 16);
-                    auto valueArr = value.as<ByteVector>();
-                    if (offset.isOk() && valueArr.isOk()) {
-                        m_originalBytes[base::get() + offset.unwrap()] = valueArr.unwrap();
-                    }
-                    else {
-                        log::error("Failed to parse offset for {}: {}", key, offset.unwrapErr());
-                    }
-                }
-            }
-        }
     }
 
     // on some platforms, using the crash handler overrides more convenient native handlers
@@ -1009,15 +991,7 @@ Result<tulip::hook::HandlerHandle> Loader::Impl::getOrCreateHandler(void* addres
         return Ok(m_handlerHandles[address].first);
     }
     tulip::hook::HandlerHandle handle;
-    if (m_originalBytes.contains((uint64_t)address)) {
-        tulip::hook::HandlerMetadata2 metadata2;
-        metadata2.m_abstract = metadata.m_abstract;
-        metadata2.m_convention = metadata.m_convention;
-        metadata2.m_originalBytes = m_originalBytes[(uint64_t)address];
-        GEODE_UNWRAP_INTO(handle, tulip::hook::createHandler(address, metadata2));
-    } else {
-        GEODE_UNWRAP_INTO(handle, tulip::hook::createHandler(address, metadata));
-    }
+    GEODE_UNWRAP_INTO(handle, tulip::hook::createHandler(address, metadata));
 
     m_handlerHandles[address].first = handle;
     m_handlerHandles[address].second = 1;
