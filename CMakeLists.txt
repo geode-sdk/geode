@@ -283,7 +283,7 @@ if (DEFINED GEODE_TULIPHOOK_REPO_PATH)
 	message(STATUS "Using ${GEODE_TULIPHOOK_REPO_PATH} for TulipHook")
 	add_subdirectory(${GEODE_TULIPHOOK_REPO_PATH} ${GEODE_TULIPHOOK_REPO_PATH}/build)
 else()
-	CPMAddPackage("gh:geode-sdk/TulipHook#0e897b5")
+	CPMAddPackage("gh:geode-sdk/TulipHook#28a1b5e")
 endif()
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 
