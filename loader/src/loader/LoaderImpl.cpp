@@ -103,7 +103,12 @@ Result<> Loader::Impl::setup() {
             log::error("Could not parse common handler offset, falling back to default");
         } else {
             log::info("Disabling runtime intervening");
-            (void)tulip::hook::disableRuntimeIntervening((void*)(base::get() + offset.unwrap()));
+            auto res = tulip::hook::disableRuntimeIntervening((void*)(base::get() + offset.unwrap()));
+            if (res.isErr()) {
+                log::error("Failed to disable runtime intervening: {}", res.unwrapErr());
+            } else {
+                log::info("Runtime intervening disabled successfully");
+            }
         }
 
         if (auto value = this->getLaunchArgument("original-bytes-file")) {
