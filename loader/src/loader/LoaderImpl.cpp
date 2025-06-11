@@ -103,7 +103,25 @@ Result<> Loader::Impl::setup() {
             log::error("Could not parse common handler offset, falling back to default");
         } else {
             log::info("Disabling runtime intervening");
-            tulip::hook::disableRuntimeIntervening((void*)(base::get() + offset.unwrap()));
+            (void)tulip::hook::disableRuntimeIntervening((void*)(base::get() + offset.unwrap()));
+        }
+
+        if (auto value = this->getLaunchArgument("original-bytes-file")) {
+            log::info("Using original bytes file: {}", value.value());
+            log::NestScope nest;
+            auto json = utils::file::readJson(value.value());
+            if (json.isOk()) {
+                for (auto const& [key, value] : json.unwrap()) {
+                    auto offset = numFromString<size_t>(key, 16);
+                    auto valueArr = value.as<ByteVector>();
+                    if (offset.isOk() && valueArr.isOk()) {
+                        m_originalBytes[base::get() + offset.unwrap()] = valueArr.unwrap();
+                    }
+                    else {
+                        log::error("Failed to parse offset for {}: {}", key, offset.unwrapErr());
+                    }
+                }
+            }
         }
     }
 
@@ -915,8 +933,25 @@ void Loader::Impl::releaseNextMod() {
 // e.g. "--geode:arg=My spaced value"
 void Loader::Impl::initLaunchArguments() {
     auto launchStr = this->getLaunchCommand();
-    auto args = string::split(launchStr, " ");
-    for (const auto& arg : args) {
+
+    std::vector<std::string> arguments;
+    bool inQuotes = false;
+    std::string currentArg;
+    for (auto const c : launchStr) {
+        if (c == ' ' && !inQuotes) {
+            arguments.emplace_back(std::move(currentArg));
+            currentArg.clear();
+            continue;
+        }
+        if (c == '"') {
+            inQuotes = !inQuotes;
+            continue;
+        }
+        currentArg.push_back(c);
+    }
+    arguments.emplace_back(std::move(currentArg));
+
+    for (const auto& arg : arguments) {
         if (!arg.starts_with(LAUNCH_ARG_PREFIX)) {
             continue;
         }
@@ -968,7 +1003,17 @@ Result<tulip::hook::HandlerHandle> Loader::Impl::getOrCreateHandler(void* addres
         m_handlerHandles[address].second++;
         return Ok(m_handlerHandles[address].first);
     }
-    GEODE_UNWRAP_INTO(auto handle, tulip::hook::createHandler(address, metadata));
+    tulip::hook::HandlerHandle handle;
+    if (m_originalBytes.contains((uint64_t)address)) {
+        tulip::hook::HandlerMetadata2 metadata2;
+        metadata2.m_abstract = metadata.m_abstract;
+        metadata2.m_convention = metadata.m_convention;
+        metadata2.m_originalBytes = m_originalBytes[(uint64_t)address];
+        GEODE_UNWRAP_INTO(handle, tulip::hook::createHandler(address, metadata2));
+    } else {
+        GEODE_UNWRAP_INTO(handle, tulip::hook::createHandler(address, metadata));
+    }
+
     m_handlerHandles[address].first = handle;
     m_handlerHandles[address].second = 1;
     return Ok(handle);

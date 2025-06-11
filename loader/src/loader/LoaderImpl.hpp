@@ -61,6 +61,8 @@ namespace geode {
 
         std::chrono::time_point<std::chrono::high_resolution_clock> m_timerBegin;
 
+        std::unordered_map<uint64_t, ByteVector> m_originalBytes;
+
         std::string getGameVersion();
         bool isForwardCompatMode();
 
