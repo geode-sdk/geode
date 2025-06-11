@@ -317,7 +317,7 @@ void LazySprite::loadFromData(std::vector<uint8_t> data, Format format) {
     m_expectedFormat = format;
     m_isLoading = true;
 
-    this->doInitFromBytes(data, "");
+    this->doInitFromBytes(std::move(data), "");
 }
 
 void LazySprite::doInitFromBytes(std::vector<uint8_t> data, std::string cacheKey) {
