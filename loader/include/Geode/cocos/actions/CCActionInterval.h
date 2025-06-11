@@ -363,6 +363,8 @@ class CC_DLL CCRotateTo : public CCActionInterval
     GEODE_FRIEND_MODIFY
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCRotateTo, CCActionInterval)
+    CCRotateTo() {}
+
     /** creates the action */
     static CCRotateTo* create(float fDuration, float fDeltaAngle);
     /** initializes the action */
@@ -396,6 +398,8 @@ class CC_DLL CCRotateBy : public CCActionInterval
     GEODE_FRIEND_MODIFY
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCRotateBy, CCActionInterval)
+    CCRotateBy() {}
+
     /** creates the action */
     static CCRotateBy* create(float fDuration, float fDeltaAngle);
     /** initializes the action */
@@ -430,6 +434,8 @@ class CC_DLL CCMoveBy : public CCActionInterval
     GEODE_FRIEND_MODIFY
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCMoveBy, CCActionInterval)
+    CCMoveBy() {}
+
     /** initializes the action */
     bool initWithDuration(float duration, const CCPoint& deltaPosition);
     /**
@@ -460,6 +466,8 @@ class CC_DLL CCMoveTo : public CCMoveBy
     GEODE_FRIEND_MODIFY
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCMoveTo, CCMoveBy)
+    CCMoveTo() {}
+
     /** initializes the action */
     bool initWithDuration(float duration, const CCPoint& position);
     /**
@@ -520,6 +528,8 @@ class CC_DLL CCSkewBy : public CCSkewTo
     GEODE_FRIEND_MODIFY
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCSkewBy, CCSkewTo)
+    CCSkewBy() {}
+
     virtual bool initWithDuration(float t, float sx, float sy);
     virtual void startWithTarget(CCNode *pTarget);
     virtual CCActionInterval* reverse(void);
@@ -537,6 +547,8 @@ class CC_DLL CCJumpBy : public CCActionInterval
     GEODE_FRIEND_MODIFY
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCJumpBy, CCActionInterval)
+    CCJumpBy() {}
+
     /** initializes the action */
     bool initWithDuration(float duration, const CCPoint& position, float height, unsigned int jumps);
     /**
@@ -566,6 +578,8 @@ class CC_DLL CCJumpTo : public CCJumpBy
     GEODE_FRIEND_MODIFY
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCJumpTo, CCJumpBy)
+    CCJumpTo() {}
+
     virtual void startWithTarget(CCNode *pTarget);
     /**
      *  @js NA
@@ -596,6 +610,8 @@ class CC_DLL CCBezierBy : public CCActionInterval
     GEODE_FRIEND_MODIFY
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCBezierBy, CCActionInterval)
+    CCBezierBy() {}
+
     /** initializes the action with a duration and a bezier configuration
      *  @lua NA
      */
@@ -637,6 +653,8 @@ class CC_DLL CCBezierTo : public CCBezierBy
     GEODE_FRIEND_MODIFY
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCBezierTo, CCBezierBy)
+    CCBezierTo() {}
+
     /**
      *  @lua NA
      */
@@ -673,6 +691,8 @@ class CC_DLL CCScaleTo : public CCActionInterval
     GEODE_FRIEND_MODIFY
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCScaleTo, CCActionInterval)
+    CCScaleTo() {}
+
     /** initializes the action with the same scale factor for X and Y */
     bool initWithDuration(float duration, float s);
 
@@ -711,6 +731,8 @@ class CC_DLL CCScaleBy : public CCScaleTo
     GEODE_FRIEND_MODIFY
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCScaleBy, CCScaleTo)
+    CCScaleBy() {}
+
     virtual void startWithTarget(CCNode *pTarget);
     virtual CCActionInterval* reverse(void);
     /**
@@ -735,6 +757,8 @@ class CC_DLL CCBlink : public CCActionInterval
     GEODE_FRIEND_MODIFY
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCBlink, CCActionInterval)
+    CCBlink() {}
+
     /** initializes the action */
     bool initWithDuration(float duration, unsigned int uBlinks);
     /**
@@ -766,6 +790,8 @@ class CC_DLL CCFadeIn : public CCActionInterval
     GEODE_FRIEND_MODIFY
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCFadeIn, CCActionInterval)
+    CCFadeIn() {}
+
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
     /**
@@ -787,6 +813,8 @@ class CC_DLL CCFadeOut : public CCActionInterval
     GEODE_FRIEND_MODIFY
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCFadeOut, CCActionInterval)
+    CCFadeOut() {}
+
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
     /**
@@ -809,6 +837,8 @@ class CC_DLL CCFadeTo : public CCActionInterval
     GEODE_FRIEND_MODIFY
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCFadeTo, CCActionInterval)
+    CCFadeTo() {}
+
     /** initializes the action with duration and opacity */
     bool initWithDuration(float duration, GLubyte opacity);
     /**
@@ -836,6 +866,8 @@ class CC_DLL CCTintTo : public CCActionInterval
     GEODE_FRIEND_MODIFY
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTintTo, CCActionInterval)
+    CCTintTo() {}
+
     /** initializes the action with duration and color */
     bool initWithDuration(float duration, GLubyte red, GLubyte green, GLubyte blue);
     /**
@@ -862,6 +894,8 @@ class CC_DLL CCTintBy : public CCActionInterval
     GEODE_FRIEND_MODIFY
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTintBy, CCActionInterval)
+    CCTintBy() {}
+
     /** initializes the action with duration and color */
     bool initWithDuration(float duration, GLshort deltaRed, GLshort deltaGreen, GLshort deltaBlue);
     /**
@@ -893,6 +927,8 @@ class CC_DLL CCDelayTime : public CCActionInterval
     GEODE_FRIEND_MODIFY
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCDelayTime, CCActionInterval)
+    CCDelayTime() {}
+
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
     /**
