@@ -13,10 +13,14 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/ModEvent.hpp>
+#include <Geode/platform/cplatform.h>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/JsonValidation.hpp>
+#include <Geode/utils/string.hpp>
+#include <filesystem>
 #include <optional>
 #include <string>
+#include <system_error>
 #include <vector>
 #include <string_view>
 
@@ -32,6 +36,28 @@ static constexpr const char* humanReadableDescForAction(ModRequestedAction actio
         case ModRequestedAction::UninstallWithSaveData: return "Mod has been uninstalled";
         case ModRequestedAction::Update: return "Mod has been updated";
     }
+}
+
+static constexpr const char* getModBinarySuffix() {
+    GEODE_WINDOWS(return ".dll");
+    GEODE_MACOS(return ".dylib");
+    GEODE_ANDROID32(return ".android32.so");
+    GEODE_ANDROID64(return ".android64.so");
+    GEODE_IOS(return ".ios.dylib");
+
+    return "";
+}
+
+static bool isPlatformBinary(std::string_view modID, std::string_view filename) {
+    if (!filename.starts_with(modID)) {
+        return false;
+    }
+
+    return filename.ends_with(".dll")
+        || filename.ends_with(".dylib")
+        || filename.ends_with(".android32.so")
+        || filename.ends_with(".android64.so")
+        || filename.ends_with(".ios.dylib");
 }
 
 Mod::Impl* ModImpl::get() {
@@ -635,7 +661,29 @@ Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
         );
     }
     GEODE_UNWRAP(unzip.extractAllTo(tempDir));
-    
+
+    // Delete binaries for other platforms since they're pointless
+    static constexpr std::string_view suffix = getModBinarySuffix();
+    // The if should never fail, but you never know
+    if (suffix.length() != 0) {
+        const std::string platformBinaryName = fmt::format("{}{}", metadata.getID(), suffix);
+        for (auto& entry : std::filesystem::directory_iterator(tempDir)) {
+            if (entry.is_directory()) {
+                continue;
+            }
+
+            const std::string filename = geode::utils::string::pathToString(entry.path().filename());
+            if (filename == platformBinaryName || !isPlatformBinary(metadata.getID(), filename)) {
+                continue;
+            }
+
+            // The binary is not for our platform, delete!
+            // We don't really care if the deletion succeeds though.
+            std::error_code ec;
+            std::filesystem::remove(entry.path(), ec);
+        }
+    }
+
     auto res = file::writeString(datePath, modifiedHash);
     if (!res) {
         log::warn("Failed to write modified date of geode zip: {}", res.unwrapErr());
