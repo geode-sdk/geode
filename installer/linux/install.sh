@@ -33,8 +33,16 @@ check_dependencies() {
     fi
 
     if ! [ -x "$(command -v jq)" ]; then
-        echo -e "${RED}Error${NC}: jq is not installed." >&2
-        exit 1
+        # if we don't have jq, check if we can use python instead
+        if [ -x "$(command -v python)" ]; then
+            py_cmd=python
+        elif [ -x "$(command -v python3)" ]; then
+            py_cmd=python3
+        else
+            # we have neither jq nor python, error
+            echo -e "${RED}Error${NC}: neither jq nor python are installed" >&2
+            exit 1
+        fi
     fi
 }
 
@@ -168,7 +176,11 @@ echo "Installing Geode..."
 
 # Get latest tag from the Index
 VERSION_JSON="$(curl -s 'https://api.geode-sdk.org/v1/loader/versions/latest')"
-TAG="$(echo $VERSION_JSON | jq -r .payload.tag)"
+if [ -x "$(command -v jq)" ]; then
+    TAG="$(echo "$VERSION_JSON" | jq -r .payload.tag)"
+else
+    TAG="$(echo "$VERSION_JSON" | $py_cmd -c 'import json,sys;print(json.load(sys.stdin)["payload"]["tag"])' 2>/dev/null)"
+fi
 
 if [ -z "$TAG" ]; then
     echo "Failed to get latest version from the Geode index."
