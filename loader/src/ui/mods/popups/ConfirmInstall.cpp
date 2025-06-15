@@ -103,6 +103,12 @@ void askConfirmModInstalls() {
         idsToDisable.insert(mod->getID());
     }
 
+    if (idsToDisable.size() == 0 && toConfirm.toEnable.size() == 0 &&
+        toConfirm.dependencyCount == 0 && toConfirm.replacementCount == 0) {
+        ModDownloadManager::get()->confirmAll();
+        return;
+    }
+
     createQuickPopup(
         "Confirm Install",
         fmt::format(
