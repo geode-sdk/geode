@@ -600,7 +600,7 @@ Result<> Mod::Impl::createTempDir() {
 }
 
 Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
-    return Loader::get()->unzipGeodeFile(metadata.getID());
+    return LoaderImpl::get()->unzipGeodeFile(metadata.getID());
 }
 
 std::filesystem::path Mod::Impl::getConfigDir(bool create) const {

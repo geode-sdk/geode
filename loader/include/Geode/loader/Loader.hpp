@@ -110,8 +110,6 @@ namespace geode {
         std::vector<LoadProblem> getOutdated() const;
         std::vector<LoadProblem> getRecommendations() const;
 
-        Result<> unzipGeodeFile(std::string mod_id);
-
         /**
          * Returns the available launch argument names.
          */

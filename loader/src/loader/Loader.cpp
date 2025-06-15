@@ -123,7 +123,3 @@ std::optional<std::string> Loader::getLaunchArgument(std::string_view name) cons
 bool Loader::getLaunchFlag(std::string_view name) const {
     return m_impl->getLaunchFlag(name);
 }
-
-Result<> Loader::unzipGeodeFile(std::string mod_id) {
-    return m_impl->unzipGeodeFile(mod_id);
-}
