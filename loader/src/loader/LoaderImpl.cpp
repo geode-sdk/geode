@@ -848,11 +848,11 @@ void Loader::Impl::addUninitializedHook(Hook* hook, Mod* mod) {
     m_uninitializedHooks.emplace_back(hook, mod);
 }
 
-Result<> Loader::Impl::unzipGeodeFile(std::string mod_id) {
+Result<> Loader::Impl::unzipGeodeFile(std::string modId) {
     // Unzip .geode file into temp dir
-    auto tempDir = dirs::getModRuntimeDir() / mod_id;
-    auto extractPath = dirs::getModsDir() / (mod_id + ".geode");
-    std::string binaryName = mod_id + GEODE_PLATFORM_EXTENSION;
+    auto tempDir = dirs::getModRuntimeDir() / modId;
+    auto extractPath = dirs::getModsDir() / (modId + ".geode");
+    std::string binaryName = modId + GEODE_PLATFORM_EXTENSION;
 
     auto datePath = tempDir / "modified-at";
     std::string currentHash = file::readString(datePath).unwrapOr("");
