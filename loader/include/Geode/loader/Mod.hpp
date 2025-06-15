@@ -12,6 +12,7 @@
 #include "Setting.hpp"
 #include "Types.hpp"
 #include "Loader.hpp"
+#include "../utils/string.hpp"
 
 #include <matjson.hpp>
 #include <matjson/stl_serialize.hpp>
@@ -522,3 +523,18 @@ template <geode::geode_internal::StringConcatModIDSlash Str>
 constexpr auto operator""_spr() {
     return Str.buffer;
 }
+
+#define GEODE_MOD_STATIC_PATCH(offset, ...) \
+    doNotOptimize(utils::string::ConstexprString::toLiteral([](){\
+        utils::string::ConstexprString str2;                     \
+        str2.push(__VA_ARGS__);                                  \
+        utils::string::ConstexprString str;                      \
+        str.push("[GEODE_PATCH_SIZE]");                          \
+        str.push(str2.size(), 16);                               \
+        str.push("[GEODE_PATCH_BYTES]");                         \
+        str.push(str2);                                          \
+        str.push("[GEODE_PATCH_OFFSET]");                        \
+        str.push(offset, 16);                                    \
+        str.push("[GEODE_PATCH_END]");                           \
+        return str;                                              \
+    }))
