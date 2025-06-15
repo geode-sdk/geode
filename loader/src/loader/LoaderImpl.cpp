@@ -848,6 +848,53 @@ void Loader::Impl::addUninitializedHook(Hook* hook, Mod* mod) {
     m_uninitializedHooks.emplace_back(hook, mod);
 }
 
+Result<> Loader::Impl::unzipGeodeFile(std::string modId) {
+    // Unzip .geode file into temp dir
+    auto tempDir = dirs::getModRuntimeDir() / modId;
+    auto extractPath = dirs::getModsDir() / (modId + ".geode");
+    std::string binaryName = modId + GEODE_PLATFORM_EXTENSION;
+
+    auto datePath = tempDir / "modified-at";
+    std::string currentHash = file::readString(datePath).unwrapOr("");
+
+    auto modifiedDate = std::filesystem::last_write_time(extractPath);
+    auto modifiedCount = std::chrono::duration_cast<std::chrono::milliseconds>(modifiedDate.time_since_epoch());
+    auto modifiedHash = std::to_string(modifiedCount.count());
+    if (currentHash == modifiedHash) {
+        log::debug("Same hash detected, skipping unzip");
+        return Ok();
+    }
+    log::debug("Hash mismatch detected, unzipping");
+
+    std::error_code ec;
+    std::filesystem::remove_all(tempDir, ec);
+    if (ec) {
+        auto message = ec.message();
+        #ifdef GEODE_IS_WINDOWS
+            // Force the error message into English
+            message = formatSystemError(ec.value());
+        #endif
+        return Err("Unable to delete temp dir: " + message);
+    }
+
+    (void)utils::file::createDirectoryAll(tempDir);
+
+    GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(extractPath));
+    if (!unzip.hasEntry(binaryName)) {
+        return Err(
+            fmt::format("Unable to find platform binary under the name \"{}\"", binaryName)
+        );
+    }
+    GEODE_UNWRAP(unzip.extractAllTo(tempDir));
+
+    auto res = file::writeString(datePath, modifiedHash);
+    if (!res) {
+        log::warn("Failed to write modified date of geode zip: {}", res.unwrapErr());
+    }
+
+    return Ok();
+}
+
 bool Loader::Impl::loadHooks() {
     m_readyToHook = true;
     bool hadErrors = false;
