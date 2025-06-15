@@ -169,7 +169,7 @@ namespace geode::utils::string {
             m_buffer[m_size] = 0;
         }
         template <std::integral Int>
-        constexpr void push(Int value, size_t base = 10) {
+        constexpr void push(Int value, size_t base) {
             if (value < 0) {
                 push('-');
                 value = -value;
@@ -185,6 +185,8 @@ namespace geode::utils::string {
             } while (value != 0);
 
             std::copy(buffer.begin() + index, buffer.end(), end());
+            m_size += buffer.size() - index;
+            m_buffer[m_size] = 0;
         }
 
         static consteval auto toWideArray(std::invocable auto callable) {
