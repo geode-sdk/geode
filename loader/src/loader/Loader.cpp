@@ -123,3 +123,7 @@ std::optional<std::string> Loader::getLaunchArgument(std::string_view name) cons
 bool Loader::getLaunchFlag(std::string_view name) const {
     return m_impl->getLaunchFlag(name);
 }
+
+bool Loader::isPatchless() const {
+    return m_impl->isPatchless();
+}

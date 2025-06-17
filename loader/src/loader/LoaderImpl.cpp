@@ -108,6 +108,7 @@ Result<> Loader::Impl::setup() {
                 log::error("Failed to disable runtime intervening: {}", res.unwrapErr());
             } else {
                 log::info("Runtime intervening disabled successfully");
+                m_isPatchless = true;
             }
         }
     }
@@ -1191,4 +1192,8 @@ bool Loader::Impl::isRestartRequired() const {
         return true;
     }
     return false;
+}
+
+bool Loader::Impl::isPatchless() const {
+    return m_isPatchless;
 }
