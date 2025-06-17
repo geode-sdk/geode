@@ -3,7 +3,7 @@
 
 using namespace geode::prelude;
 
-$execute {
+$on_mod(Loaded) {
     if (LoaderImpl::get()->isForwardCompatMode()) return;
 
 #if GEODE_COMP_GD_VERSION == 22074
