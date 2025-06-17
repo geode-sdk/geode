@@ -22,6 +22,15 @@ using namespace geode::prelude;
 
 class CustomMenuLayer;
 
+void func(){}
+
+$execute {
+    GEODE_MOD_STATIC_PATCH(0x123456, "\x12\x34\x56\x78");
+    GEODE_MOD_STATIC_PATCH(0x123456, {0x12, 0x34, 0x56, 0x78});
+
+    auto res = GEODE_MOD_STATIC_HOOK(0x123456, &func, "func");
+}
+
 struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
     static void onModify(auto& self) {
         if (!self.setHookPriority("MenuLayer::init", geode::node_ids::GEODE_ID_PRIORITY)) {

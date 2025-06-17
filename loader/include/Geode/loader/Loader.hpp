@@ -160,9 +160,10 @@ namespace geode {
 
         /**
          * Returns whether the loader does not use dynamic patching or hooking.
-         * You should use GEODE_MOD_STATIC_PATCH macro instead of Mod::patch if
-         * that is the case. Modify classes are handled automatically, and enabling/
-         * disabling hooks works fine too.
+         * You should use GEODE_MOD_STATIC_PATCH macro instead of Mod::patch  and
+         * GEODE_MOD_STATIC_HOOK macro instead of Mod::hook if that is the case.
+         * Modify classes are handled automatically, and enabling/disabling hooks
+         * works fine too.
          * @return True if the loader does not use dynamic patching or hooking,
          * false if it does.
          */

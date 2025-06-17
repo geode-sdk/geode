@@ -524,7 +524,17 @@ constexpr auto operator""_spr() {
     return Str.buffer;
 }
 
-#define GEODE_MOD_STATIC_PATCH(offset, ...) \
+/**
+ * Leaves a marker in the binary that can be used to patch
+ * the game at a specific offset with a specific byte sequence.
+ * Used for runtime patchless install.
+ * @example
+ * ```cpp
+ * GEODE_MOD_STATIC_PATCH(0x1234, "\x12\x34\x56\x78");
+ * GEODE_MOD_STATIC_PATCH(0x5678, {0x12, 0x34, 0x56, 0x78});
+ * ```
+ */
+#define GEODE_MOD_STATIC_PATCH(Offset_, ...) \
     doNotOptimize(utils::string::ConstexprString::toLiteral([](){\
         utils::string::ConstexprString str2;                     \
         str2.push(__VA_ARGS__);                                  \
@@ -534,7 +544,29 @@ constexpr auto operator""_spr() {
         str.push("[GEODE_PATCH_BYTES]");                         \
         str.push(str2);                                          \
         str.push("[GEODE_PATCH_OFFSET]");                        \
-        str.push(offset, 16);                                    \
+        str.push(Offset_, 16);                                   \
         str.push("[GEODE_PATCH_END]");                           \
         return str;                                              \
     }))
+
+/**
+ * Leaves a marker in the binary that can be used to hook
+ * the game at a specific offset with a specific detour.
+ * Used for runtime patchless install.
+ * @example
+ * ```cpp
+ * auto res = GEODE_MOD_STATIC_HOOK(0x1234, &myDetour, "MenuLayer::init");
+ * ```
+ */
+#define GEODE_MOD_STATIC_HOOK(Offset_, Detour_, ...) \
+    (doNotOptimize(utils::string::ConstexprString::toLiteral([](){ \
+        utils::string::ConstexprString str;                        \
+        str.push("[GEODE_MODIFY_NAME]");                           \
+        str.push(GEODE_STR(__VA_ARGS__));                          \
+        str.push("[GEODE_MODIFY_OFFSET]");                         \
+        str.push(Offset_, 16);                                     \
+        return str;                                                \
+    })), geode::Mod::get()->hook(                                  \
+        reinterpret_cast<void*>(geode::base::get() + Offset_),     \
+        Detour_,                                                   \
+        GEODE_STR(__VA_ARGS__)))
