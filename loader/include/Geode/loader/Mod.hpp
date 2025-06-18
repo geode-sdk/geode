@@ -565,6 +565,7 @@ constexpr auto operator""_spr() {
         str.push(GEODE_STR(__VA_ARGS__));                          \
         str.push("[GEODE_MODIFY_OFFSET]");                         \
         str.push(Offset_, 16);                                     \
+        str.push("[GEODE_MODIFY_END]");                            \
         return str;                                                \
     })), geode::Mod::get()->hook(                                  \
         reinterpret_cast<void*>(geode::base::get() + Offset_),     \
