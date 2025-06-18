@@ -192,7 +192,6 @@ static std::string getInfo(void* address, Mod* faultyMod) {
     auto image = imageFromAddress(address);
     auto imageName = getImageName(image);
     stream << "Faulty Lib: " << imageName << "\n";
-    stream << "Faulty Mod: " << (faultyMod ? faultyMod->getID() : "<Unknown>") << "\n";
     stream << "Instruction Address: " << formatAddress(address) << "\n";
     stream << fmt::format("Signal Code: 0x{:x} ({})\n", s_signal, getSignalCodeString());
 

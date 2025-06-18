@@ -167,7 +167,6 @@ static Mod* modFromAddress(void const* addr) {
 static std::string getInfo(void* address, Mod* faultyMod) {
     std::stringstream stream;
     stream << "Faulty Lib: " << getImageName(imageFromAddress(address)) << "\n";
-    stream << "Faulty Mod: " << (faultyMod ? faultyMod->getID() : "<Unknown>") << "\n";
     stream << "Instruction Address: " << address << "\n";
     stream << "Signal Code: " << std::hex << s_signal << " (" << getSignalCodeString() << ")" << std::dec << "\n";
     return stream.str();
