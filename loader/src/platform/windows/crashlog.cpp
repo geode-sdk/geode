@@ -440,19 +440,12 @@ static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod, Mod* suspe
 
     DWORD code = info->ExceptionRecord->ExceptionCode;
 
-    auto makeFaultyModString = [](Mod* mod) -> std::string {
-        if (!mod) return "Faulty Mod: <Unknown>";
-
-        return fmt::format("Faulty Mod: {} {} ({})", mod->getName(), mod->getVersion().toVString(), mod->getID());
-    };
-
     if (code == EXCEPTION_NUMBER) {
         if (!faultyMod) {
             faultyMod = suspectedFaultyMod;
         }
 
         stream << parseCppException(info) << "\n";
-        stream << makeFaultyModString(faultyMod) << "\n";
     }
     else if (isGeodeExceptionCode(code)) {
         stream
