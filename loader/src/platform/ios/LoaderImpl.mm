@@ -93,12 +93,7 @@ std::string Loader::Impl::getGameVersion() {
  * but who cares about semver, right?
  */
 bool Loader::Impl::isModVersionSupported(VersionInfo const& target) {
-    if (m_isPatchless) {
-        if (target >= VersionInfo(4, 6, 0)) {
-            return semverCompare(this->getVersion(), target);
-        }
-        return false;
-    }
+    if (m_isPatchless && target < VersionInfo(4, 6, 0)) return false;
     return semverCompare(this->getVersion(), target);
 }
 
