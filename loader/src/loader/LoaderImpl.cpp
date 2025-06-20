@@ -44,24 +44,8 @@ Loader::Impl::~Impl() = default;
 
 // Initialization
 
-bool Loader::Impl::isForwardCompatMode() {
-#ifdef GEODE_IS_ANDROID
-    // forward compat mode doesn't really make sense on android
-    return false;
-#endif
-
-    if (!m_forwardCompatMode.has_value()) {
-        m_forwardCompatMode = !this->getGameVersion().empty() &&
-            this->getGameVersion() != GEODE_STR(GEODE_GD_VERSION);
-    }
-    return m_forwardCompatMode.value();
-}
-
 void Loader::Impl::createDirectories() {
-#ifdef GEODE_IS_MACOS
-    std::filesystem::create_directory(dirs::getSaveDir());
-#endif
-
+    (void) utils::file::createDirectoryAll(dirs::getSaveDir());
     (void) utils::file::createDirectoryAll(dirs::getGeodeResourcesDir());
     (void) utils::file::createDirectoryAll(dirs::getModConfigDir());
     (void) utils::file::createDirectoryAll(dirs::getModsDir());
@@ -193,10 +177,6 @@ VersionInfo Loader::Impl::maxModVersion() {
         // todo: dynamic version info (vM.M.*)
         99999999,
     };
-}
-
-bool Loader::Impl::isModVersionSupported(VersionInfo const& target) {
-    return semverCompare(this->getVersion(), target);
 }
 
 // Data saving

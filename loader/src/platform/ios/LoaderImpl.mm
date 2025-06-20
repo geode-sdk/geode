@@ -87,3 +87,21 @@ std::string Loader::Impl::getGameVersion() {
 
     return version;
 }
+
+/**
+ * iOS Jitless is implemented with Geode 4.6.0, so we kinda did a major change
+ * but who cares about semver, right?
+ */
+bool Loader::Impl::isModVersionSupported(VersionInfo const& target) {
+    if (m_isPatchless) {
+        if (target >= VersionInfo(4, 6, 0)) {
+            return semverCompare(this->getVersion(), target);
+        }
+        return false;
+    }
+    return semverCompare(this->getVersion(), target);
+}
+
+bool Loader::Impl::isForwardCompatMode() {
+    return false;
+}
