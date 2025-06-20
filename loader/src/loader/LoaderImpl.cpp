@@ -45,6 +45,7 @@ Loader::Impl::~Impl() = default;
 // Initialization
 
 void Loader::Impl::createDirectories() {
+    log::debug("Creating necessary directories");
     (void) utils::file::createDirectoryAll(dirs::getSaveDir());
     (void) utils::file::createDirectoryAll(dirs::getGeodeResourcesDir());
     (void) utils::file::createDirectoryAll(dirs::getModConfigDir());
@@ -59,6 +60,7 @@ void Loader::Impl::createDirectories() {
 }
 
 void Loader::Impl::removeDirectories() {
+    log::debug("Removing unnecessary directories");
     // clean up of stale data from Geode v2
     if(std::filesystem::exists(dirs::getGeodeDir() / "index")) {
         std::thread([] {
@@ -134,6 +136,7 @@ Result<> Loader::Impl::setup() {
 }
 
 void Loader::Impl::addSearchPaths() {
+    log::debug("Adding search paths");
     CCFileUtils::get()->addPriorityPath(dirs::getGeodeResourcesDir().string().c_str());
     CCFileUtils::get()->addPriorityPath(dirs::getModRuntimeDir().string().c_str());
 }
