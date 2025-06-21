@@ -75,12 +75,6 @@ Result<> Loader::Impl::setup() {
         return Ok();
     }
 
-    tulip::hook::setLogCallback([](std::string_view msg) {
-        log::debug("TulipHook: {}", msg);
-    });
-
-    log::debug("GD Base: {}", base::get());
-
     if (this->supportsLaunchArguments()) {
         log::info("Loading launch arguments");
         log::NestScope nest;
@@ -103,6 +97,13 @@ Result<> Loader::Impl::setup() {
                 m_isPatchless = true;
             }
         }
+    }
+
+    if (this->getLaunchFlag("enable-tulip-hook-logs")) {
+        log::info("Enabling TulipHook logs");
+        tulip::hook::setLogCallback([](std::string_view msg) {
+            log::debug("TulipHook: {}", msg);
+        });
     }
 
     // on some platforms, using the crash handler overrides more convenient native handlers
