@@ -79,6 +79,8 @@ Result<> Loader::Impl::setup() {
         log::debug("TulipHook: {}", msg);
     });
 
+    log::debug("GD Base: {}", base::get());
+
     if (this->supportsLaunchArguments()) {
         log::info("Loading launch arguments");
         log::NestScope nest;
