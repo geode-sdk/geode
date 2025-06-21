@@ -75,6 +75,10 @@ Result<> Loader::Impl::setup() {
         return Ok();
     }
 
+    tulip::hook::setLogCallback([](std::string_view msg) {
+        log::debug("TulipHook: {}", msg);
+    });
+
     if (this->supportsLaunchArguments()) {
         log::info("Loading launch arguments");
         log::NestScope nest;
