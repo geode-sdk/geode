@@ -9,11 +9,38 @@
 #include <type_traits>
 #include <typeinfo>
 #include <memory>
+#include <intrin.h>  // for _ReadWriteBarrier
 
 namespace geode {
     struct PlatformInfo {
         HMODULE m_hmod;
     };
+
+    namespace internal {
+        inline void const volatile* volatile globalForceEscape;
+
+        inline void useCharPointer(char const volatile* const ptr) {
+            globalForceEscape = reinterpret_cast<void const volatile*>(ptr);
+        }
+    }
+
+    template <class T>
+    GEODE_INLINE inline void doNotOptimize(T const& value) {
+        internal::useCharPointer(&reinterpret_cast<char const volatile&>(value));
+        _ReadWriteBarrier();
+    }
+
+    template <class T>
+    GEODE_INLINE inline void doNotOptimize(T& value) {
+        internal::useCharPointer(&reinterpret_cast<char const volatile&>(value));
+        _ReadWriteBarrier();
+    }
+
+    template <class T>
+    GEODE_INLINE inline void doNotOptimize(T&& value) {
+        internal::useCharPointer(&reinterpret_cast<char const volatile&>(value));
+        _ReadWriteBarrier();
+    }
 }
 
 namespace geode::base {

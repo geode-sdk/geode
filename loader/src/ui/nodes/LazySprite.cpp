@@ -317,7 +317,7 @@ void LazySprite::loadFromData(std::vector<uint8_t> data, Format format) {
     m_expectedFormat = format;
     m_isLoading = true;
 
-    this->doInitFromBytes(data, "");
+    this->doInitFromBytes(std::move(data), "");
 }
 
 void LazySprite::doInitFromBytes(std::vector<uint8_t> data, std::string cacheKey) {
@@ -399,8 +399,8 @@ bool LazySprite::initFromCache(char const* key) {
 
 /* It's not impossible to optimize those too, but I did not bother for now, so they are just forwarders */
 
-bool LazySprite::initWithTexture(CCTexture2D* texture, const CCRect& rect) {
-    return this->postInit(CCSprite::initWithTexture(texture, rect));
+bool LazySprite::initWithTexture(CCTexture2D* texture, const CCRect& rect, bool rotated) {
+    return this->postInit(CCSprite::initWithTexture(texture, rect, rotated));
 }
 
 bool LazySprite::initWithSpriteFrame(CCSpriteFrame* sf) {

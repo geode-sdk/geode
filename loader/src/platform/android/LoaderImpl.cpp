@@ -62,3 +62,11 @@ std::string Loader::Impl::getLaunchCommand() const {
 
     return launchArgs;
 }
+
+bool Loader::Impl::isModVersionSupported(VersionInfo const& target) {
+    return semverCompare(this->getVersion(), target);
+}
+
+bool Loader::Impl::isForwardCompatMode() {
+    return false;
+}

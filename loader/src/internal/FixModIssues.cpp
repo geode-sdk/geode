@@ -179,12 +179,12 @@ public:
 
 static std::optional<AutoFixStatus> STATUS = {};
 
-void internal::tryAutoFixModIssues() {
+void geode::internal::tryAutoFixModIssues() {
     if (!STATUS) {
         STATUS.emplace(AutoFixStatus());
         STATUS->start();
     }
 }
-bool internal::hasTriedToFixIssues() {
+bool geode::internal::hasTriedToFixIssues() {
     return STATUS.has_value();
 }

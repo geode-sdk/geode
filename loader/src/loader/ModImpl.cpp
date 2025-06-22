@@ -403,7 +403,7 @@ Result<> Mod::Impl::uninstall(bool deleteSaveData) {
 
     if (this->isInternal()) {
         utils::game::launchLoaderUninstaller(deleteSaveData);
-        utils::game::exit();
+        utils::game::exit(true);
         return Ok();
     }
 
@@ -634,11 +634,7 @@ Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
     std::error_code ec;
     std::filesystem::remove_all(tempDir, ec);
     if (ec) {
-        auto message = ec.message();
-        #ifdef GEODE_IS_WINDOWS
-            // Force the error message into English
-            message = formatSystemError(ec.value());
-        #endif
+        auto message = formatSystemError(ec.value());
         return Err("Unable to delete temp dir: " + message);
     }
 

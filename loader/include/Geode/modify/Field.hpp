@@ -71,6 +71,11 @@ namespace geode::modifier {
         }
 
         auto self() {
+            static_assert(
+                std::is_base_of_v<cocos2d::CCNode, Base>,
+                "'m_fields' can only be used when modifying classes derived from 'cocos2d::CCNode'"
+            );
+
             // get the this pointer of the base
             // field intermediate is the first member of Modify
             // meaning we can get the base from ourself

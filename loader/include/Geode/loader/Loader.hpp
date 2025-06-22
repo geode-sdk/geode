@@ -158,6 +158,17 @@ namespace geode {
          */
         std::string getGameVersion();
 
+        /**
+         * Returns whether the loader does not use dynamic patching or hooking.
+         * You should use GEODE_MOD_STATIC_PATCH macro instead of Mod::patch and
+         * GEODE_MOD_STATIC_HOOK macro instead of Mod::hook if that is the case.
+         * Modify classes are handled automatically, and enabling/disabling hooks
+         * works fine too.
+         * @return True if the loader does not use dynamic patching or hooking,
+         * false if it does.
+         */
+        bool isPatchless() const;
+
         friend class LoaderImpl;
 
         friend Mod* takeNextLoaderMod();
@@ -168,7 +179,7 @@ namespace geode {
      *
      * @param func the function to queue
     */
-    inline GEODE_HIDDEN void queueInMainThread(ScheduledFunction&& func) {
+    inline void queueInMainThread(ScheduledFunction&& func) {
         Loader::get()->queueInMainThread(std::forward<ScheduledFunction>(func));
     }
 
@@ -177,7 +188,7 @@ namespace geode {
      *
      * @return Mod* The next mod to load
     */
-    inline GEODE_HIDDEN Mod* takeNextLoaderMod() {
+    inline Mod* takeNextLoaderMod() {
         return Loader::get()->takeNextMod();
     }
 }

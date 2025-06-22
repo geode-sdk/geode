@@ -29,7 +29,7 @@ namespace geode {
     namespace utils {
         /**
          * A helper struct for std::visit.
-         * 
+         *
          * @example
          * return std::visit(utils::makeVisitor {
          *     [](float value) {
@@ -48,7 +48,7 @@ namespace geode {
 
         /**
          * A helper function to get a default value if a variant fails.
-         * 
+         *
          * @param variant The variant
          * @param defValue The fallback value
          */
@@ -59,9 +59,9 @@ namespace geode {
         }
 
         /**
-         * A simple constexpr hash of `char const*` for switch cases and other 
+         * A simple constexpr hash of `char const*` for switch cases and other
          * constexpr uses.
-         * 
+         *
          * @param str The string
          * @returns The computed hash
          */
@@ -70,9 +70,9 @@ namespace geode {
         }
 
         /**
-         * A simple constexpr hash of `std::string_view` for switch cases and other 
+         * A simple constexpr hash of `std::string_view` for switch cases and other
          * constexpr uses.
-         * 
+         *
          * @param str The string
          * @returns The computed hash
          */
@@ -80,9 +80,9 @@ namespace geode {
             return h >= str.size() ? 5381 : (hash(str, h + 1) * 33) ^ str[h];
         }
         /**
-         * A simple constexpr hash of `wchar_t const*` for switch cases and other 
+         * A simple constexpr hash of `wchar_t const*` for switch cases and other
          * constexpr uses.
-         * 
+         *
          * @param str The string
          * @returns The computed hash
          */
@@ -91,9 +91,9 @@ namespace geode {
         }
 
         /**
-         * A simple constexpr hash of `std::wstring_view` for switch cases and other 
+         * A simple constexpr hash of `std::wstring_view` for switch cases and other
          * constexpr uses.
-         * 
+         *
          * @param str The string
          * @returns The computed hash
          */
@@ -111,7 +111,7 @@ namespace geode {
         /**
          * A simple function that clamps a value between two others.
          * @deprecated Use std::clamp instead
-         * 
+         *
          * @param value Value
          * @param minValue The minimum value
          * @param maxValue The maximum value
@@ -125,7 +125,7 @@ namespace geode {
         /**
          * A simple function that converts an integer into a hexadecimal string
          * @deprecated Use `fmt::format("{:#x}", value)` instead
-         * 
+         *
          * @param i The integer
          * @returns The hex string
          */
@@ -221,7 +221,7 @@ namespace geode {
 
         /**
          * Converts the given time point into a string using `ctime`.
-         * 
+         *
          * @param tp The timepoint
          * @returns The converted string
          */
@@ -236,7 +236,7 @@ namespace geode {
 
         /**
          * Gets an environment variable from the device.
-         * 
+         *
          * @param name The key of the variable
          * @returns The value of the variable
          */
@@ -257,7 +257,7 @@ namespace geode {
 
     /**
      * A convenience function that creates a formatted `Err<std::string>`.
-     * 
+     *
      * @param fmt The format string
      * @param args The format args
      * @returns An error `Result`
@@ -274,12 +274,25 @@ struct matjson::Serialize<geode::ByteVector> {
     static Value toJson(geode::ByteVector const& bytes) {
         return std::vector<matjson::Value>(bytes.begin(), bytes.end());
     }
+
+    static geode::Result<geode::ByteVector, std::string> fromJson(Value const& value) {
+        if (auto arr = value.as<std::vector<matjson::Value>>()) {
+            geode::ByteVector bytes;
+            for (auto const& item : *arr) {
+                if (auto byte = item.as<uint8_t>()) {
+                    bytes.push_back(*byte);
+                }
+            }
+            return geode::Ok(bytes);
+        }
+        return geode::Err("Expected a JSON array of numbers");
+    }
 };
 
 namespace geode::utils::clipboard {
     /**
      * Writes the given data into the clipboard as a string.
-     * 
+     *
      * @param data The data to write
      * @returns True if the operation was successful
      */
@@ -287,7 +300,7 @@ namespace geode::utils::clipboard {
 
     /**
      * Reads the clipboards onto a string.
-     * 
+     *
      * @returns The clipboard data if exists, an empty string on error.
      */
     GEODE_DLL std::string read();
@@ -296,35 +309,35 @@ namespace geode::utils::clipboard {
 namespace geode::utils::game {
     /**
      * Exits the game, saving the game data.
-     * 
+     *
      * @deprecated Use `game::exit(true)` instead
      */
     [[deprecated]] GEODE_DLL void exit(); // TODO: left for abi compat
 
     /**
      * Exits the game, optionally saving the game data.
-     * 
+     *
      * @param saveData Whether to save the game data
      */
     GEODE_DLL void exit(bool saveData /* = true */);
 
     /**
      * Restarts the game, saving the game data.
-     * 
+     *
      * @deprecated Use `game::restart(true)` instead
      */
     [[deprecated]] GEODE_DLL void restart(); // TODO: left for abi compat
 
     /**
      * Restarts the game, optionally saving the game data.
-     * 
+     *
      * @param saveData Whether to save the game data
      */
     GEODE_DLL void restart(bool saveData /* = true */);
 
     /**
      * Lauched the loader uninstaller, optionally deleting saved data.
-     * 
+     *
      * @param deleteSaveData  Whether to delete the saved game data
      */
     GEODE_DLL void launchLoaderUninstaller(bool deleteSaveData);
@@ -333,21 +346,21 @@ namespace geode::utils::game {
 namespace geode::utils::thread {
     /**
      * Gets the assigned name to a thread.
-     * 
+     *
      * @returns The thread name if exists, an empty string if not.
      */
     GEODE_DLL std::string getName();
 
     /**
      * Gets the default name to a thread.
-     * 
+     *
      * @returns The default thread name.
      */
     GEODE_DLL std::string getDefaultName();
 
     /**
      * Sets an assigned name to a thread.
-     * 
+     *
      * @param name The thread name to assign
      */
     GEODE_DLL void setName(std::string const& name);

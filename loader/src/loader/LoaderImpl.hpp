@@ -70,6 +70,8 @@ namespace geode {
 
         std::unordered_map<void*, std::pair<tulip::hook::HandlerHandle, size_t>> m_handlerHandles;
 
+        bool m_isPatchless = false;
+
         Result<tulip::hook::HandlerHandle> getHandler(void* address);
         Result<tulip::hook::HandlerHandle> getOrCreateHandler(void* address, tulip::hook::HandlerMetadata const& metadata);
         Result<tulip::hook::HandlerHandle> getAndDecreaseHandler(void* address);
@@ -132,6 +134,7 @@ namespace geode {
 
         Mod* getInternalMod();
         Result<> setupInternalMod();
+        Result<> unzipGeodeFile(std::string modId);
 
         bool userTriedToLoadDLLs() const;
 
@@ -147,6 +150,8 @@ namespace geode {
         void installModManuallyFromFile(std::filesystem::path const& path, std::function<void()> after);
 
         bool isRestartRequired() const;
+
+        bool isPatchless() const;
     };
 
     class LoaderImpl : public Loader::Impl {

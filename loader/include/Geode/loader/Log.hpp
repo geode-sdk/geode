@@ -32,7 +32,7 @@ namespace geode::log::impl {
     concept IsWrappedCocos = std::is_pointer_v<std::decay_t<T>> && requires(T ptr) { geode::format_as(ptr); };
 
     template <class T>
-    GEODE_INLINE GEODE_HIDDEN decltype(auto) wrapCocosObj(T&& value) {
+    inline decltype(auto) wrapCocosObj(T&& value) {
         if constexpr (IsWrappedCocos<T>) {
             return geode::format_as(value);
         } else {
@@ -61,13 +61,13 @@ namespace cocos2d {
 }
 
 namespace gd {
-    GEODE_INLINE GEODE_HIDDEN std::string format_as(gd::string const& value) {
+    inline std::string format_as(gd::string const& value) {
         return value;
     }
 }
 
 namespace std::filesystem {
-    GEODE_INLINE GEODE_HIDDEN std::string format_as(std::filesystem::path const& value) {
+    inline std::string format_as(std::filesystem::path const& value) {
         return value.string();
     }
 }

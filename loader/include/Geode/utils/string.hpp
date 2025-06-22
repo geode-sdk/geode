@@ -2,6 +2,7 @@
 
 #include <string_view>
 #include <string>
+#include <array>
 #include <vector>
 #include <compare>
 #include <filesystem>
@@ -110,4 +111,112 @@ namespace geode::utils::string {
      * Uses std::tolower, but could change in the future for better locale support
      */
     GEODE_DLL std::strong_ordering caseInsensitiveCompare(std::string_view a, std::string_view b);
+
+    struct ConstexprString {
+        std::array<char, 1024> m_buffer{};
+        std::size_t m_size = 0;
+        constexpr ConstexprString() {
+            m_buffer[0] = 0;
+        }
+
+        constexpr char* begin() {
+            return m_buffer.data();
+        }
+        constexpr char const* begin() const {
+            return m_buffer.data();
+        }
+        constexpr char* end() {
+            return m_buffer.data() + m_size;
+        }
+        constexpr char const* end() const {
+            return m_buffer.data() + m_size;
+        }
+        constexpr char* data() {
+            return m_buffer.data();
+        }
+        constexpr char const* data() const {
+            return m_buffer.data();
+        }
+        constexpr std::size_t size() const {
+            return m_size;
+        }
+
+        constexpr void push(char x) {
+            m_buffer[m_size++] = x;
+            m_buffer[m_size] = 0;
+        }
+
+        constexpr void push(std::string_view x) {
+            std::copy(x.begin(), x.end(), end());
+            m_size += x.size();
+            m_buffer[m_size] = 0;
+        }
+        constexpr void push(ConstexprString const& x) {
+            std::copy(x.begin(), x.end(), end());
+            m_size += x.size();
+            m_buffer[m_size] = 0;
+        }
+        template <std::integral Int, size_t N>
+        constexpr void push(std::array<Int, N> const& arr) {
+            std::copy(arr.begin(), arr.end(), end());
+            m_size += N;
+            m_buffer[m_size] = 0;
+        }
+        template <std::integral Int>
+        constexpr void push(std::initializer_list<Int> const& arr) {
+            std::copy(arr.begin(), arr.end(), end());
+            m_size += arr.size();
+            m_buffer[m_size] = 0;
+        }
+        template <std::integral Int>
+        constexpr void push(Int value, size_t base) {
+            if (value < 0) {
+                push('-');
+                value = -value;
+            }
+            constexpr auto digits = "0123456789abcdef";
+
+            std::array<char, 64> buffer;
+            auto index = buffer.size();
+            do {
+                const auto digit = value % base;
+                value /= base;
+                buffer[--index] = digits[digit];
+            } while (value != 0);
+
+            std::copy(buffer.begin() + index, buffer.end(), end());
+            m_size += buffer.size() - index;
+            m_buffer[m_size] = 0;
+        }
+
+        static consteval auto toWideArray(std::invocable auto callable) {
+            auto str = callable();
+            struct BigArray {
+                std::array<char, 1024> data{};
+                std::size_t size = 0;
+            };
+            BigArray arr;
+            std::copy(str.m_buffer.begin(), str.m_buffer.end(), arr.data.begin());
+            arr.size = str.m_size;
+            return arr;
+        }
+
+        static consteval auto toFitArray(std::invocable auto callable) {
+            constexpr auto arr = ConstexprString::toWideArray(callable);
+            std::array<char, arr.size + 1> fit;
+            std::copy(arr.data.begin(), arr.data.begin() + arr.size, fit.begin());
+            fit[arr.size] = 0;
+            return fit;
+        }
+
+        template <auto data>
+        static consteval const auto& makeStatic() {
+            return data;
+        }
+
+        static consteval const char* toLiteral(std::invocable auto callable) {
+        constexpr auto& staticData = makeStatic<toFitArray(callable)>();
+            return staticData.data();
+        }
+    };
 }
