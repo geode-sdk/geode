@@ -1,5 +1,9 @@
 # Geode Changelog
 
+## v4.6.1
+ * Fix several random crashes caused by incorrect relocation code in Tuliphook
+ * Make unzip upon download iOS only (0a6d09c)
+
 ## v4.6.0
  * JIT-less iOS support! (#1395)
    * This means that Geode now supports iOS 26 beta and above
