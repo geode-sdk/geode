@@ -654,23 +654,21 @@ Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
 
     // Delete binaries for other platforms since they're pointless
     // The if should never fail, but you never know
-    if (suffix.length() != 0) {
-        const std::string platformBinaryName = fmt::format("{}{}", metadata.getID(), GEODE_PLATFORM_EXTENSION);
-        for (auto& entry : std::filesystem::directory_iterator(tempDir)) {
-            if (entry.is_directory()) {
-                continue;
-            }
-
-            const std::string filename = geode::utils::string::pathToString(entry.path().filename());
-            if (filename == platformBinaryName || !isPlatformBinary(metadata.getID(), filename)) {
-                continue;
-            }
-
-            // The binary is not for our platform, delete!
-            // We don't really care if the deletion succeeds though.
-            std::error_code ec;
-            std::filesystem::remove(entry.path(), ec);
+    const std::string platformBinaryName = fmt::format("{}{}", metadata.getID(), GEODE_PLATFORM_EXTENSION);
+    for (auto& entry : std::filesystem::directory_iterator(tempDir)) {
+        if (entry.is_directory()) {
+            continue;
         }
+
+        const std::string filename = geode::utils::string::pathToString(entry.path().filename());
+        if (filename == platformBinaryName || !isPlatformBinary(metadata.getID(), filename)) {
+            continue;
+        }
+
+        // The binary is not for our platform, delete!
+        // We don't really care if the deletion succeeds though.
+        std::error_code ec;
+        std::filesystem::remove(entry.path(), ec);
     }
 
     auto res = file::writeString(datePath, modifiedHash);
