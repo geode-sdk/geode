@@ -264,7 +264,7 @@ bool ModItem::init(ModSource&& source) {
             if (metadata.tags.contains("joke")) {
                 m_badgeContainer->addChild(CCSprite::createWithSpriteFrameName("tag-joke.png"_spr));
             }
-            if (metadata.tags.contains("api") || metadata.isAPI()) {
+            if (metadata.tags.contains("api")) {
                 m_badgeContainer->addChild(CCSprite::createWithSpriteFrameName("tag-api.png"_spr));
             }
             if (metadata.tags.contains("modtober24winner") || m_source.getID() == "rainixgd.geome3dash") {
