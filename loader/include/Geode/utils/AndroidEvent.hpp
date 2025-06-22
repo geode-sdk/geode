@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Geode/platform/cplatform.h>
+#include "../platform/cplatform.h"
 
 // this is exclusively for android users if you're not android please look away
 #ifdef GEODE_IS_ANDROID
