@@ -12,6 +12,7 @@
 #include <Geode/binding/MenuLayer.hpp>
 #include <Geode/Result.hpp>
 #include <Geode/DefaultInclude.hpp>
+#include <Geode/loader/AndroidEvent.hpp>
 #include <optional>
 #include <mutex>
 #include <string.h>
@@ -468,8 +469,6 @@ cocos2d::CCRect geode::utils::getSafeAreaRect() {
 
     return cocos2d::CCRect(insetX, insetY, winSize.width - 2 * insetX, winSize.height - 2 * insetY);
 }
-
-#include <Geode/loader/AndroidEvent.hpp>
 
 extern "C"
 JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_setNextInputTimestampInternal(JNIEnv*, jobject, jlong timestamp) {
