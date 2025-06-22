@@ -63,6 +63,7 @@ jobs:
           files: |
             ./geode-installer-v${{ steps.ref.outputs.version }}-win.exe
             ./geode-installer-v${{ steps.ref.outputs.version }}-mac.pkg
+            ./geode-installer-v${{ steps.ref.outputs.version }}-linux.sh
             ./geode-v${{ steps.ref.outputs.version }}-win.zip
             ./geode-v${{ steps.ref.outputs.version }}-mac.zip
             ./geode-v${{ steps.ref.outputs.version }}-android32.zip
