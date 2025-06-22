@@ -468,3 +468,10 @@ cocos2d::CCRect geode::utils::getSafeAreaRect() {
 
     return cocos2d::CCRect(insetX, insetY, winSize.width - 2 * insetX, winSize.height - 2 * insetY);
 }
+
+#include <Geode/loader/AndroidEvent.hpp>
+
+extern "C"
+JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_setNextInputTimestampInternal(JNIEnv*, jobject, jlong timestamp) {
+    geode::AndroidInputTimestampEvent(timestamp).post();
+}
