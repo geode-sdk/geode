@@ -12,7 +12,7 @@
 #include <Geode/binding/MenuLayer.hpp>
 #include <Geode/Result.hpp>
 #include <Geode/DefaultInclude.hpp>
-#include <Geode/loader/AndroidEvent.hpp>
+#include <Geode/utils/AndroidEvent.hpp>
 #include <optional>
 #include <mutex>
 #include <string.h>
@@ -487,4 +487,13 @@ geode::Result<int> geode::utils::getLauncherVersion() {
     }
 
     return Err("method not found");
+}
+
+AndroidInputTimestampEvent::AndroidInputTimestampEvent(long timestamp) : m_timestamp(timestamp) {}
+
+long AndroidInputTimestampEvent::getTimestamp() const { return m_timestamp; }
+
+ListenerResult AndroidInputTimestampFilter::handle(std::function<Callback> fn, AndroidInputTimestampEvent* event)  {
+    fn(event);
+    return ListenerResult::Propagate;
 }
