@@ -475,3 +475,17 @@ extern "C"
 JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_setNextInputTimestampInternal(JNIEnv*, jobject, jlong timestamp) {
     geode::AndroidInputTimestampEvent(timestamp).post();
 }
+
+geode::Result<int> geode::utils::getLauncherVersion() {
+    JniMethodInfo info;
+    if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "getLauncherVersion", "()I")) {
+        auto result = info.env->CallStaticIntMethod(info.classID, info.methodID);
+        info.env->DeleteLocalRef(info.classID);
+
+        return Ok(result);
+    } else {
+        clearJNIException();
+    }
+
+    return Err("method not found");
+}

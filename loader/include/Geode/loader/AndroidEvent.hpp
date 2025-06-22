@@ -8,6 +8,11 @@
 #include "Event.hpp"
 
 namespace geode {
+    namespace utils {
+        /** Gets the current version of the launcher. Returns an error if the method was not found. */
+        geode::Result<int> getLauncherVersion();
+    }
+
     /**
      * Input timestamp (in nanoseconds) sent by the launcher just before the next input event is received
      */
