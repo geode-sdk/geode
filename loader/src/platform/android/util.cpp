@@ -12,6 +12,7 @@
 #include <Geode/binding/MenuLayer.hpp>
 #include <Geode/Result.hpp>
 #include <Geode/DefaultInclude.hpp>
+#include <Geode/utils/AndroidEvent.hpp>
 #include <optional>
 #include <mutex>
 #include <string.h>
@@ -467,4 +468,32 @@ cocos2d::CCRect geode::utils::getSafeAreaRect() {
     auto insetY = std::max(insetTop, insetBottom);
 
     return cocos2d::CCRect(insetX, insetY, winSize.width - 2 * insetX, winSize.height - 2 * insetY);
+}
+
+extern "C"
+JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_setNextInputTimestampInternal(JNIEnv*, jobject, jlong timestamp) {
+    geode::AndroidInputTimestampEvent(timestamp).post();
+}
+
+geode::Result<int> geode::utils::getLauncherVersion() {
+    JniMethodInfo info;
+    if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "getLauncherVersion", "()I")) {
+        auto result = info.env->CallStaticIntMethod(info.classID, info.methodID);
+        info.env->DeleteLocalRef(info.classID);
+
+        return Ok(result);
+    } else {
+        clearJNIException();
+    }
+
+    return Err("method not found");
+}
+
+AndroidInputTimestampEvent::AndroidInputTimestampEvent(long timestamp) : m_timestamp(timestamp) {}
+
+long AndroidInputTimestampEvent::getTimestamp() const { return m_timestamp; }
+
+ListenerResult AndroidInputTimestampFilter::handle(std::function<Callback> fn, AndroidInputTimestampEvent* event)  {
+    fn(event);
+    return ListenerResult::Propagate;
 }
