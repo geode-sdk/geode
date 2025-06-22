@@ -38,16 +38,6 @@ static constexpr const char* humanReadableDescForAction(ModRequestedAction actio
     }
 }
 
-static constexpr const char* getModBinarySuffix() {
-    GEODE_WINDOWS(return ".dll");
-    GEODE_MACOS(return ".dylib");
-    GEODE_ANDROID32(return ".android32.so");
-    GEODE_ANDROID64(return ".android64.so");
-    GEODE_IOS(return ".ios.dylib");
-
-    return "";
-}
-
 static bool isPlatformBinary(std::string_view modID, std::string_view filename) {
     if (!filename.starts_with(modID)) {
         return false;
@@ -663,10 +653,9 @@ Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
     GEODE_UNWRAP(unzip.extractAllTo(tempDir));
 
     // Delete binaries for other platforms since they're pointless
-    static constexpr std::string_view suffix = getModBinarySuffix();
     // The if should never fail, but you never know
     if (suffix.length() != 0) {
-        const std::string platformBinaryName = fmt::format("{}{}", metadata.getID(), suffix);
+        const std::string platformBinaryName = fmt::format("{}{}", metadata.getID(), GEODE_PLATFORM_EXTENSION);
         for (auto& entry : std::filesystem::directory_iterator(tempDir)) {
             if (entry.is_directory()) {
                 continue;
