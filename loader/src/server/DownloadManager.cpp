@@ -149,6 +149,7 @@ public:
                             };
                         }
                         else {
+                            #ifdef GEODE_IS_IOS
                             auto okUnzip = LoaderImpl::get()->unzipGeodeFile(m_id);
                             if (!okUnzip) {
                                 m_status = DownloadStatusError {
@@ -160,6 +161,11 @@ public:
                                     .version = version
                                 };
                             }
+                            #else
+                            m_status = DownloadStatusDone {
+                                .version = version
+                            };
+                            #endif
                         }
                     }
                 }
