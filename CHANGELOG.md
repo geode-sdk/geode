@@ -1,5 +1,44 @@
 # Geode Changelog
 
+## v4.6.0
+ * JIT-less iOS support! (#1395)
+   * This means that Geode now supports iOS 26 beta and above
+   * Follow instructions in the [iOS launcher guide](https://github.com/geode-sdk/ios-launcher/blob/main/INSTALL.md) for setting up
+   * Old mods compiled for iOS need to be recompiled to work with this version, but other platforms are unaffected
+   * There are new additions to help with JIT-less specific hooking and patching
+     * Geode's own `Modify` classes should work out of the box
+     * You can check if the platform is JIT-less iOS by using the `Loader::isPatchless` function
+     * For custom hooks, you can use the `GEODE_MOD_STATIC_HOOK` macro to add a hook. This hook can be enabled and disabled like normal.
+     * For custom patches, you can use the `GEODE_MOD_STATIC_PATCH` macro to add a patch. This patch will be applied by the launcher and can not be disabled.
+     * If you have any dynamic patches, you can not use them with JIT-less iOS
+   * This is a pretty big update, so there might be some issues with it. Please report the issues you find.
+ * Major TulipHook update from 2.5.0 to 3.1.0 (#1395)
+   * Adds debug logging behind the launcher flag `enable-tulip-hook-logs`
+   * This update is a mainly internal one, but it is the most sensitive part of Geode
+   * If you find any issues with it, please report them
+ * Unzip on mod download (#1390)
+ * Add Italian translation for the Windows installer (#1393)
+ * Add `AndroidInputTimestampEvent` (#1396)
+ * Fix `keyUp` when command key is pressed on MacOS (#1324)
+ * Don't create a popup when there are no mods to update (#1311)
+ * Add unzipped binary cleanup of unused platforms (#1377)
+ * Create Linux installer script (d38acee)
+ * Use `FORCE_COLOR` environment variable to force terminal colors (79761bf)
+ * Patch conditional variable on older Wine versions (53df4d3)
+ * Make `ObjWrapper::getValue` non-const (5c3afbd)
+ * Make Windows clipboard utilities unicode (82d8faf)
+ * Use custom certificate store for web requests on Windows (e0c1774)
+ * Add verbose curl logging (ec34df6)
+ * Add `writeStringSafe` that writes to a temporary file first (af806ba)
+ * Force unzip of mods on launch if the binary is missing (e4dd3e8)
+ * Fix rare unzip crash (86fd2c4)
+ * Fix PCH on iOS (0d972ab)
+ * Don't load importance superseded mods (2c5230e)
+ * Add some more documentation comments (9b27ddc)
+ * Fix `LazySprite` overloads and performace issues (0f53f38, 5394954)
+ * Error when trying to use `m_fields` in non-`CCNode` modify classes (0aed958)
+
+
 ## v4.5.0
  * Multipart form support for Geode web utilities (#1345)
  * Use system certificate store for web requests on Windows, should fix some SSL issues (665a000)
