@@ -25,7 +25,10 @@ bool utils::clipboard::write(std::string const& data) {
         return false;
     }
 
-    HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, data.size() + 1);
+    std::wstring wData = string::utf8ToWide(data);
+    auto const size = (wData.size() + 1) * sizeof(wchar_t);
+
+    HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, size);
 
     if (!hg) {
         CloseClipboard();
@@ -39,11 +42,11 @@ bool utils::clipboard::write(std::string const& data) {
         return false;
     }
 
-    memcpy(dest, data.c_str(), data.size() + 1);
+    memcpy(dest, wData.c_str(), size);
 
     GlobalUnlock(hg);
 
-    SetClipboardData(CF_TEXT, hg);
+    SetClipboardData(CF_UNICODETEXT, hg);
     CloseClipboard();
 
     GlobalFree(hg);
