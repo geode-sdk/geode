@@ -5,7 +5,7 @@
 // this is exclusively for android users if you're not android please look away
 #ifdef GEODE_IS_ANDROID
 
-#include "Event.hpp"
+#include "../loader/Event.hpp"
 
 namespace geode {
     namespace utils {
