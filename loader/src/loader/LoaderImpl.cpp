@@ -44,24 +44,9 @@ Loader::Impl::~Impl() = default;
 
 // Initialization
 
-bool Loader::Impl::isForwardCompatMode() {
-#ifdef GEODE_IS_ANDROID
-    // forward compat mode doesn't really make sense on android
-    return false;
-#endif
-
-    if (!m_forwardCompatMode.has_value()) {
-        m_forwardCompatMode = !this->getGameVersion().empty() &&
-            this->getGameVersion() != GEODE_STR(GEODE_GD_VERSION);
-    }
-    return m_forwardCompatMode.value();
-}
-
 void Loader::Impl::createDirectories() {
-#ifdef GEODE_IS_MACOS
-    std::filesystem::create_directory(dirs::getSaveDir());
-#endif
-
+    log::debug("Creating necessary directories");
+    (void) utils::file::createDirectoryAll(dirs::getSaveDir());
     (void) utils::file::createDirectoryAll(dirs::getGeodeResourcesDir());
     (void) utils::file::createDirectoryAll(dirs::getModConfigDir());
     (void) utils::file::createDirectoryAll(dirs::getModsDir());
@@ -75,6 +60,7 @@ void Loader::Impl::createDirectories() {
 }
 
 void Loader::Impl::removeDirectories() {
+    log::debug("Removing unnecessary directories");
     // clean up of stale data from Geode v2
     if(std::filesystem::exists(dirs::getGeodeDir() / "index")) {
         std::thread([] {
@@ -93,6 +79,31 @@ Result<> Loader::Impl::setup() {
         log::info("Loading launch arguments");
         log::NestScope nest;
         this->initLaunchArguments();
+    }
+
+    if (auto value = this->getLaunchArgument("use-common-handler-offset")) {
+        log::info("Using common handler offset: {}", value.value());
+        log::NestScope nest;
+        auto offset = numFromString<size_t>(value.value(), 16);
+        if (offset.isErr()) {
+            log::error("Could not parse common handler offset, falling back to default");
+        } else {
+            log::info("Disabling runtime intervening");
+            auto res = tulip::hook::disableRuntimeIntervening((void*)(base::get() + offset.unwrap()));
+            if (res.isErr()) {
+                log::error("Failed to disable runtime intervening: {}", res.unwrapErr());
+            } else {
+                log::info("Runtime intervening disabled successfully");
+                m_isPatchless = true;
+            }
+        }
+    }
+
+    if (this->getLaunchFlag("enable-tulip-hook-logs")) {
+        log::info("Enabling TulipHook logs");
+        tulip::hook::setLogCallback([](std::string_view msg) {
+            log::debug("TulipHook: {}", msg);
+        });
     }
 
     // on some platforms, using the crash handler overrides more convenient native handlers
@@ -132,6 +143,7 @@ Result<> Loader::Impl::setup() {
 }
 
 void Loader::Impl::addSearchPaths() {
+    log::debug("Adding search paths");
     CCFileUtils::get()->addPriorityPath(dirs::getGeodeResourcesDir().string().c_str());
     CCFileUtils::get()->addPriorityPath(dirs::getModRuntimeDir().string().c_str());
 }
@@ -175,10 +187,6 @@ VersionInfo Loader::Impl::maxModVersion() {
         // todo: dynamic version info (vM.M.*)
         99999999,
     };
-}
-
-bool Loader::Impl::isModVersionSupported(VersionInfo const& target) {
-    return semverCompare(this->getVersion(), target);
 }
 
 // Data saving
@@ -950,8 +958,25 @@ void Loader::Impl::releaseNextMod() {
 // e.g. "--geode:arg=My spaced value"
 void Loader::Impl::initLaunchArguments() {
     auto launchStr = this->getLaunchCommand();
-    auto args = string::split(launchStr, " ");
-    for (const auto& arg : args) {
+
+    std::vector<std::string> arguments;
+    bool inQuotes = false;
+    std::string currentArg;
+    for (auto const c : launchStr) {
+        if (c == ' ' && !inQuotes) {
+            arguments.emplace_back(std::move(currentArg));
+            currentArg.clear();
+            continue;
+        }
+        if (c == '"') {
+            inQuotes = !inQuotes;
+            continue;
+        }
+        currentArg.push_back(c);
+    }
+    arguments.emplace_back(std::move(currentArg));
+
+    for (const auto& arg : arguments) {
         if (!arg.starts_with(LAUNCH_ARG_PREFIX)) {
             continue;
         }
@@ -1003,7 +1028,9 @@ Result<tulip::hook::HandlerHandle> Loader::Impl::getOrCreateHandler(void* addres
         m_handlerHandles[address].second++;
         return Ok(m_handlerHandles[address].first);
     }
-    GEODE_UNWRAP_INTO(auto handle, tulip::hook::createHandler(address, metadata));
+    tulip::hook::HandlerHandle handle;
+    GEODE_UNWRAP_INTO(handle, tulip::hook::createHandler(address, metadata));
+
     m_handlerHandles[address].first = handle;
     m_handlerHandles[address].second = 1;
     return Ok(handle);
@@ -1202,4 +1229,8 @@ bool Loader::Impl::isRestartRequired() const {
         return true;
     }
     return false;
+}
+
+bool Loader::Impl::isPatchless() const {
+    return m_isPatchless;
 }

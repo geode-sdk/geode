@@ -269,3 +269,11 @@ std::string Loader::Impl::getLaunchCommand() const {
     std::string fullString([joinedString UTF8String]);
     return fullString;
 }
+
+bool Loader::Impl::isModVersionSupported(VersionInfo const& target) {
+    return semverCompare(this->getVersion(), target);
+}
+
+bool Loader::Impl::isForwardCompatMode() {
+    return false;
+}

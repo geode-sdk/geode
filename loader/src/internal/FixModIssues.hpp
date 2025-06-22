@@ -1,6 +1,6 @@
 #pragma once
 
-namespace internal {
+namespace geode::internal {
     void tryAutoFixModIssues();
     bool hasTriedToFixIssues();
 }

@@ -3,6 +3,7 @@
 #include <dlfcn.h>
 #include <type_traits>
 #include "ItaniumCast.hpp"
+#include "clang.hpp"
 
 namespace geode {
     struct PlatformInfo {

@@ -19,6 +19,10 @@
         using DerivedFuncType = decltype(Resolve<__VA_ARGS__>::func(&Derived::FunctionName_));                \
         if constexpr (different) {                                                                            \
             static auto address = AddressInline_;                                                             \
+            static auto embeddedAddress =                                                                     \
+                "[GEODE_MODIFY_NAME] " GEODE_STR(ClassName_) "::" GEODE_STR(FunctionName_)                    \
+                " [GEODE_MODIFY_ADDRESS] " GEODE_STR(AddressInline_) " [GEODE_MODIFY_END]";                   \
+            geode::doNotOptimize(&embeddedAddress);                                                 \
             static_assert(                                                                                    \
                 !different || !std::is_same_v<typename ReturnType<BaseFuncType>::type, TodoReturn>,           \
                 "Function" #ClassName_ "::" #FunctionName_ " has a TodoReturn type, "                         \
