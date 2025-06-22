@@ -22,6 +22,7 @@
  * Fix `keyUp` when command key is pressed on MacOS (#1324)
  * Don't create a popup when there are no mods to update (#1311)
  * Add unzipped binary cleanup of unused platforms (#1377)
+ * Add API badge and tag for mod listing (#1389)
  * Create Linux installer script (d38acee)
  * Use `FORCE_COLOR` environment variable to force terminal colors (79761bf)
  * Patch conditional variable on older Wine versions (53df4d3)
