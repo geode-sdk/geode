@@ -368,25 +368,19 @@ BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
     // some slight optimizations if a mod frequently creates and deletes threads.
     DisableThreadLibraryCalls(module);
 
-    try {
-        // if we find the old bootstrapper dll, don't load geode, copy new updater and let it do the rest
-        auto workingDir = dirs::getGameDir();
-        std::error_code error;
-        bool oldBootstrapperExists = std::filesystem::exists(workingDir / "GeodeBootstrapper.dll", error);
-        if (error) {
-            earlyError("There was an error checking whether the old GeodeBootstrapper.dll exists: " + error.message());
-            return FALSE;
-        }
-        else if (oldBootstrapperExists)
-            CreateThread(nullptr, 0, upgradeThread, nullptr, 0, nullptr);
-        else if (auto error = loadGeode(); !error.empty()) {
-            earlyError(error);
-            return TRUE;
-        }
-    }
-    catch(...) {
-        earlyError("There was an unknown error somewhere very very early and this is really really bad.");
+    // if we find the old bootstrapper dll, don't load geode, copy new updater and let it do the rest
+    auto workingDir = dirs::getGameDir();
+    std::error_code error;
+    bool oldBootstrapperExists = std::filesystem::exists(workingDir / "GeodeBootstrapper.dll", error);
+    if (error) {
+        earlyError("There was an error checking whether the old GeodeBootstrapper.dll exists: " + error.message());
         return FALSE;
+    }
+    else if (oldBootstrapperExists)
+        CreateThread(nullptr, 0, upgradeThread, nullptr, 0, nullptr);
+    else if (auto error = loadGeode(); !error.empty()) {
+        earlyError(error);
+        return TRUE;
     }
 
     return TRUE;
