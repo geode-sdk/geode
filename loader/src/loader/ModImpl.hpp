@@ -83,9 +83,6 @@ namespace geode {
         Result<> loadPlatformBinary();
         Result<> createTempDir();
 
-        // called on a separate thread
-        Result<> unzipGeodeFile(ModMetadata metadata);
-
         std::string getID() const;
         std::string getName() const;
         std::vector<std::string> getDevelopers() const;

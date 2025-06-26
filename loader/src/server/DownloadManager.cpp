@@ -142,30 +142,33 @@ public:
                     }
                     // If this was an update, delete the old file first
                     if (!removingInstalledWasError) {
-                        auto ok = file::writeBinary(dirs::getModsDir() / (m_id + ".geode"), value->data());
+                        auto geodePath = dirs::getModsDir() / (m_id + ".geode");
+                        auto ok = file::writeBinary(geodePath, value->data());
                         if (!ok) {
                             m_status = DownloadStatusError {
                                 .details = ok.unwrapErr(),
                             };
                         }
                         else {
-                            #ifdef GEODE_IS_IOS
-                            auto okUnzip = LoaderImpl::get()->unzipGeodeFile(m_id);
+                        #ifdef GEODE_IS_IOS
+                            auto metadata = ModMetadata::createFromGeodeZip(geodePath);
+                            if (metadata.isErr()) {
+                                m_status = DownloadStatusError {
+                                    .details = m_metadata.unwrapErr(),
+                                };
+                                return;
+                            }
+                            auto okUnzip = LoaderImpl::get()->unzipGeodeFile(metadata.unwrap());
                             if (!okUnzip) {
                                 m_status = DownloadStatusError {
                                     .details = okUnzip.unwrapErr(),
                                 };
+                                return;
                             }
-                            else {
-                                m_status = DownloadStatusDone {
-                                    .version = version
-                                };
-                            }
-                            #else
+                        #endif
                             m_status = DownloadStatusDone {
                                 .version = version
                             };
-                            #endif
                         }
                     }
                 }

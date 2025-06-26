@@ -113,18 +113,14 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     impl->m_rawJSON = rawJson;
 
     auto checkerRoot = fmt::format(
-        "[{}/v0.0.0/mod.json]",
-        rawJson.contains("id") ? GEODE_UNWRAP(rawJson["id"].asString()) : "unknown.mod"
+        "[{}/{}/mod.json]",
+        rawJson["id"].asString().unwrapOr("unknown.mod"),
+        rawJson["version"].as<VersionInfo>().map(
+            [](VersionInfo const& v) {
+                return v.toVString();
+            }
+        ).unwrapOr("v0.0.0")
     );
-    // JsonChecker did it this way too
-    try {
-        checkerRoot = fmt::format(
-            "[{}/{}/mod.json]",
-            rawJson.contains("id") ? GEODE_UNWRAP(rawJson["id"].asString()) : "unknown.mod",
-            rawJson.contains("version") ? GEODE_UNWRAP(rawJson["version"].as<VersionInfo>()).toVString() : "v0.0.0"
-        );
-    }
-    catch (...) { }
 
     auto root = checkJson(impl->m_rawJSON, checkerRoot);
     root.needs("geode").into(impl->m_geodeVersion);

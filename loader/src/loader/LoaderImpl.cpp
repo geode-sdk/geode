@@ -447,7 +447,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
 
     auto unzipFunction = [this, node]() {
         log::debug("Unzipping .geode file");
-        auto res = node->m_impl->unzipGeodeFile(node->getMetadataRef());
+        auto res = this->unzipGeodeFile(node->getMetadataRef());
         return res;
     };
 
@@ -856,16 +856,31 @@ void Loader::Impl::addUninitializedHook(Hook* hook, Mod* mod) {
     m_uninitializedHooks.emplace_back(hook, mod);
 }
 
-Result<> Loader::Impl::unzipGeodeFile(std::string modId) {
+static bool isPlatformBinary(std::string_view modID, std::string_view filename) {
+    if (!filename.starts_with(modID)) {
+        return false;
+    }
+
+    return filename.ends_with(".dll")
+        || filename.ends_with(".dylib")
+        || filename.ends_with(".android32.so")
+        || filename.ends_with(".android64.so")
+        || filename.ends_with(".ios.dylib");
+}
+
+Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
     // Unzip .geode file into temp dir
-    auto tempDir = dirs::getModRuntimeDir() / modId;
-    auto extractPath = dirs::getModsDir() / (modId + ".geode");
-    std::string binaryName = modId + GEODE_PLATFORM_EXTENSION;
+    auto tempDir = dirs::getModRuntimeDir() / metadata.getID();
 
     auto datePath = tempDir / "modified-at";
     std::string currentHash = file::readString(datePath).unwrapOr("");
 
-    auto modifiedDate = std::filesystem::last_write_time(extractPath);
+    std::error_code ec;
+    auto modifiedDate = std::filesystem::last_write_time(metadata.getPath(), ec);
+    if (ec) {
+        auto message = formatSystemError(ec.value());
+        return Err("Unable to get last modified time of zip: " + message);
+    }
     auto modifiedCount = std::chrono::duration_cast<std::chrono::milliseconds>(modifiedDate.time_since_epoch());
     auto modifiedHash = std::to_string(modifiedCount.count());
     if (currentHash == modifiedHash) {
@@ -874,26 +889,39 @@ Result<> Loader::Impl::unzipGeodeFile(std::string modId) {
     }
     log::debug("Hash mismatch detected, unzipping");
 
-    std::error_code ec;
     std::filesystem::remove_all(tempDir, ec);
     if (ec) {
-        auto message = ec.message();
-        #ifdef GEODE_IS_WINDOWS
-            // Force the error message into English
-            message = formatSystemError(ec.value());
-        #endif
+        auto message = formatSystemError(ec.value());
         return Err("Unable to delete temp dir: " + message);
     }
 
     (void)utils::file::createDirectoryAll(tempDir);
 
-    GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(extractPath));
-    if (!unzip.hasEntry(binaryName)) {
+    GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(metadata.getPath()));
+    if (!unzip.hasEntry(metadata.getBinaryName())) {
         return Err(
-            fmt::format("Unable to find platform binary under the name \"{}\"", binaryName)
+            fmt::format("Unable to find platform binary under the name \"{}\"", metadata.getBinaryName())
         );
     }
     GEODE_UNWRAP(unzip.extractAllTo(tempDir));
+
+    // Delete binaries for other platforms since they're pointless
+    // The if should never fail, but you never know
+    for (auto& entry : std::filesystem::directory_iterator(tempDir)) {
+        if (entry.is_directory()) {
+            continue;
+        }
+
+        const std::string filename = geode::utils::string::pathToString(entry.path().filename());
+        if (filename == metadata.getBinaryName() || !isPlatformBinary(metadata.getID(), filename)) {
+            continue;
+        }
+
+        // The binary is not for our platform, delete!
+        // We don't really care if the deletion succeeds though.
+        std::error_code ec;
+        std::filesystem::remove(entry.path(), ec);
+    }
 
     auto res = file::writeString(datePath, modifiedHash);
     if (!res) {

@@ -134,7 +134,9 @@ namespace geode {
 
         Mod* getInternalMod();
         Result<> setupInternalMod();
-        Result<> unzipGeodeFile(std::string modId);
+
+        // called on a separate thread
+        Result<> unzipGeodeFile(ModMetadata metadata);
 
         bool userTriedToLoadDLLs() const;
 
