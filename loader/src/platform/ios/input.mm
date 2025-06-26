@@ -99,13 +99,44 @@ std::unordered_map<int, enumKeyCodes> keyMap = {
     {UIKeyboardHIDUsageKeypadEnter, cocos2d::KEY_NumEnter}
 };
 
-@interface KeyCatcherView : UIView
+@interface KeyCatcherView : UIView {
+    NSTimer* delayTimer;
+    NSTimer* repeatTimer;
+    UIKey* repeatKey;
+}
 @end
 
 @implementation KeyCatcherView
 
 - (BOOL)canBecomeFirstResponder {
     return YES;
+}
+
+- (void)startRepeat:(UIKey*)key {
+    [self stopRepeat];
+    repeatKey = key;
+    delayTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 repeats:NO block:^(NSTimer * _Nonnull timer) {
+        delayTimer = nil;
+        repeatTimer = [NSTimer scheduledTimerWithTimeInterval:0.05 repeats:YES block:^(NSTimer * _Nonnull timer) {
+            CCKeyboardDispatcher* dispatcher = CCDirector::get()->getKeyboardDispatcher();
+            auto it = keyMap.find(repeatKey.keyCode);
+            if (it != keyMap.end()) {
+                dispatcher->dispatchKeyboardMSG(it->second, true, true);
+            }
+        }];
+    }];
+}
+
+- (void)stopRepeat {
+    if (delayTimer) {
+        [delayTimer invalidate];
+        delayTimer = nil;
+    }
+    if (repeatTimer) {
+        [repeatTimer invalidate];
+        repeatTimer = nil;
+    }
+    repeatKey = nil;
 }
 
 - (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
@@ -123,6 +154,7 @@ std::unordered_map<int, enumKeyCodes> keyMap = {
             } else {
                 dispatcher->dispatchKeyboardMSG(enumKeyCodes::KEY_Unknown, true, false);
             }
+            [self startRepeat:key];
         }
     }
     [super pressesBegan:presses withEvent:event];
@@ -143,6 +175,7 @@ std::unordered_map<int, enumKeyCodes> keyMap = {
             } else {
                 dispatcher->dispatchKeyboardMSG(enumKeyCodes::KEY_Unknown, false, false);
             }
+            [self stopRepeat];
         }
     }
     [super pressesEnded:presses withEvent:event];
