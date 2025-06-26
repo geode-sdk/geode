@@ -138,6 +138,8 @@ namespace geode {
         // called on a separate thread
         Result<> unzipGeodeFile(ModMetadata metadata);
 
+        Result<> extractBinary(ModMetadata metadata);
+
         bool userTriedToLoadDLLs() const;
 
         void addProblem(LoadProblem const& problem);

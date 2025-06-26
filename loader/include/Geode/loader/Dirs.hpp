@@ -45,6 +45,12 @@ namespace geode::dirs {
      */
     GEODE_DLL std::filesystem::path getModRuntimeDir();
     /**
+     * Directory where mods' unzipped binary files are stored
+     * This is used in order to override existing unzip binaries,
+     * such as on iOS where signing the binary is required
+     */
+    GEODE_DLL std::filesystem::path getModBinariesDir();
+    /**
      * Directory where mods' config files lie
      */
     GEODE_DLL std::filesystem::path getModConfigDir();
