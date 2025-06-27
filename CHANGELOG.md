@@ -1,5 +1,9 @@
 # Geode Changelog
 
+## v4.6.2
+ * Fix Windows crashlogs not appearing (02cee65)
+ * Unzip JIT-less iOS binaries separately from the .geode file (85fe11f)
+
 ## v4.6.1
  * Fix several random crashes caused by incorrect relocation code in Tuliphook
  * Make unzip upon download iOS only (0a6d09c)

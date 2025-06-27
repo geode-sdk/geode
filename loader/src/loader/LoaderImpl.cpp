@@ -925,7 +925,9 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
 
     // Check if there is a binary that we need to move over from the unzipped binaries dir
     if (this->isPatchless()) {
-        auto src = dirs::getModBinariesDir() / metadata.getBinaryName();
+        // TODO: enable in 4.7.0
+        // auto src = dirs::getModBinariesDir() / metadata.getBinaryName();
+        auto src = dirs::getModRuntimeDir() / "binaries" / metadata.getBinaryName();
         auto dst = tempDir / metadata.getBinaryName();
         if (std::filesystem::exists(src)) {
             std::error_code ec;
@@ -960,7 +962,9 @@ Result<> Loader::Impl::extractBinary(ModMetadata metadata) {
             fmt::format("Unable to find platform binary under the name \"{}\"", metadata.getBinaryName())
         );
     }
-    GEODE_UNWRAP(unzip.extractTo(metadata.getBinaryName(), dirs::getModBinariesDir() / metadata.getBinaryName()));
+    // TODO: enable in 4.7.0
+    // GEODE_UNWRAP(unzip.extractTo(metadata.getBinaryName(), dirs::getModBinariesDir() / metadata.getBinaryName()));
+    GEODE_UNWRAP(unzip.extractTo(metadata.getBinaryName(), dirs::getModRuntimeDir() / "binaries" / metadata.getBinaryName()));
 
     return Ok();
 }
