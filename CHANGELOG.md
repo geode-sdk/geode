@@ -1,7 +1,7 @@
 # Geode Changelog
 
 ## v4.6.3
- * Fix Windows crashlogs not appearing (for real this time) (02cee65)
+ * Fix Windows crashlogs not appearing (for real this time) (dedf1eb)
 
 ## v4.6.2
  * Fix Windows crashlogs not appearing (02cee65)
