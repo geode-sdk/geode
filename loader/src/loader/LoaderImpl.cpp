@@ -989,11 +989,11 @@ void Loader::Impl::queueInMainThread(ScheduledFunction&& func) {
 }
 
 void Loader::Impl::executeMainThreadQueue() {
-    // copy queue to avoid locking mutex if someone is
+    // move queue to avoid locking mutex if someone is
     // running addToMainThread inside their function
     m_mainThreadMutex.lock();
-    auto queue = m_mainThreadQueue;
-    m_mainThreadQueue.clear();
+    auto queue = std::move(m_mainThreadQueue);
+    m_mainThreadQueue = {};
     m_mainThreadMutex.unlock();
 
     // call queue
