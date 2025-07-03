@@ -145,6 +145,12 @@
             "default": false,
             "name": "Verbose Curl Logs",
             "description": "When performing web requests, prints detailed information about the request to the logs. Useful for developers wanting to debug network issues."
+        },
+        "curl-force-ipv4": {
+            "type": "bool",
+            "default": false,
+            "name": "Curl Uses IPv4",
+            "description": "When performing web requests, Curl will use IPv4 instead of IPv6. Try this if you're having connectivity issues with mods."
         }
     },
     "issues": {
