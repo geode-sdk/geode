@@ -3,6 +3,7 @@
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
+#include <Geode/utils/file.hpp>
 #include <loader/ModImpl.hpp>
 #include <loader/IPC.hpp>
 #include <loader/console.hpp>
@@ -69,6 +70,15 @@ bool Loader::Impl::supportsLaunchArguments() const {
 }
 
 std::string Loader::Impl::getLaunchCommand() const {
+    auto launchArgsFile = dirs::getModRuntimeDir() / "launch-args.txt";
+    if (std::filesystem::exists(launchArgsFile)) {
+        log::debug("Reading launch arguments from {}", launchArgsFile.string());
+        auto content = file::readString(launchArgsFile);
+        if (content.isOk()) {
+            return content.unwrap();
+        }
+    }
+
     return (getenv("LAUNCHARGS")) ? getenv("LAUNCHARGS") : std::string();
 }
 
