@@ -145,7 +145,13 @@
             "default": false,
             "name": "Verbose Curl Logs",
             "description": "When performing web requests, prints detailed information about the request to the logs. Useful for developers wanting to debug network issues."
-        }
+        },
+		"curl-force-ipv4": {
+			"type": "bool",
+			"default": false,
+			"name": "Curl Uses IPv4",
+			"description": "When performing web requests, Curl will use IPv4 instead of IPv6."
+		}
     },
     "issues": {
         "info": "Post your issues on the <cp>Geode Github Repository</c>. <cy>Please follow the standard issue format</c>.",
