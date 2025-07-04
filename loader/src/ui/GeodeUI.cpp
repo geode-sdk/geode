@@ -229,7 +229,12 @@ protected:
                 if (!mod->isInternal()) {
                     m_sprite->loadFromFile(dirs::getModRuntimeDir() / mod->getID() / "logo.png");
                 } else {
-                    m_sprite->initWithSpriteFrameName("geode-logo.png"_spr);
+                    if (Mod::get()->getSavedValue("alternate-geode-style", false)) {
+                        m_sprite->initWithSpriteFrameName("geode-logo-alternate.png"_spr);
+                    }
+                    else {
+                        m_sprite->initWithSpriteFrameName("geode-logo.png"_spr);
+                    }
                 }
             },
             [this](std::string const& id) {
