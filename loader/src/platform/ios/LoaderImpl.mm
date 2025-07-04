@@ -75,6 +75,7 @@ std::string Loader::Impl::getLaunchCommand() const {
         log::debug("Reading launch arguments from {}", launchArgsFile.string());
         auto content = file::readString(launchArgsFile);
         if (content.isOk()) {
+            std::filesystem::remove(launchArgsFile);
             return content.unwrap();
         }
     }
