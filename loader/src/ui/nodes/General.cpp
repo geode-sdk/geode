@@ -134,7 +134,7 @@ void geode::addListBorders(CCNode* to, CCPoint const& center, CCSize const& size
 bool ListBorders::init() {
     if (!CCNode::init())
         return false;
-    
+
     this->setAnchorPoint({ .5f, .5f });
     this->setSpriteFrames("GJ_commentTop_001.png", "GJ_commentSide_001.png");
 

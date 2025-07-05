@@ -43,15 +43,15 @@ struct _hashElement;
  * @{
  */
 
-/** 
+/**
  @brief CCActionManager is a singleton that manages all the actions.
  Normally you won't need to use this singleton directly. 99% of the cases you will use the CCNode interface,
  which uses this singleton.
  But there are some cases where you might need to use this singleton.
  Examples:
-    - When you want to run an action where the target is different from a CCNode. 
+    - When you want to run an action where the target is different from a CCNode.
     - When you want to pause / resume the actions
- 
+
  @since v0.8
  */
 class CC_DLL CCActionManager : public CCObject
@@ -71,8 +71,8 @@ public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCActionManager, CCObject);
 
     // actions
-    
-    /** Adds an action with a target. 
+
+    /** Adds an action with a target.
      If the target is already present, then the action will be added to the existing target.
      If the target is not present, a new instance of this target will be created either paused or not, and the action will be added to the newly created target.
      When the target is paused, the queued actions won't be 'ticked'.
@@ -100,7 +100,7 @@ public:
      */
     CCAction* getActionByTag(unsigned int tag, CCObject *pTarget);
 
-    /** Returns the numbers of actions that are running in a certain target. 
+    /** Returns the numbers of actions that are running in a certain target.
      * Composable actions are counted as 1 action. Example:
      * - If you are running 1 Sequence of 7 actions, it will return 1.
      * - If you are running 7 Sequences of 2 actions, it will return 7.
@@ -114,11 +114,11 @@ public:
     /** Resumes the target. All queued actions will be resumed.
     */
     void resumeTarget(CCObject *pTarget);
-    
+
     /** Pauses all running actions, returning a list of targets whose actions were paused.
      */
     CCSet* pauseAllRunningActions();
-    
+
     /** Resume a set of targets (convenience function to reverse a pauseAllRunningActions call)
      */
     void resumeTargets(CCSet *targetsToResume);

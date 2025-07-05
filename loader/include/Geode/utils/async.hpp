@@ -5,6 +5,15 @@
 #include "Task.hpp"
 
 namespace geode {
+    /**
+     * This is a geode utility that allows Tasks to be used with
+     * C++'s own coroutine handling.
+     * 
+     * @tparam T The task type it will finish to. See `Task` for 
+     * more information.
+     * @tparam P The progress type the task posts. See `Task` for 
+     * more information.
+     */
     template <is_task_type T = void, typename P = std::monostate>
     class CoTask final {
         using Type = Task<T, P>::Type;

@@ -1,16 +1,16 @@
 /*******************************************************************************
  * Copyright (c) 2013, Esoteric Software
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -68,12 +68,12 @@ public:
 	Bone* findBone (const char* boneName) const;
 	/* Returns 0 if the slot was not found. */
 	Slot* findSlot (const char* slotName) const;
-	
+
 	/* Sets the skin used to look up attachments not found in the SkeletonData defaultSkin. Attachments from the new skin are
 	 * attached if the corresponding attachment from the old skin was attached. Returns false if the skin was not found.
 	 * @param skin May be 0.*/
 	bool setSkin (const char* skinName);
-	
+
 	/* Returns 0 if the slot or attachment was not found. */
 	Attachment* getAttachment (const char* slotName, const char* attachmentName) const;
 	/* Returns false if the slot or attachment was not found. */

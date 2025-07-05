@@ -71,7 +71,7 @@ public:
     CCSize m_sGridSize;
 };
 
-/** 
+/**
  @brief Base class for CCGrid3D actions.
  Grid3D actions can modify a non-tiled grid.
  */
@@ -89,7 +89,7 @@ public:
     void setVertex(const CCPoint& position, const ccVertex3F& vertex);
 
 public:
-    /** creates the action with size and duration 
+    /** creates the action with size and duration
      *  @js NA
      *  @lua NA
      */
@@ -115,7 +115,7 @@ public:
     virtual CCGridBase* getGrid(void);
 
 public:
-    /** creates the action with size and duration 
+    /** creates the action with size and duration
      *  @js NA
      *  @lua NA
      */

@@ -178,8 +178,8 @@ namespace cocos2d {
         return c1.r != c2.r || c1.g != c2.g || c1.b != c2.b;
     }
     static constexpr bool operator==(cocos2d::ccHSVValue const& c1, cocos2d::ccHSVValue const& c2) {
-        return c1.h == c2.h && c1.s == c2.s && c1.v == c2.v && 
-            c1.absoluteSaturation == c2.absoluteSaturation && 
+        return c1.h == c2.h && c1.s == c2.s && c1.v == c2.v &&
+            c1.absoluteSaturation == c2.absoluteSaturation &&
             c1.absoluteBrightness == c2.absoluteBrightness;
     }
     static constexpr bool operator!=(cocos2d::ccHSVValue const& c1, cocos2d::ccHSVValue const& c2) {
@@ -196,7 +196,7 @@ namespace geode {
      *
      * Use-cases include, for example, non-CCNode class members, or nodes that
      * are not always in the scene tree.
-     * 
+     *
      * @tparam T A type that inherits from CCObject.
      *
      * @example
@@ -206,14 +206,14 @@ namespace geode {
      *      // release on this array; Ref manages it
      *      // for you :3
      *      Ref<CCArray> m_list = CCArray::create();
-     * 
+     *
      *      bool init() {
      *          if (!CCNode::init())
      *              return false;
-     * 
+     *
      *          // No need to do m_list = CCArray::create()
      *          // or m_list->retain() :3
-     * 
+     *
      *          return true;
      *      }
      * };
@@ -221,10 +221,10 @@ namespace geode {
      * @example
      * // Save a child from the current layer into a menu
      * Ref<CCMenu> menu = static_cast<CCMenu*>(this->getChildByID("main-menu"));
-     *          
+     *
      * // Remove the menu from its parent
      * menu->removeFromParent();
-     *          
+     *
      * // Menu will still point to a valid CCMenu as long as the menu variable exist
      */
     template <class T>
@@ -349,10 +349,10 @@ namespace geode {
         WeakRefController(WeakRefController&&) = delete;
 
         friend class WeakRefPool;
-    
+
     public:
         WeakRefController() = default;
-        
+
         bool isManaged();
         void swap(cocos2d::CCObject* other);
         cocos2d::CCObject* get() const;
@@ -360,33 +360,39 @@ namespace geode {
 
     class GEODE_DLL WeakRefPool final {
         std::unordered_map<cocos2d::CCObject*, std::shared_ptr<WeakRefController>> m_pool;
-    
+
         void check(cocos2d::CCObject* obj);
+
+        // Releases the object from the pool, removing the strong reference to it
+        void forget(cocos2d::CCObject* obj);
 
         friend class WeakRefController;
 
+        template <class T>
+        friend class WeakRef;
+
     public:
         static WeakRefPool* get();
-        
+
         std::shared_ptr<WeakRefController> manage(cocos2d::CCObject* obj);
     };
 
     /**
-     * A smart pointer to a managed CCObject-deriving class. Like Ref, except 
-     * only holds a weak reference to the targeted object. When all non-weak 
-     * references (Refs, manual retain() calls) to the object are dropped, so 
+     * A smart pointer to a managed CCObject-deriving class. Like Ref, except
+     * only holds a weak reference to the targeted object. When all non-weak
+     * references (Refs, manual retain() calls) to the object are dropped, so
      * are all weak references.
-     * 
-     * In essence, WeakRef is like a raw pointer, except that you can know if 
-     * the pointer is still valid or not, as WeakRef::lock() returns nullptr if 
+     *
+     * In essence, WeakRef is like a raw pointer, except that you can know if
+     * the pointer is still valid or not, as WeakRef::lock() returns nullptr if
      * the pointed-to-object has already been freed.
      *
-     * Note that an object pointed to by WeakRef is only released once some 
-     * WeakRef pointing to it checks for it after all other references to the 
-     * object have been dropped. If you store WeakRefs in a global map, you may 
-     * want to periodically lock all of them to make sure any memory that should 
+     * Note that an object pointed to by WeakRef is only released once some
+     * WeakRef pointing to it checks for it after all other references to the
+     * object have been dropped. If you store WeakRefs in a global map, you may
+     * want to periodically lock all of them to make sure any memory that should
      * be freed is freed.
-     * 
+     *
      * @tparam T A type that inherits from CCObject.
      */
     template <class T>
@@ -405,11 +411,11 @@ namespace geode {
 
     public:
         /**
-         * Construct a WeakRef of an object. A weak reference is one that will 
-         * be valid as long as the object is referenced by other strong 
-         * references (such as Ref or manual retain calls), but once all strong 
-         * references are dropped, so are all weak references. The object is 
-         * freed once no strong references exist to it, and any WeakRef pointing 
+         * Construct a WeakRef of an object. A weak reference is one that will
+         * be valid as long as the object is referenced by other strong
+         * references (such as Ref or manual retain calls), but once all strong
+         * references are dropped, so are all weak references. The object is
+         * freed once no strong references exist to it, and any WeakRef pointing
          * to it is freed or locked
          * @param obj Object to construct the WeakRef from
          */
@@ -429,11 +435,16 @@ namespace geode {
             // If the WeakRef is moved, m_controller is null
             if (m_controller) {
                 m_controller->isManaged();
+
+                if (m_controller.use_count() == 2) {
+                    // if refcount is 2 (this WeakRef + pool), free the object to avoid leaks
+                    WeakRefPool::get()->forget(m_controller->get());
+                }
             }
         }
 
         /**
-         * Lock the WeakRef, returning a Ref if the pointed object is valid or 
+         * Lock the WeakRef, returning a Ref if the pointed object is valid or
          * a null Ref if the object has been freed
          */
         Ref<T> lock() const {
@@ -522,6 +533,21 @@ namespace geode {
         }
     };
 
+    /**
+     * A utility node that allows for EventListener's to be added
+     * as a node to a class, delegating memory handling onto cocos.
+     * This is helpful when there is a need to tie a listener onto
+     * a node.
+     * 
+     * @example
+     * this->addChild(EventListenerNode<MyFilter>::create([&](){
+     *     // handling code here
+     * }));
+     * @example
+     * 
+     * @tparam Filter The event filter this listener uses. See 
+     * `EventListener` for more information.
+     */
     template <class Filter>
     class EventListenerNode : public cocos2d::CCNode {
     protected:
@@ -529,7 +555,7 @@ namespace geode {
 
         EventListenerNode(EventListener<Filter>&& listener)
           : m_listener(std::move(listener)) {}
-    
+
     public:
         static EventListenerNode* create(EventListener<Filter> listener) {
             auto ret = new EventListenerNode(std::move(listener));
@@ -569,7 +595,11 @@ namespace geode {
     };
 
     /**
-     * A simple `CCObject` wrapper for a non-`CCObject` type
+     * A simple `CCObject` wrapper for a non-`CCObject` type. This is
+     * useful for storing custom types in a `CCNode::setUserObject` without
+     * making a new class for it.
+     * 
+     * @tparam T The type to wrap into a CCObject
      */
     template <class T>
         requires (!std::is_base_of_v<T, cocos2d::CCObject>)
@@ -598,8 +628,7 @@ namespace geode {
             return new ObjWrapper(value);
         }
 
-        // @note This returns a const& to allow move-only types to be returned!
-        T const& getValue() const& {
+        T& getValue() {
             return m_value;
         }
         void setValue(T&& value) {
@@ -758,7 +787,7 @@ namespace geode::cocos {
      * Checks if a node has the given sprite frame
      * name either in the sprite or in the sprite inside
      * the button.
-     * 
+     *
      * @param node Node to check
      * @param name Name of the sprite frame to search for
      * @returns True if the node has the given sprite frame
@@ -781,7 +810,7 @@ namespace geode::cocos {
     /**
      * Checks if a node has the given sprite name either
      * in the sprite or in the sprite inside the button.
-     * 
+     *
      * @param node Node to check
      * @param name Name of the sprite to search for
      * @returns True if the node has the given sprite name
@@ -813,10 +842,21 @@ namespace geode::cocos {
      */
     GEODE_DLL bool fileExistsInSearchPaths(char const* filename);
 
+    /**
+     * Calls `cocos2d::ccDrawColor4B` directly with a `cocos2d::ccColor4B` color
+     * 
+     * @param color The color to draw
+     */
     inline void ccDrawColor4B(cocos2d::ccColor4B const& color) {
         cocos2d::ccDrawColor4B(color.r, color.g, color.b, color.a);
     }
 
+    /**
+     * Inverts the color's rgb values.
+     * 
+     * @param color The color to invert
+     * @returns Converted color
+     */
     inline cocos2d::ccColor4B invert4B(cocos2d::ccColor4B const& color) {
         return {
             static_cast<GLubyte>(255 - color.r),
@@ -825,6 +865,12 @@ namespace geode::cocos {
             color.a};
     }
 
+    /**
+     * Inverts the color's rgb values.
+     * 
+     * @param color The color to invert
+     * @returns Converted color
+     */
     inline cocos2d::ccColor3B invert3B(cocos2d::ccColor3B const& color) {
         return {
             static_cast<GLubyte>(255 - color.r),
@@ -832,57 +878,110 @@ namespace geode::cocos {
             static_cast<GLubyte>(255 - color.b)};
     }
 
+    /**
+     * Lightens the color's rgb values by a given amount.
+     * 
+     * @param color The color to lighten
+     * @param amount The amount to lighten
+     * @returns Converted color
+     */
     inline cocos2d::ccColor3B lighten3B(cocos2d::ccColor3B const& color, int amount) {
         return {
-            static_cast<GLubyte>(utils::clamp(color.r + amount, 0, 255)),
-            static_cast<GLubyte>(utils::clamp(color.g + amount, 0, 255)),
-            static_cast<GLubyte>(utils::clamp(color.b + amount, 0, 255)),
+            static_cast<GLubyte>(std::clamp(color.r + amount, 0, 255)),
+            static_cast<GLubyte>(std::clamp(color.g + amount, 0, 255)),
+            static_cast<GLubyte>(std::clamp(color.b + amount, 0, 255)),
         };
     }
 
+    /**
+     * Darkens the color's rgb values by a given amount.
+     * 
+     * @param color The color to darken
+     * @param amount The amount to darken
+     * @returns Converted color
+     */
     inline cocos2d::ccColor3B darken3B(cocos2d::ccColor3B const& color, int amount) {
         return lighten3B(color, -amount);
     }
 
+    /**
+     * Converts a `cocos2d::ccColor4B` into `cocos2d::ccColor3B`
+     * 
+     * @param color The color to convert
+     * @returns Converted color
+     */
     inline cocos2d::ccColor3B to3B(cocos2d::ccColor4B const& color) {
         return {color.r, color.g, color.b};
     }
 
+    /**
+     * Converts a `cocos2d::ccColor3B` into `cocos2d::ccColor4B`
+     * 
+     * @param color The color to convert
+     * @param alpha The additional alpha value
+     * @returns Converted color
+     */
     inline cocos2d::ccColor4B to4B(cocos2d::ccColor3B const& color, GLubyte alpha = 255) {
         return {color.r, color.g, color.b, alpha};
     }
 
+    /**
+     * Converts a `cocos2d::ccColor4B` into `cocos2d::ccColor`4F
+     * 
+     * @param color The color to convert
+     * @returns Converted color
+     */
     inline cocos2d::ccColor4F to4F(cocos2d::ccColor4B const& color) {
         return {color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f};
     }
 
     /**
-     * Parse a ccColor3B from a hexadecimal string. The string may contain 
+     * Parse a ccColor3B from a hexadecimal string. The string may contain
      * a leading '#'
      * @param hexValue The string to parse into a color
-     * @param permissive If true, strings like "f" are considered valid 
-     * representations of the color white. Useful for UIs that allow entering 
+     * @param permissive If true, strings like "f" are considered valid
+     * representations of the color white. Useful for UIs that allow entering
      * a hex color. Empty strings evaluate to pure white
-     * @returns A ccColor3B if it could be successfully parsed, or an error 
+     * @returns A ccColor3B if it could be successfully parsed, or an error
      * indicating the failure reason
      */
     GEODE_DLL Result<cocos2d::ccColor3B> cc3bFromHexString(std::string const& hexValue, bool permissive = false);
     /**
-     * Parse a ccColor4B from a hexadecimal string. The string may contain 
+     * Parse a ccColor4B from a hexadecimal string. The string may contain
      * a leading '#'
      * @param hexValue The string to parse into a color
-     * @param requireAlpha Require the alpha component to be passed. If false, 
+     * @param requireAlpha Require the alpha component to be passed. If false,
      * alpha defaults to 255
-     * @param permissive If true, strings like "f" are considered valid 
-     * representations of the color white. Useful for UIs that allow entering 
+     * @param permissive If true, strings like "f" are considered valid
+     * representations of the color white. Useful for UIs that allow entering
      * a hex color. Empty strings evaluate to pure white
-     * @returns A ccColor4B if it could be successfully parsed, or an error 
+     * @returns A ccColor4B if it could be successfully parsed, or an error
      * indicating the failure reason
      */
     GEODE_DLL Result<cocos2d::ccColor4B> cc4bFromHexString(std::string const& hexValue, bool requireAlpha = false, bool permissive = false);
+
+    /**
+     * Converts a `cocos2d::ccColor3B` into a string based on the `RRGGBB` format.
+     * 
+     * @param color The color to convert
+     * @returns Hex string
+     */
     GEODE_DLL std::string cc3bToHexString(cocos2d::ccColor3B const& color);
+
+    /**
+     * Converts a `cocos2d::ccColor4B` into a string based on the `RRGGBBAA` format.
+     * 
+     * @param color The color to convert
+     * @returns Hex string
+     */
     GEODE_DLL std::string cc4bToHexString(cocos2d::ccColor4B const& color);
 
+    /**
+     * Converts a `std::vector` into a `CCArray`.
+     * 
+     * @param vec The vector to convert
+     * @returns The array
+     */
     template <typename T, typename = std::enable_if_t<std::is_pointer_v<T>>>
     static cocos2d::CCArray* vectorToCCArray(std::vector<T> const& vec) {
         auto res = cocos2d::CCArray::createWithCapacity(vec.size());
@@ -891,6 +990,13 @@ namespace geode::cocos {
         return res;
     }
 
+    /**
+     * Converts a `std::vector` into a `CCArray` using a conversion function.
+     * 
+     * @param vec The vector to convert
+     * @param convFunc The conversion function used for each item
+     * @returns The array
+     */
     template <typename T, typename C, typename = std::enable_if_t<std::is_pointer_v<C>>>
     static cocos2d::CCArray* vectorToCCArray(std::vector<T> const& vec, std::function<C(T)> convFunc) {
         auto res = cocos2d::CCArray::createWithCapacity(vec.size());
@@ -899,6 +1005,13 @@ namespace geode::cocos {
         return res;
     }
 
+    /**
+     * Converts `CCArray` into a `std::vector`.
+     * 
+     * @tparam T The type of the data stored inside the array
+     * @param arr The array to convert
+     * @returns The vector
+     */
     template <typename T, typename = std::enable_if_t<std::is_pointer_v<T>>>
     std::vector<T> ccArrayToVector(cocos2d::CCArray* arr) {
         return std::vector<T>(
@@ -906,6 +1019,12 @@ namespace geode::cocos {
         );
     }
 
+    /**
+     * Converts a `std::map` into a `CCDictionary`.
+     * 
+     * @param map The map to convert
+     * @returns The dictionary
+     */
     template <
         typename K, typename V,
         typename = std::enable_if_t<std::is_same_v<K, std::string> || std::is_same_v<K, intptr_t>>>
@@ -916,6 +1035,13 @@ namespace geode::cocos {
         return res;
     }
 
+    /**
+     * Converts a `std::map` into a `CCDictionary` using a conversion function.
+     * 
+     * @param map The map to convert
+     * @param convFunc The conversion function used for each item
+     * @returns The dictionary
+     */
     template <
         typename K, typename V, typename C,
         typename = std::enable_if_t<std::is_same_v<C, std::string> || std::is_same_v<C, intptr_t>>>
@@ -955,6 +1081,10 @@ namespace std {
 
 // more utils
 namespace geode::cocos {
+    /**
+     * A `std::back_inserter` like utility class that acts as an inserter
+     * for `CCArray`.
+     */
     struct GEODE_DLL CCArrayInserter {
     public:
         CCArrayInserter(cocos2d::CCArray* p) : m_array(p) {}
@@ -987,14 +1117,14 @@ namespace geode::cocos {
     /**
      * A templated wrapper over CCArray, providing easy iteration and indexing.
      * This will keep ownership of the given CCArray*.
-     * 
+     *
      * @tparam Type Pointer to a type that inherits CCObject.
      *
      * @example
      * CCArrayExt<GameObject*> objects = PlayLayer::get()->m_objects;
      * // Easy indexing, giving you the type you assigned
      * GameObject* myObj = objects[2];
-     * 
+     *
      * // Easy iteration using C++ range-based for loops
      * for (auto* obj : objects) {
      *   log::info("{}", obj->m_objectID);
@@ -1068,6 +1198,12 @@ namespace geode::cocos {
         }
     };
 
+    /**
+     * A templated wrapper over `CCDictElement`, acting as a simple iterator over
+     * `CCDictionary`.
+     *
+     * @tparam Type Pointer to a type that inherits CCObject.
+     */
     template <class K, class InpT, CocosObject T = std::remove_pointer_t<InpT>>
     struct CCDictIterator {
     public:
@@ -1102,6 +1238,11 @@ namespace geode::cocos {
         }
     };
 
+    /**
+     * A simple struct that as an entry to a `CCDictionary`.
+     *
+     * @tparam Type Pointer to a type that inherits CCObject.
+     */
     template <class K, class InpT, CocosObject T = std::remove_pointer_t<InpT>>
     struct CCDictEntry {
         K m_key;
@@ -1126,7 +1267,7 @@ namespace geode::cocos {
     /**
      * A templated wrapper over CCDictionary, providing easy iteration and indexing.
      * This will keep ownership of the given CCDictionary*.
-     * 
+     *
      * @tparam Key Type of the key. MUST only be int or gd::string or std::string.
      * @tparam ValuePtr Pointer to a type that inherits CCObject.
      *
@@ -1134,7 +1275,7 @@ namespace geode::cocos {
      * CCDictionaryExt<std::string, GJGameLevel*> levels = getSomeDict();
      * // Easy indexing, giving you the type you assigned
      * GJGameLevel* myLvl = levels["Cube Adventures"];
-     * 
+     *
      * // Easy iteration using C++ range-based for loops
      * for (auto [name, level] : levels) {
      *   log::info("{}: {}", name, level->m_levelID);
@@ -1191,6 +1332,9 @@ namespace geode::cocos {
         }
     };
 
+    /**
+     * Contains various utility functions related to `CCMenuItem` set of classes.
+     */
     struct CCMenuItemExt {
     private:
         template <class Node>
@@ -1219,6 +1363,12 @@ namespace geode::cocos {
         };
 
     public:
+        /**
+         * Creates a `CCMenuItem` with a callback.
+         * 
+         * @param callback The callback for the button
+         * @returns The created button
+         */
         static cocos2d::CCMenuItem* create(
             std::function<void(cocos2d::CCMenuItem*)> callback
         ) {
@@ -1227,8 +1377,16 @@ namespace geode::cocos {
             return item;
         }
 
+        /**
+         * Creates a `CCMenuItemSprite` with a normal and a selected sprite.
+         * 
+         * @param normalSprite The sprite used on idle
+         * @param selectedSprite The sprite used when selected
+         * @param callback The callback for the button
+         * @returns The created button
+         */
         static cocos2d::CCMenuItemSprite* createSprite(
-            cocos2d::CCNode* normalSprite, 
+            cocos2d::CCNode* normalSprite,
             cocos2d::CCNode* selectedSprite,
             std::function<void(cocos2d::CCMenuItemSprite*)> callback
         ) {
@@ -1237,8 +1395,17 @@ namespace geode::cocos {
             return item;
         }
 
+        /**
+         * Creates a `CCMenuItemSprite` with a disabled, normal and a selected sprite.
+         * 
+         * @param normalSprite The sprite used on idle
+         * @param selectedSprite The sprite used when selected
+         * @param disabledSprite The sprite used when disabled
+         * @param callback The callback for the button
+         * @returns The created button
+         */
         static cocos2d::CCMenuItemSprite* createSprite(
-            cocos2d::CCNode* normalSprite, 
+            cocos2d::CCNode* normalSprite,
             cocos2d::CCNode* selectedSprite,
             cocos2d::CCNode* disabledSprite,
             std::function<void(cocos2d::CCMenuItemSprite*)> callback
@@ -1248,8 +1415,15 @@ namespace geode::cocos {
             return item;
         }
 
+        /**
+         * Creates a `CCMenuItemSpriteExtra` with a sprite and a callback.
+         * 
+         * @param normalSprite The sprite for the button
+         * @param callback The callback for the button
+         * @returns The created button
+         */
         static CCMenuItemSpriteExtra* createSpriteExtra(
-            cocos2d::CCNode* normalSprite, 
+            cocos2d::CCNode* normalSprite,
             std::function<void(CCMenuItemSpriteExtra*)> callback
         ) {
             auto item = CCMenuItemSpriteExtra::create(normalSprite, nullptr, nullptr);
@@ -1257,6 +1431,14 @@ namespace geode::cocos {
             return item;
         }
 
+        /**
+         * Creates a `CCMenuItemSpriteExtra` with a file name and a sprite scale.
+         * 
+         * @param normalSpriteName The file name used for the normal sprite
+         * @param scale The scale used for the sprite
+         * @param callback The callback for the button
+         * @returns The created button
+         */
         static CCMenuItemSpriteExtra* createSpriteExtraWithFilename(
             std::string_view normalSpriteName,
             float scale,
@@ -1268,6 +1450,14 @@ namespace geode::cocos {
             return createSpriteExtra(sprite, std::move(callback));
         }
 
+        /**
+         * Creates a `CCMenuItemSpriteExtra` with a frame name and a sprite scale.
+         * 
+         * @param normalSpriteName The frame name used for the normal sprite
+         * @param scale The scale used for the sprite
+         * @param callback The callback for the button
+         * @returns The created button
+         */
         static CCMenuItemSpriteExtra* createSpriteExtraWithFrameName(
             std::string_view normalSpriteName,
             float scale,
@@ -1279,8 +1469,16 @@ namespace geode::cocos {
             return createSpriteExtra(sprite, std::move(callback));
         }
 
+        /**
+         * Creates a `CCMenuItemToggler` with an on and off sprite.
+         * 
+         * @param onSprite The sprite used when toggled on
+         * @param offSprite The sprite used when toggled off
+         * @param callback The callback for the toggle
+         * @returns The created toggle
+         */
         static CCMenuItemToggler* createToggler(
-            cocos2d::CCNode* onSprite, 
+            cocos2d::CCNode* onSprite,
             cocos2d::CCNode* offSprite,
             std::function<void(CCMenuItemToggler*)> callback
         ) {
@@ -1289,6 +1487,13 @@ namespace geode::cocos {
             return item;
         }
 
+        /**
+         * Creates a `CCMenuItemToggler` with standard toggle sprites GD uses.
+         * 
+         * @param scale The scale of the sprites
+         * @param callback The callback for the toggle
+         * @returns The created toggle
+         */
         static CCMenuItemToggler* createTogglerWithStandardSprites(
             float scale,
             std::function<void(CCMenuItemToggler*)> callback
@@ -1302,6 +1507,14 @@ namespace geode::cocos {
             return createToggler(onSprite, offSprite, std::move(callback));
         }
 
+        /**
+         * Creates a `CCMenuItemToggler` with an on and off sprite file name
+         * 
+         * @param onSpriteName The file name thats used to create the toggled on sprite
+         * @param offSpriteName The file name thats used to create the toggled off sprite
+         * @param callback The callback for the toggle
+         * @returns The created toggle
+         */
         static CCMenuItemToggler* createTogglerWithFilename(
             std::string_view onSpriteName,
             std::string_view offSpriteName,
@@ -1317,6 +1530,14 @@ namespace geode::cocos {
             return createToggler(onSprite, offSprite, std::move(callback));
         }
 
+        /**
+         * Creates a `CCMenuItemToggler` with an on and off sprite frame name
+         * 
+         * @param onSpriteName The frame name thats used to create the toggled on sprite
+         * @param offSpriteName The frame name thats used to create the toggled off sprite
+         * @param callback The callback for the toggle
+         * @returns The created toggle
+         */
         static CCMenuItemToggler* createTogglerWithFrameName(
             std::string_view onSpriteName,
             std::string_view offSpriteName,
@@ -1332,6 +1553,12 @@ namespace geode::cocos {
             return createToggler(onSprite, offSprite, std::move(callback));
         }
 
+        /**
+         * Assigns a lambda callback to a `CCMenuItem`
+         * 
+         * @param item The item to assign callback to
+         * @param callback The callback to assign
+         */
         template <class Node>
         static void assignCallback(
             cocos2d::CCMenuItem* item,
@@ -1343,7 +1570,11 @@ namespace geode::cocos {
         }
     };
 
-    // CCCallFunc alternative that accepts a lambda (or any function object)
+    /**
+     * CCCallFunc alternative that accepts a lambda (or any function object)
+     * 
+     * @tparam The type of the function object
+     */
     template <std::invocable F>
     class CallFuncExtImpl : public cocos2d::CCActionInstant {
     public:
@@ -1381,11 +1612,33 @@ namespace geode::cocos {
         template <std::invocable F>
         static auto create(F&& func) {
             using Fd = std::decay_t<F>;
-            
+
             return CallFuncExtImpl<Fd>::create(std::forward<F>(func));
         }
     };
 
+    /**
+     * A utility function that recursively sets the touch priorities 
+     * of a node and its children.
+     * 
+     * Not very recommended for use but there are cases it can quickly
+     * fix some touch handler related problems.
+     * 
+     * @param node The parent node to set touch priority to
+     * @param priority The priority value to set to
+     * @param force Whether it should force set without smaller-than checks
+     */
     void GEODE_DLL handleTouchPriorityWith(cocos2d::CCNode* node, int priority, bool force = false);
+
+    /**
+     * A utility function that recursively sets the touch priorities 
+     * of a node and its children.
+     * 
+     * Not very recommended for use but there are cases it can quickly
+     * fix some touch handler related problems.
+     * 
+     * @param node The parent node to set touch priority to
+     * @param force Whether it should force set without smaller-than checks
+     */
     void GEODE_DLL handleTouchPriority(cocos2d::CCNode* node, bool force = false);
 }

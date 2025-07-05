@@ -22,6 +22,7 @@ using namespace geode::prelude;
 
 class CustomMenuLayer;
 
+
 struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
     static void onModify(auto& self) {
         if (!self.setHookPriority("MenuLayer::init", geode::node_ids::GEODE_ID_PRIORITY)) {

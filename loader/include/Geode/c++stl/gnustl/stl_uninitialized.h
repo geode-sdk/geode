@@ -251,7 +251,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
   // Extensions: versions of uninitialized_copy, uninitialized_fill,
   //  and uninitialized_fill_n that take an allocator parameter.
   //  We dispatch back to the standard versions when we're given the
-  //  default allocator.  For nondefault allocators we do not use 
+  //  default allocator.  For nondefault allocators we do not use
   //  any of the POD optimizations.
 
   template<typename _InputIterator, typename _ForwardIterator,
@@ -333,7 +333,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
   template<typename _ForwardIterator, typename _Size, typename _Tp,
 	   typename _Allocator>
     void
-    __uninitialized_fill_n_a(_ForwardIterator __first, _Size __n, 
+    __uninitialized_fill_n_a(_ForwardIterator __first, _Size __n,
 			     const _Tp& __x, _Allocator& __alloc)
     {
       _ForwardIterator __cur = __first;
@@ -353,7 +353,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
   template<typename _ForwardIterator, typename _Size, typename _Tp,
 	   typename _Tp2>
     inline void
-    __uninitialized_fill_n_a(_ForwardIterator __first, _Size __n, 
+    __uninitialized_fill_n_a(_ForwardIterator __first, _Size __n,
 			     const _Tp& __x, allocator<_Tp2>&)
     { uninitialized_fill_n(__first, __n, __x); }
 
@@ -418,7 +418,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	  __throw_exception_again;
 	}
     }
-  
+
   // __uninitialized_fill_move
   // Fills [result, mid) with x, and moves [first, last) into
   //  [mid, mid + (last - first)).
@@ -611,7 +611,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
   // constructed with the allocator alloc.
   template<typename _ForwardIterator, typename _Size, typename _Allocator>
     void
-    __uninitialized_default_n_a(_ForwardIterator __first, _Size __n, 
+    __uninitialized_default_n_a(_ForwardIterator __first, _Size __n,
 				_Allocator& __alloc)
     {
       _ForwardIterator __cur = __first;
@@ -630,7 +630,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 
   template<typename _ForwardIterator, typename _Size, typename _Tp>
     inline void
-    __uninitialized_default_n_a(_ForwardIterator __first, _Size __n, 
+    __uninitialized_default_n_a(_ForwardIterator __first, _Size __n,
 				allocator<_Tp>&)
     { __uninitialized_default_n(__first, __n); }
 

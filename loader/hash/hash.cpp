@@ -13,7 +13,7 @@ template <class Func>
 void readBuffered(std::ifstream& stream, Func func) {
     constexpr size_t BUF_SIZE = 4096;
     stream.exceptions(std::ios_base::badbit);
-    
+
     std::vector<uint8_t> buffer(BUF_SIZE);
     while (true) {
         stream.read(reinterpret_cast<char*>(buffer.data()), BUF_SIZE);

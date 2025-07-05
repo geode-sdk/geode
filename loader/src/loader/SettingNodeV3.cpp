@@ -60,7 +60,7 @@ bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
         return false;
 
     // note: setting may be null due to UnresolvedCustomSettingNodeV3
-    
+
     m_impl = std::make_shared<Impl>();
     m_impl->setting = setting;
 
@@ -69,7 +69,7 @@ bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
     m_impl->bg->ignoreAnchorPointForPosition(false);
     m_impl->bg->setAnchorPoint(ccp(.5f, .5f));
     this->addChildAtPosition(m_impl->bg, Anchor::Center);
-    
+
     m_impl->nameMenu = CCMenu::create();
     m_impl->nameMenu->setContentWidth(width / 2 + 25);
 
@@ -221,7 +221,7 @@ std::shared_ptr<SettingV3> SettingNodeV3::getSetting() const {
 bool TitleSettingNodeV3::init(std::shared_ptr<TitleSettingV3> setting, float width) {
     if (!SettingNodeV3::init(setting, width))
         return false;
-    
+
     auto collapseSprBG = CCSprite::create("square02c_001.png");
     collapseSprBG->setColor(ccc3(25, 25, 25));
     collapseSprBG->setOpacity(105);
@@ -237,7 +237,7 @@ bool TitleSettingNodeV3::init(std::shared_ptr<TitleSettingV3> setting, float wid
     uncollapseSpr->setScale(1.5f);
     uncollapseSprBG->addChildAtPosition(uncollapseSpr, Anchor::Center);
     uncollapseSprBG->setScale(.2f);
-    
+
     m_collapseToggle = CCMenuItemToggler::create(
         collapseSprBG, uncollapseSprBG,
         this, menu_selector(TitleSettingNodeV3::onCollapse)
@@ -245,12 +245,12 @@ bool TitleSettingNodeV3::init(std::shared_ptr<TitleSettingV3> setting, float wid
     m_collapseToggle->m_notClickable = true;
     this->getButtonMenu()->setContentWidth(20);
     this->getButtonMenu()->addChildAtPosition(m_collapseToggle, Anchor::Center);
-    
+
     this->getNameLabel()->setFntFile("goldFont.fnt");
     this->getNameMenu()->updateLayout();
     this->setContentHeight(20);
     this->updateState(nullptr);
-    
+
     return true;
 }
 
@@ -294,7 +294,7 @@ bool BoolSettingNodeV3::init(std::shared_ptr<BoolSettingV3> setting, float width
         return false;
 
     this->getButtonMenu()->setContentWidth(20);
-    
+
     m_toggle = CCMenuItemToggler::createWithStandardSprites(
         this, menu_selector(BoolSettingNodeV3::onToggle), .55f
     );
@@ -352,15 +352,15 @@ bool StringSettingNodeV3::init(std::shared_ptr<StringSettingV3> setting, float w
     if (auto filter = this->getSetting()->getAllowedCharacters()) {
         m_input->setFilter(*filter);
     }
-    
+
     this->getButtonMenu()->addChildAtPosition(m_input, Anchor::Center);
-    
+
     if (setting->getEnumOptions()) {
         m_input->getBGSprite()->setVisible(false);
         m_input->setEnabled(false);
         m_input->getInputNode()->m_textLabel->setOpacity(255);
         m_input->getInputNode()->m_textLabel->setColor(ccWHITE);
-        
+
         m_arrowLeftSpr = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
         m_arrowLeftSpr->setFlipX(true);
         m_arrowLeftSpr->setScale(.4f);
@@ -430,7 +430,7 @@ StringSettingNodeV3* StringSettingNodeV3::create(std::shared_ptr<StringSettingV3
 bool FileSettingNodeV3::init(std::shared_ptr<FileSettingV3> setting, float width) {
     if (!SettingValueNodeV3::init(setting, width))
         return false;
-    
+
     auto labelBG = extension::CCScale9Sprite::create("square02b_001.png", { 0, 0, 80, 80 });
     labelBG->setScale(.25f);
     labelBG->setColor({ 0, 0, 0 });
@@ -457,13 +457,13 @@ bool FileSettingNodeV3::init(std::shared_ptr<FileSettingV3> setting, float width
 }
 
 void FileSettingNodeV3::updateState(CCNode* invoker) {
-    // This is because people tend to put `"default": "Please pick a good file"` 
+    // This is because people tend to put `"default": "Please pick a good file"`
     // which is clever and good UX but also a hack so I also need to hack to support that
     const auto isTextualDefaultValue = [this, setting = this->getSetting()]() {
         if (this->hasNonDefaultValue()) return false;
         if (setting->getDefaultValue().string().size() > 20) return false;
         std::error_code ec;
-        return setting->isFolder() ? 
+        return setting->isFolder() ?
             !std::filesystem::is_directory(setting->getDefaultValue(), ec) :
             !std::filesystem::is_regular_file(setting->getDefaultValue(), ec);
     }();
@@ -515,13 +515,13 @@ void FileSettingNodeV3::onPickFile(CCObject*) {
     });
     std::error_code ec;
     m_pickListener.setFilter(file::pick(
-        this->getSetting()->isFolder() ? 
-            file::PickMode::OpenFolder : 
-            (this->getSetting()->useSaveDialog() ? file::PickMode::SaveFile : file::PickMode::OpenFile), 
+        this->getSetting()->isFolder() ?
+            file::PickMode::OpenFolder :
+            (this->getSetting()->useSaveDialog() ? file::PickMode::SaveFile : file::PickMode::OpenFile),
         {
             // Prefer opening the current path directly if possible
-            this->getValue().empty() || !std::filesystem::exists(this->getValue().parent_path(), ec) ? 
-                dirs::getGameDir() : 
+            this->getValue().empty() || !std::filesystem::exists(this->getValue().parent_path(), ec) ?
+                dirs::getGameDir() :
                 this->getValue(),
             this->getSetting()->getFilters().value_or(std::vector<file::FilePickOptions::Filter>())
         }
@@ -543,7 +543,7 @@ FileSettingNodeV3* FileSettingNodeV3::create(std::shared_ptr<FileSettingV3> sett
 bool Color3BSettingNodeV3::init(std::shared_ptr<Color3BSettingV3> setting, float width) {
     if (!SettingValueNodeV3::init(setting, width))
         return false;
-    
+
     m_colorSprite = ColorChannelSprite::create();
     m_colorSprite->setScale(.65f);
 
@@ -560,7 +560,7 @@ bool Color3BSettingNodeV3::init(std::shared_ptr<Color3BSettingV3> setting, float
 void Color3BSettingNodeV3::updateState(CCNode* invoker) {
     SettingValueNodeV3::updateState(invoker);
     m_colorSprite->setColor(this->getValue());
-    
+
     auto enable = this->getSetting()->shouldEnable();
     m_colorSprite->setOpacity(enable ? 255 : 155);
     m_colorBtn->setEnabled(enable);
@@ -590,7 +590,7 @@ Color3BSettingNodeV3* Color3BSettingNodeV3::create(std::shared_ptr<Color3BSettin
 bool Color4BSettingNodeV3::init(std::shared_ptr<Color4BSettingV3> setting, float width) {
     if (!SettingValueNodeV3::init(setting, width))
         return false;
-    
+
     m_colorSprite = ColorChannelSprite::create();
     m_colorSprite->setScale(.65f);
 
@@ -608,7 +608,7 @@ void Color4BSettingNodeV3::updateState(CCNode* invoker) {
     SettingValueNodeV3::updateState(invoker);
     m_colorSprite->setColor(to3B(this->getValue()));
     m_colorSprite->updateOpacity(this->getValue().a / 255.f);
-    
+
     auto enable = this->getSetting()->shouldEnable();
     m_colorSprite->setOpacity(enable ? 255 : 155);
     m_colorBtn->setEnabled(enable);
@@ -638,14 +638,14 @@ Color4BSettingNodeV3* Color4BSettingNodeV3::create(std::shared_ptr<Color4BSettin
 bool UnresolvedCustomSettingNodeV3::init(std::string_view key, Mod* mod, float width) {
     if (!SettingNodeV3::init(nullptr, width))
         return false;
-    
+
     m_mod = mod;
-    
+
     this->setContentHeight(30);
 
     auto label = CCLabelBMFont::create(
         (mod && mod->isEnabled() ?
-            fmt::format("Missing setting '{}'", key) : 
+            fmt::format("Missing setting '{}'", key) :
             fmt::format("Enable the Mod to Edit '{}'", key)
         ).c_str(),
         "bigFont.fnt"

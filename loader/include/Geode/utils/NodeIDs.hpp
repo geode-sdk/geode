@@ -43,9 +43,9 @@ namespace geode::node_ids {
 
     static void switchToMenu(CCNode* node, CCNode* menu) {
         if (!node || !menu) return;
-        
+
         auto worldPos = node->getParent() ?
-            node->getParent()->convertToWorldSpace(node->getPosition()) : 
+            node->getParent()->convertToWorldSpace(node->getPosition()) :
             node->getPosition();
 
         node->retain();
@@ -96,7 +96,7 @@ namespace geode::node_ids {
         first->release();
 
         (switchToMenu(args, newMenu), ...);
-        
+
         newMenu->setLayout(layout);
 
         return newMenu;

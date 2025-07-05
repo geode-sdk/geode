@@ -210,6 +210,9 @@ std::pair<ccColor3B, ccColor3B> geodeTagColors(server::ServerTag const& tag) {
     if (tag.name == "modtober24") {
         return std::make_pair(ccc3(225, 236, 245), ccc3(82, 139, 201));
     }
+    if (tag.name == "api") {
+        return std::make_pair(ccc3(173, 190, 217), ccc3(128, 132, 140));
+    }
     return TAG_COLORS[hash(tag.name) % 5932 % TAG_COLORS.size()];
 }
 
@@ -256,7 +259,7 @@ bool GeodeTabSprite::init(const char* iconFrame, const char* text, float width, 
     this->addChildAtPosition(m_icon, Anchor::Left, ccp(16, 0), false);
 
     m_label = CCLabelBMFont::create(text, "bigFont.fnt");
-    m_label->limitLabelWidth(this->getContentWidth() - 45, clamp(width * .0045f, .35f, .55f), .1f);
+    m_label->limitLabelWidth(this->getContentWidth() - 45, std::clamp(width * .0045f, .35f, .55f), .1f);
     m_label->setAnchorPoint({ .5f, .5f });
     this->addChildAtPosition(m_label, Anchor::Left, ccp((itemSize.width - iconSize.width) / 2 + iconSize.width, 0), false);
 

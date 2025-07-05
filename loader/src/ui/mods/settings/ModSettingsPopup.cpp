@@ -216,7 +216,7 @@ void ModSettingsPopup::onRestart(CCObject*) {
         // Delayed by 2 frames - one is needed to render the "Restarting text"
         Loader::get()->queueInMainThread([] {
             // the other never finishes rendering because the game actually restarts at this point
-            game::restart();
+            game::restart(true);
         });
     });
 }
@@ -260,7 +260,7 @@ void ModSettingsPopup::updateState(SettingNode* invoker) {
     auto listPosBefore = m_list->m_contentLayer->getPositionY();
     auto listHeightBefore = m_list->m_contentLayer->getContentHeight();
 
-    // Update search visibility + all settings with "enable-if" schemes + 
+    // Update search visibility + all settings with "enable-if" schemes +
     // checkerboard BG
     TitleSettingNode* lastTitle = nullptr;
     bool bg = false;
@@ -291,7 +291,7 @@ void ModSettingsPopup::updateState(SettingNode* invoker) {
 
     // Preserve relative list position if something has been collapsed
     m_list->m_contentLayer->setPositionY(
-        listPosBefore + 
+        listPosBefore +
             (listHeightBefore - m_list->m_contentLayer->getContentHeight())
     );
 
@@ -307,7 +307,7 @@ void ModSettingsPopup::updateState(SettingNode* invoker) {
         m_applyBtnSpr->setOpacity(155);
         m_applyBtn->setEnabled(false);
     }
-    
+
     auto clearSpr = static_cast<GeodeSquareSprite*>(m_searchClearBtn->getNormalImage());
     m_searchClearBtn->setEnabled(hasSearch);
     clearSpr->setColor(hasSearch ? ccWHITE : ccGRAY);

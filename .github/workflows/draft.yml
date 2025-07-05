@@ -39,6 +39,7 @@ jobs:
         run: |
           mv dev/geode-installer-*-win.exe geode-installer-v${{ steps.ref.outputs.version }}-win.exe
           mv dev/geode-installer-*-mac.pkg geode-installer-v${{ steps.ref.outputs.version }}-mac.pkg
+          mv dev/geode-installer-*-linux.sh geode-installer-v${{ steps.ref.outputs.version }}-linux.sh
           mv dev/geode-*-win.zip geode-v${{ steps.ref.outputs.version }}-win.zip
           mv dev/geode-*-mac.zip geode-v${{ steps.ref.outputs.version }}-mac.zip
           mv dev/geode-*-android32.zip geode-v${{ steps.ref.outputs.version }}-android32.zip
@@ -62,6 +63,7 @@ jobs:
           files: |
             ./geode-installer-v${{ steps.ref.outputs.version }}-win.exe
             ./geode-installer-v${{ steps.ref.outputs.version }}-mac.pkg
+            ./geode-installer-v${{ steps.ref.outputs.version }}-linux.sh
             ./geode-v${{ steps.ref.outputs.version }}-win.zip
             ./geode-v${{ steps.ref.outputs.version }}-mac.zip
             ./geode-v${{ steps.ref.outputs.version }}-android32.zip

@@ -56,7 +56,7 @@ bool ModMetadata::Dependency::isResolved() const {
 }
 
 bool ModMetadata::Incompatibility::isResolved() const {
-    return this->importance != Importance::Breaking ||
+    return this->importance == Importance::Conflicting ||
         (!this->mod || !this->version.compare(this->mod->getVersion()) || !this->mod->shouldLoad());
 }
 
@@ -113,22 +113,18 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     impl->m_rawJSON = rawJson;
 
     auto checkerRoot = fmt::format(
-        "[{}/v0.0.0/mod.json]",
-        rawJson.contains("id") ? GEODE_UNWRAP(rawJson["id"].asString()) : "unknown.mod"
+        "[{}/{}/mod.json]",
+        rawJson["id"].asString().unwrapOr("unknown.mod"),
+        rawJson["version"].as<VersionInfo>().map(
+            [](VersionInfo const& v) {
+                return v.toVString();
+            }
+        ).unwrapOr("v0.0.0")
     );
-    // JsonChecker did it this way too
-    try {
-        checkerRoot = fmt::format(
-            "[{}/{}/mod.json]",
-            rawJson.contains("id") ? GEODE_UNWRAP(rawJson["id"].asString()) : "unknown.mod",
-            rawJson.contains("version") ? GEODE_UNWRAP(rawJson["version"].as<VersionInfo>()).toVString() : "v0.0.0"
-        );
-    }
-    catch (...) { }
 
     auto root = checkJson(impl->m_rawJSON, checkerRoot);
     root.needs("geode").into(impl->m_geodeVersion);
-    
+
     if (auto gd = root.needs("gd")) {
         // todo in v5: get rid of the string alternative and makes this always be an object
         gd.assertIs({ matjson::Type::Object, matjson::Type::String });
@@ -207,7 +203,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
             else {
                 dep.assertIs({ matjson::Type::Object, matjson::Type::String });
             }
-            
+
             if (dep.isObject()) {
                 bool onThisPlatform = !dep.has("platforms");
                 for (auto& plat : dep.has("platforms").items()) {
@@ -252,7 +248,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
             }
 
             impl->m_dependencies.push_back(dependency);
-            // todo in v5: make Dependency pimpl and move this as a member there 
+            // todo in v5: make Dependency pimpl and move this as a member there
             // `dep.has("settings").into(dependency.settings);`
             impl->m_dependencySettings.insert({ id, dependencySettings });
 
@@ -491,8 +487,8 @@ Result<> ModMetadata::Impl::addSpecialFiles(file::Unzip& unzip) {
     // unzip known MD files
     for (auto& [file, target] : this->getSpecialFiles()) {
         if (unzip.hasEntry(file)) {
-            // reference to local binding 'file' declared in enclosing function 
-            std::string_view fileStr(file); 
+            // reference to local binding 'file' declared in enclosing function
+            std::string_view fileStr(file);
             GEODE_UNWRAP_INTO(auto data, unzip.extract(fileStr).mapErr([&](auto const& err) {
                 return fmt::format("Unable to extract \"{}\": {}", fileStr, err);
             }));
@@ -569,7 +565,7 @@ std::string ModMetadata::formatDeveloperDisplayString(std::vector<std::string> c
         case 1: return developers.front(); break;
         case 2: return developers.front() + " & " + developers.back(); break;
         default: {
-            return developers.front() + " + " + 
+            return developers.front() + " + " +
                 std::to_string(developers.size() - 1) + " More";
         } break;
     }

@@ -63,11 +63,11 @@ public:
     /** Prefered sprite's size. By default the prefered size is the original size. */
 
     //if the preferredSize component is given as -1, it is ignored
-    CC_PROPERTY(CCSize, m_preferredSize, PreferredSize); 
-    /** 
-     * The end-cap insets. 
-     * On a non-resizeable sprite, this property is set to CGRectZero; the sprite 
-     * does not use end caps and the entire sprite is subject to stretching. 
+    CC_PROPERTY(CCSize, m_preferredSize, PreferredSize);
+    /**
+     * The end-cap insets.
+     * On a non-resizeable sprite, this property is set to CGRectZero; the sprite
+     * does not use end caps and the entire sprite is subject to stretching.
      */
     CC_PROPERTY(CCRect, m_capInsets, CapInsets);
     /** Sets the left side inset */
@@ -85,7 +85,7 @@ public:
     bool   m_bSpriteFrameRotated;
     CCRect m_capInsetsInternal;
     bool m_positionsAreDirty;
-    
+
     CCSpriteBatchNode* _scale9Image;
     CCSprite* _topLeft;
     CCSprite* _top;
@@ -106,13 +106,13 @@ protected:
     void updatePositions();
 
 public:
-    
+
     virtual void setContentSize(const CCSize & size);
     /**
      *  @js NA
      */
     virtual void visit();
-    
+
     virtual bool init();
 
     virtual bool initWithBatchNode(CCSpriteBatchNode* batchnode, CCRect rect, bool rotated, CCRect capInsets);
@@ -126,13 +126,13 @@ public:
      *
      * @param file The name of the texture file.
      * @param rect The rectangle that describes the sub-part of the texture that
-     * is the whole image. If the shape is the whole texture, set this to the 
+     * is the whole image. If the shape is the whole texture, set this to the
      * texture's full rect.
      * @param capInsets The values to use for the cap insets.
      */
     virtual bool initWithFile(const char* file, CCRect rect,  CCRect capInsets);
-    
-    /** 
+
+    /**
      * Creates a 9-slice sprite with a texture file, a delimitation zone and
      * with the specified cap insets.
      *
@@ -149,12 +149,12 @@ public:
      *
      * @param file The name of the texture file.
      * @param rect The rectangle that describes the sub-part of the texture that
-     * is the whole image. If the shape is the whole texture, set this to the 
+     * is the whole image. If the shape is the whole texture, set this to the
      * texture's full rect.
      */
     virtual bool initWithFile(const char* file, CCRect rect);
-    
-     /** 
+
+     /**
      * Creates a 9-slice sprite with a texture file and a delimitation zone. The
      * texture will be broken down into a 3×3 grid of equal blocks.
      *
@@ -174,7 +174,7 @@ public:
      */
     virtual bool initWithFile(CCRect capInsets, const char* file);
 
-    /** 
+    /**
      * Creates a 9-slice sprite with a texture file. The whole texture will be
      * broken down into a 3×3 grid of equal blocks.
      *
@@ -182,7 +182,7 @@ public:
      */
     static CCScale9Sprite* create(CCRect capInsets, const char* file);
 
-    
+
     /**
      * Initializes a 9-slice sprite with a texture file. The whole texture will be
      * broken down into a 3×3 grid of equal blocks.
@@ -194,16 +194,16 @@ public:
      */
     virtual bool initWithFile(const char* file);
 
-    /** 
+    /**
      * Creates a 9-slice sprite with a texture file. The whole texture will be
      * broken down into a 3×3 grid of equal blocks.
      *
      * @see initWithFile:
      */
     static CCScale9Sprite* create(const char* file);
-    
+
     /**
-     * Initializes a 9-slice sprite with an sprite frame and with the specified 
+     * Initializes a 9-slice sprite with an sprite frame and with the specified
      * cap insets.
      * Once the sprite is created, you can then call its "setContentSize:" method
      * to resize the sprite will all it's 9-slice goodness intract.
@@ -222,7 +222,7 @@ public:
      *
      * @see initWithSpriteFrame:centerRegion:
      */
-    static CCScale9Sprite* createWithSpriteFrame(CCSpriteFrame* spriteFrame, CCRect capInsets); 
+    static CCScale9Sprite* createWithSpriteFrame(CCSpriteFrame* spriteFrame, CCRect capInsets);
     /**
      * Initializes a 9-slice sprite with an sprite frame.
      * Once the sprite is created, you can then call its "setContentSize:" method
@@ -241,10 +241,10 @@ public:
      *
      * @see initWithSpriteFrame:
      */
-    static CCScale9Sprite* createWithSpriteFrame(CCSpriteFrame* spriteFrame);  
+    static CCScale9Sprite* createWithSpriteFrame(CCSpriteFrame* spriteFrame);
 
     /**
-     * Initializes a 9-slice sprite with an sprite frame name and with the specified 
+     * Initializes a 9-slice sprite with an sprite frame name and with the specified
      * cap insets.
      * Once the sprite is created, you can then call its "setContentSize:" method
      * to resize the sprite will all it's 9-slice goodness intract.
@@ -264,7 +264,7 @@ public:
      *
      * @see initWithSpriteFrameName:centerRegion:
      */
-    static CCScale9Sprite* createWithSpriteFrameName(const char*spriteFrameName, CCRect capInsets); 
+    static CCScale9Sprite* createWithSpriteFrameName(const char*spriteFrameName, CCRect capInsets);
 
     /**
      * Initializes a 9-slice sprite with an sprite frame name.
@@ -285,21 +285,21 @@ public:
      * @see initWithSpriteFrameName:
      */
     static CCScale9Sprite* createWithSpriteFrameName(const char*spriteFrameName);
-    
+
     /**
      * Creates and returns a new sprite object with the specified cap insets.
      * You use this method to add cap insets to a sprite or to change the existing
-     * cap insets of a sprite. In both cases, you get back a new image and the 
+     * cap insets of a sprite. In both cases, you get back a new image and the
      * original sprite remains untouched.
      *
      * @param capInsets The values to use for the cap insets.
      */
     CCScale9Sprite* resizableSpriteWithCapInsets(CCRect capInsets);
-    
+
     static CCScale9Sprite* create();
 
     // optional
-    
+
     /** sets the premultipliedAlphaOpacity property.
      If set to NO then opacity will be applied as: glColor(R,G,B,opacity);
      If set to YES then oapcity will be applied as: glColor(opacity, opacity, opacity, opacity );
@@ -307,7 +307,7 @@ public:
      @since v0.8
      */
     virtual void setOpacityModifyRGB(bool bValue);
-    
+
     /** returns whether or not the opacity will be applied using glColor(R,G,B,opacity) or glColor(opacity, opacity, opacity, opacity);
      @since v0.8
      */
@@ -320,7 +320,7 @@ public:
     virtual bool updateWithBatchNode(CCSpriteBatchNode* batchnode, CCRect rect, bool rotated, CCRect capInsets);
 
     virtual void setSpriteFrame(CCSpriteFrame * spriteFrame);
-    
+
     virtual void updateDisplayedOpacity(GLubyte parentOpacity);
     virtual void updateDisplayedColor(const cocos2d::ccColor3B& parentColor);
 };

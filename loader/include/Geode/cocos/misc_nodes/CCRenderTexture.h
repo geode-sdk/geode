@@ -51,7 +51,7 @@ There are also functions for saving the render texture to disk in PNG or JPG for
 
 @since v0.8.1
 */
-class CC_DLL CCRenderTexture : public CCNode 
+class CC_DLL CCRenderTexture : public CCNode
 {
     GEODE_FRIEND_MODIFY
     /** The CCSprite being used.
@@ -72,7 +72,7 @@ public:
      * @lua NA
      */
     virtual ~CCRenderTexture();
-    
+
     virtual void visit();
     virtual void draw();
 
@@ -134,33 +134,33 @@ public:
         Returns YES if the operation is successful.
      */
     bool saveToFile(const char *name, tCCImageFormat format);
-    
+
     /** Listen "come to background" message, and save render texture.
      It only has effect on Android.
      */
     void listenToBackground(CCObject *obj);
-    
+
     /** Listen "come to foreground" message and restore the frame buffer object
      It only has effect on Android.
      */
     void listenToForeground(CCObject *obj);
-    
+
     /** Valid flags: GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, GL_STENCIL_BUFFER_BIT. They can be OR'ed. Valid when "autoDraw is YES. */
     unsigned int getClearFlags() const;
     void setClearFlags(unsigned int uClearFlags);
-    
+
     /** Clear color value. Valid only when "autoDraw" is true. */
     const ccColor4F& getClearColor() const;
     void setClearColor(const ccColor4F &clearColor);
-    
+
     /** Value for clearDepth. Valid only when autoDraw is true. */
     float getClearDepth() const;
     void setClearDepth(float fClearDepth);
-    
+
     /** Value for clear Stencil. Valid only when autoDraw is true */
     int getClearStencil() const;
     void setClearStencil(float fClearStencil);
-    
+
     /** When enabled, it will render its children into the texture automatically. Disabled by default for compatiblity reasons.
      Will be enabled in the future.
      */
@@ -180,13 +180,22 @@ public:
     CCTexture2D* m_pTextureCopy;    // a copy of m_pTexture
     CCImage*     m_pUITextureImage;
     GLenum       m_ePixelFormat;
-    
+
     // code for "auto" update
     GLbitfield   m_uClearFlags;
     ccColor4F    m_sClearColor;
     GLclampf     m_fClearDepth;
     GLint        m_nClearStencil;
     bool         m_bAutoDraw;
+
+    // @note RobTop Addition
+    float m_fInternalScaleX;
+    // @note RobTop Addition
+    float m_fInternalScaleY;
+    // @note RobTop Addition
+    int m_nWidth;
+    // @note RobTop Addition
+    int m_nHeight;
 };
 
 // end of textures group

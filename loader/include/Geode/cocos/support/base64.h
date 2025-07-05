@@ -27,15 +27,15 @@ THE SOFTWARE.
 
 #ifdef __cplusplus
 extern "C" {
-#endif    
-    
+#endif
+
 namespace cocos2d {
 
 /** @file
  base64 helper functions
  */
 
-/** 
+/**
  * Decodes a 64base encoded memory. The decoded memory is
  * expected to be freed by the caller.
  *
@@ -45,10 +45,10 @@ namespace cocos2d {
  */
 int base64Decode(unsigned char *in, unsigned int inLength, unsigned char **out);
 
-}//namespace   cocos2d 
+}//namespace   cocos2d
 
 #ifdef __cplusplus
 }
-#endif    
+#endif
 
 #endif // __SUPPORT_BASE64_H__

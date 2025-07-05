@@ -248,7 +248,7 @@ protected:
                         m_sprite->loadFromData(std::move(logo).unwrap());
                     }
                 }
-                
+
                 // if the logo.png was not found then switch to fallback label
                 if (!m_sprite->isLoading()) {
                     this->onLoadFailed(true);
@@ -286,7 +286,7 @@ protected:
         sprite->setOpacity(90);
         limitNodeSize(sprite, m_obContentSize, 99.f, 0.f);
         this->addChildAtPosition(sprite, Anchor::Center);
-        
+
         this->doPostEvent();
     }
 

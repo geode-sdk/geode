@@ -275,18 +275,27 @@ WeakRefPool* WeakRefPool::get() {
 }
 
 void WeakRefPool::check(CCObject* obj) {
-    // if this object's only reference is the WeakRefPool aka only weak 
+    // if this object's only reference is the WeakRefPool aka only weak
     // references exist to it, then release it
-    if (obj && m_pool.contains(obj) && obj->retainCount() == 1) {
-        // set delegates to null because those aren't retained!
-        if (auto input = typeinfo_cast<CCTextInputNode*>(obj)) {
-            input->m_delegate = nullptr;
-        }
-        obj->release();
-        // log::info("nullify {}", m_pool.at(obj).get());
-        m_pool.at(obj)->m_obj = nullptr;
-        m_pool.erase(obj);
+    if (obj && obj->retainCount() == 1) {
+        this->forget(obj);
     }
+}
+
+void WeakRefPool::forget(CCObject* obj) {
+    if (!obj || !m_pool.contains(obj)) {
+        return;
+    }
+
+    // set delegates to null because those aren't retained!
+    if (auto input = typeinfo_cast<CCTextInputNode*>(obj)) {
+        input->m_delegate = nullptr;
+    }
+
+    obj->release();
+    // log::info("nullify {}", m_pool.at(obj).get());
+    m_pool.at(obj)->m_obj = nullptr;
+    m_pool.erase(obj);
 }
 
 std::shared_ptr<WeakRefController> WeakRefPool::manage(CCObject* obj) {
@@ -295,7 +304,7 @@ std::shared_ptr<WeakRefController> WeakRefPool::manage(CCObject* obj) {
     }
 
     if (!m_pool.contains(obj)) {
-        CC_SAFE_RETAIN(obj);
+        obj->retain();
         auto controller = std::make_shared<WeakRefController>();
         controller->m_obj = obj;
         m_pool.insert({ obj, controller });
@@ -417,15 +426,15 @@ CCRect geode::cocos::calculateChildCoverage(CCNode* parent) {
 }
 
 void geode::cocos::limitNodeSize(CCNode* spr, CCSize const& size, float def, float min) {
-    spr->setScale(clamp(std::min(size.height / spr->getContentHeight(), size.width / spr->getContentWidth()), min, def));
+    spr->setScale(std::clamp(std::min(size.height / spr->getContentHeight(), size.width / spr->getContentWidth()), min, def));
 }
 
 void geode::cocos::limitNodeWidth(CCNode* spr, float width, float def, float min) {
-    spr->setScale(clamp(width / spr->getContentSize().width, min, def));
+    spr->setScale(std::clamp(width / spr->getContentSize().width, min, def));
 }
 
 void geode::cocos::limitNodeHeight(CCNode* spr, float height, float def, float min) {
-    spr->setScale(clamp(height / spr->getContentSize().height, min, def));
+    spr->setScale(std::clamp(height / spr->getContentSize().height, min, def));
 }
 
 bool geode::cocos::nodeIsVisible(CCNode* node) {
@@ -471,7 +480,7 @@ void geode::cocos::reloadTextures(CreateLayerFunc returnTo) {
 void GEODE_DLL geode::cocos::handleTouchPriorityWith(cocos2d::CCNode* node, int priority, bool force) {
     if (node == nullptr) return;
     if (node->getChildrenCount() == 0) return;
-    
+
     for (auto child : CCArrayExt<CCNode*>(node->getChildren())) {
         if (auto delegate = typeinfo_cast<CCTouchDelegate*>(child)) {
             if (auto handler = CCTouchDispatcher::get()->findHandler(delegate)) {

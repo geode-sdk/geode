@@ -1,4 +1,4 @@
-﻿#include "updater.hpp"
+#include "updater.hpp"
 #include <Geode/utils/web.hpp>
 #include <resources.hpp>
 #include <hash.hpp>

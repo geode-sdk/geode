@@ -335,7 +335,7 @@ TabButtonSprite* TabButtonSprite::create(char const* text, TabBaseColor color, T
     auto label = CCLabelBMFont::create(text, "bigFont.fnt");
     label->limitLabelWidth(75.f, .6f, .1f);
     if (ret->init(
-        label, BaseType::Tab, 
+        label, BaseType::Tab,
         static_cast<int>(size), static_cast<int>(color)
     )) {
         ret->autorelease();

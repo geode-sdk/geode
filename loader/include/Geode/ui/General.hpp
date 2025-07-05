@@ -39,7 +39,7 @@ namespace geode {
      * Add side art (corner pieces) for a layer
      * @param to Layer to add corner pieces to
      * @param sides Which corners to populate; by default, populates all
-     * @param useAnchorLayout If true, `to` is given an `AnchorLayout` and the 
+     * @param useAnchorLayout If true, `to` is given an `AnchorLayout` and the
      * corners' positions are dynamically updated
      */
     GEODE_DLL void addSideArt(
@@ -52,7 +52,7 @@ namespace geode {
      * @param to Layer to add corner pieces to
      * @param sides Which corners to populate; by default, populates all
      * @param style Which side art sprites to use
-     * @param useAnchorLayout If true, `to` is given an `AnchorLayout` and the 
+     * @param useAnchorLayout If true, `to` is given an `AnchorLayout` and the
      * corners' positions are dynamically updated
      */
     GEODE_DLL void addSideArt(
@@ -71,7 +71,7 @@ namespace geode {
         cocos2d::CCPoint const& center,
         cocos2d::CCSize const& size
     );
-    
+
     class GEODE_DLL ListBorders : public cocos2d::CCNode {
     protected:
         cocos2d::extension::CCScale9Sprite* m_top = nullptr;
@@ -80,7 +80,7 @@ namespace geode {
         cocos2d::CCSprite* m_right = nullptr;
         float m_topPadding = 7.5f;
         float m_bottomPadding = 7.5f;
-    
+
         bool init() override;
 
     public:

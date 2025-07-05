@@ -25,7 +25,7 @@ public:
     static TitleSettingNodeV3* create(std::shared_ptr<TitleSettingV3> setting, float width);
 
     bool isCollapsed() const;
-    
+
     bool hasUncommittedChanges() const override;
     bool hasNonDefaultValue() const override;
     void onResetToDefault() override;
@@ -66,7 +66,7 @@ protected:
         auto min = this->getSetting()->getMinValue().value_or(-100);
         auto max = this->getSetting()->getMaxValue().value_or(+100);
         auto range = max - min;
-        return static_cast<float>(clamp(static_cast<double>(value - min) / range, 0.0, 1.0));
+        return static_cast<float>(std::clamp(static_cast<double>(value - min) / range, 0.0, 1.0));
     }
     ValueType valueFromSlider(float num) {
         auto min = this->getSetting()->getMinValue().value_or(-100);
@@ -87,7 +87,7 @@ protected:
         m_bigArrowLeftBtnSpr = CCSprite::create();
         m_bigArrowLeftBtnSpr->setCascadeColorEnabled(true);
         m_bigArrowLeftBtnSpr->setCascadeOpacityEnabled(true);
-        
+
         auto bigArrowLeftSpr1 = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
         auto bigArrowLeftSpr2 = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
         m_bigArrowLeftBtnSpr->setContentSize(bigArrowLeftSpr1->getContentSize() + ccp(20, 0));
@@ -110,7 +110,7 @@ protected:
         m_arrowLeftBtn->setUserObject(ObjWrapper<ValueType>::create(-setting->getArrowStepSize()));
         m_arrowLeftBtn->setVisible(setting->isArrowsEnabled());
         this->getButtonMenu()->addChildAtPosition(m_arrowLeftBtn, Anchor::Left, ccp(22, 0));
-        
+
         m_input = TextInput::create(this->getButtonMenu()->getContentWidth() - 40, "Num");
         m_input->setScale(.7f);
         m_input->setCommonFilter(std::is_floating_point_v<typename S::ValueType> ? CommonFilter::Float : CommonFilter::Int);
@@ -142,7 +142,7 @@ protected:
         bigArrowRightSpr1->setFlipX(true);
         auto bigArrowRightSpr2 = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
         bigArrowRightSpr2->setFlipX(true);
-        
+
         m_bigArrowRightBtnSpr->setContentSize(bigArrowRightSpr1->getContentSize() + ccp(20, 0));
         m_bigArrowRightBtnSpr->addChildAtPosition(bigArrowRightSpr1, Anchor::Center, ccp(-10, 0));
         m_bigArrowRightBtnSpr->addChildAtPosition(bigArrowRightSpr2, Anchor::Center, ccp(10, 0));
@@ -314,7 +314,7 @@ protected:
 
 public:
     static UnresolvedCustomSettingNodeV3* create(std::string_view key, Mod* mod, float width);
-    
+
     bool hasUncommittedChanges() const override;
     bool hasNonDefaultValue() const override;
     void onResetToDefault() override;

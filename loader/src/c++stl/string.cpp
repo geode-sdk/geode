@@ -76,7 +76,7 @@ namespace gd {
         impl.free();
         impl.setEmpty();
     }
-    
+
     char& string::at(size_t pos) {
         if (pos >= this->size())
             throw std::out_of_range("gd::string::at");

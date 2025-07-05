@@ -22,7 +22,7 @@ namespace enable_if_parsing {
         std::string modID;
         RequireModLoaded(std::string const& modID)
           : modID(modID) {}
-        
+
         Result<> checkSemantics() const override {
             return Ok();
         }
@@ -49,7 +49,7 @@ namespace enable_if_parsing {
         std::string settingID;
         RequireSettingEnabled(std::string const& modID, std::string const& settingID)
           : modID(modID), settingID(settingID) {}
-        
+
         Result<> checkSemantics() const override {
             if (auto mod = Loader::get()->getInstalledMod(modID)) {
                 if (!mod->hasSetting(settingID)) {
@@ -93,7 +93,7 @@ namespace enable_if_parsing {
         std::string savedValue;
         RequireSavedValueEnabled(std::string const& modID, std::string const& savedValue)
           : modID(modID), savedValue(savedValue) {}
-        
+
         Result<> checkSemantics() const override {
             return Ok();
         }
@@ -128,7 +128,7 @@ namespace enable_if_parsing {
         std::unique_ptr<Component> component;
         RequireNot(std::unique_ptr<Component>&& component)
           : component(std::move(component)) {}
-        
+
         Result<> checkSemantics() const override {
             return component->checkSemantics();
         }
@@ -156,7 +156,7 @@ namespace enable_if_parsing {
             return Ok();
         }
         bool shouldEnableSetting(std::string const& defaultModID) const override {
-            // Only print out whatever the first erroring condition is to not shit out 
+            // Only print out whatever the first erroring condition is to not shit out
             // "Please enable X and Y and Z and Ö and Å and"
             for (auto& comp : components) {
                 if (!comp->shouldEnableSetting(defaultModID)) {
@@ -241,7 +241,7 @@ namespace enable_if_parsing {
         static bool isBiOpWord(std::string_view op) {
             return op == "&&" || op == "||";
         }
-        
+
         Result<std::optional<std::string_view>> nextWord() {
             // Skip whitespace
             while (m_index < m_src.size() && std::isspace(m_src[m_index])) {
@@ -433,7 +433,7 @@ namespace enable_if_parsing {
         Result<std::unique_ptr<Component>> next() {
             return this->nextBiOp();
         }
-    
+
     public:
         static Result<std::unique_ptr<Component>> parse(std::string_view str, std::string const& defaultModID) {
             auto ret = Parser();
@@ -458,7 +458,7 @@ public:
 };
 
 SettingChangedEventV3::SettingChangedEventV3(std::shared_ptr<SettingV3> setting)
-  : m_impl(std::make_shared<Impl>()) 
+  : m_impl(std::make_shared<Impl>())
 {
     m_impl->setting = setting;
 }
@@ -692,7 +692,7 @@ public:
 
 Result<std::shared_ptr<IntSettingV3>> IntSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
     auto ret = std::make_shared<IntSettingV3>(PrivateMarker());
-    
+
     auto root = checkJson(json, "IntSettingV3");
     ret->parseBaseProperties(key, modID, root);
 
@@ -708,7 +708,7 @@ Result<std::shared_ptr<IntSettingV3>> IntSettingV3::parse(std::string const& key
         controls.has("input").into(ret->m_impl->controls.textInputEnabled);
         controls.checkUnknownKeys();
     }
-    
+
     // Disable arrows if they aren't enabled
     // This silly code is because step size being 0 is what defines if they are enabled
 
@@ -974,7 +974,9 @@ Result<std::shared_ptr<FileSettingV3>> FileSettingV3::parse(std::string const& k
             fmt::arg("mod_config_dir", dirs::getModConfigDir() / modID),
             fmt::arg("mod_save_dir", dirs::getModsSaveDir() / modID),
             fmt::arg("temp_dir", dirs::getTempDir()),
-            fmt::arg("gd_resources_dir", dirs::getResourcesDir())
+            fmt::arg("gd_resources_dir", dirs::getResourcesDir()),
+            fmt::arg("mod_runtime_dir", dirs::getModRuntimeDir() / modID),
+            fmt::arg("mod_resources_dir", dirs::getModRuntimeDir() / modID / "resources" / modID)
         ));
     }
     catch(fmt::format_error const& e) {
@@ -1007,7 +1009,7 @@ Result<std::shared_ptr<FileSettingV3>> FileSettingV3::parse(std::string const& k
                 case hash(""): break;
                 default: return Err("Setting '{}' in mod {}: unknown \"dialog\" type \"{}\"", key, modID, dialogType);
             }
-            
+
             auto filters = std::vector<file::FilePickOptions::Filter>();
             for (auto& item : controls.has("filters").items()) {
                 utils::file::FilePickOptions::Filter filter;
@@ -1026,7 +1028,7 @@ Result<std::shared_ptr<FileSettingV3>> FileSettingV3::parse(std::string const& k
 }
 
 Result<> FileSettingV3::isValid(std::filesystem::path const& value) const {
-    // This is because people tend to put `"default": "Please pick a good file"` 
+    // This is because people tend to put `"default": "Please pick a good file"`
     // which is clever and good UX but also a hack so I also need to hack to support that
     if (value == this->getDefaultValue()) {
         return Ok();

@@ -245,7 +245,7 @@ static void handlerThread() {
     auto text = crashlog::writeCrashlog(faultyMod, getInfo(signalAddress, faultyMod), getStacktrace(), getRegisters());
 
     log::error("Geode crashed!\n{}", text);
-    
+
     s_signal = 0;
     s_cv.notify_all();
 
@@ -313,9 +313,9 @@ void printMemoryMappings(std::stringstream& stream) {
 static std::string s_result;
 bool crashlog::setupPlatformHandler() {
     (void)utils::file::createDirectoryAll(crashlog::getCrashLogDirectory());
-    
+
     JniMethodInfo t;
-    
+
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "getLogcatCrashBuffer", "()Ljava/lang/String;")) {
         jstring stringResult = (jstring)t.env->CallStaticObjectMethod(t.classID, t.methodID);
 

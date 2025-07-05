@@ -132,7 +132,7 @@ public:
      *  @lua NA
      */
     virtual ~CCObject(void);
-    
+
     void release(void);
     void retain(void);
     CCObject* autorelease(void);
@@ -146,21 +146,21 @@ public:
     virtual void acceptVisitor(CCDataVisitor &visitor);
 
     virtual void update(float dt) {CC_UNUSED_PARAM(dt);};
-    
+
     virtual void encodeWithCoder(DS_Dictionary*);
 
     static CCObject* createWithCoder(DS_Dictionary*);
-    
+
     virtual bool canEncode();
 
     inline CCObjectType getObjType() const {
         return m_eObjType;
     }
- 
+
     virtual int getTag() const;
 
     virtual void setTag(int nTag);
-    
+
     inline void setObjType(CCObjectType type) {
         m_eObjType = type;
     }

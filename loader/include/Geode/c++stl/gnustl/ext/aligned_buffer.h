@@ -25,7 +25,7 @@
 /** @file ext/aligned_buffer.h
  *  This file is a GNU extension to the Standard C++ Library.
  */
- 
+
 #pragma once
 
 #pragma GCC system_header

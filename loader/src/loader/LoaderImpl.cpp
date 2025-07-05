@@ -44,24 +44,9 @@ Loader::Impl::~Impl() = default;
 
 // Initialization
 
-bool Loader::Impl::isForwardCompatMode() {
-#ifdef GEODE_IS_ANDROID
-    // forward compat mode doesn't really make sense on android
-    return false;
-#endif
-
-    if (!m_forwardCompatMode.has_value()) {
-        m_forwardCompatMode = !this->getGameVersion().empty() &&
-            this->getGameVersion() != GEODE_STR(GEODE_GD_VERSION);
-    }
-    return m_forwardCompatMode.value();
-}
-
 void Loader::Impl::createDirectories() {
-#ifdef GEODE_IS_MACOS
-    std::filesystem::create_directory(dirs::getSaveDir());
-#endif
-
+    log::debug("Creating necessary directories");
+    (void) utils::file::createDirectoryAll(dirs::getSaveDir());
     (void) utils::file::createDirectoryAll(dirs::getGeodeResourcesDir());
     (void) utils::file::createDirectoryAll(dirs::getModConfigDir());
     (void) utils::file::createDirectoryAll(dirs::getModsDir());
@@ -75,6 +60,7 @@ void Loader::Impl::createDirectories() {
 }
 
 void Loader::Impl::removeDirectories() {
+    log::debug("Removing unnecessary directories");
     // clean up of stale data from Geode v2
     if(std::filesystem::exists(dirs::getGeodeDir() / "index")) {
         std::thread([] {
@@ -93,6 +79,31 @@ Result<> Loader::Impl::setup() {
         log::info("Loading launch arguments");
         log::NestScope nest;
         this->initLaunchArguments();
+    }
+
+    if (auto value = this->getLaunchArgument("use-common-handler-offset")) {
+        log::info("Using common handler offset: {}", value.value());
+        log::NestScope nest;
+        auto offset = numFromString<size_t>(value.value(), 16);
+        if (offset.isErr()) {
+            log::error("Could not parse common handler offset, falling back to default");
+        } else {
+            log::info("Disabling runtime intervening");
+            auto res = tulip::hook::disableRuntimeIntervening((void*)(base::get() + offset.unwrap()));
+            if (res.isErr()) {
+                log::error("Failed to disable runtime intervening: {}", res.unwrapErr());
+            } else {
+                log::info("Runtime intervening disabled successfully");
+                m_isPatchless = true;
+            }
+        }
+    }
+
+    if (this->getLaunchFlag("enable-tulip-hook-logs")) {
+        log::info("Enabling TulipHook logs");
+        tulip::hook::setLogCallback([](std::string_view msg) {
+            log::debug("TulipHook: {}", msg);
+        });
     }
 
     // on some platforms, using the crash handler overrides more convenient native handlers
@@ -132,6 +143,7 @@ Result<> Loader::Impl::setup() {
 }
 
 void Loader::Impl::addSearchPaths() {
+    log::debug("Adding search paths");
     CCFileUtils::get()->addPriorityPath(dirs::getGeodeResourcesDir().string().c_str());
     CCFileUtils::get()->addPriorityPath(dirs::getModRuntimeDir().string().c_str());
 }
@@ -175,10 +187,6 @@ VersionInfo Loader::Impl::maxModVersion() {
         // todo: dynamic version info (vM.M.*)
         99999999,
     };
-}
-
-bool Loader::Impl::isModVersionSupported(VersionInfo const& target) {
-    return semverCompare(this->getVersion(), target);
 }
 
 // Data saving
@@ -439,7 +447,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
 
     auto unzipFunction = [this, node]() {
         log::debug("Unzipping .geode file");
-        auto res = node->m_impl->unzipGeodeFile(node->getMetadataRef());
+        auto res = this->unzipGeodeFile(node->getMetadataRef());
         return res;
     };
 
@@ -848,6 +856,119 @@ void Loader::Impl::addUninitializedHook(Hook* hook, Mod* mod) {
     m_uninitializedHooks.emplace_back(hook, mod);
 }
 
+static bool isPlatformBinary(std::string_view modID, std::string_view filename) {
+    if (!filename.starts_with(modID)) {
+        return false;
+    }
+
+    return filename.ends_with(".dll")
+        || filename.ends_with(".dylib")
+        || filename.ends_with(".android32.so")
+        || filename.ends_with(".android64.so")
+        || filename.ends_with(".ios.dylib");
+}
+
+Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
+    // Unzip .geode file into temp dir
+    auto tempDir = dirs::getModRuntimeDir() / metadata.getID();
+
+    auto datePath = tempDir / "modified-at";
+    std::string currentHash = file::readString(datePath).unwrapOr("");
+
+    std::error_code ec;
+    auto modifiedDate = std::filesystem::last_write_time(metadata.getPath(), ec);
+    if (ec) {
+        auto message = formatSystemError(ec.value());
+        return Err("Unable to get last modified time of zip: " + message);
+    }
+    auto modifiedCount = std::chrono::duration_cast<std::chrono::milliseconds>(modifiedDate.time_since_epoch());
+    auto modifiedHash = std::to_string(modifiedCount.count());
+    if (currentHash == modifiedHash) {
+        log::debug("Same hash detected, skipping unzip");
+        return Ok();
+    }
+    log::debug("Hash mismatch detected, unzipping");
+
+    std::filesystem::remove_all(tempDir, ec);
+    if (ec) {
+        auto message = formatSystemError(ec.value());
+        return Err("Unable to delete temp dir: " + message);
+    }
+
+    (void)utils::file::createDirectoryAll(tempDir);
+
+    GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(metadata.getPath()));
+    if (!unzip.hasEntry(metadata.getBinaryName())) {
+        return Err(
+            fmt::format("Unable to find platform binary under the name \"{}\"", metadata.getBinaryName())
+        );
+    }
+    GEODE_UNWRAP(unzip.extractAllTo(tempDir));
+
+    // Delete binaries for other platforms since they're pointless
+    // The if should never fail, but you never know
+    for (auto& entry : std::filesystem::directory_iterator(tempDir)) {
+        if (entry.is_directory()) {
+            continue;
+        }
+
+        const std::string filename = geode::utils::string::pathToString(entry.path().filename());
+        if (filename == metadata.getBinaryName() || !isPlatformBinary(metadata.getID(), filename)) {
+            continue;
+        }
+
+        // The binary is not for our platform, delete!
+        // We don't really care if the deletion succeeds though.
+        std::error_code ec;
+        std::filesystem::remove(entry.path(), ec);
+    }
+
+    // Check if there is a binary that we need to move over from the unzipped binaries dir
+    if (this->isPatchless()) {
+        // TODO: enable in 4.7.0
+        // auto src = dirs::getModBinariesDir() / metadata.getBinaryName();
+        auto src = dirs::getModRuntimeDir() / "binaries" / metadata.getBinaryName();
+        auto dst = tempDir / metadata.getBinaryName();
+        if (std::filesystem::exists(src)) {
+            std::error_code ec;
+            std::filesystem::rename(src, dst, ec);
+            if (ec) {
+                auto message = formatSystemError(ec.value());
+                return Err(
+                    fmt::format("Failed to move binary from {} to {}: {}", src.string(), dst.string(), message)
+                );
+            }
+        }
+    }
+
+    auto res = file::writeString(datePath, modifiedHash);
+    if (!res) {
+        log::warn("Failed to write modified date of geode zip, will try to unzip next launch: {}", res.unwrapErr());
+    }
+
+    return Ok();
+}
+
+Result<> Loader::Impl::extractBinary(ModMetadata metadata) {
+    if (!this->isPatchless()) {
+        // If we are not patchless, there is no need to extract the binary separately
+        return Ok();
+    }
+
+    // Extract the binary from the .geode file
+    GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(metadata.getPath()));
+    if (!unzip.hasEntry(metadata.getBinaryName())) {
+        return Err(
+            fmt::format("Unable to find platform binary under the name \"{}\"", metadata.getBinaryName())
+        );
+    }
+    // TODO: enable in 4.7.0
+    // GEODE_UNWRAP(unzip.extractTo(metadata.getBinaryName(), dirs::getModBinariesDir() / metadata.getBinaryName()));
+    GEODE_UNWRAP(unzip.extractTo(metadata.getBinaryName(), dirs::getModRuntimeDir() / "binaries" / metadata.getBinaryName()));
+
+    return Ok();
+}
+
 bool Loader::Impl::loadHooks() {
     m_readyToHook = true;
     bool hadErrors = false;
@@ -873,7 +994,7 @@ void Loader::Impl::queueInMainThread(ScheduledFunction&& func, bool endOfFrame) 
     }
 }
 void Loader::Impl::executeMainThreadQueue(bool endOfFrame) {
-    // copy queue to avoid locking mutex if someone is
+    // move queue to avoid locking mutex if someone is
     // running addToMainThread inside their function
 
     decltype(m_mainThreadQueue) queue;
@@ -914,8 +1035,25 @@ void Loader::Impl::releaseNextMod() {
 // e.g. "--geode:arg=My spaced value"
 void Loader::Impl::initLaunchArguments() {
     auto launchStr = this->getLaunchCommand();
-    auto args = string::split(launchStr, " ");
-    for (const auto& arg : args) {
+
+    std::vector<std::string> arguments;
+    bool inQuotes = false;
+    std::string currentArg;
+    for (auto const c : launchStr) {
+        if (c == ' ' && !inQuotes) {
+            arguments.emplace_back(std::move(currentArg));
+            currentArg.clear();
+            continue;
+        }
+        if (c == '"') {
+            inQuotes = !inQuotes;
+            continue;
+        }
+        currentArg.push_back(c);
+    }
+    arguments.emplace_back(std::move(currentArg));
+
+    for (const auto& arg : arguments) {
         if (!arg.starts_with(LAUNCH_ARG_PREFIX)) {
             continue;
         }
@@ -967,7 +1105,9 @@ Result<tulip::hook::HandlerHandle> Loader::Impl::getOrCreateHandler(void* addres
         m_handlerHandles[address].second++;
         return Ok(m_handlerHandles[address].first);
     }
-    GEODE_UNWRAP_INTO(auto handle, tulip::hook::createHandler(address, metadata));
+    tulip::hook::HandlerHandle handle;
+    GEODE_UNWRAP_INTO(handle, tulip::hook::createHandler(address, metadata));
+
     m_handlerHandles[address].first = handle;
     m_handlerHandles[address].second = 1;
     return Ok(handle);
@@ -1166,4 +1306,8 @@ bool Loader::Impl::isRestartRequired() const {
         return true;
     }
     return false;
+}
+
+bool Loader::Impl::isPatchless() const {
+    return m_isPatchless;
 }

@@ -88,7 +88,7 @@ namespace geode::addresser {
         }
 
         /**
-         * Specialized functionss
+         * Specialized functions
          */
         template <class Return, class Class, class... Parameters>
         static intptr_t addressOfVirtual(Return (Class::*func)(Parameters...)) {

@@ -382,6 +382,7 @@ jobs:
         run: |
           mv geode-installer-mac/geode-installer-mac.pkg geode-installer-${{ steps.ref.outputs.hash }}-mac.pkg
           mv geode-installer-win/geode-installer-win.exe geode-installer-${{ steps.ref.outputs.hash }}-win.exe
+          mv ./installer/linux/install.sh geode-installer-${{ steps.ref.outputs.hash }}-linux.sh
 
       - name: Zip MacOS Artifacts
         uses: vimtor/action-zip@v1.2
@@ -431,6 +432,7 @@ jobs:
           files: |
             ./geode-installer-${{ steps.ref.outputs.hash }}-win.exe
             ./geode-installer-${{ steps.ref.outputs.hash }}-mac.pkg
+            ./geode-installer-${{ steps.ref.outputs.hash }}-linux.sh
             ./geode-${{ steps.ref.outputs.hash }}-win.zip
             ./geode-${{ steps.ref.outputs.hash }}-mac.zip
             ./geode-${{ steps.ref.outputs.hash }}-android32.zip

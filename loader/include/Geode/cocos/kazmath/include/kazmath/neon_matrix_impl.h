@@ -29,7 +29,7 @@
 // blackberry and android don't have arm/arch.h but it defines __arm__
 #else
 #include <arm/arch.h>
-#endif 
+#endif
 #endif // __arm__
 
 // Matrices are assumed to be stored in column major format according to OpenGL

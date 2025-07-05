@@ -73,7 +73,7 @@ public:
     It will return the 1st object found on the array for the given name.
     */
     CCDictionary* objectNamed(const char *objectName);
-public:   
+public:
     /** name of the group */
     gd::string m_sGroupName;
 };

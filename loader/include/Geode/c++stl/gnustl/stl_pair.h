@@ -122,7 +122,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 				std::is_convertible<const _U2&, _T2>>::value>::type>
 	constexpr pair(const pair<_U1, _U2>& __p)
 	: first(__p.first), second(__p.second) { }
-  
+
       template<class _U1, class _U2, class = typename
       std::enable_if<__and_<std::is_convertible<const _U1&, _T1>,
     std::is_convertible<const _U2&, _T2>>::value>::type>

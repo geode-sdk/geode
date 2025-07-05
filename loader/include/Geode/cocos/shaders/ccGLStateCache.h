@@ -156,6 +156,6 @@ void CC_DLL ccGLEnable( ccGLServerState flags );
 /// @}
 
 NS_CC_END
-    
+
 
 #endif /* __CCGLSTATE_H__ */

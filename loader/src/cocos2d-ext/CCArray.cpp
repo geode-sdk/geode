@@ -15,7 +15,7 @@ CCObject* CCArray::firstObject() {
 void CCArray::removeFirstObject(bool bReleaseObj) {
     this->removeObjectAtIndex(0, bReleaseObj);
 }
- 
+
 CCArray* CCArray::shallowCopy() {
     auto r = CCArray::createWithCapacity(this->capacity());
     r->addObjectsFromArray(this);

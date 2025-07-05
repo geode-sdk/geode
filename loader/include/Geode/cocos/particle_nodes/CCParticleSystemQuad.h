@@ -3,7 +3,7 @@ Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2008-2010 Ricardo Quesada
 Copyright (c) 2009      Leonardo Kasperavičius
 Copyright (c) 2011      Zynga Inc.
- 
+
 http://www.cocos2d-x.org
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -131,7 +131,7 @@ struct ParticleStruct
 
 It includes all the features of ParticleSystem.
 
-Special features and Limitations:    
+Special features and Limitations:
 - Particle size can be any float number.
 - The system can be scaled
 - The particles can be rotated
@@ -175,7 +175,7 @@ public:
     virtual ~CCParticleSystemQuad();
 
     /** creates an initializes a CCParticleSystemQuad from a plist file.
-    This plist files can be created manually or with Particle Designer:  
+    This plist files can be created manually or with Particle Designer:
     */
     static CCParticleSystemQuad * create(const char *plistFile);
 
@@ -225,7 +225,7 @@ public:
      * @js NA
      */
     virtual void setTotalParticles(unsigned int tp);
-    
+
     /** listen the event that coming to foreground on Android
      *  @js NA
      *  @lua NA

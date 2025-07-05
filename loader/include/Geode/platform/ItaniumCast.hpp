@@ -81,7 +81,7 @@ namespace geode::cast {
 
     inline void* typeinfoCastInternal(void* ptr, ClassTypeinfoType const* beforeTypeinfo, ClassTypeinfoType const* afterTypeinfo, size_t hint) {
         // we're not using either because uhhh idk
-        // hint is for diamond inheritance iirc which is never 
+        // hint is for diamond inheritance iirc which is never
         // used in gd, so should be pretty safe to ignore
         if (!ptr) {
             return nullptr;
@@ -103,7 +103,7 @@ namespace geode::cast {
     template <class After, class Before>
     inline After typeinfo_cast(Before ptr) {
         static_assert(
-            std::is_polymorphic_v<std::remove_pointer_t<Before>> && std::is_polymorphic_v<std::remove_pointer_t<After>>, 
+            std::is_polymorphic_v<std::remove_pointer_t<Before>> && std::is_polymorphic_v<std::remove_pointer_t<After>>,
             "Input is not a polymorphic type"
         );
         if (!ptr) {

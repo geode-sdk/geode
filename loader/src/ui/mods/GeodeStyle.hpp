@@ -36,12 +36,12 @@ protected:
         }
         if (!Popup<Args...>::initAnchored(width, height, std::forward<Args>(args)..., bg))
             return false;
-        
+
         this->setCloseButtonSpr(
             CircleButtonSprite::createWithSpriteFrameName(
                 "close.png"_spr, .85f,
-                (geodeTheme ? 
-                    (style == GeodePopupStyle::Default ? CircleBaseColor::DarkPurple : CircleBaseColor::DarkAqua) : 
+                (geodeTheme ?
+                    (style == GeodePopupStyle::Default ? CircleBaseColor::DarkPurple : CircleBaseColor::DarkAqua) :
                     CircleBaseColor::Green
                 )
             )
@@ -55,7 +55,7 @@ class GeodeSquareSprite : public CCSprite {
 protected:
     bool* m_stateSrc = nullptr;
     bool m_state = false;
-    bool m_forceDisableTheme = false; 
+    bool m_forceDisableTheme = false;
     CCSprite* m_topSprite;
 
     bool init(CCSprite* top, bool* state, bool forceDisableTheme = false);

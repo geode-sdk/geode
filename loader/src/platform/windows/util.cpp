@@ -25,7 +25,10 @@ bool utils::clipboard::write(std::string const& data) {
         return false;
     }
 
-    HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, data.size() + 1);
+    std::wstring wData = string::utf8ToWide(data);
+    auto const size = (wData.size() + 1) * sizeof(wchar_t);
+
+    HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, size);
 
     if (!hg) {
         CloseClipboard();
@@ -39,11 +42,11 @@ bool utils::clipboard::write(std::string const& data) {
         return false;
     }
 
-    memcpy(dest, data.c_str(), data.size() + 1);
+    memcpy(dest, wData.c_str(), size);
 
     GlobalUnlock(hg);
 
-    SetClipboardData(CF_TEXT, hg);
+    SetClipboardData(CF_UNICODETEXT, hg);
     CloseClipboard();
 
     GlobalFree(hg);
@@ -54,19 +57,19 @@ bool utils::clipboard::write(std::string const& data) {
 std::string utils::clipboard::read() {
     if (!OpenClipboard(nullptr)) return "";
 
-    HANDLE hData = GetClipboardData(CF_TEXT);
+    HANDLE hData = GetClipboardData(CF_UNICODETEXT);
     if (hData == nullptr) {
         CloseClipboard();
         return "";
     }
 
-    char* pszText = static_cast<char*>(GlobalLock(hData));
+    auto pszText = static_cast<wchar_t*>(GlobalLock(hData));
     if (pszText == nullptr) {
         CloseClipboard();
         return "";
     }
 
-    std::string text(pszText);
+    std::string text = string::wideToUtf8(pszText);
 
     GlobalUnlock(hData);
     CloseClipboard();
@@ -341,7 +344,7 @@ std::string geode::utils::getEnvironmentVariable(const char* name) {
     if (0 == getenv_s(&count, buffer, name) && count != 0) {
         return buffer;
     }
-    
+
     return "";
 }
 

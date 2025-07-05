@@ -24,7 +24,7 @@ namespace geode {
      *  - Bold & italic
      *  - Horizontal rules
      *  - Lists
-     * 
+     *
      * Note that links also have some special protocols.
      * Use `user:<accountID>` to link to a GD
      * account; `level:<id>` to link to a GD level and

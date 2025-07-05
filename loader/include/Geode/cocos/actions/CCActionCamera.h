@@ -37,11 +37,11 @@ class CCCamera;
  * @{
  */
 
-/** 
+/**
 @brief Base class for CCCamera actions
 @ingroup Actions
 */
-class CC_DLL CCActionCamera : public CCActionInterval //<NSCopying> 
+class CC_DLL CCActionCamera : public CCActionInterval //<NSCopying>
 {
     GEODE_FRIEND_MODIFY
 public:
@@ -82,12 +82,12 @@ public:
     float m_fUpZOrig;
 };
 
-/** 
+/**
 @brief CCOrbitCamera action
 Orbits the camera around the center of the screen using spherical coordinates
 @ingroup Actions
 */
-class CC_DLL CCOrbitCamera : public CCActionCamera //<NSCopying> 
+class CC_DLL CCOrbitCamera : public CCActionCamera //<NSCopying>
 {
     GEODE_FRIEND_MODIFY
 public:
@@ -99,22 +99,22 @@ public:
         , m_fDeltaRadius(0.0)
         , m_fAngleZ(0.0)
         , m_fDeltaAngleZ(0.0)
-        , m_fAngleX(0.0)            
+        , m_fAngleX(0.0)
         , m_fDeltaAngleX(0.0)
         , m_fRadZ(0.0)
         , m_fRadDeltaZ(0.0)
-        , m_fRadX(0.0)                        
-        , m_fRadDeltaX(0.0)        
+        , m_fRadX(0.0)
+        , m_fRadDeltaX(0.0)
     {}
     /**
      *  @js NA
      *  @lua NA
      */
     ~CCOrbitCamera(){}
-    
+
     /** creates a CCOrbitCamera action with radius, delta-radius,  z, deltaZ, x, deltaX */
     static CCOrbitCamera* create(float t, float radius, float deltaRadius, float angleZ, float deltaAngleZ, float angleX, float deltaAngleX);
-    
+
     /** initializes a CCOrbitCamera action with radius, delta-radius,  z, deltaZ, x, deltaX */
     bool initWithDuration(float t, float radius, float deltaRadius, float angleZ, float deltaAngleZ, float angleX, float deltaAngleX);
     /** positions the camera according to spherical coordinates */

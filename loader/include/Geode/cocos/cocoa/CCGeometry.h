@@ -31,7 +31,7 @@ THE SOFTWARE.
 
 // why
 #if !defined(FLT_EPSILON)
-#define FLT_EPSILON 1.19209290E-07F // decimal constant 
+#define FLT_EPSILON 1.19209290E-07F // decimal constant
 #endif
 
 NS_CC_BEGIN
@@ -128,7 +128,7 @@ public:
     inline constexpr bool equals(const CCPoint& target) const {
         return this->fuzzyEquals(target, FLT_EPSILON);
     }
-    
+
     /** @returns if points have fuzzy equality which means equal with some degree of variance.
      * @since v2.1.4
      * @lua NA
@@ -521,11 +521,11 @@ public:
 // const CCPoint CCPointZero = CCPointMake(0,0);
 #define CCPointZero CCPointMake(0,0)
 
-/* The "zero" size -- equivalent to CCSizeMake(0, 0). */ 
+/* The "zero" size -- equivalent to CCSizeMake(0, 0). */
 // const CCSize CCSizeZero = CCSizeMake(0,0);
 #define CCSizeZero CCSizeMake(0,0)
 
-/* The "zero" rectangle -- equivalent to CCRectMake(0, 0, 0, 0). */ 
+/* The "zero" rectangle -- equivalent to CCRectMake(0, 0, 0, 0). */
 // const CCRect CCRectZero = CCRectMake(0,0,0,0);
 #define CCRectZero CCRectMake(0,0,0,0)
 

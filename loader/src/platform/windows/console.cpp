@@ -1,4 +1,4 @@
-﻿#include <loader/console.hpp>
+#include <loader/console.hpp>
 #include <loader/LogImpl.hpp>
 #include <io.h>
 #include <Geode/utils/string.hpp>
@@ -132,7 +132,8 @@ void console::setup() {
 
         setupConsole(
             string::contains(path, "cidr-")
-            || geode::utils::getEnvironmentVariable("GEODE_FORCE_ENABLE_TERMINAL_COLORS") == "1"
+            || geode::utils::getEnvironmentVariable("GEODE_FORCE_ENABLE_TERMINAL_COLORS") != "0" // prefer to use FORCE_COLOR=1
+            || geode::utils::getEnvironmentVariable("FORCE_COLOR") != "0"
         );
     }
 

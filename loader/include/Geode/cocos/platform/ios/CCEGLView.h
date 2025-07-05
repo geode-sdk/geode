@@ -41,15 +41,15 @@ public:
 
     virtual bool    isOpenGLReady();
     virtual bool    setContentScaleFactor(float contentScaleFactor);
-    
+
     // keep compatible
     virtual void    end();
     virtual void    swapBuffers();
-    
+
     virtual void setIMEKeyboardState(bool bOpen);
-    
+
     static CCEGLView* sharedOpenGLView();
-    
+
     static GEODE_DLL CCEGLView* get();
 
 };

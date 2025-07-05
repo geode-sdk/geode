@@ -79,7 +79,7 @@ public:
 };
 
 // end of input group
-/// @} 
+/// @}
 
 NS_CC_END
 

@@ -8,7 +8,7 @@
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
     #if !defined(__clang__)
         #error Geode Loader only compiles with Clang.
-    #endif 
+    #endif
 #endif
 
 #if !defined(GEODE_CONCAT)

@@ -44,7 +44,7 @@ namespace geode {
 
         /**
          * Create a mod state listener
-         * @param mod The mod whose events to listen to, or nullptr to listen to 
+         * @param mod The mod whose events to listen to, or nullptr to listen to
          * all mods' all state events
          * @param type Type of event to listen to. Ignored if mod is nullptr
          */
@@ -59,7 +59,7 @@ namespace geode {
     protected:
         class Impl;
         std::unique_ptr<Impl> m_impl;
-    
+
     public:
         DependencyLoadedEvent(Mod* target, Mod* dependency);
         virtual ~DependencyLoadedEvent();

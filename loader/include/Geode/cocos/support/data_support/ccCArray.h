@@ -92,7 +92,7 @@ void ccArrayAppendObject(ccArray *arr, CCObject* object);
 /** Appends an object. Capacity of arr is increased if needed. */
 void ccArrayAppendObjectWithResize(ccArray *arr, CCObject* object);
 
-/** Appends objects from plusArr to arr. 
+/** Appends objects from plusArr to arr.
  Behavior undefined if arr doesn't have enough capacity. */
 void ccArrayAppendArray(ccArray *arr, ccArray *plusArr);
 
@@ -207,5 +207,5 @@ void ccCArrayRemoveArray(ccCArray *arr, ccCArray *minusArr);
 void ccCArrayFullRemoveArray(ccCArray *arr, ccCArray *minusArr);
 
 NS_CC_END
-	
+
 #endif // CC_ARRAY_H

@@ -7,7 +7,7 @@
 #include <deque>
 
 // TODO: UNFINISHED!!!
-// If you want to bring this back, you are free to do so - 
+// If you want to bring this back, you are free to do so -
 // I just didn't feel like the engineering effort is worth it.
 // The point of this is to be a mod load issue auto-resolver
 
@@ -84,8 +84,8 @@ public:
                 // Errors where the correct solution is to just delete the invalid .geode package
                 case LoadProblem::Type::InvalidFile:
                 // todo: maybe duplicate should prompt which one to delete?
-                // or maybe the user can just figure that one out since that only happens 
-                // on manual install (as server installs delete the old version using the 
+                // or maybe the user can just figure that one out since that only happens
+                // on manual install (as server installs delete the old version using the
                 // real path and not the old index filename trickery)
                 case LoadProblem::Type::Duplicate:
                 case LoadProblem::Type::SetupFailed:
@@ -179,12 +179,12 @@ public:
 
 static std::optional<AutoFixStatus> STATUS = {};
 
-void internal::tryAutoFixModIssues() {
+void geode::internal::tryAutoFixModIssues() {
     if (!STATUS) {
         STATUS.emplace(AutoFixStatus());
         STATUS->start();
     }
 }
-bool internal::hasTriedToFixIssues() {
+bool geode::internal::hasTriedToFixIssues() {
     return STATUS.has_value();
 }

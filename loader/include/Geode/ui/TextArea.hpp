@@ -13,13 +13,13 @@ namespace geode {
 
     /**
      * A class which provides a textarea with proper alignment and some extra features like:
-     * 
+     *
      * - Max lines
      * - Changing all aspects after creation
      * - Custom text alignment
      * - Configurable and automatic word wrapping
      * - Line padding
-     * 
+     *
      * Contact me on Discord (\@smjs) if you have any questions, suggestions or bugs.
     */
     class GEODE_DLL SimpleTextArea : public cocos2d::CCNode {

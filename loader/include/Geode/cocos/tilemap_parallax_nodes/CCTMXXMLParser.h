@@ -114,7 +114,7 @@ public:
 - Image used for the tiles
 - Image size
 
-This information is obtained from the TMX file. 
+This information is obtained from the TMX file.
 */
 class CC_DLL CCTMXTilesetInfo : public CCObject
 {
@@ -150,9 +150,9 @@ This information is obtained from the TMX file.
 
 */
 class CC_DLL CCTMXMapInfo : public CCObject, public CCSAXDelegator
-{    
+{
     GEODE_FRIEND_MODIFY
-public:    
+public:
     /// map orientation
     CC_SYNTHESIZE(int,    m_nOrientation, Orientation);
     /// map width & height
@@ -191,11 +191,11 @@ public:
     static CCTMXMapInfo * formatWithTMXFile(const char *tmxFile);
     /** creates a TMX Format with an XML string and a TMX resource path */
     static CCTMXMapInfo * formatWithXML(const char* tmxString, const char* resourcePath);
-    /** initializes a TMX format with a  tmx file 
+    /** initializes a TMX format with a  tmx file
      * @lua NA
      */
     bool initWithTMXFile(const char *tmxFile);
-    /** initializes a TMX format with an XML string and a TMX resource path 
+    /** initializes a TMX format with an XML string and a TMX resource path
      * @lua NA
      */
     bool initWithXML(const char* tmxString, const char* resourcePath);
@@ -219,7 +219,7 @@ public:
      * @js NA
      */
     void textHandler(void *ctx, const char *ch, int len);
-    
+
     inline const char* getCurrentString(){ return m_sCurrentString.c_str(); }
     inline void setCurrentString(const char *currentString){ m_sCurrentString = currentString; }
     inline const char* getTMXFileName(){ return m_sTMXFileName.c_str(); }

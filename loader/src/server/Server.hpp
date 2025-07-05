@@ -48,7 +48,7 @@ namespace server {
 
         static Result<ServerModVersion> parse(matjson::Value const& json);
     };
-    
+
     struct ServerModReplacement final {
         std::string id;
         VersionInfo version;
@@ -64,7 +64,7 @@ namespace server {
 
         static Result<ServerModUpdate> parse(matjson::Value const& json);
         static Result<std::vector<ServerModUpdate>> parseList(matjson::Value const& json);
-        
+
         bool hasUpdateForInstalledMod() const;
     };
 
@@ -120,7 +120,7 @@ namespace server {
         std::optional<std::string> developer;
         size_t page = 0;
         size_t pageSize = 10;
-        
+
         bool operator==(ModsQuery const& other) const = default;
     };
 

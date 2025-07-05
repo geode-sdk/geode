@@ -5,6 +5,7 @@
 #include <type_traits>
 #include <typeinfo>
 #include "ItaniumCast.hpp"
+#include "clang.hpp"
 
 namespace geode {
     using dylib_t = void*;

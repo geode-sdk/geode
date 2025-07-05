@@ -94,7 +94,7 @@ public:
      */
     void addSpriteFramesWithFile(const char* plist, const char* textureFileName);
 
-    /** Adds multiple Sprite Frames from a plist file. The texture will be associated with the created sprite frames. 
+    /** Adds multiple Sprite Frames from a plist file. The texture will be associated with the created sprite frames.
      * @js addSpriteFrames
      */
     void addSpriteFramesWithFile(const char *pszPlist, CCTexture2D *pobTexture);
@@ -118,7 +118,7 @@ public:
      */
     void removeUnusedSpriteFrames(void);
 
-    /** Deletes an sprite frame from the sprite frame cache. 
+    /** Deletes an sprite frame from the sprite frame cache.
      *  @js getSpriteFrame
      */
     void removeSpriteFrameByName(const char *pszName);
@@ -150,7 +150,7 @@ public:
     CCSpriteFrame* spriteFrameByName(const char *pszName);
 
 public:
-    /** Returns the shared instance of the Sprite Frame cache 
+    /** Returns the shared instance of the Sprite Frame cache
      *  @js getInstance
      */
     static CCSpriteFrameCache* sharedSpriteFrameCache(void);

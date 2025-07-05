@@ -43,7 +43,7 @@ struct _ccArray;
 The children will be moved faster / slower than the parent according the the parallax ratio.
 
 */
-class CC_DLL CCParallaxNode : public CCNode 
+class CC_DLL CCParallaxNode : public CCNode
 {
     GEODE_FRIEND_MODIFY
     /** array that holds the offset / ratio of the children */

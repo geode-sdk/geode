@@ -31,14 +31,6 @@ using path_hash_t = std::hash<std::filesystem::path>;
 using namespace geode::prelude;
 using namespace geode::utils::file;
 
-static std::string pathToString(std::filesystem::path const& path) {
-#ifdef GEODE_IS_WINDOWS
-    return geode::utils::string::wideToUtf8(path.wstring());
-#else
-    return path.string();
-#endif
-}
-
 Result<std::string> utils::file::readString(std::filesystem::path const& path) {
     std::error_code ec;
 
@@ -89,7 +81,39 @@ Result<> utils::file::writeString(std::filesystem::path const& path, std::string
     }
 
     file << data;
+    if (file.fail()) {
+        file.close();
+        return Err("Failed to write to file");
+    }
+
     file.close();
+
+    return Ok();
+}
+
+Result<> utils::file::writeStringSafe(std::filesystem::path const& path, std::string const& data) {
+    GEODE_ANDROID(
+        return utils::file::writeString(path, data); // safe approach causes significant performance issues on Android
+    )
+
+    std::error_code ec;
+
+    auto tmpPath = path;
+    tmpPath += ".tmp";
+
+    auto res = utils::file::writeString(tmpPath, data);
+    if (!res) {
+        if (std::filesystem::exists(tmpPath, ec)) {
+            std::filesystem::remove(tmpPath, ec);
+        }
+        return res;
+    }
+
+    std::filesystem::rename(tmpPath, path, ec);
+    if (ec) {
+        return Err("Unable to rename temporary file: " + ec.message());
+    }
+
     return Ok();
 }
 
@@ -102,7 +126,38 @@ Result<> utils::file::writeBinary(std::filesystem::path const& path, ByteVector 
     }
 
     file.write(reinterpret_cast<char const*>(data.data()), data.size());
+    if (file.fail()) {
+        file.close();
+        return Err("Failed to write to file");
+    }
+
     file.close();
+    return Ok();
+}
+
+Result<> utils::file::writeBinarySafe(std::filesystem::path const& path, ByteVector const& data) {
+    GEODE_ANDROID(
+        return utils::file::writeBinary(path, data); // safe approach causes significant performance issues on Android
+    )
+
+    std::error_code ec;
+
+    auto tmpPath = path;
+    tmpPath += ".tmp";
+
+    auto res = utils::file::writeBinary(tmpPath, data);
+    if (!res) {
+        if (std::filesystem::exists(tmpPath, ec)) {
+            std::filesystem::remove(tmpPath, ec);
+        }
+        return res;
+    }
+
+    std::filesystem::rename(tmpPath, path, ec);
+    if (ec) {
+        return Err("Unable to rename temporary file: " + ec.message());
+    }
+
     return Ok();
 }
 
@@ -183,7 +238,7 @@ private:
                 return Err("Unable to open file");
             }
 
-            auto pathstr = pathToString(path);
+            auto pathstr = utils::string::pathToString(path);
 
             if (mz_stream_os_open(
                 m_stream,
@@ -200,7 +255,7 @@ private:
             if (!m_stream) {
                 return Err("Unable to create memory stream");
             }
-            // mz_stream_mem_set_buffer doesn't memcpy so we gotta store the data 
+            // mz_stream_mem_set_buffer doesn't memcpy so we gotta store the data
             // elsewhere
             if (m_mode == MZ_OPEN_MODE_READ) {
                 mz_stream_mem_set_buffer(m_stream, src.data(), src.size());
@@ -357,12 +412,13 @@ public:
             Path filePath;
             filePath.assign(info->filename, info->filename + info->filename_size);
 
-            // make sure zip files like root/../../file.txt don't get extracted to 
+            // make sure zip files like root/../../file.txt don't get extracted to
             // avoid zip attacks
+            std::error_code ec;
 #ifdef GEODE_IS_WINDOWS
-            if (!std::filesystem::relative((dir / filePath).wstring(), dir.wstring()).empty()) {
+            if (!std::filesystem::relative((dir / filePath).wstring(), dir.wstring(), ec).empty()) {
 #else
-            if (!std::filesystem::relative(dir / filePath, dir).empty()) {
+            if (!std::filesystem::relative(dir / filePath, dir, ec).empty()) {
 #endif
                 if (m_entries.at(filePath).isDirectory) {
                     GEODE_UNWRAP(file::createDirectoryAll(dir / filePath));
@@ -379,6 +435,10 @@ public:
                     "Zip entry '{}' is not contained within zip bounds",
                     dir / filePath
                 );
+
+                if (ec) {
+                    return Err(fmt::format("Unable to check relative: {}", ec.message()));
+                }
             }
         } while (mz_zip_goto_next_entry(m_handle) == MZ_OK);
 
@@ -402,7 +462,7 @@ public:
             })
         );
 
-        auto namestr = pathToString(name);
+        auto namestr = utils::string::pathToString(name);
 
         GEODE_UNWRAP(
             mzTry(mz_zip_locate_entry(
@@ -469,7 +529,7 @@ public:
     }
 
     Result<> add(Path const& path, ByteVector const& data) {
-        auto namestr = pathToString(path);
+        auto namestr = utils::string::pathToString(path);
 
         mz_zip_file info = { 0 };
         info.version_madeby = MZ_VERSION_MADEBY;
@@ -568,20 +628,20 @@ bool Unzip::hasEntry(Path const& name) {
 
 Result<ByteVector> Unzip::extract(Path const& name) {
     return m_impl->extract(name).mapErr([&](auto error) {
-        return fmt::format("Unable to extract entry {}: {}", pathToString(name), error);
+        return fmt::format("Unable to extract entry {}: {}", utils::string::pathToString(name), error);
     });
 }
 
 Result<> Unzip::extractTo(Path const& name, Path const& path) {
     GEODE_UNWRAP_INTO(auto bytes, m_impl->extract(name).mapErr([&](auto error) {
-        return fmt::format("Unable to extract entry {}: {}", pathToString(name), error);
+        return fmt::format("Unable to extract entry {}: {}", utils::string::pathToString(name), error);
     }));
     // create containing directories for target path
     if (path.has_parent_path()) {
         GEODE_UNWRAP(file::createDirectoryAll(path.parent_path()));
     }
     GEODE_UNWRAP(file::writeBinary(path, bytes).mapErr([&](auto error) {
-        return fmt::format("Unable to write file {}: {}", pathToString(path), error);
+        return fmt::format("Unable to write file {}: {}", utils::string::pathToString(path), error);
     }));
     return Ok();
 }
@@ -595,7 +655,7 @@ Result<> Unzip::intoDir(
     Path const& to,
     bool deleteZipAfter
 ) {
-    // scope to ensure the zip is closed after extracting so the zip can be 
+    // scope to ensure the zip is closed after extracting so the zip can be
     // removed
     {
         GEODE_UNWRAP_INTO(auto unzip, Unzip::create(from));
@@ -710,10 +770,10 @@ ListenerResult FileWatchFilter::handle(
     return ListenerResult::Propagate;
 }
 
-FileWatchFilter::FileWatchFilter(std::filesystem::path const& path) 
+FileWatchFilter::FileWatchFilter(std::filesystem::path const& path)
   : m_path(path) {}
 
-// This is a vector because need to use std::filesystem::equivalent for 
+// This is a vector because need to use std::filesystem::equivalent for
 // comparisons and removal is not exactly performance-critical here
 // (who's going to add and remove 500 file watchers every frame)
 static std::vector<std::unique_ptr<FileWatcher>> FILE_WATCHERS {};

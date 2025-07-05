@@ -75,7 +75,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
    *  @tparam _Key  Type of key objects.
    *  @tparam  _Tp  Type of mapped objects.
    *  @tparam _Compare  Comparison function object type, defaults to less<_Key>.
-   *  @tparam _Alloc  Allocator type, defaults to 
+   *  @tparam _Alloc  Allocator type, defaults to
    *                  allocator<pair<const _Key, _Tp>.
    *
    *  Meets the requirements of a <a href="tables.html#65">container</a>, a
@@ -126,7 +126,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       };
 
     private:
-      /// This turns a red-black tree into a [multi]map. 
+      /// This turns a red-black tree into a [multi]map.
       typedef typename __alloc_traits<_Alloc>::template
 	rebind<value_type>::other _Pair_alloc_type;
 
@@ -613,8 +613,8 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  @param __x Pair to be inserted (see std::make_pair for easy
        *	     creation of pairs).
        *
-       *  @return  A pair, of which the first element is an iterator that 
-       *           points to the possibly inserted pair, and the second is 
+       *  @return  A pair, of which the first element is an iterator that
+       *           points to the possibly inserted pair, and the second is
        *           a bool that is true if the pair was actually inserted.
        *
        *  This function attempts to insert a (key, value) %pair into the %map.
@@ -710,7 +710,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  @brief Erases an element from a %map.
        *  @param  __position  An iterator pointing to the element to be erased.
        *  @return An iterator pointing to the element immediately following
-       *          @a position prior to the element being erased. If no such 
+       *          @a position prior to the element being erased. If no such
        *          element exists, end() is returned.
        *
        *  This function erases an element, pointed to by the given

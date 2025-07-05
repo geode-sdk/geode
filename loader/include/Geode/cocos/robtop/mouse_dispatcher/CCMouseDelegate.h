@@ -7,7 +7,7 @@
 NS_CC_BEGIN
 
 // @note RobTop Addition
-class CC_DLL CCMouseDelegate 
+class CC_DLL CCMouseDelegate
 {
 public:
 	virtual void rightKeyDown() {}
@@ -25,7 +25,7 @@ class CC_DLL CCMouseHandler : public CCObject
 public:
 	GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCMouseHandler, CCObject)
 	inline CCMouseHandler() = default;
-	
+
 	virtual ~CCMouseHandler();
 
 	CCMouseHandler& operator=(const CCMouseHandler&);

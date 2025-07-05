@@ -66,7 +66,7 @@ class CC_DLL CCDictElement
 private:
     /**
      *  Constructor of CCDictElement. It's only for internal usage. CCDictionary is its friend class.
-     *  
+     *
      *  @param  pszKey    The string key of this element.
      *  @param  pObject   The object of this element.
      */
@@ -79,7 +79,7 @@ private:
      *  @param  pObject   The object of this element.
      */
     CCDictElement(intptr_t iKey, CCObject* pObject);
-    
+
 public:
     /**
      *  The destructor of CCDictElement.
@@ -87,10 +87,10 @@ public:
     ~CCDictElement();
 
     // Inline functions need to be implemented in header file on Android.
-    
+
     /**
      * Get the string key of this element.
-     * @note    This method assumes you know the key type in the element. 
+     * @note    This method assumes you know the key type in the element.
      *          If the element's key type is integer, invoking this method will cause an assert.
      *
      * @return  The string key of this element.
@@ -113,7 +113,7 @@ public:
         CCAssert(m_szKey[0] == '\0', "Should not call this function for string dictionary");
         return m_iKey;
     }
-    
+
     /**
      * Get the object of this element.
      *
@@ -135,7 +135,7 @@ public:
 };
 
 /** The macro for traversing dictionary
- *  
+ *
  *  @note It's faster than getting all keys and traversing keys to get objects by objectForKey.
  *        It's also safe to remove elements while traversing.
  */
@@ -176,7 +176,7 @@ class CC_DLL CCDictionary : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
-    /** 
+    /**
      * The constructor of CCDictionary.
      * @lua NA
      */
@@ -203,7 +203,7 @@ public:
      */
     CCArray* allKeys();
 
-    /** 
+    /**
      *  Get all keys according to the specified object.
      *  @warning  We use '==' to compare two objects
      *  @return   The array contains all keys for the specified object. It's an autorelease object yet.
@@ -229,7 +229,7 @@ public:
      *  @see objectForKey(intptr_t)
      */
     CCObject* objectForKey(const gd::string& key);
-    
+
     /**
      *  Get the object according to the specified integer key.
      *
@@ -239,7 +239,7 @@ public:
      *  @see objectForKey(const gd::string&)
      */
     CCObject* objectForKey(intptr_t key);
-    
+
     /** Get the value according to the specified string key.
      *
      *  @note Be careful to use this function since it assumes the objects in the dictionary are CCString pointer.
@@ -249,7 +249,7 @@ public:
      *  @see valueForKey(intptr_t)
      */
     const CCString* valueForKey(const gd::string& key);
-    
+
     /** Get the value according to the specified integer key.
      *
      *  @note Be careful to use this function since it assumes the objects in the dictionary are CCString pointer.
@@ -272,7 +272,7 @@ public:
      *  @see setObject(CCObject*, intptr_t)
      */
     void setObject(CCObject* pObject, const gd::string& key);
-    
+
     /** Insert an object to dictionary, and match it with the specified string key.
      *
      *  @note Then the first time this method is invoked, the key type will be set to string.
@@ -285,7 +285,7 @@ public:
      */
     void setObject(CCObject* pObject, intptr_t key);
 
-    /** 
+    /**
      *  Remove an object by the specified string key.
      *
      *  @param key  The string key for searching.
@@ -293,7 +293,7 @@ public:
      *       removeObjectForElememt(CCDictElement*), removeAllObjects().
      */
     void removeObjectForKey(const gd::string& key);
-    
+
     /**
      *  Remove an object by the specified integer key.
      *
@@ -302,7 +302,7 @@ public:
      *       removeObjectForElememt(CCDictElement*), removeAllObjects().
      */
     void removeObjectForKey(intptr_t key);
-    
+
     /**
      *  Remove objects by an array of keys.
      *
@@ -311,7 +311,7 @@ public:
      *       removeObjectForElememt(CCDictElement*), removeAllObjects().
      */
     void removeObjectsForKeys(CCArray* pKeyArray);
-    
+
     /**
      *  Remove an object by an element.
      *
@@ -321,7 +321,7 @@ public:
      *  @lua NA
      */
     void removeObjectForElememt(CCDictElement* pElement);
-    
+
     /**
      *  Remove all objects in the dictionary.
      *
@@ -340,16 +340,16 @@ public:
      */
     virtual CCObject* copyWithZone(CCZone* pZone);
     /// @}
-    
+
     /**
      *  Return a random object in the dictionary.
      *
-     *  @return The random object. 
+     *  @return The random object.
      *  @see objectForKey(intptr_t), objectForKey(const gd::string&)
      *  @lua NA
      */
     CCObject* randomObject();
-    
+
     /**
      *  Create a dictionary.
      *  @return A dictionary which is an autorelease object.
@@ -365,7 +365,7 @@ public:
      *  @see create(), createWithContentsOfFile(const char*), createWithContentsOfFileThreadSafe(const char*).
      */
     static CCDictionary* createWithDictionary(CCDictionary* srcDict);
-    
+
     /**
      *  Create a dictionary with a plist file.
      *  @param  pFileName  The name of the plist file.
@@ -373,7 +373,7 @@ public:
      *  @see create(), createWithDictionary(CCDictionary*), createWithContentsOfFileThreadSafe(const char*).
      */
     static CCDictionary* createWithContentsOfFile(const char *pFileName);
-    
+
     /**
      *  Write a dictionary to a plist file.
      *  @param fullPath The full path of the plist file. You can get writeable path by getWritablePath()
@@ -381,10 +381,10 @@ public:
      *  @lua NA
      */
     bool writeToFile(const char *fullPath);
-     
+
     /**
      *  Create a dictionary with a plist file.
-     *  
+     *
      *  @note the return object isn't an autorelease object.
      *        This can make sure not using autorelease pool in a new thread.
      *        Therefore, you need to manage the lifecycle of the return object.
@@ -396,7 +396,7 @@ public:
      */
     static CCDictionary* createWithContentsOfFileThreadSafe(const char *pFileName);
 
-    /* override functions 
+    /* override functions
      * @lua NA
      */
     virtual void acceptVisitor(CCDataVisitor &visitor);
@@ -405,20 +405,20 @@ public:
 	gd::string getFirstKey();
 
 private:
-    /** 
+    /**
      *  For internal usage, invoked by setObject.
      */
     void setObjectUnSafe(CCObject* pObject, const gd::string& key);
     void setObjectUnSafe(CCObject* pObject, const intptr_t key);
-    
+
 public:
     /**
      *  All the elements in dictionary.
-     * 
+     *
      *  @note For internal usage, we need to declare this member variable as public since it's used in UT_HASH.
      */
     CCDictElement* m_pElements;
-    
+
     /** The support type of dictionary, it's confirmed when setObject is invoked. */
     enum CCDictType
     {
@@ -426,8 +426,8 @@ public:
         kCCDictStr,
         kCCDictInt
     };
-    
-    /** 
+
+    /**
      *  The type of dictionary, it's assigned to kCCDictUnknown by default.
      */
     CCDictType m_eDictType;

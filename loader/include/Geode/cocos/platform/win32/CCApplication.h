@@ -40,7 +40,7 @@ public:
     /* override functions */
     virtual void setAnimationInterval(double interval);
     virtual ccLanguageType getCurrentLanguage();
-    
+
     /**
      @brief Get target platform
      */
@@ -90,14 +90,14 @@ public:
      */
     CC_DEPRECATED_ATTRIBUTE void setResourceRootPath(const gd::string& rootResDir);
 
-    /** 
+    /**
      *  Gets the Resource root path.
-     *  @deprecated Please use CCFileUtils::sharedFileUtils()->getSearchPaths() instead. 
+     *  @deprecated Please use CCFileUtils::sharedFileUtils()->getSearchPaths() instead.
      */
     CC_DEPRECATED_ATTRIBUTE const gd::string& getResourceRootPath(void);
 
     void setStartupScriptFilename(const gd::string& startupScriptFile);
-    
+
     const gd::string& getStartupScriptFilename(void)
     {
         return m_startupScriptFilename;

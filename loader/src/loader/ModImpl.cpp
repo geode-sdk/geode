@@ -13,10 +13,14 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/ModEvent.hpp>
+#include <Geode/platform/cplatform.h>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/JsonValidation.hpp>
+#include <Geode/utils/string.hpp>
+#include <filesystem>
 #include <optional>
 #include <string>
+#include <system_error>
 #include <vector>
 #include <string_view>
 
@@ -218,11 +222,11 @@ Result<> Mod::Impl::saveData() {
     // saveData is expected to be synchronous, and always called from GD thread
     ModStateEvent(m_self, ModEventType::DataSaved).post();
 
-    auto res = utils::file::writeString(m_saveDirPath / "settings.json", json.dump());
+    auto res = utils::file::writeStringSafe(m_saveDirPath / "settings.json", json.dump());
     if (!res) {
         log::error("Unable to save settings: {}", res.unwrapErr());
     }
-    auto res2 = utils::file::writeString(m_saveDirPath / "saved.json", m_saved.dump());
+    auto res2 = utils::file::writeStringSafe(m_saveDirPath / "saved.json", m_saved.dump());
     if (!res2) {
         log::error("Unable to save values: {}", res2.unwrapErr());
     }
@@ -293,6 +297,8 @@ Result<> Mod::Impl::loadBinary() {
         return Ok();
 
     if (!std::filesystem::exists(this->getBinaryPath())) {
+        std::error_code ec;
+        std::filesystem::remove(m_tempDirName / "modified-at", ec);
         return Err(
             fmt::format(
                 "Failed to load {}: No binary could be found for current platform.\n"
@@ -385,7 +391,7 @@ Result<> Mod::Impl::uninstall(bool deleteSaveData) {
 
     if (this->isInternal()) {
         utils::game::launchLoaderUninstaller(deleteSaveData);
-        utils::game::exit();
+        utils::game::exit(true);
         return Ok();
     }
 
@@ -593,51 +599,6 @@ Result<> Mod::Impl::createTempDir() {
 
     // Mark temp dir creation as succesful
     m_tempDirName = tempPath;
-
-    return Ok();
-}
-
-Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
-    // Unzip .geode file into temp dir
-    auto tempDir = dirs::getModRuntimeDir() / metadata.getID();
-
-    auto datePath = tempDir / "modified-at";
-    std::string currentHash = file::readString(datePath).unwrapOr("");
-
-    auto modifiedDate = std::filesystem::last_write_time(metadata.getPath());
-    auto modifiedCount = std::chrono::duration_cast<std::chrono::milliseconds>(modifiedDate.time_since_epoch());
-    auto modifiedHash = std::to_string(modifiedCount.count());
-    if (currentHash == modifiedHash) {
-        log::debug("Same hash detected, skipping unzip");
-        return Ok();
-    }
-    log::debug("Hash mismatch detected, unzipping");
-
-    std::error_code ec;
-    std::filesystem::remove_all(tempDir, ec);
-    if (ec) {
-        auto message = ec.message();
-        #ifdef GEODE_IS_WINDOWS
-            // Force the error message into English
-            message = formatSystemError(ec.value());
-        #endif
-        return Err("Unable to delete temp dir: " + message);
-    }
-
-    (void)utils::file::createDirectoryAll(tempDir);
-    auto res = file::writeString(datePath, modifiedHash);
-    if (!res) {
-        log::warn("Failed to write modified date of geode zip: {}", res.unwrapErr());
-    }
-
-
-    GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(metadata.getPath()));
-    if (!unzip.hasEntry(metadata.getBinaryName())) {
-        return Err(
-            fmt::format("Unable to find platform binary under the name \"{}\"", metadata.getBinaryName())
-        );
-    }
-    GEODE_UNWRAP(unzip.extractAllTo(tempDir));
 
     return Ok();
 }

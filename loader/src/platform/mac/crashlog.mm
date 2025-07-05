@@ -429,11 +429,8 @@ bool crashlog::setupPlatformHandler() {
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
     if (std::filesystem::exists(lastCrashedFile)) {
         s_lastLaunchCrashed = true;
-        try {
-            std::filesystem::remove(lastCrashedFile);
-        }
-        catch (...) {
-        }
+        std::error_code ec;
+        std::filesystem::remove(lastCrashedFile, ec);
     }
     return true;
 }
