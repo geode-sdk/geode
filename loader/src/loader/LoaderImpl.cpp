@@ -99,6 +99,11 @@ Result<> Loader::Impl::setup() {
         }
     }
 
+    if (auto value = this->getLaunchArgument("binary-dir")) {
+        log::info("Using custom binary directory: {}", value.value());
+        m_binaryPath = value.value();
+    }
+
     if (this->getLaunchFlag("enable-tulip-hook-logs")) {
         log::info("Enabling TulipHook logs");
         tulip::hook::setLogCallback([](std::string_view msg) {
@@ -1299,4 +1304,8 @@ bool Loader::Impl::isRestartRequired() const {
 
 bool Loader::Impl::isPatchless() const {
     return m_isPatchless;
+}
+
+std::optional<std::string> Loader::Impl::getBinaryPath() const {
+    return m_binaryPath;
 }
