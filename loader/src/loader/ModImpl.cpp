@@ -133,8 +133,7 @@ std::filesystem::path Mod::Impl::getTempDir() const {
 }
 
 std::filesystem::path Mod::Impl::getBinaryPath() const {
-    if (auto value = Loader::get()->getLaunchArgument("binary-dir")) {
-        log::debug("Using custom binary directory: {}", value.value());
+    if (auto value = LoaderImpl::get()->getBinaryPath()) {
         return std::filesystem::path(value.value()) / m_metadata.getBinaryName();
     }
     return m_tempDirName / m_metadata.getBinaryName();
