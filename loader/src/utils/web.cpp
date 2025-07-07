@@ -562,6 +562,11 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         // Do not fail if response code is 4XX or 5XX
         curl_easy_setopt(curl, CURLOPT_FAILONERROR, 0L);
 
+        // IPv4
+        if (Mod::get()->getLaunchFlag("curl-force-ipv4")) {
+            curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+        }
+
         // Verbose logging
         if (Mod::get()->getSettingValue<bool>("verbose-curl-logs")) {
             curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
