@@ -8,6 +8,7 @@
 #include <atomic>
 #include <algorithm>
 #include <tuple>
+#include <optional>
 
 namespace geode::event::v3 {
     template <typename T>
@@ -20,43 +21,42 @@ namespace geode::event::v3 {
         { a == b } -> std::convertible_to<bool>;
     };
 
-    template <class PoolType>
-    class Pool : protected PoolType {
-    public:
-        using EventType = typename PoolType::EventType;
-        using CallbackType = typename PoolType::CallbackType;
-
+    class Pool {
     private:
         std::mutex mutex;
         std::atomic_size_t recurse;
-        std::vector<std::pair<EventType*, CallbackType>> toAdd;
-        std::vector<std::pair<EventType*, EventType*>> toMove;
-        std::vector<EventType*> toRemove;
+        std::vector<std::pair<void*, void*>> toAdd;
+        std::vector<std::pair<void*, void*>> toMove;
+        std::vector<void*> toRemove;
 
         void catchup() {
             std::lock_guard lock(mutex);
             for (auto& ev : toRemove) {
-                this->PoolType::removeListener(ev);
+                this->removeListener(ev);
             }
             for (auto& [ev, cb] : toAdd) {
-                this->PoolType::addListener(ev, std::move(cb));
+                this->addListener(ev, std::move(cb));
             }
             for (auto& [from, to] : toMove) {
-                this->PoolType::moveListener(from, to);
+                this->moveListener(from, to);
             }
             toRemove.clear();
             toAdd.clear();
             toMove.clear();
         }
 
+    protected:
+        virtual ~Pool() = default;
+        virtual void callListener(void* event, void* params) = 0;
+        virtual void addListener(void* event, void* callable) = 0;
+        virtual void removeListener(void* event) = 0;
+        virtual void moveListener(void* from, void* to) = 0;
+
     public:
         template <class... Args>
-        void callListeners(EventType* event, Args&&... args) {
+        void callListeners(void* event, void* params) {
             recurse++;
-            auto listeners = this->getListeners(event);
-            for (const auto& listener : listeners) {
-                listener(std::forward<Args>(args)...);
-            }
+            this->callListener(event, params);
             recurse--;
 
             if (recurse == 0) {
@@ -64,44 +64,67 @@ namespace geode::event::v3 {
             }
         }
 
-        void addListener(EventType* event, CallbackType callback) {
+        void addListenerSafe(void* event, void* callable) {
             std::lock_guard lock(mutex);
-            if (recurse == 0) {
-                this->PoolType::addListener(event, std::move(callback));
-            } else {
-                toAdd.emplace_back(event, std::move(callback));
+            if (recurse >= 0) {
+                toAdd.emplace_back(event, callable);
+            }
+            else {
+                this->addListener(event, callable);
             }
         }
 
-        void removeListener(EventType* event) {
+        void removeListenerSafe(void* event) {
             std::lock_guard lock(mutex);
-            if (recurse == 0) {
-                this->PoolType::removeListener(event);
-            } else {
+            if (recurse >= 0) {
                 toRemove.emplace_back(event);
             }
+            else {
+                this->removeListener(event);
+            }
         }
 
-        void moveListener(EventType* from, EventType* to) {
+        void moveListenerSafe(void* from, void* to) {
             std::lock_guard lock(mutex);
-            if (recurse == 0) {
-                this->PoolType::moveListener(from, to);
-            } else {
+            if (recurse >= 0) {
                 toMove.emplace_back(from, to);
+            }
+            else {
+                this->moveListener(from, to);
             }
         }
     };
 
-    template <class E, class C>
-    class HashablePool {
+    template <class... Args>
+    class ForwardHelper {
+    protected:
+        using CallbackType = std::function<void(Args...)>;
+        using ForwardTupleType = std::tuple<Args&&...>;
+
+        void call(void* c, void* t) {
+            auto callback = static_cast<CallbackType*>(c);
+            auto tuple = static_cast<ForwardTupleType*>(t);
+            std::apply(*callback, *tuple);
+        }
+
+    public:
+        auto forward(Args&&... args) {
+            return ForwardTupleType(std::forward<Args>(args)...);
+        }
+
+        auto callback(std::invocable auto callable) {
+            return CallbackType(callable);
+        }
+    };
+
+    template <class E, class... Args>
+    class HashablePool : public Pool, public ForwardHelper<Args...> {
     protected:
         using EventType = E;
-        using CallbackType = std::function<C>;
 
     private:
         std::unordered_multimap<std::size_t, CallbackType> listeners;
 
-    protected:
         auto getListeners(EventType* event) const {
             auto const hash = std::hash<EventType>{}(*event);
             auto [begin, end] = listeners.equal_range(hash);
@@ -111,29 +134,42 @@ namespace geode::event::v3 {
             return std::ranges::subrange(begin, end) | std::views::transform(getSecond);
         }
 
-        void addListener(EventType* event, CallbackType callback) {
-            auto const hash = std::hash<EventType>{}(*event);
-            listeners.emplace(hash, std::move(callback));
+    protected:
+        void callListener(void* e, void* p) override {
+            auto event = static_cast<EventType*>(e);
+
+            auto listeners = this->getListeners(event);
+            for (auto const& listener : listeners) {
+                this->call(&listener, p);
+            }
         }
 
-        void removeListener(EventType* event) {
+        void addListener(void* e, void* c) override {
+            auto event = static_cast<EventType*>(e);
+            auto callback = static_cast<CallbackType*>(c);
+
+            auto const hash = std::hash<EventType>{}(*event);
+            listeners.emplace(hash, std::move(*callback));
+        }
+
+        void removeListener(void* e) override {
+            auto event = static_cast<EventType*>(e);
+
             auto const hash = std::hash<EventType>{}(*event);
             listeners.erase(hash);
         }
 
-        void moveListener(EventType* from, EventType* to) {}
+        void moveListener(void* from, void* to) override {}
     };
 
-    template <class E, class C>
-    class EqualityComparablePool {
+    template <class E, class... Args>
+    class EqualityComparablePool : public Pool, public ForwardHelper<Args...> {
     protected:
         using EventType = E;
-        using CallbackType = std::function<C>;
 
     private:
         std::vector<std::pair<EventType*, CallbackType>> listeners;
 
-    protected:
         auto getListeners(EventType* event) const {
             auto isEvent = [event](auto const& pair) {
                 return pair.first->operator==(*event);
@@ -144,17 +180,35 @@ namespace geode::event::v3 {
             return std::ranges::filter_view(listeners, isEvent) | std::views::transform(getSecond);
         }
 
-        void addListener(EventType* event, CallbackType callback) {
-            listeners.emplace_back(event, std::move(callback));
+    protected:
+        void callListener(void* e, void* p) override {
+            auto event = static_cast<EventType*>(e);
+
+            auto listeners = this->getListeners(event);
+            for (auto const& listener : listeners) {
+                this->call(&listener, p);
+            }
         }
 
-        void removeListener(EventType* event) {
+        void addListener(void* e, void* c) override {
+            auto event = static_cast<EventType*>(e);
+            auto callback = static_cast<CallbackType*>(c);
+
+            listeners.emplace_back(event, std::move(*callback));
+        }
+
+        void removeListener(void* e) override {
+            auto event = static_cast<EventType*>(e);
+
             std::erase_if(listeners, [&event](auto const& pair) {
                 return pair.first == event;
             });
         }
 
-        void moveListener(EventType* from, EventType* to) {
+        void moveListener(void* f, void* t) override {
+            auto from = static_cast<EventType*>(f);
+            auto to = static_cast<EventType*>(t);
+
             std::ranges::for_each(listeners, [&](auto& pair) {
                 if (pair.first == from) {
                     pair.first = to;
@@ -163,39 +217,14 @@ namespace geode::event::v3 {
         }
     };
 
-    template <class PoolType>
     class Event {
     public:
-        using CallbackType = typename PoolType::CallbackType;
-        using EventType = typename PoolType::EventType;
-
-    protected:
-        static inline PoolType pool;
-
-        EventType* self() {
-            return static_cast<EventType*>(this);
-        }
+        virtual Pool* getPool() = 0;
 
     private:
         bool moved;
 
     public:
-        template <class... Args>
-        void post(Args&&... args) {
-            pool.callListeners(self(), std::forward<Args>(args)...);
-        }
-
-        EventType listen(CallbackType callback) && {
-            moved = false;
-            pool.addListener(self(), std::move(callback));
-            return std::move(*self());
-        }
-
-        EventType& listen(CallbackType callback) & {
-            moved = false;
-            pool.addListener(self(), std::move(callback));
-            return *self();
-        }
 
         Event() : moved(true) {}
         Event(Event const&) = delete;
@@ -219,21 +248,42 @@ namespace geode::event::v3 {
         using namespace geode::event::v3;
     }
 
-    class TestEvent : public Event<Pool<EqualityComparablePool<TestEvent, void(std::string_view)>>> {
+    class TestEvent : public Event {
+    private:
+        static inline EqualityComparablePool<TestEvent, std::string_view> s_pool;
+
     public:
         std::optional<size_t> key;
 
         TestEvent() : key() {}
         TestEvent(size_t key) : key(key) {}
 
+        template <class... Args>
+        void post(Args&&... args) {
+            pool.callListeners(self(), std::forward<Args>(args)...);
+        }
+
+        TestEvent listen(std::invocable auto callback) && {
+            moved = false;
+            pool.addListener(self(), std::move(callback));
+            return std::move(*this);
+        }
+
+        TestEvent& listen(CallbackType callback) & {
+            moved = false;
+            pool.addListener(self(), std::move(callback));
+            return *this;
+        }
+
         bool operator==(TestEvent const& other) {
             if (!key) {
                 return true;
             }
-            if (!other.key) {
-                return false;
-            }
             return *key == *other.key;
+        }
+
+        Pool* getPool() override {
+            return &s_pool;
         }
     };
 }
