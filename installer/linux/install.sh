@@ -71,7 +71,7 @@ find_gd_installation() {
     verbose_log "Searching for Geometry Dash..."
     local DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 
-    for GD_IDX in "$DATA_HOME/Steam" "$HOME/Steam" "$HOME/.var/com.valvesoftware.Steam/data/Steam"; do
+    for GD_IDX in "$DATA_HOME/Steam" "$HOME/Steam" "$HOME/.var/app/com.valvesoftware.Steam/data/Steam"; do
         local PATH_TEST="$GD_IDX/steamapps/common/Geometry Dash"
         verbose_log "- Testing path ${YELLOW}$PATH_TEST${NC}"
 
