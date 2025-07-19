@@ -73,7 +73,7 @@ TableViewCell* ListView::getListCell(char const* key) {
 void ListView::loadCell(TableViewCell* cell, int index) {
     auto node = typeinfo_cast<CCNode*>(m_entries->objectAtIndex(index));
     if (node) {
-        auto lcell = as<GenericListCell*>(cell);
+        auto lcell = static_cast<GenericListCell*>(cell);
         node->setContentSize(lcell->getScaledContentSize());
         node->setPosition(0, 0);
         lcell->addChild(node);
@@ -123,7 +123,7 @@ void ListView::setCellBorderColor(cocos2d::ccColor4B color) {
 
 void ListView::updateAllCells() {
     for (size_t i = 0; i < m_tableView->m_cellArray->count(); i++) {
-        if (auto cell = as<GenericListCell*>(m_tableView->m_cellArray->objectAtIndex(i))) {
+        if (auto cell = typeinfo_cast<GenericListCell*>(m_tableView->m_cellArray->objectAtIndex(i))) {
             cell->setPrimaryColor(m_primaryCellColor);
             cell->setSecondaryColor(m_secondaryCellColor);
             cell->setOpacity(m_cellOpacity);

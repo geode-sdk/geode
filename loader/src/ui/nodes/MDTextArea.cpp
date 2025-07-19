@@ -158,7 +158,7 @@ MDTextArea::~MDTextArea() {
 }
 
 void MDTextArea::onLink(CCObject* pSender) {
-    auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject());
+    auto href = static_cast<CCString*>(static_cast<CCNode*>(pSender)->getUserObject());
     auto layer = FLAlertLayer::create(
         this, "Hold Up!",
         "Links are spooky! Are you sure you want to go to <cy>" + std::string(href->getCString()) +
@@ -170,7 +170,7 @@ void MDTextArea::onLink(CCObject* pSender) {
 }
 
 void MDTextArea::onGDProfile(CCObject* pSender) {
-    auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject());
+    auto href = static_cast<CCString*>(static_cast<CCNode*>(pSender)->getUserObject());
     auto profile = std::string(href->getCString());
     profile = profile.substr(profile.find(":") + 1);
     auto res = numFromString<int>(profile);
@@ -188,7 +188,7 @@ void MDTextArea::onGDProfile(CCObject* pSender) {
 }
 
 void MDTextArea::onGDLevel(CCObject* pSender) {
-    auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject());
+    auto href = static_cast<CCString*>(static_cast<CCNode*>(pSender)->getUserObject());
     auto level = std::string(href->getCString());
     level = level.substr(level.find(":") + 1);
     auto res = numFromString<int>(level);
@@ -208,14 +208,14 @@ void MDTextArea::onGDLevel(CCObject* pSender) {
 }
 
 void MDTextArea::onGeodeMod(CCObject* sender) {
-    auto href = as<CCString*>(as<CCNode*>(sender)->getUserObject());
+    auto href = static_cast<CCString*>(static_cast<CCNode*>(sender)->getUserObject());
     auto modID = std::string(href->getCString());
     (void)openInfoPopup(modID.substr(modID.find(":") + 1));
 }
 
 void MDTextArea::FLAlert_Clicked(FLAlertLayer* layer, bool btn) {
     if (btn) {
-        web::openLinkInBrowser(as<CCString*>(layer->getUserObject())->getCString());
+        web::openLinkInBrowser(static_cast<CCString*>(layer->getUserObject())->getCString());
     }
 }
 

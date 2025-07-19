@@ -63,7 +63,7 @@ void Notification::showNextNotification() {
     // remove self from front of queue
     s_queue->removeFirstObject();
     if (auto obj = s_queue->firstObject()) {
-        as<Notification*>(obj)->show();
+        static_cast<Notification*>(obj)->show();
     }
     this->removeFromParent();
 }
