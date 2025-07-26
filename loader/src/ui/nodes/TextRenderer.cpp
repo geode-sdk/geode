@@ -429,8 +429,8 @@ std::vector<TextRenderer::Label> TextRenderer::renderStringEx(
         for (auto& btn : res)
             for (auto& b : res) {
                 if (btn.m_node != b.m_node) {
-                    as<TextLinkedButtonWrapper*>(btn.m_node)
-                        ->link(as<TextLinkedButtonWrapper*>(b.m_node));
+                    static_cast<TextLinkedButtonWrapper*>(btn.m_node)
+                        ->link(static_cast<TextLinkedButtonWrapper*>(b.m_node));
                 }
             }
     }
@@ -479,7 +479,7 @@ void TextRenderer::breakLine(float incY) {
     if (!y && m_fontStack.size()) {
         y = m_fontStack.back()(this->getCurrentStyle()).m_lineHeight * this->getCurrentScale();
         if (!y && m_lastRendered.size()) {
-            y = as<CCNode*>(m_lastRendered.back().m_node)->getScaledContentSize().height;
+            y = static_cast<CCNode*>(m_lastRendered.back().m_node)->getScaledContentSize().height;
         }
         if (!y && m_lastRenderedNode) {
             y = m_lastRenderedNode->getScaledContentSize().height;

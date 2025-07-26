@@ -19,13 +19,13 @@ bool SwelvyBG::init() {
 
     float y = m_obContentSize.height + 5;
     int idx = 0;
-    for (auto layer : std::initializer_list<std::pair<ccColor3B, const char*>> {
-        { ccc3(244, 212, 142), "swelve-layer3.png"_spr },
-        { ccc3(245, 174, 125), "swelve-layer0.png"_spr },
-        { ccc3(236, 137, 124), "swelve-layer1.png"_spr },
-        { ccc3(213, 105, 133), "swelve-layer2.png"_spr },
-        { ccc3(173, 84,  146), "swelve-layer1.png"_spr },
-        { ccc3(113, 74,  154), "swelve-layer0.png"_spr },
+    for (auto layer : std::initializer_list<const char*> {
+        "swelve-layer3.png"_spr,
+        "swelve-layer0.png"_spr,
+        "swelve-layer1.png"_spr,
+        "swelve-layer2.png"_spr,
+        "swelve-layer1.png"_spr,
+        "swelve-layer0.png"_spr
     }) {
         float speed = dis(gen);
         if (sign(gen) == 0) {
@@ -33,22 +33,27 @@ bool SwelvyBG::init() {
         }
         ccTexParams params = {GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_CLAMP_TO_EDGE};
 
-        auto sprite = CCSprite::create(layer.second);
+        auto sprite = CCSprite::create(layer);
         auto rect = sprite->getTextureRect();
         sprite->setUserObject("width", CCFloat::create(rect.size.width));
         rect.size = CCSize{winSize.width, rect.size.height};
 
         std::string layerID = fmt::format("layer-{}", idx);
+        auto colorID = fmt::format("swelvy-bg-{}"_spr, idx);
         sprite->setID(layerID);
         sprite->getTexture()->setTexParameters(&params);
         sprite->setTextureRect(rect);
         sprite->setAnchorPoint({ 0, 1 });
         sprite->setContentSize({winSize.width, sprite->getContentSize().height});
-        sprite->setColor(layer.first);
+        sprite->setColor(ColorProvider::get()->color3b(colorID));
         sprite->setPosition({0, y});
         sprite->schedule(schedule_selector(SwelvyBG::updateSpritePosition));
         sprite->setUserObject("speed", CCFloat::create(speed));
         this->addChild(sprite);
+
+        m_colorListeners.emplace_back([=](ColorProvidedEvent* event) {
+            sprite->setColor(to3B(event->color));
+        }, ColorProvidedFilter(colorID));
 
         y -= m_obContentSize.height / 6;
         idx += 1;

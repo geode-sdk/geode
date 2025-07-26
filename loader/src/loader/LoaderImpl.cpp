@@ -99,6 +99,11 @@ Result<> Loader::Impl::setup() {
         }
     }
 
+    if (auto value = this->getLaunchArgument("binary-dir")) {
+        log::info("Using custom binary directory: {}", value.value());
+        m_binaryPath = value.value();
+    }
+
     if (this->getLaunchFlag("enable-tulip-hook-logs")) {
         log::info("Enabling TulipHook logs");
         tulip::hook::setLogCallback([](std::string_view msg) {
@@ -925,7 +930,9 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
 
     // Check if there is a binary that we need to move over from the unzipped binaries dir
     if (this->isPatchless()) {
-        auto src = dirs::getModBinariesDir() / metadata.getBinaryName();
+        // TODO: enable in 4.7.0
+        // auto src = dirs::getModBinariesDir() / metadata.getBinaryName();
+        auto src = dirs::getModRuntimeDir() / "binaries" / metadata.getBinaryName();
         auto dst = tempDir / metadata.getBinaryName();
         if (std::filesystem::exists(src)) {
             std::error_code ec;
@@ -960,7 +967,9 @@ Result<> Loader::Impl::extractBinary(ModMetadata metadata) {
             fmt::format("Unable to find platform binary under the name \"{}\"", metadata.getBinaryName())
         );
     }
-    GEODE_UNWRAP(unzip.extractTo(metadata.getBinaryName(), dirs::getModBinariesDir() / metadata.getBinaryName()));
+    // TODO: enable in 4.7.0
+    // GEODE_UNWRAP(unzip.extractTo(metadata.getBinaryName(), dirs::getModBinariesDir() / metadata.getBinaryName()));
+    GEODE_UNWRAP(unzip.extractTo(metadata.getBinaryName(), dirs::getModRuntimeDir() / "binaries" / metadata.getBinaryName()));
 
     return Ok();
 }
@@ -985,11 +994,11 @@ void Loader::Impl::queueInMainThread(ScheduledFunction&& func) {
 }
 
 void Loader::Impl::executeMainThreadQueue() {
-    // copy queue to avoid locking mutex if someone is
+    // move queue to avoid locking mutex if someone is
     // running addToMainThread inside their function
     m_mainThreadMutex.lock();
-    auto queue = m_mainThreadQueue;
-    m_mainThreadQueue.clear();
+    auto queue = std::move(m_mainThreadQueue);
+    m_mainThreadQueue = {};
     m_mainThreadMutex.unlock();
 
     // call queue
@@ -1295,4 +1304,8 @@ bool Loader::Impl::isRestartRequired() const {
 
 bool Loader::Impl::isPatchless() const {
     return m_isPatchless;
+}
+
+std::optional<std::string> Loader::Impl::getBinaryPath() const {
+    return m_binaryPath;
 }

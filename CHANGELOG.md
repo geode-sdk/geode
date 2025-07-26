@@ -1,5 +1,22 @@
 # Geode Changelog
 
+## v4.7.0
+ * Change from copying queue to moving queue for main thread (9b8fb73)
+ * Add reading from unzipped/launch-args.txt on iOS as an option (ae90fc9)
+ * Add new "binary-dir" launcher flag for changing the path of mod binaries (0b71c3c)
+ * Use ColorProvider for SwelvyBG colors (01ee436)
+ * Deprecate the usage of geode::cast::as (9d28ab9)
+ * Return success for patching if there is nothing to do (f92e5b6)
+ * Updated TulipHook to 3.1.4 (f469696)
+   * Fixes struct params and enabling after disabled.
+
+## v4.6.3
+ * Fix Windows crashlogs not appearing (for real this time) (dedf1eb)
+
+## v4.6.2
+ * Fix Windows crashlogs not appearing (02cee65)
+ * Unzip JIT-less iOS binaries separately from the .geode file (85fe11f)
+
 ## v4.6.1
  * Fix several random crashes caused by incorrect relocation code in Tuliphook
  * Make unzip upon download iOS only (0a6d09c)

@@ -36,6 +36,22 @@ $on_mod(Loaded) {
     // Only used when GD theme is active
     ColorProvider::get()->define("mods-layer-gd-bg"_spr, { 0, 102, 255, 255 });
 
+    ColorProvider::get()->define("swelvy-bg-0"_spr, { 244, 212, 142, 255 });
+    ColorProvider::get()->define("swelvy-bg-1"_spr, { 245, 174, 125, 255 });
+    ColorProvider::get()->define("swelvy-bg-2"_spr, { 236, 137, 124, 255 });
+    ColorProvider::get()->define("swelvy-bg-3"_spr, { 213, 105, 133, 255 });
+    ColorProvider::get()->define("swelvy-bg-4"_spr, { 173, 84, 146, 255 });
+    ColorProvider::get()->define("swelvy-bg-5"_spr, { 113, 74, 154, 255 });
+
+    if (Mod::get()->getSavedValue("alternate-geode-style", false)) {
+        ColorProvider::get()->override("swelvy-bg-0"_spr, { 216, 132, 132, 255 });
+        ColorProvider::get()->override("swelvy-bg-1"_spr, { 210, 189, 119, 255 });
+        ColorProvider::get()->override("swelvy-bg-2"_spr, { 195, 212, 136, 255 });
+        ColorProvider::get()->override("swelvy-bg-3"_spr, { 95, 184, 134, 255 });
+        ColorProvider::get()->override("swelvy-bg-4"_spr, { 100, 174, 189, 255 });
+        ColorProvider::get()->override("swelvy-bg-5"_spr, { 118, 90, 148, 255 });
+    }
+
     auto updateColors = +[](bool enabled) {
         if (enabled) {
             ColorProvider::get()->reset("mod-list-bg"_spr);

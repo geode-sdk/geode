@@ -37,6 +37,7 @@ protected:
     CCNode* m_rightColumn;
     CCNode* m_currentTabPage = nullptr;
     CCNode* m_modtoberBanner = nullptr;
+    CCMenu* m_titleContainer = nullptr;
     std::unordered_map<Tab, std::pair<GeodeTabSprite*, Ref<CCNode>>> m_tabs;
     EventListener<server::ServerRequest<server::ServerModMetadata>> m_statsListener;
     EventListener<server::ServerRequest<std::vector<server::ServerTag>>> m_tagsListener;
