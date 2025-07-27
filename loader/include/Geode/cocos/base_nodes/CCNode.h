@@ -44,6 +44,11 @@ namespace geode {
     class Layout;
     class LayoutOptions;
     enum class Anchor;
+
+    template <typename T>
+    struct CCArrayExtCheck {
+        using type = void;
+    };
 }
 
 NS_CC_BEGIN
@@ -634,6 +639,21 @@ public:
      * @returns An array of children
      */
     virtual CCArray* getChildren();
+
+    /*
+     * Like `getChildren()`, but returns a `CCArrayExt<CCNode>` instead.
+     * You must include `<Geode/utils/cocos.hpp>` to use this, otherwise it won't compile
+    */
+    template <typename PleaseDontChangeMe = CCNode>
+    inline auto getChildrenExt() {
+        // CCArrayExt is defined in geode/utils/cocos.hpp, which we cannot include due to circular includes.
+        // This is an incredibly hacky way to still be able to use the type
+        
+        using CCArrayExt = geode::CCArrayExtCheck<PleaseDontChangeMe>::type;
+        static_assert(!std::is_void_v<CCArrayExt>, "Please include <Geode/utils/cocos.hpp> to use getChildrenExt()");
+
+        return CCArrayExt(getChildren());
+    }
 
     /**
      * Get the amount of children.
