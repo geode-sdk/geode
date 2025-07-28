@@ -1643,7 +1643,7 @@ namespace geode::cocos {
     void GEODE_DLL handleTouchPriority(cocos2d::CCNode* node, bool force = false);
 }
 
-template <>
-struct ::geode::CCArrayExtCheck<cocos2d::CCNode> {
-    using type = cocos::CCArrayExt<cocos2d::CCNode>;
+template <typename T>
+struct ::geode::CCArrayExtCheck<T, void> {
+    using type = cocos::CCArrayExt<T>;
 };
