@@ -642,18 +642,13 @@ namespace geode::cocos {
     /**
      * Get child at index. Checks bounds. A negative
      * index will get the child starting from the end
+     * @deprecated Use CCNode::getChildByIndex instead
      * @returns Child at index cast to the given type,
      * or nullptr if index exceeds bounds
      */
     template <class T = cocos2d::CCNode>
     static T* getChild(cocos2d::CCNode* x, int i) {
-        // start from end for negative index
-        if (i < 0) i = x->getChildrenCount() + i;
-        // check if backwards index is out of bounds
-        if (i < 0) return nullptr;
-        // check if forwards index is out of bounds
-        if (static_cast<int>(x->getChildrenCount()) <= i) return nullptr;
-        return static_cast<T*>(x->getChildren()->objectAtIndex(i));
+        return x->getChildByIndex<T>(i);
     }
 
     /**
