@@ -535,10 +535,10 @@ constexpr auto operator""_spr() {
  * ```
  */
 #define GEODE_MOD_STATIC_PATCH(Offset_, ...) \
-    doNotOptimize(utils::string::ConstexprString::toLiteral([](){\
-        utils::string::ConstexprString str2;                     \
+    geode::doNotOptimize(geode::utils::string::ConstexprString::toLiteral([](){\
+        geode::utils::string::ConstexprString str2;              \
         str2.push(__VA_ARGS__);                                  \
-        utils::string::ConstexprString str;                      \
+        geode::utils::string::ConstexprString str;               \
         str.push("[GEODE_PATCH_SIZE]");                          \
         str.push(str2.size(), 16);                               \
         str.push("[GEODE_PATCH_BYTES]");                         \
@@ -559,8 +559,8 @@ constexpr auto operator""_spr() {
  * ```
  */
 #define GEODE_MOD_STATIC_HOOK(Offset_, Detour_, ...) \
-    (doNotOptimize(utils::string::ConstexprString::toLiteral([](){ \
-        utils::string::ConstexprString str;                        \
+    (geode::doNotOptimize(geode::utils::string::ConstexprString::toLiteral([](){ \
+        geode::utils::string::ConstexprString str;                 \
         str.push("[GEODE_MODIFY_NAME]");                           \
         str.push(GEODE_STR(__VA_ARGS__));                          \
         str.push("[GEODE_MODIFY_OFFSET]");                         \
