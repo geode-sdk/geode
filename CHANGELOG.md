@@ -4,6 +4,7 @@
  * Fix `geode::Notification` z ordering (127733e)
  * Add `CCNode::getChildrenExt` (d198df5)
  * Add `CCNode::getChildByIndex` (0ba1f2a)
+ * Fix `GEODE_MOD_STATIC_PATCH` not using the geode namespace (#1456)
 
 ## v4.7.0
  * Change from copying queue to moving queue for main thread (9b8fb73)
