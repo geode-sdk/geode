@@ -353,20 +353,14 @@ public:
     bool m_transferBody = true;
     bool m_followRedirects = true;
     bool m_ignoreContentLength = false;
-    std::string m_CABundleContent = CA_BUNDLE_CONTENT;
+    std::string m_CABundleContent;
     ProxyOpts m_proxyOpts = {};
     HttpVersion m_httpVersion = HttpVersion::DEFAULT;
     size_t m_id;
 
-    Impl() : m_id(s_idCounter++) {
-        // Set HTTP version
-        auto useHttp1 = Loader::get()->getLaunchFlag("use-http1");
-        if (m_httpVersion == HttpVersion::DEFAULT && useHttp1) {
-            m_httpVersion = HttpVersion::VERSION_1_1; // Force HTTP/1.1 if the flag is set
-        }
-    }
+    Impl() : m_id(s_idCounter++) {}
 
-    WebResponse makeError(int code, std::string const& msg) const {
+    WebResponse makeError(int code, std::string const& msg) {
         auto res = WebResponse();
         res.m_impl->m_code = code;
         res.m_impl->m_data = ByteVector(msg.begin(), msg.end());
@@ -393,16 +387,10 @@ static std::string urlParamEncode(std::string_view input) {
     return ss.str();
 }
 
-WebTask WebRequest::resend() {
-    return this->send(m_impl->m_method, m_impl->m_url);
-}
-
 WebTask WebRequest::send(std::string_view method, std::string_view url) {
     m_impl->m_method = method;
     m_impl->m_url = url;
-
-    auto const* impl = m_impl.get();
-    return WebTask::run([impl](auto progress, auto hasBeenCancelled) -> WebTask::Result {
+    return WebTask::run([impl = m_impl](auto progress, auto hasBeenCancelled) -> WebTask::Result {
         // Init Curl
         auto curl = curl_easy_init();
         if (!curl) {
@@ -416,12 +404,12 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         // Struct that holds values for the curl callbacks
         struct ResponseData {
             WebResponse response;
-            Impl const* impl;
+            Impl* impl;
             WebTask::PostProgress progress;
             WebTask::HasBeenCancelled hasBeenCancelled;
         } responseData = {
             .response = WebResponse(),
-            .impl = impl,
+            .impl = impl.get(),
             .progress = progress,
             .hasBeenCancelled = hasBeenCancelled,
         };
@@ -459,6 +447,12 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         }
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 
+        // Set HTTP version
+        auto useHttp1 = Loader::get()->getLaunchFlag("use-http1");
+        if (impl->m_httpVersion == HttpVersion::DEFAULT && useHttp1) {
+            impl->m_httpVersion = HttpVersion::VERSION_1_1; // Force HTTP/1.1 if the flag is set
+        }
+
         curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, unwrapHttpVersion(impl->m_httpVersion));
 
         // Set request method
@@ -489,9 +483,13 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         int sslOptions = 0;
 
         if (impl->m_certVerification) {
+            if (impl->m_CABundleContent.empty()) {
+                impl->m_CABundleContent = CA_BUNDLE_CONTENT;
+            }
+
             if (!impl->m_CABundleContent.empty()) {
                 curl_blob caBundleBlob = {};
-                caBundleBlob.data = (void*)(impl->m_CABundleContent.data());
+                caBundleBlob.data = reinterpret_cast<void*>(impl->m_CABundleContent.data());
                 caBundleBlob.len = impl->m_CABundleContent.size();
                 caBundleBlob.flags = CURL_BLOB_NOCOPY;
                 curl_easy_setopt(curl, CURLOPT_CAINFO_BLOB, &caBundleBlob);
