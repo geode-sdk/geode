@@ -4,6 +4,7 @@
 #include <memory>
 #include <optional>
 #include "../modify/Traits.hpp"
+#include "../loader/Hook.hpp"
 
 namespace geode {
     class GEODE_DLL VMTHookManager {
@@ -48,7 +49,7 @@ namespace geode {
                 ".rept 8\n\t"            // 8 × 4-byte NOP = 32 bytes
                 "nop\n\t"
                 ".endr\n\t"
-                "bl 0b\n\t"              // recursive self-call (never executed)
+                "bl 0b\n\t"              // recursive self-call
             #endif
             );
         }
