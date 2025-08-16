@@ -96,6 +96,15 @@ namespace geode {
          *   auto delegateHook = VMTHookManager::get().addHook<
          *       ResolveC<CCTouchDelegate>::func(&GJGarageLayerTest2::ccTouchBegan)
          *   >(this, "GJGarageLayer::ccTouchBegan");
+         *
+         *
+         * bool ccTouchBegan(CCTouch* touch, CCEvent* event) override {
+         *      // Yes, you need to call the original by seemingly recursing.
+         *      // Otherwise you would just call the base class function, and
+         *      // that wouldn't call other hooks.
+         *      this->ccTouchBegan(touch, event);
+         *      return true;
+         *  }
          * ```
          *
          * @tparam Function The detour function.
