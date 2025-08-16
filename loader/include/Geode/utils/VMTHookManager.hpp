@@ -15,15 +15,19 @@ namespace geode {
 
     #if defined(GEODE_IS_WINDOWS32) || defined(GEODE_IS_WINDOWS64) || defined(GEODE_IS_INTEL_MAC)
         template <auto UUID>
-        static void emptyFunction() {}
+        static void emptyFunction() {
+            emptyFunction<UUID>();
+        }
     #elif defined(GEODE_IS_ARM_MAC) || defined(GEODE_IS_ANDROID64) || defined(GEODE_IS_IOS)
+        // AArch64 (macOS ARM64, Android ARM64, iOS)
         template <auto UUID>
         static void __attribute__((naked)) emptyFunction() {
             __asm__ volatile(
-                ".rept 8\n\t"    // AArch64 NOP is 4 bytes → 8 × 4 = 32
+                "0:\n\t"                 // local anchor label for 'bl 0b'
+                ".rept 8\n\t"            // 8 × 4-byte NOP = 32 bytes
                 "nop\n\t"
                 ".endr\n\t"
-                "ret\n\t"
+                "bl 0b\n\t"              // recursive self-call
             );
         }
     #elif defined(GEODE_IS_ANDROID32)
@@ -31,19 +35,20 @@ namespace geode {
         static void __attribute__((naked)) emptyFunction() {
             __asm__ volatile(
             #if defined(__thumb__)
-                // Thumb NOP is 16-bit → 16 × 2 = 32 bytes
                 ".syntax unified\n\t"
-                ".rept 16\n\t"
+                "0:\n\t"                 // local anchor label for 'bl 0b'
+                ".rept 16\n\t"           // 16 × 2-byte NOP = 32 bytes
                 "nop\n\t"
                 ".endr\n\t"
-                "bx lr\n\t"
+                "bl 0b\n\t"              // recursive self-call
+
             #else
-                // ARM NOP is 32-bit → 8 × 4 = 32 bytes
                 ".syntax unified\n\t"
-                ".rept 8\n\t"
+                "0:\n\t"                 // local anchor label for 'bl 0b'
+                ".rept 8\n\t"            // 8 × 4-byte NOP = 32 bytes
                 "nop\n\t"
                 ".endr\n\t"
-                "bx lr\n\t"
+                "bl 0b\n\t"              // recursive self-call (never executed)
             #endif
             );
         }
