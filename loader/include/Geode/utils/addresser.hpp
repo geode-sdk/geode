@@ -40,6 +40,11 @@ namespace geode::addresser {
         new Class(ZeroConstructor);
     };
 
+    template <class Class>
+    concept HasModifyFields = requires {
+        &Class::m_fields;
+    };
+
     class GEODE_DLL Addresser final {
         template <char C>
         struct SingleInheritance {
@@ -77,13 +82,19 @@ namespace geode::addresser {
         }
 
         template <class Class>
-        static Class* cachedInstance() requires HasZeroConstructor<Class> {
+        static Class* cachedInstance() requires (HasZeroConstructor<Class>) {
             static auto ret = new Class(ZeroConstructor);
             return ret;
         }
 
         template <class Class>
-        static Class* cachedInstance() requires (!HasZeroConstructor<Class>) {
+        static Class* cachedInstance() requires (!HasZeroConstructor<Class> && HasModifyFields<Class>) {
+            static auto ret = new Class();
+            return ret;
+        }
+
+        template <class Class>
+        static Class* cachedInstance() requires (!HasZeroConstructor<Class> && !HasModifyFields<Class>) {
             return nullptr;
         }
 
