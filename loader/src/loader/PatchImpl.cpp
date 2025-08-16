@@ -90,6 +90,19 @@ Result<> Patch::Impl::disable() {
     return Ok();
 }
 
+Result<> Patch::Impl::toggle() {
+    return this->toggle(!m_enabled);
+}
+
+Result<> Patch::Impl::toggle(bool enable) {
+    if (enable) {
+        return this->enable();
+    }
+    else {
+        return this->disable();
+    }
+}
+
 ByteVector const& Patch::Impl::getBytes() const {
     return m_patch;
 }
