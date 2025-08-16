@@ -188,6 +188,7 @@ namespace geode::utils::web {
         WebRequest();
         ~WebRequest();
 
+        WebTask resend();
         WebTask send(std::string_view method, std::string_view url);
         WebTask post(std::string_view url);
         WebTask get(std::string_view url);
