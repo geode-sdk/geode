@@ -169,8 +169,11 @@ void console::log(std::string const& msg, Severity severity) {
         return;
     DWORD written;
 
+    auto wmsg = string::utf8ToWide(msg);
+
     if (!s_useEscapeCodes || msg.size() <= 14) {
-        WriteFile(s_outHandle, (msg + "\n").c_str(), msg.size() + 1, &written, nullptr);
+        WriteConsoleW(s_outHandle, wmsg.c_str(), wmsg.size(), &written, nullptr);
+        WriteConsoleW(s_outHandle, L"\n", 1, &written, nullptr);
         return;
     }
 
@@ -198,13 +201,15 @@ void console::log(std::string const& msg, Severity severity) {
             break;
     }
     auto const colorStr = fmt::format("\x1b[38;5;{}m", color);
-    auto const color2Str = color2 == -1 ? "\x1b[0m" : fmt::format("\x1b[38;5;{}m", color2);
-    auto const newMsg = fmt::format(
-        "{}{}{}{}\x1b[0m\n",
-        colorStr, msg.substr(0, 14), color2Str, msg.substr(14)
-    );
+    WriteConsoleA(s_outHandle, colorStr.c_str(), colorStr.size(), &written, nullptr);
+    WriteConsoleW(s_outHandle, wmsg.substr(0, 14).c_str(), 14, &written, nullptr);
 
-    WriteFile(s_outHandle, newMsg.c_str(), newMsg.size(), &written, nullptr);
+    auto const color2Str = color2 == -1 ? "\x1b[0m" : fmt::format("\x1b[38;5;{}m", color2);
+    WriteConsoleA(s_outHandle, color2Str.c_str(), color2Str.size(), &written, nullptr);
+    WriteConsoleW(s_outHandle, wmsg.substr(14).c_str(), wmsg.size() - 14, &written, nullptr);
+
+    WriteConsoleA(s_outHandle, "\x1b[0m", 4, &written, nullptr);
+    WriteConsoleW(s_outHandle, L"\n", 1, &written, nullptr);
 }
 
 void console::messageBox(char const* title, std::string const& info, Severity severity) {
@@ -221,5 +226,8 @@ void console::messageBox(char const* title, std::string const& info, Severity se
             icon = MB_ICONERROR;
             break;
     }
-    MessageBoxA(nullptr, info.c_str(), title, icon);
+    auto winfo = string::utf8ToWide(info);
+    auto wtitle = string::utf8ToWide(title);
+
+    MessageBoxW(nullptr, winfo.c_str(), wtitle.c_str(), icon);
 }
