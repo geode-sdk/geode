@@ -4,7 +4,9 @@
 #include <memory>
 #include <optional>
 #include "../modify/Traits.hpp"
+#include "../loader/Mod.hpp"
 #include "../loader/Hook.hpp"
+#include "../loader/Tulip.hpp"
 
 namespace geode {
     class GEODE_DLL VMTHookManager {
