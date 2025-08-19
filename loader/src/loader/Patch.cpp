@@ -26,6 +26,14 @@ Result<> Patch::disable() {
     return m_impl->disable();
 }
 
+Result<> Patch::toggle() {
+    return m_impl->toggle();
+}
+
+Result<> Patch::toggle(bool enable) {
+    return m_impl->toggle(enable);
+}
+
 bool Patch::getAutoEnable() const {
     return m_impl->getAutoEnable();
 }

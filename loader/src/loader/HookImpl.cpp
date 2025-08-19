@@ -90,6 +90,19 @@ Result<> Hook::Impl::disable() {
     return Ok();
 }
 
+Result<> Hook::Impl::toggle() {
+    return this->toggle(!m_enabled);
+}
+
+Result<> Hook::Impl::toggle(bool enable) {
+    if (enable) {
+        return this->enable();
+    }
+    else {
+        return this->disable();
+    }
+}
+
 uintptr_t Hook::Impl::getAddress() const {
     return reinterpret_cast<uintptr_t>(m_address);
 }
