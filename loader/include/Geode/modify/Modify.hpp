@@ -457,6 +457,7 @@ namespace geode {
         // we already have utilities for these, which are ccdestructor
         // and the cutoff constructor
         Modify() : Base(CutoffConstructor, sizeof(Base)) {}
+        Modify(ZeroConstructorType) : Base(ZeroConstructor, sizeof(Base)) {}
 
         ~Modify() {
             geode::DestructorLock::addLock(this);
