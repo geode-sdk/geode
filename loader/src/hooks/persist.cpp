@@ -4,6 +4,12 @@
 
 using namespace geode::prelude;
 
+#ifdef GEODE_IS_WINDOWS
+#include <Geode/modify/AppDelegate.hpp>
+#else
+#include <Geode/modify/AchievementNotifier.hpp>
+#endif
+
 namespace geode {
 
 struct DrawOverlay : Modify<DrawOverlay, CCEGLView> {
