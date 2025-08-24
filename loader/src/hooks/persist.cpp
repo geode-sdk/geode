@@ -15,7 +15,7 @@ namespace geode {
 struct DrawOverlay : Modify<DrawOverlay, CCEGLView> {
     GEODE_FORWARD_COMPAT_DISABLE_HOOKS("persist disabled")
     static void onModify(auto& self) {
-        if (auto res = self.setHookPriorityPost("cocos2d::CCLabelBMFont::init", Priority::First); !res) {
+        if (auto res = self.setHookPriorityPost("cocos2d::CCEGLView::swapBuffers", Priority::First); !res) {
             geode::log::warn("Failed to set hook priority: {}", res.unwrapErr());
         }
     }
@@ -47,5 +47,6 @@ struct SceneSwitch2 : Modify<SceneSwitch2, CCDirector> {
     #endif
     }
 };
+
 
 }
