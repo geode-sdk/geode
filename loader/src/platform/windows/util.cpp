@@ -148,7 +148,7 @@ Task<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions 
 }
 
 void utils::web::openLinkInBrowser(std::string const& url) {
-    ShellExecuteA(0, 0, url.c_str(), 0, 0, SW_SHOW);
+    ShellExecuteW(0, 0, utils::string::utf8ToWide(url).c_str(), 0, 0, SW_SHOW);
 }
 
 CCPoint cocos::getMousePos() {
@@ -248,11 +248,11 @@ void geode::utils::game::restart(bool saveData) {
 
     wchar_t buffer[MAX_PATH];
     GetModuleFileNameW(nullptr, buffer, MAX_PATH);
-    const auto gdName = fmt::format("\"{}\"", std::filesystem::path(buffer).filename().string());
+    auto const gdName = L"\"" + std::filesystem::path(buffer).filename().wstring() + L"\"";
 
     // launch updater
-    const auto updaterPath = (workingDir / "GeodeUpdater.exe").string();
-    ShellExecuteA(nullptr, "open", updaterPath.c_str(), gdName.c_str(), workingDir.string().c_str(), false);
+    auto const updaterPath = (workingDir / "GeodeUpdater.exe").wstring();
+    ShellExecuteW(nullptr, L"open", updaterPath.c_str(), gdName.c_str(), workingDir.wstring().c_str(), false);
 
     exit(saveData);
 }
@@ -269,14 +269,14 @@ void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
         return;
     }
 
-    std::string params;
+    std::wstring params;
     if (deleteSaveData) {
-        params = "\"/DATA=" + dirs::getSaveDir().string() + "\"";
+        params = L"\"/DATA=" + dirs::getSaveDir().wstring() + L"\"";
     }
 
     // launch uninstaller
-    const auto uninstallerPath = (workingDir / "GeodeUninstaller.exe").string();
-    ShellExecuteA(nullptr, "open", uninstallerPath.c_str(), params.c_str(), workingDir.string().c_str(), false);
+    auto const uninstallerPath = workingDir / "GeodeUninstaller.exe";
+    ShellExecuteW(nullptr, L"open", uninstallerPath.c_str(), params.c_str(), workingDir.wstring().c_str(), false);
 }
 
 Result<> geode::hook::addObjcMethod(std::string const& className, std::string const& selectorName, void* imp) {
@@ -312,7 +312,7 @@ typedef struct tagTHREADNAME_INFO {
 
 // SetThreadDescription is pretty new, so the user's system might not have it
 // or it might only be accessible dynamically (see msdocs link above for more info)
-auto setThreadDesc = reinterpret_cast<decltype(&SetThreadDescription)>(GetProcAddress(GetModuleHandleA("Kernel32.dll"), "SetThreadDescription"));
+auto setThreadDesc = reinterpret_cast<decltype(&SetThreadDescription)>(GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "SetThreadDescription"));
 void obliterate(std::string const& name) {
     // exception
     THREADNAME_INFO info;
@@ -349,16 +349,17 @@ std::string geode::utils::getEnvironmentVariable(const char* name) {
 }
 
 std::string geode::utils::formatSystemError(int code) {
-    char errorBuf[512]; // enough for most messages
+    wchar_t errorBuf[512]; // enough for most messages
 
-    auto result = FormatMessageA(
+    auto result = FormatMessageW(
         FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
         nullptr, code, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), errorBuf, sizeof(errorBuf), nullptr);
 
     if (result == 0) {
         return fmt::format("Unknown ({})", code);
     } else {
-        std::string msg = std::string(errorBuf, errorBuf + result);
+        auto wmsg = std::wstring(errorBuf, errorBuf + result);
+        auto msg = utils::string::wideToUtf8(wmsg);
 
         // the string sometimes includes a crlf, strip it, also remove unprintable chars
         msg.erase(std::find_if(msg.rbegin(), msg.rend(), [](unsigned char ch) {

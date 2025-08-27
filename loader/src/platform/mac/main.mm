@@ -105,7 +105,9 @@ void updateGeode() {
 
         std::filesystem::rename(oldSavePath, newSavePath, error);
         if (error) {
-            log::warn("Couldn't migrate old save files from {} to {}", oldSavePath.string(), newSavePath.string());
+            log::warn("Couldn't migrate old save files from {} to {}", 
+                oldSavePath, newSavePath
+            );
         }
     }
 

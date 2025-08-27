@@ -145,11 +145,13 @@ void Loader::Impl::addNativeBinariesPath(std::filesystem::path const& path) {
             continue;
         }
 
-        auto handle = dlopen(entry_path.string().c_str(), RTLD_LAZY);
+        auto handle = dlopen(utils::string::pathToString(entry_path).c_str(), RTLD_LAZY);
 
         if (!handle) {
             auto err = dlerror();
-            log::warn("failed to load native binary at {}: dlerror returned ({})", entry_path.string(), err);
+            log::warn("failed to load native binary at {}: dlerror returned ({})", 
+                entry_path, err
+            );
             continue;
         }
 

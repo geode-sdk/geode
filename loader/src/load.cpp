@@ -88,11 +88,11 @@ bool safeModeCheck() {
         return false;
     }
 
-    auto choice = MessageBoxA(
+    auto choice = MessageBoxW(
         NULL,
-        "(This has been triggered because you were holding SHIFT)\n"
-        "Do you want to activate Geode Safe Mode? This disables loading any mods.",
-        "Attention",
+        L"(This has been triggered because you were holding SHIFT)\n"
+        L"Do you want to activate Geode Safe Mode? This disables loading any mods.",
+        L"Attention",
         MB_YESNO | MB_ICONINFORMATION
     );
     return choice == IDYES;
