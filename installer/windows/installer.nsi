@@ -459,8 +459,11 @@ SectionGroup "Geode"
     Section "Loader" LOADER_SECTION
         SetOutPath $INSTDIR
 
-        WriteEnvStr HKCU "Environment" "GEODE_GD_PATH" "$INSTDIR"
-        System::Call 'user32::SendMessageTimeoutA(i0xffff,i0+26,i0, i0,i2,i5000,i0)i'
+        !define env_hklm 'HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"'
+        !define env_hkcu 'HKCU "Environment"'
+
+        WriteRegExpandStr ${env_hkcu} "GEODE_GD_PATH" "$INSTDIR"
+        System::Call 'user32::SendMessageTimeoutA(i0xffff,i0x1a,i0, t"Environment",i2,i5000,i0)i'
 
         File ${BINDIR}\Geode.dll
         File ${BINDIR}\Geode.pdb
