@@ -487,7 +487,7 @@ SectionGroup "Geode"
 
         ; Extract the ICO to a known path
         SetOutPath "$INSTDIR\geode"
-        File /oname="logo_inst.ico" "Graphics\logo_inst.ico"
+        File /oname=logo_inst.ico "Graphics\logo_inst.ico"
 
         ; Register .geode extension
         WriteRegStr HKCU "Software\Classes\.geode" "" "GeodeFile"
@@ -497,8 +497,10 @@ SectionGroup "Geode"
         WriteRegStr HKCU "Software\Classes\GeodeFile\shell\open\command" "" \
             '"$WINDIR\System32\cmd.exe" /c copy "%1" "$INSTDIR\geode\mods\" && start "" "$INSTDIR\GeometryDash.exe"'
 
-        ; Force Windows Explorer to refresh icon cache
+        ; Refresh icon cache
         System::Call 'shell32::SHChangeNotify(i0x8000000,i0x0,p0,p0)'
+
+        SetOutPath "$INSTDIR"
 
     done:
     SectionEnd
