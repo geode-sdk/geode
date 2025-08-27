@@ -1,4 +1,5 @@
 #include <crashlog.hpp>
+#include <Geode/utils/string.hpp>
 
 static bool s_lastLaunchCrashed = false;
 
@@ -21,7 +22,7 @@ namespace {
         // jumping into unsafe territory :fish:
         // create a file that indicates a crash did happen (which is then cleared on next launch)
         auto crashIndicatorPath = crashlog::getCrashLogDirectory() / crashIndicatorFilename;
-        auto indicatorString = crashIndicatorPath.string();
+        auto indicatorString = geode::utils::string::pathToString(crashIndicatorPath);
 
         sys_open(indicatorString.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0);
 
@@ -45,7 +46,7 @@ bool crashlog::setupPlatformHandler() {
 
     (void)geode::utils::file::createDirectoryAll(logDirectory);
 
-    google_breakpad::MinidumpDescriptor descriptor(logDirectory.string(), crashdumpName());
+    google_breakpad::MinidumpDescriptor descriptor(geode::utils::string::pathToString(logDirectory), crashdumpName());
 
     s_exceptionHandler = std::make_unique<google_breakpad::ExceptionHandler>(
         descriptor, nullptr, crashCallback, nullptr, true, -1

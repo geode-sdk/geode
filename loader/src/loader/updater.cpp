@@ -263,7 +263,7 @@ bool updater::verifyLoaderResources() {
 
     // verify hashes
     for (auto& file : std::filesystem::directory_iterator(resourcesDir)) {
-        auto name = file.path().filename().string();
+        auto name = utils::string::pathToString(file.path().filename());
         // skip unknown files
         if (!LOADER_RESOURCE_HASHES.count(name)) {
             continue;

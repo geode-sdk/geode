@@ -23,7 +23,7 @@ using namespace geode::prelude;
 
 static bool g_lastLaunchCrashed = false;
 static bool g_symbolsInitialized = false;
-static std::string g_unzippedSearchPaths;
+static std::wstring g_unzippedSearchPaths;
 
 static std::string getDateString(bool filesafe) {
     auto const now = std::time(nullptr);
@@ -39,20 +39,19 @@ static std::string getDateString(bool filesafe) {
 }
 
 static std::string getModuleName(HMODULE module, bool fullPath = true, bool shortKnown = false) {
-    char buffer[MAX_PATH];
-    if (!GetModuleFileNameA(module, buffer, MAX_PATH)) {
+    wchar_t buffer[MAX_PATH];
+    if (!GetModuleFileNameW(module, buffer, MAX_PATH)) {
         return "<Unknown>";
     }
     if (fullPath) {
         if (shortKnown) {
-            auto gdDir = utils::string::wideToUtf8(dirs::getGameDir().wstring());
-            if (std::string_view(buffer).starts_with(gdDir)) {
-                return std::filesystem::path(buffer).filename().string();
+            if (std::wstring_view(buffer).starts_with(dirs::getGameDir().wstring())) {
+                return utils::string::pathToString(std::filesystem::path(buffer).filename());
             }
         }
-        return buffer;
+        return utils::string::wideToUtf8(buffer);
     }
-    return std::filesystem::path(buffer).filename().string();
+    return utils::string::pathToString(std::filesystem::path(buffer).filename());
 }
 
 static char const* getExceptionCodeString(DWORD code) {
@@ -516,11 +515,11 @@ static void handleException(LPEXCEPTION_POINTERS info) {
         }
         else {
             // set the search path to include the mods' temp directories
-            if (std::array<char, 4096> searchPathBuffer;
-                SymGetSearchPath(static_cast<HMODULE>(GetCurrentProcess()), searchPathBuffer.data(), searchPathBuffer.size())) {
-                std::string searchPath(searchPathBuffer.data());
-                searchPath += ";" + g_unzippedSearchPaths;
-                SymSetSearchPath(static_cast<HMODULE>(GetCurrentProcess()), searchPath.c_str());
+            if (std::array<wchar_t, 4096> searchPathBuffer;
+                SymGetSearchPathW(static_cast<HMODULE>(GetCurrentProcess()), searchPathBuffer.data(), searchPathBuffer.size())) {
+                std::wstring searchPath(searchPathBuffer.data());
+                searchPath += L";" + g_unzippedSearchPaths;
+                SymSetSearchPathW(static_cast<HMODULE>(GetCurrentProcess()), searchPath.c_str());
             }
         }
 
@@ -552,7 +551,7 @@ static void handleException(LPEXCEPTION_POINTERS info) {
 
     if (!showCustomCrashlogWindow(text, crashlogPath)) {
         // if the window fails to show, we show a message box instead
-        MessageBoxA(nullptr, text.c_str(), "Geometry Dash Crashed", MB_ICONERROR);
+        MessageBoxW(nullptr, utils::string::utf8ToWide(text).c_str(), L"Geometry Dash Crashed", MB_ICONERROR);
     }
 }
 
@@ -582,7 +581,7 @@ bool crashlog::didLastLaunchCrash() {
 void crashlog::setupPlatformHandlerPost() {
     g_unzippedSearchPaths.clear();
     for (auto& mod : Loader::get()->getAllMods()) {
-        g_unzippedSearchPaths += mod->getTempDir().string() + ";";
+        g_unzippedSearchPaths += mod->getTempDir().wstring() + L";";
     }
 }
 

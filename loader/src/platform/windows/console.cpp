@@ -11,6 +11,7 @@ bool s_useEscapeCodes = false;
 
 void setupConsole(bool forceUseEscapeCodes = false) {
     SetConsoleCP(CP_UTF8);
+    SetConsoleOutputCP(CP_UTF8);
 
     // set output mode to handle ansi color sequences
     DWORD consoleMode = 0;
@@ -25,7 +26,7 @@ void setupConsole(bool forceUseEscapeCodes = false) {
         CONSOLE_SCREEN_BUFFER_INFO preInfo;
         CONSOLE_SCREEN_BUFFER_INFO postInfo;
         if (GetConsoleScreenBufferInfo(s_outHandle, &preInfo) &&
-            WriteConsoleA(s_outHandle, "\x1b[0m", 4, &written, nullptr) &&
+            WriteFile(s_outHandle, "\x1b[0m", 4, &written, nullptr) &&
             GetConsoleScreenBufferInfo(s_outHandle, &postInfo)) {
             s_useEscapeCodes = preInfo.dwCursorPosition.X == postInfo.dwCursorPosition.X &&
                 preInfo.dwCursorPosition.Y == postInfo.dwCursorPosition.Y;
@@ -58,8 +59,8 @@ void WINAPI CompletedReadRoutine(DWORD error, DWORD read, LPOVERLAPPED overlap) 
 }
 
 bool redirectStd(FILE* which, std::string const& name, const Severity sev) {
-    auto pipeName = fmt::format(R"(\\.\pipe\geode-{}-{})", name, GetCurrentProcessId());
-    auto pipe = CreateNamedPipeA(
+    auto pipeName = utils::string::utf8ToWide(fmt::format(R"(\\.\pipe\geode-{}-{})", name, GetCurrentProcessId()));
+    auto pipe = CreateNamedPipeW(
         pipeName.c_str(),
         PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED,
         PIPE_REJECT_REMOTE_CLIENTS,
@@ -71,7 +72,7 @@ bool redirectStd(FILE* which, std::string const& name, const Severity sev) {
     }
     std::thread([pipe, name, sev]() {
         thread::setName(fmt::format("{} Read Thread", name));
-        auto event = CreateEventA(nullptr, false, false, nullptr);
+        auto event = CreateEventW(nullptr, false, false, nullptr);
         std::string cur;
         while (true) {
             char buf[1024];
@@ -84,7 +85,7 @@ bool redirectStd(FILE* which, std::string const& name, const Severity sev) {
         }
     }).detach();
     FILE* yum;
-    if (freopen_s(&yum, pipeName.c_str(), "w", which)) {
+    if (freopen_s(&yum, utils::string::wideToUtf8(pipeName).c_str(), "w", which)) {
         log::warn("Failed to reopen file, {} will be unavailable", name);
         return false;
     }
@@ -105,11 +106,11 @@ void console::setup() {
         // use GetConsoleMode to check if the handle is a console
         if (!GetConsoleMode(s_outHandle, &dummy)) {
             // explicitly ignore some stupid handles
-            char buf[MAX_PATH + 1];
-            auto count = GetFinalPathNameByHandleA(s_outHandle, buf, MAX_PATH + 1,
+            std::array<wchar_t, MAX_PATH + 1> buf;
+            auto count = GetFinalPathNameByHandleW(s_outHandle, buf.data(), buf.size(),
                 FILE_NAME_OPENED | VOLUME_NAME_NT);
             if (count != 0) {
-                path = std::string(buf, count - 1);
+                path = utils::string::wideToUtf8(std::wstring{buf.data(), count - 1});
             }
 
             // TODO: this code causes a crash when piping game's output somewhere (and in some other cases), so it's removed for now
@@ -156,9 +157,9 @@ void console::openIfClosed() {
     s_outHandle = GetStdHandle(STD_OUTPUT_HANDLE);
     // reopen conin$/conout$ if they're closed
     if (!s_outHandle) {
-        s_outHandle = CreateFileA("CONOUT$", GENERIC_WRITE, 0, nullptr, 0, 0, nullptr);
+        s_outHandle = CreateFileW(L"CONOUT$", GENERIC_WRITE, 0, nullptr, 0, 0, nullptr);
         SetStdHandle(STD_OUTPUT_HANDLE, s_outHandle);
-        SetStdHandle(STD_INPUT_HANDLE, CreateFileA("CONIN$", GENERIC_READ, 0, nullptr, 0, 0, nullptr));
+        SetStdHandle(STD_INPUT_HANDLE, CreateFileW(L"CONIN$", GENERIC_READ, 0, nullptr, 0, 0, nullptr));
         SetStdHandle(STD_ERROR_HANDLE, s_outHandle);
     }
     setupConsole();
@@ -169,11 +170,9 @@ void console::log(std::string const& msg, Severity severity) {
         return;
     DWORD written;
 
-    auto wmsg = string::utf8ToWide(msg);
-
     if (!s_useEscapeCodes || msg.size() <= 14) {
-        WriteConsoleW(s_outHandle, wmsg.c_str(), wmsg.size(), &written, nullptr);
-        WriteConsoleW(s_outHandle, L"\n", 1, &written, nullptr);
+        WriteFile(s_outHandle, msg.c_str(), msg.size(), &written, nullptr);
+        WriteFile(s_outHandle, "\n", 1, &written, nullptr);
         return;
     }
 
@@ -200,16 +199,14 @@ void console::log(std::string const& msg, Severity severity) {
             color = 7;
             break;
     }
-    auto const colorStr = fmt::format("\x1b[38;5;{}m", color);
-    WriteConsoleA(s_outHandle, colorStr.c_str(), colorStr.size(), &written, nullptr);
-    WriteConsoleW(s_outHandle, wmsg.substr(0, 14).c_str(), 14, &written, nullptr);
-
-    auto const color2Str = color2 == -1 ? "\x1b[0m" : fmt::format("\x1b[38;5;{}m", color2);
-    WriteConsoleA(s_outHandle, color2Str.c_str(), color2Str.size(), &written, nullptr);
-    WriteConsoleW(s_outHandle, wmsg.substr(14).c_str(), wmsg.size() - 14, &written, nullptr);
-
-    WriteConsoleA(s_outHandle, "\x1b[0m", 4, &written, nullptr);
-    WriteConsoleW(s_outHandle, L"\n", 1, &written, nullptr);
+    if (color2 == -1) {
+        auto const str = fmt::format("\x1b[38;5;{}m{}\x1b[0m{}\n", color, msg.substr(0, 14), msg.substr(14));
+        WriteFile(s_outHandle, str.c_str(), str.size(), &written, nullptr);
+    }
+    else {
+        auto const str = fmt::format("\x1b[38;5;{}m{}\x1b[0m{}\n", color, msg.substr(0, 14), msg.substr(14));
+        WriteFile(s_outHandle, str.c_str(), str.size(), &written, nullptr);
+    }
 }
 
 void console::messageBox(char const* title, std::string const& info, Severity severity) {

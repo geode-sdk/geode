@@ -39,7 +39,7 @@ namespace geode::utils {
     #ifdef GEODE_IS_WINDOWS
         // If a debugger is attached, start debugging
         if (IsDebuggerPresent()) {
-            OutputDebugStringA(reason.c_str());
+            OutputDebugStringW(utils::string::utf8ToWide(reason).c_str());
             DebugBreak();
         }
         // Otherwise terminate by raising an exception (which is caught by the crashlog handler)

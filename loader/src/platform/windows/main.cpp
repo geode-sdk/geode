@@ -151,7 +151,7 @@ void fixCurrentWorkingDirectory() {
 }
 
 int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
-    // MessageBoxA(NULL, "Hello from gdMainHook!", "Hi", 0);
+    // MessageBoxW(NULL, L"Hello from gdMainHook!", L"Hi", 0);
 
     updateGeode();
 
@@ -182,7 +182,7 @@ int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 // incase we're desperate again
 #if 0
-#define MSG_BOX_DEBUG(...) MessageBoxA(NULL, std::format(GEODE_STR(__LINE__) " - " __VA_ARGS__).c_str(), "Geode", 0)
+#define MSG_BOX_DEBUG(...) MessageBoxW(NULL, utils::string::utf8ToWide(std::format(GEODE_STR(__LINE__) " - " __VA_ARGS__)).c_str(), L"Geode", 0)
 #else
 #define MSG_BOX_DEBUG(...)
 #endif

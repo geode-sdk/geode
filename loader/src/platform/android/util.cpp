@@ -143,7 +143,7 @@ void utils::web::openLinkInBrowser(std::string const& url) {
 bool utils::file::openFolder(std::filesystem::path const& path) {
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "openFolder", "(Ljava/lang/String;)Z")) {
-        jstring stringArg1 = t.env->NewStringUTF(path.string().c_str());
+        jstring stringArg1 = t.env->NewStringUTF(utils::string::pathToString(path).c_str());
 
         jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
 
@@ -248,7 +248,9 @@ Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, file::FilePi
 
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", method.c_str(), "(Ljava/lang/String;)Z")) {
-        jstring stringArg1 = t.env->NewStringUTF(options.defaultPath.value_or(std::filesystem::path()).filename().string().c_str());
+        jstring stringArg1 = t.env->NewStringUTF(
+            utils::string::pathToString(options.defaultPath.value_or(std::filesystem::path()).filename()).c_str()
+        );
 
         jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
 
@@ -275,7 +277,9 @@ Task<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions 
 
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "selectFiles", "(Ljava/lang/String;)Z")) {
-        jstring stringArg1 = t.env->NewStringUTF(options.defaultPath.value_or(std::filesystem::path()).string().c_str());
+        jstring stringArg1 = t.env->NewStringUTF(
+            utils::string::pathToString(options.defaultPath.value_or(std::filesystem::path())).c_str()
+        );
 
         jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
 

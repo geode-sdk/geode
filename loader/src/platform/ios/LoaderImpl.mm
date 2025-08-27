@@ -46,7 +46,7 @@ void console::openIfClosed() {
     if (s_isOpen) return;
 
     std::filesystem::path(getpwuid(getuid())->pw_dir);
-    freopen(std::filesystem::path(dirs::getGeodeDir() / "geode_log.txt").string().c_str(), "w", stdout);
+    freopen(utils::string::pathToString(dirs::getGeodeDir() / "geode_log.txt").c_str(), "w", stdout);
     s_isOpen = true;
 }
 
@@ -72,7 +72,7 @@ bool Loader::Impl::supportsLaunchArguments() const {
 std::string Loader::Impl::getLaunchCommand() const {
     auto launchArgsFile = dirs::getModRuntimeDir() / "launch-args.txt";
     if (std::filesystem::exists(launchArgsFile)) {
-        log::debug("Reading launch arguments from {}", launchArgsFile.string());
+        log::debug("Reading launch arguments from {}", utils::string::pathToString(launchArgsFile));
         auto content = file::readString(launchArgsFile);
         if (content.isOk()) {
             std::filesystem::remove(launchArgsFile);
@@ -84,7 +84,7 @@ std::string Loader::Impl::getLaunchCommand() const {
 }
 
 void Loader::Impl::addNativeBinariesPath(std::filesystem::path const& path) {
-    log::warn("LoaderImpl::addNativeBinariesPath not implement on this platform, not adding path {}", path.string());
+    log::warn("LoaderImpl::addNativeBinariesPath not implement on this platform, not adding path {}", path);
 }
 
 std::string Loader::Impl::getGameVersion() {

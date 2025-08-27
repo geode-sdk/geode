@@ -1,10 +1,18 @@
 # Geode Changelog
 
-## v4.7.1
+## v4.8.0
  * Fix `geode::Notification` z ordering (127733e)
  * Add `CCNode::getChildrenExt` (d198df5)
  * Add `CCNode::getChildByIndex` (0ba1f2a)
  * Fix `GEODE_MOD_STATIC_PATCH` not using the geode namespace (#1456)
+ * Fix Linux install script flatpak directory (2cf1e57)
+ * Document return paths for `dirs` functions (d821172)
+ * Add `VMTHookManager` for hooking virtual functions that have not been defined by virtual table patching (383f8fd)
+ * Fix Unicode logging on Windows (c5e93b9)
+ * Remove all `std::filesystem::path::string` calls as they can crash on Unicode paths (#1473)
+ * Replace all `A` WinApi calls with `W` calls (#1473)
+ * Hook and patch toggling (#1468)
+ * Added option to force cURL to use IPv4 (#1412)
 
 ## v4.7.0
  * Change from copying queue to moving queue for main thread (9b8fb73)

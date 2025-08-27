@@ -15,15 +15,14 @@ using namespace geode::prelude;
 
 static void __cdecl fixedErrorHandler2(int code, char const* description) {
     log::error("GLFW Error {}: {}", code, description);
-    MessageBoxA(
+    MessageBoxW(
         nullptr,
-        fmt::format(
+        utils::string::utf8ToWide(fmt::format(
             "GLFWError #{}: {}",
             code,
             description
-        )
-            .c_str(),
-        "OpenGL Error",
+        )).c_str(),
+        L"OpenGL Error",
         MB_ICONERROR
     );
 

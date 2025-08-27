@@ -39,8 +39,8 @@ void ipc::setup() {
     std::thread ipcThread([]() {
         thread::setName("Geode Main IPC");
         while (true) {
-            auto pipe = CreateNamedPipeA(
-                ipc::IPC_PIPE_NAME,
+            auto pipe = CreateNamedPipeW(
+                utils::string::utf8ToWide(IPC_PIPE_NAME).c_str(),
                 PIPE_ACCESS_DUPLEX,
                 PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,
                 PIPE_UNLIMITED_INSTANCES,

@@ -628,20 +628,20 @@ bool Unzip::hasEntry(Path const& name) {
 
 Result<ByteVector> Unzip::extract(Path const& name) {
     return m_impl->extract(name).mapErr([&](auto error) {
-        return fmt::format("Unable to extract entry {}: {}", utils::string::pathToString(name), error);
+        return fmt::format("Unable to extract entry {}: {}", name, error);
     });
 }
 
 Result<> Unzip::extractTo(Path const& name, Path const& path) {
     GEODE_UNWRAP_INTO(auto bytes, m_impl->extract(name).mapErr([&](auto error) {
-        return fmt::format("Unable to extract entry {}: {}", utils::string::pathToString(name), error);
+        return fmt::format("Unable to extract entry {}: {}", name, error);
     }));
     // create containing directories for target path
     if (path.has_parent_path()) {
         GEODE_UNWRAP(file::createDirectoryAll(path.parent_path()));
     }
     GEODE_UNWRAP(file::writeBinary(path, bytes).mapErr([&](auto error) {
-        return fmt::format("Unable to write file {}: {}", utils::string::pathToString(path), error);
+        return fmt::format("Unable to write file {}: {}", path, error);
     }));
     return Ok();
 }

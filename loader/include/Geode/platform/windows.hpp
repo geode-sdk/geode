@@ -50,12 +50,12 @@ namespace geode::base {
     }
 
     GEODE_NOINLINE inline uintptr_t getCocos() {
-        static uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandleA("libcocos2d.dll"));
+        static uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandleW(L"libcocos2d.dll"));
         return base;
     }
 
     GEODE_NOINLINE inline uintptr_t getExtensions() {
-        static uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandleA("libExtensions.dll"));
+        static uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandleW(L"libExtensions.dll"));
         return base;
     }
 }

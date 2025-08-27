@@ -968,7 +968,7 @@ Result<std::shared_ptr<FileSettingV3>> FileSettingV3::parse(std::string const& k
     // Replace known paths like `{gd-save-dir}/`
     try {
         ret->setDefaultValue(fmt::format(
-            fmt::runtime(ret->getDefaultValue().string()),
+            fmt::runtime(utils::string::pathToString(ret->getDefaultValue())),
             fmt::arg("gd_dir", dirs::getGameDir()),
             fmt::arg("gd_save_dir", dirs::getSaveDir()),
             fmt::arg("mod_config_dir", dirs::getModConfigDir() / modID),
