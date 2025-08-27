@@ -12,6 +12,18 @@ void showError(std::wstring const& error) {
     MessageBoxW(nullptr, error.c_str(), L"Error Loading Geode", MB_ICONERROR);
 }
 
+std::wstring utf8ToWide(std::string const& str) {
+    int size = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
+    std::wstring wstr(size, L'\0');
+    MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &wstr[0], size);
+    return wstr;
+}
+
+void showError(std::wstring error, std::error_code ec) {
+    error += L" - " + utf8ToWide(L": " + ec.message());
+    MessageBoxW(nullptr, error.c_str(), L"Error Loading Geode", MB_ICONERROR);
+}
+
 bool waitForFile(std::filesystem::path const& path) {
     if (!path.has_filename())
         return false;
@@ -55,7 +67,7 @@ bool updateFile(std::string const& name) {
 
     std::filesystem::rename(updatesDir / name, workingDir / name, error);
     if (error) {
-        showError("Unable to update Geode: Unable to move " + name + " - " + error.message());
+        showError(L"Unable to update Geode: Unable to move " + utf8ToWide(name), error);
         return false;
     }
     return true;
@@ -73,9 +85,9 @@ void removePath(std::filesystem::path const& path) {
     std::filesystem::remove(path, error);
     if (error) {
         if (path.has_filename())
-            showError(L"Unable to update Geode: Unable to remove " + path.filename().wstring() + L" - " + error.message());
+            showError(L"Unable to update Geode: Unable to remove " + path.filename().wstring(), error);
         else
-            showError(L"Unable to update Geode: Unable to remove " + path.wstring() + L" - " + error.message());
+            showError(L"Unable to update Geode: Unable to remove " + path.wstring(), error);
         return;
     }
 }
@@ -87,13 +99,13 @@ void updateResources() {
 
     std::filesystem::remove_all(resourcesDir / "geode.loader", error);
     if (error) {
-        showError("Unable to update Geode resources:" + error.message());
+        showError(L"Unable to update Geode resources", error);
         return;
     }
 
     std::filesystem::rename(updatesDir / "resources", resourcesDir / "geode.loader", error);
     if (error) {
-        showError("Unable to update Geode resources: " + error.message());
+        showError(L"Unable to update Geode resources", error);
         return;
     }
 }
@@ -122,7 +134,7 @@ int main(int argc, char* argv[]) {
         return 0;
 
     if (!waitForFile(workingDir / argv[1])) {
-        showError("There was an error restarting GD. Please, restart the game manually.");
+        showError(L"There was an error restarting GD. Please, restart the game manually.");
         return 0;
     }
 
