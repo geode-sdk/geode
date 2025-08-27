@@ -37,51 +37,6 @@ function Show-InstalledModsMessage {
     }
 }
 
-function Parse-SemVer($version) {
-    $regex = '^v?(\d+)\.(\d+)\.(\d+)(?:-(alpha|beta|prerelease|pr)(?:\.(\d+))?)?$'
-    $match = [regex]::Match($version, $regex)
-    if (-not $match.Success) { return $null }
-    return @{
-        Major = [int]$match.Groups[1].Value
-        Minor = [int]$match.Groups[2].Value
-        Patch = [int]$match.Groups[3].Value
-        PreType = $match.Groups[4].Value
-        PreNum = if ($match.Groups[5].Value) { [int]$match.Groups[5].Value } else { 0 }
-    }
-}
-
-function Compare-SemVer($v1, $v2) {
-    $v1p = Parse-SemVer $v1
-    $v2p = Parse-SemVer $v2
-    if (-not $v1p -or -not $v2p) { throw "Invalid SemVer: $v1 or $v2" }
-
-    foreach ($part in 'Major','Minor','Patch') {
-        if ($v1p[$part] -lt $v2p[$part]) { return -1 }
-        if ($v1p[$part] -gt $v2p[$part]) { return 1 }
-    }
-
-    $preOrder = @('alpha','beta','prerelease','pr','')
-    $idx1 = $preOrder.IndexOf($v1p.PreType)
-    $idx2 = $preOrder.IndexOf($v2p.PreType)
-    if ($idx1 -lt $idx2) { return -1 }
-    if ($idx1 -gt $idx2) { return 1 }
-
-    if ($v1p.PreNum -lt $v2p.PreNum) { return -1 }
-    if ($v1p.PreNum -gt $v2p.PreNum) { return 1 }
-
-    return 0
-}
-
-function Test-SemVerConstraint($version, $constraint) {
-    if ([string]::IsNullOrEmpty($constraint)) { return $true }
-    if ($constraint -match '^>=v?([\w\.\-]+)$') { return (Compare-SemVer $version $matches[1]) -ge 0 }
-    if ($constraint -match '^<=v?([\w\.\-]+)$') { return (Compare-SemVer $version $matches[1]) -le 0 }
-    if ($constraint -match '^>v?([\w\.\-]+)$') { return (Compare-SemVer $version $matches[1]) -gt 0 }
-    if ($constraint -match '^<v?([\w\.\-]+)$') { return (Compare-SemVer $version $matches[1]) -lt 0 }
-    if ($constraint -match '^v?([\w\.\-]+)$')  { return (Compare-SemVer $version $matches[1]) -eq 0 }
-    return $true
-}
-
 function Extract-Mod {
     param([string]$Source, [string]$Destination)
     if (Test-Path $Destination) { Remove-Item -Recurse -Force $Destination }
@@ -113,39 +68,28 @@ function Install-Mod {
     $ModJsonPath = Join-Path $TempDir "mod.json"
     if (Test-Path $ModJsonPath) {
         $ModJson = Get-Content $ModJsonPath -Raw | ConvertFrom-Json
-        foreach ($dep in $ModJson.dependencies.PSObject.Properties) {
-            $depId = $dep.Name
-            $depValue = $dep.Value
+        if ($ModJson.PSObject.Properties.Name -contains "dependencies" -and $ModJson.dependencies) {
+            Write-Host "Installing dependencies - Mod versions may be incompatible with the mod."
+            foreach ($dep in $ModJson.dependencies.PSObject.Properties) {
+                $depId = $dep.Name
+                $depValue = $dep.Value
 
-            if ($depValue -is [PSCustomObject] -and $depValue.importance -eq "suggested") {
-                Write-Host "Skipping suggested dependency $depId"
-                continue
-            }
-
-            $depConstraint = if ($depValue -is [string]) { $depValue } 
-                            elseif ($depValue -is [PSCustomObject] -and $depValue.version) { $depValue.version } 
-                            else { "" }
-
-            $DepModPath = Join-Path $MODS_PATH "$depId.geode"
-            if ($InstalledOrDownloaded.ContainsKey($depId) -or (Test-Path $DepModPath)) { continue }
-
-            Write-Host "Downloading dependency $depId..."
-            try {
-                $modInfoJson = Invoke-RestMethod -Uri "https://api.geode-sdk.org/v1/mods/$depId"
-                $availableVersions = $modInfoJson.payload.versions | Where-Object { $_.status -eq "accepted" }
-                $validVersions = $availableVersions | Where-Object { Test-SemVerConstraint $_.version $depConstraint }
-
-                if ($validVersions.Count -eq 0) {
-                    Write-Warning "No version of $depId satisfies constraint '$depConstraint', skipping."
+                if ($depValue -is [PSCustomObject] -and $depValue.importance -eq "suggested") {
+                    Write-Host "Skipping suggested dependency $depId"
                     continue
                 }
 
-                $latestVersion = $validVersions | Sort-Object { $_.version } -Descending | Select-Object -First 1
-                $TempDepPath = Join-Path $env:TEMP "$depId.geode"
-                Invoke-WebRequest -Uri $latestVersion.download_link -OutFile $TempDepPath -UseBasicParsing
-                Install-Mod -ModFilePath $TempDepPath
-            } catch {
-                Write-Warning ("Failed to download or install dependency {0}: {1}" -f $depId, $_)
+                $DepModPath = Join-Path $MODS_PATH "$depId.geode"
+                if ($InstalledOrDownloaded.ContainsKey($depId) -or (Test-Path $DepModPath)) { continue }
+
+                Write-Host "Downloading latest dependency $depId..."
+                try {
+                    $TempDepPath = Join-Path $env:TEMP "$depId.geode"
+                    Invoke-WebRequest -Uri "https://api.geode-sdk.org/v1/mods/$depId/versions/latest/download" -OutFile $TempDepPath -UseBasicParsing
+                    Install-Mod -ModFilePath $TempDepPath
+                } catch {
+                    Write-Warning ("Failed to download or install dependency {0}: {1}" -f $depId, $_)
+                }
             }
         }
     }
