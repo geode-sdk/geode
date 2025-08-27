@@ -59,7 +59,7 @@ void WINAPI CompletedReadRoutine(DWORD error, DWORD read, LPOVERLAPPED overlap) 
 }
 
 bool redirectStd(FILE* which, std::string const& name, const Severity sev) {
-    auto pipeName = utils::string::wideToUtf8(fmt::format(R"(\\.\pipe\geode-{}-{})", name, GetCurrentProcessId()));
+    auto pipeName = utils::string::utf8ToWide(fmt::format(R"(\\.\pipe\geode-{}-{})", name, GetCurrentProcessId()));
     auto pipe = CreateNamedPipeW(
         pipeName.c_str(),
         PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED,
@@ -85,7 +85,7 @@ bool redirectStd(FILE* which, std::string const& name, const Severity sev) {
         }
     }).detach();
     FILE* yum;
-    if (freopen_s(&yum, pipeName.c_str(), "w", which)) {
+    if (freopen_s(&yum, utils::string::wideToUtf8(pipeName).c_str(), "w", which)) {
         log::warn("Failed to reopen file, {} will be unavailable", name);
         return false;
     }
@@ -110,7 +110,7 @@ void console::setup() {
             auto count = GetFinalPathNameByHandleW(s_outHandle, buf.data(), buf.size(),
                 FILE_NAME_OPENED | VOLUME_NAME_NT);
             if (count != 0) {
-                path = utils::string::wideToUtf8(std::string{buf.data(), count - 1});
+                path = utils::string::wideToUtf8(std::wstring{buf.data(), count - 1});
             }
 
             // TODO: this code causes a crash when piping game's output somewhere (and in some other cases), so it's removed for now
@@ -207,17 +207,6 @@ void console::log(std::string const& msg, Severity severity) {
         auto const str = fmt::format("\x1b[38;5;{}m{}\x1b[0m{}\n", color, msg.substr(0, 14), msg.substr(14));
         WriteFile(s_outHandle, str.c_str(), str.size(), &written, nullptr);
     }
-
-    // auto const colorStr = fmt::format("\x1b[38;5;{}m", color);
-    // WriteConsoleA(s_outHandle, colorStr.c_str(), colorStr.size(), &written, nullptr);
-    // WriteConsoleW(s_outHandle, wmsg.substr(0, 14).c_str(), 14, &written, nullptr);
-
-    // auto const color2Str = color2 == -1 ? "\x1b[0m" : fmt::format("\x1b[38;5;{}m", color2);
-    // WriteConsoleA(s_outHandle, color2Str.c_str(), color2Str.size(), &written, nullptr);
-    // WriteConsoleW(s_outHandle, wmsg.substr(14).c_str(), wmsg.size() - 14, &written, nullptr);
-
-    // WriteConsoleA(s_outHandle, "\x1b[0m", 4, &written, nullptr);
-    // WriteConsoleW(s_outHandle, L"\n", 1, &written, nullptr);
 }
 
 void console::messageBox(char const* title, std::string const& info, Severity severity) {

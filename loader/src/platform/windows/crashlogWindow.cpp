@@ -5,9 +5,12 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/general.hpp>
+#include <Geode/utils/string.hpp>
 
 #include <string>
 #include <filesystem>
+
+using namespace geode::prelude;
 
 // comctl32 v6
 #pragma comment(linker, "\"/manifestdependency:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
@@ -207,9 +210,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 }
 
 bool showCustomCrashlogWindow(std::string text, std::filesystem::path const& crashlogPath) {
-    static constexpr auto WINDOW_CLASS_NAME = "GeodeCrashHandlerWindow";
+    static constexpr auto WINDOW_CLASS_NAME = L"GeodeCrashHandlerWindow";
 
-    auto wtext = utils::string::toWideString(text);
+    auto wtext = utils::string::utf8ToWide(text);
 
     g_crashlogPath = crashlogPath;
     g_crashlogText = wtext;
@@ -223,7 +226,7 @@ bool showCustomCrashlogWindow(std::string text, std::filesystem::path const& cra
         }
     }
 
-    WNDCLASS wc = {0};
+    WNDCLASSW wc = {0};
     wc.lpfnWndProc = &WndProc;
     wc.hInstance = GetModuleHandleW(NULL);
     wc.lpszClassName = WINDOW_CLASS_NAME;
@@ -232,7 +235,7 @@ bool showCustomCrashlogWindow(std::string text, std::filesystem::path const& cra
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = (HBRUSH)COLOR_WINDOW;
 
-    if (!RegisterClass(&wc)) {
+    if (!RegisterClassW(&wc)) {
         return false;
     }
 
