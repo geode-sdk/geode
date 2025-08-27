@@ -11,6 +11,8 @@
  * Fix Unicode logging on Windows (c5e93b9)
  * Remove all `std::filesystem::path::string` calls as they can crash on Unicode paths (#1473)
  * Replace all `A` WinApi calls with `W` calls (#1473)
+ * Hook and patch toggling (#1468)
+ * Added option to force cURL to use IPv4 (#1412)
 
 ## v4.7.0
  * Change from copying queue to moving queue for main thread (9b8fb73)
