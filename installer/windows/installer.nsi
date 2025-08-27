@@ -485,11 +485,13 @@ SectionGroup "Geode"
         IntOp $0 $0 & ${SF_SELECTED}
         StrCmp $0 0 done
 
+        ; Register .geode extension with MUI_ICON as the icon
         WriteRegStr HKCU "Software\Classes\.geode" "" "GeodeFile"
         WriteRegStr HKCU "Software\Classes\GeodeFile" "" "Geode Package"
-        WriteRegStr HKCU "Software\Classes\GeodeFile\DefaultIcon" "" "$INSTDIR\GeodeUpdater.exe,0"
+        WriteRegStr HKCU "Software\Classes\GeodeFile\DefaultIcon" "" "$INSTDIR\Graphics\logo_inst.ico,0"
         WriteRegStr HKCU "Software\Classes\GeodeFile\shell" "" "open"
-        WriteRegStr HKCU "Software\Classes\GeodeFile\shell\open\command" "" '"$INSTDIR\GeodeUpdater.exe" "%1"'
+        WriteRegStr HKCU "Software\Classes\GeodeFile\shell\open\command" "" \
+            '"$WINDIR\System32\cmd.exe" /c copy "%1" "$INSTDIR\geode\mods\" && start "" "$INSTDIR\GeometryDash.exe"'
 
     done:
     SectionEnd
@@ -558,6 +560,10 @@ Section "Uninstall"
     Delete $INSTDIR\Geode.lib
     Delete $INSTDIR\GeodeUpdater.exe
     Delete $INSTDIR\XInput1_4.dll
+
+    ; Remove the .geode filetype registry keys
+    DeleteRegKey HKCU "Software\Classes\.geode"
+    DeleteRegKey HKCU "Software\Classes\GeodeFile"
 
     # default value of DATA is an empty string
     # if DATA is empty, keep user data
