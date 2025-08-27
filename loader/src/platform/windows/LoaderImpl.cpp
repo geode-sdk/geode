@@ -67,11 +67,10 @@ bool Loader::Impl::userTriedToLoadDLLs() const {
 
     if (EnumProcessModules(process, mods.data(), mods.size(), &needed)) {
         for (auto i = 0; i < (needed / sizeof(HMODULE)); i++) {
-            std::array<char, MAX_PATH> modName;
-            if (GetModuleFileNameExA(process, mods[i], modName.data(), modName.size())) {
-                if (KNOWN_MOD_DLLS.count(string::trim(string::toLower(
-                    utils::string::pathToString(std::filesystem::path(modName.data()).filename())
-                )))) {
+            std::array<wchar_t, MAX_PATH> modName;
+            if (GetModuleFileNameExW(process, mods[i], modName.data(), modName.size())) {
+                auto u8name = utils::string::pathToString(std::filesystem::path(modName.data()).filename());
+                if (KNOWN_MOD_DLLS.count(string::trim(string::toLower(u8name)))) {
                     triedToLoadDLLs = true;
                 }
             }
@@ -95,7 +94,7 @@ bool Loader::Impl::supportsLaunchArguments() const {
 }
 
 std::string Loader::Impl::getLaunchCommand() const {
-    return GetCommandLineA();
+    return utils::string::wideToUtf8(GetCommandLineW());
 }
 
 bool Loader::Impl::isModVersionSupported(VersionInfo const& target) {

@@ -1,8 +1,11 @@
 #include <FileWatcher.hpp>
+#include <Geode/utils/string.hpp>
 
 #import <UIKit/UIKit.h>
 #include <fcntl.h>
 #include <iostream>
+
+using namespace geode::prelude;
 
 // static constexpr const auto notifyAttributes = FILE_NOTIFY_CHANGE_LAST_WRITE |
 // FILE_NOTIFY_CHANGE_ATTRIBUTES | FILE_NOTIFY_CHANGE_SIZE;

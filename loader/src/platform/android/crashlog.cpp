@@ -1,6 +1,9 @@
 #include <crashlog.hpp>
+#include <Geode/utils/string.hpp>
 
 static bool s_lastLaunchCrashed = false;
+
+using namespace geode::prelude;
 
 #ifdef GEODE_USE_BREAKPAD
 

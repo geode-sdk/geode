@@ -551,7 +551,7 @@ static void handleException(LPEXCEPTION_POINTERS info) {
 
     if (!showCustomCrashlogWindow(text, crashlogPath)) {
         // if the window fails to show, we show a message box instead
-        MessageBoxA(nullptr, text.c_str(), "Geometry Dash Crashed", MB_ICONERROR);
+        MessageBoxW(nullptr, utils::string::wideToUtf8(text).c_str(), L"Geometry Dash Crashed", MB_ICONERROR);
     }
 }
 

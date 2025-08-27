@@ -148,7 +148,7 @@ Task<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions 
 }
 
 void utils::web::openLinkInBrowser(std::string const& url) {
-    ShellExecuteA(0, 0, url.c_str(), 0, 0, SW_SHOW);
+    ShellExecuteW(0, 0, utils::string::utf8ToWide(url).c_str(), 0, 0, SW_SHOW);
 }
 
 CCPoint cocos::getMousePos() {
@@ -312,7 +312,7 @@ typedef struct tagTHREADNAME_INFO {
 
 // SetThreadDescription is pretty new, so the user's system might not have it
 // or it might only be accessible dynamically (see msdocs link above for more info)
-auto setThreadDesc = reinterpret_cast<decltype(&SetThreadDescription)>(GetProcAddress(GetModuleHandleA("Kernel32.dll"), "SetThreadDescription"));
+auto setThreadDesc = reinterpret_cast<decltype(&SetThreadDescription)>(GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "SetThreadDescription"));
 void obliterate(std::string const& name) {
     // exception
     THREADNAME_INFO info;
@@ -349,16 +349,17 @@ std::string geode::utils::getEnvironmentVariable(const char* name) {
 }
 
 std::string geode::utils::formatSystemError(int code) {
-    char errorBuf[512]; // enough for most messages
+    wchar_t errorBuf[512]; // enough for most messages
 
-    auto result = FormatMessageA(
+    auto result = FormatMessageW(
         FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
         nullptr, code, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), errorBuf, sizeof(errorBuf), nullptr);
 
     if (result == 0) {
         return fmt::format("Unknown ({})", code);
     } else {
-        std::string msg = std::string(errorBuf, errorBuf + result);
+        auto wmsg = std::wstring(errorBuf, errorBuf + result);
+        auto msg = utils::string::wideToUtf8(wmsg);
 
         // the string sometimes includes a crlf, strip it, also remove unprintable chars
         msg.erase(std::find_if(msg.rbegin(), msg.rend(), [](unsigned char ch) {
