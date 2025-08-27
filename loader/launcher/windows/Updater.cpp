@@ -20,7 +20,7 @@ std::wstring utf8ToWide(std::string const& str) {
 }
 
 void showError(std::wstring error, std::error_code ec) {
-    error += L" - " + utf8ToWide(L": " + ec.message());
+    error += L" - " + utf8ToWide(ec.message());
     MessageBoxW(nullptr, error.c_str(), L"Error Loading Geode", MB_ICONERROR);
 }
 
