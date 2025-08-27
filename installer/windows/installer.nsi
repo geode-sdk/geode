@@ -485,10 +485,14 @@ SectionGroup "Geode"
         IntOp $0 $0 & ${SF_SELECTED}
         StrCmp $0 0 done
 
+        ; Extract the ICO to a known path
+        SetOutPath "$INSTDIR"
+        File /oname=logo_inst.ico "Graphics\logo_inst.ico"
+
         ; Register .geode extension with MUI_ICON as the icon
         WriteRegStr HKCU "Software\Classes\.geode" "" "GeodeFile"
-        WriteRegStr HKCU "Software\Classes\GeodeFile" "" "Geode Package"
-        WriteRegStr HKCU "Software\Classes\GeodeFile\DefaultIcon" "" "$INSTDIR\Graphics\logo_inst.ico,0"
+        WriteRegStr HKCU "Software\Classes\GeodeFile" "" "Geode Mod"
+        WriteRegStr HKCU "Software\Classes\GeodeFile\DefaultIcon" "" "$INSTDIR\logo_inst.ico,0"
         WriteRegStr HKCU "Software\Classes\GeodeFile\shell" "" "open"
         WriteRegStr HKCU "Software\Classes\GeodeFile\shell\open\command" "" \
             '"$WINDIR\System32\cmd.exe" /c copy "%1" "$INSTDIR\geode\mods\" && start "" "$INSTDIR\GeometryDash.exe"'
