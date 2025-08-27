@@ -38,7 +38,7 @@ std::string utils::clipboard::read() {
 }
 
 bool utils::file::openFolder(std::filesystem::path const& path) {
-    NSURL* folderURL = [NSURL fileURLWithPath:intoNS(path.string())];
+    NSURL* folderURL = [NSURL fileURLWithPath:intoNS(utils::string::pathToString(path))];
     [[NSWorkspace sharedWorkspace] openURL:folderURL];
     return true;
 }
@@ -294,7 +294,7 @@ void geode::utils::game::restart(bool save) {
         auto gdExec = dirs::getGameDir() / "MacOS" / "Geometry Dash";
 
         NSTask *task = [NSTask new];
-        [task setLaunchPath: intoNS(gdExec.string())];
+        [task setLaunchPath: intoNS(utils::string::pathToString(gdExec))];
         [task launch];
     };
 

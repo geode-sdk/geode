@@ -8,8 +8,8 @@ std::filesystem::path geodeDir;
 std::filesystem::path updatesDir;
 std::filesystem::path resourcesDir;
 
-void showError(std::string const& error) {
-    MessageBoxA(nullptr, error.c_str(), "Error Loading Geode", MB_ICONERROR);
+void showError(std::wstring const& error) {
+    MessageBoxW(nullptr, error.c_str(), L"Error Loading Geode", MB_ICONERROR);
 }
 
 bool waitForFile(std::filesystem::path const& path) {
@@ -19,7 +19,7 @@ bool waitForFile(std::filesystem::path const& path) {
     int delay = 10;
     int maxDelayAttempts = 20;
     HANDLE hFile;
-    while ((hFile = CreateFileA(path.string().c_str(), FILE_GENERIC_WRITE, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL)) == INVALID_HANDLE_VALUE) {
+    while ((hFile = CreateFileW(path.wstring().c_str(), FILE_GENERIC_WRITE, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL)) == INVALID_HANDLE_VALUE) {
         if (GetLastError() == ERROR_SHARING_VIOLATION) {
             Sleep(delay);
             // the delay would raise and go up to about 1 second, after which it will start a 20 second countdown
@@ -40,7 +40,7 @@ bool waitForFile(std::filesystem::path const& path) {
     if (hFile) {
         CloseHandle(hFile);
     } else {
-        showError("Unable to update Geode: " + path.filename().string() + " is open by another process.");
+        showError(L"Unable to update Geode: " + path.filename().wstring() + L" is open by another process.");
         return false;
     }
     return true;
@@ -73,9 +73,9 @@ void removePath(std::filesystem::path const& path) {
     std::filesystem::remove(path, error);
     if (error) {
         if (path.has_filename())
-            showError("Unable to update Geode: Unable to remove " + path.filename().string() + " - " + error.message());
+            showError(L"Unable to update Geode: Unable to remove " + path.filename().wstring() + L" - " + error.message());
         else
-            showError("Unable to update Geode: Unable to remove " + path.string() + " - " + error.message());
+            showError(L"Unable to update Geode: Unable to remove " + path.wstring() + L" - " + error.message());
         return;
     }
 }
@@ -127,6 +127,6 @@ int main(int argc, char* argv[]) {
     }
 
     // restart gd using the provided path
-    ShellExecuteA(NULL, "open", (workingDir / argv[1]).string().c_str(), "", workingDir.string().c_str(), TRUE);
+    ShellExecuteW(NULL, L"open", (workingDir / argv[1]).wstring().c_str(), L"", workingDir.wstring().c_str(), TRUE);
     return 0;
 }

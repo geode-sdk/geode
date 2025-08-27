@@ -70,7 +70,7 @@ bool Loader::Impl::userTriedToLoadDLLs() const {
             std::array<char, MAX_PATH> modName;
             if (GetModuleFileNameExA(process, mods[i], modName.data(), modName.size())) {
                 if (KNOWN_MOD_DLLS.count(string::trim(string::toLower(
-                    std::filesystem::path(modName.data()).filename().string()
+                    utils::string::pathToString(std::filesystem::path(modName.data()).filename())
                 )))) {
                     triedToLoadDLLs = true;
                 }

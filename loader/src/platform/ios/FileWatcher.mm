@@ -26,7 +26,7 @@ FileWatcher::~FileWatcher() {
 
 void FileWatcher::watch() {
     dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-    int fildes = open(m_file.string().c_str(), O_EVTONLY);
+    int fildes = open(utils::string::pathToString(m_file).c_str(), O_EVTONLY);
 
     __block dispatch_source_t source = dispatch_source_create(
         DISPATCH_SOURCE_TYPE_VNODE, fildes,

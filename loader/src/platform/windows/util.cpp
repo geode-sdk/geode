@@ -248,11 +248,11 @@ void geode::utils::game::restart(bool saveData) {
 
     wchar_t buffer[MAX_PATH];
     GetModuleFileNameW(nullptr, buffer, MAX_PATH);
-    const auto gdName = fmt::format("\"{}\"", std::filesystem::path(buffer).filename().string());
+    auto const gdName = L"\"" + std::filesystem::path(buffer).filename().wstring() + L"\"";
 
     // launch updater
-    const auto updaterPath = (workingDir / "GeodeUpdater.exe").string();
-    ShellExecuteA(nullptr, "open", updaterPath.c_str(), gdName.c_str(), workingDir.string().c_str(), false);
+    auto const updaterPath = (workingDir / "GeodeUpdater.exe").wstring();
+    ShellExecuteW(nullptr, L"open", updaterPath.c_str(), gdName.c_str(), workingDir.wstring().c_str(), false);
 
     exit(saveData);
 }
@@ -269,14 +269,14 @@ void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
         return;
     }
 
-    std::string params;
+    std::wstring params;
     if (deleteSaveData) {
-        params = "\"/DATA=" + dirs::getSaveDir().string() + "\"";
+        params = L"\"/DATA=" + dirs::getSaveDir().wstring() + L"\"";
     }
 
     // launch uninstaller
-    const auto uninstallerPath = (workingDir / "GeodeUninstaller.exe").string();
-    ShellExecuteA(nullptr, "open", uninstallerPath.c_str(), params.c_str(), workingDir.string().c_str(), false);
+    auto const uninstallerPath = workingDir / "GeodeUninstaller.exe";
+    ShellExecuteW(nullptr, L"open", uninstallerPath.c_str(), params.c_str(), workingDir.wstring().c_str(), false);
 }
 
 Result<> geode::hook::addObjcMethod(std::string const& className, std::string const& selectorName, void* imp) {
