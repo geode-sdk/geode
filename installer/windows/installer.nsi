@@ -480,6 +480,20 @@ SectionGroup "Geode"
         WriteUninstaller "GeodeUninstaller.exe"
     SectionEnd
 
+    Section "Register .geode Filetype" FILETYPE_SECTION
+        SectionGetFlags ${FILETYPE_SECTION} $0
+        IntOp $0 $0 & ${SF_SELECTED}
+        StrCmp $0 0 done
+
+        WriteRegStr HKCU "Software\Classes\.geode" "" "GeodeFile"
+        WriteRegStr HKCU "Software\Classes\GeodeFile" "" "Geode Package"
+        WriteRegStr HKCU "Software\Classes\GeodeFile\DefaultIcon" "" "$INSTDIR\GeodeUpdater.exe,0"
+        WriteRegStr HKCU "Software\Classes\GeodeFile\shell" "" "open"
+        WriteRegStr HKCU "Software\Classes\GeodeFile\shell\open\command" "" '"$INSTDIR\GeodeUpdater.exe" "%1"'
+
+    done:
+    SectionEnd
+
     Section "Resources"
         CreateDirectory $INSTDIR\geode\resources\geode.loader
         SetOutPath $INSTDIR\geode\resources\geode.loader
