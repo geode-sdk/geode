@@ -204,7 +204,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     } break;
 
     default:
-        return DefWindowProc(hwnd, msg, wParam, lParam);
+        return DefWindowProcW(hwnd, msg, wParam, lParam);
     }
     return 0;
 }
@@ -231,8 +231,8 @@ bool showCustomCrashlogWindow(std::string text, std::filesystem::path const& cra
     wc.hInstance = GetModuleHandleW(NULL);
     wc.lpszClassName = WINDOW_CLASS_NAME;
 
-    wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wc.hIcon = LoadIconW(NULL, IDI_APPLICATION);
+    wc.hCursor = LoadCursorW(NULL, IDC_ARROW);
     wc.hbrBackground = (HBRUSH)COLOR_WINDOW;
 
     if (!RegisterClassW(&wc)) {
