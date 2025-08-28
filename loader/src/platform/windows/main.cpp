@@ -161,8 +161,8 @@ int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
         console::messageBox(
             "Unable to Load Geode!",
             fmt::format(
-                "Geometry Dash is outdated! Geode requires GD {} "
-                "but you have {}.\n"
+                "Geometry Dash is outdated!\n"
+                "Geode requires GD {} but you have {}.\n"
                 "Please, update Geometry Dash to {}.",
                 GEODE_STR(GEODE_GD_VERSION),
                 LoaderImpl::get()->getGameVersion(),
