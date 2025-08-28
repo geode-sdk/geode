@@ -70,7 +70,7 @@ Result<> Mod::Impl::setup() {
 
         // Hi, linux bros!
         Loader::get()->queueInMainThread([searchPathRoot]() {
-            CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
+            CCFileUtils::get()->addSearchPath(utils::string::pathToString(searchPathRoot).c_str());
         });
 
         // binaries on macos are merged, so make the platform binaries merged as well
@@ -579,12 +579,12 @@ Result<> Mod::Impl::disownPatch(Patch* patch) {
 
 Result<> Mod::Impl::createTempDir() {
     // Check if temp dir already exists
-    if (!m_tempDirName.string().empty()) {
+    if (!m_tempDirName.empty()) {
         return Ok();
     }
 
     // If the info doesn't specify a path, don't do anything
-    if (m_metadata.getPath().string().empty()) {
+    if (m_metadata.getPath().empty()) {
         return Ok();
     }
 

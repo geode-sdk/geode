@@ -43,7 +43,7 @@ protected:
     static std::string getName(LoadProblem const& problem) {
         return std::visit(makeVisitor {
             [](std::filesystem::path const& path) {
-                return path.string();
+                return geode::utils::string::pathToString(path);
             },
             [](ModMetadata const& meta) {
                 return meta.getID();

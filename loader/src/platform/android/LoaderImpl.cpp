@@ -34,7 +34,7 @@ bool Loader::Impl::userTriedToLoadDLLs() const {
 }
 
 void Loader::Impl::addNativeBinariesPath(std::filesystem::path const& path) {
-    log::warn("LoaderImpl::addNativeBinariesPath not implement on this platform, not adding path {}", path.string());
+    log::warn("LoaderImpl::addNativeBinariesPath not implement on this platform, not adding path {}", path);
 }
 
 bool Loader::Impl::supportsLaunchArguments() const {

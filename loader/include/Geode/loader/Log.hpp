@@ -66,12 +66,6 @@ namespace gd {
     }
 }
 
-namespace std::filesystem {
-    inline std::string format_as(std::filesystem::path const& value) {
-        return value.string();
-    }
-}
-
 namespace geode {
 
     class Mod;
