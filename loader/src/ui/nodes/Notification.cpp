@@ -59,7 +59,7 @@ void Notification::showNextNotification() {
         s_queue = CCArray::create();
         s_queue->retain();
     }
-    SceneManager::get()->forget(this);
+    OverlayManager::get()->removeChild(this);
     // remove self from front of queue
     s_queue->removeFirstObject();
     if (auto obj = s_queue->firstObject()) {
@@ -180,7 +180,7 @@ void Notification::show() {
             this->setPosition(winSize.width / 2, winSize.height / 4);
             this->setZOrder(CCScene::get()->getChildrenCount() > 0 ? CCScene::get()->getHighestChildZ() + 2 : 10);
         }
-        SceneManager::get()->keepAcrossScenes(this);
+        OverlayManager::get()->addChild(this);
         m_showing = true;
     }
     this->runAction(CCSequence::create(
