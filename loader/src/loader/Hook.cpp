@@ -32,6 +32,14 @@ Result<> Hook::disable() {
     return m_impl->disable();
 }
 
+Result<> Hook::toggle() {
+    return m_impl->toggle();
+}
+
+Result<> Hook::toggle(bool enable) {
+    return m_impl->toggle(enable);
+}
+
 bool Hook::getAutoEnable() const {
     return m_impl->getAutoEnable();
 }

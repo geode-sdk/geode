@@ -456,7 +456,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromGeodeFile(std::filesystem::path
 Result<ModMetadata> ModMetadata::Impl::createFromGeodeZip(file::Unzip& unzip) {
     // Check if mod.json exists in zip
     if (!unzip.hasEntry("mod.json")) {
-        return Err("\"" + unzip.getPath().string() + "\" is missing mod.json");
+        return Err("\"{}\" is missing mod.json", unzip.getPath());
     }
 
     // Read mod.json & parse if possible
@@ -471,7 +471,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromGeodeZip(file::Unzip& unzip) {
     }));
 
     auto info = GEODE_UNWRAP(ModMetadata::create(json).mapErr([&](auto const& err) {
-        return fmt::format("\"{}\" - {}", unzip.getPath().string(), err);
+        return fmt::format("\"{}\" - {}", unzip.getPath(), err);
     }));
     auto impl = info.m_impl.get();
     impl->m_path = unzip.getPath();
@@ -522,7 +522,7 @@ std::vector<std::pair<std::string, std::optional<std::string>*>> ModMetadata::Im
 
 ModJson ModMetadata::Impl::toJSON() const {
     auto json = m_rawJSON;
-    json["path"] = this->m_path.string();
+    json["path"] = this->m_path;
     json["binary"] = this->m_binaryName;
     return json;
 }

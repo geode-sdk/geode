@@ -49,6 +49,8 @@ public:
 
     Result<> enable();
     Result<> disable();
+    Result<> toggle();
+    Result<> toggle(bool enable);
 
     uintptr_t getAddress() const;
     std::string_view getDisplayName() const;
