@@ -158,14 +158,16 @@ int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     fixCurrentWorkingDirectory();
 
     if (versionToTimestamp(GEODE_STR(GEODE_GD_VERSION)) > gdTimestamp) {
+        auto gameVersion = LoaderImpl::get()->getGameVersion();
         console::messageBox(
             "Unable to Load Geode!",
             fmt::format(
-                "This version of Geode is made for Geometry Dash {} "
-                "but you're trying to play with GD {}.\n"
-                "Please, update your game.",
+                "Geometry Dash is outdated! Geode requires GD version {} "
+                "but you have {}.\n"
+                "Please, update Geometry Dash to {}.",
                 GEODE_STR(GEODE_GD_VERSION),
-                LoaderImpl::get()->getGameVersion()
+                gameVersion,
+                gameVersion
             )
         );
         // TODO: should geode FreeLibrary itself here?
