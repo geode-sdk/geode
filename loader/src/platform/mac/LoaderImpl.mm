@@ -1,4 +1,7 @@
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #import <Foundation/Foundation.h>
+#pragma clang diagnostic pop
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Log.hpp>
 #include <iostream>
