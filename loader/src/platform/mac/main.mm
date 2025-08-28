@@ -142,8 +142,7 @@ void sendEventHook(NSApplication* self, SEL sel, NSEvent* event) {
 
 
 bool loadGeode() {
-    auto gameVersion = LoaderImpl::get()->getGameVersion();
-    if (GEODE_STR(GEODE_GD_VERSION) != gameVersion) {
+    if (GEODE_STR(GEODE_GD_VERSION) != LoaderImpl::get()->getGameVersion()) {
         console::messageBox(
             "Unable to Load Geode!",
             fmt::format(
@@ -151,8 +150,8 @@ bool loadGeode() {
                 "but you have {}.\n"
                 "Please, update Geometry Dash to {}.",
                 GEODE_STR(GEODE_GD_VERSION),
-                gameVersion,
-                gameVersion
+                LoaderImpl::get()->getGameVersion(),
+                GEODE_STR(GEODE_GD_VERSION)
             )
         );
         return false;
