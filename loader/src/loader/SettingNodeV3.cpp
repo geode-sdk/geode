@@ -461,7 +461,7 @@ void FileSettingNodeV3::updateState(CCNode* invoker) {
     // which is clever and good UX but also a hack so I also need to hack to support that
     const auto isTextualDefaultValue = [this, setting = this->getSetting()]() {
         if (this->hasNonDefaultValue()) return false;
-        if (setting->getDefaultValue().string().size() > 20) return false;
+        if (utils::string::pathToString(setting->getDefaultValue()).size() > 20) return false;
         std::error_code ec;
         return setting->isFolder() ?
             !std::filesystem::is_directory(setting->getDefaultValue(), ec) :
@@ -475,7 +475,7 @@ void FileSettingNodeV3::updateState(CCNode* invoker) {
     limitNodeSize(m_fileIcon, ccp(10, 10), 1.f, .1f);
     if (this->getValue().empty() || isTextualDefaultValue) {
         if (isTextualDefaultValue) {
-            m_nameLabel->setString(this->getSetting()->getDefaultValue().string().c_str());
+            m_nameLabel->setString(utils::string::pathToString(this->getSetting()->getDefaultValue()).c_str());
         }
         else {
             m_nameLabel->setString(this->getSetting()->isFolder() ? "No Folder Selected" : "No File Selected");
@@ -484,7 +484,7 @@ void FileSettingNodeV3::updateState(CCNode* invoker) {
         m_nameLabel->setOpacity(155);
     }
     else {
-        m_nameLabel->setString(this->getValue().filename().string().c_str());
+        m_nameLabel->setString(utils::string::pathToString(this->getValue().filename()).c_str());
         m_nameLabel->setColor(ccWHITE);
         m_nameLabel->setOpacity(255);
     }

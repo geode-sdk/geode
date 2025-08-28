@@ -63,7 +63,7 @@ void Notification::showNextNotification() {
     // remove self from front of queue
     s_queue->removeFirstObject();
     if (auto obj = s_queue->firstObject()) {
-        as<Notification*>(obj)->show();
+        static_cast<Notification*>(obj)->show();
     }
     this->removeFromParent();
 }
@@ -178,7 +178,7 @@ void Notification::show() {
         if (!this->getParent()) {
             auto winSize = CCDirector::get()->getWinSize();
             this->setPosition(winSize.width / 2, winSize.height / 4);
-            this->setZOrder(CCScene::get()->getChildrenCount() > 0 ? CCScene::get()->getHighestChildZ() + 100 : 100);
+            this->setZOrder(CCScene::get()->getChildrenCount() > 0 ? CCScene::get()->getHighestChildZ() + 2 : 10);
         }
         SceneManager::get()->keepAcrossScenes(this);
         m_showing = true;

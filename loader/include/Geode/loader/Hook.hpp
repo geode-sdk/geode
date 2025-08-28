@@ -88,6 +88,9 @@ namespace geode {
 
         Result<> disable();
 
+        Result<> toggle();
+        Result<> toggle(bool enable);
+
         /**
         * Get whether the hook should be auto enabled or not.
         * @returns Auto enable
@@ -175,6 +178,9 @@ namespace geode {
         Result<> enable();
 
         Result<> disable();
+
+        Result<> toggle();
+        Result<> toggle(bool enable);
 
         /**
         * Get whether the patch should be auto enabled or not.

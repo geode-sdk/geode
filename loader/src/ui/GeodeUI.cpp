@@ -114,10 +114,12 @@ void geode::openIssueReportPopup(Mod* mod) {
     if (mod->getMetadataRef().getIssues()) {
         MDPopup::create(
             "Issue Report",
-                "Please report the issue to the mod that caused the crash.\n"
-                "If your issue relates to a <cr>game crash</c>, <cb>please include</c> the "
-                "latest crash log(s) from `" +
-                dirs::getCrashlogsDir().string() + "`",
+                fmt::format(
+                    "Please report the issue to the mod that caused the crash.\n"
+                    "If your issue relates to a <cr>game crash</c>, <cb>please include</c> the "
+                    "latest crash log(s) from `{}`",
+                    dirs::getCrashlogsDir()
+                ),
             "OK", "Open Folder",
             [mod](bool btn2) {
                 if (btn2) {
@@ -136,12 +138,14 @@ void geode::openIssueReportPopup(Mod* mod) {
     else {
         MDPopup::create(
             "Issue Report",
-            "Please report your issue on the "
-            "[#support](https://discord.com/channels/911701438269386882/979352389985390603) "
-            "channnel in the [Geode Discord Server](https://discord.gg/9e43WMKzhp)\n\n"
-            "If your issue relates to a <cr>game crash</c>, <cb>please include</c> the "
-            "latest crash log(s) from `" +
-                dirs::getCrashlogsDir().string() + "`",
+            fmt::format(
+                "Please report your issue on the "
+                "[#support](https://discord.com/channels/911701438269386882/979352389985390603) "
+                "channnel in the [Geode Discord Server](https://discord.gg/9e43WMKzhp)\n\n"
+                "If your issue relates to a <cr>game crash</c>, <cb>please include</c> the "
+                "latest crash log(s) from `{}`",
+                dirs::getCrashlogsDir()
+            ),
             "OK"
         )->show();
     }
@@ -229,7 +233,12 @@ protected:
                 if (!mod->isInternal()) {
                     m_sprite->loadFromFile(dirs::getModRuntimeDir() / mod->getID() / "logo.png");
                 } else {
-                    m_sprite->initWithSpriteFrameName("geode-logo.png"_spr);
+                    if (Mod::get()->getSavedValue("alternate-geode-style", false)) {
+                        m_sprite->initWithSpriteFrameName("geode-logo-alternate.png"_spr);
+                    }
+                    else {
+                        m_sprite->initWithSpriteFrameName("geode-logo.png"_spr);
+                    }
                 }
             },
             [this](std::string const& id) {

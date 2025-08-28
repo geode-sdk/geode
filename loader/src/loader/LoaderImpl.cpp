@@ -99,6 +99,11 @@ Result<> Loader::Impl::setup() {
         }
     }
 
+    if (auto value = this->getLaunchArgument("binary-dir")) {
+        log::info("Using custom binary directory: {}", value.value());
+        m_binaryPath = value.value();
+    }
+
     if (this->getLaunchFlag("enable-tulip-hook-logs")) {
         log::info("Enabling TulipHook logs");
         tulip::hook::setLogCallback([](std::string_view msg) {
@@ -144,8 +149,8 @@ Result<> Loader::Impl::setup() {
 
 void Loader::Impl::addSearchPaths() {
     log::debug("Adding search paths");
-    CCFileUtils::get()->addPriorityPath(dirs::getGeodeResourcesDir().string().c_str());
-    CCFileUtils::get()->addPriorityPath(dirs::getModRuntimeDir().string().c_str());
+    CCFileUtils::get()->addPriorityPath(utils::string::pathToString(dirs::getGeodeResourcesDir()).c_str());
+    CCFileUtils::get()->addPriorityPath(utils::string::pathToString(dirs::getModRuntimeDir()).c_str());
 }
 
 void Loader::Impl::updateResources(bool forceReload) {
@@ -244,7 +249,7 @@ void Loader::Impl::updateModResources(Mod* mod) {
     if (!mod->isInternal()) {
         // geode.loader resource is stored somewhere else, which is already added anyway
         auto searchPathRoot = dirs::getModRuntimeDir() / mod->getID() / "resources";
-        CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
+        CCFileUtils::get()->addSearchPath(utils::string::pathToString(searchPathRoot).c_str());
     }
 
     // only thing needs previous setup is spritesheets
@@ -912,7 +917,7 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
             continue;
         }
 
-        const std::string filename = geode::utils::string::pathToString(entry.path().filename());
+        const std::string filename = utils::string::pathToString(entry.path().filename());
         if (filename == metadata.getBinaryName() || !isPlatformBinary(metadata.getID(), filename)) {
             continue;
         }
@@ -934,9 +939,9 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
             std::filesystem::rename(src, dst, ec);
             if (ec) {
                 auto message = formatSystemError(ec.value());
-                return Err(
-                    fmt::format("Failed to move binary from {} to {}: {}", src.string(), dst.string(), message)
-                );
+                return Err(fmt::format("Failed to move binary from {} to {}: {}",
+                    src, dst, message
+                ));
             }
         }
     }
@@ -1148,7 +1153,7 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
             "Invalid File",
             fmt::format(
                 "The path <cy>'{}'</c> is not a valid Geode mod: {}",
-                path.string(),
+                path,
                 res.unwrapErr()
             ),
             "OK"
@@ -1310,4 +1315,8 @@ bool Loader::Impl::isRestartRequired() const {
 
 bool Loader::Impl::isPatchless() const {
     return m_isPatchless;
+}
+
+std::optional<std::string> Loader::Impl::getBinaryPath() const {
+    return m_binaryPath;
 }

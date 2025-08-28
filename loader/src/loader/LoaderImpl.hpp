@@ -73,6 +73,7 @@ namespace geode {
         std::unordered_map<void*, std::pair<tulip::hook::HandlerHandle, size_t>> m_handlerHandles;
 
         bool m_isPatchless = false;
+        std::optional<std::string> m_binaryPath;
 
         Result<tulip::hook::HandlerHandle> getHandler(void* address);
         Result<tulip::hook::HandlerHandle> getOrCreateHandler(void* address, tulip::hook::HandlerMetadata const& metadata);
@@ -158,6 +159,7 @@ namespace geode {
         bool isRestartRequired() const;
 
         bool isPatchless() const;
+        std::optional<std::string> getBinaryPath() const;
     };
 
     class LoaderImpl : public Loader::Impl {
