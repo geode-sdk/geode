@@ -381,7 +381,7 @@ namespace geode::modifier {
         // unordered_map<handles> idea
         ModifyBase() {
             struct EboCheck : ModifyDerived::Base {
-                alignas(std::alignment_of_v<typename ModifyDerived::Base>) std::byte m_padding[sizeof(std::alignment_of_v<typename ModifyDerived::Base>)];
+                alignas(typename ModifyDerived::Base>) std::array<std::byte, alignof(typename ModifyDerived::Base>)> m_padding;
             };
             static constexpr auto baseSize = sizeof(typename ModifyDerived::Base);
             static constexpr auto derivedSize = sizeof(typename ModifyDerived::Derived);
