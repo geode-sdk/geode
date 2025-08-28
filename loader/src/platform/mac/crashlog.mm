@@ -12,7 +12,10 @@
 #include <mach-o/dyld_images.h>
 #include <mach-o/dyld.h>
 #define CommentType CommentTypeDummy
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #import <Foundation/Foundation.h>
+#pragma clang diagnostic pop
 #undef CommentType
 
 using namespace geode::prelude;

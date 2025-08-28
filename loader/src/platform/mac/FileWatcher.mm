@@ -1,7 +1,13 @@
 #include <FileWatcher.hpp>
 #include <Geode/utils/string.hpp>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-anon-enum-enum-conversion"
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#pragma clang diagnostic ignored "-Wnullability-completeness"
+#pragma clang diagnostic ignored "-Wunguarded-availability-new"
 #import <Cocoa/Cocoa.h>
+#pragma clang diagnostic pop
 #include <fcntl.h>
 #include <iostream>
 

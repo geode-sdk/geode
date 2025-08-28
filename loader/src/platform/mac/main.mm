@@ -1,6 +1,12 @@
 #include <Geode/DefaultInclude.hpp>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-anon-enum-enum-conversion"
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#pragma clang diagnostic ignored "-Wnullability-completeness"
+#pragma clang diagnostic ignored "-Wunguarded-availability-new"
 #import <Cocoa/Cocoa.h>
+#pragma clang diagnostic pop
 #include <objc/runtime.h>
 #include "../load.hpp"
 #include <dlfcn.h>
