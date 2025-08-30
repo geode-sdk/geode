@@ -59,8 +59,13 @@ public:
     virtual void setColorValue(ccColor3B const&);
 
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCControlColourPicker, CCControl)
-    CCControlColourPicker();
-    virtual ~CCControlColourPicker();
+    CCControlColourPicker()
+        : m_colourPicker(nullptr)
+        , m_huePicker(nullptr)
+        , m_background(nullptr)
+        , m_colorTarget(nullptr)
+        , m_delegate(nullptr) {}
+    virtual ~CCControlColourPicker() {}
 
 public:
     // @note RobTop Addition
