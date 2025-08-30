@@ -111,12 +111,6 @@ public:
     inline int getTag(void) { return m_nTag; }
     inline void setTag(int nTag) { m_nTag = nTag; }
 
-    // @note RobTop Addition
-    void setSpeedMod(float mod);
-
-    // 2.2 addition
-    float getSpeedMod();
-
 public:
     /** Create an action */
     static CCAction* create();
@@ -131,7 +125,7 @@ public:
     /** The action tag. An identifier of the action */
     int     m_nTag;
     // @note RobTop Addition
-    float m_fSpeedMod;
+    CC_SYNTHESIZE_NV(float, m_fSpeedMod, SpeedMod);
 };
 
 /**

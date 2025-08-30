@@ -566,7 +566,7 @@ public:
     CCDirectorDelegate *m_pProjectionDelegate;
 
     // @note RobTop Addition
-    CC_SYNTHESIZE(CCSceneDelegate*, m_pAppDelegate, SceneDelegate);
+    CC_PROPERTY(CCSceneDelegate*, m_pAppDelegate, SceneDelegate);
     // @note RobTop Addition
     bool m_bDisplayFPS;
     // @note RobTop Addition

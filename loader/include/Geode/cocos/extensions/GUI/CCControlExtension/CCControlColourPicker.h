@@ -54,7 +54,7 @@ class CC_DLL CCControlColourPicker : public CCControl
 
 public:
     // @note RobTop Addition
-    ccColor3B const& getColorValue() const;
+    ccColor3B const& getColorValue() const { return m_rgb; }
     // @note RobTop Addition
     virtual void setColorValue(ccColor3B const&);
 
