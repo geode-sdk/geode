@@ -499,7 +499,6 @@ protected:
 
     /** calculates delta time since last time it was called */
     void calculateDeltaTime();
-
 public:
     // @note RobTop Addition
     virtual cocos2d::CCSceneDelegate* getSceneDelegate() const { return m_pAppDelegate; }
