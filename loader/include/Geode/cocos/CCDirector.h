@@ -501,9 +501,9 @@ protected:
     void calculateDeltaTime();
 
     // @note RobTop Addition
-    virtual cocos2d::CCSceneDelegate* getSceneDelegate() const;
+    virtual cocos2d::CCSceneDelegate* getSceneDelegate() const { return m_pAppDelegate; }
     // @note RobTop Addition
-    virtual void setSceneDelegate(cocos2d::CCSceneDelegate* pDelegate);
+    virtual void setSceneDelegate(cocos2d::CCSceneDelegate* pDelegate) { m_pAppDelegate = pDelegate; }
 public:
     /* The CCEGLView, where everything is rendered */
     CCEGLView    *m_pobOpenGLView;
