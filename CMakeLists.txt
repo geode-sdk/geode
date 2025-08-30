@@ -306,7 +306,7 @@ if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
 	)
 endif()
 
-target_include_directories(GeodeBindings PUBLIC
+target_include_directories(GeodeBindings SYSTEM PUBLIC
 	${GEODE_LOADER_PATH}/include
 	${GEODE_LOADER_PATH}/include/Geode/cocos/include
 	${GEODE_LOADER_PATH}/include/Geode/cocos/extensions
