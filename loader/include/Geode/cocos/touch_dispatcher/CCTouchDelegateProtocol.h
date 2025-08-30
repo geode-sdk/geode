@@ -67,8 +67,8 @@ public:
      virtual void ccTouchesEnded(CCSet *pTouches, CCEvent *pEvent) {CC_UNUSED_PARAM(pTouches); CC_UNUSED_PARAM(pEvent);}
      virtual void ccTouchesCancelled(CCSet *pTouches, CCEvent *pEvent) {CC_UNUSED_PARAM(pTouches); CC_UNUSED_PARAM(pEvent);}
 
-	virtual void setPreviousPriority(int) {}
-	virtual int getPreviousPriority() { return 0; }
+	virtual void setPreviousPriority(int);
+	virtual int getPreviousPriority();
 
 
 };

@@ -54,18 +54,13 @@ class CC_DLL CCControlColourPicker : public CCControl
 
 public:
     // @note RobTop Addition
-    ccColor3B const& getColorValue() const { return m_rgb; }
+    ccColor3B const& getColorValue() const;
     // @note RobTop Addition
     virtual void setColorValue(ccColor3B const&);
 
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCControlColourPicker, CCControl)
-    CCControlColourPicker()
-        : m_colourPicker(nullptr)
-        , m_huePicker(nullptr)
-        , m_background(nullptr)
-        , m_colorTarget(nullptr)
-        , m_delegate(nullptr) {}
-    virtual ~CCControlColourPicker() {}
+    CCControlColourPicker();
+    virtual ~CCControlColourPicker();
 
 public:
     // @note RobTop Addition
