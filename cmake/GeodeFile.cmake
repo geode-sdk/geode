@@ -264,7 +264,7 @@ function(setup_geode_mod proname)
         endforeach()
 
         # Link libs
-        target_include_directories(${proname} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/geode-deps")
+        target_include_directories(${proname} SYSTEM PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/geode-deps")
         target_link_libraries(${proname} ${libs_to_link})
         
     endif()
