@@ -104,17 +104,6 @@ jobs:
         sudo rm -f /var/lib/man-db/auto-update
         sudo apt install -y clang-19 clang-tools-19 lld-19
 
-    - name: Download bindings
-      uses: actions/checkout@v4
-      with:
-        repository: 'hiimjasmine00/bindings'
-        ref: inline
-        path: bindings-repo
-    
-    - name: Setup bindings
-      shell: bash
-      run: echo "GEODE_BINDINGS_REPO_PATH=${{ github.workspace }}/bindings-repo" >> $GITHUB_ENV
-
     - name: Configure
       run: ${{ env.base-configure-command }} -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN ${{ steps.build-debug-info.outputs.extra-configure }}
       env:
@@ -188,17 +177,6 @@ jobs:
 
     - name: Setup CLI
       uses: geode-sdk/cli/.github/actions/setup@main
-
-    - name: Download bindings
-      uses: actions/checkout@v4
-      with:
-        repository: 'hiimjasmine00/bindings'
-        ref: inline
-        path: bindings-repo
-    
-    - name: Setup bindings
-      shell: bash
-      run: echo "GEODE_BINDINGS_REPO_PATH=${{ github.workspace }}/bindings-repo" >> $GITHUB_ENV
 
     - name: Configure
       run: >
@@ -284,17 +262,6 @@ jobs:
       uses: ./.github/actions/setup-dump-sym
       id: breakpad-tools
 
-    - name: Download bindings
-      uses: actions/checkout@v4
-      with:
-        repository: 'hiimjasmine00/bindings'
-        ref: inline
-        path: bindings-repo
-    
-    - name: Setup bindings
-      shell: bash
-      run: echo "GEODE_BINDINGS_REPO_PATH=${{ github.workspace }}/bindings-repo" >> $GITHUB_ENV
-
     - name: Configure
       run: >
         ${{ env.base-configure-command }}
@@ -365,17 +332,6 @@ jobs:
 
     - name: Setup CLI
       uses: geode-sdk/cli/.github/actions/setup@main
-
-    - name: Download bindings
-      uses: actions/checkout@v4
-      with:
-        repository: 'hiimjasmine00/bindings'
-        ref: inline
-        path: bindings-repo
-    
-    - name: Setup bindings
-      shell: bash
-      run: echo "GEODE_BINDINGS_REPO_PATH=${{ github.workspace }}/bindings-repo" >> $GITHUB_ENV
 
     - name: Configure
       run: >
