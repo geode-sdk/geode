@@ -94,7 +94,7 @@ public:
     float getAmplitudeRate(void);
 
     // 2.2 addition
-    bool getM_bFirstTick(); // rob were you like high on something when you wrote this
+    bool getM_bFirstTick() const { return m_bFirstTick; } // rob were you like high on something when you wrote this
 
 public:
     float m_elapsed;
@@ -1014,12 +1014,6 @@ public:
     virtual void update(float t);
     virtual CCActionInterval* reverse(void);
 
-    // 2.2 addition
-    bool getRecenterChildren() const;
-	bool getRecenterFrames() const;
-    void setRecenterChildren(bool recenter);
-    void setRecenterFrames(bool recenter);
-
 public:
     /** creates the action with an Animation and will restore the original frame when the animation is over */
     static CCAnimate* create(CCAnimation *pAnimation);
@@ -1029,6 +1023,10 @@ public:
     int                m_nNextFrame;
     CCSpriteFrame*  m_pOrigFrame;
        unsigned int    m_uExecutedLoops;
+    // @note RobTop Addition
+    CC_SYNTHESIZE_NV(bool, m_bRecenterFrames, RecenterFrames);
+    // @note RobTop Addition
+    CC_SYNTHESIZE_NV(bool, m_bRecenterChildren, RecenterChildren);
 };
 
 /** Overrides the target of an action so that it always runs on the target
