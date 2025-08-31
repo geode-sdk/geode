@@ -500,11 +500,6 @@ protected:
     /** calculates delta time since last time it was called */
     void calculateDeltaTime();
 public:
-    // @note RobTop Addition
-    virtual cocos2d::CCSceneDelegate* getSceneDelegate() const { return m_pAppDelegate; }
-    // @note RobTop Addition
-    virtual void setSceneDelegate(cocos2d::CCSceneDelegate* pDelegate) { m_pAppDelegate = pDelegate; }
-public:
     /* The CCEGLView, where everything is rendered */
     CCEGLView    *m_pobOpenGLView;
 
@@ -571,7 +566,7 @@ public:
     CCDirectorDelegate *m_pProjectionDelegate;
 
     // @note RobTop Addition
-    CCSceneDelegate* m_pAppDelegate;
+    CC_SYNTHESIZE(CCSceneDelegate*, m_pAppDelegate, SceneDelegate);
     // @note RobTop Addition
     bool m_bDisplayFPS;
     // @note RobTop Addition

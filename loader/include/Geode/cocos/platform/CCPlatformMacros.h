@@ -237,7 +237,7 @@ public:                                                   \
     varType varName;                                      \
                                                           \
 public:                                                   \
-    varType get##funName(void) const { return varName; }
+    virtual varType get##funName(void) const { return varName; }
 
 #define CC_SYNTHESIZE_READONLY_NC(varType, varName, funName) \
                                                              \
@@ -245,7 +245,7 @@ public:                                                      \
     varType varName;                                         \
                                                              \
 public:                                                      \
-    varType get##funName(void) { return varName; }
+    virtual varType get##funName(void) { return varName; }
 
 #define CC_SYNTHESIZE_READONLY_PASS_BY_REF(varType, varName, funName) \
                                                                       \
@@ -253,7 +253,7 @@ public:                                                               \
     varType varName;                                                  \
                                                                       \
 public:                                                               \
-    const varType& get##funName(void) const { return varName; }
+    virtual const varType& get##funName(void) const { return varName; }
 
 /** CC_SYNTHESIZE is used to declare a protected variable.
  We can use getter to read the variable, and use the setter to change the variable.
@@ -271,10 +271,10 @@ public:                                                          \
     varType varName;                                             \
                                                                  \
 public:                                                          \
-    varType get##funName(void) const { return varName; }         \
+    virtual varType get##funName(void) const { return varName; } \
                                                                  \
 public:                                                          \
-    void set##funName(varType var) { varName = var; }
+    virtual void set##funName(varType var) { varName = var; }
 
 #define CC_SYNTHESIZE_PASS_BY_REF(varType, varName, funName)            \
                                                                         \
@@ -282,10 +282,10 @@ public:                                                                 \
     varType varName;                                                    \
                                                                         \
 public:                                                                 \
-    const varType& get##funName(void) const { return varName; }         \
+    virtual const varType& get##funName(void) const { return varName; } \
                                                                         \
 public:                                                                 \
-    void set##funName(const varType& var) { varName = var; }
+    virtual void set##funName(const varType& var) { varName = var; }
 
 #define CC_SYNTHESIZE_RETAIN(varType, varName, funName)          \
                                                                  \
@@ -293,10 +293,10 @@ public:                                                          \
     varType varName;                                             \
                                                                  \
 public:                                                          \
-    varType get##funName(void) const { return varName; }         \
+    virtual varType get##funName(void) const { return varName; } \
                                                                  \
 public:                                                          \
-    void set##funName(varType var) {                             \
+    virtual void set##funName(varType var) {                     \
         if (varName != var) {                                    \
             CC_SAFE_RETAIN(var);                                 \
             CC_SAFE_RELEASE(varName);                            \
@@ -461,6 +461,34 @@ public:                                                  \
 public:                                                  \
     void set##funName(varType var) { varName = var; }
 
+#define CC_SYNTHESIZE_NV_PASS_BY_REF(varType, varName, funName) \
+                                                                \
+public:                                                         \
+    varType varName;                                            \
+                                                                \
+public:                                                         \
+    const varType& get##funName(void) const { return varName; } \
+                                                                \
+public:                                                         \
+    void set##funName(const varType& var) { varName = var; }
+
+#define CC_SYNTHESIZE_NV_RETAIN(varType, varName, funName) \
+                                                           \
+public:                                                    \
+    varType varName;                                       \
+                                                           \
+public:                                                    \
+    varType get##funName(void) const { return varName; }   \
+                                                           \
+public:                                                    \
+    void set##funName(varType var) {                       \
+        if (varName != var) {                              \
+            CC_SAFE_RETAIN(var);                           \
+            CC_SAFE_RELEASE(varName);                      \
+            varName = var;                                 \
+        }                                                  \
+    }
+
 /**
  */
 #define CC_SYNTHESIZE_READONLY_NV(varType, varName, funName) \
@@ -478,5 +506,13 @@ public:                                                         \
                                                                 \
 public:                                                         \
     varType get##funName(void) { return varName; }
+
+#define CC_SYNTHESIZE_READONLY_NV_PASS_BY_REF(varType, varName, funName) \
+                                                                         \
+public:                                                                  \
+    varType varName;                                                     \
+                                                                         \
+public:                                                                  \
+    const varType& get##funName(void) const { return varName; }
 
 #endif // __CC_PLATFORM_MACROS_H__

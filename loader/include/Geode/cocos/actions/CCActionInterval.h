@@ -1017,7 +1017,7 @@ public:
 public:
     /** creates the action with an Animation and will restore the original frame when the animation is over */
     static CCAnimate* create(CCAnimation *pAnimation);
-    CC_SYNTHESIZE_RETAIN(CCAnimation*, m_pAnimation, Animation)
+    CC_SYNTHESIZE_NV_RETAIN(CCAnimation*, m_pAnimation, Animation)
 public:
     gd::vector<float>* m_pSplitTimes;
     int                m_nNextFrame;
@@ -1062,7 +1062,7 @@ public:
     virtual void update(float time);
 
     /** This is the target that the action will be forced to run with */
-    CC_SYNTHESIZE_RETAIN(CCNode*, m_pForcedTarget, ForcedTarget);
+    CC_SYNTHESIZE_NV_RETAIN(CCNode*, m_pForcedTarget, ForcedTarget);
 public:
     CCFiniteTimeAction* m_pAction;
 };
