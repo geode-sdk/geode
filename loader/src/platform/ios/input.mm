@@ -1,13 +1,14 @@
 #include <Geode/platform/cplatform.h>
 #ifdef GEODE_IS_IOS
 #include <Geode/loader/Mod.hpp>
-#include <Geode/utils/ObjcHook.hpp>
-#include <objc/message.h>
-#import <UIKit/UIKit.h>
+#include <unordered_map>
+#include <objc/runtime.h>
+#include <UIKit/UIKit.h>
+#include <UIKit/UIKey.h>
 
 using namespace geode::prelude;
 
-std::unordered_map<int, enumKeyCodes> keyMap = {
+static std::unordered_map<int, enumKeyCodes> keyMap = {
     {UIKeyboardHIDUsageKeyboardSpacebar, cocos2d::KEY_Space},
     {UIKeyboardHIDUsageKeyboardComma, cocos2d::KEY_OEMComma},
     {UIKeyboardHIDUsageKeyboardHyphen, cocos2d::KEY_OEMMinus},
@@ -99,120 +100,71 @@ std::unordered_map<int, enumKeyCodes> keyMap = {
     {UIKeyboardHIDUsageKeypadEnter, cocos2d::KEY_NumEnter}
 };
 
-@interface KeyCatcherView : UIView {
-    NSTimer* delayTimer;
-    NSTimer* repeatTimer;
-    UIKey* repeatKey;
-}
-@end
+@implementation UIWindow (KeyInterceptor)
 
-@implementation KeyCatcherView
-
-- (BOOL)canBecomeFirstResponder {
-    return YES;
-}
+static NSTimer* delayTimer = nil;
+static NSTimer* repeatTimer = nil;
+static UIKey* repeatKey = nil;
 
 - (void)startRepeat:(UIKey*)key {
     [self stopRepeat];
     repeatKey = key;
-    delayTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 repeats:NO block:^(NSTimer * _Nonnull timer) {
+    delayTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 repeats:NO block:^(NSTimer * _Nonnull t) {
         delayTimer = nil;
-        repeatTimer = [NSTimer scheduledTimerWithTimeInterval:0.05 repeats:YES block:^(NSTimer * _Nonnull timer) {
-            CCKeyboardDispatcher* dispatcher = CCDirector::get()->getKeyboardDispatcher();
+        repeatTimer = [NSTimer scheduledTimerWithTimeInterval:0.05 repeats:YES block:^(NSTimer * _Nonnull t2) {
+            auto dispatcher = CCKeyboardDispatcher::get();
+            if (!dispatcher || !repeatKey) return;
             auto it = keyMap.find(repeatKey.keyCode);
-            if (it != keyMap.end()) {
-                dispatcher->dispatchKeyboardMSG(it->second, true, true);
-            }
+            enumKeyCodes code = (it != keyMap.end()) ? it->second : enumKeyCodes::KEY_Unknown;
+            dispatcher->dispatchKeyboardMSG(code, true, true);
         }];
     }];
 }
 
 - (void)stopRepeat {
-    if (delayTimer) {
-        [delayTimer invalidate];
-        delayTimer = nil;
-    }
-    if (repeatTimer) {
-        [repeatTimer invalidate];
-        repeatTimer = nil;
-    }
+    if (delayTimer) { [delayTimer invalidate]; delayTimer = nil; }
+    if (repeatTimer) { [repeatTimer invalidate]; repeatTimer = nil; }
     repeatKey = nil;
 }
 
-- (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
-    for (UIPress *press in presses) {
-        UIKey *key = press.key;
-        if (key) {
-            NSString *chars = key.charactersIgnoringModifiers;
+- (void)g_sendEvent:(UIEvent*)event {
+    if (event.type == UIEventTypePresses) {
+        UIPressesEvent* pe = (UIPressesEvent*)event;
+        for (UIPress* press in pe.allPresses) {
+            UIKey* key = press.key;
+            if (!key) continue;
+
+            auto dispatcher = CCKeyboardDispatcher::get();
+            if (!dispatcher) continue;
+
             NSUInteger mods = key.modifierFlags;
-            CCKeyboardDispatcher* dispatcher = CCDirector::get()->getKeyboardDispatcher();
             dispatcher->updateModifierKeys(
-                mods & UIKeyModifierShift, mods & UIKeyModifierControl, mods & UIKeyModifierAlternate, mods & UIKeyModifierCommand
+                (mods & UIKeyModifierShift) != 0,
+                (mods & UIKeyModifierControl) != 0,
+                (mods & UIKeyModifierAlternate) != 0,
+                (mods & UIKeyModifierCommand) != 0
             );
-            if (auto it = keyMap.find(key.keyCode); it != keyMap.end()) {
-                dispatcher->dispatchKeyboardMSG(it->second, true, false);
-            } else {
-                dispatcher->dispatchKeyboardMSG(enumKeyCodes::KEY_Unknown, true, false);
+
+            auto it = keyMap.find(key.keyCode);
+            enumKeyCodes code = (it != keyMap.end()) ? it->second : enumKeyCodes::KEY_Unknown;
+
+            if (press.phase == UIPressPhaseBegan) {
+                dispatcher->dispatchKeyboardMSG(code, true, false);
+                [self startRepeat:key];
+            } else if (press.phase == UIPressPhaseEnded) {
+                dispatcher->dispatchKeyboardMSG(code, false, false);
+                [self stopRepeat];
             }
-            [self startRepeat:key];
         }
     }
-    [super pressesBegan:presses withEvent:event];
-}
-
-- (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
-    for (UIPress *press in presses) {
-        UIKey *key = press.key;
-        if (key) {
-            NSString *chars = key.charactersIgnoringModifiers;
-            NSUInteger mods = key.modifierFlags;
-            CCKeyboardDispatcher* dispatcher = CCDirector::get()->getKeyboardDispatcher();
-            dispatcher->updateModifierKeys(
-                mods & UIKeyModifierShift, mods & UIKeyModifierControl, mods & UIKeyModifierAlternate, mods & UIKeyModifierCommand
-            );
-            if (auto it = keyMap.find(key.keyCode); it != keyMap.end()) {
-                dispatcher->dispatchKeyboardMSG(it->second, false, false);
-            } else {
-                dispatcher->dispatchKeyboardMSG(enumKeyCodes::KEY_Unknown, false, false);
-            }
-            [self stopRepeat];
-        }
-    }
-    [super pressesEnded:presses withEvent:event];
-}
-
-@end
-
-void launchHook(id self, SEL sel, UIApplication* app, NSDictionary* opts) {
-    reinterpret_cast<void(*)(id, SEL, UIApplication*, NSDictionary*)>(objc_msgSend)(self, sel, app, opts);
-
-    UIWindow* window = nil;
-    for (UIWindow* win in UIApplication.sharedApplication.windows) {
-        if (win.isKeyWindow) {
-            window = win;
-            break;
-        }
-    }
-    if (window) {
-        CGRect frame = window.bounds;
-        KeyCatcherView* keyView = [[KeyCatcherView alloc] initWithFrame:frame];
-        keyView.backgroundColor = UIColor.clearColor;
-        keyView.userInteractionEnabled = NO;
-        [window addSubview:keyView];
-        [keyView becomeFirstResponder];
-    } else {
-        geode::log::warn("No key window found, keyboard will not work.");
-    }
+    [self g_sendEvent:event];
 }
 
 $execute {
-    if (auto hook = ObjcHook::create(
-        "AppController",
-        "application:didFinishLaunchingWithOptions:",
-        &launchHook
-    )) {
-        (void) Mod::get()->claimHook(hook.unwrap());
-    }
+    Method m1 = class_getInstanceMethod(UIWindow.class, @selector(sendEvent:));
+    Method m2 = class_getInstanceMethod(UIWindow.class, @selector(g_sendEvent:));
+    method_exchangeImplementations(m1, m2);
 }
 
+@end
 #endif
