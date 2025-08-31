@@ -381,10 +381,7 @@ namespace geode::modifier {
         // unordered_map<handles> idea
         ModifyBase() {
             struct EboCheck : ModifyDerived::Base {
-                std::aligned_storage_t<
-                    std::alignment_of_v<typename ModifyDerived::Base>,
-                    std::alignment_of_v<typename ModifyDerived::Base>
-                > m_padding;
+                alignas(typename ModifyDerived::Base) std::array<std::byte, alignof(typename ModifyDerived::Base)> m_padding;
             };
             static constexpr auto baseSize = sizeof(typename ModifyDerived::Base);
             static constexpr auto derivedSize = sizeof(typename ModifyDerived::Derived);
@@ -457,6 +454,7 @@ namespace geode {
         // we already have utilities for these, which are ccdestructor
         // and the cutoff constructor
         Modify() : Base(CutoffConstructor, sizeof(Base)) {}
+        Modify(ZeroConstructorType) : Base(ZeroConstructor, sizeof(Base)) {}
 
         ~Modify() {
             geode::DestructorLock::addLock(this);

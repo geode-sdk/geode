@@ -167,6 +167,22 @@ namespace geode::modifier {
     };
 
     /**
+     * Helps resolving a duplicated function pointer to a specific function using
+     * its class as the hint.
+     */
+    template <class Class>
+    struct ResolveC {
+        template <class Return, class... Params>
+        static constexpr auto func(Return(Class::*ptr)(Params...)) {
+            return ptr;
+        }
+
+        static constexpr auto func(...) {
+            return Unique::nvalue;
+        }
+    };
+
+    /**
      * Gets the return type of a given resolved function pointer.
      */
     template <class Func>

@@ -23,6 +23,8 @@ public:
 
     Result<> enable();
     Result<> disable();
+    Result<> toggle();
+    Result<> toggle(bool enable);
 
     ByteVector const& getBytes() const;
     Result<> updateBytes(const ByteVector& bytes);

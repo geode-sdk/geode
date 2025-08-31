@@ -122,7 +122,9 @@ struct ProxyCCNode : Modify<ProxyCCNode, CCNode> {
     }
 };
 
-static inline std::unordered_map<std::string, size_t> s_nextIndex;
+// it is mostly safe to use string_view here to reduce heap allocations,
+// since passed names are obtained by typed().name() which is static
+static inline std::unordered_map<std::string_view, size_t> s_nextIndex;
 size_t modifier::getFieldIndexForClass(char const* name) {
 	return s_nextIndex[name]++;
 }

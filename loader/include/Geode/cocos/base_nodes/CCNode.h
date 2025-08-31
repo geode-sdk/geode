@@ -44,6 +44,11 @@ namespace geode {
     class Layout;
     class LayoutOptions;
     enum class Anchor;
+
+    template <typename T, typename>
+    struct CCArrayExtCheck {
+        using type = void;
+    };
 }
 
 NS_CC_BEGIN
@@ -635,6 +640,21 @@ public:
      */
     virtual CCArray* getChildren();
 
+    /*
+     * Like `getChildren()`, but returns a `CCArrayExt<CCNode>` instead.
+     * You must include `<Geode/utils/cocos.hpp>` to use this, otherwise it won't compile
+    */
+    template <typename T = CCNode, typename PleaseDontChangeMe = void>
+    inline auto getChildrenExt() {
+        // CCArrayExt is defined in geode/utils/cocos.hpp, which we cannot include due to circular includes.
+        // This is an incredibly hacky way to still be able to use the type
+
+        using CCArrayExt = geode::CCArrayExtCheck<T, PleaseDontChangeMe>::type;
+        static_assert(!std::is_void_v<CCArrayExt>, "Please include <Geode/utils/cocos.hpp> to use getChildrenExt()");
+
+        return CCArrayExt(getChildren());
+    }
+
     /**
      * Get the amount of children.
      *
@@ -1123,6 +1143,23 @@ public:
     GEODE_DLL void removeEventListener(std::string const& id);
     GEODE_DLL geode::EventListenerProtocol* getEventListener(std::string const& id);
     GEODE_DLL size_t getEventListenerCount();
+
+    /**
+     * Get child at index. Checks bounds. A negative
+     * index will get the child starting from the end
+     * @returns Child at index cast to the given type,
+     * or nullptr if index exceeds bounds
+     */
+    template <class InpT = cocos2d::CCNode*, class T = std::remove_pointer_t<InpT>>
+    T* getChildByIndex(int i) {
+        // start from end for negative index
+        if (i < 0) i = this->getChildrenCount() + i;
+        // check if backwards index is out of bounds
+        if (i < 0) return nullptr;
+        // check if forwards index is out of bounds
+        if (static_cast<int>(this->getChildrenCount()) <= i) return nullptr;
+        return static_cast<T*>(this->getChildren()->objectAtIndex(i));
+    }
 
     /**
      * Get nth child that is a given type. Checks bounds.
