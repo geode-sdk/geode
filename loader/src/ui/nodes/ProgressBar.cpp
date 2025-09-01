@@ -11,7 +11,7 @@ public:
 
     float progress = 0.0f; // Current progress bar fill percentage ranging from 0 to 100
 
-    ccColor3B progressBarFillColor = { 255, 255, 255 };
+    ccColor3B progressBarFillColor = { 255, 255, 255 }; // Current color of the filled progress bar
     bool showProgressPercentLabel = false; // Whether to show the label showing the percentage of the current progress
 
     ProgressBarStyle style = ProgressBarStyle::Level; // Style of the progress bar
@@ -51,8 +51,8 @@ bool ProgressBar::init() {
         m_impl->progressPercentLabel->setID("progress-percent-label");
         m_impl->progressPercentLabel->setScale(0.5f);
         m_impl->progressPercentLabel->setAnchorPoint({ 0, 0.5 });
-        m_impl->progressPercentLabel->setAlignment(CCTextAlignment::kCCTextAlignmentLeft);
         m_impl->progressPercentLabel->setPosition({ m_impl->progressBar->getScaledContentWidth() + 2.5f, m_impl->progressBar->getScaledContentHeight() / 2.0f });
+        m_impl->progressPercentLabel->setAlignment(CCTextAlignment::kCCTextAlignmentLeft);
         m_impl->progressPercentLabel->setVisible(m_impl->showProgressPercentLabel);
         m_impl->progressPercentLabel->setZOrder(1);
         break;
@@ -82,8 +82,8 @@ bool ProgressBar::init() {
         m_impl->progressPercentLabel->setID("progress-percent-label");
         m_impl->progressPercentLabel->setScale(0.5f);
         m_impl->progressPercentLabel->setAnchorPoint({ 0.5, 0.5 });
-        m_impl->progressPercentLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
         m_impl->progressPercentLabel->setPosition({ m_impl->progressBar->getScaledContentWidth() / 2.0f, m_impl->progressBar->getScaledContentHeight() / 2.0f });
+        m_impl->progressPercentLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
         m_impl->progressPercentLabel->setVisible(m_impl->showProgressPercentLabel);
         m_impl->progressPercentLabel->setZOrder(1);
         break;
@@ -94,9 +94,9 @@ bool ProgressBar::init() {
     m_impl->progressBar->addChild(m_impl->progressBarFill);
 
     this->addChild(m_impl->progressBar);
-    this->updateProgress(m_impl->progress);
+    this->addChild(m_impl->progressPercentLabel);
 
-    if (m_impl->progressPercentLabel) this->addChild(m_impl->progressPercentLabel);
+    this->updateProgress(m_impl->progress);
 
     return true;
 };
@@ -121,7 +121,7 @@ void ProgressBar::updateProgress(float value) {
 
     m_impl->progress = value;
 
-    if (m_impl->progressBar && m_impl->progressBarFill) {
+    if (m_impl->progressBarFill) {
         float width = m_impl->progressBarFillMaxWidth * (m_impl->progress / 100.0f);
         m_impl->progressBarFill->setTextureRect({ 0.0f, 0.0f, width, m_impl->progressBarFillMaxHeight });
     };
