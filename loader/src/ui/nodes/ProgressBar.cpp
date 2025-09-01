@@ -11,12 +11,13 @@ public:
 
     float progress = 0.0f; // Current progress bar fill percentage ranging from 0 to 100
 
+    ccColor3B progressBarFillColor = { 255, 255, 255 };
+    bool showProgressPercentLabel = false; // Whether to show the label showing the percentage of the current progress
+
     ProgressBarStyle style = ProgressBarStyle::Level; // Style of the progress bar
 
     float progressBarFillMaxWidth = 0.0f; // Max width for the progress fill bar node
     float progressBarFillMaxHeight = 0.0f; // Max height for the progress fill bar node
-
-    bool showProgressPercentLabel = false; // Whether to show the label showing the percentage of the current progress
 };
 
 ProgressBar::ProgressBar() {
@@ -40,7 +41,7 @@ bool ProgressBar::init() {
         m_impl->progressBarFill->setID("progress-bar-fill");
         m_impl->progressBarFill->setAnchorPoint({ 0, 0.5 });
         m_impl->progressBarFill->setPosition({ 2.0f, m_impl->progressBar->getScaledContentHeight() / 2.0f });
-        m_impl->progressBarFill->setColor({ 255, 255, 255 });
+        m_impl->progressBarFill->setColor(m_impl->progressBarFillColor);
         m_impl->progressBarFill->setZOrder(-1);
 
         m_impl->progressBarFillMaxWidth = m_impl->progressBar->getScaledContentWidth() - 4.0f;
@@ -57,8 +58,6 @@ bool ProgressBar::init() {
         break;
 
     case ProgressBarStyle::Solid:
-        m_impl->showProgressPercentLabel = true;
-
         m_impl->progressBar = CCSprite::create("GJ_progressBar_001.png");
         m_impl->progressBar->setID("progress-bar");
         m_impl->progressBar->setAnchorPoint({ 0.5, 0.5 });
@@ -73,7 +72,7 @@ bool ProgressBar::init() {
         m_impl->progressBarFill->setScaleY(0.86f);
         m_impl->progressBarFill->setAnchorPoint({ 0, 0.5 });
         m_impl->progressBarFill->setPosition({ 1.36f, m_impl->progressBar->getScaledContentHeight() / 2.0f });
-        m_impl->progressBarFill->setColor({ 255, 255, 255 });
+        m_impl->progressBarFill->setColor(m_impl->progressBarFillColor);
         m_impl->progressBarFill->setZOrder(0);
 
         m_impl->progressBarFillMaxWidth = m_impl->progressBar->getScaledContentWidth();
@@ -112,6 +111,7 @@ void ProgressBar::setStyle(ProgressBarStyle style) {
 };
 
 void ProgressBar::setProgressBarFillColor(ccColor3B color) {
+    m_impl->progressBarFillColor = color;
     if (m_impl->progressBarFill) m_impl->progressBarFill->setColor(color);
 };
 
