@@ -18,7 +18,6 @@
 #include "ui/Notification.hpp"
 #include "ui/Popup.hpp"
 #include "ui/ProgressBar.hpp"
-#include "ui/ProgressBarSolid.hpp"
 #include "ui/SceneManager.hpp"
 #include "ui/Scrollbar.hpp"
 #include "ui/ScrollLayer.hpp"

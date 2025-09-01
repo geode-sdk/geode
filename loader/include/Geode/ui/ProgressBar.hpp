@@ -3,22 +3,33 @@
 #include <cocos2d.h>
 
 namespace geode {
+    // Enum for progress bar style
+    enum class ProgressBarStyle {
+        Level = 0,
+        Solid = 1,
+    };
+
     // Custom class for the progress bar
     class ProgressBar : public cocos2d::CCNode {
     protected:
-        Ref<CCSprite> m_progressBar = nullptr; // Progress bar outline
-        CCSprite* m_progressBarFill = nullptr; // Progress bar fill
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
 
-        float m_progress = 0.f; // Current progress bar fill percentage ranging from 0 to 100
-
-        float m_progressBarFillMaxWidth = 0.f; // Max width for the progress fill bar node
-        float m_progressBarFillMaxHeight = 0.f; // Max height for the progress fill bar node
+        ProgressBar();
+        ~ProgressBar();
 
         bool init() override;
 
     public:
         // Create a custom progress bar
         static ProgressBar* create();
+
+        /**
+         * Set the style of the progress bar
+         *
+         * @param style Style to switch to
+         */
+        void setStyle(ProgressBarStyle style);
 
         /**
          * Set the color of the fill of the bar
@@ -37,6 +48,23 @@ namespace geode {
         /**
          * Get the current progress percentage of the bar
          */
-        float getProgress();
+        float getProgress() const;
+
+        /**
+         * Get the progress percentage text label node
+         */
+        CCLabelBMFont* getProgressLabel() const;
+
+        /**
+         * Get the current style of the progress bar
+         */
+        ProgressBarStyle getProgressBarStyle() const;
+
+        /**
+         * Show the label displaying the current percentage of progress
+         *
+         * @param bool Whether to toggle visibility
+         */
+        void showProgressLabel(bool show);
     };
 }
