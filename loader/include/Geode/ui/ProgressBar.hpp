@@ -18,6 +18,8 @@ namespace geode {
         ProgressBar();
         ~ProgressBar();
 
+        void customSetup();
+
         bool init() override;
 
     public:
@@ -36,7 +38,7 @@ namespace geode {
          *
          * @param color RGB color object
          */
-        void setProgressBarFillColor(ccColor3B color);
+        void setFillColor(ccColor3B color);
 
         /**
          * Update the size of the fill of the bar
@@ -44,6 +46,13 @@ namespace geode {
          * @param value A float from 0 to 100
          */
         virtual void updateProgress(float value);
+
+        /**
+         * Show the label displaying the current percentage of progress
+         *
+         * @param bool Whether to toggle visibility
+         */
+        void showProgressLabel(bool show);
 
         /**
          * Get the current progress percentage of the bar
@@ -58,13 +67,11 @@ namespace geode {
         /**
          * Get the current style of the progress bar
          */
-        ProgressBarStyle getProgressBarStyle() const;
+        ProgressBarStyle getStyle() const;
 
         /**
-         * Show the label displaying the current percentage of progress
-         *
-         * @param bool Whether to toggle visibility
+         * Get the current color of the fill of the progress bar
          */
-        void showProgressLabel(bool show);
+        ccColor3B getFillColor() const;
     };
 }

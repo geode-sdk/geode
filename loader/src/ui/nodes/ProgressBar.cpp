@@ -5,19 +5,27 @@ using namespace geode::prelude;
 
 class ProgressBar::Impl final {
 public:
-    Ref<CCSprite> progressBar = nullptr; // Progress bar outline
-    CCSprite* progressBarFill = nullptr; // Progress bar fill
-    CCLabelBMFont* progressPercentLabel = nullptr; // The text label displaying the percentage
+    // Progress bar outline
+    Ref<CCSprite> progressBar = nullptr;
+    // Progress bar fill
+    CCSprite* progressBarFill = nullptr;
+    // The text label displaying the percentage
+    Ref<CCLabelBMFont> progressPercentLabel = nullptr;
 
-    float progress = 0.0f; // Current progress bar fill percentage ranging from 0 to 100
+    // Current progress bar fill percentage ranging from 0 to 100
+    float progress = 0.0f;
 
-    ccColor3B progressBarFillColor = { 255, 255, 255 }; // Current color of the filled progress bar
-    bool showProgressPercentLabel = false; // Whether to show the label showing the percentage of the current progress
+    // Style of the progress bar
+    ProgressBarStyle style = ProgressBarStyle::Level;
+    // Current color of the filled progress bar
+    ccColor3B progressBarFillColor = { 255, 255, 255 };
+    // Whether to show the label showing the percentage of the current progress
+    bool showProgressPercentLabel = false;
 
-    ProgressBarStyle style = ProgressBarStyle::Level; // Style of the progress bar
-
-    float progressBarFillMaxWidth = 0.0f; // Max width for the progress fill bar node
-    float progressBarFillMaxHeight = 0.0f; // Max height for the progress fill bar node
+    // Max width for the progress fill bar node
+    float progressBarFillMaxWidth = 0.0f;
+    // Max height for the progress fill bar node
+    float progressBarFillMaxHeight = 0.0f;
 };
 
 ProgressBar::ProgressBar() {
@@ -26,9 +34,7 @@ ProgressBar::ProgressBar() {
 
 ProgressBar::~ProgressBar() {};
 
-bool ProgressBar::init() {
-    if (!CCNode::init()) return false;
-
+void ProgressBar::customSetup() {
     switch (m_impl->style) {
     case ProgressBarStyle::Level:
         m_impl->progressBar = CCSprite::create("slidergroove2.png");
@@ -97,6 +103,12 @@ bool ProgressBar::init() {
     this->addChild(m_impl->progressPercentLabel);
 
     this->updateProgress(m_impl->progress);
+};
+
+bool ProgressBar::init() {
+    if (!CCNode::init()) return false;
+
+    this->customSetup();
 
     return true;
 };
@@ -106,11 +118,11 @@ void ProgressBar::setStyle(ProgressBarStyle style) {
         m_impl->style = style;
 
         this->removeAllChildren();
-        init(); // init again with new style
+        this->customSetup(); // setup again with new style
     };
 };
 
-void ProgressBar::setProgressBarFillColor(ccColor3B color) {
+void ProgressBar::setFillColor(ccColor3B color) {
     m_impl->progressBarFillColor = color;
     if (m_impl->progressBarFill) m_impl->progressBarFill->setColor(color);
 };
@@ -132,6 +144,11 @@ void ProgressBar::updateProgress(float value) {
     };
 };
 
+void ProgressBar::showProgressLabel(bool show) {
+    m_impl->showProgressPercentLabel = show;
+    if (m_impl->progressPercentLabel) m_impl->progressPercentLabel->setVisible(show);
+};
+
 float ProgressBar::getProgress() const {
     return m_impl->progress;
 };
@@ -140,13 +157,12 @@ CCLabelBMFont* ProgressBar::getProgressLabel() const {
     return m_impl->progressPercentLabel;
 };
 
-ProgressBarStyle ProgressBar::getProgressBarStyle() const {
+ProgressBarStyle ProgressBar::getStyle() const {
     return m_impl->style;
 };
 
-void ProgressBar::showProgressLabel(bool show) {
-    m_impl->showProgressPercentLabel = show;
-    if (m_impl->progressPercentLabel) m_impl->progressPercentLabel->setVisible(show);
+ccColor3B ProgressBar::getFillColor() const {
+    return m_impl->progressBarFillColor;
 };
 
 ProgressBar* ProgressBar::create() {
