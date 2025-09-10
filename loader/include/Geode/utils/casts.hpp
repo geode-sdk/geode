@@ -63,4 +63,23 @@ namespace geode::cast {
         }
         return nullptr;
     }
+    /**
+     * Repeatedly apply static_cast in order.
+     * Useful for casting an object to a modify class, which would
+     * otherwise require multiple casts.
+     */
+    template <typename Next, typename... Chain, typename Original>
+    static constexpr decltype(auto) chain_cast(Original&& original) {
+        if constexpr (sizeof...(Chain) == 0) {
+            return static_cast<Next>(std::forward<Original>(original));
+        } else {
+            return chain_cast<Chain...>(static_cast<Next>(std::forward<Original>(original)));
+        }    
+    }
+
+    template <typename Original>
+    static constexpr decltype(auto) chain_cast(Original&& original) {
+        return std::forward<Original>(original);
+    }
+
 }
