@@ -78,9 +78,4 @@ namespace geode::cast {
         }    
     }
 
-    template <typename Original>
-    static constexpr decltype(auto) chain_cast(Original&& original) {
-        return std::forward<Original>(original);
-    }
-
 }
