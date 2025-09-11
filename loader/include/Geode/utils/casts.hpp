@@ -65,8 +65,9 @@ namespace geode::cast {
     }
     /**
      * Repeatedly apply static_cast in order.
-     * Useful for casting an object to a modify class, which would
-     * otherwise require multiple casts.
+     * Useful for casting an object to a modify class of a parent class,
+     * which would otherwise require multiple casts.
+     * @example chain_cast<GJBaseGameLayer*, MyGJBGL*>(PlayLayer::get());
      */
     template <typename Next, typename... Chain, typename Original>
     static constexpr decltype(auto) chain_cast(Original&& original) {
