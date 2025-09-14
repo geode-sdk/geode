@@ -501,3 +501,399 @@ ListenerResult AndroidInputTimestampFilter::handle(geode::Function<Callback>& fn
     fn(event);
     return ListenerResult::Propagate;
 }
+
+geode::Result<int> geode::getConnectedControllerCount() {
+    JniMethodInfo info;
+    if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "controllersConnected", "()I")) {
+        auto result = info.env->CallStaticIntMethod(info.classID, info.methodID);
+        info.env->DeleteLocalRef(info.classID);
+
+        return Ok(result);
+    } else {
+        clearJNIException();
+    }
+
+    return Err("method not found");
+}
+
+geode::Result<std::vector<int>> geode::getConnectedDevices() {
+    JniMethodInfo info;
+    if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "getConnectedDevices", "()[I")) {
+        auto resultObject = reinterpret_cast<jintArray>(info.env->CallStaticObjectMethod(info.classID, info.methodID));
+        info.env->DeleteLocalRef(info.classID);
+
+        auto size = info.env->GetArrayLength(resultObject);
+        std::vector<int> result(size);
+
+        info.env->GetIntArrayRegion(resultObject, 0, size, result.data());
+
+        info.env->DeleteLocalRef(resultObject);
+
+        return Ok(result);
+    } else {
+        clearJNIException();
+    }
+
+    return Err("method not found");
+}
+
+AndroidInputDevice::AndroidInputDevice(int deviceId, jobject inputDevice) : m_deviceId(deviceId), m_inputDevice(inputDevice) {}
+
+Result<AndroidInputDevice> AndroidInputDevice::create(int deviceId) {
+    JniMethodInfo info;
+    if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "getDevice", "(I)Landroid/view/InputDevice;")) {
+        auto result = info.env->CallStaticObjectMethod(info.classID, info.methodID, deviceId);
+        info.env->DeleteLocalRef(info.classID);
+
+        if (result == nullptr) {
+            return Err("device does not exist");
+        }
+
+        auto newRef = info.env->NewGlobalRef(result);
+
+        return Ok(std::move(AndroidInputDevice(deviceId, newRef)));
+    } else {
+        clearJNIException();
+    }
+
+    return Err("method not found");
+}
+
+AndroidInputDevice::~AndroidInputDevice() {
+    if (!m_inputDevice) {
+        return;
+    }
+
+    auto vm = JniHelper::getJavaVM();
+
+    JNIEnv* env;
+    if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) == JNI_OK) {
+        env->DeleteGlobalRef(m_inputDevice);
+    }
+}
+
+std::string AndroidInputDevice::getDescriptor() {
+    JniMethodInfo info;
+    if (JniHelper::getMethodInfo(info, "android/view/InputDevice", "getDescriptor", "()Ljava/lang/String;")) {
+        auto stringResult = reinterpret_cast<jstring>(info.env->CallObjectMethod(m_inputDevice, info.methodID));
+
+        std::string result = JniHelper::jstring2string(stringResult);
+
+        info.env->DeleteLocalRef(stringResult);
+        info.env->DeleteLocalRef(info.classID);
+
+        return result;
+    } else {
+        clearJNIException();
+    }
+
+    return "";
+}
+
+std::string AndroidInputDevice::getName() {
+    JniMethodInfo info;
+    if (JniHelper::getMethodInfo(info, "android/view/InputDevice", "getName", "()Ljava/lang/String;")) {
+        auto stringResult = reinterpret_cast<jstring>(info.env->CallObjectMethod(m_inputDevice, info.methodID));
+
+        std::string result = JniHelper::jstring2string(stringResult);
+
+        info.env->DeleteLocalRef(stringResult);
+        info.env->DeleteLocalRef(info.classID);
+
+        return result;
+    } else {
+        clearJNIException();
+    }
+
+    return "";
+}
+
+int AndroidInputDevice::getVendorId() {
+    JniMethodInfo info;
+    if (JniHelper::getMethodInfo(info, "android/view/InputDevice", "getVendorId", "()I")) {
+        auto result = info.env->CallIntMethod(m_inputDevice, info.methodID);
+        info.env->DeleteLocalRef(info.classID);
+
+        return result;
+    } else {
+        clearJNIException();
+    }
+
+    return 0;
+}
+
+int AndroidInputDevice::getProductId() {
+    JniMethodInfo info;
+    if (JniHelper::getMethodInfo(info, "android/view/InputDevice", "getProductId", "()I")) {
+        auto result = info.env->CallIntMethod(m_inputDevice, info.methodID);
+        info.env->DeleteLocalRef(info.classID);
+
+        return result;
+    } else {
+        clearJNIException();
+    }
+
+    return 0;
+}
+
+float AndroidInputDevice::getBatteryCapacity() {
+    JniMethodInfo info;
+    if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "getDeviceBatteryCapacity", "(I)F")) {
+        auto result = info.env->CallStaticFloatMethod(info.classID, info.methodID, m_deviceId);
+        info.env->DeleteLocalRef(info.classID);
+
+        return result;
+    } else {
+        clearJNIException();
+    }
+
+    return 0.0f;
+}
+
+bool AndroidInputDevice::hasBattery() {
+    JniMethodInfo info;
+    if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "deviceHasBattery", "(I)Z")) {
+        auto result = info.env->CallStaticBooleanMethod(info.classID, info.methodID, m_deviceId);
+        info.env->DeleteLocalRef(info.classID);
+
+        return result;
+    } else {
+        clearJNIException();
+    }
+
+    return false;
+}
+
+int AndroidInputDevice::getBatteryStatus() {
+    JniMethodInfo info;
+    if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "getDeviceBatteryStatus", "(I)I")) {
+        auto result = info.env->CallStaticIntMethod(info.classID, info.methodID, m_deviceId);
+        info.env->DeleteLocalRef(info.classID);
+
+        return result;
+    } else {
+        clearJNIException();
+    }
+
+    return 0.0f;
+}
+
+int AndroidInputDevice::getSources() {
+    JniMethodInfo info;
+    if (JniHelper::getMethodInfo(info, "android/view/InputDevice", "getSources", "()I")) {
+        auto result = info.env->CallIntMethod(m_inputDevice, info.methodID);
+        info.env->DeleteLocalRef(info.classID);
+
+        return result;
+    } else {
+        clearJNIException();
+    }
+
+    return 0;
+}
+
+int AndroidInputDevice::getLightCount() {
+    JniMethodInfo info;
+    if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "getDeviceLightsCount", "(I)I")) {
+        auto result = info.env->CallStaticIntMethod(info.classID, info.methodID, m_deviceId);
+        info.env->DeleteLocalRef(info.classID);
+
+        return result;
+    } else {
+        clearJNIException();
+    }
+
+    return 0;
+}
+
+AndroidInputDevice::LightType AndroidInputDevice::getLightType() {
+    JniMethodInfo info;
+    if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "getLightType", "(I)I")) {
+        auto result = info.env->CallStaticIntMethod(info.classID, info.methodID, m_deviceId);
+        info.env->DeleteLocalRef(info.classID);
+
+        return static_cast<LightType>(result);
+    } else {
+        clearJNIException();
+    }
+
+    return LightType::None;
+}
+
+Result<> AndroidInputDevice::setLights(LightType type, std::uint32_t color) {
+    JniMethodInfo info;
+    if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "setDeviceLightColor", "(III)Z")) {
+        auto result = info.env->CallStaticBooleanMethod(info.classID, info.methodID, m_deviceId, static_cast<jint>(color), static_cast<jint>(type));
+        info.env->DeleteLocalRef(info.classID);
+
+        if (!result) {
+            return Err("call failed");
+        } else {
+            return Ok();
+        }
+    } else {
+        clearJNIException();
+    }
+
+    return Err("setDeviceLightColor method not found");
+}
+
+int AndroidInputDevice::getMotorCount() {
+    JniMethodInfo info;
+    if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "getDeviceHapticsCount", "(I)I")) {
+        auto result = info.env->CallStaticIntMethod(info.classID, info.methodID, m_deviceId);
+        info.env->DeleteLocalRef(info.classID);
+
+        return result;
+    } else {
+        clearJNIException();
+    }
+
+    return 0;
+}
+
+Result<> AndroidInputDevice::vibrateDevice(long durationMs, int intensity, int motorIdx) {
+    JniMethodInfo info;
+    if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "vibrateDevice", "(IJII)Z")) {
+        auto result = info.env->CallStaticBooleanMethod(info.classID, info.methodID, m_deviceId, durationMs, intensity, motorIdx);
+        info.env->DeleteLocalRef(info.classID);
+
+        if (!result) {
+            return Err("call failed");
+        } else {
+            return Ok();
+        }
+    } else {
+        clearJNIException();
+    }
+
+    return Err("vibrateDevice method not found");
+}
+
+int AndroidInputDevice::getDeviceId() const {
+    return m_deviceId;
+}
+
+AndroidInputDevice::AndroidInputDevice(AndroidInputDevice&& other) {
+    m_deviceId = other.m_deviceId;
+    m_inputDevice = other.m_inputDevice;
+
+    other.m_deviceId = 0;
+    other.m_inputDevice = nullptr;
+}
+
+AndroidInputDevice& AndroidInputDevice::operator=(AndroidInputDevice&& other) {
+    m_deviceId = other.m_deviceId;
+    m_inputDevice = other.m_inputDevice;
+
+    other.m_deviceId = 0;
+    other.m_inputDevice = nullptr;
+
+    return *this;
+}
+
+extern "C"
+JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_setNextInputDevice(JNIEnv*, jobject, jint deviceId, jint eventSource) {
+    geode::AndroidInputDeviceInfoEvent(deviceId, eventSource).post();
+}
+
+AndroidInputDeviceInfoEvent::AndroidInputDeviceInfoEvent(int deviceId, int eventSource) : m_deviceId(deviceId), m_eventSource(eventSource) {}
+
+int AndroidInputDeviceInfoEvent::deviceId() const { return m_deviceId; }
+int AndroidInputDeviceInfoEvent::eventSource() const { return m_eventSource; }
+
+ListenerResult AndroidInputDeviceInfoFilter::handle(std::function<Callback> fn, AndroidInputDeviceInfoEvent* event)  {
+    fn(event);
+    return ListenerResult::Propagate;
+}
+
+extern "C"
+JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inputDeviceAdded(JNIEnv*, jobject, jint deviceId, jint eventSource) {
+    geode::AndroidInputDeviceEvent(deviceId, geode::AndroidInputDeviceEvent::Status::Added).post();
+}
+
+extern "C"
+JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inputDeviceChanged(JNIEnv*, jobject, jint deviceId, jint eventSource) {
+    geode::AndroidInputDeviceEvent(deviceId, geode::AndroidInputDeviceEvent::Status::Changed).post();
+}
+
+extern "C"
+JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inputDeviceRemoved(JNIEnv*, jobject, jint deviceId, jint eventSource) {
+    geode::AndroidInputDeviceEvent(deviceId, geode::AndroidInputDeviceEvent::Status::Removed).post();
+}
+
+AndroidInputDeviceEvent::AndroidInputDeviceEvent(int deviceId, Status status) : m_deviceId(deviceId), m_status(status) {}
+
+int AndroidInputDeviceEvent::deviceId() const { return m_deviceId; }
+AndroidInputDeviceEvent::Status AndroidInputDeviceEvent::status() const { return m_status; }
+
+ListenerResult AndroidInputDeviceFilter::handle(std::function<Callback> fn, AndroidInputDeviceEvent* event)  {
+    fn(event);
+    return ListenerResult::Propagate;
+}
+
+namespace {
+    std::vector<float> extractFloatArray(JNIEnv* env, jfloatArray array) {
+        auto size = env->GetArrayLength(array);
+
+        std::vector<float> res(size);
+
+        env->GetFloatArrayRegion(array, 0, size, res.data());
+
+        return res;
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_onJoystickEvent(JNIEnv* env, jobject, jfloatArray leftX, jfloatArray leftY, jfloatArray rightX, jfloatArray rightY, jfloatArray hatX, jfloatArray hatY, jfloatArray leftTrigger, jfloatArray rightTrigger) {
+    AndroidInputJoystickEvent(
+        extractFloatArray(env, leftX),
+        extractFloatArray(env, leftY),
+        extractFloatArray(env, rightX),
+        extractFloatArray(env, rightY),
+        extractFloatArray(env, hatX),
+        extractFloatArray(env, hatY),
+        extractFloatArray(env, leftTrigger),
+        extractFloatArray(env, rightTrigger)
+    ).post();
+}
+
+AndroidInputJoystickEvent::AndroidInputJoystickEvent(std::vector<float> leftX, std::vector<float> leftY, std::vector<float> rightX, std::vector<float> rightY, std::vector<float> hatX, std::vector<float> hatY, std::vector<float> leftTrigger, std::vector<float> rightTrigger)
+    : m_leftX(leftX), m_leftY(leftY), m_rightX(rightX), m_rightY(rightY), m_hatX(hatX), m_hatY(hatY), m_leftTrigger(leftTrigger), m_rightTrigger(rightTrigger) {}
+
+std::vector<float> AndroidInputJoystickEvent::leftX() const {
+    return m_leftX;
+}
+
+std::vector<float> AndroidInputJoystickEvent::leftY() const {
+    return m_leftY;
+}
+
+std::vector<float> AndroidInputJoystickEvent::rightX() const {
+    return m_rightX;
+}
+
+std::vector<float> AndroidInputJoystickEvent::rightY() const {
+    return m_rightY;
+}
+
+std::vector<float> AndroidInputJoystickEvent::hatX() const {
+    return m_hatX;
+}
+
+std::vector<float> AndroidInputJoystickEvent::hatY() const {
+    return m_hatY;
+}
+
+std::vector<float> AndroidInputJoystickEvent::leftTrigger() const {
+    return m_leftTrigger;
+}
+
+std::vector<float> AndroidInputJoystickEvent::rightTrigger() const {
+    return m_rightTrigger;
+}
+
+ListenerResult AndroidInputJoystickFilter::handle(std::function<Callback> fn, AndroidInputJoystickEvent* event)  {
+    fn(event);
+    return ListenerResult::Propagate;
+}
