@@ -1,9 +1,15 @@
 #include <Geode/modify/LoadingLayer.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <matjson.hpp>
-#include <charconv>
 #include <Geode/binding/CCTextInputNode.hpp>
 #include <Geode/binding/GameManager.hpp>
+
+#ifdef GEODE_IS_WINDOWS
+#else
+# include <unordered_map>
+# include <typeindex>
+# include <cxxabi.h>
+#endif
 
 using namespace geode::prelude;
 
