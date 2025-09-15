@@ -392,6 +392,7 @@ void Loader::Impl::buildModGraph() {
                 continue;
 
             dependency.mod->m_impl->m_dependants.push_back(mod);
+            dependency.mod->m_impl->m_settings->addDependant(mod);
         }
         for (auto& incompatibility : mod->m_impl->m_metadata.m_impl->m_incompatibilities) {
             incompatibility.mod =

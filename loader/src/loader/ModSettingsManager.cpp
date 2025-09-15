@@ -96,6 +96,7 @@ public:
     };
     std::string modID;
     std::unordered_map<std::string, SettingInfo> settings;
+    std::vector<Mod*> dependants;
     // Stored so custom settings registered after the fact can be loaded
     // If the ability to unregister custom settings is ever added, remember to
     // update this by calling saveSettingValueToSave
@@ -190,6 +191,11 @@ void ModSettingsManager::markRestartRequired() {
 Result<> ModSettingsManager::registerCustomSettingType(std::string_view type, SettingGenerator generator) {
     GEODE_UNWRAP(SharedSettingTypesPool::get().add(m_impl->modID, type, generator));
     m_impl->createSettings();
+    for (auto& mod : m_impl->dependants) {
+        if (auto settings = ModSettingsManager::from(mod)) {
+            settings->m_impl->createSettings();
+        }
+    }
     return Ok();
 }
 
@@ -222,4 +228,8 @@ std::shared_ptr<Setting> ModSettingsManager::get(std::string_view key) {
 
 bool ModSettingsManager::restartRequired() const {
     return m_impl->restartRequired;
+}
+
+void ModSettingsManager::addDependant(Mod* mod) {
+    m_impl->dependants.push_back(mod);
 }
