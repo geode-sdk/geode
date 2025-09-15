@@ -73,10 +73,10 @@ public:
 
 protected:
     // Weak links to children
-	CC_SYNTHESIZE_RETAIN(CCSprite*, m_pMinusSprite, MinusSprite)
-    CC_SYNTHESIZE_RETAIN(CCSprite*, m_pPlusSprite, PlusSprite)
-    CC_SYNTHESIZE_RETAIN(CCLabelTTF*, m_pMinusLabel, MinusLabel)
-    CC_SYNTHESIZE_RETAIN(CCLabelTTF*, m_pPlusLabel, PlusLabel)
+	CC_SYNTHESIZE_NV_RETAIN(CCSprite*, m_pMinusSprite, MinusSprite)
+    CC_SYNTHESIZE_NV_RETAIN(CCSprite*, m_pPlusSprite, PlusSprite)
+    CC_SYNTHESIZE_NV_RETAIN(CCLabelTTF*, m_pMinusLabel, MinusLabel)
+    CC_SYNTHESIZE_NV_RETAIN(CCLabelTTF*, m_pPlusLabel, PlusLabel)
 
     /** Update the layout of the stepper with the given touch location. */
     void updateLayoutUsingTouchLocation(CCPoint location);

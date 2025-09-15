@@ -66,10 +66,10 @@ protected:
     //bool m_bIsOpacityModifyRGB;
 
     /** The current title that is displayed on the button. */
-    CC_SYNTHESIZE_READONLY(CCString*, m_currentTitle, CurrentTitle);
+    CC_SYNTHESIZE_READONLY_NV(CCString*, m_currentTitle, CurrentTitle);
 
     /** The current color used to display the title. */
-    CC_SYNTHESIZE_READONLY_PASS_BY_REF(ccColor3B, m_currentTitleColor, CurrentTitleColor);
+    CC_SYNTHESIZE_READONLY_NV_PASS_BY_REF(ccColor3B, m_currentTitleColor, CurrentTitleColor);
 
     /** Adjust the background image. YES by default. If the property is set to NO, the
     background will use the prefered size of the background image. */
@@ -78,10 +78,10 @@ protected:
     bool m_doesAdjustBackgroundImage;
 
     /** The current title label. */
-    CC_SYNTHESIZE_RETAIN(CCNode*, m_titleLabel, TitleLabel);
+    CC_SYNTHESIZE_NV_RETAIN(CCNode*, m_titleLabel, TitleLabel);
 
     /** The current background sprite. */
-    CC_SYNTHESIZE_RETAIN(CCScale9Sprite*, m_backgroundSprite, BackgroundSprite);
+    CC_SYNTHESIZE_NV_RETAIN(CCScale9Sprite*, m_backgroundSprite, BackgroundSprite);
 
     /** The prefered size of the button, if label is larger it will be expanded. */
     CC_PROPERTY(CCSize, m_preferredSize, PreferredSize);
@@ -105,18 +105,18 @@ public:
     bool isPushed() { return m_isPushed; }
 
     // <CCControlState, CCString*>
-    CC_SYNTHESIZE_RETAIN(CCDictionary*, m_titleDispatchTable, TitleDispatchTable);
+    CC_SYNTHESIZE_NV_RETAIN(CCDictionary*, m_titleDispatchTable, TitleDispatchTable);
     // <CCControlState, CCColor3bObject*>
-    CC_SYNTHESIZE_RETAIN(CCDictionary*, m_titleColorDispatchTable, TitleColorDispatchTable);
+    CC_SYNTHESIZE_NV_RETAIN(CCDictionary*, m_titleColorDispatchTable, TitleColorDispatchTable);
     // <CCControlState, CCNode*>
-    CC_SYNTHESIZE_RETAIN(CCDictionary*, m_titleLabelDispatchTable, TitleLabelDispatchTable);
+    CC_SYNTHESIZE_NV_RETAIN(CCDictionary*, m_titleLabelDispatchTable, TitleLabelDispatchTable);
     // <CCControlState, CCScale9Sprite*>
-    CC_SYNTHESIZE_RETAIN(CCDictionary*, m_backgroundSpriteDispatchTable, BackgroundSpriteDispatchTable);
+    CC_SYNTHESIZE_NV_RETAIN(CCDictionary*, m_backgroundSpriteDispatchTable, BackgroundSpriteDispatchTable);
 
     /* Define the button margin for Top/Bottom edge */
-    CC_SYNTHESIZE_READONLY(int, m_marginV, VerticalMargin);
+    CC_SYNTHESIZE_READONLY_NV(int, m_marginV, VerticalMargin);
     /* Define the button margin for Left/Right edge */
-    CC_SYNTHESIZE_READONLY(int, m_marginH, HorizontalOrigin);
+    CC_SYNTHESIZE_READONLY_NV(int, m_marginH, HorizontalOrigin);
     //set the margins at once (so we only have to do one call of needsLayout)
     virtual void setMargins(int marginH, int marginV);
 
