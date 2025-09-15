@@ -55,7 +55,6 @@ namespace gd {
     string& string::operator=(string&& other) {
         // TODO: do this better :-)
         impl.setStorage(other);
-        implFor(other).free();
         implFor(other).setEmpty();
         return *this;
     }
