@@ -82,6 +82,8 @@ void setEmptyInternalString(gd::string* str) {
 
 namespace geode::stl {
     void StringImpl::setEmpty() {
+        this->free();
+        
         data.m_data = emptyInternalString();
     }
 
