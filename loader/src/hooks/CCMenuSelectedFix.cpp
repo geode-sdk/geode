@@ -1,4 +1,5 @@
 #include <Geode/Geode.hpp>
+#ifndef GEODE_IS_IOS
 #include <Geode/utils/VMTHookManager.hpp>
 #include <Geode/modify/Traits.hpp>
 #include <Geode/modify/CCMenu.hpp>
@@ -33,3 +34,4 @@ struct CCMenuSelectedFix : Modify<CCMenuSelectedFix, CCMenu> {
         CCNode::removeAllChildren();
     }
 };
+#endif

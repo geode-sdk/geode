@@ -503,6 +503,8 @@ namespace geode {
     };
 }
 
+#ifdef GEODE_MOD_ID
+
 namespace geode::geode_internal {
     // this impl relies on the GEODE_MOD_ID macro set by cmake
     template <size_t N>
@@ -526,6 +528,14 @@ template <geode::geode_internal::StringConcatModIDSlash Str>
 constexpr auto operator""_spr() {
     return Str.buffer;
 }
+
+#else
+
+GEODE_HIDDEN inline char const* operator"" _spr(char const* str, size_t len) {
+    return geode::Mod::get()->expandSpriteName({ str, len }).data();
+}
+
+#endif
 
 /**
  * Leaves a marker in the binary that can be used to patch

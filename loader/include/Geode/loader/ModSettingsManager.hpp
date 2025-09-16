@@ -61,5 +61,11 @@ namespace geode {
          * has been altered
          */
         bool restartRequired() const;
+
+        /**
+         * Add a mod that depends on this mod, so that when settings are reloaded
+         * for this mod, they are also reloaded for the dependant mods
+         */
+        void addDependant(Mod* mod);
     };
 }
