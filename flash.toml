@@ -34,9 +34,12 @@ include = [
     "Geode/**/*.h",
 ]
 exclude = [
+    "Geode/Modify.hpp",
     "Geode/modify/Comparer.hpp",
     "Geode/platform/*.hpp",
-    "Geode/c++stl/*.hpp",
+    "Geode/c++stl/**/*.hpp",
+    "Geode/c++stl/**/*.h",
+    "Geode/fmod/fmod_android.h",
     # All of the relevant cocos headers are included through Geode headers
     "Geode/cocos/**/*.h"
 ]
