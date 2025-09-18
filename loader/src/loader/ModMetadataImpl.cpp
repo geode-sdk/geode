@@ -181,6 +181,10 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         impl->m_isAPI = true;
     }
 
+    root.has("load-before").into(impl->m_loadBefore);
+    root.has("load-after").into(impl->m_loadAfter);
+    root.has("load-priority").into(impl->m_loadPriority);
+
     if (info.getID() != "geode.loader") {
         impl->m_dependencies.push_back({
             "geode.loader",
@@ -619,6 +623,15 @@ std::optional<std::string> ModMetadata::getGameVersion() const {
 }
 VersionInfo ModMetadata::getGeodeVersion() const {
     return m_impl->m_geodeVersion;
+}
+std::unordered_set<std::string> ModMetadata::getLoadBefore() const {
+    return m_impl->m_loadBefore;
+}
+std::unordered_set<std::string> ModMetadata::getLoadAfter() const {
+    return m_impl->m_loadAfter;
+}
+int ModMetadata::getLoadPriority() const {
+    return m_impl->m_loadPriority;
 }
 Result<> ModMetadata::checkGameVersion() const {
     if (!m_impl->m_gdVersion.empty() && m_impl->m_gdVersion != "*") {

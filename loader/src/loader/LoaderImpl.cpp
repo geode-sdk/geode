@@ -737,48 +737,77 @@ void Loader::Impl::refreshModGraph() {
 }
 
 void Loader::Impl::orderModStack() {
-    std::unordered_set<Mod*> visited;
-    visited.insert(Mod::get());
-    Mod* selectedMod = nullptr;
-    do {
-        selectedMod = nullptr;
-        for (auto const& mod : ModImpl::get()->m_dependants) {
-            if (visited.count(mod) != 0) continue;
+    auto& dependants = ModImpl::get()->m_dependants;
+    auto comp = [](Mod* a, Mod* b) {
+        auto aID = a->getID();
+        auto bID = b->getID();
+        auto aEarly = a->needsEarlyLoad();
+        auto bEarly = b->needsEarlyLoad();
 
-            for (auto dep : mod->getMetadataRef().getDependencies()) {
-                if (dep.mod && dep.importance == ModMetadata::Dependency::Importance::Required &&
-                    visited.count(dep.mod) == 0) {
-                    // the dependency is not visited yet
-                    // so we cant select this mod
-                    goto skip_mod;
-                }
-            }
-
-            if (selectedMod) {
-                if (
-                    !selectedMod->m_impl->needsEarlyLoad() &&
-                    mod->m_impl->needsEarlyLoad()
-                ) {
-                    // this mod is implied to be loaded early
-                    // so we can override a mod that is not
-                    selectedMod = mod;
-                }
-            }
-            else {
-                selectedMod = mod;
-            }
-
-        skip_mod:
-            continue;
+        // early load check
+        if (aEarly && !bEarly) {
+            // a is early load, b is not, so a goes first
+            return true;
+        }
+        else if (!aEarly && bEarly) {
+            // b is early load, a is not, so b goes first
+            return false;
         }
 
-        if (selectedMod) {
-            m_modsToLoad.push_back(selectedMod);
-            visited.insert(selectedMod);
+        // load priority check
+        auto aPriority = a->getLoadPriority();
+        auto bPriority = b->getLoadPriority();
+        if (aPriority < bPriority) {
+            // a has higher priority, so a goes first
+            return true;
         }
-    } while (selectedMod != nullptr);
+        else if (aPriority > bPriority) {
+            // b has higher priority, so b goes first
+            return false;
+        }
 
-    for (auto mod : m_modsToLoad) {
+        // load before/after check
+        if (a->getLoadBefore().count(bID) != 0 || b->getLoadAfter().count(aID) != 0) {
+            // a wants to load before b, so a goes first
+            return true;
+        }
+        else if (a->getLoadAfter().count(bID) != 0 || b->getLoadBefore().count(aID) != 0) {
+            // b wants to load before a, so b goes first
+            return false;
+        }
+
+        // fallback to alphabetical
+        return aID < bID;
+    };
+
+    // resolve early load and priority order first
+    for (size_t i = 0; i < dependants.size(); i++) {
+        for (size_t j = i + 1; j < dependants.size(); j++) {
+            auto a = dependants[i];
+            auto b = dependants[j];
+            // if b should be before a, but a is before b, put b before a
+            if (!comp(a, b)) {
+                dependants.erase(dependants.begin() + j);
+                dependants.insert(dependants.begin() + i, b);
+            }
+        }
+    }
+
+    // resolve dependency order after the first pass
+    for (size_t i = 0; i < dependants.size(); i++) {
+        for (size_t j = i + 1; j < dependants.size(); j++) {
+            auto a = dependants[i];
+            auto b = dependants[j];
+            // if a depends on b, but a is before b, put b before a
+            if (ranges::contains(b->m_impl->m_dependants, a)) {
+                dependants.erase(dependants.begin() + j);
+                dependants.insert(dependants.begin() + i, b);
+            }
+        }
+    }
+
+    for (auto mod : dependants) {
+        m_modsToLoad.push_back(mod);
         log::debug("{}, early: {}", mod->getID(), mod->needsEarlyLoad());
     }
 }

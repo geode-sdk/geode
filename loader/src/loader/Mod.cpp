@@ -313,3 +313,15 @@ bool Mod::shouldLoad() const {
 bool Mod::isCurrentlyLoading() const {
     return m_impl->isCurrentlyLoading();
 }
+
+int Mod::getLoadPriority() const {
+    return m_impl->getLoadPriority();
+}
+
+std::unordered_set<std::string> Mod::getLoadBefore() const {
+    return m_impl->getLoadBefore();
+}
+
+std::unordered_set<std::string> Mod::getLoadAfter() const {
+    return m_impl->getLoadAfter();
+}

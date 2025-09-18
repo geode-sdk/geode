@@ -41,6 +41,9 @@ namespace geode {
         std::vector<std::string> m_spritesheets;
         std::vector<std::pair<std::string, matjson::Value>> m_settings;
         std::unordered_set<std::string> m_tags;
+        std::unordered_set<std::string> m_loadBefore;
+        std::unordered_set<std::string> m_loadAfter;
+        int m_loadPriority = 0;
         bool m_needsEarlyLoad = false;
         bool m_isAPI = false;
 

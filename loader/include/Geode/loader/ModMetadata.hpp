@@ -3,7 +3,7 @@
 #include <Geode/Result.hpp>
 #include "../utils/VersionInfo.hpp"
 #include "Types.hpp"
-
+#include <filesystem>
 #include <matjson.hpp>
 #include <memory>
 
@@ -198,6 +198,21 @@ namespace geode {
          * Gets the target Geode version for the current platform.
         */
         [[nodiscard]] VersionInfo getGeodeVersion() const;
+
+        /**
+         * Gets the list of mod IDs that should be loaded before this mod.
+         */
+        [[nodiscard]] std::unordered_set<std::string> getLoadBefore() const;
+
+        /**
+         * Gets the list of mod IDs that should be loaded after this mod.
+         */
+        [[nodiscard]] std::unordered_set<std::string> getLoadAfter() const;
+
+        /**
+         * Gets the load priority of this mod.
+         */
+        [[nodiscard]] int getLoadPriority() const;
 
         /**
          * Checks if mod can be installed on the current GD version.
