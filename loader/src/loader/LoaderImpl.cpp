@@ -787,9 +787,8 @@ void Loader::Impl::orderModStack() {
         }
     }
 
-    m_modsToLoad.insert(m_modsToLoad.end(), dependants.begin(), dependants.end());
-
-    for (auto mod : m_modsToLoad) {
+    for (auto mod : dependants) {
+        m_modsToLoad.push_back(mod);
         log::debug("{}, early: {}", mod->getID(), mod->needsEarlyLoad());
     }
 }
