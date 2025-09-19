@@ -739,45 +739,22 @@ void Loader::Impl::refreshModGraph() {
 void Loader::Impl::orderModStack() {
     auto& dependants = ModImpl::get()->m_dependants;
     auto comp = [](Mod* a, Mod* b) {
-        auto aID = a->getID();
-        auto bID = b->getID();
+        // early load check (early loads go first)
         auto aEarly = a->needsEarlyLoad();
         auto bEarly = b->needsEarlyLoad();
-
-        // early load check
-        if (aEarly && !bEarly) {
-            // a is early load, b is not, so a goes first
-            return true;
-        }
-        else if (!aEarly && bEarly) {
-            // b is early load, a is not, so b goes first
-            return false;
+        if (aEarly != bEarly) {
+            return aEarly > bEarly;
         }
 
-        // load priority check
+        // load priority check (higher priority/lower number goes first)
         auto aPriority = a->getLoadPriority();
         auto bPriority = b->getLoadPriority();
-        if (aPriority < bPriority) {
-            // a has higher priority, so a goes first
-            return true;
-        }
-        else if (aPriority > bPriority) {
-            // b has higher priority, so b goes first
-            return false;
+        if (aPriority != bPriority) {
+            return aPriority < bPriority;
         }
 
-        // load before/after check
-        if (a->getLoadBefore().count(bID) != 0 || b->getLoadAfter().count(aID) != 0) {
-            // a wants to load before b, so a goes first
-            return true;
-        }
-        else if (a->getLoadAfter().count(bID) != 0 || b->getLoadBefore().count(aID) != 0) {
-            // b wants to load before a, so b goes first
-            return false;
-        }
-
-        // fallback to alphabetical
-        return aID < bID;
+        // fallback to alphabetical id order
+        return a->getID() < b->getID();
     };
 
     // resolve early load and priority order first
@@ -789,6 +766,8 @@ void Loader::Impl::orderModStack() {
             if (!comp(a, b)) {
                 dependants.erase(dependants.begin() + j);
                 dependants.insert(dependants.begin() + i, b);
+                i--;
+                break;
             }
         }
     }
@@ -802,6 +781,8 @@ void Loader::Impl::orderModStack() {
             if (ranges::contains(b->m_impl->m_dependants, a)) {
                 dependants.erase(dependants.begin() + j);
                 dependants.insert(dependants.begin() + i, b);
+                i--;
+                break;
             }
         }
     }

@@ -504,16 +504,6 @@ namespace geode {
          */
         int getLoadPriority() const;
 
-        /**
-         * Get the list of mods that should be loaded before this mod.
-         */
-        std::unordered_set<std::string> getLoadBefore() const;
-
-        /**
-         * Get the list of mods that should be loaded after this mod.
-         */
-        std::unordered_set<std::string> getLoadAfter() const;
-
         friend class ModImpl;
     };
 }

@@ -698,37 +698,16 @@ int Mod::Impl::getLoadPriority(std::unordered_set<Mod*> visited) const {
     if (visited.contains(m_self)) return priority;
 
     visited.insert(m_self);
-    for (auto& dep : m_dependants) {
-        auto depPriority = dep->m_impl->getLoadPriority(visited);
+    for (auto& dep : m_metadata.getDependencies()) {
+        if (dep.importance != ModMetadata::Dependency::Importance::Required || !dep.mod) {
+            continue;
+        }
+        auto depPriority = dep.mod->m_impl->getLoadPriority(visited);
         if (depPriority < priority) {
             priority = depPriority;
         }
     }
     return priority;
-}
-
-std::unordered_set<std::string> Mod::Impl::getLoadBefore(std::unordered_set<Mod*> visited) const {
-    auto loadBefore = m_metadata.getLoadBefore();
-    if (visited.contains(m_self)) return loadBefore;
-
-    visited.insert(m_self);
-    for (auto& dep : m_dependants) {
-        auto depLoadBefore = dep->m_impl->getLoadBefore(visited);
-        loadBefore.insert(depLoadBefore.begin(), depLoadBefore.end());
-    }
-    return loadBefore;
-}
-
-std::unordered_set<std::string> Mod::Impl::getLoadAfter(std::unordered_set<Mod*> visited) const {
-    auto loadAfter = m_metadata.getLoadAfter();
-    if (visited.contains(m_self)) return loadAfter;
-
-    visited.insert(m_self);
-    for (auto& dep : m_dependants) {
-        auto depLoadAfter = dep->m_impl->getLoadAfter(visited);
-        loadAfter.insert(depLoadAfter.begin(), depLoadAfter.end());
-    }
-    return loadAfter;
 }
 
 static Result<ModMetadata> getModImplInfo() {
