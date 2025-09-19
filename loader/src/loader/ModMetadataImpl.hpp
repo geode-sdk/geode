@@ -41,9 +41,9 @@ namespace geode {
         std::vector<std::string> m_spritesheets;
         std::vector<std::pair<std::string, matjson::Value>> m_settings;
         std::unordered_set<std::string> m_tags;
-        int m_loadPriority = 0;
         bool m_needsEarlyLoad = false;
         bool m_isAPI = false;
+        int m_loadPriority = 0;
 
         ModJson m_rawJSON;
 

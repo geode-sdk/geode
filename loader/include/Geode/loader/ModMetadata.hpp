@@ -3,7 +3,7 @@
 #include <Geode/Result.hpp>
 #include "../utils/VersionInfo.hpp"
 #include "Types.hpp"
-#include <filesystem>
+
 #include <matjson.hpp>
 #include <memory>
 

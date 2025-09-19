@@ -698,12 +698,13 @@ int Mod::Impl::getLoadPriority(std::unordered_set<Mod*> visited) const {
     if (visited.contains(m_self)) return priority;
 
     visited.insert(m_self);
+    auto loaderMod = Mod::get();
     for (auto& dep : m_metadata.getDependencies()) {
-        if (dep.importance != ModMetadata::Dependency::Importance::Required || !dep.mod) {
+        if (dep.importance != ModMetadata::Dependency::Importance::Required || !dep.mod || dep.mod == loaderMod) {
             continue;
         }
         auto depPriority = dep.mod->m_impl->getLoadPriority(visited);
-        if (depPriority < priority) {
+        if (depPriority > priority) {
             priority = depPriority;
         }
     }
