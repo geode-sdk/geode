@@ -499,6 +499,11 @@ namespace geode {
         bool shouldLoad() const;
         bool isCurrentlyLoading() const;
 
+        /**
+         * Get the load priority of this mod.
+         */
+        int getLoadPriority() const;
+
         friend class ModImpl;
     };
 }
