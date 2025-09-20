@@ -16,9 +16,10 @@ namespace geode {
         std::unique_ptr<Impl> m_impl;
 
         ProgressBar();
-        ~ProgressBar();
+        virtual ~ProgressBar();
 
-        void customSetup();
+        // Reload the style of the progress bar
+        void reloadStyle();
 
         bool init() override;
 
@@ -39,6 +40,13 @@ namespace geode {
          * @param color RGB color object
          */
         void setFillColor(ccColor3B color);
+
+        /**
+         * Set the progress percentage of the bar
+         *
+         * @param precision Number of decimal places to show in the percentage label
+         */
+        void setPrecision(size_t precision);
 
         /**
          * Update the size of the fill of the bar
@@ -73,5 +81,10 @@ namespace geode {
          * Get the current color of the fill of the progress bar
          */
         ccColor3B getFillColor() const;
+
+        /**
+         * Get the current precision of the percentage label
+         */
+        size_t getPrecision() const;
     };
 }

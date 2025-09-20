@@ -21,6 +21,8 @@ public:
     ccColor3B progressBarFillColor = { 255, 255, 255 };
     // Whether to show the label showing the percentage of the current progress
     bool showProgressPercentLabel = false;
+    // Precision of the percentage label
+    size_t precision = 0;
 
     // Max width for the progress fill bar node
     float progressBarFillMaxWidth = 0.0f;
@@ -34,9 +36,9 @@ ProgressBar::ProgressBar() {
 
 ProgressBar::~ProgressBar() {};
 
-void ProgressBar::customSetup() {
+void ProgressBar::reloadStyle() {
     switch (m_impl->style) {
-    case ProgressBarStyle::Level:
+    case ProgressBarStyle::Level: {
         m_impl->progressBar = CCSprite::create("slidergroove2.png");
         m_impl->progressBar->setID("progress-bar");
         m_impl->progressBar->setAnchorPoint({ 0.5, 0.5 });
@@ -61,9 +63,9 @@ void ProgressBar::customSetup() {
         m_impl->progressPercentLabel->setAlignment(CCTextAlignment::kCCTextAlignmentLeft);
         m_impl->progressPercentLabel->setVisible(m_impl->showProgressPercentLabel);
         m_impl->progressPercentLabel->setZOrder(1);
-        break;
+    } break;
 
-    case ProgressBarStyle::Solid:
+    case ProgressBarStyle::Solid: {
         m_impl->progressBar = CCSprite::create("GJ_progressBar_001.png");
         m_impl->progressBar->setID("progress-bar");
         m_impl->progressBar->setAnchorPoint({ 0.5, 0.5 });
@@ -92,7 +94,7 @@ void ProgressBar::customSetup() {
         m_impl->progressPercentLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
         m_impl->progressPercentLabel->setVisible(m_impl->showProgressPercentLabel);
         m_impl->progressPercentLabel->setZOrder(1);
-        break;
+    } break;
     };
 
     this->setScaledContentSize(m_impl->progressBar->getScaledContentSize());
@@ -108,7 +110,7 @@ void ProgressBar::customSetup() {
 bool ProgressBar::init() {
     if (!CCNode::init()) return false;
 
-    this->customSetup();
+    this->reloadStyle();
 
     return true;
 };
@@ -118,13 +120,17 @@ void ProgressBar::setStyle(ProgressBarStyle style) {
         m_impl->style = style;
 
         this->removeAllChildren();
-        this->customSetup(); // setup again with new style
+        this->reloadStyle(); // setup again with new style
     };
 };
 
 void ProgressBar::setFillColor(ccColor3B color) {
     m_impl->progressBarFillColor = color;
     if (m_impl->progressBarFill) m_impl->progressBarFill->setColor(color);
+};
+
+void ProgressBar::setPrecision(size_t precision) {
+    m_impl->precision = precision;
 };
 
 void ProgressBar::updateProgress(float value) {
@@ -139,7 +145,7 @@ void ProgressBar::updateProgress(float value) {
     };
 
     if (m_impl->progressPercentLabel) {
-        auto percentString = fmt::format("{}%", static_cast<int>(m_impl->progress));
+        auto percentString = fmt::format("{}%", geode::utils::numToString(m_impl->progress, m_impl->precision));
         m_impl->progressPercentLabel->setCString(percentString.c_str());
     };
 };
@@ -163,6 +169,10 @@ ProgressBarStyle ProgressBar::getStyle() const {
 
 ccColor3B ProgressBar::getFillColor() const {
     return m_impl->progressBarFillColor;
+};
+
+size_t ProgressBar::getPrecision() const {
+    return m_impl->precision;
 };
 
 ProgressBar* ProgressBar::create() {
