@@ -181,6 +181,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         impl->m_isAPI = true;
     }
 
+    root.has("force-load-priority").into(impl->m_forceLoadPriority);
     root.has("load-priority").into(impl->m_loadPriority);
 
     if (info.getID() != "geode.loader") {
@@ -624,6 +625,9 @@ VersionInfo ModMetadata::getGeodeVersion() const {
 }
 int ModMetadata::getLoadPriority() const {
     return m_impl->m_loadPriority;
+}
+bool ModMetadata::forceLoadPriority() const {
+    return m_impl->m_forceLoadPriority;
 }
 Result<> ModMetadata::checkGameVersion() const {
     if (!m_impl->m_gdVersion.empty() && m_impl->m_gdVersion != "*") {

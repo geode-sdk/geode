@@ -205,6 +205,11 @@ namespace geode {
         [[nodiscard]] int getLoadPriority() const;
 
         /**
+         * Whether this mod should ignore all dependencies' load priorities.
+         */
+        [[nodiscard]] bool forceLoadPriority() const;
+
+        /**
          * Checks if mod can be installed on the current GD version.
          * Returns Ok() if it can, Err explaining why not otherwise.
         */

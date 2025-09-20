@@ -695,7 +695,7 @@ std::vector<LoadProblem> Mod::Impl::getProblems() const {
 
 int Mod::Impl::getLoadPriority(std::unordered_set<Mod*> visited) const {
     auto priority = m_metadata.getLoadPriority();
-    if (visited.contains(m_self)) return priority;
+    if (m_metadata.forceLoadPriority() || visited.contains(m_self)) return priority;
 
     visited.insert(m_self);
     auto loaderMod = Mod::get();
