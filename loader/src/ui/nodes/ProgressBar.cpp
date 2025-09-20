@@ -21,7 +21,7 @@ public:
     ccColor3B progressBarFillColor = { 255, 255, 255 };
     // Whether to show the label showing the percentage of the current progress
     bool showProgressPercentLabel = false;
-    // Precision of the percentage label
+    // Precision of the percentage on the progress percent label
     size_t precision = 0;
 
     // Max width for the progress fill bar node
@@ -131,6 +131,7 @@ void ProgressBar::setFillColor(ccColor3B color) {
 
 void ProgressBar::setPrecision(size_t precision) {
     m_impl->precision = precision;
+    this->updateProgress(m_impl->progress); // update label with new precision
 };
 
 void ProgressBar::updateProgress(float value) {

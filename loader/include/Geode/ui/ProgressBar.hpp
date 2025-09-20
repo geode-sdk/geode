@@ -18,7 +18,7 @@ namespace geode {
         ProgressBar();
         virtual ~ProgressBar();
 
-        // Reload the style of the progress bar
+        // Reloads the style of the progress bar
         void reloadStyle();
 
         bool init() override;
@@ -42,7 +42,7 @@ namespace geode {
         void setFillColor(ccColor3B color);
 
         /**
-         * Set the progress percentage of the bar
+         * Set the precision of the percentage label
          *
          * @param precision Number of decimal places to show in the percentage label
          */
@@ -83,8 +83,8 @@ namespace geode {
         ccColor3B getFillColor() const;
 
         /**
-         * Get the current precision of the percentage label
+         * Get the precision of the percentage label
          */
         size_t getPrecision() const;
     };
-}
+};
