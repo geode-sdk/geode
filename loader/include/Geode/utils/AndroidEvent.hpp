@@ -14,9 +14,6 @@ namespace geode {
         geode::Result<int> getLauncherVersion();
     }
 
-    geode::Result<int> getConnectedControllerCount();
-    geode::Result<std::vector<int>> getConnectedDevices();
-
     /**
      * Input timestamp (in nanoseconds) sent by the launcher just before the next input event is received
      */
@@ -34,53 +31,6 @@ namespace geode {
         using Callback = void(AndroidInputTimestampEvent*);
 
         ListenerResult handle(geode::Function<Callback>& fn, AndroidInputTimestampEvent* event);
-    };
-
-    class GEODE_DLL AndroidInputDevice final {
-    private:
-        int m_deviceId;
-        jobject m_inputDevice{};
-
-        AndroidInputDevice(int deviceId, jobject inputDevice);
-
-    public:
-        static Result<AndroidInputDevice> create(int deviceId);
-
-        AndroidInputDevice(const AndroidInputDevice&) = delete;
-        AndroidInputDevice& operator=(const AndroidInputDevice&) = delete;
-
-        AndroidInputDevice(AndroidInputDevice&&);
-        AndroidInputDevice& operator=(AndroidInputDevice&&);
-
-        ~AndroidInputDevice();
-
-        std::string getDescriptor();
-
-        std::string getName();
-        int getVendorId();
-        int getProductId();
-
-        float getBatteryCapacity();
-        int getBatteryStatus();
-        bool hasBattery();
-
-        int getSources();
-
-        enum class LightType {
-            None = 0,
-            PlayerNumber = 1,
-            Color = 2,
-            All = 3
-        };
-
-        int getLightCount();
-        LightType getLightType();
-        Result<> setLights(LightType type, std::uint32_t color);
-
-        int getMotorCount();
-        Result<> vibrateDevice(long durationMs, int intensity, int motorIdx = -1);
-
-        int getDeviceId() const;
     };
 
     class GEODE_DLL AndroidInputDeviceInfoEvent final : public Event {
