@@ -449,6 +449,8 @@ namespace geode {
         static inline auto s_applyRef = &Modify::s_apply;
 
     public:
+        using Self = Derived;
+
         // abusing the internal stuff
         // basically we dont want modify to invoke base ctors and dtors
         // we already have utilities for these, which are ccdestructor
