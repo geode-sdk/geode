@@ -4,7 +4,6 @@
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/string.hpp>
 #include <matjson.hpp>
-#include <fstream>
 #include <mz.h>
 #include <mz_os.h>
 #include <mz_strm.h>
@@ -15,7 +14,11 @@
 #include <Geode/utils/ranges.hpp>
 
 #ifdef GEODE_IS_WINDOWS
-#include <filesystem>
+# include <filesystem>
+#else
+# include <unistd.h>
+# include <fcntl.h>
+# include <sys/stat.h>
 #endif
 
 #if defined(GEODE_IS_ANDROID) || defined(GEODE_IS_MACOS) || defined(GEODE_IS_IOS)
@@ -31,24 +34,168 @@ using path_hash_t = std::hash<std::filesystem::path>;
 using namespace geode::prelude;
 using namespace geode::utils::file;
 
+#ifdef GEODE_IS_WINDOWS
+static std::string formatError(DWORD error = GetLastError()) {
+    LPSTR buffer = nullptr;
+    DWORD size = FormatMessageA(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        nullptr,
+        error,
+        MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+        (LPSTR)&buffer,
+        0,
+        nullptr
+    );
+
+    if (size == 0 || !buffer) {
+        return fmt::format("Win error {}", error);
+    }
+
+    std::string message(buffer, size);
+    LocalFree(buffer);
+
+    while (!message.empty() && (message.back() == '\n' || message.back() == '\r')) {
+        message.pop_back();
+    }
+
+    return message;
+}
+#else
+static std::string formatError(int error = errno) {
+    return strerror(error); // thank you posix for making it simple
+}
+#endif
+
+#ifdef GEODE_IS_WINDOWS
+template <typename T>
+Result<> readFileInto(std::filesystem::path const& path, T& out) {
+    HANDLE file = CreateFileW(
+        path.native().c_str(),
+        GENERIC_READ,
+        FILE_SHARE_READ,
+        nullptr,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL,
+        nullptr
+    );
+
+    if (file == INVALID_HANDLE_VALUE) {
+        return Err("Unable to open file: {}", formatError());
+    }
+
+    LARGE_INTEGER fileSize;
+    if (!GetFileSizeEx(file, &fileSize)) {
+        CloseHandle(file);
+        return Err("Unable to get file size: {}", formatError());
+    }
+
+    out.resize(fileSize.QuadPart);
+    DWORD read = 0;
+    if (!ReadFile(file, out.data(), static_cast<DWORD>(out.size()), &read, nullptr)) {
+        CloseHandle(file);
+        return Err("Unable to read file: {}", formatError());
+    }
+
+    CloseHandle(file);
+
+    if (read < out.size()) {
+        return Err("Unable to read entire file: only read {} of {}", read, out.size());
+    }
+
+    return Ok();
+}
+
+Result<> writeFileFrom(std::filesystem::path const& path, void* data, size_t size) {
+    HANDLE file = CreateFileW(
+        path.native().c_str(),
+        GENERIC_WRITE,
+        0,
+        nullptr,
+        CREATE_ALWAYS,
+        FILE_ATTRIBUTE_NORMAL,
+        nullptr
+    );
+
+    if (file == INVALID_HANDLE_VALUE) {
+        return Err("Unable to open file: {}", formatError());
+    }
+
+    DWORD written = 0;
+    if (!WriteFile(file, data, static_cast<DWORD>(size), &written, nullptr)) {
+        CloseHandle(file);
+        return Err("Unable to write file: {}", formatError());
+    }
+
+    if (written < size) {
+        CloseHandle(file);
+        return Err("Unable to write entire file: only wrote {} of {}", written, size);
+    }
+
+    CloseHandle(file);
+    
+    return Ok();
+}
+
+#else
+
+template <typename T>
+Result<> readFileInto(std::filesystem::path const& path, T& out) {
+    int file = open(path.native().c_str(), O_RDONLY);
+
+    if (file == -1) {
+        return Err("Unable to open file: {}", formatError());
+    }
+
+    struct stat fst;
+    if (fstat(file, &fst) == -1) {
+        close(file);
+        return Err("Unable to get file size: {}", formatError());
+    }
+
+    out.resize(fst.st_size);
+    ssize_t bread = read(file, out.data(), out.size());
+    close(file);
+
+    if (bread < 0) {
+        return Err("Unable to read file: {}", formatError());
+    }
+
+    if (bread < out.size()) {
+        return Err("Unable to read entire file: only read {} of {}", bread, out.size());
+    }
+
+    return Ok();
+}
+
+Result<> writeFileFrom(std::filesystem::path const& path, void* data, size_t size) {
+    int file = open(path.native().c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    
+    if (file < 0) {
+        return Err("Unable to open file: {}", formatError());
+    }
+
+    size_t written = 0;
+    while (written < size) {
+        ssize_t bwrite = write(file, (uint8_t*)data + written, size - written);
+        if (bwrite < 0) {
+            if (errno == EINTR) continue;
+            close(file);
+            return Err("Unable to write file: {}", formatError());
+        }
+        written += bwrite;
+    }
+
+    close(file);
+    
+    return Ok();
+}
+
+#endif
+
 Result<std::string> utils::file::readString(std::filesystem::path const& path) {
-    std::error_code ec;
-
-    if (!std::filesystem::exists(path, ec) || ec)
-        return Err("File does not exist");
-
-    std::ifstream in(path, std::ios::in | std::ios::binary);
-
-    if (!in)
-        return Err("Unable to open file");
-
     std::string contents;
-    in.seekg(0, std::ios::end);
-    contents.resize((const size_t)in.tellg());
-    in.seekg(0, std::ios::beg);
-    in.read(&contents[0], contents.size());
-    in.close();
-    return Ok(contents);
+    GEODE_UNWRAP(readFileInto(path, contents));
+    return Ok(std::move(contents));
 }
 
 Result<matjson::Value> utils::file::readJson(std::filesystem::path const& path) {
@@ -59,36 +206,13 @@ Result<matjson::Value> utils::file::readJson(std::filesystem::path const& path) 
 }
 
 Result<ByteVector> utils::file::readBinary(std::filesystem::path const& path) {
-    std::error_code ec;
-
-    if (!std::filesystem::exists(path, ec) || ec)
-        return Err("File does not exist");
-
-    std::ifstream in(path, std::ios::in | std::ios::binary);
-
-    if (!in)
-        return Err("Unable to open file");
-
-    return Ok(ByteVector(std::istreambuf_iterator<char>(in), {}));
+    std::vector<uint8_t> contents;
+    GEODE_UNWRAP(readFileInto(path, contents));
+    return Ok(std::move(contents));
 }
 
 Result<> utils::file::writeString(std::filesystem::path const& path, std::string const& data) {
-    std::ofstream file(path);
-
-    if (!file.is_open()) {
-        file.close();
-        return Err("Unable to open file");
-    }
-
-    file << data;
-    if (file.fail()) {
-        file.close();
-        return Err("Failed to write to file");
-    }
-
-    file.close();
-
-    return Ok();
+    return writeFileFrom(path, (void*)data.data(), data.size());
 }
 
 Result<> utils::file::writeStringSafe(std::filesystem::path const& path, std::string const& data) {
@@ -118,21 +242,7 @@ Result<> utils::file::writeStringSafe(std::filesystem::path const& path, std::st
 }
 
 Result<> utils::file::writeBinary(std::filesystem::path const& path, ByteVector const& data) {
-    std::ofstream file(path, std::ios::out | std::ios::binary);
-
-    if (!file.is_open()) {
-        file.close();
-        return Err("Unable to open file");
-    }
-
-    file.write(reinterpret_cast<char const*>(data.data()), data.size());
-    if (file.fail()) {
-        file.close();
-        return Err("Failed to write to file");
-    }
-
-    file.close();
-    return Ok();
+    return writeFileFrom(path, (void*)data.data(), data.size());
 }
 
 Result<> utils::file::writeBinarySafe(std::filesystem::path const& path, ByteVector const& data) {
