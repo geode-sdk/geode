@@ -480,18 +480,26 @@ bool cocos2d::CCImage::saveToFile(const char* pszFilePath, bool bIsToRGB) {
     if (channels == 3) {
         data = new uint8_t[m_nWidth * m_nHeight * 3];
         for (uint32_t i = 0; i < m_nWidth * m_nHeight; i++) {
-            data[i * 3 + 0] = m_pData[i * 4 + 0];
+            data[i * 3] = m_pData[i * 4];
             data[i * 3 + 1] = m_pData[i * 4 + 1];
             data[i * 3 + 2] = m_pData[i * 4 + 2];
         }
     }
 
     CGDataProviderRef provider = CGDataProviderCreateWithData(nullptr, data, m_nWidth * m_nHeight * channels, nullptr);
-    if (!provider) return false;
+    if (!provider) {
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
 
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
     if (!colorSpace) {
         CGDataProviderRelease(provider);
+        if (data != m_pData) {
+            delete[] data;
+        }
         return false;
     }
 
@@ -502,7 +510,7 @@ bool cocos2d::CCImage::saveToFile(const char* pszFilePath, bool bIsToRGB) {
         channels * 8,
         m_nWidth * channels,
         colorSpace,
-        kCGImageAlphaPremultipliedLast,
+        channels == 4 ? kCGImageAlphaPremultipliedLast : kCGImageAlphaNone,
         provider,
         nullptr,
         false,
@@ -511,6 +519,9 @@ bool cocos2d::CCImage::saveToFile(const char* pszFilePath, bool bIsToRGB) {
     if (!imageRef) {
         CGDataProviderRelease(provider);
         CGColorSpaceRelease(colorSpace);
+        if (data != m_pData) {
+            delete[] data;
+        }
         return false;
     }
 
@@ -519,6 +530,9 @@ bool cocos2d::CCImage::saveToFile(const char* pszFilePath, bool bIsToRGB) {
         CGImageRelease(imageRef);
         CGDataProviderRelease(provider);
         CGColorSpaceRelease(colorSpace);
+        if (data != m_pData) {
+            delete[] data;
+        }
         return false;
     }
 
@@ -527,6 +541,9 @@ bool cocos2d::CCImage::saveToFile(const char* pszFilePath, bool bIsToRGB) {
         CGImageRelease(imageRef);
         CGDataProviderRelease(provider);
         CGColorSpaceRelease(colorSpace);
+        if (data != m_pData) {
+            delete[] data;
+        }
         return false;
     }
 
