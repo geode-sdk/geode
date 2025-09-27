@@ -693,6 +693,24 @@ std::vector<LoadProblem> Mod::Impl::getProblems() const {
     return m_problems;
 }
 
+int Mod::Impl::getLoadPriority(std::unordered_set<Mod*> visited) const {
+    auto priority = m_metadata.getLoadPriority();
+    if (m_metadata.forceLoadPriority() || visited.contains(m_self)) return priority;
+
+    visited.insert(m_self);
+    auto loaderMod = Mod::get();
+    for (auto& dep : m_metadata.getDependencies()) {
+        if (dep.importance != ModMetadata::Dependency::Importance::Required || !dep.mod || dep.mod == loaderMod) {
+            continue;
+        }
+        auto depPriority = dep.mod->m_impl->getLoadPriority(visited);
+        if (depPriority > priority) {
+            priority = depPriority;
+        }
+    }
+    return priority;
+}
+
 static Result<ModMetadata> getModImplInfo() {
     auto json = GEODE_UNWRAP(matjson::parse(about::getLoaderModJson()).mapErr([](auto&& err) {
         return fmt::format("Unable to parse mod.json: {}", err);
