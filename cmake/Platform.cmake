@@ -31,6 +31,7 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 		"-framework UIKit"        # needed for file picking (UIApplication)
 		"-framework Foundation"   # needed for many things
 		"-framework AVFoundation" # needed for microphone access
+		"-framework CoreGraphics" # needed for image saving
 		${GEODE_LOADER_PATH}/include/link/ios/libssl.a
 		${GEODE_LOADER_PATH}/include/link/ios/libcrypto.a
 		${GEODE_LOADER_PATH}/include/link/ios/libnghttp2.a

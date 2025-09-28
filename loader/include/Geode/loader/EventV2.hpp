@@ -24,5 +24,9 @@ namespace geode::event::v2 {
 			bind(fn);
 			return *this;
 		}
+
+		static EventHandler* create(std::function<bool(T*)> filterFunc) {
+			return new EventHandler(filterFunc);
+		}
 	};
 }
