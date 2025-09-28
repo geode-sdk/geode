@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <type_traits>
+#include <Geode/modify/Modify.hpp>
 
 namespace geode::internal {
 
