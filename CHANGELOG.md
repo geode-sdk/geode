@@ -1,5 +1,20 @@
 # Geode Changelog
 
+## v4.9.0
+ * Add `geode::cocos::getObjectName` for getting demangled type names (c734b29)
+ * Allow using SDK without `GEODE_MOD_ID` macro (useful for static libs) (a6f215f)
+ * Use OS APIs for file operations for improved performance and clearer error messages (ec46ad3)
+ * Fix crashlog window title and icons on Windows (d527c08, efdde0a)
+ * Fix custom settings not reloading dependants (#1488)
+ * Fix `removeAllChildren` UB (dd9446b)
+ * Fix Android `gd::string` causing double frees (#1490)
+ * Optimize `pathToString` conversion (2cd8559)
+ * `ConstexprString` can now be used as a template parameter (cf795fb)
+ * Add `Self` type on `Modify` to make referring to self type more idiomatic (945f6d5)
+ * Fix `aligned_storage` deprecation warnings when using C++23 (e7eed58)
+ * EventV2 + async fixes (b3e6536)
+ * Improve the outdated GD version warning (#1475)
+
 ## v4.8.0
  * Fix `geode::Notification` z ordering (127733e)
  * Add `CCNode::getChildrenExt` (d198df5)
