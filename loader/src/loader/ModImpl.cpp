@@ -704,9 +704,7 @@ int Mod::Impl::getLoadPriority(std::unordered_set<Mod*> visited) const {
             continue;
         }
         auto depPriority = dep.mod->m_impl->getLoadPriority(visited);
-
-        // choose the lowest priority of all dependencies
-        if (depPriority < priority) {
+        if (depPriority > priority) {
             priority = depPriority;
         }
     }
