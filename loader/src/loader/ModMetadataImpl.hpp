@@ -32,32 +32,30 @@ struct LoadPriority {
 
 template <>
 struct matjson::Serialize<LoadPriority> {
-    static geode::Result<LoadPriority, std::string> fromJson(Value const& value)
-    {
+    static Result<LoadPriority, std::string> fromJson(Value const& value) {
         if (value.isNumber()) {
             int p = GEODE_UNWRAP(value.asInt());
             if (p > 4000 || p < -4000) {
-                return geode::Err("load-priority must be between -4000 and 4000");
+                return Err("load-priority must be between -4000 and 4000");
             }
-            return geode::Ok(LoadPriority{p});
-        }
-        if (value.isString()) {
+            return Ok(LoadPriority{p});
+        } else if (value.isString()) {
             auto str = GEODE_UNWRAP(value.asString());
-            geode::utils::string::toLowerIP(str);
-            if (str == "first") return geode::Ok(LoadPriority{-3000});
-            if (str == "very-early") return geode::Ok(LoadPriority{-2000});
-            if (str == "early") return geode::Ok(LoadPriority{-1000});
-            if (str == "normal") return geode::Ok(LoadPriority{0});
-            if (str == "late") return geode::Ok(LoadPriority{1000});
-            if (str == "very-late") return geode::Ok(LoadPriority{2000});
-            if (str == "last") return geode::Ok(LoadPriority{3000});
-            return geode::Err("Invalid load-priority string");
+            utils::string::toLowerIP(str);
+
+            if (str == "first") return Ok(LoadPriority{-3000});
+            if (str == "very-early") return Ok(LoadPriority{-2000});
+            if (str == "early") return Ok(LoadPriority{-1000});
+            if (str == "normal") return Ok(LoadPriority{0});
+            if (str == "late") return Ok(LoadPriority{1000});
+            if (str == "very-late") return Ok(LoadPriority{2000});
+            if (str == "last") return Ok(LoadPriority{3000});
+            return Err("Invalid load-priority string");
         }
-        return geode::Err("load-priority must be a number or string");
+        return Err("load-priority must be a number or string");
     }
 
-    static Value toJson(LoadPriority const& value)
-    {
+    static Value toJson(LoadPriority const& value) {
         switch (value) {
             case -3000: return "first";
             case -2000: return "very-early";
