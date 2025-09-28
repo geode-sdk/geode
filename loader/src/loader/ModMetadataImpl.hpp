@@ -43,6 +43,7 @@ struct matjson::Serialize<LoadPriority> {
         }
         if (value.isString()) {
             auto str = GEODE_UNWRAP(value.asString());
+            geode::utils::string::toLowerIP(str);
             if (str == "first") return geode::Ok(LoadPriority{-3000});
             if (str == "very-early") return geode::Ok(LoadPriority{-2000});
             if (str == "early") return geode::Ok(LoadPriority{-1000});
