@@ -771,7 +771,7 @@ void Loader::Impl::orderModStack() {
             visit(dep.mod, visit);
         }
         m_modsToLoad.push_back(mod);
-        log::debug("{}, early: {}, load priority: {}", mod->getID(), mod->needsEarlyLoad(), mod->getLoadPriority());
+        log::debug("{} [{}]{}", mod->getID(), mod->getLoadPriority(), mod->needsEarlyLoad() ? " (early)" : "");
     };
 
     for (auto mod : dependants) {
