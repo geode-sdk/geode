@@ -693,18 +693,8 @@ std::vector<LoadProblem> Mod::Impl::getProblems() const {
     return m_problems;
 }
 
-int Mod::Impl::getLoadPriority(std::unordered_set<Mod*> visited) const {
-    auto priority = m_metadata.getLoadPriority();
-    if (m_metadata.forceLoadPriority() || visited.contains(m_self)) return priority;
-
-    visited.insert(m_self);
-    for (auto& dep : m_dependants) {
-        auto depPriority = dep->m_impl->getLoadPriority(visited);
-        if (depPriority < priority) {
-            priority = depPriority;
-        }
-    }
-    return priority;
+int Mod::Impl::getLoadPriority() const {
+    return m_metadata.getLoadPriority();
 }
 
 static Result<ModMetadata> getModImplInfo() {

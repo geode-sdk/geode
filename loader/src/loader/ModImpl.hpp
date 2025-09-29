@@ -158,7 +158,7 @@ namespace geode {
         bool shouldLoad() const;
         bool isCurrentlyLoading() const;
 
-        int getLoadPriority(std::unordered_set<Mod*> visited = {}) const;
+        int getLoadPriority() const;
     };
 
     class ModImpl : public Mod::Impl {

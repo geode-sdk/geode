@@ -27,6 +27,7 @@
 #include <resources.hpp>
 #include <string>
 #include <string_view>
+#include <unordered_set>
 #include <vector>
 
 #include <server/DownloadManager.hpp>
@@ -737,8 +738,10 @@ void Loader::Impl::refreshModGraph() {
 }
 
 void Loader::Impl::orderModStack() {
+    std::unordered_set<Mod*> visited;
+
     auto& dependants = ModImpl::get()->m_dependants;
-    auto comp = [](Mod* a, Mod* b) {
+    std::sort(dependants.begin(), dependants.end(), [](Mod* a, Mod* b) {
         // early load check (early loads go first)
         auto aEarly = a->needsEarlyLoad();
         auto bEarly = b->needsEarlyLoad();
@@ -755,41 +758,22 @@ void Loader::Impl::orderModStack() {
 
         // fallback to alphabetical id order
         return a->getID() < b->getID();
+    });
+
+    auto visit = [&](Mod* mod, auto&& visit) -> void {
+        if (mod == nullptr || mod == Mod::get()) return;
+        if (visited.contains(mod))
+            return;
+        visited.insert(mod);
+        for (auto dep : mod->m_impl->m_metadata.m_impl->m_dependencies) {
+            visit(dep.mod, visit);
+        }
+        m_modsToLoad.push_back(mod);
+        log::debug("{}, early: {}, load priority: {}", mod->getID(), mod->needsEarlyLoad(), mod->getLoadPriority());
     };
 
-    // resolve early load and priority order first
-    for (size_t i = 0; i < dependants.size(); i++) {
-        for (size_t j = i + 1; j < dependants.size(); j++) {
-            auto a = dependants[i];
-            auto b = dependants[j];
-            // if b should be before a, but a is before b, put b before a
-            if (!comp(a, b)) {
-                dependants.erase(dependants.begin() + j);
-                dependants.insert(dependants.begin() + i, b);
-                i--;
-                break;
-            }
-        }
-    }
-
-    // resolve dependency order after the first pass
-    for (size_t i = 0; i < dependants.size(); i++) {
-        for (size_t j = i + 1; j < dependants.size(); j++) {
-            auto a = dependants[i];
-            auto b = dependants[j];
-            // if a depends on b, but a is before b, put b before a
-            if (ranges::contains(b->m_impl->m_dependants, a)) {
-                dependants.erase(dependants.begin() + j);
-                dependants.insert(dependants.begin() + i, b);
-                i--;
-                break;
-            }
-        }
-    }
-
     for (auto mod : dependants) {
-        m_modsToLoad.push_back(mod);
-        log::debug("{}, early: {}", mod->getID(), mod->needsEarlyLoad());
+        visit(mod, visit);
     }
 }
 
