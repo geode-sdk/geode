@@ -766,6 +766,8 @@ void Loader::Impl::orderModStack() {
             return;
         visited.insert(mod);
         for (auto dep : mod->m_impl->m_metadata.m_impl->m_dependencies) {
+            if (dep.importance != ModMetadata::Dependency::Importance::Required)
+                continue;
             visit(dep.mod, visit);
         }
         m_modsToLoad.push_back(mod);
