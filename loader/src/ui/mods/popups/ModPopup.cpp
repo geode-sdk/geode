@@ -980,7 +980,7 @@ void ModPopup::onLoadTags(typename server::ServerRequest<std::vector<server::Ser
             menu->ignoreAnchorPointForPosition(false);
             menu->setContentSize({ m_rightColumn->getContentWidth(), 25 });
 
-            auto banner = CCSprite::createWithSpriteFrameName(("modtober"_spr + year + "-banner-2.png").c_str());
+            auto banner = CCSprite::createWithSpriteFrameName(fmt::format("modtober{}-banner-2.png"_spr, year).c_str());
             limitNodeWidth(banner, m_rightColumn->getContentWidth(), 1.f, .1f);
             menu->addChildAtPosition(banner, Anchor::Center);
 
@@ -1169,9 +1169,10 @@ void ModPopup::onModtober24Info(CCObject*) {
 }
 
 void ModPopup::onModtober25Info(CCObject*) {
+    // TODO: DO NOT forget to change this from is to was
     FLAlertLayer::create(
         "Modtober 2025",
-        "This mod was an entry for <co>Modtober 2025</c>, a contest to create "
+        "This mod is an entry for <co>Modtober 2025</c>, a contest to create "
         "the best mod with the theme <cc>\"What The Heck!?\"</c>",
         "OK"
     )->show();

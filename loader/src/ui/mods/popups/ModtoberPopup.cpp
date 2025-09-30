@@ -35,10 +35,10 @@ void ModtoberPopup::onDiscord(CCObject*) {
 
 ModtoberPopup* ModtoberPopup::create() {
     auto ret = new ModtoberPopup();
-    if (ret && ret->init(410, 270)) {
+    if (ret->init(410, 270)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
