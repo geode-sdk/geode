@@ -338,6 +338,8 @@ jobs:
         ${{ env.base-configure-command }}
         -DGEODE_TARGET_PLATFORM=iOS
         -DCMAKE_SYSTEM_NAME=iOS
+        -DCMAKE_C_COMPILER=$(xcrun --find clang)
+        -DCMAKE_CXX_COMPILER=$(xcrun --find clang++)
         -DGEODE_DONT_BUILD_TEST_MODS=ON
         -DCMAKE_BUILD_TYPE=RelWithDebInfo
         ${{ steps.build-debug-info.outputs.extra-configure }}
