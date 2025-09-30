@@ -97,11 +97,11 @@ public:
 
     static LoadServerModLayer* create(std::string const& id) {
         auto ret = new LoadServerModLayer();
-        if (ret && ret->initAnchored(180, 100, id, "square01_001.png", CCRectZero)) {
+        if (ret->initAnchored(180, 100, id, "square01_001.png", CCRect{})) {
             ret->autorelease();
             return ret;
         }
-        CC_SAFE_RELEASE(ret);
+        delete ret;
         return nullptr;
     }
 };

@@ -45,11 +45,11 @@ protected:
 public:
     static ShakeyWakey* create(float duration) {
         auto ret = new ShakeyWakey();
-        if (ret && ret->initWithDuration(duration)) {
+        if (ret->initWithDuration(duration)) {
             ret->autorelease();
             return ret;
         }
-        CC_SAFE_DELETE(ret);
+        delete ret;
         return nullptr;
     }
 };
@@ -264,10 +264,10 @@ void EventWinnerAnimation::onClose(CCObject*) {
 
 EventWinnerAnimation* EventWinnerAnimation::create() {
     auto ret = new EventWinnerAnimation();
-    if (ret && ret->init()) {
+    if (ret->init()) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }

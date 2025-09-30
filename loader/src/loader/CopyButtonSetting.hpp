@@ -59,11 +59,11 @@ protected:
 public:
     static CopyButtonSettingNode* create(std::shared_ptr<CopyButtonSetting> setting, float width) {
         auto ret = new CopyButtonSettingNode();
-        if (ret && ret->init(setting, width)) {
+        if (ret->init(setting, width)) {
             ret->autorelease();
             return ret;
         }
-        CC_SAFE_DELETE(ret);
+        delete ret;
         return nullptr;
     }
 
