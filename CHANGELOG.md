@@ -3,7 +3,7 @@
 ## v4.9.0
  * Add Modtober 2025 content (#1501)
  * Add `geode::cocos::getObjectName` for getting demangled type names (c734b29)
- * Add mod load priority, load mods in alphabetical order(#1492, #1500)
+ * Add mod load priority, load mods in alphabetical order (#1492, #1500)
  * Implement `CCImage::saveToFile` for macOS and iOS (#1496)
  * Allow using SDK without `GEODE_MOD_ID` macro (useful for static libs) (a6f215f)
  * Use OS APIs for file operations for improved performance and clearer error messages (ec46ad3)
