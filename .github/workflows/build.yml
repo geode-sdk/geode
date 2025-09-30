@@ -313,17 +313,22 @@ jobs:
         has-sccache: ${{ inputs.use-ccache }}
       if: inputs.build-debug-info
 
-    - name: Setup caches
-      uses: ./.github/actions/setup-cache
-      with:
-        host: mac
-        target: ios
-        use-ccache: ${{ github.event_name != 'workflow_dispatch' || inputs.use-ccache }}
+    # - name: Setup caches
+    #   uses: ./.github/actions/setup-cache
+    #   with:
+    #     host: mac
+    #     target: ios
+    #     use-ccache: ${{ github.event_name != 'workflow_dispatch' || inputs.use-ccache }}
 
     - name: Setup Ninja
       uses: ./.github/actions/setup-ninja
       with:
         host: mac
+
+    # - name: Install LLVM
+    #   run: |
+    #     brew install llvm
+    #     echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
 
     - name: Setup CLI
       uses: geode-sdk/cli/.github/actions/setup@main
@@ -333,9 +338,8 @@ jobs:
         ${{ env.base-configure-command }}
         -DGEODE_TARGET_PLATFORM=iOS
         -DCMAKE_SYSTEM_NAME=iOS
-        -DCMAKE_C_COMPILER=$(xcrun --find clang)
-        -DCMAKE_CXX_COMPILER=$(xcrun --find clang++)
-        -DGEODE_DISABLE_PRECOMPILED_HEADERS=OFF
+        -DGEODE_DONT_BUILD_TEST_MODS=ON
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo
         ${{ steps.build-debug-info.outputs.extra-configure }}
 
     - name: Build
