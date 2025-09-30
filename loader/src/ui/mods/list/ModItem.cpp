@@ -267,18 +267,32 @@ bool ModItem::init(ModSource&& source) {
             if (metadata.tags.contains("api")) {
                 m_badgeContainer->addChild(CCSprite::createWithSpriteFrameName("tag-api.png"_spr));
             }
-            if (metadata.tags.contains("modtober24winner") || m_source.getID() == "rainixgd.geome3dash") {
-                auto shortVer = CCSprite::createWithSpriteFrameName("tag-modtober-winner.png"_spr);
-                shortVer->setTag(1);
-                m_badgeContainer->addChild(shortVer);
-                auto longVer = CCSprite::createWithSpriteFrameName("tag-modtober-winner-long.png"_spr);
-                longVer->setTag(2);
-                m_badgeContainer->addChild(longVer);
-            }
-            // Only show default Modtober tag if not a winner
-            else if (metadata.tags.contains("modtober24")) {
-                auto shortVer = CCSprite::createWithSpriteFrameName("tag-modtober.png"_spr);
-                m_badgeContainer->addChild(shortVer);
+
+            for (auto item : std::initializer_list<std::tuple<std::string, std::optional<const char*>>> {
+                { "24", "rainixgd.geome3dash" },
+                { "25", std::nullopt },
+            }) {
+                auto& winner = std::get<1>(item);
+                std::string baseTag = "modtober" + std::get<0>(item);
+                std::string baseTagAsset = "tag-" + baseTag;
+
+                if (metadata.tags.contains((baseTag + "winner").c_str()) || (winner.has_value() && m_source.getID() == winner)) {
+                    auto shortVer = CCSprite::createWithSpriteFrameName((""_spr + baseTagAsset + "-winner.png").c_str());
+                    shortVer->setTag(1);
+                    m_badgeContainer->addChild(shortVer);
+                    auto longVer = CCSprite::createWithSpriteFrameName((""_spr + baseTagAsset + "-winner-long.png").c_str());
+                    longVer->setTag(2);
+                    m_badgeContainer->addChild(longVer);
+
+                    break;
+                }
+                // Only show default Modtober tag if not a winner
+                else if (metadata.tags.contains(baseTag)) {
+                    auto shortVer = CCSprite::createWithSpriteFrameName((""_spr + baseTagAsset + ".png").c_str());
+                    m_badgeContainer->addChild(shortVer);
+
+                    break;
+                }
             }
 
             // Show mod download count here already so people can make informed decisions
