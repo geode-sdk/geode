@@ -122,16 +122,6 @@ public:
     void enableRepeatMode(float);
 
 	// @note RobTop Addition
-    bool getDontOpacityFade() const;
-	// @note RobTop Addition
-    void setDontOpacityFade(bool);
-
-	// @note RobTop Addition
-    float getM_fMaxSeg() const;
-	// @note RobTop Addition
-    void setM_fMaxSeg(float);
-
-    // @note RobTop Addition
 	void setStroke(float);
     // @note RobTop Addition
 	void updateFade(float);
@@ -188,9 +178,9 @@ public:
     // @note RobTop Addition
     bool m_idk;
     // @note RobTop Addition
-    float m_fMaxSeg;
+    CC_SYNTHESIZE_NV(float, m_fMaxSeg, M_fMaxSeg);
     // @note RobTop Addition
-    bool m_bDontOpacityFade;
+    CC_SYNTHESIZE_NV(bool, m_bDontOpacityFade, DontOpacityFade);
     // @note RobTop Addition
     CCPoint m_tPositionR;
 };
