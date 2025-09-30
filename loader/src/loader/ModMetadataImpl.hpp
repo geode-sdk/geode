@@ -104,7 +104,6 @@ namespace geode {
         std::unordered_set<std::string> m_tags;
         bool m_needsEarlyLoad = false;
         bool m_isAPI = false;
-        bool m_forceLoadPriority = false;
         LoadPriority m_loadPriority = 0;
 
         ModJson m_rawJSON;
