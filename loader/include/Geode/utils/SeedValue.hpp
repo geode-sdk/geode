@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <fmt/format.h>
 
 namespace geode {
     class BaseSeedValue {
@@ -238,6 +239,34 @@ namespace geode {
 
         GEODE_SEED_VALUE_COMMON_OPS();
     };
+
+    inline std::string format_as(SeedValueSR value) {
+        return fmt::to_string(value.value());
+    }
+
+    inline std::string format_as(SeedValueRS value) {
+        return fmt::to_string(value.value());
+    }
+
+    inline std::string format_as(SeedValueVRS value) {
+        return fmt::to_string(value.value());
+    }
+
+    inline std::string format_as(SeedValueVSR value) {
+        return fmt::to_string(value.value());
+    }
+
+    inline std::string format_as(SeedValueRVS value) {
+        return fmt::to_string(value.value());
+    }
+
+    inline std::string format_as(SeedValueRSV value) {
+        return fmt::to_string(value.value());
+    }
+
+    inline std::string format_as(SeedValueSVR value) {
+        return fmt::to_string(value.value());
+    }
 
 #undef GEODE_SEED_VALUE_COMMON_OPS
 } // namespace geode

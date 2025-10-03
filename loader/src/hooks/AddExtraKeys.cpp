@@ -1,7 +1,7 @@
 #include <Geode/DefaultInclude.hpp>
 
 #ifdef GEODE_IS_WINDOWS
-// GLEW needs to be included before GL but GLFW3 doesn't do that so this is 
+// GLEW needs to be included before GL but GLFW3 doesn't do that so this is
 // just to make sure all of the GL-related headers are in order
 #include <Geode/cocos/include/cocos2d.h>
 #include <Geode/cocos/robtop/glfw/glfw3.h>
@@ -62,7 +62,7 @@ class $modify(GeodeCCEGLView, CCEGLView) {
             case GLFW_MOUSE_BUTTON_7:
                 return enumKeyCodes::MOUSE_7;
             case GLFW_MOUSE_BUTTON_8:
-                return enumKeyCodes::MOUSE_8; 
+                return enumKeyCodes::MOUSE_8;
             default:
                 return enumKeyCodes::KEY_Unknown;
         }

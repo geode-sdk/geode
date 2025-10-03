@@ -138,8 +138,8 @@ namespace geode {
 
     protected:
         /**
-         * Init with AnchorLayout and the content size of `m_buttonMenu` and 
-         * `m_bgSprite` being tied to the size of `m_mainLayer` (rather than 
+         * Init with AnchorLayout and the content size of `m_buttonMenu` and
+         * `m_bgSprite` being tied to the size of `m_mainLayer` (rather than
          * being the size of the window)
          */
         bool initAnchored(
@@ -192,7 +192,7 @@ namespace geode {
             // Store original attributes of the close button
             auto origSize = m_closeBtn->getContentSize();
             auto orig = Ref(m_closeBtn->getNormalImage());
-            
+
             // Replace the close button sprite
             m_closeBtn->setNormalImage(spr);
 

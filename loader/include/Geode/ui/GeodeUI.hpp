@@ -11,8 +11,8 @@ class FLAlertLayer; // for macos :3
 
 namespace geode {
     /**
-     * Event posted whenever a popup is opened for a mod. Allows mods to modify 
-     * the Geode UI. See the [tutorial on Geode UI modification](https://docs.geode-sdk.org/tutorials/modify-geode) 
+     * Event posted whenever a popup is opened for a mod. Allows mods to modify
+     * the Geode UI. See the [tutorial on Geode UI modification](https://docs.geode-sdk.org/tutorials/modify-geode)
      * for **very important notes on these events**!
      */
     class GEODE_DLL ModPopupUIEvent final : public Event {
@@ -42,8 +42,8 @@ namespace geode {
     };
 
     /**
-     * Event posted whenever a logo sprite is created for a mod. Allows mods to modify 
-     * the Geode UI. See the [tutorial on Geode UI modification](https://docs.geode-sdk.org/tutorials/modify-geode) 
+     * Event posted whenever a logo sprite is created for a mod. Allows mods to modify
+     * the Geode UI. See the [tutorial on Geode UI modification](https://docs.geode-sdk.org/tutorials/modify-geode)
      * for **very important notes on these events**!
      */
     class GEODE_DLL ModItemUIEvent final : public Event {
@@ -73,8 +73,8 @@ namespace geode {
     };
 
     /**
-     * Event posted whenever a logo sprite is created for a mod. Allows mods to modify 
-     * the Geode UI. See the [tutorial on Geode UI modification](https://docs.geode-sdk.org/tutorials/modify-geode) 
+     * Event posted whenever a logo sprite is created for a mod. Allows mods to modify
+     * the Geode UI. See the [tutorial on Geode UI modification](https://docs.geode-sdk.org/tutorials/modify-geode)
      * for **very important notes on these events**!
      */
     class GEODE_DLL ModLogoUIEvent final : public Event {
@@ -112,11 +112,11 @@ namespace geode {
      */
     GEODE_DLL void openInfoPopup(Mod* mod);
     /**
-     * Open the info popup for a mod based on an ID. If the mod is installed, 
-     * its installed popup is opened. Otherwise will check if the servers 
+     * Open the info popup for a mod based on an ID. If the mod is installed,
+     * its installed popup is opened. Otherwise will check if the servers
      * have this mod, or if not, show an error popup
-     * @returns A Task that completes to `true` if the mod was found and a 
-     * popup was opened, and `false` otherwise. If you wish to modify the 
+     * @returns A Task that completes to `true` if the mod was found and a
+     * popup was opened, and `false` otherwise. If you wish to modify the
      * created popup, listen for the Geode UI events listed in `GeodeUI.hpp`
      */
     GEODE_DLL Task<bool> openInfoPopup(std::string const& modID);
@@ -140,10 +140,10 @@ namespace geode {
     /**
      * Open the settings popup for a mod (if it has any settings)
      * @param mod Mod the open the popup for
-     * @param disableGeodeTheme If false, the popup follows the user's chosen 
-     * theme options. If true, the popup is always in the GD theme (not Geode's 
+     * @param disableGeodeTheme If false, the popup follows the user's chosen
+     * theme options. If true, the popup is always in the GD theme (not Geode's
      * dark purple colors)
-     * @returns A pointer to the created Popup, or null if the mod has no 
+     * @returns A pointer to the created Popup, or null if the mod has no
      * settings
      */
     GEODE_DLL Popup<Mod*>* openSettingsPopup(Mod* mod, bool disableGeodeTheme);
@@ -160,8 +160,8 @@ namespace geode {
      */
     GEODE_DLL cocos2d::CCNode* createModLogo(std::filesystem::path const& geodePackage);
     /**
-     * Create a logo sprite for a mod downloaded from the Geode servers. The 
-     * logo is initially a loading circle, with the actual sprite downloaded 
+     * Create a logo sprite for a mod downloaded from the Geode servers. The
+     * logo is initially a loading circle, with the actual sprite downloaded
      * asynchronously
      */
     GEODE_DLL cocos2d::CCNode* createServerModLogo(std::string const& id);

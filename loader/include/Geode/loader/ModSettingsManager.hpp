@@ -28,26 +28,26 @@ namespace geode {
 
         /**
          * Load setting values from savedata.
-         * The format of the savedata should be an object with the keys being 
+         * The format of the savedata should be an object with the keys being
          * setting IDs and then the values the values of the saved settings
-         * @returns Ok if no horrible errors happened. Note that a setting value 
-         * missing is not considered a horrible error, but will instead just log a 
+         * @returns Ok if no horrible errors happened. Note that a setting value
+         * missing is not considered a horrible error, but will instead just log a
          * warning into the console!
          */
         Result<> load(matjson::Value const& json);
         /**
          * Save setting values to savedata.
-         * The format of the savedata will be an object with the keys being 
+         * The format of the savedata will be an object with the keys being
          * setting IDs and then the values the values of the saved settings
          * @note If saving a setting fails, it will log a warning to the console
          */
         matjson::Value save();
 
         /**
-         * Get the savedata for settings, aka the JSON object that contains all 
-         * the settings' saved states that was loaded up from disk and will be 
+         * Get the savedata for settings, aka the JSON object that contains all
+         * the settings' saved states that was loaded up from disk and will be
          * saved to disk
-         * @warning Modifying this will modify the value of the settings - use 
+         * @warning Modifying this will modify the value of the settings - use
          * carefully!
          */
         matjson::Value& getSaveData();
@@ -57,9 +57,15 @@ namespace geode {
         std::shared_ptr<Setting> get(std::string_view key);
 
         /**
-         * Returns true if any setting with the `"restart-required"` attribute 
+         * Returns true if any setting with the `"restart-required"` attribute
          * has been altered
          */
         bool restartRequired() const;
+
+        /**
+         * Add a mod that depends on this mod, so that when settings are reloaded
+         * for this mod, they are also reloaded for the dependant mods
+         */
+        void addDependant(Mod* mod);
     };
 }

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <unordered_map>
 #include <string_view>
@@ -32,7 +32,7 @@ static auto const& getGDVersionTimestampMap() {
         { 1704948277, "2.203" },
         { 1705041028, "2.204" },
         { 1717243515, "2.206" },
-        { 1731098609, "2.207" },
+        { 1731098609, "2.2070" },
         { 1731117052, "2.2071" },
         { 1731130219, "2.2072" },
         { 1731156923, "2.2073" },

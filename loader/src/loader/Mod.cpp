@@ -76,6 +76,10 @@ ModMetadata Mod::getMetadata() const {
     return m_impl->getMetadata();
 }
 
+ModMetadata const& Mod::getMetadataRef() const {
+    return m_impl->getMetadata();
+}
+
 std::filesystem::path Mod::getTempDir() const {
     return m_impl->getTempDir();
 }
@@ -165,6 +169,10 @@ std::shared_ptr<Setting> Mod::getSetting(std::string_view key) const {
 
 Result<> Mod::registerCustomSettingType(std::string_view type, SettingGenerator generator) {
     return m_impl->m_settings->registerCustomSettingType(type, generator);
+}
+
+std::string Mod::getLaunchArgumentName(std::string_view name) const {
+    return m_impl->getLaunchArgumentName(name);
 }
 
 std::vector<std::string> Mod::getLaunchArgumentNames() const {
@@ -304,4 +312,8 @@ bool Mod::shouldLoad() const {
 }
 bool Mod::isCurrentlyLoading() const {
     return m_impl->isCurrentlyLoading();
+}
+
+int Mod::getLoadPriority() const {
+    return m_impl->getLoadPriority();
 }

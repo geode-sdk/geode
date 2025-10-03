@@ -36,6 +36,22 @@ $on_mod(Loaded) {
     // Only used when GD theme is active
     ColorProvider::get()->define("mods-layer-gd-bg"_spr, { 0, 102, 255, 255 });
 
+    ColorProvider::get()->define("swelvy-bg-0"_spr, { 244, 212, 142, 255 });
+    ColorProvider::get()->define("swelvy-bg-1"_spr, { 245, 174, 125, 255 });
+    ColorProvider::get()->define("swelvy-bg-2"_spr, { 236, 137, 124, 255 });
+    ColorProvider::get()->define("swelvy-bg-3"_spr, { 213, 105, 133, 255 });
+    ColorProvider::get()->define("swelvy-bg-4"_spr, { 173, 84, 146, 255 });
+    ColorProvider::get()->define("swelvy-bg-5"_spr, { 113, 74, 154, 255 });
+
+    if (Mod::get()->getSavedValue("alternate-geode-style", false)) {
+        ColorProvider::get()->override("swelvy-bg-0"_spr, { 216, 132, 132, 255 });
+        ColorProvider::get()->override("swelvy-bg-1"_spr, { 210, 189, 119, 255 });
+        ColorProvider::get()->override("swelvy-bg-2"_spr, { 195, 212, 136, 255 });
+        ColorProvider::get()->override("swelvy-bg-3"_spr, { 95, 184, 134, 255 });
+        ColorProvider::get()->override("swelvy-bg-4"_spr, { 100, 174, 189, 255 });
+        ColorProvider::get()->override("swelvy-bg-5"_spr, { 118, 90, 148, 255 });
+    }
+
     auto updateColors = +[](bool enabled) {
         if (enabled) {
             ColorProvider::get()->reset("mod-list-bg"_spr);
@@ -210,6 +226,9 @@ std::pair<ccColor3B, ccColor3B> geodeTagColors(server::ServerTag const& tag) {
     if (tag.name == "modtober24") {
         return std::make_pair(ccc3(225, 236, 245), ccc3(82, 139, 201));
     }
+    if (tag.name == "api") {
+        return std::make_pair(ccc3(173, 190, 217), ccc3(128, 132, 140));
+    }
     return TAG_COLORS[hash(tag.name) % 5932 % TAG_COLORS.size()];
 }
 
@@ -256,7 +275,7 @@ bool GeodeTabSprite::init(const char* iconFrame, const char* text, float width, 
     this->addChildAtPosition(m_icon, Anchor::Left, ccp(16, 0), false);
 
     m_label = CCLabelBMFont::create(text, "bigFont.fnt");
-    m_label->limitLabelWidth(this->getContentWidth() - 45, clamp(width * .0045f, .35f, .55f), .1f);
+    m_label->limitLabelWidth(this->getContentWidth() - 45, std::clamp(width * .0045f, .35f, .55f), .1f);
     m_label->setAnchorPoint({ .5f, .5f });
     this->addChildAtPosition(m_label, Anchor::Left, ccp((itemSize.width - iconSize.width) / 2 + iconSize.width, 0), false);
 

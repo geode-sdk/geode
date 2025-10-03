@@ -99,14 +99,19 @@ jobs:
         path: toolchain
         submodules: recursive
 
+    - name: Install Clang 19
+      run: |
+        sudo rm -f /var/lib/man-db/auto-update
+        sudo apt install -y clang-19 clang-tools-19 lld-19
+
     - name: Configure
       run: ${{ env.base-configure-command }} -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN ${{ steps.build-debug-info.outputs.extra-configure }}
       env:
         SPLAT_DIR: ${{ github.workspace }}/.xwin-cache/splat
         TOOLCHAIN: ${{ github.workspace }}/toolchain/clang-cl-msvc.cmake
         HOST_ARCH: x86_64
-        CLANG_VER: 18
-        LLVM_VER: 18
+        CLANG_VER: 19
+        LLVM_VER: 19
 
     - name: Build
       run: |
@@ -308,22 +313,22 @@ jobs:
         has-sccache: ${{ inputs.use-ccache }}
       if: inputs.build-debug-info
 
-    - name: Setup caches
-      uses: ./.github/actions/setup-cache
-      with:
-        host: mac
-        target: ios
-        use-ccache: ${{ github.event_name != 'workflow_dispatch' || inputs.use-ccache }}
+    # - name: Setup caches
+    #   uses: ./.github/actions/setup-cache
+    #   with:
+    #     host: mac
+    #     target: ios
+    #     use-ccache: ${{ github.event_name != 'workflow_dispatch' || inputs.use-ccache }}
 
     - name: Setup Ninja
       uses: ./.github/actions/setup-ninja
       with:
         host: mac
 
-    - name: Install LLVM
-      run: |
-        brew install llvm
-        echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
+    # - name: Install LLVM
+    #   run: |
+    #     brew install llvm
+    #     echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
 
     - name: Setup CLI
       uses: geode-sdk/cli/.github/actions/setup@main
@@ -377,6 +382,7 @@ jobs:
         run: |
           mv geode-installer-mac/geode-installer-mac.pkg geode-installer-${{ steps.ref.outputs.hash }}-mac.pkg
           mv geode-installer-win/geode-installer-win.exe geode-installer-${{ steps.ref.outputs.hash }}-win.exe
+          mv ./installer/linux/install.sh geode-installer-${{ steps.ref.outputs.hash }}-linux.sh
 
       - name: Zip MacOS Artifacts
         uses: vimtor/action-zip@v1.2
@@ -426,6 +432,7 @@ jobs:
           files: |
             ./geode-installer-${{ steps.ref.outputs.hash }}-win.exe
             ./geode-installer-${{ steps.ref.outputs.hash }}-mac.pkg
+            ./geode-installer-${{ steps.ref.outputs.hash }}-linux.sh
             ./geode-${{ steps.ref.outputs.hash }}-win.zip
             ./geode-${{ steps.ref.outputs.hash }}-mac.zip
             ./geode-${{ steps.ref.outputs.hash }}-android32.zip

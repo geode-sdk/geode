@@ -45,14 +45,14 @@ $register_ids(MenuLayer) {
             setIDSafe<CCLabelBMFont>(this, labelOffset++, "click-gamepad-label");
         }
     }
-    
+
     setIDSafe<CCLabelBMFont>(this, labelOffset++, "player-username");
 
     if(auto node = this->getChildByID("settings-gamepad-icon")) {
         // hide it until someone figures out how to bind the positioning to the actual button
         node->setVisible(false);
     }
-    
+
     // main menu
     if (auto menu = this->getChildByType<CCMenu>(0)) {
         menu->setID("main-menu");
@@ -71,7 +71,7 @@ $register_ids(MenuLayer) {
             );
             profileMenu->setContentSize({ 150.f, 50.f });
             profileMenu->setPositionX(
-                profileMenu->getPositionX() + 150.f / 2 - 
+                profileMenu->getPositionX() + 150.f / 2 -
                     pfp->getScaledContentSize().height / 2
             );
             profileMenu->updateLayout();
@@ -116,7 +116,7 @@ $register_ids(MenuLayer) {
                 ->setGap(5.f)
         );
     }
-    
+
     // social media menu
     if (auto menu = this->getChildByType<CCMenu>(2)) {
         menu->setID("social-media-menu");
@@ -127,7 +127,7 @@ $register_ids(MenuLayer) {
         setIDSafe(menu, 4, "twitch-button");
         setIDSafe(menu, 5, "discord-button");
     }
-    
+
     // more games menu
     if (auto menu = this->getChildByType<CCMenu>(3)) {
         menu->setID("more-games-menu");
@@ -146,15 +146,15 @@ $register_ids(MenuLayer) {
             );
             closeMenu->setContentSize({ 200.f, 50.f });
             closeMenu->setPositionX(
-                closeMenu->getPositionX() + 200.f / 2 - 
+                closeMenu->getPositionX() + 200.f / 2 -
                     closeBtn->getScaledContentSize().width / 2
             );
             closeMenu->updateLayout();
         }
-    
+
         menu->setContentSize({ 100.f, 50.f });
         menu->setPositionX(
-            menu->getPositionX() - 100.f / 2 + 
+            menu->getPositionX() - 100.f / 2 +
                 getSizeSafe(moreGamesBtn).width / 2
         );
         menu->setLayout(
@@ -165,7 +165,7 @@ $register_ids(MenuLayer) {
         );
     }
 
-    // add a menu to the top right corner and middle left that are empty 
+    // add a menu to the top right corner and middle left that are empty
     // but prolly a place mods want to add stuff
 
     auto topRightMenu = CCMenu::create();

@@ -32,8 +32,8 @@ void askConfirmModInstalls() {
                     toConfirm.replacementCount += 1;
                 }
 
-                // Since the user has already explicitly chosen to download these mods, we 
-                // are going to assume they want these mods enabled over already installed 
+                // Since the user has already explicitly chosen to download these mods, we
+                // are going to assume they want these mods enabled over already installed
                 // ones
 
                 // If this mod has incompatabilities that are installed, disable them
@@ -49,7 +49,7 @@ void askConfirmModInstalls() {
                 }
                 // If some installed mods are incompatible with this one, disable them
                 for (auto mod : Loader::get()->getAllMods()) {
-                    for (auto inc : mod->getMetadata().getIncompatibilities()) {
+                    for (auto inc : mod->getMetadataRef().getIncompatibilities()) {
                         if (inc.id == conf->version.metadata.getID() && inc.version.compare(mod->getVersion()) && mod->isOrWillBeEnabled()) {
                             toConfirm.toDisable.insert(mod);
                         }
@@ -101,6 +101,12 @@ void askConfirmModInstalls() {
     std::unordered_set<std::string> idsToDisable = toConfirm.toDisableModId;
     for (auto mod : toConfirm.toDisable) {
         idsToDisable.insert(mod->getID());
+    }
+
+    if (idsToDisable.size() == 0 && toConfirm.toEnable.size() == 0 &&
+        toConfirm.dependencyCount == 0 && toConfirm.replacementCount == 0) {
+        ModDownloadManager::get()->confirmAll();
+        return;
     }
 
     createQuickPopup(

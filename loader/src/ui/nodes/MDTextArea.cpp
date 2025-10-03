@@ -7,6 +7,7 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/ui/MDTextArea.hpp>
+#include <Geode/ui/BreakLine.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/web.hpp>
@@ -17,6 +18,7 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <server/Server.hpp>
+#include <regex>
 
 using namespace geode::prelude;
 
@@ -155,31 +157,8 @@ MDTextArea::~MDTextArea() {
     CC_SAFE_RELEASE(m_renderer);
 }
 
-class BreakLine : public CCNode {
-protected:
-    void draw() override {
-        // some nodes sometimes set the blend func to
-        // something else without resetting it back
-        ccGLBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        ccDrawSolidRect({ 0, 0 }, this->getContentSize(), { 1.f, 1.f, 1.f, .2f });
-        CCNode::draw();
-    }
-
-public:
-    static BreakLine* create(float width) {
-        auto ret = new BreakLine;
-        if (ret->init()) {
-            ret->autorelease();
-            ret->setContentSize({ width, 1.f });
-            return ret;
-        }
-        delete ret;
-        return nullptr;
-    }
-};
-
 void MDTextArea::onLink(CCObject* pSender) {
-    auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject());
+    auto href = static_cast<CCString*>(static_cast<CCNode*>(pSender)->getUserObject());
     auto layer = FLAlertLayer::create(
         this, "Hold Up!",
         "Links are spooky! Are you sure you want to go to <cy>" + std::string(href->getCString()) +
@@ -191,7 +170,7 @@ void MDTextArea::onLink(CCObject* pSender) {
 }
 
 void MDTextArea::onGDProfile(CCObject* pSender) {
-    auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject());
+    auto href = static_cast<CCString*>(static_cast<CCNode*>(pSender)->getUserObject());
     auto profile = std::string(href->getCString());
     profile = profile.substr(profile.find(":") + 1);
     auto res = numFromString<int>(profile);
@@ -209,7 +188,7 @@ void MDTextArea::onGDProfile(CCObject* pSender) {
 }
 
 void MDTextArea::onGDLevel(CCObject* pSender) {
-    auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject());
+    auto href = static_cast<CCString*>(static_cast<CCNode*>(pSender)->getUserObject());
     auto level = std::string(href->getCString());
     level = level.substr(level.find(":") + 1);
     auto res = numFromString<int>(level);
@@ -229,14 +208,14 @@ void MDTextArea::onGDLevel(CCObject* pSender) {
 }
 
 void MDTextArea::onGeodeMod(CCObject* sender) {
-    auto href = as<CCString*>(as<CCNode*>(sender)->getUserObject());
+    auto href = static_cast<CCString*>(static_cast<CCNode*>(sender)->getUserObject());
     auto modID = std::string(href->getCString());
     (void)openInfoPopup(modID.substr(modID.find(":") + 1));
 }
 
 void MDTextArea::FLAlert_Clicked(FLAlertLayer* layer, bool btn) {
     if (btn) {
-        web::openLinkInBrowser(as<CCString*>(layer->getUserObject())->getCString());
+        web::openLinkInBrowser(static_cast<CCString*>(layer->getUserObject())->getCString());
     }
 }
 
@@ -253,6 +232,11 @@ struct MDParser {
     static int parseText(MD_TEXTTYPE type, MD_CHAR const* rawText, MD_SIZE size, void* mdtextarea) {
         auto textarea = static_cast<MDTextArea*>(mdtextarea);
         auto renderer = textarea->m_renderer;
+        auto compatibilityMode = false;
+        if (auto boolObj = static_cast<CCBool*>(textarea->getUserObject("compatibilityMode"_spr))) {
+            compatibilityMode = boolObj->getValue();
+        }
+
         auto text = std::string(rawText, size);
         switch (type) {
             case MD_TEXTTYPE::MD_TEXT_CODE:
@@ -399,6 +383,9 @@ struct MDParser {
                                 auto color = colorForIdentifier(tag);
                                 if (color) {
                                     renderer->pushColor(color.unwrap());
+                                }
+                                else if (compatibilityMode) {
+                                    renderer->pushColor(ccc3(255, 0, 0));
                                 }
                                 else {
                                     log::warn("Error parsing color: {}", color.unwrapErr());
@@ -763,7 +750,17 @@ void MDTextArea::updateLabel() {
 
     MDParser::s_codeSpans = {};
 
-    if (md_parse(m_text.c_str(), m_text.size(), &parser, this)) {
+    auto textContent = m_text;
+    if (auto boolObj = static_cast<CCBool*>(this->getUserObject("compatibilityMode"_spr))) {
+        if (boolObj->getValue()) {
+            textContent = MDTextArea::translateNewlines(m_text);
+
+            // ery proofing...
+            textContent = utils::string::replace(textContent, "<c_>", "<c->");
+        }
+    }
+
+    if (md_parse(textContent.c_str(), textContent.size(), &parser, this)) {
         m_renderer->renderString("Error parsing Markdown");
     }
 
@@ -824,4 +821,24 @@ MDTextArea* MDTextArea::create(std::string const& str, CCSize const& size) {
     }
     delete ret;
     return nullptr;
+}
+
+MDTextArea* MDTextArea::create(std::string const& str, CCSize const& size, bool compatibilityMode) {
+    auto ret = new MDTextArea;
+
+    // TODO in v5: put this in the members
+    auto boolObj = CCBool::create(compatibilityMode);
+    ret->setUserObject("compatibilityMode"_spr, boolObj);
+
+    if (ret->init(str, size)) {
+        ret->autorelease();
+        return ret;
+    }
+    delete ret;
+    return nullptr;
+}
+
+std::string MDTextArea::translateNewlines(std::string const& str) {
+    std::regex newlineRe("(.*\\S)\n(?!\n)");
+    return std::regex_replace(str, newlineRe, "$1  \n");
 }

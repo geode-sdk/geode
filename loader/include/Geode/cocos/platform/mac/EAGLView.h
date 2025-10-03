@@ -65,7 +65,7 @@ THE SOFTWARE.
 @end
 
 /** MacGLView
- 
+
  Only available for Mac OS X
  */
 @interface EAGLView : NSOpenGLView {
@@ -73,12 +73,12 @@ THE SOFTWARE.
 
 	BOOL isFullScreen_;
 	NSWindow		*fullScreenWindow_;
-	
+
 	// cache
 	NSWindow		*windowGLView_;
     NSView          *superViewGLView_;
     NSRect          originalWinRect_; // Original size and position
-    
+
     float           frameZoomFactor_;
 }
 

@@ -139,6 +139,12 @@
             "max": 365,
             "name": "Log Retention Period",
             "description": "The number of days to keep logs for. Logs older than this will be deleted every launch. 0 to disable deletion."
+        },
+        "verbose-curl-logs": {
+            "type": "bool",
+            "default": false,
+            "name": "Verbose Curl Logs",
+            "description": "When performing web requests, prints detailed information about the request to the logs. Useful for developers wanting to debug network issues."
         }
     },
     "issues": {

@@ -38,9 +38,9 @@ void GenericContentLayer::setPosition(CCPoint const& pos) {
 void ScrollLayer::visit() {
     if (m_cutContent && this->isVisible()) {
         glEnable(GL_SCISSOR_TEST);
-            
+
         if (this->getParent()) {
-            // CCPoint const offset = this->isIgnoreAnchorPointForPosition() 
+            // CCPoint const offset = this->isIgnoreAnchorPointForPosition()
             //     ? ccp(0, 0) : CCPoint(this->getContentSize() * -this->getAnchorPoint());
 
             auto const bottomLeft = this->convertToWorldSpace(ccp(0, 0));

@@ -6,10 +6,12 @@
 #include "Task.hpp"
 #include <chrono>
 #include <optional>
+#include <string_view>
+#include <span>
 
 namespace geode::utils::web {
     GEODE_DLL void openLinkInBrowser(std::string const& url);
-    
+
     // https://curl.se/libcurl/c/CURLOPT_HTTPAUTH.html
     namespace http_auth {
         constexpr static long BASIC = 0x0001;
@@ -57,6 +59,59 @@ namespace geode::utils::web {
         std::string password; // Proxy password
         bool tunneling = false; // Enable HTTP tunneling
         bool certVerification = true; // Enable HTTPS certificate verification
+    };
+
+    /// Represents a multipart-form object to be sent in a `WebRequest`.
+    ///
+    /// @example
+    /// web::MultipartForm form;
+    /// form.param("key", "value");
+    /// form.param("key2", "value2");
+    /// form.file("file", { 0xAA, 0xBB, 0xCC }, "raw.bin");
+    /// form.file("file2", "path/to/image.png", "screenshot.png", "image/png");
+    ///
+    /// auto req = web::WebRequest()
+    ///     .bodyMultipart(form)
+    ///     .get(url);
+    class GEODE_DLL MultipartForm final {
+    private:
+        class Impl;
+
+        std::shared_ptr<Impl> m_impl;
+
+    public:
+        MultipartForm();
+        ~MultipartForm();
+
+        MultipartForm& param(std::string_view name, std::string_view value);
+        template <std::integral T>
+        MultipartForm& param(std::string_view name, T value) {
+            return this->param(name, fmt::to_string(value));
+        }
+
+        MultipartForm& file(std::string_view name, std::span<uint8_t const> data, std::string_view filename, std::string_view mime = "application/octet-stream");
+        Result<MultipartForm&> file(std::string_view name, std::filesystem::path const& path, std::string_view mime = "application/octet-stream");
+
+        /**
+         * Returns the unique boundary string used in the multipart form.
+         * This will also finalize the form, so adding more parameters will not work.
+         * @return std::string const&
+         */
+        std::string const& getBoundary() const;
+
+        /**
+         * Returns the value for the Content-Type header with unique boundary string.
+         * This will also finalize the form, so adding more parameters will not work.
+         * @return std::string
+         */
+        std::string getHeader() const;
+
+        /**
+         * Returns merged body of all parameters and files, with the correct boundary.
+         * This will also finalize the form, so adding more parameters will not work.
+         * @return ByteVector
+         */
+        ByteVector getBody() const;
     };
 
     class WebRequest;
@@ -108,7 +163,7 @@ namespace geode::utils::web {
         std::shared_ptr<Impl> m_impl;
 
         friend class WebRequest;
-    
+
     public:
         // Must be default-constructible for use in Promise
         WebProgress();
@@ -144,7 +199,7 @@ namespace geode::utils::web {
         WebRequest& param(std::string_view name, std::string_view value);
         template <std::integral T>
         WebRequest& param(std::string_view name, T value) {
-            return this->param(name, std::to_string(value));
+            return this->param(name, fmt::to_string(value));
         }
         WebRequest& removeParam(std::string_view name);
 
@@ -202,7 +257,7 @@ namespace geode::utils::web {
 
         /**
          * Enables or disabled getting the body of a request. For HTTP(S), this does a HEAD request.
-         * For most other protocols it means just not asking to transfer the body data. 
+         * For most other protocols it means just not asking to transfer the body data.
          * The default is true.
          *
          * @param enabled
@@ -230,7 +285,7 @@ namespace geode::utils::web {
 
         /**
          * Sets the Certificate Authority (CA) bundle content.
-         * Defaults to not sending a CA bundle.
+         * Defaults to sending the Geode CA bundle, found here: https://github.com/geode-sdk/net_libs/blob/main/ca_bundle.h
          *
          * @param content
          * @return WebRequest&
@@ -248,7 +303,7 @@ namespace geode::utils::web {
 
         /**
          * Sets the request's HTTP version.
-         * The default is HttpVersion::VERSION_2TLS.
+         * The default is `HttpVersion::DEFAULT`.
          *
          * @param httpVersion
          * @return WebRequest&
@@ -276,6 +331,13 @@ namespace geode::utils::web {
          * @return WebRequest&
          */
         WebRequest& bodyJSON(matjson::Value const& json);
+        /**
+         * Sets the body of the request to a multipart form.
+         *
+         * @param form The multipart form to set as the body.
+         * @return WebRequest&
+         */
+        WebRequest& bodyMultipart(MultipartForm const& form);
 
         /**
          * Gets the unique request ID

@@ -4,6 +4,7 @@
 #include <chrono>
 #include "../dependency/main.hpp"
 #include "Geode/utils/general.hpp"
+#include <Geode/utils/VMTHookManager.hpp>
 
 using namespace geode::prelude;
 
@@ -65,7 +66,7 @@ struct $modify(MenuLayer) {
     bool init() {
         if (!MenuLayer::init())
             return false;
-        
+
         auto node = CCNode::create();
         auto ref = WeakRef(node);
         log::info("ref: {}", ref.lock().data());
@@ -109,7 +110,7 @@ struct $modify(MenuLayer) {
         else {
             log::error("Failed to API (method)");
         }
-        
+
 
         return true;
     }
@@ -175,9 +176,10 @@ struct GJGarageLayerTest : Modify<GJGarageLayerTest, GJGarageLayer> {
 struct GJGarageLayerTest2 : Modify<GJGarageLayerTest2, GJGarageLayer> {
     struct Fields {
         int myOtherValue = 80085;
+        int counter = 0;
     };
-    
-    bool init() {
+
+    bool init() override {
         if (!GJGarageLayer::init()) return false;
 
         if (m_fields->myOtherValue == 80085) {
@@ -188,6 +190,46 @@ struct GJGarageLayerTest2 : Modify<GJGarageLayerTest2, GJGarageLayer> {
             this->addChild(label);
         }
 
+        this->setTouchMode(kCCTouchesOneByOne);
+        this->setTouchEnabled(true);
+
+        auto hook = VMTHookManager::get().addHook<
+            ResolveC<GJGarageLayerTest2>::func(&GJGarageLayerTest2::ccTouchBegan)
+        >(this, "GJGarageLayer::ccTouchBegan");
+        auto hook2 = VMTHookManager::get().addHook<
+            ResolveC<CCTouchDelegate>::func(&GJGarageLayerTest2::ccTouchBegan)
+        >(this, "GJGarageLayer::ccTouchBegan");
+
+        auto hook3 = VMTHookManager::get().addHook<
+            ResolveC<CCTouchDelegate>::func(&GJGarageLayerTest2::ccTouchEnded)
+        >(this, "GJGarageLayer::ccTouchEnded");
+        auto hook4 = VMTHookManager::get().addHook<
+            ResolveC<GJGarageLayerTest2>::func(&GJGarageLayerTest2::ccTouchEnded)
+        >(this, "GJGarageLayer::ccTouchEnded");
+
         return true;
+    }
+
+    bool ccTouchBegan(CCTouch* touch, CCEvent* event) override {
+        this->ccTouchBegan(touch, event);
+        log::debug("Touch began on GJGarageLayer");
+
+        if (m_fields->counter % 2) {
+            VMTHookManager::get().forceDisableFunction<
+                ResolveC<GJGarageLayerTest2>::func(&GJGarageLayerTest2::ccTouchEnded)
+            >(this);
+        }
+        else {
+            VMTHookManager::get().forceEnableFunction<
+                ResolveC<GJGarageLayerTest2>::func(&GJGarageLayerTest2::ccTouchEnded)
+            >(this);
+        }
+        m_fields->counter++;
+        return true;
+    }
+
+    void ccTouchEnded(CCTouch* touch, CCEvent* event) override {
+        this->ccTouchEnded(touch, event);
+        log::debug("Touch ended on GJGarageLayer");
     }
 };

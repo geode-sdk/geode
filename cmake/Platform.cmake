@@ -1,7 +1,7 @@
 include(cmake/PlatformDetect.cmake)
 
 if (NOT ${PROJECT_NAME} STREQUAL ${CMAKE_PROJECT_NAME})
-	set(GEODE_TARGET_PLATFORM GEODE_TARGET_PLATFORM PARENT_SCOPE)
+	set(GEODE_TARGET_PLATFORM ${GEODE_TARGET_PLATFORM} PARENT_SCOPE)
 endif()
 
 if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
@@ -31,6 +31,7 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 		"-framework UIKit"        # needed for file picking (UIApplication)
 		"-framework Foundation"   # needed for many things
 		"-framework AVFoundation" # needed for microphone access
+		"-framework CoreGraphics" # needed for image saving
 		${GEODE_LOADER_PATH}/include/link/ios/libssl.a
 		${GEODE_LOADER_PATH}/include/link/ios/libcrypto.a
 		${GEODE_LOADER_PATH}/include/link/ios/libnghttp2.a
@@ -115,12 +116,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Win64")
 		)
 	else()
 		target_link_libraries(${PROJECT_NAME} INTERFACE
-			${GEODE_LOADER_PATH}/include/link/win64/ssl.lib
-			${GEODE_LOADER_PATH}/include/link/win64/crypto.lib
 			${GEODE_LOADER_PATH}/include/link/win64/nghttp2.lib
-			${GEODE_LOADER_PATH}/include/link/win64/ngtcp2.lib
-			${GEODE_LOADER_PATH}/include/link/win64/nghttp3.lib
-			${GEODE_LOADER_PATH}/include/link/win64/ngtcp2_crypto_boringssl.lib
 			${GEODE_LOADER_PATH}/include/link/win64/libcurl.lib
 		)
 	endif()

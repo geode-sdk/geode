@@ -768,7 +768,7 @@ ServerRequest<std::optional<ServerModUpdate>> server::checkUpdates(Mod const* mo
             if (result->isOk()) {
                 for (auto& update : result->unwrap()) {
                     if (
-                        update.id == mod->getID() && 
+                        update.id == mod->getID() &&
                         (update.version > mod->getVersion() || update.replacement.has_value())
                     ) {
                         return Ok(update);

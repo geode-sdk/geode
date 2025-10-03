@@ -13,7 +13,7 @@ bool DefaultEventListenerPool::add(EventListenerProtocol* listener) {
     if (ranges::contains(m_data->m_listeners, listener) || ranges::contains(m_data->m_toAdd, listener)) {
         return false;
     }
-    
+
     if (m_data->m_locked) {
         m_data->m_toAdd.push_back(listener);
     }
@@ -57,7 +57,7 @@ ListenerResult DefaultEventListenerPool::handle(Event* event) {
         lock.lock();
     }
     m_data->m_locked -= 1;
-    // only mutate listeners once nothing is iterating 
+    // only mutate listeners once nothing is iterating
     // (if there are recursive handle calls)
     if (m_data->m_locked == 0) {
         ranges::remove(m_data->m_listeners, nullptr);
@@ -83,10 +83,10 @@ EventListenerPool* EventListenerProtocol::getPool() const {
 }
 
 bool EventListenerProtocol::enable() {
-    // virtual calls from destructors always call the base class so we gotta 
+    // virtual calls from destructors always call the base class so we gotta
     // store the subclass' pool in a member to be able to access it in disable
-    // this is actually better because now regardless of what getPool() does 
-    // we can always be assured that whatever pool it returns this listener 
+    // this is actually better because now regardless of what getPool() does
+    // we can always be assured that whatever pool it returns this listener
     // will be removed from that pool and can't be in multiple pools at once
     if (m_pool || !(m_pool = this->getPool())) {
         return false;

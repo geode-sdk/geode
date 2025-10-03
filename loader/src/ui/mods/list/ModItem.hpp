@@ -84,13 +84,13 @@ protected:
     CCLabelBMFont* m_versionDownloadSeparator;
 
     /**
-     * @warning Make sure `getMetadata` and `createModLogo` are callable 
+     * @warning Make sure `getMetadata` and `createModLogo` are callable
      * before calling `init`!
     */
     bool init(ModSource&& source);
 
     void updateState();
-    
+
     void onCheckUpdates(typename server::ServerRequest<std::optional<server::ServerModUpdate>>::Event* event);
 
     void onEnable(CCObject*);

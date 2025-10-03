@@ -23,7 +23,7 @@ using namespace geode::prelude;
 
 static bool g_lastLaunchCrashed = false;
 static bool g_symbolsInitialized = false;
-static std::string g_unzippedSearchPaths;
+static std::wstring g_unzippedSearchPaths;
 
 static std::string getDateString(bool filesafe) {
     auto const now = std::time(nullptr);
@@ -38,15 +38,20 @@ static std::string getDateString(bool filesafe) {
     return oss.str();
 }
 
-static std::string getModuleName(HMODULE module, bool fullPath = true) {
-    char buffer[MAX_PATH];
-    if (!GetModuleFileNameA(module, buffer, MAX_PATH)) {
+static std::string getModuleName(HMODULE module, bool fullPath = true, bool shortKnown = false) {
+    wchar_t buffer[MAX_PATH];
+    if (!GetModuleFileNameW(module, buffer, MAX_PATH)) {
         return "<Unknown>";
     }
     if (fullPath) {
-        return buffer;
+        if (shortKnown) {
+            if (std::wstring_view(buffer).starts_with(dirs::getGameDir().wstring())) {
+                return utils::string::pathToString(std::filesystem::path(buffer).filename());
+            }
+        }
+        return utils::string::wideToUtf8(buffer);
     }
-    return std::filesystem::path(buffer).filename().string();
+    return utils::string::pathToString(std::filesystem::path(buffer).filename());
 }
 
 static char const* getExceptionCodeString(DWORD code) {
@@ -129,7 +134,7 @@ static void printAddr(std::ostream& stream, void const* addr, bool fullPath = tr
         )) {
         // calculate base + [address]
         auto const diff = reinterpret_cast<uintptr_t>(addr) - reinterpret_cast<uintptr_t>(module);
-        stream << getModuleName(module, fullPath) << " + " << std::hex << diff << std::dec;
+        stream << getModuleName(module, fullPath, true) << " + " << std::hex << diff << std::dec;
 
         // log symbol if possible
         if (g_symbolsInitialized) {
@@ -248,7 +253,7 @@ static std::string getStacktrace(PCONTEXT context, Mod*& suspectedFaultyMod) {
                         return ret;
                     }
                     return SymFunctionTableAccess64(hProcess, AddrBase);
-                }, 
+                },
                 +[](HANDLE hProcess, DWORD64 dwAddr) -> DWORD64 {
                     auto ret = GeodeFunctionTableAccess64(hProcess, dwAddr);
                     if (ret) {
@@ -510,14 +515,14 @@ static void handleException(LPEXCEPTION_POINTERS info) {
         }
         else {
             // set the search path to include the mods' temp directories
-            if (std::array<char, 4096> searchPathBuffer; 
-                SymGetSearchPath(static_cast<HMODULE>(GetCurrentProcess()), searchPathBuffer.data(), searchPathBuffer.size())) {
-                std::string searchPath(searchPathBuffer.data());
-                searchPath += ";" + g_unzippedSearchPaths;
-                SymSetSearchPath(static_cast<HMODULE>(GetCurrentProcess()), searchPath.c_str());
+            if (std::array<wchar_t, 4096> searchPathBuffer;
+                SymGetSearchPathW(static_cast<HMODULE>(GetCurrentProcess()), searchPathBuffer.data(), searchPathBuffer.size())) {
+                std::wstring searchPath(searchPathBuffer.data());
+                searchPath += L";" + g_unzippedSearchPaths;
+                SymSetSearchPathW(static_cast<HMODULE>(GetCurrentProcess()), searchPath.c_str());
             }
         }
-        
+
         // in some cases, we can be pretty certain that the first mod found while unwinding
         // is the one that caused the crash, so using `suspectedFaultyMod` is safe and correct.
         //
@@ -546,7 +551,7 @@ static void handleException(LPEXCEPTION_POINTERS info) {
 
     if (!showCustomCrashlogWindow(text, crashlogPath)) {
         // if the window fails to show, we show a message box instead
-        MessageBoxA(nullptr, text.c_str(), "Geometry Dash Crashed", MB_ICONERROR);
+        MessageBoxW(nullptr, utils::string::utf8ToWide(text).c_str(), L"Geometry Dash Crashed", MB_ICONERROR);
     }
 }
 
@@ -563,11 +568,8 @@ bool crashlog::setupPlatformHandler() {
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
     if (std::filesystem::exists(lastCrashedFile)) {
         g_lastLaunchCrashed = true;
-        try {
-            std::filesystem::remove(lastCrashedFile);
-        }
-        catch (...) {
-        }
+        std::error_code ec;
+        std::filesystem::remove(lastCrashedFile, ec);
     }
     return true;
 }
@@ -579,7 +581,7 @@ bool crashlog::didLastLaunchCrash() {
 void crashlog::setupPlatformHandlerPost() {
     g_unzippedSearchPaths.clear();
     for (auto& mod : Loader::get()->getAllMods()) {
-        g_unzippedSearchPaths += mod->getTempDir().string() + ";";
+        g_unzippedSearchPaths += mod->getTempDir().wstring() + L";";
     }
 }
 

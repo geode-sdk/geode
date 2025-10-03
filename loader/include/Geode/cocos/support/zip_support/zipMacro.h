@@ -2,8 +2,8 @@
 #define __SUPPORT_ZIPUTILS_MACROS_H__
 
 /**
- * This macro is for being able to define the 
- * Zip Utils stuff while not screwing ourselves 
+ * This macro is for being able to define the
+ * Zip Utils stuff while not screwing ourselves
  * over with undefined symbols with CC_DLL
  */
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)

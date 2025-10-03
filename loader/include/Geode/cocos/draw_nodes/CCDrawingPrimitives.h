@@ -38,7 +38,7 @@ THE SOFTWARE.
 
 #ifndef __CCDRAWING_PRIMITIVES__
 #define __CCDRAWING_PRIMITIVES__
-    
+
 
 #include "../include/ccTypes.h"
 #include "../include/ccMacros.h"
@@ -56,14 +56,14 @@ THE SOFTWARE.
  - ccDrawCubicBezier
  - ccDrawCatmullRom
  - ccDrawCardinalSpline
- 
+
  You can change the color, point size, width by calling:
  - ccDrawColor4B(), ccDrawColor4F()
  - ccPointSize()
  - glLineWidth()
- 
+
  @warning These functions draws the Line, Point, Polygon, immediately. They aren't batched. If you are going to make a game that depends on these primitives, I suggest creating a batch. Instead you should use CCDrawNode
- 
+
  */
 
 NS_CC_BEGIN
@@ -92,7 +92,7 @@ void CC_DLL ccDrawPoints( const CCPoint *points, unsigned int numberOfPoints );
 /** draws a line given the origin and destination point measured in points */
 void CC_DLL ccDrawLine( const CCPoint& origin, const CCPoint& destination );
 
-/** draws an array of lines. 
+/** draws an array of lines.
  * @note Robtop Addition
 */
 void CC_DLL ccDrawLines( const CCPoint *lines, unsigned int numberOfLines );

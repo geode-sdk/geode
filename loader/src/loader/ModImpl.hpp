@@ -83,9 +83,6 @@ namespace geode {
         Result<> loadPlatformBinary();
         Result<> createTempDir();
 
-        // called on a separate thread
-        Result<> unzipGeodeFile(ModMetadata metadata);
-
         std::string getID() const;
         std::string getName() const;
         std::vector<std::string> getDevelopers() const;
@@ -96,7 +93,7 @@ namespace geode {
         bool isEnabled() const;
         bool isInternal() const;
         bool needsEarlyLoad() const;
-        ModMetadata getMetadata() const;
+        ModMetadata const& getMetadata() const;
         std::filesystem::path getTempDir() const;
         std::filesystem::path getBinaryPath() const;
 
@@ -160,6 +157,8 @@ namespace geode {
         bool hasLoadProblems() const;
         bool shouldLoad() const;
         bool isCurrentlyLoading() const;
+
+        int getLoadPriority() const;
     };
 
     class ModImpl : public Mod::Impl {

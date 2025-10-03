@@ -1,5 +1,3 @@
-using namespace geode::prelude;
-
 #include <Geode/utils/cocos.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/utils/file.hpp>
@@ -14,11 +12,15 @@ using namespace geode::prelude;
 #include <Geode/binding/MenuLayer.hpp>
 #include <Geode/Result.hpp>
 #include <Geode/DefaultInclude.hpp>
+#include <Geode/utils/AndroidEvent.hpp>
 #include <optional>
 #include <mutex>
+#include <string.h>
 
 #include <jni.h>
 #include <Geode/cocos/platform/android/jni/JniHelper.h>
+
+using namespace geode::prelude;
 
 using geode::utils::permission::Permission;
 
@@ -141,7 +143,7 @@ void utils::web::openLinkInBrowser(std::string const& url) {
 bool utils::file::openFolder(std::filesystem::path const& path) {
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "openFolder", "(Ljava/lang/String;)Z")) {
-        jstring stringArg1 = t.env->NewStringUTF(path.string().c_str());
+        jstring stringArg1 = t.env->NewStringUTF(utils::string::pathToString(path).c_str());
 
         jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
 
@@ -246,7 +248,9 @@ Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, file::FilePi
 
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", method.c_str(), "(Ljava/lang/String;)Z")) {
-        jstring stringArg1 = t.env->NewStringUTF(options.defaultPath.value_or(std::filesystem::path()).filename().string().c_str());
+        jstring stringArg1 = t.env->NewStringUTF(
+            utils::string::pathToString(options.defaultPath.value_or(std::filesystem::path()).filename()).c_str()
+        );
 
         jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
 
@@ -273,7 +277,9 @@ Task<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions 
 
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "selectFiles", "(Ljava/lang/String;)Z")) {
-        jstring stringArg1 = t.env->NewStringUTF(options.defaultPath.value_or(std::filesystem::path()).string().c_str());
+        jstring stringArg1 = t.env->NewStringUTF(
+            utils::string::pathToString(options.defaultPath.value_or(std::filesystem::path())).c_str()
+        );
 
         jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
 
@@ -295,14 +301,16 @@ void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
     log::error("Launching Geode uninstaller is not supported on android");
 }
 
-void geode::utils::game::exit() {
+void geode::utils::game::exit(bool save) {
     // TODO: yeah
     // if (CCApplication::sharedApplication() &&
     //     (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
     //     log::error("Cannot exit in PlayLayer or LevelEditorLayer!");
     //     return;
     // }
-    AppDelegate::get()->trySaveGame(true);
+    if (save) {
+        AppDelegate::get()->trySaveGame(true);
+    }
     // AppDelegate::get()->showLoadingCircle(false, true);
 
     CCDirector::get()->getActionManager()->addAction(CCSequence::create(
@@ -312,7 +320,11 @@ void geode::utils::game::exit() {
     ), CCDirector::get()->getRunningScene(), false);
 }
 
-void geode::utils::game::restart() {
+void geode::utils::game::exit() {
+    exit(true);
+}
+
+void geode::utils::game::restart(bool save) {
     // if (CCApplication::sharedApplication() &&
     //     (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
     //     log::error("Cannot restart in PlayLayer or LevelEditorLayer!");
@@ -333,7 +345,9 @@ void geode::utils::game::restart() {
     // Not implemented
     // log::error("Restarting the game is not implemented on android");
 
-    AppDelegate::get()->trySaveGame(true);
+    if (save) {
+        AppDelegate::get()->trySaveGame(true);
+    }
     // AppDelegate::get()->showLoadingCircle(false, true);
 
     CCDirector::get()->getActionManager()->addAction(CCSequence::create(
@@ -341,6 +355,10 @@ void geode::utils::game::restart() {
         CCCallFunc::create(nullptr, callfunc_selector(Exit::restart)),
         nullptr
     ), CCDirector::get()->getRunningScene(), false);
+}
+
+void geode::utils::game::restart() {
+    restart(true);
 }
 
 static const char* permissionToName(Permission permission) {
@@ -414,6 +432,10 @@ std::string geode::utils::getEnvironmentVariable(const char* name) {
     return result ? result : "";
 }
 
+std::string geode::utils::formatSystemError(int code) {
+    return strerror(code);
+}
+
 cocos2d::CCRect geode::utils::getSafeAreaRect() {
     static auto insets = []{
         std::array<int, 4> insets{};
@@ -450,4 +472,32 @@ cocos2d::CCRect geode::utils::getSafeAreaRect() {
     auto insetY = std::max(insetTop, insetBottom);
 
     return cocos2d::CCRect(insetX, insetY, winSize.width - 2 * insetX, winSize.height - 2 * insetY);
+}
+
+extern "C"
+JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_setNextInputTimestampInternal(JNIEnv*, jobject, jlong timestamp) {
+    geode::AndroidInputTimestampEvent(timestamp).post();
+}
+
+geode::Result<int> geode::utils::getLauncherVersion() {
+    JniMethodInfo info;
+    if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "getLauncherVersion", "()I")) {
+        auto result = info.env->CallStaticIntMethod(info.classID, info.methodID);
+        info.env->DeleteLocalRef(info.classID);
+
+        return Ok(result);
+    } else {
+        clearJNIException();
+    }
+
+    return Err("method not found");
+}
+
+AndroidInputTimestampEvent::AndroidInputTimestampEvent(long timestamp) : m_timestamp(timestamp) {}
+
+long AndroidInputTimestampEvent::getTimestamp() const { return m_timestamp; }
+
+ListenerResult AndroidInputTimestampFilter::handle(std::function<Callback> fn, AndroidInputTimestampEvent* event)  {
+    fn(event);
+    return ListenerResult::Propagate;
 }

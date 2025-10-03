@@ -1,30 +1,170 @@
 # Geode Changelog
 
-## v4.4.0
+## v4.9.0
+ * Add Modtober 2025 content (#1501)
+ * Add `geode::cocos::getObjectName` for getting demangled type names (c734b29)
+ * Add mod load priority, load mods in alphabetical order (#1492, #1500)
+ * Implement `CCImage::saveToFile` for macOS and iOS (#1496)
+ * Allow using SDK without `GEODE_MOD_ID` macro (useful for static libs) (a6f215f)
+ * Use OS APIs for file operations for improved performance and clearer error messages (ec46ad3)
+ * Fix crashlog window title and icons on Windows (d527c08, efdde0a)
+ * Fix custom settings not reloading dependants (#1488)
+ * Fix `removeAllChildren` UB (dd9446b)
+ * Fix Android `gd::string` causing double frees (#1490)
+ * Optimize `pathToString` conversion (2cd8559)
+ * `ConstexprString` can now be used as a template parameter (cf795fb)
+ * Add `Self` type on `Modify` to make referring to self type more idiomatic (945f6d5)
+ * Fix `aligned_storage` deprecation warnings when using C++23 (e7eed58)
+ * Fix `CC_SYNTHESIZE` calls and define inline getters/setters for cocos (869dcfa)
+ * EventV2 + async fixes (b3e6536)
+ * Improve the outdated GD version warning (#1475)
 
+## v4.8.0
+ * Fix `geode::Notification` z ordering (127733e)
+ * Add `CCNode::getChildrenExt` (d198df5)
+ * Add `CCNode::getChildByIndex` (0ba1f2a)
+ * Fix `GEODE_MOD_STATIC_PATCH` not using the geode namespace (#1456)
+ * Fix Linux install script flatpak directory (2cf1e57)
+ * Document return paths for `dirs` functions (d821172)
+ * Add `VMTHookManager` for hooking virtual functions that have not been defined by virtual table patching (383f8fd)
+ * Fix Unicode logging on Windows (c5e93b9)
+ * Remove all `std::filesystem::path::string` calls as they can crash on Unicode paths (#1473)
+ * Replace all `A` WinApi calls with `W` calls (#1473)
+ * Hook and patch toggling (#1468)
+ * Added option to force cURL to use IPv4 (#1412)
+
+## v4.7.0
+ * Change from copying queue to moving queue for main thread (9b8fb73)
+ * Add reading from unzipped/launch-args.txt on iOS as an option (ae90fc9)
+ * Add new "binary-dir" launcher flag for changing the path of mod binaries (0b71c3c)
+ * Use ColorProvider for SwelvyBG colors (01ee436)
+ * Deprecate the usage of geode::cast::as (9d28ab9)
+ * Return success for patching if there is nothing to do (f92e5b6)
+ * Updated TulipHook to 3.1.4 (f469696)
+   * Fixes struct params and enabling after disabled.
+
+## v4.6.3
+ * Fix Windows crashlogs not appearing (for real this time) (dedf1eb)
+
+## v4.6.2
+ * Fix Windows crashlogs not appearing (02cee65)
+ * Unzip JIT-less iOS binaries separately from the .geode file (85fe11f)
+
+## v4.6.1
+ * Fix several random crashes caused by incorrect relocation code in Tuliphook
+ * Make unzip upon download iOS only (0a6d09c)
+
+## v4.6.0
+ * JIT-less iOS support! (#1395)
+   * This means that Geode now supports iOS 26 beta and above
+   * Follow instructions in the [iOS launcher guide](https://github.com/geode-sdk/ios-launcher/blob/main/INSTALL.md) for setting up
+   * Old mods compiled for iOS need to be recompiled to work with this version, but other platforms are unaffected
+   * There are new additions to help with JIT-less specific hooking and patching
+     * Geode's own `Modify` classes should work out of the box
+     * You can check if the platform is JIT-less iOS by using the `Loader::isPatchless` function
+     * For custom hooks, you can use the `GEODE_MOD_STATIC_HOOK` macro to add a hook. This hook can be enabled and disabled like normal.
+     * For custom patches, you can use the `GEODE_MOD_STATIC_PATCH` macro to add a patch. This patch will be applied by the launcher and can not be disabled.
+     * If you have any dynamic patches, you can not use them with JIT-less iOS
+   * This is a pretty big update, so there might be some issues with it. Please report the issues you find.
+ * Major TulipHook update from 2.5.0 to 3.1.0 (#1395)
+   * Adds debug logging behind the launcher flag `enable-tulip-hook-logs`
+   * This update is a mainly internal one, but it is the most sensitive part of Geode
+   * If you find any issues with it, please report them
+ * Unzip on mod download (#1390)
+ * Add Italian translation for the Windows installer (#1393)
+ * Add `AndroidInputTimestampEvent` (#1396)
+ * Fix `keyUp` when command key is pressed on MacOS (#1324)
+ * Don't create a popup when there are no mods to update (#1311)
+ * Add unzipped binary cleanup of unused platforms (#1377)
+ * Add API badge and tag for mod listing (#1389)
+ * Create Linux installer script (d38acee)
+ * Use `FORCE_COLOR` environment variable to force terminal colors (79761bf)
+ * Patch conditional variable on older Wine versions (53df4d3)
+ * Make `ObjWrapper::getValue` non-const (5c3afbd)
+ * Make Windows clipboard utilities unicode (82d8faf)
+ * Use custom certificate store for web requests on Windows (e0c1774)
+ * Add verbose curl logging (ec34df6)
+ * Add `writeStringSafe` that writes to a temporary file first (af806ba)
+ * Force unzip of mods on launch if the binary is missing (e4dd3e8)
+ * Fix rare unzip crash (86fd2c4)
+ * Fix PCH on iOS (0d972ab)
+ * Don't load importance superseded mods (2c5230e)
+ * Add some more documentation comments (9b27ddc)
+ * Fix `LazySprite` overloads and performace issues (0f53f38, 5394954)
+ * Error when trying to use `m_fields` in non-`CCNode` modify classes (0aed958)
+
+
+## v4.5.0
+ * Multipart form support for Geode web utilities (#1345)
+ * Use system certificate store for web requests on Windows, should fix some SSL issues (665a000)
+ * Fix windows file dialogs needing alt tab in full screen (f1a2b1b)
+ * Improve iOS stack traces in crashlogs, show the memory address that caused the crash (230ad79)
+ * Shorten DLL paths in Windows crashlogs, for DLLs that are from GD or mods (f6a5fb3)
+ * Add a `geode::utils::string::pathToString` method, which safely handles UTF-16 conversions on Windows (95eed22, 138d071)
+ * Fix base64 utilities not being exported and thus unusable by mods (dcd42df)
+ * Fix `geode::utils::game::exit` and `restart` not linking on all platforms except Windows (50c09b0)
+ * Fix `Mod::getLaunchArgumentName` not actually existing (#1356)
+ * Fix `openFolder` not working properly on MacOS (b1a8464)
+ * Fix `LazySprite` callback sometimes being called multiple times (d273ce6)
+ * Fix `LazySprite` sometimes invoking undefined behavior (6b5146a)
+ * Fix `WeakRef` leaking memory if a strong reference outlives all weak references (9587ce3)
+ * Add a way to cancel `LazySprite` loading (3a35321)
+ * Unify destructor fix across all platforms, replace a global map with a stack, fix Windows leaking references (#1350, b0f38ad)
+ * Add some logs to web utilities and improve error messages (c2caafc)
+ * Make AxisScaling::grow shrink to initial size if needed (0c80db6, c3b4e3d)
+ * Make the name of the mod being uninstalled yellow (9a6346a)
+ * Fix static notification queue object causing crashes when closing the game (#1340)
+ * Fix compile issues with `gd::vector` on Android (#1351)
+ * Use Clang 19 for windows builds (#1346)
+ * Additional CCRenderTexture members (#1352)
+ * Make property macros public (#1364)
+
+
+## v4.4.0
  * Experimental support for iOS! (#1275, #1280, #1282, and a lot more other commits...)
+ * Use MDPopup for mod setting descriptions (#1286)
+ * Add a new filter that shows enabled mods before disabled ones on the install page (#1315)
+ * Save filters from `InstalledModListSource` to disk (#1315)
  * Fix a vanilla crash that could happen with large save files on Android (#1270)
- * Fix warnings from clang 20 (df03f8a)
- * Correctly check image size in MacOS crashlogs (#1274)
- * Fix a MacOS crash related to extra keys added by Geode (f7d44f3)
- * Print more useful information in Windows crashlogs when an access violation happens (c3d2b4e)
- * Fix memory leaks in `CCImage` usage (f38fe30)
- * Add members for `CCParticleSystem` (#1273)
- * Update minimum CMake version to `3.21` (023274b)
- * Add optional saving for `geode::utils::game::exit` and `geode::utils::game::restart` (061c335)
- * Remove Modtober tab (#1299)
- * Optimize UI state updates on mod setting value changes (#1296)
- * Fix small issues with installer spanish translation (#1254, c851dc7)
- * Remove libstdc++ update from workflow (#1302)
- * Fix link buttons not being disabled when needed in `ModPopup` (#1303)
- * Fix a small visual bug in `ModDeveloperList` (#1303)
  * Fix a vanilla MacOS crash that could happen on game close (#1304, 7b877db, eb043db, 75c8efa, 8982011, 8bd735a)
- * Let our `libcurl` use the native system CA, alongside our bundle (#1301)
- * Fix `gnustl` set functions returning wrong type (ac1de8a)
+ * Fix a rare crash that could happen when searching for mods (eb874ad)
+ * Fix a small visual bug that happened when viewing mod problems (967b6ad)
+ * Fix some file access related crashes that could happen when loading mods (27ca8b6)
+ * Fix a small visual bug in `ModDeveloperList` (#1303, #1319)
+ * Fix link buttons not being disabled when needed in `ModPopup` (#1303)
+ * Print more useful information in Windows crashlogs when an access violation happens (c3d2b4e)
+ * Fix small issues with installer spanish translation (#1254)
+ * Optimize `ModsLayer` a lot (#1296, #1321, 427e0b0, eb874ad)
+ * Remove Modtober tab (#1299)
  * Add `geode::dirs::getResourcesDir()` and `{gd_resources_dir}` setting variable (#1285)
  * Add `geode::globalListen()` and `EventListener` operator= move (#1218)
+ * Add base64 utils (#1307)
  * Make `geode::utils::web::openLinkInBrowser` open the system webview on Android (#1295)
+ * Add API to change log level per mod (#1305)
  * Add safe area API for Android and iOS node placement (#1284)
+ * Add unicode conversion utils (#1310)
+ * Add missing `SimpleAxisLayout` getters (#1314)
+ * Add `format_as` for all SeedValue classes (#1316)
+ * Add `LazySprite` class, which handles image loading in a separate thread as much as possible (#1320)
+ * Add `gd::pair` for non-Android platforms (#1322)
+ * Add optional saving for `geode::utils::game::exit` and `geode::utils::game::restart` (061c335)
+ * Add members for `CCParticleSystem` (#1273)
+ * Add `gnustl` vector and map, alongside other dependencies (#1255)
+ * Make `gd::pair` constructible from `std::pair` (b444247)
+ * Fix some `geode::stl` iterator conversions (e64ab20)
+ * Expose `BreakLine` class (#1309)
+ * Correctly check image size in MacOS crashlogs (#1274)
+ * Fix a MacOS crash related to extra keys added by Geode (f7d44f3)
+ * Fix memory leaks in `CCImage` usage (f38fe30)
+ * Fix `CCSprite` members (#1308)
+ * Update minimum CMake version to `3.21` (023274b)
+ * Let our `libcurl` use the native system CA, alongside our bundle (#1301)
+ * Fix `gnustl` set functions returning wrong type (ac1de8a)
+ * Fix `SimpleAxisLayout` scaling not working properly in some cases (22f01bb)
+ * Fix `SimpleAxisLayout` offset gaps in `BackToFront` disrection (f4deccd)
+ * Fix `TextArea` not handling scale properly on touches (#1313)
+ * Fix undefined behaviour in path handling on file utils
+ * Rename `2.207` to `2.2070` in the timestamp map (79ba633)
  * Update `TulipHook` to 2.4.4
 
 ## v4.3.1
@@ -355,7 +495,7 @@
  * Improve CI by cross compiling from linux (#935, #939)
  * Alternate way of getting main function address on Windows (1384604)
    * Previously this would affect about 2 people on earth
- * Show special error on proxy loader if bad dlls are in gd folder (fd476fe) 
+ * Show special error on proxy loader if bad dlls are in gd folder (fd476fe)
 
 ## v3.0.0
  * Show loader commit hashes again (b72bb9e)
@@ -1001,92 +1141,92 @@
 Thank you to [Fleeym](https://github.com/Fleeym/Fleeym) for contributing to this release!
 
 ## v1.0.0-beta.12
- * Fix crash when installing mods 
- * FMOD is now linked on MacOS 
- * `GEODE_DEBUG` on longer needs to be defined for `log::debug` to work 
+ * Fix crash when installing mods
+ * FMOD is now linked on MacOS
+ * `GEODE_DEBUG` on longer needs to be defined for `log::debug` to work
  * Make Geode changelog visible in-game
  * Make the changelog only be loaded once the changelog button is pressed in ModInfoPopup
  * Fix the scrollbar not working for the changelog in ModInfoPopup
  * Fix visual issues with scrollbars
 
 ## v1.0.0-beta.11
- * New `geode::prelude` namespace to replace the old `USE_GEODE_NAMESPACE()` macro 
- * Add `CCNode::removeChildByID` 
- * Add `CCNode::hasAncestor` 
- * Add `CCScene::get` and `CCScheduler::get` 
- * Add `geode::cocos::getMousePos` 
- * Add `GEODE_DONT_INSTALL_MODS` option to CMake 
- * Add logging `std::vector` with `log::` functions 
- * Add `EventListener::getFilter` 
- * Add `AttributeSetEvent` for detecting when attributes are added to nodes 
- * Add `CCNode::addEventListener` (along with other related functions) as convenience methods for adding event listeners that target nodes 
- * Add `WeakRef` as a weak pointer alternative to `Ref` (see [the docs](https://docs.geode-sdk.org/tutorials/memory#weakref) for a tutorial) 
- * Add option to ignore invisible children to `Layout` 
- * `CCNode` attributes now use `json::Value` over `std::any` for ABI compatability 
- * Implement file picker on Mac 
- * Define `CCNode::retainCount` inline 
- * `Layout` now inherits from `CCObject`, allowing you to share layouts across multiple nodes 
- * Update TulipHook version 
- * Make sure mod load/enable/etc. events are only ever posted in the GD thread 
- * `Mod::getResourcesDir` now returns `geode/unzipped/{mod.id}/resources/{mod.id}` in conjunction with [CLI v2.1.0](https://github.com/geode-sdk/cli/releases/tag/v2.1.1) 
- * Give a name to `ccTouchType` 
- * Fix `Scrollbar` being funky sometimes 
- * Fix mod resources not being loaded if the mod is enabled at runtime 
- * Fix `EditLevelLayer` description update button ID & layout 
- * Fix hooking functions with unpredictable calling conventions 
- * Fix `setup_geode_mod` not linking to Geode if CLI calls are disabled 
- * Fix code editors showing a ton of warnings with `$modify` 
- * Fix top sprite sizes of `CircleButtonSprite` and `EditorButtonSprite` 
- * Fix `Mod::enableHook` error message 
+ * New `geode::prelude` namespace to replace the old `USE_GEODE_NAMESPACE()` macro
+ * Add `CCNode::removeChildByID`
+ * Add `CCNode::hasAncestor`
+ * Add `CCScene::get` and `CCScheduler::get`
+ * Add `geode::cocos::getMousePos`
+ * Add `GEODE_DONT_INSTALL_MODS` option to CMake
+ * Add logging `std::vector` with `log::` functions
+ * Add `EventListener::getFilter`
+ * Add `AttributeSetEvent` for detecting when attributes are added to nodes
+ * Add `CCNode::addEventListener` (along with other related functions) as convenience methods for adding event listeners that target nodes
+ * Add `WeakRef` as a weak pointer alternative to `Ref` (see [the docs](https://docs.geode-sdk.org/tutorials/memory#weakref) for a tutorial)
+ * Add option to ignore invisible children to `Layout`
+ * `CCNode` attributes now use `json::Value` over `std::any` for ABI compatability
+ * Implement file picker on Mac
+ * Define `CCNode::retainCount` inline
+ * `Layout` now inherits from `CCObject`, allowing you to share layouts across multiple nodes
+ * Update TulipHook version
+ * Make sure mod load/enable/etc. events are only ever posted in the GD thread
+ * `Mod::getResourcesDir` now returns `geode/unzipped/{mod.id}/resources/{mod.id}` in conjunction with [CLI v2.1.0](https://github.com/geode-sdk/cli/releases/tag/v2.1.1)
+ * Give a name to `ccTouchType`
+ * Fix `Scrollbar` being funky sometimes
+ * Fix mod resources not being loaded if the mod is enabled at runtime
+ * Fix `EditLevelLayer` description update button ID & layout
+ * Fix hooking functions with unpredictable calling conventions
+ * Fix `setup_geode_mod` not linking to Geode if CLI calls are disabled
+ * Fix code editors showing a ton of warnings with `$modify`
+ * Fix top sprite sizes of `CircleButtonSprite` and `EditorButtonSprite`
+ * Fix `Mod::enableHook` error message
  * Lots of bindings on both Windows & Mac (50+ commits related to bindings)
 
 ## v1.0.0-beta.10
- * Fix loader minimum mod version preventing the loader itself from loading 
- * Fix recursive comparison in VersionTag 
- * `geode/unzipped` is now deleted on startup if it exists 
+ * Fix loader minimum mod version preventing the loader itself from loading
+ * Fix recursive comparison in VersionTag
+ * `geode/unzipped` is now deleted on startup if it exists
 
 ## v1.0.0-beta.9
- * Fix multiple modifiers not being able to have fields on same class due to having same field index 
- * Add `Result::ok` and `Result::err` for converting the `Result` into `std::optional` 
+ * Fix multiple modifiers not being able to have fields on same class due to having same field index
+ * Add `Result::ok` and `Result::err` for converting the `Result` into `std::optional`
 
 ## v1.0.0-beta.8
- * Unload the mod even when first time warning pops up 
- * Error when address of a function returns nullptr when hooking 
- * Add support for Geode CLI v2.0.0 (which has not been released yet) 
- * Logging no longer causes a crash on invalid formats, but instead just warns 
- * `file::pickFile` now uses the last item in the default path as the default filename to save/open 
- * Fix `EditorPauseLayer` crashing constantly due to some members being accidentally set to `nullptr` 
+ * Unload the mod even when first time warning pops up
+ * Error when address of a function returns nullptr when hooking
+ * Add support for Geode CLI v2.0.0 (which has not been released yet)
+ * Logging no longer causes a crash on invalid formats, but instead just warns
+ * `file::pickFile` now uses the last item in the default path as the default filename to save/open
+ * Fix `EditorPauseLayer` crashing constantly due to some members being accidentally set to `nullptr`
 
 ## v1.0.0-beta.7
- * Add `Mod::getResourcesDir` for getting the mod resources directory 
- * Deprecate `file::listFiles` for `file::readDirectory` 
- * Fix getting virtual function addresses for CCFileUtils 
- * Rename `BasedButtonSprite` sprite names to be more expressive 
- * Fix `typeinfo_cast` causing a crash if passed a `nullptr` on MacOS 
- * Fix settings not getting broadcasted 
- * Make `Loader::getLoadedMod` and `Loader::isModLoaded` also check if mod is enabled 
- * Display Geode commit hash in the bottom right of the mod info layer 
- * Fix `EditorPauseLayer` info labels on the top left being too big 
+ * Add `Mod::getResourcesDir` for getting the mod resources directory
+ * Deprecate `file::listFiles` for `file::readDirectory`
+ * Fix getting virtual function addresses for CCFileUtils
+ * Rename `BasedButtonSprite` sprite names to be more expressive
+ * Fix `typeinfo_cast` causing a crash if passed a `nullptr` on MacOS
+ * Fix settings not getting broadcasted
+ * Make `Loader::getLoadedMod` and `Loader::isModLoaded` also check if mod is enabled
+ * Display Geode commit hash in the bottom right of the mod info layer
+ * Fix `EditorPauseLayer` info labels on the top left being too big
 
 ## v1.0.0-beta.6
  * Reworked layouts from the ground up - see [the docs page](https://docs.geode-sdk.org/tutorials/layouts) for more information about how the new system works (#137)
  * Update the IDs for a bunch of layers, aswell as adding some predefined layouts (3f64b98, ef9e741, a78bc0c, cb1a6f1, ea037a9, f7ddf0a, ...)
- * Add IDs & layouts to `EditorPauseLayer` 
- * Add `CCNode::insertBefore` and `CCNode::insertAfter` for adding children before/after existing ones 
+ * Add IDs & layouts to `EditorPauseLayer`
+ * Add `CCNode::insertBefore` and `CCNode::insertAfter` for adding children before/after existing ones
  * Add `CCSize::aspect` convenience method
- * Add `Mod::getResourcesDir` for getting a mod's runtime resources directory (where `[mod.json].resources.files` are placed) 
- * Add `Mod::addCustomSetting` for convenience in registering custom settings 
- * Add `file::readDirectory` as a sanely named alternative to `file::listFiles` 
- * Move `GEODE_DLL` to the structs themselves in `JsonValidation` 
- * Versions now support tag numbers & version tags are now used in comparisons. This change does not affect old betas, which still internally report their version as just `v1.0.0-beta`, but starting with this beta the version is correctly reported as `v1.0.0-beta.6` and correctly compared against other versions 
- * `Loader::getLoadedMod` and `Loader::isModLoaded` now only return if the mod is also enabled 
- * Geode's internal mod representation is now included in the loader's loaded mods list 
- * Fix settings value changes not being broadcast. This causes an API break relating to custom settings; `SettingValue` now requires the owner mod ID in its constructor 
- * Fix some warnings 
- * Fix `CCNode::swapChildIndices` 
- * Fix `typeinfo_cast` causing a crash if passed a `nullptr` 
- * Fix `ranges::reverse` causing UB 
- * Other fixes & improvements 
+ * Add `Mod::getResourcesDir` for getting a mod's runtime resources directory (where `[mod.json].resources.files` are placed)
+ * Add `Mod::addCustomSetting` for convenience in registering custom settings
+ * Add `file::readDirectory` as a sanely named alternative to `file::listFiles`
+ * Move `GEODE_DLL` to the structs themselves in `JsonValidation`
+ * Versions now support tag numbers & version tags are now used in comparisons. This change does not affect old betas, which still internally report their version as just `v1.0.0-beta`, but starting with this beta the version is correctly reported as `v1.0.0-beta.6` and correctly compared against other versions
+ * `Loader::getLoadedMod` and `Loader::isModLoaded` now only return if the mod is also enabled
+ * Geode's internal mod representation is now included in the loader's loaded mods list
+ * Fix settings value changes not being broadcast. This causes an API break relating to custom settings; `SettingValue` now requires the owner mod ID in its constructor
+ * Fix some warnings
+ * Fix `CCNode::swapChildIndices`
+ * Fix `typeinfo_cast` causing a crash if passed a `nullptr`
+ * Fix `ranges::reverse` causing UB
+ * Other fixes & improvements
 
 ## v1.0.0-beta.5
 - Make ModInfo Pimpl
@@ -1101,28 +1241,28 @@ Thank you to [Fleeym](https://github.com/Fleeym/Fleeym) for contributing to this
 - Fix macOS libzstd crash
 
 ## v1.0.0-beta.3
- - Better support for dependencies with [Geode CLI v1.4.x](https://github.com/geode-sdk/cli/releases/latest): mod dependencies are now automatically installed from the mods index by simply declaring them in your `mod.json`. See [the tutorial page in docs](https://docs.geode-sdk.org/mods/dependencies/) for more 
- - The `create_geode_file` CMake function has been replaced by `setup_geode_mod`. The old `create_geode_file` function is still available, but will be deprecated in the future 
- - `Result::except` now works with non-copyable types 
- - `Zip` and `Unzip` now support in-memory ZIP extraction and creation 
- - `ComparableVersionInfo::compare` now always returns false if the major versions are different 
- - `ComparableVersionInfo` parsing now expects equal to be marked with a single `=` instead of two (`==v1.2.3` => `=v1.2.3`) 
- - Fix `DS_Dictionary`-related `gd::string` Cocos2d functions not being linked 
- - `CC_DLL` no longer expands to dllexport/dllimport 
- - The JSON lib now default constructs to object, hopefully fixing uncaught bugs 
- - Something related to codegen and addresser? I have no clue what it does, so you probably won't have either 
- - MacOS minimum version bumped to 10.14 
+ - Better support for dependencies with [Geode CLI v1.4.x](https://github.com/geode-sdk/cli/releases/latest): mod dependencies are now automatically installed from the mods index by simply declaring them in your `mod.json`. See [the tutorial page in docs](https://docs.geode-sdk.org/mods/dependencies/) for more
+ - The `create_geode_file` CMake function has been replaced by `setup_geode_mod`. The old `create_geode_file` function is still available, but will be deprecated in the future
+ - `Result::except` now works with non-copyable types
+ - `Zip` and `Unzip` now support in-memory ZIP extraction and creation
+ - `ComparableVersionInfo::compare` now always returns false if the major versions are different
+ - `ComparableVersionInfo` parsing now expects equal to be marked with a single `=` instead of two (`==v1.2.3` => `=v1.2.3`)
+ - Fix `DS_Dictionary`-related `gd::string` Cocos2d functions not being linked
+ - `CC_DLL` no longer expands to dllexport/dllimport
+ - The JSON lib now default constructs to object, hopefully fixing uncaught bugs
+ - Something related to codegen and addresser? I have no clue what it does, so you probably won't have either
+ - MacOS minimum version bumped to 10.14
 
 ## v1.0.0-beta.2
- * Fixed bug where `Mod::getSavedValue` would cause a crash due to trying operator on a null JSON value 
- * Fixed bug where loading would crash if one of the mods' binaries failed to load 
+ * Fixed bug where `Mod::getSavedValue` would cause a crash due to trying operator on a null JSON value
+ * Fixed bug where loading would crash if one of the mods' binaries failed to load
 
 ## v1.0.0-beta.1
- * Switched to [a new custom-built JSON library](https://github.com/geode-sdk/json) to replace `nlohmann::json` for compile-time improvements; if you were using the old JSON library, you can add & link to `nlohmann::json` in your own project, or update to use the new API. 
- * Fix resources not being downloaded automatically by using a fallback to latest release 
- * Add a new clear instruction popup in case downloading still fails 
- * String ID hooks now have higher priority, so they should always be applied regardless of if you call `NodeIDs::provideFor` or not (though it can still be called to absolutely ensure the IDs are there!) 
- * Various internal bugfixes & improvements 
+ * Switched to [a new custom-built JSON library](https://github.com/geode-sdk/json) to replace `nlohmann::json` for compile-time improvements; if you were using the old JSON library, you can add & link to `nlohmann::json` in your own project, or update to use the new API.
+ * Fix resources not being downloaded automatically by using a fallback to latest release
+ * Add a new clear instruction popup in case downloading still fails
+ * String ID hooks now have higher priority, so they should always be applied regardless of if you call `NodeIDs::provideFor` or not (though it can still be called to absolutely ensure the IDs are there!)
+ * Various internal bugfixes & improvements
 
 
 ## v1.0.0-alpha

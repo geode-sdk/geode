@@ -19,9 +19,20 @@ struct TextInputNodeFix : Modify<TextInputNodeFix, CCTextInputNode> {
             return false;
         }
 
-        auto const touchPos = touch->getLocation();
+        auto touchPos = touch->getLocation();
         auto const size = this->getContentSize();
         auto const pos = this->convertToNodeSpace(touchPos) + m_textField->getAnchorPoint() * size;
+
+        float parentScale = 1.f;
+        CCNode* currentParent = this;
+
+        while ((currentParent = currentParent->getParent())) {
+            parentScale *= currentParent->getScale();
+        }
+
+        CCPoint nodeSpace = this->convertToNodeSpace(touchPos);
+        nodeSpace = nodeSpace / parentScale;
+        touchPos = this->convertToWorldSpace(nodeSpace);
 
         if (pos.x < 0 || pos.x > size.width || pos.y < 0 || pos.y > size.height) {
             this->onClickTrackNode(false);
@@ -51,6 +62,8 @@ const char* geode::getCommonFilterAllowedChars(CommonFilter filter) {
         case CommonFilter::Hex:          return "0123456789abcdefABCDEF";
         case CommonFilter::Base64Normal: return "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+/=";
         case CommonFilter::Base64URL:    return "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_=";
+        case CommonFilter::Alphanumeric: return "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        case CommonFilter::Alphabetic:   return "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
     }
 }
 
@@ -152,20 +165,20 @@ void TextInput::setCallback(std::function<void(std::string const&)> onInput) {
 }
 void TextInput::setEnabled(bool enabled) {
     m_input->setTouchEnabled(enabled);
-    m_input->m_placeholderLabel->setOpacity(enabled ? 255 : 150);
+    m_input->m_textLabel->setOpacity(enabled ? 255 : 150);
 }
 void TextInput::setTextAlign(TextInputAlign align) {
     switch (align) {
         default:
         case TextInputAlign::Center: {
             m_input->m_textField->setAnchorPoint({ .5f, .5f });
-            m_input->m_placeholderLabel->setAnchorPoint({ .5f, .5f });
+            m_input->m_textLabel->setAnchorPoint({ .5f, .5f });
             m_input->updateAnchoredPosition(Anchor::Center);
         } break;
 
         case TextInputAlign::Left: {
             m_input->m_textField->setAnchorPoint({ .0f, .5f });
-            m_input->m_placeholderLabel->setAnchorPoint({ .0f, .5f });
+            m_input->m_textLabel->setAnchorPoint({ .0f, .5f });
             m_input->updateAnchoredPosition(Anchor::Left, ccp(5, 0));
         } break;
     }

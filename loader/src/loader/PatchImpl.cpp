@@ -1,4 +1,4 @@
-﻿#include "PatchImpl.hpp"
+#include "PatchImpl.hpp"
 
 #include <utility>
 #include "LoaderImpl.hpp"
@@ -46,6 +46,10 @@ std::vector<Patch::Impl*>& Patch::Impl::allEnabled() {
 }
 
 Result<> Patch::Impl::enable() {
+    if (m_enabled) {
+        return Ok();
+    }
+
     auto const thisMin = this->getAddress();
     auto const thisMax = this->getAddress() + this->m_patch.size() - 1;
     // TODO: this feels slow. can be faster
@@ -68,6 +72,10 @@ Result<> Patch::Impl::enable() {
 }
 
 Result<> Patch::Impl::disable() {
+    if (!m_enabled) {
+        return Ok();
+    }
+
     auto res = tulip::hook::writeMemory(m_address, m_original.data(), m_original.size());
     if (!res) return Err("Failed to disable patch: {}", res.unwrapErr());
 
@@ -80,6 +88,19 @@ Result<> Patch::Impl::disable() {
 
     allEnabled().erase(it);
     return Ok();
+}
+
+Result<> Patch::Impl::toggle() {
+    return this->toggle(!m_enabled);
+}
+
+Result<> Patch::Impl::toggle(bool enable) {
+    if (enable) {
+        return this->enable();
+    }
+    else {
+        return this->disable();
+    }
 }
 
 ByteVector const& Patch::Impl::getBytes() const {

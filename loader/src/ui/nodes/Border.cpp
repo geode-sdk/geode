@@ -11,7 +11,7 @@ Border* Border::create(CCNode* node, const ccColor4B& backgroundColor, const CCS
         instance->autorelease();
         return instance;
     }
-    
+
     delete instance;
     return nullptr;
 }

@@ -89,11 +89,11 @@ void updateFiles() {
 
 $execute {
     using namespace geode::updater;
-    new EventListener(+[](LoaderUpdateEvent* event) {
+    globalListen([](LoaderUpdateEvent* event) {
         if (std::holds_alternative<UpdateFinished>(event->status)) {
             updateFiles();
         }
-        return;
+        return ListenerResult::Propagate;
     }, LoaderUpdateFilter());
 };
 
@@ -105,7 +105,9 @@ void updateGeode() {
 
         std::filesystem::rename(oldSavePath, newSavePath, error);
         if (error) {
-            log::warn("Couldn't migrate old save files from {} to {}", oldSavePath.string(), newSavePath.string());
+            log::warn("Couldn't migrate old save files from {} to {}", 
+                oldSavePath, newSavePath
+            );
         }
     }
 
@@ -126,17 +128,30 @@ void applicationDidFinishLaunchingHook(void* self, SEL sel, NSNotification* noti
     return s_applicationDidFinishLaunchingOrig(self, sel, notification);
 }
 
+// For some reason, keyUp isn't called if command is pressed, despite keyDown being called in the same situation.
+static void(*s_sendEventOrig)(NSApplication* self, SEL sel, NSEvent* event);
+
+void sendEventHook(NSApplication* self, SEL sel, NSEvent* event) {
+    if ([event type] == NSEventTypeKeyUp) {
+        [[[self mainWindow] firstResponder] tryToPerform:@selector(keyUp:) with:event];
+        return;
+    }
+
+    s_sendEventOrig(self, sel, event);
+}
+
 
 bool loadGeode() {
     if (GEODE_STR(GEODE_GD_VERSION) != LoaderImpl::get()->getGameVersion()) {
         console::messageBox(
             "Unable to Load Geode!",
             fmt::format(
-                "This version of Geode is made for Geometry Dash {} "
-                "but you're trying to play with GD {}.\n"
-                "Please, update your game.",
+                "Geometry Dash is outdated!\n"
+                "Geode requires GD {} but you have {}.\n"
+                "Please, update Geometry Dash to {}.",
                 GEODE_STR(GEODE_GD_VERSION),
-                LoaderImpl::get()->getGameVersion()
+                LoaderImpl::get()->getGameVersion(),
+                GEODE_STR(GEODE_GD_VERSION)
             )
         );
         return false;
@@ -145,6 +160,12 @@ bool loadGeode() {
     // this uses the internal hooking system because it needs to be fast
     if (auto imp = hook::replaceObjcMethod("AppController", "applicationDidFinishLaunching:", (void*)applicationDidFinishLaunchingHook)) {
         s_applicationDidFinishLaunchingOrig = reinterpret_cast<decltype(s_applicationDidFinishLaunchingOrig)>(imp.unwrap());
+    }
+    else {
+        return false;
+    }
+    if (auto imp = hook::replaceObjcMethod("NSApplication", "sendEvent:", (void*)sendEventHook)) {
+        s_sendEventOrig = reinterpret_cast<decltype(s_sendEventOrig)>(imp.unwrap());
     }
     else {
         return false;

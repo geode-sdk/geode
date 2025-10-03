@@ -2,8 +2,10 @@
 #include "Geode/loader/Mod.hpp"
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/utils/map.hpp>
+#include <fmt/format.h>
 #include <optional>
 #include <hash/hash.hpp>
+#include <loader/LoaderImpl.hpp>
 #include <loader/ModImpl.hpp>
 
 using namespace server;
@@ -84,8 +86,8 @@ public:
             }
 
             if (!ModDownloadManager::get()->checkAutoConfirm()) {
-                // Throttle events to only once per frame to not cause a 
-                // billion UI updates at once 
+                // Throttle events to only once per frame to not cause a
+                // billion UI updates at once
                 if (m_scheduledEventForFrame != CCDirector::get()->getTotalFrames()) {
                     m_scheduledEventForFrame = CCDirector::get()->getTotalFrames();
                     Loader::get()->queueInMainThread([id = m_id]() {
@@ -106,57 +108,34 @@ public:
         if (!confirm) return;
 
         auto version = confirm->version;
+        auto downloadURL = version.downloadURL;
+
         m_status = DownloadStatusDownloading {
             .percentage = 0,
         };
 
-        m_downloadListener.bind([this, hash = version.hash, version = version](web::WebTask::Event* event) {
+        m_downloadListener.bind([this, hash = std::move(version.hash), version = std::move(version)](web::WebTask::Event* event) {
             if (auto value = event->getValue()) {
-                if (value->ok()) {
-                    if (auto actualHash = ::calculateHash(value->data()); actualHash != hash) {
-                        log::error("Failed to download {}, hash mismatch ({} != {})", m_id, actualHash, hash);
-                        m_status = DownloadStatusError {
-                            .details = "Hash mismatch, downloaded file did not match what was expected",
-                        };
-                        ModDownloadEvent(m_id).post();
-                        return;
-                    }
-
-                    bool removingInstalledWasError = false;
-                    std::string id = m_replacesMod.has_value() ? m_replacesMod.value() : m_id;
-                    if (auto mod = Loader::get()->getInstalledMod(id)) {
-                        std::error_code ec;
-                        std::filesystem::remove(mod->getPackagePath(), ec);
-                        if (ec) {
-                            removingInstalledWasError = true;
-                            m_status = DownloadStatusError {
-                                .details = fmt::format("Unable to delete existing .geode package (code {})", ec),
-                            };
-                        }
-                        // Mark mod as updated
-                        ModImpl::getImpl(mod)->m_requestedAction = ModRequestedAction::Update;
-                    }
-                    // If this was an update, delete the old file first
-                    if (!removingInstalledWasError) {
-                        auto ok = file::writeBinary(dirs::getModsDir() / (m_id + ".geode"), value->data());
-                        if (!ok) {
-                            m_status = DownloadStatusError {
-                                .details = ok.unwrapErr(),
-                            };
-                        }
-                        else {
-                            m_status = DownloadStatusDone {
-                                .version = version
-                            };
-                        }
-                    }
-                }
-                else {
+                if (!value->ok()) {
                     auto resp = event->getValue();
 
-                    m_status = DownloadStatusError {
-                        .details = fmt::format("Server returned error {}", resp->code()),
-                    };
+                    if (resp->code() == -1) {
+                        m_status = DownloadStatusError {
+                            .details = fmt::format(
+                                "Failed to make request to download endpoint. Error: {}",
+                                resp->string().unwrapOr("No message")
+                            )
+                        };
+                    } else {
+                        m_status = DownloadStatusError {
+                            .details = fmt::format(
+                                "Server returned error {} with message: {}",
+                                resp->code(),
+                                resp->string().unwrapOr("No message")
+                            )
+                        };
+                    }
+
                     log::error("Failed to download {}, server returned error {}", m_id, resp->code());
                     log::error("{}", resp->string().unwrapOr("No response"));
 
@@ -164,7 +143,60 @@ public:
                     if (!extErr.empty()) {
                         log::error("Extended error info: {}", extErr);
                     }
+                    goto postdownloadedevent;
                 }
+
+                if (auto actualHash = ::calculateHash(value->data()); actualHash != hash) {
+                    log::error("Failed to download {}, hash mismatch ({} != {})", m_id, actualHash, hash);
+                    m_status = DownloadStatusError {
+                        .details = "Hash mismatch, downloaded file did not match what was expected",
+                    };
+                    goto postdownloadedevent;
+                }
+
+                std::string id = m_replacesMod.has_value() ? m_replacesMod.value() : m_id;
+                if (auto mod = Loader::get()->getInstalledMod(id)) {
+                    std::error_code ec;
+                    std::filesystem::remove(mod->getPackagePath(), ec);
+                    if (ec) {
+                        m_status = DownloadStatusError {
+                            .details = fmt::format("Unable to delete existing .geode package (code {})", ec),
+                        };
+                        goto postdownloadedevent;
+                    }
+                    // Mark mod as updated
+                    ModImpl::getImpl(mod)->m_requestedAction = ModRequestedAction::Update;
+                }
+
+                // If this was an update, delete the old file first
+                auto geodePath = dirs::getModsDir() / (m_id + ".geode");
+                auto ok = file::writeBinary(geodePath, value->data());
+                if (!ok) {
+                    m_status = DownloadStatusError {
+                        .details = ok.unwrapErr(),
+                    };
+                    goto postdownloadedevent;
+                }
+
+                auto metadata = ModMetadata::createFromGeodeFile(geodePath);
+                if (metadata.isErr()) {
+                    m_status = DownloadStatusError {
+                        .details = metadata.unwrapErr(),
+                    };
+                    goto postdownloadedevent;
+                }
+
+                auto okBinary = LoaderImpl::get()->extractBinary(metadata.unwrap());
+                if (!okBinary) {
+                    m_status = DownloadStatusError {
+                        .details = okBinary.unwrapErr(),
+                    };
+                    goto postdownloadedevent;
+                }
+
+                m_status = DownloadStatusDone {
+                    .version = version
+                };
             }
             else if (auto progress = event->getProgress()) {
                 m_status = DownloadStatusDownloading {
@@ -174,8 +206,10 @@ public:
             else if (event->isCancelled()) {
                 m_status = DownloadStatusCancelled();
             }
-            // Throttle events to only once per frame to not cause a 
-            // billion UI updates at once 
+            // Throttle events to only once per frame to not cause a
+            // billion UI updates at once
+            postdownloadedevent:
+
             if (m_scheduledEventForFrame != CCDirector::get()->getTotalFrames()) {
                 m_scheduledEventForFrame = CCDirector::get()->getTotalFrames();
                 Loader::get()->queueInMainThread([id = m_id]() {
@@ -186,7 +220,7 @@ public:
 
         auto req = web::WebRequest();
         req.userAgent(getServerUserAgent());
-        m_downloadListener.setFilter(req.get(version.downloadURL));
+        m_downloadListener.setFilter(req.get(downloadURL));
         ModDownloadEvent(m_id).post();
     }
 };
@@ -357,14 +391,14 @@ bool ModDownloadManager::checkAutoConfirm() {
             // If some installed mod is incompatible with this one,
             // we need to ask for confirmation
             for (auto mod : Loader::get()->getAllMods()) {
-                for (auto inc : mod->getMetadata().getIncompatibilities()) {
+                for (auto inc : mod->getMetadataRef().getIncompatibilities()) {
                     if (inc.id == download.getID() && (!download.getVersion().has_value() || inc.version.compare(download.getVersion().value()))) {
                         return false;
                     }
                 }
             }
 
-            // If some newly downloaded mods are incompatible with this one, 
+            // If some newly downloaded mods are incompatible with this one,
             // we need to ask for confirmation
             for (auto download : ModDownloadManager::get()->getDownloads()) {
                 auto status = download.getStatus();

@@ -71,7 +71,7 @@ namespace server {
         );
 
         friend class ModDownloadManager;
-    
+
     public:
         void confirm();
         void cancel();

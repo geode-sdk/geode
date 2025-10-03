@@ -5,6 +5,15 @@
 #include "Task.hpp"
 
 namespace geode {
+    /**
+     * This is a geode utility that allows Tasks to be used with
+     * C++'s own coroutine handling.
+     * 
+     * @tparam T The task type it will finish to. See `Task` for 
+     * more information.
+     * @tparam P The progress type the task posts. See `Task` for 
+     * more information.
+     */
     template <is_task_type T = void, typename P = std::monostate>
     class CoTask final {
         using Type = Task<T, P>::Type;
@@ -60,7 +69,9 @@ namespace geode {
 
             bool await_ready() { return result.isOk(); }
             T&& await_resume() { return std::move(result.unwrap()); }
-            Awaiter(Result<T, E>&& res) : result(std::move(res)) {}
+
+            template <std::convertible_to<Result<T, E>> Q>
+            Awaiter(Q&& res) : result(std::forward<Q>(res)) {}
 
             template <typename U>
             void await_suspend(std::coroutine_handle<U> handle) {
@@ -75,7 +86,9 @@ namespace geode {
 
             bool await_ready() { return result.isOk(); }
             void await_resume() { return; }
-            Awaiter(Result<void, E> res) : result(res) {}
+
+            template <std::convertible_to<Result<void, E>> Q>
+            Awaiter(Q&& res) : result(std::forward<Q>(res)) {}
 
             template <typename U>
             void await_suspend(std::coroutine_handle<U> handle) {
@@ -91,7 +104,11 @@ namespace geode {
 
 template <typename T = void, typename E = std::string>
 auto operator co_await(geode::Result<T, E>&& res) {
-    return geode::geode_internal::Awaiter { std::move(res) };
+    return geode::geode_internal::Awaiter<T, E> { std::move(res) };
+}
+template <typename T = void, typename E = std::string>
+auto operator co_await(geode::Result<T, E> const& res) {
+    return geode::geode_internal::Awaiter<T, E> { res };
 }
 
 template <typename T, typename E, typename ...Args>

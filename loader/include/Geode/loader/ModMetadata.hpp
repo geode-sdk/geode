@@ -3,7 +3,7 @@
 #include <Geode/Result.hpp>
 #include "../utils/VersionInfo.hpp"
 #include "Types.hpp"
-
+#include <filesystem>
 #include <matjson.hpp>
 #include <memory>
 
@@ -19,7 +19,7 @@ namespace geode {
         std::unique_ptr<Impl> m_impl;
 
         friend class ModMetadataImpl;
-    
+
     public:
         ModMetadataLinks();
         ModMetadataLinks(ModMetadataLinks const& other);
@@ -107,14 +107,14 @@ namespace geode {
          */
         [[nodiscard]] VersionInfo getVersion() const;
         /**
-         * Human-readable ID of the Mod. Should be in the format 
-         * "developer.mod". May only contain lowercase ASCII characters, 
+         * Human-readable ID of the Mod. Should be in the format
+         * "developer.mod". May only contain lowercase ASCII characters,
          * numbers, dashes, underscores, and a single separating dot
          */
         [[nodiscard]] std::string getID() const;
         /**
-         * True if the mod has a mod ID that will be rejected in the future, 
-         * such as using uppercase letters or having multiple dots. Mods like 
+         * True if the mod has a mod ID that will be rejected in the future,
+         * such as using uppercase letters or having multiple dots. Mods like
          * this should release new versions that supersede the old ones
          */
         [[nodiscard]] bool usesDeprecatedIDForm() const;
@@ -200,6 +200,11 @@ namespace geode {
         [[nodiscard]] VersionInfo getGeodeVersion() const;
 
         /**
+         * Gets the load priority of this mod.
+         */
+        [[nodiscard]] int getLoadPriority() const;
+
+        /**
          * Checks if mod can be installed on the current GD version.
          * Returns Ok() if it can, Err explaining why not otherwise.
         */
@@ -273,7 +278,7 @@ namespace geode {
         static bool validateID(std::string const& id);
 
         /**
-         * Format a list of mod developers, truncated if there are multiple 
+         * Format a list of mod developers, truncated if there are multiple
          * developers in the same way as in the mods list
          * @note Static because this is used by InstallListCell
          */

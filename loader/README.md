@@ -8,7 +8,7 @@ See [docs](https://geode-sdk.github.io/docs/)
 
 ## Building
 
-### Prerequisites: 
+### Prerequisites:
 
  * [CMake](https://cmake.org/download/) (minimum v3.13.4)
  * A supported C++ compiler ([clang](https://releases.llvm.org/)/[MSVC](https://visualstudio.microsoft.com/downloads/))

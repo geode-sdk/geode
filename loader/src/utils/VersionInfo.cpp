@@ -1,7 +1,3 @@
-#ifndef _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES
-    #define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 1
-#endif
-
 #include <Geode/utils/VersionInfo.hpp>
 #include <Geode/utils/general.hpp>
 #include <matjson.hpp>
@@ -200,7 +196,7 @@ bool geode::semverCompare(VersionInfo const& current, VersionInfo const& target)
     auto tt = target.getTag();
     if (ct && tt) {
         auto currentTag = ct.value();
-        if (current.getMinor() > 0 && currentTag.value == VersionTag::Alpha) currentTag.value = VersionTag::Beta; 
+        if (current.getMinor() > 0 && currentTag.value == VersionTag::Alpha) currentTag.value = VersionTag::Beta;
         if (current.getPatch() > 0 && currentTag.value == VersionTag::Beta) currentTag.value = VersionTag::Prerelease;
 
         auto targetTag = tt.value();

@@ -53,7 +53,7 @@ class CC_DLL CCFileUtils : public TypeInfo
     friend class CCDictionary;
 public:
 
-    GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCFileUtils) 
+    GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCFileUtils)
     /**
      *  Returns an unique ID for this class.
      *  @note It's only used for JSBindings now.
@@ -65,7 +65,7 @@ public:
 		static const long id = cocos2d::getHashCodeByString(typeid(cocos2d::CCFileUtils).name());
 		return id;
     }
-    
+
     /**
      *  Gets the instance of CCFileUtils.
      *  @js getInstance
@@ -73,19 +73,19 @@ public:
     static CCFileUtils* sharedFileUtils();
 
     static GEODE_DLL CCFileUtils* get();
-    
+
     /**
      *  Destroys the instance of CCFileUtils.
      */
     static void purgeFileUtils();
-    
+
     /**
      *  The destructor of CCFileUtils.
      *  @js NA
      *  @lua NA
      */
     virtual ~CCFileUtils();
-    
+
     /**
      *  Purges the file searching cache.
      *
@@ -95,7 +95,7 @@ public:
      *        this method should be invoked to clean the file search cache.
      */
     virtual void purgeCachedEntries();
-    
+
     /**
      *  Gets resource file data
      *
@@ -118,14 +118,14 @@ public:
      *  @js NA
      */
     virtual unsigned char* getFileDataFromZip(const char* pszZipFilePath, const char* pszFileName, unsigned long * pSize);
-    
+
     /** Returns the fullpath for a given filename.
-     
+
      First it will try to get a new filename from the "filenameLookup" dictionary.
      If a new filename can't be found on the dictionary, it will use the original filename.
      Then it will try to obtain the full path of the filename using the CCFileUtils search rules: resolutions, and search paths.
      The file search is based on the array element order of search paths and resolution directories.
-     
+
      For instance:
 
      	We set two elements("/mnt/sdcard/", "internal_dir/") to search paths vector by setSearchPaths,
@@ -158,7 +158,7 @@ public:
      	    internal_dir/gamescene/uilayer/sprite.pvr.gz                      (if not found, return "gamescene/uilayer/sprite.png")
 
      If the new file can't be found on the file system, it will return the parameter pszFileName directly.
-     
+
      This method was added to simplify multiplatform support. Whether you are using cocos2d-js or any cross-compilation toolchain like StellaSDK or Apportable,
      you might need to load different resources for a given file in the different platforms.
 
@@ -166,15 +166,15 @@ public:
      @note Robtop Addition: added a bool parameter
      */
     virtual gd::string fullPathForFilename(const char* pszFileName, bool skipSuffix);
-    
+
     // @note RobTop Addition
     virtual void removeFullPath(const char* path);
 
     /**
      * Loads the filenameLookup dictionary from the contents of a filename.
-     * 
+     *
      * @note The plist file name should follow the format below:
-     * 
+     *
      * @code
      * <?xml version="1.0" encoding="UTF-8"?>
      * <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -203,8 +203,8 @@ public:
      * @loadFilenameLookup
      */
     virtual void loadFilenameLookupDictionaryFromFile(const char* filename);
-    
-    /** 
+
+    /**
      *  Sets the filenameLookup dictionary.
      *
      *  @param pFilenameLookupDict The dictionary for replacing filename.
@@ -212,7 +212,7 @@ public:
      *  @lua NA
      */
     virtual void setFilenameLookupDictionary(CCDictionary* pFilenameLookupDict);
-    
+
     /**
      *  Gets full path from a file name and the path of the reletive file.
      *  @param pszFilename The file name.
@@ -224,7 +224,7 @@ public:
      */
     virtual const char* fullPathFromRelativeFile(const char *pszFilename, const char *pszRelativeFile);
 
-    /** 
+    /**
      *  Sets the array that contains the search order of the resources.
      *
      *  @param searchResolutionsOrder The source array that contains the search order of the resources.
@@ -242,7 +242,7 @@ public:
       * @since v2.1
       */
     virtual void addSearchResolutionsOrder(const char* order);
-    
+
     /**
      *  Gets the array that contains the search order of the resources.
      *
@@ -252,10 +252,10 @@ public:
      *  @lua NA
      */
     virtual const gd::vector<gd::string>& getSearchResolutionsOrder();
-    
-    /** 
+
+    /**
      *  Sets the array of search paths.
-     * 
+     *
      *  You can use this array to modify the search path of the resources.
      *  If you want to use "themes" or search resources in the "cache", you can do it easily by adding new entries in this array.
      *
@@ -275,11 +275,11 @@ public:
     virtual void setSearchPaths(const gd::vector<gd::string>& searchPaths);
 
     /**
-     * Add a texture pack. Texture packs are prioritized over other search 
-     * paths, so if a texture pack has a replacement for a file, it will be 
-     * used over others. Contrary to addSearchPath, this function adds the 
-     * pack to the front of the list. If the pack has already been added, 
-     * it's moved to the front of the list (equivalent to removing and 
+     * Add a texture pack. Texture packs are prioritized over other search
+     * paths, so if a texture pack has a replacement for a file, it will be
+     * used over others. Contrary to addSearchPath, this function adds the
+     * pack to the front of the list. If the pack has already been added,
+     * it's moved to the front of the list (equivalent to removing and
      * re-adding the pack)
      * @param pack Pack to add
      * @note Geode addition
@@ -298,12 +298,12 @@ public:
      */
     void GEODE_DLL addPriorityPath(const char* path);
     /**
-     * Update search path order; texture packs are added first, then other  
+     * Update search path order; texture packs are added first, then other
      * paths
      * @note Geode addition
      */
     void GEODE_DLL updatePaths();
-    
+
     /**
       * Adds a path to search paths.
 	  *
@@ -326,10 +326,10 @@ public:
       * @lua NA
       */
 	 void removeAllPaths();
-    
+
     /**
      *  Gets the array of search paths.
-     *  
+     *
      *  @return The array of search paths.
      *  @see fullPathForFilename(const char*).
      *  @js NA
@@ -346,7 +346,7 @@ public:
 
     // @note RobTop Addition
     virtual gd::string getWritablePath2();
-    
+
     /**
      *  Checks whether a file exists.
      *
@@ -356,7 +356,7 @@ public:
      *  @lua NA
      */
     virtual bool isFileExist(const gd::string& strFilePath) { return false; }
-    
+
     /**
      *  Checks whether the path is an absolute path.
      *
@@ -368,16 +368,13 @@ public:
      *  @lua NA
      */
     virtual bool isAbsolutePath(const gd::string& strPath);
-    
-    
+
+
     /**
      *  Sets/Gets whether to pop-up a message box when failed to load an image.
      */
     virtual void setPopupNotify(bool bNotify);
     virtual bool isPopupNotify();
-
-  	gd::string getAndroidPath() const;
-	  void setAndroidPath(gd::string);
 
 
 protected:
@@ -385,7 +382,7 @@ protected:
      *  The default constructor.
      */
     CCFileUtils();
-    
+
     /**
      *  Initializes the instance of CCFileUtils. It will set m_searchPathArray and m_searchResolutionsOrderArray to default values.
      *
@@ -395,7 +392,7 @@ protected:
      *
      */
     virtual bool init();
-    
+
     /**
      *  Gets the new filename from the filename lookup dictionary.
      *  @param pszFileName The original filename.
@@ -408,7 +405,7 @@ protected:
     virtual bool shouldUseHD();
     // @note RobTop Addition
     virtual gd::string addSuffix(gd::string, gd::string);
-    
+
     /**
      *  Gets full path for filename, resolution directory and search path.
      *
@@ -418,7 +415,7 @@ protected:
      *  @return The full path of the file. It will return an empty string if the full path of the file doesn't exist.
      */
     virtual gd::string getPathForFilename(const gd::string& filename, const gd::string& resolutionDirectory, const gd::string& searchPath);
-    
+
     /**
      *  Gets full path for the directory and the filename.
      *
@@ -430,19 +427,19 @@ protected:
      *  @return The full path of the file, if the file can't be found, it will return an empty string.
      */
     virtual gd::string getFullPathForDirectoryAndFilename(const gd::string& strDirectory, const gd::string& strFilename);
-    
+
     /**
      *  Creates a dictionary by the contents of a file.
      *  @note This method is used internally.
      */
     virtual CCDictionary* createCCDictionaryWithContentsOfFile(const gd::string& filename);
-    
+
     /**
      *  Write a dictionary to a plist file.
      *  @note This method is used internally.
      */
     virtual bool writeToFile(CCDictionary *dict, const gd::string& fullPath);
-    
+
     /**
      *  Creates an array by the contents of a file.
      *  @note This method is used internally.
@@ -458,19 +455,19 @@ public:
      *  @since v2.1
      */
     CCDictionary* m_pFilenameLookupDict;
-    
-    /** 
+
+    /**
      *  The vector contains resolution folders.
      *  The lower index of the element in this vector, the higher priority for this resolution directory.
      */
     gd::vector<gd::string> m_searchResolutionsOrderArray;
-    
+
     /**
      * The vector contains search paths.
      * The lower index of the element in this vector, the higher priority for this search path.
      */
     gd::vector<gd::string> m_searchPathArray;
-    
+
     /**
      *  The default root path of resources.
      *  If the default root path of resources needs to be changed, do it in the `init` method of CCFileUtils's subclass.
@@ -479,19 +476,22 @@ public:
      *  Similarly on Blackberry, we assign "app/native/Resources/" to this variable in CCFileUtilsBlackberry::init().
      */
     gd::string m_strDefaultResRootPath;
-    
+
     /**
-     *  The full path cache. When a file is found, it will be added into this cache. 
+     *  The full path cache. When a file is found, it will be added into this cache.
      *  This variable is used for improving the performance of file search.
      */
     gd::map<gd::string, gd::string> m_fullPathCache;
+
+    // @note RobTop Addition
+    CC_SYNTHESIZE_NV(gd::string, m_strAndroidPath, AndroidPath);
 
 protected:
     /**
      *  The singleton pointer of CCFileUtils.
      */
     static CCFileUtils* s_sharedFileUtils;
-    
+
 };
 
 // end of platform group

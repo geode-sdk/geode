@@ -64,6 +64,7 @@
 #include "ext/alloc_traits.h"
 #include "ext/aligned_buffer.h"
 #include "exception_defines.h"
+#include "type_traits.h"
 
 namespace geode::stl {
 _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
@@ -144,16 +145,16 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
   inline _GLIBCXX_PURE _Rb_tree_node_base*
   _Rb_tree_increment(_Rb_tree_node_base* __x) throw ()
   {
-    if (__x->_M_right != 0) 
+    if (__x->_M_right != 0)
       {
         __x = __x->_M_right;
         while (__x->_M_left != 0)
           __x = __x->_M_left;
       }
-    else 
+    else
       {
         _Rb_tree_node_base* __y = __x->_M_parent;
-        while (__x == __y->_M_right) 
+        while (__x == __y->_M_right)
           {
             __x = __y;
             __y = __y->_M_parent;
@@ -173,20 +174,20 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
   inline _GLIBCXX_PURE _Rb_tree_node_base*
   _Rb_tree_decrement(_Rb_tree_node_base* __x) throw ()
   {
-    if (__x->_M_color == _S_red 
+    if (__x->_M_color == _S_red
         && __x->_M_parent->_M_parent == __x)
       __x = __x->_M_right;
-    else if (__x->_M_left != 0) 
+    else if (__x->_M_left != 0)
       {
         _Rb_tree_node_base* __y = __x->_M_left;
         while (__y->_M_right != 0)
           __y = __y->_M_right;
         __x = __y;
       }
-    else 
+    else
       {
         _Rb_tree_node_base* __y = __x->_M_parent;
-        while (__x == __y->_M_left) 
+        while (__x == __y->_M_left)
           {
             __x = __y;
             __y = __y->_M_parent;
@@ -365,7 +366,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
     { return __x._M_node != __y._M_node; }
 
   inline void
-  _Rb_tree_rotate_left(_Rb_tree_node_base* const __x, 
+  _Rb_tree_rotate_left(_Rb_tree_node_base* const __x,
 		                   _Rb_tree_node_base*& __root)
   {
     _Rb_tree_node_base* const __y = __x->_M_right;
@@ -374,7 +375,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
     if (__y->_M_left !=0)
       __y->_M_left->_M_parent = __x;
     __y->_M_parent = __x->_M_parent;
-    
+
     if (__x == __root)
       __root = __y;
     else if (__x == __x->_M_parent->_M_left)
@@ -386,7 +387,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
   }
 
   inline void
-  _Rb_tree_rotate_right(_Rb_tree_node_base* const __x, 
+  _Rb_tree_rotate_right(_Rb_tree_node_base* const __x,
 			                  _Rb_tree_node_base*& __root)
   {
     _Rb_tree_node_base* const __y = __x->_M_left;
@@ -444,24 +445,24 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
           __header._M_right = __x; // maintain rightmost pointing to max node
       }
     // Rebalance.
-    while (__x != __root 
-	   && __x->_M_parent->_M_color == _S_red) 
+    while (__x != __root
+	   && __x->_M_parent->_M_color == _S_red)
       {
 	_Rb_tree_node_base* const __xpp = __x->_M_parent->_M_parent;
 
-	if (__x->_M_parent == __xpp->_M_left) 
+	if (__x->_M_parent == __xpp->_M_left)
 	  {
 	    _Rb_tree_node_base* const __y = __xpp->_M_right;
-	    if (__y && __y->_M_color == _S_red) 
+	    if (__y && __y->_M_color == _S_red)
 	      {
 		__x->_M_parent->_M_color = _S_black;
 		__y->_M_color = _S_black;
 		__xpp->_M_color = _S_red;
 		__x = __xpp;
 	      }
-	    else 
+	    else
 	      {
-		if (__x == __x->_M_parent->_M_right) 
+		if (__x == __x->_M_parent->_M_right)
 		  {
 		    __x = __x->_M_parent;
 		    _Rb_tree_rotate_left(__x, __root);
@@ -471,19 +472,19 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 		_Rb_tree_rotate_right(__xpp, __root);
 	      }
 	  }
-	else 
+	else
 	  {
 	    _Rb_tree_node_base* const __y = __xpp->_M_left;
-	    if (__y && __y->_M_color == _S_red) 
+	    if (__y && __y->_M_color == _S_red)
 	      {
 		__x->_M_parent->_M_color = _S_black;
 		__y->_M_color = _S_black;
 		__xpp->_M_color = _S_red;
 		__x = __xpp;
 	      }
-	    else 
+	    else
 	      {
-		if (__x == __x->_M_parent->_M_left) 
+		if (__x == __x->_M_parent->_M_left)
 		  {
 		    __x = __x->_M_parent;
 		    _Rb_tree_rotate_right(__x, __root);
@@ -513,7 +514,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
     else
       if (__y->_M_right == 0)  // __z has exactly one non-null child. y == z.
 	__x = __y->_M_left;    // __x is not null.
-      else 
+      else
 	{
 	  // __z has two non-null children.  Set __y to
 	  __y = __y->_M_right;   //   __z's successor.  __x might be null.
@@ -521,12 +522,12 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 	    __y = __y->_M_left;
 	  __x = __y->_M_right;
 	}
-    if (__y != __z) 
+    if (__y != __z)
       {
 	// relink y in place of z.  y is z's successor
-	__z->_M_left->_M_parent = __y; 
+	__z->_M_left->_M_parent = __y;
 	__y->_M_left = __z->_M_left;
-	if (__y != __z->_M_right) 
+	if (__y != __z->_M_right)
 	  {
 	    __x_parent = __y->_M_parent;
 	    if (__x) __x->_M_parent = __y->_M_parent;
@@ -535,31 +536,31 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 	    __z->_M_right->_M_parent = __y;
 	  }
 	else
-	  __x_parent = __y;  
+	  __x_parent = __y;
 	if (__root == __z)
 	  __root = __y;
 	else if (__z->_M_parent->_M_left == __z)
 	  __z->_M_parent->_M_left = __y;
-	else 
+	else
 	  __z->_M_parent->_M_right = __y;
 	__y->_M_parent = __z->_M_parent;
-	std::swap(__y->_M_color, __z->_M_color);
+	swap(__y->_M_color, __z->_M_color);
 	__y = __z;
 	// __y now points to node to be actually deleted
       }
-    else 
+    else
       {                        // __y == __z
 	__x_parent = __y->_M_parent;
-	if (__x) 
-	  __x->_M_parent = __y->_M_parent;   
+	if (__x)
+	  __x->_M_parent = __y->_M_parent;
 	if (__root == __z)
 	  __root = __x;
-	else 
+	else
 	  if (__z->_M_parent->_M_left == __z)
 	    __z->_M_parent->_M_left = __x;
 	  else
 	    __z->_M_parent->_M_right = __x;
-	if (__leftmost == __z) 
+	if (__leftmost == __z)
 	  {
 	    if (__z->_M_right == 0)        // __z->_M_left must be null also
 	      __leftmost = __z->_M_parent;
@@ -567,41 +568,41 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 	    else
 	      __leftmost = _Rb_tree_node_base::_S_minimum(__x);
 	  }
-	if (__rightmost == __z)  
+	if (__rightmost == __z)
 	  {
 	    if (__z->_M_left == 0)         // __z->_M_right must be null also
-	      __rightmost = __z->_M_parent;  
+	      __rightmost = __z->_M_parent;
 	    // makes __rightmost == _M_header if __z == __root
 	    else                      // __x == __z->_M_left
 	      __rightmost = _Rb_tree_node_base::_S_maximum(__x);
 	  }
       }
-    if (__y->_M_color != _S_red) 
-      { 
+    if (__y->_M_color != _S_red)
+      {
 	while (__x != __root && (__x == 0 || __x->_M_color == _S_black))
-	  if (__x == __x_parent->_M_left) 
+	  if (__x == __x_parent->_M_left)
 	    {
 	      _Rb_tree_node_base* __w = __x_parent->_M_right;
-	      if (__w->_M_color == _S_red) 
+	      if (__w->_M_color == _S_red)
 		{
 		  __w->_M_color = _S_black;
 		  __x_parent->_M_color = _S_red;
 		  _Rb_tree_rotate_left(__x_parent, __root);
 		  __w = __x_parent->_M_right;
 		}
-	      if ((__w->_M_left == 0 || 
+	      if ((__w->_M_left == 0 ||
 		   __w->_M_left->_M_color == _S_black) &&
-		  (__w->_M_right == 0 || 
-		   __w->_M_right->_M_color == _S_black)) 
+		  (__w->_M_right == 0 ||
+		   __w->_M_right->_M_color == _S_black))
 		{
 		  __w->_M_color = _S_red;
 		  __x = __x_parent;
 		  __x_parent = __x_parent->_M_parent;
-		} 
-	      else 
+		}
+	      else
 		{
-		  if (__w->_M_right == 0 
-		      || __w->_M_right->_M_color == _S_black) 
+		  if (__w->_M_right == 0
+		      || __w->_M_right->_M_color == _S_black)
 		    {
 		      __w->_M_left->_M_color = _S_black;
 		      __w->_M_color = _S_red;
@@ -610,35 +611,35 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 		    }
 		  __w->_M_color = __x_parent->_M_color;
 		  __x_parent->_M_color = _S_black;
-		  if (__w->_M_right) 
+		  if (__w->_M_right)
 		    __w->_M_right->_M_color = _S_black;
 		  _Rb_tree_rotate_left(__x_parent, __root);
 		  break;
 		}
-	    } 
-	  else 
-	    {   
+	    }
+	  else
+	    {
 	      // same as above, with _M_right <-> _M_left.
 	      _Rb_tree_node_base* __w = __x_parent->_M_left;
-	      if (__w->_M_color == _S_red) 
+	      if (__w->_M_color == _S_red)
 		{
 		  __w->_M_color = _S_black;
 		  __x_parent->_M_color = _S_red;
 		  _Rb_tree_rotate_right(__x_parent, __root);
 		  __w = __x_parent->_M_left;
 		}
-	      if ((__w->_M_right == 0 || 
+	      if ((__w->_M_right == 0 ||
 		   __w->_M_right->_M_color == _S_black) &&
-		  (__w->_M_left == 0 || 
-		   __w->_M_left->_M_color == _S_black)) 
+		  (__w->_M_left == 0 ||
+		   __w->_M_left->_M_color == _S_black))
 		{
 		  __w->_M_color = _S_red;
 		  __x = __x_parent;
 		  __x_parent = __x_parent->_M_parent;
-		} 
-	      else 
+		}
+	      else
 		{
-		  if (__w->_M_left == 0 || __w->_M_left->_M_color == _S_black) 
+		  if (__w->_M_left == 0 || __w->_M_left->_M_color == _S_black)
 		    {
 		      __w->_M_right->_M_color = _S_black;
 		      __w->_M_color = _S_red;
@@ -647,7 +648,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 		    }
 		  __w->_M_color = __x_parent->_M_color;
 		  __x_parent->_M_color = _S_black;
-		  if (__w->_M_left) 
+		  if (__w->_M_left)
 		    __w->_M_left->_M_color = _S_black;
 		  _Rb_tree_rotate_right(__x_parent, __root);
 		  break;
@@ -663,10 +664,10 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
            typename _Compare, typename _Alloc = allocator<_Val> >
     class _Rb_tree
     {
-      typedef typename __gnu_cxx::__alloc_traits<_Alloc>::template
+      typedef typename __alloc_traits<_Alloc>::template
         rebind<_Rb_tree_node<_Val> >::other _Node_allocator;
 
-      typedef __gnu_cxx::__alloc_traits<_Node_allocator> _Alloc_traits;
+      typedef __alloc_traits<_Node_allocator> _Alloc_traits;
 
     protected:
       typedef _Rb_tree_node_base* 		_Base_ptr;
@@ -1102,7 +1103,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       : _M_impl(__x._M_impl._M_key_compare, __x._M_get_Node_allocator())
       {
 	if (__x._M_root() != 0)
-	  _M_move_data(__x, std::true_type());
+	  _M_move_data(__x, geode::stl::true_type());
       }
 
       _Rb_tree(_Rb_tree&& __x, const allocator_type& __a)
@@ -1339,12 +1340,12 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
     private:
       // Move elements from container with equal allocator.
       void
-      _M_move_data(_Rb_tree&, std::true_type);
+      _M_move_data(_Rb_tree&, geode::stl::true_type);
 
       // Move elements from container with possibly non-equal allocator,
       // which might result in a copy not a move.
       void
-      _M_move_data(_Rb_tree&, std::false_type);
+      _M_move_data(_Rb_tree&, geode::stl::false_type);
     };
 
   template<typename _Key, typename _Val, typename _KeyOfValue,
@@ -1408,7 +1409,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
     _Rb_tree(_Rb_tree&& __x, _Node_allocator&& __a)
     : _M_impl(__x._M_impl._M_key_compare, std::move(__a))
     {
-      using __eq = std::integral_constant<bool, _Alloc_traits::_S_always_equal()>;
+      using __eq = integral_constant<bool, _Alloc_traits::_S_always_equal()>;
       if (__x._M_root() != nullptr)
 	_M_move_data(__x, __eq());
     }
@@ -1417,7 +1418,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
            typename _Compare, typename _Alloc>
     void
     _Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::
-    _M_move_data(_Rb_tree& __x, std::true_type)
+    _M_move_data(_Rb_tree& __x, geode::stl::true_type)
     {
       _M_root() = __x._M_root();
       _M_leftmost() = __x._M_leftmost();
@@ -1436,10 +1437,10 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
            typename _Compare, typename _Alloc>
     void
     _Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::
-    _M_move_data(_Rb_tree& __x, std::false_type)
+    _M_move_data(_Rb_tree& __x, geode::stl::false_type)
     {
       if (_M_get_Node_allocator() == __x._M_get_Node_allocator())
-	  _M_move_data(__x, std::true_type());
+	  _M_move_data(__x, geode::stl::true_type());
       else
 	{
 	  _Alloc_node __an(*this);
@@ -1470,7 +1471,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 	{
 	  clear();
 	  if (__x._M_root() != nullptr)
-	    _M_move_data(__x, std::true_type());
+	    _M_move_data(__x, geode::stl::true_type());
 	  __alloc_on_move(_M_get_Node_allocator(),
 			       __x._M_get_Node_allocator());
 	  return *this;
@@ -1830,16 +1831,16 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 	}
       else
 	{
-	  std::swap(_M_root(),__t._M_root());
-	  std::swap(_M_leftmost(),__t._M_leftmost());
-	  std::swap(_M_rightmost(),__t._M_rightmost());
+	  swap(_M_root(),__t._M_root());
+	  swap(_M_leftmost(),__t._M_leftmost());
+	  swap(_M_rightmost(),__t._M_rightmost());
 
 	  _M_root()->_M_parent = _M_end();
 	  __t._M_root()->_M_parent = __t._M_end();
-	  std::swap(this->_M_impl._M_node_count, __t._M_impl._M_node_count);
+	  swap(this->_M_impl._M_node_count, __t._M_impl._M_node_count);
 	}
       // No need to swap header's color as it does not change.
-      std::swap(this->_M_impl._M_key_compare, __t._M_impl._M_key_compare);
+      swap(this->_M_impl._M_key_compare, __t._M_impl._M_key_compare);
 
       _Alloc_traits::_S_on_swap(_M_get_Node_allocator(),
 				__t._M_get_Node_allocator());
@@ -2357,14 +2358,14 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
     if (__node == 0)
       return 0;
     unsigned int __sum = 0;
-    do 
+    do
       {
-	if (__node->_M_color == _S_black) 
+	if (__node->_M_color == _S_black)
 	  ++__sum;
-	if (__node == __root) 
+	if (__node == __root)
 	  break;
 	__node = __node->_M_parent;
-      } 
+      }
     while (1);
     return __sum;
   }

@@ -34,8 +34,8 @@ NS_CC_BEGIN
  * @{
  */
 
-/** 
-@brief CCWaves3D action 
+/**
+@brief CCWaves3D action
 */
 class CC_DLL CCWaves3D : public CCGrid3DAction
 {
@@ -113,7 +113,7 @@ public:
     inline void setLensEffect(float fLensEffect) { m_fLensEffect = fLensEffect; }
     /** Set whether lens is concave */
     inline void setConcave(bool bConcave) { m_bConcave = bConcave; }
-  
+
     inline const CCPoint& getPosition(void) { return m_position; }
     void setPosition(const CCPoint& position);
 

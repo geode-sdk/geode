@@ -25,7 +25,10 @@ bool utils::clipboard::write(std::string const& data) {
         return false;
     }
 
-    HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, data.size() + 1);
+    std::wstring wData = string::utf8ToWide(data);
+    auto const size = (wData.size() + 1) * sizeof(wchar_t);
+
+    HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, size);
 
     if (!hg) {
         CloseClipboard();
@@ -39,11 +42,11 @@ bool utils::clipboard::write(std::string const& data) {
         return false;
     }
 
-    memcpy(dest, data.c_str(), data.size() + 1);
+    memcpy(dest, wData.c_str(), size);
 
     GlobalUnlock(hg);
 
-    SetClipboardData(CF_TEXT, hg);
+    SetClipboardData(CF_UNICODETEXT, hg);
     CloseClipboard();
 
     GlobalFree(hg);
@@ -54,19 +57,19 @@ bool utils::clipboard::write(std::string const& data) {
 std::string utils::clipboard::read() {
     if (!OpenClipboard(nullptr)) return "";
 
-    HANDLE hData = GetClipboardData(CF_TEXT);
+    HANDLE hData = GetClipboardData(CF_UNICODETEXT);
     if (hData == nullptr) {
         CloseClipboard();
         return "";
     }
 
-    char* pszText = static_cast<char*>(GlobalLock(hData));
+    auto pszText = static_cast<wchar_t*>(GlobalLock(hData));
     if (pszText == nullptr) {
         CloseClipboard();
         return "";
     }
 
-    std::string text(pszText);
+    std::string text = string::wideToUtf8(pszText);
 
     GlobalUnlock(hData);
     CloseClipboard();
@@ -145,7 +148,7 @@ Task<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions 
 }
 
 void utils::web::openLinkInBrowser(std::string const& url) {
-    ShellExecuteA(0, 0, url.c_str(), 0, 0, SW_SHOW);
+    ShellExecuteW(0, 0, utils::string::utf8ToWide(url).c_str(), 0, 0, SW_SHOW);
 }
 
 CCPoint cocos::getMousePos() {
@@ -245,11 +248,11 @@ void geode::utils::game::restart(bool saveData) {
 
     wchar_t buffer[MAX_PATH];
     GetModuleFileNameW(nullptr, buffer, MAX_PATH);
-    const auto gdName = fmt::format("\"{}\"", std::filesystem::path(buffer).filename().string());
+    auto const gdName = L"\"" + std::filesystem::path(buffer).filename().wstring() + L"\"";
 
     // launch updater
-    const auto updaterPath = (workingDir / "GeodeUpdater.exe").string();
-    ShellExecuteA(nullptr, "open", updaterPath.c_str(), gdName.c_str(), workingDir.string().c_str(), false);
+    auto const updaterPath = (workingDir / "GeodeUpdater.exe").wstring();
+    ShellExecuteW(nullptr, L"open", updaterPath.c_str(), gdName.c_str(), workingDir.wstring().c_str(), false);
 
     exit(saveData);
 }
@@ -266,14 +269,14 @@ void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
         return;
     }
 
-    std::string params;
+    std::wstring params;
     if (deleteSaveData) {
-        params = "\"/DATA=" + dirs::getSaveDir().string() + "\"";
+        params = L"\"/DATA=" + dirs::getSaveDir().wstring() + L"\"";
     }
 
     // launch uninstaller
-    const auto uninstallerPath = (workingDir / "GeodeUninstaller.exe").string();
-    ShellExecuteA(nullptr, "open", uninstallerPath.c_str(), params.c_str(), workingDir.string().c_str(), false);
+    auto const uninstallerPath = workingDir / "GeodeUninstaller.exe";
+    ShellExecuteW(nullptr, L"open", uninstallerPath.c_str(), params.c_str(), workingDir.wstring().c_str(), false);
 }
 
 Result<> geode::hook::addObjcMethod(std::string const& className, std::string const& selectorName, void* imp) {
@@ -309,7 +312,7 @@ typedef struct tagTHREADNAME_INFO {
 
 // SetThreadDescription is pretty new, so the user's system might not have it
 // or it might only be accessible dynamically (see msdocs link above for more info)
-auto setThreadDesc = reinterpret_cast<decltype(&SetThreadDescription)>(GetProcAddress(GetModuleHandleA("Kernel32.dll"), "SetThreadDescription"));
+auto setThreadDesc = reinterpret_cast<decltype(&SetThreadDescription)>(GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "SetThreadDescription"));
 void obliterate(std::string const& name) {
     // exception
     THREADNAME_INFO info;
@@ -341,8 +344,30 @@ std::string geode::utils::getEnvironmentVariable(const char* name) {
     if (0 == getenv_s(&count, buffer, name) && count != 0) {
         return buffer;
     }
-    
+
     return "";
+}
+
+std::string geode::utils::formatSystemError(int code) {
+    wchar_t errorBuf[512]; // enough for most messages
+
+    auto result = FormatMessageW(
+        FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        nullptr, code, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), errorBuf, sizeof(errorBuf), nullptr);
+
+    if (result == 0) {
+        return fmt::format("Unknown ({})", code);
+    } else {
+        auto wmsg = std::wstring(errorBuf, errorBuf + result);
+        auto msg = utils::string::wideToUtf8(wmsg);
+
+        // the string sometimes includes a crlf, strip it, also remove unprintable chars
+        msg.erase(std::find_if(msg.rbegin(), msg.rend(), [](unsigned char ch) {
+            return ch != '\r' && ch != '\n' && ch < 127;
+        }).base(), msg.end());
+
+        return msg;
+    }
 }
 
 cocos2d::CCRect geode::utils::getSafeAreaRect() {

@@ -9,11 +9,38 @@
 #include <type_traits>
 #include <typeinfo>
 #include <memory>
+#include <intrin.h>  // for _ReadWriteBarrier
 
 namespace geode {
     struct PlatformInfo {
         HMODULE m_hmod;
     };
+
+    namespace internal {
+        inline void const volatile* volatile globalForceEscape;
+
+        inline void useCharPointer(char const volatile* const ptr) {
+            globalForceEscape = reinterpret_cast<void const volatile*>(ptr);
+        }
+    }
+
+    template <class T>
+    GEODE_INLINE inline void doNotOptimize(T const& value) {
+        internal::useCharPointer(&reinterpret_cast<char const volatile&>(value));
+        _ReadWriteBarrier();
+    }
+
+    template <class T>
+    GEODE_INLINE inline void doNotOptimize(T& value) {
+        internal::useCharPointer(&reinterpret_cast<char const volatile&>(value));
+        _ReadWriteBarrier();
+    }
+
+    template <class T>
+    GEODE_INLINE inline void doNotOptimize(T&& value) {
+        internal::useCharPointer(&reinterpret_cast<char const volatile&>(value));
+        _ReadWriteBarrier();
+    }
 }
 
 namespace geode::base {
@@ -23,7 +50,12 @@ namespace geode::base {
     }
 
     GEODE_NOINLINE inline uintptr_t getCocos() {
-        static uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandleA("libcocos2d.dll"));
+        static uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandleW(L"libcocos2d.dll"));
+        return base;
+    }
+
+    GEODE_NOINLINE inline uintptr_t getExtensions() {
+        static uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandleW(L"libExtensions.dll"));
         return base;
     }
 }
@@ -54,7 +86,7 @@ namespace geode::cast {
         int32_t m_attributes;
         ShrunkPointer<ClassDescriptorType> m_classDescriptor;
     };
-    
+
     struct BaseClassArrayType {
         ShrunkPointer<BaseClassDescriptorType> m_descriptorEntries[0x100];
     };

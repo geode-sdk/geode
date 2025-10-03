@@ -37,6 +37,7 @@ protected:
     CCNode* m_rightColumn;
     CCNode* m_currentTabPage = nullptr;
     CCNode* m_modtoberBanner = nullptr;
+    CCMenu* m_titleContainer = nullptr;
     std::unordered_map<Tab, std::pair<GeodeTabSprite*, Ref<CCNode>>> m_tabs;
     EventListener<server::ServerRequest<server::ServerModMetadata>> m_statsListener;
     EventListener<server::ServerRequest<std::vector<server::ServerTag>>> m_tagsListener;
@@ -55,7 +56,7 @@ protected:
     void onLoadServerInfo(typename server::ServerRequest<server::ServerModMetadata>::Event* event);
     void onLoadTags(typename server::ServerRequest<std::vector<server::ServerTag>>::Event* event);
     void onCheckUpdates(typename server::ServerRequest<std::optional<server::ServerModUpdate>>::Event* event);
-    
+
     void onTab(CCObject* sender);
     void onEnable(CCObject*);
     void onInstall(CCObject*);
@@ -65,7 +66,8 @@ protected:
     void onSettings(CCObject*);
     void onLink(CCObject*);
     void onSupport(CCObject*);
-    void onModtoberInfo(CCObject*);
+    void onModtober24Info(CCObject*);
+    void onModtober25Info(CCObject*);
 
     bool availableForInstall() const;
 

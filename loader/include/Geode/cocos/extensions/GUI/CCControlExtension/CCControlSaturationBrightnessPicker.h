@@ -7,17 +7,17 @@
  *
  * Modified by Yannick Loriot.
  * http://yannickloriot.com
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -48,21 +48,21 @@ NS_CC_EXT_BEGIN
 class CC_DLL CCControlSaturationBrightnessPicker : public CCControl
 {
     /** Contains the receiver's current saturation value. */
-    CC_SYNTHESIZE_READONLY(float, m_saturation, Saturation);
+    CC_SYNTHESIZE_READONLY_NV(float, m_saturation, Saturation);
     /** Contains the receiver's current brightness value. */
-    CC_SYNTHESIZE_READONLY(float, m_brightness, Brightness);
+    CC_SYNTHESIZE_READONLY_NV(float, m_brightness, Brightness);
 
     //not sure if these need to be there actually. I suppose someone might want to access the sprite?
-    CC_SYNTHESIZE_READONLY(CCSprite*, m_background, Background);
-    CC_SYNTHESIZE_READONLY(CCSprite*, m_overlay, Overlay);
-    CC_SYNTHESIZE_READONLY(CCSprite*, m_shadow, Shadow);
-    CC_SYNTHESIZE_READONLY(CCSprite*, m_slider, Slider);
-    CC_SYNTHESIZE_READONLY(CCPoint, m_startPos, StartPos);
+    CC_SYNTHESIZE_READONLY_NV(CCSprite*, m_background, Background);
+    CC_SYNTHESIZE_READONLY_NV(CCSprite*, m_overlay, Overlay);
+    CC_SYNTHESIZE_READONLY_NV(CCSprite*, m_shadow, Shadow);
+    CC_SYNTHESIZE_READONLY_NV(CCSprite*, m_slider, Slider);
+    CC_SYNTHESIZE_READONLY_NV(CCPoint, m_startPos, StartPos);
 
 public:
     int         boxPos;
     int         boxSize;
-    
+
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCControlSaturationBrightnessPicker, CCControl)
     CCControlSaturationBrightnessPicker();
@@ -75,7 +75,7 @@ public:
     virtual void updateWithHSV(HSV hsv);
     virtual void updateDraggerWithHSV(HSV hsv);
 
-protected:    
+protected:
     void updateSliderPosition(CCPoint location);
     bool checkSliderPosition(CCPoint location);
 

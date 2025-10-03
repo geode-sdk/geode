@@ -5,9 +5,12 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/general.hpp>
+#include <Geode/utils/string.hpp>
 
 #include <string>
 #include <filesystem>
+
+using namespace geode::prelude;
 
 // comctl32 v6
 #pragma comment(linker, "\"/manifestdependency:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
@@ -33,7 +36,7 @@ namespace layout {
 
 // dont judge
 std::filesystem::path g_crashlogPath;
-std::string g_crashlogText;
+std::wstring g_crashlogText;
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
@@ -59,32 +62,33 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             SetWindowPos(hwnd, NULL, x, y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
         }
 
-        auto monoFont = CreateFontA(layout::CRASHLOG_FONT_SIZE, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET,
+        auto monoFont = CreateFontW(layout::CRASHLOG_FONT_SIZE, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET,
             OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
-            DEFAULT_PITCH | FF_DONTCARE, TEXT("Consolas"));
+            DEFAULT_PITCH | FF_DONTCARE, L"Consolas");
         auto guiFont = static_cast<HFONT>(GetStockObject(DEFAULT_GUI_FONT));
 
-        auto calculateTextSize = [&](std::string_view text) -> SIZE {
+        auto calculateTextSize = [&](std::wstring_view text) -> SIZE {
             HDC hdc = GetDC(hwnd);
             SelectObject(hdc, monoFont);
             SIZE size;
-            GetTextExtentPoint32A(hdc, text.data(), text.size(), &size);
+            GetTextExtentPoint32W(hdc, text.data(), text.size(), &size);
             ReleaseDC(hwnd, hdc);
             return size;
         };
-        auto tipTextStr = "Tip: You can hold shift while launching the game to enter safe mode.";
+        auto tipTextStr = L"Tip: You can hold shift while launching the game to enter safe mode.";
         auto tipTextSize = calculateTextSize(tipTextStr);
 
-        auto tipText = CreateWindowA(
-            "STATIC", tipTextStr,
+        auto tipText = CreateWindowW(
+            L"STATIC", tipTextStr,
             WS_CHILD | WS_VISIBLE | SS_SIMPLE,
             0, 0, tipTextSize.cx, tipTextSize.cy,
             hwnd, TO_HMENU(ID_SAFE_MODE_TIP_TEXT), NULL, NULL
         );
         SendMessage(tipText, WM_SETFONT, WPARAM(monoFont), TRUE);
 
-        auto handleText = CreateWindowA(
-            "EDIT", "Crashlog text goes here", WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_LEFT | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL | WS_BORDER,
+        auto handleText = CreateWindowW(
+            L"EDIT", L"Crashlog text goes here",
+            WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_LEFT | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL | WS_BORDER,
             0, 0, 100, 100,
             hwnd, TO_HMENU(ID_CRASHLOG_TEXT), NULL, NULL
         );
@@ -92,32 +96,32 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         // does nothing :(
         // Edit_SetEndOfLine(handleText, EC_ENDOFLINE_LF);
 
-        auto button = CreateWindowA(
-            "BUTTON", "Close",
+        auto button = CreateWindowW(
+            L"BUTTON", L"Close",
             WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
             0, 0, layout::BUTTON_WIDTH, layout::BUTTON_HEIGHT,
             hwnd, TO_HMENU(ID_BUTTON_CLOSE), NULL, NULL
         );
         SendMessage(button, WM_SETFONT, WPARAM(guiFont), TRUE);
 
-        button = CreateWindowA(
-            "BUTTON", "Open crashlog folder",
+        button = CreateWindowW(
+            L"BUTTON", L"Open crashlog folder",
             WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
             0, 0, layout::BUTTON_WIDTH, layout::BUTTON_HEIGHT,
             hwnd, TO_HMENU(ID_BUTTON_OPEN_FOLDER), NULL, NULL
         );
         SendMessage(button, WM_SETFONT, WPARAM(guiFont), TRUE);
 
-        button = CreateWindowA(
-            "BUTTON", "Copy to clipboard",
+        button = CreateWindowW(
+            L"BUTTON", L"Copy to clipboard",
             WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
             0, 0, layout::BUTTON_WIDTH, layout::BUTTON_HEIGHT,
             hwnd, TO_HMENU(ID_BUTTON_COPY_CLIPBOARD), NULL, NULL
         );
         SendMessage(button, WM_SETFONT, WPARAM(guiFont), TRUE);
 
-        button = CreateWindowA(
-            "BUTTON", "Restart game",
+        button = CreateWindowW(
+            L"BUTTON", L"Restart game",
             WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
             0, 0, layout::BUTTON_WIDTH, layout::BUTTON_HEIGHT,
             hwnd, TO_HMENU(ID_BUTTON_RESTART_GAME), NULL, NULL
@@ -193,50 +197,52 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         } else if (id == ID_BUTTON_OPEN_FOLDER) {
             geode::utils::file::openFolder(g_crashlogPath);
         } else if (id == ID_BUTTON_COPY_CLIPBOARD) {
-            geode::utils::clipboard::write(g_crashlogText);
+            geode::utils::clipboard::write(utils::string::wideToUtf8(g_crashlogText));
         } else if (id == ID_BUTTON_RESTART_GAME) {
             geode::utils::game::restart(false);
         }
     } break;
 
     default:
-        return DefWindowProc(hwnd, msg, wParam, lParam);
+        return DefWindowProcW(hwnd, msg, wParam, lParam);
     }
     return 0;
 }
 
 bool showCustomCrashlogWindow(std::string text, std::filesystem::path const& crashlogPath) {
-    static constexpr auto WINDOW_CLASS_NAME = "GeodeCrashHandlerWindow";
+    static constexpr auto WINDOW_CLASS_NAME = L"GeodeCrashHandlerWindow";
+
+    auto wtext = utils::string::utf8ToWide(text);
 
     g_crashlogPath = crashlogPath;
-    g_crashlogText = text;
+    g_crashlogText = wtext;
 
     // i cant get the edit control to use LF, so just replace them myself :-)
-    for (int i = 0; i < text.size(); ++i) {
-        auto c = text[i];
+    for (int i = 0; i < wtext.size(); ++i) {
+        auto c = wtext[i];
         if (c == '\n') {
-            text.insert(text.begin() + i, '\r');
+            wtext.insert(wtext.begin() + i, '\r');
             ++i;
         }
     }
 
-    WNDCLASS wc = {0};
+    WNDCLASSW wc = {0};
     wc.lpfnWndProc = &WndProc;
-    wc.hInstance = GetModuleHandleA(NULL);
+    wc.hInstance = GetModuleHandleW(NULL);
     wc.lpszClassName = WINDOW_CLASS_NAME;
 
     wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = (HBRUSH)COLOR_WINDOW;
 
-    if (!RegisterClass(&wc)) {
+    if (!RegisterClassW(&wc)) {
         return false;
     }
 
-    auto hwnd = CreateWindowExA(
+    auto hwnd = CreateWindowExW(
         0,
         WINDOW_CLASS_NAME,
-        "Geode Crash Handler",
+        L"Geode Crash Handler",
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT, 800, 600,
         NULL, NULL, wc.hInstance, NULL
@@ -246,7 +252,7 @@ bool showCustomCrashlogWindow(std::string text, std::filesystem::path const& cra
         return false;
     }
 
-    SetWindowTextA(GetDlgItem(hwnd, ID_CRASHLOG_TEXT), text.c_str());
+    SetWindowTextW(GetDlgItem(hwnd, ID_CRASHLOG_TEXT), wtext.c_str());
 
     ShowWindow(hwnd, SW_SHOWNORMAL);
     PlaySound((LPCTSTR)SND_ALIAS_SYSTEMDEFAULT, NULL, SND_ASYNC | SND_ALIAS_ID);

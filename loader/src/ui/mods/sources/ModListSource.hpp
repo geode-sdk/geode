@@ -79,7 +79,7 @@ public:
     void setPageSize(size_t size);
 
     virtual bool isLocalModsOnly() const = 0;
-    
+
     static void clearAllCaches();
 };
 
@@ -116,9 +116,11 @@ enum class InstalledModListType {
 struct InstalledModsQuery final : public LocalModsQueryBase {
     InstalledModListType type = InstalledModListType::All;
     std::optional<bool> enabledOnly;
+    std::optional<bool> enabledFirst;
     bool preCheck(ModSource const& src) const;
     bool queryCheck(ModSource const& src, double& weighted) const;
     bool isDefault() const;
+    matjson::Value dumpFilters() const;
 };
 
 class InstalledModListSource : public ModListSource {
@@ -150,6 +152,7 @@ enum class ServerModListType {
     Featured,
     Trending,
     Recent,
+    Modtober,
 };
 
 class ServerModListSource : public ModListSource {
@@ -192,7 +195,7 @@ public:
     std::unordered_set<std::string> getModTags() const override;
     void setModTags(std::unordered_set<std::string> const& tags) override;
     bool isDefaultQuery() const override;
-    
+
     bool isLocalModsOnly() const override;
 };
 
@@ -226,12 +229,12 @@ void filterModsWithLocalQuery(ModListSource::ProvidedMods& mods, Query const& qu
             addToList = query.queryCheck(src, weighted);
         }
         if (addToList) {
-            filtered.push_back({ src, weighted });
+            filtered.push_back({ std::move(src), weighted });
         }
     }
 
     // Sort list based on score
-    std::sort(filtered.begin(), filtered.end(), [](auto a, auto b) {
+    std::sort(filtered.begin(), filtered.end(), [](auto& a, auto& b) {
         // Sort primarily by score
         if (a.second != b.second) {
             return a.second > b.second;
@@ -256,8 +259,8 @@ void filterModsWithLocalQuery(ModListSource::ProvidedMods& mods, Query const& qu
         i < filtered.size() && i < (query.page + 1) * query.pageSize;
         i += 1
     ) {
-        mods.mods.push_back(filtered.at(i).first);
+        mods.mods.push_back(std::move(filtered.at(i).first));
     }
-    
+
     mods.totalModCount = filtered.size();
 }

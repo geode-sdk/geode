@@ -93,11 +93,12 @@ public:
         std::string type;
         matjson::Value json;
         std::shared_ptr<Setting> v3 = nullptr;
-    };  
+    };
     std::string modID;
     std::unordered_map<std::string, SettingInfo> settings;
+    std::vector<Mod*> dependants;
     // Stored so custom settings registered after the fact can be loaded
-    // If the ability to unregister custom settings is ever added, remember to 
+    // If the ability to unregister custom settings is ever added, remember to
     // update this by calling saveSettingValueToSave
     matjson::Value savedata;
     bool restartRequired = false;
@@ -121,7 +122,7 @@ public:
         if (this->settings.contains(key)) {
             auto& sett = this->settings.at(key);
             if (!sett.v3) return;
-            // Store the value in an intermediary so if `save` fails the existing 
+            // Store the value in an intermediary so if `save` fails the existing
             // value loaded from disk isn't overwritten
             matjson::Value value;
             if (sett.v3->save(value)) {
@@ -190,12 +191,17 @@ void ModSettingsManager::markRestartRequired() {
 Result<> ModSettingsManager::registerCustomSettingType(std::string_view type, SettingGenerator generator) {
     GEODE_UNWRAP(SharedSettingTypesPool::get().add(m_impl->modID, type, generator));
     m_impl->createSettings();
+    for (auto& mod : m_impl->dependants) {
+        if (auto settings = ModSettingsManager::from(mod)) {
+            settings->m_impl->createSettings();
+        }
+    }
     return Ok();
 }
 
 Result<> ModSettingsManager::load(matjson::Value const& json) {
     if (json.isObject()) {
-        // Save this so when custom settings are registered they can load their 
+        // Save this so when custom settings are registered they can load their
         // values properly
         m_impl->savedata = json;
         for (auto const& [key, _] : json) {
@@ -222,4 +228,8 @@ std::shared_ptr<Setting> ModSettingsManager::get(std::string_view key) {
 
 bool ModSettingsManager::restartRequired() const {
     return m_impl->restartRequired;
+}
+
+void ModSettingsManager::addDependant(Mod* mod) {
+    m_impl->dependants.push_back(mod);
 }

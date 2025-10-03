@@ -38,8 +38,8 @@ bool ModDeveloperList::init(DevListPopup* popup, ModSource const& source, CCSize
     m_list = ScrollLayer::create({ size.width - 10.f, size.height - 10.f });
     m_list->m_contentLayer->setLayout(
         SimpleColumnLayout::create()
-            ->setMainAxisDirection(AxisDirection::BottomToTop)
-            ->setMainAxisAlignment(MainAxisAlignment::End)
+            ->setMainAxisDirection(AxisDirection::TopToBottom)
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
             ->setMainAxisScaling(AxisScaling::Grow)
             ->setGap(5.0f)
     );
@@ -56,7 +56,7 @@ bool ModDeveloperList::init(DevListPopup* popup, ModSource const& source, CCSize
 
     m_source.visit(makeVisitor {
         [this, popup, itemSize](Mod* mod) {
-            for (std::string& dev : mod->getMetadata().getDevelopers()) {
+            for (std::string& dev : mod->getMetadataRef().getDevelopers()) {
                 m_list->m_contentLayer->addChild(ModDeveloperItem::create(popup, dev, itemSize, std::nullopt, false));
             }
         },
@@ -77,7 +77,7 @@ ModDeveloperList* ModDeveloperList::create(DevListPopup* popup, ModSource const&
         ret->autorelease();
         return ret;
     }
-    
+
     delete ret;
     return nullptr;
 }

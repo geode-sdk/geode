@@ -10,7 +10,7 @@ using namespace geode::prelude;
 bool SpacerNode::init(size_t grow) {
     if (!CCNode::init())
         return false;
-    
+
     m_grow = grow;
 
     return true;
@@ -37,7 +37,7 @@ size_t SpacerNode::getGrow() const {
 bool SpacerNodeChild::init(CCNode* child, size_t grow) {
     if (!SpacerNode::init(grow))
         return false;
-    
+
     if (child) {
         this->addChild(child);
         m_child = child;

@@ -27,6 +27,7 @@
 #include <resources.hpp>
 #include <string>
 #include <string_view>
+#include <unordered_set>
 #include <vector>
 
 #include <server/DownloadManager.hpp>
@@ -44,24 +45,9 @@ Loader::Impl::~Impl() = default;
 
 // Initialization
 
-bool Loader::Impl::isForwardCompatMode() {
-#ifdef GEODE_IS_ANDROID
-    // forward compat mode doesn't really make sense on android
-    return false;
-#endif
-
-    if (!m_forwardCompatMode.has_value()) {
-        m_forwardCompatMode = !this->getGameVersion().empty() &&
-            this->getGameVersion() != GEODE_STR(GEODE_GD_VERSION);
-    }
-    return m_forwardCompatMode.value();
-}
-
 void Loader::Impl::createDirectories() {
-#ifdef GEODE_IS_MACOS
-    std::filesystem::create_directory(dirs::getSaveDir());
-#endif
-
+    log::debug("Creating necessary directories");
+    (void) utils::file::createDirectoryAll(dirs::getSaveDir());
     (void) utils::file::createDirectoryAll(dirs::getGeodeResourcesDir());
     (void) utils::file::createDirectoryAll(dirs::getModConfigDir());
     (void) utils::file::createDirectoryAll(dirs::getModsDir());
@@ -75,6 +61,7 @@ void Loader::Impl::createDirectories() {
 }
 
 void Loader::Impl::removeDirectories() {
+    log::debug("Removing unnecessary directories");
     // clean up of stale data from Geode v2
     if(std::filesystem::exists(dirs::getGeodeDir() / "index")) {
         std::thread([] {
@@ -93,6 +80,36 @@ Result<> Loader::Impl::setup() {
         log::info("Loading launch arguments");
         log::NestScope nest;
         this->initLaunchArguments();
+    }
+
+    if (auto value = this->getLaunchArgument("use-common-handler-offset")) {
+        log::info("Using common handler offset: {}", value.value());
+        log::NestScope nest;
+        auto offset = numFromString<size_t>(value.value(), 16);
+        if (offset.isErr()) {
+            log::error("Could not parse common handler offset, falling back to default");
+        } else {
+            log::info("Disabling runtime intervening");
+            auto res = tulip::hook::disableRuntimeIntervening((void*)(base::get() + offset.unwrap()));
+            if (res.isErr()) {
+                log::error("Failed to disable runtime intervening: {}", res.unwrapErr());
+            } else {
+                log::info("Runtime intervening disabled successfully");
+                m_isPatchless = true;
+            }
+        }
+    }
+
+    if (auto value = this->getLaunchArgument("binary-dir")) {
+        log::info("Using custom binary directory: {}", value.value());
+        m_binaryPath = value.value();
+    }
+
+    if (this->getLaunchFlag("enable-tulip-hook-logs")) {
+        log::info("Enabling TulipHook logs");
+        tulip::hook::setLogCallback([](std::string_view msg) {
+            log::debug("TulipHook: {}", msg);
+        });
     }
 
     // on some platforms, using the crash handler overrides more convenient native handlers
@@ -132,8 +149,9 @@ Result<> Loader::Impl::setup() {
 }
 
 void Loader::Impl::addSearchPaths() {
-    CCFileUtils::get()->addPriorityPath(dirs::getGeodeResourcesDir().string().c_str());
-    CCFileUtils::get()->addPriorityPath(dirs::getModRuntimeDir().string().c_str());
+    log::debug("Adding search paths");
+    CCFileUtils::get()->addPriorityPath(utils::string::pathToString(dirs::getGeodeResourcesDir()).c_str());
+    CCFileUtils::get()->addPriorityPath(utils::string::pathToString(dirs::getModRuntimeDir()).c_str());
 }
 
 void Loader::Impl::updateResources(bool forceReload) {
@@ -175,10 +193,6 @@ VersionInfo Loader::Impl::maxModVersion() {
         // todo: dynamic version info (vM.M.*)
         99999999,
     };
-}
-
-bool Loader::Impl::isModVersionSupported(VersionInfo const& target) {
-    return semverCompare(this->getVersion(), target);
 }
 
 // Data saving
@@ -236,17 +250,17 @@ void Loader::Impl::updateModResources(Mod* mod) {
     if (!mod->isInternal()) {
         // geode.loader resource is stored somewhere else, which is already added anyway
         auto searchPathRoot = dirs::getModRuntimeDir() / mod->getID() / "resources";
-        CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
+        CCFileUtils::get()->addSearchPath(utils::string::pathToString(searchPathRoot).c_str());
     }
 
     // only thing needs previous setup is spritesheets
-    if (mod->getMetadata().getSpritesheets().empty())
+    if (mod->getMetadataRef().getSpritesheets().empty())
         return;
 
     log::debug("{}", mod->getID());
     log::NestScope nest;
 
-    for (auto const& sheet : mod->getMetadata().getSpritesheets()) {
+    for (auto const& sheet : mod->getMetadataRef().getSpritesheets()) {
         log::debug("Adding sheet {}", sheet);
         auto png = sheet + ".png";
         auto plist = sheet + ".plist";
@@ -379,6 +393,7 @@ void Loader::Impl::buildModGraph() {
                 continue;
 
             dependency.mod->m_impl->m_dependants.push_back(mod);
+            dependency.mod->m_impl->m_settings->addDependant(mod);
         }
         for (auto& incompatibility : mod->m_impl->m_metadata.m_impl->m_incompatibilities) {
             incompatibility.mod =
@@ -388,11 +403,11 @@ void Loader::Impl::buildModGraph() {
 }
 
 void Loader::Impl::loadModGraph(Mod* node, bool early) {
-    // Check version first, as it's not worth trying to load a mod with an 
+    // Check version first, as it's not worth trying to load a mod with an
     // invalid target version
-    // Also this makes it so that when GD updates, outdated mods get shown as 
+    // Also this makes it so that when GD updates, outdated mods get shown as
     // "Outdated" in the UI instead of "Missing Dependencies"
-    auto res = node->getMetadata().checkGameVersion();
+    auto res = node->getMetadataRef().checkGameVersion();
     if (!res) {
         this->addProblem({
             LoadProblem::Type::UnsupportedVersion,
@@ -403,11 +418,11 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
         return;
     }
 
-    auto geodeVerRes = node->getMetadata().checkGeodeVersion();
+    auto geodeVerRes = node->getMetadataRef().checkGeodeVersion();
     if (!geodeVerRes) {
         this->addProblem({
-            node->getMetadata().getGeodeVersion() > this->getVersion() ?
-                LoadProblem::Type::NeedsNewerGeodeVersion : 
+            node->getMetadataRef().getGeodeVersion() > this->getVersion() ?
+                LoadProblem::Type::NeedsNewerGeodeVersion :
                 LoadProblem::Type::UnsupportedGeodeVersion,
             node,
             geodeVerRes.unwrapErr()
@@ -415,7 +430,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
         log::error("{}", geodeVerRes.unwrapErr());
         return;
     }
-    
+
     if (node->hasUnresolvedDependencies()) {
         log::warn("{} {} has unresolved dependencies", node->getID(), node->getVersion());
         return;
@@ -439,7 +454,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
 
     auto unzipFunction = [this, node]() {
         log::debug("Unzipping .geode file");
-        auto res = node->m_impl->unzipGeodeFile(node->getMetadata());
+        auto res = this->unzipGeodeFile(node->getMetadataRef());
         return res;
     };
 
@@ -463,7 +478,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
     };
 
     {   // version checking
-        if (auto reason = node->getMetadata().m_impl->m_softInvalidReason) {
+        if (auto reason = node->getMetadataRef().m_impl->m_softInvalidReason) {
             this->addProblem({
                 LoadProblem::Type::InvalidFile,
                 node,
@@ -529,7 +544,7 @@ void Loader::Impl::findProblems() {
         log::debug("{}", id);
         log::NestScope nest;
 
-        for (auto const& dep : mod->getMetadata().getDependencies()) {
+        for (auto const& dep : mod->getMetadataRef().getDependencies()) {
             if (dep.mod && dep.mod->isEnabled() && dep.version.compare(dep.mod->getVersion()))
                 continue;
 
@@ -604,7 +619,7 @@ void Loader::Impl::findProblems() {
             }
         }
 
-        for (auto const& dep : mod->getMetadata().getIncompatibilities()) {
+        for (auto const& dep : mod->getMetadataRef().getIncompatibilities()) {
             if (!dep.mod || !dep.version.compare(dep.mod->getVersion()) || !dep.mod->shouldLoad())
                 continue;
             switch(dep.importance) {
@@ -724,48 +739,43 @@ void Loader::Impl::refreshModGraph() {
 
 void Loader::Impl::orderModStack() {
     std::unordered_set<Mod*> visited;
-    visited.insert(Mod::get());
-    Mod* selectedMod = nullptr;
-    do {
-        selectedMod = nullptr;
-        for (auto const& mod : ModImpl::get()->m_dependants) {
-            if (visited.count(mod) != 0) continue;
 
-            for (auto dep : mod->getMetadata().getDependencies()) {
-                if (dep.mod && dep.importance == ModMetadata::Dependency::Importance::Required && 
-                    visited.count(dep.mod) == 0) {
-                    // the dependency is not visited yet
-                    // so we cant select this mod
-                    goto skip_mod;
-                }
-            }
-
-            if (selectedMod) {
-                if (
-                    !selectedMod->m_impl->needsEarlyLoad() &&
-                    mod->m_impl->needsEarlyLoad()
-                ) {
-                    // this mod is implied to be loaded early
-                    // so we can override a mod that is not
-                    selectedMod = mod;
-                }
-            }
-            else {
-                selectedMod = mod;
-            }
-
-        skip_mod:
-            continue;
+    auto& dependants = ModImpl::get()->m_dependants;
+    std::sort(dependants.begin(), dependants.end(), [](Mod* a, Mod* b) {
+        // early load check (early loads go first)
+        auto aEarly = a->needsEarlyLoad();
+        auto bEarly = b->needsEarlyLoad();
+        if (aEarly != bEarly) {
+            return aEarly > bEarly;
         }
 
-        if (selectedMod) {
-            m_modsToLoad.push_back(selectedMod);
-            visited.insert(selectedMod);
+        // load priority check (higher priority/lower number goes first)
+        auto aPriority = a->getLoadPriority();
+        auto bPriority = b->getLoadPriority();
+        if (aPriority != bPriority) {
+            return aPriority < bPriority;
         }
-    } while (selectedMod != nullptr);
 
-    for (auto mod : m_modsToLoad) {
-        log::debug("{}, early: {}", mod->getID(), mod->needsEarlyLoad());
+        // fallback to alphabetical id order
+        return a->getID() < b->getID();
+    });
+
+    auto visit = [&](Mod* mod, auto&& visit) -> void {
+        if (mod == nullptr || mod == Mod::get()) return;
+        if (visited.contains(mod))
+            return;
+        visited.insert(mod);
+        for (auto dep : mod->m_impl->m_metadata.m_impl->m_dependencies) {
+            if (dep.importance != ModMetadata::Dependency::Importance::Required)
+                continue;
+            visit(dep.mod, visit);
+        }
+        m_modsToLoad.push_back(mod);
+        log::debug("{} [{}]{}", mod->getID(), mod->getLoadPriority(), mod->needsEarlyLoad() ? " (early)" : "");
+    };
+
+    for (auto mod : dependants) {
+        visit(mod, visit);
     }
 }
 
@@ -848,6 +858,119 @@ void Loader::Impl::addUninitializedHook(Hook* hook, Mod* mod) {
     m_uninitializedHooks.emplace_back(hook, mod);
 }
 
+static bool isPlatformBinary(std::string_view modID, std::string_view filename) {
+    if (!filename.starts_with(modID)) {
+        return false;
+    }
+
+    return filename.ends_with(".dll")
+        || filename.ends_with(".dylib")
+        || filename.ends_with(".android32.so")
+        || filename.ends_with(".android64.so")
+        || filename.ends_with(".ios.dylib");
+}
+
+Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
+    // Unzip .geode file into temp dir
+    auto tempDir = dirs::getModRuntimeDir() / metadata.getID();
+
+    auto datePath = tempDir / "modified-at";
+    std::string currentHash = file::readString(datePath).unwrapOr("");
+
+    std::error_code ec;
+    auto modifiedDate = std::filesystem::last_write_time(metadata.getPath(), ec);
+    if (ec) {
+        auto message = formatSystemError(ec.value());
+        return Err("Unable to get last modified time of zip: " + message);
+    }
+    auto modifiedCount = std::chrono::duration_cast<std::chrono::milliseconds>(modifiedDate.time_since_epoch());
+    auto modifiedHash = std::to_string(modifiedCount.count());
+    if (currentHash == modifiedHash) {
+        log::debug("Same hash detected, skipping unzip");
+        return Ok();
+    }
+    log::debug("Hash mismatch detected, unzipping");
+
+    std::filesystem::remove_all(tempDir, ec);
+    if (ec) {
+        auto message = formatSystemError(ec.value());
+        return Err("Unable to delete temp dir: " + message);
+    }
+
+    (void)utils::file::createDirectoryAll(tempDir);
+
+    GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(metadata.getPath()));
+    if (!unzip.hasEntry(metadata.getBinaryName())) {
+        return Err(
+            fmt::format("Unable to find platform binary under the name \"{}\"", metadata.getBinaryName())
+        );
+    }
+    GEODE_UNWRAP(unzip.extractAllTo(tempDir));
+
+    // Delete binaries for other platforms since they're pointless
+    // The if should never fail, but you never know
+    for (auto& entry : std::filesystem::directory_iterator(tempDir)) {
+        if (entry.is_directory()) {
+            continue;
+        }
+
+        const std::string filename = utils::string::pathToString(entry.path().filename());
+        if (filename == metadata.getBinaryName() || !isPlatformBinary(metadata.getID(), filename)) {
+            continue;
+        }
+
+        // The binary is not for our platform, delete!
+        // We don't really care if the deletion succeeds though.
+        std::error_code ec;
+        std::filesystem::remove(entry.path(), ec);
+    }
+
+    // Check if there is a binary that we need to move over from the unzipped binaries dir
+    if (this->isPatchless()) {
+        // TODO: enable in 4.7.0
+        // auto src = dirs::getModBinariesDir() / metadata.getBinaryName();
+        auto src = dirs::getModRuntimeDir() / "binaries" / metadata.getBinaryName();
+        auto dst = tempDir / metadata.getBinaryName();
+        if (std::filesystem::exists(src)) {
+            std::error_code ec;
+            std::filesystem::rename(src, dst, ec);
+            if (ec) {
+                auto message = formatSystemError(ec.value());
+                return Err(fmt::format("Failed to move binary from {} to {}: {}",
+                    src, dst, message
+                ));
+            }
+        }
+    }
+
+    auto res = file::writeString(datePath, modifiedHash);
+    if (!res) {
+        log::warn("Failed to write modified date of geode zip, will try to unzip next launch: {}", res.unwrapErr());
+    }
+
+    return Ok();
+}
+
+Result<> Loader::Impl::extractBinary(ModMetadata metadata) {
+    if (!this->isPatchless()) {
+        // If we are not patchless, there is no need to extract the binary separately
+        return Ok();
+    }
+
+    // Extract the binary from the .geode file
+    GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(metadata.getPath()));
+    if (!unzip.hasEntry(metadata.getBinaryName())) {
+        return Err(
+            fmt::format("Unable to find platform binary under the name \"{}\"", metadata.getBinaryName())
+        );
+    }
+    // TODO: enable in 4.7.0
+    // GEODE_UNWRAP(unzip.extractTo(metadata.getBinaryName(), dirs::getModBinariesDir() / metadata.getBinaryName()));
+    GEODE_UNWRAP(unzip.extractTo(metadata.getBinaryName(), dirs::getModRuntimeDir() / "binaries" / metadata.getBinaryName()));
+
+    return Ok();
+}
+
 bool Loader::Impl::loadHooks() {
     m_readyToHook = true;
     bool hadErrors = false;
@@ -868,11 +991,11 @@ void Loader::Impl::queueInMainThread(ScheduledFunction&& func) {
 }
 
 void Loader::Impl::executeMainThreadQueue() {
-    // copy queue to avoid locking mutex if someone is
+    // move queue to avoid locking mutex if someone is
     // running addToMainThread inside their function
     m_mainThreadMutex.lock();
-    auto queue = m_mainThreadQueue;
-    m_mainThreadQueue.clear();
+    auto queue = std::move(m_mainThreadQueue);
+    m_mainThreadQueue = {};
     m_mainThreadMutex.unlock();
 
     // call queue
@@ -903,8 +1026,25 @@ void Loader::Impl::releaseNextMod() {
 // e.g. "--geode:arg=My spaced value"
 void Loader::Impl::initLaunchArguments() {
     auto launchStr = this->getLaunchCommand();
-    auto args = string::split(launchStr, " ");
-    for (const auto& arg : args) {
+
+    std::vector<std::string> arguments;
+    bool inQuotes = false;
+    std::string currentArg;
+    for (auto const c : launchStr) {
+        if (c == ' ' && !inQuotes) {
+            arguments.emplace_back(std::move(currentArg));
+            currentArg.clear();
+            continue;
+        }
+        if (c == '"') {
+            inQuotes = !inQuotes;
+            continue;
+        }
+        currentArg.push_back(c);
+    }
+    arguments.emplace_back(std::move(currentArg));
+
+    for (const auto& arg : arguments) {
         if (!arg.starts_with(LAUNCH_ARG_PREFIX)) {
             continue;
         }
@@ -956,7 +1096,9 @@ Result<tulip::hook::HandlerHandle> Loader::Impl::getOrCreateHandler(void* addres
         m_handlerHandles[address].second++;
         return Ok(m_handlerHandles[address].first);
     }
-    GEODE_UNWRAP_INTO(auto handle, tulip::hook::createHandler(address, metadata));
+    tulip::hook::HandlerHandle handle;
+    GEODE_UNWRAP_INTO(handle, tulip::hook::createHandler(address, metadata));
+
     m_handlerHandles[address].first = handle;
     m_handlerHandles[address].second = 1;
     return Ok(handle);
@@ -997,7 +1139,7 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
             "Invalid File",
             fmt::format(
                 "The path <cy>'{}'</c> is not a valid Geode mod: {}",
-                path.string(),
+                path,
                 res.unwrapErr()
             ),
             "OK"
@@ -1064,7 +1206,7 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
             m_mods.at(meta.getID())->m_impl->m_requestedAction = ModRequestedAction::Update;
         }
         // Otherwise add a new Mod
-        // This should be safe as all of the scary stuff in setup() is only relevant 
+        // This should be safe as all of the scary stuff in setup() is only relevant
         // for mods that are actually running
         else {
             auto mod = new Mod(meta);
@@ -1101,7 +1243,7 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
                             "OK"
                         )->show();
                     }
-                    // No need to show a confirmation popup if successful since that's 
+                    // No need to show a confirmation popup if successful since that's
                     // to be assumed via pressing the button on the previous popup
                 }
             }
@@ -1155,4 +1297,12 @@ bool Loader::Impl::isRestartRequired() const {
         return true;
     }
     return false;
+}
+
+bool Loader::Impl::isPatchless() const {
+    return m_isPatchless;
+}
+
+std::optional<std::string> Loader::Impl::getBinaryPath() const {
+    return m_binaryPath;
 }

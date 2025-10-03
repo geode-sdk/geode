@@ -90,10 +90,10 @@ class CC_DLL CCPrettyPrinter : public CCDataVisitor
     GEODE_FRIEND_MODIFY
 public:
     CCPrettyPrinter(int indentLevel = 0);
-    
+
     virtual void clear();
     virtual gd::string getResult();
-    
+
     virtual void visitObject(const CCObject *p);
     virtual void visit(const CCBool * p);
     virtual void visit(const CCInteger *p);

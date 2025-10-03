@@ -3,6 +3,7 @@
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
+#include <Geode/utils/file.hpp>
 #include <loader/ModImpl.hpp>
 #include <loader/IPC.hpp>
 #include <loader/console.hpp>
@@ -45,7 +46,7 @@ void console::openIfClosed() {
     if (s_isOpen) return;
 
     std::filesystem::path(getpwuid(getuid())->pw_dir);
-    freopen(std::filesystem::path(dirs::getGeodeDir() / "geode_log.txt").string().c_str(), "w", stdout);
+    freopen(utils::string::pathToString(dirs::getGeodeDir() / "geode_log.txt").c_str(), "w", stdout);
     s_isOpen = true;
 }
 
@@ -69,11 +70,21 @@ bool Loader::Impl::supportsLaunchArguments() const {
 }
 
 std::string Loader::Impl::getLaunchCommand() const {
+    auto launchArgsFile = dirs::getModRuntimeDir() / "launch-args.txt";
+    if (std::filesystem::exists(launchArgsFile)) {
+        log::debug("Reading launch arguments from {}", utils::string::pathToString(launchArgsFile));
+        auto content = file::readString(launchArgsFile);
+        if (content.isOk()) {
+            std::filesystem::remove(launchArgsFile);
+            return content.unwrap();
+        }
+    }
+
     return (getenv("LAUNCHARGS")) ? getenv("LAUNCHARGS") : std::string();
 }
 
 void Loader::Impl::addNativeBinariesPath(std::filesystem::path const& path) {
-    log::warn("LoaderImpl::addNativeBinariesPath not implement on this platform, not adding path {}", path.string());
+    log::warn("LoaderImpl::addNativeBinariesPath not implement on this platform, not adding path {}", path);
 }
 
 std::string Loader::Impl::getGameVersion() {
@@ -86,4 +97,17 @@ std::string Loader::Impl::getGameVersion() {
     if (version == "2.207") return "2.2074";
 
     return version;
+}
+
+/**
+ * iOS Jitless is implemented with Geode 4.6.0, so we kinda did a major change
+ * but who cares about semver, right?
+ */
+bool Loader::Impl::isModVersionSupported(VersionInfo const& target) {
+    if (m_isPatchless && target < VersionInfo(4, 6, 0)) return false;
+    return semverCompare(this->getVersion(), target);
+}
+
+bool Loader::Impl::isForwardCompatMode() {
+    return false;
 }

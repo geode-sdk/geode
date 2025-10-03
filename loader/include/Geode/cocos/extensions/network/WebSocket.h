@@ -1,19 +1,19 @@
 /****************************************************************************
  Copyright (c) 2010-2013 cocos2d-x.org
  Copyright (c) 2013 James Chen
- 
+
  http://www.cocos2d-x.org
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -52,7 +52,7 @@ public:
      *  @lua NA
      */
     virtual ~WebSocket();
-    
+
     /**
      *  @brief Data structure for message
      */
@@ -63,7 +63,7 @@ public:
         int len;
         bool isBinary;
     };
-    
+
     /**
      *  @brief Errors in websocket
      */
@@ -88,8 +88,8 @@ public:
         virtual void onClose(WebSocket* ws) = 0;
         virtual void onError(WebSocket* ws, const ErrorCode& error) = 0;
     };
-    
-    
+
+
     /**
      *  @brief  The initialized method for websocket.
      *          It needs to be invoked right after websocket instance is allocated.
@@ -101,17 +101,17 @@ public:
     bool init(const Delegate& delegate,
               const gd::string& url,
               const gd::vector<gd::string>* protocols = NULL);
-    
+
     /**
      *  @brief Sends string data to websocket server.
      */
     void send(const gd::string& message);
-    
+
     /**
      *  @brief Sends binary data to websocket server.
      */
     void send(const unsigned char* binaryMsg, unsigned int len);
-    
+
     /**
      *  @brief Closes the connection to server.
      */
@@ -127,7 +127,7 @@ public:
         kStateClosing,
         kStateClosed
     };
-    
+
     /**
      *  @brief Gets current state of connection.
      */
@@ -137,7 +137,7 @@ private:
     virtual int onSubThreadLoop();
     virtual void onSubThreadEnded();
     virtual void onUIThreadReceiveMessage(WsMessage* msg);
-    
+
 
     friend class WebSocketCallbackWrapper;
     int onSocketCallback(struct libwebsocket_context *ctx,
@@ -150,10 +150,10 @@ public:
     gd::string  _host;
     unsigned int _port;
     gd::string  _path;
-    
+
     friend class WsThreadHelper;
     WsThreadHelper* _wsHelper;
-    
+
     struct libwebsocket*         _wsInstance;
     struct libwebsocket_context* _wsContext;
     Delegate* _delegate;

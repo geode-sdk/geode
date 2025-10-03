@@ -7,7 +7,7 @@ using namespace geode::prelude;
 constexpr auto NOTIFICATION_FADEIN = .3f;
 constexpr auto NOTIFICATION_FADEOUT = 1.f;
 
-Ref<CCArray> Notification::s_queue = nullptr;
+CCArray* Notification::s_queue = nullptr;
 
 bool Notification::init(std::string const& text, CCSprite* icon, float time) {
     if (!CCNodeRGBA::init()) return false;
@@ -57,12 +57,13 @@ void Notification::showNextNotification() {
     m_showing = false;
     if (!s_queue) {
         s_queue = CCArray::create();
+        s_queue->retain();
     }
     SceneManager::get()->forget(this);
     // remove self from front of queue
     s_queue->removeFirstObject();
     if (auto obj = s_queue->firstObject()) {
-        as<Notification*>(obj)->show();
+        static_cast<Notification*>(obj)->show();
     }
     this->removeFromParent();
 }
@@ -165,6 +166,7 @@ void Notification::waitAndHide() {
 void Notification::show() {
     if (!s_queue) {
         s_queue = CCArray::create();
+        s_queue->retain();
     }
     if (!m_showing) {
         if (!s_queue->containsObject(this)) {
@@ -176,7 +178,7 @@ void Notification::show() {
         if (!this->getParent()) {
             auto winSize = CCDirector::get()->getWinSize();
             this->setPosition(winSize.width / 2, winSize.height / 4);
-            this->setZOrder(CCScene::get()->getChildrenCount() > 0 ? CCScene::get()->getHighestChildZ() + 100 : 100);
+            this->setZOrder(CCScene::get()->getChildrenCount() > 0 ? CCScene::get()->getHighestChildZ() + 2 : 10);
         }
         SceneManager::get()->keepAcrossScenes(this);
         m_showing = true;

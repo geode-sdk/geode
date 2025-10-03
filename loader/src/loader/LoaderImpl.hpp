@@ -70,6 +70,9 @@ namespace geode {
 
         std::unordered_map<void*, std::pair<tulip::hook::HandlerHandle, size_t>> m_handlerHandles;
 
+        bool m_isPatchless = false;
+        std::optional<std::string> m_binaryPath;
+
         Result<tulip::hook::HandlerHandle> getHandler(void* address);
         Result<tulip::hook::HandlerHandle> getOrCreateHandler(void* address, tulip::hook::HandlerMetadata const& metadata);
         Result<tulip::hook::HandlerHandle> getAndDecreaseHandler(void* address);
@@ -133,6 +136,11 @@ namespace geode {
         Mod* getInternalMod();
         Result<> setupInternalMod();
 
+        // called on a separate thread
+        Result<> unzipGeodeFile(ModMetadata metadata);
+
+        Result<> extractBinary(ModMetadata metadata);
+
         bool userTriedToLoadDLLs() const;
 
         void addProblem(LoadProblem const& problem);
@@ -142,11 +150,14 @@ namespace geode {
         // enables safe mode, even if the launch arg wasnt provided
         void forceSafeMode();
 
-        // This will potentially start a whole sequence of popups that guide the 
+        // This will potentially start a whole sequence of popups that guide the
         // user through installing the specific .geode file
         void installModManuallyFromFile(std::filesystem::path const& path, std::function<void()> after);
 
         bool isRestartRequired() const;
+
+        bool isPatchless() const;
+        std::optional<std::string> getBinaryPath() const;
     };
 
     class LoaderImpl : public Loader::Impl {

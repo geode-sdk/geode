@@ -11,10 +11,10 @@ namespace geode {
 #pragma warning(disable: 4275)
 
 /**
- * Layouts automatically handle the positioning of nodes. Use CCNode::setLayout 
- * to apply a layout to a node, and then use CCNode::updateLayout to apply 
- * the layout's positioning. Geode comes with a few default layouts like 
- * RowLayout, ColumnLayout, and GridLayout, but if you need a different kind 
+ * Layouts automatically handle the positioning of nodes. Use CCNode::setLayout
+ * to apply a layout to a node, and then use CCNode::updateLayout to apply
+ * the layout's positioning. Geode comes with a few default layouts like
+ * RowLayout, ColumnLayout, and GridLayout, but if you need a different kind
  * of layout you can inherit from the Layout class.
  */
 class GEODE_DLL Layout : public cocos2d::CCObject {
@@ -26,9 +26,9 @@ protected:
 public:
     /**
      * Automatically apply the layout's positioning on a set of nodes
-     * @param on Node to apply the layout on. Position's the node's children 
-     * according to the layout. The content size of the node should be 
-     * respected as a boundary the layout shouldn't overflow. The node may be 
+     * @param on Node to apply the layout on. Position's the node's children
+     * according to the layout. The content size of the node should be
+     * respected as a boundary the layout shouldn't overflow. The node may be
      * rescaled to better fit its contents
      */
     virtual void apply(cocos2d::CCNode* on) = 0;
@@ -122,59 +122,59 @@ public:
     std::optional<AxisAlignment> getCrossAxisAlignment() const;
 
     /**
-     * Set the limits to what the node can be scaled to. Passing `std::nullopt` 
+     * Set the limits to what the node can be scaled to. Passing `std::nullopt`
      * uses the parent layout's default min / max scales
      */
     AxisLayoutOptions* setScaleLimits(std::optional<float> min, std::optional<float> max);
 
     /**
-     * Set the relative scale of this node compared to other nodes if it's 
+     * Set the relative scale of this node compared to other nodes if it's
      * contained in an auto-scaled layout. Default is 1
      */
     AxisLayoutOptions* setRelativeScale(float scale);
 
     /**
-     * Set auto-scaling for this node, overriding the layout's auto-scale 
+     * Set auto-scaling for this node, overriding the layout's auto-scale
      * setting. If nullopt, the layout's auto-scale options will be used
     */
     AxisLayoutOptions* setAutoScale(std::optional<bool> enabled);
 
     /**
-     * Set an absolute length for this node. If nullopt, the length will be 
+     * Set an absolute length for this node. If nullopt, the length will be
      * dynamically calculated based on content size
      */
     AxisLayoutOptions* setLength(std::optional<float> length);
 
     /**
-     * Override the default gap in the layout between this node and the 
+     * Override the default gap in the layout between this node and the
      * previous one. If nullopt, the default gap of the layout will be used
      */
     AxisLayoutOptions* setPrevGap(std::optional<float> gap);
 
     /**
-     * Override the default gap in the layout between this node and the next 
+     * Override the default gap in the layout between this node and the next
      * one. If nullopt, the default gap of the layout will be used
      */
     AxisLayoutOptions* setNextGap(std::optional<float> gap);
 
     /**
-     * If enabled, the node will always cause a growable axis layout to break 
+     * If enabled, the node will always cause a growable axis layout to break
      * into a new line even if the current line could've fit the next node
      */
     AxisLayoutOptions* setBreakLine(bool enable);
 
     /**
-     * If enabled, the node will be forced to be on the same line as the 
+     * If enabled, the node will be forced to be on the same line as the
      * previous node even if doing this would overflow
      */
     AxisLayoutOptions* setSameLine(bool enable);
 
     /**
-     * Set the scale priority of this node. Nodes with higher priority will be 
-     * scaled down first before nodes with lower priority when an auto-scaled 
-     * layout attempts to fit its contents. Default is 
+     * Set the scale priority of this node. Nodes with higher priority will be
+     * scaled down first before nodes with lower priority when an auto-scaled
+     * layout attempts to fit its contents. Default is
      * AXISLAYOUT_DEFAULT_PRIORITY
-     * @note For optimal performance, the priorities should all be close to 
+     * @note For optimal performance, the priorities should all be close to
      * each other with no gaps
      */
     AxisLayoutOptions* setScalePriority(int priority);
@@ -186,21 +186,21 @@ public:
 };
 
 /**
- * A multi-purpose dynamic layout for arranging nodes along an axis. Can be 
- * used to arrange nodes in a single line, a grid, or a flex layout. The 
- * RowLayout and ColumnLayout classes function as simple thin wrappers over 
- * AxisLayout. The positioning of individual nodes in the layout can be 
+ * A multi-purpose dynamic layout for arranging nodes along an axis. Can be
+ * used to arrange nodes in a single line, a grid, or a flex layout. The
+ * RowLayout and ColumnLayout classes function as simple thin wrappers over
+ * AxisLayout. The positioning of individual nodes in the layout can be
  * further controlled using AxisLayoutOptions
- * @warning Calculating layouts can get increasingly expensive for large 
- * amounts of child nodes being fit into a small space - while this should 
- * never prove a real performance concern as most layouts only have a few 
- * hundred children at the very most, be aware that you probably shouldn't 
+ * @warning Calculating layouts can get increasingly expensive for large
+ * amounts of child nodes being fit into a small space - while this should
+ * never prove a real performance concern as most layouts only have a few
+ * hundred children at the very most, be aware that you probably shouldn't
  * call CCNode::updateLayout every frame for a menu with thousands of children
  * @example
  * auto menu = CCMenu::create();
- * // The menu's children will be arranged horizontally, unless they overflow 
- * // the content size width in which case a new line will be inserted and 
- * // aligned to the left. The menu automatically will automatically grow in 
+ * // The menu's children will be arranged horizontally, unless they overflow
+ * // the content size width in which case a new line will be inserted and
+ * // aligned to the left. The menu automatically will automatically grow in
  * // height to fit all the rows
  * menu->setLayout(
  *     RowLayout::create()
@@ -222,12 +222,12 @@ protected:
 
 public:
     /**
-     * Create a new AxisLayout. Note that this class is not automatically 
-     * managed by default, so you must assign it to a CCNode or manually 
-     * manage the memory yourself. See the chainable setters on AxisLayout for 
+     * Create a new AxisLayout. Note that this class is not automatically
+     * managed by default, so you must assign it to a CCNode or manually
+     * manage the memory yourself. See the chainable setters on AxisLayout for
      * what options you can customize for the layout
      * @param axis The direction of the layout
-     * @note For convenience, you can use the RowLayout and ColumnLayout 
+     * @note For convenience, you can use the RowLayout and ColumnLayout
      * classes, which are just thin wrappers over AxisLayout
      * @returns Created AxisLayout
      */
@@ -254,23 +254,23 @@ public:
 
     AxisLayout* setAxis(Axis axis);
     /**
-     * Sets where to align the target node's children on the main axis (X-axis 
+     * Sets where to align the target node's children on the main axis (X-axis
      * for Row, Y-axis for Column)
      */
     AxisLayout* setAxisAlignment(AxisAlignment align);
     /**
-     * Sets where to align the target node's children on the cross-axis (Y-axis 
+     * Sets where to align the target node's children on the cross-axis (Y-axis
      * for Row, X-axis for Column)
      */
     AxisLayout* setCrossAxisAlignment(AxisAlignment align);
     /**
-     * Sets where to align the target node's children on the cross-axis for 
+     * Sets where to align the target node's children on the cross-axis for
      * each row (Y-axis for Row, X-axis for Column)
      */
     AxisLayout* setCrossAxisLineAlignment(AxisAlignment align);
     /**
-     * The spacing between the children of the node this layout applies to. 
-     * Measured as the space between their edges, not centres. Does not apply 
+     * The spacing between the children of the node this layout applies to.
+     * Measured as the space between their edges, not centres. Does not apply
      * on the main / cross axis if their alignment is AxisAlignment::Even
      */
     AxisLayout* setGap(float gap);
@@ -283,23 +283,23 @@ public:
      */
     AxisLayout* setCrossAxisReverse(bool reverse);
     /**
-     * If enabled, then the layout may scale the target's children if they are 
+     * If enabled, then the layout may scale the target's children if they are
      * about to overflow. Assumes that all the childrens' intended scale is 1
      */
     AxisLayout* setAutoScale(bool enable);
     /**
-     * If true, if the main axis overflows extra nodes will be placed on new 
+     * If true, if the main axis overflows extra nodes will be placed on new
      * rows/columns on the cross-axis
      */
     AxisLayout* setGrowCrossAxis(bool expand);
     /**
-     * If true, the cross-axis content size of the target node will be 
+     * If true, the cross-axis content size of the target node will be
      * automatically adjusted to fit the children
      */
     AxisLayout* setCrossAxisOverflow(bool allow);
     /**
-     * If not `std::nullopt`, then the axis will be automatically extended to 
-     * fit all items in a single row whose minimum length is the specified. 
+     * If not `std::nullopt`, then the axis will be automatically extended to
+     * fit all items in a single row whose minimum length is the specified.
      * Useful for scrollable list layer contents
      */
     AxisLayout* setAutoGrowAxis(std::optional<float> allowAndMinLength);
@@ -318,7 +318,7 @@ protected:
 
 public:
     /**
-     * Create a new RowLayout. See the chainable setters on RowLayout for 
+     * Create a new RowLayout. See the chainable setters on RowLayout for
      * what options you can customize for the layout
      * @returns Created RowLayout
      */
@@ -334,7 +334,7 @@ protected:
 
 public:
     /**
-     * Create a new ColumnLayout. See the chainable setters on RowLayout for 
+     * Create a new ColumnLayout. See the chainable setters on RowLayout for
      * what options you can customize for the layout
      * @returns Created ColumnLayout
      */
@@ -375,9 +375,9 @@ public:
 };
 
 /**
- * A layout for positioning nodes at specific positions relative to their 
- * parent's content size. See `Anchor` for available anchoring options. Useful 
- * for example for popups, where a popup using `AnchorLayout` can be 
+ * A layout for positioning nodes at specific positions relative to their
+ * parent's content size. See `Anchor` for available anchoring options. Useful
+ * for example for popups, where a popup using `AnchorLayout` can be
  * automatically resized without needing to manually shuffle nodes around
  */
 class GEODE_DLL AnchorLayout : public Layout {
@@ -388,7 +388,7 @@ public:
     cocos2d::CCSize getSizeHint(cocos2d::CCNode* on) const override;
 
     /**
-     * Get a position according to anchoring rules, with the same algorithm as 
+     * Get a position according to anchoring rules, with the same algorithm as
      * `AnchorLayout` uses to position its nodes
      * @param in The node whose content size to use as a reference
      * @param anchor The anchor position
@@ -399,8 +399,8 @@ public:
 };
 
 /**
- * A layout for automatically copying the content size of a node to other nodes. 
- * Basically main use case is for FLAlertLayers (setting the size of the 
+ * A layout for automatically copying the content size of a node to other nodes.
+ * Basically main use case is for FLAlertLayers (setting the size of the
  * background and `m_buttonMenu` based on `m_mainLayer`)
  */
 class GEODE_DLL CopySizeLayout : public AnchorLayout {
@@ -412,7 +412,7 @@ public:
     virtual ~CopySizeLayout();
 
     /**
-     * Add a target to be automatically resized. Any targets' layouts will 
+     * Add a target to be automatically resized. Any targets' layouts will
      * also be updated when this layout is updated
      */
     CopySizeLayout* add(cocos2d::CCNode* target);

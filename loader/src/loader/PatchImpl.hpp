@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <Geode/loader/Hook.hpp>
 #include <Geode/loader/Loader.hpp>
@@ -23,6 +23,8 @@ public:
 
     Result<> enable();
     Result<> disable();
+    Result<> toggle();
+    Result<> toggle(bool enable);
 
     ByteVector const& getBytes() const;
     Result<> updateBytes(const ByteVector& bytes);

@@ -1,6 +1,7 @@
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/ui/MDPopup.hpp>
 #include <Geode/utils/string.hpp>
+#include <Geode/loader/Mod.hpp>
 
 using namespace geode::prelude;
 
@@ -14,7 +15,13 @@ bool MDPopup::setup(
         m_size.width - 50.f,
         m_size.height - 100.f,
     };
-    auto content = MDTextArea::create(info, contentSize);
+
+    auto compatibilityMode = false;
+    if (auto boolObj = static_cast<CCBool*>(this->getUserObject("compatibilityMode"_spr))) {
+        compatibilityMode = boolObj->getValue();
+    }
+
+    auto content = MDTextArea::create(info, contentSize, compatibilityMode);
     m_mainLayer->addChildAtPosition(content, Anchor::Center, ccp(0, 0));
 
     this->setTitle(title.c_str(), "goldFont.fnt", .9f, 28.f);
@@ -58,7 +65,7 @@ void MDPopup::onBtn(CCObject* sender) {
 }
 
 float MDPopup::estimateHeight(std::string const& content) {
-    return clamp(string::count(content, '\n') * 50.f, 180.f, 280.f);
+    return std::clamp(string::count(content, '\n') * 50.f, 180.f, 280.f);
 }
 
 MDPopup* MDPopup::create(
@@ -66,6 +73,27 @@ MDPopup* MDPopup::create(
     std::function<void(bool)> onClick
 ) {
     auto ret = new MDPopup();
+    if (ret->initAnchored(
+            400.f, MDPopup::estimateHeight(content), title, content, btn1, btn2, onClick,
+            "square01_001.png", { 0, 0, 94, 94 }
+        )) {
+        ret->autorelease();
+        return ret;
+    }
+    delete ret;
+    return nullptr;
+}
+
+MDPopup* MDPopup::create(
+    bool compatibilityMode, std::string const& title, std::string const& content, char const* btn1,
+    char const* btn2, std::function<void(bool)> onClick
+) {
+    auto ret = new MDPopup();
+
+    // TODO in v5: put this as part of the popup setup or something
+    auto boolObj = CCBool::create(compatibilityMode);
+    ret->setUserObject("compatibilityMode"_spr, boolObj);
+
     if (ret->initAnchored(
             400.f, MDPopup::estimateHeight(content), title, content, btn1, btn2, onClick,
             "square01_001.png", { 0, 0, 94, 94 }

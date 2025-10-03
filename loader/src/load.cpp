@@ -22,7 +22,7 @@ $on_mod(Loaded) {
     });
 
     ipc::listen("loader-info", [](ipc::IPCEvent* event) -> matjson::Value {
-        return Mod::get()->getMetadata();
+        return Mod::get()->getMetadataRef();
     });
 
     ipc::listen("list-mods", [](ipc::IPCEvent* event) -> matjson::Value {
@@ -37,12 +37,12 @@ $on_mod(Loaded) {
         if (!dontIncludeLoader) {
             res.push_back(
                 includeRunTimeInfo ? Mod::get()->getRuntimeInfo() :
-                                     Mod::get()->getMetadata().toJSON()
+                                     Mod::get()->getMetadataRef().toJSON()
             );
         }
 
         for (auto& mod : Loader::get()->getAllMods()) {
-            res.push_back(includeRunTimeInfo ? mod->getRuntimeInfo() : mod->getMetadata().toJSON());
+            res.push_back(includeRunTimeInfo ? mod->getRuntimeInfo() : mod->getMetadataRef().toJSON());
         }
 
         return res;
@@ -88,11 +88,11 @@ bool safeModeCheck() {
         return false;
     }
 
-    auto choice = MessageBoxA(
+    auto choice = MessageBoxW(
         NULL,
-        "(This has been triggered because you were holding SHIFT)\n"
-        "Do you want to activate Geode Safe Mode? This disables loading any mods.",
-        "Attention",
+        L"(This has been triggered because you were holding SHIFT)\n"
+        L"Do you want to activate Geode Safe Mode? This disables loading any mods.",
+        L"Attention",
         MB_YESNO | MB_ICONINFORMATION
     );
     return choice == IDYES;
@@ -200,7 +200,7 @@ int geodeEntry(void* platformData) {
     }
 
     // download and install new loader update in the background
-    
+
     if (Mod::get()->getSettingValue<bool>("auto-check-updates")) {
         log::info("Starting loader update check");
         updater::checkForLoaderUpdates();

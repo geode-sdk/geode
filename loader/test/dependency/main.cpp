@@ -66,7 +66,7 @@ class MySettingValue;
 //     bool init(MySettingValue* value, float width) {
 //         if (!SettingNode::init(value))
 //             return false;
-        
+
 //         m_currentIcon = value->getIcon();
 //         this->setContentSize({ width, 40.f });
 

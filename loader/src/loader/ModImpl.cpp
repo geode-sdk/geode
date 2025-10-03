@@ -13,10 +13,14 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/ModEvent.hpp>
+#include <Geode/platform/cplatform.h>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/JsonValidation.hpp>
+#include <Geode/utils/string.hpp>
+#include <filesystem>
 #include <optional>
 #include <string>
+#include <system_error>
 #include <vector>
 #include <string_view>
 
@@ -66,15 +70,18 @@ Result<> Mod::Impl::setup() {
 
         // Hi, linux bros!
         Loader::get()->queueInMainThread([searchPathRoot]() {
-            CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
+            CCFileUtils::get()->addSearchPath(utils::string::pathToString(searchPathRoot).c_str());
         });
 
         // binaries on macos are merged, so make the platform binaries merged as well
         auto const binaryPlatformId = PlatformID::toShortString(GEODE_PLATFORM_TARGET GEODE_MACOS(, true));
 
         auto const binariesDir = searchPathRoot / m_metadata.getID() / "binaries" / binaryPlatformId;
-        if (std::filesystem::exists(binariesDir))
+
+        std::error_code code;
+        if (std::filesystem::exists(binariesDir, code) && !code) {
             LoaderImpl::get()->addNativeBinariesPath(binariesDir);
+        }
 
         m_resourcesLoaded = true;
     }
@@ -108,7 +115,7 @@ std::optional<std::string> Mod::Impl::getDetails() const {
     return m_metadata.getDetails();
 }
 
-ModMetadata Mod::Impl::getMetadata() const {
+ModMetadata const& Mod::Impl::getMetadata() const {
     return m_metadata;
 }
 
@@ -126,6 +133,9 @@ std::filesystem::path Mod::Impl::getTempDir() const {
 }
 
 std::filesystem::path Mod::Impl::getBinaryPath() const {
+    if (auto value = LoaderImpl::get()->getBinaryPath()) {
+        return std::filesystem::path(value.value()) / m_metadata.getBinaryName();
+    }
     return m_tempDirName / m_metadata.getBinaryName();
 }
 
@@ -215,11 +225,11 @@ Result<> Mod::Impl::saveData() {
     // saveData is expected to be synchronous, and always called from GD thread
     ModStateEvent(m_self, ModEventType::DataSaved).post();
 
-    auto res = utils::file::writeString(m_saveDirPath / "settings.json", json.dump());
+    auto res = utils::file::writeStringSafe(m_saveDirPath / "settings.json", json.dump());
     if (!res) {
         log::error("Unable to save settings: {}", res.unwrapErr());
     }
-    auto res2 = utils::file::writeString(m_saveDirPath / "saved.json", m_saved.dump());
+    auto res2 = utils::file::writeStringSafe(m_saveDirPath / "saved.json", m_saved.dump());
     if (!res2) {
         log::error("Unable to save values: {}", res2.unwrapErr());
     }
@@ -290,6 +300,8 @@ Result<> Mod::Impl::loadBinary() {
         return Ok();
 
     if (!std::filesystem::exists(this->getBinaryPath())) {
+        std::error_code ec;
+        std::filesystem::remove(m_tempDirName / "modified-at", ec);
         return Err(
             fmt::format(
                 "Failed to load {}: No binary could be found for current platform.\n"
@@ -382,7 +394,7 @@ Result<> Mod::Impl::uninstall(bool deleteSaveData) {
 
     if (this->isInternal()) {
         utils::game::launchLoaderUninstaller(deleteSaveData);
-        utils::game::exit();
+        utils::game::exit(true);
         return Ok();
     }
 
@@ -567,12 +579,12 @@ Result<> Mod::Impl::disownPatch(Patch* patch) {
 
 Result<> Mod::Impl::createTempDir() {
     // Check if temp dir already exists
-    if (!m_tempDirName.string().empty()) {
+    if (!m_tempDirName.empty()) {
         return Ok();
     }
 
     // If the info doesn't specify a path, don't do anything
-    if (m_metadata.getPath().string().empty()) {
+    if (m_metadata.getPath().empty()) {
         return Ok();
     }
 
@@ -590,58 +602,6 @@ Result<> Mod::Impl::createTempDir() {
 
     // Mark temp dir creation as succesful
     m_tempDirName = tempPath;
-
-    return Ok();
-}
-
-Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
-    // Unzip .geode file into temp dir
-    auto tempDir = dirs::getModRuntimeDir() / metadata.getID();
-
-    auto datePath = tempDir / "modified-at";
-    std::string currentHash = file::readString(datePath).unwrapOr("");
-
-    auto modifiedDate = std::filesystem::last_write_time(metadata.getPath());
-    auto modifiedCount = std::chrono::duration_cast<std::chrono::milliseconds>(modifiedDate.time_since_epoch());
-    auto modifiedHash = std::to_string(modifiedCount.count());
-    if (currentHash == modifiedHash) {
-        log::debug("Same hash detected, skipping unzip");
-        return Ok();
-    }
-    log::debug("Hash mismatch detected, unzipping");
-
-    std::error_code ec;
-    std::filesystem::remove_all(tempDir, ec);
-    if (ec) {
-        auto message = ec.message();
-        #ifdef GEODE_IS_WINDOWS
-            // Force the error message into English
-            char* errorBuf = nullptr;
-            FormatMessageA(
-                FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS,
-                nullptr, ec.value(), MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPSTR)&errorBuf, 0, nullptr);
-            if (errorBuf) {
-                message = errorBuf;
-                LocalFree(errorBuf);
-            }
-        #endif
-        return Err("Unable to delete temp dir: " + message);
-    }
-
-    (void)utils::file::createDirectoryAll(tempDir);
-    auto res = file::writeString(datePath, modifiedHash);
-    if (!res) {
-        log::warn("Failed to write modified date of geode zip: {}", res.unwrapErr());
-    }
-
-
-    GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(metadata.getPath()));
-    if (!unzip.hasEntry(metadata.getBinaryName())) {
-        return Err(
-            fmt::format("Unable to find platform binary under the name \"{}\"", metadata.getBinaryName())
-        );
-    }
-    GEODE_UNWRAP(unzip.extractAllTo(tempDir));
 
     return Ok();
 }
@@ -731,6 +691,10 @@ bool Mod::Impl::hasLoadProblems() const {
 
 std::vector<LoadProblem> Mod::Impl::getProblems() const {
     return m_problems;
+}
+
+int Mod::Impl::getLoadPriority() const {
+    return m_metadata.getLoadPriority();
 }
 
 static Result<ModMetadata> getModImplInfo() {

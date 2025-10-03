@@ -19,6 +19,10 @@
         using DerivedFuncType = decltype(Resolve<__VA_ARGS__>::func(&Derived::FunctionName_));                \
         if constexpr (different) {                                                                            \
             static auto address = AddressInline_;                                                             \
+            static auto embeddedAddress =                                                                     \
+                "[GEODE_MODIFY_NAME] " GEODE_STR(ClassName_) "::" GEODE_STR(FunctionName_)                    \
+                " [GEODE_MODIFY_ADDRESS] " GEODE_STR(AddressInline_) " [GEODE_MODIFY_END]";                   \
+            geode::doNotOptimize(&embeddedAddress);                                                 \
             static_assert(                                                                                    \
                 !different || !std::is_same_v<typename ReturnType<BaseFuncType>::type, TodoReturn>,           \
                 "Function" #ClassName_ "::" #FunctionName_ " has a TodoReturn type, "                         \
@@ -377,10 +381,7 @@ namespace geode::modifier {
         // unordered_map<handles> idea
         ModifyBase() {
             struct EboCheck : ModifyDerived::Base {
-                std::aligned_storage_t<
-                    std::alignment_of_v<typename ModifyDerived::Base>, 
-                    std::alignment_of_v<typename ModifyDerived::Base>
-                > m_padding;
+                alignas(typename ModifyDerived::Base) std::array<std::byte, alignof(typename ModifyDerived::Base)> m_padding;
             };
             static constexpr auto baseSize = sizeof(typename ModifyDerived::Base);
             static constexpr auto derivedSize = sizeof(typename ModifyDerived::Derived);
@@ -448,14 +449,17 @@ namespace geode {
         static inline auto s_applyRef = &Modify::s_apply;
 
     public:
+        using Self = Derived;
+
         // abusing the internal stuff
         // basically we dont want modify to invoke base ctors and dtors
         // we already have utilities for these, which are ccdestructor
         // and the cutoff constructor
         Modify() : Base(CutoffConstructor, sizeof(Base)) {}
+        Modify(ZeroConstructorType) : Base(ZeroConstructor, sizeof(Base)) {}
 
         ~Modify() {
-            cocos2d::CCDestructor::lock(this) = true;
+            geode::DestructorLock::addLock(this);
         }
 
         Modify(Modify const&) = delete;
@@ -542,9 +546,9 @@ namespace geode {
 #define $modify(...) \
     GEODE_INVOKE(GEODE_CONCAT(GEODE_CRTP, GEODE_NUMBER_OF_ARGS(__VA_ARGS__)), __VA_ARGS__)
 
-/** 
- * This function is meant to hook / override a GD function in a Modified class. 
- * **This is merely an annotation for clarity** - while there may be linters that 
+/**
+ * This function is meant to hook / override a GD function in a Modified class.
+ * **This is merely an annotation for clarity** - while there may be linters that
  * check for it, it is not required
  */
 #define $override
