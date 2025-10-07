@@ -3,6 +3,7 @@
 #include <coroutine>
 #include <Geode/DefaultInclude.hpp>
 #include "Task.hpp"
+#include <concepts>
 
 namespace geode {
     /**
@@ -42,6 +43,106 @@ namespace geode {
             template <typename F>
             decltype(auto) operator<<(F fn) { return fn(); }
         } invoke;
+    };
+
+
+    /**
+     * A simple generator class that allows yielding values from a coroutine.
+     * Compatible with references and copy-constructible types.
+     */
+    template <typename T> requires (std::copy_constructible<T> || std::is_reference_v<T>)
+    class Generator final {
+        using StoredT = std::conditional_t<std::is_reference_v<T>, std::reference_wrapper<std::remove_reference_t<T>>, T>;
+     public:
+        struct promise_type {
+            std::optional<StoredT> m_value;
+
+            Generator get_return_object() {
+                return Generator(std::coroutine_handle<promise_type>::from_promise(*this));
+            }
+
+            // lazy. don't run anything until you really need to
+            std::suspend_always initial_suspend() noexcept { return {}; }
+            std::suspend_always final_suspend() noexcept { return {}; }
+            void unhandled_exception() {}
+
+            // end of iteration
+            void return_void() {
+                m_value = {};
+            }
+
+            std::suspend_always yield_value(T value) {
+                m_value = value;
+                return {};
+            }
+        };
+
+        class iterator_type {
+            std::coroutine_handle<promise_type> m_handle;
+            std::ptrdiff_t m_count;
+
+            iterator_type(std::coroutine_handle<promise_type> handle, std::ptrdiff_t count)
+              : m_handle(handle), m_count(count) {}
+            friend class Generator;
+         public:
+            using iterator_category = std::input_iterator_tag;
+            using difference_type   = std::ptrdiff_t;
+            using value_type        = T;
+            using pointer           = T*;
+            using reference         = T&;
+
+            // wait for next yield
+            iterator_type& operator++() {
+                m_handle.resume();
+                if (m_handle.done()) {
+                    m_handle.promise().m_value = {};
+                }
+                m_count++;
+                return *this;
+            }
+
+            // m_count is -1 for end iterator
+            bool operator==(iterator_type const& it) const {
+                if (it.m_count == -1)
+                    return !m_handle || m_handle.promise().m_value == std::nullopt;
+                return m_handle == it.m_handle && m_count == it.m_count;
+            }
+
+            // better have the value
+            T operator*() const {
+                return m_handle.promise().m_value.value();
+            }
+        };
+     private:
+        std::coroutine_handle<promise_type> m_handle;
+        Generator(std::coroutine_handle<promise_type> handle) : m_handle(handle) {}
+     public:
+        Generator() = delete;
+        Generator(Generator&& other) : m_handle(std::exchange(other.m_handle, nullptr)) {}
+        Generator(Generator const&) = delete;
+        Generator& operator=(Generator&& other) {
+            if (this != &other) {
+                if (m_handle) m_handle.destroy();
+                m_handle = std::exchange(other.m_handle, nullptr);
+            }
+            return *this;
+        }
+        Generator& operator=(Generator const&) = delete;
+
+        ~Generator() {
+            if (m_handle) m_handle.destroy();
+        }
+
+        iterator_type begin() {
+            if (m_handle) {
+                m_handle.resume();
+                if (m_handle.done()) {
+                    m_handle.promise().m_value = {};
+                }
+            }
+            return iterator_type(m_handle, 0);
+        }
+        iterator_type end() { return iterator_type({}, -1); }
     };
 
     namespace geode_internal {
@@ -115,3 +216,9 @@ template <typename T, typename E, typename ...Args>
 struct std::coroutine_traits<geode::Result<T, E>, Args...> {
     using promise_type = geode::geode_internal::promise_type<T, E>;
 };
+
+template <typename T, typename ...Args>
+struct std::coroutine_traits<geode::Generator<T>, Args...> {
+    using promise_type = geode::Generator<T>::promise_type;
+};
+
