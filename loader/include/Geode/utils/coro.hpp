@@ -159,14 +159,6 @@ namespace geode::utils::coro {
                 }
             }
         }
-
-        template <typename Acc, std::invocable<Acc, T&&> U>
-        Acc reduce(Acc init, U&& func) && {
-            for (auto&& value : *this) {
-                init = func(init, value);
-            }
-            return init;
-        }
     };
 
     template <typename T>
