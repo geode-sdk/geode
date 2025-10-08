@@ -5,7 +5,7 @@
 #include "Task.hpp"
 #include <concepts>
 
-namespace geode::coro {
+namespace geode::utils::coro {
     /**
      * This is a geode utility that allows Tasks to be used with
      * C++'s own coroutine handling.
@@ -240,26 +240,26 @@ namespace geode::coro {
         }
     };
 
-    #define $async(...) geode::coro::CoTask<>::invoke << [__VA_ARGS__]() -> geode::coro::CoTask<>
-    #define $try geode::coro::CoTask<>::invoke << [&]() -> geode::Result
+    #define $async(...) geode::utils::coro::CoTask<>::invoke << [__VA_ARGS__]() -> geode::utils::coro::CoTask<>
+    #define $try geode::utils::coro::CoTask<>::invoke << [&]() -> geode::Result
 };
 
 template <typename T = void, typename E = std::string>
 auto operator co_await(geode::Result<T, E>&& res) {
-    return geode::coro::ResultAwaiter<T, E> { std::move(res) };
+    return geode::utils::coro::ResultAwaiter<T, E> { std::move(res) };
 }
 template <typename T = void, typename E = std::string>
 auto operator co_await(geode::Result<T, E> const& res) {
-    return geode::coro::ResultAwaiter<T, E> { res };
+    return geode::utils::coro::ResultAwaiter<T, E> { res };
 }
 
 template <typename T, typename E, typename ...Args>
 struct std::coroutine_traits<geode::Result<T, E>, Args...> {
-    using promise_type = geode::coro::ResultPromise<T, E>;
+    using promise_type = geode::utils::coro::ResultPromise<T, E>;
 };
 
 template <typename T, typename ...Args>
-struct std::coroutine_traits<geode::coro::Generator<T>, Args...> {
-    using promise_type = geode::coro::Generator<T>::promise_type;
+struct std::coroutine_traits<geode::utils::coro::Generator<T>, Args...> {
+    using promise_type = geode::utils::coro::Generator<T>::promise_type;
 };
 
