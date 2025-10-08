@@ -190,34 +190,37 @@ namespace geode::utils::coro {
 
     template <typename T, typename E>
     struct ResultPromise {
-        using Inner = std::optional<Result<T, E>>;
+        std::optional<Result<T, E>> result;
 
-        struct: public std::shared_ptr<Inner> {
-            using std::shared_ptr<Inner>::shared_ptr;
-            operator Result<T>() {
-                return (*this->get()).value();
+        struct return_object {
+            ResultPromise& promise;
+            operator Result<T>() noexcept {
+                return promise.result.value();
             }
-        } result{new Inner()};
+        };
 
-        std::suspend_never initial_suspend() { return {}; }
-        std::suspend_never final_suspend() noexcept { return {}; }
-        auto get_return_object() { return result; }
-        void unhandled_exception() {}
-        void return_value(Result<T, E>&& value) { *result = std::move(value); }
+        std::suspend_never initial_suspend() const noexcept { return {}; }
+        std::suspend_always final_suspend() const noexcept { return {}; }
+        return_object get_return_object() noexcept { return return_object {*this}; }
+
+        void unhandled_exception() const noexcept {}
+        void return_value(Result<T, E>&& value) noexcept {
+            result = std::move(value);
+        }
     };
 
     template <typename T, typename E>
     struct ResultAwaiter {
         Result<T, E> result;
 
-        bool await_ready() { return result.isOk(); }
-        T&& await_resume() { return std::move(result.unwrap()); }
+        bool await_ready() const noexcept { return result.isOk(); }
+        T&& await_resume() noexcept { return std::move(result.unwrap()); }
 
         template <std::convertible_to<Result<T, E>> Q>
         ResultAwaiter(Q&& res) : result(std::forward<Q>(res)) {}
 
         template <typename U>
-        void await_suspend(std::coroutine_handle<U> handle) {
+        void await_suspend(std::coroutine_handle<U> handle) noexcept {
             handle.promise().return_value(Err(result.unwrapErr()));
             handle.destroy();
         }
@@ -227,14 +230,14 @@ namespace geode::utils::coro {
     struct ResultAwaiter<void, E> {
         Result<void, E> result;
 
-        bool await_ready() { return result.isOk(); }
-        void await_resume() { return; }
+        bool await_ready() const noexcept { return result.isOk(); }
+        void await_resume() const noexcept { return; }
 
         template <std::convertible_to<Result<void, E>> Q>
         ResultAwaiter(Q&& res) : result(std::forward<Q>(res)) {}
 
         template <typename U>
-        void await_suspend(std::coroutine_handle<U> handle) {
+        void await_suspend(std::coroutine_handle<U> handle) noexcept {
             handle.promise().return_value(Err(result.unwrapErr()));
             handle.destroy();
         }
@@ -245,11 +248,11 @@ namespace geode::utils::coro {
 };
 
 template <typename T = void, typename E = std::string>
-auto operator co_await(geode::Result<T, E>&& res) {
+auto operator co_await(geode::Result<T, E>&& res) noexcept {
     return geode::utils::coro::ResultAwaiter<T, E> { std::move(res) };
 }
 template <typename T = void, typename E = std::string>
-auto operator co_await(geode::Result<T, E> const& res) {
+auto operator co_await(geode::Result<T, E> const& res) noexcept {
     return geode::utils::coro::ResultAwaiter<T, E> { res };
 }
 
