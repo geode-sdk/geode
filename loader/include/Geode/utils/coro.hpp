@@ -5,7 +5,7 @@
 #include "Task.hpp"
 #include <concepts>
 
-namespace geode {
+namespace geode::coro {
     /**
      * This is a geode utility that allows Tasks to be used with
      * C++'s own coroutine handling.
@@ -45,7 +45,6 @@ namespace geode {
         } invoke;
     };
 
-
     /**
      * A simple generator class that allows yielding values from a coroutine.
      * Compatible with references and copy-constructible types.
@@ -53,7 +52,7 @@ namespace geode {
     template <typename T> requires (std::copy_constructible<T> || std::is_reference_v<T>)
     class Generator final {
         using StoredT = std::conditional_t<std::is_reference_v<T>, std::reference_wrapper<std::remove_reference_t<T>>, T>;
-     public:
+    public:
         struct promise_type {
             std::optional<StoredT> m_value;
 
@@ -84,11 +83,11 @@ namespace geode {
             iterator_type(std::coroutine_handle<promise_type> handle, std::ptrdiff_t count)
               : m_handle(handle), m_count(count) {}
             friend class Generator;
-         public:
+        public:
             using iterator_category = std::input_iterator_tag;
             using difference_type   = std::ptrdiff_t;
             using value_type        = T;
-            using pointer           = T*;
+            using pointer           = StoredT*;
             using reference         = T&;
 
             // wait for next yield
@@ -113,10 +112,10 @@ namespace geode {
                 return m_handle.promise().m_value.value();
             }
         };
-     private:
+    private:
         std::coroutine_handle<promise_type> m_handle;
         Generator(std::coroutine_handle<promise_type> handle) : m_handle(handle) {}
-     public:
+    public:
         Generator() = delete;
         Generator(Generator&& other) : m_handle(std::exchange(other.m_handle, nullptr)) {}
         Generator(Generator const&) = delete;
@@ -143,82 +142,124 @@ namespace geode {
             return iterator_type(m_handle, 0);
         }
         iterator_type end() { return iterator_type({}, -1); }
+
+
+        template <std::invocable<T&&> U>
+        Generator<std::invoke_result_t<U, T&&>> map(U&& func) && {
+            for (auto&& value : *this) {
+                co_yield func(value);
+            }
+        }
+
+        template <std::predicate<T const&> U>
+        Generator<T> filter(U&& func) && {
+            for (auto&& value : *this) {
+                if (func(value)) {
+                    co_yield value;
+                }
+            }
+        }
+
+        template <typename Acc, std::invocable<Acc, T&&> U>
+        Acc reduce(Acc init, U&& func) && {
+            for (auto&& value : *this) {
+                init = func(init, value);
+            }
+            return init;
+        }
     };
 
-    namespace geode_internal {
-        template <typename T, typename E>
-        struct promise_type {
-            using Inner = std::optional<Result<T, E>>;
-
-            struct: public std::shared_ptr<Inner> {
-                using std::shared_ptr<Inner>::shared_ptr;
-                operator Result<T>() {
-                    return (*this->get()).value();
-                }
-            } result{new Inner()};
-
-            std::suspend_never initial_suspend() { return {}; }
-            std::suspend_never final_suspend() noexcept { return {}; }
-            auto get_return_object() { return result; }
-            void unhandled_exception() {}
-            void return_value(Result<T, E>&& value) { *result = std::move(value); }
-        };
-
-        template <typename T, typename E>
-        struct Awaiter {
-            Result<T, E> result;
-
-            bool await_ready() { return result.isOk(); }
-            T&& await_resume() { return std::move(result.unwrap()); }
-
-            template <std::convertible_to<Result<T, E>> Q>
-            Awaiter(Q&& res) : result(std::forward<Q>(res)) {}
-
-            template <typename U>
-            void await_suspend(std::coroutine_handle<U> handle) {
-                handle.promise().return_value(Err(result.unwrapErr()));
-                handle.destroy();
-            }
-        };
-
-        template <typename E>
-        struct Awaiter<void, E> {
-            Result<void, E> result;
-
-            bool await_ready() { return result.isOk(); }
-            void await_resume() { return; }
-
-            template <std::convertible_to<Result<void, E>> Q>
-            Awaiter(Q&& res) : result(std::forward<Q>(res)) {}
-
-            template <typename U>
-            void await_suspend(std::coroutine_handle<U> handle) {
-                handle.promise().return_value(Err(result.unwrapErr()));
-                handle.destroy();
-            }
-        };
+    template <typename T>
+    Generator<T> makeGenerator(std::vector<T> const& vec) {
+        for (auto const& item : vec) {
+            co_yield item;
+        }
+    }
+    template <typename T>
+    Generator<T> makeGenerator(std::vector<T>&& vec) {
+        for (auto&& item : vec) {
+            co_yield std::move(item);
+        }
+    }
+    template <typename T, typename E>
+    Generator<T> makeGenerator(Result<T, E> const& res) {
+        if (res.isOk()) {
+            co_yield res;
+        }
     }
 
-    #define $async(...) geode::CoTask<>::invoke << [__VA_ARGS__]() -> geode::CoTask<>
-    #define $try geode::CoTask<>::invoke << [&]() -> geode::Result
+    template <typename T, typename E>
+    struct ResultPromise {
+        using Inner = std::optional<Result<T, E>>;
+
+        struct: public std::shared_ptr<Inner> {
+            using std::shared_ptr<Inner>::shared_ptr;
+            operator Result<T>() {
+                return (*this->get()).value();
+            }
+        } result{new Inner()};
+
+        std::suspend_never initial_suspend() { return {}; }
+        std::suspend_never final_suspend() noexcept { return {}; }
+        auto get_return_object() { return result; }
+        void unhandled_exception() {}
+        void return_value(Result<T, E>&& value) { *result = std::move(value); }
+    };
+
+    template <typename T, typename E>
+    struct ResultAwaiter {
+        Result<T, E> result;
+
+        bool await_ready() { return result.isOk(); }
+        T&& await_resume() { return std::move(result.unwrap()); }
+
+        template <std::convertible_to<Result<T, E>> Q>
+        ResultAwaiter(Q&& res) : result(std::forward<Q>(res)) {}
+
+        template <typename U>
+        void await_suspend(std::coroutine_handle<U> handle) {
+            handle.promise().return_value(Err(result.unwrapErr()));
+            handle.destroy();
+        }
+    };
+
+    template <typename E>
+    struct ResultAwaiter<void, E> {
+        Result<void, E> result;
+
+        bool await_ready() { return result.isOk(); }
+        void await_resume() { return; }
+
+        template <std::convertible_to<Result<void, E>> Q>
+        ResultAwaiter(Q&& res) : result(std::forward<Q>(res)) {}
+
+        template <typename U>
+        void await_suspend(std::coroutine_handle<U> handle) {
+            handle.promise().return_value(Err(result.unwrapErr()));
+            handle.destroy();
+        }
+    };
+
+    #define $async(...) geode::coro::CoTask<>::invoke << [__VA_ARGS__]() -> geode::coro::CoTask<>
+    #define $try geode::coro::CoTask<>::invoke << [&]() -> geode::Result
 };
 
 template <typename T = void, typename E = std::string>
 auto operator co_await(geode::Result<T, E>&& res) {
-    return geode::geode_internal::Awaiter<T, E> { std::move(res) };
+    return geode::coro::ResultAwaiter<T, E> { std::move(res) };
 }
 template <typename T = void, typename E = std::string>
 auto operator co_await(geode::Result<T, E> const& res) {
-    return geode::geode_internal::Awaiter<T, E> { res };
+    return geode::coro::ResultAwaiter<T, E> { res };
 }
 
 template <typename T, typename E, typename ...Args>
 struct std::coroutine_traits<geode::Result<T, E>, Args...> {
-    using promise_type = geode::geode_internal::promise_type<T, E>;
+    using promise_type = geode::coro::ResultPromise<T, E>;
 };
 
 template <typename T, typename ...Args>
-struct std::coroutine_traits<geode::Generator<T>, Args...> {
-    using promise_type = geode::Generator<T>::promise_type;
+struct std::coroutine_traits<geode::coro::Generator<T>, Args...> {
+    using promise_type = geode::coro::Generator<T>::promise_type;
 };
 
