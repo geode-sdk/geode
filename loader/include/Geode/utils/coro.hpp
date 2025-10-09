@@ -191,7 +191,7 @@ namespace geode::utils::coro {
 
         struct return_object {
             ResultPromise& promise;
-            operator Result<T>() noexcept {
+            operator Result<T, E>() noexcept {
                 return promise.result.value();
             }
         };
