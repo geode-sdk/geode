@@ -258,3 +258,7 @@ struct std::coroutine_traits<geode::utils::coro::Generator<T>, Args...> {
     using promise_type = geode::utils::coro::Generator<T>::promise_type;
 };
 
+template <class T, class P>
+auto operator co_await(geode::utils::coro::CoTask<T, P> task) {
+    return geode::geode_internal::TaskAwaiter<T, P>{task.task()};
+}
