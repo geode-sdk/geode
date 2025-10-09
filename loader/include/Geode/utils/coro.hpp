@@ -38,11 +38,6 @@ namespace geode::utils::coro {
         bool isNull() const { return m_task.isNull(); }
 
         Task<T, P> task() { return std::move(m_task); }
-
-        static inline struct {
-            template <typename F>
-            decltype(auto) operator<<(F fn) { return fn(); }
-        } invoke;
     };
 
     /**
@@ -179,6 +174,16 @@ namespace geode::utils::coro {
             co_yield res;
         }
     }
+    template <typename T>
+    Generator<T> makeGenerator(cocos2d::CCArray* arr) {
+        if (!arr)
+            co_return;
+
+        for (int i = 0; i < arr->count(); ++i) {
+            if (auto obj = typeinfo_cast<T*>(arr->objectAtIndex(i)))
+                co_yield obj;
+        }
+    }
 
     template <typename T, typename E>
     struct ResultPromise {
@@ -235,8 +240,13 @@ namespace geode::utils::coro {
         }
     };
 
-    #define $async(...) geode::utils::coro::CoTask<>::invoke << [__VA_ARGS__]() -> geode::utils::coro::CoTask<>
-    #define $try geode::utils::coro::CoTask<>::invoke << [&]() -> geode::Result
+    static struct {
+        template <typename F>
+        decltype(auto) operator<<(F fn) { return fn(); }
+    } invoker;
+
+    #define $async(...) geode::utils::coro::invoker << [__VA_ARGS__]() -> geode::utils::coro::CoTask<>
+    #define $try geode::utils::coro::invoker << [&]() -> geode::Result
 };
 
 template <typename T = void, typename E = std::string>
