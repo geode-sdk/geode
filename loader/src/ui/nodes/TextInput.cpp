@@ -216,3 +216,8 @@ CCTextInputNode* TextInput::getInputNode() const {
 CCScale9Sprite* TextInput::getBGSprite() const {
     return m_bgSprite;
 }
+
+TextInput::~TextInput() {
+    m_input->onClickTrackNode(false);
+    m_input->m_delegate = nullptr;
+}
