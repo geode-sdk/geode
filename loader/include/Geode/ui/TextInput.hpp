@@ -43,8 +43,8 @@ namespace geode {
      */
     class GEODE_DLL TextInput : public cocos2d::CCNode, public TextInputDelegate {
     protected:
-        cocos2d::extension::CCScale9Sprite* m_bgSprite;
-        CCTextInputNode* m_input;
+        cocos2d::extension::CCScale9Sprite* m_bgSprite = nullptr;
+        CCTextInputNode* m_input = nullptr;
         std::function<void(std::string const&)> m_onInput = nullptr;
         cocos2d::CCLabelBMFont* m_label = nullptr;
 
@@ -153,5 +153,7 @@ namespace geode {
 
         CCTextInputNode* getInputNode() const;
         cocos2d::extension::CCScale9Sprite* getBGSprite() const;
+
+        ~TextInput() override;
     };
 }
