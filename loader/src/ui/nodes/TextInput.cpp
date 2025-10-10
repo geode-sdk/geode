@@ -218,6 +218,8 @@ CCScale9Sprite* TextInput::getBGSprite() const {
 }
 
 TextInput::~TextInput() {
-    m_input->onClickTrackNode(false);
-    m_input->m_delegate = nullptr;
+    if (m_input) {
+        m_input->onClickTrackNode(false);
+        m_input->m_delegate = nullptr;
+    }
 }
