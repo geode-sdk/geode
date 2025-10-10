@@ -459,6 +459,12 @@ SectionGroup "Geode"
     Section "Loader" LOADER_SECTION
         SetOutPath $INSTDIR
 
+        !define env_hklm 'HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"'
+        !define env_hkcu 'HKCU "Environment"'
+
+        WriteRegExpandStr ${env_hkcu} "GEODE_GD_PATH" "$INSTDIR"
+        System::Call 'user32::SendMessageTimeoutA(i0xffff,i0x1a,i0, t"Environment",i2,i5000,i0)i'
+
         File ${BINDIR}\Geode.dll
         File ${BINDIR}\Geode.pdb
         File ${BINDIR}\GeodeUpdater.exe
@@ -478,6 +484,32 @@ SectionGroup "Geode"
         Delete "$INSTDIR\vcruntime140d.dll"
 
         WriteUninstaller "GeodeUninstaller.exe"
+    SectionEnd
+
+    Section "Register .geode Filetype" FILETYPE_SECTION
+        SectionGetFlags ${FILETYPE_SECTION} $0
+        IntOp $0 $0 & ${SF_SELECTED}
+        StrCmp $0 0 done
+
+        ; Extract the ICO to a known path
+        SetOutPath "$INSTDIR\geode"
+        File /oname=logo_inst.ico "Graphics\logo_inst.ico"
+        File /oname=installmods.ps1 "installmods.ps1"
+
+        ; Register .geode extension
+        WriteRegStr HKCU "Software\Classes\.geode" "" "GeodeFile"
+        WriteRegStr HKCU "Software\Classes\GeodeFile" "" "Geode Mod"
+        WriteRegStr HKCU "Software\Classes\GeodeFile\DefaultIcon" "" "$INSTDIR\geode\logo_inst.ico,0"
+        WriteRegStr HKCU "Software\Classes\GeodeFile\shell" "" "open"
+        WriteRegStr HKCU "Software\Classes\GeodeFile\shell\open\command" "" \
+            'powershell.exe -ExecutionPolicy Bypass -File "$INSTDIR\geode\installmods.ps1" "%1"'
+
+        ; Refresh icon cache
+        System::Call 'shell32::SHChangeNotify(i0x8000000,i0x0,p0,p0)'
+
+        SetOutPath "$INSTDIR"
+
+    done:
     SectionEnd
 
     Section "Resources"
@@ -544,6 +576,10 @@ Section "Uninstall"
     Delete $INSTDIR\Geode.lib
     Delete $INSTDIR\GeodeUpdater.exe
     Delete $INSTDIR\XInput1_4.dll
+
+    ; Remove the .geode filetype registry keys
+    DeleteRegKey HKCU "Software\Classes\.geode"
+    DeleteRegKey HKCU "Software\Classes\GeodeFile"
 
     # default value of DATA is an empty string
     # if DATA is empty, keep user data
