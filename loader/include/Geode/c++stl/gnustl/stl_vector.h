@@ -1426,10 +1426,11 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       iterator
 #if __cplusplus >= 201103L
       erase(const_iterator __position)
+      { return _M_erase(begin() + (__position - cbegin())); }
 #else
       erase(iterator __position)
+      { return _M_erase(__position); }
 #endif
-      { return _M_erase(begin() + (__position - begin())); }
 
       /**
        *  @brief  Remove a range of elements.
