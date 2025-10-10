@@ -18,6 +18,7 @@
  * Fix `CC_SYNTHESIZE` calls and define inline getters/setters for cocos (869dcfa)
  * EventV2 + async fixes (b3e6536)
  * Improve the outdated GD version warning (#1475)
+ * Fix `VMTHookManager` (22ba7dd)
 
 ## v4.8.0
  * Fix `geode::Notification` z ordering (127733e)

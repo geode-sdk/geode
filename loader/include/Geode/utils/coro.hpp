@@ -7,45 +7,6 @@
 
 namespace geode::utils::coro {
     /**
-     * This is a geode utility that allows Tasks to be used with
-     * C++'s own coroutine handling.
-     * 
-     * @tparam T The task type it will finish to. See `Task` for 
-     * more information.
-     * @tparam P The progress type the task posts. See `Task` for 
-     * more information.
-     */
-    template <is_task_type T = void, typename P = std::monostate>
-    class CoTask final {
-        using Type = Task<T, P>::Type;
-        Task<T, P> m_task;
-     public:
-        using promise_type = std::coroutine_traits<Task<T, P>>::promise_type;
-        auto operator<=>(const CoTask&) const = default;
-        operator Task<T, P>() { return std::move(m_task); }
-
-        CoTask() = default;
-        CoTask(CoTask&&) = default;
-        CoTask(Task<T, P>&& task) : m_task(std::move(task)) {}
-
-
-        Type* getFinishedValue() { return m_task.getFinishedValue(); }
-        void cancel() { return m_task.cancel(); }
-        void shallowCancel() { m_task.shallowCancel(); }
-        bool isPending() const { return m_task.isPending(); }
-        bool isFinished() const { return m_task.isFinished(); }
-        bool isCancelled() const { return m_task.isCancelled(); }
-        bool isNull() const { return m_task.isNull(); }
-
-        Task<T, P> task() { return std::move(m_task); }
-
-        static inline struct {
-            template <typename F>
-            decltype(auto) operator<<(F fn) { return fn(); }
-        } invoke;
-    };
-
-    /**
      * A simple generator class that allows yielding values from a coroutine.
      * Compatible with references and copy-constructible types.
      */
@@ -179,14 +140,28 @@ namespace geode::utils::coro {
             co_yield res;
         }
     }
+    template <typename T>
+    Generator<T> makeGenerator(cocos2d::CCArray* arr) {
+        if (!arr)
+            co_return;
+
+        for (int i = 0; i < arr->count(); ++i) {
+            if (auto obj = typeinfo_cast<T*>(arr->objectAtIndex(i)))
+                co_yield obj;
+        }
+    }
+
+    GEODE_DLL Task<void> nextFrame();
+    GEODE_DLL Task<void> skipFrames(int frames);
+    GEODE_DLL Task<void> sleep(double seconds);
 
     template <typename T, typename E>
-    struct ResultPromise {
+    struct BaseResultPromise {
         std::optional<Result<T, E>> result;
 
         struct return_object {
-            ResultPromise& promise;
-            operator Result<T>() noexcept {
+            BaseResultPromise& promise;
+            operator Result<T, E>() noexcept {
                 return promise.result.value();
             }
         };
@@ -196,8 +171,19 @@ namespace geode::utils::coro {
         return_object get_return_object() noexcept { return return_object {*this}; }
 
         void unhandled_exception() const noexcept {}
+    };
+
+    template <typename T, typename E>
+    struct ResultPromise : public BaseResultPromise<T, E> {
         void return_value(Result<T, E>&& value) noexcept {
-            result = std::move(value);
+            this->result = std::move(value);
+        }
+    };
+
+    template <typename E>
+    struct TryResultPromise : public BaseResultPromise<void, E> {
+        void return_void() noexcept {
+            this->result = Ok();
         }
     };
 
@@ -213,7 +199,7 @@ namespace geode::utils::coro {
 
         template <typename U>
         void await_suspend(std::coroutine_handle<U> handle) noexcept {
-            handle.promise().return_value(Err(result.unwrapErr()));
+            handle.promise().result = Err(result.unwrapErr());
             handle.destroy();
         }
     };
@@ -230,13 +216,45 @@ namespace geode::utils::coro {
 
         template <typename U>
         void await_suspend(std::coroutine_handle<U> handle) noexcept {
-            handle.promise().return_value(Err(result.unwrapErr()));
+            handle.promise().result = Err(result.unwrapErr());
             handle.destroy();
         }
     };
 
-    #define $async(...) geode::utils::coro::CoTask<>::invoke << [__VA_ARGS__]() -> geode::utils::coro::CoTask<>
-    #define $try geode::utils::coro::CoTask<>::invoke << [&]() -> geode::Result
+    template <typename T>
+    concept ConvertibleToTask = requires(T t) { Task(t); };
+
+    /// Utility to spawn coroutines from non-coroutine code.
+    static struct {
+        template <std::invocable F>
+        decltype(auto) operator<<(F&& fn) {
+            return fn();
+        }
+
+        template <std::invocable F> requires ConvertibleToTask<std::invoke_result_t<F>>
+        decltype(auto) operator<<(F&& fn) {
+            auto task = fn();
+            task.listen([](auto const&){});
+            return std::make_tuple(task);
+        }
+
+        template <typename T> requires ConvertibleToTask<T>
+        decltype(auto) operator<<(T&& item) {
+            Task(std::move(item)).listen([](auto const&){});
+            return std::make_tuple(item);
+        }
+
+        template <typename T>
+        decltype(auto) operator()(T&& item) {
+            return *this << std::forward<T>(item);
+        }
+    } spawner;
+
+    template <typename T = void, typename E = std::string>
+    using TryResult = std::conditional_t<std::same_as<T, void>, std::tuple<Result<void, E>>, Result<T, E>>;
+
+    #define $async(...) geode::utils::coro::spawner << [__VA_ARGS__]() -> geode::Task<void>
+    #define $try geode::utils::coro::spawner << [&]() -> geode::utils::coro::TryResult
 };
 
 template <typename T = void, typename E = std::string>
@@ -253,8 +271,12 @@ struct std::coroutine_traits<geode::Result<T, E>, Args...> {
     using promise_type = geode::utils::coro::ResultPromise<T, E>;
 };
 
+template <typename E, typename ...Args>
+struct std::coroutine_traits<std::tuple<geode::Result<void, E>>, Args...> {
+    using promise_type = geode::utils::coro::TryResultPromise<E>;
+};
+
 template <typename T, typename ...Args>
 struct std::coroutine_traits<geode::utils::coro::Generator<T>, Args...> {
     using promise_type = geode::utils::coro::Generator<T>::promise_type;
 };
-
