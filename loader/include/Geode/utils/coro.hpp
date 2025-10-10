@@ -248,13 +248,13 @@ namespace geode::utils::coro {
         decltype(auto) operator()(T&& item) {
             return *this << std::forward<T>(item);
         }
-    } spawner;
+    } spawn;
 
     template <typename T = void, typename E = std::string>
     using TryResult = std::conditional_t<std::same_as<T, void>, std::tuple<Result<void, E>>, Result<T, E>>;
 
-    #define $async(...) geode::utils::coro::spawner << [__VA_ARGS__]() -> geode::Task<void>
-    #define $try geode::utils::coro::spawner << [&]() -> geode::utils::coro::TryResult
+    #define $async(...) geode::utils::coro::spawn << [__VA_ARGS__]() -> geode::Task<void>
+    #define $try geode::utils::coro::spawn << [&]() -> geode::utils::coro::TryResult
 };
 
 template <typename T = void, typename E = std::string>
