@@ -313,22 +313,22 @@ jobs:
         has-sccache: ${{ inputs.use-ccache }}
       if: inputs.build-debug-info
 
-    - name: Setup caches
-      uses: ./.github/actions/setup-cache
-      with:
-        host: mac
-        target: ios
-        use-ccache: ${{ github.event_name != 'workflow_dispatch' || inputs.use-ccache }}
+    # - name: Setup caches
+    #   uses: ./.github/actions/setup-cache
+    #   with:
+    #     host: mac
+    #     target: ios
+    #     use-ccache: ${{ github.event_name != 'workflow_dispatch' || inputs.use-ccache }}
 
     - name: Setup Ninja
       uses: ./.github/actions/setup-ninja
       with:
         host: mac
 
-    - name: Install LLVM
-      run: |
-        brew install llvm
-        echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
+    # - name: Install LLVM
+    #   run: |
+    #     brew install llvm
+    #     echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
 
     - name: Setup CLI
       uses: geode-sdk/cli/.github/actions/setup@main

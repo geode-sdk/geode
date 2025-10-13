@@ -1229,14 +1229,10 @@ namespace geode::cocos {
 
         friend bool operator==(CCDictIterator<K, InpT> const& a, CCDictIterator<K, InpT> const& b) {
             return a.m_ptr == b.m_ptr;
-        };
+        }
 
         friend bool operator!=(CCDictIterator<K, InpT> const& a, CCDictIterator<K, InpT> const& b) {
             return a.m_ptr != b.m_ptr;
-        };
-
-        bool operator!=(int b) {
-            return m_ptr != nullptr;
         }
     };
 
@@ -1305,9 +1301,8 @@ namespace geode::cocos {
             return CCDictIterator<Key, ValuePtr>(m_dict->m_pElements);
         }
 
-        // do not use this
         auto end() {
-            return nullptr;
+            return CCDictIterator<Key, ValuePtr>(nullptr);
         }
 
         size_t size() {
