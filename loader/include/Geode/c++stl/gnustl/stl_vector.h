@@ -227,7 +227,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
   // comparison between cv-qualified and non-cv-qualified iterators be
   // valid.  However, the greedy and unfriendly operators in std::rel_ops
   // will make overload resolution ambiguous (when in scope) if we don't
-  // provide overloads whose operands are of the same type. Can someone
+  // provide overloads whose operands are of the same type.  Can someone
   // remind me what generic programming is about? -- Gaby
 
   // Forward iterator requirements
