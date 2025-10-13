@@ -28,7 +28,7 @@ $execute {
     });
 }
 
-bool ModList::init(ModListSource* src, CCSize const& size) {
+bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     if (!CCNode::init())
         return false;
 
@@ -37,7 +37,14 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     this->setID("ModList");
 
     m_source = src;
-    m_source->reset();
+
+    // Geode can't tell if it's looking for a dev due to a source cache or due to actually coming from pressing more when creating a new list
+    // So using an assisting variable to call the right reset
+    if (searchingDev) {
+        m_source->clearCache();
+    } else {
+        m_source->reset();
+    }
 
     m_list = ScrollLayer::create(size);
     this->addChildAtPosition(m_list, Anchor::Bottom, ccp(-m_list->getScaledContentWidth() / 2, 0));
@@ -780,9 +787,9 @@ size_t ModList::getPage() const {
     return m_page;
 }
 
-ModList* ModList::create(ModListSource* src, CCSize const& size) {
+ModList* ModList::create(ModListSource* src, CCSize const& size, bool searchingDev) {
     auto ret = new ModList();
-    if (ret->init(src, size)) {
+    if (ret->init(src, size, searchingDev)) {
         ret->autorelease();
         return ret;
     }
