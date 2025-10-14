@@ -16,21 +16,35 @@ namespace geode {
         VMTHookManager();
         ~VMTHookManager();
 
-    #if defined(GEODE_IS_WINDOWS32) || defined(GEODE_IS_WINDOWS64) || defined(GEODE_IS_INTEL_MAC)
+    #if defined(GEODE_IS_WINDOWS32) || defined(GEODE_IS_WINDOWS64)
         template <auto UUID>
         static void emptyFunction() {
-            emptyFunction<UUID>();
+            __nop(); __nop(); __nop(); __nop(); __nop(); __nop(); __nop(); __nop();
+            __nop(); __nop(); __nop(); __nop(); __nop(); __nop(); __nop(); __nop();
+            __nop(); __nop(); __nop(); __nop(); __nop(); __nop(); __nop(); __nop();
+            __nop(); __nop(); __nop(); __nop(); __nop(); __nop();
+            return emptyFunction<UUID>();
         }
-    #elif defined(GEODE_IS_ARM_MAC) || defined(GEODE_IS_ANDROID64) || defined(GEODE_IS_IOS)
-        // AArch64 (macOS ARM64, Android ARM64, iOS)
+    #elif defined(GEODE_IS_INTEL_MAC) 
         template <auto UUID>
         static void __attribute__((naked)) emptyFunction() {
             __asm__ volatile(
-                "0:\n\t"                 // local anchor label for 'bl 0b'
-                ".rept 8\n\t"            // 8 × 4-byte NOP = 32 bytes
+                "0:\n\t"                 
+                ".rept 30\n\t"           
                 "nop\n\t"
                 ".endr\n\t"
-                "bl 0b\n\t"              // recursive self-call
+                "jmp 0b\n\t"
+            );
+        }
+    #elif defined(GEODE_IS_ARM_MAC) || defined(GEODE_IS_ANDROID64) || defined(GEODE_IS_IOS)
+        template <auto UUID>
+        static void __attribute__((naked)) emptyFunction() {
+            __asm__ volatile(
+                "0:\n\t"                 
+                ".rept 8\n\t"            
+                "nop\n\t"
+                ".endr\n\t"
+                "bl 0b\n\t"              
             );
         }
     #elif defined(GEODE_IS_ANDROID32)
@@ -39,19 +53,19 @@ namespace geode {
             __asm__ volatile(
             #if defined(__thumb__)
                 ".syntax unified\n\t"
-                "0:\n\t"                 // local anchor label for 'bl 0b'
-                ".rept 16\n\t"           // 16 × 2-byte NOP = 32 bytes
+                "0:\n\t"                 
+                ".rept 16\n\t"           
                 "nop\n\t"
                 ".endr\n\t"
-                "bl 0b\n\t"              // recursive self-call
+                "bl 0b\n\t"              
 
             #else
                 ".syntax unified\n\t"
-                "0:\n\t"                 // local anchor label for 'bl 0b'
-                ".rept 8\n\t"            // 8 × 4-byte NOP = 32 bytes
+                "0:\n\t"                 
+                ".rept 8\n\t"           
                 "nop\n\t"
                 ".endr\n\t"
-                "bl 0b\n\t"              // recursive self-call
+                "bl 0b\n\t"
             #endif
             );
         }

@@ -376,9 +376,6 @@ public:
     virtual void setPopupNotify(bool bNotify);
     virtual bool isPopupNotify();
 
-  	gd::string getAndroidPath() const;
-	  void setAndroidPath(gd::string);
-
 
 protected:
     /**
@@ -485,6 +482,9 @@ public:
      *  This variable is used for improving the performance of file search.
      */
     gd::map<gd::string, gd::string> m_fullPathCache;
+
+    // @note RobTop Addition
+    CC_SYNTHESIZE_NV(gd::string, m_strAndroidPath, AndroidPath);
 
 protected:
     /**
