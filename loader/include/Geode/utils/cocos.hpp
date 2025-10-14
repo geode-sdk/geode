@@ -1060,6 +1060,17 @@ namespace geode::cocos {
      * @returns The mouse position
      */
     GEODE_DLL cocos2d::CCPoint getMousePos();
+
+
+    /**
+     * Create an ObjWrapper without having to specify the template argument
+     * @param value The value to pass into ObjWrapper::create
+     * @returns The created ObjWrapper
+     */
+    template <typename T>
+    ObjWrapper<T>* makeObjWrapper(T&& value) {
+        return ObjWrapper<T>::create(std::forward<T>(value));
+    }
 }
 
 // std specializations
