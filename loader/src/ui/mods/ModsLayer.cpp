@@ -637,7 +637,7 @@ bool ModsLayer::init() {
             if (whole->searchByDeveloper) {
                 auto src = ServerModListSource::get(ServerModListType::Download);
                 src->getQueryMut()->developer = *whole->searchByDeveloper;
-                this->gotoTab(src);
+                this->gotoTab(src, true);
 
                 m_showSearch = true;
                 m_lists.at(src)->activateSearch(m_showSearch);
@@ -671,7 +671,7 @@ bool ModsLayer::init() {
     return true;
 }
 
-void ModsLayer::gotoTab(ModListSource* src) {
+void ModsLayer::gotoTab(ModListSource* src, bool searchingDev) {
     // Update selected tab
     for (auto tab : m_tabs) {
         auto selected = tab->getUserData() == static_cast<void*>(src);
@@ -686,7 +686,7 @@ void ModsLayer::gotoTab(ModListSource* src) {
 
     // Lazily create new list and add it to UI
     if (!m_lists.contains(src)) {
-        auto list = ModList::create(src, m_frame->getContentSize() - ccp(30, 0));
+        auto list = ModList::create(src, m_frame->getContentSize() - ccp(30, 0), searchingDev);
         list->setPosition(m_frame->getContentSize() / 2);
         m_frame->addChild(list);
         m_lists.emplace(src, list);
