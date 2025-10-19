@@ -649,7 +649,7 @@ public:
         // CCArrayExt is defined in geode/utils/cocos.hpp, which we cannot include due to circular includes.
         // This is an incredibly hacky way to still be able to use the type
 
-        using CCArrayExt = geode::CCArrayExtCheck<T, PleaseDontChangeMe>::type;
+        using CCArrayExt = typename geode::CCArrayExtCheck<T, PleaseDontChangeMe>::type;
         static_assert(!std::is_void_v<CCArrayExt>, "Please include <Geode/utils/cocos.hpp> to use getChildrenExt()");
 
         return CCArrayExt(getChildren());
