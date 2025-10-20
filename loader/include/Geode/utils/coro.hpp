@@ -231,10 +231,16 @@ namespace geode::utils::coro {
             return fn();
         }
 
-        template <std::invocable F> requires ConvertibleToTask<std::invoke_result_t<F>>
+        template <std::invocable F> requires (ConvertibleToTask<std::invoke_result_t<F>> && std::copyable<F>)
         decltype(auto) operator<<(F&& fn) {
-            auto task = fn();
-            task.listen([](auto const&){});
+            auto ptr_fn = new F(fn);
+
+            auto task = (*ptr_fn)();
+
+            task.listen([ptr_fn](auto const&){
+                delete ptr_fn;
+            });
+
             return std::make_tuple(task);
         }
 
