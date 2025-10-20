@@ -241,13 +241,15 @@ namespace geode::utils::coro {
                 delete ptr_fn;
             });
 
-            return std::make_tuple(task);
+            return std::make_tuple(std::move(task));
         }
 
         template <typename T> requires ConvertibleToTask<T>
         decltype(auto) operator<<(T&& item) {
-            Task(std::move(item)).listen([](auto const&){});
-            return std::make_tuple(item);
+            auto task = Task(std::forward<T>(item));
+            task.listen([](auto const&){});
+
+            return std::make_tuple(std::move(task));
         }
 
         template <typename T>
