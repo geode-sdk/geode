@@ -174,10 +174,18 @@ namespace geode {
         Signal& operator=(Signal const&) = delete;
 
         void set(T const& value) requires std::copy_constructible<T> {
+            // TODO: some sort of way to avoid this? as it may be expensive
+            // in some cases
+            if constexpr (requires { value == *Base::m_value; }) {
+                if (value == *Base::m_value) return;
+            }
             *Base::m_value = value;
             Base::m_impl.valueModified();
         }
         void set(T&& value) requires std::move_constructible<T> {
+            if constexpr (requires { value == *Base::m_value; }) {
+                if (value == *Base::m_value) return;
+            }
             *Base::m_value = std::move(value);
             Base::m_impl.valueModified();
         }
