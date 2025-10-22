@@ -255,7 +255,7 @@ set(MAT_JSON_AS_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/result@1.3.3")
 CPMAddPackage("gh:geode-sdk/json@3.2.1")
 CPMAddPackage("gh:fmtlib/fmt#11.1.4")
-CPMAddPackage("gh:camila314/cpp-reactive#1.0.0")
+CPMAddPackage("gh:camila314/cpp-reactive@1.0.1")
 
 target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)
 
