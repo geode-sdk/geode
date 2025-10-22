@@ -1,5 +1,5 @@
 #include <loader/LoaderImpl.hpp>
-
+#include <cpp-reactive.hpp>
 using namespace geode::prelude;
 
 #include <Geode/modify/CCScheduler.hpp>
@@ -7,6 +7,8 @@ using namespace geode::prelude;
 struct FunctionQueue : Modify<FunctionQueue, CCScheduler> {
     void update(float dt) {
         LoaderImpl::get()->executeMainThreadQueue();
+        cppreactive::ObserverStack::shared()->update();
+
         return CCScheduler::update(dt);
     }
 };
