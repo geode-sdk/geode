@@ -1,5 +1,4 @@
-#define GEODE_UI_TEST
-#ifdef GEODE_UI_TEST
+#if 1
 
 #include <Geode/modify/MenuLayer.hpp>
 #include <Geode/ui/Popup.hpp>
@@ -177,6 +176,7 @@ class SignalsTestPopup : public Popup<> {
 protected:
     Signal<int> m_count = 0;
     DerivedSignal<int> m_countDoubled = DerivedSignal<int>([this]() {
+        log::debug("calculating countDoubled {}", *m_count);
         return *m_count * 2;
     });
     SignalObserver m_endOfFrameObserver;
@@ -202,7 +202,7 @@ protected:
         );
         m_immediateObserver = SignalObserver(
             [this]() {
-                log::debug("count changed: {}", *m_count);
+                log::debug("immediate, count changed: {}", *m_count);
             },
             SignalObserverTime::Immediate
         );
@@ -250,7 +250,7 @@ protected:
 
             auto label = CCLabelBMFont::create(fmt::format("{}", *m_count3).c_str(), "bigFont.fnt");
             m_mainLayer->addChildAtPosition(label, Anchor::Center, ccp(20, -20));
-            
+
             onSignalDispose([label]() { label->removeFromParent(); });
         });
         this->reactToChanges([this]() {
@@ -273,9 +273,10 @@ protected:
     }
 
     void onClick(CCObject*) {
-        m_count += 2;
-        m_count -= 2;
-        m_count.update(+[](int count) { return count + 1; });
+        // m_count += 2;
+        // m_count -= 2;
+        // m_count.update([](int count) { return count + 1; });
+        m_count += 1;
     }
 
 public:

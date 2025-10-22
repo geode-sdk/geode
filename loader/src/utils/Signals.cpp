@@ -21,6 +21,9 @@ public:
     std::unordered_set<detail::SignalImpl::Impl*> observedSignals;
 
     static inline thread_local std::vector<Impl*> CURRENT_OBSERVER_STACK = {};
+    static Impl* getTopObserver() {
+        return CURRENT_OBSERVER_STACK.empty() ? nullptr : CURRENT_OBSERVER_STACK.back();
+    }
 
     Impl(SignalObserver::OnNotify&& onNotify, SignalObserverTime time)
       : onNotify(std::move(onNotify)), time(time)
@@ -43,7 +46,7 @@ public:
         this->onDispose.clear();
     }
 
-    void notify(Mod* mod) {
+    void notify() {
         if (this->time == SignalObserverTime::Immediate) {
             this->execute();
         }
@@ -57,80 +60,10 @@ public:
     }
 };
 
-detail::SignalImpl::SignalImpl() : m_impl(std::make_unique<Impl>()) {}
-detail::SignalImpl::~SignalImpl() {
-    // SignalImpl may be moved
-    if (m_impl) {
-        for (auto observer : m_impl->observers) {
-            observer->observedSignals.erase(m_impl.get());
-        }
-    }
-}
-detail::SignalImpl::SignalImpl(SignalImpl&&) = default;
-detail::SignalImpl& detail::SignalImpl::operator=(SignalImpl&&) = default;
-
-detail::SignalImpl::Impl* detail::SignalImpl::weak() {
-    return m_impl.get();
-}
-
-void detail::SignalImpl::valueObserved(Impl* impl, Mod* mod) {
-    if (!SignalObserver::Impl::CURRENT_OBSERVER_STACK.empty()) {
-        auto obs = SignalObserver::Impl::CURRENT_OBSERVER_STACK.back();
-        if (!impl->observers.contains(obs)) {
-            impl->observers.insert(obs);
-            obs->observedSignals.insert(impl);
-        }
-    }
-}
-void detail::SignalImpl::valueModified(Impl* impl, Mod* mod) {
-    // You are not allowed to mutate signals in observed contexts
-    if (SignalObserver::Impl::CURRENT_OBSERVER_STACK.size()) {
-        // The only exception is the observer created in Signal::derived, which 
-        // is allowed to mutate the state as that is the whole point
-        bool mutationAllowed = false;
-        if (impl->derivedObserver) {
-            for (auto observer : SignalObserver::Impl::CURRENT_OBSERVER_STACK) {
-                if (observer == impl->derivedObserver->m_impl.get()) {
-                    mutationAllowed = true;
-                }
-            }
-        }
-        if (!mutationAllowed) {
-            utils::terminate(fmt::format(
-                "The mod '{}' attempted to mutate a signal in an observed context. "
-                "This is disallowed - use `DerivedSignal<T>` to create signals whose "
-                "values depend on other signals!",
-                mod->getID()
-            ));
-        }
-    }
-    // notify() calls unsubscribe methods which will mutate m_observers 
-    auto observers = impl->observers;
-    for (auto observer : observers) {
-        // Do not cause infinite loops!
-        if (impl->derivedObserver && impl->derivedObserver->m_impl.get() == observer) {
-            continue;
-        }
-        observer->notify(mod);
-    }
-}
-
-void detail::SignalImpl::valueObserved(Mod* mod) const {
-    SignalImpl::valueObserved(m_impl.get(), mod);
-}
-void detail::SignalImpl::valueModified(Mod* mod) const {
-    SignalImpl::valueModified(m_impl.get(), mod);
-}
-void detail::SignalImpl::derive(geode::SignalObserver&& observer) {
-    m_impl->derivedObserver = std::move(observer);
-    // todo: if we decide that SignalObserver constructor should notify() instead of execute(), 
-    // make that change here too
-    m_impl->derivedObserver->m_impl->execute();
-}
-
 void geode::onSignalDispose(std::function<void()> callback) {
-    if (SignalObserver::Impl::CURRENT_OBSERVER_STACK.size()) {
-        SignalObserver::Impl::CURRENT_OBSERVER_STACK.back()->onDispose.push_back(callback);
+    auto* observer = SignalObserver::Impl::getTopObserver();
+    if (observer) {
+        observer->onDispose.emplace_back(std::move(callback));
     }
 }
 
@@ -157,6 +90,62 @@ SignalObserver::~SignalObserver() {
 SignalObserver::SignalObserver(SignalObserver&&) = default;
 SignalObserver& SignalObserver::operator=(SignalObserver&&) = default;
 
-void SignalObserver::notify(Mod* mod) {
-    m_impl->notify(mod);
+void SignalObserver::notify() {
+    m_impl->notify();
+}
+
+
+detail::SignalImpl::SignalImpl() : m_impl(std::make_unique<Impl>()) {}
+detail::SignalImpl::~SignalImpl() {
+    // SignalImpl may be moved
+    if (m_impl) {
+        for (auto observer : m_impl->observers) {
+            observer->observedSignals.erase(m_impl.get());
+        }
+    }
+}
+detail::SignalImpl::SignalImpl(SignalImpl&&) = default;
+detail::SignalImpl& detail::SignalImpl::operator=(SignalImpl&&) = default;
+
+detail::SignalImpl::Impl* detail::SignalImpl::weak() {
+    return m_impl.get();
+}
+
+void detail::SignalImpl::valueObserved(Impl* impl) {
+    auto* observer = SignalObserver::Impl::getTopObserver();
+    if (observer) {
+        if (!impl->observers.contains(observer)) {
+            impl->observers.insert(observer);
+            observer->observedSignals.insert(impl);
+        }
+    }
+}
+void detail::SignalImpl::valueModified(Impl* impl) {
+    auto* activeObserver = SignalObserver::Impl::getTopObserver();
+
+    // notify() calls unsubscribe methods which will mutate m_observers
+    auto observersCopy = impl->observers;
+    for (auto observer : observersCopy) {
+        // Do not cause infinite loops!
+        if (observer == activeObserver) {
+            continue;
+        }
+        if (impl->derivedObserver && impl->derivedObserver->m_impl.get() == observer) {
+            continue;
+        }
+        observer->notify();
+    }
+}
+
+void detail::SignalImpl::valueObserved() const {
+    SignalImpl::valueObserved(m_impl.get());
+}
+void detail::SignalImpl::valueModified() const {
+    SignalImpl::valueModified(m_impl.get());
+}
+void detail::SignalImpl::derive(geode::SignalObserver&& observer) {
+    m_impl->derivedObserver = std::move(observer);
+    // todo: if we decide that SignalObserver constructor should notify() instead of execute(),
+    // make that change here too
+    // m_impl->derivedObserver->m_impl->execute();
 }
