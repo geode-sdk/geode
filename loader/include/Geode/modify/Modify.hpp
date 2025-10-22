@@ -381,7 +381,7 @@ namespace geode::modifier {
         // unordered_map<handles> idea
         ModifyBase() {
             struct EboCheck : ModifyDerived::Base {
-                alignas(typename ModifyDerived::Base>) std::array<std::byte, alignof(typename ModifyDerived::Base>)> m_padding;
+                alignas(typename ModifyDerived::Base) std::array<std::byte, alignof(typename ModifyDerived::Base)> m_padding;
             };
             static constexpr auto baseSize = sizeof(typename ModifyDerived::Base);
             static constexpr auto derivedSize = sizeof(typename ModifyDerived::Derived);
@@ -449,6 +449,8 @@ namespace geode {
         static inline auto s_applyRef = &Modify::s_apply;
 
     public:
+        using Self = Derived;
+
         // abusing the internal stuff
         // basically we dont want modify to invoke base ctors and dtors
         // we already have utilities for these, which are ccdestructor

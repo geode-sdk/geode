@@ -825,6 +825,13 @@ namespace geode::cocos {
     GEODE_DLL cocos2d::CCNode* getChildBySpriteName(cocos2d::CCNode* parent, const char* name);
 
     /**
+     * Gets the demangled name of an object using RTTI. The returned name does not include 'struct' or 'class'
+     * @param obj Object to get the name of
+     * @returns Demangled name of the object
+     */
+    GEODE_DLL std::string_view getObjectName(cocos2d::CCObject* obj);
+
+    /**
      * Checks if a given file exists in CCFileUtils
      * search paths.
      * @param filename File to check
@@ -1053,6 +1060,17 @@ namespace geode::cocos {
      * @returns The mouse position
      */
     GEODE_DLL cocos2d::CCPoint getMousePos();
+
+
+    /**
+     * Create an ObjWrapper without having to specify the template argument
+     * @param value The value to pass into ObjWrapper::create
+     * @returns The created ObjWrapper
+     */
+    template <typename T>
+    ObjWrapper<T>* makeObjWrapper(T&& value) {
+        return ObjWrapper<T>::create(std::forward<T>(value));
+    }
 }
 
 // std specializations
@@ -1222,14 +1240,10 @@ namespace geode::cocos {
 
         friend bool operator==(CCDictIterator<K, InpT> const& a, CCDictIterator<K, InpT> const& b) {
             return a.m_ptr == b.m_ptr;
-        };
+        }
 
         friend bool operator!=(CCDictIterator<K, InpT> const& a, CCDictIterator<K, InpT> const& b) {
             return a.m_ptr != b.m_ptr;
-        };
-
-        bool operator!=(int b) {
-            return m_ptr != nullptr;
         }
     };
 
@@ -1298,9 +1312,8 @@ namespace geode::cocos {
             return CCDictIterator<Key, ValuePtr>(m_dict->m_pElements);
         }
 
-        // do not use this
         auto end() {
-            return nullptr;
+            return CCDictIterator<Key, ValuePtr>(nullptr);
         }
 
         size_t size() {

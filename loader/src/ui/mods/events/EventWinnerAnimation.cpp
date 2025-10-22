@@ -45,11 +45,11 @@ protected:
 public:
     static ShakeyWakey* create(float duration) {
         auto ret = new ShakeyWakey();
-        if (ret && ret->initWithDuration(duration)) {
+        if (ret->initWithDuration(duration)) {
             ret->autorelease();
             return ret;
         }
-        CC_SAFE_DELETE(ret);
+        delete ret;
         return nullptr;
     }
 };
@@ -171,7 +171,7 @@ bool EventWinnerAnimation::init() {
             }
             this->addChildAtPosition(modtoberWinnerLabel, Anchor::Center, ccp(0, 75));
 
-            auto modtoberWinnerSpr = CCSprite::createWithSpriteFrameName("tag-modtober-winner-long.png"_spr);
+            auto modtoberWinnerSpr = CCSprite::createWithSpriteFrameName("tag-modtober24-winner-long.png"_spr);
             modtoberWinnerSpr->setScale(0);
             modtoberWinnerSpr->runAction(CCEaseInOut::create(CCScaleTo::create(.5f, .4f), 2.f));
             this->addChildAtPosition(modtoberWinnerSpr, Anchor::Center, ccp(0, 45));
@@ -264,10 +264,10 @@ void EventWinnerAnimation::onClose(CCObject*) {
 
 EventWinnerAnimation* EventWinnerAnimation::create() {
     auto ret = new EventWinnerAnimation();
-    if (ret && ret->init()) {
+    if (ret->init()) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
