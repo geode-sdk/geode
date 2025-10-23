@@ -1,5 +1,6 @@
-#include <Geode/ui/SceneManager.hpp>
+#include <Geode/ui/OverlayManager.hpp>
 #include <Geode/modify/CCDirector.hpp>
+#include <Geode/modify/CCEGLView.hpp>
 
 using namespace geode::prelude;
 
@@ -11,25 +12,18 @@ using namespace geode::prelude;
 
 namespace geode {
 
-#ifdef GEODE_IS_WINDOWS
-struct SceneSwitch : Modify<SceneSwitch, AppDelegate> {
+struct DrawOverlay : Modify<DrawOverlay, CCEGLView> {
     GEODE_FORWARD_COMPAT_DISABLE_HOOKS("persist disabled")
-    void willSwitchToScene(CCScene* scene) {
-        AppDelegate::willSwitchToScene(scene);
-        SceneManager::get()->willSwitchToScene(scene);
+    static void onModify(auto& self) {
+        if (auto res = self.setHookPriorityPost("cocos2d::CCEGLView::swapBuffers", Priority::First); !res) {
+            geode::log::warn("Failed to set hook priority: {}", res.unwrapErr());
+        }
+    }
+    void swapBuffers() {
+        OverlayManager::get()->visit();
+        CCEGLView::swapBuffers();
     }
 };
-
-#else
-struct SceneSwitch : Modify<SceneSwitch, AchievementNotifier> {
-    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("persist disabled")
-    void willSwitchToScene(CCScene* scene) {
-        AchievementNotifier::willSwitchToScene(scene);
-        SceneManager::get()->willSwitchToScene(scene);
-    }
-};
-
-#endif
 
 struct SceneSwitch2 : Modify<SceneSwitch2, CCDirector> {
     GEODE_FORWARD_COMPAT_DISABLE_HOOKS("persist disabled")
@@ -53,5 +47,6 @@ struct SceneSwitch2 : Modify<SceneSwitch2, CCDirector> {
     #endif
     }
 };
+
 
 }
