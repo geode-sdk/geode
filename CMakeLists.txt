@@ -252,12 +252,13 @@ if (ANDROID)
 endif()
 
 set(MAT_JSON_AS_INTERFACE ON)
+set(CPP_REACTIVE_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/result@1.3.3")
 CPMAddPackage("gh:geode-sdk/json@3.2.1")
 CPMAddPackage("gh:fmtlib/fmt#11.1.4")
-CPMAddPackage("gh:camila314/cpp-reactive@1.1.0")
+CPMAddPackage("gh:camila314/cpp-reactive#43a3e9d")
 
-target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)
+target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1 CPP_REACTIVE_IMPORT=1)
 
 # this is needed for cross compilation on linux,
 # since fmtlib will fail to compile otherwise

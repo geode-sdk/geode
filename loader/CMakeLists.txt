@@ -234,7 +234,7 @@ if (APPLE)
 	#set_property(TARGET ${PROJECT_NAME} PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
 endif()
 
-target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_EXPORTING MAT_JSON_EXPORTING)
+target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_EXPORTING MAT_JSON_EXPORTING CPP_REACTIVE_EXPORT)
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
 	GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE
@@ -293,7 +293,7 @@ if (NOT GEODE_BUILDING_DOCS)
 	target_link_libraries(${PROJECT_NAME} md4c minizip date simdutf)
 endif()
 
-target_link_libraries(${PROJECT_NAME} TulipHook geode-sdk mat-json-impl)
+target_link_libraries(${PROJECT_NAME} TulipHook geode-sdk mat-json-impl cpp-reactive-impl)
 
 # Required by curl for macos
 if (APPLE)
