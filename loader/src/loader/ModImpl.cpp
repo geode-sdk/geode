@@ -693,6 +693,10 @@ std::vector<LoadProblem> Mod::Impl::getProblems() const {
     return m_problems;
 }
 
+int Mod::Impl::getLoadPriority() const {
+    return m_metadata.getLoadPriority();
+}
+
 static Result<ModMetadata> getModImplInfo() {
     auto json = GEODE_UNWRAP(matjson::parse(about::getLoaderModJson()).mapErr([](auto&& err) {
         return fmt::format("Unable to parse mod.json: {}", err);

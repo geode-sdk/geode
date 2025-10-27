@@ -232,11 +232,11 @@ protected:
 public:
     static NumberSettingNodeV3* create(std::shared_ptr<S> setting, float width) {
         auto ret = new NumberSettingNodeV3();
-        if (ret && ret->init(setting, width)) {
+        if (ret->init(setting, width)) {
             ret->autorelease();
             return ret;
         }
-        CC_SAFE_DELETE(ret);
+        delete ret;
         return nullptr;
     }
 };

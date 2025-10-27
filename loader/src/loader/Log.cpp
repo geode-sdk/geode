@@ -21,6 +21,8 @@ using namespace cocos2d;
 
 // Parse overloads
 
+static bool g_logMillis = false;
+
 std::string geode::format_as(Mod* mod) {
     if (mod) {
         return fmt::format("{{ Mod, {} }}", mod->getName());
@@ -138,7 +140,15 @@ auto convertTime(auto timePoint) {
 }
 
 std::string Log::toString() const {
-    std::string res = fmt::format("{:%H:%M:%S}", convertTime(m_time));
+    return this->toString(false);
+}
+
+std::string Log::toString(bool millis) const {
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(m_time.time_since_epoch()) % 1000;
+
+    std::string res = millis
+        ? fmt::format("{:%H:%M:%S}.{:03}", convertTime(m_time), ms.count())
+        : fmt::format("{:%H:%M:%S}", convertTime(m_time));
 
     switch (m_severity.m_value) {
         case Severity::Debug:
@@ -227,6 +237,11 @@ void Logger::setup() {
         return;
     }
 
+    g_logMillis = Mod::get()->getSettingValue<bool>("log-milliseconds");
+    listenForSettingChanges("log-milliseconds", [](bool val) {
+        g_logMillis = val;
+    });
+
     auto logDir = dirs::getGeodeLogDir();
 
     // on the first launch, this doesn't exist yet..
@@ -243,7 +258,7 @@ void Logger::setup() {
 
     // Logs can and will probably be added before setup() is called, so we'll write them now
     for (Log const& log : m_logs) {
-        const std::string logStr = log.toString();
+        const std::string logStr = log.toString(g_logMillis);
         if (log.getSeverity() >= consoleLogLevel) {
             console::log(logStr, log.getSeverity());
         }
@@ -332,7 +347,7 @@ void Logger::push(Severity sev, std::string&& thread, std::string&& source, int3
         return;
     }
 
-    auto const logStr = log.toString();
+    auto const logStr = log.toString(g_logMillis);
 
     if (sev >= this->getConsoleLogLevel()) {
         console::log(logStr, log.getSeverity());

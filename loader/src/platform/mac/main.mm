@@ -146,11 +146,12 @@ bool loadGeode() {
         console::messageBox(
             "Unable to Load Geode!",
             fmt::format(
-                "This version of Geode is made for Geometry Dash {} "
-                "but you're trying to play with GD {}.\n"
-                "Please, update your game.",
+                "Geometry Dash is outdated!\n"
+                "Geode requires GD {} but you have {}.\n"
+                "Please, update Geometry Dash to {}.",
                 GEODE_STR(GEODE_GD_VERSION),
-                LoaderImpl::get()->getGameVersion()
+                LoaderImpl::get()->getGameVersion(),
+                GEODE_STR(GEODE_GD_VERSION)
             )
         );
         return false;

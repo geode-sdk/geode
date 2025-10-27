@@ -57,7 +57,7 @@ namespace geode::modifier {
         using Intermediate = Modify<Parent, Base>;
         // Padding used for guaranteeing any member of parents
         // will be in between sizeof(Intermediate) and sizeof(Parent)
-        std::aligned_storage_t<std::alignment_of_v<Base>, std::alignment_of_v<Base>> m_padding;
+        alignas(Base) std::array<std::byte, alignof(Base)> m_padding;
 
     public:
         // the constructor that constructs the fields.
