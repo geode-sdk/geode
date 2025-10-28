@@ -157,18 +157,22 @@ namespace geode::utils::coro {
 
     template <typename T, typename E>
     struct BaseResultPromise {
-        std::optional<Result<T, E>> result;
+        std::optional<Result<T, E>>* result;
 
         struct return_object {
-            BaseResultPromise& promise;
+            std::unique_ptr<std::optional<Result<T, E>>> ptr;
             operator Result<T, E>() noexcept {
-                return promise.result.value();
+                return ptr->value();
             }
         };
 
         std::suspend_never initial_suspend() const noexcept { return {}; }
         std::suspend_always final_suspend() const noexcept { return {}; }
-        return_object get_return_object() noexcept { return return_object {*this}; }
+        return_object get_return_object() noexcept {
+            auto ptr = std::make_unique<std::optional<Result<T, E>>>();
+            result = &*ptr;
+            return return_object {std::move(ptr)};
+        }
 
         void unhandled_exception() const noexcept {}
     };
@@ -176,14 +180,14 @@ namespace geode::utils::coro {
     template <typename T, typename E>
     struct ResultPromise : public BaseResultPromise<T, E> {
         void return_value(Result<T, E>&& value) noexcept {
-            this->result = std::move(value);
+            *this->result = std::move(value);
         }
     };
 
     template <typename E>
     struct TryResultPromise : public BaseResultPromise<void, E> {
         void return_void() noexcept {
-            this->result = Ok();
+            *this->result = Ok();
         }
     };
 
@@ -199,7 +203,7 @@ namespace geode::utils::coro {
 
         template <typename U>
         void await_suspend(std::coroutine_handle<U> handle) noexcept {
-            handle.promise().result = Err(result.unwrapErr());
+            *handle.promise().result = Err(result.unwrapErr());
             handle.destroy();
         }
     };
@@ -216,7 +220,7 @@ namespace geode::utils::coro {
 
         template <typename U>
         void await_suspend(std::coroutine_handle<U> handle) noexcept {
-            handle.promise().result = Err(result.unwrapErr());
+            *handle.promise().result = Err(result.unwrapErr());
             handle.destroy();
         }
     };
