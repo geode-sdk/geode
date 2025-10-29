@@ -104,6 +104,8 @@ bool ModsStatusNode::init() {
         return ListenerResult::Propagate;
     });
 
+    Mod::get()->setSavedValue<bool>("has-used-geode-before", true);
+
     this->updateState();
 
     return true;
