@@ -81,6 +81,7 @@ namespace server {
         void cancel();
 
         bool isDone() const;
+        bool isConfirm() const;
         bool isActive() const;
         bool canRetry() const;
         bool isSkipped() const;

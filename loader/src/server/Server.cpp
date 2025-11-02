@@ -312,6 +312,14 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
     res.metadata.setVersion(root.needs("version").get<VersionInfo>());
     res.metadata.setIsAPI(root.needs("api").get<bool>());
 
+    std::vector<std::string> developers;
+    for (auto& obj : root.hasNullable("developers").items()) {
+        std::string name;
+        obj.needs("display_name").into(name);
+        developers.push_back(name);
+    }
+    res.metadata.setDevelopers(developers);
+
     std::vector<ModMetadata::Dependency> dependencies {};
     for (auto& obj : root.hasNullable("dependencies").items()) {
         // todo: this should probably be generalized to use the same function as mod.json

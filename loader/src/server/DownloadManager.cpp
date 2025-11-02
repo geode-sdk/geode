@@ -31,7 +31,6 @@ public:
     EventListener<ServerRequest<ServerModVersion>> m_infoListener;
     EventListener<web::WebTask> m_downloadListener;
     unsigned int m_scheduledEventForFrame = 0;
-    std::optional<ModMetadata> m_metadata;
     bool m_skipped = false;
 
     Impl(
@@ -57,9 +56,6 @@ public:
                 if (result->isOk()) {
                     auto data = result->unwrap();
                     m_version = data.metadata.getVersion();
-                    m_metadata = data.metadata;
-
-                    log::info("fetched {} dependencies for {}", data.metadata.getDependencies().size(), m_id);
 
                     // Start downloads for any missing required dependencies
                     for (auto dep : data.metadata.getDependencies()) {
@@ -122,8 +118,6 @@ public:
 
         auto version = confirm->version;
         auto downloadURL = version.downloadURL;
-
-        log::info("downloading {} version {}", version.metadata.getID(), version.metadata.getVersion().toNonVString());
 
         m_status = DownloadStatusDownloading {
             .percentage = 0,
@@ -276,6 +270,10 @@ bool ModDownload::isDone() const {
     return std::holds_alternative<DownloadStatusDone>(m_impl->m_status);
 }
 
+bool ModDownload::isConfirm() const {
+    return std::holds_alternative<DownloadStatusConfirm>(m_impl->m_status);
+}
+
 bool ModDownload::isActive() const {
     return !(
         std::holds_alternative<DownloadStatusDone>(m_impl->m_status) ||
@@ -307,7 +305,12 @@ std::optional<VersionInfo> ModDownload::getVersion() const {
 }
 
 std::optional<ModMetadata> ModDownload::getMetadata() const {
-    return m_impl->m_metadata;
+    if (auto ptr = std::get_if<DownloadStatusConfirm>(&m_impl->m_status)) {
+        return ptr->version.metadata;
+    } else if (auto ptr = std::get_if<DownloadStatusDone>(&m_impl->m_status)) {
+        return ptr->version.metadata;
+    }
+    return std::nullopt;
 }
 
 class ModDownloadManager::Impl {
@@ -357,8 +360,6 @@ std::optional<ModDownload> ModDownloadManager::startDownload(
     std::optional<std::string> const& replacesMod,
     bool skip
 ) {
-    log::info("startDownload for {}", id);
-
     // If this mod has already been successfully downloaded or is currently
     // being downloaded, return as you can't download multiple versions of the
     // same mod simultaniously, since that wouldn't make sense. I mean the new

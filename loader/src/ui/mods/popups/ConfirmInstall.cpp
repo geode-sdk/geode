@@ -33,8 +33,7 @@ public:
 
 class ConfirmModCell : public CCLayer {
     CCScale9Sprite* m_bgSpr;
-    CCNode* m_node;
-    CCNode* m_info;
+    CCNode* m_main;
     CCMenuItemToggler* m_toggle;
     CCLabelBMFont* m_title;
     CCLabelBMFont* m_subtitle;
@@ -45,22 +44,23 @@ public:
     bool init(ModDownload& download, ConfirmPopup* parent) {
         CCLayer::init();
         this->setID(fmt::format("ConfirmModCell-{}", download.getID()));
-        this->setContentSize({280, 50});
+        this->setContentSize({ 260, 30 });
 
         m_isSkipped = download.isSkipped();
 
         m_bgSpr = CCScale9Sprite::create("square02b_small.png");
-        m_bgSpr->setContentSize(this->getContentSize());
+        m_bgSpr->setScale(0.7f);
+        m_bgSpr->setContentSize(this->getContentSize() / m_bgSpr->getScale());
         m_bgSpr->setAnchorPoint({0, 0});
         m_bgSpr->setOpacity(20);
         this->addChild(m_bgSpr);
 
-        m_node = CCNode::create();
-        m_node->ignoreAnchorPointForPosition(false);
-        m_node->setAnchorPoint({0, 0});
-        m_node->setContentSize(this->getContentSize() - 10.f);
-        m_node->setPosition({5, 5});
-        m_node->setLayout(SimpleRowLayout::create()
+        m_main = CCNode::create();
+        m_main->ignoreAnchorPointForPosition(false);
+        m_main->setAnchorPoint({0, 0});
+        m_main->setContentSize(this->getContentSize() - 10.f);
+        m_main->setPosition({5, 5});
+        m_main->setLayout(SimpleRowLayout::create()
             ->setMainAxisAlignment(MainAxisAlignment::Start)
             ->setCrossAxisScaling(AxisScaling::ScaleDownGaps)
         );
@@ -70,9 +70,9 @@ public:
         toggleMenu->ignoreAnchorPointForPosition(false);
         toggleMenu->setContentSize({20, 20});
 
-        m_toggle = CCMenuItemExt::createTogglerWithStandardSprites(0.5f, [parent, download = &download](CCMenuItemToggler* toggler) {
+        m_toggle = CCMenuItemExt::createTogglerWithStandardSprites(0.5f, [parent, id = download.getID()](CCMenuItemToggler* toggler) {
             bool on = !toggler->isOn();
-            parent->setSkipped(download->getID(), !on);
+            parent->setSkipped(id, !on);
             // updateState eventually calls toggle,
             // and so when this callback would finish gd would
             // then flip it again and mess it up. so lets flip it again
@@ -83,32 +83,60 @@ public:
         auto* logo = geode::createServerModLogo(download.getID());
         logo->setLayoutOptions(SimpleAxisLayoutOptions::create()->setScalingPriority(ScalingPriority::Last));
 
-        m_info = CCNode::create();
-        m_info->setLayout(SimpleColumnLayout::create()
+        auto* infoLay = CCNode::create();
+        infoLay->setLayout(SimpleColumnLayout::create()
             ->setMainAxisScaling(AxisScaling::Grow)
             ->setCrossAxisScaling(AxisScaling::Grow)
             ->setCrossAxisAlignment(CrossAxisAlignment::Start)
         );
-        m_info->setLayoutOptions(SimpleAxisLayoutOptions::create()->setMinRelativeScale(0.01f));
 
-        m_title = CCLabelBMFont::create("", "bigFont.fnt");
-        m_title->setScale(0.5f);
+        auto* logoInfoLay = CCNode::create();
+        logoInfoLay->setLayout(SimpleRowLayout::create()
+            ->setMainAxisScaling(AxisScaling::Grow)
+            ->setCrossAxisScaling(AxisScaling::Grow)
+        );
+        logoInfoLay->setScale(0.775f);
+
+        auto* leftLay = CCNode::create();
+        leftLay->setLayout(SimpleColumnLayout::create()
+            ->setMainAxisScaling(AxisScaling::Grow)
+            ->setCrossAxisScaling(AxisScaling::Grow)
+            ->setCrossAxisAlignment(CrossAxisAlignment::Start)
+        );
+
+        m_title = CCLabelBMFont::create("?", "bigFont.fnt");
+        m_title->setScale(0.8f);
+        auto* developers = CCLabelBMFont::create("by ?", "goldFont.fnt");
+        if (auto meta = download.getMetadata()) {
+            developers->setString(ModMetadata::formatDeveloperDisplayString(meta->getDevelopers()).c_str());
+        }
+        developers->setScale(0.8f);
 
         m_subtitle = CCLabelBMFont::create(" ", "chatFont.fnt");
-        m_subtitle->setScale(0.5f);
 
-        m_info->addChild(m_title);
-        m_info->addChild(m_subtitle);
+        infoLay->addChild(m_title);
+        infoLay->addChild(developers);
+
+        logoInfoLay->addChild(logo);
+        logoInfoLay->addChild(infoLay);
+
+        leftLay->addChild(logoInfoLay);
+        leftLay->addChild(m_subtitle);
 
         toggleMenu->addChildAtPosition(m_toggle, Anchor::Center);
-        m_node->addChild(toggleMenu);
-        m_node->addChild(logo);
-        m_node->addChild(AxisGap::create(10.f));
-        m_node->addChild(m_info);
 
-        this->addChild(m_node);
+        m_main->addChild(leftLay);
+        // m_main->addChild(SpacerNode::create(1));
+        m_main->addChild(toggleMenu);
+
+        this->addChild(m_main);
 
         this->updateState(download, parent);
+
+        infoLay->updateLayout();
+        logoInfoLay->updateLayout();
+        leftLay->updateLayout();
+        m_main->updateLayout();
 
         return true;
     }
@@ -190,12 +218,9 @@ public:
             }
         }
 
-        static_cast<SimpleAxisLayout*>(m_info->getLayout())->setCrossAxisScaling(AxisScaling::Grow);
-        m_info->updateLayout();
-        static_cast<SimpleAxisLayout*>(m_info->getLayout())->setCrossAxisScaling(AxisScaling::ScaleDownGaps);
-        m_info->updateLayout();
-
-        m_node->updateLayout();
+        m_title->getParent()->updateLayout();
+        m_subtitle->getParent()->updateLayout();
+        m_main->updateLayout();
     }
 
     static ConfirmModCell* create(ModDownload& download, ConfirmPopup* parent) {
@@ -205,8 +230,10 @@ public:
 };
 
 void ConfirmPopup::updateState() {
-    checkMods();
+    this->checkMods();
     for (auto& [_, download] : ModDownloadManager::get()->getDownloadsRef()) {
+        if (!download.isConfirm()) continue;
+
         auto* cell = static_cast<ConfirmModCell*>(m_list->getChildByID(fmt::format("ConfirmModCell-{}", download.getID())));
         if (!cell) continue;
         cell->updateState(download, this);
@@ -223,14 +250,14 @@ void ConfirmPopup::checkMod(std::string const& id) {
     m_checked[id] = true;
 
     auto* info = ModDownloadManager::get()->getDownloadRef(id);
-    if (!info) return;
+    if (!info || !info->isConfirm()) return;
 
     for (auto dep : info->getMetadata()->getDependencies()) {
         if (dep.importance != Importance::Required) continue;
-        checkMod(dep.id);
+        this->checkMod(dep.id);
         auto* depInfo = ModDownloadManager::get()->getDownloadRef(dep.id);
         if (!depInfo) continue;
-        if (depInfo->isSkipped() || m_isInvalid[dep.id]) {
+        if (depInfo->isSkipped() || depInfo->canRetry() || m_isInvalid[dep.id]) {
             m_isInvalid[id] = true;
             break;
         }
@@ -241,13 +268,16 @@ void ConfirmPopup::checkMods() {
     m_isInvalid.clear();
     m_checked.clear();
     for (auto& [_, download] : ModDownloadManager::get()->getDownloadsRef()) {
-        checkMod(download.getID());
+        if (!download.isConfirm()) continue;
+
+        this->checkMod(download.getID());
     }
 }
 
 void ConfirmPopup::setSkipped(const std::string& id, bool skip, bool first) {
     auto* info = ModDownloadManager::get()->getDownloadRef(id);
-    if (!info) return;
+    if (!info || !info->isConfirm()) return;
+
     if (info->isSkipped() == skip) return;
     info->setSkipped(skip);
     if (!skip) {
@@ -263,7 +293,7 @@ void ConfirmPopup::setSkipped(const std::string& id, bool skip, bool first) {
 }
 
 bool ConfirmPopup::setup() {
-    auto* scroll = ScrollLayer::create({ 490, 290 });
+    auto* scroll = ScrollLayer::create(m_mainLayer->getContentSize() - ccp(10, 40));
     m_list = scroll->m_contentLayer;
     m_list->setLayout(
         SimpleColumnLayout::create()
@@ -275,6 +305,8 @@ bool ConfirmPopup::setup() {
     );
 
     for (auto& [_, download] : ModDownloadManager::get()->getDownloadsRef()) {
+        if (!download.isConfirm()) continue;
+
         auto* cell = ConfirmModCell::create(download, this);
         m_list->addChild(cell);
     }
@@ -293,12 +325,14 @@ bool ConfirmPopup::setup() {
         this->onClose(nullptr);
         letsConfirm();
     }), Anchor::BottomRight);
+
+    this->updateState();
     return true;
 }
 
 ConfirmPopup* ConfirmPopup::create() {
     auto* node = new ConfirmPopup();
-    return (node->init(500, 300) && node->autorelease()) || (delete node, node = nullptr), node;
+    return (node->init(300, 280) && node->autorelease()) || (delete node, node = nullptr), node;
 }
 
 void askConfirmModInstalls() {
