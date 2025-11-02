@@ -25,39 +25,50 @@ class ModDownload::Impl final {
 public:
     std::string m_id;
     std::optional<VersionInfo> m_version;
-    std::optional<DependencyFor> m_dependencyFor;
+    std::vector<DependencyFor> m_dependencyFor;
     std::optional<std::string> m_replacesMod;
     DownloadStatus m_status;
     EventListener<ServerRequest<ServerModVersion>> m_infoListener;
     EventListener<web::WebTask> m_downloadListener;
     unsigned int m_scheduledEventForFrame = 0;
+    std::optional<ModMetadata> m_metadata;
+    bool m_skipped = false;
 
     Impl(
         std::string const& id,
         std::optional<VersionInfo> const& version,
         std::optional<DependencyFor> const& dependencyFor,
-        std::optional<std::string> const& replacesMod
+        std::optional<std::string> const& replacesMod,
+        bool skip
     )
       : m_id(id),
         m_version(version),
-        m_dependencyFor(dependencyFor),
         m_replacesMod(replacesMod),
         m_status(DownloadStatusFetching {
             .percentage = 0,
-        })
+        }),
+        m_skipped(skip)
     {
+        if (dependencyFor) {
+            m_dependencyFor.push_back(*dependencyFor);
+        }
         m_infoListener.bind([this](ServerRequest<ServerModVersion>::Event* event) {
             if (auto result = event->getValue()) {
                 if (result->isOk()) {
                     auto data = result->unwrap();
                     m_version = data.metadata.getVersion();
+                    m_metadata = data.metadata;
+
+                    log::info("fetched {} dependencies for {}", data.metadata.getDependencies().size(), m_id);
 
                     // Start downloads for any missing required dependencies
                     for (auto dep : data.metadata.getDependencies()) {
-                        if (!dep.mod && dep.importance != ModMetadata::Dependency::Importance::Suggested) {
+                        if (!dep.mod) {
+                            bool skip = m_skipped || dep.importance == ModMetadata::Dependency::Importance::Suggested;
                             ModDownloadManager::get()->startDownload(
                                 dep.id, dep.version.getUnderlyingVersion(),
-                                std::make_pair(m_id, dep.importance)
+                                DependencyFor { m_id, dep.importance },
+                                std::nullopt, skip
                             );
                         }
                     }
@@ -104,11 +115,15 @@ public:
     }
 
     void confirm() {
+        if (m_skipped) return;
+
         auto confirm = std::get_if<DownloadStatusConfirm>(&m_status);
         if (!confirm) return;
 
         auto version = confirm->version;
         auto downloadURL = version.downloadURL;
+
+        log::info("downloading {} version {}", version.metadata.getID(), version.metadata.getVersion().toNonVString());
 
         m_status = DownloadStatusDownloading {
             .percentage = 0,
@@ -229,22 +244,38 @@ ModDownload::ModDownload(
     std::string const& id,
     std::optional<VersionInfo> const& version,
     std::optional<DependencyFor> const& dependencyFor,
-    std::optional<std::string> const& replacesMod
-) : m_impl(std::make_shared<Impl>(id, version, dependencyFor, replacesMod)) {}
+    std::optional<std::string> const& replacesMod,
+    bool skip
+) : m_impl(std::make_shared<Impl>(id, version, dependencyFor, replacesMod, skip)) {}
 
 void ModDownload::confirm() {
     m_impl->confirm();
 }
 
-std::optional<DependencyFor> ModDownload::getDependencyFor() const {
+std::span<DependencyFor> ModDownload::getDependencyFor() const {
     return m_impl->m_dependencyFor;
 }
+
+void ModDownload::addDependent(DependencyFor dep) {
+    if (!utils::ranges::contains(m_impl->m_dependencyFor, [&](const auto& other) {
+        return other.id == dep.id;
+    })) {
+        m_impl->m_dependencyFor.emplace_back(std::move(dep));
+    }
+}
+
+void ModDownload::setSkipped(bool skipped) {
+    m_impl->m_skipped = skipped;
+}
+
 std::optional<std::string> ModDownload::getReplacesMod() const {
     return m_impl->m_replacesMod;
 }
+
 bool ModDownload::isDone() const {
     return std::holds_alternative<DownloadStatusDone>(m_impl->m_status);
 }
+
 bool ModDownload::isActive() const {
     return !(
         std::holds_alternative<DownloadStatusDone>(m_impl->m_status) ||
@@ -252,19 +283,31 @@ bool ModDownload::isActive() const {
         std::holds_alternative<DownloadStatusCancelled>(m_impl->m_status)
     );
 }
+
+bool ModDownload::isSkipped() const {
+    return m_impl->m_skipped;
+}
+
 bool ModDownload::canRetry() const {
     return
         std::holds_alternative<DownloadStatusError>(m_impl->m_status) ||
         std::holds_alternative<DownloadStatusCancelled>(m_impl->m_status);
 }
+
 std::string ModDownload::getID() const {
     return m_impl->m_id;
 }
+
 DownloadStatus ModDownload::getStatus() const {
     return m_impl->m_status;
 }
+
 std::optional<VersionInfo> ModDownload::getVersion() const {
     return m_impl->m_version;
+}
+
+std::optional<ModMetadata> ModDownload::getMetadata() const {
+    return m_impl->m_metadata;
 }
 
 class ModDownloadManager::Impl {
@@ -278,16 +321,15 @@ public:
         // of force from this anvil I'm about to drop on your head
 
         for (auto& [_, d] : m_downloads) {
-            if (auto depFor = d.m_impl->m_dependencyFor) {
-                if (
-                    !m_downloads.contains(depFor->first) ||
-                    std::holds_alternative<DownloadStatusError>(m_downloads.at(depFor->first).getStatus())
-                ) {
-                    // d.cancel() will cause cancelOrphanedDependencies() to be called again
-                    // We want that anyway because cancelling one dependency might cause
-                    // dependencies down the chain to become orphaned
-                    return d.cancel();
-                }
+            bool allMissing = std::ranges::all_of(d.m_impl->m_dependencyFor, [&](DependencyFor& depFor) {
+                return !m_downloads.contains(depFor.id)
+                    || std::holds_alternative<DownloadStatusError>(m_downloads.at(depFor.id).getStatus());
+            });
+            if (!d.m_impl->m_dependencyFor.empty() && allMissing) {
+                // d.cancel() will cause cancelOrphanedDependencies() to be called again
+                // We want that anyway because cancelling one dependency might cause
+                // dependencies down the chain to become orphaned
+                return d.cancel();
             }
         }
     }
@@ -312,15 +354,23 @@ std::optional<ModDownload> ModDownloadManager::startDownload(
     std::string const& id,
     std::optional<VersionInfo> const& version,
     std::optional<DependencyFor> const& dependencyFor,
-    std::optional<std::string> const& replacesMod
+    std::optional<std::string> const& replacesMod,
+    bool skip
 ) {
+    log::info("startDownload for {}", id);
+
     // If this mod has already been successfully downloaded or is currently
     // being downloaded, return as you can't download multiple versions of the
     // same mod simultaniously, since that wouldn't make sense. I mean the new
     // version would just immediately override to the other one
     if (m_impl->m_downloads.contains(id)) {
+        auto& inst = m_impl->m_downloads.at(id);
+        if (dependencyFor) {
+            inst.addDependent(*dependencyFor);
+        }
+
         // If the download errored last time, then we can try again
-        if (m_impl->m_downloads.at(id).canRetry()) {
+        if (inst.canRetry()) {
             m_impl->m_downloads.erase(id);
         }
         // Otherwise return
@@ -329,15 +379,19 @@ std::optional<ModDownload> ModDownloadManager::startDownload(
 
     // Start a new download by constructing a ModDownload (which starts the
     // download)
-    m_impl->m_downloads.emplace(id, ModDownload(id, version, dependencyFor, replacesMod));
+    m_impl->m_downloads.emplace(id, ModDownload(id, version, dependencyFor, replacesMod, skip));
     return m_impl->m_downloads.at(id);
 }
 void ModDownloadManager::cancelAll() {
     for (auto& [_, d] : m_impl->m_downloads) {
         d.cancel();
     }
+    m_impl->m_downloads.clear();
 }
 void ModDownloadManager::confirmAll() {
+    std::erase_if(m_impl->m_downloads, [](auto& it) {
+        return it.second.isSkipped();
+    });
     for (auto& [_, d] : m_impl->m_downloads) {
         d.confirm();
     }
@@ -373,11 +427,13 @@ void ModDownloadManager::dismissAll() {
     ModDownloadEvent("").post();
 }
 bool ModDownloadManager::checkAutoConfirm() {
-    for (auto& [_, download] :  m_impl->m_downloads) {
+    return false;
+
+    for (auto& [_, download] : m_impl->m_downloads) {
         auto status = download.getStatus();
         if (auto confirm = std::get_if<server::DownloadStatusConfirm>(&status)) {
             for (auto inc : confirm->version.metadata.getIncompatibilities()) {
-                // If some mod has an incompatability that is installed,
+                // If some mod has an incompatibility that is installed,
                 // we need to ask for confirmation
                 if (inc.mod && (!download.getVersion().has_value() || inc.version.compare(download.getVersion().value()))) {
                     return false;
@@ -425,12 +481,26 @@ bool ModDownloadManager::checkAutoConfirm() {
 std::vector<ModDownload> ModDownloadManager::getDownloads() const {
     return map::values(m_impl->m_downloads);
 }
+
+std::unordered_map<std::string, ModDownload>& ModDownloadManager::getDownloadsRef() {
+    return m_impl->m_downloads;
+}
+
 std::optional<ModDownload> ModDownloadManager::getDownload(std::string const& id) const {
     if (m_impl->m_downloads.contains(id)) {
         return m_impl->m_downloads.at(id);
     }
     return std::nullopt;
 }
+
+ModDownload* ModDownloadManager::getDownloadRef(std::string const& id) {
+    auto it = m_impl->m_downloads.find(id);
+    if (it != m_impl->m_downloads.end()) {
+        return &it->second;
+    }
+    return nullptr;
+}
+
 bool ModDownloadManager::hasActiveDownloads() const {
     for (auto& [_, download] : m_impl->m_downloads) {
         if (download.isActive()) {

@@ -55,7 +55,10 @@ namespace server {
         ModDownloadFilter(std::string const& id);
     };
 
-    using DependencyFor = std::pair<std::string, ModMetadata::Dependency::Importance>;
+    struct DependencyFor {
+        std::string id;
+        ModMetadata::Dependency::Importance importance;
+    };
 
     class ModDownload final {
     private:
@@ -67,7 +70,8 @@ namespace server {
             std::string const& id,
             std::optional<VersionInfo> const& version,
             std::optional<DependencyFor> const& dependencyFor,
-            std::optional<std::string> const& replacesMod
+            std::optional<std::string> const& replacesMod,
+            bool skip = false
         );
 
         friend class ModDownloadManager;
@@ -79,11 +83,17 @@ namespace server {
         bool isDone() const;
         bool isActive() const;
         bool canRetry() const;
+        bool isSkipped() const;
+
+        void addDependent(DependencyFor);
+        void setSkipped(bool skip);
+
         std::optional<std::string> getReplacesMod() const;
-        std::optional<DependencyFor> getDependencyFor() const;
+        std::span<DependencyFor> getDependencyFor() const;
         std::string getID() const;
         DownloadStatus getStatus() const;
         std::optional<VersionInfo> getVersion() const;
+        std::optional<ModMetadata> getMetadata() const;
     };
 
     class ModDownloadManager final {
@@ -104,7 +114,8 @@ namespace server {
             std::string const& id,
             std::optional<VersionInfo> const& version,
             std::optional<DependencyFor> const& dependencyFor = std::nullopt,
-            std::optional<std::string> const& replacesMod = std::nullopt
+            std::optional<std::string> const& replacesMod = std::nullopt,
+            bool skip = false
         );
         void startUpdateAll();
         void confirmAll();
@@ -113,7 +124,9 @@ namespace server {
         bool checkAutoConfirm();
 
         std::optional<ModDownload> getDownload(std::string const& id) const;
+        ModDownload* getDownloadRef(std::string const& id);
         std::vector<ModDownload> getDownloads() const;
+        std::unordered_map<std::string, ModDownload>& getDownloadsRef();
         bool hasActiveDownloads() const;
 
         bool wantsRestart() const;
