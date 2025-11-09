@@ -1225,7 +1225,12 @@ namespace geode::cocos {
         cocos2d::CCDictElement* m_ptr;
 
         std::pair<K, T*> operator*() {
-            if constexpr (std::is_same_v<K, std::string> || std::is_same_v<K, gd::string>) {
+            if constexpr (
+                std::is_same_v<K, std::string>
+                || std::is_same_v<K, gd::string>
+                || std::is_same_v<K, std::string_view>
+                || std::is_same_v<K, const char*>)
+            {
                 return {m_ptr->getStrKey(), static_cast<T*>(m_ptr->getObject())};
             }
             else {
