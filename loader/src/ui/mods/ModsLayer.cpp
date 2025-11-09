@@ -104,6 +104,8 @@ bool ModsStatusNode::init() {
         return ListenerResult::Propagate;
     });
 
+    Mod::get()->setSavedValue<bool>("has-used-geode-before", true);
+
     this->updateState();
 
     return true;
@@ -521,6 +523,7 @@ bool ModsLayer::init() {
         { "GJ_starsIcon_001.png", "Featured", ServerModListSource::get(ServerModListType::Featured), "featured-button", false },
         { "globe.png"_spr, "Download", ServerModListSource::get(ServerModListType::Download), "download-button", false },
         { "GJ_timeIcon_001.png", "Recent", ServerModListSource::get(ServerModListType::Recent), "recent-button", false },
+        { "exMark_001.png", "Modtober", ServerModListSource::get(ServerModListType::Modtober), "modtober-button", false },
     }) {
         auto btn = CCMenuItemSpriteExtra::create(
             GeodeTabSprite::create(std::get<0>(item), std::get<1>(item), 100, std::get<4>(item)),
@@ -636,7 +639,7 @@ bool ModsLayer::init() {
             if (whole->searchByDeveloper) {
                 auto src = ServerModListSource::get(ServerModListType::Download);
                 src->getQueryMut()->developer = *whole->searchByDeveloper;
-                this->gotoTab(src);
+                this->gotoTab(src, true);
 
                 m_showSearch = true;
                 m_lists.at(src)->activateSearch(m_showSearch);
@@ -670,7 +673,7 @@ bool ModsLayer::init() {
     return true;
 }
 
-void ModsLayer::gotoTab(ModListSource* src) {
+void ModsLayer::gotoTab(ModListSource* src, bool searchingDev) {
     // Update selected tab
     for (auto tab : m_tabs) {
         auto selected = tab->getUserData() == static_cast<void*>(src);
@@ -685,7 +688,7 @@ void ModsLayer::gotoTab(ModListSource* src) {
 
     // Lazily create new list and add it to UI
     if (!m_lists.contains(src)) {
-        auto list = ModList::create(src, m_frame->getContentSize() - ccp(30, 0));
+        auto list = ModList::create(src, m_frame->getContentSize() - ccp(30, 0), searchingDev);
         list->setPosition(m_frame->getContentSize() / 2);
         m_frame->addChild(list);
         m_lists.emplace(src, list);

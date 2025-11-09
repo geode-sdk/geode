@@ -29,7 +29,7 @@ $execute {
 }
 
 // Coroutines
-#include <Geode/utils/async.hpp>
+#include <Geode/utils/coro.hpp>
 auto advanceFrame() {
     auto [task, finish, progress, cancelled] = Task<void>::spawn();
     queueInMainThread(std::bind(finish, true));

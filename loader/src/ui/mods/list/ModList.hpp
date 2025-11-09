@@ -56,7 +56,7 @@ protected:
     bool m_exiting = false;
     std::atomic<size_t> m_searchInputThreads = 0;
 
-    bool init(ModListSource* src, CCSize const& size);
+    bool init(ModListSource* src, CCSize const& size, bool searchingDev);
 
     void updateTopContainer();
     void onCheckUpdates(typename server::ServerRequest<std::vector<std::string>>::Event* event);
@@ -71,10 +71,10 @@ protected:
     void onToggleUpdates(CCObject*);
     void onToggleErrors(CCObject*);
     void onUpdateAll(CCObject*);
-    void onEventInfo(CCObject*);
+    void onModtoberInfo(CCObject*);
 
 public:
-    static ModList* create(ModListSource* src, CCSize const& size);
+    static ModList* create(ModListSource* src, CCSize const& size, bool searchingDev = false);
 
     size_t getPage() const;
 

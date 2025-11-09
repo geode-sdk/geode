@@ -279,11 +279,11 @@ std::shared_ptr<TitleSettingV3> TitleSettingNodeV3::getSetting() const {
 
 TitleSettingNodeV3* TitleSettingNodeV3::create(std::shared_ptr<TitleSettingV3> setting, float width) {
     auto ret = new TitleSettingNodeV3();
-    if (ret && ret->init(setting, width)) {
+    if (ret->init(setting, width)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 
@@ -329,11 +329,11 @@ void BoolSettingNodeV3::onToggle(CCObject*) {
 
 BoolSettingNodeV3* BoolSettingNodeV3::create(std::shared_ptr<BoolSettingV3> setting, float width) {
     auto ret = new BoolSettingNodeV3();
-    if (ret && ret->init(setting, width)) {
+    if (ret->init(setting, width)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 
@@ -417,11 +417,11 @@ void StringSettingNodeV3::onArrow(CCObject* sender) {
 
 StringSettingNodeV3* StringSettingNodeV3::create(std::shared_ptr<StringSettingV3> setting, float width) {
     auto ret = new StringSettingNodeV3();
-    if (ret && ret->init(setting, width)) {
+    if (ret->init(setting, width)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 
@@ -530,11 +530,11 @@ void FileSettingNodeV3::onPickFile(CCObject*) {
 
 FileSettingNodeV3* FileSettingNodeV3::create(std::shared_ptr<FileSettingV3> setting, float width) {
     auto ret = new FileSettingNodeV3();
-    if (ret && ret->init(setting, width)) {
+    if (ret->init(setting, width)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 
@@ -577,11 +577,11 @@ void Color3BSettingNodeV3::updateColor(ccColor4B const& color) {
 
 Color3BSettingNodeV3* Color3BSettingNodeV3::create(std::shared_ptr<Color3BSettingV3> setting, float width) {
     auto ret = new Color3BSettingNodeV3();
-    if (ret && ret->init(setting, width)) {
+    if (ret->init(setting, width)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 
@@ -625,11 +625,11 @@ void Color4BSettingNodeV3::updateColor(ccColor4B const& color) {
 
 Color4BSettingNodeV3* Color4BSettingNodeV3::create(std::shared_ptr<Color4BSettingV3> setting, float width) {
     auto ret = new Color4BSettingNodeV3();
-    if (ret && ret->init(setting, width)) {
+    if (ret->init(setting, width)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 
@@ -675,10 +675,10 @@ void UnresolvedCustomSettingNodeV3::onResetToDefault() {}
 
 UnresolvedCustomSettingNodeV3* UnresolvedCustomSettingNodeV3::create(std::string_view key, Mod* mod, float width) {
     auto ret = new UnresolvedCustomSettingNodeV3();
-    if (ret && ret->init(key, mod, width)) {
+    if (ret->init(key, mod, width)) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }

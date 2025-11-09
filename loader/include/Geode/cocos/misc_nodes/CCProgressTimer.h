@@ -139,7 +139,7 @@ public:
      *    For example you want a left to right bar but not have the height stay 100%
      *    Set the rate to be ccp(0,1); and set the midpoint to = ccp(0,.5f);
      */
-    CC_SYNTHESIZE(CCPoint, m_tBarChangeRate, BarChangeRate);
+    CC_SYNTHESIZE_NV(CCPoint, m_tBarChangeRate, BarChangeRate);
 
     bool m_bReverseDirection;
 };

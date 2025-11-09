@@ -75,15 +75,15 @@ class CC_DLL CCTMXLayer : public CCSpriteBatchNode
 {
     GEODE_FRIEND_MODIFY
     /** size of the layer in tiles */
-    CC_SYNTHESIZE_PASS_BY_REF(CCSize, m_tLayerSize, LayerSize);
+    CC_SYNTHESIZE_NV_PASS_BY_REF(CCSize, m_tLayerSize, LayerSize);
     /** size of the map's tile (could be different from the tile's size) */
-    CC_SYNTHESIZE_PASS_BY_REF(CCSize, m_tMapTileSize, MapTileSize);
+    CC_SYNTHESIZE_NV_PASS_BY_REF(CCSize, m_tMapTileSize, MapTileSize);
     /** pointer to the map of tiles */
-    CC_SYNTHESIZE(unsigned int*, m_pTiles, Tiles);
+    CC_SYNTHESIZE_NV(unsigned int*, m_pTiles, Tiles);
     /** Tileset information for the layer */
     CC_PROPERTY(CCTMXTilesetInfo*, m_pTileSet, TileSet);
     /** Layer orientation, which is the same as the map orientation */
-    CC_SYNTHESIZE(unsigned int, m_uLayerOrientation, LayerOrientation);
+    CC_SYNTHESIZE_NV(unsigned int, m_uLayerOrientation, LayerOrientation);
     /** properties from the layer. They can be added using Tiled */
     CC_PROPERTY(CCDictionary*, m_pProperties, Properties);
 public:

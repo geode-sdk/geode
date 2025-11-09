@@ -66,10 +66,10 @@ public:
     // @note RobTop Addition
     ccColor3B m_rgb;
     HSV m_hsv;
-    CC_SYNTHESIZE_RETAIN(CCControlSaturationBrightnessPicker*, m_colourPicker, colourPicker)
+    CC_SYNTHESIZE_NV_RETAIN(CCControlSaturationBrightnessPicker*, m_colourPicker, colourPicker)
 
-    CC_SYNTHESIZE_RETAIN(CCControlHuePicker*, m_huePicker, HuePicker)
-    CC_SYNTHESIZE_RETAIN(CCSprite*, m_background, Background)
+    CC_SYNTHESIZE_NV_RETAIN(CCControlHuePicker*, m_huePicker, HuePicker)
+    CC_SYNTHESIZE_NV_RETAIN(CCSprite*, m_background, Background)
 
     // @note RobTop Addition
     CC_SYNTHESIZE_NV(CCSprite*, m_colorTarget, ColorTarget)

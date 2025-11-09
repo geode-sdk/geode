@@ -1,5 +1,25 @@
 # Geode Changelog
 
+## v4.9.0
+ * Add Modtober 2025 content (#1501)
+ * Add `geode::cocos::getObjectName` for getting demangled type names (c734b29)
+ * Add mod load priority, load mods in alphabetical order (#1492, #1500)
+ * Implement `CCImage::saveToFile` for macOS and iOS (#1496)
+ * Allow using SDK without `GEODE_MOD_ID` macro (useful for static libs) (a6f215f)
+ * Use OS APIs for file operations for improved performance and clearer error messages (ec46ad3)
+ * Fix crashlog window title and icons on Windows (d527c08, efdde0a)
+ * Fix custom settings not reloading dependants (#1488)
+ * Fix `removeAllChildren` UB (dd9446b)
+ * Fix Android `gd::string` causing double frees (#1490)
+ * Optimize `pathToString` conversion (2cd8559)
+ * `ConstexprString` can now be used as a template parameter (cf795fb)
+ * Add `Self` type on `Modify` to make referring to self type more idiomatic (945f6d5)
+ * Fix `aligned_storage` deprecation warnings when using C++23 (e7eed58)
+ * Fix `CC_SYNTHESIZE` calls and define inline getters/setters for cocos (869dcfa)
+ * EventV2 + async fixes (b3e6536)
+ * Improve the outdated GD version warning (#1475)
+ * Fix `VMTHookManager` (22ba7dd)
+
 ## v4.8.0
  * Fix `geode::Notification` z ordering (127733e)
  * Add `CCNode::getChildrenExt` (d198df5)

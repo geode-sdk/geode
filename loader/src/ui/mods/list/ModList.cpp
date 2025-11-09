@@ -5,6 +5,7 @@
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/ui/SimpleAxisLayout.hpp>
+#include "../popups/ModtoberPopup.hpp"
 #include "../popups/FiltersPopup.hpp"
 #include "../popups/SortPopup.hpp"
 #include "../GeodeStyle.hpp"
@@ -27,7 +28,7 @@ $execute {
     });
 }
 
-bool ModList::init(ModListSource* src, CCSize const& size) {
+bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     if (!CCNode::init())
         return false;
 
@@ -36,7 +37,14 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     this->setID("ModList");
 
     m_source = src;
-    m_source->reset();
+
+    // Geode can't tell if it's looking for a dev due to a source cache or due to actually coming from pressing more when creating a new list
+    // So using an assisting variable to call the right reset
+    if (searchingDev) {
+        m_source->clearCache();
+    } else {
+        m_source->reset();
+    }
 
     m_list = ScrollLayer::create(size);
     this->addChildAtPosition(m_list, Anchor::Bottom, ccp(-m_list->getScaledContentWidth() / 2, 0));
@@ -253,15 +261,43 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         GeodeSquareSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
         this, menu_selector(ModList::onFilters)
     );
-    m_filtersBtn->setID("filters-button");
-    searchFiltersMenu->addChild(m_filtersBtn);
 
-    m_clearFiltersBtn = CCMenuItemSpriteExtra::create(
-        GeodeSquareSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"),
-        this, menu_selector(ModList::onClearFilters)
-    );
-    m_clearFiltersBtn->setID("clear-filters-button");
-    searchFiltersMenu->addChild(m_clearFiltersBtn);
+    auto serverSource = typeinfo_cast<ServerModListSource*>(m_source);
+
+    // Modtober specific; this can be removed after Modtober 2025 is over!
+    if (!serverSource || serverSource->getType() != ServerModListType::Modtober) {
+        m_filtersBtn->setID("filters-button");
+        searchFiltersMenu->addChild(m_filtersBtn);
+
+        m_clearFiltersBtn = CCMenuItemSpriteExtra::create(
+            GeodeSquareSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"),
+            this, menu_selector(ModList::onClearFilters)
+        );
+        m_clearFiltersBtn->setID("clear-filters-button");
+        searchFiltersMenu->addChild(m_clearFiltersBtn);
+    } else {
+        auto menu = CCMenu::create();
+        menu->setID("modtober-banner");
+        menu->ignoreAnchorPointForPosition(false);
+        menu->setContentSize({ size.width, 30 });
+
+        auto banner = CCSprite::createWithSpriteFrameName("modtober25-banner.png"_spr);
+        limitNodeWidth(banner, size.width, 1.f, .1f);
+        menu->addChildAtPosition(banner, Anchor::Center);
+
+        auto label = CCLabelBMFont::create("Modtober 2025 is Here!", "bigFont.fnt");
+        label->setScale(.5f);
+        menu->addChildAtPosition(label, Anchor::Left, ccp(10, 0), ccp(0, .5f));
+
+        auto aboutSpr = createGeodeButton("About");
+        aboutSpr->setScale(.5f);
+        auto aboutBtn = CCMenuItemSpriteExtra::create(
+            aboutSpr, this, menu_selector(ModList::onModtoberInfo)
+        );
+        menu->addChildAtPosition(aboutBtn, Anchor::Right, ccp(-35, 0));
+        
+        m_topContainer->addChild(menu);
+    }
 
     searchFiltersMenu->setLayout(
         SimpleRowLayout::create()
@@ -635,16 +671,19 @@ void ModList::updateState() {
 
     // Update filter button states
     auto isDefaultQuery = m_source->isDefaultQuery();
+    auto serverSource = typeinfo_cast<ServerModListSource*>(m_source);
 
-    auto filterSpr = static_cast<GeodeSquareSprite*>(m_filtersBtn->getNormalImage());
-    filterSpr->setState(!isDefaultQuery);
+    if (!serverSource || serverSource->getType() != ServerModListType::Modtober) {
+        auto filterSpr = static_cast<GeodeSquareSprite*>(m_filtersBtn->getNormalImage());
+        filterSpr->setState(!isDefaultQuery);
 
-    auto clearSpr = static_cast<GeodeSquareSprite*>(m_clearFiltersBtn->getNormalImage());
-    m_clearFiltersBtn->setEnabled(!isDefaultQuery);
-    clearSpr->setColor(isDefaultQuery ? ccGRAY : ccWHITE);
-    clearSpr->setOpacity(isDefaultQuery ? 90 : 255);
-    clearSpr->getTopSprite()->setColor(isDefaultQuery ? ccGRAY : ccWHITE);
-    clearSpr->getTopSprite()->setOpacity(isDefaultQuery ? 90 : 255);
+        auto clearSpr = static_cast<GeodeSquareSprite*>(m_clearFiltersBtn->getNormalImage());
+        m_clearFiltersBtn->setEnabled(!isDefaultQuery);
+        clearSpr->setColor(isDefaultQuery ? ccGRAY : ccWHITE);
+        clearSpr->setOpacity(isDefaultQuery ? 90 : 255);
+        clearSpr->getTopSprite()->setColor(isDefaultQuery ? ccGRAY : ccWHITE);
+        clearSpr->getTopSprite()->setOpacity(isDefaultQuery ? 90 : 255);
+    }
 
     // Post the update page number event
     UpdateModListStateEvent(UpdatePageNumberState()).post();
@@ -740,17 +779,17 @@ void ModList::onToggleErrors(CCObject*) {
 void ModList::onUpdateAll(CCObject*) {
     server::ModDownloadManager::get()->startUpdateAll();
 }
-void ModList::onEventInfo(CCObject*) {
-    openInfoPopup("rainixgd.geome3dash").listen([](bool) {});
+void ModList::onModtoberInfo(CCObject*) {
+    ModtoberPopup::create()->show();
 }
 
 size_t ModList::getPage() const {
     return m_page;
 }
 
-ModList* ModList::create(ModListSource* src, CCSize const& size) {
+ModList* ModList::create(ModListSource* src, CCSize const& size, bool searchingDev) {
     auto ret = new ModList();
-    if (ret->init(src, size)) {
+    if (ret->init(src, size, searchingDev)) {
         ret->autorelease();
         return ret;
     }

@@ -157,6 +157,8 @@ namespace geode {
         bool hasLoadProblems() const;
         bool shouldLoad() const;
         bool isCurrentlyLoading() const;
+
+        int getLoadPriority() const;
     };
 
     class ModImpl : public Mod::Impl {

@@ -48,16 +48,16 @@ NS_CC_EXT_BEGIN
 class CC_DLL CCControlHuePicker : public CCControl
 {
     //maunally put in the setters
-    CC_SYNTHESIZE_READONLY(float, m_hue, Hue);
+    CC_SYNTHESIZE_READONLY_NV(float, m_hue, Hue);
     virtual void setHue(float val);
-    CC_SYNTHESIZE_READONLY(float, m_huePercentage, HuePercentage);
+    CC_SYNTHESIZE_READONLY_NV(float, m_huePercentage, HuePercentage);
     virtual void setHuePercentage(float val);
 
 
     //not sure if these need to be there actually. I suppose someone might want to access the sprite?
-    CC_SYNTHESIZE_RETAIN(CCSprite*, m_background, Background);
-    CC_SYNTHESIZE_RETAIN(CCSprite*, m_slider, Slider);
-    CC_SYNTHESIZE_READONLY(CCPoint, m_startPos, StartPos);
+    CC_SYNTHESIZE_NV_RETAIN(CCSprite*, m_background, Background);
+    CC_SYNTHESIZE_NV_RETAIN(CCSprite*, m_slider, Slider);
+    CC_SYNTHESIZE_READONLY_NV(CCPoint, m_startPos, StartPos);
 
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCControlHuePicker, CCControl)

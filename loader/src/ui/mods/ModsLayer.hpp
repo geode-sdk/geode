@@ -94,5 +94,5 @@ public:
 
     static server::ServerRequest<std::vector<std::string>> checkInstalledModsForUpdates();
 
-    void gotoTab(ModListSource* src);
+    void gotoTab(ModListSource* src, bool searchingDev = false);
 };

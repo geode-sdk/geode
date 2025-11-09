@@ -313,3 +313,7 @@ bool Mod::shouldLoad() const {
 bool Mod::isCurrentlyLoading() const {
     return m_impl->isCurrentlyLoading();
 }
+
+int Mod::getLoadPriority() const {
+    return m_impl->getLoadPriority();
+}

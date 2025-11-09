@@ -27,6 +27,7 @@
 #include <resources.hpp>
 #include <string>
 #include <string_view>
+#include <unordered_set>
 #include <vector>
 
 #include <server/DownloadManager.hpp>
@@ -731,6 +732,8 @@ void Loader::Impl::refreshModGraph() {
     m_loadingState = LoadingState::Mods;
 
     queueInMainThread([this]() {
+        utils::thread::setName("Main");
+        
         log::info("Loading non-early mods");
         this->continueRefreshModGraph();
     });
@@ -738,48 +741,43 @@ void Loader::Impl::refreshModGraph() {
 
 void Loader::Impl::orderModStack() {
     std::unordered_set<Mod*> visited;
-    visited.insert(Mod::get());
-    Mod* selectedMod = nullptr;
-    do {
-        selectedMod = nullptr;
-        for (auto const& mod : ModImpl::get()->m_dependants) {
-            if (visited.count(mod) != 0) continue;
 
-            for (auto dep : mod->getMetadataRef().getDependencies()) {
-                if (dep.mod && dep.importance == ModMetadata::Dependency::Importance::Required &&
-                    visited.count(dep.mod) == 0) {
-                    // the dependency is not visited yet
-                    // so we cant select this mod
-                    goto skip_mod;
-                }
-            }
-
-            if (selectedMod) {
-                if (
-                    !selectedMod->m_impl->needsEarlyLoad() &&
-                    mod->m_impl->needsEarlyLoad()
-                ) {
-                    // this mod is implied to be loaded early
-                    // so we can override a mod that is not
-                    selectedMod = mod;
-                }
-            }
-            else {
-                selectedMod = mod;
-            }
-
-        skip_mod:
-            continue;
+    auto& dependants = ModImpl::get()->m_dependants;
+    std::sort(dependants.begin(), dependants.end(), [](Mod* a, Mod* b) {
+        // early load check (early loads go first)
+        auto aEarly = a->needsEarlyLoad();
+        auto bEarly = b->needsEarlyLoad();
+        if (aEarly != bEarly) {
+            return aEarly > bEarly;
         }
 
-        if (selectedMod) {
-            m_modsToLoad.push_back(selectedMod);
-            visited.insert(selectedMod);
+        // load priority check (higher priority/lower number goes first)
+        auto aPriority = a->getLoadPriority();
+        auto bPriority = b->getLoadPriority();
+        if (aPriority != bPriority) {
+            return aPriority < bPriority;
         }
-    } while (selectedMod != nullptr);
 
-    for (auto mod : m_modsToLoad) {
-        log::debug("{}, early: {}", mod->getID(), mod->needsEarlyLoad());
+        // fallback to alphabetical id order
+        return a->getID() < b->getID();
+    });
+
+    auto visit = [&](Mod* mod, auto&& visit) -> void {
+        if (mod == nullptr || mod == Mod::get()) return;
+        if (visited.contains(mod))
+            return;
+        visited.insert(mod);
+        for (auto dep : mod->m_impl->m_metadata.m_impl->m_dependencies) {
+            if (dep.importance != ModMetadata::Dependency::Importance::Required)
+                continue;
+            visit(dep.mod, visit);
+        }
+        m_modsToLoad.push_back(mod);
+        log::debug("{} [{}]{}", mod->getID(), mod->getLoadPriority(), mod->needsEarlyLoad() ? " (early)" : "");
+    };
+
+    for (auto mod : dependants) {
+        visit(mod, visit);
     }
 }
 

@@ -137,11 +137,6 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 #endif
         : _M_current(__i.base()) { }
 
-      _GLIBCXX_NODISCARD __attribute__((__always_inline__))
-      _GLIBCXX_CONSTEXPR
-      __normal_iterator<_Iterator, _Container> _M_const_cast() const
-      { return __normal_iterator<_Iterator, _Container>(_M_current); }
-
       // Forward iterator requirements
 
       _GLIBCXX_NODISCARD __attribute__((__always_inline__))
@@ -235,46 +230,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
   // provide overloads whose operands are of the same type.  Can someone
   // remind me what generic programming is about? -- Gaby
 
-#ifdef __cpp_lib_three_way_comparison
-  template<typename _IteratorL, typename _IteratorR, typename _Container>
-    [[nodiscard, __gnu__::__always_inline__]]
-    constexpr bool
-    operator==(const __normal_iterator<_IteratorL, _Container>& __lhs,
-	       const __normal_iterator<_IteratorR, _Container>& __rhs)
-    noexcept(noexcept(__lhs.base() == __rhs.base()))
-    requires requires {
-      { __lhs.base() == __rhs.base() } -> std::convertible_to<bool>;
-    }
-    { return __lhs.base() == __rhs.base(); }
-
-  template<typename _IteratorL, typename _IteratorR, typename _Container>
-    [[nodiscard, __gnu__::__always_inline__]]
-    constexpr std::__detail::__synth3way_t<_IteratorR, _IteratorL>
-    operator<=>(const __normal_iterator<_IteratorL, _Container>& __lhs,
-		const __normal_iterator<_IteratorR, _Container>& __rhs)
-    noexcept(noexcept(std::__detail::__synth3way(__lhs.base(), __rhs.base())))
-    { return std::__detail::__synth3way(__lhs.base(), __rhs.base()); }
-
-  template<typename _Iterator, typename _Container>
-    [[nodiscard, __gnu__::__always_inline__]]
-    constexpr bool
-    operator==(const __normal_iterator<_Iterator, _Container>& __lhs,
-	       const __normal_iterator<_Iterator, _Container>& __rhs)
-    noexcept(noexcept(__lhs.base() == __rhs.base()))
-    requires requires {
-      { __lhs.base() == __rhs.base() } -> std::convertible_to<bool>;
-    }
-    { return __lhs.base() == __rhs.base(); }
-
-  template<typename _Iterator, typename _Container>
-    [[nodiscard, __gnu__::__always_inline__]]
-    constexpr std::__detail::__synth3way_t<_Iterator>
-    operator<=>(const __normal_iterator<_Iterator, _Container>& __lhs,
-		const __normal_iterator<_Iterator, _Container>& __rhs)
-    noexcept(noexcept(std::__detail::__synth3way(__lhs.base(), __rhs.base())))
-    { return std::__detail::__synth3way(__lhs.base(), __rhs.base()); }
-#else
-   // Forward iterator requirements
+  // Forward iterator requirements
   template<typename _IteratorL, typename _IteratorR, typename _Container>
     _GLIBCXX_NODISCARD __attribute__((__always_inline__)) _GLIBCXX_CONSTEXPR
     inline bool
@@ -371,7 +327,6 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 	       const __normal_iterator<_Iterator, _Container>& __rhs)
     _GLIBCXX_NOEXCEPT
     { return __lhs.base() >= __rhs.base(); }
-#endif // three-way comparison
 
   // _GLIBCXX_RESOLVE_LIB_DEFECTS
   // According to the resolution of DR179 not only the various comparison
@@ -1378,7 +1333,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       insert(const_iterator __position, size_type __n, const value_type& __x)
       {
 	difference_type __offset = __position - cbegin();
-	_M_fill_insert(__position._M_const_cast(), __n, __x);
+	_M_fill_insert(begin() + __offset, __n, __x);
 	return begin() + __offset;
       }
 #else
@@ -1423,7 +1378,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 	       _InputIterator __last)
         {
 	  difference_type __offset = __position - cbegin();
-	  _M_insert_dispatch(__position._M_const_cast(),
+	  _M_insert_dispatch(begin() + __offset,
 			     __first, __last, __false_type());
 	  return begin() + __offset;
 	}
@@ -1471,10 +1426,11 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       iterator
 #if __cplusplus >= 201103L
       erase(const_iterator __position)
+      { return _M_erase(begin() + (__position - cbegin())); }
 #else
       erase(iterator __position)
+      { return _M_erase(__position); }
 #endif
-      { return _M_erase(__position._M_const_cast()); }
 
       /**
        *  @brief  Remove a range of elements.
@@ -1497,10 +1453,15 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       iterator
 #if __cplusplus >= 201103L
       erase(const_iterator __first, const_iterator __last)
+      {
+	const auto __beg = begin();
+	const auto __cbeg = cbegin();
+	return _M_erase(__beg + (__first - __cbeg), __beg + (__last - __cbeg));
+      }
 #else
       erase(iterator __first, iterator __last)
+      { return _M_erase(__first, __last); }
 #endif
-      { return _M_erase(__first._M_const_cast(), __last._M_const_cast()); }
 
       /**
        *  @brief  Swaps data with another %vector.

@@ -199,14 +199,14 @@ void console::log(std::string const& msg, Severity severity) {
             color = 7;
             break;
     }
-    if (color2 == -1) {
-        auto const str = fmt::format("\x1b[38;5;{}m{}\x1b[0m{}\n", color, msg.substr(0, 14), msg.substr(14));
-        WriteFile(s_outHandle, str.c_str(), str.size(), &written, nullptr);
-    }
-    else {
-        auto const str = fmt::format("\x1b[38;5;{}m{}\x1b[0m{}\n", color, msg.substr(0, 14), msg.substr(14));
-        WriteFile(s_outHandle, str.c_str(), str.size(), &written, nullptr);
-    }
+    
+    std::string_view sv{msg};
+
+    // this is suboptimal but slightly better than hardcoding '14' which is what it was before
+    size_t colorEnd = sv.find_first_of('[') - 1;
+
+    auto str = fmt::format("\x1b[38;5;{}m{}\x1b[0m{}\n", color, sv.substr(0, colorEnd), sv.substr(colorEnd));
+    WriteFile(s_outHandle, str.c_str(), str.size(), &written, nullptr);
 }
 
 void console::messageBox(char const* title, std::string const& info, Severity severity) {

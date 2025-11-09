@@ -112,13 +112,16 @@ namespace geode::utils::string {
      */
     GEODE_DLL std::strong_ordering caseInsensitiveCompare(std::string_view a, std::string_view b);
 
+    template <size_t S = 1024>
     struct ConstexprString {
-        std::array<char, 1024> m_buffer{};
+        std::array<char, S> m_buffer{};
         std::size_t m_size = 0;
         constexpr ConstexprString() {
             m_buffer[0] = 0;
         }
-
+        constexpr ConstexprString(const char (&str)[S]) : m_size(S - 1) {
+            std::copy_n(str, S, m_buffer.data());
+        }
         constexpr char* begin() {
             return m_buffer.data();
         }

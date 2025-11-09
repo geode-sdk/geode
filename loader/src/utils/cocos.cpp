@@ -548,6 +548,11 @@ void GEODE_DLL geode::cocos::handleTouchPriority(cocos2d::CCNode* node, bool for
 
 struct LoadingFinished : Modify<LoadingFinished, LoadingLayer> {
     GEODE_FORWARD_COMPAT_DISABLE_HOOKS("geode::cocos::reloadTextures disabled")
+
+    void onModify(auto& self) {
+        self.setHookPriority("LoadingLayer::loadAssets", 500);
+    }
+
     void loadAssets() {
         // loadFinished is inlined on Macchew OS :sob:
 

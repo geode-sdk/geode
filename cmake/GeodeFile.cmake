@@ -46,11 +46,11 @@ set(GEODE_MODS_BEING_BUILT "" CACHE INTERNAL "GEODE_MODS_BEING_BUILT")
 function(setup_geode_mod proname)
     # Get DONT_INSTALL argument
     set(options DONT_INSTALL)
-    set(multiValueArgs EXTERNALS)
+    set(multiValueArgs EXTERNALS LINK_TYPE)
     cmake_parse_arguments(SETUP_GEODE_MOD "${options}" "" "${multiValueArgs}" ${ARGN})
 
     # Link Geode to the mod
-    target_link_libraries(${proname} geode-sdk)
+    target_link_libraries(${proname} ${SETUP_GEODE_MOD_LINK_TYPE} geode-sdk)
 
     if (ANDROID)
         if (CMAKE_BUILD_TYPE STREQUAL "Release")
@@ -265,7 +265,7 @@ function(setup_geode_mod proname)
 
         # Link libs
         target_include_directories(${proname} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/geode-deps")
-        target_link_libraries(${proname} ${libs_to_link})
+        target_link_libraries(${proname} ${SETUP_GEODE_MOD_LINK_TYPE} ${libs_to_link})
         
     endif()
 

@@ -150,9 +150,6 @@ public:
      */
     bool initWithTextureFilename(const char* filename, const CCRect& rect, bool rotated, const CCPoint& offset, const CCSize& originalSize);
 
-	gd::string getFrameName() const;
-	void setFrameName(gd::string);
-
 public:
     CCPoint m_obOffset;
     CCSize m_obOriginalSize;
@@ -164,7 +161,7 @@ public:
     CCTexture2D *m_pobTexture;
     gd::string  m_strTextureFilename;
     // @note RobTop Addition
-    gd::string  m_strFrameName;
+    CC_SYNTHESIZE_NV(gd::string, m_strFrameName, FrameName);
 };
 
 // end of sprite_nodes group

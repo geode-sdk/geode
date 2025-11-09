@@ -1060,6 +1060,17 @@ namespace geode::cocos {
      * @returns The mouse position
      */
     GEODE_DLL cocos2d::CCPoint getMousePos();
+
+
+    /**
+     * Create an ObjWrapper without having to specify the template argument
+     * @param value The value to pass into ObjWrapper::create
+     * @returns The created ObjWrapper
+     */
+    template <typename T>
+    ObjWrapper<T>* makeObjWrapper(T&& value) {
+        return ObjWrapper<T>::create(std::forward<T>(value));
+    }
 }
 
 // std specializations
@@ -1214,7 +1225,12 @@ namespace geode::cocos {
         cocos2d::CCDictElement* m_ptr;
 
         std::pair<K, T*> operator*() {
-            if constexpr (std::is_same_v<K, std::string> || std::is_same_v<K, gd::string>) {
+            if constexpr (
+                std::is_same_v<K, std::string>
+                || std::is_same_v<K, gd::string>
+                || std::is_same_v<K, std::string_view>
+                || std::is_same_v<K, const char*>)
+            {
                 return {m_ptr->getStrKey(), static_cast<T*>(m_ptr->getObject())};
             }
             else {
@@ -1229,14 +1245,10 @@ namespace geode::cocos {
 
         friend bool operator==(CCDictIterator<K, InpT> const& a, CCDictIterator<K, InpT> const& b) {
             return a.m_ptr == b.m_ptr;
-        };
+        }
 
         friend bool operator!=(CCDictIterator<K, InpT> const& a, CCDictIterator<K, InpT> const& b) {
             return a.m_ptr != b.m_ptr;
-        };
-
-        bool operator!=(int b) {
-            return m_ptr != nullptr;
         }
     };
 
@@ -1305,9 +1317,8 @@ namespace geode::cocos {
             return CCDictIterator<Key, ValuePtr>(m_dict->m_pElements);
         }
 
-        // do not use this
         auto end() {
-            return nullptr;
+            return CCDictIterator<Key, ValuePtr>(nullptr);
         }
 
         size_t size() {
