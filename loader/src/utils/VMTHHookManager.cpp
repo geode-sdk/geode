@@ -6,15 +6,16 @@ using namespace geode::prelude;
 struct VMTTableKey {
     std::string typenamePtr;
     ptrdiff_t thunkOffset = 0;
+    std::string instanceNamePtr;
 
     bool operator==(const VMTTableKey& other) const {
-        return typenamePtr == other.typenamePtr && thunkOffset == other.thunkOffset;
+        return typenamePtr == other.typenamePtr && thunkOffset == other.thunkOffset && instanceNamePtr == other.instanceNamePtr;
     }
 };
 
 struct VMTTableKeyHash {
     std::size_t operator()(const VMTTableKey& key) const {
-        return std::hash<std::string>()(key.typenamePtr) ^ std::hash<ptrdiff_t>()(key.thunkOffset);
+        return std::hash<std::string>()(key.typenamePtr) ^ std::hash<ptrdiff_t>()(key.thunkOffset) ^ std::hash<std::string>()(key.instanceNamePtr);
     }
 };
 
@@ -116,12 +117,16 @@ Result<std::optional<std::shared_ptr<Hook>>> VMTHookManager::Impl::addHook(
     tulip::hook::HandlerMetadata const& handlerMetadata,
     tulip::hook::HookMetadata const& hookMetadata)
 {
-    VMTMapKey mapKey{ typeName, thunkOffset, vtableOffset };
+    // i love when i have to do disgusting hacks like this!
+    auto objectInstance = static_cast<CCObject*>(instance);
+    auto instanceNamePtr = typeid(*objectInstance).name();
+
+    VMTMapKey mapKey{ typeName, thunkOffset, instanceNamePtr, vtableOffset };
     auto mapIt = m_hooks.find(mapKey);
     // log::debug("Map key: {}, {}, {}", typeName, thunkOffset, vtableOffset);
 
     if (mapIt == m_hooks.end()) {
-        VMTTableKey tableKey{ typeName, thunkOffset };
+        VMTTableKey tableKey{ typeName, thunkOffset, instanceNamePtr };
         auto tableIt = m_tables.find(tableKey);
         // log::debug("Table key: {}, {}", typeName, thunkOffset);
 
