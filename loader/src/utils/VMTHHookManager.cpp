@@ -86,7 +86,11 @@ void VMTHookManager::Impl::replaceFunction(void* vtable, ptrdiff_t vtableOffset,
 }
 
 Result<> VMTHookManager::Impl::forceDisableFunction(void* instance, std::string const& typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset) {
-    VMTMapKey mapKey{ typeName, thunkOffset, vtableOffset };
+    // i love when i have to do disgusting hacks like this!
+    auto objectInstance = static_cast<CCObject*>(instance);
+    auto instanceNamePtr = typeid(*objectInstance).name();
+
+    VMTMapKey mapKey{ typeName, thunkOffset, instanceNamePtr, vtableOffset };
     auto mapIt = m_hooks.find(mapKey);
 
     if (mapIt != m_hooks.end()) {
@@ -99,7 +103,11 @@ Result<> VMTHookManager::Impl::forceDisableFunction(void* instance, std::string 
 }
 
 Result<> VMTHookManager::Impl::forceEnableFunction(void* instance, std::string const& typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset) {
-    VMTMapKey mapKey{ typeName, thunkOffset, vtableOffset };
+    // i love when i have to do disgusting hacks like this!
+    auto objectInstance = static_cast<CCObject*>(instance);
+    auto instanceNamePtr = typeid(*objectInstance).name();
+
+    VMTMapKey mapKey{ typeName, thunkOffset, instanceNamePtr, vtableOffset };
     auto mapIt = m_hooks.find(mapKey);
 
     if (mapIt != m_hooks.end()) {
