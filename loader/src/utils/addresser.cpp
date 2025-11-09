@@ -58,8 +58,8 @@ namespace {
         return index;
     }
 
-    using thunk0_table_t = intptr_t[0x100];
-    using table_table_t = intptr_t[0x100];
+    using thunk0_table_t = intptr_t[0x800];
+    using table_table_t = intptr_t[0x800];
 
     struct GEODE_HIDDEN ThunkTable {
         static inline thunk0_table_t table = {GEODE_ADDRESSER_THUNK0_SET()};
