@@ -58,6 +58,8 @@ NS_CC_BEGIN
 __object__=__array__->arr[0]; for(unsigned int i=0, num=__array__->num; i<num; i++, __object__=__array__->arr[i])	\
 
 
+// if you need to change anything from this, dont forget the 
+// class at the bottom ccCArray because cocos
 typedef struct _ccArray {
 	unsigned int num, max;
     // 2.2 additions
@@ -136,9 +138,12 @@ void ccArrayFullRemoveArray(ccArray *arr, ccArray *minusArr);
 // #pragma mark ccCArray for Values (c structures)
 #endif
 
+// if you need to change anything from this, dont forget the 
+// class at the top ccArray because cocos
 typedef struct _ccCArray {
     unsigned int num, max;
-    unsigned int unk1, unk2;
+    // 2.2 additions
+    unsigned int unknown;
     void** arr;
 } ccCArray;
 
