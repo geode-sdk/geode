@@ -46,11 +46,17 @@ struct VMTMapValue {
     std::vector<void*> detours;
 };
 
+struct VMTPairKeyHash {
+    std::size_t operator()(const std::pair<void*, void*>& key) const {
+        return std::hash<void*>()(key.first) ^ std::hash<void*>()(key.second);
+    }
+};
+
 class VMTHookManager::Impl {
 public:
     std::unordered_map<VMTTableKey, VMTTableValue, VMTTableKeyHash> m_tables;
     std::unordered_map<VMTMapKey, VMTMapValue, VMTMapKeyHash> m_hooks;
-    std::unordered_set<std::pair<void*, void*>> m_physicalHooks;
+    std::unordered_set<std::pair<void*, void*>, VMTPairKeyHash> m_physicalHooks;
 
     void*& getTable(void* instance, ptrdiff_t thunkOffset);
     void replaceTable(void* instance, ptrdiff_t thunkOffset, void* vtable);
