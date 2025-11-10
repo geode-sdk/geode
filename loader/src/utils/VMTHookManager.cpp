@@ -1,5 +1,6 @@
 #include <Geode/utils/VMTHookManager.hpp>
 #include <unordered_map>
+#include <unordered_set>
 
 using namespace geode::prelude;
 
@@ -49,6 +50,7 @@ class VMTHookManager::Impl {
 public:
     std::unordered_map<VMTTableKey, VMTTableValue, VMTTableKeyHash> m_tables;
     std::unordered_map<VMTMapKey, VMTMapValue, VMTMapKeyHash> m_hooks;
+    std::unordered_set<std::pair<void*, void*>> m_physicalHooks;
 
     void*& getTable(void* instance, ptrdiff_t thunkOffset);
     void replaceTable(void* instance, ptrdiff_t thunkOffset, void* vtable);
@@ -108,7 +110,7 @@ Result<> VMTHookManager::Impl::forceEnableFunction(void* instance, std::string c
     auto instanceNamePtr = typeid(*objectInstance).name();
 
     VMTMapKey mapKey{ typeName, thunkOffset, instanceNamePtr, vtableOffset };
-    auto mapIt = m_hooks.find(mapKey);
+        auto mapIt = m_hooks.find(mapKey);
 
     if (mapIt != m_hooks.end()) {
         auto& value = mapIt->second;
@@ -162,12 +164,20 @@ Result<std::optional<std::shared_ptr<Hook>>> VMTHookManager::Impl::addHook(
         // log::debug("Replacing with: {}", emptyFunc);
         this->replaceFunction(value.vtable, vtableOffset, emptyFunc);
 
-        // log::debug("Creating the original");
-        auto hook = Hook::create(emptyFunc, originalFunc, displayName, handlerMetadata, tulip::hook::HookMetadata{
-            .m_priority = INT_MAX
-        });
-        // log::debug("Claiming the hook");
-        GEODE_UNWRAP_INTO(auto hook2, Mod::get()->claimHook(hook));
+        // we have not generated an actual hook for this function yet,
+        // so let's do that
+        // this will get skipped if the same function is used in different
+        // instances with different types but still replace the table
+        if (m_physicalHooks.count({ emptyFunc, originalFunc }) == 0) {
+            // log::debug("Creating the original");
+            auto hook = Hook::create(emptyFunc, originalFunc, displayName, handlerMetadata, tulip::hook::HookMetadata{
+                .m_priority = INT_MAX
+            });
+            // log::debug("Claiming the hook");
+            GEODE_UNWRAP_INTO(auto hook2, Mod::get()->claimHook(hook));
+
+            m_physicalHooks.insert({ emptyFunc, originalFunc });
+        }
 
         // log::debug("Adding to hooks map");
         m_hooks[mapKey] = { value.vtable, emptyFunc, originalFunc };
@@ -184,6 +194,15 @@ Result<std::optional<std::shared_ptr<Hook>>> VMTHookManager::Impl::addHook(
         // log::debug("Already added a hook for this function, just replacing the table");
         return Ok(std::nullopt);
     }
+
+    if (m_physicalHooks.count({ value.empty, newFunc }) > 0) {
+        // already added a physical hook for this function, just add to detours
+        // log::debug("Already added a physical hook for this function, just adding to detours");
+        detours.push_back(newFunc);
+        m_physicalHooks.insert({ value.empty, newFunc });
+        return Ok(std::nullopt);
+    }
+
     // need to generate the hook based on the existing original
     // log::debug("Adding new detour: {}", newFunc);
     auto hook = Hook::create(value.empty, newFunc, displayName, handlerMetadata, hookMetadata);
