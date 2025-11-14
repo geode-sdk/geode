@@ -157,18 +157,22 @@ namespace geode::utils::coro {
 
     template <typename T, typename E>
     struct BaseResultPromise {
-        std::optional<Result<T, E>> result;
+        std::optional<Result<T, E>>* result;
 
         struct return_object {
-            BaseResultPromise& promise;
+            std::unique_ptr<std::optional<Result<T, E>>> ptr;
             operator Result<T, E>() noexcept {
-                return promise.result.value();
+                return ptr->value();
             }
         };
 
         std::suspend_never initial_suspend() const noexcept { return {}; }
         std::suspend_always final_suspend() const noexcept { return {}; }
-        return_object get_return_object() noexcept { return return_object {*this}; }
+        return_object get_return_object() noexcept {
+            auto ptr = std::make_unique<std::optional<Result<T, E>>>();
+            result = &*ptr;
+            return return_object {std::move(ptr)};
+        }
 
         void unhandled_exception() const noexcept {}
     };
@@ -176,14 +180,14 @@ namespace geode::utils::coro {
     template <typename T, typename E>
     struct ResultPromise : public BaseResultPromise<T, E> {
         void return_value(Result<T, E>&& value) noexcept {
-            this->result = std::move(value);
+            *this->result = std::move(value);
         }
     };
 
     template <typename E>
     struct TryResultPromise : public BaseResultPromise<void, E> {
         void return_void() noexcept {
-            this->result = Ok();
+            *this->result = Ok();
         }
     };
 
@@ -199,7 +203,7 @@ namespace geode::utils::coro {
 
         template <typename U>
         void await_suspend(std::coroutine_handle<U> handle) noexcept {
-            handle.promise().result = Err(result.unwrapErr());
+            *handle.promise().result = Err(result.unwrapErr());
             handle.destroy();
         }
     };
@@ -216,7 +220,7 @@ namespace geode::utils::coro {
 
         template <typename U>
         void await_suspend(std::coroutine_handle<U> handle) noexcept {
-            handle.promise().result = Err(result.unwrapErr());
+            *handle.promise().result = Err(result.unwrapErr());
             handle.destroy();
         }
     };
@@ -231,30 +235,38 @@ namespace geode::utils::coro {
             return fn();
         }
 
-        template <std::invocable F> requires ConvertibleToTask<std::invoke_result_t<F>>
+        template <std::invocable F> requires (ConvertibleToTask<std::invoke_result_t<F>> && std::copy_constructible<F>)
         decltype(auto) operator<<(F&& fn) {
-            auto task = fn();
-            task.listen([](auto const&){});
-            return std::make_tuple(task);
+            auto ptr_fn = new F(fn);
+
+            auto task = (*ptr_fn)();
+
+            task.listen([ptr_fn](auto const&){
+                delete ptr_fn;
+            });
+
+            return std::make_tuple(std::move(task));
         }
 
         template <typename T> requires ConvertibleToTask<T>
         decltype(auto) operator<<(T&& item) {
-            Task(std::move(item)).listen([](auto const&){});
-            return std::make_tuple(item);
+            auto task = Task(std::forward<T>(item));
+            task.listen([](auto const&){});
+
+            return std::make_tuple(std::move(task));
         }
 
         template <typename T>
         decltype(auto) operator()(T&& item) {
             return *this << std::forward<T>(item);
         }
-    } spawner;
+    } spawn;
 
     template <typename T = void, typename E = std::string>
     using TryResult = std::conditional_t<std::same_as<T, void>, std::tuple<Result<void, E>>, Result<T, E>>;
 
-    #define $async(...) geode::utils::coro::spawner << [__VA_ARGS__]() -> geode::Task<void>
-    #define $try geode::utils::coro::spawner << [&]() -> geode::utils::coro::TryResult
+    #define $async(...) geode::utils::coro::spawn << [__VA_ARGS__]() -> geode::Task<void>
+    #define $try geode::utils::coro::spawn << [&]() -> geode::utils::coro::TryResult
 };
 
 template <typename T = void, typename E = std::string>
