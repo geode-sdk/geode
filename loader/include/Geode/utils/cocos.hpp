@@ -1071,6 +1071,24 @@ namespace geode::cocos {
     ObjWrapper<T>* makeObjWrapper(T&& value) {
         return ObjWrapper<T>::create(std::forward<T>(value));
     }
+
+    /**
+     * Get the size of a label with given text and font
+     * @param text The text of the label
+     * @param font The font name of the label
+     * @param kerning Extra kerning to apply to the label
+     * @returns The size of the label
+     */
+    GEODE_DLL cocos2d::CCSize getLabelSize(std::u16string_view text, const char* font, int kerning = 0);
+
+    /**
+     * Get the size of a label with given text and font
+     * @param text The text of the label
+     * @param font The font name of the label
+     * @param kerning Extra kerning to apply to the label
+     * @returns The size of the label
+     */
+    GEODE_DLL cocos2d::CCSize getLabelSize(std::string_view text, const char* font, int kerning = 0);
 }
 
 // std specializations
