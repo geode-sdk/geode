@@ -732,6 +732,8 @@ void Loader::Impl::refreshModGraph() {
     m_loadingState = LoadingState::Mods;
 
     queueInMainThread([this]() {
+        utils::thread::setName("Main");
+        
         log::info("Loading non-early mods");
         this->continueRefreshModGraph();
     });
