@@ -145,6 +145,12 @@
             "default": false,
             "name": "Verbose Curl Logs",
             "description": "When performing web requests, prints detailed information about the request to the logs. Useful for developers wanting to debug network issues."
+        },
+        "log-milliseconds": {
+            "type": "bool",
+            "default": false,
+            "name": "Log Milliseconds",
+            "description": "Shows milliseconds in all logs"
         }
     },
     "issues": {

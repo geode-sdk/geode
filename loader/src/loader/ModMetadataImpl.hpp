@@ -5,8 +5,69 @@
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/VersionInfo.hpp>
 #include <Geode/loader/Setting.hpp>
+#include <compare>
 
 using namespace geode::prelude;
+
+struct LoadPriority {
+    int priority;
+
+    LoadPriority() = default;
+    LoadPriority(LoadPriority const&) = default;
+    LoadPriority(LoadPriority&&) noexcept = default;
+    LoadPriority& operator=(LoadPriority const&) = default;
+    LoadPriority& operator=(LoadPriority&&) noexcept = default;
+
+    LoadPriority(int p) : priority(p) {}
+
+    std::strong_ordering operator<=>(LoadPriority const& other) const {
+        return this->priority <=> other.priority;
+    }
+    bool operator==(LoadPriority const& other) const {
+        return this->priority == other.priority;
+    }
+
+    operator int() const { return priority; }
+};
+
+template <>
+struct matjson::Serialize<LoadPriority> {
+    static Result<LoadPriority, std::string> fromJson(Value const& value) {
+        if (value.isNumber()) {
+            int p = GEODE_UNWRAP(value.asInt());
+            if (p > 4000 || p < -4000) {
+                return Err("load-priority must be between -4000 and 4000");
+            }
+            return Ok(LoadPriority{p});
+        } else if (value.isString()) {
+            auto str = GEODE_UNWRAP(value.asString());
+            utils::string::toLowerIP(str);
+
+            if (str == "first") return Ok(LoadPriority{-3000});
+            if (str == "very-early") return Ok(LoadPriority{-2000});
+            if (str == "early") return Ok(LoadPriority{-1000});
+            if (str == "normal") return Ok(LoadPriority{0});
+            if (str == "late") return Ok(LoadPriority{1000});
+            if (str == "very-late") return Ok(LoadPriority{2000});
+            if (str == "last") return Ok(LoadPriority{3000});
+            return Err("Invalid load-priority string");
+        }
+        return Err("load-priority must be a number or string");
+    }
+
+    static Value toJson(LoadPriority const& value) {
+        switch (value) {
+            case -3000: return "first";
+            case -2000: return "very-early";
+            case -1000: return "early";
+            case 0: return "normal";
+            case 1000: return "late";
+            case 2000: return "very-late";
+            case 3000: return "last";
+            default: return value.priority;
+        }
+    }
+};
 
 namespace geode {
     class ModMetadataLinks::Impl final {
@@ -43,6 +104,7 @@ namespace geode {
         std::unordered_set<std::string> m_tags;
         bool m_needsEarlyLoad = false;
         bool m_isAPI = false;
+        LoadPriority m_loadPriority = 0;
 
         ModJson m_rawJSON;
 

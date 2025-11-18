@@ -472,3 +472,87 @@ cocos2d::CCRect geode::utils::getSafeAreaRect() {
         winSize.width - 2 * insetX, winSize.height - 2 * insetY
     );
 }
+
+bool cocos2d::CCImage::saveToFile(const char* pszFilePath, bool bIsToRGB) {
+    uint8_t* data = m_pData;
+    bool usePNG = std::string_view(pszFilePath).ends_with(".png");
+    int channels = !usePNG || bIsToRGB || !m_bHasAlpha ? 3 : 4;
+    if (channels == 3) {
+        data = new uint8_t[m_nWidth * m_nHeight * 3];
+        for (uint32_t i = 0; i < m_nWidth * m_nHeight; i++) {
+            data[i * 3] = m_pData[i * 4];
+            data[i * 3 + 1] = m_pData[i * 4 + 1];
+            data[i * 3 + 2] = m_pData[i * 4 + 2];
+        }
+    }
+
+    CGDataProviderRef provider = CGDataProviderCreateWithData(nullptr, data, m_nWidth * m_nHeight * channels, nullptr);
+    if (!provider) {
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    if (!colorSpace) {
+        CGDataProviderRelease(provider);
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    CGImageRef imageRef = CGImageCreate(
+        m_nWidth,
+        m_nHeight,
+        8,
+        channels * 8,
+        m_nWidth * channels,
+        colorSpace,
+        channels == 4 ? kCGImageAlphaPremultipliedLast : kCGImageAlphaNone,
+        provider,
+        nullptr,
+        false,
+        kCGRenderingIntentDefault
+    );
+    if (!imageRef) {
+        CGDataProviderRelease(provider);
+        CGColorSpaceRelease(colorSpace);
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    UIImage* uiImage = [UIImage imageWithCGImage:imageRef];
+    if (!uiImage) {
+        CGImageRelease(imageRef);
+        CGDataProviderRelease(provider);
+        CGColorSpaceRelease(colorSpace);
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    NSData* imageData = usePNG ? UIImagePNGRepresentation(uiImage) : UIImageJPEGRepresentation(uiImage, 1.0);
+    if (!imageData) {
+        CGImageRelease(imageRef);
+        CGDataProviderRelease(provider);
+        CGColorSpaceRelease(colorSpace);
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    bool success = [imageData writeToFile:[NSString stringWithUTF8String:pszFilePath] atomically:YES];
+    CGImageRelease(imageRef);
+    CGDataProviderRelease(provider);
+    CGColorSpaceRelease(colorSpace);
+    if (data != m_pData) {
+        delete[] data;
+    }
+    return success;
+}

@@ -499,9 +499,16 @@ namespace geode {
         bool shouldLoad() const;
         bool isCurrentlyLoading() const;
 
+        /**
+         * Get the load priority of this mod.
+         */
+        int getLoadPriority() const;
+
         friend class ModImpl;
     };
 }
+
+#ifdef GEODE_MOD_ID
 
 namespace geode::geode_internal {
     // this impl relies on the GEODE_MOD_ID macro set by cmake
@@ -527,6 +534,14 @@ constexpr auto operator""_spr() {
     return Str.buffer;
 }
 
+#else
+
+GEODE_HIDDEN inline char const* operator"" _spr(char const* str, size_t len) {
+    return geode::Mod::get()->expandSpriteName({ str, len }).data();
+}
+
+#endif
+
 /**
  * Leaves a marker in the binary that can be used to patch
  * the game at a specific offset with a specific byte sequence.
@@ -538,10 +553,10 @@ constexpr auto operator""_spr() {
  * ```
  */
 #define GEODE_MOD_STATIC_PATCH(Offset_, ...) \
-    geode::doNotOptimize(geode::utils::string::ConstexprString::toLiteral([](){\
-        geode::utils::string::ConstexprString str2;              \
+    geode::doNotOptimize(geode::utils::string::ConstexprString<>::toLiteral([](){ \
+        geode::utils::string::ConstexprString<> str2;            \
         str2.push(__VA_ARGS__);                                  \
-        geode::utils::string::ConstexprString str;               \
+        geode::utils::string::ConstexprString<> str;             \
         str.push("[GEODE_PATCH_SIZE]");                          \
         str.push(str2.size(), 16);                               \
         str.push("[GEODE_PATCH_BYTES]");                         \
@@ -562,8 +577,8 @@ constexpr auto operator""_spr() {
  * ```
  */
 #define GEODE_MOD_STATIC_HOOK(Offset_, Detour_, ...) \
-    (geode::doNotOptimize(geode::utils::string::ConstexprString::toLiteral([](){ \
-        geode::utils::string::ConstexprString str;                 \
+    (geode::doNotOptimize(geode::utils::string::ConstexprString<>::toLiteral([](){ \
+        geode::utils::string::ConstexprString<> str;               \
         str.push("[GEODE_MODIFY_NAME]");                           \
         str.push(GEODE_STR(__VA_ARGS__));                          \
         str.push("[GEODE_MODIFY_OFFSET]");                         \

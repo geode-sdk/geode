@@ -267,18 +267,29 @@ bool ModItem::init(ModSource&& source) {
             if (metadata.tags.contains("api")) {
                 m_badgeContainer->addChild(CCSprite::createWithSpriteFrameName("tag-api.png"_spr));
             }
-            if (metadata.tags.contains("modtober24winner") || m_source.getID() == "rainixgd.geome3dash") {
-                auto shortVer = CCSprite::createWithSpriteFrameName("tag-modtober-winner.png"_spr);
-                shortVer->setTag(1);
-                m_badgeContainer->addChild(shortVer);
-                auto longVer = CCSprite::createWithSpriteFrameName("tag-modtober-winner-long.png"_spr);
-                longVer->setTag(2);
-                m_badgeContainer->addChild(longVer);
-            }
-            // Only show default Modtober tag if not a winner
-            else if (metadata.tags.contains("modtober24")) {
-                auto shortVer = CCSprite::createWithSpriteFrameName("tag-modtober.png"_spr);
-                m_badgeContainer->addChild(shortVer);
+
+            for (auto [ year, winner ] : std::initializer_list<std::tuple<const char*, std::optional<const char*>>> {
+                { "24", "rainixgd.geome3dash" },
+                { "25", std::nullopt },
+            }) {
+                if (metadata.tags.contains(fmt::format("modtober{}winner", year)) || (winner.has_value() && m_source.getID() == winner)) {
+                    
+                    auto shortVer = CCSprite::createWithSpriteFrameName(fmt::format("tag-modtober{}-winner.png"_spr, year).c_str());
+                    shortVer->setTag(1);
+                    m_badgeContainer->addChild(shortVer);
+                    auto longVer = CCSprite::createWithSpriteFrameName(fmt::format("tag-modtober{}-winner-long.png"_spr, year).c_str());
+                    longVer->setTag(2);
+                    m_badgeContainer->addChild(longVer);
+
+                    break;
+                }
+                // Only show default Modtober tag if not a winner
+                else if (metadata.tags.contains(fmt::format("modtober{}", year))) {
+                    auto shortVer = CCSprite::createWithSpriteFrameName(fmt::format("tag-modtober{}.png"_spr, year).c_str());
+                    m_badgeContainer->addChild(shortVer);
+
+                    break;
+                }
             }
 
             // Show mod download count here already so people can make informed decisions

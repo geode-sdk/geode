@@ -825,6 +825,13 @@ namespace geode::cocos {
     GEODE_DLL cocos2d::CCNode* getChildBySpriteName(cocos2d::CCNode* parent, const char* name);
 
     /**
+     * Gets the demangled name of an object using RTTI. The returned name does not include 'struct' or 'class'
+     * @param obj Object to get the name of
+     * @returns Demangled name of the object
+     */
+    GEODE_DLL std::string_view getObjectName(cocos2d::CCObject* obj);
+
+    /**
      * Checks if a given file exists in CCFileUtils
      * search paths.
      * @param filename File to check
@@ -1053,6 +1060,35 @@ namespace geode::cocos {
      * @returns The mouse position
      */
     GEODE_DLL cocos2d::CCPoint getMousePos();
+
+
+    /**
+     * Create an ObjWrapper without having to specify the template argument
+     * @param value The value to pass into ObjWrapper::create
+     * @returns The created ObjWrapper
+     */
+    template <typename T>
+    ObjWrapper<T>* makeObjWrapper(T&& value) {
+        return ObjWrapper<T>::create(std::forward<T>(value));
+    }
+
+    /**
+     * Get the size of a label with given text and font
+     * @param text The text of the label
+     * @param font The font name of the label
+     * @param kerning Extra kerning to apply to the label
+     * @returns The size of the label
+     */
+    GEODE_DLL cocos2d::CCSize getLabelSize(std::u16string_view text, const char* font, int kerning = 0);
+
+    /**
+     * Get the size of a label with given text and font
+     * @param text The text of the label
+     * @param font The font name of the label
+     * @param kerning Extra kerning to apply to the label
+     * @returns The size of the label
+     */
+    GEODE_DLL cocos2d::CCSize getLabelSize(std::string_view text, const char* font, int kerning = 0);
 }
 
 // std specializations
@@ -1107,7 +1143,7 @@ namespace geode::cocos {
     concept CocosObjectPtr = std::is_pointer_v<T> && std::is_convertible_v<T, cocos2d::CCObject const*>;
 
     template <class K>
-    concept CocosDictionaryKey = std::same_as<K, int> || std::same_as<K, intptr_t> || std::same_as<K, gd::string> || std::same_as<K, std::string>;
+    concept CocosDictionaryKey = std::same_as<K, int> || std::same_as<K, intptr_t> || std::same_as<K, gd::string> || std::same_as<K, std::string> || std::same_as<K, std::string_view> || std::same_as<K, const char*>;
 
     /**
      * A templated wrapper over CCArray, providing easy iteration and indexing.
@@ -1207,7 +1243,12 @@ namespace geode::cocos {
         cocos2d::CCDictElement* m_ptr;
 
         std::pair<K, T*> operator*() {
-            if constexpr (std::is_same_v<K, std::string> || std::is_same_v<K, gd::string>) {
+            if constexpr (
+                std::is_same_v<K, std::string>
+                || std::is_same_v<K, gd::string>
+                || std::is_same_v<K, std::string_view>
+                || std::is_same_v<K, const char*>)
+            {
                 return {m_ptr->getStrKey(), static_cast<T*>(m_ptr->getObject())};
             }
             else {
@@ -1222,14 +1263,10 @@ namespace geode::cocos {
 
         friend bool operator==(CCDictIterator<K, InpT> const& a, CCDictIterator<K, InpT> const& b) {
             return a.m_ptr == b.m_ptr;
-        };
+        }
 
         friend bool operator!=(CCDictIterator<K, InpT> const& a, CCDictIterator<K, InpT> const& b) {
             return a.m_ptr != b.m_ptr;
-        };
-
-        bool operator!=(int b) {
-            return m_ptr != nullptr;
         }
     };
 
@@ -1298,9 +1335,8 @@ namespace geode::cocos {
             return CCDictIterator<Key, ValuePtr>(m_dict->m_pElements);
         }
 
-        // do not use this
         auto end() {
-            return nullptr;
+            return CCDictIterator<Key, ValuePtr>(nullptr);
         }
 
         size_t size() {

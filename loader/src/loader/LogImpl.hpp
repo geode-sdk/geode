@@ -23,7 +23,9 @@ namespace geode::log {
         Log(Severity sev, std::string&& thread, std::string&& source, int32_t nestCount,
             std::string&& content);
 
+        // TODO (v5): remove this and add default arg to the one below
         [[nodiscard]] std::string toString() const;
+        [[nodiscard]] std::string toString(bool millis) const;
 
         [[nodiscard]] Severity getSeverity() const;
     };
