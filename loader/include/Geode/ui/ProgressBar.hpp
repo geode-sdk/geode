@@ -39,7 +39,7 @@ namespace geode {
          *
          * @param color RGB color object
          */
-        void setFillColor(ccColor3B color);
+        void setFillColor(cocos2d::ccColor3B color);
 
         /**
          * Set the precision of the percentage label
@@ -70,7 +70,7 @@ namespace geode {
         /**
          * Get the progress percentage text label node
          */
-        CCLabelBMFont* getProgressLabel() const;
+        cocos2d::CCLabelBMFont* getProgressLabel() const;
 
         /**
          * Get the current style of the progress bar
@@ -80,7 +80,7 @@ namespace geode {
         /**
          * Get the current color of the fill of the progress bar
          */
-        ccColor3B getFillColor() const;
+        cocos2d::ccColor3B getFillColor() const;
 
         /**
          * Get the precision of the percentage label
