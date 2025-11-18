@@ -1,16 +1,15 @@
 #pragma once
 
-#include <cocos2d.h>
-
 namespace geode {
     // Enum for progress bar style
     enum class ProgressBarStyle {
-        Level = 0,
-        Solid = 1,
+        Level = 0, // Gameplay style
+        Solid = 1, // Thick style
     };
+    GEODE_DLL const char* baseEnumToString(ProgressBarStyle);
 
     // Custom class for the progress bar
-    class ProgressBar : public cocos2d::CCNode {
+    class GEODE_DLL ProgressBar : public cocos2d::CCNode {
     protected:
         class Impl;
         std::unique_ptr<Impl> m_impl;
