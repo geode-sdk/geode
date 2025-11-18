@@ -2,21 +2,21 @@
 
 using namespace geode::prelude;
 
-Keyboard::Keyboard(enumKeyCodes key, bool down, bool repeat) {
+KeyDispatchEvent::KeyDispatchEvent(enumKeyCodes key, bool down, bool repeat) {
     m_key = key;
     m_down = down;
     m_repeat = repeat;
 }
 
-enumKeyCodes Keyboard::getKey() const {
+enumKeyCodes KeyDispatchEvent::getKey() const {
     return m_key;
 }
 
-bool Keyboard::isDown() const {
+bool KeyDispatchEvent::isDown() const {
     return m_down;
 }
 
-bool Keyboard::isRepeat() const {
+bool KeyDispatchEvent::isRepeat() const {
     return m_repeat;
 }
 
@@ -56,7 +56,7 @@ class $modify(EventKeyboardDispatcher, cocos2d::CCKeyboardDispatcher) {
         }
     }
     bool dispatchKeyboardMSG(enumKeyCodes key, bool down, bool repeat) {
-        if (Keyboard(key, down, repeat).post() == ListenerResult::Stop) return true;
+        if (KeyDispatchEvent(key, down, repeat).post() == ListenerResult::Stop) return true;
         return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, repeat);
     }
     void updateModifierKeys(bool shift, bool ctrl, bool alt, bool cmd) {

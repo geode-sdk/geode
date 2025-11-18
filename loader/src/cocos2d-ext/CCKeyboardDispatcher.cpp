@@ -4,7 +4,7 @@ using namespace cocos2d;
 
 #ifdef GEODE_IS_IOS
 
-#include "Geode/utils/KeyboardEvent.hpp"
+#include "Geode/utils/Keyboard.hpp"
 
 CCKeyboardDispatcher::CCKeyboardDispatcher()
     : m_bUnknown38(false),
@@ -104,7 +104,7 @@ enumKeyCodes CCKeyboardDispatcher::convertKeyCode(enumKeyCodes key)
 
 bool CCKeyboardDispatcher::dispatchKeyboardMSG(enumKeyCodes key, bool isKeyDown, bool isKeyRepeat)
 {
-    if (geode::KeyboardEvent(key, isKeyDown, isKeyRepeat).post() == geode::ListenerResult::Stop) return true;
+    if (geode::KeyDispatchEvent(key, isKeyDown, isKeyRepeat).post() == geode::ListenerResult::Stop) return true;
     if (isKeyRepeat && m_bBlockRepeat)
     {
         return false;
@@ -387,7 +387,7 @@ const char* CCKeyboardDispatcher::keyToString(enumKeyCodes key)
 
 void CCKeyboardDispatcher::updateModifierKeys(bool shft, bool ctrl, bool alt, bool cmd)
 {
-    geode::ModifierKeyEvent(shift, ctrl, alt, cmd).post();
+    geode::ModifierKeyEvent(shft, ctrl, alt, cmd).post();
     m_bShiftPressed = shft;
     m_bAltPressed = alt;
     m_bControlPressed = ctrl || cmd;

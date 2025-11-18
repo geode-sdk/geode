@@ -5,14 +5,14 @@
 
 namespace geode {
     /** Called every time a key is pressed. */
-    class GEODE_DLL Keyboard final : public Event {
+    class GEODE_DLL KeyDispatchEvent final : public Event {
     protected:
         cocos2d::enumKeyCodes m_key;
         bool m_down;
         bool m_repeat;
 
     public:
-        Keyboard(cocos2d::enumKeyCodes key, bool down, bool repeat);
+        KeyDispatchEvent(cocos2d::enumKeyCodes key, bool down, bool repeat);
         cocos2d::enumKeyCodes getKey() const;
         bool isDown() const;
         bool isRepeat() const;
