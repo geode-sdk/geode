@@ -1,5 +1,23 @@
 # Geode Changelog
 
+## v4.10.0
+ * Add `$on_game` macro for `GameEvent` events (679678f)
+ * Add progress bar helper class (#1467)
+ * Add more hook priority utilities (#1510)
+ * Add label size utilities (#1536)
+ * Add no result version of dispatch event macros (5a2055f)
+ * Add 'Download Mods Here' message (#1512)
+ * Add option to show milliseconds in logs (5ec4ba3)
+ * Make `typeinfo_cast<ModifyClass>` error (5cb624c)
+ * Allow changing library link type in `setup_geode_mod` (9fdc5b5)
+ * Allow using `string_view` and `const char*` as `CCDictionaryExt` key (c14d02c)
+ * Rename async.hpp to coro.hpp, and geode::utils::coro namespace (7a2dc8d, 3b94915)
+ * Remove `CoTask`, add `coro::spawner` and other utilities (671d321)
+ * Fix clearing the developer filter on `ModList::init` (#1509)
+ * Fix `CCDictionaryExt` iterator types (2f7c126)
+ * Fix `TextInput` crashing on destruction (#1507)
+ * Fix main thread not being called main in android logs (2658941)
+
 ## v4.9.0
  * Add Modtober 2025 content (#1501)
  * Add `geode::cocos::getObjectName` for getting demangled type names (c734b29)
