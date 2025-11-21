@@ -13,6 +13,7 @@
  * Allow using `string_view` and `const char*` as `CCDictionaryExt` key (c14d02c)
  * Rename async.hpp to coro.hpp, and geode::utils::coro namespace (7a2dc8d, 3b94915)
  * Remove `CoTask`, add `coro::spawner` and other utilities (671d321)
+ * Fix `geode::stl::vector` on r29 ndk (#1508)
  * Fix clearing the developer filter on `ModList::init` (#1509)
  * Fix `CCDictionaryExt` iterator types (2f7c126)
  * Fix `TextInput` crashing on destruction (#1507)
