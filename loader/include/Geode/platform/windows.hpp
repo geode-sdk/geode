@@ -10,6 +10,7 @@
 #include <typeinfo>
 #include <memory>
 #include <intrin.h>  // for _ReadWriteBarrier
+#include "_casts_shared.hpp"
 
 namespace geode {
     struct PlatformInfo {
@@ -121,9 +122,7 @@ namespace geode::cast {
 
     template <class After, class Before>
     inline After typeinfo_cast(Before ptr) {
-        static_assert(
-            std::is_polymorphic_v<std::remove_pointer_t<Before>>, "Input is not a polymorphic type"
-        );
+        ::geode::geode_internal::typeinfoCastChecks<After, Before>();
 
         if (!ptr) {
             return After();
