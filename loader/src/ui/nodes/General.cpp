@@ -210,18 +210,17 @@ void geode::addBackButton(cocos2d::CCNode* to, cocos2d::CCObject* target, cocos2
     case BackButtonStyle::Pink: sprite = "GJ_arrow_03_001.png"; break;
     }
 
-    auto backBtnSprite = CCSprite::createWithSpriteFrameName(sprite);
-    backBtnSprite->setScale(0.6f);
-
     auto backBtn = CCMenuItemSpriteExtra::create(
-        backBtnSprite,
+        CCSprite::createWithSpriteFrameName(sprite),
         target,
         selector
     );
     backBtn->setID("back-button");
+    backBtn->setZOrder(1);
 
     auto menu = CCMenu::createWithItem(backBtn);
+    menu->setID("back-menu");
     menu->setPosition({ 25.0f, CCDirector::get()->getWinSize().height - 25.0f });
-    menu->setID("back-button-menu");
+    menu->setZOrder(1);
     to->addChild(menu);
 }
