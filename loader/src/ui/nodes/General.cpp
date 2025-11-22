@@ -200,3 +200,20 @@ void ListBorders::setContentSize(CCSize const& size) {
     m_left->setScaleY((size.height - height) / m_left->getContentHeight());
     m_right->setScaleY((size.height - height) / m_right->getContentHeight());
 }
+
+void geode::addBackButton(cocos2d::CCNode* to, cocos2d::SEL_MenuHandler selector, cocos2d::CCObject* target) {
+    auto backBtnSprite = CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png");
+    backBtnSprite->setScale(0.6f);
+
+    auto backBtn = CCMenuItemSpriteExtra::create(
+        backBtnSprite,
+        target,
+        selector
+    );
+    backBtn->setID("back-button");
+
+    auto menu = CCMenu::createWithItem(backBtn);
+    menu->setPosition(ccp(25.0f, CCDirector::get()->getWinSize().height - 25.0f));
+    menu->setID("back-button-menu");
+    to->addChild(menu);
+}
