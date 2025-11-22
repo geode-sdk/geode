@@ -98,15 +98,23 @@ namespace geode {
         void setContentSize(cocos2d::CCSize const& size) override;
     };
 
+    enum class BackButtonStyle {
+        Green,
+        Blue,
+        Pink
+    };
+
     /**
      * Add a back button to a layer
      * @param to Layer to add back button to
-     * @param selector Selector to call on button press
      * @param target Target to call selector on
+     * @param selector Selector to call on button press
+     * @param style Style of button to use
      */
     GEODE_DLL void addBackButton(
         cocos2d::CCNode* to,
+        cocos2d::CCObject* target,
         cocos2d::SEL_MenuHandler selector,
-        cocos2d::CCObject* target
+        BackButtonStyle style = BackButtonStyle::Green
     );
 }
