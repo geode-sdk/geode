@@ -26,7 +26,7 @@ namespace geode {
      *  - Lists
      *
      * Note that links also have some special protocols.
-     * Use `user:<accountID>` to link to a GD
+     * Use `user:<userID>` to link to a GD
      * account; `level:<id>` to link to a GD level and
      * `mod:<id>` to link to another Geode mod.
      */
