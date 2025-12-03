@@ -287,7 +287,7 @@ public:
         // This is an incredibly hacky way to still be able to use the type
 
         using CCArrayExt = geode::CCArrayExtCheck<T, PleaseDontChangeMe>::type;
-        static_assert(!std::is_void_v<CCArrayExt>, "Please include <Geode/utils/cocos.hpp> to use getChildrenExt()");
+        static_assert(!std::is_void_v<CCArrayExt>, "Please include <Geode/utils/cocos.hpp> to use asExt()");
 
         return CCArrayExt(this);
     }
