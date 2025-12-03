@@ -92,4 +92,6 @@ namespace geode::utils::random {
 
     /// Generates a random UUID v4 string
     GEODE_DLL std::string generateUUID();
+
+    GEODE_DLL void fillBytes(void* buffer, size_t size);
 }

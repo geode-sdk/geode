@@ -65,4 +65,20 @@ std::string generateUUID() {
     return out;
 }
 
+void fillBytes(void* buffer, size_t size) {
+    uint8_t* buf = (uint8_t*)buffer;
+
+    // fill 8 bytes at a time for speed
+    while (size >= 8) {
+        uint64_t val = nextU64();
+        std::memcpy(buf, &val, 8);
+        buf += 8;
+        size -= 8;
+    }
+
+    for (size_t i = 0; i < size; i++) {
+        buf[i] = generate<uint8_t>();
+    }
+}
+
 }
