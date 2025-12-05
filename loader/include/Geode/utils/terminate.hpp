@@ -2,6 +2,7 @@
 
 #include "../DefaultInclude.hpp"
 #include <exception>
+#include <Geode/utils/string.hpp>
 
 namespace geode {
     class Mod;
