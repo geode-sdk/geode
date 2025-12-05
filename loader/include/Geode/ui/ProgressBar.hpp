@@ -1,4 +1,5 @@
 #pragma once
+#include <cocos2d.h>
 
 namespace geode {
     // Enum for progress bar style
