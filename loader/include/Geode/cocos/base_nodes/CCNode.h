@@ -44,11 +44,6 @@ namespace geode {
     class Layout;
     class LayoutOptions;
     enum class Anchor;
-
-    template <typename T, typename>
-    struct CCArrayExtCheck {
-        using type = void;
-    };
 }
 
 NS_CC_BEGIN

@@ -106,6 +106,12 @@ do {                                                                  \
 }                                                                     \
 while(false)
 
+namespace geode {
+    template <typename T, typename>
+    struct CCArrayExtCheck {
+        using type = void;
+    };
+}
 
 NS_CC_BEGIN
 /**
@@ -270,6 +276,21 @@ public:
      * @returns New array with same members
      */
     GEODE_DLL CCArray* shallowCopy();
+
+    /*
+    * Turns this array into a `CCArrayExt<T>`, making it way more convenient to use.
+    * You must include `<Geode/utils/cocos.hpp>` to use this, otherwise it won't compile
+    */
+    template <typename T = CCObject, typename PleaseDontChangeMe = void>
+    inline auto asExt() {
+        // CCArrayExt is defined in geode/utils/cocos.hpp, which we cannot include due to circular includes.
+        // This is an incredibly hacky way to still be able to use the type
+
+        using CCArrayExt = geode::CCArrayExtCheck<T, PleaseDontChangeMe>::type;
+        static_assert(!std::is_void_v<CCArrayExt>, "Please include <Geode/utils/cocos.hpp> to use asExt()");
+
+        return CCArrayExt(this);
+    }
 
     /* override functions */
     virtual void acceptVisitor(CCDataVisitor &visitor);

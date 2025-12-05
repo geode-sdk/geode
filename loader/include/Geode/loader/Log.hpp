@@ -4,6 +4,7 @@
 #include "../platform/cplatform.h"
 
 #include <Geode/DefaultInclude.hpp>
+#include <Geode/Result.hpp>
 #include <ccTypes.h>
 #include <chrono>
 #include <filesystem>
@@ -22,6 +23,17 @@ namespace geode {
     GEODE_DLL std::string format_as(cocos2d::CCNode*);
     class Mod;
     GEODE_DLL std::string format_as(Mod*);
+
+    template <typename T, typename E>
+    std::string format_as(Result<T, E> const& result) {
+        if (result) {
+            std::string_view quotes = std::is_same_v<T, std::string> ? "\"" : "";
+            return fmt::format("Ok({}{}{})", quotes, result.unwrap(), quotes);
+        } else {
+            std::string_view quotes = std::is_same_v<E, std::string> ? "\"" : "";
+            return fmt::format("Err({}{}{})", quotes, result.unwrapErr(), quotes);
+        }
+    }
 }
 
 namespace geode::log::impl {
