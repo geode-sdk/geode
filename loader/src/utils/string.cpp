@@ -238,7 +238,7 @@ std::string utils::string::trim(std::string const& str) {
     return utils::string::trim(str, WHITESPACE);
 }
 
-std::string& utils::string::filterIP(std::string& str, std::string const& allowed) {
+std::string& utils::string::filterIP(std::string& str, std::string_view allowed) {
     std::string res;
     res.reserve(str.size());
     for (char c : str) {
@@ -250,7 +250,7 @@ std::string& utils::string::filterIP(std::string& str, std::string const& allowe
     return str;
 }
 
-std::string& utils::string::removeIP(std::string& str, std::string const& disallowed) {
+std::string& utils::string::removeIP(std::string& str, std::string_view disallowed) {
     std::string res;
     res.reserve(str.size());
     for (char c : str) {
@@ -262,16 +262,17 @@ std::string& utils::string::removeIP(std::string& str, std::string const& disall
     return str;
 }
 
-std::string utils::string::filter(std::string const& str, std::string const& allowed) {
+std::string utils::string::filter(std::string const& str, std::string_view allowed) {
     std::string ret = str;
-    return utils::string::filterIP(ret, allowed);
+    utils::string::filterIP(ret, allowed);
+    return ret;
 }
 
-std::string utils::string::remove(std::string const& str, std::string const& disallowed) {
+std::string utils::string::remove(std::string const& str, std::string_view disallowed) {
     std::string ret = str;
-    return utils::string::removeIP(ret, disallowed);
+    utils::string::removeIP(ret, disallowed);
+    return ret;
 }
-
 
 std::string& utils::string::normalizeIP(std::string& str) {
     while (utils::string::contains(str, "  "))
