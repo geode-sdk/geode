@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/utils/function.hpp>
 
 namespace geode {
 

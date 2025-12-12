@@ -3,6 +3,7 @@
 #include "LoadingSpinner.hpp"
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/utils/function.hpp>
 
 #include <cocos2d.h>
 #include <filesystem>

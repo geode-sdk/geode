@@ -2,6 +2,7 @@
 
 #include <Geode/DefaultInclude.hpp>
 //#include <Geode/utils/general.hpp>
+#include <Geode/utils/function.hpp>
 #include <filesystem>
 #include <functional>
 #include <string>

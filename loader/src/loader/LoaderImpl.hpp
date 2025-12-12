@@ -10,6 +10,7 @@
 #include <Geode/Result.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/ranges.hpp>
+#include <Geode/utils/function.hpp>
 #include "ModImpl.hpp"
 #include <crashlog.hpp>
 #include <mutex>

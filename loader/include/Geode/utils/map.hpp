@@ -3,6 +3,7 @@
 #include <Geode/Result.hpp>
 
 #include <Geode/DefaultInclude.hpp>
+#include <Geode/utils/function.hpp>
 #include <functional>
 #include <string>
 #include <unordered_map>

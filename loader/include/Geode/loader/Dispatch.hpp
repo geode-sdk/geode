@@ -3,6 +3,7 @@
 #include "Event.hpp"
 #include "../utils/function.hpp"
 #include "../modify/Traits.hpp"
+#include <Geode/utils/function.hpp>
 
 #include <functional>
 #include <string>

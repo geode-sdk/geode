@@ -3,6 +3,7 @@
 #include "Traits.hpp"
 
 #include <Geode/loader/Loader.hpp>
+#include <Geode/utils/function.hpp>
 #include <cocos2d.h>
 #include <vector>
 

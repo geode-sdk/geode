@@ -5,6 +5,7 @@
 #include <set>
 #include <variant>
 #include <Geode/Result.hpp>
+#include <Geode/utils/function.hpp>
 
 namespace geode {
     struct JsonChecker;

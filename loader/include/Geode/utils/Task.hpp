@@ -1,6 +1,7 @@
 #pragma once
 
 #include "general.hpp"
+#include "function.hpp"
 #include "../loader/Event.hpp"
 #include "../loader/Loader.hpp"
 #include <mutex>

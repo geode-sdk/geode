@@ -3,6 +3,7 @@
 #include <string>
 #include <matjson.hpp>
 #include <Geode/loader/Event.hpp>
+#include <Geode/utils/function.hpp>
 
 namespace geode::updater {
     using UpdateFinished = std::monostate;

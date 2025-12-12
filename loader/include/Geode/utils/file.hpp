@@ -8,6 +8,7 @@
 #include <matjson.hpp>
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/utils/string.hpp>
+#include <Geode/utils/function.hpp>
 #include <filesystem>
 #include <string>
 #include <unordered_set>

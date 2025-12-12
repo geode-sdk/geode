@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cocos2d.h>
+#include <Geode/utils/function.hpp>
 
 namespace geode {
     enum class TextAlignment {

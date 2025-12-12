@@ -3,6 +3,7 @@
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/binding/TextInputDelegate.hpp>
 #include <Geode/binding/CCTextInputNode.hpp>
+#include <Geode/utils/function.hpp>
 #include <cocos2d.h>
 
 namespace geode {
