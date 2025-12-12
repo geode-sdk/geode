@@ -7,9 +7,9 @@ using namespace geode::prelude;
 
 bool MDPopup::setup(
     std::string const& title, std::string const& info, char const* btn1Text, char const* btn2Text,
-    std::function<void(bool)> onClick
+    geode::Function<void(bool)> onClick
 ) {
-    m_onClick = onClick;
+    m_onClick = std::move(onClick);
 
     auto contentSize = CCSize {
         m_size.width - 50.f,
@@ -70,11 +70,11 @@ float MDPopup::estimateHeight(std::string const& content) {
 
 MDPopup* MDPopup::create(
     std::string const& title, std::string const& content, char const* btn1, char const* btn2,
-    std::function<void(bool)> onClick
+    geode::Function<void(bool)> onClick
 ) {
     auto ret = new MDPopup();
     if (ret->initAnchored(
-            400.f, MDPopup::estimateHeight(content), title, content, btn1, btn2, onClick,
+            400.f, MDPopup::estimateHeight(content), title, content, btn1, btn2, std::move(onClick),
             "square01_001.png", { 0, 0, 94, 94 }
         )) {
         ret->autorelease();
@@ -86,7 +86,7 @@ MDPopup* MDPopup::create(
 
 MDPopup* MDPopup::create(
     bool compatibilityMode, std::string const& title, std::string const& content, char const* btn1,
-    char const* btn2, std::function<void(bool)> onClick
+    char const* btn2, geode::Function<void(bool)> onClick
 ) {
     auto ret = new MDPopup();
 
@@ -95,7 +95,7 @@ MDPopup* MDPopup::create(
     ret->setUserObject("compatibilityMode"_spr, boolObj);
 
     if (ret->initAnchored(
-            400.f, MDPopup::estimateHeight(content), title, content, btn1, btn2, onClick,
+            400.f, MDPopup::estimateHeight(content), title, content, btn1, btn2, std::move(onClick),
             "square01_001.png", { 0, 0, 94, 94 }
         )) {
         ret->autorelease();

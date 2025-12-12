@@ -45,7 +45,7 @@ bool applyCondvarPatch() {
 // mini threadpool type thing
 class Manager {
 public:
-    using Task = std::function<void()>;
+    using Task = geode::Function<void()>;
 
     static Manager& get() {
         static Manager instance;
@@ -103,7 +103,7 @@ private:
     std::atomic_bool m_requestedStop;
     std::atomic_size_t m_spinCounter = 0;
 
-    std::function<void()> threadPickTask(std::unique_lock<std::mutex>& lock) {
+    geode::Function<void()> threadPickTask(std::unique_lock<std::mutex>& lock) {
         auto task = std::move(m_tasks.front());
         m_tasks.pop();
         return task;

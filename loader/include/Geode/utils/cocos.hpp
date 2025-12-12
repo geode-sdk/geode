@@ -694,7 +694,7 @@ namespace geode::cocos {
      */
     GEODE_DLL cocos2d::CCScene* switchToScene(cocos2d::CCLayer* layer);
 
-    using CreateLayerFunc = std::function<cocos2d::CCLayer*()>;
+    using CreateLayerFunc = geode::Function<cocos2d::CCLayer*()>;
 
     /**
      * Reload textures, overwriting the scene to return to after the loading
@@ -762,17 +762,14 @@ namespace geode::cocos {
      * there is none
      */
     template <class Type = cocos2d::CCNode>
-    Type* findFirstChildRecursive(cocos2d::CCNode* node, std::function<bool(Type*)> predicate) {
-        if (cast::typeinfo_cast<Type*>(node) && predicate(static_cast<Type*>(node)))
-            return static_cast<Type*>(node);
+    Type* findFirstChildRecursive(cocos2d::CCNode* gnode, geode::FunctionRef<bool(Type*)> predicate) {
+        auto node = cast::typeinfo_cast<Type*>(gnode);
+        if (node && predicate(node))
+            return node;
 
-        auto children = node->getChildren();
-        if (!children) return nullptr;
-
-        for (int i = 0; i < children->count(); ++i) {
-            auto newParent = static_cast<cocos2d::CCNode*>(children->objectAtIndex(i));
-            auto child = findFirstChildRecursive(newParent, predicate);
-            if (child) return child;
+        for (auto child : gnode->getChildrenExt()) {
+            auto result = findFirstChildRecursive(child, predicate);
+            if (result) return result;
         }
 
         return nullptr;
@@ -1000,7 +997,7 @@ namespace geode::cocos {
      * @returns The array
      */
     template <typename T, typename C, typename = std::enable_if_t<std::is_pointer_v<C>>>
-    static cocos2d::CCArray* vectorToCCArray(std::vector<T> const& vec, std::function<C(T)> convFunc) {
+    static cocos2d::CCArray* vectorToCCArray(std::vector<T> const& vec, geode::FunctionRef<C(T)> convFunc) {
         auto res = cocos2d::CCArray::createWithCapacity(vec.size());
         for (auto const& item : vec)
             res->addObject(convFunc(item));
@@ -1047,7 +1044,7 @@ namespace geode::cocos {
     template <
         typename K, typename V, typename C,
         typename = std::enable_if_t<std::is_same_v<C, std::string> || std::is_same_v<C, intptr_t>>>
-    static cocos2d::CCDictionary* mapToCCDict(std::map<K, V> const& map, std::function<C(K)> convFunc) {
+    static cocos2d::CCDictionary* mapToCCDict(std::map<K, V> const& map, geode::FunctionRef<C(K)> convFunc) {
         auto res = cocos2d::CCDictionary::create();
         for (auto const& [key, value] : map)
             res->setObject(value, convFunc(key));
@@ -1378,9 +1375,9 @@ namespace geode::cocos {
         template <class Node>
         class LambdaCallback : public cocos2d::CCObject {
         public:
-            std::function<void(Node*)> m_callback;
+            geode::Function<void(Node*)> m_callback;
 
-            static LambdaCallback* create(std::function<void(Node*)> callback) {
+            static LambdaCallback* create(geode::Function<void(Node*)> callback) {
                 auto ret = new (std::nothrow) LambdaCallback();
                 if (ret->init(std::move(callback))) {
                     ret->autorelease();
@@ -1390,7 +1387,7 @@ namespace geode::cocos {
                 return nullptr;
             }
 
-            bool init(std::function<void(Node*)> callback) {
+            bool init(geode::Function<void(Node*)> callback) {
                 m_callback = std::move(callback);
                 return true;
             }
@@ -1408,7 +1405,7 @@ namespace geode::cocos {
          * @returns The created button
          */
         static cocos2d::CCMenuItem* create(
-            std::function<void(cocos2d::CCMenuItem*)> callback
+            geode::Function<void(cocos2d::CCMenuItem*)> callback
         ) {
             auto item = cocos2d::CCMenuItem::create();
             assignCallback(item, std::move(callback));
@@ -1426,7 +1423,7 @@ namespace geode::cocos {
         static cocos2d::CCMenuItemSprite* createSprite(
             cocos2d::CCNode* normalSprite,
             cocos2d::CCNode* selectedSprite,
-            std::function<void(cocos2d::CCMenuItemSprite*)> callback
+            geode::Function<void(cocos2d::CCMenuItemSprite*)> callback
         ) {
             auto item = cocos2d::CCMenuItemSprite::create(normalSprite, selectedSprite);
             assignCallback(item, std::move(callback));
@@ -1446,7 +1443,7 @@ namespace geode::cocos {
             cocos2d::CCNode* normalSprite,
             cocos2d::CCNode* selectedSprite,
             cocos2d::CCNode* disabledSprite,
-            std::function<void(cocos2d::CCMenuItemSprite*)> callback
+            geode::Function<void(cocos2d::CCMenuItemSprite*)> callback
         ) {
             auto item = cocos2d::CCMenuItemSprite::create(normalSprite, selectedSprite, disabledSprite);
             assignCallback(item, std::move(callback));
@@ -1462,7 +1459,7 @@ namespace geode::cocos {
          */
         static CCMenuItemSpriteExtra* createSpriteExtra(
             cocos2d::CCNode* normalSprite,
-            std::function<void(CCMenuItemSpriteExtra*)> callback
+            geode::Function<void(CCMenuItemSpriteExtra*)> callback
         ) {
             auto item = CCMenuItemSpriteExtra::create(normalSprite, nullptr, nullptr);
             assignCallback(item, std::move(callback));
@@ -1480,7 +1477,7 @@ namespace geode::cocos {
         static CCMenuItemSpriteExtra* createSpriteExtraWithFilename(
             std::string_view normalSpriteName,
             float scale,
-            std::function<void(CCMenuItemSpriteExtra*)> callback
+            geode::Function<void(CCMenuItemSpriteExtra*)> callback
         ) {
             auto sprite = cocos2d::CCSprite::create(normalSpriteName.data());
             sprite->setScale(scale);
@@ -1499,7 +1496,7 @@ namespace geode::cocos {
         static CCMenuItemSpriteExtra* createSpriteExtraWithFrameName(
             std::string_view normalSpriteName,
             float scale,
-            std::function<void(CCMenuItemSpriteExtra*)> callback
+            geode::Function<void(CCMenuItemSpriteExtra*)> callback
         ) {
             auto sprite = cocos2d::CCSprite::createWithSpriteFrameName(normalSpriteName.data());
             sprite->setScale(scale);
@@ -1518,7 +1515,7 @@ namespace geode::cocos {
         static CCMenuItemToggler* createToggler(
             cocos2d::CCNode* onSprite,
             cocos2d::CCNode* offSprite,
-            std::function<void(CCMenuItemToggler*)> callback
+            geode::Function<void(CCMenuItemToggler*)> callback
         ) {
             auto item = CCMenuItemToggler::create(offSprite, onSprite, nullptr, nullptr);
             assignCallback(item, std::move(callback));
@@ -1534,7 +1531,7 @@ namespace geode::cocos {
          */
         static CCMenuItemToggler* createTogglerWithStandardSprites(
             float scale,
-            std::function<void(CCMenuItemToggler*)> callback
+            geode::Function<void(CCMenuItemToggler*)> callback
         ) {
             auto offSprite = cocos2d::CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png");
             auto onSprite = cocos2d::CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png");
@@ -1557,7 +1554,7 @@ namespace geode::cocos {
             std::string_view onSpriteName,
             std::string_view offSpriteName,
             float scale,
-            std::function<void(CCMenuItemToggler*)> callback
+            geode::Function<void(CCMenuItemToggler*)> callback
         ) {
             auto offSprite = cocos2d::CCSprite::create(offSpriteName.data());
             auto onSprite = cocos2d::CCSprite::create(onSpriteName.data());
@@ -1580,7 +1577,7 @@ namespace geode::cocos {
             std::string_view onSpriteName,
             std::string_view offSpriteName,
             float scale,
-            std::function<void(CCMenuItemToggler*)> callback
+            geode::Function<void(CCMenuItemToggler*)> callback
         ) {
             auto offSprite = cocos2d::CCSprite::createWithSpriteFrameName(offSpriteName.data());
             auto onSprite = cocos2d::CCSprite::createWithSpriteFrameName(onSpriteName.data());
@@ -1600,7 +1597,7 @@ namespace geode::cocos {
         template <class Node>
         static void assignCallback(
             cocos2d::CCMenuItem* item,
-            std::function<void(Node*)> callback
+            geode::Function<void(Node*)> callback
         ) {
             auto lambda = LambdaCallback<Node>::create(std::move(callback));
             item->setTarget(lambda, menu_selector(LambdaCallback<Node>::execute));
@@ -1636,7 +1633,7 @@ namespace geode::cocos {
         CallFuncExtImpl(F const& func) : m_func(func) {}
 
         void update(float) override {
-            // Make sure any `std::function`s are valid
+            // Make sure any `geode::Function`s are valid
             if constexpr (requires { static_cast<bool>(m_func); }) {
                 if (m_func) m_func();
             } else {

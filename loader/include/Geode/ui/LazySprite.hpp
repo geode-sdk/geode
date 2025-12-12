@@ -20,7 +20,7 @@ namespace geode {
      */
     class GEODE_DLL LazySprite final : public cocos2d::CCSprite {
     public:
-        using Callback = std::function<void(Result<>)>;
+        using Callback = geode::Function<void(Result<>)>;
         using Format = cocos2d::CCImage::EImageFormat;
 
         static LazySprite* create(cocos2d::CCSize size, bool loadingCircle = true);

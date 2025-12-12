@@ -155,9 +155,9 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
 }
 
 std::mutex s_callbackMutex;
-static std::function<void(Result<std::filesystem::path>)> s_fileCallback {};
-static std::function<void(Result<std::vector<std::filesystem::path>>)> s_filesCallback {};
-static std::function<bool()> s_taskCancelled {};
+static geode::Function<void(Result<std::filesystem::path>)> s_fileCallback {};
+static geode::Function<void(Result<std::vector<std::filesystem::path>>)> s_filesCallback {};
+static geode::Function<bool()> s_taskCancelled {};
 
 extern "C"
 JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_selectFileCallback(
@@ -262,8 +262,8 @@ Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, file::FilePi
     }
     return RetTask::runWithCallback([] (auto result, auto progress, auto cancelled) {
         const std::lock_guard lock(s_callbackMutex);
-        s_fileCallback = result;
-        s_taskCancelled = cancelled;
+        s_fileCallback = std::move(result);
+        s_taskCancelled = std::move(cancelled);
     });
 }
 
@@ -292,8 +292,8 @@ Task<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions 
 
     return RetTask::runWithCallback([options](auto result, auto progress, auto cancelled){
         const std::lock_guard lock(s_callbackMutex);
-        s_filesCallback = result;
-        s_taskCancelled = cancelled;
+        s_filesCallback = std::move(result);
+        s_taskCancelled = std::move(cancelled);
     });
 }
 
@@ -388,7 +388,7 @@ bool geode::utils::permission::getPermissionStatus(Permission permission) {
     return false;
 }
 
-static std::function<void(bool)> s_permissionCallback;
+static geode::Function<void(bool)> s_permissionCallback;
 
 extern "C"
 JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_permissionCallback(
@@ -403,8 +403,8 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_permissionCallba
     }
 }
 
-void geode::utils::permission::requestPermission(Permission permission, std::function<void(bool)> callback) {
-    s_permissionCallback = callback;
+void geode::utils::permission::requestPermission(Permission permission, geode::Function<void(bool)> callback) {
+    s_permissionCallback = std::move(callback);
     JniMethodInfo info;
     if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "requestPermission", "(Ljava/lang/String;)V")) {
         jstring permString = info.env->NewStringUTF(permissionToName(permission));
@@ -497,7 +497,7 @@ AndroidInputTimestampEvent::AndroidInputTimestampEvent(long timestamp) : m_times
 
 long AndroidInputTimestampEvent::getTimestamp() const { return m_timestamp; }
 
-ListenerResult AndroidInputTimestampFilter::handle(std::function<Callback> fn, AndroidInputTimestampEvent* event)  {
+ListenerResult AndroidInputTimestampFilter::handle(geode::Function<Callback>& fn, AndroidInputTimestampEvent* event)  {
     fn(event);
     return ListenerResult::Propagate;
 }

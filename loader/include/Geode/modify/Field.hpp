@@ -19,7 +19,7 @@ namespace geode::modifier {
     class FieldContainer {
     private:
         std::vector<void*> m_containedFields;
-        std::vector<std::function<void(void*)>> m_destructorFunctions;
+        std::vector<geode::Function<void(void*)>> m_destructorFunctions;
 
     public:
         ~FieldContainer() {
@@ -39,7 +39,7 @@ namespace geode::modifier {
             return m_containedFields.at(index);
         }
 
-        void* setField(size_t index, size_t size, std::function<void(void*)> destructor) {
+        void* setField(size_t index, size_t size, geode::Function<void(void*)> destructor) {
             m_containedFields.at(index) = operator new(size);
             m_destructorFunctions.at(index) = std::move(destructor);
             return m_containedFields.at(index);

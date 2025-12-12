@@ -29,8 +29,8 @@ std::optional<matjson::Value> s_latestGithubRelease;
 bool s_isNewUpdateDownloaded = false;
 
 void updater::fetchLatestGithubRelease(
-    const std::function<void(matjson::Value const&)>& then,
-    std::function<void(std::string const&)> expect, bool force
+    geode::Function<void(matjson::Value const&)> then,
+    geode::Function<void(std::string const&)> expect, bool force
 ) {
     if (s_latestGithubRelease) {
         return then(s_latestGithubRelease.value());
@@ -60,7 +60,7 @@ void updater::fetchLatestGithubRelease(
     RUNNING_REQUESTS.emplace(
         "@loaderAutoUpdateCheck",
         req.get("https://api.github.com/repos/geode-sdk/geode/releases/latest").map(
-            [expect = std::move(expect), then = std::move(then)](web::WebResponse* response) {
+            [expect = std::move(expect), then = std::move(then)](web::WebResponse* response) mutable {
                 if (response->ok()) {
                     if (response->data().empty()) {
                         expect("Empty response");

@@ -410,8 +410,8 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         } responseData = {
             .response = WebResponse(),
             .impl = impl.get(),
-            .progress = progress,
-            .hasBeenCancelled = hasBeenCancelled,
+            .progress = std::move(progress),
+            .hasBeenCancelled = std::move(hasBeenCancelled),
         };
 
         // Store downloaded response data into a byte vector

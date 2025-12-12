@@ -5,6 +5,7 @@
 namespace geode {
     using Setting = SettingV3;
     using SettingGenerator = SettingGeneratorV3;
+    using SettingGeneratorRef = SettingGeneratorV3Ref;
 
     template <class T, class V = T>
     using SettingBaseValue = SettingBaseValueV3<T, V>;
@@ -27,20 +28,19 @@ namespace geode {
     using SettingNodeSizeChangeEvent = SettingNodeSizeChangeEventV3;
     using SettingNodeValueChangeEvent = SettingNodeValueChangeEventV3;
 
-    template <class T, class Lambda>
-    EventListener<SettingChangedFilter>* listenForSettingChanges(std::string_view settingKey, Lambda&& callback, Mod* mod = getMod()) {
-        return listenForSettingChangesV3<T>(settingKey, std::forward<Lambda>(callback), mod);
+    template <class T>
+    EventListener<SettingChangedFilter>* listenForSettingChanges(std::string_view settingKey, auto callback, Mod* mod = getMod()) {
+        return listenForSettingChangesV3<T>(settingKey, std::move(callback), mod);
     }
 
-    template <class Lambda>
-    EventListener<SettingChangedFilter>* listenForSettingChanges(std::string_view settingKey, Lambda&& callback, Mod* mod = getMod()) {
-        return listenForSettingChangesV3(settingKey, std::forward<Lambda>(callback), mod);
+    EventListener<SettingChangedFilter>* listenForSettingChanges(std::string_view settingKey, auto callback, Mod* mod = getMod()) {
+        return listenForSettingChangesV3(settingKey, std::move(callback), mod);
     }
 
     inline EventListener<SettingChangedFilter>* listenForAllSettingChanges(
-        std::function<void(std::shared_ptr<SettingV3>)> const& callback,
+        geode::Function<void(std::shared_ptr<SettingV3>)> callback,
         Mod* mod = getMod()
     ) {
-        return listenForAllSettingChangesV3(callback, mod);
+        return listenForAllSettingChangesV3(std::move(callback), mod);
     }
 }

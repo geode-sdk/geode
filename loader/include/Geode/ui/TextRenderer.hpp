@@ -50,6 +50,9 @@ namespace geode {
      */
     class GEODE_DLL TextRenderer : public cocos2d::CCObject {
     public:
+        TextRenderer() = default;
+        TextRenderer(const TextRenderer&) = delete;
+        TextRenderer(TextRenderer&&) = delete;
         /**
          * Represents a label. As CCLabelBMFont and
          * CCLabelTTF have different inheritance
@@ -122,7 +125,8 @@ namespace geode {
          * to distinguish between bold, italic and
          * regular text.
          */
-        using Font = std::function<Label(int)>;
+        using Font = geode::Function<Label(int) const>;
+        using FontRef = geode::FunctionRef<Label(int) const>;
 
     protected:
         cocos2d::CCPoint m_origin = cocos2d::CCPointZero;
@@ -262,9 +266,9 @@ namespace geode {
          * sure the const char* outlives the renderer.
          */
         void pushBMFont(char const* bmFont);
-        void pushFont(Font const& font);
+        void pushFont(Font font);
         void popFont();
-        Font getCurrentFont() const;
+        FontRef getCurrentFont() const;
 
         void pushScale(float scale);
         void popScale();

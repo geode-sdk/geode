@@ -40,7 +40,8 @@ namespace geode {
 
         LoadingState m_loadingState = LoadingState::None;
 
-        std::vector<std::function<void(void)>> m_mainThreadQueue;
+        std::vector<geode::Function<void(void)>> m_mainThreadQueue;
+        std::vector<geode::Function<void(void)>> m_mainThreadQueueExec; // see comments in loaderimpl.cpp for the purpose
         mutable std::mutex m_mainThreadMutex;
         std::vector<std::pair<Hook*, Mod*>> m_uninitializedHooks;
         bool m_readyToHook = false;
@@ -152,7 +153,7 @@ namespace geode {
 
         // This will potentially start a whole sequence of popups that guide the
         // user through installing the specific .geode file
-        void installModManuallyFromFile(std::filesystem::path const& path, std::function<void()> after);
+        void installModManuallyFromFile(std::filesystem::path const& path, geode::Function<void()> after);
 
         bool isRestartRequired() const;
 

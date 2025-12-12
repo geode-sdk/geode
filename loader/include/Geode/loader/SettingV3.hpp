@@ -179,7 +179,13 @@ namespace geode {
         virtual void reset() = 0;
     };
 
-    using SettingGeneratorV3 = std::function<Result<std::shared_ptr<SettingV3>>(
+    using SettingGeneratorV3 = geode::Function<Result<std::shared_ptr<SettingV3>>(
+        std::string const& key,
+        std::string const& modID,
+        matjson::Value const& json
+    )>;
+
+    using SettingGeneratorV3Ref = geode::FunctionRef<Result<std::shared_ptr<SettingV3>>(
         std::string const& key,
         std::string const& modID,
         matjson::Value const& json
@@ -656,7 +662,7 @@ namespace geode {
     public:
         using Callback = void(std::shared_ptr<SettingV3>);
 
-        ListenerResult handle(std::function<Callback> fn, SettingChangedEventV3* event);
+        ListenerResult handle(geode::Function<Callback>& fn, SettingChangedEventV3* event);
         /**
          * Listen to changes on a setting, or all settings
          * @param modID Mod whose settings to listen to
@@ -748,7 +754,7 @@ namespace geode {
         return listenForSettingChangesV3<T>(settingKey, std::move(callback), mod);
     }
     GEODE_DLL EventListener<SettingChangedFilterV3>* listenForAllSettingChangesV3(
-        std::function<void(std::shared_ptr<SettingV3>)> const& callback,
+        geode::Function<void(std::shared_ptr<SettingV3>)> callback,
         Mod* mod = getMod()
     );
 }

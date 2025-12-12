@@ -39,6 +39,7 @@
 #include "../include/CCProtocols.h"
 #include <Geode/loader/Event.hpp>
 #include <Geode/utils/casts.hpp>
+#include <Geode/utils/function.hpp>
 
 namespace geode {
     class Layout;
@@ -1114,22 +1115,22 @@ public:
     template <class Filter, class... Args>
     geode::EventListenerProtocol* addEventListener(
         std::string const& id,
-        std::function<typename Filter::Callback> callback,
+        geode::Function<typename Filter::Callback> callback,
         Args&&... args
     ) {
         auto listener = new geode::EventListener<Filter>(
-            callback, Filter(this, std::forward<Args>(args)...)
+            std::move(callback), Filter(this, std::forward<Args>(args)...)
         );
         this->addEventListenerInternal(id, listener);
         return listener;
     }
     template <class Filter, class... Args>
     geode::EventListenerProtocol* addEventListener(
-        std::function<typename Filter::Callback> callback,
+        geode::Function<typename Filter::Callback> callback,
         Args&&... args
     ) {
         return this->addEventListener<Filter, Args...>(
-            "", callback, std::forward<Args>(args)...
+            "", std::move(callback), std::forward<Args>(args)...
         );
     }
     GEODE_DLL void removeEventListener(geode::EventListenerProtocol* listener);
@@ -1952,7 +1953,7 @@ namespace geode {
 		std::string m_targetID;
 
 	public:
-        ListenerResult handle(std::function<Callback> fn, UserObjectSetEvent* event);
+        ListenerResult handle(geode::Function<Callback>& fn, UserObjectSetEvent* event);
 
 		AttributeSetFilter(std::string const& id);
     };

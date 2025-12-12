@@ -378,7 +378,7 @@ bool geode::utils::permission::getPermissionStatus(Permission permission) {
     }
 }
 
-void geode::utils::permission::requestPermission(Permission permission, std::function<void(bool)> callback) {
+void geode::utils::permission::requestPermission(Permission permission, geode::Function<void(bool)> callback) {
     switch (permission) {
         case Permission::RecordAudio: 
             return [[AVAudioSession sharedInstance] requestRecordPermission:^(BOOL granted) {

@@ -72,7 +72,7 @@ namespace geode {
     }
 
     template <class T>
-    using JsonValueValidator = std::function<bool(T const&)>;
+    using JsonValueValidator = geode::Function<bool(T const&)>;
 
     struct JsonMaybeObject;
     struct JsonMaybeValue;

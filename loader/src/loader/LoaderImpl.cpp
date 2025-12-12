@@ -993,17 +993,27 @@ void Loader::Impl::queueInMainThread(ScheduledFunction&& func) {
 }
 
 void Loader::Impl::executeMainThreadQueue() {
-    // move queue to avoid locking mutex if someone is
-    // running addToMainThread inside their function
     m_mainThreadMutex.lock();
-    auto queue = std::move(m_mainThreadQueue);
-    m_mainThreadQueue = {};
+
+    // to prevent allocating an extra vector every frame we have a separate temp queue,
+    // where we first move all functions before executing them.
+    // this means there are no allocations in the common case, and we maintain deadlock safety
+    // since we do not call any functions while holding the mutex
+    
+    auto& queue = m_mainThreadQueue;
+    auto& execQueue = m_mainThreadQueueExec;
+    execQueue.reserve(queue.size());
+    std::move(queue.begin(), queue.end(), std::back_inserter(execQueue));
+    queue.clear();
+
     m_mainThreadMutex.unlock();
 
-    // call queue
-    for (auto const& func : queue) {
+    // call all functions
+    for (auto& func : execQueue) {
         func();
     }
+
+    execQueue.clear();
 }
 
 void Loader::Impl::provideNextMod(Mod* mod) {
@@ -1134,7 +1144,7 @@ void Loader::Impl::forceSafeMode() {
     m_forceSafeMode = true;
 }
 
-void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path, std::function<void()> after) {
+void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path, geode::Function<void()> after) {
     auto res = ModMetadata::createFromGeodeFile(path);
     if (!res) {
         FLAlertLayer::create(
@@ -1163,7 +1173,7 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
         )->show();
     }
 
-    auto doInstallModFromFile = [this, path, meta, after]() {
+    auto doInstallModFromFile = [this, path, meta, after = std::move(after)]() mutable {
         std::error_code ec;
 
         static size_t MAX_ATTEMPTS = 10;
@@ -1263,7 +1273,7 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
                 existing->getVersion()
             ),
             "Cancel", "Replace",
-            [doInstallModFromFile, path, existing, meta](auto, bool btn2) mutable {
+            [doInstallModFromFile = std::move(doInstallModFromFile), path, existing, meta](auto, bool btn2) mutable {
                 std::error_code ec;
                 std::filesystem::remove(existing->getPackagePath(), ec);
                 if (ec) {

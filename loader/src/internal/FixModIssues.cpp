@@ -20,7 +20,7 @@ protected:
         std::string content;
         std::string optionA;
         std::string optionB;
-        std::function<void(bool)> after;
+        geode::Function<void(bool)> after;
     };
 
     EventListener<server::ModDownloadFilter> m_download;
@@ -70,7 +70,7 @@ protected:
         );
     }
     void ask(Question&& question) {
-        m_questionQueue.push_back(question);
+        m_questionQueue.push_back(std::move(question));
         // If this was the first question in the queue, start asking
         if (m_questionQueue.size() == 1) {
             this->nextQuestion();

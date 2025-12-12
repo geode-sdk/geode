@@ -57,7 +57,7 @@ namespace geode::ipc {
         std::string m_messageID;
 
     public:
-        ListenerResult handle(std::function<Callback> fn, IPCEvent* event);
+        ListenerResult handle(geode::Function<Callback>& fn, IPCEvent* event);
         IPCFilter(
             std::string const& modID,
             std::string const& messageID

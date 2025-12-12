@@ -27,7 +27,7 @@ namespace geode {
         GameEventType m_type;
 
     public:
-        ListenerResult handle(std::function<Callback> fn, GameEvent* event);
+        ListenerResult handle(geode::Function<Callback>& fn, GameEvent* event);
 
         GameEventFilter(GameEventType type);
         GameEventFilter(GameEventFilter const&) = default;

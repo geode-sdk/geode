@@ -473,7 +473,7 @@ public:
     std::optional<std::string> settingKey;
 };
 
-ListenerResult SettingChangedFilterV3::handle(std::function<Callback> fn, SettingChangedEventV3* event) {
+ListenerResult SettingChangedFilterV3::handle(geode::Function<Callback>& fn, SettingChangedEventV3* event) {
     if (
         event->getSetting()->getModID() == m_impl->modID &&
         (!m_impl->settingKey || event->getSetting()->getKey() == m_impl->settingKey)
@@ -498,11 +498,11 @@ SettingChangedFilterV3::SettingChangedFilterV3(Mod* mod, std::optional<std::stri
 SettingChangedFilterV3::SettingChangedFilterV3(SettingChangedFilterV3 const&) = default;
 
 EventListener<SettingChangedFilterV3>* geode::listenForAllSettingChangesV3(
-    std::function<void(std::shared_ptr<SettingV3>)> const& callback,
+    geode::Function<void(std::shared_ptr<SettingV3>)> callback,
     Mod* mod
 ) {
     return new EventListener(
-        [callback](std::shared_ptr<SettingV3> setting) {
+        [callback = std::move(callback)](std::shared_ptr<SettingV3> setting) mutable {
             callback(setting);
         },
         SettingChangedFilterV3(mod->getID(), std::nullopt)

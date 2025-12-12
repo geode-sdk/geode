@@ -168,7 +168,7 @@ std::shared_ptr<Setting> Mod::getSetting(std::string_view key) const {
 }
 
 Result<> Mod::registerCustomSettingType(std::string_view type, SettingGenerator generator) {
-    return m_impl->m_settings->registerCustomSettingType(type, generator);
+    return m_impl->m_settings->registerCustomSettingType(type, std::move(generator));
 }
 
 std::string Mod::getLaunchArgumentName(std::string_view name) const {

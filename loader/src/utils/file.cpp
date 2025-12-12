@@ -336,7 +336,7 @@ private:
     int32_t m_mode;
     std::variant<Path, ByteVector> m_srcDest;
     std::unordered_map<Path, ZipEntry, path_hash_t> m_entries;
-    std::function<void(uint32_t, uint32_t)> m_progressCallback;
+    geode::Function<void(uint32_t, uint32_t)> m_progressCallback;
 
     Result<> init() {
         // open stream from file
@@ -454,8 +454,8 @@ public:
         return Ok(std::move(ret));
     }
 
-    void setProgressCallback(std::function<void(uint32_t, uint32_t)> callback) {
-        m_progressCallback = callback;
+    void setProgressCallback(geode::Function<void(uint32_t, uint32_t)> callback) {
+        m_progressCallback = std::move(callback);
     }
 
     Result<> extractAt(Path const& dir, Path const& name) {
@@ -719,9 +719,9 @@ Unzip::Path Unzip::getPath() const {
 }
 
 void Unzip::setProgressCallback(
-    std::function<void(uint32_t, uint32_t)> callback
+    geode::Function<void(uint32_t, uint32_t)> callback
 ) {
-    return m_impl->setProgressCallback(callback);
+    return m_impl->setProgressCallback(std::move(callback));
 }
 
 std::vector<Unzip::Path> Unzip::getEntries() const {
@@ -776,13 +776,13 @@ Result<> Unzip::intoDir(
 }
 
 Result<> Unzip::intoDir(
-    std::function<void(uint32_t, uint32_t)> progressCallback,
+    geode::Function<void(uint32_t, uint32_t)> progressCallback,
     Path const& from,
     Path const& to,
     bool deleteZipAfter
 ) {
     GEODE_UNWRAP_INTO(auto unzip, Unzip::create(from));
-    unzip.setProgressCallback(progressCallback);
+    unzip.setProgressCallback(std::move(progressCallback));
     GEODE_UNWRAP(unzip.extractAllTo(to));
     if (deleteZipAfter) {
         std::error_code ec;
@@ -866,7 +866,7 @@ std::filesystem::path FileWatchEvent::getPath() const {
 }
 
 ListenerResult FileWatchFilter::handle(
-    std::function<Callback> callback,
+    geode::Function<Callback>& callback,
     FileWatchEvent* event
 ) {
     std::error_code ec;

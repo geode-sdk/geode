@@ -159,7 +159,7 @@ float SimpleTextArea::calculateOffset(CCLabelBMFont* label) {
     return m_linePadding + label->getContentSize().height * m_scale;
 }
 
-void SimpleTextArea::charIteration(const std::function<CCLabelBMFont*(CCLabelBMFont* line, char c, float top)>& overflowHandling) {
+void SimpleTextArea::charIteration(geode::FunctionRef<CCLabelBMFont*(CCLabelBMFont* line, char c, float top)> overflowHandling) {
     float top = 0;
     m_lines.clear();
     CCLabelBMFont* line = this->createLabel("", top);

@@ -55,7 +55,7 @@ namespace geode {
             return dispatchPools()[m_id];
         }
 
-        ListenerResult handle(std::function<Callback> fn, Ev* event) {
+        ListenerResult handle(geode::Function<Callback>& fn, Ev* event) {
             if (event->getID() == m_id) {
                 return std::apply(fn, event->getArgs());
             }
@@ -113,7 +113,7 @@ namespace geode::geode_internal {
         using StaticType = geode::modifier::AsStaticType<Fn>::type;
         Fn ptr = nullptr;
         geode::DispatchEvent<Fn*>(eventID, &ptr).post();
-        return std::function<std::remove_pointer_t<StaticType>>(ptr);
+        return geode::Function<std::remove_pointer_t<StaticType>>(ptr);
     }
 
     template <class Fn>

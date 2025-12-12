@@ -29,7 +29,7 @@ namespace geode {
     public:
         using Callback = void(AndroidInputTimestampEvent*);
 
-        ListenerResult handle(std::function<Callback> fn, AndroidInputTimestampEvent* event);
+        ListenerResult handle(geode::Function<Callback>& fn, AndroidInputTimestampEvent* event);
     };
 }
 

@@ -45,7 +45,7 @@ namespace geode {
     protected:
         cocos2d::extension::CCScale9Sprite* m_bgSprite = nullptr;
         CCTextInputNode* m_input = nullptr;
-        std::function<void(std::string const&)> m_onInput = nullptr;
+        geode::Function<void(std::string const&)> m_onInput = nullptr;
         cocos2d::CCLabelBMFont* m_label = nullptr;
 
         bool init(float width, std::string const& placeholder, std::string const& font);
@@ -114,7 +114,7 @@ namespace geode {
          * @param onInput Function to call when the user changes the value of
          * the text input
          */
-        void setCallback(std::function<void(std::string const&)> onInput);
+        void setCallback(geode::Function<void(std::string const&)> onInput);
         /**
          * Enable/disable the input
          */

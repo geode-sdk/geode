@@ -29,7 +29,7 @@ namespace geode {
         std::string m_id;
 
     public:
-        ListenerResult handle(std::function<Callback> fn, ColorProvidedEvent* event);
+        ListenerResult handle(geode::Function<Callback>& fn, ColorProvidedEvent* event);
 
         ColorProvidedFilter(std::string const& id);
     };

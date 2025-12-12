@@ -14,7 +14,7 @@
 #include <string_view>
 
 namespace geode {
-    using ScheduledFunction = std::function<void()>;
+    using ScheduledFunction = geode::Function<void()>;
 
     struct InvalidGeodeFile {
         std::filesystem::path path;

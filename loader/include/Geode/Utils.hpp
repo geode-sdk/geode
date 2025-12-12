@@ -6,6 +6,7 @@
 #include "utils/casts.hpp"
 #include "utils/cocos.hpp"
 #include "utils/map.hpp"
+#include "utils/function.hpp"
 #include "utils/string.hpp"
 #include "utils/file.hpp"
 #include "utils/permission.hpp"

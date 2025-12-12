@@ -51,7 +51,7 @@ namespace geode {
             }
 
         public:
-            ListenerResult handle(std::function<Callback> fn, CloseEvent* event) {
+            ListenerResult handle(geode::Function<Callback>& fn, CloseEvent* event) {
                 if (event->getPopup() == m_impl->popup) {
                     fn(event);
                 }
@@ -213,21 +213,21 @@ namespace geode {
 
     GEODE_DLL FLAlertLayer* createQuickPopup(
         char const* title, std::string const& content, char const* btn1, char const* btn2,
-        std::function<void(FLAlertLayer*, bool)> selected, bool doShow = true
+        geode::Function<void(FLAlertLayer*, bool)> selected, bool doShow = true
     );
 
     GEODE_DLL FLAlertLayer* createQuickPopup(
         char const* title, std::string const& content, char const* btn1, char const* btn2,
-        float width, std::function<void(FLAlertLayer*, bool)> selected, bool doShow = true
+        float width, geode::Function<void(FLAlertLayer*, bool)> selected, bool doShow = true
     );
 
     GEODE_DLL FLAlertLayer* createQuickPopup(
         char const* title, std::string const& content, char const* btn1, char const* btn2,
-        std::function<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
+        geode::Function<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
     );
 
     GEODE_DLL FLAlertLayer* createQuickPopup(
         char const* title, std::string const& content, char const* btn1, char const* btn2,
-        float width, std::function<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
+        float width, geode::Function<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
     );
 }

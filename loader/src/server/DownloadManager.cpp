@@ -12,7 +12,7 @@ using namespace server;
 
 ModDownloadEvent::ModDownloadEvent(std::string const& id) : id(id) {}
 
-ListenerResult ModDownloadFilter::handle(std::function<Callback> fn, ModDownloadEvent* event) {
+ListenerResult ModDownloadFilter::handle(geode::Function<Callback>& fn, ModDownloadEvent* event) {
     if (m_id.empty() || m_id == event->id) {
         fn(event);
     }

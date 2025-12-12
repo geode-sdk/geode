@@ -21,7 +21,7 @@ protected:
 public:
     using Callback = void(InvalidateCacheEvent*);
 
-    ListenerResult handle(std::function<Callback> fn, InvalidateCacheEvent* event);
+    ListenerResult handle(geode::Function<Callback>& fn, InvalidateCacheEvent* event);
 
     InvalidateCacheFilter() = default;
     InvalidateCacheFilter(ModListSource* src);

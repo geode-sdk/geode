@@ -28,22 +28,26 @@ static constexpr float g_indent = 7.f;
 static constexpr float g_codeBlockIndent = 8.f;
 static constexpr ccColor3B g_linkColor = {0x7f, 0xf4, 0xf4};
 
-TextRenderer::Font g_mdFont = [](int style) -> TextRenderer::Label {
-    if ((style & TextStyleBold) && (style & TextStyleItalic)) {
-        return CCLabelBMFont::create("", "mdFontBI.fnt"_spr);
-    }
-    if ((style & TextStyleBold)) {
-        return CCLabelBMFont::create("", "mdFontB.fnt"_spr);
-    }
-    if ((style & TextStyleItalic)) {
-        return CCLabelBMFont::create("", "mdFontI.fnt"_spr);
-    }
-    return CCLabelBMFont::create("", "mdFont.fnt"_spr);
-};
+auto makeMdFont() -> TextRenderer::Font {
+    return [](int style) -> TextRenderer::Label {
+        if ((style & TextStyleBold) && (style & TextStyleItalic)) {
+            return CCLabelBMFont::create("", "mdFontBI.fnt"_spr);
+        }
+        if ((style & TextStyleBold)) {
+            return CCLabelBMFont::create("", "mdFontB.fnt"_spr);
+        }
+        if ((style & TextStyleItalic)) {
+            return CCLabelBMFont::create("", "mdFontI.fnt"_spr);
+        }
+        return CCLabelBMFont::create("", "mdFont.fnt"_spr);
+    };
+}
 
-TextRenderer::Font g_mdMonoFont = [](int style) -> TextRenderer::Label {
-    return CCLabelBMFont::create("", "mdFontMono.fnt"_spr);
-};
+auto makeMdMonoFont() -> TextRenderer::Font {
+    return [](int style) -> TextRenderer::Label {
+        return CCLabelBMFont::create("", "mdFontMono.fnt"_spr);
+    };
+}
 
 class MDContentLayer : public CCContentLayer {
 protected:
@@ -487,7 +491,7 @@ struct MDParser {
                 {
                     s_isCodeBlock = true;
                     s_codeStart = renderer->getCursorPos().y;
-                    renderer->pushFont(g_mdMonoFont);
+                    renderer->pushFont(makeMdMonoFont());
                     renderer->pushIndent(g_codeBlockIndent);
                     renderer->pushWrapOffset(g_codeBlockIndent);
                 }
@@ -649,7 +653,7 @@ struct MDParser {
             case MD_SPANTYPE::MD_SPAN_CODE:
                 {
                     s_isCodeBlock = false;
-                    renderer->pushFont(g_mdMonoFont);
+                    renderer->pushFont(makeMdMonoFont());
                 }
                 break;
 
@@ -729,7 +733,7 @@ bool MDParser::s_breakListLine = false;
 void MDTextArea::updateLabel() {
     m_renderer->begin(m_content, CCPointZero, m_size);
 
-    m_renderer->pushFont(g_mdFont);
+    m_renderer->pushFont(makeMdFont());
     m_renderer->pushScale(.5f);
     m_renderer->pushVerticalAlign(TextAlignment::End);
     m_renderer->pushHorizontalAlign(TextAlignment::Begin);

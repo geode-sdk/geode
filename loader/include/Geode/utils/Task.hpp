@@ -277,11 +277,11 @@ namespace geode {
 
         using Value            = Type;
         using Progress         = P;
-        using PostResult       = std::function<void(Result&&)>;
-        using PostProgress     = std::function<void(P)>;
-        using HasBeenCancelled = std::function<bool()>;
-        using Run              = std::function<Result(PostProgress, HasBeenCancelled)>;
-        using RunWithCallback  = std::function<void(PostResult, PostProgress, HasBeenCancelled)>;
+        using PostResult       = geode::CopyableFunction<void(Result&&)>;
+        using PostProgress     = geode::CopyableFunction<void(P)>;
+        using HasBeenCancelled = geode::Function<bool()>;
+        using Run              = geode::Function<Result(PostProgress, HasBeenCancelled)>;
+        using RunWithCallback  = geode::Function<void(PostResult, PostProgress, HasBeenCancelled)>;
 
         using Callback = void(Event*);
 
@@ -452,7 +452,7 @@ namespace geode {
          */
         static Task run(Run&& body, std::string_view name = "<Task>") {
             auto task = Task(Handle::create(name));
-            std::thread([handle = std::weak_ptr(task.m_handle), name = std::string(name), body = std::move(body)] {
+            std::thread([handle = std::weak_ptr(task.m_handle), name = std::string(name), body = std::move(body)] mutable {
                 utils::thread::setName(fmt::format("Task '{}'", name));
                 auto result = body(
                     [handle](P progress) {
@@ -485,8 +485,9 @@ namespace geode {
          */
         static Task runWithCallback(RunWithCallback&& body, std::string_view name = "<Callback Task>") {
             auto task = Task(Handle::create(name));
-            std::thread([handle = std::weak_ptr(task.m_handle), name = std::string(name), body = std::move(body)] {
+            std::thread([handle = std::weak_ptr(task.m_handle), name = std::string(name), body = std::move(body)] mutable {
                 utils::thread::setName(fmt::format("Task '{}'", name));
+
                 body(
                     [handle](Result result) {
                         if (result.isCancelled()) {

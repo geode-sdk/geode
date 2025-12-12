@@ -159,9 +159,9 @@ void TextInput::setDelegate(TextInputDelegate* delegate, std::optional<int> tag)
         m_input->setTag(tag.value());
     }
 }
-void TextInput::setCallback(std::function<void(std::string const&)> onInput) {
+void TextInput::setCallback(geode::Function<void(std::string const&)> onInput) {
     this->setDelegate(this);
-    m_onInput = onInput;
+    m_onInput = std::move(onInput);
 }
 void TextInput::setEnabled(bool enabled) {
     m_input->setTouchEnabled(enabled);

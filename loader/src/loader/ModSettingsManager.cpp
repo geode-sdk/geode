@@ -10,8 +10,8 @@ using namespace geode::prelude;
 
 
 namespace {
-    auto changeToGenerator(auto&& function) {
-        return [function](
+    auto changeToGenerator(auto function) {
+        return [function = std::move(function)](
             std::string const& key,
             std::string const& modID,
             matjson::Value const& json
@@ -26,19 +26,19 @@ class SharedSettingTypesPool final {
 private:
     std::unordered_map<std::string, SettingGenerator> m_types;
 
-    SharedSettingTypesPool() : m_types({
-        { "title", changeToGenerator(TitleSettingV3::parse) },
-        { "bool", changeToGenerator(BoolSettingV3::parse) },
-        { "int", changeToGenerator(IntSettingV3::parse) },
-        { "float", changeToGenerator(FloatSettingV3::parse) },
-        { "string", changeToGenerator(StringSettingV3::parse) },
-        { "file", changeToGenerator(FileSettingV3::parse) },
-        { "folder", changeToGenerator(FileSettingV3::parse) },
-        { "path", changeToGenerator(FileSettingV3::parse) },
-        { "rgb", changeToGenerator(Color3BSettingV3::parse) },
-        { "color", changeToGenerator(Color3BSettingV3::parse) },
-        { "rgba", changeToGenerator(Color4BSettingV3::parse) },
-    }) {}
+    SharedSettingTypesPool() {
+        m_types.emplace("title", changeToGenerator(TitleSettingV3::parse));
+        m_types.emplace("bool", changeToGenerator(BoolSettingV3::parse));
+        m_types.emplace("int", changeToGenerator(IntSettingV3::parse));
+        m_types.emplace("float", changeToGenerator(FloatSettingV3::parse));
+        m_types.emplace("string", changeToGenerator(StringSettingV3::parse));
+        m_types.emplace("file", changeToGenerator(FileSettingV3::parse));
+        m_types.emplace("folder", changeToGenerator(FileSettingV3::parse));
+        m_types.emplace("path", changeToGenerator(FileSettingV3::parse));
+        m_types.emplace("rgb", changeToGenerator(Color3BSettingV3::parse));
+        m_types.emplace("color", changeToGenerator(Color3BSettingV3::parse));
+        m_types.emplace("rgba", changeToGenerator(Color4BSettingV3::parse));
+    }
 
 public:
     static SharedSettingTypesPool& get() {
@@ -60,10 +60,10 @@ public:
         if (m_types.contains(full)) {
             return Err("Type \"{}\" has already been registered for mod {}", type, modID);
         }
-        m_types.emplace(full, generator);
+        m_types.emplace(full, std::move(generator));
         return Ok();
     }
-    std::optional<SettingGenerator> find(std::string_view modID, std::string_view fullType) {
+    std::optional<SettingGeneratorRef> find(std::string_view modID, std::string_view fullType) {
         // Find custom settings via namespaced lookup
         if (fullType.starts_with("custom:")) {
             auto full = std::string(fullType.substr(fullType.find(':') + 1));
@@ -189,7 +189,7 @@ void ModSettingsManager::markRestartRequired() {
 }
 
 Result<> ModSettingsManager::registerCustomSettingType(std::string_view type, SettingGenerator generator) {
-    GEODE_UNWRAP(SharedSettingTypesPool::get().add(m_impl->modID, type, generator));
+    GEODE_UNWRAP(SharedSettingTypesPool::get().add(m_impl->modID, type, std::move(generator)));
     m_impl->createSettings();
     for (auto& mod : m_impl->dependants) {
         if (auto settings = ModSettingsManager::from(mod)) {

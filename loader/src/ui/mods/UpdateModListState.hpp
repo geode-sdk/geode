@@ -35,7 +35,7 @@ protected:
     UpdateState m_target;
 
 public:
-    ListenerResult handle(std::function<Callback> fn, UpdateModListStateEvent* event);
+    ListenerResult handle(geode::Function<Callback>& fn, UpdateModListStateEvent* event);
 
     UpdateModListStateFilter();
     UpdateModListStateFilter(UpdateState&& target);

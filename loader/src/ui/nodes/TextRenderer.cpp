@@ -542,15 +542,15 @@ void TextRenderer::pushBMFont(char const* bmFont) {
     });
 }
 
-void TextRenderer::pushFont(Font const& font) {
-    m_fontStack.push_back(font);
+void TextRenderer::pushFont(Font font) {
+    m_fontStack.push_back(std::move(font));
 }
 
 void TextRenderer::popFont() {
     if (m_fontStack.size()) m_fontStack.pop_back();
 }
 
-TextRenderer::Font TextRenderer::getCurrentFont() const {
+TextRenderer::FontRef TextRenderer::getCurrentFont() const {
     if (!m_fontStack.size()) {
         return [](int) -> Label {
             return CCLabelBMFont::create("", "bigFont.fnt");

@@ -69,7 +69,7 @@ namespace geode {
 
         cocos2d::CCLabelBMFont* createLabel(const std::string& text, float top);
         float calculateOffset(cocos2d::CCLabelBMFont* label);
-        void charIteration(const std::function<cocos2d::CCLabelBMFont*(cocos2d::CCLabelBMFont* line, char c, float top)>& overflowHandling);
+        void charIteration(geode::FunctionRef<cocos2d::CCLabelBMFont*(cocos2d::CCLabelBMFont* line, char c, float top)> overflowHandling);
         void updateLinesNoWrap();
         void updateLinesWordWrap(bool spaceWrap);
         void updateLinesCutoffWrap();
