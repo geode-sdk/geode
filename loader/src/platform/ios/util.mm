@@ -380,10 +380,12 @@ bool geode::utils::permission::getPermissionStatus(Permission permission) {
 
 void geode::utils::permission::requestPermission(Permission permission, geode::Function<void(bool)> callback) {
     switch (permission) {
-        case Permission::RecordAudio: 
+        case Permission::RecordAudio: {
+            __block geode::Function<void(bool)> cb = std::move(callback);
             return [[AVAudioSession sharedInstance] requestRecordPermission:^(BOOL granted) {
-                callback(granted == YES);
+                cb(granted == YES);
             }];
+        }
         default: // ios doesnt have a "access all files" permission
             return callback(false);
     }
