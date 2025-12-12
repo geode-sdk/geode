@@ -140,7 +140,7 @@ public:
  *        It's also safe to remove elements while traversing.
  */
 #define CCDICT_FOREACH(d, e) \
-    static_assert(false, "Please use `for (auto& [k, v] : CCDictionaryExt<K, V>(dict))` instead, this macro has been removed in Geode v5");
+    static_assert(false, "Please use `for (auto [k, v] : CCDictionaryExt<K, V>(dict))` instead, this macro has been removed in Geode v5");
 
 
 
