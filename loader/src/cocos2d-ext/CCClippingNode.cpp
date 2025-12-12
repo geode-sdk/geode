@@ -1,4 +1,5 @@
 #include <cocos2d.h>
+#include <Geode/utils/cocos.hpp>
 
 using namespace cocos2d;
 
@@ -14,10 +15,8 @@ static void setProgram(CCNode *n, CCGLProgram *p)
     n->setShaderProgram(p);
     if (!n->getChildren()) return;
 
-    CCObject* pObj = NULL;
-    CCARRAY_FOREACH(n->getChildren(), pObj)
-    {
-        setProgram((CCNode*)pObj, p);
+    for (auto pObj : n->getChildrenExt()) {
+        setProgram(pObj, p);
     }
 }
 

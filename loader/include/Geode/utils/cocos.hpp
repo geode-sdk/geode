@@ -1161,10 +1161,14 @@ namespace geode::cocos {
      *   log::info("{}", obj->m_objectID);
      * }
      */
-    template <class InpT, CocosObject T = std::remove_pointer_t<InpT>>
+    template <class InpT = cocos2d::CCObject, bool Retain = true>
     class CCArrayExt {
     protected:
-        Ref<cocos2d::CCArray> m_arr;
+        using T = std::remove_pointer_t<InpT>;
+        using Container = std::conditional_t<Retain, Ref<cocos2d::CCArray>, cocos2d::CCArray*>;
+        static_assert(CocosObject<T>);
+
+        Container m_arr;
 
     public:
         using value_type = T*;
@@ -1235,7 +1239,7 @@ namespace geode::cocos {
      *
      * @tparam Type Pointer to a type that inherits CCObject.
      */
-    template <class K, class InpT, CocosObject T = std::remove_pointer_t<InpT>>
+    template <class K, class T>
     struct CCDictIterator {
     public:
         CCDictIterator(cocos2d::CCDictElement* p) : m_ptr(p) {}
@@ -1261,11 +1265,11 @@ namespace geode::cocos {
             return *this;
         }
 
-        friend bool operator==(CCDictIterator<K, InpT> const& a, CCDictIterator<K, InpT> const& b) {
+        friend bool operator==(CCDictIterator const& a, CCDictIterator const& b) {
             return a.m_ptr == b.m_ptr;
         }
 
-        friend bool operator!=(CCDictIterator<K, InpT> const& a, CCDictIterator<K, InpT> const& b) {
+        friend bool operator!=(CCDictIterator const& a, CCDictIterator const& b) {
             return a.m_ptr != b.m_ptr;
         }
     };
@@ -1275,7 +1279,7 @@ namespace geode::cocos {
      *
      * @tparam Type Pointer to a type that inherits CCObject.
      */
-    template <class K, class InpT, CocosObject T = std::remove_pointer_t<InpT>>
+    template <class K, class T>
     struct CCDictEntry {
         K m_key;
         cocos2d::CCDictionary* m_dict;
@@ -1300,11 +1304,11 @@ namespace geode::cocos {
      * A templated wrapper over CCDictionary, providing easy iteration and indexing.
      * This will keep ownership of the given CCDictionary*.
      *
-     * @tparam Key Type of the key. MUST only be int or gd::string or std::string.
+     * @tparam Key Type of the key. MUST be one of: int, std::string_view (recommended), gd::string, std::string.
      * @tparam ValuePtr Pointer to a type that inherits CCObject.
      *
      * @example
-     * CCDictionaryExt<std::string, GJGameLevel*> levels = getSomeDict();
+     * CCDictionaryExt<std::string_view, GJGameLevel*> levels = getSomeDict();
      * // Easy indexing, giving you the type you assigned
      * GJGameLevel* myLvl = levels["Cube Adventures"];
      *
@@ -1313,12 +1317,17 @@ namespace geode::cocos {
      *   log::info("{}: {}", name, level->m_levelID);
      * }
      */
-    template <CocosDictionaryKey Key, class ValueInpT, CocosObject Value = std::remove_pointer_t<ValueInpT>>
+    template <CocosDictionaryKey Key = std::string_view, class ValueInpT = cocos2d::CCObject, bool Retain = true>
     struct CCDictionaryExt {
     protected:
+        using Value = std::remove_pointer_t<ValueInpT>;
         using ValuePtr = Value*;
+        using Container = std::conditional_t<Retain, Ref<cocos2d::CCDictionary>, cocos2d::CCDictionary*>;
+        using Entry = CCDictEntry<Key, Value>;
+        using Iterator = CCDictIterator<Key, Value>;
+        static_assert(CocosObject<Value>);
 
-        Ref<cocos2d::CCDictionary> m_dict;
+        Container m_dict;
 
     public:
         CCDictionaryExt() : m_dict(cocos2d::CCDictionary::create()) {}
@@ -1327,27 +1336,25 @@ namespace geode::cocos {
 
         CCDictionaryExt(CCDictionaryExt const& d) : m_dict(d.m_dict) {}
 
-        CCDictionaryExt(CCDictionaryExt&& d) : m_dict(d.m_dict) {
-            d.m_dict = nullptr;
-        }
+        CCDictionaryExt(CCDictionaryExt&& d) : m_dict(std::exchange(d.m_dict, nullptr)) {}
 
         auto begin() {
-            return CCDictIterator<Key, ValuePtr>(m_dict->m_pElements);
+            return Iterator(m_dict->m_pElements);
         }
 
         auto end() {
-            return CCDictIterator<Key, ValuePtr>(nullptr);
+            return Iterator(nullptr);
         }
 
         size_t size() {
             return m_dict->count();
         }
 
-        auto operator[](const Key& key) {
+        Entry operator[](const Key& key) {
             auto ret = static_cast<ValuePtr>(m_dict->objectForKey(key));
             if (!ret) m_dict->setObject(cocos2d::CCNode::create(), key);
 
-            return CCDictEntry<Key, ValuePtr>(key, m_dict);
+            return Entry(key, m_dict);
         }
 
         bool contains(const Key& key) {

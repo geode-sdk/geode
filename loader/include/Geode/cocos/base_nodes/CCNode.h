@@ -625,10 +625,8 @@ public:
      * Composing a "tree" structure is a very important feature of CCNode
      * @example
      * // Here's a sample code of traversing children array:
-     * CCNode* node = NULL;
-     * CCARRAY_FOREACH(parent->getChildren(), node)
-     * {
-     *     node->setPosition(0,0);
+     * for (auto child : parent->getChildrenExt()) {
+     *     child->setPosition(0, 0);
      * }
      * // This sample code traverses all children nodes, and set theie position to (0,0)
      * @returns An array of children
