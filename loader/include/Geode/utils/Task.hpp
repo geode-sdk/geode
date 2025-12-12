@@ -280,7 +280,7 @@ namespace geode {
         using Progress         = P;
         using PostResult       = geode::CopyableFunction<void(Result&&)>;
         using PostProgress     = geode::CopyableFunction<void(P)>;
-        using HasBeenCancelled = geode::Function<bool()>;
+        using HasBeenCancelled = geode::CopyableFunction<bool()>;
         using Run              = geode::Function<Result(PostProgress, HasBeenCancelled)>;
         using RunWithCallback  = geode::Function<void(PostResult, PostProgress, HasBeenCancelled)>;
 
