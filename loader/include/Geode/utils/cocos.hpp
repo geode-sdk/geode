@@ -27,6 +27,16 @@ struct matjson::Serialize<cocos2d::ccColor4B> {
     static Value GEODE_DLL toJson(cocos2d::ccColor4B const& value);
 };
 
+namespace geode::cocos {
+    template <class InpT, bool Retain>
+    class CCArrayExt;
+}
+
+template <typename T>
+struct ::geode::CCArrayExtCheck<T, void> {
+    using type = cocos::CCArrayExt<T, true>;
+};
+
 // operators for CC geometry
 namespace cocos2d {
     static constexpr cocos2d::CCPoint& operator*=(cocos2d::CCPoint& pos, float mul) {
@@ -751,29 +761,6 @@ namespace geode::cocos {
      * null if there is none
      */
     GEODE_DLL cocos2d::CCNode* getChildByTagRecursive(cocos2d::CCNode* node, int tag);
-
-    /**
-     *  Get first node that conforms to the predicate
-     *  by traversing children recursively
-     *
-     *  @param node Parent node
-     *  @param predicate Predicate used to evaluate nodes
-     * @return Child node if one is found, or null if
-     * there is none
-     */
-    template <class Type = cocos2d::CCNode>
-    Type* findFirstChildRecursive(cocos2d::CCNode* gnode, geode::FunctionRef<bool(Type*)> predicate) {
-        auto node = cast::typeinfo_cast<Type*>(gnode);
-        if (node && predicate(node))
-            return node;
-
-        for (auto child : gnode->getChildrenExt()) {
-            auto result = findFirstChildRecursive(child, predicate);
-            if (result) return result;
-        }
-
-        return nullptr;
-    }
 
     /**
      * Checks if a node has the given sprite frame
@@ -1606,6 +1593,29 @@ namespace geode::cocos {
     };
 
     /**
+     *  Get first node that conforms to the predicate
+     *  by traversing children recursively
+     *
+     *  @param node Parent node
+     *  @param predicate Predicate used to evaluate nodes
+     * @return Child node if one is found, or null if
+     * there is none
+     */
+    template <class Type = cocos2d::CCNode>
+    Type* findFirstChildRecursive(cocos2d::CCNode* gnode, geode::FunctionRef<bool(Type*)> predicate) {
+        auto node = cast::typeinfo_cast<Type*>(gnode);
+        if (node && predicate(node))
+            return node;
+
+        for (auto child : gnode->getChildrenExt()) {
+            auto result = findFirstChildRecursive(child, predicate);
+            if (result) return result;
+        }
+
+        return nullptr;
+    }
+
+    /**
      * CCCallFunc alternative that accepts a lambda (or any function object)
      * 
      * @tparam The type of the function object
@@ -1677,8 +1687,3 @@ namespace geode::cocos {
      */
     void GEODE_DLL handleTouchPriority(cocos2d::CCNode* node, bool force = false);
 }
-
-template <typename T>
-struct ::geode::CCArrayExtCheck<T, void> {
-    using type = cocos::CCArrayExt<T>;
-};

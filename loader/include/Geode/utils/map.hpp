@@ -20,7 +20,7 @@ namespace geode::utils::map {
      * false if not.
      */
     template <typename T, typename R, typename H>
-    bool contains(std::unordered_map<T, R, H> const& map, geode::Function<bool(R)> containFunc) {
+    bool contains(std::unordered_map<T, R, H> const& map, geode::FunctionRef<bool(R)> containFunc) {
         for (auto const& [_, r] : map) {
             if (containFunc(r)) return true;
         }
@@ -39,14 +39,11 @@ namespace geode::utils::map {
      * a pointer.
      */
     template <class T, class R, class H>
-    R select(std::unordered_map<T, R, H> const& map, geode::Function<bool(R)> selectFunc) {
+    R select(std::unordered_map<T, R, H> const& map, geode::FunctionRef<bool(R)> selectFunc) {
         for (auto const& [_, r] : map) {
             if (selectFunc(r)) return r;
         }
-        if (std::is_pointer<R>::value) {
-            return nullptr;
-        }
-        return R();
+        return R{};
     }
 
     /**
@@ -59,7 +56,7 @@ namespace geode::utils::map {
      */
     template <class T, class R, class H>
     std::vector<R> selectAll(
-        std::unordered_map<T, R, H> const& map, geode::Function<bool(R)> selectFunc
+        std::unordered_map<T, R, H> const& map, geode::FunctionRef<bool(R)> selectFunc
     ) {
         std::vector<R> res;
         for (auto const& [_, r] : map) {
@@ -78,6 +75,7 @@ namespace geode::utils::map {
     template <class T, class R, class H>
     std::vector<R> values(std::unordered_map<T, R, H> const& map) {
         std::vector<R> res;
+        res.reserve(map.size());
         for (auto const& [_, r] : map) {
             res.push_back(r);
         }
@@ -92,6 +90,7 @@ namespace geode::utils::map {
     template <class T, class R, class H>
     std::vector<T> keys(std::unordered_map<T, R, H> const& map) {
         std::vector<T> res;
+        res.reserve(map.size());
         for (auto const& [t, _] : map) {
             res.push_back(t);
         }
