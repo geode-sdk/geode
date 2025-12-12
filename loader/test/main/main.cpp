@@ -32,7 +32,9 @@ $execute {
 #include <Geode/utils/coro.hpp>
 auto advanceFrame() {
     auto [task, finish, progress, cancelled] = Task<void>::spawn();
-    queueInMainThread(std::bind(std::move(finish), true));
+    queueInMainThread([finish = std::move(finish)] mutable {
+        finish(true);
+    });
 
     return task;
 }
