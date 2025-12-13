@@ -23,6 +23,7 @@ body:
         - "Android64"
         - "Android32"
         - "iOS"
+        - "Linux"
     validations:
       required: true
   - type: input
