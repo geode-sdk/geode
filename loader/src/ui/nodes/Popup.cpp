@@ -109,24 +109,6 @@ public:
 
 FLAlertLayer* geode::createQuickPopup(
     char const* title, std::string const& content, char const* btn1, char const* btn2, float width,
-    geode::Function<void(FLAlertLayer*, bool)> selected, bool doShow
-) {
-    auto ret = QuickPopup::create(title, content, btn1, btn2, width, std::move(selected), false);
-    if (doShow) {
-        ret->show();
-    }
-    return ret;
-}
-
-FLAlertLayer* geode::createQuickPopup(
-    char const* title, std::string const& content, char const* btn1, char const* btn2,
-    geode::Function<void(FLAlertLayer*, bool)> selected, bool doShow
-) {
-    return createQuickPopup(title, content, btn1, btn2, 350.f, std::move(selected), doShow);
-}
-
-FLAlertLayer* geode::createQuickPopup(
-    char const* title, std::string const& content, char const* btn1, char const* btn2, float width,
     geode::Function<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
 ) {
     auto ret = QuickPopup::create(title, content, btn1, btn2, width, std::move(selected), cancelledByEscape);
