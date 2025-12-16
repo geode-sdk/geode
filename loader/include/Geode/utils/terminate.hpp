@@ -33,9 +33,9 @@ namespace geode::utils {
 
     template <class = void>
     [[noreturn]]
-    void terminate(std::string const& reason, Mod* mod = getMod(), size_t platformCode = GEODE_TERMINATE_EXCEPTION_CODE) {
+    void terminate(std::string_view reason, Mod* mod = getMod(), size_t platformCode = GEODE_TERMINATE_EXCEPTION_CODE) {
         // Add the error to the logfile
-        detail::logTerminationError(reason.c_str(), mod);
+        detail::logTerminationError(reason.data(), mod);
 
     #ifdef GEODE_IS_WINDOWS
         // If a debugger is attached, start debugging
@@ -59,7 +59,7 @@ namespace geode::utils {
 
     template <class = void>
     [[noreturn]]
-    void unreachable(std::string const& reason = "Unspecified", Mod* mod = getMod()) {
+    void unreachable(std::string_view reason = "Unspecified", Mod* mod = getMod()) {
         terminate(reason, mod, GEODE_UNREACHABLE_EXCEPTION_CODE);
     }
 }

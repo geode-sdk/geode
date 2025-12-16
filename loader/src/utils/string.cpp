@@ -16,7 +16,7 @@ std::string utils::string::wideToUtf8(std::wstring const& wstr) {
     return str;
 }
 
-std::wstring utils::string::utf8ToWide(std::string const& str) {
+std::wstring utils::string::utf8ToWide(std::string_view str) {
     int count = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), NULL, 0);
     std::wstring wstr(count, 0);
     MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), &wstr[0], count);
@@ -72,11 +72,11 @@ std::string utils::string::pathToString(std::filesystem::path const& path) {
 }
 
 
-bool utils::string::startsWith(std::string const& str, std::string const& prefix) {
+bool utils::string::startsWith(std::string_view str, std::string_view prefix) {
     return str.rfind(prefix, 0) == 0;
 }
 
-bool utils::string::endsWith(std::string const& str, std::string const& suffix) {
+bool utils::string::endsWith(std::string_view str, std::string_view suffix) {
     if (suffix.size() > str.size()) return false;
     return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
 }
@@ -88,9 +88,9 @@ std::string& utils::string::toLowerIP(std::string& str) {
     return str;
 }
 
-std::string utils::string::toLower(std::string const& str) {
-    std::string ret = str;
-    return utils::string::toLowerIP(ret);
+std::string utils::string::toLower(std::string str) {
+    utils::string::toLowerIP(str);
+    return std::move(str);
 }
 
 std::string& utils::string::toUpperIP(std::string& str) {
@@ -100,12 +100,12 @@ std::string& utils::string::toUpperIP(std::string& str) {
     return str;
 }
 
-std::string utils::string::toUpper(std::string const& str) {
-    std::string ret = str;
-    return utils::string::toUpperIP(ret);
+std::string utils::string::toUpper(std::string str) {
+    utils::string::toUpperIP(str);
+    return std::move(str);
 }
 
-std::string& utils::string::replaceIP(std::string& str, std::string const& orig, std::string const& repl) {
+std::string& utils::string::replaceIP(std::string& str, std::string_view orig, std::string_view repl) {
     if (orig.empty()) return str;
 
     std::string::size_type n = 0;
@@ -117,26 +117,25 @@ std::string& utils::string::replaceIP(std::string& str, std::string const& orig,
 }
 
 std::string utils::string::replace(
-    std::string const& str, std::string const& orig, std::string const& repl
+    std::string str, std::string_view orig, std::string_view repl
 ) {
-    auto ret = str;
-    return utils::string::replaceIP(ret, orig, repl);
+    utils::string::replaceIP(str, orig, repl);
+    return std::move(str);
 }
 
-std::vector<std::string> utils::string::split(std::string const& str, std::string const& split) {
+std::vector<std::string> utils::string::split(std::string str, std::string_view split) {
     std::vector<std::string> res;
     if (str.empty()) return res;
-    auto s = str;
     size_t pos;
-    while ((pos = s.find(split)) != std::string::npos) {
-        res.push_back(s.substr(0, pos));
-        s.erase(0, pos + split.length());
+    while ((pos = str.find(split)) != std::string::npos) {
+        res.push_back(str.substr(0, pos));
+        str.erase(0, pos + split.length());
     }
-    res.push_back(s);
+    res.push_back(std::move(str));
     return res;
 }
 
-std::string utils::string::join(std::vector<std::string> const& strs, std::string const& separator) {
+std::string utils::string::join(std::span<std::string> strs, std::string_view separator) {
     std::string res;
     if (strs.empty())
         return res;
@@ -148,12 +147,12 @@ std::string utils::string::join(std::vector<std::string> const& strs, std::strin
         size += str.size() + separator.size();
     res.reserve(size);
     for (auto const& str : strs)
-        res += str + separator;
+        res += str + std::string(separator);
     res.erase(res.size() - separator.size());
     return res;
 }
 
-std::vector<char> utils::string::split(std::string const& str) {
+std::vector<char> utils::string::split(std::string_view str) {
     std::vector<char> res;
     for (auto const& s : str) {
         res.push_back(s);
@@ -161,22 +160,22 @@ std::vector<char> utils::string::split(std::string const& str) {
     return res;
 }
 
-bool utils::string::contains(std::string const& str, std::string const& subs) {
+bool utils::string::contains(std::string_view str, std::string_view subs) {
     return str.find(subs) != std::string::npos;
 }
 
-bool utils::string::contains(std::string const& str, std::string::value_type c) {
+bool utils::string::contains(std::string_view str, std::string::value_type c) {
     return str.find(c) != std::string::npos;
 }
 
-bool utils::string::containsAny(std::string const& str, std::vector<std::string> const& subs) {
+bool utils::string::containsAny(std::string_view str, std::span<std::string> subs) {
     for (auto const& sub : subs) {
         if (utils::string::contains(str, sub)) return true;
     }
     return false;
 }
 
-bool utils::string::containsAll(std::string const& str, std::vector<std::string> const& subs) {
+bool utils::string::containsAll(std::string_view str, std::span<std::string> subs) {
     bool found = true;
     for (auto const& sub : subs) {
         if (!utils::string::contains(str, sub)) found = false;
@@ -184,7 +183,7 @@ bool utils::string::containsAll(std::string const& str, std::vector<std::string>
     return found;
 }
 
-size_t utils::string::count(std::string const& str, char countC) {
+size_t utils::string::count(std::string_view str, char countC) {
     size_t res = 0;
     for (auto c : str)
         if (c == countC) res++;
@@ -192,7 +191,7 @@ size_t utils::string::count(std::string const& str, char countC) {
 }
 
 constexpr char WHITESPACE[] = " \f\n\r\t\v";
-std::string& utils::string::trimLeftIP(std::string& str, std::string const& chars) {
+std::string& utils::string::trimLeftIP(std::string& str, std::string_view chars) {
     str.erase(0, str.find_first_not_of(chars));
     return str;
 }
@@ -200,7 +199,7 @@ std::string& utils::string::trimLeftIP(std::string& str) {
     return utils::string::trimLeftIP(str, WHITESPACE);
 }
 
-std::string& utils::string::trimRightIP(std::string& str, std::string const& chars) {
+std::string& utils::string::trimRightIP(std::string& str, std::string_view chars) {
     str.erase(str.find_last_not_of(chars) + 1);
     return str;
 }
@@ -208,33 +207,33 @@ std::string& utils::string::trimRightIP(std::string& str) {
     return utils::string::trimRightIP(str, WHITESPACE);
 }
 
-std::string& utils::string::trimIP(std::string& str, std::string const& chars) {
+std::string& utils::string::trimIP(std::string& str, std::string_view chars) {
     return utils::string::trimLeftIP(utils::string::trimRightIP(str, chars), chars);
 }
 std::string& utils::string::trimIP(std::string& str) {
     return utils::string::trimLeftIP(utils::string::trimRightIP(str));
 }
 
-std::string utils::string::trimLeft(std::string const& str, std::string const& chars) {
+std::string utils::string::trimLeft(std::string_view str, std::string_view chars) {
     size_t start = str.find_first_not_of(chars);
-    return start == -1 ? std::string() : str.substr(start);
+    return start == -1 ? std::string() : std::string(str.substr(start));
 }
-std::string utils::string::trimLeft(std::string const& str) {
+std::string utils::string::trimLeft(std::string_view str) {
     return utils::string::trimLeft(str, WHITESPACE);
 }
 
-std::string utils::string::trimRight(std::string const& str, std::string const& chars) {
-    return str.substr(0, str.find_last_not_of(chars) + 1);
+std::string utils::string::trimRight(std::string_view str, std::string_view chars) {
+    return std::string(str.substr(0, str.find_last_not_of(chars) + 1));
 }
-std::string utils::string::trimRight(std::string const& str) {
+std::string utils::string::trimRight(std::string_view str) {
     return utils::string::trimRight(str, WHITESPACE);
 }
 
-std::string utils::string::trim(std::string const& str, std::string const& chars) {
+std::string utils::string::trim(std::string_view str, std::string_view chars) {
     size_t start = str.find_first_not_of(chars);
-    return start == -1 ? std::string() : str.substr(start, str.find_last_not_of(chars) + 1 - start);
+    return start == -1 ? std::string() : std::string(str.substr(start, str.find_last_not_of(chars) + 1 - start));
 }
-std::string utils::string::trim(std::string const& str) {
+std::string utils::string::trim(std::string_view str) {
     return utils::string::trim(str, WHITESPACE);
 }
 
@@ -244,9 +243,9 @@ std::string& utils::string::normalizeIP(std::string& str) {
     return str;
 }
 
-std::string utils::string::normalize(std::string const& str) {
-    auto ret = str;
-    return utils::string::normalizeIP(ret);
+std::string utils::string::normalize(std::string str) {
+    utils::string::normalizeIP(str);
+    return std::move(str);
 }
 
 std::strong_ordering utils::string::caseInsensitiveCompare(std::string_view str1, std::string_view str2) {

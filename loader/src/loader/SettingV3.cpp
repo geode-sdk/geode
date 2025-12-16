@@ -15,18 +15,18 @@ namespace enable_if_parsing {
     struct Component {
         virtual ~Component() = default;
         virtual Result<> checkSemantics() const = 0;
-        virtual bool shouldEnableSetting(std::string const& defaultModID) const = 0;
-        virtual std::string shouldEnableReason(std::string const& defaultModID) const = 0;
+        virtual bool shouldEnableSetting(std::string_view defaultModID) const = 0;
+        virtual std::string shouldEnableReason(std::string_view defaultModID) const = 0;
     };
     struct RequireModLoaded final : public Component {
         std::string modID;
-        RequireModLoaded(std::string const& modID)
+        RequireModLoaded(std::string_view modID)
           : modID(modID) {}
 
         Result<> checkSemantics() const override {
             return Ok();
         }
-        bool shouldEnableSetting(std::string const& defaultModID) const override {
+        bool shouldEnableSetting(std::string_view defaultModID) const override {
             if (Loader::get()->getLoadedMod(modID)) {
                 return true;
             }
@@ -36,7 +36,7 @@ namespace enable_if_parsing {
             }
             return false;
         }
-        std::string shouldEnableReason(std::string const&) const override {
+        std::string shouldEnableReason(std::string_view) const override {
             auto modName = modID;
             if (auto mod = Loader::get()->getInstalledMod(modID)) {
                 modName = mod->getName();
@@ -47,7 +47,7 @@ namespace enable_if_parsing {
     struct RequireSettingEnabled final : public Component {
         std::string modID;
         std::string settingID;
-        RequireSettingEnabled(std::string const& modID, std::string const& settingID)
+        RequireSettingEnabled(std::string_view modID, std::string_view settingID)
           : modID(modID), settingID(settingID) {}
 
         Result<> checkSemantics() const override {
@@ -61,7 +61,7 @@ namespace enable_if_parsing {
             }
             return Ok();
         }
-        bool shouldEnableSetting(std::string const& defaultModID) const override {
+        bool shouldEnableSetting(std::string_view defaultModID) const override {
             if (auto mod = Loader::get()->getLoadedMod(modID)) {
                 if (mod->getSettingValue<bool>(settingID)) {
                     return true;
@@ -70,7 +70,7 @@ namespace enable_if_parsing {
             }
             return false;
         }
-        std::string shouldEnableReason(std::string const& defaultModID) const override {
+        std::string shouldEnableReason(std::string_view defaultModID) const override {
             if (auto mod = Loader::get()->getLoadedMod(modID)) {
                 auto name = settingID;
                 if (auto sett = mod->getSetting(settingID)) {
@@ -91,13 +91,13 @@ namespace enable_if_parsing {
     struct RequireSavedValueEnabled final : public Component {
         std::string modID;
         std::string savedValue;
-        RequireSavedValueEnabled(std::string const& modID, std::string const& savedValue)
+        RequireSavedValueEnabled(std::string_view modID, std::string_view savedValue)
           : modID(modID), savedValue(savedValue) {}
 
         Result<> checkSemantics() const override {
             return Ok();
         }
-        bool shouldEnableSetting(std::string const& defaultModID) const override {
+        bool shouldEnableSetting(std::string_view defaultModID) const override {
             if (auto mod = Loader::get()->getLoadedMod(modID)) {
                 if (mod->getSavedValue<bool>(savedValue)) {
                     return true;
@@ -110,7 +110,7 @@ namespace enable_if_parsing {
             }
             return false;
         }
-        std::string shouldEnableReason(std::string const& defaultModID) const override {
+        std::string shouldEnableReason(std::string_view defaultModID) const override {
             if (auto mod = Loader::get()->getLoadedMod(modID)) {
                 if (modID == defaultModID) {
                     return fmt::format("Enable the value '{}'", savedValue);
@@ -132,10 +132,10 @@ namespace enable_if_parsing {
         Result<> checkSemantics() const override {
             return component->checkSemantics();
         }
-        bool shouldEnableSetting(std::string const& defaultModID) const override {
+        bool shouldEnableSetting(std::string_view defaultModID) const override {
             return !component->shouldEnableSetting(defaultModID);
         }
-        std::string shouldEnableReason(std::string const& defaultModID) const override {
+        std::string shouldEnableReason(std::string_view defaultModID) const override {
             // Surely this will never break!
             auto str = component->shouldEnableReason(defaultModID);
             string::replaceIP(str, "Enable", "___TEMP");
@@ -155,7 +155,7 @@ namespace enable_if_parsing {
             }
             return Ok();
         }
-        bool shouldEnableSetting(std::string const& defaultModID) const override {
+        bool shouldEnableSetting(std::string_view defaultModID) const override {
             // Only print out whatever the first erroring condition is to not shit out
             // "Please enable X and Y and Z and Ö and Å and"
             for (auto& comp : components) {
@@ -165,7 +165,7 @@ namespace enable_if_parsing {
             }
             return true;
         }
-        std::string shouldEnableReason(std::string const& defaultModID) const override {
+        std::string shouldEnableReason(std::string_view defaultModID) const override {
             for (auto& comp : components) {
                 // Yes this does require double evaluation which is cringe
                 // shouldEnableSetting() is guaranteed to be side-effect-free though
@@ -187,7 +187,7 @@ namespace enable_if_parsing {
             }
             return Ok();
         }
-        bool shouldEnableSetting(std::string const& defaultModID) const override {
+        bool shouldEnableSetting(std::string_view defaultModID) const override {
             for (auto& comp : components) {
                 if (comp->shouldEnableSetting(defaultModID)) {
                     return true;
@@ -195,7 +195,7 @@ namespace enable_if_parsing {
             }
             return components.empty();
         }
-        std::string shouldEnableReason(std::string const& defaultModID) const override {
+        std::string shouldEnableReason(std::string_view defaultModID) const override {
             std::optional<std::string> err;
             for (auto& comp : components) {
                 auto res = comp->shouldEnableSetting(defaultModID);
@@ -435,7 +435,7 @@ namespace enable_if_parsing {
         }
 
     public:
-        static Result<std::unique_ptr<Component>> parse(std::string_view str, std::string const& defaultModID) {
+        static Result<std::unique_ptr<Component>> parse(std::string_view str, std::string_view defaultModID) {
             auto ret = Parser();
             ret.m_src = str;
             ret.m_defaultModID = defaultModID;
@@ -484,7 +484,7 @@ ListenerResult SettingChangedFilterV3::handle(geode::Function<Callback>& fn, Set
 }
 
 SettingChangedFilterV3::SettingChangedFilterV3(
-    std::string const& modID,
+    std::string_view modID,
     std::optional<std::string> const& settingKey
 ) : m_impl(std::make_shared<Impl>())
 {
@@ -525,12 +525,12 @@ public:
 SettingV3::SettingV3() : m_impl(std::make_shared<GeodeImpl>()) {}
 SettingV3::~SettingV3() = default;
 
-void SettingV3::init(std::string const& key, std::string const& modID) {
-    m_impl->key = key;
-    m_impl->modID = modID;
+void SettingV3::init(std::string key, std::string modID) {
+    m_impl->key = std::move(key);
+    m_impl->modID = std::move(modID);
 }
-void SettingV3::init(std::string const& key, std::string const& modID, JsonExpectedValue& json) {
-    this->init(key, modID);
+void SettingV3::init(std::string key, std::string modID, JsonExpectedValue& json) {
+    this->init(std::move(key), std::move(modID));
 
     // Keys every setting must have
     json.needs("type");
@@ -545,7 +545,7 @@ void SettingV3::parseNameAndDescription(JsonExpectedValue& json) {
 }
 void SettingV3::parseEnableIf(JsonExpectedValue& json) {
     json.has("enable-if")
-        .mustBe<std::string>("a valid \"enable-if\" scheme", [this](std::string const& str) -> Result<> {
+        .mustBe<std::string>("a valid \"enable-if\" scheme", [this](std::string_view str) -> Result<> {
             GEODE_UNWRAP_INTO(auto tree, enable_if_parsing::Parser::parse(str, m_impl->modID));
             GEODE_UNWRAP(tree->checkSemantics());
             m_impl->enableIfTree = std::move(tree);
@@ -558,13 +558,13 @@ void SettingV3::parseValueProperties(JsonExpectedValue& json) {
     json.has("requires-restart").into(m_impl->requiresRestart);
 }
 
-Result<> SettingV3::parseBaseProperties(std::string const& key, std::string const& modID, matjson::Value const& value) {
+Result<> SettingV3::parseBaseProperties(std::string key, std::string modID, matjson::Value const& value) {
     auto json = checkJson(value, "SettingV3");
-    this->parseBaseProperties(key, modID, json);
+    this->parseBaseProperties(std::move(key), std::move(modID), json);
     return json.ok();
 }
-void SettingV3::parseBaseProperties(std::string const& key, std::string const& modID, JsonExpectedValue& json) {
-    this->init(key, modID, json);
+void SettingV3::parseBaseProperties(std::string key, std::string modID, JsonExpectedValue& json) {
+    this->init(std::move(key), std::move(modID), json);
     this->parseNameAndDescription(json);
     this->parseValueProperties(json);
     this->parseEnableIf(json);
@@ -626,10 +626,10 @@ public:
 
 TitleSettingV3::TitleSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
-Result<std::shared_ptr<TitleSettingV3>> TitleSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
+Result<std::shared_ptr<TitleSettingV3>> TitleSettingV3::parse(std::string key, std::string modID, matjson::Value const& json) {
     auto ret = std::make_shared<TitleSettingV3>(PrivateMarker());
     auto root = checkJson(json, "TitleSettingV3");
-    ret->init(key, modID, root);
+    ret->init(std::move(key), std::move(modID), root);
     ret->parseNameAndDescription(root);
     root.checkUnknownKeys();
     return root.ok(ret);
@@ -657,10 +657,10 @@ public:
 
 BoolSettingV3::BoolSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
-Result<std::shared_ptr<BoolSettingV3>> BoolSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
+Result<std::shared_ptr<BoolSettingV3>> BoolSettingV3::parse(std::string key, std::string modID, matjson::Value const& json) {
     auto ret = std::make_shared<BoolSettingV3>(PrivateMarker());
     auto root = checkJson(json, "BoolSettingV3");
-    ret->parseBaseProperties(key, modID, root);
+    ret->parseBaseProperties(std::move(key), std::move(modID), root);
     root.checkUnknownKeys();
     return root.ok(ret);
 }
@@ -690,11 +690,11 @@ public:
     } controls;
 };
 
-Result<std::shared_ptr<IntSettingV3>> IntSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
+Result<std::shared_ptr<IntSettingV3>> IntSettingV3::parse(std::string key, std::string modID, matjson::Value const& json) {
     auto ret = std::make_shared<IntSettingV3>(PrivateMarker());
 
     auto root = checkJson(json, "IntSettingV3");
-    ret->parseBaseProperties(key, modID, root);
+    ret->parseBaseProperties(key, std::move(modID), root);
 
     root.has("min").into(ret->m_impl->minValue);
     root.has("max").into(ret->m_impl->maxValue);
@@ -727,7 +727,7 @@ Result<std::shared_ptr<IntSettingV3>> IntSettingV3::parse(std::string const& key
                 "Setting '{}' has \"controls.slider\" enabled but doesn't "
                 "have both \"min\" and \"max\" defined - the slider has "
                 "been force-disabled!",
-                key
+                std::move(key)
             );
         }
         ret->m_impl->controls.sliderEnabled = false;
@@ -801,11 +801,11 @@ public:
 
 FloatSettingV3::FloatSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
-Result<std::shared_ptr<FloatSettingV3>> FloatSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
+Result<std::shared_ptr<FloatSettingV3>> FloatSettingV3::parse(std::string key, std::string modID, matjson::Value const& json) {
     auto ret = std::make_shared<FloatSettingV3>(PrivateMarker());
 
     auto root = checkJson(json, "FloatSettingV3");
-    ret->parseBaseProperties(key, modID, root);
+    ret->parseBaseProperties(key, std::move(modID), root);
 
     root.has("min").into(ret->m_impl->minValue);
     root.has("max").into(ret->m_impl->maxValue);
@@ -836,7 +836,7 @@ Result<std::shared_ptr<FloatSettingV3>> FloatSettingV3::parse(std::string const&
                 "Setting '{}' has \"controls.slider\" enabled but doesn't "
                 "have both \"min\" and \"max\" defined - the slider has "
                 "been force-disabled!",
-                key
+                std::move(key)
             );
         }
         ret->m_impl->controls.sliderEnabled = false;
@@ -901,7 +901,7 @@ public:
 
 StringSettingV3::StringSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
-Result<std::shared_ptr<StringSettingV3>> StringSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
+Result<std::shared_ptr<StringSettingV3>> StringSettingV3::parse(std::string key, std::string modID, matjson::Value const& json) {
     auto ret = std::make_shared<StringSettingV3>(PrivateMarker());
 
     auto root = checkJson(json, "StringSettingV3");
@@ -911,7 +911,7 @@ Result<std::shared_ptr<StringSettingV3>> StringSettingV3::parse(std::string cons
     root.has("filter").into(ret->m_impl->filter);
     root.has("one-of").into(ret->m_impl->oneOf);
     if (ret->m_impl->oneOf && ret->m_impl->oneOf->empty()) {
-        return Err("Setting '{}' in mod {} - \"one-of\" may not be empty!", key, modID);
+        return Err("Setting '{}' in mod {} - \"one-of\" may not be empty!", std::move(key), std::move(modID));
     }
 
     root.checkUnknownKeys();
@@ -957,7 +957,7 @@ public:
 
 FileSettingV3::FileSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
-Result<std::shared_ptr<FileSettingV3>> FileSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
+Result<std::shared_ptr<FileSettingV3>> FileSettingV3::parse(std::string key, std::string modID, matjson::Value const& json) {
     auto ret = std::make_shared<FileSettingV3>(PrivateMarker());
 
     auto root = checkJson(json, "FileSettingV3");
@@ -1070,10 +1070,10 @@ public:
 
 Color3BSettingV3::Color3BSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
-Result<std::shared_ptr<Color3BSettingV3>> Color3BSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
+Result<std::shared_ptr<Color3BSettingV3>> Color3BSettingV3::parse(std::string key, std::string modID, matjson::Value const& json) {
     auto ret = std::make_shared<Color3BSettingV3>(PrivateMarker());
     auto root = checkJson(json, "Color3BSettingV3");
-    ret->parseBaseProperties(key, modID, root);
+    ret->parseBaseProperties(std::move(key), std::move(modID), root);
     root.checkUnknownKeys();
     return root.ok(ret);
 }
@@ -1094,10 +1094,10 @@ public:
 
 Color4BSettingV3::Color4BSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
 
-Result<std::shared_ptr<Color4BSettingV3>> Color4BSettingV3::parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
+Result<std::shared_ptr<Color4BSettingV3>> Color4BSettingV3::parse(std::string key, std::string modID, matjson::Value const& json) {
     auto ret = std::make_shared<Color4BSettingV3>(PrivateMarker());
     auto root = checkJson(json, "Color4BSettingV3");
-    ret->parseBaseProperties(key, modID, root);
+    ret->parseBaseProperties(std::move(key), std::move(modID), root);
     root.checkUnknownKeys();
     return root.ok(ret);
 }

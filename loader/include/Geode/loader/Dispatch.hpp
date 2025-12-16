@@ -21,14 +21,14 @@ namespace geode {
         std::tuple<Args...> m_args;
 
     public:
-        DispatchEvent(std::string const& id, Args... args) :
+        DispatchEvent(std::string id, Args... args) :
             m_id(id), m_args(std::make_tuple(args...)) {}
 
         std::tuple<Args...> getArgs() const {
             return m_args;
         }
 
-        std::string getID() const {
+        std::string_view getID() const {
             return m_id;
         }
 
@@ -63,7 +63,7 @@ namespace geode {
             return ListenerResult::Propagate;
         }
 
-        DispatchFilter(std::string const& id) : m_id(id) {}
+        DispatchFilter(std::string_view id) : m_id(id) {}
 
         DispatchFilter(DispatchFilter const&) = default;
     };

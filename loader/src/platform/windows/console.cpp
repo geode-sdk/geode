@@ -209,7 +209,7 @@ void console::log(std::string const& msg, Severity severity) {
     WriteFile(s_outHandle, str.c_str(), str.size(), &written, nullptr);
 }
 
-void console::messageBox(char const* title, std::string const& info, Severity severity) {
+void console::messageBox(char const* title, std::string_view info, Severity severity) {
     unsigned int icon;
     switch (severity) {
         case Severity::Debug:

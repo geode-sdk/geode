@@ -19,9 +19,9 @@ using namespace geode::prelude;
 
 bool s_isOpen = false;
 
-void console::messageBox(char const* title, std::string const& info, Severity severity) {
+void console::messageBox(char const* title, std::string_view info, Severity severity) {
     // TODO: implement
-    console::log(info, severity);
+    console::log(std::string(info), severity);
 }
 
 void console::log(std::string const& msg, Severity severity) {

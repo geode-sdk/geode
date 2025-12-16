@@ -157,7 +157,7 @@ void geode::openSupportPopup(Mod* mod) {
 
 void geode::openSupportPopup(ModMetadata const& metadata) {
     MDPopup::create(
-        "Support " + metadata.getName(),
+        ("Support " + metadata.getName()).c_str(),
         metadata.getSupportInfo().value_or(
             "Developing mods takes a lot of time and effort! "
             "Consider <cy>supporting the developers</c> of your favorite mods "
@@ -342,6 +342,6 @@ CCNode* geode::createModLogo(std::filesystem::path const& geodePackage) {
     return ModLogoSprite::create(ModLogoSrc(geodePackage));
 }
 
-CCNode* geode::createServerModLogo(std::string const& id) {
-    return ModLogoSprite::create(ModLogoSrc(id));
+CCNode* geode::createServerModLogo(std::string id) {
+    return ModLogoSprite::create(ModLogoSrc(std::move(id)));
 }

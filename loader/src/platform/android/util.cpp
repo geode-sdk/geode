@@ -24,10 +24,10 @@ using namespace geode::prelude;
 
 using geode::utils::permission::Permission;
 
-bool utils::clipboard::write(std::string const& data) {
+bool utils::clipboard::write(std::string_view data) {
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "writeClipboard", "(Ljava/lang/String;)V")) {
-        jstring stringArg1 = t.env->NewStringUTF(data.c_str());
+        jstring stringArg1 = t.env->NewStringUTF(std::string(data));
 
         t.env->CallStaticVoidMethod(t.classID, t.methodID, stringArg1);
 
@@ -125,10 +125,10 @@ std::filesystem::path dirs::getResourcesDir() {
     return "assets";
 }
 
-void utils::web::openLinkInBrowser(std::string const& url) {
+void utils::web::openLinkInBrowser(std::string_view url) {
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "openWebview", "(Ljava/lang/String;)V")) {
-        jstring urlArg = t.env->NewStringUTF(url.c_str());
+        jstring urlArg = t.env->NewStringUTF(std::string(url));
 
         t.env->CallStaticVoidMethod(t.classID, t.methodID, urlArg);
 

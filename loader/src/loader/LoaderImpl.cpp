@@ -1258,7 +1258,9 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
                     // No need to show a confirmation popup if successful since that's
                     // to be assumed via pressing the button on the previous popup
                 }
-            }
+            },
+            true,
+            false
         );
     };
 
@@ -1288,7 +1290,9 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
                     return;
                 }
                 doInstallModFromFile();
-            }
+            },
+            true,
+            false
         );
         return;
     }

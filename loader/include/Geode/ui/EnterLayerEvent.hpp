@@ -17,7 +17,7 @@ namespace geode {
         cocos2d::CCNode* layer;
 
         AEnterLayerEvent(
-            std::string const& layerID,
+            std::string layerID,
             cocos2d::CCNode* layer
         );
     };
@@ -33,7 +33,7 @@ namespace geode {
         ListenerResult handle(geode::Function<Callback>& fn, AEnterLayerEvent* event);
 
 		AEnterLayerFilter(
-			std::optional<std::string> const& id
+			std::optional<std::string> id
 		);
         AEnterLayerFilter(AEnterLayerFilter const&) = default;
     };
@@ -42,9 +42,9 @@ namespace geode {
     class EnterLayerEvent final : public AEnterLayerEvent {
     public:
         EnterLayerEvent(
-            std::string const& layerID,
+            std::string layerID,
             T* layer
-        ) : AEnterLayerEvent(layerID, layer) {}
+        ) : AEnterLayerEvent(std::move(layerID), layer) {}
 
         T* getLayer() const {
             return static_cast<T*>(this->layer);

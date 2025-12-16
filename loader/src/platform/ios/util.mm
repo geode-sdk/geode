@@ -23,8 +23,8 @@ using namespace geode::prelude;
 
 using geode::utils::permission::Permission;
 
-bool utils::clipboard::write(std::string const& data) {
-    [UIPasteboard generalPasteboard].string = [NSString stringWithUTF8String:data.c_str()];
+bool utils::clipboard::write(std::string_view data) {
+    [UIPasteboard generalPasteboard].string = [NSString stringWithBytes:data.data() length:data.size() encoding:NSUTF8StringEncoding];
     return true;
 }
 
@@ -32,9 +32,9 @@ std::string utils::clipboard::read() {
     return std::string([[UIPasteboard generalPasteboard].string UTF8String]);
 }
 
-void utils::web::openLinkInBrowser(std::string const& url) {
+void utils::web::openLinkInBrowser(std::string_view url) {
     [[UIApplication sharedApplication]
-        openURL:[NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]] options:{} completionHandler:nil];
+        openURL:[NSURL URLWithString:[NSString stringWithUTF8String:url.data() length:data.size() encoding:NSUTF8StringEncoding]] options:{} completionHandler:nil];
 }
 
 #pragma region Folder Pick Delegate

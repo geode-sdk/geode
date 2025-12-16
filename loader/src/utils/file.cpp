@@ -211,11 +211,11 @@ Result<ByteVector> utils::file::readBinary(std::filesystem::path const& path) {
     return Ok(std::move(contents));
 }
 
-Result<> utils::file::writeString(std::filesystem::path const& path, std::string const& data) {
+Result<> utils::file::writeString(std::filesystem::path const& path, std::string_view data) {
     return writeFileFrom(path, (void*)data.data(), data.size());
 }
 
-Result<> utils::file::writeStringSafe(std::filesystem::path const& path, std::string const& data) {
+Result<> utils::file::writeStringSafe(std::filesystem::path const& path, std::string_view data) {
     GEODE_ANDROID(
         return utils::file::writeString(path, data); // safe approach causes significant performance issues on Android
     )
@@ -825,7 +825,7 @@ Result<> Zip::add(Path const& path, ByteVector const& data) {
     return m_impl->add(path, data);
 }
 
-Result<> Zip::add(Path const& path, std::string const& data) {
+Result<> Zip::add(Path const& path, std::string_view data) {
     return this->add(path, ByteVector(data.begin(), data.end()));
 }
 

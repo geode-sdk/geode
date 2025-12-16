@@ -29,8 +29,8 @@ namespace geode {
         Mod* m_mod;
         std::string m_key;
 
-        HandleToSaved(std::string const& key, Mod* mod, T const& value) :
-            T(value), m_key(key), m_mod(mod) {}
+        HandleToSaved(std::string key, Mod* mod, T value) :
+            T(std::move(value)), m_key(std::move(key)), m_mod(mod) {}
 
         HandleToSaved(HandleToSaved const&) = delete;
         HandleToSaved(HandleToSaved&&) = delete;
@@ -331,21 +331,21 @@ namespace geode {
          */
         template<class DetourType>
         Result<Hook*> hook(
-            void* address, DetourType detour, std::string const& displayName = "",
+            void* address, DetourType detour, std::string displayName = "",
             tulip::hook::TulipConvention convention = tulip::hook::TulipConvention::Default,
-            tulip::hook::HookMetadata const& hookMetadata = tulip::hook::HookMetadata()
+            tulip::hook::HookMetadata hookMetadata = tulip::hook::HookMetadata()
         ) {
-            auto hook = Hook::create(address, detour, displayName, convention, hookMetadata);
+            auto hook = Hook::create(address, detour, std::move(displayName), convention, std::move(hookMetadata));
             GEODE_UNWRAP_INTO(auto ptr, this->claimHook(std::move(hook)));
             return Ok(ptr);
         }
 
         Result<Hook*> hook(
-            void* address, void* detour, std::string const& displayName,
-            tulip::hook::HandlerMetadata const& handlerMetadata,
-            tulip::hook::HookMetadata const& hookMetadata
+            void* address, void* detour, std::string displayName,
+            tulip::hook::HandlerMetadata handlerMetadata,
+            tulip::hook::HookMetadata hookMetadata
         ) {
-            auto hook = Hook::create(address, detour, displayName, handlerMetadata, hookMetadata);
+            auto hook = Hook::create(address, detour, std::move(displayName), std::move(handlerMetadata), std::move(hookMetadata));
             GEODE_UNWRAP_INTO(auto ptr, this->claimHook(std::move(hook)));
             return Ok(ptr);
         }

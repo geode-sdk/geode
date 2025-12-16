@@ -179,6 +179,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
                             file::openFolder(dirs::getCrashlogsDir());
                         }
                     },
+                    false,
                     false
                 );
                 popup->m_noElasticity = true;
@@ -353,7 +354,9 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
                         "OK"
                     )->show();
                 }
-            }
+            },
+            true,
+            false
         );
 
     #else

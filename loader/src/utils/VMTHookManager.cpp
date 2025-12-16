@@ -57,13 +57,13 @@ public:
 
     Result<std::optional<std::shared_ptr<Hook>>> addHook(
         void* instance,  ptrdiff_t thunkOffset, ptrdiff_t vtableOffset, size_t vtableSize,
-        void* emptyFunc, void* newFunc, std::string const& typeName, std::string const& displayName,
-        tulip::hook::HandlerMetadata const& handlerMetadata,
-        tulip::hook::HookMetadata const& hookMetadata
+        void* emptyFunc, void* newFunc, std::string typeName, std::string displayName,
+        tulip::hook::HandlerMetadata handlerMetadata,
+        tulip::hook::HookMetadata hookMetadata
     );
 
-    Result<> forceDisableFunction(void* instance, std::string const& typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset);
-    Result<> forceEnableFunction(void* instance, std::string const& typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset);
+    Result<> forceDisableFunction(void* instance, std::string typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset);
+    Result<> forceEnableFunction(void* instance, std::string typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset);
 };
 
 void*& VMTHookManager::Impl::getTable(void* instance, ptrdiff_t thunkOffset) {
@@ -84,8 +84,8 @@ void VMTHookManager::Impl::replaceFunction(void* vtable, ptrdiff_t vtableOffset,
     this->getFunction(vtable, vtableOffset) = function;
 }
 
-Result<> VMTHookManager::Impl::forceDisableFunction(void* instance, std::string const& typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset) {
-    VMTMapKey mapKey{ typeName, thunkOffset, vtableOffset };
+Result<> VMTHookManager::Impl::forceDisableFunction(void* instance, std::string typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset) {
+    VMTMapKey mapKey{ std::move(typeName), thunkOffset, vtableOffset };
     auto mapIt = m_hooks.find(mapKey);
 
     if (mapIt != m_hooks.end()) {
@@ -97,8 +97,8 @@ Result<> VMTHookManager::Impl::forceDisableFunction(void* instance, std::string 
     return Err("No hook found for the given type and thunk offset");
 }
 
-Result<> VMTHookManager::Impl::forceEnableFunction(void* instance, std::string const& typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset) {
-    VMTMapKey mapKey{ typeName, thunkOffset, vtableOffset };
+Result<> VMTHookManager::Impl::forceEnableFunction(void* instance, std::string typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset) {
+    VMTMapKey mapKey{ std::move(typeName), thunkOffset, vtableOffset };
     auto mapIt = m_hooks.find(mapKey);
 
     if (mapIt != m_hooks.end()) {
@@ -112,16 +112,16 @@ Result<> VMTHookManager::Impl::forceEnableFunction(void* instance, std::string c
 
 Result<std::optional<std::shared_ptr<Hook>>> VMTHookManager::Impl::addHook(
     void* instance, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset, size_t vtableSize,
-    void* emptyFunc, void* newFunc, std::string const& typeName, std::string const& displayName,
-    tulip::hook::HandlerMetadata const& handlerMetadata,
-    tulip::hook::HookMetadata const& hookMetadata)
+    void* emptyFunc, void* newFunc, std::string typeName, std::string displayName,
+    tulip::hook::HandlerMetadata handlerMetadata,
+    tulip::hook::HookMetadata hookMetadata)
 {
-    VMTMapKey mapKey{ typeName, thunkOffset, vtableOffset };
+    VMTMapKey mapKey{ std::move(typeName), thunkOffset, vtableOffset };
     auto mapIt = m_hooks.find(mapKey);
     // log::debug("Map key: {}, {}, {}", typeName, thunkOffset, vtableOffset);
 
     if (mapIt == m_hooks.end()) {
-        VMTTableKey tableKey{ typeName, thunkOffset };
+        VMTTableKey tableKey{ mapKey.tableKey.typenamePtr, thunkOffset };
         auto tableIt = m_tables.find(tableKey);
         // log::debug("Table key: {}, {}", typeName, thunkOffset);
 
@@ -173,7 +173,7 @@ Result<std::optional<std::shared_ptr<Hook>>> VMTHookManager::Impl::addHook(
     }
     // need to generate the hook based on the existing original
     // log::debug("Adding new detour: {}", newFunc);
-    auto hook = Hook::create(value.empty, newFunc, displayName, handlerMetadata, hookMetadata);
+    auto hook = Hook::create(value.empty, newFunc, std::move(displayName), std::move(handlerMetadata), std::move(hookMetadata));
     // log::debug("Done");
     detours.push_back(newFunc);
     return Ok(std::move(hook));
@@ -189,20 +189,20 @@ VMTHookManager::~VMTHookManager() = default;
 
 Result<std::optional<std::shared_ptr<Hook>>> VMTHookManager::addHookInternal(
     void* instance, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset, size_t vtableSize,
-    void* emptyFunc, void* newFunc, std::string const& typeName, std::string const& displayName,
-    tulip::hook::HandlerMetadata const& handlerMetadata,
-    tulip::hook::HookMetadata const& hookMetadata
+    void* emptyFunc, void* newFunc, std::string typeName, std::string displayName,
+    tulip::hook::HandlerMetadata handlerMetadata,
+    tulip::hook::HookMetadata hookMetadata
 ) {
     return m_impl->addHook(
         instance, thunkOffset, vtableOffset, vtableSize, emptyFunc,
-        newFunc, typeName, displayName, handlerMetadata, hookMetadata
+        newFunc, std::move(typeName), std::move(displayName), std::move(handlerMetadata), std::move(hookMetadata)
     );
 }
 
-Result<> VMTHookManager::forceEnableFunctionInternal(void* instance, std::string const& typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset) {
-    return m_impl->forceEnableFunction(instance, typeName, thunkOffset, vtableOffset);
+Result<> VMTHookManager::forceEnableFunctionInternal(void* instance, std::string typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset) {
+    return m_impl->forceEnableFunction(instance, std::move(typeName), thunkOffset, vtableOffset);
 }
 
-Result<> VMTHookManager::forceDisableFunctionInternal(void* instance, std::string const& typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset) {
-    return m_impl->forceDisableFunction(instance, typeName, thunkOffset, vtableOffset);
+Result<> VMTHookManager::forceDisableFunctionInternal(void* instance, std::string typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset) {
+    return m_impl->forceDisableFunction(instance, std::move(typeName), thunkOffset, vtableOffset);
 }

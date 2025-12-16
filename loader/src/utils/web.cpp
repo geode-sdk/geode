@@ -246,7 +246,7 @@ MultipartForm& MultipartForm::file(std::string_view name, std::span<uint8_t cons
     return *this;
 }
 
-std::string const& MultipartForm::getBoundary() const {
+std::string_view MultipartForm::getBoundary() const {
     m_impl->pickUniqueBoundary();
     return m_impl->m_boundary;
 }
@@ -302,7 +302,7 @@ std::optional<std::vector<std::string>> WebResponse::getAllHeadersNamed(std::str
     return std::nullopt;
 }
 
-std::string const& WebResponse::errorMessage() const {
+std::string_view WebResponse::errorMessage() const {
     return m_impl->m_errMessage;
 }
 

@@ -122,13 +122,13 @@ Result<ccColor3B> colorForIdentifier(std::string const& tag) {
     return Err("Unknown error");
 }
 
-bool MDTextArea::init(std::string const& str, CCSize const& size) {
+bool MDTextArea::init(std::string str, CCSize const& size) {
     if (!CCLayer::init()) return false;
 
     this->ignoreAnchorPointForPosition(false);
     this->setAnchorPoint({ .5f, .5f });
 
-    m_text = str;
+    m_text = std::move(str);
     m_size = size - CCSize { 15.f, 0.f };
     this->setContentSize(m_size);
     m_renderer = TextRenderer::create();
@@ -817,9 +817,9 @@ char const* MDTextArea::getString() {
     return m_text.c_str();
 }
 
-MDTextArea* MDTextArea::create(std::string const& str, CCSize const& size) {
+MDTextArea* MDTextArea::create(std::string str, CCSize const& size) {
     auto ret = new MDTextArea;
-    if (ret->init(str, size)) {
+    if (ret->init(std::move(str), size)) {
         ret->autorelease();
         return ret;
     }
@@ -827,14 +827,14 @@ MDTextArea* MDTextArea::create(std::string const& str, CCSize const& size) {
     return nullptr;
 }
 
-MDTextArea* MDTextArea::create(std::string const& str, CCSize const& size, bool compatibilityMode) {
+MDTextArea* MDTextArea::create(std::string str, CCSize const& size, bool compatibilityMode) {
     auto ret = new MDTextArea;
 
     // TODO in v5: put this in the members
     auto boolObj = CCBool::create(compatibilityMode);
     ret->setUserObject("compatibilityMode"_spr, boolObj);
 
-    if (ret->init(str, size)) {
+    if (ret->init(std::move(str), size)) {
         ret->autorelease();
         return ret;
     }

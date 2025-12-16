@@ -6,7 +6,7 @@
 using namespace geode::prelude;
 
 bool MDPopup::setup(
-    std::string const& title, std::string const& info, char const* btn1Text, char const* btn2Text,
+    char const* title, std::string info, char const* btn1Text, char const* btn2Text,
     geode::Function<void(bool)> onClick
 ) {
     m_onClick = std::move(onClick);
@@ -24,7 +24,7 @@ bool MDPopup::setup(
     auto content = MDTextArea::create(info, contentSize, compatibilityMode);
     m_mainLayer->addChildAtPosition(content, Anchor::Center, ccp(0, 0));
 
-    this->setTitle(title.c_str(), "goldFont.fnt", .9f, 28.f);
+    this->setTitle(title, "goldFont.fnt", .9f, 28.f);
     m_title->limitLabelWidth(contentSize.width - 4.f, .9f, .1f);
 
     auto btnSpr = ButtonSprite::create(btn1Text);
@@ -64,17 +64,17 @@ void MDPopup::onBtn(CCObject* sender) {
     this->onClose(nullptr);
 }
 
-float MDPopup::estimateHeight(std::string const& content) {
+float MDPopup::estimateHeight(std::string_view content) {
     return std::clamp(string::count(content, '\n') * 50.f, 180.f, 280.f);
 }
 
 MDPopup* MDPopup::create(
-    std::string const& title, std::string const& content, char const* btn1, char const* btn2,
+    char const* title, std::string content, char const* btn1, char const* btn2,
     geode::Function<void(bool)> onClick
 ) {
     auto ret = new MDPopup();
     if (ret->initAnchored(
-            400.f, MDPopup::estimateHeight(content), title, content, btn1, btn2, std::move(onClick),
+            400.f, MDPopup::estimateHeight(content), title, std::move(content), btn1, btn2, std::move(onClick),
             "square01_001.png", { 0, 0, 94, 94 }
         )) {
         ret->autorelease();
@@ -85,7 +85,7 @@ MDPopup* MDPopup::create(
 }
 
 MDPopup* MDPopup::create(
-    bool compatibilityMode, std::string const& title, std::string const& content, char const* btn1,
+    bool compatibilityMode, char const* title, std::string content, char const* btn1,
     char const* btn2, geode::Function<void(bool)> onClick
 ) {
     auto ret = new MDPopup();
@@ -95,7 +95,7 @@ MDPopup* MDPopup::create(
     ret->setUserObject("compatibilityMode"_spr, boolObj);
 
     if (ret->initAnchored(
-            400.f, MDPopup::estimateHeight(content), title, content, btn1, btn2, std::move(onClick),
+            400.f, MDPopup::estimateHeight(content), title, std::move(content), btn1, btn2, std::move(onClick),
             "square01_001.png", { 0, 0, 94, 94 }
         )) {
         ret->autorelease();

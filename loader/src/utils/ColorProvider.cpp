@@ -3,8 +3,8 @@
 
 using namespace geode::prelude;
 
-ColorProvidedEvent::ColorProvidedEvent(std::string const& id, cocos2d::ccColor4B const& color)
-  : id(id), color(color) {}
+ColorProvidedEvent::ColorProvidedEvent(std::string id, cocos2d::ccColor4B const& color)
+  : id(std::move(id)), color(color) {}
 
 ListenerResult ColorProvidedFilter::handle(geode::Function<Callback>& fn, ColorProvidedEvent* event) {
     if (event->id == m_id) {
@@ -13,7 +13,7 @@ ListenerResult ColorProvidedFilter::handle(geode::Function<Callback>& fn, ColorP
     return ListenerResult::Propagate;
 }
 
-ColorProvidedFilter::ColorProvidedFilter(std::string const& id) : m_id(id) {}
+ColorProvidedFilter::ColorProvidedFilter(std::string id) : m_id(std::move(id)) {}
 
 class ColorProvider::Impl {
 public:
@@ -27,13 +27,15 @@ ColorProvider* ColorProvider::get() {
     return inst;
 }
 
-ccColor4B ColorProvider::define(std::string const& id, ccColor4B const& color) {
+using is_transparent = void;
+
+ccColor4B ColorProvider::define(std::string id, ccColor4B const& color) {
     // `insert` doesn't override existing keys, which is what we want
-    m_impl->colors.insert({ id, std::pair(color, std::nullopt) });
+    m_impl->colors.insert({ std::move(id), std::pair(color, std::nullopt) });
     return this->color(id);
 }
-ccColor3B ColorProvider::define(std::string const& id, ccColor3B const& color) {
-    return to3B(this->define(id, to4B(color)));
+ccColor3B ColorProvider::define(std::string id, ccColor3B const& color) {
+    return to3B(this->define(std::move(id), to4B(color)));
 }
 ccColor4B ColorProvider::override(std::string const& id, ccColor4B const& color) {
     if (m_impl->colors.contains(id)) {

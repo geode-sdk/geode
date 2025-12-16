@@ -21,9 +21,9 @@ struct MacConsoleData {
 bool s_isOpen = false;
 MacConsoleData s_platformData;
 
-void console::messageBox(char const* title, std::string const& info, Severity) {
+void console::messageBox(char const* title, std::string_view info, Severity) {
     CFStringRef cfTitle = CFStringCreateWithCString(NULL, title, kCFStringEncodingUTF8);
-    CFStringRef cfMessage = CFStringCreateWithCString(NULL, info.c_str(), kCFStringEncodingUTF8);
+    CFStringRef cfMessage = CFStringCreateWithBytes(NULL, (unsigned char*)info.data(), info.size(), kCFStringEncodingUTF8, false);
 
     CFUserNotificationDisplayNotice(
         0, kCFUserNotificationNoteAlertLevel, NULL, NULL, NULL, cfTitle, cfMessage, NULL

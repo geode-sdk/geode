@@ -21,7 +21,7 @@ namespace geode {
         CCMenuItemSpriteExtra* m_nextBtn;
 
         bool init(
-            float width, std::vector<T> const& list, geode::Function<void(T const&, size_t)> onChange
+            float width, std::span<T> list, geode::Function<void(T const&, size_t)> onChange
         ) {
             if (!cocos2d::CCMenu::init()) return false;
 
@@ -95,7 +95,7 @@ namespace geode {
 
     public:
         static SelectList* create(
-            float width, std::vector<T> const& list, geode::Function<void(T const&, size_t)> onChange
+            float width, std::span<T> list, geode::Function<void(T const&, size_t)> onChange
         ) {
             auto ret = new SelectList();
             if (ret->init(width, list, std::move(onChange))) {
@@ -106,7 +106,7 @@ namespace geode {
             return nullptr;
         }
 
-        void setItems(std::vector<T> const& list) {
+        void setItems(std::span<T> list) {
             m_index = 0;
             m_list = list;
             this->updateLabel();

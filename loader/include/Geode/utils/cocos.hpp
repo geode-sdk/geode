@@ -931,7 +931,7 @@ namespace geode::cocos {
      * @returns A ccColor3B if it could be successfully parsed, or an error
      * indicating the failure reason
      */
-    GEODE_DLL Result<cocos2d::ccColor3B> cc3bFromHexString(std::string const& hexValue, bool permissive = false);
+    GEODE_DLL Result<cocos2d::ccColor3B> cc3bFromHexString(std::string hexValue, bool permissive = false);
     /**
      * Parse a ccColor4B from a hexadecimal string. The string may contain
      * a leading '#'
@@ -944,7 +944,7 @@ namespace geode::cocos {
      * @returns A ccColor4B if it could be successfully parsed, or an error
      * indicating the failure reason
      */
-    GEODE_DLL Result<cocos2d::ccColor4B> cc4bFromHexString(std::string const& hexValue, bool requireAlpha = false, bool permissive = false);
+    GEODE_DLL Result<cocos2d::ccColor4B> cc4bFromHexString(std::string hexValue, bool requireAlpha = false, bool permissive = false);
 
     /**
      * Converts a `cocos2d::ccColor3B` into a string based on the `RRGGBB` format.

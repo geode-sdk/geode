@@ -14,5 +14,5 @@ namespace geode::console {
     void openIfClosed();
 
     void log(std::string const& msg, Severity severity);
-    void messageBox(char const* title, std::string const& info, Severity severity = Severity::Error);
+    void messageBox(char const* title, std::string_view info, Severity severity = Severity::Error);
 }

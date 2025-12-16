@@ -12,11 +12,11 @@ using namespace geode::prelude;
 namespace {
     auto changeToGenerator(auto function) {
         return [function = std::move(function)](
-            std::string const& key,
-            std::string const& modID,
+            std::string key,
+            std::string modID,
             matjson::Value const& json
         ) -> Result<std::shared_ptr<SettingV3>> {
-            return function(key, modID, json).map([](auto&& ptr) {
+            return function(std::move(key), std::move(modID), json).map([](auto&& ptr) {
                 return std::shared_ptr<SettingV3>(ptr);
             });
         };

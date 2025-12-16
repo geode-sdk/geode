@@ -66,7 +66,9 @@ protected:
                 if (!m_questionQueue.empty()) {
                     this->nextQuestion();
                 }
-            }
+            },
+            true,
+            false
         );
     }
     void ask(Question&& question) {

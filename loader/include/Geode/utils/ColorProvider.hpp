@@ -14,7 +14,7 @@ namespace geode {
         std::string id;
         cocos2d::ccColor4B color;
 
-        ColorProvidedEvent(std::string const& id, cocos2d::ccColor4B const& color);
+        ColorProvidedEvent(std::string id, cocos2d::ccColor4B const& color);
     };
 
     /**
@@ -31,7 +31,7 @@ namespace geode {
     public:
         ListenerResult handle(geode::Function<Callback>& fn, ColorProvidedEvent* event);
 
-        ColorProvidedFilter(std::string const& id);
+        ColorProvidedFilter(std::string id);
     };
 
     /**
@@ -73,7 +73,7 @@ namespace geode {
          * @returns The current value of the color with the ID (same as the
          * `color` function)
          */
-        cocos2d::ccColor4B define(std::string const& id, cocos2d::ccColor4B const& color);
+        cocos2d::ccColor4B define(std::string id, cocos2d::ccColor4B const& color);
         /**
          * Define a new color with an associated ID. The ID should be prefixed
          * with the mod ID. If the color has already been defined, nothing
@@ -83,7 +83,7 @@ namespace geode {
          * @returns The current value of the color with the ID (same as the
          * `color` function, although with the value truncated to cc3b)
          */
-        cocos2d::ccColor3B define(std::string const& id, cocos2d::ccColor3B const& color);
+        cocos2d::ccColor3B define(std::string id, cocos2d::ccColor3B const& color);
         /**
          * Override the current value of a color with an associated ID
          * @param id The ID of the color

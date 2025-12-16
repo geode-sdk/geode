@@ -15,7 +15,7 @@ std::string geode::utils::thread::getName() {
     return s_threadName;
 }
 
-void geode::utils::thread::setName(std::string const& name) {
-    s_threadName = name;
-    platformSetName(name);
+void geode::utils::thread::setName(std::string name) {
+    s_threadName = std::move(name);
+    platformSetName(s_threadName);
 }

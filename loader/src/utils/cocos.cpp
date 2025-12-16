@@ -87,11 +87,10 @@ matjson::Value matjson::Serialize<ccColor4B>::toJson(cocos2d::ccColor4B const& v
     });
 }
 
-Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string const& rawHexValue, bool permissive) {
-    if (permissive && rawHexValue.empty()) {
+Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string hexValue, bool permissive) {
+    if (permissive && hexValue.empty()) {
         return Ok(ccc3(255, 255, 255));
     }
-    auto hexValue = rawHexValue;
     if (hexValue[0] == '#') {
         hexValue.erase(hexValue.begin());
     }
@@ -145,11 +144,10 @@ Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string const& rawHexValue
     }
 }
 
-Result<ccColor4B> geode::cocos::cc4bFromHexString(std::string const& rawHexValue, bool requireAlpha, bool permissive) {
-    if (permissive && rawHexValue.empty()) {
+Result<ccColor4B> geode::cocos::cc4bFromHexString(std::string hexValue, bool requireAlpha, bool permissive) {
+    if (permissive && hexValue.empty()) {
         return Ok(ccc4(255, 255, 255, 255));
     }
-    auto hexValue = rawHexValue;
     if (hexValue[0] == '#') {
         hexValue.erase(hexValue.begin());
     }

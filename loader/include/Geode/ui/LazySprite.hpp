@@ -30,8 +30,6 @@ namespace geode {
         void loadFromUrl(char const* url, Format format = Format::kFmtUnKnown, bool ignoreCache = false);
         void loadFromFile(std::filesystem::path const& path, Format format = Format::kFmtUnKnown, bool ignoreCache = false);
         void loadFromData(std::span<uint8_t const> data, Format format = Format::kFmtUnKnown);
-        void loadFromData(uint8_t const* ptr, size_t size, Format format = Format::kFmtUnKnown);
-        void loadFromData(std::vector<uint8_t> data, Format format = Format::kFmtUnKnown);
 
         /**
          * Set the callback to be called once the sprite is fully loaded, or an error occurred.
@@ -77,7 +75,7 @@ namespace geode {
         cocos2d::CCSize m_targetSize;
 
         bool init(cocos2d::CCSize size, bool loadingCircle = true);
-        void doInitFromBytes(std::vector<uint8_t> data, std::string cacheKey);
+        void doInitFromBytes(std::span<uint8_t const> data, std::string cacheKey);
         std::string makeCacheKey(std::filesystem::path const& path);
         // std::string makeCacheKey(std::string_view url);
 

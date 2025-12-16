@@ -144,7 +144,7 @@ void SettingNodeV3::updateState(CCNode* invoker) {
 void SettingNodeV3::onDescription(CCObject*) {
     auto title = m_impl->setting->getDisplayName();
     MDPopup::create(true,
-        title,
+        title.c_str(),
         m_impl->setting->getDescription().value_or("No description provided"),
         "OK"
     )->show();

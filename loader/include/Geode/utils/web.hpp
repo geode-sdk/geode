@@ -10,7 +10,7 @@
 #include <span>
 
 namespace geode::utils::web {
-    GEODE_DLL void openLinkInBrowser(std::string const& url);
+    GEODE_DLL void openLinkInBrowser(std::string_view url);
 
     // https://curl.se/libcurl/c/CURLOPT_HTTPAUTH.html
     namespace http_auth {
@@ -95,9 +95,9 @@ namespace geode::utils::web {
         /**
          * Returns the unique boundary string used in the multipart form.
          * This will also finalize the form, so adding more parameters will not work.
-         * @return std::string const&
+         * @return std::string_view
          */
-        std::string const& getBoundary() const;
+        std::string_view getBoundary() const;
 
         /**
          * Returns the value for the Content-Type header with unique boundary string.
@@ -153,7 +153,7 @@ namespace geode::utils::web {
          * In case the request did not fail, or no more information is available beyond what `string` returns,
          * an empty string is returned.
          */
-        std::string const& errorMessage() const;
+        std::string_view errorMessage() const;
     };
 
     class GEODE_DLL WebProgress final {

@@ -38,7 +38,7 @@ namespace geode {
          *     [](int value) {
          *         return "int";
          *     },
-         *     [](std::string const& value) {
+         *     [](std::string_view value) {
          *         return "string";
          *     },
          * }, stored);
@@ -296,7 +296,7 @@ namespace geode::utils::clipboard {
      * @param data The data to write
      * @returns True if the operation was successful
      */
-    GEODE_DLL bool write(std::string const& data);
+    GEODE_DLL bool write(std::string_view data);
 
     /**
      * Reads the clipboards onto a string.
@@ -363,5 +363,5 @@ namespace geode::utils::thread {
      *
      * @param name The thread name to assign
      */
-    GEODE_DLL void setName(std::string const& name);
+    GEODE_DLL void setName(std::string name);
 }

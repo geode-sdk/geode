@@ -221,28 +221,28 @@ namespace geode {
         Result<> checkTargetVersions() const;
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
-        void setPath(std::filesystem::path const& value);
-        void setBinaryName(std::string const& value);
-        void setVersion(VersionInfo const& value);
-        void setID(std::string const& value);
-        void setName(std::string const& value);
-        void setDeveloper(std::string const& value);
-        void setDevelopers(std::vector<std::string> const& value);
-        void setDescription(std::optional<std::string> const& value);
-        void setDetails(std::optional<std::string> const& value);
-        void setChangelog(std::optional<std::string> const& value);
-        void setSupportInfo(std::optional<std::string> const& value);
-        void setRepository(std::optional<std::string> const& value);
-        void setIssues(std::optional<IssuesInfo> const& value);
-        void setDependencies(std::vector<Dependency> const& value);
-        void setIncompatibilities(std::vector<Incompatibility> const& value);
-        void setSpritesheets(std::vector<std::string> const& value);
-        void setSettings(std::vector<std::pair<std::string, matjson::Value>> const& value);
-        void setTags(std::unordered_set<std::string> const& value);
-        void setNeedsEarlyLoad(bool const& value);
-        void setIsAPI(bool const& value);
-        void setGameVersion(std::string const& value);
-        void setGeodeVersion(VersionInfo const& value);
+        void setPath(std::filesystem::path value);
+        void setBinaryName(std::string value);
+        void setVersion(VersionInfo value);
+        void setID(std::string value);
+        void setName(std::string value);
+        void setDeveloper(std::string value);
+        void setDevelopers(std::vector<std::string> value);
+        void setDescription(std::optional<std::string> value);
+        void setDetails(std::optional<std::string> value);
+        void setChangelog(std::optional<std::string> value);
+        void setSupportInfo(std::optional<std::string> value);
+        void setRepository(std::optional<std::string> value);
+        void setIssues(std::optional<IssuesInfo> value);
+        void setDependencies(std::vector<Dependency> value);
+        void setIncompatibilities(std::vector<Incompatibility> value);
+        void setSpritesheets(std::vector<std::string> value);
+        void setSettings(std::vector<std::pair<std::string, matjson::Value>> value);
+        void setTags(std::unordered_set<std::string> value);
+        void setNeedsEarlyLoad(bool value);
+        void setIsAPI(bool value);
+        void setGameVersion(std::string value);
+        void setGeodeVersion(VersionInfo value);
         ModMetadataLinks& getLinksMut();
 #endif
 
@@ -275,7 +275,7 @@ namespace geode {
 
         bool operator==(ModMetadata const& other) const;
 
-        static bool validateID(std::string const& id);
+        static bool validateID(std::string_view id);
 
         /**
          * Format a list of mod developers, truncated if there are multiple

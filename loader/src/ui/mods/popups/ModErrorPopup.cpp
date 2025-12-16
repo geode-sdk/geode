@@ -11,7 +11,7 @@
 
 bool ModErrorPopup::setup(Mod* mod) {
     m_mod = mod;
-    this->setTitle(fmt::format("Errors for {}", mod->getName()));
+    this->setTitle(fmt::format("Errors for {}", mod->getName()).c_str());
 
     this->createList();
 

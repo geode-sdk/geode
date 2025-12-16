@@ -7,15 +7,15 @@ using namespace geode::prelude;
 
 ipc::IPCEvent::IPCEvent(
     void* rawPipeHandle,
-    std::string const& targetModID,
-    std::string const& messageID,
-    matjson::Value const& messageData,
+    std::string targetModID,
+    std::string messageID,
+    matjson::Value messageData,
     matjson::Value& replyData
 ) : m_rawPipeHandle(rawPipeHandle),
-    targetModID(targetModID),
-    messageID(messageID),
+    targetModID(std::move(targetModID)),
+    messageID(std::move(messageID)),
     replyData(replyData),
-    messageData(std::make_unique<matjson::Value>(messageData)) {}
+    messageData(std::make_unique<matjson::Value>(std::move(messageData))) {}
 
 ipc::IPCEvent::~IPCEvent() {}
 
@@ -27,10 +27,10 @@ ListenerResult ipc::IPCFilter::handle(geode::Function<Callback>& fn, IPCEvent* e
     return ListenerResult::Propagate;
 }
 
-ipc::IPCFilter::IPCFilter(std::string const& modID, std::string const& messageID) :
-    m_modID(modID), m_messageID(messageID) {}
+ipc::IPCFilter::IPCFilter(std::string modID, std::string messageID) :
+    m_modID(std::move(modID)), m_messageID(std::move(messageID)) {}
 
-matjson::Value ipc::processRaw(void* rawHandle, std::string const& buffer) {
+matjson::Value ipc::processRaw(void* rawHandle, std::string_view buffer) {
     matjson::Value reply;
 
     auto res = matjson::Value::parse(buffer);

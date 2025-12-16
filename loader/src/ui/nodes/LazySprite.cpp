@@ -211,7 +211,7 @@ bool LazySprite::init(CCSize size, bool loadingCircle) {
     return true;
 }
 
-void LazySprite::loadFromUrl(const std::string& url, Format format, bool ignoreCache) {
+void LazySprite::loadFromUrl(std::string const& url, Format format, bool ignoreCache) {
     return this->loadFromUrl(url.c_str(), format, ignoreCache);
 }
 
@@ -232,7 +232,7 @@ void LazySprite::loadFromUrl(char const* url, Format format, bool ignoreCache) {
 
         auto resp = event->getValue();
         if (!resp->ok()) {
-            std::string errmsg = resp->errorMessage();
+            std::string errmsg(resp->errorMessage());
             if (errmsg.empty()) {
                 errmsg = resp->string().unwrapOrDefault();
             }
@@ -302,14 +302,6 @@ void LazySprite::loadFromFile(const std::filesystem::path& path, Format format, 
 }
 
 void LazySprite::loadFromData(std::span<uint8_t const> data, Format format) {
-    this->loadFromData(data.data(), data.size(), format);
-}
-
-void LazySprite::loadFromData(uint8_t const* ptr, size_t size, Format format) {
-    this->loadFromData(std::vector(ptr, ptr + size), format);
-}
-
-void LazySprite::loadFromData(std::vector<uint8_t> data, Format format) {
     if (m_isLoading || m_hasLoaded) {
         return;
     }
@@ -317,19 +309,19 @@ void LazySprite::loadFromData(std::vector<uint8_t> data, Format format) {
     m_expectedFormat = format;
     m_isLoading = true;
 
-    this->doInitFromBytes(std::move(data), "");
+    this->doInitFromBytes(data, "");
 }
 
-void LazySprite::doInitFromBytes(std::vector<uint8_t> data, std::string cacheKey) {
+void LazySprite::doInitFromBytes(std::span<uint8_t const> data, std::string cacheKey) {
     // do initialization in the threadpool
     Manager::get().pushTask([
         selfref = WeakRef(this),
-        data = std::move(data),
+        data,
         cacheKey = std::move(cacheKey),
         format = m_expectedFormat
     ]() mutable {
         auto image = new CCImage();
-        bool res = image->initWithImageData(data.data(), data.size(), format);
+        bool res = image->initWithImageData((void*)data.data(), data.size(), format);
 
         if (!res) {
             delete image;
