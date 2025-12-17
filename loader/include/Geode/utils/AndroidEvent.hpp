@@ -15,41 +15,107 @@ namespace geode {
     }
 
     /**
-     * Input timestamp (in nanoseconds) sent by the launcher just before the next input event is received
+     * An input representing some kind of key input (whether it is controller or )
      */
-    class GEODE_DLL AndroidInputTimestampEvent final : public Event {
+    class GEODE_DLL AndroidKeyInput final {
     protected:
-        long m_timestamp;
+        int m_keycode;
+        int m_modifiers;
+        int m_repeatCount;
+        bool m_isDown;
 
     public:
-        AndroidInputTimestampEvent(long timestamp);
-        long getTimestamp() const;
+        AndroidKeyInput(int keycode, int modifiers, bool isDown, int repeatCount);
+
+        int keycode() const;
+        bool isDown() const;
+        int repeatCount() const;
+        int modifiers() const;
     };
 
-    class GEODE_DLL AndroidInputTimestampFilter final : public EventFilter<AndroidInputTimestampEvent> {
-    public:
-        using Callback = void(AndroidInputTimestampEvent*);
-
-        ListenerResult handle(geode::Function<Callback>& fn, AndroidInputTimestampEvent* event);
-    };
-
-    class GEODE_DLL AndroidInputDeviceInfoEvent final : public Event {
+    class GEODE_DLL AndroidScrollInput final {
     protected:
+        float m_scrollX;
+        float m_scrollY;
+
+    public:
+        AndroidScrollInput(float scrollX, float scrollY);
+
+        float scrollX() const;
+        float scrollY() const;
+    };
+
+    // this type is intended to be used for variant discrimination, for now. i'm lazy
+    class GEODE_DLL AndroidTouchInput final {
+    public:
+        struct Data {
+            int m_id;
+            float m_x;
+            float m_y;
+        };
+
+        enum class Type {
+            Began = 0, Moved = 1, Ended = 2, Cancelled = 3
+        };
+
+        AndroidTouchInput(std::vector<Data> touches, Type type);
+
+        std::vector<Data> touches() const;
+        Type type() const;
+
+    private:
+        std::vector<Data> m_touches;
+        Type m_type;
+    };
+
+    class GEODE_DLL AndroidJoystickInput final {
+    public:
+        struct Data final {
+            float leftX;
+            float leftY;
+
+            float rightX;
+            float rightY;
+
+            float hatX;
+            float hatY;
+
+            float leftTrigger;
+            float rightTrigger;
+        };
+
+        AndroidJoystickInput(std::vector<Data> packets);
+
+        std::vector<Data> packets() const;
+
+    private:
+        std::vector<Data> m_packets;
+    };
+
+    using AndroidRichInput = std::variant<AndroidJoystickInput, AndroidTouchInput, AndroidKeyInput, AndroidScrollInput>;
+
+    class GEODE_DLL AndroidRichInputEvent final : public Event {
+    protected:
+        std::int64_t m_timestamp;
         int m_deviceId;
         int m_eventSource;
 
-    public:
-        AndroidInputDeviceInfoEvent(int deviceId, int eventSource);
+        AndroidRichInput m_data;
 
+    public:
+        AndroidRichInputEvent(std::int64_t timestamp, int deviceId, int eventSource, AndroidRichInput data);
+
+        std::int64_t timestamp() const;
         int deviceId() const;
         int eventSource() const;
+        AndroidRichInput data() const;
     };
 
-    class GEODE_DLL AndroidInputDeviceInfoFilter final : public EventFilter<AndroidInputDeviceInfoEvent> {
+    class GEODE_DLL AndroidRichInputFilter final : public EventFilter<AndroidRichInputEvent> {
     public:
-        using Callback = void(AndroidInputDeviceInfoEvent*);
+        using Callback = void(AndroidRichInputEvent*);
 
-        ListenerResult handle(std::function<Callback> fn, AndroidInputDeviceInfoEvent* event);
+        ListenerResult handle(std::function<Callback> fn, AndroidRichInputEvent* event);
     };
 
     class GEODE_DLL AndroidInputDeviceEvent final : public Event {
@@ -74,43 +140,6 @@ namespace geode {
         using Callback = void(AndroidInputDeviceEvent*);
 
         ListenerResult handle(std::function<Callback> fn, AndroidInputDeviceEvent* event);
-    };
-
-    class GEODE_DLL AndroidInputJoystickEvent final : public Event {
-    protected:
-        std::vector<float> m_leftX;
-        std::vector<float> m_leftY;
-
-        std::vector<float> m_rightX;
-        std::vector<float> m_rightY;
-
-        std::vector<float> m_hatX;
-        std::vector<float> m_hatY;
-
-        std::vector<float> m_leftTrigger;
-        std::vector<float> m_rightTrigger;
-
-    public:
-        AndroidInputJoystickEvent(std::vector<float>, std::vector<float>, std::vector<float>, std::vector<float>, std::vector<float>, std::vector<float>, std::vector<float>, std::vector<float>);
-
-        std::vector<float> leftX() const;
-        std::vector<float> leftY() const;
-
-        std::vector<float> rightX() const;
-        std::vector<float> rightY() const;
-
-        std::vector<float> hatX() const;
-        std::vector<float> hatY() const;
-
-        std::vector<float> leftTrigger() const;
-        std::vector<float> rightTrigger() const;
-    };
-
-    class GEODE_DLL AndroidInputJoystickFilter final : public EventFilter<AndroidInputJoystickEvent> {
-    public:
-        using Callback = void(AndroidInputJoystickEvent*);
-
-        ListenerResult handle(std::function<Callback> fn, AndroidInputJoystickEvent* event);
     };
 }
 
