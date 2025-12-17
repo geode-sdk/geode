@@ -14,9 +14,6 @@ namespace geode {
         geode::Result<int> getLauncherVersion();
     }
 
-    /**
-     * An input representing some kind of key input (whether it is controller or )
-     */
     class GEODE_DLL AndroidKeyInput final {
     protected:
         int m_keycode;
@@ -27,6 +24,7 @@ namespace geode {
     public:
         AndroidKeyInput(int keycode, int modifiers, bool isDown, int repeatCount);
 
+        /** Returns the Android keycode for the KeyEvent */
         int keycode() const;
         bool isDown() const;
         int repeatCount() const;
@@ -45,13 +43,12 @@ namespace geode {
         float scrollY() const;
     };
 
-    // this type is intended to be used for variant discrimination, for now. i'm lazy
     class GEODE_DLL AndroidTouchInput final {
     public:
-        struct Data {
-            int m_id;
-            float m_x;
-            float m_y;
+        struct Data final {
+            int id;
+            float x;
+            float y;
         };
 
         enum class Type {
@@ -60,6 +57,7 @@ namespace geode {
 
         AndroidTouchInput(std::vector<Data> touches, Type type);
 
+        /** Touch information for all pointers. For most events, only the first pointer is considered. */
         std::vector<Data> touches() const;
         Type type() const;
 
@@ -86,6 +84,7 @@ namespace geode {
 
         AndroidJoystickInput(std::vector<Data> packets);
 
+        /** Batched joystick data for the current frame, where the last item in the vector is the current position of each analog input. */
         std::vector<Data> packets() const;
 
     private:
@@ -94,6 +93,12 @@ namespace geode {
 
     using AndroidRichInput = std::variant<AndroidJoystickInput, AndroidTouchInput, AndroidKeyInput, AndroidScrollInput>;
 
+    /**
+     * Event that represents extended information for all input events received by the game.
+     * The data() member allows for determining the type of event and additional information.
+     *
+     * If an event is stopped by a listener, the corresponding event within Cocos will not be triggered.
+     */
     class GEODE_DLL AndroidRichInputEvent final : public Event {
     protected:
         std::int64_t m_timestamp;
@@ -105,6 +110,7 @@ namespace geode {
     public:
         AndroidRichInputEvent(std::int64_t timestamp, int deviceId, int eventSource, AndroidRichInput data);
 
+        /** Timestamp (in NS) of the event. */
         std::int64_t timestamp() const;
         int deviceId() const;
         int eventSource() const;
@@ -118,6 +124,7 @@ namespace geode {
         ListenerResult handle(geode::Function<Callback>& fn, AndroidRichInputEvent* event);
     };
 
+    /** Event that represents some change in input devices, namely removal/addition. */
     class GEODE_DLL AndroidInputDeviceEvent final : public Event {
     public:
         enum class Status {
