@@ -163,31 +163,29 @@ namespace geode {
             return m_filter.getPool();
         }
 
-        EventListener(T filter = Filter()) requires is_filter<T> : m_filter(std::move(filter)) {
+        EventListener(std::function<Callback> fn, T filter = Filter()) requires is_filter<T>
+          : m_callback(std::move(fn)), m_filter(std::move(filter))
+        {
             m_filter.setListener(this);
             this->enable();
         }
 
-        EventListener(std::function<Callback> fn, T filter = Filter()) requires is_filter<T>
-          : m_callback(std::move(fn)), EventListener(std::move(filter)) {}
-
-        EventListener(Callback* fnptr, T filter = Filter()) requires is_filter<T>
-          : m_callback(fnptr), EventListener(std::move(filter)) {}
+        EventListener(T filter = Filter()) requires is_filter<T>
+          : EventListener({}, std::move(filter)) {}
 
         template <class C>
         EventListener(C* cls, MemberFn<C> fn, T filter = Filter()) requires is_filter<T> :
             EventListener(std::bind(std::move(fn), cls, std::placeholders::_1), std::move(filter)) {}
 
-        EventListener() requires is_event<T> : m_filter(Filter()) {
+        EventListener(std::function<Callback> fn) requires is_event<T>
+          : m_callback(std::move(fn)), m_filter(Filter())
+        {
             m_filter.setListener(this);
             this->enable();
         }
 
-        EventListener(std::function<Callback> fn) requires is_event<T>
-          : m_callback(std::move(fn)), EventListener() {}
-
-        EventListener(Callback* fnptr) requires is_event<T>
-          : m_callback(fnptr), EventListener() {}
+        EventListener() requires is_event<T>
+          : EventListener({}) {}
 
         template <class C>
         EventListener(C* cls, MemberFn<C> fn) requires is_event<T> :
@@ -203,8 +201,7 @@ namespace geode {
         }
 
         EventListener(EventListener const& other)
-          : m_callback(other.m_callback),
-            EventListener(other.m_filter) {}
+          : EventListener(other.m_callback, other.m_filter) {}
 
         EventListener& operator=(EventListener&& other) {
             if (this == &other) {
