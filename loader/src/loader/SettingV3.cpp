@@ -467,6 +467,18 @@ std::shared_ptr<SettingV3> SettingChangedEventV3::getSetting() const {
     return m_impl->setting;
 }
 
+bool SettingChangedEventV3::filter(std::string_view modID, std::optional<std::string_view> settingKey) const {
+    if (m_impl->setting->getModID() != modID) {
+        return false;
+    }
+    if (settingKey && m_impl->setting->getKey() != *settingKey) {
+        return false;
+    }
+    return true;
+}
+
+
+
 class SettingChangedFilterV3::Impl final {
 public:
     std::string modID;
