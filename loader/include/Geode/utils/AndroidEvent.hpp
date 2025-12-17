@@ -115,7 +115,7 @@ namespace geode {
     public:
         using Callback = void(AndroidRichInputEvent*);
 
-        ListenerResult handle(std::function<Callback> fn, AndroidRichInputEvent* event);
+        ListenerResult handle(geode::Function<Callback>& fn, AndroidRichInputEvent* event);
     };
 
     class GEODE_DLL AndroidInputDeviceEvent final : public Event {
@@ -139,7 +139,7 @@ namespace geode {
     public:
         using Callback = void(AndroidInputDeviceEvent*);
 
-        ListenerResult handle(std::function<Callback> fn, AndroidInputDeviceEvent* event);
+        ListenerResult handle(geode::Function<Callback>& fn, AndroidInputDeviceEvent* event);
     };
 }
 

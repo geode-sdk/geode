@@ -341,7 +341,7 @@ AndroidRichInput AndroidRichInputEvent::data() const {
     return m_data;
 }
 
-ListenerResult AndroidRichInputFilter::handle(std::function<Callback> fn, AndroidRichInputEvent* event)  {
+ListenerResult AndroidRichInputFilter::handle(geode::Function<Callback>& fn, AndroidRichInputEvent* event)  {
     fn(event);
     return ListenerResult::Propagate;
 }
@@ -400,7 +400,7 @@ AndroidInputDeviceEvent::AndroidInputDeviceEvent(int deviceId, Status status) : 
 int AndroidInputDeviceEvent::deviceId() const { return m_deviceId; }
 AndroidInputDeviceEvent::Status AndroidInputDeviceEvent::status() const { return m_status; }
 
-ListenerResult AndroidInputDeviceFilter::handle(std::function<Callback> fn, AndroidInputDeviceEvent* event)  {
+ListenerResult AndroidInputDeviceFilter::handle(geode::Function<Callback>& fn, AndroidInputDeviceEvent* event)  {
     fn(event);
     return ListenerResult::Propagate;
 }
