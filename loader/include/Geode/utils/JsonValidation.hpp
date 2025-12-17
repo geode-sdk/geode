@@ -84,7 +84,7 @@ namespace geode {
         std::unique_ptr<Impl> m_impl;
 
         JsonExpectedValue();
-        JsonExpectedValue(Impl* from, matjson::Value& scope, std::string_view key);
+        JsonExpectedValue(Impl* from, matjson::Value& scope, std::string key);
 
         static const char* matJsonTypeToString(matjson::Type ty);
 
@@ -118,7 +118,7 @@ namespace geode {
         }
 
     public:
-        JsonExpectedValue(matjson::Value const& value, std::string_view rootScopeName);
+        JsonExpectedValue(matjson::Value value, std::string rootScopeName);
         ~JsonExpectedValue();
 
         JsonExpectedValue(JsonExpectedValue&&);
@@ -224,21 +224,21 @@ namespace geode {
          * `JsonExpectValue` that does nothing
          * @returns The key, which is a no-op value if it didn't exist
          */
-        JsonExpectedValue has(std::string_view key);
+        JsonExpectedValue has(std::string key);
         /**
          * Check if this object has an optional key. Asserts that this JSON
          * value is an object. If the key doesn't exist, or the value is null, returns a
          * `JsonExpectValue` that does nothing
          * @returns The key, which is a no-op value if it didn't exist, or was null
          */
-        JsonExpectedValue hasNullable(std::string_view key);
+        JsonExpectedValue hasNullable(std::string key);
         /**
          * Check if this object has an optional key. Asserts that this JSON
          * value is an object. If the key doesn't exist, sets an error and
          * returns a `JsonExpectValue` that does nothing
          * @returns The key, which is a no-op value if it didn't exist
          */
-        JsonExpectedValue needs(std::string_view key);
+        JsonExpectedValue needs(std::string key);
         /**
          * Asserts that this JSON value is an object. Get all object
          * properties
@@ -282,5 +282,5 @@ namespace geode {
             return Ok(std::forward<T>(value));
         }
     };
-    GEODE_DLL JsonExpectedValue checkJson(matjson::Value const& json, std::string_view rootScopeName);
+    GEODE_DLL JsonExpectedValue checkJson(matjson::Value json, std::string rootScopeName);
 }

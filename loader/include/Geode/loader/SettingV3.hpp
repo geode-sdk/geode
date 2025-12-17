@@ -670,9 +670,9 @@ namespace geode {
          */
         SettingChangedFilterV3(
             std::string_view modID,
-            std::optional<std::string> const& settingKey
+            std::optional<std::string> settingKey
         );
-        SettingChangedFilterV3(Mod* mod, std::optional<std::string> const& settingKey);
+        SettingChangedFilterV3(Mod* mod, std::optional<std::string> settingKey);
         SettingChangedFilterV3(SettingChangedFilterV3 const&);
     };
 

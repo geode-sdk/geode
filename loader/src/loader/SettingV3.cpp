@@ -20,8 +20,8 @@ namespace enable_if_parsing {
     };
     struct RequireModLoaded final : public Component {
         std::string modID;
-        RequireModLoaded(std::string_view modID)
-          : modID(modID) {}
+        RequireModLoaded(std::string modID)
+          : modID(std::move(modID)) {}
 
         Result<> checkSemantics() const override {
             return Ok();
@@ -47,8 +47,8 @@ namespace enable_if_parsing {
     struct RequireSettingEnabled final : public Component {
         std::string modID;
         std::string settingID;
-        RequireSettingEnabled(std::string_view modID, std::string_view settingID)
-          : modID(modID), settingID(settingID) {}
+        RequireSettingEnabled(std::string modID, std::string settingID)
+          : modID(std::move(modID)), settingID(std::move(settingID)) {}
 
         Result<> checkSemantics() const override {
             if (auto mod = Loader::get()->getInstalledMod(modID)) {
@@ -91,8 +91,8 @@ namespace enable_if_parsing {
     struct RequireSavedValueEnabled final : public Component {
         std::string modID;
         std::string savedValue;
-        RequireSavedValueEnabled(std::string_view modID, std::string_view savedValue)
-          : modID(modID), savedValue(savedValue) {}
+        RequireSavedValueEnabled(std::string modID, std::string savedValue)
+          : modID(std::move(modID)), savedValue(std::move(savedValue)) {}
 
         Result<> checkSemantics() const override {
             return Ok();
@@ -435,10 +435,10 @@ namespace enable_if_parsing {
         }
 
     public:
-        static Result<std::unique_ptr<Component>> parse(std::string_view str, std::string_view defaultModID) {
+        static Result<std::unique_ptr<Component>> parse(std::string str, std::string defaultModID) {
             auto ret = Parser();
-            ret.m_src = str;
-            ret.m_defaultModID = defaultModID;
+            ret.m_src = std::move(str);
+            ret.m_defaultModID = std::move(defaultModID);
             GEODE_UNWRAP_INTO(auto comp, ret.next());
             GEODE_UNWRAP_INTO(auto shouldBeEOF, ret.nextWord());
             if (shouldBeEOF) {
@@ -485,15 +485,15 @@ ListenerResult SettingChangedFilterV3::handle(geode::Function<Callback>& fn, Set
 
 SettingChangedFilterV3::SettingChangedFilterV3(
     std::string_view modID,
-    std::optional<std::string> const& settingKey
+    std::optional<std::string> settingKey
 ) : m_impl(std::make_shared<Impl>())
 {
     m_impl->modID = modID;
-    m_impl->settingKey = settingKey;
+    m_impl->settingKey = std::move(settingKey);
 }
 
-SettingChangedFilterV3::SettingChangedFilterV3(Mod* mod, std::optional<std::string> const& settingKey)
-  : SettingChangedFilterV3(mod->getID(), settingKey) {}
+SettingChangedFilterV3::SettingChangedFilterV3(Mod* mod, std::optional<std::string> settingKey)
+  : SettingChangedFilterV3(mod->getID(), std::move(settingKey)) {}
 
 SettingChangedFilterV3::SettingChangedFilterV3(SettingChangedFilterV3 const&) = default;
 
@@ -545,8 +545,8 @@ void SettingV3::parseNameAndDescription(JsonExpectedValue& json) {
 }
 void SettingV3::parseEnableIf(JsonExpectedValue& json) {
     json.has("enable-if")
-        .mustBe<std::string>("a valid \"enable-if\" scheme", [this](std::string_view str) -> Result<> {
-            GEODE_UNWRAP_INTO(auto tree, enable_if_parsing::Parser::parse(str, m_impl->modID));
+        .mustBe<std::string>("a valid \"enable-if\" scheme", [this](std::string str) -> Result<> {
+            GEODE_UNWRAP_INTO(auto tree, enable_if_parsing::Parser::parse(std::move(str), m_impl->modID));
             GEODE_UNWRAP(tree->checkSemantics());
             m_impl->enableIfTree = std::move(tree);
             return Ok();

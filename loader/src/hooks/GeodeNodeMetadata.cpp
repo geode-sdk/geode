@@ -365,8 +365,8 @@ void CCNode::updateLayout(bool updateChildOrder) {
     }
 }
 
-UserObjectSetEvent::UserObjectSetEvent(CCNode* node, std::string const& id, CCObject* value)
-  : node(node), id(id), value(value) {}
+UserObjectSetEvent::UserObjectSetEvent(CCNode* node, std::string id, CCObject* value)
+  : node(node), id(std::move(id)), value(value) {}
 
 ListenerResult AttributeSetFilter::handle(geode::Function<Callback>& fn, UserObjectSetEvent* event) {
     if (event->id == m_targetID) {
@@ -375,9 +375,9 @@ ListenerResult AttributeSetFilter::handle(geode::Function<Callback>& fn, UserObj
     return ListenerResult::Propagate;
 }
 
-AttributeSetFilter::AttributeSetFilter(std::string const& id) : m_targetID(id) {}
+AttributeSetFilter::AttributeSetFilter(std::string id) : m_targetID(std::move(id)) {}
 
-void CCNode::setUserObject(std::string const& id, CCObject* value) {
+void CCNode::setUserObject(std::string id, CCObject* value) {
     auto meta = GeodeNodeMetadata::set(this);
     if (value) {
         meta->m_userObjects[id] = value;
@@ -385,7 +385,7 @@ void CCNode::setUserObject(std::string const& id, CCObject* value) {
     else {
         meta->m_userObjects.erase(id);
     }
-    UserObjectSetEvent(this, id, value).post();
+    UserObjectSetEvent(this, std::move(id), value).post();
 }
 
 CCObject* CCNode::getUserObject(std::string const& id) {

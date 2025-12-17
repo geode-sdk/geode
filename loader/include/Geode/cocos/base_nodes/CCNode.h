@@ -872,7 +872,7 @@ public:
      *
      * @note Geode addition
      */
-    GEODE_DLL void setUserObject(std::string const& id, CCObject* object);
+    GEODE_DLL void setUserObject(std::string id, CCObject* object);
 
     /**
      * Get a user-assigned CCObject with the specific ID
@@ -1942,7 +1942,7 @@ namespace geode {
         const std::string id;
         cocos2d::CCObject* value;
 
-        UserObjectSetEvent(cocos2d::CCNode* node, std::string const& id, cocos2d::CCObject* value);
+        UserObjectSetEvent(cocos2d::CCNode* node, std::string id, cocos2d::CCObject* value);
     };
 
     class GEODE_DLL AttributeSetFilter final : public EventFilter<UserObjectSetEvent> {
@@ -1955,7 +1955,7 @@ namespace geode {
 	public:
         ListenerResult handle(geode::Function<Callback>& fn, UserObjectSetEvent* event);
 
-		AttributeSetFilter(std::string const& id);
+		AttributeSetFilter(std::string id);
     };
 }
 #endif

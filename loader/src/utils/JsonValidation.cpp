@@ -15,8 +15,8 @@ public:
         std::optional<std::string> error;
         std::string rootScopeName;
 
-        Shared(matjson::Value const& json, std::string_view rootScopeName)
-          : originalJson(json), rootScopeName(rootScopeName) {}
+        Shared(matjson::Value json, std::string rootScopeName)
+          : originalJson(std::move(json)), rootScopeName(std::move(rootScopeName)) {}
     };
 
     // this may be null if the JsonExpectedValue is a "null" value
@@ -39,22 +39,22 @@ public:
     {}
 
     // Create a derived Impl
-    Impl(Impl* from, matjson::Value& scope, std::string_view key)
+    Impl(Impl* from, matjson::Value& scope, std::string key)
       : shared(from->shared),
         scope(scope),
         scopeName(fmt::format("{}.{}", from->scopeName, key)),
-        key(key)
+        key(std::move(key))
     {}
 };
 
 JsonExpectedValue::JsonExpectedValue()
   : m_impl(std::make_unique<Impl>())
 {}
-JsonExpectedValue::JsonExpectedValue(Impl* from, matjson::Value& scope, std::string_view key)
-  : m_impl(std::make_unique<Impl>(from, scope, key))
+JsonExpectedValue::JsonExpectedValue(Impl* from, matjson::Value& scope, std::string key)
+  : m_impl(std::make_unique<Impl>(from, scope, std::move(key)))
 {}
-JsonExpectedValue::JsonExpectedValue(matjson::Value const& json, std::string_view rootScopeName)
-  : m_impl(std::make_unique<Impl>(std::make_shared<Impl::Shared>(json, rootScopeName)))
+JsonExpectedValue::JsonExpectedValue(matjson::Value json, std::string rootScopeName)
+  : m_impl(std::make_unique<Impl>(std::make_shared<Impl::Shared>(std::move(json), std::move(rootScopeName))))
 {}
 JsonExpectedValue::~JsonExpectedValue() {}
 
@@ -155,45 +155,45 @@ JsonExpectedValue& JsonExpectedValue::assertIs(std::initializer_list<matjson::Ty
     return *this;
 }
 
-JsonExpectedValue JsonExpectedValue::has(std::string_view key) {
+JsonExpectedValue JsonExpectedValue::has(std::string key) {
     if (this->hasError()) {
         return JsonExpectedValue();
     }
     if (!this->assertIs(matjson::Type::Object)) {
         return JsonExpectedValue();
     }
-    m_impl->knownKeys.insert(std::string(key));
+    m_impl->knownKeys.insert(key);
     if (!m_impl->scope.contains(key)) {
         return JsonExpectedValue();
     }
-    return JsonExpectedValue(m_impl.get(), m_impl->scope[key], key);
+    return JsonExpectedValue(m_impl.get(), m_impl->scope[key], std::move(key));
 }
-JsonExpectedValue JsonExpectedValue::hasNullable(std::string_view key) {
+JsonExpectedValue JsonExpectedValue::hasNullable(std::string key) {
     if (this->hasError()) {
         return JsonExpectedValue();
     }
     if (!this->assertIs(matjson::Type::Object)) {
         return JsonExpectedValue();
     }
-    m_impl->knownKeys.insert(std::string(key));
+    m_impl->knownKeys.insert(key);
     if (!m_impl->scope.contains(key) || m_impl->scope[key].isNull()) {
         return JsonExpectedValue();
     }
-    return JsonExpectedValue(m_impl.get(), m_impl->scope[key], key);
+    return JsonExpectedValue(m_impl.get(), m_impl->scope[key], std::move(key));
 }
-JsonExpectedValue JsonExpectedValue::needs(std::string_view key) {
+JsonExpectedValue JsonExpectedValue::needs(std::string key) {
     if (this->hasError()) {
         return JsonExpectedValue();
     }
     if (!this->assertIs(matjson::Type::Object)) {
         return JsonExpectedValue();
     }
-    m_impl->knownKeys.insert(std::string(key));
+    m_impl->knownKeys.insert(key);
     if (!m_impl->scope.contains(key)) {
         this->setError("missing required key {}", key);
         return JsonExpectedValue();
     }
-    return JsonExpectedValue(m_impl.get(), m_impl->scope[key], key);
+    return JsonExpectedValue(m_impl.get(), m_impl->scope[key], std::move(key));
 }
 std::vector<std::pair<std::string, JsonExpectedValue>> JsonExpectedValue::properties() {
     if (this->hasError()) {
@@ -269,6 +269,6 @@ Result<> JsonExpectedValue::ok() {
     return Ok();
 }
 
-JsonExpectedValue geode::checkJson(matjson::Value const& json, std::string_view rootScopeName) {
-    return JsonExpectedValue(json, rootScopeName);
+JsonExpectedValue geode::checkJson(matjson::Value json, std::string rootScopeName) {
+    return JsonExpectedValue(std::move(json), std::move(rootScopeName));
 }
