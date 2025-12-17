@@ -26,6 +26,15 @@ static uint64_t fnv1aHash(char const* str) {
     return hash;
 }
 
+static uint64_t fnv1aHash(std::string_view str) {
+    uint64_t hash = 0xcbf29ce484222325;
+    for (char c : str) {
+        hash ^= c;
+        hash *= 0x100000001b3;
+    }
+    return hash;
+}
+
 template <typename T>
 class NoHashHasher;
 
@@ -39,14 +48,15 @@ public:
 
 class GeodeNodeMetadata final : public cocos2d::CCObject {
 private:
-    // for performance reasons, this key is the hash of the class name
+    // for performance reasons, some maps use the string hash as the key instead of a string
+
     std::unordered_map<uint64_t, FieldContainer*, NoHashHasher<uint64_t>> m_classFieldContainers;
     std::string m_id = "";
     Ref<Layout> m_layout = nullptr;
     Ref<LayoutOptions> m_layoutOptions = nullptr;
-    std::unordered_map<std::string, Ref<CCObject>> m_userObjects;
+    std::unordered_map<uint64_t, Ref<CCObject>, NoHashHasher<uint64_t>> m_userObjects;
     std::unordered_set<std::unique_ptr<EventListenerProtocol>> m_eventListeners;
-    std::unordered_map<std::string, std::unique_ptr<EventListenerProtocol>> m_idEventListeners;
+    std::unordered_map<uint64_t, std::unique_ptr<EventListenerProtocol>, NoHashHasher<uint64_t>> m_idEventListeners;
 
     friend class ProxyCCNode;
     friend class cocos2d::CCNode;
@@ -78,7 +88,7 @@ public:
         meta->retain();
 
         if (old) {
-            meta->m_userObjects.insert({ "", old });
+            meta->setUserObject("", old);
             // the old user object is now managed by Ref
             old->release();
         }
@@ -94,6 +104,54 @@ public:
         }
 
         return container;
+    }
+
+    CCObject* getUserObject(std::string_view id) {
+        auto hash = fnv1aHash(id);
+        auto it = m_userObjects.find(hash);
+        return it != m_userObjects.end() ? it->second : nullptr;
+    }
+
+    void setUserObject(std::string_view id, CCObject* object) {
+        auto hash = fnv1aHash(id);
+        if (object) {
+            m_userObjects[hash] = object;
+        } else {
+            m_userObjects.erase(hash);
+        }
+    }
+
+    EventListenerProtocol* getEventListener(std::string_view id) {
+        auto hash = fnv1aHash(id);
+        auto it = m_idEventListeners.find(hash);
+        return it != m_idEventListeners.end() ? it->second.get() : nullptr;
+    }
+
+    void addEventListener(std::string_view id, EventListenerProtocol* protocol) {
+        if (id.empty()) {
+            m_eventListeners.emplace(protocol);
+            return;
+        }
+
+        auto hash = fnv1aHash(id);
+        auto it = m_idEventListeners.find(hash);
+        if (it != m_idEventListeners.end()) {
+            it->second.reset(protocol);
+        } else {
+            m_idEventListeners.emplace(hash, protocol);
+        }
+    }
+
+    EventListenerProtocol* removeEventListener(std::string_view id) {
+        auto hash = fnv1aHash(id);
+        auto it = m_idEventListeners.find(hash);
+        if (it == m_idEventListeners.end()) {
+            return nullptr;
+        }
+
+        auto listener = it->second.release();
+        m_idEventListeners.erase(it);
+        return listener;
     }
 };
 
@@ -378,40 +436,16 @@ ListenerResult AttributeSetFilter::handle(geode::Function<Callback>& fn, UserObj
 AttributeSetFilter::AttributeSetFilter(std::string id) : m_targetID(std::move(id)) {}
 
 void CCNode::setUserObject(std::string id, CCObject* value) {
-    auto meta = GeodeNodeMetadata::set(this);
-    if (value) {
-        meta->m_userObjects[id] = value;
-    }
-    else {
-        meta->m_userObjects.erase(id);
-    }
+    GeodeNodeMetadata::set(this)->setUserObject(id, value);
     UserObjectSetEvent(this, std::move(id), value).post();
 }
 
-CCObject* CCNode::getUserObject(std::string const& id) {
-    auto meta = GeodeNodeMetadata::set(this);
-    if (meta->m_userObjects.count(id)) {
-        return meta->m_userObjects.at(id);
-    }
-    return nullptr;
+CCObject* CCNode::getUserObject(std::string_view id) {
+    return GeodeNodeMetadata::set(this)->getUserObject(id);
 }
 
-void CCNode::addEventListenerInternal(std::string const& id, EventListenerProtocol* listener) {
-    auto meta = GeodeNodeMetadata::set(this);
-    if (id.size()) {
-        if (meta->m_idEventListeners.contains(id)) {
-            meta->m_idEventListeners.at(id).reset(listener);
-        }
-        else {
-            meta->m_idEventListeners.emplace(id, listener);
-        }
-    }
-    else {
-        std::erase_if(meta->m_eventListeners, [=](auto& l) {
-            return l.get() == listener;
-        });
-        meta->m_eventListeners.emplace(listener);
-    }
+void CCNode::addEventListenerInternal(std::string_view id, EventListenerProtocol* listener) {
+    GeodeNodeMetadata::set(this)->addEventListener(id, listener);
 }
 
 void CCNode::removeEventListener(EventListenerProtocol* listener) {
@@ -424,21 +458,17 @@ void CCNode::removeEventListener(EventListenerProtocol* listener) {
     });
 }
 
-void CCNode::removeEventListener(std::string const& id) {
-    GeodeNodeMetadata::set(this)->m_idEventListeners.erase(id);
+void CCNode::removeEventListener(std::string_view id) {
+    GeodeNodeMetadata::set(this)->removeEventListener(id);
 }
 
-EventListenerProtocol* CCNode::getEventListener(std::string const& id) {
-    auto meta = GeodeNodeMetadata::set(this);
-    if (meta->m_idEventListeners.contains(id)) {
-        return meta->m_idEventListeners.at(id).get();
-    }
-    return nullptr;
+EventListenerProtocol* CCNode::getEventListener(std::string_view id) {
+    return GeodeNodeMetadata::set(this)->getEventListener(id);
 }
 
 size_t CCNode::getEventListenerCount() {
-    return GeodeNodeMetadata::set(this)->m_idEventListeners.size() +
-        GeodeNodeMetadata::set(this)->m_eventListeners.size();
+    auto meta = GeodeNodeMetadata::set(this);
+    return meta->m_idEventListeners.size() + meta->m_eventListeners.size();
 }
 
 void CCNode::addChildAtPosition(CCNode* child, Anchor anchor, CCPoint const& offset, bool useAnchorLayout) {

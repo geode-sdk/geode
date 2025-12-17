@@ -296,7 +296,7 @@ namespace geode::utils::clipboard {
      * @param data The data to write
      * @returns True if the operation was successful
      */
-    GEODE_DLL bool write(std::string_view data);
+    GEODE_DLL bool write(std::string const& data);
 
     /**
      * Reads the clipboards onto a string.

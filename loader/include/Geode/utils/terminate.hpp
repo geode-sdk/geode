@@ -33,7 +33,7 @@ namespace geode::utils {
 
     template <class = void>
     [[noreturn]]
-    void terminate(std::string_view reason, Mod* mod = getMod(), size_t platformCode = GEODE_TERMINATE_EXCEPTION_CODE) {
+    void terminate(std::string const& reason, Mod* mod = getMod(), size_t platformCode = GEODE_TERMINATE_EXCEPTION_CODE) {
         // Add the error to the logfile
         detail::logTerminationError(reason.data(), mod);
 
@@ -45,7 +45,7 @@ namespace geode::utils {
         }
         // Otherwise terminate by raising an exception (which is caught by the crashlog handler)
         else {
-            std::array<const void*, 2> errorList { static_cast<const void*>(reason.c_str()), mod };
+            std::array<const void*, 2> errorList { reason.c_str(), mod };
             RaiseException(
                 platformCode,
                 EXCEPTION_NONCONTINUABLE,
@@ -59,7 +59,7 @@ namespace geode::utils {
 
     template <class = void>
     [[noreturn]]
-    void unreachable(std::string_view reason = "Unspecified", Mod* mod = getMod()) {
+    void unreachable(std::string const& reason = "Unspecified", Mod* mod = getMod()) {
         terminate(reason, mod, GEODE_UNREACHABLE_EXCEPTION_CODE);
     }
 }

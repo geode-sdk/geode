@@ -16,7 +16,7 @@ std::string utils::string::wideToUtf8(std::wstring const& wstr) {
     return str;
 }
 
-std::wstring utils::string::utf8ToWide(std::string_view str) {
+std::wstring utils::string::utf8ToWide(std::string const& str) {
     int count = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), NULL, 0);
     std::wstring wstr(count, 0);
     MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), &wstr[0], count);

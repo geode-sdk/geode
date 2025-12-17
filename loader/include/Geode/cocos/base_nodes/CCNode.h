@@ -879,7 +879,7 @@ public:
      *
      * @note Geode addition
      */
-    GEODE_DLL CCObject* getUserObject(std::string const& id);
+    GEODE_DLL CCObject* getUserObject(std::string_view id);
 
     /// @} end of Tag & User Data
 
@@ -888,7 +888,7 @@ private:
 
     GEODE_DLL geode::modifier::FieldContainer* getFieldContainer(char const* forClass);
     GEODE_DLL void addEventListenerInternal(
-        std::string const& id,
+        std::string_view id,
         geode::EventListenerProtocol* protocol
     );
 
@@ -1114,7 +1114,7 @@ public:
 
     template <class Filter, class... Args>
     geode::EventListenerProtocol* addEventListener(
-        std::string const& id,
+        std::string_view id,
         geode::Function<typename Filter::Callback> callback,
         Args&&... args
     ) {
@@ -1134,8 +1134,8 @@ public:
         );
     }
     GEODE_DLL void removeEventListener(geode::EventListenerProtocol* listener);
-    GEODE_DLL void removeEventListener(std::string const& id);
-    GEODE_DLL geode::EventListenerProtocol* getEventListener(std::string const& id);
+    GEODE_DLL void removeEventListener(std::string_view id);
+    GEODE_DLL geode::EventListenerProtocol* getEventListener(std::string_view id);
     GEODE_DLL size_t getEventListenerCount();
 
     /**

@@ -20,12 +20,12 @@ using namespace geode::prelude;
 NSString* intoNS(std::string const& str) {
     return [NSString stringWithUTF8String:str.c_str()];
 }
+
 NSString* intoNS(std::string_view str) {
     return [[NSString alloc] initWithBytes:str.data() length:str.size() encoding:NSUTF8StringEncoding];
 }
 
-
-bool utils::clipboard::write(std::string_view data) {
+bool utils::clipboard::write(std::string const& data) {
     [[NSPasteboard generalPasteboard] clearContents];
     [[NSPasteboard generalPasteboard] setString:intoNS(data)
                                         forType:NSPasteboardTypeString];
@@ -46,7 +46,7 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
     return true;
 }
 
-void utils::web::openLinkInBrowser(std::string_view url) {
+void utils::web::openLinkInBrowser(std::string const& url) {
     [[NSWorkspace sharedWorkspace]
         openURL:[NSURL URLWithString:intoNS(url)]];
 }

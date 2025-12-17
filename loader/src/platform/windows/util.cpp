@@ -280,10 +280,10 @@ void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
     ShellExecuteW(nullptr, L"open", uninstallerPath.c_str(), params.c_str(), workingDir.wstring().c_str(), false);
 }
 
-Result<> geode::hook::addObjcMethod(std::string const& className, std::string const& selectorName, void* imp) {
+Result<> geode::hook::addObjcMethod(char const* className, char const* selectorName, void* imp) {
     return Err("Wrong platform");
 }
-Result<void*> geode::hook::getObjcMethodImp(std::string const& className, std::string const& selectorName) {
+Result<void*> geode::hook::getObjcMethodImp(char const* className, char const* selectorName) {
     return Err("Wrong platform");
 }
 

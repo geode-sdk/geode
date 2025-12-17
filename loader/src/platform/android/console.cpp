@@ -29,7 +29,7 @@ void console::log(std::string const& msg, Severity severity) {
     );
 }
 
-void console::messageBox(char const* title, std::string_view info, Severity severity) {
+void console::messageBox(char const* title, std::string const& info, Severity severity) {
     // console::log(info, severity);
-    cocos2d::CCMessageBox(std::string(info).c_str(), title);
+    cocos2d::CCMessageBox(info.c_str(), title);
 }
