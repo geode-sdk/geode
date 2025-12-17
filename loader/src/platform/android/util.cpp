@@ -27,7 +27,7 @@ using geode::utils::permission::Permission;
 bool utils::clipboard::write(std::string_view data) {
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "writeClipboard", "(Ljava/lang/String;)V")) {
-        jstring stringArg1 = t.env->NewStringUTF(std::string(data));
+        jstring stringArg1 = t.env->NewStringUTF(std::string(data).c_str());
 
         t.env->CallStaticVoidMethod(t.classID, t.methodID, stringArg1);
 
@@ -128,7 +128,7 @@ std::filesystem::path dirs::getResourcesDir() {
 void utils::web::openLinkInBrowser(std::string_view url) {
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "openWebview", "(Ljava/lang/String;)V")) {
-        jstring urlArg = t.env->NewStringUTF(std::string(url));
+        jstring urlArg = t.env->NewStringUTF(std::string(url).c_str());
 
         t.env->CallStaticVoidMethod(t.classID, t.methodID, urlArg);
 
@@ -136,7 +136,7 @@ void utils::web::openLinkInBrowser(std::string_view url) {
         t.env->DeleteLocalRef(t.classID);
     } else {
         clearJNIException();
-        CCApplication::sharedApplication()->openURL(url.c_str());
+        CCApplication::sharedApplication()->openURL(std::string(url).c_str());
     }
 }
 
