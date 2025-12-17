@@ -116,7 +116,22 @@ namespace {
         {AKEYCODE_NUMPAD_EQUALS, cocos2d::KEY_Equal}
     };
 
-    cocos2d::enumKeyCodes translateAndroidKeyCodeToWindows(int keyCode) {
+    cocos2d::enumKeyCodes translateAndroidKeyCodeToWindows(int keyCode, bool isController) {
+        if (isController) {
+            switch (keyCode) {
+                case AKEYCODE_DPAD_DOWN:
+                    return cocos2d::CONTROLLER_Down;
+                case AKEYCODE_DPAD_UP:
+                    return cocos2d::CONTROLLER_Up;
+                case AKEYCODE_DPAD_LEFT:
+                    return cocos2d::CONTROLLER_Left;
+                case AKEYCODE_DPAD_RIGHT:
+                    return cocos2d::CONTROLLER_Right;
+                default:
+                    break;
+            }
+        }
+
         if (auto it = g_keymap.find(keyCode); it != g_keymap.end()) {
             return it->second;
         }
@@ -124,10 +139,11 @@ namespace {
             return cocos2d::KEY_None;
         }
     }
-    void onKeyDown(jint keycode, jint modifiers, bool isRepeat) {
+
+    void onKeyDown(bool isController, jint keycode, jint modifiers, bool isRepeat) {
         if (keycode != AKEYCODE_BACK && keycode != AKEYCODE_MENU) {
             auto keyboard_dispatcher = cocos2d::CCDirector::sharedDirector()->getKeyboardDispatcher();
-            auto translated_code = translateAndroidKeyCodeToWindows(keycode);
+            auto translated_code = translateAndroidKeyCodeToWindows(keycode, isController);
 
             auto isShiftPressed = modifiers & 0x1;
             auto isCtrlPressed = modifiers & 0x1000;
@@ -146,11 +162,11 @@ namespace {
         }
     }
 
-    void onKeyUp(jint keycode, jint modifiers) {
+    void onKeyUp(bool isController, jint keycode, jint modifiers) {
         // back/menu keys
         if (keycode != AKEYCODE_BACK && keycode != AKEYCODE_MENU) {
             auto keyboard_dispatcher = cocos2d::CCDirector::sharedDirector()->getKeyboardDispatcher();
-            auto translated_code = translateAndroidKeyCodeToWindows(keycode);
+            auto translated_code = translateAndroidKeyCodeToWindows(keycode, isController);
 
             auto isShiftPressed = modifiers & 0x1;
             auto isCtrlPressed = modifiers & 0x1000;
@@ -200,19 +216,16 @@ namespace {
 extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_internalKeyEvent(
     JNIEnv* env, jobject, jlong timestamp, jint deviceId, jint eventSource, jint keyCode, jint modifiers, jboolean isDown, jint repeatCount
 ) {
-    geode::log::info("recv key event {} {} {}", keyCode, modifiers, repeatCount);
-
-
     if (AndroidRichInputEvent(timestamp, deviceId, eventSource, AndroidKeyInput(keyCode, modifiers, isDown, repeatCount)).post() != ListenerResult::Propagate) {
-        geode::log::info("key event cancelled! no default handling");
-
         return;
     }
 
+    auto isController = eventSource == 0x00000401 || eventSource == 0x01000010;
+
     if (isDown) {
-        onKeyDown(keyCode, modifiers, repeatCount > 0);
+        onKeyDown(isController, keyCode, modifiers, repeatCount > 0);
     } else {
-        onKeyUp(keyCode, modifiers);
+        onKeyUp(isController, keyCode, modifiers);
     }
 }
 
@@ -248,7 +261,6 @@ extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inter
     auto type = static_cast<AndroidTouchInput::Type>(eventType);
 
     if (AndroidRichInputEvent(timestamp, deviceId, eventSource, AndroidTouchInput(touches, type)).post() != ListenerResult::Propagate) {
-        geode::log::info("touch event cancelled! no default handling");
         return;
     }
 
@@ -287,7 +299,6 @@ extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inter
 
     std::vector<AndroidJoystickInput::Data> inputs(leftXArr.size());
 
-    // sometimes i wish we had c++23
     for (int i = 0; i < leftXArr.size(); i++) {
         inputs.emplace_back(
             leftXArr[i], leftYArr[i],
