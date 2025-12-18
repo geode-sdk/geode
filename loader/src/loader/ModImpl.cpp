@@ -622,17 +622,8 @@ std::filesystem::path Mod::Impl::getPersistentDir(bool create) const {
     return dir;
 }
 
-std::string_view Mod::Impl::expandSpriteName(std::string_view name) {
-    std::string nameKey(name);
-    if (m_expandedSprites.contains(nameKey)) return m_expandedSprites[nameKey];
-
-    auto exp = new char[name.size() + 2 + m_metadata.getID().size()];
-    auto exps = (m_metadata.getID() + "/") + name.data();
-    memcpy(exp, exps.c_str(), exps.size() + 1);
-
-    m_expandedSprites[nameKey] = exp;
-
-    return exp;
+std::string Mod::Impl::expandSpriteName(std::string_view name) {
+    return fmt::format("{}/{}", this->getID(), name);
 }
 
 ModJson Mod::Impl::getRuntimeInfo() const {

@@ -247,7 +247,7 @@ bool Mod::hasUnresolvedIncompatibilities() const {
     return m_impl->hasUnresolvedIncompatibilities();
 }
 
-std::string_view Mod::expandSpriteName(std::string_view name) {
+std::string Mod::expandSpriteName(std::string_view name) {
     return m_impl->expandSpriteName(name);
 }
 

@@ -454,7 +454,7 @@ namespace geode {
          */
         bool hasUnresolvedIncompatibilities() const;
 
-        std::string_view expandSpriteName(std::string_view name);
+        std::string expandSpriteName(std::string_view name);
 
         /**
          * Get info about the mod as JSON
@@ -536,8 +536,14 @@ constexpr auto operator""_spr() {
 
 #else
 
+// can't really work without the mod id macro
+// GEODE_HIDDEN inline char const* operator"" _spr(char const* str, size_t len) {
+//     return geode::Mod::get()->expandSpriteName({ str, len }).data();
+// }
+
 GEODE_HIDDEN inline char const* operator"" _spr(char const* str, size_t len) {
-    return geode::Mod::get()->expandSpriteName({ str, len }).data();
+    geode::log::error("GEODE_MOD_ID not defined, _spr cannot be used");
+    return nullptr;
 }
 
 #endif

@@ -29,11 +29,11 @@ namespace geode {
     using SettingNodeValueChangeEvent = SettingNodeValueChangeEventV3;
 
     template <class T>
-    EventListener<SettingChangedFilter>* listenForSettingChanges(std::string_view settingKey, auto callback, Mod* mod = getMod()) {
+    EventListener<SettingChangedFilter>* listenForSettingChanges(std::string settingKey, auto callback, Mod* mod = getMod()) {
         return listenForSettingChangesV3<T>(settingKey, std::move(callback), mod);
     }
 
-    EventListener<SettingChangedFilter>* listenForSettingChanges(std::string_view settingKey, auto callback, Mod* mod = getMod()) {
+    EventListener<SettingChangedFilter>* listenForSettingChanges(std::string settingKey, auto callback, Mod* mod = getMod()) {
         return listenForSettingChangesV3(settingKey, std::move(callback), mod);
     }
 

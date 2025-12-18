@@ -130,8 +130,8 @@ inline cocos2d::ccColor3B operator""_cc3b_gd(const char* str, size_t) {
     return geode::ColorProvider::get()->color3b(str);
 }
 inline cocos2d::ccColor4B operator""_cc4b(const char* str, size_t) {
-    return geode::ColorProvider::get()->color(std::string(geode::Mod::get()->expandSpriteName(str)));
+    return geode::ColorProvider::get()->color(geode::Mod::get()->expandSpriteName(str));
 }
 inline cocos2d::ccColor3B operator""_cc3b(const char* str, size_t) {
-    return geode::ColorProvider::get()->color3b(std::string(geode::Mod::get()->expandSpriteName(str)));
+    return geode::ColorProvider::get()->color3b(geode::Mod::get()->expandSpriteName(str));
 }
