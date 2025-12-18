@@ -20,7 +20,7 @@ namespace geode::utils::string {
      * @note The purpose of this method is only for wide winapi methods,
      * as the conversion may be lossy.
      */
-    GEODE_DLL std::string wideToUtf8(std::wstring const& str);
+    GEODE_DLL std::string wideToUtf8(std::wstring_view str);
     /**
      * Convert std::string (UTF-8) to std::wstring
      * @param str String to convert
@@ -28,7 +28,7 @@ namespace geode::utils::string {
      * @note The purpose of this method is only for wide winapi methods,
      * as the conversion may be lossy.
      */
-    GEODE_DLL std::wstring utf8ToWide(ZStringView str);
+    GEODE_DLL std::wstring utf8ToWide(std::string_view str);
 #endif
 
     /// Convert UTF-16 string to UTF-8

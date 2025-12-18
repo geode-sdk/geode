@@ -9,17 +9,17 @@ using namespace geode::prelude;
 #include <cwctype>
 #include <stringapiset.h>
 
-std::string utils::string::wideToUtf8(std::wstring const& wstr) {
-    int count = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), wstr.length(), NULL, 0, NULL, NULL);
+std::string utils::string::wideToUtf8(std::wstring_view wstr) {
+    int count = WideCharToMultiByte(CP_UTF8, 0, wstr.data(), wstr.size(), NULL, 0, NULL, NULL);
     std::string str(count, 0);
-    WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &str[0], count, NULL, NULL);
+    WideCharToMultiByte(CP_UTF8, 0, wstr.data(), wstr.size(), &str[0], count, NULL, NULL);
     return str;
 }
 
-std::wstring utils::string::utf8ToWide(ZStringView str) {
-    int count = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), NULL, 0);
+std::wstring utils::string::utf8ToWide(std::string_view str) {
+    int count = MultiByteToWideChar(CP_UTF8, 0, str.data(), str.size(), NULL, 0);
     std::wstring wstr(count, 0);
-    MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), &wstr[0], count);
+    MultiByteToWideChar(CP_UTF8, 0, str.data(), str.size(), &wstr[0], count);
     return wstr;
 }
 
