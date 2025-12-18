@@ -184,9 +184,6 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     root.has("load-priority").into(impl->m_loadPriority);
 
     if (info.getID() != "geode.loader") {
-        OutputDebugStringA(
-            fmt::format("Mod '{}' loaded \n", info.getID()).c_str()
-        );
         impl->m_dependencies.push_back({
             "geode.loader",
             {about::getLoaderVersion(), VersionCompare::Exact},
