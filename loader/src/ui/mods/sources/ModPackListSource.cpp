@@ -12,7 +12,7 @@ ModPackListSource* ModPackListSource::get() {
     return inst;
 }
 
-void ModPackListSource::setSearchQuery(std::string const& query) {}
+void ModPackListSource::setSearchQuery(std::string query) {}
 
 std::unordered_set<std::string> ModPackListSource::getModTags() const {
     return {};

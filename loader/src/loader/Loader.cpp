@@ -45,19 +45,19 @@ Loader::LoadingState Loader::getLoadingState() {
     return m_impl->m_loadingState;
 }
 
-bool Loader::isModInstalled(std::string const& id) const {
+bool Loader::isModInstalled(std::string_view id) const {
     return m_impl->isModInstalled(id);
 }
 
-Mod* Loader::getInstalledMod(std::string const& id) const {
+Mod* Loader::getInstalledMod(std::string_view id) const {
     return m_impl->getInstalledMod(id);
 }
 
-bool Loader::isModLoaded(std::string const& id) const {
+bool Loader::isModLoaded(std::string_view id) const {
     return m_impl->isModLoaded(id);
 }
 
-Mod* Loader::getLoadedMod(std::string const& id) const {
+Mod* Loader::getLoadedMod(std::string_view id) const {
     return m_impl->getLoadedMod(id);
 }
 

@@ -760,7 +760,7 @@ void MDTextArea::updateLabel() {
             textContent = MDTextArea::translateNewlines(m_text);
 
             // ery proofing...
-            textContent = utils::string::replace(textContent, "<c_>", "<c->");
+            utils::string::replaceIP(textContent, "<c_>", "<c->");
         }
     }
 

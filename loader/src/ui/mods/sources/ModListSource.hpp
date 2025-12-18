@@ -35,8 +35,9 @@ public:
         std::optional<std::string> details;
 
         LoadPageError() = default;
-        LoadPageError(std::string const& msg) : message(msg) {}
-        LoadPageError(auto msg, auto details) : message(msg), details(details) {}
+        LoadPageError(std::string msg) : message(std::move(msg)) {}
+        LoadPageError(std::string msg, std::optional<std::string> details)
+            : message(std::move(msg)), details(std::move(details)) {}
     };
 
     using Page = std::vector<Ref<ModItem>>;
@@ -55,7 +56,7 @@ protected:
 
     virtual void resetQuery() = 0;
     virtual ProviderTask fetchPage(size_t page, bool forceUpdate) = 0;
-    virtual void setSearchQuery(std::string const& query) = 0;
+    virtual void setSearchQuery(std::string query) = 0;
 
     ModListSource();
 
@@ -66,7 +67,7 @@ public:
     // Reset all filters & cache
     void reset();
     void clearCache();
-    void search(std::string const& query);
+    void search(std::string query);
     virtual bool isDefaultQuery() const = 0;
 
     virtual std::unordered_set<std::string> getModTags() const = 0;
@@ -130,7 +131,7 @@ protected:
 
     void resetQuery() override;
     ProviderTask fetchPage(size_t page, bool forceUpdate) override;
-    void setSearchQuery(std::string const& query) override;
+    void setSearchQuery(std::string query) override;
 
     InstalledModListSource(InstalledModListType type);
 
@@ -162,7 +163,7 @@ protected:
 
     void resetQuery() override;
     ProviderTask fetchPage(size_t page, bool forceUpdate) override;
-    void setSearchQuery(std::string const& query) override;
+    void setSearchQuery(std::string query) override;
 
     ServerModListSource(ServerModListType type);
 
@@ -185,7 +186,7 @@ class ModPackListSource : public ModListSource {
 protected:
     void resetQuery() override;
     ProviderTask fetchPage(size_t page, bool forceUpdate) override;
-    void setSearchQuery(std::string const& query) override;
+    void setSearchQuery(std::string query) override;
 
     ModPackListSource();
 
@@ -199,8 +200,8 @@ public:
     bool isLocalModsOnly() const override;
 };
 
-bool weightedFuzzyMatch(std::string const& str, std::string const& kw, double weight, double& out);
-bool modFuzzyMatch(ModMetadata const& metadata, std::string const& kw, double& out);
+bool weightedFuzzyMatch(ZStringView str, ZStringView kw, double weight, double& out);
+bool modFuzzyMatch(ModMetadata const& metadata, ZStringView kw, double& out);
 
 template <std::derived_from<LocalModsQueryBase> Query>
 void filterModsWithLocalQuery(ModListSource::ProvidedMods& mods, Query const& query) {

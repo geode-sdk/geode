@@ -67,7 +67,7 @@ const char* geode::getCommonFilterAllowedChars(CommonFilter filter) {
     }
 }
 
-bool TextInput::init(float width, std::string const& placeholder, std::string const& font) {
+bool TextInput::init(float width, ZStringView placeholder, ZStringView font) {
     if (!CCNode::init())
         return false;
 
@@ -93,7 +93,7 @@ bool TextInput::init(float width, std::string const& placeholder, std::string co
     return true;
 }
 
-TextInput* TextInput::create(float width, std::string const& placeholder, std::string const& font) {
+TextInput* TextInput::create(float width, ZStringView placeholder, ZStringView font) {
     auto ret = new TextInput();
     if (ret->init(width, placeholder, font)) {
         ret->autorelease();
@@ -109,11 +109,12 @@ void TextInput::textChanged(CCTextInputNode* input) {
     }
 }
 
-void TextInput::setPlaceholder(std::string const& placeholder) {
-    m_input->m_caption = placeholder;
+void TextInput::setPlaceholder(gd::string placeholder) {
+    m_input->m_caption = std::move(placeholder);
     m_input->refreshLabel();
 }
-void TextInput::setLabel(std::string const& label) {
+
+void TextInput::setLabel(ZStringView label) {
     if (label.size()) {
         if (m_label) {
             m_label->setString(label.c_str());
@@ -131,8 +132,8 @@ void TextInput::setLabel(std::string const& label) {
         }
     }
 }
-void TextInput::setFilter(std::string const& allowedChars) {
-    m_input->m_allowedChars = allowedChars;
+void TextInput::setFilter(gd::string allowedChars) {
+    m_input->m_allowedChars = std::move(allowedChars);
 }
 void TextInput::setCommonFilter(CommonFilter filter) {
     this->setFilter(getCommonFilterAllowedChars(filter));
@@ -188,18 +189,18 @@ void TextInput::hideBG() {
     m_bgSprite->setVisible(false);
 }
 
-void TextInput::setString(std::string const& str, bool triggerCallback) {
+void TextInput::setString(gd::string str, bool triggerCallback) {
     auto oldDelegate = m_input->m_delegate;
     // Avoid triggering the callback
     m_input->m_delegate = nullptr;
-    m_input->setString(str);
+    m_input->setString(std::move(str));
     m_input->m_delegate = oldDelegate;
     if (triggerCallback && m_input->m_delegate) {
         m_input->m_delegate->textChanged(m_input);
     }
 }
 
-std::string TextInput::getString() const {
+gd::string TextInput::getString() const {
     return m_input->getString();
 }
 

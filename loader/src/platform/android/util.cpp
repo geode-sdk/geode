@@ -24,10 +24,10 @@ using namespace geode::prelude;
 
 using geode::utils::permission::Permission;
 
-bool utils::clipboard::write(std::string const& data) {
+bool utils::clipboard::write(ZStringView data) {
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "writeClipboard", "(Ljava/lang/String;)V")) {
-        jstring stringArg1 = t.env->NewStringUTF(data.c_str());
+        jstring stringArg1 = t.env->NewStringUTF(data);
 
         t.env->CallStaticVoidMethod(t.classID, t.methodID, stringArg1);
 
@@ -125,7 +125,7 @@ std::filesystem::path dirs::getResourcesDir() {
     return "assets";
 }
 
-void utils::web::openLinkInBrowser(std::string const& url) {
+void utils::web::openLinkInBrowser(ZStringView url) {
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "openWebview", "(Ljava/lang/String;)V")) {
         jstring urlArg = t.env->NewStringUTF(url.c_str());
@@ -136,7 +136,7 @@ void utils::web::openLinkInBrowser(std::string const& url) {
         t.env->DeleteLocalRef(t.classID);
     } else {
         clearJNIException();
-        CCApplication::sharedApplication()->openURL(std::string(url).c_str());
+        CCApplication::sharedApplication()->openURL(url.c_str());
     }
 }
 
@@ -423,11 +423,11 @@ std::string geode::utils::thread::getDefaultName() {
     return fmt::format("Thread #{}", gettid());
 }
 
-void geode::utils::thread::platformSetName(std::string const& name) {
+void geode::utils::thread::platformSetName(ZStringView name) {
     pthread_setname_np(pthread_self(), name.c_str());
 }
 
-std::string geode::utils::getEnvironmentVariable(const char* name) {
+std::string geode::utils::getEnvironmentVariable(ZStringView name) {
     auto result = std::getenv(name);
     return result ? result : "";
 }

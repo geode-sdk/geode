@@ -6,10 +6,11 @@
 #include "LoaderImpl.hpp"
 #include "ModMetadataImpl.hpp"
 #include <Geode/utils/string.hpp>
+#include <Geode/utils/StringMap.hpp>
 
 using namespace geode::prelude;
 
-static std::unordered_map<std::string, web::WebTask> RUNNING_REQUESTS {};
+static StringMap<web::WebTask> RUNNING_REQUESTS {};
 
 updater::ResourceDownloadEvent::ResourceDownloadEvent(
     UpdateStatus status
@@ -30,10 +31,10 @@ bool s_isNewUpdateDownloaded = false;
 
 void updater::fetchLatestGithubRelease(
     geode::Function<void(matjson::Value const&)> then,
-    geode::Function<void(std::string const&)> expect, bool force
+    geode::Function<void(std::string)> expect, bool force
 ) {
     if (s_latestGithubRelease) {
-        return then(s_latestGithubRelease.value());
+        return then(*s_latestGithubRelease);
     }
 
     //quick hack to make sure it always attempts an update check in forward compat
@@ -72,7 +73,7 @@ void updater::fetchLatestGithubRelease(
                         }
                         else {
                             Mod::get()->setSavedValue("last-modified-auto-update-check", response->header("Last-Modified").value_or(""));
-                            s_latestGithubRelease = json.unwrap();
+                            s_latestGithubRelease = std::move(json).unwrap();
                             then(*s_latestGithubRelease);
                         }
                     }
@@ -108,7 +109,7 @@ void updater::downloadLatestLoaderResources() {
                 UpdateFailed("Unable to find resources in latest GitHub release")
             ).post();
         },
-        [](std::string const& info) {
+        [](std::string info) {
             ResourceDownloadEvent(
                 UpdateFailed("Unable to download resources: " + info)
             ).post();
@@ -117,15 +118,14 @@ void updater::downloadLatestLoaderResources() {
     );
 }
 
-void updater::tryDownloadLoaderResources(std::string const& url, bool tryLatestOnError) {
+void updater::tryDownloadLoaderResources(std::string url, bool tryLatestOnError) {
     auto tempResourcesZip = dirs::getTempDir() / "new.zip";
     auto resourcesDir = dirs::getGeodeResourcesDir() / Mod::get()->getID();
 
     if (RUNNING_REQUESTS.contains(url)) return;
 
-    auto req = web::WebRequest();
-    RUNNING_REQUESTS.emplace(url, req.get(url).map(
-        [url, resourcesDir](web::WebResponse* response) {
+    auto req = web::WebRequest{}.get(url).map(
+        [url, resourcesDir = std::move(resourcesDir)](web::WebResponse* response) {
             if (response->ok()) {
                 // unzip resources zip
                 auto unzip = file::Unzip::create(response->data());
@@ -168,7 +168,9 @@ void updater::tryDownloadLoaderResources(std::string const& url, bool tryLatestO
             ).post();
             return *progress;
         }
-    ));
+    );
+
+    RUNNING_REQUESTS.emplace(std::move(url), std::move(req));
 }
 
 void updater::updateSpecialFiles() {
@@ -290,7 +292,7 @@ bool updater::verifyLoaderResources() {
     return true;
 }
 
-void updater::downloadLoaderUpdate(std::string const& url) {
+void updater::downloadLoaderUpdate(std::string_view url) {
     auto updateZip = dirs::getTempDir() / "loader-update.zip";
     auto targetDir = dirs::getGeodeDir() / "update";
 
@@ -396,7 +398,7 @@ void updater::checkForLoaderUpdates() {
 
             Mod::get()->setSavedValue("last-modified-auto-update-check", std::string());
         },
-        [](std::string const& info) {
+        [](std::string info) {
             log::error("Failed to fetch updates {}", info);
             LoaderUpdateEvent(
                 UpdateFailed("Unable to check for updates: " + info)

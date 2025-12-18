@@ -166,7 +166,9 @@ JsonExpectedValue JsonExpectedValue::has(std::string key) {
     if (!m_impl->scope.contains(key)) {
         return JsonExpectedValue();
     }
-    return JsonExpectedValue(m_impl.get(), m_impl->scope[key], std::move(key));
+    
+    auto& scope = m_impl->scope[key];
+    return JsonExpectedValue(m_impl.get(), scope, std::move(key));
 }
 JsonExpectedValue JsonExpectedValue::hasNullable(std::string key) {
     if (this->hasError()) {
@@ -179,7 +181,9 @@ JsonExpectedValue JsonExpectedValue::hasNullable(std::string key) {
     if (!m_impl->scope.contains(key) || m_impl->scope[key].isNull()) {
         return JsonExpectedValue();
     }
-    return JsonExpectedValue(m_impl.get(), m_impl->scope[key], std::move(key));
+
+    auto& scope = m_impl->scope[key];
+    return JsonExpectedValue(m_impl.get(), scope, std::move(key));
 }
 JsonExpectedValue JsonExpectedValue::needs(std::string key) {
     if (this->hasError()) {
@@ -193,7 +197,9 @@ JsonExpectedValue JsonExpectedValue::needs(std::string key) {
         this->setError("missing required key {}", key);
         return JsonExpectedValue();
     }
-    return JsonExpectedValue(m_impl.get(), m_impl->scope[key], std::move(key));
+    
+    auto& scope = m_impl->scope[key];
+    return JsonExpectedValue(m_impl.get(), scope, std::move(key));
 }
 std::vector<std::pair<std::string, JsonExpectedValue>> JsonExpectedValue::properties() {
     if (this->hasError()) {

@@ -40,6 +40,7 @@
 #include <Geode/loader/Event.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/function.hpp>
+#include <Geode/utils/ZStringView.hpp>
 
 namespace geode {
     class Layout;
@@ -888,7 +889,7 @@ private:
 
     GEODE_DLL geode::modifier::FieldContainer* getFieldContainer(char const* forClass);
     GEODE_DLL void addEventListenerInternal(
-        std::string_view id,
+        std::string id,
         geode::EventListenerProtocol* protocol
     );
 
@@ -898,7 +899,7 @@ public:
      * @returns The ID, or an empty string if the node has no ID.
      * @note Geode addition
      */
-    GEODE_DLL const std::string& getID();
+    GEODE_DLL geode::ZStringView getID();
     /**
      * Set the string ID of this node. String IDs are a Geode addition
      * that are much safer to use to get nodes than absolute indexes
@@ -907,17 +908,7 @@ public:
      * by a mod, use the _spr literal to append the mod ID to it
      * @note Geode addition
      */
-    GEODE_DLL void setID(std::string const& id);
-
-    /**
-     * Set the string ID of this node. String IDs are a Geode addition
-     * that are much safer to use to get nodes than absolute indexes
-     * @param id The ID of the node, recommended to be in kebab case
-     * without any spaces or uppercase letters. If the node is added
-     * by a mod, use the _spr literal to append the mod ID to it
-     * @note Geode addition
-     */
-    GEODE_DLL void setID(std::string&& id);
+    GEODE_DLL void setID(std::string id);
 
     /**
      * Get a child by its string ID

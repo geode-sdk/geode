@@ -141,8 +141,8 @@ InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t pa
     }
 }
 
-void InstalledModListSource::setSearchQuery(std::string const& query) {
-    m_query.query = query.size() ? std::optional(query) : std::nullopt;
+void InstalledModListSource::setSearchQuery(std::string query) {
+    m_query.query = query.size() ? std::optional(std::move(query)) : std::nullopt;
 }
 
 std::unordered_set<std::string> InstalledModListSource::getModTags() const {

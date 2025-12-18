@@ -11,6 +11,7 @@
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/function.hpp>
+#include <Geode/utils/StringMap.hpp>
 #include "ModImpl.hpp"
 #include <crashlog.hpp>
 #include <mutex>
@@ -34,7 +35,7 @@ namespace geode {
 
         std::vector<std::filesystem::path> m_modSearchDirectories;
         std::vector<LoadProblem> m_problems;
-        std::unordered_map<std::string, Mod*> m_mods;
+        StringMap<Mod*> m_mods;
         std::deque<Mod*> m_modsToLoad;
         std::vector<std::filesystem::path> m_texturePaths;
         bool m_isSetup = false;
@@ -112,10 +113,10 @@ namespace geode {
         void refreshModGraph();
         void continueRefreshModGraph();
 
-        bool isModInstalled(std::string const& id) const;
-        Mod* getInstalledMod(std::string const& id) const;
-        bool isModLoaded(std::string const& id) const;
-        Mod* getLoadedMod(std::string const& id) const;
+        bool isModInstalled(std::string_view id) const;
+        Mod* getInstalledMod(std::string_view id) const;
+        bool isModLoaded(std::string_view id) const;
+        Mod* getLoadedMod(std::string_view id) const;
         std::vector<Mod*> getAllMods();
         std::vector<LoadProblem> getProblems() const;
 

@@ -4,6 +4,7 @@
 #include "../utils/function.hpp"
 #include "../modify/Traits.hpp"
 #include <Geode/utils/function.hpp>
+#include <Geode/utils/StringMap.hpp>
 
 #include <functional>
 #include <string>
@@ -12,7 +13,7 @@
 namespace geode {
     // Mod interoperability
 
-    GEODE_DLL std::unordered_map<std::string, EventListenerPool*>& dispatchPools();
+    GEODE_DLL utils::StringMap<EventListenerPool*>& dispatchPools();
 
     template <class... Args>
     class DispatchEvent : public Event {
@@ -22,7 +23,7 @@ namespace geode {
 
     public:
         DispatchEvent(std::string id, Args... args) :
-            m_id(id), m_args(std::make_tuple(args...)) {}
+            m_id(std::move(id)), m_args(std::make_tuple(args...)) {}
 
         std::tuple<Args...> getArgs() const {
             return m_args;
@@ -33,10 +34,12 @@ namespace geode {
         }
 
         EventListenerPool* getPool() const override {
-            if (dispatchPools().count(m_id) == 0) {
-                dispatchPools()[m_id] = DefaultEventListenerPool::create();
+            auto& pools = dispatchPools();
+            auto it = pools.find(m_id);
+            if (it == pools.end()) {
+                std::tie(it, std::ignore) = pools.emplace(std::string(m_id), DefaultEventListenerPool::create());
             }
-            return dispatchPools()[m_id];
+            return it->second;
         }
     };
 
@@ -50,10 +53,12 @@ namespace geode {
         using Callback = ListenerResult(Args...);
 
         EventListenerPool* getPool() const {
-            if (dispatchPools().count(m_id) == 0) {
-                dispatchPools()[m_id] = DefaultEventListenerPool::create();
+            auto& pools = dispatchPools();
+            auto it = pools.find(m_id);
+            if (it == pools.end()) {
+                std::tie(it, std::ignore) = pools.emplace(std::string(m_id), DefaultEventListenerPool::create());
             }
-            return dispatchPools()[m_id];
+            return it->second;
         }
 
         ListenerResult handle(geode::Function<Callback>& fn, Ev* event) {
@@ -63,7 +68,7 @@ namespace geode {
             return ListenerResult::Propagate;
         }
 
-        DispatchFilter(std::string_view id) : m_id(id) {}
+        DispatchFilter(std::string id) : m_id(std::move(id)) {}
 
         DispatchFilter(DispatchFilter const&) = default;
     };

@@ -10,7 +10,7 @@
 #include <span>
 
 namespace geode::utils::web {
-    GEODE_DLL void openLinkInBrowser(std::string const& url);
+    GEODE_DLL void openLinkInBrowser(ZStringView url);
 
     // https://curl.se/libcurl/c/CURLOPT_HTTPAUTH.html
     namespace http_auth {

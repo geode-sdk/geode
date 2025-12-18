@@ -121,7 +121,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
             }
         ).unwrapOr("v0.0.0")
     );
-
+    
     auto root = checkJson(impl->m_rawJSON, checkerRoot);
     root.needs("geode").into(impl->m_geodeVersion);
 
@@ -184,6 +184,9 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     root.has("load-priority").into(impl->m_loadPriority);
 
     if (info.getID() != "geode.loader") {
+        OutputDebugStringA(
+            fmt::format("Mod '{}' loaded \n", info.getID()).c_str()
+        );
         impl->m_dependencies.push_back({
             "geode.loader",
             {about::getLoaderVersion(), VersionCompare::Exact},
@@ -537,11 +540,11 @@ bool ModMetadata::Impl::operator==(ModMetadata::Impl const& other) const {
     return this->m_id == other.m_id;
 }
 
-[[maybe_unused]] std::filesystem::path ModMetadata::getPath() const {
+std::filesystem::path const& ModMetadata::getPath() const {
     return m_impl->m_path;
 }
 
-std::string ModMetadata::getBinaryName() const {
+ZStringView ModMetadata::getBinaryName() const {
     return m_impl->m_binaryName;
 }
 
@@ -549,7 +552,7 @@ VersionInfo ModMetadata::getVersion() const {
     return m_impl->m_version;
 }
 
-std::string ModMetadata::getID() const {
+ZStringView ModMetadata::getID() const {
     return m_impl->m_id;
 }
 
@@ -557,7 +560,7 @@ bool ModMetadata::usesDeprecatedIDForm() const {
     return Impl::isDeprecatedIDForm(m_impl->m_id);
 }
 
-std::string ModMetadata::getName() const {
+ZStringView ModMetadata::getName() const {
     return m_impl->m_name;
 }
 
@@ -573,40 +576,40 @@ std::string ModMetadata::formatDeveloperDisplayString(std::vector<std::string> c
     }
 }
 
-std::vector<std::string> ModMetadata::getDevelopers() const {
+std::vector<std::string> const& ModMetadata::getDevelopers() const {
     return m_impl->m_developers;
 }
-std::optional<std::string> ModMetadata::getDescription() const {
+std::optional<std::string> const& ModMetadata::getDescription() const {
     return m_impl->m_description;
 }
-std::optional<std::string> ModMetadata::getDetails() const {
+std::optional<std::string> const& ModMetadata::getDetails() const {
     return m_impl->m_details;
 }
-std::optional<std::string> ModMetadata::getChangelog() const {
+std::optional<std::string> const& ModMetadata::getChangelog() const {
     return m_impl->m_changelog;
 }
-std::optional<std::string> ModMetadata::getSupportInfo() const {
+std::optional<std::string> const& ModMetadata::getSupportInfo() const {
     return m_impl->m_supportInfo;
 }
-ModMetadataLinks ModMetadata::getLinks() const {
+ModMetadataLinks const& ModMetadata::getLinks() const {
     return m_impl->m_links;
 }
-std::optional<ModMetadata::IssuesInfo> ModMetadata::getIssues() const {
+std::optional<ModMetadata::IssuesInfo> const& ModMetadata::getIssues() const {
     return m_impl->m_issues;
 }
-std::vector<ModMetadata::Dependency> ModMetadata::getDependencies() const {
+std::vector<ModMetadata::Dependency> const& ModMetadata::getDependencies() const {
     return m_impl->m_dependencies;
 }
-std::vector<ModMetadata::Incompatibility> ModMetadata::getIncompatibilities() const {
+std::vector<ModMetadata::Incompatibility> const& ModMetadata::getIncompatibilities() const {
     return m_impl->m_incompatibilities;
 }
-std::vector<std::string> ModMetadata::getSpritesheets() const {
+std::vector<std::string> const& ModMetadata::getSpritesheets() const {
     return m_impl->m_spritesheets;
 }
-std::vector<std::pair<std::string, matjson::Value>> ModMetadata::getSettings() const {
+std::vector<std::pair<std::string, matjson::Value>> const& ModMetadata::getSettings() const {
     return m_impl->m_settings;
 }
-std::unordered_set<std::string> ModMetadata::getTags() const {
+std::unordered_set<std::string> const& ModMetadata::getTags() const {
     return m_impl->m_tags;
 }
 bool ModMetadata::needsEarlyLoad() const {

@@ -100,10 +100,10 @@ namespace geode {
         bool isModVersionSupported(VersionInfo const& version);
 
         LoadingState getLoadingState();
-        bool isModInstalled(std::string const& id) const;
-        Mod* getInstalledMod(std::string const& id) const;
-        bool isModLoaded(std::string const& id) const;
-        Mod* getLoadedMod(std::string const& id) const;
+        bool isModInstalled(std::string_view id) const;
+        Mod* getInstalledMod(std::string_view id) const;
+        bool isModLoaded(std::string_view id) const;
+        Mod* getLoadedMod(std::string_view id) const;
         std::vector<Mod*> getAllMods();
         std::vector<LoadProblem> getAllProblems() const;
         std::vector<LoadProblem> getLoadProblems() const;

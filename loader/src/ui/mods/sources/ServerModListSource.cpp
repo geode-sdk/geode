@@ -62,12 +62,12 @@ ServerModListSource* ServerModListSource::get(ServerModListType type) {
     }
 }
 
-void ServerModListSource::setSearchQuery(std::string const& query) {
+void ServerModListSource::setSearchQuery(std::string query) {
     if (query.empty()) {
         m_query.query = std::nullopt;
         m_query.platforms = { GEODE_PLATFORM_TARGET };
     } else {
-        m_query.query = std::optional(query);
+        m_query.query = std::optional(std::move(query));
         m_query.platforms = {};
     }
 }
