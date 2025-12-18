@@ -357,7 +357,7 @@ LayoutOptions* CCNode::getLayoutOptions() {
 }
 
 void CCNode::updateLayout(bool updateChildOrder) {
-    if (updateChildOrder) {
+    if (updateChildOrder && m_pChildren) {
         this->sortAllChildren();
     }
     if (auto layout = GeodeNodeMetadata::set(this)->m_layout.data()) {
