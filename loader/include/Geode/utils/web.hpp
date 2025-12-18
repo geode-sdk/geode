@@ -368,14 +368,14 @@ namespace geode::utils::web {
          *
          * @return std::unordered_map<std::string, std::vector<std::string>>
          */
-        std::unordered_map<std::string, std::vector<std::string>> const& getHeaders() const;
+        utils::StringMap<std::vector<std::string>> const& getHeaders() const;
 
         /**
          * Gets the parameters inside the URL
          *
          * @return std::unordered_map<std::string, std::string>
          */
-        std::unordered_map<std::string, std::string> const& getUrlParams() const;
+        utils::StringMap<std::string> const& getUrlParams() const;
 
         /**
          * Gets the post body stream

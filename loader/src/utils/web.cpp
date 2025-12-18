@@ -102,7 +102,7 @@ public:
     int m_code;
     ByteVector m_data;
     std::string m_errMessage;
-    std::unordered_map<std::string, std::vector<std::string>> m_headers;
+    utils::StringMap<std::vector<std::string>> m_headers;
 
     Result<> into(std::filesystem::path const& path) const;
 };
@@ -508,7 +508,7 @@ WebTask WebRequest::send(std::string method, std::string url) {
 
             if (!caBundle.empty()) {
                 curl_blob caBundleBlob = {};
-                caBundleBlob.data = const_cast<void*>(caBundle.data());
+                caBundleBlob.data = const_cast<void*>(static_cast<const void*>(caBundle.data()));
                 caBundleBlob.len = caBundle.size();
                 caBundleBlob.flags = CURL_BLOB_NOCOPY;
                 curl_easy_setopt(curl, CURLOPT_CAINFO_BLOB, &caBundleBlob);
@@ -871,11 +871,11 @@ ZStringView WebRequest::getUrl() const {
     return m_impl->m_url;
 }
 
-std::unordered_map<std::string, std::vector<std::string>> const& WebRequest::getHeaders() const {
+utils::StringMap<std::vector<std::string>> const& WebRequest::getHeaders() const {
     return m_impl->m_headers;
 }
 
-std::unordered_map<std::string, std::string> const& WebRequest::getUrlParams() const {
+utils::StringMap<std::string> const& WebRequest::getUrlParams() const {
     return m_impl->m_urlParameters;
 }
 

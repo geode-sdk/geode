@@ -184,14 +184,14 @@ bool utils::string::contains(std::string_view str, std::string::value_type c) {
     return str.find(c) != std::string::npos;
 }
 
-bool utils::string::containsAny(std::string_view str, std::span<std::string> subs) {
+bool utils::string::containsAny(std::string_view str, std::span<std::string const> subs) {
     for (auto const& sub : subs) {
         if (utils::string::contains(str, sub)) return true;
     }
     return false;
 }
 
-bool utils::string::containsAll(std::string_view str, std::span<std::string> subs) {
+bool utils::string::containsAll(std::string_view str, std::span<std::string const> subs) {
     bool found = true;
     for (auto const& sub : subs) {
         if (!utils::string::contains(str, sub)) found = false;

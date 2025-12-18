@@ -81,9 +81,9 @@ namespace geode::utils::string {
     GEODE_DLL bool contains(std::string_view str, std::string_view subs);
     GEODE_DLL bool contains(std::string_view str, char c);
 
-    GEODE_DLL bool containsAny(std::string_view str, std::span<std::string> subs);
+    GEODE_DLL bool containsAny(std::string_view str, std::span<std::string const> subs);
 
-    GEODE_DLL bool containsAll(std::string_view str, std::span<std::string> subs);
+    GEODE_DLL bool containsAll(std::string_view str, std::span<std::string const> subs);
 
     GEODE_DLL size_t count(std::string_view str, char c);
 
