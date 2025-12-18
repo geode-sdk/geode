@@ -3,6 +3,7 @@
 #include <Geode/Result.hpp>
 
 #include <Geode/utils/ZStringView.hpp>
+#include <Geode/utils/string.hpp>
 #include "../DefaultInclude.hpp"
 #include <chrono>
 #include <iomanip>
