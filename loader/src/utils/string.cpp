@@ -81,83 +81,99 @@ bool utils::string::endsWith(std::string_view str, std::string_view suffix) {
     return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
 }
 
-std::string& utils::string::toLowerIP(std::string& str) {
+void utils::string::toLowerIP(std::string& str) {
     std::transform(str.begin(), str.end(), str.begin(), [](auto c) {
         return std::tolower(c);
     });
-    return str;
 }
 
 std::string utils::string::toLower(std::string str) {
     utils::string::toLowerIP(str);
-    return std::move(str);
+    return str;
 }
 
-std::string& utils::string::toUpperIP(std::string& str) {
+void utils::string::toUpperIP(std::string& str) {
     std::transform(str.begin(), str.end(), str.begin(), [](auto c) {
         return std::toupper(c);
     });
-    return str;
 }
 
 std::string utils::string::toUpper(std::string str) {
     utils::string::toUpperIP(str);
-    return std::move(str);
+    return str;
 }
 
-std::string& utils::string::replaceIP(std::string& str, std::string_view orig, std::string_view repl) {
-    if (orig.empty()) return str;
+void utils::string::replaceIP(std::string& str, std::string_view orig, std::string_view repl) {
+    if (orig.empty()) return;
 
     std::string::size_type n = 0;
     while ((n = str.find(orig, n)) != std::string::npos) {
         str.replace(n, orig.size(), repl);
         n += repl.size();
     }
-    return str;
 }
 
 std::string utils::string::replace(
     std::string str, std::string_view orig, std::string_view repl
 ) {
     utils::string::replaceIP(str, orig, repl);
-    return std::move(str);
+    return str;
 }
 
-std::vector<std::string> utils::string::split(std::string str, std::string_view split) {
-    std::vector<std::string> res;
+template <typename T>
+auto doSplit(std::string_view str, std::string_view split) {
+    std::vector<T> res;
     if (str.empty()) return res;
-    size_t pos;
+
+    size_t pos = 0;
     while ((pos = str.find(split)) != std::string::npos) {
-        res.push_back(str.substr(0, pos));
-        str.erase(0, pos + split.length());
+        res.push_back(T{ str.substr(0, pos) });
+        str.remove_prefix(pos + split.length());
     }
-    res.push_back(std::move(str));
+    res.push_back(T{ str });
     return res;
 }
 
-std::string utils::string::join(std::span<std::string> strs, std::string_view separator) {
+std::vector<std::string> utils::string::split(std::string_view str, std::string_view split) {
+    return doSplit<std::string>(str, split);
+}
+
+std::vector<std::string_view> utils::string::splitView(std::string_view str, std::string_view split) {
+    return doSplit<std::string_view>(str, split);
+}
+
+template <typename T>
+std::string doJoin(std::span<T const> strs, std::string_view separator) {
+    if (strs.empty()) return "";
+    if (strs.size() == 1) return std::string(strs[0]);
+
     std::string res;
-    if (strs.empty())
-        return res;
-    if (strs.size() == 1)
-        return strs[0];
+
     // idk if less allocations but an extra loop is faster but
     size_t size = 0;
     for (auto const& str : strs)
         size += str.size() + separator.size();
     res.reserve(size);
-    for (auto const& str : strs)
-        res += str + std::string(separator);
-    res.erase(res.size() - separator.size());
+
+    res.append(strs[0]);
+    for (size_t i = 1; i < strs.size(); i++) {
+        res.append(separator);
+        res.append(strs[i]);
+    }
+    
     return res;
 }
 
+std::string utils::string::join(std::span<std::string const> strs, std::string_view separator) {
+    return doJoin<std::string>(strs, separator);
+}
+
+std::string utils::string::join(std::span<std::string_view const> strs, std::string_view separator) {
+    return doJoin<std::string_view>(strs, separator);
+}
+
 std::vector<char> utils::string::split(std::string_view str) {
-    std::vector<char> res;
-    for (auto const& s : str) {
-        res.push_back(s);
-    }
-    return res;
+    return std::vector<char>(str.begin(), str.end());
 }
 
 bool utils::string::contains(std::string_view str, std::string_view subs) {
@@ -191,61 +207,76 @@ size_t utils::string::count(std::string_view str, char countC) {
 }
 
 constexpr char WHITESPACE[] = " \f\n\r\t\v";
-std::string& utils::string::trimLeftIP(std::string& str, std::string_view chars) {
+void utils::string::trimLeftIP(std::string& str, std::string_view chars) {
     str.erase(0, str.find_first_not_of(chars));
-    return str;
-}
-std::string& utils::string::trimLeftIP(std::string& str) {
-    return utils::string::trimLeftIP(str, WHITESPACE);
 }
 
-std::string& utils::string::trimRightIP(std::string& str, std::string_view chars) {
+void utils::string::trimLeftIP(std::string& str) {
+    utils::string::trimLeftIP(str, WHITESPACE);
+}
+
+void utils::string::trimRightIP(std::string& str, std::string_view chars) {
+    // rely on npos + 1 = 0, clearing string if all chars are in the filter
     str.erase(str.find_last_not_of(chars) + 1);
+}
+
+void utils::string::trimRightIP(std::string& str) {
+    utils::string::trimRightIP(str, WHITESPACE);
+}
+
+void utils::string::trimIP(std::string& str, std::string_view chars) {
+    utils::string::trimRightIP(str, chars);
+    utils::string::trimLeftIP(str, chars);
+}
+
+void utils::string::trimIP(std::string& str) {
+    utils::string::trimRightIP(str);
+    utils::string::trimLeftIP(str);
+}
+
+std::string utils::string::trimLeft(std::string str, std::string_view chars) {
+    size_t start = str.find_first_not_of(chars);
+    if (start != std::string::npos) {
+        str.erase(0, start);
+    }
     return str;
 }
-std::string& utils::string::trimRightIP(std::string& str) {
-    return utils::string::trimRightIP(str, WHITESPACE);
+
+std::string utils::string::trimLeft(std::string str) {
+    return utils::string::trimLeft(std::move(str), WHITESPACE);
 }
 
-std::string& utils::string::trimIP(std::string& str, std::string_view chars) {
-    return utils::string::trimLeftIP(utils::string::trimRightIP(str, chars), chars);
-}
-std::string& utils::string::trimIP(std::string& str) {
-    return utils::string::trimLeftIP(utils::string::trimRightIP(str));
-}
-
-std::string utils::string::trimLeft(std::string_view str, std::string_view chars) {
-    size_t start = str.find_first_not_of(chars);
-    return start == -1 ? std::string() : std::string(str.substr(start));
-}
-std::string utils::string::trimLeft(std::string_view str) {
-    return utils::string::trimLeft(str, WHITESPACE);
+std::string utils::string::trimRight(std::string str, std::string_view chars) {
+    size_t end = str.find_last_not_of(chars);
+    if (end != std::string::npos) {
+        str.erase(end + 1);
+    } else {
+        str.clear();
+    }
+    return str;
 }
 
-std::string utils::string::trimRight(std::string_view str, std::string_view chars) {
-    return std::string(str.substr(0, str.find_last_not_of(chars) + 1));
-}
-std::string utils::string::trimRight(std::string_view str) {
-    return utils::string::trimRight(str, WHITESPACE);
+std::string utils::string::trimRight(std::string str) {
+    return utils::string::trimRight(std::move(str), WHITESPACE);
 }
 
-std::string utils::string::trim(std::string_view str, std::string_view chars) {
-    size_t start = str.find_first_not_of(chars);
-    return start == -1 ? std::string() : std::string(str.substr(start, str.find_last_not_of(chars) + 1 - start));
-}
-std::string utils::string::trim(std::string_view str) {
-    return utils::string::trim(str, WHITESPACE);
+std::string utils::string::trim(std::string str, std::string_view chars) {
+    str = utils::string::trimRight(std::move(str), chars);
+    return utils::string::trimLeft(std::move(str), chars);
 }
 
-std::string& utils::string::normalizeIP(std::string& str) {
+std::string utils::string::trim(std::string str) {
+    return trim(std::move(str), WHITESPACE);
+}
+
+void utils::string::normalizeIP(std::string& str) {
     while (utils::string::contains(str, "  "))
         utils::string::replaceIP(str, "  ", " ");
-    return str;
 }
 
 std::string utils::string::normalize(std::string str) {
     utils::string::normalizeIP(str);
-    return std::move(str);
+    return str;
 }
 
 std::strong_ordering utils::string::caseInsensitiveCompare(std::string_view str1, std::string_view str2) {
