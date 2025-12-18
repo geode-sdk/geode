@@ -25,6 +25,10 @@ NSString* intoNS(std::string_view str) {
     return [[NSString alloc] initWithBytes:str.data() length:str.size() encoding:NSUTF8StringEncoding];
 }
 
+NSString* intoNS(ZStringView str) {
+    return intoNS(std::string_view(str));
+}
+
 bool utils::clipboard::write(ZStringView data) {
     [[NSPasteboard generalPasteboard] clearContents];
     [[NSPasteboard generalPasteboard] setString:intoNS(std::string_view{data})
@@ -48,7 +52,7 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
 
 void utils::web::openLinkInBrowser(ZStringView url) {
     [[NSWorkspace sharedWorkspace]
-        openURL:[NSURL URLWithString:intoNS(url.c_str())]];
+        openURL:[NSURL URLWithString:intoNS(url)]];
 }
 
 /*@interface FileDialog : NSObject
@@ -389,7 +393,7 @@ float geode::utils::getDisplayFactor() {
 }
 
 std::string geode::utils::getEnvironmentVariable(ZStringView name) {
-    auto result = std::getenv(name);
+    auto result = std::getenv(name.c_str());
     return result ? result : "";
 }
 
