@@ -675,7 +675,7 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
 
         // Check if the request failed on curl's side or because of cancellation
         if (curlResponse != CURLE_OK) {
-            if (hasBeenCancelled()) {
+            if (responseData.hasBeenCancelled()) {
                 log::debug("Request cancelled");
                 return WebTask::Cancel();
             }
