@@ -771,7 +771,10 @@ WebRequest& WebRequest::header(std::string name, std::string value) {
 }
 
 WebRequest& WebRequest::removeHeader(std::string_view name) {
-    m_impl->m_headers.erase(name);
+    auto it = m_impl->m_headers.find(name);
+    if (it != m_impl->m_headers.end()) {
+        m_impl->m_headers.erase(it);
+    }
     return *this;
 }
 
@@ -781,7 +784,10 @@ WebRequest& WebRequest::param(std::string name, std::string value) {
 }
 
 WebRequest& WebRequest::removeParam(std::string_view name) {
-    m_impl->m_urlParameters.erase(name);
+    auto it = m_impl->m_urlParameters.find(name);
+    if (it != m_impl->m_urlParameters.end()) {
+        m_impl->m_urlParameters.erase(it);
+    }
     return *this;
 }
 
