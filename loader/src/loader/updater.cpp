@@ -292,7 +292,7 @@ bool updater::verifyLoaderResources() {
     return true;
 }
 
-void updater::downloadLoaderUpdate(std::string_view url) {
+void updater::downloadLoaderUpdate(std::string url) {
     auto updateZip = dirs::getTempDir() / "loader-update.zip";
     auto targetDir = dirs::getGeodeDir() / "update";
 
@@ -301,7 +301,7 @@ void updater::downloadLoaderUpdate(std::string_view url) {
     auto req = web::WebRequest();
     RUNNING_REQUESTS.emplace(
         "@downloadLoaderUpdate",
-        req.get(url).map(
+        req.get(std::move(url)).map(
             [targetDir](web::WebResponse* response) {
                 if (response->ok()) {
                     // unzip resources zip

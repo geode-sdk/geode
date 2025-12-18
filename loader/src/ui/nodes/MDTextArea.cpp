@@ -215,7 +215,7 @@ void MDTextArea::onGeodeMod(CCObject* sender) {
     auto href = static_cast<CCString*>(static_cast<CCNode*>(sender)->getUserObject());
     std::string_view modID = href->getCString();
     modID.remove_prefix(modID.find(":") + 1);
-    (void)openIfoPopup(modID);
+    (void)openInfoPopup(modID);
 }
 
 void MDTextArea::FLAlert_Clicked(FLAlertLayer* layer, bool btn) {
