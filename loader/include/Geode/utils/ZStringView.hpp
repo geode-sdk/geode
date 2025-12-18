@@ -2,6 +2,7 @@
 #include <string>
 #include <string_view>
 #include <filesystem>
+#include <matjson.hpp>
 #include <Geode/c++stl/string.hpp>
 
 namespace geode {
@@ -109,3 +110,10 @@ namespace geode {
         return out;
     }
 }
+
+template <>
+struct matjson::Serialize<geode::ZStringView> {
+    static matjson::Value toJson(geode::ZStringView const& value) {
+        return matjson::Value(value.view());
+    }
+};
