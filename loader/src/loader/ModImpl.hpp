@@ -144,7 +144,7 @@ namespace geode {
 
         Result<> loadBinary();
 
-        std::string_view expandSpriteName(std::string_view name);
+        std::string expandSpriteName(std::string_view name);
         ModJson getRuntimeInfo() const;
 
         bool isLoggingEnabled() const;

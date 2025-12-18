@@ -484,11 +484,11 @@ ListenerResult SettingChangedFilterV3::handle(geode::Function<Callback>& fn, Set
 }
 
 SettingChangedFilterV3::SettingChangedFilterV3(
-    std::string_view modID,
+    std::string modID,
     std::optional<std::string> settingKey
 ) : m_impl(std::make_shared<Impl>())
 {
-    m_impl->modID = modID;
+    m_impl->modID = std::move(modID);
     m_impl->settingKey = std::move(settingKey);
 }
 
