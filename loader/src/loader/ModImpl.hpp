@@ -3,8 +3,8 @@
 #include <matjson.hpp>
 #include "ModPatch.hpp"
 #include <Geode/loader/Loader.hpp>
-#include <string_view>
 #include <Geode/loader/ModSettingsManager.hpp>
+#include <Geode/utils/ZStringView.hpp>
 
 namespace geode {
     class Mod::Impl {

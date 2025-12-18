@@ -27,7 +27,7 @@ using geode::utils::permission::Permission;
 bool utils::clipboard::write(ZStringView data) {
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "writeClipboard", "(Ljava/lang/String;)V")) {
-        jstring stringArg1 = t.env->NewStringUTF(data);
+        jstring stringArg1 = t.env->NewStringUTF(data.c_str());
 
         t.env->CallStaticVoidMethod(t.classID, t.methodID, stringArg1);
 
@@ -428,7 +428,7 @@ void geode::utils::thread::platformSetName(ZStringView name) {
 }
 
 std::string geode::utils::getEnvironmentVariable(ZStringView name) {
-    auto result = std::getenv(name);
+    auto result = std::getenv(name.c_str());
     return result ? result : "";
 }
 

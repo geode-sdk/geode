@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/loader/Loader.hpp> // another great circular dependency fix
+#include <Geode/utils/ZStringView.hpp>
 #include <matjson.hpp>
 #include <Geode/Result.hpp>
 #include "Task.hpp"
