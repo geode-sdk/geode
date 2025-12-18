@@ -3,6 +3,7 @@
 #include "../DefaultInclude.hpp"
 #include <exception>
 #include <Geode/utils/string.hpp>
+#include <Geode/utils/ZStringView.hpp>
 
 namespace geode {
     class Mod;

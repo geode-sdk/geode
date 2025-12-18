@@ -2,6 +2,7 @@
 
 #include <string>
 #include <Geode/loader/Types.hpp>
+#include <Geode/utils/ZStringView.hpp>
 
 namespace geode::console {
     // intended for setting up an already attached console

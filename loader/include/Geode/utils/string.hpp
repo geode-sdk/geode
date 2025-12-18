@@ -7,6 +7,7 @@
 #include <span>
 #include <compare>
 #include <filesystem>
+#include <Geode/utils/ZStringView.hpp>
 #include "../DefaultInclude.hpp"
 #include <Geode/Result.hpp>
 

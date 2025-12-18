@@ -24,8 +24,9 @@ void console::messageBox(ZStringView title, ZStringView info, Severity severity)
     console::log(info, severity);
 }
 
-void console::log(ZStringView msg, Severity severity) {
-    NSLog(@"%s", msg.c_str());
+void console::log(ZStringView zmsg, Severity severity) {
+    auto msg = zmsg.view();
+    NSLog(@"%s", zmsg.c_str());
 
     if (s_isOpen) {
         int colorcode = 0;

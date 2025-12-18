@@ -2,6 +2,7 @@
 
 #include <Geode/Result.hpp>
 
+#include <Geode/utils/ZStringView.hpp>
 #include "../DefaultInclude.hpp"
 #include <chrono>
 #include <iomanip>

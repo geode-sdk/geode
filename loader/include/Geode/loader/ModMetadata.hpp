@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/Result.hpp>
+#include <Geode/utils/ZStringView.hpp>
 #include "../utils/VersionInfo.hpp"
 #include "Types.hpp"
 #include <filesystem>

@@ -30,7 +30,9 @@ void console::messageBox(ZStringView title, ZStringView info, Severity) {
     );
 }
 
-void console::log(ZStringView msg, Severity severity) {
+void console::log(ZStringView zmsg, Severity severity) {
+    auto msg = zmsg.view();
+
     if (s_isOpen) {
         int colorcode = 0;
         switch (severity) {
