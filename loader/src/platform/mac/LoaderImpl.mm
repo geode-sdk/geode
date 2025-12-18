@@ -42,7 +42,13 @@ void console::log(ZStringView zmsg, Severity severity) {
             case Severity::Error: colorcode = 31; break;
             default: colorcode = 35; break;
         }
-        auto newMsg = "\033[1;" + std::to_string(colorcode) + "m" + msg.substr(0, 8) + "\033[0m" + msg.substr(8);
+        
+        auto newMsg = fmt::format(
+            "\033[1;{}m{}\033[0m{}",
+            colorcode,
+            msg.substr(0, 8),
+            msg.substr(8)
+        );
 
         std::cout << newMsg << "\n" << std::flush;
     }
