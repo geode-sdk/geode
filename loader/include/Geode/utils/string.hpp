@@ -56,30 +56,29 @@ namespace geode::utils::string {
     /// @return UTF-8 encoded std::string
     GEODE_DLL std::string pathToString(std::filesystem::path const& path);
 
-    GEODE_DLL std::string& toLowerIP(std::string& str);
-
+    GEODE_DLL void toLowerIP(std::string& str);
     GEODE_DLL std::string toLower(std::string str);
 
-    GEODE_DLL std::string& toUpperIP(std::string& str);
-
+    GEODE_DLL void toUpperIP(std::string& str);
     GEODE_DLL std::string toUpper(std::string str);
 
-    GEODE_DLL std::string& replaceIP(
+    GEODE_DLL void replaceIP(
         std::string& str, std::string_view orig, std::string_view repl
     );
-
     GEODE_DLL std::string replace(
         std::string str, std::string_view orig, std::string_view repl
     );
 
-    GEODE_DLL std::vector<std::string> split(std::string str, std::string_view split);
+    GEODE_DLL std::vector<std::string> split(std::string_view str, std::string_view split);
+    /// Like split but returns a vector of `string_view`
+    GEODE_DLL std::vector<std::string_view> splitView(std::string_view str, std::string_view split);
 
-    GEODE_DLL std::string join(std::span<std::string> strs, std::string_view separator);
+    GEODE_DLL std::string join(std::span<std::string const> strs, std::string_view separator);
+    GEODE_DLL std::string join(std::span<std::string_view const> strs, std::string_view separator);
 
     GEODE_DLL std::vector<char> split(std::string_view str);
 
     GEODE_DLL bool contains(std::string_view str, std::string_view subs);
-
     GEODE_DLL bool contains(std::string_view str, char c);
 
     GEODE_DLL bool containsAny(std::string_view str, std::span<std::string> subs);
@@ -88,21 +87,21 @@ namespace geode::utils::string {
 
     GEODE_DLL size_t count(std::string_view str, char c);
 
-    GEODE_DLL std::string& trimLeftIP(std::string& str);
-    GEODE_DLL std::string& trimLeftIP(std::string& str, std::string_view chars);
-    GEODE_DLL std::string& trimRightIP(std::string& str);
-    GEODE_DLL std::string& trimRightIP(std::string& str, std::string_view chars);
-    GEODE_DLL std::string& trimIP(std::string& str);
-    GEODE_DLL std::string& trimIP(std::string& str, std::string_view chars);
+    GEODE_DLL void trimLeftIP(std::string& str);
+    GEODE_DLL void trimLeftIP(std::string& str, std::string_view chars);
+    GEODE_DLL void trimRightIP(std::string& str);
+    GEODE_DLL void trimRightIP(std::string& str, std::string_view chars);
+    GEODE_DLL void trimIP(std::string& str);
+    GEODE_DLL void trimIP(std::string& str, std::string_view chars);
 
-    GEODE_DLL std::string trimLeft(std::string_view str);
-    GEODE_DLL std::string trimLeft(std::string_view str, std::string_view chars);
-    GEODE_DLL std::string trimRight(std::string_view str);
-    GEODE_DLL std::string trimRight(std::string_view str, std::string_view chars);
-    GEODE_DLL std::string trim(std::string_view str);
-    GEODE_DLL std::string trim(std::string_view str, std::string_view chars);
+    GEODE_DLL std::string trimLeft(std::string str);
+    GEODE_DLL std::string trimLeft(std::string str, std::string_view chars);
+    GEODE_DLL std::string trimRight(std::string str);
+    GEODE_DLL std::string trimRight(std::string str, std::string_view chars);
+    GEODE_DLL std::string trim(std::string str);
+    GEODE_DLL std::string trim(std::string str, std::string_view chars);
 
-    GEODE_DLL std::string& normalizeIP(std::string& str);
+    GEODE_DLL void normalizeIP(std::string& str);
     GEODE_DLL std::string normalize(std::string str);
 
     GEODE_DLL bool startsWith(std::string_view str, std::string_view prefix);
