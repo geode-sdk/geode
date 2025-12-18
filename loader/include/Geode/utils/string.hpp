@@ -113,6 +113,10 @@ namespace geode::utils::string {
      */
     GEODE_DLL std::strong_ordering caseInsensitiveCompare(std::string_view a, std::string_view b);
 
+    inline bool equalsIgnoreCase(std::string_view a, std::string_view b) {
+        return caseInsensitiveCompare(a, b) == std::strong_ordering::equal;
+    }
+
     template <size_t S = 1024>
     struct ConstexprString {
         std::array<char, S> m_buffer{};

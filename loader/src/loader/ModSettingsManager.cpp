@@ -25,7 +25,7 @@ namespace {
 }
 class SharedSettingTypesPool final {
 private:
-    std::unordered_map<std::string, SettingGenerator> m_types;
+    utils::StringMap<SettingGenerator> m_types;
 
     SharedSettingTypesPool() {
         m_types.emplace("title", changeToGenerator(TitleSettingV3::parse));
@@ -61,7 +61,7 @@ public:
         if (m_types.contains(full)) {
             return Err("Type \"{}\" has already been registered for mod {}", type, modID);
         }
-        m_types.emplace(full, std::move(generator));
+        m_types.emplace(std::move(full), std::move(generator));
         return Ok();
     }
     std::optional<SettingGeneratorRef> find(std::string_view modID, std::string_view fullType) {
@@ -72,15 +72,16 @@ public:
             if (full.find('/') == std::string_view::npos) {
                 full = fmt::format("{}/{}", modID, full);
             }
-            if (m_types.contains(full)) {
-                return m_types.at(full);
+            auto it = m_types.find(full);
+            if (it != m_types.end()) {
+                return it->second;
             }
         }
         // Otherwise find a built-in setting
         else {
-            auto full = std::string(fullType);
-            if (m_types.contains(full)) {
-                return m_types.at(full);
+            auto it = m_types.find(fullType);
+            if (it != m_types.end()) {
+                return it->second;
             }
         }
         // Return null if nothing was found
@@ -222,9 +223,9 @@ matjson::Value& ModSettingsManager::getSaveData() {
     return m_impl->savedata;
 }
 
-std::shared_ptr<Setting> ModSettingsManager::get(std::string_view key) {
-    auto id = std::string(key);
-    return m_impl->settings.count(id) ? m_impl->settings.at(id).v3 : nullptr;
+std::shared_ptr<Setting> ModSettingsManager::get(std::string_view id) {
+    auto it = m_impl->settings.find(id);
+    return it != m_impl->settings.end() ? it->second.v3 : nullptr;
 }
 
 bool ModSettingsManager::restartRequired() const {

@@ -342,14 +342,14 @@ namespace enable_if_parsing {
                         modID = value.substr(0, value.find('/'));
                         savedValue = value.substr(value.find('/') + 1);
                     }
-                    if (!ModMetadata::validateID(std::string(modID))) {
+                    if (!ModMetadata::validateID(modID)) {
                         return Err("Invalid mod ID '{}'", modID);
                     }
                     return Ok(std::make_unique<RequireSavedValueEnabled>(modID, savedValue));
                 } break;
 
                 case hash("loaded"): {
-                    if (!ModMetadata::validateID(std::string(value))) {
+                    if (!ModMetadata::validateID(value)) {
                         return Err("Invalid mod ID '{}'", value);
                     }
                     return Ok(std::make_unique<RequireModLoaded>(std::string(value)));

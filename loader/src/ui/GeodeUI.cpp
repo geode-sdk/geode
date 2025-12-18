@@ -265,7 +265,7 @@ protected:
         }, src);
 
         // This is a default ID, nothing should ever rely on the ID of any ModLogoSprite being this
-        this->setID(std::string(Mod::get()->expandSpriteName(fmt::format("sprite-{}", m_modID))));
+        this->setID(Mod::get()->expandSpriteName(fmt::format("sprite-{}", m_modID)));
 
         ModLogoUIEvent(std::make_unique<ModLogoUIEvent::Impl>(this, m_modID)).post();
 

@@ -174,7 +174,7 @@ static Mod* modFromAddress(void const* addr) {
 // i.e. 0x12345678 -> "0x12345678 (GeometryDash + 0x5678)"
 static std::string formatAddress(void const* addr) {
     auto image = imageFromAddress(addr);
-    
+
     if (image) {
         auto imageName = getImageName(image);
         return fmt::format(
@@ -212,7 +212,7 @@ static std::string getInfo(void* address, Mod* faultyMod) {
 
             case SIGSEGV: {
                 stream << fmt::format("Could not access memory at {} (", formatAddress(s_siginfo->si_addr));
-                
+
                 switch (s_siginfo->si_code) {
                     case SEGV_MAPERR: {
                         stream << "address not mapped to an object";

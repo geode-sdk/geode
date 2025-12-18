@@ -82,7 +82,7 @@ bool ModPopup::setup(ModSource&& src) {
     m_source = std::move(src);
     m_noElasticity = true;
 
-    this->setID(std::string(Mod::get()->expandSpriteName(fmt::format("popup-{}", src.getID()))));
+    this->setID(Mod::get()->expandSpriteName(fmt::format("popup-{}", src.getID())));
 
     auto isGeode = src.asMod() == Mod::get();
     if (isGeode) {
