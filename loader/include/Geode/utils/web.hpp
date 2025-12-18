@@ -201,7 +201,7 @@ namespace geode::utils::web {
         WebRequest& param(std::string name, std::string value);
         template <std::integral T>
         WebRequest& param(std::string name, T value) {
-            return this->param(name, fmt::to_string(value));
+            return this->param(std::move(name), fmt::to_string(value));
         }
         WebRequest& removeParam(std::string_view name);
 
