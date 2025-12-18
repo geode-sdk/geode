@@ -360,7 +360,7 @@ public:
 
     Impl() : m_id(s_idCounter++) {}
 
-    WebResponse makeError(int code, std::string const& msg) {
+    WebResponse makeError(int code, std::string_view msg) {
         auto res = WebResponse();
         res.m_impl->m_code = code;
         res.m_impl->m_data = ByteVector(msg.begin(), msg.end());

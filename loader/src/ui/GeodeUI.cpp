@@ -12,7 +12,7 @@
 #include "mods/popups/ModPopup.hpp"
 #include "GeodeUIEvent.hpp"
 
-class LoadServerModLayer : public Popup<std::string const&> {
+class LoadServerModLayer : public Popup<std::string> {
 protected:
     std::string m_id;
     EventListener<server::ServerRequest<server::ServerModMetadata>> m_listener;
@@ -20,7 +20,7 @@ protected:
 
     std::optional<server::ServerModMetadata> m_loadedMod{};
 
-    bool setup(std::string const& id) override {
+    bool setup(std::string id) override {
         m_closeBtn->setVisible(false);
 
         this->setTitle("Loading mod...");
@@ -28,9 +28,9 @@ protected:
         auto spinner = LoadingSpinner::create(40);
         m_mainLayer->addChildAtPosition(spinner, Anchor::Center, ccp(0, -10));
 
-        m_id = id;
+        m_id = std::move(id);
         m_listener.bind(this, &LoadServerModLayer::onModRequest);
-        m_listener.setFilter(server::getMod(id));
+        m_listener.setFilter(server::getMod(m_id));
 
         return true;
     }
@@ -46,11 +46,10 @@ protected:
                 m_versionListener.setFilter(server::getModVersion(m_id));
             }
             else {
-                auto id = m_id;
                 this->onClose(nullptr);
                 FLAlertLayer::create(
                     "Error Loading Mod",
-                    fmt::format("Unable to find mod with the ID <cr>{}</c>!", id),
+                    fmt::format("Unable to find mod with the ID <cr>{}</c>!", m_id),
                     "OK"
                 )->show();
             }
@@ -95,9 +94,9 @@ public:
         );
     }
 
-    static LoadServerModLayer* create(std::string const& id) {
+    static LoadServerModLayer* create(std::string id) {
         auto ret = new LoadServerModLayer();
-        if (ret->initAnchored(180, 100, id, "square01_001.png", CCRect{})) {
+        if (ret->initAnchored(180, 100, std::move(id), "square01_001.png", CCRect{})) {
             ret->autorelease();
             return ret;
         }
@@ -128,8 +127,8 @@ void geode::openIssueReportPopup(Mod* mod) {
                 }
 
                 auto issues = mod->getMetadataRef().getIssues();
-                if (issues && issues.value().url) {
-                    auto url = issues.value().url.value();
+                if (issues && issues->url) {
+                    auto& url = *issues->url;
                     web::openLinkInBrowser(url);
                 }
             }
@@ -170,13 +169,13 @@ void geode::openSupportPopup(ModMetadata const& metadata) {
 void geode::openInfoPopup(Mod* mod) {
     ModPopup::create(mod)->show();
 }
-Task<bool> geode::openInfoPopup(std::string const& modID) {
+Task<bool> geode::openInfoPopup(std::string_view modID) {
     if (auto mod = Loader::get()->getInstalledMod(modID)) {
         openInfoPopup(mod);
         return Task<bool>::immediate(true);
     }
     else {
-        auto popup = LoadServerModLayer::create(modID);
+        auto popup = LoadServerModLayer::create(std::string(modID));
         auto task = popup->listen();
         popup->show();
         return task;

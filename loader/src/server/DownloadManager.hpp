@@ -38,7 +38,7 @@ namespace server {
 
     struct ModDownloadEvent : public Event {
         std::string id;
-        ModDownloadEvent(std::string const& id);
+        ModDownloadEvent(std::string id);
     };
 
     class ModDownloadFilter : public EventFilter<ModDownloadEvent> {
@@ -52,7 +52,7 @@ namespace server {
         ListenerResult handle(geode::Function<Callback>& fn, ModDownloadEvent* event);
 
         ModDownloadFilter();
-        ModDownloadFilter(std::string const& id);
+        ModDownloadFilter(std::string id);
     };
 
     using DependencyFor = std::pair<std::string, ModMetadata::Dependency::Importance>;
@@ -64,10 +64,10 @@ namespace server {
         std::shared_ptr<Impl> m_impl;
 
         ModDownload(
-            std::string const& id,
-            std::optional<VersionInfo> const& version,
-            std::optional<DependencyFor> const& dependencyFor,
-            std::optional<std::string> const& replacesMod
+            std::string id,
+            std::optional<VersionInfo> version,
+            std::optional<DependencyFor> dependencyFor,
+            std::optional<std::string> replacesMod
         );
 
         friend class ModDownloadManager;
@@ -101,10 +101,10 @@ namespace server {
         ~ModDownloadManager();
 
         std::optional<ModDownload> startDownload(
-            std::string const& id,
-            std::optional<VersionInfo> const& version,
-            std::optional<DependencyFor> const& dependencyFor = std::nullopt,
-            std::optional<std::string> const& replacesMod = std::nullopt
+            std::string id,
+            std::optional<VersionInfo> version,
+            std::optional<DependencyFor> dependencyFor = std::nullopt,
+            std::optional<std::string> replacesMod = std::nullopt
         );
         void startUpdateAll();
         void confirmAll();
@@ -112,7 +112,7 @@ namespace server {
         void dismissAll();
         bool checkAutoConfirm();
 
-        std::optional<ModDownload> getDownload(std::string const& id) const;
+        std::optional<ModDownload> getDownload(std::string_view id) const;
         std::vector<ModDownload> getDownloads() const;
         bool hasActiveDownloads() const;
 

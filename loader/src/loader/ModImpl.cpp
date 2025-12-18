@@ -95,23 +95,23 @@ std::filesystem::path Mod::Impl::getSaveDir() const {
     return m_saveDirPath;
 }
 
-std::string Mod::Impl::getID() const {
+ZStringView Mod::Impl::getID() const {
     return m_metadata.getID();
 }
 
-std::string Mod::Impl::getName() const {
+ZStringView Mod::Impl::getName() const {
     return m_metadata.getName();
 }
 
-std::vector<std::string> Mod::Impl::getDevelopers() const {
+std::vector<std::string> const& Mod::Impl::getDevelopers() const {
     return m_metadata.getDevelopers();
 }
 
-std::optional<std::string> Mod::Impl::getDescription() const {
+std::optional<std::string> const& Mod::Impl::getDescription() const {
     return m_metadata.getDescription();
 }
 
-std::optional<std::string> Mod::Impl::getDetails() const {
+std::optional<std::string> const& Mod::Impl::getDetails() const {
     return m_metadata.getDetails();
 }
 

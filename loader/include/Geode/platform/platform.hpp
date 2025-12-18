@@ -170,16 +170,14 @@ namespace geode {
          * Parse string into PlatformID. String should be all-lowercase, for
          * example "windows" or "linux"
          */
-        static GEODE_DLL PlatformID from(const char* str);
-        static GEODE_DLL PlatformID from(std::string const& str);
+        static GEODE_DLL PlatformID from(std::string_view str);
 
         /**
          * Determines if a given platform string "covers" the given platform.
          * For example, "android" is covered by Platform::Android32 and Platform::Android64.
          * Input string must follow the format in PlatformID::toShortString.
          */
-        static GEODE_DLL bool coveredBy(const char* str, PlatformID t);
-        static GEODE_DLL bool coveredBy(std::string const& str, PlatformID t);
+        static GEODE_DLL bool coveredBy(std::string_view str, PlatformID t);
         /**
          * Returns the list of platforms covered by this string name. For
          * example, "android" would return both Android32 and Android64

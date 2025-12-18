@@ -11,7 +11,7 @@
 // needed for weightedFuzzyMatch
 #include <ui/mods/sources/ModListSource.hpp>
 
-static bool matchSearch(SettingNode* node, std::string const& query) {
+static bool matchSearch(SettingNode* node, ZStringView query) {
     if (typeinfo_cast<TitleSettingNode*>(node)) {
         return true;
     }

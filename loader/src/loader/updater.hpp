@@ -40,13 +40,13 @@ namespace geode::updater {
     };
 
     void updateSpecialFiles();
-    void tryDownloadLoaderResources(std::string const& url, bool tryLatestOnError = true);
+    void tryDownloadLoaderResources(std::string url, bool tryLatestOnError = true);
     void downloadLoaderResources(bool useLatestRelease = false);
     void downloadLatestLoaderResources();
-    void downloadLoaderUpdate(std::string const& url);
+    void downloadLoaderUpdate(std::string_view url);
     void fetchLatestGithubRelease(
         geode::Function<void(matjson::Value const&)> then,
-        geode::Function<void(std::string const&)> expect,
+        geode::Function<void(std::string)> expect,
         bool force = false
     );
 

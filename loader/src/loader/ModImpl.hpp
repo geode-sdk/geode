@@ -83,11 +83,11 @@ namespace geode {
         Result<> loadPlatformBinary();
         Result<> createTempDir();
 
-        std::string getID() const;
-        std::string getName() const;
-        std::vector<std::string> getDevelopers() const;
-        std::optional<std::string> getDescription() const;
-        std::optional<std::string> getDetails() const;
+        ZStringView getID() const;
+        ZStringView getName() const;
+        std::vector<std::string> const& getDevelopers() const;
+        std::optional<std::string> const& getDescription() const;
+        std::optional<std::string> const& getDetails() const;
         std::filesystem::path getPackagePath() const;
         VersionInfo getVersion() const;
         bool isEnabled() const;

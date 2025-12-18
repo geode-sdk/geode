@@ -1,5 +1,6 @@
 #include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/utils/JsonValidation.hpp>
+#include <Geode/utils/StringMap.hpp>
 #include "ModImpl.hpp"
 
 using namespace geode::prelude;
@@ -95,7 +96,7 @@ public:
         std::shared_ptr<Setting> v3 = nullptr;
     };
     std::string modID;
-    std::unordered_map<std::string, SettingInfo> settings;
+    StringMap<SettingInfo> settings;
     std::vector<Mod*> dependants;
     // Stored so custom settings registered after the fact can be loaded
     // If the ability to unregister custom settings is ever added, remember to

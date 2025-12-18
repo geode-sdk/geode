@@ -28,14 +28,14 @@ protected:
     CCNode* m_loading;
     std::string m_noneText;
 
-    bool init(Request const& req, std::string const& noneText, CCSize const& size) {
+    bool init(Request const& req, std::string noneText, CCSize const& size) {
         if (!CCNode::init())
             return false;
 
         this->setAnchorPoint({ .5f, .5f });
         this->setContentSize(size);
 
-        m_noneText = noneText;
+        m_noneText = std::move(noneText);
 
         m_textarea = MDTextArea::create("", size);
         m_textarea->setID("textarea");
@@ -67,9 +67,9 @@ protected:
     }
 
 public:
-    static FetchTextArea* create(Request const& req, std::string const& noneText, CCSize const& size) {
+    static FetchTextArea* create(Request const& req, std::string noneText, CCSize const& size) {
         auto ret = new FetchTextArea();
-        if (ret->init(req, noneText, size)) {
+        if (ret->init(req, std::move(noneText), size)) {
             ret->autorelease();
             return ret;
         }
@@ -843,7 +843,7 @@ void ModPopup::setStatIcon(CCNode* stat, const char* spr) {
     }
 }
 
-void ModPopup::setStatLabel(CCNode* stat, std::string const& value, bool noValue, ccColor3B color) {
+void ModPopup::setStatLabel(CCNode* stat, ZStringView value, bool noValue, ccColor3B color) {
     auto container = stat->getChildByID("labels");
 
     // Update label

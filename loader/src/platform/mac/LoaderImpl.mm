@@ -21,8 +21,8 @@ struct MacConsoleData {
 bool s_isOpen = false;
 MacConsoleData s_platformData;
 
-void console::messageBox(char const* title, std::string const& info, Severity) {
-    CFStringRef cfTitle = CFStringCreateWithCString(NULL, title, kCFStringEncodingUTF8);
+void console::messageBox(ZStringView title, ZStringView info, Severity) {
+    CFStringRef cfTitle = CFStringCreateWithCString(NULL, title.c_str(), kCFStringEncodingUTF8);
     CFStringRef cfMessage = CFStringCreateWithBytes(NULL, (unsigned char*)info.data(), info.size(), kCFStringEncodingUTF8, false);
 
     CFUserNotificationDisplayNotice(
@@ -30,7 +30,7 @@ void console::messageBox(char const* title, std::string const& info, Severity) {
     );
 }
 
-void console::log(std::string const& msg, Severity severity) {
+void console::log(ZStringView msg, Severity severity) {
     if (s_isOpen) {
         int colorcode = 0;
         switch (severity) {

@@ -715,18 +715,19 @@ void ModList::gotoPage(size_t page, bool update) {
     this->updateState();
 }
 
-void ModList::showStatus(ModListStatus status, std::string const& message, std::optional<std::string> const& details) {
+void ModList::showStatus(ModListStatus status, ZStringView message, std::optional<std::string> details) {
     // Clear list contents
     m_list->m_contentLayer->removeAllChildren();
 
     // Update status
+    bool hasDetails = details.has_value();
     m_statusTitle->setString(message.c_str());
-    m_statusDetails->setText(details.value_or(""));
+    m_statusDetails->setText(std::move(details).value_or(""));
 
     // Update status visibility
     m_statusContainer->setVisible(true);
     m_statusDetails->setVisible(false);
-    m_statusDetailsBtn->setVisible(details.has_value());
+    m_statusDetailsBtn->setVisible(hasDetails);
     m_statusLoadingCircle->setVisible(
         std::holds_alternative<ModListUnkProgressStatus>(status)
         || std::holds_alternative<ModListProgressStatus>(status)

@@ -221,27 +221,26 @@ void Loader::Impl::loadData() {
 
 // Mod loading
 
-bool Loader::Impl::isModInstalled(std::string const& id) const {
-    return m_mods.count(id) && !m_mods.at(id)->isUninstalled();
+bool Loader::Impl::isModInstalled(std::string_view id) const {
+    return this->getInstalledMod(id) != nullptr;
 }
 
-Mod* Loader::Impl::getInstalledMod(std::string const& id) const {
-    if (m_mods.count(id) && !m_mods.at(id)->isUninstalled()) {
-        return m_mods.at(id);
+Mod* Loader::Impl::getInstalledMod(std::string_view id) const {
+    auto it = m_mods.find(id);
+    if (it != m_mods.end() && !it->second->isUninstalled()) {
+        return it->second;
     }
     return nullptr;
 }
 
-bool Loader::Impl::isModLoaded(std::string const& id) const {
-    return m_mods.count(id) && m_mods.at(id)->isEnabled();
+bool Loader::Impl::isModLoaded(std::string_view id) const {
+    return this->getLoadedMod(id) != nullptr;
 }
 
-Mod* Loader::Impl::getLoadedMod(std::string const& id) const {
-    if (m_mods.count(id)) {
-        auto mod = m_mods.at(id);
-        if (mod->isEnabled()) {
-            return mod;
-        }
+Mod* Loader::Impl::getLoadedMod(std::string_view id) const {
+    auto it = m_mods.find(id);
+    if (it != m_mods.end() && it->second->isEnabled()) {
+        return it->second;
     }
     return nullptr;
 }

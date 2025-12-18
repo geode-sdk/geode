@@ -2,6 +2,7 @@
 #include <crashlog.hpp>
 
 #include <Geode/utils/string.hpp>
+#include <Geode/utils/ZStringView.hpp>
 #include <array>
 #include <thread>
 #include <execinfo.h>
@@ -274,7 +275,7 @@ extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext)
 }
 
 // https://stackoverflow.com/questions/8278691/how-to-fix-backtrace-line-number-error-in-c
-std::string executeCommand(std::string const& cmd) {
+std::string executeCommand(ZStringView cmd) {
     std::stringstream stream;
     std::array<char, 1024> buf;
 

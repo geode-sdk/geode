@@ -50,7 +50,7 @@ protected:
     void updateState();
 
     void setStatIcon(CCNode* stat, const char* spr);
-    void setStatLabel(CCNode* stat, std::string const& value, bool noValue = false, ccColor3B color = ccWHITE);
+    void setStatLabel(CCNode* stat, ZStringView value, bool noValue = false, ccColor3B color = ccWHITE);
     void setStatValue(CCNode* stat, std::optional<std::string> const& value);
 
     void onLoadServerInfo(typename server::ServerRequest<server::ServerModMetadata>::Event* event);
