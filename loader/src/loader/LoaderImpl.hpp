@@ -60,7 +60,7 @@ namespace geode {
         int m_refreshedModCount = 0;
         int m_lateRefreshedModCount = 0;
 
-        std::unordered_map<std::string, std::string> m_launchArgs;
+        utils::StringMap<std::string> m_launchArgs;
 
         std::chrono::time_point<std::chrono::high_resolution_clock> m_timerBegin;
 

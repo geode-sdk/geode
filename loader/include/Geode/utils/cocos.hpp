@@ -548,14 +548,14 @@ namespace geode {
      * as a node to a class, delegating memory handling onto cocos.
      * This is helpful when there is a need to tie a listener onto
      * a node.
-     * 
+     *
      * @example
      * this->addChild(EventListenerNode<MyFilter>::create([&](){
      *     // handling code here
      * }));
      * @example
-     * 
-     * @tparam Filter The event filter this listener uses. See 
+     *
+     * @tparam Filter The event filter this listener uses. See
      * `EventListener` for more information.
      */
     template <class Filter>
@@ -608,7 +608,7 @@ namespace geode {
      * A simple `CCObject` wrapper for a non-`CCObject` type. This is
      * useful for storing custom types in a `CCNode::setUserObject` without
      * making a new class for it.
-     * 
+     *
      * @tparam T The type to wrap into a CCObject
      */
     template <class T>
@@ -830,7 +830,7 @@ namespace geode::cocos {
 
     /**
      * Calls `cocos2d::ccDrawColor4B` directly with a `cocos2d::ccColor4B` color
-     * 
+     *
      * @param color The color to draw
      */
     inline void ccDrawColor4B(cocos2d::ccColor4B const& color) {
@@ -839,7 +839,7 @@ namespace geode::cocos {
 
     /**
      * Inverts the color's rgb values.
-     * 
+     *
      * @param color The color to invert
      * @returns Converted color
      */
@@ -853,7 +853,7 @@ namespace geode::cocos {
 
     /**
      * Inverts the color's rgb values.
-     * 
+     *
      * @param color The color to invert
      * @returns Converted color
      */
@@ -866,7 +866,7 @@ namespace geode::cocos {
 
     /**
      * Lightens the color's rgb values by a given amount.
-     * 
+     *
      * @param color The color to lighten
      * @param amount The amount to lighten
      * @returns Converted color
@@ -881,7 +881,7 @@ namespace geode::cocos {
 
     /**
      * Darkens the color's rgb values by a given amount.
-     * 
+     *
      * @param color The color to darken
      * @param amount The amount to darken
      * @returns Converted color
@@ -892,7 +892,7 @@ namespace geode::cocos {
 
     /**
      * Converts a `cocos2d::ccColor4B` into `cocos2d::ccColor3B`
-     * 
+     *
      * @param color The color to convert
      * @returns Converted color
      */
@@ -902,7 +902,7 @@ namespace geode::cocos {
 
     /**
      * Converts a `cocos2d::ccColor3B` into `cocos2d::ccColor4B`
-     * 
+     *
      * @param color The color to convert
      * @param alpha The additional alpha value
      * @returns Converted color
@@ -913,7 +913,7 @@ namespace geode::cocos {
 
     /**
      * Converts a `cocos2d::ccColor4B` into `cocos2d::ccColor`4F
-     * 
+     *
      * @param color The color to convert
      * @returns Converted color
      */
@@ -931,7 +931,7 @@ namespace geode::cocos {
      * @returns A ccColor3B if it could be successfully parsed, or an error
      * indicating the failure reason
      */
-    GEODE_DLL Result<cocos2d::ccColor3B> cc3bFromHexString(std::string hexValue, bool permissive = false);
+    GEODE_DLL Result<cocos2d::ccColor3B> cc3bFromHexString(std::string_view hexValue, bool permissive = false);
     /**
      * Parse a ccColor4B from a hexadecimal string. The string may contain
      * a leading '#'
@@ -944,11 +944,11 @@ namespace geode::cocos {
      * @returns A ccColor4B if it could be successfully parsed, or an error
      * indicating the failure reason
      */
-    GEODE_DLL Result<cocos2d::ccColor4B> cc4bFromHexString(std::string hexValue, bool requireAlpha = false, bool permissive = false);
+    GEODE_DLL Result<cocos2d::ccColor4B> cc4bFromHexString(std::string_view hexValue, bool requireAlpha = false, bool permissive = false);
 
     /**
      * Converts a `cocos2d::ccColor3B` into a string based on the `RRGGBB` format.
-     * 
+     *
      * @param color The color to convert
      * @returns Hex string
      */
@@ -956,7 +956,7 @@ namespace geode::cocos {
 
     /**
      * Converts a `cocos2d::ccColor4B` into a string based on the `RRGGBBAA` format.
-     * 
+     *
      * @param color The color to convert
      * @returns Hex string
      */
@@ -964,7 +964,7 @@ namespace geode::cocos {
 
     /**
      * Converts a `std::vector` into a `CCArray`.
-     * 
+     *
      * @param vec The vector to convert
      * @returns The array
      */
@@ -978,7 +978,7 @@ namespace geode::cocos {
 
     /**
      * Converts a `std::vector` into a `CCArray` using a conversion function.
-     * 
+     *
      * @param vec The vector to convert
      * @param convFunc The conversion function used for each item
      * @returns The array
@@ -993,7 +993,7 @@ namespace geode::cocos {
 
     /**
      * Converts `CCArray` into a `std::vector`.
-     * 
+     *
      * @tparam T The type of the data stored inside the array
      * @param arr The array to convert
      * @returns The vector
@@ -1007,7 +1007,7 @@ namespace geode::cocos {
 
     /**
      * Converts a `std::map` into a `CCDictionary`.
-     * 
+     *
      * @param map The map to convert
      * @returns The dictionary
      */
@@ -1023,7 +1023,7 @@ namespace geode::cocos {
 
     /**
      * Converts a `std::map` into a `CCDictionary` using a conversion function.
-     * 
+     *
      * @param map The map to convert
      * @param convFunc The conversion function used for each item
      * @returns The dictionary
@@ -1387,7 +1387,7 @@ namespace geode::cocos {
     public:
         /**
          * Creates a `CCMenuItem` with a callback.
-         * 
+         *
          * @param callback The callback for the button
          * @returns The created button
          */
@@ -1401,7 +1401,7 @@ namespace geode::cocos {
 
         /**
          * Creates a `CCMenuItemSprite` with a normal and a selected sprite.
-         * 
+         *
          * @param normalSprite The sprite used on idle
          * @param selectedSprite The sprite used when selected
          * @param callback The callback for the button
@@ -1419,7 +1419,7 @@ namespace geode::cocos {
 
         /**
          * Creates a `CCMenuItemSprite` with a disabled, normal and a selected sprite.
-         * 
+         *
          * @param normalSprite The sprite used on idle
          * @param selectedSprite The sprite used when selected
          * @param disabledSprite The sprite used when disabled
@@ -1439,7 +1439,7 @@ namespace geode::cocos {
 
         /**
          * Creates a `CCMenuItemSpriteExtra` with a sprite and a callback.
-         * 
+         *
          * @param normalSprite The sprite for the button
          * @param callback The callback for the button
          * @returns The created button
@@ -1455,7 +1455,7 @@ namespace geode::cocos {
 
         /**
          * Creates a `CCMenuItemSpriteExtra` with a file name and a sprite scale.
-         * 
+         *
          * @param normalSpriteName The file name used for the normal sprite
          * @param scale The scale used for the sprite
          * @param callback The callback for the button
@@ -1474,7 +1474,7 @@ namespace geode::cocos {
 
         /**
          * Creates a `CCMenuItemSpriteExtra` with a frame name and a sprite scale.
-         * 
+         *
          * @param normalSpriteName The frame name used for the normal sprite
          * @param scale The scale used for the sprite
          * @param callback The callback for the button
@@ -1493,7 +1493,7 @@ namespace geode::cocos {
 
         /**
          * Creates a `CCMenuItemToggler` with an on and off sprite.
-         * 
+         *
          * @param onSprite The sprite used when toggled on
          * @param offSprite The sprite used when toggled off
          * @param callback The callback for the toggle
@@ -1511,7 +1511,7 @@ namespace geode::cocos {
 
         /**
          * Creates a `CCMenuItemToggler` with standard toggle sprites GD uses.
-         * 
+         *
          * @param scale The scale of the sprites
          * @param callback The callback for the toggle
          * @returns The created toggle
@@ -1531,7 +1531,7 @@ namespace geode::cocos {
 
         /**
          * Creates a `CCMenuItemToggler` with an on and off sprite file name
-         * 
+         *
          * @param onSpriteName The file name thats used to create the toggled on sprite
          * @param offSpriteName The file name thats used to create the toggled off sprite
          * @param callback The callback for the toggle
@@ -1554,7 +1554,7 @@ namespace geode::cocos {
 
         /**
          * Creates a `CCMenuItemToggler` with an on and off sprite frame name
-         * 
+         *
          * @param onSpriteName The frame name thats used to create the toggled on sprite
          * @param offSpriteName The frame name thats used to create the toggled off sprite
          * @param callback The callback for the toggle
@@ -1577,7 +1577,7 @@ namespace geode::cocos {
 
         /**
          * Assigns a lambda callback to a `CCMenuItem`
-         * 
+         *
          * @param item The item to assign callback to
          * @param callback The callback to assign
          */
@@ -1617,7 +1617,7 @@ namespace geode::cocos {
 
     /**
      * CCCallFunc alternative that accepts a lambda (or any function object)
-     * 
+     *
      * @tparam The type of the function object
      */
     template <std::invocable F>
@@ -1663,12 +1663,12 @@ namespace geode::cocos {
     };
 
     /**
-     * A utility function that recursively sets the touch priorities 
+     * A utility function that recursively sets the touch priorities
      * of a node and its children.
-     * 
+     *
      * Not very recommended for use but there are cases it can quickly
      * fix some touch handler related problems.
-     * 
+     *
      * @param node The parent node to set touch priority to
      * @param priority The priority value to set to
      * @param force Whether it should force set without smaller-than checks
@@ -1676,12 +1676,12 @@ namespace geode::cocos {
     void GEODE_DLL handleTouchPriorityWith(cocos2d::CCNode* node, int priority, bool force = false);
 
     /**
-     * A utility function that recursively sets the touch priorities 
+     * A utility function that recursively sets the touch priorities
      * of a node and its children.
-     * 
+     *
      * Not very recommended for use but there are cases it can quickly
      * fix some touch handler related problems.
-     * 
+     *
      * @param node The parent node to set touch priority to
      * @param force Whether it should force set without smaller-than checks
      */

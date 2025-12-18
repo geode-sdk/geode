@@ -160,7 +160,7 @@ std::string doJoin(std::span<T const> strs, std::string_view separator) {
         res.append(separator);
         res.append(strs[i]);
     }
-    
+
     return res;
 }
 

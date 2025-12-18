@@ -2,6 +2,7 @@
 
 #include <Geode/loader/Loader.hpp> // another great circular dependency fix
 #include <Geode/utils/ZStringView.hpp>
+#include <Geode/utils/StringMap.hpp>
 #include <matjson.hpp>
 #include <Geode/Result.hpp>
 #include "Task.hpp"
@@ -84,14 +85,14 @@ namespace geode::utils::web {
         MultipartForm();
         ~MultipartForm();
 
-        MultipartForm& param(std::string_view name, std::string_view value);
+        MultipartForm& param(std::string name, std::string value);
         template <std::integral T>
-        MultipartForm& param(std::string_view name, T value) {
-            return this->param(name, fmt::to_string(value));
+        MultipartForm& param(std::string name, T value) {
+            return this->param(std::move(name), fmt::to_string(value));
         }
 
-        MultipartForm& file(std::string_view name, std::span<uint8_t const> data, std::string_view filename, std::string_view mime = "application/octet-stream");
-        Result<MultipartForm&> file(std::string_view name, std::filesystem::path const& path, std::string_view mime = "application/octet-stream");
+        MultipartForm& file(std::string name, std::span<uint8_t const> data, std::string filename, std::string mime = "application/octet-stream");
+        Result<MultipartForm&> file(std::string name, std::filesystem::path const& path, std::string mime = "application/octet-stream");
 
         /**
          * Returns the unique boundary string used in the multipart form.
@@ -138,7 +139,7 @@ namespace geode::utils::web {
         Result<> into(std::filesystem::path const& path) const;
 
         std::vector<std::string> headers() const;
-        std::optional<std::string> header(std::string_view name) const;
+        std::optional<ZStringView> header(std::string_view name) const;
 
         /**
          * Retrieves a list of all headers from the response with a given name - there can be
@@ -189,17 +190,17 @@ namespace geode::utils::web {
         WebRequest();
         ~WebRequest();
 
-        WebTask send(std::string_view method, std::string_view url);
-        WebTask post(std::string_view url);
-        WebTask get(std::string_view url);
-        WebTask put(std::string_view url);
-        WebTask patch(std::string_view url);
+        WebTask send(std::string method, std::string url);
+        WebTask post(std::string url);
+        WebTask get(std::string url);
+        WebTask put(std::string url);
+        WebTask patch(std::string url);
 
-        WebRequest& header(std::string_view name, std::string_view value);
+        WebRequest& header(std::string name, std::string value);
         WebRequest& removeHeader(std::string_view name);
-        WebRequest& param(std::string_view name, std::string_view value);
+        WebRequest& param(std::string name, std::string value);
         template <std::integral T>
-        WebRequest& param(std::string_view name, T value) {
+        WebRequest& param(std::string name, T value) {
             return this->param(name, fmt::to_string(value));
         }
         WebRequest& removeParam(std::string_view name);
@@ -211,7 +212,7 @@ namespace geode::utils::web {
          * @param name
          * @return WebRequest&
          */
-        WebRequest& userAgent(std::string_view name);
+        WebRequest& userAgent(std::string name);
 
         /**
          * Sets the response's encoding. Valid values include: br, gzip, deflate, ...
@@ -227,7 +228,7 @@ namespace geode::utils::web {
          * @param encodingType Target response encoding type. An empty string ("") will use all built-in supported encodings.
          * @return WebRequest&
          */
-        WebRequest& acceptEncoding(std::string_view encodingType);
+        WebRequest& acceptEncoding(std::string encodingType);
 
         /**
          * Sets the maximum amount of seconds to allow the entire transfer operation to take.
@@ -291,7 +292,7 @@ namespace geode::utils::web {
          * @param content
          * @return WebRequest&
          */
-        WebRequest& CABundleContent(std::string_view content);
+        WebRequest& CABundleContent(std::string content);
 
         /**
          * Sets the request's proxy.
@@ -300,7 +301,7 @@ namespace geode::utils::web {
          * @param proxyOpts
          * @return WebRequest&
          */
-        WebRequest& proxyOpts(ProxyOpts const& proxyOpts);
+        WebRequest& proxyOpts(ProxyOpts proxyOpts);
 
         /**
          * Sets the request's HTTP version.
@@ -353,28 +354,28 @@ namespace geode::utils::web {
          *
          * @return std::string
          */
-        std::string getMethod() const;
+        ZStringView getMethod() const;
 
         /**
          * Gets the request URL
          *
          * @return std::string
          */
-        std::string getUrl() const;
+        ZStringView getUrl() const;
 
         /**
          * Gets the request headers
          *
          * @return std::unordered_map<std::string, std::vector<std::string>>
          */
-        std::unordered_map<std::string, std::vector<std::string>> getHeaders() const;
+        std::unordered_map<std::string, std::vector<std::string>> const& getHeaders() const;
 
         /**
          * Gets the parameters inside the URL
          *
          * @return std::unordered_map<std::string, std::string>
          */
-        std::unordered_map<std::string, std::string> getUrlParams() const;
+        std::unordered_map<std::string, std::string> const& getUrlParams() const;
 
         /**
          * Gets the post body stream

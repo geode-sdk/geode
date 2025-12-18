@@ -92,10 +92,10 @@ std::filesystem::path Mod::getResourcesDir() const {
     return dirs::getModRuntimeDir() / this->getID() / "resources" / this->getID();
 }
 
-matjson::Value Mod::getDependencySettingsFor(std::string_view dependencyID) const {
-    auto id = std::string(dependencyID);
+matjson::Value Mod::getDependencySettingsFor(std::string_view id) const {
     auto const& settings = ModMetadataImpl::getImpl(m_impl->m_metadata).m_dependencySettings;
-    return settings.contains(id) ? settings.at(id) : matjson::Value();
+    auto it = settings.find(id);
+    return it != settings.end() ? it->second : matjson::Value();
 }
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
@@ -164,7 +164,7 @@ bool Mod::hasSetting(std::string_view key) const {
 }
 
 std::shared_ptr<Setting> Mod::getSetting(std::string_view key) const {
-    return m_impl->m_settings->get(std::string(key));
+    return m_impl->m_settings->get(key);
 }
 
 Result<> Mod::registerCustomSettingType(std::string_view type, SettingGenerator generator) {

@@ -262,7 +262,7 @@ void Loader::Impl::updateModResources(Mod* mod) {
 
     for (auto const& sheet : sheets) {
         log::debug("Adding sheet {}", sheet);
-        
+
         auto ccfu = CCFileUtils::get();
 
         std::string tmp;
@@ -742,7 +742,7 @@ void Loader::Impl::refreshModGraph() {
 
     queueInMainThread([this]() {
         utils::thread::setName("Main");
-        
+
         log::info("Loading non-early mods");
         this->continueRefreshModGraph();
     });
@@ -1008,7 +1008,7 @@ void Loader::Impl::executeMainThreadQueue() {
     // where we first move all functions before executing them.
     // this means there are no allocations in the common case, and we maintain deadlock safety
     // since we do not call any functions while holding the mutex
-    
+
     auto& queue = m_mainThreadQueue;
     auto& execQueue = m_mainThreadQueueExec;
     execQueue.reserve(queue.size());
@@ -1065,19 +1065,22 @@ void Loader::Impl::initLaunchArguments() {
     }
     arguments.emplace_back(std::move(currentArg));
 
-    for (const auto& arg : arguments) {
+    for (const auto& argstr : arguments) {
+        std::string_view arg{argstr};
         if (!arg.starts_with(LAUNCH_ARG_PREFIX)) {
             continue;
         }
-        auto pair = arg.substr(LAUNCH_ARG_PREFIX.size());
-        auto sep = pair.find('=');
+        arg.remove_prefix(LAUNCH_ARG_PREFIX.size());
+        auto sep = arg.find('=');
         if (sep == std::string::npos) {
-            m_launchArgs.insert({ pair, "true" });
+            m_launchArgs.insert({ std::string{arg}, "true" });
             continue;
         }
-        auto key = pair.substr(0, sep);
-        auto value = pair.substr(sep + 1);
-        m_launchArgs.insert({ key, value });
+
+        m_launchArgs.insert({
+            std::string{arg.substr(0, sep)},
+            std::string{arg.substr(sep + 1)}
+        });
     }
     for (const auto& pair : m_launchArgs) {
         log::debug("Loaded '{}' as '{}'", pair.first, pair.second);
@@ -1089,11 +1092,11 @@ std::vector<std::string> Loader::Impl::getLaunchArgumentNames() const {
 }
 
 bool Loader::Impl::hasLaunchArgument(std::string_view name) const {
-    return m_launchArgs.find(std::string(name)) != m_launchArgs.end();
+    return m_launchArgs.find(name) != m_launchArgs.end();
 }
 
 std::optional<std::string> Loader::Impl::getLaunchArgument(std::string_view name) const {
-    auto value = m_launchArgs.find(std::string(name));
+    auto value = m_launchArgs.find(name);
     if (value == m_launchArgs.end()) {
         return std::nullopt;
     }

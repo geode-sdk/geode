@@ -84,16 +84,17 @@ public:
     }
 };
 
-Result<ccColor3B> colorForIdentifier(std::string const& tag) {
+Result<ccColor3B> colorForIdentifier(std::string tag) {
+    auto sv = std::string_view(tag);
     if (tag.length() > 2 && tag[1] == '-') {
-        return cc3bFromHexString(tag.substr(2));
+        return cc3bFromHexString(sv.substr(2));
     }
     // Support the old form of <carbitaryletters hex>
     else if (tag.find(' ') != std::string::npos) {
         return cc3bFromHexString(string::trim(tag.substr(tag.find(' ') + 1)));
     }
     else {
-        auto colorText = tag.substr(1);
+        auto colorText = sv.substr(1);
         if (!colorText.size()) {
             return Err("No color specified");
         }
@@ -115,7 +116,7 @@ Result<ccColor3B> colorForIdentifier(std::string const& tag) {
                 case 'r': return Ok(ccc3(255, 90, 90)); break;
                 case 's': return Ok(ccc3(255, 220, 65)); break;
                 case 'y': return Ok(ccc3(255, 255, 0)); break;
-                default: return Err("Unknown color " + colorText);
+                default: return Err("Unknown color {}", colorText);
             }
         }
     }
@@ -165,8 +166,7 @@ void MDTextArea::onLink(CCObject* pSender) {
     auto href = static_cast<CCString*>(static_cast<CCNode*>(pSender)->getUserObject());
     auto layer = FLAlertLayer::create(
         this, "Hold Up!",
-        "Links are spooky! Are you sure you want to go to <cy>" + std::string(href->getCString()) +
-            "</c>?",
+        fmt::format("Links are spooky! Are you sure you want to go to <cy>{}</c>?", href->getCString()),
         "Cancel", "Yes", 360.f
     );
     layer->setUserObject(href);
@@ -213,8 +213,9 @@ void MDTextArea::onGDLevel(CCObject* pSender) {
 
 void MDTextArea::onGeodeMod(CCObject* sender) {
     auto href = static_cast<CCString*>(static_cast<CCNode*>(sender)->getUserObject());
-    auto modID = std::string(href->getCString());
-    (void)openInfoPopup(modID.substr(modID.find(":") + 1));
+    std::string_view modID = href->getCString();
+    modID.remove_prefix(modID.find(":") + 1);
+    (void)openIfoPopup(modID);
 }
 
 void MDTextArea::FLAlert_Clicked(FLAlertLayer* layer, bool btn) {
@@ -374,7 +375,8 @@ struct MDParser {
                     if (text.size() > 2) {
                         auto tag = utils::string::trim(text.substr(1, text.size() - 2));
                         auto isClosing = tag.front() == '/';
-                        if (isClosing) tag = tag.substr(1);
+                        if (isClosing) tag.erase(tag.begin());
+
                         if (tag.front() != 'c') {
                             log::warn("Unknown tag {}", text);
                             renderer->renderString(text);
@@ -384,7 +386,7 @@ struct MDParser {
                                 renderer->popColor();
                             }
                             else {
-                                auto color = colorForIdentifier(tag);
+                                auto color = colorForIdentifier(std::move(tag));
                                 if (color) {
                                     renderer->pushColor(color.unwrap());
                                 }

@@ -46,7 +46,7 @@ static std::string timestampToVersion(uint32_t timestamp) {
     if (it != getGDVersionTimestampMap().end()) {
         return std::string(it->second);
     } else {
-        return std::to_string(timestamp);
+        return fmt::to_string(timestamp);
     }
 }
 
