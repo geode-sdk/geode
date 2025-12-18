@@ -253,28 +253,38 @@ void Loader::Impl::updateModResources(Mod* mod) {
     }
 
     // only thing needs previous setup is spritesheets
-    if (mod->getMetadataRef().getSpritesheets().empty())
+    auto& sheets = mod->getMetadataRef().getSpritesheets();
+    if (sheets.empty())
         return;
 
     log::debug("{}", mod->getID());
     log::NestScope nest;
 
-    for (auto const& sheet : mod->getMetadataRef().getSpritesheets()) {
+    for (auto const& sheet : sheets) {
         log::debug("Adding sheet {}", sheet);
-        auto png = sheet + ".png";
-        auto plist = sheet + ".plist";
+        
         auto ccfu = CCFileUtils::get();
 
-        if (png == std::string(ccfu->fullPathForFilename(png.c_str(), false)) ||
-            plist == std::string(ccfu->fullPathForFilename(plist.c_str(), false))) {
+        std::string tmp;
+        tmp.reserve(sheet.size() + 6);
+        tmp.append(sheet);
+        tmp.append(".png");
+        auto pngPath = ccfu->fullPathForFilename(tmp.c_str(), false);
+        bool missingPng = std::string_view{pngPath} == tmp;
+        tmp.resize(sheet.size());
+        tmp.append(".plist");
+        auto plistPath = ccfu->fullPathForFilename(tmp.c_str(), false);
+        bool missingPlist = std::string_view{plistPath} == tmp;
+
+        if (missingPng || missingPlist) {
             log::warn(
                 R"(The resource dir of "{}" is missing "{}" png and/or plist files)",
                 mod->getID(), sheet
             );
         }
         else {
-            CCTextureCache::get()->addImage(png.c_str(), false);
-            CCSpriteFrameCache::get()->addSpriteFramesWithFile(plist.c_str());
+            CCTextureCache::get()->addImage(pngPath.c_str(), false);
+            CCSpriteFrameCache::get()->addSpriteFramesWithFile(plistPath.c_str());
         }
     }
 }
