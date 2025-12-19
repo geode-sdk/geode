@@ -4,6 +4,7 @@
 #include "../platform/cplatform.h"
 
 #include <Geode/DefaultInclude.hpp>
+#include <Geode/utils/function.hpp>
 #include <Geode/Result.hpp>
 #include <ccTypes.h>
 #include <chrono>
@@ -150,7 +151,7 @@ namespace geode {
         inline void logImpl(Severity severity, Mod* mod, impl::FmtStr<Args...> str, Args&&... args) {
             [&]<typename... Ts>(Ts&&... args) {
                 vlogImpl(severity, mod, str, fmt::make_format_args(args...));
-            }(impl::wrapCocosObj(args)...);
+            }(impl::wrapCocosObj(std::forward<Args>(args))...);
         }
 
         template <typename... Args>
@@ -175,6 +176,24 @@ namespace geode {
 
         /// Returns the path to the current log file
         GEODE_DLL std::filesystem::path const& getCurrentLogPath();
+
+        using LogCallback = Function<void(
+            std::string_view content,
+            Severity sev,
+            Mod* mod,
+            std::string_view source,
+            std::string_view thread
+        )>;
+        /// Adds a callback that will be invoked whenever a line is logged.
+        /// Callback parameters:
+        /// * `std::string_view content` - the content of the log
+        /// * `Severity sev` - the severity of the log
+        /// * `Mod* mod` - the mod that logged this log, if any (for example for stdout/stderr redirection this is null)
+        /// * `std::string_view source` - the source of the log (usually either mod name or "stdout" / "stderr")
+        /// * `std::string_view thread` - the name of the thread that logged this log
+        ///
+        /// Note: logging inside the callback will cause the log to be lost and not logged anywhere.
+        GEODE_DLL void addLogCallback(LogCallback callback);
 
         GEODE_DLL void pushNest(Mod* mod);
         GEODE_DLL void popNest(Mod* mod);

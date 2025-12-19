@@ -47,7 +47,7 @@ ModSource::ModSource(server::ServerModMetadata&& metadata) : m_value(metadata) {
 std::string ModSource::getID() const {
     return std::visit(makeVisitor {
         [](Mod* mod) {
-            return mod->getID();
+            return std::string{mod->getID()};
         },
         [](server::ServerModMetadata const& metadata) {
             return metadata.id;

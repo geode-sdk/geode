@@ -351,7 +351,7 @@ namespace geode::utils::thread {
      *
      * @returns The thread name if exists, an empty string if not.
      */
-    GEODE_DLL std::string getName();
+    GEODE_DLL ZStringView getName();
 
     /**
      * Gets the default name to a thread.

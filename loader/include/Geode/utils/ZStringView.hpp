@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <matjson.hpp>
 #include <Geode/c++stl/string.hpp>
+#include <fmt/format.h>
 
 namespace geode {
     class ZStringView {
@@ -65,6 +66,18 @@ namespace geode {
             return m_str[0] == '\0';
         }
 
+        auto begin() const {
+            return m_str;
+        }
+
+        auto end() const {
+            return m_str + _size();
+        }
+
+        auto operator<=>(ZStringView const& other) const {
+            return std::string_view(*this) <=> std::string_view(other);
+        }
+
         bool operator==(ZStringView const& other) const {
             return std::string_view(*this) == std::string_view(other);
         }
@@ -84,11 +97,12 @@ namespace geode {
 
             return m_length;
         }
+        
+        friend std::ostream& operator<<(std::ostream& os, ZStringView const& zsv) {
+            os << zsv.view();
+            return os;
+        }
     };
-
-    inline std::string_view format_as(ZStringView zsv) {
-        return std::string_view(zsv);
-    }
 
     template <typename T>
     requires std::same_as<std::remove_cvref_t<T>, ZStringView>
@@ -121,5 +135,18 @@ template <>
 struct matjson::Serialize<geode::ZStringView> {
     static matjson::Value toJson(geode::ZStringView const& value) {
         return matjson::Value(value.view());
+    }
+};
+
+// inline std::string_view format_as(geode::ZStringView zsv) {
+//     return std::string_view(zsv);
+// }
+
+template <>
+struct fmt::formatter<geode::ZStringView> : formatter<string_view> {
+    auto format(geode::ZStringView const& str, fmt::format_context& ctx) const noexcept {
+        return formatter<string_view>::format(
+            str.view(), ctx
+        );
     }
 };
