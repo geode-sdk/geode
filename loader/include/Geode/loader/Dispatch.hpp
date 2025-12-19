@@ -4,6 +4,7 @@
 #include "../utils/function.hpp"
 #include "../modify/Traits.hpp"
 #include <Geode/utils/function.hpp>
+#include <Geode/utils/StringMap.hpp>
 
 #include <functional>
 #include <string>
@@ -21,7 +22,7 @@ namespace geode {
 
     public:
         DispatchEvent(std::string id, Args... args) :
-            m_id(id), m_args(std::make_tuple(args...)) {}
+            m_id(std::move(id)), m_args(std::make_tuple(args...)) {}
 
         std::tuple<Args...> getArgs() const {
             return m_args;
@@ -56,7 +57,7 @@ namespace geode {
             return ListenerResult::Propagate;
         }
 
-        DispatchFilter(std::string_view id) : m_id(id) {}
+        DispatchFilter(std::string id) : m_id(std::move(id)) {}
 
         DispatchFilter(DispatchFilter const&) = default;
     };

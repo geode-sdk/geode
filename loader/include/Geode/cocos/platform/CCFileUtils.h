@@ -284,13 +284,13 @@ public:
      * @param pack Pack to add
      * @note Geode addition
      */
-    void GEODE_DLL addTexturePack(CCTexturePack const& pack);
+    void GEODE_DLL addTexturePack(CCTexturePack pack);
     /**
      * Remove texture pack by ID
      * @param id ID of the texture pack
      * @note Geode addition
      */
-    void GEODE_DLL removeTexturePack(std::string const& id);
+    void GEODE_DLL removeTexturePack(std::string_view id);
     /**
      * Add a search path to the front of the list
      * @param path Path to add

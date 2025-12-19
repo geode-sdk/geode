@@ -4,6 +4,7 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/VersionInfo.hpp>
+#include <Geode/utils/StringMap.hpp>
 #include <Geode/loader/Setting.hpp>
 #include <compare>
 
@@ -97,7 +98,7 @@ namespace geode {
         std::optional<IssuesInfo> m_issues;
         std::vector<Dependency> m_dependencies;
         // todo in v5: make Dependency pimpl and move this as a member there (`matjson::Value settings;`)
-        std::unordered_map<std::string, matjson::Value> m_dependencySettings;
+        utils::StringMap<matjson::Value> m_dependencySettings;
         std::vector<Incompatibility> m_incompatibilities;
         std::vector<std::string> m_spritesheets;
         std::vector<std::pair<std::string, matjson::Value>> m_settings;

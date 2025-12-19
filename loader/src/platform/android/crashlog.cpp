@@ -219,7 +219,7 @@ static std::string getStacktrace() {
 
 
     for (int i = 1; i < s_backtraceSize; ++i) {
-        auto message = std::string(messages[i]);
+        auto message = std::string_view(messages[i]);
 
         // TODO: parse the message
         stacktrace << message << "\n";

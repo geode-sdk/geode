@@ -32,7 +32,7 @@ protected:
             [](std::filesystem::path const& path) {
                 return path;
             },
-            [](ModMetadata const& meta) {
+            [](ModMetadata const& meta) -> std::filesystem::path {
                 return meta.getPath();
             },
             [](Mod* mod) {
@@ -45,10 +45,10 @@ protected:
             [](std::filesystem::path const& path) {
                 return geode::utils::string::pathToString(path);
             },
-            [](ModMetadata const& meta) {
+            [](ModMetadata const& meta) -> std::string {
                 return meta.getID();
             },
-            [](Mod* mod) {
+            [](Mod* mod) -> std::string {
                 return mod->getID();
             },
         }, problem.cause);

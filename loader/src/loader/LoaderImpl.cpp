@@ -221,27 +221,26 @@ void Loader::Impl::loadData() {
 
 // Mod loading
 
-bool Loader::Impl::isModInstalled(std::string const& id) const {
-    return m_mods.count(id) && !m_mods.at(id)->isUninstalled();
+bool Loader::Impl::isModInstalled(std::string_view id) const {
+    return this->getInstalledMod(id) != nullptr;
 }
 
-Mod* Loader::Impl::getInstalledMod(std::string const& id) const {
-    if (m_mods.count(id) && !m_mods.at(id)->isUninstalled()) {
-        return m_mods.at(id);
+Mod* Loader::Impl::getInstalledMod(std::string_view id) const {
+    auto it = m_mods.find(id);
+    if (it != m_mods.end() && !it->second->isUninstalled()) {
+        return it->second;
     }
     return nullptr;
 }
 
-bool Loader::Impl::isModLoaded(std::string const& id) const {
-    return m_mods.count(id) && m_mods.at(id)->isEnabled();
+bool Loader::Impl::isModLoaded(std::string_view id) const {
+    return this->getLoadedMod(id) != nullptr;
 }
 
-Mod* Loader::Impl::getLoadedMod(std::string const& id) const {
-    if (m_mods.count(id)) {
-        auto mod = m_mods.at(id);
-        if (mod->isEnabled()) {
-            return mod;
-        }
+Mod* Loader::Impl::getLoadedMod(std::string_view id) const {
+    auto it = m_mods.find(id);
+    if (it != m_mods.end() && it->second->isEnabled()) {
+        return it->second;
     }
     return nullptr;
 }
@@ -254,28 +253,38 @@ void Loader::Impl::updateModResources(Mod* mod) {
     }
 
     // only thing needs previous setup is spritesheets
-    if (mod->getMetadataRef().getSpritesheets().empty())
+    auto& sheets = mod->getMetadataRef().getSpritesheets();
+    if (sheets.empty())
         return;
 
     log::debug("{}", mod->getID());
     log::NestScope nest;
 
-    for (auto const& sheet : mod->getMetadataRef().getSpritesheets()) {
+    for (auto const& sheet : sheets) {
         log::debug("Adding sheet {}", sheet);
-        auto png = sheet + ".png";
-        auto plist = sheet + ".plist";
+
         auto ccfu = CCFileUtils::get();
 
-        if (png == std::string(ccfu->fullPathForFilename(png.c_str(), false)) ||
-            plist == std::string(ccfu->fullPathForFilename(plist.c_str(), false))) {
+        std::string tmp;
+        tmp.reserve(sheet.size() + 6);
+        tmp.append(sheet);
+        tmp.append(".png");
+        auto pngPath = ccfu->fullPathForFilename(tmp.c_str(), false);
+        bool missingPng = std::string_view{pngPath} == tmp;
+        tmp.resize(sheet.size());
+        tmp.append(".plist");
+        auto plistPath = ccfu->fullPathForFilename(tmp.c_str(), false);
+        bool missingPlist = std::string_view{plistPath} == tmp;
+
+        if (missingPng || missingPlist) {
             log::warn(
                 R"(The resource dir of "{}" is missing "{}" png and/or plist files)",
                 mod->getID(), sheet
             );
         }
         else {
-            CCTextureCache::get()->addImage(png.c_str(), false);
-            CCSpriteFrameCache::get()->addSpriteFramesWithFile(plist.c_str());
+            CCTextureCache::get()->addImage(pngPath.c_str(), false);
+            CCSpriteFrameCache::get()->addSpriteFramesWithFile(plistPath.c_str());
         }
     }
 }
@@ -733,7 +742,7 @@ void Loader::Impl::refreshModGraph() {
 
     queueInMainThread([this]() {
         utils::thread::setName("Main");
-        
+
         log::info("Loading non-early mods");
         this->continueRefreshModGraph();
     });
@@ -999,7 +1008,7 @@ void Loader::Impl::executeMainThreadQueue() {
     // where we first move all functions before executing them.
     // this means there are no allocations in the common case, and we maintain deadlock safety
     // since we do not call any functions while holding the mutex
-    
+
     auto& queue = m_mainThreadQueue;
     auto& execQueue = m_mainThreadQueueExec;
     execQueue.reserve(queue.size());
@@ -1056,19 +1065,22 @@ void Loader::Impl::initLaunchArguments() {
     }
     arguments.emplace_back(std::move(currentArg));
 
-    for (const auto& arg : arguments) {
+    for (const auto& argstr : arguments) {
+        std::string_view arg{argstr};
         if (!arg.starts_with(LAUNCH_ARG_PREFIX)) {
             continue;
         }
-        auto pair = arg.substr(LAUNCH_ARG_PREFIX.size());
-        auto sep = pair.find('=');
+        arg.remove_prefix(LAUNCH_ARG_PREFIX.size());
+        auto sep = arg.find('=');
         if (sep == std::string::npos) {
-            m_launchArgs.insert({ pair, "true" });
+            m_launchArgs.insert({ std::string{arg}, "true" });
             continue;
         }
-        auto key = pair.substr(0, sep);
-        auto value = pair.substr(sep + 1);
-        m_launchArgs.insert({ key, value });
+
+        m_launchArgs.insert({
+            std::string{arg.substr(0, sep)},
+            std::string{arg.substr(sep + 1)}
+        });
     }
     for (const auto& pair : m_launchArgs) {
         log::debug("Loaded '{}' as '{}'", pair.first, pair.second);
@@ -1080,11 +1092,11 @@ std::vector<std::string> Loader::Impl::getLaunchArgumentNames() const {
 }
 
 bool Loader::Impl::hasLaunchArgument(std::string_view name) const {
-    return m_launchArgs.find(std::string(name)) != m_launchArgs.end();
+    return m_launchArgs.find(name) != m_launchArgs.end();
 }
 
 std::optional<std::string> Loader::Impl::getLaunchArgument(std::string_view name) const {
-    auto value = m_launchArgs.find(std::string(name));
+    auto value = m_launchArgs.find(name);
     if (value == m_launchArgs.end()) {
         return std::nullopt;
     }

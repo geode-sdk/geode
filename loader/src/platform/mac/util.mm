@@ -25,9 +25,13 @@ NSString* intoNS(std::string_view str) {
     return [[NSString alloc] initWithBytes:str.data() length:str.size() encoding:NSUTF8StringEncoding];
 }
 
-bool utils::clipboard::write(std::string const& data) {
+NSString* intoNS(ZStringView str) {
+    return intoNS(std::string_view(str));
+}
+
+bool utils::clipboard::write(ZStringView data) {
     [[NSPasteboard generalPasteboard] clearContents];
-    [[NSPasteboard generalPasteboard] setString:intoNS(data)
+    [[NSPasteboard generalPasteboard] setString:intoNS(std::string_view{data})
                                         forType:NSPasteboardTypeString];
 
     return true;
@@ -46,7 +50,7 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
     return true;
 }
 
-void utils::web::openLinkInBrowser(std::string const& url) {
+void utils::web::openLinkInBrowser(ZStringView url) {
     [[NSWorkspace sharedWorkspace]
         openURL:[NSURL URLWithString:intoNS(url)]];
 }
@@ -371,7 +375,7 @@ std::string geode::utils::thread::getDefaultName() {
     return fmt::format("Thread #{}", tid);
 }
 
-void geode::utils::thread::platformSetName(std::string const& name) {
+void geode::utils::thread::platformSetName(ZStringView name) {
     pthread_setname_np(name.c_str());
 }
 
@@ -388,8 +392,8 @@ float geode::utils::getDisplayFactor() {
     return displayScale;
 }
 
-std::string geode::utils::getEnvironmentVariable(const char* name) {
-    auto result = std::getenv(name);
+std::string geode::utils::getEnvironmentVariable(ZStringView name) {
+    auto result = std::getenv(name.c_str());
     return result ? result : "";
 }
 

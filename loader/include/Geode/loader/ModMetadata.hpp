@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/Result.hpp>
+#include <Geode/utils/ZStringView.hpp>
 #include "../utils/VersionInfo.hpp"
 #include "Types.hpp"
 #include <filesystem>
@@ -96,12 +97,12 @@ namespace geode {
         /**
          * Path to the mod file
          */
-        [[nodiscard]] std::filesystem::path getPath() const;
+        [[nodiscard]] std::filesystem::path const& getPath() const;
         /**
          * Name of the platform binary within
          * the mod zip
          */
-        [[nodiscard]] std::string getBinaryName() const;
+        [[nodiscard]] ZStringView getBinaryName() const;
         /**
          * Mod Version. Should follow semantic versioning.
          */
@@ -111,7 +112,7 @@ namespace geode {
          * "developer.mod". May only contain lowercase ASCII characters,
          * numbers, dashes, underscores, and a single separating dot
          */
-        [[nodiscard]] std::string getID() const;
+        [[nodiscard]] ZStringView getID() const;
         /**
          * True if the mod has a mod ID that will be rejected in the future,
          * such as using uppercase letters or having multiple dots. Mods like
@@ -124,61 +125,61 @@ namespace geode {
          * be restricted to the ASCII
          * character set.
          */
-        [[nodiscard]] std::string getName() const;
+        [[nodiscard]] ZStringView getName() const;
         /**
          * The developers of this mod
          */
-        [[nodiscard]] std::vector<std::string> getDevelopers() const;
+        [[nodiscard]] std::vector<std::string> const& getDevelopers() const;
         /**
          * Short & concise description of the
          * mod.
          */
-        [[nodiscard]] std::optional<std::string> getDescription() const;
+        [[nodiscard]] std::optional<std::string> const& getDescription() const;
         /**
          * Detailed description of the mod, written in Markdown (see
          * <Geode/ui/MDTextArea.hpp>) for more info
          */
-        [[nodiscard]] std::optional<std::string> getDetails() const;
+        [[nodiscard]] std::optional<std::string> const& getDetails() const;
         /**
          * Changelog for the mod, written in Markdown (see
          * <Geode/ui/MDTextArea.hpp>) for more info
          */
-        [[nodiscard]] std::optional<std::string> getChangelog() const;
+        [[nodiscard]] std::optional<std::string> const& getChangelog() const;
         /**
          * Support info for the mod; this means anything to show ways to
          * support the mod's development, like donations. Written in Markdown
          * (see MDTextArea for more info)
          */
-        [[nodiscard]] std::optional<std::string> getSupportInfo() const;
+        [[nodiscard]] std::optional<std::string> const& getSupportInfo() const;
         /**
          * Get the links (related websites / servers / etc.) for this mod
          */
-        ModMetadataLinks getLinks() const;
+        ModMetadataLinks const& getLinks() const;
         /**
          * Info about where users should report issues and request help
          */
-        [[nodiscard]] std::optional<IssuesInfo> getIssues() const;
+        [[nodiscard]] std::optional<IssuesInfo> const& getIssues() const;
         /**
          * Dependencies
          */
-        [[nodiscard]] std::vector<Dependency> getDependencies() const;
+        [[nodiscard]] std::vector<Dependency> const& getDependencies() const;
         /**
          * Incompatibilities
          */
-        [[nodiscard]] std::vector<Incompatibility> getIncompatibilities() const;
+        [[nodiscard]] std::vector<Incompatibility> const& getIncompatibilities() const;
         /**
          * Mod spritesheet names
          */
-        [[nodiscard]] std::vector<std::string> getSpritesheets() const;
+        [[nodiscard]] std::vector<std::string> const& getSpritesheets() const;
         /**
          * Mod settings
          * @note Not a map because insertion order must be preserved
          */
-        [[nodiscard]] std::vector<std::pair<std::string, matjson::Value>> getSettings() const;
+        [[nodiscard]] std::vector<std::pair<std::string, matjson::Value>> const& getSettings() const;
         /**
          * Get the tags for this mod
          */
-        [[nodiscard]] std::unordered_set<std::string> getTags() const;
+        [[nodiscard]] std::unordered_set<std::string> const& getTags() const;
         /**
          * Whether this mod has to be loaded before the loading screen or not
          */

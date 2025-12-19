@@ -80,7 +80,7 @@ public:
 
     void reloadPage();
     void gotoPage(size_t page, bool update = false);
-    void showStatus(ModListStatus status, std::string const& message, std::optional<std::string> const& details = std::nullopt);
+    void showStatus(ModListStatus status, ZStringView message, std::optional<std::string> details = std::nullopt);
 
     void updateState();
     void updateDisplay(ModListDisplay display);

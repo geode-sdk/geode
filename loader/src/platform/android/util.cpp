@@ -24,7 +24,7 @@ using namespace geode::prelude;
 
 using geode::utils::permission::Permission;
 
-bool utils::clipboard::write(std::string const& data) {
+bool utils::clipboard::write(ZStringView data) {
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "writeClipboard", "(Ljava/lang/String;)V")) {
         jstring stringArg1 = t.env->NewStringUTF(data.c_str());
@@ -125,7 +125,7 @@ std::filesystem::path dirs::getResourcesDir() {
     return "assets";
 }
 
-void utils::web::openLinkInBrowser(std::string const& url) {
+void utils::web::openLinkInBrowser(ZStringView url) {
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "openWebview", "(Ljava/lang/String;)V")) {
         jstring urlArg = t.env->NewStringUTF(url.c_str());
@@ -136,7 +136,7 @@ void utils::web::openLinkInBrowser(std::string const& url) {
         t.env->DeleteLocalRef(t.classID);
     } else {
         clearJNIException();
-        CCApplication::sharedApplication()->openURL(std::string(url).c_str());
+        CCApplication::sharedApplication()->openURL(url.c_str());
     }
 }
 
@@ -423,12 +423,12 @@ std::string geode::utils::thread::getDefaultName() {
     return fmt::format("Thread #{}", gettid());
 }
 
-void geode::utils::thread::platformSetName(std::string const& name) {
+void geode::utils::thread::platformSetName(ZStringView name) {
     pthread_setname_np(pthread_self(), name.c_str());
 }
 
-std::string geode::utils::getEnvironmentVariable(const char* name) {
-    auto result = std::getenv(name);
+std::string geode::utils::getEnvironmentVariable(ZStringView name) {
+    auto result = std::getenv(name.c_str());
     return result ? result : "";
 }
 
@@ -474,11 +474,6 @@ cocos2d::CCRect geode::utils::getSafeAreaRect() {
     return cocos2d::CCRect(insetX, insetY, winSize.width - 2 * insetX, winSize.height - 2 * insetY);
 }
 
-extern "C"
-JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_setNextInputTimestampInternal(JNIEnv*, jobject, jlong timestamp) {
-    geode::AndroidInputTimestampEvent(timestamp).post();
-}
-
 geode::Result<int> geode::utils::getLauncherVersion() {
     JniMethodInfo info;
     if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "getLauncherVersion", "()I")) {
@@ -491,13 +486,4 @@ geode::Result<int> geode::utils::getLauncherVersion() {
     }
 
     return Err("method not found");
-}
-
-AndroidInputTimestampEvent::AndroidInputTimestampEvent(long timestamp) : m_timestamp(timestamp) {}
-
-long AndroidInputTimestampEvent::getTimestamp() const { return m_timestamp; }
-
-ListenerResult AndroidInputTimestampFilter::handle(geode::Function<Callback>& fn, AndroidInputTimestampEvent* event)  {
-    fn(event);
-    return ListenerResult::Propagate;
 }

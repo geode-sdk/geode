@@ -142,8 +142,8 @@ namespace server {
         std::optional<uint8_t> percentage;
 
         ServerProgress() = default;
-        ServerProgress(std::string const& msg) : message(msg) {}
-        ServerProgress(auto msg, uint8_t percentage) : message(msg), percentage(percentage) {}
+        ServerProgress(std::string msg) : message(std::move(msg)) {}
+        ServerProgress(std::string msg, std::optional<uint8_t> percentage) : message(std::move(msg)), percentage(percentage) {}
     };
 
     template <class T>

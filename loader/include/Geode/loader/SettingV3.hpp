@@ -670,7 +670,7 @@ namespace geode {
          * @param settingKey Setting to listen to, or all settings if nullopt
          */
         SettingChangedFilterV3(
-            std::string_view modID,
+            std::string modID,
             std::optional<std::string> settingKey
         );
         SettingChangedFilterV3(Mod* mod, std::optional<std::string> settingKey);
@@ -740,7 +740,7 @@ namespace geode {
     };
 
     template <class T>
-    EventListener<SettingChangedFilterV3>* listenForSettingChangesV3(std::string_view settingKey, auto&& callback, Mod* mod = getMod()) {
+    EventListener<SettingChangedFilterV3>* listenForSettingChangesV3(std::string settingKey, auto&& callback, Mod* mod = getMod()) {
         using Ty = typename SettingTypeForValueType<T>::SettingType;
         return new EventListener(
             [callback = std::move(callback)](std::shared_ptr<SettingV3> setting) {
@@ -748,13 +748,14 @@ namespace geode {
                     callback(ty->getValue());
                 }
             },
-            SettingChangedFilterV3(mod, std::string(settingKey))
+            SettingChangedFilterV3(mod, std::move(settingKey))
         );
     }
-    EventListener<SettingChangedFilterV3>* listenForSettingChangesV3(std::string_view settingKey, auto&& callback, Mod* mod = getMod()) {
+    EventListener<SettingChangedFilterV3>* listenForSettingChangesV3(std::string settingKey, auto&& callback, Mod* mod = getMod()) {
         using T = std::remove_cvref_t<utils::function::Arg<0, decltype(callback)>>;
-        return listenForSettingChangesV3<T>(settingKey, std::move(callback), mod);
+        return listenForSettingChangesV3<T>(std::move(settingKey), std::move(callback), mod);
     }
+
     GEODE_DLL EventListener<SettingChangedFilterV3>* listenForAllSettingChangesV3(
         geode::Function<void(std::shared_ptr<SettingV3>)> callback,
         Mod* mod = getMod()

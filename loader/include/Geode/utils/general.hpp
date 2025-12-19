@@ -2,6 +2,8 @@
 
 #include <Geode/Result.hpp>
 
+#include <Geode/utils/ZStringView.hpp>
+#include <Geode/utils/string.hpp>
 #include "../DefaultInclude.hpp"
 #include <chrono>
 #include <iomanip>
@@ -240,7 +242,7 @@ namespace geode {
          * @param name The key of the variable
          * @returns The value of the variable
          */
-        GEODE_DLL std::string getEnvironmentVariable(const char* name);
+        GEODE_DLL std::string getEnvironmentVariable(ZStringView name);
 
         /**
          * Formats an error code (from `GetLastError()` or `errno`) to a user readable string,
@@ -296,7 +298,7 @@ namespace geode::utils::clipboard {
      * @param data The data to write
      * @returns True if the operation was successful
      */
-    GEODE_DLL bool write(std::string const& data);
+    GEODE_DLL bool write(ZStringView data);
 
     /**
      * Reads the clipboards onto a string.

@@ -19,7 +19,7 @@ using namespace geode::prelude;
 #include <Geode/utils/string.hpp>
 #include "../../utils/thread.hpp"
 
-bool utils::clipboard::write(std::string const& data) {
+bool utils::clipboard::write(ZStringView data) {
     if (!OpenClipboard(nullptr)) return false;
     if (!EmptyClipboard()) {
         CloseClipboard();
@@ -148,7 +148,7 @@ Task<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions 
     // return Task<Result<std::vector<std::filesystem::path>>>::immediate(std::move(file::pickFiles(options)));
 }
 
-void utils::web::openLinkInBrowser(std::string const& url) {
+void utils::web::openLinkInBrowser(ZStringView url) {
     ShellExecuteW(0, 0, utils::string::utf8ToWide(url).c_str(), 0, 0, SW_SHOW);
 }
 
@@ -335,7 +335,7 @@ typedef struct tagTHREADNAME_INFO {
 } THREADNAME_INFO;
 #pragma pack(pop)
 
-void obliterate(std::string const& name) {
+void obliterate(ZStringView name) {
     // exception
     THREADNAME_INFO info;
     info.dwType = 0x1000;
@@ -350,7 +350,7 @@ void obliterate(std::string const& name) {
     __except (EXCEPTION_EXECUTE_HANDLER) { }
 #pragma warning(pop)
 }
-void geode::utils::thread::platformSetName(std::string const& name) {
+void geode::utils::thread::platformSetName(ZStringView name) {
     // SetThreadDescription
     if (setThreadDesc) {
         auto res = setThreadDesc(GetCurrentThread(), string::utf8ToWide(name).c_str());
@@ -360,10 +360,10 @@ void geode::utils::thread::platformSetName(std::string const& name) {
     obliterate(name);
 }
 
-std::string geode::utils::getEnvironmentVariable(const char* name) {
+std::string geode::utils::getEnvironmentVariable(ZStringView name) {
     char buffer[1024];
     size_t count = 0;
-    if (0 == getenv_s(&count, buffer, name) && count != 0) {
+    if (0 == getenv_s(&count, buffer, name.c_str()) && count != 0) {
         return buffer;
     }
 

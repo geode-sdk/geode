@@ -138,9 +138,9 @@ float SimpleTextArea::getLineHeight() {
 CCLabelBMFont* SimpleTextArea::createLabel(char const* text, float top) {
     if (m_maxLines && m_lines.size() >= m_maxLines) {
         CCLabelBMFont* last = m_lines.at(m_maxLines - 1);
-        const std::string& text = last->getString();
+        std::string_view text = last->getString();
 
-        last->setString(text.substr(0, text.size() - 3).append("...").c_str());
+        last->setString(fmt::format("{}...", text.substr(0, text.size() - 3)).c_str());
 
         return nullptr;
     } else {

@@ -73,8 +73,8 @@ namespace geode::utils::map {
      * @param map Map to get values from
      * @returns Vector of all values.
      */
-    template <class T, class R, class H>
-    std::vector<R> values(std::unordered_map<T, R, H> const& map) {
+    template <class T, class R, class H, class K, class A>
+    std::vector<R> values(std::unordered_map<T, R, H, K, A> const& map) {
         std::vector<R> res;
         res.reserve(map.size());
         for (auto const& [_, r] : map) {
@@ -88,8 +88,8 @@ namespace geode::utils::map {
      * @param map Map to get keys from
      * @returns Vector of all keys.
      */
-    template <class T, class R, class H>
-    std::vector<T> keys(std::unordered_map<T, R, H> const& map) {
+    template <class T, class R, class H, class K, class A>
+    std::vector<T> keys(std::unordered_map<T, R, H, K, A> const& map) {
         std::vector<T> res;
         res.reserve(map.size());
         for (auto const& [t, _] : map) {

@@ -93,7 +93,7 @@ namespace geode {
          * @returns The new value of the color, or ccWHITE if the ID doesn't
          * exist
          */
-        cocos2d::ccColor4B override(std::string const& id, cocos2d::ccColor4B const& color);
+        cocos2d::ccColor4B override(std::string id, cocos2d::ccColor4B const& color);
         /**
          * Override the current value of a color with an associated ID
          * @param id The ID of the color
@@ -102,26 +102,26 @@ namespace geode {
          * @returns The new value of the color, or ccWHITE if the ID doesn't
          * exist (truncated to cc3b)
          */
-        cocos2d::ccColor3B override(std::string const& id, cocos2d::ccColor3B const& color);
+        cocos2d::ccColor3B override(std::string id, cocos2d::ccColor3B const& color);
         /**
          * Reset the current value of a color to its original definition
          * @param id The ID of the color
          * @returns The original value of the color, or ccWHITE if the ID
          * doesn't exist
          */
-        cocos2d::ccColor4B reset(std::string const& id);
+        cocos2d::ccColor4B reset(std::string id);
         /**
          * Get the current value of a color
          * @param id The ID of the color
          * @returns The value of the color, or ccWHITE if the ID doesn't exist
          */
-        cocos2d::ccColor4B color(std::string const& id) const;
+        cocos2d::ccColor4B color(std::string_view id) const;
         /**
          * Get the current value of a color as a ccColor3B
          * @param id The ID of the color
          * @returns The value of the color, or ccWHITE if the ID doesn't exist
          */
-        cocos2d::ccColor3B color3b(std::string const& id) const;
+        cocos2d::ccColor3B color3b(std::string_view id) const;
     };
 }
 
@@ -132,8 +132,8 @@ inline cocos2d::ccColor3B operator""_cc3b_gd(const char* str, size_t) {
     return geode::ColorProvider::get()->color3b(str);
 }
 inline cocos2d::ccColor4B operator""_cc4b(const char* str, size_t) {
-    return geode::ColorProvider::get()->color(std::string(geode::Mod::get()->expandSpriteName(str)));
+    return geode::ColorProvider::get()->color(geode::Mod::get()->expandSpriteName(str));
 }
 inline cocos2d::ccColor3B operator""_cc3b(const char* str, size_t) {
-    return geode::ColorProvider::get()->color3b(std::string(geode::Mod::get()->expandSpriteName(str)));
+    return geode::ColorProvider::get()->color3b(geode::Mod::get()->expandSpriteName(str));
 }

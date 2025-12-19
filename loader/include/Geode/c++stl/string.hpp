@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Geode/platform/platform.hpp>
 #include <cstdint>
 #include <array>
 #include <string_view>
