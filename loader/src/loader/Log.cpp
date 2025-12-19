@@ -34,18 +34,20 @@ auto convertTime(auto timePoint) {
 struct geode::log::BorrowedLog final {
     log_clock::time_point m_time;
     Severity m_severity;
-    std::string_view m_thread;
-    std::string_view m_source;
     int32_t m_nestCount;
     std::string_view m_content;
+    std::string_view m_thread;
+    std::string_view m_source;
+    Mod* m_mod = nullptr;
     
-    BorrowedLog(Severity severity, std::string_view thread, std::string_view source, int32_t nestCount, std::string_view content)
+    BorrowedLog(Severity severity, int32_t nestCount, std::string_view content, std::string_view thread, std::string_view source, Mod* mod)
         : m_time(log_clock::now())
         , m_severity(severity)
         , m_thread(thread)
         , m_source(source)
         , m_nestCount(nestCount)
         , m_content(content)
+        , m_mod(mod)
     {}
 
     BorrowedLog(Log const& log) 
@@ -55,16 +57,18 @@ struct geode::log::BorrowedLog final {
         , m_source(log.m_source)
         , m_nestCount(log.m_nestCount)
         , m_content(log.m_content)
+        , m_mod(nullptr)
     {}
 
     Log intoLog() const {
         return Log{
             m_time,
             m_severity,
+            m_nestCount,
+            std::string(m_content),
             std::string(m_thread),
             std::string(m_source),
-            m_nestCount,
-            std::string(m_content)
+            m_mod
         };
     }
 
@@ -217,11 +221,11 @@ std::string geode::format_as(CCArray* arr) {
 
 // Log
 
-Log::Log(log_clock::time_point time, Severity severity, std::string thread,
-    std::string source, int32_t nestCount, std::string content)
+Log::Log(log_clock::time_point time, Severity severity, int32_t nestCount,
+    std::string content, std::string thread, std::string source, Mod* mod)
     : m_time(time), m_severity(severity),
       m_thread(std::move(thread)), m_source(std::move(source)),
-      m_nestCount(nestCount), m_content(std::move(content))
+      m_nestCount(nestCount), m_content(std::move(content)), m_mod(mod)
 {}
 
 std::string Log::toString(bool millis) const {
@@ -232,8 +236,17 @@ std::string Log::toString(bool millis) const {
 
 inline static thread_local int32_t s_nestLevel = 0;
 inline static thread_local int32_t s_nestCountOffset = 0;
+inline static thread_local bool s_insideLogImpl = false;
+
+struct LogImplGuard {
+    LogImplGuard() { s_insideLogImpl = true; }
+    ~LogImplGuard() { s_insideLogImpl = false; }
+};
 
 void log::vlogImpl(Severity sev, Mod* mod, fmt::string_view format, fmt::format_args args) {
+    // prevent recursion
+    if (s_insideLogImpl) return;
+
     if (!mod->isLoggingEnabled() || sev < mod->getLogLevel()) return;
 
     auto nestCount = s_nestLevel * 2;
@@ -241,12 +254,18 @@ void log::vlogImpl(Severity sev, Mod* mod, fmt::string_view format, fmt::format_
         nestCount += s_nestCountOffset;
     }
 
-    Logger::get()->push(sev, thread::getName(), mod->getName(), nestCount,
-        fmt::vformat(format, args));
+    LogImplGuard _guard;
+
+    Logger::get()->push(sev, nestCount, fmt::vformat(format, args),
+        thread::getName(), mod->getName(), mod);
 }
 
 std::filesystem::path const& log::getCurrentLogPath() {
     return Logger::get()->getLogPath();
+}
+
+void log::addLogCallback(LogCallback callback) {
+    Logger::get()->addLogCallback(std::move(callback));
 }
 
 Severity Log::getSeverity() const {
@@ -260,10 +279,17 @@ Logger* Logger::get() {
     return &inst;
 }
 
+std::mutex& getLogMutex() {
+    static std::mutex mutex;
+    return mutex;
+}
+
 void Logger::setup() {
     if (m_initialized.load(std::memory_order::acquire)) {
         return;
     }
+
+    std::lock_guard g(getLogMutex());
 
     g_logMillis = Mod::get()->getSettingValue<bool>("log-milliseconds");
     listenForSettingChanges("log-milliseconds", [](bool val) {
@@ -288,6 +314,7 @@ void Logger::setup() {
     for (Log const& log : m_logs) {
         this->outputLog(BorrowedLog(log), true);
     }
+    m_logs.clear();
 
     this->flushLocked();
 
@@ -321,50 +348,40 @@ void Logger::deleteOldLogs(size_t maxAgeHours) {
     }
 }
 
-std::mutex& getLogMutex() {
-    static std::mutex mutex;
-    return mutex;
+static Severity logLevelFor(std::string_view level) {
+    if (level == "debug") {
+        return Severity::Debug;
+    } else if (level == "info") {
+        return Severity::Info;
+    } else if (level == "warn") {
+        return Severity::Warning;
+    } else if (level == "error") {
+        return Severity::Error;
+    } else {
+        return Severity::Info;
+    }
 }
 
 Severity Logger::getConsoleLogLevel() {
-    const std::string level = Mod::get()->getSettingValue<std::string>("console-log-level");
-    if (level == "debug") {
-        return Severity::Debug;
-    } else if (level == "info") {
-        return Severity::Info;
-    } else if (level == "warn") {
-        return Severity::Warning;
-    } else if (level == "error") {
-        return Severity::Error;
-    } else {
-        return Severity::Info;
-    }
+    auto level = Mod::get()->getSettingValue<std::string_view>("console-log-level");
+    return logLevelFor(level);
 }
 
 Severity Logger::getFileLogLevel() {
-    const std::string level = Mod::get()->getSettingValue<std::string>("file-log-level");
-    if (level == "debug") {
-        return Severity::Debug;
-    } else if (level == "info") {
-        return Severity::Info;
-    } else if (level == "warn") {
-        return Severity::Warning;
-    } else if (level == "error") {
-        return Severity::Error;
-    } else {
-        return Severity::Info;
-    }
+    auto level = Mod::get()->getSettingValue<std::string_view>("file-log-level");
+    return logLevelFor(level);
 }
 
-void Logger::push(Severity sev, std::string_view thread, std::string_view source, int32_t nestCount,
-    std::string_view content)
+void Logger::push(Severity sev, int32_t nestCount, std::string_view content,
+    std::string_view thread, std::string_view source, Mod* mod)
 {
     return this->push(BorrowedLog(
         sev,
+        nestCount,
+        content,
         thread,
         source,
-        nestCount,
-        content
+        mod
     ));
 }
 
@@ -386,7 +403,8 @@ void Logger::outputLog(BorrowedLog const& log, bool dontFlush) {
     // should we log this at all?
     bool logConsole = sev >= this->getConsoleLogLevel();
     bool logFile = sev >= this->getFileLogLevel();
-    if (!logConsole && !logFile) return;
+    bool logCallbacks = !m_callbacks.empty();
+    if (!logConsole && !logFile && !logCallbacks) return;
 
     StringBuffer buf;
     bool millis = g_logMillis.load(std::memory_order::relaxed);
@@ -400,6 +418,11 @@ void Logger::outputLog(BorrowedLog const& log, bool dontFlush) {
         // don't flush stream for every log as that's super slow
         if (!dontFlush) {
             this->maybeFlushStream();
+        }
+    }
+    if (logCallbacks) {
+        for (auto& cb : m_callbacks) {
+            cb(log.m_content, log.m_severity, log.m_mod, log.m_source, log.m_thread);
         }
     }
 }
@@ -432,6 +455,11 @@ void Logger::flushLocked() {
 void Logger::clear() {
     std::lock_guard g(getLogMutex());
     m_logs.clear();
+}
+
+void Logger::addLogCallback(LogCallback callback) {
+    std::lock_guard g(getLogMutex());
+    m_callbacks.push_back(std::move(callback));
 }
 
 Nest::Nest(std::shared_ptr<Nest::Impl> impl) : m_impl(std::move(impl)) { }

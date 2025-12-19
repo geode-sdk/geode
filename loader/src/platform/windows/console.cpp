@@ -52,7 +52,7 @@ void WINAPI CompletedReadRoutine(DWORD error, DWORD read, LPOVERLAPPED overlap) 
                 o->m_cur += o->m_buf[i];
             continue;
         }
-        log::Logger::get()->push(o->m_sev, "", std::string(o->m_name), 0, std::string(o->m_cur));
+        log::Logger::get()->push(o->m_sev, 0, o->m_cur, "", o->m_name, nullptr);
         o->m_cur.clear();
     }
     delete o;
