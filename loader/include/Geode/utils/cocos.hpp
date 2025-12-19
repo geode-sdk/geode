@@ -813,7 +813,7 @@ namespace geode::cocos {
      * @param obj Object to get the name of
      * @returns Demangled name of the object
      */
-    GEODE_DLL std::string_view getObjectName(cocos2d::CCObject* obj);
+    GEODE_DLL std::string_view getObjectName(cocos2d::CCObject const* obj);
 
     /**
      * Checks if a given file exists in CCFileUtils
