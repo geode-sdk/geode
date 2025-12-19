@@ -15,3 +15,5 @@
 #include "utils/timer.hpp"
 #include "utils/ObjcHook.hpp"
 #include "utils/ZStringView.hpp"
+#include "utils/StringBuffer.hpp"
+#include "utils/StringMap.hpp"

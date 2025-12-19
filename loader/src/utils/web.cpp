@@ -14,6 +14,7 @@
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/string.hpp>
+#include <Geode/utils/StringBuffer.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/terminate.hpp>
 #include <sstream>
@@ -376,20 +377,20 @@ std::atomic_size_t WebRequest::Impl::s_idCounter = 0;
 WebRequest::WebRequest() : m_impl(std::make_shared<Impl>()) {}
 WebRequest::~WebRequest() {}
 
-static void hexAppend(std::string& out, unsigned char c) {
+static void hexAppend(auto& buf, unsigned char c) {
     auto hexDigits = "0123456789ABCDEF";
-    out += hexDigits[(c >> 4) & 0xf];
-    out += hexDigits[c & 0xf];
+    buf.append(hexDigits[(c >> 4) & 0xf]);
+    buf.append(hexDigits[c & 0xf]);
 }
 
 // Encodes a url param
-static void urlEncodeAppend(std::string& out, std::string_view input) {
+static void urlEncodeAppend(auto& buf, std::string_view input) {
     for (unsigned char c : input) {
         if (std::isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
-            out += c;
+            buf.append(c);
         } else {
-            out += '%';
-            hexAppend(out, c);
+            buf.append('%');
+            hexAppend(buf, c);
         }
     }
 }
@@ -451,16 +452,17 @@ WebTask WebRequest::send(std::string method, std::string url) {
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
         // Add parameters to the URL and pass it to curl
-        auto url = impl->m_url;
-        bool first = url.find('?') == std::string::npos;
+        StringBuffer urlBuffer{impl->m_url};
+        bool first = !impl->m_url.contains('?');
+
         for (auto& [key, value] : impl->m_urlParameters) {
-            url += (first ? '?' : '&');
-            urlEncodeAppend(url, key);
-            url += '=';
-            urlEncodeAppend(url, value);
+            urlBuffer.append(first ? '?' : '&');
+            urlEncodeAppend(urlBuffer, key);
+            urlBuffer.append('=');
+            urlEncodeAppend(urlBuffer, value);
             first = false;
         }
-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_URL, urlBuffer.c_str());
 
         // Set HTTP version
         auto useHttp1 = Loader::get()->getLaunchFlag("use-http1");
