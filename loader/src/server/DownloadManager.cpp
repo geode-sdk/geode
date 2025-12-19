@@ -98,7 +98,7 @@ public:
             }
         });
         auto fetchVersion = version.has_value() ? ModVersion(*version) : ModVersion(ModVersionLatest());
-        m_infoListener.setFilter(getModVersion(id, fetchVersion));
+        m_infoListener.setFilter(getModVersion(m_id, fetchVersion));
         Loader::get()->queueInMainThread([id = m_id] {
             ModDownloadEvent(id).post();
         });

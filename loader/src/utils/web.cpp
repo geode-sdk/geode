@@ -385,12 +385,12 @@ static void hexAppend(auto& buf, unsigned char c) {
 
 // Encodes a url param
 static void urlEncodeAppend(auto& buf, std::string_view input) {
-    for (unsigned char c : input) {
+    for (char c : input) {
         if (std::isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
             buf.append(c);
         } else {
             buf.append('%');
-            hexAppend(buf, c);
+            hexAppend(buf, static_cast<unsigned char>(c));
         }
     }
 }
