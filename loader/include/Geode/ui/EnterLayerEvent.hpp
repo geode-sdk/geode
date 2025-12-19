@@ -49,6 +49,12 @@ namespace geode {
         T* getLayer() const {
             return static_cast<T*>(this->layer);
         }
+        std::string_view getID() const {
+            return this->layerID;
+        }
+        EventListenerPool* getPool() const override {
+            return DefaultEventListenerPool::getForEvent<EnterLayerEvent<T>>();
+        }
     };
 
     template<class T, class N>
@@ -63,16 +69,24 @@ namespace geode {
 		std::optional<std::string> m_targetID;
 
 	public:
-        ListenerResult handle(geode::Function<Callback>& fn, EnterLayerEvent<N>* event) {
-            if (m_targetID == event->getID()) {
+        ListenerResult handle(geode::Function<Callback> fn, EnterLayerEvent<N>* event) {
+            if (m_targetID.has_value()) {
+                if (m_targetID.value() == event->getID()) {
+                    fn(static_cast<T*>(event));
+                }
+            }
+            else {
                 fn(static_cast<T*>(event));
             }
 			return ListenerResult::Propagate;
 		}
 
 		EnterLayerFilter(
-			std::optional<std::string> const& id
-		) : m_targetID(id) {}
+			std::optional<std::string> id
+		) : m_targetID(std::move(id)) {}
         EnterLayerFilter(EnterLayerFilter const&) = default;
+        EventListenerPool* getPool() const override {
+            return DefaultEventListenerPool::getForEvent<EnterLayerEvent<N>>();
+        }
 	};
 }

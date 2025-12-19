@@ -42,19 +42,12 @@ namespace geode {
     class DispatchFilter;
 
     class GEODE_DLL DefaultEventListenerPool : public EventListenerPool {
-    protected:
-        // fix this in Geode 4.0.0
-        struct Data {
-            std::atomic_size_t m_locked = 0;
-            std::mutex m_mutex;
-            std::deque<EventListenerProtocol*> m_listeners;
-            std::vector<EventListenerProtocol*> m_toAdd;
-        };
-        std::unique_ptr<Data> m_data;
-
     private:
-        static DefaultEventListenerPool* create();
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
+
         DefaultEventListenerPool();
+        ~DefaultEventListenerPool() override;
 
     public:
         bool add(EventListenerProtocol* listener) override;
@@ -63,11 +56,13 @@ namespace geode {
 
         static DefaultEventListenerPool* get();
 
-        template <class... Args>
-        friend class DispatchEvent;
+        template <class E>
+        static EventListenerPool* getForEvent() {
+            static std::shared_ptr<DefaultEventListenerPool> pool = DefaultEventListenerPool::create();
+            return pool.get();
+        }
 
-        template <class... Args>
-        friend class DispatchFilter;
+        static std::shared_ptr<DefaultEventListenerPool> create();   
     };
 
     class GEODE_DLL EventListenerProtocol {
@@ -103,21 +98,22 @@ namespace geode {
         using Callback = ListenerResult(T*);
         using Event = T;
 
-        template <typename F> requires (std::is_invocable_r_v<ListenerResult, F, T*>)
-        ListenerResult handle(F&& fn, T* e) {
+        virtual ListenerResult handle(geode::Function<Callback> fn, T* e) {
             return fn(e);
         }
 
-        EventListenerPool* getPool() const {
+        virtual EventListenerPool* getPool() const {
             return DefaultEventListenerPool::get();
         }
 
-        void setListener(EventListenerProtocol* listener) {
+        virtual void setListener(EventListenerProtocol* listener) {
             m_listener = listener;
         }
-        EventListenerProtocol* getListener() const {
+        virtual EventListenerProtocol* getListener() const {
             return m_listener;
         }
+
+        virtual ~EventFilter() = default;
     };
 
     template <typename T>
@@ -237,8 +233,9 @@ namespace geode {
         Mod* sender;
 
         ListenerResult postFromMod(Mod* sender);
-        template<class = void>
-        ListenerResult post() {
+        
+        template <class _ = void>
+        inline ListenerResult post() {
             return postFromMod(getMod());
         }
 

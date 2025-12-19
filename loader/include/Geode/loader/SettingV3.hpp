@@ -653,6 +653,7 @@ namespace geode {
         SettingChangedEventV3(std::shared_ptr<SettingV3> setting);
 
         std::shared_ptr<SettingV3> getSetting() const;
+        EventListenerPool* getPool() const override;
     };
     class GEODE_DLL SettingChangedFilterV3 final : public EventFilter<SettingChangedEventV3> {
     private:
@@ -674,6 +675,7 @@ namespace geode {
         );
         SettingChangedFilterV3(Mod* mod, std::optional<std::string> settingKey);
         SettingChangedFilterV3(SettingChangedFilterV3 const&);
+        EventListenerPool* getPool() const override;
     };
 
     class GEODE_DLL SettingNodeSizeChangeEventV3 : public Event {

@@ -483,6 +483,20 @@ ListenerResult SettingChangedFilterV3::handle(geode::Function<Callback>& fn, Set
     return ListenerResult::Propagate;
 }
 
+namespace {
+    EventListenerPool* getSettingChangedPool(std::string const& modID) {
+        static std::unordered_map<std::string, std::shared_ptr<DefaultEventListenerPool>> pools;
+        if (!pools.count(modID)) {
+            pools[modID] = DefaultEventListenerPool::create();
+        }
+        return pools[modID].get();
+    }
+}
+
+EventListenerPool* SettingChangedEventV3::getPool() const {
+    return getSettingChangedPool(m_impl->setting->getModID());
+}
+
 SettingChangedFilterV3::SettingChangedFilterV3(
     std::string_view modID,
     std::optional<std::string> settingKey
@@ -496,6 +510,10 @@ SettingChangedFilterV3::SettingChangedFilterV3(Mod* mod, std::optional<std::stri
   : SettingChangedFilterV3(mod->getID(), std::move(settingKey)) {}
 
 SettingChangedFilterV3::SettingChangedFilterV3(SettingChangedFilterV3 const&) = default;
+
+EventListenerPool* SettingChangedFilterV3::getPool() const {
+    return getSettingChangedPool(m_impl->modID);
+}
 
 EventListener<SettingChangedFilterV3>* geode::listenForAllSettingChangesV3(
     geode::Function<void(std::shared_ptr<SettingV3>)> callback,

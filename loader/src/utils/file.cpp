@@ -865,6 +865,20 @@ std::filesystem::path FileWatchEvent::getPath() const {
     return m_path;
 }
 
+namespace {
+    EventListenerPool* getFileWatchPool(std::filesystem::path const& path) {
+        static std::unordered_map<std::filesystem::path, std::shared_ptr<DefaultEventListenerPool>> pools;
+        if (!pools.count(path)) {
+            pools[path] = DefaultEventListenerPool::create();
+        }
+        return pools[path].get();
+    }
+}
+
+EventListenerPool* FileWatchEvent::getPool() const {
+    return getFileWatchPool(m_path);
+}
+
 ListenerResult FileWatchFilter::handle(
     geode::Function<Callback>& callback,
     FileWatchEvent* event
@@ -878,6 +892,10 @@ ListenerResult FileWatchFilter::handle(
 
 FileWatchFilter::FileWatchFilter(std::filesystem::path const& path)
   : m_path(path) {}
+
+EventListenerPool* FileWatchFilter::getPool() const {
+    return getFileWatchPool(m_path);
+}
 
 // This is a vector because need to use std::filesystem::equivalent for
 // comparisons and removal is not exactly performance-critical here

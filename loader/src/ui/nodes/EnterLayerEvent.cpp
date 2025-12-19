@@ -9,7 +9,12 @@ AEnterLayerEvent::AEnterLayerEvent(
     layer(layer) {}
 
 ListenerResult AEnterLayerFilter::handle(geode::Function<Callback>& fn, AEnterLayerEvent* event) {
-    if (m_targetID == event->layerID) {
+    if (m_targetID.has_value()) {
+        if (event->layerID == m_targetID.value()) {
+            fn(event);
+        }
+    }
+    else {
         fn(event);
     }
     return ListenerResult::Propagate;

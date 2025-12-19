@@ -26,6 +26,7 @@ namespace geode {
         ModStateEvent(Mod* mod, ModEventType type);
         ModEventType getType() const;
         Mod* getMod() const;
+        EventListenerPool* getPool() const override;
     };
 
     /**
@@ -40,7 +41,8 @@ namespace geode {
         Mod* m_mod;
 
     public:
-        ListenerResult handle(geode::Function<Callback>& fn, ModStateEvent* event);
+        EventListenerPool* getPool() const override;
+        ListenerResult handle(geode::Function<Callback> fn, ModStateEvent* event);
 
         /**
          * Create a mod state listener

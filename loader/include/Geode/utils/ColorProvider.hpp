@@ -15,6 +15,7 @@ namespace geode {
         cocos2d::ccColor4B color;
 
         ColorProvidedEvent(std::string id, cocos2d::ccColor4B const& color);
+        EventListenerPool* getPool() const override;
     };
 
     /**
@@ -32,6 +33,7 @@ namespace geode {
         ListenerResult handle(geode::Function<Callback>& fn, ColorProvidedEvent* event);
 
         ColorProvidedFilter(std::string id);
+        EventListenerPool* getPool() const override;
     };
 
     /**

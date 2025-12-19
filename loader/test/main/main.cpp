@@ -1,6 +1,7 @@
 #include <Geode/Loader.hpp>
 #include <Geode/loader/ModEvent.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/UI.hpp>
 #include <chrono>
 #include "../dependency/main.hpp"
 #include "Geode/utils/general.hpp"
