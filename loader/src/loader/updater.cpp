@@ -76,8 +76,13 @@ void updater::fetchLatestGithubRelease(
                             then(*s_latestGithubRelease);
                         }
                     }
+                } 
+                else if (response->code() == 304) {
+                    log::debug("No Geode update available");
+                    // don't invoke either of the callbacks, since nothing changed
                 }
                 else {
+                    log::debug("Code: {}", response->code());
                     expect(response->string().unwrapOr("Unknown error"));
                 }
                 RUNNING_REQUESTS.erase("@loaderAutoUpdateCheck");
