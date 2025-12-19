@@ -19,11 +19,11 @@ public:
     }
 
     ViewType view() const {
-        return { m_buffer.data(), m_buffer.size() };
+        return { m_buffer.data(), this->size() };
     }
 
     StringType str() const {
-        return { m_buffer.data(), m_buffer.size() };
+        return { m_buffer.data(), this->size() };
     }
 
     CharType* c_str() {
@@ -63,6 +63,8 @@ public:
         }
     }
 
+    /// Returns the total size of data written into the buffer,
+    /// not including the null terminator (if one is present)
     size_t size() const {
         return m_buffer.size() - (size_t)m_terminated;
     }
