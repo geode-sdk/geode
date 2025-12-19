@@ -474,11 +474,6 @@ cocos2d::CCRect geode::utils::getSafeAreaRect() {
     return cocos2d::CCRect(insetX, insetY, winSize.width - 2 * insetX, winSize.height - 2 * insetY);
 }
 
-extern "C"
-JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_setNextInputTimestampInternal(JNIEnv*, jobject, jlong timestamp) {
-    geode::AndroidInputTimestampEvent(timestamp).post();
-}
-
 geode::Result<int> geode::utils::getLauncherVersion() {
     JniMethodInfo info;
     if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "getLauncherVersion", "()I")) {
@@ -491,13 +486,4 @@ geode::Result<int> geode::utils::getLauncherVersion() {
     }
 
     return Err("method not found");
-}
-
-AndroidInputTimestampEvent::AndroidInputTimestampEvent(long timestamp) : m_timestamp(timestamp) {}
-
-long AndroidInputTimestampEvent::getTimestamp() const { return m_timestamp; }
-
-ListenerResult AndroidInputTimestampFilter::handle(geode::Function<Callback>& fn, AndroidInputTimestampEvent* event)  {
-    fn(event);
-    return ListenerResult::Propagate;
 }
