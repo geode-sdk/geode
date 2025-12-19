@@ -932,6 +932,10 @@ Result<> StringSettingV3::isValid(std::string_view value) const {
     return Ok();
 }
 
+ZStringView StringSettingV3::getValue() const {
+    return SettingBaseValueV3::getValueRef();
+}
+
 std::optional<std::string> StringSettingV3::getRegexValidator() const {
     return m_impl->match;
 }
