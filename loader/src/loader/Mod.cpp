@@ -13,11 +13,11 @@ Mod::Mod(ModMetadata const& metadata) : m_impl(std::make_unique<Impl>(this, meta
 
 Mod::~Mod() {}
 
-std::string Mod::getID() const {
+ZStringView Mod::getID() const {
     return m_impl->getID();
 }
 
-std::string Mod::getName() const {
+ZStringView Mod::getName() const {
     return m_impl->getName();
 }
 

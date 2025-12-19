@@ -8,8 +8,11 @@
 #include <fstream>
 #include <string>
 #include <chrono>
+#include <atomic>
 
 namespace geode::log {
+    struct BorrowedLog;
+
     class Log final {
         log_clock::time_point m_time;
         Severity m_severity;
@@ -19,23 +22,24 @@ namespace geode::log {
         std::string m_content;
 
     public:
-        ~Log();
-        Log(Severity sev, std::string&& thread, std::string&& source, int32_t nestCount,
-            std::string&& content);
+        friend struct BorrowedLog;
+        Log(log_clock::time_point time, Severity severity, std::string thread,
+            std::string source, int32_t nestCount, std::string content);
 
-        // TODO (v5): remove this and add default arg to the one below
-        [[nodiscard]] std::string toString() const;
-        [[nodiscard]] std::string toString(bool millis) const;
-
-        [[nodiscard]] Severity getSeverity() const;
+        [[nodiscard]] std::string toString(bool millis = false) const;
+        Severity getSeverity() const;
     };
 
     class Logger {
     private:
-        bool m_initialized = false;
+        std::atomic<bool> m_initialized = false;
         std::vector<Log> m_logs;
         std::ofstream m_logStream;
         std::filesystem::path m_logPath;
+
+        // for tracking when to flush the log stream
+        size_t m_unflushedLogs = 0;
+        log_clock::time_point m_lastFlushTime = log_clock::now();
 
         Logger() = default;
     public:
@@ -43,10 +47,9 @@ namespace geode::log {
 
         void setup();
 
-        void push(Severity sev, std::string&& thread, std::string&& source, int32_t nestCount,
-            std::string&& content);
+        void push(Severity sev, std::string_view thread, std::string_view source, int32_t nestCount, std::string_view content);
+        void push(BorrowedLog const& log);
 
-        std::vector<Log> const& list();
         Severity getConsoleLogLevel();
         Severity getFileLogLevel();
         void clear();
@@ -59,6 +62,11 @@ namespace geode::log {
         void deleteOldLogs(std::chrono::duration<Rep, Period> const& maxAge) {
             this->deleteOldLogs(std::chrono::duration_cast<std::chrono::hours>(maxAge).count());
         }
+        
+        void flush();
+        void outputLog(BorrowedLog const& log, bool dontFlush = false);
+        void maybeFlushStream();
+        void flushLocked();
     };
 
     class Nest::Impl {

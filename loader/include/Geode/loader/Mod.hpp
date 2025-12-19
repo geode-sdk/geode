@@ -89,8 +89,8 @@ namespace geode {
         Mod(ModMetadata const& metadata);
         ~Mod();
 
-        std::string getID() const;
-        std::string getName() const;
+        ZStringView getID() const;
+        ZStringView getName() const;
         std::vector<std::string> getDevelopers() const;
         std::optional<std::string> getDescription() const;
         std::optional<std::string> getDetails() const;

@@ -150,7 +150,7 @@ namespace geode {
         inline void logImpl(Severity severity, Mod* mod, impl::FmtStr<Args...> str, Args&&... args) {
             [&]<typename... Ts>(Ts&&... args) {
                 vlogImpl(severity, mod, str, fmt::make_format_args(args...));
-            }(impl::wrapCocosObj(args)...);
+            }(impl::wrapCocosObj(std::forward<Args>(args))...);
         }
 
         template <typename... Args>
