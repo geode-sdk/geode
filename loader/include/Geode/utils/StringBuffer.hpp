@@ -41,19 +41,11 @@ public:
 
     template <typename T> requires (std::is_integral_v<T> && !std::is_same_v<T, CharType>)
     void append(T value) {
-        if constexpr (std::is_same_v<CharType, char>) {
-            fmt::format_to(std::back_inserter(m_buffer), "{}", value);
-        } else if constexpr (std::is_same_v<CharType, wchar_t>) {
-            fmt::format_to(std::back_inserter(m_buffer), L"{}", value);
-        } else if constexpr (std::is_same_v<CharType, char8_t>) {
-            fmt::format_to(std::back_inserter(m_buffer), u8"{}", value);
-        } else {
-            static_assert(!sizeof(T*), "Unsupported character type for BasicStringBuffer");
-        }
+        this->append("{}" , value);
     }
 
     template <typename... Args>
-    void append(fmt::basic_string_view<CharType> fmtStr, Args&&... args) {
+    void append(fmt::format_string<Args...> fmtStr, Args&&... args) {
         fmt::format_to(
             std::back_inserter(m_buffer),
             fmtStr,
