@@ -32,6 +32,12 @@ namespace geode {
             return std::string(m_str, _size());
         }
 
+#ifdef GEODE_IS_ANDROID
+        operator gd::string() const {
+            return gd::string(m_str, _size());
+        }
+#endif
+
         operator std::filesystem::path() const {
             return std::filesystem::path(this->view());
         }
