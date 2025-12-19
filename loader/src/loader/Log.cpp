@@ -34,68 +34,43 @@ std::string geode::format_as(Mod* mod) {
 
 std::string geode::format_as(CCObject const* obj) {
     if (obj) {
-        // TODO: try catch incase typeid fails
-        return fmt::format("{{ {}, {} }}", typeid(*obj).name(), fmt::ptr(obj));
-    }
-    else {
+        return fmt::format("{{ {}, {} }}", getObjectName(obj), fmt::ptr(obj));
+    } else {
         return "{ CCObject, null }";
     }
 }
 
 std::string geode::format_as(CCNode* obj) {
     if (obj) {
-        auto bb = obj->boundingBox();
         return fmt::format(
-            "{{ {}, {}, ({}, {} | {} : {}) }}",
-            typeid(*obj).name(),
+            "{{ {}, {}, ({}) }}",
+            getObjectName(obj),
             fmt::ptr(obj),
-            bb.origin.x,
-            bb.origin.y,
-            bb.size.width,
-            bb.size.height
+            obj->boundingBox()
         );
-    }
-    else {
+    } else {
         return "{ CCNode, null }";
     }
 }
 
 std::string geode::format_as(CCArray* arr) {
-    std::string out = "[";
-
     if (arr && arr->count()) {
+        fmt::memory_buffer buffer;
+        buffer.push_back('[');
+
         for (int i = 0; i < arr->count(); ++i) {
-            out += format_as(arr->objectAtIndex(i));
-            if (i < arr->count() - 1) out += ", ";
+            auto* obj = arr->objectAtIndex(i);
+            buffer.append(format_as(obj));
+            if (i + 1 < arr->count()) {
+                buffer.append(std::string_view(", "));
+            }
         }
+
+        buffer.push_back(']');
+        return fmt::to_string(buffer);
+    } else {
+        return "[empty]";
     }
-    else out += "empty";
-
-    return out + "]";
-}
-
-std::string cocos2d::format_as(CCPoint const& pt) {
-    return fmt::format("{}, {}", pt.x, pt.y);
-}
-
-std::string cocos2d::format_as(CCSize const& sz) {
-    return fmt::format("{} : {}", sz.width, sz.height);
-}
-
-std::string cocos2d::format_as(CCRect const& rect) {
-    return fmt::format("{} | {}", rect.origin, rect.size);
-}
-
-std::string cocos2d::format_as(cocos2d::ccColor3B const& col) {
-    return fmt::format("rgb({}, {}, {})", col.r, col.g, col.b);
-}
-
-std::string cocos2d::format_as(cocos2d::ccColor4B const& col) {
-    return fmt::format("rgba({}, {}, {}, {})", col.r, col.g, col.b, col.a);
-}
-
-std::string cocos2d::format_as(cocos2d::ccColor4F const& col) {
-    return fmt::format("rgba({}, {}, {}, {})", col.r, col.g, col.b, col.a);
 }
 
 // Log

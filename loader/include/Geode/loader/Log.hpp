@@ -23,18 +23,24 @@ namespace geode {
     GEODE_DLL std::string format_as(cocos2d::CCNode*);
     class Mod;
     GEODE_DLL std::string format_as(Mod*);
+}
 
-    template <typename T, typename E>
-    std::string format_as(Result<T, E> const& result) {
+template <typename T, typename E>
+struct fmt::formatter<geode::Result<T, E>> {
+    template <typename ParseContext>
+    constexpr auto parse(ParseContext& ctx) noexcept { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(geode::Result<T, E> const& result, FormatContext& ctx) const noexcept {
         if (result) {
             std::string_view quotes = std::is_same_v<T, std::string> ? "\"" : "";
-            return fmt::format("Ok({}{}{})", quotes, result.unwrap(), quotes);
+            return fmt::format_to(ctx.out(), "Ok({}{}{})", quotes, result.unwrap(), quotes);
         } else {
             std::string_view quotes = std::is_same_v<E, std::string> ? "\"" : "";
-            return fmt::format("Err({}{}{})", quotes, result.unwrapErr(), quotes);
+            return fmt::format_to(ctx.out(), "Err({}{}{})", quotes, result.unwrapErr(), quotes);
         }
     }
-}
+};
 
 namespace geode::log::impl {
     // What is this all for? well, fmtlib disallows writing custom formatters for non-void pointer types.
@@ -63,20 +69,71 @@ namespace geode::log::impl {
     using FmtStr = fmt::format_string<TransformType<Args>...>;
 }
 
-namespace cocos2d {
-    GEODE_DLL std::string format_as(cocos2d::ccColor3B const&);
-    GEODE_DLL std::string format_as(cocos2d::ccColor4B const&);
-    GEODE_DLL std::string format_as(cocos2d::ccColor4F const&);
-    GEODE_DLL std::string format_as(cocos2d::CCPoint const&);
-    GEODE_DLL std::string format_as(cocos2d::CCRect const&);
-    GEODE_DLL std::string format_as(cocos2d::CCSize const&);
-}
+template <>
+struct fmt::formatter<cocos2d::ccColor3B> {
+    template <typename ParseContext>
+    constexpr auto parse(ParseContext& ctx) noexcept { return ctx.begin(); }
 
-namespace gd {
-    inline std::string format_as(gd::string const& value) {
-        return value;
+    template <typename FormatContext>
+    auto format(cocos2d::ccColor3B const& col, FormatContext& ctx) const noexcept {
+        return fmt::format_to(ctx.out(), "rgb({}, {}, {})", col.r, col.g, col.b);
     }
-}
+};
+
+template <>
+struct fmt::formatter<cocos2d::ccColor4B> {
+    template <typename ParseContext>
+    constexpr auto parse(ParseContext& ctx) noexcept { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(cocos2d::ccColor4B const& col, FormatContext& ctx) const noexcept {
+        return fmt::format_to(ctx.out(), "rgba({}, {}, {}, {})", col.r, col.g, col.b, col.a);
+    }
+};
+
+template <>
+struct fmt::formatter<cocos2d::ccColor4F> {
+    template <typename ParseContext>
+    constexpr auto parse(ParseContext& ctx) noexcept { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(cocos2d::ccColor4F const& col, FormatContext& ctx) const noexcept {
+        return fmt::format_to(ctx.out(), "rgba({}, {}, {}, {})", col.r, col.g, col.b, col.a);
+    }
+};
+
+template <>
+struct fmt::formatter<cocos2d::CCPoint> {
+    template <typename ParseContext>
+    constexpr auto parse(ParseContext& ctx) noexcept { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(cocos2d::CCPoint const& pt, FormatContext& ctx) const noexcept {
+        return fmt::format_to(ctx.out(), "{}, {}", pt.x, pt.y);
+    }
+};
+
+template <>
+struct fmt::formatter<cocos2d::CCSize> {
+    template <typename ParseContext>
+    constexpr auto parse(ParseContext& ctx) noexcept { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(cocos2d::CCSize const& sz, FormatContext& ctx) const noexcept {
+        return fmt::format_to(ctx.out(), "{} : {}", sz.width, sz.height);
+    }
+};
+
+template <>
+struct fmt::formatter<cocos2d::CCRect> {
+    template <typename ParseContext>
+    constexpr auto parse(ParseContext& ctx) noexcept { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(cocos2d::CCRect const& rect, FormatContext& ctx) const noexcept {
+        return fmt::format_to(ctx.out(), "{} | {}", rect.origin, rect.size);
+    }
+};
 
 namespace geode {
 

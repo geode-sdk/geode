@@ -114,5 +114,8 @@ namespace gd {
 		operator std::string_view() const;
 	};
 
+	inline std::string_view format_as(gd::string const& str) {
+		return std::string_view(str);
+	}
 #endif
 }

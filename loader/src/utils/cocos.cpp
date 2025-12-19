@@ -381,7 +381,7 @@ CCNode* geode::cocos::getChildBySpriteName(CCNode* parent, const char* name) {
     return nullptr;
 }
 
-std::string_view geode::cocos::getObjectName(cocos2d::CCObject* obj) {
+std::string_view geode::cocos::getObjectName(cocos2d::CCObject const* obj) {
 #ifdef GEODE_IS_WINDOWS
     std::string_view tname = typeid(*obj).name();
     if (tname.starts_with("class ")) {
