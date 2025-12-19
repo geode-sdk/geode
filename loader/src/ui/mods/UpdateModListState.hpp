@@ -25,6 +25,7 @@ struct UpdateModListStateEvent : public Event {
     UpdateState target;
 
     UpdateModListStateEvent(UpdateState&& target);
+    EventListenerPool* getPool() const override;
 };
 
 class UpdateModListStateFilter : public EventFilter<UpdateModListStateEvent> {
@@ -36,6 +37,7 @@ protected:
 
 public:
     ListenerResult handle(geode::Function<Callback>& fn, UpdateModListStateEvent* event);
+    EventListenerPool* getPool() const override;
 
     UpdateModListStateFilter();
     UpdateModListStateFilter(UpdateState&& target);

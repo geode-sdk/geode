@@ -8,6 +8,10 @@ AEnterLayerEvent::AEnterLayerEvent(
 ) : layerID(std::move(layerID)),
     layer(layer) {}
 
+EventListenerPool* AEnterLayerEvent::getPool() const {
+    return DefaultEventListenerPool::getForEvent<AEnterLayerEvent>();
+}
+
 ListenerResult AEnterLayerFilter::handle(geode::Function<Callback>& fn, AEnterLayerEvent* event) {
     if (m_targetID.has_value()) {
         if (event->layerID == m_targetID.value()) {
@@ -23,3 +27,7 @@ ListenerResult AEnterLayerFilter::handle(geode::Function<Callback>& fn, AEnterLa
 AEnterLayerFilter::AEnterLayerFilter(
     std::optional<std::string> id
 ) : m_targetID(std::move(id)) {}
+
+EventListenerPool* AEnterLayerFilter::getPool() const {
+    return DefaultEventListenerPool::getForEvent<AEnterLayerEvent>();
+}

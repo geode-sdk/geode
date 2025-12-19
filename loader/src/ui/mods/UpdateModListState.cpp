@@ -2,6 +2,10 @@
 
 UpdateModListStateEvent::UpdateModListStateEvent(UpdateState&& target) : target(target) {}
 
+EventListenerPool* UpdateModListStateEvent::getPool() const {
+    return DefaultEventListenerPool::getForEvent<UpdateModListStateEvent>();
+}
+
 ListenerResult UpdateModListStateFilter::handle(geode::Function<Callback>& fn, UpdateModListStateEvent* event) {
     if (
         // If the listener wants to hear all state updates then let it
@@ -18,3 +22,7 @@ ListenerResult UpdateModListStateFilter::handle(geode::Function<Callback>& fn, U
 
 UpdateModListStateFilter::UpdateModListStateFilter() : m_target(UpdateWholeState()) {}
 UpdateModListStateFilter::UpdateModListStateFilter(UpdateState&& target) : m_target(target) {}
+
+EventListenerPool* UpdateModListStateFilter::getPool() const {
+    return DefaultEventListenerPool::getForEvent<UpdateModListStateEvent>();
+}

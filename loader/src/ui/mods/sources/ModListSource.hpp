@@ -12,6 +12,7 @@ class ModListSource;
 struct InvalidateCacheEvent : public Event {
     ModListSource* source;
     InvalidateCacheEvent(ModListSource* src);
+    EventListenerPool* getPool() const override;
 };
 
 class InvalidateCacheFilter : public EventFilter<InvalidateCacheEvent> {
@@ -22,6 +23,7 @@ public:
     using Callback = void(InvalidateCacheEvent*);
 
     ListenerResult handle(geode::Function<Callback>& fn, InvalidateCacheEvent* event);
+    EventListenerPool* getPool() const override;
 
     InvalidateCacheFilter() = default;
     InvalidateCacheFilter(ModListSource* src);

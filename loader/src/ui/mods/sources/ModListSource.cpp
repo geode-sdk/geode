@@ -15,6 +15,10 @@ static size_t ceildiv(size_t a, size_t b) {
 
 InvalidateCacheEvent::InvalidateCacheEvent(ModListSource* src) : source(src) {}
 
+EventListenerPool* InvalidateCacheEvent::getPool() const {
+    return DefaultEventListenerPool::getForEvent<InvalidateCacheEvent>();
+}
+
 ListenerResult InvalidateCacheFilter::handle(geode::Function<Callback>& fn, InvalidateCacheEvent* event) {
     if (event->source == m_source) {
         fn(event);
@@ -23,6 +27,10 @@ ListenerResult InvalidateCacheFilter::handle(geode::Function<Callback>& fn, Inva
 }
 
 InvalidateCacheFilter::InvalidateCacheFilter(ModListSource* src) : m_source(src) {}
+
+EventListenerPool* InvalidateCacheFilter::getPool() const {
+    return DefaultEventListenerPool::getForEvent<InvalidateCacheEvent>();
+}
 
 bool LocalModsQueryBase::isDefault() const {
     return !query.has_value() && tags.empty();

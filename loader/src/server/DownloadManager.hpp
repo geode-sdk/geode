@@ -39,6 +39,7 @@ namespace server {
     struct ModDownloadEvent : public Event {
         std::string id;
         ModDownloadEvent(std::string const& id);
+        EventListenerPool* getPool() const override;
     };
 
     class ModDownloadFilter : public EventFilter<ModDownloadEvent> {
@@ -50,6 +51,7 @@ namespace server {
 
     public:
         ListenerResult handle(geode::Function<Callback>& fn, ModDownloadEvent* event);
+        EventListenerPool* getPool() const override;
 
         ModDownloadFilter();
         ModDownloadFilter(std::string const& id);

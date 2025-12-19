@@ -930,7 +930,7 @@ namespace geode {
 
         // todo: i believe alk wanted tasks to be in their own pool
         EventListenerPool* getPool() const {
-            return DefaultEventListenerPool::get();
+            return DefaultEventListenerPool::getForEvent<Event>();
         }
 
         void setListener(EventListenerProtocol* listener) {
@@ -964,7 +964,7 @@ namespace geode {
         }
     };
 
-    static_assert(is_filter<Task<int>>, "The Task class must be a valid event filter!");
+    static_assert(IsFilter<Task<int>>, "The Task class must be a valid event filter!");
 }
 
 // - C++20 coroutine support for Task - //

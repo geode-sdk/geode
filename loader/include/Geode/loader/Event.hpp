@@ -87,9 +87,9 @@ namespace geode {
     };
 
     template <typename T>
-    concept is_event = std::is_base_of_v<Event, T>;
+    concept IsEvent = std::is_base_of_v<Event, T>;
 
-    template <is_event T>
+    template <IsEvent T>
     class EventFilter {
     protected:
         EventListenerProtocol* m_listener = nullptr;
@@ -98,7 +98,8 @@ namespace geode {
         using Callback = ListenerResult(T*);
         using Event = T;
 
-        virtual ListenerResult handle(geode::Function<Callback> fn, T* e) {
+        template <typename F> requires (std::is_invocable_r_v<ListenerResult, F, T*>)
+        ListenerResult handle(F&& fn, T* e) {
             return fn(e);
         }
 
@@ -117,17 +118,14 @@ namespace geode {
     };
 
     template <typename T>
-    concept is_filter = // # no need to do this IMO - HJfod # std::is_base_of_v<EventFilter<typename T::Event>, T> &&
+    concept IsFilter = // # no need to do this IMO - HJfod # std::is_base_of_v<EventFilter<typename T::Event>, T> &&
         requires(T a, T const& ca) {
             typename T::Callback;
             typename T::Event;
-            { a.handle(std::declval<geode::Function<typename T::Callback>&>(), std::declval<typename T::Event*>()) } -> std::same_as<ListenerResult>;
-            { ca.getPool() } -> std::convertible_to<EventListenerPool*>;
-            { a.setListener(std::declval<EventListenerProtocol*>()) } -> std::same_as<void>;
-            { ca.getListener() } -> std::convertible_to<EventListenerProtocol*>;
+            { std::is_base_of_v<EventFilter<typename T::Event>, T> };
         };
 
-    template <is_filter T>
+    template <IsFilter T>
     class EventListener : public EventListenerProtocol {
     public:
         using Callback = typename T::Callback;
@@ -243,7 +241,7 @@ namespace geode {
     };
 
     // Creates an EventListener that is active for the entire lifetime of the game. You have no way of disabling the listener, so only use this if you want to always listen for certain events!
-    template <is_filter T>
+    template <IsFilter T>
     void globalListen(typename T::Callback callback, T filter = T()) {
         new EventListener<T>(callback, filter);
     }

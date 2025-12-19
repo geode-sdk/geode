@@ -15,6 +15,7 @@ namespace geode {
     struct GEODE_DLL AEnterLayerEvent : public Event {
         const std::string layerID;
         cocos2d::CCNode* layer;
+        EventListenerPool* getPool() const override;
 
         AEnterLayerEvent(
             std::string layerID,
@@ -31,6 +32,7 @@ namespace geode {
 
 	public:
         ListenerResult handle(geode::Function<Callback>& fn, AEnterLayerEvent* event);
+        EventListenerPool* getPool() const override;
 
 		AEnterLayerFilter(
 			std::optional<std::string> id
@@ -69,7 +71,7 @@ namespace geode {
 		std::optional<std::string> m_targetID;
 
 	public:
-        ListenerResult handle(geode::Function<Callback> fn, EnterLayerEvent<N>* event) {
+        ListenerResult handle(geode::Function<Callback>& fn, EnterLayerEvent<N>* event) {
             if (m_targetID.has_value()) {
                 if (m_targetID.value() == event->getID()) {
                     fn(static_cast<T*>(event));

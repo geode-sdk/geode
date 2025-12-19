@@ -14,6 +14,7 @@ namespace geode::updater {
     struct ResourceDownloadEvent : public Event {
         const UpdateStatus status;
         explicit ResourceDownloadEvent(UpdateStatus status);
+        EventListenerPool* getPool() const override;
     };
 
     class ResourceDownloadFilter : public EventFilter<ResourceDownloadEvent> {
@@ -22,12 +23,14 @@ namespace geode::updater {
         ListenerResult handle(F&& fn, ResourceDownloadEvent* event) {
             return fn(event);
         }
+        EventListenerPool* getPool() const override;
         ResourceDownloadFilter();
     };
 
     struct LoaderUpdateEvent : public Event {
         const UpdateStatus status;
         explicit LoaderUpdateEvent(UpdateStatus status);
+        EventListenerPool* getPool() const override;
     };
 
     class LoaderUpdateFilter : public EventFilter<LoaderUpdateEvent> {
@@ -36,6 +39,7 @@ namespace geode::updater {
         ListenerResult handle(F&& fn, LoaderUpdateEvent* event) {
             return fn(event);
         }
+        EventListenerPool* getPool() const override;
         LoaderUpdateFilter();
     };
 

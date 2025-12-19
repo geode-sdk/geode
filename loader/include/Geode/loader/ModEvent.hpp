@@ -42,7 +42,7 @@ namespace geode {
 
     public:
         EventListenerPool* getPool() const override;
-        ListenerResult handle(geode::Function<Callback> fn, ModStateEvent* event);
+        ListenerResult handle(geode::Function<Callback>& fn, ModStateEvent* event);
 
         /**
          * Create a mod state listener
@@ -66,6 +66,7 @@ namespace geode {
         DependencyLoadedEvent(Mod* target, Mod* dependency);
         virtual ~DependencyLoadedEvent();
 
+        EventListenerPool* getPool() const override;
         Mod* getTarget() const;
         Mod* getDependency() const;
         matjson::Value getDependencySettings() const;
@@ -84,6 +85,7 @@ namespace geode {
 
     public:
         ListenerResult handle(geode::Function<Callback>& fn, DependencyLoadedEvent* event);
+        EventListenerPool* getPool() const override;
 
         DependencyLoadedFilter(Mod* target = geode::getMod());
         DependencyLoadedFilter(DependencyLoadedFilter&&);

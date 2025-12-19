@@ -14,14 +14,26 @@ static std::unordered_map<std::string, web::WebTask> RUNNING_REQUESTS {};
 updater::ResourceDownloadEvent::ResourceDownloadEvent(
     UpdateStatus status
 ) : status(std::move(status)) {}
+EventListenerPool* updater::ResourceDownloadEvent::getPool() const {
+    return DefaultEventListenerPool::getForEvent<ResourceDownloadEvent>();
+}
 
 updater::ResourceDownloadFilter::ResourceDownloadFilter() = default;
+EventListenerPool* updater::ResourceDownloadFilter::getPool() const {
+    return DefaultEventListenerPool::getForEvent<ResourceDownloadEvent>();
+}
 
 updater::LoaderUpdateEvent::LoaderUpdateEvent(
     UpdateStatus status
 ) : status(std::move(status)) {}
+EventListenerPool* updater::LoaderUpdateEvent::getPool() const {
+    return DefaultEventListenerPool::getForEvent<LoaderUpdateEvent>();
+}
 
 updater::LoaderUpdateFilter::LoaderUpdateFilter() = default;
+EventListenerPool* updater::LoaderUpdateFilter::getPool() const {
+    return DefaultEventListenerPool::getForEvent<LoaderUpdateEvent>();
+}
 
 // cache for the json of the latest github release to avoid hitting
 // the github api too much

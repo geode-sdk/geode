@@ -11,6 +11,9 @@
 using namespace server;
 
 ModDownloadEvent::ModDownloadEvent(std::string const& id) : id(id) {}
+EventListenerPool* ModDownloadEvent::getPool() const {
+    return DefaultEventListenerPool::getForEvent<ModDownloadEvent>();
+}
 
 ListenerResult ModDownloadFilter::handle(geode::Function<Callback>& fn, ModDownloadEvent* event) {
     if (m_id.empty() || m_id == event->id) {
@@ -20,6 +23,9 @@ ListenerResult ModDownloadFilter::handle(geode::Function<Callback>& fn, ModDownl
 }
 ModDownloadFilter::ModDownloadFilter() {}
 ModDownloadFilter::ModDownloadFilter(std::string const& id) : m_id(id) {}
+EventListenerPool* ModDownloadFilter::getPool() const {
+    return DefaultEventListenerPool::getForEvent<ModDownloadEvent>();
+}
 
 class ModDownload::Impl final {
 public:
