@@ -267,6 +267,10 @@ namespace geode {
             m_impl->defaultValue = value;
         }
 
+        T const& getValueRef() const {
+            return m_impl->value;
+        }
+
     public:
         SettingBaseValueV3() : m_impl(std::make_shared<Impl>()) {}
 
@@ -435,6 +439,9 @@ namespace geode {
     public:
         StringSettingV3(PrivateMarker);
         static Result<std::shared_ptr<StringSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
+
+        // return ZStringView instead of std::string to allow avoiding copies
+        ZStringView getValue() const;
 
         Result<> isValid(std::string_view value) const override;
 
@@ -722,6 +729,10 @@ namespace geode {
     };
     template <>
     struct SettingTypeForValueType<std::string> {
+        using SettingType = StringSettingV3;
+    };
+    template <>
+    struct SettingTypeForValueType<std::string_view> {
         using SettingType = StringSettingV3;
     };
     template <>
