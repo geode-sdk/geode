@@ -1,11 +1,12 @@
-#include "console.hpp"
 #include "LogImpl.hpp"
 
+#include "console.hpp"
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Types.hpp>
+#include <Geode/utils/StringBuffer.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/general.hpp>
 #include <fmt/chrono.h>
