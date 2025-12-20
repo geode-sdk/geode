@@ -187,7 +187,7 @@ public:
      * If true, the layout will not take into account invisible children when creating gaps or
      * calculating content sizes
      */
-    SimpleAxisLayout* ignoreInvisibleChildren(bool ignore = true) override;
+    SimpleAxisLayout* ignoreInvisibleChildren(bool ignore = true);
 
     Axis getAxis() const;
     AxisScaling getMainAxisScaling() const;

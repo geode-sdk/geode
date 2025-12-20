@@ -42,7 +42,7 @@ public:
      * If true, the layout will not take into account invisible children when creating gaps or
      * calculating content sizes
      */
-    virtual Layout* ignoreInvisibleChildren(bool ignore = true);
+    Layout* ignoreInvisibleChildren(bool ignore = true);
     bool isIgnoreInvisibleChildren() const;
 
     virtual ~Layout() = default;
@@ -315,7 +315,7 @@ public:
      * If true, the layout will not take into account invisible children when creating gaps or
      * calculating content sizes
      */
-    AxisLayout* ignoreInvisibleChildren(bool ignore = true) override;
+    AxisLayout* ignoreInvisibleChildren(bool ignore = true);
 };
 
 /**
