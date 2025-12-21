@@ -180,6 +180,24 @@ namespace geode {
             return numToString(num);
         }
 
+        namespace _detail {
+            GEODE_DLL Result<long double> longDoubleFromString(std::string_view str);
+            GEODE_DLL Result<double> doubleFromString(std::string_view str);
+            GEODE_DLL Result<float> floatFromString(std::string_view str);
+
+            GEODE_DLL Result<uint64_t> uint64FromString(std::string_view str, int base = 10);
+            GEODE_DLL Result<int64_t> int64FromString(std::string_view str, int base = 10);
+
+            template <typename T, typename Y>
+            Result<T> narrow(Y num) {
+                if (num < static_cast<Y>(std::numeric_limits<T>::min()) ||
+                    num > static_cast<Y>(std::numeric_limits<T>::max())) {
+                    return Err("Number is out of range for target type");
+                }
+                return Ok(static_cast<T>(num));
+            }
+        }
+
         /**
          * Parse a number from a string
          * @param str The string to parse
@@ -188,36 +206,24 @@ namespace geode {
          */
         template <class Num>
         Result<Num> numFromString(std::string_view str, int base = 10) {
-            if constexpr (std::is_floating_point_v<Num>
-                #if defined(__cpp_lib_to_chars)
-                    && false
-                #endif
-            ) {
-                Num val;
-                char* strEnd;
-                errno = 0;
-                if (std::setlocale(LC_NUMERIC, "C")) {
-                    if constexpr (std::is_same_v<Num, float>) val = std::strtof(str.data(), &strEnd);
-                    else if constexpr (std::is_same_v<Num, double>) val = std::strtod(str.data(), &strEnd);
-                    else if constexpr (std::is_same_v<Num, long double>) val = std::strtold(str.data(), &strEnd);
-                    if (errno == ERANGE) return Err("Number is too large to fit");
-                    else if (strEnd == str.data()) return Err("String is not a number");
-                    else return Ok(val);
-                }
-                else return Err("Failed to set locale");
+            if constexpr (std::is_same_v<Num, float>) {
+                return _detail::floatFromString(str);
+            } else if constexpr (std::is_same_v<Num, double>) {
+                return _detail::doubleFromString(str);
+            } else if constexpr (std::is_same_v<Num, long double>) {
+                return _detail::longDoubleFromString(str);
             }
-            else {
-                Num result;
-                std::from_chars_result res;
-                if constexpr (std::is_floating_point_v<Num>) res = std::from_chars(str.data(), str.data() + str.size(), result);
-                else res = std::from_chars(str.data(), str.data() + str.size(), result, base);
 
-                auto [ptr, ec] = res;
-                if (ec == std::errc()) return Ok(result);
-                else if (ptr != str.data() + str.size()) return Err("String contains trailing extra data");
-                else if (ec == std::errc::invalid_argument) return Err("String is not a number");
-                else if (ec == std::errc::result_out_of_range) return Err("Number is too large to fit");
-                else return Err("Unknown error");
+            // use either int64 or uint64 as an intermediary
+            using IntType = std::conditional_t<std::is_signed_v<Num>, int64_t, uint64_t>;
+            if constexpr (std::is_signed_v<Num>) {
+                return _detail::int64FromString(str, base).andThen([](int64_t val) {
+                    return _detail::narrow<Num>(val);
+                });
+            } else {
+                return _detail::uint64FromString(str, base).andThen([](uint64_t val) {
+                    return _detail::narrow<Num>(val);
+                });
             }
         }
 
