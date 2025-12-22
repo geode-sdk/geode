@@ -2,6 +2,8 @@
 #include <Geode/ui/SpacerNode.hpp>
 #include <Geode/utils/cocos.hpp>
 
+#include <algorithm>
+
 using namespace geode::prelude;
 
 class SimpleAxisLayoutOptions::Impl {

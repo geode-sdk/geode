@@ -246,7 +246,7 @@ namespace geode {
         T getSettingValue(std::string_view key) const {
             using S = typename SettingTypeForValueType<T>::SettingType;
             if (auto sett = cast::typeinfo_pointer_cast<S>(this->getSetting(key))) {
-                return T{ sett->getValue() };
+                return T(sett->getValue());
             }
             return T();
         }
