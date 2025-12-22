@@ -237,10 +237,7 @@ struct MDParser {
     static int parseText(MD_TEXTTYPE type, MD_CHAR const* rawText, MD_SIZE size, void* mdtextarea) {
         auto textarea = static_cast<MDTextArea*>(mdtextarea);
         auto renderer = textarea->m_renderer;
-        auto compatibilityMode = false;
-        if (auto boolObj = static_cast<CCBool*>(textarea->getUserObject("compatibilityMode"_spr))) {
-            compatibilityMode = boolObj->getValue();
-        }
+        auto compatibilityMode = textarea->m_compatibilityMode;
 
         auto text = std::string(rawText, size);
         switch (type) {
@@ -757,13 +754,11 @@ void MDTextArea::updateLabel() {
     MDParser::s_codeSpans = {};
 
     auto textContent = m_text;
-    if (auto boolObj = static_cast<CCBool*>(this->getUserObject("compatibilityMode"_spr))) {
-        if (boolObj->getValue()) {
-            textContent = MDTextArea::translateNewlines(m_text);
+    if (m_compatibilityMode) {
+        textContent = MDTextArea::translateNewlines(m_text);
 
-            // ery proofing...
-            utils::string::replaceIP(textContent, "<c_>", "<c->");
-        }
+        // ery proofing...
+        utils::string::replaceIP(textContent, "<c_>", "<c->");
     }
 
     if (md_parse(textContent.c_str(), textContent.size(), &parser, this)) {
@@ -831,10 +826,6 @@ MDTextArea* MDTextArea::create(std::string str, CCSize const& size) {
 
 MDTextArea* MDTextArea::create(std::string str, CCSize const& size, bool compatibilityMode) {
     auto ret = new MDTextArea;
-
-    // TODO in v5: put this in the members
-    auto boolObj = CCBool::create(compatibilityMode);
-    ret->setUserObject("compatibilityMode"_spr, boolObj);
 
     if (ret->init(std::move(str), size)) {
         ret->autorelease();

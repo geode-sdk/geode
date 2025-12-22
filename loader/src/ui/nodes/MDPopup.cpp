@@ -6,8 +6,8 @@
 using namespace geode::prelude;
 
 bool MDPopup::setup(
-    char const* title, std::string info, char const* btn1Text, char const* btn2Text,
-    geode::Function<void(bool)> onClick
+    bool compatibilityMode, char const* title, std::string info, char const* btn1Text,
+    char const* btn2Text, geode::Function<void(bool)> onClick
 ) {
     m_onClick = std::move(onClick);
 
@@ -15,11 +15,6 @@ bool MDPopup::setup(
         m_size.width - 50.f,
         m_size.height - 100.f,
     };
-
-    auto compatibilityMode = false;
-    if (auto boolObj = static_cast<CCBool*>(this->getUserObject("compatibilityMode"_spr))) {
-        compatibilityMode = boolObj->getValue();
-    }
 
     auto content = MDTextArea::create(info, contentSize, compatibilityMode);
     m_mainLayer->addChildAtPosition(content, Anchor::Center, ccp(0, 0));
@@ -74,7 +69,7 @@ MDPopup* MDPopup::create(
 ) {
     auto ret = new MDPopup();
     if (ret->initAnchored(
-            400.f, MDPopup::estimateHeight(content), title, std::move(content), btn1, btn2, std::move(onClick),
+            400.f, MDPopup::estimateHeight(content), false, title, std::move(content), btn1, btn2, std::move(onClick),
             "square01_001.png", { 0, 0, 94, 94 }
         )) {
         ret->autorelease();
@@ -90,12 +85,8 @@ MDPopup* MDPopup::create(
 ) {
     auto ret = new MDPopup();
 
-    // TODO in v5: put this as part of the popup setup or something
-    auto boolObj = CCBool::create(compatibilityMode);
-    ret->setUserObject("compatibilityMode"_spr, boolObj);
-
     if (ret->initAnchored(
-            400.f, MDPopup::estimateHeight(content), title, std::move(content), btn1, btn2, std::move(onClick),
+            400.f, MDPopup::estimateHeight(content), compatibilityMode, title, std::move(content), btn1, btn2, std::move(onClick),
             "square01_001.png", { 0, 0, 94, 94 }
         )) {
         ret->autorelease();

@@ -10,13 +10,13 @@ namespace geode {
      */
     class GEODE_DLL MDPopup :
         public Popup<
-            char const*, std::string, char const*, char const*,
-            geode::Function<void(bool)>> {
+            bool, char const*, std::string, char const*,
+            char const*, geode::Function<void(bool)>> {
     protected:
         geode::Function<void(bool)> m_onClick = nullptr;
 
         bool setup(
-            char const* title, std::string info, char const* btn1, char const* btn2,
+            bool compatibilityMode, char const* title, std::string info, char const* btn1, char const* btn2,
             geode::Function<void(bool)> onClick
         ) override;
 
