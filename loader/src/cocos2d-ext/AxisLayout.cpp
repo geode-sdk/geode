@@ -930,6 +930,12 @@ AxisLayout* AxisLayout::setDefaultScaleLimits(float min, float max) {
     return this;
 }
 
+AxisLayout* AxisLayout::ignoreInvisibleChildren(bool ignore) {
+    Layout::ignoreInvisibleChildren(ignore);
+
+    return this;
+}
+
 AxisLayout::AxisLayout(Axis axis) : m_impl(std::make_unique<Impl>()) {
     m_impl->m_axis = axis;
 }

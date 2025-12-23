@@ -846,6 +846,11 @@ SimpleAxisLayout* SimpleAxisLayout::setMaxRelativeScale(std::optional<float> sca
     return this;
 }
 
+SimpleAxisLayout* SimpleAxisLayout::ignoreInvisibleChildren(bool ignore) {
+    Layout::ignoreInvisibleChildren(ignore);
+    return this;
+}
+
 Axis SimpleAxisLayout::getAxis() const {
     return m_impl->m_axis;
 }
