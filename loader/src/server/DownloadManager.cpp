@@ -382,13 +382,13 @@ bool ModDownloadManager::checkAutoConfirm() {
     for (auto& [_, download] :  m_impl->m_downloads) {
         auto status = download.getStatus();
         if (auto confirm = std::get_if<server::DownloadStatusConfirm>(&status)) {
-            for (auto inc : confirm->version.metadata.getIncompatibilities()) {
+            for (auto& inc : confirm->version.metadata.getIncompatibilities()) {
                 // If some mod has an incompatability that is installed,
                 // we need to ask for confirmation
                 if (inc.mod && (!download.getVersion().has_value() || inc.version.compare(download.getVersion().value()))) {
                     return false;
                 }
-                for (auto download : ModDownloadManager::get()->getDownloads()) {
+                for (auto& download : ModDownloadManager::get()->getDownloads()) {
                     if (download.isDone() && inc.id == download.getID() && (!download.getVersion().has_value() || inc.version.compare(download.getVersion().value()))) {
                         return false;
                     }
@@ -397,7 +397,7 @@ bool ModDownloadManager::checkAutoConfirm() {
             // If some installed mod is incompatible with this one,
             // we need to ask for confirmation
             for (auto mod : Loader::get()->getAllMods()) {
-                for (auto inc : mod->getMetadata().getIncompatibilities()) {
+                for (auto& inc : mod->getMetadata().getIncompatibilities()) {
                     if (inc.id == download.getID() && (!download.getVersion().has_value() || inc.version.compare(download.getVersion().value()))) {
                         return false;
                     }
@@ -406,10 +406,10 @@ bool ModDownloadManager::checkAutoConfirm() {
 
             // If some newly downloaded mods are incompatible with this one,
             // we need to ask for confirmation
-            for (auto download : ModDownloadManager::get()->getDownloads()) {
+            for (auto& download : ModDownloadManager::get()->getDownloads()) {
                 auto status = download.getStatus();
                 if (auto done = std::get_if<DownloadStatusDone>(&status)) {
-                    for (auto inc : done->version.metadata.getIncompatibilities()) {
+                    for (auto& inc : done->version.metadata.getIncompatibilities()) {
                         if (inc.id == download.getID() && inc.version.compare(done->version.metadata.getVersion())) {
                             return false;
                         }
