@@ -26,6 +26,7 @@ namespace geode {
         ModStateEvent(Mod* mod, ModEventType type);
         ModEventType getType() const;
         Mod* getMod() const;
+        bool filter(ModEventType type, Mod* mod) const;
     };
 
     /**
@@ -67,6 +68,8 @@ namespace geode {
         Mod* getTarget() const;
         Mod* getDependency() const;
         matjson::Value getDependencySettings() const;
+
+        bool filter(Mod* target) const;
     };
 
     /**

@@ -647,6 +647,7 @@ namespace geode {
         SettingChangedEventV3(std::shared_ptr<SettingV3> setting);
 
         std::shared_ptr<SettingV3> getSetting() const;
+        bool filter(std::string_view modID, std::optional<std::string_view> settingKey) const;
     };
     class GEODE_DLL SettingChangedFilterV3 final : public EventFilter<SettingChangedEventV3> {
     private:
