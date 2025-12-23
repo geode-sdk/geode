@@ -114,12 +114,6 @@ namespace geode {
          */
         [[nodiscard]] ZStringView getID() const;
         /**
-         * True if the mod has a mod ID that will be rejected in the future,
-         * such as using uppercase letters or having multiple dots. Mods like
-         * this should release new versions that supersede the old ones
-         */
-        [[nodiscard]] bool usesDeprecatedIDForm() const;
-        /**
          * Name of the mod. May contain
          * spaces & punctuation, but should
          * be restricted to the ASCII
