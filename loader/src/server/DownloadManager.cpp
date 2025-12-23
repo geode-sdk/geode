@@ -397,7 +397,7 @@ bool ModDownloadManager::checkAutoConfirm() {
             // If some installed mod is incompatible with this one,
             // we need to ask for confirmation
             for (auto mod : Loader::get()->getAllMods()) {
-                for (auto inc : mod->getMetadataRef().getIncompatibilities()) {
+                for (auto inc : mod->getMetadata().getIncompatibilities()) {
                     if (inc.id == download.getID() && (!download.getVersion().has_value() || inc.version.compare(download.getVersion().value()))) {
                         return false;
                     }

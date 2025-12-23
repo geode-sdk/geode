@@ -256,7 +256,7 @@ std::string ModProblemItem::createProblemMessage() {
         case LoadProblem::Type::UnsupportedGeodeVersion: {
             ss << fmt::format(
                 "requires Geode {} to run (installed: {})",
-                m_source->getMetadataRef().getGeodeVersion(),
+                m_source->getMetadata().getGeodeVersion(),
                 Loader::get()->getVersion().toNonVString()
             );
             return ss.str();
