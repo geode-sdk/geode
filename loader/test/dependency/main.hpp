@@ -44,7 +44,7 @@ class GEODE_TESTDEP_DLL TestEventFilter : public EventFilter<TestEvent> {
 public:
     using Callback = void(TestEvent*);
 
-    ListenerResult handle(std::function<Callback> fn, TestEvent* event);
+    ListenerResult handle(geode::Function<Callback>& fn, TestEvent* event);
     TestEventFilter();
     TestEventFilter(TestEventFilter const&) = default;
 };

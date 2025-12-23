@@ -29,8 +29,8 @@ namespace geode {
         Mod* m_mod;
         std::string m_key;
 
-        HandleToSaved(std::string const& key, Mod* mod, T const& value) :
-            T(value), m_key(key), m_mod(mod) {}
+        HandleToSaved(std::string key, Mod* mod, T value) :
+            T(std::move(value)), m_key(std::move(key)), m_mod(mod) {}
 
         HandleToSaved(HandleToSaved const&) = delete;
         HandleToSaved(HandleToSaved&&) = delete;
@@ -89,8 +89,8 @@ namespace geode {
         Mod(ModMetadata const& metadata);
         ~Mod();
 
-        std::string getID() const;
-        std::string getName() const;
+        ZStringView getID() const;
+        ZStringView getName() const;
         std::vector<std::string> getDevelopers() const;
         std::optional<std::string> getDescription() const;
         std::optional<std::string> getDetails() const;
@@ -246,7 +246,7 @@ namespace geode {
         T getSettingValue(std::string_view key) const {
             using S = typename SettingTypeForValueType<T>::SettingType;
             if (auto sett = cast::typeinfo_pointer_cast<S>(this->getSetting(key))) {
-                return sett->getValue();
+                return T(sett->getValue());
             }
             return T();
         }
@@ -331,21 +331,21 @@ namespace geode {
          */
         template<class DetourType>
         Result<Hook*> hook(
-            void* address, DetourType detour, std::string const& displayName = "",
+            void* address, DetourType detour, std::string displayName = "",
             tulip::hook::TulipConvention convention = tulip::hook::TulipConvention::Default,
-            tulip::hook::HookMetadata const& hookMetadata = tulip::hook::HookMetadata()
+            tulip::hook::HookMetadata hookMetadata = tulip::hook::HookMetadata()
         ) {
-            auto hook = Hook::create(address, detour, displayName, convention, hookMetadata);
+            auto hook = Hook::create(address, detour, std::move(displayName), convention, std::move(hookMetadata));
             GEODE_UNWRAP_INTO(auto ptr, this->claimHook(std::move(hook)));
             return Ok(ptr);
         }
 
         Result<Hook*> hook(
-            void* address, void* detour, std::string const& displayName,
-            tulip::hook::HandlerMetadata const& handlerMetadata,
-            tulip::hook::HookMetadata const& hookMetadata
+            void* address, void* detour, std::string displayName,
+            tulip::hook::HandlerMetadata handlerMetadata,
+            tulip::hook::HookMetadata hookMetadata
         ) {
-            auto hook = Hook::create(address, detour, displayName, handlerMetadata, hookMetadata);
+            auto hook = Hook::create(address, detour, std::move(displayName), std::move(handlerMetadata), std::move(hookMetadata));
             GEODE_UNWRAP_INTO(auto ptr, this->claimHook(std::move(hook)));
             return Ok(ptr);
         }
@@ -454,7 +454,7 @@ namespace geode {
          */
         bool hasUnresolvedIncompatibilities() const;
 
-        std::string_view expandSpriteName(std::string_view name);
+        std::string expandSpriteName(std::string_view name);
 
         /**
          * Get info about the mod as JSON
@@ -499,9 +499,16 @@ namespace geode {
         bool shouldLoad() const;
         bool isCurrentlyLoading() const;
 
+        /**
+         * Get the load priority of this mod.
+         */
+        int getLoadPriority() const;
+
         friend class ModImpl;
     };
 }
+
+#ifdef GEODE_MOD_ID
 
 namespace geode::geode_internal {
     // this impl relies on the GEODE_MOD_ID macro set by cmake
@@ -527,6 +534,20 @@ constexpr auto operator""_spr() {
     return Str.buffer;
 }
 
+#else
+
+// can't really work without the mod id macro
+// GEODE_HIDDEN inline char const* operator"" _spr(char const* str, size_t len) {
+//     return geode::Mod::get()->expandSpriteName({ str, len }).data();
+// }
+
+GEODE_HIDDEN inline char const* operator"" _spr(char const* str, size_t len) {
+    geode::log::error("GEODE_MOD_ID not defined, _spr cannot be used");
+    return nullptr;
+}
+
+#endif
+
 /**
  * Leaves a marker in the binary that can be used to patch
  * the game at a specific offset with a specific byte sequence.
@@ -538,10 +559,10 @@ constexpr auto operator""_spr() {
  * ```
  */
 #define GEODE_MOD_STATIC_PATCH(Offset_, ...) \
-    geode::doNotOptimize(geode::utils::string::ConstexprString::toLiteral([](){\
-        geode::utils::string::ConstexprString str2;              \
+    geode::doNotOptimize(geode::utils::string::ConstexprString<>::toLiteral([](){ \
+        geode::utils::string::ConstexprString<> str2;            \
         str2.push(__VA_ARGS__);                                  \
-        geode::utils::string::ConstexprString str;               \
+        geode::utils::string::ConstexprString<> str;             \
         str.push("[GEODE_PATCH_SIZE]");                          \
         str.push(str2.size(), 16);                               \
         str.push("[GEODE_PATCH_BYTES]");                         \
@@ -562,8 +583,8 @@ constexpr auto operator""_spr() {
  * ```
  */
 #define GEODE_MOD_STATIC_HOOK(Offset_, Detour_, ...) \
-    (geode::doNotOptimize(geode::utils::string::ConstexprString::toLiteral([](){ \
-        geode::utils::string::ConstexprString str;                 \
+    (geode::doNotOptimize(geode::utils::string::ConstexprString<>::toLiteral([](){ \
+        geode::utils::string::ConstexprString<> str;               \
         str.push("[GEODE_MODIFY_NAME]");                           \
         str.push(GEODE_STR(__VA_ARGS__));                          \
         str.push("[GEODE_MODIFY_OFFSET]");                         \

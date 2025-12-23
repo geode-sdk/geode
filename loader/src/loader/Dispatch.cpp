@@ -2,7 +2,7 @@
 
 using namespace geode::prelude;
 
-std::unordered_map<std::string, EventListenerPool*>& geode::dispatchPools() {
-    static std::unordered_map<std::string, EventListenerPool*> pools;
+StringMap<EventListenerPool*>& geode::dispatchPools() {
+    static StringMap<EventListenerPool*> pools;
     return pools;
 }

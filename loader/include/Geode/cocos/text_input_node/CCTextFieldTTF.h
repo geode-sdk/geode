@@ -141,7 +141,7 @@ public:
     //////////////////////////////////////////////////////////////////////////
 
     CC_SYNTHESIZE_NV(CCTextFieldDelegate *, m_pDelegate, Delegate);
-    CC_SYNTHESIZE_READONLY(int, m_nCharCount, CharCount);
+    CC_SYNTHESIZE_READONLY_NV(int, m_nCharCount, CharCount);
     virtual const ccColor3B& getColorSpaceHolder();
     virtual void setColorSpaceHolder(const ccColor3B& color);
 

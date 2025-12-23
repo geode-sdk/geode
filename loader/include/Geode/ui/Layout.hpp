@@ -38,7 +38,11 @@ public:
      */
     virtual cocos2d::CCSize getSizeHint(cocos2d::CCNode* on) const = 0;
 
-    void ignoreInvisibleChildren(bool ignore);
+    /**
+     * If true, the layout will not take into account invisible children when creating gaps or
+     * calculating content sizes
+     */
+    Layout* ignoreInvisibleChildren(bool ignore = true);
     bool isIgnoreInvisibleChildren() const;
 
     virtual ~Layout() = default;
@@ -307,6 +311,11 @@ public:
      * Set the default minimum/maximum scales for nodes in the layout
      */
     AxisLayout* setDefaultScaleLimits(float min, float max);
+    /**
+     * If true, the layout will not take into account invisible children when creating gaps or
+     * calculating content sizes
+     */
+    AxisLayout* ignoreInvisibleChildren(bool ignore = true);
 };
 
 /**

@@ -40,9 +40,9 @@ namespace geode::ipc {
 
         IPCEvent(
             void* rawPipeHandle,
-            std::string const& targetModID,
-            std::string const& messageID,
-            matjson::Value const& messageData,
+            std::string targetModID,
+            std::string messageID,
+            matjson::Value messageData,
             matjson::Value& replyData
         );
         virtual ~IPCEvent();
@@ -57,17 +57,17 @@ namespace geode::ipc {
         std::string m_messageID;
 
     public:
-        ListenerResult handle(std::function<Callback> fn, IPCEvent* event);
+        ListenerResult handle(geode::Function<Callback>& fn, IPCEvent* event);
         IPCFilter(
-            std::string const& modID,
-            std::string const& messageID
+            std::string modID,
+            std::string messageID
         );
         IPCFilter(IPCFilter const&) = default;
     };
 
-    inline void listen(std::string const& messageID, matjson::Value(*callback)(IPCEvent*)) {
+    inline void listen(std::string messageID, matjson::Value(*callback)(IPCEvent*)) {
         (void) new EventListener(
-            callback, IPCFilter(getMod()->getID(), messageID)
+            callback, IPCFilter(getMod()->getID(), std::move(messageID))
         );
     }
 }

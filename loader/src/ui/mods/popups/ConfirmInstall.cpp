@@ -136,6 +136,8 @@ void askConfirmModInstalls() {
             else {
                 ModDownloadManager::get()->cancelAll();
             }
-        }
+        },
+        true,
+        false
     );
 }

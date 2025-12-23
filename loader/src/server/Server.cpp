@@ -813,12 +813,12 @@ ServerRequest<std::vector<ServerModUpdate>> server::batchedCheckUpdates(std::vec
 }
 
 void server::queueBatches(
-    ServerRequest<std::vector<ServerModUpdate>>::PostResult const resolve,
-    std::shared_ptr<std::vector<std::vector<std::string>>> const batches,
+    ServerRequest<std::vector<ServerModUpdate>>::PostResult resolve,
+    std::shared_ptr<std::vector<std::vector<std::string>>> batches,
     std::shared_ptr<std::vector<ServerModUpdate>> accum
 ) {
     // we have to do the copy here, or else our values die
-    batchedCheckUpdates(batches->back()).listen([resolve, batches, accum](auto result) {
+    batchedCheckUpdates(batches->back()).listen([resolve = std::move(resolve), batches = std::move(batches), accum = std::move(accum)](auto result) mutable {
         if (result->isOk()) {
             auto serverValues = result->unwrap();
 
@@ -827,7 +827,7 @@ void server::queueBatches(
 
             if (batches->size() > 1) {
                 batches->pop_back();
-                queueBatches(resolve, batches, accum);
+                queueBatches(std::move(resolve), std::move(batches), std::move(accum));
             }
             else {
                 resolve(Ok(*accum));
@@ -884,7 +884,7 @@ ServerRequest<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCach
     return ServerRequest<std::vector<ServerModUpdate>>::runWithCallback(
         [modBatches](auto finish, auto progress, auto hasBeenCancelled) {
             auto accum = std::make_shared<std::vector<ServerModUpdate>>();
-            queueBatches(finish, modBatches, accum);
+            queueBatches(std::move(finish), modBatches, accum);
         },
         "Mod Update Check"
     );

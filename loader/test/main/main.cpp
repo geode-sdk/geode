@@ -29,10 +29,12 @@ $execute {
 }
 
 // Coroutines
-#include <Geode/utils/async.hpp>
+#include <Geode/utils/coro.hpp>
 auto advanceFrame() {
     auto [task, finish, progress, cancelled] = Task<void>::spawn();
-    queueInMainThread(std::bind(finish, true));
+    queueInMainThread([finish = std::move(finish)] mutable {
+        finish(true);
+    });
 
     return task;
 }
@@ -215,14 +217,18 @@ struct GJGarageLayerTest2 : Modify<GJGarageLayerTest2, GJGarageLayer> {
         log::debug("Touch began on GJGarageLayer");
 
         if (m_fields->counter % 2) {
-            VMTHookManager::get().forceDisableFunction<
+            if (auto r = VMTHookManager::get().forceDisableFunction<
                 ResolveC<GJGarageLayerTest2>::func(&GJGarageLayerTest2::ccTouchEnded)
-            >(this);
+            >(this); !r) {
+                geode::log::warn("forceDisableFunction failed: {}", r.unwrapErr());
+            }
         }
         else {
-            VMTHookManager::get().forceEnableFunction<
+            if (auto r = VMTHookManager::get().forceEnableFunction<
                 ResolveC<GJGarageLayerTest2>::func(&GJGarageLayerTest2::ccTouchEnded)
-            >(this);
+            >(this); !r) {
+                geode::log::warn("forceEnableFunction failed: {}", r.unwrapErr());
+            }
         }
         m_fields->counter++;
         return true;

@@ -37,11 +37,11 @@ void setupConsole(bool forceUseEscapeCodes = false) {
 
 struct stdData {
     OVERLAPPED m_overlap{};
-    std::string const& m_name;
+    ZStringView m_name;
     const Severity m_sev;
     std::string& m_cur;
     char* m_buf;
-    stdData(std::string const& name, const Severity sev, std::string& cur, char* buf) :
+    stdData(ZStringView name, const Severity sev, std::string& cur, char* buf) :
         m_name(name), m_sev(sev), m_cur(cur), m_buf(buf) { }
 };
 void WINAPI CompletedReadRoutine(DWORD error, DWORD read, LPOVERLAPPED overlap) {
@@ -52,13 +52,13 @@ void WINAPI CompletedReadRoutine(DWORD error, DWORD read, LPOVERLAPPED overlap) 
                 o->m_cur += o->m_buf[i];
             continue;
         }
-        log::Logger::get()->push(o->m_sev, "", std::string(o->m_name), 0, std::string(o->m_cur));
+        log::Logger::get()->push(o->m_sev, 0, o->m_cur, "", o->m_name, nullptr);
         o->m_cur.clear();
     }
     delete o;
 }
 
-bool redirectStd(FILE* which, std::string const& name, const Severity sev) {
+bool redirectStd(FILE* which, ZStringView name, const Severity sev) {
     auto pipeName = utils::string::utf8ToWide(fmt::format(R"(\\.\pipe\geode-{}-{})", name, GetCurrentProcessId()));
     auto pipe = CreateNamedPipeW(
         pipeName.c_str(),
@@ -165,7 +165,7 @@ void console::openIfClosed() {
     setupConsole();
 }
 
-void console::log(std::string const& msg, Severity severity) {
+void console::log(ZStringView msg, Severity severity) {
     if (!s_outHandle)
         return;
     DWORD written;
@@ -199,17 +199,17 @@ void console::log(std::string const& msg, Severity severity) {
             color = 7;
             break;
     }
-    if (color2 == -1) {
-        auto const str = fmt::format("\x1b[38;5;{}m{}\x1b[0m{}\n", color, msg.substr(0, 14), msg.substr(14));
-        WriteFile(s_outHandle, str.c_str(), str.size(), &written, nullptr);
-    }
-    else {
-        auto const str = fmt::format("\x1b[38;5;{}m{}\x1b[0m{}\n", color, msg.substr(0, 14), msg.substr(14));
-        WriteFile(s_outHandle, str.c_str(), str.size(), &written, nullptr);
-    }
+    
+    std::string_view sv{msg};
+
+    // this is suboptimal but slightly better than hardcoding '14' which is what it was before
+    size_t colorEnd = sv.find_first_of('[') - 1;
+
+    auto str = fmt::format("\x1b[38;5;{}m{}\x1b[0m{}\n", color, sv.substr(0, colorEnd), sv.substr(colorEnd));
+    WriteFile(s_outHandle, str.c_str(), str.size(), &written, nullptr);
 }
 
-void console::messageBox(char const* title, std::string const& info, Severity severity) {
+void console::messageBox(ZStringView title, ZStringView info, Severity severity) {
     unsigned int icon;
     switch (severity) {
         case Severity::Debug:

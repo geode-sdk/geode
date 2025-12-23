@@ -15,7 +15,7 @@ static size_t ceildiv(size_t a, size_t b) {
 
 InvalidateCacheEvent::InvalidateCacheEvent(ModListSource* src) : source(src) {}
 
-ListenerResult InvalidateCacheFilter::handle(std::function<Callback> fn, InvalidateCacheEvent* event) {
+ListenerResult InvalidateCacheFilter::handle(geode::Function<Callback>& fn, InvalidateCacheEvent* event) {
     if (event->source == m_source) {
         fn(event);
     }
@@ -77,8 +77,8 @@ void ModListSource::clearCache() {
     m_cachedItemCount = std::nullopt;
     InvalidateCacheEvent(this).post();
 }
-void ModListSource::search(std::string const& query) {
-    this->setSearchQuery(query);
+void ModListSource::search(std::string query) {
+    this->setSearchQuery(std::move(query));
     this->clearCache();
 }
 
@@ -92,7 +92,7 @@ void ModListSource::clearAllCaches() {
     }
 }
 
-bool weightedFuzzyMatch(std::string const& str, std::string const& kw, double weight, double& out) {
+bool weightedFuzzyMatch(ZStringView str, ZStringView kw, double weight, double& out) {
     int score;
     if (fts::fuzzy_match(kw.c_str(), str.c_str(), score)) {
         out = std::max(out, score * weight);
@@ -100,7 +100,7 @@ bool weightedFuzzyMatch(std::string const& str, std::string const& kw, double we
     }
     return false;
 }
-bool modFuzzyMatch(ModMetadata const& metadata, std::string const& kw, double& weighted) {
+bool modFuzzyMatch(ModMetadata const& metadata, ZStringView kw, double& weighted) {
     bool addToList = false;
     addToList |= weightedFuzzyMatch(metadata.getName(), kw, 1, weighted);
     addToList |= weightedFuzzyMatch(metadata.getID(), kw, 0.5, weighted);

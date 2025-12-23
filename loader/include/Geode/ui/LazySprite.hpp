@@ -3,6 +3,7 @@
 #include "LoadingSpinner.hpp"
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/utils/function.hpp>
 
 #include <cocos2d.h>
 #include <filesystem>
@@ -20,7 +21,7 @@ namespace geode {
      */
     class GEODE_DLL LazySprite final : public cocos2d::CCSprite {
     public:
-        using Callback = std::function<void(Result<>)>;
+        using Callback = geode::Function<void(Result<>)>;
         using Format = cocos2d::CCImage::EImageFormat;
 
         static LazySprite* create(cocos2d::CCSize size, bool loadingCircle = true);
@@ -29,8 +30,6 @@ namespace geode {
         void loadFromUrl(char const* url, Format format = Format::kFmtUnKnown, bool ignoreCache = false);
         void loadFromFile(std::filesystem::path const& path, Format format = Format::kFmtUnKnown, bool ignoreCache = false);
         void loadFromData(std::span<uint8_t const> data, Format format = Format::kFmtUnKnown);
-        void loadFromData(uint8_t const* ptr, size_t size, Format format = Format::kFmtUnKnown);
-        void loadFromData(std::vector<uint8_t> data, Format format = Format::kFmtUnKnown);
 
         /**
          * Set the callback to be called once the sprite is fully loaded, or an error occurred.
@@ -76,7 +75,7 @@ namespace geode {
         cocos2d::CCSize m_targetSize;
 
         bool init(cocos2d::CCSize size, bool loadingCircle = true);
-        void doInitFromBytes(std::vector<uint8_t> data, std::string cacheKey);
+        void doInitFromBytes(std::span<uint8_t const> data, std::string cacheKey);
         std::string makeCacheKey(std::filesystem::path const& path);
         // std::string makeCacheKey(std::string_view url);
 

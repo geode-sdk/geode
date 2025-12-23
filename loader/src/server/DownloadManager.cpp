@@ -2,6 +2,7 @@
 #include "Geode/loader/Mod.hpp"
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/utils/map.hpp>
+#include <Geode/utils/StringMap.hpp>
 #include <fmt/format.h>
 #include <optional>
 #include <hash/hash.hpp>
@@ -10,16 +11,16 @@
 
 using namespace server;
 
-ModDownloadEvent::ModDownloadEvent(std::string const& id) : id(id) {}
+ModDownloadEvent::ModDownloadEvent(std::string id) : id(std::move(id)) {}
 
-ListenerResult ModDownloadFilter::handle(std::function<Callback> fn, ModDownloadEvent* event) {
+ListenerResult ModDownloadFilter::handle(geode::Function<Callback>& fn, ModDownloadEvent* event) {
     if (m_id.empty() || m_id == event->id) {
         fn(event);
     }
     return ListenerResult::Propagate;
 }
 ModDownloadFilter::ModDownloadFilter() {}
-ModDownloadFilter::ModDownloadFilter(std::string const& id) : m_id(id) {}
+ModDownloadFilter::ModDownloadFilter(std::string id) : m_id(std::move(id)) {}
 
 class ModDownload::Impl final {
 public:
@@ -33,15 +34,15 @@ public:
     unsigned int m_scheduledEventForFrame = 0;
 
     Impl(
-        std::string const& id,
-        std::optional<VersionInfo> const& version,
-        std::optional<DependencyFor> const& dependencyFor,
-        std::optional<std::string> const& replacesMod
+        std::string id,
+        std::optional<VersionInfo> version,
+        std::optional<DependencyFor> dependencyFor,
+        std::optional<std::string> replacesMod
     )
-      : m_id(id),
-        m_version(version),
-        m_dependencyFor(dependencyFor),
-        m_replacesMod(replacesMod),
+      : m_id(std::move(id)),
+        m_version(std::move(version)),
+        m_dependencyFor(std::move(dependencyFor)),
+        m_replacesMod(std::move(replacesMod)),
         m_status(DownloadStatusFetching {
             .percentage = 0,
         })
@@ -97,7 +98,7 @@ public:
             }
         });
         auto fetchVersion = version.has_value() ? ModVersion(*version) : ModVersion(ModVersionLatest());
-        m_infoListener.setFilter(getModVersion(id, fetchVersion));
+        m_infoListener.setFilter(getModVersion(m_id, fetchVersion));
         Loader::get()->queueInMainThread([id = m_id] {
             ModDownloadEvent(id).post();
         });
@@ -226,11 +227,11 @@ public:
 };
 
 ModDownload::ModDownload(
-    std::string const& id,
-    std::optional<VersionInfo> const& version,
-    std::optional<DependencyFor> const& dependencyFor,
-    std::optional<std::string> const& replacesMod
-) : m_impl(std::make_shared<Impl>(id, version, dependencyFor, replacesMod)) {}
+    std::string id,
+    std::optional<VersionInfo> version,
+    std::optional<DependencyFor> dependencyFor,
+    std::optional<std::string> replacesMod
+) : m_impl(std::make_shared<Impl>(std::move(id), std::move(version), std::move(dependencyFor), std::move(replacesMod))) {}
 
 void ModDownload::confirm() {
     m_impl->confirm();
@@ -269,7 +270,7 @@ std::optional<VersionInfo> ModDownload::getVersion() const {
 
 class ModDownloadManager::Impl {
 public:
-    std::unordered_map<std::string, ModDownload> m_downloads;
+    StringMap<ModDownload> m_downloads;
     Task<std::monostate> m_updateAllTask;
 
     void cancelOrphanedDependencies() {
@@ -309,10 +310,10 @@ void ModDownload::cancel() {
 }
 
 std::optional<ModDownload> ModDownloadManager::startDownload(
-    std::string const& id,
-    std::optional<VersionInfo> const& version,
-    std::optional<DependencyFor> const& dependencyFor,
-    std::optional<std::string> const& replacesMod
+    std::string id,
+    std::optional<VersionInfo> version,
+    std::optional<DependencyFor> dependencyFor,
+    std::optional<std::string> replacesMod
 ) {
     // If this mod has already been successfully downloaded or is currently
     // being downloaded, return as you can't download multiple versions of the
@@ -329,8 +330,13 @@ std::optional<ModDownload> ModDownloadManager::startDownload(
 
     // Start a new download by constructing a ModDownload (which starts the
     // download)
-    m_impl->m_downloads.emplace(id, ModDownload(id, version, dependencyFor, replacesMod));
-    return m_impl->m_downloads.at(id);
+    auto [it, _] = m_impl->m_downloads.emplace(id, ModDownload(
+        std::move(id),
+        std::move(version),
+        std::move(dependencyFor),
+        std::move(replacesMod)
+    ));
+    return it->second;
 }
 void ModDownloadManager::cancelAll() {
     for (auto& [_, d] : m_impl->m_downloads) {
@@ -425,11 +431,9 @@ bool ModDownloadManager::checkAutoConfirm() {
 std::vector<ModDownload> ModDownloadManager::getDownloads() const {
     return map::values(m_impl->m_downloads);
 }
-std::optional<ModDownload> ModDownloadManager::getDownload(std::string const& id) const {
-    if (m_impl->m_downloads.contains(id)) {
-        return m_impl->m_downloads.at(id);
-    }
-    return std::nullopt;
+std::optional<ModDownload> ModDownloadManager::getDownload(std::string_view id) const {
+    auto it = m_impl->m_downloads.find(id);
+    return it != m_impl->m_downloads.end() ? std::optional<ModDownload>(it->second) : std::nullopt;
 }
 bool ModDownloadManager::hasActiveDownloads() const {
     for (auto& [_, download] : m_impl->m_downloads) {

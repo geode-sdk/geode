@@ -27,6 +27,7 @@
 #include <resources.hpp>
 #include <string>
 #include <string_view>
+#include <unordered_set>
 #include <vector>
 
 #include <server/DownloadManager.hpp>
@@ -220,27 +221,26 @@ void Loader::Impl::loadData() {
 
 // Mod loading
 
-bool Loader::Impl::isModInstalled(std::string const& id) const {
-    return m_mods.count(id) && !m_mods.at(id)->isUninstalled();
+bool Loader::Impl::isModInstalled(std::string_view id) const {
+    return this->getInstalledMod(id) != nullptr;
 }
 
-Mod* Loader::Impl::getInstalledMod(std::string const& id) const {
-    if (m_mods.count(id) && !m_mods.at(id)->isUninstalled()) {
-        return m_mods.at(id);
+Mod* Loader::Impl::getInstalledMod(std::string_view id) const {
+    auto it = m_mods.find(id);
+    if (it != m_mods.end() && !it->second->isUninstalled()) {
+        return it->second;
     }
     return nullptr;
 }
 
-bool Loader::Impl::isModLoaded(std::string const& id) const {
-    return m_mods.count(id) && m_mods.at(id)->isEnabled();
+bool Loader::Impl::isModLoaded(std::string_view id) const {
+    return this->getLoadedMod(id) != nullptr;
 }
 
-Mod* Loader::Impl::getLoadedMod(std::string const& id) const {
-    if (m_mods.count(id)) {
-        auto mod = m_mods.at(id);
-        if (mod->isEnabled()) {
-            return mod;
-        }
+Mod* Loader::Impl::getLoadedMod(std::string_view id) const {
+    auto it = m_mods.find(id);
+    if (it != m_mods.end() && it->second->isEnabled()) {
+        return it->second;
     }
     return nullptr;
 }
@@ -253,28 +253,38 @@ void Loader::Impl::updateModResources(Mod* mod) {
     }
 
     // only thing needs previous setup is spritesheets
-    if (mod->getMetadataRef().getSpritesheets().empty())
+    auto& sheets = mod->getMetadataRef().getSpritesheets();
+    if (sheets.empty())
         return;
 
     log::debug("{}", mod->getID());
     log::NestScope nest;
 
-    for (auto const& sheet : mod->getMetadataRef().getSpritesheets()) {
+    for (auto const& sheet : sheets) {
         log::debug("Adding sheet {}", sheet);
-        auto png = sheet + ".png";
-        auto plist = sheet + ".plist";
+
         auto ccfu = CCFileUtils::get();
 
-        if (png == std::string(ccfu->fullPathForFilename(png.c_str(), false)) ||
-            plist == std::string(ccfu->fullPathForFilename(plist.c_str(), false))) {
+        std::string tmp;
+        tmp.reserve(sheet.size() + 6);
+        tmp.append(sheet);
+        tmp.append(".png");
+        auto pngPath = ccfu->fullPathForFilename(tmp.c_str(), false);
+        bool missingPng = std::string_view{pngPath} == tmp;
+        tmp.resize(sheet.size());
+        tmp.append(".plist");
+        auto plistPath = ccfu->fullPathForFilename(tmp.c_str(), false);
+        bool missingPlist = std::string_view{plistPath} == tmp;
+
+        if (missingPng || missingPlist) {
             log::warn(
                 R"(The resource dir of "{}" is missing "{}" png and/or plist files)",
                 mod->getID(), sheet
             );
         }
         else {
-            CCTextureCache::get()->addImage(png.c_str(), false);
-            CCSpriteFrameCache::get()->addSpriteFramesWithFile(plist.c_str());
+            CCTextureCache::get()->addImage(pngPath.c_str(), false);
+            CCSpriteFrameCache::get()->addSpriteFramesWithFile(plistPath.c_str());
         }
     }
 }
@@ -392,6 +402,7 @@ void Loader::Impl::buildModGraph() {
                 continue;
 
             dependency.mod->m_impl->m_dependants.push_back(mod);
+            dependency.mod->m_impl->m_settings->addDependant(mod);
         }
         for (auto& incompatibility : mod->m_impl->m_metadata.m_impl->m_incompatibilities) {
             incompatibility.mod =
@@ -730,6 +741,8 @@ void Loader::Impl::refreshModGraph() {
     m_loadingState = LoadingState::Mods;
 
     queueInMainThread([this]() {
+        utils::thread::setName("Main");
+
         log::info("Loading non-early mods");
         this->continueRefreshModGraph();
     });
@@ -737,48 +750,43 @@ void Loader::Impl::refreshModGraph() {
 
 void Loader::Impl::orderModStack() {
     std::unordered_set<Mod*> visited;
-    visited.insert(Mod::get());
-    Mod* selectedMod = nullptr;
-    do {
-        selectedMod = nullptr;
-        for (auto const& mod : ModImpl::get()->m_dependants) {
-            if (visited.count(mod) != 0) continue;
 
-            for (auto dep : mod->getMetadataRef().getDependencies()) {
-                if (dep.mod && dep.importance == ModMetadata::Dependency::Importance::Required &&
-                    visited.count(dep.mod) == 0) {
-                    // the dependency is not visited yet
-                    // so we cant select this mod
-                    goto skip_mod;
-                }
-            }
-
-            if (selectedMod) {
-                if (
-                    !selectedMod->m_impl->needsEarlyLoad() &&
-                    mod->m_impl->needsEarlyLoad()
-                ) {
-                    // this mod is implied to be loaded early
-                    // so we can override a mod that is not
-                    selectedMod = mod;
-                }
-            }
-            else {
-                selectedMod = mod;
-            }
-
-        skip_mod:
-            continue;
+    auto& dependants = ModImpl::get()->m_dependants;
+    std::sort(dependants.begin(), dependants.end(), [](Mod* a, Mod* b) {
+        // early load check (early loads go first)
+        auto aEarly = a->needsEarlyLoad();
+        auto bEarly = b->needsEarlyLoad();
+        if (aEarly != bEarly) {
+            return aEarly > bEarly;
         }
 
-        if (selectedMod) {
-            m_modsToLoad.push_back(selectedMod);
-            visited.insert(selectedMod);
+        // load priority check (higher priority/lower number goes first)
+        auto aPriority = a->getLoadPriority();
+        auto bPriority = b->getLoadPriority();
+        if (aPriority != bPriority) {
+            return aPriority < bPriority;
         }
-    } while (selectedMod != nullptr);
 
-    for (auto mod : m_modsToLoad) {
-        log::debug("{}, early: {}", mod->getID(), mod->needsEarlyLoad());
+        // fallback to alphabetical id order
+        return a->getID() < b->getID();
+    });
+
+    auto visit = [&](Mod* mod, auto&& visit) -> void {
+        if (mod == nullptr || mod == Mod::get()) return;
+        if (visited.contains(mod))
+            return;
+        visited.insert(mod);
+        for (auto dep : mod->m_impl->m_metadata.m_impl->m_dependencies) {
+            if (dep.importance != ModMetadata::Dependency::Importance::Required)
+                continue;
+            visit(dep.mod, visit);
+        }
+        m_modsToLoad.push_back(mod);
+        log::debug("{} [{}]{}", mod->getID(), mod->getLoadPriority(), mod->needsEarlyLoad() ? " (early)" : "");
+    };
+
+    for (auto mod : dependants) {
+        visit(mod, visit);
     }
 }
 
@@ -994,17 +1002,27 @@ void Loader::Impl::queueInMainThread(ScheduledFunction&& func) {
 }
 
 void Loader::Impl::executeMainThreadQueue() {
-    // move queue to avoid locking mutex if someone is
-    // running addToMainThread inside their function
     m_mainThreadMutex.lock();
-    auto queue = std::move(m_mainThreadQueue);
-    m_mainThreadQueue = {};
+
+    // to prevent allocating an extra vector every frame we have a separate temp queue,
+    // where we first move all functions before executing them.
+    // this means there are no allocations in the common case, and we maintain deadlock safety
+    // since we do not call any functions while holding the mutex
+
+    auto& queue = m_mainThreadQueue;
+    auto& execQueue = m_mainThreadQueueExec;
+    execQueue.reserve(queue.size());
+    std::move(queue.begin(), queue.end(), std::back_inserter(execQueue));
+    queue.clear();
+
     m_mainThreadMutex.unlock();
 
-    // call queue
-    for (auto const& func : queue) {
+    // call all functions
+    for (auto& func : execQueue) {
         func();
     }
+
+    execQueue.clear();
 }
 
 void Loader::Impl::provideNextMod(Mod* mod) {
@@ -1047,19 +1065,22 @@ void Loader::Impl::initLaunchArguments() {
     }
     arguments.emplace_back(std::move(currentArg));
 
-    for (const auto& arg : arguments) {
+    for (const auto& argstr : arguments) {
+        std::string_view arg{argstr};
         if (!arg.starts_with(LAUNCH_ARG_PREFIX)) {
             continue;
         }
-        auto pair = arg.substr(LAUNCH_ARG_PREFIX.size());
-        auto sep = pair.find('=');
+        arg.remove_prefix(LAUNCH_ARG_PREFIX.size());
+        auto sep = arg.find('=');
         if (sep == std::string::npos) {
-            m_launchArgs.insert({ pair, "true" });
+            m_launchArgs.insert({ std::string{arg}, "true" });
             continue;
         }
-        auto key = pair.substr(0, sep);
-        auto value = pair.substr(sep + 1);
-        m_launchArgs.insert({ key, value });
+
+        m_launchArgs.insert({
+            std::string{arg.substr(0, sep)},
+            std::string{arg.substr(sep + 1)}
+        });
     }
     for (const auto& pair : m_launchArgs) {
         log::debug("Loaded '{}' as '{}'", pair.first, pair.second);
@@ -1071,11 +1092,11 @@ std::vector<std::string> Loader::Impl::getLaunchArgumentNames() const {
 }
 
 bool Loader::Impl::hasLaunchArgument(std::string_view name) const {
-    return m_launchArgs.find(std::string(name)) != m_launchArgs.end();
+    return m_launchArgs.find(name) != m_launchArgs.end();
 }
 
 std::optional<std::string> Loader::Impl::getLaunchArgument(std::string_view name) const {
-    auto value = m_launchArgs.find(std::string(name));
+    auto value = m_launchArgs.find(name);
     if (value == m_launchArgs.end()) {
         return std::nullopt;
     }
@@ -1135,7 +1156,7 @@ void Loader::Impl::forceSafeMode() {
     m_forceSafeMode = true;
 }
 
-void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path, std::function<void()> after) {
+void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path, geode::Function<void()> after) {
     auto res = ModMetadata::createFromGeodeFile(path);
     if (!res) {
         FLAlertLayer::create(
@@ -1164,7 +1185,7 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
         )->show();
     }
 
-    auto doInstallModFromFile = [this, path, meta, after]() {
+    auto doInstallModFromFile = [this, path, meta, after = std::move(after)]() mutable {
         std::error_code ec;
 
         static size_t MAX_ATTEMPTS = 10;
@@ -1249,7 +1270,9 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
                     // No need to show a confirmation popup if successful since that's
                     // to be assumed via pressing the button on the previous popup
                 }
-            }
+            },
+            true,
+            false
         );
     };
 
@@ -1264,7 +1287,7 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
                 existing->getVersion()
             ),
             "Cancel", "Replace",
-            [doInstallModFromFile, path, existing, meta](auto, bool btn2) mutable {
+            [doInstallModFromFile = std::move(doInstallModFromFile), path, existing, meta](auto, bool btn2) mutable {
                 std::error_code ec;
                 std::filesystem::remove(existing->getPackagePath(), ec);
                 if (ec) {
@@ -1279,7 +1302,9 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
                     return;
                 }
                 doInstallModFromFile();
-            }
+            },
+            true,
+            false
         );
         return;
     }

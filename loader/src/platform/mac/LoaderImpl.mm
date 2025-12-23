@@ -21,16 +21,18 @@ struct MacConsoleData {
 bool s_isOpen = false;
 MacConsoleData s_platformData;
 
-void console::messageBox(char const* title, std::string const& info, Severity) {
-    CFStringRef cfTitle = CFStringCreateWithCString(NULL, title, kCFStringEncodingUTF8);
-    CFStringRef cfMessage = CFStringCreateWithCString(NULL, info.c_str(), kCFStringEncodingUTF8);
+void console::messageBox(ZStringView title, ZStringView info, Severity) {
+    CFStringRef cfTitle = CFStringCreateWithCString(NULL, title.c_str(), kCFStringEncodingUTF8);
+    CFStringRef cfMessage = CFStringCreateWithBytes(NULL, (unsigned char*)info.data(), info.size(), kCFStringEncodingUTF8, false);
 
     CFUserNotificationDisplayNotice(
         0, kCFUserNotificationNoteAlertLevel, NULL, NULL, NULL, cfTitle, cfMessage, NULL
     );
 }
 
-void console::log(std::string const& msg, Severity severity) {
+void console::log(ZStringView zmsg, Severity severity) {
+    auto msg = zmsg.view();
+
     if (s_isOpen) {
         int colorcode = 0;
         switch (severity) {
@@ -40,7 +42,13 @@ void console::log(std::string const& msg, Severity severity) {
             case Severity::Error: colorcode = 31; break;
             default: colorcode = 35; break;
         }
-        auto newMsg = "\033[1;" + std::to_string(colorcode) + "m" + msg.substr(0, 8) + "\033[0m" + msg.substr(8);
+        
+        auto newMsg = fmt::format(
+            "\033[1;{}m{}\033[0m{}",
+            colorcode,
+            msg.substr(0, 8),
+            msg.substr(8)
+        );
 
         std::cout << newMsg << "\n" << std::flush;
     }

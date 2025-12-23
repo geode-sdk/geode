@@ -119,7 +119,7 @@ namespace geode {
      * popup was opened, and `false` otherwise. If you wish to modify the
      * created popup, listen for the Geode UI events listed in `GeodeUI.hpp`
      */
-    GEODE_DLL Task<bool> openInfoPopup(std::string const& modID);
+    GEODE_DLL Task<bool> openInfoPopup(std::string_view modID);
     /**
      * Open the info popup for a mod on the changelog page
      */
@@ -164,5 +164,5 @@ namespace geode {
      * logo is initially a loading circle, with the actual sprite downloaded
      * asynchronously
      */
-    GEODE_DLL cocos2d::CCNode* createServerModLogo(std::string const& id);
+    GEODE_DLL cocos2d::CCNode* createServerModLogo(std::string id);
 }

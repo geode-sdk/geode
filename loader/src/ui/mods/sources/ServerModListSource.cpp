@@ -54,15 +54,20 @@ ServerModListSource* ServerModListSource::get(ServerModListType type) {
             static auto inst = new ServerModListSource(ServerModListType::Recent);
             return inst;
         } break;
+
+        case ServerModListType::Modtober: {
+            static auto inst = new ServerModListSource(ServerModListType::Modtober);
+            return inst;
+        } break;
     }
 }
 
-void ServerModListSource::setSearchQuery(std::string const& query) {
+void ServerModListSource::setSearchQuery(std::string query) {
     if (query.empty()) {
         m_query.query = std::nullopt;
         m_query.platforms = { GEODE_PLATFORM_TARGET };
     } else {
-        m_query.query = std::optional(query);
+        m_query.query = std::optional(std::move(query));
         m_query.platforms = {};
     }
 }
@@ -99,6 +104,10 @@ server::ModsQuery ServerModListSource::createDefaultQuery() const {
 
         case ServerModListType::Recent: return server::ModsQuery {
             .sorting = server::ModsSort::RecentlyPublished,
+        };
+
+        case ServerModListType::Modtober: return server::ModsQuery {
+            .tags = { "modtober25" }
         };
     }
 }

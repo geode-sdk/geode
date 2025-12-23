@@ -136,7 +136,7 @@ namespace geode::utils::ranges {
     }
 
     template <ValidConstContainer C>
-    std::string join(C const& cont, std::string const& separator) {
+    std::string join(C const& cont, std::string_view separator) {
         auto res = std::string();
         bool first = true;
         for (auto& p : cont) {

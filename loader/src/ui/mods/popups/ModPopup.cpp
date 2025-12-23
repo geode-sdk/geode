@@ -28,14 +28,14 @@ protected:
     CCNode* m_loading;
     std::string m_noneText;
 
-    bool init(Request const& req, std::string const& noneText, CCSize const& size) {
+    bool init(Request const& req, std::string noneText, CCSize const& size) {
         if (!CCNode::init())
             return false;
 
         this->setAnchorPoint({ .5f, .5f });
         this->setContentSize(size);
 
-        m_noneText = noneText;
+        m_noneText = std::move(noneText);
 
         m_textarea = MDTextArea::create("", size);
         m_textarea->setID("textarea");
@@ -67,9 +67,9 @@ protected:
     }
 
 public:
-    static FetchTextArea* create(Request const& req, std::string const& noneText, CCSize const& size) {
+    static FetchTextArea* create(Request const& req, std::string noneText, CCSize const& size) {
         auto ret = new FetchTextArea();
-        if (ret->init(req, noneText, size)) {
+        if (ret->init(req, std::move(noneText), size)) {
             ret->autorelease();
             return ret;
         }
@@ -82,7 +82,7 @@ bool ModPopup::setup(ModSource&& src) {
     m_source = std::move(src);
     m_noElasticity = true;
 
-    this->setID(std::string(Mod::get()->expandSpriteName(fmt::format("popup-{}", src.getID()))));
+    this->setID(Mod::get()->expandSpriteName(fmt::format("popup-{}", src.getID())));
 
     auto isGeode = src.asMod() == Mod::get();
     if (isGeode) {
@@ -843,7 +843,7 @@ void ModPopup::setStatIcon(CCNode* stat, const char* spr) {
     }
 }
 
-void ModPopup::setStatLabel(CCNode* stat, std::string const& value, bool noValue, ccColor3B color) {
+void ModPopup::setStatLabel(CCNode* stat, ZStringView value, bool noValue, ccColor3B color) {
     auto container = stat->getChildByID("labels");
 
     // Update label
@@ -973,24 +973,25 @@ void ModPopup::onLoadTags(typename server::ServerRequest<std::vector<server::Ser
         // If the build times from the cool popup become too long then we can
         // probably move that to a normal FLAlert that explains "Modtober was
         // this contest blah blah this mod was made for it"
-        else if (ranges::contains(data, [](auto const& tag) { return tag.name == "modtober24"; })) {
+        else if (auto tag = ranges::find(data, [](auto const& tag) { return tag.name.starts_with("modtober"); }); tag.has_value()) {
+            auto year = tag->name.substr(tag->name.size() - 2);
             auto menu = CCMenu::create();
             menu->setID("modtober-banner");
             menu->ignoreAnchorPointForPosition(false);
             menu->setContentSize({ m_rightColumn->getContentWidth(), 25 });
 
-            auto banner = CCSprite::createWithSpriteFrameName("modtober24-banner-2.png"_spr);
+            auto banner = CCSprite::createWithSpriteFrameName(fmt::format("modtober{}-banner-2.png"_spr, year).c_str());
             limitNodeWidth(banner, m_rightColumn->getContentWidth(), 1.f, .1f);
             menu->addChildAtPosition(banner, Anchor::Center);
 
-            auto label = CCLabelBMFont::create("Entry for Modtober 2024", "bigFont.fnt");
+            auto label = CCLabelBMFont::create(("Entry for Modtober 20" + year).c_str(), "bigFont.fnt");
             label->setScale(.35f);
             menu->addChildAtPosition(label, Anchor::Left, ccp(10, 0), ccp(0, .5f));
 
             auto aboutSpr = createGeodeButton("About", false, GeodeButtonSprite::Default, m_forceDisableTheme);
             aboutSpr->setScale(.35f);
             auto aboutBtn = CCMenuItemSpriteExtra::create(
-                aboutSpr, this, menu_selector(ModPopup::onModtoberInfo)
+                aboutSpr, this, year == "24" ? menu_selector(ModPopup::onModtober24Info) : menu_selector(ModPopup::onModtober25Info)
             );
             menu->addChildAtPosition(aboutBtn, Anchor::Right, ccp(-25, 0));
 
@@ -1158,11 +1159,20 @@ void ModPopup::onLink(CCObject* sender) {
 void ModPopup::onSupport(CCObject*) {
     openSupportPopup(m_source.getMetadata());
 }
-void ModPopup::onModtoberInfo(CCObject*) {
+void ModPopup::onModtober24Info(CCObject*) {
     FLAlertLayer::create(
         "Modtober 2024",
         "This mod was an entry for <cj>Modtober 2024</c>, a contest to create "
         "the best mod with the theme <cc>\"The Sky's the Limit\"</c>",
+        "OK"
+    )->show();
+}
+
+void ModPopup::onModtober25Info(CCObject*) {
+    FLAlertLayer::create(
+        "Modtober 2025",
+        "This mod was an entry for <co>Modtober 2025</c>, a contest to create "
+        "the best mod with the theme <cc>\"What The Heck!?\"</c>",
         "OK"
     )->show();
 }

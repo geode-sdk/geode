@@ -60,13 +60,13 @@ bool ModMetadata::Incompatibility::isResolved() const {
         (!this->mod || !this->version.compare(this->mod->getVersion()) || !this->mod->shouldLoad());
 }
 
-static std::string sanitizeDetailsData(std::string const& str) {
+static std::string sanitizeDetailsData(std::string str) {
     // delete CRLF
-    return utils::string::replace(str, "\r", "");
+    return utils::string::replace(std::move(str), "\r", "");
 }
 
 // todo in v5: remove all support for old mod IDs and replace any calls to this with just validateID
-bool ModMetadata::Impl::validateOldID(std::string const& id) {
+bool ModMetadata::Impl::validateOldID(std::string_view id) {
     // Old IDs may not be empty
     if (id.empty()) return false;
     for (auto const& c : id) {
@@ -77,7 +77,7 @@ bool ModMetadata::Impl::validateOldID(std::string const& id) {
     return true;
 }
 
-bool ModMetadata::Impl::validateID(std::string const& id) {
+bool ModMetadata::Impl::validateID(std::string_view id) {
     // IDs may not be empty nor exceed 64 characters
     if (id.size() == 0 || id.size() > 64) {
         return false;
@@ -101,7 +101,7 @@ bool ModMetadata::Impl::validateID(std::string const& id) {
     return true;
 }
 
-bool ModMetadata::Impl::isDeprecatedIDForm(std::string const& id) {
+bool ModMetadata::Impl::isDeprecatedIDForm(std::string_view id) {
     return !validateID(id) && validateOldID(id);
 }
 
@@ -121,7 +121,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
             }
         ).unwrapOr("v0.0.0")
     );
-
+    
     auto root = checkJson(impl->m_rawJSON, checkerRoot);
     root.needs("geode").into(impl->m_geodeVersion);
 
@@ -181,6 +181,8 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         impl->m_isAPI = true;
     }
 
+    root.has("load-priority").into(impl->m_loadPriority);
+
     if (info.getID() != "geode.loader") {
         impl->m_dependencies.push_back({
             "geode.loader",
@@ -191,7 +193,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     }
 
     if (auto deps = root.has("dependencies")) {
-        auto addDependency = [&impl, ID_REGEX](std::string const& id, JsonExpectedValue& dep, bool legacy) -> Result<> {
+        auto addDependency = [&impl, ID_REGEX](std::string id, JsonExpectedValue& dep, bool legacy) -> Result<> {
             if (!ModMetadata::Impl::validateOldID(id)) {
                 return Err("[mod.json].dependencies.\"{}\" is not a valid Mod ID ({})", id, ID_REGEX);
             }
@@ -250,7 +252,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
             impl->m_dependencies.push_back(dependency);
             // todo in v5: make Dependency pimpl and move this as a member there
             // `dep.has("settings").into(dependency.settings);`
-            impl->m_dependencySettings.insert({ id, dependencySettings });
+            impl->m_dependencySettings.insert({ std::move(id), dependencySettings });
 
             return Ok();
         };
@@ -270,7 +272,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     }
 
     if (auto incompats = root.has("incompatibilities")) {
-        auto addIncompat = [&impl, ID_REGEX](std::string const& id, JsonExpectedValue& incompat, bool legacy) -> Result<> {
+        auto addIncompat = [&impl, ID_REGEX](std::string id, JsonExpectedValue& incompat, bool legacy) -> Result<> {
             if (!ModMetadata::Impl::validateOldID(id)) {
                 return Err("[mod.json].incompatibilities.\"{}\" is not a valid Mod ID ({})", id, ID_REGEX);
             }
@@ -296,7 +298,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
             }
 
             Incompatibility incompatibility;
-            incompatibility.id = id;
+            incompatibility.id = std::move(id);
 
             if (incompat.isString()) {
                 incompat.into(incompatibility.version);
@@ -506,7 +508,7 @@ Result<> ModMetadata::Impl::addSpecialFiles(std::filesystem::path const& dir) {
             if (!data) {
                 return Err("Unable to read \"" + file + "\": " + data.unwrapErr());
             }
-            *target = sanitizeDetailsData(data.unwrap());
+            *target = sanitizeDetailsData(std::move(data.unwrap()));
         }
     }
     return Ok();
@@ -535,11 +537,11 @@ bool ModMetadata::Impl::operator==(ModMetadata::Impl const& other) const {
     return this->m_id == other.m_id;
 }
 
-[[maybe_unused]] std::filesystem::path ModMetadata::getPath() const {
+std::filesystem::path const& ModMetadata::getPath() const {
     return m_impl->m_path;
 }
 
-std::string ModMetadata::getBinaryName() const {
+ZStringView ModMetadata::getBinaryName() const {
     return m_impl->m_binaryName;
 }
 
@@ -547,7 +549,7 @@ VersionInfo ModMetadata::getVersion() const {
     return m_impl->m_version;
 }
 
-std::string ModMetadata::getID() const {
+ZStringView ModMetadata::getID() const {
     return m_impl->m_id;
 }
 
@@ -555,7 +557,7 @@ bool ModMetadata::usesDeprecatedIDForm() const {
     return Impl::isDeprecatedIDForm(m_impl->m_id);
 }
 
-std::string ModMetadata::getName() const {
+ZStringView ModMetadata::getName() const {
     return m_impl->m_name;
 }
 
@@ -571,40 +573,40 @@ std::string ModMetadata::formatDeveloperDisplayString(std::vector<std::string> c
     }
 }
 
-std::vector<std::string> ModMetadata::getDevelopers() const {
+std::vector<std::string> const& ModMetadata::getDevelopers() const {
     return m_impl->m_developers;
 }
-std::optional<std::string> ModMetadata::getDescription() const {
+std::optional<std::string> const& ModMetadata::getDescription() const {
     return m_impl->m_description;
 }
-std::optional<std::string> ModMetadata::getDetails() const {
+std::optional<std::string> const& ModMetadata::getDetails() const {
     return m_impl->m_details;
 }
-std::optional<std::string> ModMetadata::getChangelog() const {
+std::optional<std::string> const& ModMetadata::getChangelog() const {
     return m_impl->m_changelog;
 }
-std::optional<std::string> ModMetadata::getSupportInfo() const {
+std::optional<std::string> const& ModMetadata::getSupportInfo() const {
     return m_impl->m_supportInfo;
 }
-ModMetadataLinks ModMetadata::getLinks() const {
+ModMetadataLinks const& ModMetadata::getLinks() const {
     return m_impl->m_links;
 }
-std::optional<ModMetadata::IssuesInfo> ModMetadata::getIssues() const {
+std::optional<ModMetadata::IssuesInfo> const& ModMetadata::getIssues() const {
     return m_impl->m_issues;
 }
-std::vector<ModMetadata::Dependency> ModMetadata::getDependencies() const {
+std::vector<ModMetadata::Dependency> const& ModMetadata::getDependencies() const {
     return m_impl->m_dependencies;
 }
-std::vector<ModMetadata::Incompatibility> ModMetadata::getIncompatibilities() const {
+std::vector<ModMetadata::Incompatibility> const& ModMetadata::getIncompatibilities() const {
     return m_impl->m_incompatibilities;
 }
-std::vector<std::string> ModMetadata::getSpritesheets() const {
+std::vector<std::string> const& ModMetadata::getSpritesheets() const {
     return m_impl->m_spritesheets;
 }
-std::vector<std::pair<std::string, matjson::Value>> ModMetadata::getSettings() const {
+std::vector<std::pair<std::string, matjson::Value>> const& ModMetadata::getSettings() const {
     return m_impl->m_settings;
 }
-std::unordered_set<std::string> ModMetadata::getTags() const {
+std::unordered_set<std::string> const& ModMetadata::getTags() const {
     return m_impl->m_tags;
 }
 bool ModMetadata::needsEarlyLoad() const {
@@ -619,6 +621,9 @@ std::optional<std::string> ModMetadata::getGameVersion() const {
 }
 VersionInfo ModMetadata::getGeodeVersion() const {
     return m_impl->m_geodeVersion;
+}
+int ModMetadata::getLoadPriority() const {
+    return m_impl->m_loadPriority;
 }
 Result<> ModMetadata::checkGameVersion() const {
     if (!m_impl->m_gdVersion.empty() && m_impl->m_gdVersion != "*") {
@@ -677,70 +682,70 @@ Result<> ModMetadata::checkTargetVersions() const {
 }
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
-void ModMetadata::setPath(std::filesystem::path const& value) {
+void ModMetadata::setPath(std::filesystem::path value) {
     m_impl->m_path = value;
 }
-void ModMetadata::setBinaryName(std::string const& value) {
+void ModMetadata::setBinaryName(std::string value) {
     m_impl->m_binaryName = value;
 }
-void ModMetadata::setVersion(VersionInfo const& value) {
+void ModMetadata::setVersion(VersionInfo value) {
     m_impl->m_version = value;
 }
-void ModMetadata::setID(std::string const& value) {
+void ModMetadata::setID(std::string value) {
     m_impl->m_id = value;
 }
-void ModMetadata::setName(std::string const& value) {
+void ModMetadata::setName(std::string value) {
     m_impl->m_name = value;
 }
-void ModMetadata::setDeveloper(std::string const& value) {
-    m_impl->m_developers = { value };
+void ModMetadata::setDeveloper(std::string value) {
+    m_impl->m_developers = { std::move(value) };
 }
-void ModMetadata::setDevelopers(std::vector<std::string> const& value) {
+void ModMetadata::setDevelopers(std::vector<std::string> value) {
     m_impl->m_developers = value;
 }
-void ModMetadata::setDescription(std::optional<std::string> const& value) {
+void ModMetadata::setDescription(std::optional<std::string> value) {
     m_impl->m_description = value;
 }
-void ModMetadata::setDetails(std::optional<std::string> const& value) {
+void ModMetadata::setDetails(std::optional<std::string> value) {
     m_impl->m_details = value;
 }
-void ModMetadata::setChangelog(std::optional<std::string> const& value) {
+void ModMetadata::setChangelog(std::optional<std::string> value) {
     m_impl->m_changelog = value;
 }
-void ModMetadata::setSupportInfo(std::optional<std::string> const& value) {
+void ModMetadata::setSupportInfo(std::optional<std::string> value) {
     m_impl->m_supportInfo = value;
 }
-void ModMetadata::setRepository(std::optional<std::string> const& value) {
+void ModMetadata::setRepository(std::optional<std::string> value) {
     this->getLinksMut().getImpl()->m_source = value;
 }
-void ModMetadata::setIssues(std::optional<IssuesInfo> const& value) {
+void ModMetadata::setIssues(std::optional<IssuesInfo> value) {
     m_impl->m_issues = value;
 }
-void ModMetadata::setDependencies(std::vector<Dependency> const& value) {
+void ModMetadata::setDependencies(std::vector<Dependency> value) {
     m_impl->m_dependencies = value;
 }
-void ModMetadata::setIncompatibilities(std::vector<Incompatibility> const& value) {
+void ModMetadata::setIncompatibilities(std::vector<Incompatibility> value) {
     m_impl->m_incompatibilities = value;
 }
-void ModMetadata::setSpritesheets(std::vector<std::string> const& value) {
+void ModMetadata::setSpritesheets(std::vector<std::string> value) {
     m_impl->m_spritesheets = value;
 }
-void ModMetadata::setSettings(std::vector<std::pair<std::string, matjson::Value>> const& value) {
+void ModMetadata::setSettings(std::vector<std::pair<std::string, matjson::Value>> value) {
     m_impl->m_settings = value;
 }
-void ModMetadata::setTags(std::unordered_set<std::string> const& value) {
+void ModMetadata::setTags(std::unordered_set<std::string> value) {
     m_impl->m_tags = value;
 }
-void ModMetadata::setNeedsEarlyLoad(bool const& value) {
+void ModMetadata::setNeedsEarlyLoad(bool value) {
     m_impl->m_needsEarlyLoad = value;
 }
-void ModMetadata::setIsAPI(bool const& value) {
+void ModMetadata::setIsAPI(bool value) {
     m_impl->m_isAPI = value;
 }
-void ModMetadata::setGameVersion(std::string const& value) {
+void ModMetadata::setGameVersion(std::string value) {
     m_impl->m_gdVersion = value;
 }
-void ModMetadata::setGeodeVersion(VersionInfo const& value) {
+void ModMetadata::setGeodeVersion(VersionInfo value) {
     m_impl->m_geodeVersion = value;
 }
 ModMetadataLinks& ModMetadata::getLinksMut() {
@@ -772,7 +777,7 @@ bool ModMetadata::operator==(ModMetadata const& other) const {
     return m_impl->operator==(*other.m_impl);
 }
 
-bool ModMetadata::validateID(std::string const& id) {
+bool ModMetadata::validateID(std::string_view id) {
     return Impl::validateID(id);
 }
 

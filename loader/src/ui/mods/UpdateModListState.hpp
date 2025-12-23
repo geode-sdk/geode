@@ -11,12 +11,12 @@ struct UpdatePageNumberState final {
 struct UpdateWholeState final {
     std::optional<std::string> searchByDeveloper;
     UpdateWholeState() = default;
-    inline explicit UpdateWholeState(std::optional<std::string> const& dev) : searchByDeveloper(dev) {}
+    inline explicit UpdateWholeState(std::optional<std::string> dev) : searchByDeveloper(std::move(dev)) {}
     bool operator==(UpdateWholeState const&) const = default;
 };
 struct UpdateModState final {
     std::string modID;
-    inline explicit UpdateModState(std::string const& modID) : modID(modID) {};
+    inline explicit UpdateModState(std::string modID) : modID(std::move(modID)) {}
     bool operator==(UpdateModState const&) const = default;
 };
 using UpdateState = std::variant<UpdatePageNumberState, UpdateWholeState, UpdateModState>;
@@ -35,7 +35,7 @@ protected:
     UpdateState m_target;
 
 public:
-    ListenerResult handle(std::function<Callback> fn, UpdateModListStateEvent* event);
+    ListenerResult handle(geode::Function<Callback>& fn, UpdateModListStateEvent* event);
 
     UpdateModListStateFilter();
     UpdateModListStateFilter(UpdateState&& target);

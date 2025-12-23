@@ -1,9 +1,15 @@
 #include <Geode/modify/LoadingLayer.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <matjson.hpp>
-#include <charconv>
 #include <Geode/binding/CCTextInputNode.hpp>
 #include <Geode/binding/GameManager.hpp>
+
+#ifdef GEODE_IS_WINDOWS
+#else
+# include <unordered_map>
+# include <typeindex>
+# include <cxxabi.h>
+#endif
 
 using namespace geode::prelude;
 
@@ -81,13 +87,12 @@ matjson::Value matjson::Serialize<ccColor4B>::toJson(cocos2d::ccColor4B const& v
     });
 }
 
-Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string const& rawHexValue, bool permissive) {
-    if (permissive && rawHexValue.empty()) {
+Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string_view hexValue, bool permissive) {
+    if (permissive && hexValue.empty()) {
         return Ok(ccc3(255, 255, 255));
     }
-    auto hexValue = rawHexValue;
     if (hexValue[0] == '#') {
-        hexValue.erase(hexValue.begin());
+        hexValue.remove_prefix(1);
     }
     if (hexValue.size() > 6) {
         return Err("Hex value too large");
@@ -139,13 +144,12 @@ Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string const& rawHexValue
     }
 }
 
-Result<ccColor4B> geode::cocos::cc4bFromHexString(std::string const& rawHexValue, bool requireAlpha, bool permissive) {
-    if (permissive && rawHexValue.empty()) {
+Result<ccColor4B> geode::cocos::cc4bFromHexString(std::string_view hexValue, bool requireAlpha, bool permissive) {
+    if (permissive && hexValue.empty()) {
         return Ok(ccc4(255, 255, 255, 255));
     }
-    auto hexValue = rawHexValue;
     if (hexValue[0] == '#') {
-        hexValue.erase(hexValue.begin());
+        hexValue.remove_prefix(1);
     }
     if (hexValue.size() > 8) {
         return Err("Hex value too large");
@@ -377,6 +381,39 @@ CCNode* geode::cocos::getChildBySpriteName(CCNode* parent, const char* name) {
     return nullptr;
 }
 
+std::string_view geode::cocos::getObjectName(cocos2d::CCObject const* obj) {
+#ifdef GEODE_IS_WINDOWS
+    std::string_view tname = typeid(*obj).name();
+    if (tname.starts_with("class ")) {
+        tname.remove_prefix(6);
+    } else if (tname.starts_with("struct ")) {
+        tname.remove_prefix(7);
+    }
+
+    return tname;
+#else
+    static std::unordered_map<std::type_index, std::string> s_typeNames;
+    std::type_index key = typeid(*obj);
+
+    auto it = s_typeNames.find(key);
+    if (it != s_typeNames.end()) {
+        return it->second;
+    }
+
+    std::string ret;
+
+    int status = 0;
+    auto demangle = abi::__cxa_demangle(typeid(*obj).name(), 0, 0, &status);
+    if (status == 0) {
+        ret = demangle;
+    }
+    free(demangle);
+    auto [iter, _] = s_typeNames.insert({key, std::move(ret)});
+
+    return iter->second;
+#endif
+}
+
 CCRect geode::cocos::calculateNodeCoverage(std::vector<CCNode*> const& nodes) {
     CCRect coverage;
     for (auto child : nodes) {
@@ -437,6 +474,62 @@ void geode::cocos::limitNodeHeight(CCNode* spr, float height, float def, float m
     spr->setScale(std::clamp(height / spr->getContentSize().height, min, def));
 }
 
+CCSize geode::cocos::getLabelSize(std::u16string_view text, const char* font, int kerning) {
+    if (text.empty()) return { 0.0f, 0.0f };
+
+    auto fontConfig = FNTConfigLoadFile(font);
+    auto lines = 1;
+    auto charSet = fontConfig->getCharacterSet();
+    auto fontDefDict = fontConfig->m_pFontDefDictionary;
+    auto kerningDict = fontConfig->m_pKerningDictionary;
+    auto maxWidth = 0;
+    auto previous = -1u;
+    auto nextX = 0;
+
+    for (size_t i = 0; i < text.size(); i++) {
+        uint32_t c = text[i];
+        if (c == '\n') {
+            nextX = 0;
+            lines++;
+            continue;
+        }
+
+        if (!charSet->contains(c)) {
+            c = std::toupper(c);
+            if (!charSet->contains(c)) continue;
+        }
+
+        tCCFontDefHashElement* fontElement = nullptr;
+        HASH_FIND_INT(fontDefDict, &c, fontElement);
+        if (!fontElement) continue;
+
+        auto& fontDef = fontElement->fontDef;
+        nextX += fontDef.xAdvance + kerning;
+
+        if (kerningDict) {
+            auto key = (previous << 16) | c;
+            tCCKerningHashElement* kerningElement = nullptr;
+            HASH_FIND_INT(kerningDict, &key, kerningElement);
+            if (kerningElement) nextX += kerningElement->amount;
+        }
+
+        if (nextX > maxWidth) maxWidth = nextX;
+        previous = c;
+        if (i + 1 == text.size()) {
+            maxWidth += std::max(0, (int)fontDef.rect.size.width - fontDef.xAdvance);
+        }
+    }
+
+    return CCSize { (float)maxWidth, (float)(fontConfig->m_nCommonHeight * lines) } / CCDirector::get()->getContentScaleFactor();
+}
+
+CCSize geode::cocos::getLabelSize(std::string_view text, const char* font, int kerning) {
+    if (auto str = utils::string::utf8ToUtf16(text)) {
+        return getLabelSize(str.unwrap(), font, kerning);
+    }
+    return { 0.0f, 0.0f };
+}
+
 bool geode::cocos::nodeIsVisible(CCNode* node) {
     if (!node->isVisible()) {
         return false;
@@ -473,7 +566,7 @@ CCScene* geode::cocos::switchToScene(CCLayer* layer) {
 static CreateLayerFunc LOADING_FINISHED_SCENE = nullptr;
 
 void geode::cocos::reloadTextures(CreateLayerFunc returnTo) {
-    LOADING_FINISHED_SCENE = returnTo;
+    LOADING_FINISHED_SCENE = std::move(returnTo);
     GameManager::get()->reloadAll(false, false, true);
 }
 
@@ -509,6 +602,11 @@ void GEODE_DLL geode::cocos::handleTouchPriority(cocos2d::CCNode* node, bool for
 
 struct LoadingFinished : Modify<LoadingFinished, LoadingLayer> {
     GEODE_FORWARD_COMPAT_DISABLE_HOOKS("geode::cocos::reloadTextures disabled")
+
+    void onModify(auto& self) {
+        self.setHookPriority("LoadingLayer::loadAssets", 500);
+    }
+
     void loadAssets() {
         // loadFinished is inlined on Macchew OS :sob:
 

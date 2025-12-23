@@ -43,18 +43,18 @@ namespace geode {
         static std::shared_ptr<Hook> create(
             void* address,
             void* detour,
-            std::string const& displayName,
-            tulip::hook::HandlerMetadata const& handlerMetadata,
-            tulip::hook::HookMetadata const& hookMetadata
+            std::string displayName,
+            tulip::hook::HandlerMetadata handlerMetadata,
+            tulip::hook::HookMetadata hookMetadata
         );
 
         template<class DetourType>
         static std::shared_ptr<Hook> create(
             void* address,
             DetourType detour,
-            std::string const& displayName,
+            std::string displayName,
             tulip::hook::TulipConvention convention,
-            tulip::hook::HookMetadata const& hookMetadata = tulip::hook::HookMetadata()
+            tulip::hook::HookMetadata hookMetadata = tulip::hook::HookMetadata()
         ) {
             auto handlerMetadata = tulip::hook::HandlerMetadata{
                 .m_convention = geode::hook::createConvention(convention),
@@ -63,9 +63,9 @@ namespace geode {
             return Hook::create(
                 address,
                 reinterpret_cast<void*>(detour),
-                displayName,
-                handlerMetadata,
-                hookMetadata
+                std::move(displayName),
+                std::move(handlerMetadata),
+                std::move(hookMetadata)
             );
         }
 

@@ -3,6 +3,7 @@
 #include "Traits.hpp"
 
 #include <Geode/loader/Loader.hpp>
+#include <Geode/utils/function.hpp>
 #include <cocos2d.h>
 #include <vector>
 
@@ -19,7 +20,7 @@ namespace geode::modifier {
     class FieldContainer {
     private:
         std::vector<void*> m_containedFields;
-        std::vector<std::function<void(void*)>> m_destructorFunctions;
+        std::vector<geode::Function<void(void*)>> m_destructorFunctions;
 
     public:
         ~FieldContainer() {
@@ -39,7 +40,7 @@ namespace geode::modifier {
             return m_containedFields.at(index);
         }
 
-        void* setField(size_t index, size_t size, std::function<void(void*)> destructor) {
+        void* setField(size_t index, size_t size, geode::Function<void(void*)> destructor) {
             m_containedFields.at(index) = operator new(size);
             m_destructorFunctions.at(index) = std::move(destructor);
             return m_containedFields.at(index);
@@ -57,7 +58,7 @@ namespace geode::modifier {
         using Intermediate = Modify<Parent, Base>;
         // Padding used for guaranteeing any member of parents
         // will be in between sizeof(Intermediate) and sizeof(Parent)
-        std::aligned_storage_t<std::alignment_of_v<Base>, std::alignment_of_v<Base>> m_padding;
+        alignas(Base) std::array<std::byte, alignof(Base)> m_padding;
 
     public:
         // the constructor that constructs the fields.

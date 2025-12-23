@@ -1,9 +1,10 @@
 #pragma once
 
 #include <Geode/Result.hpp>
+#include <Geode/utils/ZStringView.hpp>
 #include "../utils/VersionInfo.hpp"
 #include "Types.hpp"
-
+#include <filesystem>
 #include <matjson.hpp>
 #include <memory>
 
@@ -96,12 +97,12 @@ namespace geode {
         /**
          * Path to the mod file
          */
-        [[nodiscard]] std::filesystem::path getPath() const;
+        [[nodiscard]] std::filesystem::path const& getPath() const;
         /**
          * Name of the platform binary within
          * the mod zip
          */
-        [[nodiscard]] std::string getBinaryName() const;
+        [[nodiscard]] ZStringView getBinaryName() const;
         /**
          * Mod Version. Should follow semantic versioning.
          */
@@ -111,7 +112,7 @@ namespace geode {
          * "developer.mod". May only contain lowercase ASCII characters,
          * numbers, dashes, underscores, and a single separating dot
          */
-        [[nodiscard]] std::string getID() const;
+        [[nodiscard]] ZStringView getID() const;
         /**
          * True if the mod has a mod ID that will be rejected in the future,
          * such as using uppercase letters or having multiple dots. Mods like
@@ -124,61 +125,61 @@ namespace geode {
          * be restricted to the ASCII
          * character set.
          */
-        [[nodiscard]] std::string getName() const;
+        [[nodiscard]] ZStringView getName() const;
         /**
          * The developers of this mod
          */
-        [[nodiscard]] std::vector<std::string> getDevelopers() const;
+        [[nodiscard]] std::vector<std::string> const& getDevelopers() const;
         /**
          * Short & concise description of the
          * mod.
          */
-        [[nodiscard]] std::optional<std::string> getDescription() const;
+        [[nodiscard]] std::optional<std::string> const& getDescription() const;
         /**
          * Detailed description of the mod, written in Markdown (see
          * <Geode/ui/MDTextArea.hpp>) for more info
          */
-        [[nodiscard]] std::optional<std::string> getDetails() const;
+        [[nodiscard]] std::optional<std::string> const& getDetails() const;
         /**
          * Changelog for the mod, written in Markdown (see
          * <Geode/ui/MDTextArea.hpp>) for more info
          */
-        [[nodiscard]] std::optional<std::string> getChangelog() const;
+        [[nodiscard]] std::optional<std::string> const& getChangelog() const;
         /**
          * Support info for the mod; this means anything to show ways to
          * support the mod's development, like donations. Written in Markdown
          * (see MDTextArea for more info)
          */
-        [[nodiscard]] std::optional<std::string> getSupportInfo() const;
+        [[nodiscard]] std::optional<std::string> const& getSupportInfo() const;
         /**
          * Get the links (related websites / servers / etc.) for this mod
          */
-        ModMetadataLinks getLinks() const;
+        ModMetadataLinks const& getLinks() const;
         /**
          * Info about where users should report issues and request help
          */
-        [[nodiscard]] std::optional<IssuesInfo> getIssues() const;
+        [[nodiscard]] std::optional<IssuesInfo> const& getIssues() const;
         /**
          * Dependencies
          */
-        [[nodiscard]] std::vector<Dependency> getDependencies() const;
+        [[nodiscard]] std::vector<Dependency> const& getDependencies() const;
         /**
          * Incompatibilities
          */
-        [[nodiscard]] std::vector<Incompatibility> getIncompatibilities() const;
+        [[nodiscard]] std::vector<Incompatibility> const& getIncompatibilities() const;
         /**
          * Mod spritesheet names
          */
-        [[nodiscard]] std::vector<std::string> getSpritesheets() const;
+        [[nodiscard]] std::vector<std::string> const& getSpritesheets() const;
         /**
          * Mod settings
          * @note Not a map because insertion order must be preserved
          */
-        [[nodiscard]] std::vector<std::pair<std::string, matjson::Value>> getSettings() const;
+        [[nodiscard]] std::vector<std::pair<std::string, matjson::Value>> const& getSettings() const;
         /**
          * Get the tags for this mod
          */
-        [[nodiscard]] std::unordered_set<std::string> getTags() const;
+        [[nodiscard]] std::unordered_set<std::string> const& getTags() const;
         /**
          * Whether this mod has to be loaded before the loading screen or not
          */
@@ -200,6 +201,11 @@ namespace geode {
         [[nodiscard]] VersionInfo getGeodeVersion() const;
 
         /**
+         * Gets the load priority of this mod.
+         */
+        [[nodiscard]] int getLoadPriority() const;
+
+        /**
          * Checks if mod can be installed on the current GD version.
          * Returns Ok() if it can, Err explaining why not otherwise.
         */
@@ -216,28 +222,28 @@ namespace geode {
         Result<> checkTargetVersions() const;
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
-        void setPath(std::filesystem::path const& value);
-        void setBinaryName(std::string const& value);
-        void setVersion(VersionInfo const& value);
-        void setID(std::string const& value);
-        void setName(std::string const& value);
-        void setDeveloper(std::string const& value);
-        void setDevelopers(std::vector<std::string> const& value);
-        void setDescription(std::optional<std::string> const& value);
-        void setDetails(std::optional<std::string> const& value);
-        void setChangelog(std::optional<std::string> const& value);
-        void setSupportInfo(std::optional<std::string> const& value);
-        void setRepository(std::optional<std::string> const& value);
-        void setIssues(std::optional<IssuesInfo> const& value);
-        void setDependencies(std::vector<Dependency> const& value);
-        void setIncompatibilities(std::vector<Incompatibility> const& value);
-        void setSpritesheets(std::vector<std::string> const& value);
-        void setSettings(std::vector<std::pair<std::string, matjson::Value>> const& value);
-        void setTags(std::unordered_set<std::string> const& value);
-        void setNeedsEarlyLoad(bool const& value);
-        void setIsAPI(bool const& value);
-        void setGameVersion(std::string const& value);
-        void setGeodeVersion(VersionInfo const& value);
+        void setPath(std::filesystem::path value);
+        void setBinaryName(std::string value);
+        void setVersion(VersionInfo value);
+        void setID(std::string value);
+        void setName(std::string value);
+        void setDeveloper(std::string value);
+        void setDevelopers(std::vector<std::string> value);
+        void setDescription(std::optional<std::string> value);
+        void setDetails(std::optional<std::string> value);
+        void setChangelog(std::optional<std::string> value);
+        void setSupportInfo(std::optional<std::string> value);
+        void setRepository(std::optional<std::string> value);
+        void setIssues(std::optional<IssuesInfo> value);
+        void setDependencies(std::vector<Dependency> value);
+        void setIncompatibilities(std::vector<Incompatibility> value);
+        void setSpritesheets(std::vector<std::string> value);
+        void setSettings(std::vector<std::pair<std::string, matjson::Value>> value);
+        void setTags(std::unordered_set<std::string> value);
+        void setNeedsEarlyLoad(bool value);
+        void setIsAPI(bool value);
+        void setGameVersion(std::string value);
+        void setGeodeVersion(VersionInfo value);
         ModMetadataLinks& getLinksMut();
 #endif
 
@@ -270,7 +276,7 @@ namespace geode {
 
         bool operator==(ModMetadata const& other) const;
 
-        static bool validateID(std::string const& id);
+        static bool validateID(std::string_view id);
 
         /**
          * Format a list of mod developers, truncated if there are multiple

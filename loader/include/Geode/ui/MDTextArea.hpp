@@ -30,7 +30,7 @@ namespace geode {
      * account; `level:<id>` to link to a GD level and
      * `mod:<id>` to link to another Geode mod.
      */
-    class GEODE_DLL MDTextArea :
+    class GEODE_DLL MDTextArea final :
         public cocos2d::CCLayer,
         public cocos2d::CCLabelProtocol,
         public FLAlertLayerProtocol {
@@ -48,8 +48,9 @@ namespace geode {
         cocos2d::CCMenu* m_content = nullptr;
         CCScrollLayerExt* m_scrollLayer = nullptr;
         TextRenderer* m_renderer = nullptr;
+        bool m_compatibilityMode = false;
 
-        bool init(std::string const& str, cocos2d::CCSize const& size);
+        bool init(std::string str, cocos2d::CCSize const& size);
 
         virtual ~MDTextArea();
 
@@ -69,7 +70,7 @@ namespace geode {
          * @param str String to render
          * @param size Size of the textarea
          */
-        static MDTextArea* create(std::string const& str, cocos2d::CCSize const& size);
+        static MDTextArea* create(std::string str, cocos2d::CCSize const& size);
 
         /**
          * Create a markdown text area. See class
@@ -79,7 +80,7 @@ namespace geode {
          * @param size Size of the textarea
          * @param compatibilityMode Enables functionality that may be useful for wrapping a generic alert, such as newline support
          */
-        static MDTextArea* create(std::string const& str, cocos2d::CCSize const& size, bool compatibilityMode);
+        static MDTextArea* create(std::string str, cocos2d::CCSize const& size, bool compatibilityMode);
 
         /**
          * Update the label's content; call

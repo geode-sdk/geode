@@ -2,6 +2,8 @@
 
 #include "../DefaultInclude.hpp"
 #include <exception>
+#include <Geode/utils/string.hpp>
+#include <Geode/utils/ZStringView.hpp>
 
 namespace geode {
     class Mod;
@@ -32,7 +34,7 @@ namespace geode::utils {
 
     template <class = void>
     [[noreturn]]
-    void terminate(std::string const& reason, Mod* mod = getMod(), size_t platformCode = GEODE_TERMINATE_EXCEPTION_CODE) {
+    void terminate(ZStringView reason, Mod* mod = getMod(), size_t platformCode = GEODE_TERMINATE_EXCEPTION_CODE) {
         // Add the error to the logfile
         detail::logTerminationError(reason.c_str(), mod);
 
@@ -44,7 +46,7 @@ namespace geode::utils {
         }
         // Otherwise terminate by raising an exception (which is caught by the crashlog handler)
         else {
-            std::array<const void*, 2> errorList { static_cast<const void*>(reason.c_str()), mod };
+            std::array<const void*, 2> errorList { reason.c_str(), mod };
             RaiseException(
                 platformCode,
                 EXCEPTION_NONCONTINUABLE,
@@ -58,7 +60,7 @@ namespace geode::utils {
 
     template <class = void>
     [[noreturn]]
-    void unreachable(std::string const& reason = "Unspecified", Mod* mod = getMod()) {
+    void unreachable(ZStringView reason = "Unspecified", Mod* mod = getMod()) {
         terminate(reason, mod, GEODE_UNREACHABLE_EXCEPTION_CODE);
     }
 }

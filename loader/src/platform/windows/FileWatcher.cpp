@@ -16,8 +16,8 @@ FileWatcher::FileWatcher(
     m_platformHandle = (void*)handle;
 
     m_file = file;
-    m_callback = callback;
-    m_error = error;
+    m_callback = std::move(callback);
+    m_error = std::move(error);
     if (handle != INVALID_HANDLE_VALUE) {
         std::thread(&FileWatcher::watch, this).detach();
     }

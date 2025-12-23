@@ -2,6 +2,8 @@
 #include <Geode/ui/SpacerNode.hpp>
 #include <Geode/utils/cocos.hpp>
 
+#include <algorithm>
+
 using namespace geode::prelude;
 
 class SimpleAxisLayoutOptions::Impl {
@@ -841,6 +843,11 @@ SimpleAxisLayout* SimpleAxisLayout::setMinRelativeScale(std::optional<float> sca
 
 SimpleAxisLayout* SimpleAxisLayout::setMaxRelativeScale(std::optional<float> scale) {
     m_impl->m_maxRelativeScale = scale;
+    return this;
+}
+
+SimpleAxisLayout* SimpleAxisLayout::ignoreInvisibleChildren(bool ignore) {
+    Layout::ignoreInvisibleChildren(ignore);
     return this;
 }
 

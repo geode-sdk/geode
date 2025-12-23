@@ -28,22 +28,26 @@ static constexpr float g_indent = 7.f;
 static constexpr float g_codeBlockIndent = 8.f;
 static constexpr ccColor3B g_linkColor = {0x7f, 0xf4, 0xf4};
 
-TextRenderer::Font g_mdFont = [](int style) -> TextRenderer::Label {
-    if ((style & TextStyleBold) && (style & TextStyleItalic)) {
-        return CCLabelBMFont::create("", "mdFontBI.fnt"_spr);
-    }
-    if ((style & TextStyleBold)) {
-        return CCLabelBMFont::create("", "mdFontB.fnt"_spr);
-    }
-    if ((style & TextStyleItalic)) {
-        return CCLabelBMFont::create("", "mdFontI.fnt"_spr);
-    }
-    return CCLabelBMFont::create("", "mdFont.fnt"_spr);
-};
+auto makeMdFont() -> TextRenderer::Font {
+    return [](int style) -> TextRenderer::Label {
+        if ((style & TextStyleBold) && (style & TextStyleItalic)) {
+            return CCLabelBMFont::create("", "mdFontBI.fnt"_spr);
+        }
+        if ((style & TextStyleBold)) {
+            return CCLabelBMFont::create("", "mdFontB.fnt"_spr);
+        }
+        if ((style & TextStyleItalic)) {
+            return CCLabelBMFont::create("", "mdFontI.fnt"_spr);
+        }
+        return CCLabelBMFont::create("", "mdFont.fnt"_spr);
+    };
+}
 
-TextRenderer::Font g_mdMonoFont = [](int style) -> TextRenderer::Label {
-    return CCLabelBMFont::create("", "mdFontMono.fnt"_spr);
-};
+auto makeMdMonoFont() -> TextRenderer::Font {
+    return [](int style) -> TextRenderer::Label {
+        return CCLabelBMFont::create("", "mdFontMono.fnt"_spr);
+    };
+}
 
 class MDContentLayer : public CCContentLayer {
 protected:
@@ -80,16 +84,17 @@ public:
     }
 };
 
-Result<ccColor3B> colorForIdentifier(std::string const& tag) {
+Result<ccColor3B> colorForIdentifier(std::string tag) {
+    auto sv = std::string_view(tag);
     if (tag.length() > 2 && tag[1] == '-') {
-        return cc3bFromHexString(tag.substr(2));
+        return cc3bFromHexString(sv.substr(2));
     }
     // Support the old form of <carbitaryletters hex>
     else if (tag.find(' ') != std::string::npos) {
         return cc3bFromHexString(string::trim(tag.substr(tag.find(' ') + 1)));
     }
     else {
-        auto colorText = tag.substr(1);
+        auto colorText = sv.substr(1);
         if (!colorText.size()) {
             return Err("No color specified");
         }
@@ -111,20 +116,20 @@ Result<ccColor3B> colorForIdentifier(std::string const& tag) {
                 case 'r': return Ok(ccc3(255, 90, 90)); break;
                 case 's': return Ok(ccc3(255, 220, 65)); break;
                 case 'y': return Ok(ccc3(255, 255, 0)); break;
-                default: return Err("Unknown color " + colorText);
+                default: return Err("Unknown color {}", colorText);
             }
         }
     }
     return Err("Unknown error");
 }
 
-bool MDTextArea::init(std::string const& str, CCSize const& size) {
+bool MDTextArea::init(std::string str, CCSize const& size) {
     if (!CCLayer::init()) return false;
 
     this->ignoreAnchorPointForPosition(false);
     this->setAnchorPoint({ .5f, .5f });
 
-    m_text = str;
+    m_text = std::move(str);
     m_size = size - CCSize { 15.f, 0.f };
     this->setContentSize(m_size);
     m_renderer = TextRenderer::create();
@@ -161,8 +166,7 @@ void MDTextArea::onLink(CCObject* pSender) {
     auto href = static_cast<CCString*>(static_cast<CCNode*>(pSender)->getUserObject());
     auto layer = FLAlertLayer::create(
         this, "Hold Up!",
-        "Links are spooky! Are you sure you want to go to <cy>" + std::string(href->getCString()) +
-            "</c>?",
+        fmt::format("Links are spooky! Are you sure you want to go to <cy>{}</c>?", href->getCString()),
         "Cancel", "Yes", 360.f
     );
     layer->setUserObject(href);
@@ -209,8 +213,9 @@ void MDTextArea::onGDLevel(CCObject* pSender) {
 
 void MDTextArea::onGeodeMod(CCObject* sender) {
     auto href = static_cast<CCString*>(static_cast<CCNode*>(sender)->getUserObject());
-    auto modID = std::string(href->getCString());
-    (void)openInfoPopup(modID.substr(modID.find(":") + 1));
+    std::string_view modID = href->getCString();
+    modID.remove_prefix(modID.find(":") + 1);
+    (void)openInfoPopup(modID);
 }
 
 void MDTextArea::FLAlert_Clicked(FLAlertLayer* layer, bool btn) {
@@ -232,10 +237,7 @@ struct MDParser {
     static int parseText(MD_TEXTTYPE type, MD_CHAR const* rawText, MD_SIZE size, void* mdtextarea) {
         auto textarea = static_cast<MDTextArea*>(mdtextarea);
         auto renderer = textarea->m_renderer;
-        auto compatibilityMode = false;
-        if (auto boolObj = static_cast<CCBool*>(textarea->getUserObject("compatibilityMode"_spr))) {
-            compatibilityMode = boolObj->getValue();
-        }
+        auto compatibilityMode = textarea->m_compatibilityMode;
 
         auto text = std::string(rawText, size);
         switch (type) {
@@ -370,7 +372,8 @@ struct MDParser {
                     if (text.size() > 2) {
                         auto tag = utils::string::trim(text.substr(1, text.size() - 2));
                         auto isClosing = tag.front() == '/';
-                        if (isClosing) tag = tag.substr(1);
+                        if (isClosing) tag.erase(tag.begin());
+
                         if (tag.front() != 'c') {
                             log::warn("Unknown tag {}", text);
                             renderer->renderString(text);
@@ -380,7 +383,7 @@ struct MDParser {
                                 renderer->popColor();
                             }
                             else {
-                                auto color = colorForIdentifier(tag);
+                                auto color = colorForIdentifier(std::move(tag));
                                 if (color) {
                                     renderer->pushColor(color.unwrap());
                                 }
@@ -487,7 +490,7 @@ struct MDParser {
                 {
                     s_isCodeBlock = true;
                     s_codeStart = renderer->getCursorPos().y;
-                    renderer->pushFont(g_mdMonoFont);
+                    renderer->pushFont(makeMdMonoFont());
                     renderer->pushIndent(g_codeBlockIndent);
                     renderer->pushWrapOffset(g_codeBlockIndent);
                 }
@@ -649,7 +652,7 @@ struct MDParser {
             case MD_SPANTYPE::MD_SPAN_CODE:
                 {
                     s_isCodeBlock = false;
-                    renderer->pushFont(g_mdMonoFont);
+                    renderer->pushFont(makeMdMonoFont());
                 }
                 break;
 
@@ -729,7 +732,7 @@ bool MDParser::s_breakListLine = false;
 void MDTextArea::updateLabel() {
     m_renderer->begin(m_content, CCPointZero, m_size);
 
-    m_renderer->pushFont(g_mdFont);
+    m_renderer->pushFont(makeMdFont());
     m_renderer->pushScale(.5f);
     m_renderer->pushVerticalAlign(TextAlignment::End);
     m_renderer->pushHorizontalAlign(TextAlignment::Begin);
@@ -751,13 +754,11 @@ void MDTextArea::updateLabel() {
     MDParser::s_codeSpans = {};
 
     auto textContent = m_text;
-    if (auto boolObj = static_cast<CCBool*>(this->getUserObject("compatibilityMode"_spr))) {
-        if (boolObj->getValue()) {
-            textContent = MDTextArea::translateNewlines(m_text);
+    if (m_compatibilityMode) {
+        textContent = MDTextArea::translateNewlines(m_text);
 
-            // ery proofing...
-            textContent = utils::string::replace(textContent, "<c_>", "<c->");
-        }
+        // ery proofing...
+        utils::string::replaceIP(textContent, "<c_>", "<c->");
     }
 
     if (md_parse(textContent.c_str(), textContent.size(), &parser, this)) {
@@ -813,9 +814,9 @@ char const* MDTextArea::getString() {
     return m_text.c_str();
 }
 
-MDTextArea* MDTextArea::create(std::string const& str, CCSize const& size) {
+MDTextArea* MDTextArea::create(std::string str, CCSize const& size) {
     auto ret = new MDTextArea;
-    if (ret->init(str, size)) {
+    if (ret->init(std::move(str), size)) {
         ret->autorelease();
         return ret;
     }
@@ -823,14 +824,10 @@ MDTextArea* MDTextArea::create(std::string const& str, CCSize const& size) {
     return nullptr;
 }
 
-MDTextArea* MDTextArea::create(std::string const& str, CCSize const& size, bool compatibilityMode) {
+MDTextArea* MDTextArea::create(std::string str, CCSize const& size, bool compatibilityMode) {
     auto ret = new MDTextArea;
 
-    // TODO in v5: put this in the members
-    auto boolObj = CCBool::create(compatibilityMode);
-    ret->setUserObject("compatibilityMode"_spr, boolObj);
-
-    if (ret->init(str, size)) {
+    if (ret->init(std::move(str), size)) {
         ret->autorelease();
         return ret;
     }

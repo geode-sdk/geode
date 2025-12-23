@@ -1,6 +1,9 @@
 #pragma once
 
 #include <tuple>
+#include <std23/function_ref.h>
+#include <std23/function.h>
+#include <std23/move_only_function.h>
 
 namespace geode::utils::function {
     namespace detail {
@@ -56,4 +59,17 @@ namespace geode::utils::function {
 
     template <std::size_t Ix, class F>
     using Arg = std::tuple_element_t<Ix, typename detail::Extract<F>::Args>;
+}
+
+// add Function, FunctionRef, CopyableFunction as aliases to std23
+
+namespace geode {
+    template <class Signature>
+    using Function = std23::move_only_function<Signature>;
+
+    template <class Signature>
+    using FunctionRef = std23::function_ref<Signature>;
+
+    template <class Signature>
+    using CopyableFunction = std23::function<Signature>;
 }

@@ -3,6 +3,7 @@
 #include "../utils/casts.hpp"
 
 #include <Geode/DefaultInclude.hpp>
+#include <Geode/utils/function.hpp>
 #include <functional>
 #include <memory>
 #include <type_traits>
@@ -124,7 +125,7 @@ namespace geode {
         requires(T a, T const& ca) {
             typename T::Callback;
             typename T::Event;
-            { a.handle(std::declval<typename T::Callback>(), std::declval<typename T::Event*>()) } -> std::same_as<ListenerResult>;
+            { a.handle(std::declval<geode::Function<typename T::Callback>&>(), std::declval<typename T::Event*>()) } -> std::same_as<ListenerResult>;
             { ca.getPool() } -> std::convertible_to<EventListenerPool*>;
             { a.setListener(std::declval<EventListenerProtocol*>()) } -> std::same_as<void>;
             { ca.getListener() } -> std::convertible_to<EventListenerProtocol*>;
@@ -156,14 +157,9 @@ namespace geode {
             this->enable();
         }
 
-        EventListener(std::function<Callback> fn, T filter = T())
-          : m_callback(fn), m_filter(filter)
+        EventListener(geode::Function<Callback> fn, T filter = T())
+          : m_callback(std::move(fn)), m_filter(filter)
         {
-            m_filter.setListener(this);
-            this->enable();
-        }
-
-        EventListener(Callback* fnptr, T filter = T()) : m_callback(fnptr), m_filter(filter) {
             m_filter.setListener(this);
             this->enable();
         }
@@ -185,14 +181,6 @@ namespace geode {
             this->enable();
         }
 
-        EventListener(EventListener const& other)
-          : m_callback(other.m_callback),
-            m_filter(other.m_filter)
-        {
-            m_filter.setListener(this);
-            this->enable();
-        }
-
         EventListener& operator=(EventListener&& other) {
             if (this == &other) {
                 return *this;
@@ -207,7 +195,7 @@ namespace geode {
             return *this;
         }
 
-        void bind(std::function<Callback> fn) {
+        void bind(geode::Function<Callback> fn) {
             m_callback = std::move(fn);
         }
 
@@ -229,12 +217,12 @@ namespace geode {
             return m_filter;
         }
 
-        std::function<Callback>& getCallback() {
+        geode::Function<Callback>& getCallback() {
             return m_callback;
         }
 
     protected:
-        std::function<Callback> m_callback = nullptr;
+        geode::Function<Callback> m_callback = nullptr;
         T m_filter;
     };
 

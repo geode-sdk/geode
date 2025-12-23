@@ -13,11 +13,11 @@ Mod::Mod(ModMetadata const& metadata) : m_impl(std::make_unique<Impl>(this, meta
 
 Mod::~Mod() {}
 
-std::string Mod::getID() const {
+ZStringView Mod::getID() const {
     return m_impl->getID();
 }
 
-std::string Mod::getName() const {
+ZStringView Mod::getName() const {
     return m_impl->getName();
 }
 
@@ -92,10 +92,10 @@ std::filesystem::path Mod::getResourcesDir() const {
     return dirs::getModRuntimeDir() / this->getID() / "resources" / this->getID();
 }
 
-matjson::Value Mod::getDependencySettingsFor(std::string_view dependencyID) const {
-    auto id = std::string(dependencyID);
+matjson::Value Mod::getDependencySettingsFor(std::string_view id) const {
     auto const& settings = ModMetadataImpl::getImpl(m_impl->m_metadata).m_dependencySettings;
-    return settings.contains(id) ? settings.at(id) : matjson::Value();
+    auto it = settings.find(id);
+    return it != settings.end() ? it->second : matjson::Value();
 }
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
@@ -164,11 +164,11 @@ bool Mod::hasSetting(std::string_view key) const {
 }
 
 std::shared_ptr<Setting> Mod::getSetting(std::string_view key) const {
-    return m_impl->m_settings->get(std::string(key));
+    return m_impl->m_settings->get(key);
 }
 
 Result<> Mod::registerCustomSettingType(std::string_view type, SettingGenerator generator) {
-    return m_impl->m_settings->registerCustomSettingType(type, generator);
+    return m_impl->m_settings->registerCustomSettingType(type, std::move(generator));
 }
 
 std::string Mod::getLaunchArgumentName(std::string_view name) const {
@@ -247,7 +247,7 @@ bool Mod::hasUnresolvedIncompatibilities() const {
     return m_impl->hasUnresolvedIncompatibilities();
 }
 
-std::string_view Mod::expandSpriteName(std::string_view name) {
+std::string Mod::expandSpriteName(std::string_view name) {
     return m_impl->expandSpriteName(name);
 }
 
@@ -312,4 +312,8 @@ bool Mod::shouldLoad() const {
 }
 bool Mod::isCurrentlyLoading() const {
     return m_impl->isCurrentlyLoading();
+}
+
+int Mod::getLoadPriority() const {
+    return m_impl->getLoadPriority();
 }

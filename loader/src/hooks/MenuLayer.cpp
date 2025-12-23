@@ -85,6 +85,20 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             }
         }
 
+        // show "download mods here" tip if the geode menu hasnt ever been opened and there arent mods already installed
+        if (!Mod::get()->getSavedValue<bool>("has-used-geode-before") && Loader::get()->getAllMods().size() == 1) {
+			if (auto bottomMenu = this->getChildByID("bottom-menu")) {
+				auto geodeBtn = bottomMenu->getChildByID("geode-button"_spr);
+
+				if (auto downloadModsHereSpr = CCSprite::createWithSpriteFrameName("download-mods-here.png"_spr)) {
+					downloadModsHereSpr->setID("download-mods-here"_spr);
+					downloadModsHereSpr->setPosition(this->convertToNodeSpace(geodeBtn->convertToWorldSpace(CCPointZero) + CCPoint(75.f, 55.f)));
+					downloadModsHereSpr->setScale(0.8f);
+					this->addChild(downloadModsHereSpr);
+				}
+			}
+		}
+
         // show if some mods failed to load
         if (Loader::get()->getLoadProblems().size()) {
             static bool shownProblemPopup = false;
@@ -165,6 +179,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
                             file::openFolder(dirs::getCrashlogsDir());
                         }
                     },
+                    false,
                     false
                 );
                 popup->m_noElasticity = true;
@@ -339,7 +354,9 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
                         "OK"
                     )->show();
                 }
-            }
+            },
+            true,
+            false
         );
 
     #else

@@ -32,33 +32,19 @@ THE SOFTWARE.
  * @{
  */
 
-/** @def CCARRAY_FOREACH
-A convenience macro to iterate over a CCArray using. It is faster than the "fast enumeration" interface.
-@since v0.99.4
-*/
+// TODO: when the v5 is more real, actually replace all usages in bindings and uncomment the macros below
+// these macros are a small compat wrapper, because if we update bindings rn it will break v4 users
+#define CCARRAY_FOREACH(arr, obj) \
+    for (auto obj : ::geode::cocos::CCArrayExt<CCObject, false>(arr))
 
-/*
-In cocos2d-iphone 1.0.0, This macro have been update to like this:
-
-#define CCARRAY_FOREACH(__array__, __object__)                                                \
-if (__array__ && __array__->data->num > 0)                                                    \
-for(id *__arr__ = __array__->data->arr, *end = __array__->data->arr + __array__->data->num-1;    \
-__arr__ <= end && ((__object__ = *__arr__) != nil || true);                                        \
-__arr__++)
-
-I found that it's not work in C++. So it keep what it's look like in version 1.0.0-rc3. ---By Bin
-*/
-#define CCARRAY_FOREACH(__array__, __object__)                                                                         \
-    if ((__array__) && (__array__)->data->num > 0)                                                                     \
-    for(CCObject** __arr__ = (__array__)->data->arr, **__end__ = (__array__)->data->arr + (__array__)->data->num-1;    \
-    __arr__ <= __end__ && (((__object__) = *__arr__) != NULL/* || true*/);                                             \
-    __arr__++)
-
-#define CCARRAY_FOREACH_REVERSE(__array__, __object__)                                                                  \
-    if ((__array__) && (__array__)->data->num > 0)                                                                      \
-    for(CCObject** __arr__ = (__array__)->data->arr + (__array__)->data->num-1, **__end__ = (__array__)->data->arr;     \
-    __arr__ >= __end__ && (((__object__) = *__arr__) != NULL/* || true*/);                                              \
-    __arr__--)
+// #define CCARRAY_FOREACH(...) \
+//     static_assert(false, \
+//         "Please use `for (auto obj : CCArrayExt(arr))` instead, this macro has been removed in Geode v5\n" \
+//         "When iterating over the children of a node, `for (CCNode* node : node->getChildrenExt())` can also be used\n" \
+//     );
+    
+// #define CCARRAY_FOREACH_REVERSE(...) \
+//     static_assert(false, "Please use CCArrayExt with a range-based loop instead, this macro has been removed in Geode v5");
 
 #if defined(COCOS2D_DEBUG) && (COCOS2D_DEBUG > 0)
 #define CCARRAY_VERIFY_TYPE(__array__, __type__)                                                                 \
@@ -72,40 +58,12 @@ I found that it's not work in C++. So it keep what it's look like in version 1.0
 #define CCARRAY_VERIFY_TYPE(__array__, __type__) void(0)
 #endif
 
-#define arrayMakeObjectsPerformSelector(pArray, func, elementType)    \
-do {                                                                  \
-    if(pArray && pArray->count() > 0)                                 \
-    {                                                                 \
-        CCObject* child;                                              \
-        CCARRAY_FOREACH(pArray, child)                                \
-        {                                                             \
-            elementType pNode = (elementType) child;                  \
-            if(pNode)                                                 \
-            {                                                         \
-                pNode->func();                                        \
-            }                                                         \
-        }                                                             \
-    }                                                                 \
-}                                                                     \
-while(false)
-
-#define arrayMakeObjectsPerformSelectorWithObject(pArray, func, pObject, elementType)   \
-do {                                                                  \
-    if(pArray && pArray->count() > 0)                                 \
-    {                                                                 \
-        CCObject* child = NULL;                                       \
-        CCARRAY_FOREACH(pArray, child)                                \
-        {                                                             \
-            elementType pNode = (elementType) child;                  \
-            if(pNode)                                                 \
-            {                                                         \
-                pNode->func(pObject);                                 \
-            }                                                         \
-        }                                                             \
-    }                                                                 \
-}                                                                     \
-while(false)
-
+namespace geode {
+    template <typename T, typename>
+    struct CCArrayExtCheck {
+        using type = void;
+    };
+}
 
 NS_CC_BEGIN
 /**
@@ -270,6 +228,21 @@ public:
      * @returns New array with same members
      */
     GEODE_DLL CCArray* shallowCopy();
+
+    /*
+    * Turns this array into a `CCArrayExt<T>`, making it way more convenient to use.
+    * You must include `<Geode/utils/cocos.hpp>` to use this, otherwise it won't compile
+    */
+    template <typename T = CCObject, typename PleaseDontChangeMe = void>
+    inline auto asExt() {
+        // CCArrayExt is defined in geode/utils/cocos.hpp, which we cannot include due to circular includes.
+        // This is an incredibly hacky way to still be able to use the type
+
+        using CCArrayExt = geode::CCArrayExtCheck<T, PleaseDontChangeMe>::type;
+        static_assert(!std::is_void_v<CCArrayExt>, "Please include <Geode/utils/cocos.hpp> to use asExt()");
+
+        return CCArrayExt(this);
+    }
 
     /* override functions */
     virtual void acceptVisitor(CCDataVisitor &visitor);

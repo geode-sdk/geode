@@ -146,7 +146,7 @@ namespace geode {
             m_tag = tag;
         }
 
-        static Result<VersionInfo> parse(std::string const& string);
+        static Result<VersionInfo> parse(std::string string);
 
         constexpr size_t getMajor() const {
             return m_major;
@@ -205,7 +205,7 @@ namespace geode {
             VersionCompare const& compare
         ) : m_version(version), m_compare(compare) {}
 
-        static Result<ComparableVersionInfo> parse(std::string const& string);
+        static Result<ComparableVersionInfo> parse(std::string string);
 
         constexpr bool compare(VersionInfo const& version) const {
             return compareWithReason(version) == VersionCompareResult::Match;

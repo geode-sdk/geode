@@ -47,7 +47,7 @@ class CC_DLL CCParallaxNode : public CCNode
 {
     GEODE_FRIEND_MODIFY
     /** array that holds the offset / ratio of the children */
-    CC_SYNTHESIZE(struct _ccArray *, m_pParallaxArray, ParallaxArray)
+    CC_SYNTHESIZE_NV(struct _ccArray *, m_pParallaxArray, ParallaxArray)
 
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCParallaxNode, CCNode)

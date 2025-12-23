@@ -284,13 +284,13 @@ public:
      * @param pack Pack to add
      * @note Geode addition
      */
-    void GEODE_DLL addTexturePack(CCTexturePack const& pack);
+    void GEODE_DLL addTexturePack(CCTexturePack pack);
     /**
      * Remove texture pack by ID
      * @param id ID of the texture pack
      * @note Geode addition
      */
-    void GEODE_DLL removeTexturePack(std::string const& id);
+    void GEODE_DLL removeTexturePack(std::string_view id);
     /**
      * Add a search path to the front of the list
      * @param path Path to add
@@ -375,9 +375,6 @@ public:
      */
     virtual void setPopupNotify(bool bNotify);
     virtual bool isPopupNotify();
-
-  	gd::string getAndroidPath() const;
-	  void setAndroidPath(gd::string);
 
 
 protected:
@@ -485,6 +482,9 @@ public:
      *  This variable is used for improving the performance of file search.
      */
     gd::map<gd::string, gd::string> m_fullPathCache;
+
+    // @note RobTop Addition
+    CC_SYNTHESIZE_NV(gd::string, m_strAndroidPath, AndroidPath);
 
 protected:
     /**
