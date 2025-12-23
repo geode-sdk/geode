@@ -898,9 +898,9 @@ namespace geode {
                             );
                         }
                         else if (auto p = event->getProgress()) {
-                            // no guarantee P and NewProgress are compatible
-                            // nor does it seem like the intended behavior?
-                            // TODO: maybe add a mapper for progress?
+                            if constexpr (std::is_same_v<P, NewProgress>) {
+                                NewTask::progress(handle.lock(), std::move(*p));
+                            }
                         }
                         else if (event->isCancelled()) {
                             NewTask::cancel(handle.lock());
@@ -1110,3 +1110,4 @@ template <class T, class P, class... Args>
 struct std::coroutine_traits<geode::Task<T, P>, Args...> {
     using promise_type = geode::geode_internal::TaskPromise<T, P>;
 };
+
