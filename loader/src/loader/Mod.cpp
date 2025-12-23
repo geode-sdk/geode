@@ -72,11 +72,7 @@ bool Mod::needsEarlyLoad() const {
     return m_impl->needsEarlyLoad();
 }
 
-ModMetadata Mod::getMetadata() const {
-    return m_impl->getMetadata();
-}
-
-ModMetadata const& Mod::getMetadataRef() const {
+ModMetadata const& Mod::getMetadata() const {
     return m_impl->getMetadata();
 }
 

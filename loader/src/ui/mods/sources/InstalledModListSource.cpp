@@ -26,7 +26,7 @@ bool InstalledModsQuery::queryCheck(ModSource const& src, double& weighted) cons
         addToList = src.asMod()->isEnabled() == *enabledOnly;
     }
     if (query) {
-        addToList = modFuzzyMatch(src.asMod()->getMetadataRef(), *query, weighted);
+        addToList = modFuzzyMatch(src.asMod()->getMetadata(), *query, weighted);
     }
     // Loader gets boost to ensure it's normally always top of the list
     if (addToList && src.asMod()->isInternal()) {

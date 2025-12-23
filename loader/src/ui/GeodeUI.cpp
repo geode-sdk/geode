@@ -110,7 +110,7 @@ void geode::openModsList() {
 }
 
 void geode::openIssueReportPopup(Mod* mod) {
-    if (mod->getMetadataRef().getIssues()) {
+    if (mod->getMetadata().getIssues()) {
         MDPopup::create(
             "Issue Report",
                 fmt::format(
@@ -126,7 +126,7 @@ void geode::openIssueReportPopup(Mod* mod) {
                     return;
                 }
 
-                auto issues = mod->getMetadataRef().getIssues();
+                auto issues = mod->getMetadata().getIssues();
                 if (issues && issues->url) {
                     auto& url = *issues->url;
                     web::openLinkInBrowser(url);
@@ -151,7 +151,7 @@ void geode::openIssueReportPopup(Mod* mod) {
 }
 
 void geode::openSupportPopup(Mod* mod) {
-    openSupportPopup(mod->getMetadataRef());
+    openSupportPopup(mod->getMetadata());
 }
 
 void geode::openSupportPopup(ModMetadata const& metadata) {
