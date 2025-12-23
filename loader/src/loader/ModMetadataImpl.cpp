@@ -126,7 +126,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     root.needs("geode").into(impl->m_geodeVersion);
 
     if (auto gd = root.needs("gd")) {
-        gd.assertIs({ matjson::Type::Object });
+        gd.assertIsObject();
         if (gd.has(GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH)) {
             gd.needs(GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH)
                 .mustBe<std::string>("a valid gd version", [](auto const& str) {
