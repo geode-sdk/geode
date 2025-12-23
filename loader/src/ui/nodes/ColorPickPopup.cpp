@@ -4,6 +4,7 @@
 #include <Geode/binding/SliderThumb.hpp>
 #include <Geode/ui/ColorPickPopup.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/utils/function.hpp>
 #include <charconv>
 #include <clocale>
 #include <Geode/loader/Mod.hpp>
@@ -21,7 +22,7 @@ public:
     TextInput* m_bInput;
     TextInput* m_hexInput;
     TextInput* m_opacityInput = nullptr;
-    ColorPickPopupDelegate* m_delegate = nullptr;
+    geode::Function<void(cocos2d::ccColor4B const&)> m_callback;
     cocos2d::CCSprite* m_newColorSpr;
     CCMenuItemSpriteExtra* m_resetBtn;
 };
@@ -370,8 +371,8 @@ void ColorPickPopup::onReset(CCObject*) {
 }
 
 void ColorPickPopup::onClose(CCObject* sender) {
-    if (m_impl->m_delegate) {
-        m_impl->m_delegate->updateColor(m_impl->m_color);
+    if (m_impl->m_callback) {
+        m_impl->m_callback(m_impl->m_color);
     }
     Popup::onClose(sender);
 }
@@ -424,8 +425,8 @@ void ColorPickPopup::colorValueChanged(ccColor3B color) {
     this->updateState(m_impl->m_picker);
 }
 
-void ColorPickPopup::setDelegate(ColorPickPopupDelegate* delegate) {
-    m_impl->m_delegate = delegate;
+void ColorPickPopup::setCallback(geode::Function<void(cocos2d::ccColor4B const&)> callback) {
+    m_impl->m_callback = std::move(callback);
 }
 
 void ColorPickPopup::setColorTarget(cocos2d::CCSprite* spr) {
