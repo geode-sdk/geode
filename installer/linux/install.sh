@@ -71,13 +71,21 @@ find_gd_installation() {
     verbose_log "Searching for Geometry Dash..."
     local DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 
-    for GD_IDX in "$DATA_HOME/Steam" "$HOME/Steam" "$HOME/.var/app/com.valvesoftware.Steam/data/Steam"; do
+    for GD_IDX in "$DATA_HOME/Steam" "$HOME/Steam" "$HOME/.var/app/com.valvesoftware.Steam/data/Steam" "$HOME/snap/steam/common/.steam/steam"; do
         local PATH_TEST="$GD_IDX/steamapps/common/Geometry Dash"
         verbose_log "- Testing path ${YELLOW}$PATH_TEST${NC}"
 
         if is_valid_gd_path "$PATH_TEST"; then
             # Found it!
             GD_PATH="$PATH_TEST"
+
+            case "$PATH_TEST" in
+              */snap/steam/common/*)
+                echo "${YELLOW}Detected Steam installed with Snap. This is not a supported platform, and you may run into issues.${NC}"
+                echo "${YELLOW}To ensure you have the best experience, install Steam using your distribution's package manager, or through Flatpak.${NC}"
+                ;;
+            esac
+
             verbose_log "* Found at ${YELLOW}$GD_PATH${NC}"
             return 0
         fi
