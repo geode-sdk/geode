@@ -75,9 +75,10 @@ void fillBytes(void* buffer, size_t size) {
         buf += 8;
         size -= 8;
     }
-
-    for (size_t i = 0; i < size; i++) {
-        buf[i] = generate<uint8_t>();
+    
+    if (size > 0) {
+        uint64_t val = nextU64();
+        std::memcpy(buf, &val, size);
     }
 }
 

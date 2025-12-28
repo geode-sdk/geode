@@ -82,9 +82,9 @@ namespace geode::utils::random {
     }
 
     template <typename Cont>
-    void shuffle(Cont& vec) {
+    void shuffle(Cont& cont) {
         using std::begin, std::end;
-        shuffle(begin(vec), end(vec));
+        shuffle(begin(cont), end(cont));
     }
 
     GEODE_DLL std::string generateString(size_t length, std::string_view alphabet);
