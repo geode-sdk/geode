@@ -52,14 +52,19 @@ namespace geode::utils::random {
 
     /// Generates a random value of type T, in the range [min, max),
     /// meaning the max value can never be returned
-    template <typename T, typename Y, typename Out = std::common_type_t<T, Y>>
-    Out generate(T min, Y max) {
+    template <typename R = void, typename T, typename Y>
+    auto generate(T min_, Y max_) {
+        using Out = std::conditional_t<std::is_void_v<R>, std::common_type_t<T, Y>, R>;
+
+        Out min = static_cast<Out>(min_);
+        Out max = static_cast<Out>(max_);
+
         if (max <= min) return min;
 
         if constexpr (std::is_integral_v<Out>) {
             Out range = max - min;
             uint64_t val = nextU64();
-            return static_cast<Out>(min) + (val % range);
+            return static_cast<Out>(static_cast<Out>(min) + (val % range));
         } else if constexpr (std::is_floating_point_v<Out>) {
             double range = static_cast<double>(max) - static_cast<double>(min);
             double val = generate<double>();
