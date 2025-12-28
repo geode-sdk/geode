@@ -4,6 +4,7 @@
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/general.hpp>
+#include <Geode/utils/random.hpp>
 #include <about.hpp>
 #include <matjson.hpp>
 #include <utility>
@@ -142,7 +143,10 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
             }
         }
         else if (gd.isString()) {
-            impl->m_softInvalidReason = "mod.json uses old syntax";
+            impl->m_softInvalidReason = {
+                "mod.json uses old syntax",
+                LoadProblem::Type::InvalidFile
+            };
         }
     }
 
@@ -448,6 +452,22 @@ Result<ModMetadata> ModMetadata::Impl::createFromFile(std::filesystem::path cons
         GEODE_UNWRAP(info.addSpecialFiles(path.parent_path()));
     }
     return Ok(info);
+}
+
+ModMetadata ModMetadata::Impl::createInvalidMetadata(std::string_view name, std::string_view error, LoadProblem::Type type) {
+    ModMetadata v{};
+    v.m_impl->m_name = name;
+    v.m_impl->m_softInvalidReason = {
+        std::string(error), type
+    };
+
+    v.m_impl->m_developers = {"-"};
+
+    // generate a random id to prevent conflicts with existing mods
+    constexpr std::string_view alphabet = "abcdefghijklmnopqrstuvwxyz0123456789_-";
+    v.m_impl->m_id = fmt::format("geode_invalid.{}", geode::utils::random::generateString(16, alphabet));
+
+    return v;
 }
 
 Result<ModMetadata> ModMetadata::Impl::createFromGeodeFile(std::filesystem::path const& path) {
