@@ -36,6 +36,11 @@ class $modify(MenuLayer) {
 
 This code modifies what happens when the "More Games" button is clicked on the home scene in Geometry Dash, showing a custom popup.
 
+## Installation
+You can download the Geode installer at [geode-sdk.org/install](https://geode-sdk.org/install) (select your desired platform ofc). Now just run the installer, and Geode should be installed into your device!
+
+If you want to install Geode on iOS, see the [iOS installation guide](https://github.com/geode-sdk/ios-launcher/blob/main/INSTALL.md) (iOS 14 and above).
+
 ## Documentation
 
 Detailed documentation, tutorials, and installation instructions on using Geode can be found [here](https://docs.geode-sdk.org).
