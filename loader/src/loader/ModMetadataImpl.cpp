@@ -46,7 +46,11 @@ ModMetadataLinks& ModMetadataLinks::operator=(ModMetadataLinks&& other) noexcept
 }
 ModMetadataLinks::~ModMetadataLinks() = default;
 
-ModMetadata::Impl& ModMetadataImpl::getImpl(ModMetadata& info)  {
+ModMetadata::Impl& ModMetadataImpl::getImpl(ModMetadata& info) {
+    return *info.m_impl;
+}
+
+ModMetadata::Impl const& ModMetadataImpl::getImpl(ModMetadata const& info) {
     return *info.m_impl;
 }
 

@@ -135,6 +135,7 @@ namespace geode {
     class ModMetadataImpl : public ModMetadata::Impl {
     public:
         static ModMetadata::Impl& getImpl(ModMetadata& info);
+        static ModMetadata::Impl const& getImpl(ModMetadata const& info);
     };
 }
 
