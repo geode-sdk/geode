@@ -257,6 +257,17 @@ namespace geode {
          */
         Ref() = default;
 
+        /**
+         * Construct a Ref of an object, without retaining it.
+         * The object will still be released when Ref goes out of scope.
+         * @param obj Object to construct the Ref from
+         */
+        static Ref<T> adopt(T* obj) {
+            Ref<T> ref;
+            ref.m_obj = obj;
+            return ref;
+        }
+
         ~Ref() {
             CC_SAFE_RELEASE(m_obj);
         }
