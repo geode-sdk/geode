@@ -200,3 +200,27 @@ void ListBorders::setContentSize(CCSize const& size) {
     m_left->setScaleY((size.height - height) / m_left->getContentHeight());
     m_right->setScaleY((size.height - height) / m_right->getContentHeight());
 }
+
+void geode::addBackButton(cocos2d::CCNode* to, cocos2d::CCObject* target, cocos2d::SEL_MenuHandler selector, BackButtonStyle style) {
+    const char* sprite;
+    switch (style) {
+    default:
+    case BackButtonStyle::Green: sprite = "GJ_arrow_01_001.png"; break;
+    case BackButtonStyle::Blue: sprite = "GJ_arrow_02_001.png"; break;
+    case BackButtonStyle::Pink: sprite = "GJ_arrow_03_001.png"; break;
+    }
+
+    auto backBtn = CCMenuItemSpriteExtra::create(
+        CCSprite::createWithSpriteFrameName(sprite),
+        target,
+        selector
+    );
+    backBtn->setID("back-button");
+    backBtn->setZOrder(1);
+
+    auto menu = CCMenu::createWithItem(backBtn);
+    menu->setID("back-menu");
+    menu->setPosition({ 25.0f, CCDirector::get()->getWinSize().height - 25.0f });
+    menu->setZOrder(1);
+    to->addChild(menu);
+}
