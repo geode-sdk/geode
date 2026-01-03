@@ -1027,7 +1027,7 @@ namespace geode {
                 return {};
             }
 
-            void return_base(MyTask::Type value) {
+            void return_base(typename MyTask::Type value) {
                 MyTask::finish(m_handle.lock(), std::move(value));
             }
 
@@ -1094,7 +1094,7 @@ namespace geode {
                 );
             }
 
-            Task<T, P>::Type await_resume() {
+            typename Task<T, P>::Type await_resume() {
                 return std::move(*task.getFinishedValue());
             }
         };
