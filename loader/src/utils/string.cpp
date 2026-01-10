@@ -240,6 +240,7 @@ std::string utils::string::trim(std::string const& str) {
 
 std::string utils::string::filter(std::string_view str, std::string_view allowed) {
     std::string ret;
+    ret.reserve(str.size());
     for (char c : str) {
         if (allowed.find(c) != std::string::npos) {
             ret.push_back(c);
@@ -250,6 +251,7 @@ std::string utils::string::filter(std::string_view str, std::string_view allowed
 
 std::string utils::string::remove(std::string_view str, std::string_view disallowed) {
     std::string ret;
+    ret.reserve(str.size());
     for (char c : str) {
         if (disallowed.find(c) == std::string::npos) {
             ret.push_back(c);
