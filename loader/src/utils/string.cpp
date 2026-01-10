@@ -238,39 +238,23 @@ std::string utils::string::trim(std::string const& str) {
     return utils::string::trim(str, WHITESPACE);
 }
 
-std::string& utils::string::filterIP(std::string& str, std::string_view allowed) {
-    std::string res;
-    res.reserve(str.size());
+std::string utils::string::filter(std::string_view str, std::string_view allowed) {
+    std::string ret;
     for (char c : str) {
         if (allowed.find(c) != std::string::npos) {
-            res.push_back(c);
+            ret.push_back(c);
         }
     }
-    str = std::move(res);
-    return str;
-}
-
-std::string& utils::string::removeIP(std::string& str, std::string_view disallowed) {
-    std::string res;
-    res.reserve(str.size());
-    for (char c : str) {
-        if (disallowed.find(c) == std::string::npos) {
-            res.push_back(c);
-        }
-    }
-    str = std::move(res);
-    return str;
-}
-
-std::string utils::string::filter(std::string_view str, std::string_view allowed) {
-    std::string ret(str);
-    utils::string::filterIP(ret, allowed);
     return ret;
 }
 
 std::string utils::string::remove(std::string_view str, std::string_view disallowed) {
-    std::string ret(str);
-    utils::string::removeIP(ret, disallowed);
+    std::string ret;
+    for (char c : str) {
+        if (disallowed.find(c) == std::string::npos) {
+            ret.push_back(c);
+        }
+    }
     return ret;
 }
 
