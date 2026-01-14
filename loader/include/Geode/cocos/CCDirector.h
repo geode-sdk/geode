@@ -366,7 +366,7 @@ public:
     // @note RobTop Addition
     void checkSceneReference(void);
     // @note RobTop Addition
-    CCScene* getNextScene(void);
+    inline CCScene* getNextScene(void) { return m_pNextScene; }
     // @note RobTop Addition
     int levelForSceneInStack(CCScene*);
     // @note RobTop Addition

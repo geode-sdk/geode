@@ -511,7 +511,9 @@ public:
 
     /// @} End of Sprite properties getter/setters
 
-	cocos2d::CCPoint const& getUnflippedOffsetPosition();
+	inline cocos2d::CCPoint const& getUnflippedOffsetPosition() {
+        return m_obUnflippedOffsetPositionFromCenter;
+    }
 
 
 protected:
