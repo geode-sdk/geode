@@ -89,6 +89,7 @@ public:
 
 class CCSchedulerScriptHandlerEntry : public CCScriptHandlerEntry
 {
+    GEODE_FRIEND_MODIFY
 public:
     // nHandler return by tolua_ref_function(), called from LuaCocos2d.cpp
     static CCSchedulerScriptHandlerEntry* create(int nHandler, float fInterval, bool bPaused);
@@ -132,6 +133,7 @@ public:
  */
 class CCTouchScriptHandlerEntry : public CCScriptHandlerEntry
 {
+    GEODE_FRIEND_MODIFY
 public:
     static CCTouchScriptHandlerEntry* create(int nHandler, bool bIsMultiTouches, int nPriority, bool bSwallowsTouches);
     ~CCTouchScriptHandlerEntry(void);

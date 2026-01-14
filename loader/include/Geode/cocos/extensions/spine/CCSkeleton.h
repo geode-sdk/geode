@@ -35,6 +35,7 @@ namespace cocos2d { namespace extension {
 Draws a skeleton.
 */
 class CC_DLL CCSkeleton: public cocos2d::CCNodeRGBA, public cocos2d::CCBlendProtocol {
+	GEODE_FRIEND_MODIFY
 public:
 	Skeleton* skeleton;
 	Bone* rootBone;
@@ -50,6 +51,8 @@ public:
 	CCSkeleton (SkeletonData* skeletonData, bool ownsSkeletonData = false);
 	CCSkeleton (const char* skeletonDataFile, Atlas* atlas, float scale = 1);
 	CCSkeleton (const char* skeletonDataFile, const char* atlasFile, float scale = 1);
+
+	GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCSkeleton, cocos2d::CCNodeRGBA);
 
 	virtual ~CCSkeleton ();
 
