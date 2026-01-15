@@ -75,6 +75,8 @@ public:
     virtual void updateWithHSV(HSV hsv);
     virtual void updateDraggerWithHSV(HSV hsv);
 
+    // @note RobTop Addition
+    virtual void registerWithTouchDispatcher();
 protected:
     void updateSliderPosition(CCPoint location);
     bool checkSliderPosition(CCPoint location);
