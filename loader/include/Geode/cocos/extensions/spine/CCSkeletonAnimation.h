@@ -36,7 +36,6 @@ namespace cocos2d { namespace extension {
 Draws an animated skeleton, providing a simple API for applying one or more animations and queuing animations to be played later.
 */
 class CC_DLL CCSkeletonAnimation: public CCSkeleton {
-	GEODE_FRIEND_MODIFY
 public:
 	gd::vector<AnimationState*> states;
 
@@ -47,8 +46,6 @@ public:
 	CCSkeletonAnimation (SkeletonData* skeletonData);
 	CCSkeletonAnimation (const char* skeletonDataFile, Atlas* atlas, float scale = 1);
 	CCSkeletonAnimation (const char* skeletonDataFile, const char* atlasFile, float scale = 1);
-
-	GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCSkeletonAnimation, CCSkeleton);
 
 	virtual ~CCSkeletonAnimation ();
 
