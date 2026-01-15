@@ -66,6 +66,7 @@ class CC_DLL CCDataVisitor
 {
     GEODE_FRIEND_MODIFY
 public:
+    CCDataVisitor() {}
     virtual ~CCDataVisitor() {}
     GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCDataVisitor)
 
