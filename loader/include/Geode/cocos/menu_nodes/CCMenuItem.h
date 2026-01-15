@@ -149,7 +149,7 @@ public:
      * @js NA
      * @lua NA
      */
-    virtual ~CCMenuItemLabel();
+    virtual ~CCMenuItemLabel(){}
 
     /** creates a CCMenuItemLabel with a Label, target and selector
      * @lua NA
