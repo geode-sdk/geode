@@ -78,8 +78,11 @@ public:
 
 
 public:
-    // @note RobTop Addition: renamed create to colourPicker
+    // @note RobTop Addition
     static CCControlColourPicker* colourPicker();
+    inline static CCControlColourPicker* create() {
+        return colourPicker();
+    }
 
     virtual bool init();
     void hueSliderValueChanged(CCObject * sender, CCControlEvent controlEvent);

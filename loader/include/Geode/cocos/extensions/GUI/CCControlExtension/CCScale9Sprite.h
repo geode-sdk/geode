@@ -299,6 +299,9 @@ public:
 
     static CCScale9Sprite* create();
 
+    // @note RobTop Addition
+    void setBlendAdditive(bool additive);
+
     // optional
 
     /** sets the premultipliedAlphaOpacity property.

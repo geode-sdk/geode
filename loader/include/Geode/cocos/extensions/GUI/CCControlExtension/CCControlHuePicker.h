@@ -69,6 +69,9 @@ public:
 
     static CCControlHuePicker* create(CCNode* target, CCPoint pos);
     virtual void setEnabled(bool enabled);
+
+    // @note RobTop Addition
+    virtual void registerWithTouchDispatcher();
 protected:
     void updateSliderPosition(CCPoint location);
     bool checkSliderPosition(CCPoint location);

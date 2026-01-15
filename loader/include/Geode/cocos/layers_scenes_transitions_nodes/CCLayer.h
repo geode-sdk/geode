@@ -381,6 +381,9 @@ public:
 
     virtual bool init();
 
+    // @note RobTop Addition
+    virtual void visit();
+
     virtual void updateColor();
     /** Initializes the CCLayer with a gradient between start and end.
      *  @js init
