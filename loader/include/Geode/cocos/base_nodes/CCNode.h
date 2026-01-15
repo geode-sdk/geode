@@ -1757,9 +1757,9 @@ public:
     // 2.2 additions
     virtual void updateTweenActionInt(float, int);
 
-	cocos2d::CCAffineTransform getTransformTemp();
+	inline cocos2d::CCAffineTransform getTransformTemp() { return m_sTransform; }
 
-	bool getUseChildIndex();
+	inline bool getUseChildIndex() { return m_bUseChildIndex; }
 	void setUseChildIndex(bool);
 	void qsortAllChildrenWithIndex();
 
@@ -1845,11 +1845,17 @@ public:
     bool m_bRunning;                    ///< is running
 
     bool m_bTransformDirty;             ///< transform dirty flag
-    bool m_bInverseDirty;               ///< transform dirty flag
-    bool m_bAdditionalTransformDirty;   ///< The flag to check whether the additional transform is dirty
 
     // 2.2 additions
-    PAD(10); // i dont know if this is related to transform at all, but its here
+    // @note RobTop Addition
+    bool m_bPositionDirty;
+    // @note RobTop Addition
+    float m_fTransformX;
+    // @note RobTop Addition
+    float m_fTransformY;
+
+    bool m_bInverseDirty;               ///< transform dirty flag
+    bool m_bAdditionalTransformDirty;   ///< The flag to check whether the additional transform is dirty
 
     bool m_bVisible;                    ///< is this node visible
 
@@ -1865,7 +1871,7 @@ public:
     CCComponentContainer *m_pComponentContainer;        ///< Dictionary of components
 
     // 2.2 additions
-    bool m_bUnkBool1;
+    bool m_bUseChildIndex;
     bool m_bUnkBool2;
 };
 
