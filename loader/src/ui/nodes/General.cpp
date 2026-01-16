@@ -201,6 +201,10 @@ void ListBorders::setContentSize(CCSize const& size) {
     m_right->setScaleY((size.height - height) / m_right->getContentHeight());
 }
 
+CCMenuItemSpriteExtra* geode::addBackButton(cocos2d::CCNode* to, BackButtonStyle style) {
+    return geode::addBackButton(to, [](cocos2d::CCMenuItem*) { CCDirector::get()->popScene(); }, style);
+}
+
 CCMenuItemSpriteExtra* geode::addBackButton(cocos2d::CCNode* to, std::function<void(cocos2d::CCMenuItem*)> callback, BackButtonStyle style) {
     const char* sprite;
     switch (style) {

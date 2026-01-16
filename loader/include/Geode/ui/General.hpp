@@ -105,6 +105,16 @@ namespace geode {
     };
 
     /**
+     * Add a back button to a layer, calls `CCDirector::get()->popScene()`
+     * @param to Layer to add back button to
+     * @param style Style of button to use
+     */
+    GEODE_DLL CCMenuItemSpriteExtra* addBackButton(
+        cocos2d::CCNode* to,
+        BackButtonStyle style = BackButtonStyle::Green
+    );
+
+    /**
      * Add a back button to a layer
      * @param to Layer to add back button to
      * @param callback Selector to call on button press
