@@ -107,14 +107,12 @@ namespace geode {
     /**
      * Add a back button to a layer
      * @param to Layer to add back button to
-     * @param target Target to call selector on
-     * @param selector Selector to call on button press
+     * @param callback Selector to call on button press
      * @param style Style of button to use
      */
-    GEODE_DLL void addBackButton(
+    GEODE_DLL CCMenuItemSpriteExtra * addBackButton(
         cocos2d::CCNode* to,
-        cocos2d::CCObject* target,
-        cocos2d::SEL_MenuHandler selector,
+        std::function<void(cocos2d::CCMenuItem*)> callback,
         BackButtonStyle style = BackButtonStyle::Green
     );
 }
