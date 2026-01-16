@@ -284,6 +284,18 @@ namespace geode {
         }
 
         /**
+         * Takes out the object from the Ref, without calling `release` on it.
+         * This is like a symmetric counterpart to `Ref::adopt`, it essentially "leaks" the object,
+         * making the Ref empty and making you responsible for releasing it manually.
+         * @returns The managed object
+         */
+        T* take() {
+            auto obj = m_obj;
+            m_obj = nullptr;
+            return obj;
+        }
+
+        /**
          * Return the managed object
          * @returns The managed object
          */
