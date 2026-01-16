@@ -53,6 +53,12 @@ Mod::Impl::~Impl() = default;
 
 Result<> Mod::Impl::setup() {
     m_saveDirPath = dirs::getModsSaveDir() / m_metadata.getID();
+    m_settings = std::make_unique<ModSettingsManager>(m_metadata);
+
+    if (this->isEphemeral()) {
+        return Ok();
+    }
+
     (void) utils::file::createDirectoryAll(m_saveDirPath);
 
     // always create temp dir for all mods, even if disabled, so resources can be loaded
@@ -60,7 +66,6 @@ Result<> Mod::Impl::setup() {
         return fmt::format("Unable to create temp dir: {}", err);
     }));
 
-    m_settings = std::make_unique<ModSettingsManager>(m_metadata);
     auto loadRes = this->loadData();
     if (!loadRes) {
         log::warn("Unable to load data for \"{}\": {}", m_metadata.getID(), loadRes.unwrapErr());
@@ -101,6 +106,10 @@ std::string Mod::Impl::getID() const {
 
 std::string Mod::Impl::getName() const {
     return m_metadata.getName();
+}
+
+bool Mod::Impl::isEphemeral() const {
+    return ModMetadataImpl::getImpl(m_metadata).m_softInvalidReason.has_value();
 }
 
 std::vector<std::string> Mod::Impl::getDevelopers() const {
@@ -216,6 +225,10 @@ Result<> Mod::Impl::loadData() {
 Result<> Mod::Impl::saveData() {
     if (this->getRequestedAction() == ModRequestedAction::UninstallWithSaveData) {
         // Don't save data if the mod is being uninstalled with save data
+        return Ok();
+    }
+
+    if (this->isEphemeral()) {
         return Ok();
     }
 
