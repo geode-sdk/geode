@@ -202,7 +202,7 @@ void ListBorders::setContentSize(CCSize const& size) {
 }
 
 CCMenuItemSpriteExtra* geode::addBackButton(cocos2d::CCNode* to, BackButtonStyle style) {
-    return geode::addBackButton(to, [](cocos2d::CCMenuItem*) { CCDirector::get()->popScene(); }, style);
+    return geode::addBackButton(to, [](cocos2d::CCMenuItem*) { CCDirector::get()->popSceneWithTransition(.5f, PopTransition::kPopTransitionFade); }, style);
 }
 
 CCMenuItemSpriteExtra* geode::addBackButton(cocos2d::CCNode* to, std::function<void(cocos2d::CCMenuItem*)> callback, BackButtonStyle style) {
