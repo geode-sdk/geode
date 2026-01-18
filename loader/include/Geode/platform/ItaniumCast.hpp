@@ -1,5 +1,7 @@
 #pragma once
 
+#include "_casts_shared.hpp"
+
 namespace geode::cast {
 
     struct DummyClass {
@@ -102,10 +104,8 @@ namespace geode::cast {
 
     template <class After, class Before>
     inline After typeinfo_cast(Before ptr) {
-        static_assert(
-            std::is_polymorphic_v<std::remove_pointer_t<Before>> && std::is_polymorphic_v<std::remove_pointer_t<After>>,
-            "Input is not a polymorphic type"
-        );
+        ::geode::geode_internal::typeinfoCastChecks<After, Before>();
+
         if (!ptr) {
             return static_cast<After>(nullptr);
         }

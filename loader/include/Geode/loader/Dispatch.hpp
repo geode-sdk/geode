@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Event.hpp"
+#include "../utils/function.hpp"
 #include "../modify/Traits.hpp"
 
 #include <functional>
@@ -135,6 +136,14 @@ namespace geode::geode_internal {
         return storage callArgs;                                                                \
     }
 
+#define GEODE_EVENT_EXPORT_CALL_NORES(fnPtr, callArgs, eventID)                                 \
+    {                                                                                           \
+        static auto storage = geode::geode_internal::callEventExportListener(fnPtr, eventID);   \
+        if (!storage) return geode::utils::function::Return<decltype(fnPtr)>();                \
+        return storage callArgs;                                                                \
+    }
+
+
 #define GEODE_EVENT_EXPORT_DEFINE(fnPtr, callArgs, eventID)                                             \
     ;                                                                                                   \
     template <auto>                                                                                     \
@@ -153,6 +162,11 @@ namespace geode::geode_internal {
     #define GEODE_EVENT_EXPORT_ID(fnPtr, callArgs, eventID) \
         GEODE_EVENT_EXPORT_CALL(fnPtr, callArgs, eventID)
 
+    #define GEODE_EVENT_EXPORT_NORES(fnPtr, callArgs) \
+        GEODE_EVENT_EXPORT_CALL_NORES(fnPtr, callArgs, GEODE_EVENT_EXPORT_ID_FOR(#fnPtr, #callArgs))
+
+    #define GEODE_EVENT_EXPORT_ID_NORES(fnPtr, callArgs, eventID) \
+        GEODE_EVENT_EXPORT_CALL_NORES(fnPtr, callArgs, eventID)
 #else
 
     #define GEODE_EVENT_EXPORT(fnPtr, callArgs) \
@@ -161,4 +175,9 @@ namespace geode::geode_internal {
     #define GEODE_EVENT_EXPORT_ID(fnPtr, callArgs, eventID) \
         GEODE_EVENT_EXPORT_DEFINE(fnPtr, callArgs, eventID)
 
+    #define GEODE_EVENT_EXPORT_NORES(fnPtr, callArgs) \
+        GEODE_EVENT_EXPORT(fnPtr, callArgs)
+
+    #define GEODE_EVENT_EXPORT_ID_NORES(fnPtr, callArgs, eventID) \
+        GEODE_EVENT_EXPORT_ID(fnPtr, callArgs, eventID)
 #endif

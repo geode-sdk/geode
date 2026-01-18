@@ -44,11 +44,6 @@ namespace geode {
     class Layout;
     class LayoutOptions;
     enum class Anchor;
-
-    template <typename T, typename>
-    struct CCArrayExtCheck {
-        using type = void;
-    };
 }
 
 NS_CC_BEGIN
@@ -1762,9 +1757,9 @@ public:
     // 2.2 additions
     virtual void updateTweenActionInt(float, int);
 
-	cocos2d::CCAffineTransform getTransformTemp();
+	inline cocos2d::CCAffineTransform getTransformTemp() { return m_sTransform; }
 
-	bool getUseChildIndex();
+	inline bool getUseChildIndex() { return m_bUseChildIndex; }
 	void setUseChildIndex(bool);
 	void qsortAllChildrenWithIndex();
 
@@ -1877,7 +1872,7 @@ public:
 
     // 2.2 additions
     bool m_bUseChildIndex;
-    bool m_bDontPauseSchedulerAndActions;
+    bool m_bUnkBool2;
 };
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS) || (CC_TARGET_PLATFORM == CC_PLATFORM_MAC)

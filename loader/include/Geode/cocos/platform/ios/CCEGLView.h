@@ -38,6 +38,7 @@ class CC_DLL CCEGLView : public CCEGLViewProtocol
 public:
     CCEGLView();
    ~CCEGLView();
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEGLView, CCEGLViewProtocol)
 
     virtual bool    isOpenGLReady();
     virtual bool    setContentScaleFactor(float contentScaleFactor);

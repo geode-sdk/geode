@@ -525,11 +525,7 @@ public:
             // make sure zip files like root/../../file.txt don't get extracted to
             // avoid zip attacks
             std::error_code ec;
-#ifdef GEODE_IS_WINDOWS
-            if (!std::filesystem::relative((dir / filePath).wstring(), dir.wstring(), ec).empty()) {
-#else
             if (!std::filesystem::relative(dir / filePath, dir, ec).empty()) {
-#endif
                 if (m_entries.at(filePath).isDirectory) {
                     GEODE_UNWRAP(file::createDirectoryAll(dir / filePath));
                 }
@@ -621,10 +617,10 @@ public:
         info.filename = reinterpret_cast<const char*>(strPath.c_str());
         info.uncompressed_size = 0;
         info.flag = MZ_ZIP_FLAG_UTF8;
-    #ifdef GEODE_IS_WINDOWS
+#ifdef GEODE_IS_WINDOWS
         info.external_fa = FILE_ATTRIBUTE_DIRECTORY;
-    #endif
         info.aes_version = MZ_AES_VERSION;
+#endif
 
 
         GEODE_UNWRAP(
@@ -646,7 +642,9 @@ public:
         info.compression_method = MZ_COMPRESS_METHOD_DEFLATE;
         info.filename = namestr.c_str();
         info.uncompressed_size = data.size();
+#ifdef GEODE_IS_WINDOWS
         info.aes_version = MZ_AES_VERSION;
+#endif
 
         GEODE_UNWRAP(
             mzTry(mz_zip_entry_write_open(m_handle, &info, MZ_COMPRESS_LEVEL_DEFAULT, 0, nullptr))

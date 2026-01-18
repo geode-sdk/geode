@@ -102,6 +102,9 @@ public:
     bool drawRect(cocos2d::CCRect const&, cocos2d::_ccColor4F const&, float, cocos2d::_ccColor4F const&);
     void disableDrawArea();
     void enableDrawArea(cocos2d::CCRect& rect);
+
+    bool is_circle_on_screen(cocos2d::CCRect const&, cocos2d::CCPoint const&, float);
+    bool is_segment_on_screen(cocos2d::CCRect const&, cocos2d::CCPoint const&, cocos2d::CCPoint const&);
 #else
     /** draw a dot at a position, with a given radius and color */
     void drawDot(const CCPoint &pos, float radius, const ccColor4F &color);

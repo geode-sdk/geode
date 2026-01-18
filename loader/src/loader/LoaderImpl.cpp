@@ -304,12 +304,14 @@ void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
 
             auto res = ModMetadata::createFromGeodeFile(entry.path());
             if (!res) {
-                this->addProblem({
-                    LoadProblem::Type::InvalidFile,
-                    entry.path(),
-                    res.unwrapErr()
-                });
                 log::error("Failed to queue: {}", res.unwrapErr());
+
+                auto modMetadata = ModMetadataImpl::createInvalidMetadata(
+                    entry.path().filename().string(),
+                    res.unwrapErr(),
+                    LoadProblem::Type::InvalidFile
+                );
+                modQueue.push_back(modMetadata);
                 continue;
             }
             auto modMetadata = res.unwrap();
@@ -321,12 +323,15 @@ void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
             if (std::find_if(modQueue.begin(), modQueue.end(), [&](auto& item) {
                     return modMetadata.getID() == item.getID();
                 }) != modQueue.end()) {
-                this->addProblem({
-                    LoadProblem::Type::Duplicate,
-                    modMetadata,
-                    "A mod with the same ID is already present."
-                });
                 log::error("Failed to queue: a mod with the same ID is already queued");
+
+                auto modMetadata = ModMetadataImpl::createInvalidMetadata(
+                    entry.path().filename().string(),
+                    "A mod with the same ID is already present.",
+                    LoadProblem::Type::Duplicate
+                );
+                modQueue.push_back(modMetadata);
+
                 continue;
             }
 
@@ -477,19 +482,6 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
         m_refreshingModCount -= 1;
     };
 
-    {   // version checking
-        if (auto reason = node->getMetadataRef().m_impl->m_softInvalidReason) {
-            this->addProblem({
-                LoadProblem::Type::InvalidFile,
-                node,
-                reason.value()
-            });
-            log::error("{}", reason.value());
-            m_refreshingModCount -= 1;
-            return;
-        }
-    }
-
     if (early) {
         auto res = unzipFunction();
         if (!res) {
@@ -541,6 +533,15 @@ void Loader::Impl::findProblems() {
             log::warn("{} is outdated", id);
             continue;
         }
+
+        if (auto reason = mod->getMetadataRef().m_impl->m_softInvalidReason) {
+            auto& [message, type] = *reason;
+
+            this->addProblem({ type, mod, message });
+            log::error("{} failed to load: {}", id, message);
+            continue;
+        }
+
         log::debug("{}", id);
         log::NestScope nest;
 
@@ -732,6 +733,8 @@ void Loader::Impl::refreshModGraph() {
     m_loadingState = LoadingState::Mods;
 
     queueInMainThread([this]() {
+        utils::thread::setName("Main");
+        
         log::info("Loading non-early mods");
         this->continueRefreshModGraph();
     });

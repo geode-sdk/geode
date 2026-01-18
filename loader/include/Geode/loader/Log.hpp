@@ -4,6 +4,7 @@
 #include "../platform/cplatform.h"
 
 #include <Geode/DefaultInclude.hpp>
+#include <Geode/Result.hpp>
 #include <ccTypes.h>
 #include <chrono>
 #include <filesystem>
@@ -22,6 +23,42 @@ namespace geode {
     GEODE_DLL std::string format_as(cocos2d::CCNode*);
     class Mod;
     GEODE_DLL std::string format_as(Mod*);
+
+    template <typename T, typename E>
+    std::string format_as(Result<T, E> const& result) {
+        std::string out;
+
+        auto formatValue = [&](auto&& value) {
+            using V = std::decay_t<decltype(value)>;
+            if constexpr (std::is_same_v<V, std::string>) {
+                fmt::format_to(std::back_inserter(out), "\"{}\"", value);
+            } else if constexpr (std::is_void_v<V>) {
+                // nothing
+            } else if constexpr (requires { geode::format_as(value); }) {
+                fmt::format_to(std::back_inserter(out), "{}", geode::format_as(value));
+            } else if constexpr (std::is_pointer_v<V>) {
+                fmt::format_to(std::back_inserter(out), "{}", (void*)value);
+            } else {
+                fmt::format_to(std::back_inserter(out), "{}", value);
+            }
+        };
+
+        if (result) {
+            out += "Ok(";
+            if constexpr (!std::is_void_v<T>) {
+                formatValue(result.unwrap());
+            }
+            out += ")";
+        } else {
+            out += "Err(";
+            if constexpr (!std::is_void_v<E>) {
+                formatValue(result.unwrapErr());
+            }
+            out += ")";
+        }
+
+        return out;
+    }
 }
 
 namespace geode::log::impl {

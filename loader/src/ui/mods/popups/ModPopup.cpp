@@ -1169,10 +1169,9 @@ void ModPopup::onModtober24Info(CCObject*) {
 }
 
 void ModPopup::onModtober25Info(CCObject*) {
-    // TODO: DO NOT forget to change this from is to was
     FLAlertLayer::create(
         "Modtober 2025",
-        "This mod is an entry for <co>Modtober 2025</c>, a contest to create "
+        "This mod was an entry for <co>Modtober 2025</c>, a contest to create "
         "the best mod with the theme <cc>\"What The Heck!?\"</c>",
         "OK"
     )->show();

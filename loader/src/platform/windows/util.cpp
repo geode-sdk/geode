@@ -17,6 +17,7 @@ using namespace geode::prelude;
 #include <Geode/utils/permission.hpp>
 #include <Geode/utils/ObjcHook.hpp>
 #include <Geode/utils/string.hpp>
+#include "../../utils/thread.hpp"
 
 bool utils::clipboard::write(std::string const& data) {
     if (!OpenClipboard(nullptr)) return false;
@@ -294,9 +295,33 @@ void geode::utils::permission::requestPermission(Permission permission, std::fun
     callback(true); // unimplemented
 }
 
-#include "../../utils/thread.hpp"
+// [Set|Get]ThreadDescription are pretty new, so the user's system might not have them
+// or they might only be accessible dynamically (see msdocs link below for more info)
+auto setThreadDesc = reinterpret_cast<decltype(&SetThreadDescription)>(GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "SetThreadDescription"));
+auto getThreadDesc = reinterpret_cast<decltype(&GetThreadDescription)>(GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "GetThreadDescription"));
+
+static std::optional<std::string> getNameFromOs() {
+    if (!getThreadDesc) {
+        return std::nullopt;
+    }
+
+    PWSTR wname = nullptr;
+    if (!SUCCEEDED(getThreadDesc(GetCurrentThread(), &wname))) {
+        return std::nullopt;
+    }
+
+    std::string name = utils::string::wideToUtf8(wname);
+    LocalFree(wname);
+    
+    return name;
+}
 
 std::string geode::utils::thread::getDefaultName() {
+    // try to request name from the OS first, fallback to a simple format if fails
+    if (auto name = getNameFromOs()) {
+        return *name;
+    }
+
     return fmt::format("Thread #{}", GetCurrentThreadId());
 }
 
@@ -310,9 +335,6 @@ typedef struct tagTHREADNAME_INFO {
 } THREADNAME_INFO;
 #pragma pack(pop)
 
-// SetThreadDescription is pretty new, so the user's system might not have it
-// or it might only be accessible dynamically (see msdocs link above for more info)
-auto setThreadDesc = reinterpret_cast<decltype(&SetThreadDescription)>(GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "SetThreadDescription"));
 void obliterate(std::string const& name) {
     // exception
     THREADNAME_INFO info;
