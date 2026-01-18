@@ -120,7 +120,7 @@ public:
 
     // 2.2 additions
 
-    int m_nChildIndex; // -1 by default
+    int m_uUnknown; // -1 by default
     int m_unknown2;
     int m_nZOrder; // moved from CCNode, why rob
     int m_uOrderOfArrival; // moved from CCNode, why rob
