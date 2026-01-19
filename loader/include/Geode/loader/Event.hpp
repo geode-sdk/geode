@@ -171,6 +171,9 @@ namespace geode {
             this->enable();
         }
 
+        EventListener(T filter = Filter()) requires is_filter<T>
+          : EventListener({}, std::move(filter)) {}
+
         template <class C>
         EventListener(C* cls, MemberFn<C> fn, T filter = Filter()) requires is_filter<T> :
             EventListener(std::bind(std::move(fn), cls, std::placeholders::_1), std::move(filter)) {}

@@ -13,7 +13,7 @@ Mod* ModStateEvent::getMod() const {
     return m_mod;
 }
 
-ListenerResult ModStateFilter::handle(geode::function<Callback>& fn, ModStateEvent* event) {
+ListenerResult ModStateFilter::handle(geode::Function<Callback>& fn, ModStateEvent* event) {
     // log::debug("Event mod filter: {}, {}, {}, {}", m_mod, static_cast<int>(m_type), event->getMod(), static_cast<int>(event->getType()));
     if ((!m_mod || event->getMod() == m_mod) && event->getType() == m_type) {
         fn(event);
