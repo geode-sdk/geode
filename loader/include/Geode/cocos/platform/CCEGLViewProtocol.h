@@ -148,19 +148,19 @@ public:
     /** Touch events are handled by default; if you want to customize your handlers, please override these functions:
      * @lua NA
      */
-    virtual void handleTouchesBegin(int num, int ids[], float xs[], float ys[]);
+    virtual void handleTouchesBegin(int num, int ids[], float xs[], float ys[], double timestamp);
     /**
      * @lua NA
      */
-    virtual void handleTouchesMove(int num, int ids[], float xs[], float ys[]);
+    virtual void handleTouchesMove(int num, int ids[], float xs[], float ys[], double timestamp);
     /**
      * @lua NA
      */
-    virtual void handleTouchesEnd(int num, int ids[], float xs[], float ys[]);
+    virtual void handleTouchesEnd(int num, int ids[], float xs[], float ys[], double timestamp);
     /**
      * @lua NA
      */
-    virtual void handleTouchesCancel(int num, int ids[], float xs[], float ys[]);
+    virtual void handleTouchesCancel(int num, int ids[], float xs[], float ys[], double timestamp);
 
     /**
      * Get the opengl view port rectangle.
