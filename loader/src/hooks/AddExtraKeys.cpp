@@ -15,6 +15,8 @@
 using namespace geode::prelude;
 
 class $modify(GeodeCCEGLView, CCEGLView) {
+    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("AddExtraKeys")
+
     void onGLFWKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
         bool extraKey = isExtraKey(key);
         bool numpad = isKeyNumpad(key);
