@@ -1,5 +1,8 @@
 # Geode Changelog
 
+## v4.10.1
+* Fix a crash on 2.208 forwards compatibility mode related to keybindings (e166de5)
+
 ## v4.10.0
  * Add `$on_game` macro for `GameEvent` events (679678f)
  * Add progress bar helper class (#1467)
