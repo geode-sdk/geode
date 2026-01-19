@@ -47,6 +47,8 @@ NS_CC_EXT_BEGIN
 
 class CC_DLL CCControlSaturationBrightnessPicker : public CCControl
 {
+    GEODE_FRIEND_MODIFY
+
     /** Contains the receiver's current saturation value. */
     CC_SYNTHESIZE_READONLY_NV(float, m_saturation, Saturation);
     /** Contains the receiver's current brightness value. */
@@ -75,6 +77,8 @@ public:
     virtual void updateWithHSV(HSV hsv);
     virtual void updateDraggerWithHSV(HSV hsv);
 
+    // @note RobTop Addition
+    virtual void registerWithTouchDispatcher();
 protected:
     void updateSliderPosition(CCPoint location);
     bool checkSliderPosition(CCPoint location);

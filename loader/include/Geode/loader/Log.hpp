@@ -33,12 +33,39 @@ struct fmt::formatter<geode::Result<T, E>> {
 
     template <typename FormatContext>
     auto format(geode::Result<T, E> const& result, FormatContext& ctx) const noexcept {
+        std::string out;
+
+        auto formatValue = [&](auto&& value) {
+            using V = std::decay_t<decltype(value)>;
+            if constexpr (std::is_same_v<V, std::string>) {
+                fmt::format_to(std::back_inserter(out), "\"{}\"", value);
+            } else if constexpr (std::is_void_v<V>) {
+                // nothing
+            } else if constexpr (requires { geode::format_as(value); }) {
+                fmt::format_to(std::back_inserter(out), "{}", geode::format_as(value));
+            } else if constexpr (std::is_pointer_v<V>) {
+                fmt::format_to(std::back_inserter(out), "{}", (void*)value);
+            } else {
+                fmt::format_to(std::back_inserter(out), "{}", value);
+            }
+        };
+
         if (result) {
             std::string_view quotes = std::is_same_v<T, std::string> ? "\"" : "";
-            return fmt::format_to(ctx.out(), "Ok({}{}{})", quotes, result.unwrap(), quotes);
+            if constexpr (!std::is_void_v<T>) {
+                return fmt::format_to(ctx.out(), "Ok({}{}{})", quotes, result.unwrap(), quotes);
+            }
+            else {
+                return fmt::format_to(ctx.out(), "Ok()");
+            }
         } else {
             std::string_view quotes = std::is_same_v<E, std::string> ? "\"" : "";
-            return fmt::format_to(ctx.out(), "Err({}{}{})", quotes, result.unwrapErr(), quotes);
+            if constexpr (!std::is_void_v<E>) {
+                return fmt::format_to(ctx.out(), "Err({}{}{})", quotes, result.unwrapErr(), quotes);
+            }
+            else {
+                return fmt::format_to(ctx.out(), "Err()");
+            }
         }
     }
 };

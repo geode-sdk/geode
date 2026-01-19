@@ -198,6 +198,9 @@ public:
     float  m_fScaleX;
     float  m_fScaleY;
     ResolutionPolicy m_eResolutionPolicy;
+
+    // RobTop addition, seemingly unused and set to 1.0 in ctor
+    float  m_unkFloat;
 };
 
 // end of platform group

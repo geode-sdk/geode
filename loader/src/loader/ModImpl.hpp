@@ -97,6 +97,12 @@ namespace geode {
         std::filesystem::path getTempDir() const;
         std::filesystem::path getBinaryPath() const;
 
+        /**
+         * If a mod should be considered ephemeral, in which case it will not attempt to save/load its data.
+         * Currently used for the invalid mod objects.
+         */
+        bool isEphemeral() const;
+
         matjson::Value& getSaveContainer();
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)

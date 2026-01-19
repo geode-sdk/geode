@@ -131,17 +131,29 @@ namespace geode {
             { ca.getListener() } -> std::convertible_to<EventListenerProtocol*>;
         };
 
+    template <typename T>
+    struct into_filter;
     template <is_filter T>
+    struct into_filter<T> {
+        using type = T;
+    };
+    template <is_event T>
+    struct into_filter<T> {
+        using type = EventFilter<T>;
+    };
+
+    template <typename T> requires is_filter<T> || is_event<T>
     class EventListener : public EventListenerProtocol {
     public:
-        using Callback = typename T::Callback;
+        using Filter = into_filter<T>::type;
+        using Callback = typename Filter::Callback;
         template <typename C>
             requires std::is_class_v<C>
         using MemberFn = typename to_member<C, Callback>::value;
 
         ListenerResult handle(Event* e) override {
             if (m_callback) {
-                if (auto myev = cast::typeinfo_cast<typename T::Event*>(e)) {
+                if (auto myev = cast::typeinfo_cast<typename Filter::Event*>(e)) {
                     return m_filter.handle(m_callback, myev);
                 }
             }
@@ -152,25 +164,30 @@ namespace geode {
             return m_filter.getPool();
         }
 
-        EventListener(T filter = T()) : m_filter(filter) {
-            m_filter.setListener(this);
-            this->enable();
-        }
-
-        EventListener(geode::Function<Callback> fn, T filter = T())
-          : m_callback(std::move(fn)), m_filter(filter)
+        EventListener(geode::Function<Callback> fn, T filter = Filter()) requires is_filter<T>
+          : m_callback(std::move(std::move(fn))), m_filter(std::move(filter))
         {
             m_filter.setListener(this);
             this->enable();
         }
 
         template <class C>
-        EventListener(C* cls, MemberFn<C> fn, T filter = T()) :
-            EventListener(std::bind(fn, cls, std::placeholders::_1), filter)
+        EventListener(C* cls, MemberFn<C> fn, T filter = Filter()) requires is_filter<T> :
+            EventListener(std::bind(std::move(fn), cls, std::placeholders::_1), std::move(filter)) {}
+
+        EventListener(std::function<Callback> fn) requires is_event<T>
+          : m_callback(std::move(fn)), m_filter(Filter())
         {
             m_filter.setListener(this);
             this->enable();
         }
+
+        EventListener() requires is_event<T>
+          : EventListener({}) {}
+
+        template <class C>
+        EventListener(C* cls, MemberFn<C> fn) requires is_event<T> :
+            EventListener(std::bind(std::move(fn), cls, std::placeholders::_1)) {}
 
         EventListener(EventListener&& other)
           : m_callback(std::move(other.m_callback)),
@@ -201,19 +218,19 @@ namespace geode {
 
         template <typename C>
         void bind(C* cls, MemberFn<C> fn) {
-            m_callback = std::bind(fn, cls, std::placeholders::_1);
+            m_callback = std::bind(std::move(fn), cls, std::placeholders::_1);
         }
 
-        void setFilter(T filter) {
+        void setFilter(Filter filter) {
             m_filter = std::move(filter);
             m_filter.setListener(this);
         }
 
-        T& getFilter() {
+        Filter& getFilter() {
             return m_filter;
         }
 
-        T const& getFilter() const {
+        Filter const& getFilter() const {
             return m_filter;
         }
 
@@ -223,7 +240,7 @@ namespace geode {
 
     protected:
         geode::Function<Callback> m_callback = nullptr;
-        T m_filter;
+        Filter m_filter;
     };
 
     class GEODE_DLL [[nodiscard]] Event {

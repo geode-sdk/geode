@@ -47,6 +47,8 @@ NS_CC_EXT_BEGIN
 
 class CC_DLL CCControlHuePicker : public CCControl
 {
+    GEODE_FRIEND_MODIFY
+
     //maunally put in the setters
     CC_SYNTHESIZE_READONLY_NV(float, m_hue, Hue);
     virtual void setHue(float val);
@@ -67,6 +69,9 @@ public:
 
     static CCControlHuePicker* create(CCNode* target, CCPoint pos);
     virtual void setEnabled(bool enabled);
+
+    // @note RobTop Addition
+    virtual void registerWithTouchDispatcher();
 protected:
     void updateSliderPosition(CCPoint location);
     bool checkSliderPosition(CCPoint location);

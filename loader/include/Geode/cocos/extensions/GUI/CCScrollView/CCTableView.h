@@ -49,6 +49,7 @@ typedef enum {
  */
 class CC_DLL CCTableViewDelegate : public CCScrollViewDelegate
 {
+    GEODE_FRIEND_MODIFY
 public:
     /**
      * Delegate to respond touch event

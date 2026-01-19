@@ -177,6 +177,8 @@ protected:
     virtual bool canDetachWithIME();
     virtual void insertText(const char * text, int len, cocos2d::enumKeyCodes);
     virtual void deleteBackward();
+    // @note RobTop Addition
+    virtual void deleteForward();
     virtual const char * getContentText();
 public:
     class LengthStack;
