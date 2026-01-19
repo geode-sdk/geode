@@ -156,10 +156,10 @@ namespace geode {
 
         virtual bool setup(InitArgs... args) = 0;
 
-        void keyDown(cocos2d::enumKeyCodes key) override {
+        void keyDown(cocos2d::enumKeyCodes key, double p1) override {
             if (key == cocos2d::enumKeyCodes::KEY_Escape) return this->onClose(nullptr);
             if (key == cocos2d::enumKeyCodes::KEY_Space) return;
-            return FLAlertLayer::keyDown(key);
+            return FLAlertLayer::keyDown(key, p1);
         }
 
         virtual void onClose(cocos2d::CCObject*) {
