@@ -2,6 +2,7 @@
 
 ## v4.10.1
 * Fix a crash on 2.208 forwards compatibility mode related to keybindings (e166de5)
+* Bindings additions for cocos2d classes (#1592)
 
 ## v4.10.0
  * Add `$on_game` macro for `GameEvent` events (679678f)
