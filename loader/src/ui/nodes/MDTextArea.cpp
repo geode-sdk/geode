@@ -266,9 +266,8 @@ struct MDParser {
 
             case MD_TEXTTYPE::MD_TEXT_NORMAL:
                 {
-                    if (s_lastLink.size()) {
-                        renderer->pushColor(g_linkColor);
-                        renderer->pushDecoFlags(TextDecorationUnderline);
+                    if (!s_lastLink.empty()) {
+                        renderer->pushDecoFlags(TextDecorationUnderline); // force underline for links
                         auto rendered = renderer->renderStringInteractive(
                             text, textarea,
                             utils::string::startsWith(s_lastLink, "user:")
@@ -283,7 +282,6 @@ struct MDParser {
                             label.m_node->setUserObject(CCString::create(s_lastLink));
                         }
                         renderer->popDecoFlags();
-                        renderer->popColor();
                     }
                     else if (!s_lastImage.empty()) {
                         bool isFrame = false;
@@ -643,6 +641,8 @@ struct MDParser {
                 {
                     auto adetail = static_cast<MD_SPAN_A_DETAIL*>(detail);
                     s_lastLink = std::string(adetail->href.text, adetail->href.size);
+
+                    renderer->pushColor(g_linkColor);
                 }
                 break;
 
@@ -691,6 +691,7 @@ struct MDParser {
 
             case MD_SPANTYPE::MD_SPAN_A:
                 {
+                    renderer->popColor();
                     s_lastLink = "";
                 }
                 break;
