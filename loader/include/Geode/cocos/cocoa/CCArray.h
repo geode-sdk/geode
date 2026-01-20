@@ -32,19 +32,16 @@ THE SOFTWARE.
  * @{
  */
 
-// TODO: when the v5 is more real, actually replace all usages in bindings and uncomment the macros below
-// these macros are a small compat wrapper, because if we update bindings rn it will break v4 users
-#define CCARRAY_FOREACH(arr, obj) \
-    for (auto obj : ::geode::cocos::CCArrayExt<CCObject, false>(arr))
-
-// #define CCARRAY_FOREACH(...) \
-//     static_assert(false, \
-//         "Please use `for (auto obj : CCArrayExt(arr))` instead, this macro has been removed in Geode v5\n" \
-//         "When iterating over the children of a node, `for (CCNode* node : node->getChildrenExt())` can also be used\n" \
-//     );
+#define CCARRAY_FOREACH(...) \
+    static_assert(false, \
+        "Please use `for (auto obj : CCArrayExt(arr))` or `for (auto obj : CCArrayExt<NodeType*>(arr))`" \
+        " instead, this macro has been removed in Geode v5\n" \
+        "When iterating over the children of a node, `for (CCNode* node : node->getChildrenExt())` or"\
+        " `for (CCNode* node : node->getChildrenExt<NodeType*>())` can also be used\n" \
+    );
     
-// #define CCARRAY_FOREACH_REVERSE(...) \
-//     static_assert(false, "Please use CCArrayExt with a range-based loop instead, this macro has been removed in Geode v5");
+#define CCARRAY_FOREACH_REVERSE(...) \
+    static_assert(false, "Please use CCArrayExt with a range-based loop instead, this macro has been removed in Geode v5");
 
 #if defined(COCOS2D_DEBUG) && (COCOS2D_DEBUG > 0)
 #define CCARRAY_VERIFY_TYPE(__array__, __type__)                                                                 \
