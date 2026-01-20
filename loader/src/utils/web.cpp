@@ -452,8 +452,8 @@ WebTask WebRequest::send(std::string method, std::string url) {
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
         // Add parameters to the URL and pass it to curl
-        StringBuffer urlBuffer{impl->m_url};
-        bool first = !impl->m_url.contains('?');
+        StringBuffer<> urlBuffer{impl->m_url};
+        bool first = impl->m_url.find('?') == std::string::npos;
 
         for (auto& [key, value] : impl->m_urlParameters) {
             urlBuffer.append(first ? '?' : '&');

@@ -230,7 +230,7 @@ Log::Log(log_clock::time_point time, Severity severity, int32_t nestCount,
 {}
 
 std::string Log::toString(bool millis) const {
-    StringBuffer buf;
+    StringBuffer<> buf;
     BorrowedLog(*this).formatTo(buf, millis);
     return buf.str();
 }
@@ -407,7 +407,7 @@ void Logger::outputLog(BorrowedLog const& log, bool dontFlush) {
     bool logCallbacks = !m_callbacks.empty();
     if (!logConsole && !logFile && !logCallbacks) return;
 
-    StringBuffer buf;
+    StringBuffer<> buf;
     bool millis = g_logMillis.load(std::memory_order::relaxed);
     log.formatTo(buf, millis);
 
