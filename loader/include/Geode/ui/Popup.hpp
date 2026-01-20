@@ -3,6 +3,7 @@
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/utils/ZStringView.hpp>
 #include <Geode/utils/function.hpp>
 #include <Geode/ui/Layout.hpp>
 
@@ -31,6 +32,10 @@ namespace geode {
         public:
             Popup* getPopup() const {
                 return m_impl->popup;
+            }
+
+            bool filter(Popup* popup) const {
+                return m_impl->popup == popup; 
             }
         };
         class CloseEventFilter final : public ::geode::EventFilter<CloseEvent> {
@@ -152,10 +157,10 @@ namespace geode {
 
         virtual bool setup(InitArgs... args) = 0;
 
-        void keyDown(cocos2d::enumKeyCodes key) override {
+        void keyDown(cocos2d::enumKeyCodes key, double p1) override {
             if (key == cocos2d::enumKeyCodes::KEY_Escape) return this->onClose(nullptr);
             if (key == cocos2d::enumKeyCodes::KEY_Space) return;
-            return FLAlertLayer::keyDown(key);
+            return FLAlertLayer::keyDown(key, p1);
         }
 
         virtual void onClose(cocos2d::CCObject*) {
@@ -166,16 +171,16 @@ namespace geode {
         }
 
         void setTitle(
-            char const* title,
+            ZStringView title,
             const char* font = "goldFont.fnt",
             float scale = .7f,
             float offset = 20.f
         ) {
             if (m_title) {
-                m_title->setString(title);
+                m_title->setString(title.c_str());
             }
             else {
-                m_title = cocos2d::CCLabelBMFont::create(title, font);
+                m_title = cocos2d::CCLabelBMFont::create(title.c_str(), font);
                 m_title->setZOrder(2);
                 if (m_dynamic) {
                     m_mainLayer->addChildAtPosition(m_title, geode::Anchor::Top, ccp(0, -offset));

@@ -40,6 +40,7 @@ NS_CC_EXT_BEGIN
  */
 class CC_DLL CCHttpResponse : public CCObject
 {
+    GEODE_FRIEND_MODIFY
 public:
     /** Constructor, it's used by CCHttpClient internal, users don't need to create HttpResponse manually
      @param request the corresponding HttpRequest which leads to this response

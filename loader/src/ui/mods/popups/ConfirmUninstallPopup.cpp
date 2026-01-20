@@ -5,7 +5,7 @@
 bool ConfirmUninstallPopup::setup(Mod* mod) {
     m_mod = mod;
 
-    this->setTitle(("Uninstall " + mod->getName()).c_str());
+    this->setTitle(fmt::format("Uninstall {}", mod->getName()));
 
     auto text = TextArea::create(
         fmt::format("Are you sure you want to \n<cr>uninstall</c> <cy>{}</c>?", mod->getName()),

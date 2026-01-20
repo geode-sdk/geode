@@ -8,7 +8,7 @@ bool DevListPopup::setup(ModSource const& meta) {
 
     m_source = meta;
 
-    this->setTitle(fmt::format("Developers for {}", m_source.getMetadata().getName()).c_str());
+    this->setTitle(fmt::format("Developers for {}", m_source.getMetadata().getName()));
     m_title->limitLabelWidth(m_mainLayer->getContentSize().width - 50, .7f, .1f);
     CCSize contentSize = m_mainLayer->getContentSize();
     CCArray* elements = CCArray::create();

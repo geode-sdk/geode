@@ -23,7 +23,7 @@ public:
 
 	static enumKeyCodes convertKeyCode(enumKeyCodes key);
 
-	bool dispatchKeyboardMSG(enumKeyCodes key, bool isKeyDown, bool isKeyRepeat);
+	bool dispatchKeyboardMSG(enumKeyCodes key, bool isKeyDown, bool isKeyRepeat, double);
 
 	inline bool getAltKeyPressed() const {
 		return m_bAltPressed;

@@ -31,7 +31,7 @@
 #pragma GCC system_header
 
 #if __cplusplus >= 201103L
-# include <type_traits>
+# include "../type_traits.h" 
 #else
 # include <bits/c++0x_warning.h>
 #endif
@@ -80,10 +80,10 @@ namespace __gnu_cxx {
   // This type is still used to avoid an ABI change.
     template<typename _Tp>
     struct __aligned_buffer
-    : std::aligned_storage<sizeof(_Tp), std::alignment_of<_Tp>::value>
+    : geode::stl::aligned_storage<sizeof(_Tp), geode::stl::alignment_of<_Tp>::value>
     {
       typename
-	std::aligned_storage<sizeof(_Tp), std::alignment_of<_Tp>::value>::type
+	geode::stl::aligned_storage<sizeof(_Tp), geode::stl::alignment_of<_Tp>::value>::type
 	_M_storage;
 
       void*

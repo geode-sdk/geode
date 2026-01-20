@@ -290,10 +290,12 @@ CCPoint TextRenderer::getCursorPos() {
 }
 
 bool TextRenderer::render(std::string word, CCNode* to, CCLabelProtocol* label) {
-    auto origLabelStr = label->getString();
-    auto str = ((origLabelStr && strlen(origLabelStr)) ? origLabelStr : "") + std::move(word);
+    auto origLabelPtr = label->getString();
+    std::string_view origLabelStr = origLabelPtr ? origLabelPtr : "";
+
+    auto str = fmt::format("{}{}", origLabelStr, word);
     if (m_size.width) {
-        std::string orig = origLabelStr;
+        std::string orig{origLabelStr};
         label->setString(str.c_str());
         if (m_cursor.x + to->getScaledContentSize().width >
             m_size.width - this->getCurrentWrapOffset()) {
