@@ -223,7 +223,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         }
 
         for (auto mod : Loader::get()->getAllMods()) {
-            if (mod->getMetadataRef().usesDeprecatedIDForm()) {
+            if (mod->getMetadata().usesDeprecatedIDForm()) {
                 log::error(
                     "Mod ID '{}' will be rejected in the future - "
                     "IDs must match the regex `[a-z0-9\\-_]+\\.[a-z0-9\\-_]+`",

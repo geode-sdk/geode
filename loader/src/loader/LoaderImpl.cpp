@@ -253,7 +253,7 @@ void Loader::Impl::updateModResources(Mod* mod) {
     }
 
     // only thing needs previous setup is spritesheets
-    auto& sheets = mod->getMetadataRef().getSpritesheets();
+    auto& sheets = mod->getMetadata().getSpritesheets();
     if (sheets.empty())
         return;
 
@@ -421,7 +421,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
     // invalid target version
     // Also this makes it so that when GD updates, outdated mods get shown as
     // "Outdated" in the UI instead of "Missing Dependencies"
-    auto res = node->getMetadataRef().checkGameVersion();
+    auto res = node->getMetadata().checkGameVersion();
     if (!res) {
         this->addProblem({
             LoadProblem::Type::UnsupportedVersion,
@@ -432,10 +432,10 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
         return;
     }
 
-    auto geodeVerRes = node->getMetadataRef().checkGeodeVersion();
+    auto geodeVerRes = node->getMetadata().checkGeodeVersion();
     if (!geodeVerRes) {
         this->addProblem({
-            node->getMetadataRef().getGeodeVersion() > this->getVersion() ?
+            node->getMetadata().getGeodeVersion() > this->getVersion() ?
                 LoadProblem::Type::NeedsNewerGeodeVersion :
                 LoadProblem::Type::UnsupportedGeodeVersion,
             node,
@@ -468,7 +468,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
 
     auto unzipFunction = [this, node]() {
         log::debug("Unzipping .geode file");
-        auto res = this->unzipGeodeFile(node->getMetadataRef());
+        auto res = this->unzipGeodeFile(node->getMetadata());
         return res;
     };
 
@@ -554,7 +554,7 @@ void Loader::Impl::findProblems() {
         log::debug("{}", id);
         log::NestScope nest;
 
-        for (auto const& dep : mod->getMetadataRef().getDependencies()) {
+        for (auto const& dep : mod->getMetadata().getDependencies()) {
             if (dep.mod && dep.mod->isEnabled() && dep.version.compare(dep.mod->getVersion()))
                 continue;
 
@@ -629,7 +629,7 @@ void Loader::Impl::findProblems() {
             }
         }
 
-        for (auto const& dep : mod->getMetadataRef().getIncompatibilities()) {
+        for (auto const& dep : mod->getMetadata().getIncompatibilities()) {
             if (!dep.mod || !dep.version.compare(dep.mod->getVersion()) || !dep.mod->shouldLoad())
                 continue;
             switch(dep.importance) {
@@ -927,7 +927,7 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
         }
 
         const std::string filename = utils::string::pathToString(entry.path().filename());
-        if (filename == metadata.getBinaryName() || !isPlatformBinary(metadata.getID(), filename)) {
+        if (metadata.getBinaryName() == filename || !isPlatformBinary(metadata.getID(), filename)) {
             continue;
         }
 

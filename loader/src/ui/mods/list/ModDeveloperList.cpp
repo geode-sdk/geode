@@ -56,7 +56,7 @@ bool ModDeveloperList::init(DevListPopup* popup, ModSource const& source, CCSize
 
     m_source.visit(makeVisitor {
         [this, popup, itemSize](Mod* mod) {
-            for (auto& dev : mod->getMetadataRef().getDevelopers()) {
+            for (auto& dev : mod->getMetadata().getDevelopers()) {
                 m_list->m_contentLayer->addChild(ModDeveloperItem::create(popup, dev, itemSize, std::nullopt, false));
             }
         },

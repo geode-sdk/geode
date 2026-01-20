@@ -101,9 +101,7 @@ namespace geode {
         bool isInternal() const;
         bool needsEarlyLoad() const;
 
-        [[deprecated("Use Mod::getMetadataRef which is better for efficiency")]]
-        ModMetadata getMetadata() const; // TODO: remove in v5
-        ModMetadata const& getMetadataRef() const;
+        ModMetadata const& getMetadata() const;
 
         std::filesystem::path getTempDir() const;
         /**
