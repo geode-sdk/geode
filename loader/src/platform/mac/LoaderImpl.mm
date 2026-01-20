@@ -217,6 +217,7 @@ const auto& uuidToVersionMap() {
         {"9C1D62A7-7C2F-3514-AEFB-D1AB7BBD48FF", "2.2072"},
         {"0B1FCFE4-79E8-3246-8ECB-500FDBDCFD9A", "2.2073"},
         {"27044C8B-76BD-303C-A035-5314AF1D9E6E", "2.2074"},
+        {"9E958BAE-B00D-37B1-A75E-6195B0FCAAFD", "2.208"}
 #elif defined(GEODE_IS_INTEL_MAC)
         {"29549F90-F083-35A8-B917-9962262FE112", "2.200"},
         {"AE6DFCCC-153A-32AB-BFD5-6F2478BC41B6", "2.206"},
@@ -224,7 +225,8 @@ const auto& uuidToVersionMap() {
         {"08E24832-EC11-3637-910E-7CB6C0EF8EC0", "2.2071"},
         {"E53731FD-D1B6-33D2-BFA4-3B5D8D55279F", "2.2072"},
         {"1F4AFF98-DB51-382D-9BB2-59C911B88EB2", "2.2073"},
-        {"DB5CADC0-E533-3123-8A63-5A434FE391ED", "2.2074"}
+        {"DB5CADC0-E533-3123-8A63-5A434FE391ED", "2.2074"},
+        {"45A69FE9-4478-3D26-B75D-59D07E9261AF", "2.208"}
 #endif
     };
 
@@ -238,6 +240,15 @@ std::string Loader::Impl::getGameVersion() {
     NSString *version = infoDictionary[@"CFBundleShortVersionString"];
 
     auto versionStr = std::string([version UTF8String]);
+
+    auto uuid = getBinaryUUID();
+
+    auto uuidStr = fmt::format("{:02X}{:02X}{:02X}{:02X}-{:02X}{:02X}-{:02X}{:02X}-{:02X}{:02X}-{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}",
+        uuid[0], uuid[1], uuid[2], uuid[3], uuid[4], uuid[5], uuid[6], uuid[7],
+        uuid[8], uuid[9], uuid[10], uuid[11], uuid[12], uuid[13], uuid[14], uuid[15]
+    );
+
+    geode::log::info("uuid: {}", uuidStr);
 
     if (gameVersionIsAmbiguous(versionStr)) {
         static std::string manualVersionStr = []() -> std::string {
