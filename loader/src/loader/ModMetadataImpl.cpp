@@ -70,18 +70,6 @@ static std::string sanitizeDetailsData(std::string str) {
     return utils::string::replace(std::move(str), "\r", "");
 }
 
-// todo in v5: remove all support for old mod IDs and replace any calls to this with just validateID
-bool ModMetadata::Impl::validateOldID(std::string_view id) {
-    // Old IDs may not be empty
-    if (id.empty()) return false;
-    for (auto const& c : id) {
-        if (!(('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') ||
-              (c == '-') || (c == '_') || (c == '.')))
-            return false;
-    }
-    return true;
-}
-
 bool ModMetadata::Impl::validateID(std::string_view id) {
     // IDs may not be empty nor exceed 64 characters
     if (id.size() == 0 || id.size() > 64) {
@@ -104,10 +92,6 @@ bool ModMetadata::Impl::validateID(std::string_view id) {
         }
     }
     return true;
-}
-
-bool ModMetadata::Impl::isDeprecatedIDForm(std::string_view id) {
-    return !validateID(id) && validateOldID(id);
 }
 
 Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJson) {
@@ -156,16 +140,8 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
 
     constexpr auto ID_REGEX = "[a-z0-9\\-_]+\\.[a-z0-9\\-_]+";
     root.needs("id")
-        .mustBe<std::string>(ID_REGEX, &ModMetadata::Impl::validateOldID)
+        .mustBe<std::string>(ID_REGEX, &ModMetadata::Impl::validateID)
         .into(impl->m_id);
-
-    // if (!isDeprecatedIDForm(impl->m_id)) {
-    //     log::warn(
-    //         "Mod ID '{}' will be rejected in the future - "
-    //         "IDs must match the regex `[a-z0-9\\-_]+\\.[a-z0-9\\-_]+`",
-    //         impl->m_id
-    //     );
-    // }
 
     root.needs("version").into(impl->m_version);
     root.needs("name").into(impl->m_name);
@@ -202,7 +178,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
 
     if (auto deps = root.has("dependencies")) {
         auto addDependency = [&impl, ID_REGEX](std::string id, JsonExpectedValue& dep) -> Result<> {
-            if (!ModMetadata::Impl::validateOldID(id)) {
+            if (!ModMetadata::Impl::validateID(id)) {
                 return Err("[mod.json].dependencies.\"{}\" is not a valid Mod ID ({})", id, ID_REGEX);
             }
 
@@ -268,7 +244,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
 
     if (auto incompats = root.has("incompatibilities")) {
         auto addIncompat = [&impl, ID_REGEX](std::string id, JsonExpectedValue& incompat) -> Result<> {
-            if (!ModMetadata::Impl::validateOldID(id)) {
+            if (!ModMetadata::Impl::validateID(id)) {
                 return Err("[mod.json].incompatibilities.\"{}\" is not a valid Mod ID ({})", id, ID_REGEX);
             }
 
@@ -549,10 +525,6 @@ VersionInfo ModMetadata::getVersion() const {
 
 ZStringView ModMetadata::getID() const {
     return m_impl->m_id;
-}
-
-bool ModMetadata::usesDeprecatedIDForm() const {
-    return Impl::isDeprecatedIDForm(m_impl->m_id);
 }
 
 ZStringView ModMetadata::getName() const {
