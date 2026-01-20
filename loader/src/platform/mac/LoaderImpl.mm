@@ -241,15 +241,6 @@ std::string Loader::Impl::getGameVersion() {
 
     auto versionStr = std::string([version UTF8String]);
 
-    auto uuid = getBinaryUUID();
-
-    auto uuidStr = fmt::format("{:02X}{:02X}{:02X}{:02X}-{:02X}{:02X}-{:02X}{:02X}-{:02X}{:02X}-{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}",
-        uuid[0], uuid[1], uuid[2], uuid[3], uuid[4], uuid[5], uuid[6], uuid[7],
-        uuid[8], uuid[9], uuid[10], uuid[11], uuid[12], uuid[13], uuid[14], uuid[15]
-    );
-
-    geode::log::info("uuid: {}", uuidStr);
-
     if (gameVersionIsAmbiguous(versionStr)) {
         static std::string manualVersionStr = []() -> std::string {
             auto uuid = getBinaryUUID();
