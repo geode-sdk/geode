@@ -201,19 +201,14 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     }
 
     if (auto deps = root.has("dependencies")) {
-        auto addDependency = [&impl, ID_REGEX](std::string id, JsonExpectedValue& dep, bool legacy) -> Result<> {
+        auto addDependency = [&impl, ID_REGEX](std::string id, JsonExpectedValue& dep) -> Result<> {
             if (!ModMetadata::Impl::validateOldID(id)) {
                 return Err("[mod.json].dependencies.\"{}\" is not a valid Mod ID ({})", id, ID_REGEX);
             }
 
-            // todo in v5: array style wont exist so this bool will always be false
-            if (legacy) {
-                dep.assertIsObject();
-            }
-            else {
-                dep.assertIs({ matjson::Type::Object, matjson::Type::String });
-            }
+            dep.assertIs({ matjson::Type::Object, matjson::Type::String });
 
+            // Check platforms array if we have an object, string syntax allows any platform
             if (dep.isObject()) {
                 bool onThisPlatform = !dep.has("platforms");
                 for (auto& plat : dep.has("platforms").items()) {
@@ -265,34 +260,21 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
             return Ok();
         };
 
-        // todo in v5: make this always be an object
-        deps.assertIs({ matjson::Type::Object, matjson::Type::Array });
-        if (deps.isObject()) {
-            for (auto& [id, dep] : deps.properties()) {
-                GEODE_UNWRAP(addDependency(id, dep, false));
-            }
-        }
-        else {
-            for (auto& dep : deps.items()) {
-                GEODE_UNWRAP(addDependency(dep.needs("id").get<std::string>(), dep, true));
-            }
+        deps.assertIsObject();
+        for (auto& [id, dep] : deps.properties()) {
+            GEODE_UNWRAP(addDependency(id, dep));
         }
     }
 
     if (auto incompats = root.has("incompatibilities")) {
-        auto addIncompat = [&impl, ID_REGEX](std::string id, JsonExpectedValue& incompat, bool legacy) -> Result<> {
+        auto addIncompat = [&impl, ID_REGEX](std::string id, JsonExpectedValue& incompat) -> Result<> {
             if (!ModMetadata::Impl::validateOldID(id)) {
                 return Err("[mod.json].incompatibilities.\"{}\" is not a valid Mod ID ({})", id, ID_REGEX);
             }
 
-            // todo in v5: array style wont exists so this bool will always be true
-            if (legacy) {
-                incompat.assertIsObject();
-            }
-            else {
-                incompat.assertIs({ matjson::Type::Object, matjson::Type::String });
-            }
+            incompat.assertIs({ matjson::Type::Object, matjson::Type::String});
 
+            // Check platforms array if we have an object, string syntax allows any platform
             if (incompat.isObject()) {
                 bool onThisPlatform = !incompat.has("platforms");
                 for (auto& plat : incompat.has("platforms").items()) {
@@ -328,17 +310,9 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
             return Ok();
         };
 
-        // todo in v5: make this always be an object
-        incompats.assertIs({ matjson::Type::Object, matjson::Type::Array });
-        if (incompats.isObject()) {
-            for (auto& [id, incompat] : incompats.properties()) {
-                GEODE_UNWRAP(addIncompat(id, incompat, false));
-            }
-        }
-        else {
-            for (auto& incompat : incompats.items()) {
-                GEODE_UNWRAP(addIncompat(incompat.needs("id").get<std::string>(), incompat, true));
-            }
+        incompats.assertIsObject();
+        for (auto& [id, incompat] : incompats.properties()) {
+            GEODE_UNWRAP(addIncompat(id, incompat));
         }
     }
 
