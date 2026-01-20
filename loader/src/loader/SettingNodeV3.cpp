@@ -568,13 +568,9 @@ void Color3BSettingNodeV3::updateState(CCNode* invoker) {
 
 void Color3BSettingNodeV3::onSelectColor(CCObject*) {
     auto popup = ColorPickPopup::create(this->getValue());
-    popup->setDelegate(this);
+    popup->setCallback([this](ccColor4B const& color) { this->setValue(to3B(color), nullptr); });
     popup->show();
 }
-void Color3BSettingNodeV3::updateColor(ccColor4B const& color) {
-    this->setValue(to3B(color), nullptr);
-}
-
 Color3BSettingNodeV3* Color3BSettingNodeV3::create(std::shared_ptr<Color3BSettingV3> setting, float width) {
     auto ret = new Color3BSettingNodeV3();
     if (ret->init(setting, width)) {
@@ -616,11 +612,8 @@ void Color4BSettingNodeV3::updateState(CCNode* invoker) {
 
 void Color4BSettingNodeV3::onSelectColor(CCObject*) {
     auto popup = ColorPickPopup::create(this->getValue());
-    popup->setDelegate(this);
+    popup->setCallback([this](ccColor4B const& color) { this->setValue(color, nullptr); });
     popup->show();
-}
-void Color4BSettingNodeV3::updateColor(ccColor4B const& color) {
-    this->setValue(color, nullptr);
 }
 
 Color4BSettingNodeV3* Color4BSettingNodeV3::create(std::shared_ptr<Color4BSettingV3> setting, float width) {

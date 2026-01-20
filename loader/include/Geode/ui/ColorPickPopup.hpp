@@ -4,14 +4,10 @@
 #include "TextInput.hpp"
 #include "../loader/Event.hpp"
 #include <Geode/binding/TextInputDelegate.hpp>
+#include <Geode/utils/function.hpp>
 
 namespace geode {
     class ColorPickPopup;
-
-    class GEODE_DLL ColorPickPopupDelegate {
-    public:
-        virtual void updateColor(cocos2d::ccColor4B const& color) {}
-    };
 
     class GEODE_DLL ColorPickPopup :
         public Popup<cocos2d::ccColor4B const&, bool>,
@@ -48,6 +44,6 @@ namespace geode {
         static ColorPickPopup* create(cocos2d::ccColor4B const& color);
 
         void setColorTarget(cocos2d::CCSprite* spr);
-        void setDelegate(ColorPickPopupDelegate* delegate);
+        void setCallback(geode::Function<void(cocos2d::ccColor4B const&)> callback);
     };
 }
