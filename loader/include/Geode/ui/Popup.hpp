@@ -3,6 +3,7 @@
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/utils/ZStringView.hpp>
 #include <Geode/utils/function.hpp>
 #include <Geode/ui/Layout.hpp>
 
@@ -170,16 +171,16 @@ namespace geode {
         }
 
         void setTitle(
-            char const* title,
+            ZStringView title,
             const char* font = "goldFont.fnt",
             float scale = .7f,
             float offset = 20.f
         ) {
             if (m_title) {
-                m_title->setString(title);
+                m_title->setString(title.c_str());
             }
             else {
-                m_title = cocos2d::CCLabelBMFont::create(title, font);
+                m_title = cocos2d::CCLabelBMFont::create(title.c_str(), font);
                 m_title->setZOrder(2);
                 if (m_dynamic) {
                     m_mainLayer->addChildAtPosition(m_title, geode::Anchor::Top, ccp(0, -offset));
