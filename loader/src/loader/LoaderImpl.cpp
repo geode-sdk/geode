@@ -543,7 +543,7 @@ void Loader::Impl::findProblems() {
             continue;
         }
 
-        if (auto reason = mod->getMetadataRef().m_impl->m_softInvalidReason) {
+        if (auto& reason = mod->getMetadata().m_impl->m_softInvalidReason) {
             auto& [message, type] = *reason;
 
             this->addProblem({ type, mod, message });

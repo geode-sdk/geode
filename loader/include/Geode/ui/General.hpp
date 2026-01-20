@@ -126,7 +126,7 @@ namespace geode {
      */
     GEODE_DLL CCMenuItemSpriteExtra* addBackButton(
         cocos2d::CCNode* to,
-        std::function<void(cocos2d::CCMenuItem*)> callback,
+        geode::Function<void(cocos2d::CCMenuItem*)> callback,
         BackButtonStyle style = BackButtonStyle::Green
     );
 }

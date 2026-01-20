@@ -170,6 +170,13 @@ namespace geode {
             m_filter.setListener(this);
             this->enable();
         }
+        
+        EventListener(geode::Function<Callback> fn) requires is_event<T>
+          : m_callback(std::move(fn)), m_filter(Filter())
+        {
+            m_filter.setListener(this);
+            this->enable();
+        }
 
         EventListener(T filter = Filter()) requires is_filter<T>
           : EventListener({}, std::move(filter)) {}
@@ -177,13 +184,6 @@ namespace geode {
         template <class C>
         EventListener(C* cls, MemberFn<C> fn, T filter = Filter()) requires is_filter<T> :
             EventListener(std::bind(std::move(fn), cls, std::placeholders::_1), std::move(filter)) {}
-
-        EventListener(std::function<Callback> fn) requires is_event<T>
-          : m_callback(std::move(fn)), m_filter(Filter())
-        {
-            m_filter.setListener(this);
-            this->enable();
-        }
 
         EventListener() requires is_event<T>
           : EventListener({}) {}
