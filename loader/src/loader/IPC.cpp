@@ -17,6 +17,10 @@ ipc::IPCEvent::IPCEvent(
     replyData(replyData),
     messageData(std::make_unique<matjson::Value>(std::move(messageData))) {}
 
+bool ipc::IPCEvent::filter(std::string_view modID, std::string_view messageID) const {
+    return modID == targetModID && messageID == messageID;
+}
+
 ipc::IPCEvent::~IPCEvent() {}
 
 ListenerResult ipc::IPCFilter::handle(geode::Function<Callback>& fn, IPCEvent* event) {

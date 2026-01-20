@@ -45,6 +45,7 @@ namespace geode::ipc {
             matjson::Value messageData,
             matjson::Value& replyData
         );
+        bool filter(std::string_view modID, std::string_view messageID) const;
         virtual ~IPCEvent();
     };
 

@@ -86,6 +86,8 @@ public:
      */
     ~CCDictElement();
 
+    GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCDictElement)
+
     // Inline functions need to be implemented in header file on Android.
 
     /**

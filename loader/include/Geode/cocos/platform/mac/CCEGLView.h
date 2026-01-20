@@ -44,6 +44,8 @@ public:
 
     virtual ~CCEGLView(void);
 
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEGLView, CCEGLViewProtocol)
+
     virtual bool isOpenGLReady(void);
     virtual bool setContentScaleFactor(float contentScaleFactor);
     virtual void end();

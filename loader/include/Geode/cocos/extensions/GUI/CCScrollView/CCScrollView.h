@@ -64,6 +64,7 @@ public:
  */
 class CC_DLL CCScrollView : public CCLayer
 {
+    GEODE_FRIEND_MODIFY
 public:
     /**
      *  @js ctor

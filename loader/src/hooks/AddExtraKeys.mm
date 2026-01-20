@@ -175,7 +175,7 @@ void keyDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     if (numpad) {
         keyCode = numpadToKeyCode(event);
     }
-    CCKeyboardDispatcher::get()->dispatchKeyboardMSG(keyCode, true, [event isARepeat]);
+    CCKeyboardDispatcher::get()->dispatchKeyboardMSG(keyCode, true, [event isARepeat], [event timestamp]);
 }
 
 void keyUpExecHook(EAGLView* self, SEL sel, NSEvent* event) {
@@ -197,7 +197,7 @@ void keyUpExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     if (numpad) {
         keyCode = numpadToKeyCode(event);
     }
-    CCKeyboardDispatcher::get()->dispatchKeyboardMSG(keyCode, false, [event isARepeat]);
+    CCKeyboardDispatcher::get()->dispatchKeyboardMSG(keyCode, false, [event isARepeat], [event timestamp]);
 }
 
 void mouseDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
@@ -207,7 +207,7 @@ void mouseDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     }
 
     enumKeyCodes keyCode = mouseButtonToKeyCode(event);
-    CCKeyboardDispatcher::get()->dispatchKeyboardMSG(keyCode, true, false);
+    CCKeyboardDispatcher::get()->dispatchKeyboardMSG(keyCode, true, false, [event timestamp]);
 }
 
 void mouseUpExecHook(EAGLView* self, SEL sel, NSEvent* event) {
@@ -217,7 +217,7 @@ void mouseUpExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     }
 
     enumKeyCodes keyCode = mouseButtonToKeyCode(event);
-    CCKeyboardDispatcher::get()->dispatchKeyboardMSG(keyCode, false, false);
+    CCKeyboardDispatcher::get()->dispatchKeyboardMSG(keyCode, false, false, [event timestamp]);
 }
 
 

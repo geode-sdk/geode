@@ -366,7 +366,7 @@ public:
     // @note RobTop Addition
     void checkSceneReference(void);
     // @note RobTop Addition
-    CCScene* getNextScene(void);
+    inline CCScene* getNextScene(void) { return m_pNextScene; }
     // @note RobTop Addition
     int levelForSceneInStack(CCScene*);
     // @note RobTop Addition
@@ -580,16 +580,10 @@ public:
     // @note RobTop Addition
     CC_SYNTHESIZE_NV(bool, m_bDontCallWillSwitch, DontCallWillSwitch);
 
-#if GEODE_COMP_GD_VERSION >= 22003
+#if GEODE_COMP_GD_VERSION >= 22030
     // @note RobTop Addition
     CC_SYNTHESIZE_NV(bool, m_bFastMenu, FastMenu);
-#else
-    // these were just garbage memory in reclass
-    // @note RobTop Addition
-    void* m_unknownPtr2;
 #endif
-    // @note RobTop Addition
-    void* m_unknownPtr3;
 
     // CCEGLViewProtocol will recreate stats labels to fit visible rect
     friend class CCEGLViewProtocol;

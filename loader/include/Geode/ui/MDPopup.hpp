@@ -10,13 +10,13 @@ namespace geode {
      */
     class GEODE_DLL MDPopup :
         public Popup<
-            bool, char const*, std::string, char const*,
-            char const*, geode::Function<void(bool)>> {
+            bool, ZStringView, std::string, ZStringView,
+            ZStringView, geode::Function<void(bool)>> {
     protected:
         geode::Function<void(bool)> m_onClick = nullptr;
 
         bool setup(
-            bool compatibilityMode, char const* title, std::string info, char const* btn1, char const* btn2,
+            bool compatibilityMode, ZStringView title, std::string info, ZStringView btn1, ZStringView btn2,
             geode::Function<void(bool)> onClick
         ) override;
 
@@ -26,13 +26,13 @@ namespace geode {
 
     public:
         static MDPopup* create(
-            char const* title, std::string content, char const* btn1,
-            char const* btn2 = nullptr, geode::Function<void(bool)> onClick = nullptr
+            ZStringView title, std::string content, ZStringView btn1,
+            ZStringView btn2 = nullptr, geode::Function<void(bool)> onClick = nullptr
         );
 
         static MDPopup* create(
-            bool compatibilityMode, char const* title, std::string content,
-            char const* btn1, char const* btn2 = nullptr, geode::Function<void(bool)> onClick = nullptr
+            bool compatibilityMode, ZStringView title, std::string content,
+            ZStringView btn1, ZStringView btn2 = nullptr, geode::Function<void(bool)> onClick = nullptr
         );
     };
 }

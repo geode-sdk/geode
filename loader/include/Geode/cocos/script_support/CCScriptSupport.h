@@ -57,6 +57,7 @@ class CCScriptHandlerEntry : public CCObject
 {
 public:
     static CCScriptHandlerEntry* create(int nHandler);
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCScriptHandlerEntry, CCObject)
     ~CCScriptHandlerEntry(void);
 
     int getHandler(void) {
@@ -89,9 +90,11 @@ public:
 
 class CCSchedulerScriptHandlerEntry : public CCScriptHandlerEntry
 {
+    GEODE_FRIEND_MODIFY
 public:
     // nHandler return by tolua_ref_function(), called from LuaCocos2d.cpp
     static CCSchedulerScriptHandlerEntry* create(int nHandler, float fInterval, bool bPaused);
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCSchedulerScriptHandlerEntry, CCScriptHandlerEntry)
     ~CCSchedulerScriptHandlerEntry(void);
 
     cocos2d::CCTimer* getTimer(void) {
@@ -132,8 +135,10 @@ public:
  */
 class CCTouchScriptHandlerEntry : public CCScriptHandlerEntry
 {
+    GEODE_FRIEND_MODIFY
 public:
     static CCTouchScriptHandlerEntry* create(int nHandler, bool bIsMultiTouches, int nPriority, bool bSwallowsTouches);
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTouchScriptHandlerEntry, CCScriptHandlerEntry)
     ~CCTouchScriptHandlerEntry(void);
 
     bool isMultiTouches(void) {

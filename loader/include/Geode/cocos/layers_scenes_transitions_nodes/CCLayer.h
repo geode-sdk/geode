@@ -184,7 +184,7 @@ public:
     virtual void keyMenuClicked(void);
 
     // @note RobTop Addition
-    void keyDown(enumKeyCodes);
+    void keyDown(enumKeyCodes, double);
 
     // 2.2 additions
     virtual void setPreviousPriority(int);
@@ -380,6 +380,9 @@ public:
     static CCLayerGradient* create(const ccColor4B& start, const ccColor4B& end, const CCPoint& v);
 
     virtual bool init();
+
+    // @note RobTop Addition
+    virtual void visit();
 
     virtual void updateColor();
     /** Initializes the CCLayer with a gradient between start and end.

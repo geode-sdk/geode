@@ -1,6 +1,7 @@
 #include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/ui/SpacerNode.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <algorithm>
 
 #include <algorithm>
 
