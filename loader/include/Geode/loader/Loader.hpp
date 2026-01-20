@@ -16,11 +16,6 @@
 namespace geode {
     using ScheduledFunction = geode::Function<void()>;
 
-    struct InvalidGeodeFile {
-        std::filesystem::path path;
-        std::string reason;
-    };
-
     struct LoadProblem {
         enum class Type : uint8_t {
             Unknown,
