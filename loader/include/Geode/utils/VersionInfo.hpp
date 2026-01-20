@@ -49,9 +49,11 @@ namespace geode {
         }
         constexpr bool operator<(VersionTag const& other) const {
             if (value == other.value) {
+                // order s.t. having number is ranked higher than not having one
+                // aka alpha < alpha.1 == true
                 if (number && other.number) return number < other.number;
-                if (number) return true;
-                if (other.number) return false;
+                if (number) return false;
+                if (other.number) return true;
                 return false;
             }
             return value < other.value;
@@ -59,8 +61,8 @@ namespace geode {
         constexpr bool operator<=(VersionTag const& other) const {
             if (value == other.value) {
                 if (number && other.number) return number <= other.number;
-                if (number) return true;
-                if (other.number) return false;
+                if (number) return false;
+                if (other.number) return true;
                 return true;
             }
             return value <= other.value;
@@ -68,8 +70,8 @@ namespace geode {
         constexpr bool operator>(VersionTag const& other) const {
             if (value == other.value) {
                 if (number && other.number) return number > other.number;
-                if (number) return false;
-                if (other.number) return true;
+                if (number) return true;
+                if (other.number) return false;
                 return false;
             }
             return value > other.value;
@@ -77,8 +79,8 @@ namespace geode {
         constexpr bool operator>=(VersionTag const& other) const {
             if (value == other.value) {
                 if (number && other.number) return number >= other.number;
-                if (number) return false;
-                if (other.number) return true;
+                if (number) return true;
+                if (other.number) return false;
                 return true;
             }
             return value >= other.value;
@@ -165,6 +167,7 @@ namespace geode {
         }
 
         // Apple clang does not support operator<=>! Yippee!
+        // sidenote: this is no longer true!
 
         constexpr bool operator==(VersionInfo const& other) const {
             return std::tie(m_major, m_minor, m_patch, m_tag) ==

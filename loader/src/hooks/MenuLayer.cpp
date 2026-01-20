@@ -222,16 +222,6 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             showUpdatesFound();
         }
 
-        for (auto mod : Loader::get()->getAllMods()) {
-            if (mod->getMetadataRef().usesDeprecatedIDForm()) {
-                log::error(
-                    "Mod ID '{}' will be rejected in the future - "
-                    "IDs must match the regex `[a-z0-9\\-_]+\\.[a-z0-9\\-_]+`",
-                    mod->getID()
-                );
-            }
-        }
-
         // Delay the event by a frame so that MenuLayer is already in the scene
         // and popups show up fine
         static bool gameEventPosted = false;

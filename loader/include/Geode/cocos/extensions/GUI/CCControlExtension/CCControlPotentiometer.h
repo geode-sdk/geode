@@ -41,6 +41,7 @@ NS_CC_EXT_BEGIN
 /** @class CCControlPotentiometer Potentiometer control for Cocos2D. */
 class CC_DLL CCControlPotentiometer : public CCControl
 {
+    GEODE_FRIEND_MODIFY
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCControlPotentiometer, CCControl)
     CCControlPotentiometer();

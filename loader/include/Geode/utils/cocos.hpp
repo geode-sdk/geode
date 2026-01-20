@@ -267,6 +267,17 @@ namespace geode {
          */
         Ref() = default;
 
+        /**
+         * Construct a Ref of an object, without retaining it.
+         * The object will still be released when Ref goes out of scope.
+         * @param obj Object to construct the Ref from
+         */
+        static Ref<T> adopt(T* obj) {
+            Ref<T> ref;
+            ref.m_obj = obj;
+            return ref;
+        }
+
         ~Ref() {
             CC_SAFE_RELEASE(m_obj);
         }
@@ -280,6 +291,18 @@ namespace geode {
             CC_SAFE_RELEASE(m_obj);
             m_obj = other;
             CC_SAFE_RETAIN(other);
+        }
+
+        /**
+         * Takes out the object from the Ref, without calling `release` on it.
+         * This is like a symmetric counterpart to `Ref::adopt`, it essentially "leaks" the object,
+         * making the Ref empty and making you responsible for releasing it manually.
+         * @returns The managed object
+         */
+        T* take() {
+            auto obj = m_obj;
+            m_obj = nullptr;
+            return obj;
         }
 
         /**

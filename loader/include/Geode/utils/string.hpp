@@ -101,6 +101,9 @@ namespace geode::utils::string {
     GEODE_DLL std::string trim(std::string str);
     GEODE_DLL std::string trim(std::string str, std::string_view chars);
 
+    GEODE_DLL std::string filter(std::string_view str, std::string_view allowed);
+    GEODE_DLL std::string remove(std::string_view str, std::string_view disallowed);
+
     GEODE_DLL void normalizeIP(std::string& str);
     GEODE_DLL std::string normalize(std::string str);
 

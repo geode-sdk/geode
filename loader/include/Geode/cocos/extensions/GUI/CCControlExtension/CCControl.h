@@ -87,6 +87,7 @@ typedef unsigned int CCControlState;
  */
 class CC_DLL CCControl : public CCLayerRGBA
 {
+    GEODE_FRIEND_MODIFY
 public:
     //CCRGBAProtocol
     bool m_bIsOpacityModifyRGB;

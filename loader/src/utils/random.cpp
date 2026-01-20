@@ -3,19 +3,9 @@
 
 namespace geode::utils::random {
     
-std::array<uint64_t, 3>& _getState() {
-    static thread_local std::array<uint64_t, 3> state = []{
-        std::array<uint64_t, 3> seed;
-        std::random_device rd;
-
-        for (auto& s : seed) {
-            auto a = rd(), b = rd();
-            s = (uint64_t(a) << 32) ^ uint64_t(b);
-        }
-        return seed;
-    }();
-
-    return state;
+Generator& _getGenerator() {
+    static thread_local Generator generator;
+    return generator;
 }
 
 static char genHexChar() {
@@ -25,8 +15,10 @@ static char genHexChar() {
 std::string generateString(size_t length, std::string_view alphabet) {
     std::string out;
     out.reserve(length);
+
+    auto& gen = _getGenerator();
     for (size_t i = 0; i < length; i++) {
-        out += alphabet[generate<size_t>(0, alphabet.size())];
+        out += alphabet[gen.generate<size_t>(0, alphabet.size())];
     }
     return out;
 }
@@ -66,18 +58,21 @@ std::string generateUUID() {
 }
 
 void fillBytes(void* buffer, size_t size) {
+    auto& gen = _getGenerator();
+
     uint8_t* buf = (uint8_t*)buffer;
 
     // fill 8 bytes at a time for speed
     while (size >= 8) {
-        uint64_t val = nextU64();
+        uint64_t val = gen.next();
         std::memcpy(buf, &val, 8);
         buf += 8;
         size -= 8;
     }
-
-    for (size_t i = 0; i < size; i++) {
-        buf[i] = generate<uint8_t>();
+    
+    if (size > 0) {
+        uint64_t val = gen.next();
+        std::memcpy(buf, &val, size);
     }
 }
 

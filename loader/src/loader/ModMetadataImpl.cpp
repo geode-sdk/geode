@@ -4,6 +4,7 @@
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/general.hpp>
+#include <Geode/utils/random.hpp>
 #include <about.hpp>
 #include <matjson.hpp>
 #include <utility>
@@ -45,7 +46,11 @@ ModMetadataLinks& ModMetadataLinks::operator=(ModMetadataLinks&& other) noexcept
 }
 ModMetadataLinks::~ModMetadataLinks() = default;
 
-ModMetadata::Impl& ModMetadataImpl::getImpl(ModMetadata& info)  {
+ModMetadata::Impl& ModMetadataImpl::getImpl(ModMetadata& info) {
+    return *info.m_impl;
+}
+
+ModMetadata::Impl const& ModMetadataImpl::getImpl(ModMetadata const& info) {
     return *info.m_impl;
 }
 
@@ -63,18 +68,6 @@ bool ModMetadata::Incompatibility::isResolved() const {
 static std::string sanitizeDetailsData(std::string str) {
     // delete CRLF
     return utils::string::replace(std::move(str), "\r", "");
-}
-
-// todo in v5: remove all support for old mod IDs and replace any calls to this with just validateID
-bool ModMetadata::Impl::validateOldID(std::string_view id) {
-    // Old IDs may not be empty
-    if (id.empty()) return false;
-    for (auto const& c : id) {
-        if (!(('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') ||
-              (c == '-') || (c == '_') || (c == '.')))
-            return false;
-    }
-    return true;
 }
 
 bool ModMetadata::Impl::validateID(std::string_view id) {
@@ -99,10 +92,6 @@ bool ModMetadata::Impl::validateID(std::string_view id) {
         }
     }
     return true;
-}
-
-bool ModMetadata::Impl::isDeprecatedIDForm(std::string_view id) {
-    return !validateID(id) && validateOldID(id);
 }
 
 Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJson) {
@@ -142,16 +131,8 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
 
     constexpr auto ID_REGEX = "[a-z0-9\\-_]+\\.[a-z0-9\\-_]+";
     root.needs("id")
-        .mustBe<std::string>(ID_REGEX, &ModMetadata::Impl::validateOldID)
+        .mustBe<std::string>(ID_REGEX, &ModMetadata::Impl::validateID)
         .into(impl->m_id);
-
-    // if (!isDeprecatedIDForm(impl->m_id)) {
-    //     log::warn(
-    //         "Mod ID '{}' will be rejected in the future - "
-    //         "IDs must match the regex `[a-z0-9\\-_]+\\.[a-z0-9\\-_]+`",
-    //         impl->m_id
-    //     );
-    // }
 
     root.needs("version").into(impl->m_version);
     root.needs("name").into(impl->m_name);
@@ -187,19 +168,14 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     }
 
     if (auto deps = root.has("dependencies")) {
-        auto addDependency = [&impl, ID_REGEX](std::string id, JsonExpectedValue& dep, bool legacy) -> Result<> {
-            if (!ModMetadata::Impl::validateOldID(id)) {
+        auto addDependency = [&impl, ID_REGEX](std::string id, JsonExpectedValue& dep) -> Result<> {
+            if (!ModMetadata::Impl::validateID(id)) {
                 return Err("[mod.json].dependencies.\"{}\" is not a valid Mod ID ({})", id, ID_REGEX);
             }
 
-            // todo in v5: array style wont exist so this bool will always be false
-            if (legacy) {
-                dep.assertIsObject();
-            }
-            else {
-                dep.assertIs({ matjson::Type::Object, matjson::Type::String });
-            }
+            dep.assertIs({ matjson::Type::Object, matjson::Type::String });
 
+            // Check platforms array if we have an object, string syntax allows any platform
             if (dep.isObject()) {
                 bool onThisPlatform = !dep.has("platforms");
                 for (auto& plat : dep.has("platforms").items()) {
@@ -251,34 +227,21 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
             return Ok();
         };
 
-        // todo in v5: make this always be an object
-        deps.assertIs({ matjson::Type::Object, matjson::Type::Array });
-        if (deps.isObject()) {
-            for (auto& [id, dep] : deps.properties()) {
-                GEODE_UNWRAP(addDependency(id, dep, false));
-            }
-        }
-        else {
-            for (auto& dep : deps.items()) {
-                GEODE_UNWRAP(addDependency(dep.needs("id").get<std::string>(), dep, true));
-            }
+        deps.assertIsObject();
+        for (auto& [id, dep] : deps.properties()) {
+            GEODE_UNWRAP(addDependency(id, dep));
         }
     }
 
     if (auto incompats = root.has("incompatibilities")) {
-        auto addIncompat = [&impl, ID_REGEX](std::string id, JsonExpectedValue& incompat, bool legacy) -> Result<> {
-            if (!ModMetadata::Impl::validateOldID(id)) {
+        auto addIncompat = [&impl, ID_REGEX](std::string id, JsonExpectedValue& incompat) -> Result<> {
+            if (!ModMetadata::Impl::validateID(id)) {
                 return Err("[mod.json].incompatibilities.\"{}\" is not a valid Mod ID ({})", id, ID_REGEX);
             }
 
-            // todo in v5: array style wont exists so this bool will always be true
-            if (legacy) {
-                incompat.assertIsObject();
-            }
-            else {
-                incompat.assertIs({ matjson::Type::Object, matjson::Type::String });
-            }
+            incompat.assertIs({ matjson::Type::Object, matjson::Type::String});
 
+            // Check platforms array if we have an object, string syntax allows any platform
             if (incompat.isObject()) {
                 bool onThisPlatform = !incompat.has("platforms");
                 for (auto& plat : incompat.has("platforms").items()) {
@@ -314,17 +277,9 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
             return Ok();
         };
 
-        // todo in v5: make this always be an object
-        incompats.assertIs({ matjson::Type::Object, matjson::Type::Array });
-        if (incompats.isObject()) {
-            for (auto& [id, incompat] : incompats.properties()) {
-                GEODE_UNWRAP(addIncompat(id, incompat, false));
-            }
-        }
-        else {
-            for (auto& incompat : incompats.items()) {
-                GEODE_UNWRAP(addIncompat(incompat.needs("id").get<std::string>(), incompat, true));
-            }
+        incompats.assertIsObject();
+        for (auto& [id, incompat] : incompats.properties()) {
+            GEODE_UNWRAP(addIncompat(id, incompat));
         }
     }
 
@@ -444,6 +399,22 @@ Result<ModMetadata> ModMetadata::Impl::createFromFile(std::filesystem::path cons
     return Ok(info);
 }
 
+ModMetadata ModMetadata::Impl::createInvalidMetadata(std::string_view name, std::string_view error, LoadProblem::Type type) {
+    ModMetadata v{};
+    v.m_impl->m_name = name;
+    v.m_impl->m_softInvalidReason = {
+        std::string(error), type
+    };
+
+    v.m_impl->m_developers = {"-"};
+
+    // generate a random id to prevent conflicts with existing mods
+    constexpr std::string_view alphabet = "abcdefghijklmnopqrstuvwxyz0123456789_-";
+    v.m_impl->m_id = fmt::format("geode_invalid.{}", geode::utils::random::generateString(16, alphabet));
+
+    return v;
+}
+
 Result<ModMetadata> ModMetadata::Impl::createFromGeodeFile(std::filesystem::path const& path) {
     GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(path));
     return ModMetadata::createFromGeodeZip(unzip);
@@ -545,10 +516,6 @@ VersionInfo ModMetadata::getVersion() const {
 
 ZStringView ModMetadata::getID() const {
     return m_impl->m_id;
-}
-
-bool ModMetadata::usesDeprecatedIDForm() const {
-    return Impl::isDeprecatedIDForm(m_impl->m_id);
 }
 
 ZStringView ModMetadata::getName() const {

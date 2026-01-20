@@ -86,8 +86,7 @@ namespace geode {
         std::string m_id;
         std::string m_name;
         std::vector<std::string> m_developers;
-        // TODO: remove once #895 is fixed
-        std::optional<std::string> m_softInvalidReason;
+        std::optional<std::pair<std::string, LoadProblem::Type>> m_softInvalidReason;
         std::string m_gdVersion;
         VersionInfo m_geodeVersion;
         std::optional<std::string> m_description;
@@ -109,6 +108,9 @@ namespace geode {
 
         ModJson m_rawJSON;
 
+        // creates the relevant metadata to represent an invalid mod and have its error shown ingame. it is otherwise blank
+        static ModMetadata createInvalidMetadata(std::string_view name, std::string_view error, LoadProblem::Type type);
+
         static Result<ModMetadata> createFromGeodeZip(utils::file::Unzip& zip);
         static Result<ModMetadata> createFromGeodeFile(std::filesystem::path const& path);
         static Result<ModMetadata> createFromFile(std::filesystem::path const& path);
@@ -120,8 +122,6 @@ namespace geode {
         bool operator==(ModMetadata::Impl const& other) const;
 
         static bool validateID(std::string_view id);
-        static bool validateOldID(std::string_view id);
-        static bool isDeprecatedIDForm(std::string_view id);
 
         static Result<ModMetadata> createFromSchemaV010(ModJson const& rawJson);
 
@@ -134,6 +134,7 @@ namespace geode {
     class ModMetadataImpl : public ModMetadata::Impl {
     public:
         static ModMetadata::Impl& getImpl(ModMetadata& info);
+        static ModMetadata::Impl const& getImpl(ModMetadata const& info);
     };
 }
 
