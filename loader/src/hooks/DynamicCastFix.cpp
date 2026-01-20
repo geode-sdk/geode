@@ -8,7 +8,7 @@ $on_mod(Loaded) {
     // this is needed because the transitions in cocos uses dynamic cast to check
     // layers, which fail on user layers due to typeinfo not matching
 
-    #if defined(GEODE_IS_MACOS) && GEODE_COMP_GD_VERSION != 22074
+    #if defined(GEODE_IS_MACOS) && GEODE_COMP_GD_VERSION != 22080
         #error "Unsupported version for macOS dynamic cast fix, please update the addresses"
     #endif
     #if defined(GEODE_IS_IOS) && GEODE_COMP_GD_VERSION != 22074
@@ -16,10 +16,10 @@ $on_mod(Loaded) {
     #endif
 
     #if defined(GEODE_IS_INTEL_MAC)
-        void* dynamicCastAddr = reinterpret_cast<void*>(base::get() + 0x7ba1d8);
+        void* dynamicCastAddr = reinterpret_cast<void*>(base::get() + 0x7ceeee);
         (void) Mod::get()->hook(dynamicCastAddr, &cast::typeinfoCastInternal, "__dynamic_cast");
     #elif defined(GEODE_IS_ARM_MAC)
-        void* dynamicCastAddr = reinterpret_cast<void*>(base::get() + 0x6c8bcc);
+        void* dynamicCastAddr = reinterpret_cast<void*>(base::get() + 0x6d189c);
         (void)Mod::get()->hook(dynamicCastAddr, &cast::typeinfoCastInternal, "__dynamic_cast");
     #elif defined(GEODE_IS_ANDROID)
         void* handle = dlopen("libcocos2dcpp.so", RTLD_LAZY | RTLD_NOLOAD);

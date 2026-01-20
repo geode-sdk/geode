@@ -4,6 +4,8 @@
 #include <cocos2d.h>
 #include <cocos-ext.h>
 
+#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+
 namespace geode {
     /**
      * Creates the usual blue gradient BG for a layer. You should use this over
