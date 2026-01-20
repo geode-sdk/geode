@@ -535,11 +535,11 @@ constexpr auto operator""_spr() {
 #else
 
 // can't really work without the mod id macro
-// GEODE_HIDDEN inline char const* operator"" _spr(char const* str, size_t len) {
+// GEODE_HIDDEN inline char const* operator""_spr(char const* str, size_t len) {
 //     return geode::Mod::get()->expandSpriteName({ str, len }).data();
 // }
 
-GEODE_HIDDEN inline char const* operator"" _spr(char const* str, size_t len) {
+GEODE_HIDDEN inline char const* operator""_spr(char const* str, size_t len) {
     geode::log::error("GEODE_MOD_ID not defined, _spr cannot be used");
     return nullptr;
 }
