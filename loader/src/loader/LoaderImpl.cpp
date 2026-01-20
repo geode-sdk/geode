@@ -1289,20 +1289,22 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
             ),
             "Cancel", "Replace",
             [doInstallModFromFile = std::move(doInstallModFromFile), path, existing, meta](auto, bool btn2) mutable {
-                std::error_code ec;
-                std::filesystem::remove(existing->getPackagePath(), ec);
-                if (ec) {
-                    FLAlertLayer::create(
-                        "Unable to Uninstall",
-                        fmt::format(
-                            "Unable to uninstall <cy>{}</c>: {} (Error code <cr>{}</c>)",
-                            existing->getID(), ec.message(), ec.value()
-                        ),
-                        "OK"
-                    )->show();
-                    return;
+                if (btn2) {
+                    std::error_code ec;
+                    std::filesystem::remove(existing->getPackagePath(), ec);
+                    if (ec) {
+                        FLAlertLayer::create(
+                            "Unable to Uninstall",
+                            fmt::format(
+                                "Unable to uninstall <cy>{}</c>: {} (Error code <cr>{}</c>)",
+                                existing->getID(), ec.message(), ec.value()
+                            ),
+                            "OK"
+                        )->show();
+                        return;
+                    }
+                    doInstallModFromFile();
                 }
-                doInstallModFromFile();
             },
             true,
             false
