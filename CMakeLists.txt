@@ -198,15 +198,15 @@ include(cmake/GeodeFile.cmake)
 # so please update them when you set the game version
 
 # begin GEODE_GD_VERSION
-# win:     2.2074
-# mac:     2.2074
-# ios:     2.2074
-# android: 2.2074
+# win:     2.2081
+# mac:     2.2081
+# ios:     2.2081
+# android: 2.2081
 # end GEODE_GD_VERSION
 
 if (NOT DEFINED GEODE_GD_VERSION)
-	set(GEODE_GD_VERSION 2.208)
-	set(GEODE_COMP_GD_VERSION 22080)
+	set(GEODE_GD_VERSION 2.2081)
+	set(GEODE_COMP_GD_VERSION 22081)
 endif()
 
 target_compile_definitions(
