@@ -60,6 +60,7 @@ public:
     ComparableVersionInfo version;
     Importance importance = Importance::Required;
     Mod* mod = nullptr;
+    matjson::Value settings;
 };
 
 ModMetadata::Dependency::Dependency()
@@ -113,6 +114,14 @@ Mod* ModMetadata::Dependency::getMod() const {
 
 void ModMetadata::Dependency::setMod(Mod* mod) {
     m_impl->mod = mod;
+}
+
+matjson::Value const& ModMetadata::Dependency::getSettings() const {
+    return m_impl->settings;
+}
+
+void ModMetadata::Dependency::setSettings(matjson::Value value) {
+    m_impl->settings = std::move(value);
 }
 
 bool ModMetadata::Dependency::isResolved() const {
@@ -353,7 +362,6 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
                 }
             }
 
-            matjson::Value dependencySettings;
             Dependency dependency;
             dependency.setID(std::move(id));
 
@@ -369,7 +377,9 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
                 Dependency::Importance importance;
                 dep.has("importance").into(importance);
                 dependency.setImportance(importance);
+                matjson::Value dependencySettings;
                 dep.has("settings").into(dependencySettings);
+                dependency.setSettings(std::move(dependencySettings));
                 dep.checkUnknownKeys();
             }
 
@@ -390,9 +400,6 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
             }
 
             impl->m_dependencies.push_back(dependency);
-            // todo in v5: make Dependency pimpl and move this as a member there
-            // `dep.has("settings").into(dependency.settings);`
-            impl->m_dependencySettings.insert({ std::move(id), dependencySettings });
 
             return Ok();
         };

@@ -86,6 +86,8 @@ namespace geode {
             void setImportance(Importance value);
             Mod* getMod() const;
             void setMod(Mod* mod);
+            matjson::Value const& getSettings() const;
+            void setSettings(matjson::Value value);
             [[nodiscard]] bool isResolved() const;
         };
 
