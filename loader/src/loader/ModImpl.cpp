@@ -686,7 +686,7 @@ bool Mod::Impl::isCurrentlyLoading() const {
 
 bool Mod::Impl::hasLoadProblems() const {
     for (auto const& problem : m_problems) {
-        if (problem.isProblem()) {
+        if (problem.isProblemTheUserShouldCareAbout()) {
             return true;
         }
     }

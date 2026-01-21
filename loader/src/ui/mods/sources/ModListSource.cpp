@@ -2,6 +2,8 @@
 #include <server/DownloadManager.hpp>
 #include <Geode/loader/ModSettingsManager.hpp>
 #include <loader/LoaderImpl.hpp>
+#include "../list/ModItem.hpp"
+#include "../list/SpecialModListItem.hpp"
 
 #define FTS_FUZZY_MATCH_IMPLEMENTATION
 #include <Geode/external/fts/fts_fuzzy_match.h>
@@ -36,13 +38,20 @@ typename ModListSource::PageLoadTask ModListSource::loadPage(size_t page, bool f
     return this->fetchPage(page, forceUpdate).map(
         [this, page](Result<ProvidedMods, LoadPageError>* result) -> Result<Page, LoadPageError> {
             if (result->isOk()) {
-                auto data = result->unwrap();
+                auto data = std::move(result->unwrap());
                 if (data.totalModCount == 0 || data.mods.empty()) {
                     return Err(LoadPageError("No mods found :("));
                 }
                 auto pageData = Page();
-                for (auto mod : std::move(data.mods)) {
-                    pageData.push_back(ModItem::create(std::move(mod)));
+                for (auto&& src : std::move(data.mods)) {
+                    std::visit(makeVisitor {
+                        [&](ModSource&& mod) {
+                            pageData.push_back(ModItem::create(std::move(mod)));
+                        },
+                        [&](SpecialModListItemSource&& item) {
+                            pageData.push_back(SpecialModListItem::create(std::move(item)));
+                        },
+                    }, std::move(src));
                 }
                 m_cachedItemCount = data.totalModCount;
                 m_cachedPages.insert({ page, pageData });

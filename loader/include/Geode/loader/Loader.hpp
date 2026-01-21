@@ -53,8 +53,14 @@ namespace geode {
                 type == LoadProblem::Type::NeedsNewerGeodeVersion ||
                 type == LoadProblem::Type::UnsupportedGeodeVersion;
         }
-        bool isProblem() const {
-            return !isSuggestion() && !isOutdated();
+        /**
+         * Problems we should show a big red '!!' in the UI for. Suggestions 
+         * are not problems, and outdated mods as well as invalid Geode files 
+         * are also not problems (because otherwise we would be showing a 
+         * billion errors every time GD updates)
+         */
+        bool isProblemTheUserShouldCareAbout() const {
+            return !isSuggestion() && !isOutdated() && type != LoadProblem::Type::InvalidFile;
         }
     };
 
@@ -100,6 +106,7 @@ namespace geode {
         bool isModLoaded(std::string_view id) const;
         Mod* getLoadedMod(std::string_view id) const;
         std::vector<Mod*> getAllMods();
+        size_t getNumberOfInvalidGeodeFiles() const;
         std::vector<LoadProblem> getAllProblems() const;
         std::vector<LoadProblem> getLoadProblems() const;
         std::vector<LoadProblem> getOutdated() const;

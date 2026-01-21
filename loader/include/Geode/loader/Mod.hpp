@@ -491,6 +491,7 @@ namespace geode {
          * make sure the mod is actually loadable
          */
         bool hasLoadProblems() const;
+        bool hasInvalidGeodeFile() const;
         std::vector<LoadProblem> getAllProblems() const;
         std::vector<LoadProblem> getProblems() const;
         std::vector<LoadProblem> getRecommendations() const;

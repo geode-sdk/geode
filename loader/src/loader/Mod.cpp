@@ -274,6 +274,14 @@ bool Mod::hasSavedValue(std::string_view key) {
 bool Mod::hasLoadProblems() const {
     return m_impl->hasLoadProblems();
 }
+bool Mod::hasInvalidGeodeFile() const {
+    for (auto problem : this->getAllProblems()) {
+        if (problem.type == LoadProblem::Type::InvalidFile) {
+            return true;
+        }
+    }
+    return false;
+}
 std::optional<LoadProblem> Mod::targetsOutdatedVersion() const {
     for (auto problem : this->getAllProblems()) {
         if (problem.isOutdated()) {
@@ -288,7 +296,7 @@ std::vector<LoadProblem> Mod::getAllProblems() const {
 std::vector<LoadProblem> Mod::getProblems() const {
     std::vector<LoadProblem> result;
     for (auto problem : this->getAllProblems()) {
-        if (problem.isProblem()) {
+        if (problem.isProblemTheUserShouldCareAbout()) {
             result.push_back(problem);
         }
     }

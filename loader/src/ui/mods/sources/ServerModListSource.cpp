@@ -16,7 +16,7 @@ ServerModListSource::ProviderTask ServerModListSource::fetchPage(size_t page, bo
                     content.mods.push_back(ModSource(std::move(mod)));
                 }
                 content.totalModCount = list.totalModCount;
-                return Ok(content);
+                return Ok(std::move(content));
             }
             return Err(LoadPageError("Error loading mods", result->unwrapErr().details));
         },

@@ -10,7 +10,7 @@
 #include "../popups/SortPopup.hpp"
 #include "../GeodeStyle.hpp"
 #include "../ModsLayer.hpp"
-#include "ModItem.hpp"
+#include "ModListItem.hpp"
 
 static size_t getDisplayPageSize(ModListSource* src, ModListDisplay display) {
     if (src->isLocalModsOnly() && Mod::get()->getSettingValue<bool>("infinite-local-mods-list")) {
@@ -599,10 +599,10 @@ void ModList::updateDisplay(ModListDisplay display) {
     m_display = display;
     m_source->setPageSize(getDisplayPageSize(m_source, m_display));
 
-    // Update all BaseModItems that are children of the list
-    // There may be non-BaseModItems there (like separators) so gotta be type-safe
+    // Update all ModListItems that are children of the list
+    // There may be non-ModListItems there (like separators) so gotta be type-safe
     for (auto& node : CCArrayExt<CCNode*>(m_list->m_contentLayer->getChildren())) {
-        if (auto item = typeinfo_cast<ModItem*>(node)) {
+        if (auto item = typeinfo_cast<ModListItem*>(node)) {
             item->updateDisplay(m_list->getContentWidth(), display);
         }
     }
