@@ -127,8 +127,8 @@ void geode::openIssueReportPopup(Mod* mod) {
                 }
 
                 auto issues = mod->getMetadata().getIssues();
-                if (issues && issues->url) {
-                    auto& url = *issues->url;
+                if (issues && issues->getURL()) {
+                    auto& url = *issues->getURL();
                     web::openLinkInBrowser(url);
                 }
             }

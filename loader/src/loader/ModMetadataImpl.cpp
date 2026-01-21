@@ -54,15 +54,180 @@ ModMetadata::Impl const& ModMetadataImpl::getImpl(ModMetadata const& info) {
     return *info.m_impl;
 }
 
+class ModMetadata::Dependency::Impl {
+public:
+    std::string id;
+    ComparableVersionInfo version;
+    Importance importance = Importance::Required;
+    Mod* mod = nullptr;
+};
+
+ModMetadata::Dependency::Dependency()
+  : m_impl(std::make_unique<Impl>()) {}
+
+ModMetadata::Dependency::Dependency(Dependency const& other)
+  : m_impl(std::make_unique<Impl>(*other.m_impl)) {}
+
+ModMetadata::Dependency::Dependency(Dependency&& other) noexcept
+  : m_impl(std::move(other.m_impl)) {}
+
+ModMetadata::Dependency& ModMetadata::Dependency::operator=(Dependency const& other) {
+    m_impl = std::make_unique<Impl>(*other.m_impl);
+    return *this;
+}
+
+ModMetadata::Dependency& ModMetadata::Dependency::operator=(Dependency&& other) noexcept {
+    m_impl = std::move(other.m_impl);
+    return *this;
+}
+
+ModMetadata::Dependency::~Dependency() = default;
+
+std::string const& ModMetadata::Dependency::getID() const {
+    return m_impl->id;
+}
+
+void ModMetadata::Dependency::setID(std::string value) {
+    m_impl->id = std::move(value);
+}
+
+ComparableVersionInfo const& ModMetadata::Dependency::getVersion() const {
+    return m_impl->version;
+}
+
+void ModMetadata::Dependency::setVersion(ComparableVersionInfo value) {
+    m_impl->version = std::move(value);
+}
+
+ModMetadata::Dependency::Importance ModMetadata::Dependency::getImportance() const {
+    return m_impl->importance;
+}
+
+void ModMetadata::Dependency::setImportance(ModMetadata::Dependency::Importance value) {
+    m_impl->importance = value;
+}
+
+Mod* ModMetadata::Dependency::getMod() const {
+    return m_impl->mod;
+}
+
+void ModMetadata::Dependency::setMod(Mod* mod) {
+    m_impl->mod = mod;
+}
+
 bool ModMetadata::Dependency::isResolved() const {
     return
-        this->importance != Importance::Required ||
-        this->mod && this->mod->isEnabled() && this->version.compare(this->mod->getVersion());
+        this->getImportance() != Importance::Required ||
+        this->getMod() && this->getMod()->isEnabled() && this->getVersion().compare(this->getMod()->getVersion());
+}
+
+class ModMetadata::Incompatibility::Impl {
+public:
+    std::string id;
+    ComparableVersionInfo version;
+    Importance importance = Importance::Breaking;
+    Mod* mod = nullptr;
+};
+
+ModMetadata::Incompatibility::Incompatibility()
+  : m_impl(std::make_unique<Impl>()) {}
+
+ModMetadata::Incompatibility::Incompatibility(Incompatibility const& other)
+  : m_impl(std::make_unique<Impl>(*other.m_impl)) {}
+
+ModMetadata::Incompatibility::Incompatibility(Incompatibility&& other) noexcept
+    : m_impl(std::move(other.m_impl)) {}
+
+ModMetadata::Incompatibility& ModMetadata::Incompatibility::operator=(Incompatibility const& other) {
+    m_impl = std::make_unique<Impl>(*other.m_impl);
+    return *this;
+}
+
+ModMetadata::Incompatibility& ModMetadata::Incompatibility::operator=(Incompatibility&& other) noexcept {
+    m_impl = std::move(other.m_impl);
+    return *this;
+}
+
+ModMetadata::Incompatibility::~Incompatibility() = default;
+
+std::string const& ModMetadata::Incompatibility::getID() const {
+    return m_impl->id;
+}
+
+void ModMetadata::Incompatibility::setID(std::string value) {
+    m_impl->id = std::move(value);
+}
+
+ComparableVersionInfo const& ModMetadata::Incompatibility::getVersion() const {
+    return m_impl->version;
+}
+
+void ModMetadata::Incompatibility::setVersion(ComparableVersionInfo value) {
+    m_impl->version = std::move(value);
+}
+
+ModMetadata::Incompatibility::Importance ModMetadata::Incompatibility::getImportance() const {
+    return m_impl->importance;
+}
+
+void ModMetadata::Incompatibility::setImportance(ModMetadata::Incompatibility::Importance value) {
+    m_impl->importance = value;
+}
+
+Mod* ModMetadata::Incompatibility::getMod() const {
+    return m_impl->mod;
+}
+
+void ModMetadata::Incompatibility::setMod(Mod* mod) {
+    m_impl->mod = mod;
 }
 
 bool ModMetadata::Incompatibility::isResolved() const {
-    return this->importance == Importance::Conflicting ||
-        (!this->mod || !this->version.compare(this->mod->getVersion()) || !this->mod->shouldLoad());
+    return this->getImportance() == Importance::Conflicting ||
+        (!this->getMod() || !this->getVersion().compare(this->getMod()->getVersion()) || !this->getMod()->shouldLoad());
+}
+
+class ModMetadata::IssuesInfo::Impl {
+public:
+    std::string info;
+    std::optional<std::string> url;
+};
+
+ModMetadata::IssuesInfo::IssuesInfo()
+  : m_impl(std::make_unique<Impl>()) {}
+
+ModMetadata::IssuesInfo::IssuesInfo(IssuesInfo const& other)
+  : m_impl(std::make_unique<Impl>(*other.m_impl)) {}
+
+ModMetadata::IssuesInfo::IssuesInfo(IssuesInfo&& other) noexcept
+    : m_impl(std::move(other.m_impl)) {}
+
+ModMetadata::IssuesInfo& ModMetadata::IssuesInfo::operator=(IssuesInfo const& other) {
+    m_impl = std::make_unique<Impl>(*other.m_impl);
+    return *this;
+}
+
+ModMetadata::IssuesInfo& ModMetadata::IssuesInfo::operator=(IssuesInfo&& other) noexcept {
+    m_impl = std::move(other.m_impl);
+    return *this;
+}
+
+ModMetadata::IssuesInfo::~IssuesInfo() = default;
+
+std::string const& ModMetadata::IssuesInfo::getInfo() const {
+    return m_impl->info;
+}
+
+void ModMetadata::IssuesInfo::setInfo(std::string value) {
+    m_impl->info = std::move(value);
+}
+
+std::optional<std::string> const& ModMetadata::IssuesInfo::getURL() const {
+    return m_impl->url;
+}
+
+void ModMetadata::IssuesInfo::setURL(std::optional<std::string> value) {
+    m_impl->url = std::move(value);
 }
 
 static std::string sanitizeDetailsData(std::string str) {
@@ -159,12 +324,12 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     root.has("load-priority").into(impl->m_loadPriority);
 
     if (info.getID() != "geode.loader") {
-        impl->m_dependencies.push_back({
-            "geode.loader",
-            {about::getLoaderVersion(), VersionCompare::Exact},
-            Dependency::Importance::Required,
-            Mod::get()
-        });
+        Dependency dep;
+        dep.setID("geode.loader");
+        dep.setVersion({ about::getLoaderVersion(), VersionCompare::MoreEq });
+        dep.setImportance(Dependency::Importance::Required);
+        dep.setMod(Mod::get());
+        impl->m_dependencies.push_back(std::move(dep));
     }
 
     if (auto deps = root.has("dependencies")) {
@@ -190,15 +355,20 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
 
             matjson::Value dependencySettings;
             Dependency dependency;
-            dependency.id = id;
+            dependency.setID(std::move(id));
 
+            ComparableVersionInfo version;
             if (dep.isString()) {
-                dep.into(dependency.version);
-                dependency.importance = Dependency::Importance::Required;
+                dep.into(version);
+                dependency.setVersion(version);
+                dependency.setImportance(Dependency::Importance::Required);
             }
             else {
-                dep.needs("version").into(dependency.version);
-                dep.has("importance").into(dependency.importance);
+                dep.needs("version").into(version);
+                dependency.setVersion(version);
+                Dependency::Importance importance;
+                dep.has("importance").into(importance);
+                dependency.setImportance(importance);
                 dep.has("settings").into(dependencySettings);
                 dep.checkUnknownKeys();
             }
@@ -209,13 +379,13 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
             }
 
             if (
-                dependency.version.getComparison() != VersionCompare::MoreEq &&
-                dependency.version.getComparison() != VersionCompare::Any
+                dependency.getVersion().getComparison() != VersionCompare::MoreEq &&
+                dependency.getVersion().getComparison() != VersionCompare::Any
             ) {
                 return Err(
                     "[mod.json].dependencies.\"{}\".version (\"{}\") must be either a more-than "
                     "comparison for a specific version or a wildcard for any version",
-                    dependency.id, dependency.version
+                    dependency.getID(), dependency.getVersion()
                 );
             }
 
@@ -255,15 +425,20 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
             }
 
             Incompatibility incompatibility;
-            incompatibility.id = std::move(id);
+            incompatibility.setID(std::move(id));
 
+            ComparableVersionInfo version;
             if (incompat.isString()) {
-                incompat.into(incompatibility.version);
-                incompatibility.importance = Incompatibility::Importance::Breaking;
+                incompat.into(version);
+                incompatibility.setVersion(version);
+                incompatibility.setImportance(Incompatibility::Importance::Breaking);
             }
             else {
-                incompat.needs("version").into(incompatibility.version);
-                incompat.has("importance").into(incompatibility.importance);
+                incompat.needs("version").into(version);
+                incompatibility.setVersion(version);
+                Incompatibility::Importance importance;
+                incompat.has("importance").into(importance);
+                incompatibility.setImportance(importance);
                 incompat.checkUnknownKeys();
             }
 
@@ -307,8 +482,12 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
 
     if (auto issues = root.has("issues")) {
         IssuesInfo issuesInfo;
-        issues.needs("info").into(issuesInfo.info);
-        issues.has("url").into(issuesInfo.url);
+        std::string rawInfo;
+        issues.needs("info").into(rawInfo);
+        issuesInfo.setInfo(rawInfo);
+        std::optional<std::string> url;
+        issues.has("url").into(url);
+        issuesInfo.setURL(std::move(url));
         impl->m_issues = issuesInfo;
     }
 

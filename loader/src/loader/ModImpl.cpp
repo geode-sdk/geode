@@ -347,7 +347,7 @@ Result<> Mod::Impl::loadBinary() {
     // Anyway this lets all of this mod's dependencies know it has been loaded
     // In case they're API mods and want to know those kinds of things
     for (auto const& dep : ModMetadataImpl::getImpl(m_metadata).m_dependencies) {
-        if (auto depMod = Loader::get()->getLoadedMod(dep.id)) {
+        if (auto depMod = Loader::get()->getLoadedMod(dep.getID())) {
             DependencyLoadedEvent(depMod, m_self).post();
         }
     }
@@ -473,7 +473,7 @@ bool Mod::Impl::hasUnresolvedIncompatibilities() const {
 
 bool Mod::Impl::depends(std::string_view id) const {
     return utils::ranges::contains(m_metadata.getDependencies(), [id](ModMetadata::Dependency const& t) {
-        return t.id == id;
+        return t.getID() == id;
     });
 }
 
