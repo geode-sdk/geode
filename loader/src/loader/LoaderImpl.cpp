@@ -387,31 +387,32 @@ void Loader::Impl::buildModGraph() {
         log::debug("{}", mod->getID());
         log::NestScope nest;
         for (auto& dependency : mod->m_impl->m_metadata.m_impl->m_dependencies) {
-            log::debug("{}", dependency.id);
-            if (!m_mods.contains(dependency.id)) {
-                dependency.mod = nullptr;
+            log::debug("{}", dependency.getID());
+            if (!m_mods.contains(dependency.getID())) {
+                dependency.setMod(nullptr);
                 continue;
             }
 
-            dependency.mod = m_mods[dependency.id];
+            dependency.setMod(m_mods[dependency.getID()]);
 
-            if (!dependency.version.compare(dependency.mod->getVersion())) {
-                dependency.mod = nullptr;
+            if (!dependency.getVersion().compare(dependency.getMod()->getVersion())) {
+                dependency.setMod(nullptr);
                 continue;
             }
 
             if (
-                dependency.importance != ModMetadata::Dependency::Importance::Required ||
-                dependency.mod == nullptr
+                dependency.getImportance() != ModMetadata::Dependency::Importance::Required ||
+                dependency.getMod() == nullptr
             )
                 continue;
 
-            dependency.mod->m_impl->m_dependants.push_back(mod);
-            dependency.mod->m_impl->m_settings->addDependant(mod);
+            dependency.getMod()->m_impl->m_dependants.push_back(mod);
+            dependency.getMod()->m_impl->m_settings->addDependant(mod);
         }
         for (auto& incompatibility : mod->m_impl->m_metadata.m_impl->m_incompatibilities) {
-            incompatibility.mod =
-                m_mods.contains(incompatibility.id) ? m_mods[incompatibility.id] : nullptr;
+            incompatibility.setMod(
+                m_mods.contains(incompatibility.getID()) ? m_mods[incompatibility.getID()] : nullptr
+            );
         }
     }
 }
@@ -555,23 +556,23 @@ void Loader::Impl::findProblems() {
         log::NestScope nest;
 
         for (auto const& dep : mod->getMetadata().getDependencies()) {
-            if (dep.mod && dep.mod->isEnabled() && dep.version.compare(dep.mod->getVersion()))
+            if (dep.getMod() && dep.getMod()->isEnabled() && dep.getVersion().compare(dep.getMod()->getVersion()))
                 continue;
 
-            auto dismissKey = fmt::format("dismiss-optional-dependency-{}-for-{}", dep.id, id);
+            auto dismissKey = fmt::format("dismiss-optional-dependency-{}-for-{}", dep.getID(), id);
 
-            switch(dep.importance) {
+            switch(dep.getImportance()) {
                 case ModMetadata::Dependency::Importance::Suggested:
                     if (!Mod::get()->getSavedValue<bool>(dismissKey)) {
                         this->addProblem({
                             LoadProblem::Type::Suggestion,
                             mod,
-                            fmt::format("{} {}", dep.id, dep.version.toString())
+                            fmt::format("{} {}", dep.getID(), dep.getVersion().toString())
                         });
-                        log::info("{} suggests {} {}", id, dep.id, dep.version);
+                        log::info("{} suggests {} {}", id, dep.getID(), dep.getVersion());
                     }
                     else {
-                        log::debug("{} suggests {} {}, but that suggestion was dismissed", id, dep.id, dep.version);
+                        log::debug("{} suggests {} {}, but that suggestion was dismissed", id, dep.getID(), dep.getVersion());
                     }
                     break;
                 case ModMetadata::Dependency::Importance::Recommended:
@@ -579,50 +580,50 @@ void Loader::Impl::findProblems() {
                         this->addProblem({
                             LoadProblem::Type::Recommendation,
                             mod,
-                            fmt::format("{} {}", dep.id, dep.version.toString())
+                            fmt::format("{} {}", dep.getID(), dep.getVersion().toString())
                         });
-                        log::info("{} recommends {} {}", id, dep.id, dep.version);
+                        log::info("{} recommends {} {}", id, dep.getID(), dep.getVersion());
                     }
                     else {
-                        log::debug("{} recommends {} {}, but that suggestion was dismissed", id, dep.id, dep.version);
+                        log::debug("{} recommends {} {}, but that suggestion was dismissed", id, dep.getID(), dep.getVersion());
                     }
                     break;
                 case ModMetadata::Dependency::Importance::Required:
-                    if(m_mods.find(dep.id) == m_mods.end()) {
+                    if(m_mods.find(dep.getID()) == m_mods.end()) {
                         this->addProblem({
                             LoadProblem::Type::MissingDependency,
                             mod,
-                            fmt::format("{}", dep.id)
+                            fmt::format("{}", dep.getID())
                         });
-                        log::error("{} requires {} {}", id, dep.id, dep.version);
+                        log::error("{} requires {} {}", id, dep.getID(), dep.getVersion());
                         break;
                     } else {
-                        auto installedDependency = m_mods.at(dep.id);
+                        auto installedDependency = m_mods.at(dep.getID());
 
                         if(!installedDependency->isEnabled()) {
                             this->addProblem({
                                 LoadProblem::Type::DisabledDependency,
                                 mod,
-                                fmt::format("{}", dep.id)
+                                fmt::format("{}", dep.getID())
                             });
-                            log::error("{} requires {} {}", id, dep.id, dep.version);
+                            log::error("{} requires {} {}", id, dep.getID(), dep.getVersion());
                             break;
-                        } else if(dep.version.compareWithReason(installedDependency->getVersion()) == VersionCompareResult::TooOld) {
+                        } else if(dep.getVersion().compareWithReason(installedDependency->getVersion()) == VersionCompareResult::TooOld) {
                             this->addProblem({
                                 LoadProblem::Type::OutdatedDependency,
                                 mod,
-                                fmt::format("{}", dep.id)
+                                fmt::format("{}", dep.getID())
                             });
-                            log::error("{} requires {} {}", id, dep.id, dep.version);
+                            log::error("{} requires {} {}", id, dep.getID(), dep.getVersion());
                             break;
                         } else {
                             // fires on major mismatch or too new version of dependency
                             this->addProblem({
                                 LoadProblem::Type::MissingDependency,
                                 mod,
-                                fmt::format("{} {}", dep.id, dep.version)
+                                fmt::format("{} {}", dep.getID(), dep.getVersion())
                             });
-                            log::error("{} requires {} {}", id, dep.id, dep.version);
+                            log::error("{} requires {} {}", id, dep.getID(), dep.getVersion());
                             break;
                         }
                     }
@@ -630,34 +631,34 @@ void Loader::Impl::findProblems() {
         }
 
         for (auto const& dep : mod->getMetadata().getIncompatibilities()) {
-            if (!dep.mod || !dep.version.compare(dep.mod->getVersion()) || !dep.mod->shouldLoad())
+            if (!dep.getMod() || !dep.getVersion().compare(dep.getMod()->getVersion()) || !dep.getMod()->shouldLoad())
                 continue;
-            switch(dep.importance) {
+            switch(dep.getImportance()) {
                 case ModMetadata::Incompatibility::Importance::Conflicting: {
                     this->addProblem({
-                        dep.version.toString()[0] == '<' ? LoadProblem::Type::OutdatedConflict : LoadProblem::Type::Conflict,
+                        dep.getVersion().toString()[0] == '<' ? LoadProblem::Type::OutdatedConflict : LoadProblem::Type::Conflict,
                         mod,
-                        fmt::format("{}", dep.id)
+                        fmt::format("{}", dep.getID())
                     });
-                    log::warn("{} conflicts with {} {}", id, dep.id, dep.version);
+                    log::warn("{} conflicts with {} {}", id, dep.getID(), dep.getVersion());
                 } break;
 
                 case ModMetadata::Incompatibility::Importance::Breaking: {
                     this->addProblem({
-                        dep.version.toString()[0] == '<' ? LoadProblem::Type::OutdatedIncompatibility : LoadProblem::Type::PresentIncompatibility,
+                        dep.getVersion().toString()[0] == '<' ? LoadProblem::Type::OutdatedIncompatibility : LoadProblem::Type::PresentIncompatibility,
                         mod,
-                        fmt::format("{}", dep.id)
+                        fmt::format("{}", dep.getID())
                     });
-                    log::error("{} breaks {} {}", id, dep.id, dep.version);
+                    log::error("{} breaks {} {}", id, dep.getID(), dep.getVersion());
                 } break;
 
                 case ModMetadata::Incompatibility::Importance::Superseded: {
                     this->addProblem({
                         LoadProblem::Type::PresentIncompatibility,
                         mod,
-                        fmt::format("{}", dep.id)
+                        fmt::format("{}", dep.getID())
                     });
-                    log::error("{} supersedes {} {}", id, dep.id, dep.version);
+                    log::error("{} supersedes {} {}", id, dep.getID(), dep.getVersion());
                 } break;
             }
         }
@@ -778,9 +779,9 @@ void Loader::Impl::orderModStack() {
             return;
         visited.insert(mod);
         for (auto dep : mod->m_impl->m_metadata.m_impl->m_dependencies) {
-            if (dep.importance != ModMetadata::Dependency::Importance::Required)
+            if (dep.getImportance() != ModMetadata::Dependency::Importance::Required)
                 continue;
-            visit(dep.mod, visit);
+            visit(dep.getMod(), visit);
         }
         m_modsToLoad.push_back(mod);
         log::debug("{} [{}]{}", mod->getID(), mod->getLoadPriority(), mod->needsEarlyLoad() ? " (early)" : "");

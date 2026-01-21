@@ -89,9 +89,12 @@ std::filesystem::path Mod::getResourcesDir() const {
 }
 
 matjson::Value Mod::getDependencySettingsFor(std::string_view id) const {
-    auto const& settings = ModMetadataImpl::getImpl(m_impl->m_metadata).m_dependencySettings;
-    auto it = settings.find(id);
-    return it != settings.end() ? it->second : matjson::Value();
+    for (auto const& dep : this->getMetadata().getDependencies()) {
+        if (dep.getID() == id) {
+            return dep.getSettings();
+        }
+    }
+    return matjson::Value{};
 }
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)

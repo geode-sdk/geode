@@ -157,7 +157,7 @@ namespace geode {
 
         virtual bool setup(InitArgs... args) = 0;
 
-        void keyBackClicked() {
+        void keyBackClicked() override {
             this->onClose(nullptr);
         }
 

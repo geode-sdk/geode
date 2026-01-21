@@ -55,10 +55,10 @@ public:
 
                     // Start downloads for any missing required dependencies
                     for (auto dep : data.metadata.getDependencies()) {
-                        if (!dep.mod && dep.importance != ModMetadata::Dependency::Importance::Suggested) {
+                        if (!dep.getMod() && dep.getImportance() != ModMetadata::Dependency::Importance::Suggested) {
                             ModDownloadManager::get()->startDownload(
-                                dep.id, dep.version.getUnderlyingVersion(),
-                                std::make_pair(m_id, dep.importance)
+                                dep.getID(), dep.getVersion().getUnderlyingVersion(),
+                                std::make_pair(m_id, dep.getImportance())
                             );
                         }
                     }
@@ -385,11 +385,11 @@ bool ModDownloadManager::checkAutoConfirm() {
             for (auto& inc : confirm->version.metadata.getIncompatibilities()) {
                 // If some mod has an incompatability that is installed,
                 // we need to ask for confirmation
-                if (inc.mod && (!download.getVersion().has_value() || inc.version.compare(download.getVersion().value()))) {
+                if (inc.getMod() && (!download.getVersion().has_value() || inc.getVersion().compare(download.getVersion().value()))) {
                     return false;
                 }
                 for (auto& download : ModDownloadManager::get()->getDownloads()) {
-                    if (download.isDone() && inc.id == download.getID() && (!download.getVersion().has_value() || inc.version.compare(download.getVersion().value()))) {
+                    if (download.isDone() && inc.getID() == download.getID() && (!download.getVersion().has_value() || inc.getVersion().compare(download.getVersion().value()))) {
                         return false;
                     }
                 }
@@ -398,7 +398,7 @@ bool ModDownloadManager::checkAutoConfirm() {
             // we need to ask for confirmation
             for (auto mod : Loader::get()->getAllMods()) {
                 for (auto& inc : mod->getMetadata().getIncompatibilities()) {
-                    if (inc.id == download.getID() && (!download.getVersion().has_value() || inc.version.compare(download.getVersion().value()))) {
+                    if (inc.getID() == download.getID() && (!download.getVersion().has_value() || inc.getVersion().compare(download.getVersion().value()))) {
                         return false;
                     }
                 }
@@ -410,7 +410,7 @@ bool ModDownloadManager::checkAutoConfirm() {
                 auto status = download.getStatus();
                 if (auto done = std::get_if<DownloadStatusDone>(&status)) {
                     for (auto& inc : done->version.metadata.getIncompatibilities()) {
-                        if (inc.id == download.getID() && inc.version.compare(done->version.metadata.getVersion())) {
+                        if (inc.getID() == download.getID() && inc.getVersion().compare(done->version.metadata.getVersion())) {
                             return false;
                         }
                     }
