@@ -307,7 +307,7 @@ public:
      * calculating content sizes
      */
     AxisLayout* ignoreInvisibleChildren(bool ignore = true);
-    bool isIgnoreInvisibleChildren();
+    bool isIgnoreInvisibleChildren() const;
 };
 
 /**

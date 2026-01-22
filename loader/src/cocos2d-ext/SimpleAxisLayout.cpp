@@ -854,7 +854,7 @@ SimpleAxisLayout* SimpleAxisLayout::ignoreInvisibleChildren(bool ignore) {
     return this;
 }
 
-bool SimpleAxisLayout::isIgnoreInvisibleChildren() {
+bool SimpleAxisLayout::isIgnoreInvisibleChildren() const {
     return m_impl->m_ignoreInvisibleChildren;
 }
 

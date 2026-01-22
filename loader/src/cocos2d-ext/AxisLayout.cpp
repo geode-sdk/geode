@@ -935,7 +935,7 @@ AxisLayout* AxisLayout::ignoreInvisibleChildren(bool ignore) {
     m_impl->m_ignoreInvisibleChildren = ignore;
     return this;
 }
-bool AxisLayout::isIgnoreInvisibleChildren() {
+bool AxisLayout::isIgnoreInvisibleChildren() const {
     return m_impl->m_ignoreInvisibleChildren;
 }
 
