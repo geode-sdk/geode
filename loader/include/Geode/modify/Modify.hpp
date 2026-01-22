@@ -255,7 +255,7 @@ namespace geode::modifier {
         /// @brief Set the priority of a hook to be after another hook in different mods
         /// @param hook The hook to set the priority of
         /// @param mod The mod to set the priority after
-        void setHookPriorityAfter(Hook* hook, Mod* mod) {
+        static void setHookPriorityAfter(Hook* hook, Mod* mod) {
             auto func = [=](ModStateEvent* event){
                 auto hooks = mod->getHooks();
                 for (auto modHook : hooks) {
@@ -289,10 +289,10 @@ namespace geode::modifier {
         /// @param hook The hook to set the priority of
         /// @param after The mod id of the mod to set the priority after
         /// @returns Ok if the mod was found and the priority was set, Err if the mod was not found
-        Result<> setHookPriorityAfter(Hook* hook, const std::string& after) {
+        static Result<> setHookPriorityAfter(Hook* hook, const std::string& after) {
             auto mod = Loader::get()->getInstalledMod(after);
             if (!mod) return Err("Mod not found");
-            this->setHookPriorityAfter(hook, mod);
+            setHookPriorityAfter(hook, mod);
             return Ok();
         }
 
@@ -309,7 +309,7 @@ namespace geode::modifier {
         /// @brief Set the priority of a hook to be before another hook in different mods
         /// @param hook The hook to set the priority of
         /// @param mod The mod to set the priority before
-        void setHookPriorityBefore(Hook* hook, Mod* mod) {
+        static void setHookPriorityBefore(Hook* hook, Mod* mod) {
             auto func = [=](ModStateEvent* event){
                 auto hooks = mod->getHooks();
                 for (auto modHook : hooks) {
@@ -343,10 +343,10 @@ namespace geode::modifier {
         /// @param hook The hook to set the priority of
         /// @param before The mod id of the mod to set the priority before
         /// @returns Ok if the mod was found and the priority was set, Err if the mod was not found
-        Result<> setHookPriorityBefore(Hook* hook, const std::string& before) {
+        static Result<> setHookPriorityBefore(Hook* hook, const std::string& before) {
             auto mod = Loader::get()->getInstalledMod(before);
             if (!mod) return Err("Mod not found");
-            this->setHookPriorityBefore(hook, mod);
+            setHookPriorityBefore(hook, mod);
             return Ok();
         }
 
@@ -370,15 +370,15 @@ namespace geode::modifier {
         /// @param hook The hook to set the priority of
         /// @param after The mod id of the mod to set the priority after
         /// @returns Ok if the mod was found and the priority was set, Err if the mod was not found
-        Result<> setHookPriorityAfterPre(Hook* hook, const std::string& after) {
-            return this->setHookPriorityAfter(hook, after);
+        static Result<> setHookPriorityAfterPre(Hook* hook, const std::string& after) {
+            return setHookPriorityAfter(hook, after);
         }
 
         /// @brief Set the priority of a hook to be after another hook in different mods
         /// @param hook The hook to set the priority of
         /// @param mod The mod to set the priority after
-        void setHookPriorityAfterPre(Hook* hook, Mod* mod) {
-            this->setHookPriorityAfter(hook, mod);
+        static void setHookPriorityAfterPre(Hook* hook, Mod* mod) {
+            setHookPriorityAfter(hook, mod);
         }
 
         /// @brief Set the priority of a hook to be before another hook in different mods
@@ -401,15 +401,15 @@ namespace geode::modifier {
         /// @param hook The hook to set the priority of
         /// @param before The mod id of the mod to set the priority before
         /// @returns Ok if the mod was found and the priority was set, Err if the mod was not found
-        Result<> setHookPriorityBeforePre(Hook* hook, const std::string& before) {
-            return this->setHookPriorityBefore(hook, before);
+        static Result<> setHookPriorityBeforePre(Hook* hook, const std::string& before) {
+            return setHookPriorityBefore(hook, before);
         }
 
         /// @brief Set the priority of a hook to be before another hook in different mods
         /// @param hook The hook to set the priority of
         /// @param mod The mod to set the priority before
-        void setHookPriorityBeforePre(Hook* hook, Mod* mod) {
-            this->setHookPriorityBefore(hook, mod);
+        static void setHookPriorityBeforePre(Hook* hook, Mod* mod) {
+            setHookPriorityBefore(hook, mod);
         }
 
         /// @brief Set the priority of a hook to be after another hook in different mods
@@ -432,15 +432,15 @@ namespace geode::modifier {
         /// @param hook The hook to set the priority of
         /// @param after The mod id of the mod to set the priority after
         /// @returns Ok if the mod was found and the priority was set, Err if the mod was not found
-        Result<> setHookPriorityAfterPost(Hook* hook, const std::string& after) {
-            return this->setHookPriorityBefore(hook, after);
+        static Result<> setHookPriorityAfterPost(Hook* hook, const std::string& after) {
+            return setHookPriorityBefore(hook, after);
         }
 
         /// @brief Set the priority of a hook to be after another hook in different mods
         /// @param hook The hook to set the priority of
         /// @param mod The mod to set the priority after
-        void setHookPriorityAfterPost(Hook* hook, Mod* mod) {
-            this->setHookPriorityBefore(hook, mod);
+        static void setHookPriorityAfterPost(Hook* hook, Mod* mod) {
+            setHookPriorityBefore(hook, mod);
         }
 
         /// @brief Set the priority of a hook to be before another hook in different mods
@@ -463,15 +463,15 @@ namespace geode::modifier {
         /// @param hook The hook to set the priority of
         /// @param before The mod id of the mod to set the priority before
         /// @returns Ok if the mod was found and the priority was set, Err if the mod was not found
-        Result<> setHookPriorityBeforePost(Hook* hook, const std::string& before) {
-            return this->setHookPriorityAfter(hook, before);
+        static Result<> setHookPriorityBeforePost(Hook* hook, const std::string& before) {
+            return setHookPriorityAfter(hook, before);
         }
 
         /// @brief Set the priority of a hook to be before another hook in different mods
         /// @param hook The hook to set the priority of
         /// @param mod The mod to set the priority before
-        void setHookPriorityBeforePost(Hook* hook, Mod* mod) {
-            this->setHookPriorityAfter(hook, mod);
+        static void setHookPriorityBeforePost(Hook* hook, Mod* mod) {
+            setHookPriorityAfter(hook, mod);
         }
 
         // unordered_map<handles> idea

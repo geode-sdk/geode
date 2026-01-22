@@ -47,6 +47,7 @@ class CCGrabber : public CCObject
 public:
     CCGrabber(void);
     ~CCGrabber(void);
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCGrabber, CCObject)
 
     void grab(CCTexture2D *pTexture);
     void beforeRender(CCTexture2D *pTexture);

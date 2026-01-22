@@ -1,4 +1,5 @@
 #include <Geode/ui/ProgressBar.hpp>
+#include <Geode/utils/cocos.hpp>
 
 using namespace geode::prelude;
 

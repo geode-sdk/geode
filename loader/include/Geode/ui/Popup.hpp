@@ -31,6 +31,10 @@ namespace geode {
             Popup* getPopup() const {
                 return m_impl->popup;
             }
+
+            bool filter(Popup* popup) const {
+                return m_impl->popup == popup; 
+            }
         };
         class CloseEventFilter final : public ::geode::EventFilter<CloseEvent> {
         public:

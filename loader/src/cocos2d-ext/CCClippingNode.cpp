@@ -116,14 +116,6 @@ void CCClippingNode::onExit()
 
 void CCClippingNode::visit()
 {
-    // if stencil buffer disabled
-    if (g_sStencilBits < 1)
-    {
-        // draw everything, as if there where no stencil
-        CCNode::visit();
-        return;
-    }
-
     // return fast (draw nothing, or draw everything if in inverted mode) if:
     // - nil stencil node
     // - or stencil node invisible:
@@ -133,6 +125,48 @@ void CCClippingNode::visit()
         {
             // draw everything
             CCNode::visit();
+        }
+        return;
+    }
+
+    // if stencil buffer disabled, we will instead scissor as fallback
+    if (g_sStencilBits < 1)
+    {
+        CCRect rect = m_pStencil->boundingBox();
+        // on the rare occassion that its 0,0
+        if (rect.size.width <= 0 || rect.size.width <= 0) {
+            CCSize size = this->getContentSize();
+            CCPoint pos = m_pStencil->getPosition();
+            if (size.width <= 0 || size.height <= 0) {
+                if (this->getParent()) {
+                    size = this->getParent()->getContentSize();
+                    pos = this->getPosition();
+                }
+            }
+            rect = CCRectMake(pos.x, pos.y, size.width, size.height);
+        }
+        if (rect.size.width <= 0 || rect.size.width <= 0) {
+            // we cannot properly render it, so we will fallback to rendering all of it
+            CCNode::visit();
+            return;
+        }
+
+        int previousRect[4];
+        bool previousScissor = glIsEnabled(GL_SCISSOR_TEST);
+        if (previousScissor) {
+            glGetIntegerv(GL_SCISSOR_BOX, previousRect);
+        } else {
+            glEnable(GL_SCISSOR_TEST);
+        }
+        auto const bottomLeft = this->convertToWorldSpace(rect.origin);
+        auto const topRight = this->convertToWorldSpace(ccp(rect.getMaxX(), rect.getMaxY()));
+        CCSize const size = topRight - bottomLeft;
+        CCEGLView::get()->setScissorInPoints(bottomLeft.x, bottomLeft.y, size.width, size.height);
+        CCNode::visit();
+        if (previousScissor) {
+            glScissor(previousRect[0], previousRect[1], previousRect[2], previousRect[3]);
+        } else {
+            glDisable(GL_SCISSOR_TEST);
         }
         return;
     }

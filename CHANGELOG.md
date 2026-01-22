@@ -1,5 +1,42 @@
 # Geode Changelog
 
+## v4.11.0
+ * Add random utils in `geode::utils::random` (6da879b, 5abd3a9, ad2146d)
+ * Add string filtering utils (#1550)
+ * Add `Ref::adopt` (29d4643)
+ * Add `CCArray::asExt<T>` (bf3f2fd)
+ * Make hook pointer modify functions static (#1549)
+ * EventFilter API improvements (5280dca, 22c647a, f86be83)
+ * Bindings additions for cocos2d classes (#1592)
+ * Implement fallback scissor in CCClippingNode::visit (#1556)
+ * Show mod parsing errors inside of the mods list (#1580)
+ * Fix a crash in `CCNode::updateLayout` (#1559)
+ * Fix `aligned_storage` warnings on newer ndk versions (#1569)
+ * Fix ccache not correctly applying for mods (00bac4c0)
+ * Fix result formatting to allow more types (77e7865)
+ * Fix zip add methods on non-Windows platforms (d35caf2)
+ * Fix VersionTag compare with tagged versions (01fa4a6)
+ * Fix stack overflow on jitless iOS when disabling/re-enabling hooks in some cases (d21fd36)
+
+## v4.10.0
+ * Add `$on_game` macro for `GameEvent` events (679678f)
+ * Add progress bar helper class (#1467)
+ * Add more hook priority utilities (#1510)
+ * Add label size utilities (#1536)
+ * Add no result version of dispatch event macros (5a2055f)
+ * Add 'Download Mods Here' message (#1512)
+ * Add option to show milliseconds in logs (5ec4ba3)
+ * Make `typeinfo_cast<ModifyClass>` error (5cb624c)
+ * Allow changing library link type in `setup_geode_mod` (9fdc5b5)
+ * Allow using `string_view` and `const char*` as `CCDictionaryExt` key (c14d02c)
+ * Rename async.hpp to coro.hpp, and geode::utils::coro namespace (7a2dc8d, 3b94915)
+ * Remove `CoTask`, add `coro::spawner` and other utilities (671d321)
+ * Fix `geode::stl::vector` on r29 ndk (#1508)
+ * Fix clearing the developer filter on `ModList::init` (#1509)
+ * Fix `CCDictionaryExt` iterator types (2f7c126)
+ * Fix `TextInput` crashing on destruction (#1507)
+ * Fix main thread not being called main in android logs (2658941)
+
 ## v4.9.0
  * Add Modtober 2025 content (#1501)
  * Add `geode::cocos::getObjectName` for getting demangled type names (c734b29)
