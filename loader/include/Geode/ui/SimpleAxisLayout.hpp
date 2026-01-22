@@ -188,6 +188,7 @@ public:
      * calculating content sizes
      */
     SimpleAxisLayout* ignoreInvisibleChildren(bool ignore = true);
+    bool isIgnoreInvisibleChildren();
 
     Axis getAxis() const;
     AxisScaling getMainAxisScaling() const;

@@ -73,6 +73,8 @@ public:
     std::unordered_map<CCNode*, float> m_originalScalesPerNode;
     std::unordered_map<CCNode*, float> m_relativeScalesPerNode;
 
+    bool m_ignoreInvisibleChildren = true;
+
     Impl(Axis axis, SimpleAxisLayout* parent) : m_axis(axis), m_layout(parent) {
         switch (axis) {
             case Axis::Column:
@@ -848,8 +850,12 @@ SimpleAxisLayout* SimpleAxisLayout::setMaxRelativeScale(std::optional<float> sca
 }
 
 SimpleAxisLayout* SimpleAxisLayout::ignoreInvisibleChildren(bool ignore) {
-    Layout::ignoreInvisibleChildren(ignore);
+    m_impl->m_ignoreInvisibleChildren = ignore;
     return this;
+}
+
+bool SimpleAxisLayout::isIgnoreInvisibleChildren() {
+    return m_impl->m_ignoreInvisibleChildren;
 }
 
 Axis SimpleAxisLayout::getAxis() const {

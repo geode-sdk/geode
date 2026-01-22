@@ -134,6 +134,7 @@ public:
     AxisAlignment m_crossAlignment = AxisAlignment::Center;
     AxisAlignment m_crossLineAlignment = AxisAlignment::Center;
     float m_gap = 5.f;
+    bool m_ignoreInvisibleChildren = true;
     bool m_autoScale = true;
     bool m_axisReverse = false;
     bool m_crossReverse = false;
@@ -931,9 +932,11 @@ AxisLayout* AxisLayout::setDefaultScaleLimits(float min, float max) {
 }
 
 AxisLayout* AxisLayout::ignoreInvisibleChildren(bool ignore) {
-    Layout::ignoreInvisibleChildren(ignore);
-
+    m_impl->m_ignoreInvisibleChildren = ignore;
     return this;
+}
+bool AxisLayout::isIgnoreInvisibleChildren() {
+    return m_impl->m_ignoreInvisibleChildren;
 }
 
 AxisLayout::AxisLayout(Axis axis) : m_impl(std::make_unique<Impl>()) {
