@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Geode/ui/General.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
+#include <Geode/ui/Popup.hpp>
 
 using namespace geode::prelude;
 
