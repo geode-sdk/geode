@@ -890,7 +890,6 @@ HttpVersion WebRequest::getHttpVersion() const {
 class WebRequestsManager::Impl {
 public:
     CURLM* m_multiHandle;
-    CURLSH* m_shareHandle;
 
     std::thread m_worker;
     std::atomic<bool> m_running;
@@ -901,8 +900,6 @@ public:
 
     Impl() {
         m_multiHandle = curl_multi_init();
-        m_shareHandle = curl_share_init();
-
         m_running = true;
         m_worker = std::thread(&Impl::workerThread, this);
     }
@@ -915,7 +912,6 @@ public:
         }
 
         curl_multi_cleanup(m_multiHandle);
-        curl_share_cleanup(m_shareHandle);
     }
 
     void workerThread() {
@@ -999,15 +995,13 @@ public:
                 }
             }
 
-            // wait for activity or new requests
-            if (stillRunning || !m_pendingRequests.empty()) {
-                int numfds = 0;
-                mc = curl_multi_poll(m_multiHandle, nullptr, 0, 100, &numfds);
-                if (mc != CURLM_OK) {
-                    log::error("curl_multi_wait() failed: {}", curl_multi_strerror(mc));
-                }
-            } else {
-                // empty queue, wait indefinitely for new requests
+            bool empty;
+            {
+                std::lock_guard lock(m_mutex);
+                empty = m_pendingRequests.empty();
+            }
+
+            if (!empty) {
                 int numfds = 0;
                 curl_multi_poll(m_multiHandle, nullptr, 0, -1, &numfds);
             }
