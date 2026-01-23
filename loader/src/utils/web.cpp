@@ -1003,7 +1003,7 @@ public:
                 empty = m_pendingRequests.empty();
             }
 
-            if (!empty) {
+            if (empty) {
                 int numfds = 0;
                 curl_multi_poll(m_multiHandle, nullptr, 0, -1, &numfds);
             }
