@@ -125,6 +125,7 @@ namespace geode::utils::web {
         std::shared_ptr<Impl> m_impl;
 
         friend class WebRequest;
+        friend class WebRequestsManager;
 
     public:
         // Must be default-constructible for use in Promise
@@ -186,6 +187,8 @@ namespace geode::utils::web {
         class Impl;
 
         std::shared_ptr<Impl> m_impl;
+
+        friend class WebRequestsManager;
     public:
         WebRequest();
         ~WebRequest();
@@ -195,6 +198,12 @@ namespace geode::utils::web {
         WebTask get(std::string url);
         WebTask put(std::string url);
         WebTask patch(std::string url);
+
+        WebResponse sendSync(std::string method, std::string url, WebTask::PostProgress onProgress = nullptr);
+        WebResponse postSync(std::string url, WebTask::PostProgress onProgress = nullptr);
+        WebResponse getSync(std::string url, WebTask::PostProgress onProgress = nullptr);
+        WebResponse putSync(std::string url, WebTask::PostProgress onProgress = nullptr);
+        WebResponse patchSync(std::string url, WebTask::PostProgress onProgress = nullptr);
 
         WebRequest& header(std::string name, std::string value);
         WebRequest& removeHeader(std::string_view name);
@@ -397,5 +406,29 @@ namespace geode::utils::web {
          * @return HttpVersion
          */
         HttpVersion getHttpVersion() const;
+    };
+
+    class GEODE_DLL WebRequestsManager final {
+    private:
+        class Impl;
+
+        std::shared_ptr<Impl> m_impl;
+
+        WebRequestsManager();
+        ~WebRequestsManager();
+
+    public:
+        static WebRequestsManager* get();
+
+        struct RequestData {
+            std::shared_ptr<WebRequest::Impl> request;
+            WebResponse response;
+            WebTask::PostResult onComplete;
+            WebTask::PostProgress onProgress;
+            WebTask::HasBeenCancelled hasBeenCancelled;
+        };
+
+        void enqueue(std::shared_ptr<RequestData> data);
+        WebResponse enqueueAndWait(std::shared_ptr<WebRequest::Impl> data, WebTask::PostProgress progress = nullptr);
     };
 }
