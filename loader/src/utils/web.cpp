@@ -904,6 +904,9 @@ public:
 
     Impl() {
         m_multiHandle = curl_multi_init();
+        curl_multi_setopt(m_multiHandle, CURLMOPT_MAX_TOTAL_CONNECTIONS, 32L);
+        curl_multi_setopt(m_multiHandle, CURLMOPT_MAXCONNECTS, 16L);
+
         m_running = true;
         m_worker = std::thread(&Impl::workerThread, this);
     }
