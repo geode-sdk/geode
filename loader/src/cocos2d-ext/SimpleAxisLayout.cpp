@@ -703,7 +703,7 @@ void SimpleAxisLayout::Impl::apply(cocos2d::CCNode* layout) {
     std::vector<AxisGap*> gaps;
     float totalGap = 0.f;
     CCNode* lastChild = nullptr;
-    for (auto child : CCArrayExt<CCNode*>(m_layout->getNodesToPosition(layout))) {
+    for (auto child : CCArrayExt<CCNode*>(m_layout->getNodesToPosition(layout, m_ignoreInvisibleChildren))) {
         if (auto spacer = typeinfo_cast<SpacerNode*>(child)) {
             spacers.push_back(spacer);
             positionChildren.push_back(spacer);

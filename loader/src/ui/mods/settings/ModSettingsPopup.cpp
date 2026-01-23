@@ -116,7 +116,6 @@ bool ModSettingsPopup::setup(Mod* mod) {
     m_applyMenu = CCMenu::create();
     m_applyMenu->setContentWidth(150);
     m_applyMenu->setLayout(RowLayout::create());
-    m_applyMenu->getLayout()->ignoreInvisibleChildren(true);
     m_applyMenu->setTouchPriority(buttonPriority);
 
     auto restartBtnSpr = createGeodeButton("Restart Now", true, GeodeButtonSprite::Default, m_forceDisableTheme);

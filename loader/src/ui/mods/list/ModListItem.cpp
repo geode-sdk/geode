@@ -24,7 +24,6 @@ bool ModListItem::init() {
             ->setMinRelativeScale(1.f)
             ->setGap(10)
     );
-    m_viewMenu->getLayout()->ignoreInvisibleChildren(true);
     this->addChildAtPosition(m_viewMenu, Anchor::Right, ccp(-10, 0));
 
     return true;

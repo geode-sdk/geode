@@ -80,21 +80,12 @@ float CCNode::getScaledContentHeight() const {
     return this->getContentHeight() * m_fScaleY;
 }
 
-CCArray* Layout::getNodesToPosition(CCNode* on) const {
+CCArray* Layout::getNodesToPosition(CCNode* on, bool ignoreInvisibleChildren) const {
     auto arr = CCArray::create();
     for (auto child : CCArrayExt<CCNode*>(on->getChildren())) {
-        if (!m_ignoreInvisibleChildren || child->isVisible()) {
+        if (!ignoreInvisibleChildren || child->isVisible()) {
             arr->addObject(child);
         }
     }
     return arr;
-}
-
-Layout* Layout::ignoreInvisibleChildren(bool ignore) {
-    m_ignoreInvisibleChildren = ignore;
-    return this;
-}
-
-bool Layout::isIgnoreInvisibleChildren() const {
-    return m_ignoreInvisibleChildren;
 }

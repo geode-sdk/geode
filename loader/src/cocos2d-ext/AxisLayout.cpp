@@ -744,7 +744,7 @@ public:
 };
 
 void AxisLayout::apply(CCNode* on) {
-    auto nodes = getNodesToPosition(on);
+    auto nodes = getNodesToPosition(on, m_impl->m_ignoreInvisibleChildren);
 
     std::pair<int, int> minMaxPrio;
     bool doAutoScale = false;
@@ -814,7 +814,7 @@ void AxisLayout::apply(CCNode* on) {
 
 CCSize AxisLayout::getSizeHint(CCNode* on) const {
     // Ideal is single row / column with no scaling
-    auto nodes = getNodesToPosition(on);
+    auto nodes = getNodesToPosition(on, m_impl->m_ignoreInvisibleChildren);
     float length = 0.f;
     float cross = 0.f;
     for (auto& node : CCArrayExt<CCNode*>(nodes)) {

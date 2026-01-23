@@ -19,7 +19,7 @@ namespace geode {
  */
 class GEODE_DLL Layout : public cocos2d::CCObject {
 protected:
-    cocos2d::CCArray* getNodesToPosition(cocos2d::CCNode* forNode) const;
+    cocos2d::CCArray* getNodesToPosition(cocos2d::CCNode* forNode, bool ignoreInvisibleChildren) const;
 
 public:
     /**

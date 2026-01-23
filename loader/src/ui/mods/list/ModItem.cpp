@@ -63,7 +63,6 @@ bool ModItem::init(ModSource&& source) {
             ->setCrossAxisScaling(AxisScaling::ScaleDownGaps)
             ->setGap(5.f)
     );
-    m_titleContainer->getLayout()->ignoreInvisibleChildren(true);
     m_infoContainer->addChildAtPosition(m_titleContainer, Anchor::Left);
 
     m_developers = CCMenu::create();
@@ -427,7 +426,6 @@ void ModItem::updateState() {
                     ->setCrossAxisScaling(AxisScaling::Scale)
                     ->setGap(5.f)
             );
-            m_badgeContainer->getLayout()->ignoreInvisibleChildren(true);
             this->addChildAtPosition(m_badgeContainer, Anchor::TopLeft, ccp(4, -4), ccp(0, 1));
         }
         else {
@@ -440,7 +438,6 @@ void ModItem::updateState() {
                     ->setCrossAxisScaling(AxisScaling::Scale)
                     ->setGap(5.f)
             );
-            m_badgeContainer->getLayout()->ignoreInvisibleChildren(true);
             m_titleContainer->addChild(m_badgeContainer);
         }
         // Long tags don't fit in the grid UI

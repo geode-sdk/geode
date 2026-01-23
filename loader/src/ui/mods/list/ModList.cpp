@@ -132,7 +132,6 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
                 ->setMainAxisScaling(AxisScaling::Scale)
                 ->setCrossAxisScaling(AxisScaling::ScaleDownGaps)
         );
-        m_updateAllMenu->getLayout()->ignoreInvisibleChildren(true);
         m_updateAllContainer->addChildAtPosition(m_updateAllMenu, Anchor::Right, ccp(-10, 0));
 
         m_topContainer->addChild(m_updateAllContainer);
@@ -315,7 +314,6 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
             ->setAxisReverse(true)
             ->setAutoGrowAxis(0.f)
     );
-    m_topContainer->getLayout()->ignoreInvisibleChildren(true);
 
     this->addChildAtPosition(m_topContainer, Anchor::Top);
 
@@ -403,7 +401,6 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
             ->setMainAxisDirection(AxisDirection::TopToBottom)
             ->setGap(5.f)
     );
-    m_statusContainer->getLayout()->ignoreInvisibleChildren(true);
     this->addChildAtPosition(m_statusContainer, Anchor::Center);
 
     m_listener.bind(this, &ModList::onPromise);

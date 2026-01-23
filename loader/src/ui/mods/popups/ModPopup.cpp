@@ -257,7 +257,6 @@ bool ModPopup::setup(ModSource&& src) {
         auto labelContainer = CCNode::create();
         labelContainer->setID("labels");
         labelContainer->setLayout(RowLayout::create());
-        labelContainer->getLayout()->ignoreInvisibleChildren(true);
         labelContainer->setAnchorPoint({ 1.f, .5f });
         labelContainer->setScale(.3f);
         labelContainer->setContentWidth(
@@ -487,7 +486,6 @@ bool ModPopup::setup(ModSource&& src) {
             ->setDefaultScaleLimits(.1f, 1)
             ->setAxisAlignment(AxisAlignment::Center)
     );
-    m_installMenu->getLayout()->ignoreInvisibleChildren(true);
     installContainer->addChildAtPosition(m_installMenu, Anchor::Center);
 
     leftColumn->addChild(installContainer);
