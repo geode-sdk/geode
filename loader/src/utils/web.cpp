@@ -382,9 +382,15 @@ public:
     size_t m_id;
 
     // stored to clean up later
+    char m_errorBuf[CURL_ERROR_SIZE] = {0};
     curl_slist* m_curlHeaders = nullptr;
 
     Impl() : m_id(s_idCounter++) {}
+    ~Impl() {
+        if (m_curlHeaders) {
+            curl_slist_free_all(m_curlHeaders);
+        }
+    }
 
     WebResponse makeError(int code, std::string_view msg) {
         auto res = WebResponse();
@@ -413,7 +419,7 @@ public:
         });
 
         // Set headers
-        curl_slist* headers = nullptr;
+        m_curlHeaders = nullptr;
         for (auto& [name, values] : m_headers) {
             // Sanitize header name
             auto header = name;
@@ -426,11 +432,11 @@ public:
             // Append values
             for (const auto& value: values) {
                 header.append(value);
-                headers = curl_slist_append(headers, header.c_str());
+                m_curlHeaders = curl_slist_append(m_curlHeaders, header.c_str());
                 header.resize(origSize);
             }
         }
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, m_curlHeaders);
 
         // Add parameters to the URL and pass it to curl
         StringBuffer<> urlBuffer{m_url};
@@ -610,9 +616,7 @@ public:
         }
 
         // If an error happens, we want to get a more specific description of the issue
-        char errorBuf[CURL_ERROR_SIZE];
-        errorBuf[0] = '\0';
-        curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorBuf);
+        curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, m_errorBuf);
 
         // Get headers from the response
         curl_easy_setopt(curl, CURLOPT_HEADERDATA, requestData);
@@ -958,8 +962,7 @@ public:
 
                     requestData.response.m_impl->m_code = static_cast<int>(code);
 
-                    char* errorBuf = nullptr;
-                    curl_easy_getinfo(handle, CURLINFO_PRIVATE, &errorBuf);
+                    char* errorBuf = requestData.request->m_errorBuf;
                     requestData.response.m_impl->m_errMessage = errorBuf ? std::string(errorBuf) : "";
 
                     // Check if the request failed on curl's side or because of cancellation
@@ -985,7 +988,6 @@ public:
                     }
 
                     // clean up
-                    curl_slist_free_all(requestData.request->m_curlHeaders);
                     curl_multi_remove_handle(m_multiHandle, handle);
                     curl_easy_cleanup(handle);
                     {
