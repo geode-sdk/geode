@@ -277,17 +277,6 @@ function(setup_geode_mod proname)
     set_target_properties(${proname} PROPERTIES OUTPUT_NAME ${MOD_ID})
 endfunction()
 
-function(create_geode_file proname)
-    # todo: deprecate at some point ig
-    # message(DEPRECATION
-    #     "create_geode_file has been replaced with setup_geode_mod - "
-    #     "please replace the function call"
-    # )
-
-    # forward all args
-    setup_geode_mod(${proname} ${ARGN})
-endfunction()
-
 function(package_geode_resources proname src dest)
     if (GEODE_DISABLE_CLI_CALLS)
         message("Skipping packaging resources from ${src} into ${dest}")
