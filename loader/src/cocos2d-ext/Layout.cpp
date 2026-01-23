@@ -89,12 +89,3 @@ CCArray* Layout::getNodesToPosition(CCNode* on) const {
     }
     return arr;
 }
-
-Layout* Layout::ignoreInvisibleChildren(bool ignore) {
-    m_ignoreInvisibleChildren = ignore;
-    return this;
-}
-
-bool Layout::isIgnoreInvisibleChildren() const noexcept {
-    return m_ignoreInvisibleChildren;
-}

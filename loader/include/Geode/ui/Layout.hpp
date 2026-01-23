@@ -19,8 +19,6 @@ namespace geode {
  */
 class GEODE_DLL Layout : public cocos2d::CCObject {
 protected:
-    bool m_ignoreInvisibleChildren = true;
-
     cocos2d::CCArray* getNodesToPosition(cocos2d::CCNode* forNode) const;
 
 public:
@@ -37,13 +35,6 @@ public:
      * Get how much space this layout would like to take up for a given target
      */
     virtual cocos2d::CCSize getSizeHint(cocos2d::CCNode* on) const = 0;
-
-    /**
-     * If true, the layout will not take invisible children into account when re-positioning nodes 
-     */
-    Layout* ignoreInvisibleChildren(bool ignore);
-
-    bool isIgnoreInvisibleChildren() const noexcept;
 
     virtual ~Layout() = default;
 };
