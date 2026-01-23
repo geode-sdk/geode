@@ -184,7 +184,7 @@ ModSettingsManager::ModSettingsManager(ModMetadata const& metadata)
     m_impl->createSettings();
 }
 ModSettingsManager::~ModSettingsManager() {}
-ModSettingsManager::ModSettingsManager(ModSettingsManager&&) = default;
+ModSettingsManager::ModSettingsManager(ModSettingsManager&&) noexcept = default;
 
 void ModSettingsManager::markRestartRequired() {
     m_impl->restartRequired = true;
