@@ -220,6 +220,16 @@ public:
         if (maxScale) return std::min(maxAllowedScale, *maxScale);
         return maxAllowedScale;
     }
+
+    CCArray* getNodesToPosition(CCNode* on) const {
+        auto arr = CCArray::create();
+        for (auto child : CCArrayExt<CCNode*>(on->getChildren())) {
+            if (!m_ignoreInvisibleChildren || child->isVisible()) {
+                arr->addObject(child);
+            }
+        }
+        return arr;
+    }
 };
 
 std::unordered_map<CCNode*, float> SimpleAxisLayout::Impl::calculateCrossScaling(CCNode* layout, std::vector<CCNode*> const& nodes) {
@@ -703,7 +713,7 @@ void SimpleAxisLayout::Impl::apply(cocos2d::CCNode* layout) {
     std::vector<AxisGap*> gaps;
     float totalGap = 0.f;
     CCNode* lastChild = nullptr;
-    for (auto child : CCArrayExt<CCNode*>(m_layout->getNodesToPosition(layout, m_ignoreInvisibleChildren))) {
+    for (auto child : CCArrayExt<CCNode*>(getNodesToPosition(layout))) {
         if (auto spacer = typeinfo_cast<SpacerNode*>(child)) {
             spacers.push_back(spacer);
             positionChildren.push_back(spacer);

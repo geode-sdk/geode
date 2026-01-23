@@ -79,13 +79,3 @@ float CCNode::getScaledContentWidth() const {
 float CCNode::getScaledContentHeight() const {
     return this->getContentHeight() * m_fScaleY;
 }
-
-CCArray* Layout::getNodesToPosition(CCNode* on, bool ignoreInvisibleChildren) const {
-    auto arr = CCArray::create();
-    for (auto child : CCArrayExt<CCNode*>(on->getChildren())) {
-        if (!ignoreInvisibleChildren || child->isVisible()) {
-            arr->addObject(child);
-        }
-    }
-    return arr;
-}
