@@ -246,7 +246,7 @@ void filterModsWithLocalQuery(ModListSource::ProvidedMods& mods, Query const& qu
             addToList = query.queryCheck(mod, weighted);
         }
         if (addToList) {
-            filtered.empl({ std::move(mod), weighted });
+            filtered.push_back({ std::move(mod), weighted });
         }
     }
 
