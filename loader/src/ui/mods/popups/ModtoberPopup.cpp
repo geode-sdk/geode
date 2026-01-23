@@ -3,7 +3,10 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
 
-bool ModtoberPopup::setup() {
+bool ModtoberPopup::init() {
+    if (!GeodePopup::init(410.f, 270.f))
+        return false;
+
     m_bgSprite->setVisible(false);
 
     auto bg = CCSprite::createWithSpriteFrameName("modtober25-popup.png"_spr);
@@ -37,7 +40,7 @@ void ModtoberPopup::onDiscord(CCObject*) {
 
 ModtoberPopup* ModtoberPopup::create() {
     auto ret = new ModtoberPopup();
-    if (ret->init(410, 270)) {
+    if (ret->init()) {
         ret->autorelease();
         return ret;
     }

@@ -9,9 +9,12 @@
 #include <Geode/loader/Loader.hpp>
 #include <fmt/core.h>
 
-bool ModErrorPopup::setup(Mod* mod) {
+bool ModErrorPopup::init(Mod* mod) {
+    if (!GeodePopup::init(440.f, 280.f))
+        return false;
+
     m_mod = mod;
-    this->setTitle(fmt::format("Errors for {}", mod->getName()).c_str());
+    this->setTitle(fmt::format("Errors for {}", mod->getName()));
 
     this->createList();
 
@@ -32,7 +35,7 @@ void ModErrorPopup::createList() {
 
 ModErrorPopup* ModErrorPopup::create(Mod *mod) {
     ModErrorPopup* ret = new ModErrorPopup();
-    if (ret->init(440.f, 280.f, mod, GeodePopupStyle::Default)) {
+    if (ret->init(mod)) {
         ret->autorelease();
         return ret;
     }

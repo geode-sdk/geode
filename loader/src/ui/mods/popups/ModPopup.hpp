@@ -9,7 +9,7 @@
 
 using namespace geode::prelude;
 
-class ModPopup : public GeodePopup<ModSource&&> {
+class ModPopup : public GeodePopup {
 public:
     enum class Tab {
         Details,
@@ -46,7 +46,7 @@ protected:
     EventListener<server::ModDownloadFilter> m_downloadListener;
     EventListener<EventFilter<SettingNodeValueChangeEvent>> m_settingNodeListener;
 
-    bool setup(ModSource&& src) override;
+    bool init(ModSource&& src);
     void updateState();
 
     void setStatIcon(CCNode* stat, const char* spr);

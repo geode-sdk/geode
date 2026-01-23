@@ -12,7 +12,7 @@
 #include "mods/popups/ModPopup.hpp"
 #include "GeodeUIEvent.hpp"
 
-class LoadServerModLayer : public Popup<std::string> {
+class LoadServerModLayer : public Popup {
 protected:
     std::string m_id;
     EventListener<server::ServerRequest<server::ServerModMetadata>> m_listener;
@@ -20,7 +20,10 @@ protected:
 
     std::optional<server::ServerModMetadata> m_loadedMod{};
 
-    bool setup(std::string id) override {
+    bool init(std::string id) {
+        if (!Popup::init(180.f, 100.f, "square01_001.png"))
+            return false;
+
         m_closeBtn->setVisible(false);
 
         this->setTitle("Loading mod...");
@@ -96,7 +99,7 @@ public:
 
     static LoadServerModLayer* create(std::string id) {
         auto ret = new LoadServerModLayer();
-        if (ret->initAnchored(180, 100, std::move(id), "square01_001.png", CCRect{})) {
+        if (ret->init(std::move(id))) {
             ret->autorelease();
             return ret;
         }
@@ -191,7 +194,7 @@ void geode::openChangelogPopup(Mod* mod) {
 void geode::openSettingsPopup(Mod* mod) {
     openSettingsPopup(mod, true);
 }
-Popup<Mod*>* geode::openSettingsPopup(Mod* mod, bool disableGeodeTheme) {
+Popup* geode::openSettingsPopup(Mod* mod, bool disableGeodeTheme) {
     if (mod->hasSettings()) {
         auto popup = ModSettingsPopup::create(mod, disableGeodeTheme);
         popup->show();
