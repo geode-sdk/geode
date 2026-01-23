@@ -95,6 +95,6 @@ Layout* Layout::ignoreInvisibleChildren(bool ignore) {
     return this;
 }
 
-bool Layout::isIgnoreInvisibleChildren() const {
+bool Layout::isIgnoreInvisibleChildren() const noexcept {
     return m_ignoreInvisibleChildren;
 }
