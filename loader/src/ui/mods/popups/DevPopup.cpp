@@ -4,14 +4,15 @@
 #include "ui/mods/list/ModDeveloperList.hpp"
 #include "ui/mods/sources/ModSource.hpp"
 
-bool DevListPopup::setup(ModSource const& meta) {
+bool DevListPopup::init(ModSource meta) {
+    if (!GeodePopup::init(250.f, 210.f))
+        return false;
 
-    m_source = meta;
+    m_source = std::move(meta);
 
     this->setTitle(fmt::format("Developers for {}", m_source.getMetadata().getName()));
-    m_title->limitLabelWidth(m_mainLayer->getContentSize().width - 50, .7f, .1f);
-    CCSize contentSize = m_mainLayer->getContentSize();
-    CCArray* elements = CCArray::create();
+    m_title->limitLabelWidth(m_size.width - 50, .7f, .1f);
+
     ModDeveloperList* list = ModDeveloperList::create(this, m_source, {210.f, 150.f});
     m_mainLayer->addChildAtPosition(
         list,
@@ -34,9 +35,9 @@ void DevListPopup::onMoreByThisDev(CCObject* sender) {
     this->onClose(nullptr);
 }
 
-DevListPopup* DevListPopup::create(ModSource const& meta) {
+DevListPopup* DevListPopup::create(ModSource meta) {
     auto ret = new DevListPopup();
-    if (ret->init(250, 210, meta)) {
+    if (ret->init(std::move(meta))) {
         ret->autorelease();
         return ret;
     }

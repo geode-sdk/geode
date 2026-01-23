@@ -10,7 +10,7 @@ namespace geode {
     class ColorPickPopup;
 
     class GEODE_DLL ColorPickPopup :
-        public Popup<cocos2d::ccColor4B const&, bool>,
+        public Popup,
         public cocos2d::extension::ColorPickerDelegate,
         public TextInputDelegate {
     protected:
@@ -25,7 +25,7 @@ namespace geode {
 
         ColorPickPopup();
         ~ColorPickPopup();
-        bool setup(cocos2d::ccColor4B const& color, bool isRGBA) override;
+        bool init(cocos2d::ccColor4B const& color, bool isRGBA);
 
         void onOpacitySlider(cocos2d::CCObject* sender);
         void onReset(cocos2d::CCObject* sender);

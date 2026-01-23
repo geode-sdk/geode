@@ -78,7 +78,12 @@ public:
     }
 };
 
-bool ModPopup::setup(ModSource&& src) {
+bool ModPopup::init(ModSource&& src) {
+    auto style = src.asServer() ? GeodePopupStyle::Alt : GeodePopupStyle::Default;
+
+    if (!GeodePopup::init(440.f, 280.f, style))
+        return false;
+
     m_source = std::move(src);
     m_noElasticity = true;
 
@@ -1177,11 +1182,7 @@ void ModPopup::onModtober25Info(CCObject*) {
 
 ModPopup* ModPopup::create(ModSource&& src) {
     auto ret = new ModPopup();
-    GeodePopupStyle style = GeodePopupStyle::Default;
-    if (src.asServer()) {
-        style = GeodePopupStyle::Alt;
-    }
-    if (ret->init(440, 280, std::move(src), style)) {
+    if (ret->init(std::move(src))) {
         ret->autorelease();
         return ret;
     }

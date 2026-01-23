@@ -1,6 +1,9 @@
 #include "SortPopup.hpp"
 
-bool SortPopup::setup(ModListSource* src) {
+bool SortPopup::init(ModListSource* src) {
+    if (!GeodePopup::init(230.f, 165.f))
+        return false;
+    
     m_noElasticity = true;
     m_source = src;
 
@@ -22,10 +25,10 @@ bool SortPopup::setup(ModListSource* src) {
                 this, menu_selector(SortPopup::onSelect), .6f
             );
             toggle->m_notClickable = true;
-            toggle->setUserData(reinterpret_cast<void*>(sort));
+            toggle->setTag((int)sort);
             if (server->getQuery().sorting == sort) {
                 toggle->toggle(true);
-                m_selected = static_cast<size_t>(sort);
+                m_selected = sort;
             }
             node->addChildAtPosition(toggle, Anchor::Left, ccp(15, 0));
             m_options.push_back(toggle);
@@ -48,22 +51,22 @@ bool SortPopup::setup(ModListSource* src) {
 }
 
 void SortPopup::onSelect(CCObject* sender) {
-    m_selected = reinterpret_cast<uintptr_t>(static_cast<CCMenuItemToggler*>(sender)->getUserData());
+    m_selected = (server::ModsSort)(static_cast<CCMenuItemToggler*>(sender)->getTag());
     for (auto option : m_options) {
-        option->toggle(m_selected == reinterpret_cast<uintptr_t>(option->getUserData()));
+        option->toggle(m_selected == (server::ModsSort)option->getTag());
     }
 }
 
 void SortPopup::onClose(CCObject* sender) {
     if (auto server = typeinfo_cast<ServerModListSource*>(m_source)) {
-        server->getQueryMut()->sorting = static_cast<server::ModsSort>(m_selected);
+        server->getQueryMut()->sorting = m_selected;
     }
     Popup::onClose(sender);
 }
 
 SortPopup* SortPopup::create(ModListSource* src) {
     auto ret = new SortPopup();
-    if (ret->init(230, 165, src)) {
+    if (ret->init(src)) {
         ret->autorelease();
         return ret;
     }

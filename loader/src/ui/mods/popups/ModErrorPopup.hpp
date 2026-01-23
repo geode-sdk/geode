@@ -7,7 +7,7 @@
 
 using namespace geode::prelude;
 
-class ModErrorPopup : public GeodePopup<Mod*> {
+class ModErrorPopup : public GeodePopup {
 protected:
     Mod* m_mod;
     ModProblemList* m_list;
@@ -15,7 +15,7 @@ public:
     static ModErrorPopup* create(Mod* mod);
 
 private:
-    bool setup(Mod* mod) override;
+    bool init(Mod* mod);
 
     void createList();
 };

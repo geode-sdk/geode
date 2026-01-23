@@ -12,7 +12,7 @@ using namespace geode::prelude;
 
 using StrTask = Task<std::string>;
 
-class GUITestPopup : public Popup<> {
+class GUITestPopup : public Popup {
 protected:
     CCLabelBMFont* m_rawTaskState;
     CCMenuItemSpriteExtra* m_cancelTaskBtn;
@@ -22,7 +22,9 @@ protected:
     EventListener<server::ServerRequest<server::ServerModsList>> m_serListener;
     EventListener<server::ServerRequest<server::ServerModsList>> m_serListener2;
 
-    bool setup() override {
+    bool init() override {
+        if (!Popup::init(320.f, 280.f)) return false;
+        
         m_noElasticity = true;
         this->setTitle("GUI Test Popup");
 
@@ -164,7 +166,7 @@ protected:
 public:
     static GUITestPopup* create() {
         auto ret = new GUITestPopup();
-        if (ret->initAnchored(320, 280)) {
+        if (ret->init()) {
             ret->autorelease();
             return ret;
         }

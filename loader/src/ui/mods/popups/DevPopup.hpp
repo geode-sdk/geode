@@ -4,14 +4,14 @@
 #include "../sources/ModSource.hpp"
 #include <server/Server.hpp>
 
-class DevListPopup : public GeodePopup<ModSource const&> {
+class DevListPopup : public GeodePopup {
 protected:
     ModSource m_source;
 public:
-    static DevListPopup* create(ModSource const&);
-    void onClose(cocos2d::CCObject*);
+    static DevListPopup* create(ModSource source);
+    void onClose(cocos2d::CCObject*) override;
 private:
-    bool setup(ModSource const&);
+    bool init(ModSource source);
     void createList();
     void onMoreByThisDev(CCObject* sender);
 };

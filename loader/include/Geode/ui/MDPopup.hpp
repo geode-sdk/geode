@@ -8,17 +8,14 @@ namespace geode {
      * FLAlertLayer with support for Markdown. See MDTextArea
      * for details on what features of MD are supported.
      */
-    class GEODE_DLL MDPopup :
-        public Popup<
-            bool, ZStringView, std::string, ZStringView,
-            ZStringView, geode::Function<void(bool)>> {
+    class GEODE_DLL MDPopup : public Popup {
     protected:
         geode::Function<void(bool)> m_onClick = nullptr;
 
-        bool setup(
+        bool init(
             bool compatibilityMode, ZStringView title, std::string info, ZStringView btn1, ZStringView btn2,
             geode::Function<void(bool)> onClick
-        ) override;
+        );
 
         void onBtn(CCObject*);
 
