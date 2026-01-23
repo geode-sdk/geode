@@ -10,29 +10,29 @@ namespace geode {
      */
     class GEODE_DLL MDPopup :
         public Popup<
-            std::string const&, std::string const&, char const*, char const*,
-            std::function<void(bool)>> {
+            bool, ZStringView, std::string, ZStringView,
+            ZStringView, geode::Function<void(bool)>> {
     protected:
-        std::function<void(bool)> m_onClick = nullptr;
+        geode::Function<void(bool)> m_onClick = nullptr;
 
         bool setup(
-            std::string const& title, std::string const& info, char const* btn1, char const* btn2,
-            std::function<void(bool)> onClick
+            bool compatibilityMode, ZStringView title, std::string info, ZStringView btn1, ZStringView btn2,
+            geode::Function<void(bool)> onClick
         ) override;
 
         void onBtn(CCObject*);
 
-        static float estimateHeight(std::string const& content);
+        static float estimateHeight(std::string_view content);
 
     public:
         static MDPopup* create(
-            std::string const& title, std::string const& content, char const* btn1,
-            char const* btn2 = nullptr, std::function<void(bool)> onClick = nullptr
+            ZStringView title, std::string content, ZStringView btn1,
+            ZStringView btn2 = nullptr, geode::Function<void(bool)> onClick = nullptr
         );
 
         static MDPopup* create(
-            bool compatibilityMode, std::string const& title, std::string const& content,
-            char const* btn1, char const* btn2 = nullptr, std::function<void(bool)> onClick = nullptr
+            bool compatibilityMode, ZStringView title, std::string content,
+            ZStringView btn1, ZStringView btn2 = nullptr, geode::Function<void(bool)> onClick = nullptr
         );
     };
 }

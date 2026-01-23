@@ -19,7 +19,7 @@ using namespace geode::prelude;
 #include <Geode/utils/string.hpp>
 #include "../../utils/thread.hpp"
 
-bool utils::clipboard::write(std::string const& data) {
+bool utils::clipboard::write(ZStringView data) {
     if (!OpenClipboard(nullptr)) return false;
     if (!EmptyClipboard()) {
         CloseClipboard();
@@ -148,7 +148,7 @@ Task<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions 
     // return Task<Result<std::vector<std::filesystem::path>>>::immediate(std::move(file::pickFiles(options)));
 }
 
-void utils::web::openLinkInBrowser(std::string const& url) {
+void utils::web::openLinkInBrowser(ZStringView url) {
     ShellExecuteW(0, 0, utils::string::utf8ToWide(url).c_str(), 0, 0, SW_SHOW);
 }
 
@@ -229,10 +229,6 @@ void geode::utils::game::exit(bool saveData) {
     std::exit(0);
 }
 
-void geode::utils::game::exit() {
-    exit(true);
-}
-
 void geode::utils::game::restart(bool saveData) {
     // TODO: mat
     // TODO: be VERY careful before enabling this again, this function is called in platform/windows/main.cpp,
@@ -258,10 +254,6 @@ void geode::utils::game::restart(bool saveData) {
     exit(saveData);
 }
 
-void geode::utils::game::restart() {
-    restart(true);
-}
-
 void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
     const auto workingDir = dirs::getGameDir();
 
@@ -280,10 +272,10 @@ void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
     ShellExecuteW(nullptr, L"open", uninstallerPath.c_str(), params.c_str(), workingDir.wstring().c_str(), false);
 }
 
-Result<> geode::hook::addObjcMethod(std::string const& className, std::string const& selectorName, void* imp) {
+Result<> geode::hook::addObjcMethod(char const* className, char const* selectorName, void* imp) {
     return Err("Wrong platform");
 }
-Result<void*> geode::hook::getObjcMethodImp(std::string const& className, std::string const& selectorName) {
+Result<void*> geode::hook::getObjcMethodImp(char const* className, char const* selectorName) {
     return Err("Wrong platform");
 }
 
@@ -291,7 +283,7 @@ bool geode::utils::permission::getPermissionStatus(Permission permission) {
     return true; // unimplemented
 }
 
-void geode::utils::permission::requestPermission(Permission permission, std::function<void(bool)> callback) {
+void geode::utils::permission::requestPermission(Permission permission, geode::Function<void(bool)> callback) {
     callback(true); // unimplemented
 }
 
@@ -312,7 +304,7 @@ static std::optional<std::string> getNameFromOs() {
 
     std::string name = utils::string::wideToUtf8(wname);
     LocalFree(wname);
-    
+
     return name;
 }
 
@@ -335,7 +327,7 @@ typedef struct tagTHREADNAME_INFO {
 } THREADNAME_INFO;
 #pragma pack(pop)
 
-void obliterate(std::string const& name) {
+void obliterate(ZStringView name) {
     // exception
     THREADNAME_INFO info;
     info.dwType = 0x1000;
@@ -350,7 +342,7 @@ void obliterate(std::string const& name) {
     __except (EXCEPTION_EXECUTE_HANDLER) { }
 #pragma warning(pop)
 }
-void geode::utils::thread::platformSetName(std::string const& name) {
+void geode::utils::thread::platformSetName(ZStringView name) {
     // SetThreadDescription
     if (setThreadDesc) {
         auto res = setThreadDesc(GetCurrentThread(), string::utf8ToWide(name).c_str());
@@ -360,10 +352,10 @@ void geode::utils::thread::platformSetName(std::string const& name) {
     obliterate(name);
 }
 
-std::string geode::utils::getEnvironmentVariable(const char* name) {
+std::string geode::utils::getEnvironmentVariable(ZStringView name) {
     char buffer[1024];
     size_t count = 0;
-    if (0 == getenv_s(&count, buffer, name) && count != 0) {
+    if (0 == getenv_s(&count, buffer, name.c_str()) && count != 0) {
         return buffer;
     }
 

@@ -61,8 +61,8 @@ std::string VersionTag::toString() const {
 
 // VersionInfo
 
-Result<VersionInfo> VersionInfo::parse(std::string const& string) {
-    std::stringstream str (string);
+Result<VersionInfo> VersionInfo::parse(std::string string) {
+    std::stringstream str (std::move(string));
 
     // allow leading v
     if (str.peek() == 'v') {
@@ -129,9 +129,8 @@ std::string geode::format_as(VersionInfo const& version) {
 
 // ComparableVersionInfo
 
-Result<ComparableVersionInfo> ComparableVersionInfo::parse(std::string const& rawStr) {
+Result<ComparableVersionInfo> ComparableVersionInfo::parse(std::string string) {
     VersionCompare compare;
-    auto string = rawStr;
 
     if (string == "*") {
         return Ok(ComparableVersionInfo({0, 0, 0}, VersionCompare::Any));
@@ -161,7 +160,7 @@ Result<ComparableVersionInfo> ComparableVersionInfo::parse(std::string const& ra
         compare = VersionCompare::MoreEq;
     }
 
-    GEODE_UNWRAP_INTO(auto version, VersionInfo::parse(string));
+    GEODE_UNWRAP_INTO(auto version, VersionInfo::parse(std::move(string)));
     return Ok(ComparableVersionInfo(version, compare));
 }
 

@@ -3,6 +3,7 @@
 #include <string>
 #include <matjson.hpp>
 #include <Geode/loader/Event.hpp>
+#include <Geode/utils/function.hpp>
 
 namespace geode::updater {
     using UpdateFinished = std::monostate;
@@ -39,13 +40,13 @@ namespace geode::updater {
     };
 
     void updateSpecialFiles();
-    void tryDownloadLoaderResources(std::string const& url, bool tryLatestOnError = true);
+    void tryDownloadLoaderResources(std::string url, bool tryLatestOnError = true);
     void downloadLoaderResources(bool useLatestRelease = false);
     void downloadLatestLoaderResources();
-    void downloadLoaderUpdate(std::string const& url);
+    void downloadLoaderUpdate(std::string url);
     void fetchLatestGithubRelease(
-        const std::function<void(matjson::Value const&)>& then,
-        std::function<void(std::string const&)> expect,
+        geode::Function<void(matjson::Value const&)> then,
+        geode::Function<void(std::string)> expect,
         bool force = false
     );
 

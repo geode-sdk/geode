@@ -39,13 +39,13 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         this->setSmallText2(modName);
     }
 
-    void setSmallText(std::string const& text) {
+    void setSmallText(ZStringView text) {
         if (!m_fields->m_menuDisabled) {
             m_fields->m_smallLabel->setString(text.c_str());
         }
     }
 
-    void setSmallText2(std::string const& text) {
+    void setSmallText2(ZStringView text) {
         if (!m_fields->m_menuDisabled) {
             m_fields->m_smallLabel2->setString(text.c_str());
         }

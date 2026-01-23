@@ -28,7 +28,7 @@ namespace geode {
         float m_time;
         bool m_showing = false;
 
-        bool init(std::string const& text, cocos2d::CCSprite* icon, float time);
+        bool init(char const* text, cocos2d::CCSprite* icon, float time);
         void updateLayout();
 
         static cocos2d::CCSprite* createIcon(NotificationIcon icon);
@@ -49,7 +49,7 @@ namespace geode {
          * notification
          */
         static Notification* create(
-            std::string const& text,
+            char const* text,
             NotificationIcon icon = NotificationIcon::None,
             float time = NOTIFICATION_DEFAULT_TIME
         );
@@ -63,12 +63,12 @@ namespace geode {
          * notification
          */
         static Notification* create(
-            std::string const& text,
+            char const* text,
             cocos2d::CCSprite* icon,
             float time = NOTIFICATION_DEFAULT_TIME
         );
 
-        void setString(std::string const& text);
+        void setString(char const* text);
         void setIcon(NotificationIcon icon);
         void setIcon(cocos2d::CCSprite* icon);
         void setTime(float time);

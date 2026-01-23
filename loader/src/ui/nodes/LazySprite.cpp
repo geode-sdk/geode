@@ -45,7 +45,7 @@ bool applyCondvarPatch() {
 // mini threadpool type thing
 class Manager {
 public:
-    using Task = std::function<void()>;
+    using Task = geode::Function<void()>;
 
     static Manager& get() {
         static Manager instance;
@@ -103,7 +103,7 @@ private:
     std::atomic_bool m_requestedStop;
     std::atomic_size_t m_spinCounter = 0;
 
-    std::function<void()> threadPickTask(std::unique_lock<std::mutex>& lock) {
+    geode::Function<void()> threadPickTask(std::unique_lock<std::mutex>& lock) {
         auto task = std::move(m_tasks.front());
         m_tasks.pop();
         return task;
@@ -211,28 +211,25 @@ bool LazySprite::init(CCSize size, bool loadingCircle) {
     return true;
 }
 
-void LazySprite::loadFromUrl(const std::string& url, Format format, bool ignoreCache) {
-    return this->loadFromUrl(url.c_str(), format, ignoreCache);
-}
-
-void LazySprite::loadFromUrl(char const* url, Format format, bool ignoreCache) {
+void LazySprite::loadFromUrl(std::string url, Format format, bool ignoreCache) {
     if (m_isLoading || m_hasLoaded) {
         return;
     }
 
-    if (!ignoreCache && this->initFromCache(url)) {
+    if (!ignoreCache && this->initFromCache(url.c_str())) {
         return;
     }
 
     m_expectedFormat = format;
     m_isLoading = true;
 
-    m_listener.bind([this, cacheKey = ignoreCache ? std::string{} : std::string(url)](web::WebTask::Event* event) mutable {
+    auto cacheKey = ignoreCache ? std::string{} : std::string(url);
+    m_listener.bind([this, cacheKey = std::move(cacheKey)](web::WebTask::Event* event) mutable {
         if (!event || !event->getValue()) return;
 
         auto resp = event->getValue();
         if (!resp->ok()) {
-            std::string errmsg = resp->errorMessage();
+            std::string errmsg(resp->errorMessage());
             if (errmsg.empty()) {
                 errmsg = resp->string().unwrapOrDefault();
             }
@@ -301,14 +298,6 @@ void LazySprite::loadFromFile(const std::filesystem::path& path, Format format, 
     });
 }
 
-void LazySprite::loadFromData(std::span<uint8_t const> data, Format format) {
-    this->loadFromData(data.data(), data.size(), format);
-}
-
-void LazySprite::loadFromData(uint8_t const* ptr, size_t size, Format format) {
-    this->loadFromData(std::vector(ptr, ptr + size), format);
-}
-
 void LazySprite::loadFromData(std::vector<uint8_t> data, Format format) {
     if (m_isLoading || m_hasLoaded) {
         return;
@@ -318,6 +307,14 @@ void LazySprite::loadFromData(std::vector<uint8_t> data, Format format) {
     m_isLoading = true;
 
     this->doInitFromBytes(std::move(data), "");
+}
+
+void LazySprite::loadFromData(std::span<uint8_t const> data, Format format) {
+    this->loadFromData(std::vector<uint8_t>{data.begin(), data.end()}, format);
+}
+
+void LazySprite::loadFromData(uint8_t const* ptr, size_t size, Format format) {
+    this->loadFromData(std::span{ptr, size}, format);
 }
 
 void LazySprite::doInitFromBytes(std::vector<uint8_t> data, std::string cacheKey) {

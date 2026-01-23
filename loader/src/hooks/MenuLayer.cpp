@@ -179,6 +179,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
                             file::openFolder(dirs::getCrashlogsDir());
                         }
                     },
+                    false,
                     false
                 );
                 popup->m_noElasticity = true;
@@ -219,16 +220,6 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         // also display if updates were found in a previous MenuLayer iteration
         if(foundModUpdates) {
             showUpdatesFound();
-        }
-
-        for (auto mod : Loader::get()->getAllMods()) {
-            if (mod->getMetadataRef().usesDeprecatedIDForm()) {
-                log::error(
-                    "Mod ID '{}' will be rejected in the future - "
-                    "IDs must match the regex `[a-z0-9\\-_]+\\.[a-z0-9\\-_]+`",
-                    mod->getID()
-                );
-            }
         }
 
         // Delay the event by a frame so that MenuLayer is already in the scene
@@ -353,7 +344,9 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
                         "OK"
                     )->show();
                 }
-            }
+            },
+            true,
+            false
         );
 
     #else

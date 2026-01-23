@@ -2,6 +2,8 @@
 #include <server/DownloadManager.hpp>
 #include <Geode/loader/ModSettingsManager.hpp>
 #include <loader/LoaderImpl.hpp>
+#include "../list/ModItem.hpp"
+#include "../list/SpecialModListItem.hpp"
 
 #define FTS_FUZZY_MATCH_IMPLEMENTATION
 #include <Geode/external/fts/fts_fuzzy_match.h>
@@ -15,7 +17,7 @@ static size_t ceildiv(size_t a, size_t b) {
 
 InvalidateCacheEvent::InvalidateCacheEvent(ModListSource* src) : source(src) {}
 
-ListenerResult InvalidateCacheFilter::handle(std::function<Callback> fn, InvalidateCacheEvent* event) {
+ListenerResult InvalidateCacheFilter::handle(geode::Function<Callback>& fn, InvalidateCacheEvent* event) {
     if (event->source == m_source) {
         fn(event);
     }
@@ -36,13 +38,20 @@ typename ModListSource::PageLoadTask ModListSource::loadPage(size_t page, bool f
     return this->fetchPage(page, forceUpdate).map(
         [this, page](Result<ProvidedMods, LoadPageError>* result) -> Result<Page, LoadPageError> {
             if (result->isOk()) {
-                auto data = result->unwrap();
+                auto data = std::move(result->unwrap());
                 if (data.totalModCount == 0 || data.mods.empty()) {
                     return Err(LoadPageError("No mods found :("));
                 }
                 auto pageData = Page();
-                for (auto mod : std::move(data.mods)) {
-                    pageData.push_back(ModItem::create(std::move(mod)));
+                for (auto&& src : std::move(data.mods)) {
+                    std::visit(makeVisitor {
+                        [&](ModSource&& mod) {
+                            pageData.push_back(ModItem::create(std::move(mod)));
+                        },
+                        [&](SpecialModListItemSource&& item) {
+                            pageData.push_back(SpecialModListItem::create(std::move(item)));
+                        },
+                    }, std::move(src));
                 }
                 m_cachedItemCount = data.totalModCount;
                 m_cachedPages.insert({ page, pageData });
@@ -77,8 +86,8 @@ void ModListSource::clearCache() {
     m_cachedItemCount = std::nullopt;
     InvalidateCacheEvent(this).post();
 }
-void ModListSource::search(std::string const& query) {
-    this->setSearchQuery(query);
+void ModListSource::search(std::string query) {
+    this->setSearchQuery(std::move(query));
     this->clearCache();
 }
 
@@ -92,7 +101,7 @@ void ModListSource::clearAllCaches() {
     }
 }
 
-bool weightedFuzzyMatch(std::string const& str, std::string const& kw, double weight, double& out) {
+bool weightedFuzzyMatch(ZStringView str, ZStringView kw, double weight, double& out) {
     int score;
     if (fts::fuzzy_match(kw.c_str(), str.c_str(), score)) {
         out = std::max(out, score * weight);
@@ -100,7 +109,7 @@ bool weightedFuzzyMatch(std::string const& str, std::string const& kw, double we
     }
     return false;
 }
-bool modFuzzyMatch(ModMetadata const& metadata, std::string const& kw, double& weighted) {
+bool modFuzzyMatch(ModMetadata const& metadata, ZStringView kw, double& weighted) {
     bool addToList = false;
     addToList |= weightedFuzzyMatch(metadata.getName(), kw, 1, weighted);
     addToList |= weightedFuzzyMatch(metadata.getID(), kw, 0.5, weighted);

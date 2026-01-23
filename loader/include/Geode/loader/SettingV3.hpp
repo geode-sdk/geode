@@ -36,7 +36,7 @@ namespace geode {
          * using Geode's JSON checking utilities, you can use the other
          * overload of `init`
          */
-        void init(std::string const& key, std::string const& modID, JsonExpectedValue& json);
+        void init(std::string key, std::string modID, JsonExpectedValue& json);
         /**
          * Only call this function if you aren't going to call
          * `parseBaseProperties`, which will call it for you!
@@ -50,7 +50,7 @@ namespace geode {
          * (`checkJson` / `JsonExpectedValue`), you should be using the other
          * overload that takes a `JsonExpectedValue&`!
          */
-        void init(std::string const& key, std::string const& modID);
+        void init(std::string key, std::string modID);
 
         /**
          * Parses the `"name"` and `"description"` keys from the setting's
@@ -100,7 +100,7 @@ namespace geode {
          * `"requires-restart"` (because you're doing a cosmetic setting), then
          * you can call `init` instead and then the specific `parseX` functions
          */
-        void parseBaseProperties(std::string const& key, std::string const& modID, JsonExpectedValue& json);
+        void parseBaseProperties(std::string key, std::string modID, JsonExpectedValue& json);
         /**
          * Parse all of the base properties such as `"name"` and `"description"`
          * for this setting
@@ -113,7 +113,7 @@ namespace geode {
          * `"requires-restart"` (because you're doing a cosmetic setting), then
          * you can call `init` instead and then the specific `parseX` functions
          */
-        Result<> parseBaseProperties(std::string const& key, std::string const& modID, matjson::Value const& json);
+        Result<> parseBaseProperties(std::string key, std::string modID, matjson::Value const& json);
 
         /**
          * Mark that the value of this setting has changed. This should be
@@ -179,9 +179,15 @@ namespace geode {
         virtual void reset() = 0;
     };
 
-    using SettingGeneratorV3 = std::function<Result<std::shared_ptr<SettingV3>>(
-        std::string const& key,
-        std::string const& modID,
+    using SettingGeneratorV3 = geode::Function<Result<std::shared_ptr<SettingV3>>(
+        std::string key,
+        std::string modID,
+        matjson::Value const& json
+    )>;
+
+    using SettingGeneratorV3Ref = geode::FunctionRef<Result<std::shared_ptr<SettingV3>>(
+        std::string key,
+        std::string modID,
         matjson::Value const& json
     )>;
 
@@ -235,7 +241,7 @@ namespace geode {
          * aren't using Geode's JSON checking utilities, use the other overload
          * of this function
          */
-        void parseBaseProperties(std::string const& key, std::string const& modID, JsonExpectedValue& json) {
+        void parseBaseProperties(std::string key, std::string modID, JsonExpectedValue& json) {
             SettingV3::parseBaseProperties(key, modID, json);
             this->parseDefaultValue(json);
         }
@@ -247,7 +253,7 @@ namespace geode {
          * utilities (`checkJson` / `JsonExpectedValue`), you should use the
          * other overload directly!
          */
-        Result<> parseBaseProperties(std::string const& key, std::string const& modID, matjson::Value const& json) {
+        Result<> parseBaseProperties(std::string key, std::string modID, matjson::Value const& json) {
             auto root = checkJson(json, "SettingBaseValueV3");
             this->parseBaseProperties(key, modID, root);
             return root.ok();
@@ -259,6 +265,10 @@ namespace geode {
          */
         void setDefaultValue(V value) {
             m_impl->defaultValue = value;
+        }
+
+        T const& getValueRef() const {
+            return m_impl->value;
         }
 
     public:
@@ -331,7 +341,7 @@ namespace geode {
 
     public:
         TitleSettingV3(PrivateMarker);
-        static Result<std::shared_ptr<TitleSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
+        static Result<std::shared_ptr<TitleSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
 
         bool load(matjson::Value const& json) override;
         bool save(matjson::Value& json) const override;
@@ -352,7 +362,7 @@ namespace geode {
 
     public:
         BoolSettingV3(PrivateMarker);
-        static Result<std::shared_ptr<BoolSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
+        static Result<std::shared_ptr<BoolSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
 
         Result<> isValid(bool value) const override;
 
@@ -370,7 +380,7 @@ namespace geode {
 
     public:
         IntSettingV3(PrivateMarker);
-        static Result<std::shared_ptr<IntSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
+        static Result<std::shared_ptr<IntSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
 
         Result<> isValid(int64_t value) const override;
 
@@ -399,7 +409,7 @@ namespace geode {
 
     public:
         FloatSettingV3(PrivateMarker);
-        static Result<std::shared_ptr<FloatSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
+        static Result<std::shared_ptr<FloatSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
 
         Result<> isValid(double value) const override;
 
@@ -428,7 +438,10 @@ namespace geode {
 
     public:
         StringSettingV3(PrivateMarker);
-        static Result<std::shared_ptr<StringSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
+        static Result<std::shared_ptr<StringSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
+
+        // return ZStringView instead of std::string to allow avoiding copies
+        ZStringView getValue() const;
 
         Result<> isValid(std::string_view value) const override;
 
@@ -450,7 +463,7 @@ namespace geode {
 
     public:
         FileSettingV3(PrivateMarker);
-        static Result<std::shared_ptr<FileSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
+        static Result<std::shared_ptr<FileSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
 
         Result<> isValid(std::filesystem::path const& value) const override;
 
@@ -473,7 +486,7 @@ namespace geode {
 
     public:
         Color3BSettingV3(PrivateMarker);
-        static Result<std::shared_ptr<Color3BSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
+        static Result<std::shared_ptr<Color3BSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
 
         Result<> isValid(cocos2d::ccColor3B value) const override;
 
@@ -491,7 +504,7 @@ namespace geode {
 
     public:
         Color4BSettingV3(PrivateMarker);
-        static Result<std::shared_ptr<Color4BSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
+        static Result<std::shared_ptr<Color4BSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
 
         Result<> isValid(cocos2d::ccColor4B value) const override;
 
@@ -657,17 +670,17 @@ namespace geode {
     public:
         using Callback = void(std::shared_ptr<SettingV3>);
 
-        ListenerResult handle(std::function<Callback> fn, SettingChangedEventV3* event);
+        ListenerResult handle(geode::Function<Callback>& fn, SettingChangedEventV3* event);
         /**
          * Listen to changes on a setting, or all settings
          * @param modID Mod whose settings to listen to
          * @param settingKey Setting to listen to, or all settings if nullopt
          */
         SettingChangedFilterV3(
-            std::string const& modID,
-            std::optional<std::string> const& settingKey
+            std::string modID,
+            std::optional<std::string> settingKey
         );
-        SettingChangedFilterV3(Mod* mod, std::optional<std::string> const& settingKey);
+        SettingChangedFilterV3(Mod* mod, std::optional<std::string> settingKey);
         SettingChangedFilterV3(SettingChangedFilterV3 const&);
     };
 
@@ -720,6 +733,10 @@ namespace geode {
         using SettingType = StringSettingV3;
     };
     template <>
+    struct SettingTypeForValueType<std::string_view> {
+        using SettingType = StringSettingV3;
+    };
+    template <>
     struct SettingTypeForValueType<std::filesystem::path> {
         using SettingType = FileSettingV3;
     };
@@ -733,7 +750,7 @@ namespace geode {
     };
 
     template <class T>
-    EventListener<SettingChangedFilterV3>* listenForSettingChangesV3(std::string_view settingKey, auto&& callback, Mod* mod = getMod()) {
+    EventListener<SettingChangedFilterV3>* listenForSettingChangesV3(std::string settingKey, auto&& callback, Mod* mod = getMod()) {
         using Ty = typename SettingTypeForValueType<T>::SettingType;
         return new EventListener(
             [callback = std::move(callback)](std::shared_ptr<SettingV3> setting) {
@@ -741,15 +758,16 @@ namespace geode {
                     callback(ty->getValue());
                 }
             },
-            SettingChangedFilterV3(mod, std::string(settingKey))
+            SettingChangedFilterV3(mod, std::move(settingKey))
         );
     }
-    EventListener<SettingChangedFilterV3>* listenForSettingChangesV3(std::string_view settingKey, auto&& callback, Mod* mod = getMod()) {
+    EventListener<SettingChangedFilterV3>* listenForSettingChangesV3(std::string settingKey, auto&& callback, Mod* mod = getMod()) {
         using T = std::remove_cvref_t<utils::function::Arg<0, decltype(callback)>>;
-        return listenForSettingChangesV3<T>(settingKey, std::move(callback), mod);
+        return listenForSettingChangesV3<T>(std::move(settingKey), std::move(callback), mod);
     }
+
     GEODE_DLL EventListener<SettingChangedFilterV3>* listenForAllSettingChangesV3(
-        std::function<void(std::shared_ptr<SettingV3>)> const& callback,
+        geode::Function<void(std::shared_ptr<SettingV3>)> callback,
         Mod* mod = getMod()
     );
 }

@@ -21,10 +21,17 @@ NSString* intoNS(std::string const& str) {
     return [NSString stringWithUTF8String:str.c_str()];
 }
 
+NSString* intoNS(std::string_view str) {
+    return [[NSString alloc] initWithBytes:str.data() length:str.size() encoding:NSUTF8StringEncoding];
+}
 
-bool utils::clipboard::write(std::string const& data) {
+NSString* intoNS(ZStringView str) {
+    return intoNS(std::string_view(str));
+}
+
+bool utils::clipboard::write(ZStringView data) {
     [[NSPasteboard generalPasteboard] clearContents];
-    [[NSPasteboard generalPasteboard] setString:intoNS(data)
+    [[NSPasteboard generalPasteboard] setString:intoNS(std::string_view{data})
                                         forType:NSPasteboardTypeString];
 
     return true;
@@ -43,7 +50,7 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
     return true;
 }
 
-void utils::web::openLinkInBrowser(std::string const& url) {
+void utils::web::openLinkInBrowser(ZStringView url) {
     [[NSWorkspace sharedWorkspace]
         openURL:[NSURL URLWithString:intoNS(url)]];
 }
@@ -278,10 +285,6 @@ void geode::utils::game::exit(bool save) {
     ), CCDirector::get()->getRunningScene(), false);
 }
 
-void geode::utils::game::exit() {
-    exit(true);
-}
-
 void geode::utils::game::restart(bool save) {
     if (CCApplication::sharedApplication() &&
         (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
@@ -302,31 +305,27 @@ void geode::utils::game::restart(bool save) {
     exit(save);
 }
 
-void geode::utils::game::restart() {
-    restart(true);
-}
-
 void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
     log::error("Launching Geode uninstaller is not supported on macOS");
 }
 
-Result<> geode::hook::addObjcMethod(std::string const& className, std::string const& selectorName, void* imp) {
-    auto cls = objc_getClass(className.c_str());
+Result<> geode::hook::addObjcMethod(char const* className, char const* selectorName, void* imp) {
+    auto cls = objc_getClass(className);
     if (!cls)
         return Err("Class not found");
 
-    auto sel = sel_registerName(selectorName.c_str());
+    auto sel = sel_registerName(selectorName);
 
     class_addMethod(cls, sel, (IMP)imp, "v@:");
 
     return Ok();
 }
-Result<void*> geode::hook::getObjcMethodImp(std::string const& className, std::string const& selectorName) {
-    auto cls = objc_getClass(className.c_str());
+Result<void*> geode::hook::getObjcMethodImp(char const* className, char const* selectorName) {
+    auto cls = objc_getClass(className);
     if (!cls)
         return Err("Class not found");
 
-    auto sel = sel_registerName(selectorName.c_str());
+    auto sel = sel_registerName(selectorName);
 
     auto method = class_getInstanceMethod(cls, sel);
     if (!method)
@@ -335,12 +334,12 @@ Result<void*> geode::hook::getObjcMethodImp(std::string const& className, std::s
     return Ok((void*)method_getImplementation(method));
 }
 
-Result<void*> geode::hook::replaceObjcMethod(std::string const& className, std::string const& selectorName, void* imp) {
-    auto cls = objc_getClass(className.c_str());
+Result<void*> geode::hook::replaceObjcMethod(char const* className, char const* selectorName, void* imp) {
+    auto cls = objc_getClass(className);
     if (!cls)
         return Err("Class not found");
 
-    auto sel = sel_registerName(selectorName.c_str());
+    auto sel = sel_registerName(selectorName);
 
     auto method = class_getInstanceMethod(cls, sel);
     if (!method)
@@ -355,7 +354,7 @@ bool geode::utils::permission::getPermissionStatus(Permission permission) {
     return true; // unimplemented
 }
 
-void geode::utils::permission::requestPermission(Permission permission, std::function<void(bool)> callback) {
+void geode::utils::permission::requestPermission(Permission permission, geode::Function<void(bool)> callback) {
     callback(true); // unimplemented
 }
 
@@ -368,7 +367,7 @@ std::string geode::utils::thread::getDefaultName() {
     return fmt::format("Thread #{}", tid);
 }
 
-void geode::utils::thread::platformSetName(std::string const& name) {
+void geode::utils::thread::platformSetName(ZStringView name) {
     pthread_setname_np(name.c_str());
 }
 
@@ -385,8 +384,8 @@ float geode::utils::getDisplayFactor() {
     return displayScale;
 }
 
-std::string geode::utils::getEnvironmentVariable(const char* name) {
-    auto result = std::getenv(name);
+std::string geode::utils::getEnvironmentVariable(ZStringView name) {
+    auto result = std::getenv(name.c_str());
     return result ? result : "";
 }
 

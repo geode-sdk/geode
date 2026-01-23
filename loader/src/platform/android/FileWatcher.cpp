@@ -7,8 +7,8 @@ FileWatcher::FileWatcher(
 
     m_platformHandle = nullptr;
     m_file = file;
-    m_callback = callback;
-    m_error = error;
+    m_callback = std::move(callback);
+    m_error = std::move(error);
 }
 
 FileWatcher::~FileWatcher() {

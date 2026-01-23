@@ -39,6 +39,8 @@
 #include "../include/CCProtocols.h"
 #include <Geode/loader/Event.hpp>
 #include <Geode/utils/casts.hpp>
+#include <Geode/utils/function.hpp>
+#include <Geode/utils/ZStringView.hpp>
 
 namespace geode {
     class Layout;
@@ -625,10 +627,8 @@ public:
      * Composing a "tree" structure is a very important feature of CCNode
      * @example
      * // Here's a sample code of traversing children array:
-     * CCNode* node = NULL;
-     * CCARRAY_FOREACH(parent->getChildren(), node)
-     * {
-     *     node->setPosition(0,0);
+     * for (auto child : parent->getChildrenExt()) {
+     *     child->setPosition(0, 0);
      * }
      * // This sample code traverses all children nodes, and set theie position to (0,0)
      * @returns An array of children
@@ -873,14 +873,14 @@ public:
      *
      * @note Geode addition
      */
-    GEODE_DLL void setUserObject(std::string const& id, CCObject* object);
+    GEODE_DLL void setUserObject(std::string id, CCObject* object);
 
     /**
      * Get a user-assigned CCObject with the specific ID
      *
      * @note Geode addition
      */
-    GEODE_DLL CCObject* getUserObject(std::string const& id);
+    GEODE_DLL CCObject* getUserObject(std::string_view id);
 
     /// @} end of Tag & User Data
 
@@ -889,7 +889,7 @@ private:
 
     GEODE_DLL geode::modifier::FieldContainer* getFieldContainer(char const* forClass);
     GEODE_DLL void addEventListenerInternal(
-        std::string const& id,
+        std::string id,
         geode::EventListenerProtocol* protocol
     );
 
@@ -899,7 +899,7 @@ public:
      * @returns The ID, or an empty string if the node has no ID.
      * @note Geode addition
      */
-    GEODE_DLL const std::string& getID();
+    GEODE_DLL geode::ZStringView getID();
     /**
      * Set the string ID of this node. String IDs are a Geode addition
      * that are much safer to use to get nodes than absolute indexes
@@ -908,17 +908,7 @@ public:
      * by a mod, use the _spr literal to append the mod ID to it
      * @note Geode addition
      */
-    GEODE_DLL void setID(std::string const& id);
-
-    /**
-     * Set the string ID of this node. String IDs are a Geode addition
-     * that are much safer to use to get nodes than absolute indexes
-     * @param id The ID of the node, recommended to be in kebab case
-     * without any spaces or uppercase letters. If the node is added
-     * by a mod, use the _spr literal to append the mod ID to it
-     * @note Geode addition
-     */
-    GEODE_DLL void setID(std::string&& id);
+    GEODE_DLL void setID(std::string id);
 
     /**
      * Get a child by its string ID
@@ -1115,28 +1105,28 @@ public:
 
     template <class Filter, class... Args>
     geode::EventListenerProtocol* addEventListener(
-        std::string const& id,
-        std::function<typename Filter::Callback> callback,
+        std::string_view id,
+        geode::Function<typename Filter::Callback> callback,
         Args&&... args
     ) {
         auto listener = new geode::EventListener<Filter>(
-            callback, Filter(this, std::forward<Args>(args)...)
+            std::move(callback), Filter(this, std::forward<Args>(args)...)
         );
         this->addEventListenerInternal(id, listener);
         return listener;
     }
     template <class Filter, class... Args>
     geode::EventListenerProtocol* addEventListener(
-        std::function<typename Filter::Callback> callback,
+        geode::Function<typename Filter::Callback> callback,
         Args&&... args
     ) {
         return this->addEventListener<Filter, Args...>(
-            "", callback, std::forward<Args>(args)...
+            "", std::move(callback), std::forward<Args>(args)...
         );
     }
     GEODE_DLL void removeEventListener(geode::EventListenerProtocol* listener);
-    GEODE_DLL void removeEventListener(std::string const& id);
-    GEODE_DLL geode::EventListenerProtocol* getEventListener(std::string const& id);
+    GEODE_DLL void removeEventListener(std::string_view id);
+    GEODE_DLL geode::EventListenerProtocol* getEventListener(std::string_view id);
     GEODE_DLL size_t getEventListenerCount();
 
     /**
@@ -1949,7 +1939,7 @@ namespace geode {
         const std::string id;
         cocos2d::CCObject* value;
 
-        UserObjectSetEvent(cocos2d::CCNode* node, std::string const& id, cocos2d::CCObject* value);
+        UserObjectSetEvent(cocos2d::CCNode* node, std::string id, cocos2d::CCObject* value);
     };
 
     class GEODE_DLL AttributeSetFilter final : public EventFilter<UserObjectSetEvent> {
@@ -1960,9 +1950,9 @@ namespace geode {
 		std::string m_targetID;
 
 	public:
-        ListenerResult handle(std::function<Callback> fn, UserObjectSetEvent* event);
+        ListenerResult handle(geode::Function<Callback>& fn, UserObjectSetEvent* event);
 
-		AttributeSetFilter(std::string const& id);
+		AttributeSetFilter(std::string id);
     };
 }
 #endif

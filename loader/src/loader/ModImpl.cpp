@@ -100,11 +100,11 @@ std::filesystem::path Mod::Impl::getSaveDir() const {
     return m_saveDirPath;
 }
 
-std::string Mod::Impl::getID() const {
+ZStringView Mod::Impl::getID() const {
     return m_metadata.getID();
 }
 
-std::string Mod::Impl::getName() const {
+ZStringView Mod::Impl::getName() const {
     return m_metadata.getName();
 }
 
@@ -112,15 +112,15 @@ bool Mod::Impl::isEphemeral() const {
     return ModMetadataImpl::getImpl(m_metadata).m_softInvalidReason.has_value();
 }
 
-std::vector<std::string> Mod::Impl::getDevelopers() const {
+std::vector<std::string> const& Mod::Impl::getDevelopers() const {
     return m_metadata.getDevelopers();
 }
 
-std::optional<std::string> Mod::Impl::getDescription() const {
+std::optional<std::string> const& Mod::Impl::getDescription() const {
     return m_metadata.getDescription();
 }
 
-std::optional<std::string> Mod::Impl::getDetails() const {
+std::optional<std::string> const& Mod::Impl::getDetails() const {
     return m_metadata.getDetails();
 }
 
@@ -347,7 +347,7 @@ Result<> Mod::Impl::loadBinary() {
     // Anyway this lets all of this mod's dependencies know it has been loaded
     // In case they're API mods and want to know those kinds of things
     for (auto const& dep : ModMetadataImpl::getImpl(m_metadata).m_dependencies) {
-        if (auto depMod = Loader::get()->getLoadedMod(dep.id)) {
+        if (auto depMod = Loader::get()->getLoadedMod(dep.getID())) {
             DependencyLoadedEvent(depMod, m_self).post();
         }
     }
@@ -473,7 +473,7 @@ bool Mod::Impl::hasUnresolvedIncompatibilities() const {
 
 bool Mod::Impl::depends(std::string_view id) const {
     return utils::ranges::contains(m_metadata.getDependencies(), [id](ModMetadata::Dependency const& t) {
-        return t.id == id;
+        return t.getID() == id;
     });
 }
 
@@ -635,17 +635,8 @@ std::filesystem::path Mod::Impl::getPersistentDir(bool create) const {
     return dir;
 }
 
-std::string_view Mod::Impl::expandSpriteName(std::string_view name) {
-    std::string nameKey(name);
-    if (m_expandedSprites.contains(nameKey)) return m_expandedSprites[nameKey];
-
-    auto exp = new char[name.size() + 2 + m_metadata.getID().size()];
-    auto exps = (m_metadata.getID() + "/") + name.data();
-    memcpy(exp, exps.c_str(), exps.size() + 1);
-
-    m_expandedSprites[nameKey] = exp;
-
-    return exp;
+std::string Mod::Impl::expandSpriteName(std::string_view name) {
+    return fmt::format("{}/{}", this->getID(), name);
 }
 
 ModJson Mod::Impl::getRuntimeInfo() const {
@@ -695,7 +686,7 @@ bool Mod::Impl::isCurrentlyLoading() const {
 
 bool Mod::Impl::hasLoadProblems() const {
     for (auto const& problem : m_problems) {
-        if (problem.isProblem()) {
+        if (problem.isProblemTheUserShouldCareAbout()) {
             return true;
         }
     }

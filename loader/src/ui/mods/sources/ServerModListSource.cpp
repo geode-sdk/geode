@@ -16,7 +16,7 @@ ServerModListSource::ProviderTask ServerModListSource::fetchPage(size_t page, bo
                     content.mods.push_back(ModSource(std::move(mod)));
                 }
                 content.totalModCount = list.totalModCount;
-                return Ok(content);
+                return Ok(std::move(content));
             }
             return Err(LoadPageError("Error loading mods", result->unwrapErr().details));
         },
@@ -62,12 +62,12 @@ ServerModListSource* ServerModListSource::get(ServerModListType type) {
     }
 }
 
-void ServerModListSource::setSearchQuery(std::string const& query) {
+void ServerModListSource::setSearchQuery(std::string query) {
     if (query.empty()) {
         m_query.query = std::nullopt;
         m_query.platforms = { GEODE_PLATFORM_TARGET };
     } else {
-        m_query.query = std::optional(query);
+        m_query.query = std::optional(std::move(query));
         m_query.platforms = {};
     }
 }

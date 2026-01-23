@@ -187,13 +187,13 @@ const char* getGeodeButtonSpriteName(GeodeButtonSprite spr, bool forceDisableThe
     }
 }
 
-IconButtonSprite* createGeodeButton(CCNode* icon, std::string const& text, GeodeButtonSprite bg, bool forceDisableTheme) {
+IconButtonSprite* createGeodeButton(CCNode* icon, ZStringView text, GeodeButtonSprite bg, bool forceDisableTheme) {
     return IconButtonSprite::create(getGeodeButtonSpriteName(bg, forceDisableTheme), icon, text.c_str(), "bigFont.fnt");
 }
-ButtonSprite* createGeodeButton(std::string const& text, int width, bool gold, bool absolute, GeodeButtonSprite bg, bool forceDisableTheme) {
+ButtonSprite* createGeodeButton(ZStringView text, int width, bool gold, bool absolute, GeodeButtonSprite bg, bool forceDisableTheme) {
     return ButtonSprite::create(text.c_str(), width, absolute, gold ? "goldFont.fnt" : "bigFont.fnt", getGeodeButtonSpriteName(bg, forceDisableTheme), 0.0f, .8f);
 }
-ButtonSprite* createGeodeButton(std::string const& text, bool gold, GeodeButtonSprite bg, bool forceDisableTheme) {
+ButtonSprite* createGeodeButton(ZStringView text, bool gold, GeodeButtonSprite bg, bool forceDisableTheme) {
     return ButtonSprite::create(text.c_str(), gold ? "goldFont.fnt" : "bigFont.fnt", getGeodeButtonSpriteName(bg, forceDisableTheme), .8f);
 }
 
@@ -206,7 +206,7 @@ CircleButtonSprite* createGeodeCircleButton(CCSprite* top, float scale, CircleBa
     return ret;
 }
 
-ButtonSprite* createTagLabel(std::string const& text, std::pair<ccColor3B, ccColor3B> const& color) {
+ButtonSprite* createTagLabel(ZStringView text, std::pair<ccColor3B, ccColor3B> const& color) {
     auto label = ButtonSprite::create(text.c_str(), "bigFont.fnt", "white-square.png"_spr, .8f);
     label->m_label->setColor(color.first);
     label->m_BGSprite->setColor(color.second);

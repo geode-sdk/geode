@@ -22,7 +22,7 @@ $on_mod(Loaded) {
     });
 
     ipc::listen("loader-info", [](ipc::IPCEvent* event) -> matjson::Value {
-        return Mod::get()->getMetadataRef();
+        return Mod::get()->getMetadata();
     });
 
     ipc::listen("list-mods", [](ipc::IPCEvent* event) -> matjson::Value {
@@ -37,12 +37,12 @@ $on_mod(Loaded) {
         if (!dontIncludeLoader) {
             res.push_back(
                 includeRunTimeInfo ? Mod::get()->getRuntimeInfo() :
-                                     Mod::get()->getMetadataRef().toJSON()
+                                     Mod::get()->getMetadata().toJSON()
             );
         }
 
         for (auto& mod : Loader::get()->getAllMods()) {
-            res.push_back(includeRunTimeInfo ? mod->getRuntimeInfo() : mod->getMetadataRef().toJSON());
+            res.push_back(includeRunTimeInfo ? mod->getRuntimeInfo() : mod->getMetadata().toJSON());
         }
 
         return res;

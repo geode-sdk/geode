@@ -20,7 +20,7 @@ namespace {
 void console::setup() { }
 void console::openIfClosed() { }
 
-void console::log(std::string const& msg, Severity severity) {
+void console::log(ZStringView msg, Severity severity) {
     __android_log_print(
         getLogSeverityForSeverity(severity),
         "Geode",
@@ -29,7 +29,7 @@ void console::log(std::string const& msg, Severity severity) {
     );
 }
 
-void console::messageBox(char const* title, std::string const& info, Severity severity) {
+void console::messageBox(ZStringView title, ZStringView info, Severity severity) {
     // console::log(info, severity);
-    cocos2d::CCMessageBox(info.c_str(), title);
+    cocos2d::CCMessageBox(info.c_str(), title.c_str());
 }

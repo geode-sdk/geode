@@ -41,7 +41,7 @@ namespace geode {
         Mod* m_mod;
 
     public:
-        ListenerResult handle(std::function<Callback> fn, ModStateEvent* event);
+        ListenerResult handle(geode::Function<Callback>& fn, ModStateEvent* event);
 
         /**
          * Create a mod state listener
@@ -84,7 +84,7 @@ namespace geode {
         std::unique_ptr<Impl> m_impl;
 
     public:
-        ListenerResult handle(std::function<Callback> fn, DependencyLoadedEvent* event);
+        ListenerResult handle(geode::Function<Callback>& fn, DependencyLoadedEvent* event);
 
         DependencyLoadedFilter(Mod* target = geode::getMod());
         DependencyLoadedFilter(DependencyLoadedFilter&&);

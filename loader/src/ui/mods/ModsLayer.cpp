@@ -523,7 +523,6 @@ bool ModsLayer::init() {
         { "GJ_starsIcon_001.png", "Featured", ServerModListSource::get(ServerModListType::Featured), "featured-button", false },
         { "globe.png"_spr, "Download", ServerModListSource::get(ServerModListType::Download), "download-button", false },
         { "GJ_timeIcon_001.png", "Recent", ServerModListSource::get(ServerModListType::Recent), "recent-button", false },
-        { "exMark_001.png", "Modtober", ServerModListSource::get(ServerModListType::Modtober), "modtober-button", false },
     }) {
         auto btn = CCMenuItemSpriteExtra::create(
             GeodeTabSprite::create(std::get<0>(item), std::get<1>(item), 100, std::get<4>(item)),
@@ -707,7 +706,7 @@ void ModsLayer::gotoTab(ModListSource* src, bool searchingDev) {
     m_lists.at(m_currentSource)->updateState();
 }
 
-void ModsLayer::keyDown(enumKeyCodes key) {
+void ModsLayer::keyDown(enumKeyCodes key, double p1) {
     auto list = m_lists.at(m_currentSource);
 
     switch(key) {
@@ -724,7 +723,7 @@ void ModsLayer::keyDown(enumKeyCodes key) {
             }
             break;
         default:
-            CCLayer::keyDown(key);
+            CCLayer::keyDown(key, p1);
     }
 }
 

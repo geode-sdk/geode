@@ -158,10 +158,10 @@ namespace geode {
 
         bool init(cocos2d::CCNode* ontop, BaseType type, int size, int color);
         bool initWithSprite(
-            const char* sprName, float sprScale, BaseType type, int size, int color
+            char const* sprName, float sprScale, BaseType type, int size, int color
         );
         bool initWithSpriteFrameName(
-            const char* sprName, float sprScale, BaseType type, int size, int color
+            char const* sprName, float sprScale, BaseType type, int size, int color
         );
 
         virtual cocos2d::CCSize getMaxTopSize() const;
@@ -206,12 +206,12 @@ namespace geode {
             CircleBaseSize size = CircleBaseSize::Medium
         );
         static CircleButtonSprite* createWithSprite(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             CircleBaseColor color = CircleBaseColor::Green,
             CircleBaseSize size = CircleBaseSize::Medium
         );
         static CircleButtonSprite* createWithSpriteFrameName(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             CircleBaseColor color = CircleBaseColor::Green,
             CircleBaseSize size = CircleBaseSize::Medium
         );
@@ -230,12 +230,12 @@ namespace geode {
             CrossBaseSize size = CrossBaseSize::Small
         );
         static CrossButtonSprite* createWithSprite(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             CrossBaseColor color = CrossBaseColor::Green,
             CrossBaseSize size = CrossBaseSize::Small
         );
         static CrossButtonSprite* createWithSpriteFrameName(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             CrossBaseColor color = CrossBaseColor::Green,
             CrossBaseSize size = CrossBaseSize::Small
         );
@@ -253,12 +253,12 @@ namespace geode {
             AccountBaseSize size = AccountBaseSize::Normal
         );
         static AccountButtonSprite* createWithSprite(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             AccountBaseColor color = AccountBaseColor::Blue,
             AccountBaseSize size = AccountBaseSize::Normal
         );
         static AccountButtonSprite* createWithSpriteFrameName(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             AccountBaseColor color = AccountBaseColor::Blue,
             AccountBaseSize size = AccountBaseSize::Normal
         );
@@ -276,12 +276,12 @@ namespace geode {
             IconSelectBaseSize size = IconSelectBaseSize::Normal
         );
         static IconSelectButtonSprite* createWithSprite(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             IconSelectBaseColor color = IconSelectBaseColor::Unselected,
             IconSelectBaseSize size = IconSelectBaseSize::Normal
         );
         static IconSelectButtonSprite* createWithSpriteFrameName(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             IconSelectBaseColor color = IconSelectBaseColor::Unselected,
             IconSelectBaseSize size = IconSelectBaseSize::Normal
         );
@@ -299,12 +299,12 @@ namespace geode {
             LeaderboardBaseSize size = LeaderboardBaseSize::Normal
         );
         static LeaderboardButtonSprite* createWithSprite(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             LeaderboardBaseColor color = LeaderboardBaseColor::Blue,
             LeaderboardBaseSize size = LeaderboardBaseSize::Normal
         );
         static LeaderboardButtonSprite* createWithSpriteFrameName(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             LeaderboardBaseColor color = LeaderboardBaseColor::Blue,
             LeaderboardBaseSize size = LeaderboardBaseSize::Normal
         );
@@ -321,12 +321,12 @@ namespace geode {
             EditorBaseSize size = EditorBaseSize::Normal
         );
         static EditorButtonSprite* createWithSprite(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             EditorBaseColor color = EditorBaseColor::Green,
             EditorBaseSize size = EditorBaseSize::Normal
         );
         static EditorButtonSprite* createWithSpriteFrameName(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             EditorBaseColor color = EditorBaseColor::Green,
             EditorBaseSize size = EditorBaseSize::Normal
         );
@@ -339,7 +339,7 @@ namespace geode {
     class GEODE_DLL TabButtonSprite : public BasedButtonSprite {
     public:
         static TabButtonSprite* create(
-            const char* text,
+            char const* text,
             TabBaseColor color,
             TabBaseSize size = TabBaseSize::Normal
         );
@@ -357,12 +357,12 @@ namespace geode {
             CategoryBaseSize size = CategoryBaseSize::Big
         );
         static CategoryButtonSprite* createWithSprite(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             CategoryBaseColor color = CategoryBaseColor::Green,
             CategoryBaseSize size = CategoryBaseSize::Big
         );
         static CategoryButtonSprite* createWithSpriteFrameName(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             CategoryBaseColor color = CategoryBaseColor::Green,
             CategoryBaseSize size = CategoryBaseSize::Big
         );

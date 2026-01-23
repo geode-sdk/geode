@@ -8,7 +8,7 @@ GameEventType GameEvent::getType() const {
     return m_type;
 }
 
-ListenerResult GameEventFilter::handle(std::function<Callback> fn, GameEvent* event) {
+ListenerResult GameEventFilter::handle(geode::Function<Callback>& fn, GameEvent* event) {
     if (event->getType() == m_type) {
         fn(event);
     }

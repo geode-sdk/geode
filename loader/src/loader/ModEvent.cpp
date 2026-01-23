@@ -13,11 +13,7 @@ Mod* ModStateEvent::getMod() const {
     return m_mod;
 }
 
-bool ModStateEvent::filter(ModEventType type, Mod* mod) const {
-    return type == m_type && mod == m_mod;
-}
-
-ListenerResult ModStateFilter::handle(std::function<Callback> fn, ModStateEvent* event) {
+ListenerResult ModStateFilter::handle(geode::Function<Callback>& fn, ModStateEvent* event) {
     // log::debug("Event mod filter: {}, {}, {}, {}", m_mod, static_cast<int>(m_type), event->getMod(), static_cast<int>(event->getType()));
     if ((!m_mod || event->getMod() == m_mod) && event->getType() == m_type) {
         fn(event);
@@ -51,16 +47,12 @@ matjson::Value DependencyLoadedEvent::getDependencySettings() const {
     return m_impl->dependency->getDependencySettingsFor(m_impl->target->getID());
 }
 
-bool DependencyLoadedEvent::filter(Mod* target) const {
-    return target == m_impl->target;
-}
-
 class DependencyLoadedFilter::Impl final {
 public:
     Mod* target;
 };
 
-ListenerResult DependencyLoadedFilter::handle(std::function<Callback> fn, DependencyLoadedEvent* event) {
+ListenerResult DependencyLoadedFilter::handle(geode::Function<Callback>& fn, DependencyLoadedEvent* event) {
     if (event->getTarget() == m_impl->target) {
         fn(event);
     }

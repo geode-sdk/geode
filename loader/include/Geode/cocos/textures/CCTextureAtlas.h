@@ -75,6 +75,8 @@ public:
     CC_PROPERTY(CCTexture2D *, m_pTexture, Texture)
     /** Quads that are going to be rendered */
     CC_PROPERTY(ccV3F_C4B_T2F_Quad *, m_pQuads, Quads)
+    // @note RobTop Addition
+    unsigned int m_uMaxQuads;
 
 public:
     /**

@@ -7,15 +7,6 @@
 
 namespace geode::cast {
     /**
-     * Alias for static_cast
-     */
-    template <class T, class F>
-    [[deprecated("This will be removed in v5, use static_cast instead")]]
-    static constexpr T as(F const v) {
-        return static_cast<T>(v);
-    }
-
-    /**
      * Cast from anything to anything else,
      * provided they are the same size
      */

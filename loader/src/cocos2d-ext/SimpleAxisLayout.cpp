@@ -3,6 +3,8 @@
 #include <Geode/utils/cocos.hpp>
 #include <algorithm>
 
+#include <algorithm>
+
 using namespace geode::prelude;
 
 class SimpleAxisLayoutOptions::Impl {
@@ -70,6 +72,8 @@ public:
 
     std::unordered_map<CCNode*, float> m_originalScalesPerNode;
     std::unordered_map<CCNode*, float> m_relativeScalesPerNode;
+
+    bool m_ignoreInvisibleChildren = true;
 
     Impl(Axis axis, SimpleAxisLayout* parent) : m_axis(axis), m_layout(parent) {
         switch (axis) {
@@ -843,6 +847,15 @@ SimpleAxisLayout* SimpleAxisLayout::setMinRelativeScale(std::optional<float> sca
 SimpleAxisLayout* SimpleAxisLayout::setMaxRelativeScale(std::optional<float> scale) {
     m_impl->m_maxRelativeScale = scale;
     return this;
+}
+
+SimpleAxisLayout* SimpleAxisLayout::ignoreInvisibleChildren(bool ignore) {
+    m_impl->m_ignoreInvisibleChildren = ignore;
+    return this;
+}
+
+bool SimpleAxisLayout::isIgnoreInvisibleChildren() const {
+    return m_impl->m_ignoreInvisibleChildren;
 }
 
 Axis SimpleAxisLayout::getAxis() const {

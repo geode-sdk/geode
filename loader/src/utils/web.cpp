@@ -14,12 +14,14 @@
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/string.hpp>
+#include <Geode/utils/StringBuffer.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/terminate.hpp>
 #include <sstream>
 
 using namespace geode::prelude;
 using namespace geode::utils::web;
+using namespace geode::utils::string;
 
 static long unwrapProxyType(ProxyType type) {
     switch (type) {
@@ -101,7 +103,7 @@ public:
     int m_code;
     ByteVector m_data;
     std::string m_errMessage;
-    std::unordered_map<std::string, std::vector<std::string>> m_headers;
+    utils::StringMap<std::vector<std::string>> m_headers;
 
     Result<> into(std::filesystem::path const& path) const;
 };
@@ -206,17 +208,15 @@ public:
 MultipartForm::MultipartForm() : m_impl(std::make_shared<Impl>()) {}
 MultipartForm::~MultipartForm() = default;
 
-MultipartForm& MultipartForm::param(std::string_view name, std::string_view value) {
+MultipartForm& MultipartForm::param(std::string name, std::string value) {
     if (!m_impl->isBuilt()) {
-        m_impl->m_params.insert_or_assign(std::string(name), std::string(value));
+        m_impl->m_params.insert_or_assign(std::move(name), std::move(value));
     }
     return *this;
 }
 
-Result<MultipartForm&> MultipartForm::file(std::string_view name, std::filesystem::path const& path, std::string_view mime) {
+Result<MultipartForm&> MultipartForm::file(std::string name, std::filesystem::path const& path, std::string mime) {
     if (!m_impl->isBuilt()) {
-        GEODE_UNWRAP_INTO(auto data, utils::file::readBinary(path));
-
         std::string filename = utils::string::pathToString(path.filename());
 
         // according to mdn, filenames should be ascii
@@ -226,27 +226,29 @@ Result<MultipartForm&> MultipartForm::file(std::string_view name, std::filesyste
             }
         }
 
-        m_impl->m_files.insert_or_assign(std::string(name), MultipartFile{
+        GEODE_UNWRAP_INTO(auto data, utils::file::readBinary(path));
+
+        m_impl->m_files.insert_or_assign(std::move(name), MultipartFile{
             .data = std::move(data),
             .filename = std::move(filename),
-            .mime = std::string(mime),
+            .mime = std::move(mime),
         });
     }
     return Ok(*this);
 }
 
-MultipartForm& MultipartForm::file(std::string_view name, std::span<uint8_t const> data, std::string_view filename, std::string_view mime) {
+MultipartForm& MultipartForm::file(std::string name, std::span<uint8_t const> data, std::string filename, std::string mime) {
     if (!m_impl->isBuilt()) {
-        m_impl->m_files.insert_or_assign(std::string(name), MultipartFile{
+        m_impl->m_files.insert_or_assign(std::move(name), MultipartFile{
             .data = ByteVector(data.begin(), data.end()),
-            .filename = std::string(filename),
-            .mime = std::string(mime),
+            .filename = std::move(filename),
+            .mime = std::move(mime),
         });
     }
     return *this;
 }
 
-std::string const& MultipartForm::getBoundary() const {
+std::string_view MultipartForm::getBoundary() const {
     m_impl->pickUniqueBoundary();
     return m_impl->m_boundary;
 }
@@ -288,21 +290,23 @@ std::vector<std::string> WebResponse::headers() const {
     return map::keys(m_impl->m_headers);
 }
 
-std::optional<std::string> WebResponse::header(std::string_view name) const {
-    if (auto str = std::string(name); m_impl->m_headers.contains(str)) {
-        return m_impl->m_headers.at(str).at(0);
+std::optional<ZStringView> WebResponse::header(std::string_view name) const {
+    auto it = m_impl->m_headers.find(name);
+    if (it != m_impl->m_headers.end()) {
+        return it->second.front();
     }
     return std::nullopt;
 }
 
 std::optional<std::vector<std::string>> WebResponse::getAllHeadersNamed(std::string_view name) const {
-    if (auto str = std::string(name); m_impl->m_headers.contains(str)) {
-        return m_impl->m_headers.at(str);
+    auto it = m_impl->m_headers.find(name);
+    if (it != m_impl->m_headers.end()) {
+        return it->second;
     }
     return std::nullopt;
 }
 
-std::string const& WebResponse::errorMessage() const {
+std::string_view WebResponse::errorMessage() const {
     return m_impl->m_errMessage;
 }
 
@@ -342,8 +346,8 @@ public:
 
     std::string m_method;
     std::string m_url;
-    std::unordered_map<std::string, std::vector<std::string>> m_headers;
-    std::unordered_map<std::string, std::string> m_urlParameters;
+    utils::StringMap<std::vector<std::string>> m_headers;
+    utils::StringMap<std::string> m_urlParameters;
     std::optional<std::string> m_userAgent;
     std::optional<std::string> m_acceptEncodingType;
     std::optional<ByteVector> m_body;
@@ -360,7 +364,7 @@ public:
 
     Impl() : m_id(s_idCounter++) {}
 
-    WebResponse makeError(int code, std::string const& msg) {
+    WebResponse makeError(int code, std::string_view msg) {
         auto res = WebResponse();
         res.m_impl->m_code = code;
         res.m_impl->m_data = ByteVector(msg.begin(), msg.end());
@@ -373,23 +377,28 @@ std::atomic_size_t WebRequest::Impl::s_idCounter = 0;
 WebRequest::WebRequest() : m_impl(std::make_shared<Impl>()) {}
 WebRequest::~WebRequest() {}
 
-// Encodes a url param
-static std::string urlParamEncode(std::string_view input) {
-    std::ostringstream ss;
-    ss << std::hex << std::uppercase;
-    for (char c : input) {
-        if (std::isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
-            ss << c;
-        } else {
-            ss << '%' << static_cast<int>(c);
-        }
-    }
-    return ss.str();
+static void hexAppend(auto& buf, unsigned char c) {
+    auto hexDigits = "0123456789ABCDEF";
+    buf.append(hexDigits[(c >> 4) & 0xf]);
+    buf.append(hexDigits[c & 0xf]);
 }
 
-WebTask WebRequest::send(std::string_view method, std::string_view url) {
-    m_impl->m_method = method;
-    m_impl->m_url = url;
+// Encodes a url param
+static void urlEncodeAppend(auto& buf, std::string_view input) {
+    for (char c : input) {
+        if (std::isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
+            buf.append(c);
+        } else {
+            buf.append('%');
+            hexAppend(buf, static_cast<unsigned char>(c));
+        }
+    }
+}
+
+WebTask WebRequest::send(std::string method, std::string url) {
+    auto taskName = fmt::format("{} {}", method, url);
+    m_impl->m_method = std::move(method);
+    m_impl->m_url = std::move(url);
     return WebTask::run([impl = m_impl](auto progress, auto hasBeenCancelled) -> WebTask::Result {
         // Init Curl
         auto curl = curl_easy_init();
@@ -410,8 +419,8 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
         } responseData = {
             .response = WebResponse(),
             .impl = impl.get(),
-            .progress = progress,
-            .hasBeenCancelled = hasBeenCancelled,
+            .progress = std::move(progress),
+            .hasBeenCancelled = std::move(hasBeenCancelled),
         };
 
         // Store downloaded response data into a byte vector
@@ -430,22 +439,30 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
             header.erase(std::remove_if(header.begin(), header.end(), [](char c) {
                 return c == '\r' || c == '\n';
             }), header.end());
-            // Append value
+            header.append(": ");
+            size_t origSize = header.size();
+
+            // Append values
             for (const auto& value: values) {
-                header += ": " + value;
+                header.append(value);
                 headers = curl_slist_append(headers, header.c_str());
+                header.resize(origSize);
             }
         }
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
         // Add parameters to the URL and pass it to curl
-        auto url = impl->m_url;
-        bool first = url.find('?') == std::string::npos;
+        StringBuffer<> urlBuffer{impl->m_url};
+        bool first = impl->m_url.find('?') == std::string::npos;
+
         for (auto& [key, value] : impl->m_urlParameters) {
-            url += (first ? "?" : "&") + urlParamEncode(key) + "=" + urlParamEncode(value);
+            urlBuffer.append(first ? '?' : '&');
+            urlEncodeAppend(urlBuffer, key);
+            urlBuffer.append('=');
+            urlEncodeAppend(urlBuffer, value);
             first = false;
         }
-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_URL, urlBuffer.c_str());
 
         // Set HTTP version
         auto useHttp1 = Loader::get()->getLaunchFlag("use-http1");
@@ -482,15 +499,19 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
 
         int sslOptions = 0;
 
+        std::string_view caBundle;
+
         if (impl->m_certVerification) {
             if (impl->m_CABundleContent.empty()) {
-                impl->m_CABundleContent = CA_BUNDLE_CONTENT;
+                caBundle = CA_BUNDLE_CONTENT;
+            } else {
+                caBundle = impl->m_CABundleContent;
             }
 
-            if (!impl->m_CABundleContent.empty()) {
+            if (!caBundle.empty()) {
                 curl_blob caBundleBlob = {};
-                caBundleBlob.data = reinterpret_cast<void*>(impl->m_CABundleContent.data());
-                caBundleBlob.len = impl->m_CABundleContent.size();
+                caBundleBlob.data = const_cast<void*>(static_cast<const void*>(caBundle.data()));
+                caBundleBlob.len = caBundle.size();
                 caBundleBlob.flags = CURL_BLOB_NOCOPY;
                 curl_easy_setopt(curl, CURLOPT_CAINFO_BLOB, &caBundleBlob);
                 // Also add the native CA, for good measure
@@ -621,16 +642,19 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
             while (std::getline(ss, line)) {
                 auto colon = line.find(':');
                 if (colon == std::string::npos) continue;
-                auto key = line.substr(0, colon);
-                auto value = line.substr(colon + 2);
+
+                auto lineview = std::string_view(line);
+                auto key = lineview.substr(0, colon);
+                auto value = lineview.substr(colon + 2);
                 if (value.ends_with('\r')) {
-                    value = value.substr(0, value.size() - 1);
+                    value.remove_suffix(1);
                 }
                 // Create a new vector and add to it or add to an already existing one
-                if (headers.contains(key)) {
-                    headers.at(key).push_back(value);
+                auto it = headers.find(key);
+                if (it != headers.end()) {
+                    it->second.push_back(std::string{value});
                 } else {
-                    headers.insert_or_assign(key, std::vector{value});
+                    headers.insert_or_assign(std::string{key}, std::vector{std::string{value}});
                 }
             }
             return size * nitems;
@@ -675,12 +699,12 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
 
         // Check if the request failed on curl's side or because of cancellation
         if (curlResponse != CURLE_OK) {
-            if (hasBeenCancelled()) {
+            if (responseData.hasBeenCancelled()) {
                 log::debug("Request cancelled");
                 return WebTask::Cancel();
             }
             else {
-                std::string const err = curl_easy_strerror(curlResponse);
+                std::string_view err = curl_easy_strerror(curlResponse);
                 log::error("cURL failure, error: {}", err);
                 log::warn("Error buffer: {}", errorBuf);
                 return impl->makeError(
@@ -694,31 +718,29 @@ WebTask WebRequest::send(std::string_view method, std::string_view url) {
 
         // resolve with success :-)
         return std::move(responseData.response);
-    }, fmt::format("{} {}", method, url));
+    }, taskName);
 }
-WebTask WebRequest::post(std::string_view url) {
-    return this->send("POST", url);
+WebTask WebRequest::post(std::string url) {
+    return this->send("POST", std::move(url));
 }
-WebTask WebRequest::get(std::string_view url) {
-    return this->send("GET", url);
+WebTask WebRequest::get(std::string url) {
+    return this->send("GET", std::move(url));
 }
-WebTask WebRequest::put(std::string_view url) {
-    return this->send("PUT", url);
+WebTask WebRequest::put(std::string url) {
+    return this->send("PUT", std::move(url));
 }
-WebTask WebRequest::patch(std::string_view url) {
-    return this->send("PATCH", url);
+WebTask WebRequest::patch(std::string url) {
+    return this->send("PATCH", std::move(url));
 }
 
-WebRequest& WebRequest::header(std::string_view name, std::string_view value) {
-    if (name == "User-Agent") {
-        userAgent(value);
-
+WebRequest& WebRequest::header(std::string name, std::string value) {
+    if (equalsIgnoreCase(name, "User-Agent")) {
+        this->userAgent(std::move(value));
         return *this;
-    } if (name == "Accept-Encoding") {
-        acceptEncoding(value);
-
+    } else if (equalsIgnoreCase(name, "Accept-Encoding")) {
+        this->acceptEncoding(std::move(value));
         return *this;
-    } if (name == "Keep-Alive") {
+    } else if (equalsIgnoreCase(name, "Keep-Alive")) {
         const size_t timeoutPos = value.find("timeout");
 
         if (timeoutPos != std::string::npos) {
@@ -740,34 +762,39 @@ WebRequest& WebRequest::header(std::string_view name, std::string_view value) {
     }
 
     // Create a new vector and add to it or add to an already existing one
-    std::string strName = std::string(name);
-    std::string strValue = std::string(value);
-    if (m_impl->m_headers.contains(strName)) {
-        m_impl->m_headers.at(strName).push_back(strValue);
+    auto it = m_impl->m_headers.find(name);
+    if (it != m_impl->m_headers.end()) {
+        it->second.push_back(std::move(value));
     } else {
-        m_impl->m_headers.insert_or_assign(strName, std::vector{strValue});
+        m_impl->m_headers.insert_or_assign(std::move(name), std::vector{std::move(value)});
     }
 
     return *this;
 }
 
 WebRequest& WebRequest::removeHeader(std::string_view name) {
-    m_impl->m_headers.erase(std::string(name));
+    auto it = m_impl->m_headers.find(name);
+    if (it != m_impl->m_headers.end()) {
+        m_impl->m_headers.erase(it);
+    }
     return *this;
 }
 
-WebRequest& WebRequest::param(std::string_view name, std::string_view value) {
-    m_impl->m_urlParameters.insert_or_assign(std::string(name), std::string(value));
+WebRequest& WebRequest::param(std::string name, std::string value) {
+    m_impl->m_urlParameters.insert_or_assign(std::move(name), std::move(value));
     return *this;
 }
 
 WebRequest& WebRequest::removeParam(std::string_view name) {
-    m_impl->m_urlParameters.erase(std::string(name));
+    auto it = m_impl->m_urlParameters.find(name);
+    if (it != m_impl->m_urlParameters.end()) {
+        m_impl->m_urlParameters.erase(it);
+    }
     return *this;
 }
 
-WebRequest& WebRequest::userAgent(std::string_view name) {
-    m_impl->m_userAgent = name;
+WebRequest& WebRequest::userAgent(std::string name) {
+    m_impl->m_userAgent = std::move(name);
     return *this;
 }
 
@@ -800,13 +827,13 @@ WebRequest& WebRequest::ignoreContentLength(bool enabled) {
     return *this;
 }
 
-WebRequest& WebRequest::CABundleContent(std::string_view content) {
-    m_impl->m_CABundleContent = content;
+WebRequest& WebRequest::CABundleContent(std::string content) {
+    m_impl->m_CABundleContent = std::move(content);
     return *this;
 }
 
-WebRequest& WebRequest::proxyOpts(ProxyOpts const& proxyOpts) {
-    m_impl->m_proxyOpts = proxyOpts;
+WebRequest& WebRequest::proxyOpts(ProxyOpts proxyOpts) {
+    m_impl->m_proxyOpts = std::move(proxyOpts);
     return *this;
 }
 
@@ -815,13 +842,13 @@ WebRequest& WebRequest::version(HttpVersion httpVersion) {
     return *this;
 }
 
-WebRequest& WebRequest::acceptEncoding(std::string_view str) {
-    m_impl->m_acceptEncodingType = str;
+WebRequest& WebRequest::acceptEncoding(std::string str) {
+    m_impl->m_acceptEncodingType = std::move(str);
     return *this;
 }
 
 WebRequest& WebRequest::body(ByteVector raw) {
-    m_impl->m_body = raw;
+    m_impl->m_body = std::move(raw);
     return *this;
 }
 WebRequest& WebRequest::bodyString(std::string_view str) {
@@ -844,19 +871,19 @@ size_t WebRequest::getID() const {
     return m_impl->m_id;
 }
 
-std::string WebRequest::getMethod() const {
+ZStringView WebRequest::getMethod() const {
     return m_impl->m_method;
 }
 
-std::string WebRequest::getUrl() const {
+ZStringView WebRequest::getUrl() const {
     return m_impl->m_url;
 }
 
-std::unordered_map<std::string, std::vector<std::string>> WebRequest::getHeaders() const {
+utils::StringMap<std::vector<std::string>> const& WebRequest::getHeaders() const {
     return m_impl->m_headers;
 }
 
-std::unordered_map<std::string, std::string> WebRequest::getUrlParams() const {
+utils::StringMap<std::string> const& WebRequest::getUrlParams() const {
     return m_impl->m_urlParameters;
 }
 

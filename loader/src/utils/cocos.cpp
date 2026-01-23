@@ -87,13 +87,12 @@ matjson::Value matjson::Serialize<ccColor4B>::toJson(cocos2d::ccColor4B const& v
     });
 }
 
-Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string const& rawHexValue, bool permissive) {
-    if (permissive && rawHexValue.empty()) {
+Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string_view hexValue, bool permissive) {
+    if (permissive && hexValue.empty()) {
         return Ok(ccc3(255, 255, 255));
     }
-    auto hexValue = rawHexValue;
     if (hexValue[0] == '#') {
-        hexValue.erase(hexValue.begin());
+        hexValue.remove_prefix(1);
     }
     if (hexValue.size() > 6) {
         return Err("Hex value too large");
@@ -145,13 +144,12 @@ Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string const& rawHexValue
     }
 }
 
-Result<ccColor4B> geode::cocos::cc4bFromHexString(std::string const& rawHexValue, bool requireAlpha, bool permissive) {
-    if (permissive && rawHexValue.empty()) {
+Result<ccColor4B> geode::cocos::cc4bFromHexString(std::string_view hexValue, bool requireAlpha, bool permissive) {
+    if (permissive && hexValue.empty()) {
         return Ok(ccc4(255, 255, 255, 255));
     }
-    auto hexValue = rawHexValue;
     if (hexValue[0] == '#') {
-        hexValue.erase(hexValue.begin());
+        hexValue.remove_prefix(1);
     }
     if (hexValue.size() > 8) {
         return Err("Hex value too large");
@@ -383,7 +381,7 @@ CCNode* geode::cocos::getChildBySpriteName(CCNode* parent, const char* name) {
     return nullptr;
 }
 
-std::string_view geode::cocos::getObjectName(cocos2d::CCObject* obj) {
+std::string_view geode::cocos::getObjectName(cocos2d::CCObject const* obj) {
 #ifdef GEODE_IS_WINDOWS
     std::string_view tname = typeid(*obj).name();
     if (tname.starts_with("class ")) {
@@ -568,7 +566,7 @@ CCScene* geode::cocos::switchToScene(CCLayer* layer) {
 static CreateLayerFunc LOADING_FINISHED_SCENE = nullptr;
 
 void geode::cocos::reloadTextures(CreateLayerFunc returnTo) {
-    LOADING_FINISHED_SCENE = returnTo;
+    LOADING_FINISHED_SCENE = std::move(returnTo);
     GameManager::get()->reloadAll(false, false, true);
 }
 

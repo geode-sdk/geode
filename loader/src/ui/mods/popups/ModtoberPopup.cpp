@@ -29,7 +29,9 @@ void ModtoberPopup::onDiscord(CCObject*) {
             if (btn2) {
                 web::openLinkInBrowser("https://discord.gg/9e43WMKzhp");
             }
-        }
+        },
+        true,
+        false
     );
 }
 

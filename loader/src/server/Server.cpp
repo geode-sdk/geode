@@ -327,14 +327,20 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
         }
 
         ModMetadata::Dependency dependency;
-        obj.needs("mod_id").mustBe<std::string>("a valid id", &ModMetadata::validateID).into(dependency.id);
-        obj.needs("version").into(dependency.version);
-        obj.hasNullable("importance").into(dependency.importance);
+        std::string modId;
+        obj.needs("mod_id").mustBe<std::string>("a valid id", &ModMetadata::validateID).into(modId);
+        dependency.setID(modId);
+        ComparableVersionInfo version;
+        obj.needs("version").into(version);
+        dependency.setVersion(version);
+        ModMetadata::Dependency::Importance importance;
+        obj.hasNullable("importance").into(importance);
+        dependency.setImportance(importance);
 
         // Check if this dependency is installed, and if so assign the `mod` member to mark that
-        auto mod = Loader::get()->getInstalledMod(dependency.id);
-        if (mod && dependency.version.compare(mod->getVersion())) {
-            dependency.mod = mod;
+        auto mod = Loader::get()->getInstalledMod(dependency.getID());
+        if (mod && dependency.getVersion().compare(mod->getVersion())) {
+            dependency.setMod(mod);
         }
 
         dependencies.push_back(dependency);
@@ -344,23 +350,29 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
     std::vector<ModMetadata::Incompatibility> incompatibilities {};
     for (auto& obj : root.hasNullable("incompatibilities").items()) {
         ModMetadata::Incompatibility incompatibility;
-        obj.hasNullable("importance").into(incompatibility.importance);
+        ModMetadata::Incompatibility::Importance importance;
+        obj.hasNullable("importance").into(importance);
+        incompatibility.setImportance(importance);
 
         auto modIdValue = obj.needs("mod_id");
+        std::string modId;
 
         // Do not validate if we have a supersede, maybe the old ID is invalid
-        if (incompatibility.importance == ModMetadata::Incompatibility::Importance::Superseded) {
-            modIdValue.into(incompatibility.id);
+        if (incompatibility.getImportance() == ModMetadata::Incompatibility::Importance::Superseded) {
+            modIdValue.into(modId);
         } else {
-            modIdValue.mustBe<std::string>("a valid id", &ModMetadata::validateID).into(incompatibility.id);
+            modIdValue.mustBe<std::string>("a valid id", &ModMetadata::validateID).into(modId);
         }
+        incompatibility.setID(modId);
 
-        obj.needs("version").into(incompatibility.version);
+        ComparableVersionInfo version;
+        obj.needs("version").into(version);
+        incompatibility.setVersion(version);
 
         // Check if this incompatability is installed, and if so assign the `mod` member to mark that
-        auto mod = Loader::get()->getInstalledMod(incompatibility.id);
-        if (mod && incompatibility.version.compare(mod->getVersion())) {
-            incompatibility.mod = mod;
+        auto mod = Loader::get()->getInstalledMod(incompatibility.getID());
+        if (mod && incompatibility.getVersion().compare(mod->getVersion())) {
+            incompatibility.setMod(mod);
         }
 
         incompatibilities.push_back(incompatibility);
@@ -813,12 +825,12 @@ ServerRequest<std::vector<ServerModUpdate>> server::batchedCheckUpdates(std::vec
 }
 
 void server::queueBatches(
-    ServerRequest<std::vector<ServerModUpdate>>::PostResult const resolve,
-    std::shared_ptr<std::vector<std::vector<std::string>>> const batches,
+    ServerRequest<std::vector<ServerModUpdate>>::PostResult resolve,
+    std::shared_ptr<std::vector<std::vector<std::string>>> batches,
     std::shared_ptr<std::vector<ServerModUpdate>> accum
 ) {
     // we have to do the copy here, or else our values die
-    batchedCheckUpdates(batches->back()).listen([resolve, batches, accum](auto result) {
+    batchedCheckUpdates(batches->back()).listen([resolve = std::move(resolve), batches = std::move(batches), accum = std::move(accum)](auto result) mutable {
         if (result->isOk()) {
             auto serverValues = result->unwrap();
 
@@ -827,7 +839,7 @@ void server::queueBatches(
 
             if (batches->size() > 1) {
                 batches->pop_back();
-                queueBatches(resolve, batches, accum);
+                queueBatches(std::move(resolve), std::move(batches), std::move(accum));
             }
             else {
                 resolve(Ok(*accum));
@@ -884,7 +896,7 @@ ServerRequest<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCach
     return ServerRequest<std::vector<ServerModUpdate>>::runWithCallback(
         [modBatches](auto finish, auto progress, auto hasBeenCancelled) {
             auto accum = std::make_shared<std::vector<ServerModUpdate>>();
-            queueBatches(finish, modBatches, accum);
+            queueBatches(std::move(finish), modBatches, accum);
         },
         "Mod Update Check"
     );

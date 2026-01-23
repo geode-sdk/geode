@@ -1,6 +1,7 @@
 #pragma once
 
 #include "general.hpp"
+#include "function.hpp"
 #include "../loader/Event.hpp"
 #include "../loader/Loader.hpp"
 #include <mutex>
@@ -163,8 +164,8 @@ namespace geode {
 
             class PrivateMarker final {};
 
-            static std::shared_ptr<Handle> create(std::string_view name) {
-                return std::make_shared<Handle>(PrivateMarker(), name);
+            static std::shared_ptr<Handle> create(std::string name) {
+                return std::make_shared<Handle>(PrivateMarker(), std::move(name));
             }
 
             bool is(Status status) {
@@ -182,7 +183,7 @@ namespace geode {
             friend struct geode_internal::TaskAwaiter;
 
         public:
-            Handle(PrivateMarker, std::string_view name) : m_name(name) {}
+            Handle(PrivateMarker, std::string name) : m_name(std::move(name)) {}
             ~Handle() {
                 // If this Task was still pending when the Handle was destroyed,
                 // it can no longer be listened to so just cancel and cleanup
@@ -277,11 +278,11 @@ namespace geode {
 
         using Value            = Type;
         using Progress         = P;
-        using PostResult       = std::function<void(Result&&)>;
-        using PostProgress     = std::function<void(P)>;
-        using HasBeenCancelled = std::function<bool()>;
-        using Run              = std::function<Result(PostProgress, HasBeenCancelled)>;
-        using RunWithCallback  = std::function<void(PostResult, PostProgress, HasBeenCancelled)>;
+        using PostResult       = geode::CopyableFunction<void(Result&&)>;
+        using PostProgress     = geode::CopyableFunction<void(P)>;
+        using HasBeenCancelled = geode::CopyableFunction<bool()>;
+        using Run              = geode::Function<Result(PostProgress, HasBeenCancelled)>;
+        using RunWithCallback  = geode::Function<void(PostResult, PostProgress, HasBeenCancelled)>;
 
         using Callback = void(Event*);
 
@@ -428,8 +429,8 @@ namespace geode {
          * Create a new Task that is immediately cancelled
          * @param name The name of the Task; used for debugging
          */
-        static Task cancelled(std::string_view name = "<Cancelled Task>") {
-            auto task = Task(Handle::create(name));
+        static Task cancelled(std::string name = "<Cancelled Task>") {
+            auto task = Task(Handle::create(std::move(name)));
             Task::cancel(task.m_handle);
             return task;
         }
@@ -438,8 +439,8 @@ namespace geode {
          * @param value The value the Task shall be finished with
          * @param name The name of the Task; used for debugging
          */
-        static Task immediate(Type value, std::string_view name = "<Immediate Task>") {
-            auto task = Task(Handle::create(name));
+        static Task immediate(Type value, std::string name = "<Immediate Task>") {
+            auto task = Task(Handle::create(std::move(name)));
             Task::finish(task.m_handle, std::move(value));
             return task;
         }
@@ -450,9 +451,9 @@ namespace geode {
          * function MUST be synchronous - Task creates the thread for you!
          * @param name The name of the Task; used for debugging
          */
-        static Task run(Run&& body, std::string_view name = "<Task>") {
+        static Task run(Run&& body, std::string name = "<Task>") {
             auto task = Task(Handle::create(name));
-            std::thread([handle = std::weak_ptr(task.m_handle), name = std::string(name), body = std::move(body)] {
+            std::thread([handle = std::weak_ptr(task.m_handle), name = std::move(name), body = std::move(body)] mutable {
                 utils::thread::setName(fmt::format("Task '{}'", name));
                 auto result = body(
                     [handle](P progress) {
@@ -483,10 +484,11 @@ namespace geode {
          * calls will always be ignored
          * @param name The name of the Task; used for debugging
          */
-        static Task runWithCallback(RunWithCallback&& body, std::string_view name = "<Callback Task>") {
+        static Task runWithCallback(RunWithCallback&& body, std::string name = "<Callback Task>") {
             auto task = Task(Handle::create(name));
-            std::thread([handle = std::weak_ptr(task.m_handle), name = std::string(name), body = std::move(body)] {
+            std::thread([handle = std::weak_ptr(task.m_handle), name = std::move(name), body = std::move(body)] mutable {
                 utils::thread::setName(fmt::format("Task '{}'", name));
+
                 body(
                     [handle](Result result) {
                         if (result.isCancelled()) {
@@ -516,8 +518,8 @@ namespace geode {
          * @return A tuple of the Task, a function for finishing it, a function for
          * reporting progress, and a function for checking if it's been cancelled
          */
-        static std::tuple<Task, PostResult, PostProgress, HasBeenCancelled> spawn(std::string_view name = "<Task>") {
-            auto task = Task(Handle::create(name));
+        static std::tuple<Task, PostResult, PostProgress, HasBeenCancelled> spawn(std::string name = "<Task>") {
+            auto task = Task(Handle::create(std::move(name)));
             return {
                 task,
                 [handle = std::weak_ptr(task.m_handle)](Result result) {
@@ -548,16 +550,16 @@ namespace geode {
          * were cancelled!
          */
         template <std::move_constructible NP>
-        static Task<std::vector<Type*>, std::monostate> all(std::vector<Task<Type, NP>>&& tasks, std::string_view name = "<Multiple Tasks>") {
+        static Task<std::vector<Type*>, std::monostate> all(std::vector<Task<Type, NP>>&& tasks, std::string name = "<Multiple Tasks>") {
             using AllTask = Task<std::vector<Type*>, std::monostate>;
 
             // If there are no tasks, return an immediate task that does nothing
             if (tasks.empty()) {
-                return AllTask::immediate({}, name);
+                return AllTask::immediate({}, std::move(name));
             }
 
             // Create a new supervising task for all of the provided tasks
-            auto task = AllTask(AllTask::Handle::create(name));
+            auto task = AllTask(AllTask::Handle::create(std::move(name)));
 
             // Storage for storing the results received so far & keeping
             // ownership of the running tasks

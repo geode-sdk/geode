@@ -8,6 +8,7 @@
 #include <matjson.hpp>
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/utils/string.hpp>
+#include <Geode/utils/function.hpp>
 #include <filesystem>
 #include <string>
 #include <unordered_set>
@@ -55,7 +56,7 @@ namespace geode::utils::file {
      * @param data Data to write to the file
      * @returns Result indicating success or failure
      */
-    GEODE_DLL Result<> writeString(std::filesystem::path const& path, std::string const& data);
+    GEODE_DLL Result<> writeString(std::filesystem::path const& path, std::string_view data);
 
     /**
      * Write a string to a file. Unlike the regular writeString, it first writes to a temporary file
@@ -66,7 +67,7 @@ namespace geode::utils::file {
      * @param data Data to write to the file
      * @returns Result indicating success or failure
      */
-    GEODE_DLL Result<> writeStringSafe(std::filesystem::path const& path, std::string const& data);
+    GEODE_DLL Result<> writeStringSafe(std::filesystem::path const& path, std::string_view data);
 
     /**
      * Write binary data to a file
@@ -154,7 +155,7 @@ namespace geode::utils::file {
         /**
          * Add an entry to the zip with string data
          */
-        Result<> add(Path const& entry, std::string const& data);
+        Result<> add(Path const& entry, std::string_view data);
         /**
          * Add an entry to the zip from a file on disk. If you want to add the
          * file with a different name, read it into memory first and add it
@@ -209,7 +210,7 @@ namespace geode::utils::file {
          * @param callback Callback to call with the progress of the unzip operation
          */
         void setProgressCallback(
-            std::function<void(uint32_t, uint32_t)> callback
+            geode::Function<void(uint32_t, uint32_t)> callback
         );
 
         /**
@@ -260,7 +261,7 @@ namespace geode::utils::file {
         );
 
         static Result<> intoDir(
-            std::function<void(uint32_t, uint32_t)> progressCallback,
+            geode::Function<void(uint32_t, uint32_t)> progressCallback,
             Path const& from,
             Path const& to,
             bool deleteZipAfter = false
@@ -328,7 +329,7 @@ namespace geode::utils::file {
     public:
         using Callback = void(FileWatchEvent*);
 
-        ListenerResult handle(std::function<Callback> callback, FileWatchEvent* event);
+        ListenerResult handle(geode::Function<Callback>& callback, FileWatchEvent* event);
         FileWatchFilter(std::filesystem::path const& path);
     };
 

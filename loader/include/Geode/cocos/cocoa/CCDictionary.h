@@ -141,10 +141,8 @@ public:
  *  @note It's faster than getting all keys and traversing keys to get objects by objectForKey.
  *        It's also safe to remove elements while traversing.
  */
-#define CCDICT_FOREACH(__dict__, __el__) \
-    CCDictElement* pTmp##__dict__##__el__ = NULL; \
-    if (__dict__) \
-    HASH_ITER(hh, (__dict__)->m_pElements, __el__, pTmp##__dict__##__el__)
+#define CCDICT_FOREACH(d, e) \
+    static_assert(false, "Please use `for (auto [k, v] : CCDictionaryExt<K, V>(dict))` instead, this macro has been removed in Geode v5");
 
 
 

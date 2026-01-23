@@ -14,7 +14,7 @@
  * Fix `aligned_storage` warnings on newer ndk versions (#1569)
  * Fix ccache not correctly applying for mods (00bac4c0)
  * Fix result formatting to allow more types (77e7865)
- * Fix zip add methods on non-Windows platfomrs (d35caf2)
+ * Fix zip add methods on non-Windows platforms (d35caf2)
  * Fix VersionTag compare with tagged versions (01fa4a6)
  * Fix stack overflow on jitless iOS when disabling/re-enabling hooks in some cases (d21fd36)
 

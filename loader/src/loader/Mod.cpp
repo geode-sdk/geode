@@ -13,11 +13,11 @@ Mod::Mod(ModMetadata const& metadata) : m_impl(std::make_unique<Impl>(this, meta
 
 Mod::~Mod() {}
 
-std::string Mod::getID() const {
+ZStringView Mod::getID() const {
     return m_impl->getID();
 }
 
-std::string Mod::getName() const {
+ZStringView Mod::getName() const {
     return m_impl->getName();
 }
 
@@ -72,11 +72,7 @@ bool Mod::needsEarlyLoad() const {
     return m_impl->needsEarlyLoad();
 }
 
-ModMetadata Mod::getMetadata() const {
-    return m_impl->getMetadata();
-}
-
-ModMetadata const& Mod::getMetadataRef() const {
+ModMetadata const& Mod::getMetadata() const {
     return m_impl->getMetadata();
 }
 
@@ -92,10 +88,13 @@ std::filesystem::path Mod::getResourcesDir() const {
     return dirs::getModRuntimeDir() / this->getID() / "resources" / this->getID();
 }
 
-matjson::Value Mod::getDependencySettingsFor(std::string_view dependencyID) const {
-    auto id = std::string(dependencyID);
-    auto const& settings = ModMetadataImpl::getImpl(m_impl->m_metadata).m_dependencySettings;
-    return settings.contains(id) ? settings.at(id) : matjson::Value();
+matjson::Value Mod::getDependencySettingsFor(std::string_view id) const {
+    for (auto const& dep : this->getMetadata().getDependencies()) {
+        if (dep.getID() == id) {
+            return dep.getSettings();
+        }
+    }
+    return matjson::Value{};
 }
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
@@ -164,11 +163,11 @@ bool Mod::hasSetting(std::string_view key) const {
 }
 
 std::shared_ptr<Setting> Mod::getSetting(std::string_view key) const {
-    return m_impl->m_settings->get(std::string(key));
+    return m_impl->m_settings->get(key);
 }
 
 Result<> Mod::registerCustomSettingType(std::string_view type, SettingGenerator generator) {
-    return m_impl->m_settings->registerCustomSettingType(type, generator);
+    return m_impl->m_settings->registerCustomSettingType(type, std::move(generator));
 }
 
 std::string Mod::getLaunchArgumentName(std::string_view name) const {
@@ -247,7 +246,7 @@ bool Mod::hasUnresolvedIncompatibilities() const {
     return m_impl->hasUnresolvedIncompatibilities();
 }
 
-std::string_view Mod::expandSpriteName(std::string_view name) {
+std::string Mod::expandSpriteName(std::string_view name) {
     return m_impl->expandSpriteName(name);
 }
 
@@ -278,6 +277,14 @@ bool Mod::hasSavedValue(std::string_view key) {
 bool Mod::hasLoadProblems() const {
     return m_impl->hasLoadProblems();
 }
+bool Mod::hasInvalidGeodeFile() const {
+    for (auto problem : this->getAllProblems()) {
+        if (problem.type == LoadProblem::Type::InvalidFile) {
+            return true;
+        }
+    }
+    return false;
+}
 std::optional<LoadProblem> Mod::targetsOutdatedVersion() const {
     for (auto problem : this->getAllProblems()) {
         if (problem.isOutdated()) {
@@ -292,7 +299,7 @@ std::vector<LoadProblem> Mod::getAllProblems() const {
 std::vector<LoadProblem> Mod::getProblems() const {
     std::vector<LoadProblem> result;
     for (auto problem : this->getAllProblems()) {
-        if (problem.isProblem()) {
+        if (problem.isProblemTheUserShouldCareAbout()) {
             result.push_back(problem);
         }
     }

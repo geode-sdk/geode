@@ -289,11 +289,13 @@ CCPoint TextRenderer::getCursorPos() {
     return m_cursor;
 }
 
-bool TextRenderer::render(std::string const& word, CCNode* to, CCLabelProtocol* label) {
-    auto origLabelStr = label->getString();
-    auto str = ((origLabelStr && strlen(origLabelStr)) ? origLabelStr : "") + word;
+bool TextRenderer::render(std::string word, CCNode* to, CCLabelProtocol* label) {
+    auto origLabelPtr = label->getString();
+    std::string_view origLabelStr = origLabelPtr ? origLabelPtr : "";
+
+    auto str = fmt::format("{}{}", origLabelStr, word);
     if (m_size.width) {
-        std::string orig = origLabelStr;
+        std::string orig{origLabelStr};
         label->setString(str.c_str());
         if (m_cursor.x + to->getScaledContentSize().width >
             m_size.width - this->getCurrentWrapOffset()) {
@@ -327,7 +329,7 @@ TextRenderer::Label TextRenderer::addWrappers(
 }
 
 std::vector<TextRenderer::Label> TextRenderer::renderStringEx(
-    std::string const& str, Font font, float scale, ccColor3B color, GLubyte opacity, int style,
+    std::string str, Font font, float scale, ccColor3B color, GLubyte opacity, int style,
     int deco, TextCapitalization caps, bool addToTarget, bool isButton, CCObject* target,
     SEL_MenuHandler callback
 ) {
@@ -377,7 +379,7 @@ std::vector<TextRenderer::Label> TextRenderer::renderStringEx(
     if (!createLabel()) return {};
 
     bool firstLine = true;
-    for (auto line : utils::string::split(str, "\n")) {
+    for (auto line : utils::string::split(std::move(str), "\n")) {
         if (!firstLine && !nextLine()) {
             return {};
         }
@@ -441,19 +443,19 @@ std::vector<TextRenderer::Label> TextRenderer::renderStringEx(
     return res;
 }
 
-std::vector<TextRenderer::Label> TextRenderer::renderString(std::string const& str) {
+std::vector<TextRenderer::Label> TextRenderer::renderString(std::string str) {
     return this->renderStringEx(
-        str, this->getCurrentFont(), this->getCurrentScale(), this->getCurrentColor(),
+        std::move(str), this->getCurrentFont(), this->getCurrentScale(), this->getCurrentColor(),
         this->getCurrentOpacity(), this->getCurrentStyle(), this->getCurrentDeco(),
         this->getCurrentCaps(), true, false, nullptr, nullptr
     );
 }
 
 std::vector<TextRenderer::Label> TextRenderer::renderStringInteractive(
-    std::string const& str, CCObject* target, SEL_MenuHandler callback
+    std::string str, CCObject* target, SEL_MenuHandler callback
 ) {
     return this->renderStringEx(
-        str, this->getCurrentFont(), this->getCurrentScale(), this->getCurrentColor(),
+        std::move(str), this->getCurrentFont(), this->getCurrentScale(), this->getCurrentColor(),
         this->getCurrentOpacity(), this->getCurrentStyle(), this->getCurrentDeco(),
         this->getCurrentCaps(), true, true, target, callback
     );
@@ -542,15 +544,15 @@ void TextRenderer::pushBMFont(char const* bmFont) {
     });
 }
 
-void TextRenderer::pushFont(Font const& font) {
-    m_fontStack.push_back(font);
+void TextRenderer::pushFont(Font font) {
+    m_fontStack.push_back(std::move(font));
 }
 
 void TextRenderer::popFont() {
     if (m_fontStack.size()) m_fontStack.pop_back();
 }
 
-TextRenderer::Font TextRenderer::getCurrentFont() const {
+TextRenderer::FontRef TextRenderer::getCurrentFont() const {
     if (!m_fontStack.size()) {
         return [](int) -> Label {
             return CCLabelBMFont::create("", "bigFont.fnt");

@@ -6,7 +6,7 @@ namespace geode::utils::coro {
 	Task<void> nextFrame() {
 		auto [task, post, prog, cancel] = Task<void>::spawn("<Next Frame>");
 
-		queueInMainThread([post]() {
+		queueInMainThread([post = std::move(post)] mutable {
 			post(true);
 		});
 

@@ -23,16 +23,15 @@ using namespace geode::prelude;
 
 using geode::utils::permission::Permission;
 
-bool utils::clipboard::write(std::string const& data) {
+bool utils::clipboard::write(ZStringView data) {
     [UIPasteboard generalPasteboard].string = [NSString stringWithUTF8String:data.c_str()];
     return true;
 }
-
 std::string utils::clipboard::read() {
     return std::string([[UIPasteboard generalPasteboard].string UTF8String]);
 }
 
-void utils::web::openLinkInBrowser(std::string const& url) {
+void utils::web::openLinkInBrowser(ZStringView url) {
     [[UIApplication sharedApplication]
         openURL:[NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]] options:{} completionHandler:nil];
 }
@@ -378,12 +377,14 @@ bool geode::utils::permission::getPermissionStatus(Permission permission) {
     }
 }
 
-void geode::utils::permission::requestPermission(Permission permission, std::function<void(bool)> callback) {
+void geode::utils::permission::requestPermission(Permission permission, geode::Function<void(bool)> callback) {
     switch (permission) {
-        case Permission::RecordAudio: 
+        case Permission::RecordAudio: {
+            __block geode::Function<void(bool)> cb = std::move(callback);
             return [[AVAudioSession sharedInstance] requestRecordPermission:^(BOOL granted) {
-                callback(granted == YES);
+                cb(granted == YES);
             }];
+        }
         default: // ios doesnt have a "access all files" permission
             return callback(false);
     }
@@ -398,28 +399,28 @@ std::string geode::utils::thread::getDefaultName() {
     return fmt::format("Thread #{}", tid);
 }
 
-void geode::utils::thread::platformSetName(std::string const& name) {
+void geode::utils::thread::platformSetName(ZStringView name) {
     pthread_setname_np(name.c_str());
 }
 
 
-Result<> geode::hook::addObjcMethod(std::string const& className, std::string const& selectorName, void* imp) {
-    auto cls = objc_getClass(className.c_str());
+Result<> geode::hook::addObjcMethod(char const* className, char const* selectorName, void* imp) {
+    auto cls = objc_getClass(className);
     if (!cls)
         return Err("Class not found");
 
-    auto sel = sel_registerName(selectorName.c_str());
+    auto sel = sel_registerName(selectorName);
 
     class_addMethod(cls, sel, (IMP)imp, "v@:");
 
     return Ok();
 }
-Result<void*> geode::hook::getObjcMethodImp(std::string const& className, std::string const& selectorName) {
-    auto cls = objc_getClass(className.c_str());
+Result<void*> geode::hook::getObjcMethodImp(char const* className, char const* selectorName) {
+    auto cls = objc_getClass(className);
     if (!cls)
         return Err("Class not found");
 
-    auto sel = sel_registerName(selectorName.c_str());
+    auto sel = sel_registerName(selectorName);
 
     auto method = class_getInstanceMethod(cls, sel);
     if (!method)
@@ -428,12 +429,12 @@ Result<void*> geode::hook::getObjcMethodImp(std::string const& className, std::s
     return Ok((void*)method_getImplementation(method));
 }
 
-Result<void*> geode::hook::replaceObjcMethod(std::string const& className, std::string const& selectorName, void* imp) {
-    auto cls = objc_getClass(className.c_str());
+Result<void*> geode::hook::replaceObjcMethod(char const* className, char const* selectorName, void* imp) {
+    auto cls = objc_getClass(className);
     if (!cls)
         return Err("Class not found");
 
-    auto sel = sel_registerName(selectorName.c_str());
+    auto sel = sel_registerName(selectorName);
 
     auto method = class_getInstanceMethod(cls, sel);
     if (!method)

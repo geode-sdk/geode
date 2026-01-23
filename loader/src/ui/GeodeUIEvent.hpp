@@ -27,6 +27,6 @@ public:
     CCNode* sprite;
     std::string modID;
 
-    Impl(CCNode* sprite, std::string const& modID)
-      : sprite(sprite), modID(modID) {}
+    Impl(CCNode* sprite, std::string modID)
+      : sprite(sprite), modID(std::move(modID)) {}
 };

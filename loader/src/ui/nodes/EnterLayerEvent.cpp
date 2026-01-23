@@ -3,12 +3,12 @@
 using namespace geode::prelude;
 
 AEnterLayerEvent::AEnterLayerEvent(
-    std::string const& layerID,
+    std::string layerID,
     cocos2d::CCNode* layer
-) : layerID(layerID),
+) : layerID(std::move(layerID)),
     layer(layer) {}
 
-ListenerResult AEnterLayerFilter::handle(std::function<Callback> fn, AEnterLayerEvent* event) {
+ListenerResult AEnterLayerFilter::handle(geode::Function<Callback>& fn, AEnterLayerEvent* event) {
     if (m_targetID == event->layerID) {
         fn(event);
     }
@@ -16,5 +16,5 @@ ListenerResult AEnterLayerFilter::handle(std::function<Callback> fn, AEnterLayer
 }
 
 AEnterLayerFilter::AEnterLayerFilter(
-    std::optional<std::string> const& id
-) : m_targetID(id) {}
+    std::optional<std::string> id
+) : m_targetID(std::move(id)) {}

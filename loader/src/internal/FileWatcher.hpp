@@ -2,14 +2,15 @@
 
 #include <Geode/DefaultInclude.hpp>
 //#include <Geode/utils/general.hpp>
+#include <Geode/utils/function.hpp>
 #include <filesystem>
 #include <functional>
 #include <string>
 
 class FileWatcher {
 public:
-    using FileWatchCallback = std::function<void(std::filesystem::path)>;
-    using ErrorCallback = std::function<void(std::string)>;
+    using FileWatchCallback = geode::Function<void(std::filesystem::path)>;
+    using ErrorCallback = geode::Function<void(std::string)>;
 
 protected:
     std::filesystem::path m_file;

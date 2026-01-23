@@ -10,6 +10,8 @@
 #include <Geode/Result.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/ranges.hpp>
+#include <Geode/utils/function.hpp>
+#include <Geode/utils/StringMap.hpp>
 #include "ModImpl.hpp"
 #include <crashlog.hpp>
 #include <mutex>
@@ -33,14 +35,15 @@ namespace geode {
 
         std::vector<std::filesystem::path> m_modSearchDirectories;
         std::vector<LoadProblem> m_problems;
-        std::unordered_map<std::string, Mod*> m_mods;
+        StringMap<Mod*> m_mods;
         std::deque<Mod*> m_modsToLoad;
         std::vector<std::filesystem::path> m_texturePaths;
         bool m_isSetup = false;
 
         LoadingState m_loadingState = LoadingState::None;
 
-        std::vector<std::function<void(void)>> m_mainThreadQueue;
+        std::vector<geode::Function<void(void)>> m_mainThreadQueue;
+        std::vector<geode::Function<void(void)>> m_mainThreadQueueExec; // see comments in loaderimpl.cpp for the purpose
         mutable std::mutex m_mainThreadMutex;
         std::vector<std::pair<Hook*, Mod*>> m_uninitializedHooks;
         bool m_readyToHook = false;
@@ -57,7 +60,7 @@ namespace geode {
         int m_refreshedModCount = 0;
         int m_lateRefreshedModCount = 0;
 
-        std::unordered_map<std::string, std::string> m_launchArgs;
+        utils::StringMap<std::string> m_launchArgs;
 
         std::chrono::time_point<std::chrono::high_resolution_clock> m_timerBegin;
 
@@ -110,10 +113,10 @@ namespace geode {
         void refreshModGraph();
         void continueRefreshModGraph();
 
-        bool isModInstalled(std::string const& id) const;
-        Mod* getInstalledMod(std::string const& id) const;
-        bool isModLoaded(std::string const& id) const;
-        Mod* getLoadedMod(std::string const& id) const;
+        bool isModInstalled(std::string_view id) const;
+        Mod* getInstalledMod(std::string_view id) const;
+        bool isModLoaded(std::string_view id) const;
+        Mod* getLoadedMod(std::string_view id) const;
         std::vector<Mod*> getAllMods();
         std::vector<LoadProblem> getProblems() const;
 
@@ -152,7 +155,7 @@ namespace geode {
 
         // This will potentially start a whole sequence of popups that guide the
         // user through installing the specific .geode file
-        void installModManuallyFromFile(std::filesystem::path const& path, std::function<void()> after);
+        void installModManuallyFromFile(std::filesystem::path const& path, geode::Function<void()> after);
 
         bool isRestartRequired() const;
 

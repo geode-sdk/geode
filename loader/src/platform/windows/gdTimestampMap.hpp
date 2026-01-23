@@ -37,6 +37,8 @@ static auto const& getGDVersionTimestampMap() {
         { 1731130219, "2.2072" },
         { 1731156923, "2.2073" },
         { 1731376950, "2.2074" },
+        { 1768823161, "2.208" },
+        { 1768959392, "2.2081" },
     };
     return map;
 }
@@ -46,7 +48,7 @@ static std::string timestampToVersion(uint32_t timestamp) {
     if (it != getGDVersionTimestampMap().end()) {
         return std::string(it->second);
     } else {
-        return std::to_string(timestamp);
+        return fmt::to_string(timestamp);
     }
 }
 

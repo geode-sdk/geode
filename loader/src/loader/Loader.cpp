@@ -45,19 +45,19 @@ Loader::LoadingState Loader::getLoadingState() {
     return m_impl->m_loadingState;
 }
 
-bool Loader::isModInstalled(std::string const& id) const {
+bool Loader::isModInstalled(std::string_view id) const {
     return m_impl->isModInstalled(id);
 }
 
-Mod* Loader::getInstalledMod(std::string const& id) const {
+Mod* Loader::getInstalledMod(std::string_view id) const {
     return m_impl->getInstalledMod(id);
 }
 
-bool Loader::isModLoaded(std::string const& id) const {
+bool Loader::isModLoaded(std::string_view id) const {
     return m_impl->isModLoaded(id);
 }
 
-Mod* Loader::getLoadedMod(std::string const& id) const {
+Mod* Loader::getLoadedMod(std::string_view id) const {
     return m_impl->getLoadedMod(id);
 }
 
@@ -65,13 +65,22 @@ std::vector<Mod*> Loader::getAllMods() {
     return m_impl->getAllMods();
 }
 
+size_t Loader::getNumberOfInvalidGeodeFiles() const {
+    size_t count = 0;
+    for (auto problem : this->getAllProblems()) {
+        if (problem.type == LoadProblem::Type::InvalidFile) {
+            count += 1;
+        }
+    }
+    return count;
+}
 std::vector<LoadProblem> Loader::getAllProblems() const {
     return m_impl->getProblems();
 }
 std::vector<LoadProblem> Loader::getLoadProblems() const {
     std::vector<LoadProblem> result;
     for (auto problem : this->getAllProblems()) {
-        if (problem.isProblem()) {
+        if (problem.isProblemTheUserShouldCareAbout()) {
             result.push_back(problem);
         }
     }

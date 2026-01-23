@@ -3,6 +3,8 @@
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/utils/ZStringView.hpp>
+#include <Geode/utils/function.hpp>
 #include <Geode/ui/Layout.hpp>
 
 namespace geode {
@@ -55,7 +57,7 @@ namespace geode {
             }
 
         public:
-            ListenerResult handle(std::function<Callback> fn, CloseEvent* event) {
+            ListenerResult handle(geode::Function<Callback>& fn, CloseEvent* event) {
                 if (event->getPopup() == m_impl->popup) {
                     fn(event);
                 }
@@ -155,10 +157,13 @@ namespace geode {
 
         virtual bool setup(InitArgs... args) = 0;
 
-        void keyDown(cocos2d::enumKeyCodes key) override {
-            if (key == cocos2d::enumKeyCodes::KEY_Escape) return this->onClose(nullptr);
+        void keyBackClicked() override {
+            this->onClose(nullptr);
+        }
+
+        void keyDown(cocos2d::enumKeyCodes key, double p1) override {
             if (key == cocos2d::enumKeyCodes::KEY_Space) return;
-            return FLAlertLayer::keyDown(key);
+            return FLAlertLayer::keyDown(key, p1);
         }
 
         virtual void onClose(cocos2d::CCObject*) {
@@ -169,7 +174,7 @@ namespace geode {
         }
 
         void setTitle(
-            std::string const& title,
+            ZStringView title,
             const char* font = "goldFont.fnt",
             float scale = .7f,
             float offset = 20.f
@@ -216,22 +221,12 @@ namespace geode {
     };
 
     GEODE_DLL FLAlertLayer* createQuickPopup(
-        char const* title, std::string const& content, char const* btn1, char const* btn2,
-        std::function<void(FLAlertLayer*, bool)> selected, bool doShow = true
+        char const* title, std::string content, char const* btn1, char const* btn2,
+        geode::Function<void(FLAlertLayer*, bool)> selected, bool doShow = true, bool cancelledByEscape = false
     );
 
     GEODE_DLL FLAlertLayer* createQuickPopup(
-        char const* title, std::string const& content, char const* btn1, char const* btn2,
-        float width, std::function<void(FLAlertLayer*, bool)> selected, bool doShow = true
-    );
-
-    GEODE_DLL FLAlertLayer* createQuickPopup(
-        char const* title, std::string const& content, char const* btn1, char const* btn2,
-        std::function<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
-    );
-
-    GEODE_DLL FLAlertLayer* createQuickPopup(
-        char const* title, std::string const& content, char const* btn1, char const* btn2,
-        float width, std::function<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
+        char const* title, std::string content, char const* btn1, char const* btn2,
+        float width, geode::Function<void(FLAlertLayer*, bool)> selected, bool doShow = true, bool cancelledByEscape = false
     );
 }

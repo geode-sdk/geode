@@ -47,7 +47,7 @@ ModSource::ModSource(server::ServerModMetadata&& metadata) : m_value(metadata) {
 std::string ModSource::getID() const {
     return std::visit(makeVisitor {
         [](Mod* mod) {
-            return mod->getID();
+            return std::string{mod->getID()};
         },
         [](server::ServerModMetadata const& metadata) {
             return metadata.id;
@@ -59,7 +59,7 @@ ModMetadata const& ModSource::getMetadata() const {
         // the return type annotation is super important here or else for some unknown to me reason
         // those lambdas decide to return a value and thus the function will return a ref to a temporary
         [](Mod* mod) -> ModMetadata const& {
-            return mod->getMetadataRef();
+            return mod->getMetadata();
         },
         [](server::ServerModMetadata const& metadata) -> ModMetadata const& {
             // Versions should be guaranteed to have at least one item
@@ -71,7 +71,7 @@ ModMetadata const& ModSource::getMetadata() const {
 std::string ModSource::formatDevelopers() const {
     return std::visit(makeVisitor {
         [](Mod* mod) {
-            return ModMetadata::formatDeveloperDisplayString(mod->getMetadataRef().getDevelopers());
+            return ModMetadata::formatDeveloperDisplayString(mod->getMetadata().getDevelopers());
         },
         [](server::ServerModMetadata const& metadata) {
             // Versions should be guaranteed to have at least one item
@@ -136,7 +136,7 @@ server::ServerRequest<std::optional<std::string>> ModSource::fetchAbout() const 
     // todo: write as visit
     if(!this->hasUpdates()) {
         if (auto mod = this->asMod()) {
-            return server::ServerRequest<std::optional<std::string>>::immediate(Ok(mod->getMetadataRef().getDetails()));
+            return server::ServerRequest<std::optional<std::string>>::immediate(Ok(mod->getMetadata().getDetails()));
         }
     }
     return server::getMod(this->getID()).map(
@@ -151,7 +151,7 @@ server::ServerRequest<std::optional<std::string>> ModSource::fetchAbout() const 
 server::ServerRequest<std::optional<std::string>> ModSource::fetchChangelog() const {
     if(!this->hasUpdates()) {
         if (auto mod = this->asMod()) {
-            return server::ServerRequest<std::optional<std::string>>::immediate(Ok(mod->getMetadataRef().getChangelog()));
+            return server::ServerRequest<std::optional<std::string>>::immediate(Ok(mod->getMetadata().getChangelog()));
         }
     }
     return server::getMod(this->getID()).map(
@@ -173,7 +173,7 @@ server::ServerRequest<std::vector<server::ServerTag>> ModSource::fetchValidTags(
     std::unordered_set<std::string> modTags;
     std::visit(makeVisitor {
         [&](Mod* mod) {
-            modTags = mod->getMetadataRef().getTags();
+            modTags = mod->getMetadata().getTags();
         },
         [&](server::ServerModMetadata const& metadata) {
             modTags = metadata.tags;
