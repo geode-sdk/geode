@@ -89,7 +89,7 @@ public:
     CCPoint m_point;
     CCPoint m_prevPoint;
     // @note RobTop Addition
-    double m_timestamp;
+    CC_SYNTHESIZE_NV(double, m_timestamp, Timestamp);
 };
 
 class CC_DLL CCEvent : public CCObject

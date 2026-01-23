@@ -188,6 +188,9 @@ public:
     virtual bool isEnabled() { return m_bEnabled; }
     virtual void setEnabled(bool value) { m_bEnabled = value; };
 
+    // @note RobTop Addition
+    void giveMenuTouchPriority();
+
 protected:
     CCMenuItem* itemForTouch(CCTouch * touch);
     CCMenuItem* itemForTouch(CCTouch * touch, bool);

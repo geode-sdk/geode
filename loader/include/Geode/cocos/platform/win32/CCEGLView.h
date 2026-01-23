@@ -182,6 +182,10 @@ public:
 	void updateDesignSize(int, int);
 	void updateFrameSize();
 
+    // @note RobTop Addition
+    void pumpRawInput();
+    // @note RobTop Addition
+    void performSafeClipboardPaste();
 
 public:
     static CCEGLView* s_pEglView;
