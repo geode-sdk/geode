@@ -280,9 +280,14 @@ Result<matjson::Value> WebResponse::json() const {
         return fmt::format("Error parsing JSON: {}", err);
     });
 }
-ByteVector WebResponse::data() const {
+ByteVector const& WebResponse::data() const& {
     return m_impl->m_data;
 }
+
+ByteVector WebResponse::data() && {
+    return std::move(m_impl->m_data);
+}
+
 Result<> WebResponse::into(std::filesystem::path const& path) const {
     return m_impl->into(path);
 }
@@ -311,35 +316,29 @@ std::string_view WebResponse::errorMessage() const {
     return m_impl->m_errMessage;
 }
 
-class WebProgress::Impl {
+class web::WebRequestsManager {
+private:
+    class Impl;
+
+    std::shared_ptr<Impl> m_impl;
+
+    WebRequestsManager();
+    ~WebRequestsManager();
+
 public:
-    size_t m_downloadCurrent;
-    size_t m_downloadTotal;
-    size_t m_uploadCurrent;
-    size_t m_uploadTotal;
+    static WebRequestsManager* get();
+
+    struct RequestData {
+        std::shared_ptr<WebRequest::Impl> request;
+        WebResponse response;
+        WebTask::PostResult onComplete;
+        WebTask::PostProgress onProgress;
+        WebTask::HasBeenCancelled hasBeenCancelled;
+    };
+
+    void enqueue(std::shared_ptr<RequestData> data);
+    WebResponse enqueueAndWait(std::shared_ptr<WebRequest::Impl> data, WebTask::PostProgress progress = nullptr);
 };
-
-WebProgress::WebProgress() : m_impl(std::make_shared<Impl>()) {}
-
-size_t WebProgress::downloaded() const {
-    return m_impl->m_downloadCurrent;
-}
-size_t WebProgress::downloadTotal() const {
-    return m_impl->m_downloadTotal;
-}
-std::optional<float> WebProgress::downloadProgress() const {
-    return downloadTotal() > 0 ? std::optional(downloaded() * 100.f / downloadTotal()) : std::nullopt;
-}
-
-size_t WebProgress::uploaded() const {
-    return m_impl->m_uploadCurrent;
-}
-size_t WebProgress::uploadTotal() const {
-    return m_impl->m_uploadTotal;
-}
-std::optional<float> WebProgress::uploadProgress() const {
-    return uploadTotal() > 0 ? std::optional(uploaded() * 100.f / uploadTotal()) : std::nullopt;
-}
 
 static void hexAppend(auto& buf, unsigned char c) {
     auto hexDigits = "0123456789ABCDEF";

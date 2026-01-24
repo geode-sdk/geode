@@ -136,7 +136,8 @@ namespace geode::utils::web {
 
         Result<std::string> string() const;
         Result<matjson::Value> json() const;
-        ByteVector data() const;
+        ByteVector const& data() const&;
+        ByteVector data() &&;
         Result<> into(std::filesystem::path const& path) const;
 
         std::vector<std::string> headers() const;
@@ -159,25 +160,30 @@ namespace geode::utils::web {
         std::string_view errorMessage() const;
     };
 
-    class GEODE_DLL WebProgress final {
+    class WebProgress final {
     private:
-        class Impl;
-
-        std::shared_ptr<Impl> m_impl;
+        size_t m_downloadCurrent = 0;
+        size_t m_downloadTotal = 0;
+        size_t m_uploadCurrent = 0;
+        size_t m_uploadTotal = 0;
 
         friend class WebRequest;
 
     public:
         // Must be default-constructible for use in Promise
-        WebProgress();
+        WebProgress() = default;
 
-        size_t downloaded() const;
-        size_t downloadTotal() const;
-        std::optional<float> downloadProgress() const;
+        size_t downloaded() const { return m_downloadCurrent; }
+        size_t downloadTotal() const { return m_downloadTotal; }
+        std::optional<float> downloadProgress() const {
+            return downloadTotal() > 0 ? std::optional(downloaded() * 100.f / downloadTotal()) : std::nullopt;
+        }
 
-        size_t uploaded() const;
-        size_t uploadTotal() const;
-        std::optional<float> uploadProgress() const;
+        size_t uploaded() const { return m_uploadCurrent; }
+        size_t uploadTotal() const { return m_uploadTotal; }
+        std::optional<float> uploadProgress() const {
+            return uploadTotal() > 0 ? std::optional(uploaded() * 100.f / uploadTotal()) : std::nullopt;
+        }
     };
 
     using WebTask = Task<WebResponse, WebProgress>;
@@ -406,29 +412,5 @@ namespace geode::utils::web {
          * @return HttpVersion
          */
         HttpVersion getHttpVersion() const;
-    };
-
-    class GEODE_DLL WebRequestsManager final {
-    private:
-        class Impl;
-
-        std::shared_ptr<Impl> m_impl;
-
-        WebRequestsManager();
-        ~WebRequestsManager();
-
-    public:
-        static WebRequestsManager* get();
-
-        struct RequestData {
-            std::shared_ptr<WebRequest::Impl> request;
-            WebResponse response;
-            WebTask::PostResult onComplete;
-            WebTask::PostProgress onProgress;
-            WebTask::HasBeenCancelled hasBeenCancelled;
-        };
-
-        void enqueue(std::shared_ptr<RequestData> data);
-        WebResponse enqueueAndWait(std::shared_ptr<WebRequest::Impl> data, WebTask::PostProgress progress = nullptr);
     };
 }
