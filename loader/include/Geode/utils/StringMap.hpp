@@ -39,4 +39,6 @@ struct StringHash {
 template <typename T>
 using StringMap = std::unordered_map<std::string, T, StringHash, std::equal_to<>>;
 
+using StringSet = std::unordered_set<std::string, StringHash, std::equal_to<>>;
+
 }

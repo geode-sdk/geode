@@ -702,9 +702,7 @@ Unzip::~Unzip() {}
 
 Unzip::Unzip(std::unique_ptr<Unzip::Impl>&& impl) : m_impl(std::move(impl)) {}
 
-Unzip::Unzip(Unzip&& other) : m_impl(std::move(other.m_impl)) {
-    other.m_impl = nullptr;
-}
+Unzip::Unzip(Unzip&& other) noexcept = default;
 
 Result<Unzip> Unzip::create(Path const& file) {
     GEODE_UNWRAP_INTO(auto impl, Zip::Impl::inFile(file, MZ_OPEN_MODE_READ));
@@ -801,9 +799,7 @@ Zip::~Zip() {}
 
 Zip::Zip(std::unique_ptr<Zip::Impl>&& impl) : m_impl(std::move(impl)) {}
 
-Zip::Zip(Zip&& other) : m_impl(std::move(other.m_impl)) {
-    other.m_impl = nullptr;
-}
+Zip::Zip(Zip&& other) noexcept = default;
 
 Result<Zip> Zip::create(Path const& file) {
     GEODE_UNWRAP_INTO(auto impl, Zip::Impl::inFile(file, MZ_OPEN_MODE_CREATE | MZ_OPEN_MODE_WRITE));
