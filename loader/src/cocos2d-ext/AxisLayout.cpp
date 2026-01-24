@@ -1,3 +1,4 @@
+#include "BaseAxisLayoutImpl.hpp"
 #include <cocos2d.h>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/ranges.hpp>
@@ -127,14 +128,11 @@ static AxisPosition nodeAxis(CCNode* node, Axis axis, float scale) {
     }
 }
 
-class AxisLayout::Impl {
+class AxisLayout::Impl : public BaseAxisLayoutImpl {
 public:
-    Axis m_axis;
     AxisAlignment m_axisAlignment = AxisAlignment::Center;
     AxisAlignment m_crossAlignment = AxisAlignment::Center;
     AxisAlignment m_crossLineAlignment = AxisAlignment::Center;
-    float m_gap = 5.f;
-    bool m_ignoreInvisibleChildren = true;
     bool m_autoScale = true;
     bool m_axisReverse = false;
     bool m_crossReverse = false;
@@ -142,6 +140,8 @@ public:
     bool m_growCrossAxis = false;
     std::optional<float> m_autoGrowAxisMinLength;
     std::pair<float, float> m_defaultScaleLimits = { AXISLAYOUT_DEFAULT_MIN_SCALE, 1 };
+
+    Impl(Axis axis) : BaseAxisLayoutImpl(axis, 5.f) {}
 
     struct Row : public CCObject {
         float nextOverflowScaleDownFactor;
@@ -741,16 +741,6 @@ public:
             }
         }
     }
-
-    CCArray* getNodesToPosition(CCNode* on) const {
-        auto arr = CCArray::create();
-        for (auto child : CCArrayExt<CCNode*>(on->getChildren())) {
-            if (!m_ignoreInvisibleChildren || child->isVisible()) {
-                arr->addObject(child);
-            }
-        }
-        return arr;
-    }
 };
 
 void AxisLayout::apply(CCNode* on) {
@@ -949,9 +939,7 @@ bool AxisLayout::isIgnoreInvisibleChildren() const {
     return m_impl->m_ignoreInvisibleChildren;
 }
 
-AxisLayout::AxisLayout(Axis axis) : m_impl(std::make_unique<Impl>()) {
-    m_impl->m_axis = axis;
-}
+AxisLayout::AxisLayout(Axis axis) : m_impl(std::make_unique<Impl>(axis)) {}
 AxisLayout::~AxisLayout() {}
 
 AxisLayout* AxisLayout::create(Axis axis) {

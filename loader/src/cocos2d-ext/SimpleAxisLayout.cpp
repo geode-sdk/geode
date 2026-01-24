@@ -1,3 +1,4 @@
+#include "BaseAxisLayoutImpl.hpp"
 #include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/ui/SpacerNode.hpp>
 #include <Geode/utils/cocos.hpp>
@@ -50,16 +51,14 @@ ScalingPriority SimpleAxisLayoutOptions::getScalingPriority() const {
     return m_impl->m_scalingPriority;
 }
 
-class SimpleAxisLayout::Impl {
+class SimpleAxisLayout::Impl : public BaseAxisLayoutImpl {
 public:
-    Axis m_axis = Axis::Column;
     AxisScaling m_mainAxisScaling = AxisScaling::ScaleDownGaps;
     AxisScaling m_crossAxisScaling = AxisScaling::None;
     MainAxisAlignment m_mainAxisAlignment = MainAxisAlignment::Center;
     CrossAxisAlignment m_crossAxisAlignment = CrossAxisAlignment::Center;
     AxisDirection m_mainAxisDirection = AxisDirection::FrontToBack;
     AxisDirection m_crossAxisDirection = AxisDirection::FrontToBack;
-    float m_gap = 0.f;
     std::optional<float> m_minRelativeScale = 0.5f;
     std::optional<float> m_maxRelativeScale = 2.f;
     SimpleAxisLayout* m_layout = nullptr;
@@ -73,9 +72,7 @@ public:
     std::unordered_map<CCNode*, float> m_originalScalesPerNode;
     std::unordered_map<CCNode*, float> m_relativeScalesPerNode;
 
-    bool m_ignoreInvisibleChildren = true;
-
-    Impl(Axis axis, SimpleAxisLayout* parent) : m_axis(axis), m_layout(parent) {
+    Impl(Axis axis, SimpleAxisLayout* parent) : BaseAxisLayoutImpl(axis, 0.f), m_layout(parent) {
         switch (axis) {
             case Axis::Column:
                 m_mainAxisDirection = AxisDirection::TopToBottom;
@@ -219,16 +216,6 @@ public:
         auto const maxScale = this->getMaxScale(on);
         if (maxScale) return std::min(maxAllowedScale, *maxScale);
         return maxAllowedScale;
-    }
-
-    CCArray* getNodesToPosition(CCNode* on) const {
-        auto arr = CCArray::create();
-        for (auto child : CCArrayExt<CCNode*>(on->getChildren())) {
-            if (!m_ignoreInvisibleChildren || child->isVisible()) {
-                arr->addObject(child);
-            }
-        }
-        return arr;
     }
 };
 
