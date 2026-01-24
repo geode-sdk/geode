@@ -657,12 +657,12 @@ public:
                 }
 
                 // Post progress to Promise listener
-                auto progress = WebProgress();
-                progress.m_impl->m_downloadTotal = dtotal;
-                progress.m_impl->m_downloadCurrent = dnow;
-                progress.m_impl->m_uploadTotal = utotal;
-                progress.m_impl->m_uploadCurrent = unow;
-                data->onProgress(std::move(progress));
+                WebProgress progress{};
+                progress.m_downloadTotal = dtotal;
+                progress.m_downloadCurrent = dnow;
+                progress.m_uploadTotal = utotal;
+                progress.m_uploadCurrent = unow;
+                data->onProgress(progress);
 
                 // Continue as normal
                 return 0;
