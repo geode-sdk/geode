@@ -43,11 +43,14 @@ namespace geode::updater {
     void downloadLoaderResources(bool useLatestRelease = false);
     void downloadLatestLoaderResources();
     void downloadLoaderUpdate(std::string const& url);
+
+    /*
     void fetchLatestGithubRelease(
         const std::function<void(matjson::Value const&)>& then,
         std::function<void(std::string const&)> expect,
         bool force = false
     );
+    */
 
     bool verifyLoaderResources();
     void checkForLoaderUpdates();

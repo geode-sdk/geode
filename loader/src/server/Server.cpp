@@ -529,6 +529,20 @@ Result<ServerModsList> ServerModsList::parse(matjson::Value const& raw) {
     return payload.ok(list);
 }
 
+Result<ServerLoaderVersion> ServerLoaderVersion::parse(matjson::Value const& raw) {
+    auto root = checkJson(raw, "ServerLoaderVersion");
+
+    auto res = ServerLoaderVersion();
+    root.needs("version").into(res.version);
+    root.needs("tag").into(res.tag);
+    root.needs("commit_hash").into(res.commitHash);
+
+    auto gd_obj = root.needs("gd");
+    gd_obj.needs(GEODE_PLATFORM_SHORT_IDENTIFIER).into(res.gameVersion);
+
+    return root.ok(res);
+}
+
 ModMetadata ServerModMetadata::latestVersion() const {
     return this->versions.front().metadata;
 }
@@ -888,6 +902,44 @@ ServerRequest<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCach
         },
         "Mod Update Check"
     );
+}
+
+ServerRequest<ServerLoaderVersion> server::getLoaderVersion(std::string_view tag, bool useCache) {
+    if (useCache) {
+        return getCache<getLoaderVersion>().get(tag);
+    }
+
+    auto req = web::WebRequest();
+    req.userAgent(getServerUserAgent());
+
+    req.param("platform", GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH);
+    req.param("gd", GEODE_GD_VERSION_STR);
+
+    return req.get(formatServerURL("/loader/versions/{}", tag)).map(
+        [](web::WebResponse* response) -> Result<ServerLoaderVersion, ServerError> {
+            if (response->ok()) {
+                // Parse payload
+                auto payload = parseServerPayload(*response);
+                if (!payload) {
+                    return Err(payload.unwrapErr());
+                }
+                // Parse response
+                auto r = ServerLoaderVersion::parse(payload.unwrap());
+                if (!r) {
+                    return Err(ServerError(response->code(), "Unable to parse response: {}", r.unwrapErr()));
+                }
+                return Ok(r.unwrap());
+            }
+            return Err(parseServerError(*response));
+        },
+        [](web::WebProgress* progress) {
+            return parseServerProgress(*progress, "Checking for loader updates");
+        }
+    );
+}
+
+ServerRequest<ServerLoaderVersion> server::getLatestLoaderVersion(bool useCache) {
+    return getLoaderVersion("latest", useCache);
 }
 
 void server::clearServerCaches(bool clearGlobalCaches) {
