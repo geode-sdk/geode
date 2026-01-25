@@ -900,6 +900,8 @@ public:
     std::queue<std::shared_ptr<RequestData>> m_pendingRequests;
     std::unordered_map<CURL*, std::shared_ptr<RequestData>> m_activeRequests;
 
+    std::binary_semaphore m_semaphore{0};
+
     Impl() {
         m_multiHandle = curl_multi_init();
         curl_multi_setopt(m_multiHandle, CURLMOPT_MAX_TOTAL_CONNECTIONS, 32L);
@@ -911,6 +913,7 @@ public:
 
     ~Impl() {
         m_running = false;
+        m_semaphore.release();
         curl_multi_wakeup(m_multiHandle);
         if (m_worker.joinable()) {
             m_worker.join();
@@ -998,13 +1001,18 @@ public:
                 }
             }
 
-            bool empty;
+            bool idle;
             {
                 std::lock_guard lock(m_mutex);
-                empty = m_pendingRequests.empty();
+                idle = m_pendingRequests.empty() && m_activeRequests.empty();
             }
 
-            if (empty) {
+            if (idle) {
+                m_semaphore.acquire();
+                continue;
+            }
+
+            if (!m_activeRequests.empty()) {
                 int numfds = 0;
                 curl_multi_poll(m_multiHandle, nullptr, 0, -1, &numfds);
             }
@@ -1032,6 +1040,7 @@ void WebRequestsManager::enqueue(std::shared_ptr<RequestData> data) {
         std::lock_guard lock(m_impl->m_mutex);
         m_impl->m_pendingRequests.push(std::move(data));
     }
+    m_impl->m_semaphore.release();
     curl_multi_wakeup(m_impl->m_multiHandle);
 }
 
