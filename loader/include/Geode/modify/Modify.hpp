@@ -550,8 +550,6 @@ namespace geode {
 
         // abusing the internal stuff
         // basically we dont want modify to invoke base ctors and dtors
-        // we already have utilities for these, which are ccdestructor
-        // and the cutoff constructor
         Modify() : Base(CutoffConstructor, sizeof(Base)) {}
         Modify(ZeroConstructorType) : Base(ZeroConstructor, sizeof(Base)) {}
 
