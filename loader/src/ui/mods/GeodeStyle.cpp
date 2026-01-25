@@ -95,6 +95,34 @@ bool isGeodeTheme(bool forceDisableTheme) {
     return !forceDisableTheme && Mod::get()->getSettingValue<bool>("enable-geode-theme");
 }
 
+bool GeodePopup::init(float width, float height, GeodePopupStyle style, bool forceDisableTheme) {
+    m_forceDisableTheme = forceDisableTheme;
+
+    const bool geodeTheme = isGeodeTheme(forceDisableTheme);
+    const char* bg;
+    switch (style) {
+        default:
+        case GeodePopupStyle::Default: bg = geodeTheme ? "GE_square01.png"_spr : "GJ_square01.png"; break;
+        case GeodePopupStyle::Alt:     bg = geodeTheme ? "GE_square02.png"_spr : "GJ_square02.png"; break;
+        case GeodePopupStyle::Alt2:    bg = geodeTheme ? "GE_square03.png"_spr : "GJ_square02.png"; break;
+    }
+
+    if (!Popup::init(width, height, bg))
+        return false;
+
+    this->setCloseButtonSpr(
+        CircleButtonSprite::createWithSpriteFrameName(
+            "close.png"_spr, .85f,
+            (geodeTheme ?
+                (style == GeodePopupStyle::Default ? CircleBaseColor::DarkPurple : CircleBaseColor::DarkAqua) :
+                CircleBaseColor::Green
+            )
+        )
+    );
+
+    return true;
+}
+
 bool GeodeSquareSprite::init(CCSprite* top, bool* state, bool forceDisableTheme) {
     if (!CCSprite::initWithFile(isGeodeTheme(forceDisableTheme) ? "GE_button_05.png"_spr : "GJ_button_01.png"))
         return false;
@@ -107,7 +135,7 @@ bool GeodeSquareSprite::init(CCSprite* top, bool* state, bool forceDisableTheme)
     this->addChildAtPosition(top, Anchor::Center);
 
     // Only schedule update if there is a need to do so
-    if (state) {
+    if (state != nullptr) {
         this->scheduleUpdate();
     }
 

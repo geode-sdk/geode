@@ -8,7 +8,7 @@
 
 using namespace geode::prelude;
 
-class FiltersPopup : public GeodePopup<ModListSource*> {
+class FiltersPopup : public GeodePopup {
 protected:
     ModListSource* m_source;
     CCMenu* m_tagsMenu;
@@ -18,7 +18,7 @@ protected:
     CCMenuItemToggler* m_enabledModsFirst = nullptr;
     TextInput* m_developerNameInput = nullptr;
 
-    bool setup(ModListSource* src) override;
+    bool init(ModListSource* src);
     void updateTags();
 
     void onLoadTags(typename server::ServerRequest<std::vector<server::ServerTag>>::Event* event);

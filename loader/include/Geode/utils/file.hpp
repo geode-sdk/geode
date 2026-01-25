@@ -123,7 +123,7 @@ namespace geode::utils::file {
 
     public:
         Zip(Zip const&) = delete;
-        Zip(Zip&& other);
+        Zip(Zip&& other) noexcept;
         ~Zip();
 
         /**
@@ -188,7 +188,7 @@ namespace geode::utils::file {
 
     public:
         Unzip(Unzip const&) = delete;
-        Unzip(Unzip&& other);
+        Unzip(Unzip&& other) noexcept;
         ~Unzip();
 
         using Path = std::filesystem::path;

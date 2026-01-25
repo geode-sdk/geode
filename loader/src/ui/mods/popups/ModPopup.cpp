@@ -78,7 +78,12 @@ public:
     }
 };
 
-bool ModPopup::setup(ModSource&& src) {
+bool ModPopup::init(ModSource&& src) {
+    auto style = src.asServer() ? GeodePopupStyle::Alt : GeodePopupStyle::Default;
+
+    if (!GeodePopup::init(440.f, 280.f, style))
+        return false;
+
     m_source = std::move(src);
     m_noElasticity = true;
 
@@ -257,7 +262,6 @@ bool ModPopup::setup(ModSource&& src) {
         auto labelContainer = CCNode::create();
         labelContainer->setID("labels");
         labelContainer->setLayout(RowLayout::create());
-        labelContainer->getLayout()->ignoreInvisibleChildren(true);
         labelContainer->setAnchorPoint({ 1.f, .5f });
         labelContainer->setScale(.3f);
         labelContainer->setContentWidth(
@@ -487,7 +491,6 @@ bool ModPopup::setup(ModSource&& src) {
             ->setDefaultScaleLimits(.1f, 1)
             ->setAxisAlignment(AxisAlignment::Center)
     );
-    m_installMenu->getLayout()->ignoreInvisibleChildren(true);
     installContainer->addChildAtPosition(m_installMenu, Anchor::Center);
 
     leftColumn->addChild(installContainer);
@@ -1179,11 +1182,7 @@ void ModPopup::onModtober25Info(CCObject*) {
 
 ModPopup* ModPopup::create(ModSource&& src) {
     auto ret = new ModPopup();
-    GeodePopupStyle style = GeodePopupStyle::Default;
-    if (src.asServer()) {
-        style = GeodePopupStyle::Alt;
-    }
-    if (ret->init(440, 280, std::move(src), style)) {
+    if (ret->init(std::move(src))) {
         ret->autorelease();
         return ret;
     }

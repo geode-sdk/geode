@@ -37,13 +37,12 @@ ModMetadataLinks::ModMetadataLinks(ModMetadataLinks const& other)
 ModMetadataLinks::ModMetadataLinks(ModMetadataLinks&& other) noexcept
   : m_impl(std::move(other.m_impl)) {}
 ModMetadataLinks& ModMetadataLinks::operator=(ModMetadataLinks const& other) {
-    m_impl = std::make_unique<Impl>(*other.m_impl);
+    if (this != &other) {
+        m_impl = std::make_unique<Impl>(*other.m_impl);
+    }
     return *this;
 }
-ModMetadataLinks& ModMetadataLinks::operator=(ModMetadataLinks&& other) noexcept {
-    m_impl = std::move(other.m_impl);
-    return *this;
-}
+ModMetadataLinks& ModMetadataLinks::operator=(ModMetadataLinks&& other) noexcept = default;
 ModMetadataLinks::~ModMetadataLinks() = default;
 
 ModMetadata::Impl& ModMetadataImpl::getImpl(ModMetadata& info) {
@@ -73,14 +72,13 @@ ModMetadata::Dependency::Dependency(Dependency&& other) noexcept
   : m_impl(std::move(other.m_impl)) {}
 
 ModMetadata::Dependency& ModMetadata::Dependency::operator=(Dependency const& other) {
-    m_impl = std::make_unique<Impl>(*other.m_impl);
+    if (this != &other) {
+        m_impl = std::make_unique<Impl>(*other.m_impl);
+    }
     return *this;
 }
 
-ModMetadata::Dependency& ModMetadata::Dependency::operator=(Dependency&& other) noexcept {
-    m_impl = std::move(other.m_impl);
-    return *this;
-}
+ModMetadata::Dependency& ModMetadata::Dependency::operator=(Dependency&& other) noexcept = default;
 
 ModMetadata::Dependency::~Dependency() = default;
 
@@ -148,14 +146,13 @@ ModMetadata::Incompatibility::Incompatibility(Incompatibility&& other) noexcept
     : m_impl(std::move(other.m_impl)) {}
 
 ModMetadata::Incompatibility& ModMetadata::Incompatibility::operator=(Incompatibility const& other) {
-    m_impl = std::make_unique<Impl>(*other.m_impl);
+    if (this != &other) {
+        m_impl = std::make_unique<Impl>(*other.m_impl);
+    }
     return *this;
 }
 
-ModMetadata::Incompatibility& ModMetadata::Incompatibility::operator=(Incompatibility&& other) noexcept {
-    m_impl = std::move(other.m_impl);
-    return *this;
-}
+ModMetadata::Incompatibility& ModMetadata::Incompatibility::operator=(Incompatibility&& other) noexcept = default;
 
 ModMetadata::Incompatibility::~Incompatibility() = default;
 
@@ -212,14 +209,13 @@ ModMetadata::IssuesInfo::IssuesInfo(IssuesInfo&& other) noexcept
     : m_impl(std::move(other.m_impl)) {}
 
 ModMetadata::IssuesInfo& ModMetadata::IssuesInfo::operator=(IssuesInfo const& other) {
-    m_impl = std::make_unique<Impl>(*other.m_impl);
+    if (this != &other) {
+        m_impl = std::make_unique<Impl>(*other.m_impl);
+    }
     return *this;
 }
 
-ModMetadata::IssuesInfo& ModMetadata::IssuesInfo::operator=(IssuesInfo&& other) noexcept {
-    m_impl = std::move(other.m_impl);
-    return *this;
-}
+ModMetadata::IssuesInfo& ModMetadata::IssuesInfo::operator=(IssuesInfo&& other) noexcept = default;
 
 ModMetadata::IssuesInfo::~IssuesInfo() = default;
 
@@ -949,12 +945,11 @@ ModMetadata::ModMetadata(ModMetadata const& other) : m_impl(other.m_impl ? std::
 ModMetadata::ModMetadata(ModMetadata&& other) noexcept : m_impl(std::move(other.m_impl)) {}
 
 ModMetadata& ModMetadata::operator=(ModMetadata const& other) {
-    m_impl = std::make_unique<Impl>(*other.m_impl);
+    if (this != &other) {
+        m_impl = std::make_unique<Impl>(*other.m_impl);
+    }
     return *this;
 }
-ModMetadata& ModMetadata::operator=(ModMetadata&& other) noexcept {
-    m_impl = std::move(other.m_impl);
-    return *this;
-}
+ModMetadata& ModMetadata::operator=(ModMetadata&& other) noexcept = default;
 
 ModMetadata::~ModMetadata() = default;

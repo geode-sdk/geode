@@ -35,7 +35,7 @@ public:
         ErrorCallback error = nullptr
     );
     FileWatcher(FileWatcher const&) = delete;
-    inline FileWatcher(FileWatcher&& other)
+    inline FileWatcher(FileWatcher&& other) noexcept
       : m_file(std::move(other.m_file)),
         m_callback(std::move(other.m_callback)),
         m_error(std::move(other.m_error)),

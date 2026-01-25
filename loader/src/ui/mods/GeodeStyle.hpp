@@ -20,36 +20,11 @@ enum class GeodePopupStyle {
 
 bool isGeodeTheme(bool forceDisableTheme = false);
 
-template <class... Args>
-class GeodePopup : public Popup<Args...> {
+class GeodePopup : public Popup {
 protected:
     bool m_forceDisableTheme = false;
 
-    bool init(float width, float height, Args... args, GeodePopupStyle style = GeodePopupStyle::Default, bool forceDisableTheme = false) {
-        m_forceDisableTheme = forceDisableTheme;
-        const bool geodeTheme = isGeodeTheme(forceDisableTheme);
-        const char* bg;
-        switch (style) {
-            default:
-            case GeodePopupStyle::Default: bg = geodeTheme ? "GE_square01.png"_spr : "GJ_square01.png"; break;
-            case GeodePopupStyle::Alt:     bg = geodeTheme ? "GE_square02.png"_spr : "GJ_square02.png"; break;
-            case GeodePopupStyle::Alt2:    bg = geodeTheme ? "GE_square03.png"_spr : "GJ_square02.png"; break;
-        }
-        if (!Popup<Args...>::initAnchored(width, height, std::forward<Args>(args)..., bg))
-            return false;
-
-        this->setCloseButtonSpr(
-            CircleButtonSprite::createWithSpriteFrameName(
-                "close.png"_spr, .85f,
-                (geodeTheme ?
-                    (style == GeodePopupStyle::Default ? CircleBaseColor::DarkPurple : CircleBaseColor::DarkAqua) :
-                    CircleBaseColor::Green
-                )
-            )
-        );
-
-        return true;
-    }
+    bool init(float width, float height, GeodePopupStyle style = GeodePopupStyle::Default, bool forceDisableTheme = false);
 };
 
 class GeodeSquareSprite : public CCSprite {

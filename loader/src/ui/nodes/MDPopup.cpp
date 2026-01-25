@@ -5,10 +5,19 @@
 
 using namespace geode::prelude;
 
-bool MDPopup::setup(
+bool MDPopup::init(
     bool compatibilityMode, ZStringView title, std::string info, ZStringView btn1Text,
     ZStringView btn2Text, geode::Function<void(bool)> onClick
 ) {
+    if (!Popup::init(
+        400.f,
+        MDPopup::estimateHeight(info),
+        "square01_001.png",
+        { 0, 0, 94, 94 }
+    )) {
+        return false;
+    }
+
     m_onClick = std::move(onClick);
 
     auto contentSize = CCSize {
@@ -67,16 +76,7 @@ MDPopup* MDPopup::create(
     ZStringView title, std::string content, ZStringView btn1, ZStringView btn2,
     geode::Function<void(bool)> onClick
 ) {
-    auto ret = new MDPopup();
-    if (ret->initAnchored(
-            400.f, MDPopup::estimateHeight(content), false, title, std::move(content), btn1, btn2, std::move(onClick),
-            "square01_001.png", { 0, 0, 94, 94 }
-        )) {
-        ret->autorelease();
-        return ret;
-    }
-    delete ret;
-    return nullptr;
+    return MDPopup::create(false, title, std::move(content), btn1, btn2, std::move(onClick));
 }
 
 MDPopup* MDPopup::create(
@@ -85,10 +85,7 @@ MDPopup* MDPopup::create(
 ) {
     auto ret = new MDPopup();
 
-    if (ret->initAnchored(
-            400.f, MDPopup::estimateHeight(content), compatibilityMode, title, std::move(content), btn1, btn2, std::move(onClick),
-            "square01_001.png", { 0, 0, 94, 94 }
-        )) {
+    if (ret->init(compatibilityMode, title, std::move(content), btn1, btn2, std::move(onClick))) {
         ret->autorelease();
         return ret;
     }

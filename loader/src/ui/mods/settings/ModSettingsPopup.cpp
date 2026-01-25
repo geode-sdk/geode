@@ -26,17 +26,20 @@ static bool matchSearch(SettingNode* node, ZStringView query) {
     else {
         addToList |= weightedFuzzyMatch(setting->getKey(), query, 1, weighted);
     }
-    if (weighted < 60 + 10 * query.size()) {
+    if (weighted < 60.0 + 10.0 * query.size()) {
         addToList = false;
     }
     return addToList;
 }
 
-bool ModSettingsPopup::setup(Mod* mod) {
+bool ModSettingsPopup::init(Mod* mod, bool forceDisableTheme) {
+    if (!GeodePopup::init(440.f, 280.f, GeodePopupStyle::Default, forceDisableTheme))
+        return false;
+    
     m_noElasticity = true;
     m_mod = mod;
 
-    this->setTitle(("Settings for " + mod->getName()).c_str());
+    this->setTitle(fmt::format("Settings for {}", mod->getName()));
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
@@ -85,14 +88,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
         m_settings.push_back(node);
         m_list->m_contentLayer->addChild(node);
     }
-    m_list->m_contentLayer->setLayout(
-        ColumnLayout::create()
-            ->setAxisReverse(true)
-            ->setAutoGrowAxis(m_list->getContentHeight())
-            ->setCrossAxisOverflow(false)
-            ->setAxisAlignment(AxisAlignment::End)
-            ->setGap(0)
-    );
+    m_list->m_contentLayer->setLayout(ScrollLayer::createDefaultListLayout(0.f));
     m_list->moveToTop();
 
     const int buttonPriority = m_list->getTouchPriority() - 1;
@@ -116,7 +112,6 @@ bool ModSettingsPopup::setup(Mod* mod) {
     m_applyMenu = CCMenu::create();
     m_applyMenu->setContentWidth(150);
     m_applyMenu->setLayout(RowLayout::create());
-    m_applyMenu->getLayout()->ignoreInvisibleChildren(true);
     m_applyMenu->setTouchPriority(buttonPriority);
 
     auto restartBtnSpr = createGeodeButton("Restart Now", true, GeodeButtonSprite::Default, m_forceDisableTheme);
@@ -345,7 +340,7 @@ void ModSettingsPopup::onClose(CCObject* sender) {
 
 ModSettingsPopup* ModSettingsPopup::create(Mod* mod, bool forceDisableTheme) {
     auto ret = new ModSettingsPopup();
-    if (ret->init(440, 280, mod, GeodePopupStyle::Default, forceDisableTheme)) {
+    if (ret->init(mod, forceDisableTheme)) {
         ret->autorelease();
         return ret;
     }

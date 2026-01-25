@@ -34,7 +34,10 @@ ColorPickPopup::ColorPickPopup() {
 ColorPickPopup::~ColorPickPopup() {}
 
 
-bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
+bool ColorPickPopup::init(ccColor4B const& color, bool isRGBA) {
+    if (!Popup::init(400.f, isRGBA ? 290.f : 240.f))
+        return false;
+
     m_noElasticity = true;
     m_impl->m_color = color;
     m_impl->m_originalColor = color;
@@ -435,7 +438,7 @@ void ColorPickPopup::setColorTarget(cocos2d::CCSprite* spr) {
 
 ColorPickPopup* ColorPickPopup::create(ccColor4B const& color, bool isRGBA) {
     auto ret = new ColorPickPopup();
-    if (ret->initAnchored(400.f, (isRGBA ? 290.f : 240.f), color, isRGBA)) {
+    if (ret->init(color, isRGBA)) {
         ret->autorelease();
         return ret;
     }

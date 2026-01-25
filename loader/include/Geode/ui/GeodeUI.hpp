@@ -146,7 +146,7 @@ namespace geode {
      * @returns A pointer to the created Popup, or null if the mod has no
      * settings
      */
-    GEODE_DLL Popup<Mod*>* openSettingsPopup(Mod* mod, bool disableGeodeTheme);
+    GEODE_DLL Popup* openSettingsPopup(Mod* mod, bool disableGeodeTheme);
     /**
      * Create a default logo sprite
      */

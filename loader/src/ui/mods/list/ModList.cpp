@@ -132,7 +132,6 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
                 ->setMainAxisScaling(AxisScaling::Scale)
                 ->setCrossAxisScaling(AxisScaling::ScaleDownGaps)
         );
-        m_updateAllMenu->getLayout()->ignoreInvisibleChildren(true);
         m_updateAllContainer->addChildAtPosition(m_updateAllMenu, Anchor::Right, ccp(-10, 0));
 
         m_topContainer->addChild(m_updateAllContainer);
@@ -315,7 +314,6 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
             ->setAxisReverse(true)
             ->setAutoGrowAxis(0.f)
     );
-    m_topContainer->getLayout()->ignoreInvisibleChildren(true);
 
     this->addChildAtPosition(m_topContainer, Anchor::Top);
 
@@ -403,7 +401,6 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
             ->setMainAxisDirection(AxisDirection::TopToBottom)
             ->setGap(5.f)
     );
-    m_statusContainer->getLayout()->ignoreInvisibleChildren(true);
     this->addChildAtPosition(m_statusContainer, Anchor::Center);
 
     m_listener.bind(this, &ModList::onPromise);
@@ -423,6 +420,7 @@ void ModList::onPromise(ModListSource::PageLoadTask::Event* event) {
     if (event->getValue()) {
         auto result = event->getValue();
         if (result->isOk()) {
+            // This is apparently because `getChildren()` may be nullptr?
             if (m_list->m_contentLayer->getChildrenCount() > 0) {
                 m_list->m_contentLayer->removeAllChildren();
             }
@@ -626,13 +624,7 @@ void ModList::updateDisplay(ModListDisplay display) {
         );
     }
     else {
-        m_list->m_contentLayer->setLayout(
-            SimpleColumnLayout::create()
-                ->setMainAxisDirection(AxisDirection::TopToBottom)
-                ->setMainAxisAlignment(MainAxisAlignment::End)
-                ->setMainAxisScaling(AxisScaling::Fit)
-                ->setGap(2.5f)
-        );
+        m_list->m_contentLayer->setLayout(ScrollLayer::createDefaultListLayout());
     }
 
     // Make sure list isn't too small

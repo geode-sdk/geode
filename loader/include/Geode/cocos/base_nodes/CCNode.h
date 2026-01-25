@@ -882,6 +882,21 @@ public:
      */
     GEODE_DLL CCObject* getUserObject(std::string_view id);
 
+    
+    /**
+     * Set (or clear) a boolean flag on this node with a specific ID.
+     *
+     * @note Geode addition
+     */
+    GEODE_DLL void setUserFlag(std::string id, bool state = true);
+
+    /**
+     * Get whether this node has the given flag set.
+     *
+     * @note Geode addition
+     */
+    GEODE_DLL bool getUserFlag(std::string_view id);
+
     /// @} end of Tag & User Data
 
 private:
