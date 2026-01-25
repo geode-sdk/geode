@@ -180,8 +180,11 @@ public:
 	virtual void pollInputEvents();
 	void updateDesignResolutionSize();
 
+    // @note RobTop Addition
+    double getPlatformTimestamp();
+
 private:
-    void getSetOfTouchesEndOrCancel(CCSet& set, int num, int ids[], float xs[], float ys[]);
+    void getSetOfTouchesEndOrCancel(CCSet& set, int num, int ids[], float xs[], float ys[], double timestamp);
 
 public:
     EGLTouchDelegate* m_pDelegate;

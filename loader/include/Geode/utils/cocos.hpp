@@ -4,6 +4,7 @@
 #include "casts.hpp"
 #include "general.hpp"
 #include "../DefaultInclude.hpp"
+#include <Geode/utils/ZStringView.hpp>
 #include <cocos2d.h>
 #include <functional>
 #include <type_traits>
@@ -1485,11 +1486,11 @@ namespace geode::cocos {
          * @returns The created button
          */
         static CCMenuItemSpriteExtra* createSpriteExtraWithFilename(
-            std::string_view normalSpriteName,
+            ZStringView normalSpriteName,
             float scale,
             geode::Function<void(CCMenuItemSpriteExtra*)> callback
         ) {
-            auto sprite = cocos2d::CCSprite::create(normalSpriteName.data());
+            auto sprite = cocos2d::CCSprite::create(normalSpriteName.c_str());
             sprite->setScale(scale);
 
             return createSpriteExtra(sprite, std::move(callback));
@@ -1504,11 +1505,11 @@ namespace geode::cocos {
          * @returns The created button
          */
         static CCMenuItemSpriteExtra* createSpriteExtraWithFrameName(
-            std::string_view normalSpriteName,
+            ZStringView normalSpriteName,
             float scale,
             geode::Function<void(CCMenuItemSpriteExtra*)> callback
         ) {
-            auto sprite = cocos2d::CCSprite::createWithSpriteFrameName(normalSpriteName.data());
+            auto sprite = cocos2d::CCSprite::createWithSpriteFrameName(normalSpriteName.c_str());
             sprite->setScale(scale);
 
             return createSpriteExtra(sprite, std::move(callback));
@@ -1561,13 +1562,13 @@ namespace geode::cocos {
          * @returns The created toggle
          */
         static CCMenuItemToggler* createTogglerWithFilename(
-            std::string_view onSpriteName,
-            std::string_view offSpriteName,
+            ZStringView onSpriteName,
+            ZStringView offSpriteName,
             float scale,
             geode::Function<void(CCMenuItemToggler*)> callback
         ) {
-            auto offSprite = cocos2d::CCSprite::create(offSpriteName.data());
-            auto onSprite = cocos2d::CCSprite::create(onSpriteName.data());
+            auto offSprite = cocos2d::CCSprite::create(offSpriteName.c_str());
+            auto onSprite = cocos2d::CCSprite::create(onSpriteName.c_str());
 
             offSprite->setScale(scale);
             onSprite->setScale(scale);
@@ -1584,13 +1585,13 @@ namespace geode::cocos {
          * @returns The created toggle
          */
         static CCMenuItemToggler* createTogglerWithFrameName(
-            std::string_view onSpriteName,
-            std::string_view offSpriteName,
+            ZStringView onSpriteName,
+            ZStringView offSpriteName,
             float scale,
             geode::Function<void(CCMenuItemToggler*)> callback
         ) {
-            auto offSprite = cocos2d::CCSprite::createWithSpriteFrameName(offSpriteName.data());
-            auto onSprite = cocos2d::CCSprite::createWithSpriteFrameName(onSpriteName.data());
+            auto offSprite = cocos2d::CCSprite::createWithSpriteFrameName(offSpriteName.c_str());
+            auto onSprite = cocos2d::CCSprite::createWithSpriteFrameName(onSpriteName.c_str());
 
             offSprite->setScale(scale);
             onSprite->setScale(scale);

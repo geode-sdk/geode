@@ -98,7 +98,6 @@ bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
     m_impl->nameMenu->addChild(m_impl->resetButton);
 
     m_impl->nameMenu->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::Start));
-    m_impl->nameMenu->getLayout()->ignoreInvisibleChildren(true);
     this->addChildAtPosition(m_impl->nameMenu, Anchor::Left, ccp(10, 0), ccp(0, .5f));
 
     m_impl->buttonMenu = CCMenu::create();

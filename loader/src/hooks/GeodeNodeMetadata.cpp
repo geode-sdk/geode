@@ -25,6 +25,7 @@ private:
     Ref<Layout> m_layout = nullptr;
     Ref<LayoutOptions> m_layoutOptions = nullptr;
     StringMap<Ref<CCObject>> m_userObjects;
+    StringSet m_userFlags;
     std::unordered_set<std::unique_ptr<EventListenerProtocol>> m_eventListeners;
     StringMap<std::unique_ptr<EventListenerProtocol>> m_idEventListeners;
 
@@ -92,6 +93,18 @@ public:
             }
         } else {
             m_userObjects.erase(id);
+        }
+    }
+
+    bool getUserFlag(std::string_view id) {
+        return m_userFlags.contains(id);
+    }
+
+    void setUserFlag(std::string id, bool state) {
+        if (state) {
+            m_userFlags.emplace(std::move(id));
+        } else {
+            m_userFlags.erase(id);
         }
     }
 
@@ -405,6 +418,14 @@ void CCNode::setUserObject(std::string id, CCObject* value) {
 
 CCObject* CCNode::getUserObject(std::string_view id) {
     return GeodeNodeMetadata::set(this)->getUserObject(id);
+}
+
+void CCNode::setUserFlag(std::string id, bool state) {
+    GeodeNodeMetadata::set(this)->setUserFlag(std::move(id), state);
+}
+
+bool CCNode::getUserFlag(std::string_view id) {
+    return GeodeNodeMetadata::set(this)->getUserFlag(id);
 }
 
 void CCNode::addEventListenerInternal(std::string id, EventListenerProtocol* listener) {

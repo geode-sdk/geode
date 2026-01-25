@@ -5,12 +5,12 @@
 
 using namespace geode::prelude;
 
-class ConfirmUninstallPopup : public Popup<Mod*> {
+class ConfirmUninstallPopup : public Popup {
 protected:
     Mod* m_mod;
     CCMenuItemToggler* m_deleteDataToggle;
 
-    bool setup(Mod* mod) override;
+    bool init(Mod* mod);
 
     void onUninstall(CCObject*);
 

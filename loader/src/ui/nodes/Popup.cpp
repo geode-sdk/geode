@@ -3,6 +3,8 @@
 #include <Geode/binding/FLAlertLayerProtocol.hpp>
 
 using namespace geode::prelude;
+using CloseEvent = Popup::CloseEvent;
+using CloseEventFilter = Popup::CloseEventFilter;
 
 // static void fixChildPositions(CCNode* in, CCSize const& size) {
 //     auto winSize = CCDirector::get()->getWinSize();
@@ -68,6 +70,146 @@ using namespace geode::prelude;
 //     alert->m_mainLayer->setPosition(winSize / 2);
 //     alert->m_mainLayer->setLayout(AutoPopupLayout::create(alert->m_buttonMenu, bg));
 // }
+
+class CloseEvent::Impl final {
+private:
+    Popup* popup;
+    friend class CloseEvent;
+};
+
+CloseEvent::CloseEvent(Popup* popup) : m_impl(std::make_shared<Impl>()) {
+    m_impl->popup = popup;
+}
+
+Popup* CloseEvent::getPopup() const {
+    return m_impl->popup;
+}
+
+bool CloseEvent::filter(Popup* popup) const {
+    return m_impl->popup == popup; 
+}
+
+class CloseEventFilter::Impl final {
+private:
+    Popup* popup;
+    friend class CloseEventFilter;
+};
+
+CloseEventFilter::CloseEventFilter(Popup* popup) : m_impl(std::make_shared<Impl>()) {
+    m_impl->popup = popup;
+}
+
+ListenerResult CloseEventFilter::handle(geode::Function<Callback>& fn, CloseEvent* event) {
+    if (event->getPopup() == m_impl->popup) {
+        fn(event);
+    }
+    return ListenerResult::Propagate;
+}
+
+// Popup impl
+
+Popup::~Popup() {
+    CCTouchDispatcher::get()->unregisterForcePrio(this);
+}
+
+void Popup::registerWithTouchDispatcher() {
+    CCTouchDispatcher::get()->addTargetedDelegate(this, -500, true);
+}
+
+bool Popup::init(
+    float width, float height, char const* bg, CCRect bgRect
+) {
+    m_size = CCSize{ width, height };
+    CCTouchDispatcher::get()->registerForcePrio(this, 2);
+
+    if (!this->initWithColor({ 0, 0, 0, 105 })) return false;
+    
+    auto winSize = CCDirector::get()->getWinSize();
+
+    m_mainLayer = CCLayer::create();
+    this->addChild(m_mainLayer);
+
+    m_bgSprite = CCScale9Sprite::create(bg, bgRect);
+    m_bgSprite->setContentSize(m_size);
+    m_bgSprite->setPosition(winSize.width / 2, winSize.height / 2);
+    m_mainLayer->addChild(m_bgSprite);
+
+    m_buttonMenu = CCMenu::create();
+    m_buttonMenu->setZOrder(100);
+    m_mainLayer->addChild(m_buttonMenu);
+
+    m_mainLayer->ignoreAnchorPointForPosition(false);
+    m_mainLayer->setPosition(winSize / 2);
+    m_mainLayer->setContentSize(m_size);
+    m_mainLayer->setLayout(
+        CopySizeLayout::create()
+            ->add(m_buttonMenu)
+            ->add(m_bgSprite)
+    );
+
+    this->setTouchEnabled(true);
+
+    m_closeBtn = CCMenuItemExt::createSpriteExtraWithFrameName("GJ_closeBtn_001.png", 0.8f, [this](auto btn) {
+        this->onClose(btn);
+    });
+    m_buttonMenu->addChildAtPosition(m_closeBtn, geode::Anchor::TopLeft, { 3.f, -3.f });
+
+    this->setKeypadEnabled(true);
+    this->setTouchEnabled(true);
+
+    return true;
+}
+
+void Popup::keyBackClicked() {
+    this->onClose(nullptr);
+}
+
+void Popup::keyDown(enumKeyCodes key, double p1) {
+    if (key == KEY_Space) return;
+    return FLAlertLayer::keyDown(key, p1);
+}
+
+void Popup::onClose(CCObject*) {
+    CloseEvent(this).post();
+    this->setKeypadEnabled(false);
+    this->setTouchEnabled(false);
+    this->removeFromParent();
+}
+
+void Popup::setTitle(
+    ZStringView title,
+    const char* font,
+    float scale,
+    float offset
+) {
+    if (!m_title) {
+        m_title = CCLabelBMFont::create("", font);
+        m_title->setZOrder(2);
+        m_mainLayer->addChildAtPosition(m_title, Anchor::Top, {0, -offset});
+    }
+    
+    m_title->setString(title.c_str());
+    m_title->limitLabelWidth(m_size.width - 20.f, scale, .1f);
+}
+
+void Popup::setCloseButtonSpr(CCSprite* spr, float scale) {
+    // Store original attributes of the close button
+    auto origSize = m_closeBtn->getContentSize();
+    Ref orig = m_closeBtn->getNormalImage();
+
+    // Replace the close button sprite
+    m_closeBtn->setNormalImage(spr);
+
+    // Restore size and position
+    spr->setScale(scale);
+    spr->setPosition(orig->getPosition());
+    spr->setAnchorPoint(orig->getAnchorPoint());
+    m_closeBtn->setContentSize(origSize);
+}
+
+CloseEventFilter Popup::listenForClose() {
+    return CloseEventFilter(this);
+}
 
 class QuickPopup : public FLAlertLayer, public FLAlertLayerProtocol {
 protected:

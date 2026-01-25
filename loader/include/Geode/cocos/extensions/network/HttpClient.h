@@ -105,9 +105,14 @@ private:
      * Init pthread mutex, semaphore, and create new thread for http requests
      * @return bool
      */
-    bool lazyInitThreadSemphore();
+    // @note RobTop Removal
+    // bool lazyInitThreadSemphore();
+public:
     /** Poll function called from main thread to dispatch callbacks when http requests finished **/
     void dispatchResponseCallbacks(float delta);
+
+    // @note RobTop Addition
+    size_t availableThreadCount();
 
 public:
     int _timeoutForConnect;

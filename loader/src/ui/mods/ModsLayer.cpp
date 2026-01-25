@@ -88,7 +88,6 @@ bool ModsStatusNode::init() {
         SimpleRowLayout::create()
             ->setGap(5.f)
     );
-    m_btnMenu->getLayout()->ignoreInvisibleChildren(true);
     this->addChildAtPosition(m_btnMenu, Anchor::Center, ccp(0, 5));
 
     m_updateStateListener.bind([this](auto) { this->updateState(); });
