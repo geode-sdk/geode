@@ -10,8 +10,7 @@
 using namespace geode::prelude;
 
 struct RawInputEvent {
-    std::chrono::steady_clock::time_point timestamp;
-    double robtopTimestamp = 0.0;
+    double timestamp = 0.0;
 
     union {
         struct {
@@ -34,7 +33,8 @@ struct RawInputEvent {
         MouseButton,
     } type;
 
-    static double getWinApiTimestamp() {
+    // this uses the same method done by RobTop
+    static double getTimestamp() {
         static LARGE_INTEGER freq = []{
             LARGE_INTEGER f;
             QueryPerformanceFrequency(&f);
@@ -44,7 +44,7 @@ struct RawInputEvent {
         LARGE_INTEGER counter;
         QueryPerformanceCounter(&counter);
 
-        // robtop uses LowPart for some reason?
+        // he uses LowPart for some reason?
         return static_cast<double>(counter.LowPart) / static_cast<double>(freq.LowPart);
     }
 
@@ -53,8 +53,7 @@ struct RawInputEvent {
     ) {
         RawInputEvent evt;
         evt.type = isDown ? Type::KeyDown : Type::KeyUp;
-        evt.timestamp = std::chrono::high_resolution_clock::now();
-        evt.robtopTimestamp = getWinApiTimestamp();
+        evt.timestamp = getTimestamp();
         evt.keyboard.vkey = vk;
         evt.keyboard.scanCode = scan;
         evt.keyboard.flags = flags;
@@ -67,8 +66,7 @@ struct RawInputEvent {
     static RawInputEvent makeMouse(uint16_t btnFlags) {
         RawInputEvent evt;
         evt.type = Type::MouseButton;
-        evt.timestamp = std::chrono::steady_clock::now();
-        evt.robtopTimestamp = getWinApiTimestamp();
+        evt.timestamp = getTimestamp();
         evt.mouse.flags = btnFlags;
         return evt;
     }
@@ -373,7 +371,7 @@ class $modify(cocos2d::CCEGLView) {
                     KeyboardInputEvent event(
                         keyCode,
                         isDown ? (evt.keyboard.isRepeat ? Repeat : Press) : Release,
-                        {0, evt.keyboard.vkey},
+                        {evt.keyboard.vkey, evt.keyboard.scanCode},
                         evt.timestamp
                     );
 
@@ -395,7 +393,7 @@ class $modify(cocos2d::CCEGLView) {
                             keyCode,
                             isDown,
                             evt.keyboard.isRepeat,
-                            evt.robtopTimestamp
+                            event.timestamp
                         );
 
                         // text pasting
@@ -447,7 +445,7 @@ class $modify(cocos2d::CCEGLView) {
                                         1, &id,
                                         &m_fMouseX,
                                         &m_fMouseY,
-                                        evt.robtopTimestamp
+                                        event.timestamp
                                     );
                                 } else {
                                     m_bCaptured = false;
@@ -455,7 +453,7 @@ class $modify(cocos2d::CCEGLView) {
                                         1, &id,
                                         &m_fMouseX,
                                         &m_fMouseY,
-                                        evt.robtopTimestamp
+                                        event.timestamp
                                     );
                                 }
                             }
@@ -478,7 +476,7 @@ class $modify(cocos2d::CCEGLView) {
                 1, &id,
                 &m_fMouseX,
                 &m_fMouseY,
-                RawInputEvent::getWinApiTimestamp()
+                RawInputEvent::getTimestamp()
             );
         }
     }

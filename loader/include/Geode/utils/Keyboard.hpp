@@ -11,19 +11,17 @@ namespace geode {
         };
 
         struct Native final {
-            uint64_t code;  // Windows: lParam
-            uint64_t extra; // Windows: wParam
+            uint64_t code;  // Windows: vKey
+            uint64_t extra; // Windows: scancode
         };
 
         cocos2d::enumKeyCodes key;
         Action action;
         Native native;
-        std::chrono::steady_clock::time_point timestamp;
+        double timestamp;
 
-        KeyboardInputEvent(
-            cocos2d::enumKeyCodes key, Action action, Native native,
-            std::chrono::steady_clock::time_point timestamp
-        ) noexcept : key(key), action(action), native(native), timestamp(timestamp) {}
+        KeyboardInputEvent(cocos2d::enumKeyCodes key, Action action, Native native, double timestamp) noexcept
+            : key(key), action(action), native(native), timestamp(timestamp) {}
     };
 
     struct MouseInputEvent final : Event {
@@ -42,12 +40,10 @@ namespace geode {
 
         Button button;
         Action action;
-        std::chrono::steady_clock::time_point timestamp;
+        double timestamp;
 
-        MouseInputEvent(
-            Button button, Action action,
-            std::chrono::steady_clock::time_point timestamp
-        ) noexcept : button(button), action(action), timestamp(timestamp) {}
+        MouseInputEvent(Button button, Action action, double timestamp) noexcept
+            : button(button), action(action), timestamp(timestamp) {}
     };
 
     struct MouseMoveEvent final : Event {
