@@ -370,13 +370,19 @@ class $modify(cocos2d::CCEGLView) {
                         evt.keyboard.isE0
                     );
 
-                    auto result = KeyboardInputEvent(
+                    KeyboardInputEvent event(
                         keyCode,
                         isDown ? (evt.keyboard.isRepeat ? Repeat : Press) : Release,
                         {0, evt.keyboard.vkey},
                         evt.timestamp
-                    ).post();
+                    );
 
+                    // copy values from event, if someone modifies it
+                    isDown = event.action != Release;
+                    evt.keyboard.isRepeat = event.action == Repeat;
+                    keyCode = event.key;
+
+                    auto result = event.post();
                     if (result == ListenerResult::Propagate) {
                         auto* ime = CCIMEDispatcher::sharedDispatcher();
                         if (keyCode == enumKeyCodes::KEY_Backspace && isDown) {
@@ -424,14 +430,17 @@ class $modify(cocos2d::CCEGLView) {
                         bool isDown = (evt.mouse.flags & b.down) != 0;
                         bool isUp = (evt.mouse.flags & b.up) != 0;
                         if (isDown || isUp) {
-                            auto result = MouseInputEvent(
+                            MouseInputEvent event(
                                 b.btn,
                                 isDown ? Press : Release,
                                 evt.timestamp
-                            ).post();
+                            );
+
+                            auto result = event.post();
+                            isDown = event.action == Press;
 
                             // handle cocos touches
-                            if (b.btn == Left && result == ListenerResult::Propagate) {
+                            if (event.button == Left && result == ListenerResult::Propagate) {
                                 int id = 0;
                                 if (isDown) {
                                     m_bCaptured = true;
