@@ -11,6 +11,7 @@ using namespace geode::prelude;
 
 struct RawInputEvent {
     std::chrono::steady_clock::time_point timestamp;
+    double robtopTimestamp = 0.0;
 
     union {
         struct {
@@ -39,12 +40,27 @@ struct RawInputEvent {
         MouseWheel
     } type;
 
+    static double getWinApiTimestamp() {
+        static LARGE_INTEGER freq = []{
+            LARGE_INTEGER f;
+            QueryPerformanceFrequency(&f);
+            return f;
+        }();
+
+        LARGE_INTEGER counter;
+        QueryPerformanceCounter(&counter);
+
+        // robtop uses LowPart for some reason?
+        return static_cast<double>(counter.LowPart) / static_cast<double>(freq.LowPart);
+    }
+
     static RawInputEvent makeKeyboard(
         bool isDown, uint16_t vk, uint16_t scan, uint16_t flags, bool isRepeat
     ) {
         RawInputEvent evt;
         evt.type = isDown ? Type::KeyDown : Type::KeyUp;
         evt.timestamp = std::chrono::high_resolution_clock::now();
+        evt.robtopTimestamp = getWinApiTimestamp();
         evt.keyboard.vkey = vk;
         evt.keyboard.scanCode = scan;
         evt.keyboard.flags = flags;
@@ -70,6 +86,7 @@ struct RawInputEvent {
                 : Type::MouseButtonUp;
         }
         evt.timestamp = std::chrono::steady_clock::now();
+        evt.robtopTimestamp = getWinApiTimestamp();
         evt.mouse.dx = dx;
         evt.mouse.dy = dy;
         evt.mouse.buttonFlags = btnFlags;
@@ -248,6 +265,8 @@ static enumKeyCodes keyToKeyCode(uint16_t vkey, bool isE0) {
         case VK_OEM_6: return enumKeyCodes::KEY_RightBracket;
         case VK_OEM_3: return enumKeyCodes::KEY_GraveAccent;
         case VK_OEM_102: return enumKeyCodes::KEY_World1;
+        case VK_OEM_COMMA: return enumKeyCodes::KEY_OEMComma;
+        case VK_OEM_PERIOD: return enumKeyCodes::KEY_OEMPeriod;
 
         case VK_NUMPAD0: return enumKeyCodes::KEY_NumPad0;
         case VK_NUMPAD1: return enumKeyCodes::KEY_NumPad1;
@@ -372,9 +391,7 @@ class $modify(cocos2d::CCEGLView) {
                             keyCode,
                             isDown,
                             evt.keyboard.isRepeat,
-                            std::chrono::duration_cast<std::chrono::microseconds>(
-                                evt.timestamp.time_since_epoch()
-                            ).count() / 1'000'000.0
+                            evt.robtopTimestamp
                         );
 
                         // text pasting
@@ -410,7 +427,7 @@ class $modify(cocos2d::CCEGLView) {
                         evt.timestamp
                     ).post();
 
-                    if (result == ListenerResult::Propagate && btn == Left) {
+                    if (btn == Left && result == ListenerResult::Propagate) {
                         if (isDown) {
                             int id = 0;
                             m_bCaptured = true;
@@ -418,9 +435,7 @@ class $modify(cocos2d::CCEGLView) {
                                 1, &id,
                                 &m_fMouseX,
                                 &m_fMouseY,
-                                std::chrono::duration_cast<std::chrono::microseconds>(
-                                    evt.timestamp.time_since_epoch()
-                                ).count() / 1'000'000.0
+                                evt.robtopTimestamp
                             );
                         } else {
                             int id = 0;
@@ -429,9 +444,7 @@ class $modify(cocos2d::CCEGLView) {
                                 1, &id,
                                 &m_fMouseX,
                                 &m_fMouseY,
-                                std::chrono::duration_cast<std::chrono::microseconds>(
-                                    evt.timestamp.time_since_epoch()
-                                ).count() / 1'000'000.0
+                                evt.robtopTimestamp
                             );
                         }
                     }
@@ -449,9 +462,7 @@ class $modify(cocos2d::CCEGLView) {
                         1, &id,
                         &m_fMouseX,
                         &m_fMouseY,
-                        std::chrono::duration_cast<std::chrono::microseconds>(
-                            evt.timestamp.time_since_epoch()
-                        ).count() / 1'000'000.0
+                        evt.robtopTimestamp
                     );
                     break;
                 }
