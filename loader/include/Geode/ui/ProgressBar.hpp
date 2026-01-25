@@ -1,5 +1,12 @@
 #pragma once
 
+#include "../DefaultInclude.hpp"
+
+#include <cocos2d.h>
+#include <fmt/format.h>
+#include <Geode/utils/general.hpp>
+#include <Geode/utils/cocos.hpp>
+
 namespace geode {
     // Enum for progress bar style
     enum class ProgressBarStyle {
