@@ -319,8 +319,7 @@ std::string_view WebResponse::errorMessage() const {
 class web::WebRequestsManager {
 private:
     class Impl;
-
-    std::shared_ptr<Impl> m_impl;
+    Impl* m_impl;
 
     WebRequestsManager();
     ~WebRequestsManager();
@@ -1020,8 +1019,8 @@ public:
     }
 };
 
-WebRequestsManager::WebRequestsManager() : m_impl(std::make_unique<Impl>()) {}
-WebRequestsManager::~WebRequestsManager() = default;
+WebRequestsManager::WebRequestsManager() : m_impl(new Impl()) {}
+WebRequestsManager::~WebRequestsManager() = default; // leaking m_impl on purpose to avoid destruction order issues
 
 WebRequestsManager* WebRequestsManager::get() {
     static WebRequestsManager instance;
