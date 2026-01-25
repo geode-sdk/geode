@@ -9,6 +9,11 @@
 
 using namespace geode::prelude;
 
+constexpr uint16_t ALL_MOUSE_BUTTONS_DOWN =
+    RI_MOUSE_BUTTON_1_DOWN | RI_MOUSE_BUTTON_2_DOWN |
+    RI_MOUSE_BUTTON_3_DOWN | RI_MOUSE_BUTTON_4_DOWN |
+    RI_MOUSE_BUTTON_5_DOWN;
+
 struct RawInputEvent {
     std::chrono::steady_clock::time_point timestamp;
     double robtopTimestamp = 0.0;
@@ -24,20 +29,15 @@ struct RawInputEvent {
         } keyboard;
 
         struct {
-            int32_t dx;
-            int32_t dy;
-            uint16_t buttonFlags;
-            int16_t wheelDelta;
+            uint16_t flags;
         } mouse;
     };
 
-    enum class Type {
+    enum class Type : uint8_t {
         KeyDown,
         KeyUp,
-        MouseMove,
         MouseButtonDown,
-        MouseButtonUp,
-        MouseWheel
+        MouseButtonUp
     } type;
 
     static double getWinApiTimestamp() {
@@ -70,27 +70,12 @@ struct RawInputEvent {
         return evt;
     }
 
-    static RawInputEvent makeMouse(int32_t dx, int32_t dy, uint16_t btnFlags, int16_t wheel) {
+    static RawInputEvent makeMouse(uint16_t btnFlags) {
         RawInputEvent evt;
-        if (dx != 0 || dy != 0) {
-            evt.type = Type::MouseMove;
-        } else if (wheel != 0) {
-            evt.type = Type::MouseWheel;
-        } else {
-            constexpr uint16_t allBtnDownFlags =
-                RI_MOUSE_BUTTON_1_DOWN | RI_MOUSE_BUTTON_2_DOWN |
-                RI_MOUSE_BUTTON_3_DOWN | RI_MOUSE_BUTTON_4_DOWN |
-                RI_MOUSE_BUTTON_5_DOWN;
-            evt.type = (btnFlags & allBtnDownFlags)
-                ? Type::MouseButtonDown
-                : Type::MouseButtonUp;
-        }
+        evt.type = (btnFlags & ALL_MOUSE_BUTTONS_DOWN) ? Type::MouseButtonDown : Type::MouseButtonUp;
         evt.timestamp = std::chrono::steady_clock::now();
         evt.robtopTimestamp = getWinApiTimestamp();
-        evt.mouse.dx = dx;
-        evt.mouse.dy = dy;
-        evt.mouse.buttonFlags = btnFlags;
-        evt.mouse.wheelDelta = wheel;
+        evt.mouse.flags = btnFlags;
         return evt;
     }
 };
@@ -346,12 +331,11 @@ LRESULT CALLBACK GeodeRawInputWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
         ));
     } else if (raw->header.dwType == RIM_TYPEMOUSE) {
         auto const& mouse = raw->data.mouse;
-        RawInputQueue::get().push(RawInputEvent::makeMouse(
-            mouse.lLastX,
-            mouse.lLastY,
-            mouse.usButtonFlags,
-            static_cast<int16_t>(mouse.usButtonData)
-        ));
+        if (mouse.usButtonFlags == 0)  {
+            return 0;
+        }
+
+        RawInputQueue::get().push(RawInputEvent::makeMouse(mouse.usButtonFlags));
     }
 
     return 0;
@@ -359,6 +343,18 @@ LRESULT CALLBACK GeodeRawInputWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
 
 class $modify(cocos2d::CCEGLView) {
     void pumpRawInput() {
+        // update mouse position
+        POINT p;
+        GetCursorPos(&p);
+        ScreenToClient(g_mainWindowHWND, &p);
+        bool moved = false;
+        if (m_fMouseX != static_cast<float>(p.x) || m_fMouseY != static_cast<float>(p.y)) {
+            m_fMouseX = static_cast<float>(p.x);
+            m_fMouseY = static_cast<float>(p.y);
+            moved = true;
+        }
+
+        // process raw input events
         RawInputEvent evt;
         while (RawInputQueue::get().pop(evt)) {
             switch (evt.type) {
@@ -408,68 +404,68 @@ class $modify(cocos2d::CCEGLView) {
                     using enum MouseInputEvent::Action;
                     using enum MouseInputEvent::Button;
 
-                    constexpr uint16_t downFlags =
-                        RI_MOUSE_BUTTON_1_DOWN | RI_MOUSE_BUTTON_2_DOWN |
-                        RI_MOUSE_BUTTON_3_DOWN | RI_MOUSE_BUTTON_4_DOWN |
-                        RI_MOUSE_BUTTON_5_DOWN;
+                    struct Btn {
+                        USHORT down, up;
+                        MouseInputEvent::Button btn;
+                    };
 
-                    auto btn = evt.mouse.buttonFlags & (RI_MOUSE_BUTTON_1_DOWN | RI_MOUSE_BUTTON_1_UP) ? Left
-                        : evt.mouse.buttonFlags & (RI_MOUSE_BUTTON_2_DOWN | RI_MOUSE_BUTTON_2_UP) ? Right
-                        : evt.mouse.buttonFlags & (RI_MOUSE_BUTTON_3_DOWN | RI_MOUSE_BUTTON_3_UP) ? Middle
-                        : evt.mouse.buttonFlags & (RI_MOUSE_BUTTON_4_DOWN | RI_MOUSE_BUTTON_4_UP) ? Button4
-                        : Button5;
+                    constexpr Btn btns[] = {
+                        {RI_MOUSE_BUTTON_1_DOWN, RI_MOUSE_BUTTON_1_UP, Left},
+                        {RI_MOUSE_BUTTON_2_DOWN, RI_MOUSE_BUTTON_2_UP, Right},
+                        {RI_MOUSE_BUTTON_3_DOWN, RI_MOUSE_BUTTON_3_UP, Middle},
+                        {RI_MOUSE_BUTTON_4_DOWN, RI_MOUSE_BUTTON_4_UP, Button4},
+                        {RI_MOUSE_BUTTON_5_DOWN, RI_MOUSE_BUTTON_5_UP, Button5},
+                    };
 
-                    bool isDown = (evt.mouse.buttonFlags & downFlags) != 0;
+                    // WinAPI can combine multiple button events into one
+                    for (auto const& b : btns) {
+                        bool isDown = (evt.mouse.flags & b.down) != 0;
+                        bool isUp = (evt.mouse.flags & b.up) != 0;
+                        if (isDown || isUp) {
+                            auto result = MouseInputEvent(
+                                b.btn,
+                                isDown ? Press : Release,
+                                evt.timestamp
+                            ).post();
 
-                    auto result = MouseInputEvent(
-                        btn,
-                        isDown ? Press : Release,
-                        evt.timestamp
-                    ).post();
-
-                    if (btn == Left && result == ListenerResult::Propagate) {
-                        if (isDown) {
-                            int id = 0;
-                            m_bCaptured = true;
-                            this->handleTouchesBegin(
-                                1, &id,
-                                &m_fMouseX,
-                                &m_fMouseY,
-                                evt.robtopTimestamp
-                            );
-                        } else {
-                            int id = 0;
-                            m_bCaptured = false;
-                            this->handleTouchesEnd(
-                                1, &id,
-                                &m_fMouseX,
-                                &m_fMouseY,
-                                evt.robtopTimestamp
-                            );
+                            // handle cocos touches
+                            if (b.btn == Left && result == ListenerResult::Propagate) {
+                                int id = 0;
+                                if (isDown) {
+                                    m_bCaptured = true;
+                                    this->handleTouchesBegin(
+                                        1, &id,
+                                        &m_fMouseX,
+                                        &m_fMouseY,
+                                        evt.robtopTimestamp
+                                    );
+                                } else {
+                                    m_bCaptured = false;
+                                    this->handleTouchesEnd(
+                                        1, &id,
+                                        &m_fMouseX,
+                                        &m_fMouseY,
+                                        evt.robtopTimestamp
+                                    );
+                                }
+                            }
                         }
                     }
                     break;
                 }
-                case RawInputEvent::Type::MouseMove: {
-                    // update mouse position
-                    POINT p;
-                    GetCursorPos(&p);
-                    ScreenToClient(g_mainWindowHWND, &p);
-                    m_fMouseX = static_cast<float>(p.x);
-                    m_fMouseY = static_cast<float>(p.y);
-                    int id = 0;
-                    this->handleTouchesMove(
-                        1, &id,
-                        &m_fMouseX,
-                        &m_fMouseY,
-                        evt.robtopTimestamp
-                    );
-                    break;
-                }
-                case RawInputEvent::Type::MouseWheel:
                 default:
                     break;
             }
+        }
+
+        if (moved && m_bCaptured) {
+            int id = 0;
+            this->handleTouchesMove(
+                1, &id,
+                &m_fMouseX,
+                &m_fMouseY,
+                evt.robtopTimestamp
+            );
         }
     }
 };
