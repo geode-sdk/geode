@@ -347,10 +347,12 @@ class $modify(cocos2d::CCEGLView) {
         POINT p;
         GetCursorPos(&p);
         ScreenToClient(g_mainWindowHWND, &p);
+        float newX = static_cast<float>(p.x);
+        float newY = static_cast<float>(p.y);
         bool moved = false;
-        if (m_fMouseX != static_cast<float>(p.x) || m_fMouseY != static_cast<float>(p.y)) {
-            m_fMouseX = static_cast<float>(p.x);
-            m_fMouseY = static_cast<float>(p.y);
+        if (m_fMouseX != newX || m_fMouseY != newY) {
+            m_fMouseX = newX;
+            m_fMouseY = newY;
             moved = true;
         }
 
@@ -458,7 +460,11 @@ class $modify(cocos2d::CCEGLView) {
             }
         }
 
-        if (moved && m_bCaptured) {
+        if (moved) {
+            if (MouseMoveEvent(p.x, p.y).post() == ListenerResult::Stop || m_bCaptured) {
+                return;
+            }
+
             int id = 0;
             this->handleTouchesMove(
                 1, &id,

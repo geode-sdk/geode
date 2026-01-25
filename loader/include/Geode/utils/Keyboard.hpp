@@ -50,5 +50,12 @@ namespace geode {
         ) noexcept : button(button), action(action), timestamp(timestamp) {}
     };
 
+    struct MouseMoveEvent final : Event {
+        int32_t x;
+        int32_t y;
+
+        MouseMoveEvent(int32_t x, int32_t y) noexcept : x(x), y(y) {}
+    };
+
     // TODO: Add controller/touch input events?
 }
