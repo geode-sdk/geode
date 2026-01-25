@@ -8,7 +8,7 @@
 #include <Geode/ui/Layout.hpp>
 
 namespace geode {
-    class Popup : public FLAlertLayer {
+    class GEODE_DLL Popup : public FLAlertLayer {
     public:
         /**
          * Event posted when this popup is being closed
