@@ -9,11 +9,6 @@
 
 using namespace geode::prelude;
 
-constexpr uint16_t ALL_MOUSE_BUTTONS_DOWN =
-    RI_MOUSE_BUTTON_1_DOWN | RI_MOUSE_BUTTON_2_DOWN |
-    RI_MOUSE_BUTTON_3_DOWN | RI_MOUSE_BUTTON_4_DOWN |
-    RI_MOUSE_BUTTON_5_DOWN;
-
 struct RawInputEvent {
     std::chrono::steady_clock::time_point timestamp;
     double robtopTimestamp = 0.0;
@@ -36,8 +31,7 @@ struct RawInputEvent {
     enum class Type : uint8_t {
         KeyDown,
         KeyUp,
-        MouseButtonDown,
-        MouseButtonUp
+        MouseButton,
     } type;
 
     static double getWinApiTimestamp() {
@@ -72,7 +66,7 @@ struct RawInputEvent {
 
     static RawInputEvent makeMouse(uint16_t btnFlags) {
         RawInputEvent evt;
-        evt.type = (btnFlags & ALL_MOUSE_BUTTONS_DOWN) ? Type::MouseButtonDown : Type::MouseButtonUp;
+        evt.type = Type::MouseButton;
         evt.timestamp = std::chrono::steady_clock::now();
         evt.robtopTimestamp = getWinApiTimestamp();
         evt.mouse.flags = btnFlags;
@@ -296,10 +290,16 @@ LRESULT CALLBACK GeodeRawInputWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
 
     UINT rawInputSize = 0;
     GetRawInputData(
-        reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, nullptr, &rawInputSize, sizeof(RAWINPUTHEADER)
+        reinterpret_cast<HRAWINPUT>(lParam),
+        RID_INPUT,
+        nullptr,
+        &rawInputSize,
+        sizeof(RAWINPUTHEADER)
     );
 
-    std::vector<BYTE> rawInputData(rawInputSize);
+    static std::vector<BYTE> rawInputData;
+    rawInputData.reserve(rawInputSize);
+
     GetRawInputData(
         reinterpret_cast<HRAWINPUT>(lParam),
         RID_INPUT,
@@ -407,8 +407,7 @@ class $modify(cocos2d::CCEGLView) {
                     }
                     break;
                 }
-                case RawInputEvent::Type::MouseButtonDown:
-                case RawInputEvent::Type::MouseButtonUp: {
+                case RawInputEvent::Type::MouseButton: {
                     using enum MouseInputEvent::Action;
                     using enum MouseInputEvent::Button;
 
@@ -470,7 +469,7 @@ class $modify(cocos2d::CCEGLView) {
         }
 
         if (moved) {
-            if (MouseMoveEvent(p.x, p.y).post() == ListenerResult::Stop || m_bCaptured) {
+            if (MouseMoveEvent(p.x, p.y).post() == ListenerResult::Stop || !m_bCaptured) {
                 return;
             }
 
@@ -479,7 +478,7 @@ class $modify(cocos2d::CCEGLView) {
                 1, &id,
                 &m_fMouseX,
                 &m_fMouseY,
-                evt.robtopTimestamp
+                RawInputEvent::getWinApiTimestamp()
             );
         }
     }
