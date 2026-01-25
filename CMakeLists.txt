@@ -83,7 +83,7 @@ if (NOT GEODE_BINDINGS_REPO_PATH)
 	)
 	CPMAddPackage(NAME "bindings"
 		GITHUB_REPOSITORY "geode-sdk/bindings"
-		GIT_TAG "main"
+		GIT_TAG "cf50b42180956a7702d980135622a2dd5ba403bd"
 		DOWNLOAD_ONLY YES
 		NO_CACHE YES
 	)
