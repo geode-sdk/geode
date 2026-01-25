@@ -168,7 +168,7 @@ void Loader::Impl::addNativeBinariesPath(std::filesystem::path const& path) {
 }
 
 bool gameVersionIsAmbiguous(std::string gameVersion) {
-    return gameVersion == "2.207";
+    return gameVersion == "2.207" || gameVersion == "2.208";
 }
 
 std::array<std::uint8_t, 16> getBinaryUUID() {
