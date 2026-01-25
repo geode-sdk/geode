@@ -37,5 +37,7 @@ namespace geode {
         void scrollWheel(float y, float) override;
         void enableScrollWheel(bool enable = true);
         void scrollToTop();
+
+        static Layout* createDefaultListLayout(float gap = 2.5f);
     };
 }

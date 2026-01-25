@@ -420,6 +420,7 @@ void ModList::onPromise(ModListSource::PageLoadTask::Event* event) {
     if (event->getValue()) {
         auto result = event->getValue();
         if (result->isOk()) {
+            // This is apparently because `getChildren()` may be nullptr?
             if (m_list->m_contentLayer->getChildrenCount() > 0) {
                 m_list->m_contentLayer->removeAllChildren();
             }
@@ -623,13 +624,7 @@ void ModList::updateDisplay(ModListDisplay display) {
         );
     }
     else {
-        m_list->m_contentLayer->setLayout(
-            SimpleColumnLayout::create()
-                ->setMainAxisDirection(AxisDirection::TopToBottom)
-                ->setMainAxisAlignment(MainAxisAlignment::End)
-                ->setMainAxisScaling(AxisScaling::Fit)
-                ->setGap(2.5f)
-        );
+        m_list->m_contentLayer->setLayout(ScrollLayer::createDefaultListLayout());
     }
 
     // Make sure list isn't too small

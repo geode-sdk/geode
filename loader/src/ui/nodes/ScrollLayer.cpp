@@ -109,3 +109,12 @@ ScrollLayer* ScrollLayer::create(CCRect const& rect, bool scroll, bool vertical)
 ScrollLayer* ScrollLayer::create(CCSize const& size, bool scroll, bool vertical) {
     return ScrollLayer::create({ 0, 0, size.width, size.height }, scroll, vertical);
 }
+
+Layout* ScrollLayer::createDefaultListLayout(float gap) {
+    return SimpleColumnLayout::create()
+        ->setMainAxisDirection(AxisDirection::TopToBottom)
+        ->setMainAxisAlignment(MainAxisAlignment::End)
+        ->setMainAxisScaling(AxisScaling::Fit)
+        ->setGap(gap)
+        ->ignoreInvisibleChildren(false);
+}

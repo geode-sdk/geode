@@ -88,14 +88,7 @@ bool ModSettingsPopup::init(Mod* mod, bool forceDisableTheme) {
         m_settings.push_back(node);
         m_list->m_contentLayer->addChild(node);
     }
-    m_list->m_contentLayer->setLayout(
-        ColumnLayout::create()
-            ->setAxisReverse(true)
-            ->setAutoGrowAxis(m_list->getContentHeight())
-            ->setCrossAxisOverflow(false)
-            ->setAxisAlignment(AxisAlignment::End)
-            ->setGap(0)
-    );
+    m_list->m_contentLayer->setLayout(ScrollLayer::createDefaultListLayout(0.f));
     m_list->moveToTop();
 
     const int buttonPriority = m_list->getTouchPriority() - 1;
