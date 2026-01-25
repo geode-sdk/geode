@@ -107,7 +107,7 @@ bool GeodePopup::init(float width, float height, GeodePopupStyle style, bool for
         case GeodePopupStyle::Alt2:    bg = geodeTheme ? "GE_square03.png"_spr : "GJ_square02.png"; break;
     }
 
-    if (!Popup::init(width, height))
+    if (!Popup::init(width, height, bg))
         return false;
 
     this->setCloseButtonSpr(

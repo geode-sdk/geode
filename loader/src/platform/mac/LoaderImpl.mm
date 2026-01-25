@@ -168,7 +168,7 @@ void Loader::Impl::addNativeBinariesPath(std::filesystem::path const& path) {
 }
 
 bool gameVersionIsAmbiguous(std::string gameVersion) {
-    return gameVersion == "2.207";
+    return gameVersion == "2.207" || gameVersion == "2.208";
 }
 
 std::array<std::uint8_t, 16> getBinaryUUID() {
@@ -217,7 +217,8 @@ const auto& uuidToVersionMap() {
         {"9C1D62A7-7C2F-3514-AEFB-D1AB7BBD48FF", "2.2072"},
         {"0B1FCFE4-79E8-3246-8ECB-500FDBDCFD9A", "2.2073"},
         {"27044C8B-76BD-303C-A035-5314AF1D9E6E", "2.2074"},
-        {"9E958BAE-B00D-37B1-A75E-6195B0FCAAFD", "2.208"}
+        {"9E958BAE-B00D-37B1-A75E-6195B0FCAAFD", "2.2080"},
+        {"ABCA9EC8-DDEE-317A-BC32-3F41A842311D", "2.2081"}
 #elif defined(GEODE_IS_INTEL_MAC)
         {"29549F90-F083-35A8-B917-9962262FE112", "2.200"},
         {"AE6DFCCC-153A-32AB-BFD5-6F2478BC41B6", "2.206"},
@@ -226,7 +227,8 @@ const auto& uuidToVersionMap() {
         {"E53731FD-D1B6-33D2-BFA4-3B5D8D55279F", "2.2072"},
         {"1F4AFF98-DB51-382D-9BB2-59C911B88EB2", "2.2073"},
         {"DB5CADC0-E533-3123-8A63-5A434FE391ED", "2.2074"},
-        {"45A69FE9-4478-3D26-B75D-59D07E9261AF", "2.208"}
+        {"45A69FE9-4478-3D26-B75D-59D07E9261AF", "2.2080"},
+        {"3FBF9F72-5A83-3918-A82A-37BD3C019D7A", "2.2081"}
 #endif
     };
 
