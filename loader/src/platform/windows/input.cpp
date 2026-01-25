@@ -1,14 +1,144 @@
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDelegate.h>
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDispatcher.h>
+#include <Geode/modify/CCEGLView.hpp>
 #include <Geode/utils/Keyboard.hpp>
+
+#include <mutex>
+#include <queue>
 
 using namespace geode::prelude;
 
-static WNDPROC g_originalWndProc = nullptr;
+struct RawInputEvent {
+    std::chrono::steady_clock::time_point timestamp;
 
-static enumKeyCodes keyToKeyCode(WPARAM code, LPARAM lParam) {
-    switch (code) {
+    union {
+        struct {
+            uint16_t vkey;
+            uint16_t scanCode;
+            uint16_t flags;
+            bool isE0;
+            bool isE1;
+            bool isRepeat;
+        } keyboard;
+
+        struct {
+            int32_t dx;
+            int32_t dy;
+            uint16_t buttonFlags;
+            int16_t wheelDelta;
+        } mouse;
+    };
+
+    enum class Type {
+        KeyDown,
+        KeyUp,
+        MouseMove,
+        MouseButtonDown,
+        MouseButtonUp,
+        MouseWheel
+    } type;
+
+    static RawInputEvent makeKeyboard(
+        bool isDown, uint16_t vk, uint16_t scan, uint16_t flags, bool isRepeat
+    ) {
+        RawInputEvent evt;
+        evt.type = isDown ? Type::KeyDown : Type::KeyUp;
+        evt.timestamp = std::chrono::high_resolution_clock::now();
+        evt.keyboard.vkey = vk;
+        evt.keyboard.scanCode = scan;
+        evt.keyboard.flags = flags;
+        evt.keyboard.isE0 = (flags & RI_KEY_E0) != 0;
+        evt.keyboard.isE1 = (flags & RI_KEY_E1) != 0;
+        evt.keyboard.isRepeat = isRepeat;
+        return evt;
+    }
+
+    static RawInputEvent makeMouse(int32_t dx, int32_t dy, uint16_t btnFlags, int16_t wheel) {
+        RawInputEvent evt;
+        if (dx != 0 || dy != 0) {
+            evt.type = Type::MouseMove;
+        } else if (wheel != 0) {
+            evt.type = Type::MouseWheel;
+        } else {
+            constexpr uint16_t allBtnDownFlags =
+                RI_MOUSE_BUTTON_1_DOWN | RI_MOUSE_BUTTON_2_DOWN |
+                RI_MOUSE_BUTTON_3_DOWN | RI_MOUSE_BUTTON_4_DOWN |
+                RI_MOUSE_BUTTON_5_DOWN;
+            evt.type = (btnFlags & allBtnDownFlags)
+                ? Type::MouseButtonDown
+                : Type::MouseButtonUp;
+        }
+        evt.timestamp = std::chrono::steady_clock::now();
+        evt.mouse.dx = dx;
+        evt.mouse.dy = dy;
+        evt.mouse.buttonFlags = btnFlags;
+        evt.mouse.wheelDelta = wheel;
+        return evt;
+    }
+};
+
+class RawInputQueue {
+private:
+    std::queue<RawInputEvent> m_queue;
+    mutable std::mutex m_mutex;
+
+public:
+    static RawInputQueue& get() noexcept {
+        static RawInputQueue instance;
+        return instance;
+    }
+
+    void push(RawInputEvent const& event) {
+        std::lock_guard lock(m_mutex);
+        m_queue.push(event);
+    }
+
+    bool pop(RawInputEvent& event) {
+        std::lock_guard lock(m_mutex);
+        if (m_queue.empty()) {
+            return false;
+        }
+        event = m_queue.front();
+        m_queue.pop();
+        return true;
+    }
+};
+
+class KeyStateTracker {
+private:
+    std::unordered_map<uint32_t, bool> m_keyStates;
+
+    static uint32_t makeKey(uint16_t vkey, uint16_t scanCode, bool isE0) {
+        return (static_cast<uint32_t>(vkey) << 16) | (static_cast<uint32_t>(scanCode) << 1) |
+            (isE0 ? 1 : 0);
+    }
+
+public:
+    static KeyStateTracker& get() {
+        static KeyStateTracker instance;
+        return instance;
+    }
+
+    bool updateState(uint16_t vkey, uint16_t scanCode, bool isE0, bool isDown) {
+        uint32_t key = makeKey(vkey, scanCode, isE0);
+
+        bool wasDown = false;
+        auto it = m_keyStates.find(key);
+        if (it != m_keyStates.end()) {
+            wasDown = it->second;
+        }
+
+        m_keyStates[key] = isDown;
+        return wasDown && isDown;
+    }
+};
+
+static HWND g_rawInputHWND, g_mainWindowHWND;
+static WNDPROC g_originalRawInputProc = nullptr;
+
+static enumKeyCodes keyToKeyCode(uint16_t vkey, bool isE0) {
+    switch (vkey) {
         case 'A': return enumKeyCodes::KEY_A;
         case 'B': return enumKeyCodes::KEY_B;
         case 'C': return enumKeyCodes::KEY_C;
@@ -72,6 +202,7 @@ static enumKeyCodes keyToKeyCode(WPARAM code, LPARAM lParam) {
         case VK_F23: return enumKeyCodes::KEY_F23;
         case VK_F24: return enumKeyCodes::KEY_F24;
 
+        case VK_SPACE: return enumKeyCodes::KEY_Space;
         case VK_ESCAPE: return enumKeyCodes::KEY_Escape;
         case VK_TAB: return enumKeyCodes::KEY_Tab;
         case VK_BACK: return enumKeyCodes::KEY_Backspace;
@@ -93,16 +224,14 @@ static enumKeyCodes keyToKeyCode(WPARAM code, LPARAM lParam) {
         case VK_SNAPSHOT: return enumKeyCodes::KEY_PrintScreen;
         case VK_PAUSE: return enumKeyCodes::KEY_Pause;
 
-        case VK_SHIFT: return MapVirtualKey((lParam >> 16) & 0xFF, MAPVK_VSC_TO_VK_EX) == VK_RSHIFT
-            ? enumKeyCodes::KEY_RightShift
-            : enumKeyCodes::KEY_LeftShift;
-        case VK_CONTROL: return (lParam & 0x01000000)
-            ? enumKeyCodes::KEY_RightContol
-            : enumKeyCodes::KEY_LeftControl;
-        case VK_MENU: return (lParam & 0x01000000)
-            ? enumKeyCodes::KEY_RightMenu
-            : enumKeyCodes::KEY_LeftMenu;
-        case VK_RETURN: return lParam & 0x01000000
+        case VK_LSHIFT: return enumKeyCodes::KEY_LeftShift;
+        case VK_RSHIFT: return enumKeyCodes::KEY_RightShift;
+        case VK_LCONTROL: return enumKeyCodes::KEY_LeftControl;
+        case VK_RCONTROL: return enumKeyCodes::KEY_RightContol;
+        case VK_LMENU: return enumKeyCodes::KEY_LeftMenu;
+        case VK_RMENU: return enumKeyCodes::KEY_RightMenu;
+
+        case VK_RETURN: return isE0
             ? enumKeyCodes::KEY_NumEnter
             : enumKeyCodes::KEY_Enter;
 
@@ -140,67 +269,206 @@ static enumKeyCodes keyToKeyCode(WPARAM code, LPARAM lParam) {
     }
 }
 
-LRESULT CALLBACK GeodeWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-    auto result = ListenerResult::Propagate;
+static uint16_t getActualVKey(uint16_t vkey, uint16_t scanCode, uint16_t flags) {
+    bool isE0 = (flags & RI_KEY_E0) != 0;
 
-    switch (msg) {
-        case WM_KEYDOWN:
-        case WM_SYSKEYDOWN:
-        case WM_KEYUP:
-        case WM_SYSKEYUP: {
-            using enum KeyboardInputEvent::Action;
-            bool down = msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN;
-            bool repeat = (lParam & 0x40000000) != 0;
-            enumKeyCodes keyCode = keyToKeyCode(wParam, lParam);
+    switch (vkey) {
+        default: return vkey;
+        case VK_CONTROL: return isE0 ? VK_RCONTROL : VK_LCONTROL;
+        case VK_MENU: return isE0 ? VK_RMENU : VK_LMENU;
+        case VK_SHIFT:
+            return MapVirtualKeyEx(scanCode, MAPVK_VSC_TO_VK_EX, GetKeyboardLayout(0));
+    }
+}
 
-            result = KeyboardInputEvent(
-                keyCode,
-                down ? (repeat ? Repeat : Press) : Release,
-                { static_cast<uint64_t>(lParam), wParam },
-                std::chrono::steady_clock::now()
-            ).post();
-            break;
-        }
-        case WM_LBUTTONDOWN:
-        case WM_LBUTTONUP:
-        case WM_RBUTTONDOWN:
-        case WM_RBUTTONUP: {
-            using enum MouseInputEvent::Action;
-            using enum MouseInputEvent::Button;
-            result = MouseInputEvent(
-                msg == WM_LBUTTONDOWN || msg == WM_LBUTTONUP ? Left : Right,
-                msg == WM_LBUTTONDOWN || msg == WM_RBUTTONDOWN ? Press : Release,
-                std::chrono::steady_clock::now()
-            ).post();
-            break;
-        }
-        case WM_XBUTTONDOWN:
-        case WM_XBUTTONUP: {
-            using enum MouseInputEvent::Action;
-            using enum MouseInputEvent::Button;
-            result = MouseInputEvent(
-                GET_XBUTTON_WPARAM(wParam) == XBUTTON1 ? Button4 : Button5,
-                msg == WM_XBUTTONDOWN ? Press : Release,
-                std::chrono::steady_clock::now()
-            ).post();
-            break;
-        }
-        default: break;
+LRESULT CALLBACK GeodeRawInputWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    if (msg != WM_INPUT) {
+        return CallWindowProcW(g_originalRawInputProc, hwnd, msg, wParam, lParam);
     }
 
-    if (result == ListenerResult::Stop) {
+    if (GetForegroundWindow() != g_mainWindowHWND) {
         return 0;
     }
 
-    return CallWindowProcW(g_originalWndProc, hwnd, msg, wParam, lParam);
+    UINT rawInputSize = 0;
+    GetRawInputData(
+        reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, nullptr, &rawInputSize, sizeof(RAWINPUTHEADER)
+    );
+
+    std::vector<BYTE> rawInputData(rawInputSize);
+    GetRawInputData(
+        reinterpret_cast<HRAWINPUT>(lParam),
+        RID_INPUT,
+        rawInputData.data(),
+        &rawInputSize,
+        sizeof(RAWINPUTHEADER)
+    );
+
+    RAWINPUT* raw = reinterpret_cast<RAWINPUT*>(rawInputData.data());
+    if (raw->header.dwType == RIM_TYPEKEYBOARD) {
+        auto const& kb = raw->data.keyboard;
+        bool isDown = !(kb.Flags & RI_KEY_BREAK);
+        bool isE0 = (kb.Flags & RI_KEY_E0) != 0;
+
+        uint16_t actualVKey = getActualVKey(kb.VKey, kb.MakeCode, kb.Flags);
+        bool isRepeat = KeyStateTracker::get().updateState(
+            actualVKey,
+            kb.MakeCode,
+            isE0,
+            isDown
+        );
+
+        RawInputQueue::get().push(RawInputEvent::makeKeyboard(
+            isDown,
+            actualVKey,
+            kb.MakeCode,
+            kb.Flags,
+            isRepeat
+        ));
+    } else if (raw->header.dwType == RIM_TYPEMOUSE) {
+        auto const& mouse = raw->data.mouse;
+        RawInputQueue::get().push(RawInputEvent::makeMouse(
+            mouse.lLastX,
+            mouse.lLastY,
+            mouse.usButtonFlags,
+            static_cast<int16_t>(mouse.usButtonData)
+        ));
+    }
+
+    return 0;
 }
+
+class $modify(cocos2d::CCEGLView) {
+    void pumpRawInput() {
+        RawInputEvent evt;
+        while (RawInputQueue::get().pop(evt)) {
+            switch (evt.type) {
+                case RawInputEvent::Type::KeyDown:
+                case RawInputEvent::Type::KeyUp: {
+                    using enum KeyboardInputEvent::Action;
+                    bool isDown = evt.type == RawInputEvent::Type::KeyDown;
+
+                    enumKeyCodes keyCode = keyToKeyCode(
+                        evt.keyboard.vkey,
+                        evt.keyboard.isE0
+                    );
+
+                    auto result = KeyboardInputEvent(
+                        keyCode,
+                        isDown ? (evt.keyboard.isRepeat ? Repeat : Press) : Release,
+                        {0, evt.keyboard.vkey},
+                        evt.timestamp
+                    ).post();
+
+                    if (result == ListenerResult::Propagate) {
+                        auto* ime = CCIMEDispatcher::sharedDispatcher();
+                        if (keyCode == enumKeyCodes::KEY_Backspace && isDown) {
+                            ime->dispatchDeleteBackward();
+                        } else if (keyCode == enumKeyCodes::KEY_Delete && isDown) {
+                            ime->dispatchDeleteForward();
+                        }
+
+                        CCKeyboardDispatcher::get()->dispatchKeyboardMSG(
+                            keyCode,
+                            isDown,
+                            evt.keyboard.isRepeat,
+                            std::chrono::duration_cast<std::chrono::microseconds>(
+                                evt.timestamp.time_since_epoch()
+                            ).count() / 1'000'000.0
+                        );
+
+                        // text pasting
+                        if (ime->hasDelegate() && keyCode == enumKeyCodes::KEY_V && isDown) {
+                            if (GetAsyncKeyState(VK_CONTROL) & 0x8000) {
+                                this->performSafeClipboardPaste();
+                            }
+                        }
+                    }
+                    break;
+                }
+                case RawInputEvent::Type::MouseButtonDown:
+                case RawInputEvent::Type::MouseButtonUp: {
+                    using enum MouseInputEvent::Action;
+                    using enum MouseInputEvent::Button;
+
+                    constexpr uint16_t downFlags =
+                        RI_MOUSE_BUTTON_1_DOWN | RI_MOUSE_BUTTON_2_DOWN |
+                        RI_MOUSE_BUTTON_3_DOWN | RI_MOUSE_BUTTON_4_DOWN |
+                        RI_MOUSE_BUTTON_5_DOWN;
+
+                    auto btn = evt.mouse.buttonFlags & (RI_MOUSE_BUTTON_1_DOWN | RI_MOUSE_BUTTON_1_UP) ? Left
+                        : evt.mouse.buttonFlags & (RI_MOUSE_BUTTON_2_DOWN | RI_MOUSE_BUTTON_2_UP) ? Right
+                        : evt.mouse.buttonFlags & (RI_MOUSE_BUTTON_3_DOWN | RI_MOUSE_BUTTON_3_UP) ? Middle
+                        : evt.mouse.buttonFlags & (RI_MOUSE_BUTTON_4_DOWN | RI_MOUSE_BUTTON_4_UP) ? Button4
+                        : Button5;
+
+                    bool isDown = (evt.mouse.buttonFlags & downFlags) != 0;
+
+                    auto result = MouseInputEvent(
+                        btn,
+                        isDown ? Press : Release,
+                        evt.timestamp
+                    ).post();
+
+                    if (result == ListenerResult::Propagate && btn == Left) {
+                        if (isDown) {
+                            int id = 0;
+                            m_bCaptured = true;
+                            this->handleTouchesBegin(
+                                1, &id,
+                                &m_fMouseX,
+                                &m_fMouseY,
+                                std::chrono::duration_cast<std::chrono::microseconds>(
+                                    evt.timestamp.time_since_epoch()
+                                ).count() / 1'000'000.0
+                            );
+                        } else {
+                            int id = 0;
+                            m_bCaptured = false;
+                            this->handleTouchesEnd(
+                                1, &id,
+                                &m_fMouseX,
+                                &m_fMouseY,
+                                std::chrono::duration_cast<std::chrono::microseconds>(
+                                    evt.timestamp.time_since_epoch()
+                                ).count() / 1'000'000.0
+                            );
+                        }
+                    }
+                    break;
+                }
+                case RawInputEvent::Type::MouseMove: {
+                    // update mouse position
+                    POINT p;
+                    GetCursorPos(&p);
+                    ScreenToClient(g_mainWindowHWND, &p);
+                    m_fMouseX = static_cast<float>(p.x);
+                    m_fMouseY = static_cast<float>(p.y);
+                    int id = 0;
+                    this->handleTouchesMove(
+                        1, &id,
+                        &m_fMouseX,
+                        &m_fMouseY,
+                        std::chrono::duration_cast<std::chrono::microseconds>(
+                            evt.timestamp.time_since_epoch()
+                        ).count() / 1'000'000.0
+                    );
+                    break;
+                }
+                case RawInputEvent::Type::MouseWheel:
+                default:
+                    break;
+            }
+        }
+    }
+};
 
 $execute {
     queueInMainThread([] {
-        HWND hwnd = WindowFromDC(wglGetCurrentDC());
-        g_originalWndProc = reinterpret_cast<WNDPROC>(SetWindowLongPtrW(
-            hwnd, GWLP_WNDPROC,
-            reinterpret_cast<LONG_PTR>(GeodeWndProc)
+        g_rawInputHWND = FindWindowW(L"GD_RawInput", nullptr);
+        g_mainWindowHWND = WindowFromDC(wglGetCurrentDC());
+        g_originalRawInputProc = reinterpret_cast<WNDPROC>(SetWindowLongPtrW(
+            g_rawInputHWND, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(GeodeRawInputWndProc)
         ));
     });
 }
