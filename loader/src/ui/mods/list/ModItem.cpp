@@ -14,7 +14,6 @@
 #include "ui/mods/GeodeStyle.hpp"
 #include "ui/mods/popups/ModPopup.hpp"
 #include "ui/mods/popups/DevPopup.hpp"
-#include "ui/mods/popups/ModErrorPopup.hpp"
 #include "ui/mods/sources/ModSource.hpp"
 #include "ui/GeodeUIEvent.hpp"
 
@@ -213,7 +212,7 @@ bool ModItem::init(ModSource&& source) {
                 m_viewMenu->addChild(m_enableToggle);
                 m_viewMenu->updateLayout();
             }
-            if (mod->hasLoadProblems() || mod->targetsOutdatedVersion()) {
+            if (mod->getLoadProblem()) {
                 auto viewErrorSpr = createGeodeCircleButton(
                     CCSprite::createWithSpriteFrameName("exclamation.png"_spr), 1.f,
                     CircleBaseSize::Small
@@ -292,45 +291,46 @@ bool ModItem::init(ModSource&& source) {
             m_downloadCountContainer->updateLayout();
 
             // Check if mod is recommended by any others, only if not installed
-            if (!Loader::get()->isModInstalled(metadata.id)) {
-                std::vector<Mod*> recommends {};
-                for (auto& recommend : Loader::get()->getRecommendations()) {
-                    auto suggestionID = recommend.message.substr(0, recommend.message.find(' '));
-                    if (suggestionID != metadata.id) {
-                        continue;
-                    }
-                    recommends.push_back(std::get<2>(recommend.cause));
-                }
+            // todo: bring this back once we add "suggestions" field in mod
+            // if (!Loader::get()->isModInstalled(metadata.id)) {
+            //     std::vector<Mod*> recommends {};
+            //     for (auto& recommend : Loader::get()->getRecommendations()) {
+            //         auto suggestionID = recommend.message.substr(0, recommend.message.find(' '));
+            //         if (suggestionID != metadata.id) {
+            //             continue;
+            //         }
+            //         recommends.push_back(std::get<2>(recommend.cause));
+            //     }
 
-                if (recommends.size() > 0) {
-                    m_recommendedBy = CCNode::create();
-                    m_recommendedBy->setID("recommended-container");
-                    m_recommendedBy->setContentWidth(225);
-                    auto byLabel = CCLabelBMFont::create("Recommended by ", "bigFont.fnt");
-                    byLabel->setID("recommended-label");
-                    byLabel->setColor("mod-list-recommended-by"_cc3b);
-                    m_recommendedBy->addChild(byLabel);
+            //     if (recommends.size() > 0) {
+            //         m_recommendedBy = CCNode::create();
+            //         m_recommendedBy->setID("recommended-container");
+            //         m_recommendedBy->setContentWidth(225);
+            //         auto byLabel = CCLabelBMFont::create("Recommended by ", "bigFont.fnt");
+            //         byLabel->setID("recommended-label");
+            //         byLabel->setColor("mod-list-recommended-by"_cc3b);
+            //         m_recommendedBy->addChild(byLabel);
 
-                    std::string recommendStr = "";
-                    if (recommends.size() == 1) {
-                        recommendStr = recommends[0]->getName();
-                    } else {
-                        recommendStr = fmt::format("{} installed mods", recommends.size());
-                    }
+            //         std::string recommendStr = "";
+            //         if (recommends.size() == 1) {
+            //             recommendStr = recommends[0]->getName();
+            //         } else {
+            //             recommendStr = fmt::format("{} installed mods", recommends.size());
+            //         }
 
-                    auto nameLabel = CCLabelBMFont::create(recommendStr.c_str(), "bigFont.fnt");
-                    nameLabel->setID("recommended-name-label");
-                    nameLabel->setColor("mod-list-recommended-by-2"_cc3b);
-                    m_recommendedBy->addChild(nameLabel);
+            //         auto nameLabel = CCLabelBMFont::create(recommendStr.c_str(), "bigFont.fnt");
+            //         nameLabel->setID("recommended-name-label");
+            //         nameLabel->setColor("mod-list-recommended-by-2"_cc3b);
+            //         m_recommendedBy->addChild(nameLabel);
 
-                    m_recommendedBy->setLayout(
-                        RowLayout::create()
-                            ->setDefaultScaleLimits(.1f, 1.f)
-                            ->setAxisAlignment(AxisAlignment::Start)
-                    );
-                    m_infoContainer->addChildAtPosition(m_recommendedBy, Anchor::Left);
-                }
-            }
+            //         m_recommendedBy->setLayout(
+            //             RowLayout::create()
+            //                 ->setDefaultScaleLimits(.1f, 1.f)
+            //                 ->setAxisAlignment(AxisAlignment::Start)
+            //         );
+            //         m_infoContainer->addChildAtPosition(m_recommendedBy, Anchor::Left);
+            //     }
+            // }
         }
     });
 
@@ -572,7 +572,7 @@ void ModItem::updateState() {
     // If there were problems, tint the BG red
     if (m_source.asMod()) {
         std::optional<LoadProblem> targetsOutdated = m_source.asMod()->targetsOutdatedVersion();
-        if (m_source.asMod()->hasLoadProblems()) {
+        if (m_source.asMod()->failedToLoad()) {
             m_bg->setColor("mod-list-errors-found"_cc3b);
             m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
         }
@@ -585,19 +585,15 @@ void ModItem::updateState() {
                 m_outdatedLabel->setString("Outdated");
             }
             else {
-                if (targetsOutdated->type == LoadProblem::Type::UnsupportedGeodeVersion || targetsOutdated->type == LoadProblem::Type::NeedsNewerGeodeVersion) {
+                if (!m_source.getMetadata().checkGameVersion()) {
+                    m_outdatedLabel->setString(fmt::format(
+                        "Outdated (GD {})", *m_source.getMetadata().getGameVersion()
+                    ).c_str());
+                }
+                else {
                     m_outdatedLabel->setString(fmt::format(
                         "Outdated (Geode {})", m_source.getMetadata().getGeodeVersion().toNonVString()
                     ).c_str());
-                } else {
-                    // TODO: this is dumb but i didn't want to figure out the LoadProblem. sorry
-                    if (m_source.getMetadata().getGameVersion() == "0.000") {
-                        m_outdatedLabel->setString("Unavailable");
-                    } else {
-                        m_outdatedLabel->setString(fmt::format(
-                            "Outdated (GD {})", m_source.getMetadata().getGameVersion().value_or("*")
-                        ).c_str());
-                    }
                 }
             }
         }
@@ -795,37 +791,17 @@ void ModItem::onView(CCObject*) {
 }
 void ModItem::onViewError(CCObject*) {
     if (auto mod = m_source.asMod()) {
-        if (auto problem = mod->targetsOutdatedVersion()) {
-            std::string issue;
-            std::string howToFix;
+        if (auto problem = mod->getLoadProblem()) {
+            std::string title;
             switch (problem->type) {
                 default:
-                case LoadProblem::Type::UnsupportedVersion: {
-                    issue = fmt::format("<cy>{}</c>", problem->message);
-                    howToFix = "wait for the developer to <cj>release an update to "
-                        "the mod</c> that supports the newer version.";
-                } break;
-
-                case LoadProblem::Type::NeedsNewerGeodeVersion: {
-                    issue = "This mod is made for a <cp>newer version of Geode</c>.";
-                    howToFix = "<cp>update Geode</c> by enabling <co>Automatic Updates</c> "
-                        "or redownloading it from the Geode website.";
-                } break;
-
-                case LoadProblem::Type::UnsupportedGeodeVersion: {
-                    issue = "This mod is made for an <cy>older version of Geode</c>.";
-                    howToFix = "wait for the developer to <cj>release an update to "
-                        "the mod</c> that supports the newer version.";
-                } break;
+                case LoadProblem::Type::Unknown: title = "Unknown error";
+                case LoadProblem::Type::InvalidGeodeFile: title = "Invalid Geode File";
+                case LoadProblem::Type::MissingDependencies: title = "Missing dependencies";
+                case LoadProblem::Type::Outdated: title = "Outdated";
+                case LoadProblem::Type::HasIncompatibilities: title = "Incompatiblities";
             }
-            FLAlertLayer::create(
-                "Outdated",
-                fmt::format("{} Please {}", issue, howToFix),
-                "OK"
-            )->show();
-        }
-        else {
-            ModErrorPopup::create(mod)->show();
+            FLAlertLayer::create(title.c_str(), problem->message, "OK")->show();
         }
     }
 }

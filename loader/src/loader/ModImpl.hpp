@@ -64,14 +64,10 @@ namespace geode {
          * The minimum log level for this mod
          */
         Severity m_logLevel = Severity::Debug;
-
         std::unordered_map<std::string, char const*> m_expandedSprites;
-
         bool m_isCurrentlyLoading = false;
-
         ModRequestedAction m_requestedAction = ModRequestedAction::None;
-
-        std::vector<LoadProblem> m_problems;
+        std::optional<LoadProblem> m_problem;
 
         Impl(Mod* self, ModMetadata const& metadata);
         ~Impl();
@@ -158,9 +154,6 @@ namespace geode {
         Severity getLogLevel() const;
         void setLogLevel(Severity level);
 
-        std::vector<LoadProblem> getProblems() const;
-
-        bool hasLoadProblems() const;
         bool shouldLoad() const;
         bool isCurrentlyLoading() const;
 

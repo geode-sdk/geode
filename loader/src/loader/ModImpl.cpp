@@ -684,19 +684,6 @@ bool Mod::Impl::isCurrentlyLoading() const {
     return m_isCurrentlyLoading;
 }
 
-bool Mod::Impl::hasLoadProblems() const {
-    for (auto const& problem : m_problems) {
-        if (problem.isProblemTheUserShouldCareAbout()) {
-            return true;
-        }
-    }
-    return false;
-}
-
-std::vector<LoadProblem> Mod::Impl::getProblems() const {
-    return m_problems;
-}
-
 int Mod::Impl::getLoadPriority() const {
     return m_metadata.getLoadPriority();
 }

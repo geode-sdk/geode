@@ -57,7 +57,7 @@ class ModMetadata::Dependency::Impl {
 public:
     std::string id;
     ComparableVersionInfo version;
-    Importance importance = Importance::Required;
+    bool required = true;
     Mod* mod = nullptr;
     matjson::Value settings;
 };
@@ -98,12 +98,12 @@ void ModMetadata::Dependency::setVersion(ComparableVersionInfo value) {
     m_impl->version = std::move(value);
 }
 
-ModMetadata::Dependency::Importance ModMetadata::Dependency::getImportance() const {
-    return m_impl->importance;
+bool ModMetadata::Dependency::isRequired() const {
+    return m_impl->required;
 }
 
-void ModMetadata::Dependency::setImportance(ModMetadata::Dependency::Importance value) {
-    m_impl->importance = value;
+void ModMetadata::Dependency::setRequired(bool value) {
+    m_impl->required = value;
 }
 
 Mod* ModMetadata::Dependency::getMod() const {
@@ -124,7 +124,7 @@ void ModMetadata::Dependency::setSettings(matjson::Value value) {
 
 bool ModMetadata::Dependency::isResolved() const {
     return
-        this->getImportance() != Importance::Required ||
+        !m_impl->required ||
         this->getMod() && this->getMod()->isEnabled() && this->getVersion().compare(this->getMod()->getVersion());
 }
 
@@ -132,7 +132,7 @@ class ModMetadata::Incompatibility::Impl {
 public:
     std::string id;
     ComparableVersionInfo version;
-    Importance importance = Importance::Breaking;
+    bool breaking = true;
     Mod* mod = nullptr;
 };
 
@@ -172,12 +172,12 @@ void ModMetadata::Incompatibility::setVersion(ComparableVersionInfo value) {
     m_impl->version = std::move(value);
 }
 
-ModMetadata::Incompatibility::Importance ModMetadata::Incompatibility::getImportance() const {
-    return m_impl->importance;
+bool ModMetadata::Incompatibility::isBreaking() const {
+    return m_impl->breaking;
 }
 
-void ModMetadata::Incompatibility::setImportance(ModMetadata::Incompatibility::Importance value) {
-    m_impl->importance = value;
+void ModMetadata::Incompatibility::setBreaking(bool value) {
+    m_impl->breaking = value;
 }
 
 Mod* ModMetadata::Incompatibility::getMod() const {
@@ -189,7 +189,7 @@ void ModMetadata::Incompatibility::setMod(Mod* mod) {
 }
 
 bool ModMetadata::Incompatibility::isResolved() const {
-    return this->getImportance() == Importance::Conflicting ||
+    return !m_impl->breaking ||
         (!this->getMod() || !this->getVersion().compare(this->getMod()->getVersion()) || !this->getMod()->shouldLoad());
 }
 
@@ -332,7 +332,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         Dependency dep;
         dep.setID("geode.loader");
         dep.setVersion({ about::getLoaderVersion(), VersionCompare::MoreEq });
-        dep.setImportance(Dependency::Importance::Required);
+        dep.setRequired(true);
         dep.setMod(Mod::get());
         impl->m_dependencies.push_back(std::move(dep));
     }
@@ -365,17 +365,20 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
             if (dep.isString()) {
                 dep.into(version);
                 dependency.setVersion(version);
-                dependency.setImportance(Dependency::Importance::Required);
+                dependency.setRequired(true);
             }
             else {
                 dep.needs("version").into(version);
                 dependency.setVersion(version);
-                Dependency::Importance importance;
-                dep.has("importance").into(importance);
-                dependency.setImportance(importance);
+
+                bool required;
+                dep.has("required").into(required);
+                dependency.setRequired(required);
+
                 matjson::Value dependencySettings;
                 dep.has("settings").into(dependencySettings);
                 dependency.setSettings(std::move(dependencySettings));
+                
                 dep.checkUnknownKeys();
             }
 
@@ -434,14 +437,14 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
             if (incompat.isString()) {
                 incompat.into(version);
                 incompatibility.setVersion(version);
-                incompatibility.setImportance(Incompatibility::Importance::Breaking);
+                incompatibility.setBreaking(true);
             }
             else {
                 incompat.needs("version").into(version);
                 incompatibility.setVersion(version);
-                Incompatibility::Importance importance;
-                incompat.has("importance").into(importance);
-                incompatibility.setImportance(importance);
+                bool breaking;
+                incompat.has("breaking").into(breaking);
+                incompatibility.setBreaking(breaking);
                 incompat.checkUnknownKeys();
             }
 

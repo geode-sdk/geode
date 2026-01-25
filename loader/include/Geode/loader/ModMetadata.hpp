@@ -70,7 +70,6 @@ namespace geode {
             std::unique_ptr<Impl> m_impl;
 
         public:
-            enum class Importance : uint8_t { Required, Recommended, Suggested };
             Dependency();
             Dependency(Dependency const& other);
             Dependency(Dependency&& other) noexcept;
@@ -82,8 +81,8 @@ namespace geode {
             void setID(std::string value);
             ComparableVersionInfo const& getVersion() const;
             void setVersion(ComparableVersionInfo value);
-            Importance getImportance() const;
-            void setImportance(Importance value);
+            bool isRequired() const;
+            void setRequired(bool value);
             Mod* getMod() const;
             void setMod(Mod* mod);
             matjson::Value const& getSettings() const;
@@ -96,11 +95,6 @@ namespace geode {
             std::unique_ptr<Impl> m_impl;
 
         public:
-            enum class Importance : uint8_t {
-                Breaking,
-                Conflicting,
-                Superseded,
-            };
             Incompatibility();
             Incompatibility(Incompatibility const& other);
             Incompatibility(Incompatibility&& other) noexcept;
@@ -112,8 +106,8 @@ namespace geode {
             void setID(std::string value);
             ComparableVersionInfo const& getVersion() const;
             void setVersion(ComparableVersionInfo value);
-            Importance getImportance() const;
-            void setImportance(Importance value);
+            bool isBreaking() const;
+            void setBreaking(bool value);
             Mod* getMod() const;
             void setMod(Mod* mod);
             [[nodiscard]] bool isResolved() const;

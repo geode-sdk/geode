@@ -65,44 +65,8 @@ std::vector<Mod*> Loader::getAllMods() {
     return m_impl->getAllMods();
 }
 
-size_t Loader::getNumberOfInvalidGeodeFiles() const {
-    size_t count = 0;
-    for (auto problem : this->getAllProblems()) {
-        if (problem.type == LoadProblem::Type::InvalidFile) {
-            count += 1;
-        }
-    }
-    return count;
-}
-std::vector<LoadProblem> Loader::getAllProblems() const {
-    return m_impl->getProblems();
-}
 std::vector<LoadProblem> Loader::getLoadProblems() const {
-    std::vector<LoadProblem> result;
-    for (auto problem : this->getAllProblems()) {
-        if (problem.isProblemTheUserShouldCareAbout()) {
-            result.push_back(problem);
-        }
-    }
-    return result;
-}
-std::vector<LoadProblem> Loader::getOutdated() const {
-    std::vector<LoadProblem> result;
-    for (auto problem : this->getAllProblems()) {
-        if (problem.isOutdated()) {
-            result.push_back(problem);
-        }
-    }
-    return result;
-}
-std::vector<LoadProblem> Loader::getRecommendations() const {
-    std::vector<LoadProblem> result;
-    for (auto problem : this->getAllProblems()) {
-        if (problem.type == LoadProblem::Type::Recommendation) {
-            result.push_back(problem);
-        }
-    }
-    return result;
+    return m_impl->getProblems();
 }
 
 void Loader::queueInMainThread(ScheduledFunction&& func) {

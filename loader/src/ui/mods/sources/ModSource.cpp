@@ -7,40 +7,6 @@
 #include <Geode/binding/GameObject.hpp>
 #include <unordered_set>
 
-LoadModSuggestionTask loadModSuggestion(LoadProblem const& problem) {
-    // Recommended / suggested are essentially the same thing for the purposes of this
-    if (problem.type == LoadProblem::Type::Recommendation || problem.type == LoadProblem::Type::Suggestion) {
-        auto suggestionID = problem.message.substr(0, problem.message.find(' '));
-        auto suggestionVersionStr = problem.message.substr(problem.message.find(' ') + 1);
-
-        if (auto suggestionVersionRes = ComparableVersionInfo::parse(suggestionVersionStr)) {
-            server::ModVersion suggestionVersion = server::ModVersionLatest();
-            if (suggestionVersionRes.unwrap().getComparison() == VersionCompare::MoreEq) {
-                suggestionVersion = server::ModVersionMajor {
-                    .major = suggestionVersionRes.unwrap().getUnderlyingVersion().getMajor()
-                };
-            }
-            // todo: if mods are allowed to specify other type of version comparisons in the future,
-            // add support for that here
-
-            if (auto mod = std::get_if<Mod*>(&problem.cause)) {
-                return server::getModVersion(suggestionID, suggestionVersion).map(
-                    [mod = *mod](auto* result) -> LoadModSuggestionTask::Value {
-                        if (result->isOk()) {
-                            return ModSuggestion {
-                                .suggestion = result->unwrap().metadata,
-                                .forMod = mod,
-                            };
-                        }
-                        return std::nullopt;
-                    }
-                );
-            }
-        }
-    }
-    return LoadModSuggestionTask::immediate(std::nullopt);
-}
-
 ModSource::ModSource(Mod* mod) : m_value(mod) {}
 ModSource::ModSource(server::ServerModMetadata&& metadata) : m_value(metadata) {}
 

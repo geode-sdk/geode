@@ -333,9 +333,9 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
         ComparableVersionInfo version;
         obj.needs("version").into(version);
         dependency.setVersion(version);
-        ModMetadata::Dependency::Importance importance;
-        obj.hasNullable("importance").into(importance);
-        dependency.setImportance(importance);
+        bool required;
+        obj.hasNullable("required").into(required);
+        dependency.setRequired(required);
 
         // Check if this dependency is installed, and if so assign the `mod` member to mark that
         auto mod = Loader::get()->getInstalledMod(dependency.getID());
@@ -350,19 +350,20 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
     std::vector<ModMetadata::Incompatibility> incompatibilities {};
     for (auto& obj : root.hasNullable("incompatibilities").items()) {
         ModMetadata::Incompatibility incompatibility;
-        ModMetadata::Incompatibility::Importance importance;
-        obj.hasNullable("importance").into(importance);
-        incompatibility.setImportance(importance);
+        bool breaking;
+        obj.hasNullable("breaking").into(breaking);
+        incompatibility.setBreaking(breaking);
 
         auto modIdValue = obj.needs("mod_id");
         std::string modId;
 
         // Do not validate if we have a supersede, maybe the old ID is invalid
-        if (incompatibility.getImportance() == ModMetadata::Incompatibility::Importance::Superseded) {
-            modIdValue.into(modId);
-        } else {
+        // todo: impl index-based superseding
+        // if (incompatibility.getImportance() == ModMetadata::Incompatibility::Importance::Superseded) {
+        //     modIdValue.into(modId);
+        // } else {
             modIdValue.mustBe<std::string>("a valid id", &ModMetadata::validateID).into(modId);
-        }
+        // }
         incompatibility.setID(modId);
 
         ComparableVersionInfo version;

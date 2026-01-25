@@ -177,47 +177,48 @@ bool ModPopup::init(ModSource&& src) {
     m_titleContainer->addChildAtPosition(dev, Anchor::BottomLeft, ccp(devAndTitlePos, m_titleContainer->getContentHeight() * .25f));
 
     // Suggestions
-    if (!Loader::get()->isModInstalled(m_source.getMetadata().getID())) {
-        std::vector<Mod*> recommends {};
-        for (auto& problem : Loader::get()->getRecommendations()) {
-            auto suggestionID = problem.message.substr(0, problem.message.find(' '));
-            if (suggestionID != m_source.getMetadata().getID()) {
-                continue;
-            }
-            recommends.push_back(std::get<2>(problem.cause));
-        }
+    // todo: bring this back once we add "suggestions" in mod.json
+    // if (!Loader::get()->isModInstalled(m_source.getMetadata().getID())) {
+    //     std::vector<Mod*> recommends {};
+    //     for (auto& problem : Loader::get()->getRecommendations()) {
+    //         auto suggestionID = problem.message.substr(0, problem.message.find(' '));
+    //         if (suggestionID != m_source.getMetadata().getID()) {
+    //             continue;
+    //         }
+    //         recommends.push_back(std::get<2>(problem.cause));
+    //     }
 
-        if (recommends.size() > 0) {
-            title->updateAnchoredPosition(Anchor::TopLeft, ccp(devAndTitlePos, -2));
-            dev->updateAnchoredPosition(Anchor::Left, ccp(devAndTitlePos, 0));
+    //     if (recommends.size() > 0) {
+    //         title->updateAnchoredPosition(Anchor::TopLeft, ccp(devAndTitlePos, -2));
+    //         dev->updateAnchoredPosition(Anchor::Left, ccp(devAndTitlePos, 0));
 
-            auto recommendedBy = CCNode::create();
-            recommendedBy->setContentWidth(m_titleContainer->getContentWidth() - devAndTitlePos);
-            recommendedBy->setAnchorPoint({ .0f, .5f });
+    //         auto recommendedBy = CCNode::create();
+    //         recommendedBy->setContentWidth(m_titleContainer->getContentWidth() - devAndTitlePos);
+    //         recommendedBy->setAnchorPoint({ .0f, .5f });
 
-            auto byLabel = CCLabelBMFont::create("Recommended by ", "bigFont.fnt");
-            byLabel->setColor("mod-list-recommended-by"_cc3b);
-            recommendedBy->addChild(byLabel);
+    //         auto byLabel = CCLabelBMFont::create("Recommended by ", "bigFont.fnt");
+    //         byLabel->setColor("mod-list-recommended-by"_cc3b);
+    //         recommendedBy->addChild(byLabel);
 
-            std::string suggestionStr {};
-            if (recommends.size() == 1) {
-                suggestionStr = recommends[0]->getName();
-            } else {
-                suggestionStr = fmt::format("{} installed mods", recommends.size());
-            }
+    //         std::string suggestionStr {};
+    //         if (recommends.size() == 1) {
+    //             suggestionStr = recommends[0]->getName();
+    //         } else {
+    //             suggestionStr = fmt::format("{} installed mods", recommends.size());
+    //         }
 
-            auto nameLabel = CCLabelBMFont::create(suggestionStr.c_str(), "bigFont.fnt");
-            nameLabel->setColor("mod-list-recommended-by-2"_cc3b);
-            recommendedBy->addChild(nameLabel);
+    //         auto nameLabel = CCLabelBMFont::create(suggestionStr.c_str(), "bigFont.fnt");
+    //         nameLabel->setColor("mod-list-recommended-by-2"_cc3b);
+    //         recommendedBy->addChild(nameLabel);
 
-            recommendedBy->setLayout(
-                RowLayout::create()
-                    ->setDefaultScaleLimits(.1f, 1.f)
-                    ->setAxisAlignment(AxisAlignment::Start)
-            );
-            m_titleContainer->addChildAtPosition(recommendedBy, Anchor::BottomLeft, ccp(devAndTitlePos, 4));
-        }
-    }
+    //         recommendedBy->setLayout(
+    //             RowLayout::create()
+    //                 ->setDefaultScaleLimits(.1f, 1.f)
+    //                 ->setAxisAlignment(AxisAlignment::Start)
+    //         );
+    //         m_titleContainer->addChildAtPosition(recommendedBy, Anchor::BottomLeft, ccp(devAndTitlePos, 4));
+    //     }
+    // }
 
     leftColumn->addChild(m_titleContainer);
 

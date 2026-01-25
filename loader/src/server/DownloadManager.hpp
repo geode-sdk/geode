@@ -55,7 +55,7 @@ namespace server {
         ModDownloadFilter(std::string id);
     };
 
-    using DependencyFor = std::pair<std::string, ModMetadata::Dependency::Importance>;
+    using DependencyFor = std::pair<std::string, bool>;
 
     class ModDownload final {
     private:

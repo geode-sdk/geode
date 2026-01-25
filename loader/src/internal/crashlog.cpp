@@ -24,7 +24,6 @@ void crashlog::printGeodeInfo(std::stringstream& stream) {
            << "Loader Commit: " << about::getLoaderCommitHash() << "\n"
            << "Bindings Commit: " << about::getBindingsCommitHash() << "\n"
            << "Installed mods: " << Loader::get()->getAllMods().size() << "\n"
-           << "Outdated mods: " << Loader::get()->getOutdated().size() << "\n"
            << "Problems: " << Loader::get()->getLoadProblems().size() << "\n";
 }
 
@@ -45,8 +44,8 @@ void crashlog::printMods(std::stringstream& stream) {
         stream << fmt::format("{} | [{}] {}\n",
             mod->isCurrentlyLoading() ? "o"sv :
             mod->isEnabled() ? "x"sv :
-            mod->hasLoadProblems() ? "!"sv : // thank you for this bug report
             mod->targetsOutdatedVersion() ? "*"sv : // thank you very much for this bug report
+            mod->failedToLoad() ? "!"sv : // thank you for this bug report
             mod->shouldLoad() ? "~"sv :
             " "sv,
             mod->getVersion().toVString(), mod->getID()

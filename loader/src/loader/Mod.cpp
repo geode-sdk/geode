@@ -274,46 +274,22 @@ bool Mod::hasSavedValue(std::string_view key) {
     return this->getSaveContainer().contains(key);
 }
 
-bool Mod::hasLoadProblems() const {
-    return m_impl->hasLoadProblems();
-}
-bool Mod::hasInvalidGeodeFile() const {
-    for (auto problem : this->getAllProblems()) {
-        if (problem.type == LoadProblem::Type::InvalidFile) {
-            return true;
-        }
-    }
-    return false;
-}
 std::optional<LoadProblem> Mod::targetsOutdatedVersion() const {
-    for (auto problem : this->getAllProblems()) {
-        if (problem.isOutdated()) {
-            return problem;
-        }
+    if (m_impl->m_problem && m_impl->m_problem->type == LoadProblem::Type::Outdated) {
+        return m_impl->m_problem;
     }
     return std::nullopt;
 }
-std::vector<LoadProblem> Mod::getAllProblems() const {
-    return m_impl->getProblems();
-}
-std::vector<LoadProblem> Mod::getProblems() const {
-    std::vector<LoadProblem> result;
-    for (auto problem : this->getAllProblems()) {
-        if (problem.isProblemTheUserShouldCareAbout()) {
-            result.push_back(problem);
-        }
+std::optional<LoadProblem> Mod::failedToLoad() const {
+    if (m_impl->m_problem && m_impl->m_problem->type != LoadProblem::Type::Outdated) {
+        return m_impl->m_problem;
     }
-    return result;
+    return std::nullopt;
 }
-std::vector<LoadProblem> Mod::getRecommendations() const {
-    std::vector<LoadProblem> result;
-    for (auto problem : this->getAllProblems()) {
-        if (problem.isSuggestion()) {
-            result.push_back(problem);
-        }
-    }
-    return result;
+std::optional<LoadProblem> Mod::getLoadProblem() const {
+    return m_impl->m_problem;
 }
+
 bool Mod::shouldLoad() const {
     return m_impl->shouldLoad();
 }

@@ -15,7 +15,7 @@
         {
             "id": "geode.testdep",
             "version": ">=1.0.0",
-            "importance": "required"
+            "required": true
         }
     ]
 }

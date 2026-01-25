@@ -55,10 +55,10 @@ public:
 
                     // Start downloads for any missing required dependencies
                     for (auto dep : data.metadata.getDependencies()) {
-                        if (!dep.getMod() && dep.getImportance() != ModMetadata::Dependency::Importance::Suggested) {
+                        if (!dep.getMod() && dep.isRequired()) {
                             ModDownloadManager::get()->startDownload(
                                 dep.getID(), dep.getVersion().getUnderlyingVersion(),
-                                std::make_pair(m_id, dep.getImportance())
+                                std::make_pair(m_id, dep.isRequired())
                             );
                         }
                     }
