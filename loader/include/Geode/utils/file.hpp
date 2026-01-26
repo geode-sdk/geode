@@ -76,7 +76,7 @@ namespace geode::utils::file {
      * @param data Data to write to the file
      * @returns Result indicating success or failure
      */
-    GEODE_DLL Result<> writeBinary(std::filesystem::path const& path, ByteVector const& data);
+    GEODE_DLL Result<> writeBinary(std::filesystem::path const& path, ByteSpan data);
 
     /**
      * Write binary data to a file. Unlike the regular writeBinary, it first writes to a temporary file
@@ -87,7 +87,7 @@ namespace geode::utils::file {
      * @param data Data to write to the file
      * @returns Result indicating success or failure
      */
-    GEODE_DLL Result<> writeBinarySafe(std::filesystem::path const& path, ByteVector const& data);
+    GEODE_DLL Result<> writeBinarySafe(std::filesystem::path const& path, ByteSpan data);
 
     template <class T>
     Result<> writeToJson(std::filesystem::path const& path, T const& data) {
@@ -151,7 +151,7 @@ namespace geode::utils::file {
         /**
          * Add an entry to the zip with data
          */
-        Result<> add(Path const& entry, ByteVector const& data);
+        Result<> add(Path const& entry, ByteSpan data);
         /**
          * Add an entry to the zip with string data
          */
@@ -201,7 +201,7 @@ namespace geode::utils::file {
         /**
          * Create unzipper for data in-memory
          */
-        static Result<Unzip> create(ByteVector const& data);
+        static Result<Unzip> create(ByteSpan data);
 
         /**
          * Set a callback to be called with the progress of the unzip operation, first

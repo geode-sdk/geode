@@ -241,11 +241,11 @@ Result<> utils::file::writeStringSafe(std::filesystem::path const& path, std::st
     return Ok();
 }
 
-Result<> utils::file::writeBinary(std::filesystem::path const& path, ByteVector const& data) {
+Result<> utils::file::writeBinary(std::filesystem::path const& path, ByteSpan data) {
     return writeFileFrom(path, (void*)data.data(), data.size());
 }
 
-Result<> utils::file::writeBinarySafe(std::filesystem::path const& path, ByteVector const& data) {
+Result<> utils::file::writeBinarySafe(std::filesystem::path const& path, ByteSpan data) {
     GEODE_ANDROID(
         return utils::file::writeBinary(path, data); // safe approach causes significant performance issues on Android
     )
@@ -438,10 +438,10 @@ public:
         return Ok(std::move(ret));
     }
 
-    static Result<std::unique_ptr<Impl>> fromMemory(ByteVector const& raw) {
+    static Result<std::unique_ptr<Impl>> fromMemory(ByteSpan raw) {
         auto ret = std::make_unique<Impl>();
         ret->m_mode = MZ_OPEN_MODE_READ;
-        ret->m_srcDest = raw;
+        ret->m_srcDest = ByteVector{raw.begin(), raw.end()};
         GEODE_UNWRAP(ret->init());
         return Ok(std::move(ret));
     }
@@ -634,7 +634,7 @@ public:
         return Ok();
     }
 
-    Result<> add(Path const& path, ByteVector const& data) {
+    Result<> add(Path const& path, ByteSpan data) {
         auto namestr = utils::string::pathToString(path);
 
         mz_zip_file info = { 0 };
@@ -709,7 +709,7 @@ Result<Unzip> Unzip::create(Path const& file) {
     return Ok(Unzip(std::move(impl)));
 }
 
-Result<Unzip> Unzip::create(ByteVector const& data) {
+Result<Unzip> Unzip::create(ByteSpan data) {
     GEODE_UNWRAP_INTO(auto impl, Zip::Impl::fromMemory(data));
     return Ok(Unzip(std::move(impl)));
 }
@@ -819,12 +819,13 @@ ByteVector Zip::getData() const {
     return m_impl->compressedData();
 }
 
-Result<> Zip::add(Path const& path, ByteVector const& data) {
+Result<> Zip::add(Path const& path, ByteSpan data) {
     return m_impl->add(path, data);
 }
 
 Result<> Zip::add(Path const& path, std::string_view data) {
-    return this->add(path, ByteVector(data.begin(), data.end()));
+    auto vec = ByteVector{data.begin(), data.end()};
+    return this->add(path, vec);
 }
 
 Result<> Zip::addFrom(Path const& file, Path const& entryDir) {

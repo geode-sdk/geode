@@ -702,7 +702,7 @@ namespace geode::cocos {
      * @returns Rectangle fitting all nodes. Origin
      * will be <= 0 and size will be >= 0
      */
-    GEODE_DLL cocos2d::CCRect calculateNodeCoverage(std::vector<cocos2d::CCNode*> const& nodes);
+    GEODE_DLL cocos2d::CCRect calculateNodeCoverage(std::span<cocos2d::CCNode*> nodes);
     /**
      * Get bounds for a set of nodes. Based on content
      * size
