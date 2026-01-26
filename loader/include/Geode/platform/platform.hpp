@@ -11,6 +11,13 @@
     #define GEODE_PRETTY_FUNCTION std::string(__PRETTY_FUNCTION__)
 #endif
 
+static_assert(
+    __cplusplus >= 202302L,
+    "\n\nError: Geode requires C++23 support to build!\n"
+    "Please modify your CMakeLists.txt and change CMAKE_CXX_STANDARD from 20 to 23\n"
+    "If you're using an outdated compiler that doesn't support C++23, please update it.\n\n"
+);
+
 // Windows
 #ifdef GEODE_IS_WINDOWS
 
