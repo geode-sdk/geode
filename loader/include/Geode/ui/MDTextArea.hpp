@@ -35,23 +35,16 @@ namespace geode {
         public cocos2d::CCLabelProtocol,
         public FLAlertLayerProtocol {
     private:
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
         /**
          * Converts single newlines to soft linebreaks.
          */
         static std::string translateNewlines(std::string const& str);
 
-    // TODO in v5: this should be pimpl (or final)
-    protected:
-        std::string m_text;
-        cocos2d::CCSize m_size;
-        cocos2d::extension::CCScale9Sprite* m_bgSprite = nullptr;
-        cocos2d::CCMenu* m_content = nullptr;
-        CCScrollLayerExt* m_scrollLayer = nullptr;
-        TextRenderer* m_renderer = nullptr;
-        bool m_compatibilityMode = false;
-
         bool init(std::string str, cocos2d::CCSize const& size);
 
+        MDTextArea();
         virtual ~MDTextArea();
 
         void onLink(CCObject*);
