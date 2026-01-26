@@ -32,11 +32,18 @@ struct matjson::Serialize<cocos2d::ccColor4B> {
 namespace geode::cocos {
     template <class InpT, bool Retain>
     class CCArrayExt;
+    template <class Key, class ValueInpT, bool Retain>
+    class CCDictionaryExt; 
 }
 
 template <typename T>
 struct ::geode::CCArrayExtCheck<T, void> {
     using type = cocos::CCArrayExt<T, true>;
+};
+
+template <typename K, typename V>
+struct ::geode::CCDictionaryExtCheck<K, V, void> {
+    using type = cocos::CCDictionaryExt<K, V, true>;
 };
 
 // operators for CC geometry
@@ -1265,7 +1272,7 @@ namespace geode::cocos {
      *   log::info("{}: {}", name, level->m_levelID);
      * }
      */
-    template <CocosDictionaryKey Key = std::string_view, class ValueInpT = cocos2d::CCObject, bool Retain = true>
+    template <class Key = std::string_view, class ValueInpT = cocos2d::CCObject, bool Retain = true>
     struct CCDictionaryExt {
     protected:
         using Value = std::remove_pointer_t<ValueInpT>;
@@ -1273,6 +1280,7 @@ namespace geode::cocos {
         using Container = std::conditional_t<Retain, Ref<cocos2d::CCDictionary>, cocos2d::CCDictionary*>;
         using Entry = CCDictEntry<Key, Value>;
         using Iterator = CCDictIterator<Key, Value>;
+        static_assert(CocosDictionaryKey<Key>);
         static_assert(CocosObject<Value>);
 
         Container m_dict;
