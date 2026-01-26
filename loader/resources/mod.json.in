@@ -151,6 +151,13 @@
             "default": false,
             "name": "Log Milliseconds",
             "description": "Shows milliseconds in all logs"
+        },
+        "log-thread": {
+            "type": "bool",
+            "default": true,
+            "name": "Log Thread",
+            "description": "Pushes all logs to a worker thread that handles console & file writing. This makes logging much faster, especially on Windows, but if your console can't keep up, it will see stale logs and might miss some.",
+            "requires-restart": true
         }
     },
     "issues": {
