@@ -736,7 +736,7 @@ ServerRequest<ByteVector> server::getModLogo(std::string const& id, bool useCach
     return req.get(formatServerURL("/mods/{}/logo", id)).map(
         [](web::WebResponse* response) -> Result<ByteVector, ServerError> {
             if (response->ok()) {
-                return Ok(response->data());
+                return Ok(std::move(*response).data());
             }
             return Err(parseServerError(*response));
         },

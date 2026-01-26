@@ -248,8 +248,7 @@ void LazySprite::loadFromUrl(std::string url, Format format, bool ignoreCache) {
             return;
         }
 
-        auto data = resp->data();
-        this->doInitFromBytes(std::move(data), std::move(cacheKey));
+        this->doInitFromBytes(std::move(*resp).data(), std::move(cacheKey));
     });
 
     web::WebRequest req{};

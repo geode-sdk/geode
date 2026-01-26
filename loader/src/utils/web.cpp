@@ -7,16 +7,17 @@
 #include <matjson.hpp>
 #include <system_error>
 #define CURL_STATICLIB
-#include <curl/curl.h>
-#include <ca_bundle.h>
-
 #include <Geode/loader/Mod.hpp>
-#include <Geode/utils/web.hpp>
-#include <Geode/utils/file.hpp>
-#include <Geode/utils/string.hpp>
 #include <Geode/utils/StringBuffer.hpp>
+#include <Geode/utils/file.hpp>
 #include <Geode/utils/map.hpp>
+#include <Geode/utils/string.hpp>
 #include <Geode/utils/terminate.hpp>
+#include <Geode/utils/web.hpp>
+#include <ca_bundle.h>
+#include <curl/curl.h>
+#include <queue>
+#include <semaphore>
 #include <sstream>
 
 using namespace geode::prelude;
@@ -279,9 +280,14 @@ Result<matjson::Value> WebResponse::json() const {
         return fmt::format("Error parsing JSON: {}", err);
     });
 }
-ByteVector WebResponse::data() const {
+ByteVector const& WebResponse::data() const& {
     return m_impl->m_data;
 }
+
+ByteVector WebResponse::data() && {
+    return std::move(m_impl->m_data);
+}
+
 Result<> WebResponse::into(std::filesystem::path const& path) const {
     return m_impl->into(path);
 }
@@ -310,34 +316,45 @@ std::string_view WebResponse::errorMessage() const {
     return m_impl->m_errMessage;
 }
 
-class WebProgress::Impl {
+class web::WebRequestsManager {
+private:
+    class Impl;
+    Impl* m_impl;
+
+    WebRequestsManager();
+    ~WebRequestsManager();
+
 public:
-    size_t m_downloadCurrent;
-    size_t m_downloadTotal;
-    size_t m_uploadCurrent;
-    size_t m_uploadTotal;
+    static WebRequestsManager* get();
+
+    struct RequestData {
+        std::shared_ptr<WebRequest::Impl> request;
+        WebResponse response;
+        WebTask::PostResult onComplete;
+        WebTask::PostProgress onProgress;
+        WebTask::HasBeenCancelled hasBeenCancelled;
+    };
+
+    void enqueue(std::shared_ptr<RequestData> data);
+    WebResponse enqueueAndWait(std::shared_ptr<WebRequest::Impl> data, WebTask::PostProgress progress = nullptr);
 };
 
-WebProgress::WebProgress() : m_impl(std::make_shared<Impl>()) {}
-
-size_t WebProgress::downloaded() const {
-    return m_impl->m_downloadCurrent;
-}
-size_t WebProgress::downloadTotal() const {
-    return m_impl->m_downloadTotal;
-}
-std::optional<float> WebProgress::downloadProgress() const {
-    return downloadTotal() > 0 ? std::optional(downloaded() * 100.f / downloadTotal()) : std::nullopt;
+static void hexAppend(auto& buf, unsigned char c) {
+    auto hexDigits = "0123456789ABCDEF";
+    buf.append(hexDigits[(c >> 4) & 0xf]);
+    buf.append(hexDigits[c & 0xf]);
 }
 
-size_t WebProgress::uploaded() const {
-    return m_impl->m_uploadCurrent;
-}
-size_t WebProgress::uploadTotal() const {
-    return m_impl->m_uploadTotal;
-}
-std::optional<float> WebProgress::uploadProgress() const {
-    return uploadTotal() > 0 ? std::optional(uploaded() * 100.f / uploadTotal()) : std::nullopt;
+// Encodes a url param
+static void urlEncodeAppend(auto& buf, std::string_view input) {
+    for (char c : input) {
+        if (std::isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
+            buf.append(c);
+        } else {
+            buf.append('%');
+            hexAppend(buf, static_cast<unsigned char>(c));
+        }
+    }
 }
 
 class WebRequest::Impl {
@@ -362,7 +379,16 @@ public:
     HttpVersion m_httpVersion = HttpVersion::DEFAULT;
     size_t m_id;
 
+    // stored to clean up later
+    char m_errorBuf[CURL_ERROR_SIZE] = {0};
+    curl_slist* m_curlHeaders = nullptr;
+
     Impl() : m_id(s_idCounter++) {}
+    ~Impl() {
+        if (m_curlHeaders) {
+            curl_slist_free_all(m_curlHeaders);
+        }
+    }
 
     WebResponse makeError(int code, std::string_view msg) {
         auto res = WebResponse();
@@ -370,61 +396,20 @@ public:
         res.m_impl->m_data = ByteVector(msg.begin(), msg.end());
         return res;
     }
-};
 
-std::atomic_size_t WebRequest::Impl::s_idCounter = 0;
-
-WebRequest::WebRequest() : m_impl(std::make_shared<Impl>()) {}
-WebRequest::~WebRequest() {}
-
-static void hexAppend(auto& buf, unsigned char c) {
-    auto hexDigits = "0123456789ABCDEF";
-    buf.append(hexDigits[(c >> 4) & 0xf]);
-    buf.append(hexDigits[c & 0xf]);
-}
-
-// Encodes a url param
-static void urlEncodeAppend(auto& buf, std::string_view input) {
-    for (char c : input) {
-        if (std::isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
-            buf.append(c);
-        } else {
-            buf.append('%');
-            hexAppend(buf, static_cast<unsigned char>(c));
-        }
-    }
-}
-
-WebTask WebRequest::send(std::string method, std::string url) {
-    auto taskName = fmt::format("{} {}", method, url);
-    m_impl->m_method = std::move(method);
-    m_impl->m_url = std::move(url);
-    return WebTask::run([impl = m_impl](auto progress, auto hasBeenCancelled) -> WebTask::Result {
-        // Init Curl
+    CURL* makeCurlHandle(WebRequestsManager::RequestData* requestData) {
         auto curl = curl_easy_init();
         if (!curl) {
             log::error("Failed to initialize cURL");
-            return impl->makeError(-1, "Failed to initialize curl");
+            return nullptr;
         }
 
         // todo: in the future, we might want to support downloading directly into
         // files / in-memory streams like the old AsyncWebRequest class
 
-        // Struct that holds values for the curl callbacks
-        struct ResponseData {
-            WebResponse response;
-            Impl* impl;
-            WebTask::PostProgress progress;
-            WebTask::HasBeenCancelled hasBeenCancelled;
-        } responseData = {
-            .response = WebResponse(),
-            .impl = impl.get(),
-            .progress = std::move(progress),
-            .hasBeenCancelled = std::move(hasBeenCancelled),
-        };
-
         // Store downloaded response data into a byte vector
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &responseData);
+        using ResponseData = WebRequestsManager::RequestData;
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, requestData);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, +[](char* data, size_t size, size_t nmemb, void* ptr) {
             auto& target = static_cast<ResponseData*>(ptr)->response.m_impl->m_data;
             target.insert(target.end(), data, data + size * nmemb);
@@ -432,8 +417,8 @@ WebTask WebRequest::send(std::string method, std::string url) {
         });
 
         // Set headers
-        curl_slist* headers = nullptr;
-        for (auto& [name, values] : impl->m_headers) {
+        m_curlHeaders = nullptr;
+        for (auto& [name, values] : m_headers) {
             // Sanitize header name
             auto header = name;
             header.erase(std::remove_if(header.begin(), header.end(), [](char c) {
@@ -445,17 +430,17 @@ WebTask WebRequest::send(std::string method, std::string url) {
             // Append values
             for (const auto& value: values) {
                 header.append(value);
-                headers = curl_slist_append(headers, header.c_str());
+                m_curlHeaders = curl_slist_append(m_curlHeaders, header.c_str());
                 header.resize(origSize);
             }
         }
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, m_curlHeaders);
 
         // Add parameters to the URL and pass it to curl
-        StringBuffer<> urlBuffer{impl->m_url};
-        bool first = impl->m_url.find('?') == std::string::npos;
+        StringBuffer<> urlBuffer{m_url};
+        bool first = m_url.find('?') == std::string::npos;
 
-        for (auto& [key, value] : impl->m_urlParameters) {
+        for (auto& [key, value] : m_urlParameters) {
             urlBuffer.append(first ? '?' : '&');
             urlEncodeAppend(urlBuffer, key);
             urlBuffer.append('=');
@@ -466,27 +451,27 @@ WebTask WebRequest::send(std::string method, std::string url) {
 
         // Set HTTP version
         auto useHttp1 = Loader::get()->getLaunchFlag("use-http1");
-        if (impl->m_httpVersion == HttpVersion::DEFAULT && useHttp1) {
-            impl->m_httpVersion = HttpVersion::VERSION_1_1; // Force HTTP/1.1 if the flag is set
+        if (m_httpVersion == HttpVersion::DEFAULT && useHttp1) {
+            m_httpVersion = HttpVersion::VERSION_1_1; // Force HTTP/1.1 if the flag is set
         }
 
-        curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, unwrapHttpVersion(impl->m_httpVersion));
+        curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, unwrapHttpVersion(m_httpVersion));
 
         // Set request method
-        if (impl->m_method != "GET") {
-            if (impl->m_method == "POST") {
+        if (m_method != "GET") {
+            if (m_method == "POST") {
                 curl_easy_setopt(curl, CURLOPT_POST, 1L);
             }
             else {
-                curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, impl->m_method.c_str());
+                curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, m_method.c_str());
             }
         }
 
         // Set body if provided
-        if (impl->m_body) {
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, impl->m_body->data());
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, impl->m_body->size());
-        } else if (impl->m_method == "POST") {
+        if (m_body) {
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, m_body->data());
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, m_body->size());
+        } else if (m_method == "POST") {
             // curl_easy_perform would freeze on a POST request with no fields, so set it to an empty string
             // why? god knows
             // SMJS: because the stream isn't complete without a body according to the spec
@@ -494,18 +479,18 @@ WebTask WebRequest::send(std::string method, std::string url) {
         }
 
         // Cert verification
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, impl->m_certVerification ? 1L : 0L);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, m_certVerification ? 1L : 0L);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
 
         int sslOptions = 0;
 
         std::string_view caBundle;
 
-        if (impl->m_certVerification) {
-            if (impl->m_CABundleContent.empty()) {
+        if (m_certVerification) {
+            if (m_CABundleContent.empty()) {
                 caBundle = CA_BUNDLE_CONTENT;
             } else {
-                caBundle = impl->m_CABundleContent;
+                caBundle = m_CABundleContent;
             }
 
             if (!caBundle.empty()) {
@@ -524,30 +509,30 @@ WebTask WebRequest::send(std::string method, std::string url) {
         curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, sslOptions);
 
         // Transfer body
-        curl_easy_setopt(curl, CURLOPT_NOBODY, impl->m_transferBody ? 0L : 1L);
+        curl_easy_setopt(curl, CURLOPT_NOBODY, m_transferBody ? 0L : 1L);
 
         // Set user agent if provided
-        if (impl->m_userAgent) {
-            curl_easy_setopt(curl, CURLOPT_USERAGENT, impl->m_userAgent->c_str());
+        if (m_userAgent) {
+            curl_easy_setopt(curl, CURLOPT_USERAGENT, m_userAgent->c_str());
         }
 
         // Set encoding
-        if (impl->m_acceptEncodingType) {
-            curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, impl->m_acceptEncodingType->c_str());
+        if (m_acceptEncodingType) {
+            curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, m_acceptEncodingType->c_str());
         }
 
         // Set timeout
-        if (impl->m_timeout) {
-            curl_easy_setopt(curl, CURLOPT_TIMEOUT, impl->m_timeout->count());
+        if (m_timeout) {
+            curl_easy_setopt(curl, CURLOPT_TIMEOUT, m_timeout->count());
         }
 
         // Set range
-        if (impl->m_range) {
-            curl_easy_setopt(curl, CURLOPT_RANGE, fmt::format("{}-{}", impl->m_range->first, impl->m_range->second).c_str());
+        if (m_range) {
+            curl_easy_setopt(curl, CURLOPT_RANGE, fmt::format("{}-{}", m_range->first, m_range->second).c_str());
         }
 
         // Set proxy options
-        auto const& proxyOpts = impl->m_proxyOpts;
+        auto const& proxyOpts = m_proxyOpts;
         if (!proxyOpts.address.empty()) {
             curl_easy_setopt(curl, CURLOPT_PROXY, proxyOpts.address.c_str());
 
@@ -557,7 +542,7 @@ WebTask WebRequest::send(std::string method, std::string url) {
 
             curl_easy_setopt(curl, CURLOPT_PROXYTYPE, unwrapProxyType(proxyOpts.type));
 
-            if (!proxyOpts.username.empty() || !proxyOpts.username.empty()) {
+            if (!proxyOpts.username.empty()) {
                 curl_easy_setopt(curl, CURLOPT_PROXYAUTH, unwrapHttpAuth(proxyOpts.auth));
                 curl_easy_setopt(curl, CURLOPT_PROXYUSERPWD,
                     fmt::format("{}:{}", proxyOpts.username, proxyOpts.password).c_str());
@@ -569,10 +554,10 @@ WebTask WebRequest::send(std::string method, std::string url) {
         }
 
         // Follow request through 3xx responses
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, impl->m_followRedirects ? 1L : 0L);
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, m_followRedirects ? 1L : 0L);
 
         // Ignore content length
-        curl_easy_setopt(curl, CURLOPT_IGNORE_CONTENT_LENGTH, impl->m_ignoreContentLength ? 1L : 0L);
+        curl_easy_setopt(curl, CURLOPT_IGNORE_CONTENT_LENGTH, m_ignoreContentLength ? 1L : 0L);
 
         // Track progress
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
@@ -629,12 +614,10 @@ WebTask WebRequest::send(std::string method, std::string url) {
         }
 
         // If an error happens, we want to get a more specific description of the issue
-        char errorBuf[CURL_ERROR_SIZE];
-        errorBuf[0] = '\0';
-        curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorBuf);
+        curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, m_errorBuf);
 
         // Get headers from the response
-        curl_easy_setopt(curl, CURLOPT_HEADERDATA, &responseData);
+        curl_easy_setopt(curl, CURLOPT_HEADERDATA, requestData);
         curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, (+[](char* buffer, size_t size, size_t nitems, void* ptr) {
             auto& headers = static_cast<ResponseData*>(ptr)->response.m_impl->m_headers;
             std::string line;
@@ -661,64 +644,53 @@ WebTask WebRequest::send(std::string method, std::string url) {
         }));
 
         // Track & post progress on the Promise
-        curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &responseData);
-        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, +[](void* ptr, double dtotal, double dnow, double utotal, double unow) -> int {
-            auto data = static_cast<ResponseData*>(ptr);
+        // onProgress can only be not set if using sendSync without one, and hasBeenCancelled is always null in that case
+        if (requestData->onProgress) {
+            curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, requestData);
+            curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, +[](void* ptr, double dtotal, double dnow, double utotal, double unow) -> int {
+                auto data = static_cast<ResponseData*>(ptr);
 
-            // Check for cancellation and abort if so
-            if (data->hasBeenCancelled()) {
-                return 1;
-            }
+                // Check for cancellation and abort if so
+                if (data->hasBeenCancelled && data->hasBeenCancelled()) {
+                    return 1;
+                }
 
-            // Post progress to Promise listener
-            auto progress = WebProgress();
-            progress.m_impl->m_downloadTotal = dtotal;
-            progress.m_impl->m_downloadCurrent = dnow;
-            progress.m_impl->m_uploadTotal = utotal;
-            progress.m_impl->m_uploadCurrent = unow;
-            data->progress(std::move(progress));
+                // Post progress to Promise listener
+                WebProgress progress{};
+                progress.m_downloadTotal = dtotal;
+                progress.m_downloadCurrent = dnow;
+                progress.m_uploadTotal = utotal;
+                progress.m_uploadCurrent = unow;
+                data->onProgress(progress);
 
-            // Continue as normal
-            return 0;
-        });
-
-        // Make the actual web request
-        auto curlResponse = curl_easy_perform(curl);
-
-        // Get the response code; note that this will be invalid if the
-        // curlResponse is not CURLE_OK
-        long code = 0;
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &code);
-        responseData.response.m_impl->m_code = static_cast<int>(code);
-
-        responseData.response.m_impl->m_errMessage = std::string(errorBuf);
-
-        // Free up curl memory
-        curl_slist_free_all(headers);
-        curl_easy_cleanup(curl);
-
-        // Check if the request failed on curl's side or because of cancellation
-        if (curlResponse != CURLE_OK) {
-            if (responseData.hasBeenCancelled()) {
-                log::debug("Request cancelled");
-                return WebTask::Cancel();
-            }
-            else {
-                std::string_view err = curl_easy_strerror(curlResponse);
-                log::error("cURL failure, error: {}", err);
-                log::warn("Error buffer: {}", errorBuf);
-                return impl->makeError(
-                    -1,
-                    !*errorBuf ?
-                          fmt::format("Curl failed: {}", err)
-                        : fmt::format("Curl failed: {} ({})", err, errorBuf)
-                );
-            }
+                // Continue as normal
+                return 0;
+            });
         }
 
-        // resolve with success :-)
-        return std::move(responseData.response);
-    }, taskName);
+        return curl;
+    }
+};
+
+std::atomic_size_t WebRequest::Impl::s_idCounter = 0;
+
+WebRequest::WebRequest() : m_impl(std::make_shared<Impl>()) {}
+WebRequest::~WebRequest() {}
+
+WebTask WebRequest::send(std::string method, std::string url) {
+    auto [task, result, progress, cancelled] = WebTask::spawn(fmt::format("{} {}", method, url));
+    m_impl->m_method = std::move(method);
+    m_impl->m_url = std::move(url);
+
+    WebRequestsManager::get()->enqueue(std::make_shared<WebRequestsManager::RequestData>(
+        m_impl,
+        WebResponse(),
+        std::move(result),
+        std::move(progress),
+        std::move(cancelled)
+    ));
+
+    return task;
 }
 WebTask WebRequest::post(std::string url) {
     return this->send("POST", std::move(url));
@@ -731,6 +703,24 @@ WebTask WebRequest::put(std::string url) {
 }
 WebTask WebRequest::patch(std::string url) {
     return this->send("PATCH", std::move(url));
+}
+
+WebResponse WebRequest::sendSync(std::string method, std::string url, WebTask::PostProgress onProgress) {
+    m_impl->m_method = std::move(method);
+    m_impl->m_url = std::move(url);
+    return WebRequestsManager::get()->enqueueAndWait(m_impl, std::move(onProgress));
+}
+WebResponse WebRequest::postSync(std::string url, WebTask::PostProgress onProgress) {
+    return this->sendSync("POST", std::move(url), std::move(onProgress));
+}
+WebResponse WebRequest::getSync(std::string url, WebTask::PostProgress onProgress) {
+    return this->sendSync("GET", std::move(url), std::move(onProgress));
+}
+WebResponse WebRequest::putSync(std::string url, WebTask::PostProgress onProgress) {
+    return this->sendSync("PUT", std::move(url), std::move(onProgress));
+}
+WebResponse WebRequest::patchSync(std::string url, WebTask::PostProgress onProgress) {
+    return this->sendSync("PATCH", std::move(url), std::move(onProgress));
 }
 
 WebRequest& WebRequest::header(std::string name, std::string value) {
@@ -897,4 +887,176 @@ std::optional<std::chrono::seconds> WebRequest::getTimeout() const {
 
 HttpVersion WebRequest::getHttpVersion() const {
     return m_impl->m_httpVersion;
+}
+
+class WebRequestsManager::Impl {
+public:
+    CURLM* m_multiHandle;
+
+    std::thread m_worker;
+    std::atomic<bool> m_running;
+    std::mutex m_mutex;
+
+    std::queue<std::shared_ptr<RequestData>> m_pendingRequests;
+    std::unordered_map<CURL*, std::shared_ptr<RequestData>> m_activeRequests;
+
+    std::binary_semaphore m_semaphore{0};
+
+    Impl() {
+        m_multiHandle = curl_multi_init();
+        curl_multi_setopt(m_multiHandle, CURLMOPT_MAX_TOTAL_CONNECTIONS, 32L);
+        curl_multi_setopt(m_multiHandle, CURLMOPT_MAXCONNECTS, 16L);
+
+        m_running = true;
+        m_worker = std::thread(&Impl::workerThread, this);
+    }
+
+    ~Impl() {
+        m_running = false;
+        m_semaphore.release();
+        curl_multi_wakeup(m_multiHandle);
+        if (m_worker.joinable()) {
+            m_worker.join();
+        }
+
+        curl_multi_cleanup(m_multiHandle);
+    }
+
+    void workerThread() {
+        thread::setName("Geode Web Worker");
+
+        while (m_running) {
+            {
+                std::unique_lock lock(m_mutex);
+                while (!m_pendingRequests.empty()) {
+                    auto& reqData = m_pendingRequests.front();
+                    CURL* handle = reqData->request->makeCurlHandle(reqData.get());
+
+                    if (!handle) {
+                        reqData->onComplete(reqData->request->makeError(-1, "Failed to initialize cURL"));
+                        m_pendingRequests.pop();
+                        continue;
+                    }
+
+                    curl_multi_add_handle(m_multiHandle, handle);
+                    m_activeRequests.insert({ handle, std::move(reqData) });
+                    m_pendingRequests.pop();
+                }
+            }
+
+            int stillRunning = 0;
+            CURLMcode mc = curl_multi_perform(m_multiHandle, &stillRunning);
+            if (mc != CURLM_OK) {
+                log::error("curl_multi_perform() failed: {}", curl_multi_strerror(mc));
+            }
+
+            // check for completed requests
+            int msgsInQueue = 0;
+            while (auto* msg = curl_multi_info_read(m_multiHandle, &msgsInQueue)) {
+                if (msg->msg == CURLMSG_DONE) {
+                    CURL* handle = msg->easy_handle;
+
+                    // handle the completed request
+                    auto& requestData = *m_activeRequests.at(handle);
+
+                    // Get the response code; note that this will be invalid if the
+                    // curlResponse is not CURLE_OK
+                    long code = 0;
+                    curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &code);
+
+                    requestData.response.m_impl->m_code = static_cast<int>(code);
+
+                    char* errorBuf = requestData.request->m_errorBuf;
+                    requestData.response.m_impl->m_errMessage = std::string(errorBuf);
+
+                    // Check if the request failed on curl's side or because of cancellation
+                    if (msg->data.result != CURLE_OK) {
+                        if (requestData.hasBeenCancelled && requestData.hasBeenCancelled()) {
+                            log::debug("Request cancelled");
+                            requestData.onComplete(WebTask::Cancel());
+                        }
+                        else {
+                            std::string_view err = curl_easy_strerror(msg->data.result);
+                            log::error("cURL failure, error: {}", err);
+                            log::warn("Error buffer: {}", errorBuf);
+                            requestData.onComplete(requestData.request->makeError(
+                                -1,
+                                !errorBuf ?
+                                      fmt::format("Curl failed: {}", err)
+                                    : fmt::format("Curl failed: {} ({})", err, errorBuf)
+                            ));
+                        }
+                    } else {
+                        // resolve with success :-)
+                        requestData.onComplete(std::move(requestData.response));
+                    }
+
+                    // clean up
+                    curl_multi_remove_handle(m_multiHandle, handle);
+                    curl_easy_cleanup(handle);
+                    {
+                        std::lock_guard lock(m_mutex);
+                        m_activeRequests.erase(handle);
+                    }
+                }
+            }
+
+            bool idle;
+            {
+                std::lock_guard lock(m_mutex);
+                idle = m_pendingRequests.empty() && m_activeRequests.empty();
+            }
+
+            if (idle) {
+                m_semaphore.acquire();
+                continue;
+            }
+
+            if (!m_activeRequests.empty()) {
+                int numfds = 0;
+                curl_multi_poll(m_multiHandle, nullptr, 0, -1, &numfds);
+            }
+        }
+
+        // clean up remaining requests
+        for (auto& [handle, _] : m_activeRequests) {
+            curl_multi_remove_handle(m_multiHandle, handle);
+            curl_easy_cleanup(handle);
+        }
+        m_activeRequests.clear();
+    }
+};
+
+WebRequestsManager::WebRequestsManager() : m_impl(new Impl()) {}
+WebRequestsManager::~WebRequestsManager() = default; // leaking m_impl on purpose to avoid destruction order issues
+
+WebRequestsManager* WebRequestsManager::get() {
+    static WebRequestsManager instance;
+    return &instance;
+}
+
+void WebRequestsManager::enqueue(std::shared_ptr<RequestData> data) {
+    {
+        std::lock_guard lock(m_impl->m_mutex);
+        m_impl->m_pendingRequests.push(std::move(data));
+    }
+    m_impl->m_semaphore.release();
+    curl_multi_wakeup(m_impl->m_multiHandle);
+}
+
+WebResponse WebRequestsManager::enqueueAndWait(std::shared_ptr<WebRequest::Impl> data, WebTask::PostProgress progress) {
+    std::binary_semaphore sem{0};
+    WebResponse response;
+
+    this->enqueue(std::make_shared<RequestData>(
+        std::move(data), response,
+        [&](WebTask::Result&&) {
+            sem.release();
+        },
+        std::move(progress),
+        nullptr
+    ));
+
+    sem.acquire();
+    return response;
 }

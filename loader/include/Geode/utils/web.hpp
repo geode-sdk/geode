@@ -125,6 +125,7 @@ namespace geode::utils::web {
         std::shared_ptr<Impl> m_impl;
 
         friend class WebRequest;
+        friend class WebRequestsManager;
 
     public:
         // Must be default-constructible for use in Promise
@@ -135,7 +136,8 @@ namespace geode::utils::web {
 
         Result<std::string> string() const;
         Result<matjson::Value> json() const;
-        ByteVector data() const;
+        ByteVector const& data() const&;
+        ByteVector data() &&;
         Result<> into(std::filesystem::path const& path) const;
 
         std::vector<std::string> headers() const;
@@ -158,25 +160,30 @@ namespace geode::utils::web {
         std::string_view errorMessage() const;
     };
 
-    class GEODE_DLL WebProgress final {
+    class WebProgress final {
     private:
-        class Impl;
-
-        std::shared_ptr<Impl> m_impl;
+        size_t m_downloadCurrent = 0;
+        size_t m_downloadTotal = 0;
+        size_t m_uploadCurrent = 0;
+        size_t m_uploadTotal = 0;
 
         friend class WebRequest;
 
     public:
         // Must be default-constructible for use in Promise
-        WebProgress();
+        WebProgress() = default;
 
-        size_t downloaded() const;
-        size_t downloadTotal() const;
-        std::optional<float> downloadProgress() const;
+        size_t downloaded() const { return m_downloadCurrent; }
+        size_t downloadTotal() const { return m_downloadTotal; }
+        std::optional<float> downloadProgress() const {
+            return downloadTotal() > 0 ? std::optional(downloaded() * 100.f / downloadTotal()) : std::nullopt;
+        }
 
-        size_t uploaded() const;
-        size_t uploadTotal() const;
-        std::optional<float> uploadProgress() const;
+        size_t uploaded() const { return m_uploadCurrent; }
+        size_t uploadTotal() const { return m_uploadTotal; }
+        std::optional<float> uploadProgress() const {
+            return uploadTotal() > 0 ? std::optional(uploaded() * 100.f / uploadTotal()) : std::nullopt;
+        }
     };
 
     using WebTask = Task<WebResponse, WebProgress>;
@@ -186,6 +193,8 @@ namespace geode::utils::web {
         class Impl;
 
         std::shared_ptr<Impl> m_impl;
+
+        friend class WebRequestsManager;
     public:
         WebRequest();
         ~WebRequest();
@@ -195,6 +204,12 @@ namespace geode::utils::web {
         WebTask get(std::string url);
         WebTask put(std::string url);
         WebTask patch(std::string url);
+
+        WebResponse sendSync(std::string method, std::string url, WebTask::PostProgress onProgress = nullptr);
+        WebResponse postSync(std::string url, WebTask::PostProgress onProgress = nullptr);
+        WebResponse getSync(std::string url, WebTask::PostProgress onProgress = nullptr);
+        WebResponse putSync(std::string url, WebTask::PostProgress onProgress = nullptr);
+        WebResponse patchSync(std::string url, WebTask::PostProgress onProgress = nullptr);
 
         WebRequest& header(std::string name, std::string value);
         WebRequest& removeHeader(std::string_view name);
