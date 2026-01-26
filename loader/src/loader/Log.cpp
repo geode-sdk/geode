@@ -11,7 +11,6 @@
 #include <Geode/utils/general.hpp>
 #include <fmt/chrono.h>
 #include <fmt/format.h>
-#include <iomanip>
 #include <memory>
 #include <ostream>
 #include <utility>
@@ -21,6 +20,7 @@ using namespace geode::log;
 using namespace cocos2d;
 
 static std::atomic<bool> g_logMillis{false};
+static constexpr size_t LOG_BUFFER_LIMIT = 32768;
 
 auto convertTime(auto timePoint) {
     // std::chrono::current_zone() isnt available on clang (android),
@@ -280,6 +280,17 @@ Logger* Logger::get() {
     return &inst;
 }
 
+Logger::~Logger() {
+    m_terminating.store(true, std::memory_order::release);
+
+    if (m_usingThread && m_logThread.joinable()) {
+        m_logCv.notify_one();
+        m_logThread.join();
+    }
+
+    // dont flush as it could be problematic during shutdown
+}
+
 std::mutex& getLogMutex() {
     static std::mutex mutex;
     return mutex;
@@ -308,9 +319,6 @@ void Logger::setup() {
     m_logPath = logDir / log::generateLogName();
     m_logStream = std::ofstream(m_logPath);
 
-    Severity consoleLogLevel = this->getConsoleLogLevel();
-    Severity fileLogLevel = this->getFileLogLevel();
-
     // Logs can and will probably be added before setup() is called, so we'll write them now
     for (Log const& log : m_logs) {
         this->outputLog(BorrowedLog(log), true);
@@ -318,8 +326,41 @@ void Logger::setup() {
     m_logs.clear();
 
     this->flushLocked();
-
     m_initialized.store(true, std::memory_order::release);
+
+    // setup log thread
+    m_usingThread = Mod::get()->getSettingValue<bool>("log-thread");
+    if (m_usingThread) {
+        m_logThread = std::thread(&Logger::workerThread, this);
+    }
+}
+
+void Logger::workerThread() {
+    thread::setName("Geode Log Thread");
+
+    // keep a local vector to avoid reallocations every time
+    std::vector<Log> processing;
+
+    while (!m_terminating.load(std::memory_order::acquire)) {
+        std::unique_lock g(getLogMutex());
+        m_logCv.wait(g, [this]() {
+            return !m_logs.empty() || m_terminating.load(std::memory_order::acquire);
+        });
+
+        // move all logs from the queue into our vector
+        while (!m_logs.empty()) {
+            processing.push_back(std::move(m_logs.front()));
+            m_logs.pop_front();
+        }
+
+        // unlock mutex and print all the logs
+        g.unlock();
+
+        for (auto& log : processing) {
+            this->outputLog(BorrowedLog(log));
+        }
+        processing.clear();
+    }
 }
 
 void Logger::deleteOldLogs(size_t maxAgeHours) {
@@ -373,10 +414,33 @@ Severity Logger::getFileLogLevel() {
     return logLevelFor(level);
 }
 
-void Logger::push(Severity sev, int32_t nestCount, std::string_view content,
+void Logger::push(Severity sev, int32_t nestCount, std::string content,
     std::string_view thread, std::string_view source, Mod* mod)
 {
-    return this->push(BorrowedLog(
+    // if thread is enabled or logging isn't initialized, push into the queue; otherwise print right now
+    if (!m_initialized.load(std::memory_order::acquire) || m_usingThread) {
+        std::lock_guard g(getLogMutex());
+
+        if (m_logs.size() >= LOG_BUFFER_LIMIT) {
+            // drop oldest log
+            m_logs.pop_front();
+        }
+
+        m_logs.emplace_back(
+            log_clock::now(),
+            sev,
+            nestCount,
+            std::move(content),
+            std::string(thread),
+            std::string(source),
+            mod
+        );
+        m_logCv.notify_one();
+        return;
+    }
+
+    std::lock_guard g(getLogMutex());
+    this->outputLog(BorrowedLog(
         sev,
         nestCount,
         content,
@@ -384,18 +448,6 @@ void Logger::push(Severity sev, int32_t nestCount, std::string_view content,
         source,
         mod
     ));
-}
-
-void Logger::push(BorrowedLog const& log) {
-    std::lock_guard g(getLogMutex());
-
-    // If logger is not initialized, store the log. When the logger is initialized the pending logs will be logged.
-    if (!m_initialized.load(std::memory_order::acquire)) {
-        m_logs.emplace_back(log.intoLog());
-        return;
-    }
-
-    this->outputLog(log);
 }
 
 void Logger::outputLog(BorrowedLog const& log, bool dontFlush) {
@@ -436,7 +488,7 @@ void Logger::maybeFlushStream() {
     }
 
     auto now = log_clock::now();
-    if (now - m_lastFlushTime >= std::chrono::seconds(3)) {
+    if (now - m_lastFlushTime >= std::chrono::seconds(1)) {
         this->flushLocked();
         return;
     }

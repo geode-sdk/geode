@@ -5,10 +5,13 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Types.hpp>
 #include <vector>
+#include <deque>
+#include <thread>
 #include <fstream>
 #include <string>
 #include <chrono>
 #include <atomic>
+#include <condition_variable>
 
 namespace geode::log {
     struct BorrowedLog;
@@ -34,23 +37,29 @@ namespace geode::log {
     class Logger {
     private:
         std::atomic<bool> m_initialized = false;
-        std::vector<Log> m_logs;
+        std::atomic<bool> m_terminating = false;
+        std::deque<Log> m_logs;
         std::vector<LogCallback> m_callbacks;
         std::ofstream m_logStream;
+        std::thread m_logThread;
         std::filesystem::path m_logPath;
+        std::condition_variable m_logCv;
+        bool m_usingThread = false;
 
         // for tracking when to flush the log stream
         size_t m_unflushedLogs = 0;
         log_clock::time_point m_lastFlushTime = log_clock::now();
 
         Logger() = default;
+        ~Logger();
+
+        void workerThread();
     public:
         static Logger* get();
 
         void setup();
 
-        void push(Severity sev, int32_t nestCount, std::string_view content, std::string_view thread, std::string_view source, Mod* mod);
-        void push(BorrowedLog const& log);
+        void push(Severity sev, int32_t nestCount, std::string content, std::string_view thread, std::string_view source, Mod* mod);
 
         Severity getConsoleLogLevel();
         Severity getFileLogLevel();
