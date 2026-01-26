@@ -147,7 +147,6 @@ jobs:
 
     env:
       SCCACHE_CACHE_MULTIARCH: 1
-      CMAKE_OSX_DEPLOYMENT_TARGET: 11.0
 
     steps:
     - name: Checkout
