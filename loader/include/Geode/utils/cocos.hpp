@@ -1172,7 +1172,8 @@ namespace geode::cocos {
         }
 
         std::vector<T> toVector() const {
-            std::vector<T> vec(this->size());
+            std::vector<T> vec;
+            vec.reserve(this->size());
             for (auto item : *this) {
                 vec.push_back(item);
             }
