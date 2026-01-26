@@ -967,7 +967,7 @@ public:
                     requestData.response.m_impl->m_code = static_cast<int>(code);
 
                     char* errorBuf = requestData.request->m_errorBuf;
-                    requestData.response.m_impl->m_errMessage = errorBuf ? std::string(errorBuf) : "";
+                    requestData.response.m_impl->m_errMessage = std::string(errorBuf);
 
                     // Check if the request failed on curl's side or because of cancellation
                     if (msg->data.result != CURLE_OK) {
