@@ -621,6 +621,7 @@ void ModList::updateDisplay(ModListDisplay display) {
                 ->setGrowCrossAxis(true)
                 ->setAxisAlignment(AxisAlignment::Start)
                 ->setGap(2.5f)
+                ->ignoreInvisibleChildren(false)
         );
     }
     else {
@@ -789,3 +790,4 @@ ModList* ModList::create(ModListSource* src, CCSize const& size, bool searchingD
     delete ret;
     return nullptr;
 }
+
