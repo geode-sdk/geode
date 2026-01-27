@@ -8,9 +8,11 @@
 #include <chrono>
 #include <iomanip>
 #include <string>
+#include <array>
 #include <vector>
 #include <filesystem>
 #include <matjson.hpp>
+#include <span>
 #include <charconv>
 #include <clocale>
 #include <type_traits>
@@ -19,6 +21,14 @@
 
 namespace geode {
     using ByteVector = std::vector<uint8_t>;
+    using ByteSpan = std::span<uint8_t>;
+
+    template <class... T>
+    requires (std::is_convertible_v<T, uint8_t> && ...) 
+    constexpr auto byteArray(T... bytes) {
+        return std::array<uint8_t, sizeof...(T)>{ uint8_t{bytes}... };
+    }
+    
 
     template <typename T>
     ByteVector toBytes(T const& a) {

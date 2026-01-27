@@ -377,10 +377,14 @@ namespace geode {
          * @returns Successful result on success,
          * errorful result with info on error
          */
-        Result<Patch*> patch(void* address, ByteVector const& data) {
+        Result<Patch*> patch(void* address, ByteSpan data) {
             auto patch = Patch::create(address, data);
             GEODE_UNWRAP_INTO(auto ptr, this->claimPatch(std::move(patch)));
             return Ok(ptr);
+        }
+
+        Result<Patch*> patch(void* address, ByteVector data) {
+            return this->patch(address, ByteSpan(data));
         }
 
         /**

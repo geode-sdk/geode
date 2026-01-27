@@ -171,7 +171,8 @@ public:
 
                 // If this was an update, delete the old file first
                 auto geodePath = dirs::getModsDir() / (m_id + ".geode");
-                auto ok = file::writeBinary(geodePath, value->data());
+                auto data = value->data();
+                auto ok = file::writeBinary(geodePath, data);
                 if (!ok) {
                     m_status = DownloadStatusError {
                         .details = ok.unwrapErr(),

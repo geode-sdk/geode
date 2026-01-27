@@ -414,7 +414,7 @@ std::string_view geode::cocos::getObjectName(cocos2d::CCObject const* obj) {
 #endif
 }
 
-CCRect geode::cocos::calculateNodeCoverage(std::vector<CCNode*> const& nodes) {
+CCRect geode::cocos::calculateNodeCoverage(std::span<CCNode*> nodes) {
     CCRect coverage;
     for (auto child : nodes) {
         auto pos = child->getPosition() - child->getScaledContentSize() * child->getAnchorPoint();

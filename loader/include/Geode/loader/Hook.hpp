@@ -158,7 +158,7 @@ namespace geode {
 
     public:
 
-        static std::shared_ptr<Patch> create(void* address, const ByteVector& patch);
+        static std::shared_ptr<Patch> create(void* address, ByteSpan patch);
 
         Patch(Patch const&) = delete;
         Patch operator=(Patch const&) = delete;
@@ -204,7 +204,7 @@ namespace geode {
          * Updates the bytes of the patch, disabling and then re-enabling if needed.
          * @param bytes Bytes used to patch
          */
-        Result<> updateBytes(const ByteVector& bytes);
+        Result<> updateBytes(ByteSpan bytes);
 
         /**
          * Get the address of the patch.

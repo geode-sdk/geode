@@ -133,7 +133,8 @@ void updater::tryDownloadLoaderResources(std::string url, bool tryLatestOnError)
         [url, resourcesDir = std::move(resourcesDir)](web::WebResponse* response) {
             if (response->ok()) {
                 // unzip resources zip
-                auto unzip = file::Unzip::create(response->data());
+                auto data = response->data();
+                auto unzip = file::Unzip::create(data);
                 if (unzip) {
                     auto ok = unzip.unwrap().extractAllTo(resourcesDir);
                     if (ok) {
@@ -310,7 +311,8 @@ void updater::downloadLoaderUpdate(std::string url) {
             [targetDir](web::WebResponse* response) {
                 if (response->ok()) {
                     // unzip resources zip
-                    auto unzip = file::Unzip::create(response->data());
+                    auto data = response->data();
+                    auto unzip = file::Unzip::create(data);
                     if (unzip) {
                         auto ok = unzip.unwrap().extractAllTo(targetDir);
                         if (ok) {

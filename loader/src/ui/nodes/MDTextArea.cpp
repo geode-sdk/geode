@@ -17,6 +17,7 @@
 #include <charconv>
 #include <Geode/loader/Log.hpp>
 #include <Geode/ui/GeodeUI.hpp>
+#include <memory>
 #include <server/Server.hpp>
 #include <regex>
 
@@ -27,6 +28,19 @@ static constexpr float g_paragraphPadding = 7.f;
 static constexpr float g_indent = 7.f;
 static constexpr float g_codeBlockIndent = 8.f;
 static constexpr ccColor3B g_linkColor = {0x7f, 0xf4, 0xf4};
+
+class MDTextArea::Impl {
+public:
+    std::string m_text;
+    cocos2d::CCSize m_size;
+    cocos2d::extension::CCScale9Sprite* m_bgSprite = nullptr;
+    cocos2d::CCMenu* m_content = nullptr;
+    CCScrollLayerExt* m_scrollLayer = nullptr;
+    TextRenderer* m_renderer = nullptr;
+    bool m_compatibilityMode = false;
+};
+
+MDTextArea::MDTextArea() : m_impl(std::make_unique<Impl>()) {}
 
 auto makeMdFont() -> TextRenderer::Font {
     return [](int style) -> TextRenderer::Label {
@@ -129,29 +143,29 @@ bool MDTextArea::init(std::string str, CCSize const& size) {
     this->ignoreAnchorPointForPosition(false);
     this->setAnchorPoint({ .5f, .5f });
 
-    m_text = std::move(str);
-    m_size = size - CCSize { 15.f, 0.f };
-    this->setContentSize(m_size);
-    m_renderer = TextRenderer::create();
-    CC_SAFE_RETAIN(m_renderer);
+    m_impl->m_text = std::move(str);
+    m_impl->m_size = size - CCSize { 15.f, 0.f };
+    this->setContentSize(m_impl->m_size);
+    m_impl->m_renderer = TextRenderer::create();
+    CC_SAFE_RETAIN(m_impl->m_renderer);
 
-    m_bgSprite = CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
-    m_bgSprite->setScale(.5f);
-    m_bgSprite->setColor({ 0, 0, 0 });
-    m_bgSprite->setOpacity(75);
-    m_bgSprite->setContentSize(size * 2);
-    m_bgSprite->setPosition(m_size / 2);
-    this->addChild(m_bgSprite);
+    m_impl->m_bgSprite = CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
+    m_impl->m_bgSprite->setScale(.5f);
+    m_impl->m_bgSprite->setColor({ 0, 0, 0 });
+    m_impl->m_bgSprite->setOpacity(75);
+    m_impl->m_bgSprite->setContentSize(size * 2);
+    m_impl->m_bgSprite->setPosition(m_impl->m_size / 2);
+    this->addChild(m_impl->m_bgSprite);
 
-    m_scrollLayer = ScrollLayer::create({ 0, 0, m_size.width, m_size.height }, true);
+    m_impl->m_scrollLayer = ScrollLayer::create({ 0, 0, m_impl->m_size.width, m_impl->m_size.height }, true);
 
-    m_content = CCMenu::create();
-    m_content->setZOrder(2);
-    m_scrollLayer->m_contentLayer->addChild(m_content);
+    m_impl->m_content = CCMenu::create();
+    m_impl->m_content->setZOrder(2);
+    m_impl->m_scrollLayer->m_contentLayer->addChild(m_impl->m_content);
 
-    m_scrollLayer->setTouchEnabled(true);
+    m_impl->m_scrollLayer->setTouchEnabled(true);
 
-    this->addChild(m_scrollLayer);
+    this->addChild(m_impl->m_scrollLayer);
 
     this->updateLabel();
 
@@ -159,7 +173,7 @@ bool MDTextArea::init(std::string str, CCSize const& size) {
 }
 
 MDTextArea::~MDTextArea() {
-    CC_SAFE_RELEASE(m_renderer);
+    CC_SAFE_RELEASE(m_impl->m_renderer);
 }
 
 void MDTextArea::onLink(CCObject* pSender) {
@@ -236,8 +250,8 @@ struct MDParser {
 
     static int parseText(MD_TEXTTYPE type, MD_CHAR const* rawText, MD_SIZE size, void* mdtextarea) {
         auto textarea = static_cast<MDTextArea*>(mdtextarea);
-        auto renderer = textarea->m_renderer;
-        auto compatibilityMode = textarea->m_compatibilityMode;
+        auto renderer = textarea->m_impl->m_renderer;
+        auto compatibilityMode = textarea->m_impl->m_compatibilityMode;
 
         auto text = std::string(rawText, size);
         switch (type) {
@@ -412,7 +426,7 @@ struct MDParser {
 
     static int enterBlock(MD_BLOCKTYPE type, void* detail, void* mdtextarea) {
         auto textarea = static_cast<MDTextArea*>(mdtextarea);
-        auto renderer = textarea->m_renderer;
+        auto renderer = textarea->m_impl->m_renderer;
         switch (type) {
             case MD_BLOCKTYPE::MD_BLOCK_DOC:
                 {
@@ -459,7 +473,7 @@ struct MDParser {
             case MD_BLOCKTYPE::MD_BLOCK_HR:
                 {
                     renderer->breakLine(g_paragraphPadding / 2);
-                    renderer->renderNode(BreakLine::create(textarea->m_size.width));
+                    renderer->renderNode(BreakLine::create(textarea->m_impl->m_size.width));
                     renderer->breakLine(g_paragraphPadding);
                 }
                 break;
@@ -505,7 +519,7 @@ struct MDParser {
 
     static int leaveBlock(MD_BLOCKTYPE type, void* detail, void* mdtextarea) {
         auto textarea = static_cast<MDTextArea*>(mdtextarea);
-        auto renderer = textarea->m_renderer;
+        auto renderer = textarea->m_impl->m_renderer;
         switch (type) {
             case MD_BLOCKTYPE::MD_BLOCK_DOC:
                 {
@@ -518,7 +532,7 @@ struct MDParser {
                     renderer->breakLine();
                     if (hdetail->level == 1) {
                         renderer->breakLine(g_paragraphPadding / 2);
-                        renderer->renderNode(BreakLine::create(textarea->m_size.width));
+                        renderer->renderNode(BreakLine::create(textarea->m_impl->m_size.width));
                     }
                     renderer->breakLine(g_paragraphPadding);
                     renderer->popScale();
@@ -556,7 +570,7 @@ struct MDParser {
 
                     auto pad = g_codeBlockIndent / 1.5f;
 
-                    CCSize size { textarea->m_size.width - renderer->getCurrentIndent() -
+                    CCSize size { textarea->m_impl->m_size.width - renderer->getCurrentIndent() -
                                       renderer->getCurrentWrapOffset() + pad * 2,
                                   s_codeStart - codeEnd + pad * 2 };
 
@@ -577,7 +591,7 @@ struct MDParser {
                     );
                     bg->setAnchorPoint({ .5f, .5f });
                     bg->setZOrder(-1);
-                    textarea->m_content->addChild(bg);
+                    textarea->m_impl->m_content->addChild(bg);
 
                     renderer->popWrapOffset();
                     renderer->popIndent();
@@ -607,7 +621,7 @@ struct MDParser {
     }
 
     static int enterSpan(MD_SPANTYPE type, void* detail, void* mdtextarea) {
-        auto renderer = static_cast<MDTextArea*>(mdtextarea)->m_renderer;
+        auto renderer = static_cast<MDTextArea*>(mdtextarea)->m_impl->m_renderer;
         switch (type) {
             case MD_SPANTYPE::MD_SPAN_STRONG:
                 {
@@ -666,7 +680,7 @@ struct MDParser {
     }
 
     static int leaveSpan(MD_SPANTYPE type, void* detail, void* mdtextarea) {
-        auto renderer = static_cast<MDTextArea*>(mdtextarea)->m_renderer;
+        auto renderer = static_cast<MDTextArea*>(mdtextarea)->m_impl->m_renderer;
         switch (type) {
             case MD_SPANTYPE::MD_SPAN_STRONG:
                 {
@@ -731,12 +745,12 @@ decltype(MDParser::s_codeSpans) MDParser::s_codeSpans = {};
 bool MDParser::s_breakListLine = false;
 
 void MDTextArea::updateLabel() {
-    m_renderer->begin(m_content, CCPointZero, m_size);
+    m_impl->m_renderer->begin(m_impl->m_content, CCPointZero, m_impl->m_size);
 
-    m_renderer->pushFont(makeMdFont());
-    m_renderer->pushScale(.5f);
-    m_renderer->pushVerticalAlign(TextAlignment::End);
-    m_renderer->pushHorizontalAlign(TextAlignment::Begin);
+    m_impl->m_renderer->pushFont(makeMdFont());
+    m_impl->m_renderer->pushScale(.5f);
+    m_impl->m_renderer->pushVerticalAlign(TextAlignment::End);
+    m_impl->m_renderer->pushHorizontalAlign(TextAlignment::Begin);
 
     MD_PARSER parser;
 
@@ -754,16 +768,16 @@ void MDTextArea::updateLabel() {
 
     MDParser::s_codeSpans = {};
 
-    auto textContent = m_text;
-    if (m_compatibilityMode) {
-        textContent = MDTextArea::translateNewlines(m_text);
+    auto textContent = m_impl->m_text;
+    if (m_impl->m_compatibilityMode) {
+        textContent = MDTextArea::translateNewlines(m_impl->m_text);
 
         // ery proofing...
         utils::string::replaceIP(textContent, "<c_>", "<c->");
     }
 
     if (md_parse(textContent.c_str(), textContent.size(), &parser, this)) {
-        m_renderer->renderString("Error parsing Markdown");
+        m_impl->m_renderer->renderString("Error parsing Markdown");
     }
 
     for (auto& render : MDParser::s_codeSpans) {
@@ -778,7 +792,7 @@ void MDTextArea::updateLabel() {
         );
         bg->setAnchorPoint(render.m_node->getAnchorPoint());
         bg->setZOrder(-1);
-        m_content->addChild(bg);
+        m_impl->m_content->addChild(bg);
         // i know what you're thinking.
         // my brother in christ, what the hell is this?
         // where did this magical + 1.5f come from?
@@ -788,31 +802,31 @@ void MDTextArea::updateLabel() {
         render.m_node->setPositionY(render.m_node->getPositionY() + 1.5f);
     }
 
-    m_renderer->end();
+    m_impl->m_renderer->end();
 
-    if (m_content->getContentSize().height > m_size.height) {
+    if (m_impl->m_content->getContentSize().height > m_impl->m_size.height) {
         // Generate bottom padding
-        m_scrollLayer->m_contentLayer->setContentSize(m_content->getContentSize() + CCSize { 0.f, 12.5 });
-        m_content->setPositionY(10.f);
+        m_impl->m_scrollLayer->m_contentLayer->setContentSize(m_impl->m_content->getContentSize() + CCSize { 0.f, 12.5 });
+        m_impl->m_content->setPositionY(10.f);
     } else {
-        m_scrollLayer->m_contentLayer->setContentSize(m_content->getContentSize());
-        m_content->setPositionY(-2.5f);
+        m_impl->m_scrollLayer->m_contentLayer->setContentSize(m_impl->m_content->getContentSize());
+        m_impl->m_content->setPositionY(-2.5f);
     }
 
-    m_scrollLayer->moveToTop();
+    m_impl->m_scrollLayer->moveToTop();
 }
 
 CCScrollLayerExt* MDTextArea::getScrollLayer() const {
-    return m_scrollLayer;
+    return m_impl->m_scrollLayer;
 }
 
 void MDTextArea::setString(char const* text) {
-    m_text = text;
+    m_impl->m_text = text;
     this->updateLabel();
 }
 
 char const* MDTextArea::getString() {
-    return m_text.c_str();
+    return m_impl->m_text.c_str();
 }
 
 MDTextArea* MDTextArea::create(std::string str, CCSize const& size) {
