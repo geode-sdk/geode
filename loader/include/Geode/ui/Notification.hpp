@@ -5,6 +5,7 @@
 #include <cocos-ext.h>
 #include <Geode/binding/TextAlertPopup.hpp>
 #include "../utils/cocos.hpp"
+#include "../utils/ZStringView.hpp"
 
 namespace geode {
     constexpr auto NOTIFICATION_DEFAULT_TIME = 1.f;
@@ -28,7 +29,7 @@ namespace geode {
         float m_time;
         bool m_showing = false;
 
-        bool init(char const* text, cocos2d::CCSprite* icon, float time);
+        bool init(ZStringView text, cocos2d::CCSprite* icon, float time);
         void updateLayout();
 
         static cocos2d::CCSprite* createIcon(NotificationIcon icon);
@@ -49,7 +50,7 @@ namespace geode {
          * notification
          */
         static Notification* create(
-            char const* text,
+            ZStringView text,
             NotificationIcon icon = NotificationIcon::None,
             float time = NOTIFICATION_DEFAULT_TIME
         );
@@ -63,12 +64,12 @@ namespace geode {
          * notification
          */
         static Notification* create(
-            char const* text,
+            ZStringView text,
             cocos2d::CCSprite* icon,
             float time = NOTIFICATION_DEFAULT_TIME
         );
 
-        void setString(char const* text);
+        void setString(ZStringView text);
         void setIcon(NotificationIcon icon);
         void setIcon(cocos2d::CCSprite* icon);
         void setTime(float time);
