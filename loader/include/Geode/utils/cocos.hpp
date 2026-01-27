@@ -1179,6 +1179,18 @@ namespace geode::cocos {
             }
             return vec;
         }
+
+        bool empty() const {
+            return this->size() == 0;
+        }
+
+        T* front() const {
+            return static_cast<T*>(m_arr->firstObject());
+        }
+
+        T* back() const {
+            return static_cast<T*>(m_arr->lastObject());
+        }
     };
 
     /**
@@ -1322,6 +1334,10 @@ namespace geode::cocos {
 
         cocos2d::CCDictionary* inner() {
             return m_dict;
+        }
+
+        bool empty() const {
+            return this->size() == 0;
         }
     };
 
