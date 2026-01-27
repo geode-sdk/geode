@@ -1,6 +1,5 @@
+#include "Geode/loader/ModEvent.hpp"
 #include <Geode/ui/OverlayManager.hpp>
-#include <Geode/utils/cocos.hpp>
-#include <Geode/utils/ranges.hpp>
 
 using namespace geode::prelude;
 
@@ -11,4 +10,10 @@ OverlayManager* OverlayManager::get() {
         inst->onEnter();
     }
     return inst;
+}
+
+$on_mod(Loaded) {
+    queueInMainThread([] {
+        CCDirector::get()->m_pNotificationNode = OverlayManager::get();
+    });
 }

@@ -12,19 +12,6 @@ using namespace geode::prelude;
 
 namespace geode {
 
-struct DrawOverlay : Modify<DrawOverlay, CCEGLView> {
-    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("persist disabled")
-    static void onModify(auto& self) {
-        if (auto res = self.setHookPriorityPost("cocos2d::CCEGLView::swapBuffers", Priority::First); !res) {
-            geode::log::warn("Failed to set hook priority: {}", res.unwrapErr());
-        }
-    }
-    void swapBuffers() {
-        OverlayManager::get()->visit();
-        CCEGLView::swapBuffers();
-    }
-};
-
 struct SceneSwitch2 : Modify<SceneSwitch2, CCDirector> {
     GEODE_FORWARD_COMPAT_DISABLE_HOOKS("persist disabled")
     // CCDirector does not call willSwitchToScene in these 2 instances,
