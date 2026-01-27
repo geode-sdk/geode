@@ -11,8 +11,7 @@
 #include <mutex>
 #include <atomic>
 #include <asp/ptr/PtrSwap.hpp>
-#include "Log.hpp"
-
+#include "../utils/function.hpp"
 #include "../utils/casts.hpp"
 
 namespace geode::event {
@@ -106,7 +105,7 @@ namespace geode::event {
 
     template <class Callable>
     class QueuedPort : protected Port<Callable> {
-        std::vector<std::function<void()>> m_queue;
+        std::vector<geode::Function<void()>> m_queue;
     public:
         using Port<Callable>::addReceiver;
         using Port<Callable>::removeReceiver;
@@ -317,7 +316,7 @@ namespace geode::event {
             return 0;
         }
 
-        ListenerHandle addReceiver(std::function<bool(PArgs...)> rec, int priority = 0) const noexcept;
+        ListenerHandle addReceiver(geode::Function<bool(PArgs...)> rec, int priority = 0) const noexcept;
         size_t removeReceiver(ReceiverHandle handle) const noexcept;
 
         static void removeReceiverStatic(BaseFilter const* filter, ReceiverHandle handle) noexcept {
@@ -334,7 +333,7 @@ namespace geode::event {
     public:
         EventFilter(FArgs&&... value) noexcept : m_filter(std::forward<FArgs>(value)...) {}
 
-        void send(PArgs&&... args) noexcept(std::is_nothrow_invocable_v<std::function<bool(PArgs...)>, PArgs...>);
+        void send(PArgs&&... args) noexcept(std::is_nothrow_invocable_v<geode::Function<bool(PArgs...)>, PArgs...>);
 
         template<class Callable>
         ListenerHandle listen(Callable listener, int priority = 0) const noexcept {
@@ -364,15 +363,15 @@ namespace geode::event {
 
     template <template <class> class PortTemplate, class... PArgs>
     class OpaqueEventPort : public OpaquePortBase {
-        PortTemplate<std::function<bool(PArgs...)>> m_port;
+        PortTemplate<geode::Function<bool(PArgs...)>> m_port;
 
     public:
         template <class... Args>
-        void send(Args&&... args) noexcept(std::is_nothrow_invocable_v<std::function<bool(PArgs...)>, Args...>) {
+        void send(Args&&... args) noexcept(std::is_nothrow_invocable_v<geode::Function<bool(PArgs...)>, Args...>) {
             m_port.send(std::forward<Args>(args)...);
         }
 
-        ReceiverHandle addReceiver(std::function<bool(PArgs...)> rec, int priority = 0) noexcept {
+        ReceiverHandle addReceiver(geode::Function<bool(PArgs...)> rec, int priority = 0) noexcept {
             return m_port.addReceiver(std::move(rec), priority);
         }
 
@@ -444,7 +443,7 @@ namespace geode::event {
     };
 
     template <class Marker, template <class> class PortTemplate, class... PArgs, class... FArgs>
-    void EventFilter<Marker, PortTemplate, bool(PArgs...), FArgs...>::send(PArgs&&... args) noexcept(std::is_nothrow_invocable_v<std::function<bool(PArgs...)>, PArgs...>) {
+    void EventFilter<Marker, PortTemplate, bool(PArgs...), FArgs...>::send(PArgs&&... args) noexcept(std::is_nothrow_invocable_v<geode::Function<bool(PArgs...)>, PArgs...>) {
         return EventCenter::get().send(this, [&](OpaquePortBase* opaquePort) {
             auto port = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(opaquePort);
             return port->send(std::forward<PArgs>(args)...);
@@ -452,7 +451,7 @@ namespace geode::event {
     }
 
     template <class Marker, template <class> class PortTemplate, class... PArgs, class... FArgs>
-    ListenerHandle EventFilter<Marker, PortTemplate, bool(PArgs...), FArgs...>::addReceiver(std::function<bool(PArgs...)> rec, int priority) const noexcept {
+    ListenerHandle EventFilter<Marker, PortTemplate, bool(PArgs...), FArgs...>::addReceiver(geode::Function<bool(PArgs...)> rec, int priority) const noexcept {
         return EventCenter::get().addReceiver(this, [&](OpaquePortBase* opaquePort) {
             auto port = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(opaquePort);
             return port->addReceiver(std::move(rec), priority);
