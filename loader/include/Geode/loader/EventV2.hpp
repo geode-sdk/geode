@@ -445,29 +445,3 @@ namespace geode::event {
         return new OpaqueEventPort<PortTemplate, PArgs...>();
     };
 }
-
-inline void func() {
-    using namespace geode::event;
-    std::cout << "start" << std::endl;
-    auto handle = Dispatch<int>("test").listen([](int val) {
-        std::cout << "val: " << val << std::endl;
-    });
-
-    auto handle2 = Dispatch<int>("test2").listen([](int val) {
-        std::cout << "val2: " << val << std::endl;
-    });
-
-    auto handle3 = Dispatch<float>("test").listen([](float val) {
-        std::cout << "val3: " << val << std::endl;
-    });
-
-    auto handle4 = Dispatch<int>("test").listen([](int val) {
-        std::cout << "val4: " << val << std::endl;
-    }, -5);
-
-    std::cout << "handle generated" << std::endl;
-
-    Dispatch<int>("test").send(5);
-    Dispatch<int>("test2").send(7);
-    Dispatch<float>("test").send(9);
-}

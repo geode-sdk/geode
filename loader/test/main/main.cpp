@@ -33,6 +33,35 @@ $execute {
     });
 
     geode::event::Dispatch<std::string>("geode.test/test-garage-close").send("Hello from dispatch!");
+
+    using namespace geode::event;
+    auto handle = Dispatch<int>("test").listen([](int val) {
+        geode::log::info("Received dispatched int: {}", val);
+        return val > 0;
+    });
+
+    auto handle2 = Dispatch<int>("test2").listen([](int val) {
+        geode::log::info("Received dispatched int2: {}", val);
+    });
+
+    auto handle3 = Dispatch<float>("test").listen([](float val) {
+        geode::log::info("Received dispatched float: {}", val);
+    });
+
+    auto handle4 = Dispatch<int>("test").listen([](int val) {
+        geode::log::info("Received dispatched int4: {}", val);
+    }, -5);
+
+    auto handle5 = Dispatch<int>("test").listen([](int val) {
+        geode::log::info("Received dispatched int5: {}", val);
+    }, 5);
+
+    
+
+    Dispatch<int>("test").send(5);
+    Dispatch<int>("test2").send(7);
+    Dispatch<float>("test").send(9);
+    Dispatch<int>("test").send(-5);
 }
 
 // Coroutines
