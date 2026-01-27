@@ -9,6 +9,8 @@
 #include <type_traits>
 #include <typeinfo>
 #include <memory>
+#include <iostream>
+#include <iomanip>
 #include <intrin.h>  // for _ReadWriteBarrier
 #include "_casts_shared.hpp"
 
@@ -153,7 +155,7 @@ namespace geode::cast {
             auto optionOffset = entry->m_memberDisplacement[0];
 
             if (std::strcmp(afterIdent, optionIdent) == 0) {
-                auto afterPtr = (std::byte*)ptr + optionOffset - metaPtr->m_completeLocator->m_offset;
+                auto afterPtr = (uintptr_t)ptr + optionOffset - metaPtr->m_completeLocator->m_offset;
                 return reinterpret_cast<After>(afterPtr);
             }
         }
