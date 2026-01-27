@@ -5,6 +5,7 @@
 #include "../dependency/main.hpp"
 #include "Geode/utils/general.hpp"
 #include <Geode/utils/VMTHookManager.hpp>
+#include <Geode/loader/EventV2.hpp>
 
 using namespace geode::prelude;
 
@@ -26,6 +27,12 @@ $execute {
         log::info("Received event: {}", event->getData());
         s_recievedEvent = event->getData();
     });
+
+    geode::event::Dispatch<std::string>("geode.test/test-garage-open").listen([](std::string const& str) {
+        log::info("Received dispatched event: {}", str);
+    });
+
+    geode::event::Dispatch<std::string>("geode.test/test-garage-close").send("Hello from dispatch!");
 }
 
 // Coroutines
