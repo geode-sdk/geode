@@ -13,6 +13,7 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/TextArea.hpp>
+#include <Geode/ui/MDPopup.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <GUI/CCControlExtension/CCScale9Sprite.h>
@@ -131,12 +132,7 @@ void ModProblemItem::onInfo(CCObject*) {
         return;
     }
 
-    if (m_problem.message.length() > 400) {
-        // show message in a scrolling layer if it's too long
-        FLAlertLayer::create(nullptr, "Error Details", m_problem.message, "OK", nullptr, 400.0f, true, 280.0f, 1.0f)->show();
-    } else {
-        FLAlertLayer::create("Error Details", m_problem.message, "OK")->show();
-    }
+    MDPopup::create(true, "Error Details", m_problem.message, "OK")->show();
 }
 
 bool ModProblemItem::showInfoButton() {
@@ -256,7 +252,7 @@ std::string ModProblemItem::createProblemMessage() {
         case LoadProblem::Type::UnsupportedGeodeVersion: {
             ss << fmt::format(
                 "requires Geode {} to run (installed: {})",
-                m_source->getMetadataRef().getGeodeVersion(),
+                m_source->getMetadata().getGeodeVersion(),
                 Loader::get()->getVersion().toNonVString()
             );
             return ss.str();

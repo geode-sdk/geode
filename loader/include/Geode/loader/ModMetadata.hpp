@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <matjson.hpp>
 #include <memory>
+#include <string>
 
 namespace geode {
     namespace utils::file {
@@ -64,34 +65,76 @@ namespace geode {
         ModMetadata& operator=(ModMetadata&& other) noexcept;
         ~ModMetadata();
 
-        // todo in v5: pimpl this :sob:
-        struct GEODE_DLL Dependency {
+        class GEODE_DLL Dependency {
+            class Impl;
+            std::unique_ptr<Impl> m_impl;
+
+        public:
             enum class Importance : uint8_t { Required, Recommended, Suggested };
-            std::string id;
-            ComparableVersionInfo version;
-            Importance importance = Importance::Required;
-            Mod* mod = nullptr;
+            Dependency();
+            Dependency(Dependency const& other);
+            Dependency(Dependency&& other) noexcept;
+            Dependency& operator=(Dependency const& other);
+            Dependency& operator=(Dependency&& other) noexcept;
+            ~Dependency();
+
+            std::string const& getID() const;
+            void setID(std::string value);
+            ComparableVersionInfo const& getVersion() const;
+            void setVersion(ComparableVersionInfo value);
+            Importance getImportance() const;
+            void setImportance(Importance value);
+            Mod* getMod() const;
+            void setMod(Mod* mod);
+            matjson::Value const& getSettings() const;
+            void setSettings(matjson::Value value);
             [[nodiscard]] bool isResolved() const;
         };
 
-        // todo in v5: pimpl this :sob:
-        struct GEODE_DLL Incompatibility {
+        class GEODE_DLL Incompatibility {
+            class Impl;
+            std::unique_ptr<Impl> m_impl;
+
+        public:
             enum class Importance : uint8_t {
                 Breaking,
                 Conflicting,
                 Superseded,
             };
-            std::string id;
-            ComparableVersionInfo version;
-            Importance importance = Importance::Breaking;
-            Mod* mod = nullptr;
+            Incompatibility();
+            Incompatibility(Incompatibility const& other);
+            Incompatibility(Incompatibility&& other) noexcept;
+            Incompatibility& operator=(Incompatibility const& other);
+            Incompatibility& operator=(Incompatibility&& other) noexcept;
+            ~Incompatibility();
+
+            std::string const& getID() const;
+            void setID(std::string value);
+            ComparableVersionInfo const& getVersion() const;
+            void setVersion(ComparableVersionInfo value);
+            Importance getImportance() const;
+            void setImportance(Importance value);
+            Mod* getMod() const;
+            void setMod(Mod* mod);
             [[nodiscard]] bool isResolved() const;
         };
 
-        // todo in v5: pimpl this :sob:
-        struct IssuesInfo {
-            std::string info;
-            std::optional<std::string> url;
+        class GEODE_DLL IssuesInfo {
+            class Impl;
+            std::unique_ptr<Impl> m_impl;
+
+        public:
+            IssuesInfo();
+            IssuesInfo(IssuesInfo const& other);
+            IssuesInfo(IssuesInfo&& other) noexcept;
+            IssuesInfo& operator=(IssuesInfo const& other);
+            IssuesInfo& operator=(IssuesInfo&& other) noexcept;
+            ~IssuesInfo();
+
+            std::string const& getInfo() const;
+            void setInfo(std::string value);
+            std::optional<std::string> const& getURL() const;
+            void setURL(std::optional<std::string> value);
         };
 
         /**
@@ -113,12 +156,6 @@ namespace geode {
          * numbers, dashes, underscores, and a single separating dot
          */
         [[nodiscard]] ZStringView getID() const;
-        /**
-         * True if the mod has a mod ID that will be rejected in the future,
-         * such as using uppercase letters or having multiple dots. Mods like
-         * this should release new versions that supersede the old ones
-         */
-        [[nodiscard]] bool usesDeprecatedIDForm() const;
         /**
          * Name of the mod. May contain
          * spaces & punctuation, but should

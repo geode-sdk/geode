@@ -4,12 +4,14 @@
 #include "casts.hpp"
 #include "general.hpp"
 #include "../DefaultInclude.hpp"
+#include <Geode/utils/ZStringView.hpp>
 #include <cocos2d.h>
 #include <functional>
 #include <type_traits>
 #include "../loader/Event.hpp"
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
+#include <unordered_map>
 #include "../ui/Layout.hpp"
 #include "../ui/SpacerNode.hpp"
 
@@ -267,6 +269,17 @@ namespace geode {
          */
         Ref() = default;
 
+        /**
+         * Construct a Ref of an object, without retaining it.
+         * The object will still be released when Ref goes out of scope.
+         * @param obj Object to construct the Ref from
+         */
+        static Ref<T> adopt(T* obj) {
+            Ref<T> ref;
+            ref.m_obj = obj;
+            return ref;
+        }
+
         ~Ref() {
             CC_SAFE_RELEASE(m_obj);
         }
@@ -280,6 +293,18 @@ namespace geode {
             CC_SAFE_RELEASE(m_obj);
             m_obj = other;
             CC_SAFE_RETAIN(other);
+        }
+
+        /**
+         * Takes out the object from the Ref, without calling `release` on it.
+         * This is like a symmetric counterpart to `Ref::adopt`, it essentially "leaks" the object,
+         * making the Ref empty and making you responsible for releasing it manually.
+         * @returns The managed object
+         */
+        T* take() {
+            auto obj = m_obj;
+            m_obj = nullptr;
+            return obj;
         }
 
         /**
@@ -677,7 +702,7 @@ namespace geode::cocos {
      * @returns Rectangle fitting all nodes. Origin
      * will be <= 0 and size will be >= 0
      */
-    GEODE_DLL cocos2d::CCRect calculateNodeCoverage(std::vector<cocos2d::CCNode*> const& nodes);
+    GEODE_DLL cocos2d::CCRect calculateNodeCoverage(std::span<cocos2d::CCNode*> nodes);
     /**
      * Get bounds for a set of nodes. Based on content
      * size
@@ -963,82 +988,6 @@ namespace geode::cocos {
     GEODE_DLL std::string cc4bToHexString(cocos2d::ccColor4B const& color);
 
     /**
-     * Converts a `std::vector` into a `CCArray`.
-     *
-     * @param vec The vector to convert
-     * @returns The array
-     */
-    template <typename T, typename = std::enable_if_t<std::is_pointer_v<T>>>
-    static cocos2d::CCArray* vectorToCCArray(std::vector<T> const& vec) {
-        auto res = cocos2d::CCArray::createWithCapacity(vec.size());
-        for (auto const& item : vec)
-            res->addObject(item);
-        return res;
-    }
-
-    /**
-     * Converts a `std::vector` into a `CCArray` using a conversion function.
-     *
-     * @param vec The vector to convert
-     * @param convFunc The conversion function used for each item
-     * @returns The array
-     */
-    template <typename T, typename C, typename = std::enable_if_t<std::is_pointer_v<C>>>
-    static cocos2d::CCArray* vectorToCCArray(std::vector<T> const& vec, geode::FunctionRef<C(T)> convFunc) {
-        auto res = cocos2d::CCArray::createWithCapacity(vec.size());
-        for (auto const& item : vec)
-            res->addObject(convFunc(item));
-        return res;
-    }
-
-    /**
-     * Converts `CCArray` into a `std::vector`.
-     *
-     * @tparam T The type of the data stored inside the array
-     * @param arr The array to convert
-     * @returns The vector
-     */
-    template <typename T, typename = std::enable_if_t<std::is_pointer_v<T>>>
-    std::vector<T> ccArrayToVector(cocos2d::CCArray* arr) {
-        return std::vector<T>(
-            reinterpret_cast<T*>(arr->data->arr), reinterpret_cast<T*>(arr->data->arr) + arr->data->num
-        );
-    }
-
-    /**
-     * Converts a `std::map` into a `CCDictionary`.
-     *
-     * @param map The map to convert
-     * @returns The dictionary
-     */
-    template <
-        typename K, typename V,
-        typename = std::enable_if_t<std::is_same_v<K, std::string> || std::is_same_v<K, intptr_t>>>
-    static cocos2d::CCDictionary* mapToCCDict(std::map<K, V> const& map) {
-        auto res = cocos2d::CCDictionary::create();
-        for (auto const& [key, value] : map)
-            res->setObject(value, key);
-        return res;
-    }
-
-    /**
-     * Converts a `std::map` into a `CCDictionary` using a conversion function.
-     *
-     * @param map The map to convert
-     * @param convFunc The conversion function used for each item
-     * @returns The dictionary
-     */
-    template <
-        typename K, typename V, typename C,
-        typename = std::enable_if_t<std::is_same_v<C, std::string> || std::is_same_v<C, intptr_t>>>
-    static cocos2d::CCDictionary* mapToCCDict(std::map<K, V> const& map, geode::FunctionRef<C(K)> convFunc) {
-        auto res = cocos2d::CCDictionary::create();
-        for (auto const& [key, value] : map)
-            res->setObject(value, convFunc(key));
-        return res;
-    }
-
-    /**
      * Gets the mouse position in cocos2d coordinates.
      * On mobile platforms this will probably return (0, 0)
      * @returns The mouse position
@@ -1164,6 +1113,12 @@ namespace geode::cocos {
         CCArrayExt(cocos2d::CCArray* arr)
           : m_arr(arr) {}
 
+        CCArrayExt(std::vector<T> const& vec) : m_arr(cocos2d::CCArray::createWithCapacity(vec.size())) {
+            for (auto obj : vec) {
+                m_arr->addObject(obj);
+            }
+        }
+
         CCArrayExt(CCArrayExt const& a) : m_arr(a.m_arr) {}
 
         CCArrayExt(CCArrayExt&& a) : m_arr(a.m_arr) {
@@ -1214,6 +1169,15 @@ namespace geode::cocos {
 
         cocos2d::CCArray* inner() {
             return m_arr;
+        }
+
+        std::vector<T> toVector() const {
+            std::vector<T> vec;
+            vec.reserve(this->size());
+            for (auto item : *this) {
+                vec.push_back(item);
+            }
+            return vec;
         }
     };
 
@@ -1317,6 +1281,13 @@ namespace geode::cocos {
         CCDictionaryExt() : m_dict(cocos2d::CCDictionary::create()) {}
 
         CCDictionaryExt(cocos2d::CCDictionary* dict) : m_dict(dict) {}
+
+        template<CocosDictionaryKey MapKey>
+        CCDictionaryExt(std::unordered_map<MapKey, ValuePtr> const& map) : m_dict(cocos2d::CCDictionary::create()) {
+            for (auto& [k, v] : map) {
+                m_dict->setObject(v, k);
+            }
+        }
 
         CCDictionaryExt(CCDictionaryExt const& d) : m_dict(d.m_dict) {}
 
@@ -1462,11 +1433,11 @@ namespace geode::cocos {
          * @returns The created button
          */
         static CCMenuItemSpriteExtra* createSpriteExtraWithFilename(
-            std::string_view normalSpriteName,
+            ZStringView normalSpriteName,
             float scale,
             geode::Function<void(CCMenuItemSpriteExtra*)> callback
         ) {
-            auto sprite = cocos2d::CCSprite::create(normalSpriteName.data());
+            auto sprite = cocos2d::CCSprite::create(normalSpriteName.c_str());
             sprite->setScale(scale);
 
             return createSpriteExtra(sprite, std::move(callback));
@@ -1481,11 +1452,11 @@ namespace geode::cocos {
          * @returns The created button
          */
         static CCMenuItemSpriteExtra* createSpriteExtraWithFrameName(
-            std::string_view normalSpriteName,
+            ZStringView normalSpriteName,
             float scale,
             geode::Function<void(CCMenuItemSpriteExtra*)> callback
         ) {
-            auto sprite = cocos2d::CCSprite::createWithSpriteFrameName(normalSpriteName.data());
+            auto sprite = cocos2d::CCSprite::createWithSpriteFrameName(normalSpriteName.c_str());
             sprite->setScale(scale);
 
             return createSpriteExtra(sprite, std::move(callback));
@@ -1538,13 +1509,13 @@ namespace geode::cocos {
          * @returns The created toggle
          */
         static CCMenuItemToggler* createTogglerWithFilename(
-            std::string_view onSpriteName,
-            std::string_view offSpriteName,
+            ZStringView onSpriteName,
+            ZStringView offSpriteName,
             float scale,
             geode::Function<void(CCMenuItemToggler*)> callback
         ) {
-            auto offSprite = cocos2d::CCSprite::create(offSpriteName.data());
-            auto onSprite = cocos2d::CCSprite::create(onSpriteName.data());
+            auto offSprite = cocos2d::CCSprite::create(offSpriteName.c_str());
+            auto onSprite = cocos2d::CCSprite::create(onSpriteName.c_str());
 
             offSprite->setScale(scale);
             onSprite->setScale(scale);
@@ -1561,13 +1532,13 @@ namespace geode::cocos {
          * @returns The created toggle
          */
         static CCMenuItemToggler* createTogglerWithFrameName(
-            std::string_view onSpriteName,
-            std::string_view offSpriteName,
+            ZStringView onSpriteName,
+            ZStringView offSpriteName,
             float scale,
             geode::Function<void(CCMenuItemToggler*)> callback
         ) {
-            auto offSprite = cocos2d::CCSprite::createWithSpriteFrameName(offSpriteName.data());
-            auto onSprite = cocos2d::CCSprite::createWithSpriteFrameName(onSpriteName.data());
+            auto offSprite = cocos2d::CCSprite::createWithSpriteFrameName(offSpriteName.c_str());
+            auto onSprite = cocos2d::CCSprite::createWithSpriteFrameName(onSpriteName.c_str());
 
             offSprite->setScale(scale);
             onSprite->setScale(scale);

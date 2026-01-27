@@ -1,6 +1,14 @@
 #include "FiltersPopup.hpp"
 
-bool FiltersPopup::setup(ModListSource* src) {
+bool FiltersPopup::init(ModListSource* src) {
+    float height = 170;
+    if (typeinfo_cast<InstalledModListSource*>(src) || typeinfo_cast<ServerModListSource*>(src)) {
+        height = 230;
+    }
+
+    if (!GeodePopup::init(350.f, height))
+        return false;
+
     m_noElasticity = true;
     m_source = src;
     m_selectedTags = src->getModTags();
@@ -235,11 +243,7 @@ void FiltersPopup::onClose(CCObject* sender) {
 
 FiltersPopup* FiltersPopup::create(ModListSource* src) {
     auto ret = new FiltersPopup();
-    float height = 170;
-    if (typeinfo_cast<InstalledModListSource*>(src) || typeinfo_cast<ServerModListSource*>(src)) {
-        height = 230;
-    }
-    if (ret->init(350, height, src)) {
+    if (ret->init(src)) {
         ret->autorelease();
         return ret;
     }

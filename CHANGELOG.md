@@ -1,5 +1,23 @@
 # Geode Changelog
 
+## v4.11.0
+ * Add random utils in `geode::utils::random` (6da879b, 5abd3a9, ad2146d)
+ * Add string filtering utils (#1550)
+ * Add `Ref::adopt` (29d4643)
+ * Add `CCArray::asExt<T>` (bf3f2fd)
+ * Make hook pointer modify functions static (#1549)
+ * EventFilter API improvements (5280dca, 22c647a, f86be83)
+ * Bindings additions for cocos2d classes (#1592)
+ * Implement fallback scissor in CCClippingNode::visit (#1556)
+ * Show mod parsing errors inside of the mods list (#1580)
+ * Fix a crash in `CCNode::updateLayout` (#1559)
+ * Fix `aligned_storage` warnings on newer ndk versions (#1569)
+ * Fix ccache not correctly applying for mods (00bac4c0)
+ * Fix result formatting to allow more types (77e7865)
+ * Fix zip add methods on non-Windows platforms (d35caf2)
+ * Fix VersionTag compare with tagged versions (01fa4a6)
+ * Fix stack overflow on jitless iOS when disabling/re-enabling hooks in some cases (d21fd36)
+
 ## v4.10.0
  * Add `$on_game` macro for `GameEvent` events (679678f)
  * Add progress bar helper class (#1467)

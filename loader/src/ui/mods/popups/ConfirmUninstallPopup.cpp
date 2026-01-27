@@ -2,10 +2,13 @@
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/binding/TextArea.hpp>
 
-bool ConfirmUninstallPopup::setup(Mod* mod) {
+bool ConfirmUninstallPopup::init(Mod* mod) {
+    if (!Popup::init(300.f, 150.f, "square01_001.png"))
+        return false;
+
     m_mod = mod;
 
-    this->setTitle(("Uninstall " + mod->getName()).c_str());
+    this->setTitle(fmt::format("Uninstall {}", mod->getName()));
 
     auto text = TextArea::create(
         fmt::format("Are you sure you want to \n<cr>uninstall</c> <cy>{}</c>?", mod->getName()),
@@ -69,7 +72,7 @@ void ConfirmUninstallPopup::onUninstall(CCObject*) {
 
 ConfirmUninstallPopup* ConfirmUninstallPopup::create(Mod* mod) {
     auto ret = new ConfirmUninstallPopup();
-    if (ret->initAnchored(300, 150, mod, "square01_001.png", { 0, 0, 94, 94 })) {
+    if (ret->init(mod)) {
         ret->autorelease();
         return ret;
     }

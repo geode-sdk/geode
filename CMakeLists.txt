@@ -122,11 +122,11 @@ if (NOT GEODE_DONT_USE_CCACHE)
 			else()
 				set(GEODE_CCACHE_VARIANT "ccache")
 			endif()
-			message(STATUS "Looking for ccache/sccache - found ${GEODE_CCACHE_VARIANT}")
+			message(STATUS "Looking for ccache/sccache - found ${GEODE_CCACHE_VARIANT} (${GEODE_CCACHE})")
 			message(NOTICE "Compiler launcher not set but ccache/sccache was found. "
 				"Setting compiler launcher to that")
-			set(CMAKE_C_COMPILER_LAUNCHER ${GEODE_CCACHE})
-			set(CMAKE_CXX_COMPILER_LAUNCHER ${GEODE_CCACHE})
+			set(CMAKE_C_COMPILER_LAUNCHER "${GEODE_CCACHE}" PARENT_SCOPE)
+			set(CMAKE_CXX_COMPILER_LAUNCHER "${GEODE_CCACHE}" PARENT_SCOPE)
 		else()
 			message(STATUS "Looking for ccache/sccache - not found")
 		endif()
@@ -198,15 +198,15 @@ include(cmake/GeodeFile.cmake)
 # so please update them when you set the game version
 
 # begin GEODE_GD_VERSION
-# win:     2.2074
-# mac:     2.2074
-# ios:     2.2074
-# android: 2.2074
+# win:     2.2081
+# mac:     2.2081
+# ios:     2.2081
+# android: 2.2081
 # end GEODE_GD_VERSION
 
 if (NOT DEFINED GEODE_GD_VERSION)
-	set(GEODE_GD_VERSION 2.2074)
-	set(GEODE_COMP_GD_VERSION 22074)
+	set(GEODE_GD_VERSION 2.2081)
+	set(GEODE_COMP_GD_VERSION 22081)
 endif()
 
 target_compile_definitions(
@@ -284,7 +284,7 @@ if (DEFINED GEODE_TULIPHOOK_REPO_PATH)
 	message(STATUS "Using ${GEODE_TULIPHOOK_REPO_PATH} for TulipHook")
 	add_subdirectory(${GEODE_TULIPHOOK_REPO_PATH} ${GEODE_TULIPHOOK_REPO_PATH}/build)
 else()
-	CPMAddPackage("gh:geode-sdk/TulipHook@3.1.6")
+	CPMAddPackage("gh:geode-sdk/TulipHook@3.1.7")
 endif()
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 
@@ -314,7 +314,6 @@ target_include_directories(GeodeBindings PUBLIC
 	${GEODE_LOADER_PATH}/include/Geode/fmod
 )
 target_link_directories(GeodeBindings PUBLIC ${GEODE_LOADER_PATH}/include/link)
-target_compile_definitions(GeodeBindings PUBLIC GEODE_USE_NEW_DESTRUCTOR_LOCK=1)
 target_link_libraries(GeodeBindings PUBLIC fmt TulipHookInclude mat-json std23::nontype_functional GeodeResult)
 target_link_libraries(${PROJECT_NAME} INTERFACE GeodeBindings)
 

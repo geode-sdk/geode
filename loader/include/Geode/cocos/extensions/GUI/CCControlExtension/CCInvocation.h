@@ -61,6 +61,7 @@ class CC_DLL CCInvocation : public CCObject
 public:
     static CCInvocation* create(CCObject* target, SEL_CCControlHandler action, CCControlEvent controlEvent);
     CCInvocation(CCObject* target, SEL_CCControlHandler action, CCControlEvent controlEvent);
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCInvocation, CCObject)
 
     void invoke(CCObject* sender);
 };

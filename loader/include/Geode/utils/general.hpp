@@ -8,9 +8,11 @@
 #include <chrono>
 #include <iomanip>
 #include <string>
+#include <array>
 #include <vector>
 #include <filesystem>
 #include <matjson.hpp>
+#include <span>
 #include <charconv>
 #include <clocale>
 #include <type_traits>
@@ -19,6 +21,14 @@
 
 namespace geode {
     using ByteVector = std::vector<uint8_t>;
+    using ByteSpan = std::span<uint8_t>;
+
+    template <class... T>
+    requires (std::is_convertible_v<T, uint8_t> && ...) 
+    constexpr auto byteArray(T... bytes) {
+        return std::array<uint8_t, sizeof...(T)>{ uint8_t{bytes}... };
+    }
+    
 
     template <typename T>
     ByteVector toBytes(T const& a) {
@@ -108,32 +118,6 @@ namespace geode {
         }
         constexpr size_t operator""_h(wchar_t const* txt, size_t) {
             return geode::utils::hash(txt);
-        }
-
-        /**
-         * A simple function that clamps a value between two others.
-         * @deprecated Use std::clamp instead
-         *
-         * @param value Value
-         * @param minValue The minimum value
-         * @param maxValue The maximum value
-         * @returns The clamped value
-         */
-        template <typename T>
-        [[deprecated]] constexpr const T& clamp(const T& value, const std::type_identity_t<T>& minValue, const std::type_identity_t<T>& maxValue) {
-            return value < minValue ? minValue : maxValue < value ? maxValue : value;
-        }
-
-        /**
-         * A simple function that converts an integer into a hexadecimal string
-         * @deprecated Use `fmt::format("{:#x}", value)` instead
-         *
-         * @param i The integer
-         * @returns The hex string
-         */
-        template <typename T>
-        [[deprecated]] std::string intToHex(T i) {
-            return fmt::format("{:#x}", i);
         }
 
         /**
@@ -316,25 +300,11 @@ namespace geode::utils::clipboard {
 
 namespace geode::utils::game {
     /**
-     * Exits the game, saving the game data.
-     *
-     * @deprecated Use `game::exit(true)` instead
-     */
-    [[deprecated]] GEODE_DLL void exit(); // TODO: left for abi compat
-
-    /**
      * Exits the game, optionally saving the game data.
      *
      * @param saveData Whether to save the game data
      */
     GEODE_DLL void exit(bool saveData /* = true */);
-
-    /**
-     * Restarts the game, saving the game data.
-     *
-     * @deprecated Use `game::restart(true)` instead
-     */
-    [[deprecated]] GEODE_DLL void restart(); // TODO: left for abi compat
 
     /**
      * Restarts the game, optionally saving the game data.

@@ -4,7 +4,8 @@
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/ZStringView.hpp>
 #include <server/Server.hpp>
-#include "../list/ModItem.hpp"
+#include "../list/ModListItem.hpp"
+#include "ModSource.hpp"
 
 using namespace geode::prelude;
 
@@ -28,6 +29,15 @@ public:
     InvalidateCacheFilter(ModListSource* src);
 };
 
+// If we want to insert some special item in the middle of the mods list (for 
+// example, when there are invalid .geode files in the mods folder, a single 
+// special "You have invalid Geode mods" item is inserted at the top to 
+// prevent clutter)
+struct SpecialModListItemSource final {
+    std::string title;
+    Function<void()> onDetails;
+};
+
 // Handles loading the entries for the mods list
 class ModListSource {
 public:
@@ -41,11 +51,11 @@ public:
             : message(std::move(msg)), details(std::move(details)) {}
     };
 
-    using Page = std::vector<Ref<ModItem>>;
+    using Page = std::vector<Ref<ModListItem>>;
     using PageLoadTask = Task<Result<Page, LoadPageError>, std::optional<uint8_t>>;
 
     struct ProvidedMods {
-        std::vector<ModSource> mods;
+        std::vector<std::variant<ModSource, SpecialModListItemSource>> mods;
         size_t totalModCount;
     };
     using ProviderTask = Task<Result<ProvidedMods, LoadPageError>, std::optional<uint8_t>>;
@@ -211,15 +221,20 @@ void filterModsWithLocalQuery(ModListSource::ProvidedMods& mods, Query const& qu
     // Filter installed mods based on query
     // TODO: maybe skip fuzzy matching altogether if query is empty?
     for (auto& src : mods.mods) {
+        if (std::holds_alternative<SpecialModListItemSource>(src)) {
+            continue;
+        }
+        auto mod = std::get<ModSource>(std::move(src));
+
         double weighted = 0;
         bool addToList = true;
         // Do any checks additional this query has to start off with
-        if (!query.preCheck(src)) {
+        if (!query.preCheck(mod)) {
             addToList = false;
         }
         // If some tags are provided, only return mods that match
         if (addToList && query.tags.size()) {
-            auto compare = src.getMetadata().getTags();
+            auto compare = mod.getMetadata().getTags();
             for (auto& tag : query.tags) {
                 if (!compare.contains(tag)) {
                     addToList = false;
@@ -228,10 +243,10 @@ void filterModsWithLocalQuery(ModListSource::ProvidedMods& mods, Query const& qu
         }
         // Don't bother with unnecessary fuzzy match calculations if this mod isn't going to be added anyway
         if (addToList) {
-            addToList = query.queryCheck(src, weighted);
+            addToList = query.queryCheck(mod, weighted);
         }
         if (addToList) {
-            filtered.push_back({ std::move(src), weighted });
+            filtered.push_back({ std::move(mod), weighted });
         }
     }
 

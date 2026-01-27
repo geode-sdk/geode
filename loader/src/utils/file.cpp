@@ -241,11 +241,11 @@ Result<> utils::file::writeStringSafe(std::filesystem::path const& path, std::st
     return Ok();
 }
 
-Result<> utils::file::writeBinary(std::filesystem::path const& path, ByteVector const& data) {
+Result<> utils::file::writeBinary(std::filesystem::path const& path, ByteSpan data) {
     return writeFileFrom(path, (void*)data.data(), data.size());
 }
 
-Result<> utils::file::writeBinarySafe(std::filesystem::path const& path, ByteVector const& data) {
+Result<> utils::file::writeBinarySafe(std::filesystem::path const& path, ByteSpan data) {
     GEODE_ANDROID(
         return utils::file::writeBinary(path, data); // safe approach causes significant performance issues on Android
     )
@@ -438,10 +438,10 @@ public:
         return Ok(std::move(ret));
     }
 
-    static Result<std::unique_ptr<Impl>> fromMemory(ByteVector const& raw) {
+    static Result<std::unique_ptr<Impl>> fromMemory(ByteSpan raw) {
         auto ret = std::make_unique<Impl>();
         ret->m_mode = MZ_OPEN_MODE_READ;
-        ret->m_srcDest = raw;
+        ret->m_srcDest = ByteVector{raw.begin(), raw.end()};
         GEODE_UNWRAP(ret->init());
         return Ok(std::move(ret));
     }
@@ -617,10 +617,10 @@ public:
         info.filename = reinterpret_cast<const char*>(strPath.c_str());
         info.uncompressed_size = 0;
         info.flag = MZ_ZIP_FLAG_UTF8;
-    #ifdef GEODE_IS_WINDOWS
+#ifdef GEODE_IS_WINDOWS
         info.external_fa = FILE_ATTRIBUTE_DIRECTORY;
-    #endif
         info.aes_version = MZ_AES_VERSION;
+#endif
 
 
         GEODE_UNWRAP(
@@ -634,7 +634,7 @@ public:
         return Ok();
     }
 
-    Result<> add(Path const& path, ByteVector const& data) {
+    Result<> add(Path const& path, ByteSpan data) {
         auto namestr = utils::string::pathToString(path);
 
         mz_zip_file info = { 0 };
@@ -642,7 +642,9 @@ public:
         info.compression_method = MZ_COMPRESS_METHOD_DEFLATE;
         info.filename = namestr.c_str();
         info.uncompressed_size = data.size();
+#ifdef GEODE_IS_WINDOWS
         info.aes_version = MZ_AES_VERSION;
+#endif
 
         GEODE_UNWRAP(
             mzTry(mz_zip_entry_write_open(m_handle, &info, MZ_COMPRESS_LEVEL_DEFAULT, 0, nullptr))
@@ -700,16 +702,14 @@ Unzip::~Unzip() {}
 
 Unzip::Unzip(std::unique_ptr<Unzip::Impl>&& impl) : m_impl(std::move(impl)) {}
 
-Unzip::Unzip(Unzip&& other) : m_impl(std::move(other.m_impl)) {
-    other.m_impl = nullptr;
-}
+Unzip::Unzip(Unzip&& other) noexcept = default;
 
 Result<Unzip> Unzip::create(Path const& file) {
     GEODE_UNWRAP_INTO(auto impl, Zip::Impl::inFile(file, MZ_OPEN_MODE_READ));
     return Ok(Unzip(std::move(impl)));
 }
 
-Result<Unzip> Unzip::create(ByteVector const& data) {
+Result<Unzip> Unzip::create(ByteSpan data) {
     GEODE_UNWRAP_INTO(auto impl, Zip::Impl::fromMemory(data));
     return Ok(Unzip(std::move(impl)));
 }
@@ -799,9 +799,7 @@ Zip::~Zip() {}
 
 Zip::Zip(std::unique_ptr<Zip::Impl>&& impl) : m_impl(std::move(impl)) {}
 
-Zip::Zip(Zip&& other) : m_impl(std::move(other.m_impl)) {
-    other.m_impl = nullptr;
-}
+Zip::Zip(Zip&& other) noexcept = default;
 
 Result<Zip> Zip::create(Path const& file) {
     GEODE_UNWRAP_INTO(auto impl, Zip::Impl::inFile(file, MZ_OPEN_MODE_CREATE | MZ_OPEN_MODE_WRITE));
@@ -821,12 +819,13 @@ ByteVector Zip::getData() const {
     return m_impl->compressedData();
 }
 
-Result<> Zip::add(Path const& path, ByteVector const& data) {
+Result<> Zip::add(Path const& path, ByteSpan data) {
     return m_impl->add(path, data);
 }
 
 Result<> Zip::add(Path const& path, std::string_view data) {
-    return this->add(path, ByteVector(data.begin(), data.end()));
+    auto vec = ByteVector{data.begin(), data.end()};
+    return this->add(path, vec);
 }
 
 Result<> Zip::addFrom(Path const& file, Path const& entryDir) {

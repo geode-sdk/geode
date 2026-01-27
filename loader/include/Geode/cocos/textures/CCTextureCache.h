@@ -62,6 +62,8 @@ public:
     CCDictionary* m_pTextures;
     //pthread_mutex_t                *m_pDictLock;
 
+    // @note RobTop Addition
+    bool m_asyncLoadingPrepared;
 
 private:
     /// todo: void addImageWithAsyncObject(CCAsyncObject* async);

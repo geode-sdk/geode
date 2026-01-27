@@ -261,12 +261,34 @@ std::string utils::string::trimRight(std::string str) {
 }
 
 std::string utils::string::trim(std::string str, std::string_view chars) {
-    str = utils::string::trimRight(std::move(str), chars);
-    return utils::string::trimLeft(std::move(str), chars);
+    size_t start = str.find_first_not_of(chars);
+    return start == -1 ? std::string() : str.substr(start, str.find_last_not_of(chars) + 1 - start);
 }
 
 std::string utils::string::trim(std::string str) {
     return trim(std::move(str), WHITESPACE);
+}
+
+std::string utils::string::filter(std::string_view str, std::string_view allowed) {
+    std::string ret;
+    ret.reserve(str.size());
+    for (char c : str) {
+        if (allowed.find(c) != std::string::npos) {
+            ret.push_back(c);
+        }
+    }
+    return ret;
+}
+
+std::string utils::string::remove(std::string_view str, std::string_view disallowed) {
+    std::string ret;
+    ret.reserve(str.size());
+    for (char c : str) {
+        if (disallowed.find(c) == std::string::npos) {
+            ret.push_back(c);
+        }
+    }
+    return ret;
 }
 
 void utils::string::normalizeIP(std::string& str) {

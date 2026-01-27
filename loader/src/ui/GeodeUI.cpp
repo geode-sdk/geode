@@ -12,7 +12,7 @@
 #include "mods/popups/ModPopup.hpp"
 #include "GeodeUIEvent.hpp"
 
-class LoadServerModLayer : public Popup<std::string> {
+class LoadServerModLayer : public Popup {
 protected:
     std::string m_id;
     EventListener<server::ServerRequest<server::ServerModMetadata>> m_listener;
@@ -20,7 +20,10 @@ protected:
 
     std::optional<server::ServerModMetadata> m_loadedMod{};
 
-    bool setup(std::string id) override {
+    bool init(std::string id) {
+        if (!Popup::init(180.f, 100.f, "square01_001.png"))
+            return false;
+
         m_closeBtn->setVisible(false);
 
         this->setTitle("Loading mod...");
@@ -96,7 +99,7 @@ public:
 
     static LoadServerModLayer* create(std::string id) {
         auto ret = new LoadServerModLayer();
-        if (ret->initAnchored(180, 100, std::move(id), "square01_001.png", CCRect{})) {
+        if (ret->init(std::move(id))) {
             ret->autorelease();
             return ret;
         }
@@ -110,7 +113,7 @@ void geode::openModsList() {
 }
 
 void geode::openIssueReportPopup(Mod* mod) {
-    if (mod->getMetadataRef().getIssues()) {
+    if (mod->getMetadata().getIssues()) {
         MDPopup::create(
             "Issue Report",
                 fmt::format(
@@ -126,9 +129,9 @@ void geode::openIssueReportPopup(Mod* mod) {
                     return;
                 }
 
-                auto issues = mod->getMetadataRef().getIssues();
-                if (issues && issues->url) {
-                    auto& url = *issues->url;
+                auto issues = mod->getMetadata().getIssues();
+                if (issues && issues->getURL()) {
+                    auto& url = *issues->getURL();
                     web::openLinkInBrowser(url);
                 }
             }
@@ -151,12 +154,12 @@ void geode::openIssueReportPopup(Mod* mod) {
 }
 
 void geode::openSupportPopup(Mod* mod) {
-    openSupportPopup(mod->getMetadataRef());
+    openSupportPopup(mod->getMetadata());
 }
 
 void geode::openSupportPopup(ModMetadata const& metadata) {
     MDPopup::create(
-        ("Support " + metadata.getName()).c_str(),
+        fmt::format("Support {}", metadata.getName()),
         metadata.getSupportInfo().value_or(
             "Developing mods takes a lot of time and effort! "
             "Consider <cy>supporting the developers</c> of your favorite mods "
@@ -191,7 +194,7 @@ void geode::openChangelogPopup(Mod* mod) {
 void geode::openSettingsPopup(Mod* mod) {
     openSettingsPopup(mod, true);
 }
-Popup<Mod*>* geode::openSettingsPopup(Mod* mod, bool disableGeodeTheme) {
+Popup* geode::openSettingsPopup(Mod* mod, bool disableGeodeTheme) {
     if (mod->hasSettings()) {
         auto popup = ModSettingsPopup::create(mod, disableGeodeTheme);
         popup->show();

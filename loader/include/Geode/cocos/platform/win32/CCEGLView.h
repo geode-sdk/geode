@@ -182,11 +182,14 @@ public:
 	void updateDesignSize(int, int);
 	void updateFrameSize();
 
+    // @note RobTop Addition
+    void pumpRawInput();
+    // @note RobTop Addition
+    void performSafeClipboardPaste();
 
 public:
     static CCEGLView* s_pEglView;
-    // @note unknown members here
-    uint8_t m_unkPad[8];
+
     bool m_bCaptured;
     // Robtop Removal
     // HWND m_hWnd;

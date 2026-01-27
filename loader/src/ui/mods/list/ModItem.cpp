@@ -19,19 +19,11 @@
 #include "ui/GeodeUIEvent.hpp"
 
 bool ModItem::init(ModSource&& source) {
-    if (!CCNode::init())
+    if (!ModListItem::init())
         return false;
 
     m_source = std::move(source);
     this->setID("ModItem");
-
-    m_bg = CCScale9Sprite::create("square02b_small.png");
-    m_bg->setID("bg");
-    m_bg->setOpacity(0);
-    m_bg->ignoreAnchorPointForPosition(false);
-    m_bg->setAnchorPoint({ .5f, .5f });
-    m_bg->setScale(.7f);
-    this->addChildAtPosition(m_bg, Anchor::Center);
 
     m_logo = m_source.createModLogo();
     m_logo->setID("logo-sprite");
@@ -71,7 +63,6 @@ bool ModItem::init(ModSource&& source) {
             ->setCrossAxisScaling(AxisScaling::ScaleDownGaps)
             ->setGap(5.f)
     );
-    m_titleContainer->getLayout()->ignoreInvisibleChildren(true);
     m_infoContainer->addChildAtPosition(m_titleContainer, Anchor::Left);
 
     m_developers = CCMenu::create();
@@ -168,10 +159,6 @@ bool ModItem::init(ModSource&& source) {
 
     this->addChildAtPosition(m_infoContainer, Anchor::Left);
 
-    m_viewMenu = CCMenu::create();
-    m_viewMenu->setID("view-menu");
-    m_viewMenu->setScale(.55f);
-
     ButtonSprite* spr = nullptr;
     if (auto serverMod = m_source.asServer(); serverMod != nullptr) {
         auto version = serverMod->latestVersion();
@@ -197,17 +184,7 @@ bool ModItem::init(ModSource&& source) {
     viewBtn->setID("view-button");
     m_viewMenu->addChild(viewBtn);
 
-    m_viewMenu->setLayout(
-        SimpleRowLayout::create()
-            ->setMainAxisDirection(AxisDirection::RightToLeft)
-            ->setMainAxisAlignment(MainAxisAlignment::Start)
-            ->setMainAxisScaling(AxisScaling::Scale)
-            ->setCrossAxisScaling(AxisScaling::Scale)
-            ->setMinRelativeScale(1.f)
-            ->setGap(10)
-    );
-    m_viewMenu->getLayout()->ignoreInvisibleChildren(true);
-    this->addChildAtPosition(m_viewMenu, Anchor::Right, ccp(-10, 0));
+    m_viewMenu->updateLayout();
 
     m_badgeContainer = CCNode::create();
     m_badgeContainer->setID("badge-container");
@@ -393,20 +370,11 @@ bool ModItem::init(ModSource&& source) {
 }
 
 void ModItem::updateState() {
+    ModListItem::updateState();
+
     auto wantsRestart = m_source.wantsRestart();
     auto download = server::ModDownloadManager::get()->getDownload(m_source.getID());
     bool isDownloading = download && download->isActive();
-
-    // Update the size of the mod cell itself
-    if (m_display == ModListDisplay::Grid) {
-        auto widthWithoutGaps = m_targetWidth - 7.5f;
-        this->setContentSize(ccp(widthWithoutGaps / roundf(widthWithoutGaps / 80), 100));
-        m_bg->setContentSize(m_obContentSize / m_bg->getScale());
-    }
-    else {
-        this->setContentSize(ccp(m_targetWidth, m_display == ModListDisplay::BigList ? 40 : 30));
-        m_bg->setContentSize((m_obContentSize - ccp(6, 0)) / m_bg->getScale());
-    }
 
     // On Grid layout the title is a direct child of info so it can be positioned
     // more cleanly, while m_titleContainer is just used to position the version
@@ -458,7 +426,6 @@ void ModItem::updateState() {
                     ->setCrossAxisScaling(AxisScaling::Scale)
                     ->setGap(5.f)
             );
-            m_badgeContainer->getLayout()->ignoreInvisibleChildren(true);
             this->addChildAtPosition(m_badgeContainer, Anchor::TopLeft, ccp(4, -4), ccp(0, 1));
         }
         else {
@@ -471,7 +438,6 @@ void ModItem::updateState() {
                     ->setCrossAxisScaling(AxisScaling::Scale)
                     ->setGap(5.f)
             );
-            m_badgeContainer->getLayout()->ignoreInvisibleChildren(true);
             m_titleContainer->addChild(m_badgeContainer);
         }
         // Long tags don't fit in the grid UI
@@ -738,22 +704,6 @@ void ModItem::updateState() {
     m_infoContainer->updateLayout();
 
     m_titleContainer->updateLayout();
-    // Update button menu state
-
-    if (m_display == ModListDisplay::Grid) {
-        m_viewMenu->setContentWidth(m_obContentSize.width / m_viewMenu->getScaleX());
-        m_viewMenu->updateAnchoredPosition(Anchor::Bottom, ccp(0, 5), ccp(.5f, 0));
-        m_viewMenu->setScale(.45f);
-        static_cast<SimpleRowLayout*>(m_viewMenu->getLayout())->setMainAxisAlignment(MainAxisAlignment::Center);
-    }
-    else {
-        m_viewMenu->setContentWidth(m_obContentSize.width / m_viewMenu->getScaleX() / 2 - 20);
-        m_viewMenu->updateAnchoredPosition(Anchor::Right, ccp(-10, 0), ccp(1, .5f));
-        m_viewMenu->setScale(.55f);
-        static_cast<SimpleRowLayout*>(m_viewMenu->getLayout())->setMainAxisAlignment(MainAxisAlignment::Start);
-    }
-
-    m_viewMenu->setContentHeight(40.f);
     m_viewMenu->updateLayout();
 
     // Highlight item via BG if it wants to restart for extra UI attention
@@ -785,12 +735,6 @@ void ModItem::updateState() {
     this->updateLayout();
 
     ModItemUIEvent(std::make_unique<ModItemUIEvent::Impl>(this)).post();
-}
-
-void ModItem::updateDisplay(float width, ModListDisplay display) {
-    m_display = display;
-    m_targetWidth = width;
-    this->updateState();
 }
 
 void ModItem::onCheckUpdates(typename server::ServerRequest<std::optional<server::ServerModUpdate>>::Event* event) {

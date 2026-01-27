@@ -10,7 +10,7 @@
 #include "../popups/SortPopup.hpp"
 #include "../GeodeStyle.hpp"
 #include "../ModsLayer.hpp"
-#include "ModItem.hpp"
+#include "ModListItem.hpp"
 
 static size_t getDisplayPageSize(ModListSource* src, ModListDisplay display) {
     if (src->isLocalModsOnly() && Mod::get()->getSettingValue<bool>("infinite-local-mods-list")) {
@@ -132,7 +132,6 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
                 ->setMainAxisScaling(AxisScaling::Scale)
                 ->setCrossAxisScaling(AxisScaling::ScaleDownGaps)
         );
-        m_updateAllMenu->getLayout()->ignoreInvisibleChildren(true);
         m_updateAllContainer->addChildAtPosition(m_updateAllMenu, Anchor::Right, ccp(-10, 0));
 
         m_topContainer->addChild(m_updateAllContainer);
@@ -315,7 +314,6 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
             ->setAxisReverse(true)
             ->setAutoGrowAxis(0.f)
     );
-    m_topContainer->getLayout()->ignoreInvisibleChildren(true);
 
     this->addChildAtPosition(m_topContainer, Anchor::Top);
 
@@ -403,7 +401,6 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
             ->setMainAxisDirection(AxisDirection::TopToBottom)
             ->setGap(5.f)
     );
-    m_statusContainer->getLayout()->ignoreInvisibleChildren(true);
     this->addChildAtPosition(m_statusContainer, Anchor::Center);
 
     m_listener.bind(this, &ModList::onPromise);
@@ -423,6 +420,7 @@ void ModList::onPromise(ModListSource::PageLoadTask::Event* event) {
     if (event->getValue()) {
         auto result = event->getValue();
         if (result->isOk()) {
+            // This is apparently because `getChildren()` may be nullptr?
             if (m_list->m_contentLayer->getChildrenCount() > 0) {
                 m_list->m_contentLayer->removeAllChildren();
             }
@@ -599,10 +597,10 @@ void ModList::updateDisplay(ModListDisplay display) {
     m_display = display;
     m_source->setPageSize(getDisplayPageSize(m_source, m_display));
 
-    // Update all BaseModItems that are children of the list
-    // There may be non-BaseModItems there (like separators) so gotta be type-safe
+    // Update all ModListItems that are children of the list
+    // There may be non-ModListItems there (like separators) so gotta be type-safe
     for (auto& node : CCArrayExt<CCNode*>(m_list->m_contentLayer->getChildren())) {
-        if (auto item = typeinfo_cast<ModItem*>(node)) {
+        if (auto item = typeinfo_cast<ModListItem*>(node)) {
             item->updateDisplay(m_list->getContentWidth(), display);
         }
     }
@@ -623,16 +621,11 @@ void ModList::updateDisplay(ModListDisplay display) {
                 ->setGrowCrossAxis(true)
                 ->setAxisAlignment(AxisAlignment::Start)
                 ->setGap(2.5f)
+                ->ignoreInvisibleChildren(false)
         );
     }
     else {
-        m_list->m_contentLayer->setLayout(
-            SimpleColumnLayout::create()
-                ->setMainAxisDirection(AxisDirection::TopToBottom)
-                ->setMainAxisAlignment(MainAxisAlignment::End)
-                ->setMainAxisScaling(AxisScaling::Fit)
-                ->setGap(2.5f)
-        );
+        m_list->m_contentLayer->setLayout(ScrollLayer::createDefaultListLayout());
     }
 
     // Make sure list isn't too small
@@ -797,3 +790,4 @@ ModList* ModList::create(ModListSource* src, CCSize const& size, bool searchingD
     delete ret;
     return nullptr;
 }
+

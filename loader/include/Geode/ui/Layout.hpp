@@ -18,11 +18,6 @@ namespace geode {
  * of layout you can inherit from the Layout class.
  */
 class GEODE_DLL Layout : public cocos2d::CCObject {
-protected:
-    cocos2d::CCArray* getNodesToPosition(cocos2d::CCNode* forNode) const;
-
-    bool m_ignoreInvisibleChildren = false;
-
 public:
     /**
      * Automatically apply the layout's positioning on a set of nodes
@@ -37,13 +32,6 @@ public:
      * Get how much space this layout would like to take up for a given target
      */
     virtual cocos2d::CCSize getSizeHint(cocos2d::CCNode* on) const = 0;
-
-    /**
-     * If true, the layout will not take into account invisible children when creating gaps or
-     * calculating content sizes
-     */
-    Layout* ignoreInvisibleChildren(bool ignore = true);
-    bool isIgnoreInvisibleChildren() const;
 
     virtual ~Layout() = default;
 };
@@ -316,6 +304,7 @@ public:
      * calculating content sizes
      */
     AxisLayout* ignoreInvisibleChildren(bool ignore = true);
+    bool isIgnoreInvisibleChildren() const;
 };
 
 /**

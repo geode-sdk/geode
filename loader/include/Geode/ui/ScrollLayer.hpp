@@ -37,5 +37,15 @@ namespace geode {
         void scrollWheel(float y, float) override;
         void enableScrollWheel(bool enable = true);
         void scrollToTop();
+
+        /**
+         * If you're using ScrollLayer to create a list, this helper function 
+         * can be used to create a `ColumnLayout` with reasonable defaults for 
+         * a list.
+         * @example ```cpp
+         * list->m_contentLayer->setLayout(ScrollLayer::createDefaultListLayout());`
+         * ```
+         */
+        static Layout* createDefaultListLayout(float gap = 2.5f);
     };
 }

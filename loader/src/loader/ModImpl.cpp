@@ -53,6 +53,12 @@ Mod::Impl::~Impl() = default;
 
 Result<> Mod::Impl::setup() {
     m_saveDirPath = dirs::getModsSaveDir() / m_metadata.getID();
+    m_settings = std::make_unique<ModSettingsManager>(m_metadata);
+
+    if (this->isEphemeral()) {
+        return Ok();
+    }
+
     (void) utils::file::createDirectoryAll(m_saveDirPath);
 
     // always create temp dir for all mods, even if disabled, so resources can be loaded
@@ -60,7 +66,6 @@ Result<> Mod::Impl::setup() {
         return fmt::format("Unable to create temp dir: {}", err);
     }));
 
-    m_settings = std::make_unique<ModSettingsManager>(m_metadata);
     auto loadRes = this->loadData();
     if (!loadRes) {
         log::warn("Unable to load data for \"{}\": {}", m_metadata.getID(), loadRes.unwrapErr());
@@ -101,6 +106,10 @@ ZStringView Mod::Impl::getID() const {
 
 ZStringView Mod::Impl::getName() const {
     return m_metadata.getName();
+}
+
+bool Mod::Impl::isEphemeral() const {
+    return ModMetadataImpl::getImpl(m_metadata).m_softInvalidReason.has_value();
 }
 
 std::vector<std::string> const& Mod::Impl::getDevelopers() const {
@@ -219,6 +228,10 @@ Result<> Mod::Impl::saveData() {
         return Ok();
     }
 
+    if (this->isEphemeral()) {
+        return Ok();
+    }
+
     // ModSettingsManager keeps track of the whole savedata
     matjson::Value json = m_settings->save();
 
@@ -334,7 +347,7 @@ Result<> Mod::Impl::loadBinary() {
     // Anyway this lets all of this mod's dependencies know it has been loaded
     // In case they're API mods and want to know those kinds of things
     for (auto const& dep : ModMetadataImpl::getImpl(m_metadata).m_dependencies) {
-        if (auto depMod = Loader::get()->getLoadedMod(dep.id)) {
+        if (auto depMod = Loader::get()->getLoadedMod(dep.getID())) {
             DependencyLoadedEvent(depMod, m_self).post();
         }
     }
@@ -460,7 +473,7 @@ bool Mod::Impl::hasUnresolvedIncompatibilities() const {
 
 bool Mod::Impl::depends(std::string_view id) const {
     return utils::ranges::contains(m_metadata.getDependencies(), [id](ModMetadata::Dependency const& t) {
-        return t.id == id;
+        return t.getID() == id;
     });
 }
 
@@ -673,7 +686,7 @@ bool Mod::Impl::isCurrentlyLoading() const {
 
 bool Mod::Impl::hasLoadProblems() const {
     for (auto const& problem : m_problems) {
-        if (problem.isProblem()) {
+        if (problem.isProblemTheUserShouldCareAbout()) {
             return true;
         }
     }

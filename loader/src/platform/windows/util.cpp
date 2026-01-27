@@ -229,10 +229,6 @@ void geode::utils::game::exit(bool saveData) {
     std::exit(0);
 }
 
-void geode::utils::game::exit() {
-    exit(true);
-}
-
 void geode::utils::game::restart(bool saveData) {
     // TODO: mat
     // TODO: be VERY careful before enabling this again, this function is called in platform/windows/main.cpp,
@@ -256,10 +252,6 @@ void geode::utils::game::restart(bool saveData) {
     ShellExecuteW(nullptr, L"open", updaterPath.c_str(), gdName.c_str(), workingDir.wstring().c_str(), false);
 
     exit(saveData);
-}
-
-void geode::utils::game::restart() {
-    restart(true);
 }
 
 void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
@@ -312,7 +304,7 @@ static std::optional<std::string> getNameFromOs() {
 
     std::string name = utils::string::wideToUtf8(wname);
     LocalFree(wname);
-    
+
     return name;
 }
 

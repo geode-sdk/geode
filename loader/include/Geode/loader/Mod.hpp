@@ -101,9 +101,7 @@ namespace geode {
         bool isInternal() const;
         bool needsEarlyLoad() const;
 
-        [[deprecated("Use Mod::getMetadataRef which is better for efficiency")]]
-        ModMetadata getMetadata() const; // TODO: remove in v5
-        ModMetadata const& getMetadataRef() const;
+        ModMetadata const& getMetadata() const;
 
         std::filesystem::path getTempDir() const;
         /**
@@ -379,10 +377,14 @@ namespace geode {
          * @returns Successful result on success,
          * errorful result with info on error
          */
-        Result<Patch*> patch(void* address, ByteVector const& data) {
+        Result<Patch*> patch(void* address, ByteSpan data) {
             auto patch = Patch::create(address, data);
             GEODE_UNWRAP_INTO(auto ptr, this->claimPatch(std::move(patch)));
             return Ok(ptr);
+        }
+
+        Result<Patch*> patch(void* address, ByteVector data) {
+            return this->patch(address, ByteSpan(data));
         }
 
         /**
@@ -493,6 +495,7 @@ namespace geode {
          * make sure the mod is actually loadable
          */
         bool hasLoadProblems() const;
+        bool hasInvalidGeodeFile() const;
         std::vector<LoadProblem> getAllProblems() const;
         std::vector<LoadProblem> getProblems() const;
         std::vector<LoadProblem> getRecommendations() const;
@@ -537,11 +540,11 @@ constexpr auto operator""_spr() {
 #else
 
 // can't really work without the mod id macro
-// GEODE_HIDDEN inline char const* operator"" _spr(char const* str, size_t len) {
+// GEODE_HIDDEN inline char const* operator""_spr(char const* str, size_t len) {
 //     return geode::Mod::get()->expandSpriteName({ str, len }).data();
 // }
 
-GEODE_HIDDEN inline char const* operator"" _spr(char const* str, size_t len) {
+GEODE_HIDDEN inline char const* operator""_spr(char const* str, size_t len) {
     geode::log::error("GEODE_MOD_ID not defined, _spr cannot be used");
     return nullptr;
 }

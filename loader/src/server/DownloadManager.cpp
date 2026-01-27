@@ -55,10 +55,10 @@ public:
 
                     // Start downloads for any missing required dependencies
                     for (auto dep : data.metadata.getDependencies()) {
-                        if (!dep.mod && dep.importance != ModMetadata::Dependency::Importance::Suggested) {
+                        if (!dep.getMod() && dep.getImportance() != ModMetadata::Dependency::Importance::Suggested) {
                             ModDownloadManager::get()->startDownload(
-                                dep.id, dep.version.getUnderlyingVersion(),
-                                std::make_pair(m_id, dep.importance)
+                                dep.getID(), dep.getVersion().getUnderlyingVersion(),
+                                std::make_pair(m_id, dep.getImportance())
                             );
                         }
                     }
@@ -171,7 +171,8 @@ public:
 
                 // If this was an update, delete the old file first
                 auto geodePath = dirs::getModsDir() / (m_id + ".geode");
-                auto ok = file::writeBinary(geodePath, value->data());
+                auto data = value->data();
+                auto ok = file::writeBinary(geodePath, data);
                 if (!ok) {
                     m_status = DownloadStatusError {
                         .details = ok.unwrapErr(),
@@ -382,14 +383,14 @@ bool ModDownloadManager::checkAutoConfirm() {
     for (auto& [_, download] :  m_impl->m_downloads) {
         auto status = download.getStatus();
         if (auto confirm = std::get_if<server::DownloadStatusConfirm>(&status)) {
-            for (auto inc : confirm->version.metadata.getIncompatibilities()) {
+            for (auto& inc : confirm->version.metadata.getIncompatibilities()) {
                 // If some mod has an incompatability that is installed,
                 // we need to ask for confirmation
-                if (inc.mod && (!download.getVersion().has_value() || inc.version.compare(download.getVersion().value()))) {
+                if (inc.getMod() && (!download.getVersion().has_value() || inc.getVersion().compare(download.getVersion().value()))) {
                     return false;
                 }
-                for (auto download : ModDownloadManager::get()->getDownloads()) {
-                    if (download.isDone() && inc.id == download.getID() && (!download.getVersion().has_value() || inc.version.compare(download.getVersion().value()))) {
+                for (auto& download : ModDownloadManager::get()->getDownloads()) {
+                    if (download.isDone() && inc.getID() == download.getID() && (!download.getVersion().has_value() || inc.getVersion().compare(download.getVersion().value()))) {
                         return false;
                     }
                 }
@@ -397,8 +398,8 @@ bool ModDownloadManager::checkAutoConfirm() {
             // If some installed mod is incompatible with this one,
             // we need to ask for confirmation
             for (auto mod : Loader::get()->getAllMods()) {
-                for (auto inc : mod->getMetadataRef().getIncompatibilities()) {
-                    if (inc.id == download.getID() && (!download.getVersion().has_value() || inc.version.compare(download.getVersion().value()))) {
+                for (auto& inc : mod->getMetadata().getIncompatibilities()) {
+                    if (inc.getID() == download.getID() && (!download.getVersion().has_value() || inc.getVersion().compare(download.getVersion().value()))) {
                         return false;
                     }
                 }
@@ -406,11 +407,11 @@ bool ModDownloadManager::checkAutoConfirm() {
 
             // If some newly downloaded mods are incompatible with this one,
             // we need to ask for confirmation
-            for (auto download : ModDownloadManager::get()->getDownloads()) {
+            for (auto& download : ModDownloadManager::get()->getDownloads()) {
                 auto status = download.getStatus();
                 if (auto done = std::get_if<DownloadStatusDone>(&status)) {
-                    for (auto inc : done->version.metadata.getIncompatibilities()) {
-                        if (inc.id == download.getID() && inc.version.compare(done->version.metadata.getVersion())) {
+                    for (auto& inc : done->version.metadata.getIncompatibilities()) {
+                        if (inc.getID() == download.getID() && inc.getVersion().compare(done->version.metadata.getVersion())) {
                             return false;
                         }
                     }

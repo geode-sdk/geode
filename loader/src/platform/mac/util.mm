@@ -285,10 +285,6 @@ void geode::utils::game::exit(bool save) {
     ), CCDirector::get()->getRunningScene(), false);
 }
 
-void geode::utils::game::exit() {
-    exit(true);
-}
-
 void geode::utils::game::restart(bool save) {
     if (CCApplication::sharedApplication() &&
         (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
@@ -307,10 +303,6 @@ void geode::utils::game::restart(bool save) {
 
     std::atexit(restart);
     exit(save);
-}
-
-void geode::utils::game::restart() {
-    restart(true);
 }
 
 void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {

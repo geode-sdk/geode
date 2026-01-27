@@ -6,7 +6,7 @@
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/binding/TextArea.hpp>
-#include "ModItem.hpp"
+#include "ModListItem.hpp"
 #include "../sources/ModListSource.hpp"
 #include <server/DownloadManager.hpp>
 

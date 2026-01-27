@@ -544,6 +544,9 @@ public:
     void toggleUniformColorMode(bool useUniformColorMode) { m_bUseUniformColorMode = useUniformColorMode; }
 	// @note RobTop Addition
     void updateVisible();
+
+    // @note RobTop Addition
+    int getParticleDrawCost();
 };
 
 // end of particle_nodes group

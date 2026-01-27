@@ -52,6 +52,7 @@ NS_CC_EXT_BEGIN
  */
 class CC_DLL CCScale9Sprite : public CCNodeRGBA
 {
+    GEODE_FRIEND_MODIFY
 public:
     CCScale9Sprite();
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCScale9Sprite, CCNodeRGBA)
@@ -297,6 +298,9 @@ public:
     CCScale9Sprite* resizableSpriteWithCapInsets(CCRect capInsets);
 
     static CCScale9Sprite* create();
+
+    // @note RobTop Addition
+    void setBlendAdditive(bool additive);
 
     // optional
 

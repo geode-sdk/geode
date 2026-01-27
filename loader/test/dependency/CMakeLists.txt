@@ -13,4 +13,4 @@ set(GEODE_LINK_SOURCE ON)
 set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/mod.json.in ${CMAKE_CURRENT_SOURCE_DIR}/mod.json)
-create_geode_file(${PROJECT_NAME} DONT_INSTALL)
+setup_geode_mod(${PROJECT_NAME} DONT_INSTALL)
