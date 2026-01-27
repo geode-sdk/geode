@@ -56,8 +56,13 @@ namespace geode::event {
     public:
         ReceiverHandle addReceiver(Callable receiver, int priority = 0) noexcept {
             ReceiverHandle handle = m_receivers.empty() ? 1 : m_receivers.back().handle + 1;
+            for (auto it = m_receivers.begin(); it != m_receivers.end(); ++it) {
+                if (priority < it->m_priority) {
+                    m_receivers.insert(it, {std::move(receiver), priority, handle});
+                    return handle;
+                }
+            }
             m_receivers.push_back({std::move(receiver), priority, handle});
-            std::sort(m_receivers.begin(), m_receivers.end());
             return handle;
         }
 
