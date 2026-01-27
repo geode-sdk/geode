@@ -111,6 +111,7 @@ namespace geode::cast {
     };
 
     struct MetaPointerType {
+        ptrdiff_t m_vtableOffset;
         CompleteLocatorType* m_completeLocator;
     };
 
@@ -128,8 +129,7 @@ namespace geode::cast {
             return After();
         }
 
-        auto basePtr = dynamic_cast<void*>(ptr);
-        auto vftable = *reinterpret_cast<VftableType**>(basePtr);
+        auto vftable = *reinterpret_cast<VftableType**>(ptr);
 
         auto metaPtr = static_cast<MetaPointerType*>(static_cast<CompleteVftableType*>(vftable));
 
@@ -154,7 +154,7 @@ namespace geode::cast {
             auto optionOffset = entry->m_memberDisplacement[0];
 
             if (std::strcmp(afterIdent, optionIdent) == 0) {
-                auto afterPtr = reinterpret_cast<std::byte*>(basePtr) + optionOffset;
+                auto afterPtr = reinterpret_cast<std::byte*>(ptr) + optionOffset + metaPtr->m_vtableOffset;
                 return reinterpret_cast<After>(afterPtr);
             }
         }
