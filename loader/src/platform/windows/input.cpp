@@ -17,6 +17,7 @@ struct RawInputEvent {
             uint16_t vkey;
             uint16_t scanCode;
             uint16_t flags;
+            KeyboardInputEvent::Modifiers mods;
             bool isE0;
             bool isE1;
             bool isRepeat;
@@ -49,7 +50,7 @@ struct RawInputEvent {
     }
 
     static RawInputEvent makeKeyboard(
-        bool isDown, uint16_t vk, uint16_t scan, uint16_t flags, bool isRepeat
+        bool isDown, uint16_t vk, uint16_t scan, uint16_t flags, bool isRepeat, KeyboardInputEvent::Modifiers mods
     ) {
         RawInputEvent evt;
         evt.type = isDown ? Type::KeyDown : Type::KeyUp;
@@ -57,6 +58,7 @@ struct RawInputEvent {
         evt.keyboard.vkey = vk;
         evt.keyboard.scanCode = scan;
         evt.keyboard.flags = flags;
+        evt.keyboard.mods = mods;
         evt.keyboard.isE0 = (flags & RI_KEY_E0) != 0;
         evt.keyboard.isE1 = (flags & RI_KEY_E1) != 0;
         evt.keyboard.isRepeat = isRepeat;
@@ -102,6 +104,7 @@ public:
 class KeyStateTracker {
 private:
     std::unordered_map<uint32_t, bool> m_keyStates;
+    KeyboardInputEvent::Modifiers m_currentMods = KeyboardInputEvent::Mods_None;
 
     static uint32_t makeKey(uint16_t vkey, uint16_t scanCode, bool isE0) {
         return (static_cast<uint32_t>(vkey) << 16) | (static_cast<uint32_t>(scanCode) << 1) |
@@ -114,6 +117,10 @@ public:
         return instance;
     }
 
+    KeyboardInputEvent::Modifiers getMods() const {
+        return m_currentMods;
+    }
+
     bool updateState(uint16_t vkey, uint16_t scanCode, bool isE0, bool isDown) {
         uint32_t key = makeKey(vkey, scanCode, isE0);
 
@@ -121,6 +128,34 @@ public:
         auto it = m_keyStates.find(key);
         if (it != m_keyStates.end()) {
             wasDown = it->second;
+        }
+
+        auto applyMods = [&](KeyboardInputEvent::Modifiers mod) {
+            if (isDown) m_currentMods |= mod;
+            else m_currentMods &= ~mod;
+        };
+
+        switch (vkey) {
+            case VK_LSHIFT:
+            case VK_RSHIFT:
+            case VK_SHIFT:
+                applyMods(KeyboardInputEvent::Mods_Shift);
+                break;
+            case VK_LCONTROL:
+            case VK_RCONTROL:
+            case VK_CONTROL:
+                applyMods(KeyboardInputEvent::Mods_Control);
+                break;
+            case VK_LMENU:
+            case VK_RMENU:
+            case VK_MENU:
+                applyMods(KeyboardInputEvent::Mods_Alt);
+                break;
+            case VK_LWIN:
+            case VK_RWIN:
+                applyMods(KeyboardInputEvent::Mods_Super);
+                break;
+            default: break;
         }
 
         m_keyStates[key] = isDown;
@@ -325,7 +360,8 @@ LRESULT CALLBACK GeodeRawInputWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
             actualVKey,
             kb.MakeCode,
             kb.Flags,
-            isRepeat
+            isRepeat,
+            KeyStateTracker::get().getMods()
         ));
     } else if (raw->header.dwType == RIM_TYPEMOUSE) {
         auto const& mouse = raw->data.mouse;
@@ -372,13 +408,15 @@ class $modify(cocos2d::CCEGLView) {
                         keyCode,
                         isDown ? (evt.keyboard.isRepeat ? Repeat : Press) : Release,
                         {evt.keyboard.vkey, evt.keyboard.scanCode},
-                        evt.timestamp
+                        evt.timestamp,
+                        evt.keyboard.mods
                     );
 
                     // copy values from event, if someone modifies it
                     isDown = event.action != Release;
                     evt.keyboard.isRepeat = event.action == Repeat;
                     keyCode = event.key;
+                    evt.keyboard.mods = event.modifiers;
 
                     auto result = event.post();
                     if (result == ListenerResult::Propagate) {
@@ -397,8 +435,8 @@ class $modify(cocos2d::CCEGLView) {
                         );
 
                         // text pasting
-                        if (ime->hasDelegate() && keyCode == enumKeyCodes::KEY_V && isDown) {
-                            if (GetAsyncKeyState(VK_CONTROL) & 0x8000) {
+                        if (evt.keyboard.mods & KeyboardInputEvent::Mods_Control && keyCode == enumKeyCodes::KEY_V && isDown) {
+                            if (ime->hasDelegate()) {
                                 this->performSafeClipboardPaste();
                             }
                         }
