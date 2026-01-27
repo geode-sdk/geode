@@ -9,7 +9,7 @@ constexpr auto NOTIFICATION_FADEOUT = 1.f;
 
 CCArray* Notification::s_queue = nullptr;
 
-bool Notification::init(char const* text, CCSprite* icon, float time) {
+bool Notification::init(ZStringView text, CCSprite* icon, float time) {
     if (!CCNodeRGBA::init()) return false;
 
     m_time = time;
@@ -18,7 +18,7 @@ bool Notification::init(char const* text, CCSprite* icon, float time) {
     m_bg->setColor({ 0, 0, 0 });
     this->addChild(m_bg);
 
-    m_label = CCLabelBMFont::create(text, "bigFont.fnt");
+    m_label = CCLabelBMFont::create(text.c_str(), "bigFont.fnt");
     m_label->setScale(.6f);
     m_bg->addChild(m_label);
 
@@ -100,11 +100,11 @@ CCSprite* Notification::createIcon(NotificationIcon icon) {
     }
 }
 
-Notification* Notification::create(char const* text, NotificationIcon icon, float time) {
+Notification* Notification::create(ZStringView text, NotificationIcon icon, float time) {
     return Notification::create(text, createIcon(icon), time);
 }
 
-Notification* Notification::create(char const* text, CCSprite* icon, float time) {
+Notification* Notification::create(ZStringView text, CCSprite* icon, float time) {
     auto ret = new Notification();
     if (ret->init(text, icon, time)) {
         ret->autorelease();
@@ -114,8 +114,8 @@ Notification* Notification::create(char const* text, CCSprite* icon, float time)
     return nullptr;
 }
 
-void Notification::setString(char const* text) {
-    m_label->setString(text);
+void Notification::setString(ZStringView text) {
+    m_label->setString(text.c_str());
     this->updateLayout();
 }
 
