@@ -10,7 +10,8 @@
 #include <algorithm>
 #include <mutex>
 #include <atomic>
-#include <atomic_shared_ptr/atomic_shared_ptr.h>
+#include <asp/ptr/PtrSwap.hpp>
+#include "Log.hpp"
 
 #include "../utils/casts.hpp"
 
@@ -30,40 +31,40 @@ namespace geode::event {
 
     template <class Callable>
     struct PortCallable {
-        Callable callable;
-        int priority;
-        ReceiverHandle handle;
+        Callable m_callable;
+        int m_priority;
+        ReceiverHandle m_handle;
 
         bool operator<(PortCallable const& other) const noexcept {
-            return priority < other.priority;
+            return m_priority < other.m_priority;
         }
 
         template <typename ...Args>
         bool call(Args&&... args) const noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
-            if constexpr (std::is_same_v<void, decltype(std::invoke(callable, std::forward<Args>(args)...))>) {
-                std::invoke(callable, std::forward<Args>(args)...);
+            if constexpr (std::is_same_v<void, decltype(std::invoke(m_callable, std::forward<Args>(args)...))>) {
+                std::invoke(m_callable, std::forward<Args>(args)...);
                 return false;
             }
-            return std::invoke(callable, std::forward<Args>(args)...);
+            return std::invoke(m_callable, std::forward<Args>(args)...);
         }
     };
 
     template <class Callable>
     class Port {
     protected:
-        std::vector<PortCallable<Callable>> receivers;
+        std::vector<PortCallable<Callable>> m_receivers;
     public:
         ReceiverHandle addReceiver(Callable receiver, int priority = 0) noexcept {
-            ReceiverHandle handle = receivers.empty() ? 1 : receivers.back().handle + 1;
-            receivers.push_back({std::move(receiver), priority, handle});
-            std::sort(receivers.begin(), receivers.end());
+            ReceiverHandle handle = m_receivers.empty() ? 1 : m_receivers.back().handle + 1;
+            m_receivers.push_back({std::move(receiver), priority, handle});
+            std::sort(m_receivers.begin(), m_receivers.end());
             return handle;
         }
 
         void removeReceiver(ReceiverHandle handle) noexcept {
-            for (int i = 0; i < receivers.size(); ++i) {
-                if (receivers[i].handle == handle) {
-                    receivers.erase(receivers.begin() + i);
+            for (int i = 0; i < m_receivers.size(); ++i) {
+                if (m_receivers[i].handle == handle) {
+                    m_receivers.erase(m_receivers.begin() + i);
                     return;
                 }
             }
@@ -72,7 +73,7 @@ namespace geode::event {
         template <typename ...Args>
         requires std::invocable<Callable, Args...>
         void send(Args&&... value) const noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
-            for (auto& callable : receivers) {
+            for (auto& callable : m_receivers) {
                 if (callable.call(std::forward<Args>(value)...)) {
                     break;
                 }
@@ -82,25 +83,25 @@ namespace geode::event {
 
     template <class Callable>
     class OncePort : protected Port<Callable> {
-        bool sent = false;
+        bool m_sent = false;
     public:
         using Port<Callable>::addReceiver;
         using Port<Callable>::removeReceiver;
 
         template <typename ...Args>
         void send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
-            if (sent) return;
-            sent = true;
+            if (m_sent) return;
+            m_sent = true;
             Port<Callable>::send(std::forward<Args>(args)...);
         }
         bool isSent() const noexcept {
-            return sent;
+            return m_sent;
         }
     };
 
     template <class Callable>
     class QueuedPort : protected Port<Callable> {
-        std::vector<std::function<void()>> queue;
+        std::vector<std::function<void()>> m_queue;
     public:
         using Port<Callable>::addReceiver;
         using Port<Callable>::removeReceiver;
@@ -108,22 +109,22 @@ namespace geode::event {
         template <typename ...Args>
         requires std::invocable<Callable, Args...>
         void send(Args&&... args) const noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
-            queue.push_back([=, this] { 
+            m_queue.push_back([=, this] { 
                 Port<Callable>::send(std::forward<Args>(args)...); 
             });
         }
 
         void flush() noexcept {
-            for (auto& q : queue) {
+            for (auto& q : m_queue) {
                 std::invoke(q);
             }
-            queue.clear();
+            m_queue.clear();
         }
     };
 
     template <class Callable>
     class QueuedOncePort : protected QueuedPort<Callable> {
-        bool sent = false;
+        bool m_sent = false;
     public:
         using QueuedPort<Callable>::addReceiver;
         using QueuedPort<Callable>::removeReceiver;
@@ -131,42 +132,46 @@ namespace geode::event {
 
         template <typename ...Args>
         void send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
-            if (sent) return;
-            sent = true;
+            if (m_sent) return;
+            m_sent = true;
             QueuedPort<Callable>::send(std::forward<Args>(args)...);
         }
         bool isSent() const noexcept {
-            return sent;
+            return m_sent;
         }
     };
 
     template <class Callable>
     class ThreadsafePort  {
         using VectorType = std::vector<PortCallable<Callable>>;
-        LFStructs::AtomicSharedPtr<VectorType> receivers;
+        asp::PtrSwap<VectorType> m_receivers;
     public:
+        ThreadsafePort() : m_receivers(asp::make_shared<VectorType>()) {}
+
         ReceiverHandle addReceiver(Callable receiver, int priority = 0) noexcept {
-            auto newReceivers = new VectorType(*receivers.get().get());
-            ReceiverHandle handle = newReceivers->empty() ? 1 : newReceivers->back().handle + 1;
+            auto currentReceivers = m_receivers.load();
+            auto newReceivers = asp::make_shared<VectorType>(*currentReceivers.get());
+            ReceiverHandle handle = newReceivers->empty() ? 1 : newReceivers->back().m_handle + 1;
             for (auto it = newReceivers->begin(); it != newReceivers->end(); ++it) {
-                if (priority < it->priority) {
+                if (priority < it->m_priority) {
                     newReceivers->insert(it, {std::move(receiver), priority, handle});
-                    receivers.store(newReceivers);
+                    m_receivers.store(std::move(newReceivers));
                     return handle;
                 }
             }
             newReceivers->push_back({std::move(receiver), priority, handle});
-            receivers.store(newReceivers);
+            m_receivers.store(std::move(newReceivers));
             return handle;
         }
 
         size_t removeReceiver(ReceiverHandle handle) noexcept {
-            auto newReceivers = new VectorType(*receivers.get().get());
+            auto currentReceivers = m_receivers.load();
+            auto newReceivers = asp::make_shared<VectorType>(*currentReceivers.get());
             auto size = newReceivers->size();
             for (int i = 0; i < size; ++i) {
-                if ((*newReceivers)[i].handle == handle) {
+                if ((*newReceivers)[i].m_handle == handle) {
                     newReceivers->erase(newReceivers->begin() + i);
-                    receivers.store(newReceivers);
+                    m_receivers.store(std::move(newReceivers));
                     return size - 1;
                 }
             }
@@ -176,7 +181,7 @@ namespace geode::event {
         template <typename ...Args>
         requires std::invocable<Callable, Args...>
         void send(Args&&... value) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
-            auto currentReceivers = receivers.get().get();
+            auto currentReceivers = m_receivers.load();
             for (auto& callable : *currentReceivers) {
                 if (callable.call(std::forward<Args>(value)...)) {
                     break;
@@ -235,41 +240,45 @@ namespace geode::event {
 
     class ListenerHandle {
     private:
-        BaseFilter const* filter;
-        ReceiverHandle handle;
+        BaseFilter const* m_filter;
+        ReceiverHandle m_handle;
         using RemoverType = void(BaseFilter const*, ReceiverHandle);
-        RemoverType* remover;
+        RemoverType* m_remover;
 
         ListenerHandle(BaseFilter const* filter, ReceiverHandle handle, RemoverType* remover) noexcept
-            : filter(filter), handle(handle), remover(remover) {}
-        ListenerHandle() noexcept : filter(nullptr), handle(ReceiverHandle()), remover(nullptr) {}
+            : m_filter(filter), m_handle(handle), m_remover(remover) {}
 
         friend class EventCenter;
         
     public:
+        ListenerHandle() noexcept : m_filter(nullptr), m_handle(ReceiverHandle()), m_remover(nullptr) {}
+
         ListenerHandle(ListenerHandle const&) = delete;
         ListenerHandle(ListenerHandle&& other) noexcept
-            : filter(other.filter), handle(other.handle), remover(other.remover) {
-            other.filter = nullptr;
-            other.handle = ReceiverHandle();
-            other.remover = nullptr;
+            : m_filter(other.m_filter), m_handle(other.m_handle), m_remover(other.m_remover) {
+            other.m_filter = nullptr;
+            other.m_handle = ReceiverHandle();
+            other.m_remover = nullptr;
         }
         ListenerHandle& operator=(ListenerHandle const&) = delete;
         ListenerHandle& operator=(ListenerHandle&& other) noexcept {
             if (this != &other) {
-                filter = other.filter;
-                handle = other.handle;
-                remover = other.remover;
-                other.filter = nullptr;
-                other.handle = ReceiverHandle();
-                other.remover = nullptr;
+                m_filter = other.m_filter;
+                m_handle = other.m_handle;
+                m_remover = other.m_remover;
+                other.m_filter = nullptr;
+                other.m_handle = ReceiverHandle();
+                other.m_remover = nullptr;
             }
             return *this;
         }
 
         ~ListenerHandle() noexcept {
-            if (filter && remover) {
-                remover(filter, handle);
+            if (m_filter && m_remover) {
+                m_remover(m_filter, m_handle);
+                m_filter = nullptr;
+                m_handle = ReceiverHandle();
+                m_remover = nullptr;
             }
         }
 
@@ -283,16 +292,16 @@ namespace geode::event {
         using Self = EventFilter<Marker, PortTemplate, bool(PArgs...), FArgs...>;
         struct CloneMarker {};
 
-        std::tuple<FArgs...> const filter;
+        std::tuple<FArgs...> const m_filter;
         
         bool operator==(BaseFilter const& other) const noexcept override {
             auto* o = geode::cast::exact_cast<Self const*>(&other);
             if (!o) return false;
 
-            return filter == o->filter;
+            return m_filter == o->m_filter;
         }
         BaseFilter* clone() const noexcept override {
-            return new Self(CloneMarker{}, filter);
+            return new Self(CloneMarker{}, m_filter);
         }
 
         OpaquePortBase* getPort() const noexcept override;
@@ -303,20 +312,22 @@ namespace geode::event {
             return 0;
         }
 
-        ReceiverHandle addReceiver(std::function<bool(PArgs...)> rec, int priority = 0) const noexcept;
+        ListenerHandle addReceiver(std::function<bool(PArgs...)> rec, int priority = 0) const noexcept;
         size_t removeReceiver(ReceiverHandle handle) const noexcept;
 
         static void removeReceiverStatic(BaseFilter const* filter, ReceiverHandle handle) noexcept {
             auto* self = static_cast<EventFilter const*>(filter);
+            geode::log::debug("Removing receiver from filter {}", (void*)self);
+            geode::log::flush();
             if (self) {
                 self->removeReceiver(handle);
             }
         }
 
-        EventFilter(CloneMarker, std::tuple<FArgs...> const& value) noexcept : filter(value) {}
+        EventFilter(CloneMarker, std::tuple<FArgs...> const& value) noexcept : m_filter(value) {}
 
     public:
-        EventFilter(FArgs&&... value) noexcept : filter(std::forward<FArgs>(value)...) {}
+        EventFilter(FArgs&&... value) noexcept : m_filter(std::forward<FArgs>(value)...) {}
 
         void send(PArgs&&... args) noexcept(std::is_nothrow_invocable_v<std::function<bool(PArgs...)>, PArgs...>);
 
@@ -324,16 +335,18 @@ namespace geode::event {
         ListenerHandle listen(Callable listener, int priority = 0) const noexcept {
             if constexpr (std::is_convertible_v<std::invoke_result_t<Callable, PArgs...>, bool>) {
                 auto handle = this->addReceiver([listener = std::move(listener)](PArgs... args) {
-                    return static_cast<bool>(listener(std::forward<PArgs>(args)...));
+                    return static_cast<bool>(std::invoke(listener, std::forward<PArgs>(args)...));
                 }, priority);
-                return ListenerHandle(this, handle, &Self::removeReceiverStatic);
+                handle.m_remover = &Self::removeReceiverStatic;
+                return handle;
             }
             else {
                 auto handle = this->addReceiver([listener = std::move(listener)](PArgs... args) {
-                    listener(std::forward<PArgs>(args)...);
+                    std::invoke(listener, std::forward<PArgs>(args)...);
                     return false;
                 }, priority);
-                return ListenerHandle(this, handle, &Self::removeReceiverStatic);
+                handle.m_remover = &Self::removeReceiverStatic;
+                return handle;
             }
         }
     };
@@ -346,20 +359,20 @@ namespace geode::event {
 
     template <template <class> class PortTemplate, class... PArgs>
     class OpaqueEventPort : public OpaquePortBase {
-        PortTemplate<std::function<bool(PArgs...)>> port;
+        PortTemplate<std::function<bool(PArgs...)>> m_port;
 
     public:
         template <typename... Args>
         void send(Args&&... args) noexcept(std::is_nothrow_invocable_v<std::function<bool(PArgs...)>, Args...>) {
-            port.send(std::forward<Args>(args)...);
+            m_port.send(std::forward<Args>(args)...);
         }
 
         ReceiverHandle addReceiver(std::function<bool(PArgs...)> rec, int priority = 0) noexcept {
-            return port.addReceiver(std::move(rec), priority);
+            return m_port.addReceiver(std::move(rec), priority);
         }
 
         size_t removeReceiver(ReceiverHandle handle) noexcept {
-            return port.removeReceiver(handle);
+            return m_port.removeReceiver(handle);
         }
     };
 
@@ -367,7 +380,9 @@ namespace geode::event {
         using KeyType = std::shared_ptr<BaseFilter>;
         using ValueType = std::shared_ptr<OpaquePortBase>;
         using MapType = std::unordered_map<KeyType, ValueType, BaseFilterHash, BaseFilterEqual>;
-        LFStructs::AtomicSharedPtr<MapType> ports;
+        asp::PtrSwap<MapType> m_ports;
+
+        EventCenter() : m_ports(asp::make_shared<MapType>()) {}
     public:
         static EventCenter& get() {
             static EventCenter instance;
@@ -375,7 +390,7 @@ namespace geode::event {
         }
 
         void send(BaseFilter const* filter, std::function<void(OpaquePortBase*)> func) noexcept(std::is_nothrow_invocable_v<std::function<void(OpaquePortBase*)>, OpaquePortBase*>) {
-            auto p = ports.get().get();
+            auto p = m_ports.load();
             auto it = p->find(filter);
             if (it != p->end()) {
                 return std::invoke(func, it->second.get());
@@ -383,32 +398,33 @@ namespace geode::event {
             return;
         }
 
-        ReceiverHandle addReceiver(BaseFilter const* filter, std::function<size_t(OpaquePortBase*)> func) noexcept {
-            auto p = ports.get().get();
+        ListenerHandle addReceiver(BaseFilter const* filter, std::function<size_t(OpaquePortBase*)> func) noexcept {
+            auto p = m_ports.load();
             auto it = p->find(filter);
             if (it != p->end()) {
-                return std::invoke(func, it->second.get());
+                return ListenerHandle(it->first.get(), std::invoke(func, it->second.get()), nullptr);
             }
             else {
                 auto clonedFilter = KeyType(filter->clone());
+                auto newFilter = clonedFilter.get();
                 auto port = ValueType(clonedFilter->getPort());
                 ReceiverHandle handle = std::invoke(func, port.get());
-                auto newPorts = new MapType(*p);
+                auto newPorts = asp::make_shared<MapType>(*p.get());
                 newPorts->emplace(std::move(clonedFilter), std::move(port));
-                ports.store(newPorts);
-                return handle;
+                m_ports.store(std::move(newPorts));
+                return ListenerHandle(newFilter, handle, nullptr);
             }
         }
 
         size_t removeReceiver(BaseFilter const* filter, std::function<size_t(OpaquePortBase*)> func) noexcept {
-            auto p = ports.get().get();
+            auto p = m_ports.load();
             auto it = p->find(filter);
             if (it != p->end()) {
                 auto size = std::invoke(func, it->second.get());
                 if (size == 0) {
-                    auto newPorts = new MapType(*p);
+                    auto newPorts = asp::make_shared<MapType>(*p.get());
                     newPorts->erase(filter);
-                    ports.store(newPorts);
+                    m_ports.store(std::move(newPorts));
                 }
                 return size;
             }
@@ -425,7 +441,7 @@ namespace geode::event {
     }
 
     template <class Marker, template <class> class PortTemplate, class... PArgs, class... FArgs>
-    ReceiverHandle EventFilter<Marker, PortTemplate, bool(PArgs...), FArgs...>::addReceiver(std::function<bool(PArgs...)> rec, int priority) const noexcept {
+    ListenerHandle EventFilter<Marker, PortTemplate, bool(PArgs...), FArgs...>::addReceiver(std::function<bool(PArgs...)> rec, int priority) const noexcept {
         return EventCenter::get().addReceiver(this, [&](OpaquePortBase* opaquePort) {
             auto port = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(opaquePort);
             return port->addReceiver(std::move(rec), priority);

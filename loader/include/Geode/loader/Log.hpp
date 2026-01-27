@@ -225,6 +225,8 @@ namespace geode {
         GEODE_DLL void pushNest(Mod* mod);
         GEODE_DLL void popNest(Mod* mod);
 
+        GEODE_DLL void flush();
+
         inline void pushNest() {
             pushNest(getMod());
         }

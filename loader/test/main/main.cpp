@@ -14,32 +14,23 @@ auto test = []() {
     return 0;
 };
 
+
 // Exported functions
 $on_mod(Loaded) {
     log::info("Loaded");
-}
 
-static std::string s_recievedEvent;
-
-// Events
-$execute {
-    new EventListener<TestEventFilter>(+[](TestEvent* event) {
-        log::info("Received event: {}", event->getData());
-        s_recievedEvent = event->getData();
-    });
-
-    geode::event::Dispatch<std::string>("geode.test/test-garage-open").listen([](std::string const& str) {
+    auto h1 = geode::event::Dispatch<std::string>("geode.test/test-garage-open").listen([](std::string const& str) {
         log::info("Received dispatched event: {}", str);
     });
 
-    geode::event::Dispatch<std::string>("geode.test/test-garage-close").send("Hello from dispatch!");
+    geode::event::Dispatch<std::string>("geode.test/test-garage-open").send("Hello from dispatch!");
 
     using namespace geode::event;
     auto handle = Dispatch<int>("test").listen([](int val) {
         geode::log::info("Received dispatched int: {}", val);
         return val > 0;
     });
-
+    
     auto handle2 = Dispatch<int>("test2").listen([](int val) {
         geode::log::info("Received dispatched int2: {}", val);
     });
@@ -56,12 +47,20 @@ $execute {
         geode::log::info("Received dispatched int5: {}", val);
     }, 5);
 
-    
-
     Dispatch<int>("test").send(5);
     Dispatch<int>("test2").send(7);
     Dispatch<float>("test").send(9);
     Dispatch<int>("test").send(-5);
+}
+
+static std::string s_receivedEvent;
+
+// Events
+$execute {
+    new EventListener<TestEventFilter>(+[](TestEvent* event) {
+        log::info("Received event: {}", event->getData());
+        s_receivedEvent = event->getData();
+    });
 }
 
 // Coroutines
@@ -196,7 +195,7 @@ struct GJGarageLayerTest : Modify<GJGarageLayerTest, GJGarageLayer> {
         // Dispatch system pt. 1
         MyDispatchEvent("geode.test/test-garage-open", this).post();
 
-        if (s_recievedEvent.size() > 0) {
+        if (s_receivedEvent.size() > 0) {
             auto label = CCLabelBMFont::create("Event works!", "bigFont.fnt");
             label->setPosition(100, 70);
             label->setScale(.4f);

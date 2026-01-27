@@ -541,6 +541,10 @@ void log::popNest(Mod* mod) {
         s_nestCountOffset = 0;
 }
 
+void log::flush() {
+    Logger::get()->flush();
+}
+
 std::shared_ptr<Nest> log::saveNest() {
     return std::make_shared<Nest>(std::make_shared<Nest::Impl>(s_nestLevel, s_nestCountOffset));
 }
