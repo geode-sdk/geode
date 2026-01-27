@@ -16,7 +16,7 @@
 #include "../utils/casts.hpp"
 
 namespace geode::event {
-    template <typename T>
+    template <class T>
     struct RefOrVoid {
         using type = void(T const&);
     };
@@ -24,7 +24,7 @@ namespace geode::event {
     struct RefOrVoid<void> {
         using type = void();
     };
-    template <typename T>
+    template <class T>
     using RefOrVoidType = typename RefOrVoid<T>::type;
 
     using ReceiverHandle = size_t;
@@ -39,7 +39,7 @@ namespace geode::event {
             return m_priority < other.m_priority;
         }
 
-        template <typename ...Args>
+        template <class ...Args>
         bool call(Args&&... args) const noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
             if constexpr (std::is_same_v<void, decltype(std::invoke(m_callable, std::forward<Args>(args)...))>) {
                 std::invoke(m_callable, std::forward<Args>(args)...);
@@ -75,7 +75,7 @@ namespace geode::event {
             }
         }
 
-        template <typename ...Args>
+        template <class ...Args>
         requires std::invocable<Callable, Args...>
         void send(Args&&... value) const noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
             for (auto& callable : m_receivers) {
@@ -93,7 +93,7 @@ namespace geode::event {
         using Port<Callable>::addReceiver;
         using Port<Callable>::removeReceiver;
 
-        template <typename ...Args>
+        template <class ...Args>
         void send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
             if (m_sent) return;
             m_sent = true;
@@ -111,7 +111,7 @@ namespace geode::event {
         using Port<Callable>::addReceiver;
         using Port<Callable>::removeReceiver;
 
-        template <typename ...Args>
+        template <class ...Args>
         requires std::invocable<Callable, Args...>
         void send(Args&&... args) const noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
             m_queue.push_back([=, this] { 
@@ -135,7 +135,7 @@ namespace geode::event {
         using QueuedPort<Callable>::removeReceiver;
         using QueuedPort<Callable>::flush;
 
-        template <typename ...Args>
+        template <class ...Args>
         void send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
             if (m_sent) return;
             m_sent = true;
@@ -183,7 +183,7 @@ namespace geode::event {
             return size;
         }
 
-        template <typename ...Args>
+        template <class ...Args>
         requires std::invocable<Callable, Args...>
         void send(Args&&... value) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
             auto currentReceivers = m_receivers.load();
@@ -367,7 +367,7 @@ namespace geode::event {
         PortTemplate<std::function<bool(PArgs...)>> m_port;
 
     public:
-        template <typename... Args>
+        template <class... Args>
         void send(Args&&... args) noexcept(std::is_nothrow_invocable_v<std::function<bool(PArgs...)>, Args...>) {
             m_port.send(std::forward<Args>(args)...);
         }
@@ -394,7 +394,9 @@ namespace geode::event {
             return instance;
         }
 
-        void send(BaseFilter const* filter, std::function<void(OpaquePortBase*)> func) noexcept(std::is_nothrow_invocable_v<std::function<void(OpaquePortBase*)>, OpaquePortBase*>) {
+        template <class Callable>
+        requires std::is_invocable_v<Callable, OpaquePortBase*>
+        void send(BaseFilter const* filter, Callable func) noexcept(std::is_nothrow_invocable_v<Callable, OpaquePortBase*>) {
             auto p = m_ports.load();
             auto it = p->find(filter);
             if (it != p->end()) {
@@ -403,7 +405,9 @@ namespace geode::event {
             return;
         }
 
-        ListenerHandle addReceiver(BaseFilter const* filter, std::function<size_t(OpaquePortBase*)> func) noexcept {
+        template <class Callable>
+        requires std::is_invocable_v<Callable, OpaquePortBase*>
+        ListenerHandle addReceiver(BaseFilter const* filter, Callable func) noexcept {
             auto p = m_ports.load();
             auto it = p->find(filter);
             if (it != p->end()) {
@@ -421,7 +425,9 @@ namespace geode::event {
             }
         }
 
-        size_t removeReceiver(BaseFilter const* filter, std::function<size_t(OpaquePortBase*)> func) noexcept {
+        template <class Callable>
+        requires std::is_invocable_v<Callable, OpaquePortBase*>
+        size_t removeReceiver(BaseFilter const* filter, Callable func) noexcept {
             auto p = m_ports.load();
             auto it = p->find(filter);
             if (it != p->end()) {
