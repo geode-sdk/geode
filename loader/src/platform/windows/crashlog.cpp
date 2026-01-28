@@ -45,7 +45,7 @@ static std::string getModuleName(HMODULE module, bool fullPath = true, bool shor
     }
     if (fullPath) {
         if (shortKnown) {
-            if (std::wstring_view(buffer).starts_with(dirs::getGameDir().wstring())) {
+            if (std::wstring_view(buffer).starts_with(dirs::getGameDir().native())) {
                 return utils::string::pathToString(std::filesystem::path(buffer).filename());
             }
         }
@@ -124,7 +124,7 @@ typedef struct _UNWIND_INFO {
 *   OPTIONAL ULONG ExceptionData[]; */
 } UNWIND_INFO, *PUNWIND_INFO;
 
-static void printAddr(std::ostream& stream, void const* addr, bool fullPath = true) {
+static void printAddr(StringBuffer<>& stream, void const* addr, bool fullPath = true) {
     HMODULE module = nullptr;
     auto proc = GetCurrentProcess();
 
@@ -134,7 +134,7 @@ static void printAddr(std::ostream& stream, void const* addr, bool fullPath = tr
         )) {
         // calculate base + [address]
         auto const diff = reinterpret_cast<uintptr_t>(addr) - reinterpret_cast<uintptr_t>(module);
-        stream << getModuleName(module, fullPath, true) << " + " << std::hex << diff << std::dec;
+        stream.append("{} + {:x}", getModuleName(module, fullPath, true), diff);
 
         // log symbol if possible
         if (g_symbolsInitialized) {
@@ -168,8 +168,7 @@ static void printAddr(std::ostream& stream, void const* addr, bool fullPath = tr
                         return;
                     }
                 }
-                stream << " (" << std::string_view(symbolInfo->Name, symbolInfo->NameLen) << " + "
-                       << displacement;
+                stream.append(" ({} + {:x}", std::string_view(symbolInfo->Name, symbolInfo->NameLen), displacement);
 
                 IMAGEHLP_LINE64 line;
                 line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
@@ -180,34 +179,34 @@ static void printAddr(std::ostream& stream, void const* addr, bool fullPath = tr
                         proc, static_cast<DWORD64>(reinterpret_cast<uintptr_t>(addr)),
                         &displacement2, &line
                     )) {
-                    stream << " | " << line.FileName << ":" << line.LineNumber;
+                    stream.append(" | {} : {}", line.FileName, line.LineNumber);
                 }
 
-                stream << ")";
+                stream.append(')');
             }
             // handle GeometryDash.exe bindings
             else if (module == GetModuleHandle(nullptr)) {
                 uintptr_t offset = diff;
                 auto funcName = crashlog::lookupClosestFunction(offset);
                 if (!funcName.empty()) {
-                    stream << " (" << funcName << " + " << offset << ")";
+                    stream.append(" ({} + {:x})", funcName, offset);
                 }
             }
         }
     }
     else {
-        stream << addr;
+        stream.append("{:016X}", reinterpret_cast<uintptr_t>(addr));
 
         if (GeodeFunctionTableAccess64(proc, reinterpret_cast<DWORD64>(addr))) {
-            stream << " (Hook handler)";
+            stream.append(" (Hook handler)");
         }
     }
 }
 
-static void printExtraParameters(std::ostream& stream, DWORD code, ULONG_PTR* params, size_t count) {
+static void printExtraParameters(StringBuffer<>& stream, DWORD code, ULONG_PTR* params, size_t count) {
     switch (code) {
         case EXCEPTION_ACCESS_VIOLATION: {
-            const char* what;
+            std::string_view what;
             switch (params[0]) {
                 case 0: what = "read from memory"; break;
                 case 1: what = "write to memory"; break;
@@ -215,22 +214,22 @@ static void printExtraParameters(std::ostream& stream, DWORD code, ULONG_PTR* pa
                 default: what = "???"; break;
             }
 
-            stream << fmt::format(
-                "Exception Details: Failed to {} at 0x{:X}",
+            stream.append(
+                "Exception Details: Failed to {} at 0x{:X}\n",
                 what, params[1]
-            ) << "\n";
+            );
         } break;
 
         default: {
             // if we can't deduce any useful information, just print the number of parameters
-            stream << "Number Parameters: " << count << "\n";
+            stream.append("Number Parameters: {}\n", count);
         } break;
     }
 }
 
 // https://stackoverflow.com/a/50208684/9124836
 static std::string getStacktrace(PCONTEXT context, Mod*& suspectedFaultyMod) {
-    std::stringstream stream;
+    StringBuffer<> stream;
     static STACKFRAME64 stack;
     static PCONTEXT pcontext = context;
     memset(&stack, 0, sizeof(STACKFRAME64));
@@ -273,12 +272,12 @@ static std::string getStacktrace(PCONTEXT context, Mod*& suspectedFaultyMod) {
             ))
             break;
 
-        stream << " - ";
+        stream.append(" - ");
 
         void* addr = reinterpret_cast<void*>(stack.AddrPC.Offset);
         printAddr(stream, addr);
 
-        stream << std::endl;
+        stream.append('\n');
 
         // set the suspected faulty mod to the first entry in the stack trace that belongs to a mod
         if (!suspectedFaultyMod) {
@@ -444,7 +443,7 @@ static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod, Mod* suspe
     // the error code wine raises when a non-existent imported function gets invoked
     constexpr DWORD EXCEPTION_WINE_STUB = 0x80000100;
 
-    std::stringstream stream;
+    StringBuffer<> stream;
 
     DWORD code = info->ExceptionRecord->ExceptionCode;
 
@@ -459,14 +458,18 @@ static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod, Mod* suspe
             faultyMod = suspectedFaultyMod;
         }
 
-        stream << parseCppException(info) << "\n";
-        stream << makeFaultyModString(faultyMod) << "\n";
+        stream.append(parseCppException(info));
+        stream.append('\n');
+        stream.append(makeFaultyModString(faultyMod));
+        stream.append('\n');
     }
     else if (isGeodeExceptionCode(code)) {
-        stream
-            << "A mod has deliberately asked the game to crash.\n"
-            << "Reason: " << reinterpret_cast<const char*>(info->ExceptionRecord->ExceptionInformation[0]) << "\n"
-            << makeFaultyModString(reinterpret_cast<Mod*>(info->ExceptionRecord->ExceptionInformation[1])) << "\n";
+        stream.append(
+            "A mod has deliberately asked the game to crash.\n"
+            "Reason: {}\n{}\n",
+            reinterpret_cast<const char*>(info->ExceptionRecord->ExceptionInformation[0]),
+            makeFaultyModString(reinterpret_cast<Mod*>(info->ExceptionRecord->ExceptionInformation[1]))
+        );
     }
     else if (code == EXCEPTION_WINE_STUB) {
         auto* dll = reinterpret_cast<const char*>(info->ExceptionRecord->ExceptionInformation[0]);
@@ -476,21 +479,25 @@ static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod, Mod* suspe
             faultyMod = suspectedFaultyMod;
         }
 
-        stream << fmt::format("Attempted to invoke a non-existent function: {} (not found in {})\n", demangleSymbol(function, false), dll);
-        stream << makeFaultyModString(faultyMod) << "\n";
+        stream.append("Attempted to invoke a non-existent function: {} (not found in {})\n", demangleSymbol(function, false), dll);
+        stream.append(makeFaultyModString(faultyMod));
+        stream.append('\n');
     }
     else {
-        stream << "Faulty Module: "
-            << getModuleName(handleFromAddress(info->ExceptionRecord->ExceptionAddress), true)
-            << "\n"
-            << makeFaultyModString(faultyMod) << "\n"
-            << "Exception Code: " << std::hex << info->ExceptionRecord->ExceptionCode << " ("
-            << getExceptionCodeString(info->ExceptionRecord->ExceptionCode) << ")" << std::dec
-            << "\n"
-            << "Exception Flags: " << info->ExceptionRecord->ExceptionFlags << "\n"
-            << "Instruction Address: " << info->ExceptionRecord->ExceptionAddress << " (";
+        stream.append(
+            "Faulty Module: {}\n{}\n"
+            "Exception Code: {:x} ({})\n"
+            "Exception Flags: {}\n"
+            "Instruction Address: {} (",
+            getModuleName(handleFromAddress(info->ExceptionRecord->ExceptionAddress), true),
+            makeFaultyModString(faultyMod),
+            info->ExceptionRecord->ExceptionCode,
+            getExceptionCodeString(info->ExceptionRecord->ExceptionCode),
+            info->ExceptionRecord->ExceptionFlags,
+            info->ExceptionRecord->ExceptionAddress
+        );
         printAddr(stream, info->ExceptionRecord->ExceptionAddress, false);
-        stream << ")\n";
+        stream.append(")\n");
 
         printExtraParameters(
             stream,
@@ -501,7 +508,7 @@ static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod, Mod* suspe
     }
 
     // show the thread that crashed
-    stream << "Crashed thread: " << utils::thread::getName() << "\n";
+    stream.append("Crashed thread: {}\n", thread::getName());
 
     return stream.str();
 }

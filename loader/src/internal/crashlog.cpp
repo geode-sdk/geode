@@ -3,36 +3,43 @@
 #include "about.hpp"
 #include "../loader/ModImpl.hpp"
 #include <Geode/Utils.hpp>
+#include <asp/time/SystemTime.hpp>
 
 using namespace geode::prelude;
 
 std::string crashlog::getDateString(bool filesafe) {
     auto const now = std::time(nullptr);
-    auto const tm = *std::localtime(&now);
-    std::ostringstream oss;
+    auto const tm = asp::localtime(now);
     if (filesafe) {
-        oss << std::put_time(&tm, "%F_%H-%M-%S");
+        return fmt::format("{:%F_%H-%M-%S}", tm);
     }
-    else {
-        oss << std::put_time(&tm, "%FT%T%z"); // ISO 8601
-    }
-    return oss.str();
+    return fmt::format("{:%FT%T%z}", tm);
 }
 
-void crashlog::printGeodeInfo(std::stringstream& stream) {
-    stream << "Loader Version: " << Loader::get()->getVersion().toVString() << "\n"
-           << "Loader Commit: " << about::getLoaderCommitHash() << "\n"
-           << "Bindings Commit: " << about::getBindingsCommitHash() << "\n"
-           << "Installed mods: " << Loader::get()->getAllMods().size() << "\n"
-           << "Outdated mods: " << Loader::get()->getOutdated().size() << "\n"
-           << "Problems: " << Loader::get()->getLoadProblems().size() << "\n";
+void crashlog::printGeodeInfo(Buffer& stream) {
+    stream.append(
+        "Loader Version: {}\n"
+        "Loader Commit: {}\n"
+        "Bindings Commit: {}\n"
+        "Installed mods: {}\n"
+        "Outdated mods: {}\n"
+        "Problems: {}\n",
+        Loader::get()->getVersion().toVString(),
+        about::getLoaderCommitHash(),
+        about::getBindingsCommitHash(),
+        Loader::get()->getAllMods().size(),
+        Loader::get()->getOutdated().size(),
+        Loader::get()->getLoadProblems().size()
+    );
 }
 
-void crashlog::printMods(std::stringstream& stream) {
+void crashlog::printMods(Buffer& stream) {
     auto mods = Loader::get()->getAllMods();
     if (mods.empty()) {
-        stream << "<None>\n";
+        stream.append("<None>\n");
+        return;
     }
+
     std::sort(mods.begin(), mods.end(), [](Mod* a, Mod* b) {
         auto const s1 = a->getID();
         auto const s2 = b->getID();
@@ -42,7 +49,7 @@ void crashlog::printMods(std::stringstream& stream) {
     });
     using namespace std::string_view_literals;
     for (auto& mod : mods) {
-        stream << fmt::format("{} | [{}] {}\n",
+        stream.append("{} | [{}] {}\n",
             mod->isCurrentlyLoading() ? "o"sv :
             mod->isEnabled() ? "x"sv :
             mod->hasLoadProblems() ? "!"sv : // thank you for this bug report
@@ -113,37 +120,38 @@ std::string crashlog::writeCrashlog(
     // this could also be done by saving a loader setting or smth but eh.
     (void)utils::file::writeBinary(crashlog::getCrashLogDirectory() / "last-crashed", {});
 
-    std::stringstream file;
+    Buffer file;
 
-    file << getDateString(false) << "\n"
-         << std::showbase << "Whoopsies! An unhandled exception has occurred.\n";
+    file.append(getDateString(false));
+    file.append("\nWhoopsies! An unhandled exception has occurred.\n");
 
     if (faultyMod) {
-        file << "It appears that the crash occurred while executing code from "
-             << "the \"" << faultyMod->getID() << "\" mod. "
-             << "Please submit this crash report to its developers ("
-             << ranges::join(faultyMod->getDevelopers(), ", ")
-             << ") for assistance.\n";
+        file.append(
+            "It appears that the crash occurred while executing code from the \"{}\" mod. "
+            "Please submit this crash report to its developers ({}) for assistance.\n",
+            faultyMod->getID(),
+            fmt::join(faultyMod->getDevelopers(), ", ")
+        );
     }
 
     // geode info
-    file << "\n== Geode Information ==\n";
+    file.append("\n== Geode Information ==\n");
     printGeodeInfo(file);
 
     // exception info
-    file << "\n== Exception Information ==\n";
-    file << info;
+    file.append("\n== Exception Information ==\n");
+    file.append(info);
 
     // stack trace
-    file << "\n== Stack Trace ==\n";
-    file << stacktrace;
+    file.append("\n== Stack Trace ==\n");
+    file.append(stacktrace);
 
     // registers
-    file << "\n== Register States ==\n";
-    file << registers;
+    file.append("\n== Register States ==\n");
+    file.append(registers);
 
     // mods
-    file << "\n== Installed Mods ==\n";
+    file.append("\n== Installed Mods ==\n");
     printMods(file);
 
     // save actual file
@@ -152,7 +160,7 @@ std::string crashlog::writeCrashlog(
     actualFile.open(
         outPath, std::ios::app
     );
-    actualFile << file.rdbuf() << std::flush;
+    actualFile << file.view() << std::flush;
     actualFile.close();
 
     return file.str();

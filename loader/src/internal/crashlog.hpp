@@ -8,6 +8,8 @@
  * Platform-specific crashlog functions. Used by the loader
  */
 namespace crashlog {
+    using Buffer = geode::utils::StringBuffer<1>;
+
     /**
      * Setup platform-specific crashlog handler
      * @returns True if the handler was successfully installed, false otherwise
@@ -31,14 +33,15 @@ namespace crashlog {
      */
     std::filesystem::path GEODE_DLL getCrashLogDirectory();
 
+
     std::string GEODE_DLL writeCrashlog(geode::Mod* faultyMod, std::string_view info, std::string_view stacktrace, std::string_view registers);
 
     std::string writeCrashlog(geode::Mod* faultyMod, std::string_view info, std::string_view stacktrace, std::string_view registers, std::filesystem::path& outCrashlogPath);
 
     std::string getDateString(bool filesafe);
 
-    void GEODE_DLL printGeodeInfo(std::stringstream& stream);
-    void GEODE_DLL printMods(std::stringstream& stream);
+    void GEODE_DLL printGeodeInfo(Buffer& stream);
+    void GEODE_DLL printMods(Buffer& stream);
 
     struct FunctionBinding {
         std::string name;
