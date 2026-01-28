@@ -230,6 +230,12 @@ namespace geode::event {
         }
     };
 
+    template <template <class, bool> class PortType, bool ThreadSafe>
+    struct PortWrapper {
+        template <class Callable>
+        using type = PortType<Callable, ThreadSafe>;
+    };
+
     class EventCenter;
 
     class OpaquePortBase {
@@ -275,7 +281,7 @@ namespace geode::event {
         using is_transparent = void;
     };
 
-    template<class Marker, template <class, bool> class PortTemplate, class Func, class... FArgs>
+    template<class Marker, template <class> class PortTemplate, class Func, class... FArgs>
     class EventFilter {};
 
     class ListenerHandle {
@@ -322,11 +328,11 @@ namespace geode::event {
             }
         }
 
-        template <class Marker, template <class, bool> class PortTemplate, class Func, class... FArgs>
+        template <class Marker, template <class> class PortTemplate, class Func, class... FArgs>
         friend class EventFilter;
     };
 
-    template<class Marker, template <class, bool> class PortTemplate, class... PArgs, class... FArgs>
+    template<class Marker, template <class> class PortTemplate, class... PArgs, class... FArgs>
     class EventFilter<Marker, PortTemplate, bool(PArgs...), FArgs...> : public BaseFilter {
     protected:
         using Self = EventFilter<Marker, PortTemplate, bool(PArgs...), FArgs...>;
@@ -397,9 +403,9 @@ namespace geode::event {
         using EventFilter<Dispatch<Args...>, Port, bool(Args...), std::string>::EventFilter;
     };
 
-    template <template <class, bool> class PortTemplate, class... PArgs>
+    template <template <class> class PortTemplate, class... PArgs>
     class OpaqueEventPort : public OpaquePortBase {
-        PortTemplate<geode::Function<bool(PArgs...)>, true> m_port;
+        PortTemplate<geode::Function<bool(PArgs...)>> m_port;
 
     public:
         template <class... Args>
@@ -483,7 +489,7 @@ namespace geode::event {
         }
     };
 
-    template <class Marker, template <class, bool> class PortTemplate, class... PArgs, class... FArgs>
+    template <class Marker, template <class> class PortTemplate, class... PArgs, class... FArgs>
     void EventFilter<Marker, PortTemplate, bool(PArgs...), FArgs...>::send(PArgs&&... args) noexcept(std::is_nothrow_invocable_v<geode::Function<bool(PArgs...)>, PArgs...>) {
         return EventCenter::get().send(this, [&](OpaquePortBase* opaquePort) {
             auto port = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(opaquePort);
@@ -491,7 +497,7 @@ namespace geode::event {
         });
     }
 
-    template <class Marker, template <class, bool> class PortTemplate, class... PArgs, class... FArgs>
+    template <class Marker, template <class> class PortTemplate, class... PArgs, class... FArgs>
     ListenerHandle EventFilter<Marker, PortTemplate, bool(PArgs...), FArgs...>::addReceiver(geode::Function<bool(PArgs...)> rec, int priority) const noexcept {
         return EventCenter::get().addReceiver(this, [&](OpaquePortBase* opaquePort) {
             auto port = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(opaquePort);
@@ -499,7 +505,7 @@ namespace geode::event {
         });
     }
 
-    template <class Marker, template <class, bool> class PortTemplate, class... PArgs, class... FArgs>
+    template <class Marker, template <class> class PortTemplate, class... PArgs, class... FArgs>
     size_t EventFilter<Marker, PortTemplate, bool(PArgs...), FArgs...>::removeReceiver(ReceiverHandle handle) const noexcept {
         return EventCenter::get().removeReceiver(this, [&](OpaquePortBase* opaquePort) {
             auto port = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(opaquePort);
@@ -507,7 +513,7 @@ namespace geode::event {
         });
     }
 
-    template <class Marker, template <class, bool> class PortTemplate, class... PArgs, class... FArgs>
+    template <class Marker, template <class> class PortTemplate, class... PArgs, class... FArgs>
     OpaquePortBase* EventFilter<Marker, PortTemplate, bool(PArgs...), FArgs...>::getPort() const noexcept {
         return new OpaqueEventPort<PortTemplate, PArgs...>();
     };
