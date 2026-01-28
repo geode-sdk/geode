@@ -11,10 +11,8 @@
     #define GEODE_PRETTY_FUNCTION std::string(__PRETTY_FUNCTION__)
 #endif
 
-#ifndef GEODE_STR
-    #define GEODE_WRAPPER_STR(...) #__VA_ARGS__
-    #define GEODE_STR(...) GEODE_WRAPPER_STR(__VA_ARGS__)
-#endif
+#define GEODE_WRAPPER_STR(...) #__VA_ARGS__
+#define GEODE_STR(...) GEODE_WRAPPER_STR(__VA_ARGS__)
 
 static_assert(
     __cplusplus >= 202302L,
