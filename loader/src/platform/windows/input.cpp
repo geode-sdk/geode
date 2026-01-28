@@ -76,7 +76,7 @@ struct RawInputEvent {
 
 class RawInputQueue {
 private:
-    std::queue<RawInputEvent> m_queue;
+    std::deque<RawInputEvent> m_queue;
     mutable std::mutex m_mutex;
 
 public:
@@ -87,7 +87,7 @@ public:
 
     void push(RawInputEvent const& event) {
         std::lock_guard lock(m_mutex);
-        m_queue.push(event);
+        m_queue.push_back(event);
     }
 
     bool pop(RawInputEvent& event) {
@@ -96,8 +96,13 @@ public:
             return false;
         }
         event = m_queue.front();
-        m_queue.pop();
+        m_queue.pop_front();
         return true;
+    }
+
+    void clear() {
+        std::lock_guard lock(m_mutex);
+        m_queue.clear();
     }
 };
 
@@ -272,6 +277,7 @@ static enumKeyCodes keyToKeyCode(uint16_t vkey, bool isE0) {
         case VK_OEM_7: return enumKeyCodes::KEY_Apostrophe;
         case VK_OEM_2: return enumKeyCodes::KEY_Slash;
         case VK_OEM_PLUS: return enumKeyCodes::KEY_OEMEqual;
+        case VK_OEM_MINUS: return enumKeyCodes::KEY_OEMMinus;
         case VK_OEM_4: return enumKeyCodes::KEY_LeftBracket;
         case VK_OEM_5: return enumKeyCodes::KEY_Backslash;
         case VK_OEM_6: return enumKeyCodes::KEY_RightBracket;
@@ -315,10 +321,6 @@ static uint16_t getActualVKey(uint16_t vkey, uint16_t scanCode, uint16_t flags) 
 LRESULT CALLBACK GeodeRawInputWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     if (msg != WM_INPUT) {
         return CallWindowProcW(g_originalRawInputProc, hwnd, msg, wParam, lParam);
-    }
-
-    if (GetForegroundWindow() != g_mainWindowHWND) {
-        return 0;
     }
 
     UINT rawInputSize = 0;
@@ -377,6 +379,10 @@ LRESULT CALLBACK GeodeRawInputWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
 
 class $modify(cocos2d::CCEGLView) {
     void pumpRawInput() {
+        if (GetForegroundWindow() != g_mainWindowHWND) {
+            RawInputQueue::get().clear();
+        }
+
         // update mouse position
         POINT p;
         GetCursorPos(&p);
