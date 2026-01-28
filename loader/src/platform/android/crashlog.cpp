@@ -1,5 +1,6 @@
-#include <crashlog.hpp>
 #include <Geode/utils/string.hpp>
+#include <Geode/utils/StringBuffer.hpp>
+#include <crashlog.hpp>
 
 static bool s_lastLaunchCrashed = false;
 
@@ -154,11 +155,11 @@ static Mod* modFromAddress(void const* addr) {
 }
 
 static std::string getInfo(void* address, Mod* faultyMod) {
-    std::stringstream stream;
-    stream << "Faulty Lib: " << getImageName(imageFromAddress(address)) << "\n";
-    stream << "Faulty Mod: " << (faultyMod ? faultyMod->getID() : "<Unknown>") << "\n";
-    stream << "Instruction Address: " << address << "\n";
-    stream << "Signal Code: " << std::hex << s_signal << " (" << getSignalCodeString() << ")" << std::dec << "\n";
+    StringBuffer<> stream;
+    stream.append("Faulty Lib: {}\n", getImageName(imageFromAddress(address)));
+    stream.append("Faulty Mod: {}\n", faultyMod ? faultyMod->getID() : "<Unknown>");
+    stream.append("Instruction Address: {}\n", address);
+    stream.append("Signal Code: {:x} ({})\n", s_signal, getSignalCodeString());
     return stream.str();
 }
 
@@ -206,23 +207,24 @@ extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext)
 }
 
 static std::string getStacktrace() {
-    std::stringstream stacktrace;
+    StringBuffer<> stacktrace;
 
     if (s_backtraceSize == 0) {
         return stacktrace.str();
     }
 
     auto messages = backtrace_symbols(s_backtrace.data(), s_backtraceSize);
-	if (s_backtraceSize < FRAME_SIZE) {
-		messages[s_backtraceSize] = nullptr;
-	}
+    if (s_backtraceSize < FRAME_SIZE) {
+        messages[s_backtraceSize] = nullptr;
+    }
 
 
     for (int i = 1; i < s_backtraceSize; ++i) {
         auto message = std::string_view(messages[i]);
 
         // TODO: parse the message
-        stacktrace << message << "\n";
+        stacktrace.append(message);
+        stacktrace.append('\n');
     }
 
     free(messages);
@@ -231,9 +233,7 @@ static std::string getStacktrace() {
 }
 
 static std::string getRegisters() {
-    std::stringstream registers;
-
-    return registers.str();
+    return {};
 }
 
 static void handlerThread() {
@@ -265,11 +265,11 @@ int writeAndGetPid() {
             log::warn("Failed to read last-pid file: {}", res.unwrapErr());
         }
         else {
-            auto res = numFromString<int>(res.unwrap());
+            auto res2 = numFromString<int>(res.unwrap());
             if (!res) {
-                log::warn("Failed to parse last-pid file: {}", res.unwrapErr());
+                log::warn("Failed to parse last-pid file: {}", res2.unwrapErr());
             }
-            else lastPid = res.unwrap();
+            else lastPid = res2.unwrap();
         }
 
         std::error_code ec;
@@ -288,26 +288,29 @@ int writeAndGetPid() {
     return lastPid;
 }
 
-void printModsAndroid(std::stringstream& stream) {
+void printModsAndroid(crashlog::Buffer& stream) {
     auto mods = Loader::get()->getAllMods();
     if (mods.empty()) {
-        stream << "<None>\n";
+        stream.append("<None>\n");
+        return;
     }
+
     using namespace std::string_view_literals;
     for (auto& mod : mods) {
-        stream << fmt::format("{} | [{}] {}\n",
+        stream.append("{} | [{}] {}\n",
             mod->shouldLoad() ? "x"sv : " "sv,
-            mod->getVersion().toString(), mod->getID()
+            mod->getVersion().toVString(), mod->getID()
         );
     }
 }
 
-void printMemoryMappings(std::stringstream& stream) {
+void printMemoryMappings(crashlog::Buffer& stream) {
     std::ifstream processMappings("/proc/self/maps");
 
     std::string mapping;
     while (std::getline(processMappings, mapping)) {
-        stream << mapping << "\n";
+        stream.append(mapping);
+        stream.append('\n');
     }
 }
 
@@ -347,26 +350,28 @@ bool crashlog::setupPlatformHandler() {
 void crashlog::setupPlatformHandlerPost() {
     if (s_result.empty()) return;
 
-    std::stringstream ss;
-    ss << "Geode crashed!\n";
-    ss << "Please submit this crash report to the developer of the mod that caused it.\n";
-    ss << "\n== Geode Information ==\n";
+    Buffer ss;
+    ss.append(
+        "Geode crashed!\n"
+        "Please submit this crash report to the developer of the mod that caused it.\n"
+        "\n== Geode Information ==\n"
+    );
     crashlog::printGeodeInfo(ss);
 
-    ss << "\n== Installed Mods ==\n";
+    ss.append("\n== Installed Mods ==\n");
     printModsAndroid(ss);
 
-    ss << "\n== Crash Report (Logcat) ==\n";
-    ss << s_result;
+    ss.append("\n== Crash Report (Logcat) ==\n");
+    ss.append(s_result);
 
-    ss << "\n== Process Mapping ==\n";
+    ss.append("\n== Process Mapping ==\n");
     printMemoryMappings(ss);
 
     std::ofstream actualFile;
     actualFile.open(
         crashlog::getCrashLogDirectory() / (crashlog::getDateString(true) + ".log"), std::ios::app
     );
-    actualFile << ss.rdbuf() << std::flush;
+    actualFile << ss.view() << std::flush;
     actualFile.close();
 }
 
