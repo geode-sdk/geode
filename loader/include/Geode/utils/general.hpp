@@ -21,7 +21,7 @@
 
 namespace geode {
     using ByteVector = std::vector<uint8_t>;
-    using ByteSpan = std::span<uint8_t>;
+    using ByteSpan = std::span<uint8_t const>;
 
     template <class... T>
     requires (std::is_convertible_v<T, uint8_t> && ...) 
