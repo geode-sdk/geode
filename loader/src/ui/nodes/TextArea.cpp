@@ -230,11 +230,10 @@ void SimpleTextArea::charIteration(geode::FunctionRef<CCLabelBMFont*(CCLabelBMFo
 
     std::map<std::string, std::shared_ptr<RichTextKeyInstanceBase>> appliedRichTextInstances{};
 
-    for (size_t i = 0; i < getCorrectText()->size(); ++i) {
-        const char c = getCorrectText()->at(i);
-
-        if (richTextEnabled && richTextInstances.contains(i)){
-            for (const auto& instancePtr : richTextInstances[i]) {
+    int index = 0;
+    for (const char& c : getCorrectText()) {
+        if (m_richText && richTextInstances.contains(index)){
+            for (const auto& instancePtr : richTextInstances[index]) {
                 if (appliedRichTextInstances.contains(instancePtr->getKey())) {
                     if (instancePtr->isCancellation()){
                         appliedRichTextInstances.erase(instancePtr->getKey());
@@ -247,6 +246,8 @@ void SimpleTextArea::charIteration(geode::FunctionRef<CCLabelBMFont*(CCLabelBMFo
                 }
             }
         }
+
+        index++;
 
         if (c == '\n') {
             line = this->createLabel("", top -= this->calculateOffset(line));
@@ -277,7 +278,7 @@ void SimpleTextArea::charIteration(geode::FunctionRef<CCLabelBMFont*(CCLabelBMFo
 }
 
 void SimpleTextArea::updateLinesNoWrap() {
-    std::stringstream stream(getCorrectText()->c_str());
+    std::stringstream stream(getCorrectText());
     std::string part;
     float top = 0;
     m_lines.clear();
@@ -388,11 +389,11 @@ void SimpleTextArea::updateContainer() {
 }
 
 bool SimpleTextArea::isRichTextEnabled() {
-    return richTextEnabled;
+    return m_richText;
 }
 
-void SimpleTextArea::setRichTextEnabled(bool enabled) {
-    richTextEnabled = enabled;
+void SimpleTextArea::setRichText(bool enabled) {
+    m_richText = enabled;
     this->updateContainer();
 }
 

@@ -61,7 +61,6 @@ namespace geode {
     class RichTextKey : public RichTextKeyBase {
         public:
             /**
-             * aaa
              * @param key The identifier name for this rich text key
              * @param validCheck Function to validate and parse the value string into type T (if an error is returned the key will not be processed)
              * @param applyToSprite Function to apply the parsed value to a font sprite (optional)
@@ -122,7 +121,7 @@ namespace geode {
         std::vector<cocos2d::CCLabelBMFont*> getLines();
         float getHeight();
         float getLineHeight();
-        void setRichTextEnabled(bool enabled);
+        void setRichText(bool enabled);
         bool isRichTextEnabled();
 
         template <typename T>
@@ -146,7 +145,7 @@ namespace geode {
         float m_scale = 1.f;
         float m_lineHeight = 0.f;
         float m_linePadding = 0.f;
-        bool richTextEnabled = true;
+        bool m_richText = true;
 
         cocos2d::CCLabelBMFont* createLabel(char const* text, float top);
         float calculateOffset(cocos2d::CCLabelBMFont* label);
@@ -156,8 +155,8 @@ namespace geode {
         void updateLinesCutoffWrap();
         void updateContainer();
 
-        std::string* getCorrectText(){
-            return richTextEnabled ? &m_textFormatted : &m_text;
+        std::string getCorrectText(){
+            return m_richText ? m_textFormatted : m_text;
         }
 
         void formatRichText();
