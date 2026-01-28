@@ -48,7 +48,7 @@ namespace geode::event {
         }
     };
 
-    template <class Callable>
+    template <class Callable, bool ThreadSafe=false>
     class Port {
     protected:
         std::vector<PortCallable<Callable>> m_receivers;
@@ -86,71 +86,11 @@ namespace geode::event {
     };
 
     template <class Callable>
-    class OncePort : protected Port<Callable> {
-        bool m_sent = false;
-    public:
-        using Port<Callable>::addReceiver;
-        using Port<Callable>::removeReceiver;
-
-        template <class ...Args>
-        void send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
-            if (m_sent) return;
-            m_sent = true;
-            Port<Callable>::send(std::forward<Args>(args)...);
-        }
-        bool isSent() const noexcept {
-            return m_sent;
-        }
-    };
-
-    template <class Callable>
-    class QueuedPort : protected Port<Callable> {
-        std::vector<geode::Function<void()>> m_queue;
-    public:
-        using Port<Callable>::addReceiver;
-        using Port<Callable>::removeReceiver;
-
-        template <class ...Args>
-        requires std::invocable<Callable, Args...>
-        void send(Args&&... args) const noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
-            m_queue.push_back([=, this] { 
-                Port<Callable>::send(std::forward<Args>(args)...); 
-            });
-        }
-
-        void flush() noexcept {
-            for (auto& q : m_queue) {
-                std::invoke(q);
-            }
-            m_queue.clear();
-        }
-    };
-
-    template <class Callable>
-    class QueuedOncePort : protected QueuedPort<Callable> {
-        bool m_sent = false;
-    public:
-        using QueuedPort<Callable>::addReceiver;
-        using QueuedPort<Callable>::removeReceiver;
-        using QueuedPort<Callable>::flush;
-
-        template <class ...Args>
-        void send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
-            if (m_sent) return;
-            m_sent = true;
-            QueuedPort<Callable>::send(std::forward<Args>(args)...);
-        }
-        bool isSent() const noexcept {
-            return m_sent;
-        }
-    };
-
-    template <class Callable>
-    class ThreadsafePort  {
+    class Port<Callable, true>  {
         using VectorType = std::vector<PortCallable<Callable>>;
         asp::PtrSwap<VectorType> m_receivers;
     public:
-        ThreadsafePort() : m_receivers(asp::make_shared<VectorType>()) {}
+        Port() : m_receivers(asp::make_shared<VectorType>()) {}
 
         ReceiverHandle addReceiver(Callable receiver, int priority = 0) noexcept {
             auto currentReceivers = m_receivers.load();
@@ -191,6 +131,102 @@ namespace geode::event {
                     break;
                 }
             }
+        }
+    };
+
+    template <class Callable, bool ThreadSafe = false>
+    class OncePort : protected Port<Callable, ThreadSafe> {
+        std::conditional_t<ThreadSafe, std::atomic_flag, bool> m_sent = false;
+    public:
+        using Port<Callable, ThreadSafe>::addReceiver;
+        using Port<Callable, ThreadSafe>::removeReceiver;
+
+        template <class ...Args>
+        void send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
+
+            if constexpr (ThreadSafe) {
+                if (m_sent.test_and_set())
+                    return;
+            } else {
+                if (m_sent) return;
+                m_sent = true;
+            }
+
+            Port<Callable, ThreadSafe>::send(std::forward<Args>(args)...);
+        }
+        bool isSent() const noexcept {
+            if constexpr (ThreadSafe)
+                return m_sent.test();
+            else
+                return m_sent;
+        }
+    };
+
+    template <class Callable, bool ThreadSafe = false>
+    class QueuedPort : protected Port<Callable, ThreadSafe> {
+        using VectorType = std::vector<geode::Function<void()>>;
+        std::conditional_t<ThreadSafe, asp::PtrSwap<VectorType>, VectorType> m_queue;
+    public:
+        using Port<Callable, ThreadSafe>::addReceiver;
+        using Port<Callable, ThreadSafe>::removeReceiver;
+
+        template <class ...Args>
+        requires std::invocable<Callable, Args...>
+        void send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
+            auto lam = [=, this] { 
+                Port<Callable, ThreadSafe>::send(args...); 
+            };
+
+            if constexpr (ThreadSafe) {
+                auto newQueue = asp::make_shared<VectorType>(*m_queue.load().get());
+                newQueue->push_back(lam);
+                m_queue.store(newQueue);
+            } else {
+                m_queue.push_back(lam);
+            }
+        }
+
+        void flush() noexcept {
+            if constexpr (ThreadSafe) {
+                auto newQueue = asp::make_shared<VectorType>(*m_queue.load().get());
+                for (auto& q : *newQueue) {
+                    std::invoke(q);
+                }
+                newQueue->clear();
+                m_queue.store(newQueue);
+            } else {
+                for (auto& q : m_queue) {
+                    std::invoke(q);
+                }
+                m_queue.clear();
+            }
+        }
+    };
+
+    template <class Callable, bool ThreadSafe = false>
+    class QueuedOncePort : protected QueuedPort<Callable, ThreadSafe> {
+        std::conditional_t<ThreadSafe, std::atomic_flag, bool> m_sent = false;
+    public:
+        using QueuedPort<Callable, ThreadSafe>::addReceiver;
+        using QueuedPort<Callable, ThreadSafe>::removeReceiver;
+        using QueuedPort<Callable, ThreadSafe>::flush;
+
+        template <class ...Args>
+        void send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
+            if constexpr (ThreadSafe) {
+                if (m_sent.test_and_set())
+                    return;
+            } else {
+                if (m_sent) return;
+                m_sent = true;
+            }
+            QueuedPort<Callable, ThreadSafe>::send(std::forward<Args>(args)...);
+        }
+        bool isSent() const noexcept {
+            if constexpr (ThreadSafe)
+                return m_sent.test();
+            else
+                return m_sent;
         }
     };
 
@@ -239,7 +275,7 @@ namespace geode::event {
         using is_transparent = void;
     };
 
-    template<class Marker, template <class> class PortTemplate, class Func, class... FArgs>
+    template<class Marker, template <class, bool> class PortTemplate, class Func, class... FArgs>
     class EventFilter {};
 
     class ListenerHandle {
@@ -286,11 +322,11 @@ namespace geode::event {
             }
         }
 
-        template <class Marker, template <class> class PortTemplate, class Func, class... FArgs>
+        template <class Marker, template <class, bool> class PortTemplate, class Func, class... FArgs>
         friend class EventFilter;
     };
 
-    template<class Marker, template <class> class PortTemplate, class... PArgs, class... FArgs>
+    template<class Marker, template <class, bool> class PortTemplate, class... PArgs, class... FArgs>
     class EventFilter<Marker, PortTemplate, bool(PArgs...), FArgs...> : public BaseFilter {
     protected:
         using Self = EventFilter<Marker, PortTemplate, bool(PArgs...), FArgs...>;
@@ -356,14 +392,14 @@ namespace geode::event {
     };
 
     template <class... Args>
-    class Dispatch : public EventFilter<Dispatch<Args...>, ThreadsafePort, bool(Args...), std::string> {
+    class Dispatch : public EventFilter<Dispatch<Args...>, Port, bool(Args...), std::string> {
     public:
-        using EventFilter<Dispatch<Args...>, ThreadsafePort, bool(Args...), std::string>::EventFilter;
+        using EventFilter<Dispatch<Args...>, Port, bool(Args...), std::string>::EventFilter;
     };
 
-    template <template <class> class PortTemplate, class... PArgs>
+    template <template <class, bool> class PortTemplate, class... PArgs>
     class OpaqueEventPort : public OpaquePortBase {
-        PortTemplate<geode::Function<bool(PArgs...)>> m_port;
+        PortTemplate<geode::Function<bool(PArgs...)>, true> m_port;
 
     public:
         template <class... Args>
@@ -433,7 +469,12 @@ namespace geode::event {
                 auto size = std::invoke(func, it->second.get());
                 if (size == 0) {
                     auto newPorts = asp::make_shared<MapType>(*p.get());
-                    newPorts->erase(filter);
+                    for (auto& [filt, _] : *newPorts) {
+                        if (*filt == *filter) {
+                            newPorts->erase(filt);
+                            break;
+                        }
+                    }
                     m_ports.store(std::move(newPorts));
                 }
                 return size;
@@ -442,7 +483,7 @@ namespace geode::event {
         }
     };
 
-    template <class Marker, template <class> class PortTemplate, class... PArgs, class... FArgs>
+    template <class Marker, template <class, bool> class PortTemplate, class... PArgs, class... FArgs>
     void EventFilter<Marker, PortTemplate, bool(PArgs...), FArgs...>::send(PArgs&&... args) noexcept(std::is_nothrow_invocable_v<geode::Function<bool(PArgs...)>, PArgs...>) {
         return EventCenter::get().send(this, [&](OpaquePortBase* opaquePort) {
             auto port = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(opaquePort);
@@ -450,7 +491,7 @@ namespace geode::event {
         });
     }
 
-    template <class Marker, template <class> class PortTemplate, class... PArgs, class... FArgs>
+    template <class Marker, template <class, bool> class PortTemplate, class... PArgs, class... FArgs>
     ListenerHandle EventFilter<Marker, PortTemplate, bool(PArgs...), FArgs...>::addReceiver(geode::Function<bool(PArgs...)> rec, int priority) const noexcept {
         return EventCenter::get().addReceiver(this, [&](OpaquePortBase* opaquePort) {
             auto port = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(opaquePort);
@@ -458,7 +499,7 @@ namespace geode::event {
         });
     }
 
-    template <class Marker, template <class> class PortTemplate, class... PArgs, class... FArgs>
+    template <class Marker, template <class, bool> class PortTemplate, class... PArgs, class... FArgs>
     size_t EventFilter<Marker, PortTemplate, bool(PArgs...), FArgs...>::removeReceiver(ReceiverHandle handle) const noexcept {
         return EventCenter::get().removeReceiver(this, [&](OpaquePortBase* opaquePort) {
             auto port = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(opaquePort);
@@ -466,7 +507,7 @@ namespace geode::event {
         });
     }
 
-    template <class Marker, template <class> class PortTemplate, class... PArgs, class... FArgs>
+    template <class Marker, template <class, bool> class PortTemplate, class... PArgs, class... FArgs>
     OpaquePortBase* EventFilter<Marker, PortTemplate, bool(PArgs...), FArgs...>::getPort() const noexcept {
         return new OpaqueEventPort<PortTemplate, PArgs...>();
     };
