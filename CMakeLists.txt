@@ -238,10 +238,6 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 	target_compile_options(${PROJECT_NAME} INTERFACE -Werror=return-type)
 endif()
 
-if (APPLE)
-	set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0")
-endif()
-
 # if (APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 # 	set_property(TARGET ${PROJECT_NAME} PROPERTY LINKER_TYPE LLD)
 # 	target_link_options(${PROJECT_NAME} INTERFACE -fuse-ld=lld)
