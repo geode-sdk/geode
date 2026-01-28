@@ -83,7 +83,6 @@ bool SimpleTextArea::init(std::string font, std::string text, float scale, float
 
             return Ok(timeRes.unwrap());
         },
-        [](const std::time_t& value, cocos2d::CCFontSprite* sprite) {},
         [](const std::time_t& value) -> std::string {
             return fmt::format("{:%Y-%m-%d %H:%M:%S}", fmt::localtime(value));
         }
@@ -139,7 +138,7 @@ WrappingMode SimpleTextArea::getWrappingMode() {
 
 void SimpleTextArea::setText(std::string text) {
     m_text = std::move(text);
-    this->formatRichText();
+    if (m_richText) this->formatRichText();
     this->updateContainer();
 }
 
@@ -394,6 +393,7 @@ bool SimpleTextArea::isRichTextEnabled() {
 
 void SimpleTextArea::setRichText(bool enabled) {
     m_richText = enabled;
+    if (m_richText) this->formatRichText();
     this->updateContainer();
 }
 
