@@ -488,14 +488,14 @@ void SimpleTextArea::registerRichTextKey(std::shared_ptr<RichTextKey<T>> key){
 
 template <typename T>
 void RichTextKeyInstance<T>::applyChangesToSprite(cocos2d::CCFontSprite* spr) {
-    if (applyToSprite != NULL)
-        applyToSprite(value, spr);
+    if (key->applyToSprite != NULL)
+        key->applyToSprite(value, spr);
 }
 
 template <typename T>
 std::string RichTextKeyInstance<T>::runStrAddition() {
-    if (stringAddition != NULL)
-        return stringAddition(value);
+    if (key->stringAddition != NULL)
+        return key->stringAddition(value);
     return "";
 }
 
@@ -503,7 +503,7 @@ template <typename T>
 Result<std::shared_ptr<RichTextKeyInstanceBase>> RichTextKey<T>::createInstance(const std::string& value, bool cancellation) {
     if (cancellation){
         if (value == "")
-            return Ok(std::make_shared<RichTextKeyInstance<T>>(RichTextKeyInstance<T>(key, T(), NULL, NULL, true)));
+            return Ok(std::make_shared<RichTextKeyInstance<T>>(RichTextKeyInstance<T>(this, T(), true)));
         else
             return Err("Cancellation tags cannot have values");
     }
@@ -512,5 +512,5 @@ Result<std::shared_ptr<RichTextKeyInstanceBase>> RichTextKey<T>::createInstance(
     if (res.isErr())
         return Err(res.unwrapErr());
 
-    return Ok(std::make_shared<RichTextKeyInstance<T>>(RichTextKeyInstance<T>(key, res.unwrap(), applyToSprite, stringAddition, false)));
+    return Ok(std::make_shared<RichTextKeyInstance<T>>(RichTextKeyInstance<T>(this, res.unwrap(), false)));
 }

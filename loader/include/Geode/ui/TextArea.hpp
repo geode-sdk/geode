@@ -14,7 +14,11 @@ namespace geode {
 
     // abb2k wuz here :)
 
-    class RichTextKeyInstanceBase : public cocos2d::CCObject {
+    class RichTextKeyBase;
+    template <typename T>
+    class RichTextKey;
+
+    class RichTextKeyInstanceBase {
     public:
         virtual ~RichTextKeyInstanceBase() = default;
         virtual void applyChangesToSprite(cocos2d::CCFontSprite* spr) = 0;
@@ -26,19 +30,17 @@ namespace geode {
     template <typename T>
     class RichTextKeyInstance : public RichTextKeyInstanceBase {
     public:
-        RichTextKeyInstance(std::string key, T data, std::function<void(const T& value, cocos2d::CCFontSprite* sprite)> applyToSprite = NULL, std::function<std::string(const T& value)> stringAddition = NULL, bool cancellation = false)
-            : key(std::move(key)), value(std::move(data)), applyToSprite(std::move(applyToSprite)), stringAddition(std::move(stringAddition)), cancellation(std::move(cancellation)) {}
+        RichTextKeyInstance(RichTextKey<T>* key, T data, bool cancellation = false)
+            : key(std::move(key)), value(std::move(data)), cancellation(std::move(cancellation)) {}
 
-        std::string key;
+        RichTextKey<T>* key;
         T value;
-        std::function<void(const T& value, cocos2d::CCFontSprite* sprite)> applyToSprite;
-        std::function<std::string(const T& value)> stringAddition;
         bool cancellation;
 
         void applyChangesToSprite(cocos2d::CCFontSprite* spr) override;
 
         std::string getKey() const override {
-            return key;
+            return key->getKey();
         }
 
         bool isCancellation() const override {
@@ -48,7 +50,7 @@ namespace geode {
         std::string runStrAddition() override;
     };
 
-    class RichTextKeyBase : public cocos2d::CCObject {
+    class RichTextKeyBase {
     public:
         virtual ~RichTextKeyBase() = default;
         virtual Result<std::shared_ptr<RichTextKeyInstanceBase>> createInstance(const std::string& value, bool cancellation) = 0;
@@ -65,7 +67,7 @@ namespace geode {
              * @param applyToSprite Function to apply the parsed value to a font sprite (optional)
              * @param stringAddition Function to add a new string at the point where the key is (optional)
             */
-            RichTextKey(std::string key, std::function<Result<T>(const std::string& value)> validCheck, std::function<void(const T& value, cocos2d::CCFontSprite* sprite)> applyToSprite = NULL, std::function<std::string(const T& value)> stringAddition = NULL)
+            RichTextKey(std::string key, geode::Function<Result<T>(const std::string& value)> validCheck, geode::Function<void(const T& value, cocos2d::CCFontSprite* sprite)> applyToSprite = NULL, geode::Function<std::string(const T& value)> stringAddition = NULL)
                 : key(std::move(key)), validCheck(std::move(validCheck)), applyToSprite(std::move(applyToSprite)), stringAddition(std::move(stringAddition)) {}
             
             Result<std::shared_ptr<RichTextKeyInstanceBase>> createInstance(const std::string& value, bool cancellation) override;
@@ -77,9 +79,10 @@ namespace geode {
         private:
             std::string key;
 
-            std::function<Result<T>(const std::string& value)> validCheck;
-            std::function<void(const T& value, cocos2d::CCFontSprite* sprite)> applyToSprite;
-            std::function<std::string(const T& value)> stringAddition;
+        public:
+            geode::Function<Result<T>(const std::string& value)> validCheck;
+            geode::Function<void(const T& value, cocos2d::CCFontSprite* sprite)> applyToSprite;
+            geode::Function<std::string(const T& value)> stringAddition;
     };
 
     /**
