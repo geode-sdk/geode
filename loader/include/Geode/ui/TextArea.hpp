@@ -12,6 +12,76 @@ namespace geode {
         CUTOFF_WRAP
     };
 
+    // abb2k wuz here :)
+
+    class RichTextKeyInstanceBase : public cocos2d::CCObject {
+    public:
+        virtual ~RichTextKeyInstanceBase() = default;
+        virtual void applyChangesToSprite(cocos2d::CCFontSprite* spr) = 0;
+        virtual std::string getKey() const = 0;
+        virtual bool isCancellation() const = 0;
+        virtual std::string runStrAddition() = 0;
+    };
+
+    template <typename T>
+    class RichTextKeyInstance : public RichTextKeyInstanceBase {
+    public:
+        RichTextKeyInstance(std::string key, T data, std::function<void(const T& value, cocos2d::CCFontSprite* sprite)> applyToSprite = NULL, std::function<std::string(const T& value)> stringAddition = NULL, bool cancellation = false)
+            : key(std::move(key)), value(std::move(data)), applyToSprite(std::move(applyToSprite)), stringAddition(std::move(stringAddition)), cancellation(std::move(cancellation)) {}
+
+        std::string key;
+        T value;
+        std::function<void(const T& value, cocos2d::CCFontSprite* sprite)> applyToSprite;
+        std::function<std::string(const T& value)> stringAddition;
+        bool cancellation;
+
+        void applyChangesToSprite(cocos2d::CCFontSprite* spr) override;
+
+        std::string getKey() const override {
+            return key;
+        }
+
+        bool isCancellation() const override {
+            return cancellation;
+        }
+
+        std::string runStrAddition() override;
+    };
+
+    class RichTextKeyBase : public cocos2d::CCObject {
+    public:
+        virtual ~RichTextKeyBase() = default;
+        virtual Result<std::shared_ptr<RichTextKeyInstanceBase>> createInstance(const std::string& value, bool cancellation) = 0;
+        virtual std::string getKey() const = 0;
+    };
+
+    template <typename T>
+    class RichTextKey : public RichTextKeyBase {
+        public:
+            /**
+             * aaa
+             * @param key The identifier name for this rich text key
+             * @param validCheck Function to validate and parse the value string into type T (if an error is returned the key will not be processed)
+             * @param applyToSprite Function to apply the parsed value to a font sprite (optional)
+             * @param stringAddition Function to add a new string at the point where the key is (optional)
+            */
+            RichTextKey(std::string key, std::function<Result<T>(const std::string& value)> validCheck, std::function<void(const T& value, cocos2d::CCFontSprite* sprite)> applyToSprite = NULL, std::function<std::string(const T& value)> stringAddition = NULL)
+                : key(std::move(key)), validCheck(std::move(validCheck)), applyToSprite(std::move(applyToSprite)), stringAddition(std::move(stringAddition)) {}
+            
+            Result<std::shared_ptr<RichTextKeyInstanceBase>> createInstance(const std::string& value, bool cancellation) override;
+
+            std::string getKey() const override {
+                return key;
+            }
+            
+        private:
+            std::string key;
+
+            std::function<Result<T>(const std::string& value)> validCheck;
+            std::function<void(const T& value, cocos2d::CCFontSprite* sprite)> applyToSprite;
+            std::function<std::string(const T& value)> stringAddition;
+    };
+
     /**
      * A class which provides a textarea with proper alignment and some extra features like:
      *
@@ -49,6 +119,11 @@ namespace geode {
         std::vector<cocos2d::CCLabelBMFont*> getLines();
         float getHeight();
         float getLineHeight();
+        void setRichTextEnabled(bool enabled);
+        bool isRichTextEnabled();
+
+        template <typename T>
+        void registerRichTextKey(std::shared_ptr<RichTextKey<T>> key);
     private:
         static SimpleTextArea* create(std::string font, std::string text, float scale, float width, const bool artificialWidth);
 
@@ -59,6 +134,7 @@ namespace geode {
         cocos2d::CCMenu* m_container = nullptr;
         std::string m_font;
         std::string m_text;
+        std::string m_textFormatted;
         std::vector<cocos2d::CCLabelBMFont*> m_lines;
         cocos2d::ccColor4B m_color = { 0xFF, 0xFF, 0xFF, 0xFF };
         cocos2d::CCTextAlignment m_alignment = cocos2d::kCCTextAlignmentLeft;
@@ -67,6 +143,7 @@ namespace geode {
         float m_scale = 1.f;
         float m_lineHeight = 0.f;
         float m_linePadding = 0.f;
+        bool richTextEnabled = true;
 
         cocos2d::CCLabelBMFont* createLabel(char const* text, float top);
         float calculateOffset(cocos2d::CCLabelBMFont* label);
@@ -75,5 +152,14 @@ namespace geode {
         void updateLinesWordWrap(bool spaceWrap);
         void updateLinesCutoffWrap();
         void updateContainer();
+
+        std::string* getCorrectText(){
+            return richTextEnabled ? &m_textFormatted : &m_text;
+        }
+
+        void formatRichText();
+
+        std::map<std::string, std::shared_ptr<RichTextKeyBase>> richTextKeys;
+        std::map<int, std::vector<std::shared_ptr<RichTextKeyInstanceBase>>> richTextInstances;
     };
 }

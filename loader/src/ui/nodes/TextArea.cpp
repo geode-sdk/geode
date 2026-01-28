@@ -1,4 +1,5 @@
 #include <Geode/ui/TextArea.hpp>
+#include <regex>
 
 using namespace geode::prelude;
 
@@ -28,6 +29,67 @@ bool SimpleTextArea::init(std::string font, std::string text, float scale, float
     m_scale = scale;
     m_artificialWidth = artificialWidth;
     m_container = CCMenu::create();
+
+    this->registerRichTextKey<ccColor3B>(std::make_shared<RichTextKey<ccColor3B>>(
+        "color",
+        [](std::string value) -> Result<ccColor3B> {
+            auto colorRes = cc3bFromHexString(value);
+            if (colorRes.isErr()) return Err(colorRes.unwrapErr());
+
+            return Ok(colorRes.unwrap());
+        },
+        [](const ccColor3B& value, cocos2d::CCFontSprite* sprite) {
+            sprite->setColor({ value.r, value.g, value.b });
+        }
+    ));
+
+    this->registerRichTextKey<bool>(std::make_shared<RichTextKey<bool>>(
+        "flip",
+        [](std::string value) -> Result<bool> {
+            if (value == "") return Ok(true);
+
+            if (value != "true" && value != "false") {
+                return Err("Value must be 'true' or 'false'");
+            }
+
+            return Ok(value == "true");
+        },
+        [](const bool& value, cocos2d::CCFontSprite* sprite) {
+            sprite->setFlipY(value);
+        }
+    ));
+
+    this->registerRichTextKey<bool>(std::make_shared<RichTextKey<bool>>(
+        "mirror",
+        [](std::string value) -> Result<bool> {
+            if (value == "") return Ok(true);
+            
+            if (value != "true" && value != "false") {
+                return Err("Value must be 'true' or 'false'");
+            }
+
+            return Ok(value == "true");
+        },
+        [](const bool& value, cocos2d::CCFontSprite* sprite) {
+            sprite->setFlipX(value);
+        }
+    ));
+
+    this->registerRichTextKey<std::time_t>(std::make_shared<RichTextKey<std::time_t>>(
+        "workingTime",
+        [](std::string value) -> Result<std::time_t> {
+            auto timeRes = geode::utils::numFromString<time_t>(value);
+            if (timeRes.isErr()) return Ok(std::time(nullptr));
+
+            return Ok(timeRes.unwrap());
+        },
+        [](const std::time_t& value, cocos2d::CCFontSprite* sprite) {},
+        [](const std::time_t& value) -> std::string {
+            return fmt::format("{:%Y-%m-%d %H:%M:%S}", fmt::localtime(value));
+        }
+    ));
+
+    this->formatRichText();
 
     this->setAnchorPoint({ 0.5f, 0.5f });
     m_container->setPosition({ 0, 0 });
@@ -77,6 +139,7 @@ WrappingMode SimpleTextArea::getWrappingMode() {
 
 void SimpleTextArea::setText(std::string text) {
     m_text = std::move(text);
+    this->formatRichText();
     this->updateContainer();
 }
 
@@ -165,7 +228,26 @@ void SimpleTextArea::charIteration(geode::FunctionRef<CCLabelBMFont*(CCLabelBMFo
     CCLabelBMFont* line = this->createLabel("", top);
     m_lines = { line };
 
-    for (const char c : m_text) {
+    std::map<std::string, std::shared_ptr<RichTextKeyInstanceBase>> appliedRichTextInstances{};
+
+    for (size_t i = 0; i < getCorrectText()->size(); ++i) {
+        const char c = getCorrectText()->at(i);
+
+        if (richTextEnabled && richTextInstances.contains(i)){
+            for (const auto& instancePtr : richTextInstances[i]) {
+                if (appliedRichTextInstances.contains(instancePtr->getKey())) {
+                    if (instancePtr->isCancellation()){
+                        appliedRichTextInstances.erase(instancePtr->getKey());
+                    }
+                    else{
+                        appliedRichTextInstances[instancePtr->getKey()] = instancePtr;
+                    }
+                } else {
+                    appliedRichTextInstances.insert({instancePtr->getKey(), instancePtr});
+                }
+            }
+        }
+
         if (c == '\n') {
             line = this->createLabel("", top -= this->calculateOffset(line));
 
@@ -185,11 +267,17 @@ void SimpleTextArea::charIteration(geode::FunctionRef<CCLabelBMFont*(CCLabelBMFo
         } else {
             line->setString((std::string(line->getString()) + c).c_str());
         }
+
+        if (line->getChildren()->lastObject() != nullptr){
+            for (const auto& [key, instancePtr] : appliedRichTextInstances) {
+                instancePtr->applyChangesToSprite(static_cast<cocos2d::CCFontSprite*>(line->getChildren()->lastObject()));
+            }
+        }
     }
 }
 
 void SimpleTextArea::updateLinesNoWrap() {
-    std::stringstream stream(m_text);
+    std::stringstream stream(getCorrectText()->c_str());
     std::string part;
     float top = 0;
     m_lines.clear();
@@ -297,4 +385,132 @@ void SimpleTextArea::updateContainer() {
 
         m_container->addChild(line);
     }
+}
+
+bool SimpleTextArea::isRichTextEnabled() {
+    return richTextEnabled;
+}
+
+void SimpleTextArea::setRichTextEnabled(bool enabled) {
+    richTextEnabled = enabled;
+    this->updateContainer();
+}
+
+void SimpleTextArea::formatRichText() {
+    std::regex pattern(R"(<(\/)?([^=<>]+)(?:\s*=\s*([^<>]+))?>)");
+    std::smatch match;
+
+    richTextInstances.clear();
+
+    m_textFormatted = m_text;
+
+    //theres probably a better way to do this lol idk aa
+    struct MatchInfo {
+        int position;
+        ptrdiff_t length;
+        std::string key;
+        std::string value;
+        int overallOffset;
+        bool cancellation;
+    };
+    std::vector<MatchInfo> matches;
+
+    auto begin = m_text.cbegin();
+    auto end = m_text.cend();
+
+    int offset = 0;
+
+    while (std::regex_search(begin, end, match, pattern)) {
+        int matchStartPos = std::distance(m_text.cbegin(), match[0].first);
+
+        std::string value = "";
+        if (match.size() >= 4 && match[3].matched) {
+            value = match[3];
+        }
+
+        matches.push_back({matchStartPos, match[0].length(), match[2], value, offset, match[1] == '/'});
+        offset += match[0].length();
+
+        begin = match.suffix().first;
+    }
+
+    std::map<int, std::vector<std::shared_ptr<RichTextKeyInstanceBase>>> richTextInstancesBeforeExtraOffset{};
+
+    for (auto it = matches.rbegin(); it != matches.rend(); ++it) {
+        const auto& m = *it;
+
+        if (!richTextKeys.contains(m.key)) continue;
+
+        auto result = richTextKeys[m.key]->createInstance(m.value, m.cancellation);
+        if (result.isErr())
+            continue;
+
+        int effectIndex = m.position - m.overallOffset;
+
+        auto& keyRef = result.unwrap();
+
+        if (richTextInstancesBeforeExtraOffset.contains(effectIndex)) {
+            richTextInstancesBeforeExtraOffset[effectIndex].push_back(keyRef);
+        } else {
+            richTextInstancesBeforeExtraOffset[effectIndex] = {keyRef};
+        }
+
+        m_textFormatted.erase(m.position, m.length);
+    }
+
+    int textAdditionOverallOffset = 0;
+    int prevExtraOffset = 0;
+
+    for (const auto& [index, keys] : richTextInstancesBeforeExtraOffset) {
+        for (const auto& keyRef : keys)
+        {
+            auto currentAddition = keyRef->runStrAddition();
+            if (currentAddition == "") continue;
+            m_textFormatted.insert(index + textAdditionOverallOffset, currentAddition);
+            textAdditionOverallOffset += currentAddition.length();
+        }
+        
+        richTextInstances[index + prevExtraOffset] = std::move(keys);
+
+        prevExtraOffset = textAdditionOverallOffset;
+    }
+}
+
+template <typename T>
+void SimpleTextArea::registerRichTextKey(std::shared_ptr<RichTextKey<T>> key){
+    if (richTextKeys.contains(key->getKey())) return;
+
+    richTextKeys.insert({key->getKey(), key});
+}
+
+
+
+
+template <typename T>
+void RichTextKeyInstance<T>::applyChangesToSprite(cocos2d::CCFontSprite* spr) {
+    if (applyToSprite != NULL)
+        applyToSprite(value, spr);
+}
+
+template <typename T>
+std::string RichTextKeyInstance<T>::runStrAddition() {
+    if (stringAddition != NULL)
+        return stringAddition(value);
+    return "";
+}
+
+template <typename T>
+Result<std::shared_ptr<RichTextKeyInstanceBase>> RichTextKey<T>::createInstance(const std::string& value, bool cancellation) {
+    if (cancellation){
+        if (value == "")
+            return Ok(std::make_shared<RichTextKeyInstance<T>>(RichTextKeyInstance<T>(key, T(), NULL, NULL, true)));
+        else
+            return Err("Cancellation tags cannot have values");
+    }
+
+    auto res = validCheck(value);
+    if (res.isErr())
+        return Err(res.unwrapErr());
+
+    return Ok(std::make_shared<RichTextKeyInstance<T>>(RichTextKeyInstance<T>(key, res.unwrap(), applyToSprite, stringAddition, false)));
 }
