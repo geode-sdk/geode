@@ -232,8 +232,8 @@ void SimpleTextArea::charIteration(geode::FunctionRef<CCLabelBMFont*(CCLabelBMFo
 
     int index = 0;
     for (const char& c : getCorrectText()) {
-        if (m_richText && richTextInstances.contains(index)){
-            for (const auto& instancePtr : richTextInstances[index]) {
+        if (m_richText && m_richTextInstances.contains(index)){
+            for (const auto& instancePtr : m_richTextInstances[index]) {
                 if (appliedRichTextInstances.contains(instancePtr->getKey())) {
                     if (instancePtr->isCancellation()){
                         appliedRichTextInstances.erase(instancePtr->getKey());
@@ -401,11 +401,11 @@ void SimpleTextArea::formatRichText() {
     std::regex pattern(R"(<(\/)?([^=<>]+)(?:\s*=\s*([^<>]+))?>)");
     std::smatch match;
 
-    richTextInstances.clear();
+    m_richTextInstances.clear();
 
     m_textFormatted = m_text;
 
-    //theres probably a better way to do this lol idk aa
+    // theres probably a better way to do this lol idk aa
     struct MatchInfo {
         int position;
         ptrdiff_t length;
@@ -425,9 +425,7 @@ void SimpleTextArea::formatRichText() {
         int matchStartPos = std::distance(m_text.cbegin(), match[0].first);
 
         std::string value = "";
-        if (match.size() >= 4 && match[3].matched) {
-            value = match[3];
-        }
+        if (match.size() >= 4 && match[3].matched) value = match[3];
 
         matches.push_back({matchStartPos, match[0].length(), match[2], value, offset, match[1] == '/'});
         offset += match[0].length();
@@ -440,11 +438,11 @@ void SimpleTextArea::formatRichText() {
     for (auto it = matches.rbegin(); it != matches.rend(); ++it) {
         const auto& m = *it;
 
-        if (!richTextKeys.contains(m.key)) continue;
+        if (!m_richTextKeys.contains(m.key)) continue;
 
-        auto result = richTextKeys[m.key]->createInstance(m.value, m.cancellation);
-        if (result.isErr())
-            continue;
+        auto result = m_richTextKeys[m.key]->createInstance(m.value, m.cancellation);
+
+        if (result.isErr()) continue;
 
         int effectIndex = m.position - m.overallOffset;
 
@@ -471,47 +469,48 @@ void SimpleTextArea::formatRichText() {
             textAdditionOverallOffset += currentAddition.length();
         }
         
-        richTextInstances[index + prevExtraOffset] = std::move(keys);
+        m_richTextInstances[index + prevExtraOffset] = std::move(keys);
 
         prevExtraOffset = textAdditionOverallOffset;
     }
 }
 
-template <typename T>
+template <class T>
 void SimpleTextArea::registerRichTextKey(std::shared_ptr<RichTextKey<T>> key){
-    if (richTextKeys.contains(key->getKey())) return;
+    if (m_richTextKeys.contains(key->getKey())) return;
 
-    richTextKeys.insert({key->getKey(), key});
+    m_richTextKeys.insert({key->getKey(), key});
 }
 
-
-
-
-template <typename T>
+template <class T>
 void RichTextKeyInstance<T>::applyChangesToSprite(cocos2d::CCFontSprite* spr) {
-    if (key->applyToSprite != NULL)
-        key->applyToSprite(value, spr);
+    if (m_key->m_applyToSprite != NULL)
+        m_key->m_applyToSprite(m_value, spr);
 }
 
-template <typename T>
+template <class T>
 std::string RichTextKeyInstance<T>::runStrAddition() {
-    if (key->stringAddition != NULL)
-        return key->stringAddition(value);
+    if (m_key->m_stringAddition != NULL)
+        return m_key->m_stringAddition(m_value);
     return "";
 }
 
-template <typename T>
+template <class T>
 Result<std::shared_ptr<RichTextKeyInstanceBase>> RichTextKey<T>::createInstance(const std::string& value, bool cancellation) {
     if (cancellation){
-        if (value == "")
-            return Ok(std::make_shared<RichTextKeyInstance<T>>(RichTextKeyInstance<T>(this, T(), true)));
-        else
-            return Err("Cancellation tags cannot have values");
+        if (value == ""){
+            return Ok(std::make_shared<RichTextKeyInstance<T>>(
+                RichTextKeyInstance<T>(this, T(), true))
+            );
+        }
+        else return Err("Cancellation tags cannot have values");
     }
 
-    auto res = validCheck(value);
-    if (res.isErr())
-        return Err(res.unwrapErr());
+    auto res = m_validCheck(value);
+    
+    if (res.isErr()) return Err(res.unwrapErr());
 
-    return Ok(std::make_shared<RichTextKeyInstance<T>>(RichTextKeyInstance<T>(this, res.unwrap(), false)));
+    return Ok(std::make_shared<RichTextKeyInstance<T>>(
+        RichTextKeyInstance<T>(this, res.unwrap(), false))
+    );
 }

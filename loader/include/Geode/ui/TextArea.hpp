@@ -14,8 +14,7 @@ namespace geode {
 
     // abb2k wuz here :)
 
-    class RichTextKeyBase;
-    template <typename T>
+    template <class T>
     class RichTextKey;
 
     class RichTextKeyInstanceBase {
@@ -27,24 +26,24 @@ namespace geode {
         virtual std::string runStrAddition() = 0;
     };
 
-    template <typename T>
-    class RichTextKeyInstance : public RichTextKeyInstanceBase {
+    template <class T>
+    class RichTextKeyInstance final : public RichTextKeyInstanceBase {
     public:
-        RichTextKeyInstance(RichTextKey<T>* key, T data, bool cancellation = false)
-            : key(std::move(key)), value(std::move(data)), cancellation(std::move(cancellation)) {}
+        RichTextKeyInstance(RichTextKey<T>* key, T data, bool cancellation)
+            : m_key(std::move(key)), m_value(std::move(data)), m_cancellation(std::move(cancellation)) {}
 
-        RichTextKey<T>* key;
-        T value;
-        bool cancellation;
+        RichTextKey<T>* m_key = nullptr;
+        T m_value;
+        bool m_cancellation = false;
 
         void applyChangesToSprite(cocos2d::CCFontSprite* spr) override;
 
         std::string getKey() const override {
-            return key->getKey();
+            return m_key->getKey();
         }
 
         bool isCancellation() const override {
-            return cancellation;
+            return m_cancellation;
         }
 
         std::string runStrAddition() override;
@@ -57,31 +56,62 @@ namespace geode {
         virtual std::string getKey() const = 0;
     };
 
-    template <typename T>
-    class RichTextKey : public RichTextKeyBase {
-        public:
-            /**
-             * @param key The identifier name for this rich text key
-             * @param validCheck Function to validate and parse the value string into type T (if an error is returned the key will not be processed)
-             * @param applyToSprite Function to apply the parsed value to a font sprite (optional)
-             * @param stringAddition Function to add a new string at the point where the key is (optional)
-            */
-            RichTextKey(std::string key, geode::Function<Result<T>(const std::string& value)> validCheck, geode::Function<void(const T& value, cocos2d::CCFontSprite* sprite)> applyToSprite = NULL, geode::Function<std::string(const T& value)> stringAddition = NULL)
-                : key(std::move(key)), validCheck(std::move(validCheck)), applyToSprite(std::move(applyToSprite)), stringAddition(std::move(stringAddition)) {}
-            
-            Result<std::shared_ptr<RichTextKeyInstanceBase>> createInstance(const std::string& value, bool cancellation) override;
+    template <class T>
+    class RichTextKey final : public RichTextKeyBase {
+    public:
+        /**
+            @param key The identifier name for this rich text key
+            @param validCheck Function to validate and parse the value string into type T (if an error is returned the key will not be processed)
+            @param applyToSprite Function to apply the parsed value to a font sprite (optional)
+        */
+        RichTextKey(
+            std::string key, 
+            geode::Function<Result<T>(const std::string& value)> validCheck, 
+            geode::Function<void(const T& value, cocos2d::CCFontSprite* sprite)> applyToSprite
+        ) : m_key(std::move(key)), 
+            m_validCheck(std::move(validCheck)), 
+            m_applyToSprite(std::move(applyToSprite)) {}
+        /**
+            @param key The identifier name for this rich text key
+            @param validCheck Function to validate and parse the value string into type T (if an error is returned the key will not be processed)
+            @param stringAddition Function to add a new string at the point where the key is (optional)
+        */
+        RichTextKey(
+            std::string key,
+            geode::Function<Result<T>(const std::string& value)> validCheck, 
+            geode::Function<std::string(const T& value)> stringAddition
+        ) : m_key(std::move(key)), 
+            m_validCheck(std::move(validCheck)), 
+            m_stringAddition(std::move(stringAddition)) {}
+        /**
+            @param key The identifier name for this rich text key
+            @param validCheck Function to validate and parse the value string into type T (if an error is returned the key will not be processed)
+            @param applyToSprite Function to apply the parsed value to a font sprite (optional)
+            @param stringAddition Function to add a new string at the point where the key is (optional)
+        */
+        RichTextKey(
+            std::string key,
+            geode::Function<Result<T>(const std::string& value)> validCheck, 
+            geode::Function<void(const T& value, cocos2d::CCFontSprite* sprite)> applyToSprite,
+            geode::Function<std::string(const T& value)> stringAddition
+        ) : m_key(std::move(key)),
+            m_validCheck(std::move(validCheck)),
+            m_applyToSprite(std::move(applyToSprite)),
+            m_stringAddition(std::move(stringAddition)) {}
+        
+        Result<std::shared_ptr<RichTextKeyInstanceBase>> createInstance(const std::string& value, bool cancellation) override;
 
-            std::string getKey() const override {
-                return key;
-            }
-            
-        private:
-            std::string key;
+        std::string getKey() const override {
+            return m_key;
+        }
+        
+    private:
+        std::string m_key;
 
-        public:
-            geode::Function<Result<T>(const std::string& value)> validCheck;
-            geode::Function<void(const T& value, cocos2d::CCFontSprite* sprite)> applyToSprite;
-            geode::Function<std::string(const T& value)> stringAddition;
+    public:
+        geode::Function<Result<T>(const std::string& value)> m_validCheck = NULL;
+        geode::Function<void(const T& value, cocos2d::CCFontSprite* sprite)> m_applyToSprite = NULL;
+        geode::Function<std::string(const T& value)> m_stringAddition = NULL;
     };
 
     /**
@@ -124,7 +154,7 @@ namespace geode {
         void setRichText(bool enabled);
         bool isRichTextEnabled();
 
-        template <typename T>
+        template <class T>
         void registerRichTextKey(std::shared_ptr<RichTextKey<T>> key);
     private:
         static SimpleTextArea* create(std::string font, std::string text, float scale, float width, const bool artificialWidth);
@@ -155,13 +185,13 @@ namespace geode {
         void updateLinesCutoffWrap();
         void updateContainer();
 
-        std::string getCorrectText(){
+        std::string getCorrectText() const {
             return m_richText ? m_textFormatted : m_text;
         }
 
         void formatRichText();
 
-        std::map<std::string, std::shared_ptr<RichTextKeyBase>> richTextKeys;
-        std::map<int, std::vector<std::shared_ptr<RichTextKeyInstanceBase>>> richTextInstances;
+        std::map<std::string, std::shared_ptr<RichTextKeyBase>> m_richTextKeys;
+        std::map<int, std::vector<std::shared_ptr<RichTextKeyInstanceBase>>> m_richTextInstances;
     };
 }
