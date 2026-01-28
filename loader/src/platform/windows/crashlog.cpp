@@ -185,6 +185,14 @@ static void printAddr(std::ostream& stream, void const* addr, bool fullPath = tr
 
                 stream << ")";
             }
+            // handle GeometryDash.exe bindings
+            else if (module == GetModuleHandle(nullptr)) {
+                uintptr_t offset = diff;
+                auto funcName = crashlog::lookupClosestFunction(offset);
+                if (!funcName.empty()) {
+                    stream << " (" << funcName << " + " << offset << ")";
+                }
+            }
         }
     }
     else {

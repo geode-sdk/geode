@@ -54,6 +54,46 @@ void crashlog::printMods(std::stringstream& stream) {
     }
 }
 
+void crashlog::updateFunctionBindings() {
+    constexpr uint64_t UPDATE_INTERVAL = 24 * 60 * 60; // one day
+    if (Mod::get()->getSavedValue<uint64_t>("bindings-update-time") + UPDATE_INTERVAL > std::time(nullptr)) {
+        return;
+    }
+
+    web::WebRequest().get(
+        "https://prevter.github.io/bindings-meta/CodegenData-"
+        GEODE_GD_VERSION_STRING
+        "-"
+        GEODE_WINDOWS("Win64") GEODE_INTEL_MAC("Intel") GEODE_ARM_MAC("Arm")
+        ".json"
+    ).listen([](web::WebResponse* res) {
+        if (!res->ok()) return;
+
+        (void) file::writeBinarySafe(dirs::getGeodeSaveDir() / "bindings.json", res->data());
+        Mod::get()->setSavedValue<uint64_t>("bindings-update-time", std::time(nullptr));
+    });
+}
+
+std::string_view crashlog::lookupClosestFunction(uintptr_t& address) {
+    static std::vector<FunctionBinding> bindings = file::readFromJson<std::vector<FunctionBinding>>(
+        dirs::getGeodeSaveDir() / "bindings.json" ).unwrapOrDefault();
+
+    if (bindings.empty()) { return {}; }
+
+    auto it = std::lower_bound(
+        bindings.begin(), bindings.end(), address,
+        [](FunctionBinding const& a, uintptr_t b) { return a.offset < b; }
+    );
+
+    if (it == bindings.end() || it->offset > address) {
+        if (it == bindings.begin()) return {};
+        --it;
+    }
+
+    address -= it->offset;
+    return it->name;
+}
+
 std::string crashlog::writeCrashlog(geode::Mod* faultyMod, std::string_view info, std::string_view stacktrace, std::string_view registers) {
     std::filesystem::path outPath;
     return writeCrashlog(faultyMod, info, stacktrace, registers, outPath);

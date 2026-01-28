@@ -40,5 +40,28 @@ namespace crashlog {
     void GEODE_DLL printGeodeInfo(std::stringstream& stream);
     void GEODE_DLL printMods(std::stringstream& stream);
 
+    struct FunctionBinding {
+        std::string name;
+        uintptr_t offset;
+    };
 
+    void updateFunctionBindings();
+    std::string_view GEODE_DLL lookupClosestFunction(uintptr_t& address);
 }
+
+template <>
+struct matjson::Serialize<crashlog::FunctionBinding> {
+    static geode::Result<crashlog::FunctionBinding> fromJson(Value const& value) {
+        return geode::Ok(crashlog::FunctionBinding{
+            GEODE_UNWRAP(value[1].asString()),
+            GEODE_UNWRAP(value[0].asUInt())
+        });
+    }
+
+    static Value toJson(crashlog::FunctionBinding const& binding) {
+        auto arr = Value::array();
+        arr.push(binding.offset);
+        arr.push(binding.name);
+        return arr;
+    }
+};
