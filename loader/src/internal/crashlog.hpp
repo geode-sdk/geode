@@ -51,6 +51,7 @@ namespace crashlog {
 
     void updateFunctionBindings();
     std::string_view GEODE_DLL lookupClosestFunction(uintptr_t& address);
+    std::string_view GEODE_DLL lookupFunctionByOffset(uintptr_t address);
 }
 
 template <>

@@ -186,6 +186,28 @@ static void printAddr(StringBuffer<>& stream, void const* addr, bool fullPath = 
             }
             // handle GeometryDash.exe bindings
             else if (module == GetModuleHandle(nullptr)) {
+                DWORD64 dwAddr = reinterpret_cast<uintptr_t>(addr);
+                if (auto entry = SymFunctionTableAccess64(proc, dwAddr)) {
+                    auto moduleBase = SymGetModuleBase64(proc, dwAddr);
+                    auto runtimeFunction = static_cast<PRUNTIME_FUNCTION>(entry);
+
+                    if (moduleBase) {
+                        uintptr_t funcAddr = moduleBase + runtimeFunction->BeginAddress;
+                        uintptr_t diff = reinterpret_cast<uintptr_t>(addr) - funcAddr;
+
+                        auto funcName = crashlog::lookupFunctionByOffset(runtimeFunction->BeginAddress);
+                        if (!funcName.empty()) {
+                            stream.append(" ({} + {:x})", funcName, diff);
+                            return;
+                        }
+
+                        // unnamed function
+                        stream.append(" (sub_{:x} + {:x})", runtimeFunction->BeginAddress, diff);
+                        return;
+                    }
+                }
+
+                // fallback (usually leaf functions)
                 uintptr_t offset = diff;
                 auto funcName = crashlog::lookupClosestFunction(offset);
                 if (!funcName.empty()) {

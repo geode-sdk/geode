@@ -81,10 +81,15 @@ void crashlog::updateFunctionBindings() {
     });
 }
 
-std::string_view crashlog::lookupClosestFunction(uintptr_t& address) {
-    static std::vector<FunctionBinding> bindings = file::readFromJson<std::vector<FunctionBinding>>(
-        dirs::getGeodeSaveDir() / "bindings.json" ).unwrapOrDefault();
+static std::vector<crashlog::FunctionBinding> const& getBindings() {
+    static auto bindings = file::readFromJson<std::vector<crashlog::FunctionBinding>>(
+        dirs::getGeodeSaveDir() / "bindings.json"
+    ).unwrapOrDefault();
+    return bindings;
+}
 
+std::string_view crashlog::lookupClosestFunction(uintptr_t& address) {
+    auto& bindings = getBindings();
     if (bindings.empty()) { return {}; }
 
     auto it = std::lower_bound(
@@ -99,6 +104,22 @@ std::string_view crashlog::lookupClosestFunction(uintptr_t& address) {
 
     address -= it->offset;
     return it->name;
+}
+
+std::string_view crashlog::lookupFunctionByOffset(uintptr_t address) {
+    auto& bindings = getBindings();
+    if (bindings.empty()) { return {}; }
+
+    auto it = std::lower_bound(
+        bindings.begin(), bindings.end(), address,
+        [](FunctionBinding const& a, uintptr_t b) { return a.offset < b; }
+    );
+
+    if (it != bindings.end() && it->offset == address) {
+        return it->name;
+    }
+
+    return {};
 }
 
 std::string crashlog::writeCrashlog(geode::Mod* faultyMod, std::string_view info, std::string_view stacktrace, std::string_view registers) {
