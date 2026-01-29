@@ -36,23 +36,10 @@ namespace server {
         DownloadStatusCancelled
     >;
 
-    struct ModDownloadEvent : public Event {
-        std::string id;
-        ModDownloadEvent(std::string id);
-    };
-
-    class ModDownloadFilter : public EventFilter<ModDownloadEvent> {
+    class ModDownloadEvent : public Event<ModDownloadEvent, bool(), std::string> {
     public:
-        using Callback = void(ModDownloadEvent*);
-
-    protected:
-        std::string m_id;
-
-    public:
-        ListenerResult handle(geode::Function<Callback>& fn, ModDownloadEvent* event);
-
-        ModDownloadFilter();
-        ModDownloadFilter(std::string id);
+        // filter params id
+        using Event::Event;
     };
 
     using DependencyFor = std::pair<std::string, ModMetadata::Dependency::Importance>;

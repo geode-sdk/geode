@@ -608,5 +608,20 @@ namespace geode {
     struct ListenerResult {
         static constexpr bool Propagate = false;
         static constexpr bool Stop = true;
+        
+        constexpr ListenerResult() noexcept = default;
+        constexpr ListenerResult(bool value) noexcept : m_value(value) {}
+        constexpr ListenerResult(ListenerResult const&) noexcept = default;
+        constexpr ListenerResult(ListenerResult&&) noexcept = default;
+        constexpr ListenerResult& operator=(ListenerResult const&) noexcept = default;
+        constexpr ListenerResult& operator=(ListenerResult&&) noexcept = default;
+
+        constexpr operator bool() const noexcept {
+            return m_value;
+        }
+
+        bool m_value = false;
     };
+
+    using ListenerHandle = event::ListenerHandle;
 }

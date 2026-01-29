@@ -101,9 +101,9 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
             if (!updater::verifyLoaderResources()) {
                 log::debug("Downloading Loader Resources");
                 this->setSmallText("Downloading Geode Resources");
-                this->addChild(EventListenerNode<updater::ResourceDownloadFilter>::create(
-                    this, &CustomLoadingLayer::updateResourcesProgress
-                ));
+                this->addEventListener(updater::ResourceDownloadEvent(), [this](updater::UpdateStatus status) {
+                    this->updateResourcesProgress(status);
+                });
             }
             else {
                 log::debug("Loading Loader Resources");
@@ -114,7 +114,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         });
     }
 
-    ListenerResult updateResourcesProgress(updater::ResourceDownloadEvent* event) {
+    ListenerResult updateResourcesProgress(updater::UpdateStatus status) {
         std::visit(makeVisitor {
             [&](updater::UpdateProgress const& progress) {
                 this->setSmallText(fmt::format(
@@ -140,7 +140,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
                 this->setSmallText("Failed to Download Geode Resources");
                 this->continueLoadAssets();
             }
-        }, event->status);
+        }, status);
 
         return ListenerResult::Propagate;
     }

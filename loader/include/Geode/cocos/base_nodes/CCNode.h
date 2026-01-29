@@ -905,7 +905,7 @@ private:
     GEODE_DLL geode::modifier::FieldContainer* getFieldContainer(char const* forClass);
     GEODE_DLL geode::event::ListenerHandle* addEventListenerInternal(
         std::string id,
-        geode::event::ListenerHandle&& handle
+        geode::event::ListenerHandle handle
     );
 
 public:
@@ -1126,7 +1126,7 @@ public:
         int priority = 0
     ) {
         auto handle = event.listen(std::forward<Callback>(callback), priority);
-        return this->addEventListenerInternal(id, handle);
+        return this->addEventListenerInternal(id, std::move(handle));
     }
     template <class Event, class Callback>
     geode::event::ListenerHandle* addEventListener(

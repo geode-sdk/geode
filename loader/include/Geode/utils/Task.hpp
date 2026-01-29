@@ -867,56 +867,56 @@ namespace geode {
 
             NewTask task = NewTask::Handle::create(fmt::format("{} <- {}", name, m_handle->m_name));
 
-            task.m_handle->m_extraData = std::make_unique<typename NewTask::Handle::ExtraData>(
-                // make the first event listener that waits for the current task
-                // static_cast<void*>(new EventListener<Task>(
-                //     [handle = std::weak_ptr(task.m_handle), mapper = std::move(mapper)](Event* event) mutable {
-                //         if (auto v = event->getValue()) {
-                //             auto newInnerTask = mapper(v);
-                //             // this is scary.. but it doesn't seem to crash lol
-                //             handle.lock()->m_extraData = std::make_unique<typename NewTask::Handle::ExtraData>(
-                //                 // make the second event listener that waits for the mapper's task
-                //                 // and just forwards everything through
-                //                 static_cast<void*>(new EventListener<NewTask>(
-                //                     [handle](typename NewTask::Event* event) mutable {
-                //                         if (auto v = event->getValue()) {
-                //                             NewTask::finish(handle.lock(), std::move(*v));
-                //                         }
-                //                         else if (auto p = event->getProgress()) {
-                //                             NewTask::progress(handle.lock(), std::move(*p));
-                //                         }
-                //                         else if (event->isCancelled()) {
-                //                             NewTask::cancel(handle.lock());
-                //                         }
-                //                     },
-                //                     std::move(newInnerTask)
-                //                 )),
-                //                 +[](void* ptr) {
-                //                     delete static_cast<EventListener<NewTask>*>(ptr);
-                //                 },
-                //                 +[](void* ptr) {
-                //                     static_cast<EventListener<NewTask>*>(ptr)->getFilter().cancel();
-                //                 }
-                //             );
-                //         }
-                //         else if (auto p = event->getProgress()) {
-                //             // no guarantee P and NewProgress are compatible
-                //             // nor does it seem like the intended behavior?
-                //             // TODO: maybe add a mapper for progress?
-                //         }
-                //         else if (event->isCancelled()) {
-                //             NewTask::cancel(handle.lock());
-                //         }
-                //     },
-                //     *this
-                // )),
-                +[](void* ptr) {
-                    // delete static_cast<EventListener<Task>*>(ptr);
-                },
-                +[](void* ptr) {
-                    // static_cast<EventListener<Task>*>(ptr)->getFilter().cancel();
-                }
-            );
+            // task.m_handle->m_extraData = std::make_unique<typename NewTask::Handle::ExtraData>(
+            //     // make the first event listener that waits for the current task
+            //     // static_cast<void*>(new EventListener<Task>(
+            //     //     [handle = std::weak_ptr(task.m_handle), mapper = std::move(mapper)](Event* event) mutable {
+            //     //         if (auto v = event->getValue()) {
+            //     //             auto newInnerTask = mapper(v);
+            //     //             // this is scary.. but it doesn't seem to crash lol
+            //     //             handle.lock()->m_extraData = std::make_unique<typename NewTask::Handle::ExtraData>(
+            //     //                 // make the second event listener that waits for the mapper's task
+            //     //                 // and just forwards everything through
+            //     //                 static_cast<void*>(new EventListener<NewTask>(
+            //     //                     [handle](typename NewTask::Event* event) mutable {
+            //     //                         if (auto v = event->getValue()) {
+            //     //                             NewTask::finish(handle.lock(), std::move(*v));
+            //     //                         }
+            //     //                         else if (auto p = event->getProgress()) {
+            //     //                             NewTask::progress(handle.lock(), std::move(*p));
+            //     //                         }
+            //     //                         else if (event->isCancelled()) {
+            //     //                             NewTask::cancel(handle.lock());
+            //     //                         }
+            //     //                     },
+            //     //                     std::move(newInnerTask)
+            //     //                 )),
+            //     //                 +[](void* ptr) {
+            //     //                     delete static_cast<EventListener<NewTask>*>(ptr);
+            //     //                 },
+            //     //                 +[](void* ptr) {
+            //     //                     static_cast<EventListener<NewTask>*>(ptr)->getFilter().cancel();
+            //     //                 }
+            //     //             );
+            //     //         }
+            //     //         else if (auto p = event->getProgress()) {
+            //     //             // no guarantee P and NewProgress are compatible
+            //     //             // nor does it seem like the intended behavior?
+            //     //             // TODO: maybe add a mapper for progress?
+            //     //         }
+            //     //         else if (event->isCancelled()) {
+            //     //             NewTask::cancel(handle.lock());
+            //     //         }
+            //     //     },
+            //     //     *this
+            //     // )),
+            //     +[](void* ptr) {
+            //         // delete static_cast<EventListener<Task>*>(ptr);
+            //     },
+            //     +[](void* ptr) {
+            //         // static_cast<EventListener<Task>*>(ptr)->getFilter().cancel();
+            //     }
+            // );
             return task;
         }
 
@@ -1075,25 +1075,25 @@ namespace geode {
                     handle.destroy();
                     return;
                 }
-                parentHandle->m_extraData = std::make_unique<typename Task<U, V>::Handle::ExtraData>(
-                    // static_cast<void*>(new EventListener<Task<T, P>>(
-                    //     [handle](auto* event) {
-                    //         if (event->getValue()) {
-                    //             handle.resume();
-                    //         }
-                    //         if (event->isCancelled()) {
-                    //             handle.destroy();
-                    //         }
-                    //     },
-                    //     task
-                    // )),
-                    +[](void* ptr) {
-                        // delete static_cast<EventListener<Task<T, P>>*>(ptr);
-                    },
-                    +[](void* ptr) {
-                        // static_cast<EventListener<Task<T, P>>*>(ptr)->getFilter().cancel();
-                    }
-                );
+                // parentHandle->m_extraData = std::make_unique<typename Task<U, V>::Handle::ExtraData>(
+                //     // static_cast<void*>(new EventListener<Task<T, P>>(
+                //     //     [handle](auto* event) {
+                //     //         if (event->getValue()) {
+                //     //             handle.resume();
+                //     //         }
+                //     //         if (event->isCancelled()) {
+                //     //             handle.destroy();
+                //     //         }
+                //     //     },
+                //     //     task
+                //     // )),
+                //     +[](void* ptr) {
+                //         // delete static_cast<EventListener<Task<T, P>>*>(ptr);
+                //     },
+                //     +[](void* ptr) {
+                //         // static_cast<EventListener<Task<T, P>>*>(ptr)->getFilter().cancel();
+                //     }
+                // );
             }
 
             Task<T, P>::Type await_resume() {
