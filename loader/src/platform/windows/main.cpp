@@ -150,6 +150,23 @@ void fixCurrentWorkingDirectory() {
     SetCurrentDirectoryW(std::filesystem::path(cwd.data()).parent_path().wstring().c_str());
 }
 
+bool cleanModeCheck() {
+    if (
+        (GetAsyncKeyState(VK_MENU) & (1 << 15)) &&
+        (GetAsyncKeyState(VK_SHIFT) & (1 << 15))
+    ) {
+        auto choice = MessageBoxW(
+            NULL,
+            L"(This has been triggered because you were holding ALT+SHIFT)\n",
+            L"Do you want to open Geometry Dash without Geode?",
+            L"Attention",
+            MB_YESNO | MB_ICONINFORMATION
+        );
+        return choice == IDYES;
+    }
+    return false;
+}
+
 int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
     // MessageBoxW(NULL, L"Hello from gdMainHook!", L"Hi", 0);
 
@@ -170,7 +187,7 @@ int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
             )
         );
         // TODO: should geode FreeLibrary itself here?
-    } else {
+    } else if (cleanModeCheck()) {
         patchDelayLoad();
 
         int exitCode = geodeEntry(hInstance);

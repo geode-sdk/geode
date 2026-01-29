@@ -1,6 +1,7 @@
 #include <Geode/DefaultInclude.hpp>
 
 #import <Cocoa/Cocoa.h>
+#include <AppKit/AppKit.h>
 #include <objc/runtime.h>
 #include "../load.hpp"
 #include <dlfcn.h>
@@ -140,6 +141,23 @@ void sendEventHook(NSApplication* self, SEL sel, NSEvent* event) {
     s_sendEventOrig(self, sel, event);
 }
 
+// I like to call this the "Super Mega Ultra Safe Mode™"
+// However for the sake of not getting side-eyed it's getting this boring name
+bool cleanModeCheck() {
+    if (
+        CGEventSourceKeyState(kCGEventSourceStateHIDSystemState, (CGKeyCode)58) && // 58 = Option
+        CGEventSourceKeyState(kCGEventSourceStateHIDSystemState, (CGKeyCode)56) // 56 = LShift
+    ) {
+        NSAlert* alert = [NSAlert new];
+        alert.messageText = @"The Shift and Option keys were held down, do you want to open Geometry Dash without Geode? (Disables Geode)";
+        [alert addButtonWithTitle:@"Yes"];
+        NSButton *cancelButton = [alert addButtonWithTitle:@"No"];
+        alert.window.defaultButtonCell = cancelButton.cell;
+        NSModalResponse choice = [alert runModal];
+        return choice == NSAlertFirstButtonReturn;
+    }
+    return false;
+}
 
 bool loadGeode() {
     if (GEODE_STR(GEODE_GD_VERSION) != LoaderImpl::get()->getGameVersion()) {
@@ -156,6 +174,8 @@ bool loadGeode() {
         );
         return false;
     }
+
+    if (cleanModeCheck()) return false;
 
     // this uses the internal hooking system because it needs to be fast
     if (auto imp = hook::replaceObjcMethod("AppController", "applicationDidFinishLaunching:", (void*)applicationDidFinishLaunchingHook)) {
