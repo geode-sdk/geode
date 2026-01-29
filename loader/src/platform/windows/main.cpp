@@ -157,7 +157,7 @@ bool cleanModeCheck() {
     ) {
         auto choice = MessageBoxW(
             NULL,
-            L"(This has been triggered because you were holding ALT+SHIFT)\n",
+            L"(This has been triggered because you were holding ALT+SHIFT)\n"
             L"Do you want to open Geometry Dash without Geode?",
             L"Attention",
             MB_YESNO | MB_ICONINFORMATION
