@@ -16,7 +16,6 @@
 #include "ui/mods/popups/DevPopup.hpp"
 #include "ui/mods/popups/ModErrorPopup.hpp"
 #include "ui/mods/sources/ModSource.hpp"
-#include "ui/GeodeUIEvent.hpp"
 
 bool ModItem::init(ModSource&& source) {
     if (!ModListItem::init())
@@ -224,6 +223,14 @@ bool ModItem::init(ModSource&& source) {
                 viewErrorBtn->setID("view-error-button");
                 m_viewMenu->addChild(viewErrorBtn);
             }
+
+            m_settingNodeHandle = GlobalSettingNodeValueChangeEvent(mod).listen([this](std::string_view key, SettingNodeV3*, bool isCommit) {
+                if (!isCommit) {
+                    return ListenerResult::Propagate;
+                }
+                this->updateState();
+                return ListenerResult::Propagate;
+            });
         },
         [this](server::ServerModMetadata const& metadata) {
             // todo: there has to be a better way to deal with the short/long alternatives
@@ -345,26 +352,20 @@ bool ModItem::init(ModSource&& source) {
     m_viewMenu->addChild(m_updateBtn);
 
     if (m_source.asMod()) {
-        m_checkUpdateListener.bind(this, &ModItem::onCheckUpdates);
-        m_checkUpdateListener.setFilter(m_source.checkUpdates());
+        // TODO: v5
+        // m_checkUpdateListener.bind(this, &ModItem::onCheckUpdates);
+        // m_checkUpdateListener.setFilter(m_source.checkUpdates());
     }
 
     this->updateState();
 
     // Only listen for updates on this mod specifically
-    m_updateStateListener.bind([this](auto) { this->updateState(); });
-    m_updateStateListener.setFilter(UpdateModListStateFilter(UpdateModState(m_source.getID())));
+    // TODO: v5
+    // m_updateStateListener.bind([this](auto) { this->updateState(); });
+    // m_updateStateListener.setFilter(UpdateModListStateFilter(UpdateModState(m_source.getID())));
 
-    m_downloadListener.bind([this](auto) { this->updateState(); });
-    m_downloadListener.setFilter(server::ModDownloadFilter(m_source.getID()));
-
-    m_settingNodeListener.bind([this](SettingNodeValueChangeEvent* ev) {
-        if (!ev->isCommit()) {
-            return ListenerResult::Propagate;
-        }
-        this->updateState();
-        return ListenerResult::Propagate;
-    });
+    // m_downloadListener.bind([this](auto) { this->updateState(); });
+    // m_downloadListener.setFilter(server::ModDownloadFilter(m_source.getID()));
 
     return true;
 }
@@ -734,7 +735,7 @@ void ModItem::updateState() {
 
     this->updateLayout();
 
-    ModItemUIEvent(std::make_unique<ModItemUIEvent::Impl>(this)).post();
+    ModItemUIEvent().send(this, m_source.getID(), std::nullopt);
 }
 
 void ModItem::onCheckUpdates(typename server::ServerRequest<std::optional<server::ServerModUpdate>>::Event* event) {
@@ -843,7 +844,7 @@ void ModItem::onEnable(CCObject*) {
     }
 
     // Update state of the mod item
-    UpdateModListStateEvent(UpdateModState(m_source.getID())).post();
+    UpdateModListStateEvent().send(UpdateModState(m_source.getID()));
 }
 void ModItem::onInstall(CCObject*) {
     m_source.startInstall();

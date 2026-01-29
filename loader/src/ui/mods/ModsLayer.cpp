@@ -90,18 +90,19 @@ bool ModsStatusNode::init() {
     );
     this->addChildAtPosition(m_btnMenu, Anchor::Center, ccp(0, 5));
 
-    m_updateStateListener.bind([this](auto) { this->updateState(); });
-    m_updateStateListener.setFilter(UpdateModListStateFilter());
+    // TODO: v5
+    // m_updateStateListener.bind([this](auto) { this->updateState(); });
+    // m_updateStateListener.setFilter(UpdateModListStateFilter());
 
-    m_downloadListener.bind([this](auto) { this->updateState(); });
+    // m_downloadListener.bind([this](auto) { this->updateState(); });
 
-    m_settingNodeListener.bind([this](SettingNodeValueChangeEvent* ev) {
-        if (!ev->isCommit()) {
-            return ListenerResult::Propagate;
-        }
-        this->updateState();
-        return ListenerResult::Propagate;
-    });
+    // m_settingNodeListener.bind([this](SettingNodeValueChangeEvent* ev) {
+    //     if (!ev->isCommit()) {
+    //         return ListenerResult::Propagate;
+    //     }
+    //     this->updateState();
+    //     return ListenerResult::Propagate;
+    // });
 
     Mod::get()->setSavedValue<bool>("has-used-geode-before", true);
 
@@ -631,20 +632,21 @@ bool ModsLayer::init() {
     this->updateState();
 
     // Listen for state changes
-    m_updateStateListener.setFilter(UpdateModListStateFilter(UpdateWholeState()));
-    m_updateStateListener.bind([this](UpdateModListStateEvent* event) {
-        if (auto whole = std::get_if<UpdateWholeState>(&event->target)) {
-            if (whole->searchByDeveloper) {
-                auto src = ServerModListSource::get(ServerModListType::Download);
-                src->getQueryMut()->developer = *whole->searchByDeveloper;
-                this->gotoTab(src, true);
+    // TODO: v5
+    // m_updateStateListener.setFilter(UpdateModListStateFilter(UpdateWholeState()));
+    // m_updateStateListener.bind([this](UpdateModListStateEvent* event) {
+    //     if (auto whole = std::get_if<UpdateWholeState>(&event->target)) {
+    //         if (whole->searchByDeveloper) {
+    //             auto src = ServerModListSource::get(ServerModListType::Download);
+    //             src->getQueryMut()->developer = *whole->searchByDeveloper;
+    //             this->gotoTab(src, true);
 
-                m_showSearch = true;
-                m_lists.at(src)->activateSearch(m_showSearch);
-            }
-        }
-        this->updateState();
-    });
+    //             m_showSearch = true;
+    //             m_lists.at(src)->activateSearch(m_showSearch);
+    //         }
+    //     }
+    //     this->updateState();
+    // });
 
     // add safe mode label
     if (isSafeMode) {

@@ -15,7 +15,6 @@
 #include "ConfirmUninstallPopup.hpp"
 #include "../settings/ModSettingsPopup.hpp"
 #include "../../../internal/about.hpp"
-#include "../../GeodeUIEvent.hpp"
 #include "server/DownloadManager.hpp"
 
 class FetchTextArea : public CCNode {
@@ -23,7 +22,8 @@ public:
     using Request = server::ServerRequest<std::optional<std::string>>;
 
 protected:
-    EventListener<Request> m_listener;
+    ListenerHandle m_handle;
+    // EventListener<Request> m_listener;
     MDTextArea* m_textarea;
     CCNode* m_loading;
     std::string m_noneText;
@@ -44,8 +44,9 @@ protected:
         m_loading = createLoadingCircle(30);
         this->addChildAtPosition(m_loading, Anchor::Center);
 
-        m_listener.bind(this, &FetchTextArea::onRequest);
-        m_listener.setFilter(req);
+        // TODO: v5
+        // m_listener.bind(this, &FetchTextArea::onRequest);
+        // m_listener.setFilter(req);
 
         return true;
     }
@@ -663,14 +664,15 @@ bool ModPopup::init(ModSource&& src) {
     this->updateState();
 
     // Load stats from server (or just from the source if it already has them)
-    m_statsListener.bind(this, &ModPopup::onLoadServerInfo);
-    m_statsListener.setFilter(m_source.fetchServerInfo());
-    m_tagsListener.bind(this, &ModPopup::onLoadTags);
-    m_tagsListener.setFilter(m_source.fetchValidTags());
+    // TODO: v5
+    // m_statsListener.bind(this, &ModPopup::onLoadServerInfo);
+    // m_statsListener.setFilter(m_source.fetchServerInfo());
+    // m_tagsListener.bind(this, &ModPopup::onLoadTags);
+    // m_tagsListener.setFilter(m_source.fetchValidTags());
 
     if (m_source.asMod()) {
-        m_checkUpdateListener.bind(this, &ModPopup::onCheckUpdates);
-        m_checkUpdateListener.setFilter(m_source.checkUpdates());
+        // m_checkUpdateListener.bind(this, &ModPopup::onCheckUpdates);
+        // m_checkUpdateListener.setFilter(m_source.checkUpdates());
     }
     else {
         auto updatesStat = m_stats->getChildByID("update-check");
@@ -678,18 +680,26 @@ bool ModPopup::init(ModSource&& src) {
     }
 
     // Only listen for updates on this mod specifically
-    m_updateStateListener.bind([this](auto) { this->updateState(); });
-    m_updateStateListener.setFilter(UpdateModListStateFilter(UpdateModState(m_source.getID())));
+    // TODO: v5
+    // m_updateStateListener.bind([this](auto) { this->updateState(); });
+    // m_updateStateListener.setFilter(UpdateModListStateFilter(UpdateModState(m_source.getID())));
 
-    m_downloadListener.bind([this](auto) { this->updateState(); });
-    m_downloadListener.setFilter(m_source.getID());
+    // m_downloadListener.bind([this](auto) { this->updateState(); });
+    // m_downloadListener.setFilter(m_source.getID());
 
-    m_settingNodeListener.bind([this](SettingNodeValueChangeEvent* ev) {
-        if (!ev->isCommit()) {
-            return ListenerResult::Propagate;
+    m_source.visit(makeVisitor {
+        [this](Mod* mod) {
+            m_settingNodeHandle = GlobalSettingNodeValueChangeEvent(mod).listen([this](std::string_view key, SettingNodeV3*, bool isCommit) {
+                if (!isCommit) {
+                    return ListenerResult::Propagate;
+                }
+                this->updateState();
+                return ListenerResult::Propagate;
+            });
+        },
+        [this](server::ServerModMetadata const& metadata) {
+            
         }
-        this->updateState();
-        return ListenerResult::Propagate;
     });
 
     return true;
@@ -829,7 +839,7 @@ void ModPopup::updateState() {
 
     m_installMenu->updateLayout();
 
-    ModPopupUIEvent(std::make_unique<ModPopupUIEvent::Impl>(this)).post();
+    ModPopupUIEvent().send(this, m_source.getID(), std::nullopt);
 }
 
 void ModPopup::setStatIcon(CCNode* stat, const char* spr) {
@@ -917,7 +927,7 @@ void ModPopup::onLoadServerInfo(typename server::ServerRequest<server::ServerMod
                 this->setStatValue(stat, id.second);
             }
         }
-        ModPopupUIEvent(std::make_unique<ModPopupUIEvent::Impl>(this)).post();
+        ModPopupUIEvent().send(this, m_source.getID(), std::nullopt);
     }
     else if (event->isCancelled() || (event->getValue() && event->getValue()->isErr())) {
         for (auto child : CCArrayExt<CCNode*>(m_stats->getChildren())) {
@@ -925,7 +935,7 @@ void ModPopup::onLoadServerInfo(typename server::ServerRequest<server::ServerMod
                 this->setStatValue(child, "N/A");
             }
         }
-        ModPopupUIEvent(std::make_unique<ModPopupUIEvent::Impl>(this)).post();
+        ModPopupUIEvent().send(this, m_source.getID(), std::nullopt);
     }
 }
 
@@ -1019,7 +1029,7 @@ void ModPopup::onLoadTags(typename server::ServerRequest<std::vector<server::Ser
 
         m_tags->updateLayout();
 
-        ModPopupUIEvent(std::make_unique<ModPopupUIEvent::Impl>(this)).post();
+        ModPopupUIEvent().send(this, m_source.getID(), std::nullopt);
     }
     else if (event->isCancelled() || (event->getValue() && event->getValue()->isErr())) {
         m_tags->removeAllChildren();
@@ -1030,7 +1040,7 @@ void ModPopup::onLoadTags(typename server::ServerRequest<std::vector<server::Ser
 
         m_tags->updateLayout();
 
-        ModPopupUIEvent(std::make_unique<ModPopupUIEvent::Impl>(this)).post();
+        ModPopupUIEvent().send(this, m_source.getID(), std::nullopt);
     }
 }
 
@@ -1105,7 +1115,7 @@ void ModPopup::onEnable(CCObject*) {
     else {
         FLAlertLayer::create("Error Toggling Mod", "This mod can not be toggled!", "OK")->show();
     }
-    UpdateModListStateEvent(UpdateModState(m_source.getID())).post();
+    UpdateModListStateEvent().send(UpdateModState(m_source.getID()));
 }
 
 void ModPopup::onInstall(CCObject*) {

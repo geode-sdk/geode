@@ -14,8 +14,10 @@
 class LoadServerModLayer : public Popup {
 protected:
     std::string m_id;
-    EventListener<server::ServerRequest<server::ServerModMetadata>> m_listener;
-    EventListener<server::ServerRequest<server::ServerModVersion>> m_versionListener;
+    ListenerHandle m_listenerHandle;
+    ListenerHandle m_versionListenerHandle;
+    // EventListener<server::ServerRequest<server::ServerModMetadata>> m_listener;
+    // EventListener<server::ServerRequest<server::ServerModVersion>> m_versionListener;
 
     std::optional<server::ServerModMetadata> m_loadedMod{};
 
@@ -31,8 +33,9 @@ protected:
         m_mainLayer->addChildAtPosition(spinner, Anchor::Center, ccp(0, -10));
 
         m_id = std::move(id);
-        m_listener.bind(this, &LoadServerModLayer::onModRequest);
-        m_listener.setFilter(server::getMod(m_id));
+        // TODO: v5
+        // m_listener.bind(this, &LoadServerModLayer::onModRequest);
+        // m_listener.setFilter(server::getMod(m_id));
 
         return true;
     }
@@ -44,8 +47,9 @@ protected:
                 auto info = res->unwrap();
                 m_loadedMod = std::move(info);
 
-                m_versionListener.bind(this, &LoadServerModLayer::onVersionRequest);
-                m_versionListener.setFilter(server::getModVersion(m_id));
+                // TODO: v5
+                // m_versionListener.bind(this, &LoadServerModLayer::onVersionRequest);
+                // m_versionListener.setFilter(server::getModVersion(m_id));
             }
             else {
                 this->onClose(nullptr);
@@ -90,10 +94,12 @@ protected:
 
 public:
     Task<bool> listen() const {
-        return m_listener.getFilter().map(
-            [](auto* result) -> bool { return result->isOk(); },
-            [](auto) -> std::monostate { return std::monostate(); }
-        );
+        // TODO: v5
+        // return m_listener.getFilter().map(
+        //     [](auto* result) -> bool { return result->isOk(); },
+        //     [](auto) -> std::monostate { return std::monostate(); }
+        // );
+        return {};
     }
 
     static LoadServerModLayer* create(std::string id) {
@@ -208,7 +214,7 @@ class ModLogoSprite : public CCNodeRGBA {
 protected:
     LazySprite* m_sprite;
     std::string m_modID;
-    EventListener<server::ServerRequest<ByteVector>> m_listener;
+    // EventListener<server::ServerRequest<ByteVector>> m_listener;
 
     bool init(ModLogoSrc&& src) {
         if (!CCNode::init())
@@ -220,7 +226,8 @@ protected:
         m_sprite = LazySprite::create(this->getContentSize());
         this->addChildAtPosition(m_sprite, Anchor::Center);
 
-        m_listener.bind(this, &ModLogoSprite::onFetch);
+        // TODO: v5
+        // m_listener.bind(this, &ModLogoSprite::onFetch);
 
         std::visit(makeVisitor {
             [this](Mod* mod) {
@@ -246,7 +253,8 @@ protected:
                 m_modID = id;
 
                 // Asynchronously fetch from server
-                m_listener.setFilter(server::getModLogo(id));
+                // TODO: v5
+                // m_listener.setFilter(server::getModLogo(id));
             },
             [this](std::filesystem::path const& path) {
                 m_sprite->setLoadCallback([this](Result<> res) {
@@ -269,13 +277,13 @@ protected:
         // This is a default ID, nothing should ever rely on the ID of any ModLogoSprite being this
         this->setID(Mod::get()->expandSpriteName(fmt::format("sprite-{}", m_modID)));
 
-        ModLogoUIEvent(std::make_unique<ModLogoUIEvent::Impl>(this, m_modID)).post();
+        ModLogoUIEvent().send(this, m_modID, std::nullopt);
 
         return true;
     }
 
     void doPostEvent() {
-        ModLogoUIEvent(std::make_unique<ModLogoUIEvent::Impl>(this, m_modID)).post();
+        ModLogoUIEvent().send(this, m_modID, std::nullopt);
     }
 
     void onLoaded(Result<> res) {

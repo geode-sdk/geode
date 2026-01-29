@@ -133,7 +133,7 @@ void Popup::keyDown(enumKeyCodes key, double p1) {
 }
 
 void Popup::onClose(CCObject*) {
-    CloseEvent(this).post();
+    CloseEvent(this).send();
     this->setKeypadEnabled(false);
     this->setTouchEnabled(false);
     this->removeFromParent();

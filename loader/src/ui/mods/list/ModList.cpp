@@ -20,7 +20,7 @@ static size_t getDisplayPageSize(ModListSource* src, ModListDisplay display) {
 }
 
 $execute {
-    listenForSettingChanges("infinite-local-mods-list", [](bool value) {
+    listenForSettingChanges<bool>("infinite-local-mods-list", [](bool value) {
         InstalledModListSource::get(InstalledModListType::All)->clearCache();
         InstalledModListSource::get(InstalledModListType::OnlyErrors)->clearCache();
         InstalledModListSource::get(InstalledModListType::OnlyOutdated)->clearCache();
@@ -57,8 +57,9 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
 
     // Check for updates on installed mods, and show an update all button if there are some
     if (typeinfo_cast<InstalledModListSource*>(m_source)) {
-        m_checkUpdatesListener.bind(this, &ModList::onCheckUpdates);
-        m_checkUpdatesListener.setFilter(ModsLayer::checkInstalledModsForUpdates());
+        // TODO: v5
+        // m_checkUpdatesListener.bind(this, &ModList::onCheckUpdates);
+        // m_checkUpdatesListener.setFilter(ModsLayer::checkInstalledModsForUpdates());
 
         m_updateAllContainer = CCNode::create();
         m_updateAllContainer->setID("update-all-container");
@@ -403,12 +404,13 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     );
     this->addChildAtPosition(m_statusContainer, Anchor::Center);
 
-    m_listener.bind(this, &ModList::onPromise);
+    // TODO: v5
+    // m_listener.bind(this, &ModList::onPromise);
 
-    m_invalidateCacheListener.bind(this, &ModList::onInvalidateCache);
-    m_invalidateCacheListener.setFilter(InvalidateCacheFilter(m_source));
+    // m_invalidateCacheListener.bind(this, &ModList::onInvalidateCache);
+    // m_invalidateCacheListener.setFilter(InvalidateCacheFilter(m_source));
 
-    m_downloadListener.bind([this](auto) { this->updateTopContainer(); });
+    // m_downloadListener.bind([this](auto) { this->updateTopContainer(); });
 
     this->gotoPage(0);
     this->updateTopContainer();
@@ -460,7 +462,8 @@ void ModList::onPromise(ModListSource::PageLoadTask::Event* event) {
         }
 
         // Clear listener
-        m_listener.setFilter(ModListSource::PageLoadTask());
+        // TODO: v5
+        // m_listener.setFilter(ModListSource::PageLoadTask());
     }
     else if (auto progress = event->getProgress()) {
         // todo: percentage in a loading bar
@@ -679,7 +682,7 @@ void ModList::updateState() {
     }
 
     // Post the update page number event
-    UpdateModListStateEvent(UpdatePageNumberState()).post();
+    UpdateModListStateEvent().send(UpdatePageNumberState());
 }
 
 void ModList::reloadPage() {
@@ -701,7 +704,8 @@ void ModList::gotoPage(size_t page, bool update) {
         // Start loading new page with generic loading message
         this->showStatus(ModListUnkProgressStatus(), "Loading...");
     }
-    m_listener.setFilter(m_source->loadPage(page, update));
+    // TODO: v5
+    // m_listener.setFilter(m_source->loadPage(page, update));
 
     // Do initial eager update on page UI (to prevent user spamming arrows
     // to access invalid pages)

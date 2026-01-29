@@ -195,12 +195,12 @@ CPMAddPackage(
 target_link_libraries(${PROJECT_NAME} ca-bundle)
 
 # Package resources for UI
-package_geode_resources_now(
-	${PROJECT_NAME}
-	${CMAKE_CURRENT_SOURCE_DIR}/resources
-	${GEODE_BIN_PATH}/nightly/resources
-	${CMAKE_CURRENT_SOURCE_DIR}/src/internal/resources.hpp
-)
+# package_geode_resources_now(
+# 	${PROJECT_NAME}
+# 	${CMAKE_CURRENT_SOURCE_DIR}/resources
+# 	${GEODE_BIN_PATH}/nightly/resources
+# 	${CMAKE_CURRENT_SOURCE_DIR}/src/internal/resources.hpp
+# )
 
 if (APPLE) 
 	# I don't care a single bit where to put this

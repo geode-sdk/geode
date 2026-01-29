@@ -126,7 +126,7 @@ void updater::tryDownloadLoaderResources(std::string url, bool tryLatestOnError)
                         ResourceDownloadEvent().send(UpdateFinished());
                     }
                     else {
-                        ResourceDownloadEvent().send(UpdateFailed("Unable to unzip new resources: " + ok.unwrapErr());
+                        ResourceDownloadEvent().send(UpdateFailed("Unable to unzip new resources: " + ok.unwrapErr()));
                     }
                 }
                 else {

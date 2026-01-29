@@ -161,8 +161,9 @@ bool FiltersPopup::init(ModListSource* src) {
     );
     m_buttonMenu->addChildAtPosition(okBtn, Anchor::Bottom, ccp(0, 20));
 
-    m_tagsListener.bind(this, &FiltersPopup::onLoadTags);
-    m_tagsListener.setFilter(server::getTags());
+    // TODO: v5
+    // m_tagsListener.bind(this, &FiltersPopup::onLoadTags);
+    // m_tagsListener.setFilter(server::getTags());
 
     return true;
 }

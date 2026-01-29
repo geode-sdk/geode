@@ -224,35 +224,37 @@ void LazySprite::loadFromUrl(std::string url, Format format, bool ignoreCache) {
     m_isLoading = true;
 
     auto cacheKey = ignoreCache ? std::string{} : std::string(url);
-    m_listener.bind([this, cacheKey = std::move(cacheKey)](web::WebTask::Event* event) mutable {
-        if (!event || !event->getValue()) return;
+    // TODO: v5
+    // m_listener.bind([this, cacheKey = std::move(cacheKey)](web::WebTask::Event* event) mutable {
+    //     if (!event || !event->getValue()) return;
 
-        auto resp = event->getValue();
-        if (!resp->ok()) {
-            std::string errmsg(resp->errorMessage());
-            if (errmsg.empty()) {
-                errmsg = resp->string().unwrapOrDefault();
-            }
+    //     auto resp = event->getValue();
+    //     if (!resp->ok()) {
+    //         std::string errmsg(resp->errorMessage());
+    //         if (errmsg.empty()) {
+    //             errmsg = resp->string().unwrapOrDefault();
+    //         }
 
-            if (errmsg.size() > 127) {
-                errmsg.resize(124);
-                errmsg += "...";
-            }
+    //         if (errmsg.size() > 127) {
+    //             errmsg.resize(124);
+    //             errmsg += "...";
+    //         }
 
-            this->onError(fmt::format(
-                "Request failed (code {}): {}",
-                resp->code(),
-                errmsg
-            ));
+    //         this->onError(fmt::format(
+    //             "Request failed (code {}): {}",
+    //             resp->code(),
+    //             errmsg
+    //         ));
 
-            return;
-        }
+    //         return;
+    //     }
 
-        this->doInitFromBytes(std::move(*resp).data(), std::move(cacheKey));
-    });
+    //     this->doInitFromBytes(std::move(*resp).data(), std::move(cacheKey));
+    // });
 
     web::WebRequest req{};
-    m_listener.setFilter(req.get(url));
+    // TODO: v5
+    // m_listener.setFilter(req.get(url));
 }
 
 void LazySprite::loadFromFile(const std::filesystem::path& path, Format format, bool ignoreCache) {

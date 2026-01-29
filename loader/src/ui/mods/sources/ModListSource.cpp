@@ -15,17 +15,6 @@ static size_t ceildiv(size_t a, size_t b) {
     return a / b + (a % b != 0);
 }
 
-InvalidateCacheEvent::InvalidateCacheEvent(ModListSource* src) : source(src) {}
-
-ListenerResult InvalidateCacheFilter::handle(geode::Function<Callback>& fn, InvalidateCacheEvent* event) {
-    if (event->source == m_source) {
-        fn(event);
-    }
-    return ListenerResult::Propagate;
-}
-
-InvalidateCacheFilter::InvalidateCacheFilter(ModListSource* src) : m_source(src) {}
-
 bool LocalModsQueryBase::isDefault() const {
     return !query.has_value() && tags.empty();
 }
@@ -84,7 +73,7 @@ void ModListSource::reset() {
 void ModListSource::clearCache() {
     m_cachedPages.clear();
     m_cachedItemCount = std::nullopt;
-    InvalidateCacheEvent(this).post();
+    InvalidateCacheEvent().send(this);
 }
 void ModListSource::search(std::string query) {
     this->setSearchQuery(std::move(query));
