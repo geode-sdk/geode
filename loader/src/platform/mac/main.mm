@@ -149,7 +149,7 @@ bool cleanModeCheck() {
         CGEventSourceKeyState(kCGEventSourceStateHIDSystemState, (CGKeyCode)56) // 56 = LShift
     ) {
         NSAlert* alert = [NSAlert new];
-        alert.messageText = @"The Shift and Option keys were held down, do you want to open Geometry Dash without Geode? (Disables Geode)";
+        alert.messageText = @"The Shift and Option keys were held down, do you want to open Geometry Dash without Geode?";
         [alert addButtonWithTitle:@"Yes"];
         NSButton *cancelButton = [alert addButtonWithTitle:@"No"];
         alert.window.defaultButtonCell = cancelButton.cell;
