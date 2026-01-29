@@ -338,7 +338,7 @@ if (APPLE)
 	else()
 		set_target_properties(geode-loader PROPERTIES 
 			SYSTEM_NAME MacOS
-			OSX_DEPLOYMENT_TARGET 10.15
+			OSX_DEPLOYMENT_TARGET 11.0
 			APPLE_SILICON_PROCESSOR x86_64
 		)
 
