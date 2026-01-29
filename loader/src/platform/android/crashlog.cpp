@@ -1,5 +1,4 @@
 #include <Geode/utils/string.hpp>
-#include <Geode/utils/StringBuffer.hpp>
 #include <crashlog.hpp>
 
 static bool s_lastLaunchCrashed = false;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/Loader.hpp>
+#include <Geode/utils/StringBuffer.hpp>
 #include <filesystem>
 #include <string>
 

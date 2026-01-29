@@ -71,7 +71,7 @@ void crashlog::updateFunctionBindings() {
         "https://prevter.github.io/bindings-meta/CodegenData-"
         GEODE_GD_VERSION_STRING
         "-"
-        GEODE_WINDOWS("Win64") GEODE_INTEL_MAC("Intel") GEODE_ARM_MAC("Arm")
+        GEODE_WINDOWS("Win64") GEODE_INTEL_MAC("Intel") GEODE_ARM_MAC("Arm") GEODE_IOS("iOS")
         ".json"
     ).listen([](web::WebResponse* res) {
         if (!res->ok()) return;
