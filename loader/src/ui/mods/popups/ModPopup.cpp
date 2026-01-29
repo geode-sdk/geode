@@ -680,10 +680,12 @@ bool ModPopup::init(ModSource&& src) {
     }
 
     // Only listen for updates on this mod specifically
-    // TODO: v5
-    // m_updateStateListener.bind([this](auto) { this->updateState(); });
-    // m_updateStateListener.setFilter(UpdateModListStateFilter(UpdateModState(m_source.getID())));
+    m_updateStateHandle = UpdateModListStateEvent().listen([this](UpdateState state) {
+        this->updateState();
+        return ListenerResult::Propagate;
+    });
 
+    // TODO: v5
     // m_downloadListener.bind([this](auto) { this->updateState(); });
     // m_downloadListener.setFilter(m_source.getID());
 

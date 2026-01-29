@@ -179,7 +179,6 @@ bool ModSettingsPopup::init(Mod* mod, bool forceDisableTheme) {
 
     foldersMenu->updateLayout();
 
-    // TODO: v5
     m_changeHandle = GlobalSettingNodeValueChangeEvent(std::move(mod)).listen([this](std::string_view key, SettingNodeV3* node, bool isCommit) {
         this->updateState(node);
         return ListenerResult::Propagate;

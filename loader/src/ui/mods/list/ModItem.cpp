@@ -361,8 +361,10 @@ bool ModItem::init(ModSource&& source) {
 
     // Only listen for updates on this mod specifically
     // TODO: v5
-    // m_updateStateListener.bind([this](auto) { this->updateState(); });
-    // m_updateStateListener.setFilter(UpdateModListStateFilter(UpdateModState(m_source.getID())));
+    m_updateStateHandle = UpdateModListStateEvent().listen([this](UpdateState state) {
+        this->updateState();
+        return ListenerResult::Propagate;
+    });
 
     // m_downloadListener.bind([this](auto) { this->updateState(); });
     // m_downloadListener.setFilter(server::ModDownloadFilter(m_source.getID()));

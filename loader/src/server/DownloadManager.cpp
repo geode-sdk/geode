@@ -84,17 +84,18 @@ public:
         //         if (m_scheduledEventForFrame != CCDirector::get()->getTotalFrames()) {
         //             m_scheduledEventForFrame = CCDirector::get()->getTotalFrames();
         //             Loader::get()->queueInMainThread([id = m_id]() {
-        //                 ModDownloadEvent(id).post();
+        //                 ModDownloadEvent(std::string(id)).send();
         //             });
         //         }
         //     }
         // });
         auto fetchVersion = version.has_value() ? ModVersion(*version) : ModVersion(ModVersionLatest());
-        // m_infoListener.setFilter(getModVersion(m_id, fetchVersion));
         // TODO: v5
-        // Loader::get()->queueInMainThread([id = m_id] {
-        //     ModDownloadEvent(std::move(id)).post();
-        // });
+        // m_infoListener.setFilter(getModVersion(m_id, fetchVersion));
+        
+        Loader::get()->queueInMainThread([id = m_id] {
+            ModDownloadEvent(std::string(id)).send();
+        });
     }
 
     void confirm() {
@@ -209,7 +210,7 @@ public:
         //     if (m_scheduledEventForFrame != CCDirector::get()->getTotalFrames()) {
         //         m_scheduledEventForFrame = CCDirector::get()->getTotalFrames();
         //         Loader::get()->queueInMainThread([id = m_id]() {
-        //             ModDownloadEvent(std::move(id)).send();
+        //             ModDownloadEvent(std::string(id)).send();
         //         });
         //     }
         // });
@@ -218,7 +219,7 @@ public:
         // auto req = web::WebRequest();
         // req.userAgent(getServerUserAgent());
         // m_downloadListener.setFilter(req.get(downloadURL));
-        // ModDownloadEvent(std::string(m_id)).send();
+        ModDownloadEvent(std::string(m_id)).send();
     }
 };
 
@@ -302,8 +303,7 @@ void ModDownload::cancel() {
         // Cancel any dependencies of this mod left over (unless some other
         // installation depends on them still)
         ModDownloadManager::get()->m_impl->cancelOrphanedDependencies();
-        // TODO: v5
-        // ModDownloadEvent(std::string(m_impl->m_id)).send();
+        ModDownloadEvent(std::string(m_impl->m_id)).send();
     }
 }
 

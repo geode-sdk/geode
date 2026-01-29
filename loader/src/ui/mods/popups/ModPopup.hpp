@@ -48,9 +48,7 @@ protected:
     // EventListener<server::ServerRequest<server::ServerModMetadata>> m_statsListener;
     // EventListener<server::ServerRequest<std::vector<server::ServerTag>>> m_tagsListener;
     // EventListener<server::ServerRequest<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
-    // EventListener<UpdateModListStateFilter> m_updateStateListener;
     // EventListener<server::ModDownloadFilter> m_downloadListener;
-    // EventListener<EventFilter<SettingNodeValueChangeEvent>> m_settingNodeListener;
 
     bool init(ModSource&& src);
     void updateState();
