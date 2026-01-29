@@ -473,10 +473,7 @@ namespace geode::event {
 
         EventCenter() : m_ports(asp::make_shared<MapType>()) {}
     public:
-        static EventCenter& get() {
-            static EventCenter instance;
-            return instance;
-        }
+        static EventCenter* get();
 
         template <class Callable>
         requires std::is_invocable_v<Callable, OpaquePortBase*>
@@ -538,7 +535,7 @@ namespace geode::event {
         std::is_convertible_v<PReturn, bool> || std::is_same_v<PReturn, void>;
     }
     void BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::send(PArgs&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, PArgs...>) {
-        return EventCenter::get().send(this, [&](OpaquePortBase* opaquePort) {
+        return EventCenter::get()->send(this, [&](OpaquePortBase* opaquePort) {
             auto port = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(opaquePort);
             return port->send(std::forward<PArgs>(args)...);
         });
@@ -550,7 +547,7 @@ namespace geode::event {
         std::is_convertible_v<PReturn, bool> || std::is_same_v<PReturn, void>;
     }
     ListenerHandle BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::addReceiver(geode::CopyableFunction<bool(PArgs...)> rec, int priority) const noexcept {
-        return EventCenter::get().addReceiver(this, [&](OpaquePortBase* opaquePort) {
+        return EventCenter::get()->addReceiver(this, [&](OpaquePortBase* opaquePort) {
             auto port = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(opaquePort);
             return port->addReceiver(std::move(rec), priority);
         });
@@ -562,7 +559,7 @@ namespace geode::event {
         std::is_convertible_v<PReturn, bool> || std::is_same_v<PReturn, void>;
     }
     size_t BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::removeReceiver(ReceiverHandle handle) const noexcept {
-        return EventCenter::get().removeReceiver(this, [&](OpaquePortBase* opaquePort) {
+        return EventCenter::get()->removeReceiver(this, [&](OpaquePortBase* opaquePort) {
             auto port = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(opaquePort);
             return port->removeReceiver(handle);
         });
