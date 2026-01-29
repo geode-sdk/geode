@@ -333,9 +333,9 @@ namespace geode::event {
     };
 
     template<class Marker, template <class> class PortTemplate, class Func, class... FArgs>
-    class EventFilter {
+    class BasicEvent {
     private:
-        static_assert(std::is_same_v<Marker, void>, "EventFilter specialization missing");
+        static_assert(std::is_same_v<Marker, void>, "BasicEvent specialization missing");
     };
 
     class ListenerHandle {
@@ -383,16 +383,17 @@ namespace geode::event {
         }
 
         template <class Marker, template <class> class PortTemplate, class Func, class... FArgs>
-        friend class EventFilter;
+        friend class BasicEvent;
     };
 
-    template<class Marker, template <class> class PortTemplate, class... PArgs, class... FArgs>
+    template<class Marker, template <class> class PortTemplate, class PReturn, class... PArgs, class... FArgs>
     requires requires {
         typename OpaqueEventPort<PortTemplate, PArgs...>;
+        std::is_convertible_v<PReturn, bool> || std::is_same_v<PReturn, void>;
     }
-    class EventFilter<Marker, PortTemplate, bool(PArgs...), FArgs...> : public BaseFilter {
+    class BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...> : public BaseFilter {
     protected:
-        using Self = EventFilter<Marker, PortTemplate, bool(PArgs...), FArgs...>;
+        using Self = BasicEvent<Marker, PortTemplate, bool(PArgs...), FArgs...>;
         struct CloneMarker {};
 
         std::tuple<FArgs...> const m_filter;
@@ -419,16 +420,16 @@ namespace geode::event {
         size_t removeReceiver(ReceiverHandle handle) const noexcept;
 
         static void removeReceiverStatic(BaseFilter const* filter, ReceiverHandle handle) noexcept {
-            auto* self = static_cast<EventFilter const*>(filter);
+            auto* self = static_cast<BasicEvent const*>(filter);
             if (self) {
                 self->removeReceiver(handle);
             }
         }
 
-        EventFilter(CloneMarker, std::tuple<FArgs...> const& value) noexcept : m_filter(value) {}
+        BasicEvent(CloneMarker, std::tuple<FArgs...> const& value) noexcept : m_filter(value) {}
 
     public:
-        EventFilter(FArgs&&... value) noexcept : m_filter(std::forward<FArgs>(value)...) {}
+        BasicEvent(FArgs&&... value) noexcept : m_filter(std::forward<FArgs>(value)...) {}
 
         void send(PArgs&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, PArgs...>);
 
@@ -452,10 +453,16 @@ namespace geode::event {
         }
     };
 
+    template<class Marker, class PFunc, class... FArgs>
+    using Event = BasicEvent<Marker, PortWrapper<Port, false>::type, PFunc, FArgs...>;
+
+    template<class Marker, class PFunc, class... FArgs>
+    using ThreadSafeEvent = BasicEvent<Marker, PortWrapper<Port, true>::type, PFunc, FArgs...>;
+
     template <class... Args>
-    class Dispatch : public EventFilter<Dispatch<Args...>, Port, bool(Args...), std::string> {
+    class Dispatch : public Event<Dispatch<Args...>, bool(Args...), std::string> {
     public:
-        using EventFilter<Dispatch<Args...>, Port, bool(Args...), std::string>::EventFilter;
+        using Event<Dispatch<Args...>, bool(Args...), std::string>::Event;
     };
 
     class EventCenter {
@@ -525,44 +532,48 @@ namespace geode::event {
         }
     };
 
-    template <class Marker, template <class> class PortTemplate, class... PArgs, class... FArgs>
+    template <class Marker, template <class> class PortTemplate, class PReturn, class... PArgs, class... FArgs>
     requires requires {
         typename OpaqueEventPort<PortTemplate, PArgs...>;
+        std::is_convertible_v<PReturn, bool> || std::is_same_v<PReturn, void>;
     }
-    void EventFilter<Marker, PortTemplate, bool(PArgs...), FArgs...>::send(PArgs&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, PArgs...>) {
+    void BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::send(PArgs&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, PArgs...>) {
         return EventCenter::get().send(this, [&](OpaquePortBase* opaquePort) {
             auto port = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(opaquePort);
             return port->send(std::forward<PArgs>(args)...);
         });
     }
 
-    template <class Marker, template <class> class PortTemplate, class... PArgs, class... FArgs>
+    template <class Marker, template <class> class PortTemplate, class PReturn, class... PArgs, class... FArgs>
     requires requires {
         typename OpaqueEventPort<PortTemplate, PArgs...>;
+        std::is_convertible_v<PReturn, bool> || std::is_same_v<PReturn, void>;
     }
-    ListenerHandle EventFilter<Marker, PortTemplate, bool(PArgs...), FArgs...>::addReceiver(geode::CopyableFunction<bool(PArgs...)> rec, int priority) const noexcept {
+    ListenerHandle BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::addReceiver(geode::CopyableFunction<bool(PArgs...)> rec, int priority) const noexcept {
         return EventCenter::get().addReceiver(this, [&](OpaquePortBase* opaquePort) {
             auto port = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(opaquePort);
             return port->addReceiver(std::move(rec), priority);
         });
     }
 
-    template <class Marker, template <class> class PortTemplate, class... PArgs, class... FArgs>
+    template <class Marker, template <class> class PortTemplate, class PReturn, class... PArgs, class... FArgs>
     requires requires {
         typename OpaqueEventPort<PortTemplate, PArgs...>;
+        std::is_convertible_v<PReturn, bool> || std::is_same_v<PReturn, void>;
     }
-    size_t EventFilter<Marker, PortTemplate, bool(PArgs...), FArgs...>::removeReceiver(ReceiverHandle handle) const noexcept {
+    size_t BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::removeReceiver(ReceiverHandle handle) const noexcept {
         return EventCenter::get().removeReceiver(this, [&](OpaquePortBase* opaquePort) {
             auto port = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(opaquePort);
             return port->removeReceiver(handle);
         });
     }
 
-    template <class Marker, template <class> class PortTemplate, class... PArgs, class... FArgs>
+    template <class Marker, template <class> class PortTemplate, class PReturn, class... PArgs, class... FArgs>
     requires requires {
         typename OpaqueEventPort<PortTemplate, PArgs...>;
+        std::is_convertible_v<PReturn, bool> || std::is_same_v<PReturn, void>;
     }
-    OpaquePortBase* EventFilter<Marker, PortTemplate, bool(PArgs...), FArgs...>::getPort() const noexcept {
+    OpaquePortBase* BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::getPort() const noexcept {
         return new OpaqueEventPort<PortTemplate, PArgs...>();
     };
 }
