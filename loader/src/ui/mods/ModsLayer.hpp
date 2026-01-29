@@ -37,10 +37,13 @@ protected:
     CCMenuItemSpriteExtra* m_viewBtn;
     CCMenuItemSpriteExtra* m_cancelBtn;
     CCMenuItemSpriteExtra* m_restartBtn;
-    EventListener<UpdateModListStateFilter> m_updateStateListener;
-    EventListener<server::ModDownloadFilter> m_downloadListener;
+    ListenerHandle m_updateStateHandle;
+    ListenerHandle m_downloadHandle;
+    // EventListener<UpdateModListStateFilter> m_updateStateListener;
+    // EventListener<server::ModDownloadFilter> m_downloadListener;
     DownloadState m_lastState = DownloadState::None;
-    EventListener<EventFilter<SettingNodeValueChangeEvent>> m_settingNodeListener;
+    ListenerHandle m_settingNodeHandle;
+    // EventListener<EventFilter<SettingNodeValueChangeEvent>> m_settingNodeListener;
 
     bool init();
     void updateState();
@@ -64,7 +67,8 @@ protected:
     CCLabelBMFont* m_pageLabel;
     CCMenuItemSpriteExtra* m_goToPageBtn;
     ModsStatusNode* m_statusNode;
-    EventListener<UpdateModListStateFilter> m_updateStateListener;
+    ListenerHandle m_updateStateHandle;
+    // EventListener<UpdateModListStateFilter> m_updateStateListener;
     bool m_showSearch = true;
     std::vector<CCMenuItemSpriteExtra*> m_displayBtns;
     ModListDisplay m_modListDisplay;

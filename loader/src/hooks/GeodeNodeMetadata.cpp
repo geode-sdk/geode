@@ -400,7 +400,7 @@ void CCNode::updateLayout(bool updateChildOrder) {
 
 void CCNode::setUserObject(std::string id, CCObject* value) {
     GeodeNodeMetadata::set(this)->setUserObject(id, value);
-    UserObjectSetEvent(std::move(id)).send(this, value);
+    UserObjectSetEvent(std::move(id)).send(this, std::move(value));
 }
 
 CCObject* CCNode::getUserObject(std::string_view id) {

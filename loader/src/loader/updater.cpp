@@ -12,18 +12,6 @@ using namespace geode::prelude;
 
 static StringMap<web::WebTask> RUNNING_REQUESTS {};
 
-updater::ResourceDownloadEvent::ResourceDownloadEvent(
-    UpdateStatus status
-) : status(std::move(status)) {}
-
-updater::ResourceDownloadFilter::ResourceDownloadFilter() = default;
-
-updater::LoaderUpdateEvent::LoaderUpdateEvent(
-    UpdateStatus status
-) : status(std::move(status)) {}
-
-updater::LoaderUpdateFilter::LoaderUpdateFilter() = default;
-
 // cache for the json of the latest github release to avoid hitting
 // the github api too much
 std::optional<matjson::Value> s_latestGithubRelease;
@@ -110,14 +98,10 @@ void updater::downloadLatestLoaderResources() {
                 }
             }
 
-            ResourceDownloadEvent(
-                UpdateFailed("Unable to find resources in latest GitHub release")
-            ).post();
+            ResourceDownloadEvent().send(UpdateFailed("Unable to find resources in latest GitHub release"));
         },
         [](std::string info) {
-            ResourceDownloadEvent(
-                UpdateFailed("Unable to download resources: " + info)
-            ).post();
+            ResourceDownloadEvent().send(UpdateFailed("Unable to download resources: " + info));
         },
         true
     );
@@ -139,16 +123,14 @@ void updater::tryDownloadLoaderResources(std::string url, bool tryLatestOnError)
                     auto ok = unzip.unwrap().extractAllTo(resourcesDir);
                     if (ok) {
                         updater::updateSpecialFiles();
-                        ResourceDownloadEvent(UpdateFinished()).post();
+                        ResourceDownloadEvent().send(UpdateFinished());
                     }
                     else {
-                        ResourceDownloadEvent(
-                            UpdateFailed("Unable to unzip new resources: " + ok.unwrapErr())
-                        ).post();
+                        ResourceDownloadEvent().send(UpdateFailed("Unable to unzip new resources: " + ok.unwrapErr());
                     }
                 }
                 else {
-                    ResourceDownloadEvent(UpdateFailed("Unable to unzip new resources: " + unzip.unwrapErr())).post();
+                    ResourceDownloadEvent().send(UpdateFailed("Unable to unzip new resources: " + unzip.unwrapErr()));
                 }
             }
             else {
@@ -158,20 +140,20 @@ void updater::tryDownloadLoaderResources(std::string url, bool tryLatestOnError)
                 if (response->code() == 404) {
                     log::warn("Unable to download resources: {}", reason);
                 }
-                ResourceDownloadEvent(
+                ResourceDownloadEvent().send(
                     UpdateFailed("Unable to download resources: " + reason)
-                ).post();
+                );
             }
             RUNNING_REQUESTS.erase(url);
             return *response;
         },
         [](web::WebProgress* progress) {
-            ResourceDownloadEvent(
+            ResourceDownloadEvent().send(
                 UpdateProgress(
                     static_cast<uint8_t>(progress->downloadProgress().value_or(0)),
                     "Downloading resources"
                 )
-            ).post();
+            );
             return *progress;
         }
     );
@@ -220,7 +202,7 @@ void updater::downloadLoaderResources(bool useLatestRelease) {
                         }
                     }
 
-                    ResourceDownloadEvent(UpdateFailed("Unable to find resources in release")).post();
+                    ResourceDownloadEvent().send(UpdateFailed("Unable to find resources in release"));
                     return doErase();
                 }
             }
@@ -230,7 +212,7 @@ void updater::downloadLoaderResources(bool useLatestRelease) {
             }
             else {
                 log::warn("Loader version {} does not exist on GitHub, not downloading the resources", Loader::get()->getVersion().toVString());
-                ResourceDownloadEvent(UpdateFinished()).post();
+                ResourceDownloadEvent().send(UpdateFinished());
             }
 
             return doErase();
@@ -317,28 +299,28 @@ void updater::downloadLoaderUpdate(std::string url) {
                         auto ok = unzip.unwrap().extractAllTo(targetDir);
                         if (ok) {
                             s_isNewUpdateDownloaded = true;
-                            LoaderUpdateEvent(UpdateFinished()).post();
+                            LoaderUpdateEvent().send(UpdateFinished());
                         }
                         else {
-                            LoaderUpdateEvent(
+                            LoaderUpdateEvent().send(
                                 UpdateFailed("Unable to unzip update: " + ok.unwrapErr())
-                            ).post();
+                            );
                             Mod::get()->setSavedValue("last-modified-auto-update-check", std::string());
                         }
                     }
                     else {
-                        LoaderUpdateEvent(
+                        LoaderUpdateEvent().send(
                             UpdateFailed("Unable to unzip update: " + unzip.unwrapErr())
-                        ).post();
+                        );
                         Mod::get()->setSavedValue("last-modified-auto-update-check", std::string());
                     }
                 }
                 else {
                     auto info = response->string().unwrapOr("Unknown error");
                     log::error("Failed to download latest update {}", info);
-                    LoaderUpdateEvent(
+                    LoaderUpdateEvent().send(
                         UpdateFailed("Unable to download update: " + info)
-                    ).post();
+                    );
 
                     Mod::get()->setSavedValue("last-modified-auto-update-check", std::string());
                 }
@@ -346,12 +328,12 @@ void updater::downloadLoaderUpdate(std::string url) {
                 return *response;
             },
             [](web::WebProgress* progress) {
-                LoaderUpdateEvent(
+                LoaderUpdateEvent().send(
                     UpdateProgress(
                         static_cast<uint8_t>(progress->downloadProgress().value_or(0)),
                         "Downloading update"
                     )
-                ).post();
+                );
                 return *progress;
             }
         )
@@ -399,17 +381,17 @@ void updater::checkForLoaderUpdates() {
             }
 
             log::error("Failed to find release asset for " GEODE_PLATFORM_NAME);
-            LoaderUpdateEvent(
+            LoaderUpdateEvent().send(
                 UpdateFailed("Unable to find release asset for " GEODE_PLATFORM_NAME)
-            ).post();
+            );
 
             Mod::get()->setSavedValue("last-modified-auto-update-check", std::string());
         },
         [](std::string info) {
             log::error("Failed to fetch updates {}", info);
-            LoaderUpdateEvent(
+            LoaderUpdateEvent().send(
                 UpdateFailed("Unable to check for updates: " + info)
-            ).post();
+            );
         }
     );
 }

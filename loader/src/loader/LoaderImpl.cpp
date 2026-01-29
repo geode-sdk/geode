@@ -138,7 +138,7 @@ Result<> Loader::Impl::setup() {
 
     // Trigger on_mod(Loaded) for the internal mod
     // this function is already on the gd thread, so this should be fine
-    ModStateEvent(Mod::get(), ModEventType::Loaded).post();
+    ModStateEvent(ModEventType::Loaded, Mod::get()).send();
 
     log::info("Refreshing mod graph");
     this->refreshModGraph();

@@ -262,7 +262,8 @@ class FileSettingNodeV3 : public SettingValueNodeV3<FileSettingV3> {
 protected:
     CCSprite* m_fileIcon;
     CCLabelBMFont* m_nameLabel;
-    EventListener<Task<Result<std::filesystem::path>>> m_pickListener;
+    ListenerHandle m_pickHandle;
+    // EventListener<Task<Result<std::filesystem::path>>> m_pickListener;
     CCMenuItemSpriteExtra* m_selectBtn;
     CCSprite* m_selectBtnSpr;
 

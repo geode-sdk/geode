@@ -11,23 +11,12 @@ using namespace geode::prelude;
 
 class ModListSource;
 
-struct InvalidateCacheEvent : public Event {
-    ModListSource* source;
-    InvalidateCacheEvent(ModListSource* src);
-};
-
-class InvalidateCacheFilter : public EventFilter<InvalidateCacheEvent> {
-protected:
-    ModListSource* m_source;
-
+class InvalidateCacheEvent final : public SimpleEvent<InvalidateCacheEvent, ModListSource*> {
 public:
-    using Callback = void(InvalidateCacheEvent*);
-
-    ListenerResult handle(geode::Function<Callback>& fn, InvalidateCacheEvent* event);
-
-    InvalidateCacheFilter() = default;
-    InvalidateCacheFilter(ModListSource* src);
+    // filter params source
+    using SimpleEvent::SimpleEvent;
 };
+
 
 // If we want to insert some special item in the middle of the mods list (for 
 // example, when there are invalid .geode files in the mods folder, a single 

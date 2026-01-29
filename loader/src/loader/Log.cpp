@@ -304,7 +304,7 @@ void Logger::setup() {
     std::lock_guard g(getLogMutex());
 
     g_logMillis = Mod::get()->getSettingValue<bool>("log-milliseconds");
-    listenForSettingChanges("log-milliseconds", [](bool val) {
+    listenForSettingChanges<bool>("log-milliseconds", [](bool val) {
         g_logMillis.store(val, std::memory_order::release);
     });
 

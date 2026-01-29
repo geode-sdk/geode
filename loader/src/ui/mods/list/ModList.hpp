@@ -30,7 +30,8 @@ protected:
     CCMenuItemSpriteExtra* m_statusDetailsBtn;
     CCNode* m_statusLoadingCircle;
     Slider* m_statusLoadingBar;
-    EventListener<ModListSource::PageLoadTask> m_listener;
+    ListenerHandle m_pageLoadHandle;
+    // EventListener<ModListSource::PageLoadTask> m_listener;
     CCMenuItemSpriteExtra* m_pagePrevBtn;
     CCMenuItemSpriteExtra* m_pageNextBtn;
     CCNode* m_topContainer;
@@ -49,9 +50,12 @@ protected:
     TextInput* m_searchInput;
     CCMenuItemSpriteExtra* m_filtersBtn;
     CCMenuItemSpriteExtra* m_clearFiltersBtn;
-    EventListener<InvalidateCacheFilter> m_invalidateCacheListener;
-    EventListener<server::ServerRequest<std::vector<std::string>>> m_checkUpdatesListener;
-    EventListener<server::ModDownloadFilter> m_downloadListener;
+    ListenerHandle m_invalidateCacheHandle;
+    ListenerHandle m_checkUpdatesHandle;
+    ListenerHandle m_downloadHandle;
+    // EventListener<InvalidateCacheFilter> m_invalidateCacheListener;
+    // EventListener<server::ServerRequest<std::vector<std::string>>> m_checkUpdatesListener;
+    // EventListener<server::ModDownloadFilter> m_downloadListener;
     ModListDisplay m_display = ModListDisplay::SmallList;
     bool m_exiting = false;
     std::atomic<size_t> m_searchInputThreads = 0;

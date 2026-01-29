@@ -1126,7 +1126,7 @@ public:
         int priority = 0
     ) {
         auto handle = event.listen(std::forward<Callback>(callback), priority);
-        return this->addEventListenerInternal(id, std::move(handle));
+        return this->addEventListenerInternal(std::string(id), std::move(handle));
     }
     template <class Event, class Callback>
     geode::event::ListenerHandle* addEventListener(

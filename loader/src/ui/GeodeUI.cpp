@@ -10,7 +10,6 @@
 #include "mods/GeodeStyle.hpp"
 #include "mods/settings/ModSettingsPopup.hpp"
 #include "mods/popups/ModPopup.hpp"
-#include "GeodeUIEvent.hpp"
 
 class LoadServerModLayer : public Popup {
 protected:

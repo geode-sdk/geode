@@ -228,7 +228,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         if (!gameEventPosted) {
             gameEventPosted = true;
             Loader::get()->queueInMainThread([] {
-                GameEvent(GameEventType::Loaded).post();
+                GameEvent(GameEventType::Loaded).send();
             });
         }
 

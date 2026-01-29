@@ -23,7 +23,8 @@ protected:
         geode::Function<void(bool)> after;
     };
 
-    EventListener<server::ModDownloadFilter> m_download;
+    ListenerHandle m_downloadHandle;
+    // EventListener<server::ModDownloadFilter> m_download;
     std::vector<std::string> m_unsolved;
     std::deque<Question> m_questionQueue;
 

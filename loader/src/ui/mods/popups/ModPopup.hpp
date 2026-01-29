@@ -39,12 +39,18 @@ protected:
     CCNode* m_modtoberBanner = nullptr;
     CCMenu* m_titleContainer = nullptr;
     std::unordered_map<Tab, std::pair<GeodeTabSprite*, Ref<CCNode>>> m_tabs;
-    EventListener<server::ServerRequest<server::ServerModMetadata>> m_statsListener;
-    EventListener<server::ServerRequest<std::vector<server::ServerTag>>> m_tagsListener;
-    EventListener<server::ServerRequest<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
-    EventListener<UpdateModListStateFilter> m_updateStateListener;
-    EventListener<server::ModDownloadFilter> m_downloadListener;
-    EventListener<EventFilter<SettingNodeValueChangeEvent>> m_settingNodeListener;
+    ListenerHandle m_statsHandle;
+    ListenerHandle m_tagsHandle;
+    ListenerHandle m_checkUpdateHandle;
+    ListenerHandle m_updateStateHandle;
+    ListenerHandle m_downloadHandle;
+    ListenerHandle m_settingNodeHandle;
+    // EventListener<server::ServerRequest<server::ServerModMetadata>> m_statsListener;
+    // EventListener<server::ServerRequest<std::vector<server::ServerTag>>> m_tagsListener;
+    // EventListener<server::ServerRequest<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
+    // EventListener<UpdateModListStateFilter> m_updateStateListener;
+    // EventListener<server::ModDownloadFilter> m_downloadListener;
+    // EventListener<EventFilter<SettingNodeValueChangeEvent>> m_settingNodeListener;
 
     bool init(ModSource&& src);
     void updateState();

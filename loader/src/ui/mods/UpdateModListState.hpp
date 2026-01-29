@@ -21,22 +21,8 @@ struct UpdateModState final {
 };
 using UpdateState = std::variant<UpdatePageNumberState, UpdateWholeState, UpdateModState>;
 
-struct UpdateModListStateEvent : public Event {
-    UpdateState target;
-
-    UpdateModListStateEvent(UpdateState&& target);
-};
-
-class UpdateModListStateFilter : public EventFilter<UpdateModListStateEvent> {
+class UpdateModListStateEvent final : public SimpleEvent<UpdateModListStateEvent, UpdateState> {
 public:
-    using Callback = void(UpdateModListStateEvent*);
-
-protected:
-    UpdateState m_target;
-
-public:
-    ListenerResult handle(geode::Function<Callback>& fn, UpdateModListStateEvent* event);
-
-    UpdateModListStateFilter();
-    UpdateModListStateFilter(UpdateState&& target);
+    // listener params target
+    using SimpleEvent::SimpleEvent;
 };
