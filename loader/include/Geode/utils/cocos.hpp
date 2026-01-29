@@ -590,17 +590,16 @@ namespace geode {
      * @tparam Filter The event filter this listener uses. See
      * `EventListener` for more information.
      */
-    template <class Filter>
     class EventListenerNode : public cocos2d::CCNode {
     protected:
-        EventListener<Filter> m_listener;
+        event::ListenerHandle m_handle;
 
-        EventListenerNode(EventListener<Filter>&& listener)
-          : m_listener(std::move(listener)) {}
+        EventListenerNode(event::ListenerHandle&& handle)
+          : m_handle(std::move(handle)) {}
 
     public:
-        static EventListenerNode* create(EventListener<Filter> listener) {
-            auto ret = new EventListenerNode(std::move(listener));
+        static EventListenerNode* create(event::ListenerHandle&& handle) {
+            auto ret = new EventListenerNode(std::move(handle));
             if (ret->init()) {
                 ret->autorelease();
                 return ret;
@@ -609,24 +608,9 @@ namespace geode {
             return nullptr;
         }
 
-        static EventListenerNode* create(typename Filter::Callback callback, Filter filter = Filter()) {
-            auto ret = new EventListenerNode(EventListener<Filter>(callback, filter));
-            if (ret->init()) {
-                ret->autorelease();
-                return ret;
-            }
-            delete ret;
-            return nullptr;
-        }
-
-        template <class C>
-        static EventListenerNode* create(
-            C* cls, typename EventListener<Filter>::template MemberFn<C> callback
-        ) {
-            // for some reason msvc won't let me just call EventListenerNode::create...
-            // it claims no return value...
-            // despite me writing return EventListenerNode::create()......
-            auto ret = new EventListenerNode(EventListener<Filter>(cls, callback));
+        template <class Event, class Callback>
+        static EventListenerNode* create(Event event, Callback&& callback, int priority) {
+            auto ret = new EventListenerNode(event.listen(std::forward<Callback>(callback), priority));
             if (ret->init()) {
                 ret->autorelease();
                 return ret;

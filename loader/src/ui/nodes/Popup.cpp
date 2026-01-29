@@ -3,8 +3,6 @@
 #include <Geode/binding/FLAlertLayerProtocol.hpp>
 
 using namespace geode::prelude;
-using CloseEvent = Popup::CloseEvent;
-using CloseEventFilter = Popup::CloseEventFilter;
 
 // static void fixChildPositions(CCNode* in, CCSize const& size) {
 //     auto winSize = CCDirector::get()->getWinSize();
@@ -70,41 +68,6 @@ using CloseEventFilter = Popup::CloseEventFilter;
 //     alert->m_mainLayer->setPosition(winSize / 2);
 //     alert->m_mainLayer->setLayout(AutoPopupLayout::create(alert->m_buttonMenu, bg));
 // }
-
-class CloseEvent::Impl final {
-private:
-    Popup* popup;
-    friend class CloseEvent;
-};
-
-CloseEvent::CloseEvent(Popup* popup) : m_impl(std::make_shared<Impl>()) {
-    m_impl->popup = popup;
-}
-
-Popup* CloseEvent::getPopup() const {
-    return m_impl->popup;
-}
-
-bool CloseEvent::filter(Popup* popup) const {
-    return m_impl->popup == popup; 
-}
-
-class CloseEventFilter::Impl final {
-private:
-    Popup* popup;
-    friend class CloseEventFilter;
-};
-
-CloseEventFilter::CloseEventFilter(Popup* popup) : m_impl(std::make_shared<Impl>()) {
-    m_impl->popup = popup;
-}
-
-ListenerResult CloseEventFilter::handle(geode::Function<Callback>& fn, CloseEvent* event) {
-    if (event->getPopup() == m_impl->popup) {
-        fn(event);
-    }
-    return ListenerResult::Propagate;
-}
 
 // Popup impl
 
@@ -207,8 +170,8 @@ void Popup::setCloseButtonSpr(CCSprite* spr, float scale) {
     m_closeBtn->setContentSize(origSize);
 }
 
-CloseEventFilter Popup::listenForClose() {
-    return CloseEventFilter(this);
+Popup::CloseEvent Popup::listenForClose() {
+    return Popup::CloseEvent(this);
 }
 
 class QuickPopup : public FLAlertLayer, public FLAlertLayerProtocol {

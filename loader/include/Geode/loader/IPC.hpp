@@ -24,46 +24,11 @@ namespace geode::ipc {
     // messages the get by using the reply method on the event provided. For
     // example, an external application can query what mods are loaded in Geode
     // by sending the `list-mods` message to `geode.loader`.
-
-    class GEODE_DLL IPCEvent final : public Event {
-    protected:
-        void* m_rawPipeHandle;
-        bool m_replied = false;
-
+    class GEODE_DLL IPCEvent final : public ThreadSafeEvent<IPCEvent, bool(matjson::Value, matjson::Value&), std::string, std::string> {
     public:
-        std::string targetModID;
-        std::string messageID;
-        std::unique_ptr<matjson::Value> messageData;
-        matjson::Value& replyData;
-
-        friend class IPCFilter;
-
-        IPCEvent(
-            void* rawPipeHandle,
-            std::string targetModID,
-            std::string messageID,
-            matjson::Value messageData,
-            matjson::Value& replyData
-        );
-        bool filter(std::string_view modID, std::string_view messageID) const;
-        virtual ~IPCEvent();
-    };
-
-    class GEODE_DLL IPCFilter final : public EventFilter<IPCEvent> {
-    public:
-        using Callback = matjson::Value(IPCEvent*);
-
-    protected:
-        std::string m_modID;
-        std::string m_messageID;
-
-    public:
-        ListenerResult handle(geode::Function<Callback>& fn, IPCEvent* event);
-        IPCFilter(
-            std::string modID,
-            std::string messageID
-        );
-        IPCFilter(IPCFilter const&) = default;
+        // listener params messageData, replyData
+        // filter params targetModID, messageID
+        using ThreadSafeEvent::ThreadSafeEvent;
     };
 
     inline void listen(std::string messageID, matjson::Value(*callback)(IPCEvent*)) {

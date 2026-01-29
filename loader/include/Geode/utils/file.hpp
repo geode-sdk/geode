@@ -313,24 +313,10 @@ namespace geode::utils::file {
      */
     GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> pickMany(FilePickOptions const& options);
 
-    class GEODE_DLL FileWatchEvent final : public Event {
-    protected:
-        std::filesystem::path m_path;
-
+    class GEODE_DLL FileWatchEvent final : public Event<FileWatchEvent, bool(), std::filesystem::path> {
     public:
-        FileWatchEvent(std::filesystem::path const& path);
-        std::filesystem::path getPath() const;
-    };
-
-    class GEODE_DLL FileWatchFilter final : public EventFilter<FileWatchEvent> {
-    protected:
-        std::filesystem::path m_path;
-
-    public:
-        using Callback = void(FileWatchEvent*);
-
-        ListenerResult handle(geode::Function<Callback>& callback, FileWatchEvent* event);
-        FileWatchFilter(std::filesystem::path const& path);
+        // filter params path
+        using Event::Event;
     };
 
     /**

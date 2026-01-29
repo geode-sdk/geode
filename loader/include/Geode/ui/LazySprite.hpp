@@ -69,7 +69,7 @@ namespace geode {
         Ref<LoadingSpinner> m_loadingCircle;
         Callback m_callback;
         Format m_expectedFormat;
-        EventListener<utils::web::WebTask> m_listener;
+        // EventListener<utils::web::WebTask> m_listener;
         bool m_isLoading = false;
         std::atomic_bool m_hasLoaded = false;
         bool m_autoresize;
