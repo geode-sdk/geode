@@ -464,37 +464,33 @@ void FileSettingNodeV3::updateState(CCNode* invoker) {
 }
 
 void FileSettingNodeV3::onPickFile(CCObject*) {
-    // TODO: v5
-    
-    // m_pickListener.bind([this](auto* event) {
-    //     auto value = event->getValue();
-    //     if (!value) {
-    //         return;
-    //     }
-    //     if (value->isOk()) {
-    //         this->setValue(value->unwrap(), nullptr);
-    //     }
-    //     else {
-    //         FLAlertLayer::create(
-    //             "Failed",
-    //             fmt::format("Failed to pick file: {}", value->unwrapErr()),
-    //             "Ok"
-    //         )->show();
-    //     }
-    // });
     std::error_code ec;
-    // m_pickListener.setFilter(file::pick(
-    //     this->getSetting()->isFolder() ?
-    //         file::PickMode::OpenFolder :
-    //         (this->getSetting()->useSaveDialog() ? file::PickMode::SaveFile : file::PickMode::OpenFile),
-    //     {
-    //         // Prefer opening the current path directly if possible
-    //         this->getValue().empty() || !std::filesystem::exists(this->getValue().parent_path(), ec) ?
-    //             dirs::getGameDir() :
-    //             this->getValue(),
-    //         this->getSetting()->getFilters().value_or(std::vector<file::FilePickOptions::Filter>())
-    //     }
-    // ));
+
+    m_pickListener.spawn(
+        file::pick(
+            this->getSetting()->isFolder() ?
+            file::PickMode::OpenFolder :
+            this->getSetting()->useSaveDialog() ? file::PickMode::SaveFile : file::PickMode::OpenFile,
+            {
+                // Prefer opening the current path directly if possible
+                this->getValue().empty() || !std::filesystem::exists(this->getValue().parent_path(), ec)
+                    ? dirs::getGameDir() : this->getValue(),
+                this->getSetting()->getFilters().value_or(std::vector<file::FilePickOptions::Filter>())
+            }
+        ),
+        [this](Result<std::filesystem::path> path) {
+            if (path.isOk()) {
+                this->setValue(std::move(path).unwrap(), nullptr);
+            }
+            else {
+                FLAlertLayer::create(
+                    "Failed",
+                    fmt::format("Failed to pick file: {}", path.unwrapErr()),
+                    "Ok"
+                )->show();
+            }
+        }
+    );
 }
 
 FileSettingNodeV3* FileSettingNodeV3::create(std::shared_ptr<FileSettingV3> setting, float width) {

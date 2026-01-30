@@ -264,6 +264,7 @@ protected:
     CCLabelBMFont* m_nameLabel;
     ListenerHandle m_pickHandle;
     // EventListener<Task<Result<std::filesystem::path>>> m_pickListener;
+    async::TaskHolder<Result<std::filesystem::path>> m_pickListener;
     CCMenuItemSpriteExtra* m_selectBtn;
     CCSprite* m_selectBtnSpr;
 
