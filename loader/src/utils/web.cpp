@@ -326,6 +326,15 @@ std::string_view WebResponse::errorMessage() const {
 
 WebFuture::WebFuture(arc::Future<WebResponse> inner) : inner(std::move(inner)) {}
 
+WebFuture::WebFuture(WebFuture&& other) noexcept : inner(std::move(other.inner)) {}
+
+WebFuture& WebFuture::operator=(WebFuture&& other) noexcept {
+    if (this != &other) {
+        this->inner = std::move(other.inner);
+    }
+    return *this;
+}
+
 std::optional<WebResponse> WebFuture::poll() {
     if (inner.poll()) {
         return inner.getOutput();

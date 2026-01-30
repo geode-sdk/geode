@@ -22,7 +22,7 @@ template <
     typename Callback = std::conditional_t<Void, Function<void()>, Function<void(Out)>>
 >
 arc::TaskHandle<void> spawn(Fut future, Callback cb) {
-    runtime().spawn([](Fut future, Callback cb) mutable -> arc::Future<> {
+    return runtime().spawn([](Fut future, Callback cb) mutable -> arc::Future<> {
         if constexpr (Void) {
             co_await std::move(future);
             geode::queueInMainThread([cb = std::move(cb)]() mutable {

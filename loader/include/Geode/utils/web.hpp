@@ -190,7 +190,12 @@ namespace geode::utils::web {
     
     struct GEODE_DLL ARC_NODISCARD WebFuture : arc::PollableBase<WebFuture, WebResponse> {
         WebFuture(arc::Future<WebResponse> inner);
-        
+
+        WebFuture(WebFuture&&) noexcept;
+        WebFuture& operator=(WebFuture&&) noexcept;
+        WebFuture(WebFuture const&) = delete;
+        WebFuture& operator=(WebFuture const&) = delete;
+
         std::optional<WebResponse> poll();
 
     private:
