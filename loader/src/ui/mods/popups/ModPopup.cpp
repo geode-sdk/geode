@@ -669,15 +669,26 @@ bool ModPopup::init(ModSource&& src) {
     this->updateState();
 
     // Load stats from server (or just from the source if it already has them)
-    // TODO: v5
-    // m_statsListener.bind(this, &ModPopup::onLoadServerInfo);
-    // m_statsListener.setFilter(m_source.fetchServerInfo());
-    // m_tagsListener.bind(this, &ModPopup::onLoadTags);
-    // m_tagsListener.setFilter(m_source.fetchValidTags());
+    m_statsListener.spawn(
+        m_source.fetchServerInfo(),
+        [this](auto res) {
+            this->onLoadServerInfo(std::move(res));
+        }
+    );
+    m_tagsListener.spawn(
+        m_source.fetchValidTags(),
+        [this](auto res) {
+            this->onLoadTags(std::move(res));
+        }
+    );
 
     if (m_source.asMod()) {
-        // m_checkUpdateListener.bind(this, &ModPopup::onCheckUpdates);
-        // m_checkUpdateListener.setFilter(m_source.checkUpdates());
+        m_checkUpdateListener.spawn(
+            m_source.checkUpdates(),
+            [this](auto res) {
+                this->onCheckUpdates(std::move(res));
+            }
+        );
     }
     else {
         auto updatesStat = m_stats->getChildByID("update-check");
@@ -690,9 +701,10 @@ bool ModPopup::init(ModSource&& src) {
         return ListenerResult::Propagate;
     });
 
-    // TODO: v5
-    // m_downloadListener.bind([this](auto) { this->updateState(); });
-    // m_downloadListener.setFilter(m_source.getID());
+    m_downloadListener = server::ModDownloadEvent(m_source.getID()).listen([this]() {
+        this->updateState();
+        return ListenerResult::Propagate;
+    });
 
     m_source.visit(makeVisitor {
         [this](Mod* mod) {

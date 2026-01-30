@@ -48,7 +48,7 @@ protected:
     async::TaskHolder<server::ServerResult<server::ServerModMetadata>> m_statsListener;
     async::TaskHolder<server::ServerResult<std::vector<server::ServerTag>>> m_tagsListener;
     async::TaskHolder<server::ServerResult<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
-    // async::TaskHolder<server::ModDownloadFilter> m_downloadListener;
+    ListenerHandle m_downloadListener;
 
     bool init(ModSource&& src);
     void updateState();
