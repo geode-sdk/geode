@@ -21,6 +21,7 @@
 #include <arc/sync/Mutex.hpp>
 #include <arc/sync/mpsc.hpp>
 #include <arc/sync/oneshot.hpp>
+#include <asp/collections/SmallVec.hpp>
 #include <ca_bundle.h>
 #include <curl/curl.h>
 #include <queue>
@@ -906,7 +907,60 @@ HttpVersion WebRequest::getHttpVersion() const {
     return m_impl->m_httpVersion;
 }
 
-static int socketCallback(CURL* easy, curl_socket_t s, int what, void* userp, void* socketp);
+struct RegisteredSocket {
+    arc::Registration rio;
+    uint64_t rioId;
+    arc::Interest interest;
+};
+
+struct ARC_NODISCARD MultiPollFuture : PollableBase<MultiPollFuture, curl_socket_t> {
+    enum class State {
+        Init,
+        Waiting,
+    } m_state = State::Init;
+    std::unordered_map<curl_socket_t, RegisteredSocket>* m_sockets;
+    asp::SmallVec<std::pair<curl_socket_t, uint64_t>, 16> registered;
+
+    explicit MultiPollFuture(decltype(m_sockets) sockets) : m_sockets(sockets) {}
+    
+    MultiPollFuture(MultiPollFuture&&) = default;
+    MultiPollFuture& operator=(MultiPollFuture&&) = default;
+
+    std::optional<curl_socket_t> poll() {
+        switch (m_state) {
+            case State::Init: {
+                // initial state: poll all sockets, return immediately if there's activity on one of them
+                for (auto& [fd, rs] : *m_sockets) {
+                    auto ready = rs.rio.pollReady(rs.interest | Interest::Error, rs.rioId);
+                    if (ready != 0) {
+                        return fd;
+                    }
+
+                    registered.emplace_back(fd, rs.rioId);
+                }
+
+                return std::nullopt;
+            } break;
+
+            case State::Waiting: {
+                // nothing to do here, just wait to get woken up
+                return std::nullopt;
+            } break;
+
+            default: std::unreachable();
+        }
+    }
+
+    ~MultiPollFuture() {
+        // unregister all ios
+        for (auto const& [fd, rioId] : registered) {
+            auto it = m_sockets->find(fd);
+            if (it != m_sockets->end()) {
+                it->second.rio.unregister(rioId);
+            }
+        }
+    }
+};
 
 class WebRequestsManager::Impl {
 public:
@@ -915,10 +969,12 @@ public:
     std::optional<arc::TaskHandle<void>> m_worker;
     std::optional<arc::mpsc::Sender<std::shared_ptr<RequestData>>> m_reqtx;
     arc::CancellationToken m_cancel;
+    asp::Instant m_nextWakeup = asp::Instant::farFuture();
 
     std::atomic<bool> m_running;
 
     std::unordered_map<CURL*, std::shared_ptr<RequestData>> m_activeRequests;
+    std::unordered_map<curl_socket_t, RegisteredSocket> m_sockets;
 
     Impl() {
         auto [tx, rx] = arc::mpsc::channel<std::shared_ptr<RequestData>>(1024);
@@ -927,7 +983,18 @@ public:
         m_multiHandle = curl_multi_init();
         curl_multi_setopt(m_multiHandle, CURLMOPT_MAX_TOTAL_CONNECTIONS, 32L);
         curl_multi_setopt(m_multiHandle, CURLMOPT_MAXCONNECTS, 16L);
-        curl_multi_setopt(m_multiHandle, CURLMOPT_SOCKETFUNCTION, &socketCallback);
+        curl_multi_setopt(m_multiHandle, CURLMOPT_SOCKETFUNCTION, +[](CURL* easy, curl_socket_t s, int what, void* userp, void* socketp) -> int {
+            auto self = static_cast<Impl*>(userp);
+            self->socketCallback(easy, s, what, socketp);
+            return 0;
+        });
+        curl_multi_setopt(m_multiHandle, CURLMOPT_SOCKETDATA, this);
+        curl_multi_setopt(m_multiHandle, CURLMOPT_TIMERFUNCTION, +[](CURLM* multi, long timeout_ms, void* userp) -> int {
+            auto self = static_cast<Impl*>(userp);
+            self->timerCallback(multi, timeout_ms);
+            return 0;
+        });
+        curl_multi_setopt(m_multiHandle, CURLMOPT_TIMERDATA, this);
 
         m_running = true;
         m_worker = async::runtime().spawn([this, rx = std::move(rx)](this auto self) -> arc::Future<> {
@@ -1038,16 +1105,55 @@ public:
         }
 
         if (!m_activeRequests.empty()) {
-            co_await this->workerPollSockets();
+            // poll until there is socket activity or the timer expires
+            (void) co_await arc::timeoutAt(
+                m_nextWakeup, this->workerPollSockets()
+            );
         }
     }
 
-    Future<> workerPollSockets() {
-        // TODO: haha
-        int numfds = 0;
-        curl_multi_poll(m_multiHandle, nullptr, 0, -1, &numfds);
+    MultiPollFuture workerPollSockets() {
+        return MultiPollFuture{ &m_sockets };
+    }
 
-        co_return;
+    void socketCallback(CURL* easy, curl_socket_t s, int what, void* socketp) {
+        auto& driver = ctx().runtime()->ioDriver();
+        auto it = m_sockets.find(s);
+
+        if (what == CURL_POLL_REMOVE) {
+            // unregister the socket
+            if (it != m_sockets.end()) {
+                driver.unregisterIo(it->second.rio);
+                m_sockets.erase(it);
+            } else {
+                log::warn("[WebRequestsManager] Tried to remove unknown socket {}", (int)s);
+            }
+            return;
+        }
+
+        // register the socket with the io driver, or just update interest if registered
+        Interest interest{};
+        if (what & CURL_POLL_IN) {
+            interest |= arc::Interest::Readable;
+        }
+        if (what & CURL_POLL_OUT) {
+            interest |= arc::Interest::Writable;
+        }
+
+        if (it != m_sockets.end()) {
+            it->second.interest = interest;
+        } else {
+            auto rio = driver.registerIo(s, arc::Interest::ReadWrite);
+            m_sockets.emplace(s, RegisteredSocket{ std::move(rio), 0, interest });
+        }
+    }
+
+    void timerCallback(CURLM* multi, long timeout_ms) {
+        if (timeout_ms == -1) {
+            m_nextWakeup = asp::Instant::farFuture();
+        } else {
+            m_nextWakeup = asp::Instant::now() + asp::Duration::fromMillis(timeout_ms);
+        }
     }
 };
 
@@ -1085,7 +1191,3 @@ Future<WebResponse> WebRequestsManager::enqueueAndWait(std::shared_ptr<WebReques
     co_return WebResponse{};
 }
 
-int socketCallback(CURL* easy, curl_socket_t s, int what, void* userp, void* socketp) {
-    // TODO: implement socket callback
-    return 0;
-}
