@@ -25,19 +25,6 @@ static bool g_lastLaunchCrashed = false;
 static bool g_symbolsInitialized = false;
 static std::wstring g_unzippedSearchPaths;
 
-static std::string getDateString(bool filesafe) {
-    auto const now = std::time(nullptr);
-    auto const tm = *std::localtime(&now);
-    std::ostringstream oss;
-    if (filesafe) {
-        oss << std::put_time(&tm, "%F_%H-%M-%S");
-    }
-    else {
-        oss << std::put_time(&tm, "%FT%T%z"); // ISO 8601
-    }
-    return oss.str();
-}
-
 static std::string getModuleName(HMODULE module, bool fullPath = true, bool shortKnown = false) {
     wchar_t buffer[MAX_PATH];
     if (!GetModuleFileNameW(module, buffer, MAX_PATH)) {
@@ -124,6 +111,47 @@ typedef struct _UNWIND_INFO {
 *   OPTIONAL ULONG ExceptionData[]; */
 } UNWIND_INFO, *PUNWIND_INFO;
 
+static std::string findSymbolNameFromRVA(HMODULE module, DWORD rva) {
+    if (!module) return {};
+
+    auto base = reinterpret_cast<uintptr_t>(module);
+    auto dosHeader = reinterpret_cast<PIMAGE_DOS_HEADER>(base);
+
+    if (dosHeader->e_magic != IMAGE_DOS_SIGNATURE) return {};
+
+    auto ntHeaders = reinterpret_cast<PIMAGE_NT_HEADERS>(base + dosHeader->e_lfanew);
+    auto& exportDirAttr = ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
+
+    if (exportDirAttr.Size == 0) return {};
+
+    auto exports = reinterpret_cast<PIMAGE_EXPORT_DIRECTORY>(base + exportDirAttr.VirtualAddress);
+    auto functions = reinterpret_cast<DWORD*>(base + exports->AddressOfFunctions);
+    auto names = reinterpret_cast<DWORD*>(base + exports->AddressOfNames);
+    auto ordinals = reinterpret_cast<WORD*>(base + exports->AddressOfNameOrdinals);
+
+    for (DWORD i = 0; i < exports->NumberOfFunctions; i++) {
+        DWORD funcRVA = functions[i];
+        if (funcRVA == rva) {
+            for (DWORD j = 0; j < exports->NumberOfNames; j++) {
+                if (ordinals[j] == i) {
+                    char demangledBuf[512];
+                    auto symbol = reinterpret_cast<const char*>(base + names[j]);
+                    size_t written = UnDecorateSymbolName(
+                        symbol, demangledBuf, 512,
+                        UNDNAME_NO_ACCESS_SPECIFIERS | UNDNAME_NO_ALLOCATION_MODEL |
+                        UNDNAME_NO_THISTYPE | UNDNAME_NO_MS_KEYWORDS |
+                        UNDNAME_NO_FUNCTION_RETURNS
+                    );
+                    if (written) return {demangledBuf};
+                    return symbol;
+                }
+            }
+        }
+    }
+
+    return {};
+}
+
 static void printAddr(StringBuffer<>& stream, void const* addr, bool fullPath = true) {
     HMODULE module = nullptr;
     auto proc = GetCurrentProcess();
@@ -183,9 +211,12 @@ static void printAddr(StringBuffer<>& stream, void const* addr, bool fullPath = 
                 }
 
                 stream.append(')');
-            }
-            // handle GeometryDash.exe bindings
-            else if (module == GetModuleHandle(nullptr)) {
+            } else {
+                // handle GeometryDash.exe bindings and libcocos2d.dll missing symbols on wine
+                bool isGD = (uintptr_t)module == base::get();
+                bool isCocos = (uintptr_t)module == base::getCocos();
+                if (!isGD && !isCocos) return;
+
                 DWORD64 dwAddr = reinterpret_cast<uintptr_t>(addr);
                 if (auto entry = SymFunctionTableAccess64(proc, dwAddr)) {
                     auto moduleBase = SymGetModuleBase64(proc, dwAddr);
@@ -195,10 +226,18 @@ static void printAddr(StringBuffer<>& stream, void const* addr, bool fullPath = 
                         uintptr_t funcAddr = moduleBase + runtimeFunction->BeginAddress;
                         uintptr_t diff = reinterpret_cast<uintptr_t>(addr) - funcAddr;
 
-                        auto funcName = crashlog::lookupFunctionByOffset(runtimeFunction->BeginAddress);
-                        if (!funcName.empty()) {
-                            stream.append(" ({} + {:x})", funcName, diff);
-                            return;
+                        if (isGD) {
+                            auto funcName = crashlog::lookupFunctionByOffset(runtimeFunction->BeginAddress);
+                            if (!funcName.empty()) {
+                                stream.append(" ({} + {:x})", funcName, diff);
+                                return;
+                            }
+                        } else {
+                            auto funcName = findSymbolNameFromRVA(module, runtimeFunction->BeginAddress);
+                            if (!funcName.empty()) {
+                                stream.append(" ({} + {:x})", funcName, diff);
+                                return;
+                            }
                         }
 
                         // unnamed function
@@ -208,10 +247,12 @@ static void printAddr(StringBuffer<>& stream, void const* addr, bool fullPath = 
                 }
 
                 // fallback (usually leaf functions)
-                uintptr_t offset = diff;
-                auto funcName = crashlog::lookupClosestFunction(offset);
-                if (!funcName.empty()) {
-                    stream.append(" ({} + {:x})", funcName, offset);
+                if (isGD) {
+                    uintptr_t offset = diff;
+                    auto funcName = crashlog::lookupClosestFunction(offset);
+                    if (!funcName.empty()) {
+                        stream.append(" ({} + {:x})", funcName, offset);
+                    }
                 }
             }
         }
