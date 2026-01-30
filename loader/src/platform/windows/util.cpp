@@ -18,6 +18,7 @@ using namespace geode::prelude;
 #include <Geode/utils/ObjcHook.hpp>
 #include <Geode/utils/string.hpp>
 #include "../../utils/thread.hpp"
+#include <arc/sync/oneshot.hpp>
 
 bool utils::clipboard::write(ZStringView data) {
     if (!OpenClipboard(nullptr)) return false;
@@ -110,8 +111,29 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
     return success;
 }
 
-Task<Result<std::filesystem::path>> file::pick(PickMode mode, FilePickOptions const& options) {
-    using RetTask = Task<Result<std::filesystem::path>>;
+static arc::Future<Result<>> asyncNfdPick(
+    NFDMode mode,
+    file::FilePickOptions const& options,
+    void* result
+) {
+    auto [tx, rx] = arc::oneshot::channel<Result<>>();
+
+    auto thread = std::thread([&, tx = std::move(tx)] mutable {
+        auto pickresult = nfdPick(mode, options, result);
+        (void) tx.send(pickresult);
+    });
+
+    // wait for the result, and join the thread
+    auto recvresult = co_await rx.recv();
+    if (thread.joinable()) thread.join();
+
+    if (!recvresult) {
+        co_return Err("Error occurred while picking file");
+    }
+    co_return std::move(recvresult).unwrap();
+}
+
+arc::Future<Result<std::filesystem::path>> file::pick(PickMode mode, FilePickOptions const& options) {
     #define TURN_INTO_NFDMODE(mode) \
         case file::PickMode::mode: nfdMode = NFDMode::mode; break;
 
@@ -121,31 +143,20 @@ Task<Result<std::filesystem::path>> file::pick(PickMode mode, FilePickOptions co
         TURN_INTO_NFDMODE(SaveFile);
         TURN_INTO_NFDMODE(OpenFolder);
         default:
-            return RetTask::immediate(Err<std::string>("Invalid pick mode"));
+            co_return Err("Invalid pick mode");
     }
+
     std::filesystem::path path;
-    auto pickresult = nfdPick(nfdMode, options, &path);
-    if (pickresult.isErr()) {
-        if (pickresult.unwrapErr() == "Dialog cancelled") {
-            return RetTask::cancelled();
-        }
-        return RetTask::immediate(Err(pickresult.unwrapErr()));
-    } else {
-        return RetTask::immediate(Ok(path));
-    }
+    ARC_CO_UNWRAP(co_await asyncNfdPick(nfdMode, options, &path));
+
+    co_return Ok(std::move(path));
 }
 
-Task<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions const& options) {
-    using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
-
+arc::Future<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions const& options) {
     std::vector<std::filesystem::path> paths;
-    auto pickResult = nfdPick(NFDMode::OpenFiles, options, &paths);
-    if (pickResult.isErr()) {
-        return RetTask::immediate(Err(pickResult.err().value()));
-    } else {
-        return RetTask::immediate(Ok(paths));
-    }
-    // return Task<Result<std::vector<std::filesystem::path>>>::immediate(std::move(file::pickFiles(options)));
+    ARC_CO_UNWRAP(co_await asyncNfdPick(NFDMode::OpenFiles, options, &paths));
+
+    co_return Ok(std::move(paths));
 }
 
 void utils::web::openLinkInBrowser(ZStringView url) {

@@ -9,6 +9,7 @@
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/function.hpp>
+#include <Geode/utils/async.hpp>
 #include <filesystem>
 #include <string>
 #include <unordered_set>
@@ -305,13 +306,13 @@ namespace geode::utils::file {
      * @param mode Type of file selection prompt to show
      * @param options Picker options
      */
-    GEODE_DLL Task<Result<std::filesystem::path>> pick(PickMode mode, FilePickOptions const& options);
+    GEODE_DLL arc::Future<Result<std::filesystem::path>> pick(PickMode mode, FilePickOptions const& options);
 
     /**
      * Prompt the user to pick a bunch of files for opening using the system's file system picker
      * @param options Picker options
      */
-    GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> pickMany(FilePickOptions const& options);
+    GEODE_DLL arc::Future<Result<std::vector<std::filesystem::path>>> pickMany(FilePickOptions const& options);
 
     class GEODE_DLL FileWatchEvent final : public Event<FileWatchEvent, bool(), std::filesystem::path> {
     public:

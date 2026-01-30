@@ -297,21 +297,22 @@ void ModsLayer::onAddModFromFile(CCObject*) {
             350
         )->show();
     }
-    file::pick(file::PickMode::OpenFile, file::FilePickOptions {
+
+    async::spawn(file::pick(file::PickMode::OpenFile, file::FilePickOptions {
         .filters = { file::FilePickOptions::Filter {
             .description = "Geode Mods",
             .files = { "*.geode" },
         }}
-    }).listen([](Result<std::filesystem::path>* path) {
-        if (*path) {
-            LoaderImpl::get()->installModManuallyFromFile(path->unwrap(), []() {
+    }), [](Result<std::filesystem::path> result) {
+        if (result.isOk()) {
+            LoaderImpl::get()->installModManuallyFromFile(std::move(result).unwrap(), []() {
                 InstalledModListSource::get(InstalledModListType::All)->clearCache();
             });
         }
         else {
             FLAlertLayer::create(
                 "Unable to Select File",
-                path->unwrapErr(),
+                result.unwrapErr(),
                 "OK"
             )->show();
         }
