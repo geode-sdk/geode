@@ -705,12 +705,21 @@ void ModList::gotoPage(size_t page, bool update) {
         this->showStatus(ModListUnkProgressStatus(), "Loading...");
     }
 
-    m_listener.spawn(
-        m_source->loadPage(page, update),
-        [this](auto res) {
-            this->onPromise(std::move(res));
-        }
-    );
+    // TODO: v5 maybe refactor this system?
+    auto cachedPage = m_source->getCachedPage(page);
+    if (!update && cachedPage.has_value()) {
+        this->onPromise(Ok(std::move(cachedPage).value()));
+    } else {
+        m_listener.spawn(
+            m_source->loadPage(page, update),
+            [this, page](auto res) {
+                if (res.isErr()) {
+                    return this->onPromise(Err(std::move(res).unwrapErr()));
+                }
+                this->onPromise(m_source->processLoadedPage(page, std::move(res).unwrap()));
+            }
+        );
+    }
 
     // Do initial eager update on page UI (to prevent user spamming arrows
     // to access invalid pages)

@@ -31,7 +31,7 @@ protected:
     CCNode* m_statusLoadingCircle;
     Slider* m_statusLoadingBar;
     ListenerHandle m_pageLoadHandle;
-    async::TaskHolder<ModListSource::PageLoadResult> m_listener;
+    async::TaskHolder<Result<ModListSource::ProvidedMods, ModListSource::LoadPageError>> m_listener;
     CCMenuItemSpriteExtra* m_pagePrevBtn;
     CCMenuItemSpriteExtra* m_pageNextBtn;
     CCNode* m_topContainer;

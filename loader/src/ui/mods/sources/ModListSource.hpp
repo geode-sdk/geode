@@ -69,6 +69,7 @@ public:
     // Reset all filters & cache
     void reset();
     void clearCache();
+    std::optional<Page> getCachedPage(size_t page) const;
     void search(std::string query);
     virtual bool isDefaultQuery() const = 0;
 
@@ -76,7 +77,8 @@ public:
     virtual void setModTags(std::unordered_set<std::string> const& tags) = 0;
 
     // Load page, uses cache if possible unless `forceUpdate` is true
-    PageLoadTask loadPage(size_t page, bool forceUpdate = false);
+    ProviderTask loadPage(size_t page, bool forceUpdate = false);
+    PageLoadResult processLoadedPage(size_t page, ProvidedMods mods);
     std::optional<size_t> getPageCount() const;
     std::optional<size_t> getItemCount() const;
     void setPageSize(size_t size);

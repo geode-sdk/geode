@@ -19,19 +19,20 @@ bool LocalModsQueryBase::isDefault() const {
     return !query.has_value() && tags.empty();
 }
 
-typename ModListSource::PageLoadTask ModListSource::loadPage(size_t page, bool forceUpdate) {
-    if (!forceUpdate && m_cachedPages.contains(page)) {
-        co_return Ok(m_cachedPages.at(page));
-    }
-
+ModListSource::ProviderTask ModListSource::loadPage(size_t page, bool forceUpdate) {
     m_cachedPages.erase(page);
     auto data = ARC_CO_UNWRAP(co_await this->fetchPage(page, forceUpdate));
     
     if (data.totalModCount == 0 || data.mods.empty()) {
         co_return Err(LoadPageError("No mods found :("));
     }
+
+    co_return Ok(std::move(data));
+}
+
+ModListSource::PageLoadResult ModListSource::processLoadedPage(size_t page, ProvidedMods mods) {
     auto pageData = Page();
-    for (auto&& src : std::move(data.mods)) {
+    for (auto&& src : std::move(mods.mods)) {
         std::visit(makeVisitor {
             [&](ModSource&& mod) {
                 pageData.push_back(ModItem::create(std::move(mod)));
@@ -41,9 +42,9 @@ typename ModListSource::PageLoadTask ModListSource::loadPage(size_t page, bool f
             },
         }, std::move(src));
     }
-    m_cachedItemCount = data.totalModCount;
+    m_cachedItemCount = mods.totalModCount;
     m_cachedPages.insert({ page, pageData });
-    co_return Ok(pageData);
+    return Ok(std::move(pageData));
 }
 
 std::optional<size_t> ModListSource::getPageCount() const {
@@ -68,6 +69,15 @@ void ModListSource::clearCache() {
     m_cachedItemCount = std::nullopt;
     InvalidateCacheEvent().send(this);
 }
+
+std::optional<ModListSource::Page> ModListSource::getCachedPage(size_t page) const {
+    auto it = m_cachedPages.find(page);
+    if (it != m_cachedPages.end()) {
+        return it->second;
+    }
+    return std::nullopt;
+}
+
 void ModListSource::search(std::string query) {
     this->setSearchQuery(std::move(query));
     this->clearCache();
