@@ -174,25 +174,27 @@ int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
     fixCurrentWorkingDirectory();
 
-    if (versionToTimestamp(GEODE_STR(GEODE_GD_VERSION)) > gdTimestamp) {
-        console::messageBox(
-            "Unable to Load Geode!",
-            fmt::format(
-                "Geometry Dash is outdated!\n"
-                "Geode requires GD {} but you have {}.\n"
-                "Please, update Geometry Dash to {}.",
-                GEODE_STR(GEODE_GD_VERSION),
-                LoaderImpl::get()->getGameVersion(),
-                GEODE_STR(GEODE_GD_VERSION)
-            )
-        );
-        // TODO: should geode FreeLibrary itself here?
-    } else if (!cleanModeCheck()) {
-        patchDelayLoad();
+    if (!cleanModeCheck()) {
+        if (versionToTimestamp(GEODE_STR(GEODE_GD_VERSION)) > gdTimestamp) {
+            console::messageBox(
+                "Unable to Load Geode!",
+                fmt::format(
+                    "Geometry Dash is outdated!\n"
+                    "Geode requires GD {} but you have {}.\n"
+                    "Please, update Geometry Dash to {}.",
+                    GEODE_STR(GEODE_GD_VERSION),
+                    LoaderImpl::get()->getGameVersion(),
+                    GEODE_STR(GEODE_GD_VERSION)
+                )
+            );
+            // TODO: should geode FreeLibrary itself here?
+        } else {
+            patchDelayLoad();
 
-        int exitCode = geodeEntry(hInstance);
-        if (exitCode != 0)
-            return exitCode;
+            int exitCode = geodeEntry(hInstance);
+            if (exitCode != 0)
+                return exitCode;
+        }
     }
 
     return reinterpret_cast<decltype(&wWinMain)>(mainTrampolineAddr)(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
