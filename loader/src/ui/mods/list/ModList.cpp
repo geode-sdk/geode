@@ -408,10 +408,16 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     this->addChildAtPosition(m_statusContainer, Anchor::Center);
 
     // TODO: v5
+
+    InvalidateCacheEvent().listen(
+        [this](ModListSource* source) {
+            this->onInvalidateCache(source);
+            return ListenerResult::Propagate;
+        }
+    );
+
     // m_invalidateCacheListener.bind(this, &ModList::onInvalidateCache);
     // m_invalidateCacheListener.setFilter(InvalidateCacheFilter(m_source));
-
-    // m_downloadListener.bind([this](auto) { this->updateTopContainer(); });
 
     this->gotoPage(0);
     this->updateTopContainer();
@@ -430,7 +436,7 @@ void ModList::onPromise(ModListSource::PageLoadResult result) {
         // Hide status
         m_statusContainer->setVisible(false);
 
-        auto& list = result.unwrap();
+        auto list = std::move(result).unwrap();
 
         // Create items
         bool first = true;
@@ -539,7 +545,7 @@ void ModList::onCheckUpdates(const std::vector<std::string>& mods) {
     this->updateTopContainer();
 }
 
-void ModList::onInvalidateCache(InvalidateCacheEvent* event) {
+void ModList::onInvalidateCache(ModListSource* source) {
     if (!m_exiting) {
         this->gotoPage(0);
     }

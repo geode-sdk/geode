@@ -18,8 +18,6 @@ public:
     std::optional<DependencyFor> m_dependencyFor;
     std::optional<std::string> m_replacesMod;
     DownloadStatus m_status;
-    ListenerHandle m_infoHandle;
-    ListenerHandle m_downloadHandle;
     async::TaskHolder<web::WebResponse> m_downloadListener;
     async::TaskHolder<ServerResult<ServerModVersion>> m_infoListener;
     unsigned int m_scheduledEventForFrame = 0;
@@ -297,11 +295,8 @@ public:
 void ModDownload::cancel() {
     if (!std::holds_alternative<DownloadStatusDone>(m_impl->m_status)) {
         m_impl->m_status = DownloadStatusCancelled();
-        // TODO: v5
-        // m_impl->m_infoListener.getFilter().cancel();
-        // m_impl->m_infoListener.setFilter(ServerFuture<ServerModVersion>());
-        // m_impl->m_downloadListener.getFilter().cancel();
-        // m_impl->m_downloadListener.setFilter({});
+        m_impl->m_infoListener = {};
+        m_impl->m_downloadListener = {};
 
         // Cancel any dependencies of this mod left over (unless some other
         // installation depends on them still)

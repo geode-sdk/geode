@@ -53,9 +53,7 @@ protected:
     ListenerHandle m_invalidateCacheHandle;
     ListenerHandle m_checkUpdatesHandle;
     ListenerHandle m_downloadHandle;
-    // EventListener<InvalidateCacheFilter> m_invalidateCacheListener;
     async::TaskHolder<server::ServerResult<std::vector<std::string>>> m_checkUpdatesListener;
-    // EventListener<server::ModDownloadFilter> m_downloadListener;
     ModListDisplay m_display = ModListDisplay::SmallList;
     bool m_exiting = false;
     std::atomic<size_t> m_searchInputThreads = 0;
@@ -64,7 +62,7 @@ protected:
 
     void updateTopContainer();
     void onCheckUpdates(const std::vector<std::string>& mods);
-    void onInvalidateCache(InvalidateCacheEvent* event);
+    void onInvalidateCache(ModListSource* source);
 
     void onPromise(ModListSource::PageLoadResult event);
     void onPage(CCObject*);
