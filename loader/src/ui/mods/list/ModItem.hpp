@@ -66,10 +66,8 @@ protected:
     CCMenuItemToggler* m_enableToggle = nullptr;
     CCMenuItemSpriteExtra* m_updateBtn = nullptr;
     ListenerHandle m_updateStateHandle;
-    ListenerHandle m_checkUpdateHandle;
+    async::TaskHolder<server::ServerResult<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
     ListenerHandle m_downloadHandle;
-    // EventListener<server::ServerFuture<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
-    // EventListener<server::ModDownloadFilter> m_downloadListener;
     std::optional<server::ServerModUpdate> m_availableUpdate;
     ListenerHandle m_settingNodeHandle;
     Ref<CCNode> m_badgeContainer = nullptr;
@@ -84,7 +82,7 @@ protected:
 
     void updateState();
 
-    void onCheckUpdates(const server::ServerModUpdate& event);
+    void onCheckUpdates(Result<std::optional<server::ServerModUpdate>, server::ServerError> result);
 
     void onEnable(CCObject*);
     void onView(CCObject*);

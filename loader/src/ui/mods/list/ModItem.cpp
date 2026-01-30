@@ -352,22 +352,27 @@ bool ModItem::init(ModSource&& source) {
     m_viewMenu->addChild(m_updateBtn);
 
     if (m_source.asMod()) {
-        // TODO: v5
-        // m_checkUpdateListener.bind(this, &ModItem::onCheckUpdates);
-        // m_checkUpdateListener.setFilter(m_source.checkUpdates());
+        m_checkUpdateListener.spawn(
+            m_source.checkUpdates(),
+            [this](auto res) {
+                this->onCheckUpdates(std::move(res));
+                return ListenerResult::Propagate;
+            }
+        );
     }
 
     this->updateState();
 
     // Only listen for updates on this mod specifically
-    // TODO: v5
     m_updateStateHandle = UpdateModListStateEvent().listen([this](UpdateState state) {
         this->updateState();
         return ListenerResult::Propagate;
     });
 
-    // m_downloadListener.bind([this](auto) { this->updateState(); });
-    // m_downloadListener.setFilter(server::ModDownloadFilter(m_source.getID()));
+    m_downloadHandle = server::ModDownloadEvent(std::move(m_source.getID())).listen([this]() {
+        this->updateState();
+        return ListenerResult::Propagate;
+    });
 
     return true;
 }
@@ -740,7 +745,7 @@ void ModItem::updateState() {
     ModItemUIEvent().send(this, m_source.getID(), std::nullopt);
 }
 
-void ModItem::onCheckUpdates(const server::ServerModUpdate& event) {
+void ModItem::onCheckUpdates(Result<std::optional<server::ServerModUpdate>, server::ServerError> result) {
     this->updateState();
 }
 
