@@ -111,7 +111,8 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
     return success;
 }
 
-static arc::Future<Result<>> asyncNfdPick(
+// If successful, the bool represents whether a file was picked (true) or dialog was cancelled (false)
+static arc::Future<Result<bool>> asyncNfdPick(
     NFDMode mode,
     file::FilePickOptions const& options,
     void* result
@@ -130,10 +131,19 @@ static arc::Future<Result<>> asyncNfdPick(
     if (!recvresult) {
         co_return Err("Error occurred while picking file");
     }
-    co_return std::move(recvresult).unwrap();
+
+    auto res = std::move(recvresult).unwrap();
+    if (!res) {
+        auto err = std::move(res).unwrapErr();
+        if (err == "Dialog cancelled") {
+            co_return Ok(false);
+        }
+        co_return Err(std::move(err));
+    }
+    co_return Ok(true);
 }
 
-arc::Future<Result<std::filesystem::path>> file::pick(PickMode mode, FilePickOptions const& options) {
+arc::Future<Result<std::optional<std::filesystem::path>>> file::pick(PickMode mode, FilePickOptions const& options) {
     #define TURN_INTO_NFDMODE(mode) \
         case file::PickMode::mode: nfdMode = NFDMode::mode; break;
 
@@ -147,14 +157,20 @@ arc::Future<Result<std::filesystem::path>> file::pick(PickMode mode, FilePickOpt
     }
 
     std::filesystem::path path;
-    ARC_CO_UNWRAP(co_await asyncNfdPick(nfdMode, options, &path));
+    bool picked = ARC_CO_UNWRAP(co_await asyncNfdPick(nfdMode, options, &path));
+    if (!picked) {
+        co_return Ok(std::nullopt);
+    }
 
     co_return Ok(std::move(path));
 }
 
 arc::Future<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions const& options) {
     std::vector<std::filesystem::path> paths;
-    ARC_CO_UNWRAP(co_await asyncNfdPick(NFDMode::OpenFiles, options, &paths));
+    bool picked = ARC_CO_UNWRAP(co_await asyncNfdPick(NFDMode::OpenFiles, options, &paths));
+    if (!picked) {
+        co_return Ok(std::vector<std::filesystem::path>{});
+    }
 
     co_return Ok(std::move(paths));
 }

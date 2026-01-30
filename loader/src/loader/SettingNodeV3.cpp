@@ -478,11 +478,11 @@ void FileSettingNodeV3::onPickFile(CCObject*) {
                 this->getSetting()->getFilters().value_or(std::vector<file::FilePickOptions::Filter>())
             }
         ),
-        [this](Result<std::filesystem::path> path) {
-            if (path.isOk()) {
-                this->setValue(std::move(path).unwrap(), nullptr);
+        [this](Result<std::optional<std::filesystem::path>> path) {
+            if (path.isOk() && path.unwrap().has_value()) {
+                this->setValue(std::move(path).unwrap().value(), nullptr);
             }
-            else {
+            else if (path.isErr()) {
                 FLAlertLayer::create(
                     "Failed",
                     fmt::format("Failed to pick file: {}", path.unwrapErr()),

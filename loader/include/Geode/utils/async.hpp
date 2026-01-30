@@ -50,6 +50,11 @@ public:
         typename Callback = std::conditional_t<std::is_void_v<Ret>, Function<void()>, Function<void(NonVoid)>>
     >
     void spawn(Fut future, Callback cb) {
+        static_assert(
+            std::convertible_to<typename arc::FutureTraits<Fut>::Output, Ret>,
+            "Output of spawned future must be convertible to TaskHolder's expected return type"
+        );
+
         this->cancel();
 
         m_cancel = std::make_shared<arc::CancellationToken>();
