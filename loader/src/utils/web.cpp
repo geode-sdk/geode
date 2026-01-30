@@ -922,7 +922,7 @@ struct ARC_NODISCARD MultiPollFuture : PollableBase<MultiPollFuture, curl_socket
     asp::SmallVec<std::pair<curl_socket_t, uint64_t>, 16> registered;
 
     explicit MultiPollFuture(decltype(m_sockets) sockets) : m_sockets(sockets) {}
-    
+
     MultiPollFuture(MultiPollFuture&&) = default;
     MultiPollFuture& operator=(MultiPollFuture&&) = default;
 

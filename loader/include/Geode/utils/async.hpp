@@ -102,7 +102,6 @@ private:
             cancel.reset();
 
             handle->abort();
-            handle->blockOn();
             handle.reset();
         }
     }

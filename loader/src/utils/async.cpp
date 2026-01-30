@@ -18,12 +18,12 @@ $execute {
         using enum arc::LogLevel;
 
         switch (level) {
-            case Trace: 
-                log::debug("[arc] {}", msg); break;
             case Warn:
                 log::warn("[arc] {}", msg); break;
             case Error:
                 log::error("[arc] {}", msg); break;
+            default:
+                log::debug("[arc] {}", msg); break;
         }
     });
 }
