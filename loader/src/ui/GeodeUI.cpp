@@ -16,8 +16,8 @@ protected:
     std::string m_id;
     ListenerHandle m_listenerHandle;
     ListenerHandle m_versionListenerHandle;
-    // EventListener<server::ServerFuture<server::ServerModMetadata>> m_listener;
-    // EventListener<server::ServerFuture<server::ServerModVersion>> m_versionListener;
+    async::TaskHolder<Result<server::ServerModMetadata, server::ServerError>> m_listener;
+    async::TaskHolder<Result<server::ServerModVersion, server::ServerError>> m_versionListener;
 
     std::optional<server::ServerModMetadata> m_loadedMod{};
 
@@ -33,65 +33,64 @@ protected:
         m_mainLayer->addChildAtPosition(spinner, Anchor::Center, ccp(0, -10));
 
         m_id = std::move(id);
-        // TODO: v5
-        // m_listener.bind(this, &LoadServerModLayer::onModRequest);
-        // m_listener.setFilter(server::getMod(m_id));
+
+        m_listener.spawn(
+            server::getMod(m_id),
+            [this](auto result) {
+                this->onModRequest(std::move(result));
+            }
+        );
 
         return true;
     }
 
     // TODO: v5
-    // void onModRequest(server::ServerFuture<server::ServerModMetadata>::Event* event) {
-    //     if (auto res = event->getValue()) {
-    //         if (res->isOk()) {
-    //             // Copy info first as onClose may free the listener which will free the event
-    //             auto info = res->unwrap();
-    //             m_loadedMod = std::move(info);
+    void onModRequest(Result<server::ServerModMetadata, server::ServerError> result) {
+        if (result.isOk()) {
+            // Copy info first as onClose may free the listener which will free the event
+            auto info = std::move(result).unwrap();
+            m_loadedMod = std::move(info);
 
-    //             // TODO: v5
-    //             // m_versionListener.bind(this, &LoadServerModLayer::onVersionRequest);
-    //             // m_versionListener.setFilter(server::getModVersion(m_id));
-    //         }
-    //         else {
-    //             this->onClose(nullptr);
-    //             FLAlertLayer::create(
-    //                 "Error Loading Mod",
-    //                 fmt::format("Unable to find mod with the ID <cr>{}</c>!", m_id),
-    //                 "OK"
-    //             )->show();
-    //         }
-    //     }
-    //     else if (event->isCancelled()) {
-    //         this->onClose(nullptr);
-    //     }
-    // }
+            // TODO: v5
+            m_versionListener.spawn(
+                server::getModVersion(m_id),
+                [this](auto result) {
+                    this->onVersionRequest(std::move(result));
+                }
+            );
+            // m_versionListener.bind(this, &LoadServerModLayer::onVersionRequest);
+            // m_versionListener.setFilter(server::getModVersion(m_id));
+        }
+        else {
+            this->onClose(nullptr);
+            FLAlertLayer::create(
+                "Error Loading Mod",
+                fmt::format("Unable to find mod with the ID <cr>{}</c>!", m_id),
+                "OK"
+            )->show();
+        }
+    }
 
-    // void onVersionRequest(server::ServerFuture<server::ServerModVersion>::Event* event) {
-    //     if (auto res = event->getValue()) {
-    //         // this is promised non optional by this point
-    //         auto info = std::move(*m_loadedMod);
+    void onVersionRequest(Result<server::ServerModVersion, server::ServerError> result) {
+        // this is promised non optional by this point
+        auto info = std::move(*m_loadedMod);
 
-    //         if (res->isOk()) {
-    //             // i don't actually think there's a better way to do this
-    //             // sorry guys
+        if (result.isOk()) {
+            // i don't actually think there's a better way to do this
+            // sorry guys
 
-    //             auto versionInfo = res->unwrap();
-    //             info.versions = {versionInfo};
-    //         }
+            info.versions = {std::move(result).unwrap()};
+        }
 
-    //         // if there's an error, just load whatever the last fetched version was
-    //         // (this can happen for mods not on current gd version)
+        // if there's an error, just load whatever the last fetched version was
+        // (this can happen for mods not on current gd version)
 
-    //         this->onClose(nullptr);
-    //         // Run this on next frame because otherwise the popup is unable to call server::getMod for some reason
-    //         Loader::get()->queueInMainThread([info = std::move(info)]() mutable {
-    //             ModPopup::create(ModSource(std::move(info)))->show();
-    //         });
-    //     }
-    //     else if (event->isCancelled()) {
-    //         this->onClose(nullptr);
-    //     }
-    // }
+        this->onClose(nullptr);
+        // Run this on next frame because otherwise the popup is unable to call server::getMod for some reason
+        Loader::get()->queueInMainThread([info = std::move(info)]() mutable {
+            ModPopup::create(ModSource(std::move(info)))->show();
+        });
+    }
 
 public:
     Task<bool> listen() const {
