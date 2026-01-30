@@ -14,6 +14,7 @@
 #include "../utils/function.hpp"
 #include "../utils/casts.hpp"
 #include "../utils/hash.hpp"
+#include "Log.hpp"
 
 namespace geode::event {
     template <class T>
@@ -281,6 +282,14 @@ namespace geode::event {
         PortTemplate<geode::CopyableFunction<bool(PArgs...)>> m_port;
 
     public:
+        OpaqueEventPort() {
+            std::cout << fmt::format("Creating OpaqueEventPort {}, {}", (void*)this, typeid(*this).name()) << std::endl;
+        }
+
+        ~OpaqueEventPort() noexcept override {
+            std::cout << fmt::format("Destroying OpaqueEventPort {}, {}", (void*)this, typeid(*this).name()) << std::endl;
+        }
+
         template <class... Args>
         void send(Args&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, Args...>) {
             m_port.send(std::forward<Args>(args)...);
@@ -420,6 +429,7 @@ namespace geode::event {
         std::tuple<FArgs...> const m_filter;
         
         bool operator==(BaseFilter const& other) const noexcept override {
+            std::cout << fmt::format("Comparing values self {} to other {}", (void*)this, (void*)&other) << std::endl;
             auto* o = geode::cast::exact_cast<Self const*>(&other);
             if (!o) return false;
 
@@ -449,10 +459,17 @@ namespace geode::event {
             }
         }
 
-        BasicEvent(CloneMarker, std::tuple<FArgs...> const& value) noexcept : m_filter(value) {}
+        BasicEvent(CloneMarker, std::tuple<FArgs...> const& value) noexcept : m_filter(value) {
+            std::cout << fmt::format("Cloning BasicEvent {}, {}", (void*)this, typeid(Marker).name()) << std::endl;
+        }
 
     public:
-        BasicEvent(FArgs&&... value) noexcept : m_filter(std::forward<FArgs>(value)...) {}
+        BasicEvent(FArgs&&... value) noexcept : m_filter(std::forward<FArgs>(value)...) {
+            std::cout << fmt::format("Creating BasicEvent {}, {}", (void*)this, typeid(Marker).name()) << std::endl;
+        }
+        ~BasicEvent() noexcept override {
+            std::cout << fmt::format("Destroying BasicEvent {}, {}", (void*)this, typeid(Marker).name()) << std::endl;
+        }
 
         void send(PArgs&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, PArgs...>);
 
@@ -489,9 +506,14 @@ namespace geode::event {
         template <class Callable>
         requires std::is_invocable_v<Callable, OpaquePortBase*>
         void send(BaseFilter const* filter, Callable func) noexcept(std::is_nothrow_invocable_v<Callable, OpaquePortBase*>) {
+            std::cout << fmt::format("on send") << std::endl;
+            std::cout << fmt::format("Base filter type {}", typeid(*filter).name()) << std::endl;
             auto p = m_ports.load();
             auto it = p->find(filter);
             if (it != p->end()) {
+                auto newFilter = it->first.get();
+                std::cout << fmt::format("Found filter value {}", (void*)newFilter) << std::endl;
+                std::cout << fmt::format("Found filter type {}", typeid(*newFilter).name()) << std::endl;
                 return std::invoke(func, it->second.get());
             }
             return;
@@ -503,10 +525,12 @@ namespace geode::event {
             auto p = m_ports.load();
             auto it = p->find(filter);
             if (it != p->end()) {
+                std::cout << fmt::format("add receiver") << std::endl;
                 return ListenerHandle(it->first.get(), std::invoke(func, it->second.get()), nullptr);
             }
             else {
                 auto clonedFilter = KeyType(filter->clone());
+                std::cout << fmt::format("Add receiver filter type {}", typeid(*clonedFilter).name()) << std::endl;
                 auto newFilter = clonedFilter.get();
                 auto port = ValueType(clonedFilter->getPort());
                 ReceiverHandle handle = std::invoke(func, port.get());
@@ -523,8 +547,10 @@ namespace geode::event {
             auto p = m_ports.load();
             auto it = p->find(filter);
             if (it != p->end()) {
+                std::cout << fmt::format("remove receiver") << std::endl;
                 auto size = std::invoke(func, it->second.get());
                 if (size == 0) {
+                    std::cout << fmt::format("Removing receiver filter type {}", typeid(*filter).name()) << std::endl;
                     auto newPorts = asp::make_shared<MapType>(*p.get());
                     for (auto& [filt, _] : *newPorts) {
                         if (*filt == *filter) {

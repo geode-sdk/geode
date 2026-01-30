@@ -60,7 +60,7 @@ namespace geode::cast {
      */
     template <class T, class F>
     static T exact_cast(F const obj) {
-        if (std::strcmp(typeid(*obj).name(), typeid(std::remove_pointer_t<T>).name()) == 0) {
+        if (std::strcmp(getRuntimeTypeName(obj), getRuntimeTypeName(typeid(std::remove_pointer_t<T>))) == 0) {
             return (T)obj;
         }
         return nullptr;
