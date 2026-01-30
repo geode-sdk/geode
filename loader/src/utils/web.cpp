@@ -939,6 +939,7 @@ struct ARC_NODISCARD MultiPollFuture : PollableBase<MultiPollFuture, curl_socket
                     registered.emplace_back(fd, rs.rioId);
                 }
 
+                m_state = State::Waiting;
                 return std::nullopt;
             } break;
 
@@ -957,6 +958,7 @@ struct ARC_NODISCARD MultiPollFuture : PollableBase<MultiPollFuture, curl_socket
             auto it = m_sockets->find(fd);
             if (it != m_sockets->end()) {
                 it->second.rio.unregister(rioId);
+                it->second.rioId = 0;
             }
         }
     }
