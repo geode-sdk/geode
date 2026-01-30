@@ -6,6 +6,7 @@
 #include "LogImpl.hpp"
 #include "console.hpp"
 
+#include <Geode/loader/EventV2.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Loader.hpp>
@@ -34,6 +35,11 @@
 #include <Geode/ui/Popup.hpp>
 
 using namespace geode::prelude;
+
+event::EventCenter* geode::event::EventCenter::get() {
+    static EventCenter instance;
+    return &instance;
+}
 
 Loader::Impl* LoaderImpl::get() {
     return Loader::get()->m_impl.get();
