@@ -119,13 +119,15 @@ public:
     FunCache(FunCache&&) = delete;
 
     template <class... Args>
-    arc::Future<Result<Value, ServerError>> get(Args const&... args) {
+    arc::Future<Result<Value, ServerError>> get(Args&&... args) {
+        auto key = Extract::key(args...);
+
         std::unique_lock lock(m_mutex);
-        if (auto v = m_cache.get(Extract::key(args...))) {
+        if (auto v = m_cache.get(key)) {
             co_return Ok(*v);
         }
-        auto f = ARC_CO_UNWRAP(co_await Extract::invoke(F, args...));
-        m_cache.add(Extract::key(args...), Value{f});
+        auto f = ARC_CO_UNWRAP(co_await Extract::invoke(F, std::forward<Args>(args)...));
+        m_cache.add(std::move(key), Value{f});
         co_return Ok(f);
     }
 
@@ -575,9 +577,9 @@ std::string server::getServerUserAgent() {
     return value;
 }
 
-ServerFuture<ServerModsList> server::getMods(ModsQuery const& query, bool useCache) {
+ServerFuture<ServerModsList> server::getMods(ModsQuery query, bool useCache) {
     if (useCache) {
-        co_return co_await getCache<getMods>().get(query);
+        co_return co_await getCache<getMods>().get(std::move(query));
     }
 
     auto req = web::WebRequest();
@@ -638,9 +640,9 @@ ServerFuture<ServerModsList> server::getMods(ModsQuery const& query, bool useCac
     co_return Err(parseServerError(response));
 }
 
-ServerFuture<ServerModMetadata> server::getMod(std::string const& id, bool useCache) {
+ServerFuture<ServerModMetadata> server::getMod(std::string id, bool useCache) {
     if (useCache) {
-        co_return co_await getCache<getMod>().get(id);
+        co_return co_await getCache<getMod>().get(std::move(id));
     }
 
     auto req = web::WebRequest();
@@ -664,14 +666,14 @@ ServerFuture<ServerModMetadata> server::getMod(std::string const& id, bool useCa
     co_return Err(parseServerError(response));
 }
 
-ServerFuture<ServerModVersion> server::getModVersion(std::string const& id, ModVersion const& version, bool useCache) {
+ServerFuture<ServerModVersion> server::getModVersion(std::string id, ModVersion version, bool useCache) {
     if (useCache) {
         auto& cache = getCache<getModVersion>();
 
-        auto cachedRequest = cache.get(id, version);
+        auto cachedRequest = cache.get(std::move(id), std::move(version));
         co_return co_await cachedRequest;
 
-        // TODO: is this needed
+        // TODO v5: is this needed
 
         // // if mod installation was cancelled, remove it from cache and fetch again
         // if (cachedRequest.isCancelled()) {
@@ -724,9 +726,9 @@ ServerFuture<ServerModVersion> server::getModVersion(std::string const& id, ModV
     co_return Err(parseServerError(response));
 }
 
-ServerFuture<ByteVector> server::getModLogo(std::string const& id, bool useCache) {
+ServerFuture<ByteVector> server::getModLogo(std::string id, bool useCache) {
     if (useCache) {
-        co_return co_await getCache<getModLogo>().get(id);
+        co_return co_await getCache<getModLogo>().get(std::move(id));
     }
 
     auto req = web::WebRequest();

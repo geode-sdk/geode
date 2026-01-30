@@ -34,7 +34,7 @@ LoadModSuggestionFuture loadModSuggestion(LoadProblem const& problem) {
     // add support for that here
 
     if (auto mod = std::get_if<Mod*>(&problem.cause)) {
-        auto result = co_await server::getModVersion(suggestionID, suggestionVersion);
+        auto result = co_await server::getModVersion(std::move(suggestionID), std::move(suggestionVersion));
         if (!result.isOk()) {
             co_return std::nullopt;
         }

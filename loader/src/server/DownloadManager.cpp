@@ -40,7 +40,7 @@ public:
     {
         auto fetchVersion = version.has_value() ? ModVersion(*version) : ModVersion(ModVersionLatest());
         m_infoListener.spawn(
-            getModVersion(m_id, fetchVersion),
+            getModVersion(m_id, std::move(fetchVersion)),
             [this](ServerResult<ServerModVersion> result) {
                 if (result.isOk()) {
                     auto& data = result.unwrap();

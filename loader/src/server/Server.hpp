@@ -165,10 +165,10 @@ namespace server {
     std::string getServerAPIBaseURL();
     std::string getServerUserAgent();
 
-    ServerFuture<ServerModsList> getMods(ModsQuery const& query, bool useCache = true);
-    ServerFuture<ServerModMetadata> getMod(std::string const& id, bool useCache = true);
-    ServerFuture<ServerModVersion> getModVersion(std::string const& id, ModVersion const& version = ModVersionLatest(), bool useCache = true);
-    ServerFuture<ByteVector> getModLogo(std::string const& id, bool useCache = true);
+    ServerFuture<ServerModsList> getMods(ModsQuery query, bool useCache = true);
+    ServerFuture<ServerModMetadata> getMod(std::string id, bool useCache = true);
+    ServerFuture<ServerModVersion> getModVersion(std::string id, ModVersion version = ModVersionLatest(), bool useCache = true);
+    ServerFuture<ByteVector> getModLogo(std::string id, bool useCache = true);
     ServerFuture<std::vector<ServerTag>> getTags(bool useCache = true);
 
     ServerFuture<std::optional<ServerModUpdate>> checkUpdates(Mod const* mod);

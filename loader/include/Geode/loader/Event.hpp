@@ -530,7 +530,7 @@ namespace geode::event {
             }
             else {
                 auto clonedFilter = KeyType(filter->clone());
-                std::cout << fmt::format("Add receiver filter type {}", typeid(*clonedFilter).name()) << std::endl;
+                // std::cout << fmt::format("Add receiver filter type {}", typeid(*clonedFilter).name()) << std::endl;
                 auto newFilter = clonedFilter.get();
                 auto port = ValueType(clonedFilter->getPort());
                 ReceiverHandle handle = std::invoke(func, port.get());
