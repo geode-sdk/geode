@@ -4,6 +4,8 @@
 #include <Geode/utils/ZStringView.hpp>
 #include <Geode/utils/StringMap.hpp>
 #include <Geode/utils/async.hpp>
+#include <Geode/utils/general.hpp>
+#include <Geode/utils/Task.hpp> // TODO: v5 temp
 #include <matjson.hpp>
 #include <Geode/Result.hpp>
 #include <chrono>

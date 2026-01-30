@@ -13,7 +13,7 @@
 #include <asp/ptr/PtrSwap.hpp>
 #include "../utils/function.hpp"
 #include "../utils/casts.hpp"
-#include "../utils/general.hpp"
+#include "../utils/hash.hpp"
 
 namespace geode::event {
     template <class T>

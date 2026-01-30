@@ -4,6 +4,7 @@
 
 #include <Geode/utils/ZStringView.hpp>
 #include <Geode/utils/string.hpp>
+#include <Geode/utils/hash.hpp>
 #include "../DefaultInclude.hpp"
 #include <chrono>
 #include <iomanip>
@@ -36,19 +37,6 @@ namespace geode {
         out.resize(sizeof(T));
         std::memcpy(out.data(), &a, sizeof(T));
         return out;
-    }
-
-    // Taken from boost::hash_combine, license bsl 1.0
-    template <class T>
-    inline void hashCombine(size_t& seed, T const& v) {
-        std::hash<T> hasher;
-        seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-    }
-
-    template <class T>
-    inline size_t typenameHash() {
-        std::hash<std::string_view> hasher;
-        return hasher(typeid(T).name());
     }
 
     namespace utils {
