@@ -8,10 +8,8 @@ class $modify (CCEGLView) {
         GLint viewport[4];
         glGetIntegerv(GL_VIEWPORT, viewport);
 
-        float zoomFactor = m_fFrameZoomFactor;
-
-        float multWidth = viewport[2] / (m_obScreenSize.width * zoomFactor);
-        float multHeight = viewport[3] / (m_obScreenSize.height * zoomFactor);
+        float multWidth = viewport[2] / getFrameSize().width;
+        float multHeight = viewport[3] / getFrameSize().height;
 
         x *= multWidth;
         y *= multHeight;
