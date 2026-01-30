@@ -160,6 +160,8 @@ bool cleanModeCheck() {
 }
 
 bool loadGeode() {
+    if (cleanModeCheck()) return false;
+
     if (GEODE_STR(GEODE_GD_VERSION) != LoaderImpl::get()->getGameVersion()) {
         console::messageBox(
             "Unable to Load Geode!",
@@ -174,8 +176,6 @@ bool loadGeode() {
         );
         return false;
     }
-
-    if (cleanModeCheck()) return false;
 
     // this uses the internal hooking system because it needs to be fast
     if (auto imp = hook::replaceObjcMethod("AppController", "applicationDidFinishLaunching:", (void*)applicationDidFinishLaunchingHook)) {
