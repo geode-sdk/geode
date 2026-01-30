@@ -50,17 +50,17 @@ public:
         typename Callback = std::conditional_t<std::is_void_v<Ret>, Function<void()>, Function<void(NonVoid)>>
     >
     void spawn(Fut future, Callback cb) {
-        this->abort();
+        this->cancel();
 
-        this->cancel = std::make_shared<arc::CancellationToken>();
+        m_cancel = std::make_shared<arc::CancellationToken>();
         
         if constexpr (std::is_void_v<Ret>) {
-            this->handle = geode::async::spawn(std::move(future), [cancel = this->cancel, cb = std::move(cb)] mutable {
+            m_handle = geode::async::spawn(std::move(future), [cancel = m_cancel, cb = std::move(cb)] mutable {
                 if (cancel->isCancelled()) return;
                 cb();
             });
         } else {
-            this->handle = geode::async::spawn(std::move(future), [cancel = this->cancel, cb = std::move(cb)](Ret val) mutable {
+            m_handle = geode::async::spawn(std::move(future), [cancel = m_cancel, cb = std::move(cb)](Ret val) mutable {
                 if (cancel->isCancelled()) return;
                 cb(std::move(val));
             });
@@ -69,7 +69,7 @@ public:
     }
 
     ~TaskHolder() {
-        this->abort();
+        this->cancel();
     }
 
     TaskHolder() = default;
@@ -83,28 +83,28 @@ public:
 
     TaskHolder& operator=(TaskHolder&& other) noexcept {
         if (this != &other) {
-            this->abort();
+            this->cancel();
 
-            handle = std::move(other.handle);
-            cancel = std::move(other.cancel);
-            other.cancel.reset();
+            m_handle = std::move(other.m_handle);
+            m_cancel = std::move(other.m_cancel);
+            other.m_cancel.reset();
         }
         return *this;
     }
 
-private:
-    std::optional<arc::TaskHandle<void>> handle;
-    std::shared_ptr<arc::CancellationToken> cancel;
+    void cancel() {
+        if (m_handle) {
+            m_cancel->cancel();
+            m_cancel.reset();
 
-    void abort() {
-        if (handle) {
-            cancel->cancel();
-            cancel.reset();
-
-            handle->abort();
-            handle.reset();
+            m_handle->abort();
+            m_handle.reset();
         }
     }
+
+private:
+    std::optional<arc::TaskHandle<void>> m_handle;
+    std::shared_ptr<arc::CancellationToken> m_cancel;
 };
 
 }
