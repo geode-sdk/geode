@@ -31,7 +31,7 @@ protected:
     CCNode* m_statusLoadingCircle;
     Slider* m_statusLoadingBar;
     ListenerHandle m_pageLoadHandle;
-    // EventListener<ModListSource::PageLoadTask> m_listener;
+    async::TaskHolder<ModListSource::PageLoadResult> m_listener;
     CCMenuItemSpriteExtra* m_pagePrevBtn;
     CCMenuItemSpriteExtra* m_pageNextBtn;
     CCNode* m_topContainer;
@@ -66,7 +66,7 @@ protected:
     void onCheckUpdates(const std::vector<std::string>& mods);
     void onInvalidateCache(InvalidateCacheEvent* event);
 
-    // void onPromise(ModListSource::PageLoadTask::Event* event);
+    void onPromise(ModListSource::PageLoadResult event);
     void onPage(CCObject*);
     void onShowStatusDetails(CCObject*);
     void onFilters(CCObject*);

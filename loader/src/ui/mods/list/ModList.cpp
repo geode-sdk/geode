@@ -408,8 +408,6 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     this->addChildAtPosition(m_statusContainer, Anchor::Center);
 
     // TODO: v5
-    // m_listener.bind(this, &ModList::onPromise);
-
     // m_invalidateCacheListener.bind(this, &ModList::onInvalidateCache);
     // m_invalidateCacheListener.setFilter(InvalidateCacheFilter(m_source));
 
@@ -422,68 +420,68 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
 }
 
 // TODO: v5
-// void ModList::onPromise(ModListSource::PageLoadTask::Event* event) {
-//     if (event->getValue()) {
-//         auto result = event->getValue();
-//         if (result->isOk()) {
-//             // This is apparently because `getChildren()` may be nullptr?
-//             if (m_list->m_contentLayer->getChildrenCount() > 0) {
-//                 m_list->m_contentLayer->removeAllChildren();
-//             }
+void ModList::onPromise(ModListSource::PageLoadResult result) {
+    if (result.isOk()) {
+        // This is apparently because `getChildren()` may be nullptr?
+        if (m_list->m_contentLayer->getChildrenCount() > 0) {
+            m_list->m_contentLayer->removeAllChildren();
+        }
 
-//             // Hide status
-//             m_statusContainer->setVisible(false);
+        // Hide status
+        m_statusContainer->setVisible(false);
 
-//             auto list = result->unwrap();
+        auto& list = result.unwrap();
 
-//             // Create items
-//             bool first = true;
-//             for (auto item : list) {
-//                 // Add separators between items after the first one
-//                 if (!first) {
-//                     // auto separator = CCLayerColor::create(
-//                     //     ColorProvider::get()->define("mod-list-separator"_spr, { 255, 255, 255, 45 })
-//                     // );
-//                     // separator->setContentSize({ m_obContentSize.width - 10, .5f });
-//                     // m_list->m_contentLayer->addChild(separator);
-//                 }
-//                 first = false;
-//                 m_list->m_contentLayer->addChild(item);
-//             }
-//             this->updateDisplay(m_display);
+        // Create items
+        bool first = true;
+        for (auto item : list) {
+            // Add separators between items after the first one
+            if (!first) {
+                // auto separator = CCLayerColor::create(
+                //     ColorProvider::get()->define("mod-list-separator"_spr, { 255, 255, 255, 45 })
+                // );
+                // separator->setContentSize({ m_obContentSize.width - 10, .5f });
+                // m_list->m_contentLayer->addChild(separator);
+            }
+            first = false;
+            m_list->m_contentLayer->addChild(item);
+        }
+        this->updateDisplay(m_display);
 
-//             // Scroll list to top
-//             auto listTopScrollPos = -m_list->m_contentLayer->getContentHeight() + m_list->getContentHeight();
-//             m_list->m_contentLayer->setPositionY(listTopScrollPos);
+        // Scroll list to top
+        auto listTopScrollPos = -m_list->m_contentLayer->getContentHeight() + m_list->getContentHeight();
+        m_list->m_contentLayer->setPositionY(listTopScrollPos);
 
-//             // Update page UI
-//             this->updateState();
-//         }
-//         else {
-//             auto error = result->unwrapErr();
-//             this->showStatus(ModListErrorStatus(), error.message, error.details);
-//             this->updateState();
-//         }
+        // Update page UI
+        this->updateState();
+    }
+    else {
+        auto error = std::move(result).unwrapErr();
+        this->showStatus(ModListErrorStatus(), std::move(error.message), std::move(error.details));
+        this->updateState();
+    }
 
-//         // Clear listener
-//         // TODO: v5
-//         // m_listener.setFilter(ModListSource::PageLoadTask());
-//     }
-//     else if (auto progress = event->getProgress()) {
-//         // todo: percentage in a loading bar
-//         if (progress->has_value()) {
-//             this->showStatus(ModListProgressStatus {
-//                 .percentage = progress->value(),
-//             }, "Loading...");
-//         }
-//         else {
-//             this->showStatus(ModListUnkProgressStatus(), "Loading...");
-//         }
-//     }
-//     else if (event->isCancelled()) {
-//         this->reloadPage();
-//     }
-// }
+    // Clear listener
+    // TODO: v5
+    // m_listener.setFilter(ModListSource::PageLoadTask());
+
+
+    // TODO: v5 web progress
+    // else if (auto progress = event->getProgress()) {
+    //     // todo: percentage in a loading bar
+    //     if (progress->has_value()) {
+    //         this->showStatus(ModListProgressStatus {
+    //             .percentage = progress->value(),
+    //         }, "Loading...");
+    //     }
+    //     else {
+    //         this->showStatus(ModListUnkProgressStatus(), "Loading...");
+    //     }
+    // }
+    // else if (event->isCancelled()) {
+    //     this->reloadPage();
+    // }
+}
 
 void ModList::setIsExiting(bool exiting) {
     m_exiting = true;
@@ -706,8 +704,13 @@ void ModList::gotoPage(size_t page, bool update) {
         // Start loading new page with generic loading message
         this->showStatus(ModListUnkProgressStatus(), "Loading...");
     }
-    // TODO: v5
-    // m_listener.setFilter(m_source->loadPage(page, update));
+
+    m_listener.spawn(
+        m_source->loadPage(page, update),
+        [this](auto res) {
+            this->onPromise(std::move(res));
+        }
+    );
 
     // Do initial eager update on page UI (to prevent user spamming arrows
     // to access invalid pages)

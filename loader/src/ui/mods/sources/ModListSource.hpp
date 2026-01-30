@@ -42,7 +42,8 @@ public:
     };
 
     using Page = std::vector<Ref<ModListItem>>;
-    using PageLoadTask = arc::Future<Result<Page, LoadPageError>>;
+    using PageLoadResult = Result<Page, LoadPageError>;
+    using PageLoadTask = arc::Future<PageLoadResult>;
 
     struct ProvidedMods {
         std::vector<std::variant<ModSource, SpecialModListItemSource>> mods;
