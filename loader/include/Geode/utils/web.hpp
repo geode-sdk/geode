@@ -5,7 +5,6 @@
 #include <Geode/utils/StringMap.hpp>
 #include <Geode/utils/async.hpp>
 #include <Geode/utils/general.hpp>
-#include <Geode/utils/Task.hpp> // TODO: v5 temp
 #include <matjson.hpp>
 #include <Geode/Result.hpp>
 #include <chrono>
@@ -188,8 +187,6 @@ namespace geode::utils::web {
         }
     };
 
-    using WebTask = geode::Task<WebResponse, WebProgress>;
-    
     struct GEODE_DLL ARC_NODISCARD WebFuture : arc::PollableBase<WebFuture, WebResponse> {
         WebFuture(arc::Future<WebResponse> inner);
 
@@ -373,6 +370,12 @@ namespace geode::utils::web {
         WebRequest& bodyMultipart(MultipartForm const& form);
 
         /**
+         * Sets the function that will be called when progress is made on the request.
+         * This is an alternative to manually polling it via `progress()`.
+         */
+        WebRequest& onProgress(Function<void(WebProgress const&)> callback);
+
+        /**
          * Gets the unique request ID
          *
          * @return size_t
@@ -428,5 +431,11 @@ namespace geode::utils::web {
          * @return HttpVersion
          */
         HttpVersion getHttpVersion() const;
+
+        /**
+         * Gets the current progress of the request, if it was sent.
+         * Otherwise, default values are returned.
+         */
+        WebProgress getProgress() const;
     };
 }

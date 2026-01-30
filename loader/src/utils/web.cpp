@@ -394,14 +394,20 @@ public:
     std::optional<ByteVector> m_body;
     std::optional<std::chrono::seconds> m_timeout;
     std::optional<std::pair<std::uint64_t, std::uint64_t>> m_range;
+    geode::Function<void(WebProgress const&)> m_progressCallback;
+    std::string m_CABundleContent;
     bool m_certVerification = true;
     bool m_transferBody = true;
     bool m_followRedirects = true;
     bool m_ignoreContentLength = false;
-    std::string m_CABundleContent;
     ProxyOpts m_proxyOpts = {};
     HttpVersion m_httpVersion = HttpVersion::DEFAULT;
     size_t m_id;
+    std::atomic<size_t> m_downloadCurrent = 0;
+    std::atomic<size_t> m_downloadTotal = 0;
+    std::atomic<size_t> m_uploadCurrent = 0;
+    std::atomic<size_t> m_uploadTotal = 0;
+    std::atomic<bool> m_progressNotifQueued{false};
 
     // stored to clean up later
     char m_errorBuf[CURL_ERROR_SIZE] = {0};
@@ -667,36 +673,46 @@ public:
             return size * nitems;
         }));
 
-        // TODO v5: progress
-        // for now the line below just disbales the annoying progress meter, remove it after progress is added
-        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
-
         // Track & post progress on the Promise
         // onProgress can only be not set if using sendSync without one, and hasBeenCancelled is always null in that case
-        // if (requestData->onProgress) {
-        //     curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, requestData);
-        //     curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, +[](void* ptr, double dtotal, double dnow, double utotal, double unow) -> int {
-        //         auto data = static_cast<ResponseData*>(ptr);
+        curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, requestData);
+        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, +[](void* ptr, double dtotal, double dnow, double utotal, double unow) -> int {
+            auto data = static_cast<ResponseData*>(ptr);
 
-        //         // Check for cancellation and abort if so
-        //         if (data->hasBeenCancelled && data->hasBeenCancelled()) {
-        //             return 1;
-        //         }
+            // TODO v5: external cancellation?
 
-        //         // Post progress to Promise listener
-        //         WebProgress progress{};
-        //         progress.m_downloadTotal = dtotal;
-        //         progress.m_downloadCurrent = dnow;
-        //         progress.m_uploadTotal = utotal;
-        //         progress.m_uploadCurrent = unow;
-        //         data->onProgress(progress);
+            // Store progress inside the request
+            using enum std::memory_order;
+            auto& r = *data->request;
 
-        //         // Continue as normal
-        //         return 0;
-        //     });
-        // }
+            r.m_downloadTotal.store(static_cast<size_t>(dtotal), relaxed);
+            r.m_downloadCurrent.store(static_cast<size_t>(dnow), relaxed);
+            r.m_uploadTotal.store(static_cast<size_t>(utotal), relaxed);
+            r.m_uploadCurrent.store(static_cast<size_t>(unow), relaxed);
+
+            // Queue the callback in the main thread, make sure to do it only once per frame
+            if (r.m_progressCallback && !r.m_progressNotifQueued.exchange(true, acq_rel)) {
+                queueInMainThread([req = data->request] {
+                    req->m_progressNotifQueued.store(false, release);
+                    if (req->m_progressCallback) req->m_progressCallback(req->progress());
+                });
+            }
+
+            // Continue as normal
+            return 0;
+        });
 
         return curl;
+    }
+
+    WebProgress progress() const {
+        using enum std::memory_order;
+        WebProgress p{};
+        p.m_downloadCurrent = m_downloadCurrent.load(relaxed);
+        p.m_downloadTotal = m_downloadTotal.load(relaxed);
+        p.m_uploadCurrent = m_uploadCurrent.load(relaxed);
+        p.m_uploadTotal = m_uploadTotal.load(relaxed);
+        return p;
     }
 };
 
@@ -878,6 +894,11 @@ WebRequest& WebRequest::bodyMultipart(MultipartForm const& form) {
     return *this;
 }
 
+WebRequest& WebRequest::onProgress(Function<void(WebProgress const&)> callback) {
+    m_impl->m_progressCallback = std::move(callback);
+    return *this;
+}
+
 size_t WebRequest::getID() const {
     return m_impl->m_id;
 }
@@ -908,6 +929,10 @@ std::optional<std::chrono::seconds> WebRequest::getTimeout() const {
 
 HttpVersion WebRequest::getHttpVersion() const {
     return m_impl->m_httpVersion;
+}
+
+WebProgress WebRequest::getProgress() const {
+    return m_impl->progress();
 }
 
 struct RegisteredSocket {
@@ -1004,7 +1029,7 @@ public:
         });
         curl_multi_setopt(m_multiHandle, CURLMOPT_TIMERDATA, this);
 
-        m_worker = async::runtime().spawn([this, rx = std::move(rx)](this auto self) -> arc::Future<> {
+        m_worker = async::runtime().spawn([this](this auto self, auto rx) -> arc::Future<> {
             bool running = true;
             while (running) {
                 co_await arc::select(
@@ -1022,7 +1047,7 @@ public:
                     )
                 );
             }
-        }());
+        }(std::move(rx)));
     }
 
     ~Impl() {
