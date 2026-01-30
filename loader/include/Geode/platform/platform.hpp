@@ -16,8 +16,10 @@
 
 #if defined (_MSC_VER) && !defined(__clang__)
     #define GEODE_CXX_STANDARD _MSVC_LANG
+    #define GEODE_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
 #else
     #define GEODE_CXX_STANDARD __cplusplus
+    #define GEODE_NO_UNIQUE_ADDRESS [[no_unique_address]]
 #endif
 
 static_assert(

@@ -1,4 +1,5 @@
 #include "Event.hpp"
+#include "../platform/platform.hpp"
 
 namespace geode::comm {
 	class Observer;
@@ -38,7 +39,7 @@ namespace geode::comm {
 			PortType port;
 			Type value;
 			std::conditional_t<ThreadSafe, std::atomic_flag, bool> inCtx = false;
-			[[no_unique_address]] mutable std::conditional_t<ThreadSafe, std::mutex, std::monostate> mutex;
+			GEODE_NO_UNIQUE_ADDRESS mutable std::conditional_t<ThreadSafe, std::mutex, std::monostate> mutex;
 
 			Impl() noexcept {}
 			Impl(std::convertible_to<PortType> auto&& p, std::convertible_to<Type> auto&& v) noexcept : port(p), value(v) {}
