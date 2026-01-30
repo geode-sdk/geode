@@ -5,6 +5,7 @@
 #include "../sources/ModListSource.hpp"
 #include "../GeodeStyle.hpp"
 #include <server/Server.hpp>
+#include <Geode/utils/async.hpp>
 
 using namespace geode::prelude;
 
@@ -14,7 +15,7 @@ protected:
     CCMenu* m_tagsMenu;
     std::unordered_set<std::string> m_selectedTags;
     ListenerHandle m_tagsHandle;
-    // EventListener<server::ServerFuture<std::vector<server::ServerTag>>> m_tagsListener;
+    async::TaskHolder<server::ServerResult<std::vector<server::ServerTag>>> m_tagsListener;
     CCMenuItemToggler* m_enabledModsOnly = nullptr;
     CCMenuItemToggler* m_enabledModsFirst = nullptr;
     TextInput* m_developerNameInput = nullptr;
@@ -22,8 +23,7 @@ protected:
     bool init(ModListSource* src);
     void updateTags();
     
-    // TODO: v5
-    // void onLoadTags(typename server::ServerFuture<std::vector<server::ServerTag>>::Event* event);
+    void onLoadTags(server::ServerResult<std::vector<server::ServerTag>> result);
     void onResetTags(CCObject*);
     void onResetDevName(CCObject*);
     void onSelectTag(CCObject* sender);

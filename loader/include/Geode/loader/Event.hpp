@@ -484,7 +484,7 @@ namespace geode::event {
 
         EventCenter() : m_ports(asp::make_shared<MapType>()) {}
     public:
-        static EventCenter* get();
+        GEODE_DLL static EventCenter* get();
 
         template <class Callable>
         requires std::is_invocable_v<Callable, OpaquePortBase*>

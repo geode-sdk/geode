@@ -161,41 +161,43 @@ bool FiltersPopup::init(ModListSource* src) {
     );
     m_buttonMenu->addChildAtPosition(okBtn, Anchor::Bottom, ccp(0, 20));
 
-    // TODO: v5
-    // m_tagsListener.bind(this, &FiltersPopup::onLoadTags);
-    // m_tagsListener.setFilter(server::getTags());
+    m_tagsListener.spawn(
+        server::getTags(),
+        [this](auto result) {
+            this->onLoadTags(std::move(result));
+        }
+    );
 
     return true;
 }
 
-// TODO: v5
-// void FiltersPopup::onLoadTags(typename server::ServerFuture<std::vector<server::ServerTag>>::Event* event) {
-//     if (event->getValue() && event->getValue()->isOk()) {
-//         auto tags = event->getValue()->unwrap();
-//         m_tagsMenu->removeAllChildren();
-//         for (auto& tag : tags) {
-//             auto offSpr = createGeodeTagLabel(tag);
-//             offSpr->m_BGSprite->setOpacity(105);
-//             offSpr->m_label->setOpacity(105);
-//             auto onSpr = createGeodeTagLabel(tag);
-//             auto btn = CCMenuItemToggler::create(
-//                 offSpr, onSpr, this, menu_selector(FiltersPopup::onSelectTag)
-//             );
-//             btn->m_notClickable = true;
-//             btn->setUserObject("tag", CCString::create(tag.name));
-//             m_tagsMenu->addChild(btn);
-//         }
-//         m_tagsMenu->updateLayout();
-//         this->updateTags();
-//     }
-//     else if (event->isCancelled() || (event->getValue() && event->getValue()->isErr())) {
-//         m_tagsMenu->removeAllChildren();
-//         auto label = CCLabelBMFont::create("Unable to load tags", "bigFont.fnt");
-//         label->setOpacity(105);
-//         m_tagsMenu->addChild(label);
-//         m_tagsMenu->updateLayout();
-//     }
-// }
+void FiltersPopup::onLoadTags(server::ServerResult<std::vector<server::ServerTag>> result) {
+    if (result.isOk()) {
+        auto tags = std::move(result).unwrap();
+        m_tagsMenu->removeAllChildren();
+        for (auto& tag : tags) {
+            auto offSpr = createGeodeTagLabel(tag);
+            offSpr->m_BGSprite->setOpacity(105);
+            offSpr->m_label->setOpacity(105);
+            auto onSpr = createGeodeTagLabel(tag);
+            auto btn = CCMenuItemToggler::create(
+                offSpr, onSpr, this, menu_selector(FiltersPopup::onSelectTag)
+            );
+            btn->m_notClickable = true;
+            btn->setUserObject("tag", CCString::create(tag.name));
+            m_tagsMenu->addChild(btn);
+        }
+        m_tagsMenu->updateLayout();
+        this->updateTags();
+    }
+    else {
+        m_tagsMenu->removeAllChildren();
+        auto label = CCLabelBMFont::create("Unable to load tags", "bigFont.fnt");
+        label->setOpacity(105);
+        m_tagsMenu->addChild(label);
+        m_tagsMenu->updateLayout();
+    }
+}
 
 void FiltersPopup::updateTags() {
     for (auto node : CCArrayExt<CCNode*>(m_tagsMenu->getChildren())) {

@@ -147,7 +147,10 @@ namespace server {
     };
 
     template <class T>
-    using ServerFuture = arc::Future<Result<T, ServerError>>;
+    using ServerResult = Result<T, ServerError>;
+
+    template <class T>
+    using ServerFuture = arc::Future<ServerResult<T>>;
 
     struct ModVersionLatest final {
         bool operator==(ModVersionLatest const&) const = default;

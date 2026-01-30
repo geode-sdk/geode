@@ -23,12 +23,12 @@ public:
 
 protected:
     ListenerHandle m_handle;
-    // EventListener<Request> m_listener;
+    async::TaskHolder<server::ServerResult<std::optional<std::string>>> m_listener;
     MDTextArea* m_textarea;
     CCNode* m_loading;
     std::string m_noneText;
 
-    bool init(Request const& req, std::string noneText, CCSize const& size) {
+    bool init(Request&& req, std::string noneText, CCSize const& size) {
         if (!CCNode::init())
             return false;
 
@@ -44,34 +44,38 @@ protected:
         m_loading = createLoadingCircle(30);
         this->addChildAtPosition(m_loading, Anchor::Center);
 
-        // TODO: v5
-        // m_listener.bind(this, &FetchTextArea::onRequest);
-        // m_listener.setFilter(req);
+        m_listener.spawn(
+            std::move(req),
+            [this](auto val) {
+                this->onRequest(std::move(val));
+            }
+        );
 
         return true;
     }
 
-    // TODO: v5
-    // void onRequest(Request::Event* event) {
-    //     if (auto* res = event->getValue(); res && res->isOk()) {
-    //         auto value = std::move(*res).unwrap();
-    //         if (value) {
-    //             m_loading->removeFromParent();
-    //             std::string str = std::move(value).value();
-    //             m_textarea->setString(str.c_str());
-    //             return;
-    //         }
-    //     }
-    //     if (!event->getProgress()) {
-    //         m_loading->removeFromParent();
-    //         m_textarea->setString(m_noneText.c_str());
-    //     }
-    // }
+    void onRequest(server::ServerResult<std::optional<std::string>> result) {
+        if (result && result.isOk()) {
+            auto value = std::move(result).unwrap();
+            if (value) {
+                m_loading->removeFromParent();
+                std::string str = std::move(value).value();
+                m_textarea->setString(str.c_str());
+                return;
+            }
+        }
+
+        /// TODO: v5 what was this doing
+        // if (!event->getProgress()) {
+        //     m_loading->removeFromParent();
+        //     m_textarea->setString(m_noneText.c_str());
+        // }
+    }
 
 public:
-    static FetchTextArea* create(Request const& req, std::string noneText, CCSize const& size) {
+    static FetchTextArea* create(Request&& req, std::string noneText, CCSize const& size) {
         auto ret = new FetchTextArea();
-        if (ret->init(req, std::move(noneText), size)) {
+        if (ret->init(std::move(req), std::move(noneText), size)) {
             ret->autorelease();
             return ret;
         }
