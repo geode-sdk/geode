@@ -188,8 +188,40 @@ private:
 
 }
 
-bool LazySprite::init(CCSize size, bool loadingCircle) {
-    if (!CCSprite::init()) return false;
+class LazySprite::Impl {
+public:
+    Ref<LoadingSpinner> m_loadingCircle;
+    Callback m_callback;
+    Format m_expectedFormat;
+    // EventListener<utils::web::WebTask> m_listener;
+    bool m_isLoading = false;
+    std::atomic_bool m_hasLoaded = false;
+    bool m_autoresize;
+    cocos2d::CCSize m_targetSize;
+    LazySprite* m_self;
+
+    Impl(LazySprite* self) : m_self(self) {}
+
+    bool init(cocos2d::CCSize size, bool loadingCircle = true);
+    void doInitFromBytes(std::vector<uint8_t> data, std::string cacheKey);
+    std::string makeCacheKey(std::filesystem::path const& path);
+    // std::string makeCacheKey(std::string_view url);
+
+    cocos2d::CCTexture2D* lookupCache(char const* key);
+    bool initFromCache(char const* key);
+    bool postInit(bool initResult);
+
+    void onError(std::string err);
+    void handleRequest();
+};
+
+LazySprite::LazySprite()
+    : m_impl(std::make_unique<Impl>(this)) {}
+
+LazySprite::~LazySprite() = default;
+
+bool LazySprite::Impl::init(CCSize size, bool loadingCircle) {
+    if (!m_self->CCSprite::init()) return false;
 
     m_isLoading = false;
     m_hasLoaded = false;
@@ -200,10 +232,10 @@ bool LazySprite::init(CCSize size, bool loadingCircle) {
         m_loadingCircle = LoadingSpinner::create(lcsize);
         m_loadingCircle->setAnchorPoint({0.5f, 0.5f});
         m_loadingCircle->setPosition(size / 2.f);
-        this->addChild(m_loadingCircle);
+        m_self->addChild(m_loadingCircle);
     }
 
-    this->setContentSize(size);
+    m_self->setContentSize(size);
 
     m_targetSize = size;
     m_autoresize = false;
@@ -212,16 +244,16 @@ bool LazySprite::init(CCSize size, bool loadingCircle) {
 }
 
 void LazySprite::loadFromUrl(std::string url, Format format, bool ignoreCache) {
-    if (m_isLoading || m_hasLoaded) {
+    if (m_impl->m_isLoading || m_impl->m_hasLoaded) {
         return;
     }
 
-    if (!ignoreCache && this->initFromCache(url.c_str())) {
+    if (!ignoreCache && m_impl->initFromCache(url.c_str())) {
         return;
     }
 
-    m_expectedFormat = format;
-    m_isLoading = true;
+    m_impl->m_expectedFormat = format;
+    m_impl->m_isLoading = true;
 
     auto cacheKey = ignoreCache ? std::string{} : std::string(url);
     // TODO: v5
@@ -258,17 +290,17 @@ void LazySprite::loadFromUrl(std::string url, Format format, bool ignoreCache) {
 }
 
 void LazySprite::loadFromFile(const std::filesystem::path& path, Format format, bool ignoreCache) {
-    if (m_isLoading || m_hasLoaded) {
+    if (m_impl->m_isLoading || m_impl->m_hasLoaded) {
         return;
     }
 
-    auto cacheKey = ignoreCache ? std::string{} : this->makeCacheKey(path);
-    if (!ignoreCache && this->initFromCache(cacheKey.c_str())) {
+    auto cacheKey = ignoreCache ? std::string{} : m_impl->makeCacheKey(path);
+    if (!ignoreCache && m_impl->initFromCache(cacheKey.c_str())) {
         return;
     }
 
-    m_expectedFormat = format;
-    m_isLoading = true;
+    m_impl->m_expectedFormat = format;
+    m_impl->m_isLoading = true;
 
     Manager::get().pushTask([
         selfref = WeakRef(this),
@@ -287,27 +319,27 @@ void LazySprite::loadFromFile(const std::filesystem::path& path, Format format, 
             auto self = selfref.lock();
 
             // if sprite was destructed or loading has been cancelled, do nothing
-            if (!self || !self->m_isLoading) return;
+            if (!self || !self->m_impl->m_isLoading) return;
 
             if (!res) {
-                self->onError(fmt::format("failed to load from file {}: {}", path, res.unwrapErr()));
+                self->m_impl->onError(fmt::format("failed to load from file {}: {}", path, res.unwrapErr()));
                 return;
             }
 
-            self->doInitFromBytes(std::move(res).unwrap(), std::move(cacheKey));
+            self->m_impl->doInitFromBytes(std::move(res).unwrap(), std::move(cacheKey));
         });
     });
 }
 
 void LazySprite::loadFromData(std::vector<uint8_t> data, Format format) {
-    if (m_isLoading || m_hasLoaded) {
+    if (m_impl->m_isLoading || m_impl->m_hasLoaded) {
         return;
     }
 
-    m_expectedFormat = format;
-    m_isLoading = true;
+    m_impl->m_expectedFormat = format;
+    m_impl->m_isLoading = true;
 
-    this->doInitFromBytes(std::move(data), "");
+    m_impl->doInitFromBytes(std::move(data), "");
 }
 
 void LazySprite::loadFromData(std::span<uint8_t const> data, Format format) {
@@ -318,10 +350,10 @@ void LazySprite::loadFromData(uint8_t const* ptr, size_t size, Format format) {
     this->loadFromData(std::span{ptr, size}, format);
 }
 
-void LazySprite::doInitFromBytes(std::vector<uint8_t> data, std::string cacheKey) {
+void LazySprite::Impl::doInitFromBytes(std::vector<uint8_t> data, std::string cacheKey) {
     // do initialization in the threadpool
     Manager::get().pushTask([
-        selfref = WeakRef(this),
+        selfref = WeakRef(m_self),
         data = std::move(data),
         cacheKey = std::move(cacheKey),
         format = m_expectedFormat
@@ -334,8 +366,8 @@ void LazySprite::doInitFromBytes(std::vector<uint8_t> data, std::string cacheKey
 
             Loader::get()->queueInMainThread([selfref = std::move(selfref)]() mutable {
                 auto self = selfref.lock();
-                if (self && self->m_isLoading) {
-                    self->onError("invalid image data or format");
+                if (self && self->m_impl->m_isLoading) {
+                    self->m_impl->onError("invalid image data or format");
                 }
             });
 
@@ -351,13 +383,13 @@ void LazySprite::doInitFromBytes(std::vector<uint8_t> data, std::string cacheKey
             cacheKey = std::move(cacheKey)
         ] {
             auto self = selfref.lock();
-            if (!self || !self->m_isLoading) return;
+            if (!self || !self->m_impl->m_isLoading) return;
 
             auto texture = new CCTexture2D();
             if (!texture->initWithImage(image)) {
                 delete texture;
                 image->release();
-                self->onError("failed to initialize OpenGL texture");
+                self->m_impl->onError("failed to initialize OpenGL texture");
                 return;
             }
 
@@ -371,7 +403,7 @@ void LazySprite::doInitFromBytes(std::vector<uint8_t> data, std::string cacheKey
             // this is weird but don't touch it unless you should
             if (!self->CCSprite::initWithTexture(texture)) {
                 // this should never happen tbh
-                self->onError("failed to initialize the sprite");
+                self->m_impl->onError("failed to initialize the sprite");
             }
 
             texture->release(); // bring texture's refcount back to 1
@@ -379,17 +411,17 @@ void LazySprite::doInitFromBytes(std::vector<uint8_t> data, std::string cacheKey
     });
 }
 
-std::string LazySprite::makeCacheKey(std::filesystem::path const& path) {
+std::string LazySprite::Impl::makeCacheKey(std::filesystem::path const& path) {
     return utils::string::pathToString(path);
 }
 
-CCTexture2D* LazySprite::lookupCache(char const* key) {
+CCTexture2D* LazySprite::Impl::lookupCache(char const* key) {
     return static_cast<CCTexture2D*>(CCTextureCache::get()->m_pTextures->objectForKey(key));
 }
 
-bool LazySprite::initFromCache(char const* key) {
+bool LazySprite::Impl::initFromCache(char const* key) {
     if (auto tex = this->lookupCache(key)) {
-        return CCSprite::initWithTexture(tex); // this will end up calling our overriden 2-arg func, which is what we want
+        return m_self->CCSprite::initWithTexture(tex); // this will end up calling our overriden 2-arg func, which is what we want
     }
 
     return false;
@@ -398,31 +430,31 @@ bool LazySprite::initFromCache(char const* key) {
 /* It's not impossible to optimize those too, but I did not bother for now, so they are just forwarders */
 
 bool LazySprite::initWithTexture(CCTexture2D* texture, const CCRect& rect, bool rotated) {
-    return this->postInit(CCSprite::initWithTexture(texture, rect, rotated));
+    return m_impl->postInit(CCSprite::initWithTexture(texture, rect, rotated));
 }
 
 bool LazySprite::initWithSpriteFrame(CCSpriteFrame* sf) {
-    return this->postInit(CCSprite::initWithSpriteFrame(sf));
+    return m_impl->postInit(CCSprite::initWithSpriteFrame(sf));
 }
 
 bool LazySprite::initWithSpriteFrameName(const char* fn) {
-    return this->postInit(CCSprite::initWithSpriteFrameName(fn));
+    return m_impl->postInit(CCSprite::initWithSpriteFrameName(fn));
 }
 
 bool LazySprite::initWithFile(const char* fn, const CCRect& rect) {
-    return this->postInit(CCSprite::initWithFile(fn, rect));
+    return m_impl->postInit(CCSprite::initWithFile(fn, rect));
 }
 
 /* end forwarders */
 
-bool LazySprite::postInit(bool initResult) {
+bool LazySprite::Impl::postInit(bool initResult) {
     m_hasLoaded = initResult;
     m_isLoading = false;
 
     if (!initResult) return false;
 
     if (m_autoresize) {
-        limitNodeSize(this, m_targetSize, std::min<float>(m_targetSize.width, m_targetSize.height), 0.f);
+        limitNodeSize(m_self, m_targetSize, std::min<float>(m_targetSize.width, m_targetSize.height), 0.f);
     }
 
     if (m_callback) {
@@ -437,7 +469,7 @@ bool LazySprite::postInit(bool initResult) {
     return true;
 }
 
-void LazySprite::onError(std::string err) {
+void LazySprite::Impl::onError(std::string err) {
     m_hasLoaded = false;
     m_isLoading = false;
 
@@ -452,33 +484,33 @@ void LazySprite::onError(std::string err) {
 }
 
 void LazySprite::setLoadCallback(Callback callback) {
-    m_callback = std::move(callback);
+    m_impl->m_callback = std::move(callback);
 }
 
 void LazySprite::setAutoResize(bool value) {
-    m_autoresize = value;
+    m_impl->m_autoresize = value;
 }
 
 bool LazySprite::isLoaded() {
-    return m_hasLoaded;
+    return m_impl->m_hasLoaded;
 }
 
 bool LazySprite::isLoading() {
-    return m_isLoading;
+    return m_impl->m_isLoading;
 }
 
 void LazySprite::cancelLoad() {
-    m_isLoading = false;
+    m_impl->m_isLoading = false;
 
-    if (m_loadingCircle) {
-        m_loadingCircle->removeFromParent();
-        m_loadingCircle = nullptr;
+    if (m_impl->m_loadingCircle) {
+        m_impl->m_loadingCircle->removeFromParent();
+        m_impl->m_loadingCircle = nullptr;
     }
 }
 
 LazySprite* LazySprite::create(CCSize size, bool loadingCircle) {
     auto ret = new LazySprite;
-    if (ret->init(size, loadingCircle)) {
+    if (ret->m_impl->init(size, loadingCircle)) {
         ret->autorelease();
         return ret;
     }
