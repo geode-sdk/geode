@@ -187,7 +187,7 @@ int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
             )
         );
         // TODO: should geode FreeLibrary itself here?
-    } else if (cleanModeCheck()) {
+    } else if (!cleanModeCheck()) {
         patchDelayLoad();
 
         int exitCode = geodeEntry(hInstance);
