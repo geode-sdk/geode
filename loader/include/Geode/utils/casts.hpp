@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Geode/platform/platform.hpp>
 #include <inttypes.h>
 #include <iostream>
 #include <string>
