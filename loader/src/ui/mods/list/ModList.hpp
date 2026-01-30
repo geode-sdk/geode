@@ -66,7 +66,7 @@ protected:
     void onCheckUpdates(const std::vector<std::string>& mods);
     void onInvalidateCache(InvalidateCacheEvent* event);
 
-    void onPromise(ModListSource::PageLoadTask::Event* event);
+    // void onPromise(ModListSource::PageLoadTask::Event* event);
     void onPage(CCObject*);
     void onShowStatusDetails(CCObject*);
     void onFilters(CCObject*);

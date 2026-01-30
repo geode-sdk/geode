@@ -251,7 +251,6 @@ protected:
                 m_modID = id;
 
                 // Asynchronously fetch from server
-                // TODO: v5
                 m_listener.spawn(
                     server::getModLogo(id),
                     [this](auto result) {

@@ -62,19 +62,19 @@ void updater::fetchLatestGithubRelease(
                     expect("Not a JSON response");
                 }
                 else {
-                    Mod::get()->setSavedValue("last-modified-auto-update-check", response->header("Last-Modified").value_or(""));
+                    Mod::get()->setSavedValue("last-modified-auto-update-check", response.header("Last-Modified").value_or(""));
                     s_latestGithubRelease = std::move(json).unwrap();
                     then(*s_latestGithubRelease);
                 }
             }
         } 
-        else if (response->code() == 304) {
+        else if (response.code() == 304) {
             log::debug("No Geode update available");
             // don't invoke either of the callbacks, since nothing changed
         }
         else {
-            log::debug("Code: {}", response->code());
-            expect(response->string().unwrapOr("Unknown error"));
+            log::debug("Code: {}", response.code());
+            expect(response.string().unwrapOr("Unknown error"));
         }
         RUNNING_REQUESTS.erase("@loaderAutoUpdateCheck");
         return response;
@@ -173,20 +173,15 @@ void updater::downloadLoaderResources(bool useLatestRelease) {
     auto req = web::WebRequest();
     req.header("If-Modified-Since", Mod::get()->getSavedValue("last-modified-tag-exists-check", std::string()));
     req.userAgent("github_api/1.0");
-    RUNNING_REQUESTS.emplace(
-        "@downloadLoaderResources",
-        req.get("https://api.github.com/repos/geode-sdk/geode/releases/tags/" + Loader::get()->getVersion().toVString()).map(
-        [useLatestRelease](web::WebResponse* response) {
-            // PLEASE make sure the erase happens at the end of this function
-            // i have spent too much time debugging this crash
-            auto doErase = [&] {
-                auto retval = *response;
-                RUNNING_REQUESTS.erase("@downloadLoaderResources");
-                return retval;
-            };
 
-            if (response->ok()) {
-                if (auto ok = response->json()) {
+    auto& holder = RUNNING_REQUESTS["@downloadLoaderResources"];
+    holder.spawn(
+        req.get("https://api.github.com/repos/geode-sdk/geode/releases/tags/" + Loader::get()->getVersion().toVString()),
+        [useLatestRelease](web::WebResponse response) {
+            RUNNING_REQUESTS.erase("@downloadLoaderResources");
+
+            if (response.ok()) {
+                if (auto ok = response.json()) {
                     auto root = checkJson(ok.unwrap(), "[]");
 
                     // find release asset
@@ -196,12 +191,12 @@ void updater::downloadLoaderResources(bool useLatestRelease) {
                                 obj.needs("browser_download_url").get<std::string>(),
                                 false
                             );
-                            return doErase();
+                            return;
                         }
                     }
 
                     ResourceDownloadEvent().send(UpdateFailed("Unable to find resources in release"));
-                    return doErase();
+                    return;
                 }
             }
             if (useLatestRelease) {
@@ -212,10 +207,8 @@ void updater::downloadLoaderResources(bool useLatestRelease) {
                 log::warn("Loader version {} does not exist on GitHub, not downloading the resources", Loader::get()->getVersion().toVString());
                 ResourceDownloadEvent().send(UpdateFinished());
             }
-
-            return doErase();
         }
-    ));
+    );
 }
 
 bool updater::verifyLoaderResources() {
@@ -279,62 +272,61 @@ bool updater::verifyLoaderResources() {
 }
 
 void updater::downloadLoaderUpdate(std::string url) {
-    auto updateZip = dirs::getTempDir() / "loader-update.zip";
-    auto targetDir = dirs::getGeodeDir() / "update";
-
     if (RUNNING_REQUESTS.contains("@downloadLoaderUpdate")) return;
 
+    // TODO v5: progress
+    // LoaderUpdateEvent().send(
+    //     UpdateProgress(
+    //         static_cast<uint8_t>(progress->downloadProgress().value_or(0)),
+    //         "Downloading update"
+    //     )
+    // );
+    // return *progress;
+
     auto req = web::WebRequest();
-    RUNNING_REQUESTS.emplace(
-        "@downloadLoaderUpdate",
-        req.get(std::move(url)).map(
-            [targetDir](web::WebResponse* response) {
-                if (response->ok()) {
-                    // unzip resources zip
-                    auto data = response->data();
-                    auto unzip = file::Unzip::create(data);
-                    if (unzip) {
-                        auto ok = unzip.unwrap().extractAllTo(targetDir);
-                        if (ok) {
-                            s_isNewUpdateDownloaded = true;
-                            LoaderUpdateEvent().send(UpdateFinished());
-                        }
-                        else {
-                            LoaderUpdateEvent().send(
-                                UpdateFailed("Unable to unzip update: " + ok.unwrapErr())
-                            );
-                            Mod::get()->setSavedValue("last-modified-auto-update-check", std::string());
-                        }
+    auto& holder = RUNNING_REQUESTS["@downloadLoaderUpdate"];
+    holder.spawn(
+        req.get(std::move(url)),
+        [](web::WebResponse response) {
+            RUNNING_REQUESTS.erase("@downloadLoaderUpdate");
+
+            auto updateZip = dirs::getTempDir() / "loader-update.zip";
+            auto targetDir = dirs::getGeodeDir() / "update";
+
+            if (response.ok()) {
+                // unzip resources zip
+                auto data = std::move(response).data();
+                auto unzip = file::Unzip::create(data);
+                if (unzip) {
+                    auto ok = unzip.unwrap().extractAllTo(targetDir);
+                    if (ok) {
+                        s_isNewUpdateDownloaded = true;
+                        LoaderUpdateEvent().send(UpdateFinished());
                     }
                     else {
                         LoaderUpdateEvent().send(
-                            UpdateFailed("Unable to unzip update: " + unzip.unwrapErr())
+                            UpdateFailed("Unable to unzip update: " + ok.unwrapErr())
                         );
                         Mod::get()->setSavedValue("last-modified-auto-update-check", std::string());
                     }
                 }
                 else {
-                    auto info = response->string().unwrapOr("Unknown error");
-                    log::error("Failed to download latest update {}", info);
                     LoaderUpdateEvent().send(
-                        UpdateFailed("Unable to download update: " + info)
+                        UpdateFailed("Unable to unzip update: " + unzip.unwrapErr())
                     );
-
                     Mod::get()->setSavedValue("last-modified-auto-update-check", std::string());
                 }
-                RUNNING_REQUESTS.erase("@downloadLoaderUpdate");
-                return *response;
-            },
-            [](web::WebProgress* progress) {
-                LoaderUpdateEvent().send(
-                    UpdateProgress(
-                        static_cast<uint8_t>(progress->downloadProgress().value_or(0)),
-                        "Downloading update"
-                    )
-                );
-                return *progress;
             }
-        )
+            else {
+                auto info = response.string().unwrapOr("Unknown error");
+                log::error("Failed to download latest update {}", info);
+                LoaderUpdateEvent().send(
+                    UpdateFailed("Unable to download update: " + info)
+                );
+
+                Mod::get()->setSavedValue("last-modified-auto-update-check", std::string());
+            }
+        }
     );
 }
 

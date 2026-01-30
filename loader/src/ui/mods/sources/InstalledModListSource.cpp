@@ -1,4 +1,5 @@
 #include "ModListSource.hpp"
+#include <arc/future/Join.hpp>
 
 bool InstalledModsQuery::preCheck(ModSource const& src) const {
     // Invalid .geode files are collected up into one entry instead of 
@@ -159,20 +160,16 @@ InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t pa
                 tasks.push_back(mod->checkUpdates());
             }
         }
-        return UpdateTask::all(std::move(tasks)).map(
-            [content = std::move(content), query = m_query](auto*) mutable -> ProviderTask::Value {
-                // Filter the results based on the current search
-                // query and return them
-                filterModsWithLocalQuery(content, query);
-                return Ok(std::move(content));
-            },
-            [](auto*) -> ProviderTask::Progress { return std::nullopt; }
-        );
+
+        co_await arc::joinAll(std::move(tasks));
+        
+        filterModsWithLocalQuery(content, query);
+        co_return Ok(std::move(content));
     }
     // Otherwise simply construct the result right away
     else {
         filterModsWithLocalQuery(content, m_query);
-        return ProviderTask::immediate(Ok(std::move(content)));
+        co_return ProviderTask::immediate(Ok(std::move(content)));
     }
 }
 

@@ -51,21 +51,22 @@ protected:
         return true;
     }
 
-    void onRequest(Request::Event* event) {
-        if (auto* res = event->getValue(); res && res->isOk()) {
-            auto value = std::move(*res).unwrap();
-            if (value) {
-                m_loading->removeFromParent();
-                std::string str = std::move(value).value();
-                m_textarea->setString(str.c_str());
-                return;
-            }
-        }
-        if (!event->getProgress()) {
-            m_loading->removeFromParent();
-            m_textarea->setString(m_noneText.c_str());
-        }
-    }
+    // TODO: v5
+    // void onRequest(Request::Event* event) {
+    //     if (auto* res = event->getValue(); res && res->isOk()) {
+    //         auto value = std::move(*res).unwrap();
+    //         if (value) {
+    //             m_loading->removeFromParent();
+    //             std::string str = std::move(value).value();
+    //             m_textarea->setString(str.c_str());
+    //             return;
+    //         }
+    //     }
+    //     if (!event->getProgress()) {
+    //         m_loading->removeFromParent();
+    //         m_textarea->setString(m_noneText.c_str());
+    //     }
+    // }
 
 public:
     static FetchTextArea* create(Request const& req, std::string noneText, CCSize const& size) {

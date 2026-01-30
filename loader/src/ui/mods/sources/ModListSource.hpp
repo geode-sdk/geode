@@ -6,6 +6,7 @@
 #include <server/Server.hpp>
 #include "../list/ModListItem.hpp"
 #include "ModSource.hpp"
+#include <arc/future/Future.hpp>
 
 using namespace geode::prelude;
 
@@ -41,13 +42,13 @@ public:
     };
 
     using Page = std::vector<Ref<ModListItem>>;
-    using PageLoadTask = Task<Result<Page, LoadPageError>, std::optional<uint8_t>>;
+    using PageLoadTask = arc::Future<Result<Page, LoadPageError>>;
 
     struct ProvidedMods {
         std::vector<std::variant<ModSource, SpecialModListItemSource>> mods;
         size_t totalModCount;
     };
-    using ProviderTask = Task<Result<ProvidedMods, LoadPageError>, std::optional<uint8_t>>;
+    using ProviderTask = arc::Future<Result<ProvidedMods, LoadPageError>>;
 
 protected:
     std::unordered_map<size_t, Page> m_cachedPages;
