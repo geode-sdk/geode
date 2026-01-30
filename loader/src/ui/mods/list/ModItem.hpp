@@ -68,7 +68,7 @@ protected:
     ListenerHandle m_updateStateHandle;
     ListenerHandle m_checkUpdateHandle;
     ListenerHandle m_downloadHandle;
-    // EventListener<server::ServerRequest<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
+    // EventListener<server::ServerFuture<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
     // EventListener<server::ModDownloadFilter> m_downloadListener;
     std::optional<server::ServerModUpdate> m_availableUpdate;
     ListenerHandle m_settingNodeHandle;
@@ -84,7 +84,7 @@ protected:
 
     void updateState();
 
-    void onCheckUpdates(typename server::ServerRequest<std::optional<server::ServerModUpdate>>::Event* event);
+    void onCheckUpdates(const server::ServerModUpdate& event);
 
     void onEnable(CCObject*);
     void onView(CCObject*);

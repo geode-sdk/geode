@@ -10,7 +10,7 @@
 
 using namespace geode::prelude;
 
-static StringMap<web::WebTask> RUNNING_REQUESTS {};
+static StringMap<async::TaskHolder<web::WebResponse>> RUNNING_REQUESTS {};
 
 // cache for the json of the latest github release to avoid hitting
 // the github api too much
@@ -46,39 +46,39 @@ void updater::fetchLatestGithubRelease(
     auto req = web::WebRequest();
     req.header("If-Modified-Since", modifiedSince);
     req.userAgent("github_api/1.0");
-    RUNNING_REQUESTS.emplace(
-        "@loaderAutoUpdateCheck",
-        req.get("https://api.github.com/repos/geode-sdk/geode/releases/latest").map(
-            [expect = std::move(expect), then = std::move(then)](web::WebResponse* response) mutable {
-                if (response->ok()) {
-                    if (response->data().empty()) {
-                        expect("Empty response");
-                    }
-                    else {
-                        auto json = response->json();
-                        if (!json) {
-                            expect("Not a JSON response");
-                        }
-                        else {
-                            Mod::get()->setSavedValue("last-modified-auto-update-check", response->header("Last-Modified").value_or(""));
-                            s_latestGithubRelease = std::move(json).unwrap();
-                            then(*s_latestGithubRelease);
-                        }
-                    }
-                } 
-                else if (response->code() == 304) {
-                    log::debug("No Geode update available");
-                    // don't invoke either of the callbacks, since nothing changed
+
+    auto& holder = RUNNING_REQUESTS["@loaderAutoUpdateCheck"];
+    holder.spawn(req.get("https://api.github.com/repos/geode-sdk/geode/releases/latest"), [
+        expect = std::move(expect),
+        then = std::move(then)
+    ](auto response) mutable {
+        if (response.ok()) {
+            if (response.data().empty()) {
+                expect("Empty response");
+            }
+            else {
+                auto json = response.json();
+                if (!json) {
+                    expect("Not a JSON response");
                 }
                 else {
-                    log::debug("Code: {}", response->code());
-                    expect(response->string().unwrapOr("Unknown error"));
+                    Mod::get()->setSavedValue("last-modified-auto-update-check", response->header("Last-Modified").value_or(""));
+                    s_latestGithubRelease = std::move(json).unwrap();
+                    then(*s_latestGithubRelease);
                 }
-                RUNNING_REQUESTS.erase("@loaderAutoUpdateCheck");
-                return *response;
             }
-        )
-    );
+        } 
+        else if (response->code() == 304) {
+            log::debug("No Geode update available");
+            // don't invoke either of the callbacks, since nothing changed
+        }
+        else {
+            log::debug("Code: {}", response->code());
+            expect(response->string().unwrapOr("Unknown error"));
+        }
+        RUNNING_REQUESTS.erase("@loaderAutoUpdateCheck");
+        return response;
+    });
 }
 
 void updater::downloadLatestLoaderResources() {
@@ -108,16 +108,26 @@ void updater::downloadLatestLoaderResources() {
 }
 
 void updater::tryDownloadLoaderResources(std::string url, bool tryLatestOnError) {
-    auto tempResourcesZip = dirs::getTempDir() / "new.zip";
-    auto resourcesDir = dirs::getGeodeResourcesDir() / Mod::get()->getID();
-
     if (RUNNING_REQUESTS.contains(url)) return;
 
-    auto req = web::WebRequest{}.get(url).map(
-        [url, resourcesDir = std::move(resourcesDir)](web::WebResponse* response) {
-            if (response->ok()) {
+    // TODO: progress
+    // ResourceDownloadEvent().send(
+    //     UpdateProgress(
+    //         static_cast<uint8_t>(progress->downloadProgress().value_or(0)),
+    //         "Downloading resources"
+    //     )
+    // );
+
+    auto& holder = RUNNING_REQUESTS[url];
+    holder.spawn(
+        web::WebRequest{}.get(url),
+        [url](auto response) {
+            if (response.ok()) {
+                auto tempResourcesZip = dirs::getTempDir() / "new.zip";
+                auto resourcesDir = dirs::getGeodeResourcesDir() / Mod::get()->getID();
+
                 // unzip resources zip
-                auto data = response->data();
+                auto data = std::move(response).data();
                 auto unzip = file::Unzip::create(data);
                 if (unzip) {
                     auto ok = unzip.unwrap().extractAllTo(resourcesDir);
@@ -134,10 +144,10 @@ void updater::tryDownloadLoaderResources(std::string url, bool tryLatestOnError)
                 }
             }
             else {
-                auto reason = response->string().unwrapOr("Unknown");
+                auto reason = response.string().unwrapOr("Unknown");
                 // if the url was not found, try downloading latest release instead
                 // (for development versions)
-                if (response->code() == 404) {
+                if (response.code() == 404) {
                     log::warn("Unable to download resources: {}", reason);
                 }
                 ResourceDownloadEvent().send(
@@ -145,20 +155,8 @@ void updater::tryDownloadLoaderResources(std::string url, bool tryLatestOnError)
                 );
             }
             RUNNING_REQUESTS.erase(url);
-            return *response;
-        },
-        [](web::WebProgress* progress) {
-            ResourceDownloadEvent().send(
-                UpdateProgress(
-                    static_cast<uint8_t>(progress->downloadProgress().value_or(0)),
-                    "Downloading resources"
-                )
-            );
-            return *progress;
         }
     );
-
-    RUNNING_REQUESTS.emplace(std::move(url), std::move(req));
 }
 
 void updater::updateSpecialFiles() {

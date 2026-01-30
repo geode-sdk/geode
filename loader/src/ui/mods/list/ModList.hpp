@@ -54,7 +54,7 @@ protected:
     ListenerHandle m_checkUpdatesHandle;
     ListenerHandle m_downloadHandle;
     // EventListener<InvalidateCacheFilter> m_invalidateCacheListener;
-    // EventListener<server::ServerRequest<std::vector<std::string>>> m_checkUpdatesListener;
+    // EventListener<server::ServerFuture<std::vector<std::string>>> m_checkUpdatesListener;
     // EventListener<server::ModDownloadFilter> m_downloadListener;
     ModListDisplay m_display = ModListDisplay::SmallList;
     bool m_exiting = false;
@@ -63,7 +63,7 @@ protected:
     bool init(ModListSource* src, CCSize const& size, bool searchingDev);
 
     void updateTopContainer();
-    void onCheckUpdates(typename server::ServerRequest<std::vector<std::string>>::Event* event);
+    void onCheckUpdates(const std::vector<std::string>& mods);
     void onInvalidateCache(InvalidateCacheEvent* event);
 
     void onPromise(ModListSource::PageLoadTask::Event* event);

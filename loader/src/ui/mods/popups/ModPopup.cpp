@@ -19,7 +19,7 @@
 
 class FetchTextArea : public CCNode {
 public:
-    using Request = server::ServerRequest<std::optional<std::string>>;
+    using Request = server::ServerFuture<std::optional<std::string>>;
 
 protected:
     ListenerHandle m_handle;
@@ -907,144 +907,144 @@ protected:
     }
 };
 
-void ModPopup::onLoadServerInfo(typename server::ServerRequest<server::ServerModMetadata>::Event* event) {
-    if (event->getValue() && event->getValue()->isOk()) {
-        auto data = event->getValue()->unwrap();
-        auto timeToString = [](auto const& time) {
-            if (time.has_value()) {
-                return time.value().toAgoString();
-            }
-            return std::string("N/A");
-        };
+// void ModPopup::onLoadServerInfo(typename server::ServerRequest<server::ServerModMetadata>::Event* event) {
+//     if (event->getValue() && event->getValue()->isOk()) {
+//         auto data = event->getValue()->unwrap();
+//         auto timeToString = [](auto const& time) {
+//             if (time.has_value()) {
+//                 return time.value().toAgoString();
+//             }
+//             return std::string("N/A");
+//         };
 
-        static std::locale commaLocale(std::locale(), new comma_numpunct());
+//         static std::locale commaLocale(std::locale(), new comma_numpunct());
 
-        // Update server stats
-        for (auto id : std::initializer_list<std::pair<const char*, std::string>> {
-            { "downloads", fmt::format(commaLocale, "{:L}", data.downloadCount) },
-            { "release-date", timeToString(data.createdAt) },
-            { "update-date", timeToString(data.updatedAt) },
-        }) {
-            if (auto stat = m_stats->getChildByID(id.first)) {
-                this->setStatValue(stat, id.second);
-            }
-        }
-        ModPopupUIEvent().send(this, m_source.getID(), std::nullopt);
-    }
-    else if (event->isCancelled() || (event->getValue() && event->getValue()->isErr())) {
-        for (auto child : CCArrayExt<CCNode*>(m_stats->getChildren())) {
-            if (child->getUserObject("stats")) {
-                this->setStatValue(child, "N/A");
-            }
-        }
-        ModPopupUIEvent().send(this, m_source.getID(), std::nullopt);
-    }
-}
+//         // Update server stats
+//         for (auto id : std::initializer_list<std::pair<const char*, std::string>> {
+//             { "downloads", fmt::format(commaLocale, "{:L}", data.downloadCount) },
+//             { "release-date", timeToString(data.createdAt) },
+//             { "update-date", timeToString(data.updatedAt) },
+//         }) {
+//             if (auto stat = m_stats->getChildByID(id.first)) {
+//                 this->setStatValue(stat, id.second);
+//             }
+//         }
+//         ModPopupUIEvent().send(this, m_source.getID(), std::nullopt);
+//     }
+//     else if (event->isCancelled() || (event->getValue() && event->getValue()->isErr())) {
+//         for (auto child : CCArrayExt<CCNode*>(m_stats->getChildren())) {
+//             if (child->getUserObject("stats")) {
+//                 this->setStatValue(child, "N/A");
+//             }
+//         }
+//         ModPopupUIEvent().send(this, m_source.getID(), std::nullopt);
+//     }
+// }
 
-void ModPopup::onCheckUpdates(typename server::ServerRequest<std::optional<server::ServerModUpdate>>::Event* event) {
-    if (event->getValue() && event->getValue()->isOk()) {
-        auto resolved = event->getValue()->unwrap();
-        // Check if this has updates for an installed mod
-        auto updatesStat = m_stats->getChildByID("update-check");
-        if (resolved.has_value()) {
-            this->setStatIcon(updatesStat, "updates-available.png"_spr);
-            this->setStatLabel(
-                updatesStat, "Update Found", false,
-                ColorProvider::get()->color3b("mod-list-version-label-updates-available"_spr)
-            );
-            this->setStatValue(updatesStat, resolved.value().version.toVString());
-            this->updateState();
-        }
-        else {
-            this->setStatIcon(updatesStat, "GJ_completesIcon_001.png");
-            this->setStatLabel(
-                updatesStat, "Up to Date!", true,
-                ColorProvider::get()->color3b("mod-list-version-label"_spr)
-            );
-        }
-    }
-    else if (event->isCancelled() || (event->getValue() && event->getValue()->isErr())) {
-        auto updatesStat = m_stats->getChildByID("update-check");
-        this->setStatLabel(updatesStat, "No Updates Found", true, ccc3(125, 125, 125));
-    }
-}
+// void ModPopup::onCheckUpdates(typename server::ServerRequest<std::optional<server::ServerModUpdate>>::Event* event) {
+//     if (event->getValue() && event->getValue()->isOk()) {
+//         auto resolved = event->getValue()->unwrap();
+//         // Check if this has updates for an installed mod
+//         auto updatesStat = m_stats->getChildByID("update-check");
+//         if (resolved.has_value()) {
+//             this->setStatIcon(updatesStat, "updates-available.png"_spr);
+//             this->setStatLabel(
+//                 updatesStat, "Update Found", false,
+//                 ColorProvider::get()->color3b("mod-list-version-label-updates-available"_spr)
+//             );
+//             this->setStatValue(updatesStat, resolved.value().version.toVString());
+//             this->updateState();
+//         }
+//         else {
+//             this->setStatIcon(updatesStat, "GJ_completesIcon_001.png");
+//             this->setStatLabel(
+//                 updatesStat, "Up to Date!", true,
+//                 ColorProvider::get()->color3b("mod-list-version-label"_spr)
+//             );
+//         }
+//     }
+//     else if (event->isCancelled() || (event->getValue() && event->getValue()->isErr())) {
+//         auto updatesStat = m_stats->getChildByID("update-check");
+//         this->setStatLabel(updatesStat, "No Updates Found", true, ccc3(125, 125, 125));
+//     }
+// }
 
-void ModPopup::onLoadTags(typename server::ServerRequest<std::vector<server::ServerTag>>::Event* event) {
-    if (event->getValue() && event->getValue()->isOk()) {
-        auto data = event->getValue()->unwrap();
-        m_tags->removeAllChildren();
+// void ModPopup::onLoadTags(typename server::ServerRequest<std::vector<server::ServerTag>>::Event* event) {
+//     if (event->getValue() && event->getValue()->isOk()) {
+//         auto data = event->getValue()->unwrap();
+//         m_tags->removeAllChildren();
 
-        for (auto& tag : data) {
-            m_tags->addChild(createGeodeTagLabel(tag));
-        }
+//         for (auto& tag : data) {
+//             m_tags->addChild(createGeodeTagLabel(tag));
+//         }
 
-        if (data.empty()) {
-            auto label = CCLabelBMFont::create("No tags found", "bigFont.fnt");
-            label->setOpacity(120);
-            m_tags->addChild(label);
-        }
-        // This should probably be kept even after modtober ends,
-        // so the banner sprite must be kept
-        // If the build times from the cool popup become too long then we can
-        // probably move that to a normal FLAlert that explains "Modtober was
-        // this contest blah blah this mod was made for it"
-        else if (auto tag = ranges::find(data, [](auto const& tag) { return tag.name.starts_with("modtober"); }); tag.has_value()) {
-            auto year = tag->name.substr(tag->name.size() - 2);
-            auto menu = CCMenu::create();
-            menu->setID("modtober-banner");
-            menu->ignoreAnchorPointForPosition(false);
-            menu->setContentSize({ m_rightColumn->getContentWidth(), 25 });
+//         if (data.empty()) {
+//             auto label = CCLabelBMFont::create("No tags found", "bigFont.fnt");
+//             label->setOpacity(120);
+//             m_tags->addChild(label);
+//         }
+//         // This should probably be kept even after modtober ends,
+//         // so the banner sprite must be kept
+//         // If the build times from the cool popup become too long then we can
+//         // probably move that to a normal FLAlert that explains "Modtober was
+//         // this contest blah blah this mod was made for it"
+//         else if (auto tag = ranges::find(data, [](auto const& tag) { return tag.name.starts_with("modtober"); }); tag.has_value()) {
+//             auto year = tag->name.substr(tag->name.size() - 2);
+//             auto menu = CCMenu::create();
+//             menu->setID("modtober-banner");
+//             menu->ignoreAnchorPointForPosition(false);
+//             menu->setContentSize({ m_rightColumn->getContentWidth(), 25 });
 
-            auto banner = CCSprite::createWithSpriteFrameName(fmt::format("modtober{}-banner-2.png"_spr, year).c_str());
-            limitNodeWidth(banner, m_rightColumn->getContentWidth(), 1.f, .1f);
-            menu->addChildAtPosition(banner, Anchor::Center);
+//             auto banner = CCSprite::createWithSpriteFrameName(fmt::format("modtober{}-banner-2.png"_spr, year).c_str());
+//             limitNodeWidth(banner, m_rightColumn->getContentWidth(), 1.f, .1f);
+//             menu->addChildAtPosition(banner, Anchor::Center);
 
-            auto label = CCLabelBMFont::create(("Entry for Modtober 20" + year).c_str(), "bigFont.fnt");
-            label->setScale(.35f);
-            menu->addChildAtPosition(label, Anchor::Left, ccp(10, 0), ccp(0, .5f));
+//             auto label = CCLabelBMFont::create(("Entry for Modtober 20" + year).c_str(), "bigFont.fnt");
+//             label->setScale(.35f);
+//             menu->addChildAtPosition(label, Anchor::Left, ccp(10, 0), ccp(0, .5f));
 
-            auto aboutSpr = createGeodeButton("About", false, GeodeButtonSprite::Default, m_forceDisableTheme);
-            aboutSpr->setScale(.35f);
-            auto aboutBtn = CCMenuItemSpriteExtra::create(
-                aboutSpr, this, year == "24" ? menu_selector(ModPopup::onModtober24Info) : menu_selector(ModPopup::onModtober25Info)
-            );
-            menu->addChildAtPosition(aboutBtn, Anchor::Right, ccp(-25, 0));
+//             auto aboutSpr = createGeodeButton("About", false, GeodeButtonSprite::Default, m_forceDisableTheme);
+//             aboutSpr->setScale(.35f);
+//             auto aboutBtn = CCMenuItemSpriteExtra::create(
+//                 aboutSpr, this, year == "24" ? menu_selector(ModPopup::onModtober24Info) : menu_selector(ModPopup::onModtober25Info)
+//             );
+//             menu->addChildAtPosition(aboutBtn, Anchor::Right, ccp(-25, 0));
 
-            m_rightColumn->addChildAtPosition(menu, Anchor::Bottom, ccp(0, 0), ccp(.5f, 0));
+//             m_rightColumn->addChildAtPosition(menu, Anchor::Bottom, ccp(0, 0), ccp(.5f, 0));
 
-            m_modtoberBanner = menu;
+//             m_modtoberBanner = menu;
 
-            // Force reload of all the tabs since otherwise their contents will overflow
-            for (auto& [_, tab] : m_tabs) {
-                if (tab.second && tab.second->getParent()) {
-                    tab.second->removeFromParent();
-                }
-                tab.second = nullptr;
-            }
+//             // Force reload of all the tabs since otherwise their contents will overflow
+//             for (auto& [_, tab] : m_tabs) {
+//                 if (tab.second && tab.second->getParent()) {
+//                     tab.second->removeFromParent();
+//                 }
+//                 tab.second = nullptr;
+//             }
 
-            m_currentTabPage = nullptr;
+//             m_currentTabPage = nullptr;
 
-            // This might cause a minor inconvenience to someone who opens the popup and
-            // immediately switches to changelog but is then forced back into details
-            this->loadTab(Tab::Details);
-        }
+//             // This might cause a minor inconvenience to someone who opens the popup and
+//             // immediately switches to changelog but is then forced back into details
+//             this->loadTab(Tab::Details);
+//         }
 
-        m_tags->updateLayout();
+//         m_tags->updateLayout();
 
-        ModPopupUIEvent().send(this, m_source.getID(), std::nullopt);
-    }
-    else if (event->isCancelled() || (event->getValue() && event->getValue()->isErr())) {
-        m_tags->removeAllChildren();
+//         ModPopupUIEvent().send(this, m_source.getID(), std::nullopt);
+//     }
+//     else if (event->isCancelled() || (event->getValue() && event->getValue()->isErr())) {
+//         m_tags->removeAllChildren();
 
-        auto label = CCLabelBMFont::create("No tags found", "bigFont.fnt");
-        label->setOpacity(120);
-        m_tags->addChild(label);
+//         auto label = CCLabelBMFont::create("No tags found", "bigFont.fnt");
+//         label->setOpacity(120);
+//         m_tags->addChild(label);
 
-        m_tags->updateLayout();
+//         m_tags->updateLayout();
 
-        ModPopupUIEvent().send(this, m_source.getID(), std::nullopt);
-    }
-}
+//         ModPopupUIEvent().send(this, m_source.getID(), std::nullopt);
+//     }
+// }
 
 void ModPopup::loadTab(ModPopup::Tab tab) {
     // Remove current page

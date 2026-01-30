@@ -16,8 +16,8 @@ protected:
     std::string m_id;
     ListenerHandle m_listenerHandle;
     ListenerHandle m_versionListenerHandle;
-    // EventListener<server::ServerRequest<server::ServerModMetadata>> m_listener;
-    // EventListener<server::ServerRequest<server::ServerModVersion>> m_versionListener;
+    // EventListener<server::ServerFuture<server::ServerModMetadata>> m_listener;
+    // EventListener<server::ServerFuture<server::ServerModVersion>> m_versionListener;
 
     std::optional<server::ServerModMetadata> m_loadedMod{};
 
@@ -40,57 +40,58 @@ protected:
         return true;
     }
 
-    void onModRequest(server::ServerRequest<server::ServerModMetadata>::Event* event) {
-        if (auto res = event->getValue()) {
-            if (res->isOk()) {
-                // Copy info first as onClose may free the listener which will free the event
-                auto info = res->unwrap();
-                m_loadedMod = std::move(info);
+    // TODO: v5
+    // void onModRequest(server::ServerFuture<server::ServerModMetadata>::Event* event) {
+    //     if (auto res = event->getValue()) {
+    //         if (res->isOk()) {
+    //             // Copy info first as onClose may free the listener which will free the event
+    //             auto info = res->unwrap();
+    //             m_loadedMod = std::move(info);
 
-                // TODO: v5
-                // m_versionListener.bind(this, &LoadServerModLayer::onVersionRequest);
-                // m_versionListener.setFilter(server::getModVersion(m_id));
-            }
-            else {
-                this->onClose(nullptr);
-                FLAlertLayer::create(
-                    "Error Loading Mod",
-                    fmt::format("Unable to find mod with the ID <cr>{}</c>!", m_id),
-                    "OK"
-                )->show();
-            }
-        }
-        else if (event->isCancelled()) {
-            this->onClose(nullptr);
-        }
-    }
+    //             // TODO: v5
+    //             // m_versionListener.bind(this, &LoadServerModLayer::onVersionRequest);
+    //             // m_versionListener.setFilter(server::getModVersion(m_id));
+    //         }
+    //         else {
+    //             this->onClose(nullptr);
+    //             FLAlertLayer::create(
+    //                 "Error Loading Mod",
+    //                 fmt::format("Unable to find mod with the ID <cr>{}</c>!", m_id),
+    //                 "OK"
+    //             )->show();
+    //         }
+    //     }
+    //     else if (event->isCancelled()) {
+    //         this->onClose(nullptr);
+    //     }
+    // }
 
-    void onVersionRequest(server::ServerRequest<server::ServerModVersion>::Event* event) {
-        if (auto res = event->getValue()) {
-            // this is promised non optional by this point
-            auto info = std::move(*m_loadedMod);
+    // void onVersionRequest(server::ServerFuture<server::ServerModVersion>::Event* event) {
+    //     if (auto res = event->getValue()) {
+    //         // this is promised non optional by this point
+    //         auto info = std::move(*m_loadedMod);
 
-            if (res->isOk()) {
-                // i don't actually think there's a better way to do this
-                // sorry guys
+    //         if (res->isOk()) {
+    //             // i don't actually think there's a better way to do this
+    //             // sorry guys
 
-                auto versionInfo = res->unwrap();
-                info.versions = {versionInfo};
-            }
+    //             auto versionInfo = res->unwrap();
+    //             info.versions = {versionInfo};
+    //         }
 
-            // if there's an error, just load whatever the last fetched version was
-            // (this can happen for mods not on current gd version)
+    //         // if there's an error, just load whatever the last fetched version was
+    //         // (this can happen for mods not on current gd version)
 
-            this->onClose(nullptr);
-            // Run this on next frame because otherwise the popup is unable to call server::getMod for some reason
-            Loader::get()->queueInMainThread([info = std::move(info)]() mutable {
-                ModPopup::create(ModSource(std::move(info)))->show();
-            });
-        }
-        else if (event->isCancelled()) {
-            this->onClose(nullptr);
-        }
-    }
+    //         this->onClose(nullptr);
+    //         // Run this on next frame because otherwise the popup is unable to call server::getMod for some reason
+    //         Loader::get()->queueInMainThread([info = std::move(info)]() mutable {
+    //             ModPopup::create(ModSource(std::move(info)))->show();
+    //         });
+    //     }
+    //     else if (event->isCancelled()) {
+    //         this->onClose(nullptr);
+    //     }
+    // }
 
 public:
     Task<bool> listen() const {
@@ -214,7 +215,7 @@ class ModLogoSprite : public CCNodeRGBA {
 protected:
     LazySprite* m_sprite;
     std::string m_modID;
-    // EventListener<server::ServerRequest<ByteVector>> m_listener;
+    async::TaskHolder<Result<ByteVector, server::ServerError>> m_listener;
 
     bool init(ModLogoSrc&& src) {
         if (!CCNode::init())
@@ -225,9 +226,6 @@ protected:
 
         m_sprite = LazySprite::create(this->getContentSize());
         this->addChildAtPosition(m_sprite, Anchor::Center);
-
-        // TODO: v5
-        // m_listener.bind(this, &ModLogoSprite::onFetch);
 
         std::visit(makeVisitor {
             [this](Mod* mod) {
@@ -254,7 +252,12 @@ protected:
 
                 // Asynchronously fetch from server
                 // TODO: v5
-                // m_listener.setFilter(server::getModLogo(id));
+                m_listener.spawn(
+                    server::getModLogo(id),
+                    [this](auto result) {
+                        this->onFetch(std::move(result));
+                    }
+                );
             },
             [this](std::filesystem::path const& path) {
                 m_sprite->setLoadCallback([this](Result<> res) {
@@ -308,22 +311,17 @@ protected:
         this->doPostEvent();
     }
 
-    void onFetch(server::ServerRequest<ByteVector>::Event* event) {
-        if (auto result = event->getValue()) {
-            // Set default sprite on error
-            if (result->isErr()) {
-                this->onLoadFailed(true);
-            }
-            // Otherwise load downloaded sprite to memory
-            else {
-                m_sprite->setLoadCallback([this](Result<> res) {
-                    this->onLoaded(std::move(res));
-                });
-                m_sprite->loadFromData(result->unwrap());
-            }
-        }
-        else if (event->isCancelled()) {
+    void onFetch(Result<ByteVector, server::ServerError> result) {
+        // Set default sprite on error
+        if (result.isErr()) {
             this->onLoadFailed(true);
+        }
+        // Otherwise load downloaded sprite to memory
+        else {
+            m_sprite->setLoadCallback([this](Result<> res) {
+                this->onLoaded(std::move(res));
+            });
+            m_sprite->loadFromData(std::move(result).unwrap());
         }
     }
 

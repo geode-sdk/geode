@@ -152,7 +152,7 @@ InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t pa
     // If we're only checking mods that have updates, we first have to run
     // update checks every mod...
     if (m_query.type == InstalledModListType::OnlyUpdates && content.mods.size()) {
-        using UpdateTask = server::ServerRequest<std::optional<server::ServerModUpdate>>;
+        using UpdateTask = server::ServerFuture<std::optional<server::ServerModUpdate>>;
         std::vector<UpdateTask> tasks;
         for (auto& src : content.mods) {
             if (auto mod = std::get_if<ModSource>(&src)) {

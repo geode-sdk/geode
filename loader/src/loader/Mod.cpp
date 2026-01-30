@@ -108,26 +108,24 @@ std::vector<Mod*> Mod::getDependants() const {
 #endif
 
 Mod::CheckUpdatesTask Mod::checkUpdates() const {
-    return server::checkUpdates(this).map(
-        [](auto* result) -> Mod::CheckUpdatesTask::Value {
-            if (result->isOk()) {
-                if (auto value = result->unwrap()) {
-                    if (value->replacement) {
-                        return Err(
-                            "Mod has been replaced by {} - please visit the Geode "
-                            "menu to install the replacement",
-                            value->replacement->id
-                        );
-                    }
-                    return Ok(value->version);
-                }
-                return Ok(std::nullopt);
-            }
-            auto err = result->unwrapErr();
-            return Err("{} (code {})", err.details, err.code);
-        },
-        [](auto*) { return std::monostate(); }
-    );
+    auto res = co_await server::checkUpdates(this);
+    if (!res) {
+        auto err = std::move(res).unwrapErr();
+        co_return Err("{} (code {})", err.details, err.code);
+    }
+
+    auto value = std::move(res).unwrap();
+
+    if (!value) co_return Ok(std::nullopt);
+    
+    if (value->replacement) {
+        co_return Err(
+            "Mod has been replaced by {} - please visit the Geode "
+            "menu to install the replacement",
+            value->replacement->id
+        );
+    }
+    co_return Ok(value->version);
 }
 
 Result<> Mod::saveData() {

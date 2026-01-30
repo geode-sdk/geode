@@ -866,17 +866,15 @@ ModsLayer* ModsLayer::scene() {
     return layer;
 }
 
-server::ServerRequest<std::vector<std::string>> ModsLayer::checkInstalledModsForUpdates() {
-    return server::checkAllUpdates().map([](auto* result) -> Result<std::vector<std::string>, server::ServerError> {
-        if (result->isOk()) {
-            std::vector<std::string> updatesFound;
-            for (auto& update : result->unwrap()) {
-                if (update.hasUpdateForInstalledMod()) {
-                    updatesFound.push_back(update.id);
-                }
-            }
-            return Ok(updatesFound);
+server::ServerFuture<std::vector<std::string>> ModsLayer::checkInstalledModsForUpdates() {
+    auto updates = ARC_CO_UNWRAP(co_await server::checkAllUpdates());
+    std::vector<std::string> updatesFound;
+
+    for (auto& update : updates) {
+        if (update.hasUpdateForInstalledMod()) {
+            updatesFound.push_back(update.id);
         }
-        return Err(result->unwrapErr());
-    });
+    }
+    
+    co_return Ok(std::move(updatesFound));
 }

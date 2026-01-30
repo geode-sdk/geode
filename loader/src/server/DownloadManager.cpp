@@ -20,7 +20,7 @@ public:
     DownloadStatus m_status;
     ListenerHandle m_infoHandle;
     ListenerHandle m_downloadHandle;
-    // EventListener<ServerRequest<ServerModVersion>> m_infoListener;
+    // EventListener<ServerFuture<ServerModVersion>> m_infoListener;
     // EventListener<web::WebTask> m_downloadListener;
     unsigned int m_scheduledEventForFrame = 0;
 
@@ -39,7 +39,7 @@ public:
         })
     {
         // TODO: v5
-        // m_infoListener.bind([this](ServerRequest<ServerModVersion>::Event* event) {
+        // m_infoListener.bind([this](ServerFuture<ServerModVersion>::Event* event) {
         //     if (auto result = event->getValue()) {
         //         if (result->isOk()) {
         //             auto data = result->unwrap();
@@ -66,7 +66,7 @@ public:
         //         }
 
         //         // Clear the listener to free up the memory
-        //         m_infoListener.setFilter(ServerRequest<ServerModVersion>());
+        //         m_infoListener.setFilter(ServerFuture<ServerModVersion>());
         //     }
         //     else if (auto progress = event->getProgress()) {
         //         m_status = DownloadStatusFetching {
@@ -75,7 +75,7 @@ public:
         //     }
         //     else if (event->isCancelled()) {
         //         m_status = DownloadStatusCancelled();
-        //         m_infoListener.setFilter(ServerRequest<ServerModVersion>());
+        //         m_infoListener.setFilter(ServerFuture<ServerModVersion>());
         //     }
 
         //     if (!ModDownloadManager::get()->checkAutoConfirm()) {
@@ -268,7 +268,7 @@ std::optional<VersionInfo> ModDownload::getVersion() const {
 class ModDownloadManager::Impl {
 public:
     StringMap<ModDownload> m_downloads;
-    Task<std::monostate> m_updateAllTask;
+    async::TaskHolder<Result<std::vector<ServerModUpdate>, server::ServerError>> m_updateAllTask;
 
     void cancelOrphanedDependencies() {
         // "This doesn't handle circular dependencies!!!!"
@@ -296,7 +296,7 @@ void ModDownload::cancel() {
         m_impl->m_status = DownloadStatusCancelled();
         // TODO: v5
         // m_impl->m_infoListener.getFilter().cancel();
-        // m_impl->m_infoListener.setFilter(ServerRequest<ServerModVersion>());
+        // m_impl->m_infoListener.setFilter(ServerFuture<ServerModVersion>());
         // m_impl->m_downloadListener.getFilter().cancel();
         // m_impl->m_downloadListener.setFilter({});
 
@@ -347,28 +347,24 @@ void ModDownloadManager::confirmAll() {
     }
 }
 void ModDownloadManager::startUpdateAll() {
-    m_impl->m_updateAllTask = checkAllUpdates().map(
-        [this](Result<std::vector<ServerModUpdate>, ServerError>* result) {
-            if (result->isOk()) {
-                for (auto& mod : result->unwrap()) {
-                    if (mod.hasUpdateForInstalledMod()) {
-                        if (mod.replacement.has_value()) {
-                            this->startDownload(
-                                mod.replacement.value().id,
-                                mod.replacement.value().version,
-                                std::nullopt,
-                                mod.id
-                            );
-                        } else {
-                            this->startDownload(mod.id, mod.version);
-                        }
+    m_impl->m_updateAllTask.spawn(checkAllUpdates(), [this](auto result) {
+        if (result.isOk()) {
+            for (auto& mod : result.unwrap()) {
+                if (mod.hasUpdateForInstalledMod()) {
+                    if (mod.replacement.has_value()) {
+                        this->startDownload(
+                            mod.replacement.value().id,
+                            mod.replacement.value().version,
+                            std::nullopt,
+                            mod.id
+                        );
+                    } else {
+                        this->startDownload(mod.id, mod.version);
                     }
                 }
             }
-            return std::monostate();
-        },
-        [](auto) { return std::monostate(); }
-    );
+        }
+    });
 }
 void ModDownloadManager::dismissAll() {
     std::erase_if(m_impl->m_downloads, [](auto const& d) {

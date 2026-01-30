@@ -509,34 +509,32 @@ void ModList::onShowStatusDetails(CCObject*) {
     m_statusContainer->updateLayout();
 }
 
-void ModList::onCheckUpdates(typename server::ServerRequest<std::vector<std::string>>::Event* event) {
-    if (event->getValue() && event->getValue()->isOk()) {
-        if (auto mods = event->getValue()->unwrap(); mods.size() > 0) {
-            if (mods.size() == 1) {
-                m_updateCountLabel->setString(fmt::format("There is <cg>{}</c> update available!", mods.size()));
-                m_updateAllSpr->setString("");
-                m_showUpdatesSpr->setString("Show Update");
-                m_hideUpdatesSpr->setString("Hide Update");
-            }
-            else {
-                m_updateCountLabel->setString(fmt::format("There are <cg>{}</c> updates available!", mods.size()));
-                m_updateAllSpr->setString("Update All");
-                m_showUpdatesSpr->setString("Show Updates");
-                m_hideUpdatesSpr->setString("Hide Updates");
-            }
+void ModList::onCheckUpdates(const std::vector<std::string>& mods) {
+    if (mods.empty()) return;
 
-            // Recreate the button with the updated label.
-            m_updateAllMenu->removeChild(m_updateAllBtn, true);
-            m_updateAllBtn = CCMenuItemSpriteExtra::create(
-                m_updateAllSpr, this, menu_selector(ModList::onUpdateAll)
-            );
-            m_updateAllBtn->setID("update-all-button");
-            m_updateAllMenu->addChild(m_updateAllBtn);
-
-            m_updateAllContainer->setVisible(true);
-            this->updateTopContainer();
-        }
+    if (mods.size() == 1) {
+        m_updateCountLabel->setString(fmt::format("There is <cg>{}</c> update available!", mods.size()));
+        m_updateAllSpr->setString("");
+        m_showUpdatesSpr->setString("Show Update");
+        m_hideUpdatesSpr->setString("Hide Update");
     }
+    else {
+        m_updateCountLabel->setString(fmt::format("There are <cg>{}</c> updates available!", mods.size()));
+        m_updateAllSpr->setString("Update All");
+        m_showUpdatesSpr->setString("Show Updates");
+        m_hideUpdatesSpr->setString("Hide Updates");
+    }
+
+    // Recreate the button with the updated label.
+    m_updateAllMenu->removeChild(m_updateAllBtn, true);
+    m_updateAllBtn = CCMenuItemSpriteExtra::create(
+        m_updateAllSpr, this, menu_selector(ModList::onUpdateAll)
+    );
+    m_updateAllBtn->setID("update-all-button");
+    m_updateAllMenu->addChild(m_updateAllBtn);
+
+    m_updateAllContainer->setVisible(true);
+    this->updateTopContainer();
 }
 
 void ModList::onInvalidateCache(InvalidateCacheEvent* event) {

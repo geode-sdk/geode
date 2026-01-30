@@ -740,10 +740,8 @@ void ModItem::updateState() {
     ModItemUIEvent().send(this, m_source.getID(), std::nullopt);
 }
 
-void ModItem::onCheckUpdates(typename server::ServerRequest<std::optional<server::ServerModUpdate>>::Event* event) {
-    if (event->getValue() && event->getValue()->isOk()) {
-        this->updateState();
-    }
+void ModItem::onCheckUpdates(const server::ServerModUpdate& event) {
+    this->updateState();
 }
 
 void ModItem::onView(CCObject*) {

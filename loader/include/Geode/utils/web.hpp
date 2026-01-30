@@ -3,9 +3,9 @@
 #include <Geode/loader/Loader.hpp> // another great circular dependency fix
 #include <Geode/utils/ZStringView.hpp>
 #include <Geode/utils/StringMap.hpp>
+#include <Geode/utils/async.hpp>
 #include <matjson.hpp>
 #include <Geode/Result.hpp>
-#include "Task.hpp"
 #include <chrono>
 #include <optional>
 #include <string_view>
@@ -186,7 +186,16 @@ namespace geode::utils::web {
         }
     };
 
-    using WebTask = Task<WebResponse, WebProgress>;
+    using WebTask = geode::Task<WebResponse, WebProgress>;
+    
+    struct GEODE_DLL ARC_NODISCARD WebFuture : arc::PollableBase<WebFuture, WebResponse> {
+        WebFuture(arc::Future<WebResponse> inner);
+        
+        std::optional<WebResponse> poll();
+
+    private:
+        arc::Future<WebResponse> inner;
+    };
 
     class GEODE_DLL WebRequest final {
     private:
@@ -199,17 +208,17 @@ namespace geode::utils::web {
         WebRequest();
         ~WebRequest();
 
-        WebTask send(std::string method, std::string url);
-        WebTask post(std::string url);
-        WebTask get(std::string url);
-        WebTask put(std::string url);
-        WebTask patch(std::string url);
+        WebFuture send(std::string method, std::string url);
+        WebFuture post(std::string url);
+        WebFuture get(std::string url);
+        WebFuture put(std::string url);
+        WebFuture patch(std::string url);
 
-        WebResponse sendSync(std::string method, std::string url, WebTask::PostProgress onProgress = nullptr);
-        WebResponse postSync(std::string url, WebTask::PostProgress onProgress = nullptr);
-        WebResponse getSync(std::string url, WebTask::PostProgress onProgress = nullptr);
-        WebResponse putSync(std::string url, WebTask::PostProgress onProgress = nullptr);
-        WebResponse patchSync(std::string url, WebTask::PostProgress onProgress = nullptr);
+        WebResponse sendSync(std::string method, std::string url);
+        WebResponse postSync(std::string url);
+        WebResponse getSync(std::string url);
+        WebResponse putSync(std::string url);
+        WebResponse patchSync(std::string url);
 
         WebRequest& header(std::string name, std::string value);
         WebRequest& removeHeader(std::string_view name);

@@ -88,7 +88,7 @@ template <class F>
 struct ExtractFun;
 
 template <class V, class... Args>
-struct ExtractFun<ServerRequest<V>(*)(Args...)> {
+struct ExtractFun<ServerFuture<V>(*)(Args...)> {
     using CacheKey = std::tuple<std::remove_cvref_t<Args>...>;
     using Value = V;
 
@@ -97,7 +97,7 @@ struct ExtractFun<ServerRequest<V>(*)(Args...)> {
         return std::make_tuple(args..., false);
     }
     template <class... CArgs>
-    static ServerRequest<V> invoke(auto&& func, CArgs const&... args) {
+    static ServerFuture<V> invoke(auto&& func, CArgs const&... args) {
         return func(args..., false);
     }
 };
@@ -111,7 +111,7 @@ public:
 
 private:
     std::mutex m_mutex;
-    CacheMap<CacheKey, ServerRequest<Value>> m_cache;
+    CacheMap<CacheKey, Value> m_cache;
 
 public:
     FunCache() = default;
@@ -119,14 +119,14 @@ public:
     FunCache(FunCache&&) = delete;
 
     template <class... Args>
-    ServerRequest<Value> get(Args const&... args) {
+    arc::Future<Result<Value, ServerError>> get(Args const&... args) {
         std::unique_lock lock(m_mutex);
         if (auto v = m_cache.get(Extract::key(args...))) {
-            return *v;
+            co_return Ok(*v);
         }
-        auto f = Extract::invoke(F, args...);
-        m_cache.add(Extract::key(args...), ServerRequest<Value>(f));
-        return f;
+        auto f = ARC_CO_UNWRAP(co_await Extract::invoke(F, args...));
+        m_cache.add(Extract::key(args...), Value{f});
+        co_return Ok(f);
     }
 
     template <class... Args>
@@ -575,9 +575,9 @@ std::string server::getServerUserAgent() {
     return value;
 }
 
-ServerRequest<ServerModsList> server::getMods(ModsQuery const& query, bool useCache) {
+ServerFuture<ServerModsList> server::getMods(ModsQuery const& query, bool useCache) {
     if (useCache) {
-        return getCache<getMods>().get(query);
+        co_return co_await getCache<getMods>().get(query);
     }
 
     auto req = web::WebRequest();
@@ -616,75 +616,70 @@ ServerRequest<ServerModsList> server::getMods(ModsQuery const& query, bool useCa
     req.param("page", std::to_string(query.page + 1));
     req.param("per_page", std::to_string(query.pageSize));
 
-    return req.get(formatServerURL("/mods")).map(
-        [](web::WebResponse* response) -> Result<ServerModsList, ServerError> {
-            if (response->ok()) {
-                // Parse payload
-                auto payload = parseServerPayload(*response);
-                if (!payload) {
-                    return Err(payload.unwrapErr());
-                }
-                // Parse response
-                auto list = ServerModsList::parse(payload.unwrap());
-                if (!list) {
-                    return Err(ServerError(response->code(), "Unable to parse response: {}", list.unwrapErr()));
-                }
-                return Ok(list.unwrap());
-            }
-            // Treat a 404 as empty mods list
-            if (response->code() == 404) {
-                return Ok(ServerModsList());
-            }
-            return Err(parseServerError(*response));
-        },
-        [](web::WebProgress* progress) {
-            return parseServerProgress(*progress, "Downloading mods");
+    auto response = req.getSync(formatServerURL("/mods"));
+
+    if (response.ok()) {
+        // Parse payload
+        auto payload = parseServerPayload(response);
+        if (!payload) {
+            co_return Err(payload.unwrapErr());
         }
-    );
+        // Parse response
+        auto list = ServerModsList::parse(payload.unwrap());
+        if (!list) {
+            co_return Err(ServerError(response.code(), "Unable to parse response: {}", list.unwrapErr()));
+        }
+        co_return Ok(list.unwrap());
+    }
+    // Treat a 404 as empty mods list
+    if (response.code() == 404) {
+        co_return Ok(ServerModsList());
+    }
+    co_return Err(parseServerError(response));
 }
 
-ServerRequest<ServerModMetadata> server::getMod(std::string const& id, bool useCache) {
+ServerFuture<ServerModMetadata> server::getMod(std::string const& id, bool useCache) {
     if (useCache) {
-        return getCache<getMod>().get(id);
+        co_return co_await getCache<getMod>().get(id);
     }
+
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
-    return req.get(formatServerURL("/mods/{}", id)).map(
-        [](web::WebResponse* response) -> Result<ServerModMetadata, ServerError> {
-            if (response->ok()) {
-                // Parse payload
-                auto payload = parseServerPayload(*response);
-                if (!payload) {
-                    return Err(payload.unwrapErr());
-                }
-                // Parse response
-                auto list = ServerModMetadata::parse(payload.unwrap());
-                if (!list) {
-                    return Err(ServerError(response->code(), "Unable to parse response: {}", list.unwrapErr()));
-                }
-                return Ok(list.unwrap());
-            }
-            return Err(parseServerError(*response));
-        },
-        [id](web::WebProgress* progress) {
-            return parseServerProgress(*progress, "Downloading metadata for " + id);
+    auto response = co_await req.get(formatServerURL("/mods/{}", id));
+
+    if (response.ok()) {
+        // Parse payload
+        auto payload = parseServerPayload(response);
+        if (!payload) {
+            co_return Err(payload.unwrapErr());
         }
-    );
+        // Parse response
+        auto list = ServerModMetadata::parse(payload.unwrap());
+        if (!list) {
+            co_return Err(ServerError(response.code(), "Unable to parse response: {}", list.unwrapErr()));
+        }
+        co_return Ok(list.unwrap());
+    }
+
+    co_return Err(parseServerError(response));
 }
 
-ServerRequest<ServerModVersion> server::getModVersion(std::string const& id, ModVersion const& version, bool useCache) {
+ServerFuture<ServerModVersion> server::getModVersion(std::string const& id, ModVersion const& version, bool useCache) {
     if (useCache) {
         auto& cache = getCache<getModVersion>();
 
         auto cachedRequest = cache.get(id, version);
+        co_return co_await cachedRequest;
 
-        // if mod installation was cancelled, remove it from cache and fetch again
-        if (cachedRequest.isCancelled()) {
-            cache.remove(id, version);
-            return cache.get(id, version);
-        } else {
-            return cachedRequest;
-        }
+        // TODO: is this needed
+
+        // // if mod installation was cancelled, remove it from cache and fetch again
+        // if (cachedRequest.isCancelled()) {
+        //     cache.remove(id, version);
+        //     return cache.get(id, version);
+        // } else {
+        //     return cachedRequest;
+        // }
     }
 
     auto req = web::WebRequest();
@@ -704,96 +699,84 @@ ServerRequest<ServerModVersion> server::getModVersion(std::string const& id, Mod
         },
     }, version);
 
-    return req.get(formatServerURL("/mods/{}/versions/{}?gd={}&platforms={}", id, versionURL, Loader::get()->getGameVersion(), GEODE_PLATFORM_SHORT_IDENTIFIER)).map(
-        [](web::WebResponse* response) -> Result<ServerModVersion, ServerError> {
-            if (response->ok()) {
-                // Parse payload
-                auto payload = parseServerPayload(*response);
-                if (!payload) {
-                    return Err(payload.unwrapErr());
-                }
-                // Parse response
-                auto list = ServerModVersion::parse(payload.unwrap());
-                if (!list) {
-                    return Err(ServerError(response->code(), "Unable to parse response: {}", list.unwrapErr()));
-                }
-                return Ok(list.unwrap());
-            }
-            return Err(parseServerError(*response));
-        },
-        [id](web::WebProgress* progress) {
-            return parseServerProgress(*progress, "Downloading metadata for " + id);
+    auto response = co_await req.get(
+        formatServerURL(
+            "/mods/{}/versions/{}?gd={}&platforms={}",
+            id,
+            versionURL,
+            Loader::get()->getGameVersion(),
+            GEODE_PLATFORM_SHORT_IDENTIFIER
+    ));
+
+    if (response.ok()) {
+        // Parse payload
+        auto payload = parseServerPayload(response);
+        if (!payload) {
+            co_return Err(payload.unwrapErr());
         }
-    );
+        // Parse response
+        auto list = ServerModVersion::parse(payload.unwrap());
+        if (!list) {
+            co_return Err(ServerError(response.code(), "Unable to parse response: {}", list.unwrapErr()));
+        }
+        co_return Ok(list.unwrap());
+    }
+    co_return Err(parseServerError(response));
 }
 
-ServerRequest<ByteVector> server::getModLogo(std::string const& id, bool useCache) {
+ServerFuture<ByteVector> server::getModLogo(std::string const& id, bool useCache) {
     if (useCache) {
-        return getCache<getModLogo>().get(id);
+        co_return co_await getCache<getModLogo>().get(id);
+    }
+
+    auto req = web::WebRequest();
+    req.userAgent(getServerUserAgent());
+    auto response = co_await req.get(formatServerURL("/mods/{}/logo", id));
+    
+    if (response.ok()) {
+        co_return Ok(std::move(response).data());
+    }
+    co_return Err(parseServerError(response));
+}
+
+ServerFuture<std::vector<ServerTag>> server::getTags(bool useCache) {
+    if (useCache) {
+        co_return co_await getCache<getTags>().get();
     }
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
-    return req.get(formatServerURL("/mods/{}/logo", id)).map(
-        [](web::WebResponse* response) -> Result<ByteVector, ServerError> {
-            if (response->ok()) {
-                return Ok(std::move(*response).data());
-            }
-            return Err(parseServerError(*response));
-        },
-        [id](web::WebProgress* progress) {
-            return parseServerProgress(*progress, "Downloading logo for " + id);
-        }
-    );
-}
+    auto response = co_await req.get(formatServerURL("/detailed-tags"));
 
-ServerRequest<std::vector<ServerTag>> server::getTags(bool useCache) {
-    if (useCache) {
-        return getCache<getTags>().get();
+    if (response.ok()) {
+        // Parse payload
+        auto payload = parseServerPayload(response);
+        if (!payload) {
+            co_return Err(payload.unwrapErr());
+        }
+        auto list = ServerTag::parseList(payload.unwrap());
+        if (!list) {
+            co_return Err(ServerError(response.code(), "Unable to parse response: {}", list.unwrapErr()));
+        }
+        co_return Ok(list.unwrap());
     }
-    auto req = web::WebRequest();
-    req.userAgent(getServerUserAgent());
-    return req.get(formatServerURL("/detailed-tags")).map(
-        [](web::WebResponse* response) -> Result<std::vector<ServerTag>, ServerError> {
-            if (response->ok()) {
-                // Parse payload
-                auto payload = parseServerPayload(*response);
-                if (!payload) {
-                    return Err(payload.unwrapErr());
-                }
-                auto list = ServerTag::parseList(payload.unwrap());
-                if (!list) {
-                    return Err(ServerError(response->code(), "Unable to parse response: {}", list.unwrapErr()));
-                }
-                return Ok(list.unwrap());
-            }
-            return Err(parseServerError(*response));
-        },
-        [](web::WebProgress* progress) {
-            return parseServerProgress(*progress, "Downloading valid tags");
-        }
-    );
+    co_return Err(parseServerError(response));
 }
 
-ServerRequest<std::optional<ServerModUpdate>> server::checkUpdates(Mod const* mod) {
-    return checkAllUpdates().map(
-        [mod](Result<std::vector<ServerModUpdate>, ServerError>* result) -> Result<std::optional<ServerModUpdate>, ServerError> {
-            if (result->isOk()) {
-                for (auto& update : result->unwrap()) {
-                    if (
-                        update.id == mod->getID() &&
-                        (update.version > mod->getVersion() || update.replacement.has_value())
-                    ) {
-                        return Ok(update);
-                    }
-                }
-                return Ok(std::nullopt);
-            }
-            return Err(result->unwrapErr());
+ServerFuture<std::optional<ServerModUpdate>> server::checkUpdates(Mod const* mod) {
+    auto updates = ARC_CO_UNWRAP(co_await checkAllUpdates());
+    
+    for (auto& update : updates) {
+        if (
+            update.id == mod->getID() &&
+            (update.version > mod->getVersion() || update.replacement.has_value())
+        ) {
+            co_return Ok(update);
         }
-    );
+    }
+    co_return Ok(std::nullopt);
 }
 
-ServerRequest<std::vector<ServerModUpdate>> server::batchedCheckUpdates(std::vector<std::string> const& batch) {
+ServerFuture<std::vector<ServerModUpdate>> server::batchedCheckUpdates(std::vector<std::string> const& batch) {
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
     req.param("platform", GEODE_PLATFORM_SHORT_IDENTIFIER);
@@ -801,64 +784,29 @@ ServerRequest<std::vector<ServerModUpdate>> server::batchedCheckUpdates(std::vec
     req.param("geode", Loader::get()->getVersion().toNonVString());
 
     req.param("ids", ranges::join(batch, ";"));
-    return req.get(formatServerURL("/mods/updates")).map(
-        [](web::WebResponse* response) -> Result<std::vector<ServerModUpdate>, ServerError> {
-            if (response->ok()) {
-                // Parse payload
-                auto payload = parseServerPayload(*response);
-                if (!payload) {
-                    return Err(payload.unwrapErr());
-                }
-                // Parse response
-                auto list = ServerModUpdate::parseList(payload.unwrap());
-                if (!list) {
-                    return Err(ServerError(response->code(), "Unable to parse response: {}", list.unwrapErr()));
-                }
-                return Ok(list.unwrap());
-            }
-            return Err(parseServerError(*response));
-        },
-        [](web::WebProgress* progress) {
-            return parseServerProgress(*progress, "Checking updates for mods");
+    auto response = co_await req.get(formatServerURL("/mods/updates"));
+
+    if (response.ok()) {
+        // Parse payload
+        auto payload = parseServerPayload(response);
+        if (!payload) {
+            co_return Err(payload.unwrapErr());
         }
-    );
+        // Parse response
+        auto list = ServerModUpdate::parseList(payload.unwrap());
+        if (!list) {
+            co_return Err(ServerError(response.code(), "Unable to parse response: {}", list.unwrapErr()));
+        }
+        co_return Ok(list.unwrap());
+    }
+    co_return Err(parseServerError(response));
 }
 
-void server::queueBatches(
-    ServerRequest<std::vector<ServerModUpdate>>::PostResult resolve,
-    std::shared_ptr<std::vector<std::vector<std::string>>> batches,
-    std::shared_ptr<std::vector<ServerModUpdate>> accum
-) {
-    // we have to do the copy here, or else our values die
-    batchedCheckUpdates(batches->back()).listen([resolve = std::move(resolve), batches = std::move(batches), accum = std::move(accum)](auto result) mutable {
-        if (result->isOk()) {
-            auto serverValues = result->unwrap();
+ServerFuture<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCache) {
+    using A = decltype(getCache<checkAllUpdates>().get());
 
-            accum->reserve(accum->size() + serverValues.size());
-            accum->insert(accum->end(), serverValues.begin(), serverValues.end());
-
-            if (batches->size() > 1) {
-                batches->pop_back();
-                queueBatches(std::move(resolve), std::move(batches), std::move(accum));
-            }
-            else {
-                resolve(Ok(*accum));
-            }
-        }
-        else {
-            if (result->isOk()) {
-                resolve(Ok(result->unwrap()));
-            }
-            else {
-                resolve(Err(result->unwrapErr()));
-            }
-        }
-    });
-}
-
-ServerRequest<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCache) {
     if (useCache) {
-        return getCache<checkAllUpdates>().get();
+        co_return co_await getCache<checkAllUpdates>().get();
     }
 
     auto modIDs = ranges::map<std::vector<std::string>>(
@@ -869,18 +817,16 @@ ServerRequest<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCach
     // if there's no mods, the request would just be empty anyways
     if (modIDs.empty()) {
         // you would think it could infer like literally anything
-        return ServerRequest<std::vector<ServerModUpdate>>::immediate(
-            Ok<std::vector<ServerModUpdate>>({})
-        );
+        co_return Ok(std::vector<ServerModUpdate>{});
     }
 
-    auto modBatches = std::make_shared<std::vector<std::vector<std::string>>>();
+    std::vector<std::vector<std::string>> modBatches;
     auto modCount = modIDs.size();
     std::size_t maxMods = 200u; // this affects 0.03% of users
 
     if (modCount <= maxMods) {
         // no tricks needed
-        return batchedCheckUpdates(modIDs);
+        co_return co_await batchedCheckUpdates(modIDs);
     }
 
     // even out the mod count, so a request with 230 mods sends two 115 mod requests
@@ -889,17 +835,19 @@ ServerRequest<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCach
 
     for (std::size_t i = 0u; i < modCount; i += maxBatchSize) {
         auto end = std::min(modCount, i + maxBatchSize);
-        modBatches->emplace_back(modIDs.begin() + i, modIDs.begin() + end);
+        modBatches.emplace_back(modIDs.begin() + i, modIDs.begin() + end);
     }
 
     // chain requests to avoid doing too many large requests at once
-    return ServerRequest<std::vector<ServerModUpdate>>::runWithCallback(
-        [modBatches](auto finish, auto progress, auto hasBeenCancelled) {
-            auto accum = std::make_shared<std::vector<ServerModUpdate>>();
-            queueBatches(std::move(finish), modBatches, accum);
-        },
-        "Mod Update Check"
-    );
+    std::vector<ServerModUpdate> accum;
+    for (auto& batch : modBatches) {
+        auto serverValues = ARC_CO_UNWRAP(co_await batchedCheckUpdates(batch));
+
+        accum.reserve(accum.size() + serverValues.size());
+        accum.insert(accum.end(), serverValues.begin(), serverValues.end());
+    }
+
+    co_return Ok(std::move(accum));
 }
 
 void server::clearServerCaches(bool clearGlobalCaches) {

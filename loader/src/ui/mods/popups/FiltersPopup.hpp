@@ -14,15 +14,16 @@ protected:
     CCMenu* m_tagsMenu;
     std::unordered_set<std::string> m_selectedTags;
     ListenerHandle m_tagsHandle;
-    // EventListener<server::ServerRequest<std::vector<server::ServerTag>>> m_tagsListener;
+    // EventListener<server::ServerFuture<std::vector<server::ServerTag>>> m_tagsListener;
     CCMenuItemToggler* m_enabledModsOnly = nullptr;
     CCMenuItemToggler* m_enabledModsFirst = nullptr;
     TextInput* m_developerNameInput = nullptr;
 
     bool init(ModListSource* src);
     void updateTags();
-
-    void onLoadTags(typename server::ServerRequest<std::vector<server::ServerTag>>::Event* event);
+    
+    // TODO: v5
+    // void onLoadTags(typename server::ServerFuture<std::vector<server::ServerTag>>::Event* event);
     void onResetTags(CCObject*);
     void onResetDevName(CCObject*);
     void onSelectTag(CCObject* sender);

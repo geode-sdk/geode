@@ -45,9 +45,9 @@ protected:
     ListenerHandle m_updateStateHandle;
     ListenerHandle m_downloadHandle;
     ListenerHandle m_settingNodeHandle;
-    // EventListener<server::ServerRequest<server::ServerModMetadata>> m_statsListener;
-    // EventListener<server::ServerRequest<std::vector<server::ServerTag>>> m_tagsListener;
-    // EventListener<server::ServerRequest<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
+    // EventListener<server::ServerFuture<server::ServerModMetadata>> m_statsListener;
+    // EventListener<server::ServerFuture<std::vector<server::ServerTag>>> m_tagsListener;
+    // EventListener<server::ServerFuture<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
     // EventListener<server::ModDownloadFilter> m_downloadListener;
 
     bool init(ModSource&& src);
@@ -57,9 +57,10 @@ protected:
     void setStatLabel(CCNode* stat, ZStringView value, bool noValue = false, ccColor3B color = ccWHITE);
     void setStatValue(CCNode* stat, std::optional<std::string> const& value);
 
-    void onLoadServerInfo(typename server::ServerRequest<server::ServerModMetadata>::Event* event);
-    void onLoadTags(typename server::ServerRequest<std::vector<server::ServerTag>>::Event* event);
-    void onCheckUpdates(typename server::ServerRequest<std::optional<server::ServerModUpdate>>::Event* event);
+    // TODO: v5
+    // void onLoadServerInfo(typename server::ServerFuture<server::ServerModMetadata>::Event* event);
+    // void onLoadTags(typename server::ServerFuture<std::vector<server::ServerTag>>::Event* event);
+    // void onCheckUpdates(typename server::ServerFuture<std::optional<server::ServerModUpdate>>::Event* event);
 
     void onTab(CCObject* sender);
     void onEnable(CCObject*);
