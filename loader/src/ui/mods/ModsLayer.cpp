@@ -90,7 +90,7 @@ bool ModsStatusNode::init() {
     );
     this->addChildAtPosition(m_btnMenu, Anchor::Center, ccp(0, 5));
 
-    m_updateStateHandle = UpdateModListStateEvent().listen([this](UpdateState state) {
+    m_updateStateHandle = UpdateModListStateEvent().listen([this](UpdateState const& state) {
         this->updateState();
         return ListenerResult::Propagate;
     });
@@ -633,7 +633,7 @@ bool ModsLayer::init() {
     this->updateState();
 
     // Listen for state changes
-    m_updateStateHandle = UpdateModListStateEvent().listen([this](UpdateState state) {
+    m_updateStateHandle = UpdateModListStateEvent().listen([this](UpdateState const& state) {
         if (auto whole = std::get_if<UpdateWholeState>(&state)) {
             if (whole->searchByDeveloper) {
                 auto src = ServerModListSource::get(ServerModListType::Download);

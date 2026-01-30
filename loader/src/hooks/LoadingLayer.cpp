@@ -101,7 +101,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
             if (!updater::verifyLoaderResources()) {
                 log::debug("Downloading Loader Resources");
                 this->setSmallText("Downloading Geode Resources");
-                this->addEventListener(updater::ResourceDownloadEvent(), [this](updater::UpdateStatus status) {
+                this->addEventListener(updater::ResourceDownloadEvent(), [this](updater::UpdateStatus const& status) {
                     this->updateResourcesProgress(status);
                 });
             }

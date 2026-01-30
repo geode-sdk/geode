@@ -21,7 +21,7 @@ struct UpdateModState final {
 };
 using UpdateState = std::variant<UpdatePageNumberState, UpdateWholeState, UpdateModState>;
 
-class UpdateModListStateEvent final : public SimpleEvent<UpdateModListStateEvent, UpdateState> {
+class UpdateModListStateEvent final : public SimpleEvent<UpdateModListStateEvent, UpdateState const&> {
 public:
     // listener params target
     using SimpleEvent::SimpleEvent;

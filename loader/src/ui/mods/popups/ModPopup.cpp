@@ -696,7 +696,7 @@ bool ModPopup::init(ModSource&& src) {
     }
 
     // Only listen for updates on this mod specifically
-    m_updateStateHandle = UpdateModListStateEvent().listen([this](UpdateState state) {
+    m_updateStateHandle = UpdateModListStateEvent().listen([this](UpdateState const& state) {
         this->updateState();
         return ListenerResult::Propagate;
     });
