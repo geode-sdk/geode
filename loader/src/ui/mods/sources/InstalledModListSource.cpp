@@ -163,13 +163,13 @@ InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t pa
 
         co_await arc::joinAll(std::move(tasks));
         
-        filterModsWithLocalQuery(content, query);
+        filterModsWithLocalQuery(content, m_query);
         co_return Ok(std::move(content));
     }
     // Otherwise simply construct the result right away
     else {
         filterModsWithLocalQuery(content, m_query);
-        co_return ProviderTask::immediate(Ok(std::move(content)));
+        co_return Ok(std::move(content));
     }
 }
 

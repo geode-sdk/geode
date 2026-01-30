@@ -21,36 +21,29 @@ bool LocalModsQueryBase::isDefault() const {
 
 typename ModListSource::PageLoadTask ModListSource::loadPage(size_t page, bool forceUpdate) {
     if (!forceUpdate && m_cachedPages.contains(page)) {
-        return PageLoadTask::immediate(Ok(m_cachedPages.at(page)));
+        co_return Ok(m_cachedPages.at(page));
     }
+
     m_cachedPages.erase(page);
-    return this->fetchPage(page, forceUpdate).map(
-        [this, page](Result<ProvidedMods, LoadPageError>* result) -> Result<Page, LoadPageError> {
-            if (result->isOk()) {
-                auto data = std::move(result->unwrap());
-                if (data.totalModCount == 0 || data.mods.empty()) {
-                    return Err(LoadPageError("No mods found :("));
-                }
-                auto pageData = Page();
-                for (auto&& src : std::move(data.mods)) {
-                    std::visit(makeVisitor {
-                        [&](ModSource&& mod) {
-                            pageData.push_back(ModItem::create(std::move(mod)));
-                        },
-                        [&](SpecialModListItemSource&& item) {
-                            pageData.push_back(SpecialModListItem::create(std::move(item)));
-                        },
-                    }, std::move(src));
-                }
-                m_cachedItemCount = data.totalModCount;
-                m_cachedPages.insert({ page, pageData });
-                return Ok(pageData);
-            }
-            else {
-                return Err(result->unwrapErr());
-            }
-        }
-    );
+    auto data = ARC_CO_UNWRAP(co_await this->fetchPage(page, forceUpdate));
+    
+    if (data.totalModCount == 0 || data.mods.empty()) {
+        co_return Err(LoadPageError("No mods found :("));
+    }
+    auto pageData = Page();
+    for (auto&& src : std::move(data.mods)) {
+        std::visit(makeVisitor {
+            [&](ModSource&& mod) {
+                pageData.push_back(ModItem::create(std::move(mod)));
+            },
+            [&](SpecialModListItemSource&& item) {
+                pageData.push_back(SpecialModListItem::create(std::move(item)));
+            },
+        }, std::move(src));
+    }
+    m_cachedItemCount = data.totalModCount;
+    m_cachedPages.insert({ page, pageData });
+    co_return Ok(pageData);
 }
 
 std::optional<size_t> ModListSource::getPageCount() const {
