@@ -39,7 +39,6 @@ protected:
     CCMenuItemSpriteExtra* m_restartBtn;
     ListenerHandle m_updateStateHandle;
     ListenerHandle m_downloadHandle;
-    // EventListener<server::ModDownloadFilter> m_downloadListener;
     DownloadState m_lastState = DownloadState::None;
     ListenerHandle m_settingNodeHandle;
 

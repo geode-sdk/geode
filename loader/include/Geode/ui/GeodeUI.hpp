@@ -59,7 +59,7 @@ namespace geode {
      * popup was opened, and `false` otherwise. If you wish to modify the
      * created popup, listen for the Geode UI events listed in `GeodeUI.hpp`
      */
-    GEODE_DLL Task<bool> openInfoPopup(std::string_view modID);
+    GEODE_DLL arc::Future<bool> openInfoPopup(std::string_view modID);
     /**
      * Open the info popup for a mod on the changelog page
      */

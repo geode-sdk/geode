@@ -42,6 +42,12 @@ namespace server {
         using Event::Event;
     };
 
+    class GlobalModDownloadEvent : public SimpleEvent<ModDownloadEvent, std::string_view> {
+    public:
+        // filter params id
+        using SimpleEvent::SimpleEvent;
+    };
+
     using DependencyFor = std::pair<std::string, ModMetadata::Dependency::Importance>;
 
     class ModDownload final {

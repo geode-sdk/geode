@@ -13,9 +13,17 @@
 
 class LoadServerModLayer : public Popup {
 protected:
+    enum class MetadataLoaded {
+        NotLoaded = 0,
+        Loaded = 1,
+        Error = 2,
+    };
+
     std::string m_id;
     ListenerHandle m_listenerHandle;
     ListenerHandle m_versionListenerHandle;
+    arc::Notify m_metadataLoaded;
+    std::atomic<MetadataLoaded> m_metadataLoadedState{MetadataLoaded::NotLoaded};
     async::TaskHolder<Result<server::ServerModMetadata, server::ServerError>> m_listener;
     async::TaskHolder<Result<server::ServerModVersion, server::ServerError>> m_versionListener;
 
@@ -44,22 +52,20 @@ protected:
         return true;
     }
 
-    // TODO: v5
     void onModRequest(Result<server::ServerModMetadata, server::ServerError> result) {
         if (result.isOk()) {
             // Copy info first as onClose may free the listener which will free the event
             auto info = std::move(result).unwrap();
             m_loadedMod = std::move(info);
 
-            // TODO: v5
+            m_metadataLoadedState.store(MetadataLoaded::Loaded);
+
             m_versionListener.spawn(
                 server::getModVersion(m_id),
                 [this](auto result) {
                     this->onVersionRequest(std::move(result));
                 }
             );
-            // m_versionListener.bind(this, &LoadServerModLayer::onVersionRequest);
-            // m_versionListener.setFilter(server::getModVersion(m_id));
         }
         else {
             this->onClose(nullptr);
@@ -68,7 +74,10 @@ protected:
                 fmt::format("Unable to find mod with the ID <cr>{}</c>!", m_id),
                 "OK"
             )->show();
+
+            m_metadataLoadedState.store(MetadataLoaded::Error);
         }
+        m_metadataLoaded.notifyOne(true);
     }
 
     void onVersionRequest(Result<server::ServerModVersion, server::ServerError> result) {
@@ -93,13 +102,10 @@ protected:
     }
 
 public:
-    Task<bool> listen() const {
-        // TODO: v5
-        // return m_listener.getFilter().map(
-        //     [](auto* result) -> bool { return result->isOk(); },
-        //     [](auto) -> std::monostate { return std::monostate(); }
-        // );
-        return {};
+    arc::Future<bool> listen() const {
+        co_await m_metadataLoaded.notified();
+        m_metadataLoaded.notifyOne(true);
+        co_return m_metadataLoadedState.load() == MetadataLoaded::Loaded;
     }
 
     static LoadServerModLayer* create(std::string id) {
@@ -177,16 +183,16 @@ void geode::openSupportPopup(ModMetadata const& metadata) {
 void geode::openInfoPopup(Mod* mod) {
     ModPopup::create(mod)->show();
 }
-Task<bool> geode::openInfoPopup(std::string_view modID) {
+arc::Future<bool> geode::openInfoPopup(std::string_view modID) {
     if (auto mod = Loader::get()->getInstalledMod(modID)) {
         openInfoPopup(mod);
-        return Task<bool>::immediate(true);
+        co_return true;
     }
     else {
         auto popup = LoadServerModLayer::create(std::string(modID));
-        auto task = popup->listen();
+        auto ret = co_await popup->listen();
         popup->show();
-        return task;
+        co_return ret;
     }
 }
 

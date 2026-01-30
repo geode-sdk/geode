@@ -136,14 +136,14 @@ void SettingNodeV3::setDefaultBGColor(ccColor4B color) {
 void SettingNodeV3::markChanged(CCNode* invoker) {
     this->updateState(invoker);
     SettingNodeValueChangeEventV3(m_impl->setting->getModID(), m_impl->setting->getKey()).send(this, false);
-    GlobalSettingNodeValueChangeEventV3(m_impl->setting->getModID()).send(m_impl->setting->getKey(), this, false);
+    GlobalSettingNodeValueChangeEventV3().send(m_impl->setting->getModID(), m_impl->setting->getKey(), this, false);
 }
 void SettingNodeV3::commit() {
     this->onCommit();
     m_impl->committed = true;
     this->updateState(nullptr);
     SettingNodeValueChangeEventV3(m_impl->setting->getModID(), m_impl->setting->getKey()).send(this, true);
-    GlobalSettingNodeValueChangeEventV3(m_impl->setting->getModID()).send(m_impl->setting->getKey(), this, true);
+    GlobalSettingNodeValueChangeEventV3().send(m_impl->setting->getModID(), m_impl->setting->getKey(), this, true);
 }
 void SettingNodeV3::resetToDefault() {
     if (!m_impl->setting) return;
@@ -152,7 +152,7 @@ void SettingNodeV3::resetToDefault() {
     this->onResetToDefault();
     this->updateState(nullptr);
     SettingNodeValueChangeEventV3(m_impl->setting->getModID(), m_impl->setting->getKey()).send(this, false);
-    GlobalSettingNodeValueChangeEventV3(m_impl->setting->getModID()).send(m_impl->setting->getKey(), this, false);
+    GlobalSettingNodeValueChangeEventV3().send(m_impl->setting->getModID(), m_impl->setting->getKey(), this, false);
 }
 
 void SettingNodeV3::setContentSize(CCSize const& size) {
@@ -160,7 +160,7 @@ void SettingNodeV3::setContentSize(CCSize const& size) {
     m_impl->bg->setContentSize(size);
     this->updateLayout();
     SettingNodeSizeChangeEventV3(m_impl->setting->getModID(), m_impl->setting->getKey()).send(this);
-    GlobalSettingNodeSizeChangeEventV3(m_impl->setting->getModID()).send(m_impl->setting->getKey(), this);
+    GlobalSettingNodeSizeChangeEventV3().send(m_impl->setting->getModID(), m_impl->setting->getKey(), this);
 }
 
 CCLabelBMFont* SettingNodeV3::getNameLabel() const {

@@ -94,18 +94,15 @@ bool ModsStatusNode::init() {
         this->updateState();
         return ListenerResult::Propagate;
     });
-    // TODO: v5
-    // m_downloadListener.bind([this](auto) { this->updateState(); });
+    m_downloadHandle = server::GlobalModDownloadEvent().listen([this](std::string_view key) { this->updateState(); });
 
-    // TODO: v5
-    // i didnt figure out what this does so lets wait a little
-    // m_settingNodeHandle = GlobalSettingNodeValueChangeEvent().listen([this](std::string_view key, SettingNodeV3* node, bool isCommit) {
-    //     if (!isCommit) {
-    //         return ListenerResult::Propagate;
-    //     }
-    //     this->updateState();
-    //     return ListenerResult::Propagate;
-    // });
+    m_settingNodeHandle = GlobalSettingNodeValueChangeEvent().listen([this](std::string_view modID, std::string_view key, SettingNodeV3* node, bool isCommit) {
+        if (!isCommit) {
+            return ListenerResult::Propagate;
+        }
+        this->updateState();
+        return ListenerResult::Propagate;
+    });
 
     Mod::get()->setSavedValue<bool>("has-used-geode-before", true);
 

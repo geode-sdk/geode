@@ -454,15 +454,9 @@ namespace enable_if_parsing {
 
 SettingChangedEventV3::SettingChangedEventV3(Mod* mod, std::string settingKey) : SettingChangedEventV3(mod->getID(), std::move(settingKey)) {}
 
-GlobalSettingChangedEventV3::GlobalSettingChangedEventV3(Mod* mod) : GlobalSettingChangedEventV3(mod->getID()) {}
-
 SettingNodeSizeChangeEventV3::SettingNodeSizeChangeEventV3(Mod* mod, std::string settingKey) : SettingNodeSizeChangeEventV3(mod->getID(), std::move(settingKey)) {}
 
-GlobalSettingNodeSizeChangeEventV3::GlobalSettingNodeSizeChangeEventV3(Mod* mod) : GlobalSettingNodeSizeChangeEventV3(mod->getID()) {}
-
 SettingNodeValueChangeEventV3::SettingNodeValueChangeEventV3(Mod* mod, std::string settingKey) : SettingNodeValueChangeEventV3(mod->getID(), std::move(settingKey)) {}
-
-GlobalSettingNodeValueChangeEventV3::GlobalSettingNodeValueChangeEventV3(Mod* mod) : GlobalSettingNodeValueChangeEventV3(mod->getID()) {}
 
 class SettingV3::GeodeImpl {
 public:
@@ -574,7 +568,7 @@ void SettingV3::markChanged() {
         manager->markRestartRequired();
     }
     SettingChangedEventV3(this->getModID(), this->getKey()).send(shared_from_this());
-    GlobalSettingChangedEventV3(this->getModID()).send(this->getKey(), shared_from_this());
+    GlobalSettingChangedEventV3().send(this->getModID(), this->getKey(), shared_from_this());
 }
 class TitleSettingV3::Impl final {
 public:

@@ -84,6 +84,7 @@ public:
         //         if (m_scheduledEventForFrame != CCDirector::get()->getTotalFrames()) {
         //             m_scheduledEventForFrame = CCDirector::get()->getTotalFrames();
         //             Loader::get()->queueInMainThread([id = m_id]() {
+        //                 GlobalModDownloadEvent().send(std::string_view(id));
         //                 ModDownloadEvent(std::string(id)).send();
         //             });
         //         }
@@ -94,6 +95,7 @@ public:
         // m_infoListener.setFilter(getModVersion(m_id, fetchVersion));
         
         Loader::get()->queueInMainThread([id = m_id] {
+            GlobalModDownloadEvent().send(std::string_view(id));
             ModDownloadEvent(std::string(id)).send();
         });
     }
@@ -210,6 +212,7 @@ public:
         //     if (m_scheduledEventForFrame != CCDirector::get()->getTotalFrames()) {
         //         m_scheduledEventForFrame = CCDirector::get()->getTotalFrames();
         //         Loader::get()->queueInMainThread([id = m_id]() {
+        //             GlobalModDownloadEvent().send(std::string_view(id));
         //             ModDownloadEvent(std::string(id)).send();
         //         });
         //     }
@@ -219,6 +222,7 @@ public:
         // auto req = web::WebRequest();
         // req.userAgent(getServerUserAgent());
         // m_downloadListener.setFilter(req.get(downloadURL));
+        GlobalModDownloadEvent().send(std::string_view(m_id));
         ModDownloadEvent(std::string(m_id)).send();
     }
 };
@@ -303,6 +307,7 @@ void ModDownload::cancel() {
         // Cancel any dependencies of this mod left over (unless some other
         // installation depends on them still)
         ModDownloadManager::get()->m_impl->cancelOrphanedDependencies();
+        GlobalModDownloadEvent().send(std::string_view(m_impl->m_id));
         ModDownloadEvent(std::string(m_impl->m_id)).send();
     }
 }
@@ -370,6 +375,7 @@ void ModDownloadManager::dismissAll() {
     std::erase_if(m_impl->m_downloads, [](auto const& d) {
         return d.second.canRetry();
     });
+    GlobalModDownloadEvent().send("");
     ModDownloadEvent("").send();
 }
 bool ModDownloadManager::checkAutoConfirm() {
