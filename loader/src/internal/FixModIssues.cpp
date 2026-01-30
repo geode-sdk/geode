@@ -24,7 +24,6 @@ protected:
     };
 
     ListenerHandle m_downloadHandle;
-    // EventListener<server::ModDownloadFilter> m_download;
     std::vector<std::string> m_unsolved;
     std::deque<Question> m_questionQueue;
 
