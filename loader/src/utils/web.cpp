@@ -916,7 +916,12 @@ struct RegisteredSocket {
     arc::Interest interest;
 };
 
-struct ARC_NODISCARD MultiPollFuture : PollableBase<MultiPollFuture, curl_socket_t> {
+struct PollReadiness {
+    curl_socket_t socket;
+    Interest readiness;
+};
+
+struct ARC_NODISCARD MultiPollFuture : PollableBase<MultiPollFuture, PollReadiness> {
     enum class State {
         Init,
         Waiting,
@@ -929,14 +934,14 @@ struct ARC_NODISCARD MultiPollFuture : PollableBase<MultiPollFuture, curl_socket
     MultiPollFuture(MultiPollFuture&&) = default;
     MultiPollFuture& operator=(MultiPollFuture&&) = default;
 
-    std::optional<curl_socket_t> poll() {
+    std::optional<PollReadiness> poll() {
         switch (m_state) {
             case State::Init: {
                 // initial state: poll all sockets, return immediately if there's activity on one of them
                 for (auto& [fd, rs] : *m_sockets) {
                     auto ready = rs.rio.pollReady(rs.interest | Interest::Error, rs.rioId);
                     if (ready != 0) {
-                        return fd;
+                        return PollReadiness{fd, ready};
                     }
 
                     registered.emplace_back(fd, rs.rioId);
@@ -976,8 +981,6 @@ public:
     arc::CancellationToken m_cancel;
     asp::Instant m_nextWakeup = asp::Instant::farFuture();
 
-    std::atomic<bool> m_running;
-
     std::unordered_map<CURL*, std::shared_ptr<RequestData>> m_activeRequests;
     std::unordered_map<curl_socket_t, RegisteredSocket> m_sockets;
 
@@ -1001,7 +1004,6 @@ public:
         });
         curl_multi_setopt(m_multiHandle, CURLMOPT_TIMERDATA, this);
 
-        m_running = true;
         m_worker = async::runtime().spawn([this, rx = std::move(rx)](this auto self) -> arc::Future<> {
             bool running = true;
             while (running) {
@@ -1024,12 +1026,10 @@ public:
     }
 
     ~Impl() {
-        m_running = false;
         m_cancel.cancel();
         
         if (m_worker) {
-            // TODO: maybe abort instead
-            m_worker->blockOn();
+            m_worker->abort();
         }
         
         // clean up remaining requests
@@ -1109,9 +1109,23 @@ public:
             auto deadline = std::min(m_nextWakeup, now + asp::Duration::fromMillis(100));
 
             // poll until there is socket activity or the timer expires
-            (void) co_await arc::timeoutAt(
+            auto tres = co_await arc::timeoutAt(
                 deadline, this->workerPollSockets()
             );
+            
+            int running = 0;
+            if (tres) {
+                auto [fd, ready] = tres.unwrap();
+                int ev = 0;
+                if (ready & Interest::Readable) ev |= CURL_CSELECT_IN;
+                if (ready & Interest::Writable) ev |= CURL_CSELECT_OUT;
+                if (ready & Interest::Error) ev |= CURL_CSELECT_ERR;
+
+                curl_multi_socket_action(m_multiHandle, fd, ev, &running);
+            } else {
+                // timeout!
+                curl_multi_socket_action(m_multiHandle, CURL_SOCKET_TIMEOUT, 0, &running);
+            }
         }
     }
 
