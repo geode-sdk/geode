@@ -736,7 +736,7 @@ namespace geode {
     };
 
     template <class T, class Callback>
-    event::ListenerHandle* listenForSettingChanges(std::string settingKey, Callback&& callback, Mod* mod = getMod()) {
+    ListenerHandle* listenForSettingChanges(std::string settingKey, Callback&& callback, Mod* mod = getMod()) {
         using Ty = typename SettingTypeForValueType<T>::SettingType;
         using Ret = utils::function::Return<decltype(callback)>;
         if constexpr (std::is_same_v<Ret, void>) {
@@ -759,7 +759,7 @@ namespace geode {
     ZStringView getModID(Mod* mod);
 
     template <class T, class Callback>
-    event::ListenerHandle* listenForAllSettingChanges(Callback&& callback, Mod* mod = getMod()) {
+    ListenerHandle* listenForAllSettingChanges(Callback&& callback, Mod* mod = getMod()) {
         using Ty = typename SettingTypeForValueType<T>::SettingType;
         using Ret = utils::function::Return<decltype(callback)>;
         if constexpr (std::is_same_v<Ret, void>) {

@@ -26,7 +26,7 @@ private:
     Ref<LayoutOptions> m_layoutOptions = nullptr;
     StringMap<Ref<CCObject>> m_userObjects;
     StringSet m_userFlags;
-    StringMultimap<std::unique_ptr<event::ListenerHandle>> m_eventListeners;
+    StringMultimap<std::unique_ptr<ListenerHandle>> m_eventListeners;
 
     friend class ProxyCCNode;
     friend class cocos2d::CCNode;
@@ -107,13 +107,13 @@ public:
         }
     }
 
-    event::ListenerHandle* getEventListener(std::string_view id) {
+    ListenerHandle* getEventListener(std::string_view id) {
         auto it = m_eventListeners.find(id);
         return it != m_eventListeners.end() ? it->second.get() : nullptr;
     }
 
-    event::ListenerHandle* addEventListener(std::string id, event::ListenerHandle handle) {
-        auto wrap = std::make_unique<event::ListenerHandle>(std::move(handle));
+    ListenerHandle* addEventListener(std::string id, ListenerHandle handle) {
+        auto wrap = std::make_unique<ListenerHandle>(std::move(handle));
         auto ret = wrap.get();
         m_eventListeners.emplace(std::move(id), std::move(wrap));
         return ret;
@@ -123,7 +123,7 @@ public:
         m_eventListeners.erase(id);
     }
 
-    void removeEventListener(event::ListenerHandle* handle) {
+    void removeEventListener(ListenerHandle* handle) {
         std::erase_if(m_eventListeners, [=](auto& l) {
             return l.second.get() == handle;
         });
@@ -415,11 +415,11 @@ bool CCNode::getUserFlag(std::string_view id) {
     return GeodeNodeMetadata::set(this)->getUserFlag(id);
 }
 
-event::ListenerHandle* CCNode::addEventListenerInternal(std::string id, event::ListenerHandle handle) {
+ListenerHandle* CCNode::addEventListenerInternal(std::string id, ListenerHandle handle) {
     return GeodeNodeMetadata::set(this)->addEventListener(std::move(id), std::move(handle));
 }
 
-void CCNode::removeEventListener(event::ListenerHandle* handle) {
+void CCNode::removeEventListener(ListenerHandle* handle) {
     GeodeNodeMetadata::set(this)->removeEventListener(handle);
 }
 
@@ -427,7 +427,7 @@ void CCNode::removeEventListener(std::string_view id) {
     GeodeNodeMetadata::set(this)->removeEventListener(id);
 }
 
-event::ListenerHandle* CCNode::getEventListener(std::string_view id) {
+ListenerHandle* CCNode::getEventListener(std::string_view id) {
     return GeodeNodeMetadata::set(this)->getEventListener(id);
 }
 

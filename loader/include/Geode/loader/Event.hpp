@@ -16,7 +16,7 @@
 #include "../utils/hash.hpp"
 #include "Log.hpp"
 
-namespace geode::event {
+namespace geode::comm {
     template <class T>
     struct RefOrVoid {
         using type = void(T const&);
@@ -628,18 +628,18 @@ namespace geode::event {
 
 namespace geode {
     template<class Marker, class PFunc, class... FArgs>
-    struct Event : public event::BasicEvent<Marker, event::PortWrapper<event::Port, false>::type, PFunc, FArgs...> {
-        using event::BasicEvent<Marker, event::PortWrapper<event::Port, false>::type, PFunc, FArgs...>::BasicEvent;
+    struct Event : public comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false>::type, PFunc, FArgs...> {
+        using comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false>::type, PFunc, FArgs...>::BasicEvent;
     };
 
     template<class Marker, class PFunc, class... FArgs>
-    struct ThreadSafeEvent : public event::BasicEvent<Marker, event::PortWrapper<event::Port, true>::type, PFunc, FArgs...> {
-        using event::BasicEvent<Marker, event::PortWrapper<event::Port, true>::type, PFunc, FArgs...>::BasicEvent;
+    struct ThreadSafeEvent : public comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, true>::type, PFunc, FArgs...> {
+        using comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, true>::type, PFunc, FArgs...>::BasicEvent;
     };
 
     template<class Marker, class... PArgs>
-    struct SimpleEvent : public event::BasicEvent<Marker, event::PortWrapper<event::Port, false>::type, bool(PArgs...)> {
-        using event::BasicEvent<Marker, event::PortWrapper<event::Port, false>::type, bool(PArgs...)>::BasicEvent;
+    struct SimpleEvent : public comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false>::type, bool(PArgs...)> {
+        using comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false>::type, bool(PArgs...)>::BasicEvent;
     };
 
     struct ListenerResult {
@@ -660,5 +660,5 @@ namespace geode {
         bool m_value = false;
     };
 
-    using ListenerHandle = event::ListenerHandle;
+    using ListenerHandle = comm::ListenerHandle;
 }

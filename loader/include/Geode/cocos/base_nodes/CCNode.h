@@ -903,9 +903,9 @@ private:
     friend class geode::modifier::FieldContainer;
 
     GEODE_DLL geode::modifier::FieldContainer* getFieldContainer(char const* forClass);
-    GEODE_DLL geode::event::ListenerHandle* addEventListenerInternal(
+    GEODE_DLL geode::comm::ListenerHandle* addEventListenerInternal(
         std::string id,
-        geode::event::ListenerHandle handle
+        geode::comm::ListenerHandle handle
     );
 
 public:
@@ -1119,7 +1119,7 @@ public:
     GEODE_DLL float getScaledContentHeight() const;
 
     template <class Event, class Callback>
-    geode::event::ListenerHandle* addEventListener(
+    geode::comm::ListenerHandle* addEventListener(
         std::string_view id,
         Event const& event,
         Callback&& callback,
@@ -1129,16 +1129,16 @@ public:
         return this->addEventListenerInternal(std::string(id), std::move(handle));
     }
     template <class Event, class Callback>
-    geode::event::ListenerHandle* addEventListener(
+    geode::comm::ListenerHandle* addEventListener(
         Event const& event,
         Callback&& callback,
         int priority = 0
     ) {
         return this->addEventListener("", event, std::forward<Callback>(callback), priority);
     }
-    GEODE_DLL void removeEventListener(geode::event::ListenerHandle* handle);
+    GEODE_DLL void removeEventListener(geode::comm::ListenerHandle* handle);
     GEODE_DLL void removeEventListener(std::string_view id);
-    GEODE_DLL geode::event::ListenerHandle* getEventListener(std::string_view id);
+    GEODE_DLL geode::comm::ListenerHandle* getEventListener(std::string_view id);
     GEODE_DLL size_t getEventListenerCount();
 
     /**

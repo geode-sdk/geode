@@ -36,7 +36,7 @@
 
 using namespace geode::prelude;
 
-event::EventCenter* geode::event::EventCenter::get() {
+comm::EventCenter* geode::comm::EventCenter::get() {
     static EventCenter instance;
     return &instance;
 }

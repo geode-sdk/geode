@@ -592,13 +592,13 @@ namespace geode {
      */
     class EventListenerNode : public cocos2d::CCNode {
     protected:
-        event::ListenerHandle m_handle;
+        ListenerHandle m_handle;
 
-        EventListenerNode(event::ListenerHandle&& handle)
+        EventListenerNode(ListenerHandle&& handle)
           : m_handle(std::move(handle)) {}
 
     public:
-        static EventListenerNode* create(event::ListenerHandle&& handle) {
+        static EventListenerNode* create(ListenerHandle&& handle) {
             auto ret = new EventListenerNode(std::move(handle));
             if (ret->init()) {
                 ret->autorelease();
