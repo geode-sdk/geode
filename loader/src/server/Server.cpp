@@ -6,6 +6,7 @@
 #include <fmt/core.h>
 #include <loader/ModMetadataImpl.hpp>
 #include <fmt/chrono.h>
+#include <arc/sync/Mutex.hpp>
 #include <loader/LoaderImpl.hpp>
 #include "../internal/about.hpp"
 #include "Geode/loader/Loader.hpp"
@@ -110,8 +111,7 @@ public:
     using Value    = typename Extract::Value;
 
 private:
-    std::mutex m_mutex;
-    CacheMap<CacheKey, Value> m_cache;
+    arc::Mutex<CacheMap<CacheKey, Value>> m_cache;
 
 public:
     FunCache() = default;
@@ -122,32 +122,32 @@ public:
     arc::Future<Result<Value, ServerError>> get(Args&&... args) {
         auto key = Extract::key(args...);
 
-        std::unique_lock lock(m_mutex);
-        if (auto v = m_cache.get(key)) {
+        auto cache = co_await m_cache.lock();
+        if (auto v = cache->get(key)) {
             co_return Ok(*v);
         }
         auto f = ARC_CO_UNWRAP(co_await Extract::invoke(F, std::forward<Args>(args)...));
-        m_cache.add(std::move(key), Value{f});
+        cache->add(std::move(key), Value{f});
         co_return Ok(f);
     }
 
     template <class... Args>
-    void remove(Args const&... args) {
-        std::unique_lock lock(m_mutex);
-        m_cache.remove(Extract::key(args...));
+    arc::Future<> remove(Args const&... args) {
+        auto cache = co_await m_cache.lock();
+        cache->remove(Extract::key(args...));
     }
 
-    size_t size() {
-        std::unique_lock lock(m_mutex);
-        return m_cache.size();
+    arc::Future<size_t> size() {
+        auto cache = co_await m_cache.lock();
+        co_return cache->size();
     }
-    void limit(size_t size) {
-        std::unique_lock lock(m_mutex);
-        m_cache.limit(size);
+    arc::Future<> limit(size_t size) {
+        auto cache = co_await m_cache.lock();
+        cache->limit(size);
     }
-    void clear() {
-        std::unique_lock lock(m_mutex);
-        m_cache.clear();
+    arc::Future<> clear() {
+        auto cache = co_await m_cache.lock();
+        cache->clear();
     }
 };
 
@@ -805,8 +805,6 @@ ServerFuture<std::vector<ServerModUpdate>> server::batchedCheckUpdates(std::vect
 }
 
 ServerFuture<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCache) {
-    using A = decltype(getCache<checkAllUpdates>().get());
-
     if (useCache) {
         co_return co_await getCache<checkAllUpdates>().get();
     }
@@ -853,23 +851,27 @@ ServerFuture<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCache
 }
 
 void server::clearServerCaches(bool clearGlobalCaches) {
-    getCache<&getMods>().clear();
-    getCache<&getMod>().clear();
-    getCache<&getModLogo>().clear();
-
-    // Only clear global caches if explicitly requested
-    if (clearGlobalCaches) {
-        getCache<&getTags>().clear();
-        getCache<&checkAllUpdates>().clear();
-    }
+    async::runtime().spawn([clearGlobalCaches](this auto self) -> arc::Future<> {
+        co_await getCache<&getMods>().clear();
+        co_await getCache<&getMod>().clear();
+        co_await getCache<&getModLogo>().clear();
+    
+        // Only clear global caches if explicitly requested
+        if (clearGlobalCaches) {
+            co_await getCache<&getTags>().clear();
+            co_await getCache<&checkAllUpdates>().clear();
+        }
+    }());
 }
 
 $on_mod(Loaded) {
     listenForSettingChanges<int64_t>("server-cache-size-limit", +[](int64_t size) {
-        getCache<&server::getMods>().limit(size);
-        getCache<&server::getMod>().limit(size);
-        getCache<&server::getModLogo>().limit(size);
-        getCache<&server::getTags>().limit(size);
-        getCache<&server::checkAllUpdates>().limit(size);
+        async::runtime().spawn([size](this auto self) -> arc::Future<> {
+            co_await getCache<&server::getMods>().limit(size);
+            co_await getCache<&server::getMod>().limit(size);
+            co_await getCache<&server::getModLogo>().limit(size);
+            co_await getCache<&server::getTags>().limit(size);
+            co_await getCache<&server::checkAllUpdates>().limit(size);
+        }());
     });
 }
