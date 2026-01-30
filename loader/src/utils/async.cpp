@@ -12,7 +12,7 @@ arc::Runtime& runtime() {
 
 }
 
-$execute {
+$on_mod(Loaded) {
     // TODO: v5 more or less temporary? might keep
     arc::setLogFunction([](auto msg, arc::LogLevel level) {
         using enum arc::LogLevel;
@@ -23,7 +23,7 @@ $execute {
             case Error:
                 log::error("[arc] {}", msg); break;
             default:
-                log::debug("[arc] {}", msg); break;
+                // log::debug("[arc] {}", msg); break;
         }
     });
 }

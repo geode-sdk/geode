@@ -667,9 +667,12 @@ public:
             return size * nitems;
         }));
 
+        // TODO v5: progress
+        // for now the line below just disbales the annoying progress meter, remove it after progress is added
+        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
+
         // Track & post progress on the Promise
         // onProgress can only be not set if using sendSync without one, and hasBeenCancelled is always null in that case
-        // TODO: progress
         // if (requestData->onProgress) {
         //     curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, requestData);
         //     curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, +[](void* ptr, double dtotal, double dnow, double utotal, double unow) -> int {
@@ -1042,10 +1045,11 @@ public:
         CURL* handle = req->request->makeCurlHandle(req.get());
 
         if (!handle) {
-            // req->onComplete(req->request->makeError(-1, "Failed to initialize cURL"));
+            req->onComplete(req->request->makeError(-1, "Failed to initialize cURL"));
             return;
         }
 
+        log::debug("Added request ({})", req->request->m_url);
         curl_multi_add_handle(m_multiHandle, handle);
         m_activeRequests.insert({ handle, std::move(req) });
     }
@@ -1078,22 +1082,15 @@ public:
 
                 // Check if the request failed on curl's side or because of cancellation
                 if (msg->data.result != CURLE_OK) {
-                    // TODO: handle cancellation / error
-                    // if (requestData.hasBeenCancelled && requestData.hasBeenCancelled()) {
-                    //     log::debug("Request cancelled");
-                    //     requestData.onComplete(WebTask::Cancel());
-                    // }
-                    // else {
-                    //     std::string_view err = curl_easy_strerror(msg->data.result);
-                    //     log::error("cURL failure, error: {}", err);
-                    //     log::warn("Error buffer: {}", errorBuf);
-                    //     requestData.onComplete(requestData.request->makeError(
-                    //         -1,
-                    //         !errorBuf ?
-                    //                 fmt::format("Curl failed: {}", err)
-                    //             : fmt::format("Curl failed: {} ({})", err, errorBuf)
-                    //     ));
-                    // }
+                    std::string_view err = curl_easy_strerror(msg->data.result);
+                    log::error("cURL failure, error: {}", err);
+                    log::warn("Error buffer: {}", errorBuf);
+                    requestData.onComplete(requestData.request->makeError(
+                        -1,
+                        !errorBuf ?
+                                fmt::format("Curl failed: {}", err)
+                            : fmt::format("Curl failed: {} ({})", err, errorBuf)
+                    ));
                 } else {
                     // resolve with success :-)
                     requestData.onComplete(std::move(requestData.response));
@@ -1107,9 +1104,13 @@ public:
         }
 
         if (!m_activeRequests.empty()) {
+            // poll for either 100ms or until curl needs us, whatever happens earlier
+            auto now = asp::Instant::now();
+            auto deadline = std::min(m_nextWakeup, now + asp::Duration::fromMillis(100));
+
             // poll until there is socket activity or the timer expires
             (void) co_await arc::timeoutAt(
-                m_nextWakeup, this->workerPollSockets()
+                deadline, this->workerPollSockets()
             );
         }
     }
@@ -1176,11 +1177,9 @@ Future<WebResponse> WebRequestsManager::enqueueAndWait(std::shared_ptr<WebReques
         }
     );
 
-    auto res = m_impl->m_reqtx->trySend(std::move(rdata));
+    auto res = m_impl->m_reqtx->trySend(rdata);
     if (!res) {
-        // TODO: handle error better
-        log::error("Failed to enqueue web request: channel full");
-        co_return WebResponse{};
+        co_return rdata->request->makeError(-1, "Failed to enqueue web request: queue is full");
     }
 
     auto retres = co_await rx.recv();
@@ -1188,8 +1187,6 @@ Future<WebResponse> WebRequestsManager::enqueueAndWait(std::shared_ptr<WebReques
         co_return std::move(*retres);
     }
 
-    // TODO: handle better
-    log::error("Failed to receive web response: channel closed");
-    co_return WebResponse{};
+    co_return rdata->request->makeError(-1, "Failed to receive web response: channel closed");
 }
 
