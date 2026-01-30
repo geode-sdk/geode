@@ -289,8 +289,8 @@ void geode::utils::permission::requestPermission(Permission permission, geode::F
 
 // [Set|Get]ThreadDescription are pretty new, so the user's system might not have them
 // or they might only be accessible dynamically (see msdocs link below for more info)
-auto setThreadDesc = reinterpret_cast<decltype(&SetThreadDescription)>(GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "SetThreadDescription"));
-auto getThreadDesc = reinterpret_cast<decltype(&GetThreadDescription)>(GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "GetThreadDescription"));
+static auto setThreadDesc = reinterpret_cast<decltype(&SetThreadDescription)>(GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "SetThreadDescription"));
+static auto getThreadDesc = reinterpret_cast<decltype(&GetThreadDescription)>(GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "GetThreadDescription"));
 
 static std::optional<std::string> getNameFromOs() {
     if (!getThreadDesc) {
