@@ -20,8 +20,8 @@ public:
     DownloadStatus m_status;
     ListenerHandle m_infoHandle;
     ListenerHandle m_downloadHandle;
-    // EventListener<ServerFuture<ServerModVersion>> m_infoListener;
-    // EventListener<web::WebTask> m_downloadListener;
+    async::TaskHolder<web::WebResponse> m_downloadListener;
+    async::TaskHolder<ServerResult<ServerModVersion>> m_infoListener;
     unsigned int m_scheduledEventForFrame = 0;
 
     Impl(
@@ -38,62 +38,60 @@ public:
             .percentage = 0,
         })
     {
-        // TODO: v5
-        // m_infoListener.bind([this](ServerFuture<ServerModVersion>::Event* event) {
-        //     if (auto result = event->getValue()) {
-        //         if (result->isOk()) {
-        //             auto data = result->unwrap();
-        //             m_version = data.metadata.getVersion();
-
-        //             // Start downloads for any missing required dependencies
-        //             for (auto dep : data.metadata.getDependencies()) {
-        //                 if (!dep.getMod() && dep.getImportance() != ModMetadata::Dependency::Importance::Suggested) {
-        //                     ModDownloadManager::get()->startDownload(
-        //                         dep.getID(), dep.getVersion().getUnderlyingVersion(),
-        //                         std::make_pair(m_id, dep.getImportance())
-        //                     );
-        //                 }
-        //             }
-
-        //             m_status = DownloadStatusConfirm {
-        //                 .version = data,
-        //             };
-        //         }
-        //         else {
-        //             m_status = DownloadStatusError {
-        //                 .details = result->unwrapErr().details,
-        //             };
-        //         }
-
-        //         // Clear the listener to free up the memory
-        //         m_infoListener.setFilter(ServerFuture<ServerModVersion>());
-        //     }
-        //     else if (auto progress = event->getProgress()) {
-        //         m_status = DownloadStatusFetching {
-        //             .percentage = progress->percentage.value_or(0),
-        //         };
-        //     }
-        //     else if (event->isCancelled()) {
-        //         m_status = DownloadStatusCancelled();
-        //         m_infoListener.setFilter(ServerFuture<ServerModVersion>());
-        //     }
-
-        //     if (!ModDownloadManager::get()->checkAutoConfirm()) {
-        //         // Throttle events to only once per frame to not cause a
-        //         // billion UI updates at once
-        //         if (m_scheduledEventForFrame != CCDirector::get()->getTotalFrames()) {
-        //             m_scheduledEventForFrame = CCDirector::get()->getTotalFrames();
-        //             Loader::get()->queueInMainThread([id = m_id]() {
-        //                 GlobalModDownloadEvent().send(std::string_view(id));
-        //                 ModDownloadEvent(std::string(id)).send();
-        //             });
-        //         }
-        //     }
-        // });
         auto fetchVersion = version.has_value() ? ModVersion(*version) : ModVersion(ModVersionLatest());
-        // TODO: v5
-        // m_infoListener.setFilter(getModVersion(m_id, fetchVersion));
-        
+        m_infoListener.spawn(
+            getModVersion(m_id, fetchVersion),
+            [this](ServerResult<ServerModVersion> result) {
+                if (result.isOk()) {
+                    auto& data = result.unwrap();
+                    m_version = data.metadata.getVersion();
+
+                    // Start downloads for any missing required dependencies
+                    for (auto dep : data.metadata.getDependencies()) {
+                        if (!dep.getMod() && dep.getImportance() != ModMetadata::Dependency::Importance::Suggested) {
+                            ModDownloadManager::get()->startDownload(
+                                dep.getID(), dep.getVersion().getUnderlyingVersion(),
+                                std::make_pair(m_id, dep.getImportance())
+                            );
+                        }
+                    }
+
+                    m_status = DownloadStatusConfirm {
+                        .version = std::move(result).unwrap(),
+                    };
+                }
+                else {
+                    m_status = DownloadStatusError {
+                        .details = std::move(result.unwrapErr().details),
+                    };
+                }
+
+
+                // TODO: v5 web progress
+                //     else if (auto progress = event->getProgress()) {
+                //         m_status = DownloadStatusFetching {
+                //             .percentage = progress->percentage.value_or(0),
+                //         };
+                //     }
+                //     else if (event->isCancelled()) {
+                //         m_status = DownloadStatusCancelled();
+                //         m_infoListener.setFilter(ServerFuture<ServerModVersion>());
+                //     }
+                //
+                //     if (!ModDownloadManager::get()->checkAutoConfirm()) {
+                //         // Throttle events to only once per frame to not cause a
+                //         // billion UI updates at once
+                //         if (m_scheduledEventForFrame != CCDirector::get()->getTotalFrames()) {
+                //             m_scheduledEventForFrame = CCDirector::get()->getTotalFrames();
+                //             Loader::get()->queueInMainThread([id = m_id]() {
+                //                 GlobalModDownloadEvent().send(std::string_view(id));
+                //                 ModDownloadEvent(std::string(id)).send();
+                //             });
+                //         }
+                //     }
+            }
+        );
+
         Loader::get()->queueInMainThread([id = m_id] {
             GlobalModDownloadEvent().send(std::string_view(id));
             ModDownloadEvent(std::string(id)).send();
@@ -111,117 +109,113 @@ public:
             .percentage = 0,
         };
 
-        // TODO: v5
-        // m_downloadListener.bind([this, hash = std::move(version.hash), version = std::move(version)](web::WebTask::Event* event) {
-        //     if (auto value = event->getValue()) {
-        //         if (!value->ok()) {
-        //             auto resp = event->getValue();
+        m_downloadListener.spawn(
+            web::WebRequest().userAgent(getServerUserAgent()).get(std::move(downloadURL)),
+            [this, hash = std::move(version.hash), version = std::move(version)](web::WebResponse response) {
+                if (!response.ok()) {
+                    if (response.code() == -1) {
+                        m_status = DownloadStatusError {
+                            .details = fmt::format(
+                                "Failed to make request to download endpoint. Error: {}",
+                                response.string().unwrapOr("No message")
+                            )
+                        };
+                    } else {
+                        m_status = DownloadStatusError {
+                            .details = fmt::format(
+                                "Server returned error {} with message: {}",
+                                response.code(),
+                                response.string().unwrapOr("No message")
+                            )
+                        };
+                    }
 
-        //             if (resp->code() == -1) {
-        //                 m_status = DownloadStatusError {
-        //                     .details = fmt::format(
-        //                         "Failed to make request to download endpoint. Error: {}",
-        //                         resp->string().unwrapOr("No message")
-        //                     )
-        //                 };
-        //             } else {
-        //                 m_status = DownloadStatusError {
-        //                     .details = fmt::format(
-        //                         "Server returned error {} with message: {}",
-        //                         resp->code(),
-        //                         resp->string().unwrapOr("No message")
-        //                     )
-        //                 };
-        //             }
+                    log::error("Failed to download {}, server returned error {}", m_id, response.code());
+                    log::error("{}", response.string().unwrapOr("No response"));
 
-        //             log::error("Failed to download {}, server returned error {}", m_id, resp->code());
-        //             log::error("{}", resp->string().unwrapOr("No response"));
+                    const auto& extErr = response.errorMessage();
+                    if (!extErr.empty()) {
+                        log::error("Extended error info: {}", extErr);
+                    }
+                    goto postdownloadedevent;
+                }
 
-        //             const auto& extErr = resp->errorMessage();
-        //             if (!extErr.empty()) {
-        //                 log::error("Extended error info: {}", extErr);
-        //             }
-        //             goto postdownloadedevent;
-        //         }
+                if (auto actualHash = ::calculateHash(response.data()); actualHash != hash) {
+                    log::error("Failed to download {}, hash mismatch ({} != {})", m_id, actualHash, hash);
+                    m_status = DownloadStatusError {
+                        .details = "Hash mismatch, downloaded file did not match what was expected",
+                    };
+                    goto postdownloadedevent;
+                }
 
-        //         if (auto actualHash = ::calculateHash(value->data()); actualHash != hash) {
-        //             log::error("Failed to download {}, hash mismatch ({} != {})", m_id, actualHash, hash);
-        //             m_status = DownloadStatusError {
-        //                 .details = "Hash mismatch, downloaded file did not match what was expected",
-        //             };
-        //             goto postdownloadedevent;
-        //         }
+                std::string id = m_replacesMod.has_value() ? m_replacesMod.value() : m_id;
+                if (auto mod = Loader::get()->getInstalledMod(id)) {
+                    std::error_code ec;
+                    std::filesystem::remove(mod->getPackagePath(), ec);
+                    if (ec) {
+                        m_status = DownloadStatusError {
+                            .details = fmt::format("Unable to delete existing .geode package (code {})", ec),
+                        };
+                        goto postdownloadedevent;
+                    }
+                    // Mark mod as updated
+                    ModImpl::getImpl(mod)->m_requestedAction = ModRequestedAction::Update;
+                }
 
-        //         std::string id = m_replacesMod.has_value() ? m_replacesMod.value() : m_id;
-        //         if (auto mod = Loader::get()->getInstalledMod(id)) {
-        //             std::error_code ec;
-        //             std::filesystem::remove(mod->getPackagePath(), ec);
-        //             if (ec) {
-        //                 m_status = DownloadStatusError {
-        //                     .details = fmt::format("Unable to delete existing .geode package (code {})", ec),
-        //                 };
-        //                 goto postdownloadedevent;
-        //             }
-        //             // Mark mod as updated
-        //             ModImpl::getImpl(mod)->m_requestedAction = ModRequestedAction::Update;
-        //         }
+                // If this was an update, delete the old file first
+                auto geodePath = dirs::getModsDir() / (m_id + ".geode");
+                auto data = std::move(response).data();
+                auto ok = file::writeBinary(geodePath, data);
+                if (!ok) {
+                    m_status = DownloadStatusError {
+                        .details = std::move(ok).unwrapErr(),
+                    };
+                    goto postdownloadedevent;
+                }
 
-        //         // If this was an update, delete the old file first
-        //         auto geodePath = dirs::getModsDir() / (m_id + ".geode");
-        //         auto data = value->data();
-        //         auto ok = file::writeBinary(geodePath, data);
-        //         if (!ok) {
-        //             m_status = DownloadStatusError {
-        //                 .details = ok.unwrapErr(),
-        //             };
-        //             goto postdownloadedevent;
-        //         }
+                auto metadata = ModMetadata::createFromGeodeFile(geodePath);
+                if (metadata.isErr()) {
+                    m_status = DownloadStatusError {
+                        .details = std::move(metadata).unwrapErr(),
+                    };
+                    goto postdownloadedevent;
+                }
 
-        //         auto metadata = ModMetadata::createFromGeodeFile(geodePath);
-        //         if (metadata.isErr()) {
-        //             m_status = DownloadStatusError {
-        //                 .details = metadata.unwrapErr(),
-        //             };
-        //             goto postdownloadedevent;
-        //         }
+                auto okBinary = LoaderImpl::get()->extractBinary(metadata.unwrap());
+                if (!okBinary) {
+                    m_status = DownloadStatusError {
+                        .details = std::move(okBinary).unwrapErr(),
+                    };
+                    goto postdownloadedevent;
+                }
 
-        //         auto okBinary = LoaderImpl::get()->extractBinary(metadata.unwrap());
-        //         if (!okBinary) {
-        //             m_status = DownloadStatusError {
-        //                 .details = okBinary.unwrapErr(),
-        //             };
-        //             goto postdownloadedevent;
-        //         }
+                m_status = DownloadStatusDone {
+                    .version = std::move(version)
+                };
 
-        //         m_status = DownloadStatusDone {
-        //             .version = version
-        //         };
-        //     }
-        //     else if (auto progress = event->getProgress()) {
-        //         m_status = DownloadStatusDownloading {
-        //             .percentage = static_cast<uint8_t>(progress->downloadProgress().value_or(0)),
-        //         };
-        //     }
-        //     else if (event->isCancelled()) {
-        //         m_status = DownloadStatusCancelled();
-        //     }
-        //     // Throttle events to only once per frame to not cause a
-        //     // billion UI updates at once
-        //     postdownloadedevent:
+                // TODO: v5 web progress
+                //     else if (auto progress = event->getProgress()) {
+                //         m_status = DownloadStatusDownloading {
+                //             .percentage = static_cast<uint8_t>(progress->downloadProgress().value_or(0)),
+                //         };
+                //     }
+                //     else if (event->isCancelled()) {
+                //         m_status = DownloadStatusCancelled();
+                //     }
+                //     // Throttle events to only once per frame to not cause a
+                //     // billion UI updates at once
+                postdownloadedevent:
 
-        //     if (m_scheduledEventForFrame != CCDirector::get()->getTotalFrames()) {
-        //         m_scheduledEventForFrame = CCDirector::get()->getTotalFrames();
-        //         Loader::get()->queueInMainThread([id = m_id]() {
-        //             GlobalModDownloadEvent().send(std::string_view(id));
-        //             ModDownloadEvent(std::string(id)).send();
-        //         });
-        //     }
-        // });
+                //     if (m_scheduledEventForFrame != CCDirector::get()->getTotalFrames()) {
+                //         m_scheduledEventForFrame = CCDirector::get()->getTotalFrames();
+                //         Loader::get()->queueInMainThread([id = m_id]() {
+                //             GlobalModDownloadEvent().send(std::string_view(id));
+                //             ModDownloadEvent(std::string(id)).send();
+                //         });
+                //     }
+            }
+        );
 
-        // TODO: v5
-        // auto req = web::WebRequest();
-        // req.userAgent(getServerUserAgent());
-        // m_downloadListener.setFilter(req.get(downloadURL));
         GlobalModDownloadEvent().send(std::string_view(m_id));
         ModDownloadEvent(std::string(m_id)).send();
     }

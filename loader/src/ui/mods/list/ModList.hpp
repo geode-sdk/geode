@@ -54,7 +54,7 @@ protected:
     ListenerHandle m_checkUpdatesHandle;
     ListenerHandle m_downloadHandle;
     // EventListener<InvalidateCacheFilter> m_invalidateCacheListener;
-    // EventListener<server::ServerFuture<std::vector<std::string>>> m_checkUpdatesListener;
+    async::TaskHolder<server::ServerResult<std::vector<std::string>>> m_checkUpdatesListener;
     // EventListener<server::ModDownloadFilter> m_downloadListener;
     ModListDisplay m_display = ModListDisplay::SmallList;
     bool m_exiting = false;
