@@ -55,21 +55,16 @@ protected:
     }
 
     void onRequest(server::ServerResult<std::optional<std::string>> result) {
+        m_loading->removeFromParent();
         if (result && result.isOk()) {
             auto value = std::move(result).unwrap();
             if (value) {
-                m_loading->removeFromParent();
                 std::string str = std::move(value).value();
                 m_textarea->setString(str.c_str());
                 return;
             }
         }
-
-        /// TODO: v5 what was this doing
-        // if (!event->getProgress()) {
-        //     m_loading->removeFromParent();
-        //     m_textarea->setString(m_noneText.c_str());
-        // }
+        m_textarea->setString(m_noneText.c_str());
     }
 
 public:

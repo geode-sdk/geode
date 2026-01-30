@@ -407,8 +407,6 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     );
     this->addChildAtPosition(m_statusContainer, Anchor::Center);
 
-    // TODO: v5
-
     InvalidateCacheEvent().listen(
         [this](ModListSource* source) {
             this->onInvalidateCache(source);
@@ -416,16 +414,12 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         }
     );
 
-    // m_invalidateCacheListener.bind(this, &ModList::onInvalidateCache);
-    // m_invalidateCacheListener.setFilter(InvalidateCacheFilter(m_source));
-
     this->gotoPage(0);
     this->updateTopContainer();
 
     return true;
 }
 
-// TODO: v5
 void ModList::onPromise(ModListSource::PageLoadResult result) {
     if (result.isOk()) {
         // This is apparently because `getChildren()` may be nullptr?
@@ -466,11 +460,6 @@ void ModList::onPromise(ModListSource::PageLoadResult result) {
         this->showStatus(ModListErrorStatus(), std::move(error.message), std::move(error.details));
         this->updateState();
     }
-
-    // Clear listener
-    // TODO: v5
-    // m_listener.setFilter(ModListSource::PageLoadTask());
-
 
     // TODO: v5 web progress
     // else if (auto progress = event->getProgress()) {

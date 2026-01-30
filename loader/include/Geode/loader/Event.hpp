@@ -455,6 +455,7 @@ namespace geode::event {
         static void removeReceiverStatic(BaseFilter const* filter, ReceiverHandle handle) noexcept {
             auto* self = static_cast<BasicEvent const*>(filter);
             if (self) {
+                std::cout << fmt::format("Static removing receiver from BasicEvent {}, {}", (void*)self, typeid(Marker).name()) << std::endl;
                 self->removeReceiver(handle);
             }
         }
