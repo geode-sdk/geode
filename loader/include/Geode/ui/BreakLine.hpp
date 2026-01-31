@@ -3,7 +3,7 @@
 #include <cocos2d.h>
 
 namespace geode {
-    class GEODE_DLL BreakLine : public cocos2d::CCNode {
+    class GEODE_DLL BreakLine final : public cocos2d::CCNode {
     protected:
         cocos2d::ccColor4F m_color;
 

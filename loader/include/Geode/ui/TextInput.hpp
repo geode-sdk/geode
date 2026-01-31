@@ -43,7 +43,7 @@ namespace geode {
     /**
      * A single-line text input node
      */
-    class GEODE_DLL TextInput : public cocos2d::CCNode, public TextInputDelegate {
+    class GEODE_DLL TextInput final : public cocos2d::CCNode, public TextInputDelegate {
     protected:
         cocos2d::extension::CCScale9Sprite* m_bgSprite = nullptr;
         CCTextInputNode* m_input = nullptr;

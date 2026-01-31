@@ -3,7 +3,7 @@
 #include <cocos2d.h>
 
 namespace geode {
-    class GEODE_DLL Border : public cocos2d::CCLayerColor {
+    class GEODE_DLL Border final : public cocos2d::CCLayerColor {
     public:
         struct Padding {
             float top;
