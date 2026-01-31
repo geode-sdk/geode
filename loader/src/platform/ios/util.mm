@@ -91,174 +91,176 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
     return false;
 }
 
-GEODE_DLL Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, file::FilePickOptions const& options) {
-    using RetTask = Task<Result<std::filesystem::path>>;
-    return RetTask::runWithCallback([mode, options](auto resultCallback, auto progress, auto cancelled) {
+GEODE_DLL arc::Future<Result<std::filesystem::path>> file::pick(file::PickMode mode, file::FilePickOptions const& options) {
+    co_return Err("// TODO: v5");
+    // using RetTask = Task<Result<std::filesystem::path>>;
+    // return RetTask::runWithCallback([mode, options](auto resultCallback, auto progress, auto cancelled) {
 
-        NSMutableArray<UTType*> *documentTypes = [NSMutableArray array];
-        for (const auto& filter : options.filters) {
-            for (const auto& file : filter.files) {
-                UTType* uti = [UTType typeWithFilenameExtension:@(file.c_str())];
-                if (uti) {
-                    [documentTypes addObject:uti];
-                }
-            }
-        }
+    //     NSMutableArray<UTType*> *documentTypes = [NSMutableArray array];
+    //     for (const auto& filter : options.filters) {
+    //         for (const auto& file : filter.files) {
+    //             UTType* uti = [UTType typeWithFilenameExtension:@(file.c_str())];
+    //             if (uti) {
+    //                 [documentTypes addObject:uti];
+    //             }
+    //         }
+    //     }
 
-        NSURL *FileURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:@"temp.file"]];
-        if (options.defaultPath && !options.defaultPath->parent_path().empty()) {
-            FileURL = [NSURL fileURLWithPath:[NSString stringWithUTF8String:options.defaultPath->c_str()]];
-        }
-        else if (options.defaultPath) {
-            auto FileExtension = [NSString stringWithUTF8String:options.defaultPath->c_str()];
-            FileURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:FileExtension]];
-        }
+    //     NSURL *FileURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:@"temp.file"]];
+    //     if (options.defaultPath && !options.defaultPath->parent_path().empty()) {
+    //         FileURL = [NSURL fileURLWithPath:[NSString stringWithUTF8String:options.defaultPath->c_str()]];
+    //     }
+    //     else if (options.defaultPath) {
+    //         auto FileExtension = [NSString stringWithUTF8String:options.defaultPath->c_str()];
+    //         FileURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:FileExtension]];
+    //     }
         
-        // just for the picker not to crash, it gotta have a file to "save" then the writing is handled in the mod once we save the file somewhere
-        [@"" writeToURL:FileURL atomically:NO encoding:NSUTF8StringEncoding error:nil];
+    //     // just for the picker not to crash, it gotta have a file to "save" then the writing is handled in the mod once we save the file somewhere
+    //     [@"" writeToURL:FileURL atomically:NO encoding:NSUTF8StringEncoding error:nil];
 
-        if (documentTypes.count == 0) {
-            [documentTypes addObject:UTTypeItem]; // Default to any file type if no filters are provided
-        }
+    //     if (documentTypes.count == 0) {
+    //         [documentTypes addObject:UTTypeItem]; // Default to any file type if no filters are provided
+    //     }
 
-        UIDocumentPickerViewController *picker;
-        switch (mode) {
-            case file::PickMode::OpenFile:
-                picker = [[UIDocumentPickerViewController alloc]
-                    initForOpeningContentTypes:documentTypes
-                    asCopy:YES];
-                break;
-            case file::PickMode::SaveFile:
-                picker = [[UIDocumentPickerViewController alloc]
-                    initForExportingURLs:@[FileURL]
-                    asCopy:YES];
-                break;
-            case file::PickMode::OpenFolder:
-                picker = [[UIDocumentPickerViewController alloc]
-                    initForOpeningContentTypes:@[UTTypeFolder]
-                    asCopy:YES];
-                break;
-        }
-        picker.allowsMultipleSelection = NO;
-        picker.shouldShowFileExtensions = YES;
+    //     UIDocumentPickerViewController *picker;
+    //     switch (mode) {
+    //         case file::PickMode::OpenFile:
+    //             picker = [[UIDocumentPickerViewController alloc]
+    //                 initForOpeningContentTypes:documentTypes
+    //                 asCopy:YES];
+    //             break;
+    //         case file::PickMode::SaveFile:
+    //             picker = [[UIDocumentPickerViewController alloc]
+    //                 initForExportingURLs:@[FileURL]
+    //                 asCopy:YES];
+    //             break;
+    //         case file::PickMode::OpenFolder:
+    //             picker = [[UIDocumentPickerViewController alloc]
+    //                 initForOpeningContentTypes:@[UTTypeFolder]
+    //                 asCopy:YES];
+    //             break;
+    //     }
+    //     picker.allowsMultipleSelection = NO;
+    //     picker.shouldShowFileExtensions = YES;
 
-        PickerDelegate_instance = [[PickerDelegate alloc] initWithCompletion:^(NSArray<NSURL*>* urls, NSError* error) {
-            PickerDelegate_instance = nil;
+    //     PickerDelegate_instance = [[PickerDelegate alloc] initWithCompletion:^(NSArray<NSURL*>* urls, NSError* error) {
+    //         PickerDelegate_instance = nil;
 
-            if (urls && urls.count > 0)
-            {
-                std::filesystem::path paths;
+    //         if (urls && urls.count > 0)
+    //         {
+    //             std::filesystem::path paths;
 
-                for (NSURL* url : urls)
-                {
-                    if (url && url.path)
-                    {
-                        std::string pathStr = std::string([url.path UTF8String]);
-                        auto path = std::filesystem::path(pathStr);
+    //             for (NSURL* url : urls)
+    //             {
+    //                 if (url && url.path)
+    //                 {
+    //                     std::string pathStr = std::string([url.path UTF8String]);
+    //                     auto path = std::filesystem::path(pathStr);
 
-                        paths = path;
-                    }
-                }
+    //                     paths = path;
+    //                 }
+    //             }
 
-                resultCallback(Ok(paths));
+    //             resultCallback(Ok(paths));
 
-                for (NSURL* url : urls)
-                {
-                    if (url && url.path)
-                    {
-                        [url stopAccessingSecurityScopedResource];
-                    }
-                }
-            }
-            else if (cancelled()) {
-                resultCallback(RetTask::Cancel());
-            } else if (error) {
-                resultCallback(Err(std::string([[error localizedDescription] UTF8String])));
-            } else {
-                resultCallback(RetTask::Cancel());
-            }
-        }];
+    //             for (NSURL* url : urls)
+    //             {
+    //                 if (url && url.path)
+    //                 {
+    //                     [url stopAccessingSecurityScopedResource];
+    //                 }
+    //             }
+    //         }
+    //         else if (cancelled()) {
+    //             resultCallback(RetTask::Cancel());
+    //         } else if (error) {
+    //             resultCallback(Err(std::string([[error localizedDescription] UTF8String])));
+    //         } else {
+    //             resultCallback(RetTask::Cancel());
+    //         }
+    //     }];
 
-        picker.delegate = PickerDelegate_instance;
+    //     picker.delegate = PickerDelegate_instance;
 
-        dispatch_async(dispatch_get_main_queue(), ^{
-            UIViewController *currentViewController = getCurrentViewController();
-            [currentViewController presentViewController:picker animated:YES completion:nil];
-        });
-    });
+    //     dispatch_async(dispatch_get_main_queue(), ^{
+    //         UIViewController *currentViewController = getCurrentViewController();
+    //         [currentViewController presentViewController:picker animated:YES completion:nil];
+    //     });
+    // });
 }
 
-GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> file::pickMany(file::FilePickOptions const& options) {
-    using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
-    return RetTask::runWithCallback([options](auto resultCallback, auto progress, auto cancelled) {
-        NSMutableArray<NSString*> *documentTypes = [NSMutableArray array];
-        for (const auto& filter : options.filters) {
-            for (const auto& file : filter.files) {
-                NSString* uti = [UTType typeWithFilenameExtension:@(file.c_str())].identifier;
-                if (uti) {
-                    [documentTypes addObject:uti];
-                }
-            }
-        }
-        if (documentTypes.count == 0) {
-            [documentTypes addObject:(NSString*)UTTypeItem.identifier]; // Default to any file type if no filters are provided
-        }
+GEODE_DLL arc::Future<Result<std::vector<std::filesystem::path>>> file::pickMany(file::FilePickOptions const& options) {
+    co_return Err("// TODO: v5");
+    // using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
+    // return RetTask::runWithCallback([options](auto resultCallback, auto progress, auto cancelled) {
+    //     NSMutableArray<NSString*> *documentTypes = [NSMutableArray array];
+    //     for (const auto& filter : options.filters) {
+    //         for (const auto& file : filter.files) {
+    //             NSString* uti = [UTType typeWithFilenameExtension:@(file.c_str())].identifier;
+    //             if (uti) {
+    //                 [documentTypes addObject:uti];
+    //             }
+    //         }
+    //     }
+    //     if (documentTypes.count == 0) {
+    //         [documentTypes addObject:(NSString*)UTTypeItem.identifier]; // Default to any file type if no filters are provided
+    //     }
 
-        UIDocumentPickerViewController* picker = [[UIDocumentPickerViewController alloc] initWithDocumentTypes:documentTypes inMode:UIDocumentPickerModeOpen];
-        picker.allowsMultipleSelection = true;
+    //     UIDocumentPickerViewController* picker = [[UIDocumentPickerViewController alloc] initWithDocumentTypes:documentTypes inMode:UIDocumentPickerModeOpen];
+    //     picker.allowsMultipleSelection = true;
 
-        PickerDelegate_instance = [[PickerDelegate alloc] initWithCompletion:^(NSArray<NSURL*>* urls, NSError* error) {
-            PickerDelegate_instance = nil;
+    //     PickerDelegate_instance = [[PickerDelegate alloc] initWithCompletion:^(NSArray<NSURL*>* urls, NSError* error) {
+    //         PickerDelegate_instance = nil;
 
-            if (urls && urls.count > 0)
-            {
-                std::vector<std::filesystem::path> paths;
+    //         if (urls && urls.count > 0)
+    //         {
+    //             std::vector<std::filesystem::path> paths;
 
-                for (NSURL* url : urls)
-                {
-                    if (url && url.path)
-                    {
-                        std::string pathStr = std::string([url.path UTF8String]);
+    //             for (NSURL* url : urls)
+    //             {
+    //                 if (url && url.path)
+    //                 {
+    //                     std::string pathStr = std::string([url.path UTF8String]);
 
-                        if ([url startAccessingSecurityScopedResource])
-                        {
-                            auto path = std::filesystem::path(pathStr);
+    //                     if ([url startAccessingSecurityScopedResource])
+    //                     {
+    //                         auto path = std::filesystem::path(pathStr);
 
-                            paths.push_back(path);
-                        }
-                        else
-                        {
-                            resultCallback(Err("Failed to access security-scoped resource: {}", pathStr));
-                        }
-                    }
-                }
+    //                         paths.push_back(path);
+    //                     }
+    //                     else
+    //                     {
+    //                         resultCallback(Err("Failed to access security-scoped resource: {}", pathStr));
+    //                     }
+    //                 }
+    //             }
 
-                resultCallback(Ok(paths));
+    //             resultCallback(Ok(paths));
 
-                for (NSURL* url : urls)
-                {
-                    if (url && url.path)
-                    {
-                        [url stopAccessingSecurityScopedResource];
-                    }
-                }
-            }
-            else if (cancelled()) {
-                resultCallback(RetTask::Cancel());
-            } else if (error) {
-                resultCallback(Err(std::string([[error localizedDescription] UTF8String])));
-            } else {
-                resultCallback(RetTask::Cancel());
-            }
-        }];
+    //             for (NSURL* url : urls)
+    //             {
+    //                 if (url && url.path)
+    //                 {
+    //                     [url stopAccessingSecurityScopedResource];
+    //                 }
+    //             }
+    //         }
+    //         else if (cancelled()) {
+    //             resultCallback(RetTask::Cancel());
+    //         } else if (error) {
+    //             resultCallback(Err(std::string([[error localizedDescription] UTF8String])));
+    //         } else {
+    //             resultCallback(RetTask::Cancel());
+    //         }
+    //     }];
 
-        picker.delegate = PickerDelegate_instance;
+    //     picker.delegate = PickerDelegate_instance;
 
-        dispatch_async(dispatch_get_main_queue(), ^{
-            UIViewController *currentViewController = getCurrentViewController();
-            [currentViewController presentViewController:picker animated:YES completion:nil];
-        });
-    });
+    //     dispatch_async(dispatch_get_main_queue(), ^{
+    //         UIViewController *currentViewController = getCurrentViewController();
+    //         [currentViewController presentViewController:picker animated:YES completion:nil];
+    //     });
+    // });
 }
 
 // TODO: copied those two from android but idk maybe shouldve copied from mac
