@@ -91,7 +91,7 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
     return false;
 }
 
-GEODE_DLL arc::Future<Result<std::filesystem::path>> file::pick(file::PickMode mode, file::FilePickOptions const& options) {
+GEODE_DLL arc::Future<Result<std::optional<std::filesystem::path>>> file::pick(file::PickMode mode, file::FilePickOptions const& options) {
     co_return Err("// TODO: v5");
     // using RetTask = Task<Result<std::filesystem::path>>;
     // return RetTask::runWithCallback([mode, options](auto resultCallback, auto progress, auto cancelled) {
