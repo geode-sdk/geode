@@ -261,13 +261,13 @@ namespace geode::comm {
         }
     };
 
-    template <template <class, bool> class PortType, bool ThreadSafe>
+    template <template <class, bool, template <class> class> class PortType, bool ThreadSafe, template <class> class Container>
     struct PortWrapper {
         template <class Callable>
-        using type = PortType<Callable, ThreadSafe>;
+        using type = PortType<Callable, ThreadSafe, Container>;
     };
 
-    static_assert(PortTemplateFor<PortWrapper<Port, true>::type, geode::CopyableFunction<void()>>, "Port type is not a valid port");
+    static_assert(PortTemplateFor<PortWrapper<Port, true, PortCallableCopy>::type, geode::CopyableFunction<void()>>, "Port type is not a valid port");
 
     class EventCenter;
 
@@ -628,18 +628,18 @@ namespace geode::comm {
 
 namespace geode {
     template<class Marker, class PFunc, class... FArgs>
-    struct Event : public comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false>::type, PFunc, FArgs...> {
-        using comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false>::type, PFunc, FArgs...>::BasicEvent;
+    struct Event : public comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false, comm::PortCallableCopy>::type, PFunc, FArgs...> {
+        using comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false, comm::PortCallableCopy>::type, PFunc, FArgs...>::BasicEvent;
     };
 
     template<class Marker, class PFunc, class... FArgs>
-    struct ThreadSafeEvent : public comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, true>::type, PFunc, FArgs...> {
-        using comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, true>::type, PFunc, FArgs...>::BasicEvent;
+    struct ThreadSafeEvent : public comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, true, comm::PortCallableCopy>::type, PFunc, FArgs...> {
+        using comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, true, comm::PortCallableCopy>::type, PFunc, FArgs...>::BasicEvent;
     };
 
     template<class Marker, class... PArgs>
-    struct SimpleEvent : public comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false>::type, bool(PArgs...)> {
-        using comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false>::type, bool(PArgs...)>::BasicEvent;
+    struct SimpleEvent : public comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false, comm::PortCallableCopy>::type, bool(PArgs...)> {
+        using comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false, comm::PortCallableCopy>::type, bool(PArgs...)>::BasicEvent;
     };
 
     struct ListenerResult {
