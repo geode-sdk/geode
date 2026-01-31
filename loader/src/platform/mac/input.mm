@@ -238,40 +238,46 @@ void keyDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     bool isDown = true;
     NSEventModifierFlags flags = [event modifierFlags];
 
-    KeyboardInputEvent::Modifiers modifiers = KeyboardInputEvent::Mods_None;
+    KeyboardInputData::Modifiers modifiers = KeyboardInputData::Mods_None;
     if ((flags & NSEventModifierFlagShift) != 0) {
-        modifiers |= KeyboardInputEvent::Mods_Shift;
+        modifiers |= KeyboardInputData::Mods_Shift;
     }
     if ((flags & NSEventModifierFlagControl) != 0) {
-        modifiers |= KeyboardInputEvent::Mods_Control;
+        modifiers |= KeyboardInputData::Mods_Control;
     }
     if ((flags & NSEventModifierFlagOption) != 0) {
-        modifiers |= KeyboardInputEvent::Mods_Alt;
+        modifiers |= KeyboardInputData::Mods_Alt;
     }
     if ((flags & NSEventModifierFlagCommand) != 0) {
-        modifiers |= KeyboardInputEvent::Mods_Super;
+        modifiers |= KeyboardInputData::Mods_Super;
     }
 
-    KeyboardInputEvent inputEvent(
-        keyCode, isRepeat ? KeyboardInputEvent::Action::Press : KeyboardInputEvent::Action::Repeat, { nativeCode }, timestamp, modifiers
+    KeyboardInputData data(
+        keyCode, isRepeat ? KeyboardInputData::Action::Press : KeyboardInputData::Action::Repeat,
+        { nativeCode },
+        timestamp,
+        modifiers
     );
 
-    if (inputEvent.post() != ListenerResult::Propagate) return;
+    auto result = KeyboardInputEvent().send(data);
+    if (result == ListenerResult::Propagate) {
+        result = KeyInputEvent(keyCode).send(data);
+    }
 
-    isDown = inputEvent.action != KeyboardInputEvent::Action::Release;
-    isRepeat = inputEvent.action == KeyboardInputEvent::Action::Repeat;
-    keyCode = inputEvent.key;
-    modifiers = inputEvent.modifiers;
+    isDown = data.action != KeyboardInputData::Action::Release;
+    isRepeat = data.action == KeyboardInputData::Action::Repeat;
+    keyCode = data.key;
+    modifiers = data.modifiers;
 
     if (keyCode != KEY_Unknown && (!imeDispatcher->hasDelegate() || keyCode == KEY_Escape || keyCode == KEY_Enter)) {
         keyboardDispatcher->dispatchKeyboardMSG(keyCode, isDown, isRepeat, timestamp);
     }
 
     keyboardDispatcher->updateModifierKeys(
-        (modifiers & KeyboardInputEvent::Mods_Shift) != KeyboardInputEvent::Mods_None,
-        (modifiers & KeyboardInputEvent::Mods_Control) != KeyboardInputEvent::Mods_None,
-        (modifiers & KeyboardInputEvent::Mods_Alt) != KeyboardInputEvent::Mods_None,
-        (modifiers & KeyboardInputEvent::Mods_Super) != KeyboardInputEvent::Mods_None
+        modifiers & KeyboardInputData::Mods_Shift,
+        modifiers & KeyboardInputData::Mods_Control,
+        modifiers & KeyboardInputData::Mods_Alt,
+        modifiers & KeyboardInputData::Mods_Super
     );
 
     NSString* characters = [event charactersIgnoringModifiers];
@@ -280,7 +286,7 @@ void keyDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
         if (character == NSDeleteFunctionKey || character == 0x7f) {
             imeDispatcher->dispatchDeleteBackward();
         }
-        else if (keyCode == KEY_V && (modifiers & KeyboardInputEvent::Mods_Super) != KeyboardInputEvent::Mods_None) {
+        else if (keyCode == KEY_V && (modifiers & KeyboardInputData::Mods_Super) != KeyboardInputData::Mods_None) {
             NSString* str = [[NSPasteboard generalPasteboard] stringForType:NSPasteboardTypeString];
             if (![str isEqualToString:NSPasteboardTypeString]) {
                 for (size_t i = 0; i < [str length]; i++) {
@@ -306,51 +312,59 @@ void keyUpExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     bool isDown = false;
     NSEventModifierFlags flags = [event modifierFlags];
 
-    KeyboardInputEvent::Modifiers modifiers;
+    KeyboardInputData::Modifiers modifiers;
     if ((flags & NSEventModifierFlagShift) != 0) {
-        modifiers |= KeyboardInputEvent::Mods_Shift;
+        modifiers |= KeyboardInputData::Mods_Shift;
     }
     if ((flags & NSEventModifierFlagControl) != 0) {
-        modifiers |= KeyboardInputEvent::Mods_Control;
+        modifiers |= KeyboardInputData::Mods_Control;
     }
     if ((flags & NSEventModifierFlagOption) != 0) {
-        modifiers |= KeyboardInputEvent::Mods_Alt;
+        modifiers |= KeyboardInputData::Mods_Alt;
     }
     if ((flags & NSEventModifierFlagCommand) != 0) {
-        modifiers |= KeyboardInputEvent::Mods_Super;
+        modifiers |= KeyboardInputData::Mods_Super;
     }
 
-    KeyboardInputEvent inputEvent(
-        keyCode, KeyboardInputEvent::Action::Release, { nativeCode }, timestamp, modifiers
+    KeyboardInputData data(
+        keyCode, KeyboardInputData::Action::Release,
+        { nativeCode },
+        timestamp,
+        modifiers
     );
 
-    if (inputEvent.post() != ListenerResult::Propagate) return;
+    auto result = KeyboardInputEvent().send(data);
+    if (result == ListenerResult::Propagate) {
+        result = KeyInputEvent(keyCode).send(data);
+    }
 
-    isDown = inputEvent.action != KeyboardInputEvent::Action::Release;
-    isRepeat = inputEvent.action == KeyboardInputEvent::Action::Repeat;
-    keyCode = inputEvent.key;
-    modifiers = inputEvent.modifiers;
+    isDown = data.action != KeyboardInputData::Action::Release;
+    isRepeat = data.action == KeyboardInputData::Action::Repeat;
+    keyCode = data.key;
+    modifiers = data.modifiers;
 
     if (keyCode != KEY_Unknown && (!imeDispatcher->hasDelegate() || keyCode == KEY_Escape || keyCode == KEY_Enter)) {
         keyboardDispatcher->dispatchKeyboardMSG(keyCode, isDown, isRepeat, timestamp);
     }
 
     keyboardDispatcher->updateModifierKeys(
-        (modifiers & KeyboardInputEvent::Mods_Shift) != KeyboardInputEvent::Mods_None,
-        (modifiers & KeyboardInputEvent::Mods_Control) != KeyboardInputEvent::Mods_None,
-        (modifiers & KeyboardInputEvent::Mods_Alt) != KeyboardInputEvent::Mods_None,
-        (modifiers & KeyboardInputEvent::Mods_Super) != KeyboardInputEvent::Mods_None
+        modifiers & KeyboardInputData::Mods_Shift,
+        modifiers & KeyboardInputData::Mods_Control,
+        modifiers & KeyboardInputData::Mods_Alt,
+        modifiers & KeyboardInputData::Mods_Super
     );
 }
 
 void mouseDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     double timestamp = [event timestamp];
 
-    MouseInputEvent inputEvent(
-        MouseInputEvent::Button::Left, MouseInputEvent::Action::Press, timestamp
+    MouseInputData data(
+        MouseInputData::Button::Left,
+        MouseInputData::Action::Press,
+        timestamp
     );
 
-    if (inputEvent.post() != ListenerResult::Propagate) return;
+    if (MouseInputEvent().send(data) != ListenerResult::Propagate) return;
 
     NSPoint point = [self convertPoint:[event locationInWindow] fromView:nil];
     int eventNumber = [event eventNumber];
@@ -359,7 +373,7 @@ void mouseDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     float mouseX = (point.x / frameZoomFactor) / backingScaleFactor;
     float mouseY = (([self getHeight] - point.y) / frameZoomFactor) / backingScaleFactor;
     CCEGLView* eglView = CCEGLView::get();
-    if (inputEvent.action == MouseInputEvent::Action::Press) {
+    if (data.action == MouseInputData::Action::Press) {
         eglView->handleTouchesBegin(1, &eventNumber, &mouseX, &mouseY, timestamp);
     }
     else {
@@ -369,15 +383,14 @@ void mouseDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
 
 void mouseMovedExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     NSPoint point = [self convertPoint:[event locationInWindow] fromView:nil];
-
-    if (MouseMoveEvent(point.x, point.y).post() != ListenerResult::Propagate) return;
+    if (MouseMoveEvent().send(point.x, point.y) != ListenerResult::Propagate) return;
 
     [self performSelector:sel withObject:event];
 }
 
 void mouseDraggedExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     NSPoint point = [self convertPoint:[event locationInWindow] fromView:nil];
-    if (MouseMoveEvent(point.x, point.y).post() != ListenerResult::Propagate) return;
+    if (MouseMoveEvent().send(point.x, point.y) != ListenerResult::Propagate) return;
 
     [self performSelector:sel withObject:event];
 }
@@ -385,11 +398,13 @@ void mouseDraggedExecHook(EAGLView* self, SEL sel, NSEvent* event) {
 void mouseUpExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     double timestamp = [event timestamp];
 
-    MouseInputEvent inputEvent(
-        MouseInputEvent::Button::Left, MouseInputEvent::Action::Release, timestamp
+    MouseInputData data(
+        MouseInputData::Button::Left,
+        MouseInputData::Action::Release,
+        timestamp
     );
 
-    if (inputEvent.post() != ListenerResult::Propagate) return;
+    if (MouseInputEvent().send(data) != ListenerResult::Propagate) return;
 
     NSPoint point = [self convertPoint:[event locationInWindow] fromView:nil];
     int eventNumber = [event eventNumber];
@@ -398,7 +413,7 @@ void mouseUpExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     float mouseX = (point.x / frameZoomFactor) / backingScaleFactor;
     float mouseY = (([self getHeight] - point.y) / frameZoomFactor) / backingScaleFactor;
     CCEGLView* eglView = CCEGLView::get();
-    if (inputEvent.action == MouseInputEvent::Action::Press) {
+    if (data.action == MouseInputData::Action::Press) {
         eglView->handleTouchesBegin(1, &eventNumber, &mouseX, &mouseY, timestamp);
     }
     else {
@@ -407,49 +422,63 @@ void mouseUpExecHook(EAGLView* self, SEL sel, NSEvent* event) {
 }
 
 void rightMouseDownHook(EAGLView* self, SEL sel, NSEvent* event) {
-    if (MouseInputEvent(
-        MouseInputEvent::Button::Right, MouseInputEvent::Action::Press, [event timestamp]
-    ).post() != ListenerResult::Propagate) return;
+    MouseInputData data(
+        MouseInputData::Button::Right,
+        MouseInputData::Action::Press,
+        [event timestamp]
+    );
+
+    if (MouseInputEvent().send(data) != ListenerResult::Propagate) return;
 
     [self performSelector:sel withObject:event];
 }
 
 void rightMouseDraggedHook(EAGLView* self, SEL sel, NSEvent* event) {
     NSPoint point = [self convertPoint:[event locationInWindow] fromView:nil];
-
-    if (MouseMoveEvent(point.x, point.y).post() != ListenerResult::Propagate) return;
+    if (MouseMoveEvent().send(point.x, point.y) != ListenerResult::Propagate) return;
 
     [self performSelector:sel withObject:event];
 }
 
 void rightMouseUpHook(EAGLView* self, SEL sel, NSEvent* event) {
-    if (MouseInputEvent(
-        MouseInputEvent::Button::Right, MouseInputEvent::Action::Release, [event timestamp]
-    ).post() != ListenerResult::Propagate) return;
+    MouseInputData data(
+        MouseInputData::Button::Right,
+        MouseInputData::Action::Release,
+        [event timestamp]
+    );
+
+    if (MouseInputEvent().send(data) != ListenerResult::Propagate) return;
 
     [self performSelector:sel withObject:event];
 }
 
 void otherMouseDownHook(EAGLView* self, SEL sel, NSEvent* event) {
-    if (MouseInputEvent(
-        static_cast<MouseInputEvent::Button>([event buttonNumber]), MouseInputEvent::Action::Press, [event timestamp]
-    ).post() != ListenerResult::Propagate) return;
+    MouseInputData data(
+        static_cast<MouseInputData::Button>([event buttonNumber]),
+        MouseInputData::Action::Press,
+        [event timestamp]
+    );
+
+    if (MouseInputEvent().send(data) != ListenerResult::Propagate) return;
 
     [self performSelector:sel withObject:event];
 }
 
 void otherMouseDraggedHook(EAGLView* self, SEL sel, NSEvent* event) {
     NSPoint point = [self convertPoint:[event locationInWindow] fromView:nil];
-
-    if (MouseMoveEvent(point.x, point.y).post() != ListenerResult::Propagate) return;
+    if (MouseMoveEvent().send(point.x, point.y) != ListenerResult::Propagate) return;
 
     [self performSelector:sel withObject:event];
 }
 
 void otherMouseUpHook(EAGLView* self, SEL sel, NSEvent* event) {
-    if (MouseInputEvent(
-        static_cast<MouseInputEvent::Button>([event buttonNumber]), MouseInputEvent::Action::Release, [event timestamp]
-    ).post() != ListenerResult::Propagate) return;
+    MouseInputData data(
+        static_cast<MouseInputData::Button>([event buttonNumber]),
+        MouseInputData::Action::Release,
+        [event timestamp]
+    );
+
+    if (MouseInputEvent().send(data) != ListenerResult::Propagate) return;
 
     [self performSelector:sel withObject:event];
 }
@@ -457,9 +486,9 @@ void otherMouseUpHook(EAGLView* self, SEL sel, NSEvent* event) {
 template <class Func>
 void hookObjcMethod(const char* className, const char* methodName, Func newImp) {
     if (Result<std::shared_ptr<Hook>> res = ObjcHook::create(className, methodName, newImp)) {
-        std::shared_ptr<Hook> hook = res.unwrap();
+        std::shared_ptr<Hook> hook = std::move(res).unwrap();
         hook->setPriority(Priority::Replace);
-        (void)Mod::get()->claimHook(hook);
+        (void)Mod::get()->claimHook(std::move(hook));
     }
 }
 
