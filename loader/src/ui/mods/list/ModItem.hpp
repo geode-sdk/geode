@@ -65,11 +65,11 @@ protected:
     Slider* m_downloadBar;
     CCMenuItemToggler* m_enableToggle = nullptr;
     CCMenuItemSpriteExtra* m_updateBtn = nullptr;
-    EventListener<UpdateModListStateFilter> m_updateStateListener;
-    EventListener<server::ServerRequest<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
-    EventListener<server::ModDownloadFilter> m_downloadListener;
+    ListenerHandle m_updateStateHandle;
+    async::TaskHolder<server::ServerResult<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
+    ListenerHandle m_downloadHandle;
     std::optional<server::ServerModUpdate> m_availableUpdate;
-    EventListener<EventFilter<SettingNodeValueChangeEvent>> m_settingNodeListener;
+    ListenerHandle m_settingNodeHandle;
     Ref<CCNode> m_badgeContainer = nullptr;
     Ref<CCNode> m_downloadCountContainer;
     CCLabelBMFont* m_versionDownloadSeparator;
@@ -82,7 +82,7 @@ protected:
 
     void updateState();
 
-    void onCheckUpdates(typename server::ServerRequest<std::optional<server::ServerModUpdate>>::Event* event);
+    void onCheckUpdates(Result<std::optional<server::ServerModUpdate>, server::ServerError> result);
 
     void onEnable(CCObject*);
     void onView(CCObject*);

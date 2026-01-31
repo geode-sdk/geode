@@ -225,6 +225,9 @@ namespace geode {
         GEODE_DLL void pushNest(Mod* mod);
         GEODE_DLL void popNest(Mod* mod);
 
+        /// Blocks the current thread until all logs are printed to console/file, recommended only for debugging purposes
+        GEODE_DLL void flush();
+
         inline void pushNest() {
             pushNest(getMod());
         }

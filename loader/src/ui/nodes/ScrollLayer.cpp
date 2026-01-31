@@ -1,5 +1,6 @@
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
 
 using namespace geode::prelude;
 

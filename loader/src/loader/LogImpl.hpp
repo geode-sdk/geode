@@ -4,12 +4,16 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Types.hpp>
+#include <arc/task/Task.hpp>
+#include <arc/sync/mpsc.hpp>
+#include <arc/task/CancellationToken.hpp>
 #include <vector>
 #include <deque>
 #include <thread>
 #include <fstream>
 #include <string>
 #include <chrono>
+#include <semaphore>
 #include <atomic>
 #include <condition_variable>
 
@@ -36,24 +40,23 @@ namespace geode::log {
 
     class Logger {
     private:
+        std::optional<arc::mpsc::Sender<Log>> m_logTx;
+        std::optional<arc::mpsc::Receiver<Log>> m_logRx;
         std::atomic<bool> m_initialized = false;
-        std::atomic<bool> m_terminating = false;
-        std::deque<Log> m_logs;
         std::vector<LogCallback> m_callbacks;
         std::ofstream m_logStream;
-        std::thread m_logThread;
         std::filesystem::path m_logPath;
-        std::condition_variable m_logCv;
+
+        std::optional<arc::TaskHandle<void>> m_logThread;
+        arc::CancellationToken m_cancel;
+        arc::Notify m_syncFlushNotify;
+        std::counting_semaphore<1024> m_syncFlushSemaphore{0};
         bool m_usingThread = false;
 
-        // for tracking when to flush the log stream
-        size_t m_unflushedLogs = 0;
-        log_clock::time_point m_lastFlushTime = log_clock::now();
-
-        Logger() = default;
+        Logger();
         ~Logger();
 
-        void workerThread();
+        arc::Future<> workerThread();
     public:
         static Logger* get();
 
@@ -76,8 +79,8 @@ namespace geode::log {
         
         void flush();
         void outputLog(BorrowedLog const& log, bool dontFlush = false);
-        void maybeFlushStream();
         void flushLocked();
+        void flushExternal();
 
         void addLogCallback(LogCallback callback);
     };

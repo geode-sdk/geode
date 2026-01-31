@@ -5,7 +5,7 @@ set(PROJECT_NAME TestDependency)
 project(${PROJECT_NAME} VERSION 1.0.0)
 
 add_library(${PROJECT_NAME} SHARED main.cpp)
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
 
 add_compile_definitions(EXPORTING_MOD)
 

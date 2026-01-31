@@ -127,7 +127,7 @@ bool handleKeyEvent(UIKey* key, bool isKeyDown, bool isARepeat) {
         [key modifierFlags] & UIKeyModifierCommand
     );
 
-    CCKeyboardDispatcher::get()->dispatchKeyboardMSG(keyCode, keyStates[@(keyCode)], isARepeat);
+    CCKeyboardDispatcher::get()->dispatchKeyboardMSG(keyCode, keyStates[@(keyCode)], isARepeat, 0);
 
     return true;
 }

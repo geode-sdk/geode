@@ -16,9 +16,6 @@
     #define GEODE_CONCAT(x, y) GEODE_WRAPPER_CONCAT(x, y)
 #endif
 
-#define GEODE_WRAPPER_STR(...) #__VA_ARGS__
-#define GEODE_STR(...) GEODE_WRAPPER_STR(__VA_ARGS__)
-
 #define GEODE_PAD(size) uint8_t GEODE_CONCAT(__pad, __LINE__)[size]
 #define GEODE_UNIMPLEMENTED_PAD private:
 

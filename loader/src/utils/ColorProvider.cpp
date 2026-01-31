@@ -4,18 +4,6 @@
 
 using namespace geode::prelude;
 
-ColorProvidedEvent::ColorProvidedEvent(std::string id, cocos2d::ccColor4B const& color)
-  : id(std::move(id)), color(color) {}
-
-ListenerResult ColorProvidedFilter::handle(geode::Function<Callback>& fn, ColorProvidedEvent* event) {
-    if (event->id == m_id) {
-        fn(event);
-    }
-    return ListenerResult::Propagate;
-}
-
-ColorProvidedFilter::ColorProvidedFilter(std::string id) : m_id(std::move(id)) {}
-
 class ColorProvider::Impl {
 public:
     StringMap<std::pair<ccColor4B, std::optional<ccColor4B>>> colors;
@@ -42,7 +30,7 @@ ccColor4B ColorProvider::override(std::string id, ccColor4B const& color) {
     auto it = m_impl->colors.find(id);
     if (it != m_impl->colors.end()) {
         it->second.second = color;
-        ColorProvidedEvent(std::move(id), color).post();
+        ColorProvidedEvent(std::move(id)).send(ccColor4B(color));
         return color;
     }
     else {
@@ -59,7 +47,7 @@ ccColor4B ColorProvider::reset(std::string id) {
         auto& c = it->second;
         c.second = std::nullopt;
         auto def = c.first;
-        ColorProvidedEvent(std::move(id), def).post();
+        ColorProvidedEvent(std::move(id)).send(ccColor4B(def));
         return def;
     }
     else {
