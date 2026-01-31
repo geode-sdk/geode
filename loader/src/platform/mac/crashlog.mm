@@ -77,7 +77,7 @@ static std::string getImageName(struct dyld_image_info const* image) {
 }
 
 // https://stackoverflow.com/questions/28846503/getting-sizeofimage-and-entrypoint-of-dylib-module
-size_t getImageSize(struct mach_header_64 const* header) {
+static size_t getImageSize(struct mach_header_64 const* header) {
     if (header == nullptr) {
         return 0;
     }
@@ -214,7 +214,7 @@ extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext)
 }
 
 // https://stackoverflow.com/questions/8278691/how-to-fix-backtrace-line-number-error-in-c
-std::string executeCommand(ZStringView cmd) {
+static std::string executeCommand(ZStringView cmd) {
     StringBuffer<> stream;
     std::array<char, 1024> buf;
 
@@ -228,7 +228,7 @@ std::string executeCommand(ZStringView cmd) {
     return stream.str();
 }
 
-std::string addr2Line() {
+static std::string addr2Line() {
     StringBuffer<> stream;
     stream.append("atos -p {} ", getpid());
     for (int i = 1; i < s_backtraceSize; ++i) {
@@ -236,6 +236,66 @@ std::string addr2Line() {
     }
     // std::cout << "command: " << stream.str() << std::endl;
     return executeCommand(stream.str());
+}
+
+static uint64_t decodeULEB128(const uint8_t*& p) {
+    uint64_t result = 0;
+    uint64_t shift = 0;
+    do {
+        result |= (uint64_t(*p & 0x7f) << shift);
+        shift += 7;
+    } while (*p++ & 0x80);
+    return result;
+}
+
+static std::vector<uintptr_t> const& getFunctionStarts() {
+    static std::vector<uintptr_t> funcs = []() {
+        std::vector<uintptr_t> starts;
+
+        auto image = imageFromAddress(reinterpret_cast<void*>(base::get()));
+        if (!image) return starts;
+
+        auto header = reinterpret_cast<const struct mach_header_64*>(image->imageLoadAddress);
+        uintptr_t linkeditAddr = 0;
+        uintptr_t linkeditFileOff = 0;
+        uintptr_t textVMAddr = 0;
+        uint32_t dataOff = 0, dataSize = 0;
+
+        auto cmd = reinterpret_cast<const struct load_command*>(header + 1);
+        for (uint32_t i = 0; i < header->ncmds; i++) {
+            if (cmd->cmd == LC_SEGMENT_64) {
+                auto seg = reinterpret_cast<const struct segment_command_64*>(cmd);
+                if (strcmp(seg->segname, SEG_LINKEDIT) == 0) {
+                    linkeditAddr = seg->vmaddr;
+                    linkeditFileOff = seg->fileoff;
+                } else if (strcmp(seg->segname, SEG_TEXT) == 0) {
+                    textVMAddr = seg->vmaddr;
+                }
+            } else if (cmd->cmd == LC_FUNCTION_STARTS) {
+                auto ldc = reinterpret_cast<const struct linkedit_data_command*>(cmd);
+                dataOff = ldc->dataoff;
+                dataSize = ldc->datasize;
+            }
+            cmd = reinterpret_cast<const struct load_command*>((const char*)cmd + cmd->cmdsize);
+        }
+
+        if (!linkeditAddr || !dataOff) return starts;
+
+        uintptr_t slide = reinterpret_cast<uintptr_t>(header) - textVMAddr;
+        const uint8_t* p = reinterpret_cast<const uint8_t*>(linkeditAddr + slide + (dataOff - linkeditFileOff));
+        const uint8_t* end = p + dataSize;
+
+        uintptr_t currentOffset = 0;
+        while (p < end && *p) {
+            uint64_t delta = decodeULEB128(p);
+            if (delta == 0) break;
+            currentOffset += delta;
+            starts.push_back(currentOffset);
+        }
+
+        return starts;
+    }();
+    return funcs;
 }
 
 static std::string getStacktrace() {
@@ -293,8 +353,19 @@ static std::string getStacktrace() {
                 stacktrace.append("{} + 0x{:x}", imageName, offset);
 
                 if (base::get() == (uintptr_t)baseAddress) {
-                    auto func = crashlog::lookupClosestFunction(offset);
-                    line = fmt::format("{} + {:x}", func, offset);
+                    // find closest function start
+                    auto const& funcs = getFunctionStarts();
+                    auto iter = std::lower_bound(funcs.begin(), funcs.end(), offset);
+                    if (iter != funcs.begin()) {
+                        --iter;
+                        auto funcOffset = *iter;
+                        auto funcName = crashlog::lookupFunctionByOffset(funcOffset);
+                        if (funcName.empty()) {
+                            line = fmt::format("sub_{:x} + 0x{:x}", funcOffset, offset - funcOffset);
+                        } else {
+                            line = fmt::format("{} + 0x{:x}", funcName, offset - funcOffset);
+                        }
+                    }
                 }
             }
             else {
