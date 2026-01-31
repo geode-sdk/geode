@@ -1,11 +1,9 @@
 #pragma once
 
-#include "SceneManager.hpp"
 #include <cocos2d.h>
 #include <cocos-ext.h>
 #include <Geode/binding/TextAlertPopup.hpp>
 #include "../utils/cocos.hpp"
-#include "../utils/ZStringView.hpp"
 
 namespace geode {
     constexpr auto NOTIFICATION_DEFAULT_TIME = 1.f;
@@ -22,22 +20,21 @@ namespace geode {
 
     class GEODE_DLL Notification : public cocos2d::CCNodeRGBA {
     protected:
-        static cocos2d::CCArray* s_queue;
+        static std::vector<geode::Ref<Notification>> s_queue;
         cocos2d::extension::CCScale9Sprite* m_bg;
         cocos2d::CCLabelBMFont* m_label;
-        cocos2d::CCSprite* m_icon = nullptr;
+        cocos2d::CCNodeRGBA* m_content;
+        cocos2d::CCNode* m_icon = nullptr;
         float m_time;
         bool m_showing = false;
 
-        bool init(ZStringView text, cocos2d::CCSprite* icon, float time);
+        bool init(std::string const& text, cocos2d::CCNode* icon, float time);
         void updateLayout();
 
-        static cocos2d::CCSprite* createIcon(NotificationIcon icon);
+        static cocos2d::CCNode* createIcon(NotificationIcon icon);
 
-        void animateIn();
-        void animateOut();
         void showNextNotification();
-        void wait();
+        void waitThenHide();
 
     public:
         /**
@@ -50,7 +47,7 @@ namespace geode {
          * notification
          */
         static Notification* create(
-            ZStringView text,
+            std::string const& text,
             NotificationIcon icon = NotificationIcon::None,
             float time = NOTIFICATION_DEFAULT_TIME
         );
@@ -64,21 +61,15 @@ namespace geode {
          * notification
          */
         static Notification* create(
-            ZStringView text,
-            cocos2d::CCSprite* icon,
+            std::string const& text,
+            cocos2d::CCNode* icon,
             float time = NOTIFICATION_DEFAULT_TIME
         );
 
-        void setString(ZStringView text);
+        void setString(std::string const& text);
         void setIcon(NotificationIcon icon);
-        void setIcon(cocos2d::CCSprite* icon);
+        void setIcon(cocos2d::CCNode* icon);
         void setTime(float time);
-
-        /**
-         * Set the wait time to default, wait the time and hide the notification.
-         * Equivalent to setTime(NOTIFICATION_DEFAULT_TIME)
-        */
-        void waitAndHide();
 
         /**
          * Adds the notification to the current scene if it doesn't have a
