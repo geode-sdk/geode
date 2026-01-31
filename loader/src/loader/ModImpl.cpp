@@ -351,7 +351,7 @@ Result<> Mod::Impl::loadBinary() {
     // In case they're API mods and want to know those kinds of things
     for (auto const& dep : ModMetadataImpl::getImpl(m_metadata).m_dependencies) {
         if (auto depMod = Loader::get()->getLoadedMod(dep.getID())) {
-            DependencyLoadedEvent(std::move(m_self)).send(std::move(depMod));
+            DependencyLoadedEvent(m_self).send(std::move(depMod));
         }
     }
 

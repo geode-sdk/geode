@@ -479,14 +479,18 @@ namespace geode::comm {
         }
 
     public:
-        BasicEvent(FArgs&&... value) noexcept : m_filter(std::forward<FArgs>(value)...) {
+        template<class... Args>
+        requires std::constructible_from<std::tuple<FArgs...>, Args...>
+        BasicEvent(Args&&... value) noexcept : m_filter(std::forward<Args>(value)...) {
             // geode::console::log(fmt::format("Creating BasicEvent {}, {}", (void*)this, typeid(Marker).name()), Severity::Debug);
         }
         ~BasicEvent() noexcept override {
             // geode::console::log(fmt::format("Destroying BasicEvent {}, {}", (void*)this, typeid(Marker).name()), Severity::Debug);
         }
 
-        bool send(PArgs&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, PArgs...>);
+        template <class... Args>
+        requires std::invocable<geode::CopyableFunction<bool(PArgs...)>, Args...>
+        bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, Args...>);
 
         template<class Callable>
         ListenerHandle listen(Callable listener, int priority = 0) const noexcept {
@@ -583,10 +587,12 @@ namespace geode::comm {
         typename OpaqueEventPort<PortTemplate, PArgs...>;
         std::is_convertible_v<PReturn, bool> || std::is_same_v<PReturn, void>;
     }
-    bool BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::send(PArgs&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, PArgs...>) {
+    template <class... Args>
+    requires std::invocable<geode::CopyableFunction<bool(PArgs...)>, Args...>
+    bool BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::send(Args&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, Args...>) {
         return EventCenter::get()->send(this, [&](OpaquePortBase* opaquePort) {
             auto port = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(opaquePort);
-            return port->send(std::forward<PArgs>(args)...);
+            return port->send(std::forward<Args>(args)...);
         });
     }
 
