@@ -17,7 +17,7 @@ struct RawInputEvent {
             uint16_t vkey;
             uint16_t scanCode;
             uint16_t flags;
-            KeyboardInputEvent::Modifiers mods;
+            KeyboardInputData::Modifiers mods;
             bool isE0;
             bool isE1;
             bool isRepeat;
@@ -50,7 +50,7 @@ struct RawInputEvent {
     }
 
     static RawInputEvent makeKeyboard(
-        bool isDown, uint16_t vk, uint16_t scan, uint16_t flags, bool isRepeat, KeyboardInputEvent::Modifiers mods
+        bool isDown, uint16_t vk, uint16_t scan, uint16_t flags, bool isRepeat, KeyboardInputData::Modifiers mods
     ) {
         RawInputEvent evt;
         evt.type = isDown ? Type::KeyDown : Type::KeyUp;
@@ -109,7 +109,7 @@ public:
 class KeyStateTracker {
 private:
     std::unordered_map<uint32_t, bool> m_keyStates;
-    KeyboardInputEvent::Modifiers m_currentMods = KeyboardInputEvent::Mods_None;
+    KeyboardInputData::Modifiers m_currentMods = KeyboardInputData::Mods_None;
 
     static uint32_t makeKey(uint16_t vkey, uint16_t scanCode, bool isE0) {
         return (static_cast<uint32_t>(vkey) << 16) | (static_cast<uint32_t>(scanCode) << 1) |
@@ -122,7 +122,7 @@ public:
         return instance;
     }
 
-    KeyboardInputEvent::Modifiers getMods() const {
+    KeyboardInputData::Modifiers getMods() const {
         return m_currentMods;
     }
 
@@ -135,7 +135,7 @@ public:
             wasDown = it->second;
         }
 
-        auto applyMods = [&](KeyboardInputEvent::Modifiers mod) {
+        auto applyMods = [&](KeyboardInputData::Modifiers mod) {
             if (isDown) m_currentMods |= mod;
             else m_currentMods &= ~mod;
         };
@@ -144,21 +144,21 @@ public:
             case VK_LSHIFT:
             case VK_RSHIFT:
             case VK_SHIFT:
-                applyMods(KeyboardInputEvent::Mods_Shift);
+                applyMods(KeyboardInputData::Mods_Shift);
                 break;
             case VK_LCONTROL:
             case VK_RCONTROL:
             case VK_CONTROL:
-                applyMods(KeyboardInputEvent::Mods_Control);
+                applyMods(KeyboardInputData::Mods_Control);
                 break;
             case VK_LMENU:
             case VK_RMENU:
             case VK_MENU:
-                applyMods(KeyboardInputEvent::Mods_Alt);
+                applyMods(KeyboardInputData::Mods_Alt);
                 break;
             case VK_LWIN:
             case VK_RWIN:
-                applyMods(KeyboardInputEvent::Mods_Super);
+                applyMods(KeyboardInputData::Mods_Super);
                 break;
             default: break;
         }
@@ -323,27 +323,22 @@ LRESULT CALLBACK GeodeRawInputWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
         return CallWindowProcW(g_originalRawInputProc, hwnd, msg, wParam, lParam);
     }
 
-    UINT rawInputSize = 0;
-    GetRawInputData(
+    alignas(RAWINPUT) std::array<BYTE, sizeof(RAWINPUT)> buffer;
+    UINT rawInputSize = buffer.size();
+
+    auto result = GetRawInputData(
         reinterpret_cast<HRAWINPUT>(lParam),
         RID_INPUT,
-        nullptr,
+        buffer.data(),
         &rawInputSize,
         sizeof(RAWINPUTHEADER)
     );
 
-    static std::vector<BYTE> rawInputData;
-    rawInputData.reserve(rawInputSize);
+    if (result == static_cast<UINT>(-1) || rawInputSize == 0) {
+        return 0;
+    }
 
-    GetRawInputData(
-        reinterpret_cast<HRAWINPUT>(lParam),
-        RID_INPUT,
-        rawInputData.data(),
-        &rawInputSize,
-        sizeof(RAWINPUTHEADER)
-    );
-
-    RAWINPUT* raw = reinterpret_cast<RAWINPUT*>(rawInputData.data());
+    RAWINPUT* raw = reinterpret_cast<RAWINPUT*>(buffer.data());
     if (raw->header.dwType == RIM_TYPEKEYBOARD) {
         auto const& kb = raw->data.keyboard;
         bool isDown = !(kb.Flags & RI_KEY_BREAK);
@@ -402,7 +397,7 @@ class $modify(cocos2d::CCEGLView) {
             switch (evt.type) {
                 case RawInputEvent::Type::KeyDown:
                 case RawInputEvent::Type::KeyUp: {
-                    using enum KeyboardInputEvent::Action;
+                    using enum KeyboardInputData::Action;
                     bool isDown = evt.type == RawInputEvent::Type::KeyDown;
 
                     enumKeyCodes keyCode = keyToKeyCode(
@@ -410,7 +405,7 @@ class $modify(cocos2d::CCEGLView) {
                         evt.keyboard.isE0
                     );
 
-                    KeyboardInputEvent event(
+                    KeyboardInputData data(
                         keyCode,
                         isDown ? (evt.keyboard.isRepeat ? Repeat : Press) : Release,
                         {evt.keyboard.vkey, evt.keyboard.scanCode},
@@ -418,13 +413,16 @@ class $modify(cocos2d::CCEGLView) {
                         evt.keyboard.mods
                     );
 
-                    // copy values from event, if someone modifies it
-                    isDown = event.action != Release;
-                    evt.keyboard.isRepeat = event.action == Repeat;
-                    keyCode = event.key;
-                    evt.keyboard.mods = event.modifiers;
+                    auto result = KeyboardInputEvent().send(data);
+                    if (result == ListenerResult::Propagate) {
+                        // TODO: uncomment when KeyInputEvent is fixed
+                        // result = KeyInputEvent(keyCode).send(data);
+                    }
 
-                    auto result = event.post();
+                    // copy values from event, if someone modifies it
+                    isDown = data.action != Release;
+                    keyCode = data.key;
+
                     if (result == ListenerResult::Propagate) {
                         auto* ime = CCIMEDispatcher::sharedDispatcher();
                         if (keyCode == enumKeyCodes::KEY_Backspace && isDown) {
@@ -436,12 +434,12 @@ class $modify(cocos2d::CCEGLView) {
                         CCKeyboardDispatcher::get()->dispatchKeyboardMSG(
                             keyCode,
                             isDown,
-                            evt.keyboard.isRepeat,
-                            event.timestamp
+                            data.action == Repeat,
+                            data.timestamp
                         );
 
                         // text pasting
-                        if (evt.keyboard.mods & KeyboardInputEvent::Mods_Control && keyCode == enumKeyCodes::KEY_V && isDown) {
+                        if (data.modifiers & KeyboardInputData::Mods_Control && keyCode == enumKeyCodes::KEY_V && isDown) {
                             if (ime->hasDelegate()) {
                                 this->performSafeClipboardPaste();
                             }
@@ -450,12 +448,12 @@ class $modify(cocos2d::CCEGLView) {
                     break;
                 }
                 case RawInputEvent::Type::MouseButton: {
-                    using enum MouseInputEvent::Action;
-                    using enum MouseInputEvent::Button;
+                    using enum MouseInputData::Action;
+                    using enum MouseInputData::Button;
 
                     struct Btn {
                         USHORT down, up;
-                        MouseInputEvent::Button btn;
+                        MouseInputData::Button btn;
                     };
 
                     constexpr Btn btns[] = {
@@ -471,17 +469,17 @@ class $modify(cocos2d::CCEGLView) {
                         bool isDown = (evt.mouse.flags & b.down) != 0;
                         bool isUp = (evt.mouse.flags & b.up) != 0;
                         if (isDown || isUp) {
-                            MouseInputEvent event(
+                            MouseInputData data(
                                 b.btn,
                                 isDown ? Press : Release,
                                 evt.timestamp
                             );
 
-                            auto result = event.post();
-                            isDown = event.action == Press;
+                            auto result = MouseInputEvent().send(data);
+                            isDown = data.action == Press;
 
                             // handle cocos touches
-                            if (event.button == Left && result == ListenerResult::Propagate) {
+                            if (data.button == Left && result == ListenerResult::Propagate) {
                                 int id = 0;
                                 if (isDown) {
                                     m_bCaptured = true;
@@ -489,7 +487,7 @@ class $modify(cocos2d::CCEGLView) {
                                         1, &id,
                                         &m_fMouseX,
                                         &m_fMouseY,
-                                        event.timestamp
+                                        data.timestamp
                                     );
                                 } else {
                                     m_bCaptured = false;
@@ -497,7 +495,7 @@ class $modify(cocos2d::CCEGLView) {
                                         1, &id,
                                         &m_fMouseX,
                                         &m_fMouseY,
-                                        event.timestamp
+                                        data.timestamp
                                     );
                                 }
                             }
@@ -511,7 +509,7 @@ class $modify(cocos2d::CCEGLView) {
         }
 
         if (moved) {
-            if (MouseMoveEvent(p.x, p.y).post() == ListenerResult::Stop || !m_bCaptured) {
+            if (MouseMoveEvent().send(p.x, p.y) == ListenerResult::Stop || !m_bCaptured) {
                 return;
             }
 

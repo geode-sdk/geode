@@ -3,7 +3,7 @@
 #include <Geode/loader/Event.hpp>
 
 namespace geode {
-    struct KeyboardInputEvent final : Event {
+    struct KeyboardInputData final {
         enum class Action : uint8_t {
             Press,
             Release,
@@ -30,33 +30,42 @@ namespace geode {
         Action action;
         Modifiers modifiers = Mods_None;
 
-        KeyboardInputEvent(cocos2d::enumKeyCodes key, Action action, Native native, double timestamp, Modifiers mods) noexcept
+        KeyboardInputData(cocos2d::enumKeyCodes key, Action action, Native native, double timestamp, Modifiers mods) noexcept
             : native(native), timestamp(timestamp), key(key), action(action), modifiers(mods) {}
     };
 
-    constexpr KeyboardInputEvent::Modifiers operator|(KeyboardInputEvent::Modifiers a, KeyboardInputEvent::Modifiers b) {
-        return static_cast<KeyboardInputEvent::Modifiers>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
+    struct KeyboardInputEvent final : SimpleEvent<KeyboardInputEvent, KeyboardInputData&> {
+        using SimpleEvent::SimpleEvent;
+    };
+
+    // TODO: fix compile errors
+    // struct KeyInputEvent final : Event<KeyInputEvent, void(KeyboardInputData&), Key> {
+    //     using Event::Event;
+    // };
+
+    constexpr KeyboardInputData::Modifiers operator|(KeyboardInputData::Modifiers a, KeyboardInputData::Modifiers b) {
+        return static_cast<KeyboardInputData::Modifiers>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
     }
 
-    constexpr KeyboardInputEvent::Modifiers operator&(KeyboardInputEvent::Modifiers a, KeyboardInputEvent::Modifiers b) {
-        return static_cast<KeyboardInputEvent::Modifiers>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+    constexpr KeyboardInputData::Modifiers operator&(KeyboardInputData::Modifiers a, KeyboardInputData::Modifiers b) {
+        return static_cast<KeyboardInputData::Modifiers>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
     }
 
-    constexpr KeyboardInputEvent::Modifiers& operator|=(KeyboardInputEvent::Modifiers& a, KeyboardInputEvent::Modifiers b) {
+    constexpr KeyboardInputData::Modifiers& operator|=(KeyboardInputData::Modifiers& a, KeyboardInputData::Modifiers b) {
         a = a | b;
         return a;
     }
 
-    constexpr KeyboardInputEvent::Modifiers& operator&=(KeyboardInputEvent::Modifiers& a, KeyboardInputEvent::Modifiers b) {
+    constexpr KeyboardInputData::Modifiers& operator&=(KeyboardInputData::Modifiers& a, KeyboardInputData::Modifiers b) {
         a = a & b;
         return a;
     }
 
-    constexpr KeyboardInputEvent::Modifiers operator~(KeyboardInputEvent::Modifiers a) {
-        return static_cast<KeyboardInputEvent::Modifiers>(~static_cast<uint8_t>(a));
+    constexpr KeyboardInputData::Modifiers operator~(KeyboardInputData::Modifiers a) {
+        return static_cast<KeyboardInputData::Modifiers>(~static_cast<uint8_t>(a));
     }
 
-    struct MouseInputEvent final : Event {
+    struct MouseInputData final {
         enum class Action {
             Press,
             Release
@@ -74,15 +83,16 @@ namespace geode {
         Action action;
         double timestamp;
 
-        MouseInputEvent(Button button, Action action, double timestamp) noexcept
+        MouseInputData(Button button, Action action, double timestamp) noexcept
             : button(button), action(action), timestamp(timestamp) {}
     };
 
-    struct MouseMoveEvent final : Event {
-        int32_t x;
-        int32_t y;
+    struct MouseInputEvent final : SimpleEvent<MouseInputEvent, MouseInputData&> {
+        using SimpleEvent::SimpleEvent;
+    };
 
-        MouseMoveEvent(int32_t x, int32_t y) noexcept : x(x), y(y) {}
+    struct MouseMoveEvent final : SimpleEvent<MouseMoveEvent, int32_t, int32_t> {
+        using SimpleEvent::SimpleEvent;
     };
 
     // TODO: Add controller/touch input events?
