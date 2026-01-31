@@ -1,4 +1,5 @@
 #include "Event.hpp"
+#include "Log.hpp"
 #include "../platform/platform.hpp"
 
 #include "Log.hpp"
