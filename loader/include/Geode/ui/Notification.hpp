@@ -47,7 +47,7 @@ namespace geode {
          * notification
          */
         static Notification* create(
-            std::string const& text,
+            ZStringView text,
             NotificationIcon icon = NotificationIcon::None,
             float time = NOTIFICATION_DEFAULT_TIME
         );
@@ -61,12 +61,12 @@ namespace geode {
          * notification
          */
         static Notification* create(
-            std::string const& text,
+            ZStringView text,
             cocos2d::CCNode* icon,
             float time = NOTIFICATION_DEFAULT_TIME
         );
 
-        void setString(std::string const& text);
+        void setString(ZStringView text);
         void setIcon(NotificationIcon icon);
         void setIcon(cocos2d::CCNode* icon);
         void setTime(float time);
