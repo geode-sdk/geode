@@ -14,12 +14,12 @@
 #include "../utils/function.hpp"
 #include "../utils/casts.hpp"
 #include "../utils/hash.hpp"
-#include "../utils/ZStringView.hpp"
-#include "Log.hpp"
+// #include "../utils/ZStringView.hpp"
+// #include "Log.hpp"
 
-namespace geode::console {
-    void log(ZStringView msg, Severity severity);
-}
+// namespace geode::console {
+//     void log(ZStringView msg, Severity severity);
+// }
 
 namespace geode::comm {
     template <class T>
