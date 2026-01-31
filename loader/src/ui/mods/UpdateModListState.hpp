@@ -11,32 +11,18 @@ struct UpdatePageNumberState final {
 struct UpdateWholeState final {
     std::optional<std::string> searchByDeveloper;
     UpdateWholeState() = default;
-    inline explicit UpdateWholeState(std::optional<std::string> const& dev) : searchByDeveloper(dev) {}
+    inline explicit UpdateWholeState(std::optional<std::string> dev) : searchByDeveloper(std::move(dev)) {}
     bool operator==(UpdateWholeState const&) const = default;
 };
 struct UpdateModState final {
     std::string modID;
-    inline explicit UpdateModState(std::string const& modID) : modID(modID) {};
+    inline explicit UpdateModState(std::string modID) : modID(std::move(modID)) {}
     bool operator==(UpdateModState const&) const = default;
 };
 using UpdateState = std::variant<UpdatePageNumberState, UpdateWholeState, UpdateModState>;
 
-struct UpdateModListStateEvent : public Event {
-    UpdateState target;
-
-    UpdateModListStateEvent(UpdateState&& target);
-};
-
-class UpdateModListStateFilter : public EventFilter<UpdateModListStateEvent> {
+class UpdateModListStateEvent final : public SimpleEvent<UpdateModListStateEvent, UpdateState const&> {
 public:
-    using Callback = void(UpdateModListStateEvent*);
-
-protected:
-    UpdateState m_target;
-
-public:
-    ListenerResult handle(std::function<Callback> fn, UpdateModListStateEvent* event);
-
-    UpdateModListStateFilter();
-    UpdateModListStateFilter(UpdateState&& target);
+    // listener params target
+    using SimpleEvent::SimpleEvent;
 };

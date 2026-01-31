@@ -17,18 +17,17 @@ using namespace geode::prelude;
 #include "load.hpp"
 
 $on_mod(Loaded) {
-    ipc::listen("ipc-test", [](ipc::IPCEvent* event) -> matjson::Value {
+    ipc::listen("ipc-test", [](matjson::Value data) -> matjson::Value {
         return "Hello from Geode!";
     });
 
-    ipc::listen("loader-info", [](ipc::IPCEvent* event) -> matjson::Value {
-        return Mod::get()->getMetadataRef();
+    ipc::listen("loader-info", [](matjson::Value data) -> matjson::Value {
+        return Mod::get()->getMetadata();
     });
 
-    ipc::listen("list-mods", [](ipc::IPCEvent* event) -> matjson::Value {
+    ipc::listen("list-mods", [](matjson::Value args) -> matjson::Value {
         std::vector<matjson::Value> res;
 
-        auto args = *event->messageData;
         auto root = checkJson(args, "[ipc/list-mods]");
 
         auto includeRunTimeInfo = root.has("include-runtime-info").get<bool>();
@@ -37,12 +36,12 @@ $on_mod(Loaded) {
         if (!dontIncludeLoader) {
             res.push_back(
                 includeRunTimeInfo ? Mod::get()->getRuntimeInfo() :
-                                     Mod::get()->getMetadataRef().toJSON()
+                                     Mod::get()->getMetadata().toJSON()
             );
         }
 
         for (auto& mod : Loader::get()->getAllMods()) {
-            res.push_back(includeRunTimeInfo ? mod->getRuntimeInfo() : mod->getMetadataRef().toJSON());
+            res.push_back(includeRunTimeInfo ? mod->getRuntimeInfo() : mod->getMetadata().toJSON());
         }
 
         return res;

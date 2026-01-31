@@ -24,51 +24,20 @@ namespace geode::ipc {
     // messages the get by using the reply method on the event provided. For
     // example, an external application can query what mods are loaded in Geode
     // by sending the `list-mods` message to `geode.loader`.
-
-    class GEODE_DLL IPCEvent final : public Event {
-    protected:
-        void* m_rawPipeHandle;
-        bool m_replied = false;
-
+    class GEODE_DLL IPCEvent final : public ThreadSafeEvent<IPCEvent, bool(void*, matjson::Value, matjson::Value&), std::string, std::string> {
     public:
-        std::string targetModID;
-        std::string messageID;
-        std::unique_ptr<matjson::Value> messageData;
-        matjson::Value& replyData;
-
-        friend class IPCFilter;
-
-        IPCEvent(
-            void* rawPipeHandle,
-            std::string const& targetModID,
-            std::string const& messageID,
-            matjson::Value const& messageData,
-            matjson::Value& replyData
-        );
-        bool filter(std::string_view modID, std::string_view messageID) const;
-        virtual ~IPCEvent();
+        // listener params rawHandle, messageData, replyData
+        // filter params targetModID, messageID
+        using ThreadSafeEvent::ThreadSafeEvent;
     };
 
-    class GEODE_DLL IPCFilter final : public EventFilter<IPCEvent> {
-    public:
-        using Callback = matjson::Value(IPCEvent*);
-
-    protected:
-        std::string m_modID;
-        std::string m_messageID;
-
-    public:
-        ListenerResult handle(std::function<Callback> fn, IPCEvent* event);
-        IPCFilter(
-            std::string const& modID,
-            std::string const& messageID
-        );
-        IPCFilter(IPCFilter const&) = default;
-    };
-
-    inline void listen(std::string const& messageID, matjson::Value(*callback)(IPCEvent*)) {
-        (void) new EventListener(
-            callback, IPCFilter(getMod()->getID(), messageID)
-        );
+    template <class Callback>
+    inline ListenerHandle* listen(std::string messageID, Callback&& callback) {
+        return IPCEvent(getMod()->getID(), std::move(messageID)).listen(
+            [callback = std::move(callback)](void* rawHandle, matjson::Value data, matjson::Value& reply) {
+                reply = callback(data);
+                return true;
+            }
+        ).leak();
     }
 }

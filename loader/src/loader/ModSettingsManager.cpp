@@ -1,5 +1,6 @@
 #include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/utils/JsonValidation.hpp>
+#include <Geode/utils/StringMap.hpp>
 #include "ModImpl.hpp"
 
 using namespace geode::prelude;
@@ -10,13 +11,13 @@ using namespace geode::prelude;
 
 
 namespace {
-    auto changeToGenerator(auto&& function) {
-        return [function](
-            std::string const& key,
-            std::string const& modID,
+    auto changeToGenerator(auto function) {
+        return [function = std::move(function)](
+            std::string key,
+            std::string modID,
             matjson::Value const& json
         ) -> Result<std::shared_ptr<SettingV3>> {
-            return function(key, modID, json).map([](auto&& ptr) {
+            return function(std::move(key), std::move(modID), json).map([](auto&& ptr) {
                 return std::shared_ptr<SettingV3>(ptr);
             });
         };
@@ -24,21 +25,21 @@ namespace {
 }
 class SharedSettingTypesPool final {
 private:
-    std::unordered_map<std::string, SettingGenerator> m_types;
+    utils::StringMap<SettingGenerator> m_types;
 
-    SharedSettingTypesPool() : m_types({
-        { "title", changeToGenerator(TitleSettingV3::parse) },
-        { "bool", changeToGenerator(BoolSettingV3::parse) },
-        { "int", changeToGenerator(IntSettingV3::parse) },
-        { "float", changeToGenerator(FloatSettingV3::parse) },
-        { "string", changeToGenerator(StringSettingV3::parse) },
-        { "file", changeToGenerator(FileSettingV3::parse) },
-        { "folder", changeToGenerator(FileSettingV3::parse) },
-        { "path", changeToGenerator(FileSettingV3::parse) },
-        { "rgb", changeToGenerator(Color3BSettingV3::parse) },
-        { "color", changeToGenerator(Color3BSettingV3::parse) },
-        { "rgba", changeToGenerator(Color4BSettingV3::parse) },
-    }) {}
+    SharedSettingTypesPool() {
+        m_types.emplace("title", changeToGenerator(TitleSettingV3::parse));
+        m_types.emplace("bool", changeToGenerator(BoolSettingV3::parse));
+        m_types.emplace("int", changeToGenerator(IntSettingV3::parse));
+        m_types.emplace("float", changeToGenerator(FloatSettingV3::parse));
+        m_types.emplace("string", changeToGenerator(StringSettingV3::parse));
+        m_types.emplace("file", changeToGenerator(FileSettingV3::parse));
+        m_types.emplace("folder", changeToGenerator(FileSettingV3::parse));
+        m_types.emplace("path", changeToGenerator(FileSettingV3::parse));
+        m_types.emplace("rgb", changeToGenerator(Color3BSettingV3::parse));
+        m_types.emplace("color", changeToGenerator(Color3BSettingV3::parse));
+        m_types.emplace("rgba", changeToGenerator(Color4BSettingV3::parse));
+    }
 
 public:
     static SharedSettingTypesPool& get() {
@@ -60,10 +61,10 @@ public:
         if (m_types.contains(full)) {
             return Err("Type \"{}\" has already been registered for mod {}", type, modID);
         }
-        m_types.emplace(full, generator);
+        m_types.emplace(std::move(full), std::move(generator));
         return Ok();
     }
-    std::optional<SettingGenerator> find(std::string_view modID, std::string_view fullType) {
+    std::optional<SettingGeneratorRef> find(std::string_view modID, std::string_view fullType) {
         // Find custom settings via namespaced lookup
         if (fullType.starts_with("custom:")) {
             auto full = std::string(fullType.substr(fullType.find(':') + 1));
@@ -71,15 +72,16 @@ public:
             if (full.find('/') == std::string_view::npos) {
                 full = fmt::format("{}/{}", modID, full);
             }
-            if (m_types.contains(full)) {
-                return m_types.at(full);
+            auto it = m_types.find(full);
+            if (it != m_types.end()) {
+                return it->second;
             }
         }
         // Otherwise find a built-in setting
         else {
-            auto full = std::string(fullType);
-            if (m_types.contains(full)) {
-                return m_types.at(full);
+            auto it = m_types.find(fullType);
+            if (it != m_types.end()) {
+                return it->second;
             }
         }
         // Return null if nothing was found
@@ -95,7 +97,7 @@ public:
         std::shared_ptr<Setting> v3 = nullptr;
     };
     std::string modID;
-    std::unordered_map<std::string, SettingInfo> settings;
+    StringMap<SettingInfo> settings;
     std::vector<Mod*> dependants;
     // Stored so custom settings registered after the fact can be loaded
     // If the ability to unregister custom settings is ever added, remember to
@@ -182,14 +184,14 @@ ModSettingsManager::ModSettingsManager(ModMetadata const& metadata)
     m_impl->createSettings();
 }
 ModSettingsManager::~ModSettingsManager() {}
-ModSettingsManager::ModSettingsManager(ModSettingsManager&&) = default;
+ModSettingsManager::ModSettingsManager(ModSettingsManager&&) noexcept = default;
 
 void ModSettingsManager::markRestartRequired() {
     m_impl->restartRequired = true;
 }
 
 Result<> ModSettingsManager::registerCustomSettingType(std::string_view type, SettingGenerator generator) {
-    GEODE_UNWRAP(SharedSettingTypesPool::get().add(m_impl->modID, type, generator));
+    GEODE_UNWRAP(SharedSettingTypesPool::get().add(m_impl->modID, type, std::move(generator)));
     m_impl->createSettings();
     for (auto& mod : m_impl->dependants) {
         if (auto settings = ModSettingsManager::from(mod)) {
@@ -221,9 +223,9 @@ matjson::Value& ModSettingsManager::getSaveData() {
     return m_impl->savedata;
 }
 
-std::shared_ptr<Setting> ModSettingsManager::get(std::string_view key) {
-    auto id = std::string(key);
-    return m_impl->settings.count(id) ? m_impl->settings.at(id).v3 : nullptr;
+std::shared_ptr<Setting> ModSettingsManager::get(std::string_view id) {
+    auto it = m_impl->settings.find(id);
+    return it != m_impl->settings.end() ? it->second.v3 : nullptr;
 }
 
 bool ModSettingsManager::restartRequired() const {

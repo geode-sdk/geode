@@ -88,16 +88,16 @@ bool ModsStatusNode::init() {
         SimpleRowLayout::create()
             ->setGap(5.f)
     );
-    m_btnMenu->getLayout()->ignoreInvisibleChildren(true);
     this->addChildAtPosition(m_btnMenu, Anchor::Center, ccp(0, 5));
 
-    m_updateStateListener.bind([this](auto) { this->updateState(); });
-    m_updateStateListener.setFilter(UpdateModListStateFilter());
+    m_updateStateHandle = UpdateModListStateEvent().listen([this](UpdateState const& state) {
+        this->updateState();
+        return ListenerResult::Propagate;
+    });
+    m_downloadHandle = server::GlobalModDownloadEvent().listen([this](std::string_view key) { this->updateState(); });
 
-    m_downloadListener.bind([this](auto) { this->updateState(); });
-
-    m_settingNodeListener.bind([this](SettingNodeValueChangeEvent* ev) {
-        if (!ev->isCommit()) {
+    m_settingNodeHandle = GlobalSettingNodeValueChangeEvent().listen([this](std::string_view modID, std::string_view key, SettingNodeV3* node, bool isCommit) {
+        if (!isCommit) {
             return ListenerResult::Propagate;
         }
         this->updateState();
@@ -297,21 +297,22 @@ void ModsLayer::onAddModFromFile(CCObject*) {
             350
         )->show();
     }
-    file::pick(file::PickMode::OpenFile, file::FilePickOptions {
+
+    async::spawn(file::pick(file::PickMode::OpenFile, file::FilePickOptions {
         .filters = { file::FilePickOptions::Filter {
             .description = "Geode Mods",
             .files = { "*.geode" },
         }}
-    }).listen([](Result<std::filesystem::path>* path) {
-        if (*path) {
-            LoaderImpl::get()->installModManuallyFromFile(path->unwrap(), []() {
+    }), [](Result<std::optional<std::filesystem::path>> result) {
+        if (result.isOk() && result.unwrap().has_value()) {
+            LoaderImpl::get()->installModManuallyFromFile(std::move(result).unwrap().value(), []() {
                 InstalledModListSource::get(InstalledModListType::All)->clearCache();
             });
         }
-        else {
+        else if (!result.isOk()) {
             FLAlertLayer::create(
                 "Unable to Select File",
-                path->unwrapErr(),
+                result.unwrapErr(),
                 "OK"
             )->show();
         }
@@ -523,7 +524,6 @@ bool ModsLayer::init() {
         { "GJ_starsIcon_001.png", "Featured", ServerModListSource::get(ServerModListType::Featured), "featured-button", false },
         { "globe.png"_spr, "Download", ServerModListSource::get(ServerModListType::Download), "download-button", false },
         { "GJ_timeIcon_001.png", "Recent", ServerModListSource::get(ServerModListType::Recent), "recent-button", false },
-        { "exMark_001.png", "Modtober", ServerModListSource::get(ServerModListType::Modtober), "modtober-button", false },
     }) {
         auto btn = CCMenuItemSpriteExtra::create(
             GeodeTabSprite::create(std::get<0>(item), std::get<1>(item), 100, std::get<4>(item)),
@@ -633,9 +633,8 @@ bool ModsLayer::init() {
     this->updateState();
 
     // Listen for state changes
-    m_updateStateListener.setFilter(UpdateModListStateFilter(UpdateWholeState()));
-    m_updateStateListener.bind([this](UpdateModListStateEvent* event) {
-        if (auto whole = std::get_if<UpdateWholeState>(&event->target)) {
+    m_updateStateHandle = UpdateModListStateEvent().listen([this](UpdateState const& state) {
+        if (auto whole = std::get_if<UpdateWholeState>(&state)) {
             if (whole->searchByDeveloper) {
                 auto src = ServerModListSource::get(ServerModListType::Download);
                 src->getQueryMut()->developer = *whole->searchByDeveloper;
@@ -645,7 +644,7 @@ bool ModsLayer::init() {
                 m_lists.at(src)->activateSearch(m_showSearch);
             }
         }
-        this->updateState();
+        return ListenerResult::Propagate;
     });
 
     // add safe mode label
@@ -707,7 +706,7 @@ void ModsLayer::gotoTab(ModListSource* src, bool searchingDev) {
     m_lists.at(m_currentSource)->updateState();
 }
 
-void ModsLayer::keyDown(enumKeyCodes key) {
+void ModsLayer::keyDown(enumKeyCodes key, double p1) {
     auto list = m_lists.at(m_currentSource);
 
     switch(key) {
@@ -724,7 +723,7 @@ void ModsLayer::keyDown(enumKeyCodes key) {
             }
             break;
         default:
-            CCLayer::keyDown(key);
+            CCLayer::keyDown(key, p1);
     }
 }
 
@@ -865,17 +864,15 @@ ModsLayer* ModsLayer::scene() {
     return layer;
 }
 
-server::ServerRequest<std::vector<std::string>> ModsLayer::checkInstalledModsForUpdates() {
-    return server::checkAllUpdates().map([](auto* result) -> Result<std::vector<std::string>, server::ServerError> {
-        if (result->isOk()) {
-            std::vector<std::string> updatesFound;
-            for (auto& update : result->unwrap()) {
-                if (update.hasUpdateForInstalledMod()) {
-                    updatesFound.push_back(update.id);
-                }
-            }
-            return Ok(updatesFound);
+server::ServerFuture<std::vector<std::string>> ModsLayer::checkInstalledModsForUpdates() {
+    auto updates = ARC_CO_UNWRAP(co_await server::checkAllUpdates());
+    std::vector<std::string> updatesFound;
+
+    for (auto& update : updates) {
+        if (update.hasUpdateForInstalledMod()) {
+            updatesFound.push_back(update.id);
         }
-        return Err(result->unwrapErr());
-    });
+    }
+    
+    co_return Ok(std::move(updatesFound));
 }

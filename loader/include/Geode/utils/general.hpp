@@ -2,13 +2,18 @@
 
 #include <Geode/Result.hpp>
 
+#include <Geode/utils/ZStringView.hpp>
+#include <Geode/utils/string.hpp>
+#include <Geode/utils/hash.hpp>
 #include "../DefaultInclude.hpp"
 #include <chrono>
 #include <iomanip>
 #include <string>
+#include <array>
 #include <vector>
 #include <filesystem>
 #include <matjson.hpp>
+#include <span>
 #include <charconv>
 #include <clocale>
 #include <type_traits>
@@ -17,6 +22,14 @@
 
 namespace geode {
     using ByteVector = std::vector<uint8_t>;
+    using ByteSpan = std::span<uint8_t const>;
+
+    template <class... T>
+    requires (std::is_convertible_v<T, uint8_t> && ...) 
+    constexpr auto byteArray(T... bytes) {
+        return std::array<uint8_t, sizeof...(T)>{ uint8_t{bytes}... };
+    }
+    
 
     template <typename T>
     ByteVector toBytes(T const& a) {
@@ -38,7 +51,7 @@ namespace geode {
          *     [](int value) {
          *         return "int";
          *     },
-         *     [](std::string const& value) {
+         *     [](std::string_view value) {
          *         return "string";
          *     },
          * }, stored);
@@ -109,32 +122,6 @@ namespace geode {
         }
 
         /**
-         * A simple function that clamps a value between two others.
-         * @deprecated Use std::clamp instead
-         *
-         * @param value Value
-         * @param minValue The minimum value
-         * @param maxValue The maximum value
-         * @returns The clamped value
-         */
-        template <typename T>
-        [[deprecated]] constexpr const T& clamp(const T& value, const std::type_identity_t<T>& minValue, const std::type_identity_t<T>& maxValue) {
-            return value < minValue ? minValue : maxValue < value ? maxValue : value;
-        }
-
-        /**
-         * A simple function that converts an integer into a hexadecimal string
-         * @deprecated Use `fmt::format("{:#x}", value)` instead
-         *
-         * @param i The integer
-         * @returns The hex string
-         */
-        template <typename T>
-        [[deprecated]] std::string intToHex(T i) {
-            return fmt::format("{:#x}", i);
-        }
-
-        /**
          * Turn a number into a string, with support for specifying precision
          * (unlike std::to_string).
          * @param num Number to convert to string
@@ -178,6 +165,24 @@ namespace geode {
             return numToString(num);
         }
 
+        namespace _detail {
+            GEODE_DLL Result<long double> longDoubleFromString(std::string_view str);
+            GEODE_DLL Result<double> doubleFromString(std::string_view str);
+            GEODE_DLL Result<float> floatFromString(std::string_view str);
+
+            GEODE_DLL Result<uint64_t> uint64FromString(std::string_view str, int base = 10);
+            GEODE_DLL Result<int64_t> int64FromString(std::string_view str, int base = 10);
+
+            template <typename T, typename Y>
+            Result<T> narrow(Y num) {
+                if (num < static_cast<Y>(std::numeric_limits<T>::min()) ||
+                    num > static_cast<Y>(std::numeric_limits<T>::max())) {
+                    return Err("Number is out of range for target type");
+                }
+                return Ok(static_cast<T>(num));
+            }
+        }
+
         /**
          * Parse a number from a string
          * @param str The string to parse
@@ -186,36 +191,24 @@ namespace geode {
          */
         template <class Num>
         Result<Num> numFromString(std::string_view str, int base = 10) {
-            if constexpr (std::is_floating_point_v<Num>
-                #if defined(__cpp_lib_to_chars)
-                    && false
-                #endif
-            ) {
-                Num val;
-                char* strEnd;
-                errno = 0;
-                if (std::setlocale(LC_NUMERIC, "C")) {
-                    if constexpr (std::is_same_v<Num, float>) val = std::strtof(str.data(), &strEnd);
-                    else if constexpr (std::is_same_v<Num, double>) val = std::strtod(str.data(), &strEnd);
-                    else if constexpr (std::is_same_v<Num, long double>) val = std::strtold(str.data(), &strEnd);
-                    if (errno == ERANGE) return Err("Number is too large to fit");
-                    else if (strEnd == str.data()) return Err("String is not a number");
-                    else return Ok(val);
-                }
-                else return Err("Failed to set locale");
+            if constexpr (std::is_same_v<Num, float>) {
+                return _detail::floatFromString(str);
+            } else if constexpr (std::is_same_v<Num, double>) {
+                return _detail::doubleFromString(str);
+            } else if constexpr (std::is_same_v<Num, long double>) {
+                return _detail::longDoubleFromString(str);
             }
-            else {
-                Num result;
-                std::from_chars_result res;
-                if constexpr (std::is_floating_point_v<Num>) res = std::from_chars(str.data(), str.data() + str.size(), result);
-                else res = std::from_chars(str.data(), str.data() + str.size(), result, base);
 
-                auto [ptr, ec] = res;
-                if (ec == std::errc()) return Ok(result);
-                else if (ptr != str.data() + str.size()) return Err("String contains trailing extra data");
-                else if (ec == std::errc::invalid_argument) return Err("String is not a number");
-                else if (ec == std::errc::result_out_of_range) return Err("Number is too large to fit");
-                else return Err("Unknown error");
+            // use either int64 or uint64 as an intermediary
+            using IntType = std::conditional_t<std::is_signed_v<Num>, int64_t, uint64_t>;
+            if constexpr (std::is_signed_v<Num>) {
+                return _detail::int64FromString(str, base).andThen([](int64_t val) {
+                    return _detail::narrow<Num>(val);
+                });
+            } else {
+                return _detail::uint64FromString(str, base).andThen([](uint64_t val) {
+                    return _detail::narrow<Num>(val);
+                });
             }
         }
 
@@ -240,7 +233,7 @@ namespace geode {
          * @param name The key of the variable
          * @returns The value of the variable
          */
-        GEODE_DLL std::string getEnvironmentVariable(const char* name);
+        GEODE_DLL std::string getEnvironmentVariable(ZStringView name);
 
         /**
          * Formats an error code (from `GetLastError()` or `errno`) to a user readable string,
@@ -296,7 +289,7 @@ namespace geode::utils::clipboard {
      * @param data The data to write
      * @returns True if the operation was successful
      */
-    GEODE_DLL bool write(std::string const& data);
+    GEODE_DLL bool write(ZStringView data);
 
     /**
      * Reads the clipboards onto a string.
@@ -308,25 +301,11 @@ namespace geode::utils::clipboard {
 
 namespace geode::utils::game {
     /**
-     * Exits the game, saving the game data.
-     *
-     * @deprecated Use `game::exit(true)` instead
-     */
-    [[deprecated]] GEODE_DLL void exit(); // TODO: left for abi compat
-
-    /**
      * Exits the game, optionally saving the game data.
      *
      * @param saveData Whether to save the game data
      */
     GEODE_DLL void exit(bool saveData /* = true */);
-
-    /**
-     * Restarts the game, saving the game data.
-     *
-     * @deprecated Use `game::restart(true)` instead
-     */
-    [[deprecated]] GEODE_DLL void restart(); // TODO: left for abi compat
 
     /**
      * Restarts the game, optionally saving the game data.
@@ -349,7 +328,7 @@ namespace geode::utils::thread {
      *
      * @returns The thread name if exists, an empty string if not.
      */
-    GEODE_DLL std::string getName();
+    GEODE_DLL ZStringView getName();
 
     /**
      * Gets the default name to a thread.
@@ -363,5 +342,5 @@ namespace geode::utils::thread {
      *
      * @param name The thread name to assign
      */
-    GEODE_DLL void setName(std::string const& name);
+    GEODE_DLL void setName(std::string name);
 }

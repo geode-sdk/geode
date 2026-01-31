@@ -9,7 +9,7 @@ constexpr auto NOTIFICATION_FADEOUT = 1.f;
 
 CCArray* Notification::s_queue = nullptr;
 
-bool Notification::init(std::string const& text, CCSprite* icon, float time) {
+bool Notification::init(ZStringView text, CCSprite* icon, float time) {
     if (!CCNodeRGBA::init()) return false;
 
     m_time = time;
@@ -100,11 +100,11 @@ CCSprite* Notification::createIcon(NotificationIcon icon) {
     }
 }
 
-Notification* Notification::create(std::string const& text, NotificationIcon icon, float time) {
+Notification* Notification::create(ZStringView text, NotificationIcon icon, float time) {
     return Notification::create(text, createIcon(icon), time);
 }
 
-Notification* Notification::create(std::string const& text, CCSprite* icon, float time) {
+Notification* Notification::create(ZStringView text, CCSprite* icon, float time) {
     auto ret = new Notification();
     if (ret->init(text, icon, time)) {
         ret->autorelease();
@@ -114,7 +114,7 @@ Notification* Notification::create(std::string const& text, CCSprite* icon, floa
     return nullptr;
 }
 
-void Notification::setString(std::string const& text) {
+void Notification::setString(ZStringView text) {
     m_label->setString(text.c_str());
     this->updateLayout();
 }

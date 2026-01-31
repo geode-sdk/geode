@@ -24,7 +24,7 @@ using namespace geode::prelude;
 
 using geode::utils::permission::Permission;
 
-bool utils::clipboard::write(std::string const& data) {
+bool utils::clipboard::write(ZStringView data) {
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "writeClipboard", "(Ljava/lang/String;)V")) {
         jstring stringArg1 = t.env->NewStringUTF(data.c_str());
@@ -125,7 +125,7 @@ std::filesystem::path dirs::getResourcesDir() {
     return "assets";
 }
 
-void utils::web::openLinkInBrowser(std::string const& url) {
+void utils::web::openLinkInBrowser(ZStringView url) {
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "openWebview", "(Ljava/lang/String;)V")) {
         jstring urlArg = t.env->NewStringUTF(url.c_str());
@@ -155,9 +155,9 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
 }
 
 std::mutex s_callbackMutex;
-static std::function<void(Result<std::filesystem::path>)> s_fileCallback {};
-static std::function<void(Result<std::vector<std::filesystem::path>>)> s_filesCallback {};
-static std::function<bool()> s_taskCancelled {};
+static geode::Function<void(Result<std::filesystem::path>)> s_fileCallback {};
+static geode::Function<void(Result<std::vector<std::filesystem::path>>)> s_filesCallback {};
+static geode::Function<bool()> s_taskCancelled {};
 
 extern "C"
 JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_selectFileCallback(
@@ -225,76 +225,78 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_failedCallback(
     }
 }
 
-Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, file::FilePickOptions const& options) {
-    using RetTask = Task<Result<std::filesystem::path>>;
+arc::Future<Result<std::optional<std::filesystem::path>>>file::pick(file::PickMode mode, file::FilePickOptions const& options) {
+    co_return Err("// TODO: v5");
+    // using RetTask = Task<Result<std::filesystem::path>>;
 
-    const std::lock_guard lock(s_callbackMutex);
-    if (s_fileCallback || s_filesCallback || s_taskCancelled) {
-        return RetTask::immediate(Err("File picker was already called this frame"));
-    }
+    // const std::lock_guard lock(s_callbackMutex);
+    // if (s_fileCallback || s_filesCallback || s_taskCancelled) {
+    //     return RetTask::immediate(Err("File picker was already called this frame"));
+    // }
 
-    std::string method;
-    switch (mode) {
-        case file::PickMode::OpenFile:
-            method = "selectFile";
-            break;
-        case file::PickMode::SaveFile:
-            method = "createFile";
-            break;
-        case file::PickMode::OpenFolder:
-            method = "selectFolder";
-            break;
-    }
+    // std::string method;
+    // switch (mode) {
+    //     case file::PickMode::OpenFile:
+    //         method = "selectFile";
+    //         break;
+    //     case file::PickMode::SaveFile:
+    //         method = "createFile";
+    //         break;
+    //     case file::PickMode::OpenFolder:
+    //         method = "selectFolder";
+    //         break;
+    // }
 
-    JniMethodInfo t;
-    if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", method.c_str(), "(Ljava/lang/String;)Z")) {
-        jstring stringArg1 = t.env->NewStringUTF(
-            utils::string::pathToString(options.defaultPath.value_or(std::filesystem::path()).filename()).c_str()
-        );
+    // JniMethodInfo t;
+    // if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", method.c_str(), "(Ljava/lang/String;)Z")) {
+    //     jstring stringArg1 = t.env->NewStringUTF(
+    //         utils::string::pathToString(options.defaultPath.value_or(std::filesystem::path()).filename()).c_str()
+    //     );
 
-        jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
+    //     jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
 
-        t.env->DeleteLocalRef(stringArg1);
-        t.env->DeleteLocalRef(t.classID);
-        if (!result) {
-            return RetTask::immediate(Err("Failed to open file picker"));
-        }
-    }
-    return RetTask::runWithCallback([] (auto result, auto progress, auto cancelled) {
-        const std::lock_guard lock(s_callbackMutex);
-        s_fileCallback = result;
-        s_taskCancelled = cancelled;
-    });
+    //     t.env->DeleteLocalRef(stringArg1);
+    //     t.env->DeleteLocalRef(t.classID);
+    //     if (!result) {
+    //         return RetTask::immediate(Err("Failed to open file picker"));
+    //     }
+    // }
+    // return RetTask::runWithCallback([] (auto result, auto progress, auto cancelled) {
+    //     const std::lock_guard lock(s_callbackMutex);
+    //     s_fileCallback = std::move(result);
+    //     s_taskCancelled = std::move(cancelled);
+    // });
 }
 
-Task<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions const& options) {
-    using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
+arc::Future<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions const& options) {
+    co_return Err("// TODO: v5");
+    // using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
 
-    const std::lock_guard lock(s_callbackMutex);
-    if (s_fileCallback || s_filesCallback || s_taskCancelled) {
-        return RetTask::immediate(Err("File picker was already called this frame"));
-    }
+    // const std::lock_guard lock(s_callbackMutex);
+    // if (s_fileCallback || s_filesCallback || s_taskCancelled) {
+    //     return RetTask::immediate(Err("File picker was already called this frame"));
+    // }
 
-    JniMethodInfo t;
-    if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "selectFiles", "(Ljava/lang/String;)Z")) {
-        jstring stringArg1 = t.env->NewStringUTF(
-            utils::string::pathToString(options.defaultPath.value_or(std::filesystem::path())).c_str()
-        );
+    // JniMethodInfo t;
+    // if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "selectFiles", "(Ljava/lang/String;)Z")) {
+    //     jstring stringArg1 = t.env->NewStringUTF(
+    //         utils::string::pathToString(options.defaultPath.value_or(std::filesystem::path())).c_str()
+    //     );
 
-        jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
+    //     jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
 
-        t.env->DeleteLocalRef(stringArg1);
-        t.env->DeleteLocalRef(t.classID);
-        if (!result) {
-            return RetTask::immediate(Err("Failed to open file dialog"));
-        }
-    }
+    //     t.env->DeleteLocalRef(stringArg1);
+    //     t.env->DeleteLocalRef(t.classID);
+    //     if (!result) {
+    //         return RetTask::immediate(Err("Failed to open file dialog"));
+    //     }
+    // }
 
-    return RetTask::runWithCallback([options](auto result, auto progress, auto cancelled){
-        const std::lock_guard lock(s_callbackMutex);
-        s_filesCallback = result;
-        s_taskCancelled = cancelled;
-    });
+    // return RetTask::runWithCallback([options](auto result, auto progress, auto cancelled){
+    //     const std::lock_guard lock(s_callbackMutex);
+    //     s_filesCallback = std::move(result);
+    //     s_taskCancelled = std::move(cancelled);
+    // });
 }
 
 void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
@@ -318,10 +320,6 @@ void geode::utils::game::exit(bool save) {
         CCCallFunc::create(nullptr, callfunc_selector(MenuLayer::endGame)),
         nullptr
     ), CCDirector::get()->getRunningScene(), false);
-}
-
-void geode::utils::game::exit() {
-    exit(true);
 }
 
 void geode::utils::game::restart(bool save) {
@@ -357,10 +355,6 @@ void geode::utils::game::restart(bool save) {
     ), CCDirector::get()->getRunningScene(), false);
 }
 
-void geode::utils::game::restart() {
-    restart(true);
-}
-
 static const char* permissionToName(Permission permission) {
 #define PERM(x) "android.permission." x
 #define INTERNAL_PERM(x) "geode.permission_internal." x
@@ -388,7 +382,7 @@ bool geode::utils::permission::getPermissionStatus(Permission permission) {
     return false;
 }
 
-static std::function<void(bool)> s_permissionCallback;
+static geode::Function<void(bool)> s_permissionCallback;
 
 extern "C"
 JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_permissionCallback(
@@ -403,8 +397,8 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_permissionCallba
     }
 }
 
-void geode::utils::permission::requestPermission(Permission permission, std::function<void(bool)> callback) {
-    s_permissionCallback = callback;
+void geode::utils::permission::requestPermission(Permission permission, geode::Function<void(bool)> callback) {
+    s_permissionCallback = std::move(callback);
     JniMethodInfo info;
     if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "requestPermission", "(Ljava/lang/String;)V")) {
         jstring permString = info.env->NewStringUTF(permissionToName(permission));
@@ -423,12 +417,12 @@ std::string geode::utils::thread::getDefaultName() {
     return fmt::format("Thread #{}", gettid());
 }
 
-void geode::utils::thread::platformSetName(std::string const& name) {
+void geode::utils::thread::platformSetName(ZStringView name) {
     pthread_setname_np(pthread_self(), name.c_str());
 }
 
-std::string geode::utils::getEnvironmentVariable(const char* name) {
-    auto result = std::getenv(name);
+std::string geode::utils::getEnvironmentVariable(ZStringView name) {
+    auto result = std::getenv(name.c_str());
     return result ? result : "";
 }
 
@@ -474,11 +468,6 @@ cocos2d::CCRect geode::utils::getSafeAreaRect() {
     return cocos2d::CCRect(insetX, insetY, winSize.width - 2 * insetX, winSize.height - 2 * insetY);
 }
 
-extern "C"
-JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_setNextInputTimestampInternal(JNIEnv*, jobject, jlong timestamp) {
-    geode::AndroidInputTimestampEvent(timestamp).post();
-}
-
 geode::Result<int> geode::utils::getLauncherVersion() {
     JniMethodInfo info;
     if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "getLauncherVersion", "()I")) {
@@ -491,13 +480,4 @@ geode::Result<int> geode::utils::getLauncherVersion() {
     }
 
     return Err("method not found");
-}
-
-AndroidInputTimestampEvent::AndroidInputTimestampEvent(long timestamp) : m_timestamp(timestamp) {}
-
-long AndroidInputTimestampEvent::getTimestamp() const { return m_timestamp; }
-
-ListenerResult AndroidInputTimestampFilter::handle(std::function<Callback> fn, AndroidInputTimestampEvent* event)  {
-    fn(event);
-    return ListenerResult::Propagate;
 }

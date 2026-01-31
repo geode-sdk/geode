@@ -2,6 +2,7 @@
 #include <crashlog.hpp>
 
 #include <Geode/utils/string.hpp>
+#include <Geode/utils/ZStringView.hpp>
 #include <array>
 #include <thread>
 #include <execinfo.h>
@@ -173,7 +174,7 @@ static Mod* modFromAddress(void const* addr) {
 // i.e. 0x12345678 -> "0x12345678 (GeometryDash + 0x5678)"
 static std::string formatAddress(void const* addr) {
     auto image = imageFromAddress(addr);
-    
+
     if (image) {
         auto imageName = getImageName(image);
         return fmt::format(
@@ -211,7 +212,7 @@ static std::string getInfo(void* address, Mod* faultyMod) {
 
             case SIGSEGV: {
                 stream << fmt::format("Could not access memory at {} (", formatAddress(s_siginfo->si_addr));
-                
+
                 switch (s_siginfo->si_code) {
                     case SEGV_MAPERR: {
                         stream << "address not mapped to an object";
@@ -274,7 +275,7 @@ extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext)
 }
 
 // https://stackoverflow.com/questions/8278691/how-to-fix-backtrace-line-number-error-in-c
-std::string executeCommand(std::string const& cmd) {
+std::string executeCommand(ZStringView cmd) {
     std::stringstream stream;
     std::array<char, 1024> buf;
 

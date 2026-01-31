@@ -4,6 +4,8 @@
 #include <cocos2d.h>
 #include <cocos-ext.h>
 
+#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+
 namespace geode {
     /**
      * Creates the usual blue gradient BG for a layer. You should use this over
@@ -86,7 +88,7 @@ namespace geode {
     public:
         static ListBorders* create();
 
-        void setSpriteFrames(const char* topAndBottom, const char* sides, float horizontalPadding = 7.5f);
+        void setSpriteFrames(char const* topAndBottom, char const* sides, float horizontalPadding = 7.5f);
         void setSprites(
             cocos2d::extension::CCScale9Sprite* top,
             cocos2d::extension::CCScale9Sprite* bottom,
@@ -124,7 +126,7 @@ namespace geode {
      */
     GEODE_DLL CCMenuItemSpriteExtra* addBackButton(
         cocos2d::CCNode* to,
-        std::function<void(cocos2d::CCMenuItem*)> callback,
+        geode::Function<void(cocos2d::CCMenuItem*)> callback,
         BackButtonStyle style = BackButtonStyle::Green
     );
 }

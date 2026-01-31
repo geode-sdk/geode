@@ -18,8 +18,9 @@ using namespace geode::prelude;
 #include <Geode/utils/ObjcHook.hpp>
 #include <Geode/utils/string.hpp>
 #include "../../utils/thread.hpp"
+#include <arc/sync/oneshot.hpp>
 
-bool utils::clipboard::write(std::string const& data) {
+bool utils::clipboard::write(ZStringView data) {
     if (!OpenClipboard(nullptr)) return false;
     if (!EmptyClipboard()) {
         CloseClipboard();
@@ -110,8 +111,39 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
     return success;
 }
 
-Task<Result<std::filesystem::path>> file::pick(PickMode mode, FilePickOptions const& options) {
-    using RetTask = Task<Result<std::filesystem::path>>;
+// If successful, the bool represents whether a file was picked (true) or dialog was cancelled (false)
+static arc::Future<Result<bool>> asyncNfdPick(
+    NFDMode mode,
+    file::FilePickOptions const& options,
+    void* result
+) {
+    auto [tx, rx] = arc::oneshot::channel<Result<>>();
+
+    auto thread = std::thread([&, tx = std::move(tx)] mutable {
+        auto pickresult = nfdPick(mode, options, result);
+        (void) tx.send(pickresult);
+    });
+
+    // wait for the result, and join the thread
+    auto recvresult = co_await rx.recv();
+    if (thread.joinable()) thread.join();
+
+    if (!recvresult) {
+        co_return Err("Error occurred while picking file");
+    }
+
+    auto res = std::move(recvresult).unwrap();
+    if (!res) {
+        auto err = std::move(res).unwrapErr();
+        if (err == "Dialog cancelled") {
+            co_return Ok(false);
+        }
+        co_return Err(std::move(err));
+    }
+    co_return Ok(true);
+}
+
+arc::Future<Result<std::optional<std::filesystem::path>>> file::pick(PickMode mode, FilePickOptions const& options) {
     #define TURN_INTO_NFDMODE(mode) \
         case file::PickMode::mode: nfdMode = NFDMode::mode; break;
 
@@ -121,34 +153,29 @@ Task<Result<std::filesystem::path>> file::pick(PickMode mode, FilePickOptions co
         TURN_INTO_NFDMODE(SaveFile);
         TURN_INTO_NFDMODE(OpenFolder);
         default:
-            return RetTask::immediate(Err<std::string>("Invalid pick mode"));
+            co_return Err("Invalid pick mode");
     }
+
     std::filesystem::path path;
-    auto pickresult = nfdPick(nfdMode, options, &path);
-    if (pickresult.isErr()) {
-        if (pickresult.unwrapErr() == "Dialog cancelled") {
-            return RetTask::cancelled();
-        }
-        return RetTask::immediate(Err(pickresult.unwrapErr()));
-    } else {
-        return RetTask::immediate(Ok(path));
+    bool picked = ARC_CO_UNWRAP(co_await asyncNfdPick(nfdMode, options, &path));
+    if (!picked) {
+        co_return Ok(std::nullopt);
     }
+
+    co_return Ok(std::move(path));
 }
 
-Task<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions const& options) {
-    using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
-
+arc::Future<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions const& options) {
     std::vector<std::filesystem::path> paths;
-    auto pickResult = nfdPick(NFDMode::OpenFiles, options, &paths);
-    if (pickResult.isErr()) {
-        return RetTask::immediate(Err(pickResult.err().value()));
-    } else {
-        return RetTask::immediate(Ok(paths));
+    bool picked = ARC_CO_UNWRAP(co_await asyncNfdPick(NFDMode::OpenFiles, options, &paths));
+    if (!picked) {
+        co_return Ok(std::vector<std::filesystem::path>{});
     }
-    // return Task<Result<std::vector<std::filesystem::path>>>::immediate(std::move(file::pickFiles(options)));
+
+    co_return Ok(std::move(paths));
 }
 
-void utils::web::openLinkInBrowser(std::string const& url) {
+void utils::web::openLinkInBrowser(ZStringView url) {
     ShellExecuteW(0, 0, utils::string::utf8ToWide(url).c_str(), 0, 0, SW_SHOW);
 }
 
@@ -229,10 +256,6 @@ void geode::utils::game::exit(bool saveData) {
     std::exit(0);
 }
 
-void geode::utils::game::exit() {
-    exit(true);
-}
-
 void geode::utils::game::restart(bool saveData) {
     // TODO: mat
     // TODO: be VERY careful before enabling this again, this function is called in platform/windows/main.cpp,
@@ -258,10 +281,6 @@ void geode::utils::game::restart(bool saveData) {
     exit(saveData);
 }
 
-void geode::utils::game::restart() {
-    restart(true);
-}
-
 void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
     const auto workingDir = dirs::getGameDir();
 
@@ -280,10 +299,10 @@ void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
     ShellExecuteW(nullptr, L"open", uninstallerPath.c_str(), params.c_str(), workingDir.wstring().c_str(), false);
 }
 
-Result<> geode::hook::addObjcMethod(std::string const& className, std::string const& selectorName, void* imp) {
+Result<> geode::hook::addObjcMethod(char const* className, char const* selectorName, void* imp) {
     return Err("Wrong platform");
 }
-Result<void*> geode::hook::getObjcMethodImp(std::string const& className, std::string const& selectorName) {
+Result<void*> geode::hook::getObjcMethodImp(char const* className, char const* selectorName) {
     return Err("Wrong platform");
 }
 
@@ -291,14 +310,14 @@ bool geode::utils::permission::getPermissionStatus(Permission permission) {
     return true; // unimplemented
 }
 
-void geode::utils::permission::requestPermission(Permission permission, std::function<void(bool)> callback) {
+void geode::utils::permission::requestPermission(Permission permission, geode::Function<void(bool)> callback) {
     callback(true); // unimplemented
 }
 
 // [Set|Get]ThreadDescription are pretty new, so the user's system might not have them
 // or they might only be accessible dynamically (see msdocs link below for more info)
-auto setThreadDesc = reinterpret_cast<decltype(&SetThreadDescription)>(GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "SetThreadDescription"));
-auto getThreadDesc = reinterpret_cast<decltype(&GetThreadDescription)>(GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "GetThreadDescription"));
+static auto setThreadDesc = reinterpret_cast<decltype(&SetThreadDescription)>(GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "SetThreadDescription"));
+static auto getThreadDesc = reinterpret_cast<decltype(&GetThreadDescription)>(GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "GetThreadDescription"));
 
 static std::optional<std::string> getNameFromOs() {
     if (!getThreadDesc) {
@@ -312,7 +331,7 @@ static std::optional<std::string> getNameFromOs() {
 
     std::string name = utils::string::wideToUtf8(wname);
     LocalFree(wname);
-    
+
     return name;
 }
 
@@ -335,7 +354,7 @@ typedef struct tagTHREADNAME_INFO {
 } THREADNAME_INFO;
 #pragma pack(pop)
 
-void obliterate(std::string const& name) {
+void obliterate(ZStringView name) {
     // exception
     THREADNAME_INFO info;
     info.dwType = 0x1000;
@@ -350,7 +369,7 @@ void obliterate(std::string const& name) {
     __except (EXCEPTION_EXECUTE_HANDLER) { }
 #pragma warning(pop)
 }
-void geode::utils::thread::platformSetName(std::string const& name) {
+void geode::utils::thread::platformSetName(ZStringView name) {
     // SetThreadDescription
     if (setThreadDesc) {
         auto res = setThreadDesc(GetCurrentThread(), string::utf8ToWide(name).c_str());
@@ -360,10 +379,10 @@ void geode::utils::thread::platformSetName(std::string const& name) {
     obliterate(name);
 }
 
-std::string geode::utils::getEnvironmentVariable(const char* name) {
+std::string geode::utils::getEnvironmentVariable(ZStringView name) {
     char buffer[1024];
     size_t count = 0;
-    if (0 == getenv_s(&count, buffer, name) && count != 0) {
+    if (0 == getenv_s(&count, buffer, name.c_str()) && count != 0) {
         return buffer;
     }
 

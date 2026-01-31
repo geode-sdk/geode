@@ -3,6 +3,7 @@
 #include <string>
 #include <matjson.hpp>
 #include <Geode/loader/Event.hpp>
+#include <Geode/utils/function.hpp>
 
 namespace geode::updater {
     using UpdateFinished = std::monostate;
@@ -10,42 +11,26 @@ namespace geode::updater {
     using UpdateFailed = std::string;
     using UpdateStatus = std::variant<UpdateFinished, UpdateProgress, UpdateFailed>;
 
-    struct ResourceDownloadEvent : public Event {
-        const UpdateStatus status;
-        explicit ResourceDownloadEvent(UpdateStatus status);
-    };
-
-    class ResourceDownloadFilter : public EventFilter<ResourceDownloadEvent> {
+    class ResourceDownloadEvent : public SimpleEvent<ResourceDownloadEvent, UpdateStatus const&> {
     public:
-        template <typename F> requires (std::is_invocable_r_v<ListenerResult, F, ResourceDownloadEvent*>)
-        ListenerResult handle(F&& fn, ResourceDownloadEvent* event) {
-            return fn(event);
-        }
-        ResourceDownloadFilter();
+        // listener params status
+        using SimpleEvent::SimpleEvent;
     };
 
-    struct LoaderUpdateEvent : public Event {
-        const UpdateStatus status;
-        explicit LoaderUpdateEvent(UpdateStatus status);
-    };
-
-    class LoaderUpdateFilter : public EventFilter<LoaderUpdateEvent> {
+    class LoaderUpdateEvent : public SimpleEvent<LoaderUpdateEvent, UpdateStatus const&> {
     public:
-        template <typename F> requires (std::is_invocable_r_v<ListenerResult, F, LoaderUpdateEvent*>)
-        ListenerResult handle(F&& fn, LoaderUpdateEvent* event) {
-            return fn(event);
-        }
-        LoaderUpdateFilter();
+        // listener params status
+        using SimpleEvent::SimpleEvent;
     };
 
     void updateSpecialFiles();
-    void tryDownloadLoaderResources(std::string const& url, bool tryLatestOnError = true);
+    void tryDownloadLoaderResources(std::string url, bool tryLatestOnError = true);
     void downloadLoaderResources(bool useLatestRelease = false);
     void downloadLatestLoaderResources();
-    void downloadLoaderUpdate(std::string const& url);
+    void downloadLoaderUpdate(std::string url);
     void fetchLatestGithubRelease(
-        const std::function<void(matjson::Value const&)>& then,
-        std::function<void(std::string const&)> expect,
+        geode::Function<void(matjson::Value const&)> then,
+        geode::Function<void(std::string)> expect,
         bool force = false
     );
 

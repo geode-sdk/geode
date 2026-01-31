@@ -159,7 +159,7 @@ public:
 	        m_hAlignment = alignment;
 
 	        // Force update
-	        if (std::string(m_string).size() > 0)
+	        if (m_string.size() > 0)
 	        {
 	            this->updateTexture();
 	        }
@@ -175,7 +175,7 @@ public:
 	        m_vAlignment = verticalAlignment;
 
 	        // Force update
-	        if (std::string(m_string).size() > 0)
+	        if (m_string.size() > 0)
 	        {
 	            this->updateTexture();
 	        }
@@ -191,7 +191,7 @@ public:
 	        m_tDimensions = dim;
 
 	        // Force update
-	        if (std::string(m_string).size() > 0)
+	        if (m_string.size() > 0)
 	        {
 	            this->updateTexture();
 	        }
@@ -207,7 +207,7 @@ public:
 	        m_fFontSize = fontSize;
 
 	        // Force update
-	        if (std::string(m_string).size() > 0)
+	        if (m_string.size() > 0)
 	        {
 	            this->updateTexture();
 	        }

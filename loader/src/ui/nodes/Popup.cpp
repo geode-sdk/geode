@@ -69,9 +69,114 @@ using namespace geode::prelude;
 //     alert->m_mainLayer->setLayout(AutoPopupLayout::create(alert->m_buttonMenu, bg));
 // }
 
+// Popup impl
+
+Popup::~Popup() {
+    CCTouchDispatcher::get()->unregisterForcePrio(this);
+}
+
+void Popup::registerWithTouchDispatcher() {
+    CCTouchDispatcher::get()->addTargetedDelegate(this, -500, true);
+}
+
+bool Popup::init(
+    float width, float height, char const* bg, CCRect bgRect
+) {
+    m_size = CCSize{ width, height };
+    CCTouchDispatcher::get()->registerForcePrio(this, 2);
+
+    if (!this->initWithColor({ 0, 0, 0, 105 })) return false;
+    
+    auto winSize = CCDirector::get()->getWinSize();
+
+    m_mainLayer = CCLayer::create();
+    this->addChild(m_mainLayer);
+
+    m_bgSprite = CCScale9Sprite::create(bg, bgRect);
+    m_bgSprite->setContentSize(m_size);
+    m_bgSprite->setPosition(winSize.width / 2, winSize.height / 2);
+    m_mainLayer->addChild(m_bgSprite);
+
+    m_buttonMenu = CCMenu::create();
+    m_buttonMenu->setZOrder(100);
+    m_mainLayer->addChild(m_buttonMenu);
+
+    m_mainLayer->ignoreAnchorPointForPosition(false);
+    m_mainLayer->setPosition(winSize / 2);
+    m_mainLayer->setContentSize(m_size);
+    m_mainLayer->setLayout(
+        CopySizeLayout::create()
+            ->add(m_buttonMenu)
+            ->add(m_bgSprite)
+    );
+
+    this->setTouchEnabled(true);
+
+    m_closeBtn = CCMenuItemExt::createSpriteExtraWithFrameName("GJ_closeBtn_001.png", 0.8f, [this](auto btn) {
+        this->onClose(btn);
+    });
+    m_buttonMenu->addChildAtPosition(m_closeBtn, geode::Anchor::TopLeft, { 3.f, -3.f });
+
+    this->setKeypadEnabled(true);
+    this->setTouchEnabled(true);
+
+    return true;
+}
+
+void Popup::keyBackClicked() {
+    this->onClose(nullptr);
+}
+
+void Popup::keyDown(enumKeyCodes key, double p1) {
+    if (key == KEY_Space) return;
+    return FLAlertLayer::keyDown(key, p1);
+}
+
+void Popup::onClose(CCObject*) {
+    CloseEvent(this).send();
+    this->setKeypadEnabled(false);
+    this->setTouchEnabled(false);
+    this->removeFromParent();
+}
+
+void Popup::setTitle(
+    ZStringView title,
+    const char* font,
+    float scale,
+    float offset
+) {
+    if (!m_title) {
+        m_title = CCLabelBMFont::create("", font);
+        m_title->setZOrder(2);
+        m_mainLayer->addChildAtPosition(m_title, Anchor::Top, {0, -offset});
+    }
+    
+    m_title->setString(title.c_str());
+    m_title->limitLabelWidth(m_size.width - 20.f, scale, .1f);
+}
+
+void Popup::setCloseButtonSpr(CCSprite* spr, float scale) {
+    // Store original attributes of the close button
+    auto origSize = m_closeBtn->getContentSize();
+    Ref orig = m_closeBtn->getNormalImage();
+
+    // Replace the close button sprite
+    m_closeBtn->setNormalImage(spr);
+
+    // Restore size and position
+    spr->setScale(scale);
+    spr->setPosition(orig->getPosition());
+    spr->setAnchorPoint(orig->getAnchorPoint());
+    m_closeBtn->setContentSize(origSize);
+}
+
+Popup::CloseEvent Popup::listenForClose() {
+    return Popup::CloseEvent(this);
+}
+
 class QuickPopup : public FLAlertLayer, public FLAlertLayerProtocol {
 protected:
-    std::function<void(FLAlertLayer*, bool)> m_selected;
+    geode::Function<void(FLAlertLayer*, bool)> m_selected;
     bool m_cancelledByEscape;
     bool m_usedEscape = false;
 
@@ -91,13 +196,13 @@ protected:
 
 public:
     static QuickPopup* create(
-        char const* title, std::string const& content, char const* btn1, char const* btn2,
-        float width, std::function<void(FLAlertLayer*, bool)> selected, bool cancelledByEscape
+        char const* title, std::string content, char const* btn1, char const* btn2,
+        float width, geode::Function<void(FLAlertLayer*, bool)> selected, bool cancelledByEscape
     ) {
         auto inst = new QuickPopup;
-        inst->m_selected = selected;
+        inst->m_selected = std::move(selected);
         inst->m_cancelledByEscape = cancelledByEscape;
-        if (inst->init(inst, title, content, btn1, btn2, width, false, .0f, 1.0f)) {
+        if (inst->init(inst, title, std::move(content), btn1, btn2, width, false, .0f, 1.0f)) {
             inst->autorelease();
             return inst;
         }
@@ -108,10 +213,10 @@ public:
 };
 
 FLAlertLayer* geode::createQuickPopup(
-    char const* title, std::string const& content, char const* btn1, char const* btn2, float width,
-    std::function<void(FLAlertLayer*, bool)> selected, bool doShow
+    char const* title, std::string content, char const* btn1, char const* btn2, float width,
+    geode::Function<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
 ) {
-    auto ret = QuickPopup::create(title, content, btn1, btn2, width, selected, false);
+    auto ret = QuickPopup::create(title, std::move(content), btn1, btn2, width, std::move(selected), cancelledByEscape);
     if (doShow) {
         ret->show();
     }
@@ -119,26 +224,8 @@ FLAlertLayer* geode::createQuickPopup(
 }
 
 FLAlertLayer* geode::createQuickPopup(
-    char const* title, std::string const& content, char const* btn1, char const* btn2,
-    std::function<void(FLAlertLayer*, bool)> selected, bool doShow
+    char const* title, std::string content, char const* btn1, char const* btn2,
+    geode::Function<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
 ) {
-    return createQuickPopup(title, content, btn1, btn2, 350.f, selected, doShow);
-}
-
-FLAlertLayer* geode::createQuickPopup(
-    char const* title, std::string const& content, char const* btn1, char const* btn2, float width,
-    std::function<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
-) {
-    auto ret = QuickPopup::create(title, content, btn1, btn2, width, selected, cancelledByEscape);
-    if (doShow) {
-        ret->show();
-    }
-    return ret;
-}
-
-FLAlertLayer* geode::createQuickPopup(
-    char const* title, std::string const& content, char const* btn1, char const* btn2,
-    std::function<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
-) {
-    return createQuickPopup(title, content, btn1, btn2, 350.f, selected, doShow, cancelledByEscape);
+    return createQuickPopup(title, std::move(content), btn1, btn2, 350.f, std::move(selected), doShow, cancelledByEscape);
 }

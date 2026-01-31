@@ -15,30 +15,10 @@ namespace geode {
      * the Geode UI. See the [tutorial on Geode UI modification](https://docs.geode-sdk.org/tutorials/modify-geode)
      * for **very important notes on these events**!
      */
-    class GEODE_DLL ModPopupUIEvent final : public Event {
-    private:
-        class Impl;
-        std::unique_ptr<Impl> m_impl;
-
-        friend class ::ModPopup;
-
-        ModPopupUIEvent(std::unique_ptr<Impl>&& impl);
-
+    class GEODE_DLL ModPopupUIEvent final : public SimpleEvent<ModPopupUIEvent, FLAlertLayer*, std::string_view, std::optional<Mod*>> {
     public:
-        virtual ~ModPopupUIEvent();
-
-        /**
-         * Get the popup itself
-         */
-        FLAlertLayer* getPopup() const;
-        /**
-         * Get the ID of the mod this popup is for
-         */
-        std::string getModID() const;
-        /**
-         * If this popup is of an installed mod, get it
-         */
-        std::optional<Mod*> getMod() const;
+        // listener params popup, modID, mod
+        using SimpleEvent::SimpleEvent;  
     };
 
     /**
@@ -46,30 +26,10 @@ namespace geode {
      * the Geode UI. See the [tutorial on Geode UI modification](https://docs.geode-sdk.org/tutorials/modify-geode)
      * for **very important notes on these events**!
      */
-    class GEODE_DLL ModItemUIEvent final : public Event {
-    private:
-        class Impl;
-        std::unique_ptr<Impl> m_impl;
-
-        friend class ::ModItem;
-
-        ModItemUIEvent(std::unique_ptr<Impl>&& impl);
-
+    class GEODE_DLL ModItemUIEvent final : public SimpleEvent<ModItemUIEvent, cocos2d::CCNode*, std::string_view, std::optional<Mod*>> {
     public:
-        virtual ~ModItemUIEvent();
-
-        /**
-         * Get the item itself
-         */
-        cocos2d::CCNode* getItem() const;
-        /**
-         * Get the ID of the mod this logo is for
-         */
-        std::string getModID() const;
-        /**
-         * If this logo is of an installed mod, get it
-         */
-        std::optional<Mod*> getMod() const;
+        // listener params item, modID, mod
+        using SimpleEvent::SimpleEvent;  
     };
 
     /**
@@ -77,30 +37,10 @@ namespace geode {
      * the Geode UI. See the [tutorial on Geode UI modification](https://docs.geode-sdk.org/tutorials/modify-geode)
      * for **very important notes on these events**!
      */
-    class GEODE_DLL ModLogoUIEvent final : public Event {
-    private:
-        class Impl;
-        std::unique_ptr<Impl> m_impl;
-
-        friend class ::ModLogoSprite;
-
-        ModLogoUIEvent(std::unique_ptr<Impl>&& impl);
-
+     class GEODE_DLL ModLogoUIEvent final : public SimpleEvent<ModItemUIEvent, cocos2d::CCNode*, std::string_view, std::optional<Mod*>> {
     public:
-        virtual ~ModLogoUIEvent();
-
-        /**
-         * Get the sprite itself
-         */
-        cocos2d::CCNode* getSprite() const;
-        /**
-         * Get the ID of the mod this logo is for
-         */
-        std::string getModID() const;
-        /**
-         * If this logo is of an installed mod, get it
-         */
-        std::optional<Mod*> getMod() const;
+        // listener params sprite, modID, mod
+        using SimpleEvent::SimpleEvent;  
     };
 
     /**
@@ -119,7 +59,7 @@ namespace geode {
      * popup was opened, and `false` otherwise. If you wish to modify the
      * created popup, listen for the Geode UI events listed in `GeodeUI.hpp`
      */
-    GEODE_DLL Task<bool> openInfoPopup(std::string const& modID);
+    GEODE_DLL arc::Future<bool> openInfoPopup(std::string_view modID);
     /**
      * Open the info popup for a mod on the changelog page
      */
@@ -146,7 +86,7 @@ namespace geode {
      * @returns A pointer to the created Popup, or null if the mod has no
      * settings
      */
-    GEODE_DLL Popup<Mod*>* openSettingsPopup(Mod* mod, bool disableGeodeTheme);
+    GEODE_DLL Popup* openSettingsPopup(Mod* mod, bool disableGeodeTheme);
     /**
      * Create a default logo sprite
      */
@@ -164,5 +104,5 @@ namespace geode {
      * logo is initially a loading circle, with the actual sprite downloaded
      * asynchronously
      */
-    GEODE_DLL cocos2d::CCNode* createServerModLogo(std::string const& id);
+    GEODE_DLL cocos2d::CCNode* createServerModLogo(std::string id);
 }

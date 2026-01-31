@@ -198,15 +198,15 @@ include(cmake/GeodeFile.cmake)
 # so please update them when you set the game version
 
 # begin GEODE_GD_VERSION
-# win:     2.2074
-# mac:     2.2074
-# ios:     2.2074
-# android: 2.2074
+# win:     2.2081
+# mac:     2.2081
+# ios:     2.2081
+# android: 2.2081
 # end GEODE_GD_VERSION
 
 if (NOT DEFINED GEODE_GD_VERSION)
-	set(GEODE_GD_VERSION 2.2074)
-	set(GEODE_COMP_GD_VERSION 22074)
+	set(GEODE_GD_VERSION 2.2081)
+	set(GEODE_COMP_GD_VERSION 22081)
 endif()
 
 target_compile_definitions(
@@ -253,8 +253,10 @@ endif()
 
 set(MAT_JSON_AS_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/result@1.3.3")
-CPMAddPackage("gh:geode-sdk/json@3.2.2")
+CPMAddPackage("gh:geode-sdk/json@3.2.3")
+CPMAddPackage("gh:zhihaoy/nontype_functional#8ec2e09")
 CPMAddPackage("gh:fmtlib/fmt#11.1.4")
+CPMAddPackage("gh:dankmeme01/arc#89a1b46")
 
 target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)
 
@@ -313,8 +315,7 @@ target_include_directories(GeodeBindings PUBLIC
 	${GEODE_LOADER_PATH}/include/Geode/fmod
 )
 target_link_directories(GeodeBindings PUBLIC ${GEODE_LOADER_PATH}/include/link)
-target_compile_definitions(GeodeBindings PUBLIC GEODE_USE_NEW_DESTRUCTOR_LOCK=1)
-target_link_libraries(GeodeBindings PUBLIC fmt TulipHookInclude mat-json GeodeResult)
+target_link_libraries(GeodeBindings PUBLIC fmt TulipHookInclude mat-json std23::nontype_functional GeodeResult asp arc)
 target_link_libraries(${PROJECT_NAME} INTERFACE GeodeBindings)
 
 if (NOT EXISTS ${GEODE_BIN_PATH})

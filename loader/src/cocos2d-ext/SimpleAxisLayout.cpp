@@ -1,6 +1,9 @@
+#include "BaseAxisLayoutImpl.hpp"
 #include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/ui/SpacerNode.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <algorithm>
+
 #include <algorithm>
 
 using namespace geode::prelude;
@@ -48,16 +51,14 @@ ScalingPriority SimpleAxisLayoutOptions::getScalingPriority() const {
     return m_impl->m_scalingPriority;
 }
 
-class SimpleAxisLayout::Impl {
+class SimpleAxisLayout::Impl : public BaseAxisLayoutImpl {
 public:
-    Axis m_axis = Axis::Column;
     AxisScaling m_mainAxisScaling = AxisScaling::ScaleDownGaps;
     AxisScaling m_crossAxisScaling = AxisScaling::None;
     MainAxisAlignment m_mainAxisAlignment = MainAxisAlignment::Center;
     CrossAxisAlignment m_crossAxisAlignment = CrossAxisAlignment::Center;
     AxisDirection m_mainAxisDirection = AxisDirection::FrontToBack;
     AxisDirection m_crossAxisDirection = AxisDirection::FrontToBack;
-    float m_gap = 0.f;
     std::optional<float> m_minRelativeScale = 0.5f;
     std::optional<float> m_maxRelativeScale = 2.f;
     SimpleAxisLayout* m_layout = nullptr;
@@ -71,7 +72,7 @@ public:
     std::unordered_map<CCNode*, float> m_originalScalesPerNode;
     std::unordered_map<CCNode*, float> m_relativeScalesPerNode;
 
-    Impl(Axis axis, SimpleAxisLayout* parent) : m_axis(axis), m_layout(parent) {
+    Impl(Axis axis, SimpleAxisLayout* parent) : BaseAxisLayoutImpl(axis, 0.f), m_layout(parent) {
         switch (axis) {
             case Axis::Column:
                 m_mainAxisDirection = AxisDirection::TopToBottom;
@@ -699,7 +700,7 @@ void SimpleAxisLayout::Impl::apply(cocos2d::CCNode* layout) {
     std::vector<AxisGap*> gaps;
     float totalGap = 0.f;
     CCNode* lastChild = nullptr;
-    for (auto child : CCArrayExt<CCNode*>(m_layout->getNodesToPosition(layout))) {
+    for (auto child : CCArrayExt<CCNode*>(getNodesToPosition(layout))) {
         if (auto spacer = typeinfo_cast<SpacerNode*>(child)) {
             spacers.push_back(spacer);
             positionChildren.push_back(spacer);
@@ -843,6 +844,15 @@ SimpleAxisLayout* SimpleAxisLayout::setMinRelativeScale(std::optional<float> sca
 SimpleAxisLayout* SimpleAxisLayout::setMaxRelativeScale(std::optional<float> scale) {
     m_impl->m_maxRelativeScale = scale;
     return this;
+}
+
+SimpleAxisLayout* SimpleAxisLayout::ignoreInvisibleChildren(bool ignore) {
+    m_impl->m_ignoreInvisibleChildren = ignore;
+    return this;
+}
+
+bool SimpleAxisLayout::isIgnoreInvisibleChildren() const {
+    return m_impl->m_ignoreInvisibleChildren;
 }
 
 Axis SimpleAxisLayout::getAxis() const {

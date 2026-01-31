@@ -211,11 +211,11 @@ Result<ByteVector> utils::file::readBinary(std::filesystem::path const& path) {
     return Ok(std::move(contents));
 }
 
-Result<> utils::file::writeString(std::filesystem::path const& path, std::string const& data) {
+Result<> utils::file::writeString(std::filesystem::path const& path, std::string_view data) {
     return writeFileFrom(path, (void*)data.data(), data.size());
 }
 
-Result<> utils::file::writeStringSafe(std::filesystem::path const& path, std::string const& data) {
+Result<> utils::file::writeStringSafe(std::filesystem::path const& path, std::string_view data) {
     GEODE_ANDROID(
         return utils::file::writeString(path, data); // safe approach causes significant performance issues on Android
     )
@@ -241,11 +241,11 @@ Result<> utils::file::writeStringSafe(std::filesystem::path const& path, std::st
     return Ok();
 }
 
-Result<> utils::file::writeBinary(std::filesystem::path const& path, ByteVector const& data) {
+Result<> utils::file::writeBinary(std::filesystem::path const& path, ByteSpan data) {
     return writeFileFrom(path, (void*)data.data(), data.size());
 }
 
-Result<> utils::file::writeBinarySafe(std::filesystem::path const& path, ByteVector const& data) {
+Result<> utils::file::writeBinarySafe(std::filesystem::path const& path, ByteSpan data) {
     GEODE_ANDROID(
         return utils::file::writeBinary(path, data); // safe approach causes significant performance issues on Android
     )
@@ -336,7 +336,7 @@ private:
     int32_t m_mode;
     std::variant<Path, ByteVector> m_srcDest;
     std::unordered_map<Path, ZipEntry, path_hash_t> m_entries;
-    std::function<void(uint32_t, uint32_t)> m_progressCallback;
+    geode::Function<void(uint32_t, uint32_t)> m_progressCallback;
 
     Result<> init() {
         // open stream from file
@@ -438,10 +438,10 @@ public:
         return Ok(std::move(ret));
     }
 
-    static Result<std::unique_ptr<Impl>> fromMemory(ByteVector const& raw) {
+    static Result<std::unique_ptr<Impl>> fromMemory(ByteSpan raw) {
         auto ret = std::make_unique<Impl>();
         ret->m_mode = MZ_OPEN_MODE_READ;
-        ret->m_srcDest = raw;
+        ret->m_srcDest = ByteVector{raw.begin(), raw.end()};
         GEODE_UNWRAP(ret->init());
         return Ok(std::move(ret));
     }
@@ -454,8 +454,8 @@ public:
         return Ok(std::move(ret));
     }
 
-    void setProgressCallback(std::function<void(uint32_t, uint32_t)> callback) {
-        m_progressCallback = callback;
+    void setProgressCallback(geode::Function<void(uint32_t, uint32_t)> callback) {
+        m_progressCallback = std::move(callback);
     }
 
     Result<> extractAt(Path const& dir, Path const& name) {
@@ -634,7 +634,7 @@ public:
         return Ok();
     }
 
-    Result<> add(Path const& path, ByteVector const& data) {
+    Result<> add(Path const& path, ByteSpan data) {
         auto namestr = utils::string::pathToString(path);
 
         mz_zip_file info = { 0 };
@@ -702,16 +702,14 @@ Unzip::~Unzip() {}
 
 Unzip::Unzip(std::unique_ptr<Unzip::Impl>&& impl) : m_impl(std::move(impl)) {}
 
-Unzip::Unzip(Unzip&& other) : m_impl(std::move(other.m_impl)) {
-    other.m_impl = nullptr;
-}
+Unzip::Unzip(Unzip&& other) noexcept = default;
 
 Result<Unzip> Unzip::create(Path const& file) {
     GEODE_UNWRAP_INTO(auto impl, Zip::Impl::inFile(file, MZ_OPEN_MODE_READ));
     return Ok(Unzip(std::move(impl)));
 }
 
-Result<Unzip> Unzip::create(ByteVector const& data) {
+Result<Unzip> Unzip::create(ByteSpan data) {
     GEODE_UNWRAP_INTO(auto impl, Zip::Impl::fromMemory(data));
     return Ok(Unzip(std::move(impl)));
 }
@@ -721,9 +719,9 @@ Unzip::Path Unzip::getPath() const {
 }
 
 void Unzip::setProgressCallback(
-    std::function<void(uint32_t, uint32_t)> callback
+    geode::Function<void(uint32_t, uint32_t)> callback
 ) {
-    return m_impl->setProgressCallback(callback);
+    return m_impl->setProgressCallback(std::move(callback));
 }
 
 std::vector<Unzip::Path> Unzip::getEntries() const {
@@ -778,13 +776,13 @@ Result<> Unzip::intoDir(
 }
 
 Result<> Unzip::intoDir(
-    std::function<void(uint32_t, uint32_t)> progressCallback,
+    geode::Function<void(uint32_t, uint32_t)> progressCallback,
     Path const& from,
     Path const& to,
     bool deleteZipAfter
 ) {
     GEODE_UNWRAP_INTO(auto unzip, Unzip::create(from));
-    unzip.setProgressCallback(progressCallback);
+    unzip.setProgressCallback(std::move(progressCallback));
     GEODE_UNWRAP(unzip.extractAllTo(to));
     if (deleteZipAfter) {
         std::error_code ec;
@@ -801,9 +799,7 @@ Zip::~Zip() {}
 
 Zip::Zip(std::unique_ptr<Zip::Impl>&& impl) : m_impl(std::move(impl)) {}
 
-Zip::Zip(Zip&& other) : m_impl(std::move(other.m_impl)) {
-    other.m_impl = nullptr;
-}
+Zip::Zip(Zip&& other) noexcept = default;
 
 Result<Zip> Zip::create(Path const& file) {
     GEODE_UNWRAP_INTO(auto impl, Zip::Impl::inFile(file, MZ_OPEN_MODE_CREATE | MZ_OPEN_MODE_WRITE));
@@ -823,12 +819,13 @@ ByteVector Zip::getData() const {
     return m_impl->compressedData();
 }
 
-Result<> Zip::add(Path const& path, ByteVector const& data) {
+Result<> Zip::add(Path const& path, ByteSpan data) {
     return m_impl->add(path, data);
 }
 
-Result<> Zip::add(Path const& path, std::string const& data) {
-    return this->add(path, ByteVector(data.begin(), data.end()));
+Result<> Zip::add(Path const& path, std::string_view data) {
+    auto vec = ByteVector{data.begin(), data.end()};
+    return this->add(path, vec);
 }
 
 Result<> Zip::addFrom(Path const& file, Path const& entryDir) {
@@ -860,27 +857,6 @@ Result<> Zip::addFolder(Path const& entry) {
     return m_impl->addFolder(entry);
 }
 
-FileWatchEvent::FileWatchEvent(std::filesystem::path const& path)
-  : m_path(path) {}
-
-std::filesystem::path FileWatchEvent::getPath() const {
-    return m_path;
-}
-
-ListenerResult FileWatchFilter::handle(
-    std::function<Callback> callback,
-    FileWatchEvent* event
-) {
-    std::error_code ec;
-    if (std::filesystem::equivalent(event->getPath(), m_path, ec)) {
-        callback(event);
-    }
-    return ListenerResult::Propagate;
-}
-
-FileWatchFilter::FileWatchFilter(std::filesystem::path const& path)
-  : m_path(path) {}
-
 // This is a vector because need to use std::filesystem::equivalent for
 // comparisons and removal is not exactly performance-critical here
 // (who's going to add and remove 500 file watchers every frame)
@@ -892,9 +868,9 @@ Result<> file::watchFile(std::filesystem::path const& file) {
     }
     auto watcher = std::make_unique<FileWatcher>(
         file,
-        [](auto const& path) {
-            Loader::get()->queueInMainThread([=] {
-                FileWatchEvent(path).post();
+        [](std::filesystem::path path) {
+            Loader::get()->queueInMainThread([path = std::move(path)]() {
+                FileWatchEvent(std::filesystem::path(path)).send();
             });
         }
     );

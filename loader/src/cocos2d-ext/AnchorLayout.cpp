@@ -39,7 +39,7 @@ AnchorLayout* AnchorLayout::create() {
 
 void AnchorLayout::apply(CCNode* on) {
     on->ignoreAnchorPointForPosition(false);
-    for (auto node : CCArrayExt<CCNode*>(this->getNodesToPosition(on))) {
+    for (auto node : CCArrayExt<CCNode*>(on->getChildren())) {
         if (auto opts = typeinfo_cast<AnchorLayoutOptions*>(node->getLayoutOptions())) {
             auto pos = opts->getOffset();
             auto size = on->getContentSize();

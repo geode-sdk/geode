@@ -3,6 +3,7 @@
 #include <Geode/Result.hpp>
 
 #include <Geode/DefaultInclude.hpp>
+#include <Geode/utils/function.hpp>
 #include <functional>
 #include <string>
 #include <unordered_map>
@@ -20,7 +21,7 @@ namespace geode::utils::map {
      * false if not.
      */
     template <typename T, typename R, typename H>
-    bool contains(std::unordered_map<T, R, H> const& map, std::function<bool(R)> containFunc) {
+    bool contains(std::unordered_map<T, R, H> const& map, geode::FunctionRef<bool(R)> containFunc) {
         for (auto const& [_, r] : map) {
             if (containFunc(r)) return true;
         }
@@ -39,14 +40,11 @@ namespace geode::utils::map {
      * a pointer.
      */
     template <class T, class R, class H>
-    R select(std::unordered_map<T, R, H> const& map, std::function<bool(R)> selectFunc) {
+    R select(std::unordered_map<T, R, H> const& map, geode::FunctionRef<bool(R)> selectFunc) {
         for (auto const& [_, r] : map) {
             if (selectFunc(r)) return r;
         }
-        if (std::is_pointer<R>::value) {
-            return nullptr;
-        }
-        return R();
+        return R{};
     }
 
     /**
@@ -59,7 +57,7 @@ namespace geode::utils::map {
      */
     template <class T, class R, class H>
     std::vector<R> selectAll(
-        std::unordered_map<T, R, H> const& map, std::function<bool(R)> selectFunc
+        std::unordered_map<T, R, H> const& map, geode::FunctionRef<bool(R)> selectFunc
     ) {
         std::vector<R> res;
         for (auto const& [_, r] : map) {
@@ -75,9 +73,10 @@ namespace geode::utils::map {
      * @param map Map to get values from
      * @returns Vector of all values.
      */
-    template <class T, class R, class H>
-    std::vector<R> values(std::unordered_map<T, R, H> const& map) {
+    template <class T, class R, class H, class K, class A>
+    std::vector<R> values(std::unordered_map<T, R, H, K, A> const& map) {
         std::vector<R> res;
+        res.reserve(map.size());
         for (auto const& [_, r] : map) {
             res.push_back(r);
         }
@@ -89,9 +88,10 @@ namespace geode::utils::map {
      * @param map Map to get keys from
      * @returns Vector of all keys.
      */
-    template <class T, class R, class H>
-    std::vector<T> keys(std::unordered_map<T, R, H> const& map) {
+    template <class T, class R, class H, class K, class A>
+    std::vector<T> keys(std::unordered_map<T, R, H, K, A> const& map) {
         std::vector<T> res;
+        res.reserve(map.size());
         for (auto const& [t, _] : map) {
             res.push_back(t);
         }
@@ -111,7 +111,7 @@ namespace geode::utils::map {
     template <class T1, class V1, class H1, class T2, class V2, class H2>
     std::unordered_map<T2, V2, H2> remap(
         std::unordered_map<T1, V1, H1> const& map,
-        std::function<std::pair<T2, V2>(std::pair<T1, V1>)> remapFunc
+        geode::Function<std::pair<T2, V2>(std::pair<T1, V1>)> remapFunc
     ) {
         std::unordered_map<T2, V2, H2> res;
         for (auto const& [t, v] : map) {

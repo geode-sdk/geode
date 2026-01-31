@@ -5,42 +5,6 @@
 #include <ui/mods/GeodeStyle.hpp>
 #include <Geode/ui/MDPopup.hpp>
 
-class SettingNodeSizeChangeEventV3::Impl final {
-public:
-    SettingNodeV3* node;
-};
-
-SettingNodeSizeChangeEventV3::SettingNodeSizeChangeEventV3(SettingNodeV3* node)
-  : m_impl(std::make_shared<Impl>())
-{
-    m_impl->node = node;
-}
-SettingNodeSizeChangeEventV3::~SettingNodeSizeChangeEventV3() = default;
-
-SettingNodeV3* SettingNodeSizeChangeEventV3::getNode() const {
-    return m_impl->node;
-}
-
-class SettingNodeValueChangeEventV3::Impl final {
-public:
-    SettingNodeV3* node;
-    bool commit = false;
-};
-
-SettingNodeValueChangeEventV3::SettingNodeValueChangeEventV3(SettingNodeV3* node, bool commit)
-  : m_impl(std::make_shared<Impl>())
-{
-    m_impl->node = node;
-    m_impl->commit = commit;
-}
-SettingNodeValueChangeEventV3::~SettingNodeValueChangeEventV3() = default;
-
-SettingNodeV3* SettingNodeValueChangeEventV3::getNode() const {
-    return m_impl->node;
-}
-bool SettingNodeValueChangeEventV3::isCommit() const {
-    return m_impl->commit;
-}
 
 class SettingNodeV3::Impl final {
 public:
@@ -98,7 +62,6 @@ bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
     m_impl->nameMenu->addChild(m_impl->resetButton);
 
     m_impl->nameMenu->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::Start));
-    m_impl->nameMenu->getLayout()->ignoreInvisibleChildren(true);
     this->addChildAtPosition(m_impl->nameMenu, Anchor::Left, ccp(10, 0), ccp(0, .5f));
 
     m_impl->buttonMenu = CCMenu::create();
@@ -144,7 +107,7 @@ void SettingNodeV3::updateState(CCNode* invoker) {
 void SettingNodeV3::onDescription(CCObject*) {
     auto title = m_impl->setting->getDisplayName();
     MDPopup::create(true,
-        title,
+        title.c_str(),
         m_impl->setting->getDescription().value_or("No description provided"),
         "OK"
     )->show();
@@ -172,13 +135,15 @@ void SettingNodeV3::setDefaultBGColor(ccColor4B color) {
 
 void SettingNodeV3::markChanged(CCNode* invoker) {
     this->updateState(invoker);
-    SettingNodeValueChangeEventV3(this, false).post();
+    SettingNodeValueChangeEventV3(m_impl->setting->getModID(), m_impl->setting->getKey()).send(this, false);
+    GlobalSettingNodeValueChangeEventV3().send(m_impl->setting->getModID(), m_impl->setting->getKey(), this, false);
 }
 void SettingNodeV3::commit() {
     this->onCommit();
     m_impl->committed = true;
     this->updateState(nullptr);
-    SettingNodeValueChangeEventV3(this, true).post();
+    SettingNodeValueChangeEventV3(m_impl->setting->getModID(), m_impl->setting->getKey()).send(this, true);
+    GlobalSettingNodeValueChangeEventV3().send(m_impl->setting->getModID(), m_impl->setting->getKey(), this, true);
 }
 void SettingNodeV3::resetToDefault() {
     if (!m_impl->setting) return;
@@ -186,14 +151,16 @@ void SettingNodeV3::resetToDefault() {
     m_impl->committed = true;
     this->onResetToDefault();
     this->updateState(nullptr);
-    SettingNodeValueChangeEventV3(this, false).post();
+    SettingNodeValueChangeEventV3(m_impl->setting->getModID(), m_impl->setting->getKey()).send(this, false);
+    GlobalSettingNodeValueChangeEventV3().send(m_impl->setting->getModID(), m_impl->setting->getKey(), this, false);
 }
 
 void SettingNodeV3::setContentSize(CCSize const& size) {
     CCNode::setContentSize(size);
     m_impl->bg->setContentSize(size);
     this->updateLayout();
-    SettingNodeSizeChangeEventV3(this).post();
+    SettingNodeSizeChangeEventV3(m_impl->setting->getModID(), m_impl->setting->getKey()).send(this);
+    GlobalSettingNodeSizeChangeEventV3().send(m_impl->setting->getModID(), m_impl->setting->getKey(), this);
 }
 
 CCLabelBMFont* SettingNodeV3::getNameLabel() const {
@@ -497,35 +464,33 @@ void FileSettingNodeV3::updateState(CCNode* invoker) {
 }
 
 void FileSettingNodeV3::onPickFile(CCObject*) {
-    m_pickListener.bind([this](auto* event) {
-        auto value = event->getValue();
-        if (!value) {
-            return;
-        }
-        if (value->isOk()) {
-            this->setValue(value->unwrap(), nullptr);
-        }
-        else {
-            FLAlertLayer::create(
-                "Failed",
-                fmt::format("Failed to pick file: {}", value->unwrapErr()),
-                "Ok"
-            )->show();
-        }
-    });
     std::error_code ec;
-    m_pickListener.setFilter(file::pick(
-        this->getSetting()->isFolder() ?
+
+    m_pickListener.spawn(
+        file::pick(
+            this->getSetting()->isFolder() ?
             file::PickMode::OpenFolder :
-            (this->getSetting()->useSaveDialog() ? file::PickMode::SaveFile : file::PickMode::OpenFile),
-        {
-            // Prefer opening the current path directly if possible
-            this->getValue().empty() || !std::filesystem::exists(this->getValue().parent_path(), ec) ?
-                dirs::getGameDir() :
-                this->getValue(),
-            this->getSetting()->getFilters().value_or(std::vector<file::FilePickOptions::Filter>())
+            this->getSetting()->useSaveDialog() ? file::PickMode::SaveFile : file::PickMode::OpenFile,
+            {
+                // Prefer opening the current path directly if possible
+                this->getValue().empty() || !std::filesystem::exists(this->getValue().parent_path(), ec)
+                    ? dirs::getGameDir() : this->getValue(),
+                this->getSetting()->getFilters().value_or(std::vector<file::FilePickOptions::Filter>())
+            }
+        ),
+        [this](Result<std::optional<std::filesystem::path>> path) {
+            if (path.isOk() && path.unwrap().has_value()) {
+                this->setValue(std::move(path).unwrap().value(), nullptr);
+            }
+            else if (path.isErr()) {
+                FLAlertLayer::create(
+                    "Failed",
+                    fmt::format("Failed to pick file: {}", path.unwrapErr()),
+                    "Ok"
+                )->show();
+            }
         }
-    ));
+    );
 }
 
 FileSettingNodeV3* FileSettingNodeV3::create(std::shared_ptr<FileSettingV3> setting, float width) {
@@ -568,13 +533,9 @@ void Color3BSettingNodeV3::updateState(CCNode* invoker) {
 
 void Color3BSettingNodeV3::onSelectColor(CCObject*) {
     auto popup = ColorPickPopup::create(this->getValue());
-    popup->setDelegate(this);
+    popup->setCallback([this](ccColor4B const& color) { this->setValue(to3B(color), nullptr); });
     popup->show();
 }
-void Color3BSettingNodeV3::updateColor(ccColor4B const& color) {
-    this->setValue(to3B(color), nullptr);
-}
-
 Color3BSettingNodeV3* Color3BSettingNodeV3::create(std::shared_ptr<Color3BSettingV3> setting, float width) {
     auto ret = new Color3BSettingNodeV3();
     if (ret->init(setting, width)) {
@@ -616,11 +577,8 @@ void Color4BSettingNodeV3::updateState(CCNode* invoker) {
 
 void Color4BSettingNodeV3::onSelectColor(CCObject*) {
     auto popup = ColorPickPopup::create(this->getValue());
-    popup->setDelegate(this);
+    popup->setCallback([this](ccColor4B const& color) { this->setValue(color, nullptr); });
     popup->show();
-}
-void Color4BSettingNodeV3::updateColor(ccColor4B const& color) {
-    this->setValue(color, nullptr);
 }
 
 Color4BSettingNodeV3* Color4BSettingNodeV3::create(std::shared_ptr<Color4BSettingV3> setting, float width) {

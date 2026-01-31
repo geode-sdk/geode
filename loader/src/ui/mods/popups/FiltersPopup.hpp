@@ -5,23 +5,25 @@
 #include "../sources/ModListSource.hpp"
 #include "../GeodeStyle.hpp"
 #include <server/Server.hpp>
+#include <Geode/utils/async.hpp>
 
 using namespace geode::prelude;
 
-class FiltersPopup : public GeodePopup<ModListSource*> {
+class FiltersPopup : public GeodePopup {
 protected:
     ModListSource* m_source;
     CCMenu* m_tagsMenu;
     std::unordered_set<std::string> m_selectedTags;
-    EventListener<server::ServerRequest<std::vector<server::ServerTag>>> m_tagsListener;
+    ListenerHandle m_tagsHandle;
+    async::TaskHolder<server::ServerResult<std::vector<server::ServerTag>>> m_tagsListener;
     CCMenuItemToggler* m_enabledModsOnly = nullptr;
     CCMenuItemToggler* m_enabledModsFirst = nullptr;
     TextInput* m_developerNameInput = nullptr;
 
-    bool setup(ModListSource* src) override;
+    bool init(ModListSource* src);
     void updateTags();
-
-    void onLoadTags(typename server::ServerRequest<std::vector<server::ServerTag>>::Event* event);
+    
+    void onLoadTags(server::ServerResult<std::vector<server::ServerTag>> result);
     void onResetTags(CCObject*);
     void onResetDevName(CCObject*);
     void onSelectTag(CCObject* sender);

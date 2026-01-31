@@ -36,17 +36,17 @@ __attribute__((constructor)) void _entry() {
     int exitCode = geodeEntry(nullptr);
     if (exitCode != 0) return;
 
-#if defined(GEODE_IS_IOS) && GEODE_COMP_GD_VERSION != 22074
+#if defined(GEODE_IS_IOS) && GEODE_COMP_GD_VERSION != 22081
     #error "Unsupported version for iOS clipping node fix, please update the addresses"
 #endif
 
     auto mod = LoaderImpl::get()->getInternalMod();
     // Patches the depth format of gd to be GL_DEPTH24_STENCIL8_OES, fixing the CCClippingNode recreation
     if (Loader::get()->isPatchless()) {
-        GEODE_MOD_STATIC_PATCH(0x268b38, "\x03\x1e\x91\x52");
+        GEODE_MOD_STATIC_PATCH(0x2699d0, "\x03\x1e\x91\x52");
     }
     else {
-        auto const address = reinterpret_cast<void*>(geode::base::get() + 0x268b38);
+        auto const address = reinterpret_cast<void*>(geode::base::get() + 0x2699d0);
         (void) mod->patch(address, { 0x03, 0x1e, 0x91, 0x52 });
     }
 }

@@ -9,14 +9,9 @@
 #include <server/DownloadManager.hpp>
 #include "../sources/ModSource.hpp"
 #include "../UpdateModListState.hpp"
+#include "ModListItem.hpp"
 
 using namespace geode::prelude;
-
-enum class ModListDisplay {
-    SmallList,
-    BigList,
-    Grid,
-};
 
 // i made it this way just in case someone wanted to add to the enum in the future
 // mat is allowed to judge
@@ -51,10 +46,9 @@ struct matjson::Serialize<ModListDisplay> {
     }
 };
 
-class ModItem : public CCNode {
+class ModItem : public ModListItem {
 protected:
     ModSource m_source;
-    CCScale9Sprite* m_bg;
     CCNode* m_logo;
     CCNode* m_infoContainer;
     CCNode* m_titleContainer;
@@ -69,18 +63,15 @@ protected:
     CCNode* m_downloadWaiting;
     CCNode* m_downloadBarContainer;
     Slider* m_downloadBar;
-    CCMenu* m_viewMenu;
     CCMenuItemToggler* m_enableToggle = nullptr;
     CCMenuItemSpriteExtra* m_updateBtn = nullptr;
-    EventListener<UpdateModListStateFilter> m_updateStateListener;
-    EventListener<server::ServerRequest<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
-    EventListener<server::ModDownloadFilter> m_downloadListener;
+    ListenerHandle m_updateStateHandle;
+    async::TaskHolder<server::ServerResult<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
+    ListenerHandle m_downloadHandle;
     std::optional<server::ServerModUpdate> m_availableUpdate;
-    EventListener<EventFilter<SettingNodeValueChangeEvent>> m_settingNodeListener;
+    ListenerHandle m_settingNodeHandle;
     Ref<CCNode> m_badgeContainer = nullptr;
     Ref<CCNode> m_downloadCountContainer;
-    ModListDisplay m_display = ModListDisplay::SmallList;
-    float m_targetWidth = 300;
     CCLabelBMFont* m_versionDownloadSeparator;
 
     /**
@@ -91,7 +82,7 @@ protected:
 
     void updateState();
 
-    void onCheckUpdates(typename server::ServerRequest<std::optional<server::ServerModUpdate>>::Event* event);
+    void onCheckUpdates(Result<std::optional<server::ServerModUpdate>, server::ServerError> result);
 
     void onEnable(CCObject*);
     void onView(CCObject*);
@@ -101,8 +92,6 @@ protected:
 
 public:
     static ModItem* create(ModSource&& source);
-
-    void updateDisplay(float width, ModListDisplay display);
 
     ModSource& getSource() &;
 };

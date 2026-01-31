@@ -205,7 +205,7 @@ CCMenuItemSpriteExtra* geode::addBackButton(cocos2d::CCNode* to, BackButtonStyle
     return geode::addBackButton(to, [](cocos2d::CCMenuItem*) { CCDirector::get()->popSceneWithTransition(.5f, PopTransition::kPopTransitionFade); }, style);
 }
 
-CCMenuItemSpriteExtra* geode::addBackButton(cocos2d::CCNode* to, std::function<void(cocos2d::CCMenuItem*)> callback, BackButtonStyle style) {
+CCMenuItemSpriteExtra* geode::addBackButton(cocos2d::CCNode* to, geode::Function<void(cocos2d::CCMenuItem*)> callback, BackButtonStyle style) {
     const char* sprite;
     switch (style) {
         default: [[fallthrough]];

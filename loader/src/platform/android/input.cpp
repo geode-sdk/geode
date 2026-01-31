@@ -1,8 +1,11 @@
+#include <Geode/utils/AndroidEvent.hpp>
+
 #include <unordered_map>
 
 #include <android/keycodes.h>
 #include <jni.h>
-#include <cocos2d.h>
+
+using namespace geode::prelude;
 
 namespace {
     std::unordered_map<int, cocos2d::enumKeyCodes> g_keymap = {
@@ -113,7 +116,22 @@ namespace {
         {AKEYCODE_NUMPAD_EQUALS, cocos2d::KEY_Equal}
     };
 
-    cocos2d::enumKeyCodes translateAndroidKeyCodeToWindows(int keyCode) {
+    cocos2d::enumKeyCodes translateAndroidKeyCodeToWindows(int keyCode, bool isController) {
+        if (isController) {
+            switch (keyCode) {
+                case AKEYCODE_DPAD_DOWN:
+                    return cocos2d::CONTROLLER_Down;
+                case AKEYCODE_DPAD_UP:
+                    return cocos2d::CONTROLLER_Up;
+                case AKEYCODE_DPAD_LEFT:
+                    return cocos2d::CONTROLLER_Left;
+                case AKEYCODE_DPAD_RIGHT:
+                    return cocos2d::CONTROLLER_Right;
+                default:
+                    break;
+            }
+        }
+
         if (auto it = g_keymap.find(keyCode); it != g_keymap.end()) {
             return it->second;
         }
@@ -121,74 +139,238 @@ namespace {
             return cocos2d::KEY_None;
         }
     }
-}
 
-extern "C" JNIEXPORT void JNICALL
-Java_com_geode_launcher_utils_GeodeUtils_nativeKeyDown(
-	JNIEnv* env, jobject, jint keycode, jint modifiers, jboolean isRepeat
-) {
-    if (keycode != AKEYCODE_BACK && keycode != AKEYCODE_MENU) {
-        auto keyboard_dispatcher = cocos2d::CCDirector::sharedDirector()->getKeyboardDispatcher();
-        auto translated_code = translateAndroidKeyCodeToWindows(keycode);
+    void onKeyDown(bool isController, jint keycode, jint modifiers, bool isRepeat) {
+        if (keycode != AKEYCODE_BACK && keycode != AKEYCODE_MENU) {
+            auto keyboard_dispatcher = cocos2d::CCDirector::sharedDirector()->getKeyboardDispatcher();
+            auto translated_code = translateAndroidKeyCodeToWindows(keycode, isController);
 
-        auto isShiftPressed = modifiers & 0x1;
-        auto isCtrlPressed = modifiers & 0x1000;
-        auto isAltPressed = modifiers & 0x2;
+            auto isShiftPressed = modifiers & 0x1;
+            auto isCtrlPressed = modifiers & 0x1000;
+            auto isAltPressed = modifiers & 0x2;
 
-        keyboard_dispatcher->updateModifierKeys(isShiftPressed, isCtrlPressed, isAltPressed, false);
+            keyboard_dispatcher->updateModifierKeys(isShiftPressed, isCtrlPressed, isAltPressed, false);
 
-        keyboard_dispatcher->dispatchKeyboardMSG(translated_code, true, isRepeat);
-    } else {
-        auto keypad_dispatcher = cocos2d::CCDirector::sharedDirector()->getKeypadDispatcher();
-        if (keycode == AKEYCODE_BACK) {
-            keypad_dispatcher->dispatchKeypadMSG(cocos2d::kTypeBackClicked);
+            // TODO: v5
+            keyboard_dispatcher->dispatchKeyboardMSG(translated_code, true, isRepeat, 0.0);
         } else {
-            keypad_dispatcher->dispatchKeypadMSG(cocos2d::kTypeMenuClicked);
+            auto keypad_dispatcher = cocos2d::CCDirector::sharedDirector()->getKeypadDispatcher();
+            if (keycode == AKEYCODE_BACK) {
+                keypad_dispatcher->dispatchKeypadMSG(cocos2d::kTypeBackClicked);
+            } else {
+                keypad_dispatcher->dispatchKeypadMSG(cocos2d::kTypeMenuClicked);
+            }
         }
     }
-}
 
-extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_nativeKeyUp(
-    JNIEnv* env, jobject, jint keycode, jint modifiers
-) {
-    // back/menu keys
-    if (keycode != AKEYCODE_BACK && keycode != AKEYCODE_MENU) {
-        auto keyboard_dispatcher = cocos2d::CCDirector::sharedDirector()->getKeyboardDispatcher();
-        auto translated_code = translateAndroidKeyCodeToWindows(keycode);
+    void onKeyUp(bool isController, jint keycode, jint modifiers) {
+        // back/menu keys
+        if (keycode != AKEYCODE_BACK && keycode != AKEYCODE_MENU) {
+            auto keyboard_dispatcher = cocos2d::CCDirector::sharedDirector()->getKeyboardDispatcher();
+            auto translated_code = translateAndroidKeyCodeToWindows(keycode, isController);
 
-        auto isShiftPressed = modifiers & 0x1;
-        auto isCtrlPressed = modifiers & 0x1000;
-        auto isAltPressed = modifiers & 0x2;
+            auto isShiftPressed = modifiers & 0x1;
+            auto isCtrlPressed = modifiers & 0x1000;
+            auto isAltPressed = modifiers & 0x2;
 
-        keyboard_dispatcher->updateModifierKeys(
-            isShiftPressed,
-            isCtrlPressed,
-            isAltPressed,
-            false
-        );
+            keyboard_dispatcher->updateModifierKeys(
+                isShiftPressed,
+                isCtrlPressed,
+                isAltPressed,
+                false
+            );
 
-        keyboard_dispatcher->dispatchKeyboardMSG(translated_code, false, false);
+            // TODO: v5
+            keyboard_dispatcher->dispatchKeyboardMSG(translated_code, false, false, 0.0);
+        }
+    }
+
+    std::vector<float> extractFloatArray(JNIEnv* env, jfloatArray array) {
+        if (!array) {
+            return {};
+        }
+
+        auto size = env->GetArrayLength(array);
+
+        std::vector<float> res(size);
+
+        env->GetFloatArrayRegion(array, 0, size, res.data());
+
+        return res;
+    }
+
+    std::vector<int> extractIntArray(JNIEnv* env, jintArray array) {
+        if (!array) {
+            return {};
+        }
+
+        auto size = env->GetArrayLength(array);
+
+        std::vector<int> res(size);
+
+        env->GetIntArrayRegion(array, 0, size, res.data());
+
+        return res;
     }
 }
+
+
+extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_internalKeyEvent(
+    JNIEnv* env, jobject, jlong timestamp, jint deviceId, jint eventSource, jint keyCode, jint modifiers, jboolean isDown, jint repeatCount
+) {
+    if (AndroidRichInputEvent().send(std::move(timestamp), std::move(deviceId), std::move(eventSource), AndroidKeyInput(keyCode, modifiers, isDown, repeatCount)) != ListenerResult::Propagate) {
+        return;
+    }
+
+    auto isController = eventSource == 0x00000401 || eventSource == 0x01000010;
+
+    if (isDown) {
+        onKeyDown(isController, keyCode, modifiers, repeatCount > 0);
+    } else {
+        onKeyUp(isController, keyCode, modifiers);
+    }
+}
+
 
 constexpr auto g_scrollFactor = -13.0f;
 
-extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_nativeActionScroll(
-    JNIEnv* env, jobject, jfloat scrollX, jfloat scrollY
+extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_internalScrollEvent(
+    JNIEnv* env, jobject, jlong timestamp, jint deviceId, jint eventSource, jfloat scrollX, jfloat scrollY
 ) {
+    if (AndroidRichInputEvent().send(std::move(timestamp), std::move(deviceId), std::move(eventSource), AndroidScrollInput(scrollX, scrollY)) != ListenerResult::Propagate) {
+        return;
+    }
+
     cocos2d::CCDirector::sharedDirector()->getMouseDispatcher()->dispatchScrollMSG(
         scrollY * g_scrollFactor, scrollX * g_scrollFactor
     );
 }
 
-extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_resizeSurface(
-    JNIEnv* env, jobject, jint width, jint height
+extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_internalTouchEvent(
+    JNIEnv* env, jobject, jlong timestamp, jint deviceId, jint eventSource, jint eventType, jintArray ids, jfloatArray xs, jfloatArray ys
 ) {
-    auto fWidth = static_cast<float>(width);
-    auto fHeight = static_cast<float>(height);
+    auto idArr = extractIntArray(env, ids);
+    auto xArr = extractFloatArray(env, xs);
+    auto yArr = extractFloatArray(env, ys);
 
-    cocos2d::CCEGLView::sharedOpenGLView()->setFrameSize(fWidth, fHeight);
-    cocos2d::CCDirector::sharedDirector()->updateScreenScale({fWidth, fHeight});
-    cocos2d::CCDirector::sharedDirector()->setViewport();
-    cocos2d::CCDirector::sharedDirector()->setProjection(cocos2d::kCCDirectorProjection2D);
+    std::vector<AndroidTouchInput::Data> touches(idArr.size());
+
+    // sometimes i wish we had c++23
+    for (int i = 0; i < idArr.size(); i++) {
+        touches.emplace_back(idArr[i], xArr[i], yArr[i]);
+    }
+
+    auto type = static_cast<AndroidTouchInput::Type>(eventType);
+
+    if (AndroidRichInputEvent().send(std::move(timestamp), std::move(deviceId), std::move(eventSource), AndroidTouchInput(touches, type)) != ListenerResult::Propagate) {
+        return;
+    }
+
+    auto glView = cocos2d::CCDirector::sharedDirector()->getOpenGLView();
+    switch (type) {
+        case AndroidTouchInput::Type::Began:
+            // idArr.size() should == 1, but we're going to be passing this array anyways so it doesn't matter
+            // TODO: v5
+            glView->handleTouchesBegin(idArr.size(), idArr.data(), xArr.data(), yArr.data(), 0.0);
+            break;
+        case AndroidTouchInput::Type::Moved:
+            glView->handleTouchesMove(idArr.size(), idArr.data(), xArr.data(), yArr.data(), 0.0);
+            break;
+        case AndroidTouchInput::Type::Ended:
+            glView->handleTouchesEnd(idArr.size(), idArr.data(), xArr.data(), yArr.data(), 0.0);
+            break;
+        case AndroidTouchInput::Type::Cancelled:
+            glView->handleTouchesCancel(idArr.size(), idArr.data(), xArr.data(), yArr.data(), 0.0);
+            break;
+    }
+}
+
+extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_internalJoystickEvent(
+    JNIEnv* env, jobject, jlong timestamp, jint deviceId, jint eventSource, jfloatArray leftX, jfloatArray leftY, jfloatArray rightX, jfloatArray rightY, jfloatArray hatX, jfloatArray hatY, jfloatArray leftTrigger, jfloatArray rightTrigger
+) {
+    auto leftXArr = extractFloatArray(env, leftX);
+    auto leftYArr = extractFloatArray(env, leftY);
+
+    auto rightXArr = extractFloatArray(env, rightX);
+    auto rightYArr = extractFloatArray(env, rightY);
+
+    auto hatXArr = extractFloatArray(env, hatX);
+    auto hatYArr = extractFloatArray(env, hatY);
+
+    auto leftTriggerArr = extractFloatArray(env, leftTrigger);
+    auto rightTriggerArr = extractFloatArray(env, rightTrigger);
+
+    std::vector<AndroidJoystickInput::Data> inputs(leftXArr.size());
+
+    for (int i = 0; i < leftXArr.size(); i++) {
+        inputs.emplace_back(
+            leftXArr[i], leftYArr[i],
+            rightXArr[i], rightYArr[i],
+            hatXArr[i], hatYArr[i],
+            leftTriggerArr[i], rightTriggerArr[i]
+        );
+    }
+
+    AndroidRichInputEvent().send(
+        std::move(timestamp), std::move(deviceId), std::move(eventSource), AndroidJoystickInput(inputs)
+    );
+}
+
+AndroidScrollInput::AndroidScrollInput(float scrollX, float scrollY) : m_scrollX(scrollX), m_scrollY(scrollY) {}
+
+float AndroidScrollInput::scrollX() const {
+    return m_scrollX;
+}
+
+float AndroidScrollInput::scrollY() const {
+    return m_scrollY;
+}
+
+AndroidKeyInput::AndroidKeyInput(int keycode, int modifiers, bool isDown, int repeatCount) : m_keycode(keycode), m_modifiers(modifiers), m_isDown(isDown), m_repeatCount(repeatCount) {}
+
+int AndroidKeyInput::keycode() const {
+    return m_keycode;
+}
+
+bool AndroidKeyInput::isDown() const {
+    return m_isDown;
+}
+
+int AndroidKeyInput::repeatCount() const {
+    return m_repeatCount;
+}
+
+int AndroidKeyInput::modifiers() const {
+    return m_modifiers;
+}
+
+AndroidTouchInput::AndroidTouchInput(std::vector<Data> touches, Type type) : m_touches(touches), m_type(type) {}
+
+std::vector<AndroidTouchInput::Data> AndroidTouchInput::touches() const {
+    return m_touches;
+}
+
+AndroidTouchInput::Type AndroidTouchInput::type() const {
+    return m_type;
+}
+
+AndroidJoystickInput::AndroidJoystickInput(std::vector<Data> packets) : m_packets(packets) {}
+
+std::vector<AndroidJoystickInput::Data> AndroidJoystickInput::packets() const {
+    return m_packets;
+}
+
+extern "C"
+JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inputDeviceAdded(JNIEnv*, jobject, jint deviceId, jint eventSource) {
+    geode::AndroidInputDeviceEvent().send(std::move(deviceId), geode::AndroidInputDeviceStatus::Added);
+}
+
+extern "C"
+JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inputDeviceChanged(JNIEnv*, jobject, jint deviceId, jint eventSource) {
+    geode::AndroidInputDeviceEvent().send(std::move(deviceId), geode::AndroidInputDeviceStatus::Changed);
+}
+
+extern "C"
+JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inputDeviceRemoved(JNIEnv*, jobject, jint deviceId, jint eventSource) {
+    geode::AndroidInputDeviceEvent().send(std::move(deviceId), geode::AndroidInputDeviceStatus::Removed);
 }

@@ -1,4 +1,5 @@
 #include <cocos2d.h>
+#include <Geode/utils/cocos.hpp>
 
 using namespace cocos2d;
 
@@ -73,11 +74,10 @@ void CCKeyboardDispatcher::forceAddDelegate(CCKeyboardDelegate* pDelegate)
 
 void CCKeyboardDispatcher::forceRemoveDelegate(CCKeyboardDelegate* pDelegate)
 {
-    CCObject* handler = nullptr;
-    CCARRAY_FOREACH(m_pDelegates, handler)
-    {
-        if (pDelegate && pDelegate == static_cast<CCKeyboardHandler*>(handler)->getDelegate())
-        {
+    if (!pDelegate) return;
+
+    for (auto handler : geode::cocos::CCArrayExt<CCKeyboardHandler>(m_pDelegates)) {
+        if (pDelegate == handler->getDelegate()) {
             m_pDelegates->removeObject(handler, true);
         }
     }
@@ -100,7 +100,7 @@ enumKeyCodes CCKeyboardDispatcher::convertKeyCode(enumKeyCodes key)
     }
 }
 
-bool CCKeyboardDispatcher::dispatchKeyboardMSG(enumKeyCodes key, bool isKeyDown, bool isKeyRepeat)
+bool CCKeyboardDispatcher::dispatchKeyboardMSG(enumKeyCodes key, bool isKeyDown, bool isKeyRepeat, double timestamp)
 {
     if (isKeyRepeat && m_bBlockRepeat)
     {
@@ -122,23 +122,17 @@ bool CCKeyboardDispatcher::dispatchKeyboardMSG(enumKeyCodes key, bool isKeyDown,
     }
 
     m_bUnknown38 = true;
-    CCObject* handler;
-    CCARRAY_FOREACH(m_pDelegates, handler)
-    {
-        auto keyboardHandler = static_cast<CCKeyboardHandler*>(handler);
-        if (!handler)
-        {
-            break;
-        }
 
-        auto delegate = keyboardHandler->getDelegate();
+    for (auto handler : geode::cocos::CCArrayExt<CCKeyboardHandler>(m_pDelegates))
+    {
+        auto delegate = handler->getDelegate();
         if (isKeyDown)
         {
-            delegate->keyDown(key);
+            delegate->keyDown(key, timestamp);
         }
         else
         {
-            delegate->keyUp(key);
+            delegate->keyUp(key, timestamp);
         }
     }
     m_bUnknown38 = false;

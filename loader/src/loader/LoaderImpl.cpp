@@ -6,6 +6,7 @@
 #include "LogImpl.hpp"
 #include "console.hpp"
 
+#include <Geode/loader/Event.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Loader.hpp>
@@ -34,6 +35,11 @@
 #include <Geode/ui/Popup.hpp>
 
 using namespace geode::prelude;
+
+comm::EventCenter* geode::comm::EventCenter::get() {
+    static EventCenter instance;
+    return &instance;
+}
 
 Loader::Impl* LoaderImpl::get() {
     return Loader::get()->m_impl.get();
@@ -138,7 +144,7 @@ Result<> Loader::Impl::setup() {
 
     // Trigger on_mod(Loaded) for the internal mod
     // this function is already on the gd thread, so this should be fine
-    ModStateEvent(Mod::get(), ModEventType::Loaded).post();
+    ModStateEvent(ModEventType::Loaded, Mod::get()).send();
 
     log::info("Refreshing mod graph");
     this->refreshModGraph();
@@ -221,27 +227,26 @@ void Loader::Impl::loadData() {
 
 // Mod loading
 
-bool Loader::Impl::isModInstalled(std::string const& id) const {
-    return m_mods.count(id) && !m_mods.at(id)->isUninstalled();
+bool Loader::Impl::isModInstalled(std::string_view id) const {
+    return this->getInstalledMod(id) != nullptr;
 }
 
-Mod* Loader::Impl::getInstalledMod(std::string const& id) const {
-    if (m_mods.count(id) && !m_mods.at(id)->isUninstalled()) {
-        return m_mods.at(id);
+Mod* Loader::Impl::getInstalledMod(std::string_view id) const {
+    auto it = m_mods.find(id);
+    if (it != m_mods.end() && !it->second->isUninstalled()) {
+        return it->second;
     }
     return nullptr;
 }
 
-bool Loader::Impl::isModLoaded(std::string const& id) const {
-    return m_mods.count(id) && m_mods.at(id)->isEnabled();
+bool Loader::Impl::isModLoaded(std::string_view id) const {
+    return this->getLoadedMod(id) != nullptr;
 }
 
-Mod* Loader::Impl::getLoadedMod(std::string const& id) const {
-    if (m_mods.count(id)) {
-        auto mod = m_mods.at(id);
-        if (mod->isEnabled()) {
-            return mod;
-        }
+Mod* Loader::Impl::getLoadedMod(std::string_view id) const {
+    auto it = m_mods.find(id);
+    if (it != m_mods.end() && it->second->isEnabled()) {
+        return it->second;
     }
     return nullptr;
 }
@@ -254,28 +259,38 @@ void Loader::Impl::updateModResources(Mod* mod) {
     }
 
     // only thing needs previous setup is spritesheets
-    if (mod->getMetadataRef().getSpritesheets().empty())
+    auto& sheets = mod->getMetadata().getSpritesheets();
+    if (sheets.empty())
         return;
 
     log::debug("{}", mod->getID());
     log::NestScope nest;
 
-    for (auto const& sheet : mod->getMetadataRef().getSpritesheets()) {
+    for (auto const& sheet : sheets) {
         log::debug("Adding sheet {}", sheet);
-        auto png = sheet + ".png";
-        auto plist = sheet + ".plist";
+
         auto ccfu = CCFileUtils::get();
 
-        if (png == std::string(ccfu->fullPathForFilename(png.c_str(), false)) ||
-            plist == std::string(ccfu->fullPathForFilename(plist.c_str(), false))) {
+        std::string tmp;
+        tmp.reserve(sheet.size() + 6);
+        tmp.append(sheet);
+        tmp.append(".png");
+        auto pngPath = ccfu->fullPathForFilename(tmp.c_str(), false);
+        bool missingPng = std::string_view{pngPath} == tmp;
+        tmp.resize(sheet.size());
+        tmp.append(".plist");
+        auto plistPath = ccfu->fullPathForFilename(tmp.c_str(), false);
+        bool missingPlist = std::string_view{plistPath} == tmp;
+
+        if (missingPng || missingPlist) {
             log::warn(
                 R"(The resource dir of "{}" is missing "{}" png and/or plist files)",
                 mod->getID(), sheet
             );
         }
         else {
-            CCTextureCache::get()->addImage(png.c_str(), false);
-            CCSpriteFrameCache::get()->addSpriteFramesWithFile(plist.c_str());
+            CCTextureCache::get()->addImage(pngPath.c_str(), false);
+            CCSpriteFrameCache::get()->addSpriteFramesWithFile(plistPath.c_str());
         }
     }
 }
@@ -378,31 +393,32 @@ void Loader::Impl::buildModGraph() {
         log::debug("{}", mod->getID());
         log::NestScope nest;
         for (auto& dependency : mod->m_impl->m_metadata.m_impl->m_dependencies) {
-            log::debug("{}", dependency.id);
-            if (!m_mods.contains(dependency.id)) {
-                dependency.mod = nullptr;
+            log::debug("{}", dependency.getID());
+            if (!m_mods.contains(dependency.getID())) {
+                dependency.setMod(nullptr);
                 continue;
             }
 
-            dependency.mod = m_mods[dependency.id];
+            dependency.setMod(m_mods[dependency.getID()]);
 
-            if (!dependency.version.compare(dependency.mod->getVersion())) {
-                dependency.mod = nullptr;
+            if (!dependency.getVersion().compare(dependency.getMod()->getVersion())) {
+                dependency.setMod(nullptr);
                 continue;
             }
 
             if (
-                dependency.importance != ModMetadata::Dependency::Importance::Required ||
-                dependency.mod == nullptr
+                dependency.getImportance() != ModMetadata::Dependency::Importance::Required ||
+                dependency.getMod() == nullptr
             )
                 continue;
 
-            dependency.mod->m_impl->m_dependants.push_back(mod);
-            dependency.mod->m_impl->m_settings->addDependant(mod);
+            dependency.getMod()->m_impl->m_dependants.push_back(mod);
+            dependency.getMod()->m_impl->m_settings->addDependant(mod);
         }
         for (auto& incompatibility : mod->m_impl->m_metadata.m_impl->m_incompatibilities) {
-            incompatibility.mod =
-                m_mods.contains(incompatibility.id) ? m_mods[incompatibility.id] : nullptr;
+            incompatibility.setMod(
+                m_mods.contains(incompatibility.getID()) ? m_mods[incompatibility.getID()] : nullptr
+            );
         }
     }
 }
@@ -412,7 +428,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
     // invalid target version
     // Also this makes it so that when GD updates, outdated mods get shown as
     // "Outdated" in the UI instead of "Missing Dependencies"
-    auto res = node->getMetadataRef().checkGameVersion();
+    auto res = node->getMetadata().checkGameVersion();
     if (!res) {
         this->addProblem({
             LoadProblem::Type::UnsupportedVersion,
@@ -423,10 +439,10 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
         return;
     }
 
-    auto geodeVerRes = node->getMetadataRef().checkGeodeVersion();
+    auto geodeVerRes = node->getMetadata().checkGeodeVersion();
     if (!geodeVerRes) {
         this->addProblem({
-            node->getMetadataRef().getGeodeVersion() > this->getVersion() ?
+            node->getMetadata().getGeodeVersion() > this->getVersion() ?
                 LoadProblem::Type::NeedsNewerGeodeVersion :
                 LoadProblem::Type::UnsupportedGeodeVersion,
             node,
@@ -459,7 +475,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
 
     auto unzipFunction = [this, node]() {
         log::debug("Unzipping .geode file");
-        auto res = this->unzipGeodeFile(node->getMetadataRef());
+        auto res = this->unzipGeodeFile(node->getMetadata());
         return res;
     };
 
@@ -534,7 +550,7 @@ void Loader::Impl::findProblems() {
             continue;
         }
 
-        if (auto reason = mod->getMetadataRef().m_impl->m_softInvalidReason) {
+        if (auto& reason = mod->getMetadata().m_impl->m_softInvalidReason) {
             auto& [message, type] = *reason;
 
             this->addProblem({ type, mod, message });
@@ -545,24 +561,24 @@ void Loader::Impl::findProblems() {
         log::debug("{}", id);
         log::NestScope nest;
 
-        for (auto const& dep : mod->getMetadataRef().getDependencies()) {
-            if (dep.mod && dep.mod->isEnabled() && dep.version.compare(dep.mod->getVersion()))
+        for (auto const& dep : mod->getMetadata().getDependencies()) {
+            if (dep.getMod() && dep.getMod()->isEnabled() && dep.getVersion().compare(dep.getMod()->getVersion()))
                 continue;
 
-            auto dismissKey = fmt::format("dismiss-optional-dependency-{}-for-{}", dep.id, id);
+            auto dismissKey = fmt::format("dismiss-optional-dependency-{}-for-{}", dep.getID(), id);
 
-            switch(dep.importance) {
+            switch(dep.getImportance()) {
                 case ModMetadata::Dependency::Importance::Suggested:
                     if (!Mod::get()->getSavedValue<bool>(dismissKey)) {
                         this->addProblem({
                             LoadProblem::Type::Suggestion,
                             mod,
-                            fmt::format("{} {}", dep.id, dep.version.toString())
+                            fmt::format("{} {}", dep.getID(), dep.getVersion().toString())
                         });
-                        log::info("{} suggests {} {}", id, dep.id, dep.version);
+                        log::info("{} suggests {} {}", id, dep.getID(), dep.getVersion());
                     }
                     else {
-                        log::debug("{} suggests {} {}, but that suggestion was dismissed", id, dep.id, dep.version);
+                        log::debug("{} suggests {} {}, but that suggestion was dismissed", id, dep.getID(), dep.getVersion());
                     }
                     break;
                 case ModMetadata::Dependency::Importance::Recommended:
@@ -570,85 +586,85 @@ void Loader::Impl::findProblems() {
                         this->addProblem({
                             LoadProblem::Type::Recommendation,
                             mod,
-                            fmt::format("{} {}", dep.id, dep.version.toString())
+                            fmt::format("{} {}", dep.getID(), dep.getVersion().toString())
                         });
-                        log::info("{} recommends {} {}", id, dep.id, dep.version);
+                        log::info("{} recommends {} {}", id, dep.getID(), dep.getVersion());
                     }
                     else {
-                        log::debug("{} recommends {} {}, but that suggestion was dismissed", id, dep.id, dep.version);
+                        log::debug("{} recommends {} {}, but that suggestion was dismissed", id, dep.getID(), dep.getVersion());
                     }
                     break;
                 case ModMetadata::Dependency::Importance::Required:
-                    if(m_mods.find(dep.id) == m_mods.end()) {
+                    if(m_mods.find(dep.getID()) == m_mods.end()) {
                         this->addProblem({
                             LoadProblem::Type::MissingDependency,
                             mod,
-                            fmt::format("{}", dep.id)
+                            fmt::format("{}", dep.getID())
                         });
-                        log::error("{} requires {} {}", id, dep.id, dep.version);
+                        log::error("{} requires {} {}", id, dep.getID(), dep.getVersion());
                         break;
                     } else {
-                        auto installedDependency = m_mods.at(dep.id);
+                        auto installedDependency = m_mods.at(dep.getID());
 
                         if(!installedDependency->isEnabled()) {
                             this->addProblem({
                                 LoadProblem::Type::DisabledDependency,
                                 mod,
-                                fmt::format("{}", dep.id)
+                                fmt::format("{}", dep.getID())
                             });
-                            log::error("{} requires {} {}", id, dep.id, dep.version);
+                            log::error("{} requires {} {}", id, dep.getID(), dep.getVersion());
                             break;
-                        } else if(dep.version.compareWithReason(installedDependency->getVersion()) == VersionCompareResult::TooOld) {
+                        } else if(dep.getVersion().compareWithReason(installedDependency->getVersion()) == VersionCompareResult::TooOld) {
                             this->addProblem({
                                 LoadProblem::Type::OutdatedDependency,
                                 mod,
-                                fmt::format("{}", dep.id)
+                                fmt::format("{}", dep.getID())
                             });
-                            log::error("{} requires {} {}", id, dep.id, dep.version);
+                            log::error("{} requires {} {}", id, dep.getID(), dep.getVersion());
                             break;
                         } else {
                             // fires on major mismatch or too new version of dependency
                             this->addProblem({
                                 LoadProblem::Type::MissingDependency,
                                 mod,
-                                fmt::format("{} {}", dep.id, dep.version)
+                                fmt::format("{} {}", dep.getID(), dep.getVersion())
                             });
-                            log::error("{} requires {} {}", id, dep.id, dep.version);
+                            log::error("{} requires {} {}", id, dep.getID(), dep.getVersion());
                             break;
                         }
                     }
             }
         }
 
-        for (auto const& dep : mod->getMetadataRef().getIncompatibilities()) {
-            if (!dep.mod || !dep.version.compare(dep.mod->getVersion()) || !dep.mod->shouldLoad())
+        for (auto const& dep : mod->getMetadata().getIncompatibilities()) {
+            if (!dep.getMod() || !dep.getVersion().compare(dep.getMod()->getVersion()) || !dep.getMod()->shouldLoad())
                 continue;
-            switch(dep.importance) {
+            switch(dep.getImportance()) {
                 case ModMetadata::Incompatibility::Importance::Conflicting: {
                     this->addProblem({
-                        dep.version.toString()[0] == '<' ? LoadProblem::Type::OutdatedConflict : LoadProblem::Type::Conflict,
+                        dep.getVersion().toString()[0] == '<' ? LoadProblem::Type::OutdatedConflict : LoadProblem::Type::Conflict,
                         mod,
-                        fmt::format("{}", dep.id)
+                        fmt::format("{}", dep.getID())
                     });
-                    log::warn("{} conflicts with {} {}", id, dep.id, dep.version);
+                    log::warn("{} conflicts with {} {}", id, dep.getID(), dep.getVersion());
                 } break;
 
                 case ModMetadata::Incompatibility::Importance::Breaking: {
                     this->addProblem({
-                        dep.version.toString()[0] == '<' ? LoadProblem::Type::OutdatedIncompatibility : LoadProblem::Type::PresentIncompatibility,
+                        dep.getVersion().toString()[0] == '<' ? LoadProblem::Type::OutdatedIncompatibility : LoadProblem::Type::PresentIncompatibility,
                         mod,
-                        fmt::format("{}", dep.id)
+                        fmt::format("{}", dep.getID())
                     });
-                    log::error("{} breaks {} {}", id, dep.id, dep.version);
+                    log::error("{} breaks {} {}", id, dep.getID(), dep.getVersion());
                 } break;
 
                 case ModMetadata::Incompatibility::Importance::Superseded: {
                     this->addProblem({
                         LoadProblem::Type::PresentIncompatibility,
                         mod,
-                        fmt::format("{}", dep.id)
+                        fmt::format("{}", dep.getID())
                     });
-                    log::error("{} supersedes {} {}", id, dep.id, dep.version);
+                    log::error("{} supersedes {} {}", id, dep.getID(), dep.getVersion());
                 } break;
             }
         }
@@ -734,7 +750,7 @@ void Loader::Impl::refreshModGraph() {
 
     queueInMainThread([this]() {
         utils::thread::setName("Main");
-        
+
         log::info("Loading non-early mods");
         this->continueRefreshModGraph();
     });
@@ -769,9 +785,9 @@ void Loader::Impl::orderModStack() {
             return;
         visited.insert(mod);
         for (auto dep : mod->m_impl->m_metadata.m_impl->m_dependencies) {
-            if (dep.importance != ModMetadata::Dependency::Importance::Required)
+            if (dep.getImportance() != ModMetadata::Dependency::Importance::Required)
                 continue;
-            visit(dep.mod, visit);
+            visit(dep.getMod(), visit);
         }
         m_modsToLoad.push_back(mod);
         log::debug("{} [{}]{}", mod->getID(), mod->getLoadPriority(), mod->needsEarlyLoad() ? " (early)" : "");
@@ -918,7 +934,7 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
         }
 
         const std::string filename = utils::string::pathToString(entry.path().filename());
-        if (filename == metadata.getBinaryName() || !isPlatformBinary(metadata.getID(), filename)) {
+        if (metadata.getBinaryName() == filename || !isPlatformBinary(metadata.getID(), filename)) {
             continue;
         }
 
@@ -994,17 +1010,27 @@ void Loader::Impl::queueInMainThread(ScheduledFunction&& func) {
 }
 
 void Loader::Impl::executeMainThreadQueue() {
-    // move queue to avoid locking mutex if someone is
-    // running addToMainThread inside their function
     m_mainThreadMutex.lock();
-    auto queue = std::move(m_mainThreadQueue);
-    m_mainThreadQueue = {};
+
+    // to prevent allocating an extra vector every frame we have a separate temp queue,
+    // where we first move all functions before executing them.
+    // this means there are no allocations in the common case, and we maintain deadlock safety
+    // since we do not call any functions while holding the mutex
+
+    auto& queue = m_mainThreadQueue;
+    auto& execQueue = m_mainThreadQueueExec;
+    execQueue.reserve(queue.size());
+    std::move(queue.begin(), queue.end(), std::back_inserter(execQueue));
+    queue.clear();
+
     m_mainThreadMutex.unlock();
 
-    // call queue
-    for (auto const& func : queue) {
+    // call all functions
+    for (auto& func : execQueue) {
         func();
     }
+
+    execQueue.clear();
 }
 
 void Loader::Impl::provideNextMod(Mod* mod) {
@@ -1047,19 +1073,22 @@ void Loader::Impl::initLaunchArguments() {
     }
     arguments.emplace_back(std::move(currentArg));
 
-    for (const auto& arg : arguments) {
+    for (const auto& argstr : arguments) {
+        std::string_view arg{argstr};
         if (!arg.starts_with(LAUNCH_ARG_PREFIX)) {
             continue;
         }
-        auto pair = arg.substr(LAUNCH_ARG_PREFIX.size());
-        auto sep = pair.find('=');
+        arg.remove_prefix(LAUNCH_ARG_PREFIX.size());
+        auto sep = arg.find('=');
         if (sep == std::string::npos) {
-            m_launchArgs.insert({ pair, "true" });
+            m_launchArgs.insert({ std::string{arg}, "true" });
             continue;
         }
-        auto key = pair.substr(0, sep);
-        auto value = pair.substr(sep + 1);
-        m_launchArgs.insert({ key, value });
+
+        m_launchArgs.insert({
+            std::string{arg.substr(0, sep)},
+            std::string{arg.substr(sep + 1)}
+        });
     }
     for (const auto& pair : m_launchArgs) {
         log::debug("Loaded '{}' as '{}'", pair.first, pair.second);
@@ -1071,11 +1100,11 @@ std::vector<std::string> Loader::Impl::getLaunchArgumentNames() const {
 }
 
 bool Loader::Impl::hasLaunchArgument(std::string_view name) const {
-    return m_launchArgs.find(std::string(name)) != m_launchArgs.end();
+    return m_launchArgs.find(name) != m_launchArgs.end();
 }
 
 std::optional<std::string> Loader::Impl::getLaunchArgument(std::string_view name) const {
-    auto value = m_launchArgs.find(std::string(name));
+    auto value = m_launchArgs.find(name);
     if (value == m_launchArgs.end()) {
         return std::nullopt;
     }
@@ -1135,7 +1164,7 @@ void Loader::Impl::forceSafeMode() {
     m_forceSafeMode = true;
 }
 
-void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path, std::function<void()> after) {
+void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path, geode::Function<void()> after) {
     auto res = ModMetadata::createFromGeodeFile(path);
     if (!res) {
         FLAlertLayer::create(
@@ -1164,7 +1193,7 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
         )->show();
     }
 
-    auto doInstallModFromFile = [this, path, meta, after]() {
+    auto doInstallModFromFile = [this, path, meta, after = std::move(after)]() mutable {
         std::error_code ec;
 
         static size_t MAX_ATTEMPTS = 10;
@@ -1249,7 +1278,9 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
                     // No need to show a confirmation popup if successful since that's
                     // to be assumed via pressing the button on the previous popup
                 }
-            }
+            },
+            true,
+            false
         );
     };
 
@@ -1264,22 +1295,26 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
                 existing->getVersion()
             ),
             "Cancel", "Replace",
-            [doInstallModFromFile, path, existing, meta](auto, bool btn2) mutable {
-                std::error_code ec;
-                std::filesystem::remove(existing->getPackagePath(), ec);
-                if (ec) {
-                    FLAlertLayer::create(
-                        "Unable to Uninstall",
-                        fmt::format(
-                            "Unable to uninstall <cy>{}</c>: {} (Error code <cr>{}</c>)",
-                            existing->getID(), ec.message(), ec.value()
-                        ),
-                        "OK"
-                    )->show();
-                    return;
+            [doInstallModFromFile = std::move(doInstallModFromFile), path, existing, meta](auto, bool btn2) mutable {
+                if (btn2) {
+                    std::error_code ec;
+                    std::filesystem::remove(existing->getPackagePath(), ec);
+                    if (ec) {
+                        FLAlertLayer::create(
+                            "Unable to Uninstall",
+                            fmt::format(
+                                "Unable to uninstall <cy>{}</c>: {} (Error code <cr>{}</c>)",
+                                existing->getID(), ec.message(), ec.value()
+                            ),
+                            "OK"
+                        )->show();
+                        return;
+                    }
+                    doInstallModFromFile();
                 }
-                doInstallModFromFile();
-            }
+            },
+            true,
+            false
         );
         return;
     }

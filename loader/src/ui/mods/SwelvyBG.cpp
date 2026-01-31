@@ -1,6 +1,6 @@
 #include "SwelvyBG.hpp"
 #include <Geode/loader/Mod.hpp>
-#include <random>
+#include <Geode/utils/random.hpp>
 
 bool SwelvyBG::init() {
     if (!CCNode::init())
@@ -12,11 +12,6 @@ bool SwelvyBG::init() {
     this->setContentSize(winSize);
     this->setAnchorPoint({ 0.f, 0.f });
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> sign(0, 1);
-    std::uniform_real_distribution<float> dis(3.f, 9.f);
-
     float y = m_obContentSize.height + 5;
     int idx = 0;
     for (auto layer : std::initializer_list<const char*> {
@@ -27,8 +22,8 @@ bool SwelvyBG::init() {
         "swelve-layer1.png"_spr,
         "swelve-layer0.png"_spr
     }) {
-        float speed = dis(gen);
-        if (sign(gen) == 0) {
+        float speed = utils::random::generate<float>(3.f, 9.f);
+        if (utils::random::generate<bool>()) {
             speed = -speed;
         }
         ccTexParams params = {GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_CLAMP_TO_EDGE};
@@ -51,9 +46,9 @@ bool SwelvyBG::init() {
         sprite->setUserObject("speed", CCFloat::create(speed));
         this->addChild(sprite);
 
-        m_colorListeners.emplace_back([=](ColorProvidedEvent* event) {
-            sprite->setColor(to3B(event->color));
-        }, ColorProvidedFilter(colorID));
+        m_colorHandles.emplace_back(ColorProvidedEvent(std::move(colorID)).listen([=](ccColor4B color) {
+            sprite->setColor(to3B(color));
+        }));
 
         y -= m_obContentSize.height / 6;
         idx += 1;

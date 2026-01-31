@@ -262,7 +262,9 @@ class FileSettingNodeV3 : public SettingValueNodeV3<FileSettingV3> {
 protected:
     CCSprite* m_fileIcon;
     CCLabelBMFont* m_nameLabel;
-    EventListener<Task<Result<std::filesystem::path>>> m_pickListener;
+    ListenerHandle m_pickHandle;
+    // EventListener<Task<Result<std::filesystem::path>>> m_pickListener;
+    async::TaskHolder<Result<std::optional<std::filesystem::path>>> m_pickListener;
     CCMenuItemSpriteExtra* m_selectBtn;
     CCSprite* m_selectBtnSpr;
 
@@ -274,7 +276,7 @@ public:
     static FileSettingNodeV3* create(std::shared_ptr<FileSettingV3> setting, float width);
 };
 
-class Color3BSettingNodeV3 : public SettingValueNodeV3<Color3BSettingV3>, public ColorPickPopupDelegate {
+class Color3BSettingNodeV3 : public SettingValueNodeV3<Color3BSettingV3> {
 protected:
     CCMenuItemSpriteExtra* m_colorBtn;
     ColorChannelSprite* m_colorSprite;
@@ -282,13 +284,12 @@ protected:
     bool init(std::shared_ptr<Color3BSettingV3> setting, float width);
     void updateState(CCNode* invoker) override;
     void onSelectColor(CCObject*);
-    void updateColor(ccColor4B const& color) override;
 
 public:
     static Color3BSettingNodeV3* create(std::shared_ptr<Color3BSettingV3> setting, float width);
 };
 
-class Color4BSettingNodeV3 : public SettingValueNodeV3<Color4BSettingV3>, public ColorPickPopupDelegate {
+class Color4BSettingNodeV3 : public SettingValueNodeV3<Color4BSettingV3> {
 protected:
     CCMenuItemSpriteExtra* m_colorBtn;
     ColorChannelSprite* m_colorSprite;
@@ -296,7 +297,6 @@ protected:
     bool init(std::shared_ptr<Color4BSettingV3> setting, float width);
     void updateState(CCNode* invoker) override;
     void onSelectColor(CCObject*);
-    void updateColor(ccColor4B const& color) override;
 
 public:
     static Color4BSettingNodeV3* create(std::shared_ptr<Color4BSettingV3> setting, float width);

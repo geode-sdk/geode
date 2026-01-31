@@ -3,6 +3,7 @@
 #include "LoadingSpinner.hpp"
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/utils/function.hpp>
 
 #include <cocos2d.h>
 #include <filesystem>
@@ -20,17 +21,16 @@ namespace geode {
      */
     class GEODE_DLL LazySprite final : public cocos2d::CCSprite {
     public:
-        using Callback = std::function<void(Result<>)>;
+        using Callback = geode::Function<void(Result<>)>;
         using Format = cocos2d::CCImage::EImageFormat;
 
         static LazySprite* create(cocos2d::CCSize size, bool loadingCircle = true);
 
-        void loadFromUrl(std::string const& url, Format format = Format::kFmtUnKnown, bool ignoreCache = false);
-        void loadFromUrl(char const* url, Format format = Format::kFmtUnKnown, bool ignoreCache = false);
+        void loadFromUrl(std::string url, Format format = Format::kFmtUnKnown, bool ignoreCache = false);
         void loadFromFile(std::filesystem::path const& path, Format format = Format::kFmtUnKnown, bool ignoreCache = false);
+        void loadFromData(std::vector<uint8_t> data, Format format = Format::kFmtUnKnown);
         void loadFromData(std::span<uint8_t const> data, Format format = Format::kFmtUnKnown);
         void loadFromData(uint8_t const* ptr, size_t size, Format format = Format::kFmtUnKnown);
-        void loadFromData(std::vector<uint8_t> data, Format format = Format::kFmtUnKnown);
 
         /**
          * Set the callback to be called once the sprite is fully loaded, or an error occurred.
@@ -66,24 +66,10 @@ namespace geode {
         using CCSprite::initWithFile;
 
     private:
-        Ref<LoadingSpinner> m_loadingCircle;
-        Callback m_callback;
-        Format m_expectedFormat;
-        EventListener<utils::web::WebTask> m_listener;
-        bool m_isLoading = false;
-        std::atomic_bool m_hasLoaded = false;
-        bool m_autoresize;
-        cocos2d::CCSize m_targetSize;
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
 
-        bool init(cocos2d::CCSize size, bool loadingCircle = true);
-        void doInitFromBytes(std::vector<uint8_t> data, std::string cacheKey);
-        std::string makeCacheKey(std::filesystem::path const& path);
-        // std::string makeCacheKey(std::string_view url);
-
-        cocos2d::CCTexture2D* lookupCache(char const* key);
-        bool initFromCache(char const* key);
-        bool postInit(bool initResult);
-
-        void onError(std::string err);
+        LazySprite();
+        ~LazySprite();
     };
 }

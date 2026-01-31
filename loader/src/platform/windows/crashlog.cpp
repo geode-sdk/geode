@@ -168,7 +168,7 @@ static void printAddr(std::ostream& stream, void const* addr, bool fullPath = tr
                         return;
                     }
                 }
-                stream << " (" << std::string(symbolInfo->Name, symbolInfo->NameLen) << " + "
+                stream << " (" << std::string_view(symbolInfo->Name, symbolInfo->NameLen) << " + "
                        << displacement;
 
                 IMAGEHLP_LINE64 line;
@@ -349,7 +349,7 @@ static std::add_const_t<std::decay_t<T>> rebaseAndCast(intptr_t base, U value) {
 }
 
 static std::string demangleSymbol(const char* symbol, bool isClassName) {
-    char demangledBuf[256];
+    char demangledBuf[512];
 
     DWORD flags = 0;
     if (isClassName) {
@@ -357,9 +357,10 @@ static std::string demangleSymbol(const char* symbol, bool isClassName) {
         flags = UNDNAME_NO_ARGUMENTS;
     }
 
-    size_t written = UnDecorateSymbolName(symbol, demangledBuf, 256, flags);
+    size_t written = UnDecorateSymbolName(symbol, demangledBuf, 512, flags);
     if (written == 0) {
-        return "";
+        // return mangled
+        return std::string(symbol);
     } else {
         return std::string(demangledBuf, demangledBuf + written);
     }

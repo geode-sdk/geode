@@ -54,12 +54,18 @@ void crashlog::printMods(std::stringstream& stream) {
     }
 }
 
-std::string crashlog::writeCrashlog(geode::Mod* faultyMod, std::string const& info, std::string const& stacktrace, std::string const& registers) {
+std::string crashlog::writeCrashlog(geode::Mod* faultyMod, std::string_view info, std::string_view stacktrace, std::string_view registers) {
     std::filesystem::path outPath;
     return writeCrashlog(faultyMod, info, stacktrace, registers, outPath);
 }
 
-std::string crashlog::writeCrashlog(geode::Mod* faultyMod, std::string const& info, std::string const& stacktrace, std::string const& registers, std::filesystem::path& outPath) {
+std::string crashlog::writeCrashlog(
+    Mod* faultyMod,
+    std::string_view info,
+    std::string_view stacktrace,
+    std::string_view registers,
+    std::filesystem::path& outPath
+) {
     // make sure crashlog directory exists
     (void)utils::file::createDirectoryAll(crashlog::getCrashLogDirectory());
 

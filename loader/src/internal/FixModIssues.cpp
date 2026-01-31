@@ -20,10 +20,10 @@ protected:
         std::string content;
         std::string optionA;
         std::string optionB;
-        std::function<void(bool)> after;
+        geode::Function<void(bool)> after;
     };
 
-    EventListener<server::ModDownloadFilter> m_download;
+    ListenerHandle m_downloadHandle;
     std::vector<std::string> m_unsolved;
     std::deque<Question> m_questionQueue;
 
@@ -32,7 +32,7 @@ protected:
             [](std::filesystem::path const& path) {
                 return path;
             },
-            [](ModMetadata const& meta) {
+            [](ModMetadata const& meta) -> std::filesystem::path {
                 return meta.getPath();
             },
             [](Mod* mod) {
@@ -45,10 +45,10 @@ protected:
             [](std::filesystem::path const& path) {
                 return geode::utils::string::pathToString(path);
             },
-            [](ModMetadata const& meta) {
+            [](ModMetadata const& meta) -> std::string {
                 return meta.getID();
             },
-            [](Mod* mod) {
+            [](Mod* mod) -> std::string {
                 return mod->getID();
             },
         }, problem.cause);
@@ -66,11 +66,13 @@ protected:
                 if (!m_questionQueue.empty()) {
                     this->nextQuestion();
                 }
-            }
+            },
+            true,
+            false
         );
     }
     void ask(Question&& question) {
-        m_questionQueue.push_back(question);
+        m_questionQueue.push_back(std::move(question));
         // If this was the first question in the queue, start asking
         if (m_questionQueue.size() == 1) {
             this->nextQuestion();

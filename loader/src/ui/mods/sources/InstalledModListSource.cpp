@@ -1,6 +1,12 @@
 #include "ModListSource.hpp"
+#include <arc/future/Join.hpp>
 
 bool InstalledModsQuery::preCheck(ModSource const& src) const {
+    // Invalid .geode files are collected up into one entry instead of 
+    // flooding the mods list
+    if (src.asMod() && src.asMod()->hasInvalidGeodeFile()) {
+        return false;
+    }
     // If we only want mods with updates, then only give mods with updates
     // NOTE: The caller of filterModsWithQuery() should have ensured that
     // `src.checkUpdates()` has been called and has finished
@@ -26,7 +32,7 @@ bool InstalledModsQuery::queryCheck(ModSource const& src, double& weighted) cons
         addToList = src.asMod()->isEnabled() == *enabledOnly;
     }
     if (query) {
-        addToList = modFuzzyMatch(src.asMod()->getMetadataRef(), *query, weighted);
+        addToList = modFuzzyMatch(src.asMod()->getMetadata(), *query, weighted);
     }
     // Loader gets boost to ensure it's normally always top of the list
     if (addToList && src.asMod()->isInternal()) {
@@ -113,36 +119,62 @@ InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t pa
     }
 
     auto content = ModListSource::ProvidedMods();
+
+    if (m_query.type != InstalledModListType::OnlyUpdates) {
+        auto invalidFileCount = Loader::get()->getNumberOfInvalidGeodeFiles();
+        if (invalidFileCount > 0) {
+            content.mods.push_back(SpecialModListItemSource {
+                .title = fmt::format("({} invalid mods)", invalidFileCount),
+                .onDetails = [=]() {
+                    createQuickPopup(
+                        "Invalid mods",
+                        fmt::format(
+                            "You have <cy>{}</c> invalid <ca>.geode</c> files in your "
+                            "mods directory. These are probably due to a recent GD "
+                            "update (or because you are the developer of the mods). "
+                            "<cr>Would you like to delete these invalid files?</c>",
+                            invalidFileCount
+                        ),
+                        "OK", "Delete",
+                        [](auto, bool btn2) mutable {
+                            if (btn2) {
+                                // todo: like delete them n shit...
+                            }
+                        }
+                    );
+                }
+            });
+        }
+    }
+    
     for (auto& mod : Loader::get()->getAllMods()) {
         content.mods.push_back(ModSource(mod));
     }
     // If we're only checking mods that have updates, we first have to run
     // update checks every mod...
     if (m_query.type == InstalledModListType::OnlyUpdates && content.mods.size()) {
-        using UpdateTask = server::ServerRequest<std::optional<server::ServerModUpdate>>;
+        using UpdateTask = server::ServerFuture<std::optional<server::ServerModUpdate>>;
         std::vector<UpdateTask> tasks;
         for (auto& src : content.mods) {
-            tasks.push_back(src.checkUpdates());
+            if (auto mod = std::get_if<ModSource>(&src)) {
+                tasks.push_back(mod->checkUpdates());
+            }
         }
-        return UpdateTask::all(std::move(tasks)).map(
-            [content = std::move(content), query = m_query](auto*) mutable -> ProviderTask::Value {
-                // Filter the results based on the current search
-                // query and return them
-                filterModsWithLocalQuery(content, query);
-                return Ok(content);
-            },
-            [](auto*) -> ProviderTask::Progress { return std::nullopt; }
-        );
+
+        co_await arc::joinAll(std::move(tasks));
+        
+        filterModsWithLocalQuery(content, m_query);
+        co_return Ok(std::move(content));
     }
     // Otherwise simply construct the result right away
     else {
         filterModsWithLocalQuery(content, m_query);
-        return ProviderTask::immediate(Ok(content));
+        co_return Ok(std::move(content));
     }
 }
 
-void InstalledModListSource::setSearchQuery(std::string const& query) {
-    m_query.query = query.size() ? std::optional(query) : std::nullopt;
+void InstalledModListSource::setSearchQuery(std::string query) {
+    m_query.query = query.size() ? std::optional(std::move(query)) : std::nullopt;
 }
 
 std::unordered_set<std::string> InstalledModListSource::getModTags() const {

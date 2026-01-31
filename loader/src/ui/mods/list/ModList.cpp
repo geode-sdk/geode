@@ -10,7 +10,7 @@
 #include "../popups/SortPopup.hpp"
 #include "../GeodeStyle.hpp"
 #include "../ModsLayer.hpp"
-#include "ModItem.hpp"
+#include "ModListItem.hpp"
 
 static size_t getDisplayPageSize(ModListSource* src, ModListDisplay display) {
     if (src->isLocalModsOnly() && Mod::get()->getSettingValue<bool>("infinite-local-mods-list")) {
@@ -20,7 +20,7 @@ static size_t getDisplayPageSize(ModListSource* src, ModListDisplay display) {
 }
 
 $execute {
-    listenForSettingChanges("infinite-local-mods-list", [](bool value) {
+    listenForSettingChanges<bool>("infinite-local-mods-list", [](bool value) {
         InstalledModListSource::get(InstalledModListType::All)->clearCache();
         InstalledModListSource::get(InstalledModListType::OnlyErrors)->clearCache();
         InstalledModListSource::get(InstalledModListType::OnlyOutdated)->clearCache();
@@ -57,8 +57,12 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
 
     // Check for updates on installed mods, and show an update all button if there are some
     if (typeinfo_cast<InstalledModListSource*>(m_source)) {
-        m_checkUpdatesListener.bind(this, &ModList::onCheckUpdates);
-        m_checkUpdatesListener.setFilter(ModsLayer::checkInstalledModsForUpdates());
+        m_checkUpdatesListener.spawn(
+            ModsLayer::checkInstalledModsForUpdates(),
+            [this](server::ServerResult<std::vector<std::string>> val) {
+                this->onCheckUpdates(std::move(val).unwrapOrDefault());
+            }
+        );
 
         m_updateAllContainer = CCNode::create();
         m_updateAllContainer->setID("update-all-container");
@@ -132,7 +136,6 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
                 ->setMainAxisScaling(AxisScaling::Scale)
                 ->setCrossAxisScaling(AxisScaling::ScaleDownGaps)
         );
-        m_updateAllMenu->getLayout()->ignoreInvisibleChildren(true);
         m_updateAllContainer->addChildAtPosition(m_updateAllMenu, Anchor::Right, ccp(-10, 0));
 
         m_topContainer->addChild(m_updateAllContainer);
@@ -315,7 +318,6 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
             ->setAxisReverse(true)
             ->setAutoGrowAxis(0.f)
     );
-    m_topContainer->getLayout()->ignoreInvisibleChildren(true);
 
     this->addChildAtPosition(m_topContainer, Anchor::Top);
 
@@ -391,27 +393,19 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     m_statusLoadingCircle = createLoadingCircle(50);
     m_statusContainer->addChild(m_statusLoadingCircle);
 
-    m_statusLoadingBar = Slider::create(this, nullptr);
-    m_statusLoadingBar->setID("status-loading-bar");
-    m_statusLoadingBar->m_touchLogic->m_thumb->setVisible(false);
-    m_statusLoadingBar->setValue(0);
-    m_statusLoadingBar->setAnchorPoint({ 0, 0 });
-    m_statusContainer->addChild(m_statusLoadingBar);
-
     m_statusContainer->setLayout(
         SimpleColumnLayout::create()
             ->setMainAxisDirection(AxisDirection::TopToBottom)
             ->setGap(5.f)
     );
-    m_statusContainer->getLayout()->ignoreInvisibleChildren(true);
     this->addChildAtPosition(m_statusContainer, Anchor::Center);
 
-    m_listener.bind(this, &ModList::onPromise);
-
-    m_invalidateCacheListener.bind(this, &ModList::onInvalidateCache);
-    m_invalidateCacheListener.setFilter(InvalidateCacheFilter(m_source));
-
-    m_downloadListener.bind([this](auto) { this->updateTopContainer(); });
+    m_invalidateCacheHandle = InvalidateCacheEvent().listen(
+        [this](ModListSource* source) {
+            this->onInvalidateCache(source);
+            return ListenerResult::Propagate;
+        }
+    );
 
     this->gotoPage(0);
     this->updateTopContainer();
@@ -419,64 +413,45 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     return true;
 }
 
-void ModList::onPromise(ModListSource::PageLoadTask::Event* event) {
-    if (event->getValue()) {
-        auto result = event->getValue();
-        if (result->isOk()) {
-            if (m_list->m_contentLayer->getChildrenCount() > 0) {
-                m_list->m_contentLayer->removeAllChildren();
+void ModList::onPromise(ModListSource::PageLoadResult result) {
+    if (result.isOk()) {
+        // This is apparently because `getChildren()` may be nullptr?
+        if (m_list->m_contentLayer->getChildrenCount() > 0) {
+            m_list->m_contentLayer->removeAllChildren();
+        }
+
+        // Hide status
+        m_statusContainer->setVisible(false);
+
+        auto list = std::move(result).unwrap();
+
+        // Create items
+        bool first = true;
+        for (auto item : list) {
+            // Add separators between items after the first one
+            if (!first) {
+                // auto separator = CCLayerColor::create(
+                //     ColorProvider::get()->define("mod-list-separator"_spr, { 255, 255, 255, 45 })
+                // );
+                // separator->setContentSize({ m_obContentSize.width - 10, .5f });
+                // m_list->m_contentLayer->addChild(separator);
             }
-
-            // Hide status
-            m_statusContainer->setVisible(false);
-
-            auto list = result->unwrap();
-
-            // Create items
-            bool first = true;
-            for (auto item : list) {
-                // Add separators between items after the first one
-                if (!first) {
-                    // auto separator = CCLayerColor::create(
-                    //     ColorProvider::get()->define("mod-list-separator"_spr, { 255, 255, 255, 45 })
-                    // );
-                    // separator->setContentSize({ m_obContentSize.width - 10, .5f });
-                    // m_list->m_contentLayer->addChild(separator);
-                }
-                first = false;
-                m_list->m_contentLayer->addChild(item);
-            }
-            this->updateDisplay(m_display);
-
-            // Scroll list to top
-            auto listTopScrollPos = -m_list->m_contentLayer->getContentHeight() + m_list->getContentHeight();
-            m_list->m_contentLayer->setPositionY(listTopScrollPos);
-
-            // Update page UI
-            this->updateState();
+            first = false;
+            m_list->m_contentLayer->addChild(item);
         }
-        else {
-            auto error = result->unwrapErr();
-            this->showStatus(ModListErrorStatus(), error.message, error.details);
-            this->updateState();
-        }
+        this->updateDisplay(m_display);
 
-        // Clear listener
-        m_listener.setFilter(ModListSource::PageLoadTask());
+        // Scroll list to top
+        auto listTopScrollPos = -m_list->m_contentLayer->getContentHeight() + m_list->getContentHeight();
+        m_list->m_contentLayer->setPositionY(listTopScrollPos);
+
+        // Update page UI
+        this->updateState();
     }
-    else if (auto progress = event->getProgress()) {
-        // todo: percentage in a loading bar
-        if (progress->has_value()) {
-            this->showStatus(ModListProgressStatus {
-                .percentage = progress->value(),
-            }, "Loading...");
-        }
-        else {
-            this->showStatus(ModListUnkProgressStatus(), "Loading...");
-        }
-    }
-    else if (event->isCancelled()) {
-        this->reloadPage();
+    else {
+        auto error = std::move(result).unwrapErr();
+        this->showStatus(ModListErrorStatus(), std::move(error.message), std::move(error.details));
+        this->updateState();
     }
 }
 
@@ -508,37 +483,35 @@ void ModList::onShowStatusDetails(CCObject*) {
     m_statusContainer->updateLayout();
 }
 
-void ModList::onCheckUpdates(typename server::ServerRequest<std::vector<std::string>>::Event* event) {
-    if (event->getValue() && event->getValue()->isOk()) {
-        if (auto mods = event->getValue()->unwrap(); mods.size() > 0) {
-            if (mods.size() == 1) {
-                m_updateCountLabel->setString(fmt::format("There is <cg>{}</c> update available!", mods.size()));
-                m_updateAllSpr->setString("");
-                m_showUpdatesSpr->setString("Show Update");
-                m_hideUpdatesSpr->setString("Hide Update");
-            }
-            else {
-                m_updateCountLabel->setString(fmt::format("There are <cg>{}</c> updates available!", mods.size()));
-                m_updateAllSpr->setString("Update All");
-                m_showUpdatesSpr->setString("Show Updates");
-                m_hideUpdatesSpr->setString("Hide Updates");
-            }
+void ModList::onCheckUpdates(const std::vector<std::string>& mods) {
+    if (mods.empty()) return;
 
-            // Recreate the button with the updated label.
-            m_updateAllMenu->removeChild(m_updateAllBtn, true);
-            m_updateAllBtn = CCMenuItemSpriteExtra::create(
-                m_updateAllSpr, this, menu_selector(ModList::onUpdateAll)
-            );
-            m_updateAllBtn->setID("update-all-button");
-            m_updateAllMenu->addChild(m_updateAllBtn);
-
-            m_updateAllContainer->setVisible(true);
-            this->updateTopContainer();
-        }
+    if (mods.size() == 1) {
+        m_updateCountLabel->setString(fmt::format("There is <cg>{}</c> update available!", mods.size()));
+        m_updateAllSpr->setString("");
+        m_showUpdatesSpr->setString("Show Update");
+        m_hideUpdatesSpr->setString("Hide Update");
     }
+    else {
+        m_updateCountLabel->setString(fmt::format("There are <cg>{}</c> updates available!", mods.size()));
+        m_updateAllSpr->setString("Update All");
+        m_showUpdatesSpr->setString("Show Updates");
+        m_hideUpdatesSpr->setString("Hide Updates");
+    }
+
+    // Recreate the button with the updated label.
+    m_updateAllMenu->removeChild(m_updateAllBtn, true);
+    m_updateAllBtn = CCMenuItemSpriteExtra::create(
+        m_updateAllSpr, this, menu_selector(ModList::onUpdateAll)
+    );
+    m_updateAllBtn->setID("update-all-button");
+    m_updateAllMenu->addChild(m_updateAllBtn);
+
+    m_updateAllContainer->setVisible(true);
+    this->updateTopContainer();
 }
 
-void ModList::onInvalidateCache(InvalidateCacheEvent* event) {
+void ModList::onInvalidateCache(ModListSource* source) {
     if (!m_exiting) {
         this->gotoPage(0);
     }
@@ -599,10 +572,10 @@ void ModList::updateDisplay(ModListDisplay display) {
     m_display = display;
     m_source->setPageSize(getDisplayPageSize(m_source, m_display));
 
-    // Update all BaseModItems that are children of the list
-    // There may be non-BaseModItems there (like separators) so gotta be type-safe
+    // Update all ModListItems that are children of the list
+    // There may be non-ModListItems there (like separators) so gotta be type-safe
     for (auto& node : CCArrayExt<CCNode*>(m_list->m_contentLayer->getChildren())) {
-        if (auto item = typeinfo_cast<ModItem*>(node)) {
+        if (auto item = typeinfo_cast<ModListItem*>(node)) {
             item->updateDisplay(m_list->getContentWidth(), display);
         }
     }
@@ -623,16 +596,11 @@ void ModList::updateDisplay(ModListDisplay display) {
                 ->setGrowCrossAxis(true)
                 ->setAxisAlignment(AxisAlignment::Start)
                 ->setGap(2.5f)
+                ->ignoreInvisibleChildren(false)
         );
     }
     else {
-        m_list->m_contentLayer->setLayout(
-            SimpleColumnLayout::create()
-                ->setMainAxisDirection(AxisDirection::TopToBottom)
-                ->setMainAxisAlignment(MainAxisAlignment::End)
-                ->setMainAxisScaling(AxisScaling::Fit)
-                ->setGap(2.5f)
-        );
+        m_list->m_contentLayer->setLayout(ScrollLayer::createDefaultListLayout());
     }
 
     // Make sure list isn't too small
@@ -686,7 +654,7 @@ void ModList::updateState() {
     }
 
     // Post the update page number event
-    UpdateModListStateEvent(UpdatePageNumberState()).post();
+    UpdateModListStateEvent().send(UpdatePageNumberState());
 }
 
 void ModList::reloadPage() {
@@ -708,43 +676,44 @@ void ModList::gotoPage(size_t page, bool update) {
         // Start loading new page with generic loading message
         this->showStatus(ModListUnkProgressStatus(), "Loading...");
     }
-    m_listener.setFilter(m_source->loadPage(page, update));
+
+    // TODO: v5 maybe refactor this system?
+    auto cachedPage = m_source->getCachedPage(page);
+    if (!update && cachedPage.has_value()) {
+        this->onPromise(Ok(std::move(cachedPage).value()));
+    } else {
+        m_listener.spawn(
+            m_source->loadPage(page, update),
+            [this, page](auto res) {
+                if (res.isErr()) {
+                    return this->onPromise(Err(std::move(res).unwrapErr()));
+                }
+                this->onPromise(m_source->processLoadedPage(page, std::move(res).unwrap()));
+            }
+        );
+    }
 
     // Do initial eager update on page UI (to prevent user spamming arrows
     // to access invalid pages)
     this->updateState();
 }
 
-void ModList::showStatus(ModListStatus status, std::string const& message, std::optional<std::string> const& details) {
+void ModList::showStatus(ModListStatus status, ZStringView message, std::optional<std::string> details) {
     // Clear list contents
     m_list->m_contentLayer->removeAllChildren();
 
     // Update status
+    bool hasDetails = details.has_value();
     m_statusTitle->setString(message.c_str());
-    m_statusDetails->setText(details.value_or(""));
+    m_statusDetails->setText(std::move(details).value_or(""));
 
     // Update status visibility
     m_statusContainer->setVisible(true);
     m_statusDetails->setVisible(false);
-    m_statusDetailsBtn->setVisible(details.has_value());
+    m_statusDetailsBtn->setVisible(hasDetails);
     m_statusLoadingCircle->setVisible(
         std::holds_alternative<ModListUnkProgressStatus>(status)
-        || std::holds_alternative<ModListProgressStatus>(status)
     );
-
-    // the loading bar makes no sense to display - it's meant for progress of mod list page loading
-    // however the mod list pages are so small, that there usually isn't a scenario where the loading
-    // takes longer than a single frame - therefore this is useless
-    // server processing time isn't included in this - it's only after the server starts responding
-    // that we get any progress information
-    // also the position is wrong if you wanna restore the functionality
-    //m_statusLoadingBar->setVisible(std::holds_alternative<ModListProgressStatus>(status));
-    m_statusLoadingBar->setVisible(false);
-
-    // Update progress bar
-    if (auto per = std::get_if<ModListProgressStatus>(&status)) {
-        m_statusLoadingBar->setValue(per->percentage / 100.f);
-    }
 
     // Update layout to automatically rearrange everything neatly in the status
     m_statusContainer->updateLayout();
@@ -796,3 +765,4 @@ ModList* ModList::create(ModListSource* src, CCSize const& size, bool searchingD
     delete ret;
     return nullptr;
 }
+

@@ -10,7 +10,7 @@
 
 using namespace geode::prelude;
 
-class ModSettingsPopup : public GeodePopup<Mod*> {
+class ModSettingsPopup : public GeodePopup {
 protected:
     Mod* m_mod;
     ScrollLayer* m_list;
@@ -21,9 +21,10 @@ protected:
     ButtonSprite* m_applyBtnSpr;
     TextInput* m_searchInput;
     CCMenuItemSpriteExtra* m_searchClearBtn;
-    EventListener<EventFilter<SettingNodeValueChangeEvent>> m_changeListener;
+    // EventListener<EventFilter<SettingNodeValueChangeEvent>> m_changeListener;
+    ListenerHandle m_changeHandle;
 
-    bool setup(Mod* mod) override;
+    bool init(Mod* mod, bool forceDisableTheme);
     void updateState(SettingNode* invoker = nullptr);
     bool hasUncommitted() const;
     void onClose(CCObject*) override;
