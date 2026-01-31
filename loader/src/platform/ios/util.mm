@@ -289,10 +289,6 @@ void geode::utils::game::exit(bool save) {
     ), CCDirector::get()->getRunningScene(), false);
 }
 
-void geode::utils::game::exit() {
-    exit(true);
-}
-
 void geode::utils::game::restart(bool save) {
     if (save) {
         AppDelegate::get()->trySaveGame(true);
@@ -320,10 +316,6 @@ void geode::utils::game::restart(bool save) {
         CCCallFunc::create(nullptr, callfunc_selector(Exit::shutdown)),
         nullptr
     ), CCDirector::get()->getRunningScene(), false);
-}
-
-void geode::utils::game::restart() {
-    restart(true);
 }
 
 void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {

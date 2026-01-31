@@ -14,7 +14,7 @@
 #include "../utils/function.hpp"
 #include "../utils/casts.hpp"
 
-namespace geode::event {
+namespace geode::comm {
     template <class T>
     struct RefOrVoid {
         using type = void(T const&);
