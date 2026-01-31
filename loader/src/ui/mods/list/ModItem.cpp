@@ -353,6 +353,7 @@ bool ModItem::init(ModSource&& source) {
 
     if (m_source.asMod()) {
         m_checkUpdateListener.spawn(
+            "ModItem update check",
             m_source.checkUpdates(),
             [this](auto res) {
                 this->onCheckUpdates(std::move(res));

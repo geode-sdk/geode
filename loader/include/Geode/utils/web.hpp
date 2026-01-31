@@ -429,7 +429,7 @@ namespace geode::utils::web {
         WebProgress getProgress() const;
     };
 
-    struct GEODE_DLL ARC_NODISCARD WebFuture : arc::PollableBase<WebFuture, WebResponse> {
+    struct GEODE_DLL ARC_NODISCARD WebFuture : arc::Pollable<WebFuture, WebResponse> {
         explicit WebFuture(std::shared_ptr<WebRequest::Impl> request);
         ~WebFuture();
 
@@ -438,7 +438,7 @@ namespace geode::utils::web {
         WebFuture(WebFuture const&) = delete;
         WebFuture& operator=(WebFuture const&) = delete;
 
-        std::optional<WebResponse> poll();
+        std::optional<WebResponse> poll(arc::Context& cx);
 
     private:
         struct Impl;

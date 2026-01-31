@@ -58,6 +58,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     // Check for updates on installed mods, and show an update all button if there are some
     if (typeinfo_cast<InstalledModListSource*>(m_source)) {
         m_checkUpdatesListener.spawn(
+            "ModList update check",
             ModsLayer::checkInstalledModsForUpdates(),
             [this](server::ServerResult<std::vector<std::string>> val) {
                 this->onCheckUpdates(std::move(val).unwrapOrDefault());
@@ -683,6 +684,7 @@ void ModList::gotoPage(size_t page, bool update) {
         this->onPromise(Ok(std::move(cachedPage).value()));
     } else {
         m_listener.spawn(
+            "ModList Page Load",
             m_source->loadPage(page, update),
             [this, page](auto res) {
                 if (res.isErr()) {

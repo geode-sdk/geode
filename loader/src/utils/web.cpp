@@ -930,7 +930,7 @@ struct PollReadiness {
     Interest readiness;
 };
 
-struct ARC_NODISCARD MultiPollFuture : PollableBase<MultiPollFuture, PollReadiness> {
+struct ARC_NODISCARD MultiPollFuture : Pollable<MultiPollFuture, PollReadiness> {
     enum class State {
         Init,
         Waiting,
@@ -943,12 +943,12 @@ struct ARC_NODISCARD MultiPollFuture : PollableBase<MultiPollFuture, PollReadine
     MultiPollFuture(MultiPollFuture&&) = default;
     MultiPollFuture& operator=(MultiPollFuture&&) = default;
 
-    std::optional<PollReadiness> poll() {
+    std::optional<PollReadiness> poll(arc::Context& cx) {
         switch (m_state) {
             case State::Init: {
                 // initial state: poll all sockets, return immediately if there's activity on one of them
                 for (auto& [fd, rs] : *m_sockets) {
-                    auto ready = rs.rio.pollReady(rs.interest | Interest::Error, rs.rioId);
+                    auto ready = rs.rio.pollReady(rs.interest | Interest::Error, cx, rs.rioId);
                     if (ready != 0) {
                         return PollReadiness{fd, ready};
                     }
@@ -1041,6 +1041,7 @@ public:
                 );
             }
         }(std::move(rx), std::move(crx)));
+        m_worker->setDebugName("Geode Web Worker");
     }
 
     ~Impl() {
@@ -1153,16 +1154,20 @@ public:
         bool activeTransfers = stillRunning > 0;
 
         // poll until there is socket activity or the timer expires
+        log::debug("Begin select (wake in {})", (deadline.durationSince(now)).toString());
+
         co_await arc::select(
             arc::selectee(m_wakeNotify.notified()),
 
             arc::selectee(arc::sleepUntil(deadline), [&] {
+                log::debug("Handling timeout");
                 // timeout!
                 int running = 0;
                 curl_multi_socket_action(m_multiHandle, CURL_SOCKET_TIMEOUT, 0, &running);
             }),
 
             arc::selectee(this->workerPollSockets(), [&](PollReadiness readiness) {
+                log::debug("Handling socket activity");
                 auto [fd, ready] = readiness;
                 int ev = 0;
                 if (ready & Interest::Readable) ev |= CURL_CSELECT_IN;
@@ -1173,6 +1178,7 @@ public:
                 curl_multi_socket_action(m_multiHandle, fd, ev, &running);
             }, activeTransfers)
         );
+        log::debug("End select");
     }
 
     MultiPollFuture workerPollSockets() {
@@ -1180,8 +1186,10 @@ public:
     }
 
     void socketCallback(CURL* easy, curl_socket_t s, int what, void* socketp) {
-        auto& driver = ctx().runtime()->ioDriver();
+        auto& driver = Runtime::current()->ioDriver();
         auto it = m_sockets.find(s);
+
+        log::error("Adding socket s={} what={}", (int)s, what);
 
         if (what == CURL_POLL_REMOVE) {
             // unregister the socket
@@ -1260,7 +1268,7 @@ WebFuture::~WebFuture() {
     }
 }
 
-std::optional<WebResponse> WebFuture::poll() {
+std::optional<WebResponse> WebFuture::poll(arc::Context& cx) {
     using RequestData = WebRequestsManager::RequestData;
 
     if (!m_impl->m_sent) {
@@ -1272,7 +1280,7 @@ std::optional<WebResponse> WebFuture::poll() {
         m_impl->m_sent = true;
     }
 
-    auto rpoll = m_impl->m_awaiter.poll();
+    auto rpoll = m_impl->m_awaiter.poll(cx);
     if (!rpoll) {
         return std::nullopt;
     }

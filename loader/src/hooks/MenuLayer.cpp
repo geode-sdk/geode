@@ -196,6 +196,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             checkedModUpdates = true;
 
             m_fields->m_updateCheckTask.spawn(ModsLayer::checkInstalledModsForUpdates(), [this](auto result) {
+                // TODO: v5
                 // if (result.isOk()) {
                 //     auto updatesFound = result.unwrap();
                 //     if (updatesFound.size()) {

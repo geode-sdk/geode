@@ -340,6 +340,7 @@ void Logger::setup() {
     m_usingThread = Mod::get()->getSettingValue<bool>("log-thread");
     if (m_usingThread) {
         m_logThread = async::runtime().spawn(this->workerThread());
+        m_logThread->setDebugName("Geode Log Worker");
     }
 }
 
