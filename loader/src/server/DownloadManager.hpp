@@ -36,16 +36,10 @@ namespace server {
         DownloadStatusCancelled
     >;
 
-    class ModDownloadEvent : public Event<ModDownloadEvent, bool(), std::string> {
+    class ModDownloadEvent : public GlobalEvent<ModDownloadEvent, bool(std::string_view), bool(), std::string> {
     public:
         // filter params id
-        using Event::Event;
-    };
-
-    class GlobalModDownloadEvent : public SimpleEvent<ModDownloadEvent, std::string_view> {
-    public:
-        // filter params id
-        using SimpleEvent::SimpleEvent;
+        using GlobalEvent::GlobalEvent;
     };
 
     using DependencyFor = std::pair<std::string, ModMetadata::Dependency::Importance>;

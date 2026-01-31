@@ -635,6 +635,8 @@ namespace geode::comm {
 }
 
 namespace geode {
+    using ListenerHandle = comm::ListenerHandle;
+
     template<class Marker, class PFunc, class... FArgs>
     struct Event : public comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false, comm::PortCallableCopy>::type, PFunc, FArgs...> {
         using comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false, comm::PortCallableCopy>::type, PFunc, FArgs...>::BasicEvent;
@@ -649,6 +651,69 @@ namespace geode {
     struct SimpleEvent : public comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false, comm::PortCallableCopy>::type, bool(PArgs...)> {
         using comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false, comm::PortCallableCopy>::type, bool(PArgs...)>::BasicEvent;
     };
+
+    template<class Marker, class GFunc, class PFunc, class... FArgs>
+    struct GlobalEvent {};
+
+    // I LOVE TEMPLATE ABUSE
+    // here we misuse PFunc param as the FArg1, because every GlobalEvent at least has one FArg anyway
+    template<class Marker, class PReturn, class... PArgs, class FArg1, class... FArgs>
+    struct GlobalEvent<Marker, PReturn(PArgs...), FArg1, FArgs...> : public GlobalEvent<Marker, PReturn(FArg1, FArgs..., PArgs...), PReturn(PArgs...), FArg1, FArgs...> {
+        using GlobalEvent<Marker, PReturn(FArg1, FArgs..., PArgs...), PReturn(PArgs...), FArg1, FArgs...>::GlobalEvent;
+    };
+
+    template<class Marker, class GReturn, class... GArgs, class PReturn, class... PArgs, class... FArgs>
+    struct GlobalEvent<Marker, GReturn(GArgs...), PReturn(PArgs...), FArgs...> {
+    private:
+        using Event1Type = Event<Marker, PReturn(PArgs...), FArgs...>;
+        using Event2Type = SimpleEvent<Marker, FArgs..., PArgs...>;
+        std::optional<std::tuple<FArgs...>> m_filter;
+
+    public:
+        GlobalEvent() noexcept : m_filter(std::nullopt) {}
+        ~GlobalEvent() noexcept = default;
+
+        template <class... Args>
+        requires std::constructible_from<std::tuple<FArgs...>, Args...>
+        GlobalEvent(Args&&... args) noexcept : m_filter(std::in_place, std::forward<Args>(args)...) {}
+
+        template<class Callable>
+        requires std::is_invocable_v<Callable, PArgs...>
+        ListenerHandle listen(Callable listener, int priority = 0) const noexcept {
+            if (m_filter.has_value()) {
+                return std::apply([&](auto&&... fargs) {
+                    return Event1Type(std::move(fargs)...).listen(std::move(listener), priority);
+                }, *m_filter);
+            }
+            return ListenerHandle{};
+        }
+
+        template <class Callable>
+        requires std::is_invocable_v<Callable, FArgs..., PArgs...>
+        ListenerHandle listen(Callable listener, int priority = 0) const noexcept {
+            if (!m_filter.has_value()) {
+                return Event2Type().listen(std::move(listener), priority);
+            }
+            return ListenerHandle{};
+        }
+
+        template <class... Args>
+        requires std::invocable<geode::CopyableFunction<bool(PArgs...)>, Args...>
+        bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, Args...>) {
+            if (m_filter.has_value()) {
+                auto filterCopy = *m_filter;
+                auto ret = std::apply([&](auto&&... fargs) {
+                    return Event1Type(std::move(fargs)...).send(std::forward<Args>(args)...);
+                }, std::move(filterCopy));
+                if (ret) return true;
+
+                return std::apply([&](auto&&... fargs) {
+                    return Event2Type().send(std::move(fargs)..., std::forward<Args>(args)...);
+                }, std::move(*m_filter));
+            }
+        }
+    };
+
 
     struct ListenerResult {
         static constexpr bool Propagate = false;
@@ -668,5 +733,4 @@ namespace geode {
         bool m_value = false;
     };
 
-    using ListenerHandle = comm::ListenerHandle;
 }

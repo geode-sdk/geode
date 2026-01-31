@@ -703,7 +703,7 @@ bool ModPopup::init(ModSource&& src) {
 
     m_source.visit(makeVisitor {
         [this](Mod* mod) {
-            m_settingNodeHandle = GlobalSettingNodeValueChangeEvent().listen([this](std::string_view modID, std::string_view key, SettingNodeV3*, bool isCommit) {
+            m_settingNodeHandle = SettingNodeValueChangeEvent().listen([this](std::string_view modID, std::string_view key, SettingNodeV3*, bool isCommit) {
                 if (!isCommit) {
                     return ListenerResult::Propagate;
                 }
