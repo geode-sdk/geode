@@ -5,6 +5,7 @@
 #include <Geode/Utils.hpp>
 #include <Geode/utils/web.hpp>
 #include <asp/time/SystemTime.hpp>
+#include <Geode/utils/async.hpp>
 
 using namespace geode::prelude;
 
@@ -68,18 +69,20 @@ void crashlog::updateFunctionBindings() {
         return;
     }
 
-    web::WebRequest().get(
-        "https://prevter.github.io/bindings-meta/CodegenData-"
-        GEODE_GD_VERSION_STRING
-        "-"
-        GEODE_WINDOWS("Win64") GEODE_INTEL_MAC("Intel") GEODE_ARM_MAC("Arm") GEODE_IOS("iOS")
-        ".json"
-    ).listen([](web::WebResponse* res) {
-        if (!res->ok()) return;
+    async::spawn(
+        web::WebRequest().get(
+            "https://prevter.github.io/bindings-meta/CodegenData-"
+            GEODE_GD_VERSION_STRING "-"
+            GEODE_WINDOWS("Win64") GEODE_INTEL_MAC("Intel") GEODE_ARM_MAC("Arm") GEODE_IOS("iOS")
+            ".json"
+        ),
+        [](web::WebResponse res) {
+            if (!res.ok()) return;
 
-        (void) res->into(dirs::getGeodeSaveDir() / "bindings.json");
-        Mod::get()->setSavedValue<uint64_t>("bindings-update-time", std::time(nullptr));
-    });
+            (void) res.into(dirs::getGeodeSaveDir() / "bindings.json");
+            Mod::get()->setSavedValue<uint64_t>("bindings-update-time", std::time(nullptr));
+        }
+    );
 }
 
 static std::vector<crashlog::FunctionBinding> const& getBindings() {

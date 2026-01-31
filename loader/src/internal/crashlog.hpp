@@ -59,7 +59,7 @@ struct matjson::Serialize<crashlog::FunctionBinding> {
     static geode::Result<crashlog::FunctionBinding> fromJson(Value const& value) {
         return geode::Ok(crashlog::FunctionBinding{
             GEODE_UNWRAP(value[1].asString()),
-            GEODE_UNWRAP(value[0].asUInt())
+            GEODE_UNWRAP(value[0].as<uintptr_t>())
         });
     }
 
