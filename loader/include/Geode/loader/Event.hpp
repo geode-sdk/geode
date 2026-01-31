@@ -14,12 +14,12 @@
 #include "../utils/function.hpp"
 #include "../utils/casts.hpp"
 #include "../utils/hash.hpp"
-// #include "../utils/ZStringView.hpp"
-// #include "Log.hpp"
+#include "../utils/ZStringView.hpp"
+#include "Log.hpp"
 
-// namespace geode::console {
-//     void log(ZStringView msg, Severity severity);
-// }
+namespace geode::console {
+    void log(ZStringView msg, Severity severity);
+}
 
 namespace geode::comm {
     template <class T>
@@ -548,12 +548,16 @@ namespace geode::comm {
                 auto clonedFilter = KeyType(filter->clone());
                 auto filter2 = clonedFilter.get();
                 // geode::console::log(fmt::format("Cloned filter for adding receiver {}, {}", (void*)filter2, cast::getRuntimeTypeName(filter2)), Severity::Debug);
+
                 auto port = ValueType(clonedFilter->getPort());
                 ReceiverHandle handle = std::invoke(func, port.get());
+                auto ret = ListenerHandle(clonedFilter, handle, nullptr);
+
                 auto newPorts = asp::make_shared<MapType>(*p.get());
                 newPorts->emplace(std::move(clonedFilter), std::move(port));
+
                 m_ports.store(std::move(newPorts));
-                return ListenerHandle(clonedFilter, handle, nullptr);
+                return ret;
             }
         }
 
