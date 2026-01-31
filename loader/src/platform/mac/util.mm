@@ -182,8 +182,9 @@ namespace {
 
 @end
 
-GEODE_DLL Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, file::FilePickOptions const& options) {
-    using RetTask = Task<Result<std::filesystem::path>>;
+GEODE_DLL arc::Future<Result<std::optional<std::filesystem::path>>> file::pick(file::PickMode mode, file::FilePickOptions const& options) {
+    // TODO: v5
+    /*using RetTask = Task<Result<std::filesystem::path>>;
     return RetTask::runWithCallback([mode, options](auto resultCallback, auto progress, auto cancelled) {
         [FileDialog dispatchFilePickerWithMode:mode options:options multiple:false onCompletion: ^(FileResult&& result) {
             if (cancelled()) {
@@ -197,11 +198,13 @@ GEODE_DLL Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, fi
                 }
             }
         }];
-    });
+    });*/
+    co_return Err("not implemented");
 }
 
-GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> file::pickMany(file::FilePickOptions const& options) {
-    using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
+GEODE_DLL arc::Future<Result<std::vector<std::filesystem::path>>> file::pickMany(file::FilePickOptions const& options) {
+    // TODO: v5
+    /*using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
     return RetTask::runWithCallback([options](auto resultCallback, auto progress, auto cancelled) {
         [FileDialog dispatchFilePickerWithMode: file::PickMode::OpenFile options:options multiple:true onCompletion: ^(FileResult&& result) {
             if (cancelled()) {
@@ -210,7 +213,8 @@ GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> file::pickMany(file::
                 resultCallback(std::move(result));
             }
         }];
-    });
+    });*/
+    co_return Err("not implemented");
 }
 
 CCPoint cocos::getMousePos() {

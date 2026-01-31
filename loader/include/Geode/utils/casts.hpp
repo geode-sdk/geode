@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Geode/platform/platform.hpp>
 #include <inttypes.h>
 #include <iostream>
 #include <string>
@@ -60,7 +61,8 @@ namespace geode::cast {
      */
     template <class T, class F>
     static T exact_cast(F const obj) {
-        if (std::strcmp(typeid(*obj).name(), typeid(std::remove_pointer_t<T>).name()) == 0) {
+        using PureType = std::remove_cvref_t<std::remove_pointer_t<T>>;
+        if (std::strcmp(getRuntimeTypeName(obj), getRuntimeTypeName(typeid(PureType))) == 0) {
             return (T)obj;
         }
         return nullptr;

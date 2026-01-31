@@ -22,7 +22,7 @@ string(REPLACE "." "_" GEODE_GD_VERSION_IDENTIFIER "_${GEODE_GD_VERSION}")
 target_compile_definitions(ProxyLoader PRIVATE GEODE_GD_VERSION_IDENTIFIER=${GEODE_GD_VERSION_IDENTIFIER})
 
 add_executable(Updater Updater.cpp)
-target_compile_features(Updater PUBLIC cxx_std_17)
+target_compile_features(Updater PUBLIC cxx_std_23)
 set_target_properties(Updater PROPERTIES
 	PREFIX ""
 	OUTPUT_NAME "GeodeUpdater"

@@ -11,32 +11,16 @@ namespace geode::updater {
     using UpdateFailed = std::string;
     using UpdateStatus = std::variant<UpdateFinished, UpdateProgress, UpdateFailed>;
 
-    struct ResourceDownloadEvent : public Event {
-        const UpdateStatus status;
-        explicit ResourceDownloadEvent(UpdateStatus status);
-    };
-
-    class ResourceDownloadFilter : public EventFilter<ResourceDownloadEvent> {
+    class ResourceDownloadEvent : public SimpleEvent<ResourceDownloadEvent, UpdateStatus const&> {
     public:
-        template <typename F> requires (std::is_invocable_r_v<ListenerResult, F, ResourceDownloadEvent*>)
-        ListenerResult handle(F&& fn, ResourceDownloadEvent* event) {
-            return fn(event);
-        }
-        ResourceDownloadFilter();
+        // listener params status
+        using SimpleEvent::SimpleEvent;
     };
 
-    struct LoaderUpdateEvent : public Event {
-        const UpdateStatus status;
-        explicit LoaderUpdateEvent(UpdateStatus status);
-    };
-
-    class LoaderUpdateFilter : public EventFilter<LoaderUpdateEvent> {
+    class LoaderUpdateEvent : public SimpleEvent<LoaderUpdateEvent, UpdateStatus const&> {
     public:
-        template <typename F> requires (std::is_invocable_r_v<ListenerResult, F, LoaderUpdateEvent*>)
-        ListenerResult handle(F&& fn, LoaderUpdateEvent* event) {
-            return fn(event);
-        }
-        LoaderUpdateFilter();
+        // listener params status
+        using SimpleEvent::SimpleEvent;
     };
 
     void updateSpecialFiles();

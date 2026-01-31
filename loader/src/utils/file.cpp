@@ -857,27 +857,6 @@ Result<> Zip::addFolder(Path const& entry) {
     return m_impl->addFolder(entry);
 }
 
-FileWatchEvent::FileWatchEvent(std::filesystem::path const& path)
-  : m_path(path) {}
-
-std::filesystem::path FileWatchEvent::getPath() const {
-    return m_path;
-}
-
-ListenerResult FileWatchFilter::handle(
-    geode::Function<Callback>& callback,
-    FileWatchEvent* event
-) {
-    std::error_code ec;
-    if (std::filesystem::equivalent(event->getPath(), m_path, ec)) {
-        callback(event);
-    }
-    return ListenerResult::Propagate;
-}
-
-FileWatchFilter::FileWatchFilter(std::filesystem::path const& path)
-  : m_path(path) {}
-
 // This is a vector because need to use std::filesystem::equivalent for
 // comparisons and removal is not exactly performance-critical here
 // (who's going to add and remove 500 file watchers every frame)
@@ -889,9 +868,9 @@ Result<> file::watchFile(std::filesystem::path const& file) {
     }
     auto watcher = std::make_unique<FileWatcher>(
         file,
-        [](auto const& path) {
-            Loader::get()->queueInMainThread([=] {
-                FileWatchEvent(path).post();
+        [](std::filesystem::path path) {
+            Loader::get()->queueInMainThread([path = std::move(path)]() {
+                FileWatchEvent(std::filesystem::path(path)).send();
             });
         }
     );

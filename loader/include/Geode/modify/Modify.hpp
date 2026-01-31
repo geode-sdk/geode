@@ -257,7 +257,7 @@ namespace geode::modifier {
         /// @param hook The hook to set the priority of
         /// @param mod The mod to set the priority after
         static void setHookPriorityAfter(Hook* hook, Mod* mod) {
-            auto func = [=](ModStateEvent* event){
+            auto func = [=](){
                 auto hooks = mod->getHooks();
                 for (auto modHook : hooks) {
                     if (modHook->getAddress() != hook->getAddress()) continue;
@@ -269,10 +269,10 @@ namespace geode::modifier {
                 return ListenerResult::Propagate;
             };
             if (mod->isEnabled()) {
-                func(nullptr);
+                func();
             }
             else {
-                new EventListener(func, ModStateFilter(mod, ModEventType::Loaded));
+                ModStateEvent(ModEventType::Loaded, std::move(mod)).listen(std::move(func)).leak();
             }
         }
 
@@ -311,7 +311,7 @@ namespace geode::modifier {
         /// @param hook The hook to set the priority of
         /// @param mod The mod to set the priority before
         static void setHookPriorityBefore(Hook* hook, Mod* mod) {
-            auto func = [=](ModStateEvent* event){
+            auto func = [=](){
                 auto hooks = mod->getHooks();
                 for (auto modHook : hooks) {
                     if (modHook->getAddress() != hook->getAddress()) continue;
@@ -323,10 +323,10 @@ namespace geode::modifier {
                 return ListenerResult::Propagate;
             };
             if (mod->isEnabled()) {
-                func(nullptr);
+                func();
             }
             else {
-                new EventListener(func, ModStateFilter(mod, ModEventType::Loaded));
+                ModStateEvent(ModEventType::Loaded, std::move(mod)).listen(std::move(func)).leak();
             }
         }
 

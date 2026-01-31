@@ -10,13 +10,22 @@
 #include "mods/GeodeStyle.hpp"
 #include "mods/settings/ModSettingsPopup.hpp"
 #include "mods/popups/ModPopup.hpp"
-#include "GeodeUIEvent.hpp"
 
 class LoadServerModLayer : public Popup {
 protected:
+    enum class MetadataLoaded {
+        NotLoaded = 0,
+        Loaded = 1,
+        Error = 2,
+    };
+
     std::string m_id;
-    EventListener<server::ServerRequest<server::ServerModMetadata>> m_listener;
-    EventListener<server::ServerRequest<server::ServerModVersion>> m_versionListener;
+    ListenerHandle m_listenerHandle;
+    ListenerHandle m_versionListenerHandle;
+    arc::Notify m_metadataLoaded;
+    std::atomic<MetadataLoaded> m_metadataLoadedState{MetadataLoaded::NotLoaded};
+    async::TaskHolder<Result<server::ServerModMetadata, server::ServerError>> m_listener;
+    async::TaskHolder<Result<server::ServerModVersion, server::ServerError>> m_versionListener;
 
     std::optional<server::ServerModMetadata> m_loadedMod{};
 
@@ -32,69 +41,71 @@ protected:
         m_mainLayer->addChildAtPosition(spinner, Anchor::Center, ccp(0, -10));
 
         m_id = std::move(id);
-        m_listener.bind(this, &LoadServerModLayer::onModRequest);
-        m_listener.setFilter(server::getMod(m_id));
+
+        m_listener.spawn(
+            server::getMod(m_id),
+            [this](auto result) {
+                this->onModRequest(std::move(result));
+            }
+        );
 
         return true;
     }
 
-    void onModRequest(server::ServerRequest<server::ServerModMetadata>::Event* event) {
-        if (auto res = event->getValue()) {
-            if (res->isOk()) {
-                // Copy info first as onClose may free the listener which will free the event
-                auto info = res->unwrap();
-                m_loadedMod = std::move(info);
+    void onModRequest(Result<server::ServerModMetadata, server::ServerError> result) {
+        if (result.isOk()) {
+            // Copy info first as onClose may free the listener which will free the event
+            auto info = std::move(result).unwrap();
+            m_loadedMod = std::move(info);
 
-                m_versionListener.bind(this, &LoadServerModLayer::onVersionRequest);
-                m_versionListener.setFilter(server::getModVersion(m_id));
-            }
-            else {
-                this->onClose(nullptr);
-                FLAlertLayer::create(
-                    "Error Loading Mod",
-                    fmt::format("Unable to find mod with the ID <cr>{}</c>!", m_id),
-                    "OK"
-                )->show();
-            }
+            m_metadataLoadedState.store(MetadataLoaded::Loaded);
+
+            m_versionListener.spawn(
+                server::getModVersion(m_id),
+                [this](auto result) {
+                    this->onVersionRequest(std::move(result));
+                }
+            );
         }
-        else if (event->isCancelled()) {
+        else {
             this->onClose(nullptr);
+            FLAlertLayer::create(
+                "Error Loading Mod",
+                fmt::format("Unable to find mod with the ID <cr>{}</c>!", m_id),
+                "OK"
+            )->show();
+
+            m_metadataLoadedState.store(MetadataLoaded::Error);
         }
+        m_metadataLoaded.notifyOne(true);
     }
 
-    void onVersionRequest(server::ServerRequest<server::ServerModVersion>::Event* event) {
-        if (auto res = event->getValue()) {
-            // this is promised non optional by this point
-            auto info = std::move(*m_loadedMod);
+    void onVersionRequest(Result<server::ServerModVersion, server::ServerError> result) {
+        // this is promised non optional by this point
+        auto info = std::move(*m_loadedMod);
 
-            if (res->isOk()) {
-                // i don't actually think there's a better way to do this
-                // sorry guys
+        if (result.isOk()) {
+            // i don't actually think there's a better way to do this
+            // sorry guys
 
-                auto versionInfo = res->unwrap();
-                info.versions = {versionInfo};
-            }
-
-            // if there's an error, just load whatever the last fetched version was
-            // (this can happen for mods not on current gd version)
-
-            this->onClose(nullptr);
-            // Run this on next frame because otherwise the popup is unable to call server::getMod for some reason
-            Loader::get()->queueInMainThread([info = std::move(info)]() mutable {
-                ModPopup::create(ModSource(std::move(info)))->show();
-            });
+            info.versions = {std::move(result).unwrap()};
         }
-        else if (event->isCancelled()) {
-            this->onClose(nullptr);
-        }
+
+        // if there's an error, just load whatever the last fetched version was
+        // (this can happen for mods not on current gd version)
+
+        this->onClose(nullptr);
+        // Run this on next frame because otherwise the popup is unable to call server::getMod for some reason
+        Loader::get()->queueInMainThread([info = std::move(info)]() mutable {
+            ModPopup::create(ModSource(std::move(info)))->show();
+        });
     }
 
 public:
-    Task<bool> listen() const {
-        return m_listener.getFilter().map(
-            [](auto* result) -> bool { return result->isOk(); },
-            [](auto) -> std::monostate { return std::monostate(); }
-        );
+    arc::Future<bool> listen() const {
+        co_await m_metadataLoaded.notified();
+        m_metadataLoaded.notifyOne(true);
+        co_return m_metadataLoadedState.load() == MetadataLoaded::Loaded;
     }
 
     static LoadServerModLayer* create(std::string id) {
@@ -172,16 +183,16 @@ void geode::openSupportPopup(ModMetadata const& metadata) {
 void geode::openInfoPopup(Mod* mod) {
     ModPopup::create(mod)->show();
 }
-Task<bool> geode::openInfoPopup(std::string_view modID) {
+arc::Future<bool> geode::openInfoPopup(std::string_view modID) {
     if (auto mod = Loader::get()->getInstalledMod(modID)) {
         openInfoPopup(mod);
-        return Task<bool>::immediate(true);
+        co_return true;
     }
     else {
         auto popup = LoadServerModLayer::create(std::string(modID));
-        auto task = popup->listen();
+        auto ret = co_await popup->listen();
         popup->show();
-        return task;
+        co_return ret;
     }
 }
 
@@ -209,7 +220,7 @@ class ModLogoSprite : public CCNodeRGBA {
 protected:
     LazySprite* m_sprite;
     std::string m_modID;
-    EventListener<server::ServerRequest<ByteVector>> m_listener;
+    async::TaskHolder<Result<ByteVector, server::ServerError>> m_listener;
 
     bool init(ModLogoSrc&& src) {
         if (!CCNode::init())
@@ -220,8 +231,6 @@ protected:
 
         m_sprite = LazySprite::create(this->getContentSize());
         this->addChildAtPosition(m_sprite, Anchor::Center);
-
-        m_listener.bind(this, &ModLogoSprite::onFetch);
 
         std::visit(makeVisitor {
             [this](Mod* mod) {
@@ -247,7 +256,12 @@ protected:
                 m_modID = id;
 
                 // Asynchronously fetch from server
-                m_listener.setFilter(server::getModLogo(id));
+                m_listener.spawn(
+                    server::getModLogo(id),
+                    [this](auto result) {
+                        this->onFetch(std::move(result));
+                    }
+                );
             },
             [this](std::filesystem::path const& path) {
                 m_sprite->setLoadCallback([this](Result<> res) {
@@ -270,13 +284,13 @@ protected:
         // This is a default ID, nothing should ever rely on the ID of any ModLogoSprite being this
         this->setID(Mod::get()->expandSpriteName(fmt::format("sprite-{}", m_modID)));
 
-        ModLogoUIEvent(std::make_unique<ModLogoUIEvent::Impl>(this, m_modID)).post();
+        ModLogoUIEvent().send(this, m_modID, std::nullopt);
 
         return true;
     }
 
     void doPostEvent() {
-        ModLogoUIEvent(std::make_unique<ModLogoUIEvent::Impl>(this, m_modID)).post();
+        ModLogoUIEvent().send(this, m_modID, std::nullopt);
     }
 
     void onLoaded(Result<> res) {
@@ -301,22 +315,17 @@ protected:
         this->doPostEvent();
     }
 
-    void onFetch(server::ServerRequest<ByteVector>::Event* event) {
-        if (auto result = event->getValue()) {
-            // Set default sprite on error
-            if (result->isErr()) {
-                this->onLoadFailed(true);
-            }
-            // Otherwise load downloaded sprite to memory
-            else {
-                m_sprite->setLoadCallback([this](Result<> res) {
-                    this->onLoaded(std::move(res));
-                });
-                m_sprite->loadFromData(result->unwrap());
-            }
-        }
-        else if (event->isCancelled()) {
+    void onFetch(Result<ByteVector, server::ServerError> result) {
+        // Set default sprite on error
+        if (result.isErr()) {
             this->onLoadFailed(true);
+        }
+        // Otherwise load downloaded sprite to memory
+        else {
+            m_sprite->setLoadCallback([this](Result<> res) {
+                this->onLoaded(std::move(res));
+            });
+            m_sprite->loadFromData(std::move(result).unwrap());
         }
     }
 

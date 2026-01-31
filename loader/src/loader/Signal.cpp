@@ -1,22 +1,23 @@
 #include <Geode/loader/Signal.hpp>
 
 namespace geode::comm {
-	std::vector<Observer> Observer::stack;
+	std::vector<ObserverContext> ObserverContext::stack;
 
-	std::optional<Observer> Observer::top() noexcept {
-		if (Observer::stack.empty())
-			return std::nullopt;
-		return Observer(Observer::stack.back());
+	ObserverContext* ObserverContext::top() noexcept {
+		if (ObserverContext::stack.empty())
+			return nullptr;
+		return &ObserverContext::stack.back();
 	}
 
-	void Observer::operator()() noexcept {
+	void ObserverContext::operator()() noexcept {
 		clearSignals();
-		Observer::stack.push_back(*this);
+
+		ObserverContext::stack.push_back(*this);
 		std::invoke(impl->effect);
-		Observer::stack.pop_back();
+		ObserverContext::stack.pop_back();
 	}
 
-	void Observer::registerSignal(std::shared_ptr<SignalInternal> sig) noexcept {
+	void ObserverContext::registerSignal(std::shared_ptr<SignalInternal> sig) noexcept {
 		for (auto& [s, _] : impl->registered) {
 			if (!s.owner_before(sig) && !sig.owner_before(s))
 				return;
@@ -24,10 +25,22 @@ namespace geode::comm {
 		impl->registered.emplace_back(sig, sig->addPortReceiver(*this));
 	}
 
-	void Observer::clearSignals() noexcept {
+	void ObserverContext::clearSignals() noexcept {
 		for (auto& [weak, handle] : impl->registered) {
 			if (auto sig = weak.lock())
 				sig->removePortReceiver(handle);
 		}
+	}
+
+	ObserverContext::~ObserverContext() noexcept {
+		clearSignals();
+	}
+
+	ObserverContext::ObserverContext(geode::Function<void()> eff, std::monostate) noexcept
+		: impl(std::make_shared<ObserverContext::Impl>(std::move(eff))) {}
+
+	void Observer::reactToChanges(geode::Function<void()> func) noexcept {
+		contexts.push_back(ObserverContext(std::move(func), {}));
+		std::invoke(contexts.back());
 	}
 }

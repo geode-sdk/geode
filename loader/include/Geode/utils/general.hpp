@@ -4,6 +4,7 @@
 
 #include <Geode/utils/ZStringView.hpp>
 #include <Geode/utils/string.hpp>
+#include <Geode/utils/hash.hpp>
 #include "../DefaultInclude.hpp"
 #include <chrono>
 #include <iomanip>

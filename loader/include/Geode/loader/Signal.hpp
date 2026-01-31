@@ -1,44 +1,58 @@
-#include "EventV2.hpp"
+#include "Event.hpp"
+#include "../platform/platform.hpp"
 
 namespace geode::comm {
-	class Observer;
+	class ObserverContext;
 
 	class SignalInternal {
-		friend class Observer;
+		friend class ObserverContext;
 
 		virtual ~SignalInternal() noexcept;
 		virtual void removePortReceiver(ReceiverHandle handle) noexcept;
-		virtual ReceiverHandle addPortReceiver(Observer handle) noexcept;
+		virtual ReceiverHandle addPortReceiver(ObserverContext handle) noexcept;
 	};
 
-	class Observer {
+	class ObserverContext {
 		template <class Type, bool ThreadSafe>
 		friend class Signal;
+		friend class Observer;
 
-		class Impl {
-		public:
+		struct Impl {
 			geode::Function<void()> effect;
 			std::vector<std::pair<std::weak_ptr<SignalInternal>, ReceiverHandle>> registered;
 		};
 		std::shared_ptr<Impl> impl;
 
-		static std::vector<Observer> stack;
-		static std::optional<Observer> top() noexcept;
+		static std::vector<ObserverContext> stack;
+		static ObserverContext* top() noexcept;
 		void registerSignal(std::shared_ptr<SignalInternal> sig) noexcept;
 		void clearSignals() noexcept;
+
+		// sooo std23::move_only_function is broken in single-arg ctors
+		ObserverContext(geode::Function<void()> effect, std::monostate) noexcept;
 	public:
+		~ObserverContext() noexcept;
 		void operator()() noexcept;
+	};
+
+	class Observer {
+		std::vector<ObserverContext> contexts;
+	public:
+		Observer() noexcept = default;
+		Observer(Observer&&) noexcept = default;
+
+		void reactToChanges(geode::Function<void()> func) noexcept;
 	};
 
 	template <class Type, bool ThreadSafe>
 	class Signal {
 		class Impl : SignalInternal {
-			using PortType = Port<Observer, ThreadSafe>;
+			using PortType = Port<ObserverContext, ThreadSafe>;
 
 			PortType port;
 			Type value;
 			std::conditional_t<ThreadSafe, std::atomic_flag, bool> inCtx = false;
-			[[no_unique_address]] mutable std::conditional_t<ThreadSafe, std::mutex, std::monostate> mutex;
+			GEODE_NO_UNIQUE_ADDRESS mutable std::conditional_t<ThreadSafe, std::mutex, std::monostate> mutex;
 
 			Impl() noexcept {}
 			Impl(std::convertible_to<PortType> auto&& p, std::convertible_to<Type> auto&& v) noexcept : port(p), value(v) {}
@@ -46,7 +60,7 @@ namespace geode::comm {
 			void removePortReceiver(ReceiverHandle handle) noexcept override {
 				port.removeReceiver(handle);
 			}
-			ReceiverHandle addPortReceiver(Observer obs) noexcept override {
+			ReceiverHandle addPortReceiver(ObserverContext obs) noexcept override {
 				return port.addReceiver(obs);
 			}
 		};
@@ -83,11 +97,10 @@ namespace geode::comm {
 		std::conditional_t<ThreadSafe, Type, Type const&> get() noexcept {
 		    std::lock_guard lk(impl->mutex);
 
-		    if (auto observer = Observer::top())
+		    if (auto observer = ObserverContext::top())
 		    	observer->registerSignal(impl);
 
 		    return impl->value;
 		}
 	};
 };
-

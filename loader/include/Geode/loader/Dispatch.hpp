@@ -11,66 +11,10 @@
 #include <tuple>
 
 namespace geode {
-    // Mod interoperability
-
-    GEODE_DLL utils::StringMap<EventListenerPool*>& dispatchPools();
-
     template <class... Args>
-    class DispatchEvent : public Event {
-    protected:
-        std::string m_id;
-        std::tuple<Args...> m_args;
-
+    class Dispatch : public ThreadSafeEvent<Dispatch<Args...>, bool(Args...), std::string> {
     public:
-        DispatchEvent(std::string id, Args... args) :
-            m_id(std::move(id)), m_args(std::make_tuple(args...)) {}
-
-        std::tuple<Args...> getArgs() const {
-            return m_args;
-        }
-
-        std::string_view getID() const {
-            return m_id;
-        }
-
-        EventListenerPool* getPool() const override {
-            auto& pools = dispatchPools();
-            auto it = pools.find(m_id);
-            if (it == pools.end()) {
-                std::tie(it, std::ignore) = pools.emplace(std::string(m_id), DefaultEventListenerPool::create());
-            }
-            return it->second;
-        }
-    };
-
-    template <class... Args>
-    class DispatchFilter : public EventFilter<DispatchEvent<Args...>> {
-    protected:
-        std::string m_id;
-
-    public:
-        using Ev = DispatchEvent<Args...>;
-        using Callback = ListenerResult(Args...);
-
-        EventListenerPool* getPool() const {
-            auto& pools = dispatchPools();
-            auto it = pools.find(m_id);
-            if (it == pools.end()) {
-                std::tie(it, std::ignore) = pools.emplace(std::string(m_id), DefaultEventListenerPool::create());
-            }
-            return it->second;
-        }
-
-        ListenerResult handle(geode::Function<Callback>& fn, Ev* event) {
-            if (event->getID() == m_id) {
-                return std::apply(fn, event->getArgs());
-            }
-            return ListenerResult::Propagate;
-        }
-
-        DispatchFilter(std::string id) : m_id(std::move(id)) {}
-
-        DispatchFilter(DispatchFilter const&) = default;
+        using ThreadSafeEvent<Dispatch<Args...>, bool(Args...), std::string>::ThreadSafeEvent;
     };
 }
 
@@ -118,19 +62,16 @@ namespace geode::geode_internal {
     inline auto callEventExportListener(Fn fnPtr, auto eventID) {
         using StaticType = geode::modifier::AsStaticType<Fn>::type;
         Fn ptr = nullptr;
-        geode::DispatchEvent<Fn*>(eventID, &ptr).post();
+        geode::Dispatch<Fn*>(std::move(eventID)).send(&ptr);
         return geode::Function<std::remove_pointer_t<StaticType>>(ptr);
     }
 
     template <class Fn>
     inline bool getEventExportListener(Fn fnPtr, auto eventID) {
-        new geode::EventListener(
-            [=](Fn* ptr) {
-                *ptr = fnPtr;
-                return geode::ListenerResult::Stop;
-            },
-            geode::DispatchFilter<Fn*>(eventID)
-        );
+        geode::Dispatch<Fn*>(std::move(eventID)).listen([=](Fn* ptr) {
+            *ptr = fnPtr;
+            return geode::ListenerResult::Stop;
+        }).leak();
         return true;
     }
 }

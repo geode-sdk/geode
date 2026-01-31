@@ -160,4 +160,30 @@ namespace geode::cast {
 
         return nullptr;
     }
+
+    inline char const* getRuntimeTypeName(void const* ptr) {
+        if (!ptr) {
+            return "<null>";
+        }
+
+        auto vftable = *reinterpret_cast<VftableType const* const*>(ptr);
+
+        auto metaPtr = static_cast<MetaPointerType const*>(static_cast<CompleteVftableType const*>(vftable));
+
+    #ifdef GEODE_IS_X64
+        auto locatorOffset = metaPtr->m_completeLocator->m_locatorOffset;
+        auto base = reinterpret_cast<uintptr_t>(metaPtr->m_completeLocator) - locatorOffset;
+    #else
+        auto base = 0;
+    #endif
+
+        auto typeDesc = metaPtr->m_completeLocator->m_typeDescriptor.into(base);
+
+        return typeDesc->m_typeDescriptorName;
+    }
+
+    inline char const* getRuntimeTypeName(std::type_info const& info) {
+        auto typeDesc = reinterpret_cast<TypeDescriptorType const*>(&info);
+        return typeDesc->m_typeDescriptorName;
+    }
 }
