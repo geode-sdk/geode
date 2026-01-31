@@ -420,7 +420,7 @@ static std::string getStacktrace() {
                 if (base::get() == (uintptr_t)baseAddress) {
                     // find closest function start
                     auto const& funcs = getFunctionStarts();
-                    auto iter = std::lower_bound(funcs.begin(), funcs.end(), offset);
+                    auto iter = std::upper_bound(funcs.begin(), funcs.end(), offset);
                     if (iter != funcs.begin()) {
                         --iter;
                         auto funcOffset = *iter;

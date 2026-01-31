@@ -3,6 +3,7 @@
 #include "about.hpp"
 #include "../loader/ModImpl.hpp"
 #include <Geode/Utils.hpp>
+#include <Geode/utils/web.hpp>
 #include <asp/time/SystemTime.hpp>
 
 using namespace geode::prelude;
@@ -76,7 +77,7 @@ void crashlog::updateFunctionBindings() {
     ).listen([](web::WebResponse* res) {
         if (!res->ok()) return;
 
-        (void) file::writeBinarySafe(dirs::getGeodeSaveDir() / "bindings.json", res->data());
+        (void) res->into(dirs::getGeodeSaveDir() / "bindings.json");
         Mod::get()->setSavedValue<uint64_t>("bindings-update-time", std::time(nullptr));
     });
 }
