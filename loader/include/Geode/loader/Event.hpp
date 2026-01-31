@@ -538,7 +538,7 @@ namespace geode::comm {
             auto p = m_ports.load();
             auto it = p->find(filter);
             if (it != p->end()) {
-                return ListenerHandle(it->first.get(), std::invoke(func, it->second.get()), nullptr);
+                return ListenerHandle(it->first, std::invoke(func, it->second.get()), nullptr);
             }
             else {
                 auto clonedFilter = KeyType(filter->clone());
