@@ -422,7 +422,7 @@ class $modify(cocos2d::CCEGLView) {
                     isDown = data.action != Release;
                     keyCode = data.key;
 
-                    if (result == ListenerResult::Propagate) {
+                    if (result == ListenerResult::Propagate && keyCode != KEY_Unknown) {
                         auto* ime = CCIMEDispatcher::sharedDispatcher();
                         if (keyCode == enumKeyCodes::KEY_Backspace && isDown) {
                             ime->dispatchDeleteBackward();
@@ -430,12 +430,23 @@ class $modify(cocos2d::CCEGLView) {
                             ime->dispatchDeleteForward();
                         }
 
-                        CCKeyboardDispatcher::get()->dispatchKeyboardMSG(
-                            keyCode,
-                            isDown,
-                            data.action == Repeat,
-                            data.timestamp
+                        auto* keyboardDispatcher = CCKeyboardDispatcher::get();
+
+                        keyboardDispatcher->updateModifierKeys(
+                            data.modifiers & KeyboardInputData::Mods_Shift,
+                            data.modifiers & KeyboardInputData::Mods_Control,
+                            data.modifiers & KeyboardInputData::Mods_Alt,
+                            data.modifiers & KeyboardInputData::Mods_Super
                         );
+
+                        if (!ime->hasDelegate() || keyCode == KEY_Escape || keyCode == KEY_Enter) {
+                            keyboardDispatcher->dispatchKeyboardMSG(
+                                keyCode,
+                                isDown,
+                                data.action == Repeat,
+                                data.timestamp
+                            );
+                        }
 
                         // text pasting
                         if (data.modifiers & KeyboardInputData::Mods_Control && keyCode == enumKeyCodes::KEY_V && isDown) {
