@@ -120,7 +120,8 @@ public:
     }
 
     void removeEventListener(std::string_view id) {
-        m_eventListeners.erase(id);
+        auto range = m_eventListeners.equal_range(id);
+        m_eventListeners.erase(range.first, range.second);
     }
 
     void removeEventListener(ListenerHandle* handle) {

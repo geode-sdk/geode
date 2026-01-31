@@ -99,12 +99,13 @@ namespace geode::comm {
 
         template <class ...Args>
         requires std::invocable<Callable, Args...>
-        void send(Args&&... value) const noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
+        bool send(Args&&... value) const noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
             for (auto& callable : m_receivers) {
                 if (callable.call(std::forward<Args>(value)...)) {
-                    break;
+                    return true;
                 }
             }
+            return false;
         }
     };
 
@@ -149,13 +150,14 @@ namespace geode::comm {
 
         template <class ...Args>
         requires std::invocable<Callable, Args...>
-        void send(Args&&... value) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
+        bool send(Args&&... value) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
             auto currentReceivers = m_receivers.load();
             for (auto& callable : *currentReceivers) {
                 if (callable.call(std::forward<Args>(value)...)) {
-                    break;
+                    return true;
                 }
             }
+            return false;
         }
     };
 
@@ -169,17 +171,17 @@ namespace geode::comm {
         using Port<Callable, ThreadSafe>::removeReceiver;
 
         template <class ...Args>
-        void send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
+        bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
 
             if constexpr (ThreadSafe) {
                 if (m_sent.test_and_set())
-                    return;
+                    return false;
             } else {
-                if (m_sent) return;
+                if (m_sent) return false;
                 m_sent = true;
             }
 
-            Port<Callable, ThreadSafe>::send(std::forward<Args>(args)...);
+            return Port<Callable, ThreadSafe>::send(std::forward<Args>(args)...);
         }
         bool isSent() const noexcept {
             if constexpr (ThreadSafe)
@@ -201,9 +203,9 @@ namespace geode::comm {
 
         template <class ...Args>
         requires std::invocable<Callable, Args...>
-        void send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
+        bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
             auto lam = [=, this] { 
-                Port<Callable, ThreadSafe>::send(args...); 
+                return Port<Callable, ThreadSafe>::send(args...); 
             };
 
             if constexpr (ThreadSafe) {
@@ -213,6 +215,7 @@ namespace geode::comm {
             } else {
                 m_queue.push_back(lam);
             }
+            return false;
         }
 
         void flush() noexcept {
@@ -243,15 +246,15 @@ namespace geode::comm {
         using QueuedPort<Callable, ThreadSafe>::flush;
 
         template <class ...Args>
-        void send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
+        bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
             if constexpr (ThreadSafe) {
                 if (m_sent.test_and_set())
-                    return;
+                    return false;
             } else {
-                if (m_sent) return;
+                if (m_sent) return false;
                 m_sent = true;
             }
-            QueuedPort<Callable, ThreadSafe>::send(std::forward<Args>(args)...);
+            return QueuedPort<Callable, ThreadSafe>::send(std::forward<Args>(args)...);
         }
         bool isSent() const noexcept {
             if constexpr (ThreadSafe)
@@ -291,8 +294,8 @@ namespace geode::comm {
         }
 
         template <class... Args>
-        void send(Args&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, Args...>) {
-            m_port.send(std::forward<Args>(args)...);
+        bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, Args...>) {
+            return m_port.send(std::forward<Args>(args)...);
         }
 
         ReceiverHandle addReceiver(geode::CopyableFunction<bool(PArgs...)> rec, int priority = 0) noexcept {
@@ -476,7 +479,7 @@ namespace geode::comm {
             // std::cout << fmt::format("Destroying BasicEvent {}, {}", (void*)this, typeid(Marker).name()) << std::endl;
         }
 
-        void send(PArgs&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, PArgs...>);
+        bool send(PArgs&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, PArgs...>);
 
         template<class Callable>
         ListenerHandle listen(Callable listener, int priority = 0) const noexcept {
@@ -510,7 +513,7 @@ namespace geode::comm {
 
         template <class Callable>
         requires std::is_invocable_v<Callable, OpaquePortBase*>
-        void send(BaseFilter const* filter, Callable func) noexcept(std::is_nothrow_invocable_v<Callable, OpaquePortBase*>) {
+        bool send(BaseFilter const* filter, Callable func) noexcept(std::is_nothrow_invocable_v<Callable, OpaquePortBase*>) {
             // std::cout << fmt::format("on send") << std::endl;
             // std::cout << fmt::format("Base filter type {}", cast::getRuntimeTypeName(filter)) << std::endl;
             // std::cout << fmt::format("Filter hash {}", filter->hash()) << std::endl;
@@ -522,7 +525,7 @@ namespace geode::comm {
                 // std::cout << fmt::format("Found filter type {}", cast::getRuntimeTypeName(newFilter)) << std::endl;
                 return std::invoke(func, it->second.get());
             }
-            return;
+            return false;
         }
 
         template <class Callable>
@@ -585,7 +588,7 @@ namespace geode::comm {
         typename OpaqueEventPort<PortTemplate, PArgs...>;
         std::is_convertible_v<PReturn, bool> || std::is_same_v<PReturn, void>;
     }
-    void BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::send(PArgs&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, PArgs...>) {
+    bool BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::send(PArgs&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, PArgs...>) {
         return EventCenter::get()->send(this, [&](OpaquePortBase* opaquePort) {
             auto port = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(opaquePort);
             return port->send(std::forward<PArgs>(args)...);
