@@ -16,11 +16,10 @@
 #include <Geode/utils/web.hpp>
 #include <arc/future/Select.hpp>
 #include <arc/net/TcpStream.hpp>
-#include <arc/time/Timeout.hpp>
+#include <arc/time/Sleep.hpp>
 #include <arc/task/CancellationToken.hpp>
 #include <arc/sync/Mutex.hpp>
 #include <arc/sync/mpsc.hpp>
-#include <arc/sync/oneshot.hpp>
 #include <asp/collections/SmallVec.hpp>
 #include <ca_bundle.h>
 #include <curl/curl.h>
@@ -325,24 +324,6 @@ std::string_view WebResponse::errorMessage() const {
     return m_impl->m_errMessage;
 }
 
-WebFuture::WebFuture(arc::Future<WebResponse> inner) : inner(std::move(inner)) {}
-
-WebFuture::WebFuture(WebFuture&& other) noexcept : inner(std::move(other.inner)) {}
-
-WebFuture& WebFuture::operator=(WebFuture&& other) noexcept {
-    if (this != &other) {
-        this->inner = std::move(other.inner);
-    }
-    return *this;
-}
-
-std::optional<WebResponse> WebFuture::poll() {
-    if (inner.poll()) {
-        return inner.getOutput();
-    }
-    return std::nullopt;
-}
-
 class web::WebRequestsManager {
 private:
     class Impl;
@@ -358,9 +339,12 @@ public:
         std::shared_ptr<WebRequest::Impl> request;
         WebResponse response;
         geode::Function<void(WebResponse)> onComplete;
+        CURL* curl = nullptr;
     };
 
-    Future<WebResponse> enqueueAndWait(std::shared_ptr<WebRequest::Impl> data);
+    WebFuture enqueueAndWait(std::shared_ptr<WebRequest::Impl> data);
+    arc::mpsc::SendResult<std::shared_ptr<RequestData>> tryEnqueue(std::shared_ptr<RequestData> data);
+    void cancel(std::shared_ptr<RequestData> data);
 };
 
 static void hexAppend(auto& buf, unsigned char c) {
@@ -1003,7 +987,9 @@ public:
 
     std::optional<arc::TaskHandle<void>> m_worker;
     std::optional<arc::mpsc::Sender<std::shared_ptr<RequestData>>> m_reqtx;
+    std::optional<arc::mpsc::Sender<CURL*>> m_canceltx;
     arc::CancellationToken m_cancel;
+    arc::Notify m_wakeNotify;
     asp::Instant m_nextWakeup = asp::Instant::farFuture();
 
     std::unordered_map<CURL*, std::shared_ptr<RequestData>> m_activeRequests;
@@ -1011,7 +997,10 @@ public:
 
     Impl() {
         auto [tx, rx] = arc::mpsc::channel<std::shared_ptr<RequestData>>(1024);
+        auto [ctx, crx] = arc::mpsc::channel<CURL*>(64);
+
         m_reqtx = std::move(tx);
+        m_canceltx = std::move(ctx);
 
         m_multiHandle = curl_multi_init();
         curl_multi_setopt(m_multiHandle, CURLMOPT_MAX_TOTAL_CONNECTIONS, 32L);
@@ -1029,7 +1018,7 @@ public:
         });
         curl_multi_setopt(m_multiHandle, CURLMOPT_TIMERDATA, this);
 
-        m_worker = async::runtime().spawn([this](this auto self, auto rx) -> arc::Future<> {
+        m_worker = async::runtime().spawn([this](this auto self, auto rx, auto crx) -> arc::Future<> {
             bool running = true;
             while (running) {
                 co_await arc::select(
@@ -1042,12 +1031,16 @@ public:
                         if (req) this->workerAddRequest(std::move(req).unwrap());
                     }),
 
+                    arc::selectee(crx.recv(), [&](auto req) {
+                        if (req) this->workerCancelRequest(req.unwrap());
+                    }),
+
                     arc::selectee(
                         this->workerPoll()
                     )
                 );
             }
-        }(std::move(rx)));
+        }(std::move(rx), std::move(crx)));
     }
 
     ~Impl() {
@@ -1073,10 +1066,37 @@ public:
             req->onComplete(req->request->makeError(-1, "Failed to initialize cURL"));
             return;
         }
+        
+        req->curl = handle;
 
         log::debug("Added request ({})", req->request->m_url);
         curl_multi_add_handle(m_multiHandle, handle);
         m_activeRequests.insert({ handle, std::move(req) });
+    }
+
+    void workerCancelRequest(CURL* curl) {
+        auto it = m_activeRequests.find(curl);
+        if (it == m_activeRequests.end()) {
+            log::warn("Tried to cancel unknown request! ({})", (void*)curl);
+            return;
+        }
+
+        auto& req = *it->second;
+        log::debug("Cancelled request ({})", req.request->m_url);
+        req.onComplete(req.request->makeError(-1, "Request cancelled"));
+
+        this->cleanupRequest(req);
+    }
+
+    void cleanupRequest(RequestData& data) {
+        if (!data.curl) return;
+
+        log::debug("Removing request ({})", data.request->m_url);
+        
+        curl_multi_remove_handle(m_multiHandle, data.curl);
+        curl_easy_cleanup(data.curl);
+        m_activeRequests.erase(data.curl);
+        data.curl = nullptr;
     }
 
     Future<> workerPoll() {
@@ -1122,36 +1142,37 @@ public:
                 }
 
                 // clean up
-                curl_multi_remove_handle(m_multiHandle, handle);
-                curl_easy_cleanup(handle);
-                m_activeRequests.erase(handle);
+                this->cleanupRequest(requestData);
             }
         }
 
-        if (!m_activeRequests.empty()) {
-            // poll for either 100ms or until curl needs us, whatever happens earlier
-            auto now = asp::Instant::now();
-            auto deadline = std::min(m_nextWakeup, now + asp::Duration::fromMillis(100));
+        // poll for either 250ms or until curl needs us, whatever happens earlier
+        auto now = asp::Instant::now();
+        auto deadline = std::min(m_nextWakeup, now + asp::Duration::fromMillis(250));
 
-            // poll until there is socket activity or the timer expires
-            auto tres = co_await arc::timeoutAt(
-                deadline, this->workerPollSockets()
-            );
-            
-            int running = 0;
-            if (tres) {
-                auto [fd, ready] = tres.unwrap();
+        bool activeTransfers = stillRunning > 0;
+
+        // poll until there is socket activity or the timer expires
+        co_await arc::select(
+            arc::selectee(m_wakeNotify.notified()),
+
+            arc::selectee(arc::sleepUntil(deadline), [&] {
+                // timeout!
+                int running = 0;
+                curl_multi_socket_action(m_multiHandle, CURL_SOCKET_TIMEOUT, 0, &running);
+            }),
+
+            arc::selectee(this->workerPollSockets(), [&](PollReadiness readiness) {
+                auto [fd, ready] = readiness;
                 int ev = 0;
                 if (ready & Interest::Readable) ev |= CURL_CSELECT_IN;
                 if (ready & Interest::Writable) ev |= CURL_CSELECT_OUT;
                 if (ready & Interest::Error) ev |= CURL_CSELECT_ERR;
 
+                int running = 0;
                 curl_multi_socket_action(m_multiHandle, fd, ev, &running);
-            } else {
-                // timeout!
-                curl_multi_socket_action(m_multiHandle, CURL_SOCKET_TIMEOUT, 0, &running);
-            }
-        }
+            }, activeTransfers)
+        );
     }
 
     MultiPollFuture workerPollSockets() {
@@ -1207,25 +1228,74 @@ WebRequestsManager* WebRequestsManager::get() {
     return &instance;
 }
 
-Future<WebResponse> WebRequestsManager::enqueueAndWait(std::shared_ptr<WebRequest::Impl> data) {
+struct WebFuture::Impl {
+    std::shared_ptr<WebRequestsManager::RequestData> m_request;
+    arc::oneshot::Receiver<WebResponse> m_rx;
+    arc::oneshot::RecvAwaiter<WebResponse> m_awaiter;
+    bool m_sent = false;
+    bool m_finished = false;
+
+    Impl(std::shared_ptr<WebRequestsManager::RequestData> request, arc::oneshot::Receiver<WebResponse> awaiter)
+        : m_request(std::move(request)), m_rx(std::move(awaiter)), m_awaiter(m_rx.recv()) {}
+};
+
+WebFuture::WebFuture(std::shared_ptr<WebRequest::Impl> request) {
     auto [tx, rx] = arc::oneshot::channel<WebResponse>();
 
-    auto rdata = std::make_shared<RequestData>(
-        std::move(data), WebResponse{}, [tx = std::move(tx)](auto res) mutable {
+    auto rdata = std::make_shared<WebRequestsManager::RequestData>(
+        std::move(request), WebResponse{}, [tx = std::move(tx)](auto res) mutable {
             (void) tx.send(std::move(res));
         }
     );
 
-    auto res = m_impl->m_reqtx->trySend(rdata);
-    if (!res) {
-        co_return rdata->request->makeError(-1, "Failed to enqueue web request: queue is full");
+    m_impl = std::make_shared<Impl>(std::move(rdata), std::move(rx));
+}
+
+WebFuture::~WebFuture() {
+    if (!m_impl) return;
+
+    if (m_impl->m_sent && !m_impl->m_finished) {
+        // future got cancelled, tell request manager to stop this request 
+        WebRequestsManager::get()->cancel(m_impl->m_request);
+    }
+}
+
+std::optional<WebResponse> WebFuture::poll() {
+    using RequestData = WebRequestsManager::RequestData;
+
+    if (!m_impl->m_sent) {
+        // send the actual request
+        auto res = WebRequestsManager::get()->tryEnqueue(m_impl->m_request);
+        if (!res) {
+            return m_impl->m_request->request->makeError(-1, "Failed to enqueue web request: queue is full");
+        }
+        m_impl->m_sent = true;
     }
 
-    auto retres = co_await rx.recv();
-    if (retres) {
-        co_return std::move(*retres);
+    auto rpoll = m_impl->m_awaiter.poll();
+    if (!rpoll) {
+        return std::nullopt;
     }
 
-    co_return rdata->request->makeError(-1, "Failed to receive web response: channel closed");
+    auto result = std::move(rpoll).value();
+    if (!result) {
+        m_impl->m_finished = true;
+        return m_impl->m_request->request->makeError(-1, "Failed to receive web response: channel closed");
+    }
+    
+    m_impl->m_finished = true;
+    return std::move(result).unwrap();
+}
+
+WebFuture WebRequestsManager::enqueueAndWait(std::shared_ptr<WebRequest::Impl> data) {
+    return WebFuture(std::move(data));
+}
+
+void WebRequestsManager::cancel(std::shared_ptr<RequestData> data) {
+    (void) m_impl->m_canceltx->trySend(data->curl);
+}
+
+mpsc::SendResult<std::shared_ptr<WebRequestsManager::RequestData>> WebRequestsManager::tryEnqueue(std::shared_ptr<RequestData> data) {
+    return m_impl->m_reqtx->trySend(std::move(data));
 }
 

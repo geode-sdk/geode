@@ -5,6 +5,7 @@
 #include <Geode/utils/StringMap.hpp>
 #include <Geode/utils/async.hpp>
 #include <Geode/utils/general.hpp>
+#include <arc/sync/oneshot.hpp>
 #include <matjson.hpp>
 #include <Geode/Result.hpp>
 #include <chrono>
@@ -187,19 +188,7 @@ namespace geode::utils::web {
         }
     };
 
-    struct GEODE_DLL ARC_NODISCARD WebFuture : arc::PollableBase<WebFuture, WebResponse> {
-        WebFuture(arc::Future<WebResponse> inner);
-
-        WebFuture(WebFuture&&) noexcept;
-        WebFuture& operator=(WebFuture&&) noexcept;
-        WebFuture(WebFuture const&) = delete;
-        WebFuture& operator=(WebFuture const&) = delete;
-
-        std::optional<WebResponse> poll();
-
-    private:
-        arc::Future<WebResponse> inner;
-    };
+    struct WebFuture;
 
     class GEODE_DLL WebRequest final {
     private:
@@ -208,6 +197,7 @@ namespace geode::utils::web {
         std::shared_ptr<Impl> m_impl;
 
         friend class WebRequestsManager;
+        friend struct WebFuture;
     public:
         WebRequest();
         ~WebRequest();
@@ -437,5 +427,21 @@ namespace geode::utils::web {
          * Otherwise, default values are returned.
          */
         WebProgress getProgress() const;
+    };
+
+    struct GEODE_DLL ARC_NODISCARD WebFuture : arc::PollableBase<WebFuture, WebResponse> {
+        explicit WebFuture(std::shared_ptr<WebRequest::Impl> request);
+        ~WebFuture();
+
+        WebFuture(WebFuture&&) noexcept = default;
+        WebFuture& operator=(WebFuture&&) noexcept = delete;
+        WebFuture(WebFuture const&) = delete;
+        WebFuture& operator=(WebFuture const&) = delete;
+
+        std::optional<WebResponse> poll();
+
+    private:
+        struct Impl;
+        std::shared_ptr<Impl> m_impl;
     };
 }
