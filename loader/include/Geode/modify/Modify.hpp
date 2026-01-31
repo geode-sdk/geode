@@ -578,6 +578,54 @@ namespace geode {
 #endif
 }
 
+namespace geode::internal {
+    template <class T, class = void>
+    struct extract_modify_base { using type = void; };
+
+    template <class T>
+    struct extract_modify_base<T, std::void_t<decltype(T::m_fields)>> {
+    private:
+        template <class U>
+        struct extract_base { using type = void; };
+
+        template <class Derived, class Base>
+        struct extract_base<modifier::FieldIntermediate<Derived, Base>> { using type = Base; };
+    public:
+        using type = typename extract_base<decltype(T::m_fields)>::type;
+    };
+
+    template <class T>
+    using ModifyBase = typename extract_modify_base<T>::type;
+}
+
+namespace geode::cast {
+    /**
+     * A cast specialized to cast to modify classes. Static casts to the base class of the modify class first,
+     * and then static casts to the modify class itself.
+     * @example modify_cast<MyGJBaseGameLayer*>(PlayLayer::get());
+     */
+    template <class Target, class Original>
+    constexpr Target modify_cast(Original original) {
+
+        using TargetBase = geode::internal::ModifyBase<std::remove_pointer_t<Target>>;
+
+        static_assert(std::is_pointer_v<Target> && !std::is_pointer_v<std::remove_pointer_t<Target>>, "Target class has to be a single pointer.");
+        static_assert(std::is_pointer_v<Original> && !std::is_pointer_v<std::remove_pointer_t<Original>>, "Original class has to be a single pointer.");
+        static_assert(
+            (
+                requires { std::remove_pointer_t<Target>::m_fields; !std::is_void_v<TargetBase>; } &&
+                std::is_base_of_v<geode::Modify<std::remove_pointer_t<Target>, TargetBase>, std::remove_pointer_t<Target>>
+            ),
+            "The target class has to be a Modify class."
+        );
+        static_assert(
+            !std::is_void_v<TargetBase> && requires { static_cast<TargetBase*>(original); },
+            "The original class has to be castable to the class the modify class is modifying."
+        );
+        return static_cast<Target>(static_cast<TargetBase*>(original));
+    }
+}
+
 /**
  * Main class implementation, it has the structure
  *
