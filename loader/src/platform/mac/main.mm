@@ -94,7 +94,7 @@ $execute {
             updateFiles();
         }
         return ListenerResult::Propagate;
-    });
+    }).leak();
 };
 
 void updateGeode() {

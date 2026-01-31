@@ -400,7 +400,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     );
     this->addChildAtPosition(m_statusContainer, Anchor::Center);
 
-    InvalidateCacheEvent().listen(
+    m_invalidateCacheHandle = InvalidateCacheEvent().listen(
         [this](ModListSource* source) {
             this->onInvalidateCache(source);
             return ListenerResult::Propagate;
