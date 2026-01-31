@@ -6,6 +6,7 @@
 #include "LogImpl.hpp"
 #include "console.hpp"
 
+#include <Geode/loader/Event.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Loader.hpp>
@@ -34,6 +35,11 @@
 #include <Geode/ui/Popup.hpp>
 
 using namespace geode::prelude;
+
+comm::EventCenter* geode::comm::EventCenter::get() {
+    static EventCenter instance;
+    return &instance;
+}
 
 Loader::Impl* LoaderImpl::get() {
     return Loader::get()->m_impl.get();
@@ -138,7 +144,7 @@ Result<> Loader::Impl::setup() {
 
     // Trigger on_mod(Loaded) for the internal mod
     // this function is already on the gd thread, so this should be fine
-    ModStateEvent(Mod::get(), ModEventType::Loaded).post();
+    ModStateEvent(ModEventType::Loaded, Mod::get()).send();
 
     log::info("Refreshing mod graph");
     this->refreshModGraph();

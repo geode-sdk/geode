@@ -114,4 +114,22 @@ namespace geode::cast {
         auto afterTypeinfo = reinterpret_cast<ClassTypeinfoType const*>(&typeid(std::remove_pointer_t<After>));
         return static_cast<After>(typeinfoCastInternal((void*)ptr, beforeTypeinfo, afterTypeinfo, 0));
     }
+
+    inline char const* getRuntimeTypeName(void const* ptr) {
+        if (!ptr) {
+            return "<null>";
+        }
+
+        auto vftable = *reinterpret_cast<VtableType const* const*>(ptr);
+
+        auto dataPointer = static_cast<VtableTypeinfoType const*>(static_cast<CompleteVtableType const*>(vftable));
+
+        auto typeinfo = dataPointer->m_typeinfo;
+
+        return typeinfo->m_typeinfoName;
+    }
+
+    inline char const* getRuntimeTypeName(std::type_info const& info) {
+        return reinterpret_cast<ClassTypeinfoType const*>(&info)->m_typeinfoName;
+    }
 }

@@ -9,6 +9,7 @@
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/function.hpp>
+#include <Geode/utils/async.hpp>
 #include <filesystem>
 #include <string>
 #include <unordered_set>
@@ -304,33 +305,21 @@ namespace geode::utils::file {
      * Prompt the user to pick a file using the system's file system picker
      * @param mode Type of file selection prompt to show
      * @param options Picker options
+     * @returns The picked file path, or std::nullopt if the dialog was cancelled
      */
-    GEODE_DLL Task<Result<std::filesystem::path>> pick(PickMode mode, FilePickOptions const& options);
+    GEODE_DLL arc::Future<Result<std::optional<std::filesystem::path>>> pick(PickMode mode, FilePickOptions const& options);
 
     /**
      * Prompt the user to pick a bunch of files for opening using the system's file system picker
      * @param options Picker options
+     * @returns The picked file paths, or empty vector if the dialog was cancelled
      */
-    GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> pickMany(FilePickOptions const& options);
+    GEODE_DLL arc::Future<Result<std::vector<std::filesystem::path>>> pickMany(FilePickOptions const& options);
 
-    class GEODE_DLL FileWatchEvent final : public Event {
-    protected:
-        std::filesystem::path m_path;
-
+    class GEODE_DLL FileWatchEvent final : public Event<FileWatchEvent, bool(), std::filesystem::path> {
     public:
-        FileWatchEvent(std::filesystem::path const& path);
-        std::filesystem::path getPath() const;
-    };
-
-    class GEODE_DLL FileWatchFilter final : public EventFilter<FileWatchEvent> {
-    protected:
-        std::filesystem::path m_path;
-
-    public:
-        using Callback = void(FileWatchEvent*);
-
-        ListenerResult handle(geode::Function<Callback>& callback, FileWatchEvent* event);
-        FileWatchFilter(std::filesystem::path const& path);
+        // filter params path
+        using Event::Event;
     };
 
     /**

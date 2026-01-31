@@ -11,6 +11,10 @@ namespace geode {
     Mod* getMod() {
         return Mod::get();
     }
+
+    ZStringView getModID(Mod* mod) {
+        return mod->getID();
+    }
 }
 
 GEODE_API void geodeImplicitEntry() {

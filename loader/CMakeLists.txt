@@ -155,7 +155,7 @@ endif()
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
 
 file(MAKE_DIRECTORY "${GEODE_BIN_PATH}/nightly")
 

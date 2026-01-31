@@ -19,8 +19,8 @@ protected:
     CCMenuItemSpriteExtra* m_cancelServerTaskBtn;
     EventListener<web::WebTask> m_rawListener;
     EventListener<StrTask> m_strListener;
-    EventListener<server::ServerRequest<server::ServerModsList>> m_serListener;
-    EventListener<server::ServerRequest<server::ServerModsList>> m_serListener2;
+    EventListener<server::ServerFuture<server::ServerModsList>> m_serListener;
+    EventListener<server::ServerFuture<server::ServerModsList>> m_serListener2;
 
     bool init() override {
         if (!Popup::init(320.f, 280.f)) return false;
@@ -110,7 +110,7 @@ protected:
             log::info("str task done: {}", *value);
         }
     }
-    void onServerTask(server::ServerRequest<server::ServerModsList>::Event* event) {
+    void onServerTask(server::ServerFuture<server::ServerModsList>::Event* event) {
         m_cancelServerTaskBtn->setVisible(event->getProgress());
 
         if (auto value = event->getValue()) {

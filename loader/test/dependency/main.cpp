@@ -7,19 +7,6 @@
 
 using namespace geode::prelude;
 
-std::string TestEvent::getData() const {
-    return data;
-}
-
-TestEvent::TestEvent(std::string const& data) : data(data) {}
-
-ListenerResult TestEventFilter::handle(geode::Function<Callback>& fn, TestEvent* event) {
-    fn(event);
-    return ListenerResult::Propagate;
-}
-
-TestEventFilter::TestEventFilter() {}
-
 enum class Icon {
     Steve,
     Mike,
@@ -147,7 +134,7 @@ class MySettingValue;
 
 struct MyMenuLayer : Modify<MyMenuLayer, MenuLayer> {
     void onMoreGames(CCObject*) {
-        TestEvent("Event system works!").post();
+        TestEvent().send("Event system works!");
         if (Mod::get()->getSettingValue<bool>("its-raining-after-all")) {
             FLAlertLayer::create("Damn", ":(", "OK")->show();
         }
@@ -196,14 +183,14 @@ struct BeforeMenuLayer : Modify<BeforeMenuLayer, MenuLayer> {
 $on_mod(Loaded) {
     // Mod::get()->addCustomSetting<MySettingValue>("overcast-skies", DEFAULT_ICON);
 
-    (void)new EventListener(+[](GJGarageLayer* gl) {
+    MyDispatchEvent("geode.test/test-garage-open").listen(+[](GJGarageLayer* gl) {
         auto label = CCLabelBMFont::create("Dispatcher works!", "bigFont.fnt");
     	label->setPosition(100, 80);
     	label->setScale(.4f);
     	label->setZOrder(99999);
     	gl->addChild(label);
         return ListenerResult::Propagate;
-    }, MyDispatchFilter("geode.test/test-garage-open"));
+    }).leak();
 }
 
 Result<int> api::addNumbers(int a, int b) {

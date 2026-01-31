@@ -100,7 +100,7 @@ enumKeyCodes CCKeyboardDispatcher::convertKeyCode(enumKeyCodes key)
     }
 }
 
-bool CCKeyboardDispatcher::dispatchKeyboardMSG(enumKeyCodes key, bool isKeyDown, bool isKeyRepeat)
+bool CCKeyboardDispatcher::dispatchKeyboardMSG(enumKeyCodes key, bool isKeyDown, bool isKeyRepeat, double timestamp)
 {
     if (isKeyRepeat && m_bBlockRepeat)
     {
@@ -128,11 +128,11 @@ bool CCKeyboardDispatcher::dispatchKeyboardMSG(enumKeyCodes key, bool isKeyDown,
         auto delegate = handler->getDelegate();
         if (isKeyDown)
         {
-            delegate->keyDown(key);
+            delegate->keyDown(key, timestamp);
         }
         else
         {
-            delegate->keyUp(key);
+            delegate->keyUp(key, timestamp);
         }
     }
     m_bUnknown38 = false;

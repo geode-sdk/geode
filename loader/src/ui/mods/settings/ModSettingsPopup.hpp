@@ -21,7 +21,8 @@ protected:
     ButtonSprite* m_applyBtnSpr;
     TextInput* m_searchInput;
     CCMenuItemSpriteExtra* m_searchClearBtn;
-    EventListener<EventFilter<SettingNodeValueChangeEvent>> m_changeListener;
+    // EventListener<EventFilter<SettingNodeValueChangeEvent>> m_changeListener;
+    ListenerHandle m_changeHandle;
 
     bool init(Mod* mod, bool forceDisableTheme);
     void updateState(SettingNode* invoker = nullptr);

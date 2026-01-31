@@ -17,95 +17,41 @@ namespace geode {
     /**
      * Event that is fired when a mod is loaded / unloaded / enabled / disabled
      */
-    class GEODE_DLL ModStateEvent final : public Event {
-    protected:
-        ModEventType m_type;
-        Mod* m_mod;
-
+    class GEODE_DLL ModStateEvent final : public Event<ModStateEvent, bool(), ModEventType, Mod*> {
     public:
-        ModStateEvent(Mod* mod, ModEventType type);
-        ModEventType getType() const;
-        Mod* getMod() const;
-        bool filter(ModEventType type, Mod* mod) const;
+        // filter params type, targetMod
+        using Event::Event;
     };
 
-    /**
-     * Listener for mod load/enable/disable/unload/data save events
-     */
-    class GEODE_DLL ModStateFilter final : public EventFilter<ModStateEvent> {
+    class GEODE_DLL GlobalModStateEvent final : public Event<GlobalModStateEvent, bool(Mod*), ModEventType> {
     public:
-        using Callback = void(ModStateEvent*);
-
-    protected:
-        ModEventType m_type;
-        Mod* m_mod;
-
-    public:
-        ListenerResult handle(geode::Function<Callback>& fn, ModStateEvent* event);
-
-        /**
-         * Create a mod state listener
-         * @param mod The mod whose events to listen to, or nullptr to listen to
-         * all mods' all state events
-         * @param type Type of event to listen to. Ignored if mod is nullptr
-         */
-        ModStateFilter(Mod* mod, ModEventType type);
-        ModStateFilter(ModStateFilter const&) = default;
+        // listener params mod
+        // filter params type
+        using Event::Event;
     };
 
     /**
      * Event posted to a mod when another mod that depends on it is loaded
      */
-    class GEODE_DLL DependencyLoadedEvent final : public Event {
-    protected:
-        class Impl;
-        std::unique_ptr<Impl> m_impl;
-
+    class GEODE_DLL DependencyLoadedEvent final : public Event<DependencyLoadedEvent, bool(Mod*), Mod*> {
     public:
-        DependencyLoadedEvent(Mod* target, Mod* dependency);
-        virtual ~DependencyLoadedEvent();
-
-        Mod* getTarget() const;
-        Mod* getDependency() const;
-        matjson::Value getDependencySettings() const;
-
-        bool filter(Mod* target) const;
-    };
-
-    /**
-     * Listen for in a mod when a mod that depends on it is loaded
-     */
-    class GEODE_DLL DependencyLoadedFilter final : public EventFilter<DependencyLoadedEvent> {
-    public:
-        using Callback = void(DependencyLoadedEvent*);
-
-    protected:
-        class Impl;
-        std::unique_ptr<Impl> m_impl;
-
-    public:
-        ListenerResult handle(geode::Function<Callback>& fn, DependencyLoadedEvent* event);
-
-        DependencyLoadedFilter(Mod* target = geode::getMod());
-        DependencyLoadedFilter(DependencyLoadedFilter&&);
-        DependencyLoadedFilter(DependencyLoadedFilter const&);
-        DependencyLoadedFilter& operator=(DependencyLoadedFilter const&);
-        DependencyLoadedFilter& operator=(DependencyLoadedFilter&&);
-        ~DependencyLoadedFilter();
+        // listener params dependency
+        // filter params target
+        using Event::Event;
     };
 }
 
 // clang-format off
 #define $on_mod(type) \
 template<class>                                                        \
-void GEODE_CONCAT(geodeExecFunction, __LINE__)(geode::ModStateEvent*); \
+void GEODE_CONCAT(geodeExecFunction, __LINE__)();                      \
 namespace {                                                            \
 	struct GEODE_CONCAT(ExecFuncUnique, __LINE__) {};                  \
 }                                                                      \
-static inline auto GEODE_CONCAT(Exec, __LINE__) = (new geode::EventListener(  \
-            &GEODE_CONCAT(geodeExecFunction, __LINE__)<GEODE_CONCAT(ExecFuncUnique, __LINE__)>, \
-            geode::ModStateFilter(geode::getMod(), geode::ModEventType::type) \
-        ), 0);                                                         \
+static inline auto GEODE_CONCAT(Exec, __LINE__) =                      \
+    geode::ModStateEvent(geode::ModEventType::type, geode::getMod())   \
+    .listen(&GEODE_CONCAT(geodeExecFunction, __LINE__)                 \
+        <GEODE_CONCAT(ExecFuncUnique, __LINE__)>).leak();              \
 template<class>                                                        \
-void GEODE_CONCAT(geodeExecFunction, __LINE__)(geode::ModStateEvent*)
+void GEODE_CONCAT(geodeExecFunction, __LINE__)()
 // clang-format on

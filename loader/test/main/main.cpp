@@ -5,7 +5,7 @@
 #include "../dependency/main.hpp"
 #include "Geode/utils/general.hpp"
 #include <Geode/utils/VMTHookManager.hpp>
-#include <Geode/loader/EventV2.hpp>
+#include <Geode/loader/Event.hpp>
 
 using namespace geode::prelude;
 
@@ -19,13 +19,12 @@ auto test = []() {
 $on_mod(Loaded) {
     log::info("Loaded");
 
-    auto h1 = geode::event::Dispatch<std::string>("geode.test/test-garage-open").listen([](std::string const& str) {
+    auto h1 = geode::Dispatch<std::string>("geode.test/test-garage-open").listen([](std::string const& str) {
         log::info("Received dispatched event: {}", str);
     });
 
-    geode::event::Dispatch<std::string>("geode.test/test-garage-open").send("Hello from dispatch!");
+    geode::Dispatch<std::string>("geode.test/test-garage-open").send("Hello from dispatch!");
 
-    using namespace geode::event;
     auto handle = Dispatch<int>("test").listen([](int val) {
         geode::log::info("Received dispatched int: {}", val);
         return val > 0;
@@ -57,10 +56,10 @@ static std::string s_receivedEvent;
 
 // Events
 $execute {
-    new EventListener<TestEventFilter>(+[](TestEvent* event) {
-        log::info("Received event: {}", event->getData());
-        s_receivedEvent = event->getData();
-    });
+    TestEvent().listen(+[](std::string_view data) {
+        log::info("Received event: {}", data);
+        s_receivedEvent = data;
+    }).leak();
 }
 
 // Coroutines
@@ -193,7 +192,7 @@ struct GJGarageLayerTest : Modify<GJGarageLayerTest, GJGarageLayer> {
         addChild(label2);
 
         // Dispatch system pt. 1
-        MyDispatchEvent("geode.test/test-garage-open", this).post();
+        MyDispatchEvent("geode.test/test-garage-open").send(this);
 
         if (s_receivedEvent.size() > 0) {
             auto label = CCLabelBMFont::create("Event works!", "bigFont.fnt");

@@ -3,9 +3,11 @@
 #include <Geode/loader/Loader.hpp> // another great circular dependency fix
 #include <Geode/utils/ZStringView.hpp>
 #include <Geode/utils/StringMap.hpp>
+#include <Geode/utils/async.hpp>
+#include <Geode/utils/general.hpp>
+#include <arc/sync/oneshot.hpp>
 #include <matjson.hpp>
 #include <Geode/Result.hpp>
-#include "Task.hpp"
 #include <chrono>
 #include <optional>
 #include <string_view>
@@ -186,7 +188,7 @@ namespace geode::utils::web {
         }
     };
 
-    using WebTask = Task<WebResponse, WebProgress>;
+    struct WebFuture;
 
     class GEODE_DLL WebRequest final {
     private:
@@ -195,21 +197,22 @@ namespace geode::utils::web {
         std::shared_ptr<Impl> m_impl;
 
         friend class WebRequestsManager;
+        friend struct WebFuture;
     public:
         WebRequest();
         ~WebRequest();
 
-        WebTask send(std::string method, std::string url);
-        WebTask post(std::string url);
-        WebTask get(std::string url);
-        WebTask put(std::string url);
-        WebTask patch(std::string url);
+        WebFuture send(std::string method, std::string url);
+        WebFuture post(std::string url);
+        WebFuture get(std::string url);
+        WebFuture put(std::string url);
+        WebFuture patch(std::string url);
 
-        WebResponse sendSync(std::string method, std::string url, WebTask::PostProgress onProgress = nullptr);
-        WebResponse postSync(std::string url, WebTask::PostProgress onProgress = nullptr);
-        WebResponse getSync(std::string url, WebTask::PostProgress onProgress = nullptr);
-        WebResponse putSync(std::string url, WebTask::PostProgress onProgress = nullptr);
-        WebResponse patchSync(std::string url, WebTask::PostProgress onProgress = nullptr);
+        WebResponse sendSync(std::string method, std::string url);
+        WebResponse postSync(std::string url);
+        WebResponse getSync(std::string url);
+        WebResponse putSync(std::string url);
+        WebResponse patchSync(std::string url);
 
         WebRequest& header(std::string name, std::string value);
         WebRequest& removeHeader(std::string_view name);
@@ -357,6 +360,12 @@ namespace geode::utils::web {
         WebRequest& bodyMultipart(MultipartForm const& form);
 
         /**
+         * Sets the function that will be called when progress is made on the request.
+         * This is an alternative to manually polling it via `progress()`.
+         */
+        WebRequest& onProgress(Function<void(WebProgress const&)> callback);
+
+        /**
          * Gets the unique request ID
          *
          * @return size_t
@@ -412,5 +421,27 @@ namespace geode::utils::web {
          * @return HttpVersion
          */
         HttpVersion getHttpVersion() const;
+
+        /**
+         * Gets the current progress of the request, if it was sent.
+         * Otherwise, default values are returned.
+         */
+        WebProgress getProgress() const;
+    };
+
+    struct GEODE_DLL ARC_NODISCARD WebFuture : arc::PollableBase<WebFuture, WebResponse> {
+        explicit WebFuture(std::shared_ptr<WebRequest::Impl> request);
+        ~WebFuture();
+
+        WebFuture(WebFuture&&) noexcept = default;
+        WebFuture& operator=(WebFuture&&) noexcept = delete;
+        WebFuture(WebFuture const&) = delete;
+        WebFuture& operator=(WebFuture const&) = delete;
+
+        std::optional<WebResponse> poll();
+
+    private:
+        struct Impl;
+        std::shared_ptr<Impl> m_impl;
     };
 }

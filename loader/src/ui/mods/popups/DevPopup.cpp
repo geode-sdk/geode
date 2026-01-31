@@ -31,7 +31,7 @@ void DevListPopup::onClose(cocos2d::CCObject*){
 
 void DevListPopup::onMoreByThisDev(CCObject* sender) {
     auto str = static_cast<CCString*>(static_cast<CCNode*>(sender)->getUserObject());
-    UpdateModListStateEvent(UpdateWholeState(str->getCString())).post();
+    UpdateModListStateEvent().send(UpdateWholeState(str->getCString()));
     this->onClose(nullptr);
 }
 
