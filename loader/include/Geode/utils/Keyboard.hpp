@@ -38,10 +38,9 @@ namespace geode {
         using SimpleEvent::SimpleEvent;
     };
 
-    // TODO: fix compile errors
-    // struct KeyInputEvent final : Event<KeyInputEvent, void(KeyboardInputData&), Key> {
-    //     using Event::Event;
-    // };
+    struct KeyInputEvent final : Event<KeyInputEvent, bool(KeyboardInputData&), cocos2d::enumKeyCodes> {
+        using Event::Event;
+    };
 
     constexpr KeyboardInputData::Modifiers operator|(KeyboardInputData::Modifiers a, KeyboardInputData::Modifiers b) {
         return static_cast<KeyboardInputData::Modifiers>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));

@@ -415,8 +415,7 @@ class $modify(cocos2d::CCEGLView) {
 
                     auto result = KeyboardInputEvent().send(data);
                     if (result == ListenerResult::Propagate) {
-                        // TODO: uncomment when KeyInputEvent is fixed
-                        // result = KeyInputEvent(keyCode).send(data);
+                        result = KeyInputEvent(keyCode).send(data);
                     }
 
                     // copy values from event, if someone modifies it
