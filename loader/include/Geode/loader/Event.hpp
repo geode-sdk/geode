@@ -96,9 +96,11 @@ namespace geode::comm {
             for (int i = 0; i < m_receivers.size(); ++i) {
                 if (m_receivers[i].m_handle == handle) {
                     m_receivers.erase(m_receivers.begin() + i);
-                    return i;
+                    // size - 1, return for symmetry
+                    return m_receivers.size();
                 }
             }
+            // size
             return m_receivers.size();
         }
 
@@ -354,14 +356,17 @@ namespace geode::comm {
 
     class ListenerHandle {
     private:
-        BaseFilter const* m_filter = nullptr;
+        std::weak_ptr<BaseFilter> m_filter;
         ReceiverHandle m_handle = ReceiverHandle{};
         using RemoverType = void(BaseFilter const*, ReceiverHandle);
         RemoverType* m_remover = nullptr;
         bool m_active = false;
 
-        ListenerHandle(BaseFilter const* filter, ReceiverHandle handle, RemoverType* remover, bool active = true) noexcept
-            : m_filter(filter), m_handle(handle), m_remover(remover), m_active(active) {}
+        ListenerHandle(std::shared_ptr<BaseFilter> filter, ReceiverHandle handle, RemoverType* remover, bool active = true) noexcept
+            : m_filter(std::move(filter)), m_handle(handle), m_remover(remover), m_active(active) {}
+
+        ListenerHandle(std::weak_ptr<BaseFilter> filter, ReceiverHandle handle, RemoverType* remover, bool active = true) noexcept
+            : m_filter(std::move(filter)), m_handle(handle), m_remover(remover), m_active(active) {}
 
         friend class EventCenter;
         
@@ -370,8 +375,7 @@ namespace geode::comm {
 
         ListenerHandle(ListenerHandle const&) = delete;
         ListenerHandle(ListenerHandle&& other) noexcept
-            : m_filter(other.m_filter), m_handle(other.m_handle), m_remover(other.m_remover), m_active(other.m_active) {
-            other.m_filter = nullptr;
+            : m_filter(std::move(other.m_filter)), m_handle(other.m_handle), m_remover(other.m_remover), m_active(other.m_active) {
             other.m_handle = ReceiverHandle();
             other.m_remover = nullptr;
             other.m_active = false;
@@ -379,11 +383,10 @@ namespace geode::comm {
         ListenerHandle& operator=(ListenerHandle const&) = delete;
         ListenerHandle& operator=(ListenerHandle&& other) noexcept {
             if (this != &other) {
-                m_filter = other.m_filter;
+                m_filter = std::move(other.m_filter);
                 m_handle = other.m_handle;
                 m_remover = other.m_remover;
                 m_active = other.m_active;
-                other.m_filter = nullptr;
                 other.m_handle = ReceiverHandle();
                 other.m_remover = nullptr;
                 other.m_active = false;
@@ -400,13 +403,15 @@ namespace geode::comm {
         }
 
         void destroy() {
-            if (m_filter && m_remover) {
-                m_remover(m_filter, m_handle);
-                m_filter = nullptr;
-                m_handle = ReceiverHandle();
-                m_remover = nullptr;
-                m_active = false;
+            if (auto filter = m_filter.lock()) {
+                if (m_remover) {
+                    m_remover(filter.get(), m_handle);
+                }
+                m_filter.reset();
             }
+            m_handle = ReceiverHandle();
+            m_remover = nullptr;
+            m_active = false;
         }
 
         ~ListenerHandle() noexcept {
@@ -539,13 +544,12 @@ namespace geode::comm {
                 auto clonedFilter = KeyType(filter->clone());
                 auto filter2 = clonedFilter.get();
                 // geode::console::log(fmt::format("Cloned filter for adding receiver {}, {}", (void*)filter2, cast::getRuntimeTypeName(filter2)), Severity::Debug);
-                auto newFilter = clonedFilter.get();
                 auto port = ValueType(clonedFilter->getPort());
                 ReceiverHandle handle = std::invoke(func, port.get());
                 auto newPorts = asp::make_shared<MapType>(*p.get());
                 newPorts->emplace(std::move(clonedFilter), std::move(port));
                 m_ports.store(std::move(newPorts));
-                return ListenerHandle(newFilter, handle, nullptr);
+                return ListenerHandle(clonedFilter, handle, nullptr);
             }
         }
 
