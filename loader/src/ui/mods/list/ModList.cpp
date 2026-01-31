@@ -393,13 +393,6 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     m_statusLoadingCircle = createLoadingCircle(50);
     m_statusContainer->addChild(m_statusLoadingCircle);
 
-    m_statusLoadingBar = Slider::create(this, nullptr);
-    m_statusLoadingBar->setID("status-loading-bar");
-    m_statusLoadingBar->m_touchLogic->m_thumb->setVisible(false);
-    m_statusLoadingBar->setValue(0);
-    m_statusLoadingBar->setAnchorPoint({ 0, 0 });
-    m_statusContainer->addChild(m_statusLoadingBar);
-
     m_statusContainer->setLayout(
         SimpleColumnLayout::create()
             ->setMainAxisDirection(AxisDirection::TopToBottom)
@@ -460,22 +453,6 @@ void ModList::onPromise(ModListSource::PageLoadResult result) {
         this->showStatus(ModListErrorStatus(), std::move(error.message), std::move(error.details));
         this->updateState();
     }
-
-    // TODO: v5 web progress
-    // else if (auto progress = event->getProgress()) {
-    //     // todo: percentage in a loading bar
-    //     if (progress->has_value()) {
-    //         this->showStatus(ModListProgressStatus {
-    //             .percentage = progress->value(),
-    //         }, "Loading...");
-    //     }
-    //     else {
-    //         this->showStatus(ModListUnkProgressStatus(), "Loading...");
-    //     }
-    // }
-    // else if (event->isCancelled()) {
-    //     this->reloadPage();
-    // }
 }
 
 void ModList::setIsExiting(bool exiting) {
@@ -736,22 +713,7 @@ void ModList::showStatus(ModListStatus status, ZStringView message, std::optiona
     m_statusDetailsBtn->setVisible(hasDetails);
     m_statusLoadingCircle->setVisible(
         std::holds_alternative<ModListUnkProgressStatus>(status)
-        || std::holds_alternative<ModListProgressStatus>(status)
     );
-
-    // the loading bar makes no sense to display - it's meant for progress of mod list page loading
-    // however the mod list pages are so small, that there usually isn't a scenario where the loading
-    // takes longer than a single frame - therefore this is useless
-    // server processing time isn't included in this - it's only after the server starts responding
-    // that we get any progress information
-    // also the position is wrong if you wanna restore the functionality
-    //m_statusLoadingBar->setVisible(std::holds_alternative<ModListProgressStatus>(status));
-    m_statusLoadingBar->setVisible(false);
-
-    // Update progress bar
-    if (auto per = std::get_if<ModListProgressStatus>(&status)) {
-        m_statusLoadingBar->setValue(per->percentage / 100.f);
-    }
 
     // Update layout to automatically rearrange everything neatly in the status
     m_statusContainer->updateLayout();

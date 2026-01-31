@@ -13,7 +13,6 @@ arc::Runtime& runtime() {
 }
 
 $on_mod(Loaded) {
-    // TODO: v5 more or less temporary? might keep
     arc::setLogFunction([](auto msg, arc::LogLevel level) {
         using enum arc::LogLevel;
 

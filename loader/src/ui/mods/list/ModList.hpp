@@ -14,10 +14,7 @@ using namespace geode::prelude;
 
 struct ModListErrorStatus {};
 struct ModListUnkProgressStatus {};
-struct ModListProgressStatus {
-    uint8_t percentage;
-};
-using ModListStatus = std::variant<ModListErrorStatus, ModListUnkProgressStatus, ModListProgressStatus>;
+using ModListStatus = std::variant<ModListErrorStatus, ModListUnkProgressStatus>;
 
 class ModList : public CCNode {
 protected:
@@ -29,7 +26,6 @@ protected:
     SimpleTextArea* m_statusDetails;
     CCMenuItemSpriteExtra* m_statusDetailsBtn;
     CCNode* m_statusLoadingCircle;
-    Slider* m_statusLoadingBar;
     ListenerHandle m_pageLoadHandle;
     async::TaskHolder<Result<ModListSource::ProvidedMods, ModListSource::LoadPageError>> m_listener;
     CCMenuItemSpriteExtra* m_pagePrevBtn;

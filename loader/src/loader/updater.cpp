@@ -274,16 +274,16 @@ bool updater::verifyLoaderResources() {
 void updater::downloadLoaderUpdate(std::string url) {
     if (RUNNING_REQUESTS.contains("@downloadLoaderUpdate")) return;
 
-    // TODO v5: progress
-    // LoaderUpdateEvent().send(
-    //     UpdateProgress(
-    //         static_cast<uint8_t>(progress->downloadProgress().value_or(0)),
-    //         "Downloading update"
-    //     )
-    // );
-    // return *progress;
-
     auto req = web::WebRequest();
+    req.onProgress([](web::WebProgress const& progress) {
+        LoaderUpdateEvent().send(
+            UpdateProgress(
+                static_cast<uint8_t>(progress.downloadProgress().value_or(0)),
+                "Downloading update"
+            )
+        );
+    });
+
     auto& holder = RUNNING_REQUESTS["@downloadLoaderUpdate"];
     holder.spawn(
         req.get(std::move(url)),

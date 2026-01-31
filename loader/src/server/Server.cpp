@@ -670,8 +670,8 @@ ServerFuture<ServerModVersion> server::getModVersion(std::string id, ModVersion 
     if (useCache) {
         auto& cache = getCache<getModVersion>();
 
-        auto cachedRequest = cache.get(std::move(id), std::move(version));
-        co_return co_await cachedRequest;
+        auto cachedRequest = co_await cache.get(std::move(id), std::move(version));
+        co_return cachedRequest;
 
         // TODO v5: is this needed
 

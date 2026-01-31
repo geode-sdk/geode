@@ -45,7 +45,7 @@ public:
                     m_version = data.metadata.getVersion();
 
                     // Start downloads for any missing required dependencies
-                    for (auto dep : data.metadata.getDependencies()) {
+                    for (auto& dep : data.metadata.getDependencies()) {
                         if (!dep.getMod() && dep.getImportance() != ModMetadata::Dependency::Importance::Suggested) {
                             ModDownloadManager::get()->startDownload(
                                 dep.getID(), dep.getVersion().getUnderlyingVersion(),
@@ -63,30 +63,6 @@ public:
                         .details = std::move(result.unwrapErr().details),
                     };
                 }
-
-
-                // TODO: v5 web progress
-                //     else if (auto progress = event->getProgress()) {
-                //         m_status = DownloadStatusFetching {
-                //             .percentage = progress->percentage.value_or(0),
-                //         };
-                //     }
-                //     else if (event->isCancelled()) {
-                //         m_status = DownloadStatusCancelled();
-                //         m_infoListener.setFilter(ServerFuture<ServerModVersion>());
-                //     }
-                //
-                //     if (!ModDownloadManager::get()->checkAutoConfirm()) {
-                //         // Throttle events to only once per frame to not cause a
-                //         // billion UI updates at once
-                //         if (m_scheduledEventForFrame != CCDirector::get()->getTotalFrames()) {
-                //             m_scheduledEventForFrame = CCDirector::get()->getTotalFrames();
-                //             Loader::get()->queueInMainThread([id = m_id]() {
-                //                 GlobalModDownloadEvent().send(std::string_view(id));
-                //                 ModDownloadEvent(std::string(id)).send();
-                //             });
-                //         }
-                //     }
             }
         );
 
@@ -190,22 +166,17 @@ public:
         m_status = DownloadStatusDownloading {
             .percentage = 0,
         };
-        
-        // TODO: v5 web progress
-        //     else if (auto progress = event->getProgress()) {
-        //         m_status = DownloadStatusDownloading {
-        //             .percentage = static_cast<uint8_t>(progress->downloadProgress().value_or(0)),
-        //         };
-        //     }
-        //     else if (event->isCancelled()) {
-        //         m_status = DownloadStatusCancelled();
-        //     }
-        //     // Throttle events to only once per frame to not cause a
-        //     // billion UI updates at once
+
+        auto req = web::WebRequest().userAgent(getServerUserAgent());
+        req.onProgress([this](const auto& progress) {
+            m_status = DownloadStatusDownloading {
+                .percentage = static_cast<uint8_t>(progress.downloadProgress().value_or(0)),
+            };
+        });
 
         m_downloadListener.spawn(
-            web::WebRequest().userAgent(getServerUserAgent()).get(std::move(downloadURL)),
-            [this, version = std::move(version)](web::WebResponse response) {
+            req.get(std::move(downloadURL)),
+            [this, version = std::move(version)](web::WebResponse response) mutable {
                 this->onFinished(std::move(response), std::move(version));
 
                 // post event
