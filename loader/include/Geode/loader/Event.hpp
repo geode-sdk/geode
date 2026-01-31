@@ -14,7 +14,12 @@
 #include "../utils/function.hpp"
 #include "../utils/casts.hpp"
 #include "../utils/hash.hpp"
+#include "../utils/ZStringView.hpp"
 #include "Log.hpp"
+
+namespace geode::console {
+    void log(ZStringView msg, Severity severity);
+}
 
 namespace geode::comm {
     template <class T>
@@ -91,20 +96,23 @@ namespace geode::comm {
             for (int i = 0; i < m_receivers.size(); ++i) {
                 if (m_receivers[i].m_handle == handle) {
                     m_receivers.erase(m_receivers.begin() + i);
-                    return i;
+                    // size - 1, return for symmetry
+                    return m_receivers.size();
                 }
             }
+            // size
             return m_receivers.size();
         }
 
         template <class ...Args>
         requires std::invocable<Callable, Args...>
-        void send(Args&&... value) const noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
+        bool send(Args&&... value) const noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
             for (auto& callable : m_receivers) {
                 if (callable.call(std::forward<Args>(value)...)) {
-                    break;
+                    return true;
                 }
             }
+            return false;
         }
     };
 
@@ -149,13 +157,14 @@ namespace geode::comm {
 
         template <class ...Args>
         requires std::invocable<Callable, Args...>
-        void send(Args&&... value) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
+        bool send(Args&&... value) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
             auto currentReceivers = m_receivers.load();
             for (auto& callable : *currentReceivers) {
                 if (callable.call(std::forward<Args>(value)...)) {
-                    break;
+                    return true;
                 }
             }
+            return false;
         }
     };
 
@@ -169,17 +178,17 @@ namespace geode::comm {
         using Port<Callable, ThreadSafe>::removeReceiver;
 
         template <class ...Args>
-        void send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
+        bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
 
             if constexpr (ThreadSafe) {
                 if (m_sent.test_and_set())
-                    return;
+                    return false;
             } else {
-                if (m_sent) return;
+                if (m_sent) return false;
                 m_sent = true;
             }
 
-            Port<Callable, ThreadSafe>::send(std::forward<Args>(args)...);
+            return Port<Callable, ThreadSafe>::send(std::forward<Args>(args)...);
         }
         bool isSent() const noexcept {
             if constexpr (ThreadSafe)
@@ -201,9 +210,9 @@ namespace geode::comm {
 
         template <class ...Args>
         requires std::invocable<Callable, Args...>
-        void send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
+        bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
             auto lam = [=, this] { 
-                Port<Callable, ThreadSafe>::send(args...); 
+                return Port<Callable, ThreadSafe>::send(args...); 
             };
 
             if constexpr (ThreadSafe) {
@@ -213,6 +222,7 @@ namespace geode::comm {
             } else {
                 m_queue.push_back(lam);
             }
+            return false;
         }
 
         void flush() noexcept {
@@ -243,15 +253,15 @@ namespace geode::comm {
         using QueuedPort<Callable, ThreadSafe>::flush;
 
         template <class ...Args>
-        void send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
+        bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
             if constexpr (ThreadSafe) {
                 if (m_sent.test_and_set())
-                    return;
+                    return false;
             } else {
-                if (m_sent) return;
+                if (m_sent) return false;
                 m_sent = true;
             }
-            QueuedPort<Callable, ThreadSafe>::send(std::forward<Args>(args)...);
+            return QueuedPort<Callable, ThreadSafe>::send(std::forward<Args>(args)...);
         }
         bool isSent() const noexcept {
             if constexpr (ThreadSafe)
@@ -261,13 +271,13 @@ namespace geode::comm {
         }
     };
 
-    template <template <class, bool> class PortType, bool ThreadSafe>
+    template <template <class, bool, template <class> class> class PortType, bool ThreadSafe, template <class> class Container>
     struct PortWrapper {
         template <class Callable>
-        using type = PortType<Callable, ThreadSafe>;
+        using type = PortType<Callable, ThreadSafe, Container>;
     };
 
-    static_assert(PortTemplateFor<PortWrapper<Port, true>::type, geode::CopyableFunction<void()>>, "Port type is not a valid port");
+    static_assert(PortTemplateFor<PortWrapper<Port, true, PortCallableCopy>::type, geode::CopyableFunction<void()>>, "Port type is not a valid port");
 
     class EventCenter;
 
@@ -282,17 +292,13 @@ namespace geode::comm {
         PortTemplate<geode::CopyableFunction<bool(PArgs...)>> m_port;
 
     public:
-        OpaqueEventPort() {
-            // std::cout << fmt::format("Creating OpaqueEventPort {}, {}", (void*)this, typeid(*this).name()) << std::endl;
-        }
+        OpaqueEventPort() {}
 
-        ~OpaqueEventPort() noexcept override {
-            // std::cout << fmt::format("Destroying OpaqueEventPort {}, {}", (void*)this, typeid(*this).name()) << std::endl;
-        }
+        ~OpaqueEventPort() noexcept override {}
 
         template <class... Args>
-        void send(Args&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, Args...>) {
-            m_port.send(std::forward<Args>(args)...);
+        bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, Args...>) {
+            return m_port.send(std::forward<Args>(args)...);
         }
 
         ReceiverHandle addReceiver(geode::CopyableFunction<bool(PArgs...)> rec, int priority = 0) noexcept {
@@ -350,14 +356,17 @@ namespace geode::comm {
 
     class ListenerHandle {
     private:
-        BaseFilter const* m_filter = nullptr;
+        std::weak_ptr<BaseFilter> m_filter;
         ReceiverHandle m_handle = ReceiverHandle{};
         using RemoverType = void(BaseFilter const*, ReceiverHandle);
         RemoverType* m_remover = nullptr;
         bool m_active = false;
 
-        ListenerHandle(BaseFilter const* filter, ReceiverHandle handle, RemoverType* remover, bool active = true) noexcept
-            : m_filter(filter), m_handle(handle), m_remover(remover), m_active(active) {}
+        ListenerHandle(std::shared_ptr<BaseFilter> filter, ReceiverHandle handle, RemoverType* remover, bool active = true) noexcept
+            : m_filter(std::move(filter)), m_handle(handle), m_remover(remover), m_active(active) {}
+
+        ListenerHandle(std::weak_ptr<BaseFilter> filter, ReceiverHandle handle, RemoverType* remover, bool active = true) noexcept
+            : m_filter(std::move(filter)), m_handle(handle), m_remover(remover), m_active(active) {}
 
         friend class EventCenter;
         
@@ -366,8 +375,7 @@ namespace geode::comm {
 
         ListenerHandle(ListenerHandle const&) = delete;
         ListenerHandle(ListenerHandle&& other) noexcept
-            : m_filter(other.m_filter), m_handle(other.m_handle), m_remover(other.m_remover), m_active(other.m_active) {
-            other.m_filter = nullptr;
+            : m_filter(std::move(other.m_filter)), m_handle(other.m_handle), m_remover(other.m_remover), m_active(other.m_active) {
             other.m_handle = ReceiverHandle();
             other.m_remover = nullptr;
             other.m_active = false;
@@ -375,11 +383,10 @@ namespace geode::comm {
         ListenerHandle& operator=(ListenerHandle const&) = delete;
         ListenerHandle& operator=(ListenerHandle&& other) noexcept {
             if (this != &other) {
-                m_filter = other.m_filter;
+                m_filter = std::move(other.m_filter);
                 m_handle = other.m_handle;
                 m_remover = other.m_remover;
                 m_active = other.m_active;
-                other.m_filter = nullptr;
                 other.m_handle = ReceiverHandle();
                 other.m_remover = nullptr;
                 other.m_active = false;
@@ -396,13 +403,15 @@ namespace geode::comm {
         }
 
         void destroy() {
-            if (m_filter && m_remover) {
-                m_remover(m_filter, m_handle);
-                m_filter = nullptr;
-                m_handle = ReceiverHandle();
-                m_remover = nullptr;
-                m_active = false;
+            if (auto filter = m_filter.lock()) {
+                if (m_remover) {
+                    m_remover(filter.get(), m_handle);
+                }
+                m_filter.reset();
             }
+            m_handle = ReceiverHandle();
+            m_remover = nullptr;
+            m_active = false;
         }
 
         ~ListenerHandle() noexcept {
@@ -429,14 +438,15 @@ namespace geode::comm {
         std::tuple<FArgs...> const m_filter;
         
         bool operator==(BaseFilter const& other) const noexcept override {
-            // std::cout << fmt::format("Comparing values self {} to other {}", (void*)this, (void*)&other) << std::endl;
-            auto* o = geode::cast::exact_cast<Self const*>(&other);
+            // geode::console::log(fmt::format("Comparing BasicEvent filters {}, {}", (void*)this, (void*)&other), Severity::Debug);
+            // geode::console::log(fmt::format("Self type: {}", cast::getRuntimeTypeName(this)), Severity::Debug);
+            // geode::console::log(fmt::format("Other type: {}", cast::getRuntimeTypeName(&other)), Severity::Debug);
+            auto* o = geode::cast::typeinfo_cast<Self const*>(&other);
             if (!o) return false;
 
             auto ret = m_filter == o->m_filter;
 
-
-            // std::cout << fmt::format("Comparison result: {}", ret) << std::endl;
+            // geode::console::log(fmt::format("Comparison result: {}", ret), Severity::Debug);
             return ret;
         }
         BaseFilter* clone() const noexcept override {
@@ -459,24 +469,28 @@ namespace geode::comm {
         static void removeReceiverStatic(BaseFilter const* filter, ReceiverHandle handle) noexcept {
             auto* self = static_cast<BasicEvent const*>(filter);
             if (self) {
-                // std::cout << fmt::format("Static removing receiver from BasicEvent {}, {}", (void*)self, typeid(Marker).name()) << std::endl;
+                // geode::console::log(fmt::format("Static removing receiver from BasicEvent {}, {}", (void*)self, typeid(Marker).name()), Severity::Debug);
                 self->removeReceiver(handle);
             }
         }
 
         BasicEvent(CloneMarker, std::tuple<FArgs...> const& value) noexcept : m_filter(value) {
-            // std::cout << fmt::format("Cloning BasicEvent {}, {}", (void*)this, typeid(Marker).name()) << std::endl;
+            // geode::console::log(fmt::format("Cloning BasicEvent {}, {}", (void*)this, typeid(Marker).name()), Severity::Debug);
         }
 
     public:
-        BasicEvent(FArgs&&... value) noexcept : m_filter(std::forward<FArgs>(value)...) {
-            // std::cout << fmt::format("Creating BasicEvent {}, {}", (void*)this, typeid(Marker).name()) << std::endl;
+        template<class... Args>
+        requires std::constructible_from<std::tuple<FArgs...>, Args...>
+        BasicEvent(Args&&... value) noexcept : m_filter(std::forward<Args>(value)...) {
+            // geode::console::log(fmt::format("Creating BasicEvent {}, {}", (void*)this, typeid(Marker).name()), Severity::Debug);
         }
         ~BasicEvent() noexcept override {
-            // std::cout << fmt::format("Destroying BasicEvent {}, {}", (void*)this, typeid(Marker).name()) << std::endl;
+            // geode::console::log(fmt::format("Destroying BasicEvent {}, {}", (void*)this, typeid(Marker).name()), Severity::Debug);
         }
 
-        void send(PArgs&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, PArgs...>);
+        template <class... Args>
+        requires std::invocable<geode::CopyableFunction<bool(PArgs...)>, Args...>
+        bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, Args...>);
 
         template<class Callable>
         ListenerHandle listen(Callable listener, int priority = 0) const noexcept {
@@ -510,61 +524,53 @@ namespace geode::comm {
 
         template <class Callable>
         requires std::is_invocable_v<Callable, OpaquePortBase*>
-        void send(BaseFilter const* filter, Callable func) noexcept(std::is_nothrow_invocable_v<Callable, OpaquePortBase*>) {
-            // std::cout << fmt::format("on send") << std::endl;
-            // std::cout << fmt::format("Base filter type {}", cast::getRuntimeTypeName(filter)) << std::endl;
-            // std::cout << fmt::format("Filter hash {}", filter->hash()) << std::endl;
+        bool send(BaseFilter const* filter, Callable func) noexcept(std::is_nothrow_invocable_v<Callable, OpaquePortBase*>) {
+            // geode::console::log(fmt::format("EventCenter sending event for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter)), Severity::Debug);
             auto p = m_ports.load();
             auto it = p->find(filter);
             if (it != p->end()) {
                 auto newFilter = it->first.get();
-                // std::cout << fmt::format("Found filter value {}", (void*)newFilter) << std::endl;
-                // std::cout << fmt::format("Found filter type {}", cast::getRuntimeTypeName(newFilter)) << std::endl;
                 return std::invoke(func, it->second.get());
             }
-            return;
+            return false;
         }
 
         template <class Callable>
         requires std::is_invocable_v<Callable, OpaquePortBase*>
         ListenerHandle addReceiver(BaseFilter const* filter, Callable func) noexcept {
-            // std::cout << fmt::format("add receiver") << std::endl;
-            // std::cout << fmt::format("Base filter type {}", cast::getRuntimeTypeName(filter)) << std::endl;
-            // std::cout << fmt::format("Filter hash {}", filter->hash()) << std::endl;
+            // geode::console::log(fmt::format("EventCenter adding receiver for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter)), Severity::Debug);
             auto p = m_ports.load();
             auto it = p->find(filter);
             if (it != p->end()) {
-                return ListenerHandle(it->first.get(), std::invoke(func, it->second.get()), nullptr);
+                return ListenerHandle(it->first, std::invoke(func, it->second.get()), nullptr);
             }
             else {
                 auto clonedFilter = KeyType(filter->clone());
                 auto filter2 = clonedFilter.get();
-                // std::cout << fmt::format("Add receiver filter type {}", cast::getRuntimeTypeName(filter2)) << std::endl;
-                auto newFilter = clonedFilter.get();
+                // geode::console::log(fmt::format("Cloned filter for adding receiver {}, {}", (void*)filter2, cast::getRuntimeTypeName(filter2)), Severity::Debug);
+
                 auto port = ValueType(clonedFilter->getPort());
                 ReceiverHandle handle = std::invoke(func, port.get());
+                auto ret = ListenerHandle(clonedFilter, handle, nullptr);
+
                 auto newPorts = asp::make_shared<MapType>(*p.get());
-                // std::cout << "moving new filter " << (void*)newFilter << std::endl;
                 newPorts->emplace(std::move(clonedFilter), std::move(port));
+
                 m_ports.store(std::move(newPorts));
-                // std::cout << "added new filter " << (void*)newFilter << std::endl;
-                return ListenerHandle(newFilter, handle, nullptr);
+                return ret;
             }
         }
 
         template <class Callable>
         requires std::is_invocable_v<Callable, OpaquePortBase*>
         size_t removeReceiver(BaseFilter const* filter, Callable func) noexcept {
-            // std::cout << fmt::format("remove receiver") << std::endl;
-            // std::cout << fmt::format("Base filter type {}", cast::getRuntimeTypeName(filter)) << std::endl;
-            // std::cout << fmt::format("Filter hash {}", filter->hash()) << std::endl;
+            // geode::console::log(fmt::format("EventCenter removing receiver for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter)), Severity::Debug);
             auto p = m_ports.load();
             auto it = p->find(filter);
             if (it != p->end()) {
-                // std::cout << fmt::format("remove receiver") << std::endl;
                 auto size = std::invoke(func, it->second.get());
                 if (size == 0) {
-                    // std::cout << fmt::format("Removing receiver filter type {}", cast::getRuntimeTypeName(filter)) << std::endl;
+                    // geode::console::log(fmt::format("Removing port for filter type {}", cast::getRuntimeTypeName(filter)), Severity::Debug);
                     auto newPorts = asp::make_shared<MapType>(*p.get());
                     for (auto& [filt, _] : *newPorts) {
                         if (*filt == *filter) {
@@ -585,10 +591,12 @@ namespace geode::comm {
         typename OpaqueEventPort<PortTemplate, PArgs...>;
         std::is_convertible_v<PReturn, bool> || std::is_same_v<PReturn, void>;
     }
-    void BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::send(PArgs&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, PArgs...>) {
+    template <class... Args>
+    requires std::invocable<geode::CopyableFunction<bool(PArgs...)>, Args...>
+    bool BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::send(Args&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, Args...>) {
         return EventCenter::get()->send(this, [&](OpaquePortBase* opaquePort) {
             auto port = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(opaquePort);
-            return port->send(std::forward<PArgs>(args)...);
+            return port->send(std::forward<Args>(args)...);
         });
     }
 
@@ -628,18 +636,18 @@ namespace geode::comm {
 
 namespace geode {
     template<class Marker, class PFunc, class... FArgs>
-    struct Event : public comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false>::type, PFunc, FArgs...> {
-        using comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false>::type, PFunc, FArgs...>::BasicEvent;
+    struct Event : public comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false, comm::PortCallableCopy>::type, PFunc, FArgs...> {
+        using comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false, comm::PortCallableCopy>::type, PFunc, FArgs...>::BasicEvent;
     };
 
     template<class Marker, class PFunc, class... FArgs>
-    struct ThreadSafeEvent : public comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, true>::type, PFunc, FArgs...> {
-        using comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, true>::type, PFunc, FArgs...>::BasicEvent;
+    struct ThreadSafeEvent : public comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, true, comm::PortCallableCopy>::type, PFunc, FArgs...> {
+        using comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, true, comm::PortCallableCopy>::type, PFunc, FArgs...>::BasicEvent;
     };
 
     template<class Marker, class... PArgs>
-    struct SimpleEvent : public comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false>::type, bool(PArgs...)> {
-        using comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false>::type, bool(PArgs...)>::BasicEvent;
+    struct SimpleEvent : public comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false, comm::PortCallableCopy>::type, bool(PArgs...)> {
+        using comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false, comm::PortCallableCopy>::type, bool(PArgs...)>::BasicEvent;
     };
 
     struct ListenerResult {
