@@ -382,8 +382,8 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       typedef typename iterator_traits<_OI>::value_type _ValueTypeO;
       typedef typename iterator_traits<_II>::iterator_category _Category;
       const bool __simple = (std::is_trivial<_ValueTypeI>::value
-	                     && std::is_pointer<_II>::value
-	                     && std::is_pointer<_OI>::value
+	                     && is_pointer<_II>::value
+	                     && is_pointer<_OI>::value
 			     && std::is_same<_ValueTypeI, _ValueTypeO>::value);
 
       return __copy_move<_IsMove, __simple,
@@ -582,8 +582,8 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       typedef typename iterator_traits<_BI2>::value_type _ValueType2;
       typedef typename iterator_traits<_BI1>::iterator_category _Category;
       const bool __simple = (std::is_trivial<_ValueType1>::value
-	                     && std::is_pointer<_BI1>::value
-	                     && std::is_pointer<_BI2>::value
+	                     && is_pointer<_BI1>::value
+	                     && is_pointer<_BI2>::value
 			     && std::is_same<_ValueType1, _ValueType2>::value);
 
       return __copy_move_backward<_IsMove, __simple,
@@ -823,10 +823,10 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     {
       typedef typename iterator_traits<_II1>::value_type _ValueType1;
       typedef typename iterator_traits<_II2>::value_type _ValueType2;
-      const bool __simple = ((std::is_integral<_ValueType1>::value
-			      || std::is_pointer<_ValueType1>::value)
-	                     && std::is_pointer<_II1>::value
-	                     && std::is_pointer<_II2>::value
+      const bool __simple = ((is_integral<_ValueType1>::value
+			      || is_pointer<_ValueType1>::value)
+	                     && is_pointer<_II1>::value
+	                     && is_pointer<_II2>::value
 			     && std::is_same<_ValueType1, _ValueType2>::value);
 
       return __equal<__simple>::equal(__first1, __last1, __first2);
@@ -934,8 +934,8 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	(__is_byte<_ValueType1>::__value && __is_byte<_ValueType2>::__value
 	 && !__gnu_cxx::__numeric_traits<_ValueType1>::__is_signed
 	 && !__gnu_cxx::__numeric_traits<_ValueType2>::__is_signed
-	 && std::is_pointer<_II1>::value
-	 && std::is_pointer<_II2>::value);
+	 && is_pointer<_II1>::value
+	 && is_pointer<_II2>::value);
 
       return __lexicographical_compare<__simple>::__lc(__first1, __last1,
 							    __first2, __last2);
@@ -988,7 +988,6 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       __glibcxx_function_requires(_ForwardIteratorConcept<_ForwardIterator>)
       __glibcxx_function_requires(_LessThanOpConcept<
 	    typename iterator_traits<_ForwardIterator>::value_type, _Tp>)
-      __glibcxx_requires_partitioned_lower(__first, __last, __val);
 
       return geode::stl::__lower_bound(__first, __last, __val,
 				__gnu_cxx::__ops::__iter_less_val());

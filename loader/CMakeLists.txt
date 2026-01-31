@@ -92,13 +92,13 @@ if ("${CMAKE_SYSTEM_NAME}" STREQUAL "iOS" OR IOS)
 	file(GLOB OBJC_SOURCES CONFIGURE_DEPENDS
 		src/platform/ios/*.mm
 		src/load.mm
-		src/hooks/AddExtraKeys.mm
+		src/hooks/*.mm
 	)
 else()
 	file(GLOB OBJC_SOURCES CONFIGURE_DEPENDS
 		src/platform/mac/*.mm
 		src/load.mm
-		src/hooks/AddExtraKeys.mm
+		src/hooks/*.mm
 	)
 endif()
 set_source_files_properties(${OBJC_SOURCES} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
@@ -155,7 +155,7 @@ endif()
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
 
 file(MAKE_DIRECTORY "${GEODE_BIN_PATH}/nightly")
 
@@ -185,7 +185,7 @@ endif()
 # CA Bundle
 CPMAddPackage(
 	GITHUB_REPOSITORY geode-sdk/net_libs
-	GIT_TAG 1f5ffb3
+	GIT_TAG 6abd76c
 # CPM is bugged and will not allow an empty string.
 # https://github.com/cpm-cmake/CPM.cmake/issues/467
 # https://github.com/cpm-cmake/CPM.cmake/issues/461
@@ -284,9 +284,14 @@ if (NOT GEODE_BUILDING_DOCS)
 	# Cool date library
 	CPMAddPackage("gh:HowardHinnant/date#1ead671")
 
+	set(SIMDUTF_TESTS OFF)
+	set(SIMDUTF_TOOLS OFF)
+	CPMAddPackage("gh:simdutf/simdutf#v6.5.0")
+	CPMAddPackage("gh:fastfloat/fast_float#v8.1.0")
+
 	target_include_directories(${PROJECT_NAME} PRIVATE ${md4c_SOURCE_DIR}/src)
 
-	target_link_libraries(${PROJECT_NAME} md4c minizip date)
+	target_link_libraries(${PROJECT_NAME} md4c minizip date simdutf fast_float)
 endif()
 
 target_link_libraries(${PROJECT_NAME} TulipHook geode-sdk mat-json-impl)
@@ -310,7 +315,7 @@ if (WIN32)
 	if (MSVC)
 		target_link_options(${PROJECT_NAME} PRIVATE /DELAYLOAD:libcocos2d.dll /DELAYLOAD:libExtensions.dll)
 	elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-		target_link_options(${PROJECT_NAME} PRIVATE "-Wl,/delayload:libcocos2d.dll" "-Wl,/delayload:libExtensions.dll")
+		target_link_options(${PROJECT_NAME} PRIVATE "-Wl,/delayload:libcocos2d.dll" "-Wl,/delayload:libExtensions.dll" "-Wl,/errorlimit:0")
 	else()
 		message(FATAL_ERROR "Unable to set DELAYLOAD! This is essential for Geode forward compatibility to work.")
 	endif()
@@ -333,7 +338,7 @@ if (APPLE)
 	else()
 		set_target_properties(geode-loader PROPERTIES 
 			SYSTEM_NAME MacOS
-			OSX_DEPLOYMENT_TARGET 10.15
+			OSX_DEPLOYMENT_TARGET 11.0
 			APPLE_SILICON_PROCESSOR x86_64
 		)
 

@@ -10,6 +10,7 @@ using namespace geode::prelude;
 #include <objc/runtime.h>
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/Task.hpp>
+#include <string.h>
 
 #define CommentType CommentTypeDummy
 #import <Cocoa/Cocoa.h>
@@ -20,10 +21,17 @@ NSString* intoNS(std::string const& str) {
     return [NSString stringWithUTF8String:str.c_str()];
 }
 
+NSString* intoNS(std::string_view str) {
+    return [[NSString alloc] initWithBytes:str.data() length:str.size() encoding:NSUTF8StringEncoding];
+}
 
-bool utils::clipboard::write(std::string const& data) {
+NSString* intoNS(ZStringView str) {
+    return intoNS(std::string_view(str));
+}
+
+bool utils::clipboard::write(ZStringView data) {
     [[NSPasteboard generalPasteboard] clearContents];
-    [[NSPasteboard generalPasteboard] setString:intoNS(data)
+    [[NSPasteboard generalPasteboard] setString:intoNS(std::string_view{data})
                                         forType:NSPasteboardTypeString];
 
     return true;
@@ -37,13 +45,12 @@ std::string utils::clipboard::read() {
 }
 
 bool utils::file::openFolder(std::filesystem::path const& path) {
-    NSURL* fileURL = [NSURL fileURLWithPath:intoNS(path.string())];
-    NSURL* folderURL = [fileURL URLByDeletingLastPathComponent];
+    NSURL* folderURL = [NSURL fileURLWithPath:intoNS(utils::string::pathToString(path))];
     [[NSWorkspace sharedWorkspace] openURL:folderURL];
     return true;
 }
 
-void utils::web::openLinkInBrowser(std::string const& url) {
+void utils::web::openLinkInBrowser(ZStringView url) {
     [[NSWorkspace sharedWorkspace]
         openURL:[NSURL URLWithString:intoNS(url)]];
 }
@@ -175,8 +182,9 @@ namespace {
 
 @end
 
-GEODE_DLL Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, file::FilePickOptions const& options) {
-    using RetTask = Task<Result<std::filesystem::path>>;
+GEODE_DLL arc::Future<Result<std::optional<std::filesystem::path>>> file::pick(file::PickMode mode, file::FilePickOptions const& options) {
+    // TODO: v5
+    /*using RetTask = Task<Result<std::filesystem::path>>;
     return RetTask::runWithCallback([mode, options](auto resultCallback, auto progress, auto cancelled) {
         [FileDialog dispatchFilePickerWithMode:mode options:options multiple:false onCompletion: ^(FileResult&& result) {
             if (cancelled()) {
@@ -190,11 +198,13 @@ GEODE_DLL Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, fi
                 }
             }
         }];
-    });
+    });*/
+    co_return Err("not implemented");
 }
 
-GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> file::pickMany(file::FilePickOptions const& options) {
-    using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
+GEODE_DLL arc::Future<Result<std::vector<std::filesystem::path>>> file::pickMany(file::FilePickOptions const& options) {
+    // TODO: v5
+    /*using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
     return RetTask::runWithCallback([options](auto resultCallback, auto progress, auto cancelled) {
         [FileDialog dispatchFilePickerWithMode: file::PickMode::OpenFile options:options multiple:true onCompletion: ^(FileResult&& result) {
             if (cancelled()) {
@@ -203,7 +213,8 @@ GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> file::pickMany(file::
                 resultCallback(std::move(result));
             }
         }];
-    });
+    });*/
+    co_return Err("not implemented");
 }
 
 CCPoint cocos::getMousePos() {
@@ -246,7 +257,11 @@ std::filesystem::path dirs::getModRuntimeDir() {
     return dirs::getGeodeDir() / "unzipped";
 }
 
-void geode::utils::game::exit() {
+std::filesystem::path dirs::getResourcesDir() {
+    return dirs::getGameDir() / "Resources";
+}
+
+void geode::utils::game::exit(bool save) {
     if (CCApplication::sharedApplication() &&
         (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
         log::error("Cannot exit in PlayLayer or LevelEditorLayer!");
@@ -261,16 +276,20 @@ void geode::utils::game::exit() {
             [[[NSClassFromString(@"AppControllerManager") sharedInstance] controller] shutdownGame];
 #pragma clang diagnostic pop
         }
+
+        void shutdownNoSave() {
+            std::exit(0); // i don't know if this is the best
+        }
     };
 
     CCDirector::get()->getActionManager()->addAction(CCSequence::create(
         CCDelayTime::create(0.5f),
-        CCCallFunc::create(nullptr, callfunc_selector(Exit::shutdown)),
+        CCCallFunc::create(nullptr, save ? callfunc_selector(Exit::shutdown) : callfunc_selector(Exit::shutdownNoSave)),
         nullptr
     ), CCDirector::get()->getRunningScene(), false);
 }
 
-void geode::utils::game::restart() {
+void geode::utils::game::restart(bool save) {
     if (CCApplication::sharedApplication() &&
         (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
         log::error("Cannot restart in PlayLayer or LevelEditorLayer!");
@@ -282,35 +301,35 @@ void geode::utils::game::restart() {
         auto gdExec = dirs::getGameDir() / "MacOS" / "Geometry Dash";
 
         NSTask *task = [NSTask new];
-        [task setLaunchPath: intoNS(gdExec.string())];
+        [task setLaunchPath: intoNS(utils::string::pathToString(gdExec))];
         [task launch];
     };
 
     std::atexit(restart);
-    exit();
+    exit(save);
 }
 
 void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
     log::error("Launching Geode uninstaller is not supported on macOS");
 }
 
-Result<> geode::hook::addObjcMethod(std::string const& className, std::string const& selectorName, void* imp) {
-    auto cls = objc_getClass(className.c_str());
+Result<> geode::hook::addObjcMethod(char const* className, char const* selectorName, void* imp) {
+    auto cls = objc_getClass(className);
     if (!cls)
         return Err("Class not found");
 
-    auto sel = sel_registerName(selectorName.c_str());
+    auto sel = sel_registerName(selectorName);
 
     class_addMethod(cls, sel, (IMP)imp, "v@:");
 
     return Ok();
 }
-Result<void*> geode::hook::getObjcMethodImp(std::string const& className, std::string const& selectorName) {
-    auto cls = objc_getClass(className.c_str());
+Result<void*> geode::hook::getObjcMethodImp(char const* className, char const* selectorName) {
+    auto cls = objc_getClass(className);
     if (!cls)
         return Err("Class not found");
 
-    auto sel = sel_registerName(selectorName.c_str());
+    auto sel = sel_registerName(selectorName);
 
     auto method = class_getInstanceMethod(cls, sel);
     if (!method)
@@ -319,12 +338,12 @@ Result<void*> geode::hook::getObjcMethodImp(std::string const& className, std::s
     return Ok((void*)method_getImplementation(method));
 }
 
-Result<void*> geode::hook::replaceObjcMethod(std::string const& className, std::string const& selectorName, void* imp) {
-    auto cls = objc_getClass(className.c_str());
+Result<void*> geode::hook::replaceObjcMethod(char const* className, char const* selectorName, void* imp) {
+    auto cls = objc_getClass(className);
     if (!cls)
         return Err("Class not found");
 
-    auto sel = sel_registerName(selectorName.c_str());
+    auto sel = sel_registerName(selectorName);
 
     auto method = class_getInstanceMethod(cls, sel);
     if (!method)
@@ -339,7 +358,7 @@ bool geode::utils::permission::getPermissionStatus(Permission permission) {
     return true; // unimplemented
 }
 
-void geode::utils::permission::requestPermission(Permission permission, std::function<void(bool)> callback) {
+void geode::utils::permission::requestPermission(Permission permission, geode::Function<void(bool)> callback) {
     callback(true); // unimplemented
 }
 
@@ -352,7 +371,7 @@ std::string geode::utils::thread::getDefaultName() {
     return fmt::format("Thread #{}", tid);
 }
 
-void geode::utils::thread::platformSetName(std::string const& name) {
+void geode::utils::thread::platformSetName(ZStringView name) {
     pthread_setname_np(name.c_str());
 }
 
@@ -369,7 +388,115 @@ float geode::utils::getDisplayFactor() {
     return displayScale;
 }
 
-std::string geode::utils::getEnvironmentVariable(const char* name) {
-    auto result = std::getenv(name);
+std::string geode::utils::getEnvironmentVariable(ZStringView name) {
+    auto result = std::getenv(name.c_str());
     return result ? result : "";
+}
+
+std::string geode::utils::formatSystemError(int code) {
+    return strerror(code);
+}
+
+cocos2d::CCRect geode::utils::getSafeAreaRect() {
+    auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
+    return cocos2d::CCRect(0.0f, 0.0f, winSize.width, winSize.height);
+}
+
+bool cocos2d::CCImage::saveToFile(const char* pszFilePath, bool bIsToRGB) {
+    uint8_t* data = m_pData;
+    bool usePNG = std::string_view(pszFilePath).ends_with(".png");
+    int channels = !usePNG || bIsToRGB || !m_bHasAlpha ? 3 : 4;
+    if (channels == 3) {
+        data = new uint8_t[m_nWidth * m_nHeight * 3];
+        for (uint32_t i = 0; i < m_nWidth * m_nHeight; i++) {
+            data[i * 3] = m_pData[i * 4];
+            data[i * 3 + 1] = m_pData[i * 4 + 1];
+            data[i * 3 + 2] = m_pData[i * 4 + 2];
+        }
+    }
+
+    CGDataProviderRef provider = CGDataProviderCreateWithData(nullptr, data, m_nWidth * m_nHeight * channels, nullptr);
+    if (!provider) {
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    if (!colorSpace) {
+        CGDataProviderRelease(provider);
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    CGImageRef imageRef = CGImageCreate(
+        m_nWidth,
+        m_nHeight,
+        8,
+        channels * 8,
+        m_nWidth * channels,
+        colorSpace,
+        channels == 4 ? kCGImageAlphaPremultipliedLast : kCGImageAlphaNone,
+        provider,
+        nullptr,
+        false,
+        kCGRenderingIntentDefault
+    );
+    if (!imageRef) {
+        CGDataProviderRelease(provider);
+        CGColorSpaceRelease(colorSpace);
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    CFStringRef file = CFStringCreateWithCString(kCFAllocatorDefault, pszFilePath, kCFStringEncodingUTF8);
+    if (!file) {
+        CGImageRelease(imageRef);
+        CGDataProviderRelease(provider);
+        CGColorSpaceRelease(colorSpace);
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    CFURLRef url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, file, kCFURLPOSIXPathStyle, false);
+    CFRelease(file);
+    if (!url) {
+        CGImageRelease(imageRef);
+        CGDataProviderRelease(provider);
+        CGColorSpaceRelease(colorSpace);
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    CGImageDestinationRef destination = CGImageDestinationCreateWithURL(url, usePNG ? kUTTypePNG : kUTTypeJPEG, 1, nullptr);
+    CFRelease(url);
+    if (!destination) {
+        CGImageRelease(imageRef);
+        CGDataProviderRelease(provider);
+        CGColorSpaceRelease(colorSpace);
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    CGImageDestinationAddImage(destination, imageRef, nullptr);
+    bool success = CGImageDestinationFinalize(destination);
+    CFRelease(destination);
+    CGImageRelease(imageRef);
+    CGDataProviderRelease(provider);
+    CGColorSpaceRelease(colorSpace);
+    if (data != m_pData) {
+        delete[] data;
+    }
+    return success;
 }

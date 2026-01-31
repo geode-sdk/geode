@@ -38,7 +38,7 @@ NS_CC_BEGIN
  * CCUserDefault acts as a tiny database. You can save and get base type values by it.
  * For example, setBoolForKey("played", true) will add a bool value true into the database.
  * Its key is "played". You can get the value of the key by getBoolForKey("played").
- * 
+ *
  * It supports the following base types:
  * bool, int, float, double, string
  */
@@ -118,7 +118,7 @@ private:
     CCUserDefault();
     static bool createXMLFile();
     static void initXMLFilePath();
-    
+
     static CCUserDefault* m_spUserDefault;
     static gd::string m_sFilePath;
     static bool m_sbIsFilePathInitialized;

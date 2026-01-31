@@ -3,6 +3,8 @@
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/binding/TextInputDelegate.hpp>
 #include <Geode/binding/CCTextInputNode.hpp>
+#include <Geode/utils/function.hpp>
+#include <Geode/utils/ZStringView.hpp>
 #include <cocos2d.h>
 
 namespace geode {
@@ -25,6 +27,10 @@ namespace geode {
         Base64Normal,
         // Allow a URL-safe Base64 number
         Base64URL,
+        // Allow letters, numbers
+        Alphanumeric,
+        // Allow letters
+        Alphabetic,
     };
 
     GEODE_DLL const char* getCommonFilterAllowedChars(CommonFilter filter);
@@ -39,79 +45,79 @@ namespace geode {
      */
     class GEODE_DLL TextInput : public cocos2d::CCNode, public TextInputDelegate {
     protected:
-        cocos2d::extension::CCScale9Sprite* m_bgSprite;
-        CCTextInputNode* m_input;
-        std::function<void(std::string const&)> m_onInput = nullptr;
+        cocos2d::extension::CCScale9Sprite* m_bgSprite = nullptr;
+        CCTextInputNode* m_input = nullptr;
+        geode::Function<void(std::string const&)> m_onInput = nullptr;
         cocos2d::CCLabelBMFont* m_label = nullptr;
         bool m_callbackEnabled = true;
 
-        bool init(float width, std::string const& placeholder, std::string const& font);
+        bool init(float width, ZStringView placeholder, ZStringView font);
 
         void textChanged(CCTextInputNode* input) override;
 
     public:
         /**
          * Create a single-line text input with a background.
-         * Can either be used in delegate or callback mode; 
-         * with callback mode, you don't need to deal with adding 
-         * TextInputDelegate to your class' base list, you just install a 
+         * Can either be used in delegate or callback mode;
+         * with callback mode, you don't need to deal with adding
+         * TextInputDelegate to your class' base list, you just install a
          * callback function directly to the input itself
          * @param width The width of the input
          * @param placeholder Placeholder text for the input
-         * @param font The font to use 
+         * @param font The font to use
          */
-        static TextInput* create(float width, std::string const& placeholder, std::string const& font = "bigFont.fnt");
+        static TextInput* create(float width, ZStringView placeholder, ZStringView font = "bigFont.fnt");
 
         /**
          * Set the placeholder label for this input
          */
-        void setPlaceholder(std::string const& placeholder);
+        void setPlaceholder(gd::string placeholder);
         /**
-         * Set a label on this input that shows up on the top. Set an empty 
+         * Set a label on this input that shows up on the top. Set an empty
          * string to remove the label
          */
-        void setLabel(std::string const& label);
+        void setLabel(ZStringView label);
         /**
          * Set the filter (allowed characters) for this input
-         * @param allowedChars String of allowed characters; each character in 
+         * @param allowedChars String of allowed characters; each character in
          * the string represents one allowed character
          */
-        void setFilter(std::string const& allowedChars);
+        void setFilter(gd::string allowedChars);
         /**
          * Set a commonly used filter (number, text, etc.)
          */
         void setCommonFilter(CommonFilter filter);
         /**
-         * Set the maximum amount of characters for this input. Use 0 for 
+         * Set the maximum amount of characters for this input. Use 0 for
          * infinite length
          */
         void setMaxCharCount(size_t length);
         /**
-         * Enable/disable password mode (all input characters are rendered as 
+         * Enable/disable password mode (all input characters are rendered as
          * dots rather than the actual characters)
          */
         void setPasswordMode(bool enable);
         /**
-         * Set the width of the label. This does not set the maximum character 
+         * Set the width of the label. This does not set the maximum character
          * count; use `setMaxCharCount` for that
          */
         void setWidth(float width);
         /**
-         * Install a delegate that handles input events. Removes any currently 
+         * Install a delegate that handles input events. Removes any currently
          * set direct callbacks
          * @param delegate The delegate to install
-         * @param tag Some legacy delegates use a tag to distinguish between 
-         * inputs; this is a convenience parameter for setting the tag of the 
+         * @param tag Some legacy delegates use a tag to distinguish between
+         * inputs; this is a convenience parameter for setting the tag of the
          * internal CCTextInputNode for those cases
          */
         void setDelegate(TextInputDelegate* delegate, std::optional<int> tag = std::nullopt);
         /**
-         * Set a direct callback function that is called when the user types in 
+         * Set a direct callback function that is called when the user types in
          * the input. Overrides any delegate that is currently installed
-         * @param onInput Function to call when the user changes the value of 
+         * @param onInput Function to call when the user changes the value of
          * the text input
          */
-        void setCallback(std::function<void(std::string const&)> onInput);
+        void setCallback(geode::Function<void(std::string const&)> onInput);
         /**
          * Enables/disables the callback.
          */
@@ -126,7 +132,7 @@ namespace geode {
         void setTextAlign(TextInputAlign align);
 
         /**
-         * Hides the background of this input. Shorthand for 
+         * Hides the background of this input. Shorthand for
          * `input->getBGSprite()->setVisible(false)`
          */
         void hideBG();
@@ -134,14 +140,14 @@ namespace geode {
         /**
          * Set the value of the input
          * @param str The new text of the input
-         * @param triggerCallback Whether this should trigger the callback 
+         * @param triggerCallback Whether this should trigger the callback
          * function / delegate's textChanged event or not
          */
-        void setString(std::string const& str, bool triggerCallback = false);
+        void setString(gd::string str, bool triggerCallback = false);
         /**
          * Get the current value of the input
          */
-        std::string getString() const;
+        gd::string getString() const;
         /**
          * Gets if the callback is enabled or not.
          */
@@ -158,5 +164,7 @@ namespace geode {
 
         CCTextInputNode* getInputNode() const;
         cocos2d::extension::CCScale9Sprite* getBGSprite() const;
+
+        ~TextInput() override;
     };
 }

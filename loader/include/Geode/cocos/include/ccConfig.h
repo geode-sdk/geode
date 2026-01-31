@@ -38,9 +38,9 @@ THE SOFTWARE.
  If enabled, actions that alter the position property (eg: CCMoveBy, CCJumpBy, CCBezierBy, etc..) will be stacked.
  If you run 2 or more 'position' actions at the same time on a node, then end position will be the sum of all the positions.
  If disabled, only the last run action will take effect.
- 
+
  Enabled by default. Disable to be compatible with v2.0 and older versions.
- 
+
  @since v2.1
  */
 #ifndef CC_ENABLE_STACKABLE_ACTIONS
@@ -58,9 +58,9 @@ THE SOFTWARE.
 
  It is recommended to enable whenever possible to improve speed.
  If you are migrating your code from GL ES 1.1, then keep it disabled. Once all your code works as expected, turn it on.
- 
+
  Default value: Enabled by default
- 
+
  @since v2.0.0
  */
 #ifndef CC_ENABLE_GL_STATE_CACHE
@@ -95,7 +95,7 @@ To enabled set it to 1. Disabled by default.
  Seconds between FPS updates.
  0.5 seconds, means that the FPS number will be updated every 0.5 seconds.
  Having a bigger number means a more reliable FPS
- 
+
  Default value: 0.1f
  */
 #ifndef CC_DIRECTOR_STATS_INTERVAL
@@ -116,9 +116,9 @@ To enabled set it to 1. Disabled by default.
  dispatch all the events, even if there are not events to dispatch.
  If your game uses lot's of events (eg: touches) it might be a good idea to enable this feature.
  Otherwise, it is safe to leave it disabled.
- 
+
  To enable set it to 1. Disabled by default.
- 
+
  @warning This feature is experimental
  */
 #ifndef CC_DIRECTOR_DISPATCH_FAST_EVENTS
@@ -143,7 +143,7 @@ Only valid for cocos2d-mac. Not supported on cocos2d-ios.
 /** @def CC_NODE_RENDER_SUBPIXEL
  If enabled, the CCNode objects (CCSprite, CCLabel,etc) will be able to render in subpixels.
  If disabled, integer pixels will be used.
- 
+
  To enable set it to 1. Enabled by default.
  */
 #ifndef CC_NODE_RENDER_SUBPIXEL
@@ -153,7 +153,7 @@ Only valid for cocos2d-mac. Not supported on cocos2d-ios.
 /** @def CC_SPRITEBATCHNODE_RENDER_SUBPIXEL
  If enabled, the CCSprite objects rendered with CCSpriteBatchNode will be able to render in subpixels.
  If disabled, integer pixels will be used.
- 
+
  To enable set it to 1. Enabled by default.
  */
 #ifndef CC_SPRITEBATCHNODE_RENDER_SUBPIXEL
@@ -163,7 +163,7 @@ Only valid for cocos2d-mac. Not supported on cocos2d-ios.
 /** @def CC_TEXTURE_ATLAS_USE_TRIANGLE_STRIP
  Use GL_TRIANGLE_STRIP instead of GL_TRIANGLES when rendering the texture atlas.
  It seems it is the recommend way, but it is much slower, so, enable it at your own risk
- 
+
  To enable set it to a value different than 0. Disabled by default.
 
  */
@@ -175,9 +175,9 @@ Only valid for cocos2d-mac. Not supported on cocos2d-ios.
  By default, CCTextureAtlas (used by many cocos2d classes) will use VAO (Vertex Array Objects).
  Apple recommends its usage but they might consume a lot of memory, specially if you use many of them.
  So for certain cases, where you might need hundreds of VAO objects, it might be a good idea to disable it.
- 
+
  To disable it set it to 0. Enabled by default.
- 
+
  */
 #ifndef CC_TEXTURE_ATLAS_USE_VAO
     #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS) || (CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
@@ -207,7 +207,7 @@ Only valid for cocos2d-mac. Not supported on cocos2d-ios.
 /** @def CC_SPRITE_DEBUG_DRAW
  If enabled, all subclasses of CCSprite will draw a bounding box
  Useful for debugging purposes only. It is recommended to leave it disabled.
- 
+
  To enable set it to a value different than 0. Disabled by default:
  0 -- disabled
  1 -- draw bounding box
@@ -243,7 +243,7 @@ To enable set it to a value different than 0. Disabled by default.
 /** @def CC_LABELATLAS_DEBUG_DRAW
  If enabled, all subclasses of LabeltAtlas will draw a bounding box
  Useful for debugging purposes only. It is recommended to leave it disabled.
- 
+
  To enable set it to a value different than 0. Disabled by default.
  */
 #ifndef CC_LABELATLAS_DEBUG_DRAW
@@ -254,7 +254,7 @@ To enable set it to a value different than 0. Disabled by default.
  If enabled, will activate various profilers within cocos2d. This statistical data will be output to the console
  once per second showing average time (in milliseconds) required to execute the specific routine(s).
  Useful for debugging purposes only. It is recommended to leave it disabled.
- 
+
  To enable set it to a value different than 0. Disabled by default.
  */
 #ifndef CC_ENABLE_PROFILERS

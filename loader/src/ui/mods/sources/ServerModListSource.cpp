@@ -7,23 +7,18 @@ void ServerModListSource::resetQuery() {
 ServerModListSource::ProviderTask ServerModListSource::fetchPage(size_t page, bool forceUpdate) {
     m_query.page = page;
     m_query.pageSize = m_pageSize;
-    return server::getMods(m_query, !forceUpdate).map(
-        [](Result<server::ServerModsList, server::ServerError>* result) -> ProviderTask::Value {
-            if (result->isOk()) {
-                auto list = result->unwrap();
-                auto content = ModListSource::ProvidedMods();
-                for (auto&& mod : std::move(list.mods)) {
-                    content.mods.push_back(ModSource(std::move(mod)));
-                }
-                content.totalModCount = list.totalModCount;
-                return Ok(content);
-            }
-            return Err(LoadPageError("Error loading mods", result->unwrapErr().details));
-        },
-        [](auto* prog) {
-            return prog->percentage;
-        }
-    );
+    auto result = co_await server::getMods(m_query, !forceUpdate);
+    if (!result) {
+        co_return Err(LoadPageError("Error loading mods", result.unwrapErr().details));
+    } 
+
+    auto list = std::move(result).unwrap();
+    auto content = ModListSource::ProvidedMods();
+    for (auto&& mod : std::move(list.mods)) {
+        content.mods.push_back(ModSource(std::move(mod)));
+    }
+    content.totalModCount = list.totalModCount;
+    co_return Ok(std::move(content));
 }
 
 ServerModListSource::ServerModListSource(ServerModListType type)
@@ -55,19 +50,19 @@ ServerModListSource* ServerModListSource::get(ServerModListType type) {
             return inst;
         } break;
 
-        case ServerModListType::Modtober24: {
-            static auto inst = new ServerModListSource(ServerModListType::Modtober24);
+        case ServerModListType::Modtober: {
+            static auto inst = new ServerModListSource(ServerModListType::Modtober);
             return inst;
         } break;
     }
 }
 
-void ServerModListSource::setSearchQuery(std::string const& query) {
+void ServerModListSource::setSearchQuery(std::string query) {
     if (query.empty()) {
         m_query.query = std::nullopt;
         m_query.platforms = { GEODE_PLATFORM_TARGET };
     } else {
-        m_query.query = std::optional(query);
+        m_query.query = std::optional(std::move(query));
         m_query.platforms = {};
     }
 }
@@ -106,8 +101,8 @@ server::ModsQuery ServerModListSource::createDefaultQuery() const {
             .sorting = server::ModsSort::RecentlyPublished,
         };
 
-        case ServerModListType::Modtober24: return server::ModsQuery {
-            .tags = { "modtober24" },
+        case ServerModListType::Modtober: return server::ModsQuery {
+            .tags = { "modtober25" }
         };
     }
 }

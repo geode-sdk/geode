@@ -20,7 +20,7 @@ void askConfirmModInstalls() {
     auto toConfirm = ToConfirm();
 
     // Collect all things we need to ask confirmation for
-    for (auto download : ModDownloadManager::get()->getDownloads()) {
+    for (auto& download : ModDownloadManager::get()->getDownloads()) {
         auto status = download.getStatus();
         if (auto conf = std::get_if<DownloadStatusConfirm>(&status)) {
             if (auto dep = download.getDependencyFor()) {
@@ -32,35 +32,35 @@ void askConfirmModInstalls() {
                     toConfirm.replacementCount += 1;
                 }
 
-                // Since the user has already explicitly chosen to download these mods, we 
-                // are going to assume they want these mods enabled over already installed 
+                // Since the user has already explicitly chosen to download these mods, we
+                // are going to assume they want these mods enabled over already installed
                 // ones
 
                 // If this mod has incompatabilities that are installed, disable them
-                for (auto inc : conf->version.metadata.getIncompatibilities()) {
-                    if (inc.mod && inc.version.compare(conf->version.metadata.getVersion()) && inc.mod->isOrWillBeEnabled()) {
-                        toConfirm.toDisable.insert(inc.mod);
+                for (auto& inc : conf->version.metadata.getIncompatibilities()) {
+                    if (inc.getMod() && inc.getVersion().compare(conf->version.metadata.getVersion()) && inc.getMod()->isOrWillBeEnabled()) {
+                        toConfirm.toDisable.insert(inc.getMod());
                     }
-                    for (auto download : ModDownloadManager::get()->getDownloads()) {
-                        if (download.isDone() && inc.id == download.getID() && inc.version.compare(conf->version.metadata.getVersion())) {
-                            toConfirm.toDisableModId.insert(inc.id);
+                    for (auto& download : ModDownloadManager::get()->getDownloads()) {
+                        if (download.isDone() && inc.getID() == download.getID() && inc.getVersion().compare(conf->version.metadata.getVersion())) {
+                            toConfirm.toDisableModId.insert(inc.getID());
                         }
                     }
                 }
                 // If some installed mods are incompatible with this one, disable them
                 for (auto mod : Loader::get()->getAllMods()) {
-                    for (auto inc : mod->getMetadata().getIncompatibilities()) {
-                        if (inc.id == conf->version.metadata.getID() && inc.version.compare(mod->getVersion()) && mod->isOrWillBeEnabled()) {
+                    for (auto& inc : mod->getMetadata().getIncompatibilities()) {
+                        if (conf->version.metadata.getID() == inc.getID() && inc.getVersion().compare(mod->getVersion()) && mod->isOrWillBeEnabled()) {
                             toConfirm.toDisable.insert(mod);
                         }
                     }
                 }
                 // If some newly downloaded mods are incompatible with this one, disable them
-                for (auto download : ModDownloadManager::get()->getDownloads()) {
+                for (auto& download : ModDownloadManager::get()->getDownloads()) {
                     auto status = download.getStatus();
                     if (auto done = std::get_if<DownloadStatusDone>(&status)) {
-                        for (auto inc : done->version.metadata.getIncompatibilities()) {
-                            if (inc.id == conf->version.metadata.getID() && inc.version.compare(done->version.metadata.getVersion())) {
+                        for (auto& inc : done->version.metadata.getIncompatibilities()) {
+                            if (conf->version.metadata.getID() == inc.getID() && inc.getVersion().compare(done->version.metadata.getVersion())) {
                                 toConfirm.toDisableModId.insert(download.getID());
                             }
                         }
@@ -68,12 +68,12 @@ void askConfirmModInstalls() {
                 }
 
                 // If this mod has required dependencies that are disabled, enable them
-                for (auto dep : conf->version.metadata.getDependencies()) {
+                for (auto& dep : conf->version.metadata.getDependencies()) {
                     if (
-                        dep.importance == ModMetadata::Dependency::Importance::Required &&
-                        dep.mod && !dep.mod->isOrWillBeEnabled()
+                        dep.getImportance() == ModMetadata::Dependency::Importance::Required &&
+                        dep.getMod() && !dep.getMod()->isOrWillBeEnabled()
                     ) {
-                        toConfirm.toEnable.insert(dep.mod);
+                        toConfirm.toEnable.insert(dep.getMod());
                     }
                 }
             }
@@ -103,6 +103,12 @@ void askConfirmModInstalls() {
         idsToDisable.insert(mod->getID());
     }
 
+    if (idsToDisable.size() == 0 && toConfirm.toEnable.size() == 0 &&
+        toConfirm.dependencyCount == 0 && toConfirm.replacementCount == 0) {
+        ModDownloadManager::get()->confirmAll();
+        return;
+    }
+
     createQuickPopup(
         "Confirm Install",
         fmt::format(
@@ -130,6 +136,8 @@ void askConfirmModInstalls() {
             else {
                 ModDownloadManager::get()->cancelAll();
             }
-        }
+        },
+        true,
+        false
     );
 }

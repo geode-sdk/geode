@@ -14,12 +14,7 @@
 #include <string_view>
 
 namespace geode {
-    using ScheduledFunction = std::function<void()>;
-
-    struct InvalidGeodeFile {
-        std::filesystem::path path;
-        std::string reason;
-    };
+    using ScheduledFunction = geode::Function<void()>;
 
     struct LoadProblem {
         enum class Type : uint8_t {
@@ -48,18 +43,24 @@ namespace geode {
         std::string message;
 
         bool isSuggestion() const {
-            return 
-                type == LoadProblem::Type::Recommendation || 
+            return
+                type == LoadProblem::Type::Recommendation ||
                 type == LoadProblem::Type::Suggestion;
         }
         bool isOutdated() const {
-            return 
+            return
                 type == LoadProblem::Type::UnsupportedVersion ||
                 type == LoadProblem::Type::NeedsNewerGeodeVersion ||
                 type == LoadProblem::Type::UnsupportedGeodeVersion;
         }
-        bool isProblem() const {
-            return !isSuggestion() && !isOutdated();
+        /**
+         * Problems we should show a big red '!!' in the UI for. Suggestions 
+         * are not problems, and outdated mods as well as invalid Geode files 
+         * are also not problems (because otherwise we would be showing a 
+         * billion errors every time GD updates)
+         */
+        bool isProblemTheUserShouldCareAbout() const {
+            return !isSuggestion() && !isOutdated() && type != LoadProblem::Type::InvalidFile;
         }
     };
 
@@ -100,11 +101,12 @@ namespace geode {
         bool isModVersionSupported(VersionInfo const& version);
 
         LoadingState getLoadingState();
-        bool isModInstalled(std::string const& id) const;
-        Mod* getInstalledMod(std::string const& id) const;
-        bool isModLoaded(std::string const& id) const;
-        Mod* getLoadedMod(std::string const& id) const;
+        bool isModInstalled(std::string_view id) const;
+        Mod* getInstalledMod(std::string_view id) const;
+        bool isModLoaded(std::string_view id) const;
+        Mod* getLoadedMod(std::string_view id) const;
         std::vector<Mod*> getAllMods();
+        size_t getNumberOfInvalidGeodeFiles() const;
         std::vector<LoadProblem> getAllProblems() const;
         std::vector<LoadProblem> getLoadProblems() const;
         std::vector<LoadProblem> getOutdated() const;
@@ -158,6 +160,17 @@ namespace geode {
          */
         std::string getGameVersion();
 
+        /**
+         * Returns whether the loader does not use dynamic patching or hooking.
+         * You should use GEODE_MOD_STATIC_PATCH macro instead of Mod::patch and
+         * GEODE_MOD_STATIC_HOOK macro instead of Mod::hook if that is the case.
+         * Modify classes are handled automatically, and enabling/disabling hooks
+         * works fine too.
+         * @return True if the loader does not use dynamic patching or hooking,
+         * false if it does.
+         */
+        bool isPatchless() const;
+
         friend class LoaderImpl;
 
         friend Mod* takeNextLoaderMod();
@@ -165,10 +178,10 @@ namespace geode {
 
     /**
      * @brief Queues a function to run on the main thread
-     * 
+     *
      * @param func the function to queue
     */
-    inline GEODE_HIDDEN void queueInMainThread(ScheduledFunction&& func) {
+    inline void queueInMainThread(ScheduledFunction&& func) {
         Loader::get()->queueInMainThread(std::forward<ScheduledFunction>(func));
     }
 
@@ -177,7 +190,7 @@ namespace geode {
      *
      * @return Mod* The next mod to load
     */
-    inline GEODE_HIDDEN Mod* takeNextLoaderMod() {
+    inline Mod* takeNextLoaderMod() {
         return Loader::get()->takeNextMod();
     }
 }

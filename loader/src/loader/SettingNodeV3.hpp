@@ -25,7 +25,7 @@ public:
     static TitleSettingNodeV3* create(std::shared_ptr<TitleSettingV3> setting, float width);
 
     bool isCollapsed() const;
-    
+
     bool hasUncommittedChanges() const override;
     bool hasNonDefaultValue() const override;
     void onResetToDefault() override;
@@ -66,7 +66,7 @@ protected:
         auto min = this->getSetting()->getMinValue().value_or(-100);
         auto max = this->getSetting()->getMaxValue().value_or(+100);
         auto range = max - min;
-        return static_cast<float>(clamp(static_cast<double>(value - min) / range, 0.0, 1.0));
+        return static_cast<float>(std::clamp(static_cast<double>(value - min) / range, 0.0, 1.0));
     }
     ValueType valueFromSlider(float num) {
         auto min = this->getSetting()->getMinValue().value_or(-100);
@@ -87,7 +87,7 @@ protected:
         m_bigArrowLeftBtnSpr = CCSprite::create();
         m_bigArrowLeftBtnSpr->setCascadeColorEnabled(true);
         m_bigArrowLeftBtnSpr->setCascadeOpacityEnabled(true);
-        
+
         auto bigArrowLeftSpr1 = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
         auto bigArrowLeftSpr2 = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
         m_bigArrowLeftBtnSpr->setContentSize(bigArrowLeftSpr1->getContentSize() + ccp(20, 0));
@@ -110,7 +110,7 @@ protected:
         m_arrowLeftBtn->setUserObject(ObjWrapper<ValueType>::create(-setting->getArrowStepSize()));
         m_arrowLeftBtn->setVisible(setting->isArrowsEnabled());
         this->getButtonMenu()->addChildAtPosition(m_arrowLeftBtn, Anchor::Left, ccp(22, 0));
-        
+
         m_input = TextInput::create(this->getButtonMenu()->getContentWidth() - 40, "Num");
         m_input->setScale(.7f);
         m_input->setCommonFilter(std::is_floating_point_v<typename S::ValueType> ? CommonFilter::Float : CommonFilter::Int);
@@ -120,8 +120,8 @@ protected:
         if (!setting->isInputEnabled()) {
             m_input->getBGSprite()->setVisible(false);
             m_input->setEnabled(false);
-            m_input->getInputNode()->m_placeholderLabel->setOpacity(255);
-            m_input->getInputNode()->m_placeholderLabel->setColor(ccWHITE);
+            m_input->getInputNode()->m_textLabel->setOpacity(255);
+            m_input->getInputNode()->m_textLabel->setColor(ccWHITE);
         }
         this->getButtonMenu()->addChildAtPosition(m_input, Anchor::Center);
 
@@ -142,7 +142,7 @@ protected:
         bigArrowRightSpr1->setFlipX(true);
         auto bigArrowRightSpr2 = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
         bigArrowRightSpr2->setFlipX(true);
-        
+
         m_bigArrowRightBtnSpr->setContentSize(bigArrowRightSpr1->getContentSize() + ccp(20, 0));
         m_bigArrowRightBtnSpr->addChildAtPosition(bigArrowRightSpr1, Anchor::Center, ccp(-10, 0));
         m_bigArrowRightBtnSpr->addChildAtPosition(bigArrowRightSpr2, Anchor::Center, ccp(10, 0));
@@ -222,17 +222,21 @@ protected:
         this->setValue(value, static_cast<CCNode*>(sender));
     }
     void onSlider(CCObject*) {
-        this->setValue(this->valueFromSlider(m_slider->m_touchLogic->m_thumb->getValue()), m_slider);
+        auto value = this->valueFromSlider(m_slider->m_touchLogic->m_thumb->getValue());
+
+        if (value != this->getValue()) {
+            this->setValue(value, m_slider);
+        }
     }
 
 public:
     static NumberSettingNodeV3* create(std::shared_ptr<S> setting, float width) {
         auto ret = new NumberSettingNodeV3();
-        if (ret && ret->init(setting, width)) {
+        if (ret->init(setting, width)) {
             ret->autorelease();
             return ret;
         }
-        CC_SAFE_DELETE(ret);
+        delete ret;
         return nullptr;
     }
 };
@@ -258,7 +262,9 @@ class FileSettingNodeV3 : public SettingValueNodeV3<FileSettingV3> {
 protected:
     CCSprite* m_fileIcon;
     CCLabelBMFont* m_nameLabel;
-    EventListener<Task<Result<std::filesystem::path>>> m_pickListener;
+    ListenerHandle m_pickHandle;
+    // EventListener<Task<Result<std::filesystem::path>>> m_pickListener;
+    async::TaskHolder<Result<std::optional<std::filesystem::path>>> m_pickListener;
     CCMenuItemSpriteExtra* m_selectBtn;
     CCSprite* m_selectBtnSpr;
 
@@ -270,7 +276,7 @@ public:
     static FileSettingNodeV3* create(std::shared_ptr<FileSettingV3> setting, float width);
 };
 
-class Color3BSettingNodeV3 : public SettingValueNodeV3<Color3BSettingV3>, public ColorPickPopupDelegate {
+class Color3BSettingNodeV3 : public SettingValueNodeV3<Color3BSettingV3> {
 protected:
     CCMenuItemSpriteExtra* m_colorBtn;
     ColorChannelSprite* m_colorSprite;
@@ -278,13 +284,12 @@ protected:
     bool init(std::shared_ptr<Color3BSettingV3> setting, float width);
     void updateState(CCNode* invoker) override;
     void onSelectColor(CCObject*);
-    void updateColor(ccColor4B const& color) override;
 
 public:
     static Color3BSettingNodeV3* create(std::shared_ptr<Color3BSettingV3> setting, float width);
 };
 
-class Color4BSettingNodeV3 : public SettingValueNodeV3<Color4BSettingV3>, public ColorPickPopupDelegate {
+class Color4BSettingNodeV3 : public SettingValueNodeV3<Color4BSettingV3> {
 protected:
     CCMenuItemSpriteExtra* m_colorBtn;
     ColorChannelSprite* m_colorSprite;
@@ -292,7 +297,6 @@ protected:
     bool init(std::shared_ptr<Color4BSettingV3> setting, float width);
     void updateState(CCNode* invoker) override;
     void onSelectColor(CCObject*);
-    void updateColor(ccColor4B const& color) override;
 
 public:
     static Color4BSettingNodeV3* create(std::shared_ptr<Color4BSettingV3> setting, float width);
@@ -310,7 +314,7 @@ protected:
 
 public:
     static UnresolvedCustomSettingNodeV3* create(std::string_view key, Mod* mod, float width);
-    
+
     bool hasUncommittedChanges() const override;
     bool hasNonDefaultValue() const override;
     void onResetToDefault() override;

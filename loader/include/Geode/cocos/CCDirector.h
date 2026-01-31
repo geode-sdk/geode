@@ -51,13 +51,13 @@ NS_CC_BEGIN
 typedef enum {
     /// sets a 2D projection (orthogonal projection)
     kCCDirectorProjection2D,
-    
+
     /// sets a 3D projection with a fovy=60, znear=0.5f and zfar=1500.
     kCCDirectorProjection3D,
-    
+
     /// it calls "updateProjection" on the projection delegate.
     kCCDirectorProjectionCustom,
-    
+
     /// Default projection is 3D projection
     kCCDirectorProjectionDefault = kCCDirectorProjection3D,
 } ccDirectorProjection;
@@ -99,17 +99,17 @@ class CCLabelBMFont;
 /**
 @brief Class that creates and handle the main Window and manages how
 and when to execute the Scenes.
- 
+
  The CCDirector is also responsible for:
   - initializing the OpenGL context
   - setting the OpenGL pixel format (default on is RGB565)
   - setting the OpenGL buffer depth (default one is 0-bit)
   - setting the projection (default one is 3D)
   - setting the orientation (default one is Portrait)
- 
+
  Since the CCDirector is a singleton, the standard way to use it is by calling:
   _ CCDirector::sharedDirector()->methodName();
- 
+
  The CCDirector also sets the default OpenGL context:
   - GL_TEXTURE_2D is enabled
   - GL_VERTEX_ARRAY is enabled
@@ -156,7 +156,7 @@ public:
     inline bool isDisplayStats(void) { return m_bDisplayStats; }
     /** Display the FPS on the bottom-left corner */
     inline void setDisplayStats(bool bDisplayStats) { m_bDisplayStats = bDisplayStats; }
-    
+
     /** seconds per frame */
     inline float getSecondsPerFrame() { return m_fSecondsPerFrame; }
 
@@ -177,7 +177,7 @@ public:
 
     /** How many frames were called since the director started */
     inline unsigned int getTotalFrames(void) { return m_uTotalFrames; }
-    
+
     /** Sets an OpenGL projection
      @since v0.8.2
      @js NA
@@ -186,13 +186,13 @@ public:
     void setProjection(ccDirectorProjection kProjection);
      /** reshape projection matrix when canvas has been change"*/
     void reshapeProjection(const CCSize& newWindowSize);
-    
+
     /** Sets the glViewport*/
     void setViewport();
 
     /** How many frames were called since the director started */
-    
-    
+
+
     /** Whether or not the replaced scene will receive the cleanup message.
      If the new scene is pushed, then the old scene won't receive the "cleanup" message.
      If the new scene replaces the old one, the it will receive the "cleanup" message.
@@ -207,7 +207,7 @@ public:
      */
     CCNode* getNotificationNode();
     void setNotificationNode(CCNode *node);
-    
+
     /** CCDirector delegate. It shall implemente the CCDirectorDelegate protocol
      @since v0.99.5
      */
@@ -223,13 +223,13 @@ public:
     /** returns the size of the OpenGL view in pixels.
     */
     CCSize getWinSizeInPixels(void);
-    
+
     /** returns visible size of the OpenGL view in points.
      *  the value is equal to getWinSize if don't invoke
      *  CCEGLView::setDesignResolutionSize()
      */
     CCSize getVisibleSize();
-    
+
     /** returns visible origin of the OpenGL view in points.
      */
     CCPoint getVisibleOrigin();
@@ -244,7 +244,7 @@ public:
      */
     CCPoint convertToUI(const CCPoint& obPoint);
 
-    /// XXX: missing description 
+    /// XXX: missing description
     float getZEye(void);
 
     // Scene Management
@@ -259,9 +259,9 @@ public:
 
     /** Suspends the execution of the running scene, pushing it on the stack of suspended scenes.
      * The new scene will be executed.
-     * Try to avoid big stacks of pushed scenes to reduce memory allocation. 
+     * Try to avoid big stacks of pushed scenes to reduce memory allocation.
      * ONLY call it if there is a running scene.
-     * 
+     *
      * @note Robtop Addition: return value from void to bool
      */
     bool pushScene(CCScene *pScene);
@@ -288,7 +288,7 @@ public:
 
     /** Replaces the running scene with a new one. The running scene is terminated.
      * ONLY call it if there is a running scene.
-     * 
+     *
      * @note Robtop Addition: return value from void to bool
      */
     bool replaceScene(CCScene *pScene);
@@ -366,7 +366,7 @@ public:
     // @note RobTop Addition
     void checkSceneReference(void);
     // @note RobTop Addition
-    CCScene* getNextScene(void);
+    inline CCScene* getNextScene(void) { return m_pNextScene; }
     // @note RobTop Addition
     int levelForSceneInStack(CCScene*);
     // @note RobTop Addition
@@ -377,7 +377,7 @@ public:
     int sceneCount(void);
     // @note RobTop Addition
     void willSwitchToScene(CCScene*);
-    
+
     // @note RobTop Addition
     void removeStatsLabel(void);
 
@@ -462,11 +462,11 @@ public:
 
     /* *actual* delta time, according to rob. not sure what that means but i'm not arguing */
     // @note RobTop Addition
-    CC_SYNTHESIZE_NV(float, m_fActualDeltaTime, ActualDeltaTime); 
-    
-	
+    CC_SYNTHESIZE_NV(float, m_fActualDeltaTime, ActualDeltaTime);
+
+
 public:
-    /** returns a shared instance of the director 
+    /** returns a shared instance of the director
      *  @js getInstance
      */
     static CCDirector* sharedDirector(void);
@@ -490,14 +490,14 @@ protected:
 
 protected:
     void setNextScene(void);
-    
+
     void showStats();
     // Robtop Removal
     // void createStatsLabel();
     void calculateMPF();
     void getFPSImageData(unsigned char** datapointer, unsigned int* length);
-    
-    /** calculates delta time since last time it was called */    
+
+    /** calculates delta time since last time it was called */
     void calculateDeltaTime();
 public:
     /* The CCEGLView, where everything is rendered */
@@ -508,18 +508,18 @@ public:
 
     /* landscape mode ? */
     bool m_bLandscape;
-    
+
     bool m_bDisplayStats;
 
     float m_fFpsAccumDt;
 
     float m_fAccumDt;
     float m_fFrameRate;
-    
+
     CCLabelAtlas *m_pFPSLabel;
     CCLabelAtlas *m_pSPFLabel;
     CCLabelAtlas *m_pDrawsLabel;
-    
+
     /** Whether or not the Director is paused */
     bool m_bPaused;
 
@@ -527,32 +527,32 @@ public:
     unsigned int m_uTotalFrames;
     unsigned int m_uFrames;
     float m_fSecondsPerFrame;
-     
+
     /* The running scene */
     CCScene *m_pRunningScene;
-    
+
     /* will be the next 'runningScene' in the next frame
      nextScene is a weak reference. */
     CCScene *m_pNextScene;
-    
+
     /* If YES, then "old" scene will receive the cleanup message */
     bool    m_bSendCleanupToScene;
 
     /* scheduled scenes */
     CCArray* m_pobScenesStack;
-    
+
     /* last time the main loop was updated */
     struct cc_timeval *m_pLastUpdate;
 
     /* whether or not the next delta time will be zero */
     bool m_bNextDeltaTimeZero;
-    
+
     /* projection used */
     ccDirectorProjection m_eProjection;
 
     /* window size in points */
     CCSize m_obWinSizeInPoints;
-    
+
     /* content scale factor */
     float    m_fContentScaleFactor;
 
@@ -580,28 +580,22 @@ public:
     // @note RobTop Addition
     CC_SYNTHESIZE_NV(bool, m_bDontCallWillSwitch, DontCallWillSwitch);
 
-#if GEODE_COMP_GD_VERSION >= 22003
+#if GEODE_COMP_GD_VERSION >= 22030
     // @note RobTop Addition
     CC_SYNTHESIZE_NV(bool, m_bFastMenu, FastMenu);
-#else
-    // these were just garbage memory in reclass
-    // @note RobTop Addition
-    void* m_unknownPtr2;
 #endif
-    // @note RobTop Addition
-    void* m_unknownPtr3;
-    
+
     // CCEGLViewProtocol will recreate stats labels to fit visible rect
     friend class CCEGLViewProtocol;
 };
 
-/** 
+/**
  @brief DisplayLinkDirector is a Director that synchronizes timers with the refresh rate of the display.
- 
+
  Features and Limitations:
   - Scheduled timers & drawing are synchronizes with the refresh rate of the display
   - Only supports animation intervals of 1/60 1/30 & 1/15
- 
+
  @since v0.8.2
  @js NA
  @lua NA
@@ -609,7 +603,7 @@ public:
 class CCDisplayLinkDirector : public CCDirector
 {
 public:
-    CCDisplayLinkDirector(void) 
+    CCDisplayLinkDirector(void)
         : m_bInvalid(false)
     {}
 

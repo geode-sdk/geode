@@ -18,13 +18,13 @@ protected:
     CCScale9Sprite* m_bg;
 public:
     static ModDeveloperList* create(
-        DevListPopup* popup, 
+        DevListPopup* popup,
         ModSource const& source,
         CCSize const& size
     );
 protected:
     bool init(
-        DevListPopup* popup, 
+        DevListPopup* popup,
         ModSource const& source,
         CCSize const& size
     );

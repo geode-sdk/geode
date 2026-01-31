@@ -1,18 +1,18 @@
 /****************************************************************************
  Copyright (c) 2010-2012 cocos2d-x.org
- 
+
  http://www.cocos2d-x.org
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,7 +37,7 @@ class CC_DLL CCHttpResponse;
 typedef void (CCObject::*SEL_HttpResponse)(CCHttpClient* client, CCHttpResponse* response);
 #define httpresponse_selector(_SELECTOR) (cocos2d::extension::SEL_HttpResponse)(&_SELECTOR)
 
-/** 
+/**
  @brief defines the object which users must packed for CCHttpClient::send(HttpRequest*) method.
  Please refer to samples/TestCpp/Classes/ExtensionTest/NetworkTest/HttpClientTest.cpp as a sample
  @since v2.0.2
@@ -57,8 +57,8 @@ public:
         kHttpDelete,
         kHttpUnkown,
     } HttpRequestType;
-    
-    /** Constructor 
+
+    /** Constructor
         Because HttpRequest object will be used between UI thead and network thread,
         requestObj->autorelease() is forbidden to avoid crashes in CCAutoreleasePool
         new/retain/release still works, which means you need to release it manually
@@ -71,7 +71,7 @@ public:
         _pSelector = NULL;
         _pUserData = NULL;
     };
-    
+
     /** Destructor */
     virtual ~CCHttpRequest()
     {
@@ -80,7 +80,7 @@ public:
             _pTarget->release();
         }
     };
-    
+
     /** Override autorelease method to avoid developers to call it */
     CCObject* autorelease(void)
     {
@@ -88,9 +88,9 @@ public:
                  therefore, autorelease is forbidden here");
         return NULL;
     }
-            
+
     // setter/getters for properties
-     
+
     /** Required field for HttpRequest object before being sent.
         kHttpGet & kHttpPost is currently supported
      */
@@ -103,7 +103,7 @@ public:
     {
         return _requestType;
     };
-    
+
     /** Required field for HttpRequest object before being sent.
      */
     inline void setUrl(const char* url)
@@ -115,7 +115,7 @@ public:
     {
         return _url.c_str();
     };
-    
+
     /** Option field. You can set your post data here
      */
     inline void setRequestData(const char* buffer, unsigned int len)
@@ -134,21 +134,21 @@ public:
     {
         return std::vector<char>(_requestData).size();
     }
-    
+
     /** Option field. You can set a string tag to identify your request, this tag can be found in HttpResponse->getHttpRequest->getTag()
      */
     inline void setTag(const char* tag)
     {
         _tag = tag;
     };
-    /** Get the string tag back to identify the request. 
+    /** Get the string tag back to identify the request.
         The best practice is to use it in your MyClass::onMyHttpRequestCompleted(sender, HttpResponse*) callback
      */
     inline const char* getTag()
     {
         return _tag.c_str();
     };
-    
+
     /** Option field. You can attach a customed data in each request, and get it back in response callback.
         But you need to new/delete the data pointer manully
      */
@@ -163,7 +163,7 @@ public:
     {
         return _pUserData;
     };
-    
+
     /** Required field. You should set the callback selector function at ack the http request completed
      */
     CC_DEPRECATED_ATTRIBUTE inline void setResponseCallback(CCObject* pTarget, SEL_CallFuncND pSelector)
@@ -175,19 +175,19 @@ public:
     {
         _pTarget = pTarget;
         _pSelector = pSelector;
-        
+
         if (_pTarget)
         {
             _pTarget->retain();
         }
-    }    
+    }
     /** Get the target of callback selector funtion, mainly used by CCHttpClient */
     inline CCObject* getTarget()
     {
         return _pTarget;
     }
 
-    /* This sub class is just for migration SEL_CallFuncND to SEL_HttpResponse, 
+    /* This sub class is just for migration SEL_CallFuncND to SEL_HttpResponse,
        someday this way will be removed */
     class _prxy
     {
@@ -199,19 +199,19 @@ public:
     protected:
         SEL_HttpResponse _cb;
     };
-    
+
     /** Get the selector function pointer, mainly used by CCHttpClient */
     inline _prxy getSelector()
     {
         return _prxy(_pSelector);
     }
-    
+
     /** Set any custom headers **/
     inline void setHeaders(gd::vector<gd::string> pHeaders)
    	{
    		_headers=pHeaders;
    	}
-   
+
     /** Get custom headers **/
    	inline gd::vector<gd::string> getHeaders()
    	{
@@ -271,7 +271,7 @@ public:
     gd::string                 _tag;            /// user defined tag, to identify different requests in response callback
     CCObject*          _pTarget;        /// callback target of pSelector function
     SEL_HttpResponse            _pSelector;      /// callback function, e.g. MyLayer::onHttpResponse(CCHttpClient *sender, CCHttpResponse * response)
-    void*                       _pUserData;      /// You can add your customed data here 
+    void*                       _pUserData;      /// You can add your customed data here
     gd::vector<gd::string>    _headers;		      /// custom http headers
 
     // @note RobTop Addition

@@ -57,7 +57,7 @@ class CCSprite;
 * Limitations:
 *  - The only object that is accepted as child (or grandchild, grand-grandchild, etc...) is CCSprite or any subclass of CCSprite. eg: particles, labels and layer can't be added to a CCSpriteBatchNode.
 *  - Either all its children are Aliased or Antialiased. It can't be a mix. This is because "alias" is a property of the texture, and all the sprites share the same texture.
-* 
+*
 * @since v0.7.1
 */
 class CC_DLL CCSpriteBatchNode : public CCNode, public CCTextureProtocol
@@ -76,11 +76,11 @@ public:
     ~CCSpriteBatchNode();
 
     // property
-    
+
     // retain
     inline CCTextureAtlas* getTextureAtlas(void) { return m_pobTextureAtlas; }
-    inline void setTextureAtlas(CCTextureAtlas* textureAtlas) 
-    { 
+    inline void setTextureAtlas(CCTextureAtlas* textureAtlas)
+    {
         if (textureAtlas != m_pobTextureAtlas)
         {
             CC_SAFE_RETAIN(textureAtlas);
@@ -148,7 +148,7 @@ public:
     virtual void addChild(CCNode * child, int zOrder);
     virtual void addChild(CCNode * child, int zOrder, int tag);
     virtual void reorderChild(CCNode * child, int zOrder);
-        
+
     virtual void removeChild(CCNode* child, bool cleanup);
     virtual void removeAllChildrenWithCleanup(bool cleanup);
     virtual void sortAllChildren();
@@ -170,22 +170,17 @@ protected:
     */
     CCSpriteBatchNode * addSpriteWithoutQuad(CCSprite*child, unsigned int z, int aTag);
 
-    // @note RobTop Addition
-    bool getManualSortChildren(void)const;
+public:
     // @note RobTop Addition
     int getAtlasCapacity(void);
-public:
     // @note RobTop Addition
     int getUsedAtlasCapacity(void);
     // @note RobTop Addition
     void increaseAtlasCapacity(unsigned int);
     // @note RobTop Addition
     void increaseAtlasCapacity();
-protected:
     // @note RobTop Addition
     void manualSortAllChildren(void);
-    // @note RobTop Addition
-    void setManualSortChildren(bool);
 
 private:
     void updateAtlasIndex(CCSprite* sprite, int* curIndex);
@@ -200,7 +195,7 @@ public:
     CCArray* m_pobDescendants;
 
     // @note RobTop Addition
-    bool m_bManualSortChildren;
+    CC_SYNTHESIZE_NV(bool, m_bManualSortChildren, ManualSortChildren);
     // @note RobTop Addition
     bool m_bManualSortAllChildrenDirty;
 };

@@ -4,17 +4,17 @@
  *
  * Copyright 2011 Yannick Loriot. All rights reserved.
  * http://yannickloriot.com
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -51,7 +51,7 @@ NS_CC_EXT_BEGIN
 
 /** @class CCControlButton Button control for Cocos2D. */
 class CC_DLL CCControlButton : public CCControl
-{        
+{
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCControlButton, CCControl)
     CCControlButton();
@@ -66,22 +66,22 @@ protected:
     //bool m_bIsOpacityModifyRGB;
 
     /** The current title that is displayed on the button. */
-    CC_SYNTHESIZE_READONLY(CCString*, m_currentTitle, CurrentTitle);
+    CC_SYNTHESIZE_READONLY_NV(CCString*, m_currentTitle, CurrentTitle);
 
     /** The current color used to display the title. */
-    CC_SYNTHESIZE_READONLY_PASS_BY_REF(ccColor3B, m_currentTitleColor, CurrentTitleColor);
+    CC_SYNTHESIZE_READONLY_NV_PASS_BY_REF(ccColor3B, m_currentTitleColor, CurrentTitleColor);
 
-    /** Adjust the background image. YES by default. If the property is set to NO, the 
+    /** Adjust the background image. YES by default. If the property is set to NO, the
     background will use the prefered size of the background image. */
     bool doesAdjustBackgroundImage();
     void setAdjustBackgroundImage(bool adjustBackgroundImage);
     bool m_doesAdjustBackgroundImage;
 
     /** The current title label. */
-    CC_SYNTHESIZE_RETAIN(CCNode*, m_titleLabel, TitleLabel);
+    CC_SYNTHESIZE_NV_RETAIN(CCNode*, m_titleLabel, TitleLabel);
 
     /** The current background sprite. */
-    CC_SYNTHESIZE_RETAIN(CCScale9Sprite*, m_backgroundSprite, BackgroundSprite);
+    CC_SYNTHESIZE_NV_RETAIN(CCScale9Sprite*, m_backgroundSprite, BackgroundSprite);
 
     /** The prefered size of the button, if label is larger it will be expanded. */
     CC_PROPERTY(CCSize, m_preferredSize, PreferredSize);
@@ -96,7 +96,7 @@ protected:
     virtual void setOpacity(GLubyte var);
 	virtual const ccColor3B& getColor(void);
 	virtual void setColor(const ccColor3B&);
-    
+
     /** Flag to know if the button is currently pushed.  */
 public:
     bool m_isPushed;
@@ -105,18 +105,18 @@ public:
     bool isPushed() { return m_isPushed; }
 
     // <CCControlState, CCString*>
-    CC_SYNTHESIZE_RETAIN(CCDictionary*, m_titleDispatchTable, TitleDispatchTable);
+    CC_SYNTHESIZE_NV_RETAIN(CCDictionary*, m_titleDispatchTable, TitleDispatchTable);
     // <CCControlState, CCColor3bObject*>
-    CC_SYNTHESIZE_RETAIN(CCDictionary*, m_titleColorDispatchTable, TitleColorDispatchTable);
+    CC_SYNTHESIZE_NV_RETAIN(CCDictionary*, m_titleColorDispatchTable, TitleColorDispatchTable);
     // <CCControlState, CCNode*>
-    CC_SYNTHESIZE_RETAIN(CCDictionary*, m_titleLabelDispatchTable, TitleLabelDispatchTable);
+    CC_SYNTHESIZE_NV_RETAIN(CCDictionary*, m_titleLabelDispatchTable, TitleLabelDispatchTable);
     // <CCControlState, CCScale9Sprite*>
-    CC_SYNTHESIZE_RETAIN(CCDictionary*, m_backgroundSpriteDispatchTable, BackgroundSpriteDispatchTable);
+    CC_SYNTHESIZE_NV_RETAIN(CCDictionary*, m_backgroundSpriteDispatchTable, BackgroundSpriteDispatchTable);
 
     /* Define the button margin for Top/Bottom edge */
-    CC_SYNTHESIZE_READONLY(int, m_marginV, VerticalMargin);
+    CC_SYNTHESIZE_READONLY_NV(int, m_marginV, VerticalMargin);
     /* Define the button margin for Left/Right edge */
-    CC_SYNTHESIZE_READONLY(int, m_marginH, HorizontalOrigin);
+    CC_SYNTHESIZE_READONLY_NV(int, m_marginH, HorizontalOrigin);
     //set the margins at once (so we only have to do one call of needsLayout)
     virtual void setMargins(int marginH, int marginV);
 
@@ -124,17 +124,17 @@ public:
 public:
     virtual bool init();
     virtual bool initWithLabelAndBackgroundSprite(CCNode* label, CCScale9Sprite* backgroundSprite);
-    
+
     static CCControlButton* create(CCNode* label, CCScale9Sprite* backgroundSprite);
-    
+
     virtual bool initWithTitleAndFontNameAndFontSize(gd::string title, const char * fontName, float fontSize);
 
     static CCControlButton* create(gd::string title, const char * fontName, float fontSize);
-    
+
     virtual bool initWithBackgroundSprite(CCScale9Sprite* sprite);
 
     static CCControlButton* create(CCScale9Sprite* sprite);
-    
+
     //events
     virtual bool ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent);
     virtual void ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent);

@@ -21,7 +21,7 @@ protected:
     bool initWithDuration(float duration) {
         if (!CCActionInterval::initWithDuration(duration))
             return false;
-        
+
         return true;
     }
 
@@ -45,11 +45,11 @@ protected:
 public:
     static ShakeyWakey* create(float duration) {
         auto ret = new ShakeyWakey();
-        if (ret && ret->initWithDuration(duration)) {
+        if (ret->initWithDuration(duration)) {
             ret->autorelease();
             return ret;
         }
-        CC_SAFE_DELETE(ret);
+        delete ret;
         return nullptr;
     }
 };
@@ -57,7 +57,7 @@ public:
 bool EventWinnerAnimation::init() {
     if (!CCMenu::init())
         return false;
-    
+
     // much taken from https://github.com/undefined06855/Icon-Ninja/blob/main/src/NinjaSwipeLayer.cpp
     // which is pretty messed up given it didn't win :(
 
@@ -71,7 +71,7 @@ bool EventWinnerAnimation::init() {
     m_bg->runAction(CCFadeTo::create(1.f, 205));
     this->addChildAtPosition(m_bg, Anchor::Center);
 
-    // Hopefully this loads before it is shows in the UI otherwise there will 
+    // Hopefully this loads before it is shows in the UI otherwise there will
     // be an awkward loading circle lol
     auto logo = createServerModLogo("rainixgd.geome3dash");
     logo->setVisible(false);
@@ -171,7 +171,7 @@ bool EventWinnerAnimation::init() {
             }
             this->addChildAtPosition(modtoberWinnerLabel, Anchor::Center, ccp(0, 75));
 
-            auto modtoberWinnerSpr = CCSprite::createWithSpriteFrameName("tag-modtober-winner-long.png"_spr);
+            auto modtoberWinnerSpr = CCSprite::createWithSpriteFrameName("tag-modtober24-winner-long.png"_spr);
             modtoberWinnerSpr->setScale(0);
             modtoberWinnerSpr->runAction(CCEaseInOut::create(CCScaleTo::create(.5f, .4f), 2.f));
             this->addChildAtPosition(modtoberWinnerSpr, Anchor::Center, ccp(0, 45));
@@ -264,10 +264,10 @@ void EventWinnerAnimation::onClose(CCObject*) {
 
 EventWinnerAnimation* EventWinnerAnimation::create() {
     auto ret = new EventWinnerAnimation();
-    if (ret && ret->init()) {
+    if (ret->init()) {
         ret->autorelease();
         return ret;
     }
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }

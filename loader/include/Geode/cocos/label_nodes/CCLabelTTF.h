@@ -47,7 +47,7 @@ NS_CC_BEGIN
  *
  * Custom ttf file can be put in assets/ or external storage that the Application can access.
  * @code
- * CCLabelTTF *label1 = CCLabelTTF::create("alignment left", "A Damn Mess", fontSize, blockSize, 
+ * CCLabelTTF *label1 = CCLabelTTF::create("alignment left", "A Damn Mess", fontSize, blockSize,
  *                                          kCCTextAlignmentLeft, kCCVerticalTextAlignmentCenter);
  * CCLabelTTF *label2 = CCLabelTTF::create("alignment right", "/mnt/sdcard/Scissor Cuts.ttf", fontSize, blockSize,
  *                                          kCCTextAlignmentLeft, kCCVerticalTextAlignmentCenter);
@@ -74,69 +74,69 @@ public:
      *  @lua NA
      */
     const char* description();
-    
+
     /** creates a CCLabelTTF with a font name and font size in points
      @since v2.0.1
      */
     static CCLabelTTF * create(const char *string, const char *fontName, float fontSize);
-    
+
     /** creates a CCLabelTTF from a fontname, horizontal alignment, dimension in points,  and font size in points.
      @since v2.0.1
      */
     static CCLabelTTF * create(const char *string, const char *fontName, float fontSize,
                                const CCSize& dimensions, CCTextAlignment hAlignment);
-  
+
     /** creates a CCLabel from a fontname, alignment, dimension in points and font size in points
      @since v2.0.1
      */
     static CCLabelTTF * create(const char *string, const char *fontName, float fontSize,
-                               const CCSize& dimensions, CCTextAlignment hAlignment, 
+                               const CCSize& dimensions, CCTextAlignment hAlignment,
                                CCVerticalTextAlignment vAlignment);
-    
-    
+
+
     /** Create a lable with string and a font definition*/
     static CCLabelTTF * createWithFontDefinition(const char *string, ccFontDefinition &textDefinition);
-    
+
     /** initializes the CCLabelTTF with a font name and font size */
     bool initWithString(const char *string, const char *fontName, float fontSize);
-    
+
     /** initializes the CCLabelTTF with a font name, alignment, dimension and font size */
     bool initWithString(const char *string, const char *fontName, float fontSize,
                         const CCSize& dimensions, CCTextAlignment hAlignment);
 
     /** initializes the CCLabelTTF with a font name, alignment, dimension and font size */
     bool initWithString(const char *string, const char *fontName, float fontSize,
-                        const CCSize& dimensions, CCTextAlignment hAlignment, 
+                        const CCSize& dimensions, CCTextAlignment hAlignment,
                         CCVerticalTextAlignment vAlignment);
-    
+
     /** initializes the CCLabelTTF with a font name, alignment, dimension and font size */
     bool initWithStringAndTextDefinition(const char *string, ccFontDefinition &textDefinition);
-    
+
     /** set the text definition used by this label */
     void setTextDefinition(ccFontDefinition *theDefinition);
-    
+
     /** get the text definition used by this label */
     ccFontDefinition * getTextDefinition();
-    
-    
-    
+
+
+
     /** enable or disable shadow for the label */
     void enableShadow(const CCSize &shadowOffset, float shadowOpacity, float shadowBlur, bool mustUpdateTexture = true);
-    
+
     /** disable shadow rendering */
     void disableShadow(bool mustUpdateTexture = true);
-    
+
     /** enable or disable stroke */
     void enableStroke(const ccColor3B &strokeColor, float strokeSize, bool mustUpdateTexture = true);
-    
+
     /** disable stroke */
     void disableStroke(bool mustUpdateTexture = true);
-    
+
     /** set text tinting */
     void setFontFillColor(const ccColor3B &tintColor, bool mustUpdateTexture = true);
 
-    
-    
+
+
     /** initializes the CCLabelTTF */
     bool init();
 
@@ -149,7 +149,7 @@ public:
     */
     virtual void setString(const char *label);
     virtual const char* getString(void);
-    
+
     CCTextAlignment getHorizontalAlignment() {
 	    return m_hAlignment;
 	}
@@ -157,15 +157,15 @@ public:
 	    if (alignment != m_hAlignment)
 	    {
 	        m_hAlignment = alignment;
-	        
+
 	        // Force update
-	        if (std::string(m_string).size() > 0)
+	        if (m_string.size() > 0)
 	        {
 	            this->updateTexture();
 	        }
 	    }
 	}
-    
+
     CCVerticalTextAlignment getVerticalAlignment() {
 	    return m_vAlignment;
 	}
@@ -173,15 +173,15 @@ public:
 	    if (verticalAlignment != m_vAlignment)
 	    {
 	        m_vAlignment = verticalAlignment;
-	        
+
 	        // Force update
-	        if (std::string(m_string).size() > 0)
+	        if (m_string.size() > 0)
 	        {
 	            this->updateTexture();
 	        }
 	    }
 	}
-    
+
     CCSize getDimensions() {
     	return m_tDimensions;
     }
@@ -189,15 +189,15 @@ public:
     	if (dim.width != m_tDimensions.width || dim.height != m_tDimensions.height)
 	    {
 	        m_tDimensions = dim;
-	        
+
 	        // Force update
-	        if (std::string(m_string).size() > 0)
+	        if (m_string.size() > 0)
 	        {
 	            this->updateTexture();
 	        }
 	    }
     }
-    
+
     float getFontSize() {
     	return m_fFontSize;
     }
@@ -205,22 +205,22 @@ public:
     	if (m_fFontSize != fontSize)
 	    {
 	        m_fFontSize = fontSize;
-	        
+
 	        // Force update
-	        if (std::string(m_string).size() > 0)
+	        if (m_string.size() > 0)
 	        {
 	            this->updateTexture();
 	        }
 	    }
     }
-    
+
     const char* getFontName();
     void setFontName(const char *fontName);
-    
+
 private:
     bool updateTexture();
 protected:
-    
+
     /** set the text definition for this label */
     void                _updateWithTextDefinition(ccFontDefinition & textDefinition, bool mustUpdateTexture = true);
     ccFontDefinition    _prepareTextDefinition(bool adjustForResolution = false);
@@ -237,23 +237,23 @@ public:
     float m_fFontSize;
     /** label's string */
     gd::string m_string;
-    
+
     /** font shadow */
     bool    m_shadowEnabled;
     CCSize  m_shadowOffset;
     float   m_shadowOpacity;
     float   m_shadowBlur;
-    
-    
+
+
     /** font stroke */
     bool        m_strokeEnabled;
     ccColor3B   m_strokeColor;
     float       m_strokeSize;
-        
+
     /** font tint */
     ccColor3B   m_textFillColor;
 
-    
+
 };
 
 

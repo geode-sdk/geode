@@ -50,3 +50,7 @@ std::filesystem::path dirs::getCrashlogsDir() {
 std::filesystem::path dirs::getModPersistentDir() {
     return dirs::getSaveDir() / "geode-persistent";
 }
+
+// std::filesystem::path dirs::getModBinariesDir() {
+//     return dirs::getModRuntimeDir() / "binaries";
+// }

@@ -1,21 +1,26 @@
 #include "ModList.hpp"
+#include <Geode/cocos/actions/CCActionInterval.h>
+#include <Geode/utils/cocos.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/ui/GeodeUI.hpp>
+#include <Geode/ui/TextInput.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
+#include "../popups/ModtoberPopup.hpp"
 #include "../popups/FiltersPopup.hpp"
 #include "../popups/SortPopup.hpp"
 #include "../GeodeStyle.hpp"
 #include "../ModsLayer.hpp"
-#include "ModItem.hpp"
+#include "ModListItem.hpp"
 
 static size_t getDisplayPageSize(ModListSource* src, ModListDisplay display) {
-    if (src->isLocalModsOnly() && Mod::get()->template getSettingValue<bool>("infinite-local-mods-list")) {
+    if (src->isLocalModsOnly() && Mod::get()->getSettingValue<bool>("infinite-local-mods-list")) {
         return std::numeric_limits<size_t>::max();
     }
     return 16;
 }
 
 $execute {
-    listenForSettingChanges("infinite-local-mods-list", [](bool value) {
+    listenForSettingChanges<bool>("infinite-local-mods-list", [](bool value) {
         InstalledModListSource::get(InstalledModListType::All)->clearCache();
         InstalledModListSource::get(InstalledModListType::OnlyErrors)->clearCache();
         InstalledModListSource::get(InstalledModListType::OnlyOutdated)->clearCache();
@@ -23,17 +28,24 @@ $execute {
     });
 }
 
-bool ModList::init(ModListSource* src, CCSize const& size) {
+bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     if (!CCNode::init())
         return false;
-    
+
     this->setContentSize(size);
     this->setAnchorPoint({ .5f, .5f });
     this->setID("ModList");
 
     m_source = src;
-    m_source->reset();
-    
+
+    // Geode can't tell if it's looking for a dev due to a source cache or due to actually coming from pressing more when creating a new list
+    // So using an assisting variable to call the right reset
+    if (searchingDev) {
+        m_source->clearCache();
+    } else {
+        m_source->reset();
+    }
+
     m_list = ScrollLayer::create(size);
     this->addChildAtPosition(m_list, Anchor::Bottom, ccp(-m_list->getScaledContentWidth() / 2, 0));
 
@@ -45,8 +57,12 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
 
     // Check for updates on installed mods, and show an update all button if there are some
     if (typeinfo_cast<InstalledModListSource*>(m_source)) {
-        m_checkUpdatesListener.bind(this, &ModList::onCheckUpdates);
-        m_checkUpdatesListener.setFilter(ModsLayer::checkInstalledModsForUpdates());
+        m_checkUpdatesListener.spawn(
+            ModsLayer::checkInstalledModsForUpdates(),
+            [this](server::ServerResult<std::vector<std::string>> val) {
+                this->onCheckUpdates(std::move(val).unwrapOrDefault());
+            }
+        );
 
         m_updateAllContainer = CCNode::create();
         m_updateAllContainer->setID("update-all-container");
@@ -73,14 +89,14 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         );
 
         m_updateAllContainer->addChildAtPosition(updateAllBG, Anchor::Center);
-        
+
         m_updateCountLabel = TextArea::create("", "bigFont.fnt", .35f, size.width / 2 - 30, ccp(0, 1), 12.f, false);
         m_updateCountLabel->setID("update-count-label");
         m_updateAllContainer->addChildAtPosition(m_updateCountLabel, Anchor::Left, ccp(10, 0), ccp(0, 0));
-        
+
         m_updateAllMenu = CCMenu::create();
         m_updateAllMenu->setID("update-all-menu");
-        m_updateAllMenu->setContentWidth(size.width / 2);
+        m_updateAllMenu->setContentSize({size.width / 2, 20});
         m_updateAllMenu->setAnchorPoint({ 1, .5f });
 
         m_showUpdatesSpr = createGeodeButton(
@@ -112,11 +128,14 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         m_updateAllMenu->addChild(m_updateAllLoadingCircle);
 
         m_updateAllMenu->setLayout(
-            RowLayout::create()
-                ->setAxisAlignment(AxisAlignment::End)
-                ->setDefaultScaleLimits(.1f, .6f)
+            SimpleRowLayout::create()
+                ->setMainAxisAlignment(MainAxisAlignment::End)
+                ->setMinRelativeScale(.5f)
+                ->setMaxRelativeScale(1.f)
+                ->setGap(5)
+                ->setMainAxisScaling(AxisScaling::Scale)
+                ->setCrossAxisScaling(AxisScaling::ScaleDownGaps)
         );
-        m_updateAllMenu->getLayout()->ignoreInvisibleChildren(true);
         m_updateAllContainer->addChildAtPosition(m_updateAllMenu, Anchor::Right, ccp(-10, 0));
 
         m_topContainer->addChild(m_updateAllContainer);
@@ -138,17 +157,17 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
             errorsBG->ignoreAnchorPointForPosition(false);
 
             m_errorsContainer->addChildAtPosition(errorsBG, Anchor::Center);
-            
+
             auto errorsLabel = TextArea::create(
                 "There were <cy>errors</c> loading some mods",
                 "bigFont.fnt", .35f, size.width / 2 - 30, ccp(0, 1), 12.f, false
             );
             errorsLabel->setID("errors-label");
             m_errorsContainer->addChildAtPosition(errorsLabel, Anchor::Left, ccp(10, 0), ccp(0, 0));
-            
+
             auto errorsMenu = CCMenu::create();
             errorsMenu->setID("errors-menu");
-            errorsMenu->setContentWidth(size.width / 2);
+            errorsMenu->setContentSize({size.width / 2, 20});
             errorsMenu->setAnchorPoint({ 1, .5f });
 
             auto showErrorsSpr = createGeodeButton(
@@ -167,9 +186,13 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
             errorsMenu->addChild(m_toggleErrorsOnlyBtn);
 
             errorsMenu->setLayout(
-                RowLayout::create()
-                    ->setAxisAlignment(AxisAlignment::End)
-                    ->setDefaultScaleLimits(.1f, .6f)
+                SimpleRowLayout::create()
+                    ->setMainAxisAlignment(MainAxisAlignment::End)
+                    ->setMinRelativeScale(.5f)
+                    ->setMaxRelativeScale(1.f)
+                    ->setGap(5)
+                    ->setMainAxisScaling(AxisScaling::Scale)
+                    ->setCrossAxisScaling(AxisScaling::ScaleDownGaps)
             );
             m_errorsContainer->addChildAtPosition(errorsMenu, Anchor::Right, ccp(-10, 0));
 
@@ -193,32 +216,31 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_searchInput->setScale(.75f);
     m_searchInput->setAnchorPoint({ 0, .5f });
     m_searchInput->setTextAlign(TextInputAlign::Left);
+    m_searchInput->setCommonFilter(CommonFilter::Any);
     m_searchInput->setCallback([this](auto const&) {
-        // If the source is already in memory, we can immediately update the 
-        // search query
+        float bufferTime = 0.4f;
+
         if (m_source->isLocalModsOnly()) {
-            m_source->search(m_searchInput->getString());
-            return;
+            bufferTime = 0.1f;
         }
-        // Otherwise buffer inputs by a bit
-        // This avoids spamming servers for every character typed, 
-        // instead waiting for input to stop to actually do the search
-        std::thread([this] {
-            m_searchInputThreads += 1;
-            std::this_thread::sleep_for(std::chrono::milliseconds(400));
-            m_searchInputThreads -= 1;
-            if (m_searchInputThreads == 0) {
-                Loader::get()->queueInMainThread([this] {
-                    m_source->search(m_searchInput->getString());
-                });
-            }
-        }).detach();
+
+        CCSequence* seq = CCSequence::create(
+            CCDelayTime::create(bufferTime),
+            CallFuncExt::create([this] {
+                m_source->search(m_searchInput->getString());
+            }),
+            nullptr
+        );
+
+        seq->setTag(123123);
+        this->stopActionByTag(123123);
+        this->runAction(seq);
     });
     m_searchMenu->addChildAtPosition(m_searchInput, Anchor::Left, ccp(7.5f, 0));
 
     auto searchFiltersMenu = CCMenu::create();
     searchFiltersMenu->setID("search-filters-menu");
-    searchFiltersMenu->setContentWidth(size.width - m_searchInput->getScaledContentWidth() - 5);
+    searchFiltersMenu->setContentSize({size.width - m_searchInput->getScaledContentWidth() - 5, 30});
     searchFiltersMenu->setAnchorPoint({ 1, .5f });
     searchFiltersMenu->setScale(.75f);
     // Set higher prio to not let list items override touch
@@ -242,51 +264,53 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         GeodeSquareSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
         this, menu_selector(ModList::onFilters)
     );
-    m_filtersBtn->setID("filters-button");
-    searchFiltersMenu->addChild(m_filtersBtn);
 
-    m_clearFiltersBtn = CCMenuItemSpriteExtra::create(
-        GeodeSquareSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"),
-        this, menu_selector(ModList::onClearFilters)
-    );
-    m_clearFiltersBtn->setID("clear-filters-button");
-    searchFiltersMenu->addChild(m_clearFiltersBtn);
+    auto serverSource = typeinfo_cast<ServerModListSource*>(m_source);
 
-    searchFiltersMenu->setLayout(
-        RowLayout::create()
-            ->setAxisAlignment(AxisAlignment::End)
-    );
-    m_searchMenu->addChildAtPosition(searchFiltersMenu, Anchor::Right, ccp(-10, 0));
+    // Modtober specific; this can be removed after Modtober 2025 is over!
+    if (!serverSource || serverSource->getType() != ServerModListType::Modtober) {
+        m_filtersBtn->setID("filters-button");
+        searchFiltersMenu->addChild(m_filtersBtn);
 
-    m_topContainer->addChild(m_searchMenu);
-
-    // Modtober banner; this can be removed after Modtober 2024 is over!
-    if (
-        auto src = typeinfo_cast<ServerModListSource*>(m_source);
-        src && src->getType() == ServerModListType::Modtober24
-    ) {
+        m_clearFiltersBtn = CCMenuItemSpriteExtra::create(
+            GeodeSquareSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"),
+            this, menu_selector(ModList::onClearFilters)
+        );
+        m_clearFiltersBtn->setID("clear-filters-button");
+        searchFiltersMenu->addChild(m_clearFiltersBtn);
+    } else {
         auto menu = CCMenu::create();
         menu->setID("modtober-banner");
         menu->ignoreAnchorPointForPosition(false);
         menu->setContentSize({ size.width, 30 });
 
-        auto banner = CCSprite::createWithSpriteFrameName("modtober24-banner.png"_spr);
+        auto banner = CCSprite::createWithSpriteFrameName("modtober25-banner.png"_spr);
         limitNodeWidth(banner, size.width, 1.f, .1f);
         menu->addChildAtPosition(banner, Anchor::Center);
 
-        auto label = CCLabelBMFont::create("Modtober 2024 Winner: Geome3Dash!", "bigFont.fnt");
-        label->setScale(.35f);
+        auto label = CCLabelBMFont::create("Modtober 2025 is Here!", "bigFont.fnt");
+        label->setScale(.5f);
         menu->addChildAtPosition(label, Anchor::Left, ccp(10, 0), ccp(0, .5f));
 
-        auto aboutSpr = createGeodeButton("View");
+        auto aboutSpr = createGeodeButton("About");
         aboutSpr->setScale(.5f);
         auto aboutBtn = CCMenuItemSpriteExtra::create(
-            aboutSpr, this, menu_selector(ModList::onEventInfo)
+            aboutSpr, this, menu_selector(ModList::onModtoberInfo)
         );
-        menu->addChildAtPosition(aboutBtn, Anchor::Right, ccp(-30, 0));
+        menu->addChildAtPosition(aboutBtn, Anchor::Right, ccp(-35, 0));
         
         m_topContainer->addChild(menu);
     }
+
+    searchFiltersMenu->setLayout(
+        SimpleRowLayout::create()
+            ->setMainAxisAlignment(MainAxisAlignment::End)
+            ->setMainAxisScaling(AxisScaling::Scale)
+            ->setGap(5.f)
+    );
+    m_searchMenu->addChildAtPosition(searchFiltersMenu, Anchor::Right, ccp(-10, 0));
+
+    m_topContainer->addChild(m_searchMenu);
 
     m_topContainer->setLayout(
         ColumnLayout::create()
@@ -294,7 +318,6 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
             ->setAxisReverse(true)
             ->setAutoGrowAxis(0.f)
     );
-    m_topContainer->getLayout()->ignoreInvisibleChildren(true);
 
     this->addChildAtPosition(m_topContainer, Anchor::Top);
 
@@ -314,9 +337,9 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     pageLeftMenu->addChild(m_pagePrevBtn);
 
     pageLeftMenu->setLayout(
-        RowLayout::create()
-            ->setAxisAlignment(AxisAlignment::End)
-            ->setAxisReverse(true)
+        SimpleRowLayout::create()
+            ->setMainAxisAlignment(MainAxisAlignment::End)
+            ->setMainAxisDirection(AxisDirection::RightToLeft)
     );
     this->addChildAtPosition(pageLeftMenu, Anchor::Left, ccp(-20, 0));
 
@@ -336,8 +359,8 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     pageRightMenu->addChild(m_pageNextBtn);
 
     pageRightMenu->setLayout(
-        RowLayout::create()
-            ->setAxisAlignment(AxisAlignment::Start)
+        SimpleRowLayout::create()
+        ->setMainAxisAlignment(MainAxisAlignment::Start)
     );
     this->addChildAtPosition(pageRightMenu, Anchor::Right, ccp(20, 0));
 
@@ -370,87 +393,65 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_statusLoadingCircle = createLoadingCircle(50);
     m_statusContainer->addChild(m_statusLoadingCircle);
 
-    m_statusLoadingBar = Slider::create(this, nullptr);
-    m_statusLoadingBar->setID("status-loading-bar");
-    m_statusLoadingBar->m_touchLogic->m_thumb->setVisible(false);
-    m_statusLoadingBar->setValue(0);
-    m_statusLoadingBar->setAnchorPoint({ 0, 0 });
-    m_statusContainer->addChild(m_statusLoadingBar);
-
     m_statusContainer->setLayout(
-        ColumnLayout::create()
-            ->setAxisReverse(true)
+        SimpleColumnLayout::create()
+            ->setMainAxisDirection(AxisDirection::TopToBottom)
+            ->setGap(5.f)
     );
-    m_statusContainer->getLayout()->ignoreInvisibleChildren(true);
     this->addChildAtPosition(m_statusContainer, Anchor::Center);
 
-    m_listener.bind(this, &ModList::onPromise);
+    m_invalidateCacheHandle = InvalidateCacheEvent().listen(
+        [this](ModListSource* source) {
+            this->onInvalidateCache(source);
+            return ListenerResult::Propagate;
+        }
+    );
 
-    m_invalidateCacheListener.bind(this, &ModList::onInvalidateCache);
-    m_invalidateCacheListener.setFilter(InvalidateCacheFilter(m_source));
-
-    m_downloadListener.bind([this](auto) { this->updateTopContainer(); });
-    
     this->gotoPage(0);
     this->updateTopContainer();
 
     return true;
 }
 
-void ModList::onPromise(ModListSource::PageLoadTask::Event* event) {
-    if (event->getValue()) {
-        auto result = event->getValue();
-        if (result->isOk()) {
-            // Hide status
-            m_statusContainer->setVisible(false);
+void ModList::onPromise(ModListSource::PageLoadResult result) {
+    if (result.isOk()) {
+        // This is apparently because `getChildren()` may be nullptr?
+        if (m_list->m_contentLayer->getChildrenCount() > 0) {
+            m_list->m_contentLayer->removeAllChildren();
+        }
 
-            auto list = result->unwrap();
+        // Hide status
+        m_statusContainer->setVisible(false);
 
-            // Create items
-            bool first = true;
-            for (auto item : list) {
-                // Add separators between items after the first one
-                if (!first) {
-                    // auto separator = CCLayerColor::create(
-                    //     ColorProvider::get()->define("mod-list-separator"_spr, { 255, 255, 255, 45 })
-                    // );
-                    // separator->setContentSize({ m_obContentSize.width - 10, .5f });
-                    // m_list->m_contentLayer->addChild(separator);
-                }
-                first = false;
-                m_list->m_contentLayer->addChild(item);
+        auto list = std::move(result).unwrap();
+
+        // Create items
+        bool first = true;
+        for (auto item : list) {
+            // Add separators between items after the first one
+            if (!first) {
+                // auto separator = CCLayerColor::create(
+                //     ColorProvider::get()->define("mod-list-separator"_spr, { 255, 255, 255, 45 })
+                // );
+                // separator->setContentSize({ m_obContentSize.width - 10, .5f });
+                // m_list->m_contentLayer->addChild(separator);
             }
-            this->updateDisplay(m_display);
-
-            // Scroll list to top
-            auto listTopScrollPos = -m_list->m_contentLayer->getContentHeight() + m_list->getContentHeight();
-            m_list->m_contentLayer->setPositionY(listTopScrollPos);
-
-            // Update page UI
-            this->updateState();
+            first = false;
+            m_list->m_contentLayer->addChild(item);
         }
-        else {
-            auto error = result->unwrapErr();
-            this->showStatus(ModListErrorStatus(), error.message, error.details);
-            this->updateState();
-        }
+        this->updateDisplay(m_display);
 
-        // Clear listener
-        m_listener.setFilter(ModListSource::PageLoadTask());
+        // Scroll list to top
+        auto listTopScrollPos = -m_list->m_contentLayer->getContentHeight() + m_list->getContentHeight();
+        m_list->m_contentLayer->setPositionY(listTopScrollPos);
+
+        // Update page UI
+        this->updateState();
     }
-    else if (auto progress = event->getProgress()) {
-        // todo: percentage in a loading bar
-        if (progress->has_value()) {
-            this->showStatus(ModListProgressStatus {
-                .percentage = progress->value(),
-            }, "Loading...");
-        }
-        else {
-            this->showStatus(ModListUnkProgressStatus(), "Loading...");
-        }
-    }
-    else if (event->isCancelled()) {
-        this->reloadPage();
+    else {
+        auto error = std::move(result).unwrapErr();
+        this->showStatus(ModListErrorStatus(), std::move(error.message), std::move(error.details));
+        this->updateState();
     }
 }
 
@@ -467,7 +468,7 @@ void ModList::onPage(CCObject* sender) {
     if (sender->getTag() < 0 && m_page >= -sender->getTag()) {
         m_page += sender->getTag();
     }
-    // Ig this can technically overflow, but why would there be over 4 billion pages 
+    // Ig this can technically overflow, but why would there be over 4 billion pages
     // (and why would someone manually scroll that far)
     else if (sender->getTag() > 0 && m_page + sender->getTag() < m_source->getPageCount()) {
         m_page += sender->getTag();
@@ -482,37 +483,35 @@ void ModList::onShowStatusDetails(CCObject*) {
     m_statusContainer->updateLayout();
 }
 
-void ModList::onCheckUpdates(typename server::ServerRequest<std::vector<std::string>>::Event* event) {
-    if (event->getValue() && event->getValue()->isOk()) {
-        if (auto mods = event->getValue()->unwrap(); mods.size() > 0) {
-            if (mods.size() == 1) {
-                m_updateCountLabel->setString(fmt::format("There is <cg>{}</c> update available!", mods.size()));
-                m_updateAllSpr->setString("");
-                m_showUpdatesSpr->setString("Show Update");
-                m_hideUpdatesSpr->setString("Hide Update");
-            }
-            else {
-                m_updateCountLabel->setString(fmt::format("There are <cg>{}</c> updates available!", mods.size()));
-                m_updateAllSpr->setString("Update All");
-                m_showUpdatesSpr->setString("Show Updates");
-                m_hideUpdatesSpr->setString("Hide Updates");
-            }
+void ModList::onCheckUpdates(const std::vector<std::string>& mods) {
+    if (mods.empty()) return;
 
-            // Recreate the button with the updated label.
-            m_updateAllMenu->removeChild(m_updateAllBtn, true);
-            m_updateAllBtn = CCMenuItemSpriteExtra::create(
-                m_updateAllSpr, this, menu_selector(ModList::onUpdateAll)
-            );
-            m_updateAllBtn->setID("update-all-button");
-            m_updateAllMenu->addChild(m_updateAllBtn);
-
-            m_updateAllContainer->setVisible(true);
-            this->updateTopContainer();
-        }
+    if (mods.size() == 1) {
+        m_updateCountLabel->setString(fmt::format("There is <cg>{}</c> update available!", mods.size()));
+        m_updateAllSpr->setString("");
+        m_showUpdatesSpr->setString("Show Update");
+        m_hideUpdatesSpr->setString("Hide Update");
     }
+    else {
+        m_updateCountLabel->setString(fmt::format("There are <cg>{}</c> updates available!", mods.size()));
+        m_updateAllSpr->setString("Update All");
+        m_showUpdatesSpr->setString("Show Updates");
+        m_hideUpdatesSpr->setString("Hide Updates");
+    }
+
+    // Recreate the button with the updated label.
+    m_updateAllMenu->removeChild(m_updateAllBtn, true);
+    m_updateAllBtn = CCMenuItemSpriteExtra::create(
+        m_updateAllSpr, this, menu_selector(ModList::onUpdateAll)
+    );
+    m_updateAllBtn->setID("update-all-button");
+    m_updateAllMenu->addChild(m_updateAllBtn);
+
+    m_updateAllContainer->setVisible(true);
+    this->updateTopContainer();
 }
 
-void ModList::onInvalidateCache(InvalidateCacheEvent* event) {
+void ModList::onInvalidateCache(ModListSource* source) {
     if (!m_exiting) {
         this->gotoPage(0);
     }
@@ -529,14 +528,14 @@ void ModList::updateTopContainer() {
     // Store old relative scroll position (ensuring no divide by zero happens)
     auto oldPositionArea = m_list->m_contentLayer->getContentHeight() - m_list->getContentHeight();
     auto oldPosition = oldPositionArea > 0.f ?
-        m_list->m_contentLayer->getPositionY() / oldPositionArea : 
+        m_list->m_contentLayer->getPositionY() / oldPositionArea :
         -1.f;
 
-    // Update list size to account for the top menu 
+    // Update list size to account for the top menu
     // (giving a little bit of extra padding for it, the same size as gap)
     m_list->setContentHeight(
         m_topContainer->getContentHeight() > 0.f ?
-            this->getContentHeight() - m_topContainer->getContentHeight() - 2.5f : 
+            this->getContentHeight() - m_topContainer->getContentHeight() - 2.5f :
             this->getContentHeight()
     );
     this->updateDisplay(m_display);
@@ -573,10 +572,10 @@ void ModList::updateDisplay(ModListDisplay display) {
     m_display = display;
     m_source->setPageSize(getDisplayPageSize(m_source, m_display));
 
-    // Update all BaseModItems that are children of the list
-    // There may be non-BaseModItems there (like separators) so gotta be type-safe
+    // Update all ModListItems that are children of the list
+    // There may be non-ModListItems there (like separators) so gotta be type-safe
     for (auto& node : CCArrayExt<CCNode*>(m_list->m_contentLayer->getChildren())) {
-        if (auto item = typeinfo_cast<ModItem*>(node)) {
+        if (auto item = typeinfo_cast<ModListItem*>(node)) {
             item->updateDisplay(m_list->getContentWidth(), display);
         }
     }
@@ -584,8 +583,11 @@ void ModList::updateDisplay(ModListDisplay display) {
     // Store old relative scroll position (ensuring no divide by zero happens)
     auto oldPositionArea = m_list->m_contentLayer->getContentHeight() - m_list->getContentHeight();
     auto oldPosition = oldPositionArea > 0.f ?
-        m_list->m_contentLayer->getPositionY() / oldPositionArea : 
+        m_list->m_contentLayer->getPositionY() / oldPositionArea :
         -1.f;
+
+    // fix initial width being 0
+    m_list->m_contentLayer->setContentWidth(m_list->getContentWidth());
 
     // Update the list layout based on the display model
     if (display == ModListDisplay::Grid) {
@@ -594,16 +596,11 @@ void ModList::updateDisplay(ModListDisplay display) {
                 ->setGrowCrossAxis(true)
                 ->setAxisAlignment(AxisAlignment::Start)
                 ->setGap(2.5f)
+                ->ignoreInvisibleChildren(false)
         );
     }
     else {
-        m_list->m_contentLayer->setLayout(
-            ColumnLayout::create()
-                ->setAxisReverse(true)
-                ->setAxisAlignment(AxisAlignment::End)
-                ->setAutoGrowAxis(m_obContentSize.height)
-                ->setGap(2.5f)
-        );
+        m_list->m_contentLayer->setLayout(ScrollLayer::createDefaultListLayout());
     }
 
     // Make sure list isn't too small
@@ -623,7 +620,7 @@ void ModList::updateDisplay(ModListDisplay display) {
 }
 
 void ModList::updateState() {
-    // Update the "Show Updates" and "Show Errors" buttons on 
+    // Update the "Show Updates" and "Show Errors" buttons on
     // the updates available / errors banners
     if (auto src = typeinfo_cast<InstalledModListSource*>(m_source)) {
         if (m_toggleUpdatesOnlyBtn) {
@@ -642,19 +639,22 @@ void ModList::updateState() {
 
     // Update filter button states
     auto isDefaultQuery = m_source->isDefaultQuery();
+    auto serverSource = typeinfo_cast<ServerModListSource*>(m_source);
 
-    auto filterSpr = static_cast<GeodeSquareSprite*>(m_filtersBtn->getNormalImage());
-    filterSpr->setState(!isDefaultQuery);
+    if (!serverSource || serverSource->getType() != ServerModListType::Modtober) {
+        auto filterSpr = static_cast<GeodeSquareSprite*>(m_filtersBtn->getNormalImage());
+        filterSpr->setState(!isDefaultQuery);
 
-    auto clearSpr = static_cast<GeodeSquareSprite*>(m_clearFiltersBtn->getNormalImage());
-    m_clearFiltersBtn->setEnabled(!isDefaultQuery);
-    clearSpr->setColor(isDefaultQuery ? ccGRAY : ccWHITE);
-    clearSpr->setOpacity(isDefaultQuery ? 90 : 255);
-    clearSpr->getTopSprite()->setColor(isDefaultQuery ? ccGRAY : ccWHITE);
-    clearSpr->getTopSprite()->setOpacity(isDefaultQuery ? 90 : 255);
+        auto clearSpr = static_cast<GeodeSquareSprite*>(m_clearFiltersBtn->getNormalImage());
+        m_clearFiltersBtn->setEnabled(!isDefaultQuery);
+        clearSpr->setColor(isDefaultQuery ? ccGRAY : ccWHITE);
+        clearSpr->setOpacity(isDefaultQuery ? 90 : 255);
+        clearSpr->getTopSprite()->setColor(isDefaultQuery ? ccGRAY : ccWHITE);
+        clearSpr->getTopSprite()->setOpacity(isDefaultQuery ? 90 : 255);
+    }
 
     // Post the update page number event
-    UpdateModListStateEvent(UpdatePageNumberState()).post();
+    UpdateModListStateEvent().send(UpdatePageNumberState());
 }
 
 void ModList::reloadPage() {
@@ -664,51 +664,56 @@ void ModList::reloadPage() {
 
 void ModList::gotoPage(size_t page, bool update) {
     // Clear list contents
-    m_list->m_contentLayer->removeAllChildren();
+    if (!m_source->isLocalModsOnly()) {
+        m_list->m_contentLayer->removeAllChildren();
+    }
     m_page = page;
 
     // Update page size (if needed)
     m_source->setPageSize(getDisplayPageSize(m_source, m_display));
-    
-    // Start loading new page with generic loading message
-    this->showStatus(ModListUnkProgressStatus(), "Loading...");
-    m_listener.setFilter(m_source->loadPage(page, update));
 
-    // Do initial eager update on page UI (to prevent user spamming arrows 
+    if (!m_source->isLocalModsOnly()) {
+        // Start loading new page with generic loading message
+        this->showStatus(ModListUnkProgressStatus(), "Loading...");
+    }
+
+    // TODO: v5 maybe refactor this system?
+    auto cachedPage = m_source->getCachedPage(page);
+    if (!update && cachedPage.has_value()) {
+        this->onPromise(Ok(std::move(cachedPage).value()));
+    } else {
+        m_listener.spawn(
+            m_source->loadPage(page, update),
+            [this, page](auto res) {
+                if (res.isErr()) {
+                    return this->onPromise(Err(std::move(res).unwrapErr()));
+                }
+                this->onPromise(m_source->processLoadedPage(page, std::move(res).unwrap()));
+            }
+        );
+    }
+
+    // Do initial eager update on page UI (to prevent user spamming arrows
     // to access invalid pages)
     this->updateState();
 }
 
-void ModList::showStatus(ModListStatus status, std::string const& message, std::optional<std::string> const& details) {
+void ModList::showStatus(ModListStatus status, ZStringView message, std::optional<std::string> details) {
     // Clear list contents
     m_list->m_contentLayer->removeAllChildren();
 
     // Update status
+    bool hasDetails = details.has_value();
     m_statusTitle->setString(message.c_str());
-    m_statusDetails->setText(details.value_or(""));
+    m_statusDetails->setText(std::move(details).value_or(""));
 
     // Update status visibility
     m_statusContainer->setVisible(true);
     m_statusDetails->setVisible(false);
-    m_statusDetailsBtn->setVisible(details.has_value());
+    m_statusDetailsBtn->setVisible(hasDetails);
     m_statusLoadingCircle->setVisible(
         std::holds_alternative<ModListUnkProgressStatus>(status)
-        || std::holds_alternative<ModListProgressStatus>(status)
     );
-    
-    // the loading bar makes no sense to display - it's meant for progress of mod list page loading
-    // however the mod list pages are so small, that there usually isn't a scenario where the loading
-    // takes longer than a single frame - therefore this is useless
-    // server processing time isn't included in this - it's only after the server starts responding
-    // that we get any progress information
-    // also the position is wrong if you wanna restore the functionality
-    //m_statusLoadingBar->setVisible(std::holds_alternative<ModListProgressStatus>(status));
-    m_statusLoadingBar->setVisible(false);
-
-    // Update progress bar
-    if (auto per = std::get_if<ModListProgressStatus>(&status)) {
-        m_statusLoadingBar->setValue(per->percentage / 100.f);
-    }
 
     // Update layout to automatically rearrange everything neatly in the status
     m_statusContainer->updateLayout();
@@ -727,36 +732,37 @@ void ModList::onClearFilters(CCObject*) {
 void ModList::onToggleUpdates(CCObject*) {
     if (auto src = typeinfo_cast<InstalledModListSource*>(m_source)) {
         auto mut = src->getQueryMut();
-        mut->type = mut->type == InstalledModListType::OnlyUpdates ? 
-            InstalledModListType::All : 
+        mut->type = mut->type == InstalledModListType::OnlyUpdates ?
+            InstalledModListType::All :
             InstalledModListType::OnlyUpdates;
     }
 }
 void ModList::onToggleErrors(CCObject*) {
     if (auto src = typeinfo_cast<InstalledModListSource*>(m_source)) {
         auto mut = src->getQueryMut();
-        mut->type = mut->type == InstalledModListType::OnlyErrors ? 
-            InstalledModListType::All : 
+        mut->type = mut->type == InstalledModListType::OnlyErrors ?
+            InstalledModListType::All :
             InstalledModListType::OnlyErrors;
     }
 }
 void ModList::onUpdateAll(CCObject*) {
     server::ModDownloadManager::get()->startUpdateAll();
 }
-void ModList::onEventInfo(CCObject*) {
-    openInfoPopup("rainixgd.geome3dash").listen([](bool) {});
+void ModList::onModtoberInfo(CCObject*) {
+    ModtoberPopup::create()->show();
 }
 
 size_t ModList::getPage() const {
     return m_page;
 }
 
-ModList* ModList::create(ModListSource* src, CCSize const& size) {
+ModList* ModList::create(ModListSource* src, CCSize const& size, bool searchingDev) {
     auto ret = new ModList();
-    if (ret->init(src, size)) {
+    if (ret->init(src, size, searchingDev)) {
         ret->autorelease();
         return ret;
     }
     delete ret;
     return nullptr;
 }
+

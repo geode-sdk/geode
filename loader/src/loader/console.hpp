@@ -1,7 +1,8 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 #include <Geode/loader/Types.hpp>
+#include <Geode/utils/ZStringView.hpp>
 
 namespace geode::console {
     // intended for setting up an already attached console
@@ -13,6 +14,6 @@ namespace geode::console {
     // and attach it (perhaps, by calling setup again, see windows impl for an example)
     void openIfClosed();
 
-    void log(std::string const& msg, Severity severity);
-    void messageBox(char const* title, std::string const& info, Severity severity = Severity::Error);
+    void log(ZStringView msg, Severity severity);
+    void messageBox(ZStringView title, ZStringView info, Severity severity = Severity::Error);
 }

@@ -1,7 +1,7 @@
 #include <Geode/DefaultInclude.hpp>
 
 #ifdef GEODE_IS_WINDOWS
-// GLEW needs to be included before GL but GLFW3 doesn't do that so this is 
+// GLEW needs to be included before GL but GLFW3 doesn't do that so this is
 // just to make sure all of the GL-related headers are in order
 #include <Geode/cocos/include/cocos2d.h>
 #include <Geode/cocos/robtop/glfw/glfw3.h>
@@ -33,7 +33,8 @@ class $modify(GeodeCCEGLView, CCEGLView) {
         if (numpad) {
             keyCode = this->numpadToKeyCode(key);
         }
-        CCKeyboardDispatcher::get()->dispatchKeyboardMSG(keyCode, down, repeat);
+        // TODO: v5 i added 0.0 as the new param but idk what the hell it does please someone fix
+        CCKeyboardDispatcher::get()->dispatchKeyboardMSG(keyCode, down, repeat, 0.0);
     }
 
     void onGLFWMouseCallBack(GLFWwindow* window, int button, int action, int mods) {
@@ -44,7 +45,7 @@ class $modify(GeodeCCEGLView, CCEGLView) {
         // mouse buttons never repeat
         bool repeat = false;
         enumKeyCodes keyCode = this->mouseButtonToKeyCode(button);
-        CCKeyboardDispatcher::get()->dispatchKeyboardMSG(keyCode, down, repeat);
+        CCKeyboardDispatcher::get()->dispatchKeyboardMSG(keyCode, down, repeat, 0.0);
     }
 
     bool isExtraMouseButton(int code) {
@@ -62,7 +63,7 @@ class $modify(GeodeCCEGLView, CCEGLView) {
             case GLFW_MOUSE_BUTTON_7:
                 return enumKeyCodes::MOUSE_7;
             case GLFW_MOUSE_BUTTON_8:
-                return enumKeyCodes::MOUSE_8; 
+                return enumKeyCodes::MOUSE_8;
             default:
                 return enumKeyCodes::KEY_Unknown;
         }

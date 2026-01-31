@@ -17,18 +17,17 @@ using namespace geode::prelude;
 #include "load.hpp"
 
 $on_mod(Loaded) {
-    ipc::listen("ipc-test", [](ipc::IPCEvent* event) -> matjson::Value {
+    ipc::listen("ipc-test", [](matjson::Value data) -> matjson::Value {
         return "Hello from Geode!";
     });
 
-    ipc::listen("loader-info", [](ipc::IPCEvent* event) -> matjson::Value {
+    ipc::listen("loader-info", [](matjson::Value data) -> matjson::Value {
         return Mod::get()->getMetadata();
     });
 
-    ipc::listen("list-mods", [](ipc::IPCEvent* event) -> matjson::Value {
+    ipc::listen("list-mods", [](matjson::Value args) -> matjson::Value {
         std::vector<matjson::Value> res;
 
-        auto args = *event->messageData;
         auto root = checkJson(args, "[ipc/list-mods]");
 
         auto includeRunTimeInfo = root.has("include-runtime-info").get<bool>();
@@ -88,11 +87,11 @@ bool safeModeCheck() {
         return false;
     }
 
-    auto choice = MessageBoxA(
+    auto choice = MessageBoxW(
         NULL,
-        "(This has been triggered because you were holding SHIFT)\n"
-        "Do you want to activate Geode Safe Mode? This disables loading any mods.",
-        "Attention",
+        L"(This has been triggered because you were holding SHIFT)\n"
+        L"Do you want to activate Geode Safe Mode? This disables loading any mods.",
+        L"Attention",
         MB_YESNO | MB_ICONINFORMATION
     );
     return choice == IDYES;
@@ -200,7 +199,7 @@ int geodeEntry(void* platformData) {
     }
 
     // download and install new loader update in the background
-    
+
     if (Mod::get()->getSettingValue<bool>("auto-check-updates")) {
         log::info("Starting loader update check");
         updater::checkForLoaderUpdates();

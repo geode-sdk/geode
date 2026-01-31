@@ -17,15 +17,20 @@ using namespace geode::prelude;
 #include <Geode/utils/permission.hpp>
 #include <Geode/utils/ObjcHook.hpp>
 #include <Geode/utils/string.hpp>
+#include "../../utils/thread.hpp"
+#include <arc/sync/oneshot.hpp>
 
-bool utils::clipboard::write(std::string const& data) {
+bool utils::clipboard::write(ZStringView data) {
     if (!OpenClipboard(nullptr)) return false;
     if (!EmptyClipboard()) {
         CloseClipboard();
         return false;
     }
 
-    HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, data.size() + 1);
+    std::wstring wData = string::utf8ToWide(data);
+    auto const size = (wData.size() + 1) * sizeof(wchar_t);
+
+    HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, size);
 
     if (!hg) {
         CloseClipboard();
@@ -39,11 +44,11 @@ bool utils::clipboard::write(std::string const& data) {
         return false;
     }
 
-    memcpy(dest, data.c_str(), data.size() + 1);
+    memcpy(dest, wData.c_str(), size);
 
     GlobalUnlock(hg);
 
-    SetClipboardData(CF_TEXT, hg);
+    SetClipboardData(CF_UNICODETEXT, hg);
     CloseClipboard();
 
     GlobalFree(hg);
@@ -54,19 +59,19 @@ bool utils::clipboard::write(std::string const& data) {
 std::string utils::clipboard::read() {
     if (!OpenClipboard(nullptr)) return "";
 
-    HANDLE hData = GetClipboardData(CF_TEXT);
+    HANDLE hData = GetClipboardData(CF_UNICODETEXT);
     if (hData == nullptr) {
         CloseClipboard();
         return "";
     }
 
-    char* pszText = static_cast<char*>(GlobalLock(hData));
+    auto pszText = static_cast<wchar_t*>(GlobalLock(hData));
     if (pszText == nullptr) {
         CloseClipboard();
         return "";
     }
 
-    std::string text(pszText);
+    std::string text = string::wideToUtf8(pszText);
 
     GlobalUnlock(hData);
     CloseClipboard();
@@ -106,8 +111,39 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
     return success;
 }
 
-Task<Result<std::filesystem::path>> file::pick(PickMode mode, FilePickOptions const& options) {
-    using RetTask = Task<Result<std::filesystem::path>>;
+// If successful, the bool represents whether a file was picked (true) or dialog was cancelled (false)
+static arc::Future<Result<bool>> asyncNfdPick(
+    NFDMode mode,
+    file::FilePickOptions const& options,
+    void* result
+) {
+    auto [tx, rx] = arc::oneshot::channel<Result<>>();
+
+    auto thread = std::thread([&, tx = std::move(tx)] mutable {
+        auto pickresult = nfdPick(mode, options, result);
+        (void) tx.send(pickresult);
+    });
+
+    // wait for the result, and join the thread
+    auto recvresult = co_await rx.recv();
+    if (thread.joinable()) thread.join();
+
+    if (!recvresult) {
+        co_return Err("Error occurred while picking file");
+    }
+
+    auto res = std::move(recvresult).unwrap();
+    if (!res) {
+        auto err = std::move(res).unwrapErr();
+        if (err == "Dialog cancelled") {
+            co_return Ok(false);
+        }
+        co_return Err(std::move(err));
+    }
+    co_return Ok(true);
+}
+
+arc::Future<Result<std::optional<std::filesystem::path>>> file::pick(PickMode mode, FilePickOptions const& options) {
     #define TURN_INTO_NFDMODE(mode) \
         case file::PickMode::mode: nfdMode = NFDMode::mode; break;
 
@@ -117,35 +153,30 @@ Task<Result<std::filesystem::path>> file::pick(PickMode mode, FilePickOptions co
         TURN_INTO_NFDMODE(SaveFile);
         TURN_INTO_NFDMODE(OpenFolder);
         default:
-            return RetTask::immediate(Err<std::string>("Invalid pick mode"));
+            co_return Err("Invalid pick mode");
     }
+
     std::filesystem::path path;
-    auto pickresult = nfdPick(nfdMode, options, &path);
-    if (pickresult.isErr()) {
-        if (pickresult.unwrapErr() == "Dialog cancelled") {
-            return RetTask::cancelled();
-        }
-        return RetTask::immediate(Err(pickresult.unwrapErr()));
-    } else {
-        return RetTask::immediate(Ok(path));
+    bool picked = ARC_CO_UNWRAP(co_await asyncNfdPick(nfdMode, options, &path));
+    if (!picked) {
+        co_return Ok(std::nullopt);
     }
+
+    co_return Ok(std::move(path));
 }
 
-Task<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions const& options) {
-    using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
-
+arc::Future<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions const& options) {
     std::vector<std::filesystem::path> paths;
-    auto pickResult = nfdPick(NFDMode::OpenFiles, options, &paths);
-    if (pickResult.isErr()) {
-        return RetTask::immediate(Err(pickResult.err().value()));
-    } else {
-        return RetTask::immediate(Ok(paths));
+    bool picked = ARC_CO_UNWRAP(co_await asyncNfdPick(NFDMode::OpenFiles, options, &paths));
+    if (!picked) {
+        co_return Ok(std::vector<std::filesystem::path>{});
     }
-    // return Task<Result<std::vector<std::filesystem::path>>>::immediate(std::move(file::pickFiles(options)));
+
+    co_return Ok(std::move(paths));
 }
 
-void utils::web::openLinkInBrowser(std::string const& url) {
-    ShellExecuteA(0, 0, url.c_str(), 0, 0, SW_SHOW);
+void utils::web::openLinkInBrowser(ZStringView url) {
+    ShellExecuteW(0, 0, utils::string::utf8ToWide(url).c_str(), 0, 0, SW_SHOW);
 }
 
 CCPoint cocos::getMousePos() {
@@ -201,7 +232,11 @@ std::filesystem::path dirs::getModRuntimeDir() {
     return dirs::getGeodeDir() / "unzipped";
 }
 
-void geode::utils::game::exit() {
+std::filesystem::path dirs::getResourcesDir() {
+    return dirs::getGameDir() / "Resources";
+}
+
+void geode::utils::game::exit(bool saveData) {
     // TODO: mat
     #if 0
     if (CCApplication::sharedApplication() &&
@@ -212,13 +247,16 @@ void geode::utils::game::exit() {
     #endif
 
     // If this breaks down the read, uhhh blame Cvolton or something
-    if (AppDelegate::get()) {
-        AppDelegate::get()->trySaveGame(true);
+    if (saveData) {
+        if (AppDelegate::get()) {
+            AppDelegate::get()->trySaveGame(true);
+        }
     }
+
     std::exit(0);
 }
 
-void geode::utils::game::restart() {
+void geode::utils::game::restart(bool saveData) {
     // TODO: mat
     // TODO: be VERY careful before enabling this again, this function is called in platform/windows/main.cpp,
     // before we even check if we are in forward compatibility mode or not.
@@ -234,13 +272,13 @@ void geode::utils::game::restart() {
 
     wchar_t buffer[MAX_PATH];
     GetModuleFileNameW(nullptr, buffer, MAX_PATH);
-    const auto gdName = fmt::format("\"{}\"", std::filesystem::path(buffer).filename().string());
+    auto const gdName = L"\"" + std::filesystem::path(buffer).filename().wstring() + L"\"";
 
     // launch updater
-    const auto updaterPath = (workingDir / "GeodeUpdater.exe").string();
-    ShellExecuteA(nullptr, "open", updaterPath.c_str(), gdName.c_str(), workingDir.string().c_str(), false);
+    auto const updaterPath = (workingDir / "GeodeUpdater.exe").wstring();
+    ShellExecuteW(nullptr, L"open", updaterPath.c_str(), gdName.c_str(), workingDir.wstring().c_str(), false);
 
-    exit();
+    exit(saveData);
 }
 
 void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
@@ -251,20 +289,20 @@ void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
         return;
     }
 
-    std::string params;
+    std::wstring params;
     if (deleteSaveData) {
-        params = "\"/DATA=" + dirs::getSaveDir().string() + "\"";
+        params = L"\"/DATA=" + dirs::getSaveDir().wstring() + L"\"";
     }
 
     // launch uninstaller
-    const auto uninstallerPath = (workingDir / "GeodeUninstaller.exe").string();
-    ShellExecuteA(nullptr, "open", uninstallerPath.c_str(), params.c_str(), workingDir.string().c_str(), false);
+    auto const uninstallerPath = workingDir / "GeodeUninstaller.exe";
+    ShellExecuteW(nullptr, L"open", uninstallerPath.c_str(), params.c_str(), workingDir.wstring().c_str(), false);
 }
 
-Result<> geode::hook::addObjcMethod(std::string const& className, std::string const& selectorName, void* imp) {
+Result<> geode::hook::addObjcMethod(char const* className, char const* selectorName, void* imp) {
     return Err("Wrong platform");
 }
-Result<void*> geode::hook::getObjcMethodImp(std::string const& className, std::string const& selectorName) {
+Result<void*> geode::hook::getObjcMethodImp(char const* className, char const* selectorName) {
     return Err("Wrong platform");
 }
 
@@ -272,13 +310,37 @@ bool geode::utils::permission::getPermissionStatus(Permission permission) {
     return true; // unimplemented
 }
 
-void geode::utils::permission::requestPermission(Permission permission, std::function<void(bool)> callback) {
+void geode::utils::permission::requestPermission(Permission permission, geode::Function<void(bool)> callback) {
     callback(true); // unimplemented
 }
 
-#include "../../utils/thread.hpp"
+// [Set|Get]ThreadDescription are pretty new, so the user's system might not have them
+// or they might only be accessible dynamically (see msdocs link below for more info)
+static auto setThreadDesc = reinterpret_cast<decltype(&SetThreadDescription)>(GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "SetThreadDescription"));
+static auto getThreadDesc = reinterpret_cast<decltype(&GetThreadDescription)>(GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "GetThreadDescription"));
+
+static std::optional<std::string> getNameFromOs() {
+    if (!getThreadDesc) {
+        return std::nullopt;
+    }
+
+    PWSTR wname = nullptr;
+    if (!SUCCEEDED(getThreadDesc(GetCurrentThread(), &wname))) {
+        return std::nullopt;
+    }
+
+    std::string name = utils::string::wideToUtf8(wname);
+    LocalFree(wname);
+
+    return name;
+}
 
 std::string geode::utils::thread::getDefaultName() {
+    // try to request name from the OS first, fallback to a simple format if fails
+    if (auto name = getNameFromOs()) {
+        return *name;
+    }
+
     return fmt::format("Thread #{}", GetCurrentThreadId());
 }
 
@@ -292,10 +354,7 @@ typedef struct tagTHREADNAME_INFO {
 } THREADNAME_INFO;
 #pragma pack(pop)
 
-// SetThreadDescription is pretty new, so the user's system might not have it
-// or it might only be accessible dynamically (see msdocs link above for more info)
-auto setThreadDesc = reinterpret_cast<decltype(&SetThreadDescription)>(GetProcAddress(GetModuleHandleA("Kernel32.dll"), "SetThreadDescription"));
-void obliterate(std::string const& name) {
+void obliterate(ZStringView name) {
     // exception
     THREADNAME_INFO info;
     info.dwType = 0x1000;
@@ -310,7 +369,7 @@ void obliterate(std::string const& name) {
     __except (EXCEPTION_EXECUTE_HANDLER) { }
 #pragma warning(pop)
 }
-void geode::utils::thread::platformSetName(std::string const& name) {
+void geode::utils::thread::platformSetName(ZStringView name) {
     // SetThreadDescription
     if (setThreadDesc) {
         auto res = setThreadDesc(GetCurrentThread(), string::utf8ToWide(name).c_str());
@@ -320,12 +379,39 @@ void geode::utils::thread::platformSetName(std::string const& name) {
     obliterate(name);
 }
 
-std::string geode::utils::getEnvironmentVariable(const char* name) {
+std::string geode::utils::getEnvironmentVariable(ZStringView name) {
     char buffer[1024];
     size_t count = 0;
-    if (0 == getenv_s(&count, buffer, name) && count != 0) {
+    if (0 == getenv_s(&count, buffer, name.c_str()) && count != 0) {
         return buffer;
     }
-    
+
     return "";
+}
+
+std::string geode::utils::formatSystemError(int code) {
+    wchar_t errorBuf[512]; // enough for most messages
+
+    auto result = FormatMessageW(
+        FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        nullptr, code, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), errorBuf, sizeof(errorBuf), nullptr);
+
+    if (result == 0) {
+        return fmt::format("Unknown ({})", code);
+    } else {
+        auto wmsg = std::wstring(errorBuf, errorBuf + result);
+        auto msg = utils::string::wideToUtf8(wmsg);
+
+        // the string sometimes includes a crlf, strip it, also remove unprintable chars
+        msg.erase(std::find_if(msg.rbegin(), msg.rend(), [](unsigned char ch) {
+            return ch != '\r' && ch != '\n' && ch < 127;
+        }).base(), msg.end());
+
+        return msg;
+    }
+}
+
+cocos2d::CCRect geode::utils::getSafeAreaRect() {
+    auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
+    return cocos2d::CCRect(0.0f, 0.0f, winSize.width, winSize.height);
 }

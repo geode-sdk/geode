@@ -1,19 +1,19 @@
 /****************************************************************************
  Copyright (c) 2012 cocos2d-x.org
  Copyright (c) 2010 Sangwoo Im
- 
+
  http://www.cocos2d-x.org
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -64,6 +64,7 @@ public:
  */
 class CC_DLL CCScrollView : public CCLayer
 {
+    GEODE_FRIEND_MODIFY
 public:
     /**
      *  @js ctor
@@ -122,7 +123,7 @@ public:
      * @param offset new offset
      * @param animation duration
      */
-    void setContentOffsetInDuration(CCPoint offset, float dt); 
+    void setContentOffsetInDuration(CCPoint offset, float dt);
 
     void setZoomScale(float s);
     /**
@@ -149,7 +150,7 @@ public:
     /**
      * Returns the current container's maximum offset. You may want this while you animate scrolling by yourself
      */
-    CCPoint maxContainerOffset(); 
+    CCPoint maxContainerOffset();
     /**
      * Determines if a given node's bounding box is in visible bounds
      *
@@ -176,7 +177,7 @@ public:
      * It's semantically different what it actually means to common scroll views.
      * Hence, this scroll view will use a separate size property.
      */
-    CCSize getViewSize() { return m_tViewSize; } 
+    CCSize getViewSize() { return m_tViewSize; }
     void setViewSize(CCSize size);
 
     CCNode * getContainer();

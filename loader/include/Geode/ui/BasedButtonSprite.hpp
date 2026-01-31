@@ -5,8 +5,8 @@
 #pragma warning(disable: 4275)
 
 namespace geode {
-    // all of these are explicitly numbered so if we add a new size / color in 
-    // the future we can slot it in reasonably and just set the number to be at 
+    // all of these are explicitly numbered so if we add a new size / color in
+    // the future we can slot it in reasonably and just set the number to be at
     // the end so backwards compatability stays
     // (for example TinyAlt = 8 to CircleBaseSize)
 
@@ -158,10 +158,10 @@ namespace geode {
 
         bool init(cocos2d::CCNode* ontop, BaseType type, int size, int color);
         bool initWithSprite(
-            const char* sprName, float sprScale, BaseType type, int size, int color
+            char const* sprName, float sprScale, BaseType type, int size, int color
         );
         bool initWithSpriteFrameName(
-            const char* sprName, float sprScale, BaseType type, int size, int color
+            char const* sprName, float sprScale, BaseType type, int size, int color
         );
 
         virtual cocos2d::CCSize getMaxTopSize() const;
@@ -170,17 +170,17 @@ namespace geode {
 
     public:
         /**
-         * Create a BasedButtonSprite. In general, it is recommended to use 
-         * the specialized subclasses, such as CircleButtonSprite or 
+         * Create a BasedButtonSprite. In general, it is recommended to use
+         * the specialized subclasses, such as CircleButtonSprite or
          * TabButtonSprite
          * @param ontop The top node of the sprite
          * @param type The type of the base sprite
-         * @param size The size of the base sprite. Cast this from the base 
+         * @param size The size of the base sprite. Cast this from the base
          * type's respective BaseSize enum
-         * @param color The color of the base sprite. Cast this from the base 
+         * @param color The color of the base sprite. Cast this from the base
          * type's respective BaseColor enum
-         * @returns Created BasedButtonSprite, or nullptr if parameters were 
-         * invalid 
+         * @returns Created BasedButtonSprite, or nullptr if parameters were
+         * invalid
          */
         static BasedButtonSprite* create(
             cocos2d::CCNode* ontop, BaseType type, int size, int color
@@ -196,7 +196,7 @@ namespace geode {
     };
 
     /**
-     * Creates a button sprite with a circular base, similar to the buttons at 
+     * Creates a button sprite with a circular base, similar to the buttons at
      * the bottom of the main menu
      */
     class GEODE_DLL CircleButtonSprite : public BasedButtonSprite {
@@ -206,12 +206,12 @@ namespace geode {
             CircleBaseSize size = CircleBaseSize::Medium
         );
         static CircleButtonSprite* createWithSprite(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             CircleBaseColor color = CircleBaseColor::Green,
             CircleBaseSize size = CircleBaseSize::Medium
         );
         static CircleButtonSprite* createWithSpriteFrameName(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             CircleBaseColor color = CircleBaseColor::Green,
             CircleBaseSize size = CircleBaseSize::Medium
         );
@@ -219,7 +219,7 @@ namespace geode {
     };
 
     /**
-     * Creates a button sprite with a cross base, like the buttons in the main 
+     * Creates a button sprite with a cross base, like the buttons in the main
      * menu
      */
     class GEODE_DLL CrossButtonSprite : public BasedButtonSprite {
@@ -230,19 +230,19 @@ namespace geode {
             CrossBaseSize size = CrossBaseSize::Small
         );
         static CrossButtonSprite* createWithSprite(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             CrossBaseColor color = CrossBaseColor::Green,
             CrossBaseSize size = CrossBaseSize::Small
         );
         static CrossButtonSprite* createWithSpriteFrameName(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             CrossBaseColor color = CrossBaseColor::Green,
             CrossBaseSize size = CrossBaseSize::Small
         );
     };
 
     /**
-     * Creates a button sprite with a cross base, like the buttons in the main 
+     * Creates a button sprite with a cross base, like the buttons in the main
      * menu
      */
     class GEODE_DLL AccountButtonSprite : public BasedButtonSprite {
@@ -253,19 +253,19 @@ namespace geode {
             AccountBaseSize size = AccountBaseSize::Normal
         );
         static AccountButtonSprite* createWithSprite(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             AccountBaseColor color = AccountBaseColor::Blue,
             AccountBaseSize size = AccountBaseSize::Normal
         );
         static AccountButtonSprite* createWithSpriteFrameName(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             AccountBaseColor color = AccountBaseColor::Blue,
             AccountBaseSize size = AccountBaseSize::Normal
         );
     };
 
     /**
-     * Creates a button sprite with a cross base, like the buttons in the main 
+     * Creates a button sprite with a cross base, like the buttons in the main
      * menu
      */
     class GEODE_DLL IconSelectButtonSprite : public BasedButtonSprite {
@@ -276,19 +276,19 @@ namespace geode {
             IconSelectBaseSize size = IconSelectBaseSize::Normal
         );
         static IconSelectButtonSprite* createWithSprite(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             IconSelectBaseColor color = IconSelectBaseColor::Unselected,
             IconSelectBaseSize size = IconSelectBaseSize::Normal
         );
         static IconSelectButtonSprite* createWithSpriteFrameName(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             IconSelectBaseColor color = IconSelectBaseColor::Unselected,
             IconSelectBaseSize size = IconSelectBaseSize::Normal
         );
     };
 
     /**
-     * Creates a button sprite with a cross base, like the buttons in the main 
+     * Creates a button sprite with a cross base, like the buttons in the main
      * menu
      */
     class GEODE_DLL LeaderboardButtonSprite : public BasedButtonSprite {
@@ -299,19 +299,19 @@ namespace geode {
             LeaderboardBaseSize size = LeaderboardBaseSize::Normal
         );
         static LeaderboardButtonSprite* createWithSprite(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             LeaderboardBaseColor color = LeaderboardBaseColor::Blue,
             LeaderboardBaseSize size = LeaderboardBaseSize::Normal
         );
         static LeaderboardButtonSprite* createWithSpriteFrameName(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             LeaderboardBaseColor color = LeaderboardBaseColor::Blue,
             LeaderboardBaseSize size = LeaderboardBaseSize::Normal
         );
     };
 
     /**
-     * Creates a button sprite with the same base as the right-side action 
+     * Creates a button sprite with the same base as the right-side action
      * buttons in the editor
      */
     class GEODE_DLL EditorButtonSprite : public BasedButtonSprite {
@@ -321,12 +321,12 @@ namespace geode {
             EditorBaseSize size = EditorBaseSize::Normal
         );
         static EditorButtonSprite* createWithSprite(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             EditorBaseColor color = EditorBaseColor::Green,
             EditorBaseSize size = EditorBaseSize::Normal
         );
         static EditorButtonSprite* createWithSpriteFrameName(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             EditorBaseColor color = EditorBaseColor::Green,
             EditorBaseSize size = EditorBaseSize::Normal
         );
@@ -339,14 +339,14 @@ namespace geode {
     class GEODE_DLL TabButtonSprite : public BasedButtonSprite {
     public:
         static TabButtonSprite* create(
-            const char* text,
+            char const* text,
             TabBaseColor color,
             TabBaseSize size = TabBaseSize::Normal
         );
     };
 
     /**
-     * Creates a button sprite for category buttons, i.e. the big buttons in 
+     * Creates a button sprite for category buttons, i.e. the big buttons in
      * CreatorLayer
      */
     class GEODE_DLL CategoryButtonSprite : public BasedButtonSprite {
@@ -357,12 +357,12 @@ namespace geode {
             CategoryBaseSize size = CategoryBaseSize::Big
         );
         static CategoryButtonSprite* createWithSprite(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             CategoryBaseColor color = CategoryBaseColor::Green,
             CategoryBaseSize size = CategoryBaseSize::Big
         );
         static CategoryButtonSprite* createWithSpriteFrameName(
-            const char* sprName, float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             CategoryBaseColor color = CategoryBaseColor::Green,
             CategoryBaseSize size = CategoryBaseSize::Big
         );

@@ -274,21 +274,6 @@ public:
     // @note RobTop Addition
     void limitLabelWidth(float width, float defaultScale, float minScale);
 
-	// @note RobTop Addition
-    inline int getExtraKerning() const { return m_nExtraKerning; }
-	// @note RobTop Addition
-    inline void setExtraKerning(int extraKerning) { m_nExtraKerning = extraKerning; }
-
-	// @note RobTop Addition
-    bool getIsBatched() const;
-	// @note RobTop Addition
-    void setIsBatched(bool);
-
-	// @note RobTop Addition
-    cocos2d::CCArray* getTargetArray() const;
-	// @note RobTop Addition
-    void setTargetArray(cocos2d::CCArray*);
-
 private:
     char * atlasNameFromFntFile(const char *fntFile);
     int kerningAmountForFirst(unsigned short first, unsigned short second);
@@ -333,13 +318,13 @@ public:
     bool        m_bIsOpacityModifyRGB;
 
     // @note RobTop Addition
-    bool m_bIsBatched;
+    CC_SYNTHESIZE_NV(bool, m_bIsBatched, IsBatched);
     // @note RobTop Addition
-    CCArray* m_pTargetArray;
+    CC_SYNTHESIZE_NV(CCArray*, m_pTargetArray, TargetArray);
     // @note RobTop Addition
     CCTexture2D* m_pSomeTexture;
     // @note RobTop Addition
-    int m_nExtraKerning;
+    CC_SYNTHESIZE_NV(int, m_nExtraKerning, ExtraKerning);
 
 };
 

@@ -22,6 +22,7 @@ using namespace geode::prelude;
 
 class CustomMenuLayer;
 
+
 struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
     static void onModify(auto& self) {
         if (!self.setHookPriority("MenuLayer::init", geode::node_ids::GEODE_ID_PRIORITY)) {
@@ -34,7 +35,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         bool m_menuDisabled = false;
         CCSprite* m_geodeButton = nullptr;
         CCSprite* m_exclamation = nullptr;
-        Task<std::monostate> m_updateCheckTask;
+        async::TaskHolder<Result<std::vector<std::string>, server::ServerError>> m_updateCheckTask;
     };
 
     bool init() {
@@ -84,6 +85,20 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             }
         }
 
+        // show "download mods here" tip if the geode menu hasnt ever been opened and there arent mods already installed
+        if (!Mod::get()->getSavedValue<bool>("has-used-geode-before") && Loader::get()->getAllMods().size() == 1) {
+			if (auto bottomMenu = this->getChildByID("bottom-menu")) {
+				auto geodeBtn = bottomMenu->getChildByID("geode-button"_spr);
+
+				if (auto downloadModsHereSpr = CCSprite::createWithSpriteFrameName("download-mods-here.png"_spr)) {
+					downloadModsHereSpr->setID("download-mods-here"_spr);
+					downloadModsHereSpr->setPosition(this->convertToNodeSpace(geodeBtn->convertToWorldSpace(CCPointZero) + CCPoint(75.f, 55.f)));
+					downloadModsHereSpr->setScale(0.8f);
+					this->addChild(downloadModsHereSpr);
+				}
+			}
+		}
+
         // show if some mods failed to load
         if (Loader::get()->getLoadProblems().size()) {
             static bool shownProblemPopup = false;
@@ -100,7 +115,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
                 m_fields->m_geodeButton->addChild(m_fields->m_exclamation);
             }
         }
-        
+
         // show if the user tried to be naughty and load arbitrary DLLs
         static bool shownTriedToLoadDlls = false;
         if (!shownTriedToLoadDlls) {
@@ -164,6 +179,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
                             file::openFolder(dirs::getCrashlogsDir());
                         }
                     },
+                    false,
                     false
                 );
                 popup->m_noElasticity = true;
@@ -178,42 +194,29 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         if (!checkedModUpdates) {
             // only run it once
             checkedModUpdates = true;
-            m_fields->m_updateCheckTask = ModsLayer::checkInstalledModsForUpdates().map(
-                [this](server::ServerRequest<std::vector<std::string>>::Value* result) {
-                    if (result->isOk()) {
-                        auto updatesFound = result->unwrap();
-                        if (updatesFound.size()) {
-                            log::info("Found updates for mods: {}!", updatesFound);
-                            showUpdatesFound();
-                            foundModUpdates = true;
-                        }
-                        else {
-                            log::info("All mods up to date!");
-                        }
-                    }
-                    else {
-                        auto error = result->unwrapErr();
-                        log::error("Unable to check for mod updates ({}): {}", error.code, error.details);
-                    }
-                    return std::monostate();
-                },
-                [](auto) { return std::monostate(); }
-            );
+
+            m_fields->m_updateCheckTask.spawn(ModsLayer::checkInstalledModsForUpdates(), [this](auto result) {
+                // if (result.isOk()) {
+                //     auto updatesFound = result.unwrap();
+                //     if (updatesFound.size()) {
+                //         log::info("Found updates for mods: {}!", updatesFound);
+                //         this->showUpdatesFound();
+                //         foundModUpdates = true;
+                //     }
+                //     else {
+                //         log::info("All mods up to date!");
+                //     }
+                // }
+                // else {
+                //     auto error = result.unwrapErr();
+                //     log::error("Unable to check for mod updates ({}): {}", error.code, error.details);
+                // }
+            });
         }
 
         // also display if updates were found in a previous MenuLayer iteration
         if(foundModUpdates) {
             showUpdatesFound();
-        }
-
-        for (auto mod : Loader::get()->getAllMods()) {
-            if (mod->getMetadata().usesDeprecatedIDForm()) {
-                log::error(
-                    "Mod ID '{}' will be rejected in the future - "
-                    "IDs must match the regex `[a-z0-9\\-_]+\\.[a-z0-9\\-_]+`",
-                    mod->getID()
-                );
-            }
         }
 
         // Delay the event by a frame so that MenuLayer is already in the scene
@@ -222,10 +225,10 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         if (!gameEventPosted) {
             gameEventPosted = true;
             Loader::get()->queueInMainThread([] {
-                GameEvent(GameEventType::Loaded).post();
+                GameEvent(GameEventType::Loaded).send();
             });
         }
-    
+
         return true;
     }
 
@@ -262,7 +265,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         float horizontalGap = 3.5f;
         float verticalGap = 5.0f;
         auto facebookButton = static_cast<CCMenuItemSpriteExtra*>(socialMenu->getChildByID("facebook-button"));
-        facebookButton->setPosition({ 
+        facebookButton->setPosition({
             facebookButton->getScaledContentSize().width / 2,
             robtopButton->getScaledContentSize().height + verticalGap + facebookButton->getScaledContentSize().height / 2
         });
@@ -308,7 +311,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
     }
 
     void onMissingTextures(CCObject*) {
-        
+
     #ifdef GEODE_IS_DESKTOP
 
         (void) utils::file::createDirectoryAll(dirs::getGeodeDir() / "update" / "resources" / "geode.loader");
@@ -338,12 +341,14 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
                         "OK"
                     )->show();
                 }
-            }
+            },
+            true,
+            false
         );
 
     #else
 
-        // dunno if we can auto-create target directory on mobile, nor if the 
+        // dunno if we can auto-create target directory on mobile, nor if the
         // user has access to moving stuff there
 
         FLAlertLayer::create(

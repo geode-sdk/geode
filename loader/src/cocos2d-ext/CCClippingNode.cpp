@@ -1,4 +1,5 @@
 #include <cocos2d.h>
+#include <Geode/utils/cocos.hpp>
 
 using namespace cocos2d;
 
@@ -13,11 +14,9 @@ static void setProgram(CCNode *n, CCGLProgram *p)
 {
     n->setShaderProgram(p);
     if (!n->getChildren()) return;
-    
-    CCObject* pObj = NULL;
-    CCARRAY_FOREACH(n->getChildren(), pObj)
-    {
-        setProgram((CCNode*)pObj, p);
+
+    for (auto pObj : n->getChildrenExt()) {
+        setProgram(pObj, p);
     }
 }
 
@@ -43,7 +42,7 @@ CCClippingNode* CCClippingNode::create()
     {
         CC_SAFE_DELETE(pRet);
     }
-    
+
     return pRet;
 }
 
@@ -58,7 +57,7 @@ CCClippingNode* CCClippingNode::create(CCNode *pStencil)
     {
         CC_SAFE_DELETE(pRet);
     }
-    
+
     return pRet;
 }
 
@@ -72,7 +71,7 @@ bool CCClippingNode::init(CCNode *pStencil)
     CC_SAFE_RELEASE(m_pStencil);
     m_pStencil = pStencil;
     CC_SAFE_RETAIN(m_pStencil);
-    
+
     m_fAlphaThreshold = 1;
     m_bInverted = false;
     // get (only once) the number of bits of the stencil buffer
@@ -86,7 +85,7 @@ bool CCClippingNode::init(CCNode *pStencil)
         }
         once = false;
     }
-    
+
     return true;
 }
 
@@ -116,14 +115,6 @@ void CCClippingNode::onExit()
 
 void CCClippingNode::visit()
 {
-    // if stencil buffer disabled
-    if (g_sStencilBits < 1)
-    {
-        // draw everything, as if there where no stencil
-        CCNode::visit();
-        return;
-    }
-    
     // return fast (draw nothing, or draw everything if in inverted mode) if:
     // - nil stencil node
     // - or stencil node invisible:
@@ -136,12 +127,54 @@ void CCClippingNode::visit()
         }
         return;
     }
-    
+
+    // if stencil buffer disabled, we will instead scissor as fallback
+    if (g_sStencilBits < 1)
+    {
+        CCRect rect = m_pStencil->boundingBox();
+        // on the rare occassion that its 0,0
+        if (rect.size.width <= 0 || rect.size.width <= 0) {
+            CCSize size = this->getContentSize();
+            CCPoint pos = m_pStencil->getPosition();
+            if (size.width <= 0 || size.height <= 0) {
+                if (this->getParent()) {
+                    size = this->getParent()->getContentSize();
+                    pos = this->getPosition();
+                }
+            }
+            rect = CCRectMake(pos.x, pos.y, size.width, size.height);
+        }
+        if (rect.size.width <= 0 || rect.size.width <= 0) {
+            // we cannot properly render it, so we will fallback to rendering all of it
+            CCNode::visit();
+            return;
+        }
+
+        int previousRect[4];
+        bool previousScissor = glIsEnabled(GL_SCISSOR_TEST);
+        if (previousScissor) {
+            glGetIntegerv(GL_SCISSOR_BOX, previousRect);
+        } else {
+            glEnable(GL_SCISSOR_TEST);
+        }
+        auto const bottomLeft = this->convertToWorldSpace(rect.origin);
+        auto const topRight = this->convertToWorldSpace(ccp(rect.getMaxX(), rect.getMaxY()));
+        CCSize const size = topRight - bottomLeft;
+        CCEGLView::get()->setScissorInPoints(bottomLeft.x, bottomLeft.y, size.width, size.height);
+        CCNode::visit();
+        if (previousScissor) {
+            glScissor(previousRect[0], previousRect[1], previousRect[2], previousRect[3]);
+        } else {
+            glDisable(GL_SCISSOR_TEST);
+        }
+        return;
+    }
+
     // store the current stencil layer (position in the stencil buffer),
     // this will allow nesting up to n CCClippingNode,
     // where n is the number of bits of the stencil buffer.
     static GLint layer = -1;
-    
+
     // all the _stencilBits are in use?
     if (layer + 1 == g_sStencilBits)
     {
@@ -152,27 +185,27 @@ void CCClippingNode::visit()
             char warning[200] = {0};
             snprintf(warning, sizeof(warning), "Nesting more than %d stencils is not supported. Everything will be drawn without stencil for this node and its childs.", g_sStencilBits);
             CCLOG("%s", warning);
-            
+
             once = false;
         }
         // draw everything, as if there where no stencil
         CCNode::visit();
         return;
     }
-    
+
     ///////////////////////////////////
     // INIT
-    
+
     // increment the current layer
     layer++;
-    
+
     // mask of the current layer (ie: for layer 3: 00000100)
     GLint mask_layer = 0x1 << layer;
     // mask of all layers less than the current (ie: for layer 3: 00000011)
     GLint mask_layer_l = mask_layer - 1;
     // mask of all layers less than or equal to the current (ie: for layer 3: 00000111)
     GLint mask_layer_le = mask_layer | mask_layer_l;
-    
+
     // manually save the stencil state
     GLboolean currentStencilEnabled = GL_FALSE;
     GLuint currentStencilWriteMask = ~0;
@@ -190,23 +223,23 @@ void CCClippingNode::visit()
     glGetIntegerv(GL_STENCIL_FAIL, (GLint *)&currentStencilFail);
     glGetIntegerv(GL_STENCIL_PASS_DEPTH_FAIL, (GLint *)&currentStencilPassDepthFail);
     glGetIntegerv(GL_STENCIL_PASS_DEPTH_PASS, (GLint *)&currentStencilPassDepthPass);
-    
+
     // enable stencil use
     glEnable(GL_STENCIL_TEST);
     // check for OpenGL error while enabling stencil test
     CHECK_GL_ERROR_DEBUG();
-    
+
     // all bits on the stencil buffer are readonly, except the current layer bit,
     // this means that operation like glClear or glStencilOp will be masked with this value
     glStencilMask(mask_layer);
-    
+
     glClear(GL_STENCIL_BUFFER_BIT);
     // manually save the depth test state
     //GLboolean currentDepthTestEnabled = GL_TRUE;
     GLboolean currentDepthWriteMask = GL_TRUE;
     //currentDepthTestEnabled = glIsEnabled(GL_DEPTH_TEST);
     glGetBooleanv(GL_DEPTH_WRITEMASK, &currentDepthWriteMask);
-    
+
     // disable depth test while drawing the stencil
     //glDisable(GL_DEPTH_TEST);
     // disable update to the depth buffer while drawing the stencil,
@@ -214,10 +247,10 @@ void CCClippingNode::visit()
     // it should never prevent something else to be drawn,
     // only disabling depth buffer update should do
     glDepthMask(GL_FALSE);
-    
+
     ///////////////////////////////////
     // CLEAR STENCIL BUFFER
-    
+
     // manually clear the stencil buffer by drawing a fullscreen rectangle on it
     // setup the stencil test func like this:
     // for each pixel in the fullscreen rectangle
@@ -226,14 +259,14 @@ void CCClippingNode::visit()
     //     if in inverted mode: set the current layer value to 1 in the stencil buffer
     glStencilFunc(GL_NEVER, mask_layer, mask_layer);
     glStencilOp(!m_bInverted ? GL_ZERO : GL_REPLACE, GL_KEEP, GL_KEEP);
-    
+
     // draw a fullscreen solid rectangle to clear the stencil buffer
     //ccDrawSolidRect(CCPointZero, ccpFromSize([[CCDirector sharedDirector] winSize]), ccc4f(1, 1, 1, 1));
     ccDrawSolidRect(CCPointZero, ccpFromSize(CCDirector::sharedDirector()->getWinSize()), ccc4f(1, 1, 1, 1));
-    
+
     ///////////////////////////////////
     // DRAW CLIPPING STENCIL
-    
+
     // setup the stencil test func like this:
     // for each pixel in the stencil node
     //     never draw it into the frame buffer
@@ -241,7 +274,7 @@ void CCClippingNode::visit()
     //     if in inverted mode: set the current layer value to 0 in the stencil buffer
     glStencilFunc(GL_NEVER, mask_layer, mask_layer);
     glStencilOp(!m_bInverted ? GL_REPLACE : GL_ZERO, GL_KEEP, GL_KEEP);
-    
+
     // enable alpha test only if the alpha threshold < 1,
     // indeed if alpha threshold == 1, every pixel will be drawn anyways
 #ifdef GEODE_IS_DESKTOP
@@ -272,17 +305,17 @@ void CCClippingNode::visit()
         // we need to recursively apply this shader to all the nodes in the stencil node
         // XXX: we should have a way to apply shader to all nodes without having to do this
         setProgram(m_pStencil, program);
-       
+
 #endif
     }
-    
+
     // draw the stencil node as if it was one of our child
     // (according to the stencil test func/op and alpha (or alpha shader) test)
     kmGLPushMatrix();
     transform();
     m_pStencil->visit();
     kmGLPopMatrix();
-    
+
     // restore alpha test state
     if (m_fAlphaThreshold < 1)
     {
@@ -297,16 +330,16 @@ void CCClippingNode::visit()
 // XXX: we need to find a way to restore the shaders of the stencil node and its childs
 #endif
     }
-    
+
     // restore the depth test state
     glDepthMask(currentDepthWriteMask);
     //if (currentDepthTestEnabled) {
     //    glEnable(GL_DEPTH_TEST);
     //}
-    
+
     ///////////////////////////////////
     // DRAW CONTENT
-    
+
     // setup the stencil test func like this:
     // for each pixel of this node and its childs
     //     if all layers less than or equals to the current are set to 1 in the stencil buffer
@@ -315,13 +348,13 @@ void CCClippingNode::visit()
     //         do not draw the pixel but keep the current layer in the stencil buffer
     glStencilFunc(GL_EQUAL, mask_layer_le, mask_layer_le);
     glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-    
+
     // draw (according to the stencil test func) this node and its childs
     CCNode::visit();
-    
+
     ///////////////////////////////////
     // CLEANUP
-    
+
     // manually restore the stencil state
     glStencilFunc(currentStencilFunc, currentStencilRef, currentStencilValueMask);
     glStencilOp(currentStencilFail, currentStencilPassDepthFail, currentStencilPassDepthPass);
@@ -330,7 +363,7 @@ void CCClippingNode::visit()
     {
         glDisable(GL_STENCIL_TEST);
     }
-    
+
     // we are done using this layer, decrement
     layer--;
 }

@@ -1,3 +1,4 @@
+#include <Geode/loader/Event.hpp>
 #include <Geode/modify/LoadingLayer.hpp>
 #include <Geode/modify/CCLayer.hpp>
 #include <Geode/utils/cocos.hpp>
@@ -38,13 +39,13 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         this->setSmallText2(modName);
     }
 
-    void setSmallText(std::string const& text) {
+    void setSmallText(ZStringView text) {
         if (!m_fields->m_menuDisabled) {
             m_fields->m_smallLabel->setString(text.c_str());
         }
     }
 
-    void setSmallText2(std::string const& text) {
+    void setSmallText2(ZStringView text) {
         if (!m_fields->m_menuDisabled) {
             m_fields->m_smallLabel2->setString(text.c_str());
         }
@@ -100,9 +101,9 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
             if (!updater::verifyLoaderResources()) {
                 log::debug("Downloading Loader Resources");
                 this->setSmallText("Downloading Geode Resources");
-                this->addChild(EventListenerNode<updater::ResourceDownloadFilter>::create(
-                    this, &CustomLoadingLayer::updateResourcesProgress
-                ));
+                this->addEventListener(updater::ResourceDownloadEvent(), [this](updater::UpdateStatus const& status) {
+                    this->updateResourcesProgress(status);
+                });
             }
             else {
                 log::debug("Loading Loader Resources");
@@ -113,7 +114,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         });
     }
 
-    void updateResourcesProgress(updater::ResourceDownloadEvent* event) {
+    ListenerResult updateResourcesProgress(updater::UpdateStatus status) {
         std::visit(makeVisitor {
             [&](updater::UpdateProgress const& progress) {
                 this->setSmallText(fmt::format(
@@ -139,7 +140,9 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
                 this->setSmallText("Failed to Download Geode Resources");
                 this->continueLoadAssets();
             }
-        }, event->status);
+        }, status);
+
+        return ListenerResult::Propagate;
     }
 
     void setupModResources() {
@@ -162,7 +165,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
             return item->shouldLoad();
         });
     }
-    
+
     int getCurrentStep() {
         return m_fields->m_geodeLoadStep + m_loadStep + getLoadedMods();
     }

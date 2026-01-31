@@ -1,24 +1,38 @@
 #include "mods/ModsLayer.hpp"
+#include <Geode/cocos/base_nodes/CCNode.h>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/MDPopup.hpp>
 #include <Geode/ui/LoadingSpinner.hpp>
+#include <Geode/ui/LazySprite.hpp>
 #include <Geode/utils/web.hpp>
 #include <server/Server.hpp>
 #include "mods/GeodeStyle.hpp"
 #include "mods/settings/ModSettingsPopup.hpp"
 #include "mods/popups/ModPopup.hpp"
-#include "GeodeUIEvent.hpp"
 
-class LoadServerModLayer : public Popup<std::string const&> {
+class LoadServerModLayer : public Popup {
 protected:
+    enum class MetadataLoaded {
+        NotLoaded = 0,
+        Loaded = 1,
+        Error = 2,
+    };
+
     std::string m_id;
-    EventListener<server::ServerRequest<server::ServerModMetadata>> m_listener;
-    EventListener<server::ServerRequest<server::ServerModVersion>> m_versionListener;
+    ListenerHandle m_listenerHandle;
+    ListenerHandle m_versionListenerHandle;
+    arc::Notify m_metadataLoaded;
+    std::atomic<MetadataLoaded> m_metadataLoadedState{MetadataLoaded::NotLoaded};
+    async::TaskHolder<Result<server::ServerModMetadata, server::ServerError>> m_listener;
+    async::TaskHolder<Result<server::ServerModVersion, server::ServerError>> m_versionListener;
 
     std::optional<server::ServerModMetadata> m_loadedMod{};
 
-    bool setup(std::string const& id) override {
+    bool init(std::string id) {
+        if (!Popup::init(180.f, 100.f, "square01_001.png"))
+            return false;
+
         m_closeBtn->setVisible(false);
 
         this->setTitle("Loading mod...");
@@ -26,80 +40,81 @@ protected:
         auto spinner = LoadingSpinner::create(40);
         m_mainLayer->addChildAtPosition(spinner, Anchor::Center, ccp(0, -10));
 
-        m_id = id;
-        m_listener.bind(this, &LoadServerModLayer::onModRequest);
-        m_listener.setFilter(server::getMod(id));
+        m_id = std::move(id);
+
+        m_listener.spawn(
+            server::getMod(m_id),
+            [this](auto result) {
+                this->onModRequest(std::move(result));
+            }
+        );
 
         return true;
     }
 
-    void onModRequest(server::ServerRequest<server::ServerModMetadata>::Event* event) {
-        if (auto res = event->getValue()) {
-            if (res->isOk()) {
-                // Copy info first as onClose may free the listener which will free the event
-                auto info = res->unwrap();
-                m_loadedMod = std::move(info);
+    void onModRequest(Result<server::ServerModMetadata, server::ServerError> result) {
+        if (result.isOk()) {
+            // Copy info first as onClose may free the listener which will free the event
+            auto info = std::move(result).unwrap();
+            m_loadedMod = std::move(info);
 
-                m_versionListener.bind(this, &LoadServerModLayer::onVersionRequest);
-                m_versionListener.setFilter(server::getModVersion(m_id));
-            }
-            else {
-                auto id = m_id;
-                this->onClose(nullptr);
-                FLAlertLayer::create(
-                    "Error Loading Mod",
-                    fmt::format("Unable to find mod with the ID <cr>{}</c>!", id),
-                    "OK"
-                )->show();
-            }
+            m_metadataLoadedState.store(MetadataLoaded::Loaded);
+
+            m_versionListener.spawn(
+                server::getModVersion(m_id),
+                [this](auto result) {
+                    this->onVersionRequest(std::move(result));
+                }
+            );
         }
-        else if (event->isCancelled()) {
+        else {
             this->onClose(nullptr);
+            FLAlertLayer::create(
+                "Error Loading Mod",
+                fmt::format("Unable to find mod with the ID <cr>{}</c>!", m_id),
+                "OK"
+            )->show();
+
+            m_metadataLoadedState.store(MetadataLoaded::Error);
         }
+        m_metadataLoaded.notifyOne(true);
     }
 
-    void onVersionRequest(server::ServerRequest<server::ServerModVersion>::Event* event) {
-        if (auto res = event->getValue()) {
-            // this is promised non optional by this point
-            auto info = std::move(*m_loadedMod);
+    void onVersionRequest(Result<server::ServerModVersion, server::ServerError> result) {
+        // this is promised non optional by this point
+        auto info = std::move(*m_loadedMod);
 
-            if (res->isOk()) {
-                // i don't actually think there's a better way to do this
-                // sorry guys
+        if (result.isOk()) {
+            // i don't actually think there's a better way to do this
+            // sorry guys
 
-                auto versionInfo = res->unwrap();
-                info.versions = {versionInfo};
-            }
-
-            // if there's an error, just load whatever the last fetched version was
-            // (this can happen for mods not on current gd version)
-
-            this->onClose(nullptr);
-            // Run this on next frame because otherwise the popup is unable to call server::getMod for some reason
-            Loader::get()->queueInMainThread([info = std::move(info)]() mutable {
-                ModPopup::create(ModSource(std::move(info)))->show();
-            });
+            info.versions = {std::move(result).unwrap()};
         }
-        else if (event->isCancelled()) {
-            this->onClose(nullptr);
-        }
+
+        // if there's an error, just load whatever the last fetched version was
+        // (this can happen for mods not on current gd version)
+
+        this->onClose(nullptr);
+        // Run this on next frame because otherwise the popup is unable to call server::getMod for some reason
+        Loader::get()->queueInMainThread([info = std::move(info)]() mutable {
+            ModPopup::create(ModSource(std::move(info)))->show();
+        });
     }
 
 public:
-    Task<bool> listen() const {
-        return m_listener.getFilter().map(
-            [](auto* result) -> bool { return result->isOk(); },
-            [](auto) -> std::monostate { return std::monostate(); }
-        );
+    arc::Future<bool> listen() const {
+        co_await m_metadataLoaded.notified();
+        m_metadataLoaded.notifyOne(true);
+        co_return m_metadataLoadedState.load() == MetadataLoaded::Loaded;
     }
 
-    static LoadServerModLayer* create(std::string const& id) {
+    static LoadServerModLayer* create(std::string id) {
         auto ret = new LoadServerModLayer();
-        if (ret && ret->initAnchored(180, 100, id, "square01_001.png", CCRectZero)) {
+        if (ret->init(std::move(id))) {
             ret->autorelease();
             return ret;
         }
-        CC_SAFE_RELEASE(ret);
+        delete ret;
         return nullptr;
     }
 };
@@ -112,20 +127,22 @@ void geode::openIssueReportPopup(Mod* mod) {
     if (mod->getMetadata().getIssues()) {
         MDPopup::create(
             "Issue Report",
-                "Please report the issue to the mod that caused the crash.\n"
-                "If your issue relates to a <cr>game crash</c>, <cb>please include</c> the "
-                "latest crash log(s) from `" +
-                dirs::getCrashlogsDir().string() + "`",
+                fmt::format(
+                    "Please report the issue to the mod that caused the crash.\n"
+                    "If your issue relates to a <cr>game crash</c>, <cb>please include</c> the "
+                    "latest crash log(s) from `{}`",
+                    dirs::getCrashlogsDir()
+                ),
             "OK", "Open Folder",
             [mod](bool btn2) {
                 if (btn2) {
                     file::openFolder(dirs::getCrashlogsDir());
                     return;
-                } 
+                }
 
                 auto issues = mod->getMetadata().getIssues();
-                if (issues && issues.value().url) {
-                    auto url = issues.value().url.value();
+                if (issues && issues->getURL()) {
+                    auto& url = *issues->getURL();
                     web::openLinkInBrowser(url);
                 }
             }
@@ -134,12 +151,14 @@ void geode::openIssueReportPopup(Mod* mod) {
     else {
         MDPopup::create(
             "Issue Report",
-            "Please report your issue on the "
-            "[#support](https://discord.com/channels/911701438269386882/979352389985390603) "
-            "channnel in the [Geode Discord Server](https://discord.gg/9e43WMKzhp)\n\n"
-            "If your issue relates to a <cr>game crash</c>, <cb>please include</c> the "
-            "latest crash log(s) from `" +
-                dirs::getCrashlogsDir().string() + "`",
+            fmt::format(
+                "Please report your issue on the "
+                "[#support](https://discord.com/channels/911701438269386882/979352389985390603) "
+                "channnel in the [Geode Discord Server](https://discord.gg/9e43WMKzhp)\n\n"
+                "If your issue relates to a <cr>game crash</c>, <cb>please include</c> the "
+                "latest crash log(s) from `{}`",
+                dirs::getCrashlogsDir()
+            ),
             "OK"
         )->show();
     }
@@ -151,7 +170,7 @@ void geode::openSupportPopup(Mod* mod) {
 
 void geode::openSupportPopup(ModMetadata const& metadata) {
     MDPopup::create(
-        "Support " + metadata.getName(),
+        fmt::format("Support {}", metadata.getName()),
         metadata.getSupportInfo().value_or(
             "Developing mods takes a lot of time and effort! "
             "Consider <cy>supporting the developers</c> of your favorite mods "
@@ -164,16 +183,16 @@ void geode::openSupportPopup(ModMetadata const& metadata) {
 void geode::openInfoPopup(Mod* mod) {
     ModPopup::create(mod)->show();
 }
-Task<bool> geode::openInfoPopup(std::string const& modID) {
+arc::Future<bool> geode::openInfoPopup(std::string_view modID) {
     if (auto mod = Loader::get()->getInstalledMod(modID)) {
         openInfoPopup(mod);
-        return Task<bool>::immediate(true);
+        co_return true;
     }
     else {
-        auto popup = LoadServerModLayer::create(modID);
-        auto task = popup->listen();
+        auto popup = LoadServerModLayer::create(std::string(modID));
+        auto ret = co_await popup->listen();
         popup->show();
-        return task;
+        co_return ret;
     }
 }
 
@@ -186,7 +205,7 @@ void geode::openChangelogPopup(Mod* mod) {
 void geode::openSettingsPopup(Mod* mod) {
     openSettingsPopup(mod, true);
 }
-Popup<Mod*>* geode::openSettingsPopup(Mod* mod, bool disableGeodeTheme) {
+Popup* geode::openSettingsPopup(Mod* mod, bool disableGeodeTheme) {
     if (mod->hasSettings()) {
         auto popup = ModSettingsPopup::create(mod, disableGeodeTheme);
         popup->show();
@@ -197,98 +216,116 @@ Popup<Mod*>* geode::openSettingsPopup(Mod* mod, bool disableGeodeTheme) {
 
 using ModLogoSrc = std::variant<Mod*, std::string, std::filesystem::path>;
 
-class ModLogoSprite : public CCNode {
+class ModLogoSprite : public CCNodeRGBA {
 protected:
+    LazySprite* m_sprite;
     std::string m_modID;
-    CCNode* m_sprite = nullptr;
-    EventListener<server::ServerRequest<ByteVector>> m_listener;
+    async::TaskHolder<Result<ByteVector, server::ServerError>> m_listener;
 
     bool init(ModLogoSrc&& src) {
         if (!CCNode::init())
             return false;
-        
+
         this->setAnchorPoint({ .5f, .5f });
         this->setContentSize({ 50, 50 });
 
-        m_listener.bind(this, &ModLogoSprite::onFetch);
-    
+        m_sprite = LazySprite::create(this->getContentSize());
+        this->addChildAtPosition(m_sprite, Anchor::Center);
+
         std::visit(makeVisitor {
             [this](Mod* mod) {
                 m_modID = mod->getID();
 
+                m_sprite->setLoadCallback([this](Result<> res) {
+                    this->onLoaded(std::move(res));
+                });
+
                 // Load from Resources
-                this->setSprite(mod->isInternal() ? 
-                    CCSprite::createWithSpriteFrameName("geode-logo.png"_spr) : 
-                    CCSprite::create(fmt::format("{}/logo.png", mod->getID()).c_str()),
-                    false
-                );
+                if (!mod->isInternal()) {
+                    m_sprite->loadFromFile(dirs::getModRuntimeDir() / mod->getID() / "logo.png");
+                } else {
+                    if (Mod::get()->getSavedValue("alternate-geode-style", false)) {
+                        m_sprite->initWithSpriteFrameName("geode-logo-alternate.png"_spr);
+                    }
+                    else {
+                        m_sprite->initWithSpriteFrameName("geode-logo.png"_spr);
+                    }
+                }
             },
             [this](std::string const& id) {
                 m_modID = id;
-                
+
                 // Asynchronously fetch from server
-                this->setSprite(createLoadingCircle(25), false);
-                m_listener.setFilter(server::getModLogo(id));
+                m_listener.spawn(
+                    server::getModLogo(id),
+                    [this](auto result) {
+                        this->onFetch(std::move(result));
+                    }
+                );
             },
             [this](std::filesystem::path const& path) {
-                this->setSprite(nullptr, false);
+                m_sprite->setLoadCallback([this](Result<> res) {
+                    this->onLoaded(std::move(res));
+                });
+
                 if (auto unzip = file::Unzip::create(path)) {
                     if (auto logo = unzip.unwrap().extract("logo.png")) {
-                        this->setSprite(std::move(logo.unwrap()), false);
+                        m_sprite->loadFromData(std::move(logo).unwrap());
                     }
+                }
+
+                // if the logo.png was not found then switch to fallback label
+                if (!m_sprite->isLoading()) {
+                    this->onLoadFailed(true);
                 }
             },
         }, src);
 
         // This is a default ID, nothing should ever rely on the ID of any ModLogoSprite being this
-        this->setID(std::string(Mod::get()->expandSpriteName(fmt::format("sprite-{}", m_modID))));
+        this->setID(Mod::get()->expandSpriteName(fmt::format("sprite-{}", m_modID)));
 
-        ModLogoUIEvent(std::make_unique<ModLogoUIEvent::Impl>(this, m_modID)).post();
+        ModLogoUIEvent().send(this, m_modID, std::nullopt);
 
         return true;
     }
 
-    void setSprite(CCNode* sprite, bool postEvent) {
-        // Remove any existing sprite
-        if (m_sprite) {
-            m_sprite->removeFromParent();
+    void doPostEvent() {
+        ModLogoUIEvent().send(this, m_modID, std::nullopt);
+    }
+
+    void onLoaded(Result<> res) {
+        if (!res) {
+            log::debug("Failed to load image: {}", res.err().value_or(std::string{}));
+            this->onLoadFailed(true);
+            return;
         }
-        // Fallback to default logo if the sprite is null
-        if (!sprite || sprite->getUserObject("geode.texture-loader/fallback")) {
-            sprite = CCLabelBMFont::create("N/A", "bigFont.fnt");
-            static_cast<CCLabelBMFont*>(sprite)->setOpacity(90);
-        }
-        // Set sprite and scale it to node size
-        m_sprite = sprite;
-        m_sprite->setID("sprite");
+
         limitNodeSize(m_sprite, m_obContentSize, 99.f, 0.f);
-        this->addChildAtPosition(m_sprite, Anchor::Center);
-
-        if (postEvent) {
-            ModLogoUIEvent(std::make_unique<ModLogoUIEvent::Impl>(this, m_modID)).post();
-        }
-    }
-    void setSprite(ByteVector&& data, bool postEvent) {
-        auto image = Ref(new CCImage());
-        image->initWithImageData(data.data(), data.size());
-
-        auto texture = CCTextureCache::get()->addUIImage(image, m_modID.c_str());
-        this->setSprite(CCSprite::createWithTexture(texture), postEvent);
+        this->doPostEvent();
     }
 
-    void onFetch(server::ServerRequest<ByteVector>::Event* event) {
-        if (auto result = event->getValue()) {
-            // Set default sprite on error
-            if (result->isErr()) {
-                this->setSprite(nullptr, true);
-            }
-            // Otherwise load downloaded sprite to memory
-            else {
-                this->setSprite(std::move(result->unwrap()), true);
-            }
+    void onLoadFailed(bool postEvent) {
+        // Fallback to default logo if the image failed to load
+        auto sprite = CCLabelBMFont::create("N/A", "bigFont.fnt");
+        sprite->setPosition(this->getScaledContentSize() / 2.f + CCSize{1.f, 2.f});
+        sprite->setOpacity(90);
+        limitNodeSize(sprite, m_obContentSize, 99.f, 0.f);
+        this->addChildAtPosition(sprite, Anchor::Center);
+
+        this->doPostEvent();
+    }
+
+    void onFetch(Result<ByteVector, server::ServerError> result) {
+        // Set default sprite on error
+        if (result.isErr()) {
+            this->onLoadFailed(true);
         }
-        else if (event->isCancelled()) {
-            this->setSprite(nullptr, true);
+        // Otherwise load downloaded sprite to memory
+        else {
+            m_sprite->setLoadCallback([this](Result<> res) {
+                this->onLoaded(std::move(res));
+            });
+            m_sprite->loadFromData(std::move(result).unwrap());
         }
     }
 
@@ -316,6 +353,6 @@ CCNode* geode::createModLogo(std::filesystem::path const& geodePackage) {
     return ModLogoSprite::create(ModLogoSrc(geodePackage));
 }
 
-CCNode* geode::createServerModLogo(std::string const& id) {
-    return ModLogoSprite::create(ModLogoSrc(id));
+CCNode* geode::createServerModLogo(std::string id) {
+    return ModLogoSprite::create(ModLogoSrc(std::move(id)));
 }

@@ -4,6 +4,7 @@
 #include <Geode/binding/SliderThumb.hpp>
 #include <Geode/ui/ColorPickPopup.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/utils/function.hpp>
 #include <charconv>
 #include <clocale>
 #include <Geode/loader/Mod.hpp>
@@ -21,7 +22,7 @@ public:
     TextInput* m_bInput;
     TextInput* m_hexInput;
     TextInput* m_opacityInput = nullptr;
-    ColorPickPopupDelegate* m_delegate = nullptr;
+    geode::Function<void(cocos2d::ccColor4B const&)> m_callback;
     cocos2d::CCSprite* m_newColorSpr;
     CCMenuItemSpriteExtra* m_resetBtn;
 };
@@ -33,7 +34,10 @@ ColorPickPopup::ColorPickPopup() {
 ColorPickPopup::~ColorPickPopup() {}
 
 
-bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
+bool ColorPickPopup::init(ccColor4B const& color, bool isRGBA) {
+    if (!Popup::init(400.f, isRGBA ? 290.f : 240.f))
+        return false;
+
     m_noElasticity = true;
     m_impl->m_color = color;
     m_impl->m_originalColor = color;
@@ -302,7 +306,7 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
             Slider::create(this, menu_selector(ColorPickPopup::onOpacitySlider), .75f);
         m_impl->m_opacitySlider->setValue(color.a / 255.f);
         m_impl->m_opacitySlider->setID("opacity-slider");
-        
+
         auto sliderWrapper = CCNode::create();
         sliderWrapper->setContentSize(ccp(m_impl->m_opacitySlider->m_width, m_impl->m_opacitySlider->m_height) * .75f);
         sliderWrapper->setID("slider-wrapper");
@@ -314,7 +318,7 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
         m_impl->m_opacityInput->setDelegate(this, TAG_OPACITY_INPUT);
         m_impl->m_opacityInput->setID("opacity-input");
         opacitySection->addChild(m_impl->m_opacityInput);
-        
+
         sliderColumn->updateLayout();
         opacitySection->updateLayout();
     }
@@ -370,8 +374,8 @@ void ColorPickPopup::onReset(CCObject*) {
 }
 
 void ColorPickPopup::onClose(CCObject* sender) {
-    if (m_impl->m_delegate) {
-        m_impl->m_delegate->updateColor(m_impl->m_color);
+    if (m_impl->m_callback) {
+        m_impl->m_callback(m_impl->m_color);
     }
     Popup::onClose(sender);
 }
@@ -424,8 +428,8 @@ void ColorPickPopup::colorValueChanged(ccColor3B color) {
     this->updateState(m_impl->m_picker);
 }
 
-void ColorPickPopup::setDelegate(ColorPickPopupDelegate* delegate) {
-    m_impl->m_delegate = delegate;
+void ColorPickPopup::setCallback(geode::Function<void(cocos2d::ccColor4B const&)> callback) {
+    m_impl->m_callback = std::move(callback);
 }
 
 void ColorPickPopup::setColorTarget(cocos2d::CCSprite* spr) {
@@ -434,7 +438,7 @@ void ColorPickPopup::setColorTarget(cocos2d::CCSprite* spr) {
 
 ColorPickPopup* ColorPickPopup::create(ccColor4B const& color, bool isRGBA) {
     auto ret = new ColorPickPopup();
-    if (ret->initAnchored(400.f, (isRGBA ? 290.f : 240.f), color, isRGBA)) {
+    if (ret->init(color, isRGBA)) {
         ret->autorelease();
         return ret;
     }

@@ -1,12 +1,12 @@
-﻿#include "PatchImpl.hpp"
+#include "PatchImpl.hpp"
 
 #include <utility>
 #include "LoaderImpl.hpp"
 
-Patch::Impl::Impl(void* address, ByteVector original, ByteVector patch) :
+Patch::Impl::Impl(void* address, ByteSpan original, ByteSpan patch) :
     m_address(address),
-    m_original(std::move(original)),
-    m_patch(std::move(patch)) {}
+    m_original(original.begin(), original.end()),
+    m_patch(patch.begin(), patch.end()) {}
 Patch::Impl::~Impl() {
     if (m_enabled) {
         auto res = this->disable();
@@ -31,9 +31,10 @@ static ByteVector readMemory(void* address, size_t amount) {
     return ret;
 }
 
-std::shared_ptr<Patch> Patch::Impl::create(void* address, const geode::ByteVector& patch) {
+std::shared_ptr<Patch> Patch::Impl::create(void* address, ByteSpan patch) {
+    auto vec = readMemory(address, patch.size());
     auto impl = std::make_shared<Impl>(
-        address, readMemory(address, patch.size()), patch
+        address, vec, patch
     );
     return std::shared_ptr<Patch>(new Patch(std::move(impl)), [](Patch* patch) {
         delete patch;
@@ -46,6 +47,10 @@ std::vector<Patch::Impl*>& Patch::Impl::allEnabled() {
 }
 
 Result<> Patch::Impl::enable() {
+    if (m_enabled) {
+        return Ok();
+    }
+
     auto const thisMin = this->getAddress();
     auto const thisMax = this->getAddress() + this->m_patch.size() - 1;
     // TODO: this feels slow. can be faster
@@ -68,6 +73,10 @@ Result<> Patch::Impl::enable() {
 }
 
 Result<> Patch::Impl::disable() {
+    if (!m_enabled) {
+        return Ok();
+    }
+
     auto res = tulip::hook::writeMemory(m_address, m_original.data(), m_original.size());
     if (!res) return Err("Failed to disable patch: {}", res.unwrapErr());
 
@@ -82,12 +91,25 @@ Result<> Patch::Impl::disable() {
     return Ok();
 }
 
+Result<> Patch::Impl::toggle() {
+    return this->toggle(!m_enabled);
+}
+
+Result<> Patch::Impl::toggle(bool enable) {
+    if (enable) {
+        return this->enable();
+    }
+    else {
+        return this->disable();
+    }
+}
+
 ByteVector const& Patch::Impl::getBytes() const {
     return m_patch;
 }
 
-Result<> Patch::Impl::updateBytes(const ByteVector& bytes) {
-    m_patch = bytes;
+Result<> Patch::Impl::updateBytes(ByteSpan bytes) {
+    m_patch = {bytes.begin(), bytes.end()};
 
     if (m_enabled) {
         auto res = this->disable();

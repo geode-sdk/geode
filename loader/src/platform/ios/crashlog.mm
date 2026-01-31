@@ -2,6 +2,7 @@
 #include <crashlog.hpp>
 
 #include <Geode/utils/string.hpp>
+#include <Geode/utils/ZStringView.hpp>
 #include <array>
 #include <thread>
 #include <execinfo.h>
@@ -19,12 +20,13 @@ using namespace geode::prelude;
 
 // https://gist.github.com/jvranish/4441299
 
-static constexpr size_t FRAME_SIZE = 64;
+static constexpr size_t FRAME_SIZE = 128;
 static int s_signal = 0;
 static siginfo_t* s_siginfo = nullptr;
 static ucontext_t* s_context = nullptr;
 static size_t s_backtraceSize = 0;
 static std::array<void*, FRAME_SIZE> s_backtrace;
+static std::vector<struct dyld_image_info const*> s_images;
 static int s_pipe[2];
 
 static std::string_view getSignalCodeString() {
@@ -70,6 +72,16 @@ static std::string getImageName(struct dyld_image_info const* image) {
     if (imageName.empty()) {
         imageName = "<Unknown>";
     }
+
+    // don't print those really long paths
+    if (
+        imageName.ends_with("Geode.ios.dylib")
+        || imageName.ends_with("GeometryJump")
+        || imageName.find("game/geode/unzipped") != std::string::npos
+    ) {
+        imageName = imageName.substr(imageName.find_last_of('/') + 1);
+    }
+
     return imageName;
 }
 
@@ -78,13 +90,13 @@ size_t getImageSize(struct mach_header_64 const* header) {
     if (header == nullptr) {
         return 0;
     }
-    size_t sz = sizeof(struct mach_header_64); // Size of the header
-    sz += header->sizeofcmds;    // Size of the load commands
+    size_t sz = 0;
 
     auto lc = (struct load_command const*) (header + 1);
     for (uint32_t i = 0; i < header->ncmds; i++) {
-        if (lc->cmd == LC_SEGMENT) {
-            sz += ((struct segment_command_64 const*) lc)->vmsize; // Size of segments
+        auto seg = (struct segment_command_64 const*) lc;
+        if (lc->cmd == LC_SEGMENT_64 && strcmp(seg->segname, SEG_PAGEZERO) != 0) {
+            sz += seg->vmsize; // Size of segments
         }
         lc = (struct load_command const*) ((char *) lc + lc->cmdsize);
     }
@@ -111,23 +123,19 @@ static struct dyld_image_info const* imageFromAddress(void const* addr) {
         return nullptr;
     }
 
-    auto loadedImages = getAllImages();
-    std::sort(loadedImages.begin(), loadedImages.end(), [](auto const a, auto const b) {
-        return (uintptr_t)a->imageLoadAddress < (uintptr_t)b->imageLoadAddress;
-    });
-    auto iter = std::upper_bound(loadedImages.begin(), loadedImages.end(), addr, [](auto const addr, auto const image) {
+    auto iter = std::upper_bound(s_images.begin(), s_images.end(), addr, [](auto const addr, auto const image) {
         return (uintptr_t)addr < (uintptr_t)image->imageLoadAddress;
     });
 
-    if (iter == loadedImages.begin()) {
+    if (iter == s_images.begin()) {
         return nullptr;
     }
     --iter;
 
     auto image = *iter;
-    // auto imageSize = getImageSize((struct mach_header_64 const*)image->imageLoadAddress);
+    auto imageSize = getImageSize((struct mach_header_64 const*)image->imageLoadAddress);
     auto imageAddress = (uintptr_t)image->imageLoadAddress;
-    if ((uintptr_t)addr >= imageAddress/* && (uintptr_t)addr < imageAddress + imageSize*/) {
+    if ((uintptr_t)addr >= imageAddress && (uintptr_t)addr < imageAddress + imageSize) {
         return image;
     }
     return nullptr;
@@ -162,34 +170,112 @@ static Mod* modFromAddress(void const* addr) {
     return nullptr;
 }
 
+// Formats a memory address into something that can more precisely point its location,
+// i.e. 0x12345678 -> "0x12345678 (GeometryDash + 0x5678)"
+static std::string formatAddress(void const* addr) {
+    auto image = imageFromAddress(addr);
+
+    if (image) {
+        auto imageName = getImageName(image);
+        return fmt::format(
+            "{} ({} + {})",
+            addr,
+            imageName,
+            reinterpret_cast<void const*>((uintptr_t)addr - (uintptr_t)image->imageLoadAddress)
+        );
+    } else {
+        return fmt::format("{}", addr);
+    }
+}
+
 static std::string getInfo(void* address, Mod* faultyMod) {
     std::stringstream stream;
-    stream << "Faulty Lib: " << getImageName(imageFromAddress(address)) << "\n";
+    auto image = imageFromAddress(address);
+    auto imageName = getImageName(image);
+    stream << "Faulty Lib: " << imageName << "\n";
     stream << "Faulty Mod: " << (faultyMod ? faultyMod->getID() : "<Unknown>") << "\n";
-    stream << "Instruction Address: " << address << "\n";
-    stream << "Signal Code: " << std::hex << s_signal << " (" << getSignalCodeString() << ")" << std::dec << "\n";
+    stream << "Instruction Address: " << formatAddress(address) << "\n";
+    stream << fmt::format("Signal Code: 0x{:x} ({})\n", s_signal, getSignalCodeString());
+
+    // these 5 have the si_addr field available as per `man sigaction`
+    if (s_signal == SIGILL || s_signal == SIGFPE || s_signal == SIGSEGV || s_signal == SIGBUS || s_signal == SIGTRAP) {
+        stream << "Signal Detail: ";
+
+        switch (s_signal) {
+            case SIGILL: {
+                stream << fmt::format("Illegal instruction was encountered at {}", formatAddress(s_siginfo->si_addr));
+            } break;
+
+            case SIGFPE: {
+                stream << fmt::format("Floating point exception was thrown at {}", formatAddress(s_siginfo->si_addr));
+            } break;
+
+            case SIGSEGV: {
+                stream << fmt::format("Could not access memory at {} (", formatAddress(s_siginfo->si_addr));
+
+                switch (s_siginfo->si_code) {
+                    case SEGV_MAPERR: {
+                        stream << "address not mapped to an object";
+                    } break;
+
+                    case SEGV_ACCERR: {
+                        stream << "invalid permissions for mapped object";
+                    } break;
+                }
+
+                stream << ")";
+            } break;
+
+            case SIGBUS: {
+                stream << fmt::format("Bus error when trying to access memory at {} (", formatAddress(s_siginfo->si_addr));
+
+                switch (s_siginfo->si_code) {
+                    case BUS_ADRALN: {
+                        stream << "invalid address alignment";
+                    } break;
+
+                    case BUS_ADRERR: {
+                        stream << "nonexistent physical address";
+                    } break;
+
+                    case BUS_OBJERR: {
+                        stream << "object-specific hardware error";
+                    } break;
+                }
+
+                stream << ")";
+            } break;
+
+            case SIGTRAP: {
+                stream << fmt::format("Breakpoint was hit at {}", formatAddress(s_siginfo->si_addr));
+            } break;
+        }
+
+        stream << "\n";
+    }
+
     return stream.str();
 }
 
 extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext) {
-	/*auto context = reinterpret_cast<ucontext_t*>(vcontext);
-	s_backtraceSize = backtrace(s_backtrace.data(), FRAME_SIZE);
+    /*auto context = reinterpret_cast<ucontext_t*>(vcontext);
+    s_backtraceSize = backtrace(s_backtrace.data(), FRAME_SIZE);
 
     // for some reason this is needed, dont ask me why
-	s_backtrace[2] = reinterpret_cast<void*>(context->uc_mcontext->__ss.__pc);
-	if (s_backtraceSize < FRAME_SIZE) {
-		s_backtrace[s_backtraceSize] = nullptr;
-	}*/
+    s_backtrace[2] = reinterpret_cast<void*>(context->uc_mcontext->__ss.__pc);
+    if (s_backtraceSize < FRAME_SIZE) {
+        s_backtrace[s_backtraceSize] = nullptr;
+    }*/
 
-	s_signal = signal;
-	s_siginfo = signalInfo;
-	s_context = reinterpret_cast<ucontext_t*>(vcontext);
-	char buf = '1';
-	write(s_pipe[1], &buf, 1);
+    s_signal = signal;
+    s_siginfo = signalInfo;
+    s_context = reinterpret_cast<ucontext_t*>(vcontext);
+    char buf = '1';
+    write(s_pipe[1], &buf, 1);
 }
 
 // https://stackoverflow.com/questions/8278691/how-to-fix-backtrace-line-number-error-in-c
-std::string executeCommand(std::string const& cmd) {
+std::string executeCommand(ZStringView cmd) {
     std::stringstream stream;
     std::array<char, 1024> buf;
 
@@ -217,33 +303,40 @@ static std::string getStacktrace() {
     std::stringstream stacktrace;
 
     auto messages = backtrace_symbols(s_backtrace.data(), s_backtraceSize);
-	if (s_backtraceSize < FRAME_SIZE) {
-		messages[s_backtraceSize] = nullptr;
-	}
+    if (s_backtraceSize < FRAME_SIZE) {
+        messages[s_backtraceSize] = nullptr;
+    }
 
     std::stringstream lines(addr2Line());
 
-    for (int i = 1; i < s_backtraceSize; ++i) {
-        auto message = std::string(messages[i]);
-
-        auto stream = std::stringstream(message);
+    for (int i = 0; i < s_backtraceSize; ++i) {
         int index;
         std::string binary;
         uintptr_t address;
         std::string function;
         uintptr_t offset;
         std::string line;
+        size_t cutoff;
 
-        stream >> index;
+        auto message = std::string(i == 0 ? "" : messages[i]);
+        auto stream = std::stringstream(message);
 
-        if (!lines.eof()) {
-            std::getline(lines, line);
+        if (i > 0) {
+            stream >> index;
+
+            if (!lines.eof()) {
+                std::getline(lines, line);
+            }
+            std::getline(stream, binary);
+            cutoff = binary.find("0x");
+            stream = std::stringstream(binary.substr(cutoff));
+            binary = geode::utils::string::trim(binary.substr(0, cutoff));
+            stream >> std::hex >> address >> std::dec;
+        } else {
+            // first entry in the stacktrace, not present in `messages`
+            address = (uintptr_t) s_backtrace[0];
+            index = 0;
         }
-        std::getline(stream, binary);
-        auto cutoff = binary.find("0x");
-        stream = std::stringstream(binary.substr(cutoff));
-        binary = geode::utils::string::trim(binary.substr(0, cutoff));
-        stream >> std::hex >> address >> std::dec;
 
         if (!line.empty()) {
             // log::debug("address: {}", address);
@@ -263,26 +356,43 @@ static std::string getStacktrace() {
             stacktrace << ": " << line << "\n";
         }
         else {
-            std::getline(stream, function);
+            if (i > 0) {
+                std::getline(stream, function);
 
-            cutoff = function.find("+");
-            stream = std::stringstream(function.substr(cutoff));
-            stream >> offset;
-            function = geode::utils::string::trim(function.substr(0, cutoff));
+                cutoff = function.find("+");
+                stream = std::stringstream(function.substr(cutoff + 1));
+                stream >> offset;
+                function = geode::utils::string::trim(function.substr(0, cutoff));
 
-            {
-                int status;
-                auto demangle = abi::__cxa_demangle(function.c_str(), 0, 0, &status);
-                if (status == 0) {
-                    function = demangle;
+                {
+                    int status;
+                    auto demangle = abi::__cxa_demangle(function.c_str(), 0, 0, &status);
+                    if (status == 0) {
+                        function = demangle;
+                    }
+                    free(demangle);
                 }
-                free(demangle);
             }
 
-            stacktrace << "- " << binary;
-            stacktrace << " @ " << std::showbase << std::hex << address << std::dec;
-            stacktrace << " (" << function << " + " << offset << ")\n";
-            stacktrace << "- " << function << "\n";
+            // don't display the (function + offset) part if it will be bogus.
+            // the first case (0x0) happens with hook handlers, while the second happens because
+            // GD exports a few fmt symbols, so backtrace_symbols thinks every function in GD is the last fmt symbol in the binary
+            if (function == "0x0" || (binary == "GeometryJump" && offset > 0x1000)) {
+                function = "";
+            }
+
+            if (auto image = imageFromAddress(reinterpret_cast<void*>(address))) {
+                stacktrace << "- " << getImageName(image) << " + " << std::showbase << std::hex << (address - (uintptr_t)image->imageLoadAddress) << std::dec;
+            }
+            else {
+                stacktrace << "- " << binary;
+            }
+
+            if (!function.empty()) {
+                stacktrace << " (" << function << " + " << offset << ")";
+            }
+
+            stacktrace << " @ " << std::showbase << std::hex << address << std::dec << "\n";
         }
     }
 
@@ -343,7 +453,7 @@ static void handlerThread() {
     while (read(s_pipe[0], &buf, 1) != 0) {
         auto signalAddress = reinterpret_cast<void*>(s_context->uc_mcontext->__ss.__pc);
         // as you can tell, i moved code from signalHandler to here
-	if (s_context) {
+        if (s_context) {
             //s_backtraceSize = backtrace(s_backtrace.data(), FRAME_SIZE);
             // i can't use 2 because then it'll show the actual stacktrace to be lower than what it actually is
             s_backtrace[s_backtraceSize++] = signalAddress;
@@ -357,15 +467,21 @@ static void handlerThread() {
                 void** frame = reinterpret_cast<void**>(current_fp);
                 void* next_fp = frame[0];
                 void* lr = frame[1];
-                
+
                 if (next_fp == current_fp || lr == nullptr) break;
-                
+
                 s_backtrace[s_backtraceSize++] = lr;
                 current_fp = next_fp;
             }
         }
-	Mod* faultyMod = modFromAddress(signalAddress);
-    
+
+        s_images = getAllImages(); // load them once
+        std::sort(s_images.begin(), s_images.end(), [](auto const a, auto const b) {
+            return (uintptr_t)a->imageLoadAddress < (uintptr_t)b->imageLoadAddress;
+        });
+
+        Mod* faultyMod = modFromAddress(signalAddress);
+
         // Mod* faultyMod = nullptr;
         // for (int i = 1; i < s_backtraceSize; ++i) {
         //     auto mod = modFromAddress(s_backtrace[i]);
@@ -378,7 +494,7 @@ static void handlerThread() {
 
         log::error("Geode crashed!\n{}", text);
         std::_Exit(EXIT_FAILURE);
-	//s_signal = 0;
+        //s_signal = 0;
     }
 }
 

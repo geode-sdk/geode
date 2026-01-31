@@ -62,6 +62,8 @@ public:
     CCDictionary* m_pTextures;
     //pthread_mutex_t                *m_pDictLock;
 
+    // @note RobTop Addition
+    bool m_asyncLoadingPrepared;
 
 private:
     /// todo: void addImageWithAsyncObject(CCAsyncObject* async);
@@ -88,7 +90,7 @@ public:
      */
     CCDictionary* snapshotTextures();
 
-    /** Returns the shared instance of the cache 
+    /** Returns the shared instance of the cache
      *  @js getInstance
      */
     static CCTextureCache * sharedTextureCache();
@@ -116,7 +118,7 @@ public:
     * @since v0.8
     * @lua NA
     */
-    
+
 	void addImageAsync(char const*, cocos2d::CCObject*, cocos2d::SEL_MenuHandler, int, cocos2d::CCTexture2DPixelFormat);
 
     /* Returns a Texture2D object given an CGImageRef image
@@ -139,7 +141,7 @@ public:
     @since v0.99.5
     */
     CCTexture2D* textureForKey(const char* key);
-    
+
     /** Reload texture from the image file
      * If the file image hasn't loaded before, load it.
      * Otherwise the texture will be reloaded from the file image.
@@ -178,13 +180,13 @@ public:
     * @since v1.0
     */
     void dumpCachedTextureInfo();
-    
+
     /** Returns a Texture2D object given an PVR filename
     * If the file image was not previously loaded, it will create a new CCTexture2D
     *  object and it will return it. Otherwise it will return a reference of a previously loaded image
     */
     CCTexture2D* addPVRImage(const char* filename);
-    
+
     /** Returns a Texture2D object given an ETC filename
      * If the file image was not previously loaded, it will create a new CCTexture2D
      *  object and it will return it. Otherwise it will return a reference of a previously loaded image
@@ -218,7 +220,7 @@ public:
     ~VolatileTexture();
 
     static void addImageTexture(CCTexture2D *tt, const char* imageFileName, CCImage::EImageFormat format);
-    static void addStringTexture(CCTexture2D *tt, const char* text, const CCSize& dimensions, CCTextAlignment alignment, 
+    static void addStringTexture(CCTexture2D *tt, const char* text, const CCSize& dimensions, CCTextAlignment alignment,
                                  CCVerticalTextAlignment vAlignment, const char *fontName, float fontSize);
     static void addDataTexture(CCTexture2D *tt, void* data, CCTexture2DPixelFormat pixelFormat, const CCSize& contentSize);
     static void addCCImage(CCTexture2D *tt, CCImage *image);
@@ -230,7 +232,7 @@ public:
 public:
     static std::list<VolatileTexture*> textures;
     static bool isReloading;
-    
+
 private:
     // find VolatileTexture by CCTexture2D*
     // if not found, create a new one
@@ -238,7 +240,7 @@ private:
 
 public:
     CCTexture2D *texture;
-    
+
     CCImage *uiImage;
 
     ccCachedImageType m_eCashedImageType;

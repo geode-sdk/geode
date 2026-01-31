@@ -12,8 +12,8 @@ struct ModSuggestion final {
 };
 
 // you can't put these in ModSuggestion itself because of the concepts in Task :sob:
-using LoadModSuggestionTask = Task<std::optional<ModSuggestion>, server::ServerProgress>;
-LoadModSuggestionTask loadModSuggestion(LoadProblem const& problem);
+using LoadModSuggestionFuture = arc::Future<std::optional<ModSuggestion>>;
+LoadModSuggestionFuture loadModSuggestion(LoadProblem const& problem);
 
 class ModSource final {
 private:
@@ -26,7 +26,7 @@ public:
     ModSource(server::ServerModMetadata&& metadata);
 
     std::string getID() const;
-    ModMetadata getMetadata() const;
+    ModMetadata const& getMetadata() const;
     CCNode* createModLogo() const;
     bool wantsRestart() const;
     // note: be sure to call checkUpdates first...
@@ -36,7 +36,7 @@ public:
         return std::visit(func, m_value);
     }
 
-    // Returns a new ModSource that is either a copy of the current source or 
+    // Returns a new ModSource that is either a copy of the current source or
     // an installed version of a server mod
     ModSource convertForPopup() const;
 
@@ -44,10 +44,10 @@ public:
     server::ServerModMetadata const* asServer() const;
 
     std::string formatDevelopers() const;
-    server::ServerRequest<server::ServerModMetadata> fetchServerInfo() const;
-    server::ServerRequest<std::optional<std::string>> fetchAbout() const;
-    server::ServerRequest<std::optional<std::string>> fetchChangelog() const;
-    server::ServerRequest<std::vector<server::ServerTag>> fetchValidTags() const;
-    server::ServerRequest<std::optional<server::ServerModUpdate>> checkUpdates();
+    server::ServerFuture<server::ServerModMetadata> fetchServerInfo() const;
+    server::ServerFuture<std::optional<std::string>> fetchAbout() const;
+    server::ServerFuture<std::optional<std::string>> fetchChangelog() const;
+    server::ServerFuture<std::vector<server::ServerTag>> fetchValidTags() const;
+    server::ServerFuture<std::optional<server::ServerModUpdate>> checkUpdates();
     void startInstall();
 };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cocos2d.h>
+#include <Geode/utils/function.hpp>
 
 namespace geode {
     enum class TextAlignment {
@@ -50,6 +51,9 @@ namespace geode {
      */
     class GEODE_DLL TextRenderer : public cocos2d::CCObject {
     public:
+        TextRenderer() = default;
+        TextRenderer(const TextRenderer&) = delete;
+        TextRenderer(TextRenderer&&) = delete;
         /**
          * Represents a label. As CCLabelBMFont and
          * CCLabelTTF have different inheritance
@@ -122,7 +126,8 @@ namespace geode {
          * to distinguish between bold, italic and
          * regular text.
          */
-        using Font = std::function<Label(int)>;
+        using Font = geode::Function<Label(int) const>;
+        using FontRef = geode::FunctionRef<Label(int) const>;
 
     protected:
         cocos2d::CCPoint m_origin = cocos2d::CCPointZero;
@@ -150,7 +155,7 @@ namespace geode {
             Label const& label, bool isButton, cocos2d::CCObject* target,
             cocos2d::SEL_MenuHandler callback
         );
-        bool render(std::string const& word, cocos2d::CCNode* to, cocos2d::CCLabelProtocol* label);
+        bool render(std::string word, cocos2d::CCNode* to, cocos2d::CCLabelProtocol* label);
         float adjustLineAlignment();
 
     public:
@@ -211,7 +216,7 @@ namespace geode {
          * split on multiple lines if it exceeds bounds
          */
         std::vector<Label> renderStringEx(
-            std::string const& str, Font font, float scale,
+            std::string str, Font font, float scale,
             cocos2d::ccColor3B color = { 255, 255, 255 }, GLubyte opacity = 255,
             int style = TextStyleRegular, int deco = TextDecorationNone,
             TextCapitalization caps = TextCapitalization::Normal, bool addToTarget = true,
@@ -225,7 +230,7 @@ namespace geode {
          * @returns Vector of rendered labels. The label may be
          * split on multiple lines if it exceeds bounds
          */
-        std::vector<Label> renderString(std::string const& str);
+        std::vector<Label> renderString(std::string str);
         /**
          * Render a string to target as a button. Note that the
          * target should be a CCMenu for the button to do
@@ -240,7 +245,7 @@ namespace geode {
          * split on multiple lines if it exceeds bounds
          */
         std::vector<Label> renderStringInteractive(
-            std::string const& str, cocos2d::CCObject* buttonTarget,
+            std::string str, cocos2d::CCObject* buttonTarget,
             cocos2d::SEL_MenuHandler callback
         );
         /**
@@ -262,9 +267,9 @@ namespace geode {
          * sure the const char* outlives the renderer.
          */
         void pushBMFont(char const* bmFont);
-        void pushFont(Font const& font);
+        void pushFont(Font font);
         void popFont();
-        Font getCurrentFont() const;
+        FontRef getCurrentFont() const;
 
         void pushScale(float scale);
         void popScale();

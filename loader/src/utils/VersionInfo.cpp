@@ -1,7 +1,3 @@
-#ifndef _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES
-    #define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 1
-#endif
-
 #include <Geode/utils/VersionInfo.hpp>
 #include <Geode/utils/general.hpp>
 #include <matjson.hpp>
@@ -65,8 +61,8 @@ std::string VersionTag::toString() const {
 
 // VersionInfo
 
-Result<VersionInfo> VersionInfo::parse(std::string const& string) {
-    std::stringstream str (string);
+Result<VersionInfo> VersionInfo::parse(std::string string) {
+    std::stringstream str (std::move(string));
 
     // allow leading v
     if (str.peek() == 'v') {
@@ -133,9 +129,8 @@ std::string geode::format_as(VersionInfo const& version) {
 
 // ComparableVersionInfo
 
-Result<ComparableVersionInfo> ComparableVersionInfo::parse(std::string const& rawStr) {
+Result<ComparableVersionInfo> ComparableVersionInfo::parse(std::string string) {
     VersionCompare compare;
-    auto string = rawStr;
 
     if (string == "*") {
         return Ok(ComparableVersionInfo({0, 0, 0}, VersionCompare::Any));
@@ -165,7 +160,7 @@ Result<ComparableVersionInfo> ComparableVersionInfo::parse(std::string const& ra
         compare = VersionCompare::MoreEq;
     }
 
-    GEODE_UNWRAP_INTO(auto version, VersionInfo::parse(string));
+    GEODE_UNWRAP_INTO(auto version, VersionInfo::parse(std::move(string)));
     return Ok(ComparableVersionInfo(version, compare));
 }
 
@@ -200,7 +195,7 @@ bool geode::semverCompare(VersionInfo const& current, VersionInfo const& target)
     auto tt = target.getTag();
     if (ct && tt) {
         auto currentTag = ct.value();
-        if (current.getMinor() > 0 && currentTag.value == VersionTag::Alpha) currentTag.value = VersionTag::Beta; 
+        if (current.getMinor() > 0 && currentTag.value == VersionTag::Alpha) currentTag.value = VersionTag::Beta;
         if (current.getPatch() > 0 && currentTag.value == VersionTag::Beta) currentTag.value = VersionTag::Prerelease;
 
         auto targetTag = tt.value();

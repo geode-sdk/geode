@@ -57,7 +57,7 @@ typedef struct _ccPVRTexturePixelFormatInfo {
 } ccPVRTexturePixelFormatInfo;
 
 /**
- @brief Determine how many mipmaps can we have. 
+ @brief Determine how many mipmaps can we have.
  Its same as define but it respects namespaces
 */
 enum {
@@ -66,7 +66,7 @@ enum {
 
 
 /** CCTexturePVR
-     
+
  Object that loads PVR images.
 
  Supported PVR formats:
@@ -80,10 +80,10 @@ enum {
     - AI88
     - PVRTC 4BPP
     - PVRTC 2BPP
-     
+
  Limitations:
     Pre-generated mipmaps, such as PVR textures with mipmap levels embedded in file,
-    are only supported if all individual sprites are of _square_ size. 
+    are only supported if all individual sprites are of _square_ size.
     To use mipmaps with non-square textures, instead call CCTexture2D#generateMipmap on the sheet texture itself
     (and to save space, save the PVR sprite sheet without mip maps included).
  @js NA
@@ -91,6 +91,7 @@ enum {
 */
 class CCTexturePVR : public CCObject
 {
+    GEODE_FRIEND_MODIFY
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTexturePVR, CCObject)
     CCTexturePVR();
@@ -101,9 +102,9 @@ public:
 
     /** creates and initializes a CCTexturePVR with a path */
     static CCTexturePVR* create(const char* path);
-    
-    // properties 
-    
+
+    // properties
+
     /** texture id name */
     inline unsigned int getName() { return m_uName; }
     /** texture width */
@@ -126,21 +127,21 @@ private:
     bool unpackPVRv2Data(unsigned char* data, unsigned int len);
     bool unpackPVRv3Data(unsigned char* dataPointer, unsigned int dataLength);
     bool createGLTexture();
-    
+
 public:
-    struct CCPVRMipmap m_asMipmaps[CC_PVRMIPMAP_MAX];   // pointer to mipmap images    
+    struct CCPVRMipmap m_asMipmaps[CC_PVRMIPMAP_MAX];   // pointer to mipmap images
     unsigned int m_uNumberOfMipmaps;                    // number of mipmap used
-    
+
     unsigned int m_uWidth, m_uHeight;
     GLuint m_uName;
     bool m_bHasAlpha;
     bool m_bHasPremultipliedAlpha;
     bool m_bForcePremultipliedAlpha;
-    
+
     // cocos2d integration
     bool m_bRetainName;
     CCTexture2DPixelFormat m_eFormat;
-    
+
    const ccPVRTexturePixelFormatInfo *m_pPixelFormatInfo;
 };
 

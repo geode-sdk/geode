@@ -15,7 +15,7 @@
 #include "fmod_common.h"
 
 #ifdef __cplusplus
-extern "C" 
+extern "C"
 {
 #endif
 
@@ -32,8 +32,8 @@ FMOD_RESULT F_API FMOD_Thread_SetAttributes        (FMOD_THREAD_TYPE type, FMOD_
 /*
     FMOD System factory functions.  Use this to create an FMOD System Instance.  below you will see FMOD_System_Init/Close to get started.
 */
-FMOD_RESULT F_API FMOD_System_Create               (FMOD_SYSTEM **system, unsigned int headerversion); 
-FMOD_RESULT F_API FMOD_System_Release              (FMOD_SYSTEM *system); 
+FMOD_RESULT F_API FMOD_System_Create               (FMOD_SYSTEM **system, unsigned int headerversion);
+FMOD_RESULT F_API FMOD_System_Release              (FMOD_SYSTEM *system);
 
 /*
     'System' API

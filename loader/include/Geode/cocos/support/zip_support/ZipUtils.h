@@ -59,7 +59,7 @@ namespace cocos2d
     {
         GEODE_FRIEND_MODIFY;
     public:
-        /** 
+        /**
         * Inflates either zlib or gzip deflated memory. The inflated memory is
         * expected to be freed by the caller.
         *
@@ -70,7 +70,7 @@ namespace cocos2d
         */
         static int ccInflateMemory(unsigned char *in, unsigned int inLength, unsigned char **out);
 
-        /** 
+        /**
         * Inflates either zlib or gzip deflated memory. The inflated memory is
         * expected to be freed by the caller.
         *
@@ -102,7 +102,7 @@ namespace cocos2d
         * security.
         *
         * Example: If the key used to encrypt the pvr.ccz file is
-        * 0xaaaaaaaabbbbbbbbccccccccdddddddd you will call this function 4 
+        * 0xaaaaaaaabbbbbbbbccccccccdddddddd you will call this function 4
         * different times, preferably from 4 different source files, as follows
         *
         * ZipUtils::ccSetPvrEncryptionKeyPart(0, 0xaaaaaaaa);
@@ -112,7 +112,7 @@ namespace cocos2d
         *
         * Splitting the key into 4 parts and calling the function
         * from 4 different source files increases the difficulty to
-        * reverse engineer the encryption key. Be aware that encrpytion 
+        * reverse engineer the encryption key. Be aware that encrpytion
         * is *never* 100% secure and the key code can be cracked by
         * knowledgable persons.
         *
@@ -125,7 +125,7 @@ namespace cocos2d
         * @param value value of the key part
         */
         static void ccSetPvrEncryptionKeyPart(int index, unsigned int value);
-        
+
         /** Sets the pvr.ccz encryption key.
         *
         * Example: If the key used to encrypt the pvr.ccz file is
@@ -135,11 +135,11 @@ namespace cocos2d
         * ZipUtils::ccSetPvrEncryptionKey(0xaaaaaaaa, 0xbbbbbbbb, 0xcccccccc, 0xdddddddd);
         *
         * Note that using this function makes it easier to reverse engineer and
-        * discover the complete key because the key parts are present in one 
+        * discover the complete key because the key parts are present in one
         * function call.
         *
         * IMPORTANT: Be sure to call ccSetPvrEncryptionKey or
-        * ccSetPvrEncryptionKeyPart with all of the key parts *before* loading 
+        * ccSetPvrEncryptionKeyPart with all of the key parts *before* loading
         * the spritesheet or decryption will fail and the spritesheet
         * will fail to load.
         *
@@ -165,7 +165,7 @@ namespace cocos2d
         static gd::string urlDecode(const gd::string&);
 
     private:
-        static int ccInflateMemoryWithHint(unsigned char *in, unsigned int inLength, unsigned char **out, unsigned int *outLength, 
+        static int ccInflateMemoryWithHint(unsigned char *in, unsigned int inLength, unsigned char **out, unsigned int *outLength,
                                            unsigned int outLenghtHint);
         static inline void ccDecodeEncodedPvr (unsigned int *data, int len);
         static inline unsigned int ccChecksumPvr(const unsigned int *data, int len);
@@ -192,7 +192,7 @@ namespace cocos2d
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
         friend class CCFileUtilsAndroid;
 #endif
-        
+
         /**
         * Constructor, open zip file and store file list.
         *
@@ -204,14 +204,14 @@ namespace cocos2d
         */
         ZipFile(const std::string &zipFile, const std::string &filter = std::string());
         virtual ~ZipFile();
-    
+
         /**
-         * Custom function added for geode; returns if the 
+         * Custom function added for geode; returns if the
          * zip file was successfully decoded.
-         * 
-         * @return true if the zip was successfully loaded, 
+         *
+         * @return true if the zip was successfully loaded,
          *         false otherwise.
-         * 
+         *
          * @since geode v1.0.0
          */
         bool isLoaded() const;
@@ -251,11 +251,11 @@ namespace cocos2d
         unsigned char *getFileData(const std::string &fileName, unsigned long *pSize);
 
         /**
-         * Custom function added for geode; returns all of 
+         * Custom function added for geode; returns all of
          * the files in the zip that match the current filter.
-         * 
+         *
          * @return Vector of filenames
-         * 
+         *
          * @since geode v1.0.0
          */
         std::vector<std::string> getAllFiles() const;
@@ -263,7 +263,7 @@ namespace cocos2d
     private:
         bool setFilter(const std::string &filer, ZipFilePrivate *data);
         unsigned char *getFileData(const std::string &fileName, unsigned long *pSize, ZipFilePrivate *data);
-        
+
         /** Internal data like zip file pointer / file list array and so on */
         ZipFilePrivate *_data;
         /** Another data used not in main thread */

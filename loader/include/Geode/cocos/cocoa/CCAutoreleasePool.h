@@ -40,7 +40,7 @@ class CC_DLL CCAutoreleasePool : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
-    CCArray*    m_pManagedObjectArray;    
+    CCArray*    m_pManagedObjectArray;
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCAutoreleasePool, CCObject)
 
     CCAutoreleasePool(void);
@@ -59,7 +59,7 @@ public:
 class CC_DLL CCPoolManager
 {
     GEODE_FRIEND_MODIFY
-    CCArray*    m_pReleasePoolStack;    
+    CCArray*    m_pReleasePoolStack;
     CCAutoreleasePool*                    m_pCurReleasePool;
 
     CCAutoreleasePool* getCurReleasePool();

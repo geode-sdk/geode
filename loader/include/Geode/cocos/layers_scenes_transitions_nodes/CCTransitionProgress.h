@@ -81,7 +81,7 @@ public:
     static CCTransitionProgressRadialCCW* create(float t, CCScene* scene);
 protected:
     virtual CCProgressTimer* progressTimerNodeWithRenderTexture(CCRenderTexture* texture);
-  
+
 };
 
 

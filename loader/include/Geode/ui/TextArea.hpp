@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/DefaultInclude.hpp>
+#include <Geode/utils/function.hpp>
 #include <cocos2d.h>
 
 namespace geode {
@@ -13,21 +14,21 @@ namespace geode {
 
     /**
      * A class which provides a textarea with proper alignment and some extra features like:
-     * 
+     *
      * - Max lines
      * - Changing all aspects after creation
      * - Custom text alignment
      * - Configurable and automatic word wrapping
      * - Line padding
-     * 
+     *
      * Contact me on Discord (\@smjs) if you have any questions, suggestions or bugs.
     */
     class GEODE_DLL SimpleTextArea : public cocos2d::CCNode {
     public:
-        static SimpleTextArea* create(const std::string& text, const std::string& font = "chatFont.fnt", float scale = 1.0f);
-        static SimpleTextArea* create(const std::string& text, const std::string& font, float scale, float width);
+        static SimpleTextArea* create(std::string text, std::string font = "chatFont.fnt", float scale = 1.0f);
+        static SimpleTextArea* create(std::string text, std::string font, float scale, float width);
 
-        void setFont(const std::string& font);
+        void setFont(std::string font);
         std::string getFont();
         void setColor(const cocos2d::ccColor4B& color);
         cocos2d::ccColor4B getColor();
@@ -35,7 +36,7 @@ namespace geode {
         cocos2d::CCTextAlignment getAlignment();
         void setWrappingMode(WrappingMode mode);
         WrappingMode getWrappingMode();
-        void setText(const std::string& text);
+        void setText(std::string text);
         std::string getText();
         void setMaxLines(size_t maxLines);
         size_t getMaxLines();
@@ -49,9 +50,9 @@ namespace geode {
         float getHeight();
         float getLineHeight();
     private:
-        static SimpleTextArea* create(const std::string& font, const std::string& text, float scale, float width, const bool artificialWidth);
+        static SimpleTextArea* create(std::string font, std::string text, float scale, float width, const bool artificialWidth);
 
-        bool init(const std::string& font, const std::string& text, float scale, float width, const bool artificialWidth);
+        bool init(std::string font, std::string text, float scale, float width, const bool artificialWidth);
 
         bool m_shouldUpdate = false;
         bool m_artificialWidth = false;
@@ -67,9 +68,9 @@ namespace geode {
         float m_lineHeight = 0.f;
         float m_linePadding = 0.f;
 
-        cocos2d::CCLabelBMFont* createLabel(const std::string& text, float top);
+        cocos2d::CCLabelBMFont* createLabel(char const* text, float top);
         float calculateOffset(cocos2d::CCLabelBMFont* label);
-        void charIteration(const std::function<cocos2d::CCLabelBMFont*(cocos2d::CCLabelBMFont* line, char c, float top)>& overflowHandling);
+        void charIteration(geode::FunctionRef<cocos2d::CCLabelBMFont*(cocos2d::CCLabelBMFont* line, char c, float top)> overflowHandling);
         void updateLinesNoWrap();
         void updateLinesWordWrap(bool spaceWrap);
         void updateLinesCutoffWrap();

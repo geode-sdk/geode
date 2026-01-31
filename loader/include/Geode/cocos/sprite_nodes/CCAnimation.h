@@ -49,7 +49,7 @@ class CCSpriteFrame;
     - sprite frame name
     - # of delay units.
     - offset
- 
+
  @since v2.0
  */
 class CC_DLL CCAnimationFrame : public CCObject
@@ -73,15 +73,15 @@ public:
     virtual CCObject* copyWithZone(CCZone* pZone);
     /** initializes the animation frame with a spriteframe, number of delay units and a notification user info */
     bool initWithSpriteFrame(CCSpriteFrame* spriteFrame, float delayUnits, CCDictionary* userInfo);
-    
+
     /** CCSpriteFrameName to be used */
-    CC_SYNTHESIZE_RETAIN(CCSpriteFrame*, m_pSpriteFrame, SpriteFrame)
+    CC_SYNTHESIZE_NV_RETAIN(CCSpriteFrame*, m_pSpriteFrame, SpriteFrame)
 
     /**  how many units of time the frame takes */
-    CC_SYNTHESIZE(float, m_fDelayUnits, DelayUnits)
+    CC_SYNTHESIZE_NV(float, m_fDelayUnits, DelayUnits)
 
     /**  A CCAnimationFrameDisplayedNotification notification will be broadcast when the frame is displayed with this dictionary as UserInfo. If UserInfo is nil, then no notification will be broadcast. */
-    CC_SYNTHESIZE_RETAIN(CCDictionary*, m_pUserInfo, UserInfo)
+    CC_SYNTHESIZE_NV_RETAIN(CCDictionary*, m_pUserInfo, UserInfo)
 };
 
 
@@ -139,7 +139,7 @@ public:
      The frame will be added with one "delay unit".
      Added to facilitate the migration from v0.8 to v0.9.
      * @js addSpriteFrameWithFile
-     */  
+     */
     void addSpriteFrameWithFileName(const char *pszFileName);
 
     /** Adds a frame with a texture and a rect. Internally it will create a CCSpriteFrame and it will add it.
@@ -170,22 +170,22 @@ public:
     virtual CCObject* copyWithZone(CCZone* pZone);
 
     /** total Delay units of the CCAnimation. */
-    CC_SYNTHESIZE_READONLY(float, m_fTotalDelayUnits, TotalDelayUnits)
+    CC_SYNTHESIZE_READONLY_NV(float, m_fTotalDelayUnits, TotalDelayUnits)
 
     /** Delay in seconds of the "delay unit" */
-    CC_SYNTHESIZE(float, m_fDelayPerUnit, DelayPerUnit)
+    CC_SYNTHESIZE_NV(float, m_fDelayPerUnit, DelayPerUnit)
 
     /** duration in seconds of the whole animation. It is the result of totalDelayUnits * delayPerUnit */
     CC_PROPERTY_READONLY(float, m_fDuration, Duration)
 
     /** array of CCAnimationFrames */
-    CC_SYNTHESIZE_RETAIN(CCArray*, m_pFrames, Frames)
+    CC_SYNTHESIZE_NV_RETAIN(CCArray*, m_pFrames, Frames)
 
     /** whether or not it shall restore the original frame when the animation finishes */
-    CC_SYNTHESIZE(bool, m_bRestoreOriginalFrame, RestoreOriginalFrame)
+    CC_SYNTHESIZE_NV(bool, m_bRestoreOriginalFrame, RestoreOriginalFrame)
 
     /** how many times the animation is going to loop. 0 means animation is not animated. 1, animation is executed one time, ... */
-    CC_SYNTHESIZE(unsigned int, m_uLoops, Loops)
+    CC_SYNTHESIZE_NV(unsigned int, m_uLoops, Loops)
 };
 
 // end of sprite_nodes group

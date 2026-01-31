@@ -1,69 +1,20 @@
 #pragma once
 
 #include "Event.hpp"
+#include "../utils/function.hpp"
 #include "../modify/Traits.hpp"
+#include <Geode/utils/function.hpp>
+#include <Geode/utils/StringMap.hpp>
 
 #include <functional>
 #include <string>
 #include <tuple>
 
 namespace geode {
-    // Mod interoperability
-
-    GEODE_DLL std::unordered_map<std::string, EventListenerPool*>& dispatchPools();
-
     template <class... Args>
-    class DispatchEvent : public Event {
-    protected:
-        std::string m_id;
-        std::tuple<Args...> m_args;
-
+    class Dispatch : public ThreadSafeEvent<Dispatch<Args...>, bool(Args...), std::string> {
     public:
-        DispatchEvent(std::string const& id, Args... args) :
-            m_id(id), m_args(std::make_tuple(args...)) {}
-
-        std::tuple<Args...> getArgs() const {
-            return m_args;
-        }
-
-        std::string getID() const {
-            return m_id;
-        }
-
-        EventListenerPool* getPool() const override {
-            if (dispatchPools().count(m_id) == 0) {
-                dispatchPools()[m_id] = DefaultEventListenerPool::create();
-            }
-            return dispatchPools()[m_id];
-        }
-    };
-
-    template <class... Args>
-    class DispatchFilter : public EventFilter<DispatchEvent<Args...>> {
-    protected:
-        std::string m_id;
-
-    public:
-        using Ev = DispatchEvent<Args...>;
-        using Callback = ListenerResult(Args...);
-
-        EventListenerPool* getPool() const {
-            if (dispatchPools().count(m_id) == 0) {
-                dispatchPools()[m_id] = DefaultEventListenerPool::create();
-            }
-            return dispatchPools()[m_id];
-        }
-
-        ListenerResult handle(std::function<Callback> fn, Ev* event) {
-            if (event->getID() == m_id) {
-                return std::apply(fn, event->getArgs());
-            }
-            return ListenerResult::Propagate;
-        }
-
-        DispatchFilter(std::string const& id) : m_id(id) {}
-
-        DispatchFilter(DispatchFilter const&) = default;
+        using ThreadSafeEvent<Dispatch<Args...>, bool(Args...), std::string>::ThreadSafeEvent;
     };
 }
 
@@ -111,19 +62,16 @@ namespace geode::geode_internal {
     inline auto callEventExportListener(Fn fnPtr, auto eventID) {
         using StaticType = geode::modifier::AsStaticType<Fn>::type;
         Fn ptr = nullptr;
-        geode::DispatchEvent<Fn*>(eventID, &ptr).post();
-        return std::function<std::remove_pointer_t<StaticType>>(ptr);
+        geode::Dispatch<Fn*>(std::move(eventID)).send(&ptr);
+        return geode::Function<std::remove_pointer_t<StaticType>>(ptr);
     }
 
     template <class Fn>
     inline bool getEventExportListener(Fn fnPtr, auto eventID) {
-        new geode::EventListener(
-            [=](Fn* ptr) {
-                *ptr = fnPtr;
-                return geode::ListenerResult::Stop;
-            }, 
-            geode::DispatchFilter<Fn*>(eventID)
-        );
+        geode::Dispatch<Fn*>(std::move(eventID)).listen([=](Fn* ptr) {
+            *ptr = fnPtr;
+            return geode::ListenerResult::Stop;
+        }).leak();
         return true;
     }
 }
@@ -134,6 +82,14 @@ namespace geode::geode_internal {
         if (!storage) return geode::Err("Unable to call method");                               \
         return storage callArgs;                                                                \
     }
+
+#define GEODE_EVENT_EXPORT_CALL_NORES(fnPtr, callArgs, eventID)                                 \
+    {                                                                                           \
+        static auto storage = geode::geode_internal::callEventExportListener(fnPtr, eventID);   \
+        if (!storage) return geode::utils::function::Return<decltype(fnPtr)>();                \
+        return storage callArgs;                                                                \
+    }
+
 
 #define GEODE_EVENT_EXPORT_DEFINE(fnPtr, callArgs, eventID)                                             \
     ;                                                                                                   \
@@ -153,6 +109,11 @@ namespace geode::geode_internal {
     #define GEODE_EVENT_EXPORT_ID(fnPtr, callArgs, eventID) \
         GEODE_EVENT_EXPORT_CALL(fnPtr, callArgs, eventID)
 
+    #define GEODE_EVENT_EXPORT_NORES(fnPtr, callArgs) \
+        GEODE_EVENT_EXPORT_CALL_NORES(fnPtr, callArgs, GEODE_EVENT_EXPORT_ID_FOR(#fnPtr, #callArgs))
+
+    #define GEODE_EVENT_EXPORT_ID_NORES(fnPtr, callArgs, eventID) \
+        GEODE_EVENT_EXPORT_CALL_NORES(fnPtr, callArgs, eventID)
 #else
 
     #define GEODE_EVENT_EXPORT(fnPtr, callArgs) \
@@ -161,4 +122,9 @@ namespace geode::geode_internal {
     #define GEODE_EVENT_EXPORT_ID(fnPtr, callArgs, eventID) \
         GEODE_EVENT_EXPORT_DEFINE(fnPtr, callArgs, eventID)
 
+    #define GEODE_EVENT_EXPORT_NORES(fnPtr, callArgs) \
+        GEODE_EVENT_EXPORT(fnPtr, callArgs)
+
+    #define GEODE_EVENT_EXPORT_ID_NORES(fnPtr, callArgs, eventID) \
+        GEODE_EVENT_EXPORT_ID(fnPtr, callArgs, eventID)
 #endif

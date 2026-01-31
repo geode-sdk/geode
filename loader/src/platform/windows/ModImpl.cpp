@@ -50,31 +50,11 @@ std::string getLastWinError() {
     auto useful = getUsefulError(err);
     if (useful) return useful;
 
-    char* errorBuf = nullptr;
-    auto result = FormatMessageA(
-        FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS,
-        nullptr, err, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPSTR)&errorBuf, 0, nullptr);
-
-    std::string msg;
-    if (result == 0 || !errorBuf) {
-        msg = fmt::format("Unknown ({})", err);
-    } else {
-        msg = std::string(errorBuf, errorBuf + result);
-        // the string sometimes includes a crlf, strip it, also remove unprintable chars
-        msg.erase(std::find_if(msg.rbegin(), msg.rend(), [](unsigned char ch) {
-            return ch != '\r' && ch != '\n' && ch < 127;
-        }).base(), msg.end());
-    }
-
-    if (errorBuf) {
-        LocalFree(errorBuf);
-    }
-
-    return msg;
+    return formatSystemError(err);
 }
 
 Result<> Mod::Impl::loadPlatformBinary() {
-    auto load = LoadLibraryW((m_tempDirName / m_metadata.getBinaryName()).wstring().c_str());
+    auto load = LoadLibraryW(this->getBinaryPath().wstring().c_str());
     if (load) {
         if (m_platformInfo) {
             delete m_platformInfo;

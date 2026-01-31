@@ -35,7 +35,7 @@ class CC_DLL CCEGLView : public CCEGLViewProtocol
     GEODE_FRIEND_MODIFY
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEGLView, CCEGLViewProtocol)
-    
+
     CCEGLView();
     virtual ~CCEGLView();
 
@@ -45,13 +45,13 @@ public:
     void    end();
     void    swapBuffers();
     void    setIMEKeyboardState(bool bOpen);
-    
+
     // static function
     /**
     @brief    get the shared main open gl window
     */
     static CCEGLView* sharedOpenGLView();
-    
+
     static GEODE_DLL CCEGLView* get();
 };
 

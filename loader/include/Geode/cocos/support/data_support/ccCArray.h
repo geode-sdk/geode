@@ -58,10 +58,12 @@ NS_CC_BEGIN
 __object__=__array__->arr[0]; for(unsigned int i=0, num=__array__->num; i<num; i++, __object__=__array__->arr[i])	\
 
 
+// if you need to change anything from this, dont forget the 
+// class at the bottom ccCArray because cocos
 typedef struct _ccArray {
 	unsigned int num, max;
     // 2.2 additions
-    unsigned int unknown;
+    unsigned int childIndex;
 	CCObject** arr;
 } ccArray;
 
@@ -92,7 +94,7 @@ void ccArrayAppendObject(ccArray *arr, CCObject* object);
 /** Appends an object. Capacity of arr is increased if needed. */
 void ccArrayAppendObjectWithResize(ccArray *arr, CCObject* object);
 
-/** Appends objects from plusArr to arr. 
+/** Appends objects from plusArr to arr.
  Behavior undefined if arr doesn't have enough capacity. */
 void ccArrayAppendArray(ccArray *arr, ccArray *plusArr);
 
@@ -136,8 +138,12 @@ void ccArrayFullRemoveArray(ccArray *arr, ccArray *minusArr);
 // #pragma mark ccCArray for Values (c structures)
 #endif
 
+// if you need to change anything from this, dont forget the 
+// class at the top ccArray because cocos
 typedef struct _ccCArray {
     unsigned int num, max;
+    // 2.2 additions
+    unsigned int unknown;
     void** arr;
 } ccCArray;
 
@@ -207,5 +213,5 @@ void ccCArrayRemoveArray(ccCArray *arr, ccCArray *minusArr);
 void ccCArrayFullRemoveArray(ccCArray *arr, ccCArray *minusArr);
 
 NS_CC_END
-	
+
 #endif // CC_ARRAY_H

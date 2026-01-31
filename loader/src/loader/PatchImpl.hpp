@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <Geode/loader/Hook.hpp>
 #include <Geode/loader/Loader.hpp>
@@ -10,10 +10,10 @@ using namespace geode::prelude;
 
 class Patch::Impl final : ModPatch {
 public:
-    Impl(void* address, ByteVector original, ByteVector patch);
+    Impl(void* address, ByteSpan original, ByteSpan patch);
     ~Impl();
 
-    static std::shared_ptr<Patch> create(void* address, const ByteVector& patch);
+    static std::shared_ptr<Patch> create(void* address, ByteSpan patch);
     static std::vector<Patch::Impl*>& allEnabled();
 
     Patch* m_self = nullptr;
@@ -23,9 +23,11 @@ public:
 
     Result<> enable();
     Result<> disable();
+    Result<> toggle();
+    Result<> toggle(bool enable);
 
     ByteVector const& getBytes() const;
-    Result<> updateBytes(const ByteVector& bytes);
+    Result<> updateBytes(ByteSpan bytes);
 
     uintptr_t getAddress() const;
     matjson::Value getRuntimeInfo() const;

@@ -42,7 +42,7 @@ protected:
 
 
     CCComponentContainer(CCNode *pNode);
-    
+
 public:
     GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCComponentContainer)
     CCComponentContainer() {}
@@ -56,14 +56,14 @@ public:
     virtual void visit(float fDelta);
 public:
     bool isEmpty() const;
-    
+
 private:
     void alloc(void);
-    
+
 public:
     CCDictionary *m_pComponents;        ///< Dictionary of components
     CCNode *m_pOwner;
-    
+
     friend class CCNode;
 };
 

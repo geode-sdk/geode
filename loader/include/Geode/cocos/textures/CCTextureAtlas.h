@@ -51,9 +51,9 @@ Supported features:
 * The TextureAtlas capacity can be increased or decreased in runtime
 * OpenGL component: V3F, C4B, T2F.
 The quads are rendered using an OpenGL ES VBO.
-To render the quads using an interleaved vertex array list, you should modify the ccConfig.h file 
+To render the quads using an interleaved vertex array list, you should modify the ccConfig.h file
 */
-class CC_DLL CCTextureAtlas : public CCObject 
+class CC_DLL CCTextureAtlas : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
@@ -75,6 +75,8 @@ public:
     CC_PROPERTY(CCTexture2D *, m_pTexture, Texture)
     /** Quads that are going to be rendered */
     CC_PROPERTY(ccV3F_C4B_T2F_Quad *, m_pQuads, Quads)
+    // @note RobTop Addition
+    unsigned int m_uMaxQuads;
 
 public:
     /**
@@ -106,14 +108,14 @@ public:
     bool initWithFile(const char* file, unsigned int capacity);
 
    /** creates a TextureAtlas with a previously initialized Texture2D object, and
-    * with an initial capacity for n Quads. 
+    * with an initial capacity for n Quads.
     * The TextureAtlas capacity can be increased in runtime.
     */
     static CCTextureAtlas* createWithTexture(CCTexture2D *texture, unsigned int capacity);
 
 
     /** initializes a TextureAtlas with a previously initialized Texture2D object, and
-    * with an initial capacity for Quads. 
+    * with an initial capacity for Quads.
     * The TextureAtlas capacity can be increased in runtime.
     *
     * WARNING: Do not reinitialize the TextureAtlas because it will leak memory (issue #706)

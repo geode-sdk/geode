@@ -11,7 +11,7 @@
 // needed for weightedFuzzyMatch
 #include <ui/mods/sources/ModListSource.hpp>
 
-static bool matchSearch(SettingNode* node, std::string const& query) {
+static bool matchSearch(SettingNode* node, ZStringView query) {
     if (typeinfo_cast<TitleSettingNode*>(node)) {
         return true;
     }
@@ -26,17 +26,20 @@ static bool matchSearch(SettingNode* node, std::string const& query) {
     else {
         addToList |= weightedFuzzyMatch(setting->getKey(), query, 1, weighted);
     }
-    if (weighted < 60 + 10 * query.size()) {
+    if (weighted < 60.0 + 10.0 * query.size()) {
         addToList = false;
     }
     return addToList;
 }
 
-bool ModSettingsPopup::setup(Mod* mod) {
+bool ModSettingsPopup::init(Mod* mod, bool forceDisableTheme) {
+    if (!GeodePopup::init(440.f, 280.f, GeodePopupStyle::Default, forceDisableTheme))
+        return false;
+    
     m_noElasticity = true;
     m_mod = mod;
 
-    this->setTitle(("Settings for " + mod->getName()).c_str());
+    this->setTitle(fmt::format("Settings for {}", mod->getName()));
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
@@ -85,14 +88,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
         m_settings.push_back(node);
         m_list->m_contentLayer->addChild(node);
     }
-    m_list->m_contentLayer->setLayout(
-        ColumnLayout::create()
-            ->setAxisReverse(true)
-            ->setAutoGrowAxis(m_list->getContentHeight())
-            ->setCrossAxisOverflow(false)
-            ->setAxisAlignment(AxisAlignment::End)
-            ->setGap(0)
-    );
+    m_list->m_contentLayer->setLayout(ScrollLayer::createDefaultListLayout(0.f));
     m_list->moveToTop();
 
     const int buttonPriority = m_list->getTouchPriority() - 1;
@@ -116,7 +112,6 @@ bool ModSettingsPopup::setup(Mod* mod) {
     m_applyMenu = CCMenu::create();
     m_applyMenu->setContentWidth(150);
     m_applyMenu->setLayout(RowLayout::create());
-    m_applyMenu->getLayout()->ignoreInvisibleChildren(true);
     m_applyMenu->setTouchPriority(buttonPriority);
 
     auto restartBtnSpr = createGeodeButton("Restart Now", true, GeodeButtonSprite::Default, m_forceDisableTheme);
@@ -184,8 +179,8 @@ bool ModSettingsPopup::setup(Mod* mod) {
 
     foldersMenu->updateLayout();
 
-    m_changeListener.bind([this](auto* ev) {
-        this->updateState(ev->getNode());
+    m_changeHandle = GlobalSettingNodeValueChangeEvent().listen([this](std::string_view modID, std::string_view key, SettingNodeV3* node, bool isCommit) {
+        this->updateState(node);
         return ListenerResult::Propagate;
     });
     this->updateState();
@@ -216,7 +211,7 @@ void ModSettingsPopup::onRestart(CCObject*) {
         // Delayed by 2 frames - one is needed to render the "Restarting text"
         Loader::get()->queueInMainThread([] {
             // the other never finishes rendering because the game actually restarts at this point
-            game::restart();
+            game::restart(true);
         });
     });
 }
@@ -260,7 +255,7 @@ void ModSettingsPopup::updateState(SettingNode* invoker) {
     auto listPosBefore = m_list->m_contentLayer->getPositionY();
     auto listHeightBefore = m_list->m_contentLayer->getContentHeight();
 
-    // Update search visibility + all settings with "enable-if" schemes + 
+    // Update search visibility + all settings with "enable-if" schemes +
     // checkerboard BG
     TitleSettingNode* lastTitle = nullptr;
     bool bg = false;
@@ -291,7 +286,7 @@ void ModSettingsPopup::updateState(SettingNode* invoker) {
 
     // Preserve relative list position if something has been collapsed
     m_list->m_contentLayer->setPositionY(
-        listPosBefore + 
+        listPosBefore +
             (listHeightBefore - m_list->m_contentLayer->getContentHeight())
     );
 
@@ -307,7 +302,7 @@ void ModSettingsPopup::updateState(SettingNode* invoker) {
         m_applyBtnSpr->setOpacity(155);
         m_applyBtn->setEnabled(false);
     }
-    
+
     auto clearSpr = static_cast<GeodeSquareSprite*>(m_searchClearBtn->getNormalImage());
     m_searchClearBtn->setEnabled(hasSearch);
     clearSpr->setColor(hasSearch ? ccWHITE : ccGRAY);
@@ -345,7 +340,7 @@ void ModSettingsPopup::onClose(CCObject* sender) {
 
 ModSettingsPopup* ModSettingsPopup::create(Mod* mod, bool forceDisableTheme) {
     auto ret = new ModSettingsPopup();
-    if (ret->init(440, 280, mod, GeodePopupStyle::Default, forceDisableTheme)) {
+    if (ret->init(mod, forceDisableTheme)) {
         ret->autorelease();
         return ret;
     }

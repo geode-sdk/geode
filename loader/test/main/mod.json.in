@@ -3,18 +3,15 @@
     "gd": {
         "win": "*",
         "mac": "*",
-        "android": "*"
+        "android": "*",
+        "ios": "*"
     },
 	"version":      "1.0.0",
 	"id":           "geode.test",
     "name":         "Geode Test",
     "developer":    "Geode Team",
     "description":  "unit test for geode",
-    "dependencies": [
-        {
-            "id": "geode.testdep",
-            "version": ">=1.0.0",
-            "importance": "required"
-        }
-    ]
+    "dependencies": {
+        "geode.testdep": ">=1.0.0"
+    }
 }

@@ -100,7 +100,7 @@
 
     #if defined(__arm__)
         #define GEODE_ANDROID32(...) __VA_ARGS__
-		#define GEODE_ANDROID64(...) 
+		#define GEODE_ANDROID64(...)
         #define GEODE_IS_ANDROID32
 		#define GEODE_PLATFORM_NAME "Android32"
         #define GEODE_PLATFORM_EXTENSION ".android32.so"

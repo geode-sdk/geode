@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Geode/platform/platform.hpp>
 #include <cstdint>
 #include <array>
 #include <string_view>
@@ -77,7 +78,7 @@ namespace gd {
 		string& operator=(std::string const&);
 
 		void clear();
-		
+
 		char& at(size_t pos);
 		char const& at(size_t pos) const;
 
@@ -113,5 +114,8 @@ namespace gd {
 		operator std::string_view() const;
 	};
 
+	inline std::string_view format_as(gd::string const& str) {
+		return std::string_view(str);
+	}
 #endif
 }

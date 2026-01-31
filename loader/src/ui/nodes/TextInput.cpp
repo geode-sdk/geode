@@ -19,9 +19,20 @@ struct TextInputNodeFix : Modify<TextInputNodeFix, CCTextInputNode> {
             return false;
         }
 
-        auto const touchPos = touch->getLocation();
+        auto touchPos = touch->getLocation();
         auto const size = this->getContentSize();
         auto const pos = this->convertToNodeSpace(touchPos) + m_textField->getAnchorPoint() * size;
+
+        float parentScale = 1.f;
+        CCNode* currentParent = this;
+
+        while ((currentParent = currentParent->getParent())) {
+            parentScale *= currentParent->getScale();
+        }
+
+        CCPoint nodeSpace = this->convertToNodeSpace(touchPos);
+        nodeSpace = nodeSpace / parentScale;
+        touchPos = this->convertToWorldSpace(nodeSpace);
 
         if (pos.x < 0 || pos.x > size.width || pos.y < 0 || pos.y > size.height) {
             this->onClickTrackNode(false);
@@ -51,10 +62,12 @@ const char* geode::getCommonFilterAllowedChars(CommonFilter filter) {
         case CommonFilter::Hex:          return "0123456789abcdefABCDEF";
         case CommonFilter::Base64Normal: return "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+/=";
         case CommonFilter::Base64URL:    return "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_=";
+        case CommonFilter::Alphanumeric: return "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        case CommonFilter::Alphabetic:   return "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
     }
 }
 
-bool TextInput::init(float width, std::string const& placeholder, std::string const& font) {
+bool TextInput::init(float width, ZStringView placeholder, ZStringView font) {
     if (!CCNode::init())
         return false;
 
@@ -80,7 +93,7 @@ bool TextInput::init(float width, std::string const& placeholder, std::string co
     return true;
 }
 
-TextInput* TextInput::create(float width, std::string const& placeholder, std::string const& font) {
+TextInput* TextInput::create(float width, ZStringView placeholder, ZStringView font) {
     auto ret = new TextInput();
     if (ret->init(width, placeholder, font)) {
         ret->autorelease();
@@ -96,11 +109,12 @@ void TextInput::textChanged(CCTextInputNode* input) {
     }
 }
 
-void TextInput::setPlaceholder(std::string const& placeholder) {
-    m_input->m_caption = placeholder;
+void TextInput::setPlaceholder(gd::string placeholder) {
+    m_input->m_caption = std::move(placeholder);
     m_input->refreshLabel();
 }
-void TextInput::setLabel(std::string const& label) {
+
+void TextInput::setLabel(ZStringView label) {
     if (label.size()) {
         if (m_label) {
             m_label->setString(label.c_str());
@@ -118,8 +132,8 @@ void TextInput::setLabel(std::string const& label) {
         }
     }
 }
-void TextInput::setFilter(std::string const& allowedChars) {
-    m_input->m_allowedChars = allowedChars;
+void TextInput::setFilter(gd::string allowedChars) {
+    m_input->m_allowedChars = std::move(allowedChars);
 }
 void TextInput::setCommonFilter(CommonFilter filter) {
     this->setFilter(getCommonFilterAllowedChars(filter));
@@ -146,29 +160,29 @@ void TextInput::setDelegate(TextInputDelegate* delegate, std::optional<int> tag)
         m_input->setTag(tag.value());
     }
 }
-void TextInput::setCallback(std::function<void(std::string const&)> onInput) {
+void TextInput::setCallback(geode::Function<void(std::string const&)> onInput) {
     this->setDelegate(this);
-    m_onInput = onInput;
+    m_onInput = std::move(onInput);
 }
 void TextInput::setCallbackEnabled(bool enabled) {
     m_callbackEnabled = enabled;
 }
 void TextInput::setEnabled(bool enabled) {
     m_input->setTouchEnabled(enabled);
-    m_input->m_placeholderLabel->setOpacity(enabled ? 255 : 150);
+    m_input->m_textLabel->setOpacity(enabled ? 255 : 150);
 }
 void TextInput::setTextAlign(TextInputAlign align) {
     switch (align) {
         default:
         case TextInputAlign::Center: {
             m_input->m_textField->setAnchorPoint({ .5f, .5f });
-            m_input->m_placeholderLabel->setAnchorPoint({ .5f, .5f });
+            m_input->m_textLabel->setAnchorPoint({ .5f, .5f });
             m_input->updateAnchoredPosition(Anchor::Center);
         } break;
 
         case TextInputAlign::Left: {
             m_input->m_textField->setAnchorPoint({ .0f, .5f });
-            m_input->m_placeholderLabel->setAnchorPoint({ .0f, .5f });
+            m_input->m_textLabel->setAnchorPoint({ .0f, .5f });
             m_input->updateAnchoredPosition(Anchor::Left, ccp(5, 0));
         } break;
     }
@@ -178,18 +192,18 @@ void TextInput::hideBG() {
     m_bgSprite->setVisible(false);
 }
 
-void TextInput::setString(std::string const& str, bool triggerCallback) {
+void TextInput::setString(gd::string str, bool triggerCallback) {
     auto oldDelegate = m_input->m_delegate;
     // Avoid triggering the callback
     m_input->m_delegate = nullptr;
-    m_input->setString(str);
+    m_input->setString(std::move(str));
     m_input->m_delegate = oldDelegate;
     if (triggerCallback && m_input->m_delegate) {
         m_input->m_delegate->textChanged(m_input);
     }
 }
 
-std::string TextInput::getString() const {
+gd::string TextInput::getString() const {
     return m_input->getString();
 }
 bool TextInput::isCallbackEnabled() const {
@@ -208,4 +222,11 @@ CCTextInputNode* TextInput::getInputNode() const {
 }
 CCScale9Sprite* TextInput::getBGSprite() const {
     return m_bgSprite;
+}
+
+TextInput::~TextInput() {
+    if (m_input) {
+        m_input->onClickTrackNode(false);
+        m_input->m_delegate = nullptr;
+    }
 }

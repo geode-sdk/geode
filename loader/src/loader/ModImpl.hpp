@@ -3,8 +3,8 @@
 #include <matjson.hpp>
 #include "ModPatch.hpp"
 #include <Geode/loader/Loader.hpp>
-#include <string_view>
 #include <Geode/loader/ModSettingsManager.hpp>
+#include <Geode/utils/ZStringView.hpp>
 
 namespace geode {
     class Mod::Impl {
@@ -60,6 +60,10 @@ namespace geode {
          * Whether logging is enabled for this mod
          */
         bool m_loggingEnabled = true;
+        /**
+         * The minimum log level for this mod
+         */
+        Severity m_logLevel = Severity::Debug;
 
         std::unordered_map<std::string, char const*> m_expandedSprites;
 
@@ -79,22 +83,25 @@ namespace geode {
         Result<> loadPlatformBinary();
         Result<> createTempDir();
 
-        // called on a separate thread
-        Result<> unzipGeodeFile(ModMetadata metadata);
-
-        std::string getID() const;
-        std::string getName() const;
-        std::vector<std::string> getDevelopers() const;
-        std::optional<std::string> getDescription() const;
-        std::optional<std::string> getDetails() const;
+        ZStringView getID() const;
+        ZStringView getName() const;
+        std::vector<std::string> const& getDevelopers() const;
+        std::optional<std::string> const& getDescription() const;
+        std::optional<std::string> const& getDetails() const;
         std::filesystem::path getPackagePath() const;
         VersionInfo getVersion() const;
         bool isEnabled() const;
         bool isInternal() const;
         bool needsEarlyLoad() const;
-        ModMetadata getMetadata() const;
+        ModMetadata const& getMetadata() const;
         std::filesystem::path getTempDir() const;
         std::filesystem::path getBinaryPath() const;
+
+        /**
+         * If a mod should be considered ephemeral, in which case it will not attempt to save/load its data.
+         * Currently used for the invalid mod objects.
+         */
+        bool isEphemeral() const;
 
         matjson::Value& getSaveContainer();
 
@@ -143,17 +150,21 @@ namespace geode {
 
         Result<> loadBinary();
 
-        std::string_view expandSpriteName(std::string_view name);
+        std::string expandSpriteName(std::string_view name);
         ModJson getRuntimeInfo() const;
 
         bool isLoggingEnabled() const;
         void setLoggingEnabled(bool enabled);
+        Severity getLogLevel() const;
+        void setLogLevel(Severity level);
 
         std::vector<LoadProblem> getProblems() const;
 
         bool hasLoadProblems() const;
         bool shouldLoad() const;
         bool isCurrentlyLoading() const;
+
+        int getLoadPriority() const;
     };
 
     class ModImpl : public Mod::Impl {

@@ -1,100 +1,115 @@
 #pragma once
 
-#include <coroutine>
-#include <Geode/DefaultInclude.hpp>
-#include "Task.hpp"
+#include <arc/runtime/Runtime.hpp>
+#include <arc/util/Result.hpp>
+#include <arc/task/CancellationToken.hpp>
+#include <Geode/utils/function.hpp>
+#include <Geode/loader/Loader.hpp>
 
-namespace geode {
-    template <is_task_type T = void, typename P = std::monostate>
-    class CoTask final {
-        using Type = Task<T, P>::Type;
-        Task<T, P> m_task;
-     public:
-        using promise_type = std::coroutine_traits<Task<T, P>>::promise_type;
-        auto operator<=>(const CoTask&) const = default;
-        operator Task<T, P>() { return std::move(m_task); }
+namespace geode::async {
 
-        CoTask() = default;
-        CoTask(CoTask&&) = default;
-        CoTask(Task<T, P>&& task) : m_task(std::move(task)) {}
+/**
+ * Gets the main arc Runtime, prefer running all async code inside this runtime.
+ */
+arc::Runtime& runtime();
 
-
-        Type* getFinishedValue() { return m_task.getFinishedValue(); }
-        void cancel() { return m_task.cancel(); }
-        void shallowCancel() { m_task.shallowCancel(); }
-        bool isPending() const { return m_task.isPending(); }
-        bool isFinished() const { return m_task.isFinished(); }
-        bool isCancelled() const { return m_task.isCancelled(); }
-        bool isNull() const { return m_task.isNull(); }
-
-        Task<T, P> task() { return std::move(m_task); }
-
-        static inline struct {
-            template <typename F>
-            decltype(auto) operator<<(F fn) { return fn(); }
-        } invoke;
-    };
-
-    namespace geode_internal {
-        template <typename T, typename E>
-        struct promise_type {
-            using Inner = std::optional<Result<T, E>>;
-
-            struct: public std::shared_ptr<Inner> {
-                using std::shared_ptr<Inner>::shared_ptr;
-                operator Result<T>() {
-                    return (*this->get()).value();
-                }
-            } result{new Inner()};
-
-            std::suspend_never initial_suspend() { return {}; }
-            std::suspend_never final_suspend() noexcept { return {}; }
-            auto get_return_object() { return result; }
-            void unhandled_exception() {}
-            void return_value(Result<T, E>&& value) { *result = std::move(value); }
-        };
-
-        template <typename T, typename E>
-        struct Awaiter {
-            Result<T, E> result;
-
-            bool await_ready() { return result.isOk(); }
-            T&& await_resume() { return std::move(result.unwrap()); }
-            Awaiter(Result<T, E>&& res) : result(std::move(res)) {}
-
-            template <typename U>
-            void await_suspend(std::coroutine_handle<U> handle) {
-                handle.promise().return_value(Err(result.unwrapErr()));
-                handle.destroy();
-            }
-        };
-
-        template <typename E>
-        struct Awaiter<void, E> {
-            Result<void, E> result;
-
-            bool await_ready() { return result.isOk(); }
-            void await_resume() { return; }
-            Awaiter(Result<void, E> res) : result(res) {}
-
-            template <typename U>
-            void await_suspend(std::coroutine_handle<U> handle) {
-                handle.promise().return_value(Err(result.unwrapErr()));
-                handle.destroy();
-            }
-        };
-    }
-
-    #define $async(...) geode::CoTask<>::invoke << [__VA_ARGS__]() -> geode::CoTask<>
-    #define $try geode::CoTask<>::invoke << [&]() -> geode::Result
-};
-
-template <typename T = void, typename E = std::string>
-auto operator co_await(geode::Result<T, E>&& res) {
-    return geode::geode_internal::Awaiter { std::move(res) };
+/**
+ * Asynchronously spawns a function, then invokes the given callback on the main thread when it completes.
+ */
+template <
+    typename Fut,
+    typename Out = arc::FutureTraits<Fut>::Output,
+    bool Void = std::is_void_v<Out>,
+    typename Callback = std::conditional_t<Void, Function<void()>, Function<void(Out)>>
+>
+arc::TaskHandle<void> spawn(Fut future, Callback cb) {
+    return runtime().spawn([](Fut future, Callback cb) mutable -> arc::Future<> {
+        if constexpr (Void) {
+            co_await std::move(future);
+            geode::queueInMainThread([cb = std::move(cb)]() mutable {
+                cb();
+            });
+        } else {
+            auto result = co_await std::move(future);
+            geode::queueInMainThread([cb = std::move(cb), result = std::move(result)]() mutable {
+                cb(std::move(result));
+            });
+        }
+    }(std::move(future), std::move(cb)));
 }
 
-template <typename T, typename E, typename ...Args>
-struct std::coroutine_traits<geode::Result<T, E>, Args...> {
-    using promise_type = geode::geode_internal::promise_type<T, E>;
+/**
+ * Allows an async task to be spawned and then automatically aborted when the holder goes out of scope.
+ */
+template <typename Ret>
+class TaskHolder {
+public:
+    template <
+        typename Fut,
+        typename NonVoid = std::conditional_t<std::is_void_v<Ret>, std::monostate, Ret>,
+        typename Callback = std::conditional_t<std::is_void_v<Ret>, Function<void()>, Function<void(NonVoid)>>
+    >
+    void spawn(Fut future, Callback cb) {
+        static_assert(
+            std::convertible_to<typename arc::FutureTraits<Fut>::Output, Ret>,
+            "Output of spawned future must be convertible to TaskHolder's expected return type"
+        );
+
+        this->cancel();
+
+        m_cancel = std::make_shared<arc::CancellationToken>();
+        
+        if constexpr (std::is_void_v<Ret>) {
+            m_handle = geode::async::spawn(std::move(future), [cancel = m_cancel, cb = std::move(cb)] mutable {
+                if (cancel->isCancelled()) return;
+                cb();
+            });
+        } else {
+            m_handle = geode::async::spawn(std::move(future), [cancel = m_cancel, cb = std::move(cb)](Ret val) mutable {
+                if (cancel->isCancelled()) return;
+                cb(std::move(val));
+            });
+        }
+        
+    }
+
+    ~TaskHolder() {
+        this->cancel();
+    }
+
+    TaskHolder() = default;
+
+    TaskHolder(TaskHolder const&) = delete;
+    TaskHolder& operator=(TaskHolder const&) = delete;
+    
+    TaskHolder(TaskHolder&& other) noexcept {
+        *this = std::move(other);
+    }
+
+    TaskHolder& operator=(TaskHolder&& other) noexcept {
+        if (this != &other) {
+            this->cancel();
+
+            m_handle = std::move(other.m_handle);
+            m_cancel = std::move(other.m_cancel);
+            other.m_cancel.reset();
+        }
+        return *this;
+    }
+
+    void cancel() {
+        if (m_handle) {
+            m_cancel->cancel();
+            m_cancel.reset();
+
+            m_handle->abort();
+            m_handle.reset();
+        }
+    }
+
+private:
+    std::optional<arc::TaskHandle<void>> m_handle;
+    std::shared_ptr<arc::CancellationToken> m_cancel;
 };
+
+}

@@ -5,6 +5,7 @@
 #include <set>
 #include <variant>
 #include <Geode/Result.hpp>
+#include <Geode/utils/function.hpp>
 
 namespace geode {
     struct JsonChecker;
@@ -72,7 +73,7 @@ namespace geode {
     }
 
     template <class T>
-    using JsonValueValidator = std::function<bool(T const&)>;
+    using JsonValueValidator = geode::Function<bool(T const&)>;
 
     struct JsonMaybeObject;
     struct JsonMaybeValue;
@@ -83,7 +84,7 @@ namespace geode {
         std::unique_ptr<Impl> m_impl;
 
         JsonExpectedValue();
-        JsonExpectedValue(Impl* from, matjson::Value& scope, std::string_view key);
+        JsonExpectedValue(Impl* from, matjson::Value& scope, std::string key);
 
         static const char* matJsonTypeToString(matjson::Type ty);
 
@@ -117,7 +118,7 @@ namespace geode {
         }
 
     public:
-        JsonExpectedValue(matjson::Value const& value, std::string_view rootScopeName);
+        JsonExpectedValue(matjson::Value value, std::string rootScopeName);
         ~JsonExpectedValue();
 
         JsonExpectedValue(JsonExpectedValue&&);
@@ -130,14 +131,14 @@ namespace geode {
          */
         matjson::Value json() const;
         /**
-         * Get the key name of this JSON value. If this is an array index, 
-         * returns the index as a string. If this is the root object, 
-         * returns the root scope name. 
+         * Get the key name of this JSON value. If this is an array index,
+         * returns the index as a string. If this is the root object,
+         * returns the root scope name.
          */
         std::string key() const;
 
         /**
-         * Check the type of this JSON value. Does not set an error. If an 
+         * Check the type of this JSON value. Does not set an error. If an
          * error is already set, always returns false
          */
         bool is(matjson::Type type) const;
@@ -148,7 +149,7 @@ namespace geode {
         bool isArray() const;
         bool isObject() const;
         /**
-         * Asserts that this JSON value is of the specified type. If it is 
+         * Asserts that this JSON value is of the specified type. If it is
          * not, an error is set and all subsequent operations are no-ops
          * @returns Itself
          */
@@ -218,33 +219,33 @@ namespace geode {
         // -- Dealing with objects --
 
         /**
-         * Check if this object has an optional key. Asserts that this JSON 
-         * value is an object. If the key doesn't exist, returns a 
+         * Check if this object has an optional key. Asserts that this JSON
+         * value is an object. If the key doesn't exist, returns a
          * `JsonExpectValue` that does nothing
          * @returns The key, which is a no-op value if it didn't exist
          */
-        JsonExpectedValue has(std::string_view key);
+        JsonExpectedValue has(std::string key);
         /**
-         * Check if this object has an optional key. Asserts that this JSON 
-         * value is an object. If the key doesn't exist, or the value is null, returns a 
+         * Check if this object has an optional key. Asserts that this JSON
+         * value is an object. If the key doesn't exist, or the value is null, returns a
          * `JsonExpectValue` that does nothing
          * @returns The key, which is a no-op value if it didn't exist, or was null
          */
-        JsonExpectedValue hasNullable(std::string_view key);
+        JsonExpectedValue hasNullable(std::string key);
         /**
-         * Check if this object has an optional key. Asserts that this JSON 
-         * value is an object. If the key doesn't exist, sets an error and 
+         * Check if this object has an optional key. Asserts that this JSON
+         * value is an object. If the key doesn't exist, sets an error and
          * returns a `JsonExpectValue` that does nothing
          * @returns The key, which is a no-op value if it didn't exist
          */
-        JsonExpectedValue needs(std::string_view key);
+        JsonExpectedValue needs(std::string key);
         /**
-         * Asserts that this JSON value is an object. Get all object 
+         * Asserts that this JSON value is an object. Get all object
          * properties
          */
         std::vector<std::pair<std::string, JsonExpectedValue>> properties();
         /**
-         * Asserts that this JSON value is an object. Logs unknown keys to 
+         * Asserts that this JSON value is an object. Logs unknown keys to
          * the console as warnings
          */
         void checkUnknownKeys();
@@ -252,19 +253,19 @@ namespace geode {
         // -- Dealing with arrays --
 
         /**
-         * Asserts that this JSON value is an array. Returns the length of 
+         * Asserts that this JSON value is an array. Returns the length of
          * the array, or 0 on error
          */
         size_t length();
         /**
-         * Asserts that this JSON value is an array. Returns the value at 
-         * the specified index. If there is no value at that index, sets an 
+         * Asserts that this JSON value is an array. Returns the value at
+         * the specified index. If there is no value at that index, sets an
          * error
          */
         JsonExpectedValue at(size_t index);
         /**
          * Asserts that this JSON value is an array. Returns the array items
-         * @warning The old JsonChecker used `items` for iterating object 
+         * @warning The old JsonChecker used `items` for iterating object
          * properties - on this new API that function is called `properties`!
          */
         std::vector<JsonExpectedValue> items();
@@ -281,5 +282,5 @@ namespace geode {
             return Ok(std::forward<T>(value));
         }
     };
-    GEODE_DLL JsonExpectedValue checkJson(matjson::Value const& json, std::string_view rootScopeName);
+    GEODE_DLL JsonExpectedValue checkJson(matjson::Value json, std::string rootScopeName);
 }

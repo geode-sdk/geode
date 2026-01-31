@@ -4,6 +4,8 @@
 #include <chrono>
 #include "../dependency/main.hpp"
 #include "Geode/utils/general.hpp"
+#include <Geode/utils/VMTHookManager.hpp>
+#include <Geode/loader/Event.hpp>
 
 using namespace geode::prelude;
 
@@ -12,26 +14,61 @@ auto test = []() {
     return 0;
 };
 
+
 // Exported functions
 $on_mod(Loaded) {
     log::info("Loaded");
+
+    auto h1 = geode::Dispatch<std::string>("geode.test/test-garage-open").listen([](std::string const& str) {
+        log::info("Received dispatched event: {}", str);
+    });
+
+    geode::Dispatch<std::string>("geode.test/test-garage-open").send("Hello from dispatch!");
+
+    auto handle = Dispatch<int>("test").listen([](int val) {
+        geode::log::info("Received dispatched int: {}", val);
+        return val > 0;
+    });
+    
+    auto handle2 = Dispatch<int>("test2").listen([](int val) {
+        geode::log::info("Received dispatched int2: {}", val);
+    });
+
+    auto handle3 = Dispatch<float>("test").listen([](float val) {
+        geode::log::info("Received dispatched float: {}", val);
+    });
+
+    auto handle4 = Dispatch<int>("test").listen([](int val) {
+        geode::log::info("Received dispatched int4: {}", val);
+    }, -5);
+
+    auto handle5 = Dispatch<int>("test").listen([](int val) {
+        geode::log::info("Received dispatched int5: {}", val);
+    }, 5);
+
+    Dispatch<int>("test").send(5);
+    Dispatch<int>("test2").send(7);
+    Dispatch<float>("test").send(9);
+    Dispatch<int>("test").send(-5);
 }
 
-static std::string s_recievedEvent;
+static std::string s_receivedEvent;
 
 // Events
 $execute {
-    new EventListener<TestEventFilter>(+[](TestEvent* event) {
-        log::info("Received event: {}", event->getData());
-        s_recievedEvent = event->getData();
-    });
+    TestEvent().listen(+[](std::string_view data) {
+        log::info("Received event: {}", data);
+        s_receivedEvent = data;
+    }).leak();
 }
 
 // Coroutines
-#include <Geode/utils/async.hpp>
+#include <Geode/utils/coro.hpp>
 auto advanceFrame() {
     auto [task, finish, progress, cancelled] = Task<void>::spawn();
-    queueInMainThread(std::bind(finish, true));
+    queueInMainThread([finish = std::move(finish)] mutable {
+        finish(true);
+    });
 
     return task;
 }
@@ -65,7 +102,7 @@ struct $modify(MenuLayer) {
     bool init() {
         if (!MenuLayer::init())
             return false;
-        
+
         auto node = CCNode::create();
         auto ref = WeakRef(node);
         log::info("ref: {}", ref.lock().data());
@@ -109,7 +146,7 @@ struct $modify(MenuLayer) {
         else {
             log::error("Failed to API (method)");
         }
-        
+
 
         return true;
     }
@@ -155,9 +192,9 @@ struct GJGarageLayerTest : Modify<GJGarageLayerTest, GJGarageLayer> {
         addChild(label2);
 
         // Dispatch system pt. 1
-        MyDispatchEvent("geode.test/test-garage-open", this).post();
+        MyDispatchEvent("geode.test/test-garage-open").send(this);
 
-        if (s_recievedEvent.size() > 0) {
+        if (s_receivedEvent.size() > 0) {
             auto label = CCLabelBMFont::create("Event works!", "bigFont.fnt");
             label->setPosition(100, 70);
             label->setScale(.4f);
@@ -175,9 +212,10 @@ struct GJGarageLayerTest : Modify<GJGarageLayerTest, GJGarageLayer> {
 struct GJGarageLayerTest2 : Modify<GJGarageLayerTest2, GJGarageLayer> {
     struct Fields {
         int myOtherValue = 80085;
+        int counter = 0;
     };
-    
-    bool init() {
+
+    bool init() override {
         if (!GJGarageLayer::init()) return false;
 
         if (m_fields->myOtherValue == 80085) {
@@ -188,6 +226,50 @@ struct GJGarageLayerTest2 : Modify<GJGarageLayerTest2, GJGarageLayer> {
             this->addChild(label);
         }
 
+        this->setTouchMode(kCCTouchesOneByOne);
+        this->setTouchEnabled(true);
+
+        auto hook = VMTHookManager::get().addHook<
+            ResolveC<GJGarageLayerTest2>::func(&GJGarageLayerTest2::ccTouchBegan)
+        >(this, "GJGarageLayer::ccTouchBegan");
+        auto hook2 = VMTHookManager::get().addHook<
+            ResolveC<CCTouchDelegate>::func(&GJGarageLayerTest2::ccTouchBegan)
+        >(this, "GJGarageLayer::ccTouchBegan");
+
+        auto hook3 = VMTHookManager::get().addHook<
+            ResolveC<CCTouchDelegate>::func(&GJGarageLayerTest2::ccTouchEnded)
+        >(this, "GJGarageLayer::ccTouchEnded");
+        auto hook4 = VMTHookManager::get().addHook<
+            ResolveC<GJGarageLayerTest2>::func(&GJGarageLayerTest2::ccTouchEnded)
+        >(this, "GJGarageLayer::ccTouchEnded");
+
         return true;
+    }
+
+    bool ccTouchBegan(CCTouch* touch, CCEvent* event) override {
+        this->ccTouchBegan(touch, event);
+        log::debug("Touch began on GJGarageLayer");
+
+        if (m_fields->counter % 2) {
+            if (auto r = VMTHookManager::get().forceDisableFunction<
+                ResolveC<GJGarageLayerTest2>::func(&GJGarageLayerTest2::ccTouchEnded)
+            >(this); !r) {
+                geode::log::warn("forceDisableFunction failed: {}", r.unwrapErr());
+            }
+        }
+        else {
+            if (auto r = VMTHookManager::get().forceEnableFunction<
+                ResolveC<GJGarageLayerTest2>::func(&GJGarageLayerTest2::ccTouchEnded)
+            >(this); !r) {
+                geode::log::warn("forceEnableFunction failed: {}", r.unwrapErr());
+            }
+        }
+        m_fields->counter++;
+        return true;
+    }
+
+    void ccTouchEnded(CCTouch* touch, CCEvent* event) override {
+        this->ccTouchEnded(touch, event);
+        log::debug("Touch ended on GJGarageLayer");
     }
 };

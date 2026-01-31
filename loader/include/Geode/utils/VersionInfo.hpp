@@ -26,8 +26,8 @@ namespace geode {
     };
 
     /**
-     * A version label, like v1.0.0-alpha or v2.3.4-prerelease. Limited to these 
-     * options; arbitary identifiers are not supported. Additional numbering 
+     * A version label, like v1.0.0-alpha or v2.3.4-prerelease. Limited to these
+     * options; arbitary identifiers are not supported. Additional numbering
      * may be added after the identifier, such as v1.0.0-beta.1
      */
     struct VersionTag {
@@ -49,9 +49,11 @@ namespace geode {
         }
         constexpr bool operator<(VersionTag const& other) const {
             if (value == other.value) {
+                // order s.t. having number is ranked higher than not having one
+                // aka alpha < alpha.1 == true
                 if (number && other.number) return number < other.number;
-                if (number) return true;
-                if (other.number) return false;
+                if (number) return false;
+                if (other.number) return true;
                 return false;
             }
             return value < other.value;
@@ -59,8 +61,8 @@ namespace geode {
         constexpr bool operator<=(VersionTag const& other) const {
             if (value == other.value) {
                 if (number && other.number) return number <= other.number;
-                if (number) return true;
-                if (other.number) return false;
+                if (number) return false;
+                if (other.number) return true;
                 return true;
             }
             return value <= other.value;
@@ -68,8 +70,8 @@ namespace geode {
         constexpr bool operator>(VersionTag const& other) const {
             if (value == other.value) {
                 if (number && other.number) return number > other.number;
-                if (number) return false;
-                if (other.number) return true;
+                if (number) return true;
+                if (other.number) return false;
                 return false;
             }
             return value > other.value;
@@ -77,8 +79,8 @@ namespace geode {
         constexpr bool operator>=(VersionTag const& other) const {
             if (value == other.value) {
                 if (number && other.number) return number >= other.number;
-                if (number) return false;
-                if (other.number) return true;
+                if (number) return true;
+                if (other.number) return false;
                 return true;
             }
             return value >= other.value;
@@ -118,8 +120,8 @@ namespace geode {
     }
 
     /**
-     * Class representing version information. Uses a limited subset of SemVer;  
-     * identifiers are restricted to a few predefined ones, and only one 
+     * Class representing version information. Uses a limited subset of SemVer;
+     * identifiers are restricted to a few predefined ones, and only one
      * identifier is allowed. See VersionTag for details
      */
     class GEODE_DLL VersionInfo final {
@@ -145,8 +147,8 @@ namespace geode {
             m_patch = patch;
             m_tag = tag;
         }
-        
-        static Result<VersionInfo> parse(std::string const& string);
+
+        static Result<VersionInfo> parse(std::string string);
 
         constexpr size_t getMajor() const {
             return m_major;
@@ -165,6 +167,7 @@ namespace geode {
         }
 
         // Apple clang does not support operator<=>! Yippee!
+        // sidenote: this is no longer true!
 
         constexpr bool operator==(VersionInfo const& other) const {
             return std::tie(m_major, m_minor, m_patch, m_tag) ==
@@ -189,7 +192,7 @@ namespace geode {
 
         std::string toVString(bool includeTag = true) const;
         std::string toNonVString(bool includeTag = true) const;
- 
+
         friend GEODE_DLL std::string format_as(VersionInfo const& version);
     };
 
@@ -205,7 +208,7 @@ namespace geode {
             VersionCompare const& compare
         ) : m_version(version), m_compare(compare) {}
 
-        static Result<ComparableVersionInfo> parse(std::string const& string);
+        static Result<ComparableVersionInfo> parse(std::string string);
 
         constexpr bool compare(VersionInfo const& version) const {
             return compareWithReason(version) == VersionCompareResult::Match;
@@ -233,7 +236,7 @@ namespace geode {
                 case VersionCompare::More:
                     return version > m_version ? VersionCompareResult::Match : VersionCompareResult::TooOld;
                 case VersionCompare::Exact:
-                    return version == m_version ? VersionCompareResult::Match : 
+                    return version == m_version ? VersionCompareResult::Match :
                         (version > m_version) ? VersionCompareResult::TooOld : VersionCompareResult::TooNew;
                 default:
                     return VersionCompareResult::GenericMismatch;

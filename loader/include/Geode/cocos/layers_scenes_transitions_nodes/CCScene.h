@@ -40,7 +40,7 @@ NS_CC_BEGIN
 class CCScene;
 
 class CC_DLL CCSceneDelegate {
-public: 
+public:
     virtual void willSwitchToScene(CCScene* scene) {}
 };
 

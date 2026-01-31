@@ -17,20 +17,21 @@ using namespace geode::prelude;
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/Utils.hpp>
 #include <objc/runtime.h>
+#include <objc/message.h>
 #include <stdlib.h>
+#include <string.h>
 
 using geode::utils::permission::Permission;
 
-bool utils::clipboard::write(std::string const& data) {
+bool utils::clipboard::write(ZStringView data) {
     [UIPasteboard generalPasteboard].string = [NSString stringWithUTF8String:data.c_str()];
     return true;
 }
-
 std::string utils::clipboard::read() {
     return std::string([[UIPasteboard generalPasteboard].string UTF8String]);
 }
 
-void utils::web::openLinkInBrowser(std::string const& url) {
+void utils::web::openLinkInBrowser(ZStringView url) {
     [[UIApplication sharedApplication]
         openURL:[NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]] options:{} completionHandler:nil];
 }
@@ -90,185 +91,189 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
     return false;
 }
 
-GEODE_DLL Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, file::FilePickOptions const& options) {
-    using RetTask = Task<Result<std::filesystem::path>>;
-    return RetTask::runWithCallback([mode, options](auto resultCallback, auto progress, auto cancelled) {
+GEODE_DLL arc::Future<Result<std::optional<std::filesystem::path>>> file::pick(file::PickMode mode, file::FilePickOptions const& options) {
+    co_return Err("// TODO: v5");
+    // using RetTask = Task<Result<std::filesystem::path>>;
+    // return RetTask::runWithCallback([mode, options](auto resultCallback, auto progress, auto cancelled) {
 
-        NSMutableArray<UTType*> *documentTypes = [NSMutableArray array];
-        for (const auto& filter : options.filters) {
-            for (const auto& file : filter.files) {
-                UTType* uti = [UTType typeWithFilenameExtension:@(file.c_str())];
-                if (uti) {
-                    [documentTypes addObject:uti];
-                }
-            }
-        }
+    //     NSMutableArray<UTType*> *documentTypes = [NSMutableArray array];
+    //     for (const auto& filter : options.filters) {
+    //         for (const auto& file : filter.files) {
+    //             UTType* uti = [UTType typeWithFilenameExtension:@(file.c_str())];
+    //             if (uti) {
+    //                 [documentTypes addObject:uti];
+    //             }
+    //         }
+    //     }
 
-        NSURL *FileURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:@"temp.file"]];
-        if (options.defaultPath && !options.defaultPath->parent_path().empty()) {
-            FileURL = [NSURL fileURLWithPath:[NSString stringWithUTF8String:options.defaultPath->c_str()]];
-        }
-        else if (options.defaultPath) {
-            auto FileExtension = [NSString stringWithUTF8String:options.defaultPath->c_str()];
-            FileURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:FileExtension]];
-        }
+    //     NSURL *FileURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:@"temp.file"]];
+    //     if (options.defaultPath && !options.defaultPath->parent_path().empty()) {
+    //         FileURL = [NSURL fileURLWithPath:[NSString stringWithUTF8String:options.defaultPath->c_str()]];
+    //     }
+    //     else if (options.defaultPath) {
+    //         auto FileExtension = [NSString stringWithUTF8String:options.defaultPath->c_str()];
+    //         FileURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:FileExtension]];
+    //     }
         
-        // just for the picker not to crash, it gotta have a file to "save" then the writing is handled in the mod once we save the file somewhere
-        [@"" writeToURL:FileURL atomically:NO encoding:NSUTF8StringEncoding error:nil];
+    //     // just for the picker not to crash, it gotta have a file to "save" then the writing is handled in the mod once we save the file somewhere
+    //     [@"" writeToURL:FileURL atomically:NO encoding:NSUTF8StringEncoding error:nil];
 
-        if (documentTypes.count == 0) {
-            [documentTypes addObject:UTTypeItem]; // Default to any file type if no filters are provided
-        }
+    //     if (documentTypes.count == 0) {
+    //         [documentTypes addObject:UTTypeItem]; // Default to any file type if no filters are provided
+    //     }
 
-        UIDocumentPickerViewController *picker;
-        switch (mode) {
-            case file::PickMode::OpenFile:
-                picker = [[UIDocumentPickerViewController alloc]
-                    initForOpeningContentTypes:documentTypes
-                    asCopy:YES];
-                break;
-            case file::PickMode::SaveFile:
-                picker = [[UIDocumentPickerViewController alloc]
-                    initForExportingURLs:@[FileURL]
-                    asCopy:YES];
-                break;
-            case file::PickMode::OpenFolder:
-                picker = [[UIDocumentPickerViewController alloc]
-                    initForOpeningContentTypes:@[UTTypeFolder]
-                    asCopy:YES];
-                break;
-        }
-        picker.allowsMultipleSelection = NO;
-        picker.shouldShowFileExtensions = YES;
+    //     UIDocumentPickerViewController *picker;
+    //     switch (mode) {
+    //         case file::PickMode::OpenFile:
+    //             picker = [[UIDocumentPickerViewController alloc]
+    //                 initForOpeningContentTypes:documentTypes
+    //                 asCopy:YES];
+    //             break;
+    //         case file::PickMode::SaveFile:
+    //             picker = [[UIDocumentPickerViewController alloc]
+    //                 initForExportingURLs:@[FileURL]
+    //                 asCopy:YES];
+    //             break;
+    //         case file::PickMode::OpenFolder:
+    //             picker = [[UIDocumentPickerViewController alloc]
+    //                 initForOpeningContentTypes:@[UTTypeFolder]
+    //                 asCopy:YES];
+    //             break;
+    //     }
+    //     picker.allowsMultipleSelection = NO;
+    //     picker.shouldShowFileExtensions = YES;
 
-        PickerDelegate_instance = [[PickerDelegate alloc] initWithCompletion:^(NSArray<NSURL*>* urls, NSError* error) {
-            PickerDelegate_instance = nil;
+    //     PickerDelegate_instance = [[PickerDelegate alloc] initWithCompletion:^(NSArray<NSURL*>* urls, NSError* error) {
+    //         PickerDelegate_instance = nil;
 
-            if (urls && urls.count > 0)
-            {
-                std::filesystem::path paths;
+    //         if (urls && urls.count > 0)
+    //         {
+    //             std::filesystem::path paths;
 
-                for (NSURL* url : urls)
-                {
-                    if (url && url.path)
-                    {
-                        std::string pathStr = std::string([url.path UTF8String]);
-                        auto path = std::filesystem::path(pathStr);
+    //             for (NSURL* url : urls)
+    //             {
+    //                 if (url && url.path)
+    //                 {
+    //                     std::string pathStr = std::string([url.path UTF8String]);
+    //                     auto path = std::filesystem::path(pathStr);
 
-                        paths = path;
-                    }
-                }
+    //                     paths = path;
+    //                 }
+    //             }
 
-                resultCallback(Ok(paths));
+    //             resultCallback(Ok(paths));
 
-                for (NSURL* url : urls)
-                {
-                    if (url && url.path)
-                    {
-                        [url stopAccessingSecurityScopedResource];
-                    }
-                }
-            }
-            else if (cancelled()) {
-                resultCallback(RetTask::Cancel());
-            } else if (error) {
-                resultCallback(Err(std::string([[error localizedDescription] UTF8String])));
-            } else {
-                resultCallback(RetTask::Cancel());
-            }
-        }];
+    //             for (NSURL* url : urls)
+    //             {
+    //                 if (url && url.path)
+    //                 {
+    //                     [url stopAccessingSecurityScopedResource];
+    //                 }
+    //             }
+    //         }
+    //         else if (cancelled()) {
+    //             resultCallback(RetTask::Cancel());
+    //         } else if (error) {
+    //             resultCallback(Err(std::string([[error localizedDescription] UTF8String])));
+    //         } else {
+    //             resultCallback(RetTask::Cancel());
+    //         }
+    //     }];
 
-        picker.delegate = PickerDelegate_instance;
+    //     picker.delegate = PickerDelegate_instance;
 
-        dispatch_async(dispatch_get_main_queue(), ^{
-            UIViewController *currentViewController = getCurrentViewController();
-            [currentViewController presentViewController:picker animated:YES completion:nil];
-        });
-    });
+    //     dispatch_async(dispatch_get_main_queue(), ^{
+    //         UIViewController *currentViewController = getCurrentViewController();
+    //         [currentViewController presentViewController:picker animated:YES completion:nil];
+    //     });
+    // });
 }
 
-GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> file::pickMany(file::FilePickOptions const& options) {
-    using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
-    return RetTask::runWithCallback([options](auto resultCallback, auto progress, auto cancelled) {
-        NSMutableArray<NSString*> *documentTypes = [NSMutableArray array];
-        for (const auto& filter : options.filters) {
-            for (const auto& file : filter.files) {
-                NSString* uti = [UTType typeWithFilenameExtension:@(file.c_str())].identifier;
-                if (uti) {
-                    [documentTypes addObject:uti];
-                }
-            }
-        }
-        if (documentTypes.count == 0) {
-            [documentTypes addObject:(NSString*)UTTypeItem.identifier]; // Default to any file type if no filters are provided
-        }
+GEODE_DLL arc::Future<Result<std::vector<std::filesystem::path>>> file::pickMany(file::FilePickOptions const& options) {
+    co_return Err("// TODO: v5");
+    // using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
+    // return RetTask::runWithCallback([options](auto resultCallback, auto progress, auto cancelled) {
+    //     NSMutableArray<NSString*> *documentTypes = [NSMutableArray array];
+    //     for (const auto& filter : options.filters) {
+    //         for (const auto& file : filter.files) {
+    //             NSString* uti = [UTType typeWithFilenameExtension:@(file.c_str())].identifier;
+    //             if (uti) {
+    //                 [documentTypes addObject:uti];
+    //             }
+    //         }
+    //     }
+    //     if (documentTypes.count == 0) {
+    //         [documentTypes addObject:(NSString*)UTTypeItem.identifier]; // Default to any file type if no filters are provided
+    //     }
 
-        UIDocumentPickerViewController* picker = [[UIDocumentPickerViewController alloc] initWithDocumentTypes:documentTypes inMode:UIDocumentPickerModeOpen];
-        picker.allowsMultipleSelection = true;
+    //     UIDocumentPickerViewController* picker = [[UIDocumentPickerViewController alloc] initWithDocumentTypes:documentTypes inMode:UIDocumentPickerModeOpen];
+    //     picker.allowsMultipleSelection = true;
 
-        PickerDelegate_instance = [[PickerDelegate alloc] initWithCompletion:^(NSArray<NSURL*>* urls, NSError* error) {
-            PickerDelegate_instance = nil;
+    //     PickerDelegate_instance = [[PickerDelegate alloc] initWithCompletion:^(NSArray<NSURL*>* urls, NSError* error) {
+    //         PickerDelegate_instance = nil;
 
-            if (urls && urls.count > 0)
-            {
-                std::vector<std::filesystem::path> paths;
+    //         if (urls && urls.count > 0)
+    //         {
+    //             std::vector<std::filesystem::path> paths;
 
-                for (NSURL* url : urls)
-                {
-                    if (url && url.path)
-                    {
-                        std::string pathStr = std::string([url.path UTF8String]);
+    //             for (NSURL* url : urls)
+    //             {
+    //                 if (url && url.path)
+    //                 {
+    //                     std::string pathStr = std::string([url.path UTF8String]);
 
-                        if ([url startAccessingSecurityScopedResource])
-                        {
-                            auto path = std::filesystem::path(pathStr);
+    //                     if ([url startAccessingSecurityScopedResource])
+    //                     {
+    //                         auto path = std::filesystem::path(pathStr);
 
-                            paths.push_back(path);
-                        }
-                        else
-                        {
-                            resultCallback(Err("Failed to access security-scoped resource: {}", pathStr));
-                        }
-                    }
-                }
+    //                         paths.push_back(path);
+    //                     }
+    //                     else
+    //                     {
+    //                         resultCallback(Err("Failed to access security-scoped resource: {}", pathStr));
+    //                     }
+    //                 }
+    //             }
 
-                resultCallback(Ok(paths));
+    //             resultCallback(Ok(paths));
 
-                for (NSURL* url : urls)
-                {
-                    if (url && url.path)
-                    {
-                        [url stopAccessingSecurityScopedResource];
-                    }
-                }
-            }
-            else if (cancelled()) {
-                resultCallback(RetTask::Cancel());
-            } else if (error) {
-                resultCallback(Err(std::string([[error localizedDescription] UTF8String])));
-            } else {
-                resultCallback(RetTask::Cancel());
-            }
-        }];
+    //             for (NSURL* url : urls)
+    //             {
+    //                 if (url && url.path)
+    //                 {
+    //                     [url stopAccessingSecurityScopedResource];
+    //                 }
+    //             }
+    //         }
+    //         else if (cancelled()) {
+    //             resultCallback(RetTask::Cancel());
+    //         } else if (error) {
+    //             resultCallback(Err(std::string([[error localizedDescription] UTF8String])));
+    //         } else {
+    //             resultCallback(RetTask::Cancel());
+    //         }
+    //     }];
 
-        picker.delegate = PickerDelegate_instance;
+    //     picker.delegate = PickerDelegate_instance;
 
-        dispatch_async(dispatch_get_main_queue(), ^{
-            UIViewController *currentViewController = getCurrentViewController();
-            [currentViewController presentViewController:picker animated:YES completion:nil];
-        });
-    });
+    //     dispatch_async(dispatch_get_main_queue(), ^{
+    //         UIViewController *currentViewController = getCurrentViewController();
+    //         [currentViewController presentViewController:picker animated:YES completion:nil];
+    //     });
+    // });
 }
 
 // TODO: copied those two from android but idk maybe shouldve copied from mac
-void geode::utils::game::exit() {
+void geode::utils::game::exit(bool save) {
     // TODO: yeah
     // if (CCApplication::sharedApplication() &&
     //     (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
     //     log::error("Cannot exit in PlayLayer or LevelEditorLayer!");
     //     return;
     // }
-    AppDelegate::get()->trySaveGame(true);
+    if (save) {
+        AppDelegate::get()->trySaveGame(true);
+    }
     // AppDelegate::get()->showLoadingCircle(false, true);
 
     class Exit : public CCObject {
@@ -286,8 +291,10 @@ void geode::utils::game::exit() {
     ), CCDirector::get()->getRunningScene(), false);
 }
 
-void geode::utils::game::restart() {
-    AppDelegate::get()->trySaveGame(true);
+void geode::utils::game::restart(bool save) {
+    if (save) {
+        AppDelegate::get()->trySaveGame(true);
+    }
 
     class Exit : public CCObject {
         public:
@@ -351,6 +358,10 @@ std::filesystem::path dirs::getSaveDir() {
     return getBaseDir() / "save";
 }
 
+std::filesystem::path dirs::getResourcesDir() {
+    return [[[NSBundle mainBundle] resourcePath] UTF8String];
+}
+
 bool geode::utils::permission::getPermissionStatus(Permission permission) {
     switch (permission) {
         case Permission::RecordAudio: 
@@ -360,12 +371,14 @@ bool geode::utils::permission::getPermissionStatus(Permission permission) {
     }
 }
 
-void geode::utils::permission::requestPermission(Permission permission, std::function<void(bool)> callback) {
+void geode::utils::permission::requestPermission(Permission permission, geode::Function<void(bool)> callback) {
     switch (permission) {
-        case Permission::RecordAudio: 
+        case Permission::RecordAudio: {
+            __block geode::Function<void(bool)> cb = std::move(callback);
             return [[AVAudioSession sharedInstance] requestRecordPermission:^(BOOL granted) {
-                callback(granted == YES);
+                cb(granted == YES);
             }];
+        }
         default: // ios doesnt have a "access all files" permission
             return callback(false);
     }
@@ -380,28 +393,28 @@ std::string geode::utils::thread::getDefaultName() {
     return fmt::format("Thread #{}", tid);
 }
 
-void geode::utils::thread::platformSetName(std::string const& name) {
+void geode::utils::thread::platformSetName(ZStringView name) {
     pthread_setname_np(name.c_str());
 }
 
 
-Result<> geode::hook::addObjcMethod(std::string const& className, std::string const& selectorName, void* imp) {
-    auto cls = objc_getClass(className.c_str());
+Result<> geode::hook::addObjcMethod(char const* className, char const* selectorName, void* imp) {
+    auto cls = objc_getClass(className);
     if (!cls)
         return Err("Class not found");
 
-    auto sel = sel_registerName(selectorName.c_str());
+    auto sel = sel_registerName(selectorName);
 
     class_addMethod(cls, sel, (IMP)imp, "v@:");
 
     return Ok();
 }
-Result<void*> geode::hook::getObjcMethodImp(std::string const& className, std::string const& selectorName) {
-    auto cls = objc_getClass(className.c_str());
+Result<void*> geode::hook::getObjcMethodImp(char const* className, char const* selectorName) {
+    auto cls = objc_getClass(className);
     if (!cls)
         return Err("Class not found");
 
-    auto sel = sel_registerName(selectorName.c_str());
+    auto sel = sel_registerName(selectorName);
 
     auto method = class_getInstanceMethod(cls, sel);
     if (!method)
@@ -410,12 +423,12 @@ Result<void*> geode::hook::getObjcMethodImp(std::string const& className, std::s
     return Ok((void*)method_getImplementation(method));
 }
 
-Result<void*> geode::hook::replaceObjcMethod(std::string const& className, std::string const& selectorName, void* imp) {
-    auto cls = objc_getClass(className.c_str());
+Result<void*> geode::hook::replaceObjcMethod(char const* className, char const* selectorName, void* imp) {
+    auto cls = objc_getClass(className);
     if (!cls)
         return Err("Class not found");
 
-    auto sel = sel_registerName(selectorName.c_str());
+    auto sel = sel_registerName(selectorName);
 
     auto method = class_getInstanceMethod(cls, sel);
     if (!method)
@@ -424,4 +437,117 @@ Result<void*> geode::hook::replaceObjcMethod(std::string const& className, std::
     auto oldImp = method_setImplementation(method, (IMP)imp);
 
     return Ok((void*)oldImp);
+}
+
+std::string geode::utils::formatSystemError(int code) {
+    return strerror(code);
+}
+
+cocos2d::CCRect geode::utils::getSafeAreaRect() {
+    // making calls to get primitive types is annoying... >~<
+    id eaglView = [NSClassFromString(@"EAGLView") performSelector:@selector(sharedEGLView)];
+    auto screenInsets = reinterpret_cast<UIEdgeInsets(*)(id, SEL)>(objc_msgSend)(eaglView, @selector(safeAreaInsets));
+    auto scaleFactor = reinterpret_cast<CGFloat(*)(id, SEL)>(objc_msgSend)(eaglView, @selector(contentScaleFactor));
+
+    auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
+    auto glView = cocos2d::CCDirector::sharedDirector()->getOpenGLView();
+    auto scaleX = glView->m_fScaleX;
+    auto scaleY = glView->m_fScaleY;
+
+    auto insetLeft = scaleFactor * screenInsets.left / scaleX;
+    auto insetBottom = scaleFactor * screenInsets.bottom / scaleY;
+    auto insetRight = scaleFactor * screenInsets.right / scaleX;
+    auto insetTop = scaleFactor * screenInsets.top / scaleY;
+
+    auto insetX = std::max(insetLeft, insetRight);
+    auto insetY = std::max(insetTop, insetBottom);
+
+    return cocos2d::CCRect(
+        insetX, insetY,
+        winSize.width - 2 * insetX, winSize.height - 2 * insetY
+    );
+}
+
+bool cocos2d::CCImage::saveToFile(const char* pszFilePath, bool bIsToRGB) {
+    uint8_t* data = m_pData;
+    bool usePNG = std::string_view(pszFilePath).ends_with(".png");
+    int channels = !usePNG || bIsToRGB || !m_bHasAlpha ? 3 : 4;
+    if (channels == 3) {
+        data = new uint8_t[m_nWidth * m_nHeight * 3];
+        for (uint32_t i = 0; i < m_nWidth * m_nHeight; i++) {
+            data[i * 3] = m_pData[i * 4];
+            data[i * 3 + 1] = m_pData[i * 4 + 1];
+            data[i * 3 + 2] = m_pData[i * 4 + 2];
+        }
+    }
+
+    CGDataProviderRef provider = CGDataProviderCreateWithData(nullptr, data, m_nWidth * m_nHeight * channels, nullptr);
+    if (!provider) {
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    if (!colorSpace) {
+        CGDataProviderRelease(provider);
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    CGImageRef imageRef = CGImageCreate(
+        m_nWidth,
+        m_nHeight,
+        8,
+        channels * 8,
+        m_nWidth * channels,
+        colorSpace,
+        channels == 4 ? kCGImageAlphaPremultipliedLast : kCGImageAlphaNone,
+        provider,
+        nullptr,
+        false,
+        kCGRenderingIntentDefault
+    );
+    if (!imageRef) {
+        CGDataProviderRelease(provider);
+        CGColorSpaceRelease(colorSpace);
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    UIImage* uiImage = [UIImage imageWithCGImage:imageRef];
+    if (!uiImage) {
+        CGImageRelease(imageRef);
+        CGDataProviderRelease(provider);
+        CGColorSpaceRelease(colorSpace);
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    NSData* imageData = usePNG ? UIImagePNGRepresentation(uiImage) : UIImageJPEGRepresentation(uiImage, 1.0);
+    if (!imageData) {
+        CGImageRelease(imageRef);
+        CGDataProviderRelease(provider);
+        CGColorSpaceRelease(colorSpace);
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    bool success = [imageData writeToFile:[NSString stringWithUTF8String:pszFilePath] atomically:YES];
+    CGImageRelease(imageRef);
+    CGDataProviderRelease(provider);
+    CGColorSpaceRelease(colorSpace);
+    if (data != m_pData) {
+        delete[] data;
+    }
+    return success;
 }

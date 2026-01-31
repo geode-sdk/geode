@@ -1,8 +1,11 @@
 #include <FileWatcher.hpp>
+#include <Geode/utils/string.hpp>
 
 #import <Cocoa/Cocoa.h>
 #include <fcntl.h>
 #include <iostream>
+
+using namespace geode::prelude;
 
 // static constexpr const auto notifyAttributes = FILE_NOTIFY_CHANGE_LAST_WRITE |
 // FILE_NOTIFY_CHANGE_ATTRIBUTES | FILE_NOTIFY_CHANGE_SIZE;
@@ -14,8 +17,8 @@ FileWatcher::FileWatcher(
 
     m_platformHandle = NULL;
     m_file = file;
-    m_callback = callback;
-    m_error = error;
+    m_callback = std::move(callback);
+    m_error = std::move(error);
     this->watch();
 }
 
@@ -26,7 +29,7 @@ FileWatcher::~FileWatcher() {
 
 void FileWatcher::watch() {
     dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-    int fildes = open(m_file.string().c_str(), O_EVTONLY);
+    int fildes = open(utils::string::pathToString(m_file).c_str(), O_EVTONLY);
 
     __block dispatch_source_t source = dispatch_source_create(
         DISPATCH_SOURCE_TYPE_VNODE, fildes,

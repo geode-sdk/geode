@@ -3,10 +3,9 @@
 
 using namespace geode::prelude;
 
-$execute {
+$on_mod(Loaded) {
     if (LoaderImpl::get()->isForwardCompatMode()) return;
 
-#if GEODE_COMP_GD_VERSION == 22074
     // patch an abort() call to "return false;" in CCGLProgram::compileShader
     // for some reason cocos only properly returns false on winRT, everywhere
     // else it just closes the whole game
@@ -39,25 +38,38 @@ $execute {
         0x14, 0xe0 // b +2c (skip if statement)
     });
 #elif defined(GEODE_IS_ARM_MAC)
-    auto addr = base::get() + 0x393aa0;
+    #if GEODE_COMP_GD_VERSION != 22081
+        #error "Unsupported GD version!"
+    #endif
+
+    auto addr = base::get() + 0x39d458;
 
     (void) Mod::get()->patch(reinterpret_cast<void*>(addr), {
         0x1f, 0x20, 0x03, 0xd5 // nop (skip if statement)
     });
 #elif defined(GEODE_IS_INTEL_MAC)
-    auto addr = base::get() + 0x417f65;
+    #if GEODE_COMP_GD_VERSION != 22081
+        #error "Unsupported GD version!"
+    #endif
+
+    auto addr = base::get() + 0x42aa35;
 
     (void) Mod::get()->patch(reinterpret_cast<void*>(addr), {
         0x48, 0x90, // nop (skip if statement)
     });
 #elif defined(GEODE_IS_IOS)
-    auto addr = base::get() + 0x138390;
+    #if GEODE_COMP_GD_VERSION != 22081
+        #error "Unsupported GD version!"
+    #endif
 
-    (void) Mod::get()->patch(reinterpret_cast<void*>(addr), {
-        0x1f, 0x20, 0x03, 0xd5 // nop (skip if statement)
-    });
-#endif
-#else
-    #pragma message("Unsupported GD version!")
+    if (Loader::get()->isPatchless()) {
+        GEODE_MOD_STATIC_PATCH(0x135374, "\x1f\x20\x03\xd5");
+    }
+    else {
+        auto addr = base::get() + 0x135374;
+        (void) Mod::get()->patch(reinterpret_cast<void*>(addr), {
+            0x1f, 0x20, 0x03, 0xd5 // nop (skip if statement)
+        });
+    }
 #endif
 };

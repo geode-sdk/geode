@@ -225,9 +225,9 @@ typedef enum
 class CC_DLL CCKeyboardDelegate
 {
 public:
-    virtual void keyDown(enumKeyCodes key) {}
+    virtual void keyDown(enumKeyCodes key, double) {}
 
-    virtual void keyUp(enumKeyCodes key) {}
+    virtual void keyUp(enumKeyCodes key, double) {}
 
     //pretty certain there's no fields, based on initializer
 };
@@ -238,7 +238,7 @@ class CC_DLL CCKeyboardHandler : public CCObject
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCKeyboardHandler, CCObject)
     inline CCKeyboardHandler() = default;
-    
+
     virtual ~CCKeyboardHandler();
 
     CCKeyboardHandler& operator=(const CCKeyboardHandler&);

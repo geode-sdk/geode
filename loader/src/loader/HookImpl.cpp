@@ -8,12 +8,12 @@ Hook::Impl::Impl(
     void* detour,
     std::string displayName,
     tulip::hook::HandlerMetadata handlerMetadata,
-    tulip::hook::HookMetadata const& hookMetadata) :
+    tulip::hook::HookMetadata hookMetadata) :
     m_address(address),
     m_detour(detour),
     m_displayName(std::move(displayName)),
     m_handlerMetadata(std::move(handlerMetadata)),
-    m_hookMetadata(hookMetadata) {}
+    m_hookMetadata(std::move(hookMetadata)) {}
 Hook::Impl::~Impl() {
     if (m_enabled) {
         auto res = this->disable();
@@ -32,12 +32,12 @@ Hook::Impl::~Impl() {
 std::shared_ptr<Hook> Hook::Impl::create(
     void* address,
     void* detour,
-    std::string const& displayName,
-    tulip::hook::HandlerMetadata const& handlerMetadata,
-    tulip::hook::HookMetadata const& hookMetadata
+    std::string displayName,
+    tulip::hook::HandlerMetadata handlerMetadata,
+    tulip::hook::HookMetadata hookMetadata
 ) {
     auto impl = std::make_shared<Impl>(
-        address, detour, displayName, handlerMetadata, hookMetadata
+        address, detour, std::move(displayName), std::move(handlerMetadata), std::move(hookMetadata)
     );
     return std::shared_ptr<Hook>(new Hook(std::move(impl)), [](Hook* hook) {
         delete hook;
@@ -90,6 +90,19 @@ Result<> Hook::Impl::disable() {
     return Ok();
 }
 
+Result<> Hook::Impl::toggle() {
+    return this->toggle(!m_enabled);
+}
+
+Result<> Hook::Impl::toggle(bool enable) {
+    if (enable) {
+        return this->enable();
+    }
+    else {
+        return this->disable();
+    }
+}
+
 uintptr_t Hook::Impl::getAddress() const {
     return reinterpret_cast<uintptr_t>(m_address);
 }
@@ -111,8 +124,8 @@ tulip::hook::HookMetadata Hook::Impl::getHookMetadata() const {
     return m_hookMetadata;
 }
 
-void Hook::Impl::setHookMetadata(tulip::hook::HookMetadata const& metadata) {
-    m_hookMetadata = metadata;
+void Hook::Impl::setHookMetadata(tulip::hook::HookMetadata metadata) {
+    m_hookMetadata = std::move(metadata);
     auto res = this->updateHookMetadata();
     if (!res) {
         log::error("Failed to update hook metadata: {}", res.unwrapErr());

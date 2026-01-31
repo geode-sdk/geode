@@ -10,7 +10,7 @@
 #if defined(_USRDLL)
     #define CC_DLL
     #define ACTUAL_CC_DLL
-#else         // use a DLL library 
+#else         // use a DLL library
     #define CC_DLL
     #define ACTUAL_CC_DLL __declspec(dllimport)
 #endif

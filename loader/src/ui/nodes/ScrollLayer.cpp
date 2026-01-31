@@ -1,5 +1,6 @@
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
 
 using namespace geode::prelude;
 
@@ -38,9 +39,9 @@ void GenericContentLayer::setPosition(CCPoint const& pos) {
 void ScrollLayer::visit() {
     if (m_cutContent && this->isVisible()) {
         glEnable(GL_SCISSOR_TEST);
-            
+
         if (this->getParent()) {
-            // CCPoint const offset = this->isIgnoreAnchorPointForPosition() 
+            // CCPoint const offset = this->isIgnoreAnchorPointForPosition()
             //     ? ccp(0, 0) : CCPoint(this->getContentSize() * -this->getAnchorPoint());
 
             auto const bottomLeft = this->convertToWorldSpace(ccp(0, 0));
@@ -108,4 +109,13 @@ ScrollLayer* ScrollLayer::create(CCRect const& rect, bool scroll, bool vertical)
 
 ScrollLayer* ScrollLayer::create(CCSize const& size, bool scroll, bool vertical) {
     return ScrollLayer::create({ 0, 0, size.width, size.height }, scroll, vertical);
+}
+
+Layout* ScrollLayer::createDefaultListLayout(float gap) {
+    return SimpleColumnLayout::create()
+        ->setMainAxisDirection(AxisDirection::TopToBottom)
+        ->setMainAxisAlignment(MainAxisAlignment::End)
+        ->setMainAxisScaling(AxisScaling::Fit)
+        ->setGap(gap)
+        ->ignoreInvisibleChildren(false);
 }

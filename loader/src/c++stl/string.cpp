@@ -48,35 +48,29 @@ namespace gd {
 
     string& string::operator=(string const& other) {
         if (this != &other) {
-            impl.free();
             impl.setStorage(other);
         }
         return *this;
     }
     string& string::operator=(string&& other) {
         // TODO: do this better :-)
-        impl.free();
         impl.setStorage(other);
-        implFor(other).free();
         implFor(other).setEmpty();
         return *this;
     }
     string& string::operator=(char const* other) {
-        impl.free();
         impl.setStorage(other);
         return *this;
     }
     string& string::operator=(std::string const& other) {
-        impl.free();
         impl.setStorage(other);
         return *this;
     }
 
     void string::clear() {
-        impl.free();
         impl.setEmpty();
     }
-    
+
     char& string::at(size_t pos) {
         if (pos >= this->size())
             throw std::out_of_range("gd::string::at");

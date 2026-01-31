@@ -41,7 +41,7 @@ NS_CC_BEGIN
  * @{
  */
 
-/** 
+/**
 @brief An interval action is an action that takes place within a certain period of time.
 It has an start time, and a finish time. The finish time is the parameter
 duration plus the start time.
@@ -89,12 +89,12 @@ public:
     static CCActionInterval* create(float d);
 
 public:
-    //extension in CCGridAction 
+    //extension in CCGridAction
     void setAmplitudeRate(float amp);
     float getAmplitudeRate(void);
 
     // 2.2 addition
-    bool getM_bFirstTick(); // rob were you like high on something when you wrote this
+    bool getM_bFirstTick() const { return m_bFirstTick; } // rob were you like high on something when you wrote this
 
 public:
     float m_elapsed;
@@ -116,7 +116,7 @@ public:
      */
     ~CCSequence(void);
 
-    /** initializes the action 
+    /** initializes the action
      * @lua NA
      */
     bool initWithTwoActions(CCFiniteTimeAction *pActionOne, CCFiniteTimeAction *pActionTwo);
@@ -141,7 +141,7 @@ public:
 
 public:
 
-    /** helper constructor to create an array of sequenceable actions 
+    /** helper constructor to create an array of sequenceable actions
      * @lua NA
      */
     static CCSequence* create(CCFiniteTimeAction *pAction1, ...) {
@@ -151,19 +151,19 @@ public:
 	    CCSequence *pRet = CCSequence::createWithVariableList(pAction1, params);
 
 	    va_end(params);
-	    
+
 	    return pRet;
 	}
-    /** helper constructor to create an array of sequenceable actions given an array 
+    /** helper constructor to create an array of sequenceable actions given an array
      * @js NA
      */
     static CCSequence* create(CCArray *arrayOfActions);
-    /** helper constructor to create an array of sequence-able actions 
+    /** helper constructor to create an array of sequence-able actions
      * @js NA
      * @lua NA
      */
     static CCSequence* createWithVariableList(CCFiniteTimeAction *pAction1, va_list args);
-    /** creates the action 
+    /** creates the action
      * @js NA
      */
     static CCSequence* createWithTwoActions(CCFiniteTimeAction *pActionOne, CCFiniteTimeAction *pActionTwo);
@@ -303,7 +303,7 @@ public:
      */
     ~CCSpawn(void);
 
-    /** initializes the Spawn action with the 2 actions to spawn 
+    /** initializes the Spawn action with the 2 actions to spawn
      * @lua NA
      */
     bool initWithTwoActions(CCFiniteTimeAction *pAction1, CCFiniteTimeAction *pAction2);
@@ -328,23 +328,23 @@ public:
 
 public:
 
-    /** helper constructor to create an array of spawned actions 
+    /** helper constructor to create an array of spawned actions
      * @lua NA
      */
     static CCSpawn* create(CCFiniteTimeAction *pAction1, ...);
-    
-    /** helper constructor to create an array of spawned actions 
+
+    /** helper constructor to create an array of spawned actions
      * @js  NA
      * @lua NA
      */
     static CCSpawn* createWithVariableList(CCFiniteTimeAction *pAction1, va_list args);
 
-    /** helper constructor to create an array of spawned actions given an array 
+    /** helper constructor to create an array of spawned actions given an array
      * @js NA
      */
     static CCSpawn* create(CCArray *arrayOfActions);
 
-    /** creates the Spawn action 
+    /** creates the Spawn action
      * @js NA
      */
     static CCSpawn* createWithTwoActions(CCFiniteTimeAction *pAction1, CCFiniteTimeAction *pAction2);
@@ -357,16 +357,19 @@ public:
 /** @brief Rotates a CCNode object to a certain angle by modifying it's
  rotation attribute.
  The direction will be decided by the shortest angle.
-*/ 
+*/
 class CC_DLL CCRotateTo : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCRotateTo, CCActionInterval)
+    CCRotateTo() {}
+
     /** creates the action */
     static CCRotateTo* create(float fDuration, float fDeltaAngle);
     /** initializes the action */
     bool initWithDuration(float fDuration, float fDeltaAngle);
-    
+
     /** creates the action with separate rotation angles */
     static CCRotateTo* create(float fDuration, float fDeltaAngleX, float fDeltaAngleY);
     virtual bool initWithDuration(float fDuration, float fDeltaAngleX, float fDeltaAngleY);
@@ -377,12 +380,12 @@ public:
     virtual CCObject* copyWithZone(CCZone* pZone);
     virtual void startWithTarget(CCNode *pTarget);
     virtual void update(float time);
-    
+
 public:
     float m_fDstAngleX;
     float m_fStartAngleX;
     float m_fDiffAngleX;
-    
+
     float m_fDstAngleY;
     float m_fStartAngleY;
     float m_fDiffAngleY;
@@ -394,11 +397,14 @@ class CC_DLL CCRotateBy : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCRotateBy, CCActionInterval)
+    CCRotateBy() {}
+
     /** creates the action */
     static CCRotateBy* create(float fDuration, float fDeltaAngle);
     /** initializes the action */
     bool initWithDuration(float fDuration, float fDeltaAngle);
-    
+
     static CCRotateBy* create(float fDuration, float fDeltaAngleX, float fDeltaAngleY);
     bool initWithDuration(float fDuration, float fDeltaAngleX, float fDeltaAngleY);
     /**
@@ -409,7 +415,7 @@ public:
     virtual void startWithTarget(CCNode *pTarget);
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
-    
+
 public:
     float m_fAngleX;
     float m_fStartAngleX;
@@ -427,6 +433,9 @@ class CC_DLL CCMoveBy : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCMoveBy, CCActionInterval)
+    CCMoveBy() {}
+
     /** initializes the action */
     bool initWithDuration(float duration, const CCPoint& deltaPosition);
     /**
@@ -456,6 +465,9 @@ class CC_DLL CCMoveTo : public CCMoveBy
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCMoveTo, CCMoveBy)
+    CCMoveTo() {}
+
     /** initializes the action */
     bool initWithDuration(float duration, const CCPoint& position);
     /**
@@ -515,6 +527,9 @@ class CC_DLL CCSkewBy : public CCSkewTo
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCSkewBy, CCSkewTo)
+    CCSkewBy() {}
+
     virtual bool initWithDuration(float t, float sx, float sy);
     virtual void startWithTarget(CCNode *pTarget);
     virtual CCActionInterval* reverse(void);
@@ -531,6 +546,9 @@ class CC_DLL CCJumpBy : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCJumpBy, CCActionInterval)
+    CCJumpBy() {}
+
     /** initializes the action */
     bool initWithDuration(float duration, const CCPoint& position, float height, unsigned int jumps);
     /**
@@ -554,11 +572,14 @@ public:
 };
 
 /** @brief Moves a CCNode object to a parabolic position simulating a jump movement by modifying it's position attribute.
-*/ 
+*/
 class CC_DLL CCJumpTo : public CCJumpBy
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCJumpTo, CCJumpBy)
+    CCJumpTo() {}
+
     virtual void startWithTarget(CCNode *pTarget);
     /**
      *  @js NA
@@ -588,7 +609,10 @@ class CC_DLL CCBezierBy : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
-    /** initializes the action with a duration and a bezier configuration 
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCBezierBy, CCActionInterval)
+    CCBezierBy() {}
+
+    /** initializes the action with a duration and a bezier configuration
      *  @lua NA
      */
     bool initWithDuration(float t, const ccBezierConfig& c);
@@ -608,7 +632,7 @@ public:
     virtual CCActionInterval* reverse(void);
 
 public:
-    /** creates the action with a duration and a bezier configuration 
+    /** creates the action with a duration and a bezier configuration
      *  @code
      *  when this function bound to js,the input params are changed
      *  js: var create(var t, var pointTable)
@@ -628,6 +652,9 @@ class CC_DLL CCBezierTo : public CCBezierBy
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCBezierTo, CCBezierBy)
+    CCBezierTo() {}
+
     /**
      *  @lua NA
      */
@@ -651,7 +678,7 @@ public:
      *  @lua NA
      */
     bool initWithDuration(float t, const ccBezierConfig &c);
-    
+
 public:
     ccBezierConfig m_sToConfig;
 };
@@ -663,6 +690,9 @@ class CC_DLL CCScaleTo : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCScaleTo, CCActionInterval)
+    CCScaleTo() {}
+
     /** initializes the action with the same scale factor for X and Y */
     bool initWithDuration(float duration, float s);
 
@@ -700,6 +730,9 @@ class CC_DLL CCScaleBy : public CCScaleTo
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCScaleBy, CCScaleTo)
+    CCScaleBy() {}
+
     virtual void startWithTarget(CCNode *pTarget);
     virtual CCActionInterval* reverse(void);
     /**
@@ -723,6 +756,9 @@ class CC_DLL CCBlink : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCBlink, CCActionInterval)
+    CCBlink() {}
+
     /** initializes the action */
     bool initWithDuration(float duration, unsigned int uBlinks);
     /**
@@ -737,10 +773,10 @@ public:
 
     /** creates the action */
     static CCBlink* create(float duration, unsigned int uBlinks);
-    
+
     virtual void startWithTarget(CCNode *pTarget);
     virtual void stop();
-    
+
 public:
     unsigned int m_nTimes;
     bool m_bOriginalState;
@@ -753,6 +789,9 @@ class CC_DLL CCFadeIn : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCFadeIn, CCActionInterval)
+    CCFadeIn() {}
+
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
     /**
@@ -773,6 +812,9 @@ class CC_DLL CCFadeOut : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCFadeOut, CCActionInterval)
+    CCFadeOut() {}
+
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
     /**
@@ -794,6 +836,9 @@ class CC_DLL CCFadeTo : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCFadeTo, CCActionInterval)
+    CCFadeTo() {}
+
     /** initializes the action with duration and opacity */
     bool initWithDuration(float duration, GLubyte opacity);
     /**
@@ -820,6 +865,9 @@ class CC_DLL CCTintTo : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTintTo, CCActionInterval)
+    CCTintTo() {}
+
     /** initializes the action with duration and color */
     bool initWithDuration(float duration, GLubyte red, GLubyte green, GLubyte blue);
     /**
@@ -845,6 +893,9 @@ class CC_DLL CCTintBy : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTintBy, CCActionInterval)
+    CCTintBy() {}
+
     /** initializes the action with duration and color */
     bool initWithDuration(float duration, GLshort deltaRed, GLshort deltaGreen, GLshort deltaBlue);
     /**
@@ -875,6 +926,9 @@ class CC_DLL CCDelayTime : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCDelayTime, CCActionInterval)
+    CCDelayTime() {}
+
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
     /**
@@ -890,7 +944,7 @@ public:
 };
 
 /** @brief Executes an action in reverse order, from time=duration to time=0
- 
+
  @warning Use this action carefully. This action is not
  sequenceable. Use it as the default "reversed" method
  of your own actions, but using it outside the "reversed"
@@ -960,21 +1014,19 @@ public:
     virtual void update(float t);
     virtual CCActionInterval* reverse(void);
 
-    // 2.2 addition
-    bool getRecenterChildren() const;
-	bool getRecenterFrames() const;
-    void setRecenterChildren(bool recenter);
-    void setRecenterFrames(bool recenter);
-
 public:
     /** creates the action with an Animation and will restore the original frame when the animation is over */
     static CCAnimate* create(CCAnimation *pAnimation);
-    CC_SYNTHESIZE_RETAIN(CCAnimation*, m_pAnimation, Animation)
+    CC_SYNTHESIZE_NV_RETAIN(CCAnimation*, m_pAnimation, Animation)
 public:
     gd::vector<float>* m_pSplitTimes;
     int                m_nNextFrame;
     CCSpriteFrame*  m_pOrigFrame;
        unsigned int    m_uExecutedLoops;
+    // @note RobTop Addition
+    CC_SYNTHESIZE_NV(bool, m_bRecenterFrames, RecenterFrames);
+    // @note RobTop Addition
+    CC_SYNTHESIZE_NV(bool, m_bRecenterChildren, RecenterChildren);
 };
 
 /** Overrides the target of an action so that it always runs on the target
@@ -1010,7 +1062,7 @@ public:
     virtual void update(float time);
 
     /** This is the target that the action will be forced to run with */
-    CC_SYNTHESIZE_RETAIN(CCNode*, m_pForcedTarget, ForcedTarget);
+    CC_SYNTHESIZE_NV_RETAIN(CCNode*, m_pForcedTarget, ForcedTarget);
 public:
     CCFiniteTimeAction* m_pAction;
 };

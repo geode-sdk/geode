@@ -7,7 +7,7 @@
 #include <deque>
 
 // TODO: UNFINISHED!!!
-// If you want to bring this back, you are free to do so - 
+// If you want to bring this back, you are free to do so -
 // I just didn't feel like the engineering effort is worth it.
 // The point of this is to be a mod load issue auto-resolver
 
@@ -20,10 +20,10 @@ protected:
         std::string content;
         std::string optionA;
         std::string optionB;
-        std::function<void(bool)> after;
+        geode::Function<void(bool)> after;
     };
 
-    EventListener<server::ModDownloadFilter> m_download;
+    ListenerHandle m_downloadHandle;
     std::vector<std::string> m_unsolved;
     std::deque<Question> m_questionQueue;
 
@@ -32,7 +32,7 @@ protected:
             [](std::filesystem::path const& path) {
                 return path;
             },
-            [](ModMetadata const& meta) {
+            [](ModMetadata const& meta) -> std::filesystem::path {
                 return meta.getPath();
             },
             [](Mod* mod) {
@@ -43,12 +43,12 @@ protected:
     static std::string getName(LoadProblem const& problem) {
         return std::visit(makeVisitor {
             [](std::filesystem::path const& path) {
-                return path.string();
+                return geode::utils::string::pathToString(path);
             },
-            [](ModMetadata const& meta) {
+            [](ModMetadata const& meta) -> std::string {
                 return meta.getID();
             },
-            [](Mod* mod) {
+            [](Mod* mod) -> std::string {
                 return mod->getID();
             },
         }, problem.cause);
@@ -66,11 +66,13 @@ protected:
                 if (!m_questionQueue.empty()) {
                     this->nextQuestion();
                 }
-            }
+            },
+            true,
+            false
         );
     }
     void ask(Question&& question) {
-        m_questionQueue.push_back(question);
+        m_questionQueue.push_back(std::move(question));
         // If this was the first question in the queue, start asking
         if (m_questionQueue.size() == 1) {
             this->nextQuestion();
@@ -84,8 +86,8 @@ public:
                 // Errors where the correct solution is to just delete the invalid .geode package
                 case LoadProblem::Type::InvalidFile:
                 // todo: maybe duplicate should prompt which one to delete?
-                // or maybe the user can just figure that one out since that only happens 
-                // on manual install (as server installs delete the old version using the 
+                // or maybe the user can just figure that one out since that only happens
+                // on manual install (as server installs delete the old version using the
                 // real path and not the old index filename trickery)
                 case LoadProblem::Type::Duplicate:
                 case LoadProblem::Type::SetupFailed:
@@ -179,12 +181,12 @@ public:
 
 static std::optional<AutoFixStatus> STATUS = {};
 
-void internal::tryAutoFixModIssues() {
+void geode::internal::tryAutoFixModIssues() {
     if (!STATUS) {
         STATUS.emplace(AutoFixStatus());
         STATUS->start();
     }
 }
-bool internal::hasTriedToFixIssues() {
+bool geode::internal::hasTriedToFixIssues() {
     return STATUS.has_value();
 }

@@ -34,6 +34,7 @@
 
 #include "hashtable_policy.h"
 #include "functional_hash.h"
+#include "type_traits.h"
 
 namespace geode::stl {
 _GLIBCXX_BEGIN_NAMESPACE_VERSION
@@ -93,7 +94,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
    *  returns make_pair(false, <anything>)
    *
    *  @tparam _Traits  Compile-time class with three boolean
-   *  std::integral_constant members:  __cache_hash_code, __constant_iterators,
+   *  integral_constant members:  __cache_hash_code, __constant_iterators,
    *   __unique_keys.
    *
    *  Each _Hashtable data structure has:
@@ -156,7 +157,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
    *  Pattern" (CRTP) technique, but uses a reconstructed, not
    *  explicitly passed, template pattern.
    *
-   *  Base class templates are: 
+   *  Base class templates are:
    *    - __detail::_Hashtable_base
    *    - __detail::_Map_base
    *    - __detail::_Insert
@@ -218,7 +219,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       using __constant_iterators = typename __traits_type::__constant_iterators;
       using __unique_keys = typename __traits_type::__unique_keys;
 
-      using __key_extract = typename std::conditional<
+      using __key_extract = typename conditional<
 					     __constant_iterators::value,
 				       	     __detail::_Identity,
 					     __detail::_Select1st>::type;
@@ -374,10 +375,10 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	_M_assign(const _Hashtable&, const _NodeGenerator&);
 
       void
-      _M_move_assign(_Hashtable&&, std::true_type);
+      _M_move_assign(_Hashtable&&, geode::stl::true_type);
 
       void
-      _M_move_assign(_Hashtable&&, std::false_type);
+      _M_move_assign(_Hashtable&&, geode::stl::false_type);
 
       void
       _M_reset() noexcept;
@@ -430,7 +431,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 		     __key_extract(), __a)
 	{ }
 
-      _Hashtable(std::initializer_list<value_type> __l,
+      _Hashtable(initializer_list<value_type> __l,
 		 size_type __n = 0,
 		 const _H1& __hf = _H1(),
 		 const key_equal& __eql = key_equal(),
@@ -450,12 +451,12 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
           __node_alloc_traits::_S_propagate_on_move_assign()
           || __node_alloc_traits::_S_always_equal();
         _M_move_assign(std::move(__ht),
-                       std::integral_constant<bool, __move_storage>());
+                       integral_constant<bool, __move_storage>());
 	return *this;
       }
 
       _Hashtable&
-      operator=(std::initializer_list<value_type> __l)
+      operator=(initializer_list<value_type> __l)
       {
 	__reuse_or_alloc_node_type __roan(_M_begin(), *this);
 	_M_before_begin._M_nxt = nullptr;
@@ -597,10 +598,10 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       size_type
       count(const key_type& __k) const;
 
-      std::pair<iterator, iterator>
+      pair<iterator, iterator>
       equal_range(const key_type& __k);
 
-      std::pair<const_iterator, const_iterator>
+      pair<const_iterator, const_iterator>
       equal_range(const key_type& __k) const;
 
     protected:
@@ -655,32 +656,32 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 			   __hash_code __code, __node_type* __n);
 
       template<typename... _Args>
-	std::pair<iterator, bool>
-	_M_emplace(std::true_type, _Args&&... __args);
+	pair<iterator, bool>
+	_M_emplace(geode::stl::true_type, _Args&&... __args);
 
       template<typename... _Args>
 	iterator
-	_M_emplace(std::false_type __uk, _Args&&... __args)
+	_M_emplace(geode::stl::false_type __uk, _Args&&... __args)
 	{ return _M_emplace(cend(), __uk, std::forward<_Args>(__args)...); }
 
       // Emplace with hint, useless when keys are unique.
       template<typename... _Args>
 	iterator
-	_M_emplace(const_iterator, std::true_type __uk, _Args&&... __args)
+	_M_emplace(const_iterator, geode::stl::true_type __uk, _Args&&... __args)
 	{ return _M_emplace(__uk, std::forward<_Args>(__args)...).first; }
 
       template<typename... _Args>
 	iterator
-	_M_emplace(const_iterator, std::false_type, _Args&&... __args);
+	_M_emplace(const_iterator, geode::stl::false_type, _Args&&... __args);
 
       template<typename _Arg, typename _NodeGenerator>
-	std::pair<iterator, bool>
-	_M_insert(_Arg&&, const _NodeGenerator&, std::true_type);
+	pair<iterator, bool>
+	_M_insert(_Arg&&, const _NodeGenerator&, geode::stl::true_type);
 
       template<typename _Arg, typename _NodeGenerator>
 	iterator
 	_M_insert(_Arg&& __arg, const _NodeGenerator& __node_gen,
-		  std::false_type __uk)
+		  geode::stl::false_type __uk)
 	{
 	  return _M_insert(cend(), std::forward<_Arg>(__arg), __node_gen,
 			   __uk);
@@ -690,7 +691,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       template<typename _Arg, typename _NodeGenerator>
 	iterator
 	_M_insert(const_iterator, _Arg&& __arg, const _NodeGenerator& __node_gen,
-		  std::true_type __uk)
+		  geode::stl::true_type __uk)
 	{
 	  return
 	    _M_insert(std::forward<_Arg>(__arg), __node_gen, __uk).first;
@@ -699,13 +700,13 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       // Insert with hint when keys are not unique.
       template<typename _Arg, typename _NodeGenerator>
 	iterator
-	_M_insert(const_iterator, _Arg&&, const _NodeGenerator&, std::false_type);
+	_M_insert(const_iterator, _Arg&&, const _NodeGenerator&, geode::stl::false_type);
 
       size_type
-      _M_erase(std::true_type, const key_type&);
+      _M_erase(geode::stl::true_type, const key_type&);
 
       size_type
-      _M_erase(std::false_type, const key_type&);
+      _M_erase(geode::stl::false_type, const key_type&);
 
       iterator
       _M_erase(size_type __bkt, __node_base* __prev_n, __node_type* __n);
@@ -754,10 +755,10 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 
     private:
       // Helper rehash method used when keys are unique.
-      void _M_rehash_aux(size_type __n, std::true_type);
+      void _M_rehash_aux(size_type __n, geode::stl::true_type);
 
       // Helper rehash method used when keys can be non-unique.
-      void _M_rehash_aux(size_type __n, std::false_type);
+      void _M_rehash_aux(size_type __n, geode::stl::false_type);
 
       // Unconditionally change size of bucket array to n, restore
       // hash policy state to __state on exception.
@@ -894,7 +895,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	__bucket_type* __former_buckets = nullptr;
 	std::size_t __former_bucket_count = _M_bucket_count;
 	const __rehash_state& __former_state = _M_rehash_policy._M_state();
-	
+
 	if (_M_bucket_count != __ht._M_bucket_count)
 	  {
 	    __former_buckets = _M_buckets;
@@ -912,7 +913,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	    _M_rehash_policy = __ht._M_rehash_policy;
 	    __reuse_or_alloc_node_type __roan(_M_begin(), *this);
 	    _M_before_begin._M_nxt = nullptr;
-	    _M_assign(__ht, 
+	    _M_assign(__ht,
 		      [&__roan](const __node_type* __n)
 		      { return __roan(__n->_M_v()); });
 	    if (__former_buckets)
@@ -1008,7 +1009,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     void
     _Hashtable<_Key, _Value, _Alloc, _ExtractKey, _Equal,
 	       _H1, _H2, _Hash, _RehashPolicy, _Traits>::
-    _M_move_assign(_Hashtable&& __ht, std::true_type)
+    _M_move_assign(_Hashtable&& __ht, geode::stl::true_type)
     {
       this->_M_deallocate_nodes(_M_begin());
       _M_deallocate_buckets();
@@ -1040,10 +1041,10 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     void
     _Hashtable<_Key, _Value, _Alloc, _ExtractKey, _Equal,
 	       _H1, _H2, _Hash, _RehashPolicy, _Traits>::
-    _M_move_assign(_Hashtable&& __ht, std::false_type)
+    _M_move_assign(_Hashtable&& __ht, geode::stl::false_type)
     {
       if (__ht._M_node_allocator() == this->_M_node_allocator())
-	_M_move_assign(std::move(__ht), std::true_type());
+	_M_move_assign(std::move(__ht), geode::stl::true_type());
       else
 	{
 	  // Can't move memory, move elements then.
@@ -1238,7 +1239,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       this->_M_swap(__x);
 
       __alloc_on_swap(this->_M_node_allocator(), __x._M_node_allocator());
-      std::swap(_M_rehash_policy, __x._M_rehash_policy);
+      swap(_M_rehash_policy, __x._M_rehash_policy);
 
       // Deal properly with potentially moved instances.
       if (this->_M_uses_single_bucket())
@@ -1253,14 +1254,14 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	{
 	  __x._M_buckets = _M_buckets;
 	  _M_buckets = &_M_single_bucket;
-	}	
+	}
       else
-	std::swap(_M_buckets, __x._M_buckets);
+	swap(_M_buckets, __x._M_buckets);
 
-      std::swap(_M_bucket_count, __x._M_bucket_count);
-      std::swap(_M_before_begin._M_nxt, __x._M_before_begin._M_nxt);
-      std::swap(_M_element_count, __x._M_element_count);
-      std::swap(_M_single_bucket, __x._M_single_bucket);
+      swap(_M_bucket_count, __x._M_bucket_count);
+      swap(_M_before_begin._M_nxt, __x._M_before_begin._M_nxt);
+      swap(_M_element_count, __x._M_element_count);
+      swap(_M_single_bucket, __x._M_single_bucket);
 
       // Fix buckets containing the _M_before_begin pointers that can't be
       // swapped.
@@ -1359,7 +1360,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	   typename _Alloc, typename _ExtractKey, typename _Equal,
 	   typename _H1, typename _H2, typename _Hash, typename _RehashPolicy,
 	   typename _Traits>
-    std::pair<typename _Hashtable<_Key, _Value, _Alloc,
+    pair<typename _Hashtable<_Key, _Value, _Alloc,
 				  _ExtractKey, _Equal, _H1,
 				  _H2, _Hash, _RehashPolicy,
 				  _Traits>::iterator,
@@ -1382,17 +1383,17 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 		 && this->_M_equals(__k, __code, __p1))
 	    __p1 = __p1->_M_next();
 
-	  return std::make_pair(iterator(__p), iterator(__p1));
+	  return make_pair(iterator(__p), iterator(__p1));
 	}
       else
-	return std::make_pair(end(), end());
+	return make_pair(end(), end());
     }
 
   template<typename _Key, typename _Value,
 	   typename _Alloc, typename _ExtractKey, typename _Equal,
 	   typename _H1, typename _H2, typename _Hash, typename _RehashPolicy,
 	   typename _Traits>
-    std::pair<typename _Hashtable<_Key, _Value, _Alloc,
+    pair<typename _Hashtable<_Key, _Value, _Alloc,
 				  _ExtractKey, _Equal, _H1,
 				  _H2, _Hash, _RehashPolicy,
 				  _Traits>::const_iterator,
@@ -1415,10 +1416,10 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 		 && this->_M_equals(__k, __code, __p1))
 	    __p1 = __p1->_M_next();
 
-	  return std::make_pair(const_iterator(__p), const_iterator(__p1));
+	  return make_pair(const_iterator(__p), const_iterator(__p1));
 	}
       else
-	return std::make_pair(end(), end());
+	return make_pair(end(), end());
     }
 
   // Find the node whose key compares equal to k in the bucket n.
@@ -1529,13 +1530,13 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	   typename _H1, typename _H2, typename _Hash, typename _RehashPolicy,
 	   typename _Traits>
     template<typename... _Args>
-      std::pair<typename _Hashtable<_Key, _Value, _Alloc,
+      pair<typename _Hashtable<_Key, _Value, _Alloc,
 				    _ExtractKey, _Equal, _H1,
 				    _H2, _Hash, _RehashPolicy,
 				    _Traits>::iterator, bool>
       _Hashtable<_Key, _Value, _Alloc, _ExtractKey, _Equal,
 		 _H1, _H2, _Hash, _RehashPolicy, _Traits>::
-      _M_emplace(std::true_type, _Args&&... __args)
+      _M_emplace(geode::stl::true_type, _Args&&... __args)
       {
 	// First build the node to get access to the hash code
 	__node_type* __node = this->_M_allocate_node(std::forward<_Args>(__args)...);
@@ -1556,11 +1557,11 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	  {
 	    // There is already an equivalent node, no insertion
 	    this->_M_deallocate_node(__node);
-	    return std::make_pair(iterator(__p), false);
+	    return make_pair(iterator(__p), false);
 	  }
 
 	// Insert the node
-	return std::make_pair(_M_insert_unique_node(__bkt, __code, __node),
+	return make_pair(_M_insert_unique_node(__bkt, __code, __node),
 			      true);
       }
 
@@ -1574,7 +1575,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 			  _Traits>::iterator
       _Hashtable<_Key, _Value, _Alloc, _ExtractKey, _Equal,
 		 _H1, _H2, _Hash, _RehashPolicy, _Traits>::
-      _M_emplace(const_iterator __hint, std::false_type, _Args&&... __args)
+      _M_emplace(const_iterator __hint, geode::stl::false_type, _Args&&... __args)
       {
 	// First build the node to get its hash code.
 	__node_type* __node =
@@ -1607,7 +1608,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 			  __node_type* __node)
     {
       const __rehash_state& __saved_state = _M_rehash_policy._M_state();
-      std::pair<bool, std::size_t> __do_rehash
+      pair<bool, std::size_t> __do_rehash
 	= _M_rehash_policy._M_need_rehash(_M_bucket_count, _M_element_count, 1);
 
       __try
@@ -1647,7 +1648,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 			 __node_type* __node)
     {
       const __rehash_state& __saved_state = _M_rehash_policy._M_state();
-      std::pair<bool, std::size_t> __do_rehash
+      pair<bool, std::size_t> __do_rehash
 	= _M_rehash_policy._M_need_rehash(_M_bucket_count, _M_element_count, 1);
 
       __try
@@ -1704,13 +1705,13 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	   typename _H1, typename _H2, typename _Hash, typename _RehashPolicy,
 	   typename _Traits>
     template<typename _Arg, typename _NodeGenerator>
-      std::pair<typename _Hashtable<_Key, _Value, _Alloc,
+      pair<typename _Hashtable<_Key, _Value, _Alloc,
 				    _ExtractKey, _Equal, _H1,
 				    _H2, _Hash, _RehashPolicy,
 				    _Traits>::iterator, bool>
       _Hashtable<_Key, _Value, _Alloc, _ExtractKey, _Equal,
 		 _H1, _H2, _Hash, _RehashPolicy, _Traits>::
-      _M_insert(_Arg&& __v, const _NodeGenerator& __node_gen, std::true_type)
+      _M_insert(_Arg&& __v, const _NodeGenerator& __node_gen, geode::stl::true_type)
       {
 	const key_type& __k = this->_M_extract()(__v);
 	__hash_code __code = this->_M_hash_code(__k);
@@ -1718,10 +1719,10 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 
 	__node_type* __n = _M_find_node(__bkt, __k, __code);
 	if (__n)
-	  return std::make_pair(iterator(__n), false);
+	  return make_pair(iterator(__n), false);
 
 	__n = __node_gen(std::forward<_Arg>(__v));
-	return std::make_pair(_M_insert_unique_node(__bkt, __code, __n), true);
+	return make_pair(_M_insert_unique_node(__bkt, __code, __n), true);
       }
 
   // Insert v unconditionally.
@@ -1737,7 +1738,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 		 _H1, _H2, _Hash, _RehashPolicy, _Traits>::
       _M_insert(const_iterator __hint, _Arg&& __v,
 		const _NodeGenerator& __node_gen,
-		std::false_type)
+		geode::stl::false_type)
       {
 	// First compute the hash code so that we don't do anything if it
 	// throws.
@@ -1808,7 +1809,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 			_Traits>::size_type
     _Hashtable<_Key, _Value, _Alloc, _ExtractKey, _Equal,
 	       _H1, _H2, _Hash, _RehashPolicy, _Traits>::
-    _M_erase(std::true_type, const key_type& __k)
+    _M_erase(geode::stl::true_type, const key_type& __k)
     {
       __hash_code __code = this->_M_hash_code(__k);
       std::size_t __bkt = _M_bucket_index(__k, __code);
@@ -1833,7 +1834,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 			_Traits>::size_type
     _Hashtable<_Key, _Value, _Alloc, _ExtractKey, _Equal,
 	       _H1, _H2, _Hash, _RehashPolicy, _Traits>::
-    _M_erase(std::false_type, const key_type& __k)
+    _M_erase(geode::stl::false_type, const key_type& __k)
     {
       __hash_code __code = this->_M_hash_code(__k);
       std::size_t __bkt = _M_bucket_index(__k, __code);
@@ -1996,7 +1997,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     void
     _Hashtable<_Key, _Value, _Alloc, _ExtractKey, _Equal,
 	       _H1, _H2, _Hash, _RehashPolicy, _Traits>::
-    _M_rehash_aux(size_type __n, std::true_type)
+    _M_rehash_aux(size_type __n, geode::stl::true_type)
     {
       __bucket_type* __new_buckets = _M_allocate_buckets(__n);
       __node_type* __p = _M_begin();
@@ -2037,7 +2038,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     void
     _Hashtable<_Key, _Value, _Alloc, _ExtractKey, _Equal,
 	       _H1, _H2, _Hash, _RehashPolicy, _Traits>::
-    _M_rehash_aux(size_type __n, std::false_type)
+    _M_rehash_aux(size_type __n, geode::stl::false_type)
     {
       __bucket_type* __new_buckets = _M_allocate_buckets(__n);
 

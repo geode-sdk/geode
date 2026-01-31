@@ -141,7 +141,7 @@ public:
     //////////////////////////////////////////////////////////////////////////
 
     CC_SYNTHESIZE_NV(CCTextFieldDelegate *, m_pDelegate, Delegate);
-    CC_SYNTHESIZE_READONLY(int, m_nCharCount, CharCount);
+    CC_SYNTHESIZE_READONLY_NV(int, m_nCharCount, CharCount);
     virtual const ccColor3B& getColorSpaceHolder();
     virtual void setColorSpaceHolder(const ccColor3B& color);
 
@@ -177,6 +177,8 @@ protected:
     virtual bool canDetachWithIME();
     virtual void insertText(const char * text, int len, cocos2d::enumKeyCodes);
     virtual void deleteBackward();
+    // @note RobTop Addition
+    virtual void deleteForward();
     virtual const char * getContentText();
 public:
     class LengthStack;

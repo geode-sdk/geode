@@ -66,7 +66,9 @@ class CC_DLL CCDataVisitor
 {
     GEODE_FRIEND_MODIFY
 public:
+    CCDataVisitor() {}
     virtual ~CCDataVisitor() {}
+    GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCDataVisitor)
 
     /** default method, called from non-overloaded methods and for unrecognized objects */
     virtual void visitObject(const CCObject *p) = 0;
@@ -90,10 +92,11 @@ class CC_DLL CCPrettyPrinter : public CCDataVisitor
     GEODE_FRIEND_MODIFY
 public:
     CCPrettyPrinter(int indentLevel = 0);
-    
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCPrettyPrinter, CCDataVisitor)
+
     virtual void clear();
     virtual gd::string getResult();
-    
+
     virtual void visitObject(const CCObject *p);
     virtual void visit(const CCBool * p);
     virtual void visit(const CCInteger *p);

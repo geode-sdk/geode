@@ -68,7 +68,7 @@ typedef enum {
 	kCCTransitionOrientationUpOver = 0,
 	/// A vertical orientation where the Bottom is nearer
 	kCCTransitionOrientationDownOver = 1,
-    
+
 	// Deprecated
     //	kOrientationLeftOver = kCCTransitionOrientationLeftOver,
     //	kOrientationRightOver = kCCTransitionOrientationRightOver,
@@ -163,7 +163,7 @@ public:
 };
 
 /** @brief CCTransitionRotoZoom:
-Rotate and zoom out the outgoing scene, and then rotate and zoom in the incoming 
+Rotate and zoom out the outgoing scene, and then rotate and zoom in the incoming
 */
 class CC_DLL CCTransitionRotoZoom : public CCTransitionScene
 {
@@ -189,7 +189,7 @@ public:
 };
 
 /** @brief CCTransitionJumpZoom:
-Zoom out and jump the outgoing scene, and then jump and zoom in the incoming 
+Zoom out and jump the outgoing scene, and then jump and zoom in the incoming
 */
 class CC_DLL CCTransitionJumpZoom : public CCTransitionScene
 {
@@ -271,7 +271,7 @@ public:
 /** @brief CCTransitionMoveInT:
 Move in from to the top the incoming scene.
 */
-class CC_DLL CCTransitionMoveInT : public CCTransitionMoveInL 
+class CC_DLL CCTransitionMoveInT : public CCTransitionMoveInL
 {
     GEODE_FRIEND_MODIFY
 public:
@@ -339,7 +339,7 @@ public:
      *  @lua NA
      */
     virtual void onEnter();
-    
+
     virtual CCActionInterval* easeActionWithAction(CCActionInterval * action);
 
     static CCTransitionSlideInL* create(float t, CCScene* scene);
@@ -350,7 +350,7 @@ protected:
 /** @brief CCTransitionSlideInR:
 Slide in the incoming scene from the right border.
 */
-class CC_DLL CCTransitionSlideInR : public CCTransitionSlideInL 
+class CC_DLL CCTransitionSlideInR : public CCTransitionSlideInL
 {
     GEODE_FRIEND_MODIFY
 public:
@@ -399,7 +399,7 @@ public:
     virtual CCActionInterval* action(void);
 
     static CCTransitionSlideInB* create(float t, CCScene* scene);
-protected: 
+protected:
     virtual void sceneOrder();
 };
 
@@ -537,7 +537,7 @@ public:
      *  @lua NA
      */
     virtual void onEnter();
-    
+
     static CCTransitionFlipAngular* create(float t, CCScene* s, tOrientation o);
     static CCTransitionFlipAngular* create(float t, CCScene* s);
 };
@@ -648,7 +648,7 @@ public:
      *  @lua NA
      */
     virtual ~CCTransitionFade();
-    
+
     /** creates the transition with a duration and with an RGB color
     * Example: FadeTransition::create(2, scene, ccc3(255,0,0); // red color
     */
