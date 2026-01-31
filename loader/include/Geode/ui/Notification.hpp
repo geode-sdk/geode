@@ -28,7 +28,7 @@ namespace geode {
         float m_time;
         bool m_showing = false;
 
-        bool init(std::string const& text, cocos2d::CCNode* icon, float time);
+        bool init(ZStringView text, cocos2d::CCNode* icon, float time);
         void updateLayout();
 
         static cocos2d::CCNode* createIcon(NotificationIcon icon);
