@@ -1,5 +1,6 @@
 #pragma once
 
+#include "OverlayManager.hpp"
 #include <cocos2d.h>
 #include <cocos-ext.h>
 #include <Geode/binding/TextAlertPopup.hpp>

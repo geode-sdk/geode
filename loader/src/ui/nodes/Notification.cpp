@@ -56,7 +56,7 @@ void Notification::updateLayout() {
 
 void Notification::showNextNotification() {
     m_showing = false;
-    SceneManager::get()->forget(this);
+    OverlayManager::get()->removeChild(this);
     this->removeFromParent();
 
     // remove self from front of queue and show next popup
@@ -156,7 +156,7 @@ void Notification::show() {
     this->setPosition(winSize.width / 2, winSize.height / 4);
     this->setZOrder(CCScene::get()->getChildrenCount() > 0 ? CCScene::get()->getHighestChildZ() + 2 : 10);
 
-    SceneManager::get()->keepAcrossScenes(this);
+    OverlayManager::get()->addChild(this);
     m_showing = true;
 
     m_content->setOpacity(0);

@@ -206,7 +206,8 @@ public:
      @since v0.99.5
      */
     CCNode* getNotificationNode();
-    void setNotificationNode(CCNode *node);
+    [[deprecated("Use geode::OverlayManager instead")]]
+    void setNotificationNode(CCNode*);
 
     /** CCDirector delegate. It shall implemente the CCDirectorDelegate protocol
      @since v0.99.5

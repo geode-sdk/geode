@@ -3,36 +3,44 @@
 #include "about.hpp"
 #include "../loader/ModImpl.hpp"
 #include <Geode/Utils.hpp>
+#include <Geode/utils/web.hpp>
+#include <asp/time/SystemTime.hpp>
+#include <Geode/utils/async.hpp>
 
 using namespace geode::prelude;
 
 std::string crashlog::getDateString(bool filesafe) {
-    auto const now = std::time(nullptr);
-    auto const tm = *std::localtime(&now);
-    std::ostringstream oss;
+    auto const now = std::chrono::system_clock::now();
     if (filesafe) {
-        oss << std::put_time(&tm, "%F_%H-%M-%S");
+        return fmt::format("{:%F_%H-%M-%S}", now);
     }
-    else {
-        oss << std::put_time(&tm, "%FT%T%z"); // ISO 8601
-    }
-    return oss.str();
+    return fmt::format("{:%FT%T%z}", now);
 }
 
-void crashlog::printGeodeInfo(std::stringstream& stream) {
-    stream << "Loader Version: " << Loader::get()->getVersion().toVString() << "\n"
-           << "Loader Commit: " << about::getLoaderCommitHash() << "\n"
-           << "Bindings Commit: " << about::getBindingsCommitHash() << "\n"
-           << "Installed mods: " << Loader::get()->getAllMods().size() << "\n"
-           << "Outdated mods: " << Loader::get()->getOutdated().size() << "\n"
-           << "Problems: " << Loader::get()->getLoadProblems().size() << "\n";
+void crashlog::printGeodeInfo(Buffer& stream) {
+    stream.append(
+        "Loader Version: {}\n"
+        "Loader Commit: {}\n"
+        "Bindings Commit: {}\n"
+        "Installed mods: {}\n"
+        "Outdated mods: {}\n"
+        "Problems: {}\n",
+        Loader::get()->getVersion().toVString(),
+        about::getLoaderCommitHash(),
+        about::getBindingsCommitHash(),
+        Loader::get()->getAllMods().size(),
+        Loader::get()->getOutdated().size(),
+        Loader::get()->getLoadProblems().size()
+    );
 }
 
-void crashlog::printMods(std::stringstream& stream) {
+void crashlog::printMods(Buffer& stream) {
     auto mods = Loader::get()->getAllMods();
     if (mods.empty()) {
-        stream << "<None>\n";
+        stream.append("<None>\n");
+        return;
     }
+
     std::sort(mods.begin(), mods.end(), [](Mod* a, Mod* b) {
         auto const s1 = a->getID();
         auto const s2 = b->getID();
@@ -42,7 +50,7 @@ void crashlog::printMods(std::stringstream& stream) {
     });
     using namespace std::string_view_literals;
     for (auto& mod : mods) {
-        stream << fmt::format("{} | [{}] {}\n",
+        stream.append("{} | [{}] {}\n",
             mod->isCurrentlyLoading() ? "o"sv :
             mod->isEnabled() ? "x"sv :
             mod->hasLoadProblems() ? "!"sv : // thank you for this bug report
@@ -52,6 +60,69 @@ void crashlog::printMods(std::stringstream& stream) {
             mod->getVersion().toVString(), mod->getID()
         );
     }
+}
+
+void crashlog::updateFunctionBindings() {
+    constexpr uint64_t UPDATE_INTERVAL = 24 * 60 * 60; // one day
+    if (Mod::get()->getSavedValue<uint64_t>("bindings-update-time") + UPDATE_INTERVAL > std::time(nullptr)) {
+        return;
+    }
+
+    async::spawn(
+        web::WebRequest().get(
+            "https://prevter.github.io/bindings-meta/CodegenData-"
+            GEODE_GD_VERSION_STRING "-"
+            GEODE_WINDOWS("Win64") GEODE_INTEL_MAC("Intel") GEODE_ARM_MAC("Arm") GEODE_IOS("iOS")
+            ".json"
+        ),
+        [](web::WebResponse res) {
+            if (!res.ok()) return;
+
+            (void) res.into(dirs::getGeodeSaveDir() / "bindings.json");
+            Mod::get()->setSavedValue<uint64_t>("bindings-update-time", std::time(nullptr));
+        }
+    );
+}
+
+static std::vector<crashlog::FunctionBinding> const& getBindings() {
+    static auto bindings = file::readFromJson<std::vector<crashlog::FunctionBinding>>(
+        dirs::getGeodeSaveDir() / "bindings.json"
+    ).unwrapOrDefault();
+    return bindings;
+}
+
+std::string_view crashlog::lookupClosestFunction(uintptr_t& address) {
+    auto& bindings = getBindings();
+    if (bindings.empty()) { return {}; }
+
+    auto it = std::lower_bound(
+        bindings.begin(), bindings.end(), address,
+        [](FunctionBinding const& a, uintptr_t b) { return a.offset < b; }
+    );
+
+    if (it == bindings.end() || it->offset > address) {
+        if (it == bindings.begin()) return {};
+        --it;
+    }
+
+    address -= it->offset;
+    return it->name;
+}
+
+std::string_view crashlog::lookupFunctionByOffset(uintptr_t address) {
+    auto& bindings = getBindings();
+    if (bindings.empty()) { return {}; }
+
+    auto it = std::lower_bound(
+        bindings.begin(), bindings.end(), address,
+        [](FunctionBinding const& a, uintptr_t b) { return a.offset < b; }
+    );
+
+    if (it != bindings.end() && it->offset == address) {
+        return it->name;
+    }
+
+    return {};
 }
 
 std::string crashlog::writeCrashlog(geode::Mod* faultyMod, std::string_view info, std::string_view stacktrace, std::string_view registers) {
@@ -73,37 +144,38 @@ std::string crashlog::writeCrashlog(
     // this could also be done by saving a loader setting or smth but eh.
     (void)utils::file::writeBinary(crashlog::getCrashLogDirectory() / "last-crashed", {});
 
-    std::stringstream file;
+    Buffer file;
 
-    file << getDateString(false) << "\n"
-         << std::showbase << "Whoopsies! An unhandled exception has occurred.\n";
+    file.append(getDateString(false));
+    file.append("\nWhoopsies! An unhandled exception has occurred.\n");
 
     if (faultyMod) {
-        file << "It appears that the crash occurred while executing code from "
-             << "the \"" << faultyMod->getID() << "\" mod. "
-             << "Please submit this crash report to its developers ("
-             << ranges::join(faultyMod->getDevelopers(), ", ")
-             << ") for assistance.\n";
+        file.append(
+            "It appears that the crash occurred while executing code from the \"{}\" mod. "
+            "Please submit this crash report to its developers ({}) for assistance.\n",
+            faultyMod->getID(),
+            fmt::join(faultyMod->getDevelopers(), ", ")
+        );
     }
 
     // geode info
-    file << "\n== Geode Information ==\n";
+    file.append("\n== Geode Information ==\n");
     printGeodeInfo(file);
 
     // exception info
-    file << "\n== Exception Information ==\n";
-    file << info;
+    file.append("\n== Exception Information ==\n");
+    file.append(info);
 
     // stack trace
-    file << "\n== Stack Trace ==\n";
-    file << stacktrace;
+    file.append("\n== Stack Trace ==\n");
+    file.append(stacktrace);
 
     // registers
-    file << "\n== Register States ==\n";
-    file << registers;
+    file.append("\n== Register States ==\n");
+    file.append(registers);
 
     // mods
-    file << "\n== Installed Mods ==\n";
+    file.append("\n== Installed Mods ==\n");
     printMods(file);
 
     // save actual file
@@ -112,7 +184,7 @@ std::string crashlog::writeCrashlog(
     actualFile.open(
         outPath, std::ios::app
     );
-    actualFile << file.rdbuf() << std::flush;
+    actualFile << file.view() << std::flush;
     actualFile.close();
 
     return file.str();
