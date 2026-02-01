@@ -686,7 +686,7 @@ namespace geode {
                 }, *m_filter);
             }
             else {
-                if constexpr (std::is_convertible_v<std::invoke_result_t<Callable, FArgs..., PArgs...>, bool>) {
+                if constexpr (std::is_convertible_v<std::invoke_result_t<Callable, PArgs...>, bool>) {
                     return Event2Type().listen([listener = std::move(listener)](FArgs... fargs, PArgs... pargs) {
                         return static_cast<bool>(std::invoke(listener, std::forward<PArgs>(pargs)...));
                     }, priority);
