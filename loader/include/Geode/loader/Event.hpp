@@ -686,9 +686,17 @@ namespace geode {
                 }, *m_filter);
             }
             else {
-                return Event2Type().listen([listener = std::move(listener)](FArgs... fargs, PArgs... pargs) {
-                    return static_cast<bool>(std::invoke(listener, std::forward<PArgs>(pargs)...));
-                }, priority);
+                if constexpr (std::is_convertible_v<std::invoke_result_t<Callable, FArgs..., PArgs...>, bool>) {
+                    return Event2Type().listen([listener = std::move(listener)](FArgs... fargs, PArgs... pargs) {
+                        return static_cast<bool>(std::invoke(listener, std::forward<PArgs>(pargs)...));
+                    }, priority);
+                }
+                else {
+                    return Event2Type().listen([listener = std::move(listener)](FArgs... fargs, PArgs... pargs) {
+                        std::invoke(listener, std::forward<PArgs>(pargs)...);
+                        return false;
+                    }, priority);
+                }
             }
             return ListenerHandle{};
         }
