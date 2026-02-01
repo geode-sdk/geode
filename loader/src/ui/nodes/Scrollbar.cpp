@@ -5,34 +5,55 @@
 
 using namespace geode::prelude;
 
-bool Scrollbar::ccTouchBegan(CCTouch* touch, CCEvent* event) {
+class Scrollbar::Impl {
+public:
+    Scrollbar* m_self = nullptr;
+    CCScrollLayerExt* m_target = nullptr;
+    cocos2d::extension::CCScale9Sprite* m_track = nullptr;
+    cocos2d::extension::CCScale9Sprite* m_thumb = nullptr;
+    cocos2d::CCPoint m_clickOffset{};
+    float m_width = 0.f;
+    bool m_resizeThumb = false;
+    bool m_trackIsRotated = false;
+    bool m_hoverHighlight = false;
+    bool m_touchDown = false;
+
+    Impl(Scrollbar* self) : m_self(self) {}
+
+    bool ccTouchBegan(CCTouch* touch, CCEvent* event);
+    void ccTouchEnded(CCTouch*, CCEvent*);
+    void ccTouchCancelled(CCTouch*, CCEvent*);
+    void ccTouchMoved(CCTouch* touch, CCEvent*);
+    void scrollWheel(float x, float y);
+    void registerWithTouchDispatcher();
+    void draw();
+    bool init(CCScrollLayerExt* target);
+    void setTarget(CCScrollLayerExt* target) { m_target = target; }
+};
+
+bool Scrollbar::Impl::ccTouchBegan(CCTouch* touch, CCEvent* event) {
     // hitbox
-    auto const size = this->getContentSize();
-    auto const pos = this->convertToNodeSpace(touch->getLocation());
+    auto const size = m_self->getContentSize();
+    auto const pos = m_self->convertToNodeSpace(touch->getLocation());
     auto const rect = CCRect{0, 0, size.width, size.height};
 
     if (!m_target || !rect.containsPoint(pos)) return false;
 
     // trigger scrollbar thumb move
-    this->ccTouchMoved(touch, event);
+    ccTouchMoved(touch, event);
 
     m_touchDown = true;
 
     return true;
 }
 
-void Scrollbar::ccTouchEnded(CCTouch*, CCEvent*) {
-    m_touchDown = false;
-}
+void Scrollbar::Impl::ccTouchEnded(CCTouch*, CCEvent*) { m_touchDown = false; }
+void Scrollbar::Impl::ccTouchCancelled(CCTouch*, CCEvent*) { m_touchDown = false; }
 
-void Scrollbar::ccTouchCancelled(CCTouch*, CCEvent*) {
-    m_touchDown = false;
-}
-
-void Scrollbar::ccTouchMoved(CCTouch* touch, CCEvent*) {
+void Scrollbar::Impl::ccTouchMoved(CCTouch* touch, CCEvent*) {
     if (!m_target) return;
 
-    auto pos = this->convertToNodeSpace(touch->getLocation());
+    auto pos = m_self->convertToNodeSpace(touch->getLocation());
 
     auto contentHeight = m_target->m_contentLayer->getScaledContentSize().height;
     auto targetHeight = m_target->getScaledContentSize().height;
@@ -51,17 +72,17 @@ void Scrollbar::ccTouchMoved(CCTouch* touch, CCEvent*) {
     m_target->m_contentLayer->setPositionY(posY);
 }
 
-void Scrollbar::scrollWheel(float x, float y) {
+void Scrollbar::Impl::scrollWheel(float x, float y) {
     if (!m_target) return;
     m_target->scrollWheel(x, y);
 }
 
-void Scrollbar::registerWithTouchDispatcher() {
-    CCDirector::sharedDirector()->getTouchDispatcher()->addTargetedDelegate(this, 0, true);
+void Scrollbar::Impl::registerWithTouchDispatcher() {
+    CCDirector::sharedDirector()->getTouchDispatcher()->addTargetedDelegate(m_self, 0, true);
 }
 
-void Scrollbar::draw() {
-    CCLayer::draw();
+void Scrollbar::Impl::draw() {
+    m_self->CCLayer::draw();
 
     if (!m_target) return;
 
@@ -76,9 +97,9 @@ void Scrollbar::draw() {
         m_track->setContentSize({ m_width / m_track->getScale(),
                                   targetHeight / m_track->getScale() });
     }
-    m_track->setPosition(m_obContentSize / 2);
+    m_track->setPosition(m_self->m_obContentSize / 2);
 
-    this->setContentSize({ m_width, targetHeight });
+    m_self->setContentSize({ m_width, targetHeight });
 
     auto h = contentHeight - targetHeight + m_target->m_scrollLimitTop;
     auto p = targetHeight / contentHeight;
@@ -134,20 +155,16 @@ void Scrollbar::draw() {
         thumbPosY -= fHeightBottom();
     }
 
-    m_thumb->setPosition(m_obContentSize / 2 + ccp(0.f, thumbPosY));
+    m_thumb->setPosition(m_self->m_obContentSize / 2 + ccp(0.f, thumbPosY));
     if (m_resizeThumb) {
         m_thumb->setContentSize({ m_width, thumbHeight });
     }
 }
 
-void Scrollbar::setTarget(CCScrollLayerExt* target) {
-    m_target = target;
-}
+bool Scrollbar::Impl::init(CCScrollLayerExt* target) {
+    if (!m_self->CCLayer::init()) return false;
 
-bool Scrollbar::init(CCScrollLayerExt* target) {
-    if (!this->CCLayer::init()) return false;
-
-    this->ignoreAnchorPointForPosition(false);
+    m_self->ignoreAnchorPointForPosition(false);
 
     m_target = target;
 
@@ -179,13 +196,42 @@ bool Scrollbar::init(CCScrollLayerExt* target) {
         m_hoverHighlight = false;
     }
 
-    this->addChild(m_track);
-    this->addChild(m_thumb);
+    m_self->addChild(m_track);
+    m_self->addChild(m_thumb);
 
-    this->setTouchEnabled(true);
+    m_self->setTouchEnabled(true);
 
     return true;
 }
+
+// Scrollbar public forwards / wiring
+
+Scrollbar::Scrollbar() : m_impl(std::make_unique<Scrollbar::Impl>(this)) {}
+Scrollbar::~Scrollbar() = default;
+
+bool Scrollbar::ccTouchBegan(CCTouch* touch, CCEvent* event) { 
+    return m_impl->ccTouchBegan(touch, event); 
+}
+void Scrollbar::ccTouchEnded(CCTouch* t, CCEvent* e) { 
+    m_impl->ccTouchEnded(t, e); 
+}
+void Scrollbar::ccTouchCancelled(CCTouch* t, CCEvent* e) { 
+    m_impl->ccTouchCancelled(t, e); 
+}
+void Scrollbar::ccTouchMoved(CCTouch* t, CCEvent* e) { 
+    m_impl->ccTouchMoved(t, e); 
+}
+void Scrollbar::scrollWheel(float x, float y) { 
+    m_impl->scrollWheel(x, y); 
+}
+void Scrollbar::registerWithTouchDispatcher() { 
+    m_impl->registerWithTouchDispatcher(); 
+}
+void Scrollbar::draw() { 
+    m_impl->draw(); 
+}
+bool Scrollbar::init(CCScrollLayerExt* target) { return m_impl->init(target); }
+void Scrollbar::setTarget(CCScrollLayerExt* list) { m_impl->setTarget(list); }
 
 Scrollbar* Scrollbar::create(CCScrollLayerExt* target) {
     auto ret = new Scrollbar;

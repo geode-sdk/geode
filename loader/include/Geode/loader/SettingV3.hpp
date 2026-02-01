@@ -651,47 +651,28 @@ namespace geode {
         }
     };
 
-    class GEODE_DLL SettingChangedEventV3 final : public Event<SettingChangedEventV3, bool(std::shared_ptr<SettingV3>), std::string, std::string> {
+    class GEODE_DLL SettingChangedEventV3 final : public GlobalEvent<SettingChangedEventV3, bool(std::string_view, std::string_view, std::shared_ptr<SettingV3>), bool(std::shared_ptr<SettingV3>), std::string, std::string> {
     public:
         // listener params setting
         // filter params modID, settingKey
-        using Event::Event;
+        using GlobalEvent::GlobalEvent;
         SettingChangedEventV3(Mod* mod, std::string settingKey);
     };
 
-    class GEODE_DLL GlobalSettingChangedEventV3 final : public SimpleEvent<GlobalSettingChangedEventV3, std::string_view, std::string_view, std::shared_ptr<SettingV3>> {
-    public:
-        // listener params settingKey, setting
-        // filter params modID
-        using SimpleEvent::SimpleEvent;
-    };
-
-    class GEODE_DLL SettingNodeSizeChangeEventV3 final : public Event<SettingNodeSizeChangeEventV3, bool(SettingNodeV3*), std::string, std::string> {
+    class GEODE_DLL SettingNodeSizeChangeEventV3 final : public GlobalEvent<SettingNodeSizeChangeEventV3, bool(std::string_view, std::string_view, SettingNodeV3*), bool(SettingNodeV3*), std::string, std::string> {
     public:
         // listener params node
         // filter params modID, settingKey
-        using Event::Event;
+        using GlobalEvent::GlobalEvent;
         SettingNodeSizeChangeEventV3(Mod* mod, std::string settingKey);
     };
 
-    class GEODE_DLL GlobalSettingNodeSizeChangeEventV3 final : public SimpleEvent<SettingNodeSizeChangeEventV3, std::string_view, std::string_view, SettingNodeV3*> {
-    public:
-        // listener params modID, settingKey, node
-        using SimpleEvent::SimpleEvent;
-    };
-
-    class GEODE_DLL SettingNodeValueChangeEventV3 final : public Event<SettingNodeValueChangeEventV3, bool(SettingNodeV3*, bool), std::string, std::string> {
+    class GEODE_DLL SettingNodeValueChangeEventV3 final : public GlobalEvent<SettingNodeValueChangeEventV3, bool(std::string_view, std::string_view, SettingNodeV3*, bool), bool(SettingNodeV3*, bool), std::string, std::string> {
     public:
         // listener params node, isCommit
         // filter params modID, settingKey
-        using Event::Event;
+        using GlobalEvent::GlobalEvent;
         SettingNodeValueChangeEventV3(Mod* mod, std::string settingKey);
-    };
-
-    class GEODE_DLL GlobalSettingNodeValueChangeEventV3 final : public SimpleEvent<GlobalSettingNodeValueChangeEventV3, std::string_view, std::string_view, SettingNodeV3*, bool> {
-    public:
-        // listener params modID, settingKey, node, isCommit
-        using SimpleEvent::SimpleEvent;
     };
 
     template <class T>
@@ -758,28 +739,14 @@ namespace geode {
 
     ZStringView getModID(Mod* mod);
 
-    template <class T, class Callback>
+    template <class Callback>
+    requires std::is_invocable_v<Callback, std::string_view, std::shared_ptr<SettingV3>>
     ListenerHandle* listenForAllSettingChanges(Callback&& callback, Mod* mod = getMod()) {
-        using Ty = typename SettingTypeForValueType<T>::SettingType;
-        using Ret = utils::function::Return<decltype(callback)>;
-        if constexpr (std::is_same_v<Ret, void>) {
-            return GlobalSettingChangedEventV3().listen([callback = std::move(callback), mod = std::move(mod)](std::string_view modID, std::string_view key, std::shared_ptr<SettingV3> setting, bool isCommit) {
-                if (auto ty = geode::cast::typeinfo_pointer_cast<Ty>(setting)) {
-                    if (getModID(mod) == modID) {
-                        return callback(ty->getValue());
-                    }
-                }
-            }).leak();
-        }
-        else {
-            return GlobalSettingChangedEventV3().listen([callback = std::move(callback), mod = std::move(mod)](std::string_view modID, std::string_view key, std::shared_ptr<SettingV3> setting, bool isCommit) {
-                if (auto ty = geode::cast::typeinfo_pointer_cast<Ty>(setting)) {
-                    if (getModID(mod) == modID) {
-                        return callback(ty->getValue());
-                    }
-                }
-                return Ret{};
-            }).leak();
-        }
+        return SettingChangedEventV3().listen([callback = std::move(callback), mod = std::move(mod)](std::string_view modID, std::string_view key, std::shared_ptr<SettingV3> setting) {
+            if (mod && getModID(mod) != modID) {
+                return;
+            }
+            return callback(key, setting);
+        }).leak();
     }
 }

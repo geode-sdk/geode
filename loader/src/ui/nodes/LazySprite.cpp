@@ -74,6 +74,7 @@ void LazySprite::loadFromUrl(std::string url, Format format, bool ignoreCache) {
     m_impl->m_isLoading = true;
 
     m_impl->m_listener.spawn(
+        "LazySprite Web Listener",
         web::WebRequest{}.get(url),
         [this, cacheKey = ignoreCache ? std::string{} : std::string(url)](web::WebResponse resp) mutable {
             if (!resp.ok()) {

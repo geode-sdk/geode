@@ -94,9 +94,9 @@ bool ModsStatusNode::init() {
         this->updateState();
         return ListenerResult::Propagate;
     });
-    m_downloadHandle = server::GlobalModDownloadEvent().listen([this](std::string_view key) { this->updateState(); });
+    m_downloadHandle = server::ModDownloadEvent().listen([this](std::string_view key) { this->updateState(); });
 
-    m_settingNodeHandle = GlobalSettingNodeValueChangeEvent().listen([this](std::string_view modID, std::string_view key, SettingNodeV3* node, bool isCommit) {
+    m_settingNodeHandle = SettingNodeValueChangeEvent().listen([this](std::string_view modID, std::string_view key, SettingNodeV3* node, bool isCommit) {
         if (!isCommit) {
             return ListenerResult::Propagate;
         }
@@ -386,7 +386,7 @@ bool ModsLayer::init() {
             ->setMainAxisAlignment(MainAxisAlignment::Start)
             ->setGap(5.f)
     );
-    this->addChildAtPosition(backMenu, Anchor::TopLeft, ccp(12, -25), false);
+    this->addChildAtPosition(backMenu, Anchor::TopLeft, ccp(8, -23), false);
 
     auto actionsMenu = CCMenu::create();
     actionsMenu->setID("actions-menu");
@@ -876,3 +876,4 @@ server::ServerFuture<std::vector<std::string>> ModsLayer::checkInstalledModsForU
     
     co_return Ok(std::move(updatesFound));
 }
+

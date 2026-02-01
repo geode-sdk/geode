@@ -1,7 +1,9 @@
 #include <Geode/utils/AndroidEvent.hpp>
+#include <Geode/Prelude.hpp>
 
 #include <unordered_map>
 
+#include <cocos2d.h>
 #include <android/keycodes.h>
 #include <jni.h>
 

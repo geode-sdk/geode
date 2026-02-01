@@ -224,7 +224,7 @@ bool ModItem::init(ModSource&& source) {
                 m_viewMenu->addChild(viewErrorBtn);
             }
 
-            m_settingNodeHandle = GlobalSettingNodeValueChangeEvent().listen([this](std::string_view modID, std::string_view key, SettingNodeV3*, bool isCommit) {
+            m_settingNodeHandle = SettingNodeValueChangeEvent().listen([this](std::string_view modID, std::string_view key, SettingNodeV3*, bool isCommit) {
                 if (!isCommit) {
                     return ListenerResult::Propagate;
                 }
@@ -353,6 +353,7 @@ bool ModItem::init(ModSource&& source) {
 
     if (m_source.asMod()) {
         m_checkUpdateListener.spawn(
+            "ModItem update check",
             m_source.checkUpdates(),
             [this](auto res) {
                 this->onCheckUpdates(std::move(res));

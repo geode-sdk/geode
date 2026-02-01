@@ -13,6 +13,7 @@
 #include <Geode/Result.hpp>
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/utils/AndroidEvent.hpp>
+#include <arc/sync/oneshot.hpp>
 #include <optional>
 #include <mutex>
 #include <string.h>
@@ -155,9 +156,8 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
 }
 
 std::mutex s_callbackMutex;
-static geode::Function<void(Result<std::filesystem::path>)> s_fileCallback {};
-static geode::Function<void(Result<std::vector<std::filesystem::path>>)> s_filesCallback {};
-static geode::Function<bool()> s_taskCancelled {};
+static std::optional<arc::oneshot::Sender<file::PickResult>> s_fileTx {};
+static std::optional<arc::oneshot::Sender<file::PickManyResult>> s_filesTx {};
 
 extern "C"
 JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_selectFileCallback(
@@ -169,14 +169,9 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_selectFileCallba
     auto dataStr = env->GetStringUTFChars(data, &isCopy);
 
     const std::lock_guard lock(s_callbackMutex);
-    if (s_taskCancelled && s_taskCancelled()) {
-        s_taskCancelled = {};
-        return;
-    }
-    if (s_fileCallback) {
-        s_fileCallback(Ok(std::filesystem::path(dataStr)));
-        s_fileCallback = {};
-        s_taskCancelled = {};
+    if (s_fileTx) {
+        (void) s_fileTx->send(Ok(std::filesystem::path(dataStr)));
+        s_fileTx.reset();
     }
 }
 
@@ -189,20 +184,16 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_selectFilesCallb
     auto isCopy = jboolean();
     auto count = env->GetArrayLength(datas);
     auto result = std::vector<std::filesystem::path>();
+    result.reserve(count);
     for (int i = 0; i < count; i++) {
         auto data = (jstring)env->GetObjectArrayElement(datas, i);
         auto dataStr = env->GetStringUTFChars(data, &isCopy);
         result.push_back(dataStr);
     }
     const std::lock_guard lock(s_callbackMutex);
-    if (s_taskCancelled && s_taskCancelled()) {
-        s_taskCancelled = {};
-        return;
-    }
-    if (s_filesCallback) {
-        s_filesCallback(Ok(std::move(result)));
-        s_filesCallback = {};
-        s_taskCancelled = {};
+    if (s_filesTx) {
+        (void) s_filesTx->send(Ok(std::move(result)));
+        s_filesTx.reset();
     }
 }
 
@@ -212,91 +203,95 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_failedCallback(
         jobject
 ) {
     const std::lock_guard lock(s_callbackMutex);
-    if (s_fileCallback) {
-        s_fileCallback(Err("Permission error"));
-        s_fileCallback = {};
+    if (s_fileTx) {
+        (void) s_fileTx->send(Err("Permission error"));
+        s_fileTx.reset();
     }
-    if (s_filesCallback) {
-        s_filesCallback(Err("Permission error"));
-        s_filesCallback = {};
-    }
-    if (s_taskCancelled) {
-        s_taskCancelled = {};
+    if (s_filesTx) {
+        (void) s_filesTx->send(Err("Permission error"));
+        s_filesTx.reset();
     }
 }
 
-arc::Future<Result<std::optional<std::filesystem::path>>>file::pick(file::PickMode mode, file::FilePickOptions const& options) {
-    co_return Err("// TODO: v5");
-    // using RetTask = Task<Result<std::filesystem::path>>;
+arc::Future<file::PickResult> file::pick(file::PickMode mode, file::FilePickOptions options) {
+    std::unique_lock lock(s_callbackMutex);
+    if (s_fileTx || s_filesTx) {
+        co_return Err("File picker was already called this frame");
+    }
 
-    // const std::lock_guard lock(s_callbackMutex);
-    // if (s_fileCallback || s_filesCallback || s_taskCancelled) {
-    //     return RetTask::immediate(Err("File picker was already called this frame"));
-    // }
+    ZStringView method;
+    switch (mode) {
+        case file::PickMode::OpenFile:
+            method = "selectFile";
+            break;
+        case file::PickMode::SaveFile:
+            method = "createFile";
+            break;
+        case file::PickMode::OpenFolder:
+            method = "selectFolder";
+            break;
+    }
 
-    // std::string method;
-    // switch (mode) {
-    //     case file::PickMode::OpenFile:
-    //         method = "selectFile";
-    //         break;
-    //     case file::PickMode::SaveFile:
-    //         method = "createFile";
-    //         break;
-    //     case file::PickMode::OpenFolder:
-    //         method = "selectFolder";
-    //         break;
-    // }
+    JniMethodInfo t;
+    if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", method.c_str(), "(Ljava/lang/String;)Z")) {
+        jstring stringArg1 = t.env->NewStringUTF(
+            utils::string::pathToString(options.defaultPath.value_or(std::filesystem::path()).filename()).c_str()
+        );
 
-    // JniMethodInfo t;
-    // if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", method.c_str(), "(Ljava/lang/String;)Z")) {
-    //     jstring stringArg1 = t.env->NewStringUTF(
-    //         utils::string::pathToString(options.defaultPath.value_or(std::filesystem::path()).filename()).c_str()
-    //     );
+        jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
 
-    //     jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
+        t.env->DeleteLocalRef(stringArg1);
+        t.env->DeleteLocalRef(t.classID);
+        if (!result) {
+            co_return Err("Failed to open file picker");
+        }
+    }
 
-    //     t.env->DeleteLocalRef(stringArg1);
-    //     t.env->DeleteLocalRef(t.classID);
-    //     if (!result) {
-    //         return RetTask::immediate(Err("Failed to open file picker"));
-    //     }
-    // }
-    // return RetTask::runWithCallback([] (auto result, auto progress, auto cancelled) {
-    //     const std::lock_guard lock(s_callbackMutex);
-    //     s_fileCallback = std::move(result);
-    //     s_taskCancelled = std::move(cancelled);
-    // });
+    auto [tx, rx] = arc::oneshot::channel<file::PickResult>();
+    s_fileTx = std::move(tx);
+
+    lock.unlock();
+    auto res = co_await rx.recv();
+    lock.lock();
+
+    if (!res) {
+        co_return Err("file picker sender was destroyed");
+    }
+    co_return std::move(res).unwrap();
 }
 
-arc::Future<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions const& options) {
-    co_return Err("// TODO: v5");
-    // using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
+arc::Future<file::PickManyResult> file::pickMany(FilePickOptions options) {
+    std::unique_lock lock(s_callbackMutex);
+    if (s_fileTx || s_filesTx) {
+        co_return Err("File picker was already called this frame");
+    }
 
-    // const std::lock_guard lock(s_callbackMutex);
-    // if (s_fileCallback || s_filesCallback || s_taskCancelled) {
-    //     return RetTask::immediate(Err("File picker was already called this frame"));
-    // }
+    JniMethodInfo t;
+    if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "selectFiles", "(Ljava/lang/String;)Z")) {
+        jstring stringArg1 = t.env->NewStringUTF(
+            utils::string::pathToString(options.defaultPath.value_or(std::filesystem::path())).c_str()
+        );
 
-    // JniMethodInfo t;
-    // if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "selectFiles", "(Ljava/lang/String;)Z")) {
-    //     jstring stringArg1 = t.env->NewStringUTF(
-    //         utils::string::pathToString(options.defaultPath.value_or(std::filesystem::path())).c_str()
-    //     );
+        jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
 
-    //     jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
+        t.env->DeleteLocalRef(stringArg1);
+        t.env->DeleteLocalRef(t.classID);
+        if (!result) {
+            co_return Err("Failed to open file dialog");
+        }
+    }
 
-    //     t.env->DeleteLocalRef(stringArg1);
-    //     t.env->DeleteLocalRef(t.classID);
-    //     if (!result) {
-    //         return RetTask::immediate(Err("Failed to open file dialog"));
-    //     }
-    // }
+    auto [tx, rx] = arc::oneshot::channel<file::PickManyResult>();
+    s_filesTx = std::move(tx);
 
-    // return RetTask::runWithCallback([options](auto result, auto progress, auto cancelled){
-    //     const std::lock_guard lock(s_callbackMutex);
-    //     s_filesCallback = std::move(result);
-    //     s_taskCancelled = std::move(cancelled);
-    // });
+    lock.unlock();
+    auto res = co_await rx.recv();
+    lock.lock();
+
+    if (!res) {
+        co_return Err("file picker sender was destroyed");
+    }
+    co_return std::move(res).unwrap();
 }
 
 void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {

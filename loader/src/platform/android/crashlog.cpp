@@ -8,6 +8,8 @@ static bool s_lastLaunchCrashed = false;
 #include <memory>
 #include <fmt/chrono.h>
 
+#include <asp/time/SystemTime.hpp>
+
 #include <client/linux/handler/exception_handler.h>
 #include <client/linux/handler/minidump_descriptor.h>
 
@@ -35,7 +37,7 @@ namespace {
     std::string crashdumpName() {
         auto timeEpoch = std::chrono::system_clock::to_time_t(
             std::chrono::system_clock::now());
-        auto localtime = fmt::localtime(timeEpoch);
+        auto localtime = asp::localtime(timeEpoch);
 
         return fmt::format("Crash {:%F %H.%M.%S}.dmp", localtime);
     }

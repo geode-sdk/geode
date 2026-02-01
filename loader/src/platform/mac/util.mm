@@ -375,17 +375,17 @@ void geode::utils::thread::platformSetName(ZStringView name) {
     pthread_setname_np(name.c_str());
 }
 
+@interface EAGLView : NSOpenGLView
++(EAGLView*) sharedEGLView;
+
+-(float) getBackingFactor;
+@end
+
 float geode::utils::getDisplayFactor() {
-    float displayScale = 1.f;
-    if ([[NSScreen mainScreen] respondsToSelector:@selector(backingScaleFactor)]) {
-        NSArray* screens = [NSScreen screens];
-        for (int i = 0; i < screens.count; i++) {
-            float s = [screens[i] backingScaleFactor];
-            if (s > displayScale)
-                displayScale = s;
-        }
-    }
-    return displayScale;
+    // while this is also accessible from the NSWindow, the game uses the value in EAGLView
+    // return [[[NSApplication sharedApplication] mainWindow] backingScaleFactor];
+    static Class eaglViewClass = objc_getClass("EAGLView");
+    return [[eaglViewClass sharedEGLView] getBackingFactor];
 }
 
 std::string geode::utils::getEnvironmentVariable(ZStringView name) {

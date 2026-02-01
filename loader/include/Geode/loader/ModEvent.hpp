@@ -17,17 +17,10 @@ namespace geode {
     /**
      * Event that is fired when a mod is loaded / unloaded / enabled / disabled
      */
-    class GEODE_DLL ModStateEvent final : public Event<ModStateEvent, bool(), ModEventType, Mod*> {
+    class GEODE_DLL ModStateEvent final : public GlobalEvent<ModStateEvent, bool(), ModEventType, Mod*> {
     public:
         // filter params type, targetMod
-        using Event::Event;
-    };
-
-    class GEODE_DLL GlobalModStateEvent final : public Event<GlobalModStateEvent, bool(Mod*), ModEventType> {
-    public:
-        // listener params mod
-        // filter params type
-        using Event::Event;
+        using GlobalEvent::GlobalEvent;
     };
 
     /**

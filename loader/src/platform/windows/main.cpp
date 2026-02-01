@@ -150,6 +150,23 @@ void fixCurrentWorkingDirectory() {
     SetCurrentDirectoryW(std::filesystem::path(cwd.data()).parent_path().wstring().c_str());
 }
 
+bool cleanModeCheck() {
+    if (
+        (GetAsyncKeyState(VK_MENU) & (1 << 15)) &&
+        (GetAsyncKeyState(VK_SHIFT) & (1 << 15))
+    ) {
+        auto choice = MessageBoxW(
+            NULL,
+            L"(This has been triggered because you were holding ALT+SHIFT)\n"
+            L"Do you want to open Geometry Dash without Geode?",
+            L"Attention",
+            MB_YESNO | MB_ICONINFORMATION
+        );
+        return choice == IDYES;
+    }
+    return false;
+}
+
 int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
     // MessageBoxW(NULL, L"Hello from gdMainHook!", L"Hi", 0);
 
@@ -157,25 +174,27 @@ int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
     fixCurrentWorkingDirectory();
 
-    if (versionToTimestamp(GEODE_STR(GEODE_GD_VERSION)) > gdTimestamp) {
-        console::messageBox(
-            "Unable to Load Geode!",
-            fmt::format(
-                "Geometry Dash is outdated!\n"
-                "Geode requires GD {} but you have {}.\n"
-                "Please, update Geometry Dash to {}.",
-                GEODE_STR(GEODE_GD_VERSION),
-                LoaderImpl::get()->getGameVersion(),
-                GEODE_STR(GEODE_GD_VERSION)
-            )
-        );
-        // TODO: should geode FreeLibrary itself here?
-    } else {
-        patchDelayLoad();
+    if (!cleanModeCheck()) {
+        if (versionToTimestamp(GEODE_STR(GEODE_GD_VERSION)) > gdTimestamp) {
+            console::messageBox(
+                "Unable to Load Geode!",
+                fmt::format(
+                    "Geometry Dash is outdated!\n"
+                    "Geode requires GD {} but you have {}.\n"
+                    "Please, update Geometry Dash to {}.",
+                    GEODE_STR(GEODE_GD_VERSION),
+                    LoaderImpl::get()->getGameVersion(),
+                    GEODE_STR(GEODE_GD_VERSION)
+                )
+            );
+            // TODO: should geode FreeLibrary itself here?
+        } else {
+            patchDelayLoad();
 
-        int exitCode = geodeEntry(hInstance);
-        if (exitCode != 0)
-            return exitCode;
+            int exitCode = geodeEntry(hInstance);
+            if (exitCode != 0)
+                return exitCode;
+        }
     }
 
     return reinterpret_cast<decltype(&wWinMain)>(mainTrampolineAddr)(hInstance, hPrevInstance, lpCmdLine, nCmdShow);

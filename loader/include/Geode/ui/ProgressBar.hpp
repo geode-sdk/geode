@@ -10,7 +10,7 @@ namespace geode {
     GEODE_DLL const char* baseEnumToString(ProgressBarStyle);
 
     // Custom class for the progress bar
-    class GEODE_DLL ProgressBar : public cocos2d::CCNode {
+    class GEODE_DLL ProgressBar final : public cocos2d::CCNode {
     protected:
         class Impl;
         std::unique_ptr<Impl> m_impl;
