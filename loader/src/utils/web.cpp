@@ -1193,8 +1193,6 @@ public:
         auto& driver = Runtime::current()->ioDriver();
         auto it = m_sockets.find(s);
 
-        log::error("Adding socket s={} what={}", (int)s, what);
-
         if (what == CURL_POLL_REMOVE) {
             // unregister the socket
             if (it != m_sockets.end()) {

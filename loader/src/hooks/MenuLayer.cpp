@@ -196,22 +196,21 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             checkedModUpdates = true;
 
             m_fields->m_updateCheckTask.spawn(ModsLayer::checkInstalledModsForUpdates(), [this](auto result) {
-                // TODO: v5
-                // if (result.isOk()) {
-                //     auto updatesFound = result.unwrap();
-                //     if (updatesFound.size()) {
-                //         log::info("Found updates for mods: {}!", updatesFound);
-                //         this->showUpdatesFound();
-                //         foundModUpdates = true;
-                //     }
-                //     else {
-                //         log::info("All mods up to date!");
-                //     }
-                // }
-                // else {
-                //     auto error = result.unwrapErr();
-                //     log::error("Unable to check for mod updates ({}): {}", error.code, error.details);
-                // }
+                if (result.isOk()) {
+                    auto updatesFound = result.unwrap();
+                    if (updatesFound.size()) {
+                        log::info("Found updates for mods: {}!", updatesFound);
+                        this->showUpdatesFound();
+                        foundModUpdates = true;
+                    }
+                    else {
+                        log::info("All mods up to date!");
+                    }
+                }
+                else {
+                    auto error = result.unwrapErr();
+                    log::error("Unable to check for mod updates ({}): {}", error.code, error.details);
+                }
             });
         }
 
