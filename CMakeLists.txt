@@ -256,7 +256,7 @@ CPMAddPackage("gh:geode-sdk/result@1.3.3")
 CPMAddPackage("gh:geode-sdk/json@3.2.3")
 CPMAddPackage("gh:zhihaoy/nontype_functional#8ec2e09")
 CPMAddPackage("gh:fmtlib/fmt#12.1.0")
-CPMAddPackage("gh:dankmeme01/arc#dcbd12e")
+CPMAddPackage("gh:dankmeme01/arc#b5d9d41")
 
 target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)
 

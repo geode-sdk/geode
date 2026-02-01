@@ -6,9 +6,8 @@ namespace geode::comm {
 	class ObserverContext;
 
 	struct SignalInternal {
-		virtual ~SignalInternal() noexcept;
-		virtual void removePortReceiver(ReceiverHandle handle) noexcept;
-		virtual ReceiverHandle addPortReceiver(ObserverContext handle) noexcept;
+		virtual void removePortReceiver(ReceiverHandle handle) noexcept = 0;
+		virtual ReceiverHandle addPortReceiver(ObserverContext handle) noexcept = 0;
 	};
 
 	class ObserverContext {
@@ -19,20 +18,21 @@ namespace geode::comm {
 
 		struct Impl {
 			geode::Function<void()> effect;
-			std::vector<std::pair<std::weak_ptr<SignalInternal>, ReceiverHandle>> registered;
+			mutable std::vector<std::pair<std::weak_ptr<SignalInternal>, ReceiverHandle>> registered;
+
+			void clearSignals() const noexcept;
+			~Impl() noexcept;
 		};
 		std::shared_ptr<Impl> impl;
 
 		static thread_local std::vector<ObserverContext> stack;
 		static ObserverContext* top() noexcept;
 		void registerSignal(std::shared_ptr<SignalInternal> sig) noexcept;
-		void clearSignals() noexcept;
 
-		// sooo std23::move_only_function is broken in single-arg ctors
+		// sooo std23::move_only_function is broken in single-arg ctors with operator()
 		ObserverContext(geode::Function<void()> effect, std::monostate) noexcept;
 	public:
-		~ObserverContext() noexcept;
-		void operator()() noexcept;
+		void operator()() const noexcept;
 	};
 
 	template <bool ThreadSafe = false>
@@ -80,7 +80,7 @@ namespace geode::comm {
 			GEODE_NO_UNIQUE_ADDRESS mutable std::conditional_t<ThreadSafe, std::mutex, std::monostate> mutex;
 
 			Impl() noexcept {}
-			Impl(std::convertible_to<PortType> auto&& p, std::convertible_to<Type> auto&& v) noexcept : port(p), value(v) {}
+			Impl(std::convertible_to<Type> auto&& v) noexcept : value(v) {}
 		
 			void removePortReceiver(ReceiverHandle handle) noexcept override {
 				port.removeReceiver(handle);
@@ -109,7 +109,7 @@ namespace geode::comm {
 		        if (!impl->inCtx.test_and_set()) {
 		            std::lock_guard lk(impl->mutex);
 		            impl->value = std::move(val);
-		            impl->port.send(impl->value);
+		            impl->port.send();
 		            impl->inCtx.clear();
 		        } else {
 		            geode::log::debug("Attempted to modify signal within its own callback");
@@ -134,8 +134,9 @@ namespace geode::comm {
 		std::conditional_t<ThreadSafe, Type, Type const&> get() noexcept {
 		    LockType lk(impl->mutex);
 
-		    if (auto observer = ObserverContext::top())
+		    if (auto observer = ObserverContext::top()) {
 		    	observer->registerSignal(impl);
+		    }
 
 		    return impl->value;
 		}
