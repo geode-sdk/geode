@@ -740,12 +740,13 @@ namespace geode {
     ZStringView getModID(Mod* mod);
 
     template <class Callback>
+    requires std::is_invocable_v<Callback, std::string_view, std::shared_ptr<SettingV3>>
     ListenerHandle* listenForAllSettingChanges(Callback&& callback, Mod* mod = getMod()) {
         return SettingChangedEventV3().listen([callback = std::move(callback), mod = std::move(mod)](std::string_view modID, std::string_view key, std::shared_ptr<SettingV3> setting) {
             if (mod && getModID(mod) != modID) {
                 return;
             }
-            return callback(modID, key, setting);
+            return callback(key, setting);
         }).leak();
     }
 }
