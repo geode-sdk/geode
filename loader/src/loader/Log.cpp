@@ -291,14 +291,22 @@ Logger* Logger::get() {
 }
 
 Logger::~Logger() {
-    m_cancel.cancel();
+}
 
+void Logger::shutdownThread() {
     auto runtime = m_runtime.upgrade();
-    if (m_usingThread && m_logThread && runtime) {
-        m_logThread->abort();
+    
+    if (m_usingThread.exchange(false, std::memory_order::relaxed) && m_logThread && runtime) {
+        m_cancel.cancel();
+        m_logThread->blockOn();
+        for (auto& msg : m_logRx->drain()) {
+            this->outputLog(BorrowedLog(msg), true);
+        }
     }
 
-    // dont flush as it could be problematic during shutdown
+    m_runtime = {};
+    m_logThread.reset();
+    this->flush();
 }
 
 std::mutex& getLogMutex() {
@@ -467,7 +475,7 @@ void Logger::push(Severity sev, int32_t nestCount, std::string content,
     if (!this->shouldOutputLog(sev)) return;
 
     // if thread is enabled or logging isn't initialized, push into the queue; otherwise print right now
-    if (!m_initialized.load(std::memory_order::acquire) || m_usingThread) {
+    if (!m_initialized.load(std::memory_order::relaxed) || m_usingThread.load(std::memory_order::relaxed)) {
         std::lock_guard g(getLogMutex());
 
         (void) m_logTx->trySend(Log{

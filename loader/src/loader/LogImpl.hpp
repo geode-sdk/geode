@@ -55,7 +55,7 @@ namespace geode::log {
         arc::CancellationToken m_cancel;
         arc::Notify m_syncFlushNotify;
         std::counting_semaphore<1024> m_syncFlushSemaphore{0};
-        bool m_usingThread = false;
+        std::atomic<bool> m_usingThread = false;
 
         Logger();
         ~Logger();
@@ -81,6 +81,7 @@ namespace geode::log {
             this->deleteOldLogs(std::chrono::duration_cast<std::chrono::hours>(maxAge).count());
         }
         
+        void shutdownThread();
         void flush();
         void outputLog(BorrowedLog const& log, bool dontFlush = false);
         bool shouldOutputLog(Severity sev, bool& console, bool& file, bool& callbacks);
