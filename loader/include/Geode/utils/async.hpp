@@ -49,6 +49,7 @@ arc::TaskHandle<void> spawn(F&& f, Cb&& cb) {
 template <typename Ret = void>
 class TaskHolder {
 public:
+    // spawn a nameless task, delegates the call to one of the two functions below
     template <typename S, typename Cb>
     void spawn(S&& func, Cb&& cb) {
         this->spawn("", std::forward<S>(func), std::forward<Cb>(cb));
@@ -57,7 +58,7 @@ public:
     /// Calls the given function (which returns a future) and spawns the resulting future
     template <typename L, typename Cb>
     void spawn(std::string name, L&& func, Cb&& cb) requires arc::ReturnsPollable<std::decay_t<L>> {
-        this->spawn("", std::invoke(std::forward<L>(func)), std::forward<Cb>(cb));
+        this->spawn(std::move(name), std::invoke(std::forward<L>(func)), std::forward<Cb>(cb));
     }
 
     /// Spawns the given future
