@@ -48,6 +48,7 @@ namespace geode::log {
         std::filesystem::path m_logPath;
 
         std::optional<arc::TaskHandle<void>> m_logThread;
+        asp::WeakPtr<arc::Runtime> m_runtime;
         arc::CancellationToken m_cancel;
         arc::Notify m_syncFlushNotify;
         std::counting_semaphore<1024> m_syncFlushSemaphore{0};

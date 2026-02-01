@@ -293,7 +293,8 @@ Logger* Logger::get() {
 Logger::~Logger() {
     m_cancel.cancel();
 
-    if (m_usingThread && m_logThread) {
+    auto runtime = m_runtime.upgrade();
+    if (m_usingThread && m_logThread && runtime) {
         m_logThread->abort();
     }
 
@@ -340,6 +341,7 @@ void Logger::setup() {
     m_usingThread = Mod::get()->getSettingValue<bool>("log-thread");
     if (m_usingThread) {
         m_logThread = async::runtime().spawn(this->workerThread());
+        m_runtime = async::runtime().weakFromThis();
         m_logThread->setDebugName("Geode Log Worker");
     }
 }
