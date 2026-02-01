@@ -1041,7 +1041,7 @@ public:
                 );
             }
         }(std::move(rx), std::move(crx)));
-        m_worker->setDebugName("Geode Web Worker");
+        m_worker->setName("Geode Web Worker");
     }
 
     // Note for future people: this is currently leaked because cleanup is unsafe in statics
@@ -1197,9 +1197,8 @@ public:
         auto it = m_sockets.find(s);
 
         if (what == CURL_POLL_REMOVE) {
-            // unregister the socket
+            // remove the socket, which unregisters it from the io driver as well
             if (it != m_sockets.end()) {
-                driver.unregisterIo(it->second.rio);
                 m_sockets.erase(it);
             } else {
                 log::warn("[WebRequestsManager] Tried to remove unknown socket {}", (int)s);

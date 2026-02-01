@@ -81,7 +81,7 @@ public:
         }   
 
         if (!name.empty()) {
-            m_handle->setDebugName(std::move(name));
+            m_handle->setName(std::move(name));
         }
     }
 
@@ -121,7 +121,7 @@ public:
 
     void setName(std::string name) {
         if (m_handle) {
-            m_handle->setDebugName(std::move(name));
+            m_handle->setName(std::move(name));
         }
     }
 

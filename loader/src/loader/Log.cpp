@@ -342,7 +342,7 @@ void Logger::setup() {
     if (m_usingThread) {
         m_logThread = async::runtime().spawn(this->workerThread());
         m_runtime = async::runtime().weakFromThis();
-        m_logThread->setDebugName("Geode Log Worker");
+        m_logThread->setName("Geode Log Worker");
     }
 }
 
