@@ -91,7 +91,7 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
     return false;
 }
 
-GEODE_DLL arc::Future<Result<std::optional<std::filesystem::path>>> file::pick(file::PickMode mode, file::FilePickOptions const& options) {
+GEODE_DLL arc::Future<PickResult> file::pick(file::PickMode mode, file::FilePickOptions options) {
     co_return Err("// TODO: v5");
     // using RetTask = Task<Result<std::filesystem::path>>;
     // return RetTask::runWithCallback([mode, options](auto resultCallback, auto progress, auto cancelled) {
@@ -189,7 +189,7 @@ GEODE_DLL arc::Future<Result<std::optional<std::filesystem::path>>> file::pick(f
     // });
 }
 
-GEODE_DLL arc::Future<Result<std::vector<std::filesystem::path>>> file::pickMany(file::FilePickOptions const& options) {
+GEODE_DLL arc::Future<PickManyResult> file::pickMany(file::FilePickOptions options) {
     co_return Err("// TODO: v5");
     // using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
     // return RetTask::runWithCallback([options](auto resultCallback, auto progress, auto cancelled) {
