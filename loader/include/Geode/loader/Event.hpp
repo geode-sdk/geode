@@ -55,8 +55,9 @@ namespace geode::comm {
             if constexpr (std::is_same_v<void, decltype(std::invoke(m_callable, std::forward<Args>(args)...))>) {
                 std::invoke(m_callable, std::forward<Args>(args)...);
                 return false;
+            } else {
+                return std::invoke(m_callable, std::forward<Args>(args)...);
             }
-            return std::invoke(m_callable, std::forward<Args>(args)...);
         }
     };
 
