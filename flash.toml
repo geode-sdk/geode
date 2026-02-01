@@ -26,6 +26,14 @@ repository = "https://github.com/geode-sdk/json"
 pattern = "Result.hpp"
 repository = "https://github.com/geode-sdk/result"
 
+[[external-libs]]
+pattern = "asp2"
+repository = "https://github.com/dankmeme01/asp2"
+
+[[external-libs]]
+pattern = "arc"
+repository = "https://github.com/dankmeme01/arc"
+
 [[sources]]
 name = "Geode"
 dir = "loader/include"
@@ -101,4 +109,5 @@ content = "docs/flash-template/content.css"
 
 [[scripts.css]]
 name = "themes.css"
+
 content = "docs/flash-template/themes.css"
