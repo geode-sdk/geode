@@ -1,7 +1,5 @@
 #include "Event.hpp"
-#include "Log.hpp"
 #include "../platform/platform.hpp"
-
 #include "Log.hpp"
 
 namespace geode::comm {
@@ -18,6 +16,7 @@ namespace geode::comm {
 	class ObserverContext {
 		template <class Type, bool ThreadSafe>
 		friend class Signal;
+		template <bool ThreadSafe>
 		friend class Observer;
 
 		struct Impl {
@@ -26,7 +25,7 @@ namespace geode::comm {
 		};
 		std::shared_ptr<Impl> impl;
 
-		static std::vector<ObserverContext> stack;
+		static thread_local std::vector<ObserverContext> stack;
 		static ObserverContext* top() noexcept;
 		void registerSignal(std::shared_ptr<SignalInternal> sig) noexcept;
 		void clearSignals() noexcept;
@@ -38,14 +37,38 @@ namespace geode::comm {
 		void operator()() noexcept;
 	};
 
+	template <bool ThreadSafe = false>
 	class Observer {
 		std::vector<ObserverContext> contexts;
+		GEODE_NO_UNIQUE_ADDRESS std::conditional_t<ThreadSafe, std::mutex, std::monostate> mutex;
 	public:
 		Observer() noexcept = default;
-		Observer(Observer&&) noexcept = default;
+		Observer(Observer&& other) noexcept {
+			if constexpr (ThreadSafe) {
+				std::lock_guard<std::mutex> guard(other.mutex);
+				std::lock_guard<std::mutex> guard2(mutex);
 
-		void reactToChanges(geode::Function<void()> func) noexcept;
+				contexts = std::move(other.contexts);
+			}
+		}
+
+		void reactToChanges(geode::Function<void()> func) noexcept {
+			if constexpr (ThreadSafe)
+				mutex.lock();
+			contexts.push_back(ObserverContext(std::move(func), {}));
+			auto& back = contexts.back();
+			if constexpr (ThreadSafe)
+				mutex.unlock();
+			std::invoke(contexts.back());
+		}
+
+		~Observer() {
+			if constexpr (ThreadSafe)
+				std::lock_guard<std::mutex> guard(mutex);
+		}
 	};
+
+	using ThreadSafeObserver = Observer<true>;
 
 	template <class Type, bool ThreadSafe>
 	class Signal {
