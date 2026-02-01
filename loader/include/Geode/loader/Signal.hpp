@@ -5,9 +5,7 @@
 namespace geode::comm {
 	class ObserverContext;
 
-	class SignalInternal {
-		friend class ObserverContext;
-
+	struct SignalInternal {
 		virtual ~SignalInternal() noexcept;
 		virtual void removePortReceiver(ReceiverHandle handle) noexcept;
 		virtual ReceiverHandle addPortReceiver(ObserverContext handle) noexcept;
@@ -70,9 +68,9 @@ namespace geode::comm {
 
 	using ThreadSafeObserver = Observer<true>;
 
-	template <class Type, bool ThreadSafe>
+	template <class Type, bool ThreadSafe = false>
 	class Signal {
-		class Impl : SignalInternal {
+		struct Impl : SignalInternal {
 			using PortType = Port<ObserverContext, ThreadSafe>;
 
 			PortType port;
@@ -91,8 +89,20 @@ namespace geode::comm {
 			}
 		};
 
+		using LockType = std::conditional_t<ThreadSafe, std::lock_guard<std::mutex>, std::monostate>;
+
 		std::shared_ptr<Impl> impl;
 	public:
+		Signal() noexcept : impl(std::make_shared<Impl>()) {}
+		Signal(std::convertible_to<Type> auto&& value) noexcept
+			: impl(std::make_shared<Impl>(std::forward<decltype(value)>(value))) {}
+		Signal(Signal const& sig) noexcept : impl(sig.impl) {}
+
+		void operator=(Signal sig) = delete;
+		void rebind(Signal sig) noexcept {
+			impl = sig.impl;
+		}
+
 		void set(Type val) noexcept {
 		    if constexpr (ThreadSafe) {
 		        if (!impl->inCtx.test_and_set()) {
@@ -107,7 +117,7 @@ namespace geode::comm {
 		        if (!impl->inCtx) {
 		            impl->inCtx = true;
 		            impl->value = std::move(val);
-		            impl->port.send(impl->value);
+		            impl->port.send();
 		            impl->inCtx = false;
 		        } else {
 		            geode::log::debug("Attempted to modify signal within its own callback");
@@ -116,17 +126,38 @@ namespace geode::comm {
 		}
 
 		std::conditional_t<ThreadSafe, Type, Type const&> get_internal() const noexcept {
-		    std::lock_guard lk(impl->mutex);
+		    LockType lk(impl->mutex);
 		    return impl->value;
 		}
 
 		std::conditional_t<ThreadSafe, Type, Type const&> get() noexcept {
-		    std::lock_guard lk(impl->mutex);
+		    LockType lk(impl->mutex);
 
 		    if (auto observer = ObserverContext::top())
 		    	observer->registerSignal(impl);
 
 		    return impl->value;
 		}
+
+		auto operator*() noexcept { return get(); }
+		auto operator->() noexcept { return get(); }
+
+		Signal const& operator=(Type value) noexcept {
+			set(std::move(value));
+			return *this;
+		}
+
+		#define OP(op, assign) \
+			Signal const& operator assign(Type value) noexcept { \
+				LockType lk(impl->mutex); \
+				set(impl->value op std::move(value)); \
+				return *this; \
+			}
+
+		OP(+, +=) OP(-, -=) OP(*, *=) OP(/, /=) OP(% , %=) OP(&, &=) OP(|, |=) OP(^, ^=) OP(<<, <<=) OP(>>, >>=)
+		#undef OP
 	};
+
+	template <class Type>
+	using ThreadSafeSignal = Signal<Type, true>;
 };

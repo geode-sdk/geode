@@ -1,7 +1,7 @@
 #include <Geode/loader/Signal.hpp>
 
 namespace geode::comm {
-	std::vector<ObserverContext> ObserverContext::stack;
+	thread_local std::vector<ObserverContext> ObserverContext::stack;
 
 	ObserverContext* ObserverContext::top() noexcept {
 		if (ObserverContext::stack.empty())
