@@ -13,19 +13,7 @@ namespace geode {
     public:
         using value_type = C;
 
-        BasicZStringView() {
-            if constexpr (std::is_same_v<C, char>) {
-                m_str = "";
-            } else if constexpr (std::is_same_v<C, wchar_t>) {
-                m_str = L"";
-            } else if constexpr (std::is_same_v<C, char8_t>) {
-                m_str = u8"";
-            } else if constexpr (std::is_same_v<C, char16_t>) {
-                m_str = u"";
-            } else if constexpr (std::is_same_v<C, char32_t>) {
-                m_str = U"";
-            }
-        }
+        BasicZStringView() : BasicZStringView(nullptr) {}
         BasicZStringView(C const* str) {
             if (str) {
                 m_str = str;
