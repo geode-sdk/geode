@@ -259,10 +259,7 @@ void keyDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
         modifiers
     );
 
-    auto result = KeyboardInputEvent().send(data);
-    if (result == ListenerResult::Propagate) {
-        result = KeyInputEvent(keyCode).send(data);
-    }
+    auto result = KeyboardInputEvent(keyCode).send(data);
 
     isDown = data.action != KeyboardInputData::Action::Release;
     isRepeat = data.action == KeyboardInputData::Action::Repeat;
@@ -333,10 +330,7 @@ void keyUpExecHook(EAGLView* self, SEL sel, NSEvent* event) {
         modifiers
     );
 
-    auto result = KeyboardInputEvent().send(data);
-    if (result == ListenerResult::Propagate) {
-        result = KeyInputEvent(keyCode).send(data);
-    }
+    auto result = KeyboardInputEvent(keyCode).send(data);
 
     isDown = data.action != KeyboardInputData::Action::Release;
     isRepeat = data.action == KeyboardInputData::Action::Repeat;

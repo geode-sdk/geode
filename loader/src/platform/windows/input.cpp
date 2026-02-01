@@ -413,10 +413,7 @@ class $modify(cocos2d::CCEGLView) {
                         evt.keyboard.mods
                     );
 
-                    auto result = KeyboardInputEvent().send(data);
-                    if (result == ListenerResult::Propagate) {
-                        result = KeyInputEvent(keyCode).send(data);
-                    }
+                    auto result = KeyboardInputEvent(keyCode).send(data);
 
                     // copy values from event, if someone modifies it
                     isDown = data.action != Release;

@@ -34,12 +34,8 @@ namespace geode {
             : native(native), timestamp(timestamp), key(key), action(action), modifiers(mods) {}
     };
 
-    struct KeyboardInputEvent final : SimpleEvent<KeyboardInputEvent, KeyboardInputData&> {
-        using SimpleEvent::SimpleEvent;
-    };
-
-    struct KeyInputEvent final : Event<KeyInputEvent, bool(KeyboardInputData&), cocos2d::enumKeyCodes> {
-        using Event::Event;
+    struct KeyboardInputEvent final : GlobalEvent<KeyboardInputEvent, bool(KeyboardInputData&), bool(KeyboardInputData&), cocos2d::enumKeyCodes> {
+        using GlobalEvent::GlobalEvent;
     };
 
     constexpr KeyboardInputData::Modifiers operator|(KeyboardInputData::Modifiers a, KeyboardInputData::Modifiers b) {

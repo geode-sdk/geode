@@ -158,7 +158,7 @@ namespace {
                 (isAltPressed ? KeyboardInputData::Mods_Alt : KeyboardInputData::Mods_None)
             );
 
-            if (KeyboardInputEvent().send(data) != ListenerResult::Propagate) {
+            if (KeyboardInputEvent(translated_code).send(data) != ListenerResult::Propagate) {
                 return;
             }
 
@@ -205,7 +205,7 @@ namespace {
                 (isAltPressed ? KeyboardInputData::Mods_Alt : KeyboardInputData::Mods_None)
             );
 
-            if (KeyboardInputEvent().send(data) != ListenerResult::Propagate) {
+            if (KeyboardInputEvent(translated_code).send(data) != ListenerResult::Propagate) {
                 return;
             }
 
