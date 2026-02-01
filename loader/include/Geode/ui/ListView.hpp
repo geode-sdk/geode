@@ -7,12 +7,8 @@
 namespace geode {
     class GEODE_DLL GenericListCell : public TableViewCell {
     protected:
-        cocos2d::ccColor3B m_primaryColor;
-        cocos2d::ccColor3B m_secondaryColor;
-        GLubyte m_opacity;
-        cocos2d::ccColor4B m_borderColor;
-
         GenericListCell(char const* name, cocos2d::CCSize size);
+        ~GenericListCell() override;
 
         void draw() override;
 
@@ -24,6 +20,9 @@ namespace geode {
         void setSecondaryColor(cocos2d::ccColor3B color);
         void setOpacity(GLubyte opacity);
         void setBorderColor(cocos2d::ccColor4B color);
+    private:
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
     };
 
     /**
@@ -32,10 +31,8 @@ namespace geode {
      */
     class GEODE_DLL ListView : public CustomListView {
     protected:
-        cocos2d::ccColor3B m_primaryCellColor;
-        cocos2d::ccColor3B m_secondaryCellColor;
-        GLubyte m_cellOpacity;
-        cocos2d::ccColor4B m_cellBorderColor;
+        ListView();
+        ~ListView() override;
 
         void setupList(float) override;
         TableViewCell* getListCell(char const* key) override;
@@ -62,5 +59,8 @@ namespace geode {
         void setSecondaryCellColor(cocos2d::ccColor3B color);
         void setCellOpacity(GLubyte opacity);
         void setCellBorderColor(cocos2d::ccColor4B color);
+    private:
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
     };
 }

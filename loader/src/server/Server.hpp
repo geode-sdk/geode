@@ -103,6 +103,15 @@ namespace server {
         static Result<ServerModsList> parse(matjson::Value const& json);
     };
 
+    struct ServerLoaderVersion final {
+        std::string version;
+        std::string tag;
+        std::string commitHash;
+        std::string gameVersion;
+
+        static Result<ServerLoaderVersion> parse(matjson::Value const& json);
+    };
+
     enum class ModsSort {
         Downloads,
         RecentlyUpdated,
@@ -176,6 +185,9 @@ namespace server {
     ServerFuture<std::vector<ServerModUpdate>> batchedCheckUpdates(std::vector<std::string> const& batch);
 
     ServerFuture<std::vector<ServerModUpdate>> checkAllUpdates(bool useCache = true);
+
+    ServerFuture<ServerLoaderVersion> getLoaderVersion(std::string tag, bool useCache = true);
+    ServerFuture<ServerLoaderVersion> getLatestLoaderVersion(bool useCache = true);
 
     void clearServerCaches(bool clearGlobalCaches = false);
 }

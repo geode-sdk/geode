@@ -84,7 +84,7 @@ constexpr int AXISLAYOUT_DEFAULT_PRIORITY = 0;
  * );
  * someNodeWithALayout->addChild(node);
  */
-class GEODE_DLL AxisLayoutOptions : public LayoutOptions {
+class GEODE_DLL AxisLayoutOptions final : public LayoutOptions {
 protected:
     class Impl;
 
@@ -310,7 +310,7 @@ public:
 /**
  * Simple layout for arranging nodes in a row (horizontal line)
  */
-class GEODE_DLL RowLayout : public AxisLayout {
+class GEODE_DLL RowLayout final : public AxisLayout {
 protected:
     RowLayout();
 
@@ -326,7 +326,7 @@ public:
 /**
  * Simple layout for arranging nodes in a column (vertical line)
  */
-class GEODE_DLL ColumnLayout : public AxisLayout {
+class GEODE_DLL ColumnLayout final : public AxisLayout {
 protected:
     ColumnLayout();
 
@@ -357,7 +357,7 @@ enum class Anchor {
 /**
  * Options for customizing a node's position in an AnchorLayout
  */
-class GEODE_DLL AnchorLayoutOptions : public LayoutOptions {
+class GEODE_DLL AnchorLayoutOptions final : public LayoutOptions {
 protected:
     Anchor m_anchor = Anchor::Center;
     cocos2d::CCPoint m_offset = cocos2d::CCPointZero;
@@ -401,7 +401,7 @@ public:
  * Basically main use case is for FLAlertLayers (setting the size of the
  * background and `m_buttonMenu` based on `m_mainLayer`)
  */
-class GEODE_DLL CopySizeLayout : public AnchorLayout {
+class GEODE_DLL CopySizeLayout final : public AnchorLayout {
 protected:
     cocos2d::CCArray* m_targets;
 

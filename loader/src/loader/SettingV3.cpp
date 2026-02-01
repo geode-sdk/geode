@@ -568,7 +568,6 @@ void SettingV3::markChanged() {
         manager->markRestartRequired();
     }
     SettingChangedEventV3(this->getModID(), this->getKey()).send(shared_from_this());
-    GlobalSettingChangedEventV3().send(this->getModID(), this->getKey(), shared_from_this());
 }
 class TitleSettingV3::Impl final {
 public:

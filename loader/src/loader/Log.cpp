@@ -10,6 +10,7 @@
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/general.hpp>
 #include <Geode/utils/async.hpp>
+#include <asp/time/SystemTime.hpp>
 #include <arc/future/Select.hpp>
 #include <arc/time/Sleep.hpp>
 #include <fmt/chrono.h>
@@ -30,7 +31,7 @@ auto convertTime(auto timePoint) {
     // so do this instead to get the local time for logging.
     // By accident this also gets rid of the decimal places in the seconds
     auto timeEpoch = std::chrono::system_clock::to_time_t(timePoint);
-    return fmt::localtime(timeEpoch);
+    return asp::localtime(timeEpoch);
 }
 
 // Like Log, but doesn't own any content, and is cheap to construct and copy.
@@ -292,7 +293,8 @@ Logger* Logger::get() {
 Logger::~Logger() {
     m_cancel.cancel();
 
-    if (m_usingThread && m_logThread) {
+    auto runtime = m_runtime.upgrade();
+    if (m_usingThread && m_logThread && runtime) {
         m_logThread->abort();
     }
 
@@ -304,6 +306,20 @@ std::mutex& getLogMutex() {
     return mutex;
 }
 
+static Severity logLevelFor(std::string_view level) {
+    if (level == "debug") {
+        return Severity::Debug;
+    } else if (level == "info") {
+        return Severity::Info;
+    } else if (level == "warn") {
+        return Severity::Warning;
+    } else if (level == "error") {
+        return Severity::Error;
+    } else {
+        return Severity::Info;
+    }
+}
+
 void Logger::setup() {
     if (m_initialized.load(std::memory_order::acquire)) {
         return;
@@ -312,8 +328,21 @@ void Logger::setup() {
     std::lock_guard g(getLogMutex());
 
     g_logMillis = Mod::get()->getSettingValue<bool>("log-milliseconds");
+    m_consoleLevel = logLevelFor(
+        Mod::get()->getSettingValue<std::string_view>("console-log-level")
+    );
+    m_fileLevel = logLevelFor(
+        Mod::get()->getSettingValue<std::string_view>("file-log-level")
+    );
+
     listenForSettingChanges<bool>("log-milliseconds", [](bool val) {
         g_logMillis.store(val, std::memory_order::release);
+    });
+    listenForSettingChanges<std::string_view>("console-log-level", [this](std::string_view val) {
+        m_consoleLevel.store(logLevelFor(val), std::memory_order::relaxed);
+    });
+    listenForSettingChanges<std::string_view>("file-log-level", [this](std::string_view val) {
+        m_fileLevel.store(logLevelFor(val), std::memory_order::relaxed);
     });
 
     auto logDir = dirs::getGeodeLogDir();
@@ -339,6 +368,8 @@ void Logger::setup() {
     m_usingThread = Mod::get()->getSettingValue<bool>("log-thread");
     if (m_usingThread) {
         m_logThread = async::runtime().spawn(this->workerThread());
+        m_runtime = async::runtime().weakFromThis();
+        m_logThread->setName("Geode Log Worker");
     }
 }
 
@@ -420,33 +451,21 @@ void Logger::deleteOldLogs(size_t maxAgeHours) {
     }
 }
 
-static Severity logLevelFor(std::string_view level) {
-    if (level == "debug") {
-        return Severity::Debug;
-    } else if (level == "info") {
-        return Severity::Info;
-    } else if (level == "warn") {
-        return Severity::Warning;
-    } else if (level == "error") {
-        return Severity::Error;
-    } else {
-        return Severity::Info;
-    }
-}
-
 Severity Logger::getConsoleLogLevel() {
-    auto level = Mod::get()->getSettingValue<std::string_view>("console-log-level");
-    return logLevelFor(level);
+    return m_consoleLevel.load(std::memory_order::relaxed);
 }
 
 Severity Logger::getFileLogLevel() {
-    auto level = Mod::get()->getSettingValue<std::string_view>("file-log-level");
-    return logLevelFor(level);
+    return m_fileLevel.load(std::memory_order::relaxed);
 }
 
 void Logger::push(Severity sev, int32_t nestCount, std::string content,
     std::string_view thread, std::string_view source, Mod* mod)
 {
+    // check if we should log at all, before acquiring any locks,
+    // since this check is much cheaper than locking or pushing to queue
+    if (!this->shouldOutputLog(sev)) return;
+
     // if thread is enabled or logging isn't initialized, push into the queue; otherwise print right now
     if (!m_initialized.load(std::memory_order::acquire) || m_usingThread) {
         std::lock_guard g(getLogMutex());
@@ -478,10 +497,10 @@ void Logger::outputLog(BorrowedLog const& log, bool dontFlush) {
     auto sev = log.m_severity;
 
     // should we log this at all?
-    bool logConsole = sev >= this->getConsoleLogLevel();
-    bool logFile = sev >= this->getFileLogLevel();
-    bool logCallbacks = !m_callbacks.empty();
-    if (!logConsole && !logFile && !logCallbacks) return;
+    bool logConsole, logFile, logCallbacks;
+    if (!this->shouldOutputLog(sev, logConsole, logFile, logCallbacks)) {
+        return;
+    }
 
     StringBuffer<> buf;
     bool millis = g_logMillis.load(std::memory_order::relaxed);
@@ -502,6 +521,18 @@ void Logger::outputLog(BorrowedLog const& log, bool dontFlush) {
             cb(log.m_content, log.m_severity, log.m_mod, log.m_source, log.m_thread);
         }
     }
+}
+
+bool Logger::shouldOutputLog(Severity sev) {
+    bool console, file, callbacks;
+    return this->shouldOutputLog(sev, console, file, callbacks);
+}
+
+bool Logger::shouldOutputLog(Severity sev, bool& console, bool& file, bool& callbacks) {
+    console = sev >= this->getConsoleLogLevel();
+    file = sev >= this->getFileLogLevel();
+    callbacks = m_anyCallbacks.load(std::memory_order::relaxed);
+    return console || file || callbacks;
 }
 
 void Logger::flush() {
@@ -532,6 +563,7 @@ void Logger::clear() {
 void Logger::addLogCallback(LogCallback callback) {
     std::lock_guard g(getLogMutex());
     m_callbacks.push_back(std::move(callback));
+    m_anyCallbacks.store(true, std::memory_order::relaxed);
 }
 
 Nest::Nest(std::shared_ptr<Nest::Impl> impl) : m_impl(std::move(impl)) { }

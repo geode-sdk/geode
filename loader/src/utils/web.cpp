@@ -930,7 +930,7 @@ struct PollReadiness {
     Interest readiness;
 };
 
-struct ARC_NODISCARD MultiPollFuture : PollableBase<MultiPollFuture, PollReadiness> {
+struct ARC_NODISCARD MultiPollFuture : Pollable<MultiPollFuture, PollReadiness> {
     enum class State {
         Init,
         Waiting,
@@ -943,12 +943,12 @@ struct ARC_NODISCARD MultiPollFuture : PollableBase<MultiPollFuture, PollReadine
     MultiPollFuture(MultiPollFuture&&) = default;
     MultiPollFuture& operator=(MultiPollFuture&&) = default;
 
-    std::optional<PollReadiness> poll() {
+    std::optional<PollReadiness> poll(arc::Context& cx) {
         switch (m_state) {
             case State::Init: {
                 // initial state: poll all sockets, return immediately if there's activity on one of them
                 for (auto& [fd, rs] : *m_sockets) {
-                    auto ready = rs.rio.pollReady(rs.interest | Interest::Error, rs.rioId);
+                    auto ready = rs.rio.pollReady(rs.interest | Interest::Error, cx, rs.rioId);
                     if (ready != 0) {
                         return PollReadiness{fd, ready};
                     }
@@ -1041,8 +1041,12 @@ public:
                 );
             }
         }(std::move(rx), std::move(crx)));
+        m_worker->setName("Geode Web Worker");
     }
 
+    // Note for future people: this is currently leaked because cleanup is unsafe in statics
+    // if this becomes not leaked in the future pls remember to store arc runtime as weakptr
+    // or m_worker->abort will likely invoke ub
     ~Impl() {
         m_cancel.cancel();
         
@@ -1072,6 +1076,7 @@ public:
         log::debug("Added request ({})", req->request->m_url);
         curl_multi_add_handle(m_multiHandle, handle);
         m_activeRequests.insert({ handle, std::move(req) });
+        this->workerKickCurl();
     }
 
     void workerCancelRequest(CURL* curl) {
@@ -1093,10 +1098,12 @@ public:
 
         log::debug("Removing request ({})", data.request->m_url);
         
-        curl_multi_remove_handle(m_multiHandle, data.curl);
-        curl_easy_cleanup(data.curl);
-        m_activeRequests.erase(data.curl);
-        data.curl = nullptr;
+        auto curl = std::exchange(data.curl, nullptr);
+        curl_multi_remove_handle(m_multiHandle, curl);
+        curl_easy_cleanup(curl);
+        m_activeRequests.erase(curl);
+
+        this->workerKickCurl();
     }
 
     Future<> workerPoll() {
@@ -1153,13 +1160,12 @@ public:
         bool activeTransfers = stillRunning > 0;
 
         // poll until there is socket activity or the timer expires
+
         co_await arc::select(
             arc::selectee(m_wakeNotify.notified()),
 
             arc::selectee(arc::sleepUntil(deadline), [&] {
-                // timeout!
-                int running = 0;
-                curl_multi_socket_action(m_multiHandle, CURL_SOCKET_TIMEOUT, 0, &running);
+                this->workerKickCurl();
             }),
 
             arc::selectee(this->workerPollSockets(), [&](PollReadiness readiness) {
@@ -1175,18 +1181,24 @@ public:
         );
     }
 
+    void workerKickCurl() {
+        // it's kind of silly, but any time we do anything (add/remove easy handles, etc.)
+        // we should call this function to let curl call our socket callbacks and kickstart everything
+        int running = 0;
+        curl_multi_socket_action(m_multiHandle, CURL_SOCKET_TIMEOUT, 0, &running);
+    }
+
     MultiPollFuture workerPollSockets() {
         return MultiPollFuture{ &m_sockets };
     }
 
     void socketCallback(CURL* easy, curl_socket_t s, int what, void* socketp) {
-        auto& driver = ctx().runtime()->ioDriver();
+        auto& driver = Runtime::current()->ioDriver();
         auto it = m_sockets.find(s);
 
         if (what == CURL_POLL_REMOVE) {
-            // unregister the socket
+            // remove the socket, which unregisters it from the io driver as well
             if (it != m_sockets.end()) {
-                driver.unregisterIo(it->second.rio);
                 m_sockets.erase(it);
             } else {
                 log::warn("[WebRequestsManager] Tried to remove unknown socket {}", (int)s);
@@ -1260,7 +1272,7 @@ WebFuture::~WebFuture() {
     }
 }
 
-std::optional<WebResponse> WebFuture::poll() {
+std::optional<WebResponse> WebFuture::poll(arc::Context& cx) {
     using RequestData = WebRequestsManager::RequestData;
 
     if (!m_impl->m_sent) {
@@ -1272,7 +1284,7 @@ std::optional<WebResponse> WebFuture::poll() {
         m_impl->m_sent = true;
     }
 
-    auto rpoll = m_impl->m_awaiter.poll();
+    auto rpoll = m_impl->m_awaiter.poll(cx);
     if (!rpoll) {
         return std::nullopt;
     }

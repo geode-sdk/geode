@@ -8,8 +8,9 @@ class $modify (CCEGLView) {
         GLint viewport[4];
         glGetIntegerv(GL_VIEWPORT, viewport);
 
-        float multWidth = viewport[2] / getFrameSize().width;
-        float multHeight = viewport[3] / getFrameSize().height;
+        float factor = geode::utils::getDisplayFactor();
+        float multWidth = (viewport[2] / getFrameSize().width) / factor;
+        float multHeight = (viewport[3] / getFrameSize().height) / factor;
 
         x *= multWidth;
         y *= multHeight;

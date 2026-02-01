@@ -2,6 +2,7 @@
 
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/utils/function.hpp>
+#include <memory>
 #include <cocos2d.h>
 
 namespace geode {
@@ -49,31 +50,17 @@ namespace geode {
         std::vector<cocos2d::CCLabelBMFont*> getLines();
         float getHeight();
         float getLineHeight();
+    protected:
+        SimpleTextArea();
+        ~SimpleTextArea() override;
+    
     private:
         static SimpleTextArea* create(std::string font, std::string text, float scale, float width, const bool artificialWidth);
 
         bool init(std::string font, std::string text, float scale, float width, const bool artificialWidth);
 
-        bool m_shouldUpdate = false;
-        bool m_artificialWidth = false;
-        cocos2d::CCMenu* m_container = nullptr;
-        std::string m_font;
-        std::string m_text;
-        std::vector<cocos2d::CCLabelBMFont*> m_lines;
-        cocos2d::ccColor4B m_color = { 0xFF, 0xFF, 0xFF, 0xFF };
-        cocos2d::CCTextAlignment m_alignment = cocos2d::kCCTextAlignmentLeft;
-        WrappingMode m_wrappingMode = WORD_WRAP;
-        size_t m_maxLines = 0;
-        float m_scale = 1.f;
-        float m_lineHeight = 0.f;
-        float m_linePadding = 0.f;
-
-        cocos2d::CCLabelBMFont* createLabel(char const* text, float top);
-        float calculateOffset(cocos2d::CCLabelBMFont* label);
-        void charIteration(geode::FunctionRef<cocos2d::CCLabelBMFont*(cocos2d::CCLabelBMFont* line, char c, float top)> overflowHandling);
-        void updateLinesNoWrap();
-        void updateLinesWordWrap(bool spaceWrap);
-        void updateLinesCutoffWrap();
-        void updateContainer();
+    private:
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
     };
 }

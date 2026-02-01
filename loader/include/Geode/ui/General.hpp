@@ -74,7 +74,7 @@ namespace geode {
         cocos2d::CCSize const& size
     );
 
-    class GEODE_DLL ListBorders : public cocos2d::CCNode {
+    class GEODE_DLL ListBorders final : public cocos2d::CCNode {
     protected:
         cocos2d::extension::CCScale9Sprite* m_top = nullptr;
         cocos2d::extension::CCScale9Sprite* m_bottom = nullptr;
