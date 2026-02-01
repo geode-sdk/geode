@@ -307,14 +307,14 @@ namespace geode::utils::file {
      * @param options Picker options
      * @returns The picked file path, or std::nullopt if the dialog was cancelled
      */
-    GEODE_DLL arc::Future<Result<std::optional<std::filesystem::path>>> pick(PickMode mode, FilePickOptions const& options);
+    GEODE_DLL arc::Future<Result<std::optional<std::filesystem::path>>> pick(PickMode mode, FilePickOptions options);
 
     /**
      * Prompt the user to pick a bunch of files for opening using the system's file system picker
      * @param options Picker options
      * @returns The picked file paths, or empty vector if the dialog was cancelled
      */
-    GEODE_DLL arc::Future<Result<std::vector<std::filesystem::path>>> pickMany(FilePickOptions const& options);
+    GEODE_DLL arc::Future<Result<std::vector<std::filesystem::path>>> pickMany(FilePickOptions options);
 
     class GEODE_DLL FileWatchEvent final : public Event<FileWatchEvent, bool(), std::filesystem::path> {
     public:

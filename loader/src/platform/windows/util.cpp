@@ -143,7 +143,7 @@ static arc::Future<Result<bool>> asyncNfdPick(
     co_return Ok(true);
 }
 
-arc::Future<Result<std::optional<std::filesystem::path>>> file::pick(PickMode mode, FilePickOptions const& options) {
+arc::Future<Result<std::optional<std::filesystem::path>>> file::pick(PickMode mode, FilePickOptions options) {
     #define TURN_INTO_NFDMODE(mode) \
         case file::PickMode::mode: nfdMode = NFDMode::mode; break;
 
@@ -165,7 +165,7 @@ arc::Future<Result<std::optional<std::filesystem::path>>> file::pick(PickMode mo
     co_return Ok(std::move(path));
 }
 
-arc::Future<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions const& options) {
+arc::Future<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions options) {
     std::vector<std::filesystem::path> paths;
     bool picked = ARC_CO_UNWRAP(co_await asyncNfdPick(NFDMode::OpenFiles, options, &paths));
     if (!picked) {
