@@ -882,6 +882,17 @@ public:
      */
     GEODE_DLL CCObject* getUserObject(std::string_view id);
 
+    /**
+     * Tethers a CCObject to the lifetime of this node.
+     * @note Geode addition
+     */
+    GEODE_DLL void addTether(CCObject* object);
+
+    /**
+     * Removes a tethered CCObject from this node.
+     * @note Geode addition
+     */
+    GEODE_DLL void removeTether(CCObject* object);
     
     /**
      * Set (or clear) a boolean flag on this node with a specific ID.
