@@ -55,11 +55,12 @@ namespace geode {
      * Open the info popup for a mod based on an ID. If the mod is installed,
      * its installed popup is opened. Otherwise will check if the servers
      * have this mod, or if not, show an error popup
-     * @returns A Task that completes to `true` if the mod was found and a
-     * popup was opened, and `false` otherwise. If you wish to modify the
-     * created popup, listen for the Geode UI events listed in `GeodeUI.hpp`
+     * @returns `std::nullopt` if the mod is installed, otherwise a Task
+     * that completes to `true` if the mod was found and a popup was opened,
+     * and `false` otherwise. If you wish to modify the created popup,
+     * listen for the Geode UI events listed in `GeodeUI.hpp`
      */
-    GEODE_DLL arc::Future<bool> openInfoPopup(std::string_view modID);
+    GEODE_DLL std::optional<arc::TaskHandle<bool>> openInfoPopup(std::string modID);
     /**
      * Open the info popup for a mod on the changelog page
      */

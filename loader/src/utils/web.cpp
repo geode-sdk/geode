@@ -1041,9 +1041,12 @@ public:
                 );
             }
         }(std::move(rx), std::move(crx)));
-        m_worker->setDebugName("Geode Web Worker");
+        m_worker->setName("Geode Web Worker");
     }
 
+    // Note for future people: this is currently leaked because cleanup is unsafe in statics
+    // if this becomes not leaked in the future pls remember to store arc runtime as weakptr
+    // or m_worker->abort will likely invoke ub
     ~Impl() {
         m_cancel.cancel();
         
@@ -1095,10 +1098,10 @@ public:
 
         log::debug("Removing request ({})", data.request->m_url);
         
-        curl_multi_remove_handle(m_multiHandle, data.curl);
-        curl_easy_cleanup(data.curl);
-        m_activeRequests.erase(data.curl);
-        data.curl = nullptr;
+        auto curl = std::exchange(data.curl, nullptr);
+        curl_multi_remove_handle(m_multiHandle, curl);
+        curl_easy_cleanup(curl);
+        m_activeRequests.erase(curl);
 
         this->workerKickCurl();
     }
@@ -1194,9 +1197,8 @@ public:
         auto it = m_sockets.find(s);
 
         if (what == CURL_POLL_REMOVE) {
-            // unregister the socket
+            // remove the socket, which unregisters it from the io driver as well
             if (it != m_sockets.end()) {
-                driver.unregisterIo(it->second.rio);
                 m_sockets.erase(it);
             } else {
                 log::warn("[WebRequestsManager] Tried to remove unknown socket {}", (int)s);

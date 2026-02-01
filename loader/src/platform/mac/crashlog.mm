@@ -77,7 +77,7 @@ static std::string getImageName(struct dyld_image_info const* image) {
 }
 
 // https://stackoverflow.com/questions/28846503/getting-sizeofimage-and-entrypoint-of-dylib-module
-size_t getImageSize(struct mach_header_64 const* header) {
+static size_t getImageSize(struct mach_header_64 const* header) {
     if (header == nullptr) {
         return 0;
     }
@@ -166,12 +166,16 @@ static Mod* modFromAddress(void const* addr) {
 }
 
 static std::string getInfo(void* address, Mod* faultyMod) {
-    std::stringstream stream;
-    stream << "Faulty Lib: " << getImageName(imageFromAddress(address)) << "\n";
-    stream << "Faulty Mod: " << (faultyMod ? faultyMod->getID() : "<Unknown>") << "\n";
-    stream << "Instruction Address: " << address << "\n";
-    stream << "Signal Code: " << std::hex << s_signal << " (" << getSignalCodeString() << ")" << std::dec << "\n";
-    return stream.str();
+    return fmt::format(
+        "Faulty Lib: {}\n"
+        "Faulty Mod: {}\n"
+        "Instruction Address: {}\n"
+        "Signal Code: {:x} ({})\n",
+        getImageName(imageFromAddress(address)),
+        (faultyMod ? faultyMod->getID() : "<Unknown>"),
+        address,
+        s_signal, getSignalCodeString()
+    );
 }
 
 extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext) {
@@ -210,13 +214,13 @@ extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext)
 }
 
 // https://stackoverflow.com/questions/8278691/how-to-fix-backtrace-line-number-error-in-c
-std::string executeCommand(ZStringView cmd) {
-    std::stringstream stream;
+static std::string executeCommand(ZStringView cmd) {
+    StringBuffer<> stream;
     std::array<char, 1024> buf;
 
     if (FILE* ptr = popen(cmd.c_str(), "r")) {
         while (fgets( buf.data(), buf.size(), ptr ) != NULL) {
-            stream << buf.data();
+            stream.append("{}", buf.data());
         }
         pclose(ptr);
     }
@@ -224,24 +228,85 @@ std::string executeCommand(ZStringView cmd) {
     return stream.str();
 }
 
-std::string addr2Line() {
-    std::stringstream stream;
-    stream << "atos -p " << getpid() << " ";
+static std::string addr2Line() {
+    StringBuffer<> stream;
+    stream.append("atos -p {} ", getpid());
     for (int i = 1; i < s_backtraceSize; ++i) {
-        stream << s_backtrace[i] << " ";
+        stream.append("{} ", s_backtrace[i]);
     }
     // std::cout << "command: " << stream.str() << std::endl;
     return executeCommand(stream.str());
 }
 
+static uint64_t decodeULEB128(const uint8_t*& p) {
+    uint64_t result = 0;
+    uint64_t shift = 0;
+    do {
+        result |= (uint64_t(*p & 0x7f) << shift);
+        shift += 7;
+    } while (*p++ & 0x80);
+    return result;
+}
+
+static std::vector<uintptr_t> const& getFunctionStarts() {
+    static std::vector<uintptr_t> funcs = []() {
+        std::vector<uintptr_t> starts;
+
+        auto image = imageFromAddress(reinterpret_cast<void*>(base::get()));
+        if (!image) return starts;
+
+        auto header = reinterpret_cast<const struct mach_header_64*>(image->imageLoadAddress);
+        uintptr_t linkeditAddr = 0;
+        uintptr_t linkeditFileOff = 0;
+        uintptr_t textVMAddr = 0;
+        uint32_t dataOff = 0, dataSize = 0;
+
+        auto cmd = reinterpret_cast<const struct load_command*>(header + 1);
+        for (uint32_t i = 0; i < header->ncmds; i++) {
+            if (cmd->cmd == LC_SEGMENT_64) {
+                auto seg = reinterpret_cast<const struct segment_command_64*>(cmd);
+                if (strcmp(seg->segname, SEG_LINKEDIT) == 0) {
+                    linkeditAddr = seg->vmaddr;
+                    linkeditFileOff = seg->fileoff;
+                } else if (strcmp(seg->segname, SEG_TEXT) == 0) {
+                    textVMAddr = seg->vmaddr;
+                }
+            } else if (cmd->cmd == LC_FUNCTION_STARTS) {
+                auto ldc = reinterpret_cast<const struct linkedit_data_command*>(cmd);
+                dataOff = ldc->dataoff;
+                dataSize = ldc->datasize;
+            }
+            cmd = reinterpret_cast<const struct load_command*>((const char*)cmd + cmd->cmdsize);
+        }
+
+        if (!linkeditAddr || !dataOff) return starts;
+
+        uintptr_t slide = reinterpret_cast<uintptr_t>(header) - textVMAddr;
+        const uint8_t* p = reinterpret_cast<const uint8_t*>(linkeditAddr + slide + (dataOff - linkeditFileOff));
+        const uint8_t* end = p + dataSize;
+
+        uintptr_t currentOffset = 0;
+        while (p < end && *p) {
+            uint64_t delta = decodeULEB128(p);
+            if (delta == 0) break;
+            currentOffset += delta;
+            starts.push_back(currentOffset);
+        }
+
+        return starts;
+    }();
+    return funcs;
+}
+
 static std::string getStacktrace() {
-    std::stringstream stacktrace;
+    StringBuffer<> stacktrace;
 
     auto messages = backtrace_symbols(s_backtrace.data(), s_backtraceSize);
-	if (s_backtraceSize < FRAME_SIZE) {
-		messages[s_backtraceSize] = nullptr;
-	}
+    if (s_backtraceSize < FRAME_SIZE) {
+        messages[s_backtraceSize] = nullptr;
+    }
 
+    auto gameDir = geode::utils::string::pathToString(dirs::getGameDir());
     std::stringstream lines(addr2Line());
 
     for (int i = 1; i < s_backtraceSize; ++i) {
@@ -270,18 +335,43 @@ static std::string getStacktrace() {
             // log::debug("address: {}", address);
             auto image = imageFromAddress(reinterpret_cast<void*>(address));
             // log::debug("image: {}", image);
-            stacktrace << " - " << std::showbase << std::hex;
+            stacktrace.append(" - ");
 
             if (image) {
                 auto baseAddress = image->imageLoadAddress;
                 auto imageName = getImageName(image);
-                stacktrace << imageName << " + " << (address - (uintptr_t)baseAddress);   
+
+                // remove path from image name if in game dir
+                if (imageName.find(gameDir) == 0) {
+                    auto lastSlash = imageName.find_last_of("/\\");
+                    if (lastSlash != std::string::npos) {
+                        imageName = imageName.substr(lastSlash + 1);
+                    }
+                }
+
+                uintptr_t offset = address - (uintptr_t)baseAddress;
+                stacktrace.append("{} + 0x{:x}", imageName, offset);
+
+                if (base::get() == (uintptr_t)baseAddress) {
+                    // find closest function start
+                    auto const& funcs = getFunctionStarts();
+                    auto iter = std::upper_bound(funcs.begin(), funcs.end(), offset);
+                    if (iter != funcs.begin()) {
+                        --iter;
+                        auto funcOffset = *iter;
+                        auto funcName = crashlog::lookupFunctionByOffset(funcOffset);
+                        if (funcName.empty()) {
+                            line = fmt::format("sub_{:x} + 0x{:x}", funcOffset, offset - funcOffset);
+                        } else {
+                            line = fmt::format("{} + 0x{:x}", funcName, offset - funcOffset);
+                        }
+                    }
+                }
             }
             else {
-                stacktrace << address;
+                stacktrace.append("0x{:x}", address);
             }
-            stacktrace << std::dec;
-            stacktrace << ": " << line << "\n";
+            stacktrace.append(": {}\n", line);
         }
         else {
             std::getline(stream, function);
@@ -298,10 +388,8 @@ static std::string getStacktrace() {
                 }
                 free(demangle);
             }
-            
-            stacktrace << "- " << binary;
-            stacktrace << " @ " << std::showbase << std::hex << address << std::dec;
-            stacktrace << " (" << function << " + " << offset << ")\n";
+
+            stacktrace.append("- {} @ 0x{:x} ({} + {:x})\n", binary, address, function, offset);
         }
     }
 
@@ -311,70 +399,69 @@ static std::string getStacktrace() {
 }
 
 static std::string getRegisters() {
-    std::stringstream registers;
+    StringBuffer<> registers;
 
     auto context = s_context;
     auto& ss = context->uc_mcontext->__ss;
 
     // geez
-    registers << std::showbase << std::hex /*<< std::setfill('0') << std::setw(16) */;
     #ifdef GEODE_IS_INTEL_MAC
-    registers << "rax: " << ss.__rax << "\n";
-    registers << "rbx: " << ss.__rbx << "\n";
-    registers << "rcx: " << ss.__rcx << "\n";
-    registers << "rdx: " << ss.__rdx << "\n";
-    registers << "rdi: " << ss.__rdi << "\n";
-    registers << "rsi: " << ss.__rsi << "\n";
-    registers << "rbp: " << ss.__rbp << "\n";
-    registers << "rsp: " << ss.__rsp << "\n";
-    registers << "r8: " << ss.__r8 << "\n";
-    registers << "r9: " << ss.__r9 << "\n";
-    registers << "r10: " << ss.__r10 << "\n";
-    registers << "r11: " << ss.__r11 << "\n";
-    registers << "r12: " << ss.__r12 << "\n";
-    registers << "r13: " << ss.__r13 << "\n";
-    registers << "r14: " << ss.__r14 << "\n";
-    registers << "r15: " << ss.__r15 << "\n";
-    registers << "rip: " << ss.__rip << "\n";
-    registers << "rflags: " << ss.__rflags << "\n";
-    registers << "cs: " << ss.__cs << "\n";
-    registers << "fs: " << ss.__fs << "\n";
-    registers << "gs: " << ss.__gs << "\n";
+    registers.append("rax: 0x{:x}\n", ss.__rax);
+    registers.append("rbx: 0x{:x}\n", ss.__rbx);
+    registers.append("rcx: 0x{:x}\n", ss.__rcx);
+    registers.append("rdx: 0x{:x}\n", ss.__rdx);
+    registers.append("rdi: 0x{:x}\n", ss.__rdi);
+    registers.append("rsi: 0x{:x}\n", ss.__rsi);
+    registers.append("rbp: 0x{:x}\n", ss.__rbp);
+    registers.append("rsp: 0x{:x}\n", ss.__rsp);
+    registers.append("r8: 0x{:x}\n", ss.__r8);
+    registers.append("r9: 0x{:x}\n", ss.__r9);
+    registers.append("r10: 0x{:x}\n", ss.__r10);
+    registers.append("r11: 0x{:x}\n", ss.__r11);
+    registers.append("r12: 0x{:x}\n", ss.__r12);
+    registers.append("r13: 0x{:x}\n", ss.__r13);
+    registers.append("r14: 0x{:x}\n", ss.__r14);
+    registers.append("r15: 0x{:x}\n", ss.__r15);
+    registers.append("rip: 0x{:x}\n", ss.__rip);
+    registers.append("rflags: 0x{:x}\n", ss.__rflags);
+    registers.append("cs: 0x{:x}\n", ss.__cs);
+    registers.append("fs: 0x{:x}\n", ss.__fs);
+    registers.append("gs: 0x{:x}\n", ss.__gs);
     #else // m1
-    registers << "x0: " << ss.__x[0] << "\n";
-    registers << "x1: " << ss.__x[1] << "\n";
-    registers << "x2: " << ss.__x[2] << "\n";
-    registers << "x3: " << ss.__x[3] << "\n";
-    registers << "x4: " << ss.__x[4] << "\n";
-    registers << "x5: " << ss.__x[5] << "\n";
-    registers << "x6: " << ss.__x[6] << "\n";
-    registers << "x7: " << ss.__x[7] << "\n";
-    registers << "x8: " << ss.__x[8] << "\n";
-    registers << "x9: " << ss.__x[9] << "\n";
-    registers << "x10: " << ss.__x[10] << "\n";
-    registers << "x11: " << ss.__x[11] << "\n";
-    registers << "x12: " << ss.__x[12] << "\n";
-    registers << "x13: " << ss.__x[13] << "\n";
-    registers << "x14: " << ss.__x[14] << "\n";
-    registers << "x15: " << ss.__x[15] << "\n";
-    registers << "x16: " << ss.__x[16] << "\n";
-    registers << "x17: " << ss.__x[17] << "\n";
-    registers << "x18: " << ss.__x[18] << "\n";
-    registers << "x19: " << ss.__x[19] << "\n";
-    registers << "x20: " << ss.__x[20] << "\n";
-    registers << "x21: " << ss.__x[21] << "\n";
-    registers << "x22: " << ss.__x[22] << "\n";
-    registers << "x23: " << ss.__x[23] << "\n";
-    registers << "x24: " << ss.__x[24] << "\n";
-    registers << "x25: " << ss.__x[25] << "\n";
-    registers << "x26: " << ss.__x[26] << "\n";
-    registers << "x27: " << ss.__x[27] << "\n";
-    registers << "x28: " << ss.__x[28] << "\n";
-    registers << "fp: " << ss.__fp << "\n";
-    registers << "lr: " << ss.__lr << "\n";
-    registers << "sp: " << ss.__sp << "\n";
-    registers << "pc: " << ss.__pc << "\n";
-    registers << "cpsr: " << ss.__cpsr << "\n";
+    registers.append("x0: 0x{:x}\n", ss.__x[0]);
+    registers.append("x1: 0x{:x}\n", ss.__x[1]);
+    registers.append("x2: 0x{:x}\n", ss.__x[2]);
+    registers.append("x3: 0x{:x}\n", ss.__x[3]);
+    registers.append("x4: 0x{:x}\n", ss.__x[4]);
+    registers.append("x5: 0x{:x}\n", ss.__x[5]);
+    registers.append("x6: 0x{:x}\n", ss.__x[6]);
+    registers.append("x7: 0x{:x}\n", ss.__x[7]);
+    registers.append("x8: 0x{:x}\n", ss.__x[8]);
+    registers.append("x9: 0x{:x}\n", ss.__x[9]);
+    registers.append("x10: 0x{:x}\n", ss.__x[10]);
+    registers.append("x11: 0x{:x}\n", ss.__x[11]);
+    registers.append("x12: 0x{:x}\n", ss.__x[12]);
+    registers.append("x13: 0x{:x}\n", ss.__x[13]);
+    registers.append("x14: 0x{:x}\n", ss.__x[14]);
+    registers.append("x15: 0x{:x}\n", ss.__x[15]);
+    registers.append("x16: 0x{:x}\n", ss.__x[16]);
+    registers.append("x17: 0x{:x}\n", ss.__x[17]);
+    registers.append("x18: 0x{:x}\n", ss.__x[18]);
+    registers.append("x19: 0x{:x}\n", ss.__x[19]);
+    registers.append("x20: 0x{:x}\n", ss.__x[20]);
+    registers.append("x21: 0x{:x}\n", ss.__x[21]);
+    registers.append("x22: 0x{:x}\n", ss.__x[22]);
+    registers.append("x23: 0x{:x}\n", ss.__x[23]);
+    registers.append("x24: 0x{:x}\n", ss.__x[24]);
+    registers.append("x25: 0x{:x}\n", ss.__x[25]);
+    registers.append("x26: 0x{:x}\n", ss.__x[26]);
+    registers.append("x27: 0x{:x}\n", ss.__x[27]);
+    registers.append("x28: 0x{:x}\n", ss.__x[28]);
+    registers.append("fp: 0x{:x}\n", ss.__fp);
+    registers.append("lr: 0x{:x}\n", ss.__lr);
+    registers.append("sp: 0x{:x}\n", ss.__sp);
+    registers.append("pc: 0x{:x}\n", ss.__pc);
+    registers.append("cpsr: 0x{:x}\n", ss.__cpsr);
     #endif
 
     return registers.str();

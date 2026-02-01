@@ -183,17 +183,23 @@ void geode::openSupportPopup(ModMetadata const& metadata) {
 void geode::openInfoPopup(Mod* mod) {
     ModPopup::create(mod)->show();
 }
-arc::Future<bool> geode::openInfoPopup(std::string_view modID) {
+std::optional<arc::TaskHandle<bool>> geode::openInfoPopup(std::string modID) {
     if (auto mod = Loader::get()->getInstalledMod(modID)) {
         openInfoPopup(mod);
-        co_return true;
+        return std::nullopt;
     }
-    else {
-        auto popup = LoadServerModLayer::create(std::string(modID));
+
+    auto popup = LoadServerModLayer::create(std::move(modID));
+    return async::runtime().spawn([popup = Ref(popup)] -> arc::Future<bool> {
         auto ret = co_await popup->listen();
-        popup->show();
+        if (ret) {
+            geode::queueInMainThread([popup] {
+                popup->show();
+            });
+        }
+        
         co_return ret;
-    }
+    });
 }
 
 void geode::openChangelogPopup(Mod* mod) {
