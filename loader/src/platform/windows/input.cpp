@@ -372,7 +372,7 @@ LRESULT CALLBACK GeodeRawInputWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
     return 0;
 }
 
-class $modify(cocos2d::CCEGLView) {
+struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
     void pumpRawInput() {
         if (GetForegroundWindow() != g_mainWindowHWND) {
             RawInputQueue::get().clear();
