@@ -477,6 +477,15 @@ void otherMouseUpHook(EAGLView* self, SEL sel, NSEvent* event) {
     [self performSelector:sel withObject:event];
 }
 
+void scrollWheelHook(EAGLView* self, SEL sel, NSEvent* event) {
+    double xoffset = [event scrollingDeltaX];
+    double yoffset = [event scrollingDeltaY];
+
+    if (ScrollWheelEvent().send(xoffset, yoffset) != ListenerResult::Propagate) return;
+
+    [self performSelector:sel withObject:event];
+}
+
 template <class Func>
 void hookObjcMethod(const char* className, const char* methodName, Func newImp) {
     if (Result<std::shared_ptr<Hook>> res = ObjcHook::create(className, methodName, newImp)) {
@@ -499,4 +508,5 @@ $execute {
     hookObjcMethod("EAGLView", "otherMouseDown:", &otherMouseDownHook);
     hookObjcMethod("EAGLView", "otherMouseDragged:", &otherMouseDraggedHook);
     hookObjcMethod("EAGLView", "otherMouseUp:", &otherMouseUpHook);
+    hookObjcMethod("EAGLView", "scrollWheel:", &scrollWheelHook);
 }
