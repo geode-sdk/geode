@@ -199,7 +199,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         } else if (id == ID_BUTTON_COPY_CLIPBOARD) {
             geode::utils::clipboard::write(utils::string::wideToUtf8(g_crashlogText));
         } else if (id == ID_BUTTON_RESTART_GAME) {
-            geode::utils::game::restart(false);
+            if (GetKeyState(VK_SHIFT) & 0x8000) {
+                auto result = MessageBoxW(
+                    hwnd,
+                    L"Do you want to save your game data before restarting?\n"
+                    "This might lead to a corrupted save file, choose on your own risk.",
+                    L"Save and Restart the Game",
+                    MB_ICONQUESTION | MB_YESNOCANCEL
+                );
+                if (result == IDCANCEL) break;
+                geode::utils::game::restart(result == IDYES);
+            } else {
+                geode::utils::game::restart(false);
+            }
         }
     } break;
 
