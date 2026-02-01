@@ -685,6 +685,11 @@ namespace geode {
                     return Event1Type(std::move(fargs)...).listen(std::move(listener), priority);
                 }, *m_filter);
             }
+            else {
+                return Event2Type().listen([listener = std::move(listener)](FArgs... fargs, PArgs... pargs) {
+                    return static_cast<bool>(std::invoke(listener, std::forward<PArgs>(pargs)...));
+                }, priority);
+            }
             return ListenerHandle{};
         }
 
