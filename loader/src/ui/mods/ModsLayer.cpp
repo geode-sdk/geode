@@ -90,13 +90,14 @@ bool ModsStatusNode::init() {
     );
     this->addChildAtPosition(m_btnMenu, Anchor::Center, ccp(0, 5));
 
-    m_updateStateListener.bind([this](auto) { this->updateState(); });
-    m_updateStateListener.setFilter(UpdateModListStateFilter());
+    m_updateStateHandle = UpdateModListStateEvent().listen([this](UpdateState const& state) {
+        this->updateState();
+        return ListenerResult::Propagate;
+    });
+    m_downloadHandle = server::ModDownloadEvent().listen([this](std::string_view key) { this->updateState(); });
 
-    m_downloadListener.bind([this](auto) { this->updateState(); });
-
-    m_settingNodeListener.bind([this](SettingNodeValueChangeEvent* ev) {
-        if (!ev->isCommit()) {
+    m_settingNodeHandle = SettingNodeValueChangeEvent().listen([this](std::string_view modID, std::string_view key, SettingNodeV3* node, bool isCommit) {
+        if (!isCommit) {
             return ListenerResult::Propagate;
         }
         this->updateState();
@@ -296,21 +297,22 @@ void ModsLayer::onAddModFromFile(CCObject*) {
             350
         )->show();
     }
-    file::pick(file::PickMode::OpenFile, file::FilePickOptions {
+
+    async::spawn(file::pick(file::PickMode::OpenFile, file::FilePickOptions {
         .filters = { file::FilePickOptions::Filter {
             .description = "Geode Mods",
             .files = { "*.geode" },
         }}
-    }).listen([](Result<std::filesystem::path>* path) {
-        if (*path) {
-            LoaderImpl::get()->installModManuallyFromFile(path->unwrap(), []() {
+    }), [](Result<std::optional<std::filesystem::path>> result) {
+        if (result.isOk() && result.unwrap().has_value()) {
+            LoaderImpl::get()->installModManuallyFromFile(std::move(result).unwrap().value(), []() {
                 InstalledModListSource::get(InstalledModListType::All)->clearCache();
             });
         }
-        else {
+        else if (!result.isOk()) {
             FLAlertLayer::create(
                 "Unable to Select File",
-                path->unwrapErr(),
+                result.unwrapErr(),
                 "OK"
             )->show();
         }
@@ -384,7 +386,7 @@ bool ModsLayer::init() {
             ->setMainAxisAlignment(MainAxisAlignment::Start)
             ->setGap(5.f)
     );
-    this->addChildAtPosition(backMenu, Anchor::TopLeft, ccp(12, -25), false);
+    this->addChildAtPosition(backMenu, Anchor::TopLeft, ccp(8, -23), false);
 
     auto actionsMenu = CCMenu::create();
     actionsMenu->setID("actions-menu");
@@ -631,9 +633,8 @@ bool ModsLayer::init() {
     this->updateState();
 
     // Listen for state changes
-    m_updateStateListener.setFilter(UpdateModListStateFilter(UpdateWholeState()));
-    m_updateStateListener.bind([this](UpdateModListStateEvent* event) {
-        if (auto whole = std::get_if<UpdateWholeState>(&event->target)) {
+    m_updateStateHandle = UpdateModListStateEvent().listen([this](UpdateState const& state) {
+        if (auto whole = std::get_if<UpdateWholeState>(&state)) {
             if (whole->searchByDeveloper) {
                 auto src = ServerModListSource::get(ServerModListType::Download);
                 src->getQueryMut()->developer = *whole->searchByDeveloper;
@@ -643,7 +644,7 @@ bool ModsLayer::init() {
                 m_lists.at(src)->activateSearch(m_showSearch);
             }
         }
-        this->updateState();
+        return ListenerResult::Propagate;
     });
 
     // add safe mode label
@@ -863,17 +864,16 @@ ModsLayer* ModsLayer::scene() {
     return layer;
 }
 
-server::ServerRequest<std::vector<std::string>> ModsLayer::checkInstalledModsForUpdates() {
-    return server::checkAllUpdates().map([](auto* result) -> Result<std::vector<std::string>, server::ServerError> {
-        if (result->isOk()) {
-            std::vector<std::string> updatesFound;
-            for (auto& update : result->unwrap()) {
-                if (update.hasUpdateForInstalledMod()) {
-                    updatesFound.push_back(update.id);
-                }
-            }
-            return Ok(updatesFound);
+server::ServerFuture<std::vector<std::string>> ModsLayer::checkInstalledModsForUpdates() {
+    auto updates = ARC_CO_UNWRAP(co_await server::checkAllUpdates());
+    std::vector<std::string> updatesFound;
+
+    for (auto& update : updates) {
+        if (update.hasUpdateForInstalledMod()) {
+            updatesFound.push_back(update.id);
         }
-        return Err(result->unwrapErr());
-    });
+    }
+    
+    co_return Ok(std::move(updatesFound));
 }
+

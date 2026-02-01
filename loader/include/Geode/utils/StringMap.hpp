@@ -3,6 +3,7 @@
 #include <string_view>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <Geode/utils/ZStringView.hpp>
 
 namespace geode::utils {
@@ -40,5 +41,10 @@ template <typename T>
 using StringMap = std::unordered_map<std::string, T, StringHash, std::equal_to<>>;
 
 using StringSet = std::unordered_set<std::string, StringHash, std::equal_to<>>;
+
+template <typename T>
+using StringMultimap = std::unordered_multimap<std::string, T, StringHash, std::equal_to<>>;
+
+using StringMultiset = std::unordered_multiset<std::string, StringHash, std::equal_to<>>;
 
 }

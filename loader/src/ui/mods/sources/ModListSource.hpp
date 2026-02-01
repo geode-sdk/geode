@@ -6,28 +6,18 @@
 #include <server/Server.hpp>
 #include "../list/ModListItem.hpp"
 #include "ModSource.hpp"
+#include <arc/future/Future.hpp>
 
 using namespace geode::prelude;
 
 class ModListSource;
 
-struct InvalidateCacheEvent : public Event {
-    ModListSource* source;
-    InvalidateCacheEvent(ModListSource* src);
-};
-
-class InvalidateCacheFilter : public EventFilter<InvalidateCacheEvent> {
-protected:
-    ModListSource* m_source;
-
+class InvalidateCacheEvent final : public SimpleEvent<InvalidateCacheEvent, ModListSource*> {
 public:
-    using Callback = void(InvalidateCacheEvent*);
-
-    ListenerResult handle(geode::Function<Callback>& fn, InvalidateCacheEvent* event);
-
-    InvalidateCacheFilter() = default;
-    InvalidateCacheFilter(ModListSource* src);
+    // filter params source
+    using SimpleEvent::SimpleEvent;
 };
+
 
 // If we want to insert some special item in the middle of the mods list (for 
 // example, when there are invalid .geode files in the mods folder, a single 
@@ -52,13 +42,14 @@ public:
     };
 
     using Page = std::vector<Ref<ModListItem>>;
-    using PageLoadTask = Task<Result<Page, LoadPageError>, std::optional<uint8_t>>;
+    using PageLoadResult = Result<Page, LoadPageError>;
+    using PageLoadTask = arc::Future<PageLoadResult>;
 
     struct ProvidedMods {
         std::vector<std::variant<ModSource, SpecialModListItemSource>> mods;
         size_t totalModCount;
     };
-    using ProviderTask = Task<Result<ProvidedMods, LoadPageError>, std::optional<uint8_t>>;
+    using ProviderTask = arc::Future<Result<ProvidedMods, LoadPageError>>;
 
 protected:
     std::unordered_map<size_t, Page> m_cachedPages;
@@ -78,6 +69,7 @@ public:
     // Reset all filters & cache
     void reset();
     void clearCache();
+    std::optional<Page> getCachedPage(size_t page) const;
     void search(std::string query);
     virtual bool isDefaultQuery() const = 0;
 
@@ -85,7 +77,8 @@ public:
     virtual void setModTags(std::unordered_set<std::string> const& tags) = 0;
 
     // Load page, uses cache if possible unless `forceUpdate` is true
-    PageLoadTask loadPage(size_t page, bool forceUpdate = false);
+    ProviderTask loadPage(size_t page, bool forceUpdate = false);
+    PageLoadResult processLoadedPage(size_t page, ProvidedMods mods);
     std::optional<size_t> getPageCount() const;
     std::optional<size_t> getItemCount() const;
     void setPageSize(size_t size);

@@ -66,24 +66,10 @@ namespace geode {
         using CCSprite::initWithFile;
 
     private:
-        Ref<LoadingSpinner> m_loadingCircle;
-        Callback m_callback;
-        Format m_expectedFormat;
-        EventListener<utils::web::WebTask> m_listener;
-        bool m_isLoading = false;
-        std::atomic_bool m_hasLoaded = false;
-        bool m_autoresize;
-        cocos2d::CCSize m_targetSize;
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
 
-        bool init(cocos2d::CCSize size, bool loadingCircle = true);
-        void doInitFromBytes(std::vector<uint8_t> data, std::string cacheKey);
-        std::string makeCacheKey(std::filesystem::path const& path);
-        // std::string makeCacheKey(std::string_view url);
-
-        cocos2d::CCTexture2D* lookupCache(char const* key);
-        bool initFromCache(char const* key);
-        bool postInit(bool initResult);
-
-        void onError(std::string err);
+        LazySprite();
+        ~LazySprite();
     };
 }

@@ -18,6 +18,7 @@ using namespace geode::prelude;
 #include <Geode/utils/ObjcHook.hpp>
 #include <Geode/utils/string.hpp>
 #include "../../utils/thread.hpp"
+#include <arc/sync/oneshot.hpp>
 
 bool utils::clipboard::write(ZStringView data) {
     if (!OpenClipboard(nullptr)) return false;
@@ -110,8 +111,39 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
     return success;
 }
 
-Task<Result<std::filesystem::path>> file::pick(PickMode mode, FilePickOptions const& options) {
-    using RetTask = Task<Result<std::filesystem::path>>;
+// If successful, the bool represents whether a file was picked (true) or dialog was cancelled (false)
+static arc::Future<Result<bool>> asyncNfdPick(
+    NFDMode mode,
+    file::FilePickOptions const& options,
+    void* result
+) {
+    auto [tx, rx] = arc::oneshot::channel<Result<>>();
+
+    auto thread = std::thread([&, tx = std::move(tx)] mutable {
+        auto pickresult = nfdPick(mode, options, result);
+        (void) tx.send(pickresult);
+    });
+
+    // wait for the result, and join the thread
+    auto recvresult = co_await rx.recv();
+    if (thread.joinable()) thread.join();
+
+    if (!recvresult) {
+        co_return Err("Error occurred while picking file");
+    }
+
+    auto res = std::move(recvresult).unwrap();
+    if (!res) {
+        auto err = std::move(res).unwrapErr();
+        if (err == "Dialog cancelled") {
+            co_return Ok(false);
+        }
+        co_return Err(std::move(err));
+    }
+    co_return Ok(true);
+}
+
+arc::Future<file::PickResult> file::pick(PickMode mode, FilePickOptions options) {
     #define TURN_INTO_NFDMODE(mode) \
         case file::PickMode::mode: nfdMode = NFDMode::mode; break;
 
@@ -121,31 +153,26 @@ Task<Result<std::filesystem::path>> file::pick(PickMode mode, FilePickOptions co
         TURN_INTO_NFDMODE(SaveFile);
         TURN_INTO_NFDMODE(OpenFolder);
         default:
-            return RetTask::immediate(Err<std::string>("Invalid pick mode"));
+            co_return Err("Invalid pick mode");
     }
+
     std::filesystem::path path;
-    auto pickresult = nfdPick(nfdMode, options, &path);
-    if (pickresult.isErr()) {
-        if (pickresult.unwrapErr() == "Dialog cancelled") {
-            return RetTask::cancelled();
-        }
-        return RetTask::immediate(Err(pickresult.unwrapErr()));
-    } else {
-        return RetTask::immediate(Ok(path));
+    bool picked = ARC_CO_UNWRAP(co_await asyncNfdPick(nfdMode, options, &path));
+    if (!picked) {
+        co_return Ok(std::nullopt);
     }
+
+    co_return Ok(std::move(path));
 }
 
-Task<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions const& options) {
-    using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
-
+arc::Future<file::PickManyResult> file::pickMany(FilePickOptions options) {
     std::vector<std::filesystem::path> paths;
-    auto pickResult = nfdPick(NFDMode::OpenFiles, options, &paths);
-    if (pickResult.isErr()) {
-        return RetTask::immediate(Err(pickResult.err().value()));
-    } else {
-        return RetTask::immediate(Ok(paths));
+    bool picked = ARC_CO_UNWRAP(co_await asyncNfdPick(NFDMode::OpenFiles, options, &paths));
+    if (!picked) {
+        co_return Ok(std::vector<std::filesystem::path>{});
     }
-    // return Task<Result<std::vector<std::filesystem::path>>>::immediate(std::move(file::pickFiles(options)));
+
+    co_return Ok(std::move(paths));
 }
 
 void utils::web::openLinkInBrowser(ZStringView url) {
@@ -289,8 +316,8 @@ void geode::utils::permission::requestPermission(Permission permission, geode::F
 
 // [Set|Get]ThreadDescription are pretty new, so the user's system might not have them
 // or they might only be accessible dynamically (see msdocs link below for more info)
-auto setThreadDesc = reinterpret_cast<decltype(&SetThreadDescription)>(GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "SetThreadDescription"));
-auto getThreadDesc = reinterpret_cast<decltype(&GetThreadDescription)>(GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "GetThreadDescription"));
+static auto setThreadDesc = reinterpret_cast<decltype(&SetThreadDescription)>(GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "SetThreadDescription"));
+static auto getThreadDesc = reinterpret_cast<decltype(&GetThreadDescription)>(GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "GetThreadDescription"));
 
 static std::optional<std::string> getNameFromOs() {
     if (!getThreadDesc) {

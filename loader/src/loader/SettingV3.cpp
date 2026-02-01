@@ -452,74 +452,11 @@ namespace enable_if_parsing {
     };
 }
 
-class SettingChangedEventV3::Impl final {
-public:
-    std::shared_ptr<SettingV3> setting;
-};
+SettingChangedEventV3::SettingChangedEventV3(Mod* mod, std::string settingKey) : SettingChangedEventV3(mod->getID(), std::move(settingKey)) {}
 
-SettingChangedEventV3::SettingChangedEventV3(std::shared_ptr<SettingV3> setting)
-  : m_impl(std::make_shared<Impl>())
-{
-    m_impl->setting = setting;
-}
+SettingNodeSizeChangeEventV3::SettingNodeSizeChangeEventV3(Mod* mod, std::string settingKey) : SettingNodeSizeChangeEventV3(mod->getID(), std::move(settingKey)) {}
 
-std::shared_ptr<SettingV3> SettingChangedEventV3::getSetting() const {
-    return m_impl->setting;
-}
-
-bool SettingChangedEventV3::filter(std::string_view modID, std::optional<std::string_view> settingKey) const {
-    if (m_impl->setting->getModID() != modID) {
-        return false;
-    }
-    if (settingKey && m_impl->setting->getKey() != *settingKey) {
-        return false;
-    }
-    return true;
-}
-
-
-
-class SettingChangedFilterV3::Impl final {
-public:
-    std::string modID;
-    std::optional<std::string> settingKey;
-};
-
-ListenerResult SettingChangedFilterV3::handle(geode::Function<Callback>& fn, SettingChangedEventV3* event) {
-    if (
-        event->getSetting()->getModID() == m_impl->modID &&
-        (!m_impl->settingKey || event->getSetting()->getKey() == m_impl->settingKey)
-    ) {
-        fn(event->getSetting());
-    }
-    return ListenerResult::Propagate;
-}
-
-SettingChangedFilterV3::SettingChangedFilterV3(
-    std::string modID,
-    std::optional<std::string> settingKey
-) : m_impl(std::make_shared<Impl>())
-{
-    m_impl->modID = std::move(modID);
-    m_impl->settingKey = std::move(settingKey);
-}
-
-SettingChangedFilterV3::SettingChangedFilterV3(Mod* mod, std::optional<std::string> settingKey)
-  : SettingChangedFilterV3(mod->getID(), std::move(settingKey)) {}
-
-SettingChangedFilterV3::SettingChangedFilterV3(SettingChangedFilterV3 const&) = default;
-
-EventListener<SettingChangedFilterV3>* geode::listenForAllSettingChangesV3(
-    geode::Function<void(std::shared_ptr<SettingV3>)> callback,
-    Mod* mod
-) {
-    return new EventListener(
-        [callback = std::move(callback)](std::shared_ptr<SettingV3> setting) mutable {
-            callback(setting);
-        },
-        SettingChangedFilterV3(mod->getID(), std::nullopt)
-    );
-}
+SettingNodeValueChangeEventV3::SettingNodeValueChangeEventV3(Mod* mod, std::string settingKey) : SettingNodeValueChangeEventV3(mod->getID(), std::move(settingKey)) {}
 
 class SettingV3::GeodeImpl {
 public:
@@ -630,7 +567,7 @@ void SettingV3::markChanged() {
     if (m_impl->requiresRestart) {
         manager->markRestartRequired();
     }
-    SettingChangedEventV3(shared_from_this()).post();
+    SettingChangedEventV3(this->getModID(), this->getKey()).send(shared_from_this());
 }
 class TitleSettingV3::Impl final {
 public:

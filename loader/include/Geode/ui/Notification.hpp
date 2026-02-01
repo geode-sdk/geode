@@ -20,7 +20,7 @@ namespace geode {
         Info,
     };
 
-    class GEODE_DLL Notification : public cocos2d::CCNodeRGBA {
+    class GEODE_DLL Notification final : public cocos2d::CCNodeRGBA {
     protected:
         static cocos2d::CCArray* s_queue;
         cocos2d::extension::CCScale9Sprite* m_bg;

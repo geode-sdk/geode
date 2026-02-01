@@ -1,7 +1,9 @@
 #include <Geode/utils/AndroidEvent.hpp>
+#include <Geode/Prelude.hpp>
 
 #include <unordered_map>
 
+#include <cocos2d.h>
 #include <android/keycodes.h>
 #include <jni.h>
 
@@ -151,7 +153,8 @@ namespace {
 
             keyboard_dispatcher->updateModifierKeys(isShiftPressed, isCtrlPressed, isAltPressed, false);
 
-            keyboard_dispatcher->dispatchKeyboardMSG(translated_code, true, isRepeat);
+            // TODO: v5
+            keyboard_dispatcher->dispatchKeyboardMSG(translated_code, true, isRepeat, 0.0);
         } else {
             auto keypad_dispatcher = cocos2d::CCDirector::sharedDirector()->getKeypadDispatcher();
             if (keycode == AKEYCODE_BACK) {
@@ -179,7 +182,8 @@ namespace {
                 false
             );
 
-            keyboard_dispatcher->dispatchKeyboardMSG(translated_code, false, false);
+            // TODO: v5
+            keyboard_dispatcher->dispatchKeyboardMSG(translated_code, false, false, 0.0);
         }
     }
 
@@ -216,7 +220,7 @@ namespace {
 extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_internalKeyEvent(
     JNIEnv* env, jobject, jlong timestamp, jint deviceId, jint eventSource, jint keyCode, jint modifiers, jboolean isDown, jint repeatCount
 ) {
-    if (AndroidRichInputEvent(timestamp, deviceId, eventSource, AndroidKeyInput(keyCode, modifiers, isDown, repeatCount)).post() != ListenerResult::Propagate) {
+    if (AndroidRichInputEvent().send(std::move(timestamp), std::move(deviceId), std::move(eventSource), AndroidKeyInput(keyCode, modifiers, isDown, repeatCount)) != ListenerResult::Propagate) {
         return;
     }
 
@@ -235,7 +239,7 @@ constexpr auto g_scrollFactor = -13.0f;
 extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_internalScrollEvent(
     JNIEnv* env, jobject, jlong timestamp, jint deviceId, jint eventSource, jfloat scrollX, jfloat scrollY
 ) {
-    if (AndroidRichInputEvent(timestamp, deviceId, eventSource, AndroidScrollInput(scrollX, scrollY)).post() != ListenerResult::Propagate) {
+    if (AndroidRichInputEvent().send(std::move(timestamp), std::move(deviceId), std::move(eventSource), AndroidScrollInput(scrollX, scrollY)) != ListenerResult::Propagate) {
         return;
     }
 
@@ -260,7 +264,7 @@ extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inter
 
     auto type = static_cast<AndroidTouchInput::Type>(eventType);
 
-    if (AndroidRichInputEvent(timestamp, deviceId, eventSource, AndroidTouchInput(touches, type)).post() != ListenerResult::Propagate) {
+    if (AndroidRichInputEvent().send(std::move(timestamp), std::move(deviceId), std::move(eventSource), AndroidTouchInput(touches, type)) != ListenerResult::Propagate) {
         return;
     }
 
@@ -268,16 +272,17 @@ extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inter
     switch (type) {
         case AndroidTouchInput::Type::Began:
             // idArr.size() should == 1, but we're going to be passing this array anyways so it doesn't matter
-            glView->handleTouchesBegin(idArr.size(), idArr.data(), xArr.data(), yArr.data());
+            // TODO: v5
+            glView->handleTouchesBegin(idArr.size(), idArr.data(), xArr.data(), yArr.data(), 0.0);
             break;
         case AndroidTouchInput::Type::Moved:
-            glView->handleTouchesMove(idArr.size(), idArr.data(), xArr.data(), yArr.data());
+            glView->handleTouchesMove(idArr.size(), idArr.data(), xArr.data(), yArr.data(), 0.0);
             break;
         case AndroidTouchInput::Type::Ended:
-            glView->handleTouchesEnd(idArr.size(), idArr.data(), xArr.data(), yArr.data());
+            glView->handleTouchesEnd(idArr.size(), idArr.data(), xArr.data(), yArr.data(), 0.0);
             break;
         case AndroidTouchInput::Type::Cancelled:
-            glView->handleTouchesCancel(idArr.size(), idArr.data(), xArr.data(), yArr.data());
+            glView->handleTouchesCancel(idArr.size(), idArr.data(), xArr.data(), yArr.data(), 0.0);
             break;
     }
 }
@@ -308,9 +313,9 @@ extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inter
         );
     }
 
-    AndroidRichInputEvent(
-        timestamp, deviceId, eventSource, AndroidJoystickInput(inputs)
-    ).post();
+    AndroidRichInputEvent().send(
+        std::move(timestamp), std::move(deviceId), std::move(eventSource), AndroidJoystickInput(inputs)
+    );
 }
 
 AndroidScrollInput::AndroidScrollInput(float scrollX, float scrollY) : m_scrollX(scrollX), m_scrollY(scrollY) {}
@@ -321,29 +326,6 @@ float AndroidScrollInput::scrollX() const {
 
 float AndroidScrollInput::scrollY() const {
     return m_scrollY;
-}
-
-AndroidRichInputEvent::AndroidRichInputEvent(std::int64_t timestamp, int deviceId, int eventSource, AndroidRichInput data) : m_timestamp(timestamp), m_deviceId(deviceId), m_eventSource(eventSource), m_data(data) {}
-
-std::int64_t AndroidRichInputEvent::timestamp() const {
-    return m_timestamp;
-}
-
-int AndroidRichInputEvent::deviceId() const {
-    return m_deviceId;
-}
-
-int AndroidRichInputEvent::eventSource() const {
-    return m_eventSource;
-}
-
-AndroidRichInput AndroidRichInputEvent::data() const {
-    return m_data;
-}
-
-ListenerResult AndroidRichInputFilter::handle(geode::Function<Callback>& fn, AndroidRichInputEvent* event)  {
-    fn(event);
-    return ListenerResult::Propagate;
 }
 
 AndroidKeyInput::AndroidKeyInput(int keycode, int modifiers, bool isDown, int repeatCount) : m_keycode(keycode), m_modifiers(modifiers), m_isDown(isDown), m_repeatCount(repeatCount) {}
@@ -382,25 +364,15 @@ std::vector<AndroidJoystickInput::Data> AndroidJoystickInput::packets() const {
 
 extern "C"
 JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inputDeviceAdded(JNIEnv*, jobject, jint deviceId, jint eventSource) {
-    geode::AndroidInputDeviceEvent(deviceId, geode::AndroidInputDeviceEvent::Status::Added).post();
+    geode::AndroidInputDeviceEvent().send(std::move(deviceId), geode::AndroidInputDeviceStatus::Added);
 }
 
 extern "C"
 JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inputDeviceChanged(JNIEnv*, jobject, jint deviceId, jint eventSource) {
-    geode::AndroidInputDeviceEvent(deviceId, geode::AndroidInputDeviceEvent::Status::Changed).post();
+    geode::AndroidInputDeviceEvent().send(std::move(deviceId), geode::AndroidInputDeviceStatus::Changed);
 }
 
 extern "C"
 JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inputDeviceRemoved(JNIEnv*, jobject, jint deviceId, jint eventSource) {
-    geode::AndroidInputDeviceEvent(deviceId, geode::AndroidInputDeviceEvent::Status::Removed).post();
-}
-
-AndroidInputDeviceEvent::AndroidInputDeviceEvent(int deviceId, Status status) : m_deviceId(deviceId), m_status(status) {}
-
-int AndroidInputDeviceEvent::deviceId() const { return m_deviceId; }
-AndroidInputDeviceEvent::Status AndroidInputDeviceEvent::status() const { return m_status; }
-
-ListenerResult AndroidInputDeviceFilter::handle(geode::Function<Callback>& fn, AndroidInputDeviceEvent* event)  {
-    fn(event);
-    return ListenerResult::Propagate;
+    geode::AndroidInputDeviceEvent().send(std::move(deviceId), geode::AndroidInputDeviceStatus::Removed);
 }

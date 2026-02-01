@@ -128,10 +128,9 @@ namespace geode::cast {
             return After();
         }
 
-        auto basePtr = dynamic_cast<void*>(ptr);
-        auto vftable = *reinterpret_cast<VftableType**>(basePtr);
+        auto vftable = *reinterpret_cast<VftableType const* const*>(ptr);
 
-        auto metaPtr = static_cast<MetaPointerType*>(static_cast<CompleteVftableType*>(vftable));
+        auto metaPtr = static_cast<MetaPointerType const*>(static_cast<CompleteVftableType const*>(vftable));
 
         auto afterDesc =
             reinterpret_cast<TypeDescriptorType const*>(&typeid(std::remove_pointer_t<After>));
@@ -154,11 +153,37 @@ namespace geode::cast {
             auto optionOffset = entry->m_memberDisplacement[0];
 
             if (std::strcmp(afterIdent, optionIdent) == 0) {
-                auto afterPtr = reinterpret_cast<std::byte*>(basePtr) + optionOffset;
+                auto afterPtr = (uintptr_t)ptr + optionOffset - metaPtr->m_completeLocator->m_offset;
                 return reinterpret_cast<After>(afterPtr);
             }
         }
 
         return nullptr;
+    }
+
+    inline char const* getRuntimeTypeName(void const* ptr) {
+        if (!ptr) {
+            return "<null>";
+        }
+
+        auto vftable = *reinterpret_cast<VftableType const* const*>(ptr);
+
+        auto metaPtr = static_cast<MetaPointerType const*>(static_cast<CompleteVftableType const*>(vftable));
+
+    #ifdef GEODE_IS_X64
+        auto locatorOffset = metaPtr->m_completeLocator->m_locatorOffset;
+        auto base = reinterpret_cast<uintptr_t>(metaPtr->m_completeLocator) - locatorOffset;
+    #else
+        auto base = 0;
+    #endif
+
+        auto typeDesc = metaPtr->m_completeLocator->m_typeDescriptor.into(base);
+
+        return typeDesc->m_typeDescriptorName;
+    }
+
+    inline char const* getRuntimeTypeName(std::type_info const& info) {
+        auto typeDesc = reinterpret_cast<TypeDescriptorType const*>(&info);
+        return typeDesc->m_typeDescriptorName;
     }
 }

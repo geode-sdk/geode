@@ -104,7 +104,7 @@ bool ModDeveloperItem::init(
 
 void ModDeveloperItem::onMoreByThisDev(CCObject* sender) {
     auto str = static_cast<CCString*>(static_cast<CCNode*>(sender)->getUserObject());
-    UpdateModListStateEvent(UpdateWholeState(str->getCString())).post();
+    UpdateModListStateEvent().send(UpdateWholeState(str->getCString()));
     m_popup->onClose(nullptr);
 }
 

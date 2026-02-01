@@ -199,7 +199,7 @@ namespace geode {
      * Creates a button sprite with a circular base, similar to the buttons at
      * the bottom of the main menu
      */
-    class GEODE_DLL CircleButtonSprite : public BasedButtonSprite {
+    class GEODE_DLL CircleButtonSprite final : public BasedButtonSprite {
     public:
         static CircleButtonSprite* create(
             cocos2d::CCNode* top, CircleBaseColor color = CircleBaseColor::Green,
@@ -222,7 +222,7 @@ namespace geode {
      * Creates a button sprite with a cross base, like the buttons in the main
      * menu
      */
-    class GEODE_DLL CrossButtonSprite : public BasedButtonSprite {
+    class GEODE_DLL CrossButtonSprite final : public BasedButtonSprite {
     public:
         static CrossButtonSprite* create(
             cocos2d::CCNode* top,
@@ -245,7 +245,7 @@ namespace geode {
      * Creates a button sprite with a cross base, like the buttons in the main
      * menu
      */
-    class GEODE_DLL AccountButtonSprite : public BasedButtonSprite {
+    class GEODE_DLL AccountButtonSprite final : public BasedButtonSprite {
     public:
         static AccountButtonSprite* create(
             cocos2d::CCNode* top,
@@ -268,7 +268,7 @@ namespace geode {
      * Creates a button sprite with a cross base, like the buttons in the main
      * menu
      */
-    class GEODE_DLL IconSelectButtonSprite : public BasedButtonSprite {
+    class GEODE_DLL IconSelectButtonSprite final : public BasedButtonSprite {
     public:
         static IconSelectButtonSprite* create(
             cocos2d::CCNode* top,
@@ -291,7 +291,7 @@ namespace geode {
      * Creates a button sprite with a cross base, like the buttons in the main
      * menu
      */
-    class GEODE_DLL LeaderboardButtonSprite : public BasedButtonSprite {
+    class GEODE_DLL LeaderboardButtonSprite final : public BasedButtonSprite {
     public:
         static LeaderboardButtonSprite* create(
             cocos2d::CCNode* top,
@@ -314,7 +314,7 @@ namespace geode {
      * Creates a button sprite with the same base as the right-side action
      * buttons in the editor
      */
-    class GEODE_DLL EditorButtonSprite : public BasedButtonSprite {
+    class GEODE_DLL EditorButtonSprite final : public BasedButtonSprite {
     public:
         static EditorButtonSprite* create(
             cocos2d::CCNode* top, EditorBaseColor color,
@@ -336,7 +336,7 @@ namespace geode {
     /**
      * Creates a button sprite for list view tabs
      */
-    class GEODE_DLL TabButtonSprite : public BasedButtonSprite {
+    class GEODE_DLL TabButtonSprite final : public BasedButtonSprite {
     public:
         static TabButtonSprite* create(
             char const* text,
@@ -349,7 +349,7 @@ namespace geode {
      * Creates a button sprite for category buttons, i.e. the big buttons in
      * CreatorLayer
      */
-    class GEODE_DLL CategoryButtonSprite : public BasedButtonSprite {
+    class GEODE_DLL CategoryButtonSprite final : public BasedButtonSprite {
     public:
         static CategoryButtonSprite* create(
             cocos2d::CCNode* top,

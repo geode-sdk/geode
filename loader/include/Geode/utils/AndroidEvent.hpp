@@ -7,6 +7,7 @@
 
 #include "../loader/Event.hpp"
 #include <Geode/cocos/platform/android/jni/JniHelper.h>
+#include <Geode/Result.hpp>
 
 namespace geode {
     namespace utils {
@@ -99,54 +100,21 @@ namespace geode {
      *
      * If an event is stopped by a listener, the corresponding event within Cocos will not be triggered.
      */
-    class GEODE_DLL AndroidRichInputEvent final : public Event {
-    protected:
-        std::int64_t m_timestamp;
-        int m_deviceId;
-        int m_eventSource;
-
-        AndroidRichInput m_data;
-
+    class GEODE_DLL AndroidRichInputEvent final : public SimpleEvent<AndroidRichInputEvent, int64_t, int, int, AndroidRichInput> {
     public:
-        AndroidRichInputEvent(std::int64_t timestamp, int deviceId, int eventSource, AndroidRichInput data);
-
-        /** Timestamp (in NS) of the event. */
-        std::int64_t timestamp() const;
-        int deviceId() const;
-        int eventSource() const;
-        AndroidRichInput data() const;
+        // listener params timestamp, deviceID, eventSource, data
+        using SimpleEvent::SimpleEvent;
     };
 
-    class GEODE_DLL AndroidRichInputFilter final : public EventFilter<AndroidRichInputEvent> {
-    public:
-        using Callback = void(AndroidRichInputEvent*);
-
-        ListenerResult handle(geode::Function<Callback>& fn, AndroidRichInputEvent* event);
+    enum class AndroidInputDeviceStatus {
+        Added, Changed, Removed
     };
 
     /** Event that represents some change in input devices, namely removal/addition. */
-    class GEODE_DLL AndroidInputDeviceEvent final : public Event {
+    class GEODE_DLL AndroidInputDeviceEvent final : public SimpleEvent<AndroidInputDeviceEvent, int, AndroidInputDeviceStatus> {
     public:
-        enum class Status {
-            Added, Changed, Removed
-        };
-
-    protected:
-        int m_deviceId;
-        Status m_status;
-
-    public:
-        AndroidInputDeviceEvent(int deviceId, Status status);
-
-        int deviceId() const;
-        Status status() const;
-    };
-
-    class GEODE_DLL AndroidInputDeviceFilter final : public EventFilter<AndroidInputDeviceEvent> {
-    public:
-        using Callback = void(AndroidInputDeviceEvent*);
-
-        ListenerResult handle(geode::Function<Callback>& fn, AndroidInputDeviceEvent* event);
+        // listener params deviceID, status
+        using SimpleEvent::SimpleEvent;
     };
 }
 
