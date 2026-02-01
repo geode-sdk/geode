@@ -1044,6 +1044,9 @@ public:
         m_worker->setDebugName("Geode Web Worker");
     }
 
+    // Note for future people: this is currently leaked because cleanup is unsafe in statics
+    // if this becomes not leaked in the future pls remember to store arc runtime as weakptr
+    // or m_worker->abort will likely invoke ub
     ~Impl() {
         m_cancel.cancel();
         
