@@ -9,7 +9,7 @@
 namespace geode {
     class ColorPickPopup;
 
-    class GEODE_DLL ColorPickPopup :
+    class GEODE_DLL ColorPickPopup final :
         public Popup,
         public cocos2d::extension::ColorPickerDelegate,
         public TextInputDelegate {

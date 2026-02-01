@@ -11,7 +11,7 @@ namespace geode::async {
 /**
  * Gets the main arc Runtime, prefer running all async code inside this runtime.
  */
-arc::Runtime& runtime();
+GEODE_DLL arc::Runtime& runtime();
 
 /**
  * Asynchronously spawns a function, then invokes the given callback on the main thread when it completes.
@@ -50,6 +50,15 @@ public:
         typename Callback = std::conditional_t<std::is_void_v<Ret>, Function<void()>, Function<void(NonVoid)>>
     >
     void spawn(Fut future, Callback cb) {
+        this->spawn("", std::move(future), std::move(cb));
+    }
+    
+    template <
+        typename Fut,
+        typename NonVoid = std::conditional_t<std::is_void_v<Ret>, std::monostate, Ret>,
+        typename Callback = std::conditional_t<std::is_void_v<Ret>, Function<void()>, Function<void(NonVoid)>>
+    >
+    void spawn(std::string name, Fut future, Callback cb) {
         static_assert(
             std::convertible_to<typename arc::FutureTraits<Fut>::Output, Ret>,
             "Output of spawned future must be convertible to TaskHolder's expected return type"
@@ -69,8 +78,11 @@ public:
                 if (cancel->isCancelled()) return;
                 cb(std::move(val));
             });
+        }   
+
+        if (!name.empty()) {
+            m_handle->setDebugName(std::move(name));
         }
-        
     }
 
     ~TaskHolder() {
@@ -104,6 +116,12 @@ public:
 
             m_handle->abort();
             m_handle.reset();
+        }
+    }
+
+    void setName(std::string name) {
+        if (m_handle) {
+            m_handle->setDebugName(std::move(name));
         }
     }
 

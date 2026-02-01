@@ -94,9 +94,9 @@ bool ModsStatusNode::init() {
         this->updateState();
         return ListenerResult::Propagate;
     });
-    m_downloadHandle = server::GlobalModDownloadEvent().listen([this](std::string_view key) { this->updateState(); });
+    m_downloadHandle = server::ModDownloadEvent().listen([this](std::string_view key) { this->updateState(); });
 
-    m_settingNodeHandle = GlobalSettingNodeValueChangeEvent().listen([this](std::string_view modID, std::string_view key, SettingNodeV3* node, bool isCommit) {
+    m_settingNodeHandle = SettingNodeValueChangeEvent().listen([this](std::string_view modID, std::string_view key, SettingNodeV3* node, bool isCommit) {
         if (!isCommit) {
             return ListenerResult::Propagate;
         }

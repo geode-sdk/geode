@@ -54,7 +54,6 @@ namespace geode {
             cls->CCNode::setID(For::CLASS_NAME);
             cls->provide();
             EnterLayerEvent<For>(For::CLASS_NAME).send(cls);
-            GlobalEnterLayerEvent<For>().send(For::CLASS_NAME, cls);
         }
     }
 }

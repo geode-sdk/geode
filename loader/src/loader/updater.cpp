@@ -48,7 +48,10 @@ void updater::fetchLatestGithubRelease(
     req.userAgent("github_api/1.0");
 
     auto& holder = RUNNING_REQUESTS["@loaderAutoUpdateCheck"];
-    holder.spawn(req.get("https://api.github.com/repos/geode-sdk/geode/releases/latest"), [
+    holder.spawn(
+        "Geode auto-update check",
+        req.get("https://api.github.com/repos/geode-sdk/geode/releases/latest"),
+    [
         expect = std::move(expect),
         then = std::move(then)
     ](auto response) mutable {
@@ -120,6 +123,7 @@ void updater::tryDownloadLoaderResources(std::string url, bool tryLatestOnError)
 
     auto& holder = RUNNING_REQUESTS[url];
     holder.spawn(
+        "Geode resources download",
         web::WebRequest{}.get(url),
         [url](auto response) {
             if (response.ok()) {
