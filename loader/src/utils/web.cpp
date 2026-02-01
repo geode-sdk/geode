@@ -1098,10 +1098,10 @@ public:
 
         log::debug("Removing request ({})", data.request->m_url);
         
-        curl_multi_remove_handle(m_multiHandle, data.curl);
-        curl_easy_cleanup(data.curl);
-        m_activeRequests.erase(data.curl);
-        data.curl = nullptr;
+        auto curl = std::exchange(data.curl, nullptr);
+        curl_multi_remove_handle(m_multiHandle, curl);
+        curl_easy_cleanup(curl);
+        m_activeRequests.erase(curl);
 
         this->workerKickCurl();
     }
