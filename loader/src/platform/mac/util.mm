@@ -11,6 +11,7 @@ using namespace geode::prelude;
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/Task.hpp>
 #include <string.h>
+#include <arc/sync/oneshot.hpp>
 
 #define CommentType CommentTypeDummy
 #import <Cocoa/Cocoa.h>
@@ -182,39 +183,60 @@ namespace {
 
 @end
 
-GEODE_DLL arc::Future<Result<std::optional<std::filesystem::path>>> file::pick(file::PickMode mode, file::FilePickOptions const& options) {
-    // TODO: v5
-    /*using RetTask = Task<Result<std::filesystem::path>>;
-    return RetTask::runWithCallback([mode, options](auto resultCallback, auto progress, auto cancelled) {
-        [FileDialog dispatchFilePickerWithMode:mode options:options multiple:false onCompletion: ^(FileResult&& result) {
-            if (cancelled()) {
-                resultCallback(RetTask::Cancel());
-            } else {
-                if (result.isOk()) {
-                    std::filesystem::path path = result.unwrap()[0];
-                    resultCallback(Ok(path));
-                } else {
-                    resultCallback(Err(result.err().value()));
-                }
-            }
-        }];
-    });*/
-    co_return Err("not implemented");
+GEODE_DLL arc::Future<Result<std::optional<std::filesystem::path>>> file::pick(file::PickMode mode, file::FilePickOptions options) {
+    auto [tx, rx] = arc::oneshot::channel<FileResult>();
+    __block auto sender = std::move(tx);
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        auto result = [FileDialog filePickerWithMode:mode options:options multiple:false];
+        (void) sender.send(std::move(result));
+    });
+
+    auto recvResult = co_await rx.recv();
+    if (!recvResult) {
+        co_return Err("Error occurred while picking file");
+    }
+
+    auto res = std::move(recvResult).unwrap();
+    if (!res) {
+        auto err = std::move(res).unwrapErr();
+        if (err == "File picker cancelled") {
+            co_return Ok(std::nullopt);
+        }
+        co_return Err(std::move(err));
+    }
+
+    auto paths = std::move(res).unwrap();
+    if (paths.empty()) {
+        co_return Ok(std::nullopt);
+    }
+    co_return Ok(std::move(paths[0]));
 }
 
-GEODE_DLL arc::Future<Result<std::vector<std::filesystem::path>>> file::pickMany(file::FilePickOptions const& options) {
-    // TODO: v5
-    /*using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
-    return RetTask::runWithCallback([options](auto resultCallback, auto progress, auto cancelled) {
-        [FileDialog dispatchFilePickerWithMode: file::PickMode::OpenFile options:options multiple:true onCompletion: ^(FileResult&& result) {
-            if (cancelled()) {
-                resultCallback(RetTask::Cancel());
-            } else {
-                resultCallback(std::move(result));
-            }
-        }];
-    });*/
-    co_return Err("not implemented");
+GEODE_DLL arc::Future<Result<std::vector<std::filesystem::path>>> file::pickMany(file::FilePickOptions options) {
+    auto [tx, rx] = arc::oneshot::channel<FileResult>();
+    __block auto sender = std::move(tx);
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        auto result = [FileDialog filePickerWithMode:file::PickMode::OpenFile options:options multiple:true];
+        (void) sender.send(std::move(result));
+    });
+
+    auto recvResult = co_await rx.recv();
+    if (!recvResult) {
+        co_return Err("Error occurred while picking file");
+    }
+
+    auto res = std::move(recvResult).unwrap();
+    if (!res) {
+        auto err = std::move(res).unwrapErr();
+        if (err == "File picker cancelled") {
+            co_return Ok(std::vector<std::filesystem::path>{});
+        }
+        co_return Err(std::move(err));
+    }
+
+    co_return Ok(std::move(res).unwrap());
 }
 
 CCPoint cocos::getMousePos() {

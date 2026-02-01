@@ -1,7 +1,7 @@
 #include <Geode/loader/Signal.hpp>
 
 namespace geode::comm {
-	std::vector<ObserverContext> ObserverContext::stack;
+	thread_local std::vector<ObserverContext> ObserverContext::stack;
 
 	ObserverContext* ObserverContext::top() noexcept {
 		if (ObserverContext::stack.empty())
@@ -38,9 +38,4 @@ namespace geode::comm {
 
 	ObserverContext::ObserverContext(geode::Function<void()> eff, std::monostate) noexcept
 		: impl(std::make_shared<ObserverContext::Impl>(std::move(eff))) {}
-
-	void Observer::reactToChanges(geode::Function<void()> func) noexcept {
-		contexts.push_back(ObserverContext(std::move(func), {}));
-		std::invoke(contexts.back());
-	}
 }

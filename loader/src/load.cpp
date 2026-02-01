@@ -160,6 +160,11 @@ int geodeEntry(void* platformData) {
     // Logging before this point does store the log, and everything gets logged in this setup call
     log::Logger::get()->setup();
 
+    // download bindings
+#ifndef GEODE_IS_ANDROID
+    crashlog::updateFunctionBindings();
+#endif
+
     // set up loader, load mods, etc.
     log::info("Setting up loader");
     {

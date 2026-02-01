@@ -43,9 +43,12 @@ namespace geode::log {
         std::optional<arc::mpsc::Sender<Log>> m_logTx;
         std::optional<arc::mpsc::Receiver<Log>> m_logRx;
         std::atomic<bool> m_initialized = false;
-        std::vector<LogCallback> m_callbacks;
         std::ofstream m_logStream;
         std::filesystem::path m_logPath;
+        std::vector<LogCallback> m_callbacks;
+        std::atomic<bool> m_anyCallbacks{false};
+        std::atomic<Severity> m_consoleLevel{Severity::Debug};
+        std::atomic<Severity> m_fileLevel{Severity::Debug};
 
         std::optional<arc::TaskHandle<void>> m_logThread;
         asp::WeakPtr<arc::Runtime> m_runtime;
@@ -80,6 +83,8 @@ namespace geode::log {
         
         void flush();
         void outputLog(BorrowedLog const& log, bool dontFlush = false);
+        bool shouldOutputLog(Severity sev, bool& console, bool& file, bool& callbacks);
+        bool shouldOutputLog(Severity sev);
         void flushLocked();
         void flushExternal();
 
