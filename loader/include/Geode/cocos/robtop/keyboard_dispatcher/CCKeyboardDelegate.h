@@ -127,7 +127,8 @@ typedef enum
     KEY_LeftShift = 0xA0,
     KEY_RightShift = 0xA1,
     KEY_LeftControl = 0xA2,
-    KEY_RightContol = 0xA3,
+    KEY_RightContol = 0xA3, // typo from original cocos
+    KEY_RightControl = 0xA3,
     KEY_LeftMenu = 0xA4,
     KEY_RightMenu = 0xA5,
     KEY_BrowserBack = 0xA6,
