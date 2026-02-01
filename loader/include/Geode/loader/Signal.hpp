@@ -15,7 +15,7 @@ namespace geode::comm {
 		template <class Type, bool ThreadSafe>
 		friend class Signal;
 		template <bool ThreadSafe>
-		friend class Observer;
+		friend class BasicObserver;
 
 		struct Impl {
 			geode::Function<void()> effect;
@@ -36,12 +36,12 @@ namespace geode::comm {
 	};
 
 	template <bool ThreadSafe = false>
-	class Observer {
+	class BasicObserver {
 		std::vector<ObserverContext> contexts;
 		GEODE_NO_UNIQUE_ADDRESS std::conditional_t<ThreadSafe, std::mutex, std::monostate> mutex;
 	public:
-		Observer() noexcept = default;
-		Observer(Observer&& other) noexcept {
+		BasicObserver() noexcept = default;
+		BasicObserver(BasicObserver&& other) noexcept {
 			if constexpr (ThreadSafe) {
 				std::lock_guard<std::mutex> guard(other.mutex);
 				std::lock_guard<std::mutex> guard2(mutex);
@@ -60,13 +60,14 @@ namespace geode::comm {
 			std::invoke(contexts.back());
 		}
 
-		~Observer() {
+		~BasicObserver() {
 			if constexpr (ThreadSafe)
 				std::lock_guard<std::mutex> guard(mutex);
 		}
 	};
 
-	using ThreadSafeObserver = Observer<true>;
+	using Observer = BasicObserver<false>;
+	using ThreadSafeObserver = BasicObserver<true>;
 
 	template <class Type, bool ThreadSafe = false>
 	class Signal {

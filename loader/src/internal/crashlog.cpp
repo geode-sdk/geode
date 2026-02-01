@@ -10,12 +10,11 @@
 using namespace geode::prelude;
 
 std::string crashlog::getDateString(bool filesafe) {
-    auto const now = std::time(nullptr);
-    auto const tm = asp::localtime(now);
+    auto const now = std::chrono::system_clock::now();
     if (filesafe) {
-        return fmt::format("{:%F_%H-%M-%S}", tm);
+        return fmt::format("{:%F_%H-%M-%S}", now);
     }
-    return fmt::format("{:%FT%T%z}", tm);
+    return fmt::format("{:%FT%T%z}", now);
 }
 
 void crashlog::printGeodeInfo(Buffer& stream) {
