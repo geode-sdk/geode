@@ -531,10 +531,30 @@ class $modify(cocos2d::CCEGLView) {
     }
 };
 
+class DummyEGLView : public CCEGLView {
+public:
+    void onGLFWMouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+        CCEGLView::onGLFWMouseScrollCallback(window, xoffset, yoffset);
+    }
+};
+
+static void GLFWScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+    if (ScrollWheelEvent().send(xoffset, yoffset) == ListenerResult::Stop) {
+        return;
+    }
+
+    static_cast<DummyEGLView*>(CCEGLView::get())->onGLFWMouseScrollCallback(window, xoffset, yoffset);
+}
+
 $execute {
     queueInMainThread([] {
         g_rawInputHWND = FindWindowW(L"GD_RawInput", nullptr);
         g_mainWindowHWND = WindowFromDC(wglGetCurrentDC());
+
+        auto window = CCEGLView::get()->m_pMainWindow;
+        auto** glfwScrollCallbackPtr = reinterpret_cast<GLFWscrollfun*>(reinterpret_cast<uintptr_t>(window) + 0x340);
+        *glfwScrollCallbackPtr = &GLFWScrollCallback;
+
         g_originalRawInputProc = reinterpret_cast<WNDPROC>(SetWindowLongPtrW(
             g_rawInputHWND, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(GeodeRawInputWndProc)
         ));

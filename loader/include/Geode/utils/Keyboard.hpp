@@ -90,5 +90,9 @@ namespace geode {
         using SimpleEvent::SimpleEvent;
     };
 
+    struct ScrollWheelEvent final : SimpleEvent<MouseMoveEvent, double, double> {
+        using SimpleEvent::SimpleEvent;
+    };
+
     // TODO: Add controller/touch input events?
 }
