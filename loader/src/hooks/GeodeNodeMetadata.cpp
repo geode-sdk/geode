@@ -25,6 +25,7 @@ private:
     Ref<Layout> m_layout = nullptr;
     Ref<LayoutOptions> m_layoutOptions = nullptr;
     StringMap<Ref<CCObject>> m_userObjects;
+    std::vector<Ref<CCObject>> m_tethers;
     StringSet m_userFlags;
     StringMultimap<std::unique_ptr<ListenerHandle>> m_eventListeners;
 
@@ -93,6 +94,16 @@ public:
         } else {
             m_userObjects.erase(id);
         }
+    }
+
+    void addTether(CCObject* object) {
+        if (!utils::ranges::contains(m_tethers, object)) {
+            m_tethers.emplace_back(object);
+        }
+    }
+
+    void removeTether(CCObject* object) {
+        utils::ranges::remove(m_tethers, object);
     }
 
     bool getUserFlag(std::string_view id) {
