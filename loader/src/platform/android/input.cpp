@@ -281,6 +281,10 @@ extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inter
         return;
     }
 
+    if (ScrollWheelEvent().send(scrollX, scrollY) == ListenerResult::Stop) {
+        return;
+    }
+
     cocos2d::CCDirector::sharedDirector()->getMouseDispatcher()->dispatchScrollMSG(
         scrollY * g_scrollFactor, scrollX * g_scrollFactor
     );
