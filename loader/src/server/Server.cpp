@@ -543,6 +543,20 @@ Result<ServerModsList> ServerModsList::parse(matjson::Value const& raw) {
     return payload.ok(list);
 }
 
+Result<ServerLoaderVersion> ServerLoaderVersion::parse(matjson::Value const& raw) {
+    auto root = checkJson(raw, "ServerLoaderVersion");
+
+    auto res = ServerLoaderVersion();
+    root.needs("version").into(res.version);
+    root.needs("tag").into(res.tag);
+    root.needs("commit_hash").into(res.commitHash);
+
+    auto gd_obj = root.needs("gd");
+    gd_obj.needs(GEODE_PLATFORM_SHORT_IDENTIFIER).into(res.gameVersion);
+
+    return root.ok(res);
+}
+
 ModMetadata ServerModMetadata::latestVersion() const {
     return this->versions.front().metadata;
 }
@@ -848,6 +862,59 @@ ServerFuture<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCache
     }
 
     co_return Ok(std::move(accum));
+}
+
+ServerFuture<ServerLoaderVersion> server::getLoaderVersion(std::string tag, bool useCache) {
+    if (useCache) {
+        co_return co_await getCache<getLoaderVersion>().get(tag);
+    }
+
+    auto req = web::WebRequest();
+    req.userAgent(getServerUserAgent());
+    auto response = co_await req.get(formatServerURL("/loader/versions/{}", tag));
+
+    if (response.ok()) {
+        // Parse payload
+        auto payload = parseServerPayload(response);
+        if (!payload) {
+            co_return Err(payload.unwrapErr());
+        }
+        auto ver = ServerLoaderVersion::parse(payload.unwrap());
+        if (!ver) {
+            co_return Err(ServerError(response.code(), "Unable to parse response: {}", ver.unwrapErr()));
+        }
+        co_return Ok(ver.unwrap());
+    }
+    co_return Err(parseServerError(response));
+}
+
+ServerFuture<ServerLoaderVersion> server::getLatestLoaderVersion(bool useCache) {
+    if (useCache) {
+        co_return co_await getCache<getLatestLoaderVersion>().get();
+    }
+
+    auto req = web::WebRequest();
+    req.userAgent(getServerUserAgent());
+    auto response = co_await req.get(
+        formatServerURL("/loader/versions/latest?gd={}&platform={}",
+            Loader::get()->getGameVersion(),
+            GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH
+        )
+    );
+
+    if (response.ok()) {
+        // Parse payload
+        auto payload = parseServerPayload(response);
+        if (!payload) {
+            co_return Err(payload.unwrapErr());
+        }
+        auto ver = ServerLoaderVersion::parse(payload.unwrap());
+        if (!ver) {
+            co_return Err(ServerError(response.code(), "Unable to parse response: {}", ver.unwrapErr()));
+        }
+        co_return Ok(ver.unwrap());
+    }
+    co_return Err(parseServerError(response));
 }
 
 void server::clearServerCaches(bool clearGlobalCaches) {
