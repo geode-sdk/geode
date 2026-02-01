@@ -1073,6 +1073,7 @@ public:
         log::debug("Added request ({})", req->request->m_url);
         curl_multi_add_handle(m_multiHandle, handle);
         m_activeRequests.insert({ handle, std::move(req) });
+        this->workerKickCurl();
     }
 
     void workerCancelRequest(CURL* curl) {
@@ -1098,6 +1099,8 @@ public:
         curl_easy_cleanup(data.curl);
         m_activeRequests.erase(data.curl);
         data.curl = nullptr;
+
+        this->workerKickCurl();
     }
 
     Future<> workerPoll() {
@@ -1154,20 +1157,15 @@ public:
         bool activeTransfers = stillRunning > 0;
 
         // poll until there is socket activity or the timer expires
-        log::debug("Begin select (wake in {})", (deadline.durationSince(now)).toString());
 
         co_await arc::select(
             arc::selectee(m_wakeNotify.notified()),
 
             arc::selectee(arc::sleepUntil(deadline), [&] {
-                log::debug("Handling timeout");
-                // timeout!
-                int running = 0;
-                curl_multi_socket_action(m_multiHandle, CURL_SOCKET_TIMEOUT, 0, &running);
+                this->workerKickCurl();
             }),
 
             arc::selectee(this->workerPollSockets(), [&](PollReadiness readiness) {
-                log::debug("Handling socket activity");
                 auto [fd, ready] = readiness;
                 int ev = 0;
                 if (ready & Interest::Readable) ev |= CURL_CSELECT_IN;
@@ -1178,7 +1176,13 @@ public:
                 curl_multi_socket_action(m_multiHandle, fd, ev, &running);
             }, activeTransfers)
         );
-        log::debug("End select");
+    }
+
+    void workerKickCurl() {
+        // it's kind of silly, but any time we do anything (add/remove easy handles, etc.)
+        // we should call this function to let curl call our socket callbacks and kickstart everything
+        int running = 0;
+        curl_multi_socket_action(m_multiHandle, CURL_SOCKET_TIMEOUT, 0, &running);
     }
 
     MultiPollFuture workerPollSockets() {
