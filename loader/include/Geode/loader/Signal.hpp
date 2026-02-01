@@ -1,7 +1,6 @@
 #include "Event.hpp"
 #include "Log.hpp"
 #include "../platform/platform.hpp"
-#include <Geode/loader/Log.hpp>
 
 #include "Log.hpp"
 
