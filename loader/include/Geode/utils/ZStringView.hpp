@@ -160,9 +160,29 @@ namespace geode {
     
     template <typename T, typename C>
     requires std::same_as<std::remove_cvref_t<T>, BasicZStringView<C>>
+    std::basic_string<C> operator+(C const* lhs, T&& rhs) {
+        std::basic_string<C> out;
+        out.reserve(std::char_traits<C>::length(lhs) + rhs.size());
+        out += lhs;
+        out += rhs.view();
+        return out;
+    }
+    
+    template <typename T, typename C>
+    requires std::same_as<std::remove_cvref_t<T>, BasicZStringView<C>>
     std::basic_string<C> operator+(T&& lhs, std::basic_string<C> const& rhs) {
         std::basic_string<C> out;
         out.reserve(lhs.size() + rhs.size());
+        out += lhs.view();
+        out += rhs;
+        return out;
+    }
+    
+    template <typename T, typename C>
+    requires std::same_as<std::remove_cvref_t<T>, BasicZStringView<C>>
+    std::basic_string<C> operator+(T&& lhs, C const* rhs) {
+        std::basic_string<C> out;
+        out.reserve(lhs.size() + std::char_traits<C>::length(rhs));
         out += lhs.view();
         out += rhs;
         return out;
