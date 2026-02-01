@@ -386,7 +386,7 @@ bool ModsLayer::init() {
             ->setMainAxisAlignment(MainAxisAlignment::Start)
             ->setGap(5.f)
     );
-    this->addChildAtPosition(backMenu, Anchor::TopLeft, ccp(12, -25), false);
+    this->addChildAtPosition(backMenu, Anchor::TopLeft, ccp(8, -23), false);
 
     auto actionsMenu = CCMenu::create();
     actionsMenu->setID("actions-menu");
@@ -876,3 +876,4 @@ server::ServerFuture<std::vector<std::string>> ModsLayer::checkInstalledModsForU
     
     co_return Ok(std::move(updatesFound));
 }
+
