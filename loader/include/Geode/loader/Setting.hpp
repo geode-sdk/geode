@@ -24,9 +24,6 @@ namespace geode {
     using SettingValueNode = SettingValueNodeV3<S>;
 
     using SettingChangedEvent = SettingChangedEventV3;
-    using GlobalSettingChangedEvent = GlobalSettingChangedEventV3;
     using SettingNodeSizeChangeEvent = SettingNodeSizeChangeEventV3;
-    using GlobalSettingNodeSizeChangeEvent = GlobalSettingNodeSizeChangeEventV3;
     using SettingNodeValueChangeEvent = SettingNodeValueChangeEventV3;
-    using GlobalSettingNodeValueChangeEvent = GlobalSettingNodeValueChangeEventV3;
 }

@@ -665,12 +665,14 @@ bool ModPopup::init(ModSource&& src) {
 
     // Load stats from server (or just from the source if it already has them)
     m_statsListener.spawn(
+        "ModPopup stats listener",
         m_source.fetchServerInfo(),
         [this](auto res) {
             this->onLoadServerInfo(std::move(res));
         }
     );
     m_tagsListener.spawn(
+        "ModPopup tags listener",
         m_source.fetchValidTags(),
         [this](auto res) {
             this->onLoadTags(std::move(res));
@@ -679,6 +681,7 @@ bool ModPopup::init(ModSource&& src) {
 
     if (m_source.asMod()) {
         m_checkUpdateListener.spawn(
+            "ModPopup update checker",
             m_source.checkUpdates(),
             [this](auto res) {
                 this->onCheckUpdates(std::move(res));
@@ -703,7 +706,7 @@ bool ModPopup::init(ModSource&& src) {
 
     m_source.visit(makeVisitor {
         [this](Mod* mod) {
-            m_settingNodeHandle = GlobalSettingNodeValueChangeEvent().listen([this](std::string_view modID, std::string_view key, SettingNodeV3*, bool isCommit) {
+            m_settingNodeHandle = SettingNodeValueChangeEvent().listen([this](std::string_view modID, std::string_view key, SettingNodeV3*, bool isCommit) {
                 if (!isCommit) {
                     return ListenerResult::Propagate;
                 }

@@ -1,5 +1,8 @@
 #include "Event.hpp"
+#include "Log.hpp"
 #include "../platform/platform.hpp"
+
+#include "Log.hpp"
 
 namespace geode::comm {
 	class ObserverContext;

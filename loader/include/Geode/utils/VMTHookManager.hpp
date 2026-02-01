@@ -9,7 +9,7 @@
 #include "../loader/Tulip.hpp"
 
 namespace geode {
-    class GEODE_DLL VMTHookManager {
+    class GEODE_DLL VMTHookManager final {
     private:
         class Impl;
         std::unique_ptr<Impl> m_impl;

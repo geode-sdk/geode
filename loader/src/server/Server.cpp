@@ -618,7 +618,7 @@ ServerFuture<ServerModsList> server::getMods(ModsQuery query, bool useCache) {
     req.param("page", std::to_string(query.page + 1));
     req.param("per_page", std::to_string(query.pageSize));
 
-    auto response = req.getSync(formatServerURL("/mods"));
+    auto response = co_await req.get(formatServerURL("/mods"));
 
     if (response.ok()) {
         // Parse payload

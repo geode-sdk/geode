@@ -10,6 +10,7 @@
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/general.hpp>
 #include <Geode/utils/async.hpp>
+#include <asp/time/SystemTime.hpp>
 #include <arc/future/Select.hpp>
 #include <arc/time/Sleep.hpp>
 #include <fmt/chrono.h>
@@ -30,7 +31,7 @@ auto convertTime(auto timePoint) {
     // so do this instead to get the local time for logging.
     // By accident this also gets rid of the decimal places in the seconds
     auto timeEpoch = std::chrono::system_clock::to_time_t(timePoint);
-    return fmt::localtime(timeEpoch);
+    return asp::localtime(timeEpoch);
 }
 
 // Like Log, but doesn't own any content, and is cheap to construct and copy.
@@ -339,6 +340,7 @@ void Logger::setup() {
     m_usingThread = Mod::get()->getSettingValue<bool>("log-thread");
     if (m_usingThread) {
         m_logThread = async::runtime().spawn(this->workerThread());
+        m_logThread->setDebugName("Geode Log Worker");
     }
 }
 
