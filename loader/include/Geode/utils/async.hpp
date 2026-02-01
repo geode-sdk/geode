@@ -11,7 +11,7 @@ namespace geode::async {
 /**
  * Gets the main arc Runtime, prefer running all async code inside this runtime.
  */
-arc::Runtime& runtime();
+GEODE_DLL arc::Runtime& runtime();
 
 /**
  * Asynchronously spawns a function, then invokes the given callback on the main thread when it completes.
