@@ -739,28 +739,13 @@ namespace geode {
 
     ZStringView getModID(Mod* mod);
 
-    template <class T, class Callback>
+    template <class Callback>
     ListenerHandle* listenForAllSettingChanges(Callback&& callback, Mod* mod = getMod()) {
-        using Ty = typename SettingTypeForValueType<T>::SettingType;
-        using Ret = utils::function::Return<decltype(callback)>;
-        if constexpr (std::is_same_v<Ret, void>) {
-            return SettingChangedEventV3().listen([callback = std::move(callback), mod = std::move(mod)](std::string modID, std::string key, std::shared_ptr<SettingV3> setting, bool isCommit) {
-                if (auto ty = geode::cast::typeinfo_pointer_cast<Ty>(setting)) {
-                    if (getModID(mod) == modID) {
-                        return callback(ty->getValue());
-                    }
-                }
-            }).leak();
-        }
-        else {
-            return SettingChangedEventV3().listen([callback = std::move(callback), mod = std::move(mod)](std::string_view modID, std::string_view key, std::shared_ptr<SettingV3> setting, bool isCommit) {
-                if (auto ty = geode::cast::typeinfo_pointer_cast<Ty>(setting)) {
-                    if (getModID(mod) == modID) {
-                        return callback(ty->getValue());
-                    }
-                }
-                return Ret{};
-            }).leak();
-        }
+        return SettingChangedEventV3().listen([callback = std::move(callback), mod = std::move(mod)](std::string_view modID, std::string_view key, std::shared_ptr<SettingV3> setting) {
+            if (mod && getModID(mod) != modID) {
+                return;
+            }
+            return callback(modID, key, setting);
+        }).leak();
     }
 }
