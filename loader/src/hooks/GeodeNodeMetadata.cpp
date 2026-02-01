@@ -2,6 +2,7 @@
 #include <Geode/utils/cocos.hpp>
 #include <Geode/modify/Field.hpp>
 #include <Geode/modify/CCNode.hpp>
+#include <Geode/utils/ranges.hpp>
 #include <Geode/utils/terminate.hpp>
 #include <Geode/utils/StringMap.hpp>
 #include <cocos2d.h>
