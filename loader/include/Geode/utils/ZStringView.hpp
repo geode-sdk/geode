@@ -8,16 +8,45 @@
 
 namespace geode {
     template <typename C>
+    requires std::same_as<C, char> || std::same_as<C, wchar_t> || std::same_as<C, char8_t> || std::same_as<C, char16_t> || std::same_as<C, char32_t>
     class BasicZStringView {
     public:
         using value_type = C;
 
-        BasicZStringView() : m_str("") {}
-        BasicZStringView(C const* str) : m_str(str ? str : "") {}
+        BasicZStringView() {
+            if constexpr (std::is_same_v<C, char>) {
+                m_str = "";
+            } else if constexpr (std::is_same_v<C, wchar_t>) {
+                m_str = L"";
+            } else if constexpr (std::is_same_v<C, char8_t>) {
+                m_str = u8"";
+            } else if constexpr (std::is_same_v<C, char16_t>) {
+                m_str = u"";
+            } else if constexpr (std::is_same_v<C, char32_t>) {
+                m_str = U"";
+            }
+        }
+        BasicZStringView(C const* str) {
+            if (str) {
+                m_str = str;
+            } else {
+                if constexpr (std::is_same_v<C, char>) {
+                    m_str = "";
+                } else if constexpr (std::is_same_v<C, wchar_t>) {
+                    m_str = L"";
+                } else if constexpr (std::is_same_v<C, char8_t>) {
+                    m_str = u8"";
+                } else if constexpr (std::is_same_v<C, char16_t>) {
+                    m_str = u"";
+                } else if constexpr (std::is_same_v<C, char32_t>) {
+                    m_str = U"";
+                }
+            }
+        }
         BasicZStringView(std::basic_string<C> const& str) : m_str(str.c_str()), m_length(str.size()) {}
 
 #ifdef GEODE_IS_ANDROID
-        BasicZStringView(gd::string const& str) requires std::is_same_v<C, char> : m_str(str.c_str()), m_length(str.size()) {}
+        BasicZStringView(gd::string const& str) requires std::same_as<C, char> : m_str(str.c_str()), m_length(str.size()) {}
 #endif
 
         BasicZStringView(BasicZStringView const& other) = default;
@@ -36,7 +65,7 @@ namespace geode {
         }
 
 #ifdef GEODE_IS_ANDROID
-        operator gd::string() const requires std::is_same_v<C, char> {
+        operator gd::string() const requires std::same_as<C, char> {
             return gd::string(m_str, _size());
         }
 #endif
@@ -66,7 +95,7 @@ namespace geode {
         }
 
         bool empty() const {
-            return m_str[0] == '\0';
+            return m_str[0] == C(0);
         }
 
         auto begin() const {
