@@ -711,6 +711,7 @@ namespace geode {
                     return Event2Type().send(std::move(fargs)..., std::forward<Args>(args)...);
                 }, std::move(*m_filter));
             }
+            return false;
         }
     };
 
