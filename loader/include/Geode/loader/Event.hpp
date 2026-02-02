@@ -51,14 +51,14 @@ namespace geode::comm {
         ReceiverHandle m_handle;
 
         template <class ...Args>
-        bool call(Args... args) const noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
+        bool call(Args&&... args) const noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
             if (!m_callable) return false;
 
-            if constexpr (std::is_same_v<void, decltype(std::invoke(m_callable, args...))>) {
-                std::invoke(m_callable, args...);
+            if constexpr (std::is_same_v<void, decltype(std::invoke(m_callable, std::forward<Args>(args)...))>) {
+                std::invoke(m_callable, std::forward<Args>(args)...);
                 return false;
             } else {
-                return std::invoke(m_callable, args...);
+                return std::invoke(m_callable, std::forward<Args>(args)...);
             }
         }
     };
@@ -69,11 +69,11 @@ namespace geode::comm {
         bool call(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
             if (!this->m_callable) return false;
 
-            if constexpr (std::is_same_v<void, decltype(std::invoke(this->m_callable, args...))>) {
-                std::invoke(std::move(this->m_callable), args...);
+            if constexpr (std::is_same_v<void, decltype(std::invoke(this->m_callable, std::forward<Args>(args)...))>) {
+                std::invoke(std::move(this->m_callable), std::forward<Args>(args)...);
                 return false;
             }
-            return std::invoke(std::move(this->m_callable), args...);
+            return std::invoke(std::move(this->m_callable), std::forward<Args>(args)...);
         }
     };
 
