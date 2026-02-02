@@ -853,6 +853,9 @@ void Loader::Impl::continueRefreshModGraph() {
             this->continueRefreshModGraph();
         });
     }
+    else {
+        GameEvent(GameEventType::ModsLoaded).send();
+    }
 }
 
 std::vector<LoadProblem> Loader::Impl::getProblems() const {
