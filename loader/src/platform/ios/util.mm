@@ -3,6 +3,7 @@
 using namespace geode::prelude;
 
 #include <Geode/loader/Dirs.hpp>
+#include <Geode/loader/GameEvent.hpp>
 #include <UIKit/UIKit.h>
 #include <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #include <AVFoundation/AVFoundation.h>
@@ -280,6 +281,7 @@ void geode::utils::game::exit(bool save) {
         public:
         void shutdown() {
             // someone please look into this, I'm unsure if this will cause issues with saving!
+            GameEvent(GameEventType::Exiting).send();
             std::exit(0);
         }
     };
@@ -301,6 +303,7 @@ void geode::utils::game::restart(bool save) {
         void shutdown() {
             NSURL* url = [NSURL URLWithString:@"geode://relaunch"];
             if ([[UIApplication sharedApplication] canOpenURL:url]) {
+                GameEvent(GameEventType::Exiting).send();
                 [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
             } else {
                 // this would only happen if you don't have the launcher

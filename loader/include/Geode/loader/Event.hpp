@@ -699,7 +699,6 @@ namespace geode {
                     }, priority);
                 }
             }
-            return ListenerHandle{};
         }
 
         template <class Callable>
@@ -708,7 +707,21 @@ namespace geode {
             if (!m_filter.has_value()) {
                 return Event2Type().listen(std::move(listener), priority);
             }
-            return ListenerHandle{};
+            else {
+                return std::apply([&](auto&&... fargs) {
+                    if constexpr (std::is_convertible_v<std::invoke_result_t<Callable, FArgs..., PArgs...>, bool>) {
+                        return Event1Type(fargs...).listen([listener = std::move(listener), ...fargs = std::move(fargs)](PArgs... pargs) {
+                            return static_cast<bool>(std::invoke(listener, std::move(fargs)..., std::forward<PArgs>(pargs)...));
+                        }, priority);
+                    }
+                    else {
+                        return Event1Type(fargs...).listen([listener = std::move(listener), ...fargs = std::move(fargs)](PArgs... pargs) {
+                            std::invoke(listener, std::move(fargs)..., std::forward<PArgs>(pargs)...);
+                            return false;
+                        }, priority);
+                    }
+                }, *m_filter);
+            }
         }
 
         template <class... Args>

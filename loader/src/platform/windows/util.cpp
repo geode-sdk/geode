@@ -12,6 +12,7 @@ using namespace geode::prelude;
 #include <shobjidl.h>
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/loader/GameEvent.hpp>
 #include <Geode/loader/Log.hpp>
 #include <filesystem>
 #include <Geode/utils/permission.hpp>
@@ -253,6 +254,7 @@ void geode::utils::game::exit(bool saveData) {
         }
     }
 
+    GameEvent(GameEventType::Exiting).send();
     std::exit(0);
 }
 
