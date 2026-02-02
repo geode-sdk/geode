@@ -1,5 +1,7 @@
 #include <Geode/DefaultInclude.hpp>
 
+#ifndef GEODE_IS_IOS
+
 #include <Geode/cocos/include/cocos2d.h>
 #include <Geode/modify/CCKeyboardDispatcher.hpp>
 
@@ -51,3 +53,5 @@ class $modify(CCKeyboardDispatcher) {
         }
     }
 };
+
+#endif
