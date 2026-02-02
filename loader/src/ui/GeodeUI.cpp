@@ -190,7 +190,7 @@ std::optional<arc::TaskHandle<bool>> geode::openInfoPopup(std::string modID) {
     }
 
     auto popup = LoadServerModLayer::create(std::move(modID));
-    return async::runtime().spawn([popup = Ref(popup)] -> arc::Future<bool> {
+    return async::runtime().spawn([popup = Ref(popup)](this auto self) -> arc::Future<bool> {
         auto ret = co_await popup->listen();
         if (ret) {
             geode::queueInMainThread([popup] {
