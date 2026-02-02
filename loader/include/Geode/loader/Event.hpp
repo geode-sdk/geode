@@ -709,7 +709,7 @@ namespace geode {
             }
             else {
                 return std::apply([&](auto&&... fargs) {
-                    if constexpr (std::is_convertible_v<std::invoke_result_t<Callable, PArgs...>, bool>) {
+                    if constexpr (std::is_convertible_v<std::invoke_result_t<Callable, FArgs..., PArgs...>, bool>) {
                         return Event1Type(fargs...).listen([listener = std::move(listener), ...fargs = std::move(fargs)](PArgs... pargs) {
                             return static_cast<bool>(std::invoke(listener, std::move(fargs)..., std::forward<PArgs>(pargs)...));
                         }, priority);
