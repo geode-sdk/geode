@@ -51,12 +51,14 @@ namespace geode::comm {
         ReceiverHandle m_handle;
 
         template <class ...Args>
-        bool call(Args&&... args) const noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
-            if constexpr (std::is_same_v<void, decltype(std::invoke(m_callable, std::forward<Args>(args)...))>) {
-                std::invoke(m_callable, std::forward<Args>(args)...);
+        bool call(Args... args) const noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
+            if (!m_callable) return false;
+
+            if constexpr (std::is_same_v<void, decltype(std::invoke(m_callable, args...))>) {
+                std::invoke(m_callable, args...);
                 return false;
             } else {
-                return std::invoke(m_callable, std::forward<Args>(args)...);
+                return std::invoke(m_callable, args...);
             }
         }
     };
@@ -65,11 +67,13 @@ namespace geode::comm {
     struct PortCallableMove : PortCallableCopy<Callable> {
         template <class ...Args>
         bool call(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
-            if constexpr (std::is_same_v<void, decltype(std::invoke(this->m_callable, std::forward<Args>(args)...))>) {
-                std::invoke(std::move(this->m_callable), std::forward<Args>(args)...);
+            if (!this->m_callable) return false;
+
+            if constexpr (std::is_same_v<void, decltype(std::invoke(this->m_callable, args...))>) {
+                std::invoke(std::move(this->m_callable), args...);
                 return false;
             }
-            return std::invoke(std::move(this->m_callable), std::forward<Args>(args)...);
+            return std::invoke(std::move(this->m_callable), args...);
         }
     };
 
@@ -109,7 +113,7 @@ namespace geode::comm {
         requires std::invocable<Callable, Args...>
         bool send(Args&&... value) const noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
             for (auto& callable : m_receivers) {
-                if (callable.call(std::forward<Args>(value)...)) {
+                if (callable.call(value...)) {
                     return true;
                 }
             }
@@ -161,7 +165,7 @@ namespace geode::comm {
         bool send(Args&&... value) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
             auto currentReceivers = m_receivers.load();
             for (auto& callable : *currentReceivers) {
-                if (callable.call(std::forward<Args>(value)...)) {
+                if (callable.call(value...)) {
                     return true;
                 }
             }
