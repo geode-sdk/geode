@@ -51,7 +51,7 @@ namespace geode::comm {
         ReceiverHandle m_handle;
 
         template <class ...Args>
-        bool call(Args&&... args) const noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
+        bool call(Args... args) const noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
             if (!m_callable) return false;
 
             if constexpr (std::is_same_v<void, decltype(std::invoke(m_callable, std::forward<Args>(args)...))>) {
@@ -66,7 +66,7 @@ namespace geode::comm {
     template <class Callable>
     struct PortCallableMove : PortCallableCopy<Callable> {
         template <class ...Args>
-        bool call(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
+        bool call(Args... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
             if (!this->m_callable) return false;
 
             if constexpr (std::is_same_v<void, decltype(std::invoke(this->m_callable, std::forward<Args>(args)...))>) {
