@@ -149,6 +149,7 @@ namespace geode {
             ArmV8      = Android64 | MacArm | iOS,
             Desktop    = Windows | Mac,
             Mobile     = Android | iOS,
+            All        = Desktop | Mobile,
         };
 
         using Type = decltype(Unknown);
@@ -197,9 +198,9 @@ namespace geode {
          */
         static GEODE_DLL bool coveredBy(std::string_view str, PlatformID t);
 
-        static GEODE_DLL char const* toString(Type lp);
+        static GEODE_DLL std::string_view toString(Type lp);
 
-        static GEODE_DLL char const* toShortString(Type lp, bool ignoreArch = false);
+        static GEODE_DLL std::string_view toShortString(Type lp, bool ignoreArch = false);
 
         template <class T>
             requires requires(T t) {

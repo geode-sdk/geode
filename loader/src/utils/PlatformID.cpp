@@ -1,7 +1,6 @@
 
 #include <Geode/platform/platform.hpp>
 #include <Geode/utils/general.hpp>
-#include <Geode/utils/ranges.hpp>
 
 using namespace geode::prelude;
 
@@ -59,7 +58,7 @@ bool PlatformID::coveredBy(std::string_view str, PlatformID t) {
     }
 }
 
-char const* PlatformID::toString(PlatformID::Type lp) {
+std::string_view PlatformID::toString(PlatformID::Type lp) {
     switch (lp) {
         case Unknown: return "Unknown";
         case Windows: return "Windows";
@@ -68,12 +67,11 @@ char const* PlatformID::toString(PlatformID::Type lp) {
         case iOS: return "iOS";
         case Android32: return "Android32";
         case Android64: return "Android64";
-        default: break;
+        default: return "Undefined";
     }
-    return "Undefined";
 }
 
-char const* PlatformID::toShortString(PlatformID::Type lp, bool ignoreArch) {
+std::string_view PlatformID::toShortString(PlatformID::Type lp, bool ignoreArch) {
     switch (lp) {
         case Unknown: return "unknown";
         case Windows: return "win";
@@ -82,8 +80,7 @@ char const* PlatformID::toShortString(PlatformID::Type lp, bool ignoreArch) {
         case iOS: return "ios";
         case Android32: return ignoreArch ? "android" : "android32";
         case Android64: return ignoreArch ? "android" : "android64";
-        default: break;
+        default: return "undefined";
     }
-    return "undefined";
 }
 

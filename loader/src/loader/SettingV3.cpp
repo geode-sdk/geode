@@ -462,7 +462,7 @@ class SettingV3::GeodeImpl {
 public:
     std::string modID;
     std::string key;
-    PlatformID platforms;
+    PlatformID platforms = PlatformID::All;
     std::optional<std::string> name;
     std::optional<std::string> description;
     std::optional<std::string> enableIf;
@@ -483,8 +483,11 @@ void SettingV3::init(std::string key, std::string modID, JsonExpectedValue& json
 
     // Keys every setting must have
     json.needs("type");
-    for (auto& plat : json.has("platforms").items()) {
-        m_impl->platforms = static_cast<PlatformID::Type>(m_impl->platforms | PlatformID::from(plat.get<std::string>()));
+    if (auto platforms = json.has("platforms")) {
+        m_impl->platforms = PlatformID::Unknown;
+        for (auto& plat : platforms.items()) {
+            m_impl->platforms = PlatformID::from(m_impl->platforms | PlatformID::from(plat.get<std::string>()));
+        }
     }
 }
 
