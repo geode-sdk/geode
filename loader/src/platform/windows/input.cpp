@@ -306,8 +306,39 @@ static enumKeyCodes keyToKeyCode(uint16_t vkey, bool isE0) {
     }
 }
 
+// Some devices map F13-F24 to extended scan codes (e.g. Logitech mouse/keyboard macros)
+static uint16_t scanCodeToExtendedFKey(uint16_t scanCode) {
+    switch (scanCode) {
+        case 0x64: case 0xB7: return VK_F13;
+        case 0x65: case 0xB8: return VK_F14;
+        case 0x66: case 0xB9: return VK_F15;
+        case 0x67: case 0xBA: return VK_F16;
+        case 0x68: case 0xBB: return VK_F17;
+        case 0x69: case 0xBC: return VK_F18;
+        case 0x6A: case 0xBD: return VK_F19;
+        case 0x6B: case 0xBE: return VK_F20;
+        case 0x6C: case 0xBF: return VK_F21;
+        case 0x6D: case 0xC0: return VK_F22;
+        case 0x6E: case 0xC1: return VK_F23;
+        case 0x6F: case 0xC2: return VK_F24;
+        default: return 0;
+    }
+}
+
 static uint16_t getActualVKey(uint16_t vkey, uint16_t scanCode, uint16_t flags) {
     bool isE0 = (flags & RI_KEY_E0) != 0;
+
+    // Remap vkey if it's 0 or 255 (unknown)
+    if (vkey == 0 || vkey == 255) {
+        UINT mappedScanCode = scanCode;
+        if (isE0) {
+            mappedScanCode |= 0xE000;
+        }
+        vkey = static_cast<uint16_t>(MapVirtualKeyEx(mappedScanCode, MAPVK_VSC_TO_VK_EX, GetKeyboardLayout(0)));
+        if (vkey == 0) {
+            vkey = scanCodeToExtendedFKey(scanCode);
+        }
+    }
 
     switch (vkey) {
         default: return vkey;
