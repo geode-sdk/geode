@@ -480,9 +480,7 @@ namespace geode::comm {
         }
 
     public:
-        template<class... Args>
-        requires std::constructible_from<std::tuple<FArgs...>, Args...>
-        BasicEvent(Args&&... value) noexcept : m_filter(std::forward<Args>(value)...) {
+        BasicEvent(FArgs... value) noexcept : m_filter(std::move(value)...) {
             // geode::console::log(fmt::format("Creating BasicEvent {}, {}", (void*)this, typeid(Marker).name()), Severity::Debug);
         }
         ~BasicEvent() noexcept override {
@@ -674,9 +672,7 @@ namespace geode {
         GlobalEvent() noexcept : m_filter(std::nullopt) {}
         ~GlobalEvent() noexcept = default;
 
-        template <class... Args>
-        requires std::constructible_from<std::tuple<FArgs...>, Args...>
-        GlobalEvent(Args&&... args) noexcept : m_filter(std::in_place, std::forward<Args>(args)...) {}
+        GlobalEvent(FArgs... args) noexcept : m_filter(std::in_place, std::move(args)...) {}
 
         template<class Callable>
         requires std::is_invocable_v<Callable, PArgs...>
