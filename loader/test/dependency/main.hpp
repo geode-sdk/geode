@@ -31,23 +31,10 @@ namespace api {
     };
 }
 
-class GEODE_TESTDEP_DLL TestEvent : public Event {
-protected:
-    std::string data;
-
+class GEODE_TESTDEP_DLL TestEvent : public SimpleEvent<TestEvent, std::string_view> {
 public:
-    std::string getData() const;
-    TestEvent(std::string const& data);
+    // listener params data
+    using SimpleEvent::SimpleEvent;
 };
 
-class GEODE_TESTDEP_DLL TestEventFilter : public EventFilter<TestEvent> {
-public:
-    using Callback = void(TestEvent*);
-
-    ListenerResult handle(geode::Function<Callback>& fn, TestEvent* event);
-    TestEventFilter();
-    TestEventFilter(TestEventFilter const&) = default;
-};
-
-using MyDispatchEvent = geode::DispatchEvent<GJGarageLayer*>;
-using MyDispatchFilter = geode::DispatchFilter<GJGarageLayer*>;
+using MyDispatchEvent = geode::Dispatch<GJGarageLayer*>;

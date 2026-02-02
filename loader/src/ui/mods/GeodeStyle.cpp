@@ -82,7 +82,7 @@ $on_mod(Loaded) {
     };
 
     // Update colors when the theme is changed
-    listenForSettingChanges("enable-geode-theme", updateColors);
+    listenForSettingChanges<bool>("enable-geode-theme", updateColors);
 
     Loader::get()->queueInMainThread([updateColors = updateColors] {
         // this code is ran during static init, where settings aren't loaded yet, and getSettingValue will always return false.

@@ -103,6 +103,15 @@ namespace server {
         static Result<ServerModsList> parse(matjson::Value const& json);
     };
 
+    struct ServerLoaderVersion final {
+        std::string version;
+        std::string tag;
+        std::string commitHash;
+        std::string gameVersion;
+
+        static Result<ServerLoaderVersion> parse(matjson::Value const& json);
+    };
+
     enum class ModsSort {
         Downloads,
         RecentlyUpdated,
@@ -147,7 +156,10 @@ namespace server {
     };
 
     template <class T>
-    using ServerRequest = Task<Result<T, ServerError>, ServerProgress>;
+    using ServerResult = Result<T, ServerError>;
+
+    template <class T>
+    using ServerFuture = arc::Future<ServerResult<T>>;
 
     struct ModVersionLatest final {
         bool operator==(ModVersionLatest const&) const = default;
@@ -162,22 +174,20 @@ namespace server {
     std::string getServerAPIBaseURL();
     std::string getServerUserAgent();
 
-    ServerRequest<ServerModsList> getMods(ModsQuery const& query, bool useCache = true);
-    ServerRequest<ServerModMetadata> getMod(std::string const& id, bool useCache = true);
-    ServerRequest<ServerModVersion> getModVersion(std::string const& id, ModVersion const& version = ModVersionLatest(), bool useCache = true);
-    ServerRequest<ByteVector> getModLogo(std::string const& id, bool useCache = true);
-    ServerRequest<std::vector<ServerTag>> getTags(bool useCache = true);
+    ServerFuture<ServerModsList> getMods(ModsQuery query, bool useCache = true);
+    ServerFuture<ServerModMetadata> getMod(std::string id, bool useCache = true);
+    ServerFuture<ServerModVersion> getModVersion(std::string id, ModVersion version = ModVersionLatest(), bool useCache = true);
+    ServerFuture<ByteVector> getModLogo(std::string id, bool useCache = true);
+    ServerFuture<std::vector<ServerTag>> getTags(bool useCache = true);
 
-    ServerRequest<std::optional<ServerModUpdate>> checkUpdates(Mod const* mod);
+    ServerFuture<std::optional<ServerModUpdate>> checkUpdates(Mod const* mod);
 
-    ServerRequest<std::vector<ServerModUpdate>> batchedCheckUpdates(std::vector<std::string> const& batch);
-    void queueBatches(
-        ServerRequest<std::vector<ServerModUpdate>>::PostResult const finish,
-        std::shared_ptr<std::vector<std::vector<std::string>>> const batches,
-        std::shared_ptr<std::vector<ServerModUpdate>> const accum
-    );
+    ServerFuture<std::vector<ServerModUpdate>> batchedCheckUpdates(std::vector<std::string> const& batch);
 
-    ServerRequest<std::vector<ServerModUpdate>> checkAllUpdates(bool useCache = true);
+    ServerFuture<std::vector<ServerModUpdate>> checkAllUpdates(bool useCache = true);
+
+    ServerFuture<ServerLoaderVersion> getLoaderVersion(std::string tag, bool useCache = true);
+    ServerFuture<ServerLoaderVersion> getLatestLoaderVersion(bool useCache = true);
 
     void clearServerCaches(bool clearGlobalCaches = false);
 }

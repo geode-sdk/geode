@@ -236,7 +236,7 @@ Result<> Mod::Impl::saveData() {
     matjson::Value json = m_settings->save();
 
     // saveData is expected to be synchronous, and always called from GD thread
-    ModStateEvent(m_self, ModEventType::DataSaved).post();
+    ModStateEvent(ModEventType::DataSaved, std::move(m_self)).send();
 
     auto res = utils::file::writeStringSafe(m_saveDirPath / "settings.json", json.dump());
     if (!res) {
@@ -340,15 +340,15 @@ Result<> Mod::Impl::loadBinary() {
 
     LoaderImpl::get()->releaseNextMod();
 
-    ModStateEvent(m_self, ModEventType::Loaded).post();
-    ModStateEvent(m_self, ModEventType::DataLoaded).post();
+    ModStateEvent(ModEventType::Loaded, std::move(m_self)).send();
+    ModStateEvent(ModEventType::DataLoaded, std::move(m_self)).send();
 
     // do we not have a function for getting all the dependencies of a mod directly? ok then
     // Anyway this lets all of this mod's dependencies know it has been loaded
     // In case they're API mods and want to know those kinds of things
     for (auto const& dep : ModMetadataImpl::getImpl(m_metadata).m_dependencies) {
         if (auto depMod = Loader::get()->getLoadedMod(dep.getID())) {
-            DependencyLoadedEvent(depMod, m_self).post();
+            DependencyLoadedEvent(m_self).send(std::move(depMod));
         }
     }
 

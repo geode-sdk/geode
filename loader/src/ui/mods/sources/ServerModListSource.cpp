@@ -7,23 +7,18 @@ void ServerModListSource::resetQuery() {
 ServerModListSource::ProviderTask ServerModListSource::fetchPage(size_t page, bool forceUpdate) {
     m_query.page = page;
     m_query.pageSize = m_pageSize;
-    return server::getMods(m_query, !forceUpdate).map(
-        [](Result<server::ServerModsList, server::ServerError>* result) -> ProviderTask::Value {
-            if (result->isOk()) {
-                auto list = result->unwrap();
-                auto content = ModListSource::ProvidedMods();
-                for (auto&& mod : std::move(list.mods)) {
-                    content.mods.push_back(ModSource(std::move(mod)));
-                }
-                content.totalModCount = list.totalModCount;
-                return Ok(std::move(content));
-            }
-            return Err(LoadPageError("Error loading mods", result->unwrapErr().details));
-        },
-        [](auto* prog) {
-            return prog->percentage;
-        }
-    );
+    auto result = co_await server::getMods(m_query, !forceUpdate);
+    if (!result) {
+        co_return Err(LoadPageError("Error loading mods", result.unwrapErr().details));
+    } 
+
+    auto list = std::move(result).unwrap();
+    auto content = ModListSource::ProvidedMods();
+    for (auto&& mod : std::move(list.mods)) {
+        content.mods.push_back(ModSource(std::move(mod)));
+    }
+    content.totalModCount = list.totalModCount;
+    co_return Ok(std::move(content));
 }
 
 ServerModListSource::ServerModListSource(ServerModListType type)

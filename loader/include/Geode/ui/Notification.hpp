@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SceneManager.hpp"
+#include "OverlayManager.hpp"
 #include <cocos2d.h>
 #include <cocos-ext.h>
 #include <Geode/binding/TextAlertPopup.hpp>
@@ -20,7 +20,7 @@ namespace geode {
         Info,
     };
 
-    class GEODE_DLL Notification : public cocos2d::CCNodeRGBA {
+    class GEODE_DLL Notification final : public cocos2d::CCNodeRGBA {
     protected:
         static cocos2d::CCArray* s_queue;
         cocos2d::extension::CCScale9Sprite* m_bg;

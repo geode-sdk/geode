@@ -39,12 +39,16 @@ protected:
     CCNode* m_modtoberBanner = nullptr;
     CCMenu* m_titleContainer = nullptr;
     std::unordered_map<Tab, std::pair<GeodeTabSprite*, Ref<CCNode>>> m_tabs;
-    EventListener<server::ServerRequest<server::ServerModMetadata>> m_statsListener;
-    EventListener<server::ServerRequest<std::vector<server::ServerTag>>> m_tagsListener;
-    EventListener<server::ServerRequest<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
-    EventListener<UpdateModListStateFilter> m_updateStateListener;
-    EventListener<server::ModDownloadFilter> m_downloadListener;
-    EventListener<EventFilter<SettingNodeValueChangeEvent>> m_settingNodeListener;
+    ListenerHandle m_statsHandle;
+    ListenerHandle m_tagsHandle;
+    ListenerHandle m_checkUpdateHandle;
+    ListenerHandle m_updateStateHandle;
+    ListenerHandle m_downloadHandle;
+    ListenerHandle m_settingNodeHandle;
+    async::TaskHolder<server::ServerResult<server::ServerModMetadata>> m_statsListener;
+    async::TaskHolder<server::ServerResult<std::vector<server::ServerTag>>> m_tagsListener;
+    async::TaskHolder<server::ServerResult<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
+    ListenerHandle m_downloadListener;
 
     bool init(ModSource&& src);
     void updateState();
@@ -53,9 +57,9 @@ protected:
     void setStatLabel(CCNode* stat, ZStringView value, bool noValue = false, ccColor3B color = ccWHITE);
     void setStatValue(CCNode* stat, std::optional<std::string> const& value);
 
-    void onLoadServerInfo(typename server::ServerRequest<server::ServerModMetadata>::Event* event);
-    void onLoadTags(typename server::ServerRequest<std::vector<server::ServerTag>>::Event* event);
-    void onCheckUpdates(typename server::ServerRequest<std::optional<server::ServerModUpdate>>::Event* event);
+    void onLoadServerInfo(server::ServerResult<server::ServerModMetadata> result);
+    void onLoadTags(server::ServerResult<std::vector<server::ServerTag>> result);
+    void onCheckUpdates(server::ServerResult<std::optional<server::ServerModUpdate>> result);
 
     void onTab(CCObject* sender);
     void onEnable(CCObject*);

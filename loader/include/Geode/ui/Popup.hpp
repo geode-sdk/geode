@@ -13,34 +13,9 @@ namespace geode {
         /**
          * Event posted when this popup is being closed
          */
-        class CloseEvent final : public ::geode::Event {
-        private:
-            class Impl;
-            std::shared_ptr<Impl> m_impl;
-
-            friend class Popup;
-
-            CloseEvent(Popup* popup);
-
-        public:
-            Popup* getPopup() const;
-            bool filter(Popup* popup) const;
-        };
-        
-        class CloseEventFilter final : public ::geode::EventFilter<CloseEvent> {
-        public:
-		    using Callback = void(CloseEvent*);
-
-        private:
-            class Impl;
-            std::shared_ptr<Impl> m_impl;
-
-            friend class Popup;
-
-            CloseEventFilter(Popup* popup);
-
-        public:
-            ListenerResult handle(geode::Function<Callback>& fn, CloseEvent* event);
+        class CloseEvent final : public ::geode::Event<CloseEvent, bool(), Popup*> {
+            // filter params popup
+            using Event::Event;
         };
 
     protected:
@@ -78,7 +53,7 @@ namespace geode {
         /**
          * Returns an event filter that listens for when this popup is closed
          */
-        CloseEventFilter listenForClose();
+        CloseEvent listenForClose();
     };
 
     GEODE_DLL FLAlertLayer* createQuickPopup(

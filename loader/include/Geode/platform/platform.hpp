@@ -11,10 +11,21 @@
     #define GEODE_PRETTY_FUNCTION std::string(__PRETTY_FUNCTION__)
 #endif
 
+#define GEODE_WRAPPER_STR(...) #__VA_ARGS__
+#define GEODE_STR(...) GEODE_WRAPPER_STR(__VA_ARGS__)
+
+#if defined (_MSC_VER) && !defined(__clang__)
+    #define GEODE_CXX_STANDARD _MSVC_LANG
+    #define GEODE_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
+#else
+    #define GEODE_CXX_STANDARD __cplusplus
+    #define GEODE_NO_UNIQUE_ADDRESS [[no_unique_address]]
+#endif
+
 static_assert(
-    __cplusplus >= 202302L,
-    "\n\nError: Geode requires C++23 support to build!\n"
-    "Please modify your CMakeLists.txt and change CMAKE_CXX_STANDARD from 20 to 23\n"
+    GEODE_CXX_STANDARD >= 202302L,
+    "\n\nError: Geode requires C++23 support to build! (" GEODE_STR(GEODE_CXX_STANDARD) " < 202302L)\n"
+    "Please modify your CMakeLists.txt and change CMAKE_CXX_STANDARD from 20 to 23.\n"
     "If you're using an outdated compiler that doesn't support C++23, please update it.\n\n"
 );
 

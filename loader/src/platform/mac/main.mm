@@ -1,6 +1,7 @@
 #include <Geode/DefaultInclude.hpp>
 
 #import <Cocoa/Cocoa.h>
+#include <AppKit/AppKit.h>
 #include <objc/runtime.h>
 #include "../load.hpp"
 #include <dlfcn.h>
@@ -89,12 +90,12 @@ void updateFiles() {
 
 $execute {
     using namespace geode::updater;
-    globalListen([](LoaderUpdateEvent* event) {
-        if (std::holds_alternative<UpdateFinished>(event->status)) {
+    LoaderUpdateEvent().listen([](UpdateStatus const& status) {
+        if (std::holds_alternative<UpdateFinished>(status)) {
             updateFiles();
         }
         return ListenerResult::Propagate;
-    }, LoaderUpdateFilter());
+    }).leak();
 };
 
 void updateGeode() {
@@ -140,8 +141,27 @@ void sendEventHook(NSApplication* self, SEL sel, NSEvent* event) {
     s_sendEventOrig(self, sel, event);
 }
 
+// I like to call this the "Super Mega Ultra Safe Mode™"
+// However for the sake of not getting side-eyed it's getting this boring name
+bool cleanModeCheck() {
+    if (
+        CGEventSourceKeyState(kCGEventSourceStateHIDSystemState, (CGKeyCode)58) && // 58 = Option
+        CGEventSourceKeyState(kCGEventSourceStateHIDSystemState, (CGKeyCode)56) // 56 = LShift
+    ) {
+        NSAlert* alert = [NSAlert new];
+        alert.messageText = @"The Shift and Option keys were held down, do you want to open Geometry Dash without Geode?";
+        [alert addButtonWithTitle:@"Yes"];
+        NSButton *cancelButton = [alert addButtonWithTitle:@"No"];
+        alert.window.defaultButtonCell = cancelButton.cell;
+        NSModalResponse choice = [alert runModal];
+        return choice == NSAlertFirstButtonReturn;
+    }
+    return false;
+}
 
 bool loadGeode() {
+    if (cleanModeCheck()) return false;
+
     if (GEODE_STR(GEODE_GD_VERSION) != LoaderImpl::get()->getGameVersion()) {
         console::messageBox(
             "Unable to Load Geode!",

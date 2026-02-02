@@ -58,15 +58,15 @@ $on_mod(Loaded) {
         0x48, 0x90, // nop (skip if statement)
     });
 #elif defined(GEODE_IS_IOS)
-    #if GEODE_COMP_GD_VERSION != 22074
+    #if GEODE_COMP_GD_VERSION != 22081
         #error "Unsupported GD version!"
     #endif
 
     if (Loader::get()->isPatchless()) {
-        GEODE_MOD_STATIC_PATCH(0x138390, "\x1f\x20\x03\xd5");
+        GEODE_MOD_STATIC_PATCH(0x135374, "\x1f\x20\x03\xd5");
     }
     else {
-        auto addr = base::get() + 0x138390;
+        auto addr = base::get() + 0x135374;
         (void) Mod::get()->patch(reinterpret_cast<void*>(addr), {
             0x1f, 0x20, 0x03, 0xd5 // nop (skip if statement)
         });
