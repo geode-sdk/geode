@@ -184,21 +184,31 @@ static std::string baseEnumsToString(BaseType type, int size, int color) {
     return fmt::format("base{}_{}_{}.png", typeStr, sizeStr, colorStr);
 }
 
+class BasedButtonSprite::Impl {
+public:
+    BaseType type;
+    int size;
+    int color;
+    cocos2d::CCNode* onTop = nullptr;
+    float onTopRelativeScale = 1.f;
+    cocos2d::CCPoint topOffset = cocos2d::CCPointZero;
+};
+
 bool BasedButtonSprite::init(CCNode* ontop, BaseType type, int size, int color) {
     if (!CCSprite::initWithSpriteFrameName(
         Mod::get()->expandSpriteName(baseEnumsToString(type, size, color)).data()
     )) return false;
 
-    m_type = type;
-    m_size = size;
-    m_color = color;
+    m_impl->type = type;
+    m_impl->size = size;
+    m_impl->color = color;
 
     if (ontop) {
-        m_onTop = ontop;
-        m_onTop->setPosition(this->getContentSize() / 2 + m_topOffset);
-        limitNodeSize(m_onTop, this->getMaxTopSize(), 999.f, .1f);
-        m_onTop->setScale(m_onTop->getScale() * m_onTopRelativeScale);
-        this->addChild(m_onTop);
+        m_impl->onTop = ontop;
+        m_impl->onTop->setPosition(this->getContentSize() / 2 + m_impl->topOffset);
+        limitNodeSize(m_impl->onTop, this->getMaxTopSize(), 999.f, .1f);
+        m_impl->onTop->setScale(m_impl->onTop->getScale() * m_impl->onTopRelativeScale);
+        this->addChild(m_impl->onTop);
     }
 
     this->setCascadeColorEnabled(true);
@@ -212,16 +222,16 @@ CCSize BasedButtonSprite::getMaxTopSize() const {
 }
 
 void BasedButtonSprite::setTopOffset(CCPoint const& offset) {
-    m_topOffset = offset;
-    if (m_onTop) {
-        m_onTop->setPosition(this->getContentSize() / 2 + offset);
+    m_impl->topOffset = offset;
+    if (m_impl->onTop) {
+        m_impl->onTop->setPosition(this->getContentSize() / 2 + offset);
     }
 }
 void BasedButtonSprite::setTopRelativeScale(float scale) {
-    m_onTopRelativeScale = scale;
-    if (m_onTop) {
-        limitNodeSize(m_onTop, this->getMaxTopSize(), 999.f, .1f);
-        m_onTop->setScale(m_onTop->getScale() * m_onTopRelativeScale);
+    m_impl->onTopRelativeScale = scale;
+    if (m_impl->onTop) {
+        limitNodeSize(m_impl->onTop, this->getMaxTopSize(), 999.f, .1f);
+        m_impl->onTop->setScale(m_impl->onTop->getScale() * m_impl->onTopRelativeScale);
     }
 }
 
@@ -230,7 +240,7 @@ bool BasedButtonSprite::initWithSprite(
 ) {
     auto spr = CCSprite::create(sprName);
     if (!spr) return false;
-    m_onTopRelativeScale = sprScale;
+    m_impl->onTopRelativeScale = sprScale;
     return this->init(spr, type, size, color);
 }
 
@@ -239,15 +249,17 @@ bool BasedButtonSprite::initWithSpriteFrameName(
 ) {
     auto spr = CCSprite::createWithSpriteFrameName(sprName);
     if (!spr) return false;
-    m_onTopRelativeScale = sprScale;
+    m_impl->onTopRelativeScale = sprScale;
     return this->init(spr, type, size, color);
 }
 
 CCNode* BasedButtonSprite::getTopNode() const {
-    return m_onTop;
+    return m_impl->onTop;
 }
 
-BasedButtonSprite::~BasedButtonSprite() {}
+BasedButtonSprite::BasedButtonSprite() : m_impl(std::make_unique<Impl>()) { }
+
+BasedButtonSprite::~BasedButtonSprite() { }
 
 BasedButtonSprite* BasedButtonSprite::create(CCNode* ontop, BaseType type, int size, int color) {
     auto ret = new BasedButtonSprite();
