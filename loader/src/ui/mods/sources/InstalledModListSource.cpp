@@ -4,9 +4,11 @@
 bool InstalledModsQuery::preCheck(ModSource const& src) const {
     // Invalid .geode files are collected up into one entry instead of 
     // flooding the mods list
+    /*
     if (src.asMod() && src.asMod()->hasInvalidGeodeFile()) {
         return false;
     }
+    */
     // If we only want mods with updates, then only give mods with updates
     // NOTE: The caller of filterModsWithQuery() should have ensured that
     // `src.checkUpdates()` has been called and has finished
@@ -120,6 +122,7 @@ InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t pa
 
     auto content = ModListSource::ProvidedMods();
 
+    /*
     if (m_query.type != InstalledModListType::OnlyUpdates) {
         auto invalidFileCount = Loader::get()->getNumberOfInvalidGeodeFiles();
         if (invalidFileCount > 0) {
@@ -146,7 +149,7 @@ InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t pa
             });
         }
     }
-    
+    */
     for (auto& mod : Loader::get()->getAllMods()) {
         content.mods.push_back(ModSource(mod));
     }

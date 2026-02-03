@@ -60,7 +60,7 @@ namespace geode {
          * billion errors every time GD updates)
          */
         bool isProblemTheUserShouldCareAbout() const {
-            return !isSuggestion() && !isOutdated() && type != LoadProblem::Type::InvalidFile;
+            return !isSuggestion() && !isOutdated() /* && type != LoadProblem::Type::InvalidFile */;
         }
     };
 
