@@ -1,14 +1,10 @@
 #include <Geode/ui/RichTextArea.hpp>
 #include <regex>
 #include <chrono>
-#include <fmt/chrono.h>
 
 using namespace geode::prelude;
 class RichTextArea::RichImpl : public SimpleTextArea::Impl {
 public:
-    template <class T>
-    void registerRichTextKey(std::shared_ptr<RichTextKey<T>> key);
-
     void charIteration(geode::FunctionRef<cocos2d::CCLabelBMFont*(cocos2d::CCLabelBMFont* line, char c, float top)> overflowHandling) override;
 
     void formatRichText();
@@ -50,7 +46,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
 
     if (!SimpleTextArea::init(font, text, scale, width, artificialWidth)) return false;
 
-    static_cast<RichTextArea::RichImpl*>(m_impl.get())->registerRichTextKey<ccColor3B>(std::make_shared<RichTextKey<ccColor3B>>(
+    registerRichTextKey<ccColor3B>(std::make_shared<RichTextKey<ccColor3B>>(
         "color",
         [](std::string value) -> Result<ccColor3B> {
             auto colorRes = cc3bFromHexString(value);
@@ -63,7 +59,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
         }
     ));
 
-    static_cast<RichTextArea::RichImpl*>(m_impl.get())->registerRichTextKey<bool>(std::make_shared<RichTextKey<bool>>(
+    registerRichTextKey<bool>(std::make_shared<RichTextKey<bool>>(
         "flip",
         [](std::string value) -> Result<bool> {
             if (value == "") return Ok(true);
@@ -79,7 +75,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
         }
     ));
 
-    static_cast<RichTextArea::RichImpl*>(m_impl.get())->registerRichTextKey<bool>(std::make_shared<RichTextKey<bool>>(
+    registerRichTextKey<bool>(std::make_shared<RichTextKey<bool>>(
         "mirror",
         [](std::string value) -> Result<bool> {
             if (value == "") return Ok(true);
@@ -95,7 +91,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
         }
     ));
 
-    static_cast<RichTextArea::RichImpl*>(m_impl.get())->registerRichTextKey<std::time_t>(std::make_shared<RichTextKey<std::time_t>>(
+    registerRichTextKey<std::time_t>(std::make_shared<RichTextKey<std::time_t>>(
         "workingTime",
         [](std::string value) -> Result<std::time_t> {
             auto timeRes = geode::utils::numFromString<time_t>(value);
@@ -104,11 +100,11 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
             return Ok(timeRes.unwrap());
         },
         [](std::time_t const& value) -> std::string {
-            return "fmt::format(\"{:%Y-%m-%d %H:%M:%S}\", fmt::localtime(value))";
+            return fmt::format("{:%Y-%m-%d %H:%M:%S}", std::chrono::current_zone()->to_local(std::chrono::system_clock::from_time_t(value)));
         }
     ));
 
-    static_cast<RichTextArea::RichImpl*>(m_impl.get())->registerRichTextKey<std::string>(std::make_shared<RichTextKey<std::string>>(
+    registerRichTextKey<std::string>(std::make_shared<RichTextKey<std::string>>(
         "link",
         [](std::string value) -> Result<std::string> {
             return Ok(value);
@@ -293,10 +289,12 @@ void RichTextArea::RichImpl::formatRichText() {
 }
 
 template <class T>
-void RichTextArea::RichImpl::registerRichTextKey(std::shared_ptr<RichTextKey<T>> key){
-    if (m_richTextKeys.contains(key->getKey())) return;
+void RichTextArea::registerRichTextKey(std::shared_ptr<RichTextKey<T>> key){
+    auto castedImpl = static_cast<RichTextArea::RichImpl*>(m_impl.get());
 
-    m_richTextKeys.insert({key->getKey(), key});
+    if (castedImpl->m_richTextKeys.contains(key->getKey())) return;
+
+    castedImpl->m_richTextKeys.insert({key->getKey(), key});
 }
 
 template <class T>

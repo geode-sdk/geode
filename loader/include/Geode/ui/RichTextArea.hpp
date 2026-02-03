@@ -145,6 +145,9 @@ namespace geode {
         static RichTextArea* create(std::string text, std::string font, float scale, float width);
 
         void setText(std::string text) override;
+
+        template <class T>
+        void registerRichTextKey(std::shared_ptr<RichTextKey<T>> key);
     
     protected:
         ~RichTextArea();
