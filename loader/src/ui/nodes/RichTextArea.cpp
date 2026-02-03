@@ -100,7 +100,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
             return Ok(timeRes.unwrap());
         },
         [](std::time_t const& value) -> std::string {
-            return fmt::format("{:%Y-%m-%d %H:%M:%S}", std::chrono::current_zone()->to_local(std::chrono::system_clock::from_time_t(value)));
+            return fmt::format("{:%Y-%m-%d %H:%M:%S}", geode::localtime(value));
         }
     ));
 
