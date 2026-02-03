@@ -1,6 +1,52 @@
 # Geode Changelog
 
-## v4.11.0
+## v5.0.0-alpha.1 (WIP changelog)
+ * 2.208x support
+ * Switch to C++23
+ * Remove `geode::cast:as`
+ * Remove `CCARRAY_FOREACH` and `CCDICT_FOREACH` macros
+   * use geode's ext classes instead
+ * Replace most `std::function` with `std::move_only_function` and `std::function_ref`
+ * Refactor a lot of string usages
+   * New `ZStringView` class, for null terminated string views
+   * Replace `std::string` with `std::string_view` in a lot of places
+   * `StringMap` for an optimized `std::unordered_map` specialization
+   * `Mod::expandSpriteName` now return `std::string`
+   * New `StringBuffer` class for something idk
+ * Android controller api (#1562)
+ * Refactor logging (#1566)
+   * Logging in general is now faster, avoids flushing to the file so often
+ * Use fast_float library for float & integer parsing (#1568)
+ * `Layout::ignoreInvisibleChildren` now defaults to true
+ * Add `Ref::take` (32abe45)
+ * Add Back Button function for layers (#1542)
+ * Allow HTML tags in link text (#1600)
+ * Remove Mod::getMetadataRef() (#1574)
+ * Remove old dependency array syntax (#1573)
+ * Remove support for mod.json gd as string (#1572)
+ * Make `ColorPickPopup` use a callback instead of a delegate (#1575)
+ * Remove functions previously marked with `[[deprecated]]`
+ * `geode::Popup` is no longer templated (dfe5f74)
+ * Add user flags to `CCNode` (5029468)
+ * Add `ScrollLayer::createDefaultListLayout`
+ * Remove old Cacao functions (`vectorToCCArray`, `mapToCCDict`, etc) (866344e) 
+ * WebRequest API rewrite (#1638)
+ * Event V2
+   * So many changes, Ports and stuff
+ * Use dankmeme01/arc as new async runtime, ~~mostly~~ replacing `geode::Task`
+   * The new library uses C++20 coroutines and provides a lot of finer control
+ * Add fix for scissor inside a render texture (#1655)
+ * Add `CCDictionary::asExt` (#1647)
+ * Bump minimum macOS version to 11 (#1648)
+ * Add `modify_cast` into `geode::cast` (#1485)
+ * Add "clean mode" (#1669)
+ * Add enabling/disabling TextInput callback (#1279)
+ * Update fmtlib to v12
+ * Use loader release API for update checks (#1593)
+ * Add Signal class for reactive values
+ * Add `GameEventType::Exiting` (a91ecd1)
+
+## ~~v4.11.0~~
  * Add random utils in `geode::utils::random` (6da879b, 5abd3a9, ad2146d)
  * Add string filtering utils (#1550)
  * Add `Ref::adopt` (29d4643)
@@ -17,6 +63,13 @@
  * Fix zip add methods on non-Windows platforms (d35caf2)
  * Fix VersionTag compare with tagged versions (01fa4a6)
  * Fix stack overflow on jitless iOS when disabling/re-enabling hooks in some cases (d21fd36)
+
+## v4.10.2
+* Revert bindings additions to resolve crashes on 32-bit Android
+
+## v4.10.1
+* Fix a crash on 2.208 forwards compatibility mode related to keybindings (e166de5)
+* Bindings additions for cocos2d classes (#1592)
 
 ## v4.10.0
  * Add `$on_game` macro for `GameEvent` events (679678f)
