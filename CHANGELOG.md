@@ -40,7 +40,7 @@
  * Add `CCDictionary::asExt` (#1647)
  * Set minimum macOS version to 11.0 (Big Sur) (#1648)
  * Add `modify_cast` into `geode::cast` (#1485)
- * Add new "Clean Mode" (option to load GD without Geode) (#1646)
+ * Add Clean Mode (option to load GD without Geode) (#1646)
  * Add enabling/disabling TextInput callback (#1279)
  * Update `fmtlib` to v12 **(!)**
  * Use loader release API for update checks (#1593)
