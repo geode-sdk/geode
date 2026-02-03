@@ -5,6 +5,15 @@
 
 using namespace geode::prelude;
 
+class MDPopup::Impl {
+public:
+    geode::Function<void(bool)> onClick = nullptr;
+};
+
+MDPopup::MDPopup() : m_impl(std::make_unique<Impl>()) { }
+
+MDPopup::~MDPopup() { }
+
 bool MDPopup::init(
     bool compatibilityMode, ZStringView title, std::string info, ZStringView btn1Text,
     ZStringView btn2Text, geode::Function<void(bool)> onClick
@@ -18,7 +27,7 @@ bool MDPopup::init(
         return false;
     }
 
-    m_onClick = std::move(onClick);
+    m_impl->onClick = std::move(onClick);
 
     auto contentSize = CCSize {
         m_size.width - 50.f,
@@ -62,8 +71,8 @@ bool MDPopup::init(
 }
 
 void MDPopup::onBtn(CCObject* sender) {
-    if (m_onClick) {
-        m_onClick(sender->getTag());
+    if (m_impl->onClick) {
+        m_impl->onClick(sender->getTag());
     }
     this->onClose(nullptr);
 }
@@ -91,4 +100,12 @@ MDPopup* MDPopup::create(
     }
     delete ret;
     return nullptr;
+}
+
+const geode::Function<void(bool)>& MDPopup::getOnClick() {
+    return m_impl->onClick;
+}
+
+void MDPopup::setOnClick(geode::Function<void(bool)> onClick) {
+    m_impl->onClick = std::move(onClick);
 }
