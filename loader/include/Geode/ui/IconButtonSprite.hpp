@@ -7,12 +7,10 @@ namespace cocos2d::extension {
 }
 
 namespace geode {
-    class GEODE_DLL IconButtonSprite final : public cocos2d::CCSprite, public cocos2d::CCLabelProtocol {
+    class GEODE_DLL IconButtonSprite : public cocos2d::CCSprite, public cocos2d::CCLabelProtocol {
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
     protected:
-        cocos2d::extension::CCScale9Sprite* m_bg = nullptr;
-        cocos2d::CCLabelBMFont* m_label = nullptr;
-        cocos2d::CCNode* m_icon = nullptr;
-
         bool init(
             char const* bg, bool bgIsFrame, cocos2d::CCNode* icon, char const* text,
             char const* font
@@ -20,7 +18,8 @@ namespace geode {
 
         void updateLayout();
 
-        IconButtonSprite() = default;
+        IconButtonSprite();
+        ~IconButtonSprite();
         IconButtonSprite(IconButtonSprite&&) = delete;
         IconButtonSprite& operator=(IconButtonSprite&&) = delete;
 
@@ -42,5 +41,8 @@ namespace geode {
 
         void setColor(cocos2d::ccColor3B const& color) override;
         void setOpacity(GLubyte opacity) override;
+        cocos2d::extension::CCScale9Sprite* getBg();
+        cocos2d::CCLabelBMFont* getLabel();
+        cocos2d::CCNode* getIcon();
     };
 }

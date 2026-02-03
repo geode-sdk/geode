@@ -19,7 +19,7 @@ namespace geode {
      * and then given either a URL, file path, or raw image data that will be processed
      * in the background to avoid freezes.
      */
-    class GEODE_DLL LazySprite final : public cocos2d::CCSprite {
+    class GEODE_DLL LazySprite : public cocos2d::CCSprite {
     public:
         using Callback = geode::Function<void(Result<>)>;
         using Format = cocos2d::CCImage::EImageFormat;
@@ -68,7 +68,7 @@ namespace geode {
     private:
         class Impl;
         std::unique_ptr<Impl> m_impl;
-
+    protected:
         LazySprite();
         ~LazySprite();
     };

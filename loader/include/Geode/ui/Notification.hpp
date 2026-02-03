@@ -20,15 +20,14 @@ namespace geode {
         Info,
     };
 
-    class GEODE_DLL Notification final : public cocos2d::CCNodeRGBA {
+    class GEODE_DLL Notification : public cocos2d::CCNodeRGBA {
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
     protected:
         static cocos2d::CCArray* s_queue;
-        cocos2d::extension::CCScale9Sprite* m_bg;
-        cocos2d::CCLabelBMFont* m_label;
-        cocos2d::CCSprite* m_icon = nullptr;
-        float m_time;
-        bool m_showing = false;
 
+        Notification();
+        ~Notification();
         bool init(ZStringView text, cocos2d::CCSprite* icon, float time);
         void updateLayout();
 
@@ -73,6 +72,12 @@ namespace geode {
         void setIcon(NotificationIcon icon);
         void setIcon(cocos2d::CCSprite* icon);
         void setTime(float time);
+
+        cocos2d::extension::CCScale9Sprite* getBg();
+        cocos2d::CCLabelBMFont* getLabel();
+        cocos2d::CCSprite* getIcon();
+        float getTime();
+        bool isShowing();
 
         /**
          * Set the wait time to default, wait the time and hide the notification.
