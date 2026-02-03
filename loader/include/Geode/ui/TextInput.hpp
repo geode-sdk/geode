@@ -48,6 +48,7 @@ namespace geode {
         std::unique_ptr<Impl> m_impl;
     protected:
         TextInput();
+        ~TextInput() override;
 
         bool init(float width, ZStringView placeholder, ZStringView font);
 
@@ -162,7 +163,6 @@ namespace geode {
 
         CCTextInputNode* getInputNode() const;
         cocos2d::extension::CCScale9Sprite* getBGSprite() const;
-
-        ~TextInput() override;
     };
 }
+
