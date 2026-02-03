@@ -43,10 +43,10 @@ namespace geode {
         static std::string translateNewlines(std::string const& str);
 
         bool init(std::string str, cocos2d::CCSize const& size);
-
+    protected:
         MDTextArea();
         virtual ~MDTextArea();
-
+    private:
         void onLink(CCObject*);
         void onGDProfile(CCObject*);
         void onGDLevel(CCObject*);
