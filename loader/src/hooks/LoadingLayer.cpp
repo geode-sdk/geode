@@ -18,6 +18,11 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         CCLabelBMFont* m_smallLabel2 = nullptr;
         int m_geodeLoadStep = 0;
         int m_totalMods = 0;
+        ~Fields() {
+            queueInMainThread([] {
+                GameEvent(GameEventType::TexturesLoaded).send();
+            });
+        }
     };
 
     static void onModify(auto& self) {

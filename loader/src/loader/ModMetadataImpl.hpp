@@ -103,11 +103,24 @@ namespace geode {
         bool m_needsEarlyLoad = false;
         bool m_isAPI = false;
         LoadPriority m_loadPriority = 0;
+        bool m_ephemeral = false;
 
         ModJson m_rawJSON;
 
         // creates the relevant metadata to represent an invalid mod and have its error shown ingame. it is otherwise blank
-        static ModMetadata createInvalidMetadata(std::string_view name, std::string_view error, LoadProblem::Type type);
+        static ModMetadata createInvalidMetadata(std::filesystem::path const& path, std::string_view error, LoadProblem::Type type);
+
+        // like createFromGeodeZip, but only checks for the mod id
+        static Result<ModMetadata> createFromGeodeZipFallback(utils::file::Unzip& zip);
+
+
+        /*
+         * Like createFromGeodeFile, but exibits the following fallback behavior:
+         * - If unzip failed, return the invalid metadata representation
+         * - If createFromGeodeZip fails, attempt to parse through createFromGeodeZipFallback
+         * - If createFromGeodeZipFallback fails, return the invalid metadata representation
+         */
+        static ModMetadata createFromGeodeFileWithFallback(std::filesystem::path const& path);
 
         static Result<ModMetadata> createFromGeodeZip(utils::file::Unzip& zip);
         static Result<ModMetadata> createFromGeodeFile(std::filesystem::path const& path);

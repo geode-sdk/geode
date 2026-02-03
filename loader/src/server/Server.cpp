@@ -918,7 +918,7 @@ ServerFuture<ServerLoaderVersion> server::getLatestLoaderVersion(bool useCache) 
 }
 
 void server::clearServerCaches(bool clearGlobalCaches) {
-    async::runtime().spawn([clearGlobalCaches](this auto self) -> arc::Future<> {
+    async::runtime().spawn([clearGlobalCaches] -> arc::Future<> {
         co_await getCache<&getMods>().clear();
         co_await getCache<&getMod>().clear();
         co_await getCache<&getModLogo>().clear();
@@ -928,17 +928,17 @@ void server::clearServerCaches(bool clearGlobalCaches) {
             co_await getCache<&getTags>().clear();
             co_await getCache<&checkAllUpdates>().clear();
         }
-    }());
+    });
 }
 
 $on_mod(Loaded) {
     listenForSettingChanges<int64_t>("server-cache-size-limit", +[](int64_t size) {
-        async::runtime().spawn([size](this auto self) -> arc::Future<> {
+        async::runtime().spawn([size] -> arc::Future<> {
             co_await getCache<&server::getMods>().limit(size);
             co_await getCache<&server::getMod>().limit(size);
             co_await getCache<&server::getModLogo>().limit(size);
             co_await getCache<&server::getTags>().limit(size);
             co_await getCache<&server::checkAllUpdates>().limit(size);
-        }());
+        });
     });
 }
