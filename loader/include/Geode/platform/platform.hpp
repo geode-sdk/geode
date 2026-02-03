@@ -149,6 +149,7 @@ namespace geode {
             ArmV8      = Android64 | MacArm | iOS,
             Desktop    = Windows | Mac,
             Mobile     = Android | iOS,
+            All        = Desktop | Mobile,
         };
 
         using Type = decltype(Unknown);
@@ -196,42 +197,10 @@ namespace geode {
          * Input string must follow the format in PlatformID::toShortString.
          */
         static GEODE_DLL bool coveredBy(std::string_view str, PlatformID t);
-        /**
-         * Returns the list of platforms covered by this string name. For
-         * example, "android" would return both Android32 and Android64
-         * todo in v5: deprecate this as the flagged version deals with this
-         */
-        static GEODE_DLL std::vector<PlatformID> getCovered(std::string_view str);
 
-        // todo in v5: this does not need to be constexpr in the header. dllexport it
-        static constexpr char const* toString(Type lp) {
-            switch (lp) {
-                case Unknown: return "Unknown";
-                case Windows: return "Windows";
-                case MacIntel: return "MacIntel";
-                case MacArm: return "MacArm";
-                case iOS: return "iOS";
-                case Android32: return "Android32";
-                case Android64: return "Android64";
-                default: break;
-            }
-            return "Undefined";
-        }
+        static GEODE_DLL std::string_view toString(Type lp);
 
-        // todo in v5: this does not need to be constexpr in the header. dllexport it
-        static constexpr char const* toShortString(Type lp, bool ignoreArch = false) {
-            switch (lp) {
-                case Unknown: return "unknown";
-                case Windows: return "win";
-                case MacIntel: return ignoreArch ? "mac" : "mac-intel";
-                case MacArm: return ignoreArch ? "mac" : "mac-arm";
-                case iOS: return "ios";
-                case Android32: return ignoreArch ? "android" : "android32";
-                case Android64: return ignoreArch ? "android" : "android64";
-                default: break;
-            }
-            return "undefined";
-        }
+        static GEODE_DLL std::string_view toShortString(Type lp, bool ignoreArch = false);
 
         template <class T>
             requires requires(T t) {

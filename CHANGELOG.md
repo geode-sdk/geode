@@ -1,6 +1,54 @@
 # Geode Changelog
 
-## v4.11.0
+## v5.0.0-alpha.1 (WIP changelog)
+ * 2.208x support
+ * Switch to C++23, mods targetting C++20 will no longer compile
+ * Remove `geode::cast:as`
+ * Remove `CCARRAY_FOREACH` and `CCDICT_FOREACH` macros
+   * Use `CCArrayExt`, `CCDictionaryExt` instead
+ * Replace most `std::function` with `geode::Function` and `geode::FunctionRef`
+ * `geode::Popup` is no longer templated (dfe5f74)
+ * Refactor a lot of string usages
+   * New `ZStringView` class, for null terminated string views
+   * Replace `std::string` with `std::string_view` in a lot of places
+   * `StringMap` for an optimized `std::unordered_map` specialization
+   * `Mod::expandSpriteName` now return `std::string`
+   * New `StringBuffer` class for complex, no-allocation string formatting
+ * WebRequest API rewrite (#1638)
+ * Use [dankmeme01/arc](https://github.com/dankmeme01/arc) as new async runtime, ~~mostly~~ replacing `geode::Task`
+   * The new library uses C++20 coroutines and provides a lot of finer control
+   * Web requests and file picker are now async
+ * Event V2
+   * So many changes, Ports and stuff
+ * Android controller api (#1562)
+ * Remove old dependency array syntax (#1573)
+ * Remove support for mod.json gd as string (#1572)
+ * `Layout::ignoreInvisibleChildren` now defaults to true
+ * Add `Ref::take` (32abe45)
+ * Add Back Button function for layers (#1542)
+ * Allow HTML tags in link text (#1600)
+ * Refactor logging (#1566)
+   * Logging is now asynchronous and uses a task to process, write and flush logs
+   * Mods can now add callbacks for logs
+ * Make `ColorPickPopup` use a callback instead of a delegate (#1575)
+ * Remove functions previously marked with `[[deprecated]]`
+ * Add user flags to `CCNode` (5029468)
+ * Add `ScrollLayer::createDefaultListLayout`
+ * Add `CCDictionary::asExt` (#1647)
+ * Add `modify_cast` into `geode::cast` (#1485)
+ * Add "clean mode", allowing Geode to not be loaded by holding Alt+Shift during launch (#1669)
+ * Add enabling/disabling TextInput callback (#1279)
+ * Use loader release API for update checks (#1593)
+ * Add Signal class for reactive values
+ * Add `GameEventType::Exiting` (a91ecd1)
+ * Add fix for scissor inside a render texture (#1655)
+ * Remove Mod::getMetadataRef() (#1574)
+ * Update fmtlib to v12
+ * Use fast_float library for float & integer parsing (#1568)
+ * Bump minimum macOS version to 11 (#1648)
+ * Remove old Cacao functions (`vectorToCCArray`, `mapToCCDict`, etc) (866344e) 
+
+## ~~v4.11.0~~
  * Add random utils in `geode::utils::random` (6da879b, 5abd3a9, ad2146d)
  * Add string filtering utils (#1550)
  * Add `Ref::adopt` (29d4643)
@@ -17,6 +65,13 @@
  * Fix zip add methods on non-Windows platforms (d35caf2)
  * Fix VersionTag compare with tagged versions (01fa4a6)
  * Fix stack overflow on jitless iOS when disabling/re-enabling hooks in some cases (d21fd36)
+
+## v4.10.2
+* Revert bindings additions to resolve crashes on 32-bit Android
+
+## v4.10.1
+* Fix a crash on 2.208 forwards compatibility mode related to keybindings (e166de5)
+* Bindings additions for cocos2d classes (#1592)
 
 ## v4.10.0
  * Add `$on_game` macro for `GameEvent` events (679678f)

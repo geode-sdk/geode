@@ -74,17 +74,13 @@ namespace geode {
         cocos2d::CCSize const& size
     );
 
-    class GEODE_DLL ListBorders final : public cocos2d::CCNode {
+    class GEODE_DLL ListBorders : public cocos2d::CCNode {
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
     protected:
-        cocos2d::extension::CCScale9Sprite* m_top = nullptr;
-        cocos2d::extension::CCScale9Sprite* m_bottom = nullptr;
-        cocos2d::CCSprite* m_left = nullptr;
-        cocos2d::CCSprite* m_right = nullptr;
-        float m_topPadding = 7.5f;
-        float m_bottomPadding = 7.5f;
-
+        ListBorders();
+        ~ListBorders();
         bool init() override;
-
     public:
         static ListBorders* create();
 
@@ -98,6 +94,12 @@ namespace geode {
             float bottomPadding = 7.5f
         );
         void setContentSize(cocos2d::CCSize const& size) override;
+        cocos2d::extension::CCScale9Sprite* getTop();
+        cocos2d::extension::CCScale9Sprite* getBottom();
+        cocos2d::CCSprite* getLeft();
+        cocos2d::CCSprite* getRight();
+        float getTopPadding();
+        float getBottomPadding();
     };
 
     enum class BackButtonStyle {
