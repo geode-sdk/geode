@@ -141,7 +141,7 @@ namespace {
         }
     }
 
-    void onKeyDown(bool isController, jint keycode, jint modifiers, bool isRepeat) {
+    void onKeyDown(bool isController, jint keycode, jint modifiers, bool isRepeat, double timestamp) {
         if (keycode != AKEYCODE_BACK && keycode != AKEYCODE_MENU) {
             auto keyboard_dispatcher = cocos2d::CCDirector::sharedDirector()->getKeyboardDispatcher();
             auto translated_code = translateAndroidKeyCodeToWindows(keycode, isController);
@@ -154,7 +154,7 @@ namespace {
                 translated_code,
                 isRepeat ? KeyboardInputData::Action::Repeat : KeyboardInputData::Action::Press,
                 { static_cast<uint64_t>(keycode), 0 },
-                0.0, // TODO
+                timestamp,
                 (isShiftPressed ? KeyboardInputData::Mods_Shift : KeyboardInputData::Mods_None) |
                 (isCtrlPressed ? KeyboardInputData::Mods_Control : KeyboardInputData::Mods_None) |
                 (isAltPressed ? KeyboardInputData::Mods_Alt : KeyboardInputData::Mods_None)
@@ -187,7 +187,7 @@ namespace {
         }
     }
 
-    void onKeyUp(bool isController, jint keycode, jint modifiers) {
+    void onKeyUp(bool isController, jint keycode, jint modifiers, double timestamp) {
         // back/menu keys
         if (keycode != AKEYCODE_BACK && keycode != AKEYCODE_MENU) {
             auto keyboard_dispatcher = cocos2d::CCDirector::sharedDirector()->getKeyboardDispatcher();
@@ -201,7 +201,7 @@ namespace {
                 translated_code,
                 KeyboardInputData::Action::Release,
                 { static_cast<uint64_t>(keycode), 0 },
-                0.0, // TODO
+                timestamp,
                 (isShiftPressed ? KeyboardInputData::Mods_Shift : KeyboardInputData::Mods_None) |
                 (isCtrlPressed ? KeyboardInputData::Mods_Control : KeyboardInputData::Mods_None) |
                 (isAltPressed ? KeyboardInputData::Mods_Alt : KeyboardInputData::Mods_None)
@@ -265,11 +265,12 @@ extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inter
     }
 
     auto isController = eventSource == 0x00000401 || eventSource == 0x01000010;
+    double timeInSeconds = static_cast<double>(timestamp) / 1'000'000.0;
 
     if (isDown) {
-        onKeyDown(isController, keyCode, modifiers, repeatCount > 0);
+        onKeyDown(isController, keyCode, modifiers, repeatCount > 0, timeInSeconds);
     } else {
-        onKeyUp(isController, keyCode, modifiers);
+        onKeyUp(isController, keyCode, modifiers, timeInSeconds);
     }
 }
 
@@ -312,21 +313,21 @@ extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inter
         return;
     }
 
+    double timeInSeconds = static_cast<double>(timestamp) / 1'000'000.0;
     auto glView = cocos2d::CCDirector::sharedDirector()->getOpenGLView();
     switch (type) {
         case AndroidTouchInput::Type::Began:
             // idArr.size() should == 1, but we're going to be passing this array anyways so it doesn't matter
-            // TODO: v5
-            glView->handleTouchesBegin(idArr.size(), idArr.data(), xArr.data(), yArr.data(), 0.0);
+            glView->handleTouchesBegin(idArr.size(), idArr.data(), xArr.data(), yArr.data(), timeInSeconds);
             break;
         case AndroidTouchInput::Type::Moved:
-            glView->handleTouchesMove(idArr.size(), idArr.data(), xArr.data(), yArr.data(), 0.0);
+            glView->handleTouchesMove(idArr.size(), idArr.data(), xArr.data(), yArr.data(), timeInSeconds);
             break;
         case AndroidTouchInput::Type::Ended:
-            glView->handleTouchesEnd(idArr.size(), idArr.data(), xArr.data(), yArr.data(), 0.0);
+            glView->handleTouchesEnd(idArr.size(), idArr.data(), xArr.data(), yArr.data(), timeInSeconds);
             break;
         case AndroidTouchInput::Type::Cancelled:
-            glView->handleTouchesCancel(idArr.size(), idArr.data(), xArr.data(), yArr.data(), 0.0);
+            glView->handleTouchesCancel(idArr.size(), idArr.data(), xArr.data(), yArr.data(), timeInSeconds);
             break;
     }
 }
