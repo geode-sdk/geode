@@ -15,9 +15,11 @@
    * `Mod::expandSpriteName` now return `std::string`
    * New `StringBuffer` class for complex, no-allocation string formatting
  * WebRequest API rewrite (#1638)
- * Use dankmeme01/arc as new async runtime, ~~mostly~~ replacing `geode::Task`
+ * Use [dankmeme01/arc](https://github.com/dankmeme01/arc) as new async runtime, ~~mostly~~ replacing `geode::Task`
    * The new library uses C++20 coroutines and provides a lot of finer control
    * Web requests and file picker are now async
+ * Event V2
+   * So many changes, Ports and stuff
  * Android controller api (#1562)
  * Remove old dependency array syntax (#1573)
  * Remove support for mod.json gd as string (#1572)
@@ -32,8 +34,6 @@
  * Remove functions previously marked with `[[deprecated]]`
  * Add user flags to `CCNode` (5029468)
  * Add `ScrollLayer::createDefaultListLayout`
- * Event V2
-   * So many changes, Ports and stuff
  * Add `CCDictionary::asExt` (#1647)
  * Add `modify_cast` into `geode::cast` (#1485)
  * Add "clean mode", allowing Geode to not be loaded by holding Alt+Shift during launch (#1669)
