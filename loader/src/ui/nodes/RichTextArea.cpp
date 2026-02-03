@@ -18,9 +18,6 @@ public:
     std::map<CCFontSprite*, ccColor3B> m_ogColorForLink{};
 
     void charIteration(geode::FunctionRef<cocos2d::CCLabelBMFont*(cocos2d::CCLabelBMFont* line, char c, float top)> overflowHandling) override;
-
-    template <class T>
-    void registerRichTextKey(std::shared_ptr<RichTextKey<T>> key);
     void formatRichText();
 };
 
