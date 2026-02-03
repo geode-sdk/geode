@@ -52,43 +52,15 @@ namespace geode {
         float getHeight();
         float getLineHeight();
 
-        class Impl {
-        public:
-            bool m_shouldUpdate = false;
-            bool m_artificialWidth = false;
-            cocos2d::CCMenu* m_container = nullptr;
-            std::string m_font;
-            std::string m_text;
-            std::vector<cocos2d::CCLabelBMFont*> m_lines;
-            cocos2d::ccColor4B m_color = { 0xFF, 0xFF, 0xFF, 0xFF };
-            cocos2d::CCTextAlignment m_alignment = cocos2d::kCCTextAlignmentLeft;
-            WrappingMode m_wrappingMode = WORD_WRAP;
-            size_t m_maxLines = 0;
-            float m_scale = 1.f;
-            float m_lineHeight = 0.f;
-            float m_linePadding = 0.f;
-
-            SimpleTextArea* m_self = nullptr;
-
-            Impl(SimpleTextArea* self) : m_self(self) {}
-
-            cocos2d::CCLabelBMFont* createLabel(char const* text, float top);
-            float calculateOffset(cocos2d::CCLabelBMFont* label);
-            virtual void charIteration(geode::FunctionRef<cocos2d::CCLabelBMFont*(cocos2d::CCLabelBMFont* line, char c, float top)> overflowHandling);
-            void updateLinesNoWrap();
-            void updateLinesWordWrap(bool spaceWrap);
-            void updateLinesCutoffWrap();
-            void updateContainer();
-        };
     protected:
         SimpleTextArea();
         ~SimpleTextArea() override;
 
         bool init(std::string font, std::string text, float scale, float width, const bool artificialWidth);
-
-        std::unique_ptr<Impl> m_impl;
-    
     private:
         static SimpleTextArea* create(std::string font, std::string text, float scale, float width, const bool artificialWidth);
+
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
     };
 }
