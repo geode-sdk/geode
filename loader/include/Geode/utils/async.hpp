@@ -34,39 +34,53 @@ arc::TaskHandle<void> spawn(Fut future, Callback cb) {
     }(std::move(future), std::move(cb)));
 }
 
-
-/// Invokes a function that returns a future, asynchronously spawns it,
-/// and then invokes the given callback on the main thread when it completes.
-template <typename F, typename Cb> requires (arc::ReturnsPollable<std::decay_t<F>>)
-arc::TaskHandle<void> spawn(F&& f, Cb&& cb) {
-    geode::async::spawn(std::invoke(std::forward<F>(f)), std::forward<Cb>(cb));
+/// Asynchronously spawns a future, then invokes the given callback on the main thread when it completes.
+/// Overload for function objects that return a Future, i.e. `[] -> arc::Future {}`
+template <
+    typename Lambda,
+    typename Func = std::decay_t<Lambda>,
+    typename Out = arc::FutureTraits<std::invoke_result_t<Func>>::Output,
+    bool Void = std::is_void_v<Out>,
+    typename Callback = std::conditional_t<Void, Function<void()>, Function<void(Out)>>
+> requires (arc::ReturnsPollable<Func>)
+arc::TaskHandle<void> spawn(Lambda&& lambda, Callback cb) {
+    return runtime().spawn([](Lambda&& lambda, Callback cb) mutable -> arc::Future<> {
+        if constexpr (Void) {
+            co_await std::invoke(std::forward<Lambda>(lambda));
+            geode::queueInMainThread([cb = std::move(cb)] mutable {
+                cb();
+            });
+        } else {
+            auto result = co_await std::invoke(std::forward<Lambda>(lambda));
+            geode::queueInMainThread([cb = std::move(cb), result = std::move(result)] mutable {
+                cb(std::move(result));
+            });
+        }
+    }(std::forward<Lambda>(lambda), std::move(cb)));
 }
+
 
 /// Spawns a future as an async task, can be a function that returns a future.
 template <typename F> requires (arc::Spawnable<std::decay_t<F>>)
-arc::TaskHandle<void> spawn(F&& f) {
-    runtime().spawn(std::forward<F>(f));
+auto spawn(F&& f) {
+    return runtime().spawn(std::forward<F>(f));
 }
 
 /// Allows an async task to be spawned and then automatically aborted when the holder goes out of scope.
 template <typename Ret = void>
 class TaskHolder {
 public:
-    // spawn a nameless task, delegates the call to one of the two functions below
-    template <typename S, typename Cb>
-    void spawn(S&& func, Cb&& cb) {
-        this->spawn("", std::forward<S>(func), std::forward<Cb>(cb));
-    }
-
-    /// Calls the given function (which returns a future) and spawns the resulting future
-    template <typename L, typename Cb>
-    void spawn(std::string name, L&& func, Cb&& cb) requires arc::ReturnsPollable<std::decay_t<L>> {
-        this->spawn(std::move(name), std::invoke(std::forward<L>(func)), std::forward<Cb>(cb));
-    }
-
-    /// Spawns the given future
+    /// Spawns the given future, invoking the callback on completion.
+    /// Lambdas that return a future are also accepted.
     template <typename F, typename Cb>
-    void spawn(std::string name, F&& future, Cb&& cb) requires arc::IsPollable<std::decay_t<F>> {
+    void spawn(F&& future, Cb&& cb) {
+        this->spawn("", std::forward<F>(future), std::forward<Cb>(cb));
+    }
+
+    /// Spawns the given future, assigning a name to the task and invoking the callback on completion.
+    /// Lambdas that return a future are also accepted.
+    template <typename F, typename Cb>
+    void spawn(std::string name, F&& future, Cb&& cb) {
         this->spawnInner(std::move(name), std::forward<F>(future), std::forward<Cb>(cb));
     }
 
@@ -118,10 +132,12 @@ private:
         typename F,
         typename NonVoid = std::conditional_t<std::is_void_v<Ret>, std::monostate, Ret>,
         typename Callback = std::conditional_t<std::is_void_v<Ret>, Function<void()>, Function<void(NonVoid)>>
-    > requires (arc::IsPollable<std::decay_t<F>>)
+    >
     void spawnInner(std::string name, F&& future, Callback cb) {
+        using FutureOutput = typename arc::SpawnableOutput<std::decay_t<F>>::type;
+
         static_assert(
-            std::convertible_to<typename arc::FutureTraits<std::decay_t<F>>::Output, Ret>,
+            std::convertible_to<FutureOutput, Ret>,
             "Output of spawned future must be convertible to TaskHolder's expected return type"
         );
 

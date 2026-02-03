@@ -261,7 +261,7 @@ CPMAddPackage("gh:fmtlib/fmt#12.1.0")
 if (NOT PROJECT_IS_TOP_LEVEL AND NOT DEFINED ARC_FEATURE_FULL)
 	set(ARC_FEATURE_FULL OFF CACHE BOOL "" FORCE)
 endif()
-CPMAddPackage("gh:dankmeme01/arc#05e797d")
+CPMAddPackage("gh:dankmeme01/arc#b53ee98")
 
 target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)
 
