@@ -8,10 +8,14 @@
 
 namespace geode::async {
 
-/// Gets the main arc Runtime, prefer running all async code inside this runtime.
+/**
+ * Gets the main arc Runtime, prefer running all async code inside this runtime.
+ */
 GEODE_DLL arc::Runtime& runtime();
 
-/// Asynchronously spawns a future, then invokes the given callback on the main thread when it completes.
+/**
+ * Asynchronously spawns a future, then invokes the given callback on the main thread when it completes.
+ */
 template <
     typename Fut,
     typename Out = arc::FutureTraits<Fut>::Output,
@@ -34,21 +38,14 @@ arc::TaskHandle<void> spawn(Fut future, Callback cb) {
     }(std::move(future), std::move(cb)));
 }
 
-
-/// Invokes a function that returns a future, asynchronously spawns it,
-/// and then invokes the given callback on the main thread when it completes.
 template <typename F, typename Cb> requires (arc::ReturnsPollable<std::decay_t<F>>)
 arc::TaskHandle<void> spawn(F&& f, Cb&& cb) {
     geode::async::spawn(std::invoke(std::forward<F>(f)), std::forward<Cb>(cb));
 }
 
-/// Spawns a future as an async task, can be a function that returns a future.
-template <typename F> requires (arc::Spawnable<std::decay_t<F>>)
-arc::TaskHandle<void> spawn(F&& f) {
-    runtime().spawn(std::forward<F>(f));
-}
-
-/// Allows an async task to be spawned and then automatically aborted when the holder goes out of scope.
+/**
+ * Allows an async task to be spawned and then automatically aborted when the holder goes out of scope.
+ */
 template <typename Ret = void>
 class TaskHolder {
 public:

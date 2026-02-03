@@ -581,89 +581,14 @@ Result<ModMetadata> ModMetadata::Impl::createFromFile(std::filesystem::path cons
     return Ok(info);
 }
 
-Result<ModMetadata> ModMetadata::Impl::createFromGeodeZipFallback(utils::file::Unzip& unzip) {
-    // Check if mod.json exists in zip
-    if (!unzip.hasEntry("mod.json")) {
-        return Err("\"{}\" is missing mod.json", unzip.getPath());
-    }
-
-    // Read mod.json & parse if possible
-    GEODE_UNWRAP_INTO(
-        auto jsonData, unzip.extract("mod.json").mapErr([](auto const& err) {
-            return fmt::format("Unable to extract mod.json: {}", err);
-        })
-    );
-
-    ModJson json = GEODE_UNWRAP(matjson::parse(std::string(jsonData.begin(), jsonData.end())).mapErr([](auto const& err) {
-        return fmt::format("Unable to parse mod.json: {}", err);
-    }));
-
-    ModMetadata info{};
-    auto impl = info.m_impl.get();
-
-    GEODE_UNWRAP_INTO(auto id, json["id"].asString());
-
-    // ideally, we'd ignore most of the restrictions and only focus on those that are harmful to the filesystem
-    // but not for now
-    if (!ModMetadata::Impl::validateID(id)) {
-        return Err("Unable to parse mod.json: invalid ID format");
-    }
-
-    info.m_impl->m_id = id;
-    impl->m_name = json["name"].asString().unwrapOrElse([&]() {
-        return utils::string::pathToString(unzip.getPath().filename());
-    });
-
-    impl->m_path = unzip.getPath();
-
-    return Ok(info);
-}
-
-ModMetadata ModMetadata::Impl::createFromGeodeFileWithFallback(std::filesystem::path const& path) {
-    // result code looks weird when you don't want to return a result
-
-    // attempt to unzip, otherwise return invalid mod with unzip error
-    auto r = file::Unzip::create(path);
-    if (!r) {
-        return createInvalidMetadata(path, r.unwrapErr(), LoadProblem::Type::InvalidFile);
-    }
-
-    auto&& unzip = std::move(r.unwrap());
-
-    // attempt to parse mod normally
-    auto fullAttempt = ModMetadata::createFromGeodeZip(unzip);
-    if (!fullAttempt) {
-        // if failed, attempt to parse id for updates
-        auto minimalAttempt = ModMetadataImpl::createFromGeodeZipFallback(unzip);
-        if (minimalAttempt) {
-            auto&& minimalMetadata = std::move(minimalAttempt.unwrap());
-
-            // store invalid reason to stop loading + display ui
-            minimalMetadata.m_impl->m_softInvalidReason = {
-                std::string(fullAttempt.unwrapErr()),
-                LoadProblem::Type::InvalidFile
-            };
-
-            return minimalMetadata;
-        }
-
-        // if parsing id failed, return invalid mod with normal mod parsing error
-        return createInvalidMetadata(path, fullAttempt.unwrapErr(), LoadProblem::Type::InvalidFile);
-    }
-
-    return fullAttempt.unwrap();
-}
-
-ModMetadata ModMetadata::Impl::createInvalidMetadata(std::filesystem::path const& path, std::string_view error, LoadProblem::Type type) {
+ModMetadata ModMetadata::Impl::createInvalidMetadata(std::string_view name, std::string_view error, LoadProblem::Type type) {
     ModMetadata v{};
-    v.m_impl->m_name = utils::string::pathToString(path.filename());
+    v.m_impl->m_name = name;
     v.m_impl->m_softInvalidReason = {
         std::string(error), type
     };
 
     v.m_impl->m_developers = {"-"};
-    v.m_impl->m_ephemeral = true;
-    v.m_impl->m_path = path;
 
     // generate a random id to prevent conflicts with existing mods
     constexpr std::string_view alphabet = "abcdefghijklmnopqrstuvwxyz0123456789_-";

@@ -109,7 +109,7 @@ ZStringView Mod::Impl::getName() const {
 }
 
 bool Mod::Impl::isEphemeral() const {
-    return ModMetadataImpl::getImpl(m_metadata).m_ephemeral;
+    return ModMetadataImpl::getImpl(m_metadata).m_softInvalidReason.has_value();
 }
 
 std::vector<std::string> const& Mod::Impl::getDevelopers() const {

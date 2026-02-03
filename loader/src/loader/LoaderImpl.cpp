@@ -317,7 +317,19 @@ void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
             log::debug("Found {}", entry.path().filename());
             log::NestScope nest;
 
-            auto modMetadata = ModMetadataImpl::createFromGeodeFileWithFallback(entry.path());
+            auto res = ModMetadata::createFromGeodeFile(entry.path());
+            if (!res) {
+                log::error("Failed to queue: {}", res.unwrapErr());
+
+                auto modMetadata = ModMetadataImpl::createInvalidMetadata(
+                    entry.path().filename().string(),
+                    res.unwrapErr(),
+                    LoadProblem::Type::InvalidFile
+                );
+                modQueue.push_back(modMetadata);
+                continue;
+            }
+            auto modMetadata = res.unwrap();
 
             log::debug("id: {}", modMetadata.getID());
             log::debug("version: {}", modMetadata.getVersion());
@@ -329,7 +341,7 @@ void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
                 log::error("Failed to queue: a mod with the same ID is already queued");
 
                 auto modMetadata = ModMetadataImpl::createInvalidMetadata(
-                    entry.path(),
+                    entry.path().filename().string(),
                     "A mod with the same ID is already present.",
                     LoadProblem::Type::Duplicate
                 );

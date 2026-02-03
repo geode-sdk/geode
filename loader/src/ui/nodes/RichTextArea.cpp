@@ -17,6 +17,10 @@ public:
 
     std::map<std::string, std::shared_ptr<RichTextKeyBase>> m_richTextKeys;
     std::map<int, std::vector<std::shared_ptr<RichTextKeyInstanceBase>>> m_richTextInstances;
+    std::map<std::shared_ptr<RichTextKeyInstanceBase>, std::set<CCFontSprite*>> m_charactersForButton{};
+    std::shared_ptr<RichTextKeyInstanceBase> m_currentlyHeldButton = nullptr;
+
+    std::map<CCFontSprite*, ccColor3B> m_ogColorForLink{};
     
 };
 
@@ -42,6 +46,8 @@ RichTextArea* RichTextArea::create(std::string font, std::string text, float sca
 }
 
 bool RichTextArea::init(std::string font, std::string text, float scale, float width, bool artificialWidth) {
+    CCTouchDispatcher::get()->addTargetedDelegate(this, 0, true);
+
     if (!SimpleTextArea::init(font, text, scale, width, artificialWidth)) return false;
 
     static_cast<RichTextArea::RichImpl*>(m_impl.get())->registerRichTextKey<ccColor3B>(std::make_shared<RichTextKey<ccColor3B>>(
@@ -52,7 +58,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
 
             return Ok(colorRes.unwrap());
         },
-        [](const ccColor3B& value, cocos2d::CCFontSprite* sprite) {
+        [](ccColor3B const& value, cocos2d::CCFontSprite* sprite) {
             sprite->setColor({ value.r, value.g, value.b });
         }
     ));
@@ -68,7 +74,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
 
             return Ok(value == "true");
         },
-        [](const bool& value, cocos2d::CCFontSprite* sprite) {
+        [](bool const& value, cocos2d::CCFontSprite* sprite) {
             sprite->setFlipY(value);
         }
     ));
@@ -84,7 +90,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
 
             return Ok(value == "true");
         },
-        [](const bool& value, cocos2d::CCFontSprite* sprite) {
+        [](bool const& value, cocos2d::CCFontSprite* sprite) {
             sprite->setFlipX(value);
         }
     ));
@@ -97,8 +103,40 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
 
             return Ok(timeRes.unwrap());
         },
-        [](const std::time_t& value) -> std::string {
+        [](std::time_t const& value) -> std::string {
             return "fmt::format(\"{:%Y-%m-%d %H:%M:%S}\", fmt::localtime(value))";
+        }
+    ));
+
+    static_cast<RichTextArea::RichImpl*>(m_impl.get())->registerRichTextKey<std::string>(std::make_shared<RichTextKey<std::string>>(
+        "link",
+        [](std::string value) -> Result<std::string> {
+            return Ok(value);
+        },
+        [&](std::string const& value, bool keyDown, cocos2d::CCFontSprite* specificSpriteClicked, std::set<cocos2d::CCFontSprite*> const& wordClicked) {
+
+            if (keyDown){
+                for (const auto& linkCharacter : wordClicked)
+                {
+                    static_cast<RichTextArea::RichImpl*>(m_impl.get())
+                        ->m_ogColorForLink.insert({linkCharacter, linkCharacter->getColor()});
+
+                    linkCharacter->setColor({ 78, 78, 255 });
+                }
+            }
+            else{
+                auto castedImpl = static_cast<RichTextArea::RichImpl*>(m_impl.get());
+
+                for (const auto& linkCharacter : wordClicked)
+                {
+                    if (castedImpl->m_ogColorForLink.contains(linkCharacter)){
+                        linkCharacter->setColor(castedImpl->m_ogColorForLink[linkCharacter]);
+                    }
+                }
+                
+                if (specificSpriteClicked != nullptr)
+                    web::openLinkInBrowser(value);
+            }
         }
     ));
 
@@ -112,8 +150,6 @@ void RichTextArea::RichImpl::charIteration(geode::FunctionRef<cocos2d::CCLabelBM
     m_lines.clear();
     CCLabelBMFont* line = this->createLabel("", top);
     m_lines = { line };
-
-    log::info("char it text");
 
     std::map<std::string, std::shared_ptr<RichTextKeyInstanceBase>> appliedRichTextInstances{};
 
@@ -158,7 +194,21 @@ void RichTextArea::RichImpl::charIteration(geode::FunctionRef<cocos2d::CCLabelBM
 
         if (line->getChildren()->lastObject() != nullptr){
             for (const auto& [key, instancePtr] : appliedRichTextInstances) {
-                instancePtr->applyChangesToSprite(static_cast<cocos2d::CCFontSprite*>(line->getChildren()->lastObject()));
+                auto lastChar = static_cast<cocos2d::CCFontSprite*>(line->getChildren()->lastObject());
+
+                instancePtr->applyChangesToSprite(lastChar);
+                
+                if (instancePtr->isButton()){
+                    if (!instancePtr->isCancellation()){
+                        if (m_charactersForButton.contains(instancePtr)){
+                            m_charactersForButton[instancePtr].insert(lastChar);
+                        }
+                        else{
+                            m_charactersForButton.insert({instancePtr, {lastChar}});
+                        }
+                    }
+                }
+                
             }
         }
     }
@@ -263,7 +313,7 @@ std::string RichTextKeyInstance<T>::runStrAddition() {
 }
 
 template <class T>
-Result<std::shared_ptr<RichTextKeyInstanceBase>> RichTextKey<T>::createInstance(const std::string& value, bool cancellation) {
+Result<std::shared_ptr<RichTextKeyInstanceBase>> RichTextKey<T>::createInstance(std::string const& value, bool cancellation) {
     if (cancellation){
         if (value == ""){
             return Ok(std::make_shared<RichTextKeyInstance<T>>(
@@ -286,4 +336,52 @@ void RichTextArea::setText(std::string text) {
     m_impl->m_text = std::move(text);
     static_cast<RichTextArea::RichImpl*>(m_impl.get())->formatRichText();
     m_impl->updateContainer();
+}
+
+bool RichTextArea::ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent){
+    auto castedImpl = static_cast<RichTextArea::RichImpl*>(m_impl.get());
+
+    for (const auto& [btnKey, textForBtn] : castedImpl->m_charactersForButton)
+    {
+        for (const auto& fontSpr : textForBtn)
+        {
+            auto touchInSpace = fontSpr->getParent()->convertTouchToNodeSpace(pTouch);
+            if (fontSpr->boundingBox().containsPoint(touchInSpace)){
+                btnKey->callButton(true, fontSpr, textForBtn);
+                castedImpl->m_currentlyHeldButton = btnKey;
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+void RichTextArea::ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent){
+    auto castedImpl = static_cast<RichTextArea::RichImpl*>(m_impl.get());
+
+    if (castedImpl->m_charactersForButton.contains(castedImpl->m_currentlyHeldButton)){
+        auto textForBtn = castedImpl->m_charactersForButton[castedImpl->m_currentlyHeldButton];
+
+        for (const auto& fontSpr : textForBtn)
+        {
+            auto touchInSpace = fontSpr->getParent()->convertTouchToNodeSpace(pTouch);
+            if (fontSpr->boundingBox().containsPoint(touchInSpace)){
+                castedImpl->m_currentlyHeldButton->callButton(false, fontSpr, textForBtn);
+                castedImpl->m_currentlyHeldButton = nullptr;
+                return;
+            }
+        }
+
+        castedImpl->m_currentlyHeldButton->callButton(false, nullptr, textForBtn);
+    }
+
+    castedImpl->m_currentlyHeldButton = nullptr;
+}
+void RichTextArea::ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent){
+    RichTextArea::ccTouchEnded(pTouch, pEvent);
+}
+
+RichTextArea::~RichTextArea(){
+    CCTouchDispatcher::get()->removeDelegate(this);
 }

@@ -16,8 +16,10 @@
 
 #if defined (_MSC_VER) && !defined(__clang__)
     #define GEODE_CXX_STANDARD _MSVC_LANG
+    #define GEODE_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
 #else
     #define GEODE_CXX_STANDARD __cplusplus
+    #define GEODE_NO_UNIQUE_ADDRESS [[no_unique_address]]
 #endif
 
 static_assert(
@@ -43,7 +45,6 @@ static_assert(
 
     #define GEODE_API extern "C" __declspec(dllexport)
     #define GEODE_EXPORT __declspec(dllexport)
-    #define GEODE_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
 
     #if defined(GEODE_IS_WINDOWS64)
         #define GEODE_IS_X64
@@ -70,7 +71,6 @@ static_assert(
 
     #define GEODE_API extern "C" __attribute__((visibility("default")))
     #define GEODE_EXPORT __attribute__((visibility("default")))
-    #define GEODE_NO_UNIQUE_ADDRESS [[no_unique_address]]
 
     #define GEODE_IS_X64
     #define GEODE_CDECL_CALL
@@ -92,7 +92,6 @@ static_assert(
 
     #define GEODE_API extern "C" __attribute__((visibility("default")))
     #define GEODE_EXPORT __attribute__((visibility("default")))
-    #define GEODE_NO_UNIQUE_ADDRESS [[no_unique_address]]
 
     #define GEODE_IS_X64
     #define GEODE_CDECL_CALL
@@ -114,7 +113,6 @@ static_assert(
 
     #define GEODE_API extern "C" __attribute__((visibility("default")))
     #define GEODE_EXPORT __attribute__((visibility("default")))
-    #define GEODE_NO_UNIQUE_ADDRESS [[no_unique_address]]
 
     #if defined(GEODE_IS_ANDROID64)
         #define GEODE_IS_X64
