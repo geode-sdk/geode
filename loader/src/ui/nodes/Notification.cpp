@@ -5,7 +5,7 @@
 using namespace geode::prelude;
 
 constexpr auto NOTIFICATION_FADEIN = .3f;
-constexpr auto NOTIFICATION_FADEOUT = 1.f;
+constexpr auto NOTIFICATION_FADEOUT = .5f;
 
 std::vector<Ref<Notification>> Notification::s_queue;
 
@@ -160,12 +160,21 @@ void Notification::show() {
     m_showing = true;
 
     m_content->setOpacity(0);
+    m_content->setScale(.6f);
+    m_content->setPositionY(-60.f);
     m_bg->setOpacity(0);
+    m_bg->setScale(.6f);
+    m_bg->setPositionY(-60.f);
 
     this->runAction(CCSequence::create(
         CallFuncExt::create([this] {
-            m_bg->runAction(CCFadeTo::create(NOTIFICATION_FADEIN, 150));
             m_content->runAction(CCFadeTo::create(NOTIFICATION_FADEIN, 255));
+            m_content->runAction(CCEaseExponentialOut::create(CCScaleTo::create(NOTIFICATION_FADEIN, 1.f, 1.f)));
+            m_content->runAction(CCEaseExponentialOut::create(CCMoveBy::create(NOTIFICATION_FADEIN, { 0.f, 60.f })));
+
+            m_bg->runAction(CCFadeTo::create(NOTIFICATION_FADEIN, 150));
+            m_bg->runAction(CCEaseExponentialOut::create(CCScaleTo::create(NOTIFICATION_FADEIN, 1.f, 1.f)));
+            m_bg->runAction(CCEaseExponentialOut::create(CCMoveBy::create(NOTIFICATION_FADEIN, { 0.f, 60.f })));
         }),
 
         CCDelayTime::create(NOTIFICATION_FADEIN),
@@ -191,11 +200,22 @@ void Notification::hide() {
 
     this->runAction(CCSequence::create(
         CallFuncExt::create([this] {
-            m_bg->runAction(CCFadeTo::create(NOTIFICATION_FADEOUT, 0));
-            m_content->runAction(CCFadeTo::create(NOTIFICATION_FADEOUT, 0));
+            m_content->runAction(CCEaseExponentialIn::create(CCFadeTo::create(NOTIFICATION_FADEOUT, 0)));
+            m_content->runAction(CCEaseExponentialIn::create(CCMoveBy::create(NOTIFICATION_FADEOUT, { 0.f, -25.f })));
+
+            m_bg->runAction(CCEaseExponentialIn::create(CCFadeTo::create(NOTIFICATION_FADEOUT, 0)));
+            m_bg->runAction(CCEaseExponentialIn::create(CCMoveBy::create(NOTIFICATION_FADEOUT, { 0.f, -25.f })));
         }),
 
-        CCDelayTime::create(NOTIFICATION_FADEOUT),
+        CCDelayTime::create(NOTIFICATION_FADEOUT * .25f),
+
+        CallFuncExt::create([this] {
+            m_content->runAction(CCEaseExponentialIn::create(CCScaleTo::create(NOTIFICATION_FADEOUT, .2f, .2f)));
+            m_bg->runAction(CCEaseExponentialIn::create(CCScaleTo::create(NOTIFICATION_FADEOUT, .2f, .2f)));
+        }),
+
+        CCDelayTime::create(NOTIFICATION_FADEOUT * .75f),
+
         CCCallFunc::create(this, callfunc_selector(Notification::showNextNotification)),
         nullptr
     ));

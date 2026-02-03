@@ -7,7 +7,7 @@
 #include "../utils/cocos.hpp"
 
 namespace geode {
-    constexpr auto NOTIFICATION_DEFAULT_TIME = 1.f;
+    constexpr auto NOTIFICATION_DEFAULT_TIME = 1.8f;
     constexpr auto NOTIFICATION_LONG_TIME = 4.f;
 
     enum class NotificationIcon {
