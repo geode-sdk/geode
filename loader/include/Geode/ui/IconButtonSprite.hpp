@@ -7,7 +7,7 @@ namespace cocos2d::extension {
 }
 
 namespace geode {
-    class GEODE_DLL IconButtonSprite final : public cocos2d::CCSprite, public cocos2d::CCLabelProtocol {
+    class GEODE_DLL IconButtonSprite : public cocos2d::CCSprite, public cocos2d::CCLabelProtocol {
         class Impl;
         std::unique_ptr<Impl> m_impl;
     protected:
