@@ -725,10 +725,7 @@ WebFuture WebRequest::patch(std::string url) {
 }
 
 WebResponse WebRequest::sendSync(std::string method, std::string url) {
-    m_impl->m_method = std::move(method);
-    m_impl->m_url = std::move(url);
-
-    auto fut = WebRequestsManager::get()->enqueueAndWait(m_impl);
+    auto fut = this->send(std::move(method), std::move(url));
     return async::runtime().blockOn(std::move(fut));
 }
 WebResponse WebRequest::postSync(std::string url) {
