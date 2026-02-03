@@ -43,7 +43,7 @@ namespace geode {
     /**
      * A single-line text input node
      */
-    class GEODE_DLL TextInput final : public cocos2d::CCNode, public TextInputDelegate {
+    class GEODE_DLL TextInput : public cocos2d::CCNode, public TextInputDelegate {
         class Impl;
         std::unique_ptr<Impl> m_impl;
     protected:

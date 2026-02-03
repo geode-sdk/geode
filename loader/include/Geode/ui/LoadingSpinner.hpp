@@ -9,7 +9,7 @@ namespace geode {
      * content size and is a lot more stripped down (not requiring a `show`
      * method or anything - it just works!)
      */
-    class GEODE_DLL LoadingSpinner final : public cocos2d::CCNode {
+    class GEODE_DLL LoadingSpinner : public cocos2d::CCNode {
         class Impl;
         std::unique_ptr<Impl> m_impl;
     protected:
