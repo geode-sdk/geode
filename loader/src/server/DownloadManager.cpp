@@ -1,5 +1,5 @@
 #include "DownloadManager.hpp"
-#include "Geode/loader/Mod.hpp"
+#include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/StringMap.hpp>
@@ -63,6 +63,8 @@ public:
                         .details = std::move(result.unwrapErr().details),
                     };
                 }
+
+                ModDownloadEvent(std::string(m_id)).send();
             }
         );
 
