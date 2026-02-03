@@ -166,7 +166,7 @@ namespace geode {
         /**
          * Get the platforms this setting is available on
          */
-        std::vector<PlatformID> getPlatforms() const;
+        PlatformID getPlatforms() const;
 
         virtual bool load(matjson::Value const& json) = 0;
         virtual bool save(matjson::Value& json) const = 0;
