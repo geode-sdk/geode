@@ -171,7 +171,6 @@ bool Notification::isShowing() {
     return m_impl->showing;
 }
 
-
 void Notification::animateIn() {
     m_impl->label->setOpacity(0);
     if (m_impl->icon) {
