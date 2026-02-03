@@ -403,7 +403,7 @@ namespace geode::comm {
             return ListenerHandle(m_filter, m_handle, m_remover, false);
         }
 
-        ListenerHandle* leak() noexcept {
+        ListenerHandle* leak() {
             return new ListenerHandle(std::move(*this));
         }
 
