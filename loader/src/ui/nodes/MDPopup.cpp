@@ -5,7 +5,7 @@
 
 using namespace geode::prelude;
 
-class MDPopup::Impl {
+class MDPopup::Impl final {
 public:
     geode::Function<void(bool)> onClick = nullptr;
 };

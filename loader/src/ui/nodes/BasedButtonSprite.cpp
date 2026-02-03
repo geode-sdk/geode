@@ -184,7 +184,7 @@ static std::string baseEnumsToString(BaseType type, int size, int color) {
     return fmt::format("base{}_{}_{}.png", typeStr, sizeStr, colorStr);
 }
 
-class BasedButtonSprite::Impl {
+class BasedButtonSprite::Impl final {
 public:
     BaseType type;
     int size;

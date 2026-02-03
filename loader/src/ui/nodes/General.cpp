@@ -131,7 +131,7 @@ void geode::addListBorders(CCNode* to, CCPoint const& center, CCSize const& size
     to->addChild(layerRightSpr);
 }
 
-class ListBorders::Impl {
+class ListBorders::Impl final {
 public:
     cocos2d::extension::CCScale9Sprite* top = nullptr;
     cocos2d::extension::CCScale9Sprite* bottom = nullptr;

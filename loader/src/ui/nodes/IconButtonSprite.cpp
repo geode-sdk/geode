@@ -4,7 +4,7 @@
 
 using namespace geode::prelude;
 
-class IconButtonSprite::Impl {
+class IconButtonSprite::Impl final {
 public:
     cocos2d::extension::CCScale9Sprite* bg = nullptr;
     cocos2d::CCLabelBMFont* label = nullptr;
