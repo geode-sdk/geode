@@ -1,7 +1,7 @@
 # Geode Changelog
 
 ## v5.0.0-alpha.1 (WIP changelog)
- * *Options marked with **(!)** are breaking changes. If you're a mod developer, please see [this page for a migration guide](https://docs.geode-sdk.org/tutorials/migrate-v5).*
+ * *Fields marked with **(!)** are breaking changes. If you're a mod developer, please see [this page for a migration guide](https://docs.geode-sdk.org/tutorials/migrate-v5).*
  * Geometry Dash 2.208x support
  * Switch to C++23 **(!)**
  * Remove `geode::cast:as`
