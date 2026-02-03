@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/ui/TextArea.hpp>
+#include <memory>
 
 namespace geode {
 
@@ -68,15 +69,15 @@ namespace geode {
             @param applyToSprite Function to apply the parsed value to a font sprite (optional)
         */
         RichTextKey(
-            std::string key, 
-            geode::Function<Result<T>(std::string const& value)> validCheck, 
+            std::string key,
+            geode::Function<Result<T>(std::string const& value)> validCheck,
             geode::Function<void(
                 T const& value,
                 bool keyDown,
-                cocos2d::CCFontSprite* specificSpriteClicked, 
+                cocos2d::CCFontSprite* specificSpriteClicked,
                 std::set<cocos2d::CCFontSprite*> const& wordClicked)> buttonFunctionallity
         ) : m_key(std::move(key)),
-            m_validCheck(std::move(validCheck)), 
+            m_validCheck(std::move(validCheck)),
             m_buttonFunctionallity(std::move(buttonFunctionallity)) {}
         /**
             @param key The identifier name for this rich text key
@@ -84,11 +85,11 @@ namespace geode {
             @param applyToSprite Function to apply the parsed value to a font sprite (optional)
         */
         RichTextKey(
-            std::string key, 
-            geode::Function<Result<T>(std::string const& value)> validCheck, 
+            std::string key,
+            geode::Function<Result<T>(std::string const& value)> validCheck,
             geode::Function<void(T const& value, cocos2d::CCFontSprite* sprite)> applyToSprite
-        ) : m_key(std::move(key)), 
-            m_validCheck(std::move(validCheck)), 
+        ) : m_key(std::move(key)),
+            m_validCheck(std::move(validCheck)),
             m_applyToSprite(std::move(applyToSprite)) {}
         /**
             @param key The identifier name for this rich text key
@@ -97,10 +98,10 @@ namespace geode {
         */
         RichTextKey(
             std::string key,
-            geode::Function<Result<T>(std::string const& value)> validCheck, 
+            geode::Function<Result<T>(std::string const& value)> validCheck,
             geode::Function<std::string(T const& value)> stringAddition
-        ) : m_key(std::move(key)), 
-            m_validCheck(std::move(validCheck)), 
+        ) : m_key(std::move(key)),
+            m_validCheck(std::move(validCheck)),
             m_stringAddition(std::move(stringAddition)) {}
         /**
             @param key The identifier name for this rich text key
@@ -110,20 +111,20 @@ namespace geode {
         */
         RichTextKey(
             std::string key,
-            geode::Function<Result<T>(std::string const& value)> validCheck, 
+            geode::Function<Result<T>(std::string const& value)> validCheck,
             geode::Function<void(T const& value, cocos2d::CCFontSprite* sprite)> applyToSprite,
             geode::Function<std::string(T const& value)> stringAddition
         ) : m_key(std::move(key)),
             m_validCheck(std::move(validCheck)),
             m_applyToSprite(std::move(applyToSprite)),
             m_stringAddition(std::move(stringAddition)) {}
-        
+
         Result<std::shared_ptr<RichTextKeyInstanceBase>> createInstance(std::string const& value, bool cancellation) override;
 
         std::string getKey() const override {
             return m_key;
         }
-        
+
     private:
         std::string m_key;
 
@@ -134,7 +135,7 @@ namespace geode {
         geode::Function<void(
                 T const& value,
                 bool keyDown,
-                cocos2d::CCFontSprite* specificSpriteClicked, 
+                cocos2d::CCFontSprite* specificSpriteClicked,
                 std::set<cocos2d::CCFontSprite*> const& wordClicked)> m_buttonFunctionallity = NULL;
     };
 
@@ -146,22 +147,22 @@ namespace geode {
 
         void setText(std::string text) override;
 
-        template <class T>
+        template<class T>
         void registerRichTextKey(std::shared_ptr<RichTextKey<T>> key);
-    
     protected:
         ~RichTextArea();
-    
+
     private:
         static RichTextArea* create(std::string font, std::string text, float scale, float width, const bool artificialWidth);
 
         bool init(std::string font, std::string text, float scale, float width, const bool artificialWidth);
 
-        class RichImpl;
-
         bool ccTouchBegan(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent) override;
 
         void ccTouchEnded(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent) override;
         void ccTouchCancelled(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent) override;
+
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
     };
 }

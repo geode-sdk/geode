@@ -355,7 +355,7 @@ namespace geode::comm {
         static_assert(std::is_same_v<Marker, void>, "BasicEvent specialization missing");
     };
 
-    class ListenerHandle {
+    class [[nodiscard("ListenerHandle is immediately destroyed unless stored or .leak() is called")]] ListenerHandle {
     private:
         std::weak_ptr<BaseFilter> m_filter;
         ReceiverHandle m_handle = ReceiverHandle{};
@@ -399,7 +399,7 @@ namespace geode::comm {
             return ListenerHandle(m_filter, m_handle, m_remover, false);
         }
 
-        ListenerHandle* leak() noexcept {
+        ListenerHandle* leak() {
             return new ListenerHandle(std::move(*this));
         }
 
