@@ -1,13 +1,14 @@
 # Geode Changelog
 
 ## v5.0.0-alpha.1 (WIP changelog)
- * 2.208x support
- * Switch to C++23
+ * *Options marked with **(!)** are breaking changes. If you're a mod developer, please see [this page for a migration guide](https://docs.geode-sdk.org/tutorials/migrate-v5).*
+ * Geometry Dash 2.208x support
+ * Switch to C++23 **(!)**
  * Remove `geode::cast:as`
  * Remove `CCARRAY_FOREACH` and `CCDICT_FOREACH` macros
    * use geode's ext classes instead
  * Replace most `std::function` with `std::move_only_function` and `std::function_ref`
- * Refactor a lot of string usages
+ * Refactor a lot of string usages **(!)**
    * New `ZStringView` class, for null terminated string views
    * Replace `std::string` with `std::string_view` in a lot of places
    * `StringMap` for an optimized `std::unordered_map` specialization
@@ -21,27 +22,27 @@
  * Add `Ref::take` (32abe45)
  * Add Back Button function for layers (#1542)
  * Allow HTML tags in link text (#1600)
- * Remove Mod::getMetadataRef() (#1574)
+ * Remove `Mod::getMetadataRef()` (#1574) **(!)**
  * Remove old dependency array syntax (#1573)
  * Remove support for mod.json gd as string (#1572)
  * Make `ColorPickPopup` use a callback instead of a delegate (#1575)
- * Remove functions previously marked with `[[deprecated]]`
- * `geode::Popup` is no longer templated (dfe5f74)
+ * Remove functions previously marked with `[[deprecated]]` **(!)**
+ * `geode::Popup` is no longer templated (dfe5f74) **(!)**
  * Add user flags to `CCNode` (5029468)
  * Add `ScrollLayer::createDefaultListLayout`
- * Remove old Cacao functions (`vectorToCCArray`, `mapToCCDict`, etc) (866344e) 
+ * Remove old Cacao functions (`vectorToCCArray`, `mapToCCDict`, etc) (866344e)
  * WebRequest API rewrite (#1638)
  * Event V2
    * So many changes, Ports and stuff
- * Use dankmeme01/arc as new async runtime, ~~mostly~~ replacing `geode::Task`
+ * Use `dankmeme01/arc` as new async runtime, ~~mostly~~ replacing `geode::Task` **(!)**
    * The new library uses C++20 coroutines and provides a lot of finer control
  * Add fix for scissor inside a render texture (#1655)
  * Add `CCDictionary::asExt` (#1647)
- * Bump minimum macOS version to 11 (#1648)
+ * Set minimum macOS version to 11.0 (Big Sur) (#1648)
  * Add `modify_cast` into `geode::cast` (#1485)
- * Add "clean mode" (#1669)
+ * Add new "Clean Mode" (option to load GD without Geode) (#1646)
  * Add enabling/disabling TextInput callback (#1279)
- * Update fmtlib to v12
+ * Update `fmtlib` to v12 **(!)**
  * Use loader release API for update checks (#1593)
  * Add Signal class for reactive values
  * Add `GameEventType::Exiting` (a91ecd1)
