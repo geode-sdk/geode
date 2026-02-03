@@ -1018,7 +1018,7 @@ public:
         });
         curl_multi_setopt(m_multiHandle, CURLMOPT_TIMERDATA, this);
 
-        m_worker = async::runtime().spawn([this](this auto self, auto rx, auto crx) -> arc::Future<> {
+        m_worker = async::runtime().spawn([this, rx = std::move(rx), crx = std::move(crx)] mutable -> arc::Future<> {
             bool running = true;
             while (running) {
                 co_await arc::select(
@@ -1040,7 +1040,7 @@ public:
                     )
                 );
             }
-        }(std::move(rx), std::move(crx)));
+        });
         m_worker->setName("Geode Web Worker");
     }
 
