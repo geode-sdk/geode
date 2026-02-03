@@ -30,7 +30,7 @@ namespace geode {
      * account; `level:<id>` to link to a GD level and
      * `mod:<id>` to link to another Geode mod.
      */
-    class GEODE_DLL MDTextArea final :
+    class GEODE_DLL MDTextArea :
         public cocos2d::CCLayer,
         public cocos2d::CCLabelProtocol,
         public FLAlertLayerProtocol {
