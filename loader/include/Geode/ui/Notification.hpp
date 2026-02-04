@@ -24,12 +24,9 @@ namespace geode {
         std::unique_ptr<Impl> m_impl;
     protected:
         static std::vector<geode::Ref<Notification>> s_queue;
-        cocos2d::extension::CCScale9Sprite* m_bg;
-        cocos2d::CCLabelBMFont* m_label;
-        cocos2d::CCNodeRGBA* m_content;
-        cocos2d::CCNode* m_icon = nullptr;
-        float m_time;
-        bool m_showing = false;
+
+        Notification();
+        ~Notification();
 
         bool init(ZStringView text, cocos2d::CCNode* icon, float time);
         void updateLayout();
@@ -38,6 +35,12 @@ namespace geode {
 
         void showNextNotification();
         void waitThenHide();
+
+    private:
+        cocos2d::extension::CCScale9Sprite* getBG();
+        cocos2d::CCLabelBMFont* getLabel();
+        cocos2d::CCNodeRGBA* getContent();
+        bool isShowing();
 
     public:
         /**
@@ -72,7 +75,9 @@ namespace geode {
         void setString(ZStringView text);
         void setIcon(NotificationIcon icon);
         void setIcon(cocos2d::CCNode* icon);
+        cocos2d::CCNode* getIcon();
         void setTime(float time);
+        float getTime();
 
         /**
          * Adds the notification to the current scene if it doesn't have a

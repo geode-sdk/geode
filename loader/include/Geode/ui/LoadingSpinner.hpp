@@ -10,9 +10,12 @@ namespace geode {
      * method or anything - it just works!)
      */
     class GEODE_DLL LoadingSpinner final : public cocos2d::CCNodeRGBA {
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
     protected:
         LoadingSpinner();
         ~LoadingSpinner();
+
         bool init(float size);
         void spin();
     public:
@@ -24,5 +27,7 @@ namespace geode {
 
         void setVisible(bool visible) override;
         void setContentSize(const cocos2d::CCSize& size) override;
+        
+        cocos2d::CCSprite* getSpinner();
     };
 }

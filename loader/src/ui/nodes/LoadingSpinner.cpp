@@ -10,7 +10,7 @@ public:
 
 LoadingSpinner::LoadingSpinner() : m_impl(std::make_unique<Impl>()) { }
 
-LoadingSpinner::~LoadingSpinner() { };
+LoadingSpinner::~LoadingSpinner() { }
 
 bool LoadingSpinner::init(float sideLength) {
     if (!CCNode::init())
@@ -35,8 +35,8 @@ void LoadingSpinner::spin() {
     auto action = CCRepeatForever::create(CCRotateBy::create(1.f, 360.f));
     action->setTag(1);
 
-    m_spinner->stopActionByTag(1);
-    m_spinner->runAction(action);
+    m_impl->spinner->stopActionByTag(1);
+    m_impl->spinner->runAction(action);
 }
 
 LoadingSpinner* LoadingSpinner::create(float sideLength) {
@@ -58,5 +58,9 @@ void LoadingSpinner::setVisible(bool visible) {
 
 void LoadingSpinner::setContentSize(const CCSize& size) {
     CCNode::setContentSize(size);
-    if (m_spinner) limitNodeSize(m_spinner, m_obContentSize, 1.f, .1f);
+    if (m_impl->spinner) limitNodeSize(m_impl->spinner, m_obContentSize, 1.f, .1f);
+}
+
+CCSprite* LoadingSpinner::getSpinner() {
+    return m_impl->spinner;
 }
