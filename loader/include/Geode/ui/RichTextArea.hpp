@@ -150,6 +150,7 @@ namespace geode {
         template<class T>
         void registerRichTextKey(std::shared_ptr<RichTextKey<T>> key);
     protected:
+        RichTextArea();
         ~RichTextArea();
 
     private:

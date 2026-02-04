@@ -31,6 +31,7 @@ RichTextArea* RichTextArea::create(std::string text, std::string font, float sca
 
 RichTextArea* RichTextArea::create(std::string font, std::string text, float scale, float width, bool artificialWidth) {
     RichTextArea* instance = new RichTextArea();
+    //instance->m_impl = new RichTextArea::Impl(instance);
     instance->m_impl = std::make_unique<RichTextArea::Impl>(instance);
 
     if (instance->init(std::move(font), std::move(text), scale, width, artificialWidth)) {
@@ -212,7 +213,7 @@ void RichTextArea::Impl::formatRichText() {
     std::regex pattern(R"(<(\/)?([^=<>]+)(?:\s*=\s*([^<>]+))?>)");
     std::smatch match;
 
-    log::info("formatting text");
+    log::info("formatting text {}", m_text);
 
     m_richTextInstances.clear();
 
@@ -284,6 +285,8 @@ void RichTextArea::Impl::formatRichText() {
 
         prevExtraOffset = textAdditionOverallOffset;
     }
+
+    log::info("formatting text end {}", m_text);
 }
 
 template <class T>
@@ -372,6 +375,7 @@ void RichTextArea::ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent){
     RichTextArea::ccTouchEnded(pTouch, pEvent);
 }
 
+RichTextArea::RichTextArea() : m_impl(std::make_unique<RichTextArea::Impl>(this)) {}
 RichTextArea::~RichTextArea(){
     CCTouchDispatcher::get()->removeDelegate(this);
 }
