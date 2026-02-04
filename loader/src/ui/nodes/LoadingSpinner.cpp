@@ -3,6 +3,15 @@
 
 using namespace geode::prelude;
 
+class LoadingSpinner::Impl final {
+public:
+    cocos2d::CCSprite* spinner;
+};
+
+LoadingSpinner::LoadingSpinner() : m_impl(std::make_unique<Impl>()) { }
+
+LoadingSpinner::~LoadingSpinner() { };
+
 bool LoadingSpinner::init(float sideLength) {
     if (!CCNode::init())
         return false;
@@ -12,10 +21,10 @@ bool LoadingSpinner::init(float sideLength) {
     this->setAnchorPoint({ .5f, .5f });
     this->setCascadeOpacityEnabled(true);
 
-    m_spinner = CCSprite::create("loadingCircle.png");
-    m_spinner->setBlendFunc({ GL_ONE, GL_ONE });
-    limitNodeSize(m_spinner, m_obContentSize, 1.f, .1f);
-    this->addChildAtPosition(m_spinner, Anchor::Center);
+    m_impl->spinner = CCSprite::create("loadingCircle.png");
+    m_impl->spinner->setBlendFunc({ GL_ONE, GL_ONE });
+    limitNodeSize(m_impl->spinner, m_obContentSize, 1.f, .1f);
+    this->addChildAtPosition(m_impl->spinner, Anchor::Center);
 
     this->spin();
 

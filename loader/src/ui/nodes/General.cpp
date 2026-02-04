@@ -131,6 +131,20 @@ void geode::addListBorders(CCNode* to, CCPoint const& center, CCSize const& size
     to->addChild(layerRightSpr);
 }
 
+class ListBorders::Impl final {
+public:
+    cocos2d::extension::CCScale9Sprite* top = nullptr;
+    cocos2d::extension::CCScale9Sprite* bottom = nullptr;
+    cocos2d::CCSprite* left = nullptr;
+    cocos2d::CCSprite* right = nullptr;
+    float topPadding = 7.5f;
+    float bottomPadding = 7.5f;
+};
+
+ListBorders::ListBorders() : m_impl(std::make_unique<Impl>()) { }
+
+ListBorders::~ListBorders() { }
+
 bool ListBorders::init() {
     if (!CCNode::init())
         return false;
@@ -160,33 +174,33 @@ void ListBorders::setSpriteFrames(const char* topAndBottom, const char* side, fl
         horizontalPadding,
         horizontalPadding
     );
-    m_bottom->setScaleY(-1);
-    m_right->setFlipX(true);
+    m_impl->bottom->setScaleY(-1);
+    m_impl->right->setFlipX(true);
 }
 void ListBorders::setSprites(
     CCScale9Sprite* top, CCScale9Sprite* bottom,
     CCSprite* left, CCSprite* right,
     float topPadding, float bottomPadding
 ) {
-    if (m_top) m_top->removeFromParent();
-    if (m_bottom) m_bottom->removeFromParent();
-    if (m_left) m_left->removeFromParent();
-    if (m_right) m_right->removeFromParent();
+    if (m_impl->top) m_impl->top->removeFromParent();
+    if (m_impl->bottom) m_impl->bottom->removeFromParent();
+    if (m_impl->left) m_impl->left->removeFromParent();
+    if (m_impl->right) m_impl->right->removeFromParent();
 
-    m_top = top;
-    this->addChildAtPosition(m_top, Anchor::Top, ccp(0, -m_top->getContentHeight() / 3));
+    m_impl->top = top;
+    this->addChildAtPosition(m_impl->top, Anchor::Top, ccp(0, -m_impl->top->getContentHeight() / 3));
 
-    m_bottom = bottom;
-    this->addChildAtPosition(m_bottom, Anchor::Bottom, ccp(0, m_bottom->getContentHeight() / 3));
+    m_impl->bottom = bottom;
+    this->addChildAtPosition(m_impl->bottom, Anchor::Bottom, ccp(0, m_impl->bottom->getContentHeight() / 3));
 
-    m_left = left;
-    this->addChildAtPosition(m_left, Anchor::Left, ccp(0, 0));
+    m_impl->left = left;
+    this->addChildAtPosition(m_impl->left, Anchor::Left, ccp(0, 0));
 
-    m_right = right;
-    this->addChildAtPosition(m_right, Anchor::Right, ccp(0, 0));
+    m_impl->right = right;
+    this->addChildAtPosition(m_impl->right, Anchor::Right, ccp(0, 0));
 
-    m_topPadding = topPadding;
-    m_bottomPadding = bottomPadding;
+    m_impl->topPadding = topPadding;
+    m_impl->bottomPadding = bottomPadding;
 
     this->setContentSize(m_obContentSize);
 }
@@ -194,11 +208,35 @@ void ListBorders::setContentSize(CCSize const& size) {
     CCNode::setContentSize(size);
     this->updateLayout();
 
-    m_top->setContentWidth(size.width + m_topPadding);
-    m_bottom->setContentWidth(size.width + m_bottomPadding);
-    auto height = m_top->getContentHeight() * 0.75 + m_bottom->getContentHeight() * 0.75;
-    m_left->setScaleY((size.height - height) / m_left->getContentHeight());
-    m_right->setScaleY((size.height - height) / m_right->getContentHeight());
+    m_impl->top->setContentWidth(size.width + m_impl->topPadding);
+    m_impl->bottom->setContentWidth(size.width + m_impl->bottomPadding);
+    auto height = m_impl->top->getContentHeight() * 0.75 + m_impl->bottom->getContentHeight() * 0.75;
+    m_impl->left->setScaleY((size.height - height) / m_impl->left->getContentHeight());
+    m_impl->right->setScaleY((size.height - height) / m_impl->right->getContentHeight());
+}
+
+cocos2d::extension::CCScale9Sprite* ListBorders::getTop() {
+    return m_impl->top;
+}
+
+cocos2d::extension::CCScale9Sprite* ListBorders::getBottom() {
+    return m_impl->bottom;
+}
+
+cocos2d::CCSprite* ListBorders::getLeft() {
+    return m_impl->left;
+}
+
+cocos2d::CCSprite* ListBorders::getRight() {
+    return m_impl->right;
+}
+
+float ListBorders::getTopPadding() {
+    return m_impl->topPadding;
+}
+
+float ListBorders::getBottomPadding() {
+    return m_impl->bottomPadding;
 }
 
 CCMenuItemSpriteExtra* geode::addBackButton(cocos2d::CCNode* to, BackButtonStyle style) {

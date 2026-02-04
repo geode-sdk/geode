@@ -1,5 +1,5 @@
 #include "DownloadManager.hpp"
-#include "Geode/loader/Mod.hpp"
+#include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/StringMap.hpp>
@@ -63,6 +63,8 @@ public:
                         .details = std::move(result.unwrapErr().details),
                     };
                 }
+
+                ModDownloadEvent(std::string(m_id)).send();
             }
         );
 
@@ -167,10 +169,11 @@ public:
         };
 
         auto req = web::WebRequest().userAgent(getServerUserAgent());
-        req.onProgress([this](const auto& progress) {
+        req.onProgress([this, id = std::string(m_id)](const auto& progress) {
             m_status = DownloadStatusDownloading {
                 .percentage = static_cast<uint8_t>(progress.downloadProgress().value_or(0)),
             };
+            ModDownloadEvent(id).send();
         });
 
         m_downloadListener.spawn(

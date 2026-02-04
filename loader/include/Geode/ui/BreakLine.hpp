@@ -3,10 +3,12 @@
 #include <cocos2d.h>
 
 namespace geode {
-    class GEODE_DLL BreakLine final : public cocos2d::CCNode {
+    class GEODE_DLL BreakLine : public cocos2d::CCNode {
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
     protected:
-        cocos2d::ccColor4F m_color;
-
+        BreakLine();
+        ~BreakLine();
         void draw() override;
         bool init(float width, float height, cocos2d::ccColor4F color);
     public:
@@ -21,5 +23,7 @@ namespace geode {
             float height = 1.f,
             cocos2d::ccColor4F color = {1.f, 1.f, 1.f, .2f}
         );
+
+        cocos2d::ccColor4F getColor();
     };
 }

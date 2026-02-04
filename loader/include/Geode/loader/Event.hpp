@@ -52,6 +52,8 @@ namespace geode::comm {
 
         template <class ...Args>
         bool call(Args&&... args) const noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
+            if (!m_callable) return false;
+
             if constexpr (std::is_same_v<void, decltype(std::invoke(m_callable, std::forward<Args>(args)...))>) {
                 std::invoke(m_callable, std::forward<Args>(args)...);
                 return false;
@@ -65,6 +67,8 @@ namespace geode::comm {
     struct PortCallableMove : PortCallableCopy<Callable> {
         template <class ...Args>
         bool call(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
+            if (!this->m_callable) return false;
+
             if constexpr (std::is_same_v<void, decltype(std::invoke(this->m_callable, std::forward<Args>(args)...))>) {
                 std::invoke(std::move(this->m_callable), std::forward<Args>(args)...);
                 return false;
@@ -109,7 +113,7 @@ namespace geode::comm {
         requires std::invocable<Callable, Args...>
         bool send(Args&&... value) const noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
             for (auto& callable : m_receivers) {
-                if (callable.call(std::forward<Args>(value)...)) {
+                if (callable.call(value...)) {
                     return true;
                 }
             }
@@ -161,7 +165,7 @@ namespace geode::comm {
         bool send(Args&&... value) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
             auto currentReceivers = m_receivers.load();
             for (auto& callable : *currentReceivers) {
-                if (callable.call(std::forward<Args>(value)...)) {
+                if (callable.call(value...)) {
                     return true;
                 }
             }
@@ -355,7 +359,7 @@ namespace geode::comm {
         static_assert(std::is_same_v<Marker, void>, "BasicEvent specialization missing");
     };
 
-    class ListenerHandle {
+    class [[nodiscard("ListenerHandle is immediately destroyed unless stored or .leak() is called")]] ListenerHandle {
     private:
         std::weak_ptr<BaseFilter> m_filter;
         ReceiverHandle m_handle = ReceiverHandle{};
@@ -399,7 +403,7 @@ namespace geode::comm {
             return ListenerHandle(m_filter, m_handle, m_remover, false);
         }
 
-        ListenerHandle* leak() noexcept {
+        ListenerHandle* leak() {
             return new ListenerHandle(std::move(*this));
         }
 
@@ -433,7 +437,7 @@ namespace geode::comm {
     }
     class BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...> : public BaseFilter {
     protected:
-        using Self = BasicEvent<Marker, PortTemplate, bool(PArgs...), FArgs...>;
+        using Self = BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>;
         struct CloneMarker {};
 
         std::tuple<FArgs...> const m_filter;
@@ -464,7 +468,7 @@ namespace geode::comm {
             return seed;
         }
 
-        ListenerHandle addReceiver(geode::CopyableFunction<bool(PArgs...)> rec, int priority = 0) const noexcept;
+        ListenerHandle addReceiver(geode::CopyableFunction<PReturn(PArgs...)> rec, int priority = 0) const noexcept;
         size_t removeReceiver(ReceiverHandle handle) const noexcept;
 
         static void removeReceiverStatic(BaseFilter const* filter, ReceiverHandle handle) noexcept {
@@ -480,9 +484,7 @@ namespace geode::comm {
         }
 
     public:
-        template<class... Args>
-        requires std::constructible_from<std::tuple<FArgs...>, Args...>
-        BasicEvent(Args&&... value) noexcept : m_filter(std::forward<Args>(value)...) {
+        BasicEvent(FArgs... value) noexcept : m_filter(std::move(value)...) {
             // geode::console::log(fmt::format("Creating BasicEvent {}, {}", (void*)this, typeid(Marker).name()), Severity::Debug);
         }
         ~BasicEvent() noexcept override {
@@ -490,8 +492,8 @@ namespace geode::comm {
         }
 
         template <class... Args>
-        requires std::invocable<geode::CopyableFunction<bool(PArgs...)>, Args...>
-        bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, Args...>);
+        requires std::invocable<geode::CopyableFunction<PReturn(PArgs...)>, Args...>
+        bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<PReturn(PArgs...)>, Args...>);
 
         template<class Callable>
         ListenerHandle listen(Callable listener, int priority = 0) const noexcept {
@@ -593,8 +595,8 @@ namespace geode::comm {
         std::is_convertible_v<PReturn, bool> || std::is_same_v<PReturn, void>;
     }
     template <class... Args>
-    requires std::invocable<geode::CopyableFunction<bool(PArgs...)>, Args...>
-    bool BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::send(Args&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, Args...>) {
+    requires std::invocable<geode::CopyableFunction<PReturn(PArgs...)>, Args...>
+    bool BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::send(Args&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<PReturn(PArgs...)>, Args...>) {
         return EventCenter::get()->send(this, [&](OpaquePortBase* opaquePort) {
             auto port = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(opaquePort);
             return port->send(std::forward<Args>(args)...);
@@ -606,7 +608,7 @@ namespace geode::comm {
         typename OpaqueEventPort<PortTemplate, PArgs...>;
         std::is_convertible_v<PReturn, bool> || std::is_same_v<PReturn, void>;
     }
-    ListenerHandle BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::addReceiver(geode::CopyableFunction<bool(PArgs...)> rec, int priority) const noexcept {
+    ListenerHandle BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::addReceiver(geode::CopyableFunction<PReturn(PArgs...)> rec, int priority) const noexcept {
         return EventCenter::get()->addReceiver(this, [&](OpaquePortBase* opaquePort) {
             auto port = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(opaquePort);
             return port->addReceiver(std::move(rec), priority);
@@ -674,9 +676,7 @@ namespace geode {
         GlobalEvent() noexcept : m_filter(std::nullopt) {}
         ~GlobalEvent() noexcept = default;
 
-        template <class... Args>
-        requires std::constructible_from<std::tuple<FArgs...>, Args...>
-        GlobalEvent(Args&&... args) noexcept : m_filter(std::in_place, std::forward<Args>(args)...) {}
+        GlobalEvent(FArgs... args) noexcept : m_filter(std::in_place, std::move(args)...) {}
 
         template<class Callable>
         requires std::is_invocable_v<Callable, PArgs...>
@@ -699,7 +699,6 @@ namespace geode {
                     }, priority);
                 }
             }
-            return ListenerHandle{};
         }
 
         template <class Callable>
@@ -708,12 +707,26 @@ namespace geode {
             if (!m_filter.has_value()) {
                 return Event2Type().listen(std::move(listener), priority);
             }
-            return ListenerHandle{};
+            else {
+                return std::apply([&](auto&&... fargs) {
+                    if constexpr (std::is_convertible_v<std::invoke_result_t<Callable, FArgs..., PArgs...>, bool>) {
+                        return Event1Type(fargs...).listen([listener = std::move(listener), ...fargs = std::move(fargs)](PArgs... pargs) {
+                            return static_cast<bool>(std::invoke(listener, std::move(fargs)..., std::forward<PArgs>(pargs)...));
+                        }, priority);
+                    }
+                    else {
+                        return Event1Type(fargs...).listen([listener = std::move(listener), ...fargs = std::move(fargs)](PArgs... pargs) {
+                            std::invoke(listener, std::move(fargs)..., std::forward<PArgs>(pargs)...);
+                            return false;
+                        }, priority);
+                    }
+                }, *m_filter);
+            }
         }
 
         template <class... Args>
-        requires std::invocable<geode::CopyableFunction<bool(PArgs...)>, Args...>
-        bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<bool(PArgs...)>, Args...>) {
+        requires std::invocable<geode::CopyableFunction<PReturn(PArgs...)>, Args...>
+        bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<PReturn(PArgs...)>, Args...>) {
             if (m_filter.has_value()) {
                 auto filterCopy = *m_filter;
                 auto ret = std::apply([&](auto&&... fargs) {

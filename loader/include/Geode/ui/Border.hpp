@@ -3,7 +3,9 @@
 #include <cocos2d.h>
 
 namespace geode {
-    class GEODE_DLL Border final : public cocos2d::CCLayerColor {
+    class GEODE_DLL Border : public cocos2d::CCLayerColor {
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
     public:
         struct Padding {
             float top;
@@ -36,9 +38,8 @@ namespace geode {
         CCNode* getNode();
         void setSize(const cocos2d::CCSize& size);
     protected:
-        Padding m_padding;
-
         Border(const cocos2d::CCPoint& padding = { 0, 0 });
+        ~Border();
         bool init(const cocos2d::ccColor4B& backgroundColor, const cocos2d::CCSize& size);
         bool init(CCNode* node, const cocos2d::ccColor4B& backgroundColor, const cocos2d::CCSize& size);
     private:

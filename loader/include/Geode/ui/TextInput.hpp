@@ -43,13 +43,12 @@ namespace geode {
     /**
      * A single-line text input node
      */
-    class GEODE_DLL TextInput final : public cocos2d::CCNode, public TextInputDelegate {
+    class GEODE_DLL TextInput : public cocos2d::CCNode, public TextInputDelegate {
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
     protected:
-        cocos2d::extension::CCScale9Sprite* m_bgSprite = nullptr;
-        CCTextInputNode* m_input = nullptr;
-        geode::Function<void(std::string const&)> m_onInput = nullptr;
-        cocos2d::CCLabelBMFont* m_label = nullptr;
-        bool m_callbackEnabled = true;
+        TextInput();
+        ~TextInput() override;
 
         bool init(float width, ZStringView placeholder, ZStringView font);
 
@@ -164,7 +163,6 @@ namespace geode {
 
         CCTextInputNode* getInputNode() const;
         cocos2d::extension::CCScale9Sprite* getBGSprite() const;
-
-        ~TextInput() override;
     };
 }
+

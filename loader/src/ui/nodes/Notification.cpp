@@ -113,7 +113,7 @@ Notification* Notification::create(ZStringView text, CCNode* icon, float time) {
 }
 
 void Notification::setString(ZStringView text) {
-    m_label->setString(text.c_str());
+    m_impl->label->setString(text.c_str());
     this->updateLayout();
 }
 
@@ -188,7 +188,7 @@ void Notification::waitThenHide() {
 
     if (m_time != 0.f) {
         this->runAction(CCSequence::create(
-            CCDelayTime::create(m_time),
+            CCDelayTime::create(m_impl->time),
             CCCallFunc::create(this, callfunc_selector(Notification::hide)),
             nullptr
         ));

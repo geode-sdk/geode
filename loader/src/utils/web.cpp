@@ -725,10 +725,7 @@ WebFuture WebRequest::patch(std::string url) {
 }
 
 WebResponse WebRequest::sendSync(std::string method, std::string url) {
-    m_impl->m_method = std::move(method);
-    m_impl->m_url = std::move(url);
-
-    auto fut = WebRequestsManager::get()->enqueueAndWait(m_impl);
+    auto fut = this->send(std::move(method), std::move(url));
     return async::runtime().blockOn(std::move(fut));
 }
 WebResponse WebRequest::postSync(std::string url) {
@@ -1018,7 +1015,7 @@ public:
         });
         curl_multi_setopt(m_multiHandle, CURLMOPT_TIMERDATA, this);
 
-        m_worker = async::runtime().spawn([this](this auto self, auto rx, auto crx) -> arc::Future<> {
+        m_worker = async::runtime().spawn([this, rx = std::move(rx), crx = std::move(crx)] mutable -> arc::Future<> {
             bool running = true;
             while (running) {
                 co_await arc::select(
@@ -1040,7 +1037,7 @@ public:
                     )
                 );
             }
-        }(std::move(rx), std::move(crx)));
+        });
         m_worker->setName("Geode Web Worker");
     }
 

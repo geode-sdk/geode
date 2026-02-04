@@ -11,12 +11,10 @@ namespace geode {
      */
     class GEODE_DLL LoadingSpinner final : public cocos2d::CCNodeRGBA {
     protected:
-        cocos2d::CCSprite* m_spinner;
-
+        LoadingSpinner();
+        ~LoadingSpinner();
         bool init(float size);
-
         void spin();
-
     public:
         /**
          * Create a loading circle
