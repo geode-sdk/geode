@@ -85,7 +85,7 @@ namespace geode {
         /**
          * Hide the notification. If you passed a time to the create function,
          * this function doesn't need to be called manually, unless you want
-         * to prematurily hide the notification
+         * to prematurely hide the notification
          */
         void hide();
 
