@@ -2,14 +2,13 @@
 #include <Geode/ui/TextArea.hpp>
 
 using namespace geode::prelude;
-
 class SimpleTextArea::Impl : public SimpleTextAreaImpl {
 public:
     SimpleTextArea* m_self = nullptr;
     Impl(SimpleTextArea* self) : SimpleTextAreaImpl(self) {}
 };
 
-SimpleTextArea::SimpleTextArea() : m_impl(std::make_unique<SimpleTextArea::Impl>(this)) {}
+SimpleTextArea::SimpleTextArea() : m_impl(createImpl()) {}
 SimpleTextArea::~SimpleTextArea() = default;
 
 SimpleTextArea* SimpleTextArea::create(std::string text, std::string font, float scale) {
@@ -28,7 +27,7 @@ SimpleTextArea* SimpleTextArea::create(std::string text, std::string font, float
 
 SimpleTextArea* SimpleTextArea::create(std::string font, std::string text, float scale, float width, bool artificialWidth) {
     SimpleTextArea* instance = new SimpleTextArea();
-    instance->m_impl = std::make_unique<SimpleTextArea::Impl>(instance);
+    instance->m_impl = instance->createImpl();
 
     if (instance->init(std::move(font), std::move(text), scale, width, artificialWidth)) {
         instance->autorelease();
@@ -150,4 +149,8 @@ float SimpleTextArea::getHeight() {
 
 float SimpleTextArea::getLineHeight() {
     return m_impl->m_lineHeight;
+}
+
+std::unique_ptr<SimpleTextAreaImpl> SimpleTextArea::createImpl(){
+    return std::make_unique<SimpleTextArea::Impl>(this);
 }

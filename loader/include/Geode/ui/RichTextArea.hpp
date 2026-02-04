@@ -150,8 +150,10 @@ namespace geode {
         template<class T>
         void registerRichTextKey(std::shared_ptr<RichTextKey<T>> key);
     protected:
-        RichTextArea();
         ~RichTextArea();
+
+        class RichImpl;
+        std::unique_ptr<SimpleTextAreaImpl> createImpl() override;
 
     private:
         static RichTextArea* create(std::string font, std::string text, float scale, float width, const bool artificialWidth);
@@ -163,7 +165,6 @@ namespace geode {
         void ccTouchEnded(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent) override;
         void ccTouchCancelled(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent) override;
 
-        class Impl;
-        std::unique_ptr<Impl> m_impl;
+        RichImpl* castedImpl();
     };
 }

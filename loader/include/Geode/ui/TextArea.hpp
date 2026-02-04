@@ -5,6 +5,8 @@
 #include <memory>
 #include <cocos2d.h>
 
+class SimpleTextAreaImpl;
+
 namespace geode {
     enum WrappingMode {
         NO_WRAP,
@@ -56,11 +58,12 @@ namespace geode {
         SimpleTextArea();
         ~SimpleTextArea() override;
 
+        class Impl;
+        virtual std::unique_ptr<SimpleTextAreaImpl> createImpl();
+        std::unique_ptr<SimpleTextAreaImpl> m_impl;
+
         bool init(std::string font, std::string text, float scale, float width, const bool artificialWidth);
     private:
         static SimpleTextArea* create(std::string font, std::string text, float scale, float width, const bool artificialWidth);
-
-        class Impl;
-        std::unique_ptr<Impl> m_impl;
     };
 }
