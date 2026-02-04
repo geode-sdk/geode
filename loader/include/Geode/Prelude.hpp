@@ -11,6 +11,7 @@ namespace geode {
     namespace op {}
     namespace stream {}
     namespace view {}
+    namespace async {}
 }
 
 namespace cocos2d {
@@ -28,6 +29,7 @@ namespace geode {
         using namespace ::geode::op;
         using namespace ::geode::stream;
         using namespace ::geode::view;
+        using namespace ::geode::async;
         using namespace ::cocos2d;
         using namespace ::cocos2d::extension;
     }
