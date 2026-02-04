@@ -22,6 +22,7 @@
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
+#include <arc/future/Future.hpp>
 
 namespace geode {
     template <class T>
@@ -130,7 +131,7 @@ namespace geode {
         std::vector<Mod*> getDependants() const;
 #endif
 
-        using CheckUpdatesTask = Task<Result<std::optional<VersionInfo>, std::string>>;
+        using CheckUpdatesTask = arc::Future<Result<std::optional<VersionInfo>>>;
         /**
          * Check if this Mod has updates available on the mods index. If
          * you're using this for automatic update checking, use

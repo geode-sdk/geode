@@ -9,9 +9,11 @@ namespace geode {
      * for details on what features of MD are supported.
      */
     class GEODE_DLL MDPopup : public Popup {
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
     protected:
-        geode::Function<void(bool)> m_onClick = nullptr;
-
+        MDPopup();
+        ~MDPopup();
         bool init(
             bool compatibilityMode, ZStringView title, std::string info, ZStringView btn1, ZStringView btn2,
             geode::Function<void(bool)> onClick
@@ -20,7 +22,6 @@ namespace geode {
         void onBtn(CCObject*);
 
         static float estimateHeight(std::string_view content);
-
     public:
         static MDPopup* create(
             ZStringView title, std::string content, ZStringView btn1,
@@ -31,5 +32,8 @@ namespace geode {
             bool compatibilityMode, ZStringView title, std::string content,
             ZStringView btn1, ZStringView btn2 = nullptr, geode::Function<void(bool)> onClick = nullptr
         );
+
+        const geode::Function<void(bool)>& getOnClick();
+        void setOnClick(geode::Function<void(bool)> onClick);
     };
 }

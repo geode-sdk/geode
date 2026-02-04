@@ -65,7 +65,7 @@ namespace geode {
         ModMetadata& operator=(ModMetadata&& other) noexcept;
         ~ModMetadata();
 
-        class GEODE_DLL Dependency {
+        class GEODE_DLL Dependency final {
             class Impl;
             std::unique_ptr<Impl> m_impl;
 
@@ -90,7 +90,7 @@ namespace geode {
             [[nodiscard]] bool isResolved() const;
         };
 
-        class GEODE_DLL Incompatibility {
+        class GEODE_DLL Incompatibility final {
             class Impl;
             std::unique_ptr<Impl> m_impl;
 
@@ -113,7 +113,7 @@ namespace geode {
             [[nodiscard]] bool isResolved() const;
         };
 
-        class GEODE_DLL IssuesInfo {
+        class GEODE_DLL IssuesInfo final {
             class Impl;
             std::unique_ptr<Impl> m_impl;
 

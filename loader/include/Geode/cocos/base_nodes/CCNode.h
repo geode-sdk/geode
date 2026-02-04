@@ -882,6 +882,17 @@ public:
      */
     GEODE_DLL CCObject* getUserObject(std::string_view id);
 
+    /**
+     * Tethers a CCObject to the lifetime of this node.
+     * @note Geode addition
+     */
+    GEODE_DLL void addTether(CCObject* object);
+
+    /**
+     * Removes a tethered CCObject from this node.
+     * @note Geode addition
+     */
+    GEODE_DLL void removeTether(CCObject* object);
     
     /**
      * Set (or clear) a boolean flag on this node with a specific ID.
@@ -903,9 +914,9 @@ private:
     friend class geode::modifier::FieldContainer;
 
     GEODE_DLL geode::modifier::FieldContainer* getFieldContainer(char const* forClass);
-    GEODE_DLL void addEventListenerInternal(
+    GEODE_DLL geode::comm::ListenerHandle* addEventListenerInternal(
         std::string id,
-        geode::EventListenerProtocol* protocol
+        geode::comm::ListenerHandle handle
     );
 
 public:
@@ -1118,30 +1129,27 @@ public:
     // @note Geode addition
     GEODE_DLL float getScaledContentHeight() const;
 
-    template <class Filter, class... Args>
-    geode::EventListenerProtocol* addEventListener(
+    template <class Event, class Callback>
+    geode::comm::ListenerHandle* addEventListener(
         std::string_view id,
-        geode::Function<typename Filter::Callback> callback,
-        Args&&... args
+        Event const& event,
+        Callback&& callback,
+        int priority = 0
     ) {
-        auto listener = new geode::EventListener<Filter>(
-            std::move(callback), Filter(this, std::forward<Args>(args)...)
-        );
-        this->addEventListenerInternal(id, listener);
-        return listener;
+        auto handle = event.listen(std::forward<Callback>(callback), priority);
+        return this->addEventListenerInternal(std::string(id), std::move(handle));
     }
-    template <class Filter, class... Args>
-    geode::EventListenerProtocol* addEventListener(
-        geode::Function<typename Filter::Callback> callback,
-        Args&&... args
+    template <class Event, class Callback>
+    geode::comm::ListenerHandle* addEventListener(
+        Event const& event,
+        Callback&& callback,
+        int priority = 0
     ) {
-        return this->addEventListener<Filter, Args...>(
-            "", std::move(callback), std::forward<Args>(args)...
-        );
+        return this->addEventListener("", event, std::forward<Callback>(callback), priority);
     }
-    GEODE_DLL void removeEventListener(geode::EventListenerProtocol* listener);
+    GEODE_DLL void removeEventListener(geode::comm::ListenerHandle* handle);
     GEODE_DLL void removeEventListener(std::string_view id);
-    GEODE_DLL geode::EventListenerProtocol* getEventListener(std::string_view id);
+    GEODE_DLL geode::comm::ListenerHandle* getEventListener(std::string_view id);
     GEODE_DLL size_t getEventListenerCount();
 
     /**
@@ -1949,25 +1957,11 @@ NS_CC_END
 
 #ifndef GEODE_IS_MEMBER_TEST
 namespace geode {
-    struct GEODE_DLL UserObjectSetEvent final : public Event {
-        cocos2d::CCNode* node;
-        const std::string id;
-        cocos2d::CCObject* value;
-
-        UserObjectSetEvent(cocos2d::CCNode* node, std::string id, cocos2d::CCObject* value);
-    };
-
-    class GEODE_DLL AttributeSetFilter final : public EventFilter<UserObjectSetEvent> {
-	public:
-		using Callback = void(UserObjectSetEvent*);
-
-    protected:
-		std::string m_targetID;
-
-	public:
-        ListenerResult handle(geode::Function<Callback>& fn, UserObjectSetEvent* event);
-
-		AttributeSetFilter(std::string id);
+    class GEODE_DLL UserObjectSetEvent final : public Event<UserObjectSetEvent, bool(cocos2d::CCNode*, cocos2d::CCObject*), std::string>  {
+    public:
+        // listener params node, value
+        // filter params targetID
+        using Event::Event;
     };
 }
 #endif

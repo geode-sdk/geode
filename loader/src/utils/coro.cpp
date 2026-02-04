@@ -1,28 +1,20 @@
 #include <Geode/utils/coro.hpp>
-#include <chrono>
-#include <thread>
+#include <arc/sync/oneshot.hpp>
 
 namespace geode::utils::coro {
-	Task<void> nextFrame() {
-		auto [task, post, prog, cancel] = Task<void>::spawn("<Next Frame>");
+	arc::Future<void> nextFrame() {
+		auto [send, recv] = arc::oneshot::channel<std::monostate>();
 
-		queueInMainThread([post = std::move(post)] mutable {
-			post(true);
+		queueInMainThread([send = std::move(send)] mutable {
+			(void)send.send({});
 		});
 
-		return task;
+		(void)co_await recv.recv();
 	}
 
-	Task<void> skipFrames(int frames) {
+	arc::Future<void> skipFrames(int frames) {
 		for (int i = 0; i < frames; i++) {
 			co_await nextFrame();
 		}
-	}
-
-	Task<void> sleep(double seconds) {
-		return Task<void>::run([seconds](auto, auto) {
-			std::this_thread::sleep_for(std::chrono::duration<double>(seconds));
-			return true;
-		}, "<Sleep>");
 	}
 }

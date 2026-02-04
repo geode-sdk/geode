@@ -19,7 +19,7 @@ namespace geode {
      * and then given either a URL, file path, or raw image data that will be processed
      * in the background to avoid freezes.
      */
-    class GEODE_DLL LazySprite final : public cocos2d::CCSprite {
+    class GEODE_DLL LazySprite : public cocos2d::CCSprite {
     public:
         using Callback = geode::Function<void(Result<>)>;
         using Format = cocos2d::CCImage::EImageFormat;
@@ -66,24 +66,10 @@ namespace geode {
         using CCSprite::initWithFile;
 
     private:
-        Ref<LoadingSpinner> m_loadingCircle;
-        Callback m_callback;
-        Format m_expectedFormat;
-        EventListener<utils::web::WebTask> m_listener;
-        bool m_isLoading = false;
-        std::atomic_bool m_hasLoaded = false;
-        bool m_autoresize;
-        cocos2d::CCSize m_targetSize;
-
-        bool init(cocos2d::CCSize size, bool loadingCircle = true);
-        void doInitFromBytes(std::vector<uint8_t> data, std::string cacheKey);
-        std::string makeCacheKey(std::filesystem::path const& path);
-        // std::string makeCacheKey(std::string_view url);
-
-        cocos2d::CCTexture2D* lookupCache(char const* key);
-        bool initFromCache(char const* key);
-        bool postInit(bool initResult);
-
-        void onError(std::string err);
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
+    protected:
+        LazySprite();
+        ~LazySprite();
     };
 }

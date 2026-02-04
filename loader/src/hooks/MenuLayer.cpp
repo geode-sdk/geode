@@ -35,7 +35,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         bool m_menuDisabled = false;
         CCSprite* m_geodeButton = nullptr;
         CCSprite* m_exclamation = nullptr;
-        Task<std::monostate> m_updateCheckTask;
+        async::TaskHolder<Result<std::vector<std::string>, server::ServerError>> m_updateCheckTask;
     };
 
     bool init() {
@@ -194,27 +194,24 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         if (!checkedModUpdates) {
             // only run it once
             checkedModUpdates = true;
-            m_fields->m_updateCheckTask = ModsLayer::checkInstalledModsForUpdates().map(
-                [this](server::ServerRequest<std::vector<std::string>>::Value* result) {
-                    if (result->isOk()) {
-                        auto updatesFound = result->unwrap();
-                        if (updatesFound.size()) {
-                            log::info("Found updates for mods: {}!", updatesFound);
-                            showUpdatesFound();
-                            foundModUpdates = true;
-                        }
-                        else {
-                            log::info("All mods up to date!");
-                        }
+
+            m_fields->m_updateCheckTask.spawn(ModsLayer::checkInstalledModsForUpdates(), [this](auto result) {
+                if (result.isOk()) {
+                    auto updatesFound = result.unwrap();
+                    if (updatesFound.size()) {
+                        log::info("Found updates for mods: {}!", updatesFound);
+                        this->showUpdatesFound();
+                        foundModUpdates = true;
                     }
                     else {
-                        auto error = result->unwrapErr();
-                        log::error("Unable to check for mod updates ({}): {}", error.code, error.details);
+                        log::info("All mods up to date!");
                     }
-                    return std::monostate();
-                },
-                [](auto) { return std::monostate(); }
-            );
+                }
+                else {
+                    auto error = result.unwrapErr();
+                    log::error("Unable to check for mod updates ({}): {}", error.code, error.details);
+                }
+            });
         }
 
         // also display if updates were found in a previous MenuLayer iteration
@@ -228,7 +225,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         if (!gameEventPosted) {
             gameEventPosted = true;
             Loader::get()->queueInMainThread([] {
-                GameEvent(GameEventType::Loaded).post();
+                GameEvent(GameEventType::Loaded).send();
             });
         }
 

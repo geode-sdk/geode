@@ -65,7 +65,7 @@ void ConfirmUninstallPopup::onUninstall(CCObject*) {
         )->show();
     }
 
-    UpdateModListStateEvent(UpdateModState(m_mod->getID())).post();
+    UpdateModListStateEvent().send(UpdateModState(m_mod->getID()));
 
     this->onClose(nullptr);
 }

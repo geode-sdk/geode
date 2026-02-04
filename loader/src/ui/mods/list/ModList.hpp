@@ -14,10 +14,7 @@ using namespace geode::prelude;
 
 struct ModListErrorStatus {};
 struct ModListUnkProgressStatus {};
-struct ModListProgressStatus {
-    uint8_t percentage;
-};
-using ModListStatus = std::variant<ModListErrorStatus, ModListUnkProgressStatus, ModListProgressStatus>;
+using ModListStatus = std::variant<ModListErrorStatus, ModListUnkProgressStatus>;
 
 class ModList : public CCNode {
 protected:
@@ -29,8 +26,8 @@ protected:
     SimpleTextArea* m_statusDetails;
     CCMenuItemSpriteExtra* m_statusDetailsBtn;
     CCNode* m_statusLoadingCircle;
-    Slider* m_statusLoadingBar;
-    EventListener<ModListSource::PageLoadTask> m_listener;
+    ListenerHandle m_pageLoadHandle;
+    async::TaskHolder<Result<ModListSource::ProvidedMods, ModListSource::LoadPageError>> m_listener;
     CCMenuItemSpriteExtra* m_pagePrevBtn;
     CCMenuItemSpriteExtra* m_pageNextBtn;
     CCNode* m_topContainer;
@@ -49,9 +46,10 @@ protected:
     TextInput* m_searchInput;
     CCMenuItemSpriteExtra* m_filtersBtn;
     CCMenuItemSpriteExtra* m_clearFiltersBtn;
-    EventListener<InvalidateCacheFilter> m_invalidateCacheListener;
-    EventListener<server::ServerRequest<std::vector<std::string>>> m_checkUpdatesListener;
-    EventListener<server::ModDownloadFilter> m_downloadListener;
+    ListenerHandle m_invalidateCacheHandle;
+    ListenerHandle m_checkUpdatesHandle;
+    ListenerHandle m_downloadHandle;
+    async::TaskHolder<server::ServerResult<std::vector<std::string>>> m_checkUpdatesListener;
     ModListDisplay m_display = ModListDisplay::SmallList;
     bool m_exiting = false;
     std::atomic<size_t> m_searchInputThreads = 0;
@@ -59,10 +57,10 @@ protected:
     bool init(ModListSource* src, CCSize const& size, bool searchingDev);
 
     void updateTopContainer();
-    void onCheckUpdates(typename server::ServerRequest<std::vector<std::string>>::Event* event);
-    void onInvalidateCache(InvalidateCacheEvent* event);
+    void onCheckUpdates(const std::vector<std::string>& mods);
+    void onInvalidateCache(ModListSource* source);
 
-    void onPromise(ModListSource::PageLoadTask::Event* event);
+    void onPromise(ModListSource::PageLoadResult event);
     void onPage(CCObject*);
     void onShowStatusDetails(CCObject*);
     void onFilters(CCObject*);

@@ -24,23 +24,6 @@ namespace geode {
     using SettingValueNode = SettingValueNodeV3<S>;
 
     using SettingChangedEvent = SettingChangedEventV3;
-    using SettingChangedFilter = SettingChangedFilterV3;
     using SettingNodeSizeChangeEvent = SettingNodeSizeChangeEventV3;
     using SettingNodeValueChangeEvent = SettingNodeValueChangeEventV3;
-
-    template <class T>
-    EventListener<SettingChangedFilter>* listenForSettingChanges(std::string settingKey, auto callback, Mod* mod = getMod()) {
-        return listenForSettingChangesV3<T>(settingKey, std::move(callback), mod);
-    }
-
-    EventListener<SettingChangedFilter>* listenForSettingChanges(std::string settingKey, auto callback, Mod* mod = getMod()) {
-        return listenForSettingChangesV3(settingKey, std::move(callback), mod);
-    }
-
-    inline EventListener<SettingChangedFilter>* listenForAllSettingChanges(
-        geode::Function<void(std::shared_ptr<SettingV3>)> callback,
-        Mod* mod = getMod()
-    ) {
-        return listenForAllSettingChangesV3(std::move(callback), mod);
-    }
 }

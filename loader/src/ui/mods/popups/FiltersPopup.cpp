@@ -161,15 +161,19 @@ bool FiltersPopup::init(ModListSource* src) {
     );
     m_buttonMenu->addChildAtPosition(okBtn, Anchor::Bottom, ccp(0, 20));
 
-    m_tagsListener.bind(this, &FiltersPopup::onLoadTags);
-    m_tagsListener.setFilter(server::getTags());
+    m_tagsListener.spawn(
+        server::getTags(),
+        [this](auto result) {
+            this->onLoadTags(std::move(result));
+        }
+    );
 
     return true;
 }
 
-void FiltersPopup::onLoadTags(typename server::ServerRequest<std::vector<server::ServerTag>>::Event* event) {
-    if (event->getValue() && event->getValue()->isOk()) {
-        auto tags = event->getValue()->unwrap();
+void FiltersPopup::onLoadTags(server::ServerResult<std::vector<server::ServerTag>> result) {
+    if (result.isOk()) {
+        auto tags = std::move(result).unwrap();
         m_tagsMenu->removeAllChildren();
         for (auto& tag : tags) {
             auto offSpr = createGeodeTagLabel(tag);
@@ -186,7 +190,7 @@ void FiltersPopup::onLoadTags(typename server::ServerRequest<std::vector<server:
         m_tagsMenu->updateLayout();
         this->updateTags();
     }
-    else if (event->isCancelled() || (event->getValue() && event->getValue()->isErr())) {
+    else {
         m_tagsMenu->removeAllChildren();
         auto label = CCLabelBMFont::create("Unable to load tags", "bigFont.fnt");
         label->setOpacity(105);

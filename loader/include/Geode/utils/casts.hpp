@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Geode/platform/platform.hpp>
 #include <inttypes.h>
 #include <iostream>
 #include <string>
@@ -33,13 +34,24 @@ namespace geode::cast {
         return reinterpret_cast<T&>(v);
     }
 
+
+    template <class Type>
+    struct ToVoidPtr {
+        using type = void*;
+    };
+
+    template <class Type>
+    struct ToVoidPtr<Type const*> {
+        using type = void const*;
+    };
+
     /**
      * Cast based on RTTI. Casts an adjusted this pointer
      * to it's non offset form.
      */
     template <class T, class F>
     static constexpr T base_cast(F const obj) {
-        return static_cast<T>(dynamic_cast<void*>(obj));
+        return static_cast<T>(dynamic_cast<typename ToVoidPtr<T>::type>(obj));
     }
 
     /**
@@ -49,9 +61,11 @@ namespace geode::cast {
      */
     template <class T, class F>
     static T exact_cast(F const obj) {
-        if (std::strcmp(typeid(*obj).name(), typeid(std::remove_pointer_t<T>).name()) == 0) {
-            return base_cast<T>(obj);
+        using PureType = std::remove_cvref_t<std::remove_pointer_t<T>>;
+        if (std::strcmp(getRuntimeTypeName(obj), getRuntimeTypeName(typeid(PureType))) == 0) {
+            return (T)obj;
         }
         return nullptr;
     }
+
 }

@@ -3,6 +3,15 @@
 
 using namespace geode::prelude;
 
+class LoadingSpinner::Impl final {
+public:
+    cocos2d::CCSprite* spinner;
+};
+
+LoadingSpinner::LoadingSpinner() : m_impl(std::make_unique<Impl>()) { }
+
+LoadingSpinner::~LoadingSpinner() { };
+
 bool LoadingSpinner::init(float sideLength) {
     if (!CCNode::init())
         return false;
@@ -11,10 +20,10 @@ bool LoadingSpinner::init(float sideLength) {
     this->setContentSize({ sideLength, sideLength });
     this->setAnchorPoint({ .5f, .5f });
 
-    m_spinner = CCSprite::create("loadingCircle.png");
-    m_spinner->setBlendFunc({ GL_ONE, GL_ONE });
-    limitNodeSize(m_spinner, m_obContentSize, 1.f, .1f);
-    this->addChildAtPosition(m_spinner, Anchor::Center);
+    m_impl->spinner = CCSprite::create("loadingCircle.png");
+    m_impl->spinner->setBlendFunc({ GL_ONE, GL_ONE });
+    limitNodeSize(m_impl->spinner, m_obContentSize, 1.f, .1f);
+    this->addChildAtPosition(m_impl->spinner, Anchor::Center);
 
     this->spin();
 
@@ -22,7 +31,7 @@ bool LoadingSpinner::init(float sideLength) {
 }
 
 void LoadingSpinner::spin() {
-    m_spinner->runAction(CCRepeatForever::create(CCRotateBy::create(1.f, 360.f)));
+    m_impl->spinner->runAction(CCRepeatForever::create(CCRotateBy::create(1.f, 360.f)));
 }
 
 LoadingSpinner* LoadingSpinner::create(float sideLength) {
@@ -40,4 +49,8 @@ void LoadingSpinner::setVisible(bool visible) {
     if (visible) {
         this->spin();
     }
+}
+
+cocos2d::CCSprite* LoadingSpinner::getSpinner() {
+    return m_impl->spinner;
 }

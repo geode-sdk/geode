@@ -13,9 +13,9 @@ namespace geode {
         public Popup,
         public cocos2d::extension::ColorPickerDelegate,
         public TextInputDelegate {
-    protected:
         class Impl;
         std::unique_ptr<Impl> m_impl;
+    protected:
 
         static constexpr auto TAG_OPACITY_INPUT = 0;
         static constexpr auto TAG_R_INPUT = 1;

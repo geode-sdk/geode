@@ -252,10 +252,16 @@ if (ANDROID)
 endif()
 
 set(MAT_JSON_AS_INTERFACE ON)
-CPMAddPackage("gh:geode-sdk/result@1.3.3")
-CPMAddPackage("gh:geode-sdk/json@3.2.2")
+CPMAddPackage("gh:geode-sdk/result@1.4.1")
+CPMAddPackage("gh:geode-sdk/json@3.2.3")
 CPMAddPackage("gh:zhihaoy/nontype_functional#8ec2e09")
-CPMAddPackage("gh:fmtlib/fmt#11.1.4")
+CPMAddPackage("gh:fmtlib/fmt#12.1.0")
+
+# enable all arc features in geode, but let mods do it granularly
+if (NOT PROJECT_IS_TOP_LEVEL AND NOT DEFINED ARC_FEATURE_FULL)
+	set(ARC_FEATURE_FULL OFF CACHE BOOL "" FORCE)
+endif()
+CPMAddPackage("gh:dankmeme01/arc@1.3.0")
 
 target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)
 
@@ -314,7 +320,7 @@ target_include_directories(GeodeBindings PUBLIC
 	${GEODE_LOADER_PATH}/include/Geode/fmod
 )
 target_link_directories(GeodeBindings PUBLIC ${GEODE_LOADER_PATH}/include/link)
-target_link_libraries(GeodeBindings PUBLIC fmt TulipHookInclude mat-json std23::nontype_functional GeodeResult)
+target_link_libraries(GeodeBindings PUBLIC fmt TulipHookInclude mat-json std23::nontype_functional GeodeResult asp arc)
 target_link_libraries(${PROJECT_NAME} INTERFACE GeodeBindings)
 
 if (NOT EXISTS ${GEODE_BIN_PATH})

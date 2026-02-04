@@ -15,38 +15,38 @@
 using namespace geode::prelude;
 
 class $modify(GeodeCCEGLView, CCEGLView) {
-    void onGLFWKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-        bool extraKey = isExtraKey(key);
-        bool numpad = isKeyNumpad(key);
-        if (!extraKey && !numpad) {
-            return CCEGLView::onGLFWKeyCallback(window, key, scancode, action, mods);
-        }
-        if (CCIMEDispatcher::sharedDispatcher()->hasDelegate()) {
-            return CCEGLView::onGLFWKeyCallback(window, key, scancode, action, mods);
-        }
-        bool down = action == 1 || action == 2;
-        bool repeat = action == 2;
-        enumKeyCodes keyCode = enumKeyCodes::KEY_Unknown;
-        if (extraKey) {
-            keyCode = this->extraKeyToKeyCode(key);
-        }
-        if (numpad) {
-            keyCode = this->numpadToKeyCode(key);
-        }
-        // TODO: v5 i added 0.0 as the new param but idk what the hell it does please someone fix
-        CCKeyboardDispatcher::get()->dispatchKeyboardMSG(keyCode, down, repeat, 0.0);
-    }
+    // void onGLFWKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    //     bool extraKey = isExtraKey(key);
+    //     bool numpad = isKeyNumpad(key);
+    //     if (!extraKey && !numpad) {
+    //         return CCEGLView::onGLFWKeyCallback(window, key, scancode, action, mods);
+    //     }
+    //     if (CCIMEDispatcher::sharedDispatcher()->hasDelegate()) {
+    //         return CCEGLView::onGLFWKeyCallback(window, key, scancode, action, mods);
+    //     }
+    //     bool down = action == 1 || action == 2;
+    //     bool repeat = action == 2;
+    //     enumKeyCodes keyCode = enumKeyCodes::KEY_Unknown;
+    //     if (extraKey) {
+    //         keyCode = this->extraKeyToKeyCode(key);
+    //     }
+    //     if (numpad) {
+    //         keyCode = this->numpadToKeyCode(key);
+    //     }
+    //     // TODO: v5 i added 0.0 as the new param but idk what the hell it does please someone fix
+    //     CCKeyboardDispatcher::get()->dispatchKeyboardMSG(keyCode, down, repeat, 0.0);
+    // }
 
-    void onGLFWMouseCallBack(GLFWwindow* window, int button, int action, int mods) {
-        if (!isExtraMouseButton(button)) {
-            return CCEGLView::onGLFWMouseCallBack(window, button, action, mods);
-        }
-        bool down = action == 1;
-        // mouse buttons never repeat
-        bool repeat = false;
-        enumKeyCodes keyCode = this->mouseButtonToKeyCode(button);
-        CCKeyboardDispatcher::get()->dispatchKeyboardMSG(keyCode, down, repeat, 0.0);
-    }
+    // void onGLFWMouseCallBack(GLFWwindow* window, int button, int action, int mods) {
+    //     if (!isExtraMouseButton(button)) {
+    //         return CCEGLView::onGLFWMouseCallBack(window, button, action, mods);
+    //     }
+    //     bool down = action == 1;
+    //     // mouse buttons never repeat
+    //     bool repeat = false;
+    //     enumKeyCodes keyCode = this->mouseButtonToKeyCode(button);
+    //     CCKeyboardDispatcher::get()->dispatchKeyboardMSG(keyCode, down, repeat, 0.0);
+    // }
 
     bool isExtraMouseButton(int code) {
         return code > GLFW_MOUSE_BUTTON_3;

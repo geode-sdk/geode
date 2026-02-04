@@ -155,7 +155,7 @@ endif()
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
 
 file(MAKE_DIRECTORY "${GEODE_BIN_PATH}/nightly")
 
@@ -338,7 +338,7 @@ if (APPLE)
 	else()
 		set_target_properties(geode-loader PROPERTIES 
 			SYSTEM_NAME MacOS
-			OSX_DEPLOYMENT_TARGET 10.15
+			OSX_DEPLOYMENT_TARGET 11.0
 			APPLE_SILICON_PROCESSOR x86_64
 		)
 

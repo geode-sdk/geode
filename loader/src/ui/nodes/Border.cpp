@@ -4,6 +4,11 @@
 
 using namespace geode::prelude;
 
+class Border::Impl final {
+public:
+    Padding padding;
+};
+
 Border* Border::create(CCNode* node, const ccColor4B& backgroundColor, const CCSize& size, const CCPoint& padding) {
     Border* instance = new Border(padding);
 
@@ -16,7 +21,11 @@ Border* Border::create(CCNode* node, const ccColor4B& backgroundColor, const CCS
     return nullptr;
 }
 
-Border::Border(const CCPoint& padding) : m_padding({ padding.x, padding.y, padding.x, padding.y }) { }
+Border::Border(const CCPoint& padding) : m_impl(std::make_unique<Impl>()) {
+    m_impl->padding = { padding.x, padding.y, padding.x, padding.y };
+}
+
+ Border::~Border() { }
 
 bool Border::init(const ccColor4B& backgroundColor, const CCSize& size) {
     return this->init(nullptr, backgroundColor, size);
@@ -67,11 +76,11 @@ void Border::setPaddingX(float x) {
 }
 
 Border::Padding Border::getPadding() {
-    return m_padding;
+    return m_impl->padding;
 }
 
 float Border::getPaddingX() {
-    return (m_padding.left + m_padding.right) / 2;
+    return (m_impl->padding.left + m_impl->padding.right) / 2;
 }
 
 void Border::setPaddingY(float y) {
@@ -80,47 +89,47 @@ void Border::setPaddingY(float y) {
 }
 
 float Border::getPaddingY() {
-    return (m_padding.top + m_padding.bottom) / 2;
+    return (m_impl->padding.top + m_impl->padding.bottom) / 2;
 }
 
 void Border::setPaddingTop(float top) {
-    m_padding.top = top;
+    m_impl->padding.top = top;
 
     this->updatePadding();
 }
 
 float Border::getPaddingTop() {
-    return m_padding.top;
+    return m_impl->padding.top;
 }
 
 void Border::setPaddingRight(float right) {
-    m_padding.right = right;
+    m_impl->padding.right = right;
 
     this->updatePadding();
 }
 
 float Border::getPaddingRight() {
-    return m_padding.right;
+    return m_impl->padding.right;
 }
 
 void Border::setPaddingBottom(float bottom) {
-    m_padding.bottom = bottom;
+    m_impl->padding.bottom = bottom;
 
     this->updatePadding();
 }
 
 float Border::getPaddingBottom() {
-    return m_padding.bottom;
+    return m_impl->padding.bottom;
 }
 
 void Border::setPaddingLeft(float left) {
-    m_padding.left = left;
+    m_impl->padding.left = left;
 
     this->updatePadding();
 }
 
 float Border::getPaddingLeft() {
-    return m_padding.left;
+    return m_impl->padding.left;
 }
 
 void Border::setBackgroundColor(const ccColor4B& color) {
@@ -166,7 +175,7 @@ void Border::updatePadding() {
         CCSize size = this->getContentSize();
 
         node->setAnchorPoint({ 0, 0 });
-        node->setPosition({ m_padding.left, m_padding.bottom });
+        node->setPosition({ m_impl->padding.left, m_impl->padding.bottom });
         node->setContentSize(size - ccp(this->getPaddingX(), this->getPaddingY()) * 2);
     }
 }

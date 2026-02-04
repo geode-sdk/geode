@@ -67,6 +67,17 @@ const char* geode::getCommonFilterAllowedChars(CommonFilter filter) {
     }
 }
 
+class TextInput::Impl final {
+public:
+    cocos2d::extension::CCScale9Sprite* bgSprite = nullptr;
+    CCTextInputNode* input = nullptr;
+    geode::Function<void(std::string const&)> onInput = nullptr;
+    cocos2d::CCLabelBMFont* label = nullptr;
+    bool callbackEnabled = true;
+};
+
+TextInput::TextInput() : m_impl(std::make_unique<Impl>()) { }
+
 bool TextInput::init(float width, ZStringView placeholder, ZStringView font) {
     if (!CCNode::init())
         return false;
@@ -76,19 +87,19 @@ bool TextInput::init(float width, ZStringView placeholder, ZStringView font) {
     this->setContentSize({ width, HEIGHT });
     this->setAnchorPoint({ .5f, .5f });
 
-    m_bgSprite = extension::CCScale9Sprite::create("square02b_001.png", { 0, 0, 80, 80 });
-    m_bgSprite->setScale(.5f);
-    m_bgSprite->setColor({ 0, 0, 0 });
-    m_bgSprite->setOpacity(90);
-    m_bgSprite->setContentSize({ width * 2, HEIGHT * 2 });
-    this->addChildAtPosition(m_bgSprite, Anchor::Center);
+    m_impl->bgSprite = extension::CCScale9Sprite::create("square02b_001.png", { 0, 0, 80, 80 });
+    m_impl->bgSprite->setScale(.5f);
+    m_impl->bgSprite->setColor({ 0, 0, 0 });
+    m_impl->bgSprite->setOpacity(90);
+    m_impl->bgSprite->setContentSize({ width * 2, HEIGHT * 2 });
+    this->addChildAtPosition(m_impl->bgSprite, Anchor::Center);
 
-    m_input = CCTextInputNode::create(width - 10.f, HEIGHT, placeholder.c_str(), 24, font.c_str());
-    m_input->setLabelPlaceholderColor({ 150, 150, 150 });
-    m_input->setLabelPlaceholderScale(.5f);
-    m_input->setMaxLabelScale(.6f);
-    m_input->setUserObject("fix-text-input", CCBool::create(true));
-    this->addChildAtPosition(m_input, Anchor::Center);
+    m_impl->input = CCTextInputNode::create(width - 10.f, HEIGHT, placeholder.c_str(), 24, font.c_str());
+    m_impl->input->setLabelPlaceholderColor({ 150, 150, 150 });
+    m_impl->input->setLabelPlaceholderScale(.5f);
+    m_impl->input->setMaxLabelScale(.6f);
+    m_impl->input->setUserObject("fix-text-input", CCBool::create(true));
+    this->addChildAtPosition(m_impl->input, Anchor::Center);
 
     return true;
 }
@@ -104,123 +115,129 @@ TextInput* TextInput::create(float width, ZStringView placeholder, ZStringView f
 }
 
 void TextInput::textChanged(CCTextInputNode* input) {
-    if (m_onInput) {
-        m_onInput(input->getString());
+    if (m_impl->onInput && m_impl->callbackEnabled) {
+        m_impl->onInput(input->getString());
     }
 }
 
 void TextInput::setPlaceholder(gd::string placeholder) {
-    m_input->m_caption = std::move(placeholder);
-    m_input->refreshLabel();
+    m_impl->input->m_caption = std::move(placeholder);
+    m_impl->input->refreshLabel();
 }
 
 void TextInput::setLabel(ZStringView label) {
     if (label.size()) {
-        if (m_label) {
-            m_label->setString(label.c_str());
+        if (m_impl->label) {
+            m_impl->label->setString(label.c_str());
         }
         else {
-            m_label = CCLabelBMFont::create(label.c_str(), "goldFont.fnt");
-            this->addChildAtPosition(m_label, Anchor::TopLeft, ccp(3, 2), ccp(0, 0));
+            m_impl->label = CCLabelBMFont::create(label.c_str(), "goldFont.fnt");
+            this->addChildAtPosition(m_impl->label, Anchor::TopLeft, ccp(3, 2), ccp(0, 0));
         }
-        m_label->limitLabelWidth(m_bgSprite->getScaledContentWidth() - 6, .4f, .1f);
+        m_impl->label->limitLabelWidth(m_impl->bgSprite->getScaledContentWidth() - 6, .4f, .1f);
     }
     else {
-        if (m_label) {
-            m_label->removeFromParent();
-            m_label = nullptr;
+        if (m_impl->label) {
+            m_impl->label->removeFromParent();
+            m_impl->label = nullptr;
         }
     }
 }
 void TextInput::setFilter(gd::string allowedChars) {
-    m_input->m_allowedChars = std::move(allowedChars);
+    m_impl->input->m_allowedChars = std::move(allowedChars);
 }
 void TextInput::setCommonFilter(CommonFilter filter) {
     this->setFilter(getCommonFilterAllowedChars(filter));
 }
 void TextInput::setMaxCharCount(size_t length) {
-    m_input->m_maxLabelLength = length == 0 ? 9999999 : length;
+    m_impl->input->m_maxLabelLength = length == 0 ? 9999999 : length;
 }
 void TextInput::setPasswordMode(bool enable) {
-    m_input->m_usePasswordChar = enable;
-    m_input->refreshLabel();
+    m_impl->input->m_usePasswordChar = enable;
+    m_impl->input->refreshLabel();
 }
 void TextInput::setWidth(float width) {
     this->setContentWidth(width);
-    m_input->m_maxLabelWidth = width - 10.f;
-    m_input->setContentWidth(width);
-    m_bgSprite->setContentWidth(width * 2);
-    m_input->setPositionX(width / 2.f);
-    m_bgSprite->setPositionX(width / 2.f);
+    m_impl->input->m_maxLabelWidth = width - 10.f;
+    m_impl->input->setContentWidth(width);
+    m_impl->bgSprite->setContentWidth(width * 2);
+    m_impl->input->setPositionX(width / 2.f);
+    m_impl->bgSprite->setPositionX(width / 2.f);
 }
 void TextInput::setDelegate(TextInputDelegate* delegate, std::optional<int> tag) {
-    m_input->m_delegate = delegate;
-    m_onInput = nullptr;
+    m_impl->input->m_delegate = delegate;
+    m_impl->onInput = nullptr;
     if (tag.has_value()) {
-        m_input->setTag(tag.value());
+        m_impl->input->setTag(tag.value());
     }
 }
 void TextInput::setCallback(geode::Function<void(std::string const&)> onInput) {
     this->setDelegate(this);
-    m_onInput = std::move(onInput);
+    m_impl->onInput = std::move(onInput);
+}
+void TextInput::setCallbackEnabled(bool enabled) {
+    m_impl->callbackEnabled = enabled;
 }
 void TextInput::setEnabled(bool enabled) {
-    m_input->setTouchEnabled(enabled);
-    m_input->m_textLabel->setOpacity(enabled ? 255 : 150);
+    m_impl->input->setTouchEnabled(enabled);
+    m_impl->input->m_textLabel->setOpacity(enabled ? 255 : 150);
 }
 void TextInput::setTextAlign(TextInputAlign align) {
     switch (align) {
         default:
         case TextInputAlign::Center: {
-            m_input->m_textField->setAnchorPoint({ .5f, .5f });
-            m_input->m_textLabel->setAnchorPoint({ .5f, .5f });
-            m_input->updateAnchoredPosition(Anchor::Center);
+            m_impl->input->m_textField->setAnchorPoint({ .5f, .5f });
+            m_impl->input->m_textLabel->setAnchorPoint({ .5f, .5f });
+            m_impl->input->updateAnchoredPosition(Anchor::Center);
         } break;
 
         case TextInputAlign::Left: {
-            m_input->m_textField->setAnchorPoint({ .0f, .5f });
-            m_input->m_textLabel->setAnchorPoint({ .0f, .5f });
-            m_input->updateAnchoredPosition(Anchor::Left, ccp(5, 0));
+            m_impl->input->m_textField->setAnchorPoint({ .0f, .5f });
+            m_impl->input->m_textLabel->setAnchorPoint({ .0f, .5f });
+            m_impl->input->updateAnchoredPosition(Anchor::Left, ccp(5, 0));
         } break;
     }
 }
 
 void TextInput::hideBG() {
-    m_bgSprite->setVisible(false);
+    m_impl->bgSprite->setVisible(false);
 }
 
 void TextInput::setString(gd::string str, bool triggerCallback) {
-    auto oldDelegate = m_input->m_delegate;
+    auto oldDelegate = m_impl->input->m_delegate;
     // Avoid triggering the callback
-    m_input->m_delegate = nullptr;
-    m_input->setString(std::move(str));
-    m_input->m_delegate = oldDelegate;
-    if (triggerCallback && m_input->m_delegate) {
-        m_input->m_delegate->textChanged(m_input);
+    m_impl->input->m_delegate = nullptr;
+    m_impl->input->setString(std::move(str));
+    m_impl->input->m_delegate = oldDelegate;
+    if (triggerCallback && m_impl->input->m_delegate) {
+        m_impl->input->m_delegate->textChanged(m_impl->input);
     }
 }
 
 gd::string TextInput::getString() const {
-    return m_input->getString();
+    return m_impl->input->getString();
+}
+bool TextInput::isCallbackEnabled() const {
+    return m_impl->callbackEnabled;
 }
 
 void TextInput::focus() {
-    m_input->onClickTrackNode(true);
+    m_impl->input->onClickTrackNode(true);
 }
 void TextInput::defocus() {
-    m_input->detachWithIME();
+    m_impl->input->detachWithIME();
 }
 
 CCTextInputNode* TextInput::getInputNode() const {
-    return m_input;
+    return m_impl->input;
 }
 CCScale9Sprite* TextInput::getBGSprite() const {
-    return m_bgSprite;
+    return m_impl->bgSprite;
 }
 
 TextInput::~TextInput() {
-    if (m_input) {
-        m_input->onClickTrackNode(false);
-        m_input->m_delegate = nullptr;
+    if (m_impl->input) {
+        m_impl->input->onClickTrackNode(false);
+        m_impl->input->m_delegate = nullptr;
     }
 }

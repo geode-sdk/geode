@@ -2,7 +2,7 @@
 
 void ModPackListSource::resetQuery() {}
 ModPackListSource::ProviderTask ModPackListSource::fetchPage(size_t page, bool forceUpdate) {
-    return ProviderTask::immediate(Err(LoadPageError("Coming soon ;)")));
+    co_return Err(LoadPageError("Coming soon ;)"));
 }
 
 ModPackListSource::ModPackListSource() {}

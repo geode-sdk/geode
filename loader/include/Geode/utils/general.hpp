@@ -4,6 +4,8 @@
 
 #include <Geode/utils/ZStringView.hpp>
 #include <Geode/utils/string.hpp>
+#include <Geode/utils/hash.hpp>
+#include <asp/time/SystemTime.hpp>
 #include "../DefaultInclude.hpp"
 #include <chrono>
 #include <iomanip>
@@ -21,7 +23,7 @@
 
 namespace geode {
     using ByteVector = std::vector<uint8_t>;
-    using ByteSpan = std::span<uint8_t>;
+    using ByteSpan = std::span<uint8_t const>;
 
     template <class... T>
     requires (std::is_convertible_v<T, uint8_t> && ...) 
@@ -36,6 +38,10 @@ namespace geode {
         out.resize(sizeof(T));
         std::memcpy(out.data(), &a, sizeof(T));
         return out;
+    }
+
+    inline std::tm localtime(std::time_t time) {
+        return asp::localtime(time);
     }
 
     namespace utils {

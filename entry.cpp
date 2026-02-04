@@ -1,5 +1,6 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/utils/async.hpp>
 
 namespace geode {
     /**
@@ -11,11 +12,20 @@ namespace geode {
     Mod* getMod() {
         return Mod::get();
     }
+
+    ZStringView getModID(Mod* mod) {
+        return mod->getID();
+    }
 }
 
 GEODE_API void geodeImplicitEntry() {
     // to make sure the instance is set into the sharedMod<> in load time
-    (void)geode::getMod();
+    auto mod = geode::getMod();
+
+    // initialize arc runtime
+    if (!mod->isInternal()) {
+        arc::setGlobalRuntime(&geode::async::runtime());
+    }
 }
 
 #if defined(_DEBUG) && defined(GEODE_IS_WINDOWS)

@@ -11,11 +11,10 @@
     "name":         "Geode Test",
     "developer":    "Geode Team",
     "description":  "unit test for geode",
-    "dependencies": [
-        {
-            "id": "geode.testdep",
+    "dependencies": {
+        "geode.testdep": {
             "version": ">=1.0.0",
             "required": true
         }
-    ]
+    }
 }

@@ -26,6 +26,7 @@ THE SOFTWARE.
 
 #include <jni.h>
 #include <string>
+#include <Geode/c++stl/string.hpp>
 #include "../../CCPlatformMacros.h"
 
 NS_CC_BEGIN

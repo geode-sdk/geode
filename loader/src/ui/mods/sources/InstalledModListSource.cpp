@@ -1,15 +1,16 @@
 #include "ModListSource.hpp"
+#include <arc/future/Join.hpp>
 
 bool InstalledModsQuery::preCheck(ModSource const& src) const {
     // Invalid .geode files are collected up into one entry instead of 
     // flooding the mods list
-    if (
-        src.asMod() &&
-        src.asMod()->failedToLoad() &&
-        src.asMod()->failedToLoad()->type == LoadProblem::Type::InvalidGeodeFile
-    ) {
-        return false;
-    }
+    // if (
+    //     src.asMod() &&
+    //     src.asMod()->failedToLoad() &&
+    //     src.asMod()->failedToLoad()->type == LoadProblem::Type::InvalidGeodeFile
+    // ) {
+    //     return false;
+    // }
     // If we only want mods with updates, then only give mods with updates
     // NOTE: The caller of filterModsWithQuery() should have ensured that
     // `src.checkUpdates()` has been called and has finished
@@ -123,6 +124,7 @@ InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t pa
 
     auto content = ModListSource::ProvidedMods();
 
+    /*
     if (m_query.type != InstalledModListType::OnlyUpdates) {
         size_t invalidFileCount = 0;
         for (auto const& problem : Loader::get()->getLoadProblems()) {
@@ -154,34 +156,30 @@ InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t pa
             });
         }
     }
-    
+    */
     for (auto& mod : Loader::get()->getAllMods()) {
         content.mods.push_back(ModSource(mod));
     }
     // If we're only checking mods that have updates, we first have to run
     // update checks every mod...
     if (m_query.type == InstalledModListType::OnlyUpdates && content.mods.size()) {
-        using UpdateTask = server::ServerRequest<std::optional<server::ServerModUpdate>>;
+        using UpdateTask = server::ServerFuture<std::optional<server::ServerModUpdate>>;
         std::vector<UpdateTask> tasks;
         for (auto& src : content.mods) {
             if (auto mod = std::get_if<ModSource>(&src)) {
                 tasks.push_back(mod->checkUpdates());
             }
         }
-        return UpdateTask::all(std::move(tasks)).map(
-            [content = std::move(content), query = m_query](auto*) mutable -> ProviderTask::Value {
-                // Filter the results based on the current search
-                // query and return them
-                filterModsWithLocalQuery(content, query);
-                return Ok(std::move(content));
-            },
-            [](auto*) -> ProviderTask::Progress { return std::nullopt; }
-        );
+
+        co_await arc::joinAll(std::move(tasks));
+        
+        filterModsWithLocalQuery(content, m_query);
+        co_return Ok(std::move(content));
     }
     // Otherwise simply construct the result right away
     else {
         filterModsWithLocalQuery(content, m_query);
-        return ProviderTask::immediate(Ok(std::move(content)));
+        co_return Ok(std::move(content));
     }
 }
 

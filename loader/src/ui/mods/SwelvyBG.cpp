@@ -46,9 +46,9 @@ bool SwelvyBG::init() {
         sprite->setUserObject("speed", CCFloat::create(speed));
         this->addChild(sprite);
 
-        m_colorListeners.emplace_back([=](ColorProvidedEvent* event) {
-            sprite->setColor(to3B(event->color));
-        }, ColorProvidedFilter(colorID));
+        m_colorHandles.emplace_back(ColorProvidedEvent(std::move(colorID)).listen([=](ccColor4B color) {
+            sprite->setColor(to3B(color));
+        }));
 
         y -= m_obContentSize.height / 6;
         idx += 1;

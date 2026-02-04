@@ -98,44 +98,40 @@ server::ServerModMetadata const* ModSource::asServer() const {
     return std::get_if<server::ServerModMetadata>(&m_value);
 }
 
-server::ServerRequest<std::optional<std::string>> ModSource::fetchAbout() const {
+server::ServerFuture<std::optional<std::string>> ModSource::fetchAbout() const {
     // todo: write as visit
     if(!this->hasUpdates()) {
         if (auto mod = this->asMod()) {
-            return server::ServerRequest<std::optional<std::string>>::immediate(Ok(mod->getMetadata().getDetails()));
+            co_return Ok(mod->getMetadata().getDetails());
         }
     }
-    return server::getMod(this->getID()).map(
-        [](auto* result) -> Result<std::optional<std::string>, server::ServerError> {
-            if (result->isOk()) {
-                return Ok(result->unwrap().about);
-            }
-            return Err(result->unwrapErr());
-        }
-    );
+    auto result = co_await server::getMod(this->getID());
+    if (result.isOk()) {
+        co_return Ok(result.unwrap().about);
+    }
+    co_return Err(result.unwrapErr());
 }
-server::ServerRequest<std::optional<std::string>> ModSource::fetchChangelog() const {
+server::ServerFuture<std::optional<std::string>> ModSource::fetchChangelog() const {
     if(!this->hasUpdates()) {
         if (auto mod = this->asMod()) {
-            return server::ServerRequest<std::optional<std::string>>::immediate(Ok(mod->getMetadata().getChangelog()));
+            co_return Ok(mod->getMetadata().getChangelog());
         }
     }
-    return server::getMod(this->getID()).map(
-        [](auto* result) -> Result<std::optional<std::string>, server::ServerError> {
-            if (result->isOk()) {
-                return Ok(result->unwrap().changelog);
-            }
-            return Err(result->unwrapErr());
-        }
-    );
+
+    auto result = co_await server::getMod(this->getID());
+    if (result.isOk()) {
+        co_return Ok(result.unwrap().changelog);
+    }
+    co_return Err(result.unwrapErr());
 }
-server::ServerRequest<server::ServerModMetadata> ModSource::fetchServerInfo() const {
+server::ServerFuture<server::ServerModMetadata> ModSource::fetchServerInfo() const {
     // Request the info even if this is already a server mod because this might
     // not have the full details (for example changelog) and the server cache
     // should deal with performance issues
     return server::getMod(this->getID());
 }
-server::ServerRequest<std::vector<server::ServerTag>> ModSource::fetchValidTags() const {
+
+server::ServerFuture<std::vector<server::ServerTag>> ModSource::fetchValidTags() const {
     std::unordered_set<std::string> modTags;
     std::visit(makeVisitor {
         [&](Mod* mod) {
@@ -149,47 +145,33 @@ server::ServerRequest<std::vector<server::ServerTag>> ModSource::fetchValidTags(
     // This does two things:
     // 1. For installed mods, it filters out invalid tags
     // 2. For everything else, it gets the rest of the tag info (display name) from the server
-    return server::getTags().map(
-        [modTags = std::move(modTags)](auto* result) -> Result<std::vector<server::ServerTag>, server::ServerError> {
-            auto finalTags = std::vector<server::ServerTag>();
-            if (result->isOk()) {
-                auto fetched = result->unwrap();
-                // Filter out invalid tags
-                for (auto& tag : modTags) {
-                    auto stag = ranges::find(fetched, [&tag](server::ServerTag const& stag) {
-                        return stag.name == tag;
-                    });
-                    if (stag) {
-                        finalTags.push_back(*stag);
-                    }
-                }
-            }
-            return Ok(finalTags);
-        },
-        [](server::ServerProgress* progress) {
-            return *progress;
+    auto fetched = ARC_CO_UNWRAP(co_await server::getTags());
+
+    std::vector<server::ServerTag> finalTags;
+    // Filter out invalid tags
+    for (auto& tag : modTags) {
+        auto stag = ranges::find(fetched, [&tag](server::ServerTag const& stag) {
+            return stag.name == tag;
+        });
+        if (stag) {
+            finalTags.push_back(*stag);
         }
-    );
+    }
+
+    co_return Ok(std::move(finalTags));
 }
-server::ServerRequest<std::optional<server::ServerModUpdate>> ModSource::checkUpdates() {
+server::ServerFuture<std::optional<server::ServerModUpdate>> ModSource::checkUpdates() {
     m_availableUpdate = std::nullopt;
-    return std::visit(makeVisitor {
-        [this](Mod* mod) {
-            return server::checkUpdates(mod).map(
-                [this](auto* result) -> Result<std::optional<server::ServerModUpdate>, server::ServerError> {
-                    if (result->isOk()) {
-                        m_availableUpdate = result->unwrap();
-                        return Ok(m_availableUpdate);
-                    }
-                    return Err(result->unwrapErr());
-                }
-            );
-        },
-        [](server::ServerModMetadata const& metadata) {
-            // Server mods aren't installed so you can't install updates for them
-            return server::ServerRequest<std::optional<server::ServerModUpdate>>::immediate(Ok(std::nullopt));
-        },
-    }, m_value);
+    if (std::holds_alternative<server::ServerModMetadata>(m_value)) {
+        // Server mods aren't installed so you can't install updates for them
+        co_return Ok(std::nullopt);
+    }
+
+    auto mod = std::get<Mod*>(m_value);
+    
+    m_availableUpdate = ARC_CO_UNWRAP(co_await server::checkUpdates(mod));
+    co_return Ok(m_availableUpdate);
+
 }
 void ModSource::startInstall() {
     if (auto updates = this->hasUpdates()) {

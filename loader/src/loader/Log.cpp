@@ -9,6 +9,10 @@
 #include <Geode/utils/StringBuffer.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/general.hpp>
+#include <Geode/utils/async.hpp>
+#include <asp/time/SystemTime.hpp>
+#include <arc/future/Select.hpp>
+#include <arc/time/Sleep.hpp>
 #include <fmt/chrono.h>
 #include <fmt/format.h>
 #include <memory>
@@ -27,7 +31,7 @@ auto convertTime(auto timePoint) {
     // so do this instead to get the local time for logging.
     // By accident this also gets rid of the decimal places in the seconds
     auto timeEpoch = std::chrono::system_clock::to_time_t(timePoint);
-    return fmt::localtime(timeEpoch);
+    return asp::localtime(timeEpoch);
 }
 
 // Like Log, but doesn't own any content, and is cheap to construct and copy.
@@ -275,25 +279,53 @@ Severity Log::getSeverity() const {
 
 // Logger
 
+Logger::Logger() {
+    auto [tx, rx] = arc::mpsc::channel<Log>(LOG_BUFFER_LIMIT);
+    m_logTx = std::move(tx);
+    m_logRx = std::move(rx);
+}
+
 Logger* Logger::get() {
     static Logger inst;
     return &inst;
 }
 
 Logger::~Logger() {
-    m_terminating.store(true, std::memory_order::release);
+}
 
-    if (m_usingThread && m_logThread.joinable()) {
-        m_logCv.notify_one();
-        m_logThread.join();
+void Logger::shutdownThread() {
+    auto runtime = m_runtime.upgrade();
+    
+    if (m_usingThread.exchange(false, std::memory_order::relaxed) && m_logThread && runtime) {
+        m_cancel.cancel();
+        m_logThread->blockOn();
+        for (auto& msg : m_logRx->drain()) {
+            this->outputLog(BorrowedLog(msg), true);
+        }
     }
 
-    // dont flush as it could be problematic during shutdown
+    m_runtime = {};
+    m_logThread.reset();
+    this->flush();
 }
 
 std::mutex& getLogMutex() {
     static std::mutex mutex;
     return mutex;
+}
+
+static Severity logLevelFor(std::string_view level) {
+    if (level == "debug") {
+        return Severity::Debug;
+    } else if (level == "info") {
+        return Severity::Info;
+    } else if (level == "warn") {
+        return Severity::Warning;
+    } else if (level == "error") {
+        return Severity::Error;
+    } else {
+        return Severity::Info;
+    }
 }
 
 void Logger::setup() {
@@ -304,8 +336,21 @@ void Logger::setup() {
     std::lock_guard g(getLogMutex());
 
     g_logMillis = Mod::get()->getSettingValue<bool>("log-milliseconds");
-    listenForSettingChanges("log-milliseconds", [](bool val) {
+    m_consoleLevel = logLevelFor(
+        Mod::get()->getSettingValue<std::string_view>("console-log-level")
+    );
+    m_fileLevel = logLevelFor(
+        Mod::get()->getSettingValue<std::string_view>("file-log-level")
+    );
+
+    listenForSettingChanges<bool>("log-milliseconds", [](bool val) {
         g_logMillis.store(val, std::memory_order::release);
+    });
+    listenForSettingChanges<std::string_view>("console-log-level", [this](std::string_view val) {
+        m_consoleLevel.store(logLevelFor(val), std::memory_order::relaxed);
+    });
+    listenForSettingChanges<std::string_view>("file-log-level", [this](std::string_view val) {
+        m_fileLevel.store(logLevelFor(val), std::memory_order::relaxed);
     });
 
     auto logDir = dirs::getGeodeLogDir();
@@ -320,10 +365,9 @@ void Logger::setup() {
     m_logStream = std::ofstream(m_logPath);
 
     // Logs can and will probably be added before setup() is called, so we'll write them now
-    for (Log const& log : m_logs) {
+    for (Log const& log : m_logRx->drain()) {
         this->outputLog(BorrowedLog(log), true);
     }
-    m_logs.clear();
 
     this->flushLocked();
     m_initialized.store(true, std::memory_order::release);
@@ -331,35 +375,60 @@ void Logger::setup() {
     // setup log thread
     m_usingThread = Mod::get()->getSettingValue<bool>("log-thread");
     if (m_usingThread) {
-        m_logThread = std::thread(&Logger::workerThread, this);
+        m_logThread = async::runtime().spawn(this->workerThread());
+        m_runtime = async::runtime().weakFromThis();
+        m_logThread->setName("Geode Log Worker");
     }
 }
 
-void Logger::workerThread() {
-    thread::setName("Geode Log Thread");
+arc::Future<> Logger::workerThread() {
+    bool running = true;
+    asp::Duration flushInterval = asp::Duration::fromSecs(1);
+    asp::Instant nextFlush = asp::Instant::now();
+    size_t unflushed = 0;
 
-    // keep a local vector to avoid reallocations every time
-    std::vector<Log> processing;
+    auto doFlush = [&] {
+        std::lock_guard g(getLogMutex());
+        this->flushLocked();
+        nextFlush = asp::Instant::now() + flushInterval;
+        unflushed = 0;
+    };
 
-    while (!m_terminating.load(std::memory_order::acquire)) {
-        std::unique_lock g(getLogMutex());
-        m_logCv.wait(g, [this]() {
-            return !m_logs.empty() || m_terminating.load(std::memory_order::acquire);
-        });
+    size_t flushRequests = 0;
 
-        // move all logs from the queue into our vector
-        while (!m_logs.empty()) {
-            processing.push_back(std::move(m_logs.front()));
-            m_logs.pop_front();
+    while (running) {
+        auto now = asp::Instant::now();
+
+        if (now >= nextFlush || unflushed >= 64) {
+            doFlush();
         }
 
-        // unlock mutex and print all the logs
-        g.unlock();
-
-        for (auto& log : processing) {
-            this->outputLog(BorrowedLog(log));
+        // if we have a flush request, only fulfill it once all logs are printed
+        if (flushRequests && m_logRx->empty()) {
+            doFlush();
+            m_syncFlushSemaphore.release(flushRequests);
+            flushRequests = 0;
         }
-        processing.clear();
+
+        co_await arc::select(
+            arc::selectee(m_logRx->recv(), [&](auto res) {
+                if (!res) return;
+                Log log = std::move(res).unwrap();
+
+                std::lock_guard g(getLogMutex());
+                this->outputLog(BorrowedLog(log), true);
+            }),
+
+            arc::selectee(m_cancel.waitCancelled(), [&] { running = false; }),
+            
+            arc::selectee(
+                m_syncFlushNotify.notified(),
+                [&] { flushRequests++; }
+            ),
+
+            // periodically flush
+            arc::selectee(arc::sleepUntil(nextFlush))
+        );
     }
 }
 
@@ -390,43 +459,26 @@ void Logger::deleteOldLogs(size_t maxAgeHours) {
     }
 }
 
-static Severity logLevelFor(std::string_view level) {
-    if (level == "debug") {
-        return Severity::Debug;
-    } else if (level == "info") {
-        return Severity::Info;
-    } else if (level == "warn") {
-        return Severity::Warning;
-    } else if (level == "error") {
-        return Severity::Error;
-    } else {
-        return Severity::Info;
-    }
-}
-
 Severity Logger::getConsoleLogLevel() {
-    auto level = Mod::get()->getSettingValue<std::string_view>("console-log-level");
-    return logLevelFor(level);
+    return m_consoleLevel.load(std::memory_order::relaxed);
 }
 
 Severity Logger::getFileLogLevel() {
-    auto level = Mod::get()->getSettingValue<std::string_view>("file-log-level");
-    return logLevelFor(level);
+    return m_fileLevel.load(std::memory_order::relaxed);
 }
 
 void Logger::push(Severity sev, int32_t nestCount, std::string content,
     std::string_view thread, std::string_view source, Mod* mod)
 {
+    // check if we should log at all, before acquiring any locks,
+    // since this check is much cheaper than locking or pushing to queue
+    if (!this->shouldOutputLog(sev)) return;
+
     // if thread is enabled or logging isn't initialized, push into the queue; otherwise print right now
-    if (!m_initialized.load(std::memory_order::acquire) || m_usingThread) {
+    if (!m_initialized.load(std::memory_order::relaxed) || m_usingThread.load(std::memory_order::relaxed)) {
         std::lock_guard g(getLogMutex());
 
-        if (m_logs.size() >= LOG_BUFFER_LIMIT) {
-            // drop oldest log
-            m_logs.pop_front();
-        }
-
-        m_logs.emplace_back(
+        (void) m_logTx->trySend(Log{
             log_clock::now(),
             sev,
             nestCount,
@@ -434,8 +486,7 @@ void Logger::push(Severity sev, int32_t nestCount, std::string content,
             std::string(thread),
             std::string(source),
             mod
-        );
-        m_logCv.notify_one();
+        });
         return;
     }
 
@@ -454,10 +505,10 @@ void Logger::outputLog(BorrowedLog const& log, bool dontFlush) {
     auto sev = log.m_severity;
 
     // should we log this at all?
-    bool logConsole = sev >= this->getConsoleLogLevel();
-    bool logFile = sev >= this->getFileLogLevel();
-    bool logCallbacks = !m_callbacks.empty();
-    if (!logConsole && !logFile && !logCallbacks) return;
+    bool logConsole, logFile, logCallbacks;
+    if (!this->shouldOutputLog(sev, logConsole, logFile, logCallbacks)) {
+        return;
+    }
 
     StringBuffer<> buf;
     bool millis = g_logMillis.load(std::memory_order::relaxed);
@@ -470,7 +521,7 @@ void Logger::outputLog(BorrowedLog const& log, bool dontFlush) {
         m_logStream << buf.view() << '\n';
         // don't flush stream for every log as that's super slow
         if (!dontFlush) {
-            this->maybeFlushStream();
+            this->flushLocked();
         }
     }
     if (logCallbacks) {
@@ -480,18 +531,16 @@ void Logger::outputLog(BorrowedLog const& log, bool dontFlush) {
     }
 }
 
-void Logger::maybeFlushStream() {
-    m_unflushedLogs++;
-    if (m_unflushedLogs >= 64) {
-        this->flushLocked();
-        return;
-    }
+bool Logger::shouldOutputLog(Severity sev) {
+    bool console, file, callbacks;
+    return this->shouldOutputLog(sev, console, file, callbacks);
+}
 
-    auto now = log_clock::now();
-    if (now - m_lastFlushTime >= std::chrono::seconds(1)) {
-        this->flushLocked();
-        return;
-    }
+bool Logger::shouldOutputLog(Severity sev, bool& console, bool& file, bool& callbacks) {
+    console = sev >= this->getConsoleLogLevel();
+    file = sev >= this->getFileLogLevel();
+    callbacks = m_anyCallbacks.load(std::memory_order::relaxed);
+    return console || file || callbacks;
 }
 
 void Logger::flush() {
@@ -501,18 +550,28 @@ void Logger::flush() {
 
 void Logger::flushLocked() {
     m_logStream << std::flush;
-    m_unflushedLogs = 0;
-    m_lastFlushTime = log_clock::now();
+}
+
+void Logger::flushExternal() {
+    // if not using a log thread, then queue is always empty, so simply flush
+    if (!m_usingThread) {
+        this->flush();
+        return;
+    }
+
+    // synchronize with the log thread
+    m_syncFlushNotify.notifyOne();
+    m_syncFlushSemaphore.acquire();
 }
 
 void Logger::clear() {
-    std::lock_guard g(getLogMutex());
-    m_logs.clear();
+    m_logRx->drain();
 }
 
 void Logger::addLogCallback(LogCallback callback) {
     std::lock_guard g(getLogMutex());
     m_callbacks.push_back(std::move(callback));
+    m_anyCallbacks.store(true, std::memory_order::relaxed);
 }
 
 Nest::Nest(std::shared_ptr<Nest::Impl> impl) : m_impl(std::move(impl)) { }
@@ -539,6 +598,10 @@ void log::popNest(Mod* mod) {
     s_nestLevel--;
     if (s_nestLevel == 0)
         s_nestCountOffset = 0;
+}
+
+void log::flush() {
+    Logger::get()->flushExternal();
 }
 
 std::shared_ptr<Nest> log::saveNest() {

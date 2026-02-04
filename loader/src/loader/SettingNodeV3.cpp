@@ -5,42 +5,6 @@
 #include <ui/mods/GeodeStyle.hpp>
 #include <Geode/ui/MDPopup.hpp>
 
-class SettingNodeSizeChangeEventV3::Impl final {
-public:
-    SettingNodeV3* node;
-};
-
-SettingNodeSizeChangeEventV3::SettingNodeSizeChangeEventV3(SettingNodeV3* node)
-  : m_impl(std::make_shared<Impl>())
-{
-    m_impl->node = node;
-}
-SettingNodeSizeChangeEventV3::~SettingNodeSizeChangeEventV3() = default;
-
-SettingNodeV3* SettingNodeSizeChangeEventV3::getNode() const {
-    return m_impl->node;
-}
-
-class SettingNodeValueChangeEventV3::Impl final {
-public:
-    SettingNodeV3* node;
-    bool commit = false;
-};
-
-SettingNodeValueChangeEventV3::SettingNodeValueChangeEventV3(SettingNodeV3* node, bool commit)
-  : m_impl(std::make_shared<Impl>())
-{
-    m_impl->node = node;
-    m_impl->commit = commit;
-}
-SettingNodeValueChangeEventV3::~SettingNodeValueChangeEventV3() = default;
-
-SettingNodeV3* SettingNodeValueChangeEventV3::getNode() const {
-    return m_impl->node;
-}
-bool SettingNodeValueChangeEventV3::isCommit() const {
-    return m_impl->commit;
-}
 
 class SettingNodeV3::Impl final {
 public:
@@ -171,13 +135,13 @@ void SettingNodeV3::setDefaultBGColor(ccColor4B color) {
 
 void SettingNodeV3::markChanged(CCNode* invoker) {
     this->updateState(invoker);
-    SettingNodeValueChangeEventV3(this, false).post();
+    SettingNodeValueChangeEventV3(m_impl->setting->getModID(), m_impl->setting->getKey()).send(this, false);
 }
 void SettingNodeV3::commit() {
     this->onCommit();
     m_impl->committed = true;
     this->updateState(nullptr);
-    SettingNodeValueChangeEventV3(this, true).post();
+    SettingNodeValueChangeEventV3(m_impl->setting->getModID(), m_impl->setting->getKey()).send(this, true);
 }
 void SettingNodeV3::resetToDefault() {
     if (!m_impl->setting) return;
@@ -185,14 +149,14 @@ void SettingNodeV3::resetToDefault() {
     m_impl->committed = true;
     this->onResetToDefault();
     this->updateState(nullptr);
-    SettingNodeValueChangeEventV3(this, false).post();
+    SettingNodeValueChangeEventV3(m_impl->setting->getModID(), m_impl->setting->getKey()).send(this, false);
 }
 
 void SettingNodeV3::setContentSize(CCSize const& size) {
     CCNode::setContentSize(size);
     m_impl->bg->setContentSize(size);
     this->updateLayout();
-    SettingNodeSizeChangeEventV3(this).post();
+    SettingNodeSizeChangeEventV3(m_impl->setting->getModID(), m_impl->setting->getKey()).send(this);
 }
 
 CCLabelBMFont* SettingNodeV3::getNameLabel() const {
@@ -496,35 +460,33 @@ void FileSettingNodeV3::updateState(CCNode* invoker) {
 }
 
 void FileSettingNodeV3::onPickFile(CCObject*) {
-    m_pickListener.bind([this](auto* event) {
-        auto value = event->getValue();
-        if (!value) {
-            return;
-        }
-        if (value->isOk()) {
-            this->setValue(value->unwrap(), nullptr);
-        }
-        else {
-            FLAlertLayer::create(
-                "Failed",
-                fmt::format("Failed to pick file: {}", value->unwrapErr()),
-                "Ok"
-            )->show();
-        }
-    });
     std::error_code ec;
-    m_pickListener.setFilter(file::pick(
-        this->getSetting()->isFolder() ?
+
+    m_pickListener.spawn(
+        file::pick(
+            this->getSetting()->isFolder() ?
             file::PickMode::OpenFolder :
-            (this->getSetting()->useSaveDialog() ? file::PickMode::SaveFile : file::PickMode::OpenFile),
-        {
-            // Prefer opening the current path directly if possible
-            this->getValue().empty() || !std::filesystem::exists(this->getValue().parent_path(), ec) ?
-                dirs::getGameDir() :
-                this->getValue(),
-            this->getSetting()->getFilters().value_or(std::vector<file::FilePickOptions::Filter>())
+            this->getSetting()->useSaveDialog() ? file::PickMode::SaveFile : file::PickMode::OpenFile,
+            {
+                // Prefer opening the current path directly if possible
+                this->getValue().empty() || !std::filesystem::exists(this->getValue().parent_path(), ec)
+                    ? dirs::getGameDir() : this->getValue(),
+                this->getSetting()->getFilters().value_or(std::vector<file::FilePickOptions::Filter>())
+            }
+        ),
+        [this](Result<std::optional<std::filesystem::path>> path) {
+            if (path.isOk() && path.unwrap().has_value()) {
+                this->setValue(std::move(path).unwrap().value(), nullptr);
+            }
+            else if (path.isErr()) {
+                FLAlertLayer::create(
+                    "Failed",
+                    fmt::format("Failed to pick file: {}", path.unwrapErr()),
+                    "Ok"
+                )->show();
+            }
         }
-    ));
+    );
 }
 
 FileSettingNodeV3* FileSettingNodeV3::create(std::shared_ptr<FileSettingV3> setting, float width) {
