@@ -628,7 +628,7 @@ ModMetadata ModMetadata::Impl::createFromGeodeFileWithFallback(std::filesystem::
     // attempt to unzip, otherwise return invalid mod with unzip error
     auto r = file::Unzip::create(path);
     if (!r) {
-        return createInvalidMetadata(path, r.unwrapErr(), LoadProblem::Type::InvalidFile);
+        return createInvalidMetadata(path, r.unwrapErr(), LoadProblem::Type::InvalidGeodeFile);
     }
 
     auto&& unzip = std::move(r.unwrap());
@@ -644,14 +644,14 @@ ModMetadata ModMetadata::Impl::createFromGeodeFileWithFallback(std::filesystem::
             // store invalid reason to stop loading + display ui
             minimalMetadata.m_impl->m_softInvalidReason = {
                 std::string(fullAttempt.unwrapErr()),
-                LoadProblem::Type::InvalidFile
+                LoadProblem::Type::InvalidGeodeFile
             };
 
             return minimalMetadata;
         }
 
         // if parsing id failed, return invalid mod with normal mod parsing error
-        return createInvalidMetadata(path, fullAttempt.unwrapErr(), LoadProblem::Type::InvalidFile);
+        return createInvalidMetadata(path, fullAttempt.unwrapErr(), LoadProblem::Type::InvalidGeodeFile);
     }
 
     return fullAttempt.unwrap();
