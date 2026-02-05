@@ -234,6 +234,10 @@ bool Scrollbar::init(CCScrollLayerExt* target) {
     return m_impl->init(target);
 }
 
+bool Scrollbar::isTouching() {
+    return m_impl->m_touchDown;
+}
+
 CCScrollLayerExt* Scrollbar::getTarget() {
     return m_impl->m_target;
 }

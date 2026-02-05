@@ -23,6 +23,7 @@ namespace geode {
         bool init(CCScrollLayerExt* list);
 
     public:
+        bool isTouching();
         CCScrollLayerExt* getTarget();
         cocos2d::extension::CCScale9Sprite* getTrack();
         cocos2d::extension::CCScale9Sprite* getThumb();
