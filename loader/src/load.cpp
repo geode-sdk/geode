@@ -8,9 +8,8 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/JsonValidation.hpp>
+#include <Geode/utils/async.hpp>
 #include <loader/LogImpl.hpp>
-
-#include <array>
 
 using namespace geode::prelude;
 
@@ -190,12 +189,11 @@ int geodeEntry(void* platformData) {
 
     // 0 means no deletion
     if (logMaxAge > 0) {
-        // put it in a thread so that it doesn't slow down launch times
-        std::thread([logMaxAge] {
+        // put it in a task so that it doesn't slow down launch times
+        async::runtime().spawnBlocking<void>([logMaxAge] {
             log::Logger::get()->deleteOldLogs(std::chrono::days{logMaxAge});
-        }).detach();
+        });
     }
-
 
     log::debug("Setting up IPC");
     {

@@ -454,6 +454,13 @@ cocos2d::CCRect geode::utils::getSafeAreaRect() {
 
     auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
     auto glView = cocos2d::CCDirector::sharedDirector()->getOpenGLView();
+
+    if (!glView)
+        return cocos2d::CCRect(
+            0, 0,
+            winSize.width, winSize.height
+        );
+    
     auto scaleX = glView->m_fScaleX;
     auto scaleY = glView->m_fScaleY;
 

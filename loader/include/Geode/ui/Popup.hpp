@@ -36,6 +36,10 @@ namespace geode {
             float width, float height, char const* bg = "GJ_square01.png",
             cocos2d::CCRect bgRect = {}
         );
+        bool init(
+            cocos2d::CCSize size, char const* bg = "GJ_square01.png",
+            cocos2d::CCRect bgRect = {}
+        );
 
         void keyBackClicked() override;
         void keyDown(cocos2d::enumKeyCodes key, double p1) override;

@@ -27,7 +27,7 @@ SimpleTextArea* SimpleTextArea::create(std::string text, std::string font, float
 
 SimpleTextArea* SimpleTextArea::create(std::string font, std::string text, float scale, float width, bool artificialWidth) {
     SimpleTextArea* instance = new SimpleTextArea();
-    instance->m_impl = instance->createImpl();
+    // instance->m_impl = instance->createImpl(); // If commenting this out breaks anything lmk
 
     if (instance->init(std::move(font), std::move(text), scale, width, artificialWidth)) {
         instance->autorelease();
@@ -151,6 +151,6 @@ float SimpleTextArea::getLineHeight() {
     return m_impl->m_lineHeight;
 }
 
-std::unique_ptr<SimpleTextAreaImpl> SimpleTextArea::createImpl(){
+inline std::unique_ptr<SimpleTextAreaImpl> SimpleTextArea::createImpl() {
     return std::make_unique<SimpleTextArea::Impl>(this);
 }
