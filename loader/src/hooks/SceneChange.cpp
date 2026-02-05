@@ -4,7 +4,7 @@
 
 using namespace geode::prelude;
 
-class SceneChangeHook : Modify<SceneChangeHook, cocos2d::CCDirector> {
+struct SceneChangeHook : Modify<SceneChangeHook, cocos2d::CCDirector> {
 	void willSwitchToScene(CCScene* scene) {
 		SceneEvent().send(scene);
 		CCDirector::willSwitchToScene(scene);
