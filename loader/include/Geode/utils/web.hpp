@@ -130,6 +130,11 @@ namespace geode::utils::web {
 
     class GEODE_DLL WebResponse final {
     private:
+        using Listener = Function<void(const WebResponse&)>;
+
+        static std::unordered_map<std::string, std::vector<std::shared_ptr<Listener>>> s_listeners;
+        static std::shared_mutex s_listenersMutex;
+
         class Impl;
 
         std::shared_ptr<Impl> m_impl;
@@ -174,6 +179,21 @@ namespace geode::utils::web {
          * an empty string is returned.
          */
         std::string_view errorMessage() const;
+
+        /**
+         * Registers a listener which gets called with every response from a request made by the specified mod.
+         * 
+         * @param callback The listener callback.
+         * @param mod The target mod.
+         */
+        static void registerListener(Listener callback, Mod* mod = getMod());
+
+        /**
+         * Registers an listener which gets called with every response from a request made using Geode.
+         * 
+         * @param callback The listener callback.
+         */
+        static void registerGlobalListener(Listener callback);
     };
 
     class WebProgress final {
@@ -208,7 +228,6 @@ namespace geode::utils::web {
     private:
         using Interceptor = Function<void(WebRequest&)>;
 
-        static std::string s_globalKey;
         static std::unordered_map<std::string, std::vector<std::shared_ptr<Interceptor>>> s_interceptors;
         static std::shared_mutex s_interceptorsMutex;
 
@@ -222,17 +241,17 @@ namespace geode::utils::web {
         WebRequest();
         ~WebRequest();
 
-        WebFuture send(std::string method, std::string url, Mod* mod = getMod());
-        WebFuture post(std::string url, Mod* mod = getMod());
-        WebFuture get(std::string url, Mod* mod = getMod());
-        WebFuture put(std::string url, Mod* mod = getMod());
-        WebFuture patch(std::string url, Mod* mod = getMod());
+        WebFuture send(std::string method, std::string url, Mod* mod = geode::getMod());
+        WebFuture post(std::string url, Mod* mod = geode::getMod());
+        WebFuture get(std::string url, Mod* mod = geode::getMod());
+        WebFuture put(std::string url, Mod* mod = geode::getMod());
+        WebFuture patch(std::string url, Mod* mod = geode::getMod());
 
-        WebResponse sendSync(std::string method, std::string url, Mod* mod = getMod());
-        WebResponse postSync(std::string url, Mod* mod = getMod());
-        WebResponse getSync(std::string url, Mod* mod = getMod());
-        WebResponse putSync(std::string url, Mod* mod = getMod());
-        WebResponse patchSync(std::string url, Mod* mod = getMod());
+        WebResponse sendSync(std::string method, std::string url, Mod* mod = geode::getMod());
+        WebResponse postSync(std::string url, Mod* mod = geode::getMod());
+        WebResponse getSync(std::string url, Mod* mod = geode::getMod());
+        WebResponse putSync(std::string url, Mod* mod = geode::getMod());
+        WebResponse patchSync(std::string url, Mod* mod = geode::getMod());
 
         WebRequest& header(std::string name, std::string value);
         WebRequest& removeHeader(std::string_view name);
@@ -412,6 +431,12 @@ namespace geode::utils::web {
          */
         size_t getID() const;
 
+        /**
+         * Gets the mod which owns the request.
+         *
+         * @return geode::Mod*
+         */
+        Mod* getMod() const;
 
         /**
          * Gets the request method as a string
@@ -474,7 +499,7 @@ namespace geode::utils::web {
          * @param callback The interceptor callback.
          * @param mod The target mod.
          */
-        static void registerInterceptor(Interceptor callback, Mod* mod = getMod());
+        static void registerInterceptor(Interceptor callback, Mod* mod = geode::getMod());
 
         /**
          * Registers an interceptor which gets called with every request made using Geode.

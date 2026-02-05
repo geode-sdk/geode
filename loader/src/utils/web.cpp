@@ -32,6 +32,8 @@ using namespace geode::utils::web;
 using namespace geode::utils::string;
 using namespace arc;
 
+static std::string s_globalInterceptorKey = "*";
+
 static long unwrapProxyType(ProxyType type) {
     switch (type) {
         using enum ProxyType;
@@ -106,6 +108,10 @@ static long unwrapHttpVersion(HttpVersion version)
     // Shouldn't happen.
     unreachable("Unexpected HTTP Version!");
 }
+
+std::unordered_map<std::string, std::vector<std::shared_ptr<WebResponse::Listener>>> WebResponse::s_listeners;
+
+std::shared_mutex WebResponse::s_listenersMutex;
 
 class WebResponse::Impl {
 public:
@@ -342,6 +348,18 @@ std::string_view WebResponse::errorMessage() const {
     return m_impl->m_errMessage;
 }
 
+void WebResponse::registerListener(Listener callback, Mod* mod) {
+    std::unique_lock lock(s_listenersMutex);
+
+    s_listeners[mod->getID()].push_back(std::make_shared<Listener>(std::move(callback)));
+}
+
+void WebResponse::registerGlobalListener(Listener callback) {
+    std::unique_lock lock(s_listenersMutex);
+
+    s_listeners[s_globalInterceptorKey].push_back(std::make_shared<Listener>(std::move(callback)));
+}
+
 class web::WebRequestsManager {
 private:
     class Impl;
@@ -355,15 +373,44 @@ public:
 
     struct RequestData {
         std::shared_ptr<WebRequest::Impl> request;
+        Mod* mod;
         WebResponse response;
         geode::Function<void(WebResponse)> onComplete;
         CURL* curl = nullptr;
+
+        void complete(WebResponse res) {
+            std::vector<std::shared_ptr<WebResponse::Listener>> listeners;
+
+            onComplete(res);
+    
+            {
+                std::shared_lock lock(WebResponse::s_listenersMutex);
+                auto itMod = WebResponse::s_listeners.find(mod->getID());
+                auto itGlobal = WebResponse::s_listeners.find(s_globalInterceptorKey);
+
+                if (itMod != WebResponse::s_listeners.end()) {
+                    auto& modListeners = itMod->second;
+
+                    listeners.insert(listeners.end(), modListeners.begin(), modListeners.end());
+                }
+
+                if (itGlobal != WebResponse::s_listeners.end()) {
+                    auto& globalListeners = itGlobal->second;
+
+                    listeners.insert(listeners.end(), globalListeners.begin(), globalListeners.end());
+                }
+            }
+
+            for (auto& listener : listeners) {
+                (*listener)(res);
+            }
+        }
 
         void onError(int code, std::string_view msg) {
             auto res = WebResponse();
             res.m_impl->m_code = code;
             res.m_impl->m_data = ByteVector(msg.begin(), msg.end());
-            onComplete(res);
+            complete(std::move(res));
         }
 
         void onError(GeodeWebError code, std::string_view msg) {
@@ -394,8 +441,6 @@ static void urlEncodeAppend(auto& buf, std::string_view input) {
     }
 }
 
-std::string WebRequest::s_globalKey = "*";
-
 std::unordered_map<std::string, std::vector<std::shared_ptr<WebRequest::Interceptor>>> WebRequest::s_interceptors;
 
 std::shared_mutex WebRequest::s_interceptorsMutex;
@@ -422,6 +467,7 @@ public:
     ProxyOpts m_proxyOpts = {};
     HttpVersion m_httpVersion = HttpVersion::DEFAULT;
     size_t m_id;
+    Mod* m_mod;
     bool m_inInterceptor;
     std::atomic<size_t> m_downloadCurrent = 0;
     std::atomic<size_t> m_downloadTotal = 0;
@@ -444,7 +490,7 @@ public:
         auto res = WebResponse();
         res.m_impl->m_code = static_cast<int>(code);
         res.m_impl->m_data = ByteVector(msg.begin(), msg.end());
-        return res;
+        return std::move(res);
     }
 
     CURL* makeCurlHandle(WebRequestsManager::RequestData* requestData) {
@@ -748,11 +794,12 @@ WebFuture WebRequest::send(std::string method, std::string url, Mod* mod) {
     if (m_impl->m_inInterceptor) throw std::runtime_error("Don't send a request again from an interceptor.");
 
     std::vector<std::shared_ptr<Interceptor>> interceptors;
+    m_impl->m_mod = mod;
     
     {
         std::shared_lock lock(s_interceptorsMutex);
         auto itMod = s_interceptors.find(mod->getID());
-        auto itGlobal = s_interceptors.find(s_globalKey);
+        auto itGlobal = s_interceptors.find(s_globalInterceptorKey);
 
         if (itMod != s_interceptors.end()) {
             auto& modInterceptors = itMod->second;
@@ -962,6 +1009,10 @@ size_t WebRequest::getID() const {
     return m_impl->m_id;
 }
 
+Mod* WebRequest::getMod() const {
+    return m_impl->m_mod;
+}
+
 ZStringView WebRequest::getMethod() const {
     return m_impl->m_method;
 }
@@ -994,16 +1045,16 @@ WebProgress WebRequest::getProgress() const {
     return m_impl->progress();
 }
 
-void WebRequest::registerInterceptor(Function<void(WebRequest&)> callback, Mod* mod) {
+void WebRequest::registerInterceptor(Interceptor callback, Mod* mod) {
     std::unique_lock lock(s_interceptorsMutex);
 
     s_interceptors[mod->getID()].push_back(std::make_shared<Interceptor>(std::move(callback)));
 }
 
-void WebRequest::registerGlobalInterceptor(Function<void(WebRequest&)> callback) {
+void WebRequest::registerGlobalInterceptor(Interceptor callback) {
     std::unique_lock lock(s_interceptorsMutex);
 
-    s_interceptors[s_globalKey].push_back(std::make_shared<Interceptor>(std::move(callback)));
+    s_interceptors[s_globalInterceptorKey].push_back(std::make_shared<Interceptor>(std::move(callback)));
 }
 
 struct RegisteredSocket {
@@ -1233,7 +1284,7 @@ public:
                     );
                 } else {
                     // resolve with success :-)
-                    requestData.onComplete(std::move(requestData.response));
+                    requestData.complete(std::move(requestData.response));
                 }
 
                 // clean up
@@ -1343,7 +1394,7 @@ WebFuture::WebFuture(std::shared_ptr<WebRequest::Impl> request) {
     auto [tx, rx] = arc::oneshot::channel<WebResponse>();
 
     auto rdata = std::make_shared<WebRequestsManager::RequestData>(
-        std::move(request), WebResponse{}, [tx = std::move(tx)](auto res) mutable {
+        std::move(request), request->m_mod, WebResponse{}, [tx = std::move(tx)](auto res) mutable {
             (void) tx.send(std::move(res));
         }
     );
