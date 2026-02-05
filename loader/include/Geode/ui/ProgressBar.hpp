@@ -7,14 +7,13 @@ namespace geode {
         Level = 0, // Gameplay style
         Solid = 1, // Thick style
     };
-    GEODE_DLL const char* baseEnumToString(ProgressBarStyle);
 
     // Custom class for the progress bar
     class GEODE_DLL ProgressBar final : public cocos2d::CCNode {
-    protected:
         class Impl;
         std::unique_ptr<Impl> m_impl;
 
+    protected:
         ProgressBar();
         virtual ~ProgressBar();
 
