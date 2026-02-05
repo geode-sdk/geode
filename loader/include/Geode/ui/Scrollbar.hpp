@@ -28,6 +28,8 @@ namespace geode {
         cocos2d::extension::CCScale9Sprite* getThumb();
 
         void setTarget(CCScrollLayerExt* list);
+        void setTrack(cocos2d::extension::CCScale9Sprite* track);
+        void setThumb(cocos2d::extension::CCScale9Sprite* thumb);
 
         static Scrollbar* create(CCScrollLayerExt* list);
 

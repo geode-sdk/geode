@@ -250,6 +250,14 @@ void Scrollbar::setTarget(CCScrollLayerExt* list) {
     m_impl->setTarget(list);
 }
 
+void Scrollbar::setTrack(cocos2d::extension::CCScale9Sprite* track) {
+    m_impl->m_track = track;
+}
+
+void Scrollbar::setThumb(cocos2d::extension::CCScale9Sprite* thumb) {
+    m_impl->m_thumb = thumb;
+}
+
 Scrollbar* Scrollbar::create(CCScrollLayerExt* target) {
     auto ret = new Scrollbar;
 
