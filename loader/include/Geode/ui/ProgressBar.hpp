@@ -21,11 +21,11 @@ namespace geode {
         // Reloads the style of the progress bar
         void reloadStyle();
 
-        bool init() override;
+        bool init(ProgressBarStyle style);
 
     public:
         // Create a custom progress bar
-        static ProgressBar* create();
+        static ProgressBar* create(ProgressBarStyle style = ProgressBarStyle::Level);
 
         /**
          * Set the style of the progress bar
@@ -65,26 +65,26 @@ namespace geode {
         /**
          * Get the current progress percentage of the bar
          */
-        float getProgress() const;
+        float getProgress() const noexcept;
 
         /**
          * Get the progress percentage text label node
          */
-        cocos2d::CCLabelBMFont* getProgressLabel() const;
+        cocos2d::CCLabelBMFont* getProgressLabel() const noexcept;
 
         /**
          * Get the current style of the progress bar
          */
-        ProgressBarStyle getStyle() const;
+        ProgressBarStyle getStyle() const noexcept;
 
         /**
          * Get the current color of the fill of the progress bar
          */
-        cocos2d::ccColor3B getFillColor() const;
+        cocos2d::ccColor3B getFillColor() const noexcept;
 
         /**
          * Get the precision of the percentage label
          */
-        size_t getPrecision() const;
+        size_t getPrecision() const noexcept;
     };
 };

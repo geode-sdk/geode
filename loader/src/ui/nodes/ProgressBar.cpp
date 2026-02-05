@@ -18,7 +18,7 @@ public:
     // Style of the progress bar
     ProgressBarStyle style = ProgressBarStyle::Level;
     // Current color of the filled progress bar
-    ccColor3B progressBarFillColor = { 255, 255, 255 };
+    ccColor3B progressBarFillColor = { 31, 162, 255 };
     // Whether to show the label showing the percentage of the current progress
     bool showProgressPercentLabel = false;
     // Precision of the percentage on the progress percent label
@@ -38,6 +38,8 @@ ProgressBar::~ProgressBar() {};
 
 void ProgressBar::reloadStyle() {
     switch (m_impl->style) {
+    default: [[fallthrough]];
+
     case ProgressBarStyle::Level: {
         m_impl->progressBar = CCSprite::create("slidergroove2.png");
         m_impl->progressBar->setID("progress-bar");
@@ -97,7 +99,7 @@ void ProgressBar::reloadStyle() {
     } break;
     };
 
-    this->setScaledContentSize(m_impl->progressBar->getScaledContentSize());
+    this->setContentSize(m_impl->progressBar->getScaledContentSize());
 
     m_impl->progressBar->addChild(m_impl->progressBarFill);
 
@@ -107,8 +109,10 @@ void ProgressBar::reloadStyle() {
     this->updateProgress(m_impl->progress);
 };
 
-bool ProgressBar::init() {
+bool ProgressBar::init(ProgressBarStyle style) {
     if (!CCNode::init()) return false;
+
+    m_impl->style = style;
 
     this->reloadStyle();
 
@@ -120,7 +124,7 @@ void ProgressBar::setStyle(ProgressBarStyle style) {
         m_impl->style = style;
 
         this->removeAllChildren();
-        this->reloadStyle(); // setup again with new style
+        this->reloadStyle(); // recreate with new style
     };
 };
 
@@ -156,30 +160,29 @@ void ProgressBar::showProgressLabel(bool show) {
     if (m_impl->progressPercentLabel) m_impl->progressPercentLabel->setVisible(show);
 };
 
-float ProgressBar::getProgress() const {
+float ProgressBar::getProgress() const noexcept {
     return m_impl->progress;
 };
 
-CCLabelBMFont* ProgressBar::getProgressLabel() const {
+CCLabelBMFont* ProgressBar::getProgressLabel() const noexcept {
     return m_impl->progressPercentLabel;
 };
 
-ProgressBarStyle ProgressBar::getStyle() const {
+ProgressBarStyle ProgressBar::getStyle() const noexcept {
     return m_impl->style;
 };
 
-ccColor3B ProgressBar::getFillColor() const {
+ccColor3B ProgressBar::getFillColor() const noexcept {
     return m_impl->progressBarFillColor;
 };
 
-size_t ProgressBar::getPrecision() const {
+size_t ProgressBar::getPrecision() const noexcept {
     return m_impl->precision;
 };
 
-ProgressBar* ProgressBar::create() {
+ProgressBar* ProgressBar::create(ProgressBarStyle style) {
     auto ret = new ProgressBar();
-
-    if (ret && ret->init()) {
+    if (ret->init(style)) {
         ret->autorelease();
         return ret;
     };
