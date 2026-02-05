@@ -378,14 +378,16 @@ void RichTextArea::ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent){
     RichTextArea::ccTouchEnded(pTouch, pEvent);
 }
 
-RichTextArea::~RichTextArea(){
+RichTextArea::RichTextArea() : SimpleTextArea() {}
+
+RichTextArea::~RichTextArea() {
     CCTouchDispatcher::get()->removeDelegate(this);
 }
 
-std::unique_ptr<SimpleTextAreaImpl> RichTextArea::createImpl(){
+inline std::unique_ptr<SimpleTextAreaImpl> RichTextArea::createImpl() {
     return std::make_unique<RichTextArea::RichImpl>(this);
 }
 
-RichTextArea::RichImpl* RichTextArea::castedImpl(){
+RichTextArea::RichImpl* RichTextArea::castedImpl() {
     return static_cast<RichTextArea::RichImpl*>(m_impl.get());
 }
