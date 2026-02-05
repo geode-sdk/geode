@@ -123,6 +123,10 @@ bool Popup::init(
     return true;
 }
 
+bool Popup::init(CCSize size, char const* bg, CCRect bgRect) {
+    return this->init(size.width, size.height, bg, bgRect);
+}
+
 void Popup::keyBackClicked() {
     this->onClose(nullptr);
 }
