@@ -23,6 +23,10 @@ namespace geode {
         bool init(CCScrollLayerExt* list);
 
     public:
+        CCScrollLayerExt* getTarget();
+        cocos2d::extension::CCScale9Sprite* getTrack();
+        cocos2d::extension::CCScale9Sprite* getThumb();
+
         void setTarget(CCScrollLayerExt* list);
 
         static Scrollbar* create(CCScrollLayerExt* list);

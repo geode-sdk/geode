@@ -230,8 +230,26 @@ void Scrollbar::registerWithTouchDispatcher() {
 void Scrollbar::draw() { 
     m_impl->draw(); 
 }
-bool Scrollbar::init(CCScrollLayerExt* target) { return m_impl->init(target); }
-void Scrollbar::setTarget(CCScrollLayerExt* list) { m_impl->setTarget(list); }
+bool Scrollbar::init(CCScrollLayerExt* target) {
+    return m_impl->init(target);
+}
+
+CCScrollLayerExt* Scrollbar::getTarget() {
+    return m_impl->m_target;
+}
+
+cocos2d::extension::CCScale9Sprite* Scrollbar::getTrack() {
+    return m_impl->m_track;
+}
+
+cocos2d::extension::CCScale9Sprite* Scrollbar::getThumb() {
+    return m_impl->m_thumb;
+}
+
+
+void Scrollbar::setTarget(CCScrollLayerExt* list) {
+    m_impl->setTarget(list);
+}
 
 Scrollbar* Scrollbar::create(CCScrollLayerExt* target) {
     auto ret = new Scrollbar;
