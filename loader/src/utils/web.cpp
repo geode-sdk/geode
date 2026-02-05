@@ -1320,9 +1320,7 @@ WebFuture WebRequestsManager::enqueueAndWait(std::shared_ptr<WebRequest::Impl> d
 }
 
 void WebRequestsManager::cancel(std::shared_ptr<RequestData> data) {
-    if (m_impl->m_canceltx->trySend(data->curl).isErr()) {
-        m_impl->workerCancelRequest(data->curl);
-    }
+    (void) m_impl->m_canceltx->trySend(data->curl).isErr();
 }
 
 mpsc::SendResult<std::shared_ptr<WebRequestsManager::RequestData>> WebRequestsManager::tryEnqueue(std::shared_ptr<RequestData> data) {
