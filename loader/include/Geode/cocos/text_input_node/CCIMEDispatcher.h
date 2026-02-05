@@ -26,6 +26,7 @@ THE SOFTWARE.
 #define __CC_IME_DISPATCHER_H__
 
 #include "CCIMEDelegate.h"
+#include <list>
 
 NS_CC_BEGIN
 
@@ -108,7 +109,11 @@ protected:
 private:
     CCIMEDispatcher();
 
-    class Impl;
+    class Impl {
+    public:
+        std::list<CCIMEDelegate*> m_DelegateList;
+        CCIMEDelegate* m_DelegateWithIme;
+    };
     Impl * m_pImpl;
 };
 
