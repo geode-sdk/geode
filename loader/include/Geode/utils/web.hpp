@@ -140,7 +140,13 @@ namespace geode::utils::web {
         // Must be default-constructible for use in Promise
         WebResponse();
 
+        bool info() const;
         bool ok() const;
+        bool redirected() const;
+        bool badClient() const;
+        bool badServer() const;
+        bool error() const;
+        bool cancelled() const;
         int code() const;
 
         Result<std::string> string() const;

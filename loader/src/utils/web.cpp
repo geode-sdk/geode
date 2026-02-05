@@ -272,8 +272,26 @@ ByteVector MultipartForm::getBody() const {
 
 WebResponse::WebResponse() : m_impl(std::make_shared<Impl>()) {}
 
+bool WebResponse::info() const {
+    return m_impl->m_code >= 100 && m_impl->m_code < 200;
+}
 bool WebResponse::ok() const {
-    return 200 <= m_impl->m_code && m_impl->m_code < 300;
+    return m_impl->m_code >= 200 && m_impl->m_code < 300;
+}
+bool WebResponse::redirected() const {
+    return m_impl->m_code >= 300 && m_impl->m_code < 400;
+}
+bool WebResponse::badClient() const {
+    return m_impl->m_code >= 400 && m_impl->m_code < 500;
+}
+bool WebResponse::badServer() const {
+    return m_impl->m_code >= 500 && m_impl->m_code < 600;
+}
+bool WebResponse::error() const {
+    return m_impl->m_code < 0;
+}
+bool WebResponse::cancelled() const {
+    return m_impl->m_code == static_cast<int>(GeodeWebError::REQUEST_CANCELLED);
 }
 int WebResponse::code() const {
     return m_impl->m_code;
@@ -1124,7 +1142,7 @@ public:
                 long code = 0;
                 curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &code);
 
-                requestData.response.m_impl->m_code = static_cast<int>(code);
+                requestData.response.m_impl->m_code = code;
 
                 char* errorBuf = requestData.request->m_errorBuf;
                 requestData.response.m_impl->m_errMessage = std::string(errorBuf);
@@ -1135,7 +1153,8 @@ public:
                     log::error("cURL failure, error: {}", err);
                     log::warn("Error buffer: {}", errorBuf);
                     requestData.onComplete(requestData.request->makeError(
-                        code,
+                        // Make all CURL error codes negatives to not conflict with HTTP codes
+                        msg->data.result * -1,
                         !errorBuf ?
                                 fmt::format("Curl failed: {}", err)
                             : fmt::format("Curl failed: {} ({})", err, errorBuf)
@@ -1301,7 +1320,9 @@ WebFuture WebRequestsManager::enqueueAndWait(std::shared_ptr<WebRequest::Impl> d
 }
 
 void WebRequestsManager::cancel(std::shared_ptr<RequestData> data) {
-    (void) m_impl->m_canceltx->trySend(data->curl);
+    if (m_impl->m_canceltx->trySend(data->curl).isErr()) {
+        m_impl->workerCancelRequest(data->curl);
+    }
 }
 
 mpsc::SendResult<std::shared_ptr<WebRequestsManager::RequestData>> WebRequestsManager::tryEnqueue(std::shared_ptr<RequestData> data) {
