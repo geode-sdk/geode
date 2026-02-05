@@ -246,7 +246,6 @@ cocos2d::extension::CCScale9Sprite* Scrollbar::getThumb() {
     return m_impl->m_thumb;
 }
 
-
 void Scrollbar::setTarget(CCScrollLayerExt* list) {
     m_impl->setTarget(list);
 }
