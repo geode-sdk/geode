@@ -1282,7 +1282,9 @@ WebFuture::WebFuture(std::shared_ptr<WebRequest::Impl> request) {
 WebFuture::~WebFuture() {
     if (!m_impl) return;
 
-    if (m_impl->m_sent && !m_impl->m_finished) {
+    if (!m_impl->m_sent) {
+        m_impl->m_request->onComplete(m_impl->m_request->request->makeError(static_cast<int>(GeodeWebError::REQUEST_CANCELLED), "Request cancelled"));
+    } else if (!m_impl->m_finished) {
         // future got cancelled, tell request manager to stop this request 
         WebRequestsManager::get()->cancel(m_impl->m_request);
     }
