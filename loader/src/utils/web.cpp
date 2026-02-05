@@ -358,6 +358,17 @@ public:
         WebResponse response;
         geode::Function<void(WebResponse)> onComplete;
         CURL* curl = nullptr;
+
+        void onError(int code, std::string_view msg) {
+            auto res = WebResponse();
+            res.m_impl->m_code = code;
+            res.m_impl->m_data = ByteVector(msg.begin(), msg.end());
+            onComplete(res);
+        }
+
+        void onError(GeodeWebError code, std::string_view msg) {
+            onError(static_cast<int>(code), msg);
+        }
     };
 
     WebFuture enqueueAndWait(std::shared_ptr<WebRequest::Impl> data);
@@ -422,9 +433,9 @@ public:
         }
     }
 
-    WebResponse makeError(int code, std::string_view msg) {
+    WebResponse makeError(GeodeWebError code, std::string_view msg) {
         auto res = WebResponse();
-        res.m_impl->m_code = code;
+        res.m_impl->m_code = static_cast<int>(code);
         res.m_impl->m_data = ByteVector(msg.begin(), msg.end());
         return res;
     }
@@ -1082,7 +1093,7 @@ public:
         CURL* handle = req->request->makeCurlHandle(req.get());
 
         if (!handle) {
-            req->onComplete(req->request->makeError(static_cast<int>(GeodeWebError::CURL_INITIALIZATION_ERROR), "Failed to initialize cURL"));
+            req->onError(GeodeWebError::CURL_INITIALIZATION_ERROR, "Failed to initialize cURL");
             return;
         }
         
@@ -1103,7 +1114,7 @@ public:
 
         auto& req = *it->second;
         log::debug("Cancelled request ({})", req.request->m_url);
-        req.onComplete(req.request->makeError(static_cast<int>(GeodeWebError::REQUEST_CANCELLED), "Request cancelled"));
+        req.onError(GeodeWebError::REQUEST_CANCELLED, "Request cancelled");
 
         this->cleanupRequest(req);
     }
@@ -1152,13 +1163,13 @@ public:
                     std::string_view err = curl_easy_strerror(msg->data.result);
                     log::error("cURL failure, error: {}", err);
                     log::warn("Error buffer: {}", errorBuf);
-                    requestData.onComplete(requestData.request->makeError(
+                    requestData.onError(
                         // Make all CURL error codes negatives to not conflict with HTTP codes
                         msg->data.result * -1,
                         !errorBuf ?
                                 fmt::format("Curl failed: {}", err)
                             : fmt::format("Curl failed: {} ({})", err, errorBuf)
-                    ));
+                    );
                 } else {
                     // resolve with success :-)
                     requestData.onComplete(std::move(requestData.response));
@@ -1283,7 +1294,7 @@ WebFuture::~WebFuture() {
     if (!m_impl) return;
 
     if (!m_impl->m_sent) {
-        m_impl->m_request->onComplete(m_impl->m_request->request->makeError(static_cast<int>(GeodeWebError::REQUEST_CANCELLED), "Request cancelled"));
+        m_impl->m_request->onError(GeodeWebError::REQUEST_CANCELLED, "Request cancelled");
     } else if (!m_impl->m_finished) {
         // future got cancelled, tell request manager to stop this request 
         WebRequestsManager::get()->cancel(m_impl->m_request);
@@ -1297,7 +1308,7 @@ std::optional<WebResponse> WebFuture::poll(arc::Context& cx) {
         // send the actual request
         auto res = WebRequestsManager::get()->tryEnqueue(m_impl->m_request);
         if (!res) {
-            return m_impl->m_request->request->makeError(static_cast<int>(GeodeWebError::QUEUE_FULL), "Failed to enqueue web request: queue is full");
+            return m_impl->m_request->request->makeError(GeodeWebError::QUEUE_FULL, "Failed to enqueue web request: queue is full");
         }
         m_impl->m_sent = true;
     }
@@ -1310,7 +1321,7 @@ std::optional<WebResponse> WebFuture::poll(arc::Context& cx) {
     auto result = std::move(rpoll).value();
     if (!result) {
         m_impl->m_finished = true;
-        return m_impl->m_request->request->makeError(static_cast<int>(GeodeWebError::CHANNEL_CLOSED), "Failed to receive web response: channel closed");
+        return m_impl->m_request->request->makeError(GeodeWebError::CHANNEL_CLOSED, "Failed to receive web response: channel closed");
     }
     
     m_impl->m_finished = true;
@@ -1322,7 +1333,7 @@ WebFuture WebRequestsManager::enqueueAndWait(std::shared_ptr<WebRequest::Impl> d
 }
 
 void WebRequestsManager::cancel(std::shared_ptr<RequestData> data) {
-    (void) m_impl->m_canceltx->trySend(data->curl).isErr();
+    (void) m_impl->m_canceltx->trySend(data->curl);
 }
 
 mpsc::SendResult<std::shared_ptr<WebRequestsManager::RequestData>> WebRequestsManager::tryEnqueue(std::shared_ptr<RequestData> data) {
