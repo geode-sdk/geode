@@ -155,11 +155,7 @@ private:
 
     std::shared_ptr<SpawnedTaskState> m_state;
 
-    template <
-        typename F,
-        typename NonVoid = std::conditional_t<std::is_void_v<Ret>, std::monostate, Ret>,
-        typename Callback = std::conditional_t<std::is_void_v<Ret>, Function<void()>, Function<void(NonVoid)>>
-    >
+    template <typename F>
     void spawnInner(std::string name, F&& future, Callback cb) {
         using FutureOutput = typename arc::SpawnableOutput<std::decay_t<F>>::type;
 
