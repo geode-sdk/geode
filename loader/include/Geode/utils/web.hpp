@@ -54,6 +54,13 @@ namespace geode::utils::web {
         SOCKS5H, // Socks5 with hostname resolution
     };
 
+    enum class GeodeWebError {
+        CURL_INITIALIZATION_ERROR = -999,
+        REQUEST_CANCELLED = -998,
+        QUEUE_FULL = -997,
+        CHANNEL_CLOSED = -996
+    };
+
     struct ProxyOpts {
         std::string address; // Proxy address/FQDN
         std::optional<std::uint16_t> port; // Proxy port
@@ -133,7 +140,13 @@ namespace geode::utils::web {
         // Must be default-constructible for use in Promise
         WebResponse();
 
+        bool info() const;
         bool ok() const;
+        bool redirected() const;
+        bool badClient() const;
+        bool badServer() const;
+        bool error() const;
+        bool cancelled() const;
         int code() const;
 
         Result<std::string> string() const;
