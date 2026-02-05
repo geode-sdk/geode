@@ -11,6 +11,7 @@
 #include <chrono>
 #include <optional>
 #include <string_view>
+#include <shared_mutex>
 #include <span>
 
 namespace geode::utils::web {
@@ -205,6 +206,12 @@ namespace geode::utils::web {
 
     class GEODE_DLL WebRequest final {
     private:
+        using Interceptor = Function<void(WebRequest&)>;
+
+        static std::string s_globalKey;
+        static std::unordered_map<std::string, std::vector<std::shared_ptr<Interceptor>>> s_interceptors;
+        static std::shared_mutex s_interceptorsMutex;
+
         class Impl;
 
         std::shared_ptr<Impl> m_impl;
@@ -215,17 +222,17 @@ namespace geode::utils::web {
         WebRequest();
         ~WebRequest();
 
-        WebFuture send(std::string method, std::string url);
-        WebFuture post(std::string url);
-        WebFuture get(std::string url);
-        WebFuture put(std::string url);
-        WebFuture patch(std::string url);
+        WebFuture send(std::string method, std::string url, Mod* mod = getMod());
+        WebFuture post(std::string url, Mod* mod = getMod());
+        WebFuture get(std::string url, Mod* mod = getMod());
+        WebFuture put(std::string url, Mod* mod = getMod());
+        WebFuture patch(std::string url, Mod* mod = getMod());
 
-        WebResponse sendSync(std::string method, std::string url);
-        WebResponse postSync(std::string url);
-        WebResponse getSync(std::string url);
-        WebResponse putSync(std::string url);
-        WebResponse patchSync(std::string url);
+        WebResponse sendSync(std::string method, std::string url, Mod* mod = getMod());
+        WebResponse postSync(std::string url, Mod* mod = getMod());
+        WebResponse getSync(std::string url, Mod* mod = getMod());
+        WebResponse putSync(std::string url, Mod* mod = getMod());
+        WebResponse patchSync(std::string url, Mod* mod = getMod());
 
         WebRequest& header(std::string name, std::string value);
         WebRequest& removeHeader(std::string_view name);
@@ -235,6 +242,26 @@ namespace geode::utils::web {
             return this->param(std::move(name), fmt::to_string(value));
         }
         WebRequest& removeParam(std::string_view name);
+
+        /**
+         * Sets the request's method.
+         * Overwritten unless set in an interceptor.
+         * Generally speaking use get/post/etc. instead.
+         *
+         * @param method
+         * @return WebRequest&
+         */
+        WebRequest& method(std::string method);
+
+        /**
+         * Sets the request's URL.
+         * Overwritten unless set in an interceptor.
+         * Generally speaking use get/post/etc. instead.
+         *
+         * @param url
+         * @return WebRequest&
+         */
+        WebRequest& url(std::string url);
 
         /**
          * Sets the request's user agent.
@@ -374,7 +401,7 @@ namespace geode::utils::web {
 
         /**
          * Sets the function that will be called when progress is made on the request.
-         * This is an alternative to manually polling it via `progress()`.
+         * This is an alternative to manually polling it via `getProgress()`.
          */
         WebRequest& onProgress(Function<void(WebProgress const&)> callback);
 
@@ -440,6 +467,21 @@ namespace geode::utils::web {
          * Otherwise, default values are returned.
          */
         WebProgress getProgress() const;
+
+        /**
+         * Registers an interceptor which gets called with every request made by the specified mod.
+         * 
+         * @param callback The interceptor callback.
+         * @param mod The target mod.
+         */
+        static void registerInterceptor(Interceptor callback, Mod* mod = getMod());
+
+        /**
+         * Registers an interceptor which gets called with every request made using Geode.
+         * 
+         * @param callback The interceptor callback.
+         */
+        static void registerGlobalInterceptor(Interceptor callback);
     };
 
     struct GEODE_DLL ARC_NODISCARD WebFuture : arc::Pollable<WebFuture, WebResponse> {

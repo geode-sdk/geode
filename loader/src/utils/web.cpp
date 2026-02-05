@@ -394,6 +394,12 @@ static void urlEncodeAppend(auto& buf, std::string_view input) {
     }
 }
 
+std::string WebRequest::s_globalKey = "*";
+
+std::unordered_map<std::string, std::vector<std::shared_ptr<WebRequest::Interceptor>>> WebRequest::s_interceptors;
+
+std::shared_mutex WebRequest::s_interceptorsMutex;
+
 class WebRequest::Impl {
 public:
     static std::atomic_size_t s_idCounter;
@@ -407,7 +413,7 @@ public:
     std::optional<ByteVector> m_body;
     std::optional<std::chrono::seconds> m_timeout;
     std::optional<std::pair<std::uint64_t, std::uint64_t>> m_range;
-    geode::Function<void(WebProgress const&)> m_progressCallback;
+    std::vector<geode::Function<void(WebProgress const&)>> m_progressCallbacks;
     std::string m_CABundleContent;
     bool m_certVerification = true;
     bool m_transferBody = true;
@@ -416,6 +422,7 @@ public:
     ProxyOpts m_proxyOpts = {};
     HttpVersion m_httpVersion = HttpVersion::DEFAULT;
     size_t m_id;
+    bool m_inInterceptor;
     std::atomic<size_t> m_downloadCurrent = 0;
     std::atomic<size_t> m_downloadTotal = 0;
     std::atomic<size_t> m_uploadCurrent = 0;
@@ -704,10 +711,13 @@ public:
             r.m_uploadCurrent.store(static_cast<size_t>(unow), relaxed);
 
             // Queue the callback in the main thread, make sure to do it only once per frame
-            if (r.m_progressCallback && !r.m_progressNotifQueued.exchange(true, acq_rel)) {
+            if (r.m_progressCallbacks.size() && !r.m_progressNotifQueued.exchange(true, acq_rel)) {
                 queueInMainThread([req = data->request] {
                     req->m_progressNotifQueued.store(false, release);
-                    if (req->m_progressCallback) req->m_progressCallback(req->progress());
+
+                    for (auto& callback : req->m_progressCallbacks) {
+                        callback(req->progress());
+                    }
                 });
             }
 
@@ -734,40 +744,69 @@ std::atomic_size_t WebRequest::Impl::s_idCounter = 0;
 WebRequest::WebRequest() : m_impl(std::make_shared<Impl>()) {}
 WebRequest::~WebRequest() {}
 
-WebFuture WebRequest::send(std::string method, std::string url) {
+WebFuture WebRequest::send(std::string method, std::string url, Mod* mod) {
+    if (m_impl->m_inInterceptor) throw std::runtime_error("Don't send a request again from an interceptor.");
+
+    std::vector<std::shared_ptr<Interceptor>> interceptors;
+    
+    {
+        std::shared_lock lock(s_interceptorsMutex);
+        auto itMod = s_interceptors.find(mod->getID());
+        auto itGlobal = s_interceptors.find(s_globalKey);
+
+        if (itMod != s_interceptors.end()) {
+            auto& modInterceptors = itMod->second;
+
+            interceptors.insert(interceptors.end(), modInterceptors.begin(), modInterceptors.end());
+        }
+
+        if (itGlobal != s_interceptors.end()) {
+            auto& globalInterceptors = itGlobal->second;
+
+            interceptors.insert(interceptors.end(), globalInterceptors.begin(), globalInterceptors.end());
+        }
+    }
+
     m_impl->m_method = std::move(method);
     m_impl->m_url = std::move(url);
+    m_impl->m_inInterceptor = true;
+
+    for (auto& interceptor : interceptors) {
+        (*interceptor)(*this);
+    }
+
+    m_impl->m_inInterceptor = false;
 
     return WebRequestsManager::get()->enqueueAndWait(m_impl);
 }
-WebFuture WebRequest::post(std::string url) {
-    return this->send("POST", std::move(url));
+WebFuture WebRequest::post(std::string url, Mod* mod) {
+    return this->send("POST", std::move(url), mod);
 }
-WebFuture WebRequest::get(std::string url) {
-    return this->send("GET", std::move(url));
+WebFuture WebRequest::get(std::string url, Mod* mod) {
+    return this->send("GET", std::move(url), mod);
 }
-WebFuture WebRequest::put(std::string url) {
-    return this->send("PUT", std::move(url));
+WebFuture WebRequest::put(std::string url, Mod* mod) {
+    return this->send("PUT", std::move(url), mod);
 }
-WebFuture WebRequest::patch(std::string url) {
-    return this->send("PATCH", std::move(url));
+WebFuture WebRequest::patch(std::string url, Mod* mod) {
+    return this->send("PATCH", std::move(url), mod);
 }
 
-WebResponse WebRequest::sendSync(std::string method, std::string url) {
-    auto fut = this->send(std::move(method), std::move(url));
+WebResponse WebRequest::sendSync(std::string method, std::string url, Mod* mod) {
+    auto fut = this->send(std::move(method), std::move(url), mod);
     return async::runtime().blockOn(std::move(fut));
 }
-WebResponse WebRequest::postSync(std::string url) {
-    return this->sendSync("POST", std::move(url));
+WebResponse WebRequest::postSync(std::string url, Mod* mod) {
+    return this->sendSync("POST", std::move(url), mod);
 }
-WebResponse WebRequest::getSync(std::string url) {
-    return this->sendSync("GET", std::move(url));
+WebResponse WebRequest::getSync(std::string url, Mod* mod) {
+    return this->sendSync("GET", std::move(url), mod);
 }
-WebResponse WebRequest::putSync(std::string url) {
-    return this->sendSync("PUT", std::move(url));
+WebResponse WebRequest::putSync(std::string url, Mod* mod) {
+    return this->sendSync("PUT", std::move(url), mod);
 }
-WebResponse WebRequest::patchSync(std::string url) {
-    return this->sendSync("PATCH", std::move(url));
+WebResponse WebRequest::patchSync(std::string url, Mod* mod) {
+    return this->sendSync("PATCH", std::move(url), mod);
 }
 
 WebRequest& WebRequest::header(std::string name, std::string value) {
@@ -827,6 +866,16 @@ WebRequest& WebRequest::removeParam(std::string_view name) {
     if (it != m_impl->m_urlParameters.end()) {
         m_impl->m_urlParameters.erase(it);
     }
+    return *this;
+}
+
+WebRequest& WebRequest::method(std::string method) {
+    m_impl->m_method = std::move(method);
+    return *this;
+}
+
+WebRequest& WebRequest::url(std::string url) {
+    m_impl->m_url = std::move(url);
     return *this;
 }
 
@@ -905,7 +954,7 @@ WebRequest& WebRequest::bodyMultipart(MultipartForm const& form) {
 }
 
 WebRequest& WebRequest::onProgress(Function<void(WebProgress const&)> callback) {
-    m_impl->m_progressCallback = std::move(callback);
+    m_impl->m_progressCallbacks.emplace_back(std::move(callback));
     return *this;
 }
 
@@ -943,6 +992,18 @@ HttpVersion WebRequest::getHttpVersion() const {
 
 WebProgress WebRequest::getProgress() const {
     return m_impl->progress();
+}
+
+void WebRequest::registerInterceptor(Function<void(WebRequest&)> callback, Mod* mod) {
+    std::unique_lock lock(s_interceptorsMutex);
+
+    s_interceptors[mod->getID()].push_back(std::make_shared<Interceptor>(std::move(callback)));
+}
+
+void WebRequest::registerGlobalInterceptor(Function<void(WebRequest&)> callback) {
+    std::unique_lock lock(s_interceptorsMutex);
+
+    s_interceptors[s_globalKey].push_back(std::make_shared<Interceptor>(std::move(callback)));
 }
 
 struct RegisteredSocket {
