@@ -138,10 +138,20 @@ struct MultipartFile {
     std::string mime;
 };
 
+struct PrioritizedRequestInterceptor {
+    int priority;
+    std::shared_ptr<RequestInterceptor> interceptor;
+};
+
+struct PrioritizedResponseListener {
+    int priority;
+    std::shared_ptr<ResponseListener> listener;
+};
+
 static std::string s_globalInterceptorKey = "*";
-static StringMap<std::vector<std::shared_ptr<RequestInterceptor>>> s_requestInterceptors;
+static StringMap<std::vector<PrioritizedRequestInterceptor>> s_requestInterceptors;
 static std::shared_mutex s_requestInterceptorsMutex;
-static StringMap<std::vector<std::shared_ptr<ResponseListener>>> s_responseListeners;
+static StringMap<std::vector<PrioritizedResponseListener>> s_responseListeners;
 static std::shared_mutex s_responseListenersMutex;
 
 class MultipartForm::Impl {
@@ -367,7 +377,7 @@ public:
         CURL* curl = nullptr;
 
         void complete(WebResponse res) {
-            std::vector<std::shared_ptr<ResponseListener>> listeners;
+            std::vector<PrioritizedResponseListener> listeners;
 
             onComplete(res);
     
@@ -389,7 +399,9 @@ public:
                 }
             }
 
-            for (auto& listener : listeners) {
+            std::sort(listeners.begin(), listeners.end(), [](auto& a, auto& b) { return a.priority < b.priority; });
+
+            for (auto& [_, listener] : listeners) {
                 (*listener)(res);
             }
         }
@@ -777,9 +789,9 @@ WebRequest::~WebRequest() {}
 WebFuture WebRequest::send(std::string method, std::string url, Mod* mod) {
     if (m_impl->m_inInterceptor) throw std::runtime_error("Cannot call send while inside an interceptor callback.");
 
-    std::vector<std::shared_ptr<RequestInterceptor>> interceptors;
+    std::vector<PrioritizedRequestInterceptor> interceptors;
     m_impl->m_mod = mod;
-    
+
     {
         std::shared_lock lock(s_requestInterceptorsMutex);
         auto itMod = s_requestInterceptors.find(mod->getID());
@@ -802,7 +814,9 @@ WebFuture WebRequest::send(std::string method, std::string url, Mod* mod) {
     m_impl->m_url = std::move(url);
     m_impl->m_inInterceptor = true;
 
-    for (auto& interceptor : interceptors) {
+    std::sort(interceptors.begin(), interceptors.end(), [](auto& a, auto& b) { return a.priority < b.priority; });
+
+    for (auto& [_, interceptor] : interceptors) {
         (*interceptor)(*this);
     }
 
@@ -1424,26 +1438,26 @@ mpsc::SendResult<std::shared_ptr<WebRequestsManager::RequestData>> WebRequestsMa
     return m_impl->m_reqtx->trySend(std::move(data));
 }
 
-void web::registerRequestInterceptor(RequestInterceptor callback, Mod* mod) {
+void web::registerRequestInterceptor(RequestInterceptor callback, int priority, Mod* mod) {
     std::unique_lock lock(s_requestInterceptorsMutex);
 
-    s_requestInterceptors[mod->getID()].push_back(std::make_shared<RequestInterceptor>(std::move(callback)));
+    s_requestInterceptors[mod->getID()].push_back({ priority, std::make_shared<RequestInterceptor>(std::move(callback)) });
 }
 
-void web::registerGlobalRequestInterceptor(RequestInterceptor callback) {
+void web::registerGlobalRequestInterceptor(RequestInterceptor callback, int priority) {
     std::unique_lock lock(s_requestInterceptorsMutex);
 
-    s_requestInterceptors[s_globalInterceptorKey].push_back(std::make_shared<RequestInterceptor>(std::move(callback)));
+    s_requestInterceptors[s_globalInterceptorKey].push_back({ priority, std::make_shared<RequestInterceptor>(std::move(callback)) });
 }
 
-void web::registerResponseListener(ResponseListener callback, Mod* mod) {
+void web::registerResponseListener(ResponseListener callback, int priority, Mod* mod) {
     std::unique_lock lock(s_responseListenersMutex);
 
-    s_responseListeners[mod->getID()].push_back(std::make_shared<ResponseListener>(std::move(callback)));
+    s_responseListeners[mod->getID()].push_back({ priority, std::make_shared<ResponseListener>(std::move(callback)) });
 }
 
-void web::registerGlobalResponseListener(ResponseListener callback) {
+void web::registerGlobalResponseListener(ResponseListener callback, int priority) {
     std::unique_lock lock(s_responseListenersMutex);
 
-    s_responseListeners[s_globalInterceptorKey].push_back(std::make_shared<ResponseListener>(std::move(callback)));
+    s_responseListeners[s_globalInterceptorKey].push_back({ priority, std::make_shared<ResponseListener>(std::move(callback)) });
 }

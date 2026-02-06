@@ -494,14 +494,14 @@ namespace geode::utils::web {
      * @param callback The interceptor callback.
      * @param mod The target mod.
      */
-    static void registerRequestInterceptor(RequestInterceptor callback, Mod* mod = geode::getMod());
+    static void registerRequestInterceptor(RequestInterceptor callback, int priority = Priority::Normal, Mod* mod = geode::getMod());
 
     /**
      * Registers an interceptor which gets called with every request made using Geode.
      * 
      * @param callback The interceptor callback.
      */
-    static void registerGlobalRequestInterceptor(RequestInterceptor callback);
+    static void registerGlobalRequestInterceptor(RequestInterceptor callback, int priority = Priority::Normal);
 
     /**
      * Registers a listener which gets called with every response from a request made by the specified mod.
@@ -509,12 +509,12 @@ namespace geode::utils::web {
      * @param callback The listener callback.
      * @param mod The target mod.
      */
-    static void registerResponseListener(ResponseListener callback, Mod* mod = getMod());
+    static void registerResponseListener(ResponseListener callback, int priority = Priority::Normal, Mod* mod = getMod());
 
     /**
      * Registers an listener which gets called with every response from a request made using Geode.
      * 
      * @param callback The listener callback.
      */
-    static void registerGlobalResponseListener(ResponseListener callback);
+    static void registerGlobalResponseListener(ResponseListener callback, int priority = Priority::Normal);
 }
