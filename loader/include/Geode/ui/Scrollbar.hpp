@@ -3,6 +3,7 @@
 #include <cocos2d.h>
 #include <cocos-ext.h>
 #include <Geode/binding/CCScrollLayerExt.hpp>
+#include <Geode/ui/NineSlice.hpp>
 #include <memory>
 
 namespace geode {
@@ -25,12 +26,12 @@ namespace geode {
     public:
         bool isTouching();
         CCScrollLayerExt* getTarget();
-        cocos2d::extension::CCScale9Sprite* getTrack();
-        cocos2d::extension::CCScale9Sprite* getThumb();
+        NineSlice* getTrack();
+        NineSlice* getThumb();
 
         void setTarget(CCScrollLayerExt* list);
-        void setTrack(cocos2d::extension::CCScale9Sprite* track);
-        void setThumb(cocos2d::extension::CCScale9Sprite* thumb);
+        void setTrack(NineSlice* track);
+        void setThumb(NineSlice* thumb);
 
         static Scrollbar* create(CCScrollLayerExt* list);
 

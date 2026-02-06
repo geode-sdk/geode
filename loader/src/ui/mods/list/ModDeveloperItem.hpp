@@ -4,7 +4,7 @@
 #include <Geode/cocos/cocoa/CCGeometry.h>
 #include <Geode/cocos/sprite_nodes/CCSprite.h>
 #include <Geode/loader/Loader.hpp>
-#include <GUI/CCControlExtension/CCScale9Sprite.h>
+#include <Geode/ui/NineSlice.hpp>
 #include <optional>
 #include "ui/mods/popups/DevPopup.hpp"
 
@@ -12,7 +12,7 @@ using namespace geode::prelude;
 
 class ModDeveloperItem : public CCNode {
 protected:
-    CCScale9Sprite* m_bg;
+    NineSlice* m_bg;
     DevListPopup* m_popup;
 public:
     static ModDeveloperItem* create(

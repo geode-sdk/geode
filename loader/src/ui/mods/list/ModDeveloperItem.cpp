@@ -14,7 +14,6 @@
 #include <Geode/ui/TextArea.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/ColorProvider.hpp>
-#include <GUI/CCControlExtension/CCScale9Sprite.h>
 #include <ccTypes.h>
 #include <fmt/core.h>
 #include "ui/mods/list/ModDeveloperItem.hpp"
@@ -37,7 +36,7 @@ bool ModDeveloperItem::init(
 
     ccColor4B bgColor = ColorProvider::get()->color("mod-developer-item-bg"_spr);
 
-    m_bg = CCScale9Sprite::create("square02b_001.png");
+    m_bg = NineSlice::create("square02b_001.png");
     m_bg->setColor(to3B(bgColor));
     m_bg->setOpacity(bgColor.a);
     m_bg->setScale(.3f);

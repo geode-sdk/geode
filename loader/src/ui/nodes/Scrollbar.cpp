@@ -9,8 +9,8 @@ class Scrollbar::Impl {
 public:
     Scrollbar* m_self = nullptr;
     CCScrollLayerExt* m_target = nullptr;
-    cocos2d::extension::CCScale9Sprite* m_track = nullptr;
-    cocos2d::extension::CCScale9Sprite* m_thumb = nullptr;
+    NineSlice* m_track = nullptr;
+    NineSlice* m_thumb = nullptr;
     cocos2d::CCPoint m_clickOffset{};
     float m_width = 0.f;
     bool m_resizeThumb = false;
@@ -169,12 +169,12 @@ bool Scrollbar::Impl::init(CCScrollLayerExt* target) {
     m_target = target;
 
     if (cocos::fileExistsInSearchPaths("scrollbar.png"_spr)) {
-        m_track = CCScale9Sprite::create("scrollbar.png"_spr);
+        m_track = NineSlice::create("scrollbar.png"_spr);
         m_track->setColor({ 0, 0, 0 });
         m_track->setOpacity(150);
         m_track->setScale(.8f);
 
-        m_thumb = CCScale9Sprite::create("scrollbar.png"_spr);
+        m_thumb = NineSlice::create("scrollbar.png"_spr);
         m_thumb->setScale(.4f);
 
         m_width = 8.f;
@@ -183,11 +183,11 @@ bool Scrollbar::Impl::init(CCScrollLayerExt* target) {
         m_hoverHighlight = true;
     }
     else {
-        m_track = CCScale9Sprite::create("slidergroove.png");
+        m_track = NineSlice::create("slidergroove.png");
         m_track->setRotation(90);
         m_track->setScale(.8f);
 
-        m_thumb = CCScale9Sprite::create("sliderthumb.png");
+        m_thumb = NineSlice::create("sliderthumb.png");
         m_thumb->setScale(.6f);
 
         m_width = 12.f;
@@ -242,11 +242,11 @@ CCScrollLayerExt* Scrollbar::getTarget() {
     return m_impl->m_target;
 }
 
-cocos2d::extension::CCScale9Sprite* Scrollbar::getTrack() {
+NineSlice* Scrollbar::getTrack() {
     return m_impl->m_track;
 }
 
-cocos2d::extension::CCScale9Sprite* Scrollbar::getThumb() {
+NineSlice* Scrollbar::getThumb() {
     return m_impl->m_thumb;
 }
 
@@ -254,11 +254,11 @@ void Scrollbar::setTarget(CCScrollLayerExt* list) {
     m_impl->setTarget(list);
 }
 
-void Scrollbar::setTrack(cocos2d::extension::CCScale9Sprite* track) {
+void Scrollbar::setTrack(NineSlice* track) {
     m_impl->m_track = track;
 }
 
-void Scrollbar::setThumb(cocos2d::extension::CCScale9Sprite* thumb) {
+void Scrollbar::setThumb(NineSlice* thumb) {
     m_impl->m_thumb = thumb;
 }
 

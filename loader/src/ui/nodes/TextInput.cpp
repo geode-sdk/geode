@@ -69,7 +69,7 @@ const char* geode::getCommonFilterAllowedChars(CommonFilter filter) {
 
 class TextInput::Impl final {
 public:
-    cocos2d::extension::CCScale9Sprite* bgSprite = nullptr;
+    NineSlice* bgSprite = nullptr;
     CCTextInputNode* input = nullptr;
     geode::Function<void(std::string const&)> onInput = nullptr;
     cocos2d::CCLabelBMFont* label = nullptr;
@@ -87,7 +87,7 @@ bool TextInput::init(float width, ZStringView placeholder, ZStringView font) {
     this->setContentSize({ width, HEIGHT });
     this->setAnchorPoint({ .5f, .5f });
 
-    m_impl->bgSprite = extension::CCScale9Sprite::create("square02b_001.png", { 0, 0, 80, 80 });
+    m_impl->bgSprite = NineSlice::create("square02b_001.png", { 0, 0, 80, 80 });
     m_impl->bgSprite->setScale(.5f);
     m_impl->bgSprite->setColor({ 0, 0, 0 });
     m_impl->bgSprite->setOpacity(90);
@@ -231,7 +231,7 @@ void TextInput::defocus() {
 CCTextInputNode* TextInput::getInputNode() const {
     return m_impl->input;
 }
-CCScale9Sprite* TextInput::getBGSprite() const {
+NineSlice* TextInput::getBGSprite() const {
     return m_impl->bgSprite;
 }
 
