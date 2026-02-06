@@ -4,7 +4,7 @@ bool ModListItem::init() {
     if (!CCNode::init())
         return false;
         
-    m_bg = CCScale9Sprite::create("square02b_small.png");
+    m_bg = NineSlice::create("square02b_small.png");
     m_bg->setID("bg");
     m_bg->setOpacity(0);
     m_bg->ignoreAnchorPointForPosition(false);

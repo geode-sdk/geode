@@ -19,7 +19,7 @@ bool FiltersPopup::init(ModListSource* src) {
     tagsContainer->setContentSize(ccp(310, 80));
     tagsContainer->setAnchorPoint({ .5f, .5f });
 
-    auto tagsBG = CCScale9Sprite::create("square02b_001.png");
+    auto tagsBG = NineSlice::create("square02b_001.png");
     tagsBG->setColor({ 0, 0, 0 });
     tagsBG->setOpacity(75);
     tagsBG->setScale(.3f);
@@ -67,7 +67,7 @@ bool FiltersPopup::init(ModListSource* src) {
         optionsContainer->setContentSize(ccp(240, 35));
         optionsContainer->setAnchorPoint({ .5f, .5f });
 
-        auto optionsBG = CCScale9Sprite::create("square02b_001.png");
+        auto optionsBG = NineSlice::create("square02b_001.png");
         optionsBG->setColor({ 0, 0, 0 });
         optionsBG->setOpacity(75);
         optionsBG->setScale(.3f);

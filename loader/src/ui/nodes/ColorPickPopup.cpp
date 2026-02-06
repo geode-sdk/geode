@@ -3,6 +3,7 @@
 #include <Geode/binding/Slider.hpp>
 #include <Geode/binding/SliderThumb.hpp>
 #include <Geode/ui/ColorPickPopup.hpp>
+#include <Geode/ui/NineSlice.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/function.hpp>
 #include <charconv>
@@ -46,7 +47,7 @@ bool ColorPickPopup::init(ccColor4B const& color, bool isRGBA) {
 
     this->setTitle("Select Color");
 
-    auto bg = cocos2d::extension::CCScale9Sprite::create(
+    auto bg = NineSlice::create(
         "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
     );
     bg->setID("popup-bg");

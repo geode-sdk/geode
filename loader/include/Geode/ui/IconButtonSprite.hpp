@@ -1,10 +1,7 @@
 #pragma once
 
 #include <cocos2d.h>
-
-namespace cocos2d::extension {
-    class CCScale9Sprite;
-}
+#include <Geode/ui/NineSlice.hpp>
 
 namespace geode {
     class GEODE_DLL IconButtonSprite : public cocos2d::CCSprite, public cocos2d::CCLabelProtocol {
@@ -41,7 +38,7 @@ namespace geode {
 
         void setColor(cocos2d::ccColor3B const& color) override;
         void setOpacity(GLubyte opacity) override;
-        cocos2d::extension::CCScale9Sprite* getBg();
+        NineSlice* getBg();
         cocos2d::CCLabelBMFont* getLabel();
         cocos2d::CCNode* getIcon();
     };

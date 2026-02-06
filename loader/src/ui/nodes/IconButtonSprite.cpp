@@ -6,7 +6,7 @@ using namespace geode::prelude;
 
 class IconButtonSprite::Impl final {
 public:
-    cocos2d::extension::CCScale9Sprite* bg = nullptr;
+    NineSlice* bg = nullptr;
     cocos2d::CCLabelBMFont* label = nullptr;
     cocos2d::CCNode* icon = nullptr;
 };
@@ -21,10 +21,10 @@ bool IconButtonSprite::init(
     if (!CCSprite::init()) return false;
 
     if (bgIsFrame) {
-        m_impl->bg = CCScale9Sprite::createWithSpriteFrameName(bg);
+        m_impl->bg = NineSlice::createWithSpriteFrameName(bg);
     }
     else {
-        m_impl->bg = CCScale9Sprite::create(bg);
+        m_impl->bg = NineSlice::create(bg);
     }
     this->addChild(m_impl->bg);
 
@@ -116,10 +116,10 @@ void IconButtonSprite::setBG(char const* bg, bool isFrame) {
         m_impl->bg->removeFromParent();
     }
     if (isFrame) {
-        m_impl->bg = CCScale9Sprite::createWithSpriteFrameName(bg);
+        m_impl->bg = NineSlice::createWithSpriteFrameName(bg);
     }
     else {
-        m_impl->bg = CCScale9Sprite::create(bg);
+        m_impl->bg = NineSlice::create(bg);
     }
     this->addChild(m_impl->bg);
     this->updateLayout();
@@ -166,7 +166,7 @@ void IconButtonSprite::setOpacity(GLubyte opacity) {
     }
 }
 
-cocos2d::extension::CCScale9Sprite* IconButtonSprite::getBg() {
+NineSlice* IconButtonSprite::getBg() {
     return m_impl->bg;
 }
 

@@ -5,6 +5,7 @@
 #include <Geode/utils/StringMap.hpp>
 #include <Geode/utils/async.hpp>
 #include <Geode/utils/general.hpp>
+#include <Geode/loader/Event.hpp>
 #include <arc/sync/oneshot.hpp>
 #include <matjson.hpp>
 #include <Geode/Result.hpp>
@@ -52,6 +53,13 @@ namespace geode::utils::web {
         SOCKS4A, // Socks4 with hostname resolution
         SOCKS5, // Socks5
         SOCKS5H, // Socks5 with hostname resolution
+    };
+
+    enum class GeodeWebError {
+        CURL_INITIALIZATION_ERROR = -999,
+        REQUEST_CANCELLED = -998,
+        QUEUE_FULL = -997,
+        CHANNEL_CLOSED = -996
     };
 
     struct ProxyOpts {
@@ -133,7 +141,13 @@ namespace geode::utils::web {
         // Must be default-constructible for use in Promise
         WebResponse();
 
+        bool info() const;
         bool ok() const;
+        bool redirected() const;
+        bool badClient() const;
+        bool badServer() const;
+        bool error() const;
+        bool cancelled() const;
         int code() const;
 
         Result<std::string> string() const;
@@ -202,17 +216,17 @@ namespace geode::utils::web {
         WebRequest();
         ~WebRequest();
 
-        WebFuture send(std::string method, std::string url);
-        WebFuture post(std::string url);
-        WebFuture get(std::string url);
-        WebFuture put(std::string url);
-        WebFuture patch(std::string url);
+        WebFuture send(std::string method, std::string url, Mod* mod = geode::getMod());
+        WebFuture post(std::string url, Mod* mod = geode::getMod());
+        WebFuture get(std::string url, Mod* mod = geode::getMod());
+        WebFuture put(std::string url, Mod* mod = geode::getMod());
+        WebFuture patch(std::string url, Mod* mod = geode::getMod());
 
-        WebResponse sendSync(std::string method, std::string url);
-        WebResponse postSync(std::string url);
-        WebResponse getSync(std::string url);
-        WebResponse putSync(std::string url);
-        WebResponse patchSync(std::string url);
+        WebResponse sendSync(std::string method, std::string url, Mod* mod = geode::getMod());
+        WebResponse postSync(std::string url, Mod* mod = geode::getMod());
+        WebResponse getSync(std::string url, Mod* mod = geode::getMod());
+        WebResponse putSync(std::string url, Mod* mod = geode::getMod());
+        WebResponse patchSync(std::string url, Mod* mod = geode::getMod());
 
         WebRequest& header(std::string name, std::string value);
         WebRequest& removeHeader(std::string_view name);
@@ -222,6 +236,26 @@ namespace geode::utils::web {
             return this->param(std::move(name), fmt::to_string(value));
         }
         WebRequest& removeParam(std::string_view name);
+
+        /**
+         * Sets the request's method.
+         * Overwritten unless set in an interceptor.
+         * Generally speaking use get/post/etc. instead.
+         *
+         * @param method
+         * @return WebRequest&
+         */
+        WebRequest& method(std::string method);
+
+        /**
+         * Sets the request's URL.
+         * Overwritten unless set in an interceptor.
+         * Generally speaking use get/post/etc. instead.
+         *
+         * @param url
+         * @return WebRequest&
+         */
+        WebRequest& url(std::string url);
 
         /**
          * Sets the request's user agent.
@@ -361,7 +395,7 @@ namespace geode::utils::web {
 
         /**
          * Sets the function that will be called when progress is made on the request.
-         * This is an alternative to manually polling it via `progress()`.
+         * This is an alternative to manually polling it via `getProgress()`.
          */
         WebRequest& onProgress(Function<void(WebProgress const&)> callback);
 
@@ -372,6 +406,12 @@ namespace geode::utils::web {
          */
         size_t getID() const;
 
+        /**
+         * Gets the mod which owns the request.
+         *
+         * @return geode::Mod*
+         */
+        Mod* getMod() const;
 
         /**
          * Gets the request method as a string
@@ -443,5 +483,27 @@ namespace geode::utils::web {
     private:
         struct Impl;
         std::shared_ptr<Impl> m_impl;
+    };
+
+    /**
+     * Allows you to intercept and modify requests before they're sent with either a mod ID filter or globally.
+     *
+     * @example
+     * WebRequestInterceptEvent(Mod::get()->getID()).listen([](auto& req) { return ListenerResult::Propagate; }, Priority::Normal);
+     * WebRequestInterceptEvent().listen([](auto id, auto& req) { return ListenerResult::Stop; }, Priority::VeryEarly);
+     */
+    struct WebRequestInterceptEvent : ThreadSafeGlobalEvent<WebRequestInterceptEvent, bool(std::string_view, WebRequest&), bool(WebRequest&), std::string> {
+        using ThreadSafeGlobalEvent::ThreadSafeGlobalEvent;
+    };
+
+    /**
+     * Allows you to listen for responses after it was received with either a mod ID filter or globally.
+     *
+     * @example
+     * WebResponseEvent(Mod::get()->getID()).listen([](auto const& res) { return ListenerResult::Propagate; }, Priority::Normal);
+     * WebResponseEvent().listen([](auto id, auto const& res) { return ListenerResult::Stop; }, Priority::VeryEarly);
+     */
+    struct WebResponseEvent : ThreadSafeGlobalEvent<WebResponseEvent, bool(std::string_view, WebResponse const&), bool(WebResponse const&), std::string> {
+        using ThreadSafeGlobalEvent::ThreadSafeGlobalEvent;
     };
 }

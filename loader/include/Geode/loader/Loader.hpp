@@ -54,9 +54,9 @@ namespace geode {
                 type == LoadProblem::Type::UnsupportedGeodeVersion;
         }
         /**
-         * Problems we should show a big red '!!' in the UI for. Suggestions 
-         * are not problems, and outdated mods as well as invalid Geode files 
-         * are also not problems (because otherwise we would be showing a 
+         * Problems we should show a big red '!!' in the UI for. Suggestions
+         * are not problems, and outdated mods as well as invalid Geode files
+         * are also not problems (because otherwise we would be showing a
          * billion errors every time GD updates)
          */
         bool isProblemTheUserShouldCareAbout() const {
@@ -182,7 +182,7 @@ namespace geode {
      * @param func the function to queue
     */
     inline void queueInMainThread(ScheduledFunction&& func) {
-        Loader::get()->queueInMainThread(std::forward<ScheduledFunction>(func));
+        Loader::get()->queueInMainThread(std::move(func));
     }
 
     /**

@@ -16,6 +16,10 @@ namespace geode {
     public:
         using ThreadSafeEvent<Dispatch<Args...>, bool(Args...), std::string>::ThreadSafeEvent;
     };
+
+    template<class... Args>
+    using DispatchEvent = Dispatch<Args...>;
+
 }
 
 // - Macros for exporting functions via events -

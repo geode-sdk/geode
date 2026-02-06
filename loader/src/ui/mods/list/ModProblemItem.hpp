@@ -4,7 +4,7 @@
 #include <Geode/cocos/cocoa/CCGeometry.h>
 #include <Geode/cocos/sprite_nodes/CCSprite.h>
 #include <Geode/loader/Loader.hpp>
-#include <GUI/CCControlExtension/CCScale9Sprite.h>
+#include <Geode/ui/NineSlice.hpp>
 
 using namespace geode::prelude;
 
@@ -16,7 +16,7 @@ protected:
     };
     LoadProblem m_problem;
     Mod* m_source;
-    CCScale9Sprite* m_bg;
+    NineSlice* m_bg;
     ModProblemItem::Severity m_severity;
 public:
     static ModProblemItem* create(Mod* source, LoadProblem problem, CCSize const& size);

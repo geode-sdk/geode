@@ -10,6 +10,7 @@
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/loader/Event.hpp>
 #include <Geode/loader/Loader.hpp>
+#include "Geode/ui/NineSlice.hpp"
 #include "server/DownloadManager.hpp"
 #include "ui/mods/GeodeStyle.hpp"
 #include "ui/mods/popups/ModPopup.hpp"
@@ -85,7 +86,7 @@ bool ModItem::init(ModSource&& source) {
     );
     m_infoContainer->addChildAtPosition(m_developers, Anchor::Left);
 
-    m_description = CCScale9Sprite::create("square02b_001.png");
+    m_description = NineSlice::create("square02b_001.png");
     m_description->setScale(.5f);
     m_description->setContentSize(ccp(450, 30) / m_description->getScale());
     m_description->setColor(ccBLACK);

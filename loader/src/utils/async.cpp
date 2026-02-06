@@ -1,15 +1,26 @@
 #include <Geode/utils/async.hpp>
 #include <Geode/loader/GameEvent.hpp>
 #include <Geode/loader/Log.hpp>
+#include <Geode/utils/terminate.hpp>
 #include <loader/LogImpl.hpp>
-#include <thread>
 
 using namespace geode::prelude;
 
 namespace geode::async {
 
 asp::SharedPtr<arc::Runtime>& runtimePtr() {
-    static auto runtime = arc::Runtime::create(4);
+    static auto runtime = []{
+        auto rt = arc::Runtime::create(4);
+        rt->setTerminateHandler([](const std::exception& e) {
+            utils::terminate(fmt::format(
+                "arc runtime terminated due to unhandled exception: {}",
+                e.what()
+            ));
+        });
+
+        return rt;
+    }();
+
     return runtime;
 }
 
@@ -98,5 +109,13 @@ void taskholder() {
 
     // this should error
     // th1.spawn(dummyInt(), [] (int val) {});
+}
+
+arc::Future<> waitformt() {
+    std::optional<int> x = co_await waitForMainThread<int>([] {
+        return 42;
+    });
+
+    bool y = co_await waitForMainThread<void>([] {});
 }
 }

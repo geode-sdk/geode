@@ -11,7 +11,7 @@ std::vector<Ref<Notification>> Notification::s_queue;
 
 class Notification::Impl final {
 public:
-    CCScale9Sprite* bg;
+    NineSlice* bg;
     CCLabelBMFont* label;
     CCNodeRGBA* content;
     CCNode* icon = nullptr;
@@ -29,7 +29,7 @@ bool Notification::init(ZStringView text, CCNode* icon, float time) {
     m_impl->icon = icon;
     m_impl->time = time;
 
-    m_impl->bg = CCScale9Sprite::create("square02b_small.png", { 0, 0, 40, 40 });
+    m_impl->bg = NineSlice::create("square02b_small.png", { 0, 0, 40, 40 });
     m_impl->bg->setColor({ 0, 0, 0 });
     this->addChild(m_impl->bg);
 
@@ -162,7 +162,7 @@ float Notification::getTime() {
     return m_impl->time;
 }
 
-CCScale9Sprite* Notification::getBG() {
+NineSlice* Notification::getBg() {
     return m_impl->bg;
 }
 

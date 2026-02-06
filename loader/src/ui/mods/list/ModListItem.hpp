@@ -3,6 +3,7 @@
 #include <Geode/ui/General.hpp>
 #include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/ui/Popup.hpp>
+#include <Geode/ui/NineSlice.hpp>
 
 using namespace geode::prelude;
 
@@ -16,7 +17,7 @@ class ModListItem : public CCNode {
 protected:
     ModListDisplay m_display = ModListDisplay::SmallList;
     float m_targetWidth = 300;
-    CCScale9Sprite* m_bg;
+    NineSlice* m_bg;
     CCMenu* m_viewMenu;
 
     bool init();

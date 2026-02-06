@@ -9,7 +9,6 @@
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <GUI/CCControlExtension/CCScale9Sprite.h>
 
 #include "ui/mods/list/ModProblemItem.hpp"
 
@@ -24,7 +23,7 @@ bool ModProblemList::init(
     this->setContentSize(size);
     this->setAnchorPoint({ 0.5f, 0.5f });
 
-    CCScale9Sprite* bg = CCScale9Sprite::create("square02b_001.png");
+    NineSlice* bg = NineSlice::create("square02b_001.png");
     bg->setColor({ 0, 0, 0 });
     bg->setOpacity(75);
     bg->setScale(.3f);
