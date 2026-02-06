@@ -20,11 +20,16 @@ namespace geode {
         // Reloads the style of the progress bar
         void reloadStyle();
 
-        bool init(ProgressBarStyle style);
+        bool init(ProgressBarStyle style, bool goldVariant);
 
     public:
-        // Create a custom progress bar
-        static ProgressBar* create(ProgressBarStyle style = ProgressBarStyle::Level);
+        /**
+         * Create a custom progress bar
+         *
+         * @param style Style of the progress bar
+         * @param goldVariant Switch to gold outline if using `Level` style
+         */
+        static ProgressBar* create(ProgressBarStyle style = ProgressBarStyle::Level, bool goldVariant = false);
 
         /**
          * Set the style of the progress bar
@@ -32,6 +37,13 @@ namespace geode {
          * @param style Style to switch to
          */
         void setStyle(ProgressBarStyle style);
+
+        /**
+         * If using the `Level` progress bar style, use the gold outline sprite instead.
+         *
+         * @param enable Whether to use gold outline
+         */
+        void setGoldVariant(bool enable);
 
         /**
          * Set the color of the fill of the bar
@@ -75,6 +87,11 @@ namespace geode {
          * Get the current style of the progress bar
          */
         ProgressBarStyle getStyle() const noexcept;
+
+        /**
+         * Check if the gold outline is being used with the `Level` style
+         */
+        bool isGoldVariant() const noexcept;
 
         /**
          * Get the current color of the fill of the progress bar
