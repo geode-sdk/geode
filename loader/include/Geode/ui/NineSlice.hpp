@@ -3,19 +3,19 @@
 #include <Geode/utils/ZStringView.hpp>
 
 namespace geode {
-    class GEODE_DLL Scale9Sprite : public cocos2d::CCNodeRGBA {
+    class GEODE_DLL NineSlice : public cocos2d::CCNodeRGBA {
     public:
         struct Insets {
             float top;
             float right;
             float bottom;
             float left;
-            bool operator==(const Insets& other) const = default;
+            bool operator==(Insets const& other) const = default;
         };
 
-        static Scale9Sprite* create(geode::ZStringView file, const cocos2d::CCRect& rect = {}, const Insets& insets = {});
-        static Scale9Sprite* createWithSpriteFrameName(geode::ZStringView spriteFrameName, const Insets& insets = {});
-        static Scale9Sprite* createWithSpriteFrame(cocos2d::CCSpriteFrame* spriteFrame, const Insets& insets = {});
+        static NineSlice* create(geode::ZStringView file, cocos2d::CCRect const& rect = {}, Insets const& insets = {});
+        static NineSlice* createWithSpriteFrameName(geode::ZStringView spriteFrameName, Insets const& insets = {});
+        static NineSlice* createWithSpriteFrame(cocos2d::CCSpriteFrame* spriteFrame, Insets const& insets = {});
 
         /// Sets a multiplier for the slices to be scaled by
         void setScaleMultiplier(float scaleMultiplier);
@@ -25,7 +25,7 @@ namespace geode {
         bool getRepeatCenter() const;
 
         /// Sets the insets used for the size of each side slice of the sprite
-        void setInsets(const Insets& insets);
+        void setInsets(Insets const& insets);
         Insets getInsets() const;
 
         void setInsetTop(float top);
@@ -38,21 +38,21 @@ namespace geode {
         float getInsetBottom() const;
         float getInsetLeft() const;
 
-        virtual void setContentSize(const cocos2d::CCSize& size) override;
+        virtual void setContentSize(cocos2d::CCSize const& size) override;
         virtual void visit() override;
 
-        virtual void setColor(const cocos2d::ccColor3B& color) override;
+        virtual void setColor(cocos2d::ccColor3B const& color) override;
         virtual void setOpacity(GLubyte opacity) override;
 
     protected:
-        Scale9Sprite();
-        ~Scale9Sprite();
+        NineSlice();
+        ~NineSlice();
 
-        bool initWithFile(geode::ZStringView file, const cocos2d::CCRect& rect, const Insets& insets);
-        bool initWithSpriteFrameName(geode::ZStringView spriteFrameName, const Insets& insets);
-        bool initWithSpriteFrame(cocos2d::CCSpriteFrame* spriteFrame, const Insets& insets);
+        bool initWithFile(geode::ZStringView file, cocos2d::CCRect const& rect, const Insets& insets);
+        bool initWithSpriteFrameName(geode::ZStringView spriteFrameName, Insets const& insets);
+        bool initWithSpriteFrame(cocos2d::CCSpriteFrame* spriteFrame, Insets const& insets);
 
-        void setup(const Insets& insets, const cocos2d::CCRect& rect = {});
+        void setup(Insets const& insets, cocos2d::CCRect const& rect = {});
 
         void setSpriteRect(cocos2d::CCSprite* spr, cocos2d::CCRect rect, cocos2d::CCAffineTransform transform);
         void createRepeatingSprites(cocos2d::CCSprite* spr, int horizontalAmount, int verticalAmount, float lastHorizontalFactor, float lastVerticalFactor);

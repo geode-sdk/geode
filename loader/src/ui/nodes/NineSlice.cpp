@@ -1,8 +1,8 @@
-#include <Geode/ui/Scale9Sprite.hpp>
+#include <Geode/ui/NineSlice.hpp>
 
 using namespace geode::prelude;
 
-class Scale9Sprite::Impl final {
+class NineSlice::Impl final {
 public:
     Ref<CCSpriteBatchNode> m_batchNode;
 
@@ -24,12 +24,12 @@ public:
     bool m_dirty = false;
 };
 
-Scale9Sprite::Scale9Sprite() : m_impl(std::make_unique<Impl>()) {}
+NineSlice::NineSlice() : m_impl(std::make_unique<Impl>()) {}
 
-Scale9Sprite::~Scale9Sprite() {}
+NineSlice::~NineSlice() {}
 
-Scale9Sprite* Scale9Sprite::create(geode::ZStringView file, const cocos2d::CCRect& rect, const Insets& insets) {
-    auto ret = new Scale9Sprite();
+NineSlice* NineSlice::create(ZStringView file, CCRect const& rect, Insets const& insets) {
+    auto ret = new NineSlice();
     if (ret->initWithFile(file, rect, insets)) {
         ret->autorelease();
         return ret;
@@ -38,8 +38,8 @@ Scale9Sprite* Scale9Sprite::create(geode::ZStringView file, const cocos2d::CCRec
     return nullptr;
 }
     
-Scale9Sprite* Scale9Sprite::createWithSpriteFrameName(geode::ZStringView spriteFrameName, const Insets& insets) {
-    auto ret = new Scale9Sprite();
+NineSlice* NineSlice::createWithSpriteFrameName(ZStringView spriteFrameName, Insets const& insets) {
+    auto ret = new NineSlice();
     if (ret->initWithSpriteFrameName(spriteFrameName, insets)) {
         ret->autorelease();
         return ret;
@@ -48,8 +48,8 @@ Scale9Sprite* Scale9Sprite::createWithSpriteFrameName(geode::ZStringView spriteF
     return nullptr;
 }
 
-Scale9Sprite* Scale9Sprite::createWithSpriteFrame(cocos2d::CCSpriteFrame* spriteFrame, const Insets& insets) {
-    auto ret = new Scale9Sprite();
+NineSlice* NineSlice::createWithSpriteFrame(CCSpriteFrame* spriteFrame, Insets const& insets) {
+    auto ret = new NineSlice();
     if (ret->initWithSpriteFrame(spriteFrame, insets)) {
         ret->autorelease();
         return ret;
@@ -58,7 +58,7 @@ Scale9Sprite* Scale9Sprite::createWithSpriteFrame(cocos2d::CCSpriteFrame* sprite
     return nullptr;
 }
 
-void Scale9Sprite::setup(const Insets& insets, const cocos2d::CCRect& rect) {
+void NineSlice::setup(Insets const& insets, CCRect const& rect) {
     m_impl->m_insets = insets;
     m_impl->m_spriteRect = rect;
 
@@ -81,7 +81,7 @@ void Scale9Sprite::setup(const Insets& insets, const cocos2d::CCRect& rect) {
     createSprites();
 }
 
-bool Scale9Sprite::initWithFile(geode::ZStringView file, const cocos2d::CCRect& rect, const Insets& insets) {
+bool NineSlice::initWithFile(ZStringView file, CCRect const& rect, Insets const& insets) {
     if (!CCNodeRGBA::init()) return false;
 
     m_impl->m_batchNode = CCSpriteBatchNode::create(file.c_str(), 9);
@@ -91,12 +91,12 @@ bool Scale9Sprite::initWithFile(geode::ZStringView file, const cocos2d::CCRect& 
     return true;
 }
 
-bool Scale9Sprite::initWithSpriteFrameName(geode::ZStringView spriteFrameName, const Insets& insets) {    
+bool NineSlice::initWithSpriteFrameName(ZStringView spriteFrameName, Insets const& insets) {    
     auto frame = CCSpriteFrameCache::get()->spriteFrameByName(spriteFrameName.c_str());
     return initWithSpriteFrame(frame, insets);
 }
 
-bool Scale9Sprite::initWithSpriteFrame(cocos2d::CCSpriteFrame* spriteFrame, const Insets& insets) {
+bool NineSlice::initWithSpriteFrame(CCSpriteFrame* spriteFrame, const Insets& insets) {
     if (!spriteFrame) return false;
     auto texture = spriteFrame->getTexture();
 
@@ -109,7 +109,7 @@ bool Scale9Sprite::initWithSpriteFrame(cocos2d::CCSpriteFrame* spriteFrame, cons
     return true;
 }
 
-void Scale9Sprite::createSprites() {
+void NineSlice::createSprites() {
     createSprite(m_impl->m_topLeft);
     createSprite(m_impl->m_top);
     createSprite(m_impl->m_topRight);
@@ -123,7 +123,7 @@ void Scale9Sprite::createSprites() {
     updateSprites();
 }
 
-void Scale9Sprite::createSprite(cocos2d::CCSprite*& spr) {
+void NineSlice::createSprite(CCSprite*& spr) {
     spr = CCSprite::createWithTexture(m_impl->m_batchNode->getTexture());
     spr->setAnchorPoint({0.f, 0.f});
     spr->setCascadeColorEnabled(true);
@@ -131,7 +131,7 @@ void Scale9Sprite::createSprite(cocos2d::CCSprite*& spr) {
     m_impl->m_batchNode->addChild(spr);
 }
 
-void Scale9Sprite::setSpriteRect(cocos2d::CCSprite* spr, cocos2d::CCRect rect, cocos2d::CCAffineTransform transform) {
+void NineSlice::setSpriteRect(CCSprite* spr, CCRect rect, CCAffineTransform transform) {
     auto originalOrigin = rect.origin;
     rect = CCRectApplyAffineTransform(rect, transform);
     if (m_impl->m_rectRotated) {
@@ -141,7 +141,7 @@ void Scale9Sprite::setSpriteRect(cocos2d::CCSprite* spr, cocos2d::CCRect rect, c
     spr->setTextureRect(rect, m_impl->m_rectRotated, rect.size);
 }
 
-void Scale9Sprite::updateSprites() {
+void NineSlice::updateSprites() {
     auto multiplier = m_impl->m_scaleMultiplier > 0 ? m_impl->m_scaleMultiplier : 1.f;
 
     auto size = CCSize{std::abs(getContentWidth()), std::abs(getContentHeight())} / multiplier;
@@ -186,7 +186,7 @@ void Scale9Sprite::updateSprites() {
     CCRect rightCenterRect = {texRect.origin.x + texRect.size.width - texRight, texRect.origin.y + texTop, texRight, texCenterH};
 
     CCRect bottomLeftRect = {texRect.origin.x + 0, texRect.origin.y + texRect.size.height - texBottom, texLeft, texBottom};
-    CCRect bottomCenterRect= {texRect.origin.x + texLeft, texRect.origin.y + texRect.size.height - texBottom, texCenterW, texBottom};
+    CCRect bottomCenterRect = {texRect.origin.x + texLeft, texRect.origin.y + texRect.size.height - texBottom, texCenterW, texBottom};
     CCRect bottomRightRect = {texRect.origin.x + texRect.size.width - texRight, texRect.origin.y + texRect.size.height - texBottom, texRight, texBottom};
 
     CCAffineTransform t = CCAffineTransformMakeIdentity();
@@ -240,7 +240,7 @@ void Scale9Sprite::updateSprites() {
     }
 }
 
-void Scale9Sprite::createRepeatingSprites(CCSprite* spr, int horizontalAmount, int verticalAmount, float lastHorizontalFactor, float lastVerticalFactor) {
+void NineSlice::createRepeatingSprites(CCSprite* spr, int horizontalAmount, int verticalAmount, float lastHorizontalFactor, float lastVerticalFactor) {
     CCRect rect = spr->getTextureRect();
     bool rotated = spr->isTextureRectRotated();
 
@@ -285,72 +285,72 @@ void Scale9Sprite::createRepeatingSprites(CCSprite* spr, int horizontalAmount, i
     }
 }
 
-void Scale9Sprite::setScaleMultiplier(float scaleMultiplier) {
+void NineSlice::setScaleMultiplier(float scaleMultiplier) {
     m_impl->m_scaleMultiplier = scaleMultiplier;
     m_impl->m_dirty = true;
 }
 
-void Scale9Sprite::setRepeatCenter(bool repeat) {
+void NineSlice::setRepeatCenter(bool repeat) {
     m_impl->m_repeatCenter = repeat;
     m_impl->m_dirty = true;
 }
 
-bool Scale9Sprite::getRepeatCenter() const {
+bool NineSlice::getRepeatCenter() const {
     return m_impl->m_repeatCenter;
 }
 
-Scale9Sprite::Insets Scale9Sprite::getInsets() const {
+NineSlice::Insets NineSlice::getInsets() const {
     return m_impl->m_insets;
 }
 
-void Scale9Sprite::setInsets(const Insets& insets) {
+void NineSlice::setInsets(Insets const& insets) {
     m_impl->m_insets = insets;
     m_impl->m_dirty = true;
 }
 
-void Scale9Sprite::setInsetTop(float top) {
+void NineSlice::setInsetTop(float top) {
     m_impl->m_insets.top = top;
     m_impl->m_dirty = true;
 }
 
-void Scale9Sprite::setInsetRight(float right) {
+void NineSlice::setInsetRight(float right) {
     m_impl->m_insets.right = right;
     m_impl->m_dirty = true;
 }
 
-void Scale9Sprite::setInsetBottom(float bottom) {
+void NineSlice::setInsetBottom(float bottom) {
     m_impl->m_insets.bottom = bottom;
     m_impl->m_dirty = true;
 }
 
-void Scale9Sprite::setInsetLeft(float left) {
+void NineSlice::setInsetLeft(float left) {
     m_impl->m_insets.left = left;
     m_impl->m_dirty = true;
 }
 
-float Scale9Sprite::getInsetTop() const {
+float NineSlice::getInsetTop() const {
     return m_impl->m_insets.top;
 }
 
-float Scale9Sprite::getInsetRight() const {
+float NineSlice::getInsetRight() const {
     return m_impl->m_insets.right;
 }
 
-float Scale9Sprite::getInsetBottom() const {
+float NineSlice::getInsetBottom() const {
     return m_impl->m_insets.bottom;
 }
 
-float Scale9Sprite::getInsetLeft() const {
+float NineSlice::getInsetLeft() const {
     return m_impl->m_insets.left;
 }
 
-void Scale9Sprite::setContentSize(const cocos2d::CCSize& size) {
+void NineSlice::setContentSize(CCSize const& size) {
     CCNodeRGBA::setContentSize(size);
     m_impl->m_dirty = true;
 }
 
 // We don't want the batch node to be a child, this makes it easier for devs to add to the node, use layouts, etc.
-void Scale9Sprite::visit() {
+void NineSlice::visit() {
     if (m_impl->m_dirty) {
         updateSprites();
         m_impl->m_dirty = false;
@@ -366,14 +366,14 @@ void Scale9Sprite::visit() {
     CCNodeRGBA::visit();
 }
 
-void Scale9Sprite::setColor(const cocos2d::ccColor3B& color) {
+void NineSlice::setColor(ccColor3B const& color) {
     for (auto child : m_impl->m_batchNode->getChildrenExt<CCSprite>()) {
         child->setColor(color);
     }
     CCNodeRGBA::setColor(color);
 }
 
-void Scale9Sprite::setOpacity(GLubyte opacity) {
+void NineSlice::setOpacity(GLubyte opacity) {
     for (auto child : m_impl->m_batchNode->getChildrenExt<CCSprite>()) {
         child->setOpacity(opacity);
     }
