@@ -655,28 +655,44 @@ namespace geode {
         using comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false, comm::PortCallableCopy>::type, bool(PArgs...)>::BasicEvent;
     };
 
-    template<class Marker, class GFunc, class PFunc, class... FArgs>
-    struct GlobalEvent {};
-
-    // I LOVE TEMPLATE ABUSE
-    // here we misuse PFunc param as the FArg1, because every GlobalEvent at least has one FArg anyway
-    template<class Marker, class PReturn, class... PArgs, class FArg1, class... FArgs>
-    struct GlobalEvent<Marker, PReturn(PArgs...), FArg1, FArgs...> : public GlobalEvent<Marker, PReturn(FArg1, FArgs..., PArgs...), PReturn(PArgs...), FArg1, FArgs...> {
-        using GlobalEvent<Marker, PReturn(FArg1, FArgs..., PArgs...), PReturn(PArgs...), FArg1, FArgs...>::GlobalEvent;
+    template<class Marker, class... PArgs>
+    struct ThreadSafeSimpleEvent : public comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, true, comm::PortCallableCopy>::type, bool(PArgs...)> {
+        using comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, true, comm::PortCallableCopy>::type, bool(PArgs...)>::BasicEvent;
     };
 
-    template<class Marker, class GReturn, class... GArgs, class PReturn, class... PArgs, class... FArgs>
-    struct GlobalEvent<Marker, GReturn(GArgs...), PReturn(PArgs...), FArgs...> {
+    template<class Marker, bool ThreadSafe, class GFunc, class PFunc, class... FArgs>
+    struct BasicGlobalEvent {};
+
+    // I LOVE TEMPLATE ABUSE
+    // here we misuse PFunc param as the FArg1, because every BasicGlobalEvent at least has one FArg anyway
+    template<class Marker, bool ThreadSafe, class PReturn, class... PArgs, class FArg1, class... FArgs>
+    struct BasicGlobalEvent<Marker, ThreadSafe, PReturn(PArgs...), FArg1, FArgs...> : public BasicGlobalEvent<Marker, ThreadSafe, PReturn(FArg1, FArgs..., PArgs...), PReturn(PArgs...), FArg1, FArgs...> {
+        // this is a disgusting hack because i do not want to break api right now
+        using GlobalEvent = BasicGlobalEvent<Marker, ThreadSafe, PReturn(PArgs...), FArg1, FArgs...>;
+        using BasicGlobalEvent<Marker, ThreadSafe, PReturn(FArg1, FArgs..., PArgs...), PReturn(PArgs...), FArg1, FArgs...>::BasicGlobalEvent;
+    };
+
+    template<class Marker, bool ThreadSafe, class GReturn, class... GArgs, class PReturn, class... PArgs, class... FArgs>
+    struct BasicGlobalEvent<Marker, ThreadSafe, GReturn(GArgs...), PReturn(PArgs...), FArgs...> {
     private:
-        using Event1Type = Event<Marker, PReturn(PArgs...), FArgs...>;
-        using Event2Type = SimpleEvent<Marker, FArgs..., PArgs...>;
+        using Event1Type = std::conditional_t<ThreadSafe,
+            ThreadSafeEvent<Marker, PReturn(PArgs...), FArgs...>,
+            Event<Marker, PReturn(PArgs...), FArgs...>
+        >;
+        using Event2Type = std::conditional_t<ThreadSafe,
+            ThreadSafeSimpleEvent<Marker, FArgs..., PArgs...>,
+            SimpleEvent<Marker, FArgs..., PArgs...>
+        >;
         std::optional<std::tuple<FArgs...>> m_filter;
 
     public:
-        GlobalEvent() noexcept : m_filter(std::nullopt) {}
-        ~GlobalEvent() noexcept = default;
+        // this is a disgusting hack because i do not want to break api right now
+        using GlobalEvent = BasicGlobalEvent<Marker, ThreadSafe, GReturn(GArgs...), PReturn(PArgs...), FArgs...>;
 
-        GlobalEvent(FArgs... args) noexcept : m_filter(std::in_place, std::move(args)...) {}
+        BasicGlobalEvent() noexcept : m_filter(std::nullopt) {}
+        ~BasicGlobalEvent() noexcept = default;
+
+        BasicGlobalEvent(FArgs... args) noexcept : m_filter(std::in_place, std::move(args)...) {}
 
         template<class Callable>
         requires std::is_invocable_v<Callable, PArgs...>
@@ -741,6 +757,12 @@ namespace geode {
             return false;
         }
     };
+
+    template<class Marker, class GFunc, class PFunc, class... FArgs>
+    using GlobalEvent = BasicGlobalEvent<Marker, false, GFunc, PFunc, FArgs...>;
+
+    template<class Marker, class GFunc, class PFunc, class... FArgs>
+    using ThreadSafeGlobalEvent = BasicGlobalEvent<Marker, true, GFunc, PFunc, FArgs...>;
 
 
     struct ListenerResult {
