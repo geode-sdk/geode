@@ -489,7 +489,7 @@ namespace geode::utils::web {
         using ThreadSafeGlobalEvent::ThreadSafeGlobalEvent;
     };
 
-    struct WebRequestResponseEvent : ThreadSafeGlobalEvent<WebRequestResponseEvent, bool(std::string_view, WebResponse const&), bool(WebResponse const&), std::string> {
+    struct WebResponseEvent : ThreadSafeGlobalEvent<WebResponseEvent, bool(std::string_view, WebResponse const&), bool(WebResponse const&), std::string> {
         using ThreadSafeGlobalEvent::ThreadSafeGlobalEvent;
     };
 }

@@ -362,8 +362,8 @@ public:
 
         void complete(WebResponse res) {
             onComplete(res);
-    
-            WebRequestResponseEvent(mod->getID()).send(res);
+
+            WebResponseEvent(mod->getID()).send(res);
         }
 
         void onError(int code, std::string_view msg) {
@@ -748,6 +748,8 @@ WebRequest::~WebRequest() {}
 
 WebFuture WebRequest::send(std::string method, std::string url, Mod* mod) {
     if (m_impl->m_inInterceptor) std::terminate();
+
+    m_impl->m_mod = mod;
 
     m_impl->m_method = std::move(method);
     m_impl->m_url = std::move(url);
