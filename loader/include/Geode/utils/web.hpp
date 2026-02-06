@@ -489,8 +489,8 @@ namespace geode::utils::web {
      * Allows you to intercept and modify requests before they're sent with either a mod ID filter or globally.
      *
      * @example
-     * WebRequestInterceptEvent(Mod::get()->getID()).listen([](auto id, auto& req) { return ListenerResult::Propagate; }, Priority::Normal);
-     * WebRequestInterceptEvent().listen([](auto& req) { return ListenerResult::Stop; }, Priority::VeryEarly);
+     * WebRequestInterceptEvent(Mod::get()->getID()).listen([](auto& req) { return ListenerResult::Propagate; }, Priority::Normal);
+     * WebRequestInterceptEvent().listen([](auto id, auto& req) { return ListenerResult::Stop; }, Priority::VeryEarly);
      */
     struct WebRequestInterceptEvent : ThreadSafeGlobalEvent<WebRequestInterceptEvent, bool(std::string_view, WebRequest&), bool(WebRequest&), std::string> {
         using ThreadSafeGlobalEvent::ThreadSafeGlobalEvent;
@@ -500,8 +500,8 @@ namespace geode::utils::web {
      * Allows you to listen for responses after it was received with either a mod ID filter or globally.
      *
      * @example
-     * WebResponseEvent(Mod::get()->getID()).listen([](auto id, auto const& res) { return ListenerResult::Propagate; }, Priority::Normal);
-     * WebResponseEvent().listen([](auto const& res) { return ListenerResult::Stop; }, Priority::VeryEarly);
+     * WebResponseEvent(Mod::get()->getID()).listen([](auto const& res) { return ListenerResult::Propagate; }, Priority::Normal);
+     * WebResponseEvent().listen([](auto id, auto const& res) { return ListenerResult::Stop; }, Priority::VeryEarly);
      */
     struct WebResponseEvent : ThreadSafeGlobalEvent<WebResponseEvent, bool(std::string_view, WebResponse const&), bool(WebResponse const&), std::string> {
         using ThreadSafeGlobalEvent::ThreadSafeGlobalEvent;
