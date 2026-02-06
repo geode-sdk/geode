@@ -747,7 +747,7 @@ WebRequest::WebRequest() : m_impl(std::make_shared<Impl>()) {}
 WebRequest::~WebRequest() {}
 
 WebFuture WebRequest::send(std::string method, std::string url, Mod* mod) {
-    if (m_impl->m_inInterceptor) std::terminate();
+    if (m_impl->m_inInterceptor) utils::terminate("Cannot call send again within an interceptor.", mod);
 
     m_impl->m_mod = mod;
 
