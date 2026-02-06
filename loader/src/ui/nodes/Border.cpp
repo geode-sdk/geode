@@ -1,4 +1,5 @@
 #include <Geode/ui/Border.hpp>
+#include <Geode/ui/NineSlice.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/cocos.hpp>
 
@@ -36,7 +37,7 @@ bool Border::init(CCNode* node, const ccColor4B& backgroundColor, const CCSize& 
         return false;
     }
 
-    CCScale9Sprite* border = CCScale9Sprite::create("inverseborder.png"_spr);
+    NineSlice* border = NineSlice::create("inverseborder.png"_spr);
     CCLayer* content = CCLayer::create();
 
     border->setID("border_sprite"_spr);

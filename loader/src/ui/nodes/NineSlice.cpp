@@ -356,12 +356,14 @@ void NineSlice::visit() {
         m_impl->m_dirty = false;
     }
 
-    kmGLPushMatrix();
-    transform();
+    if (isVisible()) {
+        kmGLPushMatrix();
+        transform();
 
-    m_impl->m_batchNode->visit();
+        m_impl->m_batchNode->visit();
 
-    kmGLPopMatrix();
+        kmGLPopMatrix();
+    }
 
     CCNodeRGBA::visit();
 }

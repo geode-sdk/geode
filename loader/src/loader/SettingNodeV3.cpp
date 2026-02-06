@@ -394,7 +394,7 @@ bool FileSettingNodeV3::init(std::shared_ptr<FileSettingV3> setting, float width
     if (!SettingValueNodeV3::init(setting, width))
         return false;
 
-    auto labelBG = extension::CCScale9Sprite::create("square02b_001.png", { 0, 0, 80, 80 });
+    auto labelBG = NineSlice::create("square02b_001.png", { 0, 0, 80, 80 });
     labelBG->setScale(.25f);
     labelBG->setColor({ 0, 0, 0 });
     labelBG->setOpacity(90);

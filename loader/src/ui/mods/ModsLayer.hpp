@@ -4,6 +4,7 @@
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/ui/TextArea.hpp>
 #include <Geode/ui/IconButtonSprite.hpp>
+#include <Geode/ui/NineSlice.hpp>
 #include <Geode/binding/SetTextPopupDelegate.hpp>
 #include <Geode/binding/SetIDPopupDelegate.hpp>
 #include <Geode/cocos/cocoa/CCObject.h>
@@ -28,7 +29,7 @@ protected:
         SomeDownloading,
     };
 
-    CCScale9Sprite* m_statusBG;
+    NineSlice* m_statusBG;
     CCLabelBMFont* m_status;
     CCLabelBMFont* m_statusPercentage;
     Slider* m_progressBar;

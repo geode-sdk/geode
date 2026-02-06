@@ -6,6 +6,7 @@
 #include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
 #include <Geode/ui/Popup.hpp>
+#include <Geode/ui/NineSlice.hpp>
 #include <Geode/utils/ZStringView.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <server/Server.hpp>
@@ -71,8 +72,8 @@ ListBorders* createGeodeListBorders(CCSize const& size, bool forceDisableTheme =
 
 class GeodeTabSprite : public CCNode {
 protected:
-    CCScale9Sprite* m_deselectedBG;
-    CCScale9Sprite* m_selectedBG;
+    NineSlice* m_deselectedBG;
+    NineSlice* m_selectedBG;
     CCSprite* m_icon;
     CCLabelBMFont* m_label;
 
