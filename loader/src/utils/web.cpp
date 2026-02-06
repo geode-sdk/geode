@@ -431,6 +431,7 @@ public:
     std::atomic<size_t> m_uploadCurrent = 0;
     std::atomic<size_t> m_uploadTotal = 0;
     std::atomic<bool> m_progressNotifQueued{false};
+    std::atomic<bool> m_cancelled{false};
 
     // stored to clean up later
     char m_errorBuf[CURL_ERROR_SIZE] = {0};
@@ -714,8 +715,9 @@ public:
             r.m_uploadCurrent.store(static_cast<size_t>(unow), relaxed);
 
             // Queue the callback in the main thread, make sure to do it only once per frame
-            if (r.m_progressCallbacks.size() && !r.m_progressNotifQueued.exchange(true, acq_rel)) {
+            if (!r.m_progressCallbacks.empty() && !r.m_progressNotifQueued.exchange(true, acq_rel) && !r.m_cancelled.load(relaxed)) {
                 queueInMainThread([req = data->request] {
+                    if (req->m_cancelled.load(relaxed)) return;
                     req->m_progressNotifQueued.store(false, release);
 
                     for (auto& callback : req->m_progressCallbacks) {
@@ -1364,6 +1366,9 @@ std::optional<WebResponse> WebFuture::poll(arc::Context& cx) {
 }
 
 void WebRequestsManager::cancel(std::shared_ptr<RequestData> data) {
+    // set the cancel flag immediately so our progress callbacks never get called again
+    data->request->m_cancelled.store(true, std::memory_order::relaxed);
+
     // cancel channel is unbounded, so this never fails
     (void) m_impl->m_canceltx->trySend(std::move(data));
 }
