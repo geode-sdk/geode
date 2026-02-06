@@ -99,7 +99,7 @@ void ProgressBar::reloadStyle() {
     } break;
     };
 
-    this->setContentSize(m_impl->progressBar->getScaledContentSize());
+    this->setContentSize(m_impl->progressBar->getContentSize());
 
     m_impl->progressBar->addChild(m_impl->progressBarFill);
 
