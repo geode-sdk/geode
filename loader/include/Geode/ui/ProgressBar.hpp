@@ -4,9 +4,9 @@
 namespace geode {
     // Enum for progress bar style
     enum class ProgressBarStyle {
-        Level = 0, // Gameplay style
-        LevelGold = 1, // Gameplay style but gold
-        Solid = 2, // Thick style
+        Level = 0, // Style commonly seen inside classic levels
+        Slider = 1, // Style commonly seen as sliders
+        Solid = 2, // Style commonly seen in level progression UI
     };
 
     // Custom class for the progress bar
@@ -19,18 +19,19 @@ namespace geode {
         ~ProgressBar();
 
         /**
-         * Set up `Level`/`LevelGold` progress bar style
+         * Set up `Level`/`Slider` progress bar style
          *
-         * @note This is mainly to avoid repeating code since the only difference between both is one sprite name
+         * @note This is mainly to avoid repeating code since the only difference between these is two sprite names
          *
-         * @param outlineSpr Sprite of the outline
+         * @param barSpr Sprite of the bar
+         * @param fillSpr Sprite of the fill
          */
-        void setupLevelStyle(const char* outlineSpr);
+        void setupBarStyle(const char* barSpr, const char* fillSpr);
 
         // Set up `Solid` progress bar style
         void setupSolidStyle();
 
-        // Reloads the style of the progress bar, calls either `setupLevelStyle` or `setupSolidStyle` internally depending on style
+        // Reloads the style of the progress bar, calls either `setupBarStyle` or `setupSolidStyle` internally depending on style
         void reloadStyle();
 
         bool init(ProgressBarStyle style);
@@ -40,7 +41,6 @@ namespace geode {
          * Create a custom progress bar
          *
          * @param style Style of the progress bar
-         * @param goldVariant Switch to gold outline if using `Level` style
          */
         static ProgressBar* create(ProgressBarStyle style = ProgressBarStyle::Level);
 

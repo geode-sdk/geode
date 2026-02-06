@@ -18,7 +18,7 @@ public:
     // Style of the progress bar
     ProgressBarStyle style = ProgressBarStyle::Level;
     // Current color of the filled progress bar
-    ccColor3B progressBarFillColor = { 0, 213, 255 };
+    ccColor3B progressBarFillColor = { 255, 255, 255 };
     // Whether to show the label showing the percentage of the current progress
     bool showProgressPercentLabel = false;
     // Precision of the percentage on the progress percent label
@@ -34,14 +34,14 @@ ProgressBar::ProgressBar() : m_impl(std::make_unique<Impl>()) {};
 
 ProgressBar::~ProgressBar() {};
 
-void ProgressBar::setupLevelStyle(const char* outlineSpr) {
-    m_impl->progressBar = CCSprite::create(outlineSpr);
+void ProgressBar::setupBarStyle(const char* barSpr, const char* fillSpr) {
+    m_impl->progressBar = CCSprite::create(barSpr);
     m_impl->progressBar->setID("progress-bar");
     m_impl->progressBar->setAnchorPoint({ 0.5, 0.5 });
     m_impl->progressBar->setPosition({ m_impl->progressBar->getScaledContentWidth() / 2.0f, m_impl->progressBar->getScaledContentHeight() / 2.0f });
     m_impl->progressBar->setZOrder(1);
 
-    m_impl->progressBarFill = CCSprite::create("sliderBar2.png");
+    m_impl->progressBarFill = CCSprite::create(fillSpr);
     m_impl->progressBarFill->setID("progress-bar-fill");
     m_impl->progressBarFill->setAnchorPoint({ 0, 0.5 });
     m_impl->progressBarFill->setPosition({ 2.0f, m_impl->progressBar->getScaledContentHeight() / 2.0f });
@@ -96,8 +96,8 @@ void ProgressBar::reloadStyle() {
     switch (m_impl->style) {
         default: [[fallthrough]];
 
-        case ProgressBarStyle::Level: this->setupLevelStyle("slidergroove2.png"); break;
-        case ProgressBarStyle::LevelGold: this->setupLevelStyle("slidergroove.png"); break;
+        case ProgressBarStyle::Level: this->setupBarStyle("slidergroove2.png", "sliderBar2.png"); break;
+        case ProgressBarStyle::Slider: this->setupBarStyle("slidergroove.png", "sliderBar.png"); break;
         case ProgressBarStyle::Solid: this->setupSolidStyle(); break;
     };
 
