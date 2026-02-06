@@ -4,6 +4,7 @@
 #include <cocos2d.h>
 #include <cocos-ext.h>
 #include <Geode/binding/TextAlertPopup.hpp>
+#include <Geode/ui/NineSlice.hpp>
 #include "../utils/cocos.hpp"
 #include "../utils/ZStringView.hpp"
 
@@ -73,7 +74,7 @@ namespace geode {
         void setIcon(cocos2d::CCSprite* icon);
         void setTime(float time);
 
-        cocos2d::extension::CCScale9Sprite* getBg();
+        NineSlice* getBg();
         cocos2d::CCLabelBMFont* getLabel();
         cocos2d::CCSprite* getIcon();
         float getTime();

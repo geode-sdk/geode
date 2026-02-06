@@ -11,7 +11,7 @@ CCArray* Notification::s_queue = nullptr;
 
 class Notification::Impl final {
 public:
-    cocos2d::extension::CCScale9Sprite* bg;
+    NineSlice* bg;
     cocos2d::CCLabelBMFont* label;
     cocos2d::CCSprite* icon = nullptr;
     float time;
@@ -27,7 +27,7 @@ bool Notification::init(ZStringView text, CCSprite* icon, float time) {
 
     m_impl->time = time;
 
-    m_impl->bg = CCScale9Sprite::create("square02b_small.png", { 0, 0, 40, 40 });
+    m_impl->bg = NineSlice::create("square02b_small.png", { 0, 0, 40, 40 });
     m_impl->bg->setColor({ 0, 0, 0 });
     this->addChild(m_impl->bg);
 
@@ -151,7 +151,7 @@ void Notification::setTime(float time) {
     this->wait();
 }
 
-cocos2d::extension::CCScale9Sprite* Notification::getBg() {
+NineSlice* Notification::getBg() {
     return m_impl->bg;
 }
 

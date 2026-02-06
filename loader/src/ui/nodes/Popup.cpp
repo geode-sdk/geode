@@ -92,7 +92,7 @@ bool Popup::init(
     m_mainLayer = CCLayer::create();
     this->addChild(m_mainLayer);
 
-    m_bgSprite = CCScale9Sprite::create(bg, bgRect);
+    m_bgSprite = NineSlice::create(bg, bgRect);
     m_bgSprite->setContentSize(m_size);
     m_bgSprite->setPosition(winSize.width / 2, winSize.height / 2);
     m_mainLayer->addChild(m_bgSprite);

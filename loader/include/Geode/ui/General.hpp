@@ -5,6 +5,7 @@
 #include <cocos-ext.h>
 
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/ui/NineSlice.hpp>
 
 namespace geode {
     /**
@@ -86,16 +87,16 @@ namespace geode {
 
         void setSpriteFrames(char const* topAndBottom, char const* sides, float horizontalPadding = 7.5f);
         void setSprites(
-            cocos2d::extension::CCScale9Sprite* top,
-            cocos2d::extension::CCScale9Sprite* bottom,
+            NineSlice* top,
+            NineSlice* bottom,
             cocos2d::CCSprite* left,
             cocos2d::CCSprite* right,
             float topPadding = 7.5f,
             float bottomPadding = 7.5f
         );
         void setContentSize(cocos2d::CCSize const& size) override;
-        cocos2d::extension::CCScale9Sprite* getTop();
-        cocos2d::extension::CCScale9Sprite* getBottom();
+        NineSlice* getTop();
+        NineSlice* getBottom();
         cocos2d::CCSprite* getLeft();
         cocos2d::CCSprite* getRight();
         float getTopPadding();

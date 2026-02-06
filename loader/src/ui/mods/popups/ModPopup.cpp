@@ -234,7 +234,7 @@ bool ModPopup::init(ModSource&& src) {
     statsContainer->setContentSize({ leftColumn->getContentWidth(), 80 });
     statsContainer->setAnchorPoint({ .5f, .5f });
 
-    auto statsBG = CCScale9Sprite::create("square02b_001.png");
+    auto statsBG = NineSlice::create("square02b_001.png");
     statsBG->setColor({ 0, 0, 0 });
     statsBG->setOpacity(75);
     statsBG->setScale(.3f);
@@ -311,7 +311,7 @@ bool ModPopup::init(ModSource&& src) {
     tagsContainer->setContentSize({ leftColumn->getContentWidth(), 35 });
     tagsContainer->setAnchorPoint({ .5f, .5f });
 
-    auto tagsBG = CCScale9Sprite::create("square02b_001.png");
+    auto tagsBG = NineSlice::create("square02b_001.png");
     tagsBG->setColor({ 0, 0, 0 });
     tagsBG->setOpacity(75);
     tagsBG->setScale(.3f);
@@ -369,7 +369,7 @@ bool ModPopup::init(ModSource&& src) {
     installContainer->setContentSize({ leftColumn->getContentWidth(), 25 });
     installContainer->setAnchorPoint({ .5f, .5f });
 
-    m_installBG = CCScale9Sprite::create("square02b_001.png");
+    m_installBG = NineSlice::create("square02b_001.png");
     m_installBG->setScale(.3f);
     m_installBG->setContentSize(installContainer->getContentSize() / m_installBG->getScale());
     installContainer->addChildAtPosition(m_installBG, Anchor::Center);
@@ -506,7 +506,7 @@ bool ModPopup::init(ModSource&& src) {
             ->setCrossAxisAlignment(AxisAlignment::End)
     );
 
-    auto linksBG = CCScale9Sprite::create("square02b_001.png");
+    auto linksBG = NineSlice::create("square02b_001.png");
     linksBG->setColor({ 0, 0, 0 });
     linksBG->setOpacity(75);
     linksBG->setScale(.3f);
@@ -634,7 +634,7 @@ bool ModPopup::init(ModSource&& src) {
     mainContainer->updateLayout();
     m_mainLayer->addChildAtPosition(mainContainer, Anchor::Center);
 
-    m_settingsBG = CCScale9Sprite::create("square02b_001.png");
+    m_settingsBG = NineSlice::create("square02b_001.png");
     m_settingsBG->setColor({ 0, 0, 0 });
     m_settingsBG->setOpacity(75);
     m_settingsBG->setScale(.3f);

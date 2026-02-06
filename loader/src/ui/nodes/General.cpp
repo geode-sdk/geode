@@ -77,9 +77,9 @@ void geode::addListBorders(CCNode* to, CCPoint const& center, CCSize const& size
         });
         to->addChild(layerBottomSpr);
     }
-    // otherwise stretch using CCScale9Sprite
+    // otherwise stretch using NineSlice
     else {
-        auto layerTopSpr = CCScale9Sprite::createWithSpriteFrameName(
+        auto layerTopSpr = NineSlice::createWithSpriteFrameName(
             "GJ_commentTop_001.png",
             { 0, 0, 240, 20 }
         );
@@ -93,7 +93,7 @@ void geode::addListBorders(CCNode* to, CCPoint const& center, CCSize const& size
         });
         to->addChild(layerTopSpr);
 
-        auto layerBottomSpr = CCScale9Sprite::createWithSpriteFrameName(
+        auto layerBottomSpr = NineSlice::createWithSpriteFrameName(
             "GJ_commentTop_001.png",
             { 0, 0, 240, 20 }
         );
@@ -133,8 +133,8 @@ void geode::addListBorders(CCNode* to, CCPoint const& center, CCSize const& size
 
 class ListBorders::Impl final {
 public:
-    cocos2d::extension::CCScale9Sprite* top = nullptr;
-    cocos2d::extension::CCScale9Sprite* bottom = nullptr;
+    NineSlice* top = nullptr;
+    NineSlice* bottom = nullptr;
     cocos2d::CCSprite* left = nullptr;
     cocos2d::CCSprite* right = nullptr;
     float topPadding = 7.5f;
@@ -167,8 +167,8 @@ ListBorders* ListBorders::create() {
 
 void ListBorders::setSpriteFrames(const char* topAndBottom, const char* side, float horizontalPadding) {
     this->setSprites(
-        CCScale9Sprite::createWithSpriteFrameName(topAndBottom),
-        CCScale9Sprite::createWithSpriteFrameName(topAndBottom),
+        NineSlice::createWithSpriteFrameName(topAndBottom),
+        NineSlice::createWithSpriteFrameName(topAndBottom),
         CCSprite::createWithSpriteFrameName(side),
         CCSprite::createWithSpriteFrameName(side),
         horizontalPadding,
@@ -178,7 +178,7 @@ void ListBorders::setSpriteFrames(const char* topAndBottom, const char* side, fl
     m_impl->right->setFlipX(true);
 }
 void ListBorders::setSprites(
-    CCScale9Sprite* top, CCScale9Sprite* bottom,
+    NineSlice* top, NineSlice* bottom,
     CCSprite* left, CCSprite* right,
     float topPadding, float bottomPadding
 ) {
@@ -215,11 +215,11 @@ void ListBorders::setContentSize(CCSize const& size) {
     m_impl->right->setScaleY((size.height - height) / m_impl->right->getContentHeight());
 }
 
-cocos2d::extension::CCScale9Sprite* ListBorders::getTop() {
+NineSlice* ListBorders::getTop() {
     return m_impl->top;
 }
 
-cocos2d::extension::CCScale9Sprite* ListBorders::getBottom() {
+NineSlice* ListBorders::getBottom() {
     return m_impl->bottom;
 }
 

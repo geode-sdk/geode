@@ -8,6 +8,7 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/ui/BreakLine.hpp>
+#include <Geode/ui/NineSlice.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/web.hpp>
@@ -33,7 +34,7 @@ class MDTextArea::Impl {
 public:
     std::string m_text;
     cocos2d::CCSize m_size;
-    cocos2d::extension::CCScale9Sprite* m_bgSprite = nullptr;
+    NineSlice* m_bgSprite = nullptr;
     cocos2d::CCMenu* m_content = nullptr;
     CCScrollLayerExt* m_scrollLayer = nullptr;
     TextRenderer* m_renderer = nullptr;
@@ -149,7 +150,7 @@ bool MDTextArea::init(std::string str, CCSize const& size) {
     m_impl->m_renderer = TextRenderer::create();
     CC_SAFE_RETAIN(m_impl->m_renderer);
 
-    m_impl->m_bgSprite = CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
+    m_impl->m_bgSprite = NineSlice::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
     m_impl->m_bgSprite->setScale(.5f);
     m_impl->m_bgSprite->setColor({ 0, 0, 0 });
     m_impl->m_bgSprite->setOpacity(75);
@@ -575,7 +576,7 @@ struct MDParser {
                                   s_codeStart - codeEnd + pad * 2 };
 
                     auto bg =
-                        CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
+                        NineSlice::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
                     bg->setScale(.25f);
                     bg->setColor({ 0, 0, 0 });
                     bg->setOpacity(75);
@@ -781,7 +782,7 @@ void MDTextArea::updateLabel() {
     }
 
     for (auto& render : MDParser::s_codeSpans) {
-        auto bg = CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
+        auto bg = NineSlice::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
         bg->setScale(.125f);
         bg->setColor({ 0, 0, 0 });
         bg->setOpacity(75);

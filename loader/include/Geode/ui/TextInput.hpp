@@ -5,6 +5,7 @@
 #include <Geode/binding/CCTextInputNode.hpp>
 #include <Geode/utils/function.hpp>
 #include <Geode/utils/ZStringView.hpp>
+#include <Geode/ui/NineSlice.hpp>
 #include <cocos2d.h>
 
 namespace geode {
@@ -162,7 +163,7 @@ namespace geode {
         void defocus();
 
         CCTextInputNode* getInputNode() const;
-        cocos2d::extension::CCScale9Sprite* getBGSprite() const;
+        NineSlice* getBGSprite() const;
     };
 }
 
