@@ -264,7 +264,11 @@ function(setup_geode_mod proname)
         endforeach()
 
         # Link libs
-        target_include_directories(${proname} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/geode-deps")
+        if (GEODE_SET_TARGET_AS_SYSTEM)
+            target_include_directories(${proname} SYSTEM PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/geode-deps")
+        else()
+            target_include_directories(${proname} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/geode-deps")
+        endif()
         target_link_libraries(${proname} ${SETUP_GEODE_MOD_LINK_TYPE} ${libs_to_link})
         
     endif()
