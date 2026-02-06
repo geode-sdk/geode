@@ -162,7 +162,7 @@ float Notification::getTime() {
     return m_impl->time;
 }
 
-NineSlice* Notification::getBg() {
+NineSlice* Notification::getBG() {
     return m_impl->bg;
 }
 
@@ -268,3 +268,4 @@ void Notification::cancel() {
         s_queue.erase(index);
     }
 }
+
