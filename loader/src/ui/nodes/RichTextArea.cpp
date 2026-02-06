@@ -2,6 +2,7 @@
 #include <Geode/ui/RichTextArea.hpp>
 #include <regex>
 #include <fmt/chrono.h>
+#include <Geode/cocos/actions/CCWaveAction.h>
 
 using namespace geode::prelude;
 
@@ -55,7 +56,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
 
             return Ok(colorRes.unwrap());
         },
-        [](ccColor3B const& value, cocos2d::CCFontSprite* sprite) {
+        [](ccColor3B const& value, cocos2d::CCFontSprite* sprite, int charIndex) {
             sprite->setColor({ value.r, value.g, value.b });
         }
     ));
@@ -71,7 +72,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
 
             return Ok(value == "true");
         },
-        [](bool const& value, cocos2d::CCFontSprite* sprite) {
+        [](bool const& value, cocos2d::CCFontSprite* sprite, int charIndex) {
             sprite->setFlipY(value);
         }
     ));
@@ -87,7 +88,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
 
             return Ok(value == "true");
         },
-        [](bool const& value, cocos2d::CCFontSprite* sprite) {
+        [](bool const& value, cocos2d::CCFontSprite* sprite, int charIndex) {
             sprite->setFlipX(value);
         }
     ));
@@ -104,6 +105,36 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
             return fmt::format("{:%Y-%m-%d %H:%M:%S}", geode::localtime(value));
         }
     ));
+
+    registerRichTextKey<float>(std::make_shared<RichTextKey<float>>(
+        "size",
+        [](std::string value) -> Result<float> {
+            auto numRes = geode::utils::numFromString<float>(value);
+            if (numRes.isErr()) return Err("size invalid!");
+
+            return Ok(numRes.unwrap());
+        },
+        [](float const& value, cocos2d::CCFontSprite* sprite, int charIndex) {
+            sprite->setScale(value);
+        }
+    ));
+
+    // maybe one day someone will make this work but its fine :(
+    // registerRichTextKey<std::string>(std::make_shared<RichTextKey<std::string>>(
+    //     "font",
+    //     [](std::string value) -> Result<std::string> {
+    //         auto temp = CCLabelBMFont::create("Test", value.c_str());
+    //         if (temp == nullptr) return Err("Font file isn't valid!");
+
+    //         return Ok(value);
+    //     },
+    //     [&](std::string const& value, CCFontSprite* const applyToSpr) {
+    //         applyToSpr->retain();
+    //         applyToSpr->removeFromParent();
+    //         this->addChild(applyToSpr);
+    //         applyToSpr->release();
+    //     }
+    // ));
 
     registerRichTextKey<std::string>(std::make_shared<RichTextKey<std::string>>(
         "link",
@@ -134,7 +165,50 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
         }
     ));
 
+    registerRichTextKey<std::tuple<float, float, float, float>>(std::make_shared<RichTextKey<std::tuple<float, float, float, float>>>(
+        "wave",
+        [](std::string value) -> Result<std::tuple<float, float, float, float>> {
+            float speed = 1;
+            float distanceY = 5;
+            float distanceX = 0;
+            float offsetPerIndex = .3f;
+
+            auto splitStr = utils::string::split(value, ",");
+            if (splitStr.size() >= 1){
+                auto speedRes = geode::utils::numFromString<float>(splitStr[0]);
+                if (speedRes.isOk()) speed = speedRes.unwrap();
+            }
+            if (splitStr.size() >= 2){
+                auto distanceYRes = geode::utils::numFromString<float>(splitStr[1]);
+                if (distanceYRes.isOk()) distanceY = distanceYRes.unwrap();
+            }
+            if (splitStr.size() >= 3){
+                auto distanceXRes = geode::utils::numFromString<float>(splitStr[2]);
+                if (distanceXRes.isOk()) distanceX = distanceXRes.unwrap();
+            }
+            if (splitStr.size() >= 4){
+                auto offsetPerIndexRes = geode::utils::numFromString<float>(splitStr[3]);
+                if (offsetPerIndexRes.isOk()) offsetPerIndex = offsetPerIndexRes.unwrap();
+            }
+
+            return Ok(std::make_tuple(speed, distanceY, distanceX, offsetPerIndex));
+        },
+        [](std::tuple<float, float, float, float> const& value, cocos2d::CCFontSprite* sprite, int charIndex) {
+            sprite->runAction(
+                CCRepeatForever::create(
+                    CCWaveAction::create(
+                        std::get<0>(value),
+                        std::get<2>(value),
+                        std::get<1>(value),
+                        std::get<3>(value) * charIndex
+                    )
+                )
+            );
+        }
+    ));
+
     castedImpl()->formatRichText();
+    m_impl->updateContainer();
 
     return true;
 }
@@ -189,8 +263,8 @@ void RichTextArea::RichImpl::charIteration(geode::FunctionRef<cocos2d::CCLabelBM
         if (line->getChildren()->lastObject() != nullptr){
             for (const auto& [key, instancePtr] : appliedRichTextInstances) {
                 auto lastChar = static_cast<cocos2d::CCFontSprite*>(line->getChildren()->lastObject());
-
-                instancePtr->applyChangesToSprite(lastChar);
+                
+                instancePtr->applyChangesToSprite(lastChar, index);
 
                 if (instancePtr->isButton()){
                     if (!instancePtr->isCancellation()){
@@ -282,14 +356,12 @@ void RichTextArea::RichImpl::formatRichText() {
 
         prevExtraOffset = textAdditionOverallOffset;
     }
-
-    log::info("formatting text end {}", m_text);
 }
 
 template <class T>
-void RichTextKeyInstance<T>::applyChangesToSprite(cocos2d::CCFontSprite* spr) {
+void RichTextKeyInstance<T>::applyChangesToSprite(cocos2d::CCFontSprite* spr, int index) {
     if (m_key->m_applyToSprite != NULL)
-        m_key->m_applyToSprite(m_value, spr);
+        m_key->m_applyToSprite(m_value, spr, index);
 }
 
 template <class T>

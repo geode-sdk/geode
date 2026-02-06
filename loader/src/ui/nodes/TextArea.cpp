@@ -8,7 +8,7 @@ public:
     Impl(SimpleTextArea* self) : SimpleTextAreaImpl(self) {}
 };
 
-SimpleTextArea::SimpleTextArea() : m_impl(createImpl()) {}
+SimpleTextArea::SimpleTextArea() = default;
 SimpleTextArea::~SimpleTextArea() = default;
 
 SimpleTextArea* SimpleTextArea::create(std::string text, std::string font, float scale) {
@@ -27,7 +27,7 @@ SimpleTextArea* SimpleTextArea::create(std::string text, std::string font, float
 
 SimpleTextArea* SimpleTextArea::create(std::string font, std::string text, float scale, float width, bool artificialWidth) {
     SimpleTextArea* instance = new SimpleTextArea();
-    // instance->m_impl = instance->createImpl(); // If commenting this out breaks anything lmk
+    instance->m_impl = instance->createImpl();
 
     if (instance->init(std::move(font), std::move(text), scale, width, artificialWidth)) {
         instance->autorelease();
