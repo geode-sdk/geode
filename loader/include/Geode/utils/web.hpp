@@ -5,13 +5,13 @@
 #include <Geode/utils/StringMap.hpp>
 #include <Geode/utils/async.hpp>
 #include <Geode/utils/general.hpp>
+#include <Geode/loader/Event.hpp>
 #include <arc/sync/oneshot.hpp>
 #include <matjson.hpp>
 #include <Geode/Result.hpp>
 #include <chrono>
 #include <optional>
 #include <string_view>
-#include <shared_mutex>
 #include <span>
 
 namespace geode::utils::web {
@@ -485,40 +485,11 @@ namespace geode::utils::web {
         std::shared_ptr<Impl> m_impl;
     };
 
-    using RequestInterceptor = Function<void(WebRequest&)>;
-    using ResponseListener = Function<void(const WebResponse&)>;
+    struct WebRequestInterceptEvent : ThreadSafeGlobalEvent<WebRequestInterceptEvent, bool(std::string_view, WebRequest&), bool(WebRequest&), std::string> {
+        using ThreadSafeGlobalEvent::ThreadSafeGlobalEvent;
+    };
 
-    /**
-     * Registers an interceptor which gets called with every request made by the specified mod.
-     * 
-     * @param callback The interceptor callback.
-     * @param priority The priority of the interceptor. The lower the number the higher the priority.
-     * @param mod The target mod.
-     */
-    static void registerRequestInterceptor(RequestInterceptor callback, int priority = 0, Mod* mod = geode::getMod());
-
-    /**
-     * Registers an interceptor which gets called with every request made using Geode.
-     * 
-     * @param callback The interceptor callback.
-     * @param priority The priority of the interceptor. The lower the number the higher the priority.
-     */
-    static void registerGlobalRequestInterceptor(RequestInterceptor callback, int priority = 0);
-
-    /**
-     * Registers a listener which gets called with every response from a request made by the specified mod.
-     * 
-     * @param callback The listener callback.
-     * @param priority The priority of the listener. The lower the number the higher the priority.
-     * @param mod The target mod.
-     */
-    static void registerResponseListener(ResponseListener callback, int priority = 0, Mod* mod = getMod());
-
-    /**
-     * Registers an listener which gets called with every response from a request made using Geode.
-     * 
-     * @param callback The listener callback.
-     * @param priority The priority of the listener. The lower the number the higher the priority.
-     */
-    static void registerGlobalResponseListener(ResponseListener callback, int priority = 0);
+    struct WebRequestResponseEvent : ThreadSafeGlobalEvent<WebRequestResponseEvent, bool(std::string_view, WebResponse const&), bool(WebResponse const&), std::string> {
+        using ThreadSafeGlobalEvent::ThreadSafeGlobalEvent;
+    };
 }

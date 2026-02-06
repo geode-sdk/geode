@@ -138,22 +138,6 @@ struct MultipartFile {
     std::string mime;
 };
 
-struct PrioritizedRequestInterceptor {
-    int priority;
-    std::shared_ptr<RequestInterceptor> interceptor;
-};
-
-struct PrioritizedResponseListener {
-    int priority;
-    std::shared_ptr<ResponseListener> listener;
-};
-
-static std::string s_globalInterceptorKey = "*";
-static StringMap<std::vector<PrioritizedRequestInterceptor>> s_requestInterceptors;
-static std::shared_mutex s_requestInterceptorsMutex;
-static StringMap<std::vector<PrioritizedResponseListener>> s_responseListeners;
-static std::shared_mutex s_responseListenersMutex;
-
 class MultipartForm::Impl {
 public:
     std::unordered_map<std::string, std::string> m_params;
@@ -377,33 +361,9 @@ public:
         CURL* curl = nullptr;
 
         void complete(WebResponse res) {
-            std::vector<PrioritizedResponseListener> listeners;
-
             onComplete(res);
     
-            {
-                std::shared_lock lock(s_responseListenersMutex);
-                auto itMod = s_responseListeners.find(mod->getID());
-                auto itGlobal = s_responseListeners.find(s_globalInterceptorKey);
-
-                if (itMod != s_responseListeners.end()) {
-                    auto& modListeners = itMod->second;
-
-                    listeners.insert(listeners.end(), modListeners.begin(), modListeners.end());
-                }
-
-                if (itGlobal != s_responseListeners.end()) {
-                    auto& globalListeners = itGlobal->second;
-
-                    listeners.insert(listeners.end(), globalListeners.begin(), globalListeners.end());
-                }
-            }
-
-            std::sort(listeners.begin(), listeners.end(), [](auto& a, auto& b) { return a.priority < b.priority; });
-
-            for (auto& [_, listener] : listeners) {
-                (*listener)(res);
-            }
+            WebRequestResponseEvent(mod->getID()).send(res);
         }
 
         void onError(int code, std::string_view msg) {
@@ -789,36 +749,11 @@ WebRequest::~WebRequest() {}
 WebFuture WebRequest::send(std::string method, std::string url, Mod* mod) {
     if (m_impl->m_inInterceptor) std::terminate();
 
-    std::vector<PrioritizedRequestInterceptor> interceptors;
-    m_impl->m_mod = mod;
-
-    {
-        std::shared_lock lock(s_requestInterceptorsMutex);
-        auto itMod = s_requestInterceptors.find(mod->getID());
-        auto itGlobal = s_requestInterceptors.find(s_globalInterceptorKey);
-
-        if (itMod != s_requestInterceptors.end()) {
-            auto& modInterceptors = itMod->second;
-
-            interceptors.insert(interceptors.end(), modInterceptors.begin(), modInterceptors.end());
-        }
-
-        if (itGlobal != s_requestInterceptors.end()) {
-            auto& globalInterceptors = itGlobal->second;
-
-            interceptors.insert(interceptors.end(), globalInterceptors.begin(), globalInterceptors.end());
-        }
-    }
-
     m_impl->m_method = std::move(method);
     m_impl->m_url = std::move(url);
     m_impl->m_inInterceptor = true;
 
-    std::sort(interceptors.begin(), interceptors.end(), [](auto& a, auto& b) { return a.priority < b.priority; });
-
-    for (auto& [_, interceptor] : interceptors) {
-        (*interceptor)(*this);
-    }
+    WebRequestInterceptEvent(mod->getID()).send(*this);
 
     m_impl->m_inInterceptor = false;
 
@@ -1436,28 +1371,4 @@ void WebRequestsManager::cancel(std::shared_ptr<RequestData> data) {
 
 mpsc::SendResult<std::shared_ptr<WebRequestsManager::RequestData>> WebRequestsManager::tryEnqueue(std::shared_ptr<RequestData> data) {
     return m_impl->m_reqtx->trySend(std::move(data));
-}
-
-void web::registerRequestInterceptor(RequestInterceptor callback, int priority, Mod* mod) {
-    std::unique_lock lock(s_requestInterceptorsMutex);
-
-    s_requestInterceptors[mod->getID()].push_back({ priority, std::make_shared<RequestInterceptor>(std::move(callback)) });
-}
-
-void web::registerGlobalRequestInterceptor(RequestInterceptor callback, int priority) {
-    std::unique_lock lock(s_requestInterceptorsMutex);
-
-    s_requestInterceptors[s_globalInterceptorKey].push_back({ priority, std::make_shared<RequestInterceptor>(std::move(callback)) });
-}
-
-void web::registerResponseListener(ResponseListener callback, int priority, Mod* mod) {
-    std::unique_lock lock(s_responseListenersMutex);
-
-    s_responseListeners[mod->getID()].push_back({ priority, std::make_shared<ResponseListener>(std::move(callback)) });
-}
-
-void web::registerGlobalResponseListener(ResponseListener callback, int priority) {
-    std::unique_lock lock(s_responseListenersMutex);
-
-    s_responseListeners[s_globalInterceptorKey].push_back({ priority, std::make_shared<ResponseListener>(std::move(callback)) });
 }
