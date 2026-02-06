@@ -660,6 +660,7 @@ namespace geode {
         using comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, true, comm::PortCallableCopy>::type, bool(PArgs...)>::BasicEvent;
     };
 
+namespace comm {
     template<class Marker, bool ThreadSafe, class GFunc, class PFunc, class... FArgs>
     struct BasicGlobalEvent {};
 
@@ -667,8 +668,6 @@ namespace geode {
     // here we misuse PFunc param as the FArg1, because every BasicGlobalEvent at least has one FArg anyway
     template<class Marker, bool ThreadSafe, class PReturn, class... PArgs, class FArg1, class... FArgs>
     struct BasicGlobalEvent<Marker, ThreadSafe, PReturn(PArgs...), FArg1, FArgs...> : public BasicGlobalEvent<Marker, ThreadSafe, PReturn(FArg1, FArgs..., PArgs...), PReturn(PArgs...), FArg1, FArgs...> {
-        // this is a disgusting hack because i do not want to break api right now
-        using GlobalEvent = BasicGlobalEvent<Marker, ThreadSafe, PReturn(PArgs...), FArg1, FArgs...>;
         using BasicGlobalEvent<Marker, ThreadSafe, PReturn(FArg1, FArgs..., PArgs...), PReturn(PArgs...), FArg1, FArgs...>::BasicGlobalEvent;
     };
 
@@ -686,9 +685,6 @@ namespace geode {
         std::optional<std::tuple<FArgs...>> m_filter;
 
     public:
-        // this is a disgusting hack because i do not want to break api right now
-        using GlobalEvent = BasicGlobalEvent<Marker, ThreadSafe, GReturn(GArgs...), PReturn(PArgs...), FArgs...>;
-
         BasicGlobalEvent() noexcept : m_filter(std::nullopt) {}
         ~BasicGlobalEvent() noexcept = default;
 
@@ -757,12 +753,17 @@ namespace geode {
             return false;
         }
     };
+}
 
     template<class Marker, class GFunc, class PFunc, class... FArgs>
-    using GlobalEvent = BasicGlobalEvent<Marker, false, GFunc, PFunc, FArgs...>;
+    struct GlobalEvent : public comm::BasicGlobalEvent<Marker, false, GFunc, PFunc, FArgs...> {
+        using comm::BasicGlobalEvent<Marker, false, GFunc, PFunc, FArgs...>::BasicGlobalEvent;
+    };
 
     template<class Marker, class GFunc, class PFunc, class... FArgs>
-    using ThreadSafeGlobalEvent = BasicGlobalEvent<Marker, true, GFunc, PFunc, FArgs...>;
+    struct ThreadSafeGlobalEvent : public comm::BasicGlobalEvent<Marker, true, GFunc, PFunc, FArgs...> {
+        using comm::BasicGlobalEvent<Marker, true, GFunc, PFunc, FArgs...>::BasicGlobalEvent;
+    };
 
 
     struct ListenerResult {
