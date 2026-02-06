@@ -787,7 +787,7 @@ WebRequest::WebRequest() : m_impl(std::make_shared<Impl>()) {}
 WebRequest::~WebRequest() {}
 
 WebFuture WebRequest::send(std::string method, std::string url, Mod* mod) {
-    if (m_impl->m_inInterceptor) throw std::runtime_error("Cannot call send while inside an interceptor callback.");
+    if (m_impl->m_inInterceptor) std::terminate();
 
     std::vector<PrioritizedRequestInterceptor> interceptors;
     m_impl->m_mod = mod;
