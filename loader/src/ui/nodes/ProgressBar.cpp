@@ -17,8 +17,6 @@ public:
 
     // Style of the progress bar
     ProgressBarStyle style = ProgressBarStyle::Level;
-    // Use gold outline with `Level` style
-    bool isGold = false;
     // Current color of the filled progress bar
     ccColor3B progressBarFillColor = { 97, 229, 255 };
     // Whether to show the label showing the percentage of the current progress
@@ -36,67 +34,71 @@ ProgressBar::ProgressBar() : m_impl(std::make_unique<Impl>()) {};
 
 ProgressBar::~ProgressBar() {};
 
+void ProgressBar::setupLevelStyle(const char* outlineSpr) {
+    m_impl->progressBar = CCSprite::create(outlineSpr);
+    m_impl->progressBar->setID("progress-bar");
+    m_impl->progressBar->setAnchorPoint({ 0.5, 0.5 });
+    m_impl->progressBar->setPosition({ m_impl->progressBar->getScaledContentWidth() / 2.0f, m_impl->progressBar->getScaledContentHeight() / 2.0f });
+    m_impl->progressBar->setZOrder(1);
+
+    m_impl->progressBarFill = CCSprite::create("sliderBar2.png");
+    m_impl->progressBarFill->setID("progress-bar-fill");
+    m_impl->progressBarFill->setAnchorPoint({ 0, 0.5 });
+    m_impl->progressBarFill->setPosition({ 2.0f, m_impl->progressBar->getScaledContentHeight() / 2.0f });
+    m_impl->progressBarFill->setColor(m_impl->progressBarFillColor);
+    m_impl->progressBarFill->setZOrder(-1);
+
+    m_impl->progressBarFillMaxWidth = m_impl->progressBar->getScaledContentWidth() - 4.0f;
+    m_impl->progressBarFillMaxHeight = m_impl->progressBarFill->getScaledContentHeight() - 0.5f;
+
+    m_impl->progressPercentLabel = CCLabelBMFont::create("0%", "bigFont.fnt");
+    m_impl->progressPercentLabel->setID("progress-percent-label");
+    m_impl->progressPercentLabel->setScale(0.5f);
+    m_impl->progressPercentLabel->setAnchorPoint({ 0, 0.5 });
+    m_impl->progressPercentLabel->setPosition({ m_impl->progressBar->getScaledContentWidth() + 2.5f, m_impl->progressBar->getScaledContentHeight() / 2.0f });
+    m_impl->progressPercentLabel->setAlignment(CCTextAlignment::kCCTextAlignmentLeft);
+    m_impl->progressPercentLabel->setVisible(m_impl->showProgressPercentLabel);
+    m_impl->progressPercentLabel->setZOrder(1);
+};
+
+void ProgressBar::setupSolidStyle() {
+    m_impl->progressBar = CCSprite::create("GJ_progressBar_001.png");
+    m_impl->progressBar->setID("progress-bar");
+    m_impl->progressBar->setAnchorPoint({ 0.5, 0.5 });
+    m_impl->progressBar->setPosition({ m_impl->progressBar->getScaledContentWidth() / 2.0f, m_impl->progressBar->getScaledContentHeight() / 2.0f });
+    m_impl->progressBar->setColor({ 0, 0, 0 });
+    m_impl->progressBar->setOpacity(125);
+    m_impl->progressBar->setZOrder(-1);
+
+    m_impl->progressBarFill = CCSprite::create("GJ_progressBar_001.png");
+    m_impl->progressBarFill->setID("progress-bar-fill");
+    m_impl->progressBarFill->setScale(0.992f);
+    m_impl->progressBarFill->setScaleY(0.86f);
+    m_impl->progressBarFill->setAnchorPoint({ 0, 0.5 });
+    m_impl->progressBarFill->setPosition({ 1.36f, m_impl->progressBar->getScaledContentHeight() / 2.0f });
+    m_impl->progressBarFill->setColor(m_impl->progressBarFillColor);
+    m_impl->progressBarFill->setZOrder(0);
+
+    m_impl->progressBarFillMaxWidth = m_impl->progressBar->getScaledContentWidth();
+    m_impl->progressBarFillMaxHeight = 20.0f;
+
+    m_impl->progressPercentLabel = CCLabelBMFont::create("0%", "bigFont.fnt");
+    m_impl->progressPercentLabel->setID("progress-percent-label");
+    m_impl->progressPercentLabel->setScale(0.5f);
+    m_impl->progressPercentLabel->setAnchorPoint({ 0.5, 0.5 });
+    m_impl->progressPercentLabel->setPosition({ m_impl->progressBar->getScaledContentWidth() / 2.0f, m_impl->progressBar->getScaledContentHeight() / 2.0f });
+    m_impl->progressPercentLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
+    m_impl->progressPercentLabel->setVisible(m_impl->showProgressPercentLabel);
+    m_impl->progressPercentLabel->setZOrder(1);
+};
+
 void ProgressBar::reloadStyle() {
     switch (m_impl->style) {
-    default: [[fallthrough]];
+        default: [[fallthrough]];
 
-    case ProgressBarStyle::Level: {
-        m_impl->progressBar = CCSprite::create(m_impl->isGold ? "slidergroove.png" : "slidergroove2.png");
-        m_impl->progressBar->setID("progress-bar");
-        m_impl->progressBar->setAnchorPoint({ 0.5, 0.5 });
-        m_impl->progressBar->setPosition({ m_impl->progressBar->getScaledContentWidth() / 2.0f, m_impl->progressBar->getScaledContentHeight() / 2.0f });
-        m_impl->progressBar->setZOrder(1);
-
-        m_impl->progressBarFill = CCSprite::create("sliderBar2.png");
-        m_impl->progressBarFill->setID("progress-bar-fill");
-        m_impl->progressBarFill->setAnchorPoint({ 0, 0.5 });
-        m_impl->progressBarFill->setPosition({ 2.0f, m_impl->progressBar->getScaledContentHeight() / 2.0f });
-        m_impl->progressBarFill->setColor(m_impl->progressBarFillColor);
-        m_impl->progressBarFill->setZOrder(-1);
-
-        m_impl->progressBarFillMaxWidth = m_impl->progressBar->getScaledContentWidth() - 4.0f;
-        m_impl->progressBarFillMaxHeight = m_impl->progressBarFill->getScaledContentHeight() - 0.5f;
-
-        m_impl->progressPercentLabel = CCLabelBMFont::create("0%", "bigFont.fnt");
-        m_impl->progressPercentLabel->setID("progress-percent-label");
-        m_impl->progressPercentLabel->setScale(0.5f);
-        m_impl->progressPercentLabel->setAnchorPoint({ 0, 0.5 });
-        m_impl->progressPercentLabel->setPosition({ m_impl->progressBar->getScaledContentWidth() + 2.5f, m_impl->progressBar->getScaledContentHeight() / 2.0f });
-        m_impl->progressPercentLabel->setAlignment(CCTextAlignment::kCCTextAlignmentLeft);
-        m_impl->progressPercentLabel->setVisible(m_impl->showProgressPercentLabel);
-        m_impl->progressPercentLabel->setZOrder(1);
-    } break;
-
-    case ProgressBarStyle::Solid: {
-        m_impl->progressBar = CCSprite::create("GJ_progressBar_001.png");
-        m_impl->progressBar->setID("progress-bar");
-        m_impl->progressBar->setAnchorPoint({ 0.5, 0.5 });
-        m_impl->progressBar->setPosition({ m_impl->progressBar->getScaledContentWidth() / 2.0f, m_impl->progressBar->getScaledContentHeight() / 2.0f });
-        m_impl->progressBar->setColor({ 0, 0, 0 });
-        m_impl->progressBar->setOpacity(125);
-        m_impl->progressBar->setZOrder(-1);
-
-        m_impl->progressBarFill = CCSprite::create("GJ_progressBar_001.png");
-        m_impl->progressBarFill->setID("progress-bar-fill");
-        m_impl->progressBarFill->setScale(0.992f);
-        m_impl->progressBarFill->setScaleY(0.86f);
-        m_impl->progressBarFill->setAnchorPoint({ 0, 0.5 });
-        m_impl->progressBarFill->setPosition({ 1.36f, m_impl->progressBar->getScaledContentHeight() / 2.0f });
-        m_impl->progressBarFill->setColor(m_impl->progressBarFillColor);
-        m_impl->progressBarFill->setZOrder(0);
-
-        m_impl->progressBarFillMaxWidth = m_impl->progressBar->getScaledContentWidth();
-        m_impl->progressBarFillMaxHeight = 20.0f;
-
-        m_impl->progressPercentLabel = CCLabelBMFont::create("0%", "bigFont.fnt");
-        m_impl->progressPercentLabel->setID("progress-percent-label");
-        m_impl->progressPercentLabel->setScale(0.5f);
-        m_impl->progressPercentLabel->setAnchorPoint({ 0.5, 0.5 });
-        m_impl->progressPercentLabel->setPosition({ m_impl->progressBar->getScaledContentWidth() / 2.0f, m_impl->progressBar->getScaledContentHeight() / 2.0f });
-        m_impl->progressPercentLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
-        m_impl->progressPercentLabel->setVisible(m_impl->showProgressPercentLabel);
-        m_impl->progressPercentLabel->setZOrder(1);
-    } break;
+        case ProgressBarStyle::Level: this->setupLevelStyle("slidergroove2.png"); break;
+        case ProgressBarStyle::LevelGold: this->setupLevelStyle("slidergroove.png"); break;
+        case ProgressBarStyle::Solid: this->setupSolidStyle(); break;
     };
 
     this->setContentSize(m_impl->progressBar->getContentSize());
@@ -109,11 +111,10 @@ void ProgressBar::reloadStyle() {
     this->updateProgress(m_impl->progress);
 };
 
-bool ProgressBar::init(ProgressBarStyle style, bool goldVariant) {
+bool ProgressBar::init(ProgressBarStyle style) {
     if (!CCNode::init()) return false;
 
     m_impl->style = style;
-    m_impl->isGold = goldVariant;
 
     this->reloadStyle();
 
@@ -126,25 +127,6 @@ void ProgressBar::setStyle(ProgressBarStyle style) {
 
         this->removeAllChildren();
         this->reloadStyle(); // recreate with new style
-    };
-};
-
-void ProgressBar::setGoldVariant(bool enable) {
-    if (m_impl->isGold != enable) {
-        m_impl->isGold = enable;
-
-        if (m_impl->style == ProgressBarStyle::Level) {
-            auto newBar = CCSprite::create(enable ? "slidergroove.png" : "slidergroove2.png");
-            newBar->setID("progress-bar");
-            newBar->setAnchorPoint({ 0.5, 0.5 });
-            newBar->setPosition({ newBar->getScaledContentWidth() / 2.0f, newBar->getScaledContentHeight() / 2.0f });
-            newBar->setZOrder(1);
-
-            if (m_impl->progressBar) m_impl->progressBar.take()->removeMeAndCleanup();
-
-            m_impl->progressBar = newBar;
-            this->addChild(m_impl->progressBar);
-        };
     };
 };
 
@@ -192,10 +174,6 @@ ProgressBarStyle ProgressBar::getStyle() const noexcept {
     return m_impl->style;
 };
 
-bool ProgressBar::isGoldVariant() const noexcept {
-    return m_impl->isGold;
-};
-
 ccColor3B ProgressBar::getFillColor() const noexcept {
     return m_impl->progressBarFillColor;
 };
@@ -204,9 +182,9 @@ size_t ProgressBar::getPrecision() const noexcept {
     return m_impl->precision;
 };
 
-ProgressBar* ProgressBar::create(ProgressBarStyle style, bool goldVariant) {
+ProgressBar* ProgressBar::create(ProgressBarStyle style) {
     auto ret = new ProgressBar();
-    if (ret->init(style, goldVariant)) {
+    if (ret->init(style)) {
         ret->autorelease();
         return ret;
     };

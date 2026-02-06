@@ -5,7 +5,8 @@ namespace geode {
     // Enum for progress bar style
     enum class ProgressBarStyle {
         Level = 0, // Gameplay style
-        Solid = 1, // Thick style
+        LevelGold = 1, // Gameplay style but gold
+        Solid = 2, // Thick style
     };
 
     // Custom class for the progress bar
@@ -17,10 +18,22 @@ namespace geode {
         ProgressBar();
         ~ProgressBar();
 
+        /**
+         * Set up `Level`/`LevelGold` style
+         *
+         * @note This is mainly to avoid repeating code since the only difference between both is one sprite name
+         *
+         * @param outlineSpr Sprite of the outline
+         */
+        void setupLevelStyle(const char* outlineSpr);
+
+        // Set up `Solid` style
+        void setupSolidStyle();
+
         // Reloads the style of the progress bar
         void reloadStyle();
 
-        bool init(ProgressBarStyle style, bool goldVariant);
+        bool init(ProgressBarStyle style);
 
     public:
         /**
@@ -29,7 +42,7 @@ namespace geode {
          * @param style Style of the progress bar
          * @param goldVariant Switch to gold outline if using `Level` style
          */
-        static ProgressBar* create(ProgressBarStyle style = ProgressBarStyle::Level, bool goldVariant = false);
+        static ProgressBar* create(ProgressBarStyle style = ProgressBarStyle::Level);
 
         /**
          * Set the style of the progress bar
@@ -37,13 +50,6 @@ namespace geode {
          * @param style Style to switch to
          */
         void setStyle(ProgressBarStyle style);
-
-        /**
-         * If using the `Level` progress bar style, use the gold outline sprite instead.
-         *
-         * @param enable Whether to use gold outline
-         */
-        void setGoldVariant(bool enable);
 
         /**
          * Set the color of the fill of the bar
@@ -87,11 +93,6 @@ namespace geode {
          * Get the current style of the progress bar
          */
         ProgressBarStyle getStyle() const noexcept;
-
-        /**
-         * Check if the gold outline is being used with the `Level` style
-         */
-        bool isGoldVariant() const noexcept;
 
         /**
          * Get the current color of the fill of the progress bar
