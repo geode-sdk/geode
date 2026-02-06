@@ -110,4 +110,12 @@ void taskholder() {
     // this should error
     // th1.spawn(dummyInt(), [] (int val) {});
 }
+
+arc::Future<> waitformt() {
+    std::optional<int> x = co_await waitForMainThread<int>([] {
+        return 42;
+    });
+
+    bool y = co_await waitForMainThread<void>([] {});
+}
 }
