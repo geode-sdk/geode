@@ -130,11 +130,6 @@ namespace geode::utils::web {
 
     class GEODE_DLL WebResponse final {
     private:
-        using Listener = Function<void(const WebResponse&)>;
-
-        static std::unordered_map<std::string, std::vector<std::shared_ptr<Listener>>> s_listeners;
-        static std::shared_mutex s_listenersMutex;
-
         class Impl;
 
         std::shared_ptr<Impl> m_impl;
@@ -179,21 +174,6 @@ namespace geode::utils::web {
          * an empty string is returned.
          */
         std::string_view errorMessage() const;
-
-        /**
-         * Registers a listener which gets called with every response from a request made by the specified mod.
-         * 
-         * @param callback The listener callback.
-         * @param mod The target mod.
-         */
-        static void registerListener(Listener callback, Mod* mod = getMod());
-
-        /**
-         * Registers an listener which gets called with every response from a request made using Geode.
-         * 
-         * @param callback The listener callback.
-         */
-        static void registerGlobalListener(Listener callback);
     };
 
     class WebProgress final {
@@ -226,11 +206,6 @@ namespace geode::utils::web {
 
     class GEODE_DLL WebRequest final {
     private:
-        using Interceptor = Function<void(WebRequest&)>;
-
-        static std::unordered_map<std::string, std::vector<std::shared_ptr<Interceptor>>> s_interceptors;
-        static std::shared_mutex s_interceptorsMutex;
-
         class Impl;
 
         std::shared_ptr<Impl> m_impl;
@@ -492,21 +467,6 @@ namespace geode::utils::web {
          * Otherwise, default values are returned.
          */
         WebProgress getProgress() const;
-
-        /**
-         * Registers an interceptor which gets called with every request made by the specified mod.
-         * 
-         * @param callback The interceptor callback.
-         * @param mod The target mod.
-         */
-        static void registerInterceptor(Interceptor callback, Mod* mod = geode::getMod());
-
-        /**
-         * Registers an interceptor which gets called with every request made using Geode.
-         * 
-         * @param callback The interceptor callback.
-         */
-        static void registerGlobalInterceptor(Interceptor callback);
     };
 
     struct GEODE_DLL ARC_NODISCARD WebFuture : arc::Pollable<WebFuture, WebResponse> {
@@ -524,4 +484,37 @@ namespace geode::utils::web {
         struct Impl;
         std::shared_ptr<Impl> m_impl;
     };
+
+    using RequestInterceptor = Function<void(WebRequest&)>;
+    using ResponseListener = Function<void(const WebResponse&)>;
+
+    /**
+     * Registers an interceptor which gets called with every request made by the specified mod.
+     * 
+     * @param callback The interceptor callback.
+     * @param mod The target mod.
+     */
+    static void registerRequestInterceptor(RequestInterceptor callback, Mod* mod = geode::getMod());
+
+    /**
+     * Registers an interceptor which gets called with every request made using Geode.
+     * 
+     * @param callback The interceptor callback.
+     */
+    static void registerGlobalRequestInterceptor(RequestInterceptor callback);
+
+    /**
+     * Registers a listener which gets called with every response from a request made by the specified mod.
+     * 
+     * @param callback The listener callback.
+     * @param mod The target mod.
+     */
+    static void registerResponseListener(ResponseListener callback, Mod* mod = getMod());
+
+    /**
+     * Registers an listener which gets called with every response from a request made using Geode.
+     * 
+     * @param callback The listener callback.
+     */
+    static void registerGlobalResponseListener(ResponseListener callback);
 }

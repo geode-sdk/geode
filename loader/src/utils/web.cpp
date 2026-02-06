@@ -32,8 +32,6 @@ using namespace geode::utils::web;
 using namespace geode::utils::string;
 using namespace arc;
 
-static std::string s_globalInterceptorKey = "*";
-
 static long unwrapProxyType(ProxyType type) {
     switch (type) {
         using enum ProxyType;
@@ -109,10 +107,6 @@ static long unwrapHttpVersion(HttpVersion version)
     unreachable("Unexpected HTTP Version!");
 }
 
-std::unordered_map<std::string, std::vector<std::shared_ptr<WebResponse::Listener>>> WebResponse::s_listeners;
-
-std::shared_mutex WebResponse::s_listenersMutex;
-
 class WebResponse::Impl {
 public:
     int m_code;
@@ -143,6 +137,12 @@ struct MultipartFile {
     std::string filename;
     std::string mime;
 };
+
+static std::string s_globalInterceptorKey = "*";
+static StringMap<std::vector<std::shared_ptr<RequestInterceptor>>> s_requestInterceptors;
+static std::shared_mutex s_requestInterceptorsMutex;
+static StringMap<std::vector<std::shared_ptr<ResponseListener>>> s_responseListeners;
+static std::shared_mutex s_responseListenersMutex;
 
 class MultipartForm::Impl {
 public:
@@ -348,18 +348,6 @@ std::string_view WebResponse::errorMessage() const {
     return m_impl->m_errMessage;
 }
 
-void WebResponse::registerListener(Listener callback, Mod* mod) {
-    std::unique_lock lock(s_listenersMutex);
-
-    s_listeners[mod->getID()].push_back(std::make_shared<Listener>(std::move(callback)));
-}
-
-void WebResponse::registerGlobalListener(Listener callback) {
-    std::unique_lock lock(s_listenersMutex);
-
-    s_listeners[s_globalInterceptorKey].push_back(std::make_shared<Listener>(std::move(callback)));
-}
-
 class web::WebRequestsManager {
 private:
     class Impl;
@@ -379,22 +367,22 @@ public:
         CURL* curl = nullptr;
 
         void complete(WebResponse res) {
-            std::vector<std::shared_ptr<WebResponse::Listener>> listeners;
+            std::vector<std::shared_ptr<ResponseListener>> listeners;
 
             onComplete(res);
     
             {
-                std::shared_lock lock(WebResponse::s_listenersMutex);
-                auto itMod = WebResponse::s_listeners.find(mod->getID());
-                auto itGlobal = WebResponse::s_listeners.find(s_globalInterceptorKey);
+                std::shared_lock lock(s_responseListenersMutex);
+                auto itMod = s_responseListeners.find(mod->getID());
+                auto itGlobal = s_responseListeners.find(s_globalInterceptorKey);
 
-                if (itMod != WebResponse::s_listeners.end()) {
+                if (itMod != s_responseListeners.end()) {
                     auto& modListeners = itMod->second;
 
                     listeners.insert(listeners.end(), modListeners.begin(), modListeners.end());
                 }
 
-                if (itGlobal != WebResponse::s_listeners.end()) {
+                if (itGlobal != s_responseListeners.end()) {
                     auto& globalListeners = itGlobal->second;
 
                     listeners.insert(listeners.end(), globalListeners.begin(), globalListeners.end());
@@ -441,10 +429,6 @@ static void urlEncodeAppend(auto& buf, std::string_view input) {
     }
 }
 
-std::unordered_map<std::string, std::vector<std::shared_ptr<WebRequest::Interceptor>>> WebRequest::s_interceptors;
-
-std::shared_mutex WebRequest::s_interceptorsMutex;
-
 class WebRequest::Impl {
 public:
     static std::atomic_size_t s_idCounter;
@@ -468,7 +452,7 @@ public:
     HttpVersion m_httpVersion = HttpVersion::DEFAULT;
     size_t m_id;
     Mod* m_mod;
-    bool m_inInterceptor;
+    bool m_inInterceptor = false;
     std::atomic<size_t> m_downloadCurrent = 0;
     std::atomic<size_t> m_downloadTotal = 0;
     std::atomic<size_t> m_uploadCurrent = 0;
@@ -490,7 +474,7 @@ public:
         auto res = WebResponse();
         res.m_impl->m_code = static_cast<int>(code);
         res.m_impl->m_data = ByteVector(msg.begin(), msg.end());
-        return std::move(res);
+        return res;
     }
 
     CURL* makeCurlHandle(WebRequestsManager::RequestData* requestData) {
@@ -791,23 +775,23 @@ WebRequest::WebRequest() : m_impl(std::make_shared<Impl>()) {}
 WebRequest::~WebRequest() {}
 
 WebFuture WebRequest::send(std::string method, std::string url, Mod* mod) {
-    if (m_impl->m_inInterceptor) throw std::runtime_error("Don't send a request again from an interceptor.");
+    if (m_impl->m_inInterceptor) throw std::runtime_error("Cannot call send while inside an interceptor callback.");
 
-    std::vector<std::shared_ptr<Interceptor>> interceptors;
+    std::vector<std::shared_ptr<RequestInterceptor>> interceptors;
     m_impl->m_mod = mod;
     
     {
-        std::shared_lock lock(s_interceptorsMutex);
-        auto itMod = s_interceptors.find(mod->getID());
-        auto itGlobal = s_interceptors.find(s_globalInterceptorKey);
+        std::shared_lock lock(s_requestInterceptorsMutex);
+        auto itMod = s_requestInterceptors.find(mod->getID());
+        auto itGlobal = s_requestInterceptors.find(s_globalInterceptorKey);
 
-        if (itMod != s_interceptors.end()) {
+        if (itMod != s_requestInterceptors.end()) {
             auto& modInterceptors = itMod->second;
 
             interceptors.insert(interceptors.end(), modInterceptors.begin(), modInterceptors.end());
         }
 
-        if (itGlobal != s_interceptors.end()) {
+        if (itGlobal != s_requestInterceptors.end()) {
             auto& globalInterceptors = itGlobal->second;
 
             interceptors.insert(interceptors.end(), globalInterceptors.begin(), globalInterceptors.end());
@@ -1043,18 +1027,6 @@ HttpVersion WebRequest::getHttpVersion() const {
 
 WebProgress WebRequest::getProgress() const {
     return m_impl->progress();
-}
-
-void WebRequest::registerInterceptor(Interceptor callback, Mod* mod) {
-    std::unique_lock lock(s_interceptorsMutex);
-
-    s_interceptors[mod->getID()].push_back(std::make_shared<Interceptor>(std::move(callback)));
-}
-
-void WebRequest::registerGlobalInterceptor(Interceptor callback) {
-    std::unique_lock lock(s_interceptorsMutex);
-
-    s_interceptors[s_globalInterceptorKey].push_back(std::make_shared<Interceptor>(std::move(callback)));
 }
 
 struct RegisteredSocket {
@@ -1452,3 +1424,26 @@ mpsc::SendResult<std::shared_ptr<WebRequestsManager::RequestData>> WebRequestsMa
     return m_impl->m_reqtx->trySend(std::move(data));
 }
 
+void web::registerRequestInterceptor(RequestInterceptor callback, Mod* mod) {
+    std::unique_lock lock(s_requestInterceptorsMutex);
+
+    s_requestInterceptors[mod->getID()].push_back(std::make_shared<RequestInterceptor>(std::move(callback)));
+}
+
+void web::registerGlobalRequestInterceptor(RequestInterceptor callback) {
+    std::unique_lock lock(s_requestInterceptorsMutex);
+
+    s_requestInterceptors[s_globalInterceptorKey].push_back(std::make_shared<RequestInterceptor>(std::move(callback)));
+}
+
+void web::registerResponseListener(ResponseListener callback, Mod* mod) {
+    std::unique_lock lock(s_responseListenersMutex);
+
+    s_responseListeners[mod->getID()].push_back(std::make_shared<ResponseListener>(std::move(callback)));
+}
+
+void web::registerGlobalResponseListener(ResponseListener callback) {
+    std::unique_lock lock(s_responseListenersMutex);
+
+    s_responseListeners[s_globalInterceptorKey].push_back(std::make_shared<ResponseListener>(std::move(callback)));
+}
