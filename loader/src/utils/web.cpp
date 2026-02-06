@@ -15,7 +15,6 @@
 #include <Geode/utils/terminate.hpp>
 #include <Geode/utils/web.hpp>
 #include <arc/future/Select.hpp>
-#include <arc/net/TcpStream.hpp>
 #include <arc/time/Sleep.hpp>
 #include <arc/task/CancellationToken.hpp>
 #include <arc/sync/Mutex.hpp>
@@ -353,12 +352,15 @@ private:
 public:
     static WebRequestsManager* get();
 
-    struct RequestData {
+    struct RequestData : std::enable_shared_from_this<RequestData> {
         std::shared_ptr<WebRequest::Impl> request;
         Mod* mod;
         WebResponse response;
         geode::Function<void(WebResponse)> onComplete;
         CURL* curl = nullptr;
+
+        RequestData(std::shared_ptr<WebRequest::Impl> req, Mod* m, geode::Function<void(WebResponse)> cb)
+            : request(std::move(req)), mod(m), onComplete(std::move(cb)) {}
 
         void complete(WebResponse res) {
             onComplete(res);
@@ -378,7 +380,6 @@ public:
         }
     };
 
-    WebFuture enqueueAndWait(std::shared_ptr<WebRequest::Impl> data);
     arc::mpsc::SendResult<std::shared_ptr<RequestData>> tryEnqueue(std::shared_ptr<RequestData> data);
     void cancel(std::shared_ptr<RequestData> data);
 };
@@ -759,7 +760,7 @@ WebFuture WebRequest::send(std::string method, std::string url, Mod* mod) {
 
     m_impl->m_inInterceptor = false;
 
-    return WebRequestsManager::get()->enqueueAndWait(m_impl);
+    return WebFuture{m_impl};
 }
 WebFuture WebRequest::post(std::string url, Mod* mod) {
     return this->send("POST", std::move(url), mod);
@@ -1048,17 +1049,17 @@ public:
 
     std::optional<arc::TaskHandle<void>> m_worker;
     std::optional<arc::mpsc::Sender<std::shared_ptr<RequestData>>> m_reqtx;
-    std::optional<arc::mpsc::Sender<CURL*>> m_canceltx;
+    std::optional<arc::mpsc::Sender<std::shared_ptr<RequestData>>> m_canceltx;
     arc::CancellationToken m_cancel;
     arc::Notify m_wakeNotify;
     asp::Instant m_nextWakeup = asp::Instant::farFuture();
 
-    std::unordered_map<CURL*, std::shared_ptr<RequestData>> m_activeRequests;
+    std::unordered_set<std::shared_ptr<RequestData>> m_activeRequests;
     std::unordered_map<curl_socket_t, RegisteredSocket> m_sockets;
 
     Impl() {
         auto [tx, rx] = arc::mpsc::channel<std::shared_ptr<RequestData>>(1024);
-        auto [ctx, crx] = arc::mpsc::channel<CURL*>(64);
+        auto [ctx, crx] = arc::mpsc::channel<std::shared_ptr<RequestData>>();
 
         m_reqtx = std::move(tx);
         m_canceltx = std::move(ctx);
@@ -1093,7 +1094,7 @@ public:
                     }),
 
                     arc::selectee(crx.recv(), [&](auto req) {
-                        if (req) this->workerCancelRequest(req.unwrap());
+                        if (req) this->workerCancelRequest(std::move(req).unwrap());
                     }),
 
                     arc::selectee(
@@ -1110,20 +1111,20 @@ public:
     // or m_worker->abort will likely invoke ub
     ~Impl() {
         m_cancel.cancel();
-        
+
         if (m_worker) {
             m_worker->abort();
         }
-        
+
         // clean up remaining requests
-        for (auto& [handle, _] : m_activeRequests) {
-            curl_multi_remove_handle(m_multiHandle, handle);
-            curl_easy_cleanup(handle);
+        for (auto& req : m_activeRequests) {
+            curl_multi_remove_handle(m_multiHandle, req->curl);
+            curl_easy_cleanup(req->curl);
         }
 
         curl_multi_cleanup(m_multiHandle);
     }
-    
+
     void workerAddRequest(std::shared_ptr<RequestData> req) {
         CURL* handle = req->request->makeCurlHandle(req.get());
 
@@ -1131,38 +1132,33 @@ public:
             req->onError(GeodeWebError::CURL_INITIALIZATION_ERROR, "Failed to initialize cURL");
             return;
         }
-        
+
+        // associate them with each other
         req->curl = handle;
+        curl_easy_setopt(handle, CURLOPT_PRIVATE, req.get());
 
         log::debug("Added request ({})", req->request->m_url);
         curl_multi_add_handle(m_multiHandle, handle);
-        m_activeRequests.insert({ handle, std::move(req) });
+        m_activeRequests.insert(std::move(req));
         this->workerKickCurl();
     }
 
-    void workerCancelRequest(CURL* curl) {
-        auto it = m_activeRequests.find(curl);
-        if (it == m_activeRequests.end()) {
-            log::warn("Tried to cancel unknown request! ({})", (void*)curl);
-            return;
-        }
+    void workerCancelRequest(std::shared_ptr<RequestData> req) {
+        log::debug("Cancelled request ({})", req->request->m_url);
+        req->onError(GeodeWebError::REQUEST_CANCELLED, "Request cancelled");
 
-        auto& req = *it->second;
-        log::debug("Cancelled request ({})", req.request->m_url);
-        req.onError(GeodeWebError::REQUEST_CANCELLED, "Request cancelled");
-
-        this->cleanupRequest(req);
+        this->cleanupRequest(std::move(req));
     }
 
-    void cleanupRequest(RequestData& data) {
-        if (!data.curl) return;
+    void cleanupRequest(std::shared_ptr<RequestData> req) {
+        log::debug("Removing request ({})", req->request->m_url);
+        m_activeRequests.erase(req);
 
-        log::debug("Removing request ({})", data.request->m_url);
-        
-        auto curl = std::exchange(data.curl, nullptr);
-        curl_multi_remove_handle(m_multiHandle, curl);
-        curl_easy_cleanup(curl);
-        m_activeRequests.erase(curl);
+        auto curl = std::exchange(req->curl, nullptr);
+        if (curl) {
+            curl_multi_remove_handle(m_multiHandle, curl);
+            curl_easy_cleanup(curl);
+        }
 
         this->workerKickCurl();
     }
@@ -1181,7 +1177,11 @@ public:
                 CURL* handle = msg->easy_handle;
 
                 // handle the completed request
-                auto& requestData = *m_activeRequests.at(handle);
+                RequestData* rdptr = nullptr;
+                curl_easy_getinfo(handle, CURLINFO_PRIVATE, &rdptr);
+                if (!rdptr) utils::terminate("queued request has no associated data");
+
+                auto& requestData = *rdptr;
 
                 // Get the response code; note that this will be invalid if the
                 // curlResponse is not CURLE_OK
@@ -1211,7 +1211,7 @@ public:
                 }
 
                 // clean up
-                this->cleanupRequest(requestData);
+                this->cleanupRequest(requestData.shared_from_this());
             }
         }
 
@@ -1317,7 +1317,7 @@ WebFuture::WebFuture(std::shared_ptr<WebRequest::Impl> request) {
     auto [tx, rx] = arc::oneshot::channel<WebResponse>();
 
     auto rdata = std::make_shared<WebRequestsManager::RequestData>(
-        std::move(request), request->m_mod, WebResponse{}, [tx = std::move(tx)](auto res) mutable {
+        std::move(request), request->m_mod, [tx = std::move(tx)](auto res) mutable {
             (void) tx.send(std::move(res));
         }
     );
@@ -1331,7 +1331,7 @@ WebFuture::~WebFuture() {
     if (!m_impl->m_sent) {
         m_impl->m_request->onError(GeodeWebError::REQUEST_CANCELLED, "Request cancelled");
     } else if (!m_impl->m_finished) {
-        // future got cancelled, tell request manager to stop this request 
+        // future got cancelled, tell request manager to stop this request
         WebRequestsManager::get()->cancel(m_impl->m_request);
     }
 }
@@ -1358,17 +1358,14 @@ std::optional<WebResponse> WebFuture::poll(arc::Context& cx) {
         m_impl->m_finished = true;
         return m_impl->m_request->request->makeError(GeodeWebError::CHANNEL_CLOSED, "Failed to receive web response: channel closed");
     }
-    
+
     m_impl->m_finished = true;
     return std::move(result).unwrap();
 }
 
-WebFuture WebRequestsManager::enqueueAndWait(std::shared_ptr<WebRequest::Impl> data) {
-    return WebFuture(std::move(data));
-}
-
 void WebRequestsManager::cancel(std::shared_ptr<RequestData> data) {
-    (void) m_impl->m_canceltx->trySend(data->curl);
+    // cancel channel is unbounded, so this never fails
+    (void) m_impl->m_canceltx->trySend(std::move(data));
 }
 
 mpsc::SendResult<std::shared_ptr<WebRequestsManager::RequestData>> WebRequestsManager::tryEnqueue(std::shared_ptr<RequestData> data) {
