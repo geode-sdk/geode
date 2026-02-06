@@ -37,6 +37,18 @@ namespace geode {
         float getInsetRight() const;
         float getInsetBottom() const;
         float getInsetLeft() const;
+        
+        cocos2d::CCSprite* getTopLeft();
+        cocos2d::CCSprite* getTopRight();
+        cocos2d::CCSprite* getBottomLeft();
+        cocos2d::CCSprite* getBottomRight();
+        cocos2d::CCSprite* getTop();
+        cocos2d::CCSprite* getBottom();
+        cocos2d::CCSprite* getLeft();
+        cocos2d::CCSprite* getRight();
+        cocos2d::CCSprite* getCenter();
+
+        cocos2d::CCSpriteBatchNode* getBatchNode();
 
         virtual void setContentSize(cocos2d::CCSize const& size) override;
         virtual void visit() override;
@@ -58,7 +70,7 @@ namespace geode {
         void createRepeatingSprites(cocos2d::CCSprite* spr, int horizontalAmount, int verticalAmount, float lastHorizontalFactor, float lastVerticalFactor);
 
         void createSprites();
-        void createSprite(cocos2d::CCSprite*& spr);
+        void createSprite(cocos2d::CCSprite*& spr, ZStringView id);
         void updateSprites();
 
     private:

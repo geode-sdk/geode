@@ -75,6 +75,8 @@ void NineSlice::setup(Insets const& insets, CCRect const& rect) {
         m_impl->m_insets = {size.height/3, size.width/3, size.height/3, size.width/3};
     }
 
+    m_impl->m_batchNode->setID("slice-batch");
+
     setAnchorPoint({0.5f, 0.5f});
     setContentSize(m_impl->m_spriteRect.size);
 
@@ -110,22 +112,23 @@ bool NineSlice::initWithSpriteFrame(CCSpriteFrame* spriteFrame, const Insets& in
 }
 
 void NineSlice::createSprites() {
-    createSprite(m_impl->m_topLeft);
-    createSprite(m_impl->m_top);
-    createSprite(m_impl->m_topRight);
-    createSprite(m_impl->m_left);
-    createSprite(m_impl->m_center);
-    createSprite(m_impl->m_right);
-    createSprite(m_impl->m_bottomLeft);
-    createSprite(m_impl->m_bottom);
-    createSprite(m_impl->m_bottomRight);
+    createSprite(m_impl->m_topLeft, "top-left");
+    createSprite(m_impl->m_top, "top");
+    createSprite(m_impl->m_topRight, "top-right");
+    createSprite(m_impl->m_left, "left");
+    createSprite(m_impl->m_center, "center");
+    createSprite(m_impl->m_right, "right");
+    createSprite(m_impl->m_bottomLeft, "bottom-left");
+    createSprite(m_impl->m_bottom, "bottom");
+    createSprite(m_impl->m_bottomRight, "bottom-right");
 
     updateSprites();
 }
 
-void NineSlice::createSprite(CCSprite*& spr) {
+void NineSlice::createSprite(CCSprite*& spr, ZStringView id) {
     spr = CCSprite::createWithTexture(m_impl->m_batchNode->getTexture());
     spr->setAnchorPoint({0.f, 0.f});
+    spr->setID(id);
     spr->setCascadeColorEnabled(true);
     spr->setCascadeOpacityEnabled(true);
     m_impl->m_batchNode->addChild(spr);
@@ -195,7 +198,7 @@ void NineSlice::updateSprites() {
     }
     else {
         t = CCAffineTransformTranslate(t, texRect.size.height, 0);
-        t = CCAffineTransformRotate(t, 1.57079633f);
+        t = CCAffineTransformRotate(t, M_PI / 2.f);
     }
 
     setSpriteRect(m_impl->m_topLeft, topLeftRect, t);
@@ -342,6 +345,46 @@ float NineSlice::getInsetBottom() const {
 
 float NineSlice::getInsetLeft() const {
     return m_impl->m_insets.left;
+}
+
+CCSprite* NineSlice::getTopLeft() {
+    return m_impl->m_topLeft;
+}
+
+CCSprite* NineSlice::getTopRight() {
+    return m_impl->m_topRight;
+}
+
+CCSprite* NineSlice::getBottomLeft() {
+    return m_impl->m_bottomLeft;
+}
+
+CCSprite* NineSlice::getBottomRight() {
+    return m_impl->m_bottomRight;
+}
+
+CCSprite* NineSlice::getTop() {
+    return m_impl->m_top;
+}
+
+CCSprite* NineSlice::getBottom() {
+    return m_impl->m_bottom;
+}
+
+CCSprite* NineSlice::getLeft() {
+    return m_impl->m_left;
+}
+
+CCSprite* NineSlice::getRight() {
+    return m_impl->m_right;
+}
+
+CCSprite* NineSlice::getCenter() {
+    return m_impl->m_center;
+}
+
+CCSpriteBatchNode* NineSlice::getBatchNode() {
+    return m_impl->m_batchNode;
 }
 
 void NineSlice::setContentSize(CCSize const& size) {
