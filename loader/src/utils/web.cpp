@@ -355,15 +355,22 @@ public:
 
     struct RequestData {
         std::shared_ptr<WebRequest::Impl> request;
+        Mod* mod;
         WebResponse response;
         geode::Function<void(WebResponse)> onComplete;
         CURL* curl = nullptr;
+
+        void complete(WebResponse res) {
+            onComplete(res);
+
+            WebResponseEvent(mod->getID()).send(res);
+        }
 
         void onError(int code, std::string_view msg) {
             auto res = WebResponse();
             res.m_impl->m_code = code;
             res.m_impl->m_data = ByteVector(msg.begin(), msg.end());
-            onComplete(res);
+            complete(std::move(res));
         }
 
         void onError(GeodeWebError code, std::string_view msg) {
@@ -407,7 +414,7 @@ public:
     std::optional<ByteVector> m_body;
     std::optional<std::chrono::seconds> m_timeout;
     std::optional<std::pair<std::uint64_t, std::uint64_t>> m_range;
-    geode::Function<void(WebProgress const&)> m_progressCallback;
+    std::vector<geode::Function<void(WebProgress const&)>> m_progressCallbacks;
     std::string m_CABundleContent;
     bool m_certVerification = true;
     bool m_transferBody = true;
@@ -416,6 +423,8 @@ public:
     ProxyOpts m_proxyOpts = {};
     HttpVersion m_httpVersion = HttpVersion::DEFAULT;
     size_t m_id;
+    Mod* m_mod;
+    bool m_inInterceptor = false;
     std::atomic<size_t> m_downloadCurrent = 0;
     std::atomic<size_t> m_downloadTotal = 0;
     std::atomic<size_t> m_uploadCurrent = 0;
@@ -704,10 +713,13 @@ public:
             r.m_uploadCurrent.store(static_cast<size_t>(unow), relaxed);
 
             // Queue the callback in the main thread, make sure to do it only once per frame
-            if (r.m_progressCallback && !r.m_progressNotifQueued.exchange(true, acq_rel)) {
+            if (r.m_progressCallbacks.size() && !r.m_progressNotifQueued.exchange(true, acq_rel)) {
                 queueInMainThread([req = data->request] {
                     req->m_progressNotifQueued.store(false, release);
-                    if (req->m_progressCallback) req->m_progressCallback(req->progress());
+
+                    for (auto& callback : req->m_progressCallbacks) {
+                        callback(req->progress());
+                    }
                 });
             }
 
@@ -734,40 +746,49 @@ std::atomic_size_t WebRequest::Impl::s_idCounter = 0;
 WebRequest::WebRequest() : m_impl(std::make_shared<Impl>()) {}
 WebRequest::~WebRequest() {}
 
-WebFuture WebRequest::send(std::string method, std::string url) {
+WebFuture WebRequest::send(std::string method, std::string url, Mod* mod) {
+    if (m_impl->m_inInterceptor) utils::terminate("Cannot call send again within an interceptor.", mod);
+
+    m_impl->m_mod = mod;
+
     m_impl->m_method = std::move(method);
     m_impl->m_url = std::move(url);
+    m_impl->m_inInterceptor = true;
+
+    WebRequestInterceptEvent(mod->getID()).send(*this);
+
+    m_impl->m_inInterceptor = false;
 
     return WebRequestsManager::get()->enqueueAndWait(m_impl);
 }
-WebFuture WebRequest::post(std::string url) {
-    return this->send("POST", std::move(url));
+WebFuture WebRequest::post(std::string url, Mod* mod) {
+    return this->send("POST", std::move(url), mod);
 }
-WebFuture WebRequest::get(std::string url) {
-    return this->send("GET", std::move(url));
+WebFuture WebRequest::get(std::string url, Mod* mod) {
+    return this->send("GET", std::move(url), mod);
 }
-WebFuture WebRequest::put(std::string url) {
-    return this->send("PUT", std::move(url));
+WebFuture WebRequest::put(std::string url, Mod* mod) {
+    return this->send("PUT", std::move(url), mod);
 }
-WebFuture WebRequest::patch(std::string url) {
-    return this->send("PATCH", std::move(url));
+WebFuture WebRequest::patch(std::string url, Mod* mod) {
+    return this->send("PATCH", std::move(url), mod);
 }
 
-WebResponse WebRequest::sendSync(std::string method, std::string url) {
-    auto fut = this->send(std::move(method), std::move(url));
+WebResponse WebRequest::sendSync(std::string method, std::string url, Mod* mod) {
+    auto fut = this->send(std::move(method), std::move(url), mod);
     return async::runtime().blockOn(std::move(fut));
 }
-WebResponse WebRequest::postSync(std::string url) {
-    return this->sendSync("POST", std::move(url));
+WebResponse WebRequest::postSync(std::string url, Mod* mod) {
+    return this->sendSync("POST", std::move(url), mod);
 }
-WebResponse WebRequest::getSync(std::string url) {
-    return this->sendSync("GET", std::move(url));
+WebResponse WebRequest::getSync(std::string url, Mod* mod) {
+    return this->sendSync("GET", std::move(url), mod);
 }
-WebResponse WebRequest::putSync(std::string url) {
-    return this->sendSync("PUT", std::move(url));
+WebResponse WebRequest::putSync(std::string url, Mod* mod) {
+    return this->sendSync("PUT", std::move(url), mod);
 }
-WebResponse WebRequest::patchSync(std::string url) {
-    return this->sendSync("PATCH", std::move(url));
+WebResponse WebRequest::patchSync(std::string url, Mod* mod) {
+    return this->sendSync("PATCH", std::move(url), mod);
 }
 
 WebRequest& WebRequest::header(std::string name, std::string value) {
@@ -827,6 +848,16 @@ WebRequest& WebRequest::removeParam(std::string_view name) {
     if (it != m_impl->m_urlParameters.end()) {
         m_impl->m_urlParameters.erase(it);
     }
+    return *this;
+}
+
+WebRequest& WebRequest::method(std::string method) {
+    m_impl->m_method = std::move(method);
+    return *this;
+}
+
+WebRequest& WebRequest::url(std::string url) {
+    m_impl->m_url = std::move(url);
     return *this;
 }
 
@@ -905,12 +936,16 @@ WebRequest& WebRequest::bodyMultipart(MultipartForm const& form) {
 }
 
 WebRequest& WebRequest::onProgress(Function<void(WebProgress const&)> callback) {
-    m_impl->m_progressCallback = std::move(callback);
+    m_impl->m_progressCallbacks.emplace_back(std::move(callback));
     return *this;
 }
 
 size_t WebRequest::getID() const {
     return m_impl->m_id;
+}
+
+Mod* WebRequest::getMod() const {
+    return m_impl->m_mod;
 }
 
 ZStringView WebRequest::getMethod() const {
@@ -1172,7 +1207,7 @@ public:
                     );
                 } else {
                     // resolve with success :-)
-                    requestData.onComplete(std::move(requestData.response));
+                    requestData.complete(std::move(requestData.response));
                 }
 
                 // clean up
@@ -1282,7 +1317,7 @@ WebFuture::WebFuture(std::shared_ptr<WebRequest::Impl> request) {
     auto [tx, rx] = arc::oneshot::channel<WebResponse>();
 
     auto rdata = std::make_shared<WebRequestsManager::RequestData>(
-        std::move(request), WebResponse{}, [tx = std::move(tx)](auto res) mutable {
+        std::move(request), request->m_mod, WebResponse{}, [tx = std::move(tx)](auto res) mutable {
             (void) tx.send(std::move(res));
         }
     );
@@ -1339,4 +1374,3 @@ void WebRequestsManager::cancel(std::shared_ptr<RequestData> data) {
 mpsc::SendResult<std::shared_ptr<WebRequestsManager::RequestData>> WebRequestsManager::tryEnqueue(std::shared_ptr<RequestData> data) {
     return m_impl->m_reqtx->trySend(std::move(data));
 }
-
