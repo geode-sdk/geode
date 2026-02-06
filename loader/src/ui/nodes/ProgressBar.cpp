@@ -18,7 +18,7 @@ public:
     // Style of the progress bar
     ProgressBarStyle style = ProgressBarStyle::Level;
     // Current color of the filled progress bar
-    ccColor3B progressBarFillColor = { 31, 162, 255 };
+    ccColor3B progressBarFillColor = { 97, 229, 255 };
     // Whether to show the label showing the percentage of the current progress
     bool showProgressPercentLabel = false;
     // Precision of the percentage on the progress percent label
@@ -30,9 +30,7 @@ public:
     float progressBarFillMaxHeight = 0.0f;
 };
 
-ProgressBar::ProgressBar() {
-    m_impl = std::make_unique<Impl>();
-};
+ProgressBar::ProgressBar() : m_impl(std::make_unique<Impl>()) {};
 
 ProgressBar::~ProgressBar() {};
 

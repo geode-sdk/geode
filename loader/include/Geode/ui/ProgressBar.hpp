@@ -15,7 +15,7 @@ namespace geode {
 
     protected:
         ProgressBar();
-        virtual ~ProgressBar();
+        ~ProgressBar();
 
         // Reloads the style of the progress bar
         void reloadStyle();
