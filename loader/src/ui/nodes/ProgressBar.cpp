@@ -18,7 +18,7 @@ public:
     // Style of the progress bar
     ProgressBarStyle style = ProgressBarStyle::Level;
     // Current color of the filled progress bar
-    ccColor3B progressBarFillColor = { 97, 229, 255 };
+    ccColor3B progressBarFillColor = { 0, 213, 255 };
     // Whether to show the label showing the percentage of the current progress
     bool showProgressPercentLabel = false;
     // Precision of the percentage on the progress percent label
@@ -126,7 +126,7 @@ void ProgressBar::setStyle(ProgressBarStyle style) {
         m_impl->style = style;
 
         this->removeAllChildren();
-        this->reloadStyle(); // recreate with new style
+        this->reloadStyle(); // recreate nodes with new style
     };
 };
 

@@ -19,7 +19,7 @@ namespace geode {
         ~ProgressBar();
 
         /**
-         * Set up `Level`/`LevelGold` style
+         * Set up `Level`/`LevelGold` progress bar style
          *
          * @note This is mainly to avoid repeating code since the only difference between both is one sprite name
          *
@@ -27,10 +27,10 @@ namespace geode {
          */
         void setupLevelStyle(const char* outlineSpr);
 
-        // Set up `Solid` style
+        // Set up `Solid` progress bar style
         void setupSolidStyle();
 
-        // Reloads the style of the progress bar
+        // Reloads the style of the progress bar, calls either `setupLevelStyle` or `setupSolidStyle` internally depending on style
         void reloadStyle();
 
         bool init(ProgressBarStyle style);
