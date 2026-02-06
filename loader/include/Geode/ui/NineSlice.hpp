@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/utils/ZStringView.hpp>
+#include <cocos2d.h>
 
 namespace geode {
     class GEODE_DLL NineSlice : public cocos2d::CCNodeRGBA {
@@ -37,7 +38,7 @@ namespace geode {
         float getInsetRight() const;
         float getInsetBottom() const;
         float getInsetLeft() const;
-        
+
         cocos2d::CCSprite* getTopLeft();
         cocos2d::CCSprite* getTopRight();
         cocos2d::CCSprite* getBottomLeft();

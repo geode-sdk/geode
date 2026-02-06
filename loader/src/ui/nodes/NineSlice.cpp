@@ -1,4 +1,5 @@
 #include <Geode/ui/NineSlice.hpp>
+#include <Geode/utils/cocos.hpp>
 
 using namespace geode::prelude;
 
@@ -37,7 +38,7 @@ NineSlice* NineSlice::create(ZStringView file, CCRect const& rect, Insets const&
     delete ret;
     return nullptr;
 }
-    
+
 NineSlice* NineSlice::createWithSpriteFrameName(ZStringView spriteFrameName, Insets const& insets) {
     auto ret = new NineSlice();
     if (ret->initWithSpriteFrameName(spriteFrameName, insets)) {
@@ -93,7 +94,7 @@ bool NineSlice::initWithFile(ZStringView file, CCRect const& rect, Insets const&
     return true;
 }
 
-bool NineSlice::initWithSpriteFrameName(ZStringView spriteFrameName, Insets const& insets) {    
+bool NineSlice::initWithSpriteFrameName(ZStringView spriteFrameName, Insets const& insets) {
     auto frame = CCSpriteFrameCache::get()->spriteFrameByName(spriteFrameName.c_str());
     return initWithSpriteFrame(frame, insets);
 }
