@@ -253,13 +253,13 @@ void keyDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     }
 
     KeyboardInputData data(
-        keyCode, isRepeat ? KeyboardInputData::Action::Press : KeyboardInputData::Action::Repeat,
+        keyCode, isRepeat ? KeyboardInputData::Action::Repeat : KeyboardInputData::Action::Press,
         { nativeCode },
         timestamp,
         modifiers
     );
 
-    auto result = KeyboardInputEvent(keyCode).send(data);
+    if (KeyboardInputEvent(keyCode).send(data) != ListenerResult::Propagate) return;
 
     isDown = data.action != KeyboardInputData::Action::Release;
     isRepeat = data.action == KeyboardInputData::Action::Repeat;
@@ -330,7 +330,7 @@ void keyUpExecHook(EAGLView* self, SEL sel, NSEvent* event) {
         modifiers
     );
 
-    auto result = KeyboardInputEvent(keyCode).send(data);
+    if (KeyboardInputEvent(keyCode).send(data) != ListenerResult::Propagate) return;
 
     isDown = data.action != KeyboardInputData::Action::Release;
     isRepeat = data.action == KeyboardInputData::Action::Repeat;
@@ -477,7 +477,7 @@ void otherMouseUpHook(EAGLView* self, SEL sel, NSEvent* event) {
     [self performSelector:sel withObject:event];
 }
 
-void scrollWheelHook(EAGLView* self, SEL sel, NSEvent* event) {
+void scrollWheelExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     double xoffset = [event scrollingDeltaX];
     double yoffset = [event scrollingDeltaY];
 
@@ -508,5 +508,5 @@ $execute {
     hookObjcMethod("EAGLView", "otherMouseDown:", &otherMouseDownHook);
     hookObjcMethod("EAGLView", "otherMouseDragged:", &otherMouseDraggedHook);
     hookObjcMethod("EAGLView", "otherMouseUp:", &otherMouseUpHook);
-    hookObjcMethod("EAGLView", "scrollWheel:", &scrollWheelHook);
+    hookObjcMethod("EAGLView", "scrollWheelExec:", &scrollWheelExecHook);
 }
