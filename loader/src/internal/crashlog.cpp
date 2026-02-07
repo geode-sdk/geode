@@ -50,7 +50,7 @@ void crashlog::printMods(Buffer& stream) {
     for (auto& mod : mods) {
         stream.append("{} | [{}] {}\n",
             mod->isCurrentlyLoading() ? "o"sv :
-            mod->isEnabled() ? "x"sv :
+            mod->isLoaded() ? "x"sv :
             mod->targetsOutdatedVersion() ? "*"sv : // thank you very much for this bug report
             mod->failedToLoad() ? "!"sv : // thank you for this bug report
             mod->shouldLoad() ? "~"sv :

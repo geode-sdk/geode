@@ -125,7 +125,7 @@ void ModMetadata::Dependency::setSettings(matjson::Value value) {
 bool ModMetadata::Dependency::isResolved() const {
     return
         !m_impl->required ||
-        this->getMod() && this->getMod()->isEnabled() && this->getVersion().compare(this->getMod()->getVersion());
+        this->getMod() && this->getMod()->isLoaded() && this->getVersion().compare(this->getMod()->getVersion());
 }
 
 class ModMetadata::Incompatibility::Impl {

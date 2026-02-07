@@ -245,7 +245,7 @@ bool Loader::Impl::isModLoaded(std::string_view id) const {
 
 Mod* Loader::Impl::getLoadedMod(std::string_view id) const {
     auto it = m_mods.find(id);
-    if (it != m_mods.end() && it->second->isEnabled()) {
+    if (it != m_mods.end() && it->second->isLoaded()) {
         return it->second;
     }
     return nullptr;
@@ -439,7 +439,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
 
     log::NestScope nest;
 
-    if (node->isEnabled()) {
+    if (node->isLoaded()) {
         log::error("Mod {} already loaded, this should never happen", node->getID());
         return;
     }
@@ -574,7 +574,7 @@ void Loader::Impl::findProblems() {
         for (auto const& dep : mod->getMetadata().getDependencies()) {
             if (
                 !dep.isRequired() || 
-                (dep.getMod() && dep.getMod()->isEnabled() && dep.getVersion().compare(dep.getMod()->getVersion()))
+                (dep.getMod() && dep.getMod()->isLoaded() && dep.getVersion().compare(dep.getMod()->getVersion()))
             ) {
                 continue;
             }
@@ -584,7 +584,7 @@ void Loader::Impl::findProblems() {
             }
             else {
                 auto installedDependency = m_mods.at(dep.getID());
-                if (!installedDependency->isEnabled()) {
+                if (!installedDependency->isLoaded()) {
                     disabledDependencies.push_back(installedDependency->getName());
                 }
                 else if (dep.getVersion().compareWithReason(installedDependency->getVersion()) == VersionCompareResult::TooOld) {
@@ -676,7 +676,7 @@ void Loader::Impl::findProblems() {
         Mod* myEpicMod = mod; // clang fix
         // if the mod is not loaded but there are no problems related to it
         if (
-            !mod->isEnabled() &&
+            !mod->isLoaded() &&
             mod->shouldLoad() &&
             !std::any_of(m_problems.begin(), m_problems.end(), [myEpicMod](auto& item) {
                 return std::holds_alternative<ModMetadata>(item.cause) &&

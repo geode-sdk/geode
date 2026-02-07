@@ -27,9 +27,9 @@ namespace geode {
          */
         std::vector<std::shared_ptr<Patch>> m_patches;
         /**
-         * Whether the mod is enabled or not
+         * Whether the mod is loaded or not
          */
-        bool m_enabled = false;
+        bool m_loaded = false;
         /**
          * Mod temp directory name
          */
@@ -86,7 +86,7 @@ namespace geode {
         std::optional<std::string> const& getDetails() const;
         std::filesystem::path getPackagePath() const;
         VersionInfo getVersion() const;
-        bool isEnabled() const;
+        bool isLoaded() const;
         bool isInternal() const;
         bool needsEarlyLoad() const;
         ModMetadata const& getMetadata() const;

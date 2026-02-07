@@ -49,12 +49,12 @@ matjson::Value& Mod::getSavedSettingsData() {
     return m_impl->m_settings->getSaveData();
 }
 
-bool Mod::isEnabled() const {
-    return m_impl->isEnabled();
+bool Mod::isLoaded() const {
+    return m_impl->isLoaded();
 }
 
 bool Mod::isOrWillBeEnabled() const {
-    bool enabled = m_impl->isEnabled();
+    bool enabled = m_impl->isLoaded();
     if (m_impl->m_requestedAction == ModRequestedAction::Enable) {
         enabled = true;
     }

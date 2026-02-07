@@ -160,7 +160,7 @@ static Mod* modFromAddress(void const* addr) {
     }
 
     for (auto& mod : Loader::get()->getAllMods()) {
-        if (!mod->isEnabled() || !std::filesystem::exists(mod->getBinaryPath())) {
+        if (!mod->isLoaded() || !std::filesystem::exists(mod->getBinaryPath())) {
             continue;
         }
         if (std::filesystem::equivalent(imagePath, mod->getBinaryPath())) {

@@ -742,7 +742,7 @@ void ModPopup::updateState() {
     m_restartRequiredLabel->setVisible(wantsRestart);
 
     if (!wantsRestart && asMod) {
-        if (asMod->isEnabled()) {
+        if (asMod->isLoaded()) {
             m_enabledStatusLabel->setString("Enabled");
             m_enabledStatusLabel->setColor(to3B(ColorProvider::get()->color("mod-list-enabled"_spr)));
         }

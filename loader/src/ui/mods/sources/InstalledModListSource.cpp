@@ -33,7 +33,7 @@ bool InstalledModsQuery::preCheck(ModSource const& src) const {
 bool InstalledModsQuery::queryCheck(ModSource const& src, double& weighted) const {
     bool addToList = true;
     if (enabledOnly) {
-        addToList = src.asMod()->isEnabled() == *enabledOnly;
+        addToList = src.asMod()->isLoaded() == *enabledOnly;
     }
     if (query) {
         addToList = modFuzzyMatch(src.asMod()->getMetadata(), *query, weighted);
@@ -42,7 +42,7 @@ bool InstalledModsQuery::queryCheck(ModSource const& src, double& weighted) cons
     if (addToList && src.asMod()->isInternal()) {
         weighted += 5;
     }
-    if (addToList && enabledFirst && src.asMod()->isEnabled()) {
+    if (addToList && enabledFirst && src.asMod()->isLoaded()) {
         weighted += 3;
     }
     // todo: favorites
