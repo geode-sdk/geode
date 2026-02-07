@@ -109,7 +109,7 @@ ZStringView Mod::Impl::getName() const {
 }
 
 bool Mod::Impl::isEphemeral() const {
-    return ModMetadataImpl::getImpl(m_metadata).m_ephemeral;
+    return ModMetadataImpl::getImpl(m_metadata).m_completelyUnparseable;
 }
 
 std::vector<std::string> const& Mod::Impl::getDevelopers() const {
@@ -693,8 +693,7 @@ static Result<ModMetadata> getModImplInfo() {
         return fmt::format("Unable to parse mod.json: {}", err);
     }));
 
-    GEODE_UNWRAP_INTO(auto info, ModMetadata::create(json));
-    return Ok(info);
+    return Ok(ModMetadata::create(json));
 }
 
 Mod* Loader::Impl::getInternalMod() {

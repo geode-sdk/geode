@@ -252,6 +252,18 @@ namespace geode {
         */
         Result<> checkTargetVersions() const;
 
+        /**
+         * Check if this `ModMetadata` had parsing errors (or was completely 
+         * unparseable)
+         */
+        bool hasErrors() const;
+        std::vector<std::string> const& getErrors() const;
+        /**
+         * Check if this `ModMetadata` was completely unparseable, i.e. created 
+         * from an invalid ZIP file etc.
+         */
+        bool wasCompletelyUnparseable() const;
+
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
         void setPath(std::filesystem::path value);
         void setBinaryName(std::string value);
@@ -279,21 +291,17 @@ namespace geode {
 #endif
 
         /**
-         * Create ModInfo from an unzipped .geode package
+         * Create `ModMetadata` from a `.geode` package. Note that this 
+         * function may fail if the JSON data is wrong; make sure to check 
+         * `hasErrors()` afterwards on the `ModMetadata`!
          */
-        static Result<ModMetadata> createFromGeodeZip(utils::file::Unzip& zip);
+        static ModMetadata createFromGeodeFile(std::filesystem::path const& path);
         /**
-         * Create ModInfo from a .geode package
+         * Create `ModMetadata` from a parsed json document. Note that this 
+         * function may fail if the JSON data is wrong; make sure to check 
+         * `hasErrors()` afterwards on the `ModMetadata`!
          */
-        static Result<ModMetadata> createFromGeodeFile(std::filesystem::path const& path);
-        /**
-         * Create ModInfo from a mod.json file
-         */
-        static Result<ModMetadata> createFromFile(std::filesystem::path const& path);
-        /**
-         * Create ModInfo from a parsed json document
-         */
-        static Result<ModMetadata> create(ModJson const& json);
+        static ModMetadata create(ModJson const& json);
 
         /**
          * Convert to JSON. Essentially same as getRawJSON except dynamically
@@ -319,13 +327,6 @@ namespace geode {
         );
 
     private:
-        /**
-         * Version is passed for backwards
-         * compatibility if we update the mod.json
-         * format
-         */
-        static Result<ModMetadata> createFromSchemaV010(ModJson const& json);
-
         Result<> addSpecialFiles(std::filesystem::path const& dir);
         Result<> addSpecialFiles(utils::file::Unzip& zip);
 
@@ -340,8 +341,7 @@ namespace geode {
 
 template <>
 struct matjson::Serialize<geode::ModMetadata> {
-    static Value toJson(geode::ModMetadata const& value)
-    {
+    static Value toJson(geode::ModMetadata const& value) {
         return Value(value.toJSON());
     }
 };

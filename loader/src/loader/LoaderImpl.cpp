@@ -325,7 +325,7 @@ void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
             log::debug("Found {}", entry.path().filename());
             log::NestScope nest;
 
-            auto modMetadata = ModMetadataImpl::createFromGeodeFileWithFallback(entry.path());
+            auto modMetadata = ModMetadata::createFromGeodeFile(entry.path());
 
             log::debug("id: {}", modMetadata.getID());
             log::debug("version: {}", modMetadata.getVersion());
@@ -339,7 +339,9 @@ void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
                 auto modMetadata = ModMetadataImpl::createInvalidMetadata(
                     entry.path(),
                     "A mod with the same ID is already present.",
-                    LoadProblem::Type::InvalidGeodeFile
+                    // Passing `nullopt` to `createInvalidMetadata` generates a 
+                    // random non-conflicting ID
+                    std::nullopt
                 );
                 modQueue.push_back(modMetadata);
 
@@ -535,10 +537,9 @@ void Loader::Impl::findProblems() {
             return;
         }
 
-        if (auto& reason = mod->getMetadata().m_impl->m_softInvalidReason) {
-            auto& [message, type] = *reason;
-
-            this->addProblem({ type, mod, message });
+        if (mod->getMetadata().hasErrors()) {
+            auto message = ranges::join(mod->getMetadata().getErrors(), ", ");
+            this->addProblem({ LoadProblem::Type::InvalidGeodeFile, mod, message });
             log::error("{} failed to load: {}", id, message);
             continue;
         }
@@ -1176,20 +1177,22 @@ void Loader::Impl::forceSafeMode() {
 }
 
 void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path, geode::Function<void()> after) {
-    auto res = ModMetadata::createFromGeodeFile(path);
-    if (!res) {
+    auto meta = ModMetadata::createFromGeodeFile(path);
+    if (meta.hasErrors()) {
+        for (auto const& error : meta.getErrors()) {
+            log::error("Error installing mod from file: {}", error);
+        }
         FLAlertLayer::create(
             "Invalid File",
             fmt::format(
-                "The path <cy>'{}'</c> is not a valid Geode mod: {}",
-                path,
-                res.unwrapErr()
+                "The path <cy>'{}'</c> is not a valid Geode mod!\n"
+                "(Developers, check console for more)",
+                path
             ),
             "OK"
         )->show();
         return;
     }
-    auto meta = res.unwrap();
 
     auto check = meta.checkTargetVersions();
     if (!check) {

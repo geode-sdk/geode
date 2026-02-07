@@ -137,14 +137,7 @@ public:
         }
 
         auto metadata = ModMetadata::createFromGeodeFile(geodePath);
-        if (metadata.isErr()) {
-            m_status = DownloadStatusError {
-                .details = std::move(metadata).unwrapErr(),
-            };
-            return;
-        }
-
-        auto okBinary = LoaderImpl::get()->extractBinary(metadata.unwrap());
+        auto okBinary = LoaderImpl::get()->extractBinary(metadata);
         if (!okBinary) {
             m_status = DownloadStatusError {
                 .details = std::move(okBinary).unwrapErr(),

@@ -82,11 +82,10 @@ namespace geode {
     public:
         std::filesystem::path m_path;
         std::string m_binaryName;
-        VersionInfo m_version{1, 0, 0};
+        VersionInfo m_version { 1, 0, 0 };
         std::string m_id;
         std::string m_name;
         std::vector<std::string> m_developers;
-        std::optional<std::pair<std::string, LoadProblem::Type>> m_softInvalidReason;
         std::string m_gdVersion;
         VersionInfo m_geodeVersion;
         std::optional<std::string> m_description;
@@ -103,29 +102,9 @@ namespace geode {
         bool m_needsEarlyLoad = false;
         bool m_isAPI = false;
         LoadPriority m_loadPriority = 0;
-        bool m_ephemeral = false;
-
+        std::vector<std::string> m_errors;
+        bool m_completelyUnparseable = false;
         ModJson m_rawJSON;
-
-        // creates the relevant metadata to represent an invalid mod and have its error shown ingame. it is otherwise blank
-        static ModMetadata createInvalidMetadata(std::filesystem::path const& path, std::string_view error, LoadProblem::Type type);
-
-        // like createFromGeodeZip, but only checks for the mod id
-        static Result<ModMetadata> createFromGeodeZipFallback(utils::file::Unzip& zip);
-
-
-        /*
-         * Like createFromGeodeFile, but exibits the following fallback behavior:
-         * - If unzip failed, return the invalid metadata representation
-         * - If createFromGeodeZip fails, attempt to parse through createFromGeodeZipFallback
-         * - If createFromGeodeZipFallback fails, return the invalid metadata representation
-         */
-        static ModMetadata createFromGeodeFileWithFallback(std::filesystem::path const& path);
-
-        static Result<ModMetadata> createFromGeodeZip(utils::file::Unzip& zip);
-        static Result<ModMetadata> createFromGeodeFile(std::filesystem::path const& path);
-        static Result<ModMetadata> createFromFile(std::filesystem::path const& path);
-        static Result<ModMetadata> create(ModJson const& json);
 
         ModJson toJSON() const;
         ModJson getRawJSON() const;
@@ -134,7 +113,12 @@ namespace geode {
 
         static bool validateID(std::string_view id);
 
-        static Result<ModMetadata> createFromSchemaV010(ModJson const& rawJson);
+        static ModMetadata parse(ModJson const& rawJson, std::optional<std::string_view> guessedID);
+        static ModMetadata createInvalidMetadata(
+            std::filesystem::path const& path,
+            std::string_view error,
+            std::optional<std::string_view> guessedID
+        );
 
         Result<> addSpecialFiles(std::filesystem::path const& dir);
         Result<> addSpecialFiles(utils::file::Unzip& zip);
