@@ -298,7 +298,7 @@ std::optional<ModDownload> ModDownloadManager::startDownload(
     // Start a new download by constructing a ModDownload (which starts the
     // download)
     auto [it, _] = m_impl->m_downloads.emplace(id, ModDownload(
-        std::move(id),
+        id,
         std::move(version),
         std::move(dependencyFor),
         std::move(replacesMod)

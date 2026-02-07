@@ -15,7 +15,6 @@
 #include <Geode/utils/terminate.hpp>
 #include <Geode/utils/web.hpp>
 #include <arc/future/Select.hpp>
-#include <arc/net/TcpStream.hpp>
 #include <arc/time/Sleep.hpp>
 #include <arc/task/CancellationToken.hpp>
 #include <arc/sync/Mutex.hpp>
@@ -272,8 +271,26 @@ ByteVector MultipartForm::getBody() const {
 
 WebResponse::WebResponse() : m_impl(std::make_shared<Impl>()) {}
 
+bool WebResponse::info() const {
+    return m_impl->m_code >= 100 && m_impl->m_code < 200;
+}
 bool WebResponse::ok() const {
-    return 200 <= m_impl->m_code && m_impl->m_code < 300;
+    return m_impl->m_code >= 200 && m_impl->m_code < 300;
+}
+bool WebResponse::redirected() const {
+    return m_impl->m_code >= 300 && m_impl->m_code < 400;
+}
+bool WebResponse::badClient() const {
+    return m_impl->m_code >= 400 && m_impl->m_code < 500;
+}
+bool WebResponse::badServer() const {
+    return m_impl->m_code >= 500 && m_impl->m_code < 600;
+}
+bool WebResponse::error() const {
+    return m_impl->m_code < 0;
+}
+bool WebResponse::cancelled() const {
+    return m_impl->m_code == static_cast<int>(GeodeWebError::REQUEST_CANCELLED);
 }
 int WebResponse::code() const {
     return m_impl->m_code;
@@ -335,14 +352,34 @@ private:
 public:
     static WebRequestsManager* get();
 
-    struct RequestData {
+    struct RequestData : std::enable_shared_from_this<RequestData> {
         std::shared_ptr<WebRequest::Impl> request;
+        Mod* mod;
         WebResponse response;
         geode::Function<void(WebResponse)> onComplete;
         CURL* curl = nullptr;
+
+        RequestData(std::shared_ptr<WebRequest::Impl> req, Mod* m, geode::Function<void(WebResponse)> cb)
+            : request(std::move(req)), mod(m), onComplete(std::move(cb)) {}
+
+        void complete(WebResponse res) {
+            onComplete(res);
+
+            WebResponseEvent(mod->getID()).send(res);
+        }
+
+        void onError(int code, std::string_view msg) {
+            auto res = WebResponse();
+            res.m_impl->m_code = code;
+            res.m_impl->m_data = ByteVector(msg.begin(), msg.end());
+            complete(std::move(res));
+        }
+
+        void onError(GeodeWebError code, std::string_view msg) {
+            onError(static_cast<int>(code), msg);
+        }
     };
 
-    WebFuture enqueueAndWait(std::shared_ptr<WebRequest::Impl> data);
     arc::mpsc::SendResult<std::shared_ptr<RequestData>> tryEnqueue(std::shared_ptr<RequestData> data);
     void cancel(std::shared_ptr<RequestData> data);
 };
@@ -378,7 +415,7 @@ public:
     std::optional<ByteVector> m_body;
     std::optional<std::chrono::seconds> m_timeout;
     std::optional<std::pair<std::uint64_t, std::uint64_t>> m_range;
-    geode::Function<void(WebProgress const&)> m_progressCallback;
+    std::vector<geode::Function<void(WebProgress const&)>> m_progressCallbacks;
     std::string m_CABundleContent;
     bool m_certVerification = true;
     bool m_transferBody = true;
@@ -387,11 +424,14 @@ public:
     ProxyOpts m_proxyOpts = {};
     HttpVersion m_httpVersion = HttpVersion::DEFAULT;
     size_t m_id;
+    Mod* m_mod;
+    bool m_inInterceptor = false;
     std::atomic<size_t> m_downloadCurrent = 0;
     std::atomic<size_t> m_downloadTotal = 0;
     std::atomic<size_t> m_uploadCurrent = 0;
     std::atomic<size_t> m_uploadTotal = 0;
     std::atomic<bool> m_progressNotifQueued{false};
+    std::atomic<bool> m_cancelled{false};
 
     // stored to clean up later
     char m_errorBuf[CURL_ERROR_SIZE] = {0};
@@ -404,9 +444,9 @@ public:
         }
     }
 
-    WebResponse makeError(int code, std::string_view msg) {
+    WebResponse makeError(GeodeWebError code, std::string_view msg) {
         auto res = WebResponse();
-        res.m_impl->m_code = code;
+        res.m_impl->m_code = static_cast<int>(code);
         res.m_impl->m_data = ByteVector(msg.begin(), msg.end());
         return res;
     }
@@ -675,10 +715,14 @@ public:
             r.m_uploadCurrent.store(static_cast<size_t>(unow), relaxed);
 
             // Queue the callback in the main thread, make sure to do it only once per frame
-            if (r.m_progressCallback && !r.m_progressNotifQueued.exchange(true, acq_rel)) {
+            if (!r.m_progressCallbacks.empty() && !r.m_progressNotifQueued.exchange(true, acq_rel) && !r.m_cancelled.load(relaxed)) {
                 queueInMainThread([req = data->request] {
+                    if (req->m_cancelled.load(relaxed)) return;
                     req->m_progressNotifQueued.store(false, release);
-                    if (req->m_progressCallback) req->m_progressCallback(req->progress());
+
+                    for (auto& callback : req->m_progressCallbacks) {
+                        callback(req->progress());
+                    }
                 });
             }
 
@@ -705,40 +749,49 @@ std::atomic_size_t WebRequest::Impl::s_idCounter = 0;
 WebRequest::WebRequest() : m_impl(std::make_shared<Impl>()) {}
 WebRequest::~WebRequest() {}
 
-WebFuture WebRequest::send(std::string method, std::string url) {
+WebFuture WebRequest::send(std::string method, std::string url, Mod* mod) {
+    if (m_impl->m_inInterceptor) utils::terminate("Cannot call send again within an interceptor.", mod);
+
+    m_impl->m_mod = mod;
+
     m_impl->m_method = std::move(method);
     m_impl->m_url = std::move(url);
+    m_impl->m_inInterceptor = true;
 
-    return WebRequestsManager::get()->enqueueAndWait(m_impl);
+    WebRequestInterceptEvent(mod->getID()).send(*this);
+
+    m_impl->m_inInterceptor = false;
+
+    return WebFuture{m_impl};
 }
-WebFuture WebRequest::post(std::string url) {
-    return this->send("POST", std::move(url));
+WebFuture WebRequest::post(std::string url, Mod* mod) {
+    return this->send("POST", std::move(url), mod);
 }
-WebFuture WebRequest::get(std::string url) {
-    return this->send("GET", std::move(url));
+WebFuture WebRequest::get(std::string url, Mod* mod) {
+    return this->send("GET", std::move(url), mod);
 }
-WebFuture WebRequest::put(std::string url) {
-    return this->send("PUT", std::move(url));
+WebFuture WebRequest::put(std::string url, Mod* mod) {
+    return this->send("PUT", std::move(url), mod);
 }
-WebFuture WebRequest::patch(std::string url) {
-    return this->send("PATCH", std::move(url));
+WebFuture WebRequest::patch(std::string url, Mod* mod) {
+    return this->send("PATCH", std::move(url), mod);
 }
 
-WebResponse WebRequest::sendSync(std::string method, std::string url) {
-    auto fut = this->send(std::move(method), std::move(url));
+WebResponse WebRequest::sendSync(std::string method, std::string url, Mod* mod) {
+    auto fut = this->send(std::move(method), std::move(url), mod);
     return async::runtime().blockOn(std::move(fut));
 }
-WebResponse WebRequest::postSync(std::string url) {
-    return this->sendSync("POST", std::move(url));
+WebResponse WebRequest::postSync(std::string url, Mod* mod) {
+    return this->sendSync("POST", std::move(url), mod);
 }
-WebResponse WebRequest::getSync(std::string url) {
-    return this->sendSync("GET", std::move(url));
+WebResponse WebRequest::getSync(std::string url, Mod* mod) {
+    return this->sendSync("GET", std::move(url), mod);
 }
-WebResponse WebRequest::putSync(std::string url) {
-    return this->sendSync("PUT", std::move(url));
+WebResponse WebRequest::putSync(std::string url, Mod* mod) {
+    return this->sendSync("PUT", std::move(url), mod);
 }
-WebResponse WebRequest::patchSync(std::string url) {
-    return this->sendSync("PATCH", std::move(url));
+WebResponse WebRequest::patchSync(std::string url, Mod* mod) {
+    return this->sendSync("PATCH", std::move(url), mod);
 }
 
 WebRequest& WebRequest::header(std::string name, std::string value) {
@@ -798,6 +851,16 @@ WebRequest& WebRequest::removeParam(std::string_view name) {
     if (it != m_impl->m_urlParameters.end()) {
         m_impl->m_urlParameters.erase(it);
     }
+    return *this;
+}
+
+WebRequest& WebRequest::method(std::string method) {
+    m_impl->m_method = std::move(method);
+    return *this;
+}
+
+WebRequest& WebRequest::url(std::string url) {
+    m_impl->m_url = std::move(url);
     return *this;
 }
 
@@ -876,12 +939,16 @@ WebRequest& WebRequest::bodyMultipart(MultipartForm const& form) {
 }
 
 WebRequest& WebRequest::onProgress(Function<void(WebProgress const&)> callback) {
-    m_impl->m_progressCallback = std::move(callback);
+    m_impl->m_progressCallbacks.emplace_back(std::move(callback));
     return *this;
 }
 
 size_t WebRequest::getID() const {
     return m_impl->m_id;
+}
+
+Mod* WebRequest::getMod() const {
+    return m_impl->m_mod;
 }
 
 ZStringView WebRequest::getMethod() const {
@@ -984,17 +1051,17 @@ public:
 
     std::optional<arc::TaskHandle<void>> m_worker;
     std::optional<arc::mpsc::Sender<std::shared_ptr<RequestData>>> m_reqtx;
-    std::optional<arc::mpsc::Sender<CURL*>> m_canceltx;
+    std::optional<arc::mpsc::Sender<std::shared_ptr<RequestData>>> m_canceltx;
     arc::CancellationToken m_cancel;
     arc::Notify m_wakeNotify;
     asp::Instant m_nextWakeup = asp::Instant::farFuture();
 
-    std::unordered_map<CURL*, std::shared_ptr<RequestData>> m_activeRequests;
+    std::unordered_set<std::shared_ptr<RequestData>> m_activeRequests;
     std::unordered_map<curl_socket_t, RegisteredSocket> m_sockets;
 
     Impl() {
         auto [tx, rx] = arc::mpsc::channel<std::shared_ptr<RequestData>>(1024);
-        auto [ctx, crx] = arc::mpsc::channel<CURL*>(64);
+        auto [ctx, crx] = arc::mpsc::channel<std::shared_ptr<RequestData>>();
 
         m_reqtx = std::move(tx);
         m_canceltx = std::move(ctx);
@@ -1029,7 +1096,7 @@ public:
                     }),
 
                     arc::selectee(crx.recv(), [&](auto req) {
-                        if (req) this->workerCancelRequest(req.unwrap());
+                        if (req) this->workerCancelRequest(std::move(req).unwrap());
                     }),
 
                     arc::selectee(
@@ -1046,59 +1113,54 @@ public:
     // or m_worker->abort will likely invoke ub
     ~Impl() {
         m_cancel.cancel();
-        
+
         if (m_worker) {
             m_worker->abort();
         }
-        
+
         // clean up remaining requests
-        for (auto& [handle, _] : m_activeRequests) {
-            curl_multi_remove_handle(m_multiHandle, handle);
-            curl_easy_cleanup(handle);
+        for (auto& req : m_activeRequests) {
+            curl_multi_remove_handle(m_multiHandle, req->curl);
+            curl_easy_cleanup(req->curl);
         }
 
         curl_multi_cleanup(m_multiHandle);
     }
-    
+
     void workerAddRequest(std::shared_ptr<RequestData> req) {
         CURL* handle = req->request->makeCurlHandle(req.get());
 
         if (!handle) {
-            req->onComplete(req->request->makeError(-1, "Failed to initialize cURL"));
+            req->onError(GeodeWebError::CURL_INITIALIZATION_ERROR, "Failed to initialize cURL");
             return;
         }
-        
+
+        // associate them with each other
         req->curl = handle;
+        curl_easy_setopt(handle, CURLOPT_PRIVATE, req.get());
 
         log::debug("Added request ({})", req->request->m_url);
         curl_multi_add_handle(m_multiHandle, handle);
-        m_activeRequests.insert({ handle, std::move(req) });
+        m_activeRequests.insert(std::move(req));
         this->workerKickCurl();
     }
 
-    void workerCancelRequest(CURL* curl) {
-        auto it = m_activeRequests.find(curl);
-        if (it == m_activeRequests.end()) {
-            log::warn("Tried to cancel unknown request! ({})", (void*)curl);
-            return;
-        }
+    void workerCancelRequest(std::shared_ptr<RequestData> req) {
+        log::debug("Cancelled request ({})", req->request->m_url);
+        req->onError(GeodeWebError::REQUEST_CANCELLED, "Request cancelled");
 
-        auto& req = *it->second;
-        log::debug("Cancelled request ({})", req.request->m_url);
-        req.onComplete(req.request->makeError(-1, "Request cancelled"));
-
-        this->cleanupRequest(req);
+        this->cleanupRequest(std::move(req));
     }
 
-    void cleanupRequest(RequestData& data) {
-        if (!data.curl) return;
+    void cleanupRequest(std::shared_ptr<RequestData> req) {
+        log::debug("Removing request ({})", req->request->m_url);
+        m_activeRequests.erase(req);
 
-        log::debug("Removing request ({})", data.request->m_url);
-        
-        auto curl = std::exchange(data.curl, nullptr);
-        curl_multi_remove_handle(m_multiHandle, curl);
-        curl_easy_cleanup(curl);
-        m_activeRequests.erase(curl);
+        auto curl = std::exchange(req->curl, nullptr);
+        if (curl) {
+            curl_multi_remove_handle(m_multiHandle, curl);
+            curl_easy_cleanup(curl);
+        }
 
         this->workerKickCurl();
     }
@@ -1117,14 +1179,18 @@ public:
                 CURL* handle = msg->easy_handle;
 
                 // handle the completed request
-                auto& requestData = *m_activeRequests.at(handle);
+                RequestData* rdptr = nullptr;
+                curl_easy_getinfo(handle, CURLINFO_PRIVATE, &rdptr);
+                if (!rdptr) utils::terminate("queued request has no associated data");
+
+                auto& requestData = *rdptr;
 
                 // Get the response code; note that this will be invalid if the
                 // curlResponse is not CURLE_OK
                 long code = 0;
                 curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &code);
 
-                requestData.response.m_impl->m_code = static_cast<int>(code);
+                requestData.response.m_impl->m_code = code;
 
                 char* errorBuf = requestData.request->m_errorBuf;
                 requestData.response.m_impl->m_errMessage = std::string(errorBuf);
@@ -1134,19 +1200,20 @@ public:
                     std::string_view err = curl_easy_strerror(msg->data.result);
                     log::error("cURL failure, error: {}", err);
                     log::warn("Error buffer: {}", errorBuf);
-                    requestData.onComplete(requestData.request->makeError(
-                        -1,
+                    requestData.onError(
+                        // Make all CURL error codes negatives to not conflict with HTTP codes
+                        msg->data.result * -1,
                         !errorBuf ?
                                 fmt::format("Curl failed: {}", err)
                             : fmt::format("Curl failed: {} ({})", err, errorBuf)
-                    ));
+                    );
                 } else {
                     // resolve with success :-)
-                    requestData.onComplete(std::move(requestData.response));
+                    requestData.complete(std::move(requestData.response));
                 }
 
                 // clean up
-                this->cleanupRequest(requestData);
+                this->cleanupRequest(requestData.shared_from_this());
             }
         }
 
@@ -1252,7 +1319,7 @@ WebFuture::WebFuture(std::shared_ptr<WebRequest::Impl> request) {
     auto [tx, rx] = arc::oneshot::channel<WebResponse>();
 
     auto rdata = std::make_shared<WebRequestsManager::RequestData>(
-        std::move(request), WebResponse{}, [tx = std::move(tx)](auto res) mutable {
+        std::move(request), request->m_mod, [tx = std::move(tx)](auto res) mutable {
             (void) tx.send(std::move(res));
         }
     );
@@ -1263,8 +1330,10 @@ WebFuture::WebFuture(std::shared_ptr<WebRequest::Impl> request) {
 WebFuture::~WebFuture() {
     if (!m_impl) return;
 
-    if (m_impl->m_sent && !m_impl->m_finished) {
-        // future got cancelled, tell request manager to stop this request 
+    if (!m_impl->m_sent) {
+        m_impl->m_request->onError(GeodeWebError::REQUEST_CANCELLED, "Request cancelled");
+    } else if (!m_impl->m_finished) {
+        // future got cancelled, tell request manager to stop this request
         WebRequestsManager::get()->cancel(m_impl->m_request);
     }
 }
@@ -1276,7 +1345,7 @@ std::optional<WebResponse> WebFuture::poll(arc::Context& cx) {
         // send the actual request
         auto res = WebRequestsManager::get()->tryEnqueue(m_impl->m_request);
         if (!res) {
-            return m_impl->m_request->request->makeError(-1, "Failed to enqueue web request: queue is full");
+            return m_impl->m_request->request->makeError(GeodeWebError::QUEUE_FULL, "Failed to enqueue web request: queue is full");
         }
         m_impl->m_sent = true;
     }
@@ -1289,22 +1358,21 @@ std::optional<WebResponse> WebFuture::poll(arc::Context& cx) {
     auto result = std::move(rpoll).value();
     if (!result) {
         m_impl->m_finished = true;
-        return m_impl->m_request->request->makeError(-1, "Failed to receive web response: channel closed");
+        return m_impl->m_request->request->makeError(GeodeWebError::CHANNEL_CLOSED, "Failed to receive web response: channel closed");
     }
-    
+
     m_impl->m_finished = true;
     return std::move(result).unwrap();
 }
 
-WebFuture WebRequestsManager::enqueueAndWait(std::shared_ptr<WebRequest::Impl> data) {
-    return WebFuture(std::move(data));
-}
-
 void WebRequestsManager::cancel(std::shared_ptr<RequestData> data) {
-    (void) m_impl->m_canceltx->trySend(data->curl);
+    // set the cancel flag immediately so our progress callbacks never get called again
+    data->request->m_cancelled.store(true, std::memory_order::relaxed);
+
+    // cancel channel is unbounded, so this never fails
+    (void) m_impl->m_canceltx->trySend(std::move(data));
 }
 
 mpsc::SendResult<std::shared_ptr<WebRequestsManager::RequestData>> WebRequestsManager::tryEnqueue(std::shared_ptr<RequestData> data) {
     return m_impl->m_reqtx->trySend(std::move(data));
 }
-

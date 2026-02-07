@@ -1,6 +1,7 @@
 #pragma once
 
 #include <arc/runtime/Runtime.hpp>
+#include <arc/sync/oneshot.hpp>
 #include <arc/util/Result.hpp>
 #include <arc/task/CancellationToken.hpp>
 #include <Geode/utils/function.hpp>
@@ -59,25 +60,54 @@ arc::TaskHandle<void> spawn(Lambda&& lambda, Callback cb) {
     }(std::forward<Lambda>(lambda), std::move(cb)));
 }
 
-
 /// Spawns a future as an async task, can be a function that returns a future.
 template <typename F> requires (arc::Spawnable<std::decay_t<F>>)
 auto spawn(F&& f) {
     return runtime().spawn(std::forward<F>(f));
 }
 
+/// Queues the given function to run in the main thread as soon as possible
+/// and waits for it to complete. Returns null if the function failed to send the result.
+/// (although that usually cannot happen in practice)
+template <typename T> requires (!std::is_void_v<T>)
+arc::Future<std::optional<T>> waitForMainThread(Function<T()> func) {
+    auto [tx, rx] = arc::oneshot::channel<T>();
+
+    geode::queueInMainThread([func = std::move(func), tx = std::move(tx)] mutable {
+        (void) tx.send(func());
+    });
+
+    co_return (co_await rx.recv()).ok();
+}
+
+/// Queues the given function to run in the main thread as soon as possible
+/// and waits for it to complete. Returns false if the function failed to complete (e.g. due to exception)
+template <typename T> requires (std::is_void_v<T>)
+arc::Future<bool> waitForMainThread(Function<void()> func) {
+    auto [tx, rx] = arc::oneshot::channel<std::monostate>();
+
+    geode::queueInMainThread([func = std::move(func), tx = std::move(tx)] mutable {
+        func();
+        (void) tx.send({});
+    });
+
+    co_return (co_await rx.recv()).isOk();
+}
+
 /// Allows an async task to be spawned and then automatically aborted when the holder goes out of scope.
 template <typename Ret = void>
 class TaskHolder {
+    using NonVoid = std::conditional_t<std::is_void_v<Ret>, std::monostate, Ret>;
+    using Callback = std::conditional_t<std::is_void_v<Ret>, Function<void()>, Function<void(NonVoid)>>;
 public:
-    /// Spawns the given future, invoking the callback on completion.
+    /// Spawns the given future, invoking the callback in the main thread on completion.
     /// Lambdas that return a future are also accepted.
     template <typename F, typename Cb>
     void spawn(F&& future, Cb&& cb) {
         this->spawn("", std::forward<F>(future), std::forward<Cb>(cb));
     }
 
-    /// Spawns the given future, assigning a name to the task and invoking the callback on completion.
+    /// Spawns the given future, assigning a name to the task and invoking the callback in the main thread on completion.
     /// Lambdas that return a future are also accepted.
     template <typename F, typename Cb>
     void spawn(std::string name, F&& future, Cb&& cb) {
@@ -92,7 +122,7 @@ public:
 
     TaskHolder(TaskHolder const&) = delete;
     TaskHolder& operator=(TaskHolder const&) = delete;
-    
+
     TaskHolder(TaskHolder&& other) noexcept {
         *this = std::move(other);
     }
@@ -100,39 +130,60 @@ public:
     TaskHolder& operator=(TaskHolder&& other) noexcept {
         if (this != &other) {
             this->cancel();
-
-            m_handle = std::move(other.m_handle);
-            m_cancel = std::move(other.m_cancel);
-            other.m_cancel.reset();
+            m_state = std::move(other.m_state);
+            other.m_state = nullptr;
         }
         return *this;
     }
 
+    /// Terminates the task as soon as possible and ensures the callback will not be called.
+    /// This is optional and called automatically when destroying or spawning another task.
+    /// Does nothing if there is no pending task.
     void cancel() {
-        if (m_handle) {
-            m_cancel->cancel();
-            m_cancel.reset();
+        if (!m_state) return;
 
-            m_handle->abort();
-            m_handle.reset();
+        m_state->cancel();
+        m_state.reset();
+    }
+
+    /// Sets the name for the currently spawned task, for debugging purposes
+    void setName(std::string name) {
+        if (m_state && m_state->m_handle) {
+            m_state->m_handle->setName(std::move(name));
         }
     }
 
-    void setName(std::string name) {
-        if (m_handle) {
-            m_handle->setName(std::move(name));
-        }
+    /// Checks if the spawned task is still pending. This will return false
+    /// if no task is spawned, or if called inside the completion callback.
+    bool isPending() const {
+        return m_state && m_state->m_handle;
     }
 
 private:
-    std::optional<arc::TaskHandle<void>> m_handle;
-    std::shared_ptr<arc::CancellationToken> m_cancel;
-    
-    template <
-        typename F,
-        typename NonVoid = std::conditional_t<std::is_void_v<Ret>, std::monostate, Ret>,
-        typename Callback = std::conditional_t<std::is_void_v<Ret>, Function<void()>, Function<void(NonVoid)>>
-    >
+    struct SpawnedTaskState {
+        std::optional<arc::TaskHandle<void>> m_handle;
+        bool m_cancelled = false;
+
+        void cancel() {
+            m_cancelled = true;
+            if (m_handle) {
+                m_handle->abort();
+                m_handle.reset();
+            }
+        }
+
+        bool isCancelled() const {
+            return m_cancelled;
+        }
+
+        void complete() {
+            m_handle.reset(); // cleanup task
+        }
+    };
+
+    std::shared_ptr<SpawnedTaskState> m_state;
+
+    template <typename F>
     void spawnInner(std::string name, F&& future, Callback cb) {
         using FutureOutput = typename arc::SpawnableOutput<std::decay_t<F>>::type;
 
@@ -143,25 +194,28 @@ private:
 
         this->cancel();
 
-        m_cancel = std::make_shared<arc::CancellationToken>();
-        
+        auto state = std::make_shared<SpawnedTaskState>();
+
         if constexpr (std::is_void_v<Ret>) {
-            m_handle = geode::async::spawn(std::forward<F>(future), [cancel = m_cancel, cb = std::move(cb)] mutable {
-                if (cancel->isCancelled()) return;
+            state->m_handle = geode::async::spawn(std::forward<F>(future), [state, cb = std::move(cb)] mutable {
+                if (state->isCancelled()) return;
+                state->complete();
                 cb();
             });
         } else {
-            m_handle = geode::async::spawn(std::forward<F>(future), [cancel = m_cancel, cb = std::move(cb)](Ret val) mutable {
-                if (cancel->isCancelled()) return;
+            state->m_handle = geode::async::spawn(std::forward<F>(future), [state, cb = std::move(cb)](Ret val) mutable {
+                if (state->isCancelled()) return;
+                state->complete();
                 cb(std::move(val));
             });
-        }   
+        }
+
+        m_state = std::move(state);
 
         if (!name.empty()) {
-            m_handle->setName(std::move(name));
+            this->setName(std::move(name));
         }
     }
-
 };
 
 }

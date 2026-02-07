@@ -25,8 +25,9 @@ $on_mod(Loaded) {
 
     geode::Dispatch<std::string>("geode.test/test-garage-open").send("Hello from dispatch!");
 
-    auto handle = Dispatch<int>("test").listen([](int val) {
+    auto handle = Dispatch<int&>("test").listen([](int& val) {
         geode::log::info("Received dispatched int: {}", val);
+        val += 10;
         return val > 0;
     });
     
@@ -38,18 +39,26 @@ $on_mod(Loaded) {
         geode::log::info("Received dispatched float: {}", val);
     });
 
-    auto handle4 = Dispatch<int>("test").listen([](int val) {
+    auto handle4 = Dispatch<int&>("test").listen([](int& val) {
         geode::log::info("Received dispatched int4: {}", val);
+        val += 10;
     }, -5);
 
-    auto handle5 = Dispatch<int>("test").listen([](int val) {
+    auto handle5 = Dispatch<int&>("test").listen([](int& val) {
         geode::log::info("Received dispatched int5: {}", val);
+        val += 10;
     }, 5);
 
-    Dispatch<int>("test").send(5);
+    int value = 5;
+    geode::log::info("Value before dispatch: {}", value);
+    Dispatch<int&>("test").send(value);
+    geode::log::info("Value after dispatch: {}", value);
     Dispatch<int>("test2").send(7);
     Dispatch<float>("test").send(9);
-    Dispatch<int>("test").send(-5);
+    value = -35;
+    geode::log::info("Value before dispatch: {}", value);
+    Dispatch<int&>("test").send(value);
+    geode::log::info("Value after dispatch: {}", value);
 }
 
 static std::string s_receivedEvent;

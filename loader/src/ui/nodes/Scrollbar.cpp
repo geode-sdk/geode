@@ -9,8 +9,8 @@ class Scrollbar::Impl {
 public:
     Scrollbar* m_self = nullptr;
     CCScrollLayerExt* m_target = nullptr;
-    cocos2d::extension::CCScale9Sprite* m_track = nullptr;
-    cocos2d::extension::CCScale9Sprite* m_thumb = nullptr;
+    NineSlice* m_track = nullptr;
+    NineSlice* m_thumb = nullptr;
     cocos2d::CCPoint m_clickOffset{};
     float m_width = 0.f;
     bool m_resizeThumb = false;
@@ -169,12 +169,12 @@ bool Scrollbar::Impl::init(CCScrollLayerExt* target) {
     m_target = target;
 
     if (cocos::fileExistsInSearchPaths("scrollbar.png"_spr)) {
-        m_track = CCScale9Sprite::create("scrollbar.png"_spr);
+        m_track = NineSlice::create("scrollbar.png"_spr);
         m_track->setColor({ 0, 0, 0 });
         m_track->setOpacity(150);
         m_track->setScale(.8f);
 
-        m_thumb = CCScale9Sprite::create("scrollbar.png"_spr);
+        m_thumb = NineSlice::create("scrollbar.png"_spr);
         m_thumb->setScale(.4f);
 
         m_width = 8.f;
@@ -183,11 +183,11 @@ bool Scrollbar::Impl::init(CCScrollLayerExt* target) {
         m_hoverHighlight = true;
     }
     else {
-        m_track = CCScale9Sprite::create("slidergroove.png");
+        m_track = NineSlice::create("slidergroove.png");
         m_track->setRotation(90);
         m_track->setScale(.8f);
 
-        m_thumb = CCScale9Sprite::create("sliderthumb.png");
+        m_thumb = NineSlice::create("sliderthumb.png");
         m_thumb->setScale(.6f);
 
         m_width = 12.f;
@@ -230,8 +230,37 @@ void Scrollbar::registerWithTouchDispatcher() {
 void Scrollbar::draw() { 
     m_impl->draw(); 
 }
-bool Scrollbar::init(CCScrollLayerExt* target) { return m_impl->init(target); }
-void Scrollbar::setTarget(CCScrollLayerExt* list) { m_impl->setTarget(list); }
+bool Scrollbar::init(CCScrollLayerExt* target) {
+    return m_impl->init(target);
+}
+
+bool Scrollbar::isTouching() {
+    return m_impl->m_touchDown;
+}
+
+CCScrollLayerExt* Scrollbar::getTarget() {
+    return m_impl->m_target;
+}
+
+NineSlice* Scrollbar::getTrack() {
+    return m_impl->m_track;
+}
+
+NineSlice* Scrollbar::getThumb() {
+    return m_impl->m_thumb;
+}
+
+void Scrollbar::setTarget(CCScrollLayerExt* list) {
+    m_impl->setTarget(list);
+}
+
+void Scrollbar::setTrack(NineSlice* track) {
+    m_impl->m_track = track;
+}
+
+void Scrollbar::setThumb(NineSlice* thumb) {
+    m_impl->m_thumb = thumb;
+}
 
 Scrollbar* Scrollbar::create(CCScrollLayerExt* target) {
     auto ret = new Scrollbar;

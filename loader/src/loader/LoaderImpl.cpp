@@ -70,10 +70,10 @@ void Loader::Impl::removeDirectories() {
     log::debug("Removing unnecessary directories");
     // clean up of stale data from Geode v2
     if(std::filesystem::exists(dirs::getGeodeDir() / "index")) {
-        std::thread([] {
+        async::runtime().spawnBlocking<void>([] {
             std::error_code ec;
             std::filesystem::remove_all(dirs::getGeodeDir() / "index", ec);
-        }).detach();
+        });
     }
 }
 
@@ -484,7 +484,8 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
     }
     else {
         auto nest = log::saveNest();
-        std::thread([=, this]() {
+
+        async::runtime().spawnBlocking<void>([=, this]() {
             thread::setName("Mod Unzip");
             log::loadNest(nest);
             auto res = unzipFunction();
@@ -501,7 +502,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
                 loadFunction();
                 log::loadNest(prevNest);
             });
-        }).detach();
+        });
     }
 }
 
@@ -1016,7 +1017,7 @@ bool Loader::Impl::loadHooks() {
 
 void Loader::Impl::queueInMainThread(ScheduledFunction&& func) {
     std::lock_guard<std::mutex> lock(m_mainThreadMutex);
-    m_mainThreadQueue.push_back(std::forward<ScheduledFunction>(func));
+    m_mainThreadQueue.push_back(std::move(func));
 }
 
 void Loader::Impl::executeMainThreadQueue() {

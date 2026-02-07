@@ -3,6 +3,7 @@
 #include <io.h>
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/general.hpp>
+#include <arc/iocp/IocpPipe.hpp>
 
 using namespace geode::prelude;
 
@@ -35,29 +36,6 @@ void setupConsole(bool forceUseEscapeCodes = false) {
     }
 }
 
-struct stdData {
-    OVERLAPPED m_overlap{};
-    ZStringView m_name;
-    const Severity m_sev;
-    std::string& m_cur;
-    char* m_buf;
-    stdData(ZStringView name, const Severity sev, std::string& cur, char* buf) :
-        m_name(name), m_sev(sev), m_cur(cur), m_buf(buf) { }
-};
-void WINAPI CompletedReadRoutine(DWORD error, DWORD read, LPOVERLAPPED overlap) {
-    auto* o = reinterpret_cast<stdData*>(overlap);
-    for (auto i = 0; i < read && !error; i++) {
-        if (o->m_buf[i] != '\n') {
-            if (o->m_buf[i] != '\r')
-                o->m_cur += o->m_buf[i];
-            continue;
-        }
-        log::Logger::get()->push(o->m_sev, 0, o->m_cur, "", o->m_name, nullptr);
-        o->m_cur.clear();
-    }
-    delete o;
-}
-
 bool redirectStd(FILE* which, ZStringView name, const Severity sev) {
     auto pipeName = utils::string::utf8ToWide(fmt::format(R"(\\.\pipe\geode-{}-{})", name, GetCurrentProcessId()));
     auto pipe = CreateNamedPipeW(
@@ -70,25 +48,50 @@ bool redirectStd(FILE* which, ZStringView name, const Severity sev) {
         log::warn("Failed to create pipe, {} will be unavailable", name);
         return false;
     }
-    std::thread([pipe, name, sev]() {
-        thread::setName(fmt::format("{} Read Thread", name));
-        auto event = CreateEventW(nullptr, false, false, nullptr);
-        std::string cur;
-        while (true) {
-            char buf[1024];
-            auto* data = new stdData(name, sev, cur, buf);
-            data->m_overlap.hEvent = event;
-            ReadFileEx(pipe, buf, 1024, &data->m_overlap, &CompletedReadRoutine);
-            auto res = WaitForSingleObjectEx(event, INFINITE, true);
-            if (!res)
-                continue;
-        }
-    }).detach();
+
     FILE* yum;
     if (freopen_s(&yum, utils::string::wideToUtf8(pipeName).c_str(), "w", which)) {
         log::warn("Failed to reopen file, {} will be unavailable", name);
         return false;
     }
+
+    async::spawn([sev, name, handle = pipe] mutable -> arc::Future<> {
+        auto piperes = arc::IocpPipe::open(handle);
+        if (!piperes) {
+            log::warn("Failed to open IocpPipe, {} will be unavailable: {}", name, piperes.unwrapErr());
+            co_return;
+        }
+        auto pipe = std::move(piperes).unwrap();
+
+        std::string line;
+
+        while (true) {
+            char buf[1024];
+            auto res = co_await pipe.read(buf, 1024);
+
+            if (!res) {
+                log::warn("Error reading from {} pipe: {}", name, res.unwrapErr());
+                break;
+            }
+
+            // often we get tiny reads that may not be a whole line yet, so buffer until a full line
+            auto readBytes = res.unwrap();
+            std::string_view view{buf, readBytes};
+
+            for (char c : view) {
+                if (c == '\r') continue;
+                if (c == '\n') {
+                    // complete line
+                    log::Logger::get()->push(sev, 0, line, "", name, nullptr);
+                    line.clear();
+                    continue;
+                }
+                
+                line.push_back(c);
+            }
+        }
+    }).setName(fmt::format("{} Read Task", name));
+
     return true;
 }
 

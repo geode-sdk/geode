@@ -154,7 +154,7 @@ namespace geode {
      * @param func the function to queue
     */
     inline void queueInMainThread(ScheduledFunction&& func) {
-        Loader::get()->queueInMainThread(std::forward<ScheduledFunction>(func));
+        Loader::get()->queueInMainThread(std::move(func));
     }
 
     /**

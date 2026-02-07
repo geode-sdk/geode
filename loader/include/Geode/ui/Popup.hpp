@@ -6,6 +6,7 @@
 #include <Geode/utils/ZStringView.hpp>
 #include <Geode/utils/function.hpp>
 #include <Geode/ui/Layout.hpp>
+#include <Geode/ui/NineSlice.hpp>
 
 namespace geode {
     class GEODE_DLL Popup : public FLAlertLayer {
@@ -20,7 +21,7 @@ namespace geode {
 
     protected:
         cocos2d::CCSize m_size;
-        cocos2d::extension::CCScale9Sprite* m_bgSprite;
+        NineSlice* m_bgSprite;
         cocos2d::CCLabelBMFont* m_title = nullptr;
         CCMenuItemSpriteExtra* m_closeBtn;
 
@@ -34,6 +35,10 @@ namespace geode {
          */
         bool init(
             float width, float height, char const* bg = "GJ_square01.png",
+            cocos2d::CCRect bgRect = {}
+        );
+        bool init(
+            cocos2d::CCSize size, char const* bg = "GJ_square01.png",
             cocos2d::CCRect bgRect = {}
         );
 
