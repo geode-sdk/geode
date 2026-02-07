@@ -1,11 +1,9 @@
 #pragma once
 
-#include "OverlayManager.hpp"
 #include <cocos2d.h>
 #include <cocos-ext.h>
 #include <Geode/binding/TextAlertPopup.hpp>
 #include <Geode/ui/NineSlice.hpp>
-#include "../utils/cocos.hpp"
 
 namespace geode {
     constexpr auto NOTIFICATION_DEFAULT_TIME = 1.8f;
@@ -24,8 +22,6 @@ namespace geode {
         class Impl;
         std::unique_ptr<Impl> m_impl;
     protected:
-        static std::vector<geode::Ref<Notification>> s_queue;
-
         Notification();
         ~Notification();
 

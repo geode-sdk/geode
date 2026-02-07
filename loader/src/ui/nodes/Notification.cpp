@@ -7,7 +7,7 @@ using namespace geode::prelude;
 constexpr auto NOTIFICATION_FADEIN = .3f;
 constexpr auto NOTIFICATION_FADEOUT = .5f;
 
-std::vector<Ref<Notification>> Notification::s_queue;
+static std::deque<Ref<Notification>> s_queue;
 
 class Notification::Impl final {
 public:
@@ -73,8 +73,8 @@ void Notification::showNextNotification() {
     OverlayManager::get()->removeChild(this);
     this->removeFromParent();
 
-    // remove self from front of queue and show next popup
-    s_queue.erase(s_queue.begin());
+    // remove self from front of queue and show next popup if it exists
+    s_queue.pop_front();
 
     if (s_queue.size() != 0) {
         s_queue.at(0)->show();
@@ -268,4 +268,3 @@ void Notification::cancel() {
         s_queue.erase(index);
     }
 }
-
