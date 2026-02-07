@@ -403,6 +403,28 @@ LRESULT CALLBACK GeodeRawInputWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
     return 0;
 }
 
+class DummyEGLView : public CCEGLView {
+public:
+    void onGLFWMouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+        CCEGLView::onGLFWMouseScrollCallback(window, xoffset, yoffset);
+    }
+
+    void onGLFWCharCallback(GLFWwindow* window, unsigned int c) {
+        CCEGLView::onGLFWCharCallback(window, c);
+    }
+};
+
+static void GLFWScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+    if (ScrollWheelEvent().send(xoffset, yoffset) == ListenerResult::Stop) {
+        return;
+    }
+    static_cast<DummyEGLView*>(CCEGLView::get())->onGLFWMouseScrollCallback(window, xoffset, yoffset);
+}
+
+static void GLFWCharCallback(GLFWwindow* window, unsigned int c) {
+    static_cast<DummyEGLView*>(CCEGLView::get())->onGLFWCharCallback(window, c);
+}
+
 struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
     void pumpRawInput() {
         if (GetForegroundWindow() != g_mainWindowHWND) {
@@ -560,44 +582,22 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
             );
         }
     }
+
+    void setupWindow(CCRect rect) {
+        CCEGLView::setupWindow(rect);
+
+        queueInMainThread([] {
+            g_rawInputHWND = FindWindowW(L"GD_RawInput", nullptr);
+            g_mainWindowHWND = WindowFromDC(wglGetCurrentDC());
+
+            auto window = CCEGLView::get()->m_pMainWindow;
+            *reinterpret_cast<GLFWscrollfun*>(reinterpret_cast<uintptr_t>(window) + 0x340) = &GLFWScrollCallback;
+            *reinterpret_cast<GLFWcharfun*>(reinterpret_cast<uintptr_t>(window) + 0x350) = &GLFWCharCallback;
+
+            g_originalRawInputProc = reinterpret_cast<WNDPROC>(SetWindowLongPtrW(
+                g_rawInputHWND, GWLP_WNDPROC,
+                reinterpret_cast<LONG_PTR>(GeodeRawInputWndProc)
+            ));
+        });
+    }
 };
-
-class DummyEGLView : public CCEGLView {
-public:
-    void onGLFWMouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
-        CCEGLView::onGLFWMouseScrollCallback(window, xoffset, yoffset);
-    }
-
-    void onGLFWCharCallback(GLFWwindow* window, unsigned int c) {
-        CCEGLView::onGLFWCharCallback(window, c);
-    }
-};
-
-static void GLFWScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
-    if (ScrollWheelEvent().send(xoffset, yoffset) == ListenerResult::Stop) {
-        return;
-    }
-    static_cast<DummyEGLView*>(CCEGLView::get())->onGLFWMouseScrollCallback(window, xoffset, yoffset);
-}
-
-static void GLFWCharCallback(GLFWwindow* window, unsigned int c) {
-    static_cast<DummyEGLView*>(CCEGLView::get())->onGLFWCharCallback(window, c);
-}
-
-$execute {
-    queueInMainThread([] {
-        g_rawInputHWND = FindWindowW(L"GD_RawInput", nullptr);
-        g_mainWindowHWND = WindowFromDC(wglGetCurrentDC());
-
-        auto window = CCEGLView::get()->m_pMainWindow;
-        auto** glfwScrollCallbackPtr = reinterpret_cast<GLFWscrollfun*>(reinterpret_cast<uintptr_t>(window) + 0x340);
-        *glfwScrollCallbackPtr = &GLFWScrollCallback;
-
-        auto** glfwCharCallbackPtr = reinterpret_cast<GLFWcharfun*>(reinterpret_cast<uintptr_t>(window) + 0x350);
-        *glfwCharCallbackPtr = &GLFWCharCallback;
-
-        g_originalRawInputProc = reinterpret_cast<WNDPROC>(SetWindowLongPtrW(
-            g_rawInputHWND, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(GeodeRawInputWndProc)
-        ));
-    });
-}
