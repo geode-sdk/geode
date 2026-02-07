@@ -34,7 +34,7 @@ namespace geode {
             : native(native), timestamp(timestamp), key(key), action(action), modifiers(mods) {}
     };
 
-    struct KeyboardInputEvent final : GlobalEvent<KeyboardInputEvent, bool(KeyboardInputData&), bool(KeyboardInputData&), cocos2d::enumKeyCodes> {
+    struct KeyboardInputEvent final : GlobalEvent<KeyboardInputEvent, bool(KeyboardInputData&), cocos2d::enumKeyCodes> {
         using GlobalEvent::GlobalEvent;
     };
 
@@ -93,6 +93,4 @@ namespace geode {
     struct ScrollWheelEvent final : SimpleEvent<MouseMoveEvent, double, double> {
         using SimpleEvent::SimpleEvent;
     };
-
-    // TODO: Add controller/touch input events?
 }

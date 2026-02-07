@@ -189,7 +189,6 @@ static enumKeyCodes keyToKeyCode(int code) {
     keyCode = data.key;
     modifiers = data.modifiers;
 
-    // TODO: Find CCIMEDispatcher::sharedDispatcher and reimplement CCIMEDispatcher::hasDelegate
     if (keyCode != KEY_Unknown && (!imeDispatcher->hasDelegate() || keyCode == KEY_Escape || keyCode == KEY_Enter)) {
         keyboardDispatcher->dispatchKeyboardMSG(keyCode, isDown, isRepeat, timestamp);
     }
