@@ -1049,7 +1049,7 @@ class WebRequestsManager::Impl {
 public:
     CURLM* m_multiHandle;
 
-    std::optional<arc::TaskHandle<void>> m_worker;
+    arc::TaskHandle<void> m_worker;
     std::optional<arc::mpsc::Sender<std::shared_ptr<RequestData>>> m_reqtx;
     std::optional<arc::mpsc::Sender<std::shared_ptr<RequestData>>> m_canceltx;
     arc::CancellationToken m_cancel;
@@ -1105,17 +1105,17 @@ public:
                 );
             }
         });
-        m_worker->setName("Geode Web Worker");
+        m_worker.setName("Geode Web Worker");
     }
 
     // Note for future people: this is currently leaked because cleanup is unsafe in statics
     // if this becomes not leaked in the future pls remember to store arc runtime as weakptr
-    // or m_worker->abort will likely invoke ub
+    // or m_worker.abort will likely invoke ub
     ~Impl() {
         m_cancel.cancel();
 
         if (m_worker) {
-            m_worker->abort();
+            m_worker.abort();
         }
 
         // clean up remaining requests

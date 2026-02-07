@@ -50,7 +50,7 @@ namespace geode::log {
         std::atomic<Severity> m_consoleLevel{Severity::Debug};
         std::atomic<Severity> m_fileLevel{Severity::Debug};
 
-        std::optional<arc::TaskHandle<void>> m_logThread;
+        arc::TaskHandle<void> m_logThread;
         asp::WeakPtr<arc::Runtime> m_runtime;
         arc::CancellationToken m_cancel;
         arc::Notify m_syncFlushNotify;
@@ -80,7 +80,7 @@ namespace geode::log {
         void deleteOldLogs(std::chrono::duration<Rep, Period> const& maxAge) {
             this->deleteOldLogs(std::chrono::duration_cast<std::chrono::hours>(maxAge).count());
         }
-        
+
         void shutdownThread();
         void flush();
         void outputLog(BorrowedLog const& log, bool dontFlush = false);
