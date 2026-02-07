@@ -527,14 +527,14 @@ void Loader::Impl::findProblems() {
         if (!res) {
             this->addProblem({ LoadProblem::Type::Outdated, mod, res.unwrapErr() });
             log::error("{}", res.unwrapErr());
-            return;
+            continue;
         }
 
         auto geodeVerRes = mod->getMetadata().checkGeodeVersion();
         if (!geodeVerRes) {
             this->addProblem({ LoadProblem::Type::Outdated, mod, geodeVerRes.unwrapErr() });
             log::error("{}", geodeVerRes.unwrapErr());
-            return;
+            continue;
         }
 
         if (mod->getMetadata().hasErrors()) {

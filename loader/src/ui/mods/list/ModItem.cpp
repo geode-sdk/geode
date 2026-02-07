@@ -803,11 +803,11 @@ void ModItem::onViewError(CCObject*) {
             std::string title;
             switch (problem->type) {
                 default:
-                case LoadProblem::Type::Unknown: title = "Unknown error";
-                case LoadProblem::Type::InvalidGeodeFile: title = "Invalid Geode File";
-                case LoadProblem::Type::MissingDependencies: title = "Missing dependencies";
-                case LoadProblem::Type::Outdated: title = "Outdated";
-                case LoadProblem::Type::HasIncompatibilities: title = "Incompatiblities";
+                case LoadProblem::Type::Unknown: title = "Unknown error"; break;
+                case LoadProblem::Type::InvalidGeodeFile: title = "Invalid Geode File"; break;
+                case LoadProblem::Type::MissingDependencies: title = "Missing dependencies"; break;
+                case LoadProblem::Type::Outdated: title = "Outdated"; break;
+                case LoadProblem::Type::HasIncompatibilities: title = "Incompatiblities"; break;
             }
             FLAlertLayer::create(title.c_str(), problem->message, "OK")->show();
         }
