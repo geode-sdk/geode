@@ -18,20 +18,7 @@ namespace geode {
         ProgressBar();
         ~ProgressBar();
 
-        /**
-         * Set up `Level`/`Slider` progress bar style
-         *
-         * @note This is mainly to avoid repeating code since the only difference between these is two sprite names
-         *
-         * @param barSpr Sprite of the bar
-         * @param fillSpr Sprite of the fill
-         */
-        void setupBarStyle(const char* barSpr, const char* fillSpr);
-
-        // Set up `Solid` progress bar style
-        void setupSolidStyle();
-
-        // Reloads the style of the progress bar, calls either `setupBarStyle` or `setupSolidStyle` internally depending on style
+        // Reloads the style of the progress bar
         void reloadStyle();
 
         bool init(ProgressBarStyle style);
