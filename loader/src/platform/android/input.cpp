@@ -74,10 +74,10 @@ namespace {
         {AKEYCODE_F12, cocos2d::KEY_F12},
         {AKEYCODE_SHIFT_LEFT, cocos2d::KEY_LeftShift},
         {AKEYCODE_CTRL_LEFT, cocos2d::KEY_LeftControl},
-        {AKEYCODE_ALT_LEFT, cocos2d::KEY_Alt},
+        {AKEYCODE_ALT_LEFT, cocos2d::KEY_LeftMenu},
         {AKEYCODE_SHIFT_RIGHT, cocos2d::KEY_RightShift},
         {AKEYCODE_CTRL_RIGHT, cocos2d::KEY_RightContol}, // sic
-        {AKEYCODE_ALT_RIGHT, cocos2d::KEY_Alt},
+        {AKEYCODE_ALT_RIGHT, cocos2d::KEY_RightMenu},
         {AKEYCODE_BUTTON_A, cocos2d::CONTROLLER_A},
         {AKEYCODE_BUTTON_B, cocos2d::CONTROLLER_B},
         {AKEYCODE_BUTTON_X, cocos2d::CONTROLLER_X},
