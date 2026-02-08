@@ -232,20 +232,25 @@ arc::Future<file::PickResult> file::pick(file::PickMode mode, file::FilePickOpti
             break;
     }
 
-    JniMethodInfo t;
-    if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", method.c_str(), "(Ljava/lang/String;)Z")) {
-        jstring stringArg1 = t.env->NewStringUTF(
-            utils::string::pathToString(options.defaultPath.value_or(std::filesystem::path()).filename()).c_str()
-        );
+    auto result = co_await waitForMainThread<Result<>>([&] -> Result<> {
+        JniMethodInfo t;
+        if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", method.c_str(), "(Ljava/lang/String;)Z")) {
+            jstring stringArg1 = t.env->NewStringUTF(
+                utils::string::pathToString(options.defaultPath.value_or(std::filesystem::path()).filename()).c_str()
+            );
 
-        jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
+            jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
 
-        t.env->DeleteLocalRef(stringArg1);
-        t.env->DeleteLocalRef(t.classID);
-        if (!result) {
-            co_return Err("Failed to open file picker");
+            t.env->DeleteLocalRef(stringArg1);
+            t.env->DeleteLocalRef(t.classID);
+            if (!result) {
+                return Err("Failed to open file picker");
+            }
+            return Ok();
         }
-    }
+        return Err("Failed to find file picker method");
+    });
+    GEODE_CO_UNWRAP(result.value());
 
     auto [tx, rx] = arc::oneshot::channel<file::PickResult>();
     s_fileTx = std::move(tx);
