@@ -339,7 +339,7 @@ void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
                 auto modMetadata = ModMetadataImpl::createInvalidMetadata(
                     entry.path(),
                     "A mod with the same ID is already present.",
-                    // Passing `nullopt` to `createInvalidMetadata` generates a 
+                    // Passing `nullopt` to `createInvalidMetadata` generates a
                     // random non-conflicting ID
                     std::nullopt
                 );
@@ -488,7 +488,6 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
         auto nest = log::saveNest();
 
         async::runtime().spawnBlocking<void>([=, this]() {
-            thread::setName("Mod Unzip");
             log::loadNest(nest);
             auto res = unzipFunction();
             this->queueInMainThread([=, this, res = std::move(res)]() {
@@ -549,7 +548,7 @@ void Loader::Impl::findProblems() {
         log::debug("{}", id);
         log::NestScope nest;
 
-        // These are all for collecting up a nice error message that has all the 
+        // These are all for collecting up a nice error message that has all the
         // same categories of errors bunched up
         std::vector<std::string> noninstalledDependencies;
         std::vector<std::string> disabledDependencies;
@@ -562,7 +561,7 @@ void Loader::Impl::findProblems() {
                 continue;
             }
             if (dep.isBreaking()) {
-                // todo: which direction is this relationship in? 
+                // todo: which direction is this relationship in?
                 // todo: if mod A marks B as breaking, is B the one that shouldn't be loaded?
                 breakingIncompatibilities.push_back(dep.getMod()->getName());
                 log::warn("{} breaks {} {}", id, dep.getID(), dep.getVersion());
@@ -575,7 +574,7 @@ void Loader::Impl::findProblems() {
         // Collect missing required dependencies
         for (auto const& dep : mod->getMetadata().getDependencies()) {
             if (
-                !dep.isRequired() || 
+                !dep.isRequired() ||
                 (dep.getMod() && dep.getMod()->isLoaded() && dep.getVersion().compare(dep.getMod()->getVersion()))
             ) {
                 continue;
@@ -591,7 +590,7 @@ void Loader::Impl::findProblems() {
                 }
                 else if (dep.getVersion().compareWithReason(installedDependency->getVersion()) == VersionCompareResult::TooOld) {
                     outdatedDependencies.push_back(fmt::format(
-                        "{} ({} -> {})", 
+                        "{} ({} -> {})",
                         installedDependency->getName(),
                         installedDependency->getVersion(),
                         dep.getVersion()
@@ -621,7 +620,7 @@ void Loader::Impl::findProblems() {
             }) {
                 if (mods.empty()) continue;
                 if (message.empty()) {
-                    // Incompatibilities have a different message because 
+                    // Incompatibilities have a different message because
                     // they're not missing dependencies
                     if (whatToDo == "incompatible") {
                         message = fmt::format(
@@ -640,14 +639,14 @@ void Loader::Impl::findProblems() {
                 }
                 else {
                     message += "\n";
-                    
-                    // Enclose missing dependencies after incompatibilities in 
-                    // parentheses since those aren't the main point of the 
+
+                    // Enclose missing dependencies after incompatibilities in
+                    // parentheses since those aren't the main point of the
                     // error message
                     message += (breakingIncompatibilities.size() ? "(" : "");
-                    
-                    // If the first sentence was about an incompatibility, we 
-                    // need to have the next sentence specify that we are now 
+
+                    // If the first sentence was about an incompatibility, we
+                    // need to have the next sentence specify that we are now
                     // listing dependencies
                     if (lastWasIncompatible) {
                         message += fmt::format(
@@ -666,10 +665,10 @@ void Loader::Impl::findProblems() {
                 }
             }
             this->addProblem({
-                // Incompatibilities take precedence since the mod won't ever 
+                // Incompatibilities take precedence since the mod won't ever
                 // be loadable even if you get the dependencies
-                breakingIncompatibilities.size() ? 
-                    LoadProblem::Type::HasIncompatibilities : 
+                breakingIncompatibilities.size() ?
+                    LoadProblem::Type::HasIncompatibilities :
                     LoadProblem::Type::MissingDependencies,
                 mod, message
             });
@@ -837,7 +836,7 @@ void Loader::Impl::continueRefreshModGraph() {
             }
             m_loadingState = LoadingState::Problems;
             [[fallthrough]];
-            
+
         case LoadingState::Problems:
             log::info("Finding problems");
             {
