@@ -59,7 +59,7 @@ namespace geode {
         AndroidTouchInput(std::vector<Data> touches, Type type);
 
         /** Touch information for all pointers. For most events, only the first pointer is considered. */
-        std::vector<Data> touches() const;
+        std::vector<Data> const& touches() const;
         Type type() const;
 
     private:
@@ -86,7 +86,7 @@ namespace geode {
         AndroidJoystickInput(std::vector<Data> packets);
 
         /** Batched joystick data for the current frame, where the last item in the vector is the current position of each analog input. */
-        std::vector<Data> packets() const;
+        std::vector<Data> const& packets() const;
 
     private:
         std::vector<Data> m_packets;

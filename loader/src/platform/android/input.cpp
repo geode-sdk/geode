@@ -1,11 +1,10 @@
 #include <Geode/utils/AndroidEvent.hpp>
+#include <Geode/utils/Keyboard.hpp>
 #include <Geode/Prelude.hpp>
-
-#include <unordered_map>
-
 #include <cocos2d.h>
 #include <android/keycodes.h>
 #include <jni.h>
+#include <unordered_map>
 
 using namespace geode::prelude;
 
@@ -75,10 +74,10 @@ namespace {
         {AKEYCODE_F12, cocos2d::KEY_F12},
         {AKEYCODE_SHIFT_LEFT, cocos2d::KEY_LeftShift},
         {AKEYCODE_CTRL_LEFT, cocos2d::KEY_LeftControl},
-        {AKEYCODE_ALT_LEFT, cocos2d::KEY_Alt},
+        {AKEYCODE_ALT_LEFT, cocos2d::KEY_LeftMenu},
         {AKEYCODE_SHIFT_RIGHT, cocos2d::KEY_RightShift},
         {AKEYCODE_CTRL_RIGHT, cocos2d::KEY_RightContol}, // sic
-        {AKEYCODE_ALT_RIGHT, cocos2d::KEY_Alt},
+        {AKEYCODE_ALT_RIGHT, cocos2d::KEY_RightMenu},
         {AKEYCODE_BUTTON_A, cocos2d::CONTROLLER_A},
         {AKEYCODE_BUTTON_B, cocos2d::CONTROLLER_B},
         {AKEYCODE_BUTTON_X, cocos2d::CONTROLLER_X},
@@ -142,7 +141,7 @@ namespace {
         }
     }
 
-    void onKeyDown(bool isController, jint keycode, jint modifiers, bool isRepeat) {
+    void onKeyDown(bool isController, jint keycode, jint modifiers, bool isRepeat, double timestamp) {
         if (keycode != AKEYCODE_BACK && keycode != AKEYCODE_MENU) {
             auto keyboard_dispatcher = cocos2d::CCDirector::sharedDirector()->getKeyboardDispatcher();
             auto translated_code = translateAndroidKeyCodeToWindows(keycode, isController);
@@ -151,10 +150,33 @@ namespace {
             auto isCtrlPressed = modifiers & 0x1000;
             auto isAltPressed = modifiers & 0x2;
 
-            keyboard_dispatcher->updateModifierKeys(isShiftPressed, isCtrlPressed, isAltPressed, false);
+            KeyboardInputData data(
+                translated_code,
+                isRepeat ? KeyboardInputData::Action::Repeat : KeyboardInputData::Action::Press,
+                { static_cast<uint64_t>(keycode), 0 },
+                timestamp,
+                (isShiftPressed ? KeyboardInputData::Mods_Shift : KeyboardInputData::Mods_None) |
+                (isCtrlPressed ? KeyboardInputData::Mods_Control : KeyboardInputData::Mods_None) |
+                (isAltPressed ? KeyboardInputData::Mods_Alt : KeyboardInputData::Mods_None)
+            );
 
-            // TODO: v5
-            keyboard_dispatcher->dispatchKeyboardMSG(translated_code, true, isRepeat, 0.0);
+            if (KeyboardInputEvent(translated_code).send(data) != ListenerResult::Propagate) {
+                return;
+            }
+
+            keyboard_dispatcher->updateModifierKeys(
+                data.modifiers & KeyboardInputData::Mods_Shift,
+                data.modifiers & KeyboardInputData::Mods_Control,
+                data.modifiers & KeyboardInputData::Mods_Alt,
+                false
+            );
+
+            keyboard_dispatcher->dispatchKeyboardMSG(
+                data.key,
+                data.action != KeyboardInputData::Action::Release,
+                data.action == KeyboardInputData::Action::Repeat,
+                data.timestamp
+            );
         } else {
             auto keypad_dispatcher = cocos2d::CCDirector::sharedDirector()->getKeypadDispatcher();
             if (keycode == AKEYCODE_BACK) {
@@ -165,7 +187,7 @@ namespace {
         }
     }
 
-    void onKeyUp(bool isController, jint keycode, jint modifiers) {
+    void onKeyUp(bool isController, jint keycode, jint modifiers, double timestamp) {
         // back/menu keys
         if (keycode != AKEYCODE_BACK && keycode != AKEYCODE_MENU) {
             auto keyboard_dispatcher = cocos2d::CCDirector::sharedDirector()->getKeyboardDispatcher();
@@ -175,15 +197,33 @@ namespace {
             auto isCtrlPressed = modifiers & 0x1000;
             auto isAltPressed = modifiers & 0x2;
 
+            KeyboardInputData data(
+                translated_code,
+                KeyboardInputData::Action::Release,
+                { static_cast<uint64_t>(keycode), 0 },
+                timestamp,
+                (isShiftPressed ? KeyboardInputData::Mods_Shift : KeyboardInputData::Mods_None) |
+                (isCtrlPressed ? KeyboardInputData::Mods_Control : KeyboardInputData::Mods_None) |
+                (isAltPressed ? KeyboardInputData::Mods_Alt : KeyboardInputData::Mods_None)
+            );
+
+            if (KeyboardInputEvent(translated_code).send(data) != ListenerResult::Propagate) {
+                return;
+            }
+
             keyboard_dispatcher->updateModifierKeys(
-                isShiftPressed,
-                isCtrlPressed,
-                isAltPressed,
+                data.modifiers & KeyboardInputData::Mods_Shift,
+                data.modifiers & KeyboardInputData::Mods_Control,
+                data.modifiers & KeyboardInputData::Mods_Alt,
                 false
             );
 
-            // TODO: v5
-            keyboard_dispatcher->dispatchKeyboardMSG(translated_code, false, false, 0.0);
+            keyboard_dispatcher->dispatchKeyboardMSG(
+                data.key,
+                data.action != KeyboardInputData::Action::Release,
+                data.action == KeyboardInputData::Action::Repeat,
+                data.timestamp
+            );
         }
     }
 
@@ -220,16 +260,17 @@ namespace {
 extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_internalKeyEvent(
     JNIEnv* env, jobject, jlong timestamp, jint deviceId, jint eventSource, jint keyCode, jint modifiers, jboolean isDown, jint repeatCount
 ) {
-    if (AndroidRichInputEvent().send(std::move(timestamp), std::move(deviceId), std::move(eventSource), AndroidKeyInput(keyCode, modifiers, isDown, repeatCount)) != ListenerResult::Propagate) {
+    if (AndroidRichInputEvent().send(timestamp, deviceId, eventSource, AndroidKeyInput(keyCode, modifiers, isDown, repeatCount)) != ListenerResult::Propagate) {
         return;
     }
 
     auto isController = eventSource == 0x00000401 || eventSource == 0x01000010;
+    double timeInSeconds = static_cast<double>(timestamp) / 1'000'000.0;
 
     if (isDown) {
-        onKeyDown(isController, keyCode, modifiers, repeatCount > 0);
+        onKeyDown(isController, keyCode, modifiers, repeatCount > 0, timeInSeconds);
     } else {
-        onKeyUp(isController, keyCode, modifiers);
+        onKeyUp(isController, keyCode, modifiers, timeInSeconds);
     }
 }
 
@@ -239,7 +280,11 @@ constexpr auto g_scrollFactor = -13.0f;
 extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_internalScrollEvent(
     JNIEnv* env, jobject, jlong timestamp, jint deviceId, jint eventSource, jfloat scrollX, jfloat scrollY
 ) {
-    if (AndroidRichInputEvent().send(std::move(timestamp), std::move(deviceId), std::move(eventSource), AndroidScrollInput(scrollX, scrollY)) != ListenerResult::Propagate) {
+    if (AndroidRichInputEvent().send(timestamp, deviceId, eventSource, AndroidScrollInput(scrollX, scrollY)) != ListenerResult::Propagate) {
+        return;
+    }
+
+    if (ScrollWheelEvent().send(scrollX, scrollY) == ListenerResult::Stop) {
         return;
     }
 
@@ -264,25 +309,25 @@ extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inter
 
     auto type = static_cast<AndroidTouchInput::Type>(eventType);
 
-    if (AndroidRichInputEvent().send(std::move(timestamp), std::move(deviceId), std::move(eventSource), AndroidTouchInput(touches, type)) != ListenerResult::Propagate) {
+    if (AndroidRichInputEvent().send(timestamp, deviceId, eventSource, AndroidTouchInput(std::move(touches), type)) != ListenerResult::Propagate) {
         return;
     }
 
+    double timeInSeconds = static_cast<double>(timestamp) / 1'000'000.0;
     auto glView = cocos2d::CCDirector::sharedDirector()->getOpenGLView();
     switch (type) {
         case AndroidTouchInput::Type::Began:
             // idArr.size() should == 1, but we're going to be passing this array anyways so it doesn't matter
-            // TODO: v5
-            glView->handleTouchesBegin(idArr.size(), idArr.data(), xArr.data(), yArr.data(), 0.0);
+            glView->handleTouchesBegin(idArr.size(), idArr.data(), xArr.data(), yArr.data(), timeInSeconds);
             break;
         case AndroidTouchInput::Type::Moved:
-            glView->handleTouchesMove(idArr.size(), idArr.data(), xArr.data(), yArr.data(), 0.0);
+            glView->handleTouchesMove(idArr.size(), idArr.data(), xArr.data(), yArr.data(), timeInSeconds);
             break;
         case AndroidTouchInput::Type::Ended:
-            glView->handleTouchesEnd(idArr.size(), idArr.data(), xArr.data(), yArr.data(), 0.0);
+            glView->handleTouchesEnd(idArr.size(), idArr.data(), xArr.data(), yArr.data(), timeInSeconds);
             break;
         case AndroidTouchInput::Type::Cancelled:
-            glView->handleTouchesCancel(idArr.size(), idArr.data(), xArr.data(), yArr.data(), 0.0);
+            glView->handleTouchesCancel(idArr.size(), idArr.data(), xArr.data(), yArr.data(), timeInSeconds);
             break;
     }
 }
@@ -313,9 +358,7 @@ extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inter
         );
     }
 
-    AndroidRichInputEvent().send(
-        std::move(timestamp), std::move(deviceId), std::move(eventSource), AndroidJoystickInput(inputs)
-    );
+    AndroidRichInputEvent().send(timestamp, deviceId, eventSource, AndroidJoystickInput(std::move(inputs)));
 }
 
 AndroidScrollInput::AndroidScrollInput(float scrollX, float scrollY) : m_scrollX(scrollX), m_scrollY(scrollY) {}
@@ -328,7 +371,8 @@ float AndroidScrollInput::scrollY() const {
     return m_scrollY;
 }
 
-AndroidKeyInput::AndroidKeyInput(int keycode, int modifiers, bool isDown, int repeatCount) : m_keycode(keycode), m_modifiers(modifiers), m_isDown(isDown), m_repeatCount(repeatCount) {}
+AndroidKeyInput::AndroidKeyInput(int keycode, int modifiers, bool isDown, int repeatCount)
+    : m_keycode(keycode), m_modifiers(modifiers), m_repeatCount(repeatCount), m_isDown(isDown) {}
 
 int AndroidKeyInput::keycode() const {
     return m_keycode;
@@ -346,9 +390,9 @@ int AndroidKeyInput::modifiers() const {
     return m_modifiers;
 }
 
-AndroidTouchInput::AndroidTouchInput(std::vector<Data> touches, Type type) : m_touches(touches), m_type(type) {}
+AndroidTouchInput::AndroidTouchInput(std::vector<Data> touches, Type type) : m_touches(std::move(touches)), m_type(type) {}
 
-std::vector<AndroidTouchInput::Data> AndroidTouchInput::touches() const {
+std::vector<AndroidTouchInput::Data> const& AndroidTouchInput::touches() const {
     return m_touches;
 }
 
@@ -356,23 +400,23 @@ AndroidTouchInput::Type AndroidTouchInput::type() const {
     return m_type;
 }
 
-AndroidJoystickInput::AndroidJoystickInput(std::vector<Data> packets) : m_packets(packets) {}
+AndroidJoystickInput::AndroidJoystickInput(std::vector<Data> packets) : m_packets(std::move(packets)) {}
 
-std::vector<AndroidJoystickInput::Data> AndroidJoystickInput::packets() const {
+std::vector<AndroidJoystickInput::Data> const& AndroidJoystickInput::packets() const {
     return m_packets;
 }
 
 extern "C"
 JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inputDeviceAdded(JNIEnv*, jobject, jint deviceId, jint eventSource) {
-    geode::AndroidInputDeviceEvent().send(std::move(deviceId), geode::AndroidInputDeviceStatus::Added);
+    geode::AndroidInputDeviceEvent().send(deviceId, geode::AndroidInputDeviceStatus::Added);
 }
 
 extern "C"
 JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inputDeviceChanged(JNIEnv*, jobject, jint deviceId, jint eventSource) {
-    geode::AndroidInputDeviceEvent().send(std::move(deviceId), geode::AndroidInputDeviceStatus::Changed);
+    geode::AndroidInputDeviceEvent().send(deviceId, geode::AndroidInputDeviceStatus::Changed);
 }
 
 extern "C"
 JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inputDeviceRemoved(JNIEnv*, jobject, jint deviceId, jint eventSource) {
-    geode::AndroidInputDeviceEvent().send(std::move(deviceId), geode::AndroidInputDeviceStatus::Removed);
+    geode::AndroidInputDeviceEvent().send(deviceId, geode::AndroidInputDeviceStatus::Removed);
 }
