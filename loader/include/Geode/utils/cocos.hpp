@@ -762,7 +762,7 @@ namespace geode::cocos {
      * Checks if a node is visible (recursively
      * checks parent visibility)
      * @param node Node to check if visible
-     * @returns True if node is visibile. Does
+     * @returns True if node is visible. Does
      * not take into account if node is off-screen
      */
     GEODE_DLL bool nodeIsVisible(cocos2d::CCNode* node);

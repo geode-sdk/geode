@@ -7,7 +7,7 @@
 namespace geode {
     // all of these are explicitly numbered so if we add a new size / color in
     // the future we can slot it in reasonably and just set the number to be at
-    // the end so backwards compatability stays
+    // the end so backwards compatibility stays
     // (for example TinyAlt = 8 to CircleBaseSize)
 
     enum class CircleBaseSize {

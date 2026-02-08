@@ -317,7 +317,7 @@ namespace geode {
 
     /**
      * Wrapper node for adding decorations (strikethrough,
-     * underline) to an arbitary label. Is not agnostic of
+     * underline) to an arbitrary label. Is not agnostic of
      * font and as such will always render simple lines
      */
     class TextDecorationWrapper : public cocos2d::CCNodeRGBA, public cocos2d::CCLabelProtocol {

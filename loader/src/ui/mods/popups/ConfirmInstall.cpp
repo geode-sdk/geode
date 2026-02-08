@@ -36,7 +36,7 @@ void askConfirmModInstalls() {
                 // are going to assume they want these mods enabled over already installed
                 // ones
 
-                // If this mod has incompatabilities that are installed, disable them
+                // If this mod has incompatibilities that are installed, disable them
                 for (auto& inc : conf->version.metadata.getIncompatibilities()) {
                     if (inc.getMod() && inc.getVersion().compare(conf->version.metadata.getVersion()) && inc.getMod()->isOrWillBeEnabled()) {
                         toConfirm.toDisable.insert(inc.getMod());

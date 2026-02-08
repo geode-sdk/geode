@@ -613,7 +613,7 @@ Result<> Mod::Impl::createTempDir() {
         return Err("Unable to create mod runtime directory");
     }
 
-    // Mark temp dir creation as succesful
+    // Mark temp dir creation as successful
     m_tempDirName = tempPath;
 
     return Ok();

@@ -277,7 +277,7 @@ std::optional<ModDownload> ModDownloadManager::startDownload(
 ) {
     // If this mod has already been successfully downloaded or is currently
     // being downloaded, return as you can't download multiple versions of the
-    // same mod simultaniously, since that wouldn't make sense. I mean the new
+    // same mod simultaneously, since that wouldn't make sense. I mean the new
     // version would just immediately override to the other one
     if (m_impl->m_downloads.contains(id)) {
         // If the download errored last time, then we can try again
@@ -339,7 +339,7 @@ bool ModDownloadManager::checkAutoConfirm() {
         auto status = download.getStatus();
         if (auto confirm = std::get_if<server::DownloadStatusConfirm>(&status)) {
             for (auto& inc : confirm->version.metadata.getIncompatibilities()) {
-                // If some mod has an incompatability that is installed,
+                // If some mod has an incompatibility that is installed,
                 // we need to ask for confirmation
                 if (inc.getMod() && (!download.getVersion().has_value() || inc.getVersion().compare(download.getVersion().value()))) {
                     return false;

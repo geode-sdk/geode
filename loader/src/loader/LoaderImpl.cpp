@@ -555,7 +555,7 @@ void Loader::Impl::findProblems() {
         std::vector<std::string> outdatedDependencies;
         std::vector<std::string> breakingIncompatibilities;
 
-        // Collect breaking incompatibilites
+        // Collect breaking incompatibilities
         for (auto const& dep : mod->getMetadata().getIncompatibilities()) {
             if (!dep.getMod() || !dep.getVersion().compare(dep.getMod()->getVersion()) || !dep.getMod()->shouldLoad()) {
                 continue;
@@ -689,7 +689,7 @@ void Loader::Impl::findProblems() {
             this->addProblem({
                 LoadProblem::Type::Unknown,
                 mod,
-                fmt::format("Unkown error loading mod {}", id)
+                fmt::format("Unknown error loading mod {}", id)
             });
             log::error("{} failed to load for an unknown reason", id);
         }

@@ -372,7 +372,7 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
         obj.needs("version").into(version);
         incompatibility.setVersion(version);
 
-        // Check if this incompatability is installed, and if so assign the `mod` member to mark that
+        // Check if this incompatibility is installed, and if so assign the `mod` member to mark that
         auto mod = Loader::get()->getInstalledMod(incompatibility.getID());
         if (mod && incompatibility.getVersion().compare(mod->getVersion())) {
             incompatibility.setMod(mod);

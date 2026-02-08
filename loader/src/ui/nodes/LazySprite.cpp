@@ -235,7 +235,7 @@ CCTexture2D* LazySprite::Impl::lookupCache(char const* key) {
 
 bool LazySprite::Impl::initFromCache(char const* key) {
     if (auto tex = this->lookupCache(key)) {
-        return m_self->CCSprite::initWithTexture(tex); // this will end up calling our overriden 2-arg func, which is what we want
+        return m_self->CCSprite::initWithTexture(tex); // this will end up calling our overridden 2-arg func, which is what we want
     }
 
     return false;

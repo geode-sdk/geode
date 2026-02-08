@@ -253,7 +253,7 @@ namespace geode::utils::file {
          * @param from ZIP file to unzip
          * @param to Directory to unzip to
          * @param deleteZipAfter Whether to delete the zip after unzipping
-         * @returns Succesful result on success, errorful result on error
+         * @returns Successful result on success, errorful result on error
          */
         static Result<> intoDir(
             Path const& from,

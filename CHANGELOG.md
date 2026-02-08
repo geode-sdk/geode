@@ -2,7 +2,7 @@
 
 ## v5.0.0-alpha.1 (WIP changelog)
  * 2.208x support
- * Switch to C++23, mods targetting C++20 will no longer compile
+ * Switch to C++23, mods targeting C++20 will no longer compile
  * Remove `geode::cast:as`
  * Remove `CCARRAY_FOREACH` and `CCDICT_FOREACH` macros
    * Use `CCArrayExt`, `CCDictionaryExt` instead
@@ -183,7 +183,7 @@
  * Fix PCH on iOS (0d972ab)
  * Don't load importance superseded mods (2c5230e)
  * Add some more documentation comments (9b27ddc)
- * Fix `LazySprite` overloads and performace issues (0f53f38, 5394954)
+ * Fix `LazySprite` overloads and performance issues (0f53f38, 5394954)
  * Error when trying to use `m_fields` in non-`CCNode` modify classes (0aed958)
 
 
@@ -254,7 +254,7 @@
  * Let our `libcurl` use the native system CA, alongside our bundle (#1301)
  * Fix `gnustl` set functions returning wrong type (ac1de8a)
  * Fix `SimpleAxisLayout` scaling not working properly in some cases (22f01bb)
- * Fix `SimpleAxisLayout` offset gaps in `BackToFront` disrection (f4deccd)
+ * Fix `SimpleAxisLayout` offset gaps in `BackToFront` direction (f4deccd)
  * Fix `TextArea` not handling scale properly on touches (#1313)
  * Fix undefined behaviour in path handling on file utils
  * Rename `2.207` to `2.2070` in the timestamp map (79ba633)
@@ -675,7 +675,7 @@
  * Add more SMJS nodes to UI include (#869)
  * Fix an issue with CCParticleQuad (330c20e, #865)
  * Hopefully fix Windows crashlogs
- * Fix supersede incompatiblity IDs being validated (754ae3c)
+ * Fix supersede incompatibility IDs being validated (754ae3c)
  * Fix dates not respecting timezones (1c36854)
  * Change dependency / incompatibility / settings 'platform' string values (80d95cf)
  * Make tasks cancel when the handle is destroyed (c82112f)
@@ -758,7 +758,7 @@
  * Fix dangling pointer in `disownPatch` (4c492c1)
  * Add a way to access internal setting container (798cacc)
  * Add the crashed thread to Windows crashlog (f84e866)
- * Add Greek, Ukranian, Simplified and Traditional Chinese, French translations for the installer (8002ca0, bd5db26, 33fcd52, c02cc6d)
+ * Add Greek, Ukrainian, Simplified and Traditional Chinese, French translations for the installer (8002ca0, bd5db26, 33fcd52, c02cc6d)
 
 ## v2.0.0-beta.23
  * Fix `CCMenuItem::activate` crashes (005d245, 7f9dcc6)
@@ -813,11 +813,11 @@
  * Add `isSpriteFrameName` (eea3556)
  * Add new more refined `TextInput` class, deprecating `InputNode` (28f393b)
  * Fix `InputNode` and `TextInput` using tags on their internal input node for controlling behaviour (29f99c2)
- * Remove `strfmt` and `cstrfmt` utilties for being outdated and unsafe (b69ac71)
+ * Remove `strfmt` and `cstrfmt` utilities for being outdated and unsafe (b69ac71)
  * Make `clamp` utility use template magic for better type inference (4ba0b7d)
  * Improve user errors (4b667cc)
- * Deprecate invalidally formatted mod IDs (e80d228)
- * Add new `superseded` importance level to incompatabilities (e80d228)
+ * Deprecate improperly formatted mod IDs (e80d228)
+ * Add new `superseded` importance level to incompatibilities (e80d228)
  * Fix `pickFile` on Android (9051779)
 
 ## v2.0.0-beta.19
@@ -1182,7 +1182,7 @@
  * Implement a new updater / bootstrapper for Windows (b47870e)
  * Don't download resources if the tag doesn't exist (991e714)
  * Fix MacOS wine by using `std::filesystem::weakly_canonical` (46fab0e)
- * Make the Index pimpl aswell as remove ability for multiple sources (7a0ade2)
+ * Make the Index pimpl as well as remove ability for multiple sources (7a0ade2)
  * All mods including disabled ones are now always unzipped in order to load their logos (0a6d31e)
  * Add IDs and layouts for `CustomizeObjectLayer` (6d92bb8, 138fdbb, f8da816)
  * Add option to disable the Last Crashed popup (e00b3a6)
@@ -1226,7 +1226,7 @@
  * Add `EventFilter::getCallback` and make `EventListener::getFilter` return a reference
  * Add `CCNode::getEventListenerCount`
  * Add IDs to `CustomSongWidget`
- * Rework event listeners to have them not all be placed in the same queue aswell as fixing issues with dangling pointers
+ * Rework event listeners to have them not all be placed in the same queue as well as fixing issues with dangling pointers
  * Make `SentAsyncWebRequest` dllexported, allowing mods to use async web requests
  * Fix issues with `WeakRef`
  * Fix being able to recursively click on developer names to open the list of their created mods
@@ -1255,7 +1255,7 @@ Thank you to [Fleeym](https://github.com/Fleeym/Fleeym) for contributing to this
  * Add `CCNode::addEventListener` (along with other related functions) as convenience methods for adding event listeners that target nodes
  * Add `WeakRef` as a weak pointer alternative to `Ref` (see [the docs](https://docs.geode-sdk.org/tutorials/memory#weakref) for a tutorial)
  * Add option to ignore invisible children to `Layout`
- * `CCNode` attributes now use `json::Value` over `std::any` for ABI compatability
+ * `CCNode` attributes now use `json::Value` over `std::any` for ABI compatibility
  * Implement file picker on Mac
  * Define `CCNode::retainCount` inline
  * `Layout` now inherits from `CCObject`, allowing you to share layouts across multiple nodes
@@ -1303,7 +1303,7 @@ Thank you to [Fleeym](https://github.com/Fleeym/Fleeym) for contributing to this
 
 ## v1.0.0-beta.6
  * Reworked layouts from the ground up - see [the docs page](https://docs.geode-sdk.org/tutorials/layouts) for more information about how the new system works (#137)
- * Update the IDs for a bunch of layers, aswell as adding some predefined layouts (3f64b98, ef9e741, a78bc0c, cb1a6f1, ea037a9, f7ddf0a, ...)
+ * Update the IDs for a bunch of layers, as well as adding some predefined layouts (3f64b98, ef9e741, a78bc0c, cb1a6f1, ea037a9, f7ddf0a, ...)
  * Add IDs & layouts to `EditorPauseLayer`
  * Add `CCNode::insertBefore` and `CCNode::insertAfter` for adding children before/after existing ones
  * Add `CCSize::aspect` convenience method

@@ -67,7 +67,7 @@ bool ModSource::wantsRestart() const {
             return mod->getRequestedAction() != ModRequestedAction::None ||
                 ModSettingsManager::from(mod)->restartRequired();
         },
-        [](server::ServerModMetadata const& metdata) {
+        [](server::ServerModMetadata const& metadata) {
             return false;
         },
     }, m_value);
