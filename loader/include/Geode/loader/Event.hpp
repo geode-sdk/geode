@@ -216,8 +216,8 @@ namespace geode::comm {
         template <class ...Args>
         requires std::invocable<Callable, Args...>
         bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
-            auto lam = [=, this] { 
-                return Port<Callable, ThreadSafe>::send(args...); 
+            auto lam = [=, this] {
+                return Port<Callable, ThreadSafe>::send(args...);
             };
 
             if constexpr (ThreadSafe) {
@@ -374,7 +374,7 @@ namespace geode::comm {
             : m_filter(std::move(filter)), m_handle(handle), m_remover(remover), m_active(active) {}
 
         friend class EventCenter;
-        
+
     public:
         ListenerHandle() noexcept {}
 
@@ -441,7 +441,7 @@ namespace geode::comm {
         struct CloneMarker {};
 
         std::tuple<FArgs...> const m_filter;
-        
+
         bool operator==(BaseFilter const& other) const noexcept override {
             // geode::console::log(fmt::format("Comparing BasicEvent filters {}, {}", (void*)this, (void*)&other), Severity::Debug);
             // geode::console::log(fmt::format("Self type: {}", cast::getRuntimeTypeName(this)), Severity::Debug);
@@ -650,16 +650,6 @@ namespace geode {
         using comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, true, comm::PortCallableCopy>::type, PFunc, FArgs...>::BasicEvent;
     };
 
-    template<class Marker, class... PArgs>
-    struct SimpleEvent : public comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false, comm::PortCallableCopy>::type, bool(PArgs...)> {
-        using comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false, comm::PortCallableCopy>::type, bool(PArgs...)>::BasicEvent;
-    };
-
-    template<class Marker, class... PArgs>
-    struct ThreadSafeSimpleEvent : public comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, true, comm::PortCallableCopy>::type, bool(PArgs...)> {
-        using comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, true, comm::PortCallableCopy>::type, bool(PArgs...)>::BasicEvent;
-    };
-
 namespace comm {
     template<class Marker, bool ThreadSafe, class GFunc, class PFunc, class... FArgs>
     struct BasicGlobalEvent {};
@@ -679,8 +669,8 @@ namespace comm {
             Event<Marker, PReturn(PArgs...), FArgs...>
         >;
         using Event2Type = std::conditional_t<ThreadSafe,
-            ThreadSafeSimpleEvent<Marker, FArgs..., PArgs...>,
-            SimpleEvent<Marker, FArgs..., PArgs...>
+            ThreadSafeEvent<Marker, bool(FArgs..., PArgs...)>,
+            Event<Marker, bool(FArgs..., PArgs...)>
         >;
         std::optional<std::tuple<FArgs...>> m_filter;
 
@@ -769,7 +759,7 @@ namespace comm {
     struct ListenerResult {
         static constexpr bool Propagate = false;
         static constexpr bool Stop = true;
-        
+
         constexpr ListenerResult() noexcept = default;
         constexpr ListenerResult(bool value) noexcept : m_value(value) {}
         constexpr ListenerResult(ListenerResult const&) noexcept = default;

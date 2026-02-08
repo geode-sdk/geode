@@ -15,10 +15,10 @@ namespace geode {
      * the Geode UI. See the [tutorial on Geode UI modification](https://docs.geode-sdk.org/tutorials/modify-geode)
      * for **very important notes on these events**!
      */
-    class GEODE_DLL ModPopupUIEvent final : public SimpleEvent<ModPopupUIEvent, FLAlertLayer*, std::string_view, std::optional<Mod*>> {
+    class GEODE_DLL ModPopupUIEvent final : public Event<ModPopupUIEvent, bool(FLAlertLayer*, std::string_view, std::optional<Mod*>)> {
     public:
         // listener params popup, modID, mod
-        using SimpleEvent::SimpleEvent;  
+        using Event::Event;
     };
 
     /**
@@ -26,10 +26,10 @@ namespace geode {
      * the Geode UI. See the [tutorial on Geode UI modification](https://docs.geode-sdk.org/tutorials/modify-geode)
      * for **very important notes on these events**!
      */
-    class GEODE_DLL ModItemUIEvent final : public SimpleEvent<ModItemUIEvent, cocos2d::CCNode*, std::string_view, std::optional<Mod*>> {
+    class GEODE_DLL ModItemUIEvent final : public Event<ModItemUIEvent, bool(cocos2d::CCNode*, std::string_view, std::optional<Mod*>)> {
     public:
         // listener params item, modID, mod
-        using SimpleEvent::SimpleEvent;  
+        using Event::Event;
     };
 
     /**
@@ -37,10 +37,10 @@ namespace geode {
      * the Geode UI. See the [tutorial on Geode UI modification](https://docs.geode-sdk.org/tutorials/modify-geode)
      * for **very important notes on these events**!
      */
-     class GEODE_DLL ModLogoUIEvent final : public SimpleEvent<ModItemUIEvent, cocos2d::CCNode*, std::string_view, std::optional<Mod*>> {
+     class GEODE_DLL ModLogoUIEvent final : public Event<ModItemUIEvent, bool(cocos2d::CCNode*, std::string_view, std::optional<Mod*>)> {
     public:
         // listener params sprite, modID, mod
-        using SimpleEvent::SimpleEvent;  
+        using Event::Event;
     };
 
     /**

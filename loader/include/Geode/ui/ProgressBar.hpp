@@ -4,28 +4,32 @@
 namespace geode {
     // Enum for progress bar style
     enum class ProgressBarStyle {
-        Level = 0, // Gameplay style
-        Solid = 1, // Thick style
+        Level = 0, // Style commonly seen inside classic levels
+        Slider = 1, // Style commonly seen as sliders
+        Solid = 2, // Style commonly seen in level progression UI
     };
-    GEODE_DLL const char* baseEnumToString(ProgressBarStyle);
 
     // Custom class for the progress bar
     class GEODE_DLL ProgressBar final : public cocos2d::CCNode {
-    protected:
         class Impl;
         std::unique_ptr<Impl> m_impl;
 
+    protected:
         ProgressBar();
-        virtual ~ProgressBar();
+        ~ProgressBar();
 
         // Reloads the style of the progress bar
         void reloadStyle();
 
-        bool init() override;
+        bool init(ProgressBarStyle style);
 
     public:
-        // Create a custom progress bar
-        static ProgressBar* create();
+        /**
+         * Create a custom progress bar
+         *
+         * @param style Style of the progress bar
+         */
+        static ProgressBar* create(ProgressBarStyle style = ProgressBarStyle::Level);
 
         /**
          * Set the style of the progress bar
@@ -65,26 +69,26 @@ namespace geode {
         /**
          * Get the current progress percentage of the bar
          */
-        float getProgress() const;
+        float getProgress() const noexcept;
 
         /**
          * Get the progress percentage text label node
          */
-        cocos2d::CCLabelBMFont* getProgressLabel() const;
+        cocos2d::CCLabelBMFont* getProgressLabel() const noexcept;
 
         /**
          * Get the current style of the progress bar
          */
-        ProgressBarStyle getStyle() const;
+        ProgressBarStyle getStyle() const noexcept;
 
         /**
          * Get the current color of the fill of the progress bar
          */
-        cocos2d::ccColor3B getFillColor() const;
+        cocos2d::ccColor3B getFillColor() const noexcept;
 
         /**
          * Get the precision of the percentage label
          */
-        size_t getPrecision() const;
+        size_t getPrecision() const noexcept;
     };
 };

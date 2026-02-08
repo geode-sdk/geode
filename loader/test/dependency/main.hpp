@@ -31,10 +31,10 @@ namespace api {
     };
 }
 
-class GEODE_TESTDEP_DLL TestEvent : public SimpleEvent<TestEvent, std::string_view> {
+class GEODE_TESTDEP_DLL TestEvent : public Event<TestEvent, bool(std::string_view)> {
 public:
     // listener params data
-    using SimpleEvent::SimpleEvent;
+    using Event::Event;
 };
 
 using MyDispatchEvent = geode::Dispatch<GJGarageLayer*>;

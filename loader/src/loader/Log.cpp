@@ -44,7 +44,7 @@ struct geode::log::BorrowedLog final {
     std::string_view m_thread;
     std::string_view m_source;
     Mod* m_mod = nullptr;
-    
+
     BorrowedLog(Severity severity, int32_t nestCount, std::string_view content, std::string_view thread, std::string_view source, Mod* mod)
         : m_time(log_clock::now())
         , m_severity(severity)
@@ -55,7 +55,7 @@ struct geode::log::BorrowedLog final {
         , m_mod(mod)
     {}
 
-    BorrowedLog(Log const& log) 
+    BorrowedLog(Log const& log)
         : m_time(log.m_time)
         , m_severity(log.m_severity)
         , m_thread(log.m_thread)
@@ -88,7 +88,7 @@ struct geode::log::BorrowedLog final {
         }
 
         buf.append(' ');
-    
+
         switch (m_severity.m_value) {
             case Severity::Debug: buf.append("DEBUG"); break;
             case Severity::Info: buf.append("INFO "); break;
@@ -122,7 +122,7 @@ struct geode::log::BorrowedLog final {
         for (int32_t i = 0; i < nestCount; i++) {
             buf.append(' ');
         }
-    
+
         buf.append(m_content);
     }
 
@@ -132,7 +132,7 @@ struct geode::log::BorrowedLog final {
         auto thread = m_thread;
         auto initSourceLen = static_cast<int32_t>(source.size());
         auto initThreadLen = static_cast<int32_t>(thread.size());
-    
+
         if (nestCount != 0) {
             nestCount -= initSourceLen + initThreadLen;
         }
@@ -295,17 +295,16 @@ Logger::~Logger() {
 
 void Logger::shutdownThread() {
     auto runtime = m_runtime.upgrade();
-    
+
     if (m_usingThread.exchange(false, std::memory_order::relaxed) && m_logThread && runtime) {
         m_cancel.cancel();
-        m_logThread->blockOn();
+        m_logThread.blockOn();
         for (auto& msg : m_logRx->drain()) {
             this->outputLog(BorrowedLog(msg), true);
         }
     }
 
     m_runtime = {};
-    m_logThread.reset();
     this->flush();
 }
 
@@ -377,7 +376,7 @@ void Logger::setup() {
     if (m_usingThread) {
         m_logThread = async::runtime().spawn(this->workerThread());
         m_runtime = async::runtime().weakFromThis();
-        m_logThread->setName("Geode Log Worker");
+        m_logThread.setName("Geode Log Worker");
     }
 }
 
@@ -420,7 +419,7 @@ arc::Future<> Logger::workerThread() {
             }),
 
             arc::selectee(m_cancel.waitCancelled(), [&] { running = false; }),
-            
+
             arc::selectee(
                 m_syncFlushNotify.notified(),
                 [&] { flushRequests++; }
