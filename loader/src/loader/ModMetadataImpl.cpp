@@ -256,7 +256,7 @@ ModMetadata ModMetadata::Impl::parse(ModJson const& rawJson, std::optional<std::
             }
         ).unwrapOr("v0.0.0")
     );
-    
+
     auto root = checkJson(impl->m_rawJSON, checkerRoot);
     root.needs("geode").into(impl->m_geodeVersion);
 
