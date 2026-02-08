@@ -1,15 +1,12 @@
 #pragma once
 
-#include "OverlayManager.hpp"
 #include <cocos2d.h>
 #include <cocos-ext.h>
 #include <Geode/binding/TextAlertPopup.hpp>
 #include <Geode/ui/NineSlice.hpp>
-#include "../utils/cocos.hpp"
-#include "../utils/ZStringView.hpp"
 
 namespace geode {
-    constexpr auto NOTIFICATION_DEFAULT_TIME = 1.f;
+    constexpr auto NOTIFICATION_DEFAULT_TIME = 1.8f;
     constexpr auto NOTIFICATION_LONG_TIME = 4.f;
 
     enum class NotificationIcon {
@@ -25,19 +22,20 @@ namespace geode {
         class Impl;
         std::unique_ptr<Impl> m_impl;
     protected:
-        static cocos2d::CCArray* s_queue;
-
         Notification();
         ~Notification();
-        bool init(ZStringView text, cocos2d::CCSprite* icon, float time);
+
+        bool init(ZStringView text, cocos2d::CCNode* icon, float time);
         void updateLayout();
 
-        static cocos2d::CCSprite* createIcon(NotificationIcon icon);
+        static cocos2d::CCNode* createIcon(NotificationIcon icon);
 
-        void animateIn();
-        void animateOut();
         void showNextNotification();
-        void wait();
+        void waitThenHide();
+
+        NineSlice* getBG();
+        cocos2d::CCLabelBMFont* getLabel();
+        cocos2d::CCNodeRGBA* getContent();
 
     public:
         /**
@@ -65,26 +63,18 @@ namespace geode {
          */
         static Notification* create(
             ZStringView text,
-            cocos2d::CCSprite* icon,
+            cocos2d::CCNode* icon,
             float time = NOTIFICATION_DEFAULT_TIME
         );
 
         void setString(ZStringView text);
         void setIcon(NotificationIcon icon);
-        void setIcon(cocos2d::CCSprite* icon);
+        void setIcon(cocos2d::CCNode* icon);
+        cocos2d::CCNode* getIcon();
         void setTime(float time);
 
-        NineSlice* getBg();
-        cocos2d::CCLabelBMFont* getLabel();
-        cocos2d::CCSprite* getIcon();
         float getTime();
         bool isShowing();
-
-        /**
-         * Set the wait time to default, wait the time and hide the notification.
-         * Equivalent to setTime(NOTIFICATION_DEFAULT_TIME)
-        */
-        void waitAndHide();
 
         /**
          * Adds the notification to the current scene if it doesn't have a
@@ -97,7 +87,7 @@ namespace geode {
         /**
          * Hide the notification. If you passed a time to the create function,
          * this function doesn't need to be called manually, unless you want
-         * to prematurily hide the notification
+         * to prematurely hide the notification
          */
         void hide();
 
@@ -108,3 +98,4 @@ namespace geode {
         void cancel();
     };
 }
+

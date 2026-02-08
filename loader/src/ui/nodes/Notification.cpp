@@ -5,15 +5,16 @@
 using namespace geode::prelude;
 
 constexpr auto NOTIFICATION_FADEIN = .3f;
-constexpr auto NOTIFICATION_FADEOUT = 1.f;
+constexpr auto NOTIFICATION_FADEOUT = .5f;
 
-CCArray* Notification::s_queue = nullptr;
+static std::deque<Ref<Notification>> s_queue;
 
 class Notification::Impl final {
 public:
     NineSlice* bg;
-    cocos2d::CCLabelBMFont* label;
-    cocos2d::CCSprite* icon = nullptr;
+    CCLabelBMFont* label;
+    CCNodeRGBA* content;
+    CCNode* icon = nullptr;
     float time;
     bool showing = false;
 };
@@ -22,22 +23,34 @@ Notification::Notification() : m_impl(std::make_unique<Impl>()) { }
 
 Notification::~Notification() { }
 
-bool Notification::init(ZStringView text, CCSprite* icon, float time) {
+bool Notification::init(ZStringView text, CCNode* icon, float time) {
     if (!CCNodeRGBA::init()) return false;
 
+    m_impl->icon = icon;
     m_impl->time = time;
 
     m_impl->bg = NineSlice::create("square02b_small.png", { 0, 0, 40, 40 });
     m_impl->bg->setColor({ 0, 0, 0 });
     this->addChild(m_impl->bg);
 
+    m_impl->content = cocos2d::CCNodeRGBA::create();
+    m_impl->content->setAnchorPoint({ .5f, .5f });
+    m_impl->content->setCascadeOpacityEnabled(true);
+    m_impl->content->setLayout(
+        RowLayout::create()
+            ->setGap(5.f)
+            ->setAutoGrowAxis(0.f)
+            ->setAutoScale(false)
+    );
+    this->addChild(m_impl->content);
+
+    if (icon) {
+        m_impl->content->addChild(icon);
+    }
+
     m_impl->label = CCLabelBMFont::create(text.c_str(), "bigFont.fnt");
     m_impl->label->setScale(.6f);
-    m_impl->bg->addChild(m_impl->label);
-
-    if ((m_impl->icon = icon)) {
-        m_impl->bg->addChild(icon);
-    }
+    m_impl->content->addChild(m_impl->label);
 
     this->setScale(.75f);
     this->updateLayout();
@@ -46,42 +59,29 @@ bool Notification::init(ZStringView text, CCSprite* icon, float time) {
 }
 
 void Notification::updateLayout() {
-    constexpr auto PADDING = 5.f;
-    auto size = m_impl->label->getScaledContentSize();
-
-    float spaceForIcon = 0.f;
     if (m_impl->icon) {
-        limitNodeSize(m_impl->icon, { size.height, size.height }, 1.f, .1f);
-        spaceForIcon += m_impl->icon->getScaledContentSize().width + PADDING;
+        limitNodeWidth(m_impl->icon, 19.f, 1.f, 0.f);
     }
-    size += CCSize { spaceForIcon + PADDING * 2, PADDING * 2 };
-    m_impl->bg->setContentSize(size);
 
-    if (m_impl->icon) {
-        m_impl->icon->setPosition({ size.height / 2, size.height / 2 });
-        m_impl->label->setPosition(size / 2 + CCSize { spaceForIcon / 2, .0f });
-    }
-    else {
-        m_impl->label->setPosition(size / 2);
-    }
+    m_impl->content->updateLayout();
+    auto size = m_impl->content->getContentSize();
+    m_impl->bg->setContentSize(size + CCSize{ 10.f, 10.f });
 }
 
 void Notification::showNextNotification() {
     m_impl->showing = false;
-    if (!s_queue) {
-        s_queue = CCArray::create();
-        s_queue->retain();
-    }
     OverlayManager::get()->removeChild(this);
-    // remove self from front of queue
-    s_queue->removeFirstObject();
-    if (auto obj = s_queue->firstObject()) {
-        static_cast<Notification*>(obj)->show();
-    }
     this->removeFromParent();
+
+    // remove self from front of queue and show next popup if it exists
+    s_queue.pop_front();
+
+    if (s_queue.size() != 0) {
+        s_queue.at(0)->show();
+    }
 }
 
-CCSprite* Notification::createIcon(NotificationIcon icon) {
+CCNode* Notification::createIcon(NotificationIcon icon) {
     switch (icon) {
         default:
         case NotificationIcon::None: {
@@ -89,10 +89,8 @@ CCSprite* Notification::createIcon(NotificationIcon icon) {
         } break;
 
         case NotificationIcon::Loading: {
-            auto icon = CCSprite::create("loadingCircle.png");
-            icon->runAction(CCRepeatForever::create(CCRotateBy::create(1.f, 360.f)));
-            icon->setBlendFunc({ GL_ONE, GL_ONE });
-            return icon;
+            // gets resized later so size doesn't matter
+            return LoadingSpinner::create(20.f);
         } break;
 
         case NotificationIcon::Success: {
@@ -117,12 +115,13 @@ Notification* Notification::create(ZStringView text, NotificationIcon icon, floa
     return Notification::create(text, createIcon(icon), time);
 }
 
-Notification* Notification::create(ZStringView text, CCSprite* icon, float time) {
+Notification* Notification::create(ZStringView text, CCNode* icon, float time) {
     auto ret = new Notification();
     if (ret->init(text, icon, time)) {
         ret->autorelease();
         return ret;
     }
+
     delete ret;
     return nullptr;
 }
@@ -136,98 +135,96 @@ void Notification::setIcon(NotificationIcon icon) {
     this->setIcon(createIcon(icon));
 }
 
-void Notification::setIcon(cocos2d::CCSprite* icon) {
+void Notification::setIcon(CCNode* icon) {
     if (m_impl->icon) {
         m_impl->icon->removeFromParent();
     }
-    if ((m_impl->icon = icon)) {
-        m_impl->bg->addChild(icon);
+
+    m_impl->icon = icon;
+
+    if (icon) {
+        m_impl->content->addChild(icon);
     }
+
     this->updateLayout();
+}
+
+CCNode* Notification::getIcon() {
+    return m_impl->icon;
 }
 
 void Notification::setTime(float time) {
     m_impl->time = time;
-    this->wait();
-}
-
-NineSlice* Notification::getBg() {
-    return m_impl->bg;
-}
-
-cocos2d::CCLabelBMFont* Notification::getLabel() {
-    return m_impl->label;
-}
-
-cocos2d::CCSprite* Notification::getIcon() {
-    return m_impl->icon;
+    this->waitThenHide(); // reset timer
 }
 
 float Notification::getTime() {
     return m_impl->time;
 }
 
+NineSlice* Notification::getBG() {
+    return m_impl->bg;
+}
+
+CCLabelBMFont* Notification::getLabel() {
+    return m_impl->label;
+}
+
+CCNodeRGBA* Notification::getContent() {
+    return m_impl->content;
+}
+
 bool Notification::isShowing() {
     return m_impl->showing;
 }
 
-void Notification::animateIn() {
-    m_impl->label->setOpacity(0);
-    if (m_impl->icon) {
-        m_impl->icon->setOpacity(0);
-    }
-    m_impl->bg->setOpacity(0);
-    m_impl->label->runAction(CCFadeTo::create(NOTIFICATION_FADEIN, 255));
-    if (m_impl->icon) {
-        m_impl->icon->runAction(CCFadeTo::create(NOTIFICATION_FADEIN, 255));
-    }
-    m_impl->bg->runAction(CCFadeTo::create(NOTIFICATION_FADEIN, 150));
-}
-
-void Notification::animateOut() {
-    m_impl->label->runAction(CCFadeTo::create(NOTIFICATION_FADEOUT, 0));
-    if (m_impl->icon) {
-        m_impl->icon->runAction(CCFadeTo::create(NOTIFICATION_FADEOUT, 0));
-    }
-    m_impl->bg->runAction(CCFadeTo::create(NOTIFICATION_FADEOUT, 0));
-}
-
-void Notification::waitAndHide() {
-    this->setTime(NOTIFICATION_DEFAULT_TIME);
-}
-
 void Notification::show() {
-    if (!s_queue) {
-        s_queue = CCArray::create();
-        s_queue->retain();
+    if (m_impl->showing) return;
+
+    if (std::find(s_queue.begin(), s_queue.end(), this) == s_queue.end()) {
+        s_queue.push_back(this);
     }
-    if (!m_impl->showing) {
-        if (!s_queue->containsObject(this)) {
-            s_queue->addObject(this);
-        }
-        if (s_queue->firstObject() != this) {
-            return;
-        }
-        if (!this->getParent()) {
-            auto winSize = CCDirector::get()->getWinSize();
-            this->setPosition(winSize.width / 2, winSize.height / 4);
-            this->setZOrder(CCScene::get()->getChildrenCount() > 0 ? CCScene::get()->getHighestChildZ() + 2 : 10);
-        }
-        OverlayManager::get()->addChild(this);
-        m_impl->showing = true;
+
+    // if we're not the current notification, return
+    if (s_queue.at(0) != this) {
+        return;
     }
+
+    auto winSize = CCDirector::get()->getWinSize();
+    this->setPosition(winSize.width / 2, winSize.height / 4);
+    this->setZOrder(CCScene::get()->getChildrenCount() > 0 ? CCScene::get()->getHighestChildZ() + 2 : 10);
+
+    OverlayManager::get()->addChild(this);
+    m_impl->showing = true;
+
+    m_impl->content->setOpacity(0);
+    m_impl->content->setScale(.6f);
+    m_impl->content->setPositionY(-60.f);
+    m_impl->bg->setOpacity(0);
+    m_impl->bg->setScale(.6f);
+    m_impl->bg->setPositionY(-60.f);
+
     this->runAction(CCSequence::create(
-        CCCallFunc::create(this, callfunc_selector(Notification::animateIn)),
-        // wait for fade-in to finish
+        CallFuncExt::create([this] {
+            m_impl->content->runAction(CCFadeTo::create(NOTIFICATION_FADEIN, 255));
+            m_impl->content->runAction(CCEaseExponentialOut::create(CCScaleTo::create(NOTIFICATION_FADEIN, 1.f, 1.f)));
+            m_impl->content->runAction(CCEaseExponentialOut::create(CCMoveBy::create(NOTIFICATION_FADEIN, { 0.f, 60.f })));
+
+            m_impl->bg->runAction(CCFadeTo::create(NOTIFICATION_FADEIN, 150));
+            m_impl->bg->runAction(CCEaseExponentialOut::create(CCScaleTo::create(NOTIFICATION_FADEIN, 1.f, 1.f)));
+            m_impl->bg->runAction(CCEaseExponentialOut::create(CCMoveBy::create(NOTIFICATION_FADEIN, { 0.f, 60.f })));
+        }),
+
         CCDelayTime::create(NOTIFICATION_FADEIN),
-        CCCallFunc::create(this, callfunc_selector(Notification::wait)),
+        CCCallFunc::create(this, callfunc_selector(Notification::waitThenHide)),
         nullptr
     ));
 }
 
-void Notification::wait() {
+void Notification::waitThenHide() {
     this->stopAllActions();
-    if (m_impl->time) {
+
+    if (m_impl->time != 0.f) {
         this->runAction(CCSequence::create(
             CCDelayTime::create(m_impl->time),
             CCCallFunc::create(this, callfunc_selector(Notification::hide)),
@@ -238,19 +235,36 @@ void Notification::wait() {
 
 void Notification::hide() {
     this->stopAllActions();
+
     this->runAction(CCSequence::create(
-        CCCallFunc::create(this, callfunc_selector(Notification::animateOut)),
-        // wait for fade-out to finish
-        CCDelayTime::create(NOTIFICATION_FADEOUT),
+        CallFuncExt::create([this] {
+            m_impl->content->runAction(CCEaseExponentialIn::create(CCFadeTo::create(NOTIFICATION_FADEOUT, 0)));
+            m_impl->content->runAction(CCEaseExponentialIn::create(CCMoveBy::create(NOTIFICATION_FADEOUT, { 0.f, -25.f })));
+
+            m_impl->bg->runAction(CCEaseExponentialIn::create(CCFadeTo::create(NOTIFICATION_FADEOUT, 0)));
+            m_impl->bg->runAction(CCEaseExponentialIn::create(CCMoveBy::create(NOTIFICATION_FADEOUT, { 0.f, -25.f })));
+        }),
+
+        CCDelayTime::create(NOTIFICATION_FADEOUT * .25f),
+
+        CallFuncExt::create([this] {
+            m_impl->content->runAction(CCEaseExponentialIn::create(CCScaleTo::create(NOTIFICATION_FADEOUT, .2f, .2f)));
+            m_impl->bg->runAction(CCEaseExponentialIn::create(CCScaleTo::create(NOTIFICATION_FADEOUT, .2f, .2f)));
+        }),
+
+        CCDelayTime::create(NOTIFICATION_FADEOUT * .75f),
+
         CCCallFunc::create(this, callfunc_selector(Notification::showNextNotification)),
         nullptr
     ));
 }
 
 void Notification::cancel() {
-    if(m_pParent) return this->hide();
+    if (m_impl->showing) return this->hide();
 
-    if (s_queue->containsObject(this)) {
-        s_queue->removeObject(this);
+    // remove from queue if not showing right now
+    auto index = std::find(s_queue.begin(), s_queue.end(), this);
+    if (index != s_queue.end()) {
+        s_queue.erase(index);
     }
 }
