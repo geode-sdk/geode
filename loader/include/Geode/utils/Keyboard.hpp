@@ -82,15 +82,15 @@ namespace geode {
             : button(button), action(action), timestamp(timestamp) {}
     };
 
-    struct MouseInputEvent final : SimpleEvent<MouseInputEvent, MouseInputData&> {
-        using SimpleEvent::SimpleEvent;
+    struct MouseInputEvent final : Event<MouseInputEvent, bool(MouseInputData&)> {
+        using Event::Event;
     };
 
-    struct MouseMoveEvent final : SimpleEvent<MouseMoveEvent, int32_t, int32_t> {
-        using SimpleEvent::SimpleEvent;
+    struct MouseMoveEvent final : Event<MouseMoveEvent, bool(int32_t, int32_t)> {
+        using Event::Event;
     };
 
-    struct ScrollWheelEvent final : SimpleEvent<MouseMoveEvent, double, double> {
-        using SimpleEvent::SimpleEvent;
+    struct ScrollWheelEvent final : Event<MouseMoveEvent, bool(double, double)> {
+        using Event::Event;
     };
 }
