@@ -404,7 +404,7 @@ void Loader::Impl::buildModGraph() {
                 continue;
             }
 
-            if (dependency.isRequired() || dependency.getMod() == nullptr) {
+            if (!dependency.isRequired() || dependency.getMod() == nullptr) {
                 continue;
             }
 

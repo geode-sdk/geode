@@ -853,7 +853,15 @@ ModMetadata ModMetadata::createFromGeodeFile(std::filesystem::path const& path) 
     }
     auto&& modJson = std::move(modJsonRes.unwrap());
 
-    return Impl::parse(modJson, guessedID);
+    auto info = Impl::parse(modJson, guessedID);
+    info.m_impl->m_path = path;
+
+    auto specialFilesRes = info.m_impl->addSpecialFiles(unzip);
+    if (!specialFilesRes) {
+        info.m_impl->m_errors.emplace_back(fmt::format("Unable to add extra files: {}", specialFilesRes.unwrapErr()));
+    }
+
+    return info;
 }
 ModMetadata ModMetadata::create(ModJson const& json) {
     return Impl::parse(json, std::nullopt);
