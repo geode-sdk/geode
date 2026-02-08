@@ -31,7 +31,7 @@ namespace api {
     };
 }
 
-class GEODE_TESTDEP_DLL TestEvent : public Event<TestEvent, bool(std::string_view)> {
+class TestEvent : public Event<TestEvent, bool(std::string_view)> {
 public:
     // listener params data
     using Event::Event;

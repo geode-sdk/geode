@@ -651,28 +651,28 @@ namespace geode {
         }
     };
 
-    class GEODE_DLL SettingChangedEventV3 final : public GlobalEvent<SettingChangedEventV3, bool(std::string_view, std::string_view, std::shared_ptr<SettingV3>), bool(std::shared_ptr<SettingV3>), std::string, std::string> {
+    class SettingChangedEventV3 final : public GlobalEvent<SettingChangedEventV3, bool(std::string_view, std::string_view, std::shared_ptr<SettingV3>), bool(std::shared_ptr<SettingV3>), std::string, std::string> {
     public:
         // listener params setting
         // filter params modID, settingKey
         using GlobalEvent::GlobalEvent;
-        SettingChangedEventV3(Mod* mod, std::string settingKey);
+        GEODE_DLL SettingChangedEventV3(Mod* mod, std::string settingKey);
     };
 
-    class GEODE_DLL SettingNodeSizeChangeEventV3 final : public GlobalEvent<SettingNodeSizeChangeEventV3, bool(std::string_view, std::string_view, SettingNodeV3*), bool(SettingNodeV3*), std::string, std::string> {
+    class SettingNodeSizeChangeEventV3 final : public GlobalEvent<SettingNodeSizeChangeEventV3, bool(std::string_view, std::string_view, SettingNodeV3*), bool(SettingNodeV3*), std::string, std::string> {
     public:
         // listener params node
         // filter params modID, settingKey
         using GlobalEvent::GlobalEvent;
-        SettingNodeSizeChangeEventV3(Mod* mod, std::string settingKey);
+        GEODE_DLL SettingNodeSizeChangeEventV3(Mod* mod, std::string settingKey);
     };
 
-    class GEODE_DLL SettingNodeValueChangeEventV3 final : public GlobalEvent<SettingNodeValueChangeEventV3, bool(std::string_view, std::string_view, SettingNodeV3*, bool), bool(SettingNodeV3*, bool), std::string, std::string> {
+    class SettingNodeValueChangeEventV3 final : public GlobalEvent<SettingNodeValueChangeEventV3, bool(std::string_view, std::string_view, SettingNodeV3*, bool), bool(SettingNodeV3*, bool), std::string, std::string> {
     public:
         // listener params node, isCommit
         // filter params modID, settingKey
         using GlobalEvent::GlobalEvent;
-        SettingNodeValueChangeEventV3(Mod* mod, std::string settingKey);
+        GEODE_DLL SettingNodeValueChangeEventV3(Mod* mod, std::string settingKey);
     };
 
     template <class T>

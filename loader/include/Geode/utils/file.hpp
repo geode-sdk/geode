@@ -319,7 +319,7 @@ namespace geode::utils::file {
      */
     GEODE_DLL arc::Future<PickManyResult> pickMany(FilePickOptions options);
 
-    class GEODE_DLL FileWatchEvent final : public Event<FileWatchEvent, bool(), std::filesystem::path> {
+    class FileWatchEvent final : public Event<FileWatchEvent, bool(), std::filesystem::path> {
     public:
         // filter params path
         using Event::Event;

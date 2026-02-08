@@ -24,7 +24,7 @@ namespace geode {
         TexturesLoaded,
     };
 
-    class GEODE_DLL GameEvent final : public Event<GameEvent, bool(), GameEventType> {
+    class GameEvent final : public Event<GameEvent, bool(), GameEventType> {
     public:
         using Event::Event;
     };
