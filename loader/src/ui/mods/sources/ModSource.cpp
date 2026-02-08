@@ -169,25 +169,17 @@ server::ServerFuture<std::optional<server::ServerModUpdate>> ModSource::checkUpd
 
     auto mod = std::get<Mod*>(m_value);
     
-    m_availableUpdate = ARC_CO_UNWRAP(co_await server::checkUpdates(mod));
+    auto availableUpdates = std::move(ARC_CO_UNWRAP(co_await server::checkUpdates(mod)).updates);
+    m_availableUpdate = availableUpdates.size() ? std::optional(availableUpdates[0]) : std::nullopt;
     co_return Ok(m_availableUpdate);
 
 }
 void ModSource::startInstall() {
     if (auto updates = this->hasUpdates()) {
-        if (updates->replacement.has_value()) {
-            server::ModDownloadManager::get()->startDownload(
-                updates->replacement->id,
-                updates->replacement->version,
-                std::nullopt,
-                this->getID()
-            );
-        } else {
-            server::ModDownloadManager::get()->startDownload(
-                this->getID(),
-                updates->version
-            );
-        }
+        server::ModDownloadManager::get()->startDownload(
+            this->getID(),
+            updates->version
+        );
     } else {
         server::ModDownloadManager::get()->startDownload(
             this->getID(),

@@ -113,19 +113,9 @@ Mod::CheckUpdatesTask Mod::checkUpdates() const {
         auto err = std::move(res).unwrapErr();
         co_return Err("{} (code {})", err.details, err.code);
     }
-
     auto value = std::move(res).unwrap();
-
-    if (!value) co_return Ok(std::nullopt);
-    
-    if (value->replacement) {
-        co_return Err(
-            "Mod has been replaced by {} - please visit the Geode "
-            "menu to install the replacement",
-            value->replacement->id
-        );
-    }
-    co_return Ok(value->version);
+    if (value.updates.empty()) co_return Ok(std::nullopt);
+    co_return Ok(value.updates[0].version);
 }
 
 Result<> Mod::saveData() {

@@ -865,15 +865,14 @@ ModsLayer* ModsLayer::scene() {
 }
 
 server::ServerFuture<std::vector<std::string>> ModsLayer::checkInstalledModsForUpdates() {
-    auto updates = ARC_CO_UNWRAP(co_await server::checkAllUpdates());
+    auto all = ARC_CO_UNWRAP(co_await server::checkAllUpdates());
     std::vector<std::string> updatesFound;
-
-    for (auto& update : updates) {
+    for (auto& update : all.updates) {
         if (update.hasUpdateForInstalledMod()) {
             updatesFound.push_back(update.id);
         }
+        // todo: deprecations here
     }
-    
     co_return Ok(std::move(updatesFound));
 }
 

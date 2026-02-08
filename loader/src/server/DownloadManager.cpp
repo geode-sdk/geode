@@ -233,7 +233,7 @@ std::optional<VersionInfo> ModDownload::getVersion() const {
 class ModDownloadManager::Impl {
 public:
     StringMap<ModDownload> m_downloads;
-    async::TaskHolder<Result<std::vector<ServerModUpdate>, server::ServerError>> m_updateAllTask;
+    async::TaskHolder<Result<ServerModUpdateCheck, server::ServerError>> m_updateAllTask;
 
     void cancelOrphanedDependencies() {
         // "This doesn't handle circular dependencies!!!!"
@@ -311,18 +311,9 @@ void ModDownloadManager::confirmAll() {
 void ModDownloadManager::startUpdateAll() {
     m_impl->m_updateAllTask.spawn(checkAllUpdates(), [this](auto result) {
         if (result.isOk()) {
-            for (auto& mod : result.unwrap()) {
+            for (auto& mod : result.unwrap().updates) {
                 if (mod.hasUpdateForInstalledMod()) {
-                    if (mod.replacement.has_value()) {
-                        this->startDownload(
-                            mod.replacement.value().id,
-                            mod.replacement.value().version,
-                            std::nullopt,
-                            mod.id
-                        );
-                    } else {
-                        this->startDownload(mod.id, mod.version);
-                    }
+                    this->startDownload(mod.id, mod.version);
                 }
             }
         }

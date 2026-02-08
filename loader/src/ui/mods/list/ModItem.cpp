@@ -559,11 +559,7 @@ void ModItem::updateState() {
     ) {
         m_updateBtn->setVisible(true);
         std::string updateString = "";
-        if (update->replacement.has_value()) {
-            updateString += " -> " + update->replacement.value().id;
-        } else {
-            updateString += m_source.getMetadata().getVersion().toVString() + " -> " + update->version.toVString();
-        }
+        updateString += m_source.getMetadata().getVersion().toVString() + " -> " + update->version.toVString();
         m_versionLabel->setString(updateString.c_str());
         m_versionLabel->setColor(to3B(ColorProvider::get()->color("mod-list-version-label-updates-available"_spr)));
 
