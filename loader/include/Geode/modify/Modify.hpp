@@ -268,7 +268,7 @@ namespace geode::modifier {
                 }
                 return ListenerResult::Propagate;
             };
-            if (mod->isEnabled()) {
+            if (mod->isLoaded()) {
                 func();
             }
             else {
@@ -322,7 +322,7 @@ namespace geode::modifier {
                 }
                 return ListenerResult::Propagate;
             };
-            if (mod->isEnabled()) {
+            if (mod->isLoaded()) {
                 func();
             }
             else {

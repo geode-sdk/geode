@@ -69,10 +69,7 @@ void askConfirmModInstalls() {
 
                 // If this mod has required dependencies that are disabled, enable them
                 for (auto& dep : conf->version.metadata.getDependencies()) {
-                    if (
-                        dep.getImportance() == ModMetadata::Dependency::Importance::Required &&
-                        dep.getMod() && !dep.getMod()->isOrWillBeEnabled()
-                    ) {
+                    if (dep.isRequired() && dep.getMod() && !dep.getMod()->isOrWillBeEnabled()) {
                         toConfirm.toEnable.insert(dep.getMod());
                     }
                 }
