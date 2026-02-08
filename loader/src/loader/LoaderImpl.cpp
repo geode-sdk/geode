@@ -510,10 +510,6 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
 
 void Loader::Impl::findProblems() {
     for (auto const& [id, mod] : m_mods) {
-        if (!mod->shouldLoad()) {
-            log::debug("{} is not enabled", id);
-            continue;
-        }
         // If this mod already has a problem, continue as usual
         if (mod->getLoadProblem()) {
             continue;
@@ -541,6 +537,12 @@ void Loader::Impl::findProblems() {
             auto message = ranges::join(mod->getMetadata().getErrors(), ", ");
             this->addProblem({ LoadProblem::Type::InvalidGeodeFile, mod, message });
             log::error("{} failed to load: {}", id, message);
+            continue;
+        }
+
+        // Don't check dependencies or incompatibilities for disabled mods
+        if (!mod->shouldLoad()) {
+            log::debug("{} is not enabled", id);
             continue;
         }
 

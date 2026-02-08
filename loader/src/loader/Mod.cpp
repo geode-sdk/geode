@@ -54,7 +54,7 @@ bool Mod::isLoaded() const {
 }
 
 bool Mod::isOrWillBeEnabled() const {
-    bool enabled = m_impl->isLoaded();
+    bool enabled = m_impl->shouldLoad();
     if (m_impl->m_requestedAction == ModRequestedAction::Enable) {
         enabled = true;
     }

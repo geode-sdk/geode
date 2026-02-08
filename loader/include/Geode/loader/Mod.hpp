@@ -98,6 +98,12 @@ namespace geode {
         std::filesystem::path getPackagePath() const;
         VersionInfo getVersion() const;
         bool isLoaded() const;
+        /**
+         * Whether the mod is currently enabled, or marked as to be enabled 
+         * after a restart. Useful for UI
+         * @note This does not communicate whether the mod is actually 
+         * *loaded* – for that, use `Mod::isLoaded`
+         */
         bool isOrWillBeEnabled() const;
         bool isInternal() const;
         bool needsEarlyLoad() const;
