@@ -33,11 +33,9 @@ namespace geode {
         void showNextNotification();
         void waitThenHide();
 
-    private:
         NineSlice* getBG();
         cocos2d::CCLabelBMFont* getLabel();
         cocos2d::CCNodeRGBA* getContent();
-        bool isShowing();
 
     public:
         /**
@@ -76,6 +74,7 @@ namespace geode {
         void setTime(float time);
 
         float getTime();
+        bool isShowing();
 
         /**
          * Adds the notification to the current scene if it doesn't have a
@@ -99,3 +98,4 @@ namespace geode {
         void cancel();
     };
 }
+
