@@ -309,7 +309,7 @@ void keyUpExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     bool isDown = false;
     NSEventModifierFlags flags = [event modifierFlags];
 
-    KeyboardInputData::Modifiers modifiers;
+    KeyboardInputData::Modifiers modifiers = KeyboardInputData::Mods_None;
     if ((flags & NSEventModifierFlagShift) != 0) {
         modifiers |= KeyboardInputData::Mods_Shift;
     }
