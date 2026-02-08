@@ -11,16 +11,16 @@ namespace geode::updater {
     using UpdateFailed = std::string;
     using UpdateStatus = std::variant<UpdateFinished, UpdateProgress, UpdateFailed>;
 
-    class ResourceDownloadEvent : public SimpleEvent<ResourceDownloadEvent, UpdateStatus const&> {
+    class ResourceDownloadEvent : public Event<ResourceDownloadEvent, bool(UpdateStatus const&)> {
     public:
         // listener params status
-        using SimpleEvent::SimpleEvent;
+        using Event::Event;
     };
 
-    class LoaderUpdateEvent : public SimpleEvent<LoaderUpdateEvent, UpdateStatus const&> {
+    class LoaderUpdateEvent : public Event<LoaderUpdateEvent, bool(UpdateStatus const&)> {
     public:
         // listener params status
-        using SimpleEvent::SimpleEvent;
+        using Event::Event;
     };
 
     void updateSpecialFiles();

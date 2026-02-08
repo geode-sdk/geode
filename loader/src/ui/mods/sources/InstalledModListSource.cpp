@@ -4,11 +4,13 @@
 bool InstalledModsQuery::preCheck(ModSource const& src) const {
     // Invalid .geode files are collected up into one entry instead of 
     // flooding the mods list
-    /*
-    if (src.asMod() && src.asMod()->hasInvalidGeodeFile()) {
-        return false;
-    }
-    */
+    // if (
+    //     src.asMod() &&
+    //     src.asMod()->failedToLoad() &&
+    //     src.asMod()->failedToLoad()->type == LoadProblem::Type::InvalidGeodeFile
+    // ) {
+    //     return false;
+    // }
     // If we only want mods with updates, then only give mods with updates
     // NOTE: The caller of filterModsWithQuery() should have ensured that
     // `src.checkUpdates()` has been called and has finished
@@ -24,14 +26,14 @@ bool InstalledModsQuery::preCheck(ModSource const& src) const {
         return src.asMod() && src.asMod()->targetsOutdatedVersion().has_value();
     }
     if (type == InstalledModListType::OnlyErrors) {
-        return src.asMod() && src.asMod()->hasLoadProblems();
+        return src.asMod() && src.asMod()->failedToLoad();
     }
     return true;
 }
 bool InstalledModsQuery::queryCheck(ModSource const& src, double& weighted) const {
     bool addToList = true;
     if (enabledOnly) {
-        addToList = src.asMod()->isEnabled() == *enabledOnly;
+        addToList = src.asMod()->isLoaded() == *enabledOnly;
     }
     if (query) {
         addToList = modFuzzyMatch(src.asMod()->getMetadata(), *query, weighted);
@@ -40,7 +42,7 @@ bool InstalledModsQuery::queryCheck(ModSource const& src, double& weighted) cons
     if (addToList && src.asMod()->isInternal()) {
         weighted += 5;
     }
-    if (addToList && enabledFirst && src.asMod()->isEnabled()) {
+    if (addToList && enabledFirst && src.asMod()->isLoaded()) {
         weighted += 3;
     }
     // todo: favorites
@@ -124,7 +126,12 @@ InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t pa
 
     /*
     if (m_query.type != InstalledModListType::OnlyUpdates) {
-        auto invalidFileCount = Loader::get()->getNumberOfInvalidGeodeFiles();
+        size_t invalidFileCount = 0;
+        for (auto const& problem : Loader::get()->getLoadProblems()) {
+            if (problem.type == LoadProblem::Type::InvalidGeodeFile) {
+                invalidFileCount += 1;
+            }
+        }
         if (invalidFileCount > 0) {
             content.mods.push_back(SpecialModListItemSource {
                 .title = fmt::format("({} invalid mods)", invalidFileCount),

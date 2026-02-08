@@ -149,7 +149,7 @@ public:
     /// Sets the name for the currently spawned task, for debugging purposes
     void setName(std::string name) {
         if (m_state && m_state->m_handle) {
-            m_state->m_handle->setName(std::move(name));
+            m_state->m_handle.setName(std::move(name));
         }
     }
 
@@ -161,14 +161,13 @@ public:
 
 private:
     struct SpawnedTaskState {
-        std::optional<arc::TaskHandle<void>> m_handle;
+        arc::TaskHandle<void> m_handle;
         bool m_cancelled = false;
 
         void cancel() {
             m_cancelled = true;
             if (m_handle) {
-                m_handle->abort();
-                m_handle.reset();
+                m_handle.abort();
             }
         }
 
@@ -177,7 +176,8 @@ private:
         }
 
         void complete() {
-            m_handle.reset(); // cleanup task
+            // reset the task handle to release the (potentially last) reference to the task and clean it up
+            m_handle.detach();
         }
     };
 

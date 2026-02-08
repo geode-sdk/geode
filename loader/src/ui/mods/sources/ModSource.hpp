@@ -6,15 +6,6 @@
 
 using namespace geode::prelude;
 
-struct ModSuggestion final {
-    ModMetadata suggestion;
-    Mod* forMod;
-};
-
-// you can't put these in ModSuggestion itself because of the concepts in Task :sob:
-using LoadModSuggestionFuture = arc::Future<std::optional<ModSuggestion>>;
-LoadModSuggestionFuture loadModSuggestion(LoadProblem const& problem);
-
 class ModSource final {
 private:
     std::variant<Mod*, server::ServerModMetadata> m_value;

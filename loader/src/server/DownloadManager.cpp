@@ -45,11 +45,11 @@ public:
                     m_version = data.metadata.getVersion();
 
                     // Start downloads for any missing required dependencies
-                    for (auto& dep : data.metadata.getDependencies()) {
-                        if (!dep.getMod() && dep.getImportance() != ModMetadata::Dependency::Importance::Suggested) {
+                    for (auto dep : data.metadata.getDependencies()) {
+                        if (!dep.getMod() && dep.isRequired()) {
                             ModDownloadManager::get()->startDownload(
                                 dep.getID(), dep.getVersion().getUnderlyingVersion(),
-                                std::make_pair(m_id, dep.getImportance())
+                                std::make_pair(m_id, dep.isRequired())
                             );
                         }
                     }
@@ -137,14 +137,7 @@ public:
         }
 
         auto metadata = ModMetadata::createFromGeodeFile(geodePath);
-        if (metadata.isErr()) {
-            m_status = DownloadStatusError {
-                .details = std::move(metadata).unwrapErr(),
-            };
-            return;
-        }
-
-        auto okBinary = LoaderImpl::get()->extractBinary(metadata.unwrap());
+        auto okBinary = LoaderImpl::get()->extractBinary(metadata);
         if (!okBinary) {
             m_status = DownloadStatusError {
                 .details = std::move(okBinary).unwrapErr(),

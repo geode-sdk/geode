@@ -42,7 +42,7 @@ namespace server {
         using GlobalEvent::GlobalEvent;
     };
 
-    using DependencyFor = std::pair<std::string, ModMetadata::Dependency::Importance>;
+    using DependencyFor = std::pair<std::string, bool>;
 
     class ModDownload final {
     private:

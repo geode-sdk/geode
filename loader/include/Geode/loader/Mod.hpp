@@ -97,7 +97,13 @@ namespace geode {
         std::optional<std::string> getDetails() const;
         std::filesystem::path getPackagePath() const;
         VersionInfo getVersion() const;
-        bool isEnabled() const;
+        bool isLoaded() const;
+        /**
+         * Whether the mod is currently enabled, or marked as to be enabled 
+         * after a restart. Useful for UI
+         * @note This does not communicate whether the mod is actually 
+         * *loaded* – for that, use `Mod::isLoaded`
+         */
         bool isOrWillBeEnabled() const;
         bool isInternal() const;
         bool needsEarlyLoad() const;
@@ -491,15 +497,8 @@ namespace geode {
          * mod is made for the correct version of the game and Geode
          */
         std::optional<LoadProblem> targetsOutdatedVersion() const;
-        /**
-         * @note Make sure to also call `targetsOutdatedVersion` if you want to
-         * make sure the mod is actually loadable
-         */
-        bool hasLoadProblems() const;
-        bool hasInvalidGeodeFile() const;
-        std::vector<LoadProblem> getAllProblems() const;
-        std::vector<LoadProblem> getProblems() const;
-        std::vector<LoadProblem> getRecommendations() const;
+        std::optional<LoadProblem> failedToLoad() const;
+        std::optional<LoadProblem> getLoadProblem() const;
         bool shouldLoad() const;
         bool isCurrentlyLoading() const;
 

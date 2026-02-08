@@ -35,7 +35,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     void updateLoadedModsLabel() {
         auto allMods = Loader::get()->getAllMods();
         auto count = std::count_if(allMods.begin(), allMods.end(), [&](auto& item) {
-            return item->isEnabled();
+            return item->isLoaded();
         });
         auto str = fmt::format("Geode: Loaded {}/{} mods", count, m_fields->m_totalMods);
         this->setSmallText(str);
@@ -160,7 +160,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     int getLoadedMods() {
         auto allMods = Loader::get()->getAllMods();
         return std::count_if(allMods.begin(), allMods.end(), [&](auto& item) {
-            return item->isEnabled();
+            return item->isLoaded();
         });
     }
 

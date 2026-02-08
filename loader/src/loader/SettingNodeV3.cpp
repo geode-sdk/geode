@@ -601,13 +601,13 @@ bool UnresolvedCustomSettingNodeV3::init(std::string_view key, Mod* mod, float w
     this->setContentHeight(30);
 
     auto label = CCLabelBMFont::create(
-        (mod && mod->isEnabled() ?
+        (mod && mod->isLoaded() ?
             fmt::format("Missing setting '{}'", key) :
             fmt::format("Enable the Mod to Edit '{}'", key)
         ).c_str(),
         "bigFont.fnt"
     );
-    label->setColor(mod && mod->isEnabled() ? "mod-list-errors-found-2"_cc3b : "mod-list-gray"_cc3b);
+    label->setColor(mod && mod->isLoaded() ? "mod-list-errors-found-2"_cc3b : "mod-list-gray"_cc3b);
     label->limitLabelWidth(width - m_obContentSize.height, .3f, .1f);
     this->addChildAtPosition(label, Anchor::Left, ccp(m_obContentSize.height / 2, 0), ccp(0, .5f));
 
@@ -616,7 +616,7 @@ bool UnresolvedCustomSettingNodeV3::init(std::string_view key, Mod* mod, float w
 
 void UnresolvedCustomSettingNodeV3::updateState(CCNode* invoker) {
     SettingNodeV3::updateState(invoker);
-    this->getBG()->setColor(m_mod && m_mod->isEnabled() ? "mod-list-errors-found-2"_cc3b : "mod-list-gray"_cc3b);
+    this->getBG()->setColor(m_mod && m_mod->isLoaded() ? "mod-list-errors-found-2"_cc3b : "mod-list-gray"_cc3b);
     this->getBG()->setOpacity(75);
 }
 
