@@ -1,5 +1,6 @@
-#include <Geode/binding/LoadingCircle.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/ui/LoadingSpinner.hpp>
+#include <Geode/ui/OverlayManager.hpp>
 #include <Geode/ui/Notification.hpp>
 
 using namespace geode::prelude;
