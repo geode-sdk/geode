@@ -355,17 +355,19 @@ public:
     struct RequestData : std::enable_shared_from_this<RequestData> {
         std::shared_ptr<WebRequest::Impl> request;
         Mod* mod;
+        size_t id;
         WebResponse response;
         geode::Function<void(WebResponse)> onComplete;
         CURL* curl = nullptr;
 
-        RequestData(std::shared_ptr<WebRequest::Impl> req, Mod* m, geode::Function<void(WebResponse)> cb)
-            : request(std::move(req)), mod(m), onComplete(std::move(cb)) {}
+        RequestData(std::shared_ptr<WebRequest::Impl> req, Mod* mod, size_t id, geode::Function<void(WebResponse)> cb)
+            : request(std::move(req)), mod(mod), id(id), onComplete(std::move(cb)) {}
 
         void complete(WebResponse res) {
             onComplete(res);
 
             WebResponseEvent(mod->getID()).send(res);
+            IDBasedWebResponseEvent(id).send(res);
         }
 
         void onError(int code, std::string_view msg) {
@@ -759,6 +761,7 @@ WebFuture WebRequest::send(std::string method, std::string url, Mod* mod) {
     m_impl->m_inInterceptor = true;
 
     WebRequestInterceptEvent(mod->getID()).send(*this);
+    IDBasedWebRequestInterceptEvent(m_impl->m_id).send(*this);
 
     m_impl->m_inInterceptor = false;
 
@@ -1319,7 +1322,7 @@ WebFuture::WebFuture(std::shared_ptr<WebRequest::Impl> request) {
     auto [tx, rx] = arc::oneshot::channel<WebResponse>();
 
     auto rdata = std::make_shared<WebRequestsManager::RequestData>(
-        std::move(request), request->m_mod, [tx = std::move(tx)](auto res) mutable {
+        std::move(request), request->m_mod, request->m_id, [tx = std::move(tx)](auto res) mutable {
             (void) tx.send(std::move(res));
         }
     );
