@@ -957,7 +957,7 @@ void ModPopup::onLoadServerInfo(server::ServerResult<server::ServerModMetadata> 
     }
 }
 
-void ModPopup::onCheckUpdates(server::ServerResult<std::optional<server::ServerModUpdate>> result) {
+void ModPopup::onCheckUpdates(server::ServerResult<std::optional<VersionInfo>> result) {
     if (result.isOk()) {
         auto resolved = std::move(result).unwrap();
         // Check if this has updates for an installed mod
@@ -968,7 +968,7 @@ void ModPopup::onCheckUpdates(server::ServerResult<std::optional<server::ServerM
                 updatesStat, "Update Found", false,
                 ColorProvider::get()->color3b("mod-list-version-label-updates-available"_spr)
             );
-            this->setStatValue(updatesStat, resolved.value().version.toVString());
+            this->setStatValue(updatesStat, resolved.value().toVString());
             this->updateState();
         }
         else {

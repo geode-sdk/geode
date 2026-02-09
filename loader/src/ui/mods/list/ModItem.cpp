@@ -559,7 +559,7 @@ void ModItem::updateState() {
     ) {
         m_updateBtn->setVisible(true);
         std::string updateString = "";
-        updateString += m_source.getMetadata().getVersion().toVString() + " -> " + update->version.toVString();
+        updateString += m_source.getMetadata().getVersion().toVString() + " -> " + update->toVString();
         m_versionLabel->setString(updateString.c_str());
         m_versionLabel->setColor(to3B(ColorProvider::get()->color("mod-list-version-label-updates-available"_spr)));
 
@@ -739,7 +739,7 @@ void ModItem::updateState() {
     ModItemUIEvent().send(this, m_source.getID(), std::nullopt);
 }
 
-void ModItem::onCheckUpdates(Result<std::optional<server::ServerModUpdate>, server::ServerError> result) {
+void ModItem::onCheckUpdates(Result<std::optional<VersionInfo>, server::ServerError> result) {
     this->updateState();
 }
 

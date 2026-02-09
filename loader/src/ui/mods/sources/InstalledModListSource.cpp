@@ -14,11 +14,7 @@ bool InstalledModsQuery::preCheck(ModSource const& src) const {
     // If we only want mods with updates, then only give mods with updates
     // NOTE: The caller of filterModsWithQuery() should have ensured that
     // `src.checkUpdates()` has been called and has finished
-    if (
-        auto updates = src.hasUpdates();
-        type == InstalledModListType::OnlyUpdates &&
-        !(updates && updates->hasUpdateForInstalledMod())
-    ) {
+    if (type == InstalledModListType::OnlyUpdates && !src.hasUpdates()) {
         return false;
     }
     // If only errors requested, only show mods with errors (duh)
@@ -163,7 +159,7 @@ InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t pa
     // If we're only checking mods that have updates, we first have to run
     // update checks every mod...
     if (m_query.type == InstalledModListType::OnlyUpdates && content.mods.size()) {
-        using UpdateTask = server::ServerFuture<std::optional<server::ServerModUpdate>>;
+        using UpdateTask = server::ServerFuture<std::optional<VersionInfo>>;
         std::vector<UpdateTask> tasks;
         for (auto& src : content.mods) {
             if (auto mod = std::get_if<ModSource>(&src)) {

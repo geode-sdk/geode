@@ -72,7 +72,7 @@ bool ModSource::wantsRestart() const {
         },
     }, m_value);
 }
-std::optional<server::ServerModUpdate> ModSource::hasUpdates() const {
+std::optional<VersionInfo> ModSource::hasUpdates() const {
     return m_availableUpdate;
 }
 
@@ -160,7 +160,7 @@ server::ServerFuture<std::vector<server::ServerTag>> ModSource::fetchValidTags()
 
     co_return Ok(std::move(finalTags));
 }
-server::ServerFuture<std::optional<server::ServerModUpdate>> ModSource::checkUpdates() {
+server::ServerFuture<std::optional<VersionInfo>> ModSource::checkUpdates() {
     m_availableUpdate = std::nullopt;
     if (std::holds_alternative<server::ServerModMetadata>(m_value)) {
         // Server mods aren't installed so you can't install updates for them
@@ -168,18 +168,15 @@ server::ServerFuture<std::optional<server::ServerModUpdate>> ModSource::checkUpd
     }
 
     auto mod = std::get<Mod*>(m_value);
-    
+
     auto availableUpdates = std::move(ARC_CO_UNWRAP(co_await server::checkUpdates(mod)).updates);
-    m_availableUpdate = availableUpdates.size() ? std::optional(availableUpdates[0]) : std::nullopt;
+    m_availableUpdate = availableUpdates.size() ? std::optional(availableUpdates[0].version) : std::nullopt;
     co_return Ok(m_availableUpdate);
 
 }
 void ModSource::startInstall() {
-    if (auto updates = this->hasUpdates()) {
-        server::ModDownloadManager::get()->startDownload(
-            this->getID(),
-            updates->version
-        );
+    if (auto version = this->hasUpdates()) {
+        server::ModDownloadManager::get()->startDownload(this->getID(), *version);
     } else {
         server::ModDownloadManager::get()->startDownload(
             this->getID(),

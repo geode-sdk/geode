@@ -408,11 +408,11 @@ Result<std::vector<ServerModUpdate>> ServerModUpdate::parseList(matjson::Value c
     return payload.ok(list);
 }
 
-bool ServerModUpdate::hasUpdateForInstalledMod() const {
+Mod* ServerModUpdate::hasUpdateForInstalledMod() const {
     if (auto mod = Loader::get()->getInstalledMod(this->id)) {
-        return mod->getVersion() < this->version;
+        return mod->getVersion() < this->version ? mod : nullptr;
     }
-    return false;
+    return nullptr;
 }
 
 Result<ServerModDeprecation> ServerModDeprecation::parse(matjson::Value const& json) {
@@ -436,6 +436,10 @@ Result<std::vector<ServerModDeprecation>> ServerModDeprecation::parseList(matjso
         }
     }
     return payload.ok(list);
+}
+
+Mod* ServerModDeprecation::hasDeprecationForInstalledMod() const {
+    return Loader::get()->getInstalledMod(this->id);
 }
 
 Result<ServerModUpdateCheck> ServerModUpdateCheck::parse(matjson::Value const& json) {
@@ -584,11 +588,11 @@ ModMetadata ServerModMetadata::latestVersion() const {
     return this->versions.front().metadata;
 }
 
-bool ServerModMetadata::hasUpdateForInstalledMod() const {
+Mod* ServerModMetadata::hasUpdateForInstalledMod() const {
     if (auto mod = Loader::get()->getInstalledMod(this->id)) {
-        return mod->getVersion() < this->latestVersion().getVersion();
+        return mod->getVersion() < this->latestVersion().getVersion() ? mod : nullptr;
     }
-    return false;
+    return nullptr;
 }
 
 std::string server::getServerAPIBaseURL() {

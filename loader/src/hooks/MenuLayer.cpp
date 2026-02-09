@@ -22,6 +22,11 @@ using namespace geode::prelude;
 
 class CustomMenuLayer;
 
+enum class FoundUpdates {
+    FoundDeprecations,
+    FoundUpdates,
+    AllUpToDate,
+};
 
 struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
     static void onModify(auto& self) {
@@ -35,7 +40,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         bool m_menuDisabled = false;
         CCSprite* m_geodeButton = nullptr;
         CCSprite* m_exclamation = nullptr;
-        async::TaskHolder<Result<std::vector<std::string>, server::ServerError>> m_updateCheckTask;
+        async::TaskHolder<Result<InstalledModsUpdateCheck, server::ServerError>> m_updateCheckTask;
     };
 
     bool init() {
@@ -188,9 +193,10 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             });
         }
 
+        static FoundUpdates foundModUpdates = FoundUpdates::AllUpToDate;
+
         // Check for mod updates
         static bool checkedModUpdates = false;
-        static bool foundModUpdates = false;
         if (!checkedModUpdates) {
             // only run it once
             checkedModUpdates = true;
@@ -198,10 +204,27 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             m_fields->m_updateCheckTask.spawn(ModsLayer::checkInstalledModsForUpdates(), [this](auto result) {
                 if (result.isOk()) {
                     auto updatesFound = result.unwrap();
-                    if (updatesFound.size()) {
-                        log::info("Found updates for mods: {}!", updatesFound);
-                        this->showUpdatesFound();
-                        foundModUpdates = true;
+                    if (updatesFound.modsWithUpdates.size() || updatesFound.modsWithDeprecations.size()) {
+                        if (updatesFound.modsWithUpdates.size()) {
+                            log::info(
+                                "Found updates for mods: {}!",
+                                ranges::map<std::vector<std::string>>(
+                                    updatesFound.modsWithUpdates,
+                                    +[](Mod* mod) { return mod->getID(); }
+                                )
+                            );
+                            foundModUpdates = FoundUpdates::FoundUpdates;
+                        }
+                        if (updatesFound.modsWithDeprecations.size()) {
+                            log::info(
+                                "Found deprecations for mods: {}!",
+                                ranges::map<std::vector<std::string>>(
+                                    updatesFound.modsWithDeprecations,
+                                    +[](Mod* mod) { return mod->getID(); }
+                                )
+                            );
+                            foundModUpdates = FoundUpdates::FoundDeprecations;
+                        }
                     }
                     else {
                         log::info("All mods up to date!");
@@ -215,9 +238,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         }
 
         // also display if updates were found in a previous MenuLayer iteration
-        if(foundModUpdates) {
-            showUpdatesFound();
-        }
+        this->showUpdatesFound(foundModUpdates);
 
         // Delay the event by a frame so that MenuLayer is already in the scene
         // and popups show up fine
@@ -232,9 +253,15 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         return true;
     }
 
-    void showUpdatesFound() {
-        if(m_fields->m_geodeButton && !m_fields->m_geodeButton->getChildByID("updates-available")) {
-            if(auto icon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr)) {
+    void showUpdatesFound(FoundUpdates type) {
+        if (
+            type != FoundUpdates::AllUpToDate &&
+            m_fields->m_geodeButton &&
+            !m_fields->m_geodeButton->getChildByID("updates-available")
+        ) {
+            if (auto icon = CCSprite::createWithSpriteFrameName(
+                type == FoundUpdates::FoundDeprecations ? "updates-deprecated"_spr : "updates-available.png"_spr
+            )) {
                 // Remove errors icon if it was added, to prevent overlap
                 if (m_fields->m_exclamation) {
                     m_fields->m_exclamation->removeFromParent();

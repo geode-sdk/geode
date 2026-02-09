@@ -60,7 +60,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         m_checkUpdatesListener.spawn(
             "ModList update check",
             ModsLayer::checkInstalledModsForUpdates(),
-            [this](server::ServerResult<std::vector<std::string>> val) {
+            [this](server::ServerResult<InstalledModsUpdateCheck> val) {
                 this->onCheckUpdates(std::move(val).unwrapOrDefault());
             }
         );
@@ -484,17 +484,17 @@ void ModList::onShowStatusDetails(CCObject*) {
     m_statusContainer->updateLayout();
 }
 
-void ModList::onCheckUpdates(const std::vector<std::string>& mods) {
-    if (mods.empty()) return;
+void ModList::onCheckUpdates(InstalledModsUpdateCheck const& check) {
+    if (check.modsWithUpdates.empty()) return;
 
-    if (mods.size() == 1) {
-        m_updateCountLabel->setString(fmt::format("There is <cg>{}</c> update available!", mods.size()));
+    if (check.modsWithUpdates.size() == 1) {
+        m_updateCountLabel->setString(fmt::format("There is an update available!"));
         m_updateAllSpr->setString("");
         m_showUpdatesSpr->setString("Show Update");
         m_hideUpdatesSpr->setString("Hide Update");
     }
     else {
-        m_updateCountLabel->setString(fmt::format("There are <cg>{}</c> updates available!", mods.size()));
+        m_updateCountLabel->setString(fmt::format("There are <cg>{}</c> updates available!", check.modsWithUpdates.size()));
         m_updateAllSpr->setString("Update All");
         m_showUpdatesSpr->setString("Show Updates");
         m_hideUpdatesSpr->setString("Hide Updates");

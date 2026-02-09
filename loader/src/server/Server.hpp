@@ -56,7 +56,7 @@ namespace server {
         static Result<ServerModUpdate> parse(matjson::Value const& json);
         static Result<std::vector<ServerModUpdate>> parseList(matjson::Value const& json);
 
-        bool hasUpdateForInstalledMod() const;
+        Mod* hasUpdateForInstalledMod() const;
     };
     struct ServerModDeprecation final {
         std::string id;
@@ -65,6 +65,8 @@ namespace server {
 
         static Result<ServerModDeprecation> parse(matjson::Value const& json);
         static Result<std::vector<ServerModDeprecation>> parseList(matjson::Value const& json);
+
+        Mod* hasDeprecationForInstalledMod() const;
     };
     struct ServerModUpdateCheck final {
         std::vector<ServerModUpdate> updates;
@@ -98,7 +100,7 @@ namespace server {
 
         ModMetadata latestVersion() const;
         std::string formatDevelopersToString() const;
-        bool hasUpdateForInstalledMod() const;
+        Mod* hasUpdateForInstalledMod() const;
     };
 
     struct ServerModsList final {

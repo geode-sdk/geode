@@ -9,7 +9,7 @@ using namespace geode::prelude;
 class ModSource final {
 private:
     std::variant<Mod*, server::ServerModMetadata> m_value;
-    std::optional<server::ServerModUpdate> m_availableUpdate;
+    std::optional<VersionInfo> m_availableUpdate;
 
 public:
     ModSource() = default;
@@ -21,7 +21,7 @@ public:
     CCNode* createModLogo() const;
     bool wantsRestart() const;
     // note: be sure to call checkUpdates first...
-    std::optional<server::ServerModUpdate> hasUpdates() const;
+    std::optional<VersionInfo> hasUpdates() const;
 
     auto visit(auto&& func) {
         return std::visit(func, m_value);
@@ -39,6 +39,6 @@ public:
     server::ServerFuture<std::optional<std::string>> fetchAbout() const;
     server::ServerFuture<std::optional<std::string>> fetchChangelog() const;
     server::ServerFuture<std::vector<server::ServerTag>> fetchValidTags() const;
-    server::ServerFuture<std::optional<server::ServerModUpdate>> checkUpdates();
+    server::ServerFuture<std::optional<VersionInfo>> checkUpdates();
     void startInstall();
 };
