@@ -13,6 +13,7 @@
  * Add error codes for cancelled web requests, and other errors (#1691)
  * Remove `SimpleEvent` in favor of `Event` with no filter args (9dbd970)
  * Make a bunch of classes pimpl (#1684, #1685)
+ * Rename `Mod::isEnabled` to `Mod::isLoaded` (#1705)
  * Change some of the PlatformID api (#1680)
  * Fix mod downloads and updates (13fcaa0, 2b7854e, 3ecdf5c)
  * Include the `geode::async` namespace in geode prelude (7ef3881)
