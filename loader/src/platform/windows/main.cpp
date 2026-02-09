@@ -147,7 +147,7 @@ void fixCurrentWorkingDirectory() {
     auto size = GetModuleFileNameW(nullptr, cwd.data(), cwd.size());
     if (size == cwd.size()) return;
 
-    SetCurrentDirectoryW(std::filesystem::path(cwd.data()).parent_path().wstring().c_str());
+    SetCurrentDirectoryW(std::filesystem::path(cwd.data()).parent_path().c_str());
 }
 
 bool cleanModeCheck() {

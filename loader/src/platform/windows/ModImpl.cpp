@@ -54,7 +54,7 @@ std::string getLastWinError() {
 }
 
 Result<> Mod::Impl::loadPlatformBinary() {
-    auto load = LoadLibraryW(this->getBinaryPath().wstring().c_str());
+    auto load = LoadLibraryW(this->getBinaryPath().c_str());
     if (load) {
         if (m_platformInfo) {
             delete m_platformInfo;

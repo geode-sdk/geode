@@ -660,7 +660,8 @@ bool crashlog::didLastLaunchCrash() {
 void crashlog::setupPlatformHandlerPost() {
     g_unzippedSearchPaths.clear();
     for (auto& mod : Loader::get()->getAllMods()) {
-        g_unzippedSearchPaths += mod->getTempDir().wstring() + L";";
+        g_unzippedSearchPaths.append(mod->getTempDir().native());
+        g_unzippedSearchPaths.push_back(L';');
     }
 }
 
