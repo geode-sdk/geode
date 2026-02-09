@@ -367,7 +367,7 @@ public:
             onComplete(res);
 
             WebResponseEvent(mod->getID()).send(res);
-            IDBasedWebResponseEvent(id).send(id, res);
+            IDBasedWebResponseEvent(id).send(res);
         }
 
         void onError(int code, std::string_view msg) {
@@ -761,7 +761,7 @@ WebFuture WebRequest::send(std::string method, std::string url, Mod* mod) {
     m_impl->m_inInterceptor = true;
 
     WebRequestInterceptEvent(mod->getID()).send(*this);
-    IDBasedWebRequestInterceptEvent(m_impl->m_id).send(m_impl->m_id, *this);
+    IDBasedWebRequestInterceptEvent(m_impl->m_id).send(*this);
 
     m_impl->m_inInterceptor = false;
 
