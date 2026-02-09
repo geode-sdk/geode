@@ -114,7 +114,7 @@ static bool setDefaultPath(
 ) {
     IShellItem* folder;
     if (!SUCCEEDED(SHCreateItemFromParsingName(
-        defaultPath.wstring().c_str(), nullptr,
+        defaultPath.c_str(), nullptr,
         IID_PPV_ARGS(&folder)
     ))) {
         return false;
@@ -128,7 +128,7 @@ static bool setDefaultFile(
     IFileDialog* dialog,
     std::filesystem::path const& fileName
 ) {
-    dialog->SetFileName(fileName.wstring().c_str());
+    dialog->SetFileName(fileName.c_str());
     return true;
 }
 
@@ -180,7 +180,7 @@ Result<> nfdPick(
     if (!addFiltersToDialog(dialog, options.filters)) {
         return Err("Unable to add filters to dialog");
     }
-    if (options.defaultPath && options.defaultPath.value().wstring().size()) {
+    if (options.defaultPath && options.defaultPath.value().native().size()) {
         std::filesystem::path path = options.defaultPath.value();
         path.make_preferred();
         if (mode == NFDMode::OpenFile || mode == NFDMode::SaveFile) {
@@ -196,7 +196,7 @@ Result<> nfdPick(
                 }
             }
         }
-        if (path.wstring().size() && !setDefaultPath(dialog, path)) {
+        if (path.native().size() && !setDefaultPath(dialog, path)) {
             return Err("Unable to set default path to dialog");
         }
     }

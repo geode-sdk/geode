@@ -70,7 +70,7 @@ static std::string formatError(int error = errno) {
 template <typename T>
 Result<> readFileInto(std::filesystem::path const& path, T& out) {
     HANDLE file = CreateFileW(
-        path.native().c_str(),
+        path.c_str(),
         GENERIC_READ,
         FILE_SHARE_READ,
         nullptr,
@@ -107,7 +107,7 @@ Result<> readFileInto(std::filesystem::path const& path, T& out) {
 
 Result<> writeFileFrom(std::filesystem::path const& path, void* data, size_t size) {
     HANDLE file = CreateFileW(
-        path.native().c_str(),
+        path.c_str(),
         GENERIC_WRITE,
         0,
         nullptr,
@@ -140,7 +140,7 @@ Result<> writeFileFrom(std::filesystem::path const& path, void* data, size_t siz
 
 template <typename T>
 Result<> readFileInto(std::filesystem::path const& path, T& out) {
-    int file = open(path.native().c_str(), O_RDONLY);
+    int file = open(path.c_str(), O_RDONLY);
 
     if (file == -1) {
         return Err("Unable to open file: {}", formatError());
@@ -168,7 +168,7 @@ Result<> readFileInto(std::filesystem::path const& path, T& out) {
 }
 
 Result<> writeFileFrom(std::filesystem::path const& path, void* data, size_t size) {
-    int file = open(path.native().c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    int file = open(path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
     
     if (file < 0) {
         return Err("Unable to open file: {}", formatError());

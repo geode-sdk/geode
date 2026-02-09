@@ -94,12 +94,12 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
             if (!std::filesystem::is_directory(dir, whatever)) {
                 dir = dir.parent_path();
             }
-            if (auto id = ILCreateFromPathW(dir.wstring().c_str())) {
+            if (auto id = ILCreateFromPathW(dir.c_str())) {
                 std::filesystem::path selectPath = path / ".";
                 if (!std::filesystem::is_directory(path, whatever)) {
                     selectPath = path;
                 }
-                auto selectEntry = ILCreateFromPathW(selectPath.wstring().c_str());
+                auto selectEntry = ILCreateFromPathW(selectPath.c_str());
                 if (SHOpenFolderAndSelectItems(id, 1, (PCUITEMID_CHILD_ARRAY)(&selectEntry), 0) == S_OK) {
                     success = true;
                 }
@@ -197,7 +197,7 @@ std::filesystem::path dirs::getGameDir() {
         GetModuleFileNameW(NULL, buffer.data(), MAX_PATH);
 
         const std::filesystem::path path(buffer.data());
-        return std::filesystem::weakly_canonical(path.parent_path().wstring()).wstring();
+        return std::filesystem::weakly_canonical(path.parent_path()).wstring();
     }();
 
     return path;
@@ -218,12 +218,12 @@ std::filesystem::path dirs::getSaveDir() {
             auto appdataPath = std::filesystem::path(buffer.data());
             auto savePath = appdataPath / executableName;
 
-            if (SHCreateDirectoryExW(NULL, savePath.wstring().c_str(), NULL) >= 0) {
-                return std::filesystem::weakly_canonical(savePath.wstring()).wstring();
+            if (SHCreateDirectoryExW(NULL, savePath.c_str(), NULL) >= 0) {
+                return std::filesystem::weakly_canonical(savePath).wstring();
             }
         }
 
-        return std::filesystem::weakly_canonical(executablePath.parent_path().wstring()).wstring();
+        return std::filesystem::weakly_canonical(executablePath.parent_path()).wstring();
     }();
 
     return path;
@@ -274,11 +274,11 @@ void geode::utils::game::restart(bool saveData) {
 
     wchar_t buffer[MAX_PATH];
     GetModuleFileNameW(nullptr, buffer, MAX_PATH);
-    auto const gdName = L"\"" + std::filesystem::path(buffer).filename().wstring() + L"\"";
+    auto const gdName = L"\"" + std::filesystem::path(buffer).filename().native() + L"\"";
 
     // launch updater
-    auto const updaterPath = (workingDir / "GeodeUpdater.exe").wstring();
-    ShellExecuteW(nullptr, L"open", updaterPath.c_str(), gdName.c_str(), workingDir.wstring().c_str(), false);
+    auto const updaterPath = workingDir / "GeodeUpdater.exe";
+    ShellExecuteW(nullptr, L"open", updaterPath.c_str(), gdName.c_str(), workingDir.c_str(), false);
 
     exit(saveData);
 }
@@ -293,12 +293,14 @@ void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
 
     std::wstring params;
     if (deleteSaveData) {
-        params = L"\"/DATA=" + dirs::getSaveDir().wstring() + L"\"";
+        params.append(L"\"/DATA=");
+        params.append(dirs::getSaveDir().native());
+        params.push_back(L'\"');
     }
 
     // launch uninstaller
     auto const uninstallerPath = workingDir / "GeodeUninstaller.exe";
-    ShellExecuteW(nullptr, L"open", uninstallerPath.c_str(), params.c_str(), workingDir.wstring().c_str(), false);
+    ShellExecuteW(nullptr, L"open", uninstallerPath.c_str(), params.c_str(), workingDir.c_str(), false);
 }
 
 Result<> geode::hook::addObjcMethod(char const* className, char const* selectorName, void* imp) {

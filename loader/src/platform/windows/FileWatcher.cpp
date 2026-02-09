@@ -11,7 +11,7 @@ FileWatcher::FileWatcher(
 ) {
     m_filemode = std::filesystem::is_regular_file(file);
     auto handle = FindFirstChangeNotificationW(
-        (m_filemode ? file.parent_path() : file).wstring().c_str(), false, notifyAttributes
+        (m_filemode ? file.parent_path() : file).c_str(), false, notifyAttributes
     );
     m_platformHandle = (void*)handle;
 
@@ -41,7 +41,7 @@ void FileWatcher::watch() {
         if (m_callback) {
             if (m_filemode) {
                 auto file = CreateFileW(
-                    m_file.parent_path().wstring().c_str(), FILE_LIST_DIRECTORY,
+                    m_file.parent_path().c_str(), FILE_LIST_DIRECTORY,
                     FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr, OPEN_EXISTING,
                     FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED, nullptr
                 );
@@ -78,7 +78,7 @@ void FileWatcher::watch() {
                     if (std::filesystem::exists(m_file) &&
                         std::filesystem::file_size(m_file) > 1000 &&
                         info->Action == FILE_ACTION_MODIFIED &&
-                        m_file.filename().wstring() == filename) {
+                        m_file.filename().native() == filename) {
                         m_callback(m_file);
                     }
                 } while (info->NextEntryOffset && (info = info + info->NextEntryOffset));

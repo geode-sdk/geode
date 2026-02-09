@@ -31,7 +31,7 @@ bool waitForFile(std::filesystem::path const& path) {
     int delay = 10;
     int maxDelayAttempts = 20;
     HANDLE hFile;
-    while ((hFile = CreateFileW(path.wstring().c_str(), FILE_GENERIC_WRITE, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL)) == INVALID_HANDLE_VALUE) {
+    while ((hFile = CreateFileW(path.c_str(), FILE_GENERIC_WRITE, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL)) == INVALID_HANDLE_VALUE) {
         if (GetLastError() == ERROR_SHARING_VIOLATION) {
             Sleep(delay);
             // the delay would raise and go up to about 1 second, after which it will start a 20 second countdown
@@ -52,7 +52,8 @@ bool waitForFile(std::filesystem::path const& path) {
     if (hFile) {
         CloseHandle(hFile);
     } else {
-        showError(L"Unable to update Geode: " + path.filename().wstring() + L" is open by another process.");
+        auto filename = path.filename();
+        showError(L"Unable to update Geode: " + filename.native() + L" is open by another process.");
         return false;
     }
     return true;
@@ -85,9 +86,9 @@ void removePath(std::filesystem::path const& path) {
     std::filesystem::remove(path, error);
     if (error) {
         if (path.has_filename())
-            showError(L"Unable to update Geode: Unable to remove " + path.filename().wstring(), error);
+            showError(L"Unable to update Geode: Unable to remove " + path.filename().native(), error);
         else
-            showError(L"Unable to update Geode: Unable to remove " + path.wstring(), error);
+            showError(L"Unable to update Geode: Unable to remove " + path.native(), error);
         return;
     }
 }
@@ -139,6 +140,6 @@ int main(int argc, char* argv[]) {
     }
 
     // restart gd using the provided path
-    ShellExecuteW(NULL, L"open", (workingDir / argv[1]).wstring().c_str(), L"", workingDir.wstring().c_str(), TRUE);
+    ShellExecuteW(NULL, L"open", (workingDir / argv[1]).c_str(), L"", workingDir.c_str(), TRUE);
     return 0;
 }
