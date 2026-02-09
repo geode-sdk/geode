@@ -330,6 +330,13 @@ Result<> Mod::Impl::loadBinary() {
     m_isCurrentlyLoading = true;
     auto res = this->loadPlatformBinary();
     if (!res) {
+        // disable hooks/patches the mod managed to register before failure
+        // note that this will not save from any other side effects (i.e. registering an event listener)
+        for (auto patch : m_patches) { (void) patch->disable(); }
+        for (auto hook : m_hooks) { (void) hook->disable(); }
+        m_patches.clear();
+        m_hooks.clear();
+
         m_isCurrentlyLoading = false;
         m_loaded = false;
         // make sure to free up the next mod mutex
