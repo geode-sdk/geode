@@ -1,6 +1,27 @@
 # Geode Changelog
 
-## v5.0.0-alpha.1 (WIP changelog)
+## v5.0.0-alpha.2
+ * Rework dependencies (#1705)
+   * `importance` is now removed, and replaced with `required` and `breaking` for dependencies and incompatibilities, respectively
+ * Add Input event API (#1630)
+ * Add `geode::NineSlice`, a better alternative to `CCScale9Sprite` (#1698)
+ * Add SceneEvent (#1696)
+ * Add `async::waitForMainThread` (5efd78a)
+ * Add `ThreadSafeGlobalEvent`, and `DispatchEvent` alias for `Dispatch` (6cdd549)
+ * Add web intercepting API (#1697)
+ * Add size check to `GenericContentLayer` (#1700)
+ * Add error codes for cancelled web requests, and other errors (#1691)
+ * Remove `SimpleEvent` in favor of `Event` with no filter args (9dbd970)
+ * Make a bunch of classes pimpl (#1684, #1685)
+ * Change some of the PlatformID api (#1680)
+ * Fix mod downloads and updates (13fcaa0, 2b7854e, 3ecdf5c)
+ * Include the `geode::async` namespace in geode prelude (7ef3881)
+ * Convert old IPC code to use async (ab4f8b9)
+ * Allow checking for completion of `TaskHolder` (a9d5d39)
+ * Fix `file::pick` on android (40b7d09)
+ * Fix event return types (#1682)
+
+## v5.0.0-alpha.1
  * 2.208x support
  * Switch to C++23, mods targeting C++20 will no longer compile
  * Remove `geode::cast:as`
