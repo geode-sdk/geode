@@ -500,7 +500,7 @@ namespace geode::utils::web {
      * Allows you to intercept and modify requests before they're sent using the request identifier.
      *
      * @example
-     * IDBasedWebRequestInterceptEvent(0).listen([](auto& req) { return ListenerResult::Propagate; }, Priority::Normal);
+     * IDBasedWebRequestInterceptEvent(req.getID()).listen([](auto& req) { return ListenerResult::Propagate; }, Priority::Normal);
      */
     struct IDBasedWebRequestInterceptEvent : ThreadSafeEvent<IDBasedWebRequestInterceptEvent, bool(WebRequest&), size_t> {
         using ThreadSafeEvent::ThreadSafeEvent;
@@ -521,7 +521,7 @@ namespace geode::utils::web {
      * Allows you to listen for responses after it was received using the request identifier.
      *
      * @example
-     * IDBasedWebResponseEvent(0).listen([](auto const& res) { return ListenerResult::Propagate; }, Priority::Normal);
+     * IDBasedWebResponseEvent(req.getID()).listen([](auto const& res) { return ListenerResult::Propagate; }, Priority::Normal);
      */
     struct IDBasedWebResponseEvent : ThreadSafeEvent<IDBasedWebResponseEvent, bool(WebResponse const&), size_t> {
         using ThreadSafeEvent::ThreadSafeEvent;
