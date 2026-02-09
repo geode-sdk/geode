@@ -360,23 +360,9 @@ ModMetadata ModMetadata::Impl::parse(ModJson const& rawJson, std::optional<std::
                 dependency.setVersion(version);
 
                 // Parse "required" field (since v5)
-                bool required;
+                bool required = true;
                 dep.has("required").into(required);
                 dependency.setRequired(required);
-
-                // Compatibility for old "importance" field (although marks the 
-                // mod.json as outdated) (I'm not sure if this is needed but I 
-                // added it just in case not having it would cause weird load 
-                // order issues)
-                std::string oldImportance;
-                dep.has("importance").into(oldImportance);
-                dependency.setRequired(oldImportance == "required");
-                if (impl->m_geodeVersion.getMajor() > 5 && oldImportance.size()) {
-                    impl->m_errors.emplace_back(fmt::format(
-                        "[mod.json].dependencies.\"{}\" is not a valid Mod ID ({})",
-                        id, ID_REGEX
-                    ));
-                }
 
                 matjson::Value dependencySettings;
                 dep.has("settings").into(dependencySettings);
@@ -446,7 +432,7 @@ ModMetadata ModMetadata::Impl::parse(ModJson const& rawJson, std::optional<std::
                 incompat.needs("version").into(version);
                 incompatibility.setVersion(version);
 
-                bool breaking;
+                bool breaking = true;
                 incompat.has("breaking").into(breaking);
                 incompatibility.setBreaking(breaking);
 
