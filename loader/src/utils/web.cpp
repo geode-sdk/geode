@@ -425,9 +425,9 @@ public:
     bool m_ignoreContentLength = false;
     ProxyOpts m_proxyOpts = {};
     HttpVersion m_httpVersion = HttpVersion::DEFAULT;
-    size_t m_id;
     Mod* m_mod;
     bool m_inInterceptor = false;
+    std::atomic<size_t> m_id;
     std::atomic<size_t> m_downloadCurrent = 0;
     std::atomic<size_t> m_downloadTotal = 0;
     std::atomic<size_t> m_uploadCurrent = 0;
