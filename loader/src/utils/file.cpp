@@ -105,7 +105,7 @@ Result<> readFileInto(std::filesystem::path const& path, T& out) {
     return Ok();
 }
 
-Result<> writeFileFrom(std::filesystem::path const& path, void* data, size_t size) {
+static Result<> writeFileFrom(std::filesystem::path const& path, void* data, size_t size) {
     HANDLE file = CreateFileW(
         path.c_str(),
         GENERIC_WRITE,
@@ -132,7 +132,7 @@ Result<> writeFileFrom(std::filesystem::path const& path, void* data, size_t siz
     }
 
     CloseHandle(file);
-    
+
     return Ok();
 }
 
@@ -167,9 +167,9 @@ Result<> readFileInto(std::filesystem::path const& path, T& out) {
     return Ok();
 }
 
-Result<> writeFileFrom(std::filesystem::path const& path, void* data, size_t size) {
+static Result<> writeFileFrom(std::filesystem::path const& path, void* data, size_t size) {
     int file = open(path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    
+
     if (file < 0) {
         return Err("Unable to open file: {}", formatError());
     }
@@ -186,7 +186,7 @@ Result<> writeFileFrom(std::filesystem::path const& path, void* data, size_t siz
     }
 
     close(file);
-    
+
     return Ok();
 }
 
