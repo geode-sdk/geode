@@ -168,10 +168,12 @@ bool Mod::Impl::isInternal() const {
     return m_metadata.getID() == "geode.loader";
 }
 
-bool Mod::Impl::needsEarlyLoad() const {
+bool Mod::Impl::needsEarlyLoad(std::vector<Mod*>& checked) const {
+    checked.push_back(m_self);
     if (this->getMetadata().needsEarlyLoad()) return true;
     for (auto& dep : m_dependants) {
-        if (dep->needsEarlyLoad()) return true;
+        if(std::find(checked.begin(), checked.end(), dep) != checked.end()) continue;
+        if (dep->m_impl->needsEarlyLoad(checked)) return true;
     }
     return false;
 }

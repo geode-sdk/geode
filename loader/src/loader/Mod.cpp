@@ -69,7 +69,8 @@ bool Mod::isInternal() const {
 }
 
 bool Mod::needsEarlyLoad() const {
-    return m_impl->needsEarlyLoad();
+    std::vector<Mod*> checked;
+    return m_impl->needsEarlyLoad(checked);
 }
 
 ModMetadata const& Mod::getMetadata() const {

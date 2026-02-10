@@ -88,7 +88,7 @@ namespace geode {
         VersionInfo getVersion() const;
         bool isLoaded() const;
         bool isInternal() const;
-        bool needsEarlyLoad() const;
+        bool needsEarlyLoad(std::vector<Mod*>& checked) const;
         ModMetadata const& getMetadata() const;
         std::filesystem::path getTempDir() const;
         std::filesystem::path getBinaryPath() const;
