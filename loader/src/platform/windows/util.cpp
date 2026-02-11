@@ -120,8 +120,12 @@ static arc::Future<Result<bool>> asyncNfdPick(
 ) {
     auto [tx, rx] = arc::oneshot::channel<Result<>>();
 
+    auto hwnd = *co_await async::waitForMainThread<HWND>([] {
+        return WindowFromDC(wglGetCurrentDC());
+    });
+
     auto thread = std::thread([&, tx = std::move(tx)] mutable {
-        auto pickresult = nfdPick(mode, options, result);
+        auto pickresult = nfdPick(mode, options, result, hwnd);
         (void) tx.send(pickresult);
     });
 

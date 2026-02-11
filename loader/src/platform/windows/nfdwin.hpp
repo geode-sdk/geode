@@ -57,5 +57,6 @@ enum class NFDMode {
 Result<> nfdPick(
     NFDMode mode,
     file::FilePickOptions const& options,
-    void* result
+    void* result,
+    HWND parent
 );
