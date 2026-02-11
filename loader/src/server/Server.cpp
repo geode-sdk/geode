@@ -120,6 +120,7 @@ public:
 
     template <class... Args>
     arc::Future<Result<Value, ServerError>> get(Args&&... args) {
+        ARC_FRAME();
         auto key = Extract::key(args...);
 
         auto cache = co_await m_cache.lock();
@@ -593,6 +594,7 @@ std::string server::getServerUserAgent() {
 }
 
 ServerFuture<ServerModsList> server::getMods(ModsQuery query, bool useCache) {
+    ARC_FRAME();
     if (useCache) {
         co_return co_await getCache<getMods>().get(std::move(query));
     }
@@ -656,6 +658,7 @@ ServerFuture<ServerModsList> server::getMods(ModsQuery query, bool useCache) {
 }
 
 ServerFuture<ServerModMetadata> server::getMod(std::string id, bool useCache) {
+    ARC_FRAME();
     if (useCache) {
         co_return co_await getCache<getMod>().get(std::move(id));
     }
@@ -682,6 +685,7 @@ ServerFuture<ServerModMetadata> server::getMod(std::string id, bool useCache) {
 }
 
 ServerFuture<ServerModVersion> server::getModVersion(std::string id, ModVersion version, bool useCache) {
+    ARC_FRAME();
     if (useCache) {
         auto& cache = getCache<getModVersion>();
 
@@ -742,6 +746,7 @@ ServerFuture<ServerModVersion> server::getModVersion(std::string id, ModVersion 
 }
 
 ServerFuture<ByteVector> server::getModLogo(std::string id, bool useCache) {
+    ARC_FRAME();
     if (useCache) {
         co_return co_await getCache<getModLogo>().get(std::move(id));
     }
@@ -749,7 +754,7 @@ ServerFuture<ByteVector> server::getModLogo(std::string id, bool useCache) {
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
     auto response = co_await req.get(formatServerURL("/mods/{}/logo", id));
-    
+
     if (response.ok()) {
         co_return Ok(std::move(response).data());
     }
@@ -757,6 +762,7 @@ ServerFuture<ByteVector> server::getModLogo(std::string id, bool useCache) {
 }
 
 ServerFuture<std::vector<ServerTag>> server::getTags(bool useCache) {
+    ARC_FRAME();
     if (useCache) {
         co_return co_await getCache<getTags>().get();
     }
@@ -780,8 +786,9 @@ ServerFuture<std::vector<ServerTag>> server::getTags(bool useCache) {
 }
 
 ServerFuture<std::optional<ServerModUpdate>> server::checkUpdates(Mod const* mod) {
+    ARC_FRAME();
     auto updates = ARC_CO_UNWRAP(co_await checkAllUpdates());
-    
+
     for (auto& update : updates) {
         if (
             update.id == mod->getID() &&
@@ -794,6 +801,7 @@ ServerFuture<std::optional<ServerModUpdate>> server::checkUpdates(Mod const* mod
 }
 
 ServerFuture<std::vector<ServerModUpdate>> server::batchedCheckUpdates(std::vector<std::string> const& batch) {
+    ARC_FRAME();
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
     req.param("platform", GEODE_PLATFORM_SHORT_IDENTIFIER);
@@ -820,6 +828,7 @@ ServerFuture<std::vector<ServerModUpdate>> server::batchedCheckUpdates(std::vect
 }
 
 ServerFuture<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCache) {
+    ARC_FRAME();
     if (useCache) {
         co_return co_await getCache<checkAllUpdates>().get();
     }
@@ -866,6 +875,7 @@ ServerFuture<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCache
 }
 
 ServerFuture<ServerLoaderVersion> server::getLoaderVersion(std::string tag, bool useCache) {
+    ARC_FRAME();
     if (useCache) {
         co_return co_await getCache<getLoaderVersion>().get(tag);
     }
@@ -890,6 +900,7 @@ ServerFuture<ServerLoaderVersion> server::getLoaderVersion(std::string tag, bool
 }
 
 ServerFuture<ServerLoaderVersion> server::getLatestLoaderVersion(bool useCache) {
+    ARC_FRAME();
     if (useCache) {
         co_return co_await getCache<getLatestLoaderVersion>().get();
     }
@@ -923,7 +934,7 @@ void server::clearServerCaches(bool clearGlobalCaches) {
         co_await getCache<&getMods>().clear();
         co_await getCache<&getMod>().clear();
         co_await getCache<&getModLogo>().clear();
-    
+
         // Only clear global caches if explicitly requested
         if (clearGlobalCaches) {
             co_await getCache<&getTags>().clear();
