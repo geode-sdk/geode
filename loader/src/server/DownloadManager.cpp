@@ -233,7 +233,7 @@ std::optional<VersionInfo> ModDownload::getVersion() const {
 class ModDownloadManager::Impl {
 public:
     StringMap<ModDownload> m_downloads;
-    async::TaskHolder<Result<ServerModUpdateCheck, server::ServerError>> m_updateAllTask;
+    async::TaskHolder<server::ServerResult<ServerModUpdateAllCheck>> m_updateAllTask;
 
     void cancelOrphanedDependencies() {
         // "This doesn't handle circular dependencies!!!!"

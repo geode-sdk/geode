@@ -555,11 +555,11 @@ void ModItem::updateState() {
 
     if (
         auto update = m_source.hasUpdates();
-        update && !(download && (download->isActive() || download->isDone()))
+        update.update && !(download && (download->isActive() || download->isDone()))
     ) {
         m_updateBtn->setVisible(true);
         std::string updateString = "";
-        updateString += m_source.getMetadata().getVersion().toVString() + " -> " + update->toVString();
+        updateString += m_source.getMetadata().getVersion().toVString() + " -> " + update.update->version.toVString();
         m_versionLabel->setString(updateString.c_str());
         m_versionLabel->setColor(to3B(ColorProvider::get()->color("mod-list-version-label-updates-available"_spr)));
 
@@ -739,7 +739,7 @@ void ModItem::updateState() {
     ModItemUIEvent().send(this, m_source.getID(), std::nullopt);
 }
 
-void ModItem::onCheckUpdates(Result<std::optional<VersionInfo>, server::ServerError> result) {
+void ModItem::onCheckUpdates(server::ServerResult<server::ServerModUpdateOneCheck> result) {
     this->updateState();
 }
 

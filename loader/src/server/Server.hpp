@@ -68,11 +68,15 @@ namespace server {
 
         Mod* hasDeprecationForInstalledMod() const;
     };
-    struct ServerModUpdateCheck final {
+    struct ServerModUpdateAllCheck final {
         std::vector<ServerModUpdate> updates;
         std::vector<ServerModDeprecation> deprecations;
 
-        static Result<ServerModUpdateCheck> parse(matjson::Value const& json);
+        static Result<ServerModUpdateAllCheck> parse(matjson::Value const& json);
+    };
+    struct ServerModUpdateOneCheck final {
+        std::optional<ServerModUpdate> update;
+        std::optional<ServerModDeprecation> deprecation;
     };
 
     struct ServerModLinks final {
@@ -187,9 +191,9 @@ namespace server {
     ServerFuture<ByteVector> getModLogo(std::string id, bool useCache = true);
     ServerFuture<std::vector<ServerTag>> getTags(bool useCache = true);
 
-    ServerFuture<ServerModUpdateCheck> checkUpdates(Mod const* mod);
-    ServerFuture<ServerModUpdateCheck> batchedCheckUpdates(std::vector<std::string> const& batch);
-    ServerFuture<ServerModUpdateCheck> checkAllUpdates(bool useCache = true);
+    ServerFuture<ServerModUpdateOneCheck> checkUpdates(Mod const* mod);
+    ServerFuture<ServerModUpdateAllCheck> batchedCheckUpdates(std::vector<std::string> const& batch);
+    ServerFuture<ServerModUpdateAllCheck> checkAllUpdates(bool useCache = true);
 
     ServerFuture<ServerLoaderVersion> getLoaderVersion(std::string tag, bool useCache = true);
     ServerFuture<ServerLoaderVersion> getLatestLoaderVersion(bool useCache = true);

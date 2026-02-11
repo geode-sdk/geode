@@ -442,18 +442,18 @@ Mod* ServerModDeprecation::hasDeprecationForInstalledMod() const {
     return Loader::get()->getInstalledMod(this->id);
 }
 
-Result<ServerModUpdateCheck> ServerModUpdateCheck::parse(matjson::Value const& json) {
+Result<ServerModUpdateAllCheck> ServerModUpdateAllCheck::parse(matjson::Value const& json) {
     // Old v4 format just returned updates as array
     if (json.isArray()) {
-        return Ok(ServerModUpdateCheck {
+        return Ok(ServerModUpdateAllCheck {
             .updates = GEODE_UNWRAP(ServerModUpdate::parseList(json)),
             .deprecations = {},
         });
     }
-    auto root = checkJson(json, "ServerModUpdateCheck");
+    auto root = checkJson(json, "ServerModUpdateAllCheck");
     auto updates = GEODE_UNWRAP(ServerModUpdate::parseList(root.needs("updates").json()));
     auto deprecations = GEODE_UNWRAP(ServerModDeprecation::parseList(root.needs("deprecations").json()));
-    return root.ok(ServerModUpdateCheck {
+    return root.ok(ServerModUpdateAllCheck {
         .updates = updates,
         .deprecations = deprecations,
     });
@@ -805,23 +805,23 @@ ServerFuture<std::vector<ServerTag>> server::getTags(bool useCache) {
     co_return Err(parseServerError(response));
 }
 
-ServerFuture<ServerModUpdateCheck> server::checkUpdates(Mod const* mod) {
+ServerFuture<ServerModUpdateOneCheck> server::checkUpdates(Mod const* mod) {
     auto all = ARC_CO_UNWRAP(co_await checkAllUpdates());
-    auto result = ServerModUpdateCheck {};
+    auto result = ServerModUpdateOneCheck {};
     for (auto&& update : all.updates) {
         if (update.id == mod->getID() && update.version > mod->getVersion()) {
-            result.updates.emplace_back(std::move(update));
+            result.update.emplace(std::move(update));
         }
     }
     for (auto&& dep : all.deprecations) {
         if (dep.id == mod->getID()) {
-            result.deprecations.emplace_back(std::move(dep));
+            result.deprecation.emplace(std::move(dep));
         }
     }
     co_return Ok(result);
 }
 
-ServerFuture<ServerModUpdateCheck> server::batchedCheckUpdates(std::vector<std::string> const& batch) {
+ServerFuture<ServerModUpdateAllCheck> server::batchedCheckUpdates(std::vector<std::string> const& batch) {
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
     req.param("platform", GEODE_PLATFORM_SHORT_IDENTIFIER);
@@ -838,7 +838,7 @@ ServerFuture<ServerModUpdateCheck> server::batchedCheckUpdates(std::vector<std::
             co_return Err(payload.unwrapErr());
         }
         // Parse response
-        auto list = ServerModUpdateCheck::parse(payload.unwrap());
+        auto list = ServerModUpdateAllCheck::parse(payload.unwrap());
         if (!list) {
             co_return Err(ServerError(response.code(), "Unable to parse response: {}", list.unwrapErr()));
         }
@@ -847,7 +847,7 @@ ServerFuture<ServerModUpdateCheck> server::batchedCheckUpdates(std::vector<std::
     co_return Err(parseServerError(response));
 }
 
-ServerFuture<ServerModUpdateCheck> server::checkAllUpdates(bool useCache) {
+ServerFuture<ServerModUpdateAllCheck> server::checkAllUpdates(bool useCache) {
     if (useCache) {
         co_return co_await getCache<checkAllUpdates>().get();
     }
@@ -860,7 +860,7 @@ ServerFuture<ServerModUpdateCheck> server::checkAllUpdates(bool useCache) {
     // if there's no mods, the request would just be empty anyways
     if (modIDs.empty()) {
         // you would think it could infer like literally anything
-        co_return Ok(ServerModUpdateCheck {});
+        co_return Ok(ServerModUpdateAllCheck {});
     }
 
     std::vector<std::vector<std::string>> modBatches;
@@ -882,7 +882,7 @@ ServerFuture<ServerModUpdateCheck> server::checkAllUpdates(bool useCache) {
     }
 
     // chain requests to avoid doing too many large requests at once
-    ServerModUpdateCheck accum;
+    ServerModUpdateAllCheck accum;
     for (auto& batch : modBatches) {
         auto serverValues = ARC_CO_UNWRAP(co_await batchedCheckUpdates(batch));
         accum.updates.reserve(accum.updates.size() + serverValues.updates.size());

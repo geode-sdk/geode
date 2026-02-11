@@ -114,8 +114,8 @@ Mod::CheckUpdatesTask Mod::checkUpdates() const {
         co_return Err("{} (code {})", err.details, err.code);
     }
     auto value = std::move(res).unwrap();
-    if (value.updates.empty()) co_return Ok(std::nullopt);
-    co_return Ok(value.updates[0].version);
+    if (!value.update) co_return Ok(std::nullopt);
+    co_return Ok(value.update->version);
 }
 
 Result<> Mod::saveData() {

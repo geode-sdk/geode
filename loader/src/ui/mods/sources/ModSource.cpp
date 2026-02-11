@@ -72,7 +72,7 @@ bool ModSource::wantsRestart() const {
         },
     }, m_value);
 }
-std::optional<VersionInfo> ModSource::hasUpdates() const {
+server::ServerModUpdateOneCheck ModSource::hasUpdates() const {
     return m_availableUpdate;
 }
 
@@ -100,7 +100,7 @@ server::ServerModMetadata const* ModSource::asServer() const {
 
 server::ServerFuture<std::optional<std::string>> ModSource::fetchAbout() const {
     // todo: write as visit
-    if(!this->hasUpdates()) {
+    if (!this->hasUpdates().update) {
         if (auto mod = this->asMod()) {
             co_return Ok(mod->getMetadata().getDetails());
         }
@@ -112,7 +112,7 @@ server::ServerFuture<std::optional<std::string>> ModSource::fetchAbout() const {
     co_return Err(result.unwrapErr());
 }
 server::ServerFuture<std::optional<std::string>> ModSource::fetchChangelog() const {
-    if(!this->hasUpdates()) {
+    if (!this->hasUpdates().update) {
         if (auto mod = this->asMod()) {
             co_return Ok(mod->getMetadata().getChangelog());
         }
@@ -160,23 +160,20 @@ server::ServerFuture<std::vector<server::ServerTag>> ModSource::fetchValidTags()
 
     co_return Ok(std::move(finalTags));
 }
-server::ServerFuture<std::optional<VersionInfo>> ModSource::checkUpdates() {
-    m_availableUpdate = std::nullopt;
+server::ServerFuture<server::ServerModUpdateOneCheck> ModSource::checkUpdates() {
+    m_availableUpdate = server::ServerModUpdateOneCheck();
     if (std::holds_alternative<server::ServerModMetadata>(m_value)) {
         // Server mods aren't installed so you can't install updates for them
-        co_return Ok(std::nullopt);
+        co_return Ok(m_availableUpdate);
     }
 
     auto mod = std::get<Mod*>(m_value);
-
-    auto availableUpdates = std::move(ARC_CO_UNWRAP(co_await server::checkUpdates(mod)).updates);
-    m_availableUpdate = availableUpdates.size() ? std::optional(availableUpdates[0].version) : std::nullopt;
+    m_availableUpdate = std::move(ARC_CO_UNWRAP(co_await server::checkUpdates(mod)));
     co_return Ok(m_availableUpdate);
-
 }
 void ModSource::startInstall() {
-    if (auto version = this->hasUpdates()) {
-        server::ModDownloadManager::get()->startDownload(this->getID(), *version);
+    if (auto update = this->hasUpdates().update) {
+        server::ModDownloadManager::get()->startDownload(this->getID(), update->version);
     } else {
         server::ModDownloadManager::get()->startDownload(
             this->getID(),

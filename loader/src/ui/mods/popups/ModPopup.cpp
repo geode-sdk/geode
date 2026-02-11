@@ -768,7 +768,10 @@ void ModPopup::updateState() {
     m_reenableBtn->toggle(m_enableBtn->isToggled());
     m_reenableBtn->setVisible(asMod && modRequestedActionIsToggle(asMod->getRequestedAction()));
 
-    m_updateBtn->setVisible(m_source.hasUpdates().has_value() && asMod->getRequestedAction() == ModRequestedAction::None);
+    m_updateBtn->setVisible(
+        m_source.hasUpdates().update.has_value() &&
+        asMod->getRequestedAction() == ModRequestedAction::None
+    );
     m_installBtn->setVisible(this->availableForInstall());
     m_unavailableBtn->setVisible(m_source.asServer() && !this->availableForInstall());
     m_uninstallBtn->setVisible(asMod && asMod->getRequestedAction() == ModRequestedAction::None);
@@ -957,18 +960,18 @@ void ModPopup::onLoadServerInfo(server::ServerResult<server::ServerModMetadata> 
     }
 }
 
-void ModPopup::onCheckUpdates(server::ServerResult<std::optional<VersionInfo>> result) {
+void ModPopup::onCheckUpdates(server::ServerResult<server::ServerModUpdateOneCheck> result) {
     if (result.isOk()) {
         auto resolved = std::move(result).unwrap();
         // Check if this has updates for an installed mod
         auto updatesStat = m_stats->getChildByID("update-check");
-        if (resolved.has_value()) {
+        if (resolved.update.has_value()) {
             this->setStatIcon(updatesStat, "updates-available.png"_spr);
             this->setStatLabel(
                 updatesStat, "Update Found", false,
                 ColorProvider::get()->color3b("mod-list-version-label-updates-available"_spr)
             );
-            this->setStatValue(updatesStat, resolved.value().toVString());
+            this->setStatValue(updatesStat, resolved.update->version.toVString());
             this->updateState();
         }
         else {
