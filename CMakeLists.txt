@@ -264,6 +264,14 @@ if (NOT PROJECT_IS_TOP_LEVEL AND NOT DEFINED ARC_FEATURE_FULL)
 endif()
 CPMAddPackage("gh:dankmeme01/arc@1.4.7")
 
+# use unity for both arc and its dependencies,
+# they're fairly small libs so it helps a lot with compile times
+set_target_properties(asp PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 64)
+set_target_properties(arc PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 64)
+if (TARGET qsox)
+	set_target_properties(qsox PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 64)
+endif()
+
 target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)
 
 # this is needed for cross compilation on linux,

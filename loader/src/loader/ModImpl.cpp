@@ -168,10 +168,12 @@ bool Mod::Impl::isInternal() const {
     return m_metadata.getID() == "geode.loader";
 }
 
-bool Mod::Impl::needsEarlyLoad() const {
+bool Mod::Impl::needsEarlyLoad(std::vector<Mod*>& checked) const {
+    checked.push_back(m_self);
     if (this->getMetadata().needsEarlyLoad()) return true;
     for (auto& dep : m_dependants) {
-        if (dep->needsEarlyLoad()) return true;
+        if(std::find(checked.begin(), checked.end(), dep) != checked.end()) continue;
+        if (dep->m_impl->needsEarlyLoad(checked)) return true;
     }
     return false;
 }
@@ -330,6 +332,13 @@ Result<> Mod::Impl::loadBinary() {
     m_isCurrentlyLoading = true;
     auto res = this->loadPlatformBinary();
     if (!res) {
+        // disable hooks/patches the mod managed to register before failure
+        // note that this will not save from any other side effects (i.e. registering an event listener)
+        for (auto patch : m_patches) { (void) patch->disable(); }
+        for (auto hook : m_hooks) { (void) hook->disable(); }
+        m_patches.clear();
+        m_hooks.clear();
+
         m_isCurrentlyLoading = false;
         m_loaded = false;
         // make sure to free up the next mod mutex

@@ -64,7 +64,9 @@ public:
                     };
                 }
 
-                ModDownloadEvent(std::string(m_id)).send();
+                Loader::get()->queueInMainThread([id = m_id]() {
+                    ModDownloadEvent(std::string(id)).send();
+                });
             }
         );
 
@@ -184,7 +186,9 @@ public:
             }
         );
 
-        ModDownloadEvent(std::string(m_id)).send();
+        Loader::get()->queueInMainThread([id = m_id]() {
+            ModDownloadEvent(std::string(id)).send();
+        });
     }
 };
 
