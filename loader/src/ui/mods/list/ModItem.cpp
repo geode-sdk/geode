@@ -16,6 +16,7 @@
 #include "ui/mods/popups/ModPopup.hpp"
 #include "ui/mods/popups/DevPopup.hpp"
 #include "ui/mods/sources/ModSource.hpp"
+#include "../popups/ModDeprecatedPopup.hpp"
 
 bool ModItem::init(ModSource&& source) {
     if (!ModListItem::init())
@@ -123,6 +124,17 @@ bool ModItem::init(ModSource&& source) {
     m_outdatedLabel->setID("outdated-label");
     m_outdatedLabel->setScale(.75f);
     m_infoContainer->addChildAtPosition(m_outdatedLabel, Anchor::Left);
+
+    m_deprecatedLabel = createTagLabel(
+        "Deprecated",
+        {
+            to3B(ColorProvider::get()->color("mod-list-deprecated-label"_spr)),
+            to3B(ColorProvider::get()->color("mod-list-deprecated-label-bg"_spr))
+        }
+    );
+    m_deprecatedLabel->setID("deprecated-label");
+    m_deprecatedLabel->setScale(.75f);
+    m_infoContainer->addChildAtPosition(m_deprecatedLabel, Anchor::Left);
 
     m_downloadBarContainer = CCNode::create();
     m_downloadBarContainer->setID("download-bar-container");
@@ -553,18 +565,27 @@ void ModItem::updateState() {
         }
     });
 
-    if (
-        auto update = m_source.hasUpdates();
-        update.update && !(download && (download->isActive() || download->isDone()))
+    m_deprecatedLabel->setVisible(false);
+
+    auto update = m_source.hasUpdates();
+    if ((update.update || update.deprecation) && !(download && (download->isActive() || download->isDone()))
     ) {
         m_updateBtn->setVisible(true);
-        std::string updateString = "";
-        updateString += m_source.getMetadata().getVersion().toVString() + " -> " + update.update->version.toVString();
-        m_versionLabel->setString(updateString.c_str());
-        m_versionLabel->setColor(to3B(ColorProvider::get()->color("mod-list-version-label-updates-available"_spr)));
+        if (update.update) {
+            std::string updateString = "";
+            updateString += m_source.getMetadata().getVersion().toVString() + " -> " + update.update->version.toVString();
+            m_versionLabel->setString(updateString.c_str());
+            m_versionLabel->setColor(to3B(ColorProvider::get()->color("mod-list-version-label-updates-available"_spr)));
 
-        m_bg->setColor(to3B(ColorProvider::get()->color("mod-list-version-bg-updates-available"_spr)));
-        m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
+            m_bg->setColor(to3B(ColorProvider::get()->color("mod-list-version-bg-updates-available"_spr)));
+            m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
+        }
+        else {
+            m_deprecatedLabel->setVisible(true);
+            elementToReplaceWithOtherAbnormalElement->setVisible(false);
+            m_bg->setColor(to3B(ColorProvider::get()->color("mod-list-version-bg-deprecated"_spr)));
+            m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
+        }
     }
     else {
         m_updateBtn->setVisible(false);
@@ -582,7 +603,9 @@ void ModItem::updateState() {
             m_bg->setColor("mod-list-errors-found"_cc3b);
             m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
         }
-        if (!wantsRestart && targetsOutdated && !isDownloading) {
+        // Deprecation takes precedence over "Outdated" (since you need to be 
+        // able to update a deprecated outdated mod)
+        if (!wantsRestart && targetsOutdated && !isDownloading && !update.deprecation) {
             m_bg->setColor("mod-list-outdated-label"_cc3b);
             m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
             m_outdatedLabel->setVisible(true);
@@ -651,6 +674,7 @@ void ModItem::updateState() {
             m_developers->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
             m_restartRequiredLabel->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
             m_outdatedLabel->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
+            m_deprecatedLabel->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
             m_downloadBarContainer->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
             m_downloadWaiting->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
 
@@ -672,6 +696,7 @@ void ModItem::updateState() {
             m_developers->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
             m_restartRequiredLabel->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
             m_outdatedLabel->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
+            m_deprecatedLabel->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
             m_downloadBarContainer->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
             m_downloadWaiting->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
 
@@ -795,7 +820,12 @@ void ModItem::onView(CCObject*) {
 }
 void ModItem::onViewError(CCObject*) {
     if (auto mod = m_source.asMod()) {
-        if (auto problem = mod->getLoadProblem()) {
+        // Deprecation gets special treatement
+        // Note: this statement below should copy to and not move
+        if (auto dep = m_source.hasUpdates().deprecation) {
+            ModDeprecatedPopup::create(mod, std::move(*dep))->show();
+        }
+        else if (auto problem = mod->getLoadProblem()) {
             std::string title;
             switch (problem->type) {
                 default:

@@ -61,6 +61,7 @@ protected:
     CCLabelBMFont* m_developerLabel;
     ButtonSprite* m_restartRequiredLabel;
     ButtonSprite* m_outdatedLabel;
+    ButtonSprite* m_deprecatedLabel;
     CCNode* m_downloadWaiting;
     CCNode* m_downloadBarContainer;
     Slider* m_downloadBar;

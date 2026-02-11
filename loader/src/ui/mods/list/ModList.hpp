@@ -38,6 +38,7 @@ protected:
     CCNode* m_topContainer;
     CCNode* m_searchMenu;
     CCNode* m_updateAllContainer = nullptr;
+    CCLayerGradient* m_updateAllBG = nullptr;
     CCMenu* m_updateAllMenu = nullptr;
     Ref<IconButtonSprite> m_updateAllSpr = nullptr;
     CCMenuItemSpriteExtra* m_updateAllBtn = nullptr;

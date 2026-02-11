@@ -71,25 +71,25 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         m_updateAllContainer->setContentSize({ size.width, 30 });
         m_updateAllContainer->setVisible(false);
 
-        auto updateAllBG = CCLayerGradient::create(
+        m_updateAllBG = CCLayerGradient::create(
             "mod-list-updates-available-bg"_cc4b,
             "mod-list-updates-available-bg-2"_cc4b,
             ccp(1, -.5f)
         );
-        updateAllBG->setID("update-all-bg");
-        updateAllBG->setContentSize(m_updateAllContainer->getContentSize());
-        updateAllBG->ignoreAnchorPointForPosition(false);
+        m_updateAllBG->setID("update-all-bg");
+        m_updateAllBG->setContentSize(m_updateAllContainer->getContentSize());
+        m_updateAllBG->ignoreAnchorPointForPosition(false);
 
-        updateAllBG->addChildAtPosition(
+        m_updateAllBG->addChildAtPosition(
             CCLayerColor::create("mod-list-bg"_cc4b, m_updateAllContainer->getContentWidth(), 1),
             Anchor::TopLeft
         );
-        updateAllBG->addChildAtPosition(
+        m_updateAllBG->addChildAtPosition(
             CCLayerColor::create("mod-list-bg"_cc4b, m_updateAllContainer->getContentWidth(), 1),
             Anchor::BottomLeft, ccp(0, -1)
         );
 
-        m_updateAllContainer->addChildAtPosition(updateAllBG, Anchor::Center);
+        m_updateAllContainer->addChildAtPosition(m_updateAllBG, Anchor::Center);
 
         m_updateCountLabel = TextArea::create("", "bigFont.fnt", .35f, size.width / 2 - 30, ccp(0, 1), 12.f, false);
         m_updateCountLabel->setID("update-count-label");
@@ -485,28 +485,43 @@ void ModList::onShowStatusDetails(CCObject*) {
 }
 
 void ModList::onCheckUpdates(InstalledModsUpdateCheck const& check) {
-    if (check.modsWithUpdates.empty()) return;
+    if (check.modsWithUpdates.empty() && check.modsWithDeprecations.empty()) return;
 
-    if (check.modsWithUpdates.size() == 1) {
-        m_updateCountLabel->setString(fmt::format("There is an update available!"));
+    // Not sure if updates really should take precedence over deprecations
+    if (check.modsWithUpdates.size()) {
+        if (check.modsWithUpdates.size() == 1) {
+            m_updateCountLabel->setString("There is an update available!");
+            m_updateAllSpr->setString("");
+            m_showUpdatesSpr->setString("Show Update");
+            m_hideUpdatesSpr->setString("Hide Update");
+        }
+        else {
+            m_updateCountLabel->setString(fmt::format("There are <cg>{}</c> updates available!", check.modsWithUpdates.size()));
+            m_updateAllSpr->setString("Update All");
+            m_showUpdatesSpr->setString("Show Updates");
+            m_hideUpdatesSpr->setString("Hide Updates");
+        }
+    }
+    else if (check.modsWithDeprecations.size()) {
+        m_updateCountLabel->setString("Some of your mods have been deprecated!");
         m_updateAllSpr->setString("");
-        m_showUpdatesSpr->setString("Show Update");
-        m_hideUpdatesSpr->setString("Hide Update");
-    }
-    else {
-        m_updateCountLabel->setString(fmt::format("There are <cg>{}</c> updates available!", check.modsWithUpdates.size()));
-        m_updateAllSpr->setString("Update All");
-        m_showUpdatesSpr->setString("Show Updates");
-        m_hideUpdatesSpr->setString("Hide Updates");
+        m_showUpdatesSpr->setString("Show");
+        m_hideUpdatesSpr->setString("Hide");
     }
 
-    // Recreate the button with the updated label.
+    m_toggleUpdatesOnlyBtn->setContentSize(m_showUpdatesSpr->getScaledContentSize());
+
+    // Recreate the menu with the updated label
     m_updateAllMenu->removeChild(m_updateAllBtn, true);
     m_updateAllBtn = CCMenuItemSpriteExtra::create(
         m_updateAllSpr, this, menu_selector(ModList::onUpdateAll)
     );
     m_updateAllBtn->setID("update-all-button");
     m_updateAllMenu->addChild(m_updateAllBtn);
+
+    // Disable Update All button if there are only deprecations since those 
+    // should be updated one-by-one as a conscious user decision
+    m_updateAllBtn->setVisible(check.modsWithUpdates.size());
 
     m_updateAllContainer->setVisible(true);
     this->updateTopContainer();
