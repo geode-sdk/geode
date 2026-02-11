@@ -101,7 +101,11 @@ else()
 		src/hooks/*.mm
 	)
 endif()
-set_source_files_properties(${OBJC_SOURCES} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+
+set_source_files_properties(${OBJC_SOURCES} PROPERTIES
+	SKIP_PRECOMPILE_HEADERS ON
+	SKIP_UNITY_BUILD_INCLUSION ON
+)
 
 if (WIN32)
 	# This allows you to compile in debug mode
