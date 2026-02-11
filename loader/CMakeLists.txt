@@ -309,7 +309,9 @@ endif()
 if (TARGET md4c)
 	set_target_properties(md4c PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 64)
 endif()
-set_target_properties(minizip PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 64)
+if (TARGET minizip)
+	set_target_properties(minizip PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 64)
+endif()
 set_target_properties(mat-json-impl PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 64)
 
 # unity build for geode
