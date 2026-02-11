@@ -301,6 +301,22 @@ if (APPLE)
 	target_link_libraries(${PROJECT_NAME} z)
 endif()
 
+# always use unity builds for some dependencies
+if (TARGET md4c)
+	set_target_properties(md4c PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 64)
+endif()
+set_target_properties(minizip PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 64)
+set_target_properties(mat-json-impl PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 64)
+
+# unity build for geode
+if (GEODE_UNITY_BUILD)
+	set_target_properties(${PROJECT_NAME} PROPERTIES
+		UNITY_BUILD ON
+		UNITY_BUILD_BATCH_SIZE 32
+		UNITY_BUILD_UNIQUE_ID "GEODE_UNITY_NS_ID"
+	)
+endif()
+
 if (MSVC)
 	# Disable outputting .exp file
 	include(CheckLinkerFlag)

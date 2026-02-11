@@ -8,6 +8,7 @@
  * Modified to be modern Geode-fitting C++
  */
 
+#pragma once
 #include <Geode/DefaultInclude.hpp>
 
 #ifdef __MINGW32__

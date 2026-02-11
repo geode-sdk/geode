@@ -2011,3 +2011,5 @@ extern int ZEXPORT zipRemoveExtraInfoBlock (char* pData, int* dataLen, short sHe
 } // end of namespace cocos2d
 
 // clang-format on
+
+#undef local
