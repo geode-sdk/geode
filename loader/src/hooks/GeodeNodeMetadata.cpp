@@ -219,7 +219,7 @@ private:
 
 public:
     BFSNodeTreeCrawler(CCNode* target) {
-        if (auto first = getChild(target, 0)) {
+        if (auto first = target->getChildByIndex(0)) {
             m_explored.insert(first);
             m_queue.push(first);
         }
