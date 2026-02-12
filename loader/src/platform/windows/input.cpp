@@ -433,10 +433,24 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
 
         // update mouse position
         POINT p;
-        GetCursorPos(&p);
-        ScreenToClient(g_mainWindowHWND, &p);
-        float newX = static_cast<float>(p.x);
-        float newY = static_cast<float>(p.y);
+        float newX = m_fMouseX;
+        float newY = m_fMouseY;
+
+        if (!m_bCursorLocked && GetCursorPos(&p) && ScreenToClient(g_mainWindowHWND, &p)) {
+            newX = static_cast<float>(p.x);
+            newY = static_cast<float>(p.y);
+
+            if (m_fFrameZoomFactor != 0.0f) {
+                newX /= m_fFrameZoomFactor;
+                newY /= m_fFrameZoomFactor;
+            }
+
+            if (m_bInRetinaMonitor && m_nRetinaFactor == 1) {
+                newX *= 2.f;
+                newY *= 2.f;
+            }
+        }
+
         bool moved = false;
         if (m_fMouseX != newX || m_fMouseY != newY) {
             m_fMouseX = newX;
@@ -583,21 +597,28 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
         }
     }
 
+    static void attemptHookRawInput() {
+        g_rawInputHWND = FindWindowW(L"GD_RawInput", nullptr);
+        if (!g_rawInputHWND) {
+            // in case it takes more than 1 frame, try getting the window again next frame
+            queueInMainThread([]{ attemptHookRawInput(); });
+            return;
+        }
+
+        g_originalRawInputProc = reinterpret_cast<WNDPROC>(SetWindowLongPtrW(
+            g_rawInputHWND, GWLP_WNDPROC,
+            reinterpret_cast<LONG_PTR>(GeodeRawInputWndProc)
+        ));
+    }
+
     void setupWindow(CCRect rect) {
         CCEGLView::setupWindow(rect);
 
-        queueInMainThread([] {
-            g_rawInputHWND = FindWindowW(L"GD_RawInput", nullptr);
-            g_mainWindowHWND = WindowFromDC(wglGetCurrentDC());
+        g_mainWindowHWND = *reinterpret_cast<HWND*>(reinterpret_cast<uintptr_t>(m_pMainWindow) + 0x370);
+        *reinterpret_cast<GLFWscrollfun*>(reinterpret_cast<uintptr_t>(m_pMainWindow) + 0x340) = &GLFWScrollCallback;
+        *reinterpret_cast<GLFWcharfun*>(reinterpret_cast<uintptr_t>(m_pMainWindow) + 0x350) = &GLFWCharCallback;
 
-            auto window = CCEGLView::get()->m_pMainWindow;
-            *reinterpret_cast<GLFWscrollfun*>(reinterpret_cast<uintptr_t>(window) + 0x340) = &GLFWScrollCallback;
-            *reinterpret_cast<GLFWcharfun*>(reinterpret_cast<uintptr_t>(window) + 0x350) = &GLFWCharCallback;
-
-            g_originalRawInputProc = reinterpret_cast<WNDPROC>(SetWindowLongPtrW(
-                g_rawInputHWND, GWLP_WNDPROC,
-                reinterpret_cast<LONG_PTR>(GeodeRawInputWndProc)
-            ));
-        });
+        // window is created on a different thread, so it needs time to initialize
+        queueInMainThread([]{ attemptHookRawInput(); });
     }
 };
