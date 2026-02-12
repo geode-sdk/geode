@@ -16,7 +16,12 @@ std::filesystem::path getInternalDir() {
         path = JniHelper::jstring2string(str);
         t.env->DeleteLocalRef(str);
     } else {
-        clearJNIException();
+        auto vm = JniHelper::getJavaVM();
+
+        JNIEnv* env;
+        if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) == JNI_OK) {
+            env->ExceptionClear();
+        }
     }
 
     return std::filesystem::path(path);
