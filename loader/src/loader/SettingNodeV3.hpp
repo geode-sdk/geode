@@ -5,6 +5,7 @@
 #include <Geode/binding/ColorChannelSprite.hpp>
 #include <Geode/binding/Slider.hpp>
 #include <Geode/ui/ColorPickPopup.hpp>
+#include <ui/mods/GeodeStyle.hpp>
 
 using namespace geode::prelude;
 
@@ -317,6 +318,19 @@ public:
     static KeybindSettingNodeV3* create(std::shared_ptr<KeybindSettingV3> setting, float width);
 
     std::shared_ptr<KeybindSettingV3> getSetting() const;
+};
+
+class KeybindEditPopup : public GeodePopup {
+protected:
+    CCLabelBMFont* m_keybindLabel;
+    Keybind m_currentKeybind;
+    Function<void(Keybind const&)> m_callback;
+
+    bool init(ZStringView name, Keybind const& keybind, Function<void(Keybind const&)> callback);
+    void onSet(CCObject*);
+    void onRemove(CCObject*);
+public:
+    static KeybindEditPopup* create(ZStringView name, Keybind const& keybind, Function<void(Keybind const&)> callback);
 };
 
 class UnresolvedCustomSettingNodeV3 : public SettingNodeV3 {

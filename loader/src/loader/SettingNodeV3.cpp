@@ -2,7 +2,6 @@
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/loader/Dirs.hpp>
-#include <ui/mods/GeodeStyle.hpp>
 #include <Geode/ui/MDPopup.hpp>
 
 
@@ -622,15 +621,17 @@ void KeybindSettingNodeV3::updateState(CCNode* invoker) {
     SettingNodeV3::updateState(invoker);
 
     getButtonMenu()->removeAllChildren();
-    for (auto const& keybind : m_currentValue) {
-        auto buttonSprite = ButtonSprite::create(keybind.toString().c_str(), "goldFont.fnt", "GE_button_05.png"_spr, .8f);
+    for (size_t i = 0; i < m_currentValue.size(); ++i) {
+        auto& keybind = m_currentValue[i];
+        auto buttonSprite = createGeodeButton(keybind.toString().c_str(), true);
         buttonSprite->setScale(.5f);
         auto button = CCMenuItemSpriteExtra::create(
             buttonSprite, this, menu_selector(KeybindSettingNodeV3::onListenForKeybind)
         );
+        button->setTag(i);
         getButtonMenu()->addChild(button);
     }
-    auto plusSprite = ButtonSprite::create("+", "goldFont.fnt", "GE_button_05.png"_spr, .8f);
+    auto plusSprite = createGeodeButton("+", true);
     plusSprite->setScale(.5f);
     auto plusButton = CCMenuItemSpriteExtra::create(
         plusSprite, this, menu_selector(KeybindSettingNodeV3::onListenForKeybind)
@@ -640,7 +641,24 @@ void KeybindSettingNodeV3::updateState(CCNode* invoker) {
 }
 
 void KeybindSettingNodeV3::onListenForKeybind(CCObject* sender) {
-
+    auto index = sender->getTag();
+    KeybindEditPopup::create(getSetting()->getName().value_or(getSetting()->getKey()), index >= 0 ? m_currentValue[index] : Keybind(), [
+        this, index
+    ](Keybind const& newKeybind) {
+        if (std::ranges::contains(m_currentValue, newKeybind)) return;
+        if (index >= 0) {
+            if (newKeybind.key == KEY_None) {
+                m_currentValue.erase(m_currentValue.begin() + index);
+            }
+            else {
+                m_currentValue[index] = newKeybind;
+            }
+        }
+        else {
+            m_currentValue.push_back(newKeybind);
+        }
+        this->markChanged(nullptr);
+    })->show();
 }
 
 void KeybindSettingNodeV3::onCommit() {
@@ -659,6 +677,78 @@ bool KeybindSettingNodeV3::hasNonDefaultValue() const {
 void KeybindSettingNodeV3::onResetToDefault() {
     m_currentValue = getSetting()->getDefaultValue();
     this->markChanged(nullptr);
+}
+
+// KeybindEditPopup
+
+KeybindEditPopup* KeybindEditPopup::create(ZStringView name, Keybind const& keybind, Function<void(Keybind const&)> callback) {
+    auto ret = new KeybindEditPopup();
+    if (ret->init(name, keybind, std::move(callback))) {
+        ret->autorelease();
+        return ret;
+    }
+    delete ret;
+    return nullptr;
+}
+
+bool KeybindEditPopup::init(ZStringView name, Keybind const& keybind, Function<void(Keybind const&)> callback) {
+    if (!GeodePopup::init(220.f, 140.f))
+        return false;
+
+    this->setTitle(name);
+    m_noElasticity = true;
+
+    m_callback = std::move(callback);
+    m_currentKeybind = keybind;
+
+    m_keybindLabel = CCLabelBMFont::create(keybind.toString().c_str(), "bigFont.fnt");
+    m_keybindLabel->limitLabelWidth(200, .8f, .1f);
+    m_mainLayer->addChildAtPosition(m_keybindLabel, Anchor::Center, ccp(0, 5));
+
+    auto bottomMenu = CCMenu::create();
+    bottomMenu->setContentWidth(220.f);
+
+    if (keybind.key == KEY_None) {
+        auto addButton = CCMenuItemSpriteExtra::create(
+            createGeodeButton("Add", true), this, menu_selector(KeybindEditPopup::onSet)
+        );
+        bottomMenu->addChild(addButton);
+    }
+    else {
+        auto setButton = CCMenuItemSpriteExtra::create(
+            createGeodeButton("Set", true), this, menu_selector(KeybindEditPopup::onSet)
+        );
+        bottomMenu->addChild(setButton);
+
+        auto removeButton = CCMenuItemSpriteExtra::create(
+            createGeodeButton("Remove", true, GeodeButtonSprite::Delete), this, menu_selector(KeybindEditPopup::onRemove)
+        );
+        bottomMenu->addChild(removeButton);
+    }
+
+    bottomMenu->setLayout(RowLayout::create()->setGap(10));
+    m_mainLayer->addChildAtPosition(bottomMenu, Anchor::Bottom, ccp(0, 25));
+
+    this->addEventListener(KeyboardInputEvent(), [this](KeyboardInputData& data) {
+        if (data.action == KeyboardInputData::Action::Press) {
+            m_currentKeybind.key = data.key;
+            m_currentKeybind.modifiers = data.modifiers;
+            m_keybindLabel->setString(m_currentKeybind.toString().c_str());
+            m_keybindLabel->limitLabelWidth(200, .8f, .1f);
+        }
+    });
+
+    return true;
+}
+
+void KeybindEditPopup::onSet(CCObject*) {
+    m_callback(m_currentKeybind);
+    this->onClose(nullptr);
+}
+
+void KeybindEditPopup::onRemove(CCObject*) {
+    m_callback(Keybind());
+    this->onClose(nullptr);
 }
 
 // UnresolvedCustomSettingNodeV3

@@ -104,9 +104,10 @@ namespace geode {
         static constexpr Modifiers Mods_Alt = Modifiers::Mods_Alt;
         static constexpr Modifiers Mods_Super = Modifiers::Mods_Super;
 
-        cocos2d::enumKeyCodes key;
-        Modifiers modifiers;
+        cocos2d::enumKeyCodes key = cocos2d::KEY_None;
+        Modifiers modifiers = Mods_None;
 
+        Keybind() = default;
         Keybind(cocos2d::enumKeyCodes key, Modifiers modifiers) noexcept
             : key(key), modifiers(modifiers) {}
         

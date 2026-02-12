@@ -243,6 +243,15 @@ std::string Keybind::toString() const {
     if (modifiers & Mods_Control) {
         buf.append("Ctrl+");
     }
+    if (modifiers & Mods_Super) {
+        #if defined(GEODE_IS_MACOS) || defined(GEODE_IS_IOS)
+        buf.append("Cmd+");
+        #elif defined(GEODE_IS_WINDOWS)
+        buf.append("Win+");
+        #else
+        buf.append("Super+");
+        #endif
+    }
     if (modifiers & Mods_Shift) {
         buf.append("Shift+");
     }
@@ -251,15 +260,6 @@ std::string Keybind::toString() const {
         buf.append("Option+");
         #else
         buf.append("Alt+");
-        #endif
-    }
-    if (modifiers & Mods_Super) {
-        #if defined(GEODE_IS_MACOS) || defined(GEODE_IS_IOS)
-        buf.append("Cmd+");
-        #elif defined(GEODE_IS_WINDOWS)
-        buf.append("Win+");
-        #else
-        buf.append("Super+");
         #endif
     }
     auto str = CCKeyboardDispatcher::get()->keyToString(key);
