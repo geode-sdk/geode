@@ -789,9 +789,8 @@ namespace geode {
     }
 
     template <class Callback>
+    requires std::is_invocable_v<Callback, Keybind const&, bool, bool>
     ListenerHandle* listenForKeybindSettingPresses(std::string settingKey, Callback&& callback, Mod* mod = getMod()) {
-        return KeybindSettingPressedEventV3(mod, std::move(settingKey)).listen([callback = std::move(callback)](Keybind const& keybind, bool down, bool repeat) {
-            return callback(keybind, down, repeat);
-        }).leak();
+        return KeybindSettingPressedEventV3(mod, std::move(settingKey)).listen(std::move(callback)).leak();
     }
 }
