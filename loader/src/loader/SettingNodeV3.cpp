@@ -590,6 +590,77 @@ Color4BSettingNodeV3* Color4BSettingNodeV3::create(std::shared_ptr<Color4BSettin
     return nullptr;
 }
 
+// KeybindSettingNodeV3
+
+KeybindSettingNodeV3* KeybindSettingNodeV3::create(std::shared_ptr<KeybindSettingV3> setting, float width) {
+    auto ret = new KeybindSettingNodeV3();
+    if (ret->init(setting, width)) {
+        ret->autorelease();
+        return ret;
+    }
+    delete ret;
+    return nullptr;
+}
+
+bool KeybindSettingNodeV3::init(std::shared_ptr<KeybindSettingV3> setting, float width) {
+    if (!SettingNodeV3::init(setting, width))
+        return false;
+
+    m_currentValue = setting->getValue();
+    getButtonMenu()->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::End));
+
+    this->updateState(nullptr);
+
+    return true;
+}
+
+std::shared_ptr<KeybindSettingV3> KeybindSettingNodeV3::getSetting() const {
+    return std::static_pointer_cast<KeybindSettingV3>(SettingNodeV3::getSetting());
+}
+
+void KeybindSettingNodeV3::updateState(CCNode* invoker) {
+    SettingNodeV3::updateState(invoker);
+
+    getButtonMenu()->removeAllChildren();
+    for (auto const& keybind : m_currentValue) {
+        auto buttonSprite = ButtonSprite::create(keybind.toString().c_str(), "goldFont.fnt", "GE_button_05.png"_spr, .8f);
+        buttonSprite->setScale(.5f);
+        auto button = CCMenuItemSpriteExtra::create(
+            buttonSprite, this, menu_selector(KeybindSettingNodeV3::onListenForKeybind)
+        );
+        getButtonMenu()->addChild(button);
+    }
+    auto plusSprite = ButtonSprite::create("+", "goldFont.fnt", "GE_button_05.png"_spr, .8f);
+    plusSprite->setScale(.5f);
+    auto plusButton = CCMenuItemSpriteExtra::create(
+        plusSprite, this, menu_selector(KeybindSettingNodeV3::onListenForKeybind)
+    );
+    getButtonMenu()->addChild(plusButton);
+    getButtonMenu()->updateLayout();
+}
+
+void KeybindSettingNodeV3::onListenForKeybind(CCObject* sender) {
+
+}
+
+void KeybindSettingNodeV3::onCommit() {
+    getSetting()->setValue(m_currentValue);
+    this->markChanged(nullptr);
+}
+
+bool KeybindSettingNodeV3::hasUncommittedChanges() const {
+    return m_currentValue != getSetting()->getValue();
+}
+
+bool KeybindSettingNodeV3::hasNonDefaultValue() const {
+    return m_currentValue != getSetting()->getDefaultValue();
+}
+
+void KeybindSettingNodeV3::onResetToDefault() {
+    m_currentValue = getSetting()->getDefaultValue();
+    this->markChanged(nullptr);
+}
+
 // UnresolvedCustomSettingNodeV3
 
 bool UnresolvedCustomSettingNodeV3::init(std::string_view key, Mod* mod, float width) {

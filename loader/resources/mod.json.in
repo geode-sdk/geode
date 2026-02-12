@@ -67,6 +67,12 @@
         }
     },
     "settings": {
+        "test-keybind": {
+            "type": "keybind",
+            "default": "Ctrl+Shift+K",
+            "name": "Test Keybind",
+            "description": "A test keybind setting"
+        },
         "auto-check-updates": {
             "type": "bool",
             "default": true,

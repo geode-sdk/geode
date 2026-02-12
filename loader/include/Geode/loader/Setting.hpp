@@ -18,12 +18,14 @@ namespace geode {
     using FileSetting = FileSettingV3;
     using Color3BSetting = Color3BSettingV3;
     using Color4BSetting = Color4BSettingV3;
+    using KeybindSetting = KeybindSettingV3;
 
     using SettingNode = SettingNodeV3;
     template <class S>
     using SettingValueNode = SettingValueNodeV3<S>;
 
     using SettingChangedEvent = SettingChangedEventV3;
+    using KeybindSettingPressedEvent = KeybindSettingPressedEventV3;
     using SettingNodeSizeChangeEvent = SettingNodeSizeChangeEventV3;
     using SettingNodeValueChangeEvent = SettingNodeValueChangeEventV3;
 }

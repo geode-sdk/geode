@@ -1,6 +1,7 @@
 #pragma once
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDelegate.h>
 #include <Geode/loader/Event.hpp>
+#include <matjson.hpp>
 
 namespace geode {
     struct KeyboardInputData final {
@@ -93,4 +94,33 @@ namespace geode {
     struct ScrollWheelEvent final : Event<MouseMoveEvent, bool(double, double)> {
         using Event::Event;
     };
+
+    struct Keybind final {
+        using Modifiers = KeyboardInputData::Modifiers;
+
+        static constexpr Modifiers Mods_None = Modifiers::Mods_None;
+        static constexpr Modifiers Mods_Shift = Modifiers::Mods_Shift;
+        static constexpr Modifiers Mods_Control = Modifiers::Mods_Control;
+        static constexpr Modifiers Mods_Alt = Modifiers::Mods_Alt;
+        static constexpr Modifiers Mods_Super = Modifiers::Mods_Super;
+
+        cocos2d::enumKeyCodes key;
+        Modifiers modifiers;
+
+        Keybind(cocos2d::enumKeyCodes key, Modifiers modifiers) noexcept
+            : key(key), modifiers(modifiers) {}
+        
+        static Result<Keybind> fromString(std::string_view str);
+        std::string toString() const;
+
+        bool operator==(Keybind const& other) const noexcept {
+            return key == other.key && modifiers == other.modifiers;
+        }
+    };
 }
+
+template <>
+struct matjson::Serialize<geode::Keybind> {
+    static GEODE_DLL geode::Result<geode::Keybind> fromJson(matjson::Value const& value);
+    static GEODE_DLL matjson::Value toJson(geode::Keybind const& value);
+};

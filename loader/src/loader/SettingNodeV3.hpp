@@ -302,6 +302,23 @@ public:
     static Color4BSettingNodeV3* create(std::shared_ptr<Color4BSettingV3> setting, float width);
 };
 
+class KeybindSettingNodeV3 : public SettingNodeV3 {
+protected:
+    std::vector<Keybind> m_currentValue;
+
+    bool init(std::shared_ptr<KeybindSettingV3> setting, float width);
+    void updateState(CCNode* invoker) override;
+    void onListenForKeybind(CCObject*);
+    void onCommit() override;
+    bool hasUncommittedChanges() const override;
+    bool hasNonDefaultValue() const override;
+    void onResetToDefault() override;
+public:
+    static KeybindSettingNodeV3* create(std::shared_ptr<KeybindSettingV3> setting, float width);
+
+    std::shared_ptr<KeybindSettingV3> getSetting() const;
+};
+
 class UnresolvedCustomSettingNodeV3 : public SettingNodeV3 {
 protected:
     Mod* m_mod;
