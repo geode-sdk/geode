@@ -644,6 +644,9 @@ bool ModsLayer::init() {
                 m_lists.at(src)->activateSearch(m_showSearch);
             }
         }
+        else if (std::holds_alternative<UpdatePageNumberState>(state)) {
+            this->updateState();
+        }
         return ListenerResult::Propagate;
     });
 

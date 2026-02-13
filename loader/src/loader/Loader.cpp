@@ -66,7 +66,13 @@ std::vector<Mod*> Loader::getAllMods() {
 }
 
 std::vector<LoadProblem> Loader::getLoadProblems() const {
-    return m_impl->getProblems();
+    std::vector<LoadProblem> problems;
+    for (auto& problem : m_impl->getProblems()) {
+        if (problem.isProblemTheUserShouldCareAbout()) {
+            problems.push_back(problem);
+        }
+    }
+    return problems;
 }
 
 void Loader::queueInMainThread(ScheduledFunction&& func) {
