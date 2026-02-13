@@ -689,7 +689,7 @@ namespace geode {
         GEODE_DLL SettingChangedEventV3(Mod* mod, std::string settingKey);
     };
 
-    class KeybindSettingPressedEventV3 final : public GlobalEvent<KeybindSettingPressedEventV3, void(std::string_view, std::string_view, Keybind const&, bool, bool), void(Keybind const&, bool, bool), std::string, std::string> {
+    class KeybindSettingPressedEventV3 final : public GlobalEvent<KeybindSettingPressedEventV3, bool(std::string_view, std::string_view, Keybind const&, bool, bool), bool(Keybind const&, bool, bool), std::string, std::string> {
     public:
         // listener params keybind, down, repeat
         // filter params modID, settingKey
@@ -754,6 +754,16 @@ namespace geode {
         using SettingType = Color4BSettingV3;
     };
 
+    template <>
+    struct SettingTypeForValueType<std::vector<Keybind>> {
+        using SettingType = KeybindSettingV3;
+    };
+
+    template <>
+    struct SettingTypeForValueType<std::span<Keybind const>> {
+        using SettingType = KeybindSettingV3;
+    };
+
     template <class T, class Callback>
     ListenerHandle* listenForSettingChanges(std::string settingKey, Callback&& callback, Mod* mod = getMod()) {
         using Ty = typename SettingTypeForValueType<T>::SettingType;
@@ -792,5 +802,16 @@ namespace geode {
     requires std::is_invocable_v<Callback, Keybind const&, bool, bool>
     ListenerHandle* listenForKeybindSettingPresses(std::string settingKey, Callback&& callback, Mod* mod = getMod()) {
         return KeybindSettingPressedEventV3(mod, std::move(settingKey)).listen(std::move(callback)).leak();
+    }
+
+    template <class Callback>
+    requires std::is_invocable_v<Callback, std::string_view, Keybind const&, bool, bool>
+    ListenerHandle* listenForAllKeybindSettingPresses(Callback&& callback, Mod* mod = getMod()) {
+        return KeybindSettingPressedEventV3().listen([callback = std::move(callback), mod = std::move(mod)](std::string_view modID, std::string_view key, Keybind const& keybind, bool down, bool repeat) {
+            if (mod && getModID(mod) != modID) {
+                return;
+            }
+            return callback(key, keybind, down, repeat);
+        }).leak();
     }
 }

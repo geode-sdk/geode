@@ -5,6 +5,7 @@
 #include <Geode/binding/ColorChannelSprite.hpp>
 #include <Geode/binding/Slider.hpp>
 #include <Geode/ui/ColorPickPopup.hpp>
+#include <Geode/ui/ScrollLayer.hpp>
 #include <ui/mods/GeodeStyle.hpp>
 
 using namespace geode::prelude;
@@ -309,7 +310,8 @@ protected:
 
     bool init(std::shared_ptr<KeybindSettingV3> setting, float width);
     void updateState(CCNode* invoker) override;
-    void onListenForKeybind(CCObject*);
+    void onExtra(CCObject*);
+    void onKeybind(CCObject*);
     void onCommit() override;
     bool hasUncommittedChanges() const override;
     bool hasNonDefaultValue() const override;
@@ -331,6 +333,23 @@ protected:
     void onRemove(CCObject*);
 public:
     static KeybindEditPopup* create(ZStringView name, Keybind const& keybind, Function<void(Keybind const&)> callback);
+};
+
+class KeybindListPopup : public GeodePopup {
+protected:
+    std::vector<Keybind> m_currentKeybinds;
+    Function<void(std::vector<Keybind>)> m_callback;
+    ScrollLayer* m_scrollLayer;
+    bool m_hasChanged;
+
+    bool init(ZStringView name, std::vector<Keybind> const& keybinds, Function<void(std::vector<Keybind>)> callback);
+    void updateKeybinds();
+    void onAdd(CCObject*);
+    void onSave(CCObject*);
+    void onKeybind(CCObject*);
+    void onClose(CCObject*) override;
+public:
+    static KeybindListPopup* create(ZStringView name, std::vector<Keybind> const& keybinds, Function<void(std::vector<Keybind>)> callback);
 };
 
 class UnresolvedCustomSettingNodeV3 : public SettingNodeV3 {

@@ -212,16 +212,16 @@ Result<Keybind> Keybind::fromString(std::string_view str) {
     size_t pos = str.find('+');
     while (pos != std::string::npos) {
         auto token = str.substr(0, pos);
-        if (token == "Ctrl") {
+        if (token == "Ctrl" || token == "Control") {
             mods |= Keybind::Mods_Control;
         }
         else if (token == "Shift") {
             mods |= Keybind::Mods_Shift;
         }
-        else if (token == "Alt" || token == "Option") {
+        else if (token == "Alt" || token == "Opt" || token == "Option") {
             mods |= Keybind::Mods_Alt;
         }
-        else if (token == "Super" || token == "Cmd" || token == "Win") {
+        else if (token == "Super" || token == "Cmd" || token == "Command" || token == "Win" || token == "Windows") {
             mods |= Keybind::Mods_Super;
         }
         else {
@@ -257,7 +257,7 @@ std::string Keybind::toString() const {
     }
     if (modifiers & Mods_Alt) {
         #if defined(GEODE_IS_MACOS) || defined(GEODE_IS_IOS)
-        buf.append("Option+");
+        buf.append("Opt+");
         #else
         buf.append("Alt+");
         #endif
