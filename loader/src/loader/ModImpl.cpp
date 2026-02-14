@@ -109,7 +109,7 @@ ZStringView Mod::Impl::getName() const {
 }
 
 bool Mod::Impl::isEphemeral() const {
-    return ModMetadataImpl::getImpl(m_metadata).m_ephemeral;
+    return ModMetadataImpl::getImpl(m_metadata).m_completelyUnparseable;
 }
 
 std::vector<std::string> const& Mod::Impl::getDevelopers() const {
@@ -160,18 +160,20 @@ matjson::Value& Mod::Impl::getSaveContainer() {
     return m_saved;
 }
 
-bool Mod::Impl::isEnabled() const {
-    return m_enabled || this->isInternal();
+bool Mod::Impl::isLoaded() const {
+    return m_loaded || this->isInternal();
 }
 
 bool Mod::Impl::isInternal() const {
     return m_metadata.getID() == "geode.loader";
 }
 
-bool Mod::Impl::needsEarlyLoad() const {
+bool Mod::Impl::needsEarlyLoad(std::vector<Mod*>& checked) const {
+    checked.push_back(m_self);
     if (this->getMetadata().needsEarlyLoad()) return true;
     for (auto& dep : m_dependants) {
-        if (dep->needsEarlyLoad()) return true;
+        if(std::find(checked.begin(), checked.end(), dep) != checked.end()) continue;
+        if (dep->m_impl->needsEarlyLoad(checked)) return true;
     }
     return false;
 }
@@ -304,12 +306,12 @@ Result<> Mod::Impl::loadBinary() {
     if (!this->isInternal() && LoaderImpl::get()->isSafeMode()) {
         // pretend to have loaded the mod, so that it still shows up on the mod list properly,
         // while the user can still toggle/uninstall it
-        m_enabled = true;
+        m_loaded = true;
         return Ok();
     }
 
     log::debug("Loading binary for mod {}", m_metadata.getID());
-    if (m_enabled)
+    if (m_loaded)
         return Ok();
 
     if (!std::filesystem::exists(this->getBinaryPath())) {
@@ -326,12 +328,19 @@ Result<> Mod::Impl::loadBinary() {
 
     LoaderImpl::get()->provideNextMod(m_self);
 
-    m_enabled = true;
+    m_loaded = true;
     m_isCurrentlyLoading = true;
     auto res = this->loadPlatformBinary();
     if (!res) {
+        // disable hooks/patches the mod managed to register before failure
+        // note that this will not save from any other side effects (i.e. registering an event listener)
+        for (auto patch : m_patches) { (void) patch->disable(); }
+        for (auto hook : m_hooks) { (void) hook->disable(); }
+        m_patches.clear();
+        m_hooks.clear();
+
         m_isCurrentlyLoading = false;
-        m_enabled = false;
+        m_loaded = false;
         // make sure to free up the next mod mutex
         LoaderImpl::get()->releaseNextMod();
         log::error("Failed to load binary for mod {}: {}", m_metadata.getID(), res.unwrapErr());
@@ -488,7 +497,7 @@ Result<Hook*> Mod::Impl::claimHook(std::shared_ptr<Hook> hook) {
     m_hooks.push_back(hook);
 
     auto ptr = hook.get();
-    if (!this->isEnabled() || !hook->getAutoEnable())
+    if (!this->isLoaded() || !hook->getAutoEnable())
         return Ok(ptr);
 
     if (!LoaderImpl::get()->isReadyToHook() && hook->getAutoEnable()) {
@@ -524,7 +533,7 @@ Result<> Mod::Impl::disownHook(Hook* hook) {
 
     m_hooks.erase(foundIt);
 
-    if (!this->isEnabled() || !hook->getAutoEnable())
+    if (!this->isLoaded() || !hook->getAutoEnable())
         return Ok();
 
     auto res2 = hook->disable();
@@ -546,7 +555,7 @@ Result<Patch*> Mod::Impl::claimPatch(std::shared_ptr<Patch> patch) {
     m_patches.push_back(patch);
 
     auto ptr = patch.get();
-    if (!this->isEnabled() || !patch->getAutoEnable())
+    if (!this->isLoaded() || !patch->getAutoEnable())
         return Ok(ptr);
 
     auto res2 = ptr->enable();
@@ -576,7 +585,7 @@ Result<> Mod::Impl::disownPatch(Patch* patch) {
                    "didn't have the patch in m_patches.");
 
 
-    if (this->isEnabled() && patch->getAutoEnable()) {
+    if (this->isLoaded() && patch->getAutoEnable()) {
         auto res2 = patch->disable();
         if (!res2) {
             return Err("Cannot disable patch: {}", res2.unwrapErr());
@@ -613,7 +622,7 @@ Result<> Mod::Impl::createTempDir() {
         return Err("Unable to create mod runtime directory");
     }
 
-    // Mark temp dir creation as succesful
+    // Mark temp dir creation as successful
     m_tempDirName = tempPath;
 
     return Ok();
@@ -651,7 +660,7 @@ ModJson Mod::Impl::getRuntimeInfo() const {
     for (auto patch : m_patches) {
         obj["patches"].push(ModJson(patch->getRuntimeInfo()));
     }
-    obj["loaded"] = m_enabled;
+    obj["loaded"] = m_loaded;
     obj["temp-dir"] = this->getTempDir();
     obj["save-dir"] = this->getSaveDir();
     obj["config-dir"] = this->getConfigDir(false);
@@ -684,19 +693,6 @@ bool Mod::Impl::isCurrentlyLoading() const {
     return m_isCurrentlyLoading;
 }
 
-bool Mod::Impl::hasLoadProblems() const {
-    for (auto const& problem : m_problems) {
-        if (problem.isProblemTheUserShouldCareAbout()) {
-            return true;
-        }
-    }
-    return false;
-}
-
-std::vector<LoadProblem> Mod::Impl::getProblems() const {
-    return m_problems;
-}
-
 int Mod::Impl::getLoadPriority() const {
     return m_metadata.getLoadPriority();
 }
@@ -706,8 +702,7 @@ static Result<ModMetadata> getModImplInfo() {
         return fmt::format("Unable to parse mod.json: {}", err);
     }));
 
-    GEODE_UNWRAP_INTO(auto info, ModMetadata::create(json));
-    return Ok(info);
+    return Ok(ModMetadata::create(json));
 }
 
 Mod* Loader::Impl::getInternalMod() {
@@ -733,7 +728,7 @@ Mod* Loader::Impl::getInternalMod() {
     else {
         mod = new Mod(infoRes.unwrap());
     }
-    mod->m_impl->m_enabled = true;
+    mod->m_impl->m_loaded = true;
     m_mods.insert({ mod->getID(), mod });
     return mod;
 }

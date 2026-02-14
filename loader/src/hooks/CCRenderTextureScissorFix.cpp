@@ -3,7 +3,7 @@
 
 using namespace geode::prelude;
 
-class $modify (CCEGLView) {
+class $modify (CCRenderTextureScissorFix, CCEGLView) {
     virtual void setScissorInPoints(float x, float y, float w, float h) {
         GLint viewport[4];
         glGetIntegerv(GL_VIEWPORT, viewport);

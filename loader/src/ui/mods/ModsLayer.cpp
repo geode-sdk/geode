@@ -31,7 +31,7 @@ bool ModsStatusNode::init() {
     this->setContentSize({ 300, 35 });
     this->setID("ModsStatusNode");
 
-    m_statusBG = CCScale9Sprite::create("black-square.png"_spr);
+    m_statusBG = NineSlice::create("black-square.png"_spr);
     m_statusBG->setID("status-bg");
     m_statusBG->setContentSize({ 570, 40 });
     m_statusBG->setScale(.5f);
@@ -643,6 +643,9 @@ bool ModsLayer::init() {
                 m_showSearch = true;
                 m_lists.at(src)->activateSearch(m_showSearch);
             }
+        }
+        else if (std::holds_alternative<UpdatePageNumberState>(state)) {
+            this->updateState();
         }
         return ListenerResult::Propagate;
     });

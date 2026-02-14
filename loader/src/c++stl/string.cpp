@@ -114,3 +114,6 @@ namespace gd {
     }
 #endif
 }
+
+#undef impl
+#undef implFor

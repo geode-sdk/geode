@@ -2,7 +2,6 @@
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <chrono>
-#include <date/date.h>
 #include <fmt/core.h>
 #include <loader/ModMetadataImpl.hpp>
 #include <fmt/chrono.h>
@@ -120,6 +119,7 @@ public:
 
     template <class... Args>
     arc::Future<Result<Value, ServerError>> get(Args&&... args) {
+        ARC_FRAME();
         auto key = Extract::key(args...);
 
         auto cache = co_await m_cache.lock();
@@ -274,14 +274,26 @@ Result<std::vector<ServerTag>> ServerTag::parseList(matjson::Value const& raw) {
 }
 
 Result<ServerDateTime> ServerDateTime::parse(std::string const& str) {
+    #ifdef GEODE_IS_WINDOWS
     std::stringstream ss(str);
-    date::sys_seconds seconds;
-    if (ss >> date::parse("%Y-%m-%dT%H:%M:%S%Z", seconds)) {
+    std::chrono::time_point<std::chrono::system_clock, std::chrono::seconds> seconds;
+    if (ss >> std::chrono::parse("%Y-%m-%dT%H:%M:%S%Z", seconds)) {
         return Ok(ServerDateTime {
             .value = seconds
         });
     }
     return Err("Invalid date time format '{}'", str);
+    #else
+    tm t;
+    auto ptr = strptime(str.c_str(), "%Y-%m-%dT%H:%M:%SZ", &t);
+    if (ptr != str.data() + str.size()) {
+        return Err("Invalid date time format '{}'", str);
+    }
+    auto time = mktime(&t);
+    return Ok(ServerDateTime {
+        .value = std::chrono::system_clock::from_time_t(time)
+    });
+    #endif
 }
 
 Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
@@ -335,9 +347,9 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
         ComparableVersionInfo version;
         obj.needs("version").into(version);
         dependency.setVersion(version);
-        ModMetadata::Dependency::Importance importance;
-        obj.hasNullable("importance").into(importance);
-        dependency.setImportance(importance);
+        bool required;
+        obj.hasNullable("required").into(required);
+        dependency.setRequired(required);
 
         // Check if this dependency is installed, and if so assign the `mod` member to mark that
         auto mod = Loader::get()->getInstalledMod(dependency.getID());
@@ -352,26 +364,27 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
     std::vector<ModMetadata::Incompatibility> incompatibilities {};
     for (auto& obj : root.hasNullable("incompatibilities").items()) {
         ModMetadata::Incompatibility incompatibility;
-        ModMetadata::Incompatibility::Importance importance;
-        obj.hasNullable("importance").into(importance);
-        incompatibility.setImportance(importance);
+        bool breaking;
+        obj.hasNullable("breaking").into(breaking);
+        incompatibility.setBreaking(breaking);
 
         auto modIdValue = obj.needs("mod_id");
         std::string modId;
 
         // Do not validate if we have a supersede, maybe the old ID is invalid
-        if (incompatibility.getImportance() == ModMetadata::Incompatibility::Importance::Superseded) {
-            modIdValue.into(modId);
-        } else {
+        // todo: impl index-based superseding
+        // if (incompatibility.getImportance() == ModMetadata::Incompatibility::Importance::Superseded) {
+        //     modIdValue.into(modId);
+        // } else {
             modIdValue.mustBe<std::string>("a valid id", &ModMetadata::validateID).into(modId);
-        }
+        // }
         incompatibility.setID(modId);
 
         ComparableVersionInfo version;
         obj.needs("version").into(version);
         incompatibility.setVersion(version);
 
-        // Check if this incompatability is installed, and if so assign the `mod` member to mark that
+        // Check if this incompatibility is installed, and if so assign the `mod` member to mark that
         auto mod = Loader::get()->getInstalledMod(incompatibility.getID());
         if (mod && incompatibility.getVersion().compare(mod->getVersion())) {
             incompatibility.setMod(mod);
@@ -592,6 +605,7 @@ std::string server::getServerUserAgent() {
 }
 
 ServerFuture<ServerModsList> server::getMods(ModsQuery query, bool useCache) {
+    ARC_FRAME();
     if (useCache) {
         co_return co_await getCache<getMods>().get(std::move(query));
     }
@@ -655,6 +669,7 @@ ServerFuture<ServerModsList> server::getMods(ModsQuery query, bool useCache) {
 }
 
 ServerFuture<ServerModMetadata> server::getMod(std::string id, bool useCache) {
+    ARC_FRAME();
     if (useCache) {
         co_return co_await getCache<getMod>().get(std::move(id));
     }
@@ -681,6 +696,7 @@ ServerFuture<ServerModMetadata> server::getMod(std::string id, bool useCache) {
 }
 
 ServerFuture<ServerModVersion> server::getModVersion(std::string id, ModVersion version, bool useCache) {
+    ARC_FRAME();
     if (useCache) {
         auto& cache = getCache<getModVersion>();
 
@@ -741,6 +757,7 @@ ServerFuture<ServerModVersion> server::getModVersion(std::string id, ModVersion 
 }
 
 ServerFuture<ByteVector> server::getModLogo(std::string id, bool useCache) {
+    ARC_FRAME();
     if (useCache) {
         co_return co_await getCache<getModLogo>().get(std::move(id));
     }
@@ -748,7 +765,7 @@ ServerFuture<ByteVector> server::getModLogo(std::string id, bool useCache) {
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
     auto response = co_await req.get(formatServerURL("/mods/{}/logo", id));
-    
+
     if (response.ok()) {
         co_return Ok(std::move(response).data());
     }
@@ -756,6 +773,7 @@ ServerFuture<ByteVector> server::getModLogo(std::string id, bool useCache) {
 }
 
 ServerFuture<std::vector<ServerTag>> server::getTags(bool useCache) {
+    ARC_FRAME();
     if (useCache) {
         co_return co_await getCache<getTags>().get();
     }
@@ -779,8 +797,9 @@ ServerFuture<std::vector<ServerTag>> server::getTags(bool useCache) {
 }
 
 ServerFuture<std::optional<ServerModUpdate>> server::checkUpdates(Mod const* mod) {
+    ARC_FRAME();
     auto updates = ARC_CO_UNWRAP(co_await checkAllUpdates());
-    
+
     for (auto& update : updates) {
         if (
             update.id == mod->getID() &&
@@ -793,6 +812,7 @@ ServerFuture<std::optional<ServerModUpdate>> server::checkUpdates(Mod const* mod
 }
 
 ServerFuture<std::vector<ServerModUpdate>> server::batchedCheckUpdates(std::vector<std::string> const& batch) {
+    ARC_FRAME();
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
     req.param("platform", GEODE_PLATFORM_SHORT_IDENTIFIER);
@@ -819,6 +839,7 @@ ServerFuture<std::vector<ServerModUpdate>> server::batchedCheckUpdates(std::vect
 }
 
 ServerFuture<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCache) {
+    ARC_FRAME();
     if (useCache) {
         co_return co_await getCache<checkAllUpdates>().get();
     }
@@ -865,6 +886,7 @@ ServerFuture<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCache
 }
 
 ServerFuture<ServerLoaderVersion> server::getLoaderVersion(std::string tag, bool useCache) {
+    ARC_FRAME();
     if (useCache) {
         co_return co_await getCache<getLoaderVersion>().get(tag);
     }
@@ -889,6 +911,7 @@ ServerFuture<ServerLoaderVersion> server::getLoaderVersion(std::string tag, bool
 }
 
 ServerFuture<ServerLoaderVersion> server::getLatestLoaderVersion(bool useCache) {
+    ARC_FRAME();
     if (useCache) {
         co_return co_await getCache<getLatestLoaderVersion>().get();
     }
@@ -922,7 +945,7 @@ void server::clearServerCaches(bool clearGlobalCaches) {
         co_await getCache<&getMods>().clear();
         co_await getCache<&getMod>().clear();
         co_await getCache<&getModLogo>().clear();
-    
+
         // Only clear global caches if explicitly requested
         if (clearGlobalCaches) {
             co_await getCache<&getTags>().clear();

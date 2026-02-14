@@ -320,7 +320,7 @@ namespace geode::utils::game {
     GEODE_DLL void restart(bool saveData /* = true */);
 
     /**
-     * Lauched the loader uninstaller, optionally deleting saved data.
+     * Launches the loader uninstaller, optionally deleting saved data.
      *
      * @param deleteSaveData  Whether to delete the saved game data
      */

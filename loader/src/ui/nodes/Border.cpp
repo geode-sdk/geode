@@ -1,4 +1,5 @@
 #include <Geode/ui/Border.hpp>
+#include <Geode/ui/NineSlice.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/cocos.hpp>
 
@@ -36,7 +37,7 @@ bool Border::init(CCNode* node, const ccColor4B& backgroundColor, const CCSize& 
         return false;
     }
 
-    CCScale9Sprite* border = CCScale9Sprite::create("inverseborder.png"_spr);
+    NineSlice* border = NineSlice::create("inverseborder.png"_spr);
     CCLayer* content = CCLayer::create();
 
     border->setID("border_sprite"_spr);
@@ -145,7 +146,7 @@ void Border::setNode(CCNode* node) {
     CCNode* content = this->getChildByID("border_content"_spr);
 
     // Can't assume an ID as the node is a user input and may have its ID changed
-    if (CCNode* oldNode = cocos::getChild<CCNode>(content, 0)) {
+    if (CCNode* oldNode = content->getChildByIndex<CCNode>(0)) {
         // Not going to mess with releasing the node, I'll leave that to the user
         oldNode->removeFromParent();
     }
@@ -156,7 +157,7 @@ void Border::setNode(CCNode* node) {
 }
 
 CCNode* Border::getNode() {
-    if (CCNode* node = cocos::getChild<CCNode>(this->getChildByID("border_content"_spr), 0)) {
+    if (CCNode* node = this->getChildByID("border_content"_spr)->getChildByIndex<CCNode>(0)) {
         return node;
     } else {
         return nullptr;

@@ -245,7 +245,7 @@ bool Loader::Impl::isModLoaded(std::string_view id) const {
 
 Mod* Loader::Impl::getLoadedMod(std::string_view id) const {
     auto it = m_mods.find(id);
-    if (it != m_mods.end() && it->second->isEnabled()) {
+    if (it != m_mods.end() && it->second->isLoaded()) {
         return it->second;
     }
     return nullptr;
@@ -296,9 +296,17 @@ void Loader::Impl::updateModResources(Mod* mod) {
 }
 
 void Loader::Impl::addProblem(LoadProblem const& problem) {
-    if (std::holds_alternative<Mod*>(problem.cause)) {
-        auto mod = std::get<Mod*>(problem.cause);
-        ModImpl::getImpl(mod)->m_problems.push_back(problem);
+    if (auto mod = std::get_if<Mod*>(&problem.cause)) {
+        auto impl = ModImpl::getImpl(*mod);
+        if (impl->m_problem) {
+            log::error(
+                "Mod {} already has a LoadProblem (message: {}) set? This should not happen, overriding with {}",
+                impl->m_metadata.getID(),
+                impl->m_problem->message,
+                problem.message
+            );
+        }
+        impl->m_problem = problem;
     }
     m_problems.push_back(problem);
 }
@@ -317,7 +325,7 @@ void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
             log::debug("Found {}", entry.path().filename());
             log::NestScope nest;
 
-            auto modMetadata = ModMetadataImpl::createFromGeodeFileWithFallback(entry.path());
+            auto modMetadata = ModMetadata::createFromGeodeFile(entry.path());
 
             log::debug("id: {}", modMetadata.getID());
             log::debug("version: {}", modMetadata.getVersion());
@@ -331,7 +339,9 @@ void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
                 auto modMetadata = ModMetadataImpl::createInvalidMetadata(
                     entry.path(),
                     "A mod with the same ID is already present.",
-                    LoadProblem::Type::Duplicate
+                    // Passing `nullopt` to `createInvalidMetadata` generates a
+                    // random non-conflicting ID
+                    std::nullopt
                 );
                 modQueue.push_back(modMetadata);
 
@@ -364,7 +374,7 @@ void Loader::Impl::populateModList(std::vector<ModMetadata>& modQueue) {
         auto res = mod->m_impl->setup();
         if (!res) {
             this->addProblem({
-                LoadProblem::Type::SetupFailed,
+                LoadProblem::Type::Unknown,
                 mod,
                 res.unwrapErr()
             });
@@ -394,11 +404,9 @@ void Loader::Impl::buildModGraph() {
                 continue;
             }
 
-            if (
-                dependency.getImportance() != ModMetadata::Dependency::Importance::Required ||
-                dependency.getMod() == nullptr
-            )
+            if (!dependency.isRequired() || dependency.getMod() == nullptr) {
                 continue;
+            }
 
             dependency.getMod()->m_impl->m_dependants.push_back(mod);
             dependency.getMod()->m_impl->m_settings->addDependant(mod);
@@ -416,27 +424,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
     // invalid target version
     // Also this makes it so that when GD updates, outdated mods get shown as
     // "Outdated" in the UI instead of "Missing Dependencies"
-    auto res = node->getMetadata().checkGameVersion();
-    if (!res) {
-        this->addProblem({
-            LoadProblem::Type::UnsupportedVersion,
-            node,
-            res.unwrapErr()
-        });
-        log::error("{}", res.unwrapErr());
-        return;
-    }
-
-    auto geodeVerRes = node->getMetadata().checkGeodeVersion();
-    if (!geodeVerRes) {
-        this->addProblem({
-            node->getMetadata().getGeodeVersion() > this->getVersion() ?
-                LoadProblem::Type::NeedsNewerGeodeVersion :
-                LoadProblem::Type::UnsupportedGeodeVersion,
-            node,
-            geodeVerRes.unwrapErr()
-        });
-        log::error("{}", geodeVerRes.unwrapErr());
+    if (!node->getMetadata().checkGameVersion() || !node->getMetadata().checkGeodeVersion()) {
         return;
     }
 
@@ -451,7 +439,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
 
     log::NestScope nest;
 
-    if (node->isEnabled()) {
+    if (node->isLoaded()) {
         log::error("Mod {} already loaded, this should never happen", node->getID());
         return;
     }
@@ -473,7 +461,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
             auto res = node->m_impl->loadBinary();
             if (!res) {
                 this->addProblem({
-                    LoadProblem::Type::LoadFailed,
+                    LoadProblem::Type::Unknown,
                     node,
                     res.unwrapErr()
                 });
@@ -489,11 +477,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
     if (early) {
         auto res = unzipFunction();
         if (!res) {
-            this->addProblem({
-                LoadProblem::Type::UnzipFailed,
-                node,
-                res.unwrapErr()
-            });
+            this->addProblem({ LoadProblem::Type::Unknown, node, res.unwrapErr() });
             log::error("Failed to unzip: {}", res.unwrapErr());
             m_refreshingModCount -= 1;
             return;
@@ -504,18 +488,13 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
         auto nest = log::saveNest();
 
         async::runtime().spawnBlocking<void>([=, this]() {
-            thread::setName("Mod Unzip");
             log::loadNest(nest);
             auto res = unzipFunction();
             this->queueInMainThread([=, this, res = std::move(res)]() {
                 auto prevNest = log::saveNest();
                 log::loadNest(nest);
                 if (!res) {
-                    this->addProblem({
-                        LoadProblem::Type::UnzipFailed,
-                        node,
-                        res.unwrapErr()
-                    });
+                    this->addProblem({ LoadProblem::Type::Unknown, node, res.unwrapErr() });
                     log::error("Failed to unzip: {}", res.unwrapErr());
                     m_refreshingModCount -= 1;
                     log::loadNest(prevNest);
@@ -530,148 +509,187 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
 
 void Loader::Impl::findProblems() {
     for (auto const& [id, mod] : m_mods) {
+        // If this mod already has a problem, continue as usual
+        if (mod->getLoadProblem()) {
+            continue;
+        }
+
+        // Check version first, as it's not worth trying to load a mod with an
+        // invalid target version
+        // Also this makes it so that when GD updates, outdated mods get shown as
+        // "Outdated" in the UI instead of "Missing Dependencies"
+        auto res = mod->getMetadata().checkGameVersion();
+        if (!res) {
+            this->addProblem({ LoadProblem::Type::Outdated, mod, res.unwrapErr() });
+            log::error("{}", res.unwrapErr());
+            continue;
+        }
+
+        auto geodeVerRes = mod->getMetadata().checkGeodeVersion();
+        if (!geodeVerRes) {
+            this->addProblem({ LoadProblem::Type::Outdated, mod, geodeVerRes.unwrapErr() });
+            log::error("{}", geodeVerRes.unwrapErr());
+            continue;
+        }
+
+        if (mod->getMetadata().hasErrors()) {
+            auto message = ranges::join(mod->getMetadata().getErrors(), ", ");
+            this->addProblem({ LoadProblem::Type::InvalidGeodeFile, mod, message });
+            log::error("{} failed to load: {}", id, message);
+            continue;
+        }
+
+        // Don't check dependencies or incompatibilities for disabled mods
         if (!mod->shouldLoad()) {
             log::debug("{} is not enabled", id);
-            continue;
-        }
-        if (mod->targetsOutdatedVersion()) {
-            log::warn("{} is outdated", id);
-            continue;
-        }
-
-        if (auto& reason = mod->getMetadata().m_impl->m_softInvalidReason) {
-            auto& [message, type] = *reason;
-
-            this->addProblem({ type, mod, message });
-            log::error("{} failed to load: {}", id, message);
             continue;
         }
 
         log::debug("{}", id);
         log::NestScope nest;
 
-        for (auto const& dep : mod->getMetadata().getDependencies()) {
-            if (dep.getMod() && dep.getMod()->isEnabled() && dep.getVersion().compare(dep.getMod()->getVersion()))
+        // These are all for collecting up a nice error message that has all the
+        // same categories of errors bunched up
+        std::vector<std::string> noninstalledDependencies;
+        std::vector<std::string> disabledDependencies;
+        std::vector<std::string> outdatedDependencies;
+        std::vector<std::string> breakingIncompatibilities;
+
+        // Collect breaking incompatibilities
+        for (auto const& dep : mod->getMetadata().getIncompatibilities()) {
+            if (!dep.getMod() || !dep.getVersion().compare(dep.getMod()->getVersion()) || !dep.getMod()->shouldLoad()) {
                 continue;
-
-            auto dismissKey = fmt::format("dismiss-optional-dependency-{}-for-{}", dep.getID(), id);
-
-            switch(dep.getImportance()) {
-                case ModMetadata::Dependency::Importance::Suggested:
-                    if (!Mod::get()->getSavedValue<bool>(dismissKey)) {
-                        this->addProblem({
-                            LoadProblem::Type::Suggestion,
-                            mod,
-                            fmt::format("{} {}", dep.getID(), dep.getVersion().toString())
-                        });
-                        log::info("{} suggests {} {}", id, dep.getID(), dep.getVersion());
-                    }
-                    else {
-                        log::debug("{} suggests {} {}, but that suggestion was dismissed", id, dep.getID(), dep.getVersion());
-                    }
-                    break;
-                case ModMetadata::Dependency::Importance::Recommended:
-                    if (!Mod::get()->getSavedValue<bool>(dismissKey)) {
-                        this->addProblem({
-                            LoadProblem::Type::Recommendation,
-                            mod,
-                            fmt::format("{} {}", dep.getID(), dep.getVersion().toString())
-                        });
-                        log::info("{} recommends {} {}", id, dep.getID(), dep.getVersion());
-                    }
-                    else {
-                        log::debug("{} recommends {} {}, but that suggestion was dismissed", id, dep.getID(), dep.getVersion());
-                    }
-                    break;
-                case ModMetadata::Dependency::Importance::Required:
-                    if(m_mods.find(dep.getID()) == m_mods.end()) {
-                        this->addProblem({
-                            LoadProblem::Type::MissingDependency,
-                            mod,
-                            fmt::format("{}", dep.getID())
-                        });
-                        log::error("{} requires {} {}", id, dep.getID(), dep.getVersion());
-                        break;
-                    } else {
-                        auto installedDependency = m_mods.at(dep.getID());
-
-                        if(!installedDependency->isEnabled()) {
-                            this->addProblem({
-                                LoadProblem::Type::DisabledDependency,
-                                mod,
-                                fmt::format("{}", dep.getID())
-                            });
-                            log::error("{} requires {} {}", id, dep.getID(), dep.getVersion());
-                            break;
-                        } else if(dep.getVersion().compareWithReason(installedDependency->getVersion()) == VersionCompareResult::TooOld) {
-                            this->addProblem({
-                                LoadProblem::Type::OutdatedDependency,
-                                mod,
-                                fmt::format("{}", dep.getID())
-                            });
-                            log::error("{} requires {} {}", id, dep.getID(), dep.getVersion());
-                            break;
-                        } else {
-                            // fires on major mismatch or too new version of dependency
-                            this->addProblem({
-                                LoadProblem::Type::MissingDependency,
-                                mod,
-                                fmt::format("{} {}", dep.getID(), dep.getVersion())
-                            });
-                            log::error("{} requires {} {}", id, dep.getID(), dep.getVersion());
-                            break;
-                        }
-                    }
+            }
+            if (dep.isBreaking()) {
+                // todo: which direction is this relationship in?
+                // todo: if mod A marks B as breaking, is B the one that shouldn't be loaded?
+                breakingIncompatibilities.push_back(dep.getMod()->getName());
+                log::warn("{} breaks {} {}", id, dep.getID(), dep.getVersion());
+            }
+            else {
+                // todo: add warning to UI
+                log::warn("{} conflicts with {} {}", id, dep.getID(), dep.getVersion());
+            }
+        }
+        // Collect missing required dependencies
+        for (auto const& dep : mod->getMetadata().getDependencies()) {
+            if (
+                !dep.isRequired() ||
+                (dep.getMod() && dep.getMod()->isLoaded() && dep.getVersion().compare(dep.getMod()->getVersion()))
+            ) {
+                continue;
+            }
+            log::error("{} requires {} ({})", id, dep.getID(), dep.getVersion());
+            if (!m_mods.contains(dep.getID())) {
+                noninstalledDependencies.push_back(fmt::format("{} ({})", dep.getID(), dep.getVersion()));
+            }
+            else {
+                auto installedDependency = m_mods.at(dep.getID());
+                if (!installedDependency->isLoaded()) {
+                    disabledDependencies.push_back(installedDependency->getName());
+                }
+                else if (dep.getVersion().compareWithReason(installedDependency->getVersion()) == VersionCompareResult::TooOld) {
+                    outdatedDependencies.push_back(fmt::format(
+                        "{} ({} -> {})",
+                        installedDependency->getName(),
+                        installedDependency->getVersion(),
+                        dep.getVersion()
+                    ));
+                }
+                else {
+                    // fires on major mismatch or too new version of dependency
+                    noninstalledDependencies.push_back(fmt::format("{} ({})", dep.getID(), dep.getVersion()));
+                }
             }
         }
 
-        for (auto const& dep : mod->getMetadata().getIncompatibilities()) {
-            if (!dep.getMod() || !dep.getVersion().compare(dep.getMod()->getVersion()) || !dep.getMod()->shouldLoad())
-                continue;
-            switch(dep.getImportance()) {
-                case ModMetadata::Incompatibility::Importance::Conflicting: {
-                    this->addProblem({
-                        dep.getVersion().toString()[0] == '<' ? LoadProblem::Type::OutdatedConflict : LoadProblem::Type::Conflict,
-                        mod,
-                        fmt::format("{}", dep.getID())
-                    });
-                    log::warn("{} conflicts with {} {}", id, dep.getID(), dep.getVersion());
-                } break;
+        // Add single LoadProblem for this mod's incompatibilities and missing dependencies
+        if (
+            breakingIncompatibilities.size() ||
+            noninstalledDependencies.size() ||
+            disabledDependencies.size() ||
+            outdatedDependencies.size()
+        ) {
+            std::string message;
+            bool lastWasIncompatible = false;
+            for (auto const& [whatToDo, mods] : std::initializer_list<std::pair<std::string_view, std::vector<std::string> const&>> {
+                std::make_pair("incompatible", breakingIncompatibilities),
+                std::make_pair("installed", noninstalledDependencies),
+                std::make_pair("enabled", disabledDependencies),
+                std::make_pair("updated", outdatedDependencies),
+            }) {
+                if (mods.empty()) continue;
+                if (message.empty()) {
+                    // Incompatibilities have a different message because
+                    // they're not missing dependencies
+                    if (whatToDo == "incompatible") {
+                        message = fmt::format(
+                            "{} is incompatible with the following mod{}: {}",
+                            mod->getName(), (mods.size() == 1 ? "" : "s"), ranges::join(mods, ", ")
+                        );
+                        lastWasIncompatible = true;
+                    }
+                    // Everything else is missing dependency-related
+                    else {
+                        message = fmt::format(
+                            "{} requires the following mod{} to be {}: {}",
+                            mod->getName(), (mods.size() == 1 ? "" : "s"), whatToDo, ranges::join(mods, ", ")
+                        );
+                    }
+                }
+                else {
+                    message += "\n";
 
-                case ModMetadata::Incompatibility::Importance::Breaking: {
-                    this->addProblem({
-                        dep.getVersion().toString()[0] == '<' ? LoadProblem::Type::OutdatedIncompatibility : LoadProblem::Type::PresentIncompatibility,
-                        mod,
-                        fmt::format("{}", dep.getID())
-                    });
-                    log::error("{} breaks {} {}", id, dep.getID(), dep.getVersion());
-                } break;
+                    // Enclose missing dependencies after incompatibilities in
+                    // parentheses since those aren't the main point of the
+                    // error message
+                    message += (breakingIncompatibilities.size() ? "(" : "");
 
-                case ModMetadata::Incompatibility::Importance::Superseded: {
-                    this->addProblem({
-                        LoadProblem::Type::PresentIncompatibility,
-                        mod,
-                        fmt::format("{}", dep.getID())
-                    });
-                    log::error("{} supersedes {} {}", id, dep.getID(), dep.getVersion());
-                } break;
+                    // If the first sentence was about an incompatibility, we
+                    // need to have the next sentence specify that we are now
+                    // listing dependencies
+                    if (lastWasIncompatible) {
+                        message += fmt::format(
+                            "And requires these mod{} to be {}: {}",
+                            (mods.size() == 1 ? "" : "s"), whatToDo, ranges::join(mods, ", ")
+                        );
+                    }
+                    else {
+                        message += fmt::format(
+                            "And these mod{} to be {}: {}",
+                            (mods.size() == 1 ? "" : "s"), whatToDo, ranges::join(mods, ", ")
+                        );
+                    }
+                    message += breakingIncompatibilities.size() ? ")" : "";
+                    lastWasIncompatible = false;
+                }
             }
+            this->addProblem({
+                // Incompatibilities take precedence since the mod won't ever
+                // be loadable even if you get the dependencies
+                breakingIncompatibilities.size() ?
+                    LoadProblem::Type::HasIncompatibilities :
+                    LoadProblem::Type::MissingDependencies,
+                mod, message
+            });
         }
 
         Mod* myEpicMod = mod; // clang fix
         // if the mod is not loaded but there are no problems related to it
-        if (!mod->isEnabled() &&
+        if (
+            !mod->isLoaded() &&
             mod->shouldLoad() &&
             !std::any_of(m_problems.begin(), m_problems.end(), [myEpicMod](auto& item) {
                 return std::holds_alternative<ModMetadata>(item.cause) &&
                     std::get<ModMetadata>(item.cause).getID() == myEpicMod->getID() ||
                     std::holds_alternative<Mod*>(item.cause) &&
                     std::get<Mod*>(item.cause) == myEpicMod;
-            })) {
+            })
+        ) {
             this->addProblem({
                 LoadProblem::Type::Unknown,
                 mod,
-                ""
+                fmt::format("Unknown error loading mod {}", id)
             });
             log::error("{} failed to load for an unknown reason", id);
         }
@@ -774,8 +792,9 @@ void Loader::Impl::orderModStack() {
             return;
         visited.insert(mod);
         for (auto dep : mod->m_impl->m_metadata.m_impl->m_dependencies) {
-            if (dep.getImportance() != ModMetadata::Dependency::Importance::Required)
+            if (!dep.isRequired()) {
                 continue;
+            }
             visit(dep.getMod(), visit);
         }
         m_modsToLoad.push_back(mod);
@@ -817,6 +836,7 @@ void Loader::Impl::continueRefreshModGraph() {
             }
             m_loadingState = LoadingState::Problems;
             [[fallthrough]];
+
         case LoadingState::Problems:
             log::info("Finding problems");
             {
@@ -830,6 +850,7 @@ void Loader::Impl::continueRefreshModGraph() {
                 log::debug("Took {}s", static_cast<float>(time) / 1000.f);
             }
             break;
+
         default:
             m_loadingState = LoadingState::Done;
             log::warn("Impossible loading state, resetting to 'Done'! "
@@ -1157,20 +1178,22 @@ void Loader::Impl::forceSafeMode() {
 }
 
 void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path, geode::Function<void()> after) {
-    auto res = ModMetadata::createFromGeodeFile(path);
-    if (!res) {
+    auto meta = ModMetadata::createFromGeodeFile(path);
+    if (meta.hasErrors()) {
+        for (auto const& error : meta.getErrors()) {
+            log::error("Error installing mod from file: {}", error);
+        }
         FLAlertLayer::create(
             "Invalid File",
             fmt::format(
-                "The path <cy>'{}'</c> is not a valid Geode mod: {}",
-                path,
-                res.unwrapErr()
+                "The path <cy>'{}'</c> is not a valid Geode mod!\n"
+                "(Developers, check console for more)",
+                path
             ),
             "OK"
         )->show();
         return;
     }
-    auto meta = res.unwrap();
 
     auto check = meta.checkTargetVersions();
     if (!check) {

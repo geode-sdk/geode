@@ -14,6 +14,8 @@ if (GEODE_BUILDING_DOCS)
 endif()
 
 option(GEODE_USE_BREAKPAD "Enables the use of the Breakpad library for crash dumps." ON)
+option(GEODE_UNITY_BUILD "Enables unity builds" OFF)
+option(GEODE_SET_TARGET_AS_SYSTEM "Sets the target include directories for Geode as SYSTEM, silencing Geode related warning on mod build." OFF)
 
 # Check if git is installed, raise a fatal error if not
 find_program(GIT_EXECUTABLE git)
@@ -253,7 +255,7 @@ endif()
 
 set(MAT_JSON_AS_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/result@1.4.1")
-CPMAddPackage("gh:geode-sdk/json@3.2.3")
+CPMAddPackage("gh:geode-sdk/json@3.3.0")
 CPMAddPackage("gh:zhihaoy/nontype_functional#8ec2e09")
 CPMAddPackage("gh:fmtlib/fmt#12.1.0")
 
@@ -261,7 +263,15 @@ CPMAddPackage("gh:fmtlib/fmt#12.1.0")
 if (NOT PROJECT_IS_TOP_LEVEL AND NOT DEFINED ARC_FEATURE_FULL)
 	set(ARC_FEATURE_FULL OFF CACHE BOOL "" FORCE)
 endif()
-CPMAddPackage("gh:dankmeme01/arc@1.4.1")
+CPMAddPackage("gh:dankmeme01/arc@1.5.1")
+
+# use unity for both arc and its dependencies,
+# they're fairly small libs so it helps a lot with compile times
+set_target_properties(asp PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 64)
+set_target_properties(arc PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 64)
+if (TARGET qsox)
+	set_target_properties(qsox PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 64)
+endif()
 
 target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)
 
@@ -313,12 +323,21 @@ if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
 	)
 endif()
 
-target_include_directories(GeodeBindings PUBLIC
-	${GEODE_LOADER_PATH}/include
-	${GEODE_LOADER_PATH}/include/Geode/cocos/include
-	${GEODE_LOADER_PATH}/include/Geode/cocos/extensions
-	${GEODE_LOADER_PATH}/include/Geode/fmod
-)
+if (GEODE_SET_TARGET_AS_SYSTEM)
+	target_include_directories(GeodeBindings SYSTEM PUBLIC
+		${GEODE_LOADER_PATH}/include
+		${GEODE_LOADER_PATH}/include/Geode/cocos/include
+		${GEODE_LOADER_PATH}/include/Geode/cocos/extensions
+		${GEODE_LOADER_PATH}/include/Geode/fmod
+	)
+else()
+	target_include_directories(GeodeBindings PUBLIC
+		${GEODE_LOADER_PATH}/include
+		${GEODE_LOADER_PATH}/include/Geode/cocos/include
+		${GEODE_LOADER_PATH}/include/Geode/cocos/extensions
+		${GEODE_LOADER_PATH}/include/Geode/fmod
+	)
+endif()
 target_link_directories(GeodeBindings PUBLIC ${GEODE_LOADER_PATH}/include/link)
 target_link_libraries(GeodeBindings PUBLIC fmt TulipHookInclude mat-json std23::nontype_functional GeodeResult asp arc)
 target_link_libraries(${PROJECT_NAME} INTERFACE GeodeBindings)

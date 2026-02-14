@@ -178,47 +178,48 @@ bool ModPopup::init(ModSource&& src) {
     m_titleContainer->addChildAtPosition(dev, Anchor::BottomLeft, ccp(devAndTitlePos, m_titleContainer->getContentHeight() * .25f));
 
     // Suggestions
-    if (!Loader::get()->isModInstalled(m_source.getMetadata().getID())) {
-        std::vector<Mod*> recommends {};
-        for (auto& problem : Loader::get()->getRecommendations()) {
-            auto suggestionID = problem.message.substr(0, problem.message.find(' '));
-            if (suggestionID != m_source.getMetadata().getID()) {
-                continue;
-            }
-            recommends.push_back(std::get<2>(problem.cause));
-        }
+    // todo: bring this back once we add "suggestions" in mod.json
+    // if (!Loader::get()->isModInstalled(m_source.getMetadata().getID())) {
+    //     std::vector<Mod*> recommends {};
+    //     for (auto& problem : Loader::get()->getRecommendations()) {
+    //         auto suggestionID = problem.message.substr(0, problem.message.find(' '));
+    //         if (suggestionID != m_source.getMetadata().getID()) {
+    //             continue;
+    //         }
+    //         recommends.push_back(std::get<2>(problem.cause));
+    //     }
 
-        if (recommends.size() > 0) {
-            title->updateAnchoredPosition(Anchor::TopLeft, ccp(devAndTitlePos, -2));
-            dev->updateAnchoredPosition(Anchor::Left, ccp(devAndTitlePos, 0));
+    //     if (recommends.size() > 0) {
+    //         title->updateAnchoredPosition(Anchor::TopLeft, ccp(devAndTitlePos, -2));
+    //         dev->updateAnchoredPosition(Anchor::Left, ccp(devAndTitlePos, 0));
 
-            auto recommendedBy = CCNode::create();
-            recommendedBy->setContentWidth(m_titleContainer->getContentWidth() - devAndTitlePos);
-            recommendedBy->setAnchorPoint({ .0f, .5f });
+    //         auto recommendedBy = CCNode::create();
+    //         recommendedBy->setContentWidth(m_titleContainer->getContentWidth() - devAndTitlePos);
+    //         recommendedBy->setAnchorPoint({ .0f, .5f });
 
-            auto byLabel = CCLabelBMFont::create("Recommended by ", "bigFont.fnt");
-            byLabel->setColor("mod-list-recommended-by"_cc3b);
-            recommendedBy->addChild(byLabel);
+    //         auto byLabel = CCLabelBMFont::create("Recommended by ", "bigFont.fnt");
+    //         byLabel->setColor("mod-list-recommended-by"_cc3b);
+    //         recommendedBy->addChild(byLabel);
 
-            std::string suggestionStr {};
-            if (recommends.size() == 1) {
-                suggestionStr = recommends[0]->getName();
-            } else {
-                suggestionStr = fmt::format("{} installed mods", recommends.size());
-            }
+    //         std::string suggestionStr {};
+    //         if (recommends.size() == 1) {
+    //             suggestionStr = recommends[0]->getName();
+    //         } else {
+    //             suggestionStr = fmt::format("{} installed mods", recommends.size());
+    //         }
 
-            auto nameLabel = CCLabelBMFont::create(suggestionStr.c_str(), "bigFont.fnt");
-            nameLabel->setColor("mod-list-recommended-by-2"_cc3b);
-            recommendedBy->addChild(nameLabel);
+    //         auto nameLabel = CCLabelBMFont::create(suggestionStr.c_str(), "bigFont.fnt");
+    //         nameLabel->setColor("mod-list-recommended-by-2"_cc3b);
+    //         recommendedBy->addChild(nameLabel);
 
-            recommendedBy->setLayout(
-                RowLayout::create()
-                    ->setDefaultScaleLimits(.1f, 1.f)
-                    ->setAxisAlignment(AxisAlignment::Start)
-            );
-            m_titleContainer->addChildAtPosition(recommendedBy, Anchor::BottomLeft, ccp(devAndTitlePos, 4));
-        }
-    }
+    //         recommendedBy->setLayout(
+    //             RowLayout::create()
+    //                 ->setDefaultScaleLimits(.1f, 1.f)
+    //                 ->setAxisAlignment(AxisAlignment::Start)
+    //         );
+    //         m_titleContainer->addChildAtPosition(recommendedBy, Anchor::BottomLeft, ccp(devAndTitlePos, 4));
+    //     }
+    // }
 
     leftColumn->addChild(m_titleContainer);
 
@@ -234,7 +235,7 @@ bool ModPopup::init(ModSource&& src) {
     statsContainer->setContentSize({ leftColumn->getContentWidth(), 80 });
     statsContainer->setAnchorPoint({ .5f, .5f });
 
-    auto statsBG = CCScale9Sprite::create("square02b_001.png");
+    auto statsBG = NineSlice::create("square02b_001.png");
     statsBG->setColor({ 0, 0, 0 });
     statsBG->setOpacity(75);
     statsBG->setScale(.3f);
@@ -311,7 +312,7 @@ bool ModPopup::init(ModSource&& src) {
     tagsContainer->setContentSize({ leftColumn->getContentWidth(), 35 });
     tagsContainer->setAnchorPoint({ .5f, .5f });
 
-    auto tagsBG = CCScale9Sprite::create("square02b_001.png");
+    auto tagsBG = NineSlice::create("square02b_001.png");
     tagsBG->setColor({ 0, 0, 0 });
     tagsBG->setOpacity(75);
     tagsBG->setScale(.3f);
@@ -369,7 +370,7 @@ bool ModPopup::init(ModSource&& src) {
     installContainer->setContentSize({ leftColumn->getContentWidth(), 25 });
     installContainer->setAnchorPoint({ .5f, .5f });
 
-    m_installBG = CCScale9Sprite::create("square02b_001.png");
+    m_installBG = NineSlice::create("square02b_001.png");
     m_installBG->setScale(.3f);
     m_installBG->setContentSize(installContainer->getContentSize() / m_installBG->getScale());
     installContainer->addChildAtPosition(m_installBG, Anchor::Center);
@@ -506,7 +507,7 @@ bool ModPopup::init(ModSource&& src) {
             ->setCrossAxisAlignment(AxisAlignment::End)
     );
 
-    auto linksBG = CCScale9Sprite::create("square02b_001.png");
+    auto linksBG = NineSlice::create("square02b_001.png");
     linksBG->setColor({ 0, 0, 0 });
     linksBG->setOpacity(75);
     linksBG->setScale(.3f);
@@ -634,7 +635,7 @@ bool ModPopup::init(ModSource&& src) {
     mainContainer->updateLayout();
     m_mainLayer->addChildAtPosition(mainContainer, Anchor::Center);
 
-    m_settingsBG = CCScale9Sprite::create("square02b_001.png");
+    m_settingsBG = NineSlice::create("square02b_001.png");
     m_settingsBG->setColor({ 0, 0, 0 });
     m_settingsBG->setOpacity(75);
     m_settingsBG->setScale(.3f);
@@ -741,7 +742,7 @@ void ModPopup::updateState() {
     m_restartRequiredLabel->setVisible(wantsRestart);
 
     if (!wantsRestart && asMod) {
-        if (asMod->isEnabled()) {
+        if (asMod->isLoaded()) {
             m_enabledStatusLabel->setString("Enabled");
             m_enabledStatusLabel->setColor(to3B(ColorProvider::get()->color("mod-list-enabled"_spr)));
         }

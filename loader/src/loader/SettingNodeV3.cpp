@@ -134,10 +134,12 @@ void SettingNodeV3::setDefaultBGColor(ccColor4B color) {
 }
 
 void SettingNodeV3::markChanged(CCNode* invoker) {
+    if (!m_impl->setting) return;
     this->updateState(invoker);
     SettingNodeValueChangeEventV3(m_impl->setting->getModID(), m_impl->setting->getKey()).send(this, false);
 }
 void SettingNodeV3::commit() {
+    if (!m_impl->setting) return;
     this->onCommit();
     m_impl->committed = true;
     this->updateState(nullptr);
@@ -156,6 +158,7 @@ void SettingNodeV3::setContentSize(CCSize const& size) {
     CCNode::setContentSize(size);
     m_impl->bg->setContentSize(size);
     this->updateLayout();
+    if (!m_impl->setting) return;
     SettingNodeSizeChangeEventV3(m_impl->setting->getModID(), m_impl->setting->getKey()).send(this);
 }
 
@@ -394,7 +397,7 @@ bool FileSettingNodeV3::init(std::shared_ptr<FileSettingV3> setting, float width
     if (!SettingValueNodeV3::init(setting, width))
         return false;
 
-    auto labelBG = extension::CCScale9Sprite::create("square02b_001.png", { 0, 0, 80, 80 });
+    auto labelBG = NineSlice::create("square02b_001.png", { 0, 0, 80, 80 });
     labelBG->setScale(.25f);
     labelBG->setColor({ 0, 0, 0 });
     labelBG->setOpacity(90);
@@ -598,13 +601,13 @@ bool UnresolvedCustomSettingNodeV3::init(std::string_view key, Mod* mod, float w
     this->setContentHeight(30);
 
     auto label = CCLabelBMFont::create(
-        (mod && mod->isEnabled() ?
+        (mod && mod->isLoaded() ?
             fmt::format("Missing setting '{}'", key) :
             fmt::format("Enable the Mod to Edit '{}'", key)
         ).c_str(),
         "bigFont.fnt"
     );
-    label->setColor(mod && mod->isEnabled() ? "mod-list-errors-found-2"_cc3b : "mod-list-gray"_cc3b);
+    label->setColor(mod && mod->isLoaded() ? "mod-list-errors-found-2"_cc3b : "mod-list-gray"_cc3b);
     label->limitLabelWidth(width - m_obContentSize.height, .3f, .1f);
     this->addChildAtPosition(label, Anchor::Left, ccp(m_obContentSize.height / 2, 0), ccp(0, .5f));
 
@@ -613,7 +616,7 @@ bool UnresolvedCustomSettingNodeV3::init(std::string_view key, Mod* mod, float w
 
 void UnresolvedCustomSettingNodeV3::updateState(CCNode* invoker) {
     SettingNodeV3::updateState(invoker);
-    this->getBG()->setColor(m_mod && m_mod->isEnabled() ? "mod-list-errors-found-2"_cc3b : "mod-list-gray"_cc3b);
+    this->getBG()->setColor(m_mod && m_mod->isLoaded() ? "mod-list-errors-found-2"_cc3b : "mod-list-gray"_cc3b);
     this->getBG()->setOpacity(75);
 }
 

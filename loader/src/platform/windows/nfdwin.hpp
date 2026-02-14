@@ -8,6 +8,7 @@
  * Modified to be modern Geode-fitting C++
  */
 
+#pragma once
 #include <Geode/DefaultInclude.hpp>
 
 #ifdef __MINGW32__
@@ -56,5 +57,6 @@ enum class NFDMode {
 Result<> nfdPick(
     NFDMode mode,
     file::FilePickOptions const& options,
-    void* result
+    void* result,
+    HWND parent
 );

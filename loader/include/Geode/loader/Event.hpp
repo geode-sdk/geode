@@ -216,8 +216,8 @@ namespace geode::comm {
         template <class ...Args>
         requires std::invocable<Callable, Args...>
         bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
-            auto lam = [=, this] { 
-                return Port<Callable, ThreadSafe>::send(args...); 
+            auto lam = [=, this] {
+                return Port<Callable, ThreadSafe>::send(args...);
             };
 
             if constexpr (ThreadSafe) {
@@ -374,7 +374,7 @@ namespace geode::comm {
             : m_filter(std::move(filter)), m_handle(handle), m_remover(remover), m_active(active) {}
 
         friend class EventCenter;
-        
+
     public:
         ListenerHandle() noexcept {}
 
@@ -441,7 +441,7 @@ namespace geode::comm {
         struct CloneMarker {};
 
         std::tuple<FArgs...> const m_filter;
-        
+
         bool operator==(BaseFilter const& other) const noexcept override {
             // geode::console::log(fmt::format("Comparing BasicEvent filters {}, {}", (void*)this, (void*)&other), Severity::Debug);
             // geode::console::log(fmt::format("Self type: {}", cast::getRuntimeTypeName(this)), Severity::Debug);
@@ -491,9 +491,7 @@ namespace geode::comm {
             // geode::console::log(fmt::format("Destroying BasicEvent {}, {}", (void*)this, typeid(Marker).name()), Severity::Debug);
         }
 
-        template <class... Args>
-        requires std::invocable<geode::CopyableFunction<PReturn(PArgs...)>, Args...>
-        bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<PReturn(PArgs...)>, Args...>);
+        bool send(PArgs... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<PReturn(PArgs...)>, PArgs...>);
 
         template<class Callable>
         ListenerHandle listen(Callable listener, int priority = 0) const noexcept {
@@ -594,12 +592,10 @@ namespace geode::comm {
         typename OpaqueEventPort<PortTemplate, PArgs...>;
         std::is_convertible_v<PReturn, bool> || std::is_same_v<PReturn, void>;
     }
-    template <class... Args>
-    requires std::invocable<geode::CopyableFunction<PReturn(PArgs...)>, Args...>
-    bool BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::send(Args&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<PReturn(PArgs...)>, Args...>) {
+    bool BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::send(PArgs... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<PReturn(PArgs...)>, PArgs...>) {
         return EventCenter::get()->send(this, [&](OpaquePortBase* opaquePort) {
             auto port = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(opaquePort);
-            return port->send(std::forward<Args>(args)...);
+            return port->send(std::forward<PArgs>(args)...);
         });
     }
 
@@ -650,33 +646,35 @@ namespace geode {
         using comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, true, comm::PortCallableCopy>::type, PFunc, FArgs...>::BasicEvent;
     };
 
-    template<class Marker, class... PArgs>
-    struct SimpleEvent : public comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false, comm::PortCallableCopy>::type, bool(PArgs...)> {
-        using comm::BasicEvent<Marker, comm::PortWrapper<comm::Port, false, comm::PortCallableCopy>::type, bool(PArgs...)>::BasicEvent;
-    };
-
-    template<class Marker, class GFunc, class PFunc, class... FArgs>
-    struct GlobalEvent {};
+namespace comm {
+    template<class Marker, bool ThreadSafe, class GFunc, class PFunc, class... FArgs>
+    struct BasicGlobalEvent {};
 
     // I LOVE TEMPLATE ABUSE
-    // here we misuse PFunc param as the FArg1, because every GlobalEvent at least has one FArg anyway
-    template<class Marker, class PReturn, class... PArgs, class FArg1, class... FArgs>
-    struct GlobalEvent<Marker, PReturn(PArgs...), FArg1, FArgs...> : public GlobalEvent<Marker, PReturn(FArg1, FArgs..., PArgs...), PReturn(PArgs...), FArg1, FArgs...> {
-        using GlobalEvent<Marker, PReturn(FArg1, FArgs..., PArgs...), PReturn(PArgs...), FArg1, FArgs...>::GlobalEvent;
+    // here we misuse PFunc param as the FArg1, because every BasicGlobalEvent at least has one FArg anyway
+    template<class Marker, bool ThreadSafe, class PReturn, class... PArgs, class FArg1, class... FArgs>
+    struct BasicGlobalEvent<Marker, ThreadSafe, PReturn(PArgs...), FArg1, FArgs...> : public BasicGlobalEvent<Marker, ThreadSafe, PReturn(FArg1, FArgs..., PArgs...), PReturn(PArgs...), FArg1, FArgs...> {
+        using BasicGlobalEvent<Marker, ThreadSafe, PReturn(FArg1, FArgs..., PArgs...), PReturn(PArgs...), FArg1, FArgs...>::BasicGlobalEvent;
     };
 
-    template<class Marker, class GReturn, class... GArgs, class PReturn, class... PArgs, class... FArgs>
-    struct GlobalEvent<Marker, GReturn(GArgs...), PReturn(PArgs...), FArgs...> {
+    template<class Marker, bool ThreadSafe, class GReturn, class... GArgs, class PReturn, class... PArgs, class... FArgs>
+    struct BasicGlobalEvent<Marker, ThreadSafe, GReturn(GArgs...), PReturn(PArgs...), FArgs...> {
     private:
-        using Event1Type = Event<Marker, PReturn(PArgs...), FArgs...>;
-        using Event2Type = SimpleEvent<Marker, FArgs..., PArgs...>;
+        using Event1Type = std::conditional_t<ThreadSafe,
+            ThreadSafeEvent<Marker, PReturn(PArgs...), FArgs...>,
+            Event<Marker, PReturn(PArgs...), FArgs...>
+        >;
+        using Event2Type = std::conditional_t<ThreadSafe,
+            ThreadSafeEvent<Marker, bool(FArgs..., PArgs...)>,
+            Event<Marker, bool(FArgs..., PArgs...)>
+        >;
         std::optional<std::tuple<FArgs...>> m_filter;
 
     public:
-        GlobalEvent() noexcept : m_filter(std::nullopt) {}
-        ~GlobalEvent() noexcept = default;
+        BasicGlobalEvent() noexcept : m_filter(std::nullopt) {}
+        ~BasicGlobalEvent() noexcept = default;
 
-        GlobalEvent(FArgs... args) noexcept : m_filter(std::in_place, std::move(args)...) {}
+        BasicGlobalEvent(FArgs... args) noexcept : m_filter(std::in_place, std::move(args)...) {}
 
         template<class Callable>
         requires std::is_invocable_v<Callable, PArgs...>
@@ -724,29 +722,38 @@ namespace geode {
             }
         }
 
-        template <class... Args>
-        requires std::invocable<geode::CopyableFunction<PReturn(PArgs...)>, Args...>
-        bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<PReturn(PArgs...)>, Args...>) {
+        bool send(PArgs... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<PReturn(PArgs...)>, PArgs...>) {
             if (m_filter.has_value()) {
                 auto filterCopy = *m_filter;
                 auto ret = std::apply([&](auto&&... fargs) {
-                    return Event1Type(std::move(fargs)...).send(std::forward<Args>(args)...);
+                    return Event1Type(std::move(fargs)...).send(std::forward<PArgs>(args)...);
                 }, std::move(filterCopy));
                 if (ret) return true;
 
                 return std::apply([&](auto&&... fargs) {
-                    return Event2Type().send(std::move(fargs)..., std::forward<Args>(args)...);
+                    return Event2Type().send(std::move(fargs)..., std::forward<PArgs>(args)...);
                 }, std::move(*m_filter));
             }
             return false;
         }
+    };
+}
+
+    template<class Marker, class GFunc, class PFunc, class... FArgs>
+    struct GlobalEvent : public comm::BasicGlobalEvent<Marker, false, GFunc, PFunc, FArgs...> {
+        using comm::BasicGlobalEvent<Marker, false, GFunc, PFunc, FArgs...>::BasicGlobalEvent;
+    };
+
+    template<class Marker, class GFunc, class PFunc, class... FArgs>
+    struct ThreadSafeGlobalEvent : public comm::BasicGlobalEvent<Marker, true, GFunc, PFunc, FArgs...> {
+        using comm::BasicGlobalEvent<Marker, true, GFunc, PFunc, FArgs...>::BasicGlobalEvent;
     };
 
 
     struct ListenerResult {
         static constexpr bool Propagate = false;
         static constexpr bool Stop = true;
-        
+
         constexpr ListenerResult() noexcept = default;
         constexpr ListenerResult(bool value) noexcept : m_value(value) {}
         constexpr ListenerResult(ListenerResult const&) noexcept = default;

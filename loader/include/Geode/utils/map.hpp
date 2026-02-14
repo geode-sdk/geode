@@ -16,7 +16,7 @@ namespace geode::utils::map {
      * @param map Map to check
      * @param containFunc Predicate run against each value in map;
      *                    return true if the item matches what is
-     *                    beeing looked for, and false if not.
+     *                    being looked for, and false if not.
      * @returns True if value matching `containFunc` was found,
      * false if not.
      */
@@ -34,7 +34,7 @@ namespace geode::utils::map {
      * @param map Map to check
      * @param selectFunc Predicate run against each value in map;
      *                   return true if the item matches what is
-     *                   beeing looked for, and false if not.
+     *                   being looked for, and false if not.
      * @returns The value matching `selectFunc` if one was found,
      * otherwise the default value for type R or `nullptr` if R is
      * a pointer.
@@ -52,7 +52,7 @@ namespace geode::utils::map {
      * @param map Map to check
      * @param selectFunc Predicate run against each value in map;
      *                   return true if the item matches what is
-     *                   beeing looked for, and false if not.
+     *                   being looked for, and false if not.
      * @returns Vector of all values that matched.
      */
     template <class T, class R, class H>

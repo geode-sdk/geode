@@ -31,6 +31,14 @@ public:
         return m_buffer.data();
     }
 
+    CharType* data() {
+        return m_buffer.data();
+    }
+
+    CharType& operator[](size_t index) {
+        return m_buffer[index];
+    }
+
     void append(CharType c) {
         m_buffer.push_back(c);
     }

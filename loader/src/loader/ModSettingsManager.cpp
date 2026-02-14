@@ -35,7 +35,6 @@ private:
         m_types.emplace("string", changeToGenerator(StringSettingV3::parse));
         m_types.emplace("file", changeToGenerator(FileSettingV3::parse));
         m_types.emplace("folder", changeToGenerator(FileSettingV3::parse));
-        m_types.emplace("path", changeToGenerator(FileSettingV3::parse));
         m_types.emplace("rgb", changeToGenerator(Color3BSettingV3::parse));
         m_types.emplace("color", changeToGenerator(Color3BSettingV3::parse));
         m_types.emplace("rgba", changeToGenerator(Color4BSettingV3::parse));

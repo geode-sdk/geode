@@ -154,7 +154,7 @@ void geode::openIssueReportPopup(Mod* mod) {
             fmt::format(
                 "Please report your issue on the "
                 "[#support](https://discord.com/channels/911701438269386882/979352389985390603) "
-                "channnel in the [Geode Discord Server](https://discord.gg/9e43WMKzhp)\n\n"
+                "channel in the [Geode Discord Server](https://discord.gg/9e43WMKzhp)\n\n"
                 "If your issue relates to a <cr>game crash</c>, <cb>please include</c> the "
                 "latest crash log(s) from `{}`",
                 dirs::getCrashlogsDir()

@@ -59,7 +59,7 @@ namespace geode {
         AndroidTouchInput(std::vector<Data> touches, Type type);
 
         /** Touch information for all pointers. For most events, only the first pointer is considered. */
-        std::vector<Data> touches() const;
+        std::vector<Data> const& touches() const;
         Type type() const;
 
     private:
@@ -86,7 +86,7 @@ namespace geode {
         AndroidJoystickInput(std::vector<Data> packets);
 
         /** Batched joystick data for the current frame, where the last item in the vector is the current position of each analog input. */
-        std::vector<Data> packets() const;
+        std::vector<Data> const& packets() const;
 
     private:
         std::vector<Data> m_packets;
@@ -100,10 +100,10 @@ namespace geode {
      *
      * If an event is stopped by a listener, the corresponding event within Cocos will not be triggered.
      */
-    class GEODE_DLL AndroidRichInputEvent final : public SimpleEvent<AndroidRichInputEvent, int64_t, int, int, AndroidRichInput> {
+    class AndroidRichInputEvent final : public Event<AndroidRichInputEvent, bool(int64_t, int, int, AndroidRichInput)> {
     public:
         // listener params timestamp, deviceID, eventSource, data
-        using SimpleEvent::SimpleEvent;
+        using Event::Event;
     };
 
     enum class AndroidInputDeviceStatus {
@@ -111,10 +111,10 @@ namespace geode {
     };
 
     /** Event that represents some change in input devices, namely removal/addition. */
-    class GEODE_DLL AndroidInputDeviceEvent final : public SimpleEvent<AndroidInputDeviceEvent, int, AndroidInputDeviceStatus> {
+    class AndroidInputDeviceEvent final : public Event<AndroidInputDeviceEvent, bool(int, AndroidInputDeviceStatus)> {
     public:
         // listener params deviceID, status
-        using SimpleEvent::SimpleEvent;
+        using Event::Event;
     };
 }
 

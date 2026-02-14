@@ -29,12 +29,20 @@ public:
 GenericContentLayer::Impl::Impl(GenericContentLayer* self) : m_self(self) {}
 
 void GenericContentLayer::Impl::setPosition(CCPoint const& pos) {
+    auto parent = m_self->getParent();
+
+    if (parent && parent->getContentHeight() > m_self->getScaledContentHeight()) {
+        auto y = parent->getContentHeight() - m_self->getScaledContentHeight();
+        m_self->CCLayerColor::setPosition({pos.x, y});
+    }
+    else {
+        m_self->CCLayerColor::setPosition(pos);
+    }
+
     // CCContentLayer expect its children to
     // all be TableViewCells
-    m_self->CCLayerColor::setPosition(pos);
-
     CCSize scrollLayerSize{};
-    if (auto parent = m_self->getParent()) {
+    if (parent) {
         scrollLayerSize = parent->getContentSize();
     }
 

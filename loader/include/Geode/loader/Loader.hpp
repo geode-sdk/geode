@@ -18,49 +18,25 @@ namespace geode {
 
     struct LoadProblem {
         enum class Type : uint8_t {
-            Unknown,
-            Suggestion,
-            Recommendation,
-            Conflict,
-            OutdatedConflict,
-            InvalidFile,
-            Duplicate,
-            SetupFailed,
-            LoadFailed,
-            EnableFailed,
-            MissingDependency,
-            PresentIncompatibility,
-            UnzipFailed,
-            UnsupportedVersion,
-            UnsupportedGeodeVersion,
-            NeedsNewerGeodeVersion,
-            DisabledDependency,
-            OutdatedDependency,
-            OutdatedIncompatibility,
+            /// Some other fatal error (like binary loading failing)
+            Unknown = 0,
+            /// This mod has an invalid .geode package
+            InvalidGeodeFile = 1,
+            /// This mod is missing dependencies
+            MissingDependencies = 2,
+            /// This mod is outdated (targets an old GD or Geode version)
+            Outdated = 3,
+            /// This mod is explicitly incompatible with another mod
+            HasIncompatibilities = 4,
         };
         Type type;
         std::variant<std::filesystem::path, ModMetadata, Mod*> cause;
+        /// Human-readable message (that should also suggest a fix; aka be UI-ready)
         std::string message;
 
-        bool isSuggestion() const {
-            return
-                type == LoadProblem::Type::Recommendation ||
-                type == LoadProblem::Type::Suggestion;
-        }
-        bool isOutdated() const {
-            return
-                type == LoadProblem::Type::UnsupportedVersion ||
-                type == LoadProblem::Type::NeedsNewerGeodeVersion ||
-                type == LoadProblem::Type::UnsupportedGeodeVersion;
-        }
-        /**
-         * Problems we should show a big red '!!' in the UI for. Suggestions 
-         * are not problems, and outdated mods as well as invalid Geode files 
-         * are also not problems (because otherwise we would be showing a 
-         * billion errors every time GD updates)
-         */
+        // Outdated mods are not shown in main menu
         bool isProblemTheUserShouldCareAbout() const {
-            return !isSuggestion() && !isOutdated() /* && type != LoadProblem::Type::InvalidFile */;
+            return type != Type::Outdated;
         }
     };
 
@@ -106,11 +82,7 @@ namespace geode {
         bool isModLoaded(std::string_view id) const;
         Mod* getLoadedMod(std::string_view id) const;
         std::vector<Mod*> getAllMods();
-        size_t getNumberOfInvalidGeodeFiles() const;
-        std::vector<LoadProblem> getAllProblems() const;
         std::vector<LoadProblem> getLoadProblems() const;
-        std::vector<LoadProblem> getOutdated() const;
-        std::vector<LoadProblem> getRecommendations() const;
 
         /**
          * Returns the available launch argument names.
@@ -182,7 +154,7 @@ namespace geode {
      * @param func the function to queue
     */
     inline void queueInMainThread(ScheduledFunction&& func) {
-        Loader::get()->queueInMainThread(std::forward<ScheduledFunction>(func));
+        Loader::get()->queueInMainThread(std::move(func));
     }
 
     /**

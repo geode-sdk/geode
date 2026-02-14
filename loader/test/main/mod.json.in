@@ -12,6 +12,9 @@
     "developer":    "Geode Team",
     "description":  "unit test for geode",
     "dependencies": {
-        "geode.testdep": ">=1.0.0"
+        "geode.testdep": {
+            "version": ">=1.0.0",
+            "required": true
+        }
     }
 }

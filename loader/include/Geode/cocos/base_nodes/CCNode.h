@@ -1957,7 +1957,7 @@ NS_CC_END
 
 #ifndef GEODE_IS_MEMBER_TEST
 namespace geode {
-    class GEODE_DLL UserObjectSetEvent final : public Event<UserObjectSetEvent, bool(cocos2d::CCNode*, cocos2d::CCObject*), std::string>  {
+    class UserObjectSetEvent final : public Event<UserObjectSetEvent, bool(cocos2d::CCNode*, cocos2d::CCObject*), std::string>  {
     public:
         // listener params node, value
         // filter params targetID

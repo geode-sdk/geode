@@ -253,7 +253,7 @@ namespace geode::utils::file {
          * @param from ZIP file to unzip
          * @param to Directory to unzip to
          * @param deleteZipAfter Whether to delete the zip after unzipping
-         * @returns Succesful result on success, errorful result on error
+         * @returns Successful result on success, errorful result on error
          */
         static Result<> intoDir(
             Path const& from,
@@ -300,7 +300,7 @@ namespace geode::utils::file {
          */
         std::vector<Filter> filters;
     };
-    
+
     using PickResult = Result<std::optional<std::filesystem::path>>;
     using PickManyResult = Result<std::vector<std::filesystem::path>>;
 
@@ -318,26 +318,4 @@ namespace geode::utils::file {
      * @returns The picked file paths, or empty vector if the dialog was cancelled
      */
     GEODE_DLL arc::Future<PickManyResult> pickMany(FilePickOptions options);
-
-    class GEODE_DLL FileWatchEvent final : public Event<FileWatchEvent, bool(), std::filesystem::path> {
-    public:
-        // filter params path
-        using Event::Event;
-    };
-
-    /**
-     * Watch a file for changes. Whenever the file is modified on disk, a
-     * FileWatchEvent is emitted. Add an EventListener with FileWatchFilter
-     * to catch these events
-     * @param file The file to watch
-     * @note Watching uses file system equivalence instead of path equivalence,
-     * so different paths that point to the same file will be considered the
-     * same
-     */
-    GEODE_DLL Result<> watchFile(std::filesystem::path const& file);
-    /**
-     * Stop watching a file for changes
-     * @param file The file to unwatch
-     */
-    GEODE_DLL void unwatchFile(std::filesystem::path const& file);
 }

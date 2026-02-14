@@ -7,47 +7,6 @@
 #include <Geode/binding/GameObject.hpp>
 #include <unordered_set>
 
-LoadModSuggestionFuture loadModSuggestion(LoadProblem const& problem) {
-    // Recommended / suggested are essentially the same thing for the purposes of this
-    if (
-        problem.type != LoadProblem::Type::Recommendation &&
-        problem.type != LoadProblem::Type::Suggestion
-    ) {
-        co_return std::nullopt;
-    }
-
-    auto suggestionID = problem.message.substr(0, problem.message.find(' '));
-    auto suggestionVersionStr = problem.message.substr(problem.message.find(' ') + 1);
-
-    auto suggestionVersionRes = ComparableVersionInfo::parse(suggestionVersionStr);
-    if (!suggestionVersionRes) {
-        co_return std::nullopt;
-    }
-
-    server::ModVersion suggestionVersion = server::ModVersionLatest();
-    if (suggestionVersionRes.unwrap().getComparison() == VersionCompare::MoreEq) {
-        suggestionVersion = server::ModVersionMajor {
-            .major = suggestionVersionRes.unwrap().getUnderlyingVersion().getMajor()
-        };
-    }
-    // todo: if mods are allowed to specify other type of version comparisons in the future,
-    // add support for that here
-
-    if (auto mod = std::get_if<Mod*>(&problem.cause)) {
-        auto result = co_await server::getModVersion(std::move(suggestionID), std::move(suggestionVersion));
-        if (!result.isOk()) {
-            co_return std::nullopt;
-        }
-    
-        co_return ModSuggestion{
-            .suggestion = result.unwrap().metadata,
-            .forMod = *mod,
-        };
-    }
-
-    co_return std::nullopt;
-}
-
 ModSource::ModSource(Mod* mod) : m_value(mod) {}
 ModSource::ModSource(server::ServerModMetadata&& metadata) : m_value(metadata) {}
 
@@ -108,7 +67,7 @@ bool ModSource::wantsRestart() const {
             return mod->getRequestedAction() != ModRequestedAction::None ||
                 ModSettingsManager::from(mod)->restartRequired();
         },
-        [](server::ServerModMetadata const& metdata) {
+        [](server::ServerModMetadata const& metadata) {
             return false;
         },
     }, m_value);

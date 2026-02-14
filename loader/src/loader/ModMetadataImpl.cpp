@@ -57,7 +57,7 @@ class ModMetadata::Dependency::Impl {
 public:
     std::string id;
     ComparableVersionInfo version;
-    Importance importance = Importance::Required;
+    bool required = true;
     Mod* mod = nullptr;
     matjson::Value settings;
 };
@@ -98,12 +98,12 @@ void ModMetadata::Dependency::setVersion(ComparableVersionInfo value) {
     m_impl->version = std::move(value);
 }
 
-ModMetadata::Dependency::Importance ModMetadata::Dependency::getImportance() const {
-    return m_impl->importance;
+bool ModMetadata::Dependency::isRequired() const {
+    return m_impl->required;
 }
 
-void ModMetadata::Dependency::setImportance(ModMetadata::Dependency::Importance value) {
-    m_impl->importance = value;
+void ModMetadata::Dependency::setRequired(bool value) {
+    m_impl->required = value;
 }
 
 Mod* ModMetadata::Dependency::getMod() const {
@@ -124,15 +124,15 @@ void ModMetadata::Dependency::setSettings(matjson::Value value) {
 
 bool ModMetadata::Dependency::isResolved() const {
     return
-        this->getImportance() != Importance::Required ||
-        this->getMod() && this->getMod()->isEnabled() && this->getVersion().compare(this->getMod()->getVersion());
+        !m_impl->required ||
+        this->getMod() && this->getMod()->isLoaded() && this->getVersion().compare(this->getMod()->getVersion());
 }
 
 class ModMetadata::Incompatibility::Impl {
 public:
     std::string id;
     ComparableVersionInfo version;
-    Importance importance = Importance::Breaking;
+    bool breaking = true;
     Mod* mod = nullptr;
 };
 
@@ -172,12 +172,12 @@ void ModMetadata::Incompatibility::setVersion(ComparableVersionInfo value) {
     m_impl->version = std::move(value);
 }
 
-ModMetadata::Incompatibility::Importance ModMetadata::Incompatibility::getImportance() const {
-    return m_impl->importance;
+bool ModMetadata::Incompatibility::isBreaking() const {
+    return m_impl->breaking;
 }
 
-void ModMetadata::Incompatibility::setImportance(ModMetadata::Incompatibility::Importance value) {
-    m_impl->importance = value;
+void ModMetadata::Incompatibility::setBreaking(bool value) {
+    m_impl->breaking = value;
 }
 
 Mod* ModMetadata::Incompatibility::getMod() const {
@@ -189,7 +189,7 @@ void ModMetadata::Incompatibility::setMod(Mod* mod) {
 }
 
 bool ModMetadata::Incompatibility::isResolved() const {
-    return this->getImportance() == Importance::Conflicting ||
+    return !m_impl->breaking ||
         (!this->getMod() || !this->getVersion().compare(this->getMod()->getVersion()) || !this->getMod()->shouldLoad());
 }
 
@@ -240,31 +240,7 @@ static std::string sanitizeDetailsData(std::string str) {
     return utils::string::replace(std::move(str), "\r", "");
 }
 
-bool ModMetadata::Impl::validateID(std::string_view id) {
-    // IDs may not be empty nor exceed 64 characters
-    if (id.size() == 0 || id.size() > 64) {
-        return false;
-    }
-
-    // Only one dot permitted
-    bool foundDot = false;
-    for (auto const& c : id) {
-        if (!(
-            ('a' <= c && c <= 'z') ||
-            ('0' <= c && c <= '9') ||
-            (c == '-' || c == '_') ||
-            (c == '.' && !foundDot)
-        )) {
-            if (c == '.') {
-                foundDot = true;
-            }
-            return false;
-        }
-    }
-    return true;
-}
-
-Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJson) {
+ModMetadata ModMetadata::Impl::parse(ModJson const& rawJson, std::optional<std::string_view> guessedID) {
     ModMetadata info;
 
     auto impl = info.m_impl.get();
@@ -273,7 +249,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
 
     auto checkerRoot = fmt::format(
         "[{}/{}/mod.json]",
-        rawJson["id"].asString().unwrapOr("unknown.mod"),
+        rawJson["id"].asString().unwrapOr(guessedID ? std::string(*guessedID) : std::string("unknown.mod")),
         rawJson["version"].as<VersionInfo>().map(
             [](VersionInfo const& v) {
                 return v.toVString();
@@ -292,7 +268,8 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
                     return str == "*" || numFromString<double>(str).isOk();
                 })
                 .into(impl->m_gdVersion);
-        } else {
+        }
+        else {
             // this will error later on, but try to load the rest of the metadata
             // so that the mod can show up in the mods listing
             impl->m_gdVersion = "0.000";
@@ -301,16 +278,22 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
 
     constexpr auto ID_REGEX = "[a-z0-9\\-_]+\\.[a-z0-9\\-_]+";
     root.needs("id")
-        .mustBe<std::string>(ID_REGEX, &ModMetadata::Impl::validateID)
+        .mustBe<std::string>(ID_REGEX, &ModMetadata::validateID)
         .into(impl->m_id);
+    
+    if (impl->m_id.empty() && guessedID) {
+        impl->m_id = *guessedID;
+    }
 
     root.needs("version").into(impl->m_version);
     root.needs("name").into(impl->m_name);
     if (root.has("developers")) {
         if (root.has("developer")) {
-            return Err("[mod.json] can not have both \"developer\" and \"developers\" specified");
+            impl->m_errors.emplace_back(
+                "[mod.json] can not have both \"developer\" and \"developers\" specified"
+            );
         }
-        for (auto& dev : root.needs("developers").items()) {
+        else for (auto& dev : root.needs("developers").items()) {
             impl->m_developers.push_back(dev.get<std::string>());
         }
     }
@@ -332,15 +315,20 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         Dependency dep;
         dep.setID("geode.loader");
         dep.setVersion({ about::getLoaderVersion(), VersionCompare::MoreEq });
-        dep.setImportance(Dependency::Importance::Required);
+        dep.setRequired(true);
         dep.setMod(Mod::get());
         impl->m_dependencies.push_back(std::move(dep));
     }
 
     if (auto deps = root.has("dependencies")) {
-        auto addDependency = [&impl, ID_REGEX](std::string id, JsonExpectedValue& dep) -> Result<> {
-            if (!ModMetadata::Impl::validateID(id)) {
-                return Err("[mod.json].dependencies.\"{}\" is not a valid Mod ID ({})", id, ID_REGEX);
+        deps.assertIsObject();
+        for (auto& [id, dep] : deps.properties()) {
+            if (!ModMetadata::validateID(id)) {
+                impl->m_errors.emplace_back(fmt::format(
+                    "[mod.json].dependencies.\"{}\" is not a valid Mod ID ({})",
+                    id, ID_REGEX
+                ));
+                continue;
             }
 
             dep.assertIs({ matjson::Type::Object, matjson::Type::String });
@@ -354,7 +342,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
                     }
                 }
                 if (!onThisPlatform) {
-                    return Ok();
+                    continue;
                 }
             }
 
@@ -365,51 +353,55 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
             if (dep.isString()) {
                 dep.into(version);
                 dependency.setVersion(version);
-                dependency.setImportance(Dependency::Importance::Required);
+                dependency.setRequired(true);
             }
             else {
                 dep.needs("version").into(version);
                 dependency.setVersion(version);
-                Dependency::Importance importance;
-                dep.has("importance").into(importance);
-                dependency.setImportance(importance);
+
+                // Parse "required" field (since v5)
+                bool required = true;
+                dep.has("required").into(required);
+                dependency.setRequired(required);
+
                 matjson::Value dependencySettings;
                 dep.has("settings").into(dependencySettings);
                 dependency.setSettings(std::move(dependencySettings));
+                
                 dep.checkUnknownKeys();
             }
 
             // Check if parsing had errors
             if (!dep) {
-                return dep.ok();
+                impl->m_errors.emplace_back(dep.ok().unwrapErr());
+                continue;
             }
 
             if (
                 dependency.getVersion().getComparison() != VersionCompare::MoreEq &&
                 dependency.getVersion().getComparison() != VersionCompare::Any
             ) {
-                return Err(
+                impl->m_errors.emplace_back(fmt::format(
                     "[mod.json].dependencies.\"{}\".version (\"{}\") must be either a more-than "
                     "comparison for a specific version or a wildcard for any version",
                     dependency.getID(), dependency.getVersion()
-                );
+                ));
+                continue;
             }
 
             impl->m_dependencies.push_back(dependency);
-
-            return Ok();
-        };
-
-        deps.assertIsObject();
-        for (auto& [id, dep] : deps.properties()) {
-            GEODE_UNWRAP(addDependency(id, dep));
         }
     }
 
     if (auto incompats = root.has("incompatibilities")) {
-        auto addIncompat = [&impl, ID_REGEX](std::string id, JsonExpectedValue& incompat) -> Result<> {
-            if (!ModMetadata::Impl::validateID(id)) {
-                return Err("[mod.json].incompatibilities.\"{}\" is not a valid Mod ID ({})", id, ID_REGEX);
+        incompats.assertIsObject();
+        for (auto& [id, incompat] : incompats.properties()) {
+            if (!ModMetadata::validateID(id)) {
+                impl->m_errors.emplace_back(fmt::format(
+                    "[mod.json].incompatibilities.\"{}\" is not a valid Mod ID ({})",
+                    id, ID_REGEX
+                ));
+                continue;
             }
 
             incompat.assertIs({ matjson::Type::Object, matjson::Type::String});
@@ -423,7 +415,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
                     }
                 }
                 if (!onThisPlatform) {
-                    return Ok();
+                    continue;
                 }
             }
 
@@ -434,30 +426,26 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
             if (incompat.isString()) {
                 incompat.into(version);
                 incompatibility.setVersion(version);
-                incompatibility.setImportance(Incompatibility::Importance::Breaking);
+                incompatibility.setBreaking(true);
             }
             else {
                 incompat.needs("version").into(version);
                 incompatibility.setVersion(version);
-                Incompatibility::Importance importance;
-                incompat.has("importance").into(importance);
-                incompatibility.setImportance(importance);
+
+                bool breaking = true;
+                incompat.has("breaking").into(breaking);
+                incompatibility.setBreaking(breaking);
+
                 incompat.checkUnknownKeys();
             }
 
             // Check if parsing had errors
             if (!incompat) {
-                return incompat.ok();
+                impl->m_errors.emplace_back(incompat.ok().unwrapErr());
+                continue;
             }
 
             impl->m_incompatibilities.push_back(incompatibility);
-
-            return Ok();
-        };
-
-        incompats.assertIsObject();
-        for (auto& [id, incompat] : incompats.properties()) {
-            GEODE_UNWRAP(addIncompat(id, incompat));
         }
     }
 
@@ -511,200 +499,11 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
 
     root.checkUnknownKeys();
 
-    return root.ok(info);
-}
-
-Result<ModMetadata> ModMetadata::Impl::create(ModJson const& json) {
-    // Check mod.json target version
-    auto schema = about::getLoaderVersion();
-    if (json.contains("geode") && json["geode"].isString()) {
-        GEODE_UNWRAP_INTO(
-            schema,
-            VersionInfo::parse(GEODE_UNWRAP(json["geode"].asString())).mapErr(
-                [](auto const& err) {
-                    return fmt::format("[mod.json] has invalid target loader version: {}", err);
-                }
-            )
-        );
+    // Check JSON parsing errors
+    if (!root) {
+        impl->m_errors.emplace_back(root.ok().unwrapErr());
     }
-    else {
-        return Err(
-            "[mod.json] has no target loader version "
-            "specified, or its formatting is invalid (required: \"[v]X.X.X\")!"
-        );
-    }
-    // if (schema < Loader::get()->minModVersion()) {
-    //     return Err(
-    //         "[mod.json] is built for an older version (" + schema.toString() +
-    //         ") of Geode (current: " + Loader::get()->getVersion().toString() +
-    //         "). Please update the mod to the latest version, "
-    //         "and if the problem persists, contact the developer "
-    //         "to update it."
-    //     );
-    // }
-    // if (schema > Loader::get()->maxModVersion()) {
-    //     return Err(
-    //         "[mod.json] is built for a newer version (" + schema.toString() +
-    //         ") of Geode (current: " + Loader::get()->getVersion().toString() +
-    //         "). You need to update Geode in order to use "
-    //         "this mod."
-    //     );
-    // }
-
-    // Handle mod.json data based on target
-    if (schema < VersionInfo(0, 1, 0)) {
-        return Err(
-            "[mod.json] targets a version (" + schema.toVString() +
-            ") that isn't supported by this version (v" +
-            about::getLoaderVersionStr() +
-            ") of geode. This is probably a bug; report it to "
-            "the Geode Development Team."
-        );
-    }
-
-    return Impl::createFromSchemaV010(json);
-}
-
-Result<ModMetadata> ModMetadata::Impl::createFromFile(std::filesystem::path const& path) {
-    GEODE_UNWRAP_INTO(auto read, utils::file::readString(path));
-
-    GEODE_UNWRAP_INTO(auto info, ModMetadata::create(GEODE_UNWRAP(matjson::parse(read).mapErr([&](auto const& err) {
-        return fmt::format("Unable to parse mod.json: {}", err);
-    }))));
-
-    auto impl = info.m_impl.get();
-
-    impl->m_path = path;
-    if (path.has_parent_path()) {
-        GEODE_UNWRAP(info.addSpecialFiles(path.parent_path()));
-    }
-    return Ok(info);
-}
-
-Result<ModMetadata> ModMetadata::Impl::createFromGeodeZipFallback(utils::file::Unzip& unzip) {
-    // Check if mod.json exists in zip
-    if (!unzip.hasEntry("mod.json")) {
-        return Err("\"{}\" is missing mod.json", unzip.getPath());
-    }
-
-    // Read mod.json & parse if possible
-    GEODE_UNWRAP_INTO(
-        auto jsonData, unzip.extract("mod.json").mapErr([](auto const& err) {
-            return fmt::format("Unable to extract mod.json: {}", err);
-        })
-    );
-
-    ModJson json = GEODE_UNWRAP(matjson::parse(std::string(jsonData.begin(), jsonData.end())).mapErr([](auto const& err) {
-        return fmt::format("Unable to parse mod.json: {}", err);
-    }));
-
-    ModMetadata info{};
-    auto impl = info.m_impl.get();
-
-    GEODE_UNWRAP_INTO(auto id, json["id"].asString());
-
-    // ideally, we'd ignore most of the restrictions and only focus on those that are harmful to the filesystem
-    // but not for now
-    if (!ModMetadata::Impl::validateID(id)) {
-        return Err("Unable to parse mod.json: invalid ID format");
-    }
-
-    info.m_impl->m_id = id;
-    impl->m_name = json["name"].asString().unwrapOrElse([&]() {
-        return utils::string::pathToString(unzip.getPath().filename());
-    });
-
-    impl->m_path = unzip.getPath();
-
-    return Ok(info);
-}
-
-ModMetadata ModMetadata::Impl::createFromGeodeFileWithFallback(std::filesystem::path const& path) {
-    // result code looks weird when you don't want to return a result
-
-    // attempt to unzip, otherwise return invalid mod with unzip error
-    auto r = file::Unzip::create(path);
-    if (!r) {
-        return createInvalidMetadata(path, r.unwrapErr(), LoadProblem::Type::InvalidFile);
-    }
-
-    auto&& unzip = std::move(r.unwrap());
-
-    // attempt to parse mod normally
-    auto fullAttempt = ModMetadata::createFromGeodeZip(unzip);
-    if (!fullAttempt) {
-        // if failed, attempt to parse id for updates
-        auto minimalAttempt = ModMetadataImpl::createFromGeodeZipFallback(unzip);
-        if (minimalAttempt) {
-            auto&& minimalMetadata = std::move(minimalAttempt.unwrap());
-
-            // store invalid reason to stop loading + display ui
-            minimalMetadata.m_impl->m_softInvalidReason = {
-                std::string(fullAttempt.unwrapErr()),
-                LoadProblem::Type::InvalidFile
-            };
-
-            return minimalMetadata;
-        }
-
-        // if parsing id failed, return invalid mod with normal mod parsing error
-        return createInvalidMetadata(path, fullAttempt.unwrapErr(), LoadProblem::Type::InvalidFile);
-    }
-
-    return fullAttempt.unwrap();
-}
-
-ModMetadata ModMetadata::Impl::createInvalidMetadata(std::filesystem::path const& path, std::string_view error, LoadProblem::Type type) {
-    ModMetadata v{};
-    v.m_impl->m_name = utils::string::pathToString(path.filename());
-    v.m_impl->m_softInvalidReason = {
-        std::string(error), type
-    };
-
-    v.m_impl->m_developers = {"-"};
-    v.m_impl->m_ephemeral = true;
-    v.m_impl->m_path = path;
-
-    // generate a random id to prevent conflicts with existing mods
-    constexpr std::string_view alphabet = "abcdefghijklmnopqrstuvwxyz0123456789_-";
-    v.m_impl->m_id = fmt::format("geode_invalid.{}", geode::utils::random::generateString(16, alphabet));
-
-    return v;
-}
-
-Result<ModMetadata> ModMetadata::Impl::createFromGeodeFile(std::filesystem::path const& path) {
-    GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(path));
-    return ModMetadata::createFromGeodeZip(unzip);
-}
-
-Result<ModMetadata> ModMetadata::Impl::createFromGeodeZip(file::Unzip& unzip) {
-    // Check if mod.json exists in zip
-    if (!unzip.hasEntry("mod.json")) {
-        return Err("\"{}\" is missing mod.json", unzip.getPath());
-    }
-
-    // Read mod.json & parse if possible
-    GEODE_UNWRAP_INTO(
-        auto jsonData, unzip.extract("mod.json").mapErr([](auto const& err) {
-            return fmt::format("Unable to extract mod.json: {}", err);
-        })
-    );
-
-    ModJson json = GEODE_UNWRAP(matjson::parse(std::string(jsonData.begin(), jsonData.end())).mapErr([](auto const& err) {
-        return fmt::format("Unable to parse mod.json: {}", err);
-    }));
-
-    auto info = GEODE_UNWRAP(ModMetadata::create(json).mapErr([&](auto const& err) {
-        return fmt::format("\"{}\" - {}", unzip.getPath(), err);
-    }));
-    auto impl = info.m_impl.get();
-    impl->m_path = unzip.getPath();
-
-    GEODE_UNWRAP(info.addSpecialFiles(unzip).mapErr([](auto const& err) {
-        return fmt::format("Unable to add extra files: {}", err);
-    }));
-
-    return Ok(info);
+    return info;
 }
 
 Result<> ModMetadata::Impl::addSpecialFiles(file::Unzip& unzip) {
@@ -843,18 +642,27 @@ VersionInfo ModMetadata::getGeodeVersion() const {
 int ModMetadata::getLoadPriority() const {
     return m_impl->m_loadPriority;
 }
+bool ModMetadata::hasErrors() const {
+    return m_impl->m_errors.size() || m_impl->m_completelyUnparseable;
+}
+std::vector<std::string> const& ModMetadata::getErrors() const {
+    return m_impl->m_errors;
+}
+bool ModMetadata::wasCompletelyUnparseable() const {
+    return m_impl->m_completelyUnparseable;
+}
 Result<> ModMetadata::checkGameVersion() const {
     if (!m_impl->m_gdVersion.empty() && m_impl->m_gdVersion != "*") {
         auto const ver = m_impl->m_gdVersion;
 
         auto res = numFromString<double>(ver);
         if (res.isErr()) {
-            return Err("Invalid target GD version");
+            return Err("This mod ({}) has an invalid target GD version", m_impl->m_id);
         }
         double modTargetVer = res.unwrap();
 
         if (modTargetVer == 0.0) { // O.o
-            return Err(fmt::format("This mod doesn't support the current platform."));
+            return Err(fmt::format("This mod ({}) doesn't support the current platform.", m_impl->m_id));
         }
 
         if (LoaderImpl::get()->isForwardCompatMode()) {
@@ -866,9 +674,8 @@ Result<> ModMetadata::checkGameVersion() const {
             // we are not in forward compat mode, so GEODE_GD_VERSION is the current gd version
             return Err(
                 fmt::format(
-                    "This mod was created for a different version of Geometry Dash ({}). You currently have version {}.",
-                    ver,
-                    GEODE_STR(GEODE_GD_VERSION)
+                    "This mod ({}) was created for a different version of Geometry Dash ({}). You currently have version {}.",
+                    m_impl->m_id, ver, GEODE_STR(GEODE_GD_VERSION)
                 )
             );
         }
@@ -880,14 +687,14 @@ Result<> ModMetadata::checkGeodeVersion() const {
         auto current = LoaderImpl::get()->getVersion();
         if (m_impl->m_geodeVersion > current) {
             return Err(
-                "This mod was made for a newer version of Geode ({}). You currently have version {}.",
-                m_impl->m_geodeVersion, current
+                "This mod ({}) was made for a newer version of Geode ({}). You currently have version {}.",
+                m_impl->m_id, m_impl->m_geodeVersion, current
             );
         }
         else {
             return Err(
-                "This mod was made for an older version of Geode ({}). You currently have version {}.",
-                m_impl->m_geodeVersion, current
+                "This mod ({}) was made for an older version of Geode ({}). You currently have version {}.",
+                m_impl->m_id, m_impl->m_geodeVersion, current
             );
         }
     }
@@ -971,17 +778,79 @@ ModMetadataLinks& ModMetadata::getLinksMut() {
 }
 #endif
 
-Result<ModMetadata> ModMetadata::createFromGeodeZip(utils::file::Unzip& zip) {
-    return Impl::createFromGeodeZip(zip);
+ModMetadata ModMetadata::Impl::createInvalidMetadata(
+    std::filesystem::path const& path,
+    std::string_view error,
+    std::optional<std::string_view> guessedID
+) {
+    ModMetadata v {};
+    // Use guessed ID or generate a random ID to prevent conflicts with existing mods
+    v.m_impl->m_id = guessedID ? std::string(*guessedID) : fmt::format(
+        "geode_invalid-{}",
+        utils::random::generateString(16, "abcdefghijklmnopqrstuvwxyz0123456789_-")
+    );
+    v.m_impl->m_name = utils::string::pathToString(path.filename());
+    v.m_impl->m_errors.emplace_back(error);
+    v.m_impl->m_developers = { "-" };
+    v.m_impl->m_completelyUnparseable = true;
+    v.m_impl->m_path = path;
+    return v;
 }
-Result<ModMetadata> ModMetadata::createFromGeodeFile(std::filesystem::path const& path) {
-    return Impl::createFromGeodeFile(path);
+ModMetadata ModMetadata::createFromGeodeFile(std::filesystem::path const& path) {
+    // result code looks weird when you don't want to return a result
+
+    // Try guess ID from filename (since usually Geode mods are named `mod.id.geode`)
+    std::optional<std::string> guessedID = utils::string::pathToString(path.stem());
+    if (!ModMetadata::validateID(*guessedID)) {
+        guessedID = std::nullopt;
+    }
+
+    // Attempt to unzip, otherwise return invalid mod with unzip error
+    auto r = file::Unzip::create(path);
+    if (!r) {
+        return Impl::createInvalidMetadata(path, r.unwrapErr(), guessedID);
+    }
+
+    auto&& unzip = std::move(r.unwrap());
+
+    /// Extract mod.json from the zip and parse it
+
+    // First check if mod.json exists for a nicer error
+    if (!unzip.hasEntry("mod.json")) {
+        return Impl::createInvalidMetadata(path, "Geode package is missing \"mod.json\"", guessedID);
+    }
+
+    // Extract file
+    auto modJsonDataRes = unzip.extract("mod.json").mapErr([](auto const& err) {
+        return fmt::format("Unable to extract mod.json: {}", err);
+    });
+    if (!modJsonDataRes) {
+        return Impl::createInvalidMetadata(path, modJsonDataRes.unwrapErr(), guessedID);
+    }
+    auto&& modJsonData = std::move(modJsonDataRes.unwrap());
+
+    // Parse the JSON
+    auto modJsonRes = matjson::parse(std::string(modJsonData.begin(), modJsonData.end()))
+        .mapErr([](auto const& err) {
+            return fmt::format("Unable to parse mod.json: {}", err);
+        });
+    if (!modJsonRes) {
+        return Impl::createInvalidMetadata(path, modJsonRes.unwrapErr(), guessedID);
+    }
+    auto&& modJson = std::move(modJsonRes.unwrap());
+
+    auto info = Impl::parse(modJson, guessedID);
+    info.m_impl->m_path = path;
+
+    auto specialFilesRes = info.m_impl->addSpecialFiles(unzip);
+    if (!specialFilesRes) {
+        info.m_impl->m_errors.emplace_back(fmt::format("Unable to add extra files: {}", specialFilesRes.unwrapErr()));
+    }
+
+    return info;
 }
-Result<ModMetadata> ModMetadata::createFromFile(std::filesystem::path const& path) {
-    return Impl::createFromFile(path);
-}
-Result<ModMetadata> ModMetadata::create(ModJson const& json) {
-    return Impl::create(json);
+ModMetadata ModMetadata::create(ModJson const& json) {
+    return Impl::parse(json, std::nullopt);
 }
 
 ModJson ModMetadata::toJSON() const {
@@ -996,11 +865,26 @@ bool ModMetadata::operator==(ModMetadata const& other) const {
 }
 
 bool ModMetadata::validateID(std::string_view id) {
-    return Impl::validateID(id);
-}
-
-Result<ModMetadata> ModMetadata::createFromSchemaV010(ModJson const& json) {
-    return Impl::createFromSchemaV010(json);
+    // IDs may not be empty nor exceed 64 characters
+    if (id.size() == 0 || id.size() > 64) {
+        return false;
+    }
+    // Only one dot permitted
+    bool foundDot = false;
+    for (auto const& c : id) {
+        if (!(
+            ('a' <= c && c <= 'z') ||
+            ('0' <= c && c <= '9') ||
+            (c == '-' || c == '_') ||
+            (c == '.' && !foundDot)
+        )) {
+            if (c == '.') {
+                foundDot = true;
+            }
+            return false;
+        }
+    }
+    return true;
 }
 
 Result<> ModMetadata::addSpecialFiles(std::filesystem::path const& dir) {

@@ -6,6 +6,7 @@
 #include <Geode/binding/Slider.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/ui/NineSlice.hpp>
 #include <server/DownloadManager.hpp>
 #include "../sources/ModSource.hpp"
 #include "../UpdateModListState.hpp"
@@ -56,7 +57,7 @@ protected:
     CCLabelBMFont* m_versionLabel;
     CCNode* m_developers;
     CCNode* m_recommendedBy;
-    CCScale9Sprite* m_description;
+    NineSlice* m_description;
     CCLabelBMFont* m_developerLabel;
     ButtonSprite* m_restartRequiredLabel;
     ButtonSprite* m_outdatedLabel;

@@ -23,13 +23,11 @@ void crashlog::printGeodeInfo(Buffer& stream) {
         "Loader Commit: {}\n"
         "Bindings Commit: {}\n"
         "Installed mods: {}\n"
-        "Outdated mods: {}\n"
         "Problems: {}\n",
         Loader::get()->getVersion().toVString(),
         about::getLoaderCommitHash(),
         about::getBindingsCommitHash(),
         Loader::get()->getAllMods().size(),
-        Loader::get()->getOutdated().size(),
         Loader::get()->getLoadProblems().size()
     );
 }
@@ -52,9 +50,9 @@ void crashlog::printMods(Buffer& stream) {
     for (auto& mod : mods) {
         stream.append("{} | [{}] {}\n",
             mod->isCurrentlyLoading() ? "o"sv :
-            mod->isEnabled() ? "x"sv :
-            mod->hasLoadProblems() ? "!"sv : // thank you for this bug report
+            mod->isLoaded() ? "x"sv :
             mod->targetsOutdatedVersion() ? "*"sv : // thank you very much for this bug report
+            mod->failedToLoad() ? "!"sv : // thank you for this bug report
             mod->shouldLoad() ? "~"sv :
             " "sv,
             mod->getVersion().toVString(), mod->getID()

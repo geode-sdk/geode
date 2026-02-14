@@ -3,7 +3,8 @@
     "gd": {
         "win": "*",
         "mac": "*",
-        "android": "*"
+        "android": "*",
+        "ios": "*"
     },
     "id": "geode.loader",
     "version": "@PROJECT_VERSION@@PROJECT_VERSION_SUFFIX@",

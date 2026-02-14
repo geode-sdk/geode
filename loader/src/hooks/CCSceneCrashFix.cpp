@@ -3,7 +3,7 @@
 
 using namespace geode::prelude;
 
-class $modify(CCScene) {
+class $modify(CCSceneCrashFix, CCScene) {
     int getHighestChildZ() {
         if(this->getChildrenCount() == 0) return 0;
 

@@ -12,16 +12,16 @@ using namespace geode::prelude;
 
 class ModListSource;
 
-class InvalidateCacheEvent final : public SimpleEvent<InvalidateCacheEvent, ModListSource*> {
+class InvalidateCacheEvent final : public Event<InvalidateCacheEvent, bool(ModListSource*)> {
 public:
     // filter params source
-    using SimpleEvent::SimpleEvent;
+    using Event::Event;
 };
 
 
-// If we want to insert some special item in the middle of the mods list (for 
-// example, when there are invalid .geode files in the mods folder, a single 
-// special "You have invalid Geode mods" item is inserted at the top to 
+// If we want to insert some special item in the middle of the mods list (for
+// example, when there are invalid .geode files in the mods folder, a single
+// special "You have invalid Geode mods" item is inserted at the top to
 // prevent clutter)
 struct SpecialModListItemSource final {
     std::string title;

@@ -10,7 +10,6 @@
 #include <mz_strm_os.h>
 #include <mz_strm_mem.h>
 #include <mz_zip.h>
-#include <internal/FileWatcher.hpp>
 #include <Geode/utils/ranges.hpp>
 
 #ifdef GEODE_IS_WINDOWS
@@ -70,7 +69,7 @@ static std::string formatError(int error = errno) {
 template <typename T>
 Result<> readFileInto(std::filesystem::path const& path, T& out) {
     HANDLE file = CreateFileW(
-        path.native().c_str(),
+        path.c_str(),
         GENERIC_READ,
         FILE_SHARE_READ,
         nullptr,
@@ -105,9 +104,9 @@ Result<> readFileInto(std::filesystem::path const& path, T& out) {
     return Ok();
 }
 
-Result<> writeFileFrom(std::filesystem::path const& path, void* data, size_t size) {
+static Result<> writeFileFrom(std::filesystem::path const& path, void* data, size_t size) {
     HANDLE file = CreateFileW(
-        path.native().c_str(),
+        path.c_str(),
         GENERIC_WRITE,
         0,
         nullptr,
@@ -132,7 +131,7 @@ Result<> writeFileFrom(std::filesystem::path const& path, void* data, size_t siz
     }
 
     CloseHandle(file);
-    
+
     return Ok();
 }
 
@@ -140,7 +139,7 @@ Result<> writeFileFrom(std::filesystem::path const& path, void* data, size_t siz
 
 template <typename T>
 Result<> readFileInto(std::filesystem::path const& path, T& out) {
-    int file = open(path.native().c_str(), O_RDONLY);
+    int file = open(path.c_str(), O_RDONLY);
 
     if (file == -1) {
         return Err("Unable to open file: {}", formatError());
@@ -167,9 +166,9 @@ Result<> readFileInto(std::filesystem::path const& path, T& out) {
     return Ok();
 }
 
-Result<> writeFileFrom(std::filesystem::path const& path, void* data, size_t size) {
-    int file = open(path.native().c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    
+static Result<> writeFileFrom(std::filesystem::path const& path, void* data, size_t size) {
+    int file = open(path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+
     if (file < 0) {
         return Err("Unable to open file: {}", formatError());
     }
@@ -186,7 +185,7 @@ Result<> writeFileFrom(std::filesystem::path const& path, void* data, size_t siz
     }
 
     close(file);
-    
+
     return Ok();
 }
 
@@ -855,34 +854,4 @@ Result<> Zip::addAllFrom(Path const& dir) {
 
 Result<> Zip::addFolder(Path const& entry) {
     return m_impl->addFolder(entry);
-}
-
-// This is a vector because need to use std::filesystem::equivalent for
-// comparisons and removal is not exactly performance-critical here
-// (who's going to add and remove 500 file watchers every frame)
-static std::vector<std::unique_ptr<FileWatcher>> FILE_WATCHERS {};
-
-Result<> file::watchFile(std::filesystem::path const& file) {
-    if (!std::filesystem::exists(file)) {
-        return Err("File does not exist");
-    }
-    auto watcher = std::make_unique<FileWatcher>(
-        file,
-        [](std::filesystem::path path) {
-            Loader::get()->queueInMainThread([path = std::move(path)]() {
-                FileWatchEvent(std::filesystem::path(path)).send();
-            });
-        }
-    );
-    if (!watcher->watching()) {
-        return Err("Unknown error watching file");
-    }
-    FILE_WATCHERS.emplace_back(std::move(watcher));
-    return Ok();
-}
-
-void file::unwatchFile(std::filesystem::path const& file) {
-    ranges::remove(FILE_WATCHERS, [=](std::unique_ptr<FileWatcher> const& watcher) {
-        return std::filesystem::equivalent(file, watcher->path());
-    });
 }

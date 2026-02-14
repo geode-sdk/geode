@@ -2,6 +2,7 @@
 
 #include <Geode/ui/Popup.hpp>
 #include <Geode/ui/MDTextArea.hpp>
+#include <Geode/ui/NineSlice.hpp>
 #include "../sources/ModSource.hpp"
 #include "../GeodeStyle.hpp"
 #include "../UpdateModListState.hpp"
@@ -30,8 +31,8 @@ protected:
     CCMenuItemSpriteExtra* m_updateBtn;
     CCMenuItemSpriteExtra* m_cancelBtn;
     CCLabelBMFont* m_installStatusLabel;
-    CCScale9Sprite* m_installBG;
-    CCScale9Sprite* m_settingsBG;
+    NineSlice* m_installBG;
+    NineSlice* m_settingsBG;
     CCLabelBMFont* m_enabledStatusLabel;
     ButtonSprite* m_restartRequiredLabel;
     CCNode* m_rightColumn;

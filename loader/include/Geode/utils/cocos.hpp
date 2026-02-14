@@ -666,18 +666,6 @@ namespace geode {
 // Cocos2d utils
 namespace geode::cocos {
     /**
-     * Get child at index. Checks bounds. A negative
-     * index will get the child starting from the end
-     * @deprecated Use CCNode::getChildByIndex instead
-     * @returns Child at index cast to the given type,
-     * or nullptr if index exceeds bounds
-     */
-    template <class T = cocos2d::CCNode>
-    static T* getChild(cocos2d::CCNode* x, int i) {
-        return x->getChildByIndex<T>(i);
-    }
-
-    /**
      * Return a node, or create a default one if it's
      * nullptr. Syntactic sugar function
      */
@@ -762,7 +750,7 @@ namespace geode::cocos {
      * Checks if a node is visible (recursively
      * checks parent visibility)
      * @param node Node to check if visible
-     * @returns True if node is visibile. Does
+     * @returns True if node is visible. Does
      * not take into account if node is off-screen
      */
     GEODE_DLL bool nodeIsVisible(cocos2d::CCNode* node);

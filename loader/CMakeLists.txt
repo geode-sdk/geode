@@ -101,7 +101,11 @@ else()
 		src/hooks/*.mm
 	)
 endif()
-set_source_files_properties(${OBJC_SOURCES} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+
+set_source_files_properties(${OBJC_SOURCES} PROPERTIES
+	SKIP_PRECOMPILE_HEADERS ON
+	SKIP_UNITY_BUILD_INCLUSION ON
+)
 
 if (WIN32)
 	# This allows you to compile in debug mode
@@ -281,17 +285,14 @@ if (NOT GEODE_BUILDING_DOCS)
 		endif()
 	endif()
 
-	# Cool date library
-	CPMAddPackage("gh:HowardHinnant/date#1ead671")
-
 	set(SIMDUTF_TESTS OFF)
 	set(SIMDUTF_TOOLS OFF)
-	CPMAddPackage("gh:simdutf/simdutf#v6.5.0")
-	CPMAddPackage("gh:fastfloat/fast_float#v8.1.0")
+	CPMAddPackage("gh:simdutf/simdutf@8.0.0")
+	CPMAddPackage("gh:fastfloat/fast_float@8.2.3")
 
 	target_include_directories(${PROJECT_NAME} PRIVATE ${md4c_SOURCE_DIR}/src)
 
-	target_link_libraries(${PROJECT_NAME} md4c minizip date simdutf fast_float)
+	target_link_libraries(${PROJECT_NAME} md4c minizip simdutf fast_float)
 endif()
 
 target_link_libraries(${PROJECT_NAME} TulipHook geode-sdk mat-json-impl)
@@ -299,6 +300,24 @@ target_link_libraries(${PROJECT_NAME} TulipHook geode-sdk mat-json-impl)
 # Required by curl for macos
 if (APPLE)
 	target_link_libraries(${PROJECT_NAME} z)
+endif()
+
+# always use unity builds for some dependencies
+if (TARGET md4c)
+	set_target_properties(md4c PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 64)
+endif()
+if (TARGET minizip)
+	set_target_properties(minizip PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 64)
+endif()
+set_target_properties(mat-json-impl PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 64)
+
+# unity build for geode
+if (GEODE_UNITY_BUILD)
+	set_target_properties(${PROJECT_NAME} PROPERTIES
+		UNITY_BUILD ON
+		UNITY_BUILD_BATCH_SIZE 32
+		UNITY_BUILD_UNIQUE_ID "GEODE_UNITY_NS_ID"
+	)
 endif()
 
 if (MSVC)

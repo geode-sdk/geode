@@ -3,6 +3,7 @@
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/ui/LoadingSpinner.hpp>
+#include <Geode/ui//NineSlice.hpp>
 
 $on_mod(Loaded) {
     // todo: these names should probably be shorter so they fit in SSO...
@@ -282,13 +283,13 @@ bool GeodeTabSprite::init(const char* iconFrame, const char* text, float width, 
     this->setContentSize(itemSize);
     this->setAnchorPoint({ .5f, .5f });
 
-    m_deselectedBG = CCScale9Sprite::createWithSpriteFrameName("tab-bg.png"_spr);
+    m_deselectedBG = NineSlice::createWithSpriteFrameName("tab-bg.png"_spr);
     m_deselectedBG->setScale(.8f);
     m_deselectedBG->setContentSize(itemSize / .8f);
     m_deselectedBG->setColor("mod-list-tab-deselected-bg"_cc3b);
     this->addChildAtPosition(m_deselectedBG, Anchor::Center);
 
-    m_selectedBG = CCScale9Sprite::createWithSpriteFrameName("tab-bg.png"_spr);
+    m_selectedBG = NineSlice::createWithSpriteFrameName("tab-bg.png"_spr);
     m_selectedBG->setScale(.8f);
     m_selectedBG->setContentSize(itemSize / .8f);
     m_selectedBG->setColor(to3B(ColorProvider::get()->color(

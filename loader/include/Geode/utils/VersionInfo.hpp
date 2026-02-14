@@ -27,7 +27,7 @@ namespace geode {
 
     /**
      * A version label, like v1.0.0-alpha or v2.3.4-prerelease. Limited to these
-     * options; arbitary identifiers are not supported. Additional numbering
+     * options; arbitrary identifiers are not supported. Additional numbering
      * may be added after the identifier, such as v1.0.0-beta.1
      */
     struct VersionTag {

@@ -5,7 +5,7 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
-#include <GUI/CCControlExtension/CCScale9Sprite.h>
+#include <Geode/ui/NineSlice.hpp>
 #include "ui/mods/popups/DevPopup.hpp"
 #include "ui/mods/sources/ModSource.hpp"
 
@@ -15,7 +15,7 @@ class ModDeveloperList : public CCNode {
 protected:
     ModSource m_source;
     ScrollLayer* m_list;
-    CCScale9Sprite* m_bg;
+    NineSlice* m_bg;
 public:
     static ModDeveloperList* create(
         DevListPopup* popup,

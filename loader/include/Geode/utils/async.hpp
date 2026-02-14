@@ -1,6 +1,7 @@
 #pragma once
 
 #include <arc/runtime/Runtime.hpp>
+#include <arc/sync/oneshot.hpp>
 #include <arc/util/Result.hpp>
 #include <arc/task/CancellationToken.hpp>
 #include <Geode/utils/function.hpp>
@@ -59,11 +60,38 @@ arc::TaskHandle<void> spawn(Lambda&& lambda, Callback cb) {
     }(std::forward<Lambda>(lambda), std::move(cb)));
 }
 
-
 /// Spawns a future as an async task, can be a function that returns a future.
 template <typename F> requires (arc::Spawnable<std::decay_t<F>>)
 auto spawn(F&& f) {
     return runtime().spawn(std::forward<F>(f));
+}
+
+/// Queues the given function to run in the main thread as soon as possible
+/// and waits for it to complete. Returns null if the function failed to send the result.
+/// (although that usually cannot happen in practice)
+template <typename T> requires (!std::is_void_v<T>)
+arc::Future<std::optional<T>> waitForMainThread(Function<T()> func) {
+    auto [tx, rx] = arc::oneshot::channel<T>();
+
+    geode::queueInMainThread([func = std::move(func), tx = std::move(tx)] mutable {
+        (void) tx.send(func());
+    });
+
+    co_return (co_await rx.recv()).ok();
+}
+
+/// Queues the given function to run in the main thread as soon as possible
+/// and waits for it to complete. Returns false if the function failed to complete (e.g. due to exception)
+template <typename T> requires (std::is_void_v<T>)
+arc::Future<bool> waitForMainThread(Function<void()> func) {
+    auto [tx, rx] = arc::oneshot::channel<std::monostate>();
+
+    geode::queueInMainThread([func = std::move(func), tx = std::move(tx)] mutable {
+        func();
+        (void) tx.send({});
+    });
+
+    co_return (co_await rx.recv()).isOk();
 }
 
 /// Allows an async task to be spawned and then automatically aborted when the holder goes out of scope.
@@ -121,7 +149,7 @@ public:
     /// Sets the name for the currently spawned task, for debugging purposes
     void setName(std::string name) {
         if (m_state && m_state->m_handle) {
-            m_state->m_handle->setName(std::move(name));
+            m_state->m_handle.setName(std::move(name));
         }
     }
 
@@ -133,14 +161,13 @@ public:
 
 private:
     struct SpawnedTaskState {
-        std::optional<arc::TaskHandle<void>> m_handle;
+        arc::TaskHandle<void> m_handle;
         bool m_cancelled = false;
 
         void cancel() {
             m_cancelled = true;
             if (m_handle) {
-                m_handle->abort();
-                m_handle.reset();
+                m_handle.abort();
             }
         }
 
@@ -149,7 +176,8 @@ private:
         }
 
         void complete() {
-            m_handle.reset(); // cleanup task
+            // reset the task handle to release the (potentially last) reference to the task and clean it up
+            m_handle.detach();
         }
     };
 
