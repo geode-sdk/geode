@@ -595,7 +595,7 @@ namespace geode::comm {
     bool BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::send(PArgs... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<PReturn(PArgs...)>, PArgs...>) {
         return EventCenter::get()->send(this, [&](OpaquePortBase* opaquePort) {
             auto port = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(opaquePort);
-            return port->send(std::forward<PArgs>(args)...);
+            return port->send(std::move(args)...);
         });
     }
 
@@ -726,12 +726,12 @@ namespace comm {
             if (m_filter.has_value()) {
                 auto filterCopy = *m_filter;
                 auto ret = std::apply([&](auto&&... fargs) {
-                    return Event1Type(std::move(fargs)...).send(std::forward<PArgs>(args)...);
+                    return Event1Type(std::move(fargs)...).send(std::move(args)...);
                 }, std::move(filterCopy));
                 if (ret) return true;
 
                 return std::apply([&](auto&&... fargs) {
-                    return Event2Type().send(std::move(fargs)..., std::forward<PArgs>(args)...);
+                    return Event2Type().send(std::move(fargs)..., std::move(args)...);
                 }, std::move(*m_filter));
             }
             return false;
