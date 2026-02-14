@@ -580,7 +580,7 @@ void Loader::Impl::findProblems() {
                 continue;
             }
             log::error("{} requires {} ({})", id, dep.getID(), dep.getVersion());
-            if (m_mods.contains(dep.getID())) {
+            if (!m_mods.contains(dep.getID())) {
                 noninstalledDependencies.push_back(fmt::format("{} ({})", dep.getID(), dep.getVersion()));
             }
             else {

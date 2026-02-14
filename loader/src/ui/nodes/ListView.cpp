@@ -101,22 +101,22 @@ void ListView::Impl::loadCell(TableViewCell* cell, int index) {
 
 void ListView::Impl::setPrimaryCellColor(cocos2d::ccColor3B color) {
     m_primaryCellColor = color;
-    updateAllCells();
+    m_self->updateAllCells();
 }
 
 void ListView::Impl::setSecondaryCellColor(cocos2d::ccColor3B color) {
     m_secondaryCellColor = color;
-    updateAllCells();
+    m_self->updateAllCells();
 }
 
 void ListView::Impl::setCellOpacity(GLubyte opacity) {
     m_cellOpacity = opacity;
-    updateAllCells();
+    m_self->updateAllCells();
 }
 
 void ListView::Impl::setCellBorderColor(cocos2d::ccColor4B color) {
     m_cellBorderColor = color;
-    updateAllCells();
+    m_self->updateAllCells();
 }
 
 void ListView::Impl::updateAllCells() {

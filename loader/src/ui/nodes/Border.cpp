@@ -146,7 +146,7 @@ void Border::setNode(CCNode* node) {
     CCNode* content = this->getChildByID("border_content"_spr);
 
     // Can't assume an ID as the node is a user input and may have its ID changed
-    if (CCNode* oldNode = cocos::getChild<CCNode>(content, 0)) {
+    if (CCNode* oldNode = content->getChildByIndex<CCNode>(0)) {
         // Not going to mess with releasing the node, I'll leave that to the user
         oldNode->removeFromParent();
     }
@@ -157,7 +157,7 @@ void Border::setNode(CCNode* node) {
 }
 
 CCNode* Border::getNode() {
-    if (CCNode* node = cocos::getChild<CCNode>(this->getChildByID("border_content"_spr), 0)) {
+    if (CCNode* node = this->getChildByID("border_content"_spr)->getChildByIndex<CCNode>(0)) {
         return node;
     } else {
         return nullptr;

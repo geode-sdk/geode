@@ -1,7 +1,5 @@
 #pragma once
 
-#include "FileWatcher.hpp"
-
 #include <matjson.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Loader.hpp>

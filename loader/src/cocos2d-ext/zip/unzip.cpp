@@ -2162,3 +2162,5 @@ int ZEXPORT unzSetOffset (unzFile file, uLong pos)
 }
 
 } // end of namespace cocos2d
+
+#undef local

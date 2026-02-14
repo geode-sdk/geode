@@ -946,15 +946,7 @@ Result<std::shared_ptr<FileSettingV3>> FileSettingV3::parse(std::string key, std
         ret->m_impl->folder = true;
         // folder-specific stuff if they ever exist
     }
-    else if (type == "file" || type == "path") {
-        if (type == "path") {
-            log::warn(
-                "Setting '{}' in mod {}: the \"path\" type has been "
-                "deprecated, use \"type\": \"file\" or \"type\": \"folder\" instead",
-                key, modID
-            );
-        }
-
+    else if (type == "file") {
         // Controls only make sense for files but not for folders
         if (auto controls = root.has("control")) {
             std::string dialogType;

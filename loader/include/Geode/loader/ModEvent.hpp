@@ -34,17 +34,7 @@ namespace geode {
     };
 }
 
-// clang-format off
-#define $on_mod(type) \
-template<class>                                                        \
-void GEODE_CONCAT(geodeExecFunction, __LINE__)();                      \
-namespace {                                                            \
-	struct GEODE_CONCAT(ExecFuncUnique, __LINE__) {};                  \
-}                                                                      \
-static inline auto GEODE_CONCAT(Exec, __LINE__) =                      \
+#define $on_mod(type) $execute_base({                                  \
     geode::ModStateEvent(geode::ModEventType::type, geode::getMod())   \
-    .listen(&GEODE_CONCAT(geodeExecFunction, __LINE__)                 \
-        <GEODE_CONCAT(ExecFuncUnique, __LINE__)>).leak();              \
-template<class>                                                        \
-void GEODE_CONCAT(geodeExecFunction, __LINE__)()
-// clang-format on
+    .listen(&GEODE_CONCAT(geodeExecFunctionI, __LINE__)).leak();       \
+})

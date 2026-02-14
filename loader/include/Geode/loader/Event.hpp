@@ -491,9 +491,7 @@ namespace geode::comm {
             // geode::console::log(fmt::format("Destroying BasicEvent {}, {}", (void*)this, typeid(Marker).name()), Severity::Debug);
         }
 
-        template <class... Args>
-        requires std::invocable<geode::CopyableFunction<PReturn(PArgs...)>, Args...>
-        bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<PReturn(PArgs...)>, Args...>);
+        bool send(PArgs... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<PReturn(PArgs...)>, PArgs...>);
 
         template<class Callable>
         ListenerHandle listen(Callable listener, int priority = 0) const noexcept {
@@ -594,12 +592,10 @@ namespace geode::comm {
         typename OpaqueEventPort<PortTemplate, PArgs...>;
         std::is_convertible_v<PReturn, bool> || std::is_same_v<PReturn, void>;
     }
-    template <class... Args>
-    requires std::invocable<geode::CopyableFunction<PReturn(PArgs...)>, Args...>
-    bool BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::send(Args&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<PReturn(PArgs...)>, Args...>) {
+    bool BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::send(PArgs... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<PReturn(PArgs...)>, PArgs...>) {
         return EventCenter::get()->send(this, [&](OpaquePortBase* opaquePort) {
             auto port = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(opaquePort);
-            return port->send(std::forward<Args>(args)...);
+            return port->send(std::forward<PArgs>(args)...);
         });
     }
 
@@ -726,18 +722,16 @@ namespace comm {
             }
         }
 
-        template <class... Args>
-        requires std::invocable<geode::CopyableFunction<PReturn(PArgs...)>, Args...>
-        bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<PReturn(PArgs...)>, Args...>) {
+        bool send(PArgs... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<PReturn(PArgs...)>, PArgs...>) {
             if (m_filter.has_value()) {
                 auto filterCopy = *m_filter;
                 auto ret = std::apply([&](auto&&... fargs) {
-                    return Event1Type(std::move(fargs)...).send(std::forward<Args>(args)...);
+                    return Event1Type(std::move(fargs)...).send(std::forward<PArgs>(args)...);
                 }, std::move(filterCopy));
                 if (ret) return true;
 
                 return std::apply([&](auto&&... fargs) {
-                    return Event2Type().send(std::move(fargs)..., std::forward<Args>(args)...);
+                    return Event2Type().send(std::move(fargs)..., std::forward<PArgs>(args)...);
                 }, std::move(*m_filter));
             }
             return false;

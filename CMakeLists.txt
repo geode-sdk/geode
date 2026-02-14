@@ -14,6 +14,7 @@ if (GEODE_BUILDING_DOCS)
 endif()
 
 option(GEODE_USE_BREAKPAD "Enables the use of the Breakpad library for crash dumps." ON)
+option(GEODE_UNITY_BUILD "Enables unity builds" OFF)
 option(GEODE_SET_TARGET_AS_SYSTEM "Sets the target include directories for Geode as SYSTEM, silencing Geode related warning on mod build." OFF)
 
 # Check if git is installed, raise a fatal error if not
@@ -254,7 +255,7 @@ endif()
 
 set(MAT_JSON_AS_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/result@1.4.1")
-CPMAddPackage("gh:geode-sdk/json@3.2.3")
+CPMAddPackage("gh:geode-sdk/json@3.3.0")
 CPMAddPackage("gh:zhihaoy/nontype_functional#8ec2e09")
 CPMAddPackage("gh:fmtlib/fmt#12.1.0")
 
@@ -262,7 +263,7 @@ CPMAddPackage("gh:fmtlib/fmt#12.1.0")
 if (NOT PROJECT_IS_TOP_LEVEL AND NOT DEFINED ARC_FEATURE_FULL)
 	set(ARC_FEATURE_FULL OFF CACHE BOOL "" FORCE)
 endif()
-CPMAddPackage("gh:dankmeme01/arc@1.4.7")
+CPMAddPackage("gh:dankmeme01/arc@1.5.1")
 
 # use unity for both arc and its dependencies,
 # they're fairly small libs so it helps a lot with compile times

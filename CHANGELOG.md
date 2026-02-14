@@ -1,5 +1,16 @@
 # Geode Changelog
 
+## v5.0.0-beta.1
+ * Remove deprecated `geode::cocos::getChild` (4120659)
+ * Remove deprecated "path" setting type (7df2b27)
+ * Remove `FileWatcher` (ab8116d)
+ * Add some methods to `StringBuffer` (7b09932)
+ * Make file picker block inputs on windows (7aaa5f9)
+ * Fix infinite recursion when loading dependencies (6400521)
+ * Fix iOS file picker (#1732)
+ * Fix some input behavior on windows (8383a87)
+ * Fix page menu and outdated mods (#1734)
+
 ## v5.0.0-alpha.2
  * Rework dependencies (#1705)
    * `importance` is now removed, and replaced with `required` and `breaking` for dependencies and incompatibilities, respectively
@@ -15,7 +26,7 @@
  * Remove `SimpleEvent` in favor of `Event` with no filter args (9dbd970)
  * Make a bunch of classes pimpl (#1684, #1685)
  * Rename `Mod::isEnabled` to `Mod::isLoaded` (#1705)
- * Notification rewrite (#1668) 
+ * Notification rewrite (#1668)
  * Change some of the PlatformID api (#1680)
  * Fix mod downloads and updates (13fcaa0, 2b7854e, 3ecdf5c)
  * Include the `geode::async` namespace in geode prelude (7ef3881)
@@ -70,7 +81,7 @@
  * Update fmtlib to v12
  * Use fast_float library for float & integer parsing (#1568)
  * Bump minimum macOS version to 11 (#1648)
- * Remove old Cacao functions (`vectorToCCArray`, `mapToCCDict`, etc) (866344e) 
+ * Remove old Cacao functions (`vectorToCCArray`, `mapToCCDict`, etc) (866344e)
 
 ## ~~v4.11.0~~
  * Add random utils in `geode::utils::random` (6da879b, 5abd3a9, ad2146d)

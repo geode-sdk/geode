@@ -144,7 +144,8 @@ struct Holder {
 Result<> nfdPick(
     NFDMode mode,
     file::FilePickOptions const& options,
-    void* result
+    void* result,
+    HWND parent
 ) {
     auto coResult = COMInit();
     if (!COMIsInitialized(coResult)) {
@@ -224,11 +225,10 @@ Result<> nfdPick(
         }
     }
 
-    auto fgWindow = GetForegroundWindow();
     auto taskbar = FindWindow("Shell_TrayWnd", NULL);
     SetForegroundWindow(taskbar);
-    auto dialogResult = dialog->Show(fgWindow);
-    ShowWindow(fgWindow, SW_RESTORE);
+    auto dialogResult = dialog->Show(parent);
+    ShowWindow(parent, SW_RESTORE);
 
     switch (dialogResult) {
         case S_OK: {

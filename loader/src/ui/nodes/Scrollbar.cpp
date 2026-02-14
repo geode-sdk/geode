@@ -40,7 +40,7 @@ bool Scrollbar::Impl::ccTouchBegan(CCTouch* touch, CCEvent* event) {
     if (!m_target || !rect.containsPoint(pos)) return false;
 
     // trigger scrollbar thumb move
-    ccTouchMoved(touch, event);
+    m_self->ccTouchMoved(touch, event);
 
     m_touchDown = true;
 

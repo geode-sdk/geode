@@ -17,7 +17,7 @@ std::string base64::encode(std::span<std::uint8_t const> data, Base64Variant var
     std::string buffer;
     buffer.resize(simdutf::base64_length_from_binary(data.size(), opt));
     // returned size is the same as above
-    std::ignore = simdutf::binary_to_base64(data, buffer, opt);
+    std::ignore = simdutf::binary_to_base64(std::span(reinterpret_cast<const char*>(data.data()), data.size()), buffer, opt);
     return buffer;
 }
 
@@ -57,7 +57,7 @@ Result<Container> decodeImpl(std::string_view str, base64::Base64Variant var) {
 
     Container buffer;
     buffer.resize(simdutf::maximal_binary_length_from_base64(str.data(), str.size()));
-    simdutf::result r = simdutf::base64_to_binary(str, buffer, opt);
+    simdutf::result r = simdutf::base64_to_binary(str, std::span(reinterpret_cast<char*>(buffer.data()), buffer.size()), opt);
     if (r.error) {
         if (r.error == simdutf::INVALID_BASE64_CHARACTER) {
             return Err("Invalid base64 character");
