@@ -2,7 +2,6 @@
 #include <Geode/ui/RichTextArea.hpp>
 #include <regex>
 #include <fmt/chrono.h>
-#include <Geode/cocos/actions/CCWaveAction.h>
 
 using namespace geode::prelude;
 
@@ -162,48 +161,6 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
                 if (specificSpriteClicked != nullptr)
                     web::openLinkInBrowser(value);
             }
-        }
-    ));
-
-    registerRichTextKey<std::tuple<float, float, float, float>>(std::make_shared<RichTextKey<std::tuple<float, float, float, float>>>(
-        "wave",
-        [](std::string value) -> Result<std::tuple<float, float, float, float>> {
-            float speed = 1;
-            float distanceY = 5;
-            float distanceX = 0;
-            float offsetPerIndex = .3f;
-
-            auto splitStr = utils::string::split(value, ",");
-            if (splitStr.size() >= 1){
-                auto speedRes = geode::utils::numFromString<float>(splitStr[0]);
-                if (speedRes.isOk()) speed = speedRes.unwrap();
-            }
-            if (splitStr.size() >= 2){
-                auto distanceYRes = geode::utils::numFromString<float>(splitStr[1]);
-                if (distanceYRes.isOk()) distanceY = distanceYRes.unwrap();
-            }
-            if (splitStr.size() >= 3){
-                auto distanceXRes = geode::utils::numFromString<float>(splitStr[2]);
-                if (distanceXRes.isOk()) distanceX = distanceXRes.unwrap();
-            }
-            if (splitStr.size() >= 4){
-                auto offsetPerIndexRes = geode::utils::numFromString<float>(splitStr[3]);
-                if (offsetPerIndexRes.isOk()) offsetPerIndex = offsetPerIndexRes.unwrap();
-            }
-
-            return Ok(std::make_tuple(speed, distanceY, distanceX, offsetPerIndex));
-        },
-        [](std::tuple<float, float, float, float> const& value, cocos2d::CCFontSprite* sprite, int charIndex) {
-            sprite->runAction(
-                CCRepeatForever::create(
-                    CCWaveAction::create(
-                        std::get<0>(value),
-                        std::get<2>(value),
-                        std::get<1>(value),
-                        std::get<3>(value) * charIndex
-                    )
-                )
-            );
         }
     ));
 
