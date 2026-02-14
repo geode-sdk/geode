@@ -1,9 +1,10 @@
 #include <loader/console.hpp>
 #include <loader/LogImpl.hpp>
-#include <io.h>
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/general.hpp>
+#include <Geode/utils/StringBuffer.hpp>
 #include <arc/iocp/IocpPipe.hpp>
+#include <io.h>
 
 using namespace geode::prelude;
 
@@ -86,7 +87,7 @@ bool redirectStd(FILE* which, ZStringView name, const Severity sev) {
                     line.clear();
                     continue;
                 }
-                
+
                 line.push_back(c);
             }
         }
@@ -202,14 +203,28 @@ void console::log(ZStringView msg, Severity severity) {
             color = 7;
             break;
     }
-    
+
     std::string_view sv{msg};
 
-    // this is suboptimal but slightly better than hardcoding '14' which is what it was before
-    size_t colorEnd = sv.find_first_of('[') - 1;
+    std::string_view colored;
+    std::string_view rest;
 
-    auto str = fmt::format("\x1b[38;5;{}m{}\x1b[0m{}\n", color, sv.substr(0, colorEnd), sv.substr(colorEnd));
-    WriteFile(s_outHandle, str.c_str(), str.size(), &written, nullptr);
+    // the string in 'sv' is usually already preformatted as "HH:MM:SS(.mmm) LEVEL [thread] ...",
+    // we want to color the time and log level, so look until the first [
+    size_t bracketStart = sv.find_first_of('[');
+    if (bracketStart != std::string::npos) {
+        bracketStart -= 1; // don't color the space
+
+        colored = sv.substr(0, bracketStart);
+        rest = sv.substr(bracketStart);
+    } else {
+        rest = sv;
+    }
+
+    StringBuffer<> buf;
+    buf.append("\x1b[38;5;{}m{}\x1b[0m{}\n", color, colored, rest);
+
+    WriteFile(s_outHandle, buf.data(), buf.size(), &written, nullptr);
 }
 
 void console::messageBox(ZStringView title, ZStringView info, Severity severity) {
