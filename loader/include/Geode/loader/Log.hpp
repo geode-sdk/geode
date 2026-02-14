@@ -5,12 +5,15 @@
 
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/utils/function.hpp>
+#include <Geode/utils/StringBuffer.hpp>
+#include <Geode/loader/Event.hpp>
 #include <Geode/Result.hpp>
 #include <ccTypes.h>
 #include <chrono>
 #include <filesystem>
 #include <matjson.hpp>
 #include <type_traits>
+#include <asp/time/SystemTime.hpp>
 #include <fmt/core.h>
 // for formatting std::vector and such
 #include <fmt/ranges.h>
@@ -169,7 +172,6 @@ namespace geode {
     Mod* getMod();
 
     namespace log {
-        using log_clock = std::chrono::system_clock;
         GEODE_DLL std::string generateLogName();
 
         GEODE_DLL void vlogImpl(Severity, Mod*, fmt::string_view format, fmt::format_args args);
@@ -203,24 +205,6 @@ namespace geode {
 
         /// Returns the path to the current log file
         GEODE_DLL std::filesystem::path const& getCurrentLogPath();
-
-        using LogCallback = Function<void(
-            std::string_view content,
-            Severity sev,
-            Mod* mod,
-            std::string_view source,
-            std::string_view thread
-        )>;
-        /// Adds a callback that will be invoked whenever a line is logged.
-        /// Callback parameters:
-        /// * `std::string_view content` - the content of the log
-        /// * `Severity sev` - the severity of the log
-        /// * `Mod* mod` - the mod that logged this log, if any (for example for stdout/stderr redirection this is null)
-        /// * `std::string_view source` - the source of the log (usually either mod name or "stdout" / "stderr")
-        /// * `std::string_view thread` - the name of the thread that logged this log
-        ///
-        /// Note: logging inside the callback will cause the log to be lost and not logged anywhere.
-        GEODE_DLL void addLogCallback(LogCallback callback);
 
         GEODE_DLL void pushNest(Mod* mod);
         GEODE_DLL void popNest(Mod* mod);
@@ -279,5 +263,90 @@ namespace geode {
 
         [[nodiscard]] GEODE_DLL std::shared_ptr<Nest> saveNest();
         GEODE_DLL void loadNest(std::shared_ptr<Nest> const& nest);
+
+        // Borrowed log
+        struct GEODE_DLL BorrowedLog final {
+        private:
+            friend class Logger;
+            friend struct Log;
+
+            // these are private since we want to disallow users to deal with a BorrowedLog directly,
+            // only allow them to use it through a reference
+            BorrowedLog(Severity severity, int32_t nestCount, std::string_view content, std::string_view thread, std::string_view source, Mod* mod);
+            BorrowedLog(Log const& log);
+            BorrowedLog(BorrowedLog const&) = default;
+            BorrowedLog& operator=(BorrowedLog const&) = default;
+            ~BorrowedLog() = default;
+
+            Log intoLog() const;
+
+        public:
+            asp::SystemTime m_time;
+            Severity m_severity;
+            int32_t m_nestCount;
+            std::string_view m_content;
+            std::string_view m_thread;
+            std::string_view m_source;
+            Mod* m_mod = nullptr;
+
+            std::tuple<std::string_view, std::string_view, int32_t> truncateWithNest() const;
+
+            template <size_t N>
+            void formatTo(utils::StringBuffer<N>& buf, bool millis = false) const;
+        };
+
+        struct LogEvent final : Event<LogEvent, bool(BorrowedLog const&)> {
+            using Event::Event;
+        };
     }
+}
+
+template <size_t N>
+inline void geode::log::BorrowedLog::formatTo(utils::StringBuffer<N>& buf, bool millis) const {
+    auto ms = m_time.timeSinceEpoch().millis() % 1000;
+    auto local = asp::localtime(m_time.to_time_t());
+
+    if (millis) {
+        buf.append("{:%H:%M:%S}.{:03}", local, ms);
+    } else {
+        buf.append("{:%H:%M:%S}", local);
+    }
+
+    buf.append(' ');
+
+    switch (m_severity.m_value) {
+        case Severity::Debug: buf.append("DEBUG"); break;
+        case Severity::Info: buf.append("INFO "); break;
+        case Severity::Warning: buf.append("WARN "); break;
+        case Severity::Error: buf.append("ERROR"); break;
+        default: buf.append("?????"); break;
+    }
+
+    buf.append(' ');
+
+    auto [source, thread, nestCount] = this->truncateWithNest();
+    bool sourceTrunc = source.size() != m_source.size();
+    bool threadTrunc = thread.size() != m_thread.size();
+
+    if (!thread.empty()) {
+        buf.append('[');
+        buf.append(thread);
+        if (threadTrunc) {
+            buf.append('>');
+        }
+        buf.append("] ");
+    }
+
+    buf.append('[');
+    buf.append(source);
+    if (sourceTrunc) {
+        buf.append('>');
+    }
+    buf.append("]: ");
+
+    for (int32_t i = 0; i < nestCount; i++) {
+        buf.append(' ');
+    }
+
+    buf.append(m_content);
 }

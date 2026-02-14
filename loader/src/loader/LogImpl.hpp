@@ -21,7 +21,7 @@ namespace geode::log {
     struct BorrowedLog;
 
     class Log final {
-        log_clock::time_point m_time;
+        asp::SystemTime m_time;
         Severity m_severity;
         int32_t m_nestCount;
         std::string m_content;
@@ -31,7 +31,7 @@ namespace geode::log {
 
     public:
         friend struct BorrowedLog;
-        Log(log_clock::time_point time, Severity severity, int32_t nestCount,
+        Log(asp::SystemTime time, Severity severity, int32_t nestCount,
             std::string content, std::string thread, std::string source, Mod* mod);
 
         [[nodiscard]] std::string toString(bool millis = false) const;
@@ -45,8 +45,6 @@ namespace geode::log {
         std::atomic<bool> m_initialized = false;
         std::ofstream m_logStream;
         std::filesystem::path m_logPath;
-        std::vector<LogCallback> m_callbacks;
-        std::atomic<bool> m_anyCallbacks{false};
         std::atomic<Severity> m_consoleLevel{Severity::Debug};
         std::atomic<Severity> m_fileLevel{Severity::Debug};
 
@@ -84,12 +82,10 @@ namespace geode::log {
         void shutdownThread();
         void flush();
         void outputLog(BorrowedLog const& log, bool dontFlush = false);
-        bool shouldOutputLog(Severity sev, bool& console, bool& file, bool& callbacks);
-        bool shouldOutputLog(Severity sev);
+        bool shouldOutputLog(Severity sev, Mod* mod, bool& console, bool& file, bool& listeners, bool& modLevel);
+        bool shouldOutputLog(Severity sev, Mod* mod);
         void flushLocked();
         void flushExternal();
-
-        void addLogCallback(LogCallback callback);
     };
 
     class Nest::Impl {
