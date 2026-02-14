@@ -59,6 +59,8 @@ protected:
     virtual void resetQuery() = 0;
     virtual ProviderTask fetchPage(size_t page, bool forceUpdate) = 0;
     virtual void setSearchQuery(std::string query) = 0;
+    // This is literally here just for sorting by recently updated in installed mods...
+    virtual std::string getNoModsFoundError() const;
 
     ModListSource();
 
@@ -83,6 +85,10 @@ public:
     std::optional<size_t> getItemCount() const;
     void setPageSize(size_t size);
 
+    virtual std::vector<std::pair<size_t, std::string>> getSortingOptions();
+    virtual size_t getSort() const;
+    virtual void setSort(size_t sortingOptionIndex);
+
     virtual bool isLocalModsOnly() const = 0;
 
     static void clearAllCaches();
@@ -104,24 +110,27 @@ public:
     }
 };
 
-struct LocalModsQueryBase {
-    std::optional<std::string> query;
-    std::unordered_set<std::string> tags = {};
-    size_t page = 0;
-    size_t pageSize = 10;
-    bool isDefault() const;
+enum class InstalledModListSort {
+    Alphabetical,
+    RecentlyUpdated,
 };
-
 enum class InstalledModListType {
     All,
     OnlyUpdates,
     OnlyErrors,
     OnlyOutdated,
 };
-struct InstalledModsQuery final : public LocalModsQueryBase {
+struct InstalledModsQuery final {
+    std::optional<std::string> query;
+    std::unordered_set<std::string> tags = {};
+    size_t page = 0;
+    size_t pageSize = 10;
     InstalledModListType type = InstalledModListType::All;
+    InstalledModListSort sort = InstalledModListSort::Alphabetical;
     std::optional<bool> enabledOnly;
     std::optional<bool> enabledFirst;
+    
+    void filter(ModListSource::ProvidedMods& mods);
     bool preCheck(ModSource const& src) const;
     bool queryCheck(ModSource const& src, double& weighted) const;
     bool isDefault() const;
@@ -136,6 +145,7 @@ protected:
     void resetQuery() override;
     ProviderTask fetchPage(size_t page, bool forceUpdate) override;
     void setSearchQuery(std::string query) override;
+    std::string getNoModsFoundError() const override;
 
     InstalledModListSource(InstalledModListType type);
 
@@ -144,6 +154,10 @@ public:
 
     std::unordered_set<std::string> getModTags() const override;
     void setModTags(std::unordered_set<std::string> const& tags) override;
+
+    std::vector<std::pair<size_t, std::string>> getSortingOptions() override;
+    size_t getSort() const override;
+    void setSort(size_t sortingOptionIndex) override;
 
     InstalledModsQuery const& getQuery() const;
     InvalidateQueryAfter<InstalledModsQuery> getQueryMut();
@@ -177,6 +191,10 @@ public:
     std::unordered_set<std::string> getModTags() const override;
     void setModTags(std::unordered_set<std::string> const& tags) override;
 
+    std::vector<std::pair<size_t, std::string>> getSortingOptions() override;
+    size_t getSort() const override;
+    void setSort(size_t sortingOptionIndex) override;
+
     server::ModsQuery const& getQuery() const;
     InvalidateQueryAfter<server::ModsQuery> getQueryMut();
     bool isDefaultQuery() const override;
@@ -206,77 +224,3 @@ public:
 
 bool weightedFuzzyMatch(ZStringView str, ZStringView kw, double weight, double& out);
 bool modFuzzyMatch(ModMetadata const& metadata, ZStringView kw, double& out);
-
-template <std::derived_from<LocalModsQueryBase> Query>
-void filterModsWithLocalQuery(ModListSource::ProvidedMods& mods, Query const& query) {
-    std::vector<std::pair<ModSource, double>> filtered;
-
-    // Filter installed mods based on query
-    // TODO: maybe skip fuzzy matching altogether if query is empty?
-    for (auto& src : mods.mods) {
-        if (std::holds_alternative<SpecialModListItemSource>(src)) {
-            continue;
-        }
-        auto mod = std::get<ModSource>(std::move(src));
-
-        double weighted = 0;
-        bool addToList = true;
-        // Do any checks additional this query has to start off with
-        if (!query.preCheck(mod)) {
-            addToList = false;
-        }
-        // If some tags are provided, only return mods that match
-        if (addToList && query.tags.size()) {
-            auto compare = mod.getMetadata().getTags();
-            for (auto& tag : query.tags) {
-                if (!compare.contains(tag)) {
-                    addToList = false;
-                }
-            }
-        }
-        // Don't bother with unnecessary fuzzy match calculations if this mod isn't going to be added anyway
-        if (addToList) {
-            addToList = query.queryCheck(mod, weighted);
-        }
-        if (addToList) {
-            filtered.push_back({ std::move(mod), weighted });
-        }
-    }
-
-    // Sort list based on score
-    std::sort(filtered.begin(), filtered.end(), [](auto& a, auto& b) {
-        // Sort primarily by score
-        if (a.second != b.second) {
-            return a.second > b.second;
-        }
-        // Deprecated mods are first by default
-        auto aIsDeprecated = a.first.hasUpdates().deprecation.has_value();
-        auto bIsDeprecated = b.first.hasUpdates().deprecation.has_value();
-        if (aIsDeprecated != bIsDeprecated) {
-            return aIsDeprecated;
-        }
-        // Outdated mods are always last by default
-        auto aIsOutdated = a.first.getMetadata().checkTargetVersions().isErr();
-        auto bIsOutdated = b.first.getMetadata().checkTargetVersions().isErr();
-        if (aIsOutdated != bIsOutdated) {
-            return !aIsOutdated;
-        }
-        // Otherwise sort alphabetically
-        return utils::string::caseInsensitiveCompare(
-            a.first.getMetadata().getName(),
-            b.first.getMetadata().getName()
-        ) == std::strong_ordering::less;
-    });
-
-    mods.mods.clear();
-    // Pick out only the mods in the page and page size specified in the query
-    for (
-        size_t i = query.page * query.pageSize;
-        i < filtered.size() && i < (query.page + 1) * query.pageSize;
-        i += 1
-    ) {
-        mods.mods.push_back(std::move(filtered.at(i).first));
-    }
-
-    mods.totalModCount = filtered.size();
-}

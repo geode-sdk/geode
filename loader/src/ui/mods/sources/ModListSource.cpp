@@ -15,8 +15,8 @@ static size_t ceildiv(size_t a, size_t b) {
     return a / b + (a % b != 0);
 }
 
-bool LocalModsQueryBase::isDefault() const {
-    return !query.has_value() && tags.empty();
+std::string ModListSource::getNoModsFoundError() const {
+    return "No mods found :(";
 }
 
 ModListSource::ProviderTask ModListSource::loadPage(size_t page, bool forceUpdate) {
@@ -24,7 +24,7 @@ ModListSource::ProviderTask ModListSource::loadPage(size_t page, bool forceUpdat
     auto data = ARC_CO_UNWRAP(co_await this->fetchPage(page, forceUpdate));
     
     if (data.totalModCount == 0 || data.mods.empty()) {
-        co_return Err(LoadPageError("No mods found :("));
+        co_return Err(LoadPageError(this->getNoModsFoundError()));
     }
 
     co_return Ok(std::move(data));
@@ -59,6 +59,14 @@ void ModListSource::setPageSize(size_t size) {
         this->clearCache();
     }
 }
+
+std::vector<std::pair<size_t, std::string>> ModListSource::getSortingOptions() {
+    return {};
+}
+size_t ModListSource::getSort() const {
+    return 0;
+}
+void ModListSource::setSort(size_t sortingOptionIndex) {}
 
 void ModListSource::reset() {
     this->resetQuery();

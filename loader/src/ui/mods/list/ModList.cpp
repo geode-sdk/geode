@@ -252,7 +252,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         sortSpr, this, menu_selector(ModList::onSort)
     );
     sortBtn->setID("sort-button");
-    if (!typeinfo_cast<ServerModListSource*>(m_source)) {
+    if (m_source->getSortingOptions().empty()) {
         sortBtn->setEnabled(false);
         sortSpr->setColor(ccGRAY);
         sortSpr->setOpacity(105);
