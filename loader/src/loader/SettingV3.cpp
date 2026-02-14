@@ -454,6 +454,8 @@ namespace enable_if_parsing {
 
 SettingChangedEventV3::SettingChangedEventV3(Mod* mod, std::string settingKey) : SettingChangedEventV3(mod->getID(), std::move(settingKey)) {}
 
+KeybindSettingPressedEventV3::KeybindSettingPressedEventV3(Mod* mod, std::string settingKey) : KeybindSettingPressedEventV3(mod->getID(), std::move(settingKey)) {}
+
 SettingNodeSizeChangeEventV3::SettingNodeSizeChangeEventV3(Mod* mod, std::string settingKey) : SettingNodeSizeChangeEventV3(mod->getID(), std::move(settingKey)) {}
 
 SettingNodeValueChangeEventV3::SettingNodeValueChangeEventV3(Mod* mod, std::string settingKey) : SettingNodeValueChangeEventV3(mod->getID(), std::move(settingKey)) {}
@@ -1057,5 +1059,97 @@ Result<> Color4BSettingV3::isValid(ccColor4B value) const {
 SettingNodeV3* Color4BSettingV3::createNode(float width) {
     return Color4BSettingNodeV3::create(
         std::static_pointer_cast<Color4BSettingV3>(shared_from_this()), width
+    );
+}
+
+class KeybindSettingV3::Impl final {
+public:
+    std::vector<Keybind> defaultValue;
+    std::vector<Keybind> value;
+};
+
+KeybindSettingV3::KeybindSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
+
+Result<std::shared_ptr<KeybindSettingV3>> KeybindSettingV3::parse(std::string key, std::string modID, matjson::Value const& json) {
+    auto ret = std::make_shared<KeybindSettingV3>(PrivateMarker());
+    auto root = checkJson(json, "KeybindSettingV3");
+    ret->parseBaseProperties(std::move(key), std::move(modID), root);
+    root.checkUnknownKeys();
+    return root.ok(ret);
+}
+
+void KeybindSettingV3::parseDefaultValue(JsonExpectedValue& json) {
+    std::vector<std::string> binds;
+    if (json.isArray()) {
+        json.into(binds);
+    }
+    else if (json.isString()) {
+        binds.push_back(json.get<std::string>());
+    }
+    for (auto& bind : binds) {
+        auto parsed = Keybind::fromString(bind);
+        if (!parsed) {
+            log::warn("Failed to parse keybind \"{}\" for setting '{}': {}", bind, this->getKey(), parsed.unwrapErr());
+            continue;
+        }
+        m_impl->defaultValue.push_back(parsed.unwrap());
+    }
+}
+
+void KeybindSettingV3::parseBaseProperties(std::string key, std::string modID, JsonExpectedValue& json) {
+    SettingV3::parseBaseProperties(std::move(key), std::move(modID), json);
+    auto root = json.needs("default");
+    if (root.isObject() && root.has(GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH)) {
+        auto defaultValue = root.needs(GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH);
+        this->parseDefaultValue(defaultValue);
+    }
+    else {
+        this->parseDefaultValue(root);
+    }
+    m_impl->value = m_impl->defaultValue;
+}
+
+void KeybindSettingV3::setDefaultValue(std::vector<Keybind> value) {
+    m_impl->defaultValue = std::move(value);
+}
+
+std::vector<Keybind> const& KeybindSettingV3::getDefaultValue() const {
+    return m_impl->defaultValue;
+}
+
+void KeybindSettingV3::setValue(std::vector<Keybind> value) {
+    m_impl->value = std::move(value);
+    this->markChanged();
+}
+
+std::vector<Keybind> const& KeybindSettingV3::getValue() const {
+    return m_impl->value;
+}
+
+bool KeybindSettingV3::isDefaultValue() const {
+    return m_impl->value == m_impl->defaultValue;
+}
+
+void KeybindSettingV3::reset() {
+    this->setValue(m_impl->defaultValue);
+}
+
+bool KeybindSettingV3::load(matjson::Value const& json) {
+    auto res = json.as<std::vector<Keybind>>();
+    if (res.isErr()) {
+        return false;
+    }
+    m_impl->value = std::move(res).unwrap();
+    return true;
+}
+
+bool KeybindSettingV3::save(matjson::Value& json) const {
+    json = m_impl->value;
+    return true;
+}
+
+SettingNodeV3* KeybindSettingV3::createNode(float width) {
+    return KeybindSettingNodeV3::create(
+        std::static_pointer_cast<KeybindSettingV3>(shared_from_this()), width
     );
 }
