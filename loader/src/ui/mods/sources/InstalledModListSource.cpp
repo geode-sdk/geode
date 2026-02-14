@@ -14,11 +14,8 @@ bool InstalledModsQuery::preCheck(ModSource const& src) const {
     // If we only want mods with updates, then only give mods with updates
     // NOTE: The caller of filterModsWithQuery() should have ensured that
     // `src.checkUpdates()` has been called and has finished
-    if (
-        type == InstalledModListType::OnlyUpdates &&
-        !(src.hasUpdates().update || src.hasUpdates().deprecation)
-    ) {
-        return false;
+    if (type == InstalledModListType::OnlyUpdates) {
+        return src.hasUpdates().update || src.hasUpdates().deprecation;
     }
     // If only errors requested, only show mods with errors (duh)
     if (type == InstalledModListType::OnlyOutdated) {

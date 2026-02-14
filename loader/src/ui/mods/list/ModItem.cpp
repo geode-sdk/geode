@@ -567,11 +567,13 @@ void ModItem::updateState() {
 
     m_deprecatedLabel->setVisible(false);
 
+    m_updateBtn->setVisible(false);
+
     auto update = m_source.hasUpdates();
-    if ((update.update || update.deprecation) && !(download && (download->isActive() || download->isDone()))
-    ) {
-        m_updateBtn->setVisible(true);
+    if ((update.update || update.deprecation) && !(download && (download->isActive() || download->isDone()))) {
         if (update.update) {
+            m_updateBtn->setVisible(true);
+
             std::string updateString = "";
             updateString += m_source.getMetadata().getVersion().toVString() + " -> " + update.update->version.toVString();
             m_versionLabel->setString(updateString.c_str());
@@ -588,7 +590,6 @@ void ModItem::updateState() {
         }
     }
     else {
-        m_updateBtn->setVisible(false);
         m_versionLabel->setString(m_source.getMetadata().getVersion().toVString().c_str());
         m_versionLabel->setColor(to3B(ColorProvider::get()->color("mod-list-version-label"_spr)));
     }

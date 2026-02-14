@@ -249,13 +249,19 @@ void filterModsWithLocalQuery(ModListSource::ProvidedMods& mods, Query const& qu
         if (a.second != b.second) {
             return a.second > b.second;
         }
-        // Make sure outdated mods are always last by default
+        // Deprecated mods are first by default
+        auto aIsDeprecated = a.first.hasUpdates().deprecation.has_value();
+        auto bIsDeprecated = b.first.hasUpdates().deprecation.has_value();
+        if (aIsDeprecated != bIsDeprecated) {
+            return aIsDeprecated;
+        }
+        // Outdated mods are always last by default
         auto aIsOutdated = a.first.getMetadata().checkTargetVersions().isErr();
         auto bIsOutdated = b.first.getMetadata().checkTargetVersions().isErr();
         if (aIsOutdated != bIsOutdated) {
             return !aIsOutdated;
         }
-        // Fallback sort alphabetically
+        // Otherwise sort alphabetically
         return utils::string::caseInsensitiveCompare(
             a.first.getMetadata().getName(),
             b.first.getMetadata().getName()
