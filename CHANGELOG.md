@@ -1,10 +1,10 @@
 # Geode Changelog
 
 ## v5.0.0-beta.1
- * Remove deprecated `geode::cocos::getNode` (4120659)
+ * Remove deprecated `geode::cocos::getChild` (4120659)
  * Remove deprecated "path" setting type (7df2b27)
  * Remove `FileWatcher` (ab8116d)
- * Add some methods to `StringBuilder` (7b09932)
+ * Add some methods to `StringBuffer` (7b09932)
  * Make file picker block inputs on windows (7aaa5f9)
  * Fix infinite recursion when loading dependencies (6400521)
  * Fix iOS file picker (#1732)
