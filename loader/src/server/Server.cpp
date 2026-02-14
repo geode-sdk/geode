@@ -2,7 +2,6 @@
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <chrono>
-#include <date/date.h>
 #include <fmt/core.h>
 #include <loader/ModMetadataImpl.hpp>
 #include <fmt/chrono.h>
@@ -275,14 +274,15 @@ Result<std::vector<ServerTag>> ServerTag::parseList(matjson::Value const& raw) {
 }
 
 Result<ServerDateTime> ServerDateTime::parse(std::string const& str) {
-    std::stringstream ss(str);
-    date::sys_seconds seconds;
-    if (ss >> date::parse("%Y-%m-%dT%H:%M:%S%Z", seconds)) {
-        return Ok(ServerDateTime {
-            .value = seconds
-        });
+    tm t;
+    auto ptr = strptime(str.c_str(), "%Y-%m-%dT%H:%M:%SZ", &t);
+    if (ptr != str.data() + str.size()) {
+        return Err("Invalid date time format '{}'", str);
     }
-    return Err("Invalid date time format '{}'", str);
+    auto time = std::mktime(&t);
+    return Ok(ServerDateTime {
+        .value = std::chrono::system_clock::from_time_t(time)
+    });
 }
 
 Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
