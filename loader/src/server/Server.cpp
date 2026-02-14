@@ -274,6 +274,16 @@ Result<std::vector<ServerTag>> ServerTag::parseList(matjson::Value const& raw) {
 }
 
 Result<ServerDateTime> ServerDateTime::parse(std::string const& str) {
+    #ifdef GEODE_IS_WINDOWS
+    std::stringstream ss(str);
+    std::chrono::time_point<std::chrono::system_clock, std::chrono::seconds> seconds;
+    if (ss >> std::chrono::parse("%Y-%m-%dT%H:%M:%S%Z", seconds)) {
+        return Ok(ServerDateTime {
+            .value = seconds
+        });
+    }
+    return Err("Invalid date time format '{}'", str);
+    #else
     tm t;
     auto ptr = strptime(str.c_str(), "%Y-%m-%dT%H:%M:%SZ", &t);
     if (ptr != str.data() + str.size()) {
@@ -283,6 +293,7 @@ Result<ServerDateTime> ServerDateTime::parse(std::string const& str) {
     return Ok(ServerDateTime {
         .value = std::chrono::system_clock::from_time_t(time)
     });
+    #endif
 }
 
 Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
