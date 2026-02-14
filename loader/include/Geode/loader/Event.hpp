@@ -109,6 +109,10 @@ namespace geode::comm {
             return m_receivers.size();
         }
 
+        size_t getReceiverCount() const noexcept {
+            return m_receivers.size();
+        }
+
         template <class ...Args>
         requires std::invocable<Callable, Args...>
         bool send(Args&&... value) const noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
@@ -158,6 +162,10 @@ namespace geode::comm {
                 }
             }
             return size;
+        }
+
+        size_t getReceiverCount() const noexcept {
+            return m_receivers.load()->size();
         }
 
         template <class ...Args>
@@ -308,6 +316,10 @@ namespace geode::comm {
 
         ReceiverHandle addReceiver(geode::CopyableFunction<bool(PArgs...)> rec, int priority = 0) noexcept {
             return m_port.addReceiver(std::move(rec), priority);
+        }
+
+        size_t getReceiverCount() const noexcept {
+            return m_port.getReceiverCount();
         }
 
         size_t removeReceiver(ReceiverHandle handle) noexcept {
@@ -493,6 +505,8 @@ namespace geode::comm {
 
         bool send(PArgs... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<PReturn(PArgs...)>, PArgs...>);
 
+        size_t getReceiverCount() const noexcept;
+
         template<class Callable>
         ListenerHandle listen(Callable listener, int priority = 0) const noexcept {
             if constexpr (std::is_convertible_v<std::invoke_result_t<Callable, PArgs...>, bool>) {
@@ -564,6 +578,17 @@ namespace geode::comm {
 
         template <class Callable>
         requires std::is_invocable_v<Callable, OpaquePortBase*>
+        size_t getReceiverCount(BaseFilter const* filter, Callable func) const noexcept {
+            auto p = m_ports.load();
+            auto it = p->find(filter);
+            if (it != p->end()) {
+                return std::invoke(func, it->second.get());
+            }
+            return 0;
+        }
+
+        template <class Callable>
+        requires std::is_invocable_v<Callable, OpaquePortBase*>
         size_t removeReceiver(BaseFilter const* filter, Callable func) noexcept {
             // geode::console::log(fmt::format("EventCenter removing receiver for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter)), Severity::Debug);
             auto p = m_ports.load();
@@ -608,6 +633,18 @@ namespace geode::comm {
         return EventCenter::get()->addReceiver(this, [&](OpaquePortBase* opaquePort) {
             auto port = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(opaquePort);
             return port->addReceiver(std::move(rec), priority);
+        });
+    }
+
+    template <class Marker, template <class> class PortTemplate, class PReturn, class... PArgs, class... FArgs>
+    requires requires {
+        typename OpaqueEventPort<PortTemplate, PArgs...>;
+        std::is_convertible_v<PReturn, bool> || std::is_same_v<PReturn, void>;
+    }
+    size_t BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::getReceiverCount() const noexcept {
+        return EventCenter::get()->getReceiverCount(this, [&](OpaquePortBase* opaquePort) {
+            auto port = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(opaquePort);
+            return port->getReceiverCount();
         });
     }
 
