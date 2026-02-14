@@ -1057,6 +1057,7 @@ public:
     std::optional<arc::mpsc::Sender<std::shared_ptr<RequestData>>> m_canceltx;
     arc::CancellationToken m_cancel;
     arc::Notify m_wakeNotify;
+    arc::Runtime* m_runtime;
     asp::Instant m_nextWakeup = asp::Instant::farFuture();
 
     std::unordered_set<std::shared_ptr<RequestData>> m_activeRequests;
@@ -1085,6 +1086,7 @@ public:
         });
         curl_multi_setopt(m_multiHandle, CURLMOPT_TIMERDATA, this);
 
+        m_runtime = &async::runtime();
         m_worker = async::runtime().spawn([this, rx = std::move(rx), crx = std::move(crx)] mutable -> arc::Future<> {
             bool running = true;
             while (running) {
@@ -1170,7 +1172,12 @@ public:
 
     Future<> workerPoll() {
         int stillRunning = 0;
-        CURLMcode mc = curl_multi_perform(m_multiHandle, &stillRunning);
+
+        // curl_multi_perform may block for a good period of time, so run it as a blocking task
+        CURLMcode mc = co_await arc::spawnBlocking<CURLMcode>([&] {
+            return curl_multi_perform(m_multiHandle, &stillRunning);
+        });
+
         if (mc != CURLM_OK) {
             log::error("curl_multi_perform() failed: {}", curl_multi_strerror(mc));
         }
@@ -1260,7 +1267,7 @@ public:
     }
 
     void socketCallback(CURL* easy, curl_socket_t s, int what, void* socketp) {
-        auto& driver = Runtime::current()->ioDriver();
+        auto& driver = m_runtime->ioDriver();
         auto it = m_sockets.find(s);
 
         if (what == CURL_POLL_REMOVE) {
