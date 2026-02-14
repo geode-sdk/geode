@@ -264,6 +264,8 @@ namespace geode {
         [[nodiscard]] GEODE_DLL std::shared_ptr<Nest> saveNest();
         GEODE_DLL void loadNest(std::shared_ptr<Nest> const& nest);
 
+        class Log;
+
         // Borrowed log
         struct GEODE_DLL BorrowedLog final {
         private:
