@@ -1,14 +1,16 @@
 #include "Server.hpp"
-#include <Geode/utils/JsonValidation.hpp>
-#include <Geode/utils/ranges.hpp>
-#include <chrono>
-#include <fmt/core.h>
-#include <loader/ModMetadataImpl.hpp>
-#include <fmt/chrono.h>
-#include <arc/sync/Mutex.hpp>
-#include <loader/LoaderImpl.hpp>
+
 #include "../internal/about.hpp"
 #include "Geode/loader/Loader.hpp"
+
+#include <Geode/utils/JsonValidation.hpp>
+#include <Geode/utils/ranges.hpp>
+#include <arc/sync/Mutex.hpp>
+#include <chrono>
+#include <fmt/chrono.h>
+#include <fmt/core.h>
+#include <loader/LoaderImpl.hpp>
+#include <loader/ModMetadataImpl.hpp>
 
 using namespace server;
 
@@ -53,6 +55,7 @@ public:
         }
         return std::nullopt;
     }
+
     void add(K&& key, V&& value) {
         auto pair = std::make_pair(std::move(key), std::move(value));
 
@@ -66,19 +69,26 @@ public:
             m_values.emplace_back(std::move(pair));
         }
     }
+
     void remove(K const& key) {
-        ranges::remove(m_values, [&key](auto const& q) { return q.first == key; });
+        ranges::remove(m_values, [&key](auto const& q) {
+            return q.first == key;
+        });
     }
+
     void clear() {
         m_values.clear();
     }
+
     void limit(size_t size) {
         m_sizeLimit = size;
         m_values.clear();
     }
+
     size_t size() const {
         return m_values.size();
     }
+
     size_t limit() const {
         return m_sizeLimit;
     }
@@ -88,7 +98,7 @@ template <class F>
 struct ExtractFun;
 
 template <class V, class... Args>
-struct ExtractFun<ServerFuture<V>(*)(Args...)> {
+struct ExtractFun<ServerFuture<V> (*)(Args...)> {
     using CacheKey = std::tuple<std::remove_cvref_t<Args>...>;
     using Value = V;
 
@@ -96,6 +106,7 @@ struct ExtractFun<ServerFuture<V>(*)(Args...)> {
     static CacheKey key(CArgs const&... args) {
         return std::make_tuple(args..., false);
     }
+
     template <class... CArgs>
     static ServerFuture<V> invoke(auto&& func, CArgs const&... args) {
         return func(args..., false);
@@ -105,9 +116,9 @@ struct ExtractFun<ServerFuture<V>(*)(Args...)> {
 template <auto F>
 class FunCache final {
 public:
-    using Extract  = ExtractFun<decltype(F)>;
+    using Extract = ExtractFun<decltype(F)>;
     using CacheKey = typename Extract::CacheKey;
-    using Value    = typename Extract::Value;
+    using Value = typename Extract::Value;
 
 private:
     arc::Mutex<CacheMap<CacheKey, Value>> m_cache;
@@ -141,10 +152,12 @@ public:
         auto cache = co_await m_cache.lock();
         co_return cache->size();
     }
+
     arc::Future<> limit(size_t size) {
         auto cache = co_await m_cache.lock();
         cache->limit(size);
     }
+
     arc::Future<> clear() {
         auto cache = co_await m_cache.lock();
         cache->clear();
@@ -157,7 +170,7 @@ FunCache<F>& getCache() {
     return inst;
 }
 
-static const char* jsonTypeToString(matjson::Type const& type) {
+static char const* jsonTypeToString(matjson::Type const& type) {
     switch (type) {
         case matjson::Type::Object: return "object";
         case matjson::Type::Array: return "array";
@@ -176,10 +189,14 @@ static Result<matjson::Value, ServerError> parseServerPayload(web::WebResponse c
     }
     auto json = std::move(asJson).unwrap();
     if (!json.isObject()) {
-        return Err(ServerError(response.code(), "Expected object, got {}", jsonTypeToString(json.type())));
+        return Err(
+            ServerError(response.code(), "Expected object, got {}", jsonTypeToString(json.type()))
+        );
     }
     if (!json.contains("payload")) {
-        return Err(ServerError(response.code(), "Object does not contain \"payload\" key - got {}", json.dump()));
+        return Err(ServerError(
+            response.code(), "Object does not contain \"payload\" key - got {}", json.dump()
+        ));
     }
     return Ok(json["payload"]);
 }
@@ -190,8 +207,7 @@ static ServerError parseServerError(web::WebResponse const& error) {
         auto json = asJson.unwrap();
         if (json.isObject() && json.contains("error") && json["error"].isString()) {
             return ServerError(
-                error.code(),
-                "{}", json["error"].asString().unwrapOr("Unknown (no error message)")
+                error.code(), "{}", json["error"].asString().unwrapOr("Unknown (no error message)")
             );
         }
         else {
@@ -200,10 +216,7 @@ static ServerError parseServerError(web::WebResponse const& error) {
     }
     // But if we get something else for some reason, return that
     else {
-        return ServerError(
-            error.code(),
-            "{}", error.string().unwrapOr("Unknown (not a valid string)")
-        );
+        return ServerError(error.code(), "{}", error.string().unwrapOr("Unknown (not a valid string)"));
     }
 }
 
@@ -216,7 +229,7 @@ static ServerProgress parseServerProgress(web::WebProgress const& prog, auto msg
     }
 }
 
-const char* server::sortToString(ModsSort sorting) {
+char const* server::sortToString(ModsSort sorting) {
     switch (sorting) {
         default:
         case ModsSort::Downloads: return "downloads";
@@ -248,7 +261,7 @@ std::string ServerDateTime::toAgoString() const {
     return fmt::format("{:%b %d %Y}", value);
 }
 
-Result<ServerTag> ServerTag::parse(matjson::Value const& raw) {
+Result<ServerTag> matjson::Serialize<server::ServerTag>::fromJson(matjson::Value const& raw) {
     auto root = checkJson(raw, "ServerTag");
     auto res = ServerTag();
 
@@ -258,45 +271,40 @@ Result<ServerTag> ServerTag::parse(matjson::Value const& raw) {
 
     return root.ok(res);
 }
-Result<std::vector<ServerTag>> ServerTag::parseList(matjson::Value const& raw) {
-    auto payload = checkJson(raw, "ServerTagsList");
-    std::vector<ServerTag> list {};
-    for (auto& item : payload.items()) {
-        auto mod = ServerTag::parse(item.json());
-        if (mod) {
-            list.push_back(mod.unwrap());
-        }
-        else {
-            log::error("Unable to parse tag from the server: {}", mod.unwrapErr());
-        }
-    }
-    return payload.ok(list);
+
+Result<ServerDeveloper> matjson::Serialize<server::ServerDeveloper>::fromJson(matjson::Value const& raw) {
+    auto root = checkJson(raw, "ServerDeveloper");
+    auto res = ServerDeveloper();
+
+    root.needs("username").into(res.username);
+    root.needs("display_name").into(res.displayName);
+    root.needs("is_owner").into(res.isOwner);
+
+    return root.ok(res);
 }
 
 Result<ServerDateTime> ServerDateTime::parse(std::string const& str) {
-    #ifdef GEODE_IS_WINDOWS
+#ifdef GEODE_IS_WINDOWS
     std::stringstream ss(str);
     std::chrono::time_point<std::chrono::system_clock, std::chrono::seconds> seconds;
     if (ss >> std::chrono::parse("%Y-%m-%dT%H:%M:%S%Z", seconds)) {
-        return Ok(ServerDateTime {
-            .value = seconds
-        });
+        return Ok(ServerDateTime{.value = seconds});
     }
     return Err("Invalid date time format '{}'", str);
-    #else
+#else
     tm t;
     auto ptr = strptime(str.c_str(), "%Y-%m-%dT%H:%M:%SZ", &t);
     if (ptr != str.data() + str.size()) {
         return Err("Invalid date time format '{}'", str);
     }
     auto time = mktime(&t);
-    return Ok(ServerDateTime {
-        .value = std::chrono::system_clock::from_time_t(time)
-    });
-    #endif
+    return Ok(ServerDateTime{.value = std::chrono::system_clock::from_time_t(time)});
+#endif
 }
 
-Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
+Result<ServerModVersion> matjson::Serialize<server::ServerModVersion>::fromJson(
+    matjson::Value const& raw
+) {
     auto root = checkJson(raw, "ServerModVersion");
 
     auto res = ServerModVersion();
@@ -307,7 +315,7 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
     auto gd_obj = root.needs("gd");
     std::string gd = "0.000";
     if (gd_obj.hasNullable(GEODE_PLATFORM_SHORT_IDENTIFIER)) {
-        gd = gd_obj.hasNullable(GEODE_PLATFORM_SHORT_IDENTIFIER). get<std::string>();
+        gd = gd_obj.hasNullable(GEODE_PLATFORM_SHORT_IDENTIFIER).get<std::string>();
     }
 
     if (gd != "*") {
@@ -326,7 +334,7 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
     res.metadata.setVersion(root.needs("version").get<VersionInfo>());
     res.metadata.setIsAPI(root.needs("api").get<bool>());
 
-    std::vector<ModMetadata::Dependency> dependencies {};
+    std::vector<ModMetadata::Dependency> dependencies{};
     for (auto& obj : root.hasNullable("dependencies").items()) {
         // todo: this should probably be generalized to use the same function as mod.json
 
@@ -361,7 +369,7 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
     }
     res.metadata.setDependencies(dependencies);
 
-    std::vector<ModMetadata::Incompatibility> incompatibilities {};
+    std::vector<ModMetadata::Incompatibility> incompatibilities{};
     for (auto& obj : root.hasNullable("incompatibilities").items()) {
         ModMetadata::Incompatibility incompatibility;
         bool breaking;
@@ -376,7 +384,7 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
         // if (incompatibility.getImportance() == ModMetadata::Incompatibility::Importance::Superseded) {
         //     modIdValue.into(modId);
         // } else {
-            modIdValue.mustBe<std::string>("a valid id", &ModMetadata::validateID).into(modId);
+        modIdValue.mustBe<std::string>("a valid id", &ModMetadata::validateID).into(modId);
         // }
         incompatibility.setID(modId);
 
@@ -397,27 +405,12 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
     return root.ok(res);
 }
 
-Result<ServerModUpdate> ServerModUpdate::parse(matjson::Value const& raw) {
+Result<ServerModUpdate> matjson::Serialize<server::ServerModUpdate>::fromJson(matjson::Value const& raw) {
     auto root = checkJson(raw, "ServerModUpdate");
     auto res = ServerModUpdate();
     root.needs("id").into(res.id);
     root.needs("version").into(res.version);
     return root.ok(res);
-}
-
-Result<std::vector<ServerModUpdate>> ServerModUpdate::parseList(matjson::Value const& raw) {
-    auto payload = checkJson(raw, "ServerModUpdateList");
-    std::vector<ServerModUpdate> list {};
-    for (auto& item : payload.items()) {
-        auto mod = ServerModUpdate::parse(item.json());
-        if (mod) {
-            list.push_back(mod.unwrap());
-        }
-        else {
-            log::error("Unable to parse mod update from the server: {}", mod.unwrapErr());
-        }
-    }
-    return payload.ok(list);
 }
 
 Mod* ServerModUpdate::hasUpdateForInstalledMod() const {
@@ -427,51 +420,46 @@ Mod* ServerModUpdate::hasUpdateForInstalledMod() const {
     return nullptr;
 }
 
-Result<ServerModDeprecation> ServerModDeprecation::parse(matjson::Value const& json) {
-    auto root = checkJson(json, "ServerModDeprecation");
+Result<ServerModDeprecation> matjson::Serialize<server::ServerModDeprecation>::fromJson(
+    matjson::Value const& raw
+) {
+    auto root = checkJson(raw, "ServerModDeprecation");
     auto res = ServerModDeprecation();
     root.needs("id").into(res.id);
     root.needs("by").into(res.by);
     root.needs("reason").into(res.reason);
     return root.ok(res);
 }
-Result<std::vector<ServerModDeprecation>> ServerModDeprecation::parseList(matjson::Value const& json) {
-    auto payload = checkJson(json, "ServerModDeprecationList");
-    std::vector<ServerModDeprecation> list {};
-    for (auto& item : payload.items()) {
-        auto mod = ServerModDeprecation::parse(item.json());
-        if (mod) {
-            list.push_back(mod.unwrap());
-        }
-        else {
-            log::error("Unable to parse mod deprecation from the server: {}", mod.unwrapErr());
-        }
-    }
-    return payload.ok(list);
-}
 
 Mod* ServerModDeprecation::hasDeprecationForInstalledMod() const {
     return Loader::get()->getInstalledMod(this->id);
 }
 
-Result<ServerModUpdateAllCheck> ServerModUpdateAllCheck::parse(matjson::Value const& json) {
+Result<ServerModUpdateAllCheck> matjson::Serialize<server::ServerModUpdateAllCheck>::fromJson(
+    matjson::Value const& json
+) {
     // Old v4 format just returned updates as array
     if (json.isArray()) {
-        return Ok(ServerModUpdateAllCheck {
-            .updates = GEODE_UNWRAP(ServerModUpdate::parseList(json)),
-            .deprecations = {},
-        });
+        return Ok(
+            ServerModUpdateAllCheck{
+                .updates = GEODE_UNWRAP(json.as<std::vector<ServerModUpdate>>()),
+                .deprecations = {},
+            }
+        );
     }
     auto root = checkJson(json, "ServerModUpdateAllCheck");
-    auto updates = GEODE_UNWRAP(ServerModUpdate::parseList(root.needs("updates").json()));
-    auto deprecations = GEODE_UNWRAP(ServerModDeprecation::parseList(root.needs("deprecations").json()));
-    return root.ok(ServerModUpdateAllCheck {
-        .updates = updates,
-        .deprecations = deprecations,
-    });
+    auto updates = GEODE_UNWRAP(root.needs("updates").json().as<std::vector<ServerModUpdate>>());
+    auto deprecations =
+        GEODE_UNWRAP(root.needs("deprecations").json().as<std::vector<ServerModDeprecation>>());
+    return root.ok(
+        ServerModUpdateAllCheck{
+            .updates = updates,
+            .deprecations = deprecations,
+        }
+    );
 }
 
-Result<ServerModLinks> ServerModLinks::parse(matjson::Value const& raw) {
+Result<ServerModLinks> matjson::Serialize<server::ServerModLinks>::fromJson(matjson::Value const& raw) {
     auto payload = checkJson(raw, "ServerModLinks");
     auto res = ServerModLinks();
 
@@ -482,7 +470,9 @@ Result<ServerModLinks> ServerModLinks::parse(matjson::Value const& raw) {
     return payload.ok(res);
 }
 
-Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
+Result<ServerModMetadata> matjson::Serialize<server::ServerModMetadata>::fromJson(
+    matjson::Value const& raw
+) {
     auto root = checkJson(raw, "ServerModMetadata");
 
     auto res = ServerModMetadata();
@@ -493,23 +483,30 @@ Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
     root.hasNullable("changelog").into(res.changelog);
     root.hasNullable("repository").into(res.repository);
     if (root.has("created_at")) {
-        GEODE_UNWRAP_INTO(res.createdAt, ServerDateTime::parse(root.has("created_at").get<std::string>()));
+        GEODE_UNWRAP_INTO(
+            res.createdAt, ServerDateTime::parse(root.has("created_at").get<std::string>())
+        );
     }
     if (root.has("updated_at")) {
-        GEODE_UNWRAP_INTO(res.updatedAt, ServerDateTime::parse(root.has("updated_at").get<std::string>()));
+        GEODE_UNWRAP_INTO(
+            res.updatedAt, ServerDateTime::parse(root.has("updated_at").get<std::string>())
+        );
     }
 
     std::vector<std::string> developerNames;
     for (auto& obj : root.needs("developers").items()) {
-        auto dev = ServerDeveloper();
-        obj.needs("username").into(dev.username);
-        obj.needs("display_name").into(dev.displayName);
-        obj.needs("is_owner").into(dev.isOwner);
-        res.developers.push_back(dev);
-        developerNames.push_back(dev.displayName);
+        auto devRes = obj.json().as<ServerDeveloper>();
+        if (devRes) {
+            auto dev = devRes.unwrap();
+            res.developers.push_back(dev);
+            developerNames.push_back(dev.displayName);
+        }
+        else {
+            log::error("Unable to parse developer from the server: {}", devRes.unwrapErr());
+        }
     }
     for (auto& item : root.needs("versions").items()) {
-        auto versionRes = ServerModVersion::parse(item.json());
+        auto versionRes = item.json().as<ServerModVersion>();
         if (versionRes) {
             auto version = versionRes.unwrap();
             version.metadata.setDetails(res.about);
@@ -517,7 +514,7 @@ Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
             version.metadata.setDevelopers(developerNames);
             version.metadata.setRepository(res.repository);
             if (root.hasNullable("links")) {
-                auto linkRes = ServerModLinks::parse(root.hasNullable("links").json());
+                auto linkRes = root.hasNullable("links").json().as<ServerModLinks>();
                 if (linkRes) {
                     auto links = linkRes.unwrap();
                     version.metadata.getLinksMut().getImpl()->m_community = links.community;
@@ -528,7 +525,9 @@ Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
             res.versions.push_back(version);
         }
         else {
-            log::error("Unable to parse mod '{}' version from the server: {}", res.id, versionRes.unwrapErr());
+            log::error(
+                "Unable to parse mod '{}' version from the server: {}", res.id, versionRes.unwrapErr()
+            );
         }
     }
 
@@ -547,34 +546,39 @@ Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
 }
 
 std::string ServerModMetadata::formatDevelopersToString() const {
-    std::optional<ServerDeveloper> owner = ranges::find(developers, [] (auto item) {
+    std::optional<ServerDeveloper> owner = ranges::find(developers, [](auto item) {
         return item.isOwner;
     });
     switch (developers.size()) {
         case 0: return "Unknown"; break;
         case 1: return developers.front().displayName; break;
-        case 2: return developers.front().displayName + " & " + developers.back().displayName; break;
+        case 2:
+            return developers.front().displayName + " & " + developers.back().displayName;
+            break;
         default: {
             if (owner) {
                 return fmt::format("{} + {} More", owner->displayName, developers.size() - 1);
-            } else {
-                return fmt::format("{} + {} More", developers.front().displayName, developers.size() - 1);
+            }
+            else {
+                return fmt::format(
+                    "{} + {} More", developers.front().displayName, developers.size() - 1
+                );
             }
         } break;
     }
 }
 
-Result<ServerModsList> ServerModsList::parse(matjson::Value const& raw) {
+Result<ServerModsList> matjson::Serialize<server::ServerModsList>::fromJson(matjson::Value const& raw) {
     auto payload = checkJson(raw, "ServerModsList");
 
     auto list = ServerModsList();
     for (auto& item : payload.needs("data").items()) {
-        auto mod = ServerModMetadata::parse(item.json());
-        if (mod) {
-            list.mods.push_back(mod.unwrap());
+        auto modRes = item.json().as<ServerModMetadata>();
+        if (modRes) {
+            list.mods.push_back(modRes.unwrap());
         }
         else {
-            log::error("Unable to parse mod from the server: {}", mod.unwrapErr());
+            log::error("Unable to parse mod from the server: {}", modRes.unwrapErr());
         }
     }
     payload.needs("count").into(list.totalModCount);
@@ -582,7 +586,9 @@ Result<ServerModsList> ServerModsList::parse(matjson::Value const& raw) {
     return payload.ok(list);
 }
 
-Result<ServerLoaderVersion> ServerLoaderVersion::parse(matjson::Value const& raw) {
+Result<ServerLoaderVersion> matjson::Serialize<server::ServerLoaderVersion>::fromJson(
+    matjson::Value const& raw
+) {
     auto root = checkJson(raw, "ServerLoaderVersion");
 
     auto res = ServerLoaderVersion();
@@ -618,9 +624,10 @@ std::string formatServerURL(fmt::format_string<Args...> fmt, Args&&... args) {
 
 std::string server::getServerUserAgent() {
     // no need to compute this more than once
-    static const auto value = [] {
+    static auto const value = [] {
         // TODO: is this enough info? is it too much?
-        return fmt::format("Geode Loader (ver={};commit={};platform={};gd={})",
+        return fmt::format(
+            "Geode Loader (ver={};commit={};platform={};gd={})",
             Loader::get()->getVersion().toNonVString(),
             about::getLoaderCommitHash(),
             GEODE_PLATFORM_SHORT_IDENTIFIER,
@@ -681,9 +688,11 @@ ServerFuture<ServerModsList> server::getMods(ModsQuery query, bool useCache) {
             co_return Err(payload.unwrapErr());
         }
         // Parse response
-        auto list = ServerModsList::parse(payload.unwrap());
+        auto list = payload.unwrap().as<ServerModsList>();
         if (!list) {
-            co_return Err(ServerError(response.code(), "Unable to parse response: {}", list.unwrapErr()));
+            co_return Err(
+                ServerError(response.code(), "Unable to parse response: {}", list.unwrapErr())
+            );
         }
         co_return Ok(list.unwrap());
     }
@@ -711,9 +720,11 @@ ServerFuture<ServerModMetadata> server::getMod(std::string id, bool useCache) {
             co_return Err(payload.unwrapErr());
         }
         // Parse response
-        auto list = ServerModMetadata::parse(payload.unwrap());
+        auto list = payload.unwrap().as<ServerModMetadata>();
         if (!list) {
-            co_return Err(ServerError(response.code(), "Unable to parse response: {}", list.unwrapErr()));
+            co_return Err(
+                ServerError(response.code(), "Unable to parse response: {}", list.unwrapErr())
+            );
         }
         co_return Ok(list.unwrap());
     }
@@ -744,26 +755,28 @@ ServerFuture<ServerModVersion> server::getModVersion(std::string id, ModVersion 
     req.userAgent(getServerUserAgent());
 
     std::string versionURL;
-    std::visit(makeVisitor {
-        [&](ModVersionLatest const&) {
-            versionURL = "latest";
+    std::visit(
+        makeVisitor{
+            [&](ModVersionLatest const&) {
+                versionURL = "latest";
+            },
+            [&](ModVersionMajor const& ver) {
+                versionURL = "latest";
+                req.param("major", std::to_string(ver.major));
+            },
+            [&](ModVersionSpecific const& ver) {
+                versionURL = ver.toNonVString();
+            },
         },
-        [&](ModVersionMajor const& ver) {
-            versionURL = "latest";
-            req.param("major", std::to_string(ver.major));
-        },
-        [&](ModVersionSpecific const& ver) {
-            versionURL = ver.toNonVString();
-        },
-    }, version);
+        version
+    );
 
-    auto response = co_await req.get(
-        formatServerURL(
-            "/mods/{}/versions/{}?gd={}&platforms={}",
-            id,
-            versionURL,
-            Loader::get()->getGameVersion(),
-            GEODE_PLATFORM_SHORT_IDENTIFIER
+    auto response = co_await req.get(formatServerURL(
+        "/mods/{}/versions/{}?gd={}&platforms={}",
+        id,
+        versionURL,
+        Loader::get()->getGameVersion(),
+        GEODE_PLATFORM_SHORT_IDENTIFIER
     ));
 
     if (response.ok()) {
@@ -773,9 +786,11 @@ ServerFuture<ServerModVersion> server::getModVersion(std::string id, ModVersion 
             co_return Err(payload.unwrapErr());
         }
         // Parse response
-        auto list = ServerModVersion::parse(payload.unwrap());
+        auto list = payload.unwrap().as<ServerModVersion>();
         if (!list) {
-            co_return Err(ServerError(response.code(), "Unable to parse response: {}", list.unwrapErr()));
+            co_return Err(
+                ServerError(response.code(), "Unable to parse response: {}", list.unwrapErr())
+            );
         }
         co_return Ok(list.unwrap());
     }
@@ -813,9 +828,11 @@ ServerFuture<std::vector<ServerTag>> server::getTags(bool useCache) {
         if (!payload) {
             co_return Err(payload.unwrapErr());
         }
-        auto list = ServerTag::parseList(payload.unwrap());
+        auto list = payload.unwrap().as<std::vector<ServerTag>>();
         if (!list) {
-            co_return Err(ServerError(response.code(), "Unable to parse response: {}", list.unwrapErr()));
+            co_return Err(
+                ServerError(response.code(), "Unable to parse response: {}", list.unwrapErr())
+            );
         }
         co_return Ok(list.unwrap());
     }
@@ -825,7 +842,7 @@ ServerFuture<std::vector<ServerTag>> server::getTags(bool useCache) {
 ServerFuture<ServerModUpdateOneCheck> server::checkUpdates(Mod const* mod) {
     ARC_FRAME();
     auto all = ARC_CO_UNWRAP(co_await checkAllUpdates());
-    auto result = ServerModUpdateOneCheck {};
+    auto result = ServerModUpdateOneCheck{};
     for (auto&& update : all.updates) {
         if (update.id == mod->getID() && update.version > mod->getVersion()) {
             result.update.emplace(std::move(update));
@@ -857,9 +874,11 @@ ServerFuture<ServerModUpdateAllCheck> server::batchedCheckUpdates(std::vector<st
             co_return Err(payload.unwrapErr());
         }
         // Parse response
-        auto list = ServerModUpdateAllCheck::parse(payload.unwrap());
+        auto list = payload.unwrap().as<ServerModUpdateAllCheck>();
         if (!list) {
-            co_return Err(ServerError(response.code(), "Unable to parse response: {}", list.unwrapErr()));
+            co_return Err(
+                ServerError(response.code(), "Unable to parse response: {}", list.unwrapErr())
+            );
         }
         co_return Ok(list.unwrap());
     }
@@ -872,15 +891,14 @@ ServerFuture<ServerModUpdateAllCheck> server::checkAllUpdates(bool useCache) {
         co_return co_await getCache<checkAllUpdates>().get();
     }
 
-    auto modIDs = ranges::map<std::vector<std::string>>(
-        Loader::get()->getAllMods(),
-        [](auto mod) { return mod->getID(); }
-    );
+    auto modIDs = ranges::map<std::vector<std::string>>(Loader::get()->getAllMods(), [](auto mod) {
+        return mod->getID();
+    });
 
     // if there's no mods, the request would just be empty anyways
     if (modIDs.empty()) {
         // you would think it could infer like literally anything
-        co_return Ok(ServerModUpdateAllCheck {});
+        co_return Ok(ServerModUpdateAllCheck{});
     }
 
     std::vector<std::vector<std::string>> modBatches;
@@ -906,9 +924,13 @@ ServerFuture<ServerModUpdateAllCheck> server::checkAllUpdates(bool useCache) {
     for (auto& batch : modBatches) {
         auto serverValues = ARC_CO_UNWRAP(co_await batchedCheckUpdates(batch));
         accum.updates.reserve(accum.updates.size() + serverValues.updates.size());
-        accum.updates.insert(accum.updates.end(), serverValues.updates.begin(), serverValues.updates.end());
+        accum.updates.insert(
+            accum.updates.end(), serverValues.updates.begin(), serverValues.updates.end()
+        );
         accum.deprecations.reserve(accum.deprecations.size() + serverValues.deprecations.size());
-        accum.deprecations.insert(accum.deprecations.end(), serverValues.deprecations.begin(), serverValues.deprecations.end());
+        accum.deprecations.insert(
+            accum.deprecations.end(), serverValues.deprecations.begin(), serverValues.deprecations.end()
+        );
     }
 
     co_return Ok(std::move(accum));
@@ -930,9 +952,11 @@ ServerFuture<ServerLoaderVersion> server::getLoaderVersion(std::string tag, bool
         if (!payload) {
             co_return Err(payload.unwrapErr());
         }
-        auto ver = ServerLoaderVersion::parse(payload.unwrap());
+        auto ver = payload.unwrap().as<ServerLoaderVersion>();
         if (!ver) {
-            co_return Err(ServerError(response.code(), "Unable to parse response: {}", ver.unwrapErr()));
+            co_return Err(
+                ServerError(response.code(), "Unable to parse response: {}", ver.unwrapErr())
+            );
         }
         co_return Ok(ver.unwrap());
     }
@@ -947,12 +971,11 @@ ServerFuture<ServerLoaderVersion> server::getLatestLoaderVersion(bool useCache) 
 
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
-    auto response = co_await req.get(
-        formatServerURL("/loader/versions/latest?gd={}&platform={}",
-            Loader::get()->getGameVersion(),
-            GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH
-        )
-    );
+    auto response = co_await req.get(formatServerURL(
+        "/loader/versions/latest?gd={}&platform={}",
+        Loader::get()->getGameVersion(),
+        GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH
+    ));
 
     if (response.ok()) {
         // Parse payload
@@ -960,9 +983,11 @@ ServerFuture<ServerLoaderVersion> server::getLatestLoaderVersion(bool useCache) 
         if (!payload) {
             co_return Err(payload.unwrapErr());
         }
-        auto ver = ServerLoaderVersion::parse(payload.unwrap());
+        auto ver = payload.unwrap().as<ServerLoaderVersion>();
         if (!ver) {
-            co_return Err(ServerError(response.code(), "Unable to parse response: {}", ver.unwrapErr()));
+            co_return Err(
+                ServerError(response.code(), "Unable to parse response: {}", ver.unwrapErr())
+            );
         }
         co_return Ok(ver.unwrap());
     }
@@ -984,13 +1009,15 @@ void server::clearServerCaches(bool clearGlobalCaches) {
 }
 
 $on_mod(Loaded) {
-    listenForSettingChanges<int64_t>("server-cache-size-limit", +[](int64_t size) {
-        async::runtime().spawn([size] -> arc::Future<> {
-            co_await getCache<&server::getMods>().limit(size);
-            co_await getCache<&server::getMod>().limit(size);
-            co_await getCache<&server::getModLogo>().limit(size);
-            co_await getCache<&server::getTags>().limit(size);
-            co_await getCache<&server::checkAllUpdates>().limit(size);
-        });
-    });
+    listenForSettingChanges<int64_t>(
+        "server-cache-size-limit", +[](int64_t size) {
+            async::runtime().spawn([size] -> arc::Future<> {
+                co_await getCache<&server::getMods>().limit(size);
+                co_await getCache<&server::getMod>().limit(size);
+                co_await getCache<&server::getModLogo>().limit(size);
+                co_await getCache<&server::getTags>().limit(size);
+                co_await getCache<&server::checkAllUpdates>().limit(size);
+            });
+        }
+    );
 }

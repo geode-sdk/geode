@@ -1,6 +1,6 @@
 #pragma once
-
 #include "Geode/utils/VersionInfo.hpp"
+
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/utils/web.hpp>
 #include <chrono>
@@ -10,7 +10,6 @@
 using namespace geode::prelude;
 
 namespace server {
-    // todo: replace parse()s with Serialize::fromJson now that it uses Results
 
     struct ServerDateTime final {
         using Clock = std::chrono::system_clock;
@@ -27,9 +26,6 @@ namespace server {
         size_t id;
         std::string name;
         std::string displayName;
-
-        static Result<ServerTag> parse(matjson::Value const& json);
-        static Result<std::vector<ServerTag>> parseList(matjson::Value const& json);
     };
 
     struct ServerDeveloper final {
@@ -45,35 +41,28 @@ namespace server {
         size_t downloadCount;
 
         bool operator==(ServerModVersion const&) const = default;
-
-        static Result<ServerModVersion> parse(matjson::Value const& json);
     };
 
     struct ServerModUpdate final {
         std::string id;
         VersionInfo version;
 
-        static Result<ServerModUpdate> parse(matjson::Value const& json);
-        static Result<std::vector<ServerModUpdate>> parseList(matjson::Value const& json);
-
         Mod* hasUpdateForInstalledMod() const;
     };
+
     struct ServerModDeprecation final {
         std::string id;
         std::vector<std::string> by;
         std::string reason;
 
-        static Result<ServerModDeprecation> parse(matjson::Value const& json);
-        static Result<std::vector<ServerModDeprecation>> parseList(matjson::Value const& json);
-
         Mod* hasDeprecationForInstalledMod() const;
     };
+
     struct ServerModUpdateAllCheck final {
         std::vector<ServerModUpdate> updates;
         std::vector<ServerModDeprecation> deprecations;
-
-        static Result<ServerModUpdateAllCheck> parse(matjson::Value const& json);
     };
+
     struct ServerModUpdateOneCheck final {
         std::optional<ServerModUpdate> update;
         std::optional<ServerModDeprecation> deprecation;
@@ -83,8 +72,6 @@ namespace server {
         std::optional<std::string> community;
         std::optional<std::string> homepage;
         std::optional<std::string> source;
-
-        static Result<ServerModLinks> parse(matjson::Value const& json);
     };
 
     struct ServerModMetadata final {
@@ -100,8 +87,6 @@ namespace server {
         std::optional<ServerDateTime> createdAt;
         std::optional<ServerDateTime> updatedAt;
 
-        static Result<ServerModMetadata> parse(matjson::Value const& json);
-
         ModMetadata latestVersion() const;
         std::string formatDevelopersToString() const;
         Mod* hasUpdateForInstalledMod() const;
@@ -110,8 +95,6 @@ namespace server {
     struct ServerModsList final {
         std::vector<ServerModMetadata> mods;
         size_t totalModCount = 0;
-
-        static Result<ServerModsList> parse(matjson::Value const& json);
     };
 
     struct ServerLoaderVersion final {
@@ -119,8 +102,6 @@ namespace server {
         std::string tag;
         std::string commitHash;
         std::string gameVersion;
-
-        static Result<ServerLoaderVersion> parse(matjson::Value const& json);
     };
 
     enum class ModsSort {
@@ -129,11 +110,11 @@ namespace server {
         RecentlyPublished,
     };
 
-    static const char* sortToString(ModsSort sorting);
+    static char const* sortToString(ModsSort sorting);
 
     struct ModsQuery final {
         std::optional<std::string> query;
-        std::unordered_set<PlatformID> platforms = { GEODE_PLATFORM_TARGET };
+        std::unordered_set<PlatformID> platforms = {GEODE_PLATFORM_TARGET};
         std::unordered_set<std::string> tags;
         std::optional<bool> featured;
         ModsSort sorting = ModsSort::Downloads;
@@ -151,19 +132,20 @@ namespace server {
         ServerError() = default;
 
         template <class... Args>
-        ServerError(
-            int code,
-            fmt::string_view format,
-            Args&&... args
-        ) : code(code), details(fmt::vformat(format, fmt::make_format_args(args...))) {}
+        ServerError(int code, fmt::string_view format, Args&&... args) :
+            code(code), details(fmt::vformat(format, fmt::make_format_args(args...))) {}
     };
+
     struct ServerProgress {
         std::string message;
         std::optional<uint8_t> percentage;
 
         ServerProgress() = default;
+
         ServerProgress(std::string msg) : message(std::move(msg)) {}
-        ServerProgress(std::string msg, std::optional<uint8_t> percentage) : message(std::move(msg)), percentage(percentage) {}
+
+        ServerProgress(std::string msg, std::optional<uint8_t> percentage) :
+            message(std::move(msg)), percentage(percentage) {}
     };
 
     template <class T>
@@ -175,10 +157,12 @@ namespace server {
     struct ModVersionLatest final {
         bool operator==(ModVersionLatest const&) const = default;
     };
+
     struct ModVersionMajor final {
         size_t major;
         bool operator==(ModVersionMajor const&) const = default;
     };
+
     using ModVersionSpecific = VersionInfo;
     using ModVersion = std::variant<ModVersionLatest, ModVersionMajor, ModVersionSpecific>;
 
@@ -187,7 +171,9 @@ namespace server {
 
     ServerFuture<ServerModsList> getMods(ModsQuery query, bool useCache = true);
     ServerFuture<ServerModMetadata> getMod(std::string id, bool useCache = true);
-    ServerFuture<ServerModVersion> getModVersion(std::string id, ModVersion version = ModVersionLatest(), bool useCache = true);
+    ServerFuture<ServerModVersion> getModVersion(
+        std::string id, ModVersion version = ModVersionLatest(), bool useCache = true
+    );
     ServerFuture<ByteVector> getModLogo(std::string id, bool useCache = true);
     ServerFuture<std::vector<ServerTag>> getTags(bool useCache = true);
 
@@ -200,3 +186,53 @@ namespace server {
 
     void clearServerCaches(bool clearGlobalCaches = false);
 }
+
+template <>
+struct matjson::Serialize<server::ServerTag> {
+    static geode::Result<server::ServerTag> fromJson(matjson::Value const& value);
+};
+
+template <>
+struct matjson::Serialize<server::ServerDeveloper> {
+    static geode::Result<server::ServerDeveloper> fromJson(matjson::Value const& value);
+};
+
+template <>
+struct matjson::Serialize<server::ServerModVersion> {
+    static geode::Result<server::ServerModVersion> fromJson(matjson::Value const& value);
+};
+
+template <>
+struct matjson::Serialize<server::ServerModUpdate> {
+    static geode::Result<server::ServerModUpdate> fromJson(matjson::Value const& value);
+};
+
+template <>
+struct matjson::Serialize<server::ServerModDeprecation> {
+    static geode::Result<server::ServerModDeprecation> fromJson(matjson::Value const& value);
+};
+
+template <>
+struct matjson::Serialize<server::ServerModUpdateAllCheck> {
+    static geode::Result<server::ServerModUpdateAllCheck> fromJson(matjson::Value const& value);
+};
+
+template <>
+struct matjson::Serialize<server::ServerModLinks> {
+    static geode::Result<server::ServerModLinks> fromJson(matjson::Value const& value);
+};
+
+template <>
+struct matjson::Serialize<server::ServerModMetadata> {
+    static geode::Result<server::ServerModMetadata> fromJson(matjson::Value const& value);
+};
+
+template <>
+struct matjson::Serialize<server::ServerModsList> {
+    static geode::Result<server::ServerModsList> fromJson(matjson::Value const& value);
+};
+
+template <>
+struct matjson::Serialize<server::ServerLoaderVersion> {
+    static geode::Result<server::ServerLoaderVersion> fromJson(matjson::Value const& value);
+};
