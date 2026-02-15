@@ -492,26 +492,27 @@ namespace {
         std::array<T, N> m_stack;
         size_t m_index = 0;
 
+        LocalStack() : m_stack{0} {}
+
         bool push(T value) {
-            if (m_index >= N) return false;
-            m_stack[m_index] = value;
             m_index++;
+            if (m_index == N) m_index = 0;
+            m_stack[m_index] = value;
             return true;
         }
 
         bool pop() {
-            if (m_index == 0) return false;
+            if (m_index == 0) m_index = N;
             m_index--;
             return true;
         }
 
         T top() {
-            if (m_index == 0) return nullptr;
-            return m_stack[m_index - 1];
+            return m_stack[m_index];
         }
 
         bool empty() {
-            return m_index == 0;
+            return false;
         }
     };
 
