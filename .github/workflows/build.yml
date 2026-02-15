@@ -25,7 +25,6 @@ env:
     cmake -B build
     -DCMAKE_BUILD_TYPE=RelWithDebInfo
     -DGEODE_CODEGEN_CMAKE_ARGS="-DCMAKE_C_COMPILER=clang;-DCMAKE_CXX_COMPILER=clang++;-G Ninja"
-    -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON
     -G Ninja
   base-build-command: |
     cmake --build build --config RelWithDebInfo --parallel
@@ -106,7 +105,11 @@ jobs:
         sudo apt install -y clang-19 clang-tools-19 lld-19
 
     - name: Configure
-      run: ${{ env.base-configure-command }} -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN ${{ steps.build-debug-info.outputs.extra-configure }}
+      run: >
+        ${{ env.base-configure-command }}
+        -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN
+        -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON
+        ${{ steps.build-debug-info.outputs.extra-configure }}
       env:
         SPLAT_DIR: ${{ github.workspace }}/.xwin-cache/splat
         TOOLCHAIN: ${{ github.workspace }}/toolchain/clang-cl-msvc.cmake
@@ -272,6 +275,7 @@ jobs:
         -DCMAKE_CXX_COMPILER=clang++
         -DANDROID_PLATFORM=android-23
         -DANDROID_STL=c++_shared
+        -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON
         ${{ matrix.config.extra-configure }}
         ${{ steps.build-debug-info.outputs.extra-configure }}
 
