@@ -481,3 +481,7 @@ geode::Result<int> geode::utils::getLauncherVersion() {
 
     return Err("method not found");
 }
+
+double geode::utils::getInputTimestamp() {
+    return JniHelper::getPlatformTimestamp();
+}
