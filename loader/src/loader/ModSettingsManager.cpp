@@ -195,6 +195,7 @@ ModSettingsManager::ModSettingsManager(ModMetadata const& metadata)
             for (auto& setting : m_impl->keybindSettings) {
                 if (std::ranges::contains(setting->getValue(), keybind)) {
                     KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat);
+                    TimedKeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat, data.timestamp);
                 }
             }
         }).leak();

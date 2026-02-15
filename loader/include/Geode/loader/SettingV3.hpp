@@ -697,6 +697,14 @@ namespace geode {
         GEODE_DLL KeybindSettingPressedEventV3(Mod* mod, std::string settingKey);
     };
 
+    class TimedKeybindSettingPressedEventV3 final : public GlobalEvent<TimedKeybindSettingPressedEventV3, bool(std::string_view, std::string_view, Keybind const&, bool, bool, double), bool(Keybind const&, bool, bool, double), std::string, std::string> {
+    public:
+        // listener params keybind, down, repeat, timestamp (seconds)
+        // filter params modID, settingKey
+        using GlobalEvent::GlobalEvent;
+        GEODE_DLL TimedKeybindSettingPressedEventV3(Mod* mod, std::string settingKey);
+    };
+
     class SettingNodeSizeChangeEventV3 final : public GlobalEvent<SettingNodeSizeChangeEventV3, bool(std::string_view, std::string_view, SettingNodeV3*), bool(SettingNodeV3*), std::string, std::string> {
     public:
         // listener params node
@@ -802,6 +810,12 @@ namespace geode {
     requires std::is_invocable_v<Callback, Keybind const&, bool, bool>
     ListenerHandle* listenForKeybindSettingPresses(std::string settingKey, Callback&& callback, Mod* mod = getMod()) {
         return KeybindSettingPressedEventV3(mod, std::move(settingKey)).listen(std::move(callback)).leak();
+    }
+
+    template <class Callback>
+    requires std::is_invocable_v<Callback, Keybind const&, bool, bool, double>
+    ListenerHandle* listenForTimedKeybindSettingPresses(std::string settingKey, Callback&& callback, Mod* mod = getMod()) {
+        return TimedKeybindSettingPressedEventV3(mod, std::move(settingKey)).listen(std::move(callback)).leak();
     }
 
     template <class Callback>

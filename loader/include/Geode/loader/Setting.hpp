@@ -26,6 +26,7 @@ namespace geode {
 
     using SettingChangedEvent = SettingChangedEventV3;
     using KeybindSettingPressedEvent = KeybindSettingPressedEventV3;
+    using TimedKeybindSettingPressedEvent = TimedKeybindSettingPressedEventV3;
     using SettingNodeSizeChangeEvent = SettingNodeSizeChangeEventV3;
     using SettingNodeValueChangeEvent = SettingNodeValueChangeEventV3;
 }

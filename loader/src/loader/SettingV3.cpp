@@ -456,6 +456,8 @@ SettingChangedEventV3::SettingChangedEventV3(Mod* mod, std::string settingKey) :
 
 KeybindSettingPressedEventV3::KeybindSettingPressedEventV3(Mod* mod, std::string settingKey) : KeybindSettingPressedEventV3(mod->getID(), std::move(settingKey)) {}
 
+TimedKeybindSettingPressedEventV3::TimedKeybindSettingPressedEventV3(Mod* mod, std::string settingKey) : TimedKeybindSettingPressedEventV3(mod->getID(), std::move(settingKey)) {}
+
 SettingNodeSizeChangeEventV3::SettingNodeSizeChangeEventV3(Mod* mod, std::string settingKey) : SettingNodeSizeChangeEventV3(mod->getID(), std::move(settingKey)) {}
 
 SettingNodeValueChangeEventV3::SettingNodeValueChangeEventV3(Mod* mod, std::string settingKey) : SettingNodeValueChangeEventV3(mod->getID(), std::move(settingKey)) {}
