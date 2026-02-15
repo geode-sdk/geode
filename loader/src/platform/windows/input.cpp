@@ -44,9 +44,7 @@ struct RawInputEvent {
 
         LARGE_INTEGER counter;
         QueryPerformanceCounter(&counter);
-
-        // he uses LowPart for some reason?
-        return static_cast<double>(counter.LowPart) / static_cast<double>(freq.LowPart);
+        return static_cast<double>(counter.QuadPart) / static_cast<double>(freq.QuadPart);
     }
 
     static RawInputEvent makeKeyboard(
