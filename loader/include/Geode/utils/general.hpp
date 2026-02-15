@@ -251,6 +251,11 @@ namespace geode {
          * This is relative to the winSize.
          */
         GEODE_DLL cocos2d::CCRect getSafeAreaRect();
+
+        /**
+         * Gets the current input timestamp in seconds.
+         */
+        GEODE_DLL double getInputTimestamp();
     }
 
     /**

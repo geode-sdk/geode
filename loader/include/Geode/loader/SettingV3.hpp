@@ -632,7 +632,7 @@ namespace geode {
             return true;
         }
 
-        void updateState(cocos2d::CCNode* invoker) {
+        void updateState(cocos2d::CCNode* invoker) override {
             SettingNodeV3::updateState(invoker);
             auto validate = this->getSetting()->isValid(m_impl->currentValue);
             if (!validate) {

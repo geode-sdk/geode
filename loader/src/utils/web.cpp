@@ -1142,21 +1142,21 @@ public:
         req->curl = handle;
         curl_easy_setopt(handle, CURLOPT_PRIVATE, req.get());
 
-        log::debug("Added request ({})", req->request->m_url);
+        // log::debug("Added request ({})", req->request->m_url);
         curl_multi_add_handle(m_multiHandle, handle);
         m_activeRequests.insert(std::move(req));
         this->workerKickCurl();
     }
 
     void workerCancelRequest(std::shared_ptr<RequestData> req) {
-        log::debug("Cancelled request ({})", req->request->m_url);
+        // log::debug("Cancelled request ({})", req->request->m_url);
         req->onError(GeodeWebError::REQUEST_CANCELLED, "Request cancelled");
 
         this->cleanupRequest(std::move(req));
     }
 
     void cleanupRequest(std::shared_ptr<RequestData> req) {
-        log::debug("Removing request ({})", req->request->m_url);
+        // log::debug("Removing request ({})", req->request->m_url);
         m_activeRequests.erase(req);
 
         auto curl = std::exchange(req->curl, nullptr);

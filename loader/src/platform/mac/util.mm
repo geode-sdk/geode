@@ -427,6 +427,10 @@ cocos2d::CCRect geode::utils::getSafeAreaRect() {
     return cocos2d::CCRect(0.0f, 0.0f, winSize.width, winSize.height);
 }
 
+double geode::utils::getInputTimestamp() {
+    return [[NSProcessInfo processInfo] systemUptime];
+}
+
 bool cocos2d::CCImage::saveToFile(const char* pszFilePath, bool bIsToRGB) {
     uint8_t* data = m_pData;
     bool usePNG = std::string_view(pszFilePath).ends_with(".png");

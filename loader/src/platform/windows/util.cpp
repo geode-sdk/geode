@@ -423,3 +423,16 @@ cocos2d::CCRect geode::utils::getSafeAreaRect() {
     auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
     return cocos2d::CCRect(0.0f, 0.0f, winSize.width, winSize.height);
 }
+
+double geode::utils::getInputTimestamp() {
+    static LARGE_INTEGER freq = []{
+        LARGE_INTEGER f;
+        QueryPerformanceFrequency(&f);
+        return f;
+    }();
+
+    LARGE_INTEGER counter;
+    QueryPerformanceCounter(&counter);
+    return static_cast<double>(counter.QuadPart) / static_cast<double>(freq.QuadPart);
+}
+
