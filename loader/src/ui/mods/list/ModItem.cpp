@@ -11,6 +11,7 @@
 #include <Geode/loader/Event.hpp>
 #include <Geode/loader/Loader.hpp>
 #include "Geode/ui/NineSlice.hpp"
+#include "Geode/ui/MDPopup.hpp"
 #include "server/DownloadManager.hpp"
 #include "ui/mods/GeodeStyle.hpp"
 #include "ui/mods/popups/ModPopup.hpp"
