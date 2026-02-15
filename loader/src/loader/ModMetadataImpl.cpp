@@ -256,7 +256,7 @@ ModMetadata ModMetadata::Impl::parse(ModJson const& rawJson, std::optional<std::
             }
         ).unwrapOr("v0.0.0")
     );
-    
+
     auto root = checkJson(impl->m_rawJSON, checkerRoot);
     root.needs("geode").into(impl->m_geodeVersion);
 
@@ -280,7 +280,7 @@ ModMetadata ModMetadata::Impl::parse(ModJson const& rawJson, std::optional<std::
     root.needs("id")
         .mustBe<std::string>(ID_REGEX, &ModMetadata::validateID)
         .into(impl->m_id);
-    
+
     if (impl->m_id.empty() && guessedID) {
         impl->m_id = *guessedID;
     }
@@ -367,7 +367,7 @@ ModMetadata ModMetadata::Impl::parse(ModJson const& rawJson, std::optional<std::
                 matjson::Value dependencySettings;
                 dep.has("settings").into(dependencySettings);
                 dependency.setSettings(std::move(dependencySettings));
-                
+
                 dep.checkUnknownKeys();
             }
 
@@ -708,58 +708,58 @@ Result<> ModMetadata::checkTargetVersions() const {
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
 void ModMetadata::setPath(std::filesystem::path value) {
-    m_impl->m_path = value;
+    m_impl->m_path = std::move(value);
 }
 void ModMetadata::setBinaryName(std::string value) {
-    m_impl->m_binaryName = value;
+    m_impl->m_binaryName = std::move(value);
 }
 void ModMetadata::setVersion(VersionInfo value) {
-    m_impl->m_version = value;
+    m_impl->m_version = std::move(value);
 }
 void ModMetadata::setID(std::string value) {
-    m_impl->m_id = value;
+    m_impl->m_id = std::move(value);
 }
 void ModMetadata::setName(std::string value) {
-    m_impl->m_name = value;
+    m_impl->m_name = std::move(value);
 }
 void ModMetadata::setDeveloper(std::string value) {
     m_impl->m_developers = { std::move(value) };
 }
 void ModMetadata::setDevelopers(std::vector<std::string> value) {
-    m_impl->m_developers = value;
+    m_impl->m_developers = std::move(value);
 }
 void ModMetadata::setDescription(std::optional<std::string> value) {
-    m_impl->m_description = value;
+    m_impl->m_description = std::move(value);
 }
 void ModMetadata::setDetails(std::optional<std::string> value) {
-    m_impl->m_details = value;
+    m_impl->m_details = std::move(value);
 }
 void ModMetadata::setChangelog(std::optional<std::string> value) {
-    m_impl->m_changelog = value;
+    m_impl->m_changelog = std::move(value);
 }
 void ModMetadata::setSupportInfo(std::optional<std::string> value) {
-    m_impl->m_supportInfo = value;
+    m_impl->m_supportInfo = std::move(value);
 }
 void ModMetadata::setRepository(std::optional<std::string> value) {
-    this->getLinksMut().getImpl()->m_source = value;
+    this->getLinksMut().getImpl()->m_source = std::move(value);
 }
 void ModMetadata::setIssues(std::optional<IssuesInfo> value) {
-    m_impl->m_issues = value;
+    m_impl->m_issues = std::move(value);
 }
 void ModMetadata::setDependencies(std::vector<Dependency> value) {
-    m_impl->m_dependencies = value;
+    m_impl->m_dependencies = std::move(value);
 }
 void ModMetadata::setIncompatibilities(std::vector<Incompatibility> value) {
-    m_impl->m_incompatibilities = value;
+    m_impl->m_incompatibilities = std::move(value);
 }
 void ModMetadata::setSpritesheets(std::vector<std::string> value) {
-    m_impl->m_spritesheets = value;
+    m_impl->m_spritesheets = std::move(value);
 }
 void ModMetadata::setSettings(std::vector<std::pair<std::string, matjson::Value>> value) {
-    m_impl->m_settings = value;
+    m_impl->m_settings = std::move(value);
 }
 void ModMetadata::setTags(std::unordered_set<std::string> value) {
-    m_impl->m_tags = value;
+    m_impl->m_tags = std::move(value);
 }
 void ModMetadata::setNeedsEarlyLoad(bool value) {
     m_impl->m_needsEarlyLoad = value;
@@ -768,10 +768,10 @@ void ModMetadata::setIsAPI(bool value) {
     m_impl->m_isAPI = value;
 }
 void ModMetadata::setGameVersion(std::string value) {
-    m_impl->m_gdVersion = value;
+    m_impl->m_gdVersion = std::move(value);
 }
 void ModMetadata::setGeodeVersion(VersionInfo value) {
-    m_impl->m_geodeVersion = value;
+    m_impl->m_geodeVersion = std::move(value);
 }
 ModMetadataLinks& ModMetadata::getLinksMut() {
     return m_impl->m_links;

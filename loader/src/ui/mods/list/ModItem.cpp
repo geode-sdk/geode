@@ -172,7 +172,7 @@ bool ModItem::init(ModSource&& source) {
 
     ButtonSprite* spr = nullptr;
     if (auto serverMod = m_source.asServer(); serverMod != nullptr) {
-        auto version = serverMod->latestVersion();
+        auto& version = serverMod->latestVersion();
 
         auto geodeValid = Loader::get()->isModVersionSupported(version.getGeodeVersion());
         auto gameVersion = version.getGameVersion();
@@ -269,7 +269,7 @@ bool ModItem::init(ModSource&& source) {
                 { "25", std::nullopt },
             }) {
                 if (metadata.tags.contains(fmt::format("modtober{}winner", year)) || (winner.has_value() && m_source.getID() == winner)) {
-                    
+
                     auto shortVer = CCSprite::createWithSpriteFrameName(fmt::format("tag-modtober{}-winner.png"_spr, year).c_str());
                     shortVer->setTag(1);
                     m_badgeContainer->addChild(shortVer);
@@ -604,7 +604,7 @@ void ModItem::updateState() {
             m_bg->setColor("mod-list-errors-found"_cc3b);
             m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
         }
-        // Deprecation takes precedence over "Outdated" (since you need to be 
+        // Deprecation takes precedence over "Outdated" (since you need to be
         // able to update a deprecated outdated mod)
         if (!wantsRestart && targetsOutdated && !isDownloading && !update.deprecation) {
             m_bg->setColor("mod-list-outdated-label"_cc3b);
@@ -788,7 +788,7 @@ void ModItem::onView(CCObject*) {
 
     // Show popups for invalid mods
     if (m_source.asServer()) {
-        auto version = m_source.asServer()->latestVersion();
+        auto& version = m_source.asServer()->latestVersion();
         auto gameVersion = version.getGameVersion();
         if (gameVersion == "0.000") {
             return FLAlertLayer::create(
@@ -824,9 +824,9 @@ void ModItem::onViewError(CCObject*) {
         // Deprecation gets special treatement
         // Note: this statement below should copy to and not move
         if (auto dep = m_source.hasUpdates().deprecation) {
-            // The world if C++ had a nice way to map and join vectors rather 
+            // The world if C++ had a nice way to map and join vectors rather
             // than having to do this bs
-            // NOTE: the deprecation reason should describe why there 
+            // NOTE: the deprecation reason should describe why there
             // is no replacement, or if there will be one in the future
             std::string byStr;
             if (dep->by.size()) {
@@ -907,7 +907,7 @@ bool AnyModItem::init(ZStringView modID) {
 
     m_bg->setColor(ccBLACK);
     m_bg->setOpacity(90);
-    
+
     m_loading = LoadingSpinner::create(20);
     this->addChildAtPosition(m_loading, Anchor::Center);
 

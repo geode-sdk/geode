@@ -716,7 +716,7 @@ bool ModPopup::init(ModSource&& src) {
             });
         },
         [this](server::ServerModMetadata const& metadata) {
-            
+
         }
     });
 
@@ -1228,7 +1228,7 @@ ModSource& ModPopup::getSource() & {
 bool ModPopup::availableForInstall() const {
     // Adapted from ModItem.cpp ModItem::onView
     if (auto serverSource = m_source.asServer()) {
-        auto version = serverSource->latestVersion();
+        auto& version = serverSource->latestVersion();
         auto gameVersion = version.getGameVersion();
 
         if (

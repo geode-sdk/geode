@@ -28,8 +28,8 @@ namespace server {
         std::string name;
         std::string displayName;
 
-        static Result<ServerTag> parse(matjson::Value const& json);
-        static Result<std::vector<ServerTag>> parseList(matjson::Value const& json);
+        static Result<ServerTag> parse(matjson::Value json);
+        static Result<std::vector<ServerTag>> parseList(matjson::Value json);
     };
 
     struct ServerDeveloper final {
@@ -46,15 +46,15 @@ namespace server {
 
         bool operator==(ServerModVersion const&) const = default;
 
-        static Result<ServerModVersion> parse(matjson::Value const& json);
+        static Result<ServerModVersion> parse(matjson::Value json);
     };
 
     struct ServerModUpdate final {
         std::string id;
         VersionInfo version;
 
-        static Result<ServerModUpdate> parse(matjson::Value const& json);
-        static Result<std::vector<ServerModUpdate>> parseList(matjson::Value const& json);
+        static Result<ServerModUpdate> parse(matjson::Value json);
+        static Result<std::vector<ServerModUpdate>> parseList(matjson::Value json);
 
         Mod* hasUpdateForInstalledMod() const;
     };
@@ -63,8 +63,8 @@ namespace server {
         std::vector<std::string> by;
         std::string reason;
 
-        static Result<ServerModDeprecation> parse(matjson::Value const& json);
-        static Result<std::vector<ServerModDeprecation>> parseList(matjson::Value const& json);
+        static Result<ServerModDeprecation> parse(matjson::Value json);
+        static Result<std::vector<ServerModDeprecation>> parseList(matjson::Value json);
 
         Mod* hasDeprecationForInstalledMod() const;
     };
@@ -72,7 +72,7 @@ namespace server {
         std::vector<ServerModUpdate> updates;
         std::vector<ServerModDeprecation> deprecations;
 
-        static Result<ServerModUpdateAllCheck> parse(matjson::Value const& json);
+        static Result<ServerModUpdateAllCheck> parse(matjson::Value json);
     };
     struct ServerModUpdateOneCheck final {
         std::optional<ServerModUpdate> update;
@@ -84,7 +84,7 @@ namespace server {
         std::optional<std::string> homepage;
         std::optional<std::string> source;
 
-        static Result<ServerModLinks> parse(matjson::Value const& json);
+        static Result<ServerModLinks> parse(matjson::Value json);
     };
 
     struct ServerModMetadata final {
@@ -100,9 +100,9 @@ namespace server {
         std::optional<ServerDateTime> createdAt;
         std::optional<ServerDateTime> updatedAt;
 
-        static Result<ServerModMetadata> parse(matjson::Value const& json);
+        static Result<ServerModMetadata> parse(matjson::Value json);
 
-        ModMetadata latestVersion() const;
+        ModMetadata const& latestVersion() const;
         std::string formatDevelopersToString() const;
         Mod* hasUpdateForInstalledMod() const;
     };
@@ -111,7 +111,7 @@ namespace server {
         std::vector<ServerModMetadata> mods;
         size_t totalModCount = 0;
 
-        static Result<ServerModsList> parse(matjson::Value const& json);
+        static Result<ServerModsList> parse(matjson::Value json);
     };
 
     struct ServerLoaderVersion final {
@@ -120,7 +120,7 @@ namespace server {
         std::string commitHash;
         std::string gameVersion;
 
-        static Result<ServerLoaderVersion> parse(matjson::Value const& json);
+        static Result<ServerLoaderVersion> parse(matjson::Value json);
     };
 
     enum class ModsSort {

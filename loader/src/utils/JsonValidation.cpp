@@ -79,6 +79,9 @@ matjson::Value const& JsonExpectedValue::getJSONRef() const {
 matjson::Value JsonExpectedValue::json() const {
     return m_impl->scope;
 }
+matjson::Value JsonExpectedValue::takeJson() {
+    return std::move(m_impl->scope);
+}
 std::string JsonExpectedValue::key() const {
     return m_impl->key;
 }
@@ -166,7 +169,7 @@ JsonExpectedValue JsonExpectedValue::has(std::string key) {
     if (!m_impl->scope.contains(key)) {
         return JsonExpectedValue();
     }
-    
+
     auto& scope = m_impl->scope[key];
     return JsonExpectedValue(m_impl.get(), scope, std::move(key));
 }
@@ -197,7 +200,7 @@ JsonExpectedValue JsonExpectedValue::needs(std::string key) {
         this->setError("missing required key {}", key);
         return JsonExpectedValue();
     }
-    
+
     auto& scope = m_impl->scope[key];
     return JsonExpectedValue(m_impl.get(), scope, std::move(key));
 }
