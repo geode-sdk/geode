@@ -6,6 +6,7 @@
 #include <Geode/binding/Slider.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/ui/LoadingSpinner.hpp>
 #include <Geode/ui/NineSlice.hpp>
 #include <server/DownloadManager.hpp>
 #include "../sources/ModSource.hpp"
