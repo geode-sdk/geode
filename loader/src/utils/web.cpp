@@ -1085,29 +1085,7 @@ public:
         });
         curl_multi_setopt(m_multiHandle, CURLMOPT_TIMERDATA, this);
 
-        m_worker = async::runtime().spawn([this, rx = std::move(rx), crx = std::move(crx)] mutable -> arc::Future<> {
-            bool running = true;
-            while (running) {
-                co_await arc::select(
-                    arc::selectee(
-                        m_cancel.waitCancelled(),
-                        [&] { running = false; }
-                    ),
-
-                    arc::selectee(rx.recv(), [&](auto req) {
-                        if (req) this->workerAddRequest(std::move(req).unwrap());
-                    }),
-
-                    arc::selectee(crx.recv(), [&](auto req) {
-                        if (req) this->workerCancelRequest(std::move(req).unwrap());
-                    }),
-
-                    arc::selectee(
-                        this->workerPoll()
-                    )
-                );
-            }
-        });
+        m_worker = async::runtime().spawn(this->workerFunc(std::move(rx), std::move(crx)));
         m_worker.setName("Geode Web Worker");
     }
 
@@ -1168,7 +1146,7 @@ public:
         this->workerKickCurl();
     }
 
-    Future<> workerPoll() {
+    auto workerPoll() {
         int stillRunning = 0;
         CURLMcode mc = curl_multi_perform(m_multiHandle, &stillRunning);
         if (mc != CURLM_OK) {
@@ -1228,14 +1206,10 @@ public:
 
         // poll until there is socket activity or the timer expires
 
-        co_await arc::select(
+        return arc::select(
             arc::selectee(m_wakeNotify.notified()),
 
-            arc::selectee(arc::sleepUntil(deadline), [&] {
-                this->workerKickCurl();
-            }),
-
-            arc::selectee(this->workerPollSockets(), [&](PollReadiness readiness) {
+            arc::selectee(this->workerPollSockets(), [this](PollReadiness readiness) {
                 auto [fd, ready] = readiness;
                 int ev = 0;
                 if (ready & Interest::Readable) ev |= CURL_CSELECT_IN;
@@ -1244,7 +1218,11 @@ public:
 
                 int running = 0;
                 curl_multi_socket_action(m_multiHandle, fd, ev, &running);
-            }, activeTransfers)
+            }, activeTransfers),
+
+            arc::selectee(arc::sleepUntil(deadline), [this] {
+                this->workerKickCurl();
+            })
         );
     }
 
@@ -1295,6 +1273,30 @@ public:
             m_nextWakeup = asp::Instant::farFuture();
         } else {
             m_nextWakeup = asp::Instant::now() + asp::Duration::fromMillis(timeout_ms);
+        }
+    }
+
+    Future<> workerFunc(auto rx, auto crx) {
+        bool running = true;
+        while (running) {
+            co_await arc::select(
+                arc::selectee(
+                    m_cancel.waitCancelled(),
+                    [&] { running = false; }
+                ),
+
+                arc::selectee(rx.recv(), [&](auto req) {
+                    if (req) this->workerAddRequest(std::move(req).unwrap());
+                }),
+
+                arc::selectee(crx.recv(), [&](auto req) {
+                    if (req) this->workerCancelRequest(std::move(req).unwrap());
+                }),
+
+                arc::selectee(
+                    this->workerPoll()
+                )
+            );
         }
     }
 };
