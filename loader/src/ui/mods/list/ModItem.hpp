@@ -97,3 +97,22 @@ public:
 
     ModSource& getSource() &;
 };
+
+/**
+ * Standalone ModItem that you give a Mod ID to and it'll either show the mod 
+ * if it's installed or fetch from server if it is not
+ */
+class AnyModItem : public ModListItem {
+protected:
+    ModItem* m_item = nullptr;
+    LoadingSpinner* m_loading;
+    async::TaskHolder<server::ServerResult<server::ServerModMetadata>> m_listener;
+
+    bool init(ZStringView modID);
+    void gotSrc(ModSource&& src);
+
+public:
+    static AnyModItem* create(ZStringView modID);
+
+    void updateDisplay(float width, ModListDisplay display) override;
+};

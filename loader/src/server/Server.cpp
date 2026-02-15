@@ -459,13 +459,7 @@ Result<ServerModUpdateAllCheck> ServerModUpdateAllCheck::parse(matjson::Value co
     if (json.isArray()) {
         return Ok(ServerModUpdateAllCheck {
             .updates = GEODE_UNWRAP(ServerModUpdate::parseList(json)),
-            .deprecations = {
-                ServerModDeprecation {
-                    .id = "hjfod.betteredit",
-                    .by = { "hjfod.gdshare" },
-                    .reason = "BetterEdit is no longer maintained. Sowwy >w<",
-                }
-            },
+            .deprecations = {},
         });
     }
     auto root = checkJson(json, "ServerModUpdateAllCheck");
