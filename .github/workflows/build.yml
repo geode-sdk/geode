@@ -25,6 +25,7 @@ env:
     cmake -B build
     -DCMAKE_BUILD_TYPE=RelWithDebInfo
     -DGEODE_CODEGEN_CMAKE_ARGS="-DCMAKE_C_COMPILER=clang;-DCMAKE_CXX_COMPILER=clang++;-G Ninja"
+    -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON
     -G Ninja
   base-build-command: |
     cmake --build build --config RelWithDebInfo --parallel
@@ -185,7 +186,6 @@ jobs:
         -DCMAKE_CXX_COMPILER=clang++
         -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
         -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
-        -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON
         -DGEODE_DISABLE_PRECOMPILED_HEADERS=OFF
         -DGEODE_UNITY_BUILD=ON
         ${{ steps.build-debug-info.outputs.extra-configure }}
