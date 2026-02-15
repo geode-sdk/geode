@@ -627,6 +627,7 @@ void KeybindSettingNodeV3::updateState(CCNode* invoker) {
     for (size_t i = 0; i < m_currentValue.size(); i++) {
         auto& keybind = m_currentValue[i];
         CCNode* buttonSprite;
+        // If this is a keyboard keybind, show the key name, otherwise show the controller input icon
         if (keybind.key < 1000 || keybind.key > 2000) {
             buttonSprite = createGeodeButton(keybind.toString(), true);
         } else {
@@ -845,6 +846,7 @@ void KeybindListPopup::updateKeybinds() {
         for (size_t i = 1; i < m_currentKeybinds.size(); i++) {
             auto& keybind = m_currentKeybinds[i];
             CCNode* buttonSprite;
+            // If this is a keyboard keybind, show the key name, otherwise show the controller input icon
             if (keybind.key < 1000 || keybind.key > 2000) {
                 buttonSprite = createGeodeButton(keybind.toString(), true);
             } else {

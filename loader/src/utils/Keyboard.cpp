@@ -266,6 +266,7 @@ std::string Keybind::toString() const {
 }
 
 cocos2d::CCNode* Keybind::createNode() const {
+    // If this is not a controller bind, just return a label with the key name
     if (key < 1000 || key > 2000) {
         return CCLabelBMFont::create(this->toString().c_str(), "goldFont.fnt");
     }
