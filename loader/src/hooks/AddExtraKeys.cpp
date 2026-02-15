@@ -11,6 +11,8 @@ class $modify(CCKeyboardDispatcher) {
     GEODE_FORWARD_COMPAT_DISABLE_HOOKS("CCKeyboardDispatcher new keys")
 
     const char* keyToString(enumKeyCodes key) {
+        if (key == KEY_C) return "C";
+
         if (key < 0x405) {
             return CCKeyboardDispatcher::keyToString(key);
         }
