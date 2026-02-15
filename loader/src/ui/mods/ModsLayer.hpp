@@ -79,6 +79,7 @@ protected:
     void onTab(CCObject* sender);
     void onOpenModsFolder(CCObject*);
     void onAddModFromFile(CCObject*);
+    void onRestartGD(CCObject*);
     void onDisplay(CCObject*);
     void onSearch(CCObject*);
     void onGoToPage(CCObject*);

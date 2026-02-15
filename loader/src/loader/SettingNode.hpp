@@ -13,4 +13,5 @@ using StringSettingNode = StringSettingNodeV3;
 using FileSettingNode = FileSettingNodeV3;
 using Color3BSettingNode = Color3BSettingNodeV3;
 using Color4BSettingNode = Color4BSettingNodeV3;
+using KeybindSettingNode = KeybindSettingNodeV3;
 using UnresolvedCustomSettingNode = UnresolvedCustomSettingNodeV3;

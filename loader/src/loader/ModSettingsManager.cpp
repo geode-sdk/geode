@@ -38,6 +38,7 @@ private:
         m_types.emplace("rgb", changeToGenerator(Color3BSettingV3::parse));
         m_types.emplace("color", changeToGenerator(Color3BSettingV3::parse));
         m_types.emplace("rgba", changeToGenerator(Color4BSettingV3::parse));
+        m_types.emplace("keybind", changeToGenerator(KeybindSettingV3::parse));
     }
 
 public:
@@ -97,6 +98,7 @@ public:
     };
     std::string modID;
     StringMap<SettingInfo> settings;
+    std::vector<std::shared_ptr<KeybindSettingV3>> keybindSettings;
     std::vector<Mod*> dependants;
     // Stored so custom settings registered after the fact can be loaded
     // If the ability to unregister custom settings is ever added, remember to
@@ -147,6 +149,9 @@ public:
             }
             if (auto v3 = (*gen)(key, modID, setting.json)) {
                 setting.v3 = v3.unwrap();
+                if (setting.type == "keybind") {
+                    keybindSettings.push_back(std::static_pointer_cast<KeybindSettingV3>(setting.v3));
+                }
                 this->loadSettingValueFromSave(key);
             }
             else {
@@ -181,6 +186,19 @@ ModSettingsManager::ModSettingsManager(ModMetadata const& metadata)
         }
     }
     m_impl->createSettings();
+
+    if (!m_impl->keybindSettings.empty()) {
+        KeyboardInputEvent().listen([this](KeyboardInputData& data) {
+            Keybind keybind(data.key, data.modifiers);
+            bool down = data.action != KeyboardInputData::Action::Release;
+            bool repeat = data.action == KeyboardInputData::Action::Repeat;
+            for (auto& setting : m_impl->keybindSettings) {
+                if (std::ranges::contains(setting->getValue(), keybind)) {
+                    KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat);
+                }
+            }
+        }).leak();
+    }
 }
 ModSettingsManager::~ModSettingsManager() {}
 ModSettingsManager::ModSettingsManager(ModSettingsManager&&) noexcept = default;

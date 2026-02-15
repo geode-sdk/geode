@@ -5,6 +5,8 @@
 #include <Geode/binding/ColorChannelSprite.hpp>
 #include <Geode/binding/Slider.hpp>
 #include <Geode/ui/ColorPickPopup.hpp>
+#include <Geode/ui/ScrollLayer.hpp>
+#include <ui/mods/GeodeStyle.hpp>
 
 using namespace geode::prelude;
 
@@ -300,6 +302,54 @@ protected:
 
 public:
     static Color4BSettingNodeV3* create(std::shared_ptr<Color4BSettingV3> setting, float width);
+};
+
+class KeybindSettingNodeV3 : public SettingNodeV3 {
+protected:
+    std::vector<Keybind> m_currentValue;
+
+    bool init(std::shared_ptr<KeybindSettingV3> setting, float width);
+    void updateState(CCNode* invoker) override;
+    void onExtra(CCObject*);
+    void onKeybind(CCObject*);
+    void onCommit() override;
+    bool hasUncommittedChanges() const override;
+    bool hasNonDefaultValue() const override;
+    void onResetToDefault() override;
+public:
+    static KeybindSettingNodeV3* create(std::shared_ptr<KeybindSettingV3> setting, float width);
+
+    std::shared_ptr<KeybindSettingV3> getSetting() const;
+};
+
+class KeybindEditPopup : public GeodePopup {
+protected:
+    CCLabelBMFont* m_keybindLabel;
+    Keybind m_currentKeybind;
+    Function<void(Keybind const&)> m_callback;
+
+    bool init(ZStringView name, Keybind const& keybind, Function<void(Keybind const&)> callback);
+    void onSet(CCObject*);
+    void onRemove(CCObject*);
+public:
+    static KeybindEditPopup* create(ZStringView name, Keybind const& keybind, Function<void(Keybind const&)> callback);
+};
+
+class KeybindListPopup : public GeodePopup {
+protected:
+    std::vector<Keybind> m_currentKeybinds;
+    Function<void(std::vector<Keybind>)> m_callback;
+    ScrollLayer* m_scrollLayer;
+    bool m_hasChanged;
+
+    bool init(ZStringView name, std::vector<Keybind> const& keybinds, Function<void(std::vector<Keybind>)> callback);
+    void updateKeybinds();
+    void onAdd(CCObject*);
+    void onSave(CCObject*);
+    void onKeybind(CCObject*);
+    void onClose(CCObject*) override;
+public:
+    static KeybindListPopup* create(ZStringView name, std::vector<Keybind> const& keybinds, Function<void(std::vector<Keybind>)> callback);
 };
 
 class UnresolvedCustomSettingNodeV3 : public SettingNodeV3 {
