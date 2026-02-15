@@ -1,5 +1,15 @@
 # Geode Changelog
 
+## v5.0.0-beta.2
+ * Implement mod deprecations (#1748)
+ * Fix web request crashes and optimize web requests by a lot (f695ecd, c76be25)
+ * Fix destructor lock (838c56f, a10ec6c)
+ * Fix many (compile time and runtime) issues with async on MSVC (c73c12e)
+ * Add `geode::utils::getInputTimestamp` (#1751)
+ * Add controller sprites to keybind settings (#1750)
+ * Improve string split implementation (#1756)
+ * Use `QuadPart` for input timestamps, fixing CBS / COS issue (ed60ea7)
+
 ## v5.0.0-beta.1
  * Add keybind setting (#1729)
  * Add restart button to Geode menu (#1739)
