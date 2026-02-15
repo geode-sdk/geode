@@ -66,7 +66,7 @@ namespace geode {
             return m_value == other.m_value;
         }
 
-        operator int() {
+        operator int() const {
             return m_value;
         }
 
