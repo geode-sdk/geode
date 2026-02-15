@@ -111,8 +111,9 @@ namespace geode {
         Keybind(cocos2d::enumKeyCodes key, Modifiers modifiers) noexcept
             : key(key), modifiers(modifiers) {}
         
-        static Result<Keybind> fromString(std::string_view str);
-        std::string toString() const;
+        static GEODE_DLL Result<Keybind> fromString(std::string_view str);
+        GEODE_DLL std::string toString() const;
+        GEODE_DLL cocos2d::CCNode* createNode() const;
 
         bool operator==(Keybind const& other) const noexcept {
             return key == other.key && modifiers == other.modifiers;
