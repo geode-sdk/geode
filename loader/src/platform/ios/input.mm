@@ -9,6 +9,7 @@
 #include <objc/message.h>
 #include <objc/runtime.h>
 #include <UIKit/UIKit.h>
+#include <GameController/GameController.h>
 
 using namespace geode::prelude;
 
@@ -149,6 +150,29 @@ static enumKeyCodes keyToKeyCode(int code) {
     }
 }
 
+static enumKeyCodes buttonToKeyCode(GCExtendedGamepad* pad, GCControllerButtonInput* btn) {
+    if (btn == pad.buttonA) return enumKeyCodes::CONTROLLER_A;
+    if (btn == pad.buttonB) return enumKeyCodes::CONTROLLER_B;
+    if (btn == pad.buttonX) return enumKeyCodes::CONTROLLER_X;
+    if (btn == pad.buttonY) return enumKeyCodes::CONTROLLER_Y;
+
+    if (btn == pad.leftShoulder) return enumKeyCodes::CONTROLLER_LB;
+    if (btn == pad.rightShoulder) return enumKeyCodes::CONTROLLER_RB;
+
+    if (btn == pad.leftTrigger) return enumKeyCodes::CONTROLLER_LT;
+    if (btn == pad.rightTrigger) return enumKeyCodes::CONTROLLER_RT;
+
+    if (btn == pad.dpad.up) return enumKeyCodes::CONTROLLER_Up;
+    if (btn == pad.dpad.down) return enumKeyCodes::CONTROLLER_Down;
+    if (btn == pad.dpad.left) return enumKeyCodes::CONTROLLER_Left;
+    if (btn == pad.dpad.right) return enumKeyCodes::CONTROLLER_Right;
+
+    if (btn == pad.buttonOptions) return enumKeyCodes::CONTROLLER_Back;
+    if (btn == pad.buttonMenu) return enumKeyCodes::CONTROLLER_Start;
+
+    return enumKeyCodes::KEY_Unknown;
+}
+
 @implementation UIWindow (KeyInterceptor)
 
 - (void)handleKeyDown:(UIEvent*) event withPress:(UIPress*) press withTime:(double) timestamp withRepeat:(bool) isRepeat {
@@ -182,7 +206,7 @@ static enumKeyCodes keyToKeyCode(int code) {
         modifiers
     );
 
-    auto res = KeyboardInputEvent(keyCode).send(data);
+    if (KeyboardInputEvent(keyCode).send(data) != ListenerResult::Propagate) return;
 
     isDown = data.action != KeyboardInputData::Action::Release;
     isRepeat = data.action == KeyboardInputData::Action::Repeat;
@@ -234,7 +258,7 @@ static enumKeyCodes keyToKeyCode(int code) {
         modifiers
     );
 
-    auto res = KeyboardInputEvent(keyCode).send(data);
+    if (KeyboardInputEvent(keyCode).send(data) != ListenerResult::Propagate) return;
 
     isDown = data.action != KeyboardInputData::Action::Release;
     isRepeat = data.action == KeyboardInputData::Action::Repeat;
@@ -322,10 +346,67 @@ constexpr auto g_scrollFactor = 13.0f;
     [self g_sendEvent:event];
 }
 
+inline void handleControllerButton(GCExtendedGamepad* gamepad, GCControllerButtonInput* btn) {
+    CCIMEDispatcher* imeDispatcher = CCIMEDispatcher::sharedDispatcher();
+    CCKeyboardDispatcher* keyboardDispatcher = CCKeyboardDispatcher::get();
+    enumKeyCodes key = buttonToKeyCode(gamepad, btn);
+    KeyboardInputData data(
+        key,
+        [btn isPressed] ? KeyboardInputData::Action::Press : KeyboardInputData::Action::Release,
+        {0}, // Controller buttons don't have native codes.
+        (double) [gamepad lastEventTimestamp],
+        KeyboardInputData::Modifiers::Mods_None
+    );
+    if (KeyboardInputEvent(key).send(data) != ListenerResult::Propagate) return;
+    if (data.key != KEY_Unknown && (!imeDispatcher->hasDelegate() || data.key == KEY_Escape || data.key == KEY_Enter)) {
+        keyboardDispatcher->dispatchKeyboardMSG(data.key, data.action != KeyboardInputData::Action::Release, data.action == KeyboardInputData::Action::Repeat, data.timestamp);
+    }
+}
+
 $execute {
     Method m1 = class_getInstanceMethod([UIWindow class], @selector(sendEvent:));
     Method m2 = class_getInstanceMethod([UIWindow class], @selector(g_sendEvent:));
     method_exchangeImplementations(m1, m2);
+
+    [[NSNotificationCenter defaultCenter] addObserverForName:GCControllerDidConnectNotification object:nil queue:nil usingBlock:^(NSNotification* note) {
+        GCController* controller = [note object];
+        if (![controller extendedGamepad]) return;
+        GCExtendedGamepad* pad = [controller extendedGamepad];
+        pad.valueChangedHandler = ^(GCExtendedGamepad* gamepad, GCControllerElement* element) {
+        if ([element isKindOfClass:[GCControllerButtonInput class]]) {
+            handleControllerButton(gamepad, (GCControllerButtonInput*) element);
+        } else if ([element isKindOfClass:[GCControllerDirectionPad class]]) {
+            if (element == [pad dpad])  {
+                static BOOL prevUp, prevDown, prevLeft, prevRight;
+                bool upPressed = [[[pad dpad] up] isPressed];
+                bool downPressed = [[[pad dpad] down] isPressed];
+                bool leftPressed = [[[pad dpad] left] isPressed];
+                bool rightPressed = [[[pad dpad] right] isPressed];
+                if (upPressed != prevUp) {
+                    auto btn = [[pad dpad] up];
+                    handleControllerButton(gamepad, btn);
+                    prevUp = upPressed;
+                }
+                if (downPressed != prevDown) {
+                    auto btn = [[pad dpad] down];
+                    handleControllerButton(gamepad, btn);
+                    prevDown = downPressed;
+                }
+                if (leftPressed != prevLeft) {
+                    auto btn = [[pad dpad] left];
+                    handleControllerButton(gamepad, btn);
+                    prevLeft = leftPressed;
+                }
+                if (rightPressed != prevRight) {
+                    auto btn = [[pad dpad] right];
+                    handleControllerButton(gamepad, btn);
+                    prevRight = rightPressed;
+                }
+            }
+        }
+    };
+
+    }];
 }
 
 @end
