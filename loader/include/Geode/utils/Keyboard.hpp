@@ -113,7 +113,7 @@ namespace geode {
         
         static Result<Keybind> fromString(std::string_view str);
         std::string toString() const;
-        cocos2d::CCNode* getNode() const;
+        cocos2d::CCNode* createNode() const;
 
         bool operator==(Keybind const& other) const noexcept {
             return key == other.key && modifiers == other.modifiers;

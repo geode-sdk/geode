@@ -265,7 +265,7 @@ std::string Keybind::toString() const {
     return buf.str();
 }
 
-cocos2d::CCNode* Keybind::getNode() const {
+cocos2d::CCNode* Keybind::createNode() const {
     if (key < 1000 || key > 2000) {
         return CCLabelBMFont::create(this->toString().c_str(), "goldFont.fnt");
     }

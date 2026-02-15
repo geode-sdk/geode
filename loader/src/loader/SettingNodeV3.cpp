@@ -630,7 +630,7 @@ void KeybindSettingNodeV3::updateState(CCNode* invoker) {
         if (keybind.key < 1000 || keybind.key > 2000) {
             buttonSprite = createGeodeButton(keybind.toString(), true);
         } else {
-            buttonSprite = createGeodeButton(keybind.getNode(), "");
+            buttonSprite = createGeodeButton(keybind.createNode(), "");
         }
         buttonSprite->setScale(.5f);
         auto button = CCMenuItemSpriteExtra::create(buttonSprite, this, menu_selector(KeybindSettingNodeV3::onKeybind));
@@ -848,7 +848,7 @@ void KeybindListPopup::updateKeybinds() {
             if (keybind.key < 1000 || keybind.key > 2000) {
                 buttonSprite = createGeodeButton(keybind.toString(), true);
             } else {
-                buttonSprite = createGeodeButton(keybind.getNode(), "");
+                buttonSprite = createGeodeButton(keybind.createNode(), "");
             }
             auto button = CCMenuItemSpriteExtra::create(buttonSprite, this, menu_selector(KeybindListPopup::onKeybind));
             button->setTag(i);
