@@ -14,6 +14,7 @@
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/string.hpp>
+#include <ui/mods/list/ModItem.hpp>
 #include <md4c.h>
 #include <charconv>
 #include <Geode/loader/Log.hpp>
@@ -241,6 +242,7 @@ void MDTextArea::FLAlert_Clicked(FLAlertLayer* layer, bool btn) {
 
 struct MDParser {
     static std::string s_lastLink;
+    static bool s_lastLinkWasAuto;
     static std::string s_lastImage;
     static bool s_isOrderedList;
     static bool s_isCodeBlock;
@@ -284,21 +286,29 @@ struct MDParser {
             case MD_TEXTTYPE::MD_TEXT_NORMAL:
                 {
                     if (!s_lastLink.empty()) {
-                        renderer->pushDecoFlags(TextDecorationUnderline); // force underline for links
-                        auto rendered = renderer->renderStringInteractive(
-                            text, textarea,
-                            utils::string::startsWith(s_lastLink, "user:")
-                                ? menu_selector(MDTextArea::onGDProfile)
-                                : utils::string::startsWith(s_lastLink, "level:")
-                                    ? menu_selector(MDTextArea::onGDLevel)
-                                    : utils::string::startsWith(s_lastLink, "mod:")
-                                        ? menu_selector(MDTextArea::onGeodeMod)
-                                        : menu_selector(MDTextArea::onLink)
-                        );
-                        for (auto const& label : rendered) {
-                            label.m_node->setUserObject(CCString::create(s_lastLink));
+                        // Render `<mod:mod.id>` as a `ModItem`
+                        if (s_lastLinkWasAuto && s_lastLink.starts_with("mod:")) {
+                            auto item = AnyModItem::create(s_lastLink.substr(s_lastLink.find(':') + 1));
+                            item->updateDisplay(textarea->m_impl->m_size.width, ModListDisplay::SmallList);
+                            renderer->renderNode(item);
                         }
-                        renderer->popDecoFlags();
+                        else {
+                            renderer->pushDecoFlags(TextDecorationUnderline); // force underline for links
+                            auto rendered = renderer->renderStringInteractive(
+                                text, textarea,
+                                utils::string::startsWith(s_lastLink, "user:")
+                                    ? menu_selector(MDTextArea::onGDProfile)
+                                    : utils::string::startsWith(s_lastLink, "level:")
+                                        ? menu_selector(MDTextArea::onGDLevel)
+                                        : utils::string::startsWith(s_lastLink, "mod:")
+                                            ? menu_selector(MDTextArea::onGeodeMod)
+                                            : menu_selector(MDTextArea::onLink)
+                            );
+                            for (auto const& label : rendered) {
+                                label.m_node->setUserObject(CCString::create(s_lastLink));
+                            }
+                            renderer->popDecoFlags();
+                        }
                     }
                     else if (!s_lastImage.empty()) {
                         bool isFrame = false;
@@ -659,6 +669,7 @@ struct MDParser {
                 {
                     auto adetail = static_cast<MD_SPAN_A_DETAIL*>(detail);
                     s_lastLink = std::string(adetail->href.text, adetail->href.size);
+                    s_lastLinkWasAuto = adetail->is_autolink != 0;
 
                     renderer->pushColor(g_linkColor);
                 }
@@ -737,6 +748,7 @@ struct MDParser {
 };
 
 std::string MDParser::s_lastLink = "";
+bool MDParser::s_lastLinkWasAuto = false;
 std::string MDParser::s_lastImage = "";
 bool MDParser::s_isOrderedList = false;
 size_t MDParser::s_orderedListNum = 0;

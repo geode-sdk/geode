@@ -48,7 +48,7 @@ protected:
     ListenerHandle m_settingNodeHandle;
     async::TaskHolder<server::ServerResult<server::ServerModMetadata>> m_statsListener;
     async::TaskHolder<server::ServerResult<std::vector<server::ServerTag>>> m_tagsListener;
-    async::TaskHolder<server::ServerResult<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
+    async::TaskHolder<server::ServerResult<server::ServerModUpdateOneCheck>> m_checkUpdateListener;
     ListenerHandle m_downloadListener;
 
     bool init(ModSource&& src);
@@ -60,7 +60,7 @@ protected:
 
     void onLoadServerInfo(server::ServerResult<server::ServerModMetadata> result);
     void onLoadTags(server::ServerResult<std::vector<server::ServerTag>> result);
-    void onCheckUpdates(server::ServerResult<std::optional<server::ServerModUpdate>> result);
+    void onCheckUpdates(server::ServerResult<server::ServerModUpdateOneCheck> result);
 
     void onTab(CCObject* sender);
     void onEnable(CCObject*);

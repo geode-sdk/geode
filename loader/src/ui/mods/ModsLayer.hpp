@@ -94,7 +94,7 @@ public:
     static ModsLayer* create();
     static ModsLayer* scene();
 
-    static server::ServerFuture<std::vector<std::string>> checkInstalledModsForUpdates();
+    static server::ServerFuture<InstalledModsUpdateCheck> checkInstalledModsForUpdates();
 
     void gotoTab(ModListSource* src, bool searchingDev = false);
 };

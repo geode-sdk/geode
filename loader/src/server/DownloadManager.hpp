@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Server.hpp"
+#include <asp/time/SystemTime.hpp>
 
 namespace server {
     struct DownloadStatusFetching {
@@ -73,6 +74,11 @@ namespace server {
         std::optional<VersionInfo> getVersion() const;
     };
 
+    struct RecentlyUpdatedMod final {
+        std::string modID;
+        asp::SystemTime updateTime;
+    };
+
     class ModDownloadManager final {
     private:
         class Impl;
@@ -104,5 +110,24 @@ namespace server {
         bool hasActiveDownloads() const;
 
         bool wantsRestart() const;
+
+        void markRecentlyUpdated(std::string_view id);
+        std::vector<RecentlyUpdatedMod> const& getRecentlyUpdatedMods();
     };
 }
+
+template <>
+struct matjson::Serialize<server::RecentlyUpdatedMod> {
+    static Value toJson(server::RecentlyUpdatedMod const& value) {
+        return matjson::makeObject({
+            { "id", value.modID },
+            { "time", value.updateTime.timeSinceEpoch().seconds()},
+        });
+    }
+    static geode::Result<server::RecentlyUpdatedMod> fromJson(Value const& value) {
+        return geode::Ok(server::RecentlyUpdatedMod {
+            .modID = GEODE_UNWRAP(value["id"].asString()),
+            .updateTime = asp::SystemTime::fromUnix(GEODE_UNWRAP(value["time"].asUInt())),
+        });
+    }
+};

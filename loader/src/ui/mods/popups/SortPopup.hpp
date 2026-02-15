@@ -3,7 +3,6 @@
 #include <Geode/ui/Popup.hpp>
 #include "../sources/ModListSource.hpp"
 #include "../GeodeStyle.hpp"
-#include <server/Server.hpp>
 
 using namespace geode::prelude;
 
@@ -11,7 +10,7 @@ class SortPopup : public GeodePopup {
 protected:
     ModListSource* m_source;
     std::vector<CCMenuItemToggler*> m_options;
-    server::ModsSort m_selected;
+    size_t m_selected;
 
     bool init(ModListSource* src);
 

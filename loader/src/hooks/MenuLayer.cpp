@@ -20,8 +20,11 @@ using namespace geode::prelude;
 
 #pragma warning(disable : 4217)
 
-class CustomMenuLayer;
+static size_t FOUND_MOD_UPDATES = 0;
+static size_t FOUND_MOD_DEPRECATIONS = 0;
+static size_t FOUND_MOD_ERRORS = 0;
 
+class CustomMenuLayer;
 
 struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
     static void onModify(auto& self) {
@@ -34,8 +37,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
     struct Fields {
         bool m_menuDisabled = false;
         CCSprite* m_geodeButton = nullptr;
-        CCSprite* m_exclamation = nullptr;
-        async::TaskHolder<Result<std::vector<std::string>, server::ServerError>> m_updateCheckTask;
+        async::TaskHolder<Result<InstalledModsUpdateCheck, server::ServerError>> m_updateCheckTask;
     };
 
     bool init() {
@@ -100,19 +102,11 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 		}
 
         // show if some mods failed to load
-        if (Loader::get()->getLoadProblems().size()) {
-            static bool shownProblemPopup = false;
-            if (!shownProblemPopup) {
-                shownProblemPopup = true;
+        static bool checkedLoadProblems = false;
+        if (!checkedLoadProblems) {
+            checkedLoadProblems = true;
+            if ((FOUND_MOD_ERRORS = Loader::get()->getLoadProblems().size())) {
                 Notification::create("There were errors - see Geode page!", NotificationIcon::Error)->show();
-            }
-            if (m_fields->m_geodeButton) {
-                m_fields->m_exclamation = CCSprite::createWithSpriteFrameName("exMark_001.png");
-                m_fields->m_exclamation->setPosition(m_fields->m_geodeButton->getContentSize() - ccp(10, 10));
-                m_fields->m_exclamation->setID("errors-found");
-                m_fields->m_exclamation->setZOrder(99);
-                m_fields->m_exclamation->setScale(.6f);
-                m_fields->m_geodeButton->addChild(m_fields->m_exclamation);
             }
         }
 
@@ -190,7 +184,6 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
         // Check for mod updates
         static bool checkedModUpdates = false;
-        static bool foundModUpdates = false;
         if (!checkedModUpdates) {
             // only run it once
             checkedModUpdates = true;
@@ -198,10 +191,28 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             m_fields->m_updateCheckTask.spawn(ModsLayer::checkInstalledModsForUpdates(), [this](auto result) {
                 if (result.isOk()) {
                     auto updatesFound = result.unwrap();
-                    if (updatesFound.size()) {
-                        log::info("Found updates for mods: {}!", updatesFound);
-                        this->showUpdatesFound();
-                        foundModUpdates = true;
+                    if (updatesFound.modsWithUpdates.size() || updatesFound.modsWithDeprecations.size()) {
+                        if (updatesFound.modsWithUpdates.size()) {
+                            log::info(
+                                "Found updates for mods: {}!",
+                                ranges::map<std::vector<std::string>>(
+                                    updatesFound.modsWithUpdates,
+                                    +[](Mod* mod) { return mod->getID(); }
+                                )
+                            );
+                            FOUND_MOD_UPDATES = updatesFound.modsWithUpdates.size();
+                        }
+                        if (updatesFound.modsWithDeprecations.size()) {
+                            log::info(
+                                "Found deprecations for mods: {}!",
+                                ranges::map<std::vector<std::string>>(
+                                    updatesFound.modsWithDeprecations,
+                                    +[](Mod* mod) { return mod->getID(); }
+                                )
+                            );
+                            FOUND_MOD_DEPRECATIONS = updatesFound.modsWithDeprecations.size();
+                        }
+                        this->updateGeodeButtonMarkers();
                     }
                     else {
                         log::info("All mods up to date!");
@@ -214,10 +225,8 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             });
         }
 
-        // also display if updates were found in a previous MenuLayer iteration
-        if(foundModUpdates) {
-            showUpdatesFound();
-        }
+        // Update markers on Geode button (errors, updates, etc.)
+        this->updateGeodeButtonMarkers();
 
         // Delay the event by a frame so that MenuLayer is already in the scene
         // and popups show up fine
@@ -232,23 +241,43 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         return true;
     }
 
-    void showUpdatesFound() {
-        if(m_fields->m_geodeButton && !m_fields->m_geodeButton->getChildByID("updates-available")) {
-            if(auto icon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr)) {
-                // Remove errors icon if it was added, to prevent overlap
-                if (m_fields->m_exclamation) {
-                    m_fields->m_exclamation->removeFromParent();
-                    m_fields->m_exclamation = nullptr;
-                }
+    void addMarkerToGeodeButton(ZStringView spr, ZStringView id, size_t count) {
+        m_fields->m_geodeButton->removeChildByID(id);
+        if (auto icon = CCSprite::createWithSpriteFrameName(spr.c_str())) {
+            icon->setPosition(m_fields->m_geodeButton->getContentSize() - ccp(10, 10));
+            icon->setID(id);
+            icon->setZOrder(99);
+            icon->setScale(.65f);
 
-                icon->setPosition(
-                    m_fields->m_geodeButton->getContentSize() - CCSize { 10.f, 10.f }
-                );
-                icon->setID("updates-available");
-                icon->setZOrder(99);
-                icon->setScale(.5f);
-                m_fields->m_geodeButton->addChild(icon);
+            if (count > 0) {
+                auto countLabel = CCLabelBMFont::create(std::to_string(count).c_str(), "bigFont.fnt");
+                countLabel->setScale(.5f);
+                icon->addChildAtPosition(countLabel, Anchor::Center);
             }
+
+            m_fields->m_geodeButton->addChild(icon);
+        }
+    }
+    void updateGeodeButtonMarkers() {
+        if (!m_fields->m_geodeButton) {
+            return;
+        }
+        if (((FOUND_MOD_UPDATES > 0) + (FOUND_MOD_DEPRECATIONS > 0) + (FOUND_MOD_ERRORS > 0)) > 1) {
+            this->addMarkerToGeodeButton(
+                "updates-multiple.png"_spr,
+                "multiple-notifications",
+                FOUND_MOD_UPDATES + FOUND_MOD_DEPRECATIONS + FOUND_MOD_ERRORS
+            );
+        }
+        else if (FOUND_MOD_DEPRECATIONS) {
+            this->addMarkerToGeodeButton("updates-deprecated.png"_spr, "updates-deprecated", FOUND_MOD_DEPRECATIONS);
+        }
+        else if (FOUND_MOD_UPDATES) {
+            this->addMarkerToGeodeButton("updates-available.png"_spr, "updates-available", FOUND_MOD_UPDATES);
+        }
+        else if (FOUND_MOD_ERRORS) {
+            // Don't show a silly number on top of the error exclamation
+            this->addMarkerToGeodeButton("exMark_001.png", "errors-found", 0);
         }
     }
 

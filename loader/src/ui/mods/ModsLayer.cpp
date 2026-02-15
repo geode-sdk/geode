@@ -893,16 +893,19 @@ ModsLayer* ModsLayer::scene() {
     return layer;
 }
 
-server::ServerFuture<std::vector<std::string>> ModsLayer::checkInstalledModsForUpdates() {
-    auto updates = ARC_CO_UNWRAP(co_await server::checkAllUpdates());
-    std::vector<std::string> updatesFound;
-
-    for (auto& update : updates) {
-        if (update.hasUpdateForInstalledMod()) {
-            updatesFound.push_back(update.id);
+server::ServerFuture<InstalledModsUpdateCheck> ModsLayer::checkInstalledModsForUpdates() {
+    auto all = ARC_CO_UNWRAP(co_await server::checkAllUpdates());
+    InstalledModsUpdateCheck updatesFound;
+    for (auto& update : all.updates) {
+        if (auto mod = update.hasUpdateForInstalledMod()) {
+            updatesFound.modsWithUpdates.push_back(mod);
         }
     }
-    
+    for (auto& dep : all.deprecations) {
+        if (auto mod = dep.hasDeprecationForInstalledMod()) {
+            updatesFound.modsWithDeprecations.push_back(mod);
+        }
+    }
     co_return Ok(std::move(updatesFound));
 }
 
