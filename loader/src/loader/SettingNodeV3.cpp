@@ -626,7 +626,12 @@ void KeybindSettingNodeV3::updateState(CCNode* invoker) {
     buttonMenu->removeAllChildren();
     for (size_t i = 0; i < m_currentValue.size(); i++) {
         auto& keybind = m_currentValue[i];
-        auto buttonSprite = createGeodeButton(keybind.toString().c_str(), true);
+        CCNode* buttonSprite;
+        if (keybind.key < 1000 || keybind.key > 2000) {
+            buttonSprite = createGeodeButton(keybind.toString(), true);
+        } else {
+            buttonSprite = createGeodeButton(keybind.getNode(), "");
+        }
         buttonSprite->setScale(.5f);
         auto button = CCMenuItemSpriteExtra::create(buttonSprite, this, menu_selector(KeybindSettingNodeV3::onKeybind));
         button->setTag(i);
@@ -638,7 +643,7 @@ void KeybindSettingNodeV3::updateState(CCNode* invoker) {
     buttonMenu->addChild(plusButton);
     buttonMenu->updateLayout();
 
-    if (buttonMenu->getChildByIndex(0)->getScale() <= .65f) {
+    if (buttonMenu->getChildByIndex(0)->getScale() < 1.f) {
         auto children = buttonMenu->getChildrenExt();
         for (auto it = children.end() - 1; it != children.begin(); --it) {
             buttonMenu->removeChild(*it, false);
@@ -839,9 +844,13 @@ void KeybindListPopup::updateKeybinds() {
         m_scrollLayer->m_contentLayer->addChild(CCNode::create());
         for (size_t i = 1; i < m_currentKeybinds.size(); i++) {
             auto& keybind = m_currentKeybinds[i];
-            auto button = CCMenuItemSpriteExtra::create(
-                createGeodeButton(keybind.toString().c_str(), true), this, menu_selector(KeybindListPopup::onKeybind)
-            );
+            CCNode* buttonSprite;
+            if (keybind.key < 1000 || keybind.key > 2000) {
+                buttonSprite = createGeodeButton(keybind.toString(), true);
+            } else {
+                buttonSprite = createGeodeButton(keybind.getNode(), "");
+            }
+            auto button = CCMenuItemSpriteExtra::create(buttonSprite, this, menu_selector(KeybindListPopup::onKeybind));
             button->setTag(i);
             limitNodeWidth(button, 185.f, 1.f, .1f);
             auto menu = CCMenu::createWithItem(button);

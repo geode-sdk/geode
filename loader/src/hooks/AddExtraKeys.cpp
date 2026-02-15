@@ -11,11 +11,27 @@ class $modify(CCKeyboardDispatcher) {
     GEODE_FORWARD_COMPAT_DISABLE_HOOKS("CCKeyboardDispatcher new keys")
 
     const char* keyToString(enumKeyCodes key) {
-        if (key < 0x1000) {
+        if (key < 0x405) {
             return CCKeyboardDispatcher::keyToString(key);
         }
 
         switch (key) {
+            case CONTROLLER_LTHUMBSTICK_UP:
+                return "Controller_LTHUMBSTICK_UP";
+            case CONTROLLER_LTHUMBSTICK_DOWN:
+                return "Controller_LTHUMBSTICK_DOWN";
+            case CONTROLLER_LTHUMBSTICK_LEFT:
+                return "Controller_LTHUMBSTICK_LEFT";
+            case CONTROLLER_LTHUMBSTICK_RIGHT:
+                return "Controller_LTHUMBSTICK_RIGHT";
+            case CONTROLLER_RTHUMBSTICK_UP:
+                return "Controller_RTHUMBSTICK_UP";
+            case CONTROLLER_RTHUMBSTICK_DOWN:
+                return "Controller_RTHUMBSTICK_DOWN";
+            case CONTROLLER_RTHUMBSTICK_LEFT:
+                return "Controller_RTHUMBSTICK_LEFT";
+            case CONTROLLER_RTHUMBSTICK_RIGHT:
+                return "Controller_RTHUMBSTICK_RIGHT";
             case KEY_GraveAccent:
                 return "`";
             case KEY_OEMEqual:
@@ -32,6 +48,8 @@ class $modify(CCKeyboardDispatcher) {
                 return "'";
             case KEY_Slash:
                 return "/";
+            case KEY_Equal:
+                return "=";
             case KEY_NumEnter:
                 return "NumEnter";
             case KEY_World1:
