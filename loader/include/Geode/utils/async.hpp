@@ -69,7 +69,7 @@ auto spawn(F&& f) {
 /// Queues the given function to run in the main thread as soon as possible
 /// and waits for it to complete. Returns null if the function failed to send the result.
 /// (although that usually cannot happen in practice)
-template <typename T> requires (!std::is_void_v<T>)
+template <typename T = void> requires (!std::is_void_v<T>)
 arc::Future<std::optional<T>> waitForMainThread(Function<T()> func) {
     auto [tx, rx] = arc::oneshot::channel<T>();
 
@@ -82,7 +82,7 @@ arc::Future<std::optional<T>> waitForMainThread(Function<T()> func) {
 
 /// Queues the given function to run in the main thread as soon as possible
 /// and waits for it to complete. Returns false if the function failed to complete (e.g. due to exception)
-template <typename T> requires (std::is_void_v<T>)
+template <typename T = void> requires (std::is_void_v<T>)
 arc::Future<bool> waitForMainThread(Function<void()> func) {
     auto [tx, rx] = arc::oneshot::channel<std::monostate>();
 
