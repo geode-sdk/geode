@@ -17,6 +17,9 @@ public:
     CCLabelBMFont* statusLabel;
     ccColor4B bgColor = ccc4(0, 0, 0, 0);
     bool committed = false;
+    // This is because you can create `TitleSettingNodeV3`s without having an 
+    // actual `TitleSettingV3`
+    std::optional<std::string> customDescription;
 };
 
 bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
@@ -103,8 +106,12 @@ void SettingNodeV3::updateState(CCNode* invoker) {
     m_impl->nameMenu->setContentWidth(this->getContentWidth() - m_impl->buttonMenu->getContentWidth() - 25);
     m_impl->nameMenu->updateLayout();
 }
+void SettingNodeV3::updateState2(CCNode* invoker) {
+    return this->updateState(invoker);
+}
 
 void SettingNodeV3::onDescription(CCObject*) {
+    if (!m_impl->setting) return;
     auto title = m_impl->setting->getDisplayName();
     MDPopup::create(true,
         title.c_str(),
@@ -134,9 +141,11 @@ void SettingNodeV3::setDefaultBGColor(ccColor4B color) {
 }
 
 void SettingNodeV3::markChanged(CCNode* invoker) {
-    if (!m_impl->setting) return;
     this->updateState(invoker);
-    SettingNodeValueChangeEventV3(m_impl->setting->getModID(), m_impl->setting->getKey()).send(this, false);
+    SettingNodeValueChangeEventV3(
+        m_impl->setting ? m_impl->setting->getModID() : "",
+        m_impl->setting ? m_impl->setting->getKey() : ""
+    ).send(this, false);
 }
 void SettingNodeV3::commit() {
     if (!m_impl->setting) return;
@@ -152,6 +161,10 @@ void SettingNodeV3::resetToDefault() {
     this->onResetToDefault();
     this->updateState(nullptr);
     SettingNodeValueChangeEventV3(m_impl->setting->getModID(), m_impl->setting->getKey()).send(this, false);
+}
+
+void SettingNodeV3::overrideDescription(std::optional<ZStringView> description) {
+    m_impl->customDescription = description ? std::optional(std::string(*description)) : std::nullopt;
 }
 
 void SettingNodeV3::setContentSize(CCSize const& size) {
@@ -187,6 +200,8 @@ std::shared_ptr<SettingV3> SettingNodeV3::getSetting() const {
 bool TitleSettingNodeV3::init(std::shared_ptr<TitleSettingV3> setting, float width) {
     if (!SettingNodeV3::init(setting, width))
         return false;
+
+    // note: setting may be null
 
     auto collapseSprBG = CCSprite::create("square02c_001.png");
     collapseSprBG->setColor(ccc3(25, 25, 25));
@@ -251,6 +266,13 @@ TitleSettingNodeV3* TitleSettingNodeV3::create(std::shared_ptr<TitleSettingV3> s
     }
     delete ret;
     return nullptr;
+}
+TitleSettingNodeV3* TitleSettingNodeV3::create(ZStringView title, std::optional<ZStringView> description, float width) {
+    auto ret = TitleSettingNodeV3::create(nullptr, width);
+    ret->getNameLabel()->setString(title.c_str());
+    ret->overrideDescription(description);
+    ret->updateState(nullptr);
+    return ret;
 }
 
 // BoolSettingNodeV3

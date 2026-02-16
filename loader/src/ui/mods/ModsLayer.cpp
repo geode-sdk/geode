@@ -21,7 +21,7 @@
 #include "ui/mods/sources/ModListSource.hpp"
 #include <loader/LoaderImpl.hpp>
 #include <Geode/ui/MDPopup.hpp>
-#include "popups/KeybindsPopup.hpp"
+#include "settings/KeybindsPopup.hpp"
 
 bool ModsStatusNode::init() {
     if (!CCNode::init())
@@ -383,6 +383,18 @@ bool ModsLayer::init() {
     );
     settingsBtn->setID("settings-button");
     actionsMenu->addChild(settingsBtn);
+
+    auto keybindsSpr = createGeodeCircleButton(
+        CCSprite::createWithSpriteFrameName("keybinds.png"_spr), 1.f,
+        CircleBaseSize::Medium
+    );
+    keybindsSpr->setScale(.8f);
+    keybindsSpr->setTopOffset(ccp(0, 1));
+    auto keybindsBtn = CCMenuItemSpriteExtra::create(
+        keybindsSpr, this, menu_selector(ModsLayer::onKeybinds)
+    );
+    keybindsBtn->setID("settings-button");
+    actionsMenu->addChild(keybindsBtn);
 
     if (Mod::get()->getSettingValue<bool>("restart-button")) {
         auto restartGDSpr = CCSprite::createWithSpriteFrameName("reload.png"_spr);

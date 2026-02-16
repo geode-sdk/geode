@@ -1076,17 +1076,18 @@ Result<std::shared_ptr<KeybindSettingV3>> KeybindSettingV3::parse(std::string ke
     auto root = checkJson(json, "KeybindSettingV3");
     ret->parseBaseProperties(std::move(key), std::move(modID), root);
     std::string category;
-    root.hasNullable("category").into(category);
-    switch (hash(category)) {
-        case hash("editor"): ret->m_impl->category = KeybindCategory::Editor; break;
-        case hash("universal"): ret->m_impl->category = KeybindCategory::Universal; break;
-        case hash("gameplay"): ret->m_impl->category = KeybindCategory::Gameplay; break;
-        default: {
-            return Err(
-                "Unknown keybind category \"{}\" in setting \"{}\" from mod {}",
-                category, key, modID
-            );
-        } break;
+    if (root.hasNullable("category").into(category)) {
+        switch (hash(category)) {
+            case hash("editor"): ret->m_impl->category = KeybindCategory::Editor; break;
+            case hash("universal"): ret->m_impl->category = KeybindCategory::Universal; break;
+            case hash("gameplay"): ret->m_impl->category = KeybindCategory::Gameplay; break;
+            default: {
+                return Err(
+                    "Unknown keybind category \"{}\" in setting \"{}\" from mod {}",
+                    category, key, modID
+                );
+            } break;
+        }
     }
     root.checkUnknownKeys();
     return root.ok(ret);

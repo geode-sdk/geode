@@ -24,7 +24,9 @@ protected:
     void onCollapse(CCObject*);
 
 public:
+    // `setting` may be null here
     static TitleSettingNodeV3* create(std::shared_ptr<TitleSettingV3> setting, float width);
+    static TitleSettingNodeV3* create(ZStringView title, std::optional<ZStringView> description, float width);
 
     bool isCollapsed() const;
 
