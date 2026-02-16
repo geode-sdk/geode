@@ -1184,6 +1184,12 @@ public:
 
                 auto& requestData = *rdptr;
 
+                // Populate HTTPVersion with the updated info
+                long version;
+                curl_easy_getinfo(handle, CURLINFO_HTTP_VERSION, &version);
+
+                requestData.request->m_httpVersion = wrapHttpVersion(version);
+
                 // Get the response code; note that this will be invalid if the
                 // curlResponse is not CURLE_OK
                 long code = 0;
@@ -1377,12 +1383,6 @@ std::optional<WebResponse> WebFuture::poll(arc::Context& cx) {
     }
 
     auto result = std::move(rpoll).value();
-    long version;
-
-    // Populate HTTPVersion with the updated info
-    curl_easy_getinfo(m_impl->m_request->curl, CURLINFO_HTTP_VERSION, &version);
-
-    m_impl->m_request->request->m_httpVersion = wrapHttpVersion(version);
 
     if (!result) {
         m_impl->m_finished = true;
