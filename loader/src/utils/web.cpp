@@ -717,12 +717,6 @@ public:
             return size * nitems;
         }));
 
-        long version;
-
-        curl_easy_getinfo(curl, CURLINFO_HTTP_VERSION, &version);
-
-        m_httpVersion = wrapHttpVersion(version);
-
         // Track & post progress on the Promise
         // onProgress can only be not set if using sendSync without one, and hasBeenCancelled is always null in that case
         curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, requestData);
@@ -1368,8 +1362,6 @@ WebFuture::~WebFuture() {
 }
 
 std::optional<WebResponse> WebFuture::poll(arc::Context& cx) {
-    using RequestData = WebRequestsManager::RequestData;
-
     if (!m_impl->m_sent) {
         // send the actual request
         auto res = WebRequestsManager::get()->tryEnqueue(m_impl->m_request);
@@ -1385,6 +1377,13 @@ std::optional<WebResponse> WebFuture::poll(arc::Context& cx) {
     }
 
     auto result = std::move(rpoll).value();
+    long version;
+
+    // Populate HTTPVersion with the updated info
+    curl_easy_getinfo(m_impl->m_request->curl, CURLINFO_HTTP_VERSION, &version);
+
+    m_impl->m_request->request->m_httpVersion = wrapHttpVersion(version);
+
     if (!result) {
         m_impl->m_finished = true;
         return m_impl->m_request->request->makeError(GeodeWebError::CHANNEL_CLOSED, "Failed to receive web response: channel closed");
