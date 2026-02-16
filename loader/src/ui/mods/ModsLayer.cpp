@@ -422,6 +422,20 @@ bool ModsLayer::init() {
     settingsBtn->setID("settings-button");
     actionsMenu->addChild(settingsBtn);
 
+    auto restartGDSpr = CCSprite::createWithSpriteFrameName("reload.png"_spr);
+    restartGDSpr->setColor({ 255, 215, 65 });
+    auto restartGDCircleSpr = createGeodeCircleButton(
+        restartGDSpr, 1.f,
+        CircleBaseSize::Medium
+    );
+    restartGDCircleSpr->setScale(.8f);
+    restartGDCircleSpr->setTopOffset(ccp(.5f, 0));
+    auto restartGDBtn = CCMenuItemSpriteExtra::create(
+        restartGDCircleSpr, this, menu_selector(ModsLayer::onRestartGD)
+    );
+    restartGDBtn->setID("restart-gd-button");
+    actionsMenu->addChild(restartGDBtn);
+
     auto folderSpr = createGeodeCircleButton(
         CCSprite::createWithSpriteFrameName("gj_folderBtn_001.png"), 1.f,
         CircleBaseSize::Medium
@@ -848,6 +862,18 @@ void ModsLayer::onTheme(CCObject*) {
 void ModsLayer::onSettings(CCObject*) {
     openSettingsPopup(Mod::get(), false);
 }
+void ModsLayer::onRestartGD(CCObject*) {
+    createQuickPopup(
+        "Restart Geometry Dash",
+        "Are you sure you want to restart Geometry Dash?",
+        "Cancel", "Restart",
+        [](auto, bool btn2) {
+            if (btn2) {
+                game::restart(true);
+            }
+        }
+    );
+}
 
 ModsLayer* ModsLayer::create() {
     auto ret = new ModsLayer();
@@ -867,16 +893,19 @@ ModsLayer* ModsLayer::scene() {
     return layer;
 }
 
-server::ServerFuture<std::vector<std::string>> ModsLayer::checkInstalledModsForUpdates() {
-    auto updates = ARC_CO_UNWRAP(co_await server::checkAllUpdates());
-    std::vector<std::string> updatesFound;
-
-    for (auto& update : updates) {
-        if (update.hasUpdateForInstalledMod()) {
-            updatesFound.push_back(update.id);
+server::ServerFuture<InstalledModsUpdateCheck> ModsLayer::checkInstalledModsForUpdates() {
+    auto all = ARC_CO_UNWRAP(co_await server::checkAllUpdates());
+    InstalledModsUpdateCheck updatesFound;
+    for (auto& update : all.updates) {
+        if (auto mod = update.hasUpdateForInstalledMod()) {
+            updatesFound.modsWithUpdates.push_back(mod);
         }
     }
-    
+    for (auto& dep : all.deprecations) {
+        if (auto mod = dep.hasDeprecationForInstalledMod()) {
+            updatesFound.modsWithDeprecations.push_back(mod);
+        }
+    }
     co_return Ok(std::move(updatesFound));
 }
 

@@ -1,10 +1,14 @@
 # Geode Changelog
 
 ## v5.0.0-beta.1
+ * Add keybind setting (#1729)
+ * Add restart button to Geode menu (#1739)
+ * Add event for logs, expose more fields (7ccd613)
  * Remove deprecated `geode::cocos::getChild` (4120659)
  * Remove deprecated "path" setting type (7df2b27)
  * Remove `FileWatcher` (ab8116d)
  * Add some methods to `StringBuffer` (7b09932)
+ * Add `getReceiverCount` to `Event` (2b43506)
  * Make file picker block inputs on windows (7aaa5f9)
  * Fix infinite recursion when loading dependencies (6400521)
  * Fix iOS file picker (#1732)

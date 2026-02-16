@@ -8,6 +8,7 @@
 #include "../utils/file.hpp"
 // this unfortunately has to be included because of C++ templates
 #include "../utils/JsonValidation.hpp"
+#include "../utils/Keyboard.hpp"
 #include "../utils/function.hpp"
 
 class ModSettingsPopup;
@@ -511,6 +512,35 @@ namespace geode {
         SettingNodeV3* createNode(float width) override;
     };
 
+    class GEODE_DLL KeybindSettingV3 final : public SettingV3 {
+    private:
+        class Impl;
+        std::shared_ptr<Impl> m_impl;
+
+    private:
+        class PrivateMarker {};
+        friend class SettingV3;
+
+    protected:
+        void parseDefaultValue(JsonExpectedValue& json);
+        void parseBaseProperties(std::string key, std::string modID, JsonExpectedValue& json);
+        void setDefaultValue(std::vector<Keybind> value);
+
+    public:
+        KeybindSettingV3(PrivateMarker);
+        static Result<std::shared_ptr<KeybindSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
+
+        bool load(matjson::Value const& json) override;
+        bool save(matjson::Value& json) const override;
+        SettingNodeV3* createNode(float width) override;
+
+        std::vector<Keybind> const& getDefaultValue() const;
+        std::vector<Keybind> const& getValue() const;
+        void setValue(std::vector<Keybind> value);
+        bool isDefaultValue() const override;
+        void reset() override;
+    };
+
     class GEODE_DLL SettingNodeV3 : public cocos2d::CCNode {
     private:
         class Impl;
@@ -602,7 +632,7 @@ namespace geode {
             return true;
         }
 
-        void updateState(cocos2d::CCNode* invoker) {
+        void updateState(cocos2d::CCNode* invoker) override {
             SettingNodeV3::updateState(invoker);
             auto validate = this->getSetting()->isValid(m_impl->currentValue);
             if (!validate) {
@@ -657,6 +687,14 @@ namespace geode {
         // filter params modID, settingKey
         using GlobalEvent::GlobalEvent;
         GEODE_DLL SettingChangedEventV3(Mod* mod, std::string settingKey);
+    };
+
+    class KeybindSettingPressedEventV3 final : public GlobalEvent<KeybindSettingPressedEventV3, bool(std::string_view, std::string_view, Keybind const&, bool, bool), bool(Keybind const&, bool, bool), std::string, std::string> {
+    public:
+        // listener params keybind, down, repeat
+        // filter params modID, settingKey
+        using GlobalEvent::GlobalEvent;
+        GEODE_DLL KeybindSettingPressedEventV3(Mod* mod, std::string settingKey);
     };
 
     class SettingNodeSizeChangeEventV3 final : public GlobalEvent<SettingNodeSizeChangeEventV3, bool(std::string_view, std::string_view, SettingNodeV3*), bool(SettingNodeV3*), std::string, std::string> {
@@ -716,6 +754,16 @@ namespace geode {
         using SettingType = Color4BSettingV3;
     };
 
+    template <>
+    struct SettingTypeForValueType<std::vector<Keybind>> {
+        using SettingType = KeybindSettingV3;
+    };
+
+    template <>
+    struct SettingTypeForValueType<std::span<Keybind const>> {
+        using SettingType = KeybindSettingV3;
+    };
+
     template <class T, class Callback>
     ListenerHandle* listenForSettingChanges(std::string settingKey, Callback&& callback, Mod* mod = getMod()) {
         using Ty = typename SettingTypeForValueType<T>::SettingType;
@@ -747,6 +795,23 @@ namespace geode {
                 return;
             }
             return callback(key, setting);
+        }).leak();
+    }
+
+    template <class Callback>
+    requires std::is_invocable_v<Callback, Keybind const&, bool, bool>
+    ListenerHandle* listenForKeybindSettingPresses(std::string settingKey, Callback&& callback, Mod* mod = getMod()) {
+        return KeybindSettingPressedEventV3(mod, std::move(settingKey)).listen(std::move(callback)).leak();
+    }
+
+    template <class Callback>
+    requires std::is_invocable_v<Callback, std::string_view, Keybind const&, bool, bool>
+    ListenerHandle* listenForAllKeybindSettingPresses(Callback&& callback, Mod* mod = getMod()) {
+        return KeybindSettingPressedEventV3().listen([callback = std::move(callback), mod = std::move(mod)](std::string_view modID, std::string_view key, Keybind const& keybind, bool down, bool repeat) {
+            if (mod && getModID(mod) != modID) {
+                return;
+            }
+            return callback(key, keybind, down, repeat);
         }).leak();
     }
 }

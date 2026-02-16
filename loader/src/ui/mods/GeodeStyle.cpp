@@ -11,10 +11,13 @@ $on_mod(Loaded) {
     ColorProvider::get()->define("mod-list-version-label"_spr, ccc3(112, 235, 41));
     ColorProvider::get()->define("mod-list-version-bg-updates-available"_spr, ccc3(88, 202, 255));
     ColorProvider::get()->define("mod-list-version-label-updates-available"_spr, ccc3(88, 202, 255));
+    ColorProvider::get()->define("mod-list-version-bg-deprecated"_spr, ccc3(255, 135, 88));
     ColorProvider::get()->define("mod-list-restart-required-label"_spr, ccc3(153, 245, 245));
     ColorProvider::get()->define("mod-list-restart-required-label-bg"_spr, ccc3(123, 156, 163));
     ColorProvider::get()->define("mod-list-outdated-label"_spr, ccc3(245, 153, 245));
     ColorProvider::get()->define("mod-list-outdated-label-bg"_spr, ccc3(156, 123, 163));
+    ColorProvider::get()->define("mod-list-deprecated-label"_spr, ccc3(255, 135, 88));
+    ColorProvider::get()->define("mod-list-deprecated-label-bg"_spr, ccc3(175, 93, 60));
     ColorProvider::get()->define("mod-list-search-bg"_spr, { 83, 65, 109, 255 });
     ColorProvider::get()->define("mod-list-updates-available-bg"_spr, { 139, 89, 173, 255 });
     ColorProvider::get()->define("mod-list-updates-available-bg-2"_spr, { 45, 110, 222, 255 });

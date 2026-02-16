@@ -147,6 +147,8 @@ public:
             return;
         }
 
+        ModDownloadManager::get()->markRecentlyUpdated(id);
+
         m_status = DownloadStatusDone {
             .version = std::move(version)
         };
@@ -236,19 +238,33 @@ std::optional<VersionInfo> ModDownload::getVersion() const {
 
 class ModDownloadManager::Impl {
 public:
-    StringMap<ModDownload> m_downloads;
-    async::TaskHolder<Result<std::vector<ServerModUpdate>, server::ServerError>> m_updateAllTask;
+    StringMap<ModDownload> downloads;
+    async::TaskHolder<server::ServerResult<ServerModUpdateAllCheck>> updateAllTask;
+    std::vector<RecentlyUpdatedMod> recentlyUpdated;
+    bool hasLoadedRecentlyUpdated = false;
+
+    void loadRecentlyUpdated() {
+        // Don't load these every single time for performance reasons
+        if (this->hasLoadedRecentlyUpdated) {
+            return;
+        }
+        this->hasLoadedRecentlyUpdated = true;
+        this->recentlyUpdated = Mod::get()->getSavedValue<std::vector<RecentlyUpdatedMod>>("recently-updated");
+    }
+    void saveRecentlyUpdated() {
+        Mod::get()->setSavedValue("recently-updated", this->recentlyUpdated);
+    }
 
     void cancelOrphanedDependencies() {
         // "This doesn't handle circular dependencies!!!!"
         // Well OK and the human skull doesn't handle the 5000 newtons
         // of force from this anvil I'm about to drop on your head
 
-        for (auto& [_, d] : m_downloads) {
+        for (auto& [_, d] : this->downloads) {
             if (auto depFor = d.m_impl->m_dependencyFor) {
                 if (
-                    !m_downloads.contains(depFor->first) ||
-                    std::holds_alternative<DownloadStatusError>(m_downloads.at(depFor->first).getStatus())
+                    !this->downloads.contains(depFor->first) ||
+                    std::holds_alternative<DownloadStatusError>(this->downloads.at(depFor->first).getStatus())
                 ) {
                     // d.cancel() will cause cancelOrphanedDependencies() to be called again
                     // We want that anyway because cancelling one dependency might cause
@@ -283,10 +299,10 @@ std::optional<ModDownload> ModDownloadManager::startDownload(
     // being downloaded, return as you can't download multiple versions of the
     // same mod simultaneously, since that wouldn't make sense. I mean the new
     // version would just immediately override to the other one
-    if (m_impl->m_downloads.contains(id)) {
+    if (m_impl->downloads.contains(id)) {
         // If the download errored last time, then we can try again
-        if (m_impl->m_downloads.at(id).canRetry()) {
-            m_impl->m_downloads.erase(id);
+        if (m_impl->downloads.at(id).canRetry()) {
+            m_impl->downloads.erase(id);
         }
         // Otherwise return
         else return std::nullopt;
@@ -294,7 +310,7 @@ std::optional<ModDownload> ModDownloadManager::startDownload(
 
     // Start a new download by constructing a ModDownload (which starts the
     // download)
-    auto [it, _] = m_impl->m_downloads.emplace(id, ModDownload(
+    auto [it, _] = m_impl->downloads.emplace(id, ModDownload(
         id,
         std::move(version),
         std::move(dependencyFor),
@@ -303,43 +319,34 @@ std::optional<ModDownload> ModDownloadManager::startDownload(
     return it->second;
 }
 void ModDownloadManager::cancelAll() {
-    for (auto& [_, d] : m_impl->m_downloads) {
+    for (auto& [_, d] : m_impl->downloads) {
         d.cancel();
     }
 }
 void ModDownloadManager::confirmAll() {
-    for (auto& [_, d] : m_impl->m_downloads) {
+    for (auto& [_, d] : m_impl->downloads) {
         d.confirm();
     }
 }
 void ModDownloadManager::startUpdateAll() {
-    m_impl->m_updateAllTask.spawn(checkAllUpdates(), [this](auto result) {
+    m_impl->updateAllTask.spawn(checkAllUpdates(), [this](auto result) {
         if (result.isOk()) {
-            for (auto& mod : result.unwrap()) {
+            for (auto& mod : result.unwrap().updates) {
                 if (mod.hasUpdateForInstalledMod()) {
-                    if (mod.replacement.has_value()) {
-                        this->startDownload(
-                            mod.replacement.value().id,
-                            mod.replacement.value().version,
-                            std::nullopt,
-                            mod.id
-                        );
-                    } else {
-                        this->startDownload(mod.id, mod.version);
-                    }
+                    this->startDownload(mod.id, mod.version);
                 }
             }
         }
     });
 }
 void ModDownloadManager::dismissAll() {
-    std::erase_if(m_impl->m_downloads, [](auto const& d) {
+    std::erase_if(m_impl->downloads, [](auto const& d) {
         return d.second.canRetry();
     });
     ModDownloadEvent("").send();
 }
 bool ModDownloadManager::checkAutoConfirm() {
-    for (auto& [_, download] :  m_impl->m_downloads) {
+    for (auto& [_, download] :  m_impl->downloads) {
         auto status = download.getStatus();
         if (auto confirm = std::get_if<server::DownloadStatusConfirm>(&status)) {
             for (auto& inc : confirm->version.metadata.getIncompatibilities()) {
@@ -389,14 +396,14 @@ bool ModDownloadManager::checkAutoConfirm() {
 }
 
 std::vector<ModDownload> ModDownloadManager::getDownloads() const {
-    return map::values(m_impl->m_downloads);
+    return map::values(m_impl->downloads);
 }
 std::optional<ModDownload> ModDownloadManager::getDownload(std::string_view id) const {
-    auto it = m_impl->m_downloads.find(id);
-    return it != m_impl->m_downloads.end() ? std::optional<ModDownload>(it->second) : std::nullopt;
+    auto it = m_impl->downloads.find(id);
+    return it != m_impl->downloads.end() ? std::optional<ModDownload>(it->second) : std::nullopt;
 }
 bool ModDownloadManager::hasActiveDownloads() const {
-    for (auto& [_, download] : m_impl->m_downloads) {
+    for (auto& [_, download] : m_impl->downloads) {
         if (download.isActive()) {
             return true;
         }
@@ -405,12 +412,26 @@ bool ModDownloadManager::hasActiveDownloads() const {
 }
 
 bool ModDownloadManager::wantsRestart() const {
-    for (auto& [key, v] : m_impl->m_downloads) {
+    for (auto& [key, v] : m_impl->downloads) {
         if (v.isDone()) {
             return true;
         }
     }
     return false;
+}
+
+void ModDownloadManager::markRecentlyUpdated(std::string_view id) {
+    m_impl->loadRecentlyUpdated();
+    std::erase_if(m_impl->recentlyUpdated, [&id](auto const& u) { return u.modID == id; });
+    m_impl->recentlyUpdated.emplace(m_impl->recentlyUpdated.begin(), RecentlyUpdatedMod {
+        .modID = std::string(id),
+        .updateTime = asp::SystemTime::now(),
+    });
+    m_impl->saveRecentlyUpdated();
+}
+std::vector<RecentlyUpdatedMod> const& ModDownloadManager::getRecentlyUpdatedMods() {
+    m_impl->loadRecentlyUpdated();
+    return m_impl->recentlyUpdated;
 }
 
 ModDownloadManager* ModDownloadManager::get() {

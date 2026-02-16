@@ -79,6 +79,7 @@ protected:
     void onTab(CCObject* sender);
     void onOpenModsFolder(CCObject*);
     void onAddModFromFile(CCObject*);
+    void onRestartGD(CCObject*);
     void onDisplay(CCObject*);
     void onSearch(CCObject*);
     void onGoToPage(CCObject*);
@@ -93,7 +94,7 @@ public:
     static ModsLayer* create();
     static ModsLayer* scene();
 
-    static server::ServerFuture<std::vector<std::string>> checkInstalledModsForUpdates();
+    static server::ServerFuture<InstalledModsUpdateCheck> checkInstalledModsForUpdates();
 
     void gotoTab(ModListSource* src, bool searchingDev = false);
 };

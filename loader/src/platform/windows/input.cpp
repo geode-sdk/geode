@@ -34,27 +34,12 @@ struct RawInputEvent {
         MouseButton,
     } type;
 
-    // this uses the same method done by RobTop
-    static double getTimestamp() {
-        static LARGE_INTEGER freq = []{
-            LARGE_INTEGER f;
-            QueryPerformanceFrequency(&f);
-            return f;
-        }();
-
-        LARGE_INTEGER counter;
-        QueryPerformanceCounter(&counter);
-
-        // he uses LowPart for some reason?
-        return static_cast<double>(counter.LowPart) / static_cast<double>(freq.LowPart);
-    }
-
     static RawInputEvent makeKeyboard(
         bool isDown, uint16_t vk, uint16_t scan, uint16_t flags, bool isRepeat, KeyboardInputData::Modifiers mods
     ) {
         RawInputEvent evt;
         evt.type = isDown ? Type::KeyDown : Type::KeyUp;
-        evt.timestamp = getTimestamp();
+        evt.timestamp = getInputTimestamp();
         evt.keyboard.vkey = vk;
         evt.keyboard.scanCode = scan;
         evt.keyboard.flags = flags;
@@ -68,7 +53,7 @@ struct RawInputEvent {
     static RawInputEvent makeMouse(uint16_t btnFlags) {
         RawInputEvent evt;
         evt.type = Type::MouseButton;
-        evt.timestamp = getTimestamp();
+        evt.timestamp = getInputTimestamp();
         evt.mouse.flags = btnFlags;
         return evt;
     }
@@ -592,7 +577,7 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
                 1, &id,
                 &m_fMouseX,
                 &m_fMouseY,
-                RawInputEvent::getTimestamp()
+                getInputTimestamp()
             );
         }
     }

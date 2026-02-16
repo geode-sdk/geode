@@ -25,5 +25,5 @@ protected:
     virtual void updateState();
 
 public:
-    void updateDisplay(float width, ModListDisplay display);
+    virtual void updateDisplay(float width, ModListDisplay display);
 };

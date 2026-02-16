@@ -397,33 +397,16 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
     return root.ok(res);
 }
 
-Result<ServerModReplacement> ServerModReplacement::parse(matjson::Value const& raw) {
-    auto root = checkJson(raw, "ServerModReplacement");
-    auto res = ServerModReplacement();
-
-    root.needs("id").into(res.id);
-    root.needs("version").into(res.version);
-
-    return root.ok(res);
-}
-
 Result<ServerModUpdate> ServerModUpdate::parse(matjson::Value const& raw) {
     auto root = checkJson(raw, "ServerModUpdate");
-
     auto res = ServerModUpdate();
-
     root.needs("id").into(res.id);
     root.needs("version").into(res.version);
-    if (root.hasNullable("replacement")) {
-        GEODE_UNWRAP_INTO(res.replacement, ServerModReplacement::parse(root.hasNullable("replacement").json()));
-    }
-
     return root.ok(res);
 }
 
 Result<std::vector<ServerModUpdate>> ServerModUpdate::parseList(matjson::Value const& raw) {
-    auto payload = checkJson(raw, "ServerModUpdatesList");
-
+    auto payload = checkJson(raw, "ServerModUpdateList");
     std::vector<ServerModUpdate> list {};
     for (auto& item : payload.items()) {
         auto mod = ServerModUpdate::parse(item.json());
@@ -434,15 +417,58 @@ Result<std::vector<ServerModUpdate>> ServerModUpdate::parseList(matjson::Value c
             log::error("Unable to parse mod update from the server: {}", mod.unwrapErr());
         }
     }
-
     return payload.ok(list);
 }
 
-bool ServerModUpdate::hasUpdateForInstalledMod() const {
+Mod* ServerModUpdate::hasUpdateForInstalledMod() const {
     if (auto mod = Loader::get()->getInstalledMod(this->id)) {
-        return mod->getVersion() < this->version || this->replacement.has_value();
+        return mod->getVersion() < this->version ? mod : nullptr;
     }
-    return false;
+    return nullptr;
+}
+
+Result<ServerModDeprecation> ServerModDeprecation::parse(matjson::Value const& json) {
+    auto root = checkJson(json, "ServerModDeprecation");
+    auto res = ServerModDeprecation();
+    root.needs("id").into(res.id);
+    root.needs("by").into(res.by);
+    root.needs("reason").into(res.reason);
+    return root.ok(res);
+}
+Result<std::vector<ServerModDeprecation>> ServerModDeprecation::parseList(matjson::Value const& json) {
+    auto payload = checkJson(json, "ServerModDeprecationList");
+    std::vector<ServerModDeprecation> list {};
+    for (auto& item : payload.items()) {
+        auto mod = ServerModDeprecation::parse(item.json());
+        if (mod) {
+            list.push_back(mod.unwrap());
+        }
+        else {
+            log::error("Unable to parse mod deprecation from the server: {}", mod.unwrapErr());
+        }
+    }
+    return payload.ok(list);
+}
+
+Mod* ServerModDeprecation::hasDeprecationForInstalledMod() const {
+    return Loader::get()->getInstalledMod(this->id);
+}
+
+Result<ServerModUpdateAllCheck> ServerModUpdateAllCheck::parse(matjson::Value const& json) {
+    // Old v4 format just returned updates as array
+    if (json.isArray()) {
+        return Ok(ServerModUpdateAllCheck {
+            .updates = GEODE_UNWRAP(ServerModUpdate::parseList(json)),
+            .deprecations = {},
+        });
+    }
+    auto root = checkJson(json, "ServerModUpdateAllCheck");
+    auto updates = GEODE_UNWRAP(ServerModUpdate::parseList(root.needs("updates").json()));
+    auto deprecations = GEODE_UNWRAP(ServerModDeprecation::parseList(root.needs("deprecations").json()));
+    return root.ok(ServerModUpdateAllCheck {
+        .updates = updates,
+        .deprecations = deprecations,
+    });
 }
 
 Result<ServerModLinks> ServerModLinks::parse(matjson::Value const& raw) {
@@ -574,11 +600,11 @@ ModMetadata ServerModMetadata::latestVersion() const {
     return this->versions.front().metadata;
 }
 
-bool ServerModMetadata::hasUpdateForInstalledMod() const {
+Mod* ServerModMetadata::hasUpdateForInstalledMod() const {
     if (auto mod = Loader::get()->getInstalledMod(this->id)) {
-        return mod->getVersion() < this->latestVersion().getVersion();
+        return mod->getVersion() < this->latestVersion().getVersion() ? mod : nullptr;
     }
-    return false;
+    return nullptr;
 }
 
 std::string server::getServerAPIBaseURL() {
@@ -796,22 +822,24 @@ ServerFuture<std::vector<ServerTag>> server::getTags(bool useCache) {
     co_return Err(parseServerError(response));
 }
 
-ServerFuture<std::optional<ServerModUpdate>> server::checkUpdates(Mod const* mod) {
+ServerFuture<ServerModUpdateOneCheck> server::checkUpdates(Mod const* mod) {
     ARC_FRAME();
-    auto updates = ARC_CO_UNWRAP(co_await checkAllUpdates());
-
-    for (auto& update : updates) {
-        if (
-            update.id == mod->getID() &&
-            (update.version > mod->getVersion() || update.replacement.has_value())
-        ) {
-            co_return Ok(update);
+    auto all = ARC_CO_UNWRAP(co_await checkAllUpdates());
+    auto result = ServerModUpdateOneCheck {};
+    for (auto&& update : all.updates) {
+        if (update.id == mod->getID() && update.version > mod->getVersion()) {
+            result.update.emplace(std::move(update));
         }
     }
-    co_return Ok(std::nullopt);
+    for (auto&& dep : all.deprecations) {
+        if (dep.id == mod->getID()) {
+            result.deprecation.emplace(std::move(dep));
+        }
+    }
+    co_return Ok(result);
 }
 
-ServerFuture<std::vector<ServerModUpdate>> server::batchedCheckUpdates(std::vector<std::string> const& batch) {
+ServerFuture<ServerModUpdateAllCheck> server::batchedCheckUpdates(std::vector<std::string> const& batch) {
     ARC_FRAME();
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
@@ -829,7 +857,7 @@ ServerFuture<std::vector<ServerModUpdate>> server::batchedCheckUpdates(std::vect
             co_return Err(payload.unwrapErr());
         }
         // Parse response
-        auto list = ServerModUpdate::parseList(payload.unwrap());
+        auto list = ServerModUpdateAllCheck::parse(payload.unwrap());
         if (!list) {
             co_return Err(ServerError(response.code(), "Unable to parse response: {}", list.unwrapErr()));
         }
@@ -838,7 +866,7 @@ ServerFuture<std::vector<ServerModUpdate>> server::batchedCheckUpdates(std::vect
     co_return Err(parseServerError(response));
 }
 
-ServerFuture<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCache) {
+ServerFuture<ServerModUpdateAllCheck> server::checkAllUpdates(bool useCache) {
     ARC_FRAME();
     if (useCache) {
         co_return co_await getCache<checkAllUpdates>().get();
@@ -852,7 +880,7 @@ ServerFuture<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCache
     // if there's no mods, the request would just be empty anyways
     if (modIDs.empty()) {
         // you would think it could infer like literally anything
-        co_return Ok(std::vector<ServerModUpdate>{});
+        co_return Ok(ServerModUpdateAllCheck {});
     }
 
     std::vector<std::vector<std::string>> modBatches;
@@ -874,12 +902,13 @@ ServerFuture<std::vector<ServerModUpdate>> server::checkAllUpdates(bool useCache
     }
 
     // chain requests to avoid doing too many large requests at once
-    std::vector<ServerModUpdate> accum;
+    ServerModUpdateAllCheck accum;
     for (auto& batch : modBatches) {
         auto serverValues = ARC_CO_UNWRAP(co_await batchedCheckUpdates(batch));
-
-        accum.reserve(accum.size() + serverValues.size());
-        accum.insert(accum.end(), serverValues.begin(), serverValues.end());
+        accum.updates.reserve(accum.updates.size() + serverValues.updates.size());
+        accum.updates.insert(accum.updates.end(), serverValues.updates.begin(), serverValues.updates.end());
+        accum.deprecations.reserve(accum.deprecations.size() + serverValues.deprecations.size());
+        accum.deprecations.insert(accum.deprecations.end(), serverValues.deprecations.begin(), serverValues.deprecations.end());
     }
 
     co_return Ok(std::move(accum));

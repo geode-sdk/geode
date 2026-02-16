@@ -56,6 +56,8 @@ void ModListItem::updateState() {
 
     m_viewMenu->setContentHeight(40.f);
     m_viewMenu->updateLayout();
+    
+    this->updateLayout();
 }
 
 void ModListItem::updateDisplay(float width, ModListDisplay display) {
