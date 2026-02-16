@@ -1066,7 +1066,7 @@ class KeybindSettingV3::Impl final {
 public:
     std::vector<Keybind> defaultValue;
     std::vector<Keybind> value;
-    KeybindCategory category;
+    std::optional<KeybindCategory> category;
 };
 
 KeybindSettingV3::KeybindSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
@@ -1131,7 +1131,7 @@ std::vector<Keybind> const& KeybindSettingV3::getDefaultValue() const {
     return m_impl->defaultValue;
 }
 
-KeybindCategory KeybindSettingV3::getCategory() const {
+std::optional<KeybindCategory> KeybindSettingV3::getCategory() const {
     return m_impl->category;
 }
 

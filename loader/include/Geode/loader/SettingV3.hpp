@@ -550,7 +550,7 @@ namespace geode {
         bool isDefaultValue() const override;
         void reset() override;
 
-        KeybindCategory getCategory() const;
+        std::optional<KeybindCategory> getCategory() const;
     };
 
     class GEODE_DLL SettingNodeV3 : public cocos2d::CCNode {

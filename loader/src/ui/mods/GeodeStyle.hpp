@@ -65,6 +65,7 @@ ButtonSprite* createGeodeButton(ZStringView text, bool gold = false, GeodeButton
 CircleButtonSprite* createGeodeCircleButton(CCSprite* top, float scale = 1.f, CircleBaseSize size = CircleBaseSize::Medium, bool altColor = false, bool forceDisableTheme = false);
 
 ButtonSprite* createTagLabel(ZStringView text, std::pair<ccColor3B, ccColor3B> const& color);
+IconButtonSprite* createTagLabelWithIcon(CCNode* icon, ZStringView text, std::pair<ccColor3B, ccColor3B> const& color);
 ButtonSprite* createGeodeTagLabel(server::ServerTag const& tag);
 std::pair<ccColor3B, ccColor3B> geodeTagColors(server::ServerTag const& tag);
 

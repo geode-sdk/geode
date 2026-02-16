@@ -5,7 +5,6 @@
 #include <Geode/ui/MDPopup.hpp>
 #include <Geode/ui/Scrollbar.hpp>
 
-
 class SettingNodeV3::Impl final {
 public:
     std::shared_ptr<SettingV3> setting;
@@ -629,7 +628,34 @@ bool KeybindSettingNodeV3::init(std::shared_ptr<KeybindSettingV3> setting, float
         return false;
 
     m_currentValue = setting->getValue();
-    getButtonMenu()->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::End));
+    this->getButtonMenu()->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::End));
+
+    if (auto category = setting->getCategory()) {
+        const char* catName;
+        std::pair<ccColor3B, ccColor3B> catColor;
+        switch (*category) {
+            default:
+            case KeybindCategory::Editor: {
+                catName = "Editor";
+                catColor = std::make_pair(ccc3(175, 255, 251), ccc3(83, 215, 219));
+            } break;
+
+            case KeybindCategory::Gameplay: {
+                catName = "Gameplay";
+                catColor = std::make_pair(ccc3(252, 231, 201), ccc3(238, 112, 73));
+            } break;
+
+            case KeybindCategory::Universal: {
+                catName = "Universal";
+                catColor = std::make_pair(ccc3(218, 201, 253), ccc3(156, 83, 224));
+            } break;
+        }
+        auto categoryLabel = createTagLabel(catName, catColor);
+        categoryLabel->setLayoutOptions(
+            AxisLayoutOptions::create()->setScaleLimits(.1f, .35f)
+        );
+        this->getNameMenu()->addChild(categoryLabel);
+    }
 
     this->updateState(nullptr);
 
