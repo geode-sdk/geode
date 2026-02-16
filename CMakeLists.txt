@@ -256,7 +256,7 @@ endif()
 set(MAT_JSON_AS_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/result@1.4.1")
 CPMAddPackage("gh:geode-sdk/json@3.3.0")
-CPMAddPackage("gh:zhihaoy/nontype_functional#8ec2e09")
+CPMAddPackage("gh:geode-sdk/nontype_functional#a029428")
 CPMAddPackage("gh:fmtlib/fmt#12.1.0")
 
 # enable all arc features in geode, but let mods do it granularly
