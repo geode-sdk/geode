@@ -86,6 +86,7 @@ protected:
     void onRefreshList(CCObject*);
     void onTheme(CCObject*);
     void onSettings(CCObject*);
+    void onKeybinds(CCObject*);
     void onBack(CCObject*);
 
     void updateState();
@@ -95,6 +96,7 @@ public:
     static ModsLayer* scene();
 
     static server::ServerFuture<InstalledModsUpdateCheck> checkInstalledModsForUpdates();
+    static void installModFromFile();
 
     void gotoTab(ModListSource* src, bool searchingDev = false);
 };

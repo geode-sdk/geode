@@ -21,6 +21,7 @@
 #include "ui/mods/sources/ModListSource.hpp"
 #include <loader/LoaderImpl.hpp>
 #include <Geode/ui/MDPopup.hpp>
+#include "popups/KeybindsPopup.hpp"
 
 bool ModsStatusNode::init() {
     if (!CCNode::init())
@@ -280,45 +281,6 @@ void ModsStatusNode::onConfirm(CCObject*) {
 void ModsStatusNode::onCancel(CCObject*) {
     server::ModDownloadManager::get()->cancelAll();
 }
-
-void ModsLayer::onOpenModsFolder(CCObject*) {
-    file::openFolder(dirs::getModsDir());
-}
-
-void ModsLayer::onAddModFromFile(CCObject*) {
-    if (!Mod::get()->setSavedValue("shown-manual-install-info", true)) {
-        return FLAlertLayer::create(
-            nullptr,
-            "Manually Installing Mods",
-            "You can <cg>manually install mods</c> by selecting their <cd>.geode</c> files. "
-            "Do note that manually installed mods <co>are not verified to be safe and stable</c>!\n"
-            "<cr>Proceed at your own risk!</c>",
-            "OK", nullptr,
-            350
-        )->show();
-    }
-
-    async::spawn(file::pick(file::PickMode::OpenFile, file::FilePickOptions {
-        .filters = { file::FilePickOptions::Filter {
-            .description = "Geode Mods",
-            .files = { "*.geode" },
-        }}
-    }), [](Result<std::optional<std::filesystem::path>> result) {
-        if (result.isOk() && result.unwrap().has_value()) {
-            LoaderImpl::get()->installModManuallyFromFile(std::move(result).unwrap().value(), []() {
-                InstalledModListSource::get(InstalledModListType::All)->clearCache();
-            });
-        }
-        else if (!result.isOk()) {
-            FLAlertLayer::create(
-                "Unable to Select File",
-                result.unwrapErr(),
-                "OK"
-            )->show();
-        }
-    });
-}
-
 void ModsStatusNode::onRestart(CCObject*) {
     // Update button state to let user know it's restarting but it might take a bit
     m_restartBtn->setEnabled(false);
@@ -422,46 +384,21 @@ bool ModsLayer::init() {
     settingsBtn->setID("settings-button");
     actionsMenu->addChild(settingsBtn);
 
-    auto restartGDSpr = CCSprite::createWithSpriteFrameName("reload.png"_spr);
-    restartGDSpr->setColor({ 255, 215, 65 });
-    auto restartGDCircleSpr = createGeodeCircleButton(
-        restartGDSpr, 1.f,
-        CircleBaseSize::Medium
-    );
-    restartGDCircleSpr->setScale(.8f);
-    restartGDCircleSpr->setTopOffset(ccp(.5f, 0));
-    auto restartGDBtn = CCMenuItemSpriteExtra::create(
-        restartGDCircleSpr, this, menu_selector(ModsLayer::onRestartGD)
-    );
-    restartGDBtn->setID("restart-gd-button");
-    actionsMenu->addChild(restartGDBtn);
-
-    auto folderSpr = createGeodeCircleButton(
-        CCSprite::createWithSpriteFrameName("gj_folderBtn_001.png"), 1.f,
-        CircleBaseSize::Medium
-    );
-    folderSpr->setScale(0.8f);
-    auto folderBtn = CCMenuItemSpriteExtra::create(
-        folderSpr,
-        this,
-        menu_selector(ModsLayer::onOpenModsFolder)
-    );
-    folderBtn->setID("mods-folder-button");
-    actionsMenu->addChild(folderBtn);
-
-    auto addSpr = createGeodeCircleButton(
-        CCSprite::createWithSpriteFrameName("file-add.png"_spr), 1.f,
-        CircleBaseSize::Medium
-    );
-    addSpr->setScale(.8f);
-    addSpr->setTopRelativeScale(.8f);
-    auto addBtn = CCMenuItemSpriteExtra::create(
-        addSpr,
-        this,
-        menu_selector(ModsLayer::onAddModFromFile)
-    );
-    addBtn->setID("mods-add-button");
-    actionsMenu->addChild(addBtn);
+    if (Mod::get()->getSettingValue<bool>("restart-button")) {
+        auto restartGDSpr = CCSprite::createWithSpriteFrameName("reload.png"_spr);
+        restartGDSpr->setColor({ 255, 215, 65 });
+        auto restartGDCircleSpr = createGeodeCircleButton(
+            restartGDSpr, 1.f,
+            CircleBaseSize::Medium
+        );
+        restartGDCircleSpr->setScale(.8f);
+        restartGDCircleSpr->setTopOffset(ccp(.5f, 0));
+        auto restartGDBtn = CCMenuItemSpriteExtra::create(
+            restartGDCircleSpr, this, menu_selector(ModsLayer::onRestartGD)
+        );
+        restartGDBtn->setID("restart-gd-button");
+        actionsMenu->addChild(restartGDBtn);
+    }
 
     actionsMenu->setLayout(
         SimpleColumnLayout::create()
@@ -862,6 +799,9 @@ void ModsLayer::onTheme(CCObject*) {
 void ModsLayer::onSettings(CCObject*) {
     openSettingsPopup(Mod::get(), false);
 }
+void ModsLayer::onKeybinds(CCObject*) {
+    KeybindsPopup::create()->show();
+}
 void ModsLayer::onRestartGD(CCObject*) {
     createQuickPopup(
         "Restart Geometry Dash",
@@ -873,6 +813,12 @@ void ModsLayer::onRestartGD(CCObject*) {
             }
         }
     );
+}
+void ModsLayer::onOpenModsFolder(CCObject*) {
+    file::openFolder(dirs::getModsDir());
+}
+void ModsLayer::onAddModFromFile(CCObject*) {
+    ModsLayer::installModFromFile();
 }
 
 ModsLayer* ModsLayer::create() {
@@ -909,3 +855,36 @@ server::ServerFuture<InstalledModsUpdateCheck> ModsLayer::checkInstalledModsForU
     co_return Ok(std::move(updatesFound));
 }
 
+void ModsLayer::installModFromFile() {
+    if (!Mod::get()->setSavedValue("shown-manual-install-info", true)) {
+        return FLAlertLayer::create(
+            nullptr,
+            "Manually Installing Mods",
+            "You can <cg>manually install mods</c> by selecting their <cd>.geode</c> files. "
+            "Do note that manually installed mods <co>are not verified to be safe and stable</c>!\n"
+            "<cr>Proceed at your own risk!</c>",
+            "OK", nullptr,
+            350
+        )->show();
+    }
+
+    async::spawn(file::pick(file::PickMode::OpenFile, file::FilePickOptions {
+        .filters = { file::FilePickOptions::Filter {
+            .description = "Geode Mods",
+            .files = { "*.geode" },
+        }}
+    }), [](Result<std::optional<std::filesystem::path>> result) {
+        if (result.isOk() && result.unwrap().has_value()) {
+            LoaderImpl::get()->installModManuallyFromFile(std::move(result).unwrap().value(), []() {
+                InstalledModListSource::get(InstalledModListType::All)->clearCache();
+            });
+        }
+        else if (!result.isOk()) {
+            FLAlertLayer::create(
+                "Unable to Select File",
+                result.unwrapErr(),
+                "OK"
+            )->show();
+        }
+    });
+}

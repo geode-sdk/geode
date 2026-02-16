@@ -68,6 +68,9 @@
         }
     },
     "settings": {
+        "geode-settings-info": {
+            "type": "custom:settings-info"
+        },
         "auto-check-updates": {
             "type": "bool",
             "default": true,
@@ -93,8 +96,7 @@
             "description": "Make the installed mods list a single infinite scrollable list instead of having pages"
         },
         "copy-mods": {
-            "type": "custom:copy-mods",
-            "name": ""
+            "type": "custom:copy-mods"
         },
         "developer-title": {
             "type": "title",
@@ -110,6 +112,12 @@
                 "mac"
             ],
             "requires-restart": true
+        },
+        "restart-button": {
+            "type": "bool",
+            "default": false,
+            "name": "Show Restart Button",
+            "description": "Show a button in the Geode Menu to restart the game"
         },
         "console-log-level": {
             "type": "string",
