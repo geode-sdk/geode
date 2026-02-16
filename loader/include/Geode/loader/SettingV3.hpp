@@ -689,9 +689,9 @@ namespace geode {
         GEODE_DLL SettingChangedEventV3(Mod* mod, std::string settingKey);
     };
 
-    class KeybindSettingPressedEventV3 final : public GlobalEvent<KeybindSettingPressedEventV3, bool(std::string_view, std::string_view, Keybind const&, bool, bool), bool(Keybind const&, bool, bool), std::string, std::string> {
+    class KeybindSettingPressedEventV3 final : public GlobalEvent<KeybindSettingPressedEventV3, bool(std::string_view, std::string_view, Keybind const&, bool, bool, double), bool(Keybind const&, bool, bool, double), std::string, std::string> {
     public:
-        // listener params keybind, down, repeat
+        // listener params keybind, down, repeat, timestamp
         // filter params modID, settingKey
         using GlobalEvent::GlobalEvent;
         GEODE_DLL KeybindSettingPressedEventV3(Mod* mod, std::string settingKey);
@@ -799,19 +799,19 @@ namespace geode {
     }
 
     template <class Callback>
-    requires std::is_invocable_v<Callback, Keybind const&, bool, bool>
+    requires std::is_invocable_v<Callback, Keybind const&, bool, bool, double>
     ListenerHandle* listenForKeybindSettingPresses(std::string settingKey, Callback&& callback, Mod* mod = getMod()) {
         return KeybindSettingPressedEventV3(mod, std::move(settingKey)).listen(std::move(callback)).leak();
     }
 
     template <class Callback>
-    requires std::is_invocable_v<Callback, std::string_view, Keybind const&, bool, bool>
+    requires std::is_invocable_v<Callback, std::string_view, Keybind const&, bool, bool, double>
     ListenerHandle* listenForAllKeybindSettingPresses(Callback&& callback, Mod* mod = getMod()) {
-        return KeybindSettingPressedEventV3().listen([callback = std::move(callback), mod = std::move(mod)](std::string_view modID, std::string_view key, Keybind const& keybind, bool down, bool repeat) {
+        return KeybindSettingPressedEventV3().listen([callback = std::move(callback), mod = std::move(mod)](std::string_view modID, std::string_view key, Keybind const& keybind, bool down, bool repeat, double timestamp) {
             if (mod && getModID(mod) != modID) {
                 return;
             }
-            return callback(key, keybind, down, repeat);
+            return callback(key, keybind, down, repeat, timestamp);
         }).leak();
     }
 }
