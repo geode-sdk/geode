@@ -106,6 +106,24 @@ static long unwrapHttpVersion(HttpVersion version)
     unreachable("Unexpected HTTP Version!");
 }
 
+static HttpVersion wrapHttpVersion(long version) {
+    switch (version) {
+        using enum HttpVersion;
+
+        case CURL_HTTP_VERSION_1_0:
+            return VERSION_1_0;
+        case CURL_HTTP_VERSION_1_1:
+            return VERSION_1_1;
+        case CURL_HTTP_VERSION_2_0:
+            return VERSION_2_0;
+        case CURL_HTTP_VERSION_3:
+            return VERSION_3;
+    }
+
+    // Shouldn't happen.
+    unreachable("Unexpected HTTP Version!");
+}
+
 class WebResponse::Impl {
 public:
     int m_code;
@@ -698,6 +716,12 @@ public:
             }
             return size * nitems;
         }));
+
+        long version;
+
+        curl_easy_getinfo(curl, CURLINFO_HTTP_VERSION, &version);
+
+        m_httpVersion = wrapHttpVersion(version);
 
         // Track & post progress on the Promise
         // onProgress can only be not set if using sendSync without one, and hasBeenCancelled is always null in that case
