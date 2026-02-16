@@ -106,6 +106,24 @@ static long unwrapHttpVersion(HttpVersion version)
     unreachable("Unexpected HTTP Version!");
 }
 
+static HttpVersion wrapHttpVersion(long version) {
+    switch (version) {
+        using enum HttpVersion;
+
+        case CURL_HTTP_VERSION_1_0:
+            return VERSION_1_0;
+        case CURL_HTTP_VERSION_1_1:
+            return VERSION_1_1;
+        case CURL_HTTP_VERSION_2_0:
+            return VERSION_2_0;
+        case CURL_HTTP_VERSION_3:
+            return VERSION_3;
+    }
+
+    // Shouldn't happen.
+    unreachable("Unexpected HTTP Version!");
+}
+
 class WebResponse::Impl {
 public:
     int m_code;
@@ -1166,6 +1184,12 @@ public:
 
                 auto& requestData = *rdptr;
 
+                // Populate HTTPVersion with the updated info
+                long version;
+                curl_easy_getinfo(handle, CURLINFO_HTTP_VERSION, &version);
+
+                requestData.request->m_httpVersion = wrapHttpVersion(version);
+
                 // Get the response code; note that this will be invalid if the
                 // curlResponse is not CURLE_OK
                 long code = 0;
@@ -1344,8 +1368,6 @@ WebFuture::~WebFuture() {
 }
 
 std::optional<WebResponse> WebFuture::poll(arc::Context& cx) {
-    using RequestData = WebRequestsManager::RequestData;
-
     if (!m_impl->m_sent) {
         // send the actual request
         auto res = WebRequestsManager::get()->tryEnqueue(m_impl->m_request);
@@ -1361,6 +1383,7 @@ std::optional<WebResponse> WebFuture::poll(arc::Context& cx) {
     }
 
     auto result = std::move(rpoll).value();
+
     if (!result) {
         m_impl->m_finished = true;
         return m_impl->m_request->request->makeError(GeodeWebError::CHANNEL_CLOSED, "Failed to receive web response: channel closed");
