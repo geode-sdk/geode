@@ -289,7 +289,7 @@ Result<ServerDateTime> ServerDateTime::parse(std::string const& str) {
     if (ptr != str.data() + str.size()) {
         return Err("Invalid date time format '{}'", str);
     }
-    auto time = mktime(&t);
+    auto time = timegm(&t);
     return Ok(ServerDateTime {
         .value = std::chrono::system_clock::from_time_t(time)
     });
