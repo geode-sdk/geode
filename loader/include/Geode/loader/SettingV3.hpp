@@ -551,6 +551,7 @@ namespace geode {
         void reset() override;
 
         std::optional<KeybindCategory> getCategory() const;
+        std::optional<std::string> getMigrateFrom() const;
     };
 
     class GEODE_DLL SettingNodeV3 : public cocos2d::CCNode {

@@ -9,7 +9,6 @@ using namespace geode::prelude;
 // #1 no need to duplicate the built-in settings between all mods
 // #2 easier lookup of custom settings if a mod uses another mod's custom setting type
 
-
 namespace {
     auto changeToGenerator(auto function) {
         return [function = std::move(function)](
@@ -89,6 +88,88 @@ public:
     }
 };
 
+// This is used for migrating old keybind configurations from Custom Keybinds 
+// over to the new Keybind settings system
+class OldCKSaveData final {
+private:
+    matjson::Value m_data;
+
+    // Load the savedata of Custom Keybinds from disk
+    // This doesn't (and shouldn't) depend on Custom Keybinds being loaded or 
+    // even installed
+    OldCKSaveData()
+      : m_data(file::readJson(
+            dirs::getModsSaveDir() / "geode.custom-keybinds" / "saved.json"
+        ).unwrapOrDefault())
+    {}
+
+    enumKeyCodes convertWithDevice(std::string_view device, int code) {
+        switch (hash(device)) {
+            // Both of these are just enumKeyCodes turned into an integer
+            case hash("geode.custom-keybinds/controller"):
+            case hash("geode.custom-keybinds/keyboard"): {
+                return static_cast<enumKeyCodes>(code);
+            } break;
+
+            // This is a special enum in CK (with two members lol)
+            case hash("geode.custom-keybinds/mouse"): {
+                switch (code) {
+                    default:
+                    case 0: return enumKeyCodes::MOUSE_4;
+                    case 1: return enumKeyCodes::MOUSE_5;
+                }
+            } break;
+
+            // Unknown devices are theoretically possible but I don't think 
+            // anyone ever did those. Regardless, if they did, they're so rare 
+            // we can expect users to just manually migrate their bindings
+            default: return KEY_None;
+        }
+    }
+
+public:
+    static OldCKSaveData& get() {
+        static auto inst = OldCKSaveData();
+        return inst;
+    }
+
+    std::optional<std::vector<Keybind>> getOldValue(std::string_view key) {
+        if (auto value = m_data.get(key)) {
+            // Using JSON validation so the code is cleaner, we don't 
+            // really care if the parsing is succesful or not though
+            auto root = checkJson(std::move(value).unwrap(), std::string(key));
+            auto binds = root.needs("binds");
+            if (binds.isArray()) {
+                std::vector<Keybind> result;
+                for (auto& bind : binds.items()) {
+                    std::string device;
+                    bind.has("device").into(device);
+                    int code = 0;
+                    int mods = 0;
+                    bind.has("key").into(code);
+                    bind.has("modifiers").into(mods);
+                    auto key = convertWithDevice(device, code);
+                    if (key != KEY_None || mods != 0) {
+                        result.emplace_back(Keybind(
+                            key,
+                            // CK mods are in a different order :sob:
+                            static_cast<Keybind::Modifiers>(
+                                Keybind::Mods_None
+                                | ((mods & 0b0001) ? Keybind::Mods_Control : 0)
+                                | ((mods & 0b0010) ? Keybind::Mods_Shift : 0)
+                                | ((mods & 0b0100) ? Keybind::Mods_Alt : 0)
+                                | ((mods & 0b1000) ? Keybind::Mods_Super : 0)
+                            )
+                        ));
+                    }
+                }
+                return result;
+            }
+        }
+        return std::nullopt;
+    }
+};
+
 class ModSettingsManager::Impl final {
 public:
     struct SettingInfo final {
@@ -106,10 +187,10 @@ public:
     matjson::Value savedata;
     bool restartRequired = false;
 
-    void loadSettingValueFromSave(std::string const& key) {
+    bool loadSettingValueFromSave(std::string const& key) {
         if (this->savedata.contains(key) && this->settings.contains(key)) {
             auto& sett = this->settings.at(key);
-            if (!sett.v3) return;
+            if (!sett.v3) return true;
             try {
                 if (!sett.v3->load(this->savedata[key])) {
                     log::error("Unable to load setting '{}' for mod {}", key, this->modID);
@@ -119,6 +200,10 @@ public:
             catch(std::exception const& e) {
                 log::error("Unable to load setting '{}' for mod {} (JSON exception): {}", key, this->modID, e.what());
             }
+            return true;
+        }
+        else {
+            return false;
         }
     }
     void saveSettingValueToSave(std::string const& key) {
@@ -149,10 +234,21 @@ public:
             }
             if (auto v3 = (*gen)(key, modID, setting.json)) {
                 setting.v3 = v3.unwrap();
-                if (setting.type == "keybind") {
-                    keybindSettings.push_back(std::static_pointer_cast<KeybindSettingV3>(setting.v3));
+                auto kb = typeinfo_pointer_cast<KeybindSettingV3>(setting.v3);
+                if (kb) {
+                    keybindSettings.push_back(kb);
                 }
-                this->loadSettingValueFromSave(key);
+                bool didLoadFromSave = this->loadSettingValueFromSave(key);
+                // If this is a keybind setting and it hasn't yet been saved, 
+                // then try migrating it
+                if (!didLoadFromSave && kb) {
+                    if (auto migrateFrom = kb->getMigrateFrom()) {
+                        if (auto old = OldCKSaveData::get().getOldValue(*migrateFrom)) {
+                            kb->setValue(*old);
+                            log::info("Migrated keybind setting {}/{} from {}", modID, key, *migrateFrom);
+                        }
+                    }
+                }
             }
             else {
                 log::error(
@@ -188,6 +284,8 @@ ModSettingsManager::ModSettingsManager(ModMetadata const& metadata)
     m_impl->createSettings();
 
     if (!m_impl->keybindSettings.empty()) {
+        // todo: controllers
+
         KeyboardInputEvent().listen([this](KeyboardInputData& data) {
             Keybind keybind(data.key, data.modifiers);
             bool down = data.action != KeyboardInputData::Action::Release;
@@ -197,6 +295,22 @@ ModSettingsManager::ModSettingsManager(ModMetadata const& metadata)
                     KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat, data.timestamp);
                 }
             }
+        }).leak();
+
+        MouseInputEvent().listen([this](MouseInputData& data) {
+            auto key = MouseInputData::buttonToKeyCode(data.button);
+            if (key == KEY_None) {
+                return ListenerResult::Propagate;
+            }
+            // todo: modifiers in mouse inputs
+            auto keybind = Keybind(key, KeyboardInputData::Mods_None);
+            bool down = data.action == MouseInputData::Action::Press;
+            for (auto& setting : m_impl->keybindSettings) {
+                if (std::ranges::contains(setting->getValue(), keybind)) {
+                    KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, false, data.timestamp);
+                }
+            }
+            return ListenerResult::Propagate;
         }).leak();
     }
 }

@@ -1067,6 +1067,7 @@ public:
     std::vector<Keybind> defaultValue;
     std::vector<Keybind> value;
     std::optional<KeybindCategory> category;
+    std::optional<std::string> migrateFrom;
 };
 
 KeybindSettingV3::KeybindSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
@@ -1089,6 +1090,7 @@ Result<std::shared_ptr<KeybindSettingV3>> KeybindSettingV3::parse(std::string ke
             } break;
         }
     }
+    root.has("migrate-from").into(ret->m_impl->migrateFrom);
     root.checkUnknownKeys();
     return root.ok(ret);
 }
@@ -1133,6 +1135,9 @@ std::vector<Keybind> const& KeybindSettingV3::getDefaultValue() const {
 
 std::optional<KeybindCategory> KeybindSettingV3::getCategory() const {
     return m_impl->category;
+}
+std::optional<std::string> KeybindSettingV3::getMigrateFrom() const {
+    return m_impl->migrateFrom;
 }
 
 void KeybindSettingV3::setValue(std::vector<Keybind> value) {

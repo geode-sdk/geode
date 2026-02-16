@@ -8,7 +8,7 @@ static std::vector<Mod*> getModsSorted() {
 
     // Sort alphabetically
     std::ranges::sort(mods, [](Mod* a, Mod* b) {
-        return a->getName() < b->getName();
+        return a->getName() > b->getName();
     });
 
     // Move Custom Keybinds to be first because it'll have all the vanilla 

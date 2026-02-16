@@ -803,10 +803,20 @@ bool KeybindEditPopup::init(ZStringView name, Keybind const& keybind, Function<v
     bottomMenu->setLayout(RowLayout::create()->setGap(10.f));
     m_mainLayer->addChildAtPosition(bottomMenu, Anchor::Bottom, ccp(0, 25));
 
+    // todo: controllers
     this->addEventListener(KeyboardInputEvent(), [this](KeyboardInputData& data) {
         if (data.action == KeyboardInputData::Action::Press) {
             m_currentKeybind.key = data.key;
             m_currentKeybind.modifiers = data.modifiers;
+            this->updateLabel(m_currentKeybind);
+        }
+    });
+    this->addEventListener(MouseInputEvent(), [this](MouseInputData& data) {
+        auto key = MouseInputData::buttonToKeyCode(data.button);
+        if (key != KEY_None && data.action == MouseInputData::Action::Press) {
+            m_currentKeybind.key = key;
+            // todo: modifiers in mouse inputs
+            m_currentKeybind.modifiers = KeyboardInputData::Mods_None;
             this->updateLabel(m_currentKeybind);
         }
     });
