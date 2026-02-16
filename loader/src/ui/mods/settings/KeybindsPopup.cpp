@@ -14,7 +14,7 @@ static std::vector<Mod*> getModsSorted() {
     // Move Custom Keybinds to be first because it'll have all the vanilla 
     // keybinds :-)
     auto cb = std::ranges::find_if(mods, [](Mod* mod) {
-        return mod->getID() == "geode-sdk.custom-keybinds";
+        return mod->getID() == "geode.custom-keybinds";
     });
     if (cb != mods.end()) {
         std::ranges::rotate(mods, cb);
