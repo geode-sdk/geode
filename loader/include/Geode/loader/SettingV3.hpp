@@ -512,6 +512,18 @@ namespace geode {
         SettingNodeV3* createNode(float width) override;
     };
 
+    enum class KeybindCategory {
+        /// Keybinds that work everywhere, like opening a mod menu
+        Universal,
+        /// Keybinds that work when playing levels
+        Gameplay,
+        /// Keybinds that work in the editor
+        Editor,
+
+        // If your keybind doesn't fit into these categories, it will just be 
+        // listed under the mod
+    };
+
     class GEODE_DLL KeybindSettingV3 final : public SettingV3 {
     private:
         class Impl;
@@ -539,6 +551,8 @@ namespace geode {
         void setValue(std::vector<Keybind> value);
         bool isDefaultValue() const override;
         void reset() override;
+
+        KeybindCategory getCategory() const;
     };
 
     class GEODE_DLL SettingNodeV3 : public cocos2d::CCNode {
