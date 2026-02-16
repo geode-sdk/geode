@@ -423,7 +423,7 @@ bool ModsLayer::init() {
     actionsMenu->addChild(settingsBtn);
 
     auto restartGDSpr = CCSprite::createWithSpriteFrameName("reload.png"_spr);
-    restartGDSpr->setColor({ 255, 215, 65 });
+    restartGDSpr->setColor({ 235, 195, 50 });
     auto restartGDCircleSpr = createGeodeCircleButton(
         restartGDSpr, 1.f,
         CircleBaseSize::Medium
@@ -908,4 +908,5 @@ server::ServerFuture<InstalledModsUpdateCheck> ModsLayer::checkInstalledModsForU
     }
     co_return Ok(std::move(updatesFound));
 }
+
 
