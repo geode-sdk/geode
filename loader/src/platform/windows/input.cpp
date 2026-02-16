@@ -412,7 +412,8 @@ static void GLFWCharCallback(GLFWwindow* window, unsigned int c) {
 
 struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
     void pumpRawInput() {
-        if (GetForegroundWindow() != g_mainWindowHWND) {
+        bool isForeground = GetForegroundWindow() == g_mainWindowHWND;
+        if (!isForeground) {
             RawInputQueue::get().clear();
         }
 
@@ -445,7 +446,7 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
 
         // process raw input events
         RawInputEvent evt;
-        while (RawInputQueue::get().pop(evt)) {
+        while (isForeground && RawInputQueue::get().pop(evt)) {
             switch (evt.type) {
                 case RawInputEvent::Type::KeyDown:
                 case RawInputEvent::Type::KeyUp: {
