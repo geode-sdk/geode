@@ -750,8 +750,7 @@ bool KeybindEditPopup::init(ZStringView name, Keybind const& keybind, Function<v
     m_callback = std::move(callback);
     m_currentKeybind = keybind;
 
-    m_keybindLabel = CCLabelBMFont::create(keybind.toString().c_str(), "bigFont.fnt");
-    m_keybindLabel->limitLabelWidth(200.f, .8f, .1f);
+    m_keybindLabel = CCLabelBMFont::create("", "bigFont.fnt");
     m_mainLayer->addChildAtPosition(m_keybindLabel, Anchor::Center, ccp(0, 5));
 
     auto bottomMenu = CCMenu::create();
@@ -782,12 +781,24 @@ bool KeybindEditPopup::init(ZStringView name, Keybind const& keybind, Function<v
         if (data.action == KeyboardInputData::Action::Press) {
             m_currentKeybind.key = data.key;
             m_currentKeybind.modifiers = data.modifiers;
-            m_keybindLabel->setString(m_currentKeybind.toString().c_str());
-            m_keybindLabel->limitLabelWidth(200.f, .8f, .1f);
+            this->updateLabel(m_currentKeybind);
         }
     });
+    this->updateLabel(keybind);
 
     return true;
+}
+
+void KeybindEditPopup::updateLabel(Keybind const& keybind) {
+    if (keybind.key == KEY_None && keybind.modifiers == Keybind::Mods_None) {
+        m_keybindLabel->setString("Press a Key");
+        m_keybindLabel->setOpacity(150);
+    }
+    else {
+        m_keybindLabel->setString(keybind.toString().c_str());
+        m_keybindLabel->setOpacity(255);
+    }
+    m_keybindLabel->limitLabelWidth(200.f, .8f, .1f);
 }
 
 void KeybindEditPopup::onSet(CCObject*) {

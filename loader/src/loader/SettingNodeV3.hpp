@@ -333,6 +333,9 @@ protected:
     bool init(ZStringView name, Keybind const& keybind, Function<void(Keybind const&)> callback);
     void onSet(CCObject*);
     void onRemove(CCObject*);
+
+    void updateLabel(Keybind const& keybind);
+
 public:
     static KeybindEditPopup* create(ZStringView name, Keybind const& keybind, Function<void(Keybind const&)> callback);
 };
