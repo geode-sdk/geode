@@ -10,10 +10,10 @@ bool ModSettingsPopup::init(Mod* mod, bool forceDisableTheme) {
     m_mod = mod;
     for (auto key : mod->getSettingKeys()) {
         if (auto sett = mod->getSetting(key)) {
-            m_settings.push_back(sett->createNode(m_layerSize.width));
+            m_settings.push_back(sett->createNode(m_listSize.width));
         }
         else {
-            m_settings.push_back(UnresolvedCustomSettingNode::create(key, mod, m_layerSize.width));
+            m_settings.push_back(UnresolvedCustomSettingNode::create(key, mod, m_listSize.width));
         }
     }
 

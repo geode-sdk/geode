@@ -29,23 +29,24 @@ static bool matchSearch(SettingNode* node, ZStringView query) {
     return addToList;
 }
 
-bool BaseSettingsPopup::init(bool forceDisableTheme) {
+bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
     if (!GeodePopup::init(440, 280, GeodePopupStyle::Default, forceDisableTheme))
         return false;
     
     m_noElasticity = true;
 
-    m_layerSize = CCSize(346, 200);
+    const auto spacing = spacingForTabs ? 25 : 0;
+    m_listSize = CCSize(346, 200 - spacing);
 
     auto layerBG = CCLayerColor::create({ 0, 0, 0, 75 });
-    layerBG->setContentSize(m_layerSize);
+    layerBG->setContentSize(m_listSize);
     layerBG->ignoreAnchorPointForPosition(false);
-    m_mainLayer->addChildAtPosition(layerBG, Anchor::Center);
+    m_mainLayer->addChildAtPosition(layerBG, Anchor::Center, ccp(0, -spacing / 2));
 
     auto searchContainer = CCMenu::create();
-    searchContainer->setContentSize({ m_layerSize.width, 30 });
+    searchContainer->setContentSize({ m_listSize.width, 30 });
 
-    m_searchInput = TextInput::create((m_layerSize.width - 15) / .7f - 40, "Search settings...");
+    m_searchInput = TextInput::create((m_listSize.width - 15) / .7f - 40, "Search settings...");
     m_searchInput->setTextAlign(TextInputAlign::Left);
     m_searchInput->setScale(.7f);
     m_searchInput->setCallback([this](auto const&) {
@@ -65,7 +66,7 @@ bool BaseSettingsPopup::init(bool forceDisableTheme) {
 
     layerBG->addChildAtPosition(searchContainer, Anchor::Top, ccp(0, 0), ccp(.5f, 1));
 
-    m_list = ScrollLayer::create(m_layerSize - ccp(0, searchContainer->getContentHeight()));
+    m_list = ScrollLayer::create(m_listSize - ccp(0, searchContainer->getContentHeight()));
     m_list->m_contentLayer->setLayout(ScrollLayer::createDefaultListLayout(0.f));
     m_list->setTouchEnabled(true);
     m_list->moveToTop();
@@ -79,11 +80,15 @@ bool BaseSettingsPopup::init(bool forceDisableTheme) {
 
     // layer borders
 
-    m_mainLayer->addChildAtPosition(createGeodeListBorders(m_layerSize, m_forceDisableTheme), Anchor::Center);
+    m_mainLayer->addChildAtPosition(
+        createGeodeListBorders(m_listSize, m_forceDisableTheme),
+        Anchor::Center, ccp(0, -spacing / 2)
+    );
 
     auto scrollBar = Scrollbar::create(m_list);
     m_mainLayer->addChildAtPosition(
-        scrollBar, Anchor::Center, ccp(layerBG->getContentWidth() / 2 + 10, 0)
+        scrollBar, Anchor::Center,
+        ccp(layerBG->getContentWidth() / 2 + 10, -spacing / 2)
     );
 
     // buttons
@@ -174,6 +179,10 @@ void BaseSettingsPopup::onClearSearch(CCObject*) {
     m_list->moveToTop();
 }
 
+bool BaseSettingsPopup::shouldShow(SettingNode* node) const {
+    return true;
+}
+
 void BaseSettingsPopup::updateState(SettingNode* invoker) {
     auto search = m_searchInput->getString();
     auto hasSearch = !search.empty();
@@ -188,6 +197,10 @@ void BaseSettingsPopup::updateState(SettingNode* invoker) {
     TitleSettingNode* lastTitle = nullptr;
     bool bg = false;
     for (auto& sett : m_settings) {
+        if (!this->shouldShow(sett)) {
+            sett->removeFromParent();
+            continue;
+        }
         if (auto asTitle = typeinfo_cast<TitleSettingNode*>(sett.data())) {
             lastTitle = asTitle;
         }

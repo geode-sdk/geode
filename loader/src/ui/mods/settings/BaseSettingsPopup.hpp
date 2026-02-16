@@ -18,10 +18,11 @@ protected:
     TextInput* m_searchInput;
     CCMenuItemSpriteExtra* m_searchClearBtn;
     ListenerHandle m_changeHandle;
-    CCSize m_layerSize;
+    CCSize m_listSize;
 
-    bool init(bool forceDisableTheme);
+    bool init(bool forceDisableTheme, bool spacingForTabs = false);
     virtual void updateState(SettingNode* invoker = nullptr);
+    virtual bool shouldShow(SettingNode* node) const;
 
     bool hasUncommitted() const;
     void onClose(CCObject*) override;
