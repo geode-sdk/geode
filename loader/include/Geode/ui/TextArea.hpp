@@ -5,9 +5,9 @@
 #include <memory>
 #include <cocos2d.h>
 
-class SimpleTextAreaImpl;
-
 namespace geode {
+    class SimpleTextAreaImpl;
+
     enum WrappingMode {
         NO_WRAP,
         WORD_WRAP,
