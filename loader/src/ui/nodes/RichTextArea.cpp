@@ -1,4 +1,4 @@
-#include "SimpleTextAreaImpl.hpp"
+#include <Geode/ui/SimpleTextAreaImpl.hpp>
 #include <Geode/ui/RichTextArea.hpp>
 #include <regex>
 #include <fmt/chrono.h>
