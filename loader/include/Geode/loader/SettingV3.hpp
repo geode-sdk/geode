@@ -512,13 +512,13 @@ namespace geode {
         SettingNodeV3* createNode(float width) override;
     };
 
-    enum class KeybindCategory {
+    enum class KeybindCategory : uint8_t {
         /// Keybinds that work everywhere, like opening a mod menu
-        Universal,
+        Universal = 0,
         /// Keybinds that work when playing levels
-        Gameplay,
+        Gameplay = 1,
         /// Keybinds that work in the editor
-        Editor,
+        Editor = 2,
 
         // If your keybind doesn't fit into these categories, it will just be 
         // listed under the mod
