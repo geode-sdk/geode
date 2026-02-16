@@ -1,5 +1,13 @@
 # Geode Changelog
 
+## v5.0.0-beta.3
+ * Add keybind categories, and a global list of keybinds (134878e, b16c2b9, d4eb55a, 3bfe471, 9de1bf1)
+ * Add timestamp to keybind event (ff13011)
+ * Move some buttons to geode settings (403b546)
+ * Make `LogEvent` thread-safe (bd5d968)
+ * Fix `file::pickMany` on android (fc7e3bc)
+ * Fix server time parsing (#1768)
+
 ## v5.0.0-beta.2
  * Implement mod deprecations (#1748)
  * Fix web request crashes and optimize web requests by a lot (f695ecd, c76be25)
