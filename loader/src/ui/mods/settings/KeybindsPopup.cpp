@@ -49,7 +49,7 @@ bool KeybindsPopup::init(bool forceDisableTheme) {
     m_tabsMenu->ignoreAnchorPointForPosition(false);
     m_tabsMenu->setContentWidth(m_listSize.width);
 
-    for (auto tab : std::initializer_list {
+    for (auto tab : {
         std::make_tuple(KeybindsPopupTab::All, "keybinds.png"_spr, "All"),
         std::make_tuple(KeybindsPopupTab::Universal, "GJ_sMagicIcon_001.png", "Universal"),
         std::make_tuple(KeybindsPopupTab::Gameplay, "controllerBtn_DPad_Right_001.png", "Gameplay"),

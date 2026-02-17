@@ -47,6 +47,18 @@ namespace geode {
             return value == other.value;
         }
 
+        constexpr bool operator!=(KeyboardModifiers other) const {
+            return value != other.value;
+        }
+
+        constexpr bool operator==(uint8_t other) const {
+            return value == other;
+        }
+
+        constexpr bool operator!=(uint8_t other) const {
+            return value != other;
+        }
+
         uint8_t value = None;
     };
 
