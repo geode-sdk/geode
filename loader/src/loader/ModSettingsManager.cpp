@@ -1,3 +1,4 @@
+#include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/StringMap.hpp>
