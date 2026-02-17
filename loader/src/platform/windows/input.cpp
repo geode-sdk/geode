@@ -1,6 +1,7 @@
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDelegate.h>
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDispatcher.h>
+#include <Geode/modify/CCApplication.hpp>
 #include <Geode/modify/CCEGLView.hpp>
 #include <Geode/utils/Keyboard.hpp>
 
@@ -606,5 +607,162 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
 
         // window is created on a different thread, so it needs time to initialize
         queueInMainThread([]{ attemptHookRawInput(); });
+    }
+};
+
+struct GeodeControllerInput : Modify<GeodeControllerInput, CCApplication> {
+    void updateControllerKeys(CXBOXController* controller, int userIndex) {
+        if (!controller) return;
+
+        auto timestamp = getInputTimestamp();
+        if (XInputGetState(controller->m_userIndex, &controller->m_xinputState) != ERROR_SUCCESS) {
+            return;
+        }
+
+        XINPUT_STATE state = controller->m_xinputState;
+        auto* dispatcher = CCKeyboardDispatcher::get();
+
+        int player2Offset = userIndex > 1 ? 1 : 0;
+
+        auto dispatchAction = [&](enumKeyCodes keyCode, bool isDown) {
+            KeyboardInputData data(
+                static_cast<enumKeyCodes>(static_cast<int>(keyCode) + player2Offset),
+                isDown ? KeyboardInputData::Action::Press : KeyboardInputData::Action::Release,
+                {},
+                timestamp,
+                KeyboardInputData::Mods_None
+            );
+
+            if (KeyboardInputEvent(data.key).send(data) == ListenerResult::Stop) {
+                return;
+            }
+
+            dispatcher->dispatchKeyboardMSG(
+                data.key,
+                data.action != KeyboardInputData::Action::Release,
+                data.action == KeyboardInputData::Action::Repeat,
+                data.timestamp
+            );
+        };
+
+        auto handleButton = [&](uint16_t btnMask, enumKeyCodes keyCode, bool& stateVar) {
+            auto isDown = (state.Gamepad.wButtons & btnMask) != 0;
+            if (isDown != stateVar) {
+                stateVar = isDown;
+                dispatchAction(keyCode, isDown);
+            }
+        };
+
+        auto handleTrigger = [&](uint8_t triggerValue, enumKeyCodes keyCode, bool& stateVar) {
+            bool isDown = triggerValue > XINPUT_GAMEPAD_TRIGGER_THRESHOLD;
+            if (isDown != stateVar) {
+                stateVar = isDown;
+                dispatchAction(keyCode, isDown);
+            }
+        };
+
+        auto isADown = (state.Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0;
+        if (isADown != controller->m_buttonA) {
+            controller->m_buttonA = isADown;
+
+            KeyboardInputData data(
+                static_cast<enumKeyCodes>(static_cast<int>(CONTROLLER_A) + player2Offset),
+                isADown ? KeyboardInputData::Action::Press : KeyboardInputData::Action::Release,
+                {},
+                timestamp,
+                KeyboardInputData::Mods_None
+            );
+
+            if (KeyboardInputEvent(data.key).send(data) == ListenerResult::Propagate) {
+                // A button simulates a mouse click
+                auto eglView = CCEGLView::get();
+                if (m_bMouseControl && !eglView->m_bShouldHideCursor && !eglView->m_bCursorLocked) {
+                    INPUT input{};
+                    if (isADown) {
+                        eglView->capture();
+                        input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+                    } else {
+                        eglView->releaseCapture();
+                        input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
+                    }
+                    SendInput(1, &input, sizeof(input));
+                }
+
+                dispatcher->dispatchKeyboardMSG(
+                    data.key,
+                    data.action != KeyboardInputData::Action::Release,
+                    data.action == KeyboardInputData::Action::Repeat,
+                    data.timestamp
+                );
+            }
+        }
+
+        handleButton(XINPUT_GAMEPAD_B, CONTROLLER_B, controller->m_buttonB);
+        handleButton(XINPUT_GAMEPAD_X, CONTROLLER_X, controller->m_buttonX);
+        handleButton(XINPUT_GAMEPAD_Y, CONTROLLER_Y, controller->m_buttonY);
+        handleButton(XINPUT_GAMEPAD_LEFT_SHOULDER, CONTROLLER_LB, controller->m_lb);
+        handleButton(XINPUT_GAMEPAD_RIGHT_SHOULDER, CONTROLLER_RB, controller->m_rb);
+
+        handleTrigger(controller->m_xinputState.Gamepad.bLeftTrigger, CONTROLLER_LT, controller->m_lt);
+        handleTrigger(controller->m_xinputState.Gamepad.bRightTrigger, CONTROLLER_RT, controller->m_rt);
+
+        handleButton(XINPUT_GAMEPAD_START, CONTROLLER_Start, controller->m_start);
+
+        // back button triggers CCKeypadDispatcher message
+        bool isBackDown = (state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) != 0;
+        if (isBackDown != controller->m_back) {
+            controller->m_back = isBackDown;
+            KeyboardInputData data(
+                static_cast<enumKeyCodes>(static_cast<int>(CONTROLLER_Back) + player2Offset),
+                isBackDown ? KeyboardInputData::Action::Press : KeyboardInputData::Action::Release,
+                {},
+                timestamp,
+                KeyboardInputData::Mods_None
+            );
+
+            if (KeyboardInputEvent(data.key).send(data) == ListenerResult::Propagate) {
+                if (data.action != KeyboardInputData::Action::Release) {
+                    CCDirector::get()->getKeypadDispatcher()->dispatchKeypadMSG(kTypeBackClicked);
+                }
+            }
+        }
+
+        handleButton(XINPUT_GAMEPAD_DPAD_UP, CONTROLLER_Up, controller->m_dpadUp);
+        handleButton(XINPUT_GAMEPAD_DPAD_DOWN, CONTROLLER_Down, controller->m_dpadDown);
+        handleButton(XINPUT_GAMEPAD_DPAD_LEFT, CONTROLLER_Left, controller->m_dpadLeft);
+        handleButton(XINPUT_GAMEPAD_DPAD_RIGHT, CONTROLLER_Right, controller->m_dpadRight);
+
+        auto processAxis = [](SHORT value) {
+            constexpr float DEADZONE = XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE; // robtop uses the same deadzone for both sticks
+            float fValue = value;
+            if (fabs(fValue) <= DEADZONE) return 0.f;
+            float adjusted = fValue > 0 ? fValue - DEADZONE : fValue + DEADZONE;
+            return adjusted / (std::numeric_limits<int16_t>::max() - DEADZONE);
+        };
+
+        float leftX = processAxis(state.Gamepad.sThumbLX);
+        float leftY = -processAxis(state.Gamepad.sThumbLY);
+        m_obLeftThumb = CCPoint{ leftX, leftY } * 10.f;
+
+        auto handleStickMove = [&](bool condition, enumKeyCodes keyCode, bool& stateVar) {
+            if (condition != stateVar) {
+                stateVar = condition;
+                dispatchAction(keyCode, condition);
+            }
+        };
+
+        handleStickMove(leftX <= -0.2f, CONTROLLER_LTHUMBSTICK_LEFT, controller->m_leftThumbLeft);
+        handleStickMove(leftX >= 0.2f, CONTROLLER_LTHUMBSTICK_RIGHT, controller->m_leftThumbRight);
+        handleStickMove(leftY <= -0.2f, CONTROLLER_LTHUMBSTICK_UP, controller->m_leftThumbUp);
+        handleStickMove(leftY >= 0.2f, CONTROLLER_LTHUMBSTICK_DOWN, controller->m_leftThumbDown);
+
+        float rightX = processAxis(state.Gamepad.sThumbRX);
+        float rightY = -processAxis(state.Gamepad.sThumbRY);
+        m_obRightThumb = CCPoint{ rightX, rightY } * 10.f;
+
+        handleStickMove(rightX <= -0.2f, CONTROLLER_RTHUMBSTICK_LEFT, controller->m_rightThumbLeft);
+        handleStickMove(rightX >= 0.2f, CONTROLLER_RTHUMBSTICK_RIGHT, controller->m_rightThumbRight);
+        handleStickMove(rightY <= -0.2f, CONTROLLER_RTHUMBSTICK_UP, controller->m_rightThumbUp);
+        handleStickMove(rightY >= 0.2f, CONTROLLER_RTHUMBSTICK_DOWN, controller->m_rightThumbDown);
     }
 };
