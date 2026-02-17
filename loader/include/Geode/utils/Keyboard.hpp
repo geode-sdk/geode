@@ -4,20 +4,57 @@
 #include <matjson.hpp>
 
 namespace geode {
+    struct KeyboardModifiers {
+        enum : uint8_t {
+            None    = 0,
+
+            Shift   = 1 << 0,
+            Control = 1 << 1,
+            Alt     = 1 << 2,
+            Super   = 1 << 3,
+        };
+
+        constexpr KeyboardModifiers() = default;
+        constexpr KeyboardModifiers(uint8_t value) : value(value) {}
+
+        constexpr operator uint8_t() const { return value; }
+        constexpr operator int() const { return value; }
+        constexpr operator bool() const { return value != None; }
+
+        constexpr KeyboardModifiers operator&(uint8_t other) const {
+            return KeyboardModifiers(value & other);
+        }
+
+        constexpr KeyboardModifiers operator|(uint8_t other) const {
+            return KeyboardModifiers(value | other);
+        }
+
+        constexpr KeyboardModifiers operator~() const {
+            return KeyboardModifiers(~value);
+        }
+
+        constexpr KeyboardModifiers& operator|=(uint8_t other) {
+            value |= other;
+            return *this;
+        }
+
+        constexpr KeyboardModifiers& operator&=(uint8_t other) {
+            value &= other;
+            return *this;
+        }
+
+        constexpr bool operator==(KeyboardModifiers other) const {
+            return value == other.value;
+        }
+
+        uint8_t value = None;
+    };
+
     struct KeyboardInputData final {
         enum class Action : uint8_t {
             Press,
             Release,
             Repeat,
-        };
-
-        enum Modifiers : uint8_t {
-            Mods_None    = 0,
-
-            Mods_Shift   = 1 << 0,
-            Mods_Control = 1 << 1,
-            Mods_Alt     = 1 << 2,
-            Mods_Super   = 1 << 3,
         };
 
         struct Native final {
@@ -29,37 +66,15 @@ namespace geode {
         double timestamp;
         cocos2d::enumKeyCodes key;
         Action action;
-        Modifiers modifiers = Mods_None;
+        KeyboardModifiers modifiers = KeyboardModifiers::None;
 
-        KeyboardInputData(cocos2d::enumKeyCodes key, Action action, Native native, double timestamp, Modifiers mods) noexcept
+        KeyboardInputData(cocos2d::enumKeyCodes key, Action action, Native native, double timestamp, KeyboardModifiers mods) noexcept
             : native(native), timestamp(timestamp), key(key), action(action), modifiers(mods) {}
     };
 
     struct KeyboardInputEvent final : GlobalEvent<KeyboardInputEvent, bool(KeyboardInputData&), cocos2d::enumKeyCodes> {
         using GlobalEvent::GlobalEvent;
     };
-
-    constexpr KeyboardInputData::Modifiers operator|(KeyboardInputData::Modifiers a, KeyboardInputData::Modifiers b) {
-        return static_cast<KeyboardInputData::Modifiers>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
-    }
-
-    constexpr KeyboardInputData::Modifiers operator&(KeyboardInputData::Modifiers a, KeyboardInputData::Modifiers b) {
-        return static_cast<KeyboardInputData::Modifiers>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
-    }
-
-    constexpr KeyboardInputData::Modifiers& operator|=(KeyboardInputData::Modifiers& a, KeyboardInputData::Modifiers b) {
-        a = a | b;
-        return a;
-    }
-
-    constexpr KeyboardInputData::Modifiers& operator&=(KeyboardInputData::Modifiers& a, KeyboardInputData::Modifiers b) {
-        a = a & b;
-        return a;
-    }
-
-    constexpr KeyboardInputData::Modifiers operator~(KeyboardInputData::Modifiers a) {
-        return static_cast<KeyboardInputData::Modifiers>(~static_cast<uint8_t>(a));
-    }
 
     struct MouseInputData final {
         enum class Action {
@@ -78,6 +93,7 @@ namespace geode {
         Button button;
         Action action;
         double timestamp;
+        KeyboardModifiers modifiers = KeyboardModifiers::None;
 
         // having this here is incredibly silly but oh well
         inline static cocos2d::enumKeyCodes buttonToKeyCode(Button button) {
@@ -93,8 +109,8 @@ namespace geode {
             }
         }
 
-        MouseInputData(Button button, Action action, double timestamp) noexcept
-            : button(button), action(action), timestamp(timestamp) {}
+        MouseInputData(Button button, Action action, double timestamp, KeyboardModifiers mods) noexcept
+            : timestamp(timestamp), button(button), action(action), modifiers(mods) {}
     };
 
     struct MouseInputEvent final : Event<MouseInputEvent, bool(MouseInputData&)> {
@@ -110,13 +126,13 @@ namespace geode {
     };
 
     struct Keybind final {
-        using Modifiers = KeyboardInputData::Modifiers;
+        using Modifiers = KeyboardModifiers;
 
-        static constexpr Modifiers Mods_None = Modifiers::Mods_None;
-        static constexpr Modifiers Mods_Shift = Modifiers::Mods_Shift;
-        static constexpr Modifiers Mods_Control = Modifiers::Mods_Control;
-        static constexpr Modifiers Mods_Alt = Modifiers::Mods_Alt;
-        static constexpr Modifiers Mods_Super = Modifiers::Mods_Super;
+        static constexpr Modifiers Mods_None = Modifiers::None;
+        static constexpr Modifiers Mods_Shift = Modifiers::Shift;
+        static constexpr Modifiers Mods_Control = Modifiers::Control;
+        static constexpr Modifiers Mods_Alt = Modifiers::Alt;
+        static constexpr Modifiers Mods_Super = Modifiers::Super;
 
         cocos2d::enumKeyCodes key = cocos2d::KEY_None;
         Modifiers modifiers = Mods_None;
@@ -124,7 +140,7 @@ namespace geode {
         Keybind() = default;
         Keybind(cocos2d::enumKeyCodes key, Modifiers modifiers) noexcept
             : key(key), modifiers(modifiers) {}
-        
+
         static GEODE_DLL Result<Keybind> fromString(std::string_view str);
         GEODE_DLL std::string toString() const;
         GEODE_DLL cocos2d::CCNode* createNode() const;

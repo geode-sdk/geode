@@ -228,6 +228,26 @@ enumKeyCodes getKeyCode(NSEvent* event) {
     }
 }
 
+static KeyboardModifiers extractModifiersFromNSEvent(NSEvent* event) {
+    NSEventModifierFlags flags = [event modifierFlags];
+    KeyboardModifiers modifiers = KeyboardModifiers::None;
+
+    if ((flags & NSEventModifierFlagShift) != 0) {
+        modifiers |= KeyboardModifiers::Shift;
+    }
+    if ((flags & NSEventModifierFlagControl) != 0) {
+        modifiers |= KeyboardModifiers::Control;
+    }
+    if ((flags & NSEventModifierFlagOption) != 0) {
+        modifiers |= KeyboardModifiers::Alt;
+    }
+    if ((flags & NSEventModifierFlagCommand) != 0) {
+        modifiers |= KeyboardModifiers::Super;
+    }
+
+    return modifiers;
+}
+
 void keyDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     unichar nativeCode = [event keyCode];
     enumKeyCodes keyCode = getKeyCode(event);
@@ -236,21 +256,8 @@ void keyDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     double timestamp = [event timestamp];
     bool isRepeat = [event isARepeat];
     bool isDown = true;
-    NSEventModifierFlags flags = [event modifierFlags];
 
-    KeyboardInputData::Modifiers modifiers = KeyboardInputData::Mods_None;
-    if ((flags & NSEventModifierFlagShift) != 0) {
-        modifiers |= KeyboardInputData::Mods_Shift;
-    }
-    if ((flags & NSEventModifierFlagControl) != 0) {
-        modifiers |= KeyboardInputData::Mods_Control;
-    }
-    if ((flags & NSEventModifierFlagOption) != 0) {
-        modifiers |= KeyboardInputData::Mods_Alt;
-    }
-    if ((flags & NSEventModifierFlagCommand) != 0) {
-        modifiers |= KeyboardInputData::Mods_Super;
-    }
+    KeyboardModifiers modifiers = extractModifiersFromNSEvent(event);
 
     KeyboardInputData data(
         keyCode, isRepeat ? KeyboardInputData::Action::Repeat : KeyboardInputData::Action::Press,
@@ -271,10 +278,10 @@ void keyDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     }
 
     keyboardDispatcher->updateModifierKeys(
-        modifiers & KeyboardInputData::Mods_Shift,
-        modifiers & KeyboardInputData::Mods_Control,
-        modifiers & KeyboardInputData::Mods_Alt,
-        modifiers & KeyboardInputData::Mods_Super
+        modifiers & KeyboardModifiers::Shift,
+        modifiers & KeyboardModifiers::Control,
+        modifiers & KeyboardModifiers::Alt,
+        modifiers & KeyboardModifiers::Super
     );
 
     NSString* characters = [event charactersIgnoringModifiers];
@@ -283,7 +290,7 @@ void keyDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
         if (character == NSDeleteFunctionKey || character == 0x7f) {
             imeDispatcher->dispatchDeleteBackward();
         }
-        else if (keyCode == KEY_V && (modifiers & KeyboardInputData::Mods_Super) != KeyboardInputData::Mods_None) {
+        else if (keyCode == KEY_V && (modifiers & KeyboardModifiers::Super) != KeyboardModifiers::None) {
             NSString* str = [[NSPasteboard generalPasteboard] stringForType:NSPasteboardTypeString];
             if (![str isEqualToString:NSPasteboardTypeString]) {
                 for (size_t i = 0; i < [str length]; i++) {
@@ -307,21 +314,8 @@ void keyUpExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     double timestamp = [event timestamp];
     bool isRepeat = false;
     bool isDown = false;
-    NSEventModifierFlags flags = [event modifierFlags];
 
-    KeyboardInputData::Modifiers modifiers = KeyboardInputData::Mods_None;
-    if ((flags & NSEventModifierFlagShift) != 0) {
-        modifiers |= KeyboardInputData::Mods_Shift;
-    }
-    if ((flags & NSEventModifierFlagControl) != 0) {
-        modifiers |= KeyboardInputData::Mods_Control;
-    }
-    if ((flags & NSEventModifierFlagOption) != 0) {
-        modifiers |= KeyboardInputData::Mods_Alt;
-    }
-    if ((flags & NSEventModifierFlagCommand) != 0) {
-        modifiers |= KeyboardInputData::Mods_Super;
-    }
+    KeyboardModifiers modifiers = extractModifiersFromNSEvent(event);
 
     KeyboardInputData data(
         keyCode, KeyboardInputData::Action::Release,
@@ -342,20 +336,22 @@ void keyUpExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     }
 
     keyboardDispatcher->updateModifierKeys(
-        modifiers & KeyboardInputData::Mods_Shift,
-        modifiers & KeyboardInputData::Mods_Control,
-        modifiers & KeyboardInputData::Mods_Alt,
-        modifiers & KeyboardInputData::Mods_Super
+        modifiers & KeyboardModifiers::Shift,
+        modifiers & KeyboardModifiers::Control,
+        modifiers & KeyboardModifiers::Alt,
+        modifiers & KeyboardModifiers::Super
     );
 }
 
 void mouseDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     double timestamp = [event timestamp];
+    KeyboardModifiers modifiers = extractModifiersFromNSEvent(event);
 
     MouseInputData data(
         MouseInputData::Button::Left,
         MouseInputData::Action::Press,
-        timestamp
+        timestamp,
+        modifiers
     );
 
     if (MouseInputEvent().send(data) != ListenerResult::Propagate) return;
@@ -391,11 +387,13 @@ void mouseDraggedExecHook(EAGLView* self, SEL sel, NSEvent* event) {
 
 void mouseUpExecHook(EAGLView* self, SEL sel, NSEvent* event) {
     double timestamp = [event timestamp];
+    KeyboardModifiers modifiers = extractModifiersFromNSEvent(event);
 
     MouseInputData data(
         MouseInputData::Button::Left,
         MouseInputData::Action::Release,
-        timestamp
+        timestamp,
+        modifiers
     );
 
     if (MouseInputEvent().send(data) != ListenerResult::Propagate) return;
@@ -416,10 +414,13 @@ void mouseUpExecHook(EAGLView* self, SEL sel, NSEvent* event) {
 }
 
 void rightMouseDownHook(EAGLView* self, SEL sel, NSEvent* event) {
+    KeyboardModifiers modifiers = extractModifiersFromNSEvent(event);
+
     MouseInputData data(
         MouseInputData::Button::Right,
         MouseInputData::Action::Press,
-        [event timestamp]
+        [event timestamp],
+        modifiers
     );
 
     if (MouseInputEvent().send(data) != ListenerResult::Propagate) return;
@@ -435,10 +436,13 @@ void rightMouseDraggedHook(EAGLView* self, SEL sel, NSEvent* event) {
 }
 
 void rightMouseUpHook(EAGLView* self, SEL sel, NSEvent* event) {
+    KeyboardModifiers modifiers = extractModifiersFromNSEvent(event);
+
     MouseInputData data(
         MouseInputData::Button::Right,
         MouseInputData::Action::Release,
-        [event timestamp]
+        [event timestamp],
+        modifiers
     );
 
     if (MouseInputEvent().send(data) != ListenerResult::Propagate) return;
@@ -447,10 +451,13 @@ void rightMouseUpHook(EAGLView* self, SEL sel, NSEvent* event) {
 }
 
 void otherMouseDownHook(EAGLView* self, SEL sel, NSEvent* event) {
+    KeyboardModifiers modifiers = extractModifiersFromNSEvent(event);
+
     MouseInputData data(
         static_cast<MouseInputData::Button>([event buttonNumber]),
         MouseInputData::Action::Press,
-        [event timestamp]
+        [event timestamp],
+        modifiers
     );
 
     if (MouseInputEvent().send(data) != ListenerResult::Propagate) return;
@@ -466,10 +473,13 @@ void otherMouseDraggedHook(EAGLView* self, SEL sel, NSEvent* event) {
 }
 
 void otherMouseUpHook(EAGLView* self, SEL sel, NSEvent* event) {
+    KeyboardModifiers modifiers = extractModifiersFromNSEvent(event);
+
     MouseInputData data(
         static_cast<MouseInputData::Button>([event buttonNumber]),
         MouseInputData::Action::Release,
-        [event timestamp]
+        [event timestamp],
+        modifiers
     );
 
     if (MouseInputEvent().send(data) != ListenerResult::Propagate) return;

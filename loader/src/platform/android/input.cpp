@@ -155,9 +155,9 @@ namespace {
                 isRepeat ? KeyboardInputData::Action::Repeat : KeyboardInputData::Action::Press,
                 { static_cast<uint64_t>(keycode), 0 },
                 timestamp,
-                (isShiftPressed ? KeyboardInputData::Mods_Shift : KeyboardInputData::Mods_None) |
-                (isCtrlPressed ? KeyboardInputData::Mods_Control : KeyboardInputData::Mods_None) |
-                (isAltPressed ? KeyboardInputData::Mods_Alt : KeyboardInputData::Mods_None)
+                (isShiftPressed ? KeyboardModifiers::Shift : KeyboardModifiers::None) |
+                (isCtrlPressed ? KeyboardModifiers::Control : KeyboardModifiers::None) |
+                (isAltPressed ? KeyboardModifiers::Alt : KeyboardModifiers::None)
             );
 
             if (KeyboardInputEvent(translated_code).send(data) != ListenerResult::Propagate) {
@@ -165,9 +165,9 @@ namespace {
             }
 
             keyboard_dispatcher->updateModifierKeys(
-                data.modifiers & KeyboardInputData::Mods_Shift,
-                data.modifiers & KeyboardInputData::Mods_Control,
-                data.modifiers & KeyboardInputData::Mods_Alt,
+                data.modifiers & KeyboardModifiers::Shift,
+                data.modifiers & KeyboardModifiers::Control,
+                data.modifiers & KeyboardModifiers::Alt,
                 false
             );
 
@@ -202,9 +202,9 @@ namespace {
                 KeyboardInputData::Action::Release,
                 { static_cast<uint64_t>(keycode), 0 },
                 timestamp,
-                (isShiftPressed ? KeyboardInputData::Mods_Shift : KeyboardInputData::Mods_None) |
-                (isCtrlPressed ? KeyboardInputData::Mods_Control : KeyboardInputData::Mods_None) |
-                (isAltPressed ? KeyboardInputData::Mods_Alt : KeyboardInputData::Mods_None)
+                (isShiftPressed ? KeyboardModifiers::Shift : KeyboardModifiers::None) |
+                (isCtrlPressed ? KeyboardModifiers::Control : KeyboardModifiers::None) |
+                (isAltPressed ? KeyboardModifiers::Alt : KeyboardModifiers::None)
             );
 
             if (KeyboardInputEvent(translated_code).send(data) != ListenerResult::Propagate) {
@@ -212,9 +212,9 @@ namespace {
             }
 
             keyboard_dispatcher->updateModifierKeys(
-                data.modifiers & KeyboardInputData::Mods_Shift,
-                data.modifiers & KeyboardInputData::Mods_Control,
-                data.modifiers & KeyboardInputData::Mods_Alt,
+                data.modifiers & KeyboardModifiers::Shift,
+                data.modifiers & KeyboardModifiers::Control,
+                data.modifiers & KeyboardModifiers::Alt,
                 false
             );
 
