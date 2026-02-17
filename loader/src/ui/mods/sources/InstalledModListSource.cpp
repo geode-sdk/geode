@@ -241,7 +241,7 @@ InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t pa
     }
     */
     for (auto& mod : Loader::get()->getAllMods()) {
-        content.mods.push_back(ModSource(mod));
+        content.mods.push_back(ModSource(mod, this));
     }
     // If we're only checking mods that have updates, we first have to run
     // update checks every mod...
@@ -296,7 +296,7 @@ void InstalledModListSource::setModTags(std::unordered_set<std::string> const& t
 std::vector<std::pair<size_t, std::string>> InstalledModListSource::getSortingOptions() {
     return {
         { static_cast<size_t>(InstalledModListSort::Alphabetical), "A-Z" },
-        { static_cast<size_t>(InstalledModListSort::RecentlyUpdated), "Recently Updated" },
+        { static_cast<size_t>(InstalledModListSort::RecentlyUpdated), "Recently Installed" },
     };
 }
 size_t InstalledModListSource::getSort() const {

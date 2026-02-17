@@ -225,29 +225,6 @@ const char* server::sortToString(ModsSort sorting) {
     }
 }
 
-std::string ServerDateTime::toAgoString() const {
-    auto const fmtPlural = [](auto count, auto unit) {
-        if (count == 1) {
-            return fmt::format("{} {} ago", count, unit);
-        }
-        return fmt::format("{} {}s ago", count, unit);
-    };
-    auto now = Clock::now();
-    auto len = std::chrono::duration_cast<std::chrono::minutes>(now - value).count();
-    if (len < 60) {
-        return fmtPlural(len, "minute");
-    }
-    len = std::chrono::duration_cast<std::chrono::hours>(now - value).count();
-    if (len < 24) {
-        return fmtPlural(len, "hour");
-    }
-    len = std::chrono::duration_cast<std::chrono::days>(now - value).count();
-    if (len < 31) {
-        return fmtPlural(len, "day");
-    }
-    return fmt::format("{:%b %d %Y}", value);
-}
-
 Result<ServerTag> ServerTag::parse(matjson::Value raw) {
     auto root = checkJson(std::move(raw), "ServerTag");
     auto res = ServerTag();

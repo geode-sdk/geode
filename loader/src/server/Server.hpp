@@ -18,8 +18,6 @@ namespace server {
 
         Value value;
 
-        std::string toAgoString() const;
-
         static Result<ServerDateTime> parse(std::string const& str);
     };
 

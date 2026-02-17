@@ -10,13 +10,14 @@
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/loader/Event.hpp>
 #include <Geode/loader/Loader.hpp>
-#include "Geode/ui/NineSlice.hpp"
-#include "Geode/ui/MDPopup.hpp"
-#include "server/DownloadManager.hpp"
-#include "ui/mods/GeodeStyle.hpp"
-#include "ui/mods/popups/ModPopup.hpp"
-#include "ui/mods/popups/DevPopup.hpp"
-#include "ui/mods/sources/ModSource.hpp"
+#include <Geode/ui/NineSlice.hpp>
+#include <Geode/ui/MDPopup.hpp>
+#include <server/DownloadManager.hpp>
+#include <ui/mods/GeodeStyle.hpp>
+#include <ui/mods/popups/ModPopup.hpp>
+#include <ui/mods/popups/DevPopup.hpp>
+#include <ui/mods/sources/ModSource.hpp>
+#include <ui/mods/sources/ModListSource.hpp>
 
 bool ModItem::init(ModSource&& source) {
     if (!ModListItem::init())
@@ -243,6 +244,36 @@ bool ModItem::init(ModSource&& source) {
                 this->updateState();
                 return ListenerResult::Propagate;
             });
+
+            auto updatedAt = server::ModDownloadManager::get()->getRecentlyUpdatedInfo(mod->getID());
+            if (updatedAt) {
+                m_updatedAtContainer = CCNode::create();
+
+                auto installedLabel = CCLabelBMFont::create(
+                    utils::timeToAgoString(updatedAt->updateTime, true).c_str(),
+                    "bigFont.fnt"
+                );
+                installedLabel->setID("installed-ago-label");
+                installedLabel->limitLabelWidth(125, 1.f, .1f);
+                m_updatedAtContainer->addChildAtPosition(installedLabel, Anchor::Right, ccp(-0, 0), ccp(1, .5f));
+
+                auto installedIcon = CCSprite::createWithSpriteFrameName("GJ_timeIcon_001.png");
+                installedIcon->setID("installed-ago-sprite");
+                installedIcon->setScale(1.2f);
+                m_updatedAtContainer->addChildAtPosition(installedIcon, Anchor::Left, ccp(8, 0));
+
+                // m_updatedAtContainer scale is controlled in updateState
+                m_updatedAtContainer->setContentSize({
+                    installedLabel->getScaledContentWidth() + installedIcon->getScaledContentWidth(),
+                    30
+                });
+                m_updatedAtContainer->updateLayout();
+                m_updatedAtContainer->setLayoutOptions(
+                    SimpleAxisLayoutOptions::create()
+                        ->setMinRelativeScale(.1f)
+                        ->setMaxRelativeScale(1.f)
+                );
+            }
         },
         [this](server::ServerModMetadata const& metadata) {
             // todo: there has to be a better way to deal with the short/long alternatives
@@ -292,7 +323,10 @@ bool ModItem::init(ModSource&& source) {
             // on which mods to install
             m_downloadCountContainer = CCNode::create();
 
-            auto downloads = CCLabelBMFont::create(numToAbbreviatedString(metadata.downloadCount).c_str(), "bigFont.fnt");
+            auto downloads = CCLabelBMFont::create(
+                numToAbbreviatedString(metadata.downloadCount).c_str(),
+                "bigFont.fnt"
+            );
             downloads->setID("downloads-label");
             downloads->setColor("mod-list-version-label"_cc3b);
             downloads->limitLabelWidth(125, 1.f, .1f);
@@ -309,6 +343,11 @@ bool ModItem::init(ModSource&& source) {
                 30
             });
             m_downloadCountContainer->updateLayout();
+            m_downloadCountContainer->setLayoutOptions(
+                SimpleAxisLayoutOptions::create()
+                    ->setMinRelativeScale(.1f)
+                    ->setMaxRelativeScale(1.f)
+            );
 
             // Check if mod is recommended by any others, only if not installed
             // todo: bring this back once we add "suggestions" field in mod
@@ -410,27 +449,39 @@ void ModItem::updateState() {
     }
 
     // Show download separator if there is something to separate and we're in grid view
-    m_versionDownloadSeparator->setVisible(m_downloadCountContainer && m_display == ModListDisplay::Grid);
+    m_versionDownloadSeparator->setVisible(false);
 
     // Download counts go next to the version like on the website on grid view
     if (m_downloadCountContainer) {
-        m_downloadCountContainer->setScale(0.6f);
+        m_downloadCountContainer->setScale(.6f);
         m_downloadCountContainer->removeFromParent();
         if (m_display == ModListDisplay::Grid) {
+            m_versionDownloadSeparator->setVisible(true);
             m_titleContainer->insertAfter(m_downloadCountContainer, m_versionDownloadSeparator);
-            m_downloadCountContainer->setLayoutOptions(
-                SimpleAxisLayoutOptions::create()
-                    ->setMinRelativeScale(.1f)
-                    ->setMaxRelativeScale(1.f)
-                );
         }
         else {
             m_viewMenu->addChild(m_downloadCountContainer);
-            m_downloadCountContainer->setLayoutOptions(
-                SimpleAxisLayoutOptions::create()
-                    ->setMinRelativeScale(.1f)
-                    ->setMaxRelativeScale(1.f)
-            );
+        }
+    }
+
+    // Show the "Updated at" label if the installed mods list is being sorted 
+    // by "Recently installed" (to let people know when they've installed or 
+    // updated the mod)
+    // Hide the enable toggle to make space for install times :3
+    if (m_enableToggle) m_enableToggle->setVisible(true);
+    if (m_updatedAtContainer) {
+        auto listSource = typeinfo_cast<InstalledModListSource*>(m_source.getListSource());
+        m_updatedAtContainer->removeFromParent();
+        if (listSource && listSource->getSort() == static_cast<size_t>(InstalledModListSort::RecentlyUpdated)) {
+            if (m_enableToggle) m_enableToggle->setVisible(false);
+            m_updatedAtContainer->setScale(.6f);
+            if (m_display == ModListDisplay::Grid) {
+                m_versionDownloadSeparator->setVisible(true);
+                m_titleContainer->insertAfter(m_updatedAtContainer, m_versionDownloadSeparator);
+            }
+            else {
+                m_viewMenu->addChild(m_updatedAtContainer);
+            }
         }
     }
 
