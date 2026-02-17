@@ -18,6 +18,7 @@
 #include <ui/mods/popups/DevPopup.hpp>
 #include <ui/mods/sources/ModSource.hpp>
 #include <ui/mods/sources/ModListSource.hpp>
+#include "../ModsLayer.hpp"
 
 bool ModItem::init(ModSource&& source) {
     if (!ModListItem::init())
@@ -223,6 +224,32 @@ bool ModItem::init(ModSource&& source) {
                 // Manually handle toggle state
                 m_enableToggle->m_notClickable = true;
                 m_viewMenu->addChild(m_enableToggle);
+                m_viewMenu->updateLayout();
+
+                auto pinOff = CCSprite::createWithSpriteFrameName("pin.png"_spr);
+                pinOff->setOpacity(105);
+                auto pinOn = CCSprite::createWithSpriteFrameName("pin.png"_spr);
+
+                if (isGeodeTheme()) {
+                    pinOn->setColor(ccc3(245, 174, 125));
+                    pinOff->setColor(ccc3(220, 190, 230));
+                } else {
+                    // someone with better colour decisions can pick colours for gd
+                    pinOn->setColor(ccc3(245, 174, 125));
+                    pinOff->setColor(ccc3(220, 190, 230));
+                }
+
+                m_pinToggle = CCMenuItemToggler::create(
+                    pinOff, pinOn, 
+                    this, menu_selector(ModItem::onPin)
+                );
+                m_pinToggle->setScale(0.75f);
+                m_pinToggle->setLayoutOptions(
+                    SimpleAxisLayoutOptions::create()
+                        ->setMaxRelativeScale(1.f)
+                );
+                m_pinToggle->setID("pin-toggler");
+                m_viewMenu->addChild(m_pinToggle);
                 m_viewMenu->updateLayout();
             }
             if (mod->getLoadProblem()) {
@@ -467,13 +494,18 @@ void ModItem::updateState() {
     // Show the "Updated at" label if the installed mods list is being sorted 
     // by "Recently installed" (to let people know when they've installed or 
     // updated the mod)
-    // Hide the enable toggle to make space for install times :3
+    // Hide the enable and pin toggles to make space for install times :3
+    // (Pinning doesn't make sense for that sorting anyway)
     if (m_enableToggle) m_enableToggle->setVisible(true);
+    if (m_pinToggle) m_pinToggle->setVisible(true);
     if (m_updatedAtContainer) {
         auto listSource = typeinfo_cast<InstalledModListSource*>(m_source.getListSource());
         m_updatedAtContainer->removeFromParent();
         if (listSource && listSource->getSort() == static_cast<size_t>(InstalledModListSort::RecentlyUpdated)) {
+            // Hide these
             if (m_enableToggle) m_enableToggle->setVisible(false);
+            if (m_pinToggle) m_pinToggle->setVisible(false);
+
             m_updatedAtContainer->setScale(.6f);
             if (m_display == ModListDisplay::Grid) {
                 m_versionDownloadSeparator->setVisible(true);
@@ -811,6 +843,10 @@ void ModItem::updateState() {
         }
     }
 
+    if (m_pinToggle && m_source.asMod()) {
+        m_pinToggle->toggle(m_source.asMod()->isPinned());
+    }
+
     this->updateLayout();
 
     ModItemUIEvent().send(this, m_source.getID(), std::nullopt);
@@ -930,6 +966,14 @@ void ModItem::onEnable(CCObject*) {
 
     // Update state of the mod item
     UpdateModListStateEvent().send(UpdateModState(m_source.getID()));
+}
+void ModItem::onPin(CCObject*) {
+    if (auto mod = m_source.asMod()) {
+        mod->setPinned(!mod->isPinned());
+    }
+    if (auto list = CCScene::get()->getChildByType<ModsLayer*>(0)) {
+        list->refreshList();
+    }
 }
 void ModItem::onInstall(CCObject*) {
     m_source.startInstall();

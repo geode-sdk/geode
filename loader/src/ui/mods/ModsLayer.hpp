@@ -99,4 +99,5 @@ public:
     static void installModFromFile();
 
     void gotoTab(ModListSource* src, bool searchingDev = false);
+    void refreshList();
 };

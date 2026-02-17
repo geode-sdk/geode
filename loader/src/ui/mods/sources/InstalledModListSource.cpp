@@ -117,6 +117,10 @@ bool InstalledModsQuery::queryCheck(ModSource const& src, double& weighted) cons
     if (addToList && src.asMod()->isInternal()) {
         weighted += 5;
     }
+    // Pinning shouldn't do anything when sorting by recently updated
+    if (addToList && src.asMod()->isPinned() && this->sort != InstalledModListSort::RecentlyUpdated) {
+        weighted += 4;
+    }
     if (addToList && enabledFirst && src.asMod()->isLoaded()) {
         weighted += 3;
     }

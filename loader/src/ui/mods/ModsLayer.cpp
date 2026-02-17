@@ -867,6 +867,10 @@ server::ServerFuture<InstalledModsUpdateCheck> ModsLayer::checkInstalledModsForU
     co_return Ok(std::move(updatesFound));
 }
 
+void ModsLayer::refreshList() {
+    onRefreshList(nullptr);
+}
+
 void ModsLayer::installModFromFile() {
     if (!Mod::get()->setSavedValue("shown-manual-install-info", true)) {
         return FLAlertLayer::create(

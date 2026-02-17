@@ -106,7 +106,7 @@ static long unwrapHttpVersion(HttpVersion version)
     unreachable("Unexpected HTTP Version!");
 }
 
-static HttpVersion wrapHttpVersion(long version) {
+static std::optional<HttpVersion> wrapHttpVersion(long version) {
     switch (version) {
         using enum HttpVersion;
 
@@ -118,10 +118,9 @@ static HttpVersion wrapHttpVersion(long version) {
             return VERSION_2_0;
         case CURL_HTTP_VERSION_3:
             return VERSION_3;
+        default:
+            return std::nullopt;
     }
-
-    // Shouldn't happen.
-    unreachable("Unexpected HTTP Version!");
 }
 
 class WebResponse::Impl {
@@ -1185,10 +1184,12 @@ public:
                 auto& requestData = *rdptr;
 
                 // Populate HTTPVersion with the updated info
-                long version;
+                long version = 0;
                 curl_easy_getinfo(handle, CURLINFO_HTTP_VERSION, &version);
 
-                requestData.request->m_httpVersion = wrapHttpVersion(version);
+                if (auto ver = wrapHttpVersion(version)) {
+                    requestData.request->m_httpVersion = *ver;
+                }
 
                 // Get the response code; note that this will be invalid if the
                 // curlResponse is not CURLE_OK
