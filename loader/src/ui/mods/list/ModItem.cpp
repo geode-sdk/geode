@@ -17,6 +17,7 @@
 #include "ui/mods/popups/ModPopup.hpp"
 #include "ui/mods/popups/DevPopup.hpp"
 #include "ui/mods/sources/ModSource.hpp"
+#include "../ModsLayer.hpp"
 
 bool ModItem::init(ModSource&& source) {
     if (!ModListItem::init())
@@ -222,6 +223,32 @@ bool ModItem::init(ModSource&& source) {
                 // Manually handle toggle state
                 m_enableToggle->m_notClickable = true;
                 m_viewMenu->addChild(m_enableToggle);
+                m_viewMenu->updateLayout();
+
+                auto pinOff = CCSprite::createWithSpriteFrameName("pin.png"_spr);
+                pinOff->setOpacity(105);
+                auto pinOn = CCSprite::createWithSpriteFrameName("pin.png"_spr);
+
+                if (isGeodeTheme()) {
+                    pinOn->setColor(ccc3(245, 174, 125));
+                    pinOff->setColor(ccc3(220, 190, 230));
+                } else {
+                    // someone with better colour decisions can pick colours for gd
+                    pinOn->setColor(ccc3(245, 174, 125));
+                    pinOff->setColor(ccc3(220, 190, 230));
+                }
+
+                m_pinToggle = CCMenuItemToggler::create(
+                    pinOff, pinOn, 
+                    this, menu_selector(ModItem::onPin)
+                );
+                m_pinToggle->setScale(0.75f);
+                m_pinToggle->setLayoutOptions(
+                    SimpleAxisLayoutOptions::create()
+                        ->setMaxRelativeScale(1.f)
+                );
+                m_pinToggle->setID("pin-toggler");
+                m_viewMenu->addChild(m_pinToggle);
                 m_viewMenu->updateLayout();
             }
             if (mod->getLoadProblem()) {
@@ -760,6 +787,10 @@ void ModItem::updateState() {
         }
     }
 
+    if (m_pinToggle && m_source.asMod()) {
+        m_pinToggle->toggle(m_source.asMod()->isPinned());
+    }
+
     this->updateLayout();
 
     ModItemUIEvent().send(this, m_source.getID(), std::nullopt);
@@ -879,6 +910,14 @@ void ModItem::onEnable(CCObject*) {
 
     // Update state of the mod item
     UpdateModListStateEvent().send(UpdateModState(m_source.getID()));
+}
+void ModItem::onPin(CCObject*) {
+    if (auto mod = m_source.asMod()) {
+        mod->setPinned(!mod->isPinned());
+    }
+    if (auto list = CCScene::get()->getChildByType<ModsLayer*>(0)) {
+        list->refreshList();
+    }
 }
 void ModItem::onInstall(CCObject*) {
     m_source.startInstall();

@@ -507,6 +507,12 @@ namespace geode {
          */
         int getLoadPriority() const;
 
+        /**
+         * Get if the user has the mod pinned.
+         */
+        bool isPinned() const;
+        void setPinned(bool pinned);
+
         friend class ModImpl;
     };
 }

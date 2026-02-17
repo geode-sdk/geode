@@ -289,3 +289,11 @@ bool Mod::isCurrentlyLoading() const {
 int Mod::getLoadPriority() const {
     return m_impl->getLoadPriority();
 }
+
+bool Mod::isPinned() const {
+    return m_impl->isPinned();
+}
+
+void Mod::setPinned(bool pinned) {
+    m_impl->setPinned(pinned);
+}

@@ -117,6 +117,9 @@ bool InstalledModsQuery::queryCheck(ModSource const& src, double& weighted) cons
     if (addToList && src.asMod()->isInternal()) {
         weighted += 5;
     }
+    if (addToList && src.asMod()->isPinned()) {
+        weighted += 4;
+    }
     if (addToList && enabledFirst && src.asMod()->isLoaded()) {
         weighted += 3;
     }
