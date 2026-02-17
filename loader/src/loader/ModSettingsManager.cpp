@@ -293,9 +293,12 @@ ModSettingsManager::ModSettingsManager(ModMetadata const& metadata)
             bool repeat = data.action == KeyboardInputData::Action::Repeat;
             for (auto& setting : m_impl->keybindSettings) {
                 if (std::ranges::contains(setting->getValue(), keybind)) {
-                    KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat, data.timestamp);
+                    if (KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat, data.timestamp)) {
+                        return ListenerResult::Stop;
+                    }
                 }
             }
+            return ListenerResult::Propagate;
         }).leak();
 
         MouseInputEvent().listen([this](MouseInputData& data) {
@@ -308,7 +311,9 @@ ModSettingsManager::ModSettingsManager(ModMetadata const& metadata)
             bool down = data.action == MouseInputData::Action::Press;
             for (auto& setting : m_impl->keybindSettings) {
                 if (std::ranges::contains(setting->getValue(), keybind)) {
-                    KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, false, data.timestamp);
+                    if (KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, false, data.timestamp)) {
+                        return ListenerResult::Stop;
+                    }
                 }
             }
             return ListenerResult::Propagate;
