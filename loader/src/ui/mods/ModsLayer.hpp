@@ -97,4 +97,5 @@ public:
     static server::ServerFuture<InstalledModsUpdateCheck> checkInstalledModsForUpdates();
 
     void gotoTab(ModListSource* src, bool searchingDev = false);
+    void refreshList();
 };

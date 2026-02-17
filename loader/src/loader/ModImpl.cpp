@@ -697,6 +697,14 @@ int Mod::Impl::getLoadPriority() const {
     return m_metadata.getLoadPriority();
 }
 
+bool Mod::Impl::isPinned() const {
+    return Mod::get()->getSavedValue<bool>("is-pinned-" + m_metadata.getID(), false);
+}
+
+void Mod::Impl::setPinned(bool pinned) {
+    Mod::get()->setSavedValue<bool>("is-pinned-" + m_metadata.getID(), pinned);
+}
+
 static Result<ModMetadata> getModImplInfo() {
     auto json = GEODE_UNWRAP(matjson::parse(about::getLoaderModJson()).mapErr([](auto&& err) {
         return fmt::format("Unable to parse mod.json: {}", err);

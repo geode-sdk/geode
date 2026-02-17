@@ -909,3 +909,6 @@ server::ServerFuture<InstalledModsUpdateCheck> ModsLayer::checkInstalledModsForU
     co_return Ok(std::move(updatesFound));
 }
 
+void ModsLayer::refreshList() {
+    onRefreshList(nullptr);
+}
