@@ -136,6 +136,13 @@ namespace geode {
 }
 
 template <>
+struct std::hash<geode::Keybind> {
+    size_t operator()(geode::Keybind const& keybind) const noexcept {
+        return static_cast<size_t>(keybind.key) | (static_cast<size_t>(keybind.modifiers) << 32);
+    }
+};
+
+template <>
 struct matjson::Serialize<geode::Keybind> {
     static GEODE_DLL geode::Result<geode::Keybind> fromJson(matjson::Value const& value);
     static GEODE_DLL matjson::Value toJson(geode::Keybind const& value);

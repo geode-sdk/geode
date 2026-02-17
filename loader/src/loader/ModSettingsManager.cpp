@@ -180,7 +180,7 @@ public:
     };
     std::string modID;
     StringMap<SettingInfo> settings;
-    std::vector<std::shared_ptr<KeybindSettingV3>> keybindSettings;
+    std::unordered_map<Keybind, std::unordered_set<std::shared_ptr<KeybindSettingV3>>> keybindSettings;
     std::vector<Mod*> dependants;
     // Stored so custom settings registered after the fact can be loaded
     // If the ability to unregister custom settings is ever added, remember to
@@ -237,7 +237,9 @@ public:
                 setting.v3 = v3.unwrap();
                 auto kb = typeinfo_pointer_cast<KeybindSettingV3>(setting.v3);
                 if (kb) {
-                    keybindSettings.push_back(kb);
+                    for (auto& keybind : kb->getValue()) {
+                        this->keybindSettings[keybind].insert(kb);
+                    }
                 }
                 bool didLoadFromSave = this->loadSettingValueFromSave(key);
                 // If this is a keybind setting and it hasn't yet been saved, 
@@ -291,11 +293,9 @@ ModSettingsManager::ModSettingsManager(ModMetadata const& metadata)
             Keybind keybind(data.key, data.modifiers);
             bool down = data.action != KeyboardInputData::Action::Release;
             bool repeat = data.action == KeyboardInputData::Action::Repeat;
-            for (auto& setting : m_impl->keybindSettings) {
-                if (std::ranges::contains(setting->getValue(), keybind)) {
-                    if (KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat, data.timestamp)) {
-                        return ListenerResult::Stop;
-                    }
+            for (auto& setting : m_impl->keybindSettings[keybind]) {
+                if (KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat, data.timestamp)) {
+                    return ListenerResult::Stop;
                 }
             }
             return ListenerResult::Propagate;
@@ -309,11 +309,9 @@ ModSettingsManager::ModSettingsManager(ModMetadata const& metadata)
             // todo: modifiers in mouse inputs
             auto keybind = Keybind(key, KeyboardInputData::Mods_None);
             bool down = data.action == MouseInputData::Action::Press;
-            for (auto& setting : m_impl->keybindSettings) {
-                if (std::ranges::contains(setting->getValue(), keybind)) {
-                    if (KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, false, data.timestamp)) {
-                        return ListenerResult::Stop;
-                    }
+            for (auto& setting : m_impl->keybindSettings[keybind]) {
+                if (KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, false, data.timestamp)) {
+                    return ListenerResult::Stop;
                 }
             }
             return ListenerResult::Propagate;
@@ -325,6 +323,24 @@ ModSettingsManager::ModSettingsManager(ModSettingsManager&&) noexcept = default;
 
 void ModSettingsManager::markRestartRequired() {
     m_impl->restartRequired = true;
+}
+
+void ModSettingsManager::onKeybindSettingChanged(std::shared_ptr<KeybindSettingV3> setting, std::vector<Keybind> const& keybinds) {
+    for (auto& keybind : setting->getValue()) {
+        m_impl->keybindSettings[keybind].erase(setting);
+    }
+
+    for (auto& keybind : keybinds) {
+        m_impl->keybindSettings[keybind].insert(setting);
+    }
+
+    for (auto it = m_impl->keybindSettings.begin(); it != m_impl->keybindSettings.end();) {
+        if (it->second.empty()) {
+            it = m_impl->keybindSettings.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }
 
 Result<> ModSettingsManager::registerCustomSettingType(std::string_view type, SettingGenerator generator) {

@@ -1141,6 +1141,7 @@ std::optional<std::string> KeybindSettingV3::getMigrateFrom() const {
 }
 
 void KeybindSettingV3::setValue(std::vector<Keybind> value) {
+    ModSettingsManager::from(this->getMod())->onKeybindSettingChanged(std::static_pointer_cast<KeybindSettingV3>(shared_from_this()), value);
     m_impl->value = std::move(value);
     this->markChanged();
 }
