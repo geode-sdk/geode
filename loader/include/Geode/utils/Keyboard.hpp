@@ -8,7 +8,7 @@ namespace geode {
         enum class Action : uint8_t {
             Press,
             Release,
-            Repeat
+            Repeat,
         };
 
         enum Modifiers : uint8_t {
@@ -64,7 +64,7 @@ namespace geode {
     struct MouseInputData final {
         enum class Action {
             Press,
-            Release
+            Release,
         };
 
         enum class Button {
@@ -72,12 +72,26 @@ namespace geode {
             Right,
             Middle,
             Button4,
-            Button5
+            Button5,
         };
 
         Button button;
         Action action;
         double timestamp;
+
+        // having this here is incredibly silly but oh well
+        inline static cocos2d::enumKeyCodes buttonToKeyCode(Button button) {
+            switch (button) {
+                // These ones aren't representable as keycodes
+                default:
+                case Button::Left: return cocos2d::enumKeyCodes::KEY_None;
+                case Button::Right: return cocos2d::enumKeyCodes::KEY_None;
+                case Button::Middle: return cocos2d::enumKeyCodes::KEY_None;
+
+                case Button::Button4: return cocos2d::enumKeyCodes::MOUSE_4;
+                case Button::Button5: return cocos2d::enumKeyCodes::MOUSE_5;
+            }
+        }
 
         MouseInputData(Button button, Action action, double timestamp) noexcept
             : button(button), action(action), timestamp(timestamp) {}

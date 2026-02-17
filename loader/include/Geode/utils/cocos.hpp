@@ -33,7 +33,7 @@ namespace geode::cocos {
     template <class InpT, bool Retain>
     class CCArrayExt;
     template <class Key, class ValueInpT, bool Retain>
-    class CCDictionaryExt; 
+    class CCDictionaryExt;
 }
 
 template <typename T>
@@ -1089,10 +1089,10 @@ namespace geode::cocos {
 
         CCArrayExt() : m_arr(cocos2d::CCArray::create()) {}
 
-        CCArrayExt(cocos2d::CCArray* arr)
-          : m_arr(arr) {}
+        CCArrayExt(cocos2d::CCArray* arr) : m_arr(arr) {}
 
-        CCArrayExt(std::vector<T> const& vec) : m_arr(cocos2d::CCArray::createWithCapacity(vec.size())) {
+        template <typename Cont> requires (std::ranges::input_range<Cont>)
+        CCArrayExt(Cont const& vec) : m_arr(cocos2d::CCArray::createWithCapacity(vec.size())) {
             for (auto obj : vec) {
                 m_arr->addObject(obj);
             }
@@ -1100,7 +1100,7 @@ namespace geode::cocos {
 
         CCArrayExt(CCArrayExt const& a) : m_arr(a.m_arr) {}
 
-        CCArrayExt(CCArrayExt&& a) : m_arr(a.m_arr) {
+        CCArrayExt(CCArrayExt&& a) noexcept : m_arr(a.m_arr) {
             a.m_arr = nullptr;
         }
 
@@ -1283,7 +1283,7 @@ namespace geode::cocos {
 
         CCDictionaryExt(CCDictionaryExt const& d) : m_dict(d.m_dict) {}
 
-        CCDictionaryExt(CCDictionaryExt&& d) : m_dict(std::exchange(d.m_dict, nullptr)) {}
+        CCDictionaryExt(CCDictionaryExt&& d) noexcept : m_dict(std::exchange(d.m_dict, nullptr)) {}
 
         auto begin() {
             return Iterator(m_dict->m_pElements);

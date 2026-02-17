@@ -244,6 +244,12 @@ ButtonSprite* createTagLabel(ZStringView text, std::pair<ccColor3B, ccColor3B> c
     label->m_BGSprite->setColor(color.second);
     return label;
 }
+IconButtonSprite* createTagLabelWithIcon(CCNode* icon, ZStringView text, std::pair<ccColor3B, ccColor3B> const& color) {
+    auto label = IconButtonSprite::create("white-square.png"_spr, icon, text.c_str(), "bigFont.fnt");
+    label->getLabel()->setColor(color.first);
+    label->getBg()->setColor(color.second);
+    return label;
+}
 ButtonSprite* createGeodeTagLabel(server::ServerTag const& tag) {
     return createTagLabel(tag.displayName, geodeTagColors(tag));
 }

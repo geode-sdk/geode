@@ -5,7 +5,6 @@
 #include <Geode/ui/MDPopup.hpp>
 #include <Geode/ui/Scrollbar.hpp>
 
-
 class SettingNodeV3::Impl final {
 public:
     std::shared_ptr<SettingV3> setting;
@@ -17,6 +16,9 @@ public:
     CCLabelBMFont* statusLabel;
     ccColor4B bgColor = ccc4(0, 0, 0, 0);
     bool committed = false;
+    // This is because you can create `TitleSettingNodeV3`s without having an 
+    // actual `TitleSettingV3`
+    std::optional<std::string> customDescription;
 };
 
 bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
@@ -103,8 +105,12 @@ void SettingNodeV3::updateState(CCNode* invoker) {
     m_impl->nameMenu->setContentWidth(this->getContentWidth() - m_impl->buttonMenu->getContentWidth() - 25);
     m_impl->nameMenu->updateLayout();
 }
+void SettingNodeV3::updateState2(CCNode* invoker) {
+    return this->updateState(invoker);
+}
 
 void SettingNodeV3::onDescription(CCObject*) {
+    if (!m_impl->setting) return;
     auto title = m_impl->setting->getDisplayName();
     MDPopup::create(true,
         title.c_str(),
@@ -134,9 +140,11 @@ void SettingNodeV3::setDefaultBGColor(ccColor4B color) {
 }
 
 void SettingNodeV3::markChanged(CCNode* invoker) {
-    if (!m_impl->setting) return;
     this->updateState(invoker);
-    SettingNodeValueChangeEventV3(m_impl->setting->getModID(), m_impl->setting->getKey()).send(this, false);
+    SettingNodeValueChangeEventV3(
+        m_impl->setting ? m_impl->setting->getModID() : "",
+        m_impl->setting ? m_impl->setting->getKey() : ""
+    ).send(this, false);
 }
 void SettingNodeV3::commit() {
     if (!m_impl->setting) return;
@@ -152,6 +160,10 @@ void SettingNodeV3::resetToDefault() {
     this->onResetToDefault();
     this->updateState(nullptr);
     SettingNodeValueChangeEventV3(m_impl->setting->getModID(), m_impl->setting->getKey()).send(this, false);
+}
+
+void SettingNodeV3::overrideDescription(std::optional<ZStringView> description) {
+    m_impl->customDescription = description ? std::optional(std::string(*description)) : std::nullopt;
 }
 
 void SettingNodeV3::setContentSize(CCSize const& size) {
@@ -187,6 +199,8 @@ std::shared_ptr<SettingV3> SettingNodeV3::getSetting() const {
 bool TitleSettingNodeV3::init(std::shared_ptr<TitleSettingV3> setting, float width) {
     if (!SettingNodeV3::init(setting, width))
         return false;
+
+    // note: setting may be null
 
     auto collapseSprBG = CCSprite::create("square02c_001.png");
     collapseSprBG->setColor(ccc3(25, 25, 25));
@@ -251,6 +265,13 @@ TitleSettingNodeV3* TitleSettingNodeV3::create(std::shared_ptr<TitleSettingV3> s
     }
     delete ret;
     return nullptr;
+}
+TitleSettingNodeV3* TitleSettingNodeV3::create(ZStringView title, std::optional<ZStringView> description, float width) {
+    auto ret = TitleSettingNodeV3::create(nullptr, width);
+    ret->getNameLabel()->setString(title.c_str());
+    ret->overrideDescription(description);
+    ret->updateState(nullptr);
+    return ret;
 }
 
 // BoolSettingNodeV3
@@ -607,7 +628,34 @@ bool KeybindSettingNodeV3::init(std::shared_ptr<KeybindSettingV3> setting, float
         return false;
 
     m_currentValue = setting->getValue();
-    getButtonMenu()->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::End));
+    this->getButtonMenu()->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::End));
+
+    if (auto category = setting->getCategory()) {
+        const char* catName;
+        std::pair<ccColor3B, ccColor3B> catColor;
+        switch (*category) {
+            default:
+            case KeybindCategory::Editor: {
+                catName = "Editor";
+                catColor = std::make_pair(ccc3(175, 255, 251), ccc3(83, 215, 219));
+            } break;
+
+            case KeybindCategory::Gameplay: {
+                catName = "Gameplay";
+                catColor = std::make_pair(ccc3(252, 231, 201), ccc3(238, 112, 73));
+            } break;
+
+            case KeybindCategory::Universal: {
+                catName = "Universal";
+                catColor = std::make_pair(ccc3(218, 201, 253), ccc3(156, 83, 224));
+            } break;
+        }
+        auto categoryLabel = createTagLabel(catName, catColor);
+        categoryLabel->setLayoutOptions(
+            AxisLayoutOptions::create()->setScaleLimits(.1f, .35f)
+        );
+        this->getNameMenu()->addChild(categoryLabel);
+    }
 
     this->updateState(nullptr);
 
@@ -728,8 +776,7 @@ bool KeybindEditPopup::init(ZStringView name, Keybind const& keybind, Function<v
     m_callback = std::move(callback);
     m_currentKeybind = keybind;
 
-    m_keybindLabel = CCLabelBMFont::create(keybind.toString().c_str(), "bigFont.fnt");
-    m_keybindLabel->limitLabelWidth(200.f, .8f, .1f);
+    m_keybindLabel = CCLabelBMFont::create("", "bigFont.fnt");
     m_mainLayer->addChildAtPosition(m_keybindLabel, Anchor::Center, ccp(0, 5));
 
     auto bottomMenu = CCMenu::create();
@@ -756,16 +803,38 @@ bool KeybindEditPopup::init(ZStringView name, Keybind const& keybind, Function<v
     bottomMenu->setLayout(RowLayout::create()->setGap(10.f));
     m_mainLayer->addChildAtPosition(bottomMenu, Anchor::Bottom, ccp(0, 25));
 
+    // todo: controllers
     this->addEventListener(KeyboardInputEvent(), [this](KeyboardInputData& data) {
         if (data.action == KeyboardInputData::Action::Press) {
             m_currentKeybind.key = data.key;
             m_currentKeybind.modifiers = data.modifiers;
-            m_keybindLabel->setString(m_currentKeybind.toString().c_str());
-            m_keybindLabel->limitLabelWidth(200.f, .8f, .1f);
+            this->updateLabel(m_currentKeybind);
         }
     });
+    this->addEventListener(MouseInputEvent(), [this](MouseInputData& data) {
+        auto key = MouseInputData::buttonToKeyCode(data.button);
+        if (key != KEY_None && data.action == MouseInputData::Action::Press) {
+            m_currentKeybind.key = key;
+            // todo: modifiers in mouse inputs
+            m_currentKeybind.modifiers = KeyboardInputData::Mods_None;
+            this->updateLabel(m_currentKeybind);
+        }
+    });
+    this->updateLabel(keybind);
 
     return true;
+}
+
+void KeybindEditPopup::updateLabel(Keybind const& keybind) {
+    if (keybind.key == KEY_None && keybind.modifiers == Keybind::Mods_None) {
+        m_keybindLabel->setString("Press a Key");
+        m_keybindLabel->setOpacity(150);
+    }
+    else {
+        m_keybindLabel->setString(keybind.toString().c_str());
+        m_keybindLabel->setOpacity(255);
+    }
+    m_keybindLabel->limitLabelWidth(200.f, .8f, .1f);
 }
 
 void KeybindEditPopup::onSet(CCObject*) {

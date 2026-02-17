@@ -183,7 +183,7 @@ EOF
 echo "Installing Geode..."
 
 # Get latest tag from the Index
-VERSION_JSON="$(curl -s 'https://api.geode-sdk.org/v1/loader/versions/latest')"
+VERSION_JSON="$(curl -s 'https://api.geode-sdk.org/v1/loader/versions/latest?platform=win')"
 if [ -x "$(command -v jq)" ]; then
     TAG="$(echo "$VERSION_JSON" | jq -r .payload.tag)"
 else
