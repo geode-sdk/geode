@@ -13,11 +13,9 @@ namespace geode {
         std::unique_ptr<Impl> m_impl;
 
         friend class ::geode::SettingV3;
-        friend class ::geode::KeybindSettingV3;
         friend class ::geode::Mod;
 
         void markRestartRequired();
-        void onKeybindSettingChanged(std::shared_ptr<KeybindSettingV3> setting, std::vector<Keybind> const& keybinds);
 
     public:
         static ModSettingsManager* from(Mod* mod);

@@ -384,6 +384,36 @@ void Loader::Impl::populateModList(std::vector<ModMetadata>& modQueue) {
 
         m_mods.insert({metadata.getID(), mod});
     }
+
+    if (!m_keybindSettings.empty()) {
+        KeyboardInputEvent().listen([this](KeyboardInputData& data) {
+            Keybind keybind(data.key, data.modifiers);
+            bool down = data.action != KeyboardInputData::Action::Release;
+            bool repeat = data.action == KeyboardInputData::Action::Repeat;
+            for (auto& setting : m_keybindSettings[keybind]) {
+                if (KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat, data.timestamp)) {
+                    return ListenerResult::Stop;
+                }
+            }
+            return ListenerResult::Propagate;
+        }).leak();
+
+        MouseInputEvent().listen([this](MouseInputData& data) {
+            auto key = MouseInputData::buttonToKeyCode(data.button);
+            if (key == KEY_None) {
+                return ListenerResult::Propagate;
+            }
+            // todo: modifiers in mouse inputs
+            auto keybind = Keybind(key, KeyboardInputData::Mods_None);
+            bool down = data.action == MouseInputData::Action::Press;
+            for (auto& setting : m_keybindSettings[keybind]) {
+                if (KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, false, data.timestamp)) {
+                    return ListenerResult::Stop;
+                }
+            }
+            return ListenerResult::Propagate;
+        }).leak();
+    }
 }
 
 void Loader::Impl::buildModGraph() {
@@ -1358,4 +1388,27 @@ bool Loader::Impl::isPatchless() const {
 
 std::optional<std::string> Loader::Impl::getBinaryPath() const {
     return m_binaryPath;
+}
+
+void Loader::Impl::onKeybindSettingChanged(std::shared_ptr<KeybindSettingV3> setting, std::vector<Keybind> const& keybinds) {
+    for (auto& keybind : setting->getValue()) {
+        if (!std::ranges::contains(keybinds, keybind)) {
+            if (auto it = m_keybindSettings.find(keybind); it != m_keybindSettings.end()) {
+                auto& vec = it->second;
+                vec.erase(std::remove(vec.begin(), vec.end(), setting), vec.end());
+                if (vec.empty()) {
+                    m_keybindSettings.erase(it);
+                }
+            }
+        }
+    }
+
+    for (auto& keybind : keybinds) {
+        auto& settings = m_keybindSettings[keybind];
+        if (!std::ranges::contains(settings, setting)) {
+            settings.insert(std::ranges::find_if(settings, [&setting](auto& s) {
+                return setting->getPriority() < s->getPriority();
+            }), setting);
+        }
+    }
 }

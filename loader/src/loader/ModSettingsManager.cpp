@@ -180,7 +180,6 @@ public:
     };
     std::string modID;
     StringMap<SettingInfo> settings;
-    std::unordered_map<Keybind, std::unordered_set<std::shared_ptr<KeybindSettingV3>>> keybindSettings;
     std::vector<Mod*> dependants;
     // Stored so custom settings registered after the fact can be loaded
     // If the ability to unregister custom settings is ever added, remember to
@@ -235,23 +234,6 @@ public:
             }
             if (auto v3 = (*gen)(key, modID, setting.json)) {
                 setting.v3 = v3.unwrap();
-                auto kb = typeinfo_pointer_cast<KeybindSettingV3>(setting.v3);
-                if (kb) {
-                    for (auto& keybind : kb->getValue()) {
-                        this->keybindSettings[keybind].insert(kb);
-                    }
-                }
-                bool didLoadFromSave = this->loadSettingValueFromSave(key);
-                // If this is a keybind setting and it hasn't yet been saved, 
-                // then try migrating it
-                if (!didLoadFromSave && kb) {
-                    if (auto migrateFrom = kb->getMigrateFrom()) {
-                        if (auto old = OldCKSaveData::get().getOldValue(*migrateFrom)) {
-                            kb->setValue(*old);
-                            log::info("Migrated keybind setting {}/{} from {}", modID, key, *migrateFrom);
-                        }
-                    }
-                }
             }
             else {
                 log::error(
@@ -285,62 +267,12 @@ ModSettingsManager::ModSettingsManager(ModMetadata const& metadata)
         }
     }
     m_impl->createSettings();
-
-    if (!m_impl->keybindSettings.empty()) {
-        // todo: controllers
-
-        KeyboardInputEvent().listen([this](KeyboardInputData& data) {
-            Keybind keybind(data.key, data.modifiers);
-            bool down = data.action != KeyboardInputData::Action::Release;
-            bool repeat = data.action == KeyboardInputData::Action::Repeat;
-            for (auto& setting : m_impl->keybindSettings[keybind]) {
-                if (KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat, data.timestamp)) {
-                    return ListenerResult::Stop;
-                }
-            }
-            return ListenerResult::Propagate;
-        }).leak();
-
-        MouseInputEvent().listen([this](MouseInputData& data) {
-            auto key = MouseInputData::buttonToKeyCode(data.button);
-            if (key == KEY_None) {
-                return ListenerResult::Propagate;
-            }
-            // todo: modifiers in mouse inputs
-            auto keybind = Keybind(key, KeyboardInputData::Mods_None);
-            bool down = data.action == MouseInputData::Action::Press;
-            for (auto& setting : m_impl->keybindSettings[keybind]) {
-                if (KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, false, data.timestamp)) {
-                    return ListenerResult::Stop;
-                }
-            }
-            return ListenerResult::Propagate;
-        }).leak();
-    }
 }
 ModSettingsManager::~ModSettingsManager() {}
 ModSettingsManager::ModSettingsManager(ModSettingsManager&&) noexcept = default;
 
 void ModSettingsManager::markRestartRequired() {
     m_impl->restartRequired = true;
-}
-
-void ModSettingsManager::onKeybindSettingChanged(std::shared_ptr<KeybindSettingV3> setting, std::vector<Keybind> const& keybinds) {
-    for (auto& keybind : setting->getValue()) {
-        m_impl->keybindSettings[keybind].erase(setting);
-    }
-
-    for (auto& keybind : keybinds) {
-        m_impl->keybindSettings[keybind].insert(setting);
-    }
-
-    for (auto it = m_impl->keybindSettings.begin(); it != m_impl->keybindSettings.end();) {
-        if (it->second.empty()) {
-            it = m_impl->keybindSettings.erase(it);
-        } else {
-            ++it;
-        }
-    }
 }
 
 Result<> ModSettingsManager::registerCustomSettingType(std::string_view type, SettingGenerator generator) {
@@ -360,7 +292,18 @@ Result<> ModSettingsManager::load(matjson::Value const& json) {
         // values properly
         m_impl->savedata = json;
         for (auto const& [key, _] : json) {
-           m_impl->loadSettingValueFromSave(key);
+            if (!m_impl->loadSettingValueFromSave(key)) {
+                // If this is a keybind setting and it hasn't yet been saved, 
+                // then try migrating it
+                if (auto kb = typeinfo_pointer_cast<KeybindSettingV3>(this->get(key))) {
+                    if (auto migrateFrom = kb->getMigrateFrom()) {
+                        if (auto old = OldCKSaveData::get().getOldValue(*migrateFrom)) {
+                            kb->setValue(*old);
+                            log::info("Migrated keybind setting {}/{} from {}", m_impl->modID, key, *migrateFrom);
+                        }
+                    }
+                }
+            }
         }
     }
     return Ok();

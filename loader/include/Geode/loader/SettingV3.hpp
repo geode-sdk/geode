@@ -552,6 +552,7 @@ namespace geode {
 
         std::optional<KeybindCategory> getCategory() const;
         std::optional<std::string> getMigrateFrom() const;
+        int getPriority() const;
     };
 
     class GEODE_DLL SettingNodeV3 : public cocos2d::CCNode {
