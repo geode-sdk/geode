@@ -12,7 +12,7 @@ using namespace geode::prelude;
 
 struct RawInputEvent {
     double timestamp = 0.0;
-    KeyboardModifiers mods;
+    KeyboardModifier mods;
 
     union {
         struct {
@@ -36,7 +36,7 @@ struct RawInputEvent {
     } type;
 
     static RawInputEvent makeKeyboard(
-        bool isDown, uint16_t vk, uint16_t scan, uint16_t flags, bool isRepeat, KeyboardModifiers mods
+        bool isDown, uint16_t vk, uint16_t scan, uint16_t flags, bool isRepeat, KeyboardModifier mods
     ) {
         RawInputEvent evt;
         evt.type = isDown ? Type::KeyDown : Type::KeyUp;
@@ -51,7 +51,7 @@ struct RawInputEvent {
         return evt;
     }
 
-    static RawInputEvent makeMouse(uint16_t btnFlags, KeyboardModifiers mods) {
+    static RawInputEvent makeMouse(uint16_t btnFlags, KeyboardModifier mods) {
         RawInputEvent evt;
         evt.type = Type::MouseButton;
         evt.timestamp = getInputTimestamp();
@@ -96,7 +96,7 @@ public:
 class KeyStateTracker {
 private:
     std::unordered_map<uint32_t, bool> m_keyStates;
-    KeyboardModifiers m_currentMods = KeyboardModifiers::None;
+    KeyboardModifier m_currentMods = KeyboardModifier::None;
 
     static uint32_t makeKey(uint16_t vkey, uint16_t scanCode, bool isE0) {
         return (static_cast<uint32_t>(vkey) << 16) | (static_cast<uint32_t>(scanCode) << 1) |
@@ -109,7 +109,7 @@ public:
         return instance;
     }
 
-    KeyboardModifiers getMods() const {
+    KeyboardModifier getMods() const {
         return m_currentMods;
     }
 
@@ -122,7 +122,7 @@ public:
             wasDown = it->second;
         }
 
-        auto applyMods = [&](KeyboardModifiers mod) {
+        auto applyMods = [&](KeyboardModifier mod) {
             if (isDown) m_currentMods |= mod;
             else m_currentMods &= ~mod;
         };
@@ -131,21 +131,21 @@ public:
             case VK_LSHIFT:
             case VK_RSHIFT:
             case VK_SHIFT:
-                applyMods(KeyboardModifiers::Shift);
+                applyMods(KeyboardModifier::Shift);
                 break;
             case VK_LCONTROL:
             case VK_RCONTROL:
             case VK_CONTROL:
-                applyMods(KeyboardModifiers::Control);
+                applyMods(KeyboardModifier::Control);
                 break;
             case VK_LMENU:
             case VK_RMENU:
             case VK_MENU:
-                applyMods(KeyboardModifiers::Alt);
+                applyMods(KeyboardModifier::Alt);
                 break;
             case VK_LWIN:
             case VK_RWIN:
-                applyMods(KeyboardModifiers::Super);
+                applyMods(KeyboardModifier::Super);
                 break;
             default: break;
         }
@@ -488,10 +488,10 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
                         auto* keyboardDispatcher = CCKeyboardDispatcher::get();
 
                         keyboardDispatcher->updateModifierKeys(
-                            data.modifiers & KeyboardModifiers::Shift,
-                            data.modifiers & KeyboardModifiers::Control,
-                            data.modifiers & KeyboardModifiers::Alt,
-                            data.modifiers & KeyboardModifiers::Super
+                            data.modifiers & KeyboardModifier::Shift,
+                            data.modifiers & KeyboardModifier::Control,
+                            data.modifiers & KeyboardModifier::Alt,
+                            data.modifiers & KeyboardModifier::Super
                         );
 
                         if (!ime->hasDelegate() || keyCode == KEY_Escape || keyCode == KEY_Enter) {
@@ -504,7 +504,7 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
                         }
 
                         // text pasting
-                        if (data.modifiers & KeyboardModifiers::Control && keyCode == enumKeyCodes::KEY_V && isDown) {
+                        if (data.modifiers & KeyboardModifier::Control && keyCode == enumKeyCodes::KEY_V && isDown) {
                             if (ime->hasDelegate()) {
                                 this->performSafeClipboardPaste();
                             }
@@ -635,7 +635,7 @@ struct GeodeControllerInput : Modify<GeodeControllerInput, CCApplication> {
                 isDown ? KeyboardInputData::Action::Press : KeyboardInputData::Action::Release,
                 {},
                 timestamp,
-                KeyboardModifiers::None
+                KeyboardModifier::None
             );
 
             if (KeyboardInputEvent(data.key).send(data) == ListenerResult::Stop) {
@@ -675,7 +675,7 @@ struct GeodeControllerInput : Modify<GeodeControllerInput, CCApplication> {
                 isADown ? KeyboardInputData::Action::Press : KeyboardInputData::Action::Release,
                 {},
                 timestamp,
-                KeyboardModifiers::None
+                KeyboardModifier::None
             );
 
             if (KeyboardInputEvent(data.key).send(data) == ListenerResult::Propagate) {
@@ -722,7 +722,7 @@ struct GeodeControllerInput : Modify<GeodeControllerInput, CCApplication> {
                 isBackDown ? KeyboardInputData::Action::Press : KeyboardInputData::Action::Release,
                 {},
                 timestamp,
-                KeyboardModifiers::None
+                KeyboardModifier::None
             );
 
             if (KeyboardInputEvent(data.key).send(data) == ListenerResult::Propagate) {

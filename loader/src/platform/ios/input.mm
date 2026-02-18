@@ -161,18 +161,18 @@ static enumKeyCodes keyToKeyCode(int code) {
     bool isDown = true;
     UIKeyModifierFlags flags = [event modifierFlags];
 
-    KeyboardModifiers modifiers = KeyboardModifiers::None;
+    KeyboardModifier modifiers = KeyboardModifier::None;
     if ((flags & UIKeyModifierShift) != 0) {
-        modifiers |= KeyboardModifiers::Shift;
+        modifiers |= KeyboardModifier::Shift;
     }
     if ((flags & UIKeyModifierControl) != 0) {
-        modifiers |= KeyboardModifiers::Control;
+        modifiers |= KeyboardModifier::Control;
     }
     if ((flags & UIKeyModifierAlternate) != 0) {
-        modifiers |= KeyboardModifiers::Alt;
+        modifiers |= KeyboardModifier::Alt;
     }
     if ((flags & UIKeyModifierCommand) != 0) {
-        modifiers |= KeyboardModifiers::Super;
+        modifiers |= KeyboardModifier::Super;
     }
 
     KeyboardInputData data(
@@ -194,10 +194,10 @@ static enumKeyCodes keyToKeyCode(int code) {
     }
 
     keyboardDispatcher->updateModifierKeys(
-        modifiers & KeyboardModifiers::Shift,
-        modifiers & KeyboardModifiers::Control,
-        modifiers & KeyboardModifiers::Alt,
-        modifiers & KeyboardModifiers::Super
+        modifiers & KeyboardModifier::Shift,
+        modifiers & KeyboardModifier::Control,
+        modifiers & KeyboardModifier::Alt,
+        modifiers & KeyboardModifier::Super
     );
 }
 
@@ -213,18 +213,18 @@ static enumKeyCodes keyToKeyCode(int code) {
     bool isDown = false;
     UIKeyModifierFlags flags = [event modifierFlags];
 
-    KeyboardModifiers modifiers = KeyboardModifiers::None;
+    KeyboardModifier modifiers = KeyboardModifier::None;
     if ((flags & UIKeyModifierShift) != 0) {
-        modifiers |= KeyboardModifiers::Shift;
+        modifiers |= KeyboardModifier::Shift;
     }
     if ((flags & UIKeyModifierControl) != 0) {
-        modifiers |= KeyboardModifiers::Control;
+        modifiers |= KeyboardModifier::Control;
     }
     if ((flags & UIKeyModifierAlternate) != 0) {
-        modifiers |= KeyboardModifiers::Alt;
+        modifiers |= KeyboardModifier::Alt;
     }
     if ((flags & UIKeyModifierCommand) != 0) {
-        modifiers |= KeyboardModifiers::Super;
+        modifiers |= KeyboardModifier::Super;
     }
 
     KeyboardInputData data(
@@ -245,10 +245,10 @@ static enumKeyCodes keyToKeyCode(int code) {
     }
 
     keyboardDispatcher->updateModifierKeys(
-        modifiers & KeyboardModifiers::Shift,
-        modifiers & KeyboardModifiers::Control,
-        modifiers & KeyboardModifiers::Alt,
-        modifiers & KeyboardModifiers::Super
+        modifiers & KeyboardModifier::Shift,
+        modifiers & KeyboardModifier::Control,
+        modifiers & KeyboardModifier::Alt,
+        modifiers & KeyboardModifier::Super
     );
 }
 

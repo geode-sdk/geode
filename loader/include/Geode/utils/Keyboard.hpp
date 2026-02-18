@@ -4,7 +4,7 @@
 #include <matjson.hpp>
 
 namespace geode {
-    struct KeyboardModifiers {
+    struct KeyboardModifier {
         enum : uint8_t {
             None    = 0,
 
@@ -14,40 +14,40 @@ namespace geode {
             Super   = 1 << 3,
         };
 
-        constexpr KeyboardModifiers() = default;
-        constexpr KeyboardModifiers(uint8_t value) : value(value) {}
+        constexpr KeyboardModifier() = default;
+        constexpr KeyboardModifier(uint8_t value) : value(value) {}
 
         constexpr operator uint8_t() const { return value; }
         constexpr operator int() const { return value; }
         constexpr operator bool() const { return value != None; }
 
-        constexpr KeyboardModifiers operator&(uint8_t other) const {
-            return KeyboardModifiers(value & other);
+        constexpr KeyboardModifier operator&(uint8_t other) const {
+            return KeyboardModifier(value & other);
         }
 
-        constexpr KeyboardModifiers operator|(uint8_t other) const {
-            return KeyboardModifiers(value | other);
+        constexpr KeyboardModifier operator|(uint8_t other) const {
+            return KeyboardModifier(value | other);
         }
 
-        constexpr KeyboardModifiers operator~() const {
-            return KeyboardModifiers(~value);
+        constexpr KeyboardModifier operator~() const {
+            return KeyboardModifier(~value);
         }
 
-        constexpr KeyboardModifiers& operator|=(uint8_t other) {
+        constexpr KeyboardModifier& operator|=(uint8_t other) {
             value |= other;
             return *this;
         }
 
-        constexpr KeyboardModifiers& operator&=(uint8_t other) {
+        constexpr KeyboardModifier& operator&=(uint8_t other) {
             value &= other;
             return *this;
         }
 
-        constexpr bool operator==(KeyboardModifiers other) const {
+        constexpr bool operator==(KeyboardModifier other) const {
             return value == other.value;
         }
 
-        constexpr bool operator!=(KeyboardModifiers other) const {
+        constexpr bool operator!=(KeyboardModifier other) const {
             return value != other.value;
         }
 
@@ -78,9 +78,9 @@ namespace geode {
         double timestamp;
         cocos2d::enumKeyCodes key;
         Action action;
-        KeyboardModifiers modifiers = KeyboardModifiers::None;
+        KeyboardModifier modifiers = KeyboardModifier::None;
 
-        KeyboardInputData(cocos2d::enumKeyCodes key, Action action, Native native, double timestamp, KeyboardModifiers mods) noexcept
+        KeyboardInputData(cocos2d::enumKeyCodes key, Action action, Native native, double timestamp, KeyboardModifier mods) noexcept
             : native(native), timestamp(timestamp), key(key), action(action), modifiers(mods) {}
     };
 
@@ -105,7 +105,7 @@ namespace geode {
         Button button;
         Action action;
         double timestamp;
-        KeyboardModifiers modifiers = KeyboardModifiers::None;
+        KeyboardModifier modifiers = KeyboardModifier::None;
 
         // having this here is incredibly silly but oh well
         inline static cocos2d::enumKeyCodes buttonToKeyCode(Button button) {
@@ -121,7 +121,7 @@ namespace geode {
             }
         }
 
-        MouseInputData(Button button, Action action, double timestamp, KeyboardModifiers mods) noexcept
+        MouseInputData(Button button, Action action, double timestamp, KeyboardModifier mods) noexcept
             : timestamp(timestamp), button(button), action(action), modifiers(mods) {}
     };
 
@@ -138,7 +138,7 @@ namespace geode {
     };
 
     struct Keybind final {
-        using Modifiers = KeyboardModifiers;
+        using Modifiers = KeyboardModifier;
 
         static constexpr Modifiers Mods_None = Modifiers::None;
         static constexpr Modifiers Mods_Shift = Modifiers::Shift;
