@@ -403,7 +403,6 @@ void Loader::Impl::populateModList(std::vector<ModMetadata>& modQueue) {
             if (key == KEY_None) {
                 return ListenerResult::Propagate;
             }
-            // todo: modifiers in mouse inputs
             auto keybind = Keybind(key, data.modifiers);
             bool down = data.action == MouseInputData::Action::Press;
             for (auto& setting : m_keybindSettings[keybind]) {
