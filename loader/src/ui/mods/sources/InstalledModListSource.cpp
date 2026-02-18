@@ -75,7 +75,7 @@ void InstalledModsQuery::filter(ModListSource::ProvidedMods& mods) {
     mods.totalModCount = filtered.size();
 }
 bool InstalledModsQuery::preCheck(ModSource const& src) const {
-    // Invalid .geode files are collected up into one entry instead of 
+    // Invalid .geode files are collected up into one entry instead of
     // flooding the mods list
     // if (
     //     src.asMod() &&
@@ -97,7 +97,7 @@ bool InstalledModsQuery::preCheck(ModSource const& src) const {
     if (this->type == InstalledModListType::OnlyErrors) {
         return src.asMod() && src.asMod()->failedToLoad();
     }
-    // If we're sorting by recently updated, don't show mods that haven't been 
+    // If we're sorting by recently updated, don't show mods that haven't been
     // updated since the addition of this feature in v5
     if (this->sort == InstalledModListSort::RecentlyUpdated) {
         auto const& mods = server::ModDownloadManager::get()->getRecentlyUpdatedMods();
@@ -128,7 +128,7 @@ bool InstalledModsQuery::queryCheck(ModSource const& src, double& weighted) cons
     if (this->sort == InstalledModListSort::RecentlyUpdated) {
         auto const& mods = server::ModDownloadManager::get()->getRecentlyUpdatedMods();
 
-        // This substracts from `mods.end()` instead of `mods.begin()` so that 
+        // This substracts from `mods.end()` instead of `mods.begin()` so that
         // the result is lower index -> higher score (which is what we want)
         weighted -= (std::ranges::find_if(
             mods, [&src](auto& u) { return u.modID == src.getID(); }
@@ -260,22 +260,27 @@ InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t pa
         }
 
         co_await arc::joinAll(std::move(tasks));
-        
-        m_query.filter(content);
+
+        // filter is not thread safe
+        co_await async::waitForMainThread([&] {
+            m_query.filter(content);
+        });
         co_return Ok(std::move(content));
     }
     // Otherwise simply construct the result right away
     else {
-        m_query.filter(content);
+        co_await async::waitForMainThread([&] {
+            m_query.filter(content);
+        });
         co_return Ok(std::move(content));
     }
 }
 
 std::string InstalledModListSource::getNoModsFoundError() const {
-    // Epic hardcoded message for this one very specific thing that will save 
+    // Epic hardcoded message for this one very specific thing that will save
     // us from having to deal with like 3 #help posts
     if (
-        !this->m_query.query.has_value() && 
+        !this->m_query.query.has_value() &&
         this->m_query.sort == InstalledModListSort::RecentlyUpdated
     ) {
         return "No mods found :(\n"
