@@ -704,32 +704,38 @@ void KeybindSettingNodeV3::updateState(CCNode* invoker) {
 }
 
 void KeybindSettingNodeV3::onExtra(CCObject* sender) {
-    auto setting = getSetting();
-    KeybindListPopup::create(setting->getName().value_or(setting->getKey()), m_currentValue, [this](std::vector<Keybind> newKeybinds) {
-        if (m_currentValue == newKeybinds) return;
-        m_currentValue = std::move(newKeybinds);
-        this->markChanged(nullptr);
-    })->show();
+    KeybindListPopup::create(
+        getSetting(),
+        m_currentValue,
+        [this](std::vector<Keybind> newKeybinds) {
+            if (m_currentValue == newKeybinds) return;
+            m_currentValue = std::move(newKeybinds);
+            this->markChanged(nullptr);
+        }
+    )->show();
 }
 
 void KeybindSettingNodeV3::onKeybind(CCObject* sender) {
     auto index = sender->getTag();
-    auto setting = getSetting();
-    KeybindEditPopup::create(setting->getName().value_or(setting->getKey()), index >= 0 ? m_currentValue[index] : Keybind(), [this, index](Keybind const& newKeybind) {
-        if (index >= 0) {
-            if (newKeybind.key == KEY_None || std::ranges::contains(m_currentValue, newKeybind)) {
-                m_currentValue.erase(m_currentValue.begin() + index);
+    KeybindEditPopup::create(
+        getSetting(),
+        index >= 0 ? m_currentValue[index] : Keybind(),
+        [this, index](Keybind const& newKeybind) {
+            if (index >= 0) {
+                if (newKeybind.key == KEY_None || std::ranges::contains(m_currentValue, newKeybind)) {
+                    m_currentValue.erase(m_currentValue.begin() + index);
+                }
+                else {
+                    m_currentValue[index] = newKeybind;
+                }
             }
             else {
-                m_currentValue[index] = newKeybind;
+                if (std::ranges::contains(m_currentValue, newKeybind)) return;
+                m_currentValue.push_back(newKeybind);
             }
+            this->markChanged(nullptr);
         }
-        else {
-            if (std::ranges::contains(m_currentValue, newKeybind)) return;
-            m_currentValue.push_back(newKeybind);
-        }
-        this->markChanged(nullptr);
-    })->show();
+    )->show();
 }
 
 void KeybindSettingNodeV3::onCommit() {

@@ -7,26 +7,27 @@ CCNode* createKeybindButton(Keybind const& keybind) {
     return createGeodeButton(nullptr, keybind.toString(), true);
 }
 
-KeybindEditPopup* KeybindEditPopup::create(ZStringView name, Keybind const& keybind, Function<void(Keybind const&)> callback) {
-    auto ret = new KeybindEditPopup();
-    if (ret->init(name, keybind, std::move(callback))) {
-        ret->autorelease();
-        return ret;
-    }
-    delete ret;
-    return nullptr;
-}
-
-bool KeybindEditPopup::init(ZStringView name, Keybind const& keybind, Function<void(Keybind const&)> callback) {
+bool KeybindEditPopup::init(
+    std::shared_ptr<KeybindSettingV3> setting,
+    Keybind const& keybind,
+    Function<void(Keybind const&)> callback
+) {
     if (!GeodePopup::init(220, 170))
         return false;
 
-    this->setTitle(name);
+    this->setTitle(setting->getDisplayName());
     m_noElasticity = true;
 
+    if (auto mod = setting->getMod()) {
+        auto fromModLabel = CCLabelBMFont::create(mod->getName().c_str(), "bigFont.fnt");
+        fromModLabel->setScale(.4f);
+        fromModLabel->setColor(ccc3(55, 155, 255));
+        m_mainLayer->addChildAtPosition(fromModLabel, Anchor::Top, ccp(0, -40));
+    }
+
+    m_setting = setting;
     m_callback = std::move(callback);
     m_currentKeybind = keybind;
-
     auto bottomMenu = CCMenu::create();
     bottomMenu->setContentWidth(220.f);
 
@@ -81,7 +82,7 @@ void KeybindEditPopup::updateLabel() {
         if (*m_originalKeybind != m_currentKeybind) {
             m_originalKeybindContainer = CCNode::create();
             m_originalKeybindContainer->setContentWidth(200);
-            m_originalKeybindContainer->setScale(.6f);
+            m_originalKeybindContainer->setScale(.4f);
             m_originalKeybindContainer->setAnchorPoint(ccp(.5f, .5f));
 
             auto originalKeybindInfoStart = CCLabelBMFont::create("(Previous: ", "bigFont.fnt");
@@ -116,7 +117,8 @@ void KeybindEditPopup::updateLabel() {
             limitNodeWidth(m_keybindNode, m_mainLayer->getContentWidth() - 10, .75f, .1f);
         }
     }
-    m_mainLayer->addChildAtPosition(m_keybindNode, Anchor::Center, ccp(0, 7));
+    float keybindOffset = m_originalKeybindContainer ? 10 : 0;
+    m_mainLayer->addChildAtPosition(m_keybindNode, Anchor::Center, ccp(0, keybindOffset));
 }
 
 void KeybindEditPopup::onSet(CCObject*) {
@@ -132,9 +134,13 @@ void KeybindEditPopup::onRemove(CCObject*) {
     this->onClose(nullptr);
 }
 
-KeybindListPopup* KeybindListPopup::create(ZStringView name, std::vector<Keybind> const& keybinds, Function<void(std::vector<Keybind>)> callback) {
-    auto ret = new KeybindListPopup();
-    if (ret->init(name, keybinds, std::move(callback))) {
+KeybindEditPopup* KeybindEditPopup::create(
+    std::shared_ptr<KeybindSettingV3> setting,
+    Keybind const& keybind,
+    Function<void(Keybind const&)> callback
+) {
+    auto ret = new KeybindEditPopup();
+    if (ret->init(setting, keybind, std::move(callback))) {
         ret->autorelease();
         return ret;
     }
@@ -142,14 +148,19 @@ KeybindListPopup* KeybindListPopup::create(ZStringView name, std::vector<Keybind
     return nullptr;
 }
 
-bool KeybindListPopup::init(ZStringView name, std::vector<Keybind> const& keybinds, Function<void(std::vector<Keybind>)> callback) {
+bool KeybindListPopup::init(
+    std::shared_ptr<KeybindSettingV3> setting,
+    std::vector<Keybind> const& keybinds,
+    Function<void(std::vector<Keybind>)> callback
+) {
     if (!GeodePopup::init(220.f, 250.f))
         return false;
 
-    this->setTitle(name);
+    this->setTitle(setting->getDisplayName());
     m_noElasticity = true;
 
     m_callback = std::move(callback);
+    m_setting = setting;
     m_currentKeybinds = keybinds;
     m_hasChanged = false;
 
@@ -189,35 +200,23 @@ bool KeybindListPopup::init(ZStringView name, std::vector<Keybind> const& keybin
 
 void KeybindListPopup::updateKeybinds() {
     m_scrollLayer->m_contentLayer->removeAllChildren();
-
-    if (m_currentKeybinds.size() > 1) {
-        m_scrollLayer->m_contentLayer->addChild(CCNode::create());
-        for (size_t i = 1; i < m_currentKeybinds.size(); i++) {
-            auto& keybind = m_currentKeybinds[i];
-            CCNode* buttonSprite;
-            // If this is a keyboard keybind, show the key name, otherwise show the controller input icon
-            if (keybind.key < 1000 || keybind.key > 2000) {
-                buttonSprite = createGeodeButton(keybind.toString(), true);
-            } else {
-                buttonSprite = createGeodeButton(keybind.createNode(), "");
-            }
-            auto button = CCMenuItemSpriteExtra::create(buttonSprite, this, menu_selector(KeybindListPopup::onKeybind));
-            button->setTag(i);
-            limitNodeWidth(button, 185.f, 1.f, .1f);
-            auto menu = CCMenu::createWithItem(button);
-            menu->setContentSize({ 190.f, button->getScaledContentHeight() });
-            button->setPosition({ 95.f, button->getScaledContentHeight() / 2 });
-            m_scrollLayer->m_contentLayer->addChild(menu);
-        }
-        m_scrollLayer->m_contentLayer->addChild(CCNode::create());
+    size_t index = 0;
+    for (auto& keybind : m_currentKeybinds) {
+        auto bspr = createKeybindButton(keybind);
+        auto button = CCMenuItemSpriteExtra::create(bspr, this, menu_selector(KeybindListPopup::onKeybind));
+        button->setTag(index);
+        auto menu = CCMenu::createWithItem(button);
+        menu->setContentSize({ 190.f, button->getScaledContentHeight() });
+        button->setPosition({ 95.f, button->getScaledContentHeight() / 2 });
+        m_scrollLayer->m_contentLayer->addChild(menu);
+        index += 1;
     }
-
     m_scrollLayer->m_contentLayer->updateLayout();
     m_scrollLayer->scrollToTop();
 }
 
 void KeybindListPopup::onAdd(CCObject*) {
-    KeybindEditPopup::create(m_title->getString(), Keybind(), [this](Keybind const& newKeybind) {
+    KeybindEditPopup::create(m_setting, Keybind(), [this](Keybind const& newKeybind) {
         if (std::ranges::contains(m_currentKeybinds, newKeybind)) return;
         m_hasChanged = true;
         m_currentKeybinds.push_back(newKeybind);
@@ -232,7 +231,7 @@ void KeybindListPopup::onSave(CCObject*) {
 
 void KeybindListPopup::onKeybind(CCObject* sender) {
     auto index = sender->getTag();
-    KeybindEditPopup::create(m_title->getString(), m_currentKeybinds[index], [this, index](Keybind const& newKeybind) {
+    KeybindEditPopup::create(m_setting, m_currentKeybinds[index], [this, index](Keybind const& newKeybind) {
         if (m_currentKeybinds[index] == newKeybind) return;
         m_hasChanged = true;
         if (newKeybind.key == KEY_None || std::ranges::contains(m_currentKeybinds, newKeybind)) {
@@ -263,3 +262,16 @@ void KeybindListPopup::onClose(CCObject*) {
     }
 }
 
+KeybindListPopup* KeybindListPopup::create(
+    std::shared_ptr<KeybindSettingV3> setting,
+    std::vector<Keybind> const& keybinds,
+    Function<void(std::vector<Keybind>)> callback
+) {
+    auto ret = new KeybindListPopup();
+    if (ret->init(setting, keybinds, std::move(callback))) {
+        ret->autorelease();
+        return ret;
+    }
+    delete ret;
+    return nullptr;
+}
