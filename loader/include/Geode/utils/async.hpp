@@ -72,8 +72,14 @@ auto spawn(F&& f) {
 template <typename T = void> requires (!std::is_void_v<T>)
 arc::Future<std::optional<T>> waitForMainThread(Function<T()> func) {
     auto [tx, rx] = arc::oneshot::channel<T>();
+    auto token = std::make_shared<arc::CancellationToken>();
 
-    geode::queueInMainThread([func = std::move(func), tx = std::move(tx)] mutable {
+    auto _ = arc::scopeDtor([&] {
+        token->cancel();
+    });
+
+    geode::queueInMainThread([func = std::move(func), tx = std::move(tx), token] mutable {
+        if (token->isCancelled()) return;
         (void) tx.send(func());
     });
 
@@ -85,8 +91,14 @@ arc::Future<std::optional<T>> waitForMainThread(Function<T()> func) {
 template <typename T = void> requires (std::is_void_v<T>)
 arc::Future<bool> waitForMainThread(Function<void()> func) {
     auto [tx, rx] = arc::oneshot::channel<std::monostate>();
+    auto token = std::make_shared<arc::CancellationToken>();
 
-    geode::queueInMainThread([func = std::move(func), tx = std::move(tx)] mutable {
+    auto _ = arc::scopeDtor([&] {
+        token->cancel();
+    });
+
+    geode::queueInMainThread([func = std::move(func), tx = std::move(tx), token] mutable {
+        if (token->isCancelled()) return;
         func();
         (void) tx.send({});
     });
