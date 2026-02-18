@@ -4,13 +4,17 @@
  * Add keybind categories, and a global list of keybinds (134878e, b16c2b9, d4eb55a, 3bfe471, 9de1bf1, db160d8)
  * Add timestamp to keybind event (ff13011)
  * Automatically migrate old Custom Keybinds keybindings over to the new system by adding `migrate-from` to the keybind setting (601e3c5)
- * Add modifiers to mouse events (7759fa3)
+ * Add modifiers to mouse events (#1783)
  * Add the update time when sorting installed mods via Recently Installed (470ca41)
+ * Add mod list pinning (#1775)
  * Move some buttons to geode settings (403b546)
  * Make `LogEvent` thread-safe (bd5d968)
  * Fix `file::pickMany` on android (fc7e3bc)
  * Fix `IconButtonSprite` positioning code (517cf41)
  * Fix server time parsing (#1768)
+ * Fix inputs leaking when GD window isn't on foreground (d1e9ff4)
+ * Fix controller support on Windows (0f93c33)
+ * Fix `CCArrayExt::toVector` (63589c5)
 
 ## v5.0.0-beta.2
  * Implement mod deprecations (#1748)
