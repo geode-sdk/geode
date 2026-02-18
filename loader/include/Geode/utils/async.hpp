@@ -66,44 +66,118 @@ auto spawn(F&& f) {
     return runtime().spawn(std::forward<F>(f));
 }
 
+template <
+    typename T,
+    typename NonVoidT = std::conditional_t<std::is_void_v<T>, std::monostate, T>,
+    typename PollOut = std::conditional_t<std::is_void_v<T>, bool, std::optional<NonVoidT>>
+>
+struct WaitForMainAwaiter : arc::Pollable<WaitForMainAwaiter<T>, PollOut> {
+    template <typename F> requires (!std::is_same_v<std::decay_t<F>, WaitForMainAwaiter>)
+    explicit WaitForMainAwaiter(F&& func) {
+        m_state = std::make_shared<std::atomic<State>>(State::Pending);
+        auto [tx, rx] = arc::oneshot::channel<NonVoidT>();
+        m_receiver.emplace(std::move(rx));
+        m_recvAwaiter.emplace(m_receiver->recv());
+
+        geode::queueInMainThread([state = m_state, func = std::forward<F>(func), tx = std::move(tx)] mutable {
+            auto expected = State::Pending;
+            if (!state->compare_exchange_strong(expected, State::Running, std::memory_order::acq_rel)) {
+                // cancelled before the function started running, simply exit
+                return;
+            }
+
+            auto complete = [&]<typename X>(X&& val) {
+                // the state must be either Running or RunningCancelled, depending on this we decide whether to post the result or not
+                bool shouldPost = State::Running == state->exchange(State::Completed, std::memory_order::acq_rel);
+
+                if (shouldPost) {
+                    (void) tx.send(std::forward<X>(val));
+                } else {
+                    state->notify_one();
+                }
+            };
+
+            if constexpr (std::is_void_v<T>) {
+                func();
+                complete(std::monostate{});
+            } else {
+                complete(func());
+            }
+        });
+    }
+
+    ~WaitForMainAwaiter() {
+        if (!m_state || !m_receiver) return;
+
+        auto state = m_state->load(std::memory_order::acquire);
+        while (true) {
+            switch (state) {
+                case State::Pending: {
+                    // function hasn't ran yet, all we have to do is cancel it
+                    if (m_state->compare_exchange_weak(state, State::Completed, std::memory_order::acq_rel)) {
+                        return;
+                    }
+                } break;
+
+                case State::Running: {
+                    // currently running, we need to wait for it to finish
+                    // the function may have captured local environment, prevent UB by waiting until it finishes before we destroy anything
+                    if (m_state->compare_exchange_weak(state, State::RunningCancelled, std::memory_order::acq_rel)) {
+                        m_state->wait(State::RunningCancelled, std::memory_order::acquire);
+                        return;
+                    }
+                } break;
+
+                // nothing to do if completed, and all other states are impossible here
+                case State::Completed:
+                default: return;
+            }
+        }
+    }
+
+    WaitForMainAwaiter(WaitForMainAwaiter const&) = delete;
+    WaitForMainAwaiter& operator=(WaitForMainAwaiter const&) = delete;
+    WaitForMainAwaiter(WaitForMainAwaiter&&) = default;
+    WaitForMainAwaiter& operator=(WaitForMainAwaiter&&) = delete;
+
+    std::optional<PollOut> poll(arc::Context& cx) {
+        auto pres = m_recvAwaiter->poll(cx);
+        if (!pres) return std::nullopt;
+
+        // res is RecvResult<T>, return Some(nullopt/false) if it failed
+        auto res = std::move(*pres);
+
+        if constexpr (std::is_void_v<T>) {
+            return std::optional{res.isOk()};
+        } else {
+            return std::move(res).ok();
+        }
+    }
+
+private:
+    enum class State : uint8_t {
+        /// The function has been queued to run, but is not yet running
+        Pending,
+        /// The function is currently running in the main thread
+        Running,
+        /// The function is still running in the main thread, but it has been cancelled
+        RunningCancelled,
+        /// The function either completed and posted the result, or was cancelled and is not currently running
+        Completed,
+    };
+
+    std::shared_ptr<std::atomic<State>> m_state;
+    std::optional<arc::oneshot::Receiver<NonVoidT>> m_receiver;
+    std::optional<arc::oneshot::RecvAwaiter<NonVoidT>> m_recvAwaiter;
+};
+
 /// Queues the given function to run in the main thread as soon as possible
-/// and waits for it to complete. Returns null if the function failed to send the result.
+/// and waits for it to complete. Returns null/false if the function failed to send the result.
 /// (although that usually cannot happen in practice)
-template <typename T = void> requires (!std::is_void_v<T>)
-arc::Future<std::optional<T>> waitForMainThread(Function<T()> func) {
-    auto [tx, rx] = arc::oneshot::channel<T>();
-    auto token = std::make_shared<arc::CancellationToken>();
-
-    auto _ = arc::scopeDtor([&] {
-        token->cancel();
-    });
-
-    geode::queueInMainThread([func = std::move(func), tx = std::move(tx), token] mutable {
-        if (token->isCancelled()) return;
-        (void) tx.send(func());
-    });
-
-    co_return (co_await rx.recv()).ok();
-}
-
-/// Queues the given function to run in the main thread as soon as possible
-/// and waits for it to complete. Returns false if the function failed to complete (e.g. due to exception)
-template <typename T = void> requires (std::is_void_v<T>)
-arc::Future<bool> waitForMainThread(Function<void()> func) {
-    auto [tx, rx] = arc::oneshot::channel<std::monostate>();
-    auto token = std::make_shared<arc::CancellationToken>();
-
-    auto _ = arc::scopeDtor([&] {
-        token->cancel();
-    });
-
-    geode::queueInMainThread([func = std::move(func), tx = std::move(tx), token] mutable {
-        if (token->isCancelled()) return;
-        func();
-        (void) tx.send({});
-    });
-
-    co_return (co_await rx.recv()).isOk();
+/// This pollable is cancel-safe and won't be destroyed until the function finishes running or is confirmed to be aborted.
+template <typename T = void, typename F>
+auto waitForMainThread(F&& func) {
+    return WaitForMainAwaiter<T>(std::forward<F>(func));
 }
 
 /// Allows an async task to be spawned and then automatically aborted when the holder goes out of scope.
