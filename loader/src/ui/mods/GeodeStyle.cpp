@@ -36,6 +36,8 @@ $on_mod(Loaded) {
     ColorProvider::get()->define("mod-problems-item-bg"_spr, { 255, 255, 255, 15 });
     ColorProvider::get()->define("mod-developer-item-bg"_spr, { 255, 255, 255, 15 });
     ColorProvider::get()->define("mod-list-paid-color"_spr, { 0, 255, 63, 255 });
+    
+    ColorProvider::get()->define("keybinds-list-category-label"_spr, ccc3(148, 116, 155));
 
     // Only used when GD theme is active
     ColorProvider::get()->define("mods-layer-gd-bg"_spr, { 0, 102, 255, 255 });
@@ -68,6 +70,7 @@ $on_mod(Loaded) {
             ColorProvider::get()->reset("mod-list-restart-required-label-bg"_spr);
             ColorProvider::get()->reset("mod-problems-item-bg"_spr);
             ColorProvider::get()->reset("mod-developer-item-bg"_spr);
+            ColorProvider::get()->reset("keybinds-list-category-label"_spr);
         }
         else {
             ColorProvider::get()->override("mod-list-bg"_spr, { 168, 85, 44, 255 });
@@ -82,6 +85,7 @@ $on_mod(Loaded) {
             ColorProvider::get()->override("mod-list-errors-found-2"_spr, { 235, 35, 112, 255 });
             ColorProvider::get()->override("mod-problems-item-bg"_spr, { 0, 0, 0, 75 });
             ColorProvider::get()->override("mod-developer-item-bg"_spr, { 0, 0, 0, 75 });
+            ColorProvider::get()->override("keybinds-list-category-label"_spr, ccc3(156, 185, 147));
         }
     };
 

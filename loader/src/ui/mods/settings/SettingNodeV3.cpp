@@ -632,26 +632,25 @@ bool KeybindSettingNodeV3::init(std::shared_ptr<KeybindSettingV3> setting, float
     this->getButtonMenu()->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::End));
 
     if (auto category = setting->getCategory()) {
-        const char* catName;
-        std::pair<ccColor3B, ccColor3B> catColor;
+        const char* catSpr;
         switch (*category) {
             default:
             case KeybindCategory::Editor: {
-                catName = "Editor";
-                catColor = std::make_pair(ccc3(175, 255, 251), ccc3(83, 215, 219));
+                catSpr = "GJ_hammerIcon_001.png";
             } break;
 
             case KeybindCategory::Gameplay: {
-                catName = "Gameplay";
-                catColor = std::make_pair(ccc3(252, 231, 201), ccc3(238, 112, 73));
+                catSpr = "controllerBtn_DPad_Right_001.png";
             } break;
 
             case KeybindCategory::Universal: {
-                catName = "Universal";
-                catColor = std::make_pair(ccc3(218, 201, 253), ccc3(156, 83, 224));
+                catSpr = "GJ_sMagicIcon_001.png";
             } break;
         }
-        auto categoryLabel = createTagLabel(catName, catColor);
+        auto categoryLabel = createTagLabelWithIcon(
+            CCSprite::createWithSpriteFrameName(catSpr), "",
+            std::make_pair(ccWHITE, "keybinds-list-category-label"_cc3b)
+        );
         categoryLabel->setLayoutOptions(
             AxisLayoutOptions::create()->setScaleLimits(.1f, .35f)
         );

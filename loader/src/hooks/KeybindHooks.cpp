@@ -7,6 +7,6 @@ using namespace geode::prelude;
 class $modify(MoreOptionsLayer) {
 	$override
 	void onKeybindings(CCObject*) {
-		KeybindsPopup::create(true)->show();
+		KeybindsPopup::create()->show();
 	}
 };
