@@ -1,5 +1,8 @@
 #include "KeybindEditPopup.hpp"
 
+#include <Geode/ui/Scrollbar.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
+
 CCNode* createKeybindButton(Keybind const& keybind) {
     if (keybind.key >= CONTROLLER_A && keybind.key <= CONTROLLER_RTHUMBSTICK_RIGHT) {
         return createGeodeButton(keybind.createNode(), "");

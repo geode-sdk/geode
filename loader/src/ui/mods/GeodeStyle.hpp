@@ -6,6 +6,7 @@
 #include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
 #include <Geode/ui/Popup.hpp>
+#include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/ui/NineSlice.hpp>
 #include <Geode/utils/ZStringView.hpp>
 #include <Geode/loader/Mod.hpp>
