@@ -154,13 +154,11 @@ public:
                         result.emplace_back(Keybind(
                             key,
                             // CK mods are in a different order :sob:
-                            static_cast<Keybind::Modifiers>(
-                                Keybind::Mods_None
-                                | ((mods & 0b0001) ? Keybind::Mods_Control : 0)
-                                | ((mods & 0b0010) ? Keybind::Mods_Shift : 0)
-                                | ((mods & 0b0100) ? Keybind::Mods_Alt : 0)
-                                | ((mods & 0b1000) ? Keybind::Mods_Super : 0)
-                            )
+                            Keybind::Mods_None
+                                | (mods & 0b0001 ? Keybind::Mods_Control : Keybind::Mods_None)
+                                | (mods & 0b0010 ? Keybind::Mods_Shift : Keybind::Mods_None)
+                                | (mods & 0b0100 ? Keybind::Mods_Alt : Keybind::Mods_None)
+                                | (mods & 0b1000 ? Keybind::Mods_Super : Keybind::Mods_None)
                         ));
                     }
                 }
@@ -303,8 +301,7 @@ ModSettingsManager::ModSettingsManager(ModMetadata const& metadata)
             if (key == KEY_None) {
                 return ListenerResult::Propagate;
             }
-            // todo: modifiers in mouse inputs
-            auto keybind = Keybind(key, KeyboardInputData::Mods_None);
+            auto keybind = Keybind(key, data.modifiers);
             bool down = data.action == MouseInputData::Action::Press;
             for (auto& setting : m_impl->keybindSettings) {
                 if (std::ranges::contains(setting->getValue(), keybind)) {
