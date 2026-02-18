@@ -200,6 +200,7 @@ void InstalledModListSource::resetQuery() {
 }
 
 InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t page, bool forceUpdate) {
+    ARC_FRAME();
     m_query.page = page;
     m_query.pageSize = m_pageSize;
 
@@ -324,3 +325,4 @@ bool InstalledModListSource::isLocalModsOnly() const {
     // Uhh I wonder why this is here but uhhh idk why...
     return m_type != InstalledModListType::OnlyUpdates;
 }
+
