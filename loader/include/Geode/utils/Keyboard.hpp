@@ -158,7 +158,7 @@ namespace geode {
 template <>
 struct std::hash<geode::Keybind> {
     size_t operator()(geode::Keybind const& keybind) const noexcept {
-        return static_cast<size_t>(keybind.key) | (static_cast<size_t>(keybind.modifiers.value) << 28);
+        return static_cast<size_t>(keybind.key) & (static_cast<size_t>(keybind.modifiers.value) << 28);
     }
 };
 
