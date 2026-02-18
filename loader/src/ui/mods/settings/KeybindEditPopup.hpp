@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../GeodeStyle.hpp"
 
 using namespace geode::prelude;
