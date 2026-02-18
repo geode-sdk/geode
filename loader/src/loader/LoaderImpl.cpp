@@ -404,7 +404,7 @@ void Loader::Impl::populateModList(std::vector<ModMetadata>& modQueue) {
                 return ListenerResult::Propagate;
             }
             // todo: modifiers in mouse inputs
-            auto keybind = Keybind(key, KeyboardInputData::Mods_None);
+            auto keybind = Keybind(key, KeyboardModifier::None);
             bool down = data.action == MouseInputData::Action::Press;
             for (auto& setting : m_keybindSettings[keybind]) {
                 if (KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, false, data.timestamp)) {

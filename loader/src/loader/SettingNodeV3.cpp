@@ -825,7 +825,7 @@ bool KeybindEditPopup::init(ZStringView name, Keybind const& keybind, Function<v
 }
 
 void KeybindEditPopup::updateLabel(Keybind const& keybind) {
-    if (keybind.key == KEY_None && keybind.modifiers == Keybind::Mods_None) {
+    if (keybind.key == KEY_None && keybind.modifiers == KeyboardModifier::None) {
         m_keybindLabel->setString("Press a Key");
         m_keybindLabel->setOpacity(150);
     }

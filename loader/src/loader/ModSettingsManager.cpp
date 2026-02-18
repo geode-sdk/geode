@@ -154,11 +154,11 @@ public:
                         result.emplace_back(Keybind(
                             key,
                             // CK mods are in a different order :sob:
-                            Keybind::Mods_None
-                                | (mods & 0b0001 ? Keybind::Mods_Control : Keybind::Mods_None)
-                                | (mods & 0b0010 ? Keybind::Mods_Shift : Keybind::Mods_None)
-                                | (mods & 0b0100 ? Keybind::Mods_Alt : Keybind::Mods_None)
-                                | (mods & 0b1000 ? Keybind::Mods_Super : Keybind::Mods_None)
+                            KeyboardModifier::None
+                                | (mods & 0b0001 ? KeyboardModifier::Control : KeyboardModifier::None)
+                                | (mods & 0b0010 ? KeyboardModifier::Shift : KeyboardModifier::None)
+                                | (mods & 0b0100 ? KeyboardModifier::Alt : KeyboardModifier::None)
+                                | (mods & 0b1000 ? KeyboardModifier::Super : KeyboardModifier::None)
                         ));
                     }
                 }
