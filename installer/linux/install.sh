@@ -195,9 +195,9 @@ if [ -z "$TAG" ]; then
     echo "Geode Index failed, checking GitHub releases..."
     GITHUB_JSON="$(curl -s 'https://api.github.com/repos/geode-sdk/geode/releases?per_page=1')"
     if [ -x "$(command -v jq)" ]; then
-        TAG="$(echo "$GITHUB_JSON" | jq -r '.[0].tag_name' 2>/dev/null)"
+        TAG="$(echo -E "$GITHUB_JSON" | jq -r '.[0].tag_name' 2>/dev/null)"
     else
-        TAG="$(echo "$GITHUB_JSON" | $py_cmd -c 'import json,sys; print(json.load(sys.stdin)[0]["tag_name"])' 2>/dev/null)"
+        TAG="$(echo -E "$GITHUB_JSON" | $py_cmd -c 'import json,sys; print(json.load(sys.stdin)[0]["tag_name"])' 2>/dev/null)"
     fi
 fi
 
