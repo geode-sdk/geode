@@ -238,10 +238,10 @@ Result<Keybind> Keybind::fromString(std::string_view str) {
 
 std::string Keybind::toString() const {
     StringBuffer<> buf;
-    if (modifiers & Mods_Control) {
+    if ((modifiers & Mods_Control) && key != KEY_LeftControl && key != KEY_RightControl) {
         buf.append("Ctrl+");
     }
-    if (modifiers & Mods_Super) {
+    if ((modifiers & Mods_Super) && key != KEY_LeftWindowsKey && key != KEY_RightWindowsKey) {
         #if defined(GEODE_IS_MACOS) || defined(GEODE_IS_IOS)
         buf.append("Cmd+");
         #elif defined(GEODE_IS_WINDOWS)
@@ -250,25 +250,34 @@ std::string Keybind::toString() const {
         buf.append("Super+");
         #endif
     }
-    if (modifiers & Mods_Shift) {
+    if ((modifiers & Mods_Shift) && key != KEY_LeftShift && key != KEY_RightShift) {
         buf.append("Shift+");
     }
-    if (modifiers & Mods_Alt) {
+    if ((modifiers & Mods_Alt) && key != KEY_LeftMenu && key != KEY_RightMenu) {
         #if defined(GEODE_IS_MACOS) || defined(GEODE_IS_IOS)
         buf.append("Opt+");
         #else
         buf.append("Alt+");
         #endif
     }
-    auto str = CCKeyboardDispatcher::get()->keyToString(key);
-    buf.append(str ? str : "Unknown");
+    const char* keyStr = nullptr;
+    if (key == KEY_LeftMenu) {
+        keyStr = "LeftAlt";
+    }
+    else if (key == KEY_RightMenu) {
+        keyStr = "RightAlt";
+    }
+    else {
+        keyStr = CCKeyboardDispatcher::get()->keyToString(key);
+    }
+    buf.append(keyStr ? keyStr : "Unknown");
     return buf.str();
 }
 
 cocos2d::CCNode* Keybind::createNode() const {
     // If this is not a controller bind, just return a label with the key name
-    if (key < 1000 || key > 2000) {
-        return CCLabelBMFont::create(this->toString().c_str(), "goldFont.fnt");
+    if (key < CONTROLLER_A || key > CONTROLLER_RTHUMBSTICK_RIGHT) {
+        return CCLabelBMFont::create(this->toString().c_str(), "bigFont.fnt");
     }
 
     const char* sprite;
@@ -298,7 +307,7 @@ cocos2d::CCNode* Keybind::createNode() const {
         default: sprite = nullptr;
     }
     if (!sprite) {
-        return CCLabelBMFont::create("Unk", "goldFont.fnt");
+        return CCLabelBMFont::create("Unknown", "bigFont.fnt");
     }
 
     auto spr = CCSprite::createWithSpriteFrameName(sprite);

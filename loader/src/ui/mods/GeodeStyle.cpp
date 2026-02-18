@@ -223,8 +223,15 @@ const char* getGeodeButtonSpriteName(GeodeButtonSprite spr, bool forceDisableThe
     }
 }
 
+IconButtonSprite* createGeodeButton(CCNode* icon, ZStringView text, bool gold, GeodeButtonSprite bg, bool forceDisableTheme) {
+    return IconButtonSprite::create(
+        getGeodeButtonSpriteName(bg, forceDisableTheme),
+        icon, text.c_str(),
+        gold ? "goldFont.fnt" : "bigFont.fnt"
+    );
+}
 IconButtonSprite* createGeodeButton(CCNode* icon, ZStringView text, GeodeButtonSprite bg, bool forceDisableTheme) {
-    return IconButtonSprite::create(getGeodeButtonSpriteName(bg, forceDisableTheme), icon, text.c_str(), "bigFont.fnt");
+    return createGeodeButton(icon, text, false, bg, forceDisableTheme);
 }
 ButtonSprite* createGeodeButton(ZStringView text, int width, bool gold, bool absolute, GeodeButtonSprite bg, bool forceDisableTheme) {
     return ButtonSprite::create(text.c_str(), width, absolute, gold ? "goldFont.fnt" : "bigFont.fnt", getGeodeButtonSpriteName(bg, forceDisableTheme), 0.0f, .8f);

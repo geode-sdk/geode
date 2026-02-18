@@ -5,6 +5,7 @@
 #include <Geode/ui/MDPopup.hpp>
 #include <Geode/ui/Scrollbar.hpp>
 #include "KeybindEditPopup.hpp"
+#include <ranges>
 
 class SettingNodeV3::Impl final {
 public:
@@ -672,19 +673,14 @@ void KeybindSettingNodeV3::updateState(CCNode* invoker) {
     auto buttonMenu = getButtonMenu();
 
     buttonMenu->removeAllChildren();
-    for (size_t i = 0; i < m_currentValue.size(); i++) {
-        auto& keybind = m_currentValue[i];
-        CCNode* buttonSprite;
-        // If this is a keyboard keybind, show the key name, otherwise show the controller input icon
-        if (keybind.key < 1000 || keybind.key > 2000) {
-            buttonSprite = createGeodeButton(keybind.toString(), true);
-        } else {
-            buttonSprite = createGeodeButton(keybind.createNode(), "");
-        }
-        buttonSprite->setScale(.5f);
-        auto button = CCMenuItemSpriteExtra::create(buttonSprite, this, menu_selector(KeybindSettingNodeV3::onKeybind));
-        button->setTag(i);
+    size_t index = 0;
+    for (auto& keybind : m_currentValue) {
+        auto bspr = createKeybindButton(keybind);
+        bspr->setScale(.5f);
+        auto button = CCMenuItemSpriteExtra::create(bspr, this, menu_selector(KeybindSettingNodeV3::onKeybind));
+        button->setTag(index);
         buttonMenu->addChild(button);
+        index += 1;
     }
     auto plusSprite = createGeodeButton("+", true);
     plusSprite->setScale(.5f);

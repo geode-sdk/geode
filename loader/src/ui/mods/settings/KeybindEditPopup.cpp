@@ -1,5 +1,12 @@
 #include "KeybindEditPopup.hpp"
 
+CCNode* createKeybindButton(Keybind const& keybind) {
+    if (keybind.key >= CONTROLLER_A && keybind.key <= CONTROLLER_RTHUMBSTICK_RIGHT) {
+        return createGeodeButton(keybind.createNode(), "");
+    }
+    return createGeodeButton(nullptr, keybind.toString(), true);
+}
+
 KeybindEditPopup* KeybindEditPopup::create(ZStringView name, Keybind const& keybind, Function<void(Keybind const&)> callback) {
     auto ret = new KeybindEditPopup();
     if (ret->init(name, keybind, std::move(callback))) {
@@ -11,7 +18,7 @@ KeybindEditPopup* KeybindEditPopup::create(ZStringView name, Keybind const& keyb
 }
 
 bool KeybindEditPopup::init(ZStringView name, Keybind const& keybind, Function<void(Keybind const&)> callback) {
-    if (!GeodePopup::init(220.f, 140.f))
+    if (!GeodePopup::init(220, 170))
         return false;
 
     this->setTitle(name);
@@ -19,9 +26,6 @@ bool KeybindEditPopup::init(ZStringView name, Keybind const& keybind, Function<v
 
     m_callback = std::move(callback);
     m_currentKeybind = keybind;
-
-    m_keybindLabel = CCLabelBMFont::create("", "bigFont.fnt");
-    m_mainLayer->addChildAtPosition(m_keybindLabel, Anchor::Center, ccp(0, 5));
 
     auto bottomMenu = CCMenu::create();
     bottomMenu->setContentWidth(220.f);
@@ -33,6 +37,8 @@ bool KeybindEditPopup::init(ZStringView name, Keybind const& keybind, Function<v
         bottomMenu->addChild(addButton);
     }
     else {
+        m_originalKeybind = keybind;
+
         auto setButton = CCMenuItemSpriteExtra::create(
             createGeodeButton("Set", true), this, menu_selector(KeybindEditPopup::onSet)
         );
@@ -47,12 +53,11 @@ bool KeybindEditPopup::init(ZStringView name, Keybind const& keybind, Function<v
     bottomMenu->setLayout(RowLayout::create()->setGap(10.f));
     m_mainLayer->addChildAtPosition(bottomMenu, Anchor::Bottom, ccp(0, 25));
 
-    // todo: controllers
     this->addEventListener(KeyboardInputEvent(), [this](KeyboardInputData& data) {
         if (data.action == KeyboardInputData::Action::Press) {
             m_currentKeybind.key = data.key;
             m_currentKeybind.modifiers = data.modifiers;
-            this->updateLabel(m_currentKeybind);
+            this->updateLabel();
         }
     });
     this->addEventListener(MouseInputEvent(), [this](MouseInputData& data) {
@@ -60,24 +65,58 @@ bool KeybindEditPopup::init(ZStringView name, Keybind const& keybind, Function<v
         if (key != KEY_None && data.action == MouseInputData::Action::Press) {
             m_currentKeybind.key = key;
             m_currentKeybind.modifiers = data.modifiers;
-            this->updateLabel(m_currentKeybind);
+            this->updateLabel();
         }
     });
-    this->updateLabel(keybind);
+    this->updateLabel();
 
     return true;
 }
 
-void KeybindEditPopup::updateLabel(Keybind const& keybind) {
-    if (keybind.key == KEY_None && keybind.modifiers == Keybind::Mods_None) {
-        m_keybindLabel->setString("Press a Key");
-        m_keybindLabel->setOpacity(150);
+void KeybindEditPopup::updateLabel() {
+    if (m_originalKeybind) {
+        if (m_originalKeybindContainer) {
+            m_originalKeybindContainer->removeFromParent();
+        }
+        if (*m_originalKeybind != m_currentKeybind) {
+            m_originalKeybindContainer = CCNode::create();
+            m_originalKeybindContainer->setContentWidth(200);
+            m_originalKeybindContainer->setScale(.6f);
+            m_originalKeybindContainer->setAnchorPoint(ccp(.5f, .5f));
+
+            auto originalKeybindInfoStart = CCLabelBMFont::create("(Previous: ", "bigFont.fnt");
+            originalKeybindInfoStart->setColor(ccc3(55, 255, 55));
+            m_originalKeybindContainer->addChild(originalKeybindInfoStart);
+
+            auto originalKeybind = m_originalKeybind->createNode();
+            m_originalKeybindContainer->addChild(originalKeybind);
+            
+            auto originalKeybindInfoEnd = CCLabelBMFont::create(")", "bigFont.fnt");
+            originalKeybindInfoEnd->setColor(ccc3(55, 255, 55));
+            m_originalKeybindContainer->addChild(originalKeybindInfoEnd);
+
+            m_originalKeybindContainer->setLayout(SimpleRowLayout::create());
+            m_mainLayer->addChildAtPosition(m_originalKeybindContainer, Anchor::Bottom, ccp(0, 60));
+        }
+    }
+
+    if (m_keybindNode) {
+        m_keybindNode->removeFromParent();
+    }
+    if (m_currentKeybind.key == KEY_None && m_currentKeybind.modifiers == Keybind::Mods_None) {
+        auto label = CCLabelBMFont::create("Press a key...", "bigFont.fnt");
+        label->setOpacity(150);
+        label->setScale(.75f);
+        m_keybindNode = label;
     }
     else {
-        m_keybindLabel->setString(keybind.toString().c_str());
-        m_keybindLabel->setOpacity(255);
+        m_keybindNode = m_currentKeybind.createNode();
+        // It just looks better if controller binds are scale 1
+        if (!typeinfo_cast<CCSprite*>(m_keybindNode)) {
+            limitNodeWidth(m_keybindNode, m_mainLayer->getContentWidth() - 10, .75f, .1f);
+        }
     }
-    m_keybindLabel->limitLabelWidth(200.f, .8f, .1f);
+    m_mainLayer->addChildAtPosition(m_keybindNode, Anchor::Center, ccp(0, 7));
 }
 
 void KeybindEditPopup::onSet(CCObject*) {

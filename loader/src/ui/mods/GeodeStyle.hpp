@@ -58,9 +58,33 @@ enum class GeodeButtonSprite {
     Gray,
 };
 const char* getGeodeButtonSpriteName(GeodeButtonSprite spr, bool forceDisableTheme = false);
-IconButtonSprite* createGeodeButton(CCNode* icon, ZStringView text, GeodeButtonSprite bg = GeodeButtonSprite::Default, bool forceDisableTheme = false);
-ButtonSprite* createGeodeButton(ZStringView text, int width, bool absolute = false, bool gold = false, GeodeButtonSprite bg = GeodeButtonSprite::Default, bool forceDisableTheme = false);
-ButtonSprite* createGeodeButton(ZStringView text, bool gold = false, GeodeButtonSprite bg = GeodeButtonSprite::Default, bool forceDisableTheme = false);
+IconButtonSprite* createGeodeButton(
+    CCNode* icon,
+    ZStringView text,
+    GeodeButtonSprite bg = GeodeButtonSprite::Default,
+    bool forceDisableTheme = false
+);
+IconButtonSprite* createGeodeButton(
+    CCNode* icon,
+    ZStringView text,
+    bool gold,
+    GeodeButtonSprite bg = GeodeButtonSprite::Default,
+    bool forceDisableTheme = false
+);
+ButtonSprite* createGeodeButton(
+    ZStringView text,
+    int width,
+    bool absolute = false,
+    bool gold = false,
+    GeodeButtonSprite bg = GeodeButtonSprite::Default,
+    bool forceDisableTheme = false
+);
+ButtonSprite* createGeodeButton(
+    ZStringView text,
+    bool gold = false,
+    GeodeButtonSprite bg = GeodeButtonSprite::Default,
+    bool forceDisableTheme = false
+);
 
 CircleButtonSprite* createGeodeCircleButton(CCSprite* top, float scale = 1.f, CircleBaseSize size = CircleBaseSize::Medium, bool altColor = false, bool forceDisableTheme = false);
 

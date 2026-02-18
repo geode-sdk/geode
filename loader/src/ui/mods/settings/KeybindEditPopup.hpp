@@ -4,17 +4,21 @@
 
 using namespace geode::prelude;
 
+CCNode* createKeybindButton(Keybind const& keybind);
+
 class KeybindEditPopup : public GeodePopup {
 protected:
-    CCLabelBMFont* m_keybindLabel;
+    CCNode* m_keybindNode = nullptr;
+    CCNode* m_originalKeybindContainer = nullptr;
     Keybind m_currentKeybind;
+    std::optional<Keybind> m_originalKeybind;
     Function<void(Keybind const&)> m_callback;
 
     bool init(ZStringView name, Keybind const& keybind, Function<void(Keybind const&)> callback);
     void onSet(CCObject*);
     void onRemove(CCObject*);
 
-    void updateLabel(Keybind const& keybind);
+    void updateLabel();
 
 public:
     static KeybindEditPopup* create(ZStringView name, Keybind const& keybind, Function<void(Keybind const&)> callback);
