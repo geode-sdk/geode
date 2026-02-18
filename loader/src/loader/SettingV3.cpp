@@ -6,8 +6,8 @@
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <regex>
-#include "SettingNodeV3.hpp"
-#include "LoaderImpl.hpp"
+#include <ui/mods/settings/SettingNodeV3.hpp>
+#include <loader/LoaderImpl.hpp>
 #include <matjson/std.hpp>
 
 using namespace geode::prelude;

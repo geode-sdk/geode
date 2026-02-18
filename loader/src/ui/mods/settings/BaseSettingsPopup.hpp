@@ -3,7 +3,7 @@
 #include "../GeodeStyle.hpp"
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/ui/TextInput.hpp>
-#include <loader/SettingNode.hpp>
+#include "SettingNode.hpp"
 
 using namespace geode::prelude;
 
