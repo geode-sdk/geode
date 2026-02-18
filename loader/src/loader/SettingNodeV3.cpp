@@ -815,8 +815,7 @@ bool KeybindEditPopup::init(ZStringView name, Keybind const& keybind, Function<v
         auto key = MouseInputData::buttonToKeyCode(data.button);
         if (key != KEY_None && data.action == MouseInputData::Action::Press) {
             m_currentKeybind.key = key;
-            // todo: modifiers in mouse inputs
-            m_currentKeybind.modifiers = KeyboardInputData::Mods_None;
+            m_currentKeybind.modifiers = data.modifiers;
             this->updateLabel(m_currentKeybind);
         }
     });

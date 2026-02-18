@@ -117,7 +117,8 @@ bool InstalledModsQuery::queryCheck(ModSource const& src, double& weighted) cons
     if (addToList && src.asMod()->isInternal()) {
         weighted += 5;
     }
-    if (addToList && src.asMod()->isPinned()) {
+    // Pinning shouldn't do anything when sorting by recently updated
+    if (addToList && src.asMod()->isPinned() && this->sort != InstalledModListSort::RecentlyUpdated) {
         weighted += 4;
     }
     if (addToList && enabledFirst && src.asMod()->isLoaded()) {
@@ -199,6 +200,7 @@ void InstalledModListSource::resetQuery() {
 }
 
 InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t page, bool forceUpdate) {
+    ARC_FRAME();
     m_query.page = page;
     m_query.pageSize = m_pageSize;
 
@@ -244,7 +246,7 @@ InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t pa
     }
     */
     for (auto& mod : Loader::get()->getAllMods()) {
-        content.mods.push_back(ModSource(mod));
+        content.mods.push_back(ModSource(mod, this));
     }
     // If we're only checking mods that have updates, we first have to run
     // update checks every mod...
@@ -299,7 +301,7 @@ void InstalledModListSource::setModTags(std::unordered_set<std::string> const& t
 std::vector<std::pair<size_t, std::string>> InstalledModListSource::getSortingOptions() {
     return {
         { static_cast<size_t>(InstalledModListSort::Alphabetical), "A-Z" },
-        { static_cast<size_t>(InstalledModListSort::RecentlyUpdated), "Recently Updated" },
+        { static_cast<size_t>(InstalledModListSort::RecentlyUpdated), "Recently Installed" },
     };
 }
 size_t InstalledModListSource::getSort() const {
@@ -323,3 +325,4 @@ bool InstalledModListSource::isLocalModsOnly() const {
     // Uhh I wonder why this is here but uhhh idk why...
     return m_type != InstalledModListType::OnlyUpdates;
 }
+

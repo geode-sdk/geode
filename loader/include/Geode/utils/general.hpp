@@ -226,6 +226,17 @@ namespace geode {
         GEODE_DLL std::string timePointAsString(std::chrono::system_clock::time_point const& tp);
 
         /**
+         * Converts a time point to a relative string in a format like "2 days ago"
+         * @param abbreviated If true, the string is abbreviated to "2d" etc.
+         */
+        GEODE_DLL std::string timeToAgoString(std::chrono::system_clock::time_point tp, bool abbreviated = false);
+        /**
+         * Converts a time point to a relative string in a format like "2 days ago"
+         * @param abbreviated If true, the string is abbreviated to "2d" etc.
+         */
+        GEODE_DLL std::string timeToAgoString(asp::SystemTime tp, bool abbreviated = false);
+
+        /**
          * Gets the display pixel factor for the current screen,
          * i.e. the ratio between physical pixels and logical pixels on one axis.
          * On most platforms this is 1.0, but on retina displays for example this returns 2.0.

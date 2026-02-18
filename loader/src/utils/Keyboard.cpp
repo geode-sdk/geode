@@ -237,7 +237,7 @@ Result<Keybind> Keybind::fromString(std::string_view str) {
 }
 
 std::string Keybind::toString() const {
-    StringBuffer buf;
+    StringBuffer<> buf;
     if (modifiers & Mods_Control) {
         buf.append("Ctrl+");
     }
