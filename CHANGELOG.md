@@ -1,11 +1,15 @@
 # Geode Changelog
 
 ## v5.0.0-beta.3
- * Add keybind categories, and a global list of keybinds (134878e, b16c2b9, d4eb55a, 3bfe471, 9de1bf1)
+ * Add keybind categories, and a global list of keybinds (134878e, b16c2b9, d4eb55a, 3bfe471, 9de1bf1, db160d8)
  * Add timestamp to keybind event (ff13011)
+ * Automatically migrate old Custom Keybinds keybindings over to the new system by adding `migrate-from` to the keybind setting (601e3c5)
+ * Add modifiers to mouse events (7759fa3)
+ * Add the update time when sorting installed mods via Recently Installed (470ca41)
  * Move some buttons to geode settings (403b546)
  * Make `LogEvent` thread-safe (bd5d968)
  * Fix `file::pickMany` on android (fc7e3bc)
+ * Fix `IconButtonSprite` positioning code (517cf41)
  * Fix server time parsing (#1768)
 
 ## v5.0.0-beta.2
