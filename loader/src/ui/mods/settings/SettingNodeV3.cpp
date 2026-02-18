@@ -5,7 +5,6 @@
 #include <Geode/ui/MDPopup.hpp>
 #include <Geode/ui/Scrollbar.hpp>
 #include "KeybindEditPopup.hpp"
-#include <ranges>
 
 class SettingNodeV3::Impl final {
 public:

@@ -138,19 +138,11 @@ namespace geode {
     };
 
     struct Keybind final {
-        using Modifiers = KeyboardModifier;
-
-        static constexpr Modifiers Mods_None = Modifiers::None;
-        static constexpr Modifiers Mods_Shift = Modifiers::Shift;
-        static constexpr Modifiers Mods_Control = Modifiers::Control;
-        static constexpr Modifiers Mods_Alt = Modifiers::Alt;
-        static constexpr Modifiers Mods_Super = Modifiers::Super;
-
         cocos2d::enumKeyCodes key = cocos2d::KEY_None;
-        Modifiers modifiers = Mods_None;
+        KeyboardModifier modifiers = KeyboardModifier::None;
 
         Keybind() = default;
-        Keybind(cocos2d::enumKeyCodes key, Modifiers modifiers) noexcept
+        Keybind(cocos2d::enumKeyCodes key, KeyboardModifier modifiers) noexcept
             : key(key), modifiers(modifiers) {}
 
         static GEODE_DLL Result<Keybind> fromString(std::string_view str);
@@ -162,6 +154,13 @@ namespace geode {
         }
     };
 }
+
+template <>
+struct std::hash<geode::Keybind> {
+    size_t operator()(geode::Keybind const& keybind) const noexcept {
+        return static_cast<size_t>(keybind.key) ^ (static_cast<size_t>(keybind.modifiers.value) << 28);
+    }
+};
 
 template <>
 struct matjson::Serialize<geode::Keybind> {

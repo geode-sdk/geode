@@ -206,21 +206,21 @@ StringMap<enumKeyCodes> keyNameToCode = {
 };
 
 Result<Keybind> Keybind::fromString(std::string_view str) {
-    Keybind::Modifiers mods = Keybind::Mods_None;
+    KeyboardModifier mods = KeyboardModifier::None;
     size_t pos = str.find('+');
     while (pos != std::string::npos) {
         auto token = str.substr(0, pos);
         if (token == "Ctrl" || token == "Control") {
-            mods |= Keybind::Mods_Control;
+            mods |= KeyboardModifier::Control;
         }
         else if (token == "Shift") {
-            mods |= Keybind::Mods_Shift;
+            mods |= KeyboardModifier::Shift;
         }
         else if (token == "Alt" || token == "Opt" || token == "Option") {
-            mods |= Keybind::Mods_Alt;
+            mods |= KeyboardModifier::Alt;
         }
         else if (token == "Super" || token == "Cmd" || token == "Command" || token == "Win" || token == "Windows") {
-            mods |= Keybind::Mods_Super;
+            mods |= KeyboardModifier::Super;
         }
         else {
             return Err(fmt::format("Invalid modifier '{}'", token));
@@ -238,10 +238,10 @@ Result<Keybind> Keybind::fromString(std::string_view str) {
 
 std::string Keybind::toString() const {
     StringBuffer<> buf;
-    if ((modifiers & Mods_Control) && key != KEY_LeftControl && key != KEY_RightControl) {
+    if ((modifiers & KeyboardModifier::Control) && key != KEY_LeftControl && key != KEY_RightControl) {
         buf.append("Ctrl+");
     }
-    if ((modifiers & Mods_Super) && key != KEY_LeftWindowsKey && key != KEY_RightWindowsKey) {
+    if ((modifiers & KeyboardModifier::Super) && key != KEY_LeftWindowsKey && key != KEY_RightWindowsKey) {
         #if defined(GEODE_IS_MACOS) || defined(GEODE_IS_IOS)
         buf.append("Cmd+");
         #elif defined(GEODE_IS_WINDOWS)
@@ -250,10 +250,10 @@ std::string Keybind::toString() const {
         buf.append("Super+");
         #endif
     }
-    if ((modifiers & Mods_Shift) && key != KEY_LeftShift && key != KEY_RightShift) {
+    if ((modifiers & KeyboardModifier::Shift) && key != KEY_LeftShift && key != KEY_RightShift) {
         buf.append("Shift+");
     }
-    if ((modifiers & Mods_Alt) && key != KEY_LeftMenu && key != KEY_RightMenu) {
+    if ((modifiers & KeyboardModifier::Alt) && key != KEY_LeftMenu && key != KEY_RightMenu) {
         #if defined(GEODE_IS_MACOS) || defined(GEODE_IS_IOS)
         buf.append("Opt+");
         #else
@@ -360,7 +360,7 @@ Result<Keybind> matjson::Serialize<geode::Keybind>::fromJson(matjson::Value cons
     }
     return Ok(Keybind(
         static_cast<enumKeyCodes>(json["key"].asInt().unwrapOr(0)),
-        static_cast<Keybind::Modifiers>(json["modifiers"].asInt().unwrapOr(0))
+        static_cast<KeyboardModifier>(json["modifiers"].asInt().unwrapOr(0))
     ));
 }
 

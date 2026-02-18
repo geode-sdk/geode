@@ -107,7 +107,7 @@ void KeybindEditPopup::updateLabel() {
     if (m_keybindNode) {
         m_keybindNode->removeFromParent();
     }
-    if (m_currentKeybind.key == KEY_None && m_currentKeybind.modifiers == Keybind::Mods_None) {
+    if (m_currentKeybind.key == KEY_None && m_currentKeybind.modifiers == KeyboardModifier::None) {
         auto label = CCLabelBMFont::create("Press a key...", "bigFont.fnt");
         label->setOpacity(150);
         label->setScale(.75f);
