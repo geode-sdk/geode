@@ -176,7 +176,7 @@ void askConfirmModInstalls() {
     MDPopup::create(
         true,
         "Confirm Install",
-        content.str(),
+        content,
         "Cancel", "Continue",
         [toConfirm](bool btn2) {
             if (btn2) {
