@@ -1881,7 +1881,7 @@ public:
     int m_nUpdateScriptHandler;         ///< script handler for update() callback per frame, which is invoked from lua & javascript.
     ccScriptType m_eScriptType;         ///< type of script binding, lua or javascript
 
-    CCComponentContainer *m_pComponentContainer;        ///< Dictionary of components
+    CCComponentContainer *m_pComponentContainer = new CCComponentContainer(this);        ///< Dictionary of components
 
     // 2.2 additions
     bool m_bUseChildIndex;
