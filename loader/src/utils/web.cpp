@@ -718,11 +718,9 @@ public:
 
         // Track & post progress on the Promise
         // onProgress can only be not set if using sendSync without one, and hasBeenCancelled is always null in that case
-        curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, requestData);
-        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, +[](void* ptr, double dtotal, double dnow, double utotal, double unow) -> int {
+        curl_easy_setopt(curl, CURLOPT_XFERINFODATA, requestData);
+        curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, +[](void* ptr, curl_off_t dtotal, curl_off_t dnow, curl_off_t utotal, curl_off_t unow) -> int {
             auto data = static_cast<ResponseData*>(ptr);
-
-            // TODO v5: external cancellation?
 
             // Store progress inside the request
             using enum std::memory_order;
