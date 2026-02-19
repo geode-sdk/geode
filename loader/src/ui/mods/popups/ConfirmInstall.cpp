@@ -15,6 +15,7 @@ void askConfirmModInstalls() {
         std::unordered_set<Mod*> toDisable;
         std::unordered_set<std::string> toDisableModId;
         std::unordered_set<Mod*> toEnable;
+        std::unordered_set<std::string> modsToInstall;
     };
 
     auto toConfirm = ToConfirm();
@@ -22,9 +23,12 @@ void askConfirmModInstalls() {
     // Collect all things we need to ask confirmation for
     for (auto& download : ModDownloadManager::get()->getDownloads()) {
         auto status = download.getStatus();
-        if (auto conf = std::get_if<DownloadStatusConfirm>(&status)) {
+        if (auto conf = std::get_if<DownloadStatusConfirm>(&status)) {            
             if (auto dep = download.getDependencyFor()) {
                 toConfirm.dependencies.insert(download.getID());
+
+                if (!toConfirm.modsToInstall.contains(dep.value().first))
+                    toConfirm.modsToInstall.insert(dep.value().first);
             }
             else {
                 toConfirm.modCount += 1;
@@ -106,53 +110,65 @@ void askConfirmModInstalls() {
         return;
     }
 
-    std::stringstream content;
+    std::string content;
+
+    if (toConfirm.modsToInstall.size() > 0)
+    {
+        content.append(fmt::format("<cy>{} mod{} will be installed</c>:\n\n",
+            toConfirm.modsToInstall.size(),
+            toConfirm.modsToInstall.size() != 1 ? "s" : ""
+        ));
+        for (auto mod : toConfirm.modsToInstall)
+        {
+            content.append(fmt::format("<mod:{}>\n\n", mod));
+        }
+    }
 
     if (toConfirm.dependencies.size() > 0)
     {
-        content << fmt::format("<cy>{} dependenc{} will be installed</c>:\n\n",
+        content.append(fmt::format("<cy>{} dependenc{} will also be installed</c>:\n\n",
             toConfirm.dependencies.size(),
             toConfirm.dependencies.size() != 1 ? "ies" : "y"
-        );
+        ));
         for (auto mod : toConfirm.dependencies)
         {
-            content << fmt::format("<mod:{}>\n\n", mod);
+            content.append(fmt::format("<mod:{}>\n\n", mod));
         }
     }
 
     if (toConfirm.replacements.size() > 0)
     {
-        content << fmt::format("<cy>{} mod{} will be replaced</c>:\n\n",
+        content.append(fmt::format("<cy>{} mod{} will be replaced</c>:\n\n",
             toConfirm.replacements.size(),
             toConfirm.replacements.size() != 1 ? "s" : ""
-        );
+        ));
         for (auto mod : toConfirm.replacements)
         {
-            content << fmt::format("<mod:{}>\n\n", mod);
+            content.append(fmt::format("<mod:{}>\n\n", mod));
         }
     }
 
     if (toConfirm.toDisable.size() > 0)
     {
-        content << fmt::format("<cr>{} mod{} will be force-disabled, as they are incompatible</c>:\n\n",
+        content.append(fmt::format("<cr>{} mod{} will be force-disabled, as they are incompatible</c>:\n\n",
             toConfirm.toDisable.size(),
             toConfirm.toDisable.size() != 1 ? "s" : ""
-        );
+        ));
         for (auto mod : toConfirm.toDisable)
         {
-            content << fmt::format("<mod:{}>\n\n", mod->getID());
+            content.append(fmt::format("<mod:{}>\n\n", mod->getID()));
         }
     }
 
     if (toConfirm.toEnable.size() > 0)
     {
-        content << fmt::format("<cg>{} mod{} will be force-enabled</c>:\n\n",
+        content.append(fmt::format("<cg>{} mod{} will be force-enabled</c>:\n\n",
             toConfirm.toEnable.size(),
             toConfirm.toEnable.size() != 1 ? "s" : ""
-        );
+        ));
         for (auto mod : toConfirm.toEnable)
         {
-            content << fmt::format("<mod:{}>\n\n", mod->getID());
+            content.append(fmt::format("<mod:{}>\n\n", mod->getID()));
         }
     }
     
