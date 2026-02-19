@@ -11,6 +11,8 @@
 #include <Geode/utils/async.hpp>
 #include <loader/LogImpl.hpp>
 
+#include "internal/about.hpp"
+
 using namespace geode::prelude;
 
 #include "load.hpp"
@@ -128,6 +130,11 @@ int geodeEntry(void* platformData) {
             Mod::get()->getVersion(), LoaderImpl::get()->getGameVersion(), forwardCompatSuffix,
             PlatformID::toString(GEODE_PLATFORM_TARGET));
     }
+
+    auto loaderHash = about::getLoaderCommitHash();
+    auto bindingsHash = about::getBindingsCommitHash();
+
+    log::info("Loader commit: {}, Bindings commit: {}", loaderHash, bindingsHash);
 
     tryLogForwardCompat();
 
