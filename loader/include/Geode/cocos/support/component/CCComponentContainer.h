@@ -41,24 +41,24 @@ class CC_DLL CCComponentContainer
 protected:
 
 
-    CCComponentContainer(CCNode *pNode) {}
+    CCComponentContainer(CCNode *pNode);
 
 public:
     GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCComponentContainer)
     CCComponentContainer() {}
 
-    virtual ~CCComponentContainer(void) {}
-    virtual CCComponent* get(const char *pName) const {return nullptr;}
-    virtual bool add(CCComponent *pCom) {return false;}
-    virtual bool remove(const char *pName) {return false;}
-    virtual bool remove(CCComponent *pCom) {return false;}
-    virtual void removeAll() {}
-    virtual void visit(float fDelta) {}
+    virtual ~CCComponentContainer(void);
+    virtual CCComponent* get(const char *pName) const;
+    virtual bool add(CCComponent *pCom);
+    virtual bool remove(const char *pName);
+    virtual bool remove(CCComponent *pCom);
+    virtual void removeAll();
+    virtual void visit(float fDelta);
 public:
-    bool isEmpty() const { return true; }
+    bool isEmpty() const;
 
 private:
-    void alloc(void) {}
+    void alloc(void);
 
 public:
     CCDictionary *m_pComponents;        ///< Dictionary of components
