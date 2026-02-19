@@ -150,7 +150,8 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android32")
 		${GEODE_LOADER_PATH}/include/link/android32/libcares.a
 		${GEODE_LOADER_PATH}/include/link/android32/libcurl.a
 		${GEODE_LOADER_PATH}/include/link/android32/libnghttp2.a
-		${GEODE_LOADER_PATH}/include/link/android32/librustls.a
+		${GEODE_LOADER_PATH}/include/link/android32/libcrypto.a
+		${GEODE_LOADER_PATH}/include/link/android32/libssl.a
 		${GEODE_LOADER_PATH}/include/link/android32/libz.a
 		${GEODE_LOADER_PATH}/include/link/android32/libzstd.a
 		${GEODE_LOADER_PATH}/include/link/android32/libcocos2dcpp.so
@@ -179,7 +180,8 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
 		${GEODE_LOADER_PATH}/include/link/android64/libcares.a
 		${GEODE_LOADER_PATH}/include/link/android64/libcurl.a
 		${GEODE_LOADER_PATH}/include/link/android64/libnghttp2.a
-		${GEODE_LOADER_PATH}/include/link/android64/librustls.a
+		${GEODE_LOADER_PATH}/include/link/android64/libcrypto.a
+		${GEODE_LOADER_PATH}/include/link/android64/libssl.a
 		${GEODE_LOADER_PATH}/include/link/android64/libz.a
 		${GEODE_LOADER_PATH}/include/link/android64/libzstd.a
 		${GEODE_LOADER_PATH}/include/link/android64/libcocos2dcpp.so
