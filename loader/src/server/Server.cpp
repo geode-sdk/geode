@@ -623,6 +623,8 @@ ServerFuture<ServerModsList> server::getMods(ModsQuery query, bool useCache) {
 
     req.param("gd", GEODE_GD_VERSION_STR);
     req.param("geode", Loader::get()->getVersion().toNonVString());
+    if (Loader::get()->isPatchless())
+        req.param("jitless", "true");
 
     if (query.platforms.size()) {
         std::string plats = "";
@@ -823,6 +825,8 @@ ServerFuture<ServerModUpdateAllCheck> server::batchedCheckUpdates(std::vector<st
     req.param("platform", GEODE_PLATFORM_SHORT_IDENTIFIER);
     req.param("gd", GEODE_GD_VERSION_STR);
     req.param("geode", Loader::get()->getVersion().toNonVString());
+    if (Loader::get()->isPatchless())
+        req.param("jitless", "true");
 
     req.param("ids", ranges::join(batch, ";"));
     auto response = co_await req.get(formatServerURL("/mods/updates"));

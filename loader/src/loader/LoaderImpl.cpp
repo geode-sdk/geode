@@ -554,6 +554,12 @@ void Loader::Impl::findProblems() {
             continue;
         }
 
+        if (m_isPatchless && mod->getMetadata().needsPatching()) {
+            this->addProblem({ LoadProblem::Type::Unknown, mod, "This mod requires JIT" });
+            log::error("{} requires JIT, but loader is JIT-less", id);
+            continue;
+        }
+
         auto geodeVerRes = mod->getMetadata().checkGeodeVersion();
         if (!geodeVerRes) {
             this->addProblem({ LoadProblem::Type::Outdated, mod, geodeVerRes.unwrapErr() });
