@@ -931,7 +931,7 @@ void ModPopup::onLoadServerInfo(server::ServerResult<server::ServerModMetadata> 
         auto data = std::move(result).unwrap();
         auto timeToString = [](auto const& time) {
             if (time.has_value()) {
-                return time.value().toAgoString();
+                return utils::timeToAgoString(time->value);
             }
             return std::string("N/A");
         };

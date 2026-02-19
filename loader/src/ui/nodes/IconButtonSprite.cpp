@@ -29,14 +29,13 @@ bool IconButtonSprite::init(
     this->addChild(m_impl->bg);
 
     m_impl->label = CCLabelBMFont::create(text, font);
-    m_impl->label->setAnchorPoint({ .0f, .5f });
     m_impl->label->setZOrder(1);
-    this->addChild(m_impl->label);
+    this->addChildAtPosition(m_impl->label, Anchor::Center);
 
     if (icon) {
         m_impl->icon = icon;
         icon->setZOrder(1);
-        this->addChild(icon);
+        this->addChildAtPosition(icon, Anchor::Center);
     }
 
     this->updateLayout();
@@ -45,25 +44,21 @@ bool IconButtonSprite::init(
 }
 
 void IconButtonSprite::updateLayout() {
-    static constexpr float const PAD = 7.5f;
-
     bool hasText = m_impl->label->getString() && strlen(m_impl->label->getString());
 
-    auto size = CCSize { 20.f, 20.f };
+    constexpr float PADDING = 7.5f;
+
+    CCSize size = ccp(PADDING * 2, 35);
     if (hasText) {
-        m_impl->label->limitLabelWidth(100.f, .6f, .1f);
-        size.width += m_impl->label->getScaledContentSize().width;
+        m_impl->label->limitLabelWidth(100, .6f, .1f);
+        size.width += m_impl->label->getScaledContentWidth();
         if (m_impl->icon) {
-            size.width += PAD;
+            size.width += PADDING;
         }
     }
     if (m_impl->icon) {
-        limitNodeSize(m_impl->icon, { 20, 20 }, 1.f, .1f);
-    }
-    size.height += 15.f;
-
-    if (m_impl->icon) {
-        size.width += m_impl->icon->getScaledContentSize().width;
+        limitNodeSize(m_impl->icon, ccp(20, 20), 1.f, .1f);
+        size.width += m_impl->icon->getScaledContentWidth();
     }
 
     this->setContentSize(size);
@@ -72,18 +67,18 @@ void IconButtonSprite::updateLayout() {
 
     if (m_impl->icon) {
         if (hasText) {
-            m_impl->label->setPosition(
-                size.height / 2 + m_impl->icon->getScaledContentSize().width / 2 + PAD,
-                size.height / 2 + 1.f
+            m_impl->label->updateAnchoredPosition(
+                Anchor::Left,
+                ccp(m_impl->icon->getScaledContentWidth() + PADDING * 2, 1), ccp(0, .5f)
             );
-            m_impl->icon->setPosition(size.height / 2, size.height / 2);
+            m_impl->icon->updateAnchoredPosition(Anchor::Left, ccp(PADDING, 0), ccp(0, .5f));
         }
         else {
-            m_impl->icon->setPosition(size.width / 2, size.height / 2);
+            m_impl->icon->updateAnchoredPosition(Anchor::Center, ccp(0, 0), ccp(.5f, .5f));
         }
     }
     else {
-        m_impl->label->setPosition(size.height / 2, size.height / 2);
+        m_impl->label->updateAnchoredPosition(Anchor::Center, ccp(0, 0), ccp(.5f, .5f));
     }
 }
 

@@ -76,6 +76,7 @@ protected:
     ListenerHandle m_settingNodeHandle;
     Ref<CCNode> m_badgeContainer = nullptr;
     Ref<CCNode> m_downloadCountContainer;
+    Ref<CCNode> m_updatedAtContainer;
     CCLabelBMFont* m_versionDownloadSeparator;
 
     /**

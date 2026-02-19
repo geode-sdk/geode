@@ -1150,13 +1150,14 @@ namespace geode::cocos {
             return m_arr;
         }
 
-        std::vector<T> toVector() const {
-            std::vector<T> vec;
-            vec.reserve(this->size());
-            for (auto item : *this) {
-                vec.push_back(item);
-            }
-            return vec;
+        template <template <typename...> typename Cont = std::vector, typename Elem = T*>
+        Cont<Elem> to() const {
+            return Cont<Elem>(this->begin(), this->end());
+        }
+
+        template <typename Elem = T*>
+        auto toVector() const {
+            return this->to<std::vector, Elem>();
         }
 
         bool empty() const {
