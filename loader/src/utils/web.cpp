@@ -22,8 +22,6 @@
 #include <asp/collections/SmallVec.hpp>
 #include <ca_bundle.h>
 #include <curl/curl.h>
-#include <queue>
-#include <semaphore>
 #include <sstream>
 
 using namespace geode::prelude;
@@ -577,9 +575,13 @@ public:
             }
         }
 
-        // weird windows stuff, don't remove if we still use schannel!
-        GEODE_WINDOWS(sslOptions |= CURLSSLOPT_REVOKE_BEST_EFFORT);
         curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, sslOptions);
+
+        // Set DNS servers, this is required on Android
+        bool dontOverrideDns = Loader::get()->getLaunchFlag("dont-override-dns");
+        if (!dontOverrideDns) {
+            curl_easy_setopt(curl, CURLOPT_DNS_SERVERS, "1.1.1.1,8.8.8.8");
+        }
 
         // Transfer body
         curl_easy_setopt(curl, CURLOPT_NOBODY, m_transferBody ? 0L : 1L);
