@@ -32,10 +32,12 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 		"-framework Foundation"   # needed for many things
 		"-framework AVFoundation" # needed for microphone access
 		"-framework CoreGraphics" # needed for image saving
-		${GEODE_LOADER_PATH}/include/link/ios/libssl.a
-		${GEODE_LOADER_PATH}/include/link/ios/libcrypto.a
-		${GEODE_LOADER_PATH}/include/link/ios/libnghttp2.a
+		${GEODE_LOADER_PATH}/include/link/ios/libcares.a
 		${GEODE_LOADER_PATH}/include/link/ios/libcurl.a
+		${GEODE_LOADER_PATH}/include/link/ios/libnghttp2.a
+		${GEODE_LOADER_PATH}/include/link/ios/librustls.a
+		${GEODE_LOADER_PATH}/include/link/ios/libz.a
+		${GEODE_LOADER_PATH}/include/link/ios/libzstd.a
 	)
 
 	target_compile_definitions(${PROJECT_NAME} INTERFACE
@@ -71,13 +73,12 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 		"-framework OpenGL"
 		"-framework SystemConfiguration"
 		${GEODE_LOADER_PATH}/include/link/macos/libfmod.dylib
-		${GEODE_LOADER_PATH}/include/link/macos/libssl.a
-		${GEODE_LOADER_PATH}/include/link/macos/libcrypto.a
-		${GEODE_LOADER_PATH}/include/link/macos/libnghttp2.a
-		${GEODE_LOADER_PATH}/include/link/macos/libngtcp2.a
-		${GEODE_LOADER_PATH}/include/link/macos/libnghttp3.a
-		${GEODE_LOADER_PATH}/include/link/macos/libngtcp2_crypto_boringssl.a
+		${GEODE_LOADER_PATH}/include/link/macos/libcares.a
 		${GEODE_LOADER_PATH}/include/link/macos/libcurl.a
+		${GEODE_LOADER_PATH}/include/link/macos/libnghttp2.a
+		${GEODE_LOADER_PATH}/include/link/macos/librustls.a
+		${GEODE_LOADER_PATH}/include/link/macos/libz.a
+		${GEODE_LOADER_PATH}/include/link/macos/libzstd.a
 	)
 
 	target_compile_definitions(${PROJECT_NAME} INTERFACE
@@ -116,8 +117,15 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Win64")
 		)
 	else()
 		target_link_libraries(${PROJECT_NAME} INTERFACE
-			${GEODE_LOADER_PATH}/include/link/win64/nghttp2.lib
+			${GEODE_LOADER_PATH}/include/link/win64/cares.lib
 			${GEODE_LOADER_PATH}/include/link/win64/libcurl.lib
+			${GEODE_LOADER_PATH}/include/link/win64/nghttp2.lib
+			${GEODE_LOADER_PATH}/include/link/win64/rustls.lib
+			${GEODE_LOADER_PATH}/include/link/win64/zs.lib
+			${GEODE_LOADER_PATH}/include/link/win64/zstd_static.lib
+			secur32
+			ntdll
+			userenv
 		)
 	endif()
 
@@ -139,13 +147,12 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android32")
 	target_link_libraries(${PROJECT_NAME} INTERFACE
 		c
 		unwind
-		${GEODE_LOADER_PATH}/include/link/android32/libssl.a
-		${GEODE_LOADER_PATH}/include/link/android32/libcrypto.a
-		${GEODE_LOADER_PATH}/include/link/android32/libnghttp2.a
-		${GEODE_LOADER_PATH}/include/link/android32/libngtcp2.a
-		${GEODE_LOADER_PATH}/include/link/android32/libnghttp3.a
-		${GEODE_LOADER_PATH}/include/link/android32/libngtcp2_crypto_boringssl.a
+		${GEODE_LOADER_PATH}/include/link/android32/libcares.a
 		${GEODE_LOADER_PATH}/include/link/android32/libcurl.a
+		${GEODE_LOADER_PATH}/include/link/android32/libnghttp2.a
+		${GEODE_LOADER_PATH}/include/link/android32/librustls.a
+		${GEODE_LOADER_PATH}/include/link/android32/libz.a
+		${GEODE_LOADER_PATH}/include/link/android32/libzstd.a
 		${GEODE_LOADER_PATH}/include/link/android32/libcocos2dcpp.so
 		${GEODE_LOADER_PATH}/include/link/android32/libfmod.so
 		GLESv2
@@ -169,13 +176,12 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
 	target_link_libraries(${PROJECT_NAME} INTERFACE
 		c
 		unwind
-		${GEODE_LOADER_PATH}/include/link/android64/libssl.a
-		${GEODE_LOADER_PATH}/include/link/android64/libcrypto.a
-		${GEODE_LOADER_PATH}/include/link/android64/libnghttp2.a
-		${GEODE_LOADER_PATH}/include/link/android64/libngtcp2.a
-		${GEODE_LOADER_PATH}/include/link/android64/libnghttp3.a
-		${GEODE_LOADER_PATH}/include/link/android64/libngtcp2_crypto_boringssl.a
+		${GEODE_LOADER_PATH}/include/link/android64/libcares.a
 		${GEODE_LOADER_PATH}/include/link/android64/libcurl.a
+		${GEODE_LOADER_PATH}/include/link/android64/libnghttp2.a
+		${GEODE_LOADER_PATH}/include/link/android64/librustls.a
+		${GEODE_LOADER_PATH}/include/link/android64/libz.a
+		${GEODE_LOADER_PATH}/include/link/android64/libzstd.a
 		${GEODE_LOADER_PATH}/include/link/android64/libcocos2dcpp.so
 		${GEODE_LOADER_PATH}/include/link/android64/libfmod.so
 		GLESv2
