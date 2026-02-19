@@ -94,6 +94,7 @@ void KeybindsPopup::onSelectTab(CCObject* sender) {
         static_cast<GeodeTabSprite*>(tab->getNormalImage())->select(
             static_cast<KeybindsPopupTab>(tab->getTag()) == m_tab
         );
+        tab->setEnabled(static_cast<KeybindsPopupTab>(tab->getTag()) != m_tab);
     }
     this->updateState(nullptr);
 }
