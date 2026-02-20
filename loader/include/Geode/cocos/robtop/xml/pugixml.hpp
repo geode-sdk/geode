@@ -371,6 +371,8 @@ namespace pugi
 	public:
 		// Default constructor. Constructs an empty node.
 		xml_node();
+		// Geode addition: destructor
+		~xml_node();
 		GEODE_CUSTOM_CONSTRUCTOR_BEGIN(xml_node);
 
 		// Constructs node from internal pointer

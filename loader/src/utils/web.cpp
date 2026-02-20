@@ -22,8 +22,6 @@
 #include <asp/collections/SmallVec.hpp>
 #include <ca_bundle.h>
 #include <curl/curl.h>
-#include <queue>
-#include <semaphore>
 #include <sstream>
 
 using namespace geode::prelude;
@@ -104,6 +102,23 @@ static long unwrapHttpVersion(HttpVersion version)
 
     // Shouldn't happen.
     unreachable("Unexpected HTTP Version!");
+}
+
+static std::optional<HttpVersion> wrapHttpVersion(long version) {
+    switch (version) {
+        using enum HttpVersion;
+
+        case CURL_HTTP_VERSION_1_0:
+            return VERSION_1_0;
+        case CURL_HTTP_VERSION_1_1:
+            return VERSION_1_1;
+        case CURL_HTTP_VERSION_2_0:
+            return VERSION_2_0;
+        case CURL_HTTP_VERSION_3:
+            return VERSION_3;
+        default:
+            return std::nullopt;
+    }
 }
 
 class WebResponse::Impl {
@@ -560,9 +575,13 @@ public:
             }
         }
 
-        // weird windows stuff, don't remove if we still use schannel!
-        GEODE_WINDOWS(sslOptions |= CURLSSLOPT_REVOKE_BEST_EFFORT);
         curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, sslOptions);
+
+        // Set DNS servers, this is required on Android
+        bool dontOverrideDns = Loader::get()->getLaunchFlag("dont-override-dns");
+        if (!dontOverrideDns) {
+            curl_easy_setopt(curl, CURLOPT_DNS_SERVERS, "1.1.1.1,8.8.8.8");
+        }
 
         // Transfer body
         curl_easy_setopt(curl, CURLOPT_NOBODY, m_transferBody ? 0L : 1L);
@@ -701,11 +720,9 @@ public:
 
         // Track & post progress on the Promise
         // onProgress can only be not set if using sendSync without one, and hasBeenCancelled is always null in that case
-        curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, requestData);
-        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, +[](void* ptr, double dtotal, double dnow, double utotal, double unow) -> int {
+        curl_easy_setopt(curl, CURLOPT_XFERINFODATA, requestData);
+        curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, +[](void* ptr, curl_off_t dtotal, curl_off_t dnow, curl_off_t utotal, curl_off_t unow) -> int {
             auto data = static_cast<ResponseData*>(ptr);
-
-            // TODO v5: external cancellation?
 
             // Store progress inside the request
             using enum std::memory_order;
@@ -1085,29 +1102,7 @@ public:
         });
         curl_multi_setopt(m_multiHandle, CURLMOPT_TIMERDATA, this);
 
-        m_worker = async::runtime().spawn([this, rx = std::move(rx), crx = std::move(crx)] mutable -> arc::Future<> {
-            bool running = true;
-            while (running) {
-                co_await arc::select(
-                    arc::selectee(
-                        m_cancel.waitCancelled(),
-                        [&] { running = false; }
-                    ),
-
-                    arc::selectee(rx.recv(), [&](auto req) {
-                        if (req) this->workerAddRequest(std::move(req).unwrap());
-                    }),
-
-                    arc::selectee(crx.recv(), [&](auto req) {
-                        if (req) this->workerCancelRequest(std::move(req).unwrap());
-                    }),
-
-                    arc::selectee(
-                        this->workerPoll()
-                    )
-                );
-            }
-        });
+        m_worker = async::runtime().spawn(this->workerFunc(std::move(rx), std::move(crx)));
         m_worker.setName("Geode Web Worker");
     }
 
@@ -1142,21 +1137,21 @@ public:
         req->curl = handle;
         curl_easy_setopt(handle, CURLOPT_PRIVATE, req.get());
 
-        log::debug("Added request ({})", req->request->m_url);
+        // log::debug("Added request ({})", req->request->m_url);
         curl_multi_add_handle(m_multiHandle, handle);
         m_activeRequests.insert(std::move(req));
         this->workerKickCurl();
     }
 
     void workerCancelRequest(std::shared_ptr<RequestData> req) {
-        log::debug("Cancelled request ({})", req->request->m_url);
+        // log::debug("Cancelled request ({})", req->request->m_url);
         req->onError(GeodeWebError::REQUEST_CANCELLED, "Request cancelled");
 
         this->cleanupRequest(std::move(req));
     }
 
     void cleanupRequest(std::shared_ptr<RequestData> req) {
-        log::debug("Removing request ({})", req->request->m_url);
+        // log::debug("Removing request ({})", req->request->m_url);
         m_activeRequests.erase(req);
 
         auto curl = std::exchange(req->curl, nullptr);
@@ -1168,7 +1163,7 @@ public:
         this->workerKickCurl();
     }
 
-    Future<> workerPoll() {
+    auto workerPoll() {
         int stillRunning = 0;
         CURLMcode mc = curl_multi_perform(m_multiHandle, &stillRunning);
         if (mc != CURLM_OK) {
@@ -1187,6 +1182,14 @@ public:
                 if (!rdptr) utils::terminate("queued request has no associated data");
 
                 auto& requestData = *rdptr;
+
+                // Populate HTTPVersion with the updated info
+                long version = 0;
+                curl_easy_getinfo(handle, CURLINFO_HTTP_VERSION, &version);
+
+                if (auto ver = wrapHttpVersion(version)) {
+                    requestData.request->m_httpVersion = *ver;
+                }
 
                 // Get the response code; note that this will be invalid if the
                 // curlResponse is not CURLE_OK
@@ -1228,14 +1231,10 @@ public:
 
         // poll until there is socket activity or the timer expires
 
-        co_await arc::select(
+        return arc::select(
             arc::selectee(m_wakeNotify.notified()),
 
-            arc::selectee(arc::sleepUntil(deadline), [&] {
-                this->workerKickCurl();
-            }),
-
-            arc::selectee(this->workerPollSockets(), [&](PollReadiness readiness) {
+            arc::selectee(this->workerPollSockets(), [this](PollReadiness readiness) {
                 auto [fd, ready] = readiness;
                 int ev = 0;
                 if (ready & Interest::Readable) ev |= CURL_CSELECT_IN;
@@ -1244,7 +1243,11 @@ public:
 
                 int running = 0;
                 curl_multi_socket_action(m_multiHandle, fd, ev, &running);
-            }, activeTransfers)
+            }, activeTransfers),
+
+            arc::selectee(arc::sleepUntil(deadline), [this] {
+                this->workerKickCurl();
+            })
         );
     }
 
@@ -1297,6 +1300,30 @@ public:
             m_nextWakeup = asp::Instant::now() + asp::Duration::fromMillis(timeout_ms);
         }
     }
+
+    Future<> workerFunc(auto rx, auto crx) {
+        bool running = true;
+        while (running) {
+            co_await arc::select(
+                arc::selectee(
+                    m_cancel.waitCancelled(),
+                    [&] { running = false; }
+                ),
+
+                arc::selectee(rx.recv(), [&](auto req) {
+                    if (req) this->workerAddRequest(std::move(req).unwrap());
+                }),
+
+                arc::selectee(crx.recv(), [&](auto req) {
+                    if (req) this->workerCancelRequest(std::move(req).unwrap());
+                }),
+
+                arc::selectee(
+                    this->workerPoll()
+                )
+            );
+        }
+    }
 };
 
 WebRequestsManager::WebRequestsManager() : m_impl(new Impl()) {}
@@ -1342,8 +1369,6 @@ WebFuture::~WebFuture() {
 }
 
 std::optional<WebResponse> WebFuture::poll(arc::Context& cx) {
-    using RequestData = WebRequestsManager::RequestData;
-
     if (!m_impl->m_sent) {
         // send the actual request
         auto res = WebRequestsManager::get()->tryEnqueue(m_impl->m_request);
@@ -1359,6 +1384,7 @@ std::optional<WebResponse> WebFuture::poll(arc::Context& cx) {
     }
 
     auto result = std::move(rpoll).value();
+
     if (!result) {
         m_impl->m_finished = true;
         return m_impl->m_request->request->makeError(GeodeWebError::CHANNEL_CLOSED, "Failed to receive web response: channel closed");

@@ -49,6 +49,9 @@ public:
     static bool getMethodInfo(JniMethodInfo &methodinfo, const char *className, const char *methodName, const char *paramCode);
     static gd::string jstring2string(jstring str);
 
+    // @note RobTop Addition
+    static double getPlatformTimestamp();
+
 private:
     static JavaVM *m_psJavaVM;
 };

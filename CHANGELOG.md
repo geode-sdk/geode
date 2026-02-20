@@ -1,5 +1,33 @@
 # Geode Changelog
 
+## v5.0.0-beta.3
+ * Add keybind categories, and a global list of keybinds (134878e, b16c2b9, d4eb55a, 3bfe471, 9de1bf1, db160d8)
+ * Keybind listener improvements (#1782)
+   * Adds priority, and stopping the keybind event will stop the input event
+ * Add timestamp to keybind event (ff13011)
+ * Add modifiers to mouse events (#1783)
+ * Add the update time when sorting installed mods via Recently Installed (470ca41)
+ * Add mod list pinning (#1775)
+ * Migrate old Custom Keybinds keybinds by adding `migrate-from` (601e3c5)
+ * Move some buttons to geode settings (403b546)
+ * Make `LogEvent` thread-safe (bd5d968)
+ * Fix `file::pickMany` on android (fc7e3bc)
+ * Fix `IconButtonSprite` positioning code (517cf41)
+ * Fix server time parsing (#1768)
+ * Fix inputs leaking when GD window isn't on foreground (d1e9ff4)
+ * Fix controller support on Windows (0f93c33)
+ * Fix `CCArrayExt::toVector` (63589c5)
+
+## v5.0.0-beta.2
+ * Implement mod deprecations (#1748)
+ * Fix web request crashes and optimize web requests by a lot (f695ecd, c76be25)
+ * Fix destructor lock (838c56f, a10ec6c)
+ * Fix many (compile time and runtime) issues with async on MSVC (c73c12e)
+ * Add `geode::utils::getInputTimestamp` (#1751)
+ * Add controller sprites to keybind settings (#1750)
+ * Improve string split implementation (#1756)
+ * Use `QuadPart` for input timestamps, fixing CBS / COS issue (ed60ea7)
+
 ## v5.0.0-beta.1
  * Add keybind setting (#1729)
  * Add restart button to Geode menu (#1739)

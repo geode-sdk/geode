@@ -16,6 +16,11 @@ struct ModListErrorStatus {};
 struct ModListUnkProgressStatus {};
 using ModListStatus = std::variant<ModListErrorStatus, ModListUnkProgressStatus>;
 
+struct InstalledModsUpdateCheck final {
+    std::vector<Mod*> modsWithUpdates;
+    std::vector<Mod*> modsWithDeprecations;
+};
+
 class ModList : public CCNode {
 protected:
     ModListSource* m_source;
@@ -33,6 +38,7 @@ protected:
     CCNode* m_topContainer;
     CCNode* m_searchMenu;
     CCNode* m_updateAllContainer = nullptr;
+    CCLayerGradient* m_updateAllBG = nullptr;
     CCMenu* m_updateAllMenu = nullptr;
     Ref<IconButtonSprite> m_updateAllSpr = nullptr;
     CCMenuItemSpriteExtra* m_updateAllBtn = nullptr;
@@ -49,7 +55,7 @@ protected:
     ListenerHandle m_invalidateCacheHandle;
     ListenerHandle m_checkUpdatesHandle;
     ListenerHandle m_downloadHandle;
-    async::TaskHolder<server::ServerResult<std::vector<std::string>>> m_checkUpdatesListener;
+    async::TaskHolder<server::ServerResult<InstalledModsUpdateCheck>> m_checkUpdatesListener;
     ModListDisplay m_display = ModListDisplay::SmallList;
     bool m_exiting = false;
     std::atomic<size_t> m_searchInputThreads = 0;
@@ -57,7 +63,7 @@ protected:
     bool init(ModListSource* src, CCSize const& size, bool searchingDev);
 
     void updateTopContainer();
-    void onCheckUpdates(const std::vector<std::string>& mods);
+    void onCheckUpdates(InstalledModsUpdateCheck const& mods);
     void onInvalidateCache(ModListSource* source);
 
     void onPromise(ModListSource::PageLoadResult event);

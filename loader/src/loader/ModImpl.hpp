@@ -158,6 +158,9 @@ namespace geode {
         bool isCurrentlyLoading() const;
 
         int getLoadPriority() const;
+
+        bool isPinned() const;
+        void setPinned(bool pinned);
     };
 
     class ModImpl : public Mod::Impl {

@@ -159,6 +159,9 @@ namespace geode {
 
         bool isPatchless() const;
         std::optional<std::string> getBinaryPath() const;
+
+        std::unordered_map<Keybind, std::vector<std::shared_ptr<KeybindSettingV3>>> m_keybindSettings;
+        void onKeybindSettingChanged(std::shared_ptr<KeybindSettingV3> setting, std::vector<Keybind> const& keybinds);
     };
 
     class LoaderImpl : public Loader::Impl {

@@ -10,12 +10,15 @@
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/loader/Event.hpp>
 #include <Geode/loader/Loader.hpp>
-#include "Geode/ui/NineSlice.hpp"
-#include "server/DownloadManager.hpp"
-#include "ui/mods/GeodeStyle.hpp"
-#include "ui/mods/popups/ModPopup.hpp"
-#include "ui/mods/popups/DevPopup.hpp"
-#include "ui/mods/sources/ModSource.hpp"
+#include <Geode/ui/NineSlice.hpp>
+#include <Geode/ui/MDPopup.hpp>
+#include <server/DownloadManager.hpp>
+#include <ui/mods/GeodeStyle.hpp>
+#include <ui/mods/popups/ModPopup.hpp>
+#include <ui/mods/popups/DevPopup.hpp>
+#include <ui/mods/sources/ModSource.hpp>
+#include <ui/mods/sources/ModListSource.hpp>
+#include "../ModsLayer.hpp"
 
 bool ModItem::init(ModSource&& source) {
     if (!ModListItem::init())
@@ -124,6 +127,17 @@ bool ModItem::init(ModSource&& source) {
     m_outdatedLabel->setScale(.75f);
     m_infoContainer->addChildAtPosition(m_outdatedLabel, Anchor::Left);
 
+    m_deprecatedLabel = createTagLabel(
+        "Deprecated",
+        {
+            to3B(ColorProvider::get()->color("mod-list-deprecated-label"_spr)),
+            to3B(ColorProvider::get()->color("mod-list-deprecated-label-bg"_spr))
+        }
+    );
+    m_deprecatedLabel->setID("deprecated-label");
+    m_deprecatedLabel->setScale(.75f);
+    m_infoContainer->addChildAtPosition(m_deprecatedLabel, Anchor::Left);
+
     m_downloadBarContainer = CCNode::create();
     m_downloadBarContainer->setID("download-bar-container");
     m_downloadBarContainer->setContentSize({ 320, 30 });
@@ -160,7 +174,7 @@ bool ModItem::init(ModSource&& source) {
 
     ButtonSprite* spr = nullptr;
     if (auto serverMod = m_source.asServer(); serverMod != nullptr) {
-        auto version = serverMod->latestVersion();
+        auto& version = serverMod->latestVersion();
 
         auto geodeValid = Loader::get()->isModVersionSupported(version.getGeodeVersion());
         auto gameVersion = version.getGameVersion();
@@ -211,6 +225,32 @@ bool ModItem::init(ModSource&& source) {
                 m_enableToggle->m_notClickable = true;
                 m_viewMenu->addChild(m_enableToggle);
                 m_viewMenu->updateLayout();
+
+                auto pinOff = CCSprite::createWithSpriteFrameName("pin.png"_spr);
+                pinOff->setOpacity(105);
+                auto pinOn = CCSprite::createWithSpriteFrameName("pin.png"_spr);
+
+                if (isGeodeTheme()) {
+                    pinOn->setColor(ccc3(245, 174, 125));
+                    pinOff->setColor(ccc3(220, 190, 230));
+                } else {
+                    // someone with better colour decisions can pick colours for gd
+                    pinOn->setColor(ccc3(245, 174, 125));
+                    pinOff->setColor(ccc3(220, 190, 230));
+                }
+
+                m_pinToggle = CCMenuItemToggler::create(
+                    pinOff, pinOn, 
+                    this, menu_selector(ModItem::onPin)
+                );
+                m_pinToggle->setScale(0.75f);
+                m_pinToggle->setLayoutOptions(
+                    SimpleAxisLayoutOptions::create()
+                        ->setMaxRelativeScale(1.f)
+                );
+                m_pinToggle->setID("pin-toggler");
+                m_viewMenu->addChild(m_pinToggle);
+                m_viewMenu->updateLayout();
             }
             if (mod->getLoadProblem()) {
                 auto viewErrorSpr = createGeodeCircleButton(
@@ -231,6 +271,36 @@ bool ModItem::init(ModSource&& source) {
                 this->updateState();
                 return ListenerResult::Propagate;
             });
+
+            auto updatedAt = server::ModDownloadManager::get()->getRecentlyUpdatedInfo(mod->getID());
+            if (updatedAt) {
+                m_updatedAtContainer = CCNode::create();
+
+                auto installedLabel = CCLabelBMFont::create(
+                    utils::timeToAgoString(updatedAt->updateTime, true).c_str(),
+                    "bigFont.fnt"
+                );
+                installedLabel->setID("installed-ago-label");
+                installedLabel->limitLabelWidth(125, 1.f, .1f);
+                m_updatedAtContainer->addChildAtPosition(installedLabel, Anchor::Right, ccp(-0, 0), ccp(1, .5f));
+
+                auto installedIcon = CCSprite::createWithSpriteFrameName("GJ_timeIcon_001.png");
+                installedIcon->setID("installed-ago-sprite");
+                installedIcon->setScale(1.2f);
+                m_updatedAtContainer->addChildAtPosition(installedIcon, Anchor::Left, ccp(8, 0));
+
+                // m_updatedAtContainer scale is controlled in updateState
+                m_updatedAtContainer->setContentSize({
+                    installedLabel->getScaledContentWidth() + installedIcon->getScaledContentWidth(),
+                    30
+                });
+                m_updatedAtContainer->updateLayout();
+                m_updatedAtContainer->setLayoutOptions(
+                    SimpleAxisLayoutOptions::create()
+                        ->setMinRelativeScale(.1f)
+                        ->setMaxRelativeScale(1.f)
+                );
+            }
         },
         [this](server::ServerModMetadata const& metadata) {
             // todo: there has to be a better way to deal with the short/long alternatives
@@ -257,7 +327,7 @@ bool ModItem::init(ModSource&& source) {
                 { "25", std::nullopt },
             }) {
                 if (metadata.tags.contains(fmt::format("modtober{}winner", year)) || (winner.has_value() && m_source.getID() == winner)) {
-                    
+
                     auto shortVer = CCSprite::createWithSpriteFrameName(fmt::format("tag-modtober{}-winner.png"_spr, year).c_str());
                     shortVer->setTag(1);
                     m_badgeContainer->addChild(shortVer);
@@ -280,7 +350,10 @@ bool ModItem::init(ModSource&& source) {
             // on which mods to install
             m_downloadCountContainer = CCNode::create();
 
-            auto downloads = CCLabelBMFont::create(numToAbbreviatedString(metadata.downloadCount).c_str(), "bigFont.fnt");
+            auto downloads = CCLabelBMFont::create(
+                numToAbbreviatedString(metadata.downloadCount).c_str(),
+                "bigFont.fnt"
+            );
             downloads->setID("downloads-label");
             downloads->setColor("mod-list-version-label"_cc3b);
             downloads->limitLabelWidth(125, 1.f, .1f);
@@ -297,6 +370,11 @@ bool ModItem::init(ModSource&& source) {
                 30
             });
             m_downloadCountContainer->updateLayout();
+            m_downloadCountContainer->setLayoutOptions(
+                SimpleAxisLayoutOptions::create()
+                    ->setMinRelativeScale(.1f)
+                    ->setMaxRelativeScale(1.f)
+            );
 
             // Check if mod is recommended by any others, only if not installed
             // todo: bring this back once we add "suggestions" field in mod
@@ -398,27 +476,44 @@ void ModItem::updateState() {
     }
 
     // Show download separator if there is something to separate and we're in grid view
-    m_versionDownloadSeparator->setVisible(m_downloadCountContainer && m_display == ModListDisplay::Grid);
+    m_versionDownloadSeparator->setVisible(false);
 
     // Download counts go next to the version like on the website on grid view
     if (m_downloadCountContainer) {
-        m_downloadCountContainer->setScale(0.6f);
+        m_downloadCountContainer->setScale(.6f);
         m_downloadCountContainer->removeFromParent();
         if (m_display == ModListDisplay::Grid) {
+            m_versionDownloadSeparator->setVisible(true);
             m_titleContainer->insertAfter(m_downloadCountContainer, m_versionDownloadSeparator);
-            m_downloadCountContainer->setLayoutOptions(
-                SimpleAxisLayoutOptions::create()
-                    ->setMinRelativeScale(.1f)
-                    ->setMaxRelativeScale(1.f)
-                );
         }
         else {
             m_viewMenu->addChild(m_downloadCountContainer);
-            m_downloadCountContainer->setLayoutOptions(
-                SimpleAxisLayoutOptions::create()
-                    ->setMinRelativeScale(.1f)
-                    ->setMaxRelativeScale(1.f)
-            );
+        }
+    }
+
+    // Show the "Updated at" label if the installed mods list is being sorted 
+    // by "Recently installed" (to let people know when they've installed or 
+    // updated the mod)
+    // Hide the enable and pin toggles to make space for install times :3
+    // (Pinning doesn't make sense for that sorting anyway)
+    if (m_enableToggle) m_enableToggle->setVisible(true);
+    if (m_pinToggle) m_pinToggle->setVisible(true);
+    if (m_updatedAtContainer) {
+        auto listSource = typeinfo_cast<InstalledModListSource*>(m_source.getListSource());
+        m_updatedAtContainer->removeFromParent();
+        if (listSource && listSource->getSort() == static_cast<size_t>(InstalledModListSort::RecentlyUpdated)) {
+            // Hide these
+            if (m_enableToggle) m_enableToggle->setVisible(false);
+            if (m_pinToggle) m_pinToggle->setVisible(false);
+
+            m_updatedAtContainer->setScale(.6f);
+            if (m_display == ModListDisplay::Grid) {
+                m_versionDownloadSeparator->setVisible(true);
+                m_titleContainer->insertAfter(m_updatedAtContainer, m_versionDownloadSeparator);
+            }
+            else {
+                m_viewMenu->addChild(m_updatedAtContainer);
+            }
         }
     }
 
@@ -553,25 +648,31 @@ void ModItem::updateState() {
         }
     });
 
-    if (
-        auto update = m_source.hasUpdates();
-        update && !(download && (download->isActive() || download->isDone()))
-    ) {
-        m_updateBtn->setVisible(true);
-        std::string updateString = "";
-        if (update->replacement.has_value()) {
-            updateString += " -> " + update->replacement.value().id;
-        } else {
-            updateString += m_source.getMetadata().getVersion().toVString() + " -> " + update->version.toVString();
-        }
-        m_versionLabel->setString(updateString.c_str());
-        m_versionLabel->setColor(to3B(ColorProvider::get()->color("mod-list-version-label-updates-available"_spr)));
+    m_deprecatedLabel->setVisible(false);
 
-        m_bg->setColor(to3B(ColorProvider::get()->color("mod-list-version-bg-updates-available"_spr)));
-        m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
+    m_updateBtn->setVisible(false);
+
+    auto update = m_source.hasUpdates();
+    if ((update.update || update.deprecation) && !(download && (download->isActive() || download->isDone()))) {
+        if (update.update) {
+            m_updateBtn->setVisible(true);
+
+            std::string updateString = "";
+            updateString += m_source.getMetadata().getVersion().toVString() + " -> " + update.update->version.toVString();
+            m_versionLabel->setString(updateString.c_str());
+            m_versionLabel->setColor(to3B(ColorProvider::get()->color("mod-list-version-label-updates-available"_spr)));
+
+            m_bg->setColor(to3B(ColorProvider::get()->color("mod-list-version-bg-updates-available"_spr)));
+            m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
+        }
+        else {
+            m_deprecatedLabel->setVisible(true);
+            elementToReplaceWithOtherAbnormalElement->setVisible(false);
+            m_bg->setColor(to3B(ColorProvider::get()->color("mod-list-version-bg-deprecated"_spr)));
+            m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
+        }
     }
     else {
-        m_updateBtn->setVisible(false);
         m_versionLabel->setString(m_source.getMetadata().getVersion().toVString().c_str());
         m_versionLabel->setColor(to3B(ColorProvider::get()->color("mod-list-version-label"_spr)));
     }
@@ -586,7 +687,9 @@ void ModItem::updateState() {
             m_bg->setColor("mod-list-errors-found"_cc3b);
             m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
         }
-        if (!wantsRestart && targetsOutdated && !isDownloading) {
+        // Deprecation takes precedence over "Outdated" (since you need to be
+        // able to update a deprecated outdated mod)
+        if (!wantsRestart && targetsOutdated && !isDownloading && !update.deprecation) {
             m_bg->setColor("mod-list-outdated-label"_cc3b);
             m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
             m_outdatedLabel->setVisible(true);
@@ -655,6 +758,7 @@ void ModItem::updateState() {
             m_developers->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
             m_restartRequiredLabel->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
             m_outdatedLabel->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
+            m_deprecatedLabel->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
             m_downloadBarContainer->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
             m_downloadWaiting->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
 
@@ -676,6 +780,7 @@ void ModItem::updateState() {
             m_developers->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
             m_restartRequiredLabel->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
             m_outdatedLabel->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
+            m_deprecatedLabel->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
             m_downloadBarContainer->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
             m_downloadWaiting->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
 
@@ -738,12 +843,16 @@ void ModItem::updateState() {
         }
     }
 
+    if (m_pinToggle && m_source.asMod()) {
+        m_pinToggle->toggle(m_source.asMod()->isPinned());
+    }
+
     this->updateLayout();
 
     ModItemUIEvent().send(this, m_source.getID(), std::nullopt);
 }
 
-void ModItem::onCheckUpdates(Result<std::optional<server::ServerModUpdate>, server::ServerError> result) {
+void ModItem::onCheckUpdates(server::ServerResult<server::ServerModUpdateOneCheck> result) {
     this->updateState();
 }
 
@@ -766,7 +875,7 @@ void ModItem::onView(CCObject*) {
 
     // Show popups for invalid mods
     if (m_source.asServer()) {
-        auto version = m_source.asServer()->latestVersion();
+        auto& version = m_source.asServer()->latestVersion();
         auto gameVersion = version.getGameVersion();
         if (gameVersion == "0.000") {
             return FLAlertLayer::create(
@@ -799,7 +908,36 @@ void ModItem::onView(CCObject*) {
 }
 void ModItem::onViewError(CCObject*) {
     if (auto mod = m_source.asMod()) {
-        if (auto problem = mod->getLoadProblem()) {
+        // Deprecation gets special treatement
+        // Note: this statement below should copy to and not move
+        if (auto dep = m_source.hasUpdates().deprecation) {
+            // The world if C++ had a nice way to map and join vectors rather
+            // than having to do this bs
+            // NOTE: the deprecation reason should describe why there
+            // is no replacement, or if there will be one in the future
+            std::string byStr;
+            if (dep->by.size()) {
+                byStr += "It is recommended to <cj>install these mods instead</c>:\n\n";
+                for (auto&& by : std::move(dep->by)) {
+                    byStr += fmt::format("<mod:{0}>\n\n", by);
+                }
+            }
+            MDPopup::create(
+                "Deprecated",
+                fmt::format(
+                    "<cy>{0}</c> has as been <co>deprecated</c>, meaning that it "
+                    "is no longer being developed. You may start running into "
+                    "<co>bugs and crashes</c>, and the mod may not be available "
+                    "for future GD versions.\n\n"
+                    "**Reason:** {1}\n\n"
+                    "{2}\n\n"
+                    "It is recommended to <cr>uninstall {0}</c>.",
+                    mod->getName(), dep->reason, byStr
+                ),
+                "OK"
+            )->show();
+        }
+        else if (auto problem = mod->getLoadProblem()) {
             std::string title;
             switch (problem->type) {
                 default:
@@ -829,6 +967,14 @@ void ModItem::onEnable(CCObject*) {
     // Update state of the mod item
     UpdateModListStateEvent().send(UpdateModState(m_source.getID()));
 }
+void ModItem::onPin(CCObject*) {
+    if (auto mod = m_source.asMod()) {
+        mod->setPinned(!mod->isPinned());
+    }
+    if (auto list = CCScene::get()->getChildByType<ModsLayer*>(0)) {
+        list->refreshList();
+    }
+}
 void ModItem::onInstall(CCObject*) {
     m_source.startInstall();
 }
@@ -848,4 +994,72 @@ ModItem* ModItem::create(ModSource&& source) {
 
 ModSource& ModItem::getSource() & {
     return m_source;
+}
+
+bool AnyModItem::init(ZStringView modID) {
+    if (!ModListItem::init())
+        return false;
+
+    m_bg->setColor(ccBLACK);
+    m_bg->setOpacity(90);
+
+    m_loading = LoadingSpinner::create(20);
+    this->addChildAtPosition(m_loading, Anchor::Center);
+
+    if (auto mod = Loader::get()->getInstalledMod(modID)) {
+        this->gotSrc(ModSource(mod));
+    }
+    else {
+        m_listener.spawn(
+            server::getMod(modID),
+            [this, id = std::string(modID)](server::ServerResult<server::ServerModMetadata> result) {
+                if (result.isOk()) {
+                    this->gotSrc(ModSource(std::move(result).unwrap()));
+                }
+                else {
+                    auto err = std::move(result).unwrapErr();
+                    log::error("Error fetching mod {}: {} (code {})", id, err.details, err.code);
+
+                    m_bg->setColor(ccRED);
+                    m_bg->setOpacity(90);
+                    auto errorLabel = CCLabelBMFont::create(err.details.c_str(), "bigFont.fnt");
+                    errorLabel->setAnchorPoint(ccp(0, .5f));
+                    errorLabel->setScale(.35f);
+                    this->addChildAtPosition(errorLabel, Anchor::Left, ccp(10, 0));
+
+                    m_loading->setVisible(false);
+
+                    this->updateState();
+                }
+            }
+        );
+    }
+
+    this->updateState();
+
+    return true;
+}
+void AnyModItem::gotSrc(ModSource&& src) {
+    m_item = ModItem::create(std::move(src));
+    m_item->updateDisplay(m_targetWidth, m_display);
+    this->addChildAtPosition(m_item, Anchor::Center, ccp(0, 0), ccp(.5f, .5f));
+    m_bg->setVisible(false);
+    m_loading->setVisible(false);
+}
+
+AnyModItem* AnyModItem::create(ZStringView modID) {
+    auto ret = new AnyModItem();
+    if (ret->init(modID)) {
+        ret->autorelease();
+        return ret;
+    }
+    delete ret;
+    return nullptr;
+}
+
+void AnyModItem::updateDisplay(float width, ModListDisplay display) {
+    ModListItem::updateDisplay(width, display);
+    if (m_item) {
+        m_item->updateDisplay(width, display);
+    }
 }

@@ -123,6 +123,8 @@ void TextInput::textChanged(CCTextInputNode* input) {
 void TextInput::setPlaceholder(gd::string placeholder) {
     m_impl->input->m_caption = std::move(placeholder);
     m_impl->input->refreshLabel();
+    // This is needed to actually update the placeholder
+    m_impl->input->updateLabel(m_impl->input->getString());
 }
 
 void TextInput::setLabel(ZStringView label) {

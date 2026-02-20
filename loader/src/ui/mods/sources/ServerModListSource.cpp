@@ -15,7 +15,7 @@ ServerModListSource::ProviderTask ServerModListSource::fetchPage(size_t page, bo
     auto list = std::move(result).unwrap();
     auto content = ModListSource::ProvidedMods();
     for (auto&& mod : std::move(list.mods)) {
-        content.mods.push_back(ModSource(std::move(mod)));
+        content.mods.push_back(ModSource(std::move(mod), this));
     }
     content.totalModCount = list.totalModCount;
     co_return Ok(std::move(content));
@@ -73,6 +73,20 @@ std::unordered_set<std::string> ServerModListSource::getModTags() const {
 void ServerModListSource::setModTags(std::unordered_set<std::string> const& tags) {
     m_query.tags = tags;
     this->clearCache();
+}
+
+std::vector<std::pair<size_t, std::string>> ServerModListSource::getSortingOptions() {
+    return {
+        { static_cast<size_t>(server::ModsSort::Downloads), "Most Downloads" },
+        { static_cast<size_t>(server::ModsSort::RecentlyPublished), "Recently Published" },
+        { static_cast<size_t>(server::ModsSort::RecentlyUpdated), "Recently Updated" },
+    };
+}
+size_t ServerModListSource::getSort() const {
+    return static_cast<size_t>(this->getQuery().sorting);
+}
+void ServerModListSource::setSort(size_t sortingOptionIndex) {
+    this->getQueryMut()->sorting = static_cast<server::ModsSort>(sortingOptionIndex); 
 }
 
 server::ModsQuery const& ServerModListSource::getQuery() const {

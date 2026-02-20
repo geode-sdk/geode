@@ -7,8 +7,10 @@
 #include <Geode/binding/GameObject.hpp>
 #include <unordered_set>
 
-ModSource::ModSource(Mod* mod) : m_value(mod) {}
-ModSource::ModSource(server::ServerModMetadata&& metadata) : m_value(metadata) {}
+ModSource::ModSource(Mod* mod, ModListSource* listSource)
+  : m_value(mod), m_listSource(listSource) {}
+ModSource::ModSource(server::ServerModMetadata&& metadata, ModListSource* listSource)
+  : m_value(metadata), m_listSource(listSource) {}
 
 std::string ModSource::getID() const {
     return std::visit(makeVisitor {
@@ -72,22 +74,26 @@ bool ModSource::wantsRestart() const {
         },
     }, m_value);
 }
-std::optional<server::ServerModUpdate> ModSource::hasUpdates() const {
+server::ServerModUpdateOneCheck ModSource::hasUpdates() const {
     return m_availableUpdate;
 }
 
 ModSource ModSource::convertForPopup() const {
     return std::visit(makeVisitor {
-        [](Mod* mod) {
-            return ModSource(mod);
+        [listSource = m_listSource](Mod* mod) {
+            return ModSource(mod, listSource);
         },
-        [](server::ServerModMetadata const& metadata) {
+        [listSource = m_listSource](server::ServerModMetadata const& metadata) {
             if (auto mod = Loader::get()->getInstalledMod(metadata.id)) {
-                return ModSource(mod);
+                return ModSource(mod, listSource);
             }
-            return ModSource(server::ServerModMetadata(metadata));
+            return ModSource(server::ServerModMetadata(metadata), listSource);
         },
     }, m_value);
+}
+
+ModListSource* ModSource::getListSource() const {
+    return m_listSource;
 }
 
 Mod* ModSource::asMod() const {
@@ -100,7 +106,7 @@ server::ServerModMetadata const* ModSource::asServer() const {
 
 server::ServerFuture<std::optional<std::string>> ModSource::fetchAbout() const {
     // todo: write as visit
-    if(!this->hasUpdates()) {
+    if (!this->hasUpdates().update) {
         if (auto mod = this->asMod()) {
             co_return Ok(mod->getMetadata().getDetails());
         }
@@ -112,7 +118,7 @@ server::ServerFuture<std::optional<std::string>> ModSource::fetchAbout() const {
     co_return Err(result.unwrapErr());
 }
 server::ServerFuture<std::optional<std::string>> ModSource::fetchChangelog() const {
-    if(!this->hasUpdates()) {
+    if (!this->hasUpdates().update) {
         if (auto mod = this->asMod()) {
             co_return Ok(mod->getMetadata().getChangelog());
         }
@@ -160,34 +166,20 @@ server::ServerFuture<std::vector<server::ServerTag>> ModSource::fetchValidTags()
 
     co_return Ok(std::move(finalTags));
 }
-server::ServerFuture<std::optional<server::ServerModUpdate>> ModSource::checkUpdates() {
-    m_availableUpdate = std::nullopt;
+server::ServerFuture<server::ServerModUpdateOneCheck> ModSource::checkUpdates() {
+    m_availableUpdate = server::ServerModUpdateOneCheck();
     if (std::holds_alternative<server::ServerModMetadata>(m_value)) {
         // Server mods aren't installed so you can't install updates for them
-        co_return Ok(std::nullopt);
+        co_return Ok(m_availableUpdate);
     }
 
     auto mod = std::get<Mod*>(m_value);
-    
-    m_availableUpdate = ARC_CO_UNWRAP(co_await server::checkUpdates(mod));
+    m_availableUpdate = std::move(ARC_CO_UNWRAP(co_await server::checkUpdates(mod)));
     co_return Ok(m_availableUpdate);
-
 }
 void ModSource::startInstall() {
-    if (auto updates = this->hasUpdates()) {
-        if (updates->replacement.has_value()) {
-            server::ModDownloadManager::get()->startDownload(
-                updates->replacement->id,
-                updates->replacement->version,
-                std::nullopt,
-                this->getID()
-            );
-        } else {
-            server::ModDownloadManager::get()->startDownload(
-                this->getID(),
-                updates->version
-            );
-        }
+    if (auto update = this->hasUpdates().update) {
+        server::ModDownloadManager::get()->startDownload(this->getID(), update->version);
     } else {
         server::ModDownloadManager::get()->startDownload(
             this->getID(),

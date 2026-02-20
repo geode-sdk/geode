@@ -492,41 +492,92 @@ namespace {
         std::array<T, N> m_stack;
         size_t m_index = 0;
 
+        LocalStack() : m_stack{0} {}
+
         bool push(T value) {
-            if (m_index >= N) return false;
-            m_stack[m_index] = value;
             m_index++;
+            if (m_index == N) m_index = 0;
+            m_stack[m_index] = value;
             return true;
         }
 
         bool pop() {
-            if (m_index == 0) return false;
+            if (m_index == 0) m_index = N;
             m_index--;
             return true;
         }
 
         T top() {
-            if (m_index == 0) return nullptr;
-            return m_stack[m_index - 1];
+            return m_stack[m_index];
         }
 
         bool empty() {
-            return m_index == 0;
+            return false;
         }
     };
 
     static thread_local LocalStack<void*, 32> s_lockStack;
 }
 
+
+namespace geode {
+    // okay so you might be asking why the hell this exists
+    // i'm asking the same question
+    // so basically, cocos devs decided it was a very good idea to allocate 
+    // twice for every ccnode instead of once cause why not
+    // which means there is a new call in the constructor of ccnode
+    // thats not _that_ bad on its own, but the problem is that there is no
+    // nullptr check in the destructor while calling removeAll
+    // meaning if the pointer is null for some reason it will just crash
+    // well, in geode's case the pointer is null for the custom constructors
+    // we have, the zero and cutoff constructors. but that means that using
+    // them will crash. i have no idea why this hasn't came up sooner, i did
+    // not touch any code related to it yet it started to crash in v5
+    // for some reason. this is basically a hack for that, if we set the value
+    // to be, you know, a null class, then it won't crash. well, at least 
+    // that's the hope 
+    class NullComponentContainer final {
+    private:
+        NullComponentContainer() {}
+        ~NullComponentContainer() = default;
+
+    public:
+        static inline NullComponentContainer* get() {
+            static auto* instance = new NullComponentContainer();
+            return instance;
+        }
+        virtual cocos2d::CCComponent* get(const char *pName) const {return nullptr;}
+        virtual bool add(cocos2d::CCComponent*) { return false; }
+        virtual bool remove(const char*) { return false; }
+        virtual bool remove(cocos2d::CCComponent*) { return false; }
+        virtual void removeAll() {}
+        virtual void visit(float) {}
+
+        static void operator delete(void* ptr) {
+            // this is a disgusting hack oh my god 
+        }
+    };
+}
+
+bool geode::DestructorLock::isLocked(cocos2d::CCNode* self) {
+    return DestructorLock::isLocked(static_cast<void*>(self));
+}
 bool geode::DestructorLock::isLocked(void* self) {
     // only the top of the stack matters
     if (s_lockStack.empty()) return false;
     return s_lockStack.top() == self;
 }
+void geode::DestructorLock::addLock(cocos2d::CCNode* self) {
+    self->m_pComponentContainer = reinterpret_cast<cocos2d::CCComponentContainer*>(geode::NullComponentContainer::get());
+    return DestructorLock::addLock(static_cast<void*>(self));
+}
 void geode::DestructorLock::addLock(void* self) {
     if (!s_lockStack.push(self)) {
         geode::utils::terminate("DestructorLock lock stack overflow (tried to add too many locks at once)");
     }
+}
+void geode::DestructorLock::removeLock(cocos2d::CCNode* self) {
+    return DestructorLock::removeLock(static_cast<void*>(self));
 }
 void geode::DestructorLock::removeLock(void* self) {
     if (s_lockStack.top() != self) {

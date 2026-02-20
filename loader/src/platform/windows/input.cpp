@@ -1,6 +1,7 @@
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDelegate.h>
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDispatcher.h>
+#include <Geode/modify/CCApplication.hpp>
 #include <Geode/modify/CCEGLView.hpp>
 #include <Geode/utils/Keyboard.hpp>
 
@@ -11,13 +12,13 @@ using namespace geode::prelude;
 
 struct RawInputEvent {
     double timestamp = 0.0;
+    KeyboardModifier mods;
 
     union {
         struct {
             uint16_t vkey;
             uint16_t scanCode;
             uint16_t flags;
-            KeyboardInputData::Modifiers mods;
             bool isE0;
             bool isE1;
             bool isRepeat;
@@ -34,41 +35,27 @@ struct RawInputEvent {
         MouseButton,
     } type;
 
-    // this uses the same method done by RobTop
-    static double getTimestamp() {
-        static LARGE_INTEGER freq = []{
-            LARGE_INTEGER f;
-            QueryPerformanceFrequency(&f);
-            return f;
-        }();
-
-        LARGE_INTEGER counter;
-        QueryPerformanceCounter(&counter);
-
-        // he uses LowPart for some reason?
-        return static_cast<double>(counter.LowPart) / static_cast<double>(freq.LowPart);
-    }
-
     static RawInputEvent makeKeyboard(
-        bool isDown, uint16_t vk, uint16_t scan, uint16_t flags, bool isRepeat, KeyboardInputData::Modifiers mods
+        bool isDown, uint16_t vk, uint16_t scan, uint16_t flags, bool isRepeat, KeyboardModifier mods
     ) {
         RawInputEvent evt;
         evt.type = isDown ? Type::KeyDown : Type::KeyUp;
-        evt.timestamp = getTimestamp();
+        evt.timestamp = getInputTimestamp();
+        evt.mods = mods;
         evt.keyboard.vkey = vk;
         evt.keyboard.scanCode = scan;
         evt.keyboard.flags = flags;
-        evt.keyboard.mods = mods;
         evt.keyboard.isE0 = (flags & RI_KEY_E0) != 0;
         evt.keyboard.isE1 = (flags & RI_KEY_E1) != 0;
         evt.keyboard.isRepeat = isRepeat;
         return evt;
     }
 
-    static RawInputEvent makeMouse(uint16_t btnFlags) {
+    static RawInputEvent makeMouse(uint16_t btnFlags, KeyboardModifier mods) {
         RawInputEvent evt;
         evt.type = Type::MouseButton;
-        evt.timestamp = getTimestamp();
+        evt.timestamp = getInputTimestamp();
+        evt.mods = mods;
         evt.mouse.flags = btnFlags;
         return evt;
     }
@@ -109,7 +96,7 @@ public:
 class KeyStateTracker {
 private:
     std::unordered_map<uint32_t, bool> m_keyStates;
-    KeyboardInputData::Modifiers m_currentMods = KeyboardInputData::Mods_None;
+    KeyboardModifier m_currentMods = KeyboardModifier::None;
 
     static uint32_t makeKey(uint16_t vkey, uint16_t scanCode, bool isE0) {
         return (static_cast<uint32_t>(vkey) << 16) | (static_cast<uint32_t>(scanCode) << 1) |
@@ -122,7 +109,7 @@ public:
         return instance;
     }
 
-    KeyboardInputData::Modifiers getMods() const {
+    KeyboardModifier getMods() const {
         return m_currentMods;
     }
 
@@ -135,7 +122,7 @@ public:
             wasDown = it->second;
         }
 
-        auto applyMods = [&](KeyboardInputData::Modifiers mod) {
+        auto applyMods = [&](KeyboardModifier mod) {
             if (isDown) m_currentMods |= mod;
             else m_currentMods &= ~mod;
         };
@@ -144,21 +131,21 @@ public:
             case VK_LSHIFT:
             case VK_RSHIFT:
             case VK_SHIFT:
-                applyMods(KeyboardInputData::Mods_Shift);
+                applyMods(KeyboardModifier::Shift);
                 break;
             case VK_LCONTROL:
             case VK_RCONTROL:
             case VK_CONTROL:
-                applyMods(KeyboardInputData::Mods_Control);
+                applyMods(KeyboardModifier::Control);
                 break;
             case VK_LMENU:
             case VK_RMENU:
             case VK_MENU:
-                applyMods(KeyboardInputData::Mods_Alt);
+                applyMods(KeyboardModifier::Alt);
                 break;
             case VK_LWIN:
             case VK_RWIN:
-                applyMods(KeyboardInputData::Mods_Super);
+                applyMods(KeyboardModifier::Super);
                 break;
             default: break;
         }
@@ -397,7 +384,10 @@ LRESULT CALLBACK GeodeRawInputWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
             return 0;
         }
 
-        RawInputQueue::get().push(RawInputEvent::makeMouse(mouse.usButtonFlags));
+        RawInputQueue::get().push(RawInputEvent::makeMouse(
+            mouse.usButtonFlags,
+            KeyStateTracker::get().getMods()
+        ));
     }
 
     return 0;
@@ -427,7 +417,8 @@ static void GLFWCharCallback(GLFWwindow* window, unsigned int c) {
 
 struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
     void pumpRawInput() {
-        if (GetForegroundWindow() != g_mainWindowHWND) {
+        bool isForeground = GetForegroundWindow() == g_mainWindowHWND;
+        if (!isForeground) {
             RawInputQueue::get().clear();
         }
 
@@ -460,7 +451,7 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
 
         // process raw input events
         RawInputEvent evt;
-        while (RawInputQueue::get().pop(evt)) {
+        while (isForeground && RawInputQueue::get().pop(evt)) {
             switch (evt.type) {
                 case RawInputEvent::Type::KeyDown:
                 case RawInputEvent::Type::KeyUp: {
@@ -477,7 +468,7 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
                         isDown ? (evt.keyboard.isRepeat ? Repeat : Press) : Release,
                         {evt.keyboard.vkey, evt.keyboard.scanCode},
                         evt.timestamp,
-                        evt.keyboard.mods
+                        evt.mods
                     );
 
                     auto result = KeyboardInputEvent(keyCode).send(data);
@@ -497,10 +488,10 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
                         auto* keyboardDispatcher = CCKeyboardDispatcher::get();
 
                         keyboardDispatcher->updateModifierKeys(
-                            data.modifiers & KeyboardInputData::Mods_Shift,
-                            data.modifiers & KeyboardInputData::Mods_Control,
-                            data.modifiers & KeyboardInputData::Mods_Alt,
-                            data.modifiers & KeyboardInputData::Mods_Super
+                            data.modifiers & KeyboardModifier::Shift,
+                            data.modifiers & KeyboardModifier::Control,
+                            data.modifiers & KeyboardModifier::Alt,
+                            data.modifiers & KeyboardModifier::Super
                         );
 
                         if (!ime->hasDelegate() || keyCode == KEY_Escape || keyCode == KEY_Enter) {
@@ -513,7 +504,7 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
                         }
 
                         // text pasting
-                        if (data.modifiers & KeyboardInputData::Mods_Control && keyCode == enumKeyCodes::KEY_V && isDown) {
+                        if (data.modifiers & KeyboardModifier::Control && keyCode == enumKeyCodes::KEY_V && isDown) {
                             if (ime->hasDelegate()) {
                                 this->performSafeClipboardPaste();
                             }
@@ -546,7 +537,8 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
                             MouseInputData data(
                                 b.btn,
                                 isDown ? Press : Release,
-                                evt.timestamp
+                                evt.timestamp,
+                                evt.mods
                             );
 
                             auto result = MouseInputEvent().send(data);
@@ -592,7 +584,7 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
                 1, &id,
                 &m_fMouseX,
                 &m_fMouseY,
-                RawInputEvent::getTimestamp()
+                getInputTimestamp()
             );
         }
     }
@@ -620,5 +612,162 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
 
         // window is created on a different thread, so it needs time to initialize
         queueInMainThread([]{ attemptHookRawInput(); });
+    }
+};
+
+struct GeodeControllerInput : Modify<GeodeControllerInput, CCApplication> {
+    void updateControllerKeys(CXBOXController* controller, int userIndex) {
+        if (!controller) return;
+
+        auto timestamp = getInputTimestamp();
+        if (XInputGetState(controller->m_userIndex, &controller->m_xinputState) != ERROR_SUCCESS) {
+            return;
+        }
+
+        XINPUT_STATE state = controller->m_xinputState;
+        auto* dispatcher = CCKeyboardDispatcher::get();
+
+        int player2Offset = userIndex > 1 ? 1 : 0;
+
+        auto dispatchAction = [&](enumKeyCodes keyCode, bool isDown) {
+            KeyboardInputData data(
+                static_cast<enumKeyCodes>(static_cast<int>(keyCode) + player2Offset),
+                isDown ? KeyboardInputData::Action::Press : KeyboardInputData::Action::Release,
+                {},
+                timestamp,
+                KeyboardModifier::None
+            );
+
+            if (KeyboardInputEvent(data.key).send(data) == ListenerResult::Stop) {
+                return;
+            }
+
+            dispatcher->dispatchKeyboardMSG(
+                data.key,
+                data.action != KeyboardInputData::Action::Release,
+                data.action == KeyboardInputData::Action::Repeat,
+                data.timestamp
+            );
+        };
+
+        auto handleButton = [&](uint16_t btnMask, enumKeyCodes keyCode, bool& stateVar) {
+            auto isDown = (state.Gamepad.wButtons & btnMask) != 0;
+            if (isDown != stateVar) {
+                stateVar = isDown;
+                dispatchAction(keyCode, isDown);
+            }
+        };
+
+        auto handleTrigger = [&](uint8_t triggerValue, enumKeyCodes keyCode, bool& stateVar) {
+            bool isDown = triggerValue > XINPUT_GAMEPAD_TRIGGER_THRESHOLD;
+            if (isDown != stateVar) {
+                stateVar = isDown;
+                dispatchAction(keyCode, isDown);
+            }
+        };
+
+        auto isADown = (state.Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0;
+        if (isADown != controller->m_buttonA) {
+            controller->m_buttonA = isADown;
+
+            KeyboardInputData data(
+                static_cast<enumKeyCodes>(static_cast<int>(CONTROLLER_A) + player2Offset),
+                isADown ? KeyboardInputData::Action::Press : KeyboardInputData::Action::Release,
+                {},
+                timestamp,
+                KeyboardModifier::None
+            );
+
+            if (KeyboardInputEvent(data.key).send(data) == ListenerResult::Propagate) {
+                // A button simulates a mouse click
+                auto eglView = CCEGLView::get();
+                if (m_bMouseControl && !eglView->m_bShouldHideCursor && !eglView->m_bCursorLocked) {
+                    INPUT input{};
+                    if (isADown) {
+                        eglView->capture();
+                        input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+                    } else {
+                        eglView->releaseCapture();
+                        input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
+                    }
+                    SendInput(1, &input, sizeof(input));
+                }
+
+                dispatcher->dispatchKeyboardMSG(
+                    data.key,
+                    data.action != KeyboardInputData::Action::Release,
+                    data.action == KeyboardInputData::Action::Repeat,
+                    data.timestamp
+                );
+            }
+        }
+
+        handleButton(XINPUT_GAMEPAD_B, CONTROLLER_B, controller->m_buttonB);
+        handleButton(XINPUT_GAMEPAD_X, CONTROLLER_X, controller->m_buttonX);
+        handleButton(XINPUT_GAMEPAD_Y, CONTROLLER_Y, controller->m_buttonY);
+        handleButton(XINPUT_GAMEPAD_LEFT_SHOULDER, CONTROLLER_LB, controller->m_lb);
+        handleButton(XINPUT_GAMEPAD_RIGHT_SHOULDER, CONTROLLER_RB, controller->m_rb);
+
+        handleTrigger(controller->m_xinputState.Gamepad.bLeftTrigger, CONTROLLER_LT, controller->m_lt);
+        handleTrigger(controller->m_xinputState.Gamepad.bRightTrigger, CONTROLLER_RT, controller->m_rt);
+
+        handleButton(XINPUT_GAMEPAD_START, CONTROLLER_Start, controller->m_start);
+
+        // back button triggers CCKeypadDispatcher message
+        bool isBackDown = (state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) != 0;
+        if (isBackDown != controller->m_back) {
+            controller->m_back = isBackDown;
+            KeyboardInputData data(
+                static_cast<enumKeyCodes>(static_cast<int>(CONTROLLER_Back) + player2Offset),
+                isBackDown ? KeyboardInputData::Action::Press : KeyboardInputData::Action::Release,
+                {},
+                timestamp,
+                KeyboardModifier::None
+            );
+
+            if (KeyboardInputEvent(data.key).send(data) == ListenerResult::Propagate) {
+                if (data.action != KeyboardInputData::Action::Release) {
+                    CCDirector::get()->getKeypadDispatcher()->dispatchKeypadMSG(kTypeBackClicked);
+                }
+            }
+        }
+
+        handleButton(XINPUT_GAMEPAD_DPAD_UP, CONTROLLER_Up, controller->m_dpadUp);
+        handleButton(XINPUT_GAMEPAD_DPAD_DOWN, CONTROLLER_Down, controller->m_dpadDown);
+        handleButton(XINPUT_GAMEPAD_DPAD_LEFT, CONTROLLER_Left, controller->m_dpadLeft);
+        handleButton(XINPUT_GAMEPAD_DPAD_RIGHT, CONTROLLER_Right, controller->m_dpadRight);
+
+        auto processAxis = [](SHORT value) {
+            constexpr float DEADZONE = XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE; // robtop uses the same deadzone for both sticks
+            float fValue = value;
+            if (fabs(fValue) <= DEADZONE) return 0.f;
+            float adjusted = fValue > 0 ? fValue - DEADZONE : fValue + DEADZONE;
+            return adjusted / (std::numeric_limits<int16_t>::max() - DEADZONE);
+        };
+
+        float leftX = processAxis(state.Gamepad.sThumbLX);
+        float leftY = -processAxis(state.Gamepad.sThumbLY);
+        m_obLeftThumb = CCPoint{ leftX, leftY } * 10.f;
+
+        auto handleStickMove = [&](bool condition, enumKeyCodes keyCode, bool& stateVar) {
+            if (condition != stateVar) {
+                stateVar = condition;
+                dispatchAction(keyCode, condition);
+            }
+        };
+
+        handleStickMove(leftX <= -0.2f, CONTROLLER_LTHUMBSTICK_LEFT, controller->m_leftThumbLeft);
+        handleStickMove(leftX >= 0.2f, CONTROLLER_LTHUMBSTICK_RIGHT, controller->m_leftThumbRight);
+        handleStickMove(leftY <= -0.2f, CONTROLLER_LTHUMBSTICK_UP, controller->m_leftThumbUp);
+        handleStickMove(leftY >= 0.2f, CONTROLLER_LTHUMBSTICK_DOWN, controller->m_leftThumbDown);
+
+        float rightX = processAxis(state.Gamepad.sThumbRX);
+        float rightY = -processAxis(state.Gamepad.sThumbRY);
+        m_obRightThumb = CCPoint{ rightX, rightY } * 10.f;
+
+        handleStickMove(rightX <= -0.2f, CONTROLLER_RTHUMBSTICK_LEFT, controller->m_rightThumbLeft);
+        handleStickMove(rightX >= 0.2f, CONTROLLER_RTHUMBSTICK_RIGHT, controller->m_rightThumbRight);
+        handleStickMove(rightY <= -0.2f, CONTROLLER_RTHUMBSTICK_UP, controller->m_rightThumbUp);
+        handleStickMove(rightY >= 0.2f, CONTROLLER_RTHUMBSTICK_DOWN, controller->m_rightThumbDown);
     }
 };

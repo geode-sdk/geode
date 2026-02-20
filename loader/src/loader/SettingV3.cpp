@@ -6,7 +6,8 @@
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <regex>
-#include "SettingNodeV3.hpp"
+#include <ui/mods/settings/SettingNodeV3.hpp>
+#include <loader/LoaderImpl.hpp>
 #include <matjson/std.hpp>
 
 using namespace geode::prelude;
@@ -1066,6 +1067,9 @@ class KeybindSettingV3::Impl final {
 public:
     std::vector<Keybind> defaultValue;
     std::vector<Keybind> value;
+    std::optional<KeybindCategory> category;
+    std::optional<std::string> migrateFrom;
+    int m_priority = 0;
 };
 
 KeybindSettingV3::KeybindSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
@@ -1074,6 +1078,22 @@ Result<std::shared_ptr<KeybindSettingV3>> KeybindSettingV3::parse(std::string ke
     auto ret = std::make_shared<KeybindSettingV3>(PrivateMarker());
     auto root = checkJson(json, "KeybindSettingV3");
     ret->parseBaseProperties(std::move(key), std::move(modID), root);
+    std::string category;
+    if (root.hasNullable("category").into(category)) {
+        switch (hash(category)) {
+            case hash("editor"): ret->m_impl->category = KeybindCategory::Editor; break;
+            case hash("universal"): ret->m_impl->category = KeybindCategory::Universal; break;
+            case hash("gameplay"): ret->m_impl->category = KeybindCategory::Gameplay; break;
+            default: {
+                return Err(
+                    "Unknown keybind category \"{}\" in setting \"{}\" from mod {}",
+                    category, key, modID
+                );
+            } break;
+        }
+    }
+    root.has("migrate-from").into(ret->m_impl->migrateFrom);
+    root.has("priority").into(ret->m_impl->m_priority);
     root.checkUnknownKeys();
     return root.ok(ret);
 }
@@ -1112,16 +1132,25 @@ void KeybindSettingV3::parseBaseProperties(std::string key, std::string modID, J
 void KeybindSettingV3::setDefaultValue(std::vector<Keybind> value) {
     m_impl->defaultValue = std::move(value);
 }
-
 std::vector<Keybind> const& KeybindSettingV3::getDefaultValue() const {
     return m_impl->defaultValue;
 }
 
+std::optional<KeybindCategory> KeybindSettingV3::getCategory() const {
+    return m_impl->category;
+}
+std::optional<std::string> KeybindSettingV3::getMigrateFrom() const {
+    return m_impl->migrateFrom;
+}
+int KeybindSettingV3::getPriority() const {
+    return m_impl->m_priority;
+}
+
 void KeybindSettingV3::setValue(std::vector<Keybind> value) {
+    LoaderImpl::get()->onKeybindSettingChanged(std::static_pointer_cast<KeybindSettingV3>(shared_from_this()), value);
     m_impl->value = std::move(value);
     this->markChanged();
 }
-
 std::vector<Keybind> const& KeybindSettingV3::getValue() const {
     return m_impl->value;
 }
@@ -1139,6 +1168,7 @@ bool KeybindSettingV3::load(matjson::Value const& json) {
     if (res.isErr()) {
         return false;
     }
+    LoaderImpl::get()->onKeybindSettingChanged(std::static_pointer_cast<KeybindSettingV3>(shared_from_this()), res.unwrap());
     m_impl->value = std::move(res).unwrap();
     return true;
 }

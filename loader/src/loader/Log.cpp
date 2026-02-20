@@ -43,7 +43,7 @@ BorrowedLog::BorrowedLog(Log const& log)
     , m_source(log.m_source)
     , m_nestCount(log.m_nestCount)
     , m_content(log.m_content)
-    , m_mod(nullptr)
+    , m_mod(log.m_mod)
 {}
 
 Log BorrowedLog::intoLog() const {
