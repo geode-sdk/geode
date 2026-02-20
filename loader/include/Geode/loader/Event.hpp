@@ -556,13 +556,13 @@ namespace geode::comm {
             return ret;
         }
         BaseFilter* clone() const noexcept override {
-            return new Self(CloneMarker{}, m_filter);
+            return new (std::nothrow) Self(CloneMarker{}, m_filter);
         }
 
         // All of the normal functions do static cast version, but that is not strictly needed,
         // what is needed however is updating this getPort function.
         OpaquePortBase* getPort() const noexcept override {
-            return new OpaqueEventPortV2<PortTemplate, PArgs...>();
+            return new (std::nothrow) OpaqueEventPortV2<PortTemplate, PArgs...>();
         }
 
         size_t hash() const noexcept override {
