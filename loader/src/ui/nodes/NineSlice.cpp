@@ -6,6 +6,7 @@ using namespace geode::prelude;
 class NineSlice::Impl final {
 public:
     Ref<CCSpriteBatchNode> m_batchNode;
+    Ref<CCArray> m_children;
 
     CCSprite* m_topLeft = nullptr;
     CCSprite* m_top = nullptr;
@@ -63,8 +64,7 @@ void NineSlice::setup(Insets const& insets, CCRect const& rect) {
     m_impl->m_insets = insets;
     m_impl->m_spriteRect = rect;
 
-    // handle transformations properly
-    m_impl->m_batchNode->setParent(this);
+    m_impl->m_children = CCArray::create();
 
     if (m_impl->m_spriteRect == CCRect{}) {
         auto size = m_impl->m_batchNode->getTexture()->getContentSize();
@@ -77,6 +77,8 @@ void NineSlice::setup(Insets const& insets, CCRect const& rect) {
     }
 
     m_impl->m_batchNode->setID("slice-batch");
+
+    CCNodeRGBA::addChild(m_impl->m_batchNode, 0, 0);
 
     setAnchorPoint({0.5f, 0.5f});
     setContentSize(m_impl->m_spriteRect.size);
@@ -394,19 +396,36 @@ void NineSlice::setContentSize(CCSize const& size) {
 }
 
 // We don't want the batch node to be a child, this makes it easier for devs to add to the node, use layouts, etc.
+void NineSlice::addChild(CCNode* child, int zOrder, int tag) {
+    CCNodeRGBA::addChild(child, zOrder, tag);
+    m_impl->m_children->addObject(child);
+}
+
+void NineSlice::removeChild(CCNode* child, bool cleanup) {
+    CCNodeRGBA::removeChild(child, cleanup);
+    m_impl->m_children->removeObject(child);
+}
+
+cocos2d::CCArray* NineSlice::getChildren() {
+    CCGLProgram* program = CCShaderCache::sharedShaderCache()->programForKey(kCCShader_PositionTextureColorAlphaTest);
+    if (m_pShaderProgram == program) {
+        return m_pChildren;
+    }
+    return m_impl->m_children;
+}
+
+unsigned int NineSlice::getChildrenCount() const {
+    CCGLProgram* program = CCShaderCache::sharedShaderCache()->programForKey(kCCShader_PositionTextureColorAlphaTest);
+    if (m_pShaderProgram == program) {
+        return m_pChildren->count();
+    }
+    return m_impl->m_children->count();
+}
+
 void NineSlice::visit() {
     if (m_impl->m_dirty) {
         updateSprites();
         m_impl->m_dirty = false;
-    }
-
-    if (isVisible()) {
-        kmGLPushMatrix();
-        transform();
-
-        m_impl->m_batchNode->visit();
-
-        kmGLPopMatrix();
     }
 
     CCNodeRGBA::visit();
@@ -424,4 +443,11 @@ void NineSlice::setOpacity(GLubyte opacity) {
         child->setOpacity(opacity);
     }
     CCNodeRGBA::setOpacity(opacity);
+}
+
+void NineSlice::setOpacityModifyRGB(bool var) {
+    for (auto child : m_impl->m_batchNode->getChildrenExt<CCSprite>()) {
+        child->setOpacityModifyRGB(var);
+    }
+    CCNodeRGBA::setOpacityModifyRGB(var);
 }
