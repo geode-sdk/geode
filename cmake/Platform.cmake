@@ -27,11 +27,12 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 	)
 
 	target_link_libraries(${PROJECT_NAME} INTERFACE
-		"-framework OpenGLES"     # needed for CCClippingNode reimpl and ScrollLayer
-		"-framework UIKit"        # needed for file picking (UIApplication)
-		"-framework Foundation"   # needed for many things
-		"-framework AVFoundation" # needed for microphone access
-		"-framework CoreGraphics" # needed for image saving
+		"-framework OpenGLES"       # needed for CCClippingNode reimpl and ScrollLayer
+		"-framework UIKit"          # needed for file picking (UIApplication)
+		"-framework Foundation"     # needed for many things
+		"-framework AVFoundation"   # needed for microphone access
+		"-framework CoreGraphics"   # needed for image saving
+		"-framework GameController" # needed for controller input
 		${GEODE_LOADER_PATH}/include/link/ios/libcares.a
 		${GEODE_LOADER_PATH}/include/link/ios/libcurl.a
 		${GEODE_LOADER_PATH}/include/link/ios/libnghttp2.a
