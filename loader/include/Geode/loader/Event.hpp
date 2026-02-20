@@ -15,7 +15,7 @@
 #include "../utils/casts.hpp"
 #include "../utils/hash.hpp"
 // #include "../utils/ZStringView.hpp"
-// #include "Log.hpp"
+// #include "Types.hpp"
 
 // namespace geode::console {
 //     void log(ZStringView msg, Severity severity);
@@ -103,11 +103,13 @@ namespace geode::comm {
         ReceiverHandle addReceiver(Callable receiver, int priority = 0) noexcept {
             ReceiverHandle handle = static_cast<ReceiverHandle>(m_nextID++);
             if (m_sending > 0) {
+                // geode::console::log(fmt::format("Added handler with id {} to toAdd", handle), Severity::Debug);
                 m_toAdd.push_back({std::move(receiver), priority, handle});
                 return handle;
             }
             for (auto it = m_receivers.begin(); it != m_receivers.end(); ++it) {
                 if (priority < it->m_priority) {
+                    // geode::console::log(fmt::format("Added handler with id {} to receivers", handle), Severity::Debug);
                     m_receivers.insert(it, {std::move(receiver), priority, handle});
                     return handle;
                 }
@@ -121,8 +123,10 @@ namespace geode::comm {
             for (int i = 0; i < size; ++i) {
                 if (m_receivers[i].m_handle == handle) {
                     if (m_sending > 0) {
+                        // geode::console::log(fmt::format("Added handler with id {} to toRemove", handle), Severity::Debug);
                         m_toRemove.push_back(m_receivers.begin() + i);
                     } else {
+                        // geode::console::log(fmt::format("Removed handler with id {} from receivers", handle), Severity::Debug);
                         m_receivers.erase(m_receivers.begin() + i);
                     }
                     // size - 1, return for symmetry
@@ -143,6 +147,12 @@ namespace geode::comm {
             m_sending++;
             bool ret = false;
             for (auto& callable : m_receivers) {
+                if (std::find_if(m_toRemove.begin(), m_toRemove.end(), [&callable](auto& it) {
+                    return it->m_handle == callable.m_handle;
+                }) != m_toRemove.end()) {
+                    // geode::console::log(fmt::format("Skipping handler with id {} because it is in toRemove", callable.m_handle), Severity::Debug);
+                    continue;
+                }
                 if (callable.call(value...)) {
                     ret = true;
                     break;
@@ -151,11 +161,13 @@ namespace geode::comm {
             m_sending--;
 
             if (m_sending == 0) {
+                // geode::console::log(fmt::format("Flushing {} handlers from toRemove", m_toRemove.size()), Severity::Debug);
                 for (auto& it : m_toRemove) {
                     m_receivers.erase(it);
                 }
                 m_toRemove.clear();
 
+                // geode::console::log(fmt::format("Flushing {} handlers from toAdd", m_toAdd.size()), Severity::Debug);
                 m_receivers.insert(m_receivers.end(), std::make_move_iterator(m_toAdd.begin()), std::make_move_iterator(m_toAdd.end()));
                 m_toAdd.clear();
                 std::sort(m_receivers.begin(), m_receivers.end(), [](auto& a, auto& b) {
