@@ -35,7 +35,8 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 		${GEODE_LOADER_PATH}/include/link/ios/libcares.a
 		${GEODE_LOADER_PATH}/include/link/ios/libcurl.a
 		${GEODE_LOADER_PATH}/include/link/ios/libnghttp2.a
-		${GEODE_LOADER_PATH}/include/link/ios/librustls.a
+		${GEODE_LOADER_PATH}/include/link/ios/libcrypto.a
+		${GEODE_LOADER_PATH}/include/link/ios/libssl.a
 		${GEODE_LOADER_PATH}/include/link/ios/libz.a
 		${GEODE_LOADER_PATH}/include/link/ios/libzstd.a
 	)
@@ -76,7 +77,8 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 		${GEODE_LOADER_PATH}/include/link/macos/libcares.a
 		${GEODE_LOADER_PATH}/include/link/macos/libcurl.a
 		${GEODE_LOADER_PATH}/include/link/macos/libnghttp2.a
-		${GEODE_LOADER_PATH}/include/link/macos/librustls.a
+		${GEODE_LOADER_PATH}/include/link/macos/libcrypto.a
+		${GEODE_LOADER_PATH}/include/link/macos/libssl.a
 		${GEODE_LOADER_PATH}/include/link/macos/libz.a
 		${GEODE_LOADER_PATH}/include/link/macos/libzstd.a
 	)
@@ -120,7 +122,8 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Win64")
 			${GEODE_LOADER_PATH}/include/link/win64/cares.lib
 			${GEODE_LOADER_PATH}/include/link/win64/libcurl.lib
 			${GEODE_LOADER_PATH}/include/link/win64/nghttp2.lib
-			${GEODE_LOADER_PATH}/include/link/win64/rustls.lib
+			${GEODE_LOADER_PATH}/include/link/win64/libcrypto.lib
+			${GEODE_LOADER_PATH}/include/link/win64/libssl.lib
 			${GEODE_LOADER_PATH}/include/link/win64/zs.lib
 			${GEODE_LOADER_PATH}/include/link/win64/zstd_static.lib
 			secur32
