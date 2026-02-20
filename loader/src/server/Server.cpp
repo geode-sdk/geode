@@ -53,6 +53,11 @@ public:
         }
         return std::nullopt;
     }
+    bool has(K const& key) {
+        return std::find_if(m_values.begin(), m_values.end(), [&key](auto const& q) {
+            return q.first == key;
+        }) != m_values.end();
+    }
     void add(K&& key, V&& value) {
         auto pair = std::make_pair(std::move(key), std::move(value));
 
@@ -110,7 +115,7 @@ public:
     using Value    = typename Extract::Value;
 
 private:
-    arc::Mutex<CacheMap<CacheKey, Value>> m_cache;
+    asp::Mutex<CacheMap<CacheKey, Value>> m_cache;
 
 public:
     FunCache() = default;
@@ -122,32 +127,36 @@ public:
         ARC_FRAME();
         auto key = Extract::key(args...);
 
-        auto cache = co_await m_cache.lock();
+        auto cache = m_cache.lock();
         if (auto v = cache->get(key)) {
-            co_return Ok(*v);
+            co_return Ok(std::move(*v));
         }
+        cache.unlock();
+
         auto f = ARC_CO_UNWRAP(co_await Extract::invoke(F, std::forward<Args>(args)...));
+
+        cache.relock();
+        if (cache->has(key)) {
+            co_return Ok(std::move(f)); // don't save to cache if someone beat us
+        }
         cache->add(std::move(key), Value{f});
+
         co_return Ok(f);
     }
 
     template <class... Args>
-    arc::Future<> remove(Args const&... args) {
-        auto cache = co_await m_cache.lock();
-        cache->remove(Extract::key(args...));
+    void remove(Args const&... args) {
+        m_cache.lock()->remove(Extract::key(args...));
     }
 
-    arc::Future<size_t> size() {
-        auto cache = co_await m_cache.lock();
-        co_return cache->size();
+    size_t size() {
+        return m_cache.lock()->size();
     }
-    arc::Future<> limit(size_t size) {
-        auto cache = co_await m_cache.lock();
-        cache->limit(size);
+    void limit(size_t size) {
+        m_cache.lock()->limit(size);
     }
-    arc::Future<> clear() {
-        auto cache = co_await m_cache.lock();
-        cache->clear();
+    void clear() {
+        m_cache.lock()->clear();
     }
 };
 
@@ -951,27 +960,23 @@ ServerFuture<ServerLoaderVersion> server::getLatestLoaderVersion(bool useCache) 
 }
 
 void server::clearServerCaches(bool clearGlobalCaches) {
-    async::runtime().spawn([clearGlobalCaches] -> arc::Future<> {
-        co_await getCache<&getMods>().clear();
-        co_await getCache<&getMod>().clear();
-        co_await getCache<&getModLogo>().clear();
+    getCache<&getMods>().clear();
+    getCache<&getMod>().clear();
+    getCache<&getModLogo>().clear();
 
-        // Only clear global caches if explicitly requested
-        if (clearGlobalCaches) {
-            co_await getCache<&getTags>().clear();
-            co_await getCache<&checkAllUpdates>().clear();
-        }
-    });
+    // Only clear global caches if explicitly requested
+    if (clearGlobalCaches) {
+        getCache<&getTags>().clear();
+        getCache<&checkAllUpdates>().clear();
+    }
 }
 
 $on_mod(Loaded) {
     listenForSettingChanges<int64_t>("server-cache-size-limit", +[](int64_t size) {
-        async::runtime().spawn([size] -> arc::Future<> {
-            co_await getCache<&server::getMods>().limit(size);
-            co_await getCache<&server::getMod>().limit(size);
-            co_await getCache<&server::getModLogo>().limit(size);
-            co_await getCache<&server::getTags>().limit(size);
-            co_await getCache<&server::checkAllUpdates>().limit(size);
-        });
+        getCache<&server::getMods>().limit(size);
+        getCache<&server::getMod>().limit(size);
+        getCache<&server::getModLogo>().limit(size);
+        getCache<&server::getTags>().limit(size);
+        getCache<&server::checkAllUpdates>().limit(size);
     });
 }
