@@ -355,7 +355,7 @@ inline void handleControllerButton(GCExtendedGamepad* gamepad, GCControllerButto
         [btn isPressed] ? KeyboardInputData::Action::Press : KeyboardInputData::Action::Release,
         {0}, // Controller buttons don't have native codes.
         (double) [gamepad lastEventTimestamp],
-        KeyboardInputData::Modifiers::Mods_None
+        KeyboardModifier::None
     );
     if (KeyboardInputEvent(key).send(data) != ListenerResult::Propagate) return;
     if (data.key != KEY_Unknown && (!imeDispatcher->hasDelegate() || data.key == KEY_Escape || data.key == KEY_Enter)) {
