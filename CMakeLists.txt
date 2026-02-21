@@ -263,7 +263,6 @@ CPMAddPackage("gh:fmtlib/fmt#12.1.0")
 if (NOT PROJECT_IS_TOP_LEVEL AND NOT DEFINED ARC_FEATURE_FULL)
 	set(ARC_FEATURE_FULL OFF CACHE BOOL "" FORCE)
 endif()
-CPMAddPackage("gh:dankmeme01/asp2#70fa109")
 CPMAddPackage("gh:dankmeme01/arc@1.5.3")
 
 # use unity for both arc and its dependencies,
