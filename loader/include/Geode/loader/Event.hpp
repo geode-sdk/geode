@@ -611,8 +611,9 @@ namespace geode::comm {
 
         static void removeReceiverStatic(BaseFilter const* filter, ReceiverHandle handle) noexcept {
             auto* self = static_cast<BasicEvent const*>(filter);
+            // geode::console::log(fmt::format("Static removing receiver from BasicEvent {}, {}", (void*)self, typeid(Marker).name()), Severity::Debug);
             if (self) {
-                // geode::console::log(fmt::format("Static removing receiver from BasicEvent {}, {}", (void*)self, typeid(Marker).name()), Severity::Debug);
+                // geode::console::log(fmt::format("afssfd from BasicEvent {}, {}", (void*)self, typeid(Marker).name()), Severity::Debug);
                 self->removeReceiver(handle);
             }
         }
@@ -664,13 +665,16 @@ namespace geode::comm {
     public:
         static EventCenterThreadLocal* get();
 
-        using OpaqueFuncType = geode::Function<bool(OpaquePortBase*)>;
+        using SendFuncType = geode::Function<bool(OpaquePortBase*)>;
+        using AddFuncType = geode::Function<ReceiverHandle(OpaquePortBase*)>;
+        using SizeFuncType = geode::Function<size_t(OpaquePortBase*)>;
+        using RemoveFuncType = geode::Function<size_t(OpaquePortBase*)>;
         using MigrateFuncType = geode::Function<OpaquePortBase*(OpaquePortBase*)>;
 
-        bool send(BaseFilter const* filter, OpaqueFuncType func, MigrateFuncType migratePort) noexcept;
-        ListenerHandle addReceiver(BaseFilter const* filter, OpaqueFuncType func, MigrateFuncType migratePort) noexcept;
-        size_t getReceiverCount(BaseFilter const* filter, OpaqueFuncType func, MigrateFuncType migratePort) noexcept;
-        size_t removeReceiver(BaseFilter const* filter, OpaqueFuncType func, MigrateFuncType migratePort) noexcept;
+        bool send(BaseFilter const* filter, SendFuncType func, MigrateFuncType migratePort) noexcept;
+        ListenerHandle addReceiver(BaseFilter const* filter, AddFuncType func, MigrateFuncType migratePort) noexcept;
+        size_t getReceiverCount(BaseFilter const* filter, SizeFuncType func, MigrateFuncType migratePort) noexcept;
+        size_t removeReceiver(BaseFilter const* filter, RemoveFuncType func, MigrateFuncType migratePort) noexcept;
     };
 
     class GEODE_DLL EventCenterGlobal {
@@ -684,13 +688,16 @@ namespace geode::comm {
     public:
         static EventCenterGlobal* get();
 
-        using OpaqueFuncType = geode::Function<bool(OpaquePortBase*)>;
+        using SendFuncType = geode::Function<bool(OpaquePortBase*)>;
+        using AddFuncType = geode::Function<ReceiverHandle(OpaquePortBase*)>;
+        using SizeFuncType = geode::Function<size_t(OpaquePortBase*)>;
+        using RemoveFuncType = geode::Function<size_t(OpaquePortBase*)>;
         using MigrateFuncType = geode::Function<OpaquePortBase*(OpaquePortBase*)>;
 
-        bool send(BaseFilter const* filter, OpaqueFuncType func, MigrateFuncType migratePort) noexcept;
-        ListenerHandle addReceiver(BaseFilter const* filter, OpaqueFuncType func, MigrateFuncType migratePort) noexcept;
-        size_t getReceiverCount(BaseFilter const* filter, OpaqueFuncType func, MigrateFuncType migratePort) noexcept;
-        size_t removeReceiver(BaseFilter const* filter, OpaqueFuncType func, MigrateFuncType migratePort) noexcept;
+        bool send(BaseFilter const* filter, SendFuncType func, MigrateFuncType migratePort) noexcept;
+        ListenerHandle addReceiver(BaseFilter const* filter, AddFuncType func, MigrateFuncType migratePort) noexcept;
+        size_t getReceiverCount(BaseFilter const* filter, SizeFuncType func, MigrateFuncType migratePort) noexcept;
+        size_t removeReceiver(BaseFilter const* filter, RemoveFuncType func, MigrateFuncType migratePort) noexcept;
     };
 
     class EventCenter {

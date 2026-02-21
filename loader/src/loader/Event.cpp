@@ -24,7 +24,7 @@ EventCenterThreadLocal* EventCenterThreadLocal::get() {
     return &instance;
 }
 
-bool EventCenterThreadLocal::send(BaseFilter const* filter, OpaqueFuncType func, MigrateFuncType migratePort) noexcept {
+bool EventCenterThreadLocal::send(BaseFilter const* filter, SendFuncType func, MigrateFuncType migratePort) noexcept {
     // log::debug("EventCenterThreadLocal sending event for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter));
 
     auto it = m_impl->m_ports.find(filter);
@@ -36,10 +36,22 @@ bool EventCenterThreadLocal::send(BaseFilter const* filter, OpaqueFuncType func,
     }
     return false;
 }
-ListenerHandle EventCenterThreadLocal::addReceiver(BaseFilter const* filter, OpaqueFuncType func, MigrateFuncType migratePort) noexcept {
-    log::debug("EventCenterThreadLocal adding receiver for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter));
+ListenerHandle EventCenterThreadLocal::addReceiver(BaseFilter const* filter, AddFuncType func, MigrateFuncType migratePort) noexcept {
+//     if (std::string(cast::getRuntimeTypeName(filter)).find("UpdateModListStateEvent") != std::string::npos) {
+//      log::debug("EventCenterThreadLocal adding receiver for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter));
+//      log::debug("hash {} threadid {}", BaseFilterHash{}(filter), std::this_thread::get_id());
+// }
 
     auto it = m_impl->m_ports.find(filter);
+
+    // if (std::string(cast::getRuntimeTypeName(filter)).find("UpdateModListStateEvent") != std::string::npos) {
+    // if (it == m_impl->m_ports.end()) {
+    //     log::debug("in ports, not found");
+    // }
+    // else {
+    //     log::debug("in ports, found {} -> {}, ({})", (void*)it->first.get(), (void*)it->second.get(), cast::getRuntimeTypeName(it->first.get()));
+    // }}
+
     if (it != m_impl->m_ports.end()) {
         if (auto newPort = std::invoke(migratePort, it->second.get())) {
             it->second.reset(newPort);
@@ -48,6 +60,9 @@ ListenerHandle EventCenterThreadLocal::addReceiver(BaseFilter const* filter, Opa
     }
     else {
         auto clonedFilter = Impl::KeyType(filter->clone());
+        // if (std::string(cast::getRuntimeTypeName(filter)).find("UpdateModListStateEvent") != std::string::npos) {
+        // log::debug("cloned filter {}, typename {}", (void*)clonedFilter.get(), cast::getRuntimeTypeName(clonedFilter.get()));
+        // }
         if (!clonedFilter) return ListenerHandle();
         auto filter2 = clonedFilter.get();
         // geode::console::log(fmt::format("Cloned filter for adding receiver {}, {}", (void*)filter2, cast::getRuntimeTypeName(filter2)), Severity::Debug);
@@ -56,13 +71,26 @@ ListenerHandle EventCenterThreadLocal::addReceiver(BaseFilter const* filter, Opa
         if (!port) return ListenerHandle();
 
         ReceiverHandle handle = std::invoke(func, port.get());
+        // if (std::string(cast::getRuntimeTypeName(filter)).find("UpdateModListStateEvent") != std::string::npos) {
+        // log::debug("handle {}", handle);
+        // }
         auto ret = ListenerHandle(clonedFilter, handle, nullptr);
 
         m_impl->m_ports.emplace(std::move(clonedFilter), std::move(port));
+
+        auto it2 = m_impl->m_ports.find(filter);
+    //     if (std::string(cast::getRuntimeTypeName(filter)).find("UpdateModListStateEvent") != std::string::npos) {
+    //     if (it2 == m_impl->m_ports.end()) {
+    //         log::debug("added into ports, not found");
+    //     }
+    //     else {
+    //         log::debug("added into ports, found {} -> {}", (void*)it2->first.get(), (void*)it2->second.get());
+    //     }
+    // }
         return ret;
     }
 }
-size_t EventCenterThreadLocal::getReceiverCount(BaseFilter const* filter, OpaqueFuncType func, MigrateFuncType migratePort) noexcept {
+size_t EventCenterThreadLocal::getReceiverCount(BaseFilter const* filter, SizeFuncType func, MigrateFuncType migratePort) noexcept {
     auto it = m_impl->m_ports.find(filter);
     if (it != m_impl->m_ports.end()) {
         if (auto newPort = std::invoke(migratePort, it->second.get())) {
@@ -72,9 +100,11 @@ size_t EventCenterThreadLocal::getReceiverCount(BaseFilter const* filter, Opaque
     }
     return 0;
 }
-size_t EventCenterThreadLocal::removeReceiver(BaseFilter const* filter, OpaqueFuncType func, MigrateFuncType migratePort) noexcept {
-    log::debug("EventCenterThreadLocal removing receiver for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter));
-
+size_t EventCenterThreadLocal::removeReceiver(BaseFilter const* filter, RemoveFuncType func, MigrateFuncType migratePort) noexcept {
+    // if (std::string(cast::getRuntimeTypeName(filter)).find("UpdateModListStateEvent") != std::string::npos) {
+    // log::debug("EventCenterThreadLocal removing receiver for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter));
+    // log::debug("hash {} threadid {}", BaseFilterHash{}(filter), std::this_thread::get_id());
+    // }
     auto it = m_impl->m_ports.find(filter);
     if (it != m_impl->m_ports.end()) {
         if (auto newPort = std::invoke(migratePort, it->second.get())) {
@@ -85,6 +115,10 @@ size_t EventCenterThreadLocal::removeReceiver(BaseFilter const* filter, OpaqueFu
             // geode::console::log(fmt::format("Removing port for filter type {}", cast::getRuntimeTypeName(filter)), Severity::Debug);
             m_impl->m_ports.erase(it);
         }
+
+        // if (std::string(cast::getRuntimeTypeName(filter)).find("UpdateModListStateEvent") != std::string::npos) {
+        //     log::debug("port size {}", size);
+        // }
         return size;
     }
     return (size_t)-1;
@@ -110,7 +144,7 @@ EventCenterGlobal* EventCenterGlobal::get() {
     return &instance;
 }
 
-bool EventCenterGlobal::send(BaseFilter const* filter, OpaqueFuncType func, MigrateFuncType migratePort) noexcept {
+bool EventCenterGlobal::send(BaseFilter const* filter, SendFuncType func, MigrateFuncType migratePort) noexcept {
     // log::debug("EventCenterGlobal sending event for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter));
 
     auto lock = std::unique_lock<std::mutex>(m_impl->m_mutex);
@@ -126,8 +160,8 @@ bool EventCenterGlobal::send(BaseFilter const* filter, OpaqueFuncType func, Migr
     }
     return false;
 }
-ListenerHandle EventCenterGlobal::addReceiver(BaseFilter const* filter, OpaqueFuncType func, MigrateFuncType migratePort) noexcept {
-    log::debug("EventCenterGlobal adding receiver for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter));
+ListenerHandle EventCenterGlobal::addReceiver(BaseFilter const* filter, AddFuncType func, MigrateFuncType migratePort) noexcept {
+    // log::debug("EventCenterGlobal adding receiver for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter));
 
     auto lock = std::unique_lock<std::mutex>(m_impl->m_mutex);
     auto it = m_impl->m_ports.find(filter);
@@ -155,7 +189,7 @@ ListenerHandle EventCenterGlobal::addReceiver(BaseFilter const* filter, OpaqueFu
         return ret;
     }
 }
-size_t EventCenterGlobal::getReceiverCount(BaseFilter const* filter, OpaqueFuncType func, MigrateFuncType migratePort) noexcept {
+size_t EventCenterGlobal::getReceiverCount(BaseFilter const* filter, SizeFuncType func, MigrateFuncType migratePort) noexcept {
     auto lock = std::unique_lock<std::mutex>(m_impl->m_mutex);
     auto it = m_impl->m_ports.find(filter);
     auto const end = m_impl->m_ports.end();
@@ -169,8 +203,8 @@ size_t EventCenterGlobal::getReceiverCount(BaseFilter const* filter, OpaqueFuncT
     }
     return 0;
 }
-size_t EventCenterGlobal::removeReceiver(BaseFilter const* filter, OpaqueFuncType func, MigrateFuncType migratePort) noexcept {
-    log::debug("EventCenterGlobal removing receiver for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter));
+size_t EventCenterGlobal::removeReceiver(BaseFilter const* filter, RemoveFuncType func, MigrateFuncType migratePort) noexcept {
+    // log::debug("EventCenterGlobal removing receiver for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter));
 
     auto lock = std::unique_lock<std::mutex>(m_impl->m_mutex);
     auto it = m_impl->m_ports.find(filter);
