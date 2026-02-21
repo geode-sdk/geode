@@ -24,6 +24,12 @@
 #include <curl/curl.h>
 #include <sstream>
 
+#ifdef GEODE_IS_ANDROID
+# include <ares.h>
+# include <jni.h>
+# include <Geode/cocos/platform/android/jni/JniHelper.h>
+#endif
+
 using namespace geode::prelude;
 using namespace geode::utils::web;
 using namespace geode::utils::string;
@@ -576,12 +582,6 @@ public:
         }
 
         curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, sslOptions);
-
-        // Set DNS servers, this is required on Android
-        bool dontOverrideDns = Loader::get()->getLaunchFlag("dont-override-dns");
-        if (!dontOverrideDns) {
-            curl_easy_setopt(curl, CURLOPT_DNS_SERVERS, "1.1.1.1,8.8.8.8");
-        }
 
         // Transfer body
         curl_easy_setopt(curl, CURLOPT_NOBODY, m_transferBody ? 0L : 1L);
@@ -1302,6 +1302,12 @@ public:
     }
 
     Future<> workerFunc(auto rx, auto crx) {
+#ifdef GEODE_IS_ANDROID
+        co_await async::waitForMainThread([] {
+            setupAresJVM();
+        });
+#endif
+
         bool running = true;
         while (running) {
             co_await arc::select(
@@ -1324,6 +1330,34 @@ public:
             );
         }
     }
+
+#ifdef GEODE_IS_ANDROID
+    static void setupAresJVM() {
+        /// https://c-ares.org/docs/ares_library_init_android.html
+        auto jvm = JniHelper::getJavaVM();
+        JNIEnv* env = nullptr;
+        if (jvm->GetEnv((void**)&env, JNI_VERSION_1_6) != JNI_OK) {
+            return;
+        }
+
+        jclass fmodClass = env->FindClass("org/fmod/FMOD");
+        auto instanceField = env->GetStaticFieldID(fmodClass, "INSTANCE", "Lorg/fmod/FMOD;");
+        jobject fmodInstance = env->GetStaticObjectField(fmodClass, instanceField);
+        auto fmodInstClass = env->GetObjectClass(fmodInstance);
+
+        auto contextField = env->GetStaticFieldID(fmodInstClass, "gContext", "Landroid/content/Context;");
+
+        jobject context = env->GetStaticObjectField(fmodInstClass, contextField);
+        jclass contextClass = env->GetObjectClass(context);
+
+        auto getSystemService = env->GetMethodID(contextClass, "getSystemService", "(Ljava/lang/String;)Ljava/lang/Object;");
+        jstring connectivityServiceStr = env->NewStringUTF("connectivity");
+        jobject connectivityManager = env->CallObjectMethod(context, getSystemService, connectivityServiceStr);
+
+        ares_library_init_jvm(jvm);
+        ares_library_init_android(connectivityManager);
+    }
+#endif
 };
 
 WebRequestsManager::WebRequestsManager() : m_impl(new Impl()) {}
