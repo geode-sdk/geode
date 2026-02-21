@@ -306,6 +306,20 @@ namespace geode {
             saved[key] = value;
             return old;
         }
+		
+		/**
+		 * Set the name of setting.
+		 * @param key Setting key
+		 * @param name New name
+		 */
+		void setSettingName(std::string_view key, std::string_view name);
+		
+		/**
+		 * Set the description of a setting.
+		 * @param key Setting key
+		 * @param desc New description
+		 */
+		void setSettingDescription(std::string_view key, std::string_view description);
 
         /**
          * Get the Mod of the current mod being developed
