@@ -451,3 +451,17 @@ void NineSlice::setOpacityModifyRGB(bool var) {
     }
     CCNodeRGBA::setOpacityModifyRGB(var);
 }
+
+void NineSlice::updateDisplayedOpacity(GLubyte parentOpacity) {
+    for (auto child : m_impl->m_batchNode->getChildrenExt<CCSprite>()) {
+        child->updateDisplayedOpacity(parentOpacity);
+    }
+    CCNodeRGBA::updateDisplayedOpacity(parentOpacity);
+}
+
+void NineSlice::updateDisplayedColor(cocos2d::ccColor3B const& parentColor) {
+    for (auto child : m_impl->m_batchNode->getChildrenExt<CCSprite>()) {
+        child->updateDisplayedColor(parentColor);
+    }
+    CCNodeRGBA::updateDisplayedColor(parentColor);
+}

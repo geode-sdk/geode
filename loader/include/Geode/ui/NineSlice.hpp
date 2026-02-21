@@ -66,6 +66,9 @@ namespace geode {
         virtual void setOpacity(GLubyte opacity) override;
         virtual void setOpacityModifyRGB(bool var) override;
 
+        virtual void updateDisplayedOpacity(GLubyte parentOpacity) override;
+        virtual void updateDisplayedColor(cocos2d::ccColor3B const& parentColor) override;
+        
     protected:
         NineSlice();
         ~NineSlice();
