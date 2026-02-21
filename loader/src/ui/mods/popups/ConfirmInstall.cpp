@@ -23,7 +23,7 @@ void askConfirmModInstalls() {
     // Collect all things we need to ask confirmation for
     for (auto& download : ModDownloadManager::get()->getDownloads()) {
         auto status = download.getStatus();
-        if (auto conf = std::get_if<DownloadStatusConfirm>(&status)) {            
+        if (auto conf = std::get_if<DownloadStatusConfirm>(&status)) {
             if (auto dep = download.getDependencyFor()) {
                 toConfirm.dependencies.insert(download.getID());
 
@@ -196,3 +196,4 @@ void askConfirmModInstalls() {
             }
     })->show();
 }
+
