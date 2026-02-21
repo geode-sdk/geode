@@ -77,6 +77,9 @@ namespace geode::comm {
         }
     };
 
+    class EventCenterThreadLocal;
+    class EventCenterGlobal;
+
     // Okay so even though the Event system is fully header only,
     // we can still version it. One caveat/hackiness is that
     // Ports should be backwards ABI compatible, meaning no member
@@ -94,6 +97,7 @@ namespace geode::comm {
         size_t m_sending = 0;
     public:
         using CallableType = Callable;
+        using EventCenterType = EventCenterThreadLocal;
 
         void migrateFromV1(Port&& other) noexcept {
             m_receivers = std::move(other.m_receivers);
@@ -185,6 +189,7 @@ namespace geode::comm {
         asp::PtrSwap<VectorType> m_receivers;
     public:
         using CallableType = Callable;
+        using EventCenterType = EventCenterGlobal;
 
         Port() : m_receivers(asp::make_shared<VectorType>()) {}
 
@@ -382,6 +387,8 @@ namespace geode::comm {
         PortTemplate<geode::CopyableFunction<bool(PArgs...)>> m_port;
 
     public:
+        using EventCenterType = typename PortTemplate<geode::CopyableFunction<bool(PArgs...)>>::EventCenterType;
+
         OpaqueEventPort() {}
 
         ~OpaqueEventPort() noexcept override {}
@@ -477,6 +484,8 @@ namespace geode::comm {
             : m_filter(std::move(filter)), m_handle(handle), m_remover(remover), m_active(active) {}
 
         friend class EventCenter;
+        friend class EventCenterThreadLocal;
+        friend class EventCenterGlobal;
 
     public:
         ListenerHandle() noexcept {}
@@ -544,19 +553,22 @@ namespace geode::comm {
         using ValueType = std::shared_ptr<OpaquePortBase>;
         using MapType = std::unordered_map<KeyType, ValueType, BaseFilterHash, BaseFilterEqual>;
         using IteratorType = typename MapType::iterator;
+        using OpaqueEventType = OpaqueEventPort<PortTemplate, PArgs...>;
+        using OpaqueEventV2Type = OpaqueEventPortV2<PortTemplate, PArgs...>;
+        using LatestOpaqueEventType = OpaqueEventV2Type;
+        using EventCenterType = LatestOpaqueEventType::EventCenterType;
 
         // Here we migrate the port version if needed. This is what I meant by versioning,
         // we need to check for previous versions and move them into the current version.
         // Go to getPort definition.
-        static bool migratePort(IteratorType iter) {
-            auto port = iter->second.get();
-            if (!geode::cast::typeinfo_cast<OpaqueEventPortV2<PortTemplate, PArgs...>*>(port)) {
-                auto oldPort = static_cast<OpaqueEventPort<PortTemplate, PArgs...>*>(port);
-                auto newPort = new OpaqueEventPortV2<PortTemplate, PArgs...>();
+        static OpaquePortBase* migratePort(OpaquePortBase* port) {
+            if (!geode::cast::typeinfo_cast<OpaqueEventV2Type*>(port)) {
+                auto oldPort = static_cast<OpaqueEventType*>(port);
+                auto newPort = new OpaqueEventV2Type();
                 newPort->migrateFromV1(oldPort);
-                iter->second.reset(newPort);
+                return newPort;
             }
-            return true;
+            return nullptr;
         }
 
         using Self = BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>;
@@ -583,7 +595,7 @@ namespace geode::comm {
         // All of the normal functions do static cast version, but that is not strictly needed,
         // what is needed however is updating this getPort function.
         OpaquePortBase* getPort() const noexcept override {
-            return new (std::nothrow) OpaqueEventPortV2<PortTemplate, PArgs...>();
+            return new (std::nothrow) OpaqueEventV2Type();
         }
 
         size_t hash() const noexcept override {
@@ -599,8 +611,9 @@ namespace geode::comm {
 
         static void removeReceiverStatic(BaseFilter const* filter, ReceiverHandle handle) noexcept {
             auto* self = static_cast<BasicEvent const*>(filter);
+            // geode::console::log(fmt::format("Static removing receiver from BasicEvent {}, {}", (void*)self, typeid(Marker).name()), Severity::Debug);
             if (self) {
-                // geode::console::log(fmt::format("Static removing receiver from BasicEvent {}, {}", (void*)self, typeid(Marker).name()), Severity::Debug);
+                // geode::console::log(fmt::format("afssfd from BasicEvent {}, {}", (void*)self, typeid(Marker).name()), Severity::Debug);
                 self->removeReceiver(handle);
             }
         }
@@ -641,6 +654,52 @@ namespace geode::comm {
         }
     };
 
+    class GEODE_DLL EventCenterThreadLocal {
+    private:
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
+
+        EventCenterThreadLocal();
+        ~EventCenterThreadLocal();
+    
+    public:
+        static EventCenterThreadLocal* get();
+
+        using SendFuncType = geode::Function<bool(OpaquePortBase*)>;
+        using AddFuncType = geode::Function<ReceiverHandle(OpaquePortBase*)>;
+        using SizeFuncType = geode::Function<size_t(OpaquePortBase*)>;
+        using RemoveFuncType = geode::Function<size_t(OpaquePortBase*)>;
+        using MigrateFuncType = geode::Function<OpaquePortBase*(OpaquePortBase*)>;
+
+        bool send(BaseFilter const* filter, SendFuncType func, MigrateFuncType migratePort) noexcept;
+        ListenerHandle addReceiver(BaseFilter const* filter, AddFuncType func, MigrateFuncType migratePort) noexcept;
+        size_t getReceiverCount(BaseFilter const* filter, SizeFuncType func, MigrateFuncType migratePort) noexcept;
+        size_t removeReceiver(BaseFilter const* filter, RemoveFuncType func, MigrateFuncType migratePort) noexcept;
+    };
+
+    class GEODE_DLL EventCenterGlobal {
+    private:
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
+
+        EventCenterGlobal();
+        ~EventCenterGlobal();
+    
+    public:
+        static EventCenterGlobal* get();
+
+        using SendFuncType = geode::Function<bool(OpaquePortBase*)>;
+        using AddFuncType = geode::Function<ReceiverHandle(OpaquePortBase*)>;
+        using SizeFuncType = geode::Function<size_t(OpaquePortBase*)>;
+        using RemoveFuncType = geode::Function<size_t(OpaquePortBase*)>;
+        using MigrateFuncType = geode::Function<OpaquePortBase*(OpaquePortBase*)>;
+
+        bool send(BaseFilter const* filter, SendFuncType func, MigrateFuncType migratePort) noexcept;
+        ListenerHandle addReceiver(BaseFilter const* filter, AddFuncType func, MigrateFuncType migratePort) noexcept;
+        size_t getReceiverCount(BaseFilter const* filter, SizeFuncType func, MigrateFuncType migratePort) noexcept;
+        size_t removeReceiver(BaseFilter const* filter, RemoveFuncType func, MigrateFuncType migratePort) noexcept;
+    };
+
     class EventCenter {
         using KeyType = std::shared_ptr<BaseFilter>;
         using ValueType = std::shared_ptr<OpaquePortBase>;
@@ -657,7 +716,10 @@ namespace geode::comm {
             // geode::console::log(fmt::format("EventCenter sending event for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter)), Severity::Debug);
             auto p = m_ports.load();
             auto it = p->find(filter);
-            if (it != p->end() && std::invoke(migratePort, it)) {
+            if (it != p->end()) {
+                if (auto newFilter = std::invoke(migratePort, it->second.get())) {
+                    it->second.reset(newFilter);
+                }
                 auto newFilter = it->first.get();
                 return std::invoke(func, it->second.get());
             }
@@ -670,7 +732,10 @@ namespace geode::comm {
             // geode::console::log(fmt::format("EventCenter adding receiver for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter)), Severity::Debug);
             auto p = m_ports.load();
             auto it = p->find(filter);
-            if (it != p->end() && std::invoke(migratePort, it)) {
+            if (it != p->end()) {
+                if (auto newFilter = std::invoke(migratePort, it->second.get())) {
+                    it->second.reset(newFilter);
+                }
                 return ListenerHandle(it->first, std::invoke(func, it->second.get()), nullptr);
             }
             else {
@@ -696,10 +761,13 @@ namespace geode::comm {
 
         template <class Callable, class Callable2>
         requires std::is_invocable_v<Callable, OpaquePortBase*>
-        size_t getReceiverCount(BaseFilter const* filter, Callable func, Callable2 migratePort) const noexcept {
+        size_t getReceiverCount(BaseFilter const* filter, Callable func, Callable2 migratePort) noexcept {
             auto p = m_ports.load();
             auto it = p->find(filter);
-            if (it != p->end() && std::invoke(migratePort, it)) {
+            if (it != p->end()) {
+                if (auto newFilter = std::invoke(migratePort, it->second.get())) {
+                    it->second.reset(newFilter);
+                }
                 return std::invoke(func, it->second.get());
             }
             return 0;
@@ -711,7 +779,10 @@ namespace geode::comm {
             // geode::console::log(fmt::format("EventCenter removing receiver for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter)), Severity::Debug);
             auto p = m_ports.load();
             auto it = p->find(filter);
-            if (it != p->end() && std::invoke(migratePort, it)) {
+            if (it != p->end()) {
+                if (auto newFilter = std::invoke(migratePort, it->second.get())) {
+                    it->second.reset(newFilter);
+                }
                 auto size = std::invoke(func, it->second.get());
                 if (size == 0) {
                     // geode::console::log(fmt::format("Removing port for filter type {}", cast::getRuntimeTypeName(filter)), Severity::Debug);
@@ -738,8 +809,16 @@ namespace geode::comm {
         std::is_convertible_v<PReturn, bool> || std::is_same_v<PReturn, void>;
     }
     bool BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::send(PArgs... args) noexcept(std::is_nothrow_invocable_v<geode::CopyableFunction<PReturn(PArgs...)>, PArgs...>) {
+        auto ret = EventCenterType::get()->send(this, [&](OpaquePortBase* opaquePort) {
+            auto port = static_cast<LatestOpaqueEventType*>(opaquePort);
+            return port->send(args...);
+        }, &BasicEvent::migratePort);
+
+        if (ret) return true;
+
+        // fallback on the old event center
         return EventCenter::get()->send(this, [&](OpaquePortBase* opaquePort) {
-            auto port = static_cast<OpaqueEventPortV2<PortTemplate, PArgs...>*>(opaquePort);
+            auto port = static_cast<OpaqueEventType*>(opaquePort);
             return port->send(std::forward<PArgs>(args)...);
         }, &BasicEvent::migratePort);
     }
@@ -750,8 +829,8 @@ namespace geode::comm {
         std::is_convertible_v<PReturn, bool> || std::is_same_v<PReturn, void>;
     }
     ListenerHandle BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::addReceiver(geode::CopyableFunction<PReturn(PArgs...)> rec, int priority) const noexcept {
-        return EventCenter::get()->addReceiver(this, [&](OpaquePortBase* opaquePort) {
-            auto port = static_cast<OpaqueEventPortV2<PortTemplate, PArgs...>*>(opaquePort);
+        return EventCenterType::get()->addReceiver(this, [&](OpaquePortBase* opaquePort) {
+            auto port = static_cast<LatestOpaqueEventType*>(opaquePort);
             return port->addReceiver(std::move(rec), priority);
         }, &BasicEvent::migratePort);
     }
@@ -762,8 +841,8 @@ namespace geode::comm {
         std::is_convertible_v<PReturn, bool> || std::is_same_v<PReturn, void>;
     }
     size_t BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::getReceiverCount() const noexcept {
-        return EventCenter::get()->getReceiverCount(this, [&](OpaquePortBase* opaquePort) {
-            auto port = static_cast<OpaqueEventPortV2<PortTemplate, PArgs...>*>(opaquePort);
+        return EventCenterType::get()->getReceiverCount(this, [&](OpaquePortBase* opaquePort) {
+            auto port = static_cast<LatestOpaqueEventType*>(opaquePort);
             return port->getReceiverCount();
         }, &BasicEvent::migratePort);
     }
@@ -774,8 +853,8 @@ namespace geode::comm {
         std::is_convertible_v<PReturn, bool> || std::is_same_v<PReturn, void>;
     }
     size_t BasicEvent<Marker, PortTemplate, PReturn(PArgs...), FArgs...>::removeReceiver(ReceiverHandle handle) const noexcept {
-        return EventCenter::get()->removeReceiver(this, [&](OpaquePortBase* opaquePort) {
-            auto port = static_cast<OpaqueEventPortV2<PortTemplate, PArgs...>*>(opaquePort);
+        return EventCenterType::get()->removeReceiver(this, [&](OpaquePortBase* opaquePort) {
+            auto port = static_cast<LatestOpaqueEventType*>(opaquePort);
             return port->removeReceiver(handle);
         }, &BasicEvent::migratePort);
     }
