@@ -189,7 +189,7 @@ namespace geode::comm {
         Port() : m_receivers(asp::make_shared<VectorType>()) {}
 
         void migrateFromV1(Port&& other) noexcept {
-            m_receivers = std::move(other.m_receivers);
+            m_receivers.store(other.m_receivers.load());
         }
 
         ReceiverHandle addReceiver(Callable receiver, int priority = 0) noexcept {
