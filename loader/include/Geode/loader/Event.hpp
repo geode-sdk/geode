@@ -193,32 +193,37 @@ namespace geode::comm {
         }
 
         ReceiverHandle addReceiver(Callable receiver, int priority = 0) noexcept {
-            auto currentReceivers = m_receivers.load();
-            auto newReceivers = asp::make_shared<VectorType>(*currentReceivers.get());
-            ReceiverHandle handle = newReceivers->empty() ? 1 : newReceivers->back().m_handle + 1;
-            for (auto it = newReceivers->begin(); it != newReceivers->end(); ++it) {
-                if (priority < it->m_priority) {
-                    newReceivers->insert(it, {std::move(receiver), priority, handle});
-                    m_receivers.store(std::move(newReceivers));
-                    return handle;
+            ReceiverHandle handle = {};
+            m_receivers.rcu([&](auto const& ptr) {
+                auto newReceivers = asp::make_shared<VectorType>(*ptr.get());
+                handle = newReceivers->empty() ? 1 : newReceivers->back().m_handle + 1;
+                for (auto it = newReceivers->begin(); it != newReceivers->end(); ++it) {
+                    if (priority < it->m_priority) {
+                        newReceivers->insert(it, {std::move(receiver), priority, handle});
+                        return newReceivers;
+                    }
                 }
-            }
-            newReceivers->push_back({std::move(receiver), priority, handle});
-            m_receivers.store(std::move(newReceivers));
+                newReceivers->push_back({std::move(receiver), priority, handle});
+                return newReceivers;
+            });
+            
             return handle;
         }
 
         size_t removeReceiver(ReceiverHandle handle) noexcept {
-            auto currentReceivers = m_receivers.load();
-            auto newReceivers = asp::make_shared<VectorType>(*currentReceivers.get());
-            auto size = newReceivers->size();
-            for (int i = 0; i < size; ++i) {
-                if ((*newReceivers)[i].m_handle == handle) {
-                    newReceivers->erase(newReceivers->begin() + i);
-                    m_receivers.store(std::move(newReceivers));
-                    return size - 1;
+            size_t size = 0;
+            m_receivers.rcu([&](auto const& ptr) {
+                auto newReceivers = asp::make_shared<VectorType>(*ptr.get());
+                size = newReceivers->size();
+                for (int i = 0; i < size; ++i) {
+                    if ((*newReceivers)[i].m_handle == handle) {
+                        newReceivers->erase(newReceivers->begin() + i);
+                        size--;
+                        return newReceivers;
+                    }
                 }
-            }
+                return newReceivers;
+            });
             return size;
         }
 
@@ -287,9 +292,11 @@ namespace geode::comm {
             };
 
             if constexpr (ThreadSafe) {
-                auto newQueue = asp::make_shared<VectorType>(*m_queue.load().get());
-                newQueue->push_back(lam);
-                m_queue.store(newQueue);
+                m_queue.rcu([&](auto const& ptr) {
+                    auto newQueue = asp::make_shared<VectorType>(*ptr.get());
+                    newQueue->push_back(lam);
+                    return newQueue;
+                });
             } else {
                 m_queue.push_back(lam);
             }
@@ -298,12 +305,14 @@ namespace geode::comm {
 
         void flush() noexcept {
             if constexpr (ThreadSafe) {
-                auto newQueue = asp::make_shared<VectorType>(*m_queue.load().get());
-                for (auto& q : *newQueue) {
-                    std::invoke(q);
-                }
-                newQueue->clear();
-                m_queue.store(newQueue);
+                m_queue.rcu([&](auto const& ptr) {
+                    auto newQueue = asp::make_shared<VectorType>(*ptr.get());
+                    for (auto& q : *newQueue) {
+                        std::invoke(q);
+                    }
+                    newQueue->clear();
+                    return newQueue;
+                });
             } else {
                 for (auto& q : m_queue) {
                     std::invoke(q);
@@ -676,10 +685,11 @@ namespace geode::comm {
                 ReceiverHandle handle = std::invoke(func, port.get());
                 auto ret = ListenerHandle(clonedFilter, handle, nullptr);
 
-                auto newPorts = asp::make_shared<MapType>(*p.get());
-                newPorts->emplace(std::move(clonedFilter), std::move(port));
-
-                m_ports.store(std::move(newPorts));
+                m_ports.rcu([&](auto const& ptr) {
+                    auto newPorts = asp::make_shared<MapType>(*ptr.get());
+                    newPorts->emplace(std::move(clonedFilter), std::move(port));
+                    return newPorts;
+                });
                 return ret;
             }
         }
@@ -705,14 +715,16 @@ namespace geode::comm {
                 auto size = std::invoke(func, it->second.get());
                 if (size == 0) {
                     // geode::console::log(fmt::format("Removing port for filter type {}", cast::getRuntimeTypeName(filter)), Severity::Debug);
-                    auto newPorts = asp::make_shared<MapType>(*p.get());
-                    for (auto& [filt, _] : *newPorts) {
-                        if (*filt == *filter) {
-                            newPorts->erase(filt);
-                            break;
+                    m_ports.rcu([&](auto const& ptr) {
+                        auto newPorts = asp::make_shared<MapType>(*ptr.get());
+                        for (auto& [filt, _] : *newPorts) {
+                            if (*filt == *filter) {
+                                newPorts->erase(filt);
+                                break;
+                            }
                         }
-                    }
-                    m_ports.store(std::move(newPorts));
+                        return newPorts;
+                    });
                 }
                 return size;
             }
