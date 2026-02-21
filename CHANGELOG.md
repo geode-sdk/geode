@@ -2,6 +2,7 @@
 
 ## v5.0.0-beta.4
  * Add `requires-patching` mod.json key for iOS (3b5e715)
+ * Add `geode::Button` (#1810)
  * Update network libraries (curl, openssl, etc)
  * Fix recursion and race conditions on Events (#1808, #1817)
  * Fix `CCLabelBMFont` ctor crash (96bab68)
