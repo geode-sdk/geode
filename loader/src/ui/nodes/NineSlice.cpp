@@ -406,6 +406,7 @@ void NineSlice::removeChild(CCNode* child, bool cleanup) {
     m_impl->m_children->removeObject(child);
 }
 
+// Return all children only when alpha testing to ensure clipping nodes work
 cocos2d::CCArray* NineSlice::getChildren() {
     CCGLProgram* program = CCShaderCache::sharedShaderCache()->programForKey(kCCShader_PositionTextureColorAlphaTest);
     if (m_pShaderProgram == program) {
