@@ -386,15 +386,30 @@ void Loader::Impl::populateModList(std::vector<ModMetadata>& modQueue) {
     }
 
     if (!m_keybindSettings.empty()) {
-        KeyboardInputEvent().listen([this](KeyboardInputData& data) {
+        auto activeKeybinds = std::make_shared<std::unordered_map<KeybindSettingV3*, Keybind>>();
+
+        KeyboardInputEvent().listen([this, activeKeybinds](KeyboardInputData& data) {
             Keybind keybind(data.key, data.modifiers);
             bool down = data.action != KeyboardInputData::Action::Release;
             bool repeat = data.action == KeyboardInputData::Action::Repeat;
-            for (auto& setting : m_keybindSettings[keybind]) {
-                if (KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat, data.timestamp)) {
-                    return ListenerResult::Stop;
+            
+            if (down) {
+                for (auto& setting : m_keybindSettings[keybind]) {
+                    if (!repeat) (*activeKeybinds)[setting.get()] = keybind;
+                    if (KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat, data.timestamp)) {
+                        return ListenerResult::Stop;
+                    }
+                }
+            } else {
+                for (auto& [setting, heldKeybind] : *activeKeybinds) {
+                    if (heldKeybind.key == data.key) {
+                        KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(heldKeybind, down, repeat, data.timestamp);
+                        activeKeybinds->erase(setting);
+                        break;
+                    }
                 }
             }
+
             return ListenerResult::Propagate;
         }).leak();
 
