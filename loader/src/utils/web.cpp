@@ -1343,19 +1343,28 @@ public:
         jclass fmodClass = env->FindClass("org/fmod/FMOD");
         auto instanceField = env->GetStaticFieldID(fmodClass, "INSTANCE", "Lorg/fmod/FMOD;");
         jobject fmodInstance = env->GetStaticObjectField(fmodClass, instanceField);
-        auto fmodInstClass = env->GetObjectClass(fmodInstance);
 
-        auto contextField = env->GetStaticFieldID(fmodInstClass, "gContext", "Landroid/content/Context;");
+        auto contextField = env->GetStaticFieldID(fmodClass, "gContext", "Landroid/content/Context;");
 
-        jobject context = env->GetStaticObjectField(fmodInstClass, contextField);
+        jobject context = env->GetStaticObjectField(fmodClass, contextField);
         jclass contextClass = env->GetObjectClass(context);
+
+        env->DeleteLocalRef(fmodClass);
 
         auto getSystemService = env->GetMethodID(contextClass, "getSystemService", "(Ljava/lang/String;)Ljava/lang/Object;");
         jstring connectivityServiceStr = env->NewStringUTF("connectivity");
         jobject connectivityManager = env->CallObjectMethod(context, getSystemService, connectivityServiceStr);
 
+        env->DeleteLocalRef(context);
+        env->DeleteLocalRef(contextClass);
+        env->DeleteLocalRef(connectivityServiceStr);
+
+        // leaking global ref is fine as it will be kept for the lifetime of the app
+        auto globalConnectivityManager = env->NewGlobalRef(connectivityManager);
+        env->DeleteLocalRef(connectivityManager);
+
         ares_library_init_jvm(jvm);
-        ares_library_init_android(connectivityManager);
+        ares_library_init_android(globalConnectivityManager);
     }
 #endif
 };
