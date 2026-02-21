@@ -9,6 +9,7 @@
  * Improve mod dependency popup (#1797)
  * Make `async::waitForMainThread` fully cancel safe (4b851bd)
  * Properly implement DNS lookup on Android (73d61b9)
+ * Fix `NineSlice` opacity/color cascade behavior (#1805)
 
 ## v5.0.0-beta.3
  * Add keybind categories, and a global list of keybinds (134878e, b16c2b9, d4eb55a, 3bfe471, 9de1bf1, db160d8)
