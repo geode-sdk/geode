@@ -259,12 +259,20 @@ CPMAddPackage("gh:geode-sdk/json@3.3.0")
 CPMAddPackage("gh:geode-sdk/nontype_functional#6d1d08c")
 CPMAddPackage("gh:fmtlib/fmt#12.1.0")
 
+# allow overriding asp / arc versions
+if (NOT DEFINED GEODE_ARC_VERSION)
+	set(GEODE_ARC_VERSION "@1.5.3" CACHE STRING "")
+endif()
+if (NOT DEFINED GEODE_ASP_VERSION)
+	set(GEODE_ASP_VERSION "#70fa109" CACHE STRING "")
+endif()
+
+CPMAddPackage("gh:dankmeme01/asp2${GEODE_ASP_VERSION}")
 # enable all arc features in geode, but let mods do it granularly
 if (NOT PROJECT_IS_TOP_LEVEL AND NOT DEFINED ARC_FEATURE_FULL)
 	set(ARC_FEATURE_FULL OFF CACHE BOOL "" FORCE)
 endif()
-CPMAddPackage("gh:dankmeme01/asp2#70fa109")
-CPMAddPackage("gh:dankmeme01/arc@1.5.3")
+CPMAddPackage("gh:dankmeme01/arc${GEODE_ARC_VERSION}")
 
 # use unity for both arc and its dependencies,
 # they're fairly small libs so it helps a lot with compile times
