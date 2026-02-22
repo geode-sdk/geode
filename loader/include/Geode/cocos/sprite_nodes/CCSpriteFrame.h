@@ -150,6 +150,12 @@ public:
      */
     bool initWithTextureFilename(const char* filename, const CCRect& rect, bool rotated, const CCPoint& offset, const CCSize& originalSize);
 
+    /**
+     * Gets if the batch node is using the fallback sprite
+     * @note Geode addition
+     */
+    GEODE_DLL bool isUsingFallback();
+
 public:
     CCPoint m_obOffset;
     CCSize m_obOriginalSize;
