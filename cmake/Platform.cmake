@@ -41,6 +41,8 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 		${GEODE_LOADER_PATH}/include/link/ios/libz.a
 		${GEODE_LOADER_PATH}/include/link/ios/libzstd.a
 	)
+	# TODO: this applies to all platforms' static libs & headers, maybe these should be done only for loader
+	target_include_directories(${PROJECT_NAME} INTERFACE ${GEODE_LOADER_PATH}/include/link/ios/include)
 
 	target_compile_definitions(${PROJECT_NAME} INTERFACE
 		-DGLES_SILENCE_DEPRECATION
@@ -83,6 +85,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 		${GEODE_LOADER_PATH}/include/link/macos/libz.a
 		${GEODE_LOADER_PATH}/include/link/macos/libzstd.a
 	)
+	target_include_directories(${PROJECT_NAME} INTERFACE ${GEODE_LOADER_PATH}/include/link/macos/include)
 
 	target_compile_definitions(${PROJECT_NAME} INTERFACE
 		-DCommentType=CommentTypeDummy
@@ -113,6 +116,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Win64")
 		${GEODE_LOADER_PATH}/include/link/win64/fmod.lib
 		opengl32
 	)
+	target_include_directories(${PROJECT_NAME} INTERFACE ${GEODE_LOADER_PATH}/include/link/win64/include)
 
 	if (PROJECT_IS_TOP_LEVEL AND CMAKE_BUILD_TYPE STREQUAL "Debug")
 		target_link_libraries(${PROJECT_NAME} INTERFACE
@@ -163,6 +167,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android32")
 		GLESv2
 		log
 	)
+	target_include_directories(${PROJECT_NAME} INTERFACE ${GEODE_LOADER_PATH}/include/link/android32/include)
 
 	set(GEODE_OUTPUT_NAME "Geode.android32")
 	set(GEODE_PLATFORM_BINARY "Geode.android32.so")
@@ -193,6 +198,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
 		GLESv2
 		log
 	)
+	target_include_directories(${PROJECT_NAME} INTERFACE ${GEODE_LOADER_PATH}/include/link/android64/include)
 
 	# this should help with fixing exceptions
 	set(ANDROID_STL c++_shared)

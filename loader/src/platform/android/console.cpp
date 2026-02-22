@@ -8,6 +8,7 @@ using namespace geode::prelude;
 namespace {
     android_LogPriority getLogSeverityForSeverity(Severity severity) {
         switch (severity) {
+            case Severity::Trace: return ANDROID_LOG_VERBOSE;
             case Severity::Debug: return ANDROID_LOG_DEBUG;
             case Severity::Info: return ANDROID_LOG_INFO;
             case Severity::Warning: return ANDROID_LOG_WARN;

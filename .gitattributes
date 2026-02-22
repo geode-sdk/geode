@@ -1,3 +1,8 @@
 loader/include/Geode/cocos/** linguist-vendored
 loader/include/Geode/external/** linguist-vendored
 loader/include/Geode/fmod/** linguist-vendored
+loader/include/link/win64/include/** linguist-vendored
+loader/include/link/macos/include/** linguist-vendored
+loader/include/link/ios/include/** linguist-vendored
+loader/include/link/android32/include/** linguist-vendored
+loader/include/link/android64/include/** linguist-vendored

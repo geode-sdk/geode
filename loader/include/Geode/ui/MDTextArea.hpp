@@ -19,6 +19,7 @@ namespace geode {
      *  - Code blocks
      *  - Code spans
      *  - TextArea color tags (&lt;cr&gt;, &lt;cy&gt;, etc.)
+     *  - Custom hex code color tags (e.g. &lt;c-123&gt;, &lt;c-123abc&gt;, ...)
      *  - Strikethrough
      *  - Underline
      *  - Bold & italic

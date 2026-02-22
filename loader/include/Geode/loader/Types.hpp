@@ -15,11 +15,20 @@ namespace geode {
     struct Severity {
         enum {
             /**
+             * This message contains information
+             * so verbose that you shouldn't enable
+             * it unless you want your console to
+             * be spammed with messages, creating
+             * gigabytes of log files in the process.
+             */
+            Trace = -1,
+
+            /**
              * The message contains information
              * only relevant to the developer /
              * other mod developers.
              */
-            Debug,
+            Debug = 0,
 
             /**
              * The message contains general
@@ -27,7 +36,7 @@ namespace geode {
              * state. The logger is still
              * working correctly.
              */
-            Info,
+            Info = 1,
 
             /**
              * The message contains information
@@ -35,14 +44,14 @@ namespace geode {
              * is abnormal and may result in
              * errors if not handled properly.
              */
-            Warning,
+            Warning = 2,
 
             /**
              * The message contains information
              * about a general error, such as
              * inability to read files.
              */
-            Error
+            Error = 3,
         };
 
         using type = decltype(Debug);
@@ -77,6 +86,7 @@ namespace geode {
 
         static constexpr char const* toString(type lp) {
             switch (lp) {
+                case Trace: return "Trace";
                 case Debug: return "Debug";
                 case Info: return "Info";
                 case Warning: return "Warning";
