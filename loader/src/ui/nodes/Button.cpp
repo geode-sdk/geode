@@ -11,6 +11,7 @@ public:
 
     bool m_enabled = true;
     bool m_selected = false;
+    bool m_defaultsSet = false;
 
     int m_touchPriority = cocos2d::kCCMenuHandlerPriority;
 
@@ -234,6 +235,8 @@ void Button::setDefaults() {
 }
 
 void Button::resetDefaults() {
+    m_impl->m_defaultsSet = false;
+
     stopAction(m_impl->m_activeClickAction);
     stopAction(m_impl->m_activeReleaseAction);
 
@@ -262,7 +265,10 @@ void Button::resetDefaults() {
 
 void Button::selected() {
     if (!m_impl->m_enabled || m_impl->m_selected) return;
-    setDefaults();
+    if (!m_impl->m_defaultsSet) {
+        setDefaults();
+        m_impl->m_defaultsSet = true;
+    }
 
     stopAction(m_impl->m_activeClickAction);
     stopAction(m_impl->m_activeReleaseAction);
