@@ -37,8 +37,8 @@
 using namespace geode::prelude;
 
 comm::EventCenter* geode::comm::EventCenter::get() {
-    static EventCenter instance;
-    return &instance;
+    static auto s_instance = new EventCenter();
+    return s_instance;
 }
 
 Loader::Impl* LoaderImpl::get() {

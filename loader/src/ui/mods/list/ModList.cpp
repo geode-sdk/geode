@@ -19,7 +19,7 @@ static size_t getDisplayPageSize(ModListSource* src, ModListDisplay display) {
     return 16;
 }
 
-$execute {
+$on_mod(Loaded) {
     listenForSettingChanges<bool>("infinite-local-mods-list", [](bool value) {
         InstalledModListSource::get(InstalledModListType::All)->clearCache();
         InstalledModListSource::get(InstalledModListType::OnlyErrors)->clearCache();

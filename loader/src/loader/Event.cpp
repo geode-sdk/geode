@@ -20,8 +20,8 @@ EventCenterThreadLocal::EventCenterThreadLocal() : m_impl(std::make_unique<Impl>
 EventCenterThreadLocal::~EventCenterThreadLocal() = default;
 
 EventCenterThreadLocal* EventCenterThreadLocal::get() {
-    static thread_local EventCenterThreadLocal instance;
-    return &instance;
+    static thread_local auto s_instance = new EventCenterThreadLocal();
+    return s_instance;
 }
 
 bool EventCenterThreadLocal::send(BaseFilter const* filter, SendFuncType func, MigrateFuncType migratePort) noexcept {
@@ -140,8 +140,8 @@ EventCenterGlobal::EventCenterGlobal() : m_impl(std::make_unique<Impl>()) {}
 EventCenterGlobal::~EventCenterGlobal() = default;
 
 EventCenterGlobal* EventCenterGlobal::get() {
-    static EventCenterGlobal instance;
-    return &instance;
+    static auto s_instance = new EventCenterGlobal();
+    return s_instance;
 }
 
 bool EventCenterGlobal::send(BaseFilter const* filter, SendFuncType func, MigrateFuncType migratePort) noexcept {
