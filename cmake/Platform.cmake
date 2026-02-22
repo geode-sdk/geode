@@ -27,16 +27,22 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 	)
 
 	target_link_libraries(${PROJECT_NAME} INTERFACE
-		"-framework OpenGLES"     # needed for CCClippingNode reimpl and ScrollLayer
-		"-framework UIKit"        # needed for file picking (UIApplication)
-		"-framework Foundation"   # needed for many things
-		"-framework AVFoundation" # needed for microphone access
-		"-framework CoreGraphics" # needed for image saving
-		${GEODE_LOADER_PATH}/include/link/ios/libssl.a
-		${GEODE_LOADER_PATH}/include/link/ios/libcrypto.a
-		${GEODE_LOADER_PATH}/include/link/ios/libnghttp2.a
+		"-framework OpenGLES"       # needed for CCClippingNode reimpl and ScrollLayer
+		"-framework UIKit"          # needed for file picking (UIApplication)
+		"-framework Foundation"     # needed for many things
+		"-framework AVFoundation"   # needed for microphone access
+		"-framework CoreGraphics"   # needed for image saving
+		"-framework GameController" # needed for controller input
+		${GEODE_LOADER_PATH}/include/link/ios/libcares.a
 		${GEODE_LOADER_PATH}/include/link/ios/libcurl.a
+		${GEODE_LOADER_PATH}/include/link/ios/libnghttp2.a
+		${GEODE_LOADER_PATH}/include/link/ios/libcrypto.a
+		${GEODE_LOADER_PATH}/include/link/ios/libssl.a
+		${GEODE_LOADER_PATH}/include/link/ios/libz.a
+		${GEODE_LOADER_PATH}/include/link/ios/libzstd.a
 	)
+	# TODO: this applies to all platforms' static libs & headers, maybe these should be done only for loader
+	target_include_directories(${PROJECT_NAME} INTERFACE ${GEODE_LOADER_PATH}/include/link/ios/include)
 
 	target_compile_definitions(${PROJECT_NAME} INTERFACE
 		-DGLES_SILENCE_DEPRECATION
@@ -71,14 +77,15 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 		"-framework OpenGL"
 		"-framework SystemConfiguration"
 		${GEODE_LOADER_PATH}/include/link/macos/libfmod.dylib
-		${GEODE_LOADER_PATH}/include/link/macos/libssl.a
-		${GEODE_LOADER_PATH}/include/link/macos/libcrypto.a
-		${GEODE_LOADER_PATH}/include/link/macos/libnghttp2.a
-		${GEODE_LOADER_PATH}/include/link/macos/libngtcp2.a
-		${GEODE_LOADER_PATH}/include/link/macos/libnghttp3.a
-		${GEODE_LOADER_PATH}/include/link/macos/libngtcp2_crypto_boringssl.a
+		${GEODE_LOADER_PATH}/include/link/macos/libcares.a
 		${GEODE_LOADER_PATH}/include/link/macos/libcurl.a
+		${GEODE_LOADER_PATH}/include/link/macos/libnghttp2.a
+		${GEODE_LOADER_PATH}/include/link/macos/libcrypto.a
+		${GEODE_LOADER_PATH}/include/link/macos/libssl.a
+		${GEODE_LOADER_PATH}/include/link/macos/libz.a
+		${GEODE_LOADER_PATH}/include/link/macos/libzstd.a
 	)
+	target_include_directories(${PROJECT_NAME} INTERFACE ${GEODE_LOADER_PATH}/include/link/macos/include)
 
 	target_compile_definitions(${PROJECT_NAME} INTERFACE
 		-DCommentType=CommentTypeDummy
@@ -109,6 +116,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Win64")
 		${GEODE_LOADER_PATH}/include/link/win64/fmod.lib
 		opengl32
 	)
+	target_include_directories(${PROJECT_NAME} INTERFACE ${GEODE_LOADER_PATH}/include/link/win64/include)
 
 	if (PROJECT_IS_TOP_LEVEL AND CMAKE_BUILD_TYPE STREQUAL "Debug")
 		target_link_libraries(${PROJECT_NAME} INTERFACE
@@ -116,8 +124,16 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Win64")
 		)
 	else()
 		target_link_libraries(${PROJECT_NAME} INTERFACE
-			${GEODE_LOADER_PATH}/include/link/win64/nghttp2.lib
+			${GEODE_LOADER_PATH}/include/link/win64/cares.lib
 			${GEODE_LOADER_PATH}/include/link/win64/libcurl.lib
+			${GEODE_LOADER_PATH}/include/link/win64/nghttp2.lib
+			${GEODE_LOADER_PATH}/include/link/win64/libcrypto.lib
+			${GEODE_LOADER_PATH}/include/link/win64/libssl.lib
+			${GEODE_LOADER_PATH}/include/link/win64/zs.lib
+			${GEODE_LOADER_PATH}/include/link/win64/zstd_static.lib
+			secur32
+			ntdll
+			userenv
 		)
 	endif()
 
@@ -139,18 +155,19 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android32")
 	target_link_libraries(${PROJECT_NAME} INTERFACE
 		c
 		unwind
-		${GEODE_LOADER_PATH}/include/link/android32/libssl.a
-		${GEODE_LOADER_PATH}/include/link/android32/libcrypto.a
-		${GEODE_LOADER_PATH}/include/link/android32/libnghttp2.a
-		${GEODE_LOADER_PATH}/include/link/android32/libngtcp2.a
-		${GEODE_LOADER_PATH}/include/link/android32/libnghttp3.a
-		${GEODE_LOADER_PATH}/include/link/android32/libngtcp2_crypto_boringssl.a
+		${GEODE_LOADER_PATH}/include/link/android32/libcares.a
 		${GEODE_LOADER_PATH}/include/link/android32/libcurl.a
+		${GEODE_LOADER_PATH}/include/link/android32/libnghttp2.a
+		${GEODE_LOADER_PATH}/include/link/android32/libcrypto.a
+		${GEODE_LOADER_PATH}/include/link/android32/libssl.a
+		${GEODE_LOADER_PATH}/include/link/android32/libz.a
+		${GEODE_LOADER_PATH}/include/link/android32/libzstd.a
 		${GEODE_LOADER_PATH}/include/link/android32/libcocos2dcpp.so
 		${GEODE_LOADER_PATH}/include/link/android32/libfmod.so
 		GLESv2
 		log
 	)
+	target_include_directories(${PROJECT_NAME} INTERFACE ${GEODE_LOADER_PATH}/include/link/android32/include)
 
 	set(GEODE_OUTPUT_NAME "Geode.android32")
 	set(GEODE_PLATFORM_BINARY "Geode.android32.so")
@@ -169,18 +186,19 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
 	target_link_libraries(${PROJECT_NAME} INTERFACE
 		c
 		unwind
-		${GEODE_LOADER_PATH}/include/link/android64/libssl.a
-		${GEODE_LOADER_PATH}/include/link/android64/libcrypto.a
-		${GEODE_LOADER_PATH}/include/link/android64/libnghttp2.a
-		${GEODE_LOADER_PATH}/include/link/android64/libngtcp2.a
-		${GEODE_LOADER_PATH}/include/link/android64/libnghttp3.a
-		${GEODE_LOADER_PATH}/include/link/android64/libngtcp2_crypto_boringssl.a
+		${GEODE_LOADER_PATH}/include/link/android64/libcares.a
 		${GEODE_LOADER_PATH}/include/link/android64/libcurl.a
+		${GEODE_LOADER_PATH}/include/link/android64/libnghttp2.a
+		${GEODE_LOADER_PATH}/include/link/android64/libcrypto.a
+		${GEODE_LOADER_PATH}/include/link/android64/libssl.a
+		${GEODE_LOADER_PATH}/include/link/android64/libz.a
+		${GEODE_LOADER_PATH}/include/link/android64/libzstd.a
 		${GEODE_LOADER_PATH}/include/link/android64/libcocos2dcpp.so
 		${GEODE_LOADER_PATH}/include/link/android64/libfmod.so
 		GLESv2
 		log
 	)
+	target_include_directories(${PROJECT_NAME} INTERFACE ${GEODE_LOADER_PATH}/include/link/android64/include)
 
 	# this should help with fixing exceptions
 	set(ANDROID_STL c++_shared)

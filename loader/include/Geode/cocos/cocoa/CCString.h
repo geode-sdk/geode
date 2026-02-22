@@ -51,12 +51,12 @@ public:
     /**
      * @lua NA
      */
-#ifndef GEODE_IS_ANDROID
-    inline CCString() : m_sString("") {}
-#else
+#if defined(GEODE_IS_ANDROID) || defined(GEODE_IS_WINDOWS)
     // Make sure its imported because of gd::string stuff,
     // check android/main.cpp for more info
     CCString();
+#else
+    inline CCString() : m_sString("") {}
 #endif
     /**
      * @lua NA

@@ -101,6 +101,7 @@ namespace geode {
         std::unordered_set<std::string> m_tags;
         bool m_needsEarlyLoad = false;
         bool m_isAPI = false;
+        bool m_needsPatching = false;
         LoadPriority m_loadPriority = 0;
         std::vector<std::string> m_errors;
         bool m_completelyUnparseable = false;

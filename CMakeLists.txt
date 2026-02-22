@@ -256,13 +256,14 @@ endif()
 set(MAT_JSON_AS_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/result@1.4.1")
 CPMAddPackage("gh:geode-sdk/json@3.3.0")
-CPMAddPackage("gh:geode-sdk/nontype_functional#a029428")
+CPMAddPackage("gh:geode-sdk/nontype_functional#6d1d08c")
 CPMAddPackage("gh:fmtlib/fmt#12.1.0")
 
 # enable all arc features in geode, but let mods do it granularly
 if (NOT PROJECT_IS_TOP_LEVEL AND NOT DEFINED ARC_FEATURE_FULL)
 	set(ARC_FEATURE_FULL OFF CACHE BOOL "" FORCE)
 endif()
+CPMAddPackage("gh:dankmeme01/asp2#70fa109")
 CPMAddPackage("gh:dankmeme01/arc@1.5.3")
 
 # use unity for both arc and its dependencies,

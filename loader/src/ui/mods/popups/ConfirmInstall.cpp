@@ -1,8 +1,9 @@
 #include "ConfirmInstall.hpp"
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/ranges.hpp>
-#include <Geode/ui/Popup.hpp>
+#include <Geode/ui/MDPopup.hpp>
 #include <server/DownloadManager.hpp>
+
 
 using namespace geode::prelude;
 using namespace server;
@@ -171,7 +172,6 @@ void askConfirmModInstalls() {
             content.append(fmt::format("<mod:{}>\n\n", mod->getID()));
         }
     }
-    
 
     MDPopup::create(
         true,
@@ -196,3 +196,4 @@ void askConfirmModInstalls() {
             }
     })->show();
 }
+

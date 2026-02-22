@@ -22,9 +22,13 @@
 #include <asp/collections/SmallVec.hpp>
 #include <ca_bundle.h>
 #include <curl/curl.h>
-#include <queue>
-#include <semaphore>
 #include <sstream>
+
+#ifdef GEODE_IS_ANDROID
+# include <ares.h>
+# include <jni.h>
+# include <Geode/cocos/platform/android/jni/JniHelper.h>
+#endif
 
 using namespace geode::prelude;
 using namespace geode::utils::web;
@@ -577,8 +581,6 @@ public:
             }
         }
 
-        // weird windows stuff, don't remove if we still use schannel!
-        GEODE_WINDOWS(sslOptions |= CURLSSLOPT_REVOKE_BEST_EFFORT);
         curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, sslOptions);
 
         // Transfer body
@@ -718,11 +720,9 @@ public:
 
         // Track & post progress on the Promise
         // onProgress can only be not set if using sendSync without one, and hasBeenCancelled is always null in that case
-        curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, requestData);
-        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, +[](void* ptr, double dtotal, double dnow, double utotal, double unow) -> int {
+        curl_easy_setopt(curl, CURLOPT_XFERINFODATA, requestData);
+        curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, +[](void* ptr, curl_off_t dtotal, curl_off_t dnow, curl_off_t utotal, curl_off_t unow) -> int {
             auto data = static_cast<ResponseData*>(ptr);
-
-            // TODO v5: external cancellation?
 
             // Store progress inside the request
             using enum std::memory_order;
@@ -1302,6 +1302,12 @@ public:
     }
 
     Future<> workerFunc(auto rx, auto crx) {
+#ifdef GEODE_IS_ANDROID
+        co_await async::waitForMainThread([] {
+            setupAresJVM();
+        });
+#endif
+
         bool running = true;
         while (running) {
             co_await arc::select(
@@ -1324,6 +1330,43 @@ public:
             );
         }
     }
+
+#ifdef GEODE_IS_ANDROID
+    static void setupAresJVM() {
+        /// https://c-ares.org/docs/ares_library_init_android.html
+        auto jvm = JniHelper::getJavaVM();
+        JNIEnv* env = nullptr;
+        if (jvm->GetEnv((void**)&env, JNI_VERSION_1_6) != JNI_OK) {
+            return;
+        }
+
+        jclass fmodClass = env->FindClass("org/fmod/FMOD");
+        auto instanceField = env->GetStaticFieldID(fmodClass, "INSTANCE", "Lorg/fmod/FMOD;");
+        jobject fmodInstance = env->GetStaticObjectField(fmodClass, instanceField);
+
+        auto contextField = env->GetStaticFieldID(fmodClass, "gContext", "Landroid/content/Context;");
+
+        jobject context = env->GetStaticObjectField(fmodClass, contextField);
+        jclass contextClass = env->GetObjectClass(context);
+
+        env->DeleteLocalRef(fmodClass);
+
+        auto getSystemService = env->GetMethodID(contextClass, "getSystemService", "(Ljava/lang/String;)Ljava/lang/Object;");
+        jstring connectivityServiceStr = env->NewStringUTF("connectivity");
+        jobject connectivityManager = env->CallObjectMethod(context, getSystemService, connectivityServiceStr);
+
+        env->DeleteLocalRef(context);
+        env->DeleteLocalRef(contextClass);
+        env->DeleteLocalRef(connectivityServiceStr);
+
+        // leaking global ref is fine as it will be kept for the lifetime of the app
+        auto globalConnectivityManager = env->NewGlobalRef(connectivityManager);
+        env->DeleteLocalRef(connectivityManager);
+
+        ares_library_init_jvm(jvm);
+        ares_library_init_android(globalConnectivityManager);
+    }
+#endif
 };
 
 WebRequestsManager::WebRequestsManager() : m_impl(new Impl()) {}

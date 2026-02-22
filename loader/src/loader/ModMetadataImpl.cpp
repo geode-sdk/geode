@@ -305,6 +305,7 @@ ModMetadata ModMetadata::Impl::parse(ModJson const& rawJson, std::optional<std::
     root.has("description").into(impl->m_description);
     root.has("repository").into(info.getLinksMut().getImpl()->m_source);
     root.has("early-load").into(impl->m_needsEarlyLoad);
+    root.has("requires-patching").into(impl->m_needsPatching);
     if (root.has("api")) {
         impl->m_isAPI = true;
     }
@@ -631,6 +632,9 @@ bool ModMetadata::needsEarlyLoad() const {
 }
 bool ModMetadata::isAPI() const {
     return m_impl->m_isAPI;
+}
+bool ModMetadata::needsPatching() const {
+    return m_impl->m_needsPatching;
 }
 std::optional<std::string> ModMetadata::getGameVersion() const {
     if (m_impl->m_gdVersion.empty()) return std::nullopt;
