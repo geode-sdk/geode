@@ -20,15 +20,18 @@ EventCenterThreadLocal::EventCenterThreadLocal() : m_impl(std::make_unique<Impl>
 EventCenterThreadLocal::~EventCenterThreadLocal() = default;
 
 EventCenterThreadLocal* EventCenterThreadLocal::get() {
-    static thread_local auto s_instance = new EventCenterThreadLocal();
+    // TODO: make this back threadlocal
+    static auto s_instance = new EventCenterThreadLocal();
     return s_instance;
 }
 
 bool EventCenterThreadLocal::send(BaseFilter const* filter, SendFuncType func, MigrateFuncType migratePort) noexcept {
     // log::debug("EventCenterThreadLocal sending event for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter));
+    // log::debug("hash {} threadid {}", BaseFilterHash{}(filter), std::this_thread::get_id());
 
     auto it = m_impl->m_ports.find(filter);
     if (it != m_impl->m_ports.end()) {
+        // log::debug("found port for filter {}", (void*)it->first.get());
         if (auto newPort = std::invoke(migratePort, it->second.get())) {
             it->second.reset(newPort);
         }
@@ -37,10 +40,8 @@ bool EventCenterThreadLocal::send(BaseFilter const* filter, SendFuncType func, M
     return false;
 }
 ListenerHandle EventCenterThreadLocal::addReceiver(BaseFilter const* filter, AddFuncType func, MigrateFuncType migratePort) noexcept {
-//     if (std::string(cast::getRuntimeTypeName(filter)).find("UpdateModListStateEvent") != std::string::npos) {
-//      log::debug("EventCenterThreadLocal adding receiver for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter));
-//      log::debug("hash {} threadid {}", BaseFilterHash{}(filter), std::this_thread::get_id());
-// }
+    // log::debug("EventCenterThreadLocal adding receiver for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter));
+    // log::debug("hash {} threadid {}", BaseFilterHash{}(filter), std::this_thread::get_id());
 
     auto it = m_impl->m_ports.find(filter);
 
@@ -101,10 +102,9 @@ size_t EventCenterThreadLocal::getReceiverCount(BaseFilter const* filter, SizeFu
     return 0;
 }
 size_t EventCenterThreadLocal::removeReceiver(BaseFilter const* filter, RemoveFuncType func, MigrateFuncType migratePort) noexcept {
-    // if (std::string(cast::getRuntimeTypeName(filter)).find("UpdateModListStateEvent") != std::string::npos) {
     // log::debug("EventCenterThreadLocal removing receiver for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter));
     // log::debug("hash {} threadid {}", BaseFilterHash{}(filter), std::this_thread::get_id());
-    // }
+
     auto it = m_impl->m_ports.find(filter);
     if (it != m_impl->m_ports.end()) {
         if (auto newPort = std::invoke(migratePort, it->second.get())) {
