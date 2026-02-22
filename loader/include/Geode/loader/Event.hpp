@@ -85,7 +85,7 @@ namespace geode::comm {
     // Ports should be backwards ABI compatible, meaning no member
     // reordering or removing, but we can add new members at the end.
     // For every new version, we need to add a migration system
-    // for the previous version, which is basically just a function 
+    // for the previous version, which is basically just a function
     // that moves the data. Continue reading from OpaqueEventPort.
     template <class Callable, bool ThreadSafe=false, template <class> class Container = PortCallableCopy>
     class Port {
@@ -166,6 +166,7 @@ namespace geode::comm {
 
             if (m_sending == 0) {
                 // geode::console::log(fmt::format("Flushing {} handlers from toRemove", m_toRemove.size()), Severity::Debug);
+                std::sort(m_toRemove.rbegin(), m_toRemove.rend());
                 for (auto& it : m_toRemove) {
                     m_receivers.erase(it);
                 }
@@ -211,7 +212,7 @@ namespace geode::comm {
                 newReceivers->push_back({std::move(receiver), priority, handle});
                 return newReceivers;
             });
-            
+
             return handle;
         }
 
@@ -661,7 +662,7 @@ namespace geode::comm {
 
         EventCenterThreadLocal();
         ~EventCenterThreadLocal();
-    
+
     public:
         static EventCenterThreadLocal* get();
 
@@ -684,7 +685,7 @@ namespace geode::comm {
 
         EventCenterGlobal();
         ~EventCenterGlobal();
-    
+
     public:
         static EventCenterGlobal* get();
 
