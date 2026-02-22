@@ -239,7 +239,9 @@ std::mutex& getLogMutex() {
 }
 
 static Severity logLevelFor(std::string_view level) {
-    if (level == "debug") {
+    if (level == "trace") {
+        return Severity::Trace;
+    } else if (level == "debug") {
         return Severity::Debug;
     } else if (level == "info") {
         return Severity::Info;

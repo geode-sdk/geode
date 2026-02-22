@@ -184,6 +184,11 @@ namespace geode {
         }
 
         template <typename... Args>
+        inline void trace(impl::FmtStr<Args...> str, Args&&... args) {
+            logImpl(Severity::Trace, getMod(), str, std::forward<Args>(args)...);
+        }
+
+        template <typename... Args>
         inline void debug(impl::FmtStr<Args...> str, Args&&... args) {
             logImpl(Severity::Debug, getMod(), str, std::forward<Args>(args)...);
         }

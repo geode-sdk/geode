@@ -124,14 +124,14 @@
             "default": "info",
             "name": "Console Log Level",
             "description": "Sets the log level for the <cb>platform console</c>.",
-            "one-of": ["debug", "info", "warn", "error"]
+            "one-of": ["trace", "debug", "info", "warn", "error"]
         },
         "file-log-level": {
             "type": "string",
             "default": "info",
             "name": "File Log Level",
             "description": "Sets the log level for the <cb>log files</c>.",
-            "one-of": ["debug", "info", "warn", "error"]
+            "one-of": ["trace", "debug", "info", "warn", "error"]
         },
         "server-cache-size-limit": {
             "type": "int",
