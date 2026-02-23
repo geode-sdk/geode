@@ -859,6 +859,12 @@ ServerFuture<ServerModUpdateAllCheck> server::batchedCheckUpdates(std::vector<st
 ServerFuture<ServerModUpdateAllCheck> server::checkAllUpdates(bool useCache) {
     ARC_FRAME();
     if (useCache) {
+        // This function is called by checkUpdates(Mod*), which means it would be called once per
+        // every single installed mod when opening ModsLayer.
+        // Because all requests start at the same time, cache is empty, and this means we spam the server with requests.
+        // The mutex here ensures that only one mod actually performs the request, and the rest will use the cached response.
+        static arc::Mutex<> mtx;
+        auto _lock = co_await mtx.lock();
         co_return co_await getCache<checkAllUpdates>().get();
     }
 
