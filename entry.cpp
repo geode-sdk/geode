@@ -37,7 +37,8 @@ GEODE_API void geodeImplicitEntry() {
             case Error:
                 geode::log::error("[arc] {}", msg); break;
             default:
-                // log::debug("[arc] {}", msg); break;
+                // log::debug("[arc] {}", msg);
+                break;
         }
     });
 }
