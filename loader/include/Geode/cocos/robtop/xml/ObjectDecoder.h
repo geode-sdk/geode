@@ -1,7 +1,7 @@
-#ifndef GEODE_NO_PUGIXML_HEADER
-
 #ifndef __OBJECTDECODER_H__
 #define __OBJECTDECODER_H__
+
+class DS_Dictionary;
 
 #include "../../include/cocos2d.h"
 
@@ -29,5 +29,3 @@ public:
 };
 
 #endif
-
-#endif // GEODE_NO_PUGIXML_HEADER
