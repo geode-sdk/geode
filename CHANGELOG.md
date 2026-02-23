@@ -1,5 +1,10 @@
 # Geode Changelog
 
+## v5.0.1
+ * Fix excessive amount of requests to mod updates (833e8c6)
+ * Fix keyboard settings default values not being applied on first launch (52d840b)
+ * Allow devs to use custom pugixml (20cc12f)
+
 ## v5.0.0
  * Add trace level logs (2be2b8f)
  * Fix some event issues (6946f95, 4b8e79b)
