@@ -16,6 +16,7 @@ endif()
 option(GEODE_USE_BREAKPAD "Enables the use of the Breakpad library for crash dumps." ON)
 option(GEODE_UNITY_BUILD "Enables unity builds" OFF)
 option(GEODE_SET_TARGET_AS_SYSTEM "Sets the target include directories for Geode as SYSTEM, silencing Geode related warning on mod build." OFF)
+option(GEODE_NO_PUGIXML_HEADER "Makes the pugixml.hpp and DS_Dictionary.h headers in Geode blank" OFF)
 
 # Check if git is installed, raise a fatal error if not
 find_program(GIT_EXECUTABLE git)
@@ -238,6 +239,10 @@ endif()
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 	# force an error on a missing return type, as this is unfortunately a common mistake people make
 	target_compile_options(${PROJECT_NAME} INTERFACE -Werror=return-type)
+endif()
+
+if (GEODE_NO_PUGIXML_HEADER)
+	target_compile_definitions(${PROJECT_NAME} INTERFACE GEODE_NO_PUGIXML_HEADER=1)
 endif()
 
 # if (APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")

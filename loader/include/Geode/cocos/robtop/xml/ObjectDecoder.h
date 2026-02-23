@@ -1,3 +1,5 @@
+#ifndef GEODE_NO_PUGIXML_HEADER
+
 #ifndef __OBJECTDECODER_H__
 #define __OBJECTDECODER_H__
 
@@ -27,3 +29,5 @@ public:
 };
 
 #endif
+
+#endif // GEODE_NO_PUGIXML_HEADER
