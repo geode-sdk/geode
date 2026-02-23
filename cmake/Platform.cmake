@@ -6,18 +6,25 @@ endif()
 
 if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 	# make sure that we get the ios sdk
-	if (NOT DEFINED GEODE_IOS_SDK OR GEODE_IOS_SDK STREQUAL "")
-		execute_process(COMMAND xcrun --show-sdk-path --sdk iphoneos
-		OUTPUT_VARIABLE GEODE_IOS_SDK
-			OUTPUT_STRIP_TRAILING_WHITESPACE
-		)
-	endif()
 
 	message(STATUS "iOS c++ compiler: ${CMAKE_CXX_COMPILER}")
 	set(CMAKE_OSX_ARCHITECTURES arm64)
-	set(CMAKE_OSX_SYSROOT ${GEODE_IOS_SDK})
+	if (NOT DEFINED CMAKE_OSX_SYSROOT OR CMAKE_OSX_SYSROOT STREQUAL "")
+		if (NOT DEFINED GEODE_IOS_SDK OR GEODE_IOS_SDK STREQUAL "")
+			execute_process(COMMAND xcrun --show-sdk-path --sdk iphoneos
+			OUTPUT_VARIABLE GEODE_IOS_SDK
+				OUTPUT_STRIP_TRAILING_WHITESPACE
+			)
+		endif()
+
+		set(CMAKE_OSX_SYSROOT ${GEODE_IOS_SDK})
+	else()
+		set(GEODE_IOS_SDK ${CMAKE_OSX_SYSROOT})
+	endif()
 	set(CMAKE_OSX_DEPLOYMENT_TARGET "14.0")
 	set(CMAKE_SYSTEM_NAME "iOS")
+
+	message(STATUS "Using iOS SDK: ${GEODE_IOS_SDK}")
 
 	# this fails on ios builds
 	set(BUILD_MD2HTML_EXECUTABLE "OFF")
