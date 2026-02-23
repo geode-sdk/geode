@@ -139,7 +139,7 @@ protected:
         auto installFromFileBtn = CCMenuItemSpriteExtra::create(
             installFromFileSpr, this, menu_selector(CopyButtonSettingNode::onInstallFromFile)
         );
-        installFromFileBtn->setID("install-from-file")
+        installFromFileBtn->setID("install-from-file");
         this->getButtonMenu()->addChild(installFromFileBtn);
 
         this->getButtonMenu()->setPosition(getContentSize() / 2);
