@@ -6,10 +6,12 @@ endif()
 
 if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 	# make sure that we get the ios sdk
-	execute_process(COMMAND xcrun --show-sdk-path --sdk iphoneos
-	OUTPUT_VARIABLE GEODE_IOS_SDK
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
+	if (NOT DEFINED GEODE_IOS_SDK OR GEODE_IOS_SDK STREQUAL "")
+		execute_process(COMMAND xcrun --show-sdk-path --sdk iphoneos
+		OUTPUT_VARIABLE GEODE_IOS_SDK
+			OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
+	endif()
 
 	message(STATUS "iOS c++ compiler: ${CMAKE_CXX_COMPILER}")
 	set(CMAKE_OSX_ARCHITECTURES arm64)
