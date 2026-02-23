@@ -80,7 +80,8 @@ matjson::Value JsonExpectedValue::json() const {
     return m_impl->scope;
 }
 matjson::Value JsonExpectedValue::takeJson() {
-    return std::move(m_impl->scope);
+    // TODO: there should be an std::move here BUT it needs to be fixed in matjson first
+    return m_impl->scope;
 }
 std::string JsonExpectedValue::key() const {
     return m_impl->key;
