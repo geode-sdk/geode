@@ -691,16 +691,16 @@ public:
                         log::debug("[Curl] Header out: {}", std::string_view(data, size));
                         break;
                     case CURLINFO_DATA_IN:
-                        log::debug("[Curl] Data in ({} bytes)", size);
+                        log::trace("[Curl] Data in ({} bytes)", size);
                         break;
                     case CURLINFO_DATA_OUT:
-                        log::debug("[Curl] Data out ({} bytes)", size);
+                        log::trace("[Curl] Data out ({} bytes)", size);
                         break;
                     case CURLINFO_SSL_DATA_IN:
-                        log::debug("[Curl] SSL data in ({} bytes)", size);
+                        log::trace("[Curl] SSL data in ({} bytes)", size);
                         break;
                     case CURLINFO_SSL_DATA_OUT:
-                        log::debug("[Curl] SSL data out ({} bytes)", size);
+                        log::trace("[Curl] SSL data out ({} bytes)", size);
                         break;
                     case CURLINFO_END:
                         log::debug("[Curl] End of info");
@@ -1039,10 +1039,6 @@ struct PollReadiness {
 };
 
 struct ARC_NODISCARD MultiPollFuture : Pollable<MultiPollFuture, PollReadiness> {
-    enum class State {
-        Init,
-        Waiting,
-    } m_state = State::Init;
     std::unordered_map<curl_socket_t, RegisteredSocket>* m_sockets;
     asp::SmallVec<std::pair<curl_socket_t, uint64_t>, 16> registered;
 
@@ -1052,29 +1048,17 @@ struct ARC_NODISCARD MultiPollFuture : Pollable<MultiPollFuture, PollReadiness> 
     MultiPollFuture& operator=(MultiPollFuture&&) = default;
 
     std::optional<PollReadiness> poll(arc::Context& cx) {
-        switch (m_state) {
-            case State::Init: {
-                // initial state: poll all sockets, return immediately if there's activity on one of them
-                for (auto& [fd, rs] : *m_sockets) {
-                    auto ready = rs.rio.pollReady(rs.interest | Interest::Error, cx, rs.rioId);
-                    if (ready != 0) {
-                        return PollReadiness{fd, ready};
-                    }
+        // poll all sockets, return immediately if there's activity on any of them
+        for (auto& [fd, rs] : *m_sockets) {
+            auto ready = rs.rio.pollReady(rs.interest | Interest::Error, cx, rs.rioId);
+            if (ready != 0) {
+                return PollReadiness{fd, ready};
+            }
 
-                    registered.emplace_back(fd, rs.rioId);
-                }
-
-                m_state = State::Waiting;
-                return std::nullopt;
-            } break;
-
-            case State::Waiting: {
-                // nothing to do here, just wait to get woken up
-                return std::nullopt;
-            } break;
-
-            default: std::unreachable();
+            registered.emplace_back(fd, rs.rioId);
         }
+
+        return std::nullopt;
     }
 
     ~MultiPollFuture() {
