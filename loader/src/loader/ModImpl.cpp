@@ -531,12 +531,13 @@ Result<> Mod::Impl::disownHook(Hook* hook) {
                    "A hook that was getting disowned had its owner set but the owner "
                    "didn't have the hook in m_hooks.");
 
+    auto sharedHook = *foundIt;
     m_hooks.erase(foundIt);
 
-    if (!this->isLoaded() || !hook->getAutoEnable())
+    if (!this->isLoaded() || !sharedHook->getAutoEnable())
         return Ok();
 
-    auto res2 = hook->disable();
+    auto res2 = sharedHook->disable();
     if (!res2) {
         return Err("Cannot disable hook: {}", res2.unwrapErr());
     }
