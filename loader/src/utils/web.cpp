@@ -148,6 +148,7 @@ public:
     ByteVector m_data;
     std::string m_errMessage;
     utils::StringMap<std::vector<std::string>> m_headers;
+    RequestTimings m_timings;
 
     Result<> into(std::filesystem::path const& path) const;
 };
@@ -375,6 +376,10 @@ std::optional<std::vector<std::string>> WebResponse::getAllHeadersNamed(std::str
 
 std::string_view WebResponse::errorMessage() const {
     return m_impl->m_errMessage;
+}
+
+RequestTimings const& WebResponse::timings() const {
+    return m_impl->m_timings;
 }
 
 class web::WebRequestsManager {
@@ -1209,6 +1214,25 @@ public:
                 if (auto ver = wrapHttpVersion(version)) {
                     requestData.request->m_httpVersion = *ver;
                 }
+
+                // Get detailed timing info for the request
+                curl_off_t queueTime, dnsTime, connectTime, appcTime, posttxTime, starttxTime, totalTime;
+                curl_easy_getinfo(handle, CURLINFO_QUEUE_TIME_T, &queueTime);
+                curl_easy_getinfo(handle, CURLINFO_NAMELOOKUP_TIME_T, &dnsTime);
+                curl_easy_getinfo(handle, CURLINFO_CONNECT_TIME_T, &connectTime);
+                curl_easy_getinfo(handle, CURLINFO_APPCONNECT_TIME_T, &appcTime);
+                curl_easy_getinfo(handle, CURLINFO_POSTTRANSFER_TIME_T, &posttxTime);
+                curl_easy_getinfo(handle, CURLINFO_STARTTRANSFER_TIME_T, &starttxTime);
+                curl_easy_getinfo(handle, CURLINFO_TOTAL_TIME_T, &totalTime);
+                auto& timings = requestData.response.m_impl->m_timings;
+                timings.queueWait = asp::Duration::fromMicros(queueTime);
+                timings.nameLookup = asp::Duration::fromMicros(dnsTime);
+                timings.connect = asp::Duration::fromMicros(connectTime - dnsTime);
+                timings.tlsHandshake = asp::Duration::fromMicros(appcTime - connectTime);
+                timings.requestSend = asp::Duration::fromMicros(posttxTime - appcTime);
+                timings.firstByte = asp::Duration::fromMicros(starttxTime - posttxTime);
+                timings.download = asp::Duration::fromMicros(totalTime - starttxTime);
+                timings.total = asp::Duration::fromMicros(totalTime);
 
                 // Get the response code; note that this will be invalid if the
                 // curlResponse is not CURLE_OK
