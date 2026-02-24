@@ -127,6 +127,21 @@ static std::optional<HttpVersion> wrapHttpVersion(long version) {
     }
 }
 
+static void setDNSOptions(CURL* curl, std::string_view which) {
+    if (which == "System") {
+        // nothing to do
+        return;
+    }
+
+    if (which == "Cloudflare DoH") {
+        curl_easy_setopt(curl, CURLOPT_DOH_URL, "https://cloudflare-dns.com/dns-query");
+    } else if (which == "Cloudflare") {
+        curl_easy_setopt(curl, CURLOPT_DNS_SERVERS, "1.1.1.1,1.0.0.1,[2606:4700:4700::1111],[2606:4700:4700::1001]");
+    } else if (which == "Google") {
+        curl_easy_setopt(curl, CURLOPT_DNS_SERVERS, "8.8.8.8,8.8.4.4,[2001:4860:4860::8888],[2001:4860:4860::8844]");
+    }
+}
+
 class WebResponse::Impl {
 public:
     int m_code;
@@ -582,6 +597,10 @@ public:
         }
 
         curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, sslOptions);
+
+        // Set DNS options
+        auto dnsopt = Mod::get()->getSettingValue<std::string_view>("curl-dns");
+        setDNSOptions(curl, dnsopt);
 
         // Transfer body
         curl_easy_setopt(curl, CURLOPT_NOBODY, m_transferBody ? 0L : 1L);
