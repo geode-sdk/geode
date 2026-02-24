@@ -134,6 +134,8 @@ static void setDNSOptions(CURL* curl, std::string_view which) {
     }
 
     if (which == "Cloudflare DoH") {
+        static auto bootstrap = curl_slist_append(nullptr, "cloudflare-dns.com:443:1.1.1.1,2606:4700:4700::1111");
+        curl_easy_setopt(curl, CURLOPT_RESOLVE, bootstrap);
         curl_easy_setopt(curl, CURLOPT_DOH_URL, "https://cloudflare-dns.com/dns-query");
     } else if (which == "Cloudflare") {
         curl_easy_setopt(curl, CURLOPT_DNS_SERVERS, "1.1.1.1,1.0.0.1,[2606:4700:4700::1111],[2606:4700:4700::1001]");
