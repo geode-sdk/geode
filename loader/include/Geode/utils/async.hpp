@@ -66,6 +66,11 @@ auto spawn(F&& f) {
     return runtime().spawn(std::forward<F>(f));
 }
 
+template <typename F> requires (arc::Spawnable<std::decay_t<F>>)
+auto wrapSpawn(F&& f) {
+    return [f = std::forward<F>(f)]() mutable { return spawn(std::move(f)); };
+}
+
 template <
     typename T,
     typename NonVoidT = std::conditional_t<std::is_void_v<T>, std::monostate, T>,
