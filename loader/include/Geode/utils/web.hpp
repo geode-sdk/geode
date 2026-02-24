@@ -7,6 +7,7 @@
 #include <Geode/utils/general.hpp>
 #include <Geode/loader/Event.hpp>
 #include <arc/sync/oneshot.hpp>
+#include <asp/time/Duration.hpp>
 #include <matjson.hpp>
 #include <Geode/Result.hpp>
 #include <chrono>
@@ -128,6 +129,27 @@ namespace geode::utils::web {
 
     class WebRequest;
 
+    /// Contains detailed values about how long each phase of the request took
+    struct RequestTimings final {
+        /// How long the request had to wait in queue, until it was picked up by the web worker
+        asp::Duration queueWait;
+        /// How long the DNS lookup took
+        asp::Duration nameLookup;
+        /// How long the connection to the server took
+        asp::Duration connect;
+        /// How long the TLS handshake took
+        asp::Duration tlsHandshake;
+        /// How long it took to fully send the request body
+        asp::Duration requestSend;
+        /// How long it took to receive the first byte of the response
+        asp::Duration firstByte;
+        /// How long it took to fully receive the response body after receiving the first byte
+        asp::Duration download;
+
+        /// Total duration of the request, from the moment it was sent until it was fully completed
+        asp::Duration total;
+    };
+
     class GEODE_DLL WebResponse final {
     private:
         class Impl;
@@ -174,6 +196,12 @@ namespace geode::utils::web {
          * an empty string is returned.
          */
         std::string_view errorMessage() const;
+
+        /**
+         * Returns the timings of the request, with detailed information about how long each phase of the request took.
+         * These values will be all zeroes if the request did not complete successfully.
+         */
+        RequestTimings const& timings() const;
     };
 
     class WebProgress final {

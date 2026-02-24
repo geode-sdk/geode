@@ -133,14 +133,6 @@
             "description": "Sets the log level for the <cb>log files</c>.",
             "one-of": ["trace", "debug", "info", "warn", "error"]
         },
-        "server-cache-size-limit": {
-            "type": "int",
-            "default": 20,
-            "min": 1,
-            "max": 100,
-            "name": "Server Cache Size Limit",
-            "description": "Limits the size of the cache used for loading mods. Higher values result in higher memory usage."
-        },
         "log-retention-period": {
             "type": "int",
             "default": 30,
@@ -148,12 +140,6 @@
             "max": 365,
             "name": "Log Retention Period",
             "description": "The number of days to keep logs for. Logs older than this will be deleted every launch. 0 to disable deletion."
-        },
-        "verbose-curl-logs": {
-            "type": "bool",
-            "default": false,
-            "name": "Verbose Curl Logs",
-            "description": "When performing web requests, prints detailed information about the request to the logs. Useful for developers wanting to debug network issues."
         },
         "log-milliseconds": {
             "type": "bool",
@@ -167,6 +153,30 @@
             "name": "Log Thread",
             "description": "Pushes all logs to a worker thread that handles console & file writing. This makes logging much faster, especially on Windows, but if your console can't keep up, it will see stale logs and might miss some.",
             "requires-restart": true
+        },
+        "verbose-curl-logs": {
+            "type": "bool",
+            "default": false,
+            "name": "Verbose Curl Logs",
+            "description": "When performing web requests, prints detailed information about the request to the logs. Useful for developers wanting to debug network issues."
+        },
+        "curl-dns": {
+            "type": "string",
+            "default": "Cloudflare DoH",
+            "one-of": [
+                "System",
+                "Cloudflare",
+                "Google",
+                "Cloudflare DoH"
+            ]
+        },
+        "server-cache-size-limit": {
+            "type": "int",
+            "default": 20,
+            "min": 1,
+            "max": 100,
+            "name": "Server Cache Size Limit",
+            "description": "Limits the size of the cache used for loading mods. Higher values result in higher memory usage."
         }
     },
     "issues": {

@@ -127,12 +127,30 @@ static std::optional<HttpVersion> wrapHttpVersion(long version) {
     }
 }
 
+static void setDNSOptions(CURL* curl, std::string_view which) {
+    if (which == "System") {
+        // nothing to do
+        return;
+    }
+
+    if (which == "Cloudflare DoH") {
+        static auto bootstrap = curl_slist_append(nullptr, "cloudflare-dns.com:443:1.1.1.1,2606:4700:4700::1111");
+        curl_easy_setopt(curl, CURLOPT_RESOLVE, bootstrap);
+        curl_easy_setopt(curl, CURLOPT_DOH_URL, "https://cloudflare-dns.com/dns-query");
+    } else if (which == "Cloudflare") {
+        curl_easy_setopt(curl, CURLOPT_DNS_SERVERS, "1.1.1.1,1.0.0.1,[2606:4700:4700::1111],[2606:4700:4700::1001]");
+    } else if (which == "Google") {
+        curl_easy_setopt(curl, CURLOPT_DNS_SERVERS, "8.8.8.8,8.8.4.4,[2001:4860:4860::8888],[2001:4860:4860::8844]");
+    }
+}
+
 class WebResponse::Impl {
 public:
     int m_code;
     ByteVector m_data;
     std::string m_errMessage;
     utils::StringMap<std::vector<std::string>> m_headers;
+    RequestTimings m_timings;
 
     Result<> into(std::filesystem::path const& path) const;
 };
@@ -362,6 +380,10 @@ std::string_view WebResponse::errorMessage() const {
     return m_impl->m_errMessage;
 }
 
+RequestTimings const& WebResponse::timings() const {
+    return m_impl->m_timings;
+}
+
 class web::WebRequestsManager {
 private:
     class Impl;
@@ -583,6 +605,10 @@ public:
 
         curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, sslOptions);
 
+        // Set DNS options
+        auto dnsopt = Mod::get()->getSettingValue<std::string_view>("curl-dns");
+        setDNSOptions(curl, dnsopt);
+
         // Transfer body
         curl_easy_setopt(curl, CURLOPT_NOBODY, m_transferBody ? 0L : 1L);
 
@@ -594,6 +620,9 @@ public:
         // Set encoding
         if (m_acceptEncodingType) {
             curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, m_acceptEncodingType->c_str());
+        } else {
+            // enable all supported compression types
+            curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
         }
 
         // Set timeout
@@ -667,16 +696,16 @@ public:
                         log::debug("[Curl] Header out: {}", std::string_view(data, size));
                         break;
                     case CURLINFO_DATA_IN:
-                        log::debug("[Curl] Data in ({} bytes)", size);
+                        log::trace("[Curl] Data in ({} bytes)", size);
                         break;
                     case CURLINFO_DATA_OUT:
-                        log::debug("[Curl] Data out ({} bytes)", size);
+                        log::trace("[Curl] Data out ({} bytes)", size);
                         break;
                     case CURLINFO_SSL_DATA_IN:
-                        log::debug("[Curl] SSL data in ({} bytes)", size);
+                        log::trace("[Curl] SSL data in ({} bytes)", size);
                         break;
                     case CURLINFO_SSL_DATA_OUT:
-                        log::debug("[Curl] SSL data out ({} bytes)", size);
+                        log::trace("[Curl] SSL data out ({} bytes)", size);
                         break;
                     case CURLINFO_END:
                         log::debug("[Curl] End of info");
@@ -1015,10 +1044,6 @@ struct PollReadiness {
 };
 
 struct ARC_NODISCARD MultiPollFuture : Pollable<MultiPollFuture, PollReadiness> {
-    enum class State {
-        Init,
-        Waiting,
-    } m_state = State::Init;
     std::unordered_map<curl_socket_t, RegisteredSocket>* m_sockets;
     asp::SmallVec<std::pair<curl_socket_t, uint64_t>, 16> registered;
 
@@ -1028,29 +1053,20 @@ struct ARC_NODISCARD MultiPollFuture : Pollable<MultiPollFuture, PollReadiness> 
     MultiPollFuture& operator=(MultiPollFuture&&) = default;
 
     std::optional<PollReadiness> poll(arc::Context& cx) {
-        switch (m_state) {
-            case State::Init: {
-                // initial state: poll all sockets, return immediately if there's activity on one of them
-                for (auto& [fd, rs] : *m_sockets) {
-                    auto ready = rs.rio.pollReady(rs.interest | Interest::Error, cx, rs.rioId);
-                    if (ready != 0) {
-                        return PollReadiness{fd, ready};
-                    }
+        // poll all sockets, return immediately if there's activity on any of them
+        for (auto& [fd, rs] : *m_sockets) {
+            bool wasRegistered = rs.rioId != 0;
+            auto ready = rs.rio.pollReady(rs.interest | Interest::Error, cx, rs.rioId);
+            if (ready != 0) {
+                return PollReadiness{fd, ready};
+            }
 
-                    registered.emplace_back(fd, rs.rioId);
-                }
-
-                m_state = State::Waiting;
-                return std::nullopt;
-            } break;
-
-            case State::Waiting: {
-                // nothing to do here, just wait to get woken up
-                return std::nullopt;
-            } break;
-
-            default: std::unreachable();
+            if (!wasRegistered) {
+                registered.emplace_back(fd, rs.rioId);
+            }
         }
+
+        return std::nullopt;
     }
 
     ~MultiPollFuture() {
@@ -1190,6 +1206,25 @@ public:
                 if (auto ver = wrapHttpVersion(version)) {
                     requestData.request->m_httpVersion = *ver;
                 }
+
+                // Get detailed timing info for the request
+                curl_off_t queueTime, dnsTime, connectTime, appcTime, posttxTime, starttxTime, totalTime;
+                curl_easy_getinfo(handle, CURLINFO_QUEUE_TIME_T, &queueTime);
+                curl_easy_getinfo(handle, CURLINFO_NAMELOOKUP_TIME_T, &dnsTime);
+                curl_easy_getinfo(handle, CURLINFO_CONNECT_TIME_T, &connectTime);
+                curl_easy_getinfo(handle, CURLINFO_APPCONNECT_TIME_T, &appcTime);
+                curl_easy_getinfo(handle, CURLINFO_POSTTRANSFER_TIME_T, &posttxTime);
+                curl_easy_getinfo(handle, CURLINFO_STARTTRANSFER_TIME_T, &starttxTime);
+                curl_easy_getinfo(handle, CURLINFO_TOTAL_TIME_T, &totalTime);
+                auto& timings = requestData.response.m_impl->m_timings;
+                timings.queueWait = asp::Duration::fromMicros(queueTime);
+                timings.nameLookup = asp::Duration::fromMicros(dnsTime);
+                timings.connect = asp::Duration::fromMicros(connectTime - dnsTime);
+                timings.tlsHandshake = asp::Duration::fromMicros(appcTime - connectTime);
+                timings.requestSend = asp::Duration::fromMicros(posttxTime - appcTime);
+                timings.firstByte = asp::Duration::fromMicros(starttxTime - posttxTime);
+                timings.download = asp::Duration::fromMicros(totalTime - starttxTime);
+                timings.total = asp::Duration::fromMicros(totalTime);
 
                 // Get the response code; note that this will be invalid if the
                 // curlResponse is not CURLE_OK

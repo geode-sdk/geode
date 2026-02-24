@@ -1127,6 +1127,7 @@ void KeybindSettingV3::parseBaseProperties(std::string key, std::string modID, J
         this->parseDefaultValue(root);
     }
     m_impl->value = m_impl->defaultValue;
+    LoaderImpl::get()->onKeybindSettingChanged(std::static_pointer_cast<KeybindSettingV3>(shared_from_this()), m_impl->value);
 }
 
 void KeybindSettingV3::setDefaultValue(std::vector<Keybind> value) {

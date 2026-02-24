@@ -16,6 +16,7 @@ endif()
 option(GEODE_USE_BREAKPAD "Enables the use of the Breakpad library for crash dumps." ON)
 option(GEODE_UNITY_BUILD "Enables unity builds" OFF)
 option(GEODE_SET_TARGET_AS_SYSTEM "Sets the target include directories for Geode as SYSTEM, silencing Geode related warning on mod build." OFF)
+option(GEODE_NO_PUGIXML_HEADER "Makes the pugixml.hpp and DS_Dictionary.h headers in Geode blank" OFF)
 
 # Check if git is installed, raise a fatal error if not
 find_program(GIT_EXECUTABLE git)
@@ -240,6 +241,10 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 	target_compile_options(${PROJECT_NAME} INTERFACE -Werror=return-type)
 endif()
 
+if (GEODE_NO_PUGIXML_HEADER)
+	target_compile_definitions(${PROJECT_NAME} INTERFACE GEODE_NO_PUGIXML_HEADER=1)
+endif()
+
 # if (APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 # 	set_property(TARGET ${PROJECT_NAME} PROPERTY LINKER_TYPE LLD)
 # 	target_link_options(${PROJECT_NAME} INTERFACE -fuse-ld=lld)
@@ -309,7 +314,7 @@ if (DEFINED GEODE_TULIPHOOK_REPO_PATH)
 	message(STATUS "Using ${GEODE_TULIPHOOK_REPO_PATH} for TulipHook")
 	add_subdirectory(${GEODE_TULIPHOOK_REPO_PATH} ${GEODE_TULIPHOOK_REPO_PATH}/build)
 else()
-	CPMAddPackage("gh:geode-sdk/TulipHook@3.1.7")
+	CPMAddPackage("gh:geode-sdk/TulipHook@3.1.9")
 endif()
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 

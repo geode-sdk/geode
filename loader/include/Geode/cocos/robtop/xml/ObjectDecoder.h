@@ -1,6 +1,8 @@
 #ifndef __OBJECTDECODER_H__
 #define __OBJECTDECODER_H__
 
+class DS_Dictionary;
+
 #include "../../include/cocos2d.h"
 
 // @note RobTop Addition
