@@ -620,6 +620,9 @@ public:
         // Set encoding
         if (m_acceptEncodingType) {
             curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, m_acceptEncodingType->c_str());
+        } else {
+            // enable all supported compression types
+            curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
         }
 
         // Set timeout
