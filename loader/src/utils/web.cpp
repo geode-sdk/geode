@@ -1050,12 +1050,15 @@ struct ARC_NODISCARD MultiPollFuture : Pollable<MultiPollFuture, PollReadiness> 
     std::optional<PollReadiness> poll(arc::Context& cx) {
         // poll all sockets, return immediately if there's activity on any of them
         for (auto& [fd, rs] : *m_sockets) {
+            bool wasRegistered = rs.rioId != 0;
             auto ready = rs.rio.pollReady(rs.interest | Interest::Error, cx, rs.rioId);
             if (ready != 0) {
                 return PollReadiness{fd, ready};
             }
 
-            registered.emplace_back(fd, rs.rioId);
+            if (!wasRegistered) {
+                registered.emplace_back(fd, rs.rioId);
+            }
         }
 
         return std::nullopt;
