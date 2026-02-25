@@ -41,9 +41,9 @@ SliderControl::SliderControl() : m_impl(std::make_unique<Impl>()) {}
 
 SliderControl::~SliderControl() {}
 
-SliderControl* SliderControl::createCustom(ZStringView thumb, ZStringView thumbSelected, ZStringView groove, ZStringView bar, SliderCallback callback, CCSize const& barOffset) {
+SliderControl* SliderControl::createCustom(CCSprite* thumb, CCSprite* thumbSelected, geode::NineSlice* groove, ZStringView bar, SliderCallback callback, cocos2d::CCSize const& barOffset) {
     auto ret = new SliderControl();
-    if (ret->initCustom(std::move(thumb), std::move(thumbSelected), std::move(groove), std::move(bar), std::move(callback), barOffset)) {
+    if (ret->initCustom(thumb, thumbSelected, groove, std::move(bar), std::move(callback), barOffset)) {
         ret->autorelease();
         return ret;
     }
@@ -61,10 +61,39 @@ SliderControl* SliderControl::create(SliderCallback callback, bool alt) {
     return nullptr;
 }
 
-bool SliderControl::initCustom(ZStringView thumb, ZStringView thumbClicked, ZStringView groove, ZStringView bar, SliderCallback callback, CCSize const& barOffset) {
+bool SliderControl::initCustom(CCSprite* thumb, CCSprite* thumbSelected, NineSlice* groove, ZStringView bar, SliderCallback callback, CCSize const& barOffset) {
     if (!CCNode::init()) return false;
-    if (!setupThumb(std::move(thumb), std::move(thumbClicked))) return false;
-    if (!setupGroove(std::move(groove), std::move(bar))) return false;
+    if (!thumb || !thumbSelected || !groove) return false;
+
+    m_impl->m_bar = CCSprite::create(bar.c_str());
+    if (!m_impl->m_bar) return false;
+
+    m_impl->m_thumbRegular = thumb;
+    m_impl->m_thumbSelected = thumbSelected;
+
+    m_impl->m_thumbSelected->setVisible(false);
+
+    m_impl->m_thumb = CCNodeRGBA::create();
+    m_impl->m_thumb->setAnchorPoint({0.5f, 0.5f});
+    m_impl->m_thumb->setContentSize(m_impl->m_thumbRegular->getContentSize());
+    m_impl->m_thumb->setZOrder(1);
+    m_impl->m_thumb->setCascadeColorEnabled(true);
+    m_impl->m_thumb->setCascadeOpacityEnabled(true);
+
+    m_impl->m_thumb->addChild(m_impl->m_thumbRegular);
+    m_impl->m_thumb->addChild(m_impl->m_thumbSelected);
+    
+    addChild(m_impl->m_thumb);
+
+    m_impl->m_groove = groove;
+    m_impl->m_bar->setZOrder(-1);
+    
+    auto repeat = ccTexParams{GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT};
+    m_impl->m_bar->getTexture()->setTexParameters(&repeat);
+    m_impl->m_bar->setAnchorPoint({0.f, 0.5f});
+
+    addChild(m_impl->m_groove);
+    addChild(m_impl->m_bar);
 
     m_impl->m_slideCallback = std::move(callback);
     m_impl->m_barOffset = barOffset;
@@ -85,54 +114,17 @@ bool SliderControl::initCustom(ZStringView thumb, ZStringView thumbClicked, ZStr
 }
 
 bool SliderControl::initStandard(SliderCallback callback, bool alt) {
-    if (alt) return initCustom("sliderthumb.png", "sliderthumbsel.png", "slider-groove-2.png"_spr, "sliderBar2.png", std::move(callback), {2.f, 2.f});
-    else return initCustom("sliderthumb.png", "sliderthumbsel.png", "slider-groove.png"_spr, "sliderBar.png", std::move(callback), {2.f, 2.f});
-}
-
-bool SliderControl::setupThumb(ZStringView thumb, ZStringView thumbClicked) {
-    m_impl->m_thumbRegular = CCSprite::create(thumb.c_str());
-    if (!m_impl->m_thumbRegular) m_impl->m_thumbRegular = CCSprite::createWithSpriteFrameName(thumb.c_str());
-    if (!m_impl->m_thumbRegular) return false;
-
-    m_impl->m_thumbSelected = CCSprite::create(thumbClicked.c_str());
-    if (!m_impl->m_thumbSelected) m_impl->m_thumbSelected = CCSprite::createWithSpriteFrameName(thumbClicked.c_str());
-    if (!m_impl->m_thumbSelected) return false;
-
-    m_impl->m_thumbSelected->setVisible(false);
-
-    m_impl->m_thumb = CCNodeRGBA::create();
-    m_impl->m_thumb->setAnchorPoint({0.5f, 0.5f});
-    m_impl->m_thumb->setContentSize(m_impl->m_thumbRegular->getContentSize());
-    m_impl->m_thumb->setZOrder(1);
-    m_impl->m_thumb->setCascadeColorEnabled(true);
-    m_impl->m_thumb->setCascadeOpacityEnabled(true);
-
-    m_impl->m_thumb->addChild(m_impl->m_thumbRegular);
-    m_impl->m_thumb->addChild(m_impl->m_thumbSelected);
+    auto thumb = CCSprite::create("sliderthumb.png");
+    auto thumbSel = CCSprite::create("sliderthumbsel.png");
     
-    addChild(m_impl->m_thumb);
-
-    return true;
-}
-
-bool SliderControl::setupGroove(ZStringView groove, ZStringView bar) {
-    m_impl->m_groove = geode::NineSlice::create(groove);
-    if (!m_impl->m_groove) m_impl->m_groove = geode::NineSlice::createWithSpriteFrameName(groove);
-    if (!m_impl->m_groove) return false;
-
-    m_impl->m_bar = CCSprite::create(bar.c_str());
-    if (!m_impl->m_bar) return false;
-
-    m_impl->m_bar->setZOrder(-1);
-    
-    auto repeat = ccTexParams{GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT};
-    m_impl->m_bar->getTexture()->setTexParameters(&repeat);
-    m_impl->m_bar->setAnchorPoint({0.f, 0.5f});
-
-    addChild(m_impl->m_groove);
-    addChild(m_impl->m_bar);
-
-    return true;
+    if (alt) {
+        auto groove = geode::NineSlice::create("slider-groove-2.png"_spr);
+        return initCustom(thumb, thumbSel, groove, "sliderBar2.png", std::move(callback), {2.f, 2.f});
+    }
+    else {
+        auto groove = geode::NineSlice::create("slider-groove.png"_spr);
+        return initCustom(thumb, thumbSel, groove, "sliderBar.png", std::move(callback), {2.f, 2.f});
+    }
 }
 
 void SliderControl::updateSize() {

@@ -13,14 +13,14 @@ namespace geode {
         /**
          * Create a custom Slider
          * 
-         * @param thumb The sprite file name or frame name for the thumb when not selected
-         * @param thumbSelected The sprite file name or frame name for the thumb when selected
-         * @param groove The sprite file name or frame name for the grove
-         * @param bar The sprite file name (cannot be a frame) for the progress bar
+         * @param thumb The sprite for the thumb when not selected
+         * @param thumbSelected The sprite for the thumb when selected
+         * @param groove The NineSlice for the grove
+         * @param bar The sprite file name (cannot be a frame name) for the progress bar
          * @param callback The callback for when the thumb is dragged
          * @param barOffset The size offset (will be inset for each side) for the bar to fit within the groove
          */
-        static SliderControl* createCustom(ZStringView thumb, ZStringView thumbSelected, ZStringView groove, ZStringView bar, SliderCallback callback, cocos2d::CCSize const& barOffset = {2.f, 2.f});
+        static SliderControl* createCustom(cocos2d::CCSprite* thumb, cocos2d::CCSprite* thumbSelected, geode::NineSlice* groove, ZStringView bar, SliderCallback callback, cocos2d::CCSize const& barOffset = {2.f, 2.f});
         
         /**
          * Create a traditional Geometry Dash style Slider
@@ -156,11 +156,8 @@ namespace geode {
         SliderControl();
         ~SliderControl();
 
-        bool initCustom(ZStringView thumb, ZStringView thumbClicked, ZStringView groove, ZStringView bar, SliderCallback callback, cocos2d::CCSize const& barOffset);
+        bool initCustom(cocos2d::CCSprite* thumb, cocos2d::CCSprite* thumbSelected, NineSlice* groove, ZStringView bar, SliderCallback callback, cocos2d::CCSize const& barOffset);
         bool initStandard(SliderCallback callback, bool alt);
-
-        bool setupThumb(ZStringView thumb, ZStringView thumbClicked);
-        bool setupGroove(ZStringView groove, ZStringView bar);
         
         void updateSize();
         void updateFromTouch(cocos2d::CCTouch* touch);
