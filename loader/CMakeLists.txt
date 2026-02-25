@@ -180,10 +180,6 @@ if (GEODE_NO_UNDEFINED_VIRTUALS)
 	target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_NO_UNDEFINED_VIRTUALS)
 endif()
 
-# CA Bundle
-CPMAddPackage("gh:geode-sdk/net_libs#b5b810c")
-target_link_libraries(${PROJECT_NAME} ca-bundle)
-
 # Package resources for UI
 package_geode_resources_now(
 	${PROJECT_NAME}
@@ -248,14 +244,8 @@ if (NOT GEODE_BUILDING_DOCS)
 	set(MZ_FETCH_LIBS ON CACHE INTERNAL "" FORCE)
 	set(SKIP_INSTALL_ALL ON CACHE INTERNAL "")
 	set(MZ_FORCE_FETCH_LIBS OFF CACHE INTERNAL "" FORCE)
-	if (WIN32)
-		set(ZLIB_LIBRARY "${GEODE_LOADER_PATH}/include/link/win64/zs.lib")
-		set(ZLIB_INCLUDE_DIR "${GEODE_LOADER_PATH}/include/link/win64/include")
-	else()
-		string(TOLOWER ${GEODE_TARGET_PLATFORM} _libs_folder)
-		set(ZLIB_LIBRARY "${GEODE_LOADER_PATH}/include/link/${_libs_folder}/libz.a")
-		set(ZLIB_INCLUDE_DIR "${GEODE_LOADER_PATH}/include/link/${_libs_folder}/include")
-	endif()
+	# sets ZLIB_LIBRARY and ZLIB_INCLUDE_DIR
+	include(DownloadNetLibs.cmake)
 	
 	CPMAddPackage("gh:geode-sdk/minizip-ng#e9dda96")
 
