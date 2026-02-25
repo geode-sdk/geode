@@ -1,9 +1,3 @@
-if (GEODE_TARGET_PLATFORM STREQUAL "Win64")
-	set(net_libs_names cares.lib libcurl.lib nghttp2.lib libcrypto.lib libssl.lib zs.lib zstd_static.lib)
-else()
-	set(net_libs_names libcares.a libcurl.a libnghttp2.a libcrypto.a libssl.a libz.a libzstd.a)
-endif()
-
 if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 	set(net_libs_plat "ios")
 	set(net_libs_hash "SHA256=811cb13a358eb270efd1165b92d058ff73f228298a1a02ebb6f48bad0964e429")
@@ -30,9 +24,27 @@ CPMAddPackage(
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${net_libs_bin_SOURCE_DIR}/include)
-foreach(lib ${net_libs_names})
-	target_link_libraries(${PROJECT_NAME} "${net_libs_bin_SOURCE_DIR}/${lib}")
-endforeach()
+if (WIN32)
+	target_link_libraries(${PROJECT_NAME} 
+		${net_libs_bin_SOURCE_DIR}/cares.lib
+		${net_libs_bin_SOURCE_DIR}/libcurl.lib
+		${net_libs_bin_SOURCE_DIR}/nghttp2.lib
+		${net_libs_bin_SOURCE_DIR}/libcrypto.lib
+		${net_libs_bin_SOURCE_DIR}/libssl.lib
+		${net_libs_bin_SOURCE_DIR}/zs.lib
+		${net_libs_bin_SOURCE_DIR}/zstd_static.lib
+	)
+else()
+	target_link_libraries(${PROJECT_NAME}
+		${net_libs_bin_SOURCE_DIR}/libcares.a
+		${net_libs_bin_SOURCE_DIR}/libcurl.a
+		${net_libs_bin_SOURCE_DIR}/libnghttp2.a
+		${net_libs_bin_SOURCE_DIR}/libcrypto.a
+		${net_libs_bin_SOURCE_DIR}/libssl.a
+		${net_libs_bin_SOURCE_DIR}/libz.a
+		${net_libs_bin_SOURCE_DIR}/libzstd.a
+	)
+endif()
 
 CPMAddPackage("gh:geode-sdk/net_libs#b5b810c")
 target_link_libraries(${PROJECT_NAME} ca-bundle)
