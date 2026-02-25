@@ -108,13 +108,21 @@ jobs:
         chmod +x llvm.sh
         sudo ./llvm.sh 21 all
 
+    - name: Add LLVM 21 to path
+      run: echo "/usr/lib/llvm-21/bin" >> $GITHUB_PATH
+
+    - name: Verify LLVM
+      run: |
+        which clang-cl
+        which lld-link
+        clang-cl --version
+        lld-link --version
+
     - name: Configure
       run: >
         ${{ env.base-configure-command }}
         -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN
         -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON
-        -DCMAKE_C_COMPILER=/usr/bin/clang-cl-21
-        -DCMAKE_CXX_COMPILER=/usr/bin/clang-cl-21
         ${{ steps.build-debug-info.outputs.extra-configure }}
       env:
         SPLAT_DIR: ${{ github.workspace }}/.xwin-cache/splat
