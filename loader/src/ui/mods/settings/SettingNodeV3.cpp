@@ -155,7 +155,7 @@ void SettingNodeV3::commit() {
     SettingNodeValueChangeEventV3(m_impl->setting->getModID(), m_impl->setting->getKey()).send(this, true);
 }
 void SettingNodeV3::resetToDefault() {
-    if (!m_impl->setting) return;
+    if (!m_impl->setting || m_impl->setting->isDefaultValue()) return;
     m_impl->setting->reset();
     m_impl->committed = true;
     this->onResetToDefault();
