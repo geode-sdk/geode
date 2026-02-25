@@ -1,24 +1,25 @@
 if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 	set(net_libs_plat "ios")
-	set(net_libs_hash "SHA256=811cb13a358eb270efd1165b92d058ff73f228298a1a02ebb6f48bad0964e429")
+	set(net_libs_hash "SHA256=3306fcf1c090cf88cce18828dbf228d2438d6ef92e72e20069e5a9ce2e60bc77")
 elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 	set(net_libs_plat "macos")
-	set(net_libs_hash "SHA256=4ff0d651c591382cfbe70f324612a52634a6a2cbe46ee90fe648356d2ec191ae")
+	set(net_libs_hash "SHA256=346fdef44f5b59a77ba2f79d16e387eeb1a10e4297ee167984cdacb0b952cfcc")
 elseif (GEODE_TARGET_PLATFORM STREQUAL "Win64")
 	set(net_libs_plat "windows")
-	set(net_libs_hash "SHA256=cad982ac627a727861e9a9e0049d6da3b398a1032a6209e384074200091696fd")
+	set(net_libs_hash "SHA256=5cd45095739441566df344e651d5e66c75e13073d814d36bdbd6d7aeb8d0366f")
 elseif (GEODE_TARGET_PLATFORM STREQUAL "Android32")
 	set(net_libs_plat "android32")
-	set(net_libs_hash "SHA256=9fdf7a49d65fe722271893b79345854800de0984b83a15cd728ecbcfba2e173c")
+	set(net_libs_hash "SHA256=46ebccc805a980c045405ccf36630c61ae120a4d385714ffc5f16cae6bfd8a77")
 elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
 	set(net_libs_plat "android64")
-	set(net_libs_hash "SHA256=0026b266da460c3b8409763469ac3788e85bc5488424c4efc9736923f54e09e4")
+	set(net_libs_hash "SHA256=aef37b30014bdb73cd31da8b5c9fc27a0fec57f341e0201b95916da4d2158097")
 endif()
 
+set(net_libs_version "8.19.0-5")
 CPMAddPackage(
 	NAME net_libs_bin
-	VERSION "8.19.0-4_${net_libs_plat}"
-	URL "https://github.com/geode-sdk/net_libs/releases/download/v8.19.0-4/curl-${net_libs_plat}.zip"
+	VERSION "${net_libs_version}_${net_libs_plat}"
+	URL "https://github.com/geode-sdk/net_libs/releases/download/v${net_libs_version}/curl-${net_libs_plat}.zip"
 	URL_HASH ${net_libs_hash}
 	DOWNLOAD_ONLY YES
 )
