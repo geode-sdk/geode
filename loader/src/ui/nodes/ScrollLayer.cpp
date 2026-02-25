@@ -122,13 +122,13 @@ void ScrollLayer::Impl::ccTouchMoved(CCTouch* touch, CCEvent* event) {
         m_cancellingTouches = false;
 
         if (auto handler = static_cast<CCTargetedTouchHandler*>(dispatcher->findHandler(m_self))) {
-            if (auto claimedTouches = handler->getClaimedTouches()) {
+            if (auto claimedTouches = handler->m_pClaimedTouches) {
                 if (!claimedTouches->containsObject(touch)) {
                     claimedTouches->addObject(touch);
                 }
             }
         }
-        
+
         m_alreadyCancelled = true;
     }
 }
