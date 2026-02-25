@@ -18,6 +18,7 @@ public:
     bool m_cancellingTouches = false;
     // robtop doesnt implement this simple check but lets add it anyway
     bool m_alreadyCancelled = false;
+    bool m_stealingTouches = false;
     float m_cancelTouchLimit = 10.f;
 
     Impl(ScrollLayer* self);
@@ -96,10 +97,10 @@ void ScrollLayer::Impl::scrollWheel(float y, float x) {
 void ScrollLayer::Impl::enableScrollWheel(bool enable) { m_scrollWheelEnabled = enable; }
 
 bool ScrollLayer::Impl::ccTouchBegan(CCTouch* touch, CCEvent* event) {
+    m_alreadyCancelled = false;
     if (nodeIsVisible(m_self)) {
         return m_self->CCScrollLayerExt::ccTouchBegan(touch, event);
     }
-    m_alreadyCancelled = false;
     return false;
 }
 
@@ -108,7 +109,7 @@ void ScrollLayer::Impl::ccTouchMoved(CCTouch* touch, CCEvent* event) {
 
     // Don't shoot the messenger, leave your complaints to robtop
     // this is the implementation of TableView::cancelAndStoleTouch
-    if (!m_alreadyCancelled && std::abs(touch->getDelta().y) > m_cancelTouchLimit) {
+    if (m_stealingTouches && !m_alreadyCancelled && std::abs(touch->getLocation().y - touch->getStartLocation().y) > m_cancelTouchLimit) {
         auto dispatcher = CCDirector::get()->m_pTouchDispatcher;
 
         auto touches = CCSet::create();
@@ -246,4 +247,12 @@ void ScrollLayer::setCancelTouchLimit(float limit) {
 }
 float ScrollLayer::getCancelTouchLimit() const {
     return m_impl->m_cancelTouchLimit;
+}
+
+void ScrollLayer::setStealingTouches(bool steal) {
+    m_impl->m_stealingTouches = steal;
+}
+
+bool ScrollLayer::isStealingTouches() const {
+    return m_impl->m_stealingTouches;
 }

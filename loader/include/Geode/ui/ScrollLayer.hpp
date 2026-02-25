@@ -57,6 +57,9 @@ namespace geode {
         void setCancelTouchLimit(float limit);
         float getCancelTouchLimit() const;
 
+        void setStealingTouches(bool steal);
+        bool isStealingTouches() const;
+
         /**
          * If you're using ScrollLayer to create a list, this helper function 
          * can be used to create a `ColumnLayout` with reasonable defaults for 
