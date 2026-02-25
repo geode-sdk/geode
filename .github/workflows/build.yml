@@ -113,8 +113,8 @@ jobs:
         ${{ env.base-configure-command }}
         -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN
         -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON
-        -DCMAKE_C_COMPILER=clang-cl-21
-        -DCMAKE_CXX_COMPILER=clang-cl-21
+        -DCMAKE_C_COMPILER=/usr/bin/clang-cl-21
+        -DCMAKE_CXX_COMPILER=/usr/bin/clang-cl-21
         ${{ steps.build-debug-info.outputs.extra-configure }}
       env:
         SPLAT_DIR: ${{ github.workspace }}/.xwin-cache/splat
