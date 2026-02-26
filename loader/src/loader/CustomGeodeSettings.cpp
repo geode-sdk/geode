@@ -125,6 +125,7 @@ protected:
         auto folderBtn = CCMenuItemSpriteExtra::create(
             folderSpr, this, menu_selector(CopyButtonSettingNode::onOpenFolder)
         );
+        folderBtn->setID("open-mods-folder-button");
         this->getButtonMenu()->addChild(folderBtn);
 
         auto copySpr = createGeodeButton("Copy Mods List");
@@ -132,6 +133,7 @@ protected:
         auto copyBtn = CCMenuItemSpriteExtra::create(
             copySpr, this, menu_selector(CopyButtonSettingNode::onCopy)
         );
+        copyBtn->setID("copy-mods-list-button");
         this->getButtonMenu()->addChild(copyBtn);
 
         auto installFromFileSpr = createGeodeButton("Install From File");
@@ -139,7 +141,7 @@ protected:
         auto installFromFileBtn = CCMenuItemSpriteExtra::create(
             installFromFileSpr, this, menu_selector(CopyButtonSettingNode::onInstallFromFile)
         );
-        installFromFileBtn->setID("install-from-file");
+        installFromFileBtn->setID("install-from-file-button");
         this->getButtonMenu()->addChild(installFromFileBtn);
 
         this->getButtonMenu()->setPosition(getContentSize() / 2);
