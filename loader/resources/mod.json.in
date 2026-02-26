@@ -162,6 +162,7 @@
         },
         "curl-dns": {
             "type": "string",
+            "name": "Web DNS Server",
             "default": "Cloudflare DoH",
             "one-of": [
                 "System",
