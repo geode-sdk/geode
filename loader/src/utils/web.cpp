@@ -19,6 +19,7 @@
 #include <arc/task/CancellationToken.hpp>
 #include <arc/sync/Mutex.hpp>
 #include <arc/sync/mpsc.hpp>
+#include <arc/net/TcpStream.hpp>
 #include <asp/collections/SmallVec.hpp>
 #include <ca_bundle.h>
 #include <curl/curl.h>
@@ -143,6 +144,8 @@ static void setDNSOptions(CURL* curl, std::string_view which) {
         curl_easy_setopt(curl, CURLOPT_DNS_SERVERS, "8.8.8.8,8.8.4.4,[2001:4860:4860::8888],[2001:4860:4860::8844]");
     }
 }
+
+static std::atomic<bool> g_knownIpv6Support{false};
 
 class WebResponse::Impl {
 public:
@@ -672,8 +675,8 @@ public:
         // Do not fail if response code is 4XX or 5XX
         curl_easy_setopt(curl, CURLOPT_FAILONERROR, 0L);
 
-        // IPv4
-        if (Mod::get()->getLaunchFlag("curl-force-ipv4")) {
+        // Force IPv4 if the flag is set or if we are not sure that IPv6 is supported
+        if (Mod::get()->getLaunchFlag("curl-force-ipv4") || !g_knownIpv6Support.load(std::memory_order::relaxed)) {
             curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
         }
 
@@ -1081,6 +1084,36 @@ struct ARC_NODISCARD MultiPollFuture : Pollable<MultiPollFuture, PollReadiness> 
     }
 };
 
+/// Attempts to establish an IPv6 connection to a known endpoint to determine if IPv6 is supported on this network
+static arc::Future<> ipv6Probe() {
+    // try to connect to cloudflare
+    auto res = co_await arc::TcpStream::connect("[2606:4700:4700::1111]:80");
+    if (!res) {
+        log::debug("IPv6 probe failed (connect): {}", res.unwrapErr());
+        co_return;
+    }
+
+    auto stream = std::move(res).unwrap();
+    std::string_view req = "HEAD / HTTP/1.1\r\nHost: cloudflare.com\r\nConnection: close\r\n\r\n";
+
+    auto r = co_await stream.sendAll(req.data(), req.size());
+    if (!r) {
+        log::debug("IPv6 probe failed (send): {}", r.unwrapErr());
+        co_return;
+    }
+
+    char buf[512];
+    auto res2 = co_await stream.receive(buf, sizeof(buf));
+    if (!res2) {
+        log::debug("IPv6 probe failed (receive): {}", res2.unwrapErr());
+        co_return;
+    }
+
+    // assume that ipv6 works now
+    g_knownIpv6Support.store(true, std::memory_order::relaxed);
+    log::trace("IPv6 probe succeeded");
+}
+
 class WebRequestsManager::Impl {
 public:
     CURLM* m_multiHandle;
@@ -1342,6 +1375,8 @@ public:
             setupAresJVM();
         });
 #endif
+
+        arc::spawn(ipv6Probe());
 
         bool running = true;
         while (running) {
