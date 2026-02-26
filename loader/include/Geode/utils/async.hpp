@@ -13,51 +13,42 @@ namespace geode::async {
 GEODE_DLL arc::Runtime& runtime();
 
 /// Asynchronously spawns a future, then invokes the given callback on the main thread when it completes.
-template <
-    typename Fut,
-    typename Out = arc::FutureTraits<Fut>::Output,
-    bool Void = std::is_void_v<Out>,
-    typename Callback = std::conditional_t<Void, Function<void()>, Function<void(Out)>>
-> requires (arc::IsPollable<Fut>)
-arc::TaskHandle<void> spawn(Fut future, Callback cb) {
-    return runtime().spawn([](Fut future, Callback cb) mutable -> arc::Future<> {
-        if constexpr (Void) {
-            co_await std::move(future);
-            geode::queueInMainThread([cb = std::move(cb)] mutable {
-                cb();
-            });
-        } else {
-            auto result = co_await std::move(future);
-            geode::queueInMainThread([cb = std::move(cb), result = std::move(result)] mutable {
-                cb(std::move(result));
-            });
-        }
-    }(std::move(future), std::move(cb)));
-}
-
-/// Asynchronously spawns a future, then invokes the given callback on the main thread when it completes.
 /// Overload for function objects that return a Future, i.e. `[] -> arc::Future {}`
 template <
     typename Lambda,
     typename Func = std::decay_t<Lambda>,
-    typename Out = arc::FutureTraits<std::invoke_result_t<Func>>::Output,
-    bool Void = std::is_void_v<Out>,
-    typename Callback = std::conditional_t<Void, Function<void()>, Function<void(Out)>>
+    typename Cb
 > requires (arc::ReturnsPollable<Func>)
-arc::TaskHandle<void> spawn(Lambda&& lambda, Callback cb) {
-    return runtime().spawn([](Lambda&& lambda, Callback cb) mutable -> arc::Future<> {
+arc::TaskHandle<void> spawn(Lambda&& lambda, Cb&& cb) {
+    using Out = arc::FutureTraits<std::invoke_result_t<Func>>::Output;
+    constexpr bool Void = std::is_void_v<Out>;
+
+    return runtime().spawn([func = std::forward<Lambda>(lambda), cb = std::forward<Cb>(cb)] mutable -> arc::Future<> {
         if constexpr (Void) {
-            co_await std::invoke(std::forward<Lambda>(lambda));
-            geode::queueInMainThread([cb = std::move(cb)] mutable {
-                cb();
-            });
+            static_assert(std::is_invocable_v<Cb>, "When spawning a void future, callback must be invocable with no arguments");
+
+            co_await std::invoke(func);
+            geode::queueInMainThread(std::move(cb));
         } else {
-            auto result = co_await std::invoke(std::forward<Lambda>(lambda));
+            auto result = co_await std::invoke(func);
+
             geode::queueInMainThread([cb = std::move(cb), result = std::move(result)] mutable {
-                cb(std::move(result));
+                if constexpr (std::is_invocable_v<Cb, Out>) {
+                    cb(std::move(result));
+                } else if constexpr (std::is_invocable_v<Cb>) {
+                    cb();
+                } else {
+                    static_assert(!std::is_same_v<Cb, Cb>, "When spawning a future, callback must be invocable with the future's output or with no arguments");
+                }
             });
         }
-    }(std::forward<Lambda>(lambda), std::move(cb)));
+    });
+}
+
+/// Asynchronously spawns a future, then invokes the given callback on the main thread when it completes.
+template <typename Fut, typename Cb> requires (arc::IsPollable<std::decay_t<Fut>>)
+arc::TaskHandle<void> spawn(Fut&& future, Cb&& cb) {
+    return spawn([fut = std::forward<Fut>(future)] mutable { return std::move(fut); }, std::forward<Cb>(cb));
 }
 
 /// Spawns a future as an async task, can be a function that returns a future.
@@ -283,8 +274,8 @@ private:
 
     std::shared_ptr<SpawnedTaskState> m_state;
 
-    template <typename F>
-    void spawnInner(std::string name, F&& future, Callback cb) {
+    template <typename F, typename Cb>
+    void spawnInner(std::string name, F&& future, Cb&& cb) {
         using FutureOutput = typename arc::SpawnableOutput<std::decay_t<F>>::type;
 
         static_assert(
@@ -297,13 +288,13 @@ private:
         auto state = std::make_shared<SpawnedTaskState>();
 
         if constexpr (std::is_void_v<Ret>) {
-            state->m_handle = geode::async::spawn(std::forward<F>(future), [state, cb = std::move(cb)] mutable {
+            state->m_handle = geode::async::spawn(std::forward<F>(future), [state, cb = std::forward<Cb>(cb)] mutable {
                 if (state->isCancelled()) return;
                 state->complete();
                 cb();
             });
         } else {
-            state->m_handle = geode::async::spawn(std::forward<F>(future), [state, cb = std::move(cb)](Ret val) mutable {
+            state->m_handle = geode::async::spawn(std::forward<F>(future), [state, cb = std::forward<Cb>(cb)](Ret val) mutable {
                 if (state->isCancelled()) return;
                 state->complete();
                 cb(std::move(val));
