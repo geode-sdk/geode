@@ -71,6 +71,9 @@
         "geode-settings-info": {
             "type": "custom:settings-info"
         },
+        "copy-mods": {
+            "type": "custom:copy-mods"
+        },
         "auto-check-updates": {
             "type": "bool",
             "default": true,
@@ -94,9 +97,6 @@
             "default": false,
             "name": "Expand Installed Mods List",
             "description": "Make the installed mods list a single infinite scrollable list instead of having pages"
-        },
-        "copy-mods": {
-            "type": "custom:copy-mods"
         },
         "developer-title": {
             "type": "title",
