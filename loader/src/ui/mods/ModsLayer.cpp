@@ -45,7 +45,7 @@ bool ModsStatusNode::init() {
     m_statusPercentage = CCLabelBMFont::create("", "bigFont.fnt");
     m_statusPercentage->setID("status-percentage-label");
     m_statusPercentage->setScale(.8f);
-    m_statusBG->addChildAtPosition(m_statusPercentage, Anchor::Right, ccp(-25, 0));
+    m_statusBG->addChildAtPosition(m_statusPercentage, Anchor::Right, ccp(-35, 0));
 
     m_loadingCircle = createLoadingCircle(32);
     m_statusBG->addChildAtPosition(m_loadingCircle, Anchor::Left, ccp(25, 0));
