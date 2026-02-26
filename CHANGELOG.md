@@ -13,6 +13,7 @@
  * Fix `Mod::disownHook` crash (#1849)
  * Update TulipHook (fixes cbz/cbnz/tbz/tbnz reloc in aarch64, double params and returns in armv7)
  * Download network libraries when building Geode instead of bundling them in the repo (#1858)
+ * Move quick shortcuts in Geode settings above other settings (67e43cd)
 
 ## v5.0.1
  * Fix excessive amount of requests to mod updates (833e8c6)
