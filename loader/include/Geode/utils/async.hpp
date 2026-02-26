@@ -20,28 +20,65 @@ template <
     typename Cb
 > requires (arc::ReturnsPollable<Func>)
 arc::TaskHandle<void> spawn(Lambda&& lambda, Cb&& cb) {
-    using Out = arc::FutureTraits<std::invoke_result_t<Func>>::Output;
+    using Fut = std::invoke_result_t<Func>;
+    using Out = arc::FutureTraits<Fut>::Output;
     constexpr bool Void = std::is_void_v<Out>;
 
-    return runtime().spawn([func = std::forward<Lambda>(lambda), cb = std::forward<Cb>(cb)] mutable -> arc::Future<> {
-        if constexpr (Void) {
-            static_assert(std::is_invocable_v<Cb>, "When spawning a void future, callback must be invocable with no arguments");
+    struct SpawnPollable : arc::Pollable<SpawnPollable, void> {
+        explicit SpawnPollable(Func&& f, Cb&& c) : m_func(std::forward<Func>(f)), m_callback(std::forward<Cb>(c)) {}
 
-            co_await std::invoke(func);
-            geode::queueInMainThread(std::move(cb));
-        } else {
-            auto result = co_await std::invoke(func);
+        bool poll(arc::Context& cx) {
+            if (!m_fut) {
+                m_fut.emplace(std::invoke(m_func));
+            }
 
-            geode::queueInMainThread([cb = std::move(cb), result = std::move(result)] mutable {
-                if constexpr (std::is_invocable_v<Cb, Out>) {
-                    cb(std::move(result));
-                } else if constexpr (std::is_invocable_v<Cb>) {
-                    cb();
-                } else {
-                    static_assert(!std::is_same_v<Cb, Cb>, "When spawning a future, callback must be invocable with the future's output or with no arguments");
-                }
-            });
+            if (!m_fut->m_vtable->poll(&*m_fut, cx)) {
+                return false;
+            }
+
+            if constexpr (Void) {
+                static_assert(std::is_invocable_v<Cb>, "When spawning a void future, callback must be invocable with no arguments");
+
+                // scary things
+                geode::queueInMainThread(std::move(*m_callback));
+                m_callback.reset();
+            } else {
+                // more scary things
+                geode::queueInMainThread([cb = std::move(*m_callback), result = std::move(m_fut->m_vtable->template getOutput<Out>(&*m_fut))] mutable {
+                    if constexpr (std::is_invocable_v<Cb, Out>) {
+                        cb(std::move(result));
+                    } else if constexpr (std::is_invocable_v<Cb>) {
+                        cb();
+                    } else {
+                        static_assert(!std::is_same_v<Cb, Cb>, "When spawning a future, callback must be invocable with the future's output or with no arguments");
+                    }
+                });
+                m_callback.reset();
+            }
+
+            return true;
         }
+
+        SpawnPollable(SpawnPollable&&) = default;
+        SpawnPollable& operator=(SpawnPollable&&) = default;
+
+        ~SpawnPollable() {
+            if (m_callback) {
+                // Task was cancelled before it could finish, we should schedule the callback to be destroyed on main thread,
+                // because mods may do things like capture Refs, which must be destroyed on main thread
+                geode::queueInMainThread([cb = std::move(*m_callback)] {});
+            }
+        }
+
+    private:
+        Func m_func;
+        std::optional<Cb> m_callback;
+        std::optional<Fut> m_fut;
+    };
+
+    return runtime().spawn(SpawnPollable {
+        std::forward<Func>(lambda),
+        std::forward<Cb>(cb),
     });
 }
 
