@@ -232,6 +232,7 @@ public:
             }
             if (auto v3 = (*gen)(key, modID, setting.json)) {
                 setting.v3 = v3.unwrap();
+                this->loadSettingValueFromSave(key);
             }
             else {
                 log::error(
