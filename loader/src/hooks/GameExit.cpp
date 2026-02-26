@@ -14,7 +14,7 @@ static void triggerEvent() {
 #ifdef GEODE_IS_MACOS
 
 struct GameExitHook : Modify<GameExitHook, PlatformToolbox> {
-    void platformShutdown() {
+    static void platformShutdown() {
         triggerEvent();
         PlatformToolbox::platformShutdown();
     }
