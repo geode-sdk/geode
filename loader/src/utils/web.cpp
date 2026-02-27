@@ -37,6 +37,7 @@ using namespace geode::utils::string;
 using namespace arc;
 
 static std::atomic<bool> g_knownIpv6Support{false};
+static std::atomic<bool> g_knownHostileToDOH{false};
 
 static long unwrapProxyType(ProxyType type) {
     switch (type) {
@@ -137,6 +138,11 @@ static void setDNSOptions(CURL* curl, std::string_view which) {
     }
 
     if (which == "Cloudflare DoH") {
+        if (g_knownHostileToDOH.load(std::memory_order::relaxed)) {
+            log::trace("Not using DoH because this network blocks it!");
+            return;
+        }
+
         static auto dsbootstrap = curl_slist_append(nullptr, "cloudflare-dns.com:443:1.1.1.1,2606:4700:4700::1111");
         static auto v4bootstrap = curl_slist_append(nullptr, "cloudflare-dns.com:443:1.1.1.1");
         auto record = g_knownIpv6Support.load(std::memory_order::relaxed)
@@ -1138,6 +1144,25 @@ static arc::Future<> ipv6Probe() {
     log::trace("IPv6 probe succeeded");
 }
 
+/// Attempts to make a request to cloudflare DoH, to check if this network blocks it (common in some regions like Spain)
+static arc::Future<> dohProbe() {
+    auto resp = co_await web::WebRequest{}
+        .header("Accept", "application/dns-json")
+        .get("https://cloudflare-dns.com/dns-query?name=api.geode-sdk.org");
+
+    if (resp.ok()) {
+        co_return;
+    }
+
+    auto code = -resp.code();
+
+    if (code == CURLE_PEER_FAILED_VERIFICATION) {
+        g_knownHostileToDOH.store(true, std::memory_order::relaxed);
+        log::info("DoH probe failed with TLS error ({})", resp.string().unwrapOrDefault());
+        co_return;
+    }
+}
+
 class WebRequestsManager::Impl {
 public:
     CURLM* m_multiHandle;
@@ -1401,6 +1426,10 @@ public:
 #endif
 
         arc::spawn(ipv6Probe());
+
+        if (Mod::get()->getSettingValue<std::string_view>("curl-dns") == "Cloudflare DoH") {
+            arc::spawn(dohProbe());
+        }
 
         bool running = true;
         while (running) {
