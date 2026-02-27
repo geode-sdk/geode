@@ -1107,7 +1107,7 @@ static arc::Future<> ipv6Probe() {
 #ifdef GEODE_IS_MACOS
     // macos causes too many issues, so we just completely disable ipv6 there
     // feel free to remove this in 10 years or so when it finally works properly
-    return;
+    co_return;
 #endif
 
     // try to connect to cloudflare
