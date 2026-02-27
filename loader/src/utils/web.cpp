@@ -19,6 +19,7 @@
 #include <arc/task/CancellationToken.hpp>
 #include <arc/sync/Mutex.hpp>
 #include <arc/sync/mpsc.hpp>
+#include <arc/net/TcpStream.hpp>
 #include <asp/collections/SmallVec.hpp>
 #include <ca_bundle.h>
 #include <curl/curl.h>
@@ -34,6 +35,9 @@ using namespace geode::prelude;
 using namespace geode::utils::web;
 using namespace geode::utils::string;
 using namespace arc;
+
+static std::atomic<bool> g_knownIpv6Support{false};
+static std::atomic<bool> g_knownHostileToDOH{false};
 
 static long unwrapProxyType(ProxyType type) {
     switch (type) {
@@ -134,13 +138,31 @@ static void setDNSOptions(CURL* curl, std::string_view which) {
     }
 
     if (which == "Cloudflare DoH") {
-        static auto bootstrap = curl_slist_append(nullptr, "cloudflare-dns.com:443:1.1.1.1,2606:4700:4700::1111");
-        curl_easy_setopt(curl, CURLOPT_RESOLVE, bootstrap);
+        if (g_knownHostileToDOH.load(std::memory_order::relaxed)) {
+            log::trace("Not using DoH because this network blocks it!");
+            return;
+        }
+
+        static auto dsbootstrap = curl_slist_append(nullptr, "cloudflare-dns.com:443:1.1.1.1,2606:4700:4700::1111");
+        static auto v4bootstrap = curl_slist_append(nullptr, "cloudflare-dns.com:443:1.1.1.1");
+        auto record = g_knownIpv6Support.load(std::memory_order::relaxed)
+            ? dsbootstrap
+            : v4bootstrap;
+
+        curl_easy_setopt(curl, CURLOPT_RESOLVE, record);
         curl_easy_setopt(curl, CURLOPT_DOH_URL, "https://cloudflare-dns.com/dns-query");
     } else if (which == "Cloudflare") {
-        curl_easy_setopt(curl, CURLOPT_DNS_SERVERS, "1.1.1.1,1.0.0.1,[2606:4700:4700::1111],[2606:4700:4700::1001]");
+        auto servers = g_knownIpv6Support.load(std::memory_order::relaxed)
+            ? "1.1.1.1,1.0.0.1,[2606:4700:4700::1111],[2606:4700:4700::1001]"
+            : "1.1.1.1,1.0.0.1";
+
+        curl_easy_setopt(curl, CURLOPT_DNS_SERVERS, servers);
     } else if (which == "Google") {
-        curl_easy_setopt(curl, CURLOPT_DNS_SERVERS, "8.8.8.8,8.8.4.4,[2001:4860:4860::8888],[2001:4860:4860::8844]");
+        auto servers = g_knownIpv6Support.load(std::memory_order::relaxed)
+            ? "8.8.8.8,8.8.4.4,[2001:4860:4860::8888],[2001:4860:4860::8844]"
+            : "8.8.8.8,8.8.4.4";
+
+        curl_easy_setopt(curl, CURLOPT_DNS_SERVERS, servers);
     }
 }
 
@@ -603,6 +625,11 @@ public:
             }
         }
 
+        // Enable TLS early data for 0-rtt resumption, if appropriate
+        if (m_method == "GET" || m_method == "HEAD" || m_method == "OPTIONS") {
+            sslOptions |= CURLSSLOPT_EARLYDATA;
+        }
+
         curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, sslOptions);
 
         // Set DNS options
@@ -672,8 +699,8 @@ public:
         // Do not fail if response code is 4XX or 5XX
         curl_easy_setopt(curl, CURLOPT_FAILONERROR, 0L);
 
-        // IPv4
-        if (Mod::get()->getLaunchFlag("curl-force-ipv4")) {
+        // Force IPv4 if the flag is set or if we are not sure that IPv6 is supported
+        if (Mod::get()->getLaunchFlag("curl-force-ipv4") || !g_knownIpv6Support.load(std::memory_order::relaxed)) {
             curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
         }
 
@@ -1081,6 +1108,61 @@ struct ARC_NODISCARD MultiPollFuture : Pollable<MultiPollFuture, PollReadiness> 
     }
 };
 
+/// Attempts to establish an IPv6 connection to a known endpoint to determine if IPv6 is supported on this network
+static arc::Future<> ipv6Probe() {
+#ifdef GEODE_IS_MACOS
+    // macos causes too many issues, so we just completely disable ipv6 there
+    // feel free to remove this in 10 years or so when it finally works properly
+    co_return;
+#endif
+
+    // try to connect to cloudflare
+    auto res = co_await arc::TcpStream::connect("[2606:4700:4700::1111]:80");
+    if (!res) {
+        log::debug("IPv6 probe failed (connect): {}", res.unwrapErr());
+        co_return;
+    }
+
+    auto stream = std::move(res).unwrap();
+    std::string_view req = "HEAD / HTTP/1.1\r\nHost: cloudflare.com\r\nConnection: close\r\n\r\n";
+
+    auto r = co_await stream.sendAll(req.data(), req.size());
+    if (!r) {
+        log::debug("IPv6 probe failed (send): {}", r.unwrapErr());
+        co_return;
+    }
+
+    char buf[512];
+    auto res2 = co_await stream.receive(buf, sizeof(buf));
+    if (!res2) {
+        log::debug("IPv6 probe failed (receive): {}", res2.unwrapErr());
+        co_return;
+    }
+
+    // assume that ipv6 works now
+    g_knownIpv6Support.store(true, std::memory_order::relaxed);
+    log::trace("IPv6 probe succeeded");
+}
+
+/// Attempts to make a request to cloudflare DoH, to check if this network blocks it (common in some regions like Spain)
+static arc::Future<> dohProbe() {
+    auto resp = co_await web::WebRequest{}
+        .header("Accept", "application/dns-json")
+        .get("https://cloudflare-dns.com/dns-query?name=api.geode-sdk.org");
+
+    if (resp.ok()) {
+        co_return;
+    }
+
+    auto code = -resp.code();
+
+    if (code == CURLE_PEER_FAILED_VERIFICATION) {
+        g_knownHostileToDOH.store(true, std::memory_order::relaxed);
+        log::info("DoH probe failed with TLS error ({})", resp.string().unwrapOrDefault());
+        co_return;
+    }
+}
+
 class WebRequestsManager::Impl {
 public:
     CURLM* m_multiHandle;
@@ -1342,6 +1424,12 @@ public:
             setupAresJVM();
         });
 #endif
+
+        arc::spawn(ipv6Probe());
+
+        if (Mod::get()->getSettingValue<std::string_view>("curl-dns") == "Cloudflare DoH") {
+            arc::spawn(dohProbe());
+        }
 
         bool running = true;
         while (running) {

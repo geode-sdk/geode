@@ -1,5 +1,20 @@
 # Geode Changelog
 
+## v5.1.0
+ * Fix custom settings not loading their values (14378af)
+ * Fix shutdown not triggering game exit event on MacOS (#1860)
+ * Fix web requests sometimes having an artificial delay of 250ms (5f39a44)
+ * Add DNS Server option and use Cloudflare DoH by default (0c679df, 2075419)
+ * Add `WebResponse::timings()` (9c336e5)
+ * Add `async::wrapSpawn` (5c881fc)
+ * Automatically enable compression for web requests (8cb12ec)
+ * Force IPv4 for web requests if IPv6 is not supported (3fb8adb)
+ * Make `SettingNodeV3::resetToDefault` no-op if the value is already the default (#1853)
+ * Fix `Mod::disownHook` crash (#1849)
+ * Update TulipHook (fixes cbz/cbnz/tbz/tbnz reloc in aarch64, double params and returns in armv7)
+ * Download network libraries when building Geode instead of bundling them in the repo (#1858)
+ * Move quick shortcuts in Geode settings above other settings (67e43cd)
+
 ## v5.0.1
  * Fix excessive amount of requests to mod updates (833e8c6)
  * Fix keyboard settings default values not being applied on first launch (52d840b)

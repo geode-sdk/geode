@@ -284,7 +284,11 @@ void keyDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
         modifiers & KeyboardModifier::Super
     );
 
-    NSString* characters = [event charactersIgnoringModifiers];
+    NSString* characters = [event characters];
+    if ([characters length] == 0) {
+        characters = [event charactersIgnoringModifiers];
+    }
+
     if ([characters length] != 0) {
         unichar character = [characters characterAtIndex:0];
         if (character == NSDeleteFunctionKey || character == 0x7f) {

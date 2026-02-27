@@ -15,6 +15,11 @@ class ScrollLayer::Impl {
 public:
     ScrollLayer* m_self = nullptr;
     bool m_scrollWheelEnabled = false;
+    bool m_cancellingTouches = false;
+    // robtop doesnt implement this simple check but lets add it anyway
+    bool m_alreadyCancelled = false;
+    bool m_stealingTouches = false;
+    float m_cancelTouchLimit = 10.f;
 
     Impl(ScrollLayer* self);
 
@@ -22,6 +27,9 @@ public:
     void scrollWheel(float y, float x);
     void enableScrollWheel(bool enable);
     bool ccTouchBegan(CCTouch* touch, CCEvent* event);
+    void ccTouchMoved(CCTouch* touch, CCEvent* event);
+    void ccTouchEnded(CCTouch* touch, CCEvent* event);
+    void ccTouchCancelled(CCTouch* touch, CCEvent* event);
     void scrollToTop();
     void setupScrollLayer(CCRect const& rect, bool scrollWheelEnabled, bool vertical);
 };
@@ -89,10 +97,48 @@ void ScrollLayer::Impl::scrollWheel(float y, float x) {
 void ScrollLayer::Impl::enableScrollWheel(bool enable) { m_scrollWheelEnabled = enable; }
 
 bool ScrollLayer::Impl::ccTouchBegan(CCTouch* touch, CCEvent* event) {
+    m_alreadyCancelled = false;
     if (nodeIsVisible(m_self)) {
         return m_self->CCScrollLayerExt::ccTouchBegan(touch, event);
     }
     return false;
+}
+
+void ScrollLayer::Impl::ccTouchMoved(CCTouch* touch, CCEvent* event) {
+    m_self->CCScrollLayerExt::ccTouchMoved(touch, event);
+
+    // Don't shoot the messenger, leave your complaints to robtop
+    // this is the implementation of TableView::cancelAndStoleTouch
+    if (m_stealingTouches && !m_alreadyCancelled && std::abs(touch->getLocation().y - touch->getStartLocation().y) > m_cancelTouchLimit) {
+        auto dispatcher = CCDirector::get()->m_pTouchDispatcher;
+
+        auto touches = CCSet::create();
+        touches->addObject(touch);
+
+        m_cancellingTouches = true;
+        dispatcher->touchesCancelled(touches, event);
+        m_cancellingTouches = false;
+
+        if (auto handler = static_cast<CCTargetedTouchHandler*>(dispatcher->findHandler(m_self))) {
+            if (auto claimedTouches = handler->m_pClaimedTouches) {
+                if (!claimedTouches->containsObject(touch)) {
+                    claimedTouches->addObject(touch);
+                }
+            }
+        }
+
+        m_alreadyCancelled = true;
+    }
+}
+
+void ScrollLayer::Impl::ccTouchEnded(CCTouch* touch, CCEvent* event) {
+    m_self->CCScrollLayerExt::ccTouchEnded(touch, event);
+}
+
+void ScrollLayer::Impl::ccTouchCancelled(CCTouch* touch, CCEvent* event) {
+    if (!m_cancellingTouches) {
+        m_self->CCScrollLayerExt::ccTouchCancelled(touch, event);
+    }
 }
 
 void ScrollLayer::Impl::scrollToTop() {
@@ -153,6 +199,18 @@ bool ScrollLayer::ccTouchBegan(CCTouch* touch, CCEvent* event) {
     return m_impl->ccTouchBegan(touch, event); 
 }
 
+void ScrollLayer::ccTouchMoved(CCTouch* touch, CCEvent* event) { 
+    m_impl->ccTouchMoved(touch, event); 
+}
+
+void ScrollLayer::ccTouchEnded(CCTouch* touch, CCEvent* event) {
+    m_impl->ccTouchEnded(touch, event);
+}
+
+void ScrollLayer::ccTouchCancelled(CCTouch* touch, CCEvent* event) {
+    m_impl->ccTouchCancelled(touch, event);
+}
+
 void ScrollLayer::scrollToTop() { 
     m_impl->scrollToTop(); 
 }
@@ -182,4 +240,19 @@ Layout* ScrollLayer::createDefaultListLayout(float gap) {
         ->setMainAxisScaling(AxisScaling::Fit)
         ->setGap(gap)
         ->ignoreInvisibleChildren(false);
+}
+
+void ScrollLayer::setCancelTouchLimit(float limit) {
+    m_impl->m_cancelTouchLimit = limit;
+}
+float ScrollLayer::getCancelTouchLimit() const {
+    return m_impl->m_cancelTouchLimit;
+}
+
+void ScrollLayer::setStealingTouches(bool steal) {
+    m_impl->m_stealingTouches = steal;
+}
+
+bool ScrollLayer::isStealingTouches() const {
+    return m_impl->m_stealingTouches;
 }

@@ -99,23 +99,36 @@ jobs:
         path: toolchain
         submodules: recursive
 
-    - name: Install Clang 19
+    - name: Install Clang
       run: |
-        sudo rm -f /var/lib/man-db/auto-update
-        sudo apt install -y clang-19 clang-tools-19 lld-19
+        sudo apt-get update
+        sudo apt-get install -y wget lsb-release software-properties-common gnupg
+
+        wget https://apt.llvm.org/llvm.sh
+        chmod +x llvm.sh
+        sudo ./llvm.sh 21 all
+
+    - name: Add LLVM 21 to path
+      run: echo "/usr/lib/llvm-21/bin" >> $GITHUB_PATH
+
+    - name: Verify LLVM
+      run: |
+        which clang-cl
+        which lld-link
+        clang-cl --version
+        lld-link --version
 
     - name: Configure
       run: >
         ${{ env.base-configure-command }}
         -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN
         -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON
+        -DGEODE_UNITY_BUILD=ON
         ${{ steps.build-debug-info.outputs.extra-configure }}
       env:
         SPLAT_DIR: ${{ github.workspace }}/.xwin-cache/splat
         TOOLCHAIN: ${{ github.workspace }}/toolchain/clang-cl-msvc.cmake
         HOST_ARCH: x86_64
-        CLANG_VER: 19
-        LLVM_VER: 19
 
     - name: Build
       run: |
