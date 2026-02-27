@@ -163,7 +163,7 @@
         "curl-dns": {
             "type": "string",
             "name": "Web DNS Server",
-            "default": "Cloudflare DoH",
+            "default": "System",
             "one-of": [
                 "System",
                 "Cloudflare",
