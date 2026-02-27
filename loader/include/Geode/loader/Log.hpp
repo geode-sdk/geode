@@ -326,6 +326,7 @@ inline void geode::log::BorrowedLog::formatTo(utils::StringBuffer<N>& buf, bool 
         case Severity::Info: buf.append("INFO "); break;
         case Severity::Warning: buf.append("WARN "); break;
         case Severity::Error: buf.append("ERROR"); break;
+        case Severity::Trace: buf.append("TRACE"); break;
         default: buf.append("?????"); break;
     }
 
