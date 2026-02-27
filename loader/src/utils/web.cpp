@@ -643,7 +643,8 @@ public:
         curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, sslOptions);
 
         // Set DNS options
-        auto dnsopt = Mod::get()->getSettingValue<std::string_view>("curl-dns");
+        // This is called curl-dns2 because we decided to change the default value later :)
+        auto dnsopt = Mod::get()->getSettingValue<std::string_view>("curl-dns2");
         setDNSOptions(curl, dnsopt);
 
         // Transfer body

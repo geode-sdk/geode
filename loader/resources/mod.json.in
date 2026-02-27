@@ -160,7 +160,7 @@
             "name": "Verbose Curl Logs",
             "description": "When performing web requests, prints detailed information about the request immediately, as well as information when requests are added/removed. Otherwise, some information will only be printed on request failure."
         },
-        "curl-dns": {
+        "curl-dns2": {
             "type": "string",
             "name": "Web DNS Server",
             "default": "System",
