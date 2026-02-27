@@ -11,6 +11,7 @@
 #include <mz_strm_mem.h>
 #include <mz_zip.h>
 #include <Geode/utils/ranges.hpp>
+#include <algorithm>
 
 #ifdef GEODE_IS_WINDOWS
 # include <filesystem>
@@ -89,16 +90,28 @@ Result<> readFileInto(std::filesystem::path const& path, T& out) {
     }
 
     out.resize(fileSize.QuadPart);
-    DWORD read = 0;
-    if (!ReadFile(file, out.data(), static_cast<DWORD>(out.size()), &read, nullptr)) {
-        CloseHandle(file);
-        return Err("Unable to read file: {}", formatError());
+    size_t totalRead = 0;
+    while (totalRead < out.size()) {
+        // read in chunks of at most MAXDWORD (4GB - 1 byte)
+        DWORD toRead = static_cast<DWORD>(std::min<size_t>(out.size() - totalRead, MAXDWORD));
+        DWORD bytesRead = 0;
+        // offset the pointer by the amount we have already read
+        if (!ReadFile(file, reinterpret_cast<uint8_t*>(out.data()) + totalRead, toRead, &bytesRead, nullptr)) {
+            CloseHandle(file);
+            return Err("Unable to read file: {}", formatError());
+        }
+        // if we read 0 bytes but haven't reached out.size(), we hit an unexpected EOF
+        if (bytesRead == 0) {
+            break;
+        }
+
+        totalRead += bytesRead;
     }
 
     CloseHandle(file);
 
-    if (read < out.size()) {
-        return Err("Unable to read entire file: only read {} of {}", read, out.size());
+    if (totalRead < out.size()) {
+        return Err("Unable to read entire file: only read {} of {}", totalRead, out.size());
     }
 
     return Ok();
@@ -119,18 +132,29 @@ static Result<> writeFileFrom(std::filesystem::path const& path, void* data, siz
         return Err("Unable to open file: {}", formatError());
     }
 
-    DWORD written = 0;
-    if (!WriteFile(file, data, static_cast<DWORD>(size), &written, nullptr)) {
-        CloseHandle(file);
-        return Err("Unable to write file: {}", formatError());
-    }
+    size_t totalWritten = 0;
+    while (totalWritten < size) {
+        // write in chunks of at most MAXDWORD (4GB - 1 byte)
+        DWORD toWrite = static_cast<DWORD>(std::min<size_t>(size - totalWritten, MAXDWORD));
+        DWORD bytesWritten = 0;
+        // offset the pointer by the amount we have already written
+        if (!WriteFile(file, reinterpret_cast<uint8_t*>(data) + totalWritten, toWrite, &bytesWritten, nullptr)) {
+            CloseHandle(file);
+            return Err("Unable to write file: {}", formatError());
+        }
+        // safety break in case WriteFile succeeds but writes 0 bytes (avoid infinite loop)
+        if (bytesWritten == 0) {
+            break;
+        }
 
-    if (written < size) {
-        CloseHandle(file);
-        return Err("Unable to write entire file: only wrote {} of {}", written, size);
+        totalWritten += bytesWritten;
     }
 
     CloseHandle(file);
+
+    if (totalWritten < size) {
+        return Err("Unable to write entire file: only wrote {} of {}", totalWritten, size);
+    }
 
     return Ok();
 }
@@ -524,7 +548,9 @@ public:
             // make sure zip files like root/../../file.txt don't get extracted to
             // avoid zip attacks
             std::error_code ec;
-            if (!std::filesystem::relative(dir / filePath, dir, ec).empty()) {
+            auto relPath = std::filesystem::relative(dir / filePath, dir, ec);
+            // explicitly check that the normalized path doesn't start with ".."
+            if (!ec && !relPath.empty() && *relPath.lexically_normal().begin() != "..") {
                 if (m_entries.at(filePath).isDirectory) {
                     GEODE_UNWRAP(file::createDirectoryAll(dir / filePath));
                 }
