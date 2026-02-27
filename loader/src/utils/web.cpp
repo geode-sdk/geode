@@ -38,6 +38,11 @@ using namespace arc;
 
 static std::atomic<bool> g_knownIpv6Support{false};
 static std::atomic<bool> g_knownHostileToDOH{false};
+static std::atomic<bool> g_verboseLogging{false};
+
+static bool verboseLog() {
+    return g_verboseLogging.load(std::memory_order::relaxed);
+}
 
 static long unwrapProxyType(ProxyType type) {
     switch (type) {
@@ -171,6 +176,7 @@ public:
     int m_code;
     ByteVector m_data;
     std::string m_errMessage;
+    utils::StringBuffer<8> m_logs; // always heap
     utils::StringMap<std::vector<std::string>> m_headers;
     RequestTimings m_timings;
 
@@ -400,6 +406,10 @@ std::optional<std::vector<std::string>> WebResponse::getAllHeadersNamed(std::str
 
 std::string_view WebResponse::errorMessage() const {
     return m_impl->m_errMessage;
+}
+
+std::string_view WebResponse::verboseLogs() const {
+    return m_impl->m_logs.view();
 }
 
 RequestTimings const& WebResponse::timings() const {
@@ -705,44 +715,48 @@ public:
         }
 
         // Verbose logging
-        if (Mod::get()->getSettingValue<bool>("verbose-curl-logs")) {
-            curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-            curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, +[](CURL* handle, curl_infotype type, char* data, size_t size, void* clientp) {
-                while (size > 0 && (data[size - 1] == '\n' || data[size - 1] == '\r')) {
-                    size--; // remove trailing newline
-                }
+        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+        curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, +[](CURL* handle, curl_infotype type, char* data, size_t size, void* clientp) {
+            while (size > 0 && (data[size - 1] == '\n' || data[size - 1] == '\r')) {
+                size--; // remove trailing newline
+            }
 
-                switch (type) {
-                    case CURLINFO_TEXT:
-                        log::debug("[Curl] {}", std::string_view(data, size));
-                        break;
-                    case CURLINFO_HEADER_IN:
-                        log::debug("[Curl] Header in: {}", std::string_view(data, size));
-                        break;
-                    case CURLINFO_HEADER_OUT:
-                        log::debug("[Curl] Header out: {}", std::string_view(data, size));
-                        break;
-                    case CURLINFO_DATA_IN:
-                        log::trace("[Curl] Data in ({} bytes)", size);
-                        break;
-                    case CURLINFO_DATA_OUT:
-                        log::trace("[Curl] Data out ({} bytes)", size);
-                        break;
-                    case CURLINFO_SSL_DATA_IN:
-                        log::trace("[Curl] SSL data in ({} bytes)", size);
-                        break;
-                    case CURLINFO_SSL_DATA_OUT:
-                        log::trace("[Curl] SSL data out ({} bytes)", size);
-                        break;
-                    case CURLINFO_END:
-                        log::debug("[Curl] End of info");
-                        break;
-                    default:
-                        log::debug("[Curl] Unknown info type: {}", static_cast<int>(type));
-                        break;
-                }
-            });
-        }
+            // skip data
+            if (type == CURLINFO_DATA_IN || type == CURLINFO_DATA_OUT || type == CURLINFO_SSL_DATA_IN || type == CURLINFO_SSL_DATA_OUT) {
+                return 0;
+            }
+
+            std::string_view content(data, size);
+            if (verboseLog()) {
+                log::debug("[Curl] {}", content);
+            }
+
+            if (!clientp) {
+                return 0;
+            }
+
+            auto& rlogs = static_cast<ResponseData*>(clientp)->response.m_impl->m_logs;
+
+            switch (type) {
+                case CURLINFO_TEXT:
+                    rlogs.append(content);
+                    rlogs.append('\n');
+                    break;
+                case CURLINFO_HEADER_IN:
+                    rlogs.append("Header in: {}\n", content);
+                    break;
+                case CURLINFO_HEADER_OUT:
+                    rlogs.append("Header out: {}\n", content);
+                    break;
+                case CURLINFO_END:
+                    rlogs.append("--- End of info ---\n");
+                    break;
+                default: break;
+            }
+
+            return 0;
+        });
+        curl_easy_setopt(curl, CURLOPT_DEBUGDATA, requestData);
 
         // If an error happens, we want to get a more specific description of the issue
         curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, m_errorBuf);
@@ -1202,6 +1216,11 @@ public:
 
         m_worker = async::runtime().spawn(this->workerFunc(std::move(rx), std::move(crx)));
         m_worker.setName("Geode Web Worker");
+
+        g_verboseLogging.store(Mod::get()->getSettingValue<bool>("verbose-curl-logs"));
+        listenForSettingChanges<bool>("verbose-curl-logs", [this](bool value) {
+            g_verboseLogging.store(value);
+        });
     }
 
     // Note for future people: this is currently leaked because cleanup is unsafe in statics
@@ -1235,21 +1254,27 @@ public:
         req->curl = handle;
         curl_easy_setopt(handle, CURLOPT_PRIVATE, req.get());
 
-        // log::debug("Added request ({})", req->request->m_url);
+        if (verboseLog()) {
+            log::debug("Added request ({})", req->request->m_url);
+        }
         curl_multi_add_handle(m_multiHandle, handle);
         m_activeRequests.insert(std::move(req));
         this->workerKickCurl();
     }
 
     void workerCancelRequest(std::shared_ptr<RequestData> req) {
-        // log::debug("Cancelled request ({})", req->request->m_url);
+        if (verboseLog()) {
+            log::debug("Cancelled request ({})", req->request->m_url);
+        }
         req->onError(GeodeWebError::REQUEST_CANCELLED, "Request cancelled");
 
         this->cleanupRequest(std::move(req));
     }
 
     void cleanupRequest(std::shared_ptr<RequestData> req) {
-        // log::debug("Removing request ({})", req->request->m_url);
+        if (verboseLog()) {
+            log::debug("Removing request ({})", req->request->m_url);
+        }
         m_activeRequests.erase(req);
 
         auto curl = std::exchange(req->curl, nullptr);
@@ -1323,6 +1348,8 @@ public:
                     std::string_view err = curl_easy_strerror(msg->data.result);
                     log::error("cURL failure, error: {}", err);
                     log::warn("Error buffer: {}", errorBuf);
+                    log::warn("Verbose request logs:\n{}", requestData.response.verboseLogs());
+
                     requestData.onError(
                         // Make all CURL error codes negatives to not conflict with HTTP codes
                         msg->data.result * -1,
@@ -1353,6 +1380,7 @@ public:
 
             arc::selectee(this->workerPollSockets(), [this](PollReadiness readiness) {
                 auto [fd, ready] = readiness;
+                // log::debug("socket activity, fd: {}, ready: {}", fd, (int)ready);
                 int ev = 0;
                 if (ready & Interest::Readable) ev |= CURL_CSELECT_IN;
                 if (ready & Interest::Writable) ev |= CURL_CSELECT_OUT;
@@ -1383,6 +1411,8 @@ public:
         auto& driver = Runtime::current()->ioDriver();
         auto it = m_sockets.find(s);
 
+        log::trace("socket callback, socket: {}, what: {}, registered: {}", (int)s, what, it != m_sockets.end());
+
         if (what == CURL_POLL_REMOVE) {
             // remove the socket, which unregisters it from the io driver as well
             if (it != m_sockets.end()) {
@@ -1411,6 +1441,8 @@ public:
     }
 
     void timerCallback(CURLM* multi, long timeout_ms) {
+        // log::trace("timer callback, wake in {}ms", timeout_ms);
+
         if (timeout_ms == -1) {
             m_nextWakeup = asp::Instant::farFuture();
         } else {
