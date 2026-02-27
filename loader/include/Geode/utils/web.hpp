@@ -198,6 +198,11 @@ namespace geode::utils::web {
         std::string_view errorMessage() const;
 
         /**
+         * Returns verbose logs from the network library, which may massively help in debugging network issues.
+         */
+        std::string_view verboseLogs() const;
+
+        /**
          * Returns the timings of the request, with detailed information about how long each phase of the request took.
          * These values will be all zeroes if the request did not complete successfully.
          */
