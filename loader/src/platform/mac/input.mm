@@ -427,14 +427,19 @@ void rightMouseDownHook(EAGLView* self, SEL sel, NSEvent* event) {
         modifiers
     );
 
-    if (MouseInputEvent().send(data) != ListenerResult::Propagate) return;
+    Loader::get()->queueInMainThread([data = std::move(data)] mutable {
+        MouseInputEvent().send(data);
+    });
 
     [self performSelector:sel withObject:event];
 }
 
 void rightMouseDraggedHook(EAGLView* self, SEL sel, NSEvent* event) {
     NSPoint point = [self convertPoint:[event locationInWindow] fromView:nil];
-    if (MouseMoveEvent().send(point.x, point.y) != ListenerResult::Propagate) return;
+
+    Loader::get()->queueInMainThread([point] {
+        MouseMoveEvent().send(point.x, point.y);
+    });
 
     [self performSelector:sel withObject:event];
 }
@@ -449,7 +454,9 @@ void rightMouseUpHook(EAGLView* self, SEL sel, NSEvent* event) {
         modifiers
     );
 
-    if (MouseInputEvent().send(data) != ListenerResult::Propagate) return;
+    Loader::get()->queueInMainThread([data = std::move(data)] mutable {
+        MouseInputEvent().send(data);
+    });
 
     [self performSelector:sel withObject:event];
 }
@@ -464,14 +471,19 @@ void otherMouseDownHook(EAGLView* self, SEL sel, NSEvent* event) {
         modifiers
     );
 
-    if (MouseInputEvent().send(data) != ListenerResult::Propagate) return;
+    Loader::get()->queueInMainThread([data = std::move(data)] mutable {
+        MouseInputEvent().send(data);
+    });
 
     [self performSelector:sel withObject:event];
 }
 
 void otherMouseDraggedHook(EAGLView* self, SEL sel, NSEvent* event) {
     NSPoint point = [self convertPoint:[event locationInWindow] fromView:nil];
-    if (MouseMoveEvent().send(point.x, point.y) != ListenerResult::Propagate) return;
+
+    Loader::get()->queueInMainThread([point] {
+        MouseMoveEvent().send(point.x, point.y);
+    });
 
     [self performSelector:sel withObject:event];
 }
@@ -486,7 +498,9 @@ void otherMouseUpHook(EAGLView* self, SEL sel, NSEvent* event) {
         modifiers
     );
 
-    if (MouseInputEvent().send(data) != ListenerResult::Propagate) return;
+    Loader::get()->queueInMainThread([data = std::move(data)] mutable {
+        MouseInputEvent().send(data);
+    });
 
     [self performSelector:sel withObject:event];
 }
