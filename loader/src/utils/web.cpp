@@ -667,6 +667,9 @@ public:
             curl_easy_setopt(curl, CURLOPT_TIMEOUT, m_timeout->count());
         }
 
+        // always set connection timeout to avoid hanging indefinitely (2.5 seconds)
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 2500L);
+
         // Set range
         if (m_range) {
             curl_easy_setopt(curl, CURLOPT_RANGE, fmt::format("{}-{}", m_range->first, m_range->second).c_str());
@@ -1159,23 +1162,24 @@ static arc::Future<> ipv6Probe() {
 }
 
 /// Attempts to make a request to cloudflare DoH, to check if this network blocks it (common in some regions like Spain)
-static arc::Future<> dohProbe() {
-    auto resp = co_await web::WebRequest{}
-        .header("Accept", "application/dns-json")
-        .get("https://cloudflare-dns.com/dns-query?name=api.geode-sdk.org");
+// this is commented out since we switched to using system by default
+// static arc::Future<> dohProbe() {
+//     auto resp = co_await web::WebRequest{}
+//         .header("Accept", "application/dns-json")
+//         .get("https://cloudflare-dns.com/dns-query?name=api.geode-sdk.org");
 
-    if (resp.ok()) {
-        co_return;
-    }
+//     if (resp.ok()) {
+//         co_return;
+//     }
 
-    auto code = -resp.code();
+//     auto code = -resp.code();
 
-    if (code == CURLE_PEER_FAILED_VERIFICATION) {
-        g_knownHostileToDOH.store(true, std::memory_order::relaxed);
-        log::info("DoH probe failed with TLS error ({})", resp.string().unwrapOrDefault());
-        co_return;
-    }
-}
+//     if (code == CURLE_PEER_FAILED_VERIFICATION) {
+//         g_knownHostileToDOH.store(true, std::memory_order::relaxed);
+//         log::info("DoH probe failed with TLS error ({})", resp.string().unwrapOrDefault());
+//         co_return;
+//     }
+// }
 
 class WebRequestsManager::Impl {
 public:
