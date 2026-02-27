@@ -1463,10 +1463,6 @@ public:
 
         arc::spawn(ipv6Probe());
 
-        if (Mod::get()->getSettingValue<std::string_view>("curl-dns") == "Cloudflare DoH") {
-            arc::spawn(dohProbe());
-        }
-
         bool running = true;
         while (running) {
             co_await arc::select(
