@@ -1,5 +1,17 @@
 # Geode Changelog
 
+## v5.1.1
+ * Fix `async::TaskHolder` and `async::spawn` callback destructors not always being ran on main thread (9a853fb)
+ * Force disable IPv6 on macOS (and on other systems if unsupported) (055b968)
+ * Copy args for first send in global events (0542ab8)
+ * Change default log level to Debug (b1734ae)
+ * Fix trace logs showing up as ????? (d700353)
+ * Print verbose curl logs after failed web requests (c9d9467)
+ * Fix loading circle not spinning when downloading mods (3e6b845)
+ * Fix no percentage being shown when downloading resources (3350f62)
+ * Make web requests time out after 2.5 seconds if DNS resolution or TLS connection are stuck (b3d4eb8)
+ * Check for characters with modifiers (1976d2a)
+
 ## v5.1.0
  * Fix custom settings not loading their values (14378af)
  * Fix shutdown not triggering game exit event on MacOS (#1860)
