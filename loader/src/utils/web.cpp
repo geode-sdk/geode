@@ -36,6 +36,8 @@ using namespace geode::utils::web;
 using namespace geode::utils::string;
 using namespace arc;
 
+static std::atomic<bool> g_knownIpv6Support{false};
+
 static long unwrapProxyType(ProxyType type) {
     switch (type) {
         using enum ProxyType;
@@ -135,17 +137,28 @@ static void setDNSOptions(CURL* curl, std::string_view which) {
     }
 
     if (which == "Cloudflare DoH") {
-        static auto bootstrap = curl_slist_append(nullptr, "cloudflare-dns.com:443:1.1.1.1,2606:4700:4700::1111");
-        curl_easy_setopt(curl, CURLOPT_RESOLVE, bootstrap);
+        static auto dsbootstrap = curl_slist_append(nullptr, "cloudflare-dns.com:443:1.1.1.1,2606:4700:4700::1111");
+        static auto v4bootstrap = curl_slist_append(nullptr, "cloudflare-dns.com:443:1.1.1.1");
+        auto record = g_knownIpv6Support.load(std::memory_order::relaxed)
+            ? dsbootstrap
+            : v4bootstrap;
+
+        curl_easy_setopt(curl, CURLOPT_RESOLVE, record);
         curl_easy_setopt(curl, CURLOPT_DOH_URL, "https://cloudflare-dns.com/dns-query");
     } else if (which == "Cloudflare") {
-        curl_easy_setopt(curl, CURLOPT_DNS_SERVERS, "1.1.1.1,1.0.0.1,[2606:4700:4700::1111],[2606:4700:4700::1001]");
+        auto servers = g_knownIpv6Support.load(std::memory_order::relaxed)
+            ? "1.1.1.1,1.0.0.1,[2606:4700:4700::1111],[2606:4700:4700::1001]"
+            : "1.1.1.1,1.0.0.1";
+
+        curl_easy_setopt(curl, CURLOPT_DNS_SERVERS, servers);
     } else if (which == "Google") {
-        curl_easy_setopt(curl, CURLOPT_DNS_SERVERS, "8.8.8.8,8.8.4.4,[2001:4860:4860::8888],[2001:4860:4860::8844]");
+        auto servers = g_knownIpv6Support.load(std::memory_order::relaxed)
+            ? "8.8.8.8,8.8.4.4,[2001:4860:4860::8888],[2001:4860:4860::8844]"
+            : "8.8.8.8,8.8.4.4";
+
+        curl_easy_setopt(curl, CURLOPT_DNS_SERVERS, servers);
     }
 }
-
-static std::atomic<bool> g_knownIpv6Support{false};
 
 class WebResponse::Impl {
 public:
@@ -1091,6 +1104,12 @@ struct ARC_NODISCARD MultiPollFuture : Pollable<MultiPollFuture, PollReadiness> 
 
 /// Attempts to establish an IPv6 connection to a known endpoint to determine if IPv6 is supported on this network
 static arc::Future<> ipv6Probe() {
+#ifdef GEODE_IS_MACOS
+    // macos causes too many issues, so we just completely disable ipv6 there
+    // feel free to remove this in 10 years or so when it finally works properly
+    return;
+#endif
+
     // try to connect to cloudflare
     auto res = co_await arc::TcpStream::connect("[2606:4700:4700::1111]:80");
     if (!res) {
