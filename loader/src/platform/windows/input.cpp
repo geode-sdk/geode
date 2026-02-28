@@ -93,6 +93,12 @@ public:
     }
 };
 
+struct KeyInfo {
+    uint16_t vkey;
+    uint16_t scanCode;
+    bool isE0;
+};
+
 class KeyStateTracker {
 private:
     std::unordered_map<uint32_t, bool> m_keyStates;
@@ -101,6 +107,12 @@ private:
     static uint32_t makeKey(uint16_t vkey, uint16_t scanCode, bool isE0) {
         return (static_cast<uint32_t>(vkey) << 16) | (static_cast<uint32_t>(scanCode) << 1) |
             (isE0 ? 1 : 0);
+    }
+
+    static void unmakeKey(uint32_t key, uint16_t& vkey, uint16_t& scanCode, bool& isE0) {
+        vkey = static_cast<uint16_t>(key >> 16);
+        scanCode = static_cast<uint16_t>((key >> 1) & 0xFFFF);
+        isE0 = (key & 1) != 0;
     }
 
 public:
@@ -152,6 +164,25 @@ public:
 
         m_keyStates[key] = isDown;
         return wasDown && isDown;
+    }
+
+    std::vector<KeyInfo> getPressedKeys() {
+        std::vector<KeyInfo> pressed;
+        for (auto const& [key, isDown] : m_keyStates) {
+            if (isDown) {
+                uint16_t vkey, scanCode;
+                bool isE0;
+                unmakeKey(key, vkey, scanCode, isE0);
+                pressed.push_back({vkey, scanCode, isE0});
+            }
+        }
+
+        return pressed;
+    }
+
+    void clear() {
+        m_keyStates.clear();
+        m_currentMods = KeyboardModifier::None;
     }
 };
 
@@ -402,6 +433,10 @@ public:
     void onGLFWCharCallback(GLFWwindow* window, unsigned int c) {
         CCEGLView::onGLFWCharCallback(window, c);
     }
+
+    void onGLFWWindowFocus(GLFWwindow* window, int focused) {
+        CCEGLView::onGLFWWindowFocus(window, focused);
+    }
 };
 
 static void GLFWScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
@@ -415,7 +450,124 @@ static void GLFWCharCallback(GLFWwindow* window, unsigned int c) {
     static_cast<DummyEGLView*>(CCEGLView::get())->onGLFWCharCallback(window, c);
 }
 
+static void GLFWFocusCallback(GLFWwindow* window, int focused);
+
 struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
+    void handleKeyboardEvent(RawInputEvent const& evt) {
+        using enum KeyboardInputData::Action;
+        bool isDown = evt.type == RawInputEvent::Type::KeyDown;
+
+        enumKeyCodes keyCode = keyToKeyCode(
+            evt.keyboard.vkey,
+            evt.keyboard.isE0
+        );
+
+        KeyboardInputData data(
+            keyCode,
+            isDown ? (evt.keyboard.isRepeat ? Repeat : Press) : Release,
+            {evt.keyboard.vkey, evt.keyboard.scanCode},
+            evt.timestamp,
+            evt.mods
+        );
+
+        auto result = KeyboardInputEvent(keyCode).send(data);
+
+        // copy values from event, if someone modifies it
+        isDown = data.action != Release;
+        keyCode = data.key;
+
+        if (result == ListenerResult::Propagate && keyCode != KEY_Unknown) {
+            auto* ime = CCIMEDispatcher::sharedDispatcher();
+            if (keyCode == enumKeyCodes::KEY_Backspace && isDown) {
+                ime->dispatchDeleteBackward();
+            } else if (keyCode == enumKeyCodes::KEY_Delete && isDown) {
+                ime->dispatchDeleteForward();
+            }
+
+            auto* keyboardDispatcher = CCKeyboardDispatcher::get();
+
+            keyboardDispatcher->updateModifierKeys(
+                data.modifiers & KeyboardModifier::Shift,
+                data.modifiers & KeyboardModifier::Control,
+                data.modifiers & KeyboardModifier::Alt,
+                data.modifiers & KeyboardModifier::Super
+            );
+
+            if (!ime->hasDelegate() || keyCode == KEY_Escape || keyCode == KEY_Enter) {
+                keyboardDispatcher->dispatchKeyboardMSG(
+                    keyCode,
+                    isDown,
+                    data.action == Repeat,
+                    data.timestamp
+                );
+            }
+
+            // text pasting
+            if (data.modifiers & KeyboardModifier::Control && keyCode == enumKeyCodes::KEY_V && isDown) {
+                if (ime->hasDelegate()) {
+                    this->performSafeClipboardPaste();
+                }
+            }
+        }
+    }
+
+    void handleMouseEvent(RawInputEvent const& evt) {
+        using enum MouseInputData::Action;
+        using enum MouseInputData::Button;
+
+        struct Btn {
+            USHORT down, up;
+            MouseInputData::Button btn;
+        };
+
+        constexpr Btn btns[] = {
+            {RI_MOUSE_BUTTON_1_DOWN, RI_MOUSE_BUTTON_1_UP, Left},
+            {RI_MOUSE_BUTTON_2_DOWN, RI_MOUSE_BUTTON_2_UP, Right},
+            {RI_MOUSE_BUTTON_3_DOWN, RI_MOUSE_BUTTON_3_UP, Middle},
+            {RI_MOUSE_BUTTON_4_DOWN, RI_MOUSE_BUTTON_4_UP, Button4},
+            {RI_MOUSE_BUTTON_5_DOWN, RI_MOUSE_BUTTON_5_UP, Button5},
+        };
+
+        // WinAPI can combine multiple button events into one
+        for (auto const& b : btns) {
+            bool isDown = (evt.mouse.flags & b.down) != 0;
+            bool isUp = (evt.mouse.flags & b.up) != 0;
+            if (isDown || isUp) {
+                MouseInputData data(
+                    b.btn,
+                    isDown ? Press : Release,
+                    evt.timestamp,
+                    evt.mods
+                );
+
+                auto result = MouseInputEvent().send(data);
+                isDown = data.action == Press;
+
+                // handle cocos touches
+                if (data.button == Left && result == ListenerResult::Propagate) {
+                    int id = 0;
+                    if (isDown) {
+                        m_bCaptured = true;
+                        this->handleTouchesBegin(
+                            1, &id,
+                            &m_fMouseX,
+                            &m_fMouseY,
+                            data.timestamp
+                        );
+                    } else {
+                        m_bCaptured = false;
+                        this->handleTouchesEnd(
+                            1, &id,
+                            &m_fMouseX,
+                            &m_fMouseY,
+                            data.timestamp
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     void pumpRawInput() {
         bool isForeground = GetForegroundWindow() == g_mainWindowHWND;
         if (!isForeground) {
@@ -455,118 +607,11 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
             switch (evt.type) {
                 case RawInputEvent::Type::KeyDown:
                 case RawInputEvent::Type::KeyUp: {
-                    using enum KeyboardInputData::Action;
-                    bool isDown = evt.type == RawInputEvent::Type::KeyDown;
-
-                    enumKeyCodes keyCode = keyToKeyCode(
-                        evt.keyboard.vkey,
-                        evt.keyboard.isE0
-                    );
-
-                    KeyboardInputData data(
-                        keyCode,
-                        isDown ? (evt.keyboard.isRepeat ? Repeat : Press) : Release,
-                        {evt.keyboard.vkey, evt.keyboard.scanCode},
-                        evt.timestamp,
-                        evt.mods
-                    );
-
-                    auto result = KeyboardInputEvent(keyCode).send(data);
-
-                    // copy values from event, if someone modifies it
-                    isDown = data.action != Release;
-                    keyCode = data.key;
-
-                    if (result == ListenerResult::Propagate && keyCode != KEY_Unknown) {
-                        auto* ime = CCIMEDispatcher::sharedDispatcher();
-                        if (keyCode == enumKeyCodes::KEY_Backspace && isDown) {
-                            ime->dispatchDeleteBackward();
-                        } else if (keyCode == enumKeyCodes::KEY_Delete && isDown) {
-                            ime->dispatchDeleteForward();
-                        }
-
-                        auto* keyboardDispatcher = CCKeyboardDispatcher::get();
-
-                        keyboardDispatcher->updateModifierKeys(
-                            data.modifiers & KeyboardModifier::Shift,
-                            data.modifiers & KeyboardModifier::Control,
-                            data.modifiers & KeyboardModifier::Alt,
-                            data.modifiers & KeyboardModifier::Super
-                        );
-
-                        if (!ime->hasDelegate() || keyCode == KEY_Escape || keyCode == KEY_Enter) {
-                            keyboardDispatcher->dispatchKeyboardMSG(
-                                keyCode,
-                                isDown,
-                                data.action == Repeat,
-                                data.timestamp
-                            );
-                        }
-
-                        // text pasting
-                        if (data.modifiers & KeyboardModifier::Control && keyCode == enumKeyCodes::KEY_V && isDown) {
-                            if (ime->hasDelegate()) {
-                                this->performSafeClipboardPaste();
-                            }
-                        }
-                    }
+                    this->handleKeyboardEvent(evt);
                     break;
                 }
                 case RawInputEvent::Type::MouseButton: {
-                    using enum MouseInputData::Action;
-                    using enum MouseInputData::Button;
-
-                    struct Btn {
-                        USHORT down, up;
-                        MouseInputData::Button btn;
-                    };
-
-                    constexpr Btn btns[] = {
-                        {RI_MOUSE_BUTTON_1_DOWN, RI_MOUSE_BUTTON_1_UP, Left},
-                        {RI_MOUSE_BUTTON_2_DOWN, RI_MOUSE_BUTTON_2_UP, Right},
-                        {RI_MOUSE_BUTTON_3_DOWN, RI_MOUSE_BUTTON_3_UP, Middle},
-                        {RI_MOUSE_BUTTON_4_DOWN, RI_MOUSE_BUTTON_4_UP, Button4},
-                        {RI_MOUSE_BUTTON_5_DOWN, RI_MOUSE_BUTTON_5_UP, Button5},
-                    };
-
-                    // WinAPI can combine multiple button events into one
-                    for (auto const& b : btns) {
-                        bool isDown = (evt.mouse.flags & b.down) != 0;
-                        bool isUp = (evt.mouse.flags & b.up) != 0;
-                        if (isDown || isUp) {
-                            MouseInputData data(
-                                b.btn,
-                                isDown ? Press : Release,
-                                evt.timestamp,
-                                evt.mods
-                            );
-
-                            auto result = MouseInputEvent().send(data);
-                            isDown = data.action == Press;
-
-                            // handle cocos touches
-                            if (data.button == Left && result == ListenerResult::Propagate) {
-                                int id = 0;
-                                if (isDown) {
-                                    m_bCaptured = true;
-                                    this->handleTouchesBegin(
-                                        1, &id,
-                                        &m_fMouseX,
-                                        &m_fMouseY,
-                                        data.timestamp
-                                    );
-                                } else {
-                                    m_bCaptured = false;
-                                    this->handleTouchesEnd(
-                                        1, &id,
-                                        &m_fMouseX,
-                                        &m_fMouseY,
-                                        data.timestamp
-                                    );
-                                }
-                            }
-                        }
-                    }
+                    this->handleMouseEvent(evt);
                     break;
                 }
                 default:
@@ -609,11 +654,41 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
         g_mainWindowHWND = *reinterpret_cast<HWND*>(reinterpret_cast<uintptr_t>(m_pMainWindow) + 0x370);
         *reinterpret_cast<GLFWscrollfun*>(reinterpret_cast<uintptr_t>(m_pMainWindow) + 0x340) = &GLFWScrollCallback;
         *reinterpret_cast<GLFWcharfun*>(reinterpret_cast<uintptr_t>(m_pMainWindow) + 0x350) = &GLFWCharCallback;
+        *reinterpret_cast<GLFWwindowfocusfun*>(reinterpret_cast<uintptr_t>(m_pMainWindow) + 0x300) = &GLFWFocusCallback;
 
         // window is created on a different thread, so it needs time to initialize
         queueInMainThread([]{ attemptHookRawInput(); });
     }
 };
+
+static void GLFWFocusCallback(GLFWwindow* window, int focused) {
+    auto view = CCEGLView::get();
+    static_cast<DummyEGLView*>(view)->onGLFWWindowFocus(window, focused);
+    if (!focused) {
+        // technically a race condition, but you have to be the most unlucky person alive for it to happen,
+        // and i really didn't want to add mutexes to KeyStateTracker just for window unfocus event
+        auto& tracker = KeyStateTracker::get();
+        auto pressedKeys = tracker.getPressedKeys();
+        tracker.clear();
+
+        auto timestamp = getInputTimestamp();
+        for (auto const& keyInfo : pressedKeys) {
+            static_cast<GeodeRawInput*>(view)->handleKeyboardEvent(RawInputEvent{
+                .timestamp = timestamp,
+                .mods = KeyboardModifier::None,
+                .keyboard = {
+                    .vkey = keyInfo.vkey,
+                    .scanCode = keyInfo.scanCode,
+                    .flags = 0,
+                    .isE0 = keyInfo.isE0,
+                    .isE1 = false,
+                    .isRepeat = false
+                },
+                .type = RawInputEvent::Type::KeyUp,
+            });
+        }
+    }
+}
 
 struct GeodeControllerInput : Modify<GeodeControllerInput, CCApplication> {
     void updateControllerKeys(CXBOXController* controller, int userIndex) {
