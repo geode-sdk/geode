@@ -78,17 +78,17 @@ namespace gd {
 		static const size_t npos = -1;
 
 		string();
-		string(string const&);
-		string(string&&);
-		string(char const*);
-		string(char const*, size_t);
-		string(size_t, char);
-		string(std::string const&);
-		string(std::initializer_list<char>);
-		string(string const&, size_t);
-		string(string const&, size_t, size_t);
-		string(string&&, size_t);
-		string(string&&, size_t, size_t);
+		string(string const& str);
+		string(string&& other);
+		string(char const* str);
+		string(char const* str, size_t count);
+		string(size_t count, char c);
+		string(std::string const& str);
+		string(std::initializer_list<char> ilist);
+		string(string const& other, size_t pos);
+		string(string const& other, size_t pos, size_t count);
+		string(string&& other, size_t pos);
+		string(string&& other, size_t pos, size_t count);
 
 		template <class T>
 		requires std::convertible_to<T, std::string_view>
@@ -145,12 +145,12 @@ namespace gd {
 			return this->assign(std::ranges::begin(range), std::ranges::end(range));
 		}
 
-		string& operator=(string const&);
-		string& operator=(string&&);
-		string& operator=(char const*);
-		string& operator=(char);
-		string& operator=(std::initializer_list<char>);
-		string& operator=(std::string const&);
+		string& operator=(string const& other);
+		string& operator=(string&& other);
+		string& operator=(char const* other);
+		string& operator=(char other);
+		string& operator=(std::initializer_list<char> ilist);
+		string& operator=(std::string const& other);
 
 		template <class T>
 		requires std::convertible_to<T, std::string_view>
@@ -208,10 +208,10 @@ namespace gd {
 			return this->append(std::ranges::begin(range), std::ranges::end(range));
 		}
 
-		string& operator+=(string const&);
-		string& operator+=(char const*);
-		string& operator+=(char);
-		string& operator+=(std::initializer_list<char>);
+		string& operator+=(string const& other);
+		string& operator+=(char const* other);
+		string& operator+=(char c);
+		string& operator+=(std::initializer_list<char> ilist);
 
 		template <class T>
 		requires std::convertible_to<T, std::string_view>
