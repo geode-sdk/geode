@@ -163,6 +163,7 @@
         "curl-dns3": {
             "type": "string",
             "name": "Web DNS Server",
+            "description": "Change the DNS server that Geode and mods will use to make web requests.",
             "default": "Auto",
             "one-of": [
                 "Auto",
@@ -171,6 +172,13 @@
                 "Google",
                 "Cloudflare DoH"
             ]
+        },
+        "curl-custom-dns3": {
+            "type": "string",
+            "name": "Custom Web DNS Server(s)",
+            "description": "Manually specify DNS server IPs that Geode and mods will use to make web requests (separate each IP by a comma). This will override what you have set for Web DNS Server.",
+            "filter": "abcdefghijklmnopqrstuvwxyz0123456789.,[]:",
+            "default": ""
         },
         "server-cache-size-limit": {
             "type": "int",

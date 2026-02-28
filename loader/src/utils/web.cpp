@@ -1771,6 +1771,23 @@ arc::Future<> WebRequestsManager::Impl::dnsProbe() {
         m_wakeNotify.notifyOne();
     });
 
+    auto custom = Mod::get()->getSettingValue<std::string_view>("curl-custom-dns3");
+    if (!custom.empty()) {
+        auto adresses = qsox::IpAddress::parse(std::string(custom));
+        if (adresses.isOk()) {
+            log::debug("Using custom DNS server(s): {}", custom);
+
+            *g_bestDnsServer.lock() = DnsServer{
+                .name = "Custom",
+                .addresses = { adresses.unwrap() }
+            };
+
+            co_return;
+        } else {
+            log::warn("Invalid custom DNS server(s): {}", custom);
+        }
+    }
+    
     auto override = Mod::get()->getSettingValue<std::string_view>("curl-dns3");
     if (override != "Auto") {
         log::debug("Using DNS server override: {}", override);
