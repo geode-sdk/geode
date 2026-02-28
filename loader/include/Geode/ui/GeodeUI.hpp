@@ -2,6 +2,7 @@
 
 #include "../loader/Mod.hpp"
 #include <Geode/binding/FLAlertLayer.hpp>
+#include <Geode/loader/SettingV3.hpp>
 #include <Geode/ui/Popup.hpp>
 
 class ModPopup;
@@ -88,6 +89,14 @@ namespace geode {
      * settings
      */
     GEODE_DLL Popup* openSettingsPopup(Mod* mod, bool disableGeodeTheme);
+
+    /**
+     * Open the keybinds popup and navigate to a specific tab (if `std::nullopt` is passed then same tab user was on previously)
+     * @param mod If not null, keybinds of other mods will be collapsed
+     * @returns A pointer to the created Popup
+     */
+    GEODE_DLL Popup* openKeybindsPopup(std::optional<KeybindCategory> category, Mod* mod);
+
     /**
      * Create a default logo sprite
      */

@@ -11,7 +11,7 @@ static std::vector<Mod*> getModsSorted() {
         return a->getName() > b->getName();
     });
 
-    // Move Custom Keybinds to be first because it'll have all the vanilla 
+    // Move Custom Keybinds to be first because it'll have all the vanilla
     // keybinds :-)
     auto cb = std::ranges::find_if(mods, [](Mod* mod) {
         return mod->getID() == "geode.custom-keybinds";
@@ -22,17 +22,17 @@ static std::vector<Mod*> getModsSorted() {
     return mods;
 }
 
-bool KeybindsPopup::init(bool forceDisableTheme) {
+bool KeybindsPopup::init(std::optional<KeybindsPopupTab> tab, Mod* mod, bool forceDisableTheme) {
     if (!BaseSettingsPopup::init(forceDisableTheme, true))
         return false;
-    
-    m_tab = POPUP_TAB;
-    
+
+    m_tab = tab.value_or(POPUP_TAB);
+
     this->setTitle("Keybinds");
     m_searchInput->setPlaceholder("Search keybinds...");
     for (auto mod : getModsSorted()) {
         bool addedSubtitle = false;
-        for (auto key : mod->getSettingKeys()) {
+        for (auto& key : mod->getSettingKeys()) {
             if (auto sett = typeinfo_pointer_cast<KeybindSettingV3>(mod->getSetting(key))) {
                 if (!addedSubtitle) {
                     m_settings.push_back(TitleSettingNodeV3::create(
@@ -70,8 +70,12 @@ bool KeybindsPopup::init(bool forceDisableTheme) {
     m_mainLayer->addChildAtPosition(m_tabsMenu, Anchor::Center, ccp(0, 95));
 
     this->onSelectTab(nullptr);
+    if (mod) {
+        this->focusMod(mod);
+    }
+
     this->updateState();
-    
+
     return true;
 }
 
@@ -83,6 +87,16 @@ bool KeybindsPopup::shouldShow(SettingNode* node) const {
         return sett->getCategory() == static_cast<KeybindCategory>(m_tab);
     }
     return true;
+}
+
+void KeybindsPopup::focusMod(Mod* mod) {
+    for (auto node : m_list->m_contentLayer->getChildrenExt()) {
+        auto titleNode = typeinfo_cast<TitleSettingNodeV3*>(node);
+        if (!titleNode) continue;
+
+        bool matching = titleNode->getNameLabel()->getString() == mod->getName();
+        titleNode->setCollapsed(!matching);
+    }
 }
 
 void KeybindsPopup::onSelectTab(CCObject* sender) {
@@ -100,8 +114,12 @@ void KeybindsPopup::onSelectTab(CCObject* sender) {
 }
 
 KeybindsPopup* KeybindsPopup::create(bool forceDisableTheme) {
+    return create(KeybindsPopupTab::All, nullptr, forceDisableTheme);
+}
+
+KeybindsPopup* KeybindsPopup::create(std::optional<KeybindsPopupTab> tab, Mod* mod, bool forceDisableTheme) {
     auto ret = new KeybindsPopup();
-    if (ret->init(forceDisableTheme)) {
+    if (ret->init(tab, mod, forceDisableTheme)) {
         ret->autorelease();
         return ret;
     }

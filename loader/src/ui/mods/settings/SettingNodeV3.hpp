@@ -29,6 +29,7 @@ public:
     static TitleSettingNodeV3* create(ZStringView title, std::optional<ZStringView> description, float width);
 
     bool isCollapsed() const;
+    void setCollapsed(bool collapsed);
 
     bool hasUncommittedChanges() const override;
     bool hasNonDefaultValue() const override;
