@@ -1,6 +1,6 @@
 # Geode Changelog
 
-## v5.1.1
+## v5.2.0
  * Fix `async::TaskHolder` and `async::spawn` callback destructors not always being ran on main thread (9a853fb)
  * Force disable IPv6 on macOS (and on other systems if unsupported) (055b968)
  * Copy args for first send in global events (0542ab8)
@@ -11,6 +11,12 @@
  * Fix no percentage being shown when downloading resources (3350f62)
  * Make web requests time out after 2.5 seconds if DNS resolution or TLS connection are stuck (b3d4eb8)
  * Check for characters with modifiers (1976d2a)
+ * Fix unfriendly keybind modifiers (#1809)
+ * Fix std::vector calls on a gd::vector (#1874)
+ * Queue additional mouse events on main thread (mac) (05bf789)
+ * Release pressed keys on unfocus (9aeb60f)
+ * Add IDs for quick shortcuts in Geode settings (#1844)
+
 
 ## v5.1.0
  * Fix custom settings not loading their values (14378af)
