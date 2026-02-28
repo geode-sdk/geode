@@ -1473,8 +1473,9 @@ public:
 #endif
 
         arc::spawn(ipv6Probe());
-        arc::spawn(this->dnsProbe());
+
         m_probingDns.store(true, std::memory_order::relaxed);
+        arc::spawn(this->dnsProbe());
 
         bool running = true;
         std::vector<std::shared_ptr<RequestData>> heldRequests;
@@ -1766,6 +1767,7 @@ arc::Future<> WebRequestsManager::Impl::dnsProbe() {
     if (override != "Auto") {
         log::debug("Using DNS server override: {}", override);
         *g_bestDnsServer.lock() = serverForString(override);
+        m_probingDns.store(false, std::memory_order::release);
         co_return;
     }
 
