@@ -691,7 +691,7 @@ public:
 
         // Set timeout
         if (m_timeout) {
-            curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, (long)m_timeout->millis<uint64_t>());
+            curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, (long)m_timeout->millis());
         }
 
         // always set connection timeout to avoid hanging indefinitely (2.5 seconds)
