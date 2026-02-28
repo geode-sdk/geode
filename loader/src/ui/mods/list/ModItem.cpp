@@ -925,7 +925,7 @@ void ModItem::onViewError(CCObject*) {
             MDPopup::create(
                 "Deprecated",
                 fmt::format(
-                    "<cy>{0}</c> has as been <co>deprecated</c>, meaning that it "
+                    "<cy>{0}</c> has been <co>deprecated</c>, meaning that it "
                     "is no longer being developed. You may start running into "
                     "<co>bugs and crashes</c>, and the mod may not be available "
                     "for future GD versions.\n\n"
