@@ -15,7 +15,9 @@
 #include <Geode/utils/terminate.hpp>
 #include <Geode/utils/web.hpp>
 #include <arc/future/Select.hpp>
+#include <arc/future/Join.hpp>
 #include <arc/time/Sleep.hpp>
+#include <arc/time/Timeout.hpp>
 #include <arc/task/CancellationToken.hpp>
 #include <arc/sync/Mutex.hpp>
 #include <arc/sync/mpsc.hpp>
@@ -36,9 +38,16 @@ using namespace geode::utils::web;
 using namespace geode::utils::string;
 using namespace arc;
 
+struct DnsServer {
+    std::string_view name;
+    std::string dohUrl;
+    std::vector<qsox::IpAddress> addresses;
+};
+
 static std::atomic<bool> g_knownIpv6Support{false};
-static std::atomic<bool> g_knownHostileToDOH{false};
 static std::atomic<bool> g_verboseLogging{false};
+static asp::Mutex<std::optional<DnsServer>> g_bestDnsServer;
+static float g_bestDnsScore = -7.5f; // arbitrary value, do not choose a server if score is less than this
 
 static bool verboseLog() {
     return g_verboseLogging.load(std::memory_order::relaxed);
@@ -136,39 +145,38 @@ static std::optional<HttpVersion> wrapHttpVersion(long version) {
     }
 }
 
-static void setDNSOptions(CURL* curl, std::string_view which) {
-    if (which == "System") {
-        // nothing to do
+static void setDNSOptions(CURL* curl, DnsServer const& server) {
+    if (!server.dohUrl.empty()) {
+        curl_easy_setopt(curl, CURLOPT_DOH_URL, server.dohUrl.c_str());
         return;
     }
 
-    if (which == "Cloudflare DoH") {
-        if (g_knownHostileToDOH.load(std::memory_order::relaxed)) {
-            log::trace("Not using DoH because this network blocks it!");
-            return;
-        }
-
-        static auto dsbootstrap = curl_slist_append(nullptr, "cloudflare-dns.com:443:1.1.1.1,2606:4700:4700::1111");
-        static auto v4bootstrap = curl_slist_append(nullptr, "cloudflare-dns.com:443:1.1.1.1");
-        auto record = g_knownIpv6Support.load(std::memory_order::relaxed)
-            ? dsbootstrap
-            : v4bootstrap;
-
-        curl_easy_setopt(curl, CURLOPT_RESOLVE, record);
-        curl_easy_setopt(curl, CURLOPT_DOH_URL, "https://cloudflare-dns.com/dns-query");
-    } else if (which == "Cloudflare") {
-        auto servers = g_knownIpv6Support.load(std::memory_order::relaxed)
-            ? "1.1.1.1,1.0.0.1,[2606:4700:4700::1111],[2606:4700:4700::1001]"
-            : "1.1.1.1,1.0.0.1";
-
-        curl_easy_setopt(curl, CURLOPT_DNS_SERVERS, servers);
-    } else if (which == "Google") {
-        auto servers = g_knownIpv6Support.load(std::memory_order::relaxed)
-            ? "8.8.8.8,8.8.4.4,[2001:4860:4860::8888],[2001:4860:4860::8844]"
-            : "8.8.8.8,8.8.4.4";
-
-        curl_easy_setopt(curl, CURLOPT_DNS_SERVERS, servers);
+    if (server.addresses.empty()) {
+        return;
     }
+
+    bool useIpv6 = g_knownIpv6Support.load(std::memory_order::relaxed);
+    StringBuffer<> buf;
+    bool first = true;
+
+    for (auto& addr : server.addresses) {
+        if (addr.isV6() && !useIpv6) continue;
+
+        if (!first) {
+            buf.append(',');
+        }
+        first = false;
+
+        if (addr.isV6()) {
+            buf.append("[{}]", addr.toString());
+        } else if (addr.isV4()) {
+            buf.append("{}", addr.toString());
+        }
+    }
+
+    log::trace("using DNS servers: {}", buf.view());
+
+    curl_easy_setopt(curl, CURLOPT_DNS_SERVERS, buf.c_str());
 }
 
 class WebResponse::Impl {
@@ -457,7 +465,7 @@ public:
         }
     };
 
-    arc::mpsc::SendResult<std::shared_ptr<RequestData>> tryEnqueue(std::shared_ptr<RequestData> data);
+    mpsc::SendResult<std::shared_ptr<RequestData>> tryEnqueue(std::shared_ptr<RequestData> data);
     void cancel(std::shared_ptr<RequestData> data);
 };
 
@@ -490,10 +498,14 @@ public:
     std::optional<std::string> m_userAgent;
     std::optional<std::string> m_acceptEncodingType;
     std::optional<ByteVector> m_body;
-    std::optional<std::chrono::seconds> m_timeout;
+    std::optional<asp::Duration> m_timeout;
     std::optional<std::pair<std::uint64_t, std::uint64_t>> m_range;
     std::vector<geode::Function<void(WebProgress const&)>> m_progressCallbacks;
     std::string m_CABundleContent;
+    std::optional<DnsServer> m_dnsServer;
+    bool m_bypassDnsCache = false;
+    bool m_bypassConnectionPool = false;
+    bool m_silentFailure = false;
     bool m_certVerification = true;
     bool m_transferBody = true;
     bool m_followRedirects = true;
@@ -643,9 +655,23 @@ public:
         curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, sslOptions);
 
         // Set DNS options
-        // This is called curl-dns2 because we decided to change the default value later :)
-        auto dnsopt = Mod::get()->getSettingValue<std::string_view>("curl-dns2");
-        setDNSOptions(curl, dnsopt);
+        if (m_dnsServer) {
+            setDNSOptions(curl, *m_dnsServer);
+        } else {
+            auto lock = g_bestDnsServer.lock();
+            if (*lock) {
+                setDNSOptions(curl, **lock);
+            }
+        }
+        if (m_bypassDnsCache) {
+            curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, 0L);
+        }
+
+        // Bypass connection pool (used for DNS probing)
+        if (m_bypassConnectionPool) {
+            curl_easy_setopt(curl, CURLOPT_FRESH_CONNECT, 1L);
+            curl_easy_setopt(curl, CURLOPT_FORBID_REUSE, 1L);
+        }
 
         // Transfer body
         curl_easy_setopt(curl, CURLOPT_NOBODY, m_transferBody ? 0L : 1L);
@@ -665,7 +691,7 @@ public:
 
         // Set timeout
         if (m_timeout) {
-            curl_easy_setopt(curl, CURLOPT_TIMEOUT, m_timeout->count());
+            curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, (long)m_timeout->millis<uint64_t>());
         }
 
         // always set connection timeout to avoid hanging indefinitely (2.5 seconds)
@@ -964,7 +990,7 @@ WebRequest& WebRequest::userAgent(std::string name) {
 }
 
 WebRequest& WebRequest::timeout(std::chrono::seconds time) {
-    m_impl->m_timeout = time;
+    m_impl->m_timeout = asp::Duration::fromSecs(time.count());
     return *this;
 }
 
@@ -1066,7 +1092,10 @@ std::optional<ByteVector> WebRequest::getBody() const {
 }
 
 std::optional<std::chrono::seconds> WebRequest::getTimeout() const {
-    return m_impl->m_timeout;
+    if (m_impl->m_timeout) {
+        return std::chrono::seconds(m_impl->m_timeout->seconds());
+    }
+    return std::nullopt;
 }
 
 HttpVersion WebRequest::getHttpVersion() const {
@@ -1162,26 +1191,6 @@ static arc::Future<> ipv6Probe() {
     log::trace("IPv6 probe succeeded");
 }
 
-/// Attempts to make a request to cloudflare DoH, to check if this network blocks it (common in some regions like Spain)
-// this is commented out since we switched to using system by default
-// static arc::Future<> dohProbe() {
-//     auto resp = co_await web::WebRequest{}
-//         .header("Accept", "application/dns-json")
-//         .get("https://cloudflare-dns.com/dns-query?name=api.geode-sdk.org");
-
-//     if (resp.ok()) {
-//         co_return;
-//     }
-
-//     auto code = -resp.code();
-
-//     if (code == CURLE_PEER_FAILED_VERIFICATION) {
-//         g_knownHostileToDOH.store(true, std::memory_order::relaxed);
-//         log::info("DoH probe failed with TLS error ({})", resp.string().unwrapOrDefault());
-//         co_return;
-//     }
-// }
-
 class WebRequestsManager::Impl {
 public:
     CURLM* m_multiHandle;
@@ -1192,6 +1201,7 @@ public:
     arc::CancellationToken m_cancel;
     arc::Notify m_wakeNotify;
     asp::Instant m_nextWakeup = asp::Instant::farFuture();
+    std::atomic<bool> m_probingDns{false};
 
     std::unordered_set<std::shared_ptr<RequestData>> m_activeRequests;
     std::unordered_map<curl_socket_t, RegisteredSocket> m_sockets;
@@ -1286,9 +1296,8 @@ public:
         if (curl) {
             curl_multi_remove_handle(m_multiHandle, curl);
             curl_easy_cleanup(curl);
+            this->workerKickCurl();
         }
-
-        this->workerKickCurl();
     }
 
     auto workerPoll() {
@@ -1351,9 +1360,12 @@ public:
                 // Check if the request failed on curl's side or because of cancellation
                 if (msg->data.result != CURLE_OK) {
                     std::string_view err = curl_easy_strerror(msg->data.result);
-                    log::error("cURL failure, error: {}", err);
-                    log::warn("Error buffer: {}", errorBuf);
-                    log::warn("Verbose request logs:\n{}", requestData.response.verboseLogs());
+
+                    if (!requestData.request->m_silentFailure) {
+                        log::error("cURL failure for URL {}, error: {}", requestData.request->m_url, err);
+                        log::warn("Error buffer: {}", errorBuf);
+                        log::warn("Verbose request logs:\n{}", requestData.response.verboseLogs());
+                    }
 
                     requestData.onError(
                         // Make all CURL error codes negatives to not conflict with HTTP codes
@@ -1381,8 +1393,6 @@ public:
         // poll until there is socket activity or the timer expires
 
         return arc::select(
-            arc::selectee(m_wakeNotify.notified()),
-
             arc::selectee(this->workerPollSockets(), [this](PollReadiness readiness) {
                 auto [fd, ready] = readiness;
                 // log::debug("socket activity, fd: {}, ready: {}", fd, (int)ready);
@@ -1463,21 +1473,52 @@ public:
 #endif
 
         arc::spawn(ipv6Probe());
+        arc::spawn(this->dnsProbe());
+        m_probingDns.store(true, std::memory_order::relaxed);
 
         bool running = true;
+        std::vector<std::shared_ptr<RequestData>> heldRequests;
+
         while (running) {
+            // potentially send all held requests
+            if (!heldRequests.empty() && !m_probingDns.load(std::memory_order::relaxed)) {
+                for (auto& req : heldRequests) {
+                    log::trace("Resuming request that was put on hold: {}", req->request->m_url);
+                    this->workerAddRequest(std::move(req));
+                }
+                heldRequests.clear();
+            }
+
             co_await arc::select(
                 arc::selectee(
                     m_cancel.waitCancelled(),
                     [&] { running = false; }
                 ),
 
-                arc::selectee(rx.recv(), [&](auto req) {
-                    if (req) this->workerAddRequest(std::move(req).unwrap());
+                arc::selectee(rx.recv(), [&](auto r) {
+                    if (!r) return;
+                    auto req = std::move(r).unwrap();
+
+                    // if we don't have a working DNS server yet, hold this request for a bit (unless it's a probe)
+                    if (m_probingDns.load(std::memory_order::relaxed) && !req->request->m_dnsServer) {
+                        log::trace("Putting request on hold: {}", req->request->m_url);
+                        heldRequests.push_back(std::move(req));
+                        return;
+                    }
+                    this->workerAddRequest(std::move(req));
                 }),
 
-                arc::selectee(crx.recv(), [&](auto req) {
-                    if (req) this->workerCancelRequest(std::move(req).unwrap());
+                arc::selectee(crx.recv(), [&](auto r) {
+                    if (!r) return;
+                    auto req = std::move(r).unwrap();
+
+                    // remove from held and also always call cancel, it's harmless
+                    auto it = std::ranges::find(heldRequests, req);
+                    if (it != heldRequests.end()) {
+                        heldRequests.erase(it);
+                    }
+
+                    this->workerCancelRequest(std::move(req));
                 }),
 
                 arc::selectee(
@@ -1523,6 +1564,10 @@ public:
         ares_library_init_android(globalConnectivityManager);
     }
 #endif
+
+    arc::Future<float> testOne(std::string_view url, DnsServer const& server);
+    arc::Future<float> testDnsServer(DnsServer const& server);
+    arc::Future<> dnsProbe();
 };
 
 WebRequestsManager::WebRequestsManager() : m_impl(new Impl()) {}
@@ -1603,4 +1648,144 @@ void WebRequestsManager::cancel(std::shared_ptr<RequestData> data) {
 
 mpsc::SendResult<std::shared_ptr<WebRequestsManager::RequestData>> WebRequestsManager::tryEnqueue(std::shared_ptr<RequestData> data) {
     return m_impl->m_reqtx->trySend(std::move(data));
+}
+
+static std::optional<DnsServer> serverForString(std::string_view which) {
+    if (which == "Cloudflare") {
+        return DnsServer {
+            .name = which,
+            .addresses = {
+                qsox::Ipv4Address{1, 1, 1, 1},
+                qsox::Ipv4Address{1, 0, 0, 1},
+                qsox::Ipv6Address{0x2606, 0x4700, 0x4700, 0, 0, 0, 0, 0x1111},
+                qsox::Ipv6Address{0x2606, 0x4700, 0x4700, 0, 0, 0, 0, 0x1001}
+            }
+        };
+    } else if (which == "Google") {
+        return DnsServer {
+            .name = which,
+            .addresses = {
+                qsox::Ipv4Address{8, 8, 8, 8},
+                qsox::Ipv4Address{8, 8, 4, 4},
+                qsox::Ipv6Address{0x2001, 0x4860, 0x4860, 0, 0, 0, 0x8888, 0},
+                qsox::Ipv6Address{0x2001, 0x4860, 0x4860, 0, 0, 0, 0x8844, 0}
+            }
+        };
+    } else if (which == "Cloudflare DoH") {
+        return DnsServer {
+            .name = which,
+            .dohUrl = "https://cloudflare-dns.com/dns-query",
+            // bootstrap addresses
+            .addresses = {
+                qsox::Ipv4Address{1, 1, 1, 1},
+                qsox::Ipv6Address{0x2606, 0x4700, 0x4700, 0, 0, 0, 0, 0x1111},
+            }
+        };
+    } else if (which == "System") {
+        return DnsServer { "System" };
+    }
+
+    return std::nullopt;
+}
+
+arc::Future<float> WebRequestsManager::Impl::testOne(std::string_view url, DnsServer const& server) {
+    WebRequest req;
+    req.m_impl->m_dnsServer = server;
+    req.m_impl->m_bypassDnsCache = true;
+    req.m_impl->m_bypassConnectionPool = true;
+    req.m_impl->m_silentFailure = !verboseLog();
+    req.m_impl->m_timeout = asp::Duration::fromMillis(1500);
+
+    auto res = co_await arc::timeout(asp::Duration::fromSecs(2), req.get(std::string{url}));
+    if (!res) {
+        // timed out (shouldn't happen)
+        log::debug("Request to {} (via {} DNS) timed out", url, server.name);
+        co_return -10.f;
+    }
+
+    auto r = std::move(res).unwrap();
+    if (r.error()) {
+        // curl error occurred, likely dns / tls error
+        log::debug("Request to {} (via {} DNS) failed: {}", url, server.name, r.code());
+        co_return -5.f;
+    }
+
+    // otherwise, base the score on dns lookup time, 0ms gives 5.0 score and >= 250ms gives 0.0 score
+    // divide time by 2 for doh for fairness
+    auto dnsTime = std::clamp(
+        r.timings().nameLookup.millis<float>() / (server.dohUrl.empty() ? 1.f : 2.f),
+        0.f,
+        250.f
+    );
+    log::trace("Request to {} (via {} DNS) took {:.1f}ms to resolve", url, server.name, dnsTime);
+
+    co_return (250.f - dnsTime) / 50.f;
+}
+
+arc::Future<float> WebRequestsManager::Impl::testDnsServer(DnsServer const& server) {
+    float score = 0.f;
+
+    // multipliers depending on how reliable we expect the server to be and how important it is
+    std::array<std::pair<std::string_view, float>, 3> testUrls {{
+        {"https://api.geode-sdk.org", 2.f},
+        {"https://cloudflare.com/cdn-cgi/trace", 1.5f},
+        {"https://github.com/robots.txt", 1.25f},
+    }};
+
+    auto results = co_await arc::joinAll(
+        testOne(testUrls[0].first, server),
+        testOne(testUrls[1].first, server),
+        testOne(testUrls[2].first, server)
+    );
+
+    for (size_t i = 0; i < results.size(); i++) {
+        score += results[i] * testUrls[i].second;
+    }
+
+    // replace the best dns server with this one, if the score is better than the current best
+    // we do this at this stage, so that if one server completes very quick, we can start using it immediately
+    auto lock = g_bestDnsServer.lock();
+    if (score >= g_bestDnsScore) {
+        *lock = server;
+        g_bestDnsScore = score;
+        log::debug("Switching to {} for DNS resolution", server.name);
+
+        // if the score is okay, notify that we can send requests now
+        // otherwise wait until a better server, so there's a smaller chance of the request failing
+        if (score >= 5.f) {
+            m_probingDns.store(false, std::memory_order::release);
+            m_wakeNotify.notifyOne();
+        }
+    }
+
+    co_return score;
+}
+
+arc::Future<> WebRequestsManager::Impl::dnsProbe() {
+    auto override = Mod::get()->getSettingValue<std::string_view>("curl-dns3");
+    if (override != "Auto") {
+        log::debug("Using DNS server override: {}", override);
+        *g_bestDnsServer.lock() = serverForString(override);
+        co_return;
+    }
+
+    constexpr size_t Servers = 4;
+    std::array<DnsServer, Servers> candidates {
+        serverForString("Cloudflare").value(),
+        serverForString("Google").value(),
+        serverForString("Cloudflare DoH").value(),
+        serverForString("System").value(),
+    };
+    std::array<float, Servers> results = co_await arc::joinAll(
+        testDnsServer(candidates[0]),
+        testDnsServer(candidates[1]),
+        testDnsServer(candidates[2]),
+        testDnsServer(candidates[3])
+    );
+
+    for (size_t i = 0; i < results.size(); i++) {
+        log::debug("DNS server {}: score {:.3f}", candidates[i].name, results[i]);
+    }
+    m_probingDns.store(false, std::memory_order::release);
+    m_wakeNotify.notifyOne();
 }
