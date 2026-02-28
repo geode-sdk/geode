@@ -1496,6 +1496,8 @@ public:
                     [&] { running = false; }
                 ),
 
+                arc::selectee(m_wakeNotify.notified()),
+
                 arc::selectee(rx.recv(), [&](auto r) {
                     if (!r) return;
                     auto req = std::move(r).unwrap();
@@ -1763,11 +1765,16 @@ arc::Future<float> WebRequestsManager::Impl::testDnsServer(DnsServer const& serv
 }
 
 arc::Future<> WebRequestsManager::Impl::dnsProbe() {
+    // reset the flag and notify worker task once we are done
+    auto _dtor = arc::scopeDtor([&] {
+        m_probingDns.store(false, std::memory_order::release);
+        m_wakeNotify.notifyOne();
+    });
+
     auto override = Mod::get()->getSettingValue<std::string_view>("curl-dns3");
     if (override != "Auto") {
         log::debug("Using DNS server override: {}", override);
         *g_bestDnsServer.lock() = serverForString(override);
-        m_probingDns.store(false, std::memory_order::release);
         co_return;
     }
 
@@ -1788,6 +1795,4 @@ arc::Future<> WebRequestsManager::Impl::dnsProbe() {
     for (size_t i = 0; i < results.size(); i++) {
         log::debug("DNS server {}: score {:.3f}", candidates[i].name, results[i]);
     }
-    m_probingDns.store(false, std::memory_order::release);
-    m_wakeNotify.notifyOne();
 }
