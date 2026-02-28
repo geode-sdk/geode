@@ -51,18 +51,19 @@ void updater::downloadLatestLoaderResources() {
 void updater::tryDownloadLoaderResources(std::string url, bool tryLatestOnError) {
     if (RUNNING_REQUESTS.contains(url)) return;
 
-    // TODO: progress
-    // ResourceDownloadEvent().send(
-    //     UpdateProgress(
-    //         static_cast<uint8_t>(progress->downloadProgress().value_or(0)),
-    //         "Downloading resources"
-    //     )
-    // );
+    auto progress = [](const web::WebProgress& prog) {
+        ResourceDownloadEvent().send(
+            UpdateProgress(
+                static_cast<uint8_t>(prog.downloadProgress().value_or(0)),
+                "Downloading resources"
+            )
+        );
+    };
 
     auto& holder = RUNNING_REQUESTS[url];
     holder.spawn(
         "Geode resources download",
-        web::WebRequest{}.get(url),
+        web::WebRequest{}.onProgress(std::move(progress)).get(url),
         [url](auto response) {
             if (response.ok()) {
                 auto tempResourcesZip = dirs::getTempDir() / "new.zip";

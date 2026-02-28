@@ -954,7 +954,7 @@ namespace comm {
             if (m_filter.has_value()) {
                 auto filterCopy = *m_filter;
                 auto ret = std::apply([&](auto&&... fargs) {
-                    return Event1Type(std::move(fargs)...).send(std::forward<PArgs>(args)...);
+                    return Event1Type(std::move(fargs)...).send(args...);
                 }, std::move(filterCopy));
                 if (ret) return true;
 

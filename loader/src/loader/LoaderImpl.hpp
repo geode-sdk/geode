@@ -161,6 +161,7 @@ namespace geode {
         std::optional<std::string> getBinaryPath() const;
 
         std::unordered_map<Keybind, std::vector<std::shared_ptr<KeybindSettingV3>>> m_keybindSettings;
+        std::unordered_map<KeybindSettingV3*, Keybind> m_activeKeybinds;
         void onKeybindSettingChanged(std::shared_ptr<KeybindSettingV3> setting, std::vector<Keybind> const& keybinds);
     };
 

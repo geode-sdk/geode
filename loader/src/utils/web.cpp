@@ -36,6 +36,14 @@ using namespace geode::utils::web;
 using namespace geode::utils::string;
 using namespace arc;
 
+static std::atomic<bool> g_knownIpv6Support{false};
+static std::atomic<bool> g_knownHostileToDOH{false};
+static std::atomic<bool> g_verboseLogging{false};
+
+static bool verboseLog() {
+    return g_verboseLogging.load(std::memory_order::relaxed);
+}
+
 static long unwrapProxyType(ProxyType type) {
     switch (type) {
         using enum ProxyType;
@@ -135,23 +143,40 @@ static void setDNSOptions(CURL* curl, std::string_view which) {
     }
 
     if (which == "Cloudflare DoH") {
-        static auto bootstrap = curl_slist_append(nullptr, "cloudflare-dns.com:443:1.1.1.1,2606:4700:4700::1111");
-        curl_easy_setopt(curl, CURLOPT_RESOLVE, bootstrap);
+        if (g_knownHostileToDOH.load(std::memory_order::relaxed)) {
+            log::trace("Not using DoH because this network blocks it!");
+            return;
+        }
+
+        static auto dsbootstrap = curl_slist_append(nullptr, "cloudflare-dns.com:443:1.1.1.1,2606:4700:4700::1111");
+        static auto v4bootstrap = curl_slist_append(nullptr, "cloudflare-dns.com:443:1.1.1.1");
+        auto record = g_knownIpv6Support.load(std::memory_order::relaxed)
+            ? dsbootstrap
+            : v4bootstrap;
+
+        curl_easy_setopt(curl, CURLOPT_RESOLVE, record);
         curl_easy_setopt(curl, CURLOPT_DOH_URL, "https://cloudflare-dns.com/dns-query");
     } else if (which == "Cloudflare") {
-        curl_easy_setopt(curl, CURLOPT_DNS_SERVERS, "1.1.1.1,1.0.0.1,[2606:4700:4700::1111],[2606:4700:4700::1001]");
+        auto servers = g_knownIpv6Support.load(std::memory_order::relaxed)
+            ? "1.1.1.1,1.0.0.1,[2606:4700:4700::1111],[2606:4700:4700::1001]"
+            : "1.1.1.1,1.0.0.1";
+
+        curl_easy_setopt(curl, CURLOPT_DNS_SERVERS, servers);
     } else if (which == "Google") {
-        curl_easy_setopt(curl, CURLOPT_DNS_SERVERS, "8.8.8.8,8.8.4.4,[2001:4860:4860::8888],[2001:4860:4860::8844]");
+        auto servers = g_knownIpv6Support.load(std::memory_order::relaxed)
+            ? "8.8.8.8,8.8.4.4,[2001:4860:4860::8888],[2001:4860:4860::8844]"
+            : "8.8.8.8,8.8.4.4";
+
+        curl_easy_setopt(curl, CURLOPT_DNS_SERVERS, servers);
     }
 }
-
-static std::atomic<bool> g_knownIpv6Support{false};
 
 class WebResponse::Impl {
 public:
     int m_code;
     ByteVector m_data;
     std::string m_errMessage;
+    utils::StringBuffer<8> m_logs; // always heap
     utils::StringMap<std::vector<std::string>> m_headers;
     RequestTimings m_timings;
 
@@ -383,6 +408,10 @@ std::string_view WebResponse::errorMessage() const {
     return m_impl->m_errMessage;
 }
 
+std::string_view WebResponse::verboseLogs() const {
+    return m_impl->m_logs.view();
+}
+
 RequestTimings const& WebResponse::timings() const {
     return m_impl->m_timings;
 }
@@ -606,10 +635,16 @@ public:
             }
         }
 
+        // Enable TLS early data for 0-rtt resumption, if appropriate
+        if (m_method == "GET" || m_method == "HEAD" || m_method == "OPTIONS") {
+            sslOptions |= CURLSSLOPT_EARLYDATA;
+        }
+
         curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, sslOptions);
 
         // Set DNS options
-        auto dnsopt = Mod::get()->getSettingValue<std::string_view>("curl-dns");
+        // This is called curl-dns2 because we decided to change the default value later :)
+        auto dnsopt = Mod::get()->getSettingValue<std::string_view>("curl-dns2");
         setDNSOptions(curl, dnsopt);
 
         // Transfer body
@@ -632,6 +667,9 @@ public:
         if (m_timeout) {
             curl_easy_setopt(curl, CURLOPT_TIMEOUT, m_timeout->count());
         }
+
+        // always set connection timeout to avoid hanging indefinitely (2.5 seconds)
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 2500L);
 
         // Set range
         if (m_range) {
@@ -681,44 +719,48 @@ public:
         }
 
         // Verbose logging
-        if (Mod::get()->getSettingValue<bool>("verbose-curl-logs")) {
-            curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-            curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, +[](CURL* handle, curl_infotype type, char* data, size_t size, void* clientp) {
-                while (size > 0 && (data[size - 1] == '\n' || data[size - 1] == '\r')) {
-                    size--; // remove trailing newline
-                }
+        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+        curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, +[](CURL* handle, curl_infotype type, char* data, size_t size, void* clientp) {
+            while (size > 0 && (data[size - 1] == '\n' || data[size - 1] == '\r')) {
+                size--; // remove trailing newline
+            }
 
-                switch (type) {
-                    case CURLINFO_TEXT:
-                        log::debug("[Curl] {}", std::string_view(data, size));
-                        break;
-                    case CURLINFO_HEADER_IN:
-                        log::debug("[Curl] Header in: {}", std::string_view(data, size));
-                        break;
-                    case CURLINFO_HEADER_OUT:
-                        log::debug("[Curl] Header out: {}", std::string_view(data, size));
-                        break;
-                    case CURLINFO_DATA_IN:
-                        log::trace("[Curl] Data in ({} bytes)", size);
-                        break;
-                    case CURLINFO_DATA_OUT:
-                        log::trace("[Curl] Data out ({} bytes)", size);
-                        break;
-                    case CURLINFO_SSL_DATA_IN:
-                        log::trace("[Curl] SSL data in ({} bytes)", size);
-                        break;
-                    case CURLINFO_SSL_DATA_OUT:
-                        log::trace("[Curl] SSL data out ({} bytes)", size);
-                        break;
-                    case CURLINFO_END:
-                        log::debug("[Curl] End of info");
-                        break;
-                    default:
-                        log::debug("[Curl] Unknown info type: {}", static_cast<int>(type));
-                        break;
-                }
-            });
-        }
+            // skip data
+            if (type == CURLINFO_DATA_IN || type == CURLINFO_DATA_OUT || type == CURLINFO_SSL_DATA_IN || type == CURLINFO_SSL_DATA_OUT) {
+                return 0;
+            }
+
+            std::string_view content(data, size);
+            if (verboseLog()) {
+                log::debug("[Curl] {}", content);
+            }
+
+            if (!clientp) {
+                return 0;
+            }
+
+            auto& rlogs = static_cast<ResponseData*>(clientp)->response.m_impl->m_logs;
+
+            switch (type) {
+                case CURLINFO_TEXT:
+                    rlogs.append(content);
+                    rlogs.append('\n');
+                    break;
+                case CURLINFO_HEADER_IN:
+                    rlogs.append("Header in: {}\n", content);
+                    break;
+                case CURLINFO_HEADER_OUT:
+                    rlogs.append("Header out: {}\n", content);
+                    break;
+                case CURLINFO_END:
+                    rlogs.append("--- End of info ---\n");
+                    break;
+                default: break;
+            }
+
+            return 0;
+        });
+        curl_easy_setopt(curl, CURLOPT_DEBUGDATA, requestData);
 
         // If an error happens, we want to get a more specific description of the issue
         curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, m_errorBuf);
@@ -1086,6 +1128,12 @@ struct ARC_NODISCARD MultiPollFuture : Pollable<MultiPollFuture, PollReadiness> 
 
 /// Attempts to establish an IPv6 connection to a known endpoint to determine if IPv6 is supported on this network
 static arc::Future<> ipv6Probe() {
+#ifdef GEODE_IS_MACOS
+    // macos causes too many issues, so we just completely disable ipv6 there
+    // feel free to remove this in 10 years or so when it finally works properly
+    co_return;
+#endif
+
     // try to connect to cloudflare
     auto res = co_await arc::TcpStream::connect("[2606:4700:4700::1111]:80");
     if (!res) {
@@ -1113,6 +1161,26 @@ static arc::Future<> ipv6Probe() {
     g_knownIpv6Support.store(true, std::memory_order::relaxed);
     log::trace("IPv6 probe succeeded");
 }
+
+/// Attempts to make a request to cloudflare DoH, to check if this network blocks it (common in some regions like Spain)
+// this is commented out since we switched to using system by default
+// static arc::Future<> dohProbe() {
+//     auto resp = co_await web::WebRequest{}
+//         .header("Accept", "application/dns-json")
+//         .get("https://cloudflare-dns.com/dns-query?name=api.geode-sdk.org");
+
+//     if (resp.ok()) {
+//         co_return;
+//     }
+
+//     auto code = -resp.code();
+
+//     if (code == CURLE_PEER_FAILED_VERIFICATION) {
+//         g_knownHostileToDOH.store(true, std::memory_order::relaxed);
+//         log::info("DoH probe failed with TLS error ({})", resp.string().unwrapOrDefault());
+//         co_return;
+//     }
+// }
 
 class WebRequestsManager::Impl {
 public:
@@ -1153,6 +1221,11 @@ public:
 
         m_worker = async::runtime().spawn(this->workerFunc(std::move(rx), std::move(crx)));
         m_worker.setName("Geode Web Worker");
+
+        g_verboseLogging.store(Mod::get()->getSettingValue<bool>("verbose-curl-logs"));
+        listenForSettingChanges<bool>("verbose-curl-logs", [this](bool value) {
+            g_verboseLogging.store(value);
+        });
     }
 
     // Note for future people: this is currently leaked because cleanup is unsafe in statics
@@ -1186,21 +1259,27 @@ public:
         req->curl = handle;
         curl_easy_setopt(handle, CURLOPT_PRIVATE, req.get());
 
-        // log::debug("Added request ({})", req->request->m_url);
+        if (verboseLog()) {
+            log::debug("Added request ({})", req->request->m_url);
+        }
         curl_multi_add_handle(m_multiHandle, handle);
         m_activeRequests.insert(std::move(req));
         this->workerKickCurl();
     }
 
     void workerCancelRequest(std::shared_ptr<RequestData> req) {
-        // log::debug("Cancelled request ({})", req->request->m_url);
+        if (verboseLog()) {
+            log::debug("Cancelled request ({})", req->request->m_url);
+        }
         req->onError(GeodeWebError::REQUEST_CANCELLED, "Request cancelled");
 
         this->cleanupRequest(std::move(req));
     }
 
     void cleanupRequest(std::shared_ptr<RequestData> req) {
-        // log::debug("Removing request ({})", req->request->m_url);
+        if (verboseLog()) {
+            log::debug("Removing request ({})", req->request->m_url);
+        }
         m_activeRequests.erase(req);
 
         auto curl = std::exchange(req->curl, nullptr);
@@ -1274,6 +1353,8 @@ public:
                     std::string_view err = curl_easy_strerror(msg->data.result);
                     log::error("cURL failure, error: {}", err);
                     log::warn("Error buffer: {}", errorBuf);
+                    log::warn("Verbose request logs:\n{}", requestData.response.verboseLogs());
+
                     requestData.onError(
                         // Make all CURL error codes negatives to not conflict with HTTP codes
                         msg->data.result * -1,
@@ -1304,6 +1385,7 @@ public:
 
             arc::selectee(this->workerPollSockets(), [this](PollReadiness readiness) {
                 auto [fd, ready] = readiness;
+                // log::debug("socket activity, fd: {}, ready: {}", fd, (int)ready);
                 int ev = 0;
                 if (ready & Interest::Readable) ev |= CURL_CSELECT_IN;
                 if (ready & Interest::Writable) ev |= CURL_CSELECT_OUT;
@@ -1334,6 +1416,8 @@ public:
         auto& driver = Runtime::current()->ioDriver();
         auto it = m_sockets.find(s);
 
+        log::trace("socket callback, socket: {}, what: {}, registered: {}", (int)s, what, it != m_sockets.end());
+
         if (what == CURL_POLL_REMOVE) {
             // remove the socket, which unregisters it from the io driver as well
             if (it != m_sockets.end()) {
@@ -1362,6 +1446,8 @@ public:
     }
 
     void timerCallback(CURLM* multi, long timeout_ms) {
+        // log::trace("timer callback, wake in {}ms", timeout_ms);
+
         if (timeout_ms == -1) {
             m_nextWakeup = asp::Instant::farFuture();
         } else {

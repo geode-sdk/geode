@@ -123,6 +123,7 @@ jobs:
         ${{ env.base-configure-command }}
         -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN
         -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON
+        -DGEODE_UNITY_BUILD=ON
         ${{ steps.build-debug-info.outputs.extra-configure }}
       env:
         SPLAT_DIR: ${{ github.workspace }}/.xwin-cache/splat

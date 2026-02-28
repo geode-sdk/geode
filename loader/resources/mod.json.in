@@ -128,7 +128,7 @@
         },
         "file-log-level": {
             "type": "string",
-            "default": "info",
+            "default": "debug",
             "name": "File Log Level",
             "description": "Sets the log level for the <cb>log files</c>.",
             "one-of": ["trace", "debug", "info", "warn", "error"]
@@ -158,12 +158,12 @@
             "type": "bool",
             "default": false,
             "name": "Verbose Curl Logs",
-            "description": "When performing web requests, prints detailed information about the request to the logs. Useful for developers wanting to debug network issues."
+            "description": "When performing web requests, prints detailed information about the request immediately, as well as information when requests are added/removed. Otherwise, some information will only be printed on request failure."
         },
-        "curl-dns": {
+        "curl-dns2": {
             "type": "string",
             "name": "Web DNS Server",
-            "default": "Cloudflare DoH",
+            "default": "System",
             "one-of": [
                 "System",
                 "Cloudflare",
