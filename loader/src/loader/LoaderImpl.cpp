@@ -561,6 +561,7 @@ void Loader::Impl::findProblems() {
         // invalid target version
         // Also this makes it so that when GD updates, outdated mods get shown as
         // "Outdated" in the UI instead of "Missing Dependencies"
+        // btw hi if you ever change this line please update LoaderImpl and ModMetadataImpl as well
         auto res = mod->getMetadata().checkGameVersion();
         if (!res) {
             this->addProblem({ LoadProblem::Type::Outdated, mod, res.unwrapErr() });
@@ -606,7 +607,7 @@ void Loader::Impl::findProblems() {
 
         // Collect breaking incompatibilities
         for (auto const& dep : mod->getMetadata().getIncompatibilities()) {
-            if (!dep.getMod() || !dep.getVersion().compare(dep.getMod()->getVersion()) || !dep.getMod()->shouldLoad()) {
+            if (!dep.getMod() || !dep.getVersion().compare(dep.getMod()->getVersion()) || !dep.getMod()->shouldLoad() || !dep.getMod()->getMetadata().checkGameVersion()) {
                 continue;
             }
             if (dep.isBreaking()) {
