@@ -23,6 +23,7 @@
 #include <arc/sync/mpsc.hpp>
 #include <arc/net/TcpStream.hpp>
 #include <asp/collections/SmallVec.hpp>
+#include <asp/iter.hpp>
 #include <ca_bundle.h>
 #include <curl/curl.h>
 #include <sstream>
@@ -1771,6 +1772,26 @@ arc::Future<> WebRequestsManager::Impl::dnsProbe() {
         m_wakeNotify.notifyOne();
     });
 
+    auto custom = Mod::get()->getSettingValue<std::string_view>("curl-custom-dns3");
+    if (!custom.empty()) {
+        auto ips = asp::iter::split(custom, ',').filterMap([&](std::string_view s) {
+            return qsox::IpAddress::parse(std::string{s}).ok();
+        }).collect();
+
+        if (!ips.empty()) {
+            log::debug("Using custom DNS server(s): {}", custom);
+
+            *g_bestDnsServer.lock() = DnsServer{
+                .name = "Custom",
+                .addresses = ips
+            };
+
+            co_return;
+        } else {
+            log::warn("Invalid custom DNS server(s): {}", custom);
+        }
+    }
+    
     auto override = Mod::get()->getSettingValue<std::string_view>("curl-dns3");
     if (override != "Auto") {
         log::debug("Using DNS server override: {}", override);
