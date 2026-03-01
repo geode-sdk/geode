@@ -1,5 +1,16 @@
 # Geode Changelog
 
+## v5.3.0
+ * Add `CCDrawNode` hook to fix an uninitialized member (cfe6542)
+ * Add `geode::openKeybindsPopup` (#1880)
+ * Fix key up events being sent to one listener instead of all (ac26c86)
+ * Fix modifier keys being inconsistent in keyDown and keyUp on Windows (f355139)
+ * Fix deprecations being parsed incorrectly (f0452d6)
+ * Try to test multiple DNS servers on launch and choose the best one for requests (41f833b, 1f46105, 4a71fe1, 32bfad3)
+ * Add a setting for choosing a custom DNS server (#1878)
+ * Fix mods having the default log level set to Debug instead of Trace (1e22c4a)
+ * Allow mods to load if their incompatible mods are outdated (c6d589a)
+
 ## v5.2.0
  * Fix `async::TaskHolder` and `async::spawn` callback destructors not always being ran on main thread (9a853fb)
  * Force disable IPv6 on macOS (and on other systems if unsupported) (055b968)
