@@ -462,12 +462,29 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
             evt.keyboard.isE0
         );
 
+        auto mods = evt.mods;
+        switch (evt.keyboard.vkey) {
+            case VK_LSHIFT: case VK_RSHIFT: case VK_SHIFT:
+                mods |= KeyboardModifier::Shift;
+                break;
+            case VK_LCONTROL: case VK_RCONTROL: case VK_CONTROL:
+                mods |= KeyboardModifier::Control;
+                break;
+            case VK_LMENU: case VK_RMENU: case VK_MENU:
+                mods |= KeyboardModifier::Alt;
+                break;
+            case VK_LWIN: case VK_RWIN:
+                mods |= KeyboardModifier::Super;
+                break;
+            default: break;
+        }
+
         KeyboardInputData data(
             keyCode,
             isDown ? (evt.keyboard.isRepeat ? Repeat : Press) : Release,
             {evt.keyboard.vkey, evt.keyboard.scanCode},
             evt.timestamp,
-            evt.mods
+            mods
         );
 
         auto result = KeyboardInputEvent(keyCode).send(data);
@@ -487,10 +504,10 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
             auto* keyboardDispatcher = CCKeyboardDispatcher::get();
 
             keyboardDispatcher->updateModifierKeys(
-                data.modifiers & KeyboardModifier::Shift,
-                data.modifiers & KeyboardModifier::Control,
-                data.modifiers & KeyboardModifier::Alt,
-                data.modifiers & KeyboardModifier::Super
+                evt.mods & KeyboardModifier::Shift,
+                evt.mods & KeyboardModifier::Control,
+                evt.mods & KeyboardModifier::Alt,
+                evt.mods & KeyboardModifier::Super
             );
 
             if (!ime->hasDelegate() || keyCode == KEY_Escape || keyCode == KEY_Enter) {
