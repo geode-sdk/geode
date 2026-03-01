@@ -155,6 +155,18 @@ std::shared_ptr<Setting> Mod::getSetting(std::string_view key) const {
     return m_impl->m_settings->get(key);
 }
 
+void Mod::setSettingName(std::string_view key, std::string_view name) {
+	if (auto setting = getSetting(key)) {
+		setting->setDisplayName(name);
+	}
+}
+
+void Mod::setSettingDescription(std::string_view key, std::string_view desc) {
+	if (auto setting = getSetting(key)) {
+		setting->setDescription(desc);
+	}
+}
+
 Result<> Mod::registerCustomSettingType(std::string_view type, SettingGenerator generator) {
     return m_impl->m_settings->registerCustomSettingType(type, std::move(generator));
 }
