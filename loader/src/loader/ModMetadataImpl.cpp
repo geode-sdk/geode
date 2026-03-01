@@ -190,7 +190,7 @@ void ModMetadata::Incompatibility::setMod(Mod* mod) {
 
 bool ModMetadata::Incompatibility::isResolved() const {
     return !m_impl->breaking ||
-        (!this->getMod() || !this->getVersion().compare(this->getMod()->getVersion()) || !this->getMod()->shouldLoad());
+        (!this->getMod() || !this->getVersion().compare(this->getMod()->getVersion()) || !this->getMod()->shouldLoad() || !this->getMod()->getMetadata().checkGameVersion());
 }
 
 class ModMetadata::IssuesInfo::Impl {

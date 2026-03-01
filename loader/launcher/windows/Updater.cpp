@@ -53,7 +53,7 @@ bool waitForFile(std::filesystem::path const& path) {
         CloseHandle(hFile);
     } else {
         auto filename = path.filename();
-        showError(L"Unable to update Geode: " + filename.native() + L" is open by another process.");
+        showError(L"Unable to update Geode: " + filename.native() + L" is open by another process.\n\nTry opening Geometry Dash once again or restart your PC if this issue persists.");
         return false;
     }
     return true;

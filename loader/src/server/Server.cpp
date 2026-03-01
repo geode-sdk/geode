@@ -416,7 +416,7 @@ Mod* ServerModUpdate::hasUpdateForInstalledMod() const {
 Result<ServerModDeprecation> ServerModDeprecation::parse(matjson::Value json) {
     auto root = checkJson(std::move(json), "ServerModDeprecation");
     auto res = ServerModDeprecation();
-    root.needs("id").into(res.id);
+    root.needs("mod_id").into(res.id);
     root.needs("by").into(res.by);
     root.needs("reason").into(res.reason);
     return root.ok(std::move(res));

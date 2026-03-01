@@ -9,6 +9,7 @@
 #include <server/Server.hpp>
 #include "mods/GeodeStyle.hpp"
 #include "mods/settings/ModSettingsPopup.hpp"
+#include "mods/settings/KeybindsPopup.hpp"
 #include "mods/popups/ModPopup.hpp"
 
 class LoadServerModLayer : public Popup {
@@ -197,7 +198,7 @@ std::optional<arc::TaskHandle<bool>> geode::openInfoPopup(std::string modID) {
                 popup->show();
             });
         }
-        
+
         co_return ret;
     });
 }
@@ -218,6 +219,19 @@ Popup* geode::openSettingsPopup(Mod* mod, bool disableGeodeTheme) {
         return popup;
     }
     return nullptr;
+}
+
+Popup* geode::openKeybindsPopup(std::optional<KeybindCategory> category, Mod* mod) {
+    auto tab = KeybindsPopupTab::All;
+    if (category) switch (*category) {
+        case KeybindCategory::Universal: tab = KeybindsPopupTab::Universal; break;
+        case KeybindCategory::Gameplay: tab = KeybindsPopupTab::Gameplay; break;
+        case KeybindCategory::Editor: tab = KeybindsPopupTab::Editor; break;
+    }
+
+    auto popup = KeybindsPopup::create(tab, mod);
+    popup->show();
+    return popup;
 }
 
 using ModLogoSrc = std::variant<Mod*, std::string, std::filesystem::path>;

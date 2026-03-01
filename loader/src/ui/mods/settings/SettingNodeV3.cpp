@@ -17,7 +17,7 @@ public:
     CCLabelBMFont* statusLabel;
     ccColor4B bgColor = ccc4(0, 0, 0, 0);
     bool committed = false;
-    // This is because you can create `TitleSettingNodeV3`s without having an 
+    // This is because you can create `TitleSettingNodeV3`s without having an
     // actual `TitleSettingV3`
     std::optional<std::string> customDescription;
 };
@@ -244,6 +244,11 @@ void TitleSettingNodeV3::onCommit() {}
 
 bool TitleSettingNodeV3::isCollapsed() const {
     return m_collapseToggle->isToggled();
+}
+
+void TitleSettingNodeV3::setCollapsed(bool collapsed) {
+    m_collapseToggle->toggle(collapsed);
+    this->markChanged(m_collapseToggle);
 }
 
 bool TitleSettingNodeV3::hasUncommittedChanges() const {

@@ -160,16 +160,27 @@
             "name": "Verbose Curl Logs",
             "description": "When performing web requests, prints detailed information about the request immediately, as well as information when requests are added/removed. Otherwise, some information will only be printed on request failure."
         },
-        "curl-dns2": {
+        "curl-dns3": {
             "type": "string",
             "name": "Web DNS Server",
-            "default": "System",
+            "description": "Change the DNS server that Geode and mods will use to make web requests.",
+            "default": "Auto",
             "one-of": [
+                "Auto",
                 "System",
                 "Cloudflare",
                 "Google",
                 "Cloudflare DoH"
-            ]
+            ],
+            "requires-restart": true
+        },
+        "curl-custom-dns3": {
+            "type": "string",
+            "name": "Custom Web DNS Server(s)",
+            "description": "Manually specify DNS server IPs that Geode and mods will use to make web requests (separate each IP by a comma). This will override what you have set for Web DNS Server.",
+            "filter": "abcdefghijklmnopqrstuvwxyz0123456789.,[]:",
+            "default": "",
+            "requires-restart": true
         },
         "server-cache-size-limit": {
             "type": "int",
