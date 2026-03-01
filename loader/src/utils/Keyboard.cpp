@@ -267,6 +267,9 @@ std::string Keybind::toString() const {
     else if (key == KEY_RightMenu) {
         keyStr = "RightAlt";
     }
+    else if (key == KEY_RightContol) {
+        keyStr = "RightControl";
+    }
     else {
         keyStr = CCKeyboardDispatcher::get()->keyToString(key);
     }
