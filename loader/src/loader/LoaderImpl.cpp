@@ -390,22 +390,25 @@ void Loader::Impl::populateModList(std::vector<ModMetadata>& modQueue) {
             Keybind keybind(data.key, data.modifiers);
             bool down = data.action != KeyboardInputData::Action::Release;
             bool repeat = data.action == KeyboardInputData::Action::Repeat;
+
+            auto it = m_keybindSettings.find(keybind);
+            if (it == m_keybindSettings.end()) {
+                return ListenerResult::Propagate;
+            }
+
             if (down) {
-                auto it = m_keybindSettings.find(keybind);
-                if (it != m_keybindSettings.end()) {
-                    for (auto& setting : it->second) {
-                        if (!repeat) m_activeKeybinds[setting.get()] = keybind;
-                        if (KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat, data.timestamp)) {
-                            return ListenerResult::Stop;
-                        }
+                for (auto& setting : it->second) {
+                    if (!repeat) m_activeKeybinds[setting.get()] = keybind;
+                    if (KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat, data.timestamp)) {
+                        return ListenerResult::Stop;
                     }
                 }
             } else {
-                for (auto& [setting, heldKeybind] : m_activeKeybinds) {
-                    if (heldKeybind.key == data.key) {
-                        KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(heldKeybind, down, repeat, data.timestamp);
-                        m_activeKeybinds.erase(setting);
-                        break;
+                for (auto& setting : it->second) {
+                    auto it2 = m_activeKeybinds.find(setting.get());
+                    if (it2 != m_activeKeybinds.end() && it2->second.key == data.key) {
+                        KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat, data.timestamp);
+                        m_activeKeybinds.erase(it2);
                     }
                 }
             }
