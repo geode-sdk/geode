@@ -596,34 +596,80 @@ namespace geode::internal {
 
     template <class T>
     using ModifyBase = typename extract_modify_base<T>::type;
+
+    template <typename DerivedPtr, typename Base>
+    concept IsRealModify =
+      !std::is_void_v<Base> &&
+      requires { std::remove_pointer_t<DerivedPtr>::m_fields; } &&
+      std::is_base_of_v<geode::Modify<std::remove_pointer_t<DerivedPtr>, Base>, std::remove_pointer_t<DerivedPtr>>;
 }
 
 namespace geode::cast {
     /**
-     * A cast specialized to cast to modify classes. Static casts to the base class of the modify class first,
-     * and then static casts to the modify class itself.
-     * @example modify_cast<MyGJBaseGameLayer*>(PlayLayer::get());
+     * A cast specialized to cast to modify classes. Can convert to, from, and between modify classes.
+     * @example
+     * // Casting to a modify class from a non-modify class. Equivalent to:
+     * // PlayLayer* myPlayLayer = ...;
+     * // static_cast<HookedGJBaseGameLayer*>(static_cast<GJBaseGameLayer*>(myPlayLayer));
+     * PlayLayer* myPlayLayer = ...;
+     * modify_cast<HookedGJBaseGameLayer*>(myPlayLayer);
+     *
+     * @example
+     * // Casting from a modify class to a non-modify class. Equivalent to:
+     * // HookedPlayLayer* myHookedPlayLayer = ...;
+     * // static_cast<GJBaseGameLayer*>(static_cast<PlayLayer*>(myHookedPlayLayer));
+     * HookedPlayLayer* myHookedPlayLayer = ...;
+     * modify_cast<GJBaseGameLayer*>(myHookedPlayLayer);
+     *
+     * @example
+     * // Casting from a modify class to another modify class. Equivalent to:
+     * // HookedPlayLayer* myHookedPlayLayer = ...;
+     * // static_cast<HookedBaseGameLayer*>(static_cast<GJBaseGameLayer*>(static_cast<PlayLayer*>(myHookedPlayLayer)));
+     * HookedPlayLayer* myHookedPlayLayer = ...;
+     * modify_cast<HookedGJBaseGameLayer*>(myHookedPlayLayer);
      */
-    template <class Target, class Original>
-    constexpr Target modify_cast(Original original) {
-
+    template<typename Target, typename Original>
+    constexpr Target custom_modify_cast(Original original) {
+        // If Target is probably (fully checked later) a modify class, then this is its modify base, otherwise it's void
         using TargetBase = geode::internal::ModifyBase<std::remove_pointer_t<Target>>;
+        // If Original is probably (fully checked later) a modify class, then this is its modify base, otherwise it's void
+        using OriginalBase = geode::internal::ModifyBase<std::remove_pointer_t<Original>>;
+        // ModifyBase returns void if an m_fields attribute does not exist or if it does not derive from FieldIntermediate.
+        // Theoretically, someone could make a class that has m_fields of type FieldIntermediate and fool the first check.
+        // The second check, IsRealModify makes sure that that doesn't happen, it's probably unnecessary, but it was fairly
+        // easy to do.
 
         static_assert(std::is_pointer_v<Target> && !std::is_pointer_v<std::remove_pointer_t<Target>>, "Target class has to be a single pointer.");
         static_assert(std::is_pointer_v<Original> && !std::is_pointer_v<std::remove_pointer_t<Original>>, "Original class has to be a single pointer.");
-        static_assert(
-            (
-                requires { std::remove_pointer_t<Target>::m_fields; !std::is_void_v<TargetBase>; } &&
-                std::is_base_of_v<geode::Modify<std::remove_pointer_t<Target>, TargetBase>, std::remove_pointer_t<Target>>
-            ),
-            "The target class has to be a Modify class."
-        );
-        static_assert(
-            !std::is_void_v<TargetBase> && requires { static_cast<TargetBase*>(original); },
-            "The original class has to be castable to the class the modify class is modifying."
-        );
-        return static_cast<Target>(static_cast<TargetBase*>(original));
-    }
+
+        if constexpr (geode::internal::IsRealModify<Target, TargetBase> && !geode::internal::IsRealModify<Original, OriginalBase>) {
+            static_assert(
+                !std::is_void_v<TargetBase> && requires { static_cast<TargetBase*>(original); },
+                "The original class has to be castable to the target modify class's base."
+            );
+            return static_cast<Target>(static_cast<TargetBase*>(original));
+        }
+
+        else if constexpr (!geode::internal::IsRealModify<Target, TargetBase> && geode::internal::IsRealModify<Original, OriginalBase>) {
+            static_assert(
+                !std::is_void_v<OriginalBase> && requires { static_cast<Target>(static_cast<TargetBase*>(original)); },
+                "The original modify class's base has to be castable to the target class."
+            );
+            return static_cast<Target>(static_cast<TargetBase*>(original));
+        }
+
+        else if constexpr (geode::internal::IsRealModify<Target, TargetBase> && geode::internal::IsRealModify<Original, OriginalBase>) {
+            static_assert(
+                !std::is_void_v<TargetBase> && !std::is_void_v<OriginalBase> && requires { static_cast<TargetBase*>(static_cast<OriginalBase*>(original)); },
+                "The original modify class's base has to be castable to the target modify class's base."
+            );
+            return static_cast<Target>(static_cast<TargetBase*>(static_cast<OriginalBase*>(original)));
+        }
+
+        else {
+            static_assert(false, "There are no modify classes in modify_cast.");
+        }
+      }
 }
 
 /**
