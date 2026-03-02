@@ -79,7 +79,7 @@ namespace gd {
 
 		string();
 		string(string const& str);
-		string(string&& other);
+		string(string&& other) noexcept;
 		string(char const* str);
 		string(char const* str, size_t count);
 		string(size_t count, char c);
@@ -111,12 +111,35 @@ namespace gd {
 		~string();
 
 		string& assign(string const& other);
-		string& assign(string&& other);
-		string& assign(char const* other);
 		string& assign(char const* other, size_t count);
-		string& assign(string const& other, size_t pos, size_t count = npos);
-		string& assign(std::initializer_list<char> ilist);
-		string& assign(size_t count, char c);
+
+		string& assign(string&& other) {
+			this->swap(other);
+			other.clear();
+			return *this;
+		}
+
+		string& assign(char const* other) {
+			this->assign(other, std::char_traits<char>::length(other));
+			return *this;
+		}
+
+		string& assign(string const& other, size_t pos, size_t count = npos) {
+			if (pos > other.size()) {
+				throw std::out_of_range("gd::string::assign");
+			}
+			return this->assign(other.data() + pos, std::min(count, other.size() - pos));
+		}
+
+		string& assign(std::initializer_list<char> ilist) {
+			return this->assign(ilist.begin(), ilist.size());
+		}
+
+		string& assign(size_t count, char c) {
+			this->clear();
+			this->resize(count, c);
+			return *this;
+		}
 
 		template <class T>
 		requires std::convertible_to<T, std::string_view>
@@ -146,11 +169,17 @@ namespace gd {
 		}
 
 		string& operator=(string const& other);
-		string& operator=(string&& other);
+		string& operator=(string&& other) noexcept;
 		string& operator=(char const* other);
-		string& operator=(char other);
-		string& operator=(std::initializer_list<char> ilist);
 		string& operator=(std::string const& other);
+
+		string& operator=(char other) {
+			return this->assign(1, other);
+		}
+
+		string& operator=(std::initializer_list<char> ilist) {
+			return this->assign(ilist);
+		}
 
 		template <class T>
 		requires std::convertible_to<T, std::string_view>
@@ -163,10 +192,24 @@ namespace gd {
 
 		void reserve(size_t capacity);
 		void resize(size_t size, char fill = '\0');
-		void push_back(char c);
-		void pop_back();
-		size_t copy(char* buffer, size_t count, size_t pos = 0) const;
 		void shrink_to_fit();
+
+		void push_back(char c) {
+			this->append(1, c);
+		}
+
+		void pop_back() {
+			this->resize(this->size() - 1);
+		}
+
+		size_t copy(char* buffer, size_t count, size_t pos = 0) const {
+			if (pos > this->size()) {
+				throw std::out_of_range("gd::string::copy");
+			}
+			size_t toCopy = std::min(count, this->size() - pos);
+			std::memcpy(buffer, this->data() + pos, toCopy);
+			return toCopy;
+		}
 
 		template <class Operation>
 		void resize_and_overwrite(size_t newSize, Operation op) {
@@ -174,12 +217,27 @@ namespace gd {
 			this->erase(op(this->data(), newSize));
 		}
 
-		string& append(char const* other);
 		string& append(char const* other, size_t count);
-		string& append(string const& other);
-		string& append(string const& other, size_t pos, size_t count = npos);
-		string& append(std::initializer_list<char> ilist);
 		string& append(size_t count, char c);
+
+		string& append(char const* other) {
+			return this->append(other, std::char_traits<char>::length(other));
+		}
+
+		string& append(string const& other) {
+			return this->append(other.data(), other.size());
+		}
+
+		string& append(string const& other, size_t pos, size_t count = npos) {
+			if (pos > other.size()) {
+				throw std::out_of_range("gd::string::append");
+			}
+			return this->append(other.data() + pos, std::min(count, other.size() - pos));
+		}
+
+		string& append(std::initializer_list<char> ilist) {
+			return this->append(ilist.begin(), ilist.size());
+		}
 
 		template <class T>
 		requires std::convertible_to<T, std::string_view>
@@ -208,10 +266,21 @@ namespace gd {
 			return this->append(std::ranges::begin(range), std::ranges::end(range));
 		}
 
-		string& operator+=(string const& other);
-		string& operator+=(char const* other);
-		string& operator+=(char c);
-		string& operator+=(std::initializer_list<char> ilist);
+		string& operator+=(string const& other) {
+			return this->append(other);
+		}
+
+		string& operator+=(char const* other) {
+			return this->append(other);
+		}
+
+		string& operator+=(char c) {
+			return this->append(1, c);
+		}
+
+		string& operator+=(std::initializer_list<char> ilist) {
+			return this->append(ilist);
+		}
 
 		template <class T>
 		requires std::convertible_to<T, std::string_view>
@@ -219,14 +288,29 @@ namespace gd {
 			return this->append(std::string_view(other));
 		}
 
-		string& insert(size_t pos, char const* other);
 		string& insert(size_t pos, char const* other, size_t count);
-		string& insert(size_t pos, string const& other);
-		string& insert(size_t pos, string const& other, size_t pos2, size_t count = npos);
-		iterator insert(const_iterator pos, char c);
 		iterator insert(const_iterator pos, size_t count, char c);
 		iterator insert(const_iterator pos, std::initializer_list<char> ilist);
 		string& insert(size_t pos, size_t count, char c);
+
+		string& insert(size_t pos, char const* other) {
+			return this->insert(pos, other, std::char_traits<char>::length(other));
+		}
+
+		string& insert(size_t pos, string const& other) {
+			return this->insert(pos, other.data(), other.size());
+		}
+
+		string& insert(size_t pos, string const& other, size_t pos2, size_t count = npos) {
+			if (pos2 > other.size()) {
+				throw std::out_of_range("gd::string::insert");
+			}
+			return this->insert(pos, other.data() + pos2, std::min(count, other.size() - pos2));
+		}
+
+		iterator insert(const_iterator pos, char c) {
+			return this->insert(pos, 1, c);
+		}
 
 		template <class It>
 		iterator insert(const_iterator pos, It first, It last) {
@@ -253,19 +337,43 @@ namespace gd {
 		}
 
 		string& erase(size_t pos = 0, size_t count = npos);
-		iterator erase(const_iterator pos);
 		iterator erase(const_iterator first, const_iterator last);
 
-		string& replace(size_t pos, size_t count, string const& other);
-		string& replace(const_iterator first, const_iterator last, string const& other);
-		string& replace(size_t pos, size_t count, string const& other, size_t pos2, size_t count2 = npos);
-		string& replace(size_t pos, size_t count, char const* other);
+		iterator erase(const_iterator pos) {
+			return this->erase(pos, pos + 1);
+		}
+
 		string& replace(size_t pos, size_t count, char const* other, size_t count2);
-		string& replace(const_iterator first, const_iterator last, char const* other);
 		string& replace(const_iterator first, const_iterator last, char const* other, size_t count2);
-		string& replace(const_iterator first, const_iterator last, std::initializer_list<char> ilist);
 		string& replace(size_t pos, size_t count, size_t count2, char c);
 		string& replace(const_iterator first, const_iterator last, size_t count2, char c);
+
+		string& replace(size_t pos, size_t count, string const& other) {
+			return this->replace(pos, count, other.data(), other.size());
+		}
+
+		string& replace(const_iterator first, const_iterator last, string const& other) {
+			return this->replace(first, last, other.data(), other.size());
+		}
+
+		string& replace(size_t pos, size_t count, string const& other, size_t pos2, size_t count2 = npos) {
+			if (pos2 > other.size()) {
+				throw std::out_of_range("gd::string::replace");
+			}
+			return this->replace(pos, count, other.data() + pos2, std::min(count2, other.size() - pos2));
+		}
+
+		string& replace(size_t pos, size_t count, char const* other) {
+			return this->replace(pos, count, other, std::char_traits<char>::length(other));
+		}
+
+		string& replace(const_iterator first, const_iterator last, char const* other) {
+			return this->replace(first, last, other, std::char_traits<char>::length(other));
+		}
+
+		string& replace(const_iterator first, const_iterator last, std::initializer_list<char> ilist) {
+			return this->replace(first, last, ilist.begin(), ilist.size());
+		}
 
 		template <class It>
 		string& replace(const_iterator first, const_iterator last, It first2, It last2) {
@@ -322,34 +430,74 @@ namespace gd {
 		char& operator[](size_t pos);
 		char const& operator[](size_t pos) const;
 
-		char& front();
-		char const& front() const;
-		char& back();
-		char const& back() const;
+		char& front() {
+			return this->data()[0];
+		}
+
+		char const& front() const {
+			return this->data()[0];
+		}
+
+		char& back() {
+			return this->data()[this->size() - 1];
+		}
+
+		char const& back() const {
+			return this->data()[this->size() - 1];
+		}
 
 		char* data();
 		char const* data() const;
 		char const* c_str() const;
 
 		size_t size() const;
-		size_t length() const;
 		size_t capacity() const;
 		bool empty() const;
-		size_t max_size() const;
+
+		size_t length() const {
+			return this->size();
+		}
+
+		size_t max_size() const {
+			return (npos - sizeof(geode::stl::StringData::Internal) - 1) / 4;
+		}
 
 		iterator begin();
 		const_iterator begin() const;
-		const_iterator cbegin() const;
 		iterator end();
 		const_iterator end() const;
-		const_iterator cend() const;
 
-		reverse_iterator rbegin();
-		const_reverse_iterator rbegin() const;
-		const_reverse_iterator crbegin() const;
-		reverse_iterator rend();
-		const_reverse_iterator rend() const;
-		const_reverse_iterator crend() const;
+		const_iterator cbegin() const {
+			return this->begin();
+		}
+
+		const_iterator cend() const {
+			return this->end();
+		}
+
+		reverse_iterator rbegin() {
+			return reverse_iterator(this->end());
+		}
+
+		const_reverse_iterator rbegin() const {
+			return const_reverse_iterator(this->end());
+		}
+
+		const_reverse_iterator crbegin() const {
+			return this->rbegin();
+		}
+
+		reverse_iterator rend() {
+			return reverse_iterator(this->begin());
+		}
+
+		const_reverse_iterator rend() const {
+			return const_reverse_iterator(this->begin());
+		}
+
+		const_reverse_iterator crend() const {
+			return this->rend();
+		}
 
 		int compare(string const& other) const {
 			return std::string_view(*this).compare(other);
@@ -544,92 +692,92 @@ namespace gd {
 		operator std::string_view() const;
 	};
 
-    inline string operator+(string const& lhs, string const& rhs) {
-        string out = lhs;
-        out += rhs;
-        return out;
-    }
+	inline string operator+(string const& lhs, string const& rhs) {
+		string out = lhs;
+		out += rhs;
+		return out;
+	}
 
-    inline string operator+(string const& lhs, char const* rhs) {
-        string out = lhs;
-        out += rhs;
-        return out;
-    }
+	inline string operator+(string const& lhs, char const* rhs) {
+		string out = lhs;
+		out += rhs;
+		return out;
+	}
 
-    inline string operator+(char const* lhs, string const& rhs) {
-        string out = lhs;
-        out += rhs;
-        return out;
-    }
+	inline string operator+(char const* lhs, string const& rhs) {
+		string out = lhs;
+		out += rhs;
+		return out;
+	}
 
-    inline string operator+(string const& lhs, char rhs) {
-        string out = lhs;
-        out += rhs;
-        return out;
-    }
+	inline string operator+(string const& lhs, char rhs) {
+		string out = lhs;
+		out += rhs;
+		return out;
+	}
 
-    inline string operator+(char lhs, string const& rhs) {
-        string out = string(1, lhs);
-        out += rhs;
-        return out;
-    }
+	inline string operator+(char lhs, string const& rhs) {
+		string out = string(1, lhs);
+		out += rhs;
+		return out;
+	}
 
-    inline string operator+(string const& lhs, std::type_identity_t<std::string_view> rhs) {
-        string out = lhs;
-        out += rhs;
-        return out;
-    }
+	inline string operator+(string const& lhs, std::type_identity_t<std::string_view> rhs) {
+		string out = lhs;
+		out += rhs;
+		return out;
+	}
 
-    inline string operator+(std::type_identity_t<std::string_view> lhs, string const& rhs) {
-        string out = string(lhs);
-        out += rhs;
-        return out;
-    }
+	inline string operator+(std::type_identity_t<std::string_view> lhs, string const& rhs) {
+		string out = string(lhs);
+		out += rhs;
+		return out;
+	}
 
-    inline string operator+(string&& lhs, string const& rhs) {
-        lhs += rhs;
-        return std::move(lhs);
-    }
+	inline string operator+(string&& lhs, string const& rhs) {
+		lhs += rhs;
+		return std::move(lhs);
+	}
 
-    inline string operator+(string const& lhs, string&& rhs) {
-        rhs.insert(0, lhs);
-        return std::move(rhs);
-    }
+	inline string operator+(string const& lhs, string&& rhs) {
+		rhs.insert(0, lhs);
+		return std::move(rhs);
+	}
 
-    inline string operator+(string&& lhs, string&& rhs) {
-        lhs += rhs;
-        return std::move(lhs);
-    }
+	inline string operator+(string&& lhs, string&& rhs) {
+		lhs += rhs;
+		return std::move(lhs);
+	}
 
-    inline string operator+(string&& lhs, char const* rhs) {
-        lhs += rhs;
-        return std::move(lhs);
-    }
+	inline string operator+(string&& lhs, char const* rhs) {
+		lhs += rhs;
+		return std::move(lhs);
+	}
 
-    inline string operator+(char const* lhs, string&& rhs) {
-        rhs.insert(0, lhs);
-        return std::move(rhs);
-    }
+	inline string operator+(char const* lhs, string&& rhs) {
+		rhs.insert(0, lhs);
+		return std::move(rhs);
+	}
 
-    inline string operator+(string&& lhs, char rhs) {
-        lhs += rhs;
-        return std::move(lhs);
-    }
+	inline string operator+(string&& lhs, char rhs) {
+		lhs += rhs;
+		return std::move(lhs);
+	}
 
-    inline string operator+(char lhs, string&& rhs) {
-        rhs.insert(0, 1, lhs);
-        return std::move(rhs);
-    }
+	inline string operator+(char lhs, string&& rhs) {
+		rhs.insert(0, 1, lhs);
+		return std::move(rhs);
+	}
 
-    inline string operator+(string&& lhs, std::type_identity_t<std::string_view> rhs) {
-        lhs += rhs;
-        return std::move(lhs);
-    }
+	inline string operator+(string&& lhs, std::type_identity_t<std::string_view> rhs) {
+		lhs += rhs;
+		return std::move(lhs);
+	}
 
-    inline string operator+(std::type_identity_t<std::string_view> lhs, string&& rhs) {
-        rhs.insert(0, lhs);
-        return std::move(rhs);
-    }
+	inline string operator+(std::type_identity_t<std::string_view> lhs, string&& rhs) {
+		rhs.insert(0, lhs);
+		return std::move(rhs);
+	}
 
 	inline std::string_view format_as(gd::string const& str) {
 		return std::string_view(str);
