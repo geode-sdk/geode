@@ -1,21 +1,21 @@
 if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 	set(net_libs_plat "ios")
-	set(net_libs_hash "SHA256=3306fcf1c090cf88cce18828dbf228d2438d6ef92e72e20069e5a9ce2e60bc77")
+	set(net_libs_hash "SHA256=ee5fcba96144ff3b7c96e1373b15574d2a163901d99626c6488f4857b60f7ac6")
 elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 	set(net_libs_plat "macos")
-	set(net_libs_hash "SHA256=346fdef44f5b59a77ba2f79d16e387eeb1a10e4297ee167984cdacb0b952cfcc")
+	set(net_libs_hash "SHA256=a42936fc75e120ecca9f35c307a345f037f37cf3582b40c4c6db5fb7f2d0b646")
 elseif (GEODE_TARGET_PLATFORM STREQUAL "Win64")
 	set(net_libs_plat "windows")
-	set(net_libs_hash "SHA256=5cd45095739441566df344e651d5e66c75e13073d814d36bdbd6d7aeb8d0366f")
+	set(net_libs_hash "SHA256=eaa9721635dbd4839a6f415acd003a3d43bd5f2080d3a68fb95681202f1c7761")
 elseif (GEODE_TARGET_PLATFORM STREQUAL "Android32")
 	set(net_libs_plat "android32")
-	set(net_libs_hash "SHA256=46ebccc805a980c045405ccf36630c61ae120a4d385714ffc5f16cae6bfd8a77")
+	set(net_libs_hash "SHA256=158d26a3dafe279ba802f2139c62b358f41dd38138b11469a14d0b10ae5c1d23")
 elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
 	set(net_libs_plat "android64")
-	set(net_libs_hash "SHA256=aef37b30014bdb73cd31da8b5c9fc27a0fec57f341e0201b95916da4d2158097")
+	set(net_libs_hash "SHA256=6006cb982b2bb3e96cc4773f4e9ad1fdf09c1a7c59486e91300e129689364234")
 endif()
 
-set(net_libs_version "8.19.0-5")
+set(net_libs_version "8.19.0-6")
 CPMAddPackage(
 	NAME net_libs_bin
 	VERSION "${net_libs_version}_${net_libs_plat}"
