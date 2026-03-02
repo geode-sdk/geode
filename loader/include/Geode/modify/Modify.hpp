@@ -644,7 +644,7 @@ namespace geode::cast {
 
         if constexpr (geode::internal::IsRealModify<Target, TargetBase> && !geode::internal::IsRealModify<Original, OriginalBase>) {
             static_assert(
-                !std::is_void_v<TargetBase> && requires { static_cast<TargetBase*>(original); },
+                requires { static_cast<TargetBase*>(original); },
                 "The original class has to be castable to the target modify class's base."
             );
             return static_cast<Target>(static_cast<TargetBase*>(original));
@@ -652,7 +652,7 @@ namespace geode::cast {
 
         else if constexpr (!geode::internal::IsRealModify<Target, TargetBase> && geode::internal::IsRealModify<Original, OriginalBase>) {
             static_assert(
-                !std::is_void_v<OriginalBase> && requires { static_cast<Target>(static_cast<TargetBase*>(original)); },
+                requires { static_cast<Target>(static_cast<TargetBase*>(original)); },
                 "The original modify class's base has to be castable to the target class."
             );
             return static_cast<Target>(static_cast<TargetBase*>(original));
@@ -660,7 +660,7 @@ namespace geode::cast {
 
         else if constexpr (geode::internal::IsRealModify<Target, TargetBase> && geode::internal::IsRealModify<Original, OriginalBase>) {
             static_assert(
-                !std::is_void_v<TargetBase> && !std::is_void_v<OriginalBase> && requires { static_cast<TargetBase*>(static_cast<OriginalBase*>(original)); },
+                requires { static_cast<TargetBase*>(static_cast<OriginalBase*>(original)); },
                 "The original modify class's base has to be castable to the target modify class's base."
             );
             return static_cast<Target>(static_cast<TargetBase*>(static_cast<OriginalBase*>(original)));
