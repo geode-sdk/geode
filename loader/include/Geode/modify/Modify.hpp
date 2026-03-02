@@ -629,7 +629,7 @@ namespace geode::cast {
      * modify_cast<HookedGJBaseGameLayer*>(myHookedPlayLayer);
      */
     template<typename Target, typename Original>
-    constexpr Target custom_modify_cast(Original original) {
+    constexpr Target modify_cast(Original original) {
         // If Target is probably (fully checked later) a modify class, then this is its modify base, otherwise it's void
         using TargetBase = geode::internal::ModifyBase<std::remove_pointer_t<Target>>;
         // If Original is probably (fully checked later) a modify class, then this is its modify base, otherwise it's void
