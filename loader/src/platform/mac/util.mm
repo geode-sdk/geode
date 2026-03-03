@@ -5,7 +5,6 @@ using namespace geode::prelude;
 
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/GameEvent.hpp>
-#import <AppKit/AppKit.h>
 #include <Geode/Utils.hpp>
 #include <Geode/binding/GameManager.hpp>
 #include <objc/runtime.h>
@@ -15,6 +14,7 @@ using namespace geode::prelude;
 #include <arc/sync/oneshot.hpp>
 
 #define CommentType CommentTypeDummy
+#import <AppKit/AppKit.h>
 #import <Cocoa/Cocoa.h>
 #undef CommentType
 
