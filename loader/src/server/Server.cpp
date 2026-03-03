@@ -2,6 +2,7 @@
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <chrono>
+#include <ranges>
 #include <fmt/core.h>
 #include <loader/ModMetadataImpl.hpp>
 #include <fmt/chrono.h>
@@ -868,11 +869,10 @@ ServerFuture<ServerModUpdateAllCheck> server::checkAllUpdates(bool useCache) {
         co_return co_await getCache<checkAllUpdates>().get();
     }
 
-    auto modIDs = ranges::map<std::vector<std::string>>(
-        Loader::get()->getAllMods(),
-        [](auto mod) { return mod->getID(); }
-    );
-    ranges::remove(modIDs, "geode.loader");
+    auto modIDs = Loader::get()->getAllMods()
+        | std::views::filter([](Mod* x) { return x->getID() != "geode.loader"; })
+        | std::views::transform([](Mod* x) { return x->getID(); })
+        | std::ranges::to<std::vector<std::string>>();
 
     // if there's no mods, the request would just be empty anyways
     if (modIDs.empty()) {
