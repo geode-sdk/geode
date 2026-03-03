@@ -8,6 +8,7 @@
 #include <arc/future/PollableMetadata.hpp>
 #include <ccTypes.h>
 #include <string_view>
+#include <matjson.hpp>
 #include <type_traits>
 #include <fmt/core.h>
 // for formatting std::vector and such
