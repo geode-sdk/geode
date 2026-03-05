@@ -377,7 +377,6 @@ bool ModsLayer::init() {
         CircleBaseSize::Medium
     );
     settingsSpr->setScale(.8f);
-    settingsSpr->setTopOffset(ccp(.5f, 0));
     auto settingsBtn = CCMenuItemSpriteExtra::create(
         settingsSpr, this, menu_selector(ModsLayer::onSettings)
     );
