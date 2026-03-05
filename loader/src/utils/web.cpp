@@ -696,7 +696,7 @@ public:
         }
 
         // always set connection timeout to avoid hanging indefinitely (2.5 seconds)
-        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 2500L);
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 0L);
 
         // Set range
         if (m_range) {
@@ -1816,4 +1816,5 @@ arc::Future<> WebRequestsManager::Impl::dnsProbe() {
     for (size_t i = 0; i < results.size(); i++) {
         log::debug("DNS server {}: score {:.3f}", candidates[i].name, results[i]);
     }
+
 }
