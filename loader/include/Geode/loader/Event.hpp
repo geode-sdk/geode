@@ -501,6 +501,8 @@ namespace geode::comm {
         ListenerHandle& operator=(ListenerHandle const&) = delete;
         ListenerHandle& operator=(ListenerHandle&& other) noexcept {
             if (this != &other) {
+                if (m_active) this->destroy();
+
                 m_filter = std::move(other.m_filter);
                 m_handle = other.m_handle;
                 m_remover = other.m_remover;
