@@ -1,0 +1,221 @@
+#include <Geode/loader/Formatter.hpp>
+
+using namespace geode::prelude;
+
+class geode::format::FormatterImpl {
+private:
+    std::vector<std::unique_ptr<FormatBase>> m_formatCallbacks;
+public:
+    static FormatterImpl* get() {
+        static auto s_instance = new FormatterImpl();
+        return s_instance;
+    }
+
+    void addFormat(std::string_view name, std::unique_ptr<FormatBase> format) {
+        m_formatCallbacks.insert(m_formatCallbacks.begin(), std::move(format));
+    }
+
+    Result<std::string> handleFormat(CCObject const* obj, std::string_view specifier) {
+        for (const auto& callback : m_formatCallbacks) {
+            auto res = callback->format(obj, specifier);
+            if (res) return Ok(res.unwrap());
+        }
+
+        return Err("Format not found");
+    }
+};
+
+void geode::format::registerFormatImpl(std::string_view name, std::unique_ptr<FormatBase> format) {
+    FormatterImpl::get()->addFormat(name, std::move(format));
+}
+
+geode::Result<std::string> geode::format::handleFormatImpl(cocos2d::CCObject const* obj, std::string_view specifier) {
+    return FormatterImpl::get()->handleFormat(obj, specifier);
+}
+
+std::string geode::format_as(Mod* mod) {
+    if (mod) {
+        return fmt::format("{{ Mod, {} }}", mod->getName());
+    }
+    else {
+        return "{ Mod, null }";
+    }
+}
+
+std::string geode::format_as(CCObject const* obj) {
+    if (obj) {
+        return fmt::format("{{ {}, {} }}", getObjectName(obj), fmt::ptr(obj));
+    } else {
+        return "{ CCObject, null }";
+    }
+}
+
+std::string geode::format_as(CCNode* obj) {
+    if (obj) {
+        return fmt::format(
+            "{{ {}, {}, ({}) }}",
+            getObjectName(obj),
+            fmt::ptr(obj),
+            obj->boundingBox()
+        );
+    } else {
+        return "{ CCNode, null }";
+    }
+}
+
+std::string geode::format_as(CCArray* arr) {
+    if (!arr && !arr->count()) return "[empty]";
+
+    fmt::memory_buffer buffer;
+    buffer.push_back('[');
+
+    bool first = true;
+
+    for (auto obj : arr->asExt()) {
+        if (!first) buffer.append(std::string_view(", "));
+        
+        first = false;
+        buffer.append(format_as(obj));
+    }
+
+    buffer.push_back(']');
+    return fmt::to_string(buffer);
+}
+
+$execute {
+    format::registerFormat<CCNode>([] (CCNode* self) -> std::string {
+        return fmt::format(
+            "{}, ({})",
+            fmt::ptr(self),
+            self->boundingBox()
+        );
+    });
+
+    format::registerFormat<CCFloat>([] (CCFloat* self) -> std::string {
+        return numToString(self->getValue());
+    });
+
+    format::registerFormat<CCDouble>([] (CCDouble* self) -> std::string {
+        return numToString(self->getValue());
+    });
+
+    format::registerFormat<CCInteger>([] (CCInteger* self) -> std::string {
+        return numToString(self->getValue());
+    });
+
+    format::registerFormat<CCBool>([] (CCBool* self) -> std::string {
+        return self->getValue() ? "true" : "false";
+    });
+
+    format::registerFormat<CCString>([] (CCString* self) -> std::string {
+        return fmt::format("\"{}\"", self->getCString());
+    });
+
+    format::registerFormat<CCArray>([] (CCArray* self, std::string_view specifier) -> std::string {
+        if (!self && !self->count()) return "[empty]";
+
+        bool rawFormat = specifier == "raw";
+
+        fmt::memory_buffer buffer;
+        buffer.push_back('[');
+
+        bool first = true;
+
+        for (auto obj : self->asExt()) {
+            if (!first) buffer.append(std::string_view(", "));
+            if (!rawFormat) buffer.append(std::string_view("\n\t"));
+            first = false;
+
+            buffer.append(fmt::format("{}", format::wrap(obj)));
+        }
+
+        if (!rawFormat) buffer.push_back('\n');
+        buffer.push_back(']');
+        return fmt::to_string(buffer);
+    });
+
+    format::registerFormat<CCSet>([] (CCSet* self, std::string_view specifier) -> std::string {
+        if (!self && !self->count()) return "[empty]";
+
+        bool rawFormat = specifier == "raw";
+
+        fmt::memory_buffer buffer;
+        buffer.push_back('[');
+
+        bool first = true;
+
+        for (CCSetIterator setIter = self->begin(); setIter != self->end(); ++setIter) {
+            if (!first) buffer.append(std::string_view(", "));
+            if (!rawFormat) buffer.append(std::string_view("\n\t"));
+            first = false;
+
+            fmt::format_to(fmt::appender(buffer), "{}", format::wrap(static_cast<CCObject*>(*setIter)));
+        }
+
+        if (!rawFormat) buffer.push_back('\n');
+        buffer.push_back(']');
+        return fmt::to_string(buffer);
+    });
+
+    format::registerFormat<CCDictionary>([] (CCDictionary* self, std::string_view specifier) -> std::string {
+        if (!self || !self->count()) return "[empty]";
+        
+        bool rawFormat = specifier == "raw";
+
+        fmt::memory_buffer buffer;
+        buffer.push_back('[');
+
+        auto appendAll = [&]<typename Key>() {
+            bool first = true;
+
+            for (const auto& [key, obj] : self->asExt<Key, CCObject>()) {
+                if (!first) buffer.append(std::string_view(", "));
+                if (!rawFormat) buffer.append(std::string_view("\n\t"));
+                first = false;
+                
+                if (self->m_eDictType == CCDictionary::CCDictType::kCCDictStr) {
+                    fmt::format_to(fmt::appender(buffer), "{{ \"{}\": {} }}", key, format::wrap(obj));
+                }
+                else {
+                    fmt::format_to(fmt::appender(buffer), "{{ {}: {} }}", key, format::wrap(obj));
+                }
+            }
+        };
+
+        if (self->m_eDictType == CCDictionary::CCDictType::kCCDictInt) {
+            appendAll.operator()<int>();
+        } 
+        else {
+            appendAll.operator()<std::string_view>();
+        }
+
+        if (!rawFormat) buffer.push_back('\n');
+        buffer.push_back(']');
+        return fmt::to_string(buffer);
+    });
+
+    format::registerFormat<CCTouch>([] (CCTouch* self) -> std::string {
+        return fmt::format(
+            "{}, ({})",
+            fmt::ptr(self),
+            self->getLocation()
+        );
+    });
+
+    format::registerFormat<CCFiniteTimeAction>([] (CCFiniteTimeAction* self) -> std::string {
+        return fmt::format(
+            "{}, d: {}",
+            fmt::ptr(self),
+            self->getDuration()
+        );
+    });
+
+    format::registerFormat<CCActionInterval>([] (CCActionInterval* self) -> std::string {
+        return fmt::format(
+            "{}, d: {}, e: {}",
+            fmt::ptr(self),
+            self->getDuration(),
+            self->getElapsed()
+        );
+    });
+}
