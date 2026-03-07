@@ -22,6 +22,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 #import <Foundation/Foundation.h>
+#import <QuartzCore/CADisplayLink.h>
 #import "CCDirectorCaller.h"
 #import "CCDirector.h"
 
@@ -30,13 +31,22 @@ static id s_sharedDirectorCaller;
 @interface NSObject(CADisplayLink)
 +(id) displayLinkWithTarget: (id)arg1 selector:(SEL)arg2;
 -(void) addToRunLoop: (id)arg1 forMode: (id)arg2;
--(void) setFrameInterval: (int)interval;
 -(void) invalidate;
 @end
 
 @implementation CCDirectorCaller
 
 @synthesize interval;
+
+// applies the desired FPS to the display link using the best available API
+static void applyFrameRate(CADisplayLink* link, int fps)
+{
+    if (@available(iOS 15.0, *)) {
+        link.preferredFrameRateRange = CAFrameRateRangeMake(fps, fps, fps);
+    } else {
+        link.preferredFramesPerSecond = fps;
+    }
+}
 
 +(id) sharedDirectorCaller
 {
@@ -67,25 +77,25 @@ static id s_sharedDirectorCaller;
 
 -(void) startMainLoop
 {
-        // CCDirector::setAnimationInterval() is called, we should invalidate it first
+        // invalidate any existing display link before recreating
         [displayLink invalidate];
         displayLink = nil;
         
         displayLink = [NSClassFromString(@"CADisplayLink") displayLinkWithTarget:self selector:@selector(doCaller:)];
-        [displayLink setFrameInterval: self.interval];
+        applyFrameRate(displayLink, (int)(1.0 / self.interval));
         [displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
 }
 
 -(void) setAnimationInterval:(double)intervalNew
 {
-        // CCDirector::setAnimationInterval() is called, we should invalidate it first
+        // invalidate any existing display link before recreating
         [displayLink invalidate];
         displayLink = nil;
         
-        self.interval = 60.0 * intervalNew;
+        self.interval = intervalNew;
         
         displayLink = [NSClassFromString(@"CADisplayLink") displayLinkWithTarget:self selector:@selector(doCaller:)];
-        [displayLink setFrameInterval: self.interval];
+        applyFrameRate(displayLink, (int)(1.0 / intervalNew));
         [displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
 }
                       
