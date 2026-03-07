@@ -61,6 +61,12 @@ namespace geode::modifier {
         alignas(Base) std::array<std::byte, alignof(Base)> m_padding;
 
     public:
+        FieldIntermediate() = default;
+        FieldIntermediate(FieldIntermediate const&) = delete;
+        FieldIntermediate& operator=(FieldIntermediate const&) = delete;
+        FieldIntermediate(FieldIntermediate&&) = delete;
+        FieldIntermediate& operator=(FieldIntermediate&&) = delete;
+
         // the constructor that constructs the fields.
         // we construct the Parent first,
         static void fieldConstructor(void* offsetField) {
