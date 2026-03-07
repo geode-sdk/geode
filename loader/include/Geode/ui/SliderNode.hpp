@@ -6,9 +6,9 @@
 #include <cocos2d.h>
 
 namespace geode {
-    class GEODE_DLL SliderControl : public cocos2d::CCNodeRGBA, public cocos2d::CCTouchDelegate {
+    class GEODE_DLL SliderNode : public cocos2d::CCNodeRGBA, public cocos2d::CCTouchDelegate {
     public:
-        using SliderCallback = geode::Function<void(SliderControl* sender, float value)>;
+        using SliderCallback = geode::Function<void(SliderNode* sender, float value)>;
 
         /**
          * Create a custom Slider
@@ -20,7 +20,7 @@ namespace geode {
          * @param callback The callback for when the thumb is dragged
          * @param barOffset The size offset (will be inset for each side) for the bar to fit within the groove
          */
-        static SliderControl* createCustom(cocos2d::CCSprite* thumb, cocos2d::CCSprite* thumbSelected, geode::NineSlice* groove, ZStringView bar, SliderCallback callback, cocos2d::CCSize const& barOffset = {2.f, 2.f});
+        static SliderNode* createCustom(cocos2d::CCSprite* thumb, cocos2d::CCSprite* thumbSelected, geode::NineSlice* groove, ZStringView bar, SliderCallback callback, cocos2d::CCSize const& barOffset = {2.f, 2.f});
         
         /**
          * Create a traditional Geometry Dash style Slider
@@ -28,7 +28,7 @@ namespace geode {
          * @param callback The callback for when the thumb is dragged
          * @param alt Use the alternative slider design (white border and bar)
          */
-        static SliderControl* create(SliderCallback callback, bool alt = false);
+        static SliderNode* create(SliderCallback callback, bool alt = false);
 
         /**
          * Set a callback for when the slider thumb is dragged
@@ -153,8 +153,8 @@ namespace geode {
         virtual void registerWithTouchDispatcher();
 
     protected:
-        SliderControl();
-        ~SliderControl();
+        SliderNode();
+        ~SliderNode();
 
         bool initCustom(cocos2d::CCSprite* thumb, cocos2d::CCSprite* thumbSelected, NineSlice* groove, ZStringView bar, SliderCallback callback, cocos2d::CCSize const& barOffset);
         bool initStandard(SliderCallback callback, bool alt);
