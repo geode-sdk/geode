@@ -154,6 +154,12 @@ public:
     virtual void sortAllChildren();
     virtual void draw(void);
 
+    /**
+     * Gets if the batch node is using the fallback sprite
+     * @note Geode addition
+     */
+    GEODE_DLL bool isUsingFallback();
+
 protected:
     /** Inserts a quad at a certain index into the texture atlas. The CCSprite won't be added into the children array.
      This method should be called only when you are dealing with very big AtlasSrite and when most of the CCSprite won't be updated.
