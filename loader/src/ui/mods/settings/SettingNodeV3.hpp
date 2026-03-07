@@ -6,6 +6,7 @@
 #include <Geode/binding/Slider.hpp>
 #include <Geode/ui/ColorPickPopup.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
+#include <Geode/ui/Button.hpp>
 #include <ui/mods/GeodeStyle.hpp>
 
 using namespace geode::prelude;
@@ -36,6 +37,38 @@ public:
     void onResetToDefault() override;
 
     std::shared_ptr<TitleSettingV3> getSetting() const;
+};
+
+class InfoSettingNodeV3 : public SettingNodeV3 {
+protected:
+    bool init(std::shared_ptr<InfoSettingV3> setting, float width);
+
+    void onCommit() override;
+
+public:
+    static InfoSettingNodeV3* create(std::shared_ptr<InfoSettingV3> setting, float width);
+
+    bool hasUncommittedChanges() const override;
+    bool hasNonDefaultValue() const override;
+    void onResetToDefault() override;
+};
+
+class ButtonSettingNodeV3 : public SettingNodeV3 {
+protected:
+    std::vector<Ref<Button>> buttons;
+
+    bool init(std::shared_ptr<ButtonSettingV3> setting, float width);
+
+    void onCommit() override;
+    void updateState(CCNode* invoker) override;
+    void enableButtons(bool enabled);
+
+public:
+    static ButtonSettingNodeV3* create(std::shared_ptr<ButtonSettingV3> setting, float width);
+
+    bool hasUncommittedChanges() const override;
+    bool hasNonDefaultValue() const override;
+    void onResetToDefault() override;
 };
 
 class BoolSettingNodeV3 : public SettingValueNodeV3<BoolSettingV3> {
@@ -226,6 +259,7 @@ protected:
         }
         this->setValue(value, static_cast<CCNode*>(sender));
     }
+
     void onSlider(CCObject*) {
         auto value = this->valueFromSlider(m_slider->m_touchLogic->m_thumb->getValue());
 
@@ -268,7 +302,6 @@ protected:
     CCSprite* m_fileIcon;
     CCLabelBMFont* m_nameLabel;
     ListenerHandle m_pickHandle;
-    // EventListener<Task<Result<std::filesystem::path>>> m_pickListener;
     async::TaskHolder<Result<std::optional<std::filesystem::path>>> m_pickListener;
     CCMenuItemSpriteExtra* m_selectBtn;
     CCSprite* m_selectBtnSpr;

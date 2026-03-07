@@ -457,6 +457,8 @@ SettingChangedEventV3::SettingChangedEventV3(Mod* mod, std::string settingKey) :
 
 KeybindSettingPressedEventV3::KeybindSettingPressedEventV3(Mod* mod, std::string settingKey) : KeybindSettingPressedEventV3(mod->getID(), std::move(settingKey)) {}
 
+ButtonSettingPressedEventV3::ButtonSettingPressedEventV3(Mod* mod, std::string settingKey) : ButtonSettingPressedEventV3(mod->getID(), std::move(settingKey)) {}
+
 SettingNodeSizeChangeEventV3::SettingNodeSizeChangeEventV3(Mod* mod, std::string settingKey) : SettingNodeSizeChangeEventV3(mod->getID(), std::move(settingKey)) {}
 
 SettingNodeValueChangeEventV3::SettingNodeValueChangeEventV3(Mod* mod, std::string settingKey) : SettingNodeValueChangeEventV3(mod->getID(), std::move(settingKey)) {}
@@ -605,6 +607,116 @@ bool TitleSettingV3::isDefaultValue() const {
     return true;
 }
 void TitleSettingV3::reset() {}
+
+class InfoSettingV3::Impl final {
+public:
+    std::optional<ccColor3B> color;
+};
+
+InfoSettingV3::InfoSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
+
+Result<std::shared_ptr<InfoSettingV3>> InfoSettingV3::parse(std::string key, std::string modID, matjson::Value const& json) {
+    auto ret = std::make_shared<InfoSettingV3>(PrivateMarker());
+    auto root = checkJson(json, "InfoSettingV3");
+    ret->init(std::move(key), std::move(modID), root);
+    ret->parseNameAndDescription(root);
+
+    if (!ret->getDescription() || ret->getDescription()->empty()) {
+        return Err("Setting '{}' in mod {} - Description must not be empty!", std::move(key), std::move(modID));
+    }
+
+    std::optional<std::string> color;
+    root.has("color").into(color);
+
+    if (color) {
+        auto converted = cc3bFromHexString(color.value());
+        if (converted) ret->m_impl->color = converted.unwrap();
+    }
+
+    root.checkUnknownKeys();
+    return root.ok(ret);
+}
+
+bool InfoSettingV3::load(matjson::Value const& json) {
+    return true;
+}
+
+bool InfoSettingV3::save(matjson::Value&) const {
+    return true;
+}
+
+std::optional<ccColor3B> InfoSettingV3::getColor() const {
+    return m_impl->color;
+}
+
+SettingNodeV3* InfoSettingV3::createNode(float width) {
+    return InfoSettingNodeV3::create(
+        std::static_pointer_cast<InfoSettingV3>(shared_from_this()), width
+    );
+}
+
+bool InfoSettingV3::isDefaultValue() const {
+    return true;
+}
+
+void InfoSettingV3::reset() {}
+
+class ButtonSettingV3::Impl final {
+public:
+    StringMap<std::string> buttons;
+};
+
+ButtonSettingV3::ButtonSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
+
+Result<std::shared_ptr<ButtonSettingV3>> ButtonSettingV3::parse(std::string key, std::string modID, matjson::Value const& json) {
+    auto ret = std::make_shared<ButtonSettingV3>(PrivateMarker());
+    auto root = checkJson(json, "ButtonSettingV3");
+    ret->parseBaseProperties(key, modID, root);
+
+    if (auto buttons = root.has("buttons")) {
+        if (!buttons.isObject()) {
+            return Err("Setting '{}' in mod {} - \"buttons\" must be an object!", std::move(key), std::move(modID));
+        }
+        auto buttonsObj = buttons.takeJson();
+        for (const auto& [k, v] : buttonsObj) {
+            if (!v.isString()) {
+                return Err("Setting '{}' in mod {} - \"buttons.{}\" must be a string!", std::move(key), std::move(modID), k);
+            }
+            ret->m_impl->buttons[k] = v.asString().unwrapOrDefault();
+        }
+    }
+
+    if (ret->m_impl->buttons.empty()) {
+        return Err("Setting '{}' in mod {} - \"buttons\" must not be empty!", std::move(key), std::move(modID));
+    }
+
+    root.checkUnknownKeys();
+    return root.ok(ret);
+}
+
+bool ButtonSettingV3::load(matjson::Value const& json) {
+    return true;
+}
+
+bool ButtonSettingV3::save(matjson::Value&) const {
+    return true;
+}
+
+StringMap<std::string> ButtonSettingV3::getButtons() {
+    return m_impl->buttons;
+}
+
+SettingNodeV3* ButtonSettingV3::createNode(float width) {
+    return ButtonSettingNodeV3::create(
+        std::static_pointer_cast<ButtonSettingV3>(shared_from_this()), width
+    );
+}
+
+bool ButtonSettingV3::isDefaultValue() const {
+    return true;
+}
+
+void ButtonSettingV3::reset() {}
 
 class BoolSettingV3::Impl final {
 public:

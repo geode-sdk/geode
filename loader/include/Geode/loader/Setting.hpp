@@ -11,6 +11,8 @@ namespace geode {
     using SettingBaseValue = SettingBaseValueV3<T, V>;
 
     using TitleSetting = TitleSettingV3;
+    using InfoSetting = InfoSettingV3;
+    using ButtonSetting = ButtonSettingV3;
     using BoolSetting = BoolSettingV3;
     using IntSetting = IntSettingV3;
     using FloatSetting = FloatSettingV3;
@@ -26,6 +28,7 @@ namespace geode {
 
     using SettingChangedEvent = SettingChangedEventV3;
     using KeybindSettingPressedEvent = KeybindSettingPressedEventV3;
+    using ButtonSettingPressedEvent = ButtonSettingPressedEventV3;
     using SettingNodeSizeChangeEvent = SettingNodeSizeChangeEventV3;
     using SettingNodeValueChangeEvent = SettingNodeValueChangeEventV3;
 }

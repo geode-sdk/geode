@@ -69,10 +69,16 @@
     },
     "settings": {
         "geode-settings-info": {
-            "type": "custom:settings-info"
+            "type": "info",
+            "description": "These are settings for the <co>Geode Mod Loader</c>, NOT for mods. To edit settings for <cj>mods</c>, press <cy>View</c> on the mod and then the settings button in the <cg>bottom left</c> of the popup."
         },
-        "copy-mods": {
-            "type": "custom:copy-mods"
+        "action-buttons": {
+            "type": "button",
+            "buttons": {
+                "open-mods-folder": "Open Mods Folder",
+                "copy-mods-list": "Copy Mods List",
+                "install-from-file": "Install From File"
+            }
         },
         "auto-check-updates": {
             "type": "bool",
