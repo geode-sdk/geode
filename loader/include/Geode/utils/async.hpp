@@ -77,7 +77,7 @@ arc::TaskHandle<void> spawn(Lambda&& lambda, Cb&& cb) {
     };
 
     return runtime().spawn(SpawnPollable {
-        std::forward<Func>(lambda),
+        std::forward<Lambda>(lambda),
         std::forward<Cb>(cb),
     });
 }
