@@ -686,7 +686,11 @@ void Loader::Impl::findProblems() {
                     else {
                         message = fmt::format(
                             "{} requires the following mod{} to be {}: {}",
-                            mod->getName(), (mods.size() == 1 ? "" : "s"), whatToDo, ranges::join(mods, ", ")
+                            mod->getName(), (mods.size() == 1 ? "" : "s"), whatToDo,
+                            //ranges::join(mods, ", "),
+                            ranges::join(mods, std::string(""), [](const std::string& m) {
+                                return fmt::format("\n\n<mod:{}>", m.substr(0, m.find(' ')));
+                            })
                         );
                     }
                 }

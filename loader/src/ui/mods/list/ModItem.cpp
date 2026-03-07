@@ -947,7 +947,7 @@ void ModItem::onViewError(CCObject*) {
                 case LoadProblem::Type::Outdated: title = "Outdated"; break;
                 case LoadProblem::Type::HasIncompatibilities: title = "Incompatibilities"; break;
             }
-            FLAlertLayer::create(title.c_str(), problem->message, "OK")->show();
+            MDPopup::create(title, problem->message, "OK")->show();
         }
     }
 }
