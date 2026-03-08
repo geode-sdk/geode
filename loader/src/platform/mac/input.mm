@@ -291,8 +291,11 @@ void keyDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
 
     if ([characters length] != 0) {
         unichar character = [characters characterAtIndex:0];
-        if (character == NSDeleteFunctionKey || character == 0x7f) {
+        if (character == 0x7f) {
             imeDispatcher->dispatchDeleteBackward();
+        }
+        else if (character == NSDeleteFunctionKey) {
+            imeDispatcher->dispatchDeleteForward();
         }
         else if (keyCode == KEY_V && (modifiers & KeyboardModifier::Super) != KeyboardModifier::None) {
             NSString* str = [[NSPasteboard generalPasteboard] stringForType:NSPasteboardTypeString];
