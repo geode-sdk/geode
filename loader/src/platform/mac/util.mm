@@ -296,12 +296,14 @@ void geode::utils::game::exit(bool save) {
         void shutdown() {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wobjc-method-access"
-            GameEvent(GameEventType::Exiting).send();
+            // event will be called through shutdownGame
+            // GameEvent(GameEventType::Exiting).send();
             [[[NSClassFromString(@"AppControllerManager") sharedInstance] controller] shutdownGame];
 #pragma clang diagnostic pop
         }
 
         void shutdownNoSave() {
+            // this crashes due to being called from non starting thread :(
             GameEvent(GameEventType::Exiting).send();
             std::exit(0); // i don't know if this is the best
         }
