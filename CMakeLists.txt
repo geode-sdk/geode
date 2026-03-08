@@ -296,6 +296,17 @@ if (GEODE_DISABLE_FMT_CONSTEVAL)
 	target_compile_definitions(fmt PUBLIC -DFMT_CONSTEVAL=)
 endif()
 
+# throw an error if the compiler is too old, for async we require Clang 19 and MSVC 19.44+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "19.0")
+		message(FATAL_ERROR "Clang version is too old, 19.0 or higher required. Please update your LLVM installation.")
+	endif()
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "19.44")
+		message(FATAL_ERROR "MSVC version is too old, 19.44 or higher required. Please update your Visual Studio installation or install Visual Studio 2026.")
+	endif()
+endif()
+
 # Tulip hook (hooking)
 if (PROJECT_IS_TOP_LEVEL AND NOT GEODE_BUILDING_DOCS)
 	set(TULIP_LINK_SOURCE ON)
