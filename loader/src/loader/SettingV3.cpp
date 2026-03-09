@@ -138,10 +138,13 @@ namespace enable_if_parsing {
         }
         std::string shouldEnableReason(std::string_view defaultModID) const override {
             // Surely this will never break!
+            // sister, it just broke so here's Surely this will never break! v2™
             auto str = component->shouldEnableReason(defaultModID);
-            string::replaceIP(str, "Enable", "___TEMP");
-            string::replaceIP(str, "Disable", "Enable");
-            string::replaceIP(str, "___TEMP", "Disable");
+            if (str.starts_with("Enable")) {
+                str.replace(0, 6, "Disable");
+            } else if (str.starts_with("Disable")) {
+                str.replace(0, 7, "Enable");
+            }
             return str;
         }
     };
