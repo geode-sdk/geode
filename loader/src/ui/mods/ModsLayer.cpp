@@ -397,14 +397,13 @@ bool ModsLayer::init() {
     actionsMenu->addChild(keybindsBtn);
 
     if (Mod::get()->getSettingValue<bool>("restart-button")) {
-        auto restartGDSpr = CCSprite::createWithSpriteFrameName("reload.png"_spr);
-        restartGDSpr->setColor({ 255, 215, 65 });
+        auto restartGDSpr = CCSprite::createWithSpriteFrameName("reload-gold.png"_spr);
         auto restartGDCircleSpr = createGeodeCircleButton(
             restartGDSpr, 1.f,
             CircleBaseSize::Medium
         );
         restartGDCircleSpr->setScale(.8f);
-        restartGDCircleSpr->setTopOffset(ccp(.5f, 0));
+        restartGDCircleSpr->setTopOffset(ccp(1.5f, -1.f));
         auto restartGDBtn = CCMenuItemSpriteExtra::create(
             restartGDCircleSpr, this, menu_selector(ModsLayer::onRestartGD)
         );
