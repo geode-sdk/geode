@@ -639,12 +639,12 @@ void Loader::Impl::findProblems() {
             else {
                 auto installedDependency = m_mods.at(dep.getID());
                 if (!installedDependency->isLoaded()) {
-                    disabledDependencies.push_back(installedDependency->getName());
+                    disabledDependencies.push_back(installedDependency->getID());
                 }
                 else if (dep.getVersion().compareWithReason(installedDependency->getVersion()) == VersionCompareResult::TooOld) {
                     outdatedDependencies.push_back(fmt::format(
                         "{} ({} -> {})",
-                        installedDependency->getName(),
+                        installedDependency->getID(),
                         installedDependency->getVersion(),
                         dep.getVersion()
                     ));
