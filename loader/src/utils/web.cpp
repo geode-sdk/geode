@@ -601,6 +601,15 @@ public:
 
         curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, unwrapHttpVersion(m_httpVersion));
 
+        // HTTP/3 provides very little benefit in general but it may help certain users with weird firewalls,
+        // don't use it by default but allow it to be enabled with a launch flag
+        auto useHttp3 = Loader::get()->getLaunchFlag("use-http3");
+        if (m_httpVersion == HttpVersion::DEFAULT && useHttp3) {
+            auto cachePath = pathToString(Mod::get()->getSaveDir() / "altsvc_cache.txt");
+            curl_easy_setopt(curl, CURLOPT_ALTSVC_CTRL, CURLALTSVC_H3);
+            curl_easy_setopt(curl, CURLOPT_ALTSVC, cachePath.c_str());
+        }
+
         // Set request method
         if (m_method != "GET") {
             if (m_method == "POST") {
@@ -1791,7 +1800,7 @@ arc::Future<> WebRequestsManager::Impl::dnsProbe() {
             log::warn("Invalid custom DNS server(s): {}", custom);
         }
     }
-    
+
     auto override = Mod::get()->getSettingValue<std::string_view>("curl-dns3");
     if (override != "Auto") {
         log::debug("Using DNS server override: {}", override);
