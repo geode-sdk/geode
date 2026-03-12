@@ -265,7 +265,7 @@ extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inter
     }
 
     auto isController = eventSource == 0x00000401 || eventSource == 0x01000010;
-    double timeInSeconds = static_cast<double>(timestamp) / 1'000'000.0;
+    double timeInSeconds = static_cast<double>(timestamp) / 1'000'000'000.0;
 
     if (isDown) {
         onKeyDown(isController, keyCode, modifiers, repeatCount > 0, timeInSeconds);
@@ -313,7 +313,7 @@ extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inter
         return;
     }
 
-    double timeInSeconds = static_cast<double>(timestamp) / 1'000'000.0;
+    double timeInSeconds = static_cast<double>(timestamp) / 1'000'000'000.0;
     auto glView = cocos2d::CCDirector::sharedDirector()->getOpenGLView();
     switch (type) {
         case AndroidTouchInput::Type::Began:
