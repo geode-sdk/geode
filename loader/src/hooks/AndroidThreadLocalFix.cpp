@@ -23,7 +23,9 @@ using namespace geode::prelude;
 using AtexitFn = int(*)(void (*)(void*), void*, void*);
 static AtexitFn g_atexitFn = nullptr;
 
-__attribute__((weak)) int __cxa_thread_atexit_impl(void(*func)(void*), void* arg, void* dso_handle);
+extern "C" {
+    __attribute__((weak)) int __cxa_thread_atexit_impl(void(*func)(void*), void* arg, void* dso_handle);
+}
 
 int atexitHook(void (*func)(void*), void* arg, void* dso) {
     if (__cxa_thread_atexit_impl) {
