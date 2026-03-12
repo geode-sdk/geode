@@ -67,16 +67,29 @@ void updater::tryDownloadLoaderResources(std::string url, bool tryLatestOnError)
         [url](auto response) {
             if (response.ok()) {
                 auto tempResourcesZip = dirs::getTempDir() / "new.zip";
+                auto tempDir = dirs::getGeodeResourcesDir() / fmt::format("{}_tmp", Mod::get()->getID());
                 auto resourcesDir = dirs::getGeodeResourcesDir() / Mod::get()->getID();
+
+                std::error_code ec;
+                std::filesystem::remove_all(tempDir, ec);
+                std::filesystem::create_directory(tempDir, ec);
 
                 // unzip resources zip
                 auto data = std::move(response).data();
                 auto unzip = file::Unzip::create(data);
                 if (unzip) {
-                    auto ok = unzip.unwrap().extractAllTo(resourcesDir);
+                    auto ok = unzip.unwrap().extractAllTo(tempDir);
                     if (ok) {
-                        updater::updateSpecialFiles();
-                        ResourceDownloadEvent().send(UpdateFinished());
+                        std::filesystem::remove_all(resourcesDir, ec);
+                        std::filesystem::rename(tempDir, resourcesDir, ec);
+                        if (ec) {
+                            auto message = formatSystemError(ec.value());
+                            ResourceDownloadEvent().send(UpdateFailed("Failed to transfer temporary directory: " + message));
+                        }
+                        else {
+                            updater::updateSpecialFiles();
+                            ResourceDownloadEvent().send(UpdateFinished());
+                        }
                     }
                     else {
                         ResourceDownloadEvent().send(UpdateFailed("Unable to unzip new resources: " + ok.unwrapErr()));
