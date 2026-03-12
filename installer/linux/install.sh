@@ -159,6 +159,11 @@ install() {
 
     echo "Installing..."
     mv $TEMP_DIR/geode/* "$GD_PATH"
+
+    if [ -f "$GD_PATH/XINPUT1_4.dll" ]; then
+        echo "Deleting conflicting XINPUT1_4.dll..."
+        rm "$GD_PATH/XINPUT1_4.dll"
+    fi
 }
 
 check_dependencies
