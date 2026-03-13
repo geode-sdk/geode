@@ -448,10 +448,10 @@ public:
             : request(std::move(req)), mod(mod), id(id), onComplete(std::move(cb)) {}
 
         void complete(WebResponse res) {
-            onComplete(res);
-
             WebResponseEvent(mod->getID()).send(res);
             IDBasedWebResponseEvent(id).send(res);
+
+            onComplete(res);
         }
 
         void onError(int code, std::string_view msg) {
