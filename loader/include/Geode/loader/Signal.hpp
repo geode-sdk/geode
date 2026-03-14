@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Event.hpp"
 #include "../platform/platform.hpp"
 #include "Log.hpp"

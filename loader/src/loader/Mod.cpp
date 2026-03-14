@@ -159,6 +159,10 @@ Result<> Mod::registerCustomSettingType(std::string_view type, SettingGenerator 
     return m_impl->m_settings->registerCustomSettingType(type, std::move(generator));
 }
 
+void Mod::settingReact(geode::Function<void()> fn) {
+    m_impl->settingReact(std::move(fn));
+}
+
 std::string Mod::getLaunchArgumentName(std::string_view name) const {
     return m_impl->getLaunchArgumentName(name);
 }
