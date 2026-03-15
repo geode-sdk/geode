@@ -665,7 +665,8 @@ void ModItem::updateState() {
             m_bg->setColor(to3B(ColorProvider::get()->color("mod-list-version-bg-updates-available"_spr)));
             m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
         }
-        else {
+        else if (!wantsRestart) {
+            // Don't show deprecated label if restart is required to avoid overlap
             m_deprecatedLabel->setVisible(true);
             elementToReplaceWithOtherAbnormalElement->setVisible(false);
             m_bg->setColor(to3B(ColorProvider::get()->color("mod-list-version-bg-deprecated"_spr)));
