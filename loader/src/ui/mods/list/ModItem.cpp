@@ -193,9 +193,9 @@ bool ModItem::init(ModSource&& source) {
         }
     }
 
-    auto viewBtn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(ModItem::onView));
-    viewBtn->setID("view-button");
-    m_viewMenu->addChild(viewBtn);
+    m_viewBtn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(ModItem::onView));
+    m_viewBtn->setID("view-button");
+    m_viewMenu->addChild(m_viewBtn);
 
     m_viewMenu->updateLayout();
 
@@ -607,6 +607,10 @@ void ModItem::updateState() {
         elementToReplaceWithOtherAbnormalElement->setVisible(!wantsRestart);
         m_downloadBarContainer->setVisible(false);
         m_downloadWaiting->setVisible(false);
+
+        if (wantsRestart) {
+            m_viewBtn->setSprite(createGeodeButton("View", 50, false, true));
+        }
     }
 
     // Set default colors based on source to start off with
