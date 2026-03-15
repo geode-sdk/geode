@@ -18,9 +18,7 @@ Result<> Mod::Impl::loadPlatformBinary() {
     auto so =
         dlopen(utils::string::pathToString(this->getBinaryPath()).c_str(), RTLD_LAZY);
     if (so) {
-        if (m_platformInfo) {
-            delete m_platformInfo;
-        }
+        delete m_platformInfo;
         m_platformInfo = new PlatformInfo{so};
 
         auto geodeImplicitEntry = findSymbolOrMangled<void(*)()>(so, "geodeImplicitEntry", "_Z17geodeImplicitEntryv");

@@ -56,9 +56,7 @@ std::string getLastWinError() {
 Result<> Mod::Impl::loadPlatformBinary() {
     auto load = LoadLibraryW(this->getBinaryPath().c_str());
     if (load) {
-        if (m_platformInfo) {
-            delete m_platformInfo;
-        }
+        delete m_platformInfo;
         m_platformInfo = new PlatformInfo { load };
 
         auto geodeImplicitEntry = findSymbolOrMangled<void(*)()>(load, "geodeImplicitEntry", "_geodeImplicitEntry@0");
