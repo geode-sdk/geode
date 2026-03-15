@@ -50,6 +50,12 @@ namespace geode {
         std::vector<cocos2d::CCLabelBMFont*> getLines();
         float getHeight();
         float getLineHeight();
+        /**
+         * Automatically resize the width to fit the content.
+         * This is useful when you want the text area to shrink/expand
+         * to exactly fit the text without wrapping.
+         */
+        void autoResizeWidth();
     protected:
         SimpleTextArea();
         ~SimpleTextArea() override;

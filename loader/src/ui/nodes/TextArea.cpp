@@ -336,3 +336,13 @@ float SimpleTextArea::getHeight() {
 float SimpleTextArea::getLineHeight() {
     return m_impl->m_lineHeight;
 }
+
+void SimpleTextArea::autoResizeWidth() {
+    float maxWidth = 0.f;
+    for (CCLabelBMFont* line : m_impl->m_lines) {
+        maxWidth = std::max(maxWidth, line->getContentSize().width * m_impl->m_scale);
+    }
+    if (maxWidth > 0.f) {
+        this->setWidth(maxWidth);
+    }
+}
