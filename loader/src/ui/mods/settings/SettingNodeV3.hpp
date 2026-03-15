@@ -120,7 +120,22 @@ protected:
         m_input->setScale(.7f);
         m_input->setCommonFilter(std::is_floating_point_v<typename S::ValueType> ? CommonFilter::Float : CommonFilter::Int);
         m_input->setCallback([this, setting](auto const& str) {
-            this->setValue(numFromString<ValueType>(str).unwrapOr(setting->getDefaultValue()), m_input);
+            auto result = numFromString<ValueType>(str);
+            if (result) {
+                auto value = result.unwrap();
+                // Clamp to min/max range if defined
+                if (auto min = setting->getMinValue()) {
+                    value = std::max(*min, value);
+                }
+                if (auto max = setting->getMaxValue()) {
+                    value = std::min(*max, value);
+                }
+                this->setValue(value, m_input);
+            }
+            else {
+                // If parsing fails, reset to default
+                this->setValue(setting->getDefaultValue(), m_input);
+            }
         });
         if (!setting->isInputEnabled()) {
             m_input->getBGSprite()->setVisible(false);
