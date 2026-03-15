@@ -30,6 +30,22 @@ namespace geode {
      * Use `user:<accountID>` to link to a GD
      * account; `level:<id>` to link to a GD level and
      * `mod:<id>` to link to another Geode mod.
+     *
+     * ## Images
+     *
+     * Images can be loaded from files or sprite frames:
+     *  - `![alt text](image.png)` - Load from file
+     *  - `![alt text](frame:spriteFrameName)` - Load from sprite frame
+     *
+     * Images support the following query parameters:
+     *  - `?scale=X` - Scale the sprite by X (default: 1.0)
+     *  - `?width=X` - Limit width to X pixels
+     *  - `?height=X` - Limit height to X pixels
+     *
+     * Examples:
+     *  - `![](frame:mySprite_001.png?scale=0.5)`
+     *  - `![](frame:mySprite_001.png?width=100&height=50)`
+     *  - `![](myImage.png?scale=2.0&width=200)`
      */
     class GEODE_DLL MDTextArea :
         public cocos2d::CCLayer,
