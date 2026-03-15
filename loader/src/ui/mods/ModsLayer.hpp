@@ -88,6 +88,8 @@ protected:
     void onSettings(CCObject*);
     void onKeybinds(CCObject*);
     void onBack(CCObject*);
+    void onEnableAllMods(CCObject*);
+    void onDisableAllMods(CCObject*);
 
     void updateState();
 

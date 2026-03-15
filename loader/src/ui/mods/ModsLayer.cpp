@@ -372,6 +372,30 @@ bool ModsLayer::init() {
     reloadBtn->setID("reload-button");
     rightActionsMenu->addChild(reloadBtn);
 
+    // Enable All Mods button
+    auto enableAllSpr = createGeodeCircleButton(
+        CCSprite::createWithSpriteFrameName("GJ_checkMark_001.png"), 1.f,
+        CircleBaseSize::Medium
+    );
+    enableAllSpr->setScale(.7f);
+    auto enableAllBtn = CCMenuItemSpriteExtra::create(
+        enableAllSpr, this, menu_selector(ModsLayer::onEnableAllMods)
+    );
+    enableAllBtn->setID("enable-all-button");
+    rightActionsMenu->addChild(enableAllBtn);
+
+    // Disable All Mods button
+    auto disableAllSpr = createGeodeCircleButton(
+        CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"), 1.f,
+        CircleBaseSize::Medium
+    );
+    disableAllSpr->setScale(.7f);
+    auto disableAllBtn = CCMenuItemSpriteExtra::create(
+        disableAllSpr, this, menu_selector(ModsLayer::onDisableAllMods)
+    );
+    disableAllBtn->setID("disable-all-button");
+    rightActionsMenu->addChild(disableAllBtn);
+
     auto settingsSpr = createGeodeCircleButton(
         CCSprite::createWithSpriteFrameName("settings.png"_spr), 1.f,
         CircleBaseSize::Medium
@@ -754,6 +778,40 @@ void ModsLayer::onBack(CCObject*) {
     // To avoid memory overloading, clear caches after leaving the layer
     server::clearServerCaches(true);
     ModListSource::clearAllCaches();
+}
+void ModsLayer::onEnableAllMods(CCObject*) {
+    createQuickPopup(
+        "Enable All Mods",
+        "Are you sure you want to <cg>enable</c> all mods?",
+        "Cancel", "Enable All",
+        [this](auto, bool btn2) {
+            if (btn2) {
+                for (auto& mod : Loader::get()->getAllMods()) {
+                    if (!mod->isOrWillBeEnabled()) {
+                        mod->enable();
+                    }
+                }
+                this->refreshList();
+            }
+        }
+    );
+}
+void ModsLayer::onDisableAllMods(CCObject*) {
+    createQuickPopup(
+        "Disable All Mods",
+        "Are you sure you want to <cr>disable</c> all mods?",
+        "Cancel", "Disable All",
+        [this](auto, bool btn2) {
+            if (btn2) {
+                for (auto& mod : Loader::get()->getAllMods()) {
+                    if (mod->isOrWillBeEnabled()) {
+                        mod->disable();
+                    }
+                }
+                this->refreshList();
+            }
+        }
+    );
 }
 void ModsLayer::onGoToPage(CCObject*) {
     auto popup = SetIDPopup::create(m_lists.at(m_currentSource)->getPage() + 1, 1, m_currentSource->getPageCount().value(), "Go to Page", "Go", true, 1, 60.f, false, false);
