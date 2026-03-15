@@ -291,7 +291,7 @@ std::string loadGeode() {
     }
 
     if (patchAddr == 0)
-        return "Geode could not find the main function, not loading Geode.";
+        return "Geode could not find the main function, not loading Geode.\nYour PC is very likely infected with malware. It's recommended you reinstall Windows.";
 
 #define JMP_ADDR(from, to) (std::bit_cast<uintptr_t>(to) - std::bit_cast<uintptr_t>(from) - 5)
 #define JMP_BYTES(from, to) \
