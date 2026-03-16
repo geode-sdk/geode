@@ -259,9 +259,17 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         }
     }
     void updateGeodeButtonMarkers() {
-        if (!m_fields->m_geodeButton) {
+        auto geodeButton = m_fields->m_geodeButton;
+        if (!geodeButton) {
             return;
         }
+
+        // clear all old markers first
+        geodeButton->removeChildByID("multiple-notifications");
+        geodeButton->removeChildByID("updates-deprecated");
+        geodeButton->removeChildByID("updates-available");
+        geodeButton->removeChildByID("errors-found");
+
         if (((FOUND_MOD_UPDATES > 0) + (FOUND_MOD_DEPRECATIONS > 0) + (FOUND_MOD_ERRORS > 0)) > 1) {
             this->addMarkerToGeodeButton(
                 "updates-multiple.png"_spr,
