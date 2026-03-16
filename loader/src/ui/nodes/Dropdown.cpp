@@ -1,3 +1,5 @@
+#include "ui/mods/GeodeStyle.hpp"
+
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/ui/Button.hpp>
@@ -10,10 +12,6 @@
 using namespace geode;
 using namespace geode::cocos;
 using namespace cocos2d;
-
-static bool isGeodeTheme() {
-    return Mod::get()->getSettingValue<bool>("enable-geode-theme");
-}
 
 class DropdownOverlay;
 
