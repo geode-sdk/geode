@@ -19,10 +19,11 @@ char const* getUsefulError(DWORD code) {
         case ERROR_MOD_NOT_FOUND:
             return "ERROR_MOD_NOT_FOUND; The mod is either missing the DLL "
                    "file or some of its dependencies. Make sure to list all "
-                   "other mods you depend on under dependencies and include "
-                   "other DLLs under resources in mod.json. "
+                   "other mods you depend on under dependencies in mod.json  "
+                   "and that the mod is not built in Debug. "
                    "If you are not the developer of this mod, report this error "
-                   "to them as it is likely not your fault.";
+                   "to them as it is likely not your fault. Also try updating "
+                   "vcredist.";
 
         case ERROR_PROC_NOT_FOUND:
             return "ERROR_PROC_NOT_FOUND; The mod tried to access "
@@ -39,6 +40,18 @@ char const* getUsefulError(DWORD code) {
                    "If you are not the developer of this mod, report this error "
                    "to them as it is likely not your fault.";
 
+        case 4551:
+            return "Blocked by Windows Smart App Control (4551); The mod was blocked "
+                    "from loading by Windows Smart App Control. This is a security feature "
+                    "in Windows that blocks unrecognized applications including most "
+                    "Geometry Dash mods.";
+
+        case 0xc0e90002:
+            return "Blocked by Windows Smart App Control (0xc0e90002); The mod was blocked "
+                    "from loading by Windows Smart App Control. This is a security feature "
+                    "in Windows that blocks unrecognized applications including most "
+                    "Geometry Dash mods.";
+
         default: break;
     }
     return nullptr;
@@ -47,6 +60,8 @@ char const* getUsefulError(DWORD code) {
 std::string getLastWinError() {
     auto err = GetLastError();
     if (!err) return "None (0)";
+    if (err == 4551) return "Blocked by Windows Smart App Control (4551)";
+    if (err == 0xc0e90002) return "Blocked by Windows Smart App Control (0xc0e90002)";
     auto useful = getUsefulError(err);
     if (useful) return useful;
 
