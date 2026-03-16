@@ -6,8 +6,14 @@
 #include <Geode/ui/Button.hpp>
 #include <Geode/ui/MDPopup.hpp>
 #include <Geode/ui/Scrollbar.hpp>
+<<<<<<< HEAD
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/utils/ranges.hpp>
+=======
+#include <Geode/ui/Button.hpp>
+#include <Geode/binding/TextArea.hpp>
+#include "KeybindEditPopup.hpp"
+>>>>>>> 2262a8e04d16be27e2eacc37efcbcd5b8d8f6171
 
 class SettingNodeV3::Impl final {
 public:
