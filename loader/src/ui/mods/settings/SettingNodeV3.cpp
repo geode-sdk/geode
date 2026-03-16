@@ -5,6 +5,7 @@
 #include <Geode/ui/MDPopup.hpp>
 #include <Geode/ui/Scrollbar.hpp>
 #include <Geode/ui/Button.hpp>
+#include <Geode/binding/TextArea.hpp>
 #include "KeybindEditPopup.hpp"
 
 class SettingNodeV3::Impl final {
