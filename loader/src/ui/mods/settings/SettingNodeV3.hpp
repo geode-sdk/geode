@@ -264,6 +264,12 @@ protected:
         auto value = this->valueFromSlider(m_slider->m_touchLogic->m_thumb->getValue());
 
         if (value != this->getValue()) {
+            if (auto min = this->getSetting()->getMinValue()) {
+                value = std::max(*min, value);
+            }
+            if (auto max = this->getSetting()->getMaxValue()) {
+                value = std::min(*max, value);
+            }
             this->setValue(value, m_slider);
         }
     }

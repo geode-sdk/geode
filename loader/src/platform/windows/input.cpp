@@ -499,6 +499,10 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
                 ime->dispatchDeleteBackward();
             } else if (keyCode == enumKeyCodes::KEY_Delete && isDown) {
                 ime->dispatchDeleteForward();
+            } else if (keyCode == enumKeyCodes::KEY_Left && isDown) {
+                ime->dispatchInsertText("a", 1, enumKeyCodes::KEY_Left);
+            } else if (keyCode == enumKeyCodes::KEY_Right && isDown) {
+                ime->dispatchInsertText("a", 1, enumKeyCodes::KEY_Right);
             }
 
             auto* keyboardDispatcher = CCKeyboardDispatcher::get();

@@ -23,7 +23,7 @@ void crashlog::printGeodeInfo(Buffer& stream) {
         "Loader Commit: {}\n"
         "Bindings Commit: {}\n"
         "Installed mods: {}\n"
-        "Problems: {}\n",
+        "Failed to load: {}\n",
         Loader::get()->getVersion().toVString(),
         about::getLoaderCommitHash(),
         about::getBindingsCommitHash(),
@@ -156,6 +156,8 @@ std::string crashlog::writeCrashlog(
         );
     }
 
+    file.append("\nPlease share the whole crash log when asking for help.\n");
+
     // geode info
     file.append("\n== Geode Information ==\n");
     printGeodeInfo(file);
@@ -165,7 +167,7 @@ std::string crashlog::writeCrashlog(
     file.append(info);
 
     // stack trace
-    file.append("\n== Stack Trace ==\n");
+    file.append("\n== Stack Trace (the most important part) ==\n");
     file.append(stacktrace);
 
     // registers

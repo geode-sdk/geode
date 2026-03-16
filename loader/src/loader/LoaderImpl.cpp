@@ -639,12 +639,12 @@ void Loader::Impl::findProblems() {
             else {
                 auto installedDependency = m_mods.at(dep.getID());
                 if (!installedDependency->isLoaded()) {
-                    disabledDependencies.push_back(installedDependency->getName());
+                    disabledDependencies.push_back(installedDependency->getID());
                 }
                 else if (dep.getVersion().compareWithReason(installedDependency->getVersion()) == VersionCompareResult::TooOld) {
                     outdatedDependencies.push_back(fmt::format(
                         "{} ({} -> {})",
-                        installedDependency->getName(),
+                        installedDependency->getID(),
                         installedDependency->getVersion(),
                         dep.getVersion()
                     ));
@@ -686,7 +686,11 @@ void Loader::Impl::findProblems() {
                     else {
                         message = fmt::format(
                             "{} requires the following mod{} to be {}: {}",
-                            mod->getName(), (mods.size() == 1 ? "" : "s"), whatToDo, ranges::join(mods, ", ")
+                            mod->getName(), (mods.size() == 1 ? "" : "s"), whatToDo,
+                            //ranges::join(mods, ", "),
+                            ranges::join(mods, std::string(""), [](const std::string& m) {
+                                return fmt::format("\n\n<mod:{}>", m.substr(0, m.find(' ')));
+                            })
                         );
                     }
                 }
@@ -979,7 +983,7 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
     std::filesystem::remove_all(tempDir, ec);
     if (ec) {
         auto message = formatSystemError(ec.value());
-        return Err("Unable to delete temp dir: " + message);
+        return Err("Unable to delete temp dir: " + message GEODE_WINDOWS( + " Try restarting your PC if the problem persists."));
     }
 
     (void)utils::file::createDirectoryAll(tempDir);

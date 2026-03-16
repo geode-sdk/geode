@@ -11,6 +11,7 @@
 #include <mutex>
 #include <atomic>
 #include <asp/ptr/PtrSwap.hpp>
+#include <asp/iter.hpp>
 #include "../utils/function.hpp"
 #include "../utils/casts.hpp"
 #include "../utils/hash.hpp"
@@ -202,7 +203,12 @@ namespace geode::comm {
             ReceiverHandle handle = {};
             m_receivers.rcu([&](auto const& ptr) {
                 auto newReceivers = asp::make_shared<VectorType>(*ptr.get());
-                handle = newReceivers->empty() ? 1 : newReceivers->back().m_handle + 1;
+
+                handle = asp::iter::from(*newReceivers)
+                    .map([](auto r) { return r.get().m_handle; })
+                    .max()
+                    .value_or(0) + 1;
+
                 for (auto it = newReceivers->begin(); it != newReceivers->end(); ++it) {
                     if (priority < it->m_priority) {
                         newReceivers->insert(it, {std::move(receiver), priority, handle});

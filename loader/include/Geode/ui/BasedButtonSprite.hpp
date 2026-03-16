@@ -30,6 +30,7 @@ namespace geode {
         Cyan = 4,
         DarkPurple = 5, // Geode-added color, used in Geode UIs
         DarkAqua = 6,   // Geode-added color, used in Geode UIs
+        Red = 7,        // Geode-added color, used in Geode UIs
     };
     GEODE_DLL const char* baseEnumToString(CircleBaseColor);
 
