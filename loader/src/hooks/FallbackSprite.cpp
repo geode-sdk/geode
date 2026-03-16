@@ -85,6 +85,8 @@ class $modify(CCSprite) {
     static CCSprite* create(const char* name) {
         auto* sprite = CCSprite::create(name);
         if (sprite == nullptr) {
+            geode::log::warn("CCSprite::create - Using fallback texture for `{}`", name);
+
             sprite = CCSprite::createWithTexture(getFallbackTexture());
             assignFallbackObj(sprite);
         }
@@ -101,6 +103,9 @@ class $modify(CCSprite) {
             return CCSprite::createWithSpriteFrame(spriteFrame);
         }
 
+        // redundant - CCSpriteFrameCache::get sends the warning
+        // geode::log::warn("CCSprite::createWithSpriteFrameName - Using fallback texture for `{}`", name);
+
         CCSprite* sprite = CCSprite::createWithTexture(getFallbackTexture());
         assignFallbackObj(sprite);
         return sprite;
@@ -110,6 +115,8 @@ class $modify(CCSprite) {
         if (CCSprite::initWithSpriteFrame(frame))
             return true;
 
+        geode::log::warn("CCSprite::initWithSpriteFrame - Using fallback texture for `{}`", frame);
+
         assignFallbackObj(this);
         return CCSprite::initWithTexture(getFallbackTexture());
     }
@@ -118,6 +125,8 @@ class $modify(CCSprite) {
         if (CCSprite::initWithFile(pszFilename))
             return true;
 
+        geode::log::warn("CCSprite::initWithFile - Using fallback texture for `{}`", pszFilename);
+
         assignFallbackObj(this);
         return CCSprite::initWithTexture(getFallbackTexture());
     }
@@ -125,6 +134,8 @@ class $modify(CCSprite) {
     virtual bool initWithFile(const char *pszFilename, const CCRect& rect) {
         if (CCSprite::initWithFile(pszFilename, rect))
             return true;
+
+        geode::log::warn("CCSprite::initWithFile - Using fallback texture for `{}`", pszFilename);
 
         assignFallbackObj(this);
         return CCSprite::initWithTexture(getFallbackTexture());
@@ -158,6 +169,8 @@ class $modify(CCSpriteFrameCache) {
             }
         }
 
+        geode::log::warn("CCSpriteFrameCache::spriteFrameByName - Using fallback texture for `{}`", name);
+
         // check if the fallback was already added
         auto fallbackFrame = CCSpriteFrameCache::spriteFrameByName("fallback.png"_spr);
         if (fallbackFrame) {
@@ -182,6 +195,8 @@ class $modify (CCSpriteBatchNode)
     {
         if (!tex)
         {
+            geode::log::warn("CCSpriteBatchNode::initWithTexture - using fallback");
+
             tex = getFallbackTexture();
             assignFallbackObj(this);
         }
