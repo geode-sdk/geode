@@ -1,10 +1,18 @@
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/loader/Mod.hpp>
 #include <Geode/ui/Dropdown.hpp>
 #include <Geode/ui/NineSlice.hpp>
+#include <Geode/ui/ScrollLayer.hpp>
+#include <Geode/utils/ColorProvider.hpp>
 #include <Geode/utils/cocos.hpp>
 
 using namespace geode;
+using namespace geode::cocos;
 using namespace cocos2d;
+
+static bool isGeodeTheme() {
+    return Mod::get()->getSettingValue<bool>("enable-geode-theme");
+}
 
 class DropdownOverlay;
 
@@ -16,6 +24,7 @@ public:
     size_t m_selectedIndex = 0;
     float m_width;
     bool m_enabled = true;
+    int m_savedZOrder = 0;
 
     CCLabelBMFont* m_label = nullptr;
     NineSlice* m_bg = nullptr;
@@ -38,13 +47,18 @@ public:
 
 class DropdownOverlay : public CCLayerColor {
     Dropdown::Impl* m_dropdown;
+    ScrollLayer* m_scrollLayer = nullptr;
+    CCRect m_panelRect;
 
-    struct ItemRect {
-        CCRect rect;
+    struct ItemInfo {
+        CCNode* node;
         size_t index;
     };
 
-    std::vector<ItemRect> m_itemRects;
+    std::vector<ItemInfo> m_items;
+    float m_itemHeight;
+    float m_itemWidth;
+    float m_panelPadding;
 
 public:
     static DropdownOverlay* create(Dropdown::Impl* dropdown) {
@@ -60,77 +74,101 @@ public:
     }
 
     bool init(Dropdown::Impl* dropdown) {
-        if (!CCLayerColor::initWithColor({0, 0, 0, 85})) return false;
+        if (!CCLayerColor::initWithColor({0, 0, 0, 150})) return false;
 
         m_dropdown = dropdown;
+        this->setTouchEnabled(true);
         this->setKeypadEnabled(true);
+
+        bool geodeTheme = isGeodeTheme();
 
         auto winSize = CCDirector::get()->getWinSize();
         auto buttonWorldPos = m_dropdown->m_self->convertToWorldSpace(ccp(0, 0));
         auto buttonSize = m_dropdown->m_self->getContentSize();
 
         float dropdownWidth = m_dropdown->m_width;
-        float itemHeight = 25.f;
-        float listHeight = itemHeight * m_dropdown->m_options.size();
-        float panelPadding = 4.f;
-        float panelHeight = listHeight + panelPadding * 2;
-        bool openBelow = true;
-        float panelY = buttonWorldPos.y - panelHeight;
+        m_itemHeight = 28.f;
+        float itemSpacing = 2.f;
+        float totalListHeight = m_itemHeight * m_dropdown->m_options.size() +
+            itemSpacing * (m_dropdown->m_options.size() - 1);
+        m_panelPadding = 6.f;
+
+        float maxPanelHeight = 200.f;
+        float naturalPanelHeight = totalListHeight + m_panelPadding * 2;
+        float panelHeight = std::min(naturalPanelHeight, maxPanelHeight);
+
+        float panelY = buttonWorldPos.y - panelHeight - 2.f;
 
         if (panelY < 5.f) {
-            openBelow = false;
-            panelY = buttonWorldPos.y + buttonSize.height;
+            panelY = buttonWorldPos.y + buttonSize.height + 2.f;
         }
 
-        float panelX = buttonWorldPos.x;
+        float panelX = buttonWorldPos.x + buttonSize.width - dropdownWidth;
         if (panelX + dropdownWidth > winSize.width - 5.f) {
             panelX = winSize.width - dropdownWidth - 5.f;
         }
         if (panelX < 5.f) panelX = 5.f;
 
-        auto panelBG = NineSlice::create("square02b_001.png", {0, 0, 80, 80});
-        panelBG->setColor({0, 0, 0});
-        panelBG->setOpacity(200);
-        panelBG->setContentSize({dropdownWidth / 0.25f, panelHeight / 0.25f});
-        panelBG->setScale(0.25f);
+        m_panelRect = CCRect(panelX, panelY, dropdownWidth, panelHeight);
+
+        auto panelBG = NineSlice::create(geodeTheme ? "GE_square02.png"_spr : "GJ_square02.png");
+        panelBG->setID("dropdown-panel-bg");
+        panelBG->setContentSize({dropdownWidth, panelHeight});
         panelBG->setAnchorPoint({0, 0});
         panelBG->setPosition(panelX, panelY);
         this->addChild(panelBG);
 
-        float itemWidth = dropdownWidth - panelPadding * 2;
-        for (size_t i = 0; i < m_dropdown->m_options.size(); i++) {
-            float itemY;
-            if (openBelow) {
-                itemY = panelY + panelHeight - panelPadding - itemHeight * i - itemHeight;
-            }
-            else {
-                itemY = panelY + panelPadding + itemHeight * (m_dropdown->m_options.size() - 1 - i);
-            }
-            float itemX = panelX + panelPadding;
+        m_itemWidth = dropdownWidth - m_panelPadding * 2;
+        float scrollAreaWidth = m_itemWidth;
+        float scrollAreaHeight = panelHeight - m_panelPadding * 2;
 
-            auto itemBG = NineSlice::create("square02b_001.png", {0, 0, 80, 80});
-            itemBG->setScale(0.25f);
+        m_scrollLayer = ScrollLayer::create({scrollAreaWidth, scrollAreaHeight}, true, true);
+        m_scrollLayer->setAnchorPoint({0, 0});
+        m_scrollLayer->setPosition(panelX + m_panelPadding, panelY + m_panelPadding);
+        this->addChild(m_scrollLayer);
+
+        for (size_t i = 0; i < m_dropdown->m_options.size(); i++) {
+            float itemY = totalListHeight - (m_itemHeight + itemSpacing) * i - m_itemHeight;
+
+            auto itemBG = NineSlice::createWithSpriteFrameName("tab-bg.png"_spr);
+            itemBG->setScale(.5f);
+            itemBG->setContentSize({m_itemWidth / .5f, m_itemHeight / .5f});
+            itemBG->setAnchorPoint({0, 0});
+            itemBG->setPosition(0, itemY);
+
             if (i == m_dropdown->m_selectedIndex) {
-                itemBG->setColor({80, 80, 80});
-                itemBG->setOpacity(200);
+                itemBG->setColor(to3B(ColorProvider::get()->color("mod-list-tab-selected-bg"_spr)));
             }
             else {
-                itemBG->setColor({0, 0, 0});
-                itemBG->setOpacity(0);
+                itemBG->setColor(to3B(ColorProvider::get()->color("mod-list-tab-deselected-bg"_spr)));
             }
-            itemBG->setContentSize({itemWidth / 0.25f, itemHeight / 0.25f});
-            itemBG->setAnchorPoint({0, 0});
-            itemBG->setPosition(itemX, itemY);
-            this->addChild(itemBG);
+            m_scrollLayer->m_contentLayer->addChild(itemBG);
 
             auto label = CCLabelBMFont::create(m_dropdown->m_options[i].c_str(), "bigFont.fnt");
-            label->setScale(0.4f / 0.25f);
+            label->setScale(0.35f / .5f);
             label->setAnchorPoint({0.f, 0.5f});
-            label->limitLabelWidth((itemWidth - 10.f) / 0.25f, 0.4f / 0.25f, 0.1f / 0.25f);
-            itemBG->addChildAtPosition(label, Anchor::Left, ccp(5.f / 0.25f, 0));
+            label->limitLabelWidth((m_itemWidth - 14.f) / .5f, 0.35f / .5f, 0.1f / .5f);
 
-            m_itemRects.push_back({CCRect(itemX, itemY, itemWidth, itemHeight), i});
+            if (i == m_dropdown->m_selectedIndex) {
+                label->setColor(ccWHITE);
+            }
+            else {
+                label->setColor(ccc3(200, 200, 200));
+            }
+
+            itemBG->addChildAtPosition(label, Anchor::Left, ccp(8.f / .5f, 0));
+
+            if (i == m_dropdown->m_selectedIndex) {
+                auto check = CCSprite::createWithSpriteFrameName("GJ_completesIcon_001.png");
+                check->setScale(0.4f / .5f);
+                itemBG->addChildAtPosition(check, Anchor::Right, ccp(-10.f / .5f, 0));
+            }
+
+            m_items.push_back({itemBG, i});
         }
+
+        m_scrollLayer->m_contentLayer->setContentSize({scrollAreaWidth, totalListHeight});
+        m_scrollLayer->scrollToTop();
 
         return true;
     }
@@ -142,11 +180,20 @@ public:
     bool ccTouchBegan(CCTouch* touch, CCEvent* event) override {
         auto loc = touch->getLocation();
 
-        for (auto const& item : m_itemRects) {
-            if (item.rect.containsPoint(loc)) {
-                m_dropdown->selectOption(item.index);
-                return true;
+        if (m_panelRect.containsPoint(loc)) {
+            auto localPos = m_scrollLayer->m_contentLayer->convertToNodeSpace(loc);
+
+            for (auto const& item : m_items) {
+                auto itemRect = CCRect(
+                    item.node->getPositionX(), item.node->getPositionY(), m_itemWidth, m_itemHeight
+                );
+                if (itemRect.containsPoint(localPos)) {
+                    m_dropdown->selectOption(item.index);
+                    return true;
+                }
             }
+
+            return true;
         }
 
         m_dropdown->closeOverlay();
@@ -171,26 +218,27 @@ bool Dropdown::Impl::init(
     m_options = std::move(options);
     m_callback = std::move(callback);
 
+    bool geodeTheme = isGeodeTheme();
+
     float height = 30.f;
     m_self->setContentSize({width, height});
     m_self->setAnchorPoint({0.5f, 0.5f});
 
-    m_bg = NineSlice::create("square02b_001.png", {0, 0, 80, 80});
-    m_bg->setColor({0, 0, 0});
-    m_bg->setOpacity(90);
-    m_bg->setContentSize({width / 0.25f, height / 0.25f});
-    m_bg->setScale(0.25f);
+    m_bg = NineSlice::createWithSpriteFrameName("tab-bg.png"_spr);
+    m_bg->setScale(.5f);
+    m_bg->setContentSize({width / .5f, height / .5f});
+    m_bg->setColor(to3B(ColorProvider::get()->color("mod-list-search-bg"_spr)));
     m_self->addChildAtPosition(m_bg, Anchor::Center);
 
     m_arrow = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
-    m_arrow->setScale(0.3f);
+    m_arrow->setScale(0.25f);
     m_arrow->setRotation(90.f);
-    m_self->addChildAtPosition(m_arrow, Anchor::Right, ccp(-10, 0));
+    m_self->addChildAtPosition(m_arrow, Anchor::Right, ccp(-12, 0));
 
     m_label = CCLabelBMFont::create("", "bigFont.fnt");
-    m_label->setScale(0.4f);
+    m_label->setScale(0.35f);
     m_label->setAnchorPoint({0.f, 0.5f});
-    m_self->addChildAtPosition(m_label, Anchor::Left, ccp(5, 0));
+    m_self->addChildAtPosition(m_label, Anchor::Left, ccp(8, 0));
 
     auto clickArea = CCSprite::create();
     clickArea->setContentSize({width, height});
@@ -216,7 +264,7 @@ void Dropdown::Impl::updateLabel() {
         return;
     }
     m_label->setString(m_options[m_selectedIndex].c_str());
-    m_label->limitLabelWidth(m_width - 25.f, 0.4f, 0.1f);
+    m_label->limitLabelWidth(m_width - 30.f, 0.35f, 0.1f);
 }
 
 void Dropdown::Impl::openOverlay() {
@@ -224,6 +272,9 @@ void Dropdown::Impl::openOverlay() {
 
     auto scene = CCDirector::get()->getRunningScene();
     if (!scene) return;
+
+    m_savedZOrder = m_self->getZOrder();
+    m_self->setZOrder(9998);
 
     m_overlay = DropdownOverlay::create(this);
     if (m_overlay) {
@@ -237,6 +288,8 @@ void Dropdown::Impl::closeOverlay() {
         CCTouchDispatcher::get()->unregisterForcePrio(m_overlay);
         m_overlay->removeFromParentAndCleanup(true);
         m_overlay = nullptr;
+
+        m_self->setZOrder(m_savedZOrder);
     }
 }
 
@@ -259,6 +312,7 @@ void Dropdown::Impl::setEnabled(bool enabled) {
     m_label->setColor(color);
     m_arrow->setOpacity(opacity);
     m_arrow->setColor(color);
+    m_bg->setOpacity(enabled ? 255 : 155);
 }
 
 Dropdown::Dropdown() : m_impl(std::make_unique<Impl>()) {
