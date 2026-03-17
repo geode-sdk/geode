@@ -1,5 +1,26 @@
 # Geode Changelog
 
+## v5.4.0
+ * Info/button setting types (#1903)
+ * Integrated fallback sprites into Geode (#1819)
+ * Add `geode::SliderNode` (#1854)
+ * Add `CircleBaseColor::Red` (41f65f7)
+ * Enable signals, and then add `geode::Mod::settingReact` for those signals (17656a8)
+ * Disable copying/move operators for fields (83e7a59)
+ * `CCEGLView::get` now uses the CCEGLView singleton (21f5567)
+ * Improvements to the missing dependencies popup (9fa3a79)
+ * Fix crash when exiting game on macOS (52e16a2)
+ * Fix additional enable/disable flips in setting errors (aae2fe3)
+ * Fix input timestamps on Android (fdb2f26)
+ * macOS text input improvements (9c2289e, 21461ec)
+ * Fix left/right arrow keys in text inputs on Windows (1b66527)
+ * Fix for thread_local crash on Android (08a89a4)
+ * Fix listener assignment leak (85fc0be)
+ * Improvements to mod error messaging on Windows (e74724e, 5646cb0, 2262a8e)
+ * Add Debian steam path to Linux install script (#1843)
+ * Fix slider setting clamping when slider bypass is enabled (#1930)
+ * Several net_libs updates (91de7bf, 7b66058, 3bab07c)
+
 ## v5.3.0
  * Add `CCDrawNode` hook to fix an uninitialized member (cfe6542)
  * Add `geode::openKeybindsPopup` (#1880)
