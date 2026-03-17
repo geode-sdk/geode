@@ -20,6 +20,7 @@
  * Improvements to loader resource downloading (04be0ba, c09ce5e)
  * Improvements to mod error messaging on Windows (e74724e, 5646cb0, 2262a8e)
  * Add Debian steam path to Linux install script (#1843)
+ * Rework and fix multiple sprites (#1896)
  * Fix slider setting clamping when slider bypass is enabled (#1930)
  * Several net_libs updates (91de7bf, 7b66058, 3bab07c)
  * Update TulipHook
