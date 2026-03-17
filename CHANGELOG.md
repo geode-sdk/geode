@@ -16,10 +16,14 @@
  * Fix left/right arrow keys in text inputs on Windows (1b66527)
  * Fix for thread_local crash on Android (08a89a4)
  * Fix listener assignment leak (85fc0be)
+ * Call web intercept events before calling completion (ae55e2d)
+ * Improvements to loader resource downloading (04be0ba, c09ce5e)
  * Improvements to mod error messaging on Windows (e74724e, 5646cb0, 2262a8e)
  * Add Debian steam path to Linux install script (#1843)
  * Fix slider setting clamping when slider bypass is enabled (#1930)
  * Several net_libs updates (91de7bf, 7b66058, 3bab07c)
+ * Update TulipHook
+   * This fixes a crash when hooking some functions on ARMv8 platforms (8e88b37)
 
 ## v5.3.0
  * Add `CCDrawNode` hook to fix an uninitialized member (cfe6542)
