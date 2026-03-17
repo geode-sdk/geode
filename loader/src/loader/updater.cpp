@@ -1,4 +1,5 @@
 #include "updater.hpp"
+#include <asp/fs/fs.hpp>
 #include <Geode/utils/web.hpp>
 #include <resources.hpp>
 #include <hash.hpp>
@@ -48,6 +49,39 @@ void updater::downloadLatestLoaderResources() {
     );
 }
 
+Result<> updater::extractLoaderResources(ByteSpan data) {
+    auto tempDir = dirs::getGeodeResourcesDir() / fmt::format("{}_tmp", Mod::get()->getID());
+    auto resourcesDir = dirs::getGeodeResourcesDir() / Mod::get()->getID();
+
+    GEODE_UNWRAP(asp::fs::removeAll(tempDir).mapErr([](auto ec) {
+        return "Unable to remove old temporary directory: " + ec.message();
+    }));
+
+    GEODE_UNWRAP(asp::fs::createDir(tempDir).mapErr([](auto ec) {
+        return "Unable to create temporary directory: " + ec.message();
+    }));
+
+    // unzip resources zip
+    auto unzip = GEODE_UNWRAP(file::Unzip::create(data).mapErr([](auto const& e) {
+        return "Unable to load new resources archive: " + e;
+    }));
+
+    GEODE_UNWRAP(unzip.extractAllTo(tempDir).mapErr([](auto const& e) {
+        return "Unable to unzip new resources: " + e;
+    }));
+
+    GEODE_UNWRAP(asp::fs::removeAll(resourcesDir).mapErr([](auto ec) {
+        return "Unable to remove old resources directory: " + ec.message();
+    }));
+
+    GEODE_UNWRAP(asp::fs::rename(tempDir, resourcesDir).mapErr([](auto ec) {
+        return "Unable to transfer temporary directory: " + ec.message();
+    }));
+
+    updater::updateSpecialFiles();
+    return Ok();
+}
+
 void updater::tryDownloadLoaderResources(std::string url, bool tryLatestOnError) {
     if (RUNNING_REQUESTS.contains(url)) return;
 
@@ -66,37 +100,11 @@ void updater::tryDownloadLoaderResources(std::string url, bool tryLatestOnError)
         web::WebRequest{}.onProgress(std::move(progress)).get(url),
         [url](auto response) {
             if (response.ok()) {
-                auto tempResourcesZip = dirs::getTempDir() / "new.zip";
-                auto tempDir = dirs::getGeodeResourcesDir() / fmt::format("{}_tmp", Mod::get()->getID());
-                auto resourcesDir = dirs::getGeodeResourcesDir() / Mod::get()->getID();
-
-                std::error_code ec;
-                std::filesystem::remove_all(tempDir, ec);
-                std::filesystem::create_directory(tempDir, ec);
-
-                // unzip resources zip
                 auto data = std::move(response).data();
-                auto unzip = file::Unzip::create(data);
-                if (unzip) {
-                    auto ok = unzip.unwrap().extractAllTo(tempDir);
-                    if (ok) {
-                        std::filesystem::remove_all(resourcesDir, ec);
-                        std::filesystem::rename(tempDir, resourcesDir, ec);
-                        if (ec) {
-                            auto message = formatSystemError(ec.value());
-                            ResourceDownloadEvent().send(UpdateFailed("Failed to transfer temporary directory: " + message));
-                        }
-                        else {
-                            updater::updateSpecialFiles();
-                            ResourceDownloadEvent().send(UpdateFinished());
-                        }
-                    }
-                    else {
-                        ResourceDownloadEvent().send(UpdateFailed("Unable to unzip new resources: " + ok.unwrapErr()));
-                    }
-                }
-                else {
-                    ResourceDownloadEvent().send(UpdateFailed("Unable to unzip new resources: " + unzip.unwrapErr()));
+                if (GEODE_UNWRAP_IF_ERR(e, updater::extractLoaderResources(data))) {
+                    ResourceDownloadEvent().send(UpdateFailed(e));
+                } else {
+                    ResourceDownloadEvent().send(UpdateFinished());
                 }
             }
             else {
