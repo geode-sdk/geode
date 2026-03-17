@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/ui/NineSlice.hpp>
+#include <Geode/ui/TextInput.hpp>
 #include <Geode/utils/function.hpp>
 #include <Geode/utils/ZStringView.hpp>
 #include <cocos2d.h>
@@ -12,7 +13,7 @@ namespace geode {
 
         /**
          * Create a custom Slider
-         * 
+         *
          * @param thumb The sprite for the thumb when not selected
          * @param thumbSelected The sprite for the thumb when selected
          * @param groove The NineSlice for the grove
@@ -21,10 +22,10 @@ namespace geode {
          * @param barOffset The size offset (will be inset for each side) for the bar to fit within the groove
          */
         static SliderNode* createCustom(cocos2d::CCSprite* thumb, cocos2d::CCSprite* thumbSelected, geode::NineSlice* groove, ZStringView bar, SliderCallback callback, cocos2d::CCSize const& barOffset = {2.f, 2.f});
-        
+
         /**
          * Create a traditional Geometry Dash style Slider
-         * 
+         *
          * @param callback The callback for when the thumb is dragged
          * @param alt Use the alternative slider design (white border and bar)
          */
