@@ -79,6 +79,7 @@ cocos2d::CCTexture2D* getFallbackTexture() {
 static void assignFallbackObj(CCNode* node) {
     if (!node) return;
     node->setUserFlag("fallback"_spr, true);
+    node->setUserObject("geode.texture-loader/fallback", CCBool::create(true));
 }
 
 class $modify(CCSprite) {
