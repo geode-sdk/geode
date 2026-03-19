@@ -4,11 +4,9 @@
 
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/ZStringView.hpp>
-#include <array>
 #include <thread>
 #include <dlfcn.h>
 #include <cxxabi.h>
-#include <algorithm>
 
 #include <sys/ucontext.h>
 #include <unistd.h>
@@ -74,7 +72,7 @@ std::vector<StackFrame> CrashContext::getStacktrace() {
     }
 
     unwindstack::UnwinderFromPid unwinder(
-        128,
+        MAX_FRAMES,
         getpid(),
         unwindstack::ARCH_ARM64,
         maps.get(),
@@ -173,14 +171,7 @@ std::string_view CrashContext::getGeodeBinaryName() {
     return "Geode.so";
 }
 
-static std::string getInfo(void* address, Mod* faultyMod) {
-    StringBuffer<1> stream;
-    auto image = g_context.imageFromAddress(address);
-
-    stream.append("Faulty Lib: {}\n", image->name());
-    stream.append("Faulty Mod: {}\n", faultyMod ? faultyMod->getID() : "<Unknown>");
-    stream.append("Instruction Address: ");
-    g_context.formatAddress(address, stream);
+void CrashContext::writeExtraInfo(Buffer& stream) {
     stream.append("\nSignal Code: 0x{:x} ({})\n", s_siginfo->si_code, getSignalCodeString(s_signal, s_siginfo));
 
     if (hasSignalDetail(s_signal)) {
@@ -188,8 +179,6 @@ static std::string getInfo(void* address, Mod* faultyMod) {
         writeSignalDetail(stream, g_context, s_signal, s_siginfo);
         stream.append('\n');
     }
-
-    return stream.str();
 }
 
 extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext) {
@@ -200,107 +189,14 @@ extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext)
     write(s_pipe[1], &buf, 1);
 }
 
-// https://stackoverflow.com/questions/8278691/how-to-fix-backtrace-line-number-error-in-c
-static std::string executeCommand(ZStringView cmd) {
-    StringBuffer<> stream;
-    std::array<char, 1024> buf;
-
-    if (FILE* ptr = popen(cmd.c_str(), "r")) {
-        while (fgets( buf.data(), buf.size(), ptr ) != NULL) {
-            stream.append("{}", buf.data());
-        }
-        pclose(ptr);
-    }
-
-    return stream.str();
-}
-
-static std::string getStacktrace() {
-    StringBuffer<> stacktrace;
-
-    for (auto& frame : g_context.frames) {
-        if (frame.image) {
-            stacktrace.append("- {} + 0x{:x}", frame.image->shortName(), frame.offset());
-            if (!frame.symbol.empty()) {
-                stacktrace.append(" ({})", frame.symbol);
-            }
-        } else {
-            stacktrace.append("- Unknown", frame.address);
-        }
-
-        stacktrace.append(" @ 0x{:x}\n", frame.address);
-    }
-
-    __android_log_print(ANDROID_LOG_DEBUG, "Geode", "Get stack 3");
-
-    return stacktrace.str();
-}
-
-static std::string getRegisters() {
-    StringBuffer<> registers;
-
-    auto context = s_context;
-    auto& ss = context->uc_mcontext;
-
-    // geez
-    registers.append("x0: 0x{:x}\n", ss.regs[0]);
-    registers.append("x1: 0x{:x}\n", ss.regs[1]);
-    registers.append("x2: 0x{:x}\n", ss.regs[2]);
-    registers.append("x3: 0x{:x}\n", ss.regs[3]);
-    registers.append("x4: 0x{:x}\n", ss.regs[4]);
-    registers.append("x5: 0x{:x}\n", ss.regs[5]);
-    registers.append("x6: 0x{:x}\n", ss.regs[6]);
-    registers.append("x7: 0x{:x}\n", ss.regs[7]);
-    registers.append("x8: 0x{:x}\n", ss.regs[8]);
-    registers.append("x9: 0x{:x}\n", ss.regs[9]);
-    registers.append("x10: 0x{:x}\n", ss.regs[10]);
-    registers.append("x11: 0x{:x}\n", ss.regs[11]);
-    registers.append("x12: 0x{:x}\n", ss.regs[12]);
-    registers.append("x13: 0x{:x}\n", ss.regs[13]);
-    registers.append("x14: 0x{:x}\n", ss.regs[14]);
-    registers.append("x15: 0x{:x}\n", ss.regs[15]);
-    registers.append("x16: 0x{:x}\n", ss.regs[16]);
-    registers.append("x17: 0x{:x}\n", ss.regs[17]);
-    registers.append("x18: 0x{:x}\n", ss.regs[18]);
-    registers.append("x19: 0x{:x}\n", ss.regs[19]);
-    registers.append("x20: 0x{:x}\n", ss.regs[20]);
-    registers.append("x21: 0x{:x}\n", ss.regs[21]);
-    registers.append("x22: 0x{:x}\n", ss.regs[22]);
-    registers.append("x23: 0x{:x}\n", ss.regs[23]);
-    registers.append("x24: 0x{:x}\n", ss.regs[24]);
-    registers.append("x25: 0x{:x}\n", ss.regs[25]);
-    registers.append("x26: 0x{:x}\n", ss.regs[26]);
-    registers.append("x27: 0x{:x}\n", ss.regs[27]);
-    registers.append("x28: 0x{:x}\n", ss.regs[28]);
-    registers.append("fp: 0x{:x}\n", ss.regs[29]);
-    registers.append("lr: 0x{:x}\n", ss.regs[30]);
-    registers.append("sp: 0x{:x}\n", ss.sp);
-    registers.append("pc: 0x{:x}\n", ss.pc);
-    registers.append("cpsr: 0x{:x}\n", ss.pstate);
-    return registers.str();
-}
-
 static void handlerThread() {
     // no more mutex deadlocker
     char buf;
     while (read(s_pipe[0], &buf, 1) != 0) {
         auto signalAddress = reinterpret_cast<void*>(s_context->uc_mcontext.pc);
+        g_context.initialize(signalAddress);
 
-        g_context.initialize();
-
-        Mod* faultyMod = g_context.modFromAddress(signalAddress);
-
-        // Mod* faultyMod = nullptr;
-        // for (int i = 1; i < s_backtraceSize; ++i) {
-        //     auto mod = modFromAddress(s_backtrace[i]);
-        //     if (mod != nullptr) {
-        //         faultyMod = mod;
-        //         break;
-        //     }
-        // }
-        auto text = crashlog::writeCrashlog(faultyMod, getInfo(signalAddress, faultyMod), getStacktrace(), getRegisters());
-        __android_log_print(ANDROID_LOG_DEBUG, "Geode", "INSIDE THREAD 7");
-
+        auto text = crashlog::writeCrashlog(g_context);
         log::error("Geode crashed!\n{}", text);
         std::_Exit(EXIT_FAILURE);
         //s_signal = 0;

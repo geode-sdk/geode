@@ -61,8 +61,10 @@ namespace crashlog {
         std::vector<Image> images;
         std::vector<StackFrame> frames;
         std::vector<Register> registers;
+        geode::Mod* faultyMod;
+        Buffer infoStream;
 
-        void initialize();
+        void initialize(void const* crashAddr);
 
         Image* imageFromAddress(void const* addr);
         geode::Mod* modFromAddress(void const* addr);
@@ -76,9 +78,11 @@ namespace crashlog {
         static std::vector<StackFrame> getStacktrace();
         static std::vector<Register> getRegisters();
         static std::string_view getGeodeBinaryName();
+        static void writeExtraInfo(Buffer& stream);
     };
 
     std::string GEODE_DLL writeCrashlog(geode::Mod* faultyMod, std::string_view info, std::string_view stacktrace, std::string_view registers);
+    std::string GEODE_DLL writeCrashlog(const CrashContext& ctx);
 
     std::string writeCrashlog(geode::Mod* faultyMod, std::string_view info, std::string_view stacktrace, std::string_view registers, std::filesystem::path& outCrashlogPath);
 

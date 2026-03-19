@@ -87,9 +87,10 @@ void crashlog::CrashContext::formatAddress(void const* addr, Buffer& stream) {
     }
 }
 
-void crashlog::CrashContext::initialize() {
+void crashlog::CrashContext::initialize(void const* crashAddr) {
     this->registers = getRegisters();
     this->images = getImages();
+    this->faultyMod = modFromAddress(crashAddr);
 
     std::sort(images.begin(), images.end(), [](auto const a, auto const b) {
         return (uintptr_t)a.address < (uintptr_t)b.address;
@@ -97,6 +98,15 @@ void crashlog::CrashContext::initialize() {
 
     // this MUST come after getImages()
     this->frames = getStacktrace();
+
+    // gather info
+    auto image = this->imageFromAddress(crashAddr);
+
+    infoStream.append("Faulty Lib: {}\n", image->name());
+    infoStream.append("Faulty Mod: {}\n", faultyMod ? faultyMod->getID() : "<Unknown>");
+    infoStream.append("Instruction Address: ");
+    this->formatAddress(crashAddr, infoStream);
+    writeExtraInfo(infoStream);
 }
 
 std::string crashlog::getDateString(bool filesafe) {
@@ -278,4 +288,29 @@ std::string crashlog::writeCrashlog(
     actualFile.close();
 
     return file.str();
+}
+
+std::string crashlog::writeCrashlog(const CrashContext& ctx) {
+    StringBuffer<> stacktrace;
+    StringBuffer<> registers;
+
+    // TODO: this should use the fetched symbol names from prevter server
+    for (auto& frame : ctx.frames) {
+        if (frame.image) {
+            stacktrace.append("- {} + 0x{:x}", frame.image->shortName(), frame.offset());
+            if (!frame.symbol.empty()) {
+                stacktrace.append(" ({})", frame.symbol);
+            }
+        } else {
+            stacktrace.append("- Unknown", frame.address);
+        }
+
+        stacktrace.append(" @ 0x{:x}\n", frame.address);
+    }
+
+    for (auto& reg : ctx.registers) {
+        registers.append("{}: 0x{:x}\n", reg.name, reg.value);
+    }
+
+    return writeCrashlog(ctx.faultyMod, ctx.infoStream.view(), stacktrace.view(), registers.view());;
 }
