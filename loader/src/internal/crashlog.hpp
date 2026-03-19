@@ -34,6 +34,49 @@ namespace crashlog {
      */
     std::filesystem::path GEODE_DLL getCrashLogDirectory();
 
+    struct Image {
+        uintptr_t address;
+        std::string name_;
+
+        std::string_view name() const;
+        std::string_view shortName() const;
+    };
+
+    struct StackFrame {
+        uintptr_t address;
+        Image* image;
+        std::string symbol;
+
+        ptrdiff_t offset() const;
+    };
+
+    struct Register {
+        std::string_view name;
+        size_t value;
+    };
+
+    struct CrashContext {
+        static constexpr size_t MAX_FRAMES = 128;
+
+        std::vector<Image> images;
+        std::vector<StackFrame> frames;
+        std::vector<Register> registers;
+
+        void initialize();
+
+        Image* imageFromAddress(void const* addr);
+        geode::Mod* modFromAddress(void const* addr);
+
+        // Formats a memory address into something that can more precisely point its location,
+        // i.e. 0x12345678 -> "0x12345678 (GeometryDash + 0x5678)"
+        void formatAddress(void const* addr, Buffer& stream);
+
+        /// These functions are implemented differently per-platform and not defined in the common crashlog.cpp
+        static std::vector<Image> getImages();
+        static std::vector<StackFrame> getStacktrace();
+        static std::vector<Register> getRegisters();
+        static std::string_view getGeodeBinaryName();
+    };
 
     std::string GEODE_DLL writeCrashlog(geode::Mod* faultyMod, std::string_view info, std::string_view stacktrace, std::string_view registers);
 

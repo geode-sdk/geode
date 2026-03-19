@@ -13,7 +13,6 @@ if (GEODE_BUILDING_DOCS)
 	set(GEODE_DONT_BUILD_TEST_MODS ON)
 endif()
 
-option(GEODE_USE_BREAKPAD "Enables the use of the Breakpad library for crash dumps." ON)
 option(GEODE_UNITY_BUILD "Enables unity builds" OFF)
 option(GEODE_SET_TARGET_AS_SYSTEM "Sets the target include directories for Geode as SYSTEM, silencing Geode related warning on mod build." OFF)
 option(GEODE_NO_PUGIXML_HEADER "Makes the pugixml.hpp and DS_Dictionary.h headers in Geode blank" OFF)

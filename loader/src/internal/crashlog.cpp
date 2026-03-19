@@ -9,6 +9,96 @@
 
 using namespace geode::prelude;
 
+std::string_view crashlog::Image::name() const {
+    if (name_.empty()) {
+        return "<Unknown>";
+    }
+    return name_;
+}
+
+std::string_view crashlog::Image::shortName() const {
+    if (name_.empty()) {
+        return "<Unknown>";
+    }
+
+    auto slash = name_.find_last_of("/\\");
+    if (slash == std::string::npos) {
+        return name_;
+    }
+    return std::string_view{name_}.substr(slash + 1);
+}
+
+ptrdiff_t crashlog::StackFrame::offset() const {
+    if (image == nullptr) {
+        return 0;
+    }
+    return address - image->address;
+}
+
+crashlog::Image* crashlog::CrashContext::imageFromAddress(void const* addr) {
+    for (auto it = images.rbegin(); it != images.rend(); ++it) {
+        if ((uintptr_t)addr >= it->address) {
+            return &(*it);
+        }
+    }
+    return nullptr;
+}
+
+Mod* crashlog::CrashContext::modFromAddress(void const* addr) {
+    if (addr == nullptr) {
+        return nullptr;
+    }
+    auto image = this->imageFromAddress(addr);
+    if (image == nullptr) {
+        return nullptr;
+    }
+
+    std::filesystem::path imagePath = image->name();
+    // if (!std::filesystem::exists(imagePath)) {
+    //     return nullptr;
+    // }
+    if (imagePath.filename() == getGeodeBinaryName()) {
+        return Mod::get();
+    }
+
+    for (auto& mod : Loader::get()->getAllMods()) {
+        if (!mod->isLoaded() || !std::filesystem::exists(mod->getBinaryPath())) {
+            continue;
+        }
+        if (std::filesystem::equivalent(imagePath, mod->getBinaryPath())) {
+            return mod;
+        }
+    }
+    return nullptr;
+}
+
+void crashlog::CrashContext::formatAddress(void const* addr, Buffer& stream) {
+    auto image = imageFromAddress(addr);
+
+    if (image) {
+        stream.append(
+            "{} ({} + {})",
+            addr,
+            image->name(),
+            reinterpret_cast<void const*>((uintptr_t)addr - (uintptr_t)image->address)
+        );
+    } else {
+        stream.append("{}", addr);
+    }
+}
+
+void crashlog::CrashContext::initialize() {
+    this->registers = getRegisters();
+    this->images = getImages();
+
+    std::sort(images.begin(), images.end(), [](auto const a, auto const b) {
+        return (uintptr_t)a.address < (uintptr_t)b.address;
+    });
+
+    // this MUST come after getImages()
+    this->frames = getStacktrace();
+}
+
 std::string crashlog::getDateString(bool filesafe) {
     auto const now = std::chrono::system_clock::now();
     if (filesafe) {
