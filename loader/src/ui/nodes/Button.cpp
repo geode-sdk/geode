@@ -203,6 +203,10 @@ void Button::setAnimationType(AnimationType type) {
     m_impl->m_animationType = type;
 }
 
+Button::AnimationType Button::getAnimationType() {
+    return m_impl->m_animationType;
+}
+
 void Button::setClickAnimation(CCActionInterval* action) {
     m_impl->m_animationType = AnimationType::Custom;
     m_impl->m_clickAction = action;
