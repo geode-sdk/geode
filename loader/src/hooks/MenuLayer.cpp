@@ -401,9 +401,6 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
     }
 
     void onGeode(CCObject*) {
-        m_pChildren = (CCArray*)(void*)0x12345678;
-        this->addChild(nullptr);
-
         ModsLayer::scene();
     }
 };
