@@ -296,6 +296,10 @@ void NineSlice::setScaleMultiplier(float scaleMultiplier) {
     m_impl->m_dirty = true;
 }
 
+float NineSlice::getScaleMultiplier() {
+    return m_impl->m_scaleMultiplier;
+}
+
 void NineSlice::setRepeatCenter(bool repeat) {
     m_impl->m_repeatCenter = repeat;
     m_impl->m_dirty = true;

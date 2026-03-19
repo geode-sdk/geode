@@ -23,6 +23,7 @@ namespace geode {
 
         /// Sets a multiplier for the slices to be scaled by
         void setScaleMultiplier(float scaleMultiplier);
+        float getScaleMultiplier();
 
         /// Sets whether the slices should repeat or scale, by default, it scales
         void setRepeatCenter(bool repeat);
