@@ -43,10 +43,14 @@ namespace crashlog {
     };
 
     struct StackFrame {
-        uintptr_t address;
-        Image* image;
+        uintptr_t address = 0;
+        Image* image = nullptr;
         std::string symbol;
-        uintptr_t offset;
+        uintptr_t offset = 0;
+        std::string description;
+
+        std::string file;
+        uint32_t line = 0;
 
         ptrdiff_t imageOffset() const;
         ptrdiff_t functionOffset() const;
@@ -90,6 +94,7 @@ namespace crashlog {
     std::string GEODE_DLL writeCrashlog(const CrashContext& ctx);
 
     std::string writeCrashlog(geode::Mod* faultyMod, std::string_view info, std::string_view stacktrace, std::string_view registers, std::filesystem::path& outCrashlogPath);
+    std::string writeCrashlog(const CrashContext& ctx, std::filesystem::path& outCrashlogPath);
 
     std::string getDateString(bool filesafe);
 

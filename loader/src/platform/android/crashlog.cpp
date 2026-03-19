@@ -30,6 +30,10 @@ static ucontext_t* s_context = nullptr;
 static crashlog::CrashContext g_context;
 static int s_pipe[2];
 
+static constexpr auto CURRENT_ARCH =
+    GEODE_ANDROID32(unwindstack::ARCH_ARM)
+    GEODE_ANDROID64(unwindstack::ARCH_ARM64);
+
 std::vector<Image> CrashContext::getImages() {
     std::vector<Image> images;
 
@@ -59,11 +63,11 @@ std::vector<StackFrame> CrashContext::getStacktrace() {
     unwindstack::UnwinderFromPid unwinder(
         MAX_FRAMES,
         getpid(),
-        unwindstack::ARCH_ARM64,
+        CURRENT_ARCH,
         maps.get(),
         mem
     );
-    unwinder.SetRegs(unwindstack::Regs::CreateFromUcontext(unwindstack::ARCH_ARM64, s_context));
+    unwinder.SetRegs(unwindstack::Regs::CreateFromUcontext(CURRENT_ARCH, s_context));
 
     unwinder.SetResolveNames(true);
     unwinder.Unwind();
@@ -90,7 +94,7 @@ std::vector<StackFrame> CrashContext::getStacktrace() {
 
         frames.push_back({
             .address = frame.pc,
-            .image = g_context.imageFromAddress((void*)frame.pc),
+            .image = frame.map_info ? g_context.imageFromAddress((void*)frame.pc) : nullptr,
             .symbol = std::move(symbol),
             .offset = offset
         });

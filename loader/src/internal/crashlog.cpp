@@ -290,6 +290,12 @@ std::string crashlog::writeCrashlog(
 }
 
 std::string crashlog::writeCrashlog(const CrashContext& ctx) {
+    std::filesystem::path outPath;
+    return writeCrashlog(ctx, outPath);
+}
+
+std::string crashlog::writeCrashlog(const CrashContext& ctx, std::filesystem::path& outCrashlogPath) {
+
     StringBuffer<> stacktrace;
     StringBuffer<> registers;
 
@@ -298,17 +304,26 @@ std::string crashlog::writeCrashlog(const CrashContext& ctx) {
         if (frame.image) {
             stacktrace.append("- {} + 0x{:x}", frame.image->shortName(), frame.imageOffset());
             if (!frame.symbol.empty()) {
-                stacktrace.append(" ({})", frame.symbol);
+                stacktrace.append(" ({} + 0x{:x}", frame.symbol, frame.offset);
+
+                if (!frame.file.empty()) {
+                    stacktrace.append(" | {}:{}", frame.file, frame.line);
+                }
+                stacktrace.append(")");
             }
         } else {
-            stacktrace.append("- Unknown @ 0x{:x}\n", frame.address);
+            stacktrace.append("- 0x{:x}", frame.address);
+            if (!frame.description.empty()) {
+                stacktrace.append(" ({})", frame.description);
+            }
         }
 
+        stacktrace.append("\n");
     }
 
     for (auto& reg : ctx.registers) {
         registers.append("{}: 0x{:x}\n", reg.name, reg.value);
     }
 
-    return writeCrashlog(ctx.faultyMod, ctx.infoStream.view(), stacktrace.view(), registers.view());;
+    return writeCrashlog(ctx.faultyMod, ctx.infoStream.view(), stacktrace.view(), registers.view(), outCrashlogPath);
 }
