@@ -124,6 +124,8 @@ std::vector<StackFrame> CrashContext::getStacktrace() {
             if (image) {
                 auto baseAddress = image->address;
 
+                uintptr_t offset = address - (uintptr_t)baseAddress;
+
                 if (base::get() == (uintptr_t)baseAddress) {
                     // find closest function start
                     auto const& funcs = getFunctionStarts();
