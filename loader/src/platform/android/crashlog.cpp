@@ -107,6 +107,7 @@ std::vector<Register> CrashContext::getRegisters() {
     std::vector<Register> registers;
     auto& ss = s_context->uc_mcontext;
 
+#ifdef GEODE_IS_ANDROID64
     registers.push_back({ "x0", ss.regs[0] });
     registers.push_back({ "x1", ss.regs[1] });
     registers.push_back({ "x2", ss.regs[2] });
@@ -141,6 +142,25 @@ std::vector<Register> CrashContext::getRegisters() {
     registers.push_back({ "sp", ss.sp });
     registers.push_back({ "pc", ss.pc });
     registers.push_back({ "cpsr", ss.pstate });
+#else
+    registers.push_back({ "r0", ss.arm_r0 });
+    registers.push_back({ "r1", ss.arm_r1 });
+    registers.push_back({ "r2", ss.arm_r2 });
+    registers.push_back({ "r3", ss.arm_r3 });
+    registers.push_back({ "r4", ss.arm_r4 });
+    registers.push_back({ "r5", ss.arm_r5 });
+    registers.push_back({ "r6", ss.arm_r6 });
+    registers.push_back({ "r7", ss.arm_r7 });
+    registers.push_back({ "r8", ss.arm_r8 });
+    registers.push_back({ "r9", ss.arm_r9 });
+    registers.push_back({ "r10", ss.arm_r10 });
+    registers.push_back({ "r11", ss.arm_fp });
+    registers.push_back({ "r12", ss.arm_ip });
+    registers.push_back({ "sp", ss.arm_sp });
+    registers.push_back({ "lr", ss.arm_lr });
+    registers.push_back({ "pc", ss.arm_pc });
+    registers.push_back({ "cpsr", ss.arm_cpsr });
+#endif
 
     return registers;
 }
