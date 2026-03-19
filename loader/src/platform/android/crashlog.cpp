@@ -56,21 +56,6 @@ std::vector<StackFrame> CrashContext::getStacktrace() {
         return {};
     }
 
-    __android_log_print(ANDROID_LOG_DEBUG, "Geode", "Base: %p", (void*)geode::base::get());
-
-    unwindstack::Elf* gdElf;
-    for (size_t i = 0; i < maps->Total(); ++i) {
-        auto map = maps->Get(i);
-        std::string_view name{map->name()};
-        if (name.starts_with("[") || name.starts_with("/system") || name.starts_with("/apex") || name.starts_with("/dev")) continue;
-
-        if (name.contains("com.robtopx") && !gdElf) {
-            gdElf = map->GetElf(mem, unwindstack::ARCH_ARM64);
-        }
-
-        __android_log_print(ANDROID_LOG_DEBUG, "Geode", "Map %zu: %s (%p - %p), offset %p", i, name.data(), (void*)map->start(), (void*)map->end(), (void*)map->offset_);
-    }
-
     unwindstack::UnwinderFromPid unwinder(
         MAX_FRAMES,
         getpid(),
@@ -88,8 +73,11 @@ std::vector<StackFrame> CrashContext::getStacktrace() {
 
         auto& frame = unwinder.frames()[i];
         std::string symbol;
+        uintptr_t offset = 0;
 
         if (!frame.function_name.empty()) {
+            offset = frame.function_offset;
+
             int status;
             auto demangle = abi::__cxa_demangle(frame.function_name.c_str(), 0, 0, &status);
             if (status == 0) {
@@ -98,27 +86,13 @@ std::vector<StackFrame> CrashContext::getStacktrace() {
                 symbol = frame.function_name;
             }
             free(demangle);
-        } else if (frame.map_info) {
-            // manual fucking
-            auto elf = gdElf ?: frame.map_info->GetElf(mem, unwindstack::ARCH_ARM64);
-            auto fullOffset = frame.map_info->elf_start_offset() + frame.rel_pc;
-
-            unwindstack::SharedString name;
-            uint64_t funcOffset;
-
-            if (elf->GetFunctionName(fullOffset, &name, &funcOffset)) {
-                frame.function_name = std::move(name);
-            } else {
-                __android_log_print(ANDROID_LOG_ERROR, "Geode", "Failed for %d", i);
-            }
-
-            __android_log_print(ANDROID_LOG_DEBUG, "Geode", "%p %p %s", (void*)frame.pc, (void*)frame.rel_pc, frame.function_name.c_str());
         }
 
         frames.push_back({
             .address = frame.pc,
             .image = g_context.imageFromAddress((void*)frame.pc),
-            .symbol = std::move(symbol)
+            .symbol = std::move(symbol),
+            .offset = offset
         });
     }
 
@@ -171,7 +145,13 @@ std::string_view CrashContext::getGeodeBinaryName() {
     return "Geode.so";
 }
 
-void CrashContext::writeExtraInfo(Buffer& stream) {
+void CrashContext::writeInfo(Buffer& stream) {
+    auto image = this->imageFromAddress(crashAddr);
+    stream.append("Faulty Lib: {}\n", image->name());
+    stream.append("Faulty Mod: {}\n", faultyMod ? faultyMod->getID() : "<Unknown>");
+    stream.append("Instruction Address: ");
+    this->formatAddress(crashAddr, infoStream);
+
     stream.append("\nSignal Code: 0x{:x} ({})\n", s_siginfo->si_code, getSignalCodeString(s_signal, s_siginfo));
 
     if (hasSignalDetail(s_signal)) {

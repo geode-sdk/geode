@@ -46,8 +46,10 @@ namespace crashlog {
         uintptr_t address;
         Image* image;
         std::string symbol;
+        uintptr_t offset;
 
-        ptrdiff_t offset() const;
+        ptrdiff_t imageOffset() const;
+        ptrdiff_t functionOffset() const;
     };
 
     struct Register {
@@ -62,6 +64,7 @@ namespace crashlog {
         std::vector<StackFrame> frames;
         std::vector<Register> registers;
         geode::Mod* faultyMod;
+        void const* crashAddr;
         Buffer infoStream;
 
         void initialize(void const* crashAddr);
@@ -74,11 +77,13 @@ namespace crashlog {
         void formatAddress(void const* addr, Buffer& stream);
 
         /// These functions are implemented differently per-platform and not defined in the common crashlog.cpp
+        /// As well, each platform must call initialize() after a crash to initialize the context.
+
         static std::vector<Image> getImages();
         static std::vector<StackFrame> getStacktrace();
         static std::vector<Register> getRegisters();
         static std::string_view getGeodeBinaryName();
-        static void writeExtraInfo(Buffer& stream);
+        void writeInfo(Buffer& stream);
     };
 
     std::string GEODE_DLL writeCrashlog(geode::Mod* faultyMod, std::string_view info, std::string_view stacktrace, std::string_view registers);

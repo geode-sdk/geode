@@ -28,11 +28,15 @@ std::string_view crashlog::Image::shortName() const {
     return std::string_view{name_}.substr(slash + 1);
 }
 
-ptrdiff_t crashlog::StackFrame::offset() const {
+ptrdiff_t crashlog::StackFrame::imageOffset() const {
     if (image == nullptr) {
         return 0;
     }
     return address - image->address;
+}
+
+ptrdiff_t crashlog::StackFrame::functionOffset() const {
+    return offset;
 }
 
 crashlog::Image* crashlog::CrashContext::imageFromAddress(void const* addr) {
@@ -90,6 +94,7 @@ void crashlog::CrashContext::formatAddress(void const* addr, Buffer& stream) {
 void crashlog::CrashContext::initialize(void const* crashAddr) {
     this->registers = getRegisters();
     this->images = getImages();
+    this->crashAddr = crashAddr;
     this->faultyMod = modFromAddress(crashAddr);
 
     std::sort(images.begin(), images.end(), [](auto const a, auto const b) {
@@ -100,13 +105,7 @@ void crashlog::CrashContext::initialize(void const* crashAddr) {
     this->frames = getStacktrace();
 
     // gather info
-    auto image = this->imageFromAddress(crashAddr);
-
-    infoStream.append("Faulty Lib: {}\n", image->name());
-    infoStream.append("Faulty Mod: {}\n", faultyMod ? faultyMod->getID() : "<Unknown>");
-    infoStream.append("Instruction Address: ");
-    this->formatAddress(crashAddr, infoStream);
-    writeExtraInfo(infoStream);
+    this->writeInfo(infoStream);
 }
 
 std::string crashlog::getDateString(bool filesafe) {
@@ -297,15 +296,14 @@ std::string crashlog::writeCrashlog(const CrashContext& ctx) {
     // TODO: this should use the fetched symbol names from prevter server
     for (auto& frame : ctx.frames) {
         if (frame.image) {
-            stacktrace.append("- {} + 0x{:x}", frame.image->shortName(), frame.offset());
+            stacktrace.append("- {} + 0x{:x}", frame.image->shortName(), frame.imageOffset());
             if (!frame.symbol.empty()) {
                 stacktrace.append(" ({})", frame.symbol);
             }
         } else {
-            stacktrace.append("- Unknown", frame.address);
+            stacktrace.append("- Unknown @ 0x{:x}\n", frame.address);
         }
 
-        stacktrace.append(" @ 0x{:x}\n", frame.address);
     }
 
     for (auto& reg : ctx.registers) {

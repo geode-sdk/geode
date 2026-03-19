@@ -24,6 +24,7 @@ using namespace geode::prelude;
 static bool g_lastLaunchCrashed = false;
 static bool g_symbolsInitialized = false;
 static std::wstring g_unzippedSearchPaths;
+static crashlog::CrashContext g_context;
 
 static std::string getModuleName(HMODULE module, bool fullPath = true, bool shortKnown = false) {
     wchar_t buffer[MAX_PATH];
@@ -602,6 +603,8 @@ static void handleException(LPEXCEPTION_POINTERS info) {
             }
         }
 
+        g_context.initialize(info->ExceptionRecord->ExceptionAddress);
+
         // in some cases, we can be pretty certain that the first mod found while unwinding
         // is the one that caused the crash, so using `suspectedFaultyMod` is safe and correct.
         //
@@ -622,6 +625,7 @@ static void handleException(LPEXCEPTION_POINTERS info) {
 
         if (g_symbolsInitialized) {
             SymCleanup(GetCurrentProcess());
+            g_symbolsInitialized = false;
         }
     }
 
