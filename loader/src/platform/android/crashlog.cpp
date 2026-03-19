@@ -93,7 +93,7 @@ std::vector<StackFrame> CrashContext::getStacktrace() {
         }
 
         frames.push_back({
-            .address = frame.pc,
+            .address = (uintptr_t)frame.pc,
             .image = frame.map_info ? g_context.imageFromAddress((void*)frame.pc) : nullptr,
             .symbol = std::move(symbol),
             .offset = offset
@@ -197,7 +197,11 @@ static void handlerThread() {
     // no more mutex deadlocker
     char buf;
     while (read(s_pipe[0], &buf, 1) != 0) {
+#ifdef GEODE_IS_ANDROID64
         auto signalAddress = reinterpret_cast<void*>(s_context->uc_mcontext.pc);
+#else
+        auto signalAddress = reinterpret_cast<void*>(s_context->uc_mcontext.arm_pc);
+#endif
         g_context.initialize(signalAddress);
 
         auto text = crashlog::writeCrashlog(g_context);
