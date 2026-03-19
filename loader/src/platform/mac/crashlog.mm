@@ -1,4 +1,5 @@
 #include <crashlog.hpp>
+#include <crashlogUnix.hpp>
 
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/ZStringView.hpp>
@@ -17,64 +18,19 @@
 #undef CommentType
 
 using namespace geode::prelude;
+using namespace crashlog;
 
 // https://gist.github.com/jvranish/4441299
 
-static constexpr size_t FRAME_SIZE = 64;
 static std::mutex s_mutex;
 static std::condition_variable s_cv;
 static int s_signal = 0;
 static siginfo_t* s_siginfo = nullptr;
 static ucontext_t* s_context = nullptr;
 static size_t s_backtraceSize = 0;
-static std::array<void*, FRAME_SIZE> s_backtrace;
+static std::array<void*, 64> s_backtrace;
 static int s_crashIter = 0;
-
-static std::string_view getSignalCodeString() {
-    switch(s_signal) {
-        case SIGSEGV: return "SIGSEGV: Segmentation Fault";
-        case SIGINT: return "SIGINT: Interactive attention signal, (usually ctrl+c)";
-        case SIGFPE:
-            switch(s_siginfo->si_code) {
-                case FPE_INTDIV: return "SIGFPE: (integer divide by zero)";
-                case FPE_INTOVF: return "SIGFPE: (integer overflow)";
-                case FPE_FLTDIV: return "SIGFPE: (floating-point divide by zero)";
-                case FPE_FLTOVF: return "SIGFPE: (floating-point overflow)";
-                case FPE_FLTUND: return "SIGFPE: (floating-point underflow)";
-                case FPE_FLTRES: return "SIGFPE: (floating-point inexact result)";
-                case FPE_FLTINV: return "SIGFPE: (floating-point invalid operation)";
-                case FPE_FLTSUB: return "SIGFPE: (subscript out of range)";
-                default: return "SIGFPE: Arithmetic Exception";
-            }
-        case SIGILL:
-            switch(s_siginfo->si_code) {
-                case ILL_ILLOPC: return "SIGILL: (illegal opcode)";
-                case ILL_ILLOPN: return "SIGILL: (illegal operand)";
-                case ILL_ILLADR: return "SIGILL: (illegal addressing mode)";
-                case ILL_ILLTRP: return "SIGILL: (illegal trap)";
-                case ILL_PRVOPC: return "SIGILL: (privileged opcode)";
-                case ILL_PRVREG: return "SIGILL: (privileged register)";
-                case ILL_COPROC: return "SIGILL: (coprocessor error)";
-                case ILL_BADSTK: return "SIGILL: (internal stack error)";
-                default: return "SIGILL: Illegal Instruction";
-            }
-        case SIGTERM: return "SIGTERM: a termination request was sent to the program";
-        case SIGABRT: return "SIGABRT: usually caused by an abort() or assert()";
-        case SIGBUS: return "SIGBUS: Bus error (bad memory access)";
-        default: return "Unknown signal code";
-    }
-}
-
-static std::string getImageName(struct dyld_image_info const* image) {
-    if (image == nullptr) {
-        return "<Unknown>";
-    }
-    std::string imageName = image->imageFilePath;
-    if (imageName.empty()) {
-        imageName = "<Unknown>";
-    }
-    return imageName;
-}
+static CrashContext g_context;
 
 // https://stackoverflow.com/questions/28846503/getting-sizeofimage-and-entrypoint-of-dylib-module
 static size_t getImageSize(struct mach_header_64 const* header) {
@@ -94,88 +50,111 @@ static size_t getImageSize(struct mach_header_64 const* header) {
     return sz;
 }
 
-static std::vector<struct dyld_image_info const*> getAllImages() {
-    std::vector<struct dyld_image_info const*> images;
+std::vector<Image> CrashContext::getImages() {
+    std::vector<Image> images;
     struct task_dyld_info dyldInfo;
     mach_msg_type_number_t count = TASK_DYLD_INFO_COUNT;
     if (task_info(mach_task_self(), TASK_DYLD_INFO, (task_info_t)&dyldInfo, &count) == KERN_SUCCESS) {
         struct dyld_all_image_infos* imageInfos = (struct dyld_all_image_infos*)dyldInfo.all_image_info_addr;
 
         for (size_t i = 0; i < imageInfos->infoArrayCount; ++i) {
-            images.push_back(&imageInfos->infoArray[i]);
+            auto img = imageInfos->infoArray[i];
+            images.push_back({
+                (uintptr_t)img.imageLoadAddress,
+                img.imageFilePath,
+                getImageSize((struct mach_header_64 const*)img.imageLoadAddress)
+            });
         }
     }
 
     return images;
 }
 
-static struct dyld_image_info const* imageFromAddress(void const* addr) {
-    if (addr == nullptr) {
-        return nullptr;
-    }
+std::vector<Register> CrashContext::getRegisters() {
+    auto& ss = s_context->uc_mcontext->__ss;
+    std::vector<Register> registers;
 
-    auto loadedImages = getAllImages();
-    std::sort(loadedImages.begin(), loadedImages.end(), [](auto const a, auto const b) {
-        return (uintptr_t)a->imageLoadAddress < (uintptr_t)b->imageLoadAddress;
-    });
-    auto iter = std::upper_bound(loadedImages.begin(), loadedImages.end(), addr, [](auto const addr, auto const image) {
-        return (uintptr_t)addr < (uintptr_t)image->imageLoadAddress;
-    });
+    // geez
+#ifdef GEODE_IS_INTEL_MAC
+    registers.push_back({ "RAX", ss.__rax });
+    registers.push_back({ "RBX", ss.__rbx });
+    registers.push_back({ "RCX", ss.__rcx });
+    registers.push_back({ "RDX", ss.__rdx });
+    registers.push_back({ "RBP", ss.__rbp });
+    registers.push_back({ "RSP", ss.__rsp });
+    registers.push_back({ "RDI", ss.__rdi });
+    registers.push_back({ "RSI", ss.__rsi });
+    registers.push_back({ "RIP", ss.__rip });
+    registers.push_back({ "R8",  ss.__r8  });
+    registers.push_back({ "R9",  ss.__r9  });
+    registers.push_back({ "R10", ss.__r10 });
+    registers.push_back({ "R11", ss.__r11 });
+    registers.push_back({ "R12", ss.__r12 });
+    registers.push_back({ "R13", ss.__r13 });
+    registers.push_back({ "R14", ss.__r14 });
+    registers.push_back({ "R15", ss.__r15 });
+    registers.push_back({ "RFLAGS", ss.__rflags });
+    registers.push_back({ "CS", ss.__cs });
+    registers.push_back({ "FS", ss.__fs });
+    registers.push_back({ "GS", ss.__gs });
+#else // m1
+    registers.push_back({ "x0", ss.__x[0] });
+    registers.push_back({ "x1", ss.__x[1] });
+    registers.push_back({ "x2", ss.__x[2] });
+    registers.push_back({ "x3", ss.__x[3] });
+    registers.push_back({ "x4", ss.__x[4] });
+    registers.push_back({ "x5", ss.__x[5] });
+    registers.push_back({ "x6", ss.__x[6] });
+    registers.push_back({ "x7", ss.__x[7] });
+    registers.push_back({ "x8", ss.__x[8] });
+    registers.push_back({ "x9", ss.__x[9] });
+    registers.push_back({ "x10", ss.__x[10] });
+    registers.push_back({ "x11", ss.__x[11] });
+    registers.push_back({ "x12", ss.__x[12] });
+    registers.push_back({ "x13", ss.__x[13] });
+    registers.push_back({ "x14", ss.__x[14] });
+    registers.push_back({ "x15", ss.__x[15] });
+    registers.push_back({ "x16", ss.__x[16] });
+    registers.push_back({ "x17", ss.__x[17] });
+    registers.push_back({ "x18", ss.__x[18] });
+    registers.push_back({ "x19", ss.__x[19] });
+    registers.push_back({ "x20", ss.__x[20] });
+    registers.push_back({ "x21", ss.__x[21] });
+    registers.push_back({ "x22", ss.__x[22] });
+    registers.push_back({ "x23", ss.__x[23] });
+    registers.push_back({ "x24", ss.__x[24] });
+    registers.push_back({ "x25", ss.__x[25] });
+    registers.push_back({ "x26", ss.__x[26] });
+    registers.push_back({ "x27", ss.__x[27] });
+    registers.push_back({ "x28", ss.__x[28] });
+    registers.push_back({ "fp", ss.__fp});
+    registers.push_back({ "lr", ss.__lr });
+    registers.push_back({ "sp", ss.__sp });
+    registers.push_back({ "pc", ss.__pc });
+    registers.push_back({ "cpsr", ss.__cpsr });
+#endif
 
-    if (iter == loadedImages.begin()) {
-        return nullptr;
-    }
-    --iter;
-
-    auto image = *iter;
-    auto imageSize = getImageSize((struct mach_header_64 const*)image->imageLoadAddress);
-    auto imageAddress = (uintptr_t)image->imageLoadAddress;
-    if ((uintptr_t)addr >= imageAddress && (uintptr_t)addr < imageAddress + imageSize) {
-        return image;
-    }
-    return nullptr;
+    return registers;
 }
 
-static Mod* modFromAddress(void const* addr) {
-    if (addr == nullptr) {
-        return nullptr;
-    }
-    auto image = imageFromAddress(addr);
-    if (image == nullptr) {
-        return nullptr;
-    }
-
-    std::filesystem::path imagePath = getImageName(image);
-    if (!std::filesystem::exists(imagePath)) {
-        return nullptr;
-    }
-    auto geodePath = dirs::getGameDir() / "Frameworks" / "Geode.dylib";
-    if (std::filesystem::equivalent(imagePath, geodePath)) {
-        return Mod::get();
-    }
-
-    for (auto& mod : Loader::get()->getAllMods()) {
-        if (!mod->isLoaded() || !std::filesystem::exists(mod->getBinaryPath())) {
-            continue;
-        }
-        if (std::filesystem::equivalent(imagePath, mod->getBinaryPath())) {
-            return mod;
-        }
-    }
-    return nullptr;
+std::string_view CrashContext::getGeodeBinaryName() {
+    return "Geode.dylib";
 }
 
-static std::string getInfo(void* address, Mod* faultyMod) {
-    return fmt::format(
-        "Faulty Lib: {}\n"
-        "Faulty Mod: {}\n"
-        "Instruction Address: {}\n"
-        "Signal Code: {:x} ({})\n",
-        getImageName(imageFromAddress(address)),
-        (faultyMod ? faultyMod->getID() : "<Unknown>"),
-        address,
-        s_signal, getSignalCodeString()
-    );
+void CrashContext::writeInfo(Buffer& stream) {
+    auto image = this->imageFromAddress(crashAddr);
+    stream.append("Faulty Lib: {}\n", image->name());
+    stream.append("Faulty Mod: {}\n", faultyMod ? faultyMod->getID() : "<Unknown>");
+    stream.append("Instruction Address: ");
+    this->formatAddress(crashAddr, infoStream);
+
+    stream.append("\nSignal Code: 0x{:x} ({})\n", s_siginfo->si_code, getSignalCodeString(s_signal, s_siginfo));
+
+    if (hasSignalDetail(s_signal)) {
+        stream.append("Signal Detail: ");
+        writeSignalDetail(stream, g_context, s_signal, s_siginfo);
+        stream.append('\n');
+    }
 }
 
 extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext) {
@@ -186,15 +165,15 @@ extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext)
     s_crashIter++;
 
 	auto context = reinterpret_cast<ucontext_t*>(vcontext);
-	s_backtraceSize = backtrace(s_backtrace.data(), FRAME_SIZE);
+	s_backtraceSize = backtrace(s_backtrace.data(), s_backtrace.size());
 
-    	// for some reason this is needed, dont ask me why
+    // for some reason this is needed, dont ask me why
 	#ifdef GEODE_IS_INTEL_MAC
 	s_backtrace[2] = reinterpret_cast<void*>(context->uc_mcontext->__ss.__rip);
 	#else
 	s_backtrace[2] = reinterpret_cast<void*>(context->uc_mcontext->__ss.__pc);
 	#endif
-	if (s_backtraceSize < FRAME_SIZE) {
+	if (s_backtraceSize < s_backtrace.size()) {
 		s_backtrace[s_backtraceSize] = nullptr;
 	}
 
@@ -252,10 +231,10 @@ static std::vector<uintptr_t> const& getFunctionStarts() {
     static std::vector<uintptr_t> funcs = []() {
         std::vector<uintptr_t> starts;
 
-        auto image = imageFromAddress(reinterpret_cast<void*>(base::get()));
+        auto image = g_context.imageFromAddress(reinterpret_cast<void*>(base::get()));
         if (!image) return starts;
 
-        auto header = reinterpret_cast<const struct mach_header_64*>(image->imageLoadAddress);
+        auto header = reinterpret_cast<const struct mach_header_64*>(image->address);
         uintptr_t linkeditAddr = 0;
         uintptr_t linkeditFileOff = 0;
         uintptr_t textVMAddr = 0;
@@ -298,13 +277,12 @@ static std::vector<uintptr_t> const& getFunctionStarts() {
     return funcs;
 }
 
-static std::string getStacktrace() {
-    StringBuffer<> stacktrace;
+
+std::vector<StackFrame> CrashContext::getStacktrace() {
+    // this function is evil
+    std::vector<StackFrame> frames;
 
     auto messages = backtrace_symbols(s_backtrace.data(), s_backtraceSize);
-    if (s_backtraceSize < FRAME_SIZE) {
-        messages[s_backtraceSize] = nullptr;
-    }
 
     auto gameDir = geode::utils::string::pathToString(dirs::getGameDir());
     std::stringstream lines(addr2Line());
@@ -331,26 +309,19 @@ static std::string getStacktrace() {
         binary = geode::utils::string::trim(binary.substr(0, cutoff));
         stream >> std::hex >> address >> std::dec;
 
+        StackFrame frame{};
+        frame.address = address;
+        auto image = g_context.imageFromAddress(reinterpret_cast<void*>(address));
+        frame.image = image;
+
+        log::debug("Frame {}, line: '{}', image: {}", i, line, image ? image->name() : "<Unknown>");
+
         if (!line.empty()) {
             // log::debug("address: {}", address);
-            auto image = imageFromAddress(reinterpret_cast<void*>(address));
             // log::debug("image: {}", image);
-            stacktrace.append(" - ");
 
             if (image) {
-                auto baseAddress = image->imageLoadAddress;
-                auto imageName = getImageName(image);
-
-                // remove path from image name if in game dir
-                if (imageName.find(gameDir) == 0) {
-                    auto lastSlash = imageName.find_last_of("/\\");
-                    if (lastSlash != std::string::npos) {
-                        imageName = imageName.substr(lastSlash + 1);
-                    }
-                }
-
-                uintptr_t offset = address - (uintptr_t)baseAddress;
-                stacktrace.append("{} + 0x{:x}", imageName, offset);
+                auto baseAddress = image->address;
 
                 if (base::get() == (uintptr_t)baseAddress) {
                     // find closest function start
@@ -360,18 +331,39 @@ static std::string getStacktrace() {
                         --iter;
                         auto funcOffset = *iter;
                         auto funcName = crashlog::lookupFunctionByOffset(funcOffset);
+                        frame.offset = offset - funcOffset;
+
                         if (funcName.empty()) {
-                            line = fmt::format("sub_{:x} + 0x{:x}", funcOffset, offset - funcOffset);
+                            frame.symbol = fmt::format("sub_{:x}", funcOffset);
                         } else {
-                            line = fmt::format("{} + 0x{:x}", funcName, offset - funcOffset);
+                            frame.symbol = funcName;
                         }
                     }
                 }
             }
-            else {
-                stacktrace.append("0x{:x}", address);
+
+            if (frame.symbol.empty()) {
+                // try to extract the symbol name
+                auto endSymName = line.find(" (in ");
+                if (endSymName != std::string::npos && !line.starts_with("0x")) {
+                    frame.symbol = line.substr(0, endSymName);
+                }
+
+                // now if that succeeded, try to extract the file/line information
+                auto lastParen = line.rfind(')');
+                auto lineInfoSplit = line.rfind(':', lastParen);
+                auto startParen = line.rfind('(', lineInfoSplit);
+
+                if (startParen != std::string::npos && lastParen != std::string::npos && lineInfoSplit != std::string::npos) {
+                    auto inner = std::string_view{line}.substr(startParen + 1, lastParen - startParen - 1);
+                    auto colon = inner.rfind(':');
+                    auto file = inner.substr(0, colon);
+                    auto lineNum = inner.substr(colon + 1);
+
+                    frame.file = file;
+                    frame.line = utils::numFromString<uint32_t>(lineNum).unwrapOr(0);
+                }
             }
-            stacktrace.append(": {}\n", line);
         }
         else {
             std::getline(stream, function);
@@ -389,82 +381,16 @@ static std::string getStacktrace() {
                 free(demangle);
             }
 
-            stacktrace.append("- {} @ 0x{:x} ({} + {:x})\n", binary, address, function, offset);
+            frame.symbol = function;
+            frame.offset = offset;
         }
+
+        frames.push_back(std::move(frame));
     }
 
     free(messages);
 
-    return stacktrace.str();
-}
-
-static std::string getRegisters() {
-    StringBuffer<> registers;
-
-    auto context = s_context;
-    auto& ss = context->uc_mcontext->__ss;
-
-    // geez
-    #ifdef GEODE_IS_INTEL_MAC
-    registers.append("rax: 0x{:x}\n", ss.__rax);
-    registers.append("rbx: 0x{:x}\n", ss.__rbx);
-    registers.append("rcx: 0x{:x}\n", ss.__rcx);
-    registers.append("rdx: 0x{:x}\n", ss.__rdx);
-    registers.append("rdi: 0x{:x}\n", ss.__rdi);
-    registers.append("rsi: 0x{:x}\n", ss.__rsi);
-    registers.append("rbp: 0x{:x}\n", ss.__rbp);
-    registers.append("rsp: 0x{:x}\n", ss.__rsp);
-    registers.append("r8: 0x{:x}\n", ss.__r8);
-    registers.append("r9: 0x{:x}\n", ss.__r9);
-    registers.append("r10: 0x{:x}\n", ss.__r10);
-    registers.append("r11: 0x{:x}\n", ss.__r11);
-    registers.append("r12: 0x{:x}\n", ss.__r12);
-    registers.append("r13: 0x{:x}\n", ss.__r13);
-    registers.append("r14: 0x{:x}\n", ss.__r14);
-    registers.append("r15: 0x{:x}\n", ss.__r15);
-    registers.append("rip: 0x{:x}\n", ss.__rip);
-    registers.append("rflags: 0x{:x}\n", ss.__rflags);
-    registers.append("cs: 0x{:x}\n", ss.__cs);
-    registers.append("fs: 0x{:x}\n", ss.__fs);
-    registers.append("gs: 0x{:x}\n", ss.__gs);
-    #else // m1
-    registers.append("x0: 0x{:x}\n", ss.__x[0]);
-    registers.append("x1: 0x{:x}\n", ss.__x[1]);
-    registers.append("x2: 0x{:x}\n", ss.__x[2]);
-    registers.append("x3: 0x{:x}\n", ss.__x[3]);
-    registers.append("x4: 0x{:x}\n", ss.__x[4]);
-    registers.append("x5: 0x{:x}\n", ss.__x[5]);
-    registers.append("x6: 0x{:x}\n", ss.__x[6]);
-    registers.append("x7: 0x{:x}\n", ss.__x[7]);
-    registers.append("x8: 0x{:x}\n", ss.__x[8]);
-    registers.append("x9: 0x{:x}\n", ss.__x[9]);
-    registers.append("x10: 0x{:x}\n", ss.__x[10]);
-    registers.append("x11: 0x{:x}\n", ss.__x[11]);
-    registers.append("x12: 0x{:x}\n", ss.__x[12]);
-    registers.append("x13: 0x{:x}\n", ss.__x[13]);
-    registers.append("x14: 0x{:x}\n", ss.__x[14]);
-    registers.append("x15: 0x{:x}\n", ss.__x[15]);
-    registers.append("x16: 0x{:x}\n", ss.__x[16]);
-    registers.append("x17: 0x{:x}\n", ss.__x[17]);
-    registers.append("x18: 0x{:x}\n", ss.__x[18]);
-    registers.append("x19: 0x{:x}\n", ss.__x[19]);
-    registers.append("x20: 0x{:x}\n", ss.__x[20]);
-    registers.append("x21: 0x{:x}\n", ss.__x[21]);
-    registers.append("x22: 0x{:x}\n", ss.__x[22]);
-    registers.append("x23: 0x{:x}\n", ss.__x[23]);
-    registers.append("x24: 0x{:x}\n", ss.__x[24]);
-    registers.append("x25: 0x{:x}\n", ss.__x[25]);
-    registers.append("x26: 0x{:x}\n", ss.__x[26]);
-    registers.append("x27: 0x{:x}\n", ss.__x[27]);
-    registers.append("x28: 0x{:x}\n", ss.__x[28]);
-    registers.append("fp: 0x{:x}\n", ss.__fp);
-    registers.append("lr: 0x{:x}\n", ss.__lr);
-    registers.append("sp: 0x{:x}\n", ss.__sp);
-    registers.append("pc: 0x{:x}\n", ss.__pc);
-    registers.append("cpsr: 0x{:x}\n", ss.__cpsr);
-    #endif
-
-    return registers.str();
+    return frames;
 }
 
 static void handlerThread() {
@@ -476,20 +402,13 @@ static void handlerThread() {
     #else // m1
     auto signalAddress = reinterpret_cast<void*>(s_context->uc_mcontext->__ss.__pc);
     #endif
-    // Mod* faultyMod = nullptr;
-    // for (int i = 1; i < s_backtraceSize; ++i) {
-    //     auto mod = modFromAddress(s_backtrace[i]);
-    //     if (mod != nullptr) {
-    //         faultyMod = mod;
-    //         break;
-    //     }
-    // }
-    Mod* faultyMod = modFromAddress(signalAddress);
 
-    auto text = crashlog::writeCrashlog(faultyMod, getInfo(signalAddress, faultyMod), getStacktrace(), getRegisters());
+    g_context.initialize(signalAddress);
+
+    auto text = crashlog::writeCrashlog(g_context);
 
     log::error("Geode crashed!\n{}", text);
-    
+
     s_signal = 0;
     s_cv.notify_all();
 
@@ -513,7 +432,7 @@ bool crashlog::setupPlatformHandler() {
     sigaction(SIGBUS, &action, nullptr);
 
     std::thread(&handlerThread).detach();
-	
+
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
     if (std::filesystem::exists(lastCrashedFile)) {
         s_lastLaunchCrashed = true;

@@ -6,6 +6,7 @@
 #include <Geode/utils/web.hpp>
 #include <asp/time/SystemTime.hpp>
 #include <Geode/utils/async.hpp>
+#include <ranges>
 
 using namespace geode::prelude;
 
@@ -40,9 +41,14 @@ ptrdiff_t crashlog::StackFrame::functionOffset() const {
 }
 
 crashlog::Image* crashlog::CrashContext::imageFromAddress(void const* addr) {
-    for (auto it = images.rbegin(); it != images.rend(); ++it) {
-        if ((uintptr_t)addr >= it->address) {
-            return &(*it);
+    for (auto& img : std::ranges::reverse_view(images)) {
+        if ((uintptr_t)addr >= img.address) {
+            // bounds check
+            if (img.size != 0 && (uintptr_t)addr >= img.address + img.size) {
+                continue;
+            }
+
+            return &img;
         }
     }
     return nullptr;

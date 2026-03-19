@@ -37,6 +37,7 @@ namespace crashlog {
     struct Image {
         uintptr_t address;
         std::string name_;
+        size_t size;
 
         std::string_view name() const;
         std::string_view shortName() const;
