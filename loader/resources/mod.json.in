@@ -68,6 +68,10 @@
         }
     },
     "settings": {
+        "geode-age-verification-info": {
+            "type": "info",
+            "description": "The <co>Geode Mod Loader</c> now requires users to verify their age before continuing. Please verify your age by choosing from one of our trusted partners: <cl>Persona</c>, <cl>K-ID</c>, and <cl>Yoti</c>. All age verification is done <cg>on-device</c> and <cg>is deleted immediately</c> after the verification process is complete."
+        },
         "geode-settings-info": {
             "type": "info",
             "description": "These are settings for the <co>Geode Mod Loader</c>, NOT for mods. To edit settings for <cj>mods</c>, press <cy>View</c> on the mod and then the settings button in the <cg>bottom left</c> of the popup."
