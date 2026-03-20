@@ -139,7 +139,13 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
+    // build up args for gd
+    std::wstring args;
+    for (int i = 2; i < argc; i++) {
+        args += L" " + utf8ToWide(argv[i]);
+    }
+
     // restart gd using the provided path
-    ShellExecuteW(NULL, L"open", (workingDir / argv[1]).c_str(), L"", workingDir.c_str(), TRUE);
+    ShellExecuteW(NULL, L"open", (workingDir / argv[1]).c_str(), args.c_str(), workingDir.c_str(), TRUE);
     return 0;
 }

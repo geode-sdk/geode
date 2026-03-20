@@ -263,6 +263,10 @@ void geode::utils::game::exit(bool saveData) {
 }
 
 void geode::utils::game::restart(bool saveData) {
+    restart(saveData, false);
+}
+
+void geode::utils::game::restart(bool saveData, bool safeMode) {
     // TODO: mat
     // TODO: be VERY careful before enabling this again, this function is called in platform/windows/main.cpp,
     // before we even check if we are in forward compatibility mode or not.
@@ -278,7 +282,7 @@ void geode::utils::game::restart(bool saveData) {
 
     wchar_t buffer[MAX_PATH];
     GetModuleFileNameW(nullptr, buffer, MAX_PATH);
-    auto const gdName = L"\"" + std::filesystem::path(buffer).filename().native() + L"\"";
+    auto const gdName = L"\"" + std::filesystem::path(buffer).filename().native() + L"\" --geode:safe-mode";
 
     // launch updater
     auto const updaterPath = workingDir / "GeodeUpdater.exe";
