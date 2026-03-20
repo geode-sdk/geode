@@ -114,28 +114,6 @@ std::vector<StackFrame> CrashContext::getStacktrace() {
             // log::debug("address: {}", address);
             // log::debug("image: {}", image);
 
-            if (image) {
-                auto baseAddress = image->address;
-
-                if (base::get() == (uintptr_t)baseAddress) {
-                    // find closest function start
-                    auto const& funcs = getFunctionStarts();
-                    auto iter = std::upper_bound(funcs.begin(), funcs.end(), offset);
-                    if (iter != funcs.begin()) {
-                        --iter;
-                        auto funcOffset = *iter;
-                        auto funcName = crashlog::lookupFunctionByOffset(funcOffset);
-                        frame.offset = offset - funcOffset;
-
-                        if (funcName.empty()) {
-                            frame.symbol = fmt::format("sub_{:x}", funcOffset);
-                        } else {
-                            frame.symbol = funcName;
-                        }
-                    }
-                }
-            }
-
             // TODO: also parse this properly?
             if (frame.symbol.empty()) {
                 frame.description = line;
@@ -161,14 +139,42 @@ std::vector<StackFrame> CrashContext::getStacktrace() {
             }
 
             // don't display the (function + offset) part if it will be bogus.
-            // the first case (0x0) happens with hook handlers, while the second happens because
-            // GD exports a few fmt symbols, so backtrace_symbols thinks every function in GD is the last fmt symbol in the binary
-            if (function == "0x0" || (binary == "GeometryJump" && offset > 0x1000)) {
+            // (0x0) happens with hook handlers
+            if (function == "0x0") {
                 function = "";
             }
 
-            frame.symbol = std::move(function);
-            frame.offset = offset;
+            bool found = false;
+
+            if (image) {
+                auto baseAddress = image->address;
+                uintptr_t offset = address - (uintptr_t)baseAddress;
+
+                if (base::get() == (uintptr_t)baseAddress) {
+                    // find closest function start
+                    auto const& funcs = getFunctionStarts();
+                    auto iter = std::upper_bound(funcs.begin(), funcs.end(), offset);
+                    if (iter != funcs.begin()) {
+                        --iter;
+                        auto funcOffset = *iter;
+                        auto funcName = crashlog::lookupFunctionByOffset(funcOffset);
+                        frame.offset = offset - funcOffset;
+
+                        if (funcName.empty()) {
+                            frame.symbol = fmt::format("sub_{:x}", funcOffset);
+                        } else {
+                            frame.symbol = funcName;
+                        }
+
+                        found = true;
+                    }
+                }
+            }
+
+            if (!found) {
+                frame.symbol = std::move(function);
+                frame.offset = offset;
+            }
         }
 
         frames.push_back(std::move(frame));
