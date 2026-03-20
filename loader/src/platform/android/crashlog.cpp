@@ -39,9 +39,26 @@ std::vector<Image> CrashContext::getImages() {
 
     dl_iterate_phdr([](struct dl_phdr_info* info, size_t size, void* data) {
         auto& images = *reinterpret_cast<std::vector<Image>*>(data);
+
+        uintptr_t lowAddr = (uintptr_t)-1;
+        uintptr_t highAddr = 0;
+
+        for (size_t i = 0; i < info->dlpi_phnum; i++) {
+            if (info->dlpi_phdr[i].p_type == PT_LOAD) {
+                uintptr_t start = info->dlpi_phdr[i].p_vaddr;
+                uintptr_t end = start + info->dlpi_phdr[i].p_memsz;
+
+
+                lowAddr = std::min(lowAddr, start);
+                highAddr = std::max(highAddr, end);
+            }
+        }
+
+
         images.push_back({
             info->dlpi_addr,
-            info->dlpi_name ? info->dlpi_name : "<Unknown>"
+            info->dlpi_name ? info->dlpi_name : "<Unknown>",
+            highAddr - lowAddr
         });
 
         return 0;
