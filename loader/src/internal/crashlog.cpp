@@ -322,9 +322,26 @@ std::string crashlog::writeCrashlog(const CrashContext& ctx, std::filesystem::pa
             }
         } else {
             stacktrace.append("- 0x{:x}", frame.address);
-            if (!frame.description.empty()) {
-                stacktrace.append(" ({})", frame.description);
+        }
+
+        std::string_view description = frame.description;
+        if (description.empty() && !frame.image) {
+            // try to determine if it's a special tulip function
+            auto tinfo = tulip::hook::getFunctionInformation((void*)frame.address);
+            if (tinfo) {
+                using enum tulip::hook::FunctionInformationReturn::Type;
+                switch (tinfo->type) {
+                    case Handler: description = "hook handler"; break;
+                    case Relocated: description = "relocated function"; break;
+                    case Trampoline: description = "trampoline"; break;
+                    case Intervener: description = "intervener"; break;
+                    default: description = "unknown tulip function"; break;
+                }
             }
+        }
+
+        if (!description.empty()) {
+            stacktrace.append(" ({})", description);
         }
 
         stacktrace.append("\n");

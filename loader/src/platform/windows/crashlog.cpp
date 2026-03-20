@@ -157,9 +157,6 @@ static StackFrame getFrame(void const* addr, bool fullPath = true) {
         GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
         (LPCTSTR)addr, &module
     )) {
-        if (GeodeFunctionTableAccess64(proc, reinterpret_cast<DWORD64>(addr))) {
-            frame.description = "Hook handler";
-        }
         return frame;
     }
 

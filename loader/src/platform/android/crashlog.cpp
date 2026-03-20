@@ -177,18 +177,6 @@ std::vector<StackFrame> CrashContext::getStacktrace() {
             .offset = offset
         };
 
-        auto tinfo = tulip::hook::getFunctionInformation((void*)frame.pc);
-        if (tinfo) {
-            using enum tulip::hook::FunctionInformationReturn::Type;
-            switch (tinfo->type) {
-                case Handler: sframe.description = "hook handler"; break;
-                case Relocated: sframe.description = "relocated function"; break;
-                case Trampoline: sframe.description = "trampoline"; break;
-                case Intervener: sframe.description = "intervener"; break;
-                default: sframe.description = "unknown tulip function"; break;
-            }
-        }
-
         frames.push_back(std::move(sframe));
     }
 
