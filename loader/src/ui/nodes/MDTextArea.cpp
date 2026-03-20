@@ -366,7 +366,7 @@ struct MDParser {
                         else {
                             spr = CCSprite::create(s_lastImage.c_str());
                         }
-                        if (spr && spr->getUserObject("geode.texture-loader/fallback") == nullptr) {
+                        if (spr && spr->isUsingFallback()) {
                             spr->setScale(spriteScale);
                             if (spriteWidth > 0.0f && spriteHeight <= 0.0f) {
                                 limitNodeWidth(spr, spriteWidth, 999.f, .1f);
