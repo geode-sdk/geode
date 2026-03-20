@@ -148,7 +148,7 @@ endif()
 
 
 if (ANDROID)
-	CPMAddPackage("gh:geode-sdk/libunwindstack#1a8ca9c")
+	CPMAddPackage("gh:geode-sdk/libunwindstack#c0d31ed")
 endif()
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})

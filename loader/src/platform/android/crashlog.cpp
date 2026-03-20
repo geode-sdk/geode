@@ -238,6 +238,8 @@ static void handlerThread() {
 #else
         auto signalAddress = reinterpret_cast<void*>(s_context->uc_mcontext.arm_pc);
 #endif
+        __android_log_print(ANDROID_LOG_ERROR, "Geode", "Picked up crash at %p", signalAddress);
+
         g_context.initialize(signalAddress);
 
         auto text = crashlog::writeCrashlog(g_context);
