@@ -147,8 +147,8 @@ if (WIN32)
 endif()
 
 
-if (ANDROID AND GEODE_USE_BREAKPAD)
-	CPMAddPackage("gh:qimiko/breakpad#169df6a")
+if (ANDROID)
+	CPMAddPackage("gh:geode-sdk/libunwindstack#f3d69cc")
 endif()
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
@@ -197,10 +197,7 @@ if (ANDROID)
 	# needed to define some opengl functions
 	target_link_libraries(${PROJECT_NAME} EGL)
 
-	if (GEODE_USE_BREAKPAD)
-		target_compile_definitions(${PROJECT_NAME} PRIVATE -DGEODE_USE_BREAKPAD)
-		target_link_libraries(${PROJECT_NAME} Breakpad)
-	endif()
+	target_link_libraries(${PROJECT_NAME} unwindstack)
 endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE

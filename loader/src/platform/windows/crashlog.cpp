@@ -19,27 +19,18 @@
 #include <fmt/core.h>
 #include "ehdata_structs.hpp"
 
+#include <tlhelp32.h>
+
 using namespace geode::prelude;
+using namespace crashlog;
 
 static bool g_lastLaunchCrashed = false;
 static bool g_symbolsInitialized = false;
 static std::wstring g_unzippedSearchPaths;
+static crashlog::CrashContext g_context;
+static LPEXCEPTION_POINTERS g_excPtr;
 
-static std::string getModuleName(HMODULE module, bool fullPath = true, bool shortKnown = false) {
-    wchar_t buffer[MAX_PATH];
-    if (!GetModuleFileNameW(module, buffer, MAX_PATH)) {
-        return "<Unknown>";
-    }
-    if (fullPath) {
-        if (shortKnown) {
-            if (std::wstring_view(buffer).starts_with(dirs::getGameDir().native())) {
-                return utils::string::pathToString(std::filesystem::path(buffer).filename());
-            }
-        }
-        return utils::string::wideToUtf8(buffer);
-    }
-    return utils::string::pathToString(std::filesystem::path(buffer).filename());
-}
+PVOID GeodeFunctionTableAccess64(HANDLE hProcess, DWORD64 AddrBase);
 
 static char const* getExceptionCodeString(DWORD code) {
     #define EXP_STR(c) \
@@ -65,26 +56,29 @@ static char const* getExceptionCodeString(DWORD code) {
     #undef EXP_STR
 }
 
-static HMODULE handleFromAddress(void const* addr) {
-    HMODULE module = nullptr;
-    GetModuleHandleEx(
-        GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-        (LPCTSTR)addr, &module
-    );
-    return module;
-}
+std::vector<Image> CrashContext::getImages() {
+    HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, GetCurrentProcessId());
 
-static Mod* modFromAddress(PVOID exceptionAddress) {
-    auto modulePath = getModuleName(handleFromAddress(exceptionAddress), true);
-    for (auto& mod : Loader::get()->getAllMods()) {
-        if (mod->getBinaryPath() == modulePath) {
-            return mod;
-        }
+    if (snap == INVALID_HANDLE_VALUE) {
+        return {};
     }
-    return nullptr;
-}
 
-PVOID GeodeFunctionTableAccess64(HANDLE hProcess, DWORD64 AddrBase);
+    MODULEENTRY32W me32;
+    me32.dwSize = sizeof(MODULEENTRY32W);
+
+    std::vector<Image> images;
+    if (Module32FirstW(snap, &me32)) {
+        do {
+            images.push_back({
+                reinterpret_cast<uintptr_t>(me32.modBaseAddr),
+                utils::string::wideToUtf8(me32.szExePath)
+            });
+        } while (Module32NextW(snap, &me32));
+    }
+
+    CloseHandle(snap);
+    return images;
+}
 
 typedef union _UNWIND_CODE {
     struct {
@@ -152,121 +146,227 @@ static std::string findSymbolNameFromRVA(HMODULE module, DWORD rva) {
     return {};
 }
 
-static void printAddr(StringBuffer<>& stream, void const* addr, bool fullPath = true) {
+static StackFrame getFrame(void const* addr, bool fullPath = true) {
     HMODULE module = nullptr;
     auto proc = GetCurrentProcess();
 
-    if (GetModuleHandleEx(
-            GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-            (LPCTSTR)addr, &module
-        )) {
-        // calculate base + [address]
-        auto const diff = reinterpret_cast<uintptr_t>(addr) - reinterpret_cast<uintptr_t>(module);
-        stream.append("{} + {:x}", getModuleName(module, fullPath, true), diff);
+    StackFrame frame{};
+    frame.address = reinterpret_cast<uintptr_t>(addr);
 
-        // log symbol if possible
-        if (g_symbolsInitialized) {
-            // https://docs.microsoft.com/en-us/windows/win32/debug/retrieving-symbol-information-by-address
+    if (!GetModuleHandleEx(
+        GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+        (LPCTSTR)addr, &module
+    )) {
+        return frame;
+    }
 
-            DWORD64 displacement;
+    frame.image = g_context.imageFromAddress(addr);
 
-            char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
-            PSYMBOL_INFO symbolInfo = reinterpret_cast<PSYMBOL_INFO>(buffer);
+    auto const diff = reinterpret_cast<uintptr_t>(addr) - reinterpret_cast<uintptr_t>(module);
 
-            symbolInfo->SizeOfStruct = sizeof(SYMBOL_INFO);
-            symbolInfo->MaxNameLen = MAX_SYM_NAME;
+    // log symbol if possible
+    if (g_symbolsInitialized) {
+        // https://docs.microsoft.com/en-us/windows/win32/debug/retrieving-symbol-information-by-address
 
-            if (SymFromAddr(
-                    proc, static_cast<DWORD64>(reinterpret_cast<uintptr_t>(addr)), &displacement,
-                    symbolInfo
+        DWORD64 displacement;
+
+        char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
+        PSYMBOL_INFO symbolInfo = reinterpret_cast<PSYMBOL_INFO>(buffer);
+
+        symbolInfo->SizeOfStruct = sizeof(SYMBOL_INFO);
+        symbolInfo->MaxNameLen = MAX_SYM_NAME;
+
+        if (SymFromAddr(
+                proc, static_cast<DWORD64>(reinterpret_cast<uintptr_t>(addr)), &displacement,
+                symbolInfo
+            )) {
+            if (auto entry = SymFunctionTableAccess64(proc, static_cast<DWORD64>(reinterpret_cast<uintptr_t>(addr)))) {
+                auto moduleBase = SymGetModuleBase64(proc, static_cast<DWORD64>(reinterpret_cast<uintptr_t>(addr)));
+                auto runtimeFunction = static_cast<PRUNTIME_FUNCTION>(entry);
+                auto unwindInfo = reinterpret_cast<PUNWIND_INFO>(moduleBase + runtimeFunction->UnwindInfoAddress);
+
+                // This is a chain of unwind info structures, so we traverse back to the first one
+                while (unwindInfo->Flags & UNW_FLAG_CHAININFO) {
+                    runtimeFunction = (PRUNTIME_FUNCTION)&(unwindInfo->UnwindCode[( unwindInfo->CountOfCodes + 1 ) & ~1]);
+                    unwindInfo = reinterpret_cast<PUNWIND_INFO>(moduleBase + runtimeFunction->UnwindInfoAddress);
+                }
+
+                if (moduleBase + runtimeFunction->BeginAddress != symbolInfo->Address) {
+                    // the symbol address is not the same as the function address
+                    return frame;
+                }
+            }
+
+            frame.symbol = std::string(symbolInfo->Name, symbolInfo->NameLen);
+            frame.offset = displacement;
+
+            IMAGEHLP_LINE64 line;
+            line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+
+            DWORD displacement2;
+
+            if (SymGetLineFromAddr64(
+                    proc, static_cast<DWORD64>(reinterpret_cast<uintptr_t>(addr)),
+                    &displacement2, &line
                 )) {
-                if (auto entry = SymFunctionTableAccess64(proc, static_cast<DWORD64>(reinterpret_cast<uintptr_t>(addr)))) {
-                    auto moduleBase = SymGetModuleBase64(proc, static_cast<DWORD64>(reinterpret_cast<uintptr_t>(addr)));
-                    auto runtimeFunction = static_cast<PRUNTIME_FUNCTION>(entry);
-                    auto unwindInfo = reinterpret_cast<PUNWIND_INFO>(moduleBase + runtimeFunction->UnwindInfoAddress);
+                frame.file = line.FileName;
+                frame.line = line.LineNumber;
+            }
+        } else {
+            // handle GeometryDash.exe bindings and libcocos2d.dll missing symbols on wine
+            bool isGD = (uintptr_t)module == base::get();
+            bool isCocos = (uintptr_t)module == base::getCocos();
+            if (!isGD && !isCocos) return frame;
 
-                    // This is a chain of unwind info structures, so we traverse back to the first one
-                    while (unwindInfo->Flags & UNW_FLAG_CHAININFO) {
-                        runtimeFunction = (PRUNTIME_FUNCTION)&(unwindInfo->UnwindCode[( unwindInfo->CountOfCodes + 1 ) & ~1]);
-                        unwindInfo = reinterpret_cast<PUNWIND_INFO>(moduleBase + runtimeFunction->UnwindInfoAddress);
-                    }
+            DWORD64 dwAddr = reinterpret_cast<uintptr_t>(addr);
+            if (auto entry = SymFunctionTableAccess64(proc, dwAddr)) {
+                auto moduleBase = SymGetModuleBase64(proc, dwAddr);
+                auto runtimeFunction = static_cast<PRUNTIME_FUNCTION>(entry);
 
-                    if (moduleBase + runtimeFunction->BeginAddress != symbolInfo->Address) {
-                        // the symbol address is not the same as the function address
-                        return;
-                    }
-                }
-                stream.append(" ({} + {:x}", std::string_view(symbolInfo->Name, symbolInfo->NameLen), displacement);
+                if (moduleBase) {
+                    uintptr_t funcAddr = moduleBase + runtimeFunction->BeginAddress;
+                    uintptr_t diff = reinterpret_cast<uintptr_t>(addr) - funcAddr;
 
-                IMAGEHLP_LINE64 line;
-                line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
-
-                DWORD displacement2;
-
-                if (SymGetLineFromAddr64(
-                        proc, static_cast<DWORD64>(reinterpret_cast<uintptr_t>(addr)),
-                        &displacement2, &line
-                    )) {
-                    stream.append(" | {} : {}", line.FileName, line.LineNumber);
-                }
-
-                stream.append(')');
-            } else {
-                // handle GeometryDash.exe bindings and libcocos2d.dll missing symbols on wine
-                bool isGD = (uintptr_t)module == base::get();
-                bool isCocos = (uintptr_t)module == base::getCocos();
-                if (!isGD && !isCocos) return;
-
-                DWORD64 dwAddr = reinterpret_cast<uintptr_t>(addr);
-                if (auto entry = SymFunctionTableAccess64(proc, dwAddr)) {
-                    auto moduleBase = SymGetModuleBase64(proc, dwAddr);
-                    auto runtimeFunction = static_cast<PRUNTIME_FUNCTION>(entry);
-
-                    if (moduleBase) {
-                        uintptr_t funcAddr = moduleBase + runtimeFunction->BeginAddress;
-                        uintptr_t diff = reinterpret_cast<uintptr_t>(addr) - funcAddr;
-
-                        if (isGD) {
-                            auto funcName = crashlog::lookupFunctionByOffset(runtimeFunction->BeginAddress);
-                            if (!funcName.empty()) {
-                                stream.append(" ({} + {:x})", funcName, diff);
-                                return;
-                            }
-                        } else {
-                            auto funcName = findSymbolNameFromRVA(module, runtimeFunction->BeginAddress);
-                            if (!funcName.empty()) {
-                                stream.append(" ({} + {:x})", funcName, diff);
-                                return;
-                            }
+                    if (isGD) {
+                        auto funcName = crashlog::lookupFunctionByOffset(runtimeFunction->BeginAddress);
+                        if (!funcName.empty()) {
+                            frame.symbol = funcName;
+                            frame.offset = diff;
+                            return frame;
                         }
-
-                        // unnamed function
-                        stream.append(" (sub_{:x} + {:x})", runtimeFunction->BeginAddress, diff);
-                        return;
+                    } else {
+                        auto funcName = findSymbolNameFromRVA(module, runtimeFunction->BeginAddress);
+                        if (!funcName.empty()) {
+                            frame.symbol = funcName;
+                            frame.offset = diff;
+                            return frame;
+                        }
                     }
+
+                    // unnamed function
+                    frame.symbol = fmt::format("sub_{:x}", runtimeFunction->BeginAddress);
+                    return frame;
                 }
+            }
 
-                // fallback (usually leaf functions)
-                if (isGD) {
-                    uintptr_t offset = diff;
-                    auto funcName = crashlog::lookupClosestFunction(offset);
-                    if (!funcName.empty()) {
-                        stream.append(" ({} + {:x})", funcName, offset);
-                    }
+            // fallback (usually leaf functions)
+            if (isGD) {
+                uintptr_t offset = diff;
+                auto funcName = crashlog::lookupClosestFunction(offset);
+                if (!funcName.empty()) {
+                    frame.symbol = funcName;
+                    frame.offset = offset;
                 }
             }
         }
     }
-    else {
-        stream.append("{:016X}", reinterpret_cast<uintptr_t>(addr));
 
-        if (GeodeFunctionTableAccess64(proc, reinterpret_cast<DWORD64>(addr))) {
-            stream.append(" (Hook handler)");
-        }
-    }
+    return frame;
 }
 
-static void printExtraParameters(StringBuffer<>& stream, DWORD code, ULONG_PTR* params, size_t count) {
+std::vector<StackFrame> CrashContext::getStacktrace() {
+    std::vector<StackFrame> frames;
+
+    static STACKFRAME64 stack;
+    memset(&stack, 0, sizeof(STACKFRAME64));
+
+    auto ctx = g_excPtr->ContextRecord;
+    auto process = GetCurrentProcess();
+    auto thread = GetCurrentThread();
+#ifdef GEODE_IS_X86
+    stack.AddrPC.Offset = ctx->Eip;
+    stack.AddrStack.Offset = ctx->Esp;
+    stack.AddrFrame.Offset = ctx->Ebp;
+#else
+    stack.AddrPC.Offset = ctx->Rip;
+    stack.AddrStack.Offset = ctx->Rsp;
+    stack.AddrFrame.Offset = ctx->Rdi;
+#endif
+
+    stack.AddrPC.Mode = AddrModeFlat;
+    stack.AddrStack.Mode = AddrModeFlat;
+    stack.AddrFrame.Mode = AddrModeFlat;
+
+    // size_t frame = 0;
+    while (true) {
+        if (!StackWalk64(
+                IMAGE_FILE_MACHINE_AMD64, process, thread, &stack, ctx, nullptr,
+                +[](HANDLE hProcess, DWORD64 AddrBase) {
+                    auto ret = GeodeFunctionTableAccess64(hProcess, AddrBase);
+                    if (ret) {
+                        return ret;
+                    }
+                    return SymFunctionTableAccess64(hProcess, AddrBase);
+                },
+                +[](HANDLE hProcess, DWORD64 dwAddr) -> DWORD64 {
+                    auto ret = GeodeFunctionTableAccess64(hProcess, dwAddr);
+                    if (ret) {
+                        return dwAddr & (~0xffffull);
+                    }
+                    return SymGetModuleBase64(hProcess, dwAddr);
+                }
+                , nullptr
+            ))
+            break;
+
+        void* addr = reinterpret_cast<void*>(stack.AddrPC.Offset);
+        frames.push_back(getFrame(addr));
+    }
+
+    return frames;
+}
+
+std::vector<Register> CrashContext::getRegisters() {
+    std::vector<Register> registers;
+    auto& ss = g_excPtr->ContextRecord;
+
+#ifdef GEODE_IS_X86
+    registers.push_back({ "EAX", ss->Eax });
+    registers.push_back({ "EBX", ss->Ebx });
+    registers.push_back({ "ECX", ss->Ecx });
+    registers.push_back({ "EDX", ss->Edx });
+    registers.push_back({ "EBP", ss->Ebp });
+    registers.push_back({ "ESP", ss->Esp });
+    registers.push_back({ "EDI", ss->Edi });
+    registers.push_back({ "ESI", ss->Esi });
+    registers.push_back({ "EIP", ss->Eip });
+#else
+    registers.push_back({ "RAX", ss->Rax });
+    registers.push_back({ "RBX", ss->Rbx });
+    registers.push_back({ "RCX", ss->Rcx });
+    registers.push_back({ "RDX", ss->Rdx });
+    registers.push_back({ "RBP", ss->Rbp });
+    registers.push_back({ "RSP", ss->Rsp });
+    registers.push_back({ "RDI", ss->Rdi });
+    registers.push_back({ "RSI", ss->Rsi });
+    registers.push_back({ "RIP", ss->Rip });
+    registers.push_back({ "R8",  ss->R8  });
+    registers.push_back({ "R9",  ss->R9  });
+    registers.push_back({ "R10", ss->R10 });
+    registers.push_back({ "R11", ss->R11 });
+    registers.push_back({ "R12", ss->R12 });
+    registers.push_back({ "R13", ss->R13 });
+    registers.push_back({ "R14", ss->R14 });
+    registers.push_back({ "R15", ss->R15 });
+#endif
+
+    return registers;
+}
+
+std::string_view CrashContext::getGeodeBinaryName() {
+    return "Geode.dll";
+}
+
+static HMODULE handleFromAddress(void const* addr) {
+    HMODULE module = nullptr;
+    GetModuleHandleEx(
+        GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+        (LPCTSTR)addr, &module
+    );
+    return module;
+}
+
+static void printExtraParameters(Buffer& stream, DWORD code, ULONG_PTR* params, size_t count) {
     switch (code) {
         case EXCEPTION_ACCESS_VIOLATION: {
             std::string_view what;
@@ -288,128 +388,6 @@ static void printExtraParameters(StringBuffer<>& stream, DWORD code, ULONG_PTR* 
             stream.append("Number Parameters: {}\n", count);
         } break;
     }
-}
-
-// https://stackoverflow.com/a/50208684/9124836
-static std::string getStacktrace(PCONTEXT context, Mod*& suspectedFaultyMod) {
-    StringBuffer<> stream;
-    static STACKFRAME64 stack;
-    static PCONTEXT pcontext = context;
-    memset(&stack, 0, sizeof(STACKFRAME64));
-
-    auto process = GetCurrentProcess();
-    auto thread = GetCurrentThread();
-#ifdef GEODE_IS_X86
-    stack.AddrPC.Offset = context->Eip;
-    stack.AddrStack.Offset = context->Esp;
-    stack.AddrFrame.Offset = context->Ebp;
-#else
-    stack.AddrPC.Offset = context->Rip;
-    stack.AddrStack.Offset = context->Rsp;
-    stack.AddrFrame.Offset = context->Rdi;
-#endif
-
-    stack.AddrPC.Mode = AddrModeFlat;
-    stack.AddrStack.Mode = AddrModeFlat;
-    stack.AddrFrame.Mode = AddrModeFlat;
-
-    // size_t frame = 0;
-    while (true) {
-        if (!StackWalk64(
-                IMAGE_FILE_MACHINE_AMD64, process, thread, &stack, context, nullptr,
-                +[](HANDLE hProcess, DWORD64 AddrBase) {
-                    auto ret = GeodeFunctionTableAccess64(hProcess, AddrBase);
-                    if (ret) {
-                        return ret;
-                    }
-                    return SymFunctionTableAccess64(hProcess, AddrBase);
-                },
-                +[](HANDLE hProcess, DWORD64 dwAddr) -> DWORD64 {
-                    auto ret = GeodeFunctionTableAccess64(hProcess, dwAddr);
-                    if (ret) {
-                        return dwAddr & (~0xffffull);
-                    }
-                    return SymGetModuleBase64(hProcess, dwAddr);
-                }
-                , nullptr
-            ))
-            break;
-
-        stream.append(" - ");
-
-        void* addr = reinterpret_cast<void*>(stack.AddrPC.Offset);
-        printAddr(stream, addr);
-
-        stream.append('\n');
-
-        // set the suspected faulty mod to the first entry in the stack trace that belongs to a mod
-        if (!suspectedFaultyMod) {
-            suspectedFaultyMod = modFromAddress(addr);
-        }
-    }
-    return stream.str();
-}
-
-static std::string getRegisters(PCONTEXT context) {
-#ifdef GEODE_IS_X86
-    return fmt::format(
-        "EAX: {:08x}\n"
-        "EBX: {:08x}\n"
-        "ECX: {:08x}\n"
-        "EDX: {:08x}\n"
-        "EBP: {:08x}\n"
-        "ESP: {:08x}\n"
-        "EDI: {:08x}\n"
-        "ESI: {:08x}\n"
-        "EIP: {:08x}\n",
-        context->Eax,
-        context->Ebx,
-        context->Ecx,
-        context->Edx,
-        context->Ebp,
-        context->Esp,
-        context->Edi,
-        context->Esi,
-        context->Eip
-    );
-#else
-    return fmt::format(
-        "RAX: {:016x}\n"
-        "RBX: {:016x}\n"
-        "RCX: {:016x}\n"
-        "RDX: {:016x}\n"
-        "RBP: {:016x}\n"
-        "RSP: {:016x}\n"
-        "RDI: {:016x}\n"
-        "RSI: {:016x}\n"
-        "RIP: {:016x}\n"
-        "R8:  {:016x}\n"
-        "R9:  {:016x}\n"
-        "R10: {:016x}\n"
-        "R11: {:016x}\n"
-        "R12: {:016x}\n"
-        "R13: {:016x}\n"
-        "R14: {:016x}\n"
-        "R15: {:016x}\n",
-        context->Rax,
-        context->Rbx,
-        context->Rcx,
-        context->Rdx,
-        context->Rbp,
-        context->Rsp,
-        context->Rdi,
-        context->Rsi,
-        context->Rip,
-        context->R8,
-        context->R9,
-        context->R10,
-        context->R11,
-        context->R12,
-        context->R13,
-        context->R14,
-        context->R15
-    );
-#endif
 }
 
 template <typename T, typename U>
@@ -502,13 +480,11 @@ static std::string parseCppException(LPEXCEPTION_POINTERS info) {
     return excString;
 }
 
-static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod, Mod* suspectedFaultyMod) {
+void CrashContext::writeInfo(Buffer& stream) {
     // the error code wine raises when a non-existent imported function gets invoked
     constexpr DWORD EXCEPTION_WINE_STUB = 0x80000100;
 
-    StringBuffer<> stream;
-
-    DWORD code = info->ExceptionRecord->ExceptionCode;
+    DWORD code = g_excPtr->ExceptionRecord->ExceptionCode;
 
     auto makeFaultyModString = [](Mod* mod) -> std::string {
         if (!mod) return "Faulty Mod: <Unknown>";
@@ -517,11 +493,7 @@ static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod, Mod* suspe
     };
 
     if (code == EXCEPTION_NUMBER) {
-        if (!faultyMod) {
-            faultyMod = suspectedFaultyMod;
-        }
-
-        stream.append(parseCppException(info));
+        stream.append(parseCppException(g_excPtr));
         stream.append('\n');
         stream.append(makeFaultyModString(faultyMod));
         stream.append('\n');
@@ -530,55 +502,47 @@ static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod, Mod* suspe
         stream.append(
             "A mod has deliberately asked the game to crash.\n"
             "Reason: {}\n{}\n",
-            reinterpret_cast<const char*>(info->ExceptionRecord->ExceptionInformation[0]),
-            makeFaultyModString(reinterpret_cast<Mod*>(info->ExceptionRecord->ExceptionInformation[1]))
+            reinterpret_cast<const char*>(g_excPtr->ExceptionRecord->ExceptionInformation[0]),
+            makeFaultyModString(reinterpret_cast<Mod*>(g_excPtr->ExceptionRecord->ExceptionInformation[1]))
         );
     }
     else if (code == EXCEPTION_WINE_STUB) {
-        auto* dll = reinterpret_cast<const char*>(info->ExceptionRecord->ExceptionInformation[0]);
-        auto* function = reinterpret_cast<const char*>(info->ExceptionRecord->ExceptionInformation[1]);
-
-        if (!faultyMod) {
-            faultyMod = suspectedFaultyMod;
-        }
+        auto* dll = reinterpret_cast<const char*>(g_excPtr->ExceptionRecord->ExceptionInformation[0]);
+        auto* function = reinterpret_cast<const char*>(g_excPtr->ExceptionRecord->ExceptionInformation[1]);
 
         stream.append("Attempted to invoke a non-existent function: {} (not found in {})\n", demangleSymbol(function, false), dll);
         stream.append(makeFaultyModString(faultyMod));
         stream.append('\n');
     }
     else {
-        stream.append(
-            "Faulty Module: {}\n{}\n"
-            "Exception Code: {:x} ({})\n"
-            "Exception Flags: {}\n"
-            "Instruction Address: {} (",
-            getModuleName(handleFromAddress(info->ExceptionRecord->ExceptionAddress), true),
-            makeFaultyModString(faultyMod),
-            info->ExceptionRecord->ExceptionCode,
-            getExceptionCodeString(info->ExceptionRecord->ExceptionCode),
-            info->ExceptionRecord->ExceptionFlags,
-            info->ExceptionRecord->ExceptionAddress
-        );
-        printAddr(stream, info->ExceptionRecord->ExceptionAddress, false);
-        stream.append(")\n");
+        auto rec = g_excPtr->ExceptionRecord;
+        auto image = this->imageFromAddress(this->crashAddr);
+
+        stream.append("Faulty Module: {}\n", image ? image->name() : "<Unknown>");
+        stream.append("{}\n", makeFaultyModString(faultyMod));
+        stream.append("Exception Code: {:x} ({})\n", rec->ExceptionCode, getExceptionCodeString(rec->ExceptionCode));
+        stream.append("Exception Flags: {}\n", rec->ExceptionFlags);
+        stream.append("Instruction Address: ");
+        this->formatAddress(rec->ExceptionAddress, stream);
+        stream.append('\n');
+
 
         printExtraParameters(
             stream,
-            info->ExceptionRecord->ExceptionCode,
-            info->ExceptionRecord->ExceptionInformation,
-            info->ExceptionRecord->NumberParameters
+            rec->ExceptionCode,
+            rec->ExceptionInformation,
+            rec->NumberParameters
         );
     }
 
     // show the thread that crashed
     stream.append("Crashed thread: {}\n", thread::getName());
-
-    return stream.str();
 }
 
 static void handleException(LPEXCEPTION_POINTERS info) {
     std::string text;
     std::filesystem::path crashlogPath;
+    g_excPtr = info;
 
     // calling SymInitialize from multiple threads can have unexpected behavior, so synchronize this part
     static std::mutex symMutex;
@@ -602,26 +566,13 @@ static void handleException(LPEXCEPTION_POINTERS info) {
             }
         }
 
-        // in some cases, we can be pretty certain that the first mod found while unwinding
-        // is the one that caused the crash, so using `suspectedFaultyMod` is safe and correct.
-        //
-        // however, for most cases there's no such guarantee, and for them only top stack entry is checked.
-        Mod* faultyMod = modFromAddress(info->ExceptionRecord->ExceptionAddress);
-        Mod* suspectedFaultyMod = nullptr;
+        g_context.initialize(info->ExceptionRecord->ExceptionAddress);
 
-        auto stacktrace = getStacktrace(info->ContextRecord, suspectedFaultyMod);
-        auto crashInfo = getInfo(info, faultyMod, suspectedFaultyMod);
-
-        text = crashlog::writeCrashlog(
-            faultyMod,
-            crashInfo,
-            stacktrace,
-            getRegisters(info->ContextRecord),
-            crashlogPath
-        );
+        text = crashlog::writeCrashlog(g_context, crashlogPath);
 
         if (g_symbolsInitialized) {
             SymCleanup(GetCurrentProcess());
+            g_symbolsInitialized = false;
         }
     }
 
