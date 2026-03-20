@@ -19,6 +19,7 @@
 
 using namespace geode::prelude;
 using namespace crashlog;
+using namespace unwindstack;
 
 // https://gist.github.com/jvranish/4441299
 
@@ -34,8 +35,8 @@ static crashlog::CrashContext g_context;
 static int s_pipe[2];
 
 static constexpr auto CURRENT_ARCH =
-    GEODE_ANDROID32(unwindstack::ARCH_ARM)
-    GEODE_ANDROID64(unwindstack::ARCH_ARM64);
+    GEODE_ANDROID32(ARCH_ARM)
+    GEODE_ANDROID64(ARCH_ARM64);
 
 std::vector<Image> CrashContext::getImages() {
     std::vector<Image> images;
@@ -70,26 +71,38 @@ std::vector<Image> CrashContext::getImages() {
     return images;
 }
 
+class GeodeJitDebug : public JitDebug {
+public:
+    bool GetFunctionName(Maps* maps, uint64_t pc, SharedString* name, uint64_t* offset) override {
+        return false;
+    }
+
+    virtual Elf* Find(Maps* maps, uint64_t pc) override {
+        return nullptr;
+    }
+};
+
 std::vector<StackFrame> CrashContext::getStacktrace() {
     std::vector<StackFrame> frames;
 
-    auto mem = unwindstack::Memory::CreateProcessMemoryCached(getpid());
-    auto maps = std::make_unique<unwindstack::LocalMaps>();
+    auto mem = Memory::CreateProcessMemoryCached(getpid());
+    auto maps = std::make_unique<LocalMaps>();
     if (!maps->Parse()) {
         __android_log_print(ANDROID_LOG_ERROR, "Geode", "Failed to parse memory maps for unwinder");
         return {};
     }
 
-    unwindstack::UnwinderFromPid unwinder(
+    Unwinder unwinder(
         MAX_FRAMES,
-        getpid(),
-        CURRENT_ARCH,
         maps.get(),
+        Regs::CreateFromUcontext(CURRENT_ARCH, s_context),
         mem
     );
-    unwinder.SetRegs(unwindstack::Regs::CreateFromUcontext(CURRENT_ARCH, s_context));
-
+    unwinder.SetArch(CURRENT_ARCH);
     unwinder.SetResolveNames(!s_skipSymbols);
+
+    auto jit = std::make_unique<GeodeJitDebug>();
+    unwinder.SetJitDebug(jit.get());
     unwinder.Unwind();
 
     for (int i = 0; i < unwinder.NumFrames(); ++i) {
