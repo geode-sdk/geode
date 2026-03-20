@@ -74,17 +74,6 @@ std::vector<Image> CrashContext::getImages() {
     return images;
 }
 
-class GeodeJitDebug : public JitDebug {
-public:
-    bool GetFunctionName(Maps* maps, uint64_t pc, SharedString* name, uint64_t* offset) override {
-        return false;
-    }
-
-    virtual Elf* Find(Maps* maps, uint64_t pc) override {
-        return nullptr;
-    }
-};
-
 class GeodeUnwinder : public Unwinder {
 public:
     GeodeUnwinder(Maps* maps, Regs* regs, std::shared_ptr<Memory> process_memory)
@@ -140,6 +129,9 @@ std::vector<StackFrame> CrashContext::getStacktrace() {
     std::vector<StackFrame> frames;
 
     auto mem = Memory::CreateProcessMemoryCached(getpid());
+
+    auto jit = CreateJitDebug(CURRENT_ARCH, mem);
+    auto dex = CreateDexFiles(CURRENT_ARCH, mem);
     auto maps = std::make_unique<LocalMaps>();
     if (!maps->Parse()) {
         __android_log_print(ANDROID_LOG_ERROR, "Geode", "Failed to parse memory maps for unwinder");
@@ -154,8 +146,8 @@ std::vector<StackFrame> CrashContext::getStacktrace() {
     unwinder.SetArch(CURRENT_ARCH);
     unwinder.SetResolveNames(!s_skipSymbols);
 
-    auto jit = std::make_unique<GeodeJitDebug>();
     unwinder.SetJitDebug(jit.get());
+    unwinder.SetDexFiles(dex.get());
     unwinder.Unwind();
 
     for (int i = 0; i < unwinder.NumFrames(); ++i) {
