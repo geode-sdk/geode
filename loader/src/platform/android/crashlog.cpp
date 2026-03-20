@@ -40,8 +40,8 @@ std::vector<Image> CrashContext::getImages() {
     dl_iterate_phdr([](struct dl_phdr_info* info, size_t size, void* data) {
         auto& images = *reinterpret_cast<std::vector<Image>*>(data);
         images.push_back({
-            .address = info->dlpi_addr,
-            .name_ = info->dlpi_name ? info->dlpi_name : "<Unknown>"
+            info->dlpi_addr,
+            info->dlpi_name ? info->dlpi_name : "<Unknown>"
         });
 
         return 0;
@@ -161,7 +161,6 @@ std::vector<Register> CrashContext::getRegisters() {
     registers.push_back({ "pc", ss.arm_pc });
     registers.push_back({ "cpsr", ss.arm_cpsr });
 #endif
-
     return registers;
 }
 
@@ -176,7 +175,7 @@ void CrashContext::writeInfo(Buffer& stream) {
     stream.append("Instruction Address: ");
     this->formatAddress(crashAddr, infoStream);
 
-    stream.append("\nSignal Code: 0x{:x} ({})\n", s_siginfo->si_code, getSignalCodeString(s_signal, s_siginfo));
+    stream.append("\nSignal Code: 0x{:x} ({})\n", s_siginfo->si_signo, getSignalCodeString(s_signal, s_siginfo));
 
     if (hasSignalDetail(s_signal)) {
         stream.append("Signal Detail: ");
@@ -186,11 +185,17 @@ void CrashContext::writeInfo(Buffer& stream) {
 }
 
 extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext) {
+    __android_log_print(ANDROID_LOG_ERROR, "Geode", "Signal handler called with signal %d", signal);
     s_signal = signal;
     s_siginfo = signalInfo;
     s_context = reinterpret_cast<ucontext_t*>(vcontext);
     char buf = '1';
     write(s_pipe[1], &buf, 1);
+
+    // wait for the death to come
+    while (true) {
+        usleep(100000);
+    }
 }
 
 static void handlerThread() {

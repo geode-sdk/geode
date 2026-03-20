@@ -35,7 +35,7 @@ void CrashContext::writeInfo(Buffer& stream) {
     stream.append("Instruction Address: ");
     this->formatAddress(crashAddr, infoStream);
 
-    stream.append("\nSignal Code: 0x{:x} ({})\n", s_siginfo->si_code, getSignalCodeString(s_signal, s_siginfo));
+    stream.append("\nSignal Code: 0x{:x} ({})\n", s_siginfo->si_signo, getSignalCodeString(s_signal, s_siginfo));
 
     if (hasSignalDetail(s_signal)) {
         stream.append("Signal Detail: ");
@@ -59,6 +59,11 @@ extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext)
     s_context = reinterpret_cast<ucontext_t*>(vcontext);
     char buf = '1';
     write(s_pipe[1], &buf, 1);
+
+    // wait for the death to come
+    while (true) {
+        usleep(100000);
+    }
 }
 
 std::vector<StackFrame> CrashContext::getStacktrace() {

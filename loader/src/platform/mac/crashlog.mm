@@ -37,7 +37,7 @@ void CrashContext::writeInfo(Buffer& stream) {
     stream.append("Instruction Address: ");
     this->formatAddress(crashAddr, infoStream);
 
-    stream.append("\nSignal Code: 0x{:x} ({})\n", s_siginfo->si_code, getSignalCodeString(s_signal, s_siginfo));
+    stream.append("\nSignal Code: 0x{:x} ({})\n", s_siginfo->si_signo, getSignalCodeString(s_signal, s_siginfo));
 
     if (hasSignalDetail(s_signal)) {
         stream.append("Signal Detail: ");
