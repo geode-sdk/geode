@@ -72,10 +72,13 @@ Mod* crashlog::CrashContext::modFromAddress(void const* addr) {
     }
 
     for (auto& mod : Loader::get()->getAllMods()) {
-        if (!mod->isLoaded() || !std::filesystem::exists(mod->getBinaryPath())) {
+        std::error_code ec;
+
+        if (!mod->isLoaded() || !std::filesystem::exists(mod->getBinaryPath(), ec)) {
             continue;
         }
-        if (std::filesystem::equivalent(imagePath, mod->getBinaryPath())) {
+
+        if (std::filesystem::equivalent(imagePath, mod->getBinaryPath(), ec)) {
             return mod;
         }
     }
