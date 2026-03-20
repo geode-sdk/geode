@@ -110,9 +110,32 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             }
         }
 
+        // show in safe mode
+        auto isSafeMode = LoaderImpl::get()->isSafeMode();
+        if (isSafeMode) {
+            Loader::get()->queueInMainThread([] {
+                auto popup = createQuickPopup(
+                    "Safe Mode",
+                    "Geode is running in <cy>Safe Mode</c>.\n"
+                    "Mods are <cr>not loaded</c> in this mode.\n"
+                    "\n"
+                    "You can use this to <co>disable</c> or <co>update</c> mods "
+                    "causing issues but all mod features\n"
+                    "<cy>are not available</c>.",
+                    "OK",
+                    nullptr,
+                    [](auto, bool btn2) {},
+                    false
+                );
+
+                popup->m_noElasticity = true;
+                popup->show();
+            });
+        }
+
         // show if the user tried to be naughty and load arbitrary DLLs
         static bool shownTriedToLoadDlls = false;
-        if (!shownTriedToLoadDlls) {
+        if (!isSafeMode && !shownTriedToLoadDlls) {
             shownTriedToLoadDlls = true;
             if (LoaderImpl::get()->userTriedToLoadDLLs()) {
                 Loader::get()->queueInMainThread([] {
