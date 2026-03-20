@@ -29,6 +29,7 @@ static std::atomic<int> s_reentrancy{0};
 static std::atomic<bool> s_skipSymbols{false};
 static siginfo_t* s_siginfo = nullptr;
 static ucontext_t* s_context = nullptr;
+static struct sigaction s_oldAbort;
 static crashlog::CrashContext g_context;
 static int s_pipe[2];
 
@@ -195,7 +196,7 @@ void CrashContext::writeInfo(Buffer& stream) {
     stream.append("Instruction Address: ");
     this->formatAddress(crashAddr, infoStream);
 
-    stream.append("\nSignal Code: 0x{:x} ({})\n", s_siginfo->si_signo, getSignalCodeString(s_signal, s_siginfo));
+    stream.append("\nSignal: {}, code {} ({})\n", s_siginfo->si_signo, s_siginfo->si_code, getSignalCodeString(s_signal, s_siginfo));
 
     if (hasSignalDetail(s_signal)) {
         stream.append("Signal Detail: ");
@@ -238,14 +239,23 @@ static void handlerThread() {
 #else
         auto signalAddress = reinterpret_cast<void*>(s_context->uc_mcontext.arm_pc);
 #endif
-        __android_log_print(ANDROID_LOG_ERROR, "Geode", "Picked up crash at %p", signalAddress);
+        int signal = s_signal;
+        __android_log_print(ANDROID_LOG_ERROR, "Geode", "Picked up signal %d at %p", signal, signalAddress);
 
         g_context.initialize(signalAddress);
 
         auto text = crashlog::writeCrashlog(g_context);
         log::error("Geode crashed!\n{}", text);
-        std::_Exit(EXIT_FAILURE);
-        //s_signal = 0;
+
+        // if this was an abort, call the previous handler, otherwise just exit immediately
+        // this means that if other interceptors are active (like hwasan), they will get to handle the crash as well
+        // if none are active, the game will simply exit
+        if (signal == SIGABRT && s_oldAbort.sa_sigaction) {
+            sigaction(SIGABRT, &s_oldAbort, nullptr);
+            raise(SIGABRT);
+        } else {
+            std::_Exit(EXIT_FAILURE);
+        }
     }
 }
 
@@ -266,7 +276,7 @@ bool crashlog::setupPlatformHandler() {
     sigaction(SIGFPE, &action, nullptr);
     sigaction(SIGILL, &action, nullptr);
     sigaction(SIGTERM, &action, nullptr);
-    sigaction(SIGABRT, &action, nullptr);
+    sigaction(SIGABRT, &action, &s_oldAbort);
     sigaction(SIGBUS, &action, nullptr);
 
 
