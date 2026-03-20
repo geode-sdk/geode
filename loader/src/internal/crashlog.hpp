@@ -79,7 +79,7 @@ namespace crashlog {
 
         // Formats a memory address into something that can more precisely point its location,
         // i.e. 0x12345678 -> "0x12345678 (GeometryDash + 0x5678)"
-        void formatAddress(void const* addr, Buffer& stream);
+        void formatAddress(void const* addr, Buffer& stream, bool shortName = true);
 
         /// These functions are implemented differently per-platform and not defined in the common crashlog.cpp
         /// As well, each platform must call initialize() after a crash to initialize the context.

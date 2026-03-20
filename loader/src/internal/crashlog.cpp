@@ -82,14 +82,14 @@ Mod* crashlog::CrashContext::modFromAddress(void const* addr) {
     return nullptr;
 }
 
-void crashlog::CrashContext::formatAddress(void const* addr, Buffer& stream) {
+void crashlog::CrashContext::formatAddress(void const* addr, Buffer& stream, bool shortName) {
     auto image = imageFromAddress(addr);
 
     if (image) {
         stream.append(
             "{} ({} + {})",
             addr,
-            image->name(),
+            shortName ? image->shortName() : image->name(),
             reinterpret_cast<void const*>((uintptr_t)addr - (uintptr_t)image->address)
         );
     } else {
