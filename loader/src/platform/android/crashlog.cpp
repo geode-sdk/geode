@@ -4,6 +4,7 @@
 
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/ZStringView.hpp>
+#include <tulip/TulipHook.hpp>
 #include <thread>
 #include <dlfcn.h>
 #include <cxxabi.h>
@@ -15,6 +16,8 @@
 #include <link.h>
 #include <unwind.h>
 #include <unwindstack/Maps.h>
+#include <unwindstack/RegsArm64.h>
+#include <unwindstack/RegsArm.h>
 #include <unwindstack/Unwinder.h>
 
 using namespace geode::prelude;
@@ -82,6 +85,57 @@ public:
     }
 };
 
+class GeodeUnwinder : public Unwinder {
+public:
+    GeodeUnwinder(Maps* maps, Regs* regs, std::shared_ptr<Memory> process_memory)
+        : Unwinder(CrashContext::MAX_FRAMES, maps, regs, process_memory) {}
+
+    bool Step(Elf* elf, uint64_t rel_pc, Regs* regs_, Memory* memory, bool* finished, bool* is_signal_frame) override {
+        // check if it's a tulip function
+        auto tinfo = tulip::hook::getFunctionInformation((void*)regs_->pc());
+        if (!tinfo) {
+            return elf->Step(rel_pc, regs_, memory, finished, is_signal_frame);
+        }
+
+#ifdef GEODE_IS_ANDROID64
+        auto regs = static_cast<RegsArm64*>(regs_);
+
+        uint64_t sp = regs->sp();
+
+        // Compute CFA
+        uint64_t cfa = sp + 0xc0;
+
+        // Read saved registers from stack
+        uint64_t new_fp, new_pc;
+        memory->Read64(cfa - 16, &new_fp); // X29
+        memory->Read64(cfa - 8, &new_pc);  // X30
+
+        // Apply unwind
+        regs->set_sp(cfa);
+        regs->set_pc(new_pc);
+        (*regs)[29] = new_fp;
+#else
+        auto regs = static_cast<RegsArm*>(regs_);
+        uint32_t sp = regs->sp();
+        uint32_t cfa = sp + 0x80;
+
+        uint32_t new_fp, new_pc;
+        memory->Read32(cfa - 4, &new_fp);
+        memory->Read32(cfa - 8, &new_pc);
+
+        // Thumb fix
+        new_pc |= 1;
+
+        // Apply unwind
+        regs->set_sp(cfa);
+        regs->set_pc(new_pc);
+        (*regs)[11] = new_fp;  // R11
+#endif
+
+        return true;
+    }
+};
+
 std::vector<StackFrame> CrashContext::getStacktrace() {
     std::vector<StackFrame> frames;
 
@@ -92,8 +146,7 @@ std::vector<StackFrame> CrashContext::getStacktrace() {
         return {};
     }
 
-    Unwinder unwinder(
-        MAX_FRAMES,
+    GeodeUnwinder unwinder(
         maps.get(),
         Regs::CreateFromUcontext(CURRENT_ARCH, s_context),
         mem
@@ -125,12 +178,26 @@ std::vector<StackFrame> CrashContext::getStacktrace() {
             free(demangle);
         }
 
-        frames.push_back({
+        StackFrame sframe {
             .address = (uintptr_t)frame.pc,
             .image = frame.map_info ? g_context.imageFromAddress((void*)frame.pc) : nullptr,
             .symbol = std::move(symbol),
             .offset = offset
-        });
+        };
+
+        auto tinfo = tulip::hook::getFunctionInformation((void*)frame.pc);
+        if (tinfo) {
+            using enum tulip::hook::FunctionInformationReturn::Type;
+            switch (tinfo->type) {
+                case Handler: sframe.description = "hook handler"; break;
+                case Relocated: sframe.description = "relocated function"; break;
+                case Trampoline: sframe.description = "trampoline"; break;
+                case Intervener: sframe.description = "intervener"; break;
+                default: sframe.description = "unknown tulip function"; break;
+            }
+        }
+
+        frames.push_back(std::move(sframe));
     }
 
     return frames;
