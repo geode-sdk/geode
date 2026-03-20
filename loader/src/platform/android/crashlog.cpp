@@ -25,6 +25,8 @@ using namespace crashlog;
 static constexpr auto crashIndicatorFilename = "lastSessionDidCrash";
 
 static int s_signal = 0;
+static std::atomic<int> s_reentrancy{0};
+static std::atomic<bool> s_skipSymbols{false};
 static siginfo_t* s_siginfo = nullptr;
 static ucontext_t* s_context = nullptr;
 static crashlog::CrashContext g_context;
@@ -86,7 +88,7 @@ std::vector<StackFrame> CrashContext::getStacktrace() {
     );
     unwinder.SetRegs(unwindstack::Regs::CreateFromUcontext(CURRENT_ARCH, s_context));
 
-    unwinder.SetResolveNames(true);
+    unwinder.SetResolveNames(!s_skipSymbols);
     unwinder.Unwind();
 
     for (int i = 0; i < unwinder.NumFrames(); ++i) {
@@ -187,7 +189,8 @@ std::string_view CrashContext::getGeodeBinaryName() {
 
 void CrashContext::writeInfo(Buffer& stream) {
     auto image = this->imageFromAddress(crashAddr);
-    stream.append("Faulty Lib: {}\n", image->name());
+
+    stream.append("Faulty Lib: {}\n", image ? image->name() : "<Unknown>");
     stream.append("Faulty Mod: {}\n", faultyMod ? faultyMod->getID() : "<Unknown>");
     stream.append("Instruction Address: ");
     this->formatAddress(crashAddr, infoStream);
@@ -203,11 +206,22 @@ void CrashContext::writeInfo(Buffer& stream) {
 
 extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext) {
     __android_log_print(ANDROID_LOG_ERROR, "Geode", "Signal handler called with signal %d", signal);
+
+    int reentrancy = s_reentrancy.fetch_add(1) + 1;
+    if (reentrancy > 3) {
+        // crash handler crashed 3 times, give up and die
+        __android_log_print(ANDROID_LOG_ERROR, "Geode", "Signal handler reentrancy level %d, giving up", reentrancy);
+        std::_Exit(EXIT_FAILURE);
+    }
+
+    // if the crash handler itself has already crashed processing its own crash, skip extra processing to try and avoid another crash
+    s_skipSymbols = reentrancy > 2;
+
     s_signal = signal;
     s_siginfo = signalInfo;
     s_context = reinterpret_cast<ucontext_t*>(vcontext);
-    char buf = '1';
-    write(s_pipe[1], &buf, 1);
+
+    write(s_pipe[1], "1", 1);
 
     // wait for the death to come
     while (true) {
@@ -253,7 +267,11 @@ bool crashlog::setupPlatformHandler() {
     sigaction(SIGABRT, &action, nullptr);
     sigaction(SIGBUS, &action, nullptr);
 
-    std::thread(&handlerThread).detach();
+
+    // spawn multiple to handle reentrant crashes, cases where one handler thread died
+    for (size_t i = 0; i < 3; i++) {
+        std::thread(&handlerThread).detach();
+    }
 
     auto crashIndicatorPath = crashlog::getCrashLogDirectory() / crashIndicatorFilename;
     if (std::filesystem::exists(crashIndicatorPath)) {

@@ -521,7 +521,7 @@ void CrashContext::writeInfo(Buffer& stream) {
         auto rec = g_excPtr->ExceptionRecord;
         auto image = this->imageFromAddress(this->crashAddr);
 
-        stream.append("Faulty Module: {}\n", image->name());
+        stream.append("Faulty Module: {}\n", image ? image->name() : "<Unknown>");
         stream.append("{}\n", makeFaultyModString(faultyMod));
         stream.append("Exception Code: {:x} ({})\n", rec->ExceptionCode, getExceptionCodeString(rec->ExceptionCode));
         stream.append("Exception Flags: {}\n", rec->ExceptionFlags);
