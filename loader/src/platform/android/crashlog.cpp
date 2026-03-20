@@ -250,7 +250,13 @@ static void handlerThread() {
         // if this was an abort, call the previous handler, otherwise just exit immediately
         // this means that if other interceptors are active (like hwasan), they will get to handle the crash as well
         // if none are active, the game will simply exit
-        if (signal == SIGABRT && s_oldAbort.sa_sigaction) {
+        if (signal == SIGABRT && (s_oldAbort.sa_sigaction || s_oldAbort.sa_handler)) {
+            // unblock the signal just in case
+            sigset_t set;
+            sigemptyset(&set);
+            sigaddset(&set, SIGABRT);
+            pthread_sigmask(SIG_UNBLOCK, &set, nullptr);
+
             sigaction(SIGABRT, &s_oldAbort, nullptr);
             raise(SIGABRT);
         } else {
