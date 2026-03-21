@@ -121,7 +121,7 @@ void crashlog::CrashContext::initialize(void const* crashAddr) {
         if (frame.image) {
             this->faultyMod = modFromImage(frame.image);
         } else {
-            this->faultyMod = modFromAddress(frame.address);
+            this->faultyMod = modFromAddress((void const*)frame.address);
         }
     }
 
