@@ -16,6 +16,7 @@ using namespace geode::prelude;
 #define CommentType CommentTypeDummy
 #import <AppKit/AppKit.h>
 #import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
 #undef CommentType
 
 
@@ -530,4 +531,24 @@ bool cocos2d::CCImage::saveToFile(const char* pszFilePath, bool bIsToRGB) {
         delete[] data;
     }
     return success;
+}
+
+bool geode::utils::platform::isWine() {
+    return false;
+}
+
+// https://stackoverflow.com/questions/11072804/how-do-i-determine-the-os-version-at-runtime-in-os-x-or-ios-without-using-gesta
+PlatformDetails geode::utils::platform::getDetails() {
+    PlatformDetails details;
+
+    auto version = [[NSProcessInfo processInfo] operatingSystemVersion];
+    details.majorVersion = version.majorVersion;
+    details.minorVersion = version.minorVersion;
+    details.patchVersion = version.patchVersion;
+    return details;
+}
+
+std::string geode::utils::platform::getString() {
+    auto details = getDetails();
+    return fmt::format("MacOS {}.{}.{}", details.majorVersion, details.minorVersion, details.patchVersion);
 }

@@ -13,6 +13,12 @@ namespace geode {
     struct PlatformInfo {
         dylib_t m_dylib;
     };
+
+    struct PlatformDetails {
+        uint32_t majorVersion;
+        uint32_t minorVersion;
+        uint32_t patchVersion;
+    };
 }
 
 namespace geode::base {

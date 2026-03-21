@@ -17,7 +17,7 @@
 #include <optional>
 #include <mutex>
 #include <string.h>
-
+#include <sys/system_properties.h>
 #include <jni.h>
 #include <Geode/cocos/platform/android/jni/JniHelper.h>
 
@@ -489,4 +489,40 @@ geode::Result<int> geode::utils::getLauncherVersion() {
 
 double geode::utils::getInputTimestamp() {
     return JniHelper::getPlatformTimestamp();
+}
+
+
+bool geode::utils::platform::isWine() {
+    return false;
+}
+
+// https://stackoverflow.com/questions/19355783/getting-os-version-with-ndk-in-c
+PlatformDetails geode::utils::platform::getDetails() {
+    PlatformDetails details;
+
+    std::array<char, PROP_VALUE_MAX+1> buffer;
+
+    int releaseVersionLength = __system_property_get("ro.build.version.release", buffer.data());
+    details.releaseVersion = std::string(buffer.data(), releaseVersionLength);
+
+    int sdkVersionLength = __system_property_get("ro.build.version.sdk", buffer.data());
+    details.sdkVersion = geode::utils::numFromString<uint32_t>(std::string(buffer.data(), sdkVersionLength)).unwrapOrDefault();
+
+    int archLength = __system_property_get("ro.product.cpu.abi", buffer.data());
+    details.arch = std::string(buffer.data(), archLength);
+
+    int availableArchsLength = __system_property_get("ro.product.cpu.abilist", buffer.data());
+    if (availableArchsLength > 0) {
+        for (auto arch : asp::iter::split(std::string_view(buffer.data(), availableArchsLength), ',')) {
+            details.availableArchs.push_back(std::string(arch));
+        }
+    }
+
+    return details;
+}
+
+std::string geode::utils::platform::getString() {
+    auto details = getDetails();
+    return fmt::format("Android {} {} (SDK {}, Available: {})", 
+        details.arch, details.releaseVersion, details.sdkVersion, fmt::join(details.availableArchs, ", "));
 }

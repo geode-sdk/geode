@@ -17,6 +17,16 @@ namespace geode {
         HMODULE m_hmod;
     };
 
+    struct PlatformDetails {
+        uint32_t majorVersion;
+        uint32_t minorVersion;
+        uint32_t buildNumber;
+        // from SYSTEM_INFO
+        uint32_t arch;
+        
+        std::optional<std::string> wineVersion;
+    };
+
     namespace internal {
         inline void const volatile* volatile globalForceEscape;
 

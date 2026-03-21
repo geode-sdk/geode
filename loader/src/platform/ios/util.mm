@@ -22,6 +22,8 @@ using namespace geode::prelude;
 #include <stdlib.h>
 #include <string.h>
 
+#import <Foundation/Foundation.h>
+
 using geode::utils::permission::Permission;
 
 bool utils::clipboard::write(ZStringView data) {
@@ -570,4 +572,24 @@ bool cocos2d::CCImage::saveToFile(const char* pszFilePath, bool bIsToRGB) {
         delete[] data;
     }
     return success;
+}
+
+bool geode::utils::platform::isWine() {
+    return false;
+}
+
+// https://stackoverflow.com/questions/11072804/how-do-i-determine-the-os-version-at-runtime-in-os-x-or-ios-without-using-gesta
+PlatformDetails geode::utils::platform::getDetails() {
+    PlatformDetails details;
+
+    auto version = [[NSProcessInfo processInfo] operatingSystemVersion];
+    details.majorVersion = version.majorVersion;
+    details.minorVersion = version.minorVersion;
+    details.patchVersion = version.patchVersion;
+    return details;
+}
+
+std::string geode::utils::platform::getString() {
+    auto details = getDetails();
+    return fmt::format("iOS {}.{}.{}", details.majorVersion, details.minorVersion, details.patchVersion);
 }
