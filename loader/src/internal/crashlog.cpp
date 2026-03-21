@@ -54,11 +54,7 @@ crashlog::Image* crashlog::CrashContext::imageFromAddress(void const* addr) {
     return nullptr;
 }
 
-Mod* crashlog::CrashContext::modFromAddress(void const* addr) {
-    if (addr == nullptr) {
-        return nullptr;
-    }
-    auto image = this->imageFromAddress(addr);
+Mod* crashlog::CrashContext::modFromImage(Image const* image) {
     if (image == nullptr) {
         return nullptr;
     }
@@ -85,6 +81,13 @@ Mod* crashlog::CrashContext::modFromAddress(void const* addr) {
     return nullptr;
 }
 
+Mod* crashlog::CrashContext::modFromAddress(void const* addr) {
+    if (addr == nullptr) {
+        return nullptr;
+    }
+    return modFromImage(this->imageFromAddress(addr));
+}
+
 void crashlog::CrashContext::formatAddress(void const* addr, Buffer& stream, bool shortName) {
     auto image = imageFromAddress(addr);
 
@@ -103,15 +106,24 @@ void crashlog::CrashContext::formatAddress(void const* addr, Buffer& stream, boo
 void crashlog::CrashContext::initialize(void const* crashAddr) {
     this->registers = getRegisters();
     this->images = getImages();
-    this->crashAddr = crashAddr;
-    this->faultyMod = modFromAddress(crashAddr);
-
     std::sort(images.begin(), images.end(), [](auto const a, auto const b) {
         return (uintptr_t)a.address < (uintptr_t)b.address;
     });
 
+    this->crashAddr = crashAddr;
+
     // this MUST come after getImages()
     this->frames = getStacktrace();
+
+    // try to use stacktrace for faulty mod detection
+    if (!this->frames.empty()) {
+        auto& frame = this->frames[0];
+        if (frame.image) {
+            this->faultyMod = modFromImage(frame.image);
+        } else {
+            this->faultyMod = modFromAddress(frame.address);
+        }
+    }
 
     // gather info
     this->writeInfo(infoStream);

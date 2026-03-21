@@ -68,14 +68,15 @@ namespace crashlog {
         std::vector<Image> images;
         std::vector<StackFrame> frames;
         std::vector<Register> registers;
-        geode::Mod* faultyMod;
-        void const* crashAddr;
+        geode::Mod* faultyMod = nullptr;
+        void const* crashAddr = nullptr;
         Buffer infoStream;
 
         void initialize(void const* crashAddr);
 
         Image* imageFromAddress(void const* addr);
         geode::Mod* modFromAddress(void const* addr);
+        geode::Mod* modFromImage(Image const* image);
 
         // Formats a memory address into something that can more precisely point its location,
         // i.e. 0x12345678 -> "0x12345678 (GeometryDash + 0x5678)"
