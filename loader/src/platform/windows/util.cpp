@@ -282,7 +282,10 @@ void geode::utils::game::restart(bool saveData, bool safeMode) {
 
     wchar_t buffer[MAX_PATH];
     GetModuleFileNameW(nullptr, buffer, MAX_PATH);
-    auto const gdName = L"\"" + std::filesystem::path(buffer).filename().native() + L"\" --geode:safe-mode";
+    auto gdName = L"\"" + std::filesystem::path(buffer).filename().native();
+    if (safeMode) {
+        gdName += L"\" --geode:safe-mode";
+    }
 
     // launch updater
     auto const updaterPath = workingDir / "GeodeUpdater.exe";
