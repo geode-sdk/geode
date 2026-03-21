@@ -60,7 +60,8 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
                 CircleBaseSize::MediumAlt
             );
             auto geodeBtnSelector = &CustomMenuLayer::onGeode;
-            if (!m_fields->m_geodeButton) {
+            log::error("geode button is {}, fallback status is {}", m_fields->m_geodeButton, m_fields->m_geodeButton && m_fields->m_geodeButton->isUsingFallback());
+            if (!m_fields->m_geodeButton || m_fields->m_geodeButton->isUsingFallback()) {
                 geodeBtnSelector = &CustomMenuLayer::onMissingTextures;
                 m_fields->m_geodeButton = ButtonSprite::create("!!");
             }
@@ -384,9 +385,9 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             "and <cy>unzip its contents</c> into <cb>geode/update/resources/geode.loader</c>.\n"
             "Afterwards, <cg>restart the game</c>.\n"
             "You may also continue without installing resources, but be aware that "
-            "you won't be able to open <cr>the Geode menu</c>.",
-            "Dismiss", "Open Github",
-            [](auto, bool btn2) {
+            "the Geode menu won't render properly.",
+            "Continue Anyway", "Open Github",
+            [this](auto, bool btn2) {
                 if (btn2) {
                     web::openLinkInBrowser("https://github.com/geode-sdk/geode/releases/latest");
                     file::openFolder(dirs::getGeodeDir() / "update" / "resources");
@@ -400,6 +401,8 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
                         "<cb>Don't add any new folders to the destination!</c>",
                         "OK"
                     )->show();
+                } else {
+                    this->onGeode(nullptr);
                 }
             },
             true,
@@ -411,14 +414,18 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         // dunno if we can auto-create target directory on mobile, nor if the
         // user has access to moving stuff there
 
-        FLAlertLayer::create(
+        createQuickPopup(
             "Missing Textures",
             "You appear to be missing textures, and the automatic texture fixer "
             "hasn't fixed the issue.\n"
             "**<cy>Report this bug to the Geode developers</c>**. It is very likely "
             "that your game <cr>will crash</c> until the issue is resolved.",
-            "OK"
-        )->show();
+            "OK",
+            nullptr,
+            [this](auto, bool btn2) {
+                this->onGeode(nullptr);
+            }
+        );
 
     #endif
     }
