@@ -6,6 +6,8 @@
 #include <cocos2d.h>
 
 namespace geode {
+    class SimpleTextAreaImpl;
+
     enum WrappingMode {
         NO_WRAP,
         WORD_WRAP,
@@ -24,6 +26,7 @@ namespace geode {
      *
      * Contact me on Discord (\@smjs) if you have any questions, suggestions or bugs.
     */
+
     class GEODE_DLL SimpleTextArea : public cocos2d::CCNode {
     public:
         static SimpleTextArea* create(std::string text, std::string font = "chatFont.fnt", float scale = 1.0f);
@@ -37,7 +40,7 @@ namespace geode {
         cocos2d::CCTextAlignment getAlignment();
         void setWrappingMode(WrappingMode mode);
         WrappingMode getWrappingMode();
-        void setText(std::string text);
+        virtual void setText(std::string text);
         std::string getText();
         void setMaxLines(size_t maxLines);
         size_t getMaxLines();
@@ -50,17 +53,17 @@ namespace geode {
         std::vector<cocos2d::CCLabelBMFont*> getLines();
         float getHeight();
         float getLineHeight();
+
     protected:
         SimpleTextArea();
         ~SimpleTextArea() override;
-    
-    private:
-        static SimpleTextArea* create(std::string font, std::string text, float scale, float width, const bool artificialWidth);
+
+        class Impl;
+        virtual std::unique_ptr<SimpleTextAreaImpl> createImpl();
+        std::unique_ptr<SimpleTextAreaImpl> m_impl;
 
         bool init(std::string font, std::string text, float scale, float width, const bool artificialWidth);
-
     private:
-        class Impl;
-        std::unique_ptr<Impl> m_impl;
+        static SimpleTextArea* create(std::string font, std::string text, float scale, float width, const bool artificialWidth);
     };
 }
