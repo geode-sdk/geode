@@ -514,7 +514,12 @@ PlatformDetails geode::utils::platform::getDetails() {
     int availableArchsLength = __system_property_get("ro.product.cpu.abilist", buffer.data());
     if (availableArchsLength > 0) {
         for (auto arch : asp::iter::split(std::string_view(buffer.data(), availableArchsLength), ',')) {
-            details.availableArchs.push_back(std::string(arch));
+            if (arch != details.arch) {
+                details.hostArch = arch;
+            }
+        }
+        if (details.hostArch.empty()) {
+            details.hostArch = details.arch;
         }
     }
 
@@ -523,6 +528,7 @@ PlatformDetails geode::utils::platform::getDetails() {
 
 std::string geode::utils::platform::getString() {
     auto details = getDetails();
-    return fmt::format("Android {} {} (SDK {}, Available: {})", 
-        details.arch, details.releaseVersion, details.sdkVersion, fmt::join(details.availableArchs, ", "));
+    auto hostStr = details.hostArch.empty() || details.hostArch == details.arch ? "" : fmt::format(", {} CPU", details.hostArch);
+    return fmt::format("Android {} {} (SDK {}{})", 
+        details.arch, details.releaseVersion, details.sdkVersion, hostStr);
 }

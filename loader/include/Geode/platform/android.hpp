@@ -13,7 +13,7 @@ namespace geode {
     struct PlatformDetails {
         std::string releaseVersion;
         std::string arch;
-        std::vector<std::string> availableArchs;
+        std::string hostArch;
         uint32_t sdkVersion;
     };
 }
