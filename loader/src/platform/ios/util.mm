@@ -17,6 +17,7 @@ using namespace geode::prelude;
 #include <Geode/binding/MenuLayer.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/Utils.hpp>
+#include <mach-o/utils.h>
 #include <objc/runtime.h>
 #include <objc/message.h>
 #include <stdlib.h>
@@ -586,10 +587,11 @@ PlatformDetails geode::utils::platform::getDetails() {
     details.majorVersion = version.majorVersion;
     details.minorVersion = version.minorVersion;
     details.patchVersion = version.patchVersion;
+    details.arch = macho_arch_name_for_mach_header(nullptr);
     return details;
 }
 
 std::string geode::utils::platform::getString() {
     auto details = getDetails();
-    return fmt::format("iOS {}.{}.{}", details.majorVersion, details.minorVersion, details.patchVersion);
+    return fmt::format("iOS {} {}.{}.{}", details.arch, details.majorVersion, details.minorVersion, details.patchVersion);
 }

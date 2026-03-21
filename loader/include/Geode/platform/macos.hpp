@@ -18,6 +18,7 @@ namespace geode {
         uint32_t majorVersion;
         uint32_t minorVersion;
         uint32_t patchVersion;
+        std::string arch;
     };
 }
 

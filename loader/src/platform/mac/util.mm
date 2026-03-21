@@ -545,10 +545,11 @@ PlatformDetails geode::utils::platform::getDetails() {
     details.majorVersion = version.majorVersion;
     details.minorVersion = version.minorVersion;
     details.patchVersion = version.patchVersion;
+    details.arch = macho_arch_name_for_mach_header(nullptr);
     return details;
 }
 
 std::string geode::utils::platform::getString() {
     auto details = getDetails();
-    return fmt::format("MacOS {}.{}.{}", details.majorVersion, details.minorVersion, details.patchVersion);
+    return fmt::format("MacOS {} {}.{}.{}", details.arch, details.majorVersion, details.minorVersion, details.patchVersion);
 }
