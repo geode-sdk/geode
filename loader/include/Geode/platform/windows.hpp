@@ -9,12 +9,23 @@
 #include <type_traits>
 #include <typeinfo>
 #include <memory>
+#include <optional>
 #include <intrin.h>  // for _ReadWriteBarrier
 #include "_casts_shared.hpp"
 
 namespace geode {
     struct PlatformInfo {
         HMODULE m_hmod;
+    };
+
+    struct PlatformDetails {
+        uint32_t majorVersion;
+        uint32_t minorVersion;
+        uint32_t buildNumber;
+        // from SYSTEM_INFO
+        uint32_t arch;
+        
+        std::optional<std::string> wineVersion;
     };
 
     namespace internal {

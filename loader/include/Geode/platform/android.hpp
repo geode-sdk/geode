@@ -9,6 +9,13 @@ namespace geode {
     struct PlatformInfo {
         void* m_so;
     };
+
+    struct PlatformDetails {
+        std::string releaseVersion;
+        std::string arch;
+        std::vector<std::string> availableArchs;
+        uint32_t sdkVersion;
+    };
 }
 
 namespace geode::base {

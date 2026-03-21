@@ -21,6 +21,17 @@ using namespace geode::prelude;
 #include "../../utils/thread.hpp"
 #include <arc/sync/oneshot.hpp>
 
+// https://stackoverflow.com/questions/25986331/how-to-determine-windows-version-in-future-proof-way
+#pragma comment(lib, "ntdll.lib")
+
+extern "C" {
+	typedef LONG NTSTATUS, *PNTSTATUS;
+	#define STATUS_SUCCESS (0x00000000)
+
+	// Windows 2000 and newer
+	NTSYSAPI NTSTATUS NTAPI RtlGetVersion(PRTL_OSVERSIONINFOEXW lpVersionInformation);
+}
+
 bool utils::clipboard::write(ZStringView data) {
     if (!OpenClipboard(nullptr)) return false;
     if (!EmptyClipboard()) {
@@ -443,3 +454,66 @@ double geode::utils::getInputTimestamp() {
     return static_cast<double>(counter.QuadPart) / static_cast<double>(freq.QuadPart);
 }
 
+bool geode::utils::platform::isWine() {
+    auto details = getDetails();
+    return details.wineVersion.has_value();
+}
+
+// https://stackoverflow.com/questions/25986331/how-to-determine-windows-version-in-future-proof-way
+// https://www.winehq.org/pipermail/wine-devel/2008-September/069387.html
+PlatformDetails geode::utils::platform::getDetails() {
+    PlatformDetails details;
+
+    RTL_OSVERSIONINFOEXW versionInfo;
+    versionInfo.dwOSVersionInfoSize = sizeof(versionInfo);
+    NTSTATUS status = RtlGetVersion(&versionInfo);
+    if (status == STATUS_SUCCESS) {
+        details.majorVersion = versionInfo.dwMajorVersion;
+        details.minorVersion = versionInfo.dwMinorVersion;
+        details.buildNumber = versionInfo.dwBuildNumber;
+    }
+    else {
+        log::error("Failed to get Windows version: {}", status);
+        details.majorVersion = 0;
+        details.minorVersion = 0;
+        details.buildNumber = 0;
+    }
+
+    SYSTEM_INFO si;
+	GetSystemInfo(&si);
+    details.arch = si.wProcessorArchitecture;
+
+    if(HMODULE hntdll = GetModuleHandle("ntdll.dll")) {
+        using WineVersionFunc = char const* (CDECL *)(void);
+        static WineVersionFunc getWineVersion = reinterpret_cast<WineVersionFunc>(GetProcAddress(hntdll, "wine_get_version"));
+        if (getWineVersion) {
+            details.wineVersion = getWineVersion();
+        }
+    }
+
+    return details;
+}
+
+std::string geode::utils::platform::getString() {
+    auto details = getDetails();
+    std::string archStr;
+    switch (details.arch) {
+        case PROCESSOR_ARCHITECTURE_AMD64:
+            archStr = "x64";
+            break;
+        case PROCESSOR_ARCHITECTURE_ARM64:
+            archStr = "ARM64";
+            break;
+        case PROCESSOR_ARCHITECTURE_INTEL:
+            archStr = "x86";
+            break;
+        default:
+            archStr = "Unknown Architecture";
+    }
+
+    std::string versionStr = fmt::format("Windows {} {}.{}.{}", archStr, details.majorVersion, details.minorVersion, details.buildNumber);
+    if (details.wineVersion.has_value()) {
+        versionStr += fmt::format(" (Wine {})", *details.wineVersion);
+    }
+    return versionStr;
+}
