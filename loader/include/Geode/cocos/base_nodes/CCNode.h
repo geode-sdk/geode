@@ -1207,6 +1207,49 @@ public:
         return nullptr;
     }
 
+    /**
+     * Gets the parent of the specified type.
+     * @param node The node to get the parent of.
+     * @param index The index of the parent to get.
+     * @return The parent of the specified type, or nullptr if not found.
+     */
+    template <class InpT = cocos2d::CCNode*, class T = std::remove_pointer_t<InpT>>
+    T* getParentByType(int index = 0) {
+        auto parent = this->getParent();
+        int indexCounter = 0;
+
+        if(index < 0) {
+            // start from end for negative index
+            index = -index - 1;
+            std::vector<cocos2d::CCNode*> parents;
+            while(parent) {
+                parents.push_back(parent);
+                parent = parent->getParent();
+            }
+            for (auto it = parents.rbegin(); it != parents.rend(); ++it) {
+                if(auto casted = geode::cast::typeinfo_cast<T*>(*it)) {
+                    if (indexCounter == index) {
+                        return casted;
+                    }
+                    ++indexCounter;
+                }
+            }
+
+            return nullptr;
+        }
+
+        while(parent) {
+            if(auto casted = geode::cast::typeinfo_cast<T*>(parent)) {
+                if (indexCounter == index) {
+                    return casted;
+                }
+                ++indexCounter;
+            }
+            parent = parent->getParent();
+        }
+        return nullptr;
+    }
+
     /// @{
     /// @name Shader Program
     /**
