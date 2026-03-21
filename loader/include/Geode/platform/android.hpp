@@ -13,7 +13,8 @@ namespace geode {
     struct PlatformDetails {
         std::string releaseVersion;
         std::string arch;
-        std::string hostArch;
+        // only set if the device supports multiple ABIs and we're not on the host ABI
+        std::optional<std::string> hostArch;
         uint32_t sdkVersion;
     };
 }
