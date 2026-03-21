@@ -112,9 +112,19 @@ class $modify(CCSprite) {
         return sprite;
     }
 
+    virtual bool initWithSpriteFrameName(const char* name) {
+        auto* spriteFrame = CCSpriteFrameCache::get()->spriteFrameByName(name);
+        if(!spriteFrame || spriteFrame->getTag() == FALLBACK_TAG) {
+            assignFallbackObj(this);
+        }
+        
+        return CCSprite::initWithSpriteFrameName(name);
+    }
+
     virtual bool initWithSpriteFrame(CCSpriteFrame* frame) {
-        if (CCSprite::initWithSpriteFrame(frame))
+        if (CCSprite::initWithSpriteFrame(frame)) {
             return true;
+        }
 
         geode::log::warn("CCSprite::initWithSpriteFrame - Using fallback texture for `{}`", frame);
 
