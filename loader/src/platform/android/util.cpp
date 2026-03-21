@@ -17,6 +17,7 @@
 #include <optional>
 #include <mutex>
 #include <string.h>
+#include <unistd.h>
 #include <sys/system_properties.h>
 #include <jni.h>
 #include <Geode/cocos/platform/android/jni/JniHelper.h>
@@ -496,6 +497,21 @@ bool geode::utils::platform::isWine() {
     return false;
 }
 
+// we had a 15 minute argument on lead dev chat about whether we should "hardcode" the current architecture or
+// get it somewhere. i give up i am tired as hell. i do not like hardcoding this like this but
+// god it is such a pain to not do it this way. if anyone wants to use this code in v6 arm or x86 or mips or 
+// whatever please tell alk so she can bicker dank about how hardcoding it was a bad idea and now they need
+// to change this function 6 years later down the line, thanks
+const char* currentArchName() {
+    #if defined(GEODE_IS_ANDROID32)
+        return "armeabi-v7a";
+    #elif defined(GEODE_IS_ANDROID64)
+        return "arm64-v8a";
+    #else
+        #error "Unsupported architecture!"
+    #endif
+}
+
 // https://stackoverflow.com/questions/19355783/getting-os-version-with-ndk-in-c
 PlatformDetails geode::utils::platform::getDetails() {
     PlatformDetails details;
@@ -508,24 +524,19 @@ PlatformDetails geode::utils::platform::getDetails() {
     int sdkVersionLength = __system_property_get("ro.build.version.sdk", buffer.data());
     details.sdkVersion = geode::utils::numFromString<uint32_t>(std::string(buffer.data(), sdkVersionLength)).unwrapOrDefault();
 
-    int archLength = __system_property_get("ro.product.cpu.abi", buffer.data());
-    details.arch = std::string(buffer.data(), archLength);
+    details.arch = currentArchName();
 
-    int availableArchsLength = __system_property_get("ro.product.cpu.abilist", buffer.data());
-    if (availableArchsLength > 0) {
-        for (auto arch : asp::iter::split(std::string_view(buffer.data(), availableArchsLength), ',')) {
-            if (arch != details.arch) {
-                details.hostArch = arch;
-            }
-        }
-    }
+    int hostArchLength = __system_property_get("ro.product.cpu.abi", buffer.data());
+    details.hostArch = std::string(buffer.data(), hostArchLength);
+
+    details.pageSize = getpagesize();
 
     return details;
 }
 
 std::string geode::utils::platform::getString() {
     auto details = getDetails();
-    auto hostStr = details.hostArch ? fmt::format(", {} CPU", *details.hostArch) : "";
+    auto hostStr = details.hostArch != details.arch ? fmt::format(", {} CPU", details.hostArch) : "";
     return fmt::format("Android {} {} (SDK {}{})", 
         details.arch, details.releaseVersion, details.sdkVersion, hostStr);
 }
