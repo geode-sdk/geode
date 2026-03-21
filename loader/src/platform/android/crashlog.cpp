@@ -78,18 +78,18 @@ std::vector<Image> CrashContext::getImages() {
         if (it != images.rend()) {
             // update address/size
             uintptr_t lastEnd = it->address + it->size;
-            uintptr_t newEnd = std::max(lastEnd, map->end());
+            uintptr_t newEnd = std::max<uintptr_t>(lastEnd, map->end());
 
-            it->address = std::min(it->address, map->start());
+            it->address = std::min<uintptr_t>(it->address, map->start());
             it->size = newEnd - it->address;
             continue;
         }
 
         // insert new image
         images.push_back({
-            map->start(),
+            static_cast<uintptr_t>(map->start()),
             std::move(name),
-            map->end() - map->start(),
+            static_cast<size_t>(map->end() - map->start()),
         });
     }
 
