@@ -18,7 +18,8 @@ namespace geode {
         uint32_t majorVersion;
         uint32_t minorVersion;
         uint32_t patchVersion;
-        std::string arch;
+        std::string arch; // can be x86_64 or arm64
+        bool rosetta;
     };
 }
 

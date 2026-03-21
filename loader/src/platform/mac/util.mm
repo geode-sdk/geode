@@ -13,6 +13,7 @@ using namespace geode::prelude;
 #include <string.h>
 #include <arc/sync/oneshot.hpp>
 #include <mach-o/utils.h>
+#include <sys/sysctl.h>
 
 #define CommentType CommentTypeDummy
 #import <AppKit/AppKit.h>
@@ -538,6 +539,34 @@ bool geode::utils::platform::isWine() {
     return false;
 }
 
+bool isRosetta() {
+#if defined(GEODE_IS_ARM_MAC)
+    return false;
+#else
+    int translated = 0;
+    size_t size = 0;
+
+    sysctlbyname("sysctl.proc_translated", nullptr, &size, nullptr, 0);
+    if (sysctlbyname("sysctl.proc_translated", &translated, &size, nullptr, 0) == 0) {
+        if (translated == 1) {
+            return true;
+        }
+    }
+
+    return false;
+#endif
+}
+
+const char* currentArchName() {
+    #if defined(GEODE_IS_ARM_MAC)
+        return "arm64";
+    #elif defined(GEODE_IS_INTEL_MAC)
+        return "x86_64";
+    #else
+        #error "Unsupported architecture!"
+    #endif
+}
+
 // https://stackoverflow.com/questions/11072804/how-do-i-determine-the-os-version-at-runtime-in-os-x-or-ios-without-using-gesta
 PlatformDetails geode::utils::platform::getDetails() {
     PlatformDetails details;
@@ -546,11 +575,13 @@ PlatformDetails geode::utils::platform::getDetails() {
     details.majorVersion = version.majorVersion;
     details.minorVersion = version.minorVersion;
     details.patchVersion = version.patchVersion;
-    details.arch = macho_arch_name_for_mach_header(nullptr);
+    details.arch = currentArchName();
+    details.rosetta = isRosetta();
     return details;
 }
 
 std::string geode::utils::platform::getString() {
     auto details = getDetails();
-    return fmt::format("MacOS {} {}.{}.{}", details.arch, details.majorVersion, details.minorVersion, details.patchVersion);
+    auto rosettaText = details.rosetta ? " (Rosetta)" : "";
+    return fmt::format("MacOS {}{} {}.{}.{}", details.arch, rosettaText, details.majorVersion, details.minorVersion, details.patchVersion);
 }
