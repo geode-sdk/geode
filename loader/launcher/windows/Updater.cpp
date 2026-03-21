@@ -131,8 +131,19 @@ int main(int argc, char* argv[]) {
             removePath(updatesDir);
     }
 
-    if (argc < 2)
+    // gd always restarts with its executable as the 1st arg
+    if (argc < 2){
+        if(MessageBoxW(
+            NULL, L"GeodeUpdater is an internal utility. If you want to update "
+            L"Geode manually, please download the installer from https://geode-sdk.org/install "
+            L"and follow the instructions.\n\nOpen the download page?", 
+            L"Geode Updater", MB_ICONINFORMATION | MB_YESNO
+        ) == IDYES) {
+            ShellExecuteW(NULL, L"open", L"https://geode-sdk.org/install", NULL, NULL, TRUE);
+        }
+
         return 0;
+    }
 
     if (!waitForFile(workingDir / argv[1])) {
         showError(L"There was an error restarting GD. Please, restart the game manually.");
