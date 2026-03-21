@@ -1,14 +1,20 @@
 # Geode Changelog
 
 ## v5.4.0
- * Info/button setting types (#1903)
+ * Crashlog rework/unification. Includes a removal of Breakpad on Android! (#1939)
  * Integrated fallback sprites into Geode (#1819)
+ * Info/button setting types (#1903)
  * Add `geode::SliderNode` (#1854)
  * Add `CircleBaseColor::Red` (41f65f7)
  * Enable signals, and then add `geode::Mod::settingReact` for those signals (17656a8)
+ * Add platform details under `geode::utils::platform` (#1941)
+ * Add `CCNode::getParentByType` (a86381d)
+ * Add `Button::getAnimationType` and `NineSlice::getScaleMultiplier` (#1938)
  * Disable copying/move operators for fields (83e7a59)
  * `CCEGLView::get` now uses the CCEGLView singleton (21f5567)
  * Improvements to the missing dependencies popup (9fa3a79)
+ * Add restart in safe mode button to crash popup on Windows (#1940)
+ * Improve fallback behavior of Geode button when texture is missing (444fab8)
  * Fix crash when exiting game on macOS (52e16a2)
  * Fix additional enable/disable flips in setting errors (aae2fe3)
  * Fix input timestamps on Android (fdb2f26)
