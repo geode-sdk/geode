@@ -60,7 +60,6 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
                 CircleBaseSize::MediumAlt
             );
             auto geodeBtnSelector = &CustomMenuLayer::onGeode;
-            log::error("geode button is {}, fallback status is {}", m_fields->m_geodeButton, m_fields->m_geodeButton && m_fields->m_geodeButton->isUsingFallback());
             if (!m_fields->m_geodeButton || m_fields->m_geodeButton->isUsingFallback()) {
                 geodeBtnSelector = &CustomMenuLayer::onMissingTextures;
                 m_fields->m_geodeButton = ButtonSprite::create("!!");
