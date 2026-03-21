@@ -128,11 +128,13 @@ std::string crashlog::getDateString(bool filesafe) {
 void crashlog::printGeodeInfo(Buffer& stream) {
     stream.append(
         "Loader Version: {}\n"
+        "Platform: {}\n"
         "Loader Commit: {}\n"
         "Bindings Commit: {}\n"
         "Installed mods: {}\n"
         "Failed to load: {}\n",
         Loader::get()->getVersion().toVString(),
+        platform::getString(),
         about::getLoaderCommitHash(),
         about::getBindingsCommitHash(),
         Loader::get()->getAllMods().size(),
