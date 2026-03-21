@@ -304,7 +304,6 @@ std::string crashlog::writeCrashlog(const CrashContext& ctx) {
 }
 
 std::string crashlog::writeCrashlog(const CrashContext& ctx, std::filesystem::path& outCrashlogPath) {
-
     StringBuffer<> stacktrace;
     StringBuffer<> registers;
 

@@ -35,41 +35,67 @@ static siginfo_t* s_siginfo = nullptr;
 static ucontext_t* s_context = nullptr;
 static struct sigaction s_oldAbort;
 static crashlog::CrashContext g_context;
+static std::unique_ptr<Maps> g_maps;
 static int s_pipe[2];
 
 static constexpr auto CURRENT_ARCH =
     GEODE_ANDROID32(ARCH_ARM)
     GEODE_ANDROID64(ARCH_ARM64);
 
+static std::string nameForMap(MapInfo& map, std::shared_ptr<Memory>& memory) {
+    auto elf = map.GetElf(memory, CURRENT_ARCH);
+
+    std::string name = map.name();
+    if (elf) {
+        auto soname = elf->GetSoname();
+        if (!soname.empty()) {
+            name = soname;
+        }
+    }
+    return name;
+}
+
 std::vector<Image> CrashContext::getImages() {
     std::vector<Image> images;
 
-    dl_iterate_phdr([](struct dl_phdr_info* info, size_t size, void* data) {
-        auto& images = *reinterpret_cast<std::vector<Image>*>(data);
+    if (!g_maps) return images;
 
-        uintptr_t lowAddr = (uintptr_t)-1;
-        uintptr_t highAddr = 0;
+    auto mem = Memory::CreateProcessMemoryCached(getpid());
 
-        for (size_t i = 0; i < info->dlpi_phnum; i++) {
-            if (info->dlpi_phdr[i].p_type == PT_LOAD) {
-                uintptr_t start = info->dlpi_phdr[i].p_vaddr;
-                uintptr_t end = start + info->dlpi_phdr[i].p_memsz;
+    // get all images and their bases
+    for (size_t i = 0; i < g_maps->Total(); i++) {
+        auto map = g_maps->Get(i);
+        std::string name = nameForMap(*map, mem);
 
+        // skip images with no names
+        if (name.empty()) continue;
 
-                lowAddr = std::min(lowAddr, start);
-                highAddr = std::max(highAddr, end);
-            }
-        }
-
-
-        images.push_back({
-            info->dlpi_addr,
-            info->dlpi_name ? info->dlpi_name : "<Unknown>",
-            highAddr - lowAddr
+        // check if it's already inserted, iterate from the end since usually theres multiple maps in a row for same image
+        auto it = std::find_if(images.rbegin(), images.rend(), [&name](const Image& img) {
+            return img.name() == name;
         });
 
-        return 0;
-    }, &images);
+        if (it != images.rend()) {
+            // update address/size
+            uintptr_t lastEnd = it->address + it->size;
+            uintptr_t newEnd = std::max(lastEnd, map->end());
+
+            it->address = std::min(it->address, map->start());
+            it->size = newEnd - it->address;
+            continue;
+        }
+
+        // insert new image
+        images.push_back({
+            map->start(),
+            std::move(name),
+            map->end() - map->start(),
+        });
+    }
+
+    // for (auto& img : images) {
+    //     __android_log_print(ANDROID_LOG_DEBUG, "Geode", "Image: %s at %p (size 0x%zx)", img.name().data(), (void*)img.address, img.size);
+    // }
 
     return images;
 }
@@ -132,14 +158,9 @@ std::vector<StackFrame> CrashContext::getStacktrace() {
 
     auto jit = CreateJitDebug(CURRENT_ARCH, mem);
     auto dex = CreateDexFiles(CURRENT_ARCH, mem);
-    auto maps = std::make_unique<LocalMaps>();
-    if (!maps->Parse()) {
-        __android_log_print(ANDROID_LOG_ERROR, "Geode", "Failed to parse memory maps for unwinder");
-        return {};
-    }
 
     GeodeUnwinder unwinder(
-        maps.get(),
+        g_maps.get(),
         Regs::CreateFromUcontext(CURRENT_ARCH, s_context),
         mem
     );
@@ -170,9 +191,22 @@ std::vector<StackFrame> CrashContext::getStacktrace() {
             free(demangle);
         }
 
+        Image* image = nullptr;
+        if (frame.map_info) {
+            // try to find the image using map info, more reliable
+            std::string name = nameForMap(*frame.map_info, mem);
+            auto it = std::find_if(g_context.images.begin(), g_context.images.end(), [&name](const Image& img) {
+                return img.name() == name;
+            });
+            if (it != g_context.images.end()) {
+                image = &*it;
+            }
+            // if there is no map info, it is likely a hook handler and will be handled by the common handler
+        }
+
         StackFrame sframe {
             .address = (uintptr_t)frame.pc,
-            .image = frame.map_info ? g_context.imageFromAddress((void*)frame.pc) : nullptr,
+            .image = image,
             .symbol = std::move(symbol),
             .offset = offset
         };
@@ -302,10 +336,16 @@ static void handlerThread() {
         int signal = s_signal;
         __android_log_print(ANDROID_LOG_ERROR, "Geode", "Picked up signal %d at %p", signal, signalAddress);
 
-        g_context.initialize(signalAddress);
+        // initialize maps early
+        g_maps = std::make_unique<LocalMaps>();
+        if (!g_maps->Parse()) {
+            __android_log_print(ANDROID_LOG_ERROR, "Geode", "Failed to parse memory maps");
+        }
 
-        auto text = crashlog::writeCrashlog(g_context);
-        log::error("Geode crashed!\n{}", text);
+        g_context.initialize(signalAddress);
+        g_maps.reset();
+
+        crashlog::writeCrashlog(g_context);
 
         // if this was an abort, call the previous handler, otherwise just exit immediately
         // this means that if other interceptors are active (like hwasan), they will get to handle the crash as well
@@ -344,6 +384,7 @@ bool crashlog::setupPlatformHandler() {
     sigaction(SIGTERM, &action, nullptr);
     sigaction(SIGABRT, &action, &s_oldAbort);
     sigaction(SIGBUS, &action, nullptr);
+    sigaction(SIGTRAP, &action, nullptr);
 
 
     // spawn multiple to handle reentrant crashes, cases where one handler thread died
