@@ -525,7 +525,7 @@ PlatformDetails geode::utils::platform::getDetails() {
 
 std::string geode::utils::platform::getString() {
     auto details = getDetails();
-    auto hostStr = details.hostArch == details.arch ? "" : fmt::format(", {} CPU", *details.hostArch);
+    auto hostStr = details.hostArch ? fmt::format(", {} CPU", *details.hostArch) : "";
     return fmt::format("Android {} {} (SDK {}{})", 
         details.arch, details.releaseVersion, details.sdkVersion, hostStr);
 }
