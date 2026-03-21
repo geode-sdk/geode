@@ -12,6 +12,7 @@ using namespace geode::prelude;
 #include <Geode/utils/Task.hpp>
 #include <string.h>
 #include <arc/sync/oneshot.hpp>
+#include <mach-o/utils.h>
 
 #define CommentType CommentTypeDummy
 #import <AppKit/AppKit.h>
