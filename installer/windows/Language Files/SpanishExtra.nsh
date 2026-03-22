@@ -9,6 +9,7 @@ ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Este asistente te guiará durant
 
 ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\n¡Geometry Dash no está instalado en este directorio!"
 ${LangFileString} GEODE_TEXT_GD_OLD "$\r$\n$\r$\n¡Tu versión de Geometry Dash es muy vieja para esta versión de Geode!"
+${LangFileString} GEODE_TEXT_GD_RUNNING "Please close Geometry Dash before installing Geode."
 ${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "¡Este directorio ya tiene otros mods instalados!$\r$\nEstos serán sobreescritos por Geode. (the dll trademark)"
 
 ; uninstaller

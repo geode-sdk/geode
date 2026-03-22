@@ -457,6 +457,15 @@ FunctionEnd
 
 SectionGroup "Geode"
     Section "Loader" LOADER_SECTION
+        check_gd_open:
+            nsExec::ExecToStack 'cmd /c tasklist /FI "IMAGENAME eq GeometryDash.exe" | find /I "GeometryDash.exe"'
+            Pop $0
+            Pop $1
+            StrCmp $0 "0" 0 continue_install
+                MessageBox MB_ABORTRETRYIGNORE|MB_ICONEXCLAMATION $(GEODE_TEXT_GD_RUNNING) IDRETRY check_gd_open IDIGNORE continue_install
+                Quit
+        continue_install:
+
         SetOutPath $INSTDIR
 
         File ${BINDIR}\Geode.dll

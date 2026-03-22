@@ -9,6 +9,7 @@ ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Ця програма допом
 
 ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nУ цій теці не встановлено Geometry Dash!"
 ${LangFileString} GEODE_TEXT_GD_OLD "$\r$\n$\r$\nВаша версія Geometry Dash занадто стара для цієї версії Geode!"
+${LangFileString} GEODE_TEXT_GD_RUNNING "Please close Geometry Dash before installing Geode."
 ${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "Ця тека вже містить інші моди!$\r$\nВони будуть замінені Geode. (the dll trademark)"
 
 ; uninstaller

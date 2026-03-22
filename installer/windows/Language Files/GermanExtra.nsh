@@ -9,6 +9,7 @@ ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Dieses Setup führt Sie durch di
 
 ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nIn diesem Pfad ist Geometry Dash nicht installiert!"
 ${LangFileString} GEODE_TEXT_GD_OLD "$\r$\n$\r$\nIhre Geometry Dash Version ist zu alt für diese Version von Geode!"
+${LangFileString} GEODE_TEXT_GD_RUNNING "Please close Geometry Dash before installing Geode."
 ${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "In diesem Pfad sind andere Mods installiert!$\r$\nSie werden von Geode überschrieben. (the dll trademark)"
 
 ; uninstaller
