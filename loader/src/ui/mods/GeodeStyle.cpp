@@ -132,6 +132,10 @@ bool GeodePopup::init(float width, float height, GeodePopupStyle style, bool for
 }
 
 bool GeodeSquareSprite::init(CCSprite* top, bool* state, bool forceDisableTheme) {
+    if (isGeodeTheme(forceDisableTheme) && !CCTextureCache::get()->textureForKey("GE_button_05.png"_spr)) {
+        forceDisableTheme = true;
+    }
+
     if (!CCSprite::initWithFile(isGeodeTheme(forceDisableTheme) ? "GE_button_05.png"_spr : "GJ_button_01.png"))
         return false;
 
