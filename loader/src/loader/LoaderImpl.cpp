@@ -616,7 +616,7 @@ void Loader::Impl::findProblems() {
             if (dep.isBreaking()) {
                 // todo: which direction is this relationship in?
                 // todo: if mod A marks B as breaking, is B the one that shouldn't be loaded?
-                breakingIncompatibilities.push_back(dep.getMod()->getName());
+                breakingIncompatibilities.push_back(dep.getMod()->getID());
                 log::warn("{} breaks {} {}", id, dep.getID(), dep.getVersion());
             }
             else {
@@ -666,59 +666,29 @@ void Loader::Impl::findProblems() {
             std::string message;
             bool lastWasIncompatible = false;
             for (auto const& [whatToDo, mods] : std::initializer_list<std::pair<std::string_view, std::vector<std::string> const&>> {
-                std::make_pair("incompatible", breakingIncompatibilities),
-                std::make_pair("installed", noninstalledDependencies),
-                std::make_pair("enabled", disabledDependencies),
-                std::make_pair("updated", outdatedDependencies),
+                std::make_pair("disable", breakingIncompatibilities),
+                std::make_pair("install", noninstalledDependencies),
+                std::make_pair("enable", disabledDependencies),
+                std::make_pair("update", outdatedDependencies),
             }) {
                 if (mods.empty()) continue;
                 if (message.empty()) {
-                    // Incompatibilities have a different message because
-                    // they're not missing dependencies
-                    if (whatToDo == "incompatible") {
-                        message = fmt::format(
-                            "{} is incompatible with the following mod{}: {}",
-                            mod->getName(), (mods.size() == 1 ? "" : "s"), ranges::join(mods, ", ")
-                        );
-                        lastWasIncompatible = true;
-                    }
-                    // Everything else is missing dependency-related
-                    else {
-                        message = fmt::format(
-                            "{} requires the following mod{} to be {}: {}",
-                            mod->getName(), (mods.size() == 1 ? "" : "s"), whatToDo,
-                            //ranges::join(mods, ", "),
-                            ranges::join(mods, std::string(""), [](const std::string& m) {
-                                return fmt::format("\n\n<mod:{}>", m.substr(0, m.find(' ')));
-                            })
-                        );
-                    }
+                    message = fmt::format(
+                        "Please <cy>{}</c> the following mod{} to use <co>{}</c>: {}",
+                        whatToDo, (mods.size() == 1 ? "" : "s"), mod->getName(),
+                        //ranges::join(mods, ", "),
+                        ranges::join(mods, std::string(""), [](const std::string& m) {
+                            return fmt::format("\n\n<mod:{}>", m.substr(0, m.find(' ')));
+                        })
+                    );
                 }
                 else {
-                    message += "\n";
-
-                    // Enclose missing dependencies after incompatibilities in
-                    // parentheses since those aren't the main point of the
-                    // error message
-                    message += (breakingIncompatibilities.size() ? "(" : "");
-
-                    // If the first sentence was about an incompatibility, we
-                    // need to have the next sentence specify that we are now
-                    // listing dependencies
-                    if (lastWasIncompatible) {
-                        message += fmt::format(
-                            "And requires these mod{} to be {}: {}",
-                            (mods.size() == 1 ? "" : "s"), whatToDo, ranges::join(mods, ", ")
-                        );
-                    }
-                    else {
-                        message += fmt::format(
-                            "And these mod{} to be {}: {}",
-                            (mods.size() == 1 ? "" : "s"), whatToDo, ranges::join(mods, ", ")
-                        );
-                    }
-                    message += breakingIncompatibilities.size() ? ")" : "";
-                    lastWasIncompatible = false;
+                    message += fmt::format("\n\nand {} the following mod{}: {}",
+                        whatToDo, (mods.size() == 1 ? "" : "s"),
+                        ranges::join(mods, std::string(""), [](const std::string& m) {
+                            return fmt::format("\n\n<mod:{}>", m.substr(0, m.find(' ')));
+                        })
+                    );
                 }
             }
             this->addProblem({
