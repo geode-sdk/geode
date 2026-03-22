@@ -26,11 +26,11 @@ namespace geode {
     using ByteSpan = std::span<uint8_t const>;
 
     template <class... T>
-    requires (std::is_convertible_v<T, uint8_t> && ...) 
+    requires (std::is_convertible_v<T, uint8_t> && ...)
     constexpr auto byteArray(T... bytes) {
         return std::array<uint8_t, sizeof...(T)>{ uint8_t{bytes}... };
     }
-    
+
 
     template <typename T>
     ByteVector toBytes(T const& a) {
@@ -380,16 +380,16 @@ namespace geode::utils::platform {
     /// every non-Windows platforms, and for Windows if returns true if the
     /// game is running under Wine, and false otherwise.
     /// @return True if the game is running under Wine, false otherwise.
-    bool isWine();
+    GEODE_DLL bool isWine();
 
     /// Returns the platform details of the current process. This is a struct
     /// that is different for each platform, so accessing its members should
     /// be done under platform-specific code.
     /// @return The platform details struct
-    PlatformDetails getDetails();
+    GEODE_DLL PlatformDetails getDetails();
 
     /// Returns a human-readable string describing the platform the game is
     /// running on. This is used in crash logs and mod compatibility checks.
     /// @return The platform string
-    std::string getString();
+    GEODE_DLL std::string getString();
 }
